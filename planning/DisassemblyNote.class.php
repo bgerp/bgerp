@@ -407,12 +407,14 @@ class planning_DisassemblyNote extends deals_ManifactureMaster
 
         $jobRec = self::getJobRec($rec);
         if(is_object($jobRec)){
-            $form->setDefault('storeId', $jobRec->storeId);
+            // За Разпад ролите на storeId/inputStores в Заданието са разменени -
+            // влаганият артикул идва от storeId, а произведените от inputStores
+            $form->setDefault('inputStoreId', $jobRec->storeId);
 
             if(!empty($jobRec->inputStores)){
                 $inputStores = keylist::toArray($jobRec->inputStores);
                 if(countR($inputStores) == 1){
-                    $form->setDefault('inputStoreId', key($inputStores));
+                    $form->setDefault('storeId', key($inputStores));
                 }
             }
         }
