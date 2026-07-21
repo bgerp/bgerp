@@ -107,7 +107,7 @@ class planning_Jobs extends core_Master
     /**
      * Икона на единичния изглед
      */
-    public $singleIcon = 'img/16/clipboard_text.png';
+    public $singleIcon = 'img/16/clipboard_text_1.png';
 
 
     /**
@@ -149,7 +149,7 @@ class planning_Jobs extends core_Master
         $rec = $id ? self::fetchRec($id, 'type') : null;
 
         if ($rec && $rec->type == 'disassembly') {
-            return 'img/16/clipboard_text_1.png';
+            return 'img/16/clipboard_text.png';
         }
 
         return $this->singleIcon;
@@ -795,6 +795,8 @@ class planning_Jobs extends core_Master
                         break;
                     case 'overdue':
                         $data->query->where("#dueDate < #expectedDueDate");
+                        $data->query->where("#state = 'active'");
+                        break;
                     case 'progress':
                         $data->query->XPR('progress', 'double', 'ROUND(#quantity / COALESCE(#quantityProduced, 0), 2)');
                         $data->query->where("#state = 'active'");
@@ -820,8 +822,22 @@ class planning_Jobs extends core_Master
             }
         }
     }
-    
-    
+
+
+    /**
+     * Бутонът "Нов запис" да води към Задание от вида на текущия таб (Производство/Разпад)
+     */
+    protected static function on_AfterPrepareListToolbar($mvc, &$res, $data)
+    {
+        if ($data->toolbar->haveButton('btnAdd')) {
+            $type = Request::get('type', 'enum(manifacture,disassembly)');
+            if (isset($type)) {
+                $data->toolbar->setUrlParam('btnAdd', 'type', $type);
+            }
+        }
+    }
+
+
     /**
      * Рендираме общия изглед за 'List'
      */
@@ -2526,6 +2542,7 @@ class planning_Jobs extends core_Master
             if(!$isSystemUser){
                 core_Users::cancelSystemUser();
             }
+            $count++;
         }
 
         return $count;

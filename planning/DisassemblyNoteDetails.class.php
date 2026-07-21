@@ -207,8 +207,8 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
             foreach ($data->rows as $id => $row) {
                 $rec = $data->recs[$id];
 
-                // Основният вложен артикул се показва отделно, отгоре в мастър
-                // секцията на протокола (@see renderDetail_/MAIN_INPUT_PRODUCT_TABLE),
+                // Основният вложен артикул се показва отделно, в собствена таблица
+                // над таблицата с произведените артикули (@see renderDetail_/MAIN_INPUT_PRODUCT_TABLE),
                 // а не в таблицата с (други) артикули за влагане
                 if ($rec->type == 'input' && $rec->isMainInput == 'yes') {
                     $data->mainInputArr[$id] = $row;
@@ -250,9 +250,9 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
             unset($data->listFields['tools']);
         }
 
-        // Мини-таблица с ОСНОВНИЯ артикул за разпад - показва се отгоре, в мастър
-        // секцията на протокола (виж MAIN_INPUT_PRODUCT_TABLE в шаблона), не тук
-        // долу заедно с (евентуални) други артикули за влагане
+        // Мини-таблица с ОСНОВНИЯ артикул за разпад - показва се отделно, над
+        // таблицата с произведените артикули (виж MAIN_INPUT_PRODUCT_TABLE в
+        // шаблона), не заедно с (евентуални) други артикули за влагане
         if (countR($data->mainInputArr)) {
             $data->listFields['productId'] = 'Артикул за разпад|* ';
             $mData = clone $data;
@@ -265,7 +265,7 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
             $mData->listFields['storeId'] = 'От склад';
             $mData->listFields = core_TableView::filterEmptyColumns($mData->rows, $mData->listFields, $this->hideListFieldsIfEmpty);
 
-            $mainInputTable = cls::get('core_TableView', array('mvc' => $mData->listTableMvc, 'tableClass' => 'disassemblyMainInputTable'));
+            $mainInputTable = cls::get('core_TableView', array('mvc' => $mData->listTableMvc));
             $detailsMainInput = $mainInputTable->get($mData->rows, $mData->listFields);
             $tpl->append($detailsMainInput, 'MAIN_INPUT_PRODUCT_TABLE');
         }
