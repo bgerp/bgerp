@@ -296,7 +296,7 @@ class doc_FolderPlg extends core_Plugin
                 if ($requiredRoles != 'no_one' && $rec->access == 'team') {
                     
                     // Ако има зададени мастър роли за достъп
-                    $requiredRoles = $mvc->coverMasterRoles ? $mvc->coverMasterRoles : 'no_one';
+                    $requiredRoles = !empty($mvc->coverMasterRoles) ? $mvc->coverMasterRoles : 'no_one';
                 } else {
                     $requiredRoles = 'no_one';
                 }

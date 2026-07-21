@@ -153,10 +153,10 @@ class crm_ext_IdCards extends core_Detail
         
         $tpl->append(tr('Лична карта'), 'idCardTitle');
         
-        $rec = $data->IdCard->rec;
+        $rec = $data->IdCard->rec ?? null;
         $url = array();
-        
-        if ($rec->idCardNumber || $rec->idCardIssuedOn || $rec->idCardExpiredOn || $rec->idCardIssuedBy) {
+
+        if (!empty($rec) && ($rec->idCardNumber || $rec->idCardIssuedOn || $rec->idCardExpiredOn || $rec->idCardIssuedBy)) {
             $idCardTpl = new ET(getFileContent('crm/tpl/IdCard.shtml'));
             $idCardTpl->placeObject($data->IdCard->row);
             

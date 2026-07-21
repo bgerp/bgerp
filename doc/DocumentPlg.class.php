@@ -554,6 +554,21 @@ class doc_DocumentPlg extends core_Plugin
         }
     }
 
+
+    /**
+     * Дефолтно - 1 бутон "Нов" на класа (стария вид). Класове, които искат
+     * няколко варианта за добавяне (напр. planning_Jobs - производство/разпад,
+     * с различни URL параметри) дефинират собствен getNewBtnVariants()
+     *
+     * @see doc_Containers::getNewDocMenu()
+     */
+    public static function on_AfterGetNewBtnVariants($mvc, &$res, $rec)
+    {
+        if (empty($res)) {
+            $res = array(array('title' => $mvc->singleTitle, 'icon' => $mvc->singleIcon, 'params' => array()));
+        }
+    }
+
     
     /**
      * Добавя бутон за показване на оттеглените записи
@@ -2407,7 +2422,7 @@ class doc_DocumentPlg extends core_Plugin
         //Добавяме текст по подразбиране за титлата на формата
         if ($form->rec->folderId) {
             $fRec = doc_Folders::fetch($form->rec->folderId);
-            $title = tr(mb_strtolower($mvc->singleTitle));
+            $title = tr(mb_strtolower($data->singleTitle ?? $mvc->singleTitle));
             if (core_Users::getCurrent('id', false)) {
                 list($t, ) = explode('<div', doc_Folders::recToVerbal($fRec)->title);
                 $title .= ' |в|* ' . $t;

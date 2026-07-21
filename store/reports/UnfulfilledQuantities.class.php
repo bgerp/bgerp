@@ -451,7 +451,7 @@ class store_reports_UnfulfilledQuantities extends frame2_driver_TableData
             $state = (sales_Sales::fetch($dRec->saleId)->state);
             $singleUrl = toUrl(array($Sale->className, 'single', $dRec->saleId));
 
-            $row->saleId = ht::createLink("#{$handle}", $singleUrl, false, "ef_icon={$Sale->singleIcon}");
+            $row->saleId = ht::createLink("#{$handle}", $singleUrl, false, "ef_icon={$Sale->getSingleIcon()}");
             $row->saleId = ($row->saleId ?? '') . ' / ' . $sRec->valior;
 
         }

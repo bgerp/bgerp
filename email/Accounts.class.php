@@ -603,6 +603,7 @@ class email_Accounts extends core_Master
     public static function loadData()
     {
         $mvc = cls::get('email_Accounts');
+        $res = '';
         
         if (defined('BGERP_DEFAULT_EMAIL_FROM') && BGERP_DEFAULT_EMAIL_FROM != '') {
             if (!$mvc->fetch(array("#email = '[#1#]'", BGERP_DEFAULT_EMAIL_FROM))) {

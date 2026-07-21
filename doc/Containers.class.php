@@ -1828,7 +1828,17 @@ class doc_Containers extends core_Manager
                     continue;
                 }
 
-                if ($mvc->haveRightFor('add', $rec)) {
+                // По подразбиране - 1 бутон на класа (@see doc_DocumentPlg::on_AfterGetNewBtnVariants).
+                // Класове като planning_Jobs дефинират собствен getNewBtnVariants(),
+                // за да покажат няколко бутона (напр. по вид на заданието) вместо 1
+                foreach ($mvc->getNewBtnVariants($rec) as $variant) {
+                    $variantRec = clone $rec;
+                    foreach ((array) ($variant['params'] ?? array()) as $k => $v) {
+                        $variantRec->{$k} = $v;
+                    }
+
+                    if (!$mvc->haveRightFor('add', $variantRec)) continue;
+
                     if($mvc->newBtnGroup ?? null){
                         list($order, $group) = explode('|', $mvc->newBtnGroup);
                     } else {
@@ -1838,17 +1848,18 @@ class doc_Containers extends core_Manager
                     }
 
                     $ind = $order * 10000 + $i++;
-                    $docArrSort[$ind] = array($group, $mvc->singleTitle, $class);
+                    $docArrSort[$ind] = array($group, $variant['title'], $class, $variant['params'] ?? array(), $variant['icon'] ?? $mvc->singleIcon);
                 }
             }
-            
+
             // Сортиране
             ksort($docArrSort);
-            
+
             // Групиране
             $btns = array();
             foreach ($docArrSort as $id => $arr) {
-                $btns[$arr[0]][$arr[1]] = $arr[2];
+                expect(!isset($btns[$arr[0]][$arr[1]]), 'Вече има бутон със същото име в групата', $arr[0], $arr[1], $arr[2]);
+                $btns[$arr[0]][$arr[1]] = array('class' => $arr[2], 'params' => $arr[3], 'icon' => $arr[4]);
             }
             
             // Генериране на изгледа
@@ -1873,20 +1884,23 @@ class doc_Containers extends core_Manager
                 
                 $tpl->append("<li class='btns-title {$active} '><img class='btns-icon plus' src=". sbf('img/16/toggle1.png') ."><img class='btns-icon minus' src=". sbf('img/16/toggle2.png') .">&nbsp;{$group}</li>");
                 $tpl->append("<li class='dimension'>");
-                foreach ($bArr as $class) {
-                    $mvc = cls::get($class);
-                    
+                foreach ($bArr as $title => $info) {
+                    $url = array($info['class'], 'add',
+                        'threadId' => $rec->threadId ?? null, 'folderId' => $rec->folderId, 'ret_url' => true);
+                    foreach ($info['params'] as $k => $v) {
+                        $url[$k] = $v;
+                    }
+
                     $tpl->append(new ET("<div class='btn-group'>[#1#]</div>", ht::createBtn(
-                        
-                        $mvc->singleTitle,
-                        array($class, 'add',
-                            'threadId' => $rec->threadId ?? null, 'folderId' => $rec->folderId, 'ret_url' => true),
+
+                        $title,
+                        $url,
                             null,
-                        
+
                         null,
-                        
-                        "ef_icon={$mvc->singleIcon},style=width:100%;text-align:left;"
-                    
+
+                        "ef_icon={$info['icon']},style=width:100%;text-align:left;"
+
                     )));
                 }
                 
@@ -2057,7 +2071,7 @@ class doc_Containers extends core_Manager
         
         // Ако мода е xhtml
         if (Mode::is('text', 'xhtml')) {
-            $res = new ET("<span class='linkWithIcon' style=\"" . ht::getIconStyle($ctrInst->singleIcon) . '"> [#1#] </span>', $title);
+            $res = new ET("<span class='linkWithIcon' style=\"" . ht::getIconStyle($ctrInst->getSingleIcon($params['id'])) . '"> [#1#] </span>', $title);
         } elseif (Mode::is('text', 'plain')) {
             
             // Ескейпваме плейсхолдърите и връщаме титлата
@@ -2066,7 +2080,7 @@ class doc_Containers extends core_Manager
             
             //Атрибути на линка
             $attr = array();
-            $attr['ef_icon'] = $ctrInst->singleIcon;
+            $attr['ef_icon'] = $ctrInst->getSingleIcon($params['id']);
             $attr['target'] = '_blank';
             
             //Създаваме линк

@@ -78,6 +78,7 @@ class type_Keylist extends core_Type
         $mvc = cls::get($this->params['mvc']);
         
         $ids = str_replace($div, ',', $value);
+        $res = '';
         
         if ($ids) {
             $idsKey = md5($ids . '|' . json_encode($this->params) . '|' . Mode::get('text-export') . '|' . Mode::get('text'));

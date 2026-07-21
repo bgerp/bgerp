@@ -810,9 +810,10 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                             if($originDoc->isInstanceOf('planning_Jobs')){
 
                                 // Ако заданието е за производим артикул само тогава да може да се пуска протокол от него
-                                $productId = $originDoc->fetchField('productId');
+                                $jobRec = $originDoc->fetch('productId,type');
+                                $productId = $jobRec->productId;
                                 $productRec = cat_Products::fetch($productId, 'canManifacture,generic');
-                                if ($state == 'closed' || $productRec->canManifacture != 'yes' || $productRec->generic == 'yes') {
+                                if ($jobRec->type == 'disassembly' || $state == 'closed' || $productRec->canManifacture != 'yes' || $productRec->generic == 'yes') {
                                     $requiredRoles = 'no_one';
                                 }
                             } elseif($originDoc->isInstanceOf('planning_Tasks')){

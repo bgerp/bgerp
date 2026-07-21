@@ -415,7 +415,7 @@ class trans_LineDetails extends doc_Detail
                 Mode::push('text', 'plain');
                 $paymentCaption = "#" . $PayDoc->getHandle() . " (" . core_Type::getByName('double(decimals=2)')->toVerbal($paymentInfo['amount']) . ")";
                 Mode::pop('text');
-                $row->_rowTools->addLink($paymentCaption, $PayDoc->getSingleUrlArray(), array('ef_icon' => $PayDoc->singleIcon, 'title' => 'Преглед на документа'));
+                $row->_rowTools->addLink($paymentCaption, $PayDoc->getSingleUrlArray(), array('ef_icon' => $PayDoc->getSingleIcon(), 'title' => 'Преглед на документа'));
 
                 $amountTpl->append('<div class="payment-line-amount">');
                 $amountTpl->append($paymentInfo['amountVerbal']);

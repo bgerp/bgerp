@@ -96,14 +96,16 @@ class cat_PackParams extends core_Manager
      */
     public function isUnique($rec, &$fields = array(), &$exRec = null)
     {
+        $recId = $rec->id ?? '';
+
         if (!empty($rec->title)) {
-            $where1 = "#id != '{$rec->id}' AND #packagingId = '{$rec->packagingId}' AND #title = '{$rec->title}'";
+            $where1 = "#id != '{$recId}' AND #packagingId = '{$rec->packagingId}' AND #title = '{$rec->title}'";
             $fields = array('title', 'packagingId');
             $res = $this->fetch($where1);
         }
-        
+
         if (empty($res)) {
-            $where2 = "#id != '{$rec->id}' AND ";
+            $where2 = "#id != '{$recId}' AND ";
             $where2 .= $this->getCompareCondition($rec);
             $fields = array('packagingId', 'sizeWidth', 'sizeHeight', 'sizeDepth', 'tareWeight');
             $res = $this->fetch($where2);

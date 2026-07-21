@@ -1370,6 +1370,8 @@ class planning_Tasks extends core_Master
                 if ($origin = doc_Containers::getDocument($rec->originId)) {
                     if (!$origin->isInstanceOf('planning_Jobs')) {
                         $requiredRoles = 'no_one';
+                    } elseif ($origin->fetchField('type') == 'disassembly') {
+                        $requiredRoles = 'no_one';
                     }
                 }
             } elseif (!empty($rec->folderId)) {
@@ -2070,6 +2072,12 @@ class planning_Tasks extends core_Master
      */
     public function prepareTasks($data)
     {
+        if ($data->masterMvc instanceof planning_Jobs && $data->masterData->rec->type == 'disassembly') {
+            $data->hide = true;
+
+            return;
+        }
+
         if ($data->masterMvc instanceof planning_AssetResources) {
             if(empty($data->masterData->rec->simultaneity)) {
                 $data->hide = true;
@@ -2191,11 +2199,11 @@ class planning_Tasks extends core_Master
      */
     public function renderTasks($data)
     {
+        if (($data->hide ?? false) === true) return null;
+
         $tpl = new ET('');
 
         if ($data->masterMvc instanceof planning_AssetResources) {
-            if($data->hide) return null;
-
             $data->TabCaption = 'Операции';
             $tpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
         }
@@ -2255,11 +2263,13 @@ class planning_Tasks extends core_Master
         $data->listFilter->setSuggestions('folders', array('' => '') + doc_Folders::getOptionsByCoverInterface('planning_ActivityCenterIntf', array(), true));
         $data->listFilter->input('folders');
         $orderByField = 'orderByDate';
-        $data->listFilter->FNC('saleId', 'key2(mvc=sales_Sales,select=id,allowEmpty,input,remember,forceAjax, maxSuggestions=100)', 'caption=Продажба,input, after=isFinalSelect,class=w100');
+        $data->listFilter->FNC('saleId', 'key2(mvc=sales_Sales,select=id,allowEmpty,input,remember,forceAjax, maxSuggestions=100)', 'caption=Продажба,input,after=isFinalSelect,class=w100,silent,removeAndRefreshForm=purchaseId');
         $data->listFilter->setFieldTypeParams("saleId", array('state' => 'active,closed'));
-        $data->listFilter->showFields .= ',folders,productId, saleId';
+        $data->listFilter->FNC('purchaseId', 'key2(mvc=purchase_Purchases,select=id,allowEmpty,input,remember,forceAjax,maxSuggestions=100)', 'caption=Покупка,input,after=saleId,class=w100,silent,removeAndRefreshForm=saleId');
+        $data->listFilter->setFieldTypeParams('purchaseId', array('state' => 'active,closed'));
+        $data->listFilter->showFields .= ',folders,productId,saleId,purchaseId';
         $data->listFilter->setField('productId','before=isFinalSelect');
-        $data->listFilter->input('productId, saleId');
+        $data->listFilter->input('productId,saleId,purchaseId');
         $data->query->isSlowQuery = true;
 
         // Добавят се за избор само използваните в ПО оборудвания
@@ -2351,9 +2361,18 @@ class planning_Tasks extends core_Master
         $data->query->XPR('orderByDate', 'datetime', $orderByDateCoalesce);
         $data->query->orderBy($orderByField, $orderByDir);
 
-        if(!empty($data->listFilter->rec->saleId)){
+        $jobSourceField = $jobSourceId = null;
+        if (!empty($data->listFilter->rec->saleId)) {
+            $jobSourceField = 'saleId';
+            $jobSourceId = $data->listFilter->rec->saleId;
+        } elseif (!empty($data->listFilter->rec->purchaseId)) {
+            $jobSourceField = 'purchaseId';
+            $jobSourceId = $data->listFilter->rec->purchaseId;
+        }
+
+        if (isset($jobSourceField)) {
             $jQuery = planning_Jobs::getQuery();
-            $jQuery->where("#saleId = {$data->listFilter->rec->saleId}");
+            $jQuery->where("#{$jobSourceField} = {$jobSourceId}");
             $jRecs = $jQuery->fetchAll();
             $containerIds = arr::extractValuesFromArray($jRecs,'containerId');
 
@@ -2462,9 +2481,13 @@ class planning_Tasks extends core_Master
      */
     protected static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
     {
-        // Ако ПО е към задание по продажба - добавя се хендлъра на продажбата в ключовите думи
-        if($jobRec = planning_Jobs::fetch("#containerId = '{$rec->originId}'", 'saleId,productId')){
-            $res .= ' ' . plg_Search::normalizeText(sales_Sales::getHandle($jobRec->saleId));
+        // Ако ПО е към задание по сделка - добавя се хендлъра на сделката в ключовите думи
+        if($jobRec = planning_Jobs::fetch("#containerId = '{$rec->originId}'", 'saleId,purchaseId,productId')){
+            if (!empty($jobRec->saleId)) {
+                $res .= ' ' . plg_Search::normalizeText(sales_Sales::getHandle($jobRec->saleId));
+            } elseif (!empty($jobRec->purchaseId)) {
+                $res .= ' ' . plg_Search::normalizeText(purchase_Purchases::getHandle($jobRec->purchaseId));
+            }
 
             // Добавяне на драйвера на артикула в ключовите думи
             $productDriverClass = cat_Products::getVerbal($jobRec->productId, 'innerClass');

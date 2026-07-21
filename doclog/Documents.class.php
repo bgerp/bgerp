@@ -2154,17 +2154,22 @@ class doclog_Documents extends core_Manager
                         } else {
                             $errStr = '|Документът изпратен до|* ' . type_Emails::fromArray($sendEmailsArr) . ' |е видян от потребител в рискова зона|*: ';
                         }
-                        $countryName = '';
-                        $cCodeArr = array();
+                        $cCodeCntArr = array();
                         foreach ($badIpArr as $ip => $countryCode) {
-                            if (isset($cCodeArr[$countryCode])) {
-                                continue;
-                            }
-                            $errStr .= ($countryName) ? ', ' : '';
-                            $countryName = drdata_Countries::getCountryName($countryCode);
-                            $errStr .= $countryName;
-                            $cCodeArr[$countryCode] = true;
+                            $cCodeCntArr[$countryCode] = ($cCodeCntArr[$countryCode] ?? 0) + 1;
                         }
+
+                        // Ключ за спиране на повтарящите се известия - зависи само от държавите,
+                        // а не от бройката, за да не се известява наново при промяна на броя рискови IP-та
+                        $keyStr = $errStr . implode(',', array_keys($cCodeCntArr));
+
+                        $countryStrArr = array();
+                        foreach ($cCodeCntArr as $countryCode => $cnt) {
+                            $countryName = drdata_Countries::getCountryName($countryCode);
+                            $countryStrArr[] = ($cnt > 1) ? "{$countryName} ({$cnt})" : $countryName;
+                        }
+
+                        $errStr .= implode(', ', $countryStrArr);
                         
                         $userId = $rec->createdBy;
                         if (($userId <= 0) || !haveRole('powerUser', $userId)) {
@@ -2175,7 +2180,7 @@ class doclog_Documents extends core_Manager
                             }
                         }
                         
-                        $kKey = md5($errStr . '|' . $userId . '|' . $rec->containerId . '|' . $rec->mid);
+                        $kKey = md5($keyStr . '|' . $userId . '|' . $rec->containerId . '|' . $rec->mid);
                         $keyVal = core_Permanent::get($kKey);
                         if (!isset($keyVal)) {
                             core_Permanent::set($kKey, true, 10000);
@@ -2980,7 +2985,7 @@ class doclog_Documents extends core_Manager
         $inClass = (object) array(
             'class' => $docClass->className,
             'id' => $docId,
-            'icon' => sbf($docClass->singleIcon),
+            'icon' => sbf($docClass->getSingleIcon($docId)),
             'title' => $docRow->title,
             'author' => $docRow->author,
             'lastUsedOn' => dt::now(),);

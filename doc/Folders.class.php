@@ -1963,7 +1963,7 @@ class doc_Folders extends core_Master
         // За да може да промени трябва да има достъп до сингъла на папката
         // Да променя собствените си настройки или да е admin|ceo
         
-        list(, $id) = explode('::', $key);
+        list(, $id) = explode('::', $key) + [null, null];
         
         $currUser = core_Users::getCurrent();
         
@@ -2006,7 +2006,7 @@ class doc_Folders extends core_Master
         $this->currentTab = 'Теми';
         
         // Вземаме id на папката от ключа
-        list(, $folderId) = explode('::', $form->rec->_key);
+        list(, $folderId) = explode('::', $form->rec->_key) + [null, null];
         
         // Определяме заглавито
         $rec = $this->fetch($folderId);

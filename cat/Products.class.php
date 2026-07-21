@@ -730,7 +730,7 @@ class cat_Products extends embed_Manager
             $rec->state = 'active';
         }
         
-        $rec->code = ($rec->code == '') ? null : $rec->code;
+        $rec->code = (($rec->code ?? null) == '') ? null : ($rec->code ?? null);
 
         if(isset($rec->id)){
             $exMeasureId = $mvc->fetchField($rec->id, 'measureId', false);
@@ -1753,6 +1753,13 @@ class cat_Products extends embed_Manager
     public static function getProductOptions($params, $limit = null, $q = '', $onlyIds = null, $includeHiddens = false)
     {
         $private = $products = $templates = $favourites = array();
+
+        // При избор на артикул за задание не изпълняваме тежка нефилтрирана
+        // заявка. Конкретно избрана стойност по id трябва да може да се зареди.
+        if (!empty($params['allowedForJobs']) && !trim($q) && empty($onlyIds)) {
+            return array();
+        }
+
         $query = cat_Products::getQuery();
         $reverseOrder = false;
 
@@ -1798,6 +1805,20 @@ class cat_Products extends embed_Manager
             }
 
             self::filterQueryByMeta($query, $params['hasProperties'] ?? null, $params['hasnotProperties'] ?? null, $params['orHasProperties'] ?? false);
+
+            // Артикули, годни за Задание (planning_Jobs): производими ИЛИ (вложими И
+            // складируеми). filterQueryByMeta()/hasProperties не могат да изразят
+            // "A ИЛИ (B И C)" - затова е отделен, твърдо кодиран филтър.
+            if (!empty($params['allowedForJobs'])) {
+                if (($params['jobType'] ?? null) == 'manifacture') {
+                    $query->where("#canManifacture = 'yes'");
+                } elseif (($params['jobType'] ?? null) == 'disassembly') {
+                    $query->where("#canConvert = 'yes' AND #canStore = 'yes'");
+                } else {
+                    $query->where("#canManifacture = 'yes' OR (#canConvert = 'yes' AND #canStore = 'yes')");
+                }
+            }
+
             if (isset($params['groups'])) {
                plg_ExpandInput::applyExtendedInputSearch('cat_Products', $query, $params['groups']);
             }

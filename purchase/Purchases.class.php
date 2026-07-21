@@ -50,6 +50,12 @@ class purchase_Purchases extends deals_DealMaster
 
 
     /**
+     * Полето на planning_Jobs, свързващо Задание с тази сделка (deals_DealMaster::prepareJobsInfo/renderJobsInfo)
+     */
+    public $jobSourceField = 'purchaseId';
+
+
+    /**
      * Кой може да го активира?
      */
     public $canConto = 'ceo,purchase,acc';

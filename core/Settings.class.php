@@ -528,7 +528,7 @@ class core_Settings extends core_Manager
                 }
                 
                 if (is_array($users)) {
-                    if (!$users[$sudoCu] && !$users[$currCu] && ($allSystemId != $form->rec->_userOrRole)) {
+                    if (empty($users[$sudoCu]) && empty($users[$currCu]) && ($allSystemId != $form->rec->_userOrRole)) {
                         $form->setReadOnly($fName);
                     }
                 }
@@ -578,7 +578,7 @@ class core_Settings extends core_Manager
             foreach ((array) $recArr as $valKey => $value) {
 
                 // Ако тази опция е за всички потребители
-                if (!empty($uSettingForAllArr) && $uSettingForAllArr[$valKey] && ($allSystemId != $form->rec->_userOrRole)) {
+                if (!empty($uSettingForAllArr[$valKey]) && ($allSystemId != $form->rec->_userOrRole)) {
                     $sForAllValArr[$valKey] = $value;
                     unset($recArr[$valKey]);
                 }
@@ -616,7 +616,7 @@ class core_Settings extends core_Manager
                 self::setValues($key, (array) $oldSArr, $allSystemId);
             }
             
-            list(, $objectId) = explode('::', $key);
+            list(, $objectId) = explode('::', $key) + [null, null];
             $pKey = self::prepareKey($key);
             if (isset($objectId)) {
                 $rec = self::fetch(array("#key = '[#1#]' AND #userOrRole = '[#2#]' AND #objectId = '[#3#]'", $pKey, $userOrRole, $objectId));
@@ -668,7 +668,7 @@ class core_Settings extends core_Manager
     {
         $userOrRole = self::prepareUserOrRole($userOrRole);
         
-        list(, $objectId) = explode('::', $key);
+        list(, $objectId) = explode('::', $key) + [null, null];
          
         // Ограничаваме дължината на ключа
         $key = self::prepareKey($key);

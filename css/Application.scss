@@ -4075,7 +4075,7 @@ fieldset.sharing-history {
 }
 
 // двете колони във филтъра да не са в мозила
-@supports not (-moz-appearance: none) {
+
 	.wide .twoColsFilter {
 		display: flex;
 		justify-content: space-between;
@@ -4090,21 +4090,36 @@ fieldset.sharing-history {
 		margin-left: 20px;
 		align-self: flex-start;
 	}
+
+
+
+
+@supports (-moz-appearance: none) {
+	.wide .twoColsFilter {
+		display: block;
+		margin-bottom: 0;
+	}
+
+	.wide .twoColsFilter .listFilter form {
+		column-count: 1;
+	}
+
+	.wide .twoColsFilter .summary-block {
+		margin-left: 0;
+	}
 }
 
 @media handheld, only screen and (max-width: 1400px) {
-	@supports not (-moz-appearance: none) {
-		.wide .twoColsFilter {
-			display: block;
-			margin-bottom: 0;
+	.wide .twoColsFilter {
+		display: block;
+		margin-bottom: 0;
 
-			.listFilter form {
-				column-count: 1;
-			}
+		.listFilter form {
+			column-count: 1;
+		}
 
-			.summary-block {
-				margin-left: 0;
-			}
+		.summary-block {
+			margin-left: 0;
 		}
 	}
 }

@@ -321,7 +321,7 @@ class store_reports_Documents extends frame2_driver_TableData
                 }
             }
 
-            $row->documentType = ht::createLink("#{$handle}", $singleUrl, false, "ef_icon={$Document->singleIcon}");
+            $row->documentType = ht::createLink("#{$handle}", $singleUrl, false, "ef_icon={$Document->getSingleIcon()}");
         }
         
         if (!Mode::isReadOnly()) {

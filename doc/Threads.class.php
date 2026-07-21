@@ -3099,7 +3099,7 @@ class doc_Threads extends core_Manager
         // За да може да промени трябва да има достъп до сингъла на нишката
         // Да променя собствените си настройки или да е admin|ceo
         
-        list(, $id) = explode('::', $key);
+        list(, $id) = explode('::', $key) + [null, null];
         
         $currUser = core_Users::getCurrent();
         
@@ -3142,7 +3142,7 @@ class doc_Threads extends core_Manager
         $this->currentTab = 'Теми';
         
         // Вземаме id на папката от ключа
-        list(, $threadId) = explode('::', $form->rec->_key);
+        list(, $threadId) = explode('::', $form->rec->_key) + [null, null];
         
         // Определяме заглавито
         $rec = $this->fetch($threadId);

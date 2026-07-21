@@ -1,0 +1,104 @@
+[#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
+    <table style='width:100%;'>
+        <tbody>
+            <tr>
+                <td>
+                    <div class='scrolling-holder'>
+                        <div class='display-table'>
+                            <table class="innerTable border-table paddingCells">
+                                <tbody>
+                                    <tr>
+                                        <td class="cell centered" rowspan='3'>
+                                            <div class="document-title">|Протокол за разпад|*</div>
+                                            <div style="padding-top:5px;">
+                                                № <span class="bigData">[#id#]</span> /
+                                                <span class="bigData">[#valior#]</span>
+                                            </div>
+                                            <!--ET_BEGIN state-->
+                                            <div class="state [#STATE_CLASS#]" style='margin: 5px 0;'>[#state#]</div>
+                                            <!--ET_END state-->
+                                        </td>
+                                        <td class="cell" style='padding-top:8px; background-color:#eee'><b>|Към|*: <b>[#jobId#]</b> <b style='font-size:18px;'>[#storeId#]</b></td>
+                                    </tr>
+                                    <!--ET_BEGIN MAIN_INPUT_PRODUCT_TABLE-->
+                                    <tr>
+                                        <td class="cell disassemblyMainInputCell">
+                                            [#MAIN_INPUT_PRODUCT_TABLE#]
+                                        </td>
+                                    </tr>
+                                    <!--ET_END MAIN_INPUT_PRODUCT_TABLE-->
+                                </tbody>
+                            </table>
+                            <div class="lines"></div>
+                            <div class="details">
+                                <!--ET_BEGIN INPUT_PRODUCTS_TABLE-->
+                                <div>[#INPUT_PRODUCTS_TABLE#]</div>
+                                <div class="lines"></div>
+                                <!--ET_END INPUT_PRODUCTS_TABLE-->
+                                <!--ET_BEGIN PRODUCED_PRODUCTS_TABLE-->
+                                <div>[#PRODUCED_PRODUCTS_TABLE#]</div>
+                                <!--ET_END PRODUCED_PRODUCTS_TABLE-->
+                            </div>
+                            <div class="lines"></div>
+                            <table class="innerTable footer-notes paddingCells" style="width:100%">
+                                <tbody>
+                                    <tr>
+                                        <td class="topCell first vtop" style='width:50%;'>
+                                            <table class='shipment-table' style='width:100%;'>
+                                                <!--ET_BEGIN deadline-->
+                                                <tr>
+                                                    <td class='quiet nowrap aright' style='width:1%;'>|Срок до|*:</td>
+                                                    <td>[#deadline#]</td>
+                                                </tr>
+                                                <!--ET_END deadline-->
+                                                <!--ET_BEGIN expenses-->
+                                                <tr>
+                                                    <td class='quiet nowrap aright' style='width:1%;'>|Реж. разходи|*:</td>
+                                                    <td>[#expenses#]</td>
+                                                </tr>
+                                                <!--ET_END expenses-->
+                                                <!--ET_BEGIN storeId-->
+                                                <tr>
+                                                    <td class='quiet nowrap aright' style='width:1%;'>|Произвеждане в|*:</td>
+                                                    <td>[#storeId#]</td>
+                                                </tr>
+                                                <!--ET_END storeId-->
+                                                <!--ET_BEGIN inputStoreId-->
+                                                <tr>
+                                                    <td class='quiet nowrap aright' style='width:1%;'>|Влагане в|*:</td>
+                                                    <td>[#inputStoreId#]</td>
+                                                </tr>
+                                                <!--ET_END inputStoreId-->
+                                            </table>
+                                            <!--ET_BEGIN note-->
+                                            <hr>
+                                            |Забележки|*:<br>
+                                            [#note#]
+                                            <!--ET_END note-->
+                                        </td>
+                                        <td>
+                                            <table class='centered special-borders' style='width:100%;'>
+                                                <tr>
+                                                    <td class='centered border-right' style='width:50%;'>|Получил|*:</td>
+                                                    <td class='centered'>|Съставил|*:</td>
+                                                </tr>
+                                                <tr>
+                                                    <td class='border-right' style='height:40px;'></td>
+                                                    <td></td>
+                                                </tr>
+                                                <tr>
+                                                    <td class='centered border-right'><span class="sign_names nowrap">[#responsible#]</span></td>
+                                                    <td class='centered'><span class="sign_names nowrap">[#username#]</span></td>
+                                                </tr>
+                                            </table>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+[#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]

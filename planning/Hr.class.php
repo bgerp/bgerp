@@ -276,11 +276,13 @@ class planning_Hr extends core_Master
         $tpl = getTplFromFile('crm/tpl/HrDetail.shtml');
         $tpl->append(tr('Служебен код') . ':', 'resTitle');
         
-        if($data->row->_rowTools instanceof core_RowToolbar){
-            $data->row->code_toolbar = $data->row->_rowTools->renderHtml();
-        }
+        if (isset($data->row)) {
+            if ($data->row->_rowTools instanceof core_RowToolbar) {
+                $data->row->code_toolbar = $data->row->_rowTools->renderHtml();
+            }
 
-        $tpl->placeObject($data->row);
+            $tpl->placeObject($data->row);
+        }
         
         if ($eRec = hr_EmployeeContracts::fetch("#personId = {$data->masterId} AND #state = 'active'")) {
             $tpl->append(hr_EmployeeContracts::getHyperlink($eRec->id, true), 'contract');
