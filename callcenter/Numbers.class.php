@@ -65,7 +65,7 @@ class callcenter_Numbers extends core_Manager
     /**
      * Кои полета да се извличат при изтриване
      */
-    public $fetchFieldsBeforeDelete = 'id,number';
+    public $fetchFieldsBeforeDelete = 'id,number,type';
     
     
     /**
@@ -461,7 +461,10 @@ class callcenter_Numbers extends core_Manager
                 
                 // Вземаме записа
                 $rec = $mvc->fetch($id);
-                
+                if (empty($rec)) {
+                    continue;
+                }
+
                 // Ако е вътрешен
                 if ($rec->type == 'internal') {
                     
