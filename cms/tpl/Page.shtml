@@ -1,3 +1,59 @@
+<style>
+    .footer-menus {
+        display: flex;
+        justify-content: space-around;
+        gap: 32px 48px;
+        color: #ddd;
+        padding: 18px 12px;
+
+    }
+
+    .narrow .footer-menus {
+        flex-wrap: wrap;
+        justify-content: flex-start;
+    }
+    .narrow .footer-menus div {
+        width: 100%;
+    }
+    .footer-menus p {
+        margin: 0 0 5px;
+        font-size: 16px;
+        font-weight: 700;
+        color: #ffffff;
+    }
+
+    .footer-menus ul {
+        list-style: none;
+        max-width: 400px;
+        margin: 0;
+        padding: 0;
+    }
+
+    .footer-menus li {
+        margin-bottom: 4px;
+        margin-left: 10px;
+    }
+
+    .footer-menus a {
+        color: #cfcfcf;
+        text-decoration: none;
+        font-size: 0.75em;
+        transition: color 0.15s ease, text-decoration-color 0.15s ease;
+    }
+
+    .footer-menus a:hover {
+        color: #ffffff;
+        text-decoration: underline;
+        text-decoration-color: rgba(255, 255, 255, 0.5);
+    }
+
+    .footer-menus a:focus-visible {
+        outline: 2px solid #ffffff;
+        outline-offset: 3px;
+        border-radius: 2px;
+    }
+</style>
+
 <!--ET_BEGIN cookies-->
 [#cookies#]
 <div class = 'cookies'>
@@ -40,6 +96,12 @@
         [#BEFORE_FOOTER_NARROW#]
         <!--ET_END BEFORE_FOOTER_NARROW-->
         <div id="cmsBottom">
+            <!--ET_BEGIN FOOTER_MENU-->
+            [#FOOTER_MENU#]
+            <div class="footer-menus">
+                [#cms_page_External::renderFooterMenu#]
+            </div>
+            <!--ET_END FOOTER_MENU-->
             <div class="socialBtns">
                 [#cms_Feeds::generateFeedLink#]
                 [#social_Followers::getButtons#]
