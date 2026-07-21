@@ -325,7 +325,7 @@ class marketing_Inquiries2 extends embed_Manager
         }
         
         if ($Driver){
-            $Driver->addInquiryFields($data->form->rec->proto, $data->form);
+            $Driver->addInquiryFields($data->form->rec->proto ?? null, $data->form);
             if(is_array($form->rec->additionalData)){
                 foreach ($form->rec->additionalData as $aFld => $aValue){
                     if($form->getField($aFld, false)){
