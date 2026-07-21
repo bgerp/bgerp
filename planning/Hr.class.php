@@ -180,7 +180,7 @@ class planning_Hr extends core_Master
     {
         $rec = $data->form->rec;
         if (isset($rec->personId)) {
-            $data->form->title = core_Detail::getEditTitle('crm_Persons', $rec->personId, 'служебната информация', $rec->id, $mvc->formTitlePreposition);
+            $data->form->title = core_Detail::getEditTitle('crm_Persons', $rec->personId, 'служебната информация', $rec->id ?? null, $mvc->formTitlePreposition);
         }
     }
     
