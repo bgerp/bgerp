@@ -132,7 +132,6 @@ class planning_Jobs extends core_Master
 
         if ($res && log_Browsers::isRetina()) {
             $icon2 = str_replace('/16/', '/32/', $res);
-
             if (getFullPath($icon2)) {
                 $res = $icon2;
             }
@@ -147,7 +146,7 @@ class planning_Jobs extends core_Master
      */
     private function getIconByType_($id)
     {
-        $rec = $id ? self::fetch($id, 'type') : null;
+        $rec = $id ? self::fetchRec($id, 'type') : null;
 
         if ($rec && $rec->type == 'disassembly') {
             return 'img/16/clipboard_text_1.png';
@@ -2943,5 +2942,30 @@ class planning_Jobs extends core_Master
     public static function getPackagingFields_()
     {
         return array('packagingId' => 'packagingId', 'secondMeasureId' => 'secondMeasureId');
+    }
+
+
+    /**
+     * Връща урл-то към всички записи
+     */
+    protected static function on_AfterGetAllBtnUrl($mvc, &$res, $rec)
+    {
+        if(is_array($res) && countR($res)){
+            $res['type'] = $rec->type;
+        }
+    }
+
+
+    /**
+     * Извиква се преди изпълняването на екшън
+     */
+    public static function on_BeforeAction(core_Mvc $mvc, &$res, $action)
+    {
+        if ($action != 'list' && $action != 'default') return;
+        $show = Request::get('type', 'enum(manifacture,disassembly)');
+        $subMenu = $show == 'disassembly' ? "Разпад" : "Производство";
+        $mvc->currentTab = "Задания->{$subMenu}";
+        Mode::set('pageMenu', 'Задания');
+        Mode::set('pageSubMenu', $subMenu);
     }
 }
