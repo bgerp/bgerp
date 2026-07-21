@@ -94,9 +94,6 @@
         <tr>
             <td colspan = "2" class="cell custom-header-bg">
                 <b>[#title#]</b>
-                <!--ET_BEGIN disassemblyLabel-->
-                <span style="float:right;display:inline-block;margin-left:8px;padding:2px 8px;border-radius:3px;background:#b71c1c;color:#fff;font-weight:bold;letter-spacing:0.08em;">[#disassemblyLabel#]</span>
-                <!--ET_END disassemblyLabel-->
                 <!--ET_BEGIN timeActivated-->
                 <span class='small'>( |Активирано|* [#timeActivated#] )</span>
                 <!--ET_END timeActivated-->
