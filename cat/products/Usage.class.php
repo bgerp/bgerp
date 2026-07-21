@@ -334,7 +334,7 @@ class cat_products_Usage extends core_Manager
         $details = $table->get($data->rows, $data->listFields);
         
         // Ако артикула не е производим, показваме в детайла
-        if ($data->notManifacturable === true) {
+        if (($data->notManifacturable ?? null) === true) {
             $tpl->append(" <span class='red small'>(" . tr('Артикулът не е производим и не е едновременно вложим и складируем') . ')</span>', 'title');
             $tpl->append('state-rejected', 'TAB_STATE');
         }
