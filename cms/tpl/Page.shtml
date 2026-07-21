@@ -3,7 +3,6 @@
         display: flex;
         justify-content: space-around;
         gap: 32px 48px;
-        color: #ddd;
         padding: 18px 12px;
 
     }
