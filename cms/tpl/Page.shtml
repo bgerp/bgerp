@@ -16,10 +16,10 @@
         width: 100%;
     }
     .footer-menus p {
-        margin: 0 0 5px;
+        margin: 0 0 5px -1px;
         font-size: 16px;
         font-weight: 700;
-        color: #ffffff;
+        text-shadow: 1px 1px 1px #000;
     }
 
     .footer-menus ul {
@@ -31,7 +31,7 @@
 
     .footer-menus li {
         margin-bottom: 4px;
-        margin-left: 10px;
+        font-size: 0.9em;
     }
 
     .footer-menus a {
