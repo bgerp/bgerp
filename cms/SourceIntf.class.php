@@ -58,11 +58,7 @@ class cms_SourceIntf
      */
     public function getFooterMenuItems($menuRec)
     {
-        if (method_exists($this->class, 'getFooterMenuItems')) {
-            return $this->class->getFooterMenuItems($menuRec);
-        }
-
-        return array();
+        $this->class->getFooterMenuItems($menuRec);
     }
     
     
