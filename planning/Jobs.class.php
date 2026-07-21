@@ -571,8 +571,9 @@ class planning_Jobs extends core_Master
 
             // При Разпад "Технологичен брак" и "Толеранс" не се прилагат - скриваме ги и от формата
             if ($jobType == 'disassembly') {
-                $form->setField('tolerance', 'input=none');
-                $form->setField('productionScrap', 'input=none');
+                $form->setField('allowSecondMeasure', 'input=none,changable=ifInput');
+                $form->setField('tolerance', 'input=none,changable=ifInput');
+                $form->setField('productionScrap', 'input=none,changable=ifInput');
             }
 
             if ($productionScrap = cat_Products::getParams($productId, 'productionScrap')) {
