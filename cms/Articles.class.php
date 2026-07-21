@@ -751,6 +751,33 @@ class cms_Articles extends core_Master
     
     
     /**
+     * Връща елементите за футър менюто
+     *
+     * @param stdClass $menuRec
+     * @return array
+     */
+    public function getFooterMenuItems($menuRec)
+    {
+        $items = array();
+        $query = self::getQuery();
+        $query->where("#menuId = {$menuRec->id} AND #state = 'active'");
+        $query->orderBy('#level', 'ASC');
+        $query->orderBy('#id', 'ASC');
+
+        while ($rec = $query->fetch()) {
+            $items[] = (object) array(
+                'id' => $rec->id,
+                'parentId' => 0,
+                'title' => $rec->footerTitleLink ? $rec->footerTitleLink : $rec->title,
+                'url' => self::getUrl($rec),
+            );
+        }
+
+        return $items;
+    }
+
+
+    /**
      * Връща URL към вътрешната част (работилницата), отговарящо на посочената точка в менюто
      */
     public function getWorkshopUrl($menuId)

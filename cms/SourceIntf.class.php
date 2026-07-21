@@ -51,6 +51,22 @@ class cms_SourceIntf
     
     
     /**
+     * Връща елементите за футър менюто, генерирани от този източник
+     *
+     * @param stdClass $menuRec
+     * @return array
+     */
+    public function getFooterMenuItems($menuRec)
+    {
+        if (method_exists($this->class, 'getFooterMenuItems')) {
+            return $this->class->getFooterMenuItems($menuRec);
+        }
+
+        return array();
+    }
+    
+    
+    /**
      * Връща връща масив със заглавия и URL-ta, които отговарят на търсенето
      */
     public function getSearchResults($menuId, $q, $maxLimit = 10)

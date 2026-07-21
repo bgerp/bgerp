@@ -834,6 +834,39 @@ class eshop_Groups extends core_Master
     
     
     /**
+     * Връща елементите за футър менюто
+     *
+     * @param stdClass $menuRec
+     * @return array
+     */
+    public function getFooterMenuItems($menuRec)
+    {
+        $items = array();
+        $query = self::getQuery();
+        $query->where("#state = 'active' AND (#menuId = {$menuRec->id} OR LOCATE('|{$menuRec->id}|', #sharedMenus))");
+        $query->where('#saoLevel <= 1');
+        $query->orderBy('#saoLevel', 'ASC');
+        $query->orderBy('#saoOrder', 'ASC');
+        $query->orderBy('#id', 'ASC');
+
+        while ($rec = $query->fetch()) {
+            if ($rec->menuId != $menuRec->id) {
+                $rec->altMenuId = $menuRec->id;
+            }
+
+            $items[] = (object) array(
+                'id' => $rec->id,
+                'parentId' => 0,
+                'title' => self::getVerbal($rec, 'name'),
+                'url' => self::getUrl($rec),
+            );
+        }
+
+        return $items;
+    }
+
+
+    /**
      * Връща URL към съдържание в публичната част, което отговаря на посочения запис
      */
     public function getUrlByRec($rec)
