@@ -378,6 +378,8 @@ class planning_Jobs extends core_Master
 
         if($rec->type == 'disassembly'){
             $form->setField('productId', "unit=|*(|за РАЗПАД|*)");
+            $form->setField('storeId', 'caption=Влагане от');
+            $form->setField('inputStores', 'caption=Произвеждане в');
         }
 
         $defaultProductId = $defaultProductPack = $defaultQuantity = null;
@@ -1268,6 +1270,14 @@ class planning_Jobs extends core_Master
             
             if (isset($rec->storeId)) {
                 $row->storeId = store_Stores::getHyperlink($rec->storeId, true);
+            }
+
+            // За Разпад полетата "Произвеждане в"/"Влагане от" визуално са разменени -
+            // разменяме и показваните стойности
+            if ($rec->type == 'disassembly') {
+                $tmpStoreId = $row->storeId;
+                $row->storeId = $row->inputStores;
+                $row->inputStores = $tmpStoreId;
             }
 
             if(!empty($rec->deliveryTermId)){
