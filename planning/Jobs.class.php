@@ -108,8 +108,55 @@ class planning_Jobs extends core_Master
      * Икона на единичния изглед
      */
     public $singleIcon = 'img/16/clipboard_text.png';
-    
-    
+
+
+    /**
+     * Връща иконата на единичния изглед - различна за задание за разпад
+     */
+    public function getSingleIcon_($id)
+    {
+        return $this->getIconByType_($id);
+    }
+
+
+    /**
+     * Връща иконата на документа - различна за задание за разпад
+     *
+     * @param int|null $id
+     *
+     * @return string|null
+     */
+    public function getIcon_($id = null)
+    {
+        $res = $this->getIconByType_($id);
+
+        if ($res && log_Browsers::isRetina()) {
+            $icon2 = str_replace('/16/', '/32/', $res);
+
+            if (getFullPath($icon2)) {
+                $res = $icon2;
+            }
+        }
+
+        return $res;
+    }
+
+
+    /**
+     * Връща базовата икона според вида на заданието
+     */
+    private function getIconByType_($id)
+    {
+        $rec = $id ? self::fetch($id, 'type') : null;
+
+        if ($rec && $rec->type == 'disassembly') {
+            return 'img/16/clipboard_text_1.png';
+        }
+
+        return $this->singleIcon;
+    }
+
+
     /**
      * Кой може да клонира
      */
