@@ -2001,4 +2001,30 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 
         return $res;
     }
+
+
+    /**
+     * Подготовка на филтър формата
+     */
+    protected static function on_AfterPrepareListFilter($mvc, &$data)
+    {
+        $data->listFilter->FLD('productionType', 'enum(,additionalMeasure=С втора мярка,withoutAdditionalMeasure=Без втора мярка,nonDetailed=Бездетайлно произвеждане,detailed=Детайлно произвеждане)', 'caption=Производство,input');
+        $data->listFilter->showFields .= ",productionType";
+        $data->listFilter->input('productionType');
+
+        // Прилагане на допълнителни филтри
+        if($filter = $data->listFilter->rec){
+            if(!empty($filter->productionType)){
+                if($filter->productionType == 'detailed'){
+                    $data->query->where("#debitAmount IS NULL");
+                } elseif($filter->productionType == 'nonDetailed'){
+                    $data->query->where("#debitAmount IS NOT NULL");
+                } elseif($filter->productionType == 'additionalMeasure'){
+                    $data->query->where("#additionalMeasureId IS NOT NULL");
+                } elseif($filter->productionType == 'withoutAdditionalMeasure'){
+                    $data->query->where("#additionalMeasureId IS NULL");
+                }
+            }
+        }
+    }
 }
