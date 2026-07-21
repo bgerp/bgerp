@@ -127,6 +127,10 @@ class hr_Shifts extends core_Manager
             $shifts[$rec->id] = (object)array('name' => $rec->name, 'totalTime' => $timeInFrame);
         }
 
+        if (empty($shifts)) {
+            return null;
+        }
+
         // Подреждане по смените с най-голямо сечение
         arr::sortObjects($shifts, 'totalTime', 'desc');
         $firstRec = $shifts[key($shifts)];

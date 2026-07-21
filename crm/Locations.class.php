@@ -334,10 +334,14 @@ class crm_Locations extends core_Master
      */
     protected static function on_AfterInputEditForm($mvc, $form)
     {
+        if (!$form->isSubmitted()) {
+            return;
+        }
+
         $rec = $form->rec;
         if (!$rec->gpsCoords && $rec->image) {
             if ($gps = exif_Reader::getGps($rec->image)) {
-                
+
                 // Ако има GPS коодинати в снимката ги извличаме
                 $rec->gpsCoords = $gps['lat'] . ', ' . $gps['lon'];
             }
