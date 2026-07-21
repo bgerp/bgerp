@@ -325,8 +325,8 @@ class marketing_Inquiries2 extends embed_Manager
         }
         
         if ($Driver){
-            $Driver->addInquiryFields($data->form->rec->proto, $data->form);
-            if(is_array($form->rec->additionalData)){
+            $Driver->addInquiryFields($data->form->rec->proto ?? null, $data->form);
+            if(is_array($form->rec->additionalData ?? null)){
                 foreach ($form->rec->additionalData as $aFld => $aValue){
                     if($form->getField($aFld, false)){
                         $form->setDefault($aFld, $aValue);
@@ -336,8 +336,8 @@ class marketing_Inquiries2 extends embed_Manager
         }
         
         $caption = 'Количества|*';
+        $uom = '';
         if (isset($data->Driver) || isset($form->rec->innerClass)) {
-            $uom = '';
             $uomId = $form->rec->measureId;
             if (isset($uomId) && ($uomId != cat_UoM::fetchBySysId('pcs')->id || $form->rec->quantityCount > 0)) {
                 $uom = cat_UoM::getShortName($uomId);
@@ -432,10 +432,11 @@ class marketing_Inquiries2 extends embed_Manager
     {
         $form = &$data->form;
         $cu = core_Users::getCurrent();
+        $innerClass = $form->rec->innerClass ?? null;
 
-        if ($form->rec->innerClass) {
+        if ($innerClass) {
 
-            $form->setFieldType('proto', "key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,driverId={$form->rec->innerClass},maxSuggestions=100,forceAjax)");
+            $form->setFieldType('proto', "key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,driverId={$innerClass},maxSuggestions=100,forceAjax)");
             if(haveRole('partner')){
                 $form->setFieldTypeParams('proto', 'onlyTemplates');
             } else {
@@ -449,13 +450,13 @@ class marketing_Inquiries2 extends embed_Manager
             }
         }
 
-        if (cls::load($form->rec->innerClass, true)) {
-            if ($Driver = cls::get($form->rec->innerClass)) {
+        if (cls::load($innerClass, true)) {
+            if ($Driver = cls::get($innerClass)) {
                 if ($moq = $Driver->getMoq()) {
                     $form->rec->moq = $moq;
                 }
                 
-                if ($form->rec->quantityCount === null && ($inqQuantity = $Driver->getInquiryQuantities()) !== null) {
+                if (($form->rec->quantityCount ?? null) === null && ($inqQuantity = $Driver->getInquiryQuantities()) !== null) {
                     $form->rec->quantityCount = $inqQuantity;
                 }
             }

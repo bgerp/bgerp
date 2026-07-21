@@ -1805,10 +1805,11 @@ class doc_Containers extends core_Manager
      */
     public static function getNewDocMenu($rec)
     {
+        expect(!empty($rec->threadId) || !empty($rec->folderId), 'Очаква threadId или folderId', $rec);
+
         // Определяме заглавието на нишката или папката
         if (!empty($rec->threadId)) {
             $thRec = doc_Threads::fetch($rec->threadId);
-            $rec->folderId = $thRec->folderId;
             $title = doc_Threads::recToVerbal($thRec)->onlyTitle;
         } else {
             $title = doc_Folders::getFolderTitle($rec->folderId);
@@ -1886,21 +1887,13 @@ class doc_Containers extends core_Manager
                 $tpl->append("<li class='dimension'>");
                 foreach ($bArr as $title => $info) {
                     $url = array($info['class'], 'add',
-                        'threadId' => $rec->threadId ?? null, 'folderId' => $rec->folderId, 'ret_url' => true);
+                        'threadId' => $rec->threadId ?? null, 'folderId' => $rec->folderId ?? null, 'ret_url' => true);
                     foreach ($info['params'] as $k => $v) {
                         $url[$k] = $v;
                     }
 
                     $tpl->append(new ET("<div class='btn-group'>[#1#]</div>", ht::createBtn(
-
-                        $title,
-                        $url,
-                            null,
-
-                        null,
-
-                        "ef_icon={$info['icon']},style=width:100%;text-align:left;"
-
+                        $title, $url, null, null, "ef_icon={$info['icon']},style=width:100%;text-align:left;"
                     )));
                 }
                 
@@ -1947,7 +1940,7 @@ class doc_Containers extends core_Manager
             $abbrArr = [];
             $docClasses = core_Classes::getOptionsByInterface('doc_DocumentIntf');
             
-            //Обикаляме всички записи, които имплементират doc_DocumentInrf
+            //Обикаляме всички записи, които имплементират doc_DocumentIntf
             foreach ($docClasses as $id => $className) {
                 
                 //Създаваме инстанция на класа в масив
