@@ -2422,7 +2422,7 @@ class doc_DocumentPlg extends core_Plugin
         //Добавяме текст по подразбиране за титлата на формата
         if ($form->rec->folderId) {
             $fRec = doc_Folders::fetch($form->rec->folderId);
-            $title = tr(mb_strtolower($mvc->singleTitle));
+            $title = tr(mb_strtolower($data->singleTitle ?? $mvc->singleTitle));
             if (core_Users::getCurrent('id', false)) {
                 list($t, ) = explode('<div', doc_Folders::recToVerbal($fRec)->title);
                 $title .= ' |в|* ' . $t;
