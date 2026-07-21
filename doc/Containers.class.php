@@ -2071,7 +2071,7 @@ class doc_Containers extends core_Manager
         
         // Ако мода е xhtml
         if (Mode::is('text', 'xhtml')) {
-            $res = new ET("<span class='linkWithIcon' style=\"" . ht::getIconStyle($ctrInst->singleIcon) . '"> [#1#] </span>', $title);
+            $res = new ET("<span class='linkWithIcon' style=\"" . ht::getIconStyle($ctrInst->getSingleIcon($params['id'])) . '"> [#1#] </span>', $title);
         } elseif (Mode::is('text', 'plain')) {
             
             // Ескейпваме плейсхолдърите и връщаме титлата
@@ -2080,7 +2080,7 @@ class doc_Containers extends core_Manager
             
             //Атрибути на линка
             $attr = array();
-            $attr['ef_icon'] = $ctrInst->singleIcon;
+            $attr['ef_icon'] = $ctrInst->getSingleIcon($params['id']);
             $attr['target'] = '_blank';
             
             //Създаваме линк
