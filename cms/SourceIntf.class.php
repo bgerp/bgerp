@@ -58,7 +58,7 @@ class cms_SourceIntf
      */
     public function getFooterMenuItems($menuRec)
     {
-        $this->class->getFooterMenuItems($menuRec);
+        return $this->class->getFooterMenuItems($menuRec);
     }
     
     
