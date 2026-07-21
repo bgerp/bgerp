@@ -130,7 +130,8 @@ class location_Type extends type_Varchar
         
         $conf = core_Packs::getConfig('google');
         $apiKey = $conf->GOOGLE_API_KEY;
-        
+
+        $keyString = '';
         if (isset($apiKey) && $apiKey != '') {
             $keyString = "key={$apiKey}&";
         }

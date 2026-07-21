@@ -79,14 +79,14 @@ class crm_ContragentGroupsPlg extends core_Plugin
 
                 $gId = $gIdArr[$id];
 
-                $rec->{$mvc->groupFieldName} = type_Keylist::removeKey($rec->{$mvc->groupFieldName}, $gId);
+                $rec->{$mvc->groupFieldName} = type_Keylist::removeKey($rec->{$mvc->groupFieldName} ?? null, $gId);
             }
         }
 
         foreach ($gForAdd as $id => $gRec) {
             $gId = $gIdArr[$id];
 
-            $rec->{$mvc->groupFieldName} = type_Keylist::addKey($rec->{$mvc->groupFieldName}, $gId);
+            $rec->{$mvc->groupFieldName} = type_Keylist::addKey($rec->{$mvc->groupFieldName} ?? null, $gId);
         }
     }
 
