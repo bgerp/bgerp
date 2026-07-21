@@ -290,7 +290,7 @@ class cat_products_Params extends doc_Detail
                 }
             }
 
-            if($rec->type == 'readOnly' && !strlen($rec->paramValue)){
+            if (($rec->type ?? null) == 'readOnly' && !strlen($rec->paramValue ?? '')) {
                 $form->setError('type,paramValue', 'При опция "Само за четене" не може стойноста да е празна');
             }
         }
@@ -463,7 +463,7 @@ class cat_products_Params extends doc_Detail
         $query->orderBy('group,orderEx,id', 'ASC');
 
         // Ако подготвяме за външен документ, да се показват само параметрите за външни документи
-        if ($data->documentType == 'public' || $data->documentType == 'invoice') {
+        if (in_array($data->documentType ?? null, array('public', 'invoice'), true)) {
             $query->EXT('showInPublicDocuments', 'cat_Params', 'externalName=showInPublicDocuments,externalKey=paramId');
             $query->where("#showInPublicDocuments = 'yes'");
         }
