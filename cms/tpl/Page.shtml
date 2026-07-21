@@ -34,14 +34,12 @@
     }
 
     .footer-menus a {
-        color: #cfcfcf;
         text-decoration: none;
         font-size: 0.75em;
         transition: color 0.15s ease, text-decoration-color 0.15s ease;
     }
 
     .footer-menus a:hover {
-        color: #ffffff;
         text-decoration: underline;
         text-decoration-color: rgba(255, 255, 255, 0.5);
     }
