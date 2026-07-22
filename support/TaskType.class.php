@@ -16,6 +16,12 @@
 class support_TaskType extends core_Mvc
 {
     public $interfaces = 'cal_TaskTypeIntf';
+
+
+    /**
+     * Мениджърът, в който е вграден драйверът
+     */
+    public $Embedder = null;
     
     
     public $title = 'Сигнал';

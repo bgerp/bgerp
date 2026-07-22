@@ -229,7 +229,7 @@ class doc_drivers_LatestDocPortal extends core_BaseClass
                     $rQuery->orderBy('last', 'DESC');
                     $rQuery->show('last');
                     $rRec = $rQuery->fetch();
-                    $last = $rRec->last;
+                    $last = $rRec ? $rRec->last : null;
                     
                     $cloneQ = clone $cQuery;
                     
@@ -263,6 +263,10 @@ class doc_drivers_LatestDocPortal extends core_BaseClass
                         $lRec = $cloneQ->fetch();
                     } else {
                         $tUnsighted = 'tUnsighted';
+                    }
+
+                    if (!$lRec) {
+                        continue;
                     }
                     
                     try {
