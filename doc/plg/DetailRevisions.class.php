@@ -32,6 +32,11 @@ class doc_plg_DetailRevisions extends core_Plugin
 
         $invoker->FLD('rejectedOn', 'datetime(format=smartTime)', 'caption=Оттеглен->На,input=none,column=none,forceField');
         $invoker->FLD('rejectedBy', 'key(mvc=core_Users)', 'caption=Оттеглен->От,input=none,column=none,forceField');
+        $invoker->FLD('revisionRootId', 'int', 'caption=Ревизия->Корен,input=none,column=none,forceField');
+        $invoker->FLD('revisionPrevId', 'int', 'caption=Ревизия->Предходен,input=none,column=none,forceField');
+        $invoker->FLD('rejectedReason', 'enum(revision=Редакция,deleted=Изтриване)', 'caption=Оттеглен->Причина,input=none,column=none,forceField');
+        $invoker->setDbIndex('revisionRootId');
+        $invoker->setDbIndex('revisionPrevId');
 
         // В кои състояния на мастъра редакция/изтриване на реда води до оттегляне+клониране
         setPartIfNot($invoker, 'detailRevisionsStates', array('pending', 'active'));
@@ -59,9 +64,12 @@ class doc_plg_DetailRevisions extends core_Plugin
         }
 
         $oldRec = $invoker->fetch($rec->id);
+        $rec->revisionRootId = $oldRec->revisionRootId ?: $oldRec->id;
+        $rec->revisionPrevId = $oldRec->id;
         $oldRec->state = 'rejected';
         $oldRec->rejectedOn = dt::now();
         $oldRec->rejectedBy = core_Users::getCurrent();
+        $oldRec->rejectedReason = 'revision';
         $oldRec->_skipDetailRevision = true;
         $invoker->save($oldRec);
 
@@ -128,6 +136,7 @@ class doc_plg_DetailRevisions extends core_Plugin
         $rec->state = 'rejected';
         $rec->rejectedOn = dt::now();
         $rec->rejectedBy = core_Users::getCurrent();
+        $rec->rejectedReason = 'deleted';
         $rec->_skipDetailRevision = true;
         $mvc->save($rec);
 
@@ -146,7 +155,7 @@ class doc_plg_DetailRevisions extends core_Plugin
     /**
      * Изключва оттеглените редове от всяка заявка, освен ако изрично не сме
      * поискали да ги виждаме (@see showDetailRevisions), или мастъра им е сред
-     * изрично поисканите в ?ShowRevisions=<masterId>[,<masterId>...].
+     * изрично поисканите от doc_plg_MasterRevision.
      *
      * ВАЖНО: тук нямаме $masterId - в една нишка/страница може да има няколко
      * мастъра от този клас едновременно (напр. няколко протокола за разпад), а
@@ -164,7 +173,7 @@ class doc_plg_DetailRevisions extends core_Plugin
 
         $cond = "#state != 'rejected' OR #state IS NULL";
 
-        $showIds = arr::make(Request::get('ShowRevisions'), true);
+        $showIds = doc_plg_MasterRevision::getRequestedMasterIds($mvc->Master);
         if (countR($showIds)) {
             $idsCsv = implode(',', array_map('intval', $showIds));
             $cond .= " OR #{$mvc->masterKey} IN ({$idsCsv})";
@@ -175,11 +184,9 @@ class doc_plg_DetailRevisions extends core_Plugin
 
 
     /**
-     * Когато се показва и историята (оттеглените редове) на текущия мастър, ги
-     * подреждаме по хронология на "приключване на реда" - за активния ред това е
-     * createdOn (откога е текущ), за оттеглените - rejectedOn (докога са били
-     * текущи). DESC, за да е най-скорошната активност първа (както при "Кош"-а
-     * на plg_Rejected: orderBy('#modifiedOn', 'DESC', ...))
+     * Групира версиите по логически ред. Активната версия е първа, следвана от
+     * предходните версии от най-нова към най-стара. Ръчно добавените редове
+     * започват собствена група, независимо дали артикулът съвпада.
      */
     public static function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
@@ -188,106 +195,64 @@ class doc_plg_DetailRevisions extends core_Plugin
             return;
         }
 
-        $showIds = arr::make(Request::get('ShowRevisions'), true);
+        $showIds = doc_plg_MasterRevision::getRequestedMasterIds($mvc->Master);
         if (!in_array($data->masterId, $showIds)) {
 
             return;
         }
 
         $data->query->XPR('filterDate', 'datetime', 'COALESCE(#rejectedOn, #createdOn)');
+        $data->query->XPR('revisionGroup', 'int', 'COALESCE(#revisionRootId, #id)');
+        $data->query->XPR('revisionStateOrder', 'int', "CASE WHEN #state = 'rejected' THEN 1 ELSE 0 END");
 
-        // По-висок priority от 0 (по подразбиране), защото deals_ManifactureDetail
-        // вече слага "orderBy('id', 'ASC')" в prepareListFilter, преди нас
+        // Приоритетите изместват стандартното orderBy('id', 'ASC') на детайла
+        $data->query->orderBy('#revisionGroup', 'DESC', 3);
+        $data->query->orderBy('#revisionStateOrder', 'ASC', 2);
         $data->query->orderBy('#filterDate', 'DESC', 1);
     }
 
 
     /**
-     * Скрит филтър за показване на оттеглените редове през ?ShowRevisions=<masterId>
+     * Скрит филтър, който запазва режима за ревизии при действията на детайла
      */
     public static function on_AfterPrepareListFilter($mvc, &$data)
     {
-        if (!isset($data->listFilter->fields['ShowRevisions'])) {
-            $data->listFilter->FNC('ShowRevisions', 'varchar', 'input=hidden,silent');
+        $param = doc_plg_MasterRevision::REQUEST_PARAM;
+        if (!isset($data->listFilter->fields[$param])) {
+            $data->listFilter->FNC($param, 'varchar', 'input=hidden,silent');
         }
 
-        if ($showIds = Request::get('ShowRevisions')) {
-            $data->listFilter->setDefault('ShowRevisions', $showIds);
+        if ($showIds = Request::get($param)) {
+            $data->listFilter->setDefault($param, $showIds);
         }
     }
 
 
     /**
-     * Бутон за превключване между активните редове и пълната история (вкл. оттеглените).
-     * Изнесен като самостоятелен метод, за да може да се вика и ръчно от bespoke
-     * renderDetail_ методи (напр. planning_DisassemblyNoteDetails), без да минава
-     * през целия renderListToolbar()/$data->toolbar
-     *
-     * @return core_ET|null
+     * В режим „Ревизии“ добавя обща колона за автора и датата на версията
      */
-    public static function getToggleBtn($mvc, $masterId)
+    public static function on_AfterPrepareListFields($mvc, &$res, &$data)
     {
-        if (Mode::is('printing')) {
-
-            return null;
+        $showIds = doc_plg_MasterRevision::getRequestedMasterIds($mvc->Master);
+        if (!in_array($data->masterId, $showIds)) {
+            return;
         }
 
-        // За да не скача страницата най-отгоре след редирект, а остане на детайла
-        $anchor = null;
-        if (isset($mvc->Master)) {
-            if(cls::haveInterface('doc_DocumentIntf', $mvc->Master)) {
-                $anchor = $mvc->Master->getHandle($masterId);
-            }
-        }
-
-        // Кои мастъри вече са в режим "покажи историята" - може да са няколко
-        // едновременно на една страница (напр. няколко протокола за разпад в нишка)
-        $showIds = arr::make(Request::get('ShowRevisions'), true);
-
-        if (in_array($masterId, $showIds)) {
-            $curUrl = getCurrentUrl();
-            $remainingIds = array_diff($showIds, array($masterId));
-            if (countR($remainingIds)) {
-                $curUrl['ShowRevisions'] = implode(',', $remainingIds);
-            } else {
-                unset($curUrl['ShowRevisions']);
-            }
-            if ($anchor) {
-                $curUrl['#'] = $anchor;
-            }
-
-            return ht::createBtn('Текущи редове', $curUrl, null, null, array('style' => 'margin-top:5px;margin-bottom:15px;', 'ef_icon' => 'img/16/application_view_list.png', 'title' => 'Само активните редове'));
-        }
-
-        // Временно сваляме собствения си филтър, за да преброим оттеглените редове на този мастър
-        $mvc->showDetailRevisions = true;
-        $rejCnt = $mvc->count("#{$mvc->masterKey} = {$masterId} AND #state = 'rejected'");
-        $mvc->showDetailRevisions = false;
-
-        if (!$rejCnt) {
-
-            return null;
-        }
-
-        $curUrl = getCurrentUrl();
-        $curUrl['ShowRevisions'] = implode(',', $showIds + array($masterId => $masterId));
-        if ($anchor) {
-            $curUrl['#'] = $anchor;
-        }
-
-        return ht::createBtn("Оттеглени редове|* ({$rejCnt})", $curUrl, null, null, array('style' => 'margin-top:5px;margin-bottom:15px;', 'ef_icon' => 'img/16/bin_closed.png', 'title' => 'Преглед на оттеглените (презаписани) редове'));
+        $data->listFields['revision'] = 'Ревизия';
     }
 
 
     /**
-     * За детайли, които рендират тулбара си по стандартния начин ($data->toolbar)
+     * Добавя визуалното поле към MVC клонинга, с който ще се рендира таблицата
      */
-    public static function on_AfterRenderListToolbar($mvc, &$res, $data)
+    public static function on_BeforeRenderListTable($mvc, &$tpl, $data)
     {
-        $btn = self::getToggleBtn($mvc, $data->masterId);
-        if (empty($btn)) return;
+        $showIds = doc_plg_MasterRevision::getRequestedMasterIds($mvc->Master);
+        if (!in_array($data->masterId, $showIds) || !isset($data->listTableMvc)) {
+            return;
+        }
 
-        $res->append($btn);
+        $data->listTableMvc->FLD('revision', 'varchar', 'caption=Ревизия', 'tdClass=small nowrap,smartCenter');
     }
 
 
@@ -307,7 +272,7 @@ class doc_plg_DetailRevisions extends core_Plugin
 
 
     /**
-     * Визуално открояване на оттеглените редове (виждат се само с ?ShowRevisions=1)
+     * Визуално открояване на оттеглените редове в режим „Ревизии“
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
@@ -318,38 +283,55 @@ class doc_plg_DetailRevisions extends core_Plugin
 
 
     /**
-     * Hint "кой и кога" върху номера на реда (tools) на оттеглените редове - на
-     * on_AfterPrepareListRows (не на on_AfterRecToVerbal), защото плъгините се
-     * изпълняват ПРЕДИ on_AfterRecToVerbal на самия клас/родителите му, а напр.
-     * deals_ManifactureDetail презаписва $row->productId точно там - на този hook
-     * вече всички редове (вкл. номерацията в tools) са напълно готови
+     * Попълва автора и датата според вида на реда: created за активните и
+     * rejected за оттеглените
      */
     public static function on_AfterPrepareListRows($mvc, &$data)
     {
+        $showIds = doc_plg_MasterRevision::getRequestedMasterIds($mvc->Master);
+        $showRevisions = in_array($data->masterId, $showIds);
         if (!countR($data->rows)) {
 
             return;
         }
 
+        $activatedOn = null;
+        if ($showRevisions) {
+            $activatedOn = $data->masterData->rec->activatedOn ?? null;
+            if (!isset($activatedOn)) {
+                $activatedOn = $mvc->Master->fetchField($data->masterId, 'activatedOn');
+            }
+        }
+        $masterState = $data->masterData->rec->state ?? null;
+        $useRevisionEdit = in_array($masterState, arr::make($mvc->detailRevisionsStates, true));
+
         foreach ($data->rows as $id => $row) {
             $rec = $data->recs[$id];
-            if (($rec->state ?? null) != 'rejected') {
+            $isRejected = ($rec->state ?? null) == 'rejected';
+            if ($showRevisions) {
+                $onField = $isRejected ? 'rejectedOn' : 'createdOn';
+                $byField = $isRejected ? 'rejectedBy' : 'createdBy';
+                $date = $mvc->getVerbal($rec, $onField);
+                $nick = !empty($rec->{$byField}) ? crm_Profiles::createLink($rec->{$byField}) : '';
 
-                continue;
+                if (!$isRejected && isset($activatedOn, $rec->createdOn) && $rec->createdOn >= $activatedOn) {
+                    $date = ht::createHint("<span class='red'>{$date}</span>", 'Добавено след активиране на документа', 'warning', false);
+                }
+
+                $prefix = '';
+                if ($isRejected) {
+                    $prefix = ($rec->rejectedReason ?? null) == 'deleted' ? 'Изтрит: ' : '↳ ';
+                }
+
+                $row->revision = $prefix . trim("{$date} от {$nick}");
             }
 
-            $userName = $rec->rejectedBy ? core_Users::getVerbal($rec->rejectedBy, 'nick') : '?';
-            // Датата минава през type->toVerbal(), за да ползва smartTime форматирането на полето rejectedOn
-            $rejDate = $mvc->fields['rejectedOn']->type->toVerbal($rec->rejectedOn);
-            $hint = "Оттеглен от {$userName} на {$rejDate}";
-
-            $field = isset($row->tools) ? 'tools' : (isset($row->productId) ? 'productId' : null);
-            if (!$field) {
-
-                continue;
+            $editId = "edt{$rec->id}";
+            if ($useRevisionEdit && !$isRejected && isset($row->_rowTools->links[$editId])) {
+                $row->_rowTools->links[$editId]->title = 'Промяна';
+                $row->_rowTools->links[$editId]->attr['ef_icon'] = 'img/16/edit.png';
+                $row->_rowTools->links[$editId]->attr['title'] = 'Промяна на реда';
             }
-
-            $row->{$field} = ht::createHint($row->{$field}, $hint);
         }
     }
 }
