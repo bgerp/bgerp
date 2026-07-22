@@ -2551,7 +2551,7 @@ abstract class deals_DealMaster extends deals_DealBase
             $rec->bankAccountId = $fields['bankAccountId'];
         }
 
-        if ($fields['onlineSale'] === true) {
+        if (($fields['onlineSale'] ?? null) === true) {
             $rec->_onlineSale = true;
         }
         
