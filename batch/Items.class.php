@@ -809,7 +809,7 @@ class batch_Items extends core_Master
         if (!$def) return $res;
 
         $found = static::getProductsWithMovement($storeId, $productId, $date, $limit, $except, $batch, $showMovementsWithClosedBatches);
-        $res = is_array($found[$productId]) ? $found[$productId] : array();
+        $res = is_array($found[$productId] ?? null) ? $found[$productId] : array();
 
         // Добавяне и на партидите от активни документи в черновата на журнала
         $bQuery = batch_BatchesInDocuments::getQuery();

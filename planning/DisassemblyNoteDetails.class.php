@@ -320,10 +320,6 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
             }
         }
 
-        // renderDetail_ е bespoke и не минава през стандартния renderDetailLayout_/[#ListToolbar#],
-        // затова добавяме бутона на doc_plg_DetailRevisions ръчно, а не през renderListToolbar()
-        $tpl->append(doc_plg_DetailRevisions::getToggleBtn($this, $data->masterId), 'PRODUCED_PRODUCTS_TABLE');
-
         return $tpl;
     }
 

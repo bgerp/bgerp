@@ -576,8 +576,9 @@ class planning_Tasks extends core_Master
         }
 
         foreach (array('plannedQuantity', 'totalQuantity', 'scrappedQuantity', 'producedQuantity', 'notConvertedQuantity') as $quantityFld) {
-            $row->{$quantityFld} = ($rec->{$quantityFld}) ? $row->{$quantityFld} : 0;
-            $row->{$quantityFld} = ht::styleNumber($row->{$quantityFld}, $rec->{$quantityFld});
+            $quantity = $rec->{$quantityFld} ?? 0;
+            $row->{$quantityFld} = $quantity ? ($row->{$quantityFld} ?? 0) : 0;
+            $row->{$quantityFld} = ht::styleNumber($row->{$quantityFld}, $quantity);
         }
 
         if (isset($rec->storeId)) {

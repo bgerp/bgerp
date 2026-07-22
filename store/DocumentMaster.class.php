@@ -1265,7 +1265,7 @@ abstract class store_DocumentMaster extends core_Master
      *
      * @return mixed $id/FALSE     - ид на запис или FALSE
      */
-    public static function addRow($id, $productId, $packQuantity, $price = null, $packagingId = null, $discount = null, $tolerance = null, $term = null, $notes = null, $batch)
+    public static function addRow($id, $productId, $packQuantity, $price = null, $packagingId = null, $discount = null, $tolerance = null, $term = null, $notes = null, $batch = null)
     {
         $me = cls::get(get_called_class());
         $Detail = cls::get($me->mainDetail);

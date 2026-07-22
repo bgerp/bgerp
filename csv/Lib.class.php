@@ -783,14 +783,14 @@ class csv_Lib
         $csv = str_replace(chr(194).chr(160), '', $csv);
         
         // Определяне на формата
-        if (strlen($delimiter)) {
+        if (strlen((string) $delimiter)) {
             $delimiter = str_replace('tab', "\t", $delimiter);
             $dArr = array($delimiter);
         } else {
             $dArr = array('|', "\t", ',', ';', ' ', ':');
         }
         
-        if (strlen($enclosure)) {
+        if (strlen((string) $enclosure)) {
             $eArr = array($enclosure);
         } else {
             $eArr = array('"', '\'');
