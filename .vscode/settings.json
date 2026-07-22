@@ -1,0 +1,7 @@
+{
+    "github.copilot.chat.commitMessageGeneration.instructions": [
+        {
+            "text": "Генерирай commit съобщенията само на български език. Използвай кратко и ясно заглавие в повелително наклонение."
+        }
+    ]
+}
