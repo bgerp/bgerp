@@ -701,7 +701,7 @@ class sales_TransportValues extends core_Manager
         $map = array_merge(self::$map, $map);
         
         // Имали вече начислен транспорт
-        if ($cRec = self::get($map['masterMvc'], $masterRec->id, $rec->id)) {
+        if (!empty($rec->id) && ($cRec = self::get($map['masterMvc'], $masterRec->id, $rec->id))) {
             $rec->fee = $cRec->fee;
             $rec->deliveryTimeFromFee = $cRec->deliveryTime;
         }
