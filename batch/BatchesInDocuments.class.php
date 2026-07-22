@@ -535,6 +535,7 @@ class batch_BatchesInDocuments extends core_Manager
             $bOptions = $Detail->getAllowedInBatches($detailRecId);
         }
 
+        $tableRec = $exTableRec = array();
         if ($Def instanceof batch_definitions_Serial) {
 
             // Ако е сериен номер добавя се и бутон за маркиране/отмаркиране на всички чекбоксове
@@ -578,7 +579,6 @@ class batch_BatchesInDocuments extends core_Manager
         } else {
             Mode::push('htmlEntity', 'none');
             $i = $j = 0;
-            $tableRec = $exTableRec = array();
             $batchesCount = countR($batches);
             foreach ($batches as $batch => $quantityInStore) {
                 Mode::push('text', 'plain');
@@ -820,6 +820,13 @@ class batch_BatchesInDocuments extends core_Manager
         if (!($Detail instanceof planning_Jobs)) {
             $form->toolbar->addSbBtn('Това е к-то', 'updateQuantity', 'id=updateQuantity,ef_icon = img/16/disk.png,title = Обновяване на количеството');
             $form->toolbar->setBtnOrder('updateQuantity', 30);
+        }
+
+        if (doc_Containers::getDocument($recInfo->containerId)->rec('state') == 'active') {
+            $form->toolbar->setWarning('btnSave', 'Документът е вече контиран, при запис ще бъде реконтиран|*!');
+            if ($form->toolbar->haveButton('updateQuantity')) {
+                $form->toolbar->setWarning('updateQuantity', 'Документът е вече контиран, при запис ще бъде реконтиран|*!');
+            }
         }
 
         $operation = key($recInfo->operation);

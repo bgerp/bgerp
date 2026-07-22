@@ -65,9 +65,40 @@ class doc_plg_DetailRevisions extends core_Plugin
         $oldRec->_skipDetailRevision = true;
         $invoker->save($oldRec);
 
+        // Запазваме старото id, за да прехвърлим партидите му към новия ред в on_AfterSave
+        // (batch_BatchesInDocuments ги пази по detailRecId, а той се сменя при клонирането)
+        $rec->_detailRevisionOldId = $oldRec->id;
+
         // unset(id) -> INSERT вместо UPDATE; unset(createdOn/createdBy) -> plg_Created
         // (ако е зареден след нас в $loadList) ги попълва наново с текущия потребител/час
         unset($rec->id, $rec->createdOn, $rec->createdBy);
+    }
+
+
+    /**
+     * Прехвърля партидните разпределения (batch_BatchesInDocuments) от стария към
+     * новия ред, за да не се "изгубят" (останат сочещи към оттегления ред) или да
+     * се задублират движенията при следващо контиране (@see batch_Movements::saveMovement,
+     * което чете всички batch_BatchesInDocuments по containerId, без да проверява
+     * дали detailRecId сочи все още към активен ред)
+     */
+    public static function on_AfterSave($invoker, &$res, $rec, $fields = null, $mode = null)
+    {
+        if (empty($rec->_detailRevisionOldId) || empty($rec->id) || !core_Packs::isInstalled('batch')) {
+
+            return;
+        }
+
+        $bQuery = batch_BatchesInDocuments::getQuery();
+        $bQuery->where("#detailClassId = {$invoker->getClassId()} AND #detailRecId = {$rec->_detailRevisionOldId}");
+        $bRecs = $bQuery->fetchAll();
+
+        if (countR($bRecs)) {
+            foreach ($bRecs as $bRec) {
+                $bRec->detailRecId = $rec->id;
+            }
+            batch_BatchesInDocuments::saveArray($bRecs);
+        }
     }
 
 
@@ -99,6 +130,12 @@ class doc_plg_DetailRevisions extends core_Plugin
         $rec->rejectedBy = core_Users::getCurrent();
         $rec->_skipDetailRevision = true;
         $mvc->save($rec);
+
+        // Редът вече не е активен - партидите му не бива да участват в бъдещи
+        // движения при контиране (@see on_AfterSave за обратния случай - редакция)
+        if (core_Packs::isInstalled('batch')) {
+            batch_BatchesInDocuments::delete("#detailClassId = {$mvc->getClassId()} AND #detailRecId = {$rec->id}");
+        }
 
         $numRows = 1;
 
