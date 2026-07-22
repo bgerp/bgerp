@@ -261,7 +261,7 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
         // таблицата с произведените артикули (виж MAIN_INPUT_PRODUCT_TABLE в
         // шаблона), не заедно с (евентуални) други артикули за влагане
         if (countR($data->mainInputArr)) {
-            $data->listFields['productId'] = 'Артикул за разпад|* ';
+            $data->listFields['productId'] = 'Артикули за разпад|* ';
             $mData = clone $data;
             $mData->listTableMvc = clone $this;
             $mData->rows = $data->mainInputArr;
@@ -278,7 +278,7 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
 
         // Таблица с (други) артикули за разпад (влагане) - само ако има такива
         if (countR($data->inputArr)) {
-            $data->listFields['productId'] = 'Артикул за разпад|* ';
+            $data->listFields['productId'] = 'Артикули за разпад|* ';
             $iData = clone $data;
             $iData->listTableMvc = clone $this;
             $iData->rows = $data->inputArr;
