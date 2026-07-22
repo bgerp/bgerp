@@ -787,8 +787,10 @@ class deals_QuotationDetails extends doc_Detail
             if(countR($mvc->_total->vats) == 1){
                 $onlyVatPercent = key($mvc->_total->vats);
                 $percentVal = str_replace('.', '', $onlyVatPercent);
-                $data->summary->onlyVat = $data->summary->{"vat{$percentVal}"};
-                unset($data->summary->{"vat{$percentVal}"});
+                if (isset($data->summary->{"vat{$percentVal}"})) {
+                    $data->summary->onlyVat = $data->summary->{"vat{$percentVal}"};
+                    unset($data->summary->{"vat{$percentVal}"});
+                }
             }
 
             // Обработваме сумарните данни
