@@ -174,7 +174,7 @@ class plg_State2 extends core_Plugin
 
         if (isset($fields['-list']) && (Mode::is('printing') || Mode::is('text', 'xhtml') || Mode::is('text', 'plain') || Mode::is('pdf') || Mode::is('noToolbar'))) return;
 
-        if (is_object($rec) && $mvc->haveRightFor('changeState', $rec)) {
+        if (is_object($rec) && isset($rec->id) && $mvc->haveRightFor('changeState', $rec)) {
             $this->getActiveAndClosedState($mvc);
 
             if ($rec->state == $this->activeState || $rec->state == $this->closedState) {

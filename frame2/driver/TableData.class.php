@@ -227,8 +227,14 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
     {
         $tpl = new core_ET('[#TABS#][#PAGER_TOP#][#TABLE_BEFORE#][#TABLE#][#TABLE_AFTER#][#PAGER_BOTTOM#]');
         
-        $data = (is_object($rec->data)) ? $rec->data : new stdClass();
+        $data = (is_object($rec->data ?? null)) ? $rec->data : new stdClass();
         setIfNot($data->chartTabCaption, $this->chartTabCaption);
+        $data->recs = is_array($data->recs ?? null) ? $data->recs : array();
+        $data->groupByField = $data->groupByField ?? $this->groupByField;
+        $data->subGroupFieldOrder = $data->subGroupFieldOrder ?? $this->subGroupFieldOrder;
+        $data->groupedFieldOnNewRow = $data->groupedFieldOnNewRow ?? $this->groupedFieldOnNewRow;
+        $data->summaryListFields = $data->summaryListFields ?? $this->summaryListFields;
+        $data->summaryRowCaption = $data->summaryRowCaption ?? $this->summaryRowCaption;
         $data->listFields = $this->getListFields($rec);
         $data->rows = array();
         
@@ -371,7 +377,7 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
         // Подготовка на пейджъра
         $itemsPerPage = null;
         if (!(Mode::is('text', 'xhtml') || Mode::is('printing') || Mode::is('text', 'plain') || Mode::is('pdf') || isset($customTpl))) {
-            setIfNot($itemsPerPage, $rec->listItemsPerPage, $this->listItemsPerPage);
+            setIfNot($itemsPerPage, $rec->listItemsPerPage ?? null, $this->listItemsPerPage);
             $data->Pager = cls::get('core_Pager', array('itemsPerPage' => $itemsPerPage));
             $data->Pager->setPageVar('frame2_Reports', $rec->id);
         }

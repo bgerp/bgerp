@@ -251,7 +251,7 @@ class lab_Tests extends core_Master
         $rec = $form->rec;
         
         
-        if ($rec->foreignId) {
+        if (!empty($rec->foreignId)) {
             $firstDocument = doc_Threads::getFirstDocument(doc_Containers::fetch($rec->foreignId)->threadId);
             
             $handle = $firstDocument->getHandle();
@@ -267,7 +267,7 @@ class lab_Tests extends core_Master
      */
     public static function on_BeforeSave($mvc, $id, $rec)
     {
-        if ($rec->foreignId) {
+        if (!empty($rec->foreignId)) {
             $rec->originId = $rec->foreignId;
         }
     }
@@ -307,7 +307,7 @@ class lab_Tests extends core_Master
             
             $userId = $data->rec->createdBy;
             
-            bgerp_Notifications::add($msg, $url, $userId, $rec->priority);
+            bgerp_Notifications::add($msg, $url, $userId);
         }
         
         $compTest = Mode::get('testCompare_' . $mvc->getHandle($data->rec->id));
@@ -326,6 +326,7 @@ class lab_Tests extends core_Master
         
         
         $parameters = array();
+        $parametersStr = '';
         
         $parameters = keylist::toArray($data->rec->parameters);
         
@@ -554,6 +555,10 @@ class lab_Tests extends core_Master
     
     public static function on_AfterRecToVerbal($mvc, $row, $rec, $listFields)
     {
+        if (!property_exists($rec, 'paramValue')) {
+            return;
+        }
+
         $Double = cls::get('type_Double', array('params' => array('decimals' => 2, 'smartRound' => 'smartRound', 'smartCenter' => 'smartCenter')));
         
         $row->paramValue = $Double->toVerbal($rec->paramValue);
@@ -723,7 +728,7 @@ class lab_Tests extends core_Master
             $searchKeywords = plg_Search::getKeywords($mvc, $rec);
         }
         
-        if ($rec->id) {
+        if (!empty($rec->id)) {
             $dQuery = lab_TestDetails::getQuery();
             $dQuery->where("#testId = {$rec->id}");
             while ($dRec = $dQuery->fetch()) {

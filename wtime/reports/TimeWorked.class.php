@@ -242,9 +242,11 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
             $fld->FLD('personName', 'varchar', 'caption=Служител,tdClass=leftCol');
             $fld->FLD('metric', 'varchar', 'caption=Показател,tdClass=center');
 
-            for ($i = 0; $i < countR($rec->data->periodDates); $i++) {
-                $d = dt::addDays($i, $rec->data->periodDates[1]); // Y-m-d
-                $code = sprintf('d%02d', $i + 1);
+            $periodDates = $rec->data->periodDates ?? array();
+            $periodDates = is_array($periodDates) ? $periodDates : array();
+            $i = 0;
+            foreach ($periodDates as $d) {
+                $code = sprintf('d%02d', ++$i);
                 $caption = dt::mysql2verbal($d, 'd.m');
                 $fld->FLD($code, 'varchar', "caption={$caption},tdClass=center,smartCenter");
             }

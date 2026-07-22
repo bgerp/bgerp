@@ -525,7 +525,7 @@ class cond_DeliveryTerms extends core_Master
                 }
             }
 
-            if(!$formRec->__isBeingChanged){
+            if (empty($formRec->__isBeingChanged)) {
                 if ($error = sales_TransportValues::getDeliveryTermError($id, $formRec->deliveryAdress, $formRec->contragentClassId, $formRec->contragentId, $locationId, $deliveryData)) {
                     $form->setError('deliveryTermId,deliveryAdress,deliveryLocationId', $error);
                 }

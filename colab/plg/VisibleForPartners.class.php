@@ -40,7 +40,7 @@ class colab_plg_VisibleForPartners extends core_Plugin
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
         $rec = $data->form->rec;
-        if ($rec->folderId) {
+        if (!empty($rec->folderId)) {
 
             $folderId = $rec->folderId;
             if(empty($rec->id) && ($mvc instanceof planning_Tasks)){
@@ -60,7 +60,7 @@ class colab_plg_VisibleForPartners extends core_Plugin
                     $showField = true;
                     if(isset($rec->threadId) && !($mvc instanceof planning_Tasks)){
                         $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
-                        if($rec->containerId != $firstDoc->fetchField('containerId')){
+                        if(($rec->containerId ?? null) != $firstDoc->fetchField('containerId')){
                             if(!$firstDoc->isVisibleForPartners()){
                                 $showField = false;
                             }
@@ -72,12 +72,12 @@ class colab_plg_VisibleForPartners extends core_Plugin
                     }
                 }
                     
-                if ($rec->originId) {
+                if (!empty($rec->originId)) {
                     $doc = doc_Containers::getDocument($rec->originId);
                     $dRec = $doc->fetch();
                         
                     // Ако документа е създаден от контрактор или предишния документ е видим, тогава да е споделен по-подразбиране
-                    if (!$rec->id) {
+                    if (empty($rec->id)) {
                         if (core_Users::haveRole('partner', $dRec->createdBy) || $doc->isVisibleForPartners()) {
                             $data->form->setDefault('visibleForPartners', 'yes');
                         }
@@ -85,11 +85,11 @@ class colab_plg_VisibleForPartners extends core_Plugin
                 }
                     
                 // Ако няма да се показва на колаборатори по-подразбиране, да е скрито полето
-                if ($rec->visibleForPartners !== 'yes') {
+                if (($rec->visibleForPartners ?? null) !== 'yes') {
                     $data->form->setField('visibleForPartners', 'autohide');
                 }
 
-                if (!$rec->originId && $mvc->visibleForPartners && core_Users::isPowerUser()) {
+                if (empty($rec->originId) && ($mvc->visibleForPartners ?? null) && core_Users::isPowerUser()) {
                     $data->form->setDefault('visibleForPartners', 'yes');
                 }
             }
@@ -101,7 +101,7 @@ class colab_plg_VisibleForPartners extends core_Plugin
         }
 
         // Сетваме стойността, ако не е зададена
-        if (!$rec->id && !$rec->visibleForPartners) {
+        if (empty($rec->id) && empty($rec->visibleForPartners)) {
             $data->form->setDefault('visibleForPartners', 'no');
         }
         

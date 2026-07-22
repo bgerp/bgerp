@@ -715,7 +715,7 @@ class doc_TplManager extends core_Master
             $row->docClassId = ht::createLink($row->docClassId, array('doc_TplManager', 'list', 'docClassId' => $rec->docClassId));
         }
 
-        if(isset($rec->handler)){
+        if(isset($rec->handler, $row->handler, $row->handlerInEffectOn)){
             $row->handler .= " ({$row->handlerInEffectOn})";
         }
     }
