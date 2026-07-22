@@ -234,8 +234,10 @@ class doc_plg_DetailRevisions extends core_Plugin
 
         // За да не скача страницата най-отгоре след редирект, а остане на детайла
         $anchor = null;
-        if (isset($mvc->Master) && cls::existsMethod($mvc->Master, 'getHandle')) {
-            $anchor = $mvc->Master->getHandle($masterId);
+        if (isset($mvc->Master)) {
+            if(cls::haveInterface('doc_DocumentIntf', $mvc->Master)) {
+                $anchor = $mvc->Master->getHandle($masterId);
+            }
         }
 
         // Кои мастъри вече са в режим "покажи историята" - може да са няколко

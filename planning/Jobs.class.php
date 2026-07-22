@@ -209,7 +209,7 @@ class planning_Jobs extends core_Master
      *
      *  @var string
      */
-    public $hideListFieldsIfEmpty = 'quantityFromTasks,quantityNotStored';
+    public $hideListFieldsIfEmpty = 'quantityFromTasks,quantityNotStored,notes,inputStores,storeId';
 
 
     /**
