@@ -303,8 +303,8 @@ class sales_Quotations extends deals_QuotationMaster
                 foreach (range(1, 3) as $i) {
                     
                     // Ако има дефолтно количество
-                    $quantity = $rec->{"quantity{$i}"};
-                    $price = $rec->{"price{$i}"};
+                    $quantity = $rec->{"quantity{$i}"} ?? null;
+                    $price = $rec->{"price{$i}"} ?? null;
                     if (!$quantity) {
                         continue;
                     }
