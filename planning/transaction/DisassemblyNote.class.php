@@ -80,12 +80,7 @@ class planning_transaction_DisassemblyNote extends acc_DocumentTransactionSource
         // Симулираме стойността, която стратегията на склада ще изчисли за
         // вложения артикул, за да определим режийните преди самото контиране.
         if (isset($rec->expenses)) {
-            $inputAmount = cat_Products::getWacAmountInStore(
-                $inputRec->quantity,
-                $inputRec->productId,
-                $rec->valior,
-                $inputRec->storeId
-            );
+            $inputAmount = cat_Products::getWacAmountInStore($inputRec->quantity, $inputRec->productId, $rec->valior, $inputRec->storeId);
             $expensesAmount = round($inputAmount * $rec->expenses, 2);
 
             // При неположителна прогнозна стойност режийните са 0, както при

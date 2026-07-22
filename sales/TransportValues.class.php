@@ -698,10 +698,18 @@ class sales_TransportValues extends core_Manager
      */
     public static function prepareFee(&$rec, &$form, $masterRec, $map = array())
     {
+        // Ако мастър класа държи вальора в друго поле (напр. offertите - 'date' вместо 'valior')
+        if (!array_key_exists('valior', $map)) {
+            $masterClass = cls::get($map['masterMvc'] ?? self::$map['masterMvc']);
+            if (!empty($masterClass->valiorFld)) {
+                $map['valior'] = $masterClass->valiorFld;
+            }
+        }
+
         $map = array_merge(self::$map, $map);
-        
+
         // Имали вече начислен транспорт
-        if ($cRec = self::get($map['masterMvc'], $masterRec->id, $rec->id)) {
+        if (!empty($rec->id) && ($cRec = self::get($map['masterMvc'], $masterRec->id, $rec->id))) {
             $rec->fee = $cRec->fee;
             $rec->deliveryTimeFromFee = $cRec->deliveryTime;
         }

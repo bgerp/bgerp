@@ -43,6 +43,7 @@ class plg_RowTools extends core_Plugin
 
         // Определяме в кое поле ще показваме инструментите
         $field = $mvc->rowToolsField ?? 'id';
+        $rec->id = $rec->id ?? null;
 
         if (method_exists($mvc, 'act_Single')) {
             $singleUrl = $mvc->getSingleUrlArray($rec->id);

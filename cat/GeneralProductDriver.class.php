@@ -421,7 +421,7 @@ class cat_GeneralProductDriver extends cat_ProductDriver
         
         // @TODO ревербализиране на описанието
         $lg = core_Lg::getCurrent();
-        $info = ($lg == 'en') ? (!empty($data->rec->infoInt) ? $data->rec->infoInt : $data->rec->info) : $data->rec->info;
+        $info = ($lg == 'en') ? (!empty($data->rec->infoInt) ? $data->rec->infoInt : ($data->rec->info ?? null)) : ($data->rec->info ?? null);
         if (!empty($info)) {
             $data->row->info = core_Type::getByName('richtext')->toVerbal($info);
         }

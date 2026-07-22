@@ -253,8 +253,9 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
 
         // Дали изобщо някой ред (в което и да е от 3-те подтаблици) има реално
         // съдържание в тулбара на plg_RowTools2 - ако няма никъде, '_rowTools'
-        // не се добавя насила в нито една от таблиците (@see orderMultiTableColumns)
-        $haveRowTools = $this->haveAnyRowTools($data->rows);
+        // не се добавя насила в нито една от таблиците (@see orderMultiTableColumns).
+        // При печат/PDF/inline изгледи колоната не е нужна, дори да има съдържание
+        $haveRowTools = !Mode::isReadOnly() && $this->haveAnyRowTools($data->rows);
 
         // Мини-таблица с ОСНОВНИЯ артикул за разпад - показва се отделно, над
         // таблицата с произведените артикули (виж MAIN_INPUT_PRODUCT_TABLE в
@@ -314,7 +315,9 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
         $tpl->append($detailsProduction, 'PRODUCED_PRODUCTS_TABLE');
 
         if ($this->haveRightFor('add', (object) array('noteId' => $data->masterId, 'type' => 'production'))) {
-            $tpl->append(ht::createBtn('Произведен артикул', array($this, 'add', 'noteId' => $data->masterId, 'type' => 'production', 'ret_url' => true), null, null, array('style' => 'margin-top:5px;margin-bottom:15px;', 'ef_icon' => 'img/16/door_in.png', 'title' => 'Добавяне на произведен артикул')), 'PRODUCED_PRODUCTS_TABLE');
+            if(!Mode::isReadOnly()){
+                $tpl->append(ht::createBtn('Произведен артикул', array($this, 'add', 'noteId' => $data->masterId, 'type' => 'production', 'ret_url' => true), null, null, array('style' => 'margin-top:5px;margin-bottom:15px;', 'ef_icon' => 'img/16/door_in.png', 'title' => 'Добавяне на произведен артикул')), 'PRODUCED_PRODUCTS_TABLE');
+            }
         }
 
         return $tpl;

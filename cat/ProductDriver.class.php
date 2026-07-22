@@ -118,13 +118,13 @@ abstract class cat_ProductDriver extends core_BaseClass
                 
                 // Ако е 'hidden' и има зададена стойност, правим полето скрито
                 if ($display === 'hidden') {
-                    if (!is_null($form->rec->{$name})) {
+                    if (isset($form->rec->{$name})) {
                         $form->setField($name, 'input=hidden');
                     }
                 } elseif ($display === 'readOnly') {
-                    
+
                     // Ако е 'readOnly' и има зададена стойност, правим го 'само за четене'
-                    if (!is_null($form->rec->{$name})) {
+                    if (isset($form->rec->{$name})) {
                         $form->setReadOnly($name);
                     }
                 }
