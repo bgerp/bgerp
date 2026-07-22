@@ -161,7 +161,7 @@ class planning_DisassemblyNote extends deals_ManifactureMaster
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'valior, title=Документ, storeId=В склад, folderId, deadline, createdOn, createdBy';
+    public $listFields = 'valior, title=Документ,inputStoreId=От склад, storeId=В склад, folderId, deadline, createdOn, createdBy';
 
 
     /**
@@ -189,12 +189,6 @@ class planning_DisassemblyNote extends deals_ManifactureMaster
 
 
     /**
-     * Полета, които при клониране да не са попълнени
-     */
-    public $fieldsNotToClone = 'debitAmount';
-
-
-    /**
      * Може ли да се редактират активирани документи
      */
     public $canEditActivated = true;
@@ -211,12 +205,18 @@ class planning_DisassemblyNote extends deals_ManifactureMaster
      */
     public function description()
     {
+        // Декларирани преди parent::setDocumentFields(), за да се появи storeId
+        // (добавено там без after=/before=) естествено веднага след тях
+        $this->FLD('inputStoreId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Влагане (на артикула за разпад)->ОТ склад,input,silent,placeholder=Незавършено производство,mandatory');
+        $this->FLD('expenses', 'percent(min=0)', 'caption=Влагане (на артикула за разпад)->Реж. разходи');
+        $this->FLD('detailOrderBy', 'enum(auto=Автоматично,creation=Ред на създаване,code=Код,reff=Ваш №)', 'caption=Влагане (на артикула за разпад)->Подреждане по,notNull,value=auto');
+
         parent::setDocumentFields($this);
 
-        $this->setField('storeId', 'caption=Произвеждане (заприхождаване на произведените артикули)->В склад,silent,removeAndRefreshForm');
-        $this->FLD('inputStoreId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Влагане (на артикула за разпад)->ОТ склад,input,silent,placeholder=Незавършено производство,after=storeId,mandatory');
-        $this->FLD('expenses', 'percent(min=0)', 'caption=Влагане (на артикула за разпад)->Реж. разходи,after=Информация');
-        $this->FLD('detailOrderBy', 'enum(auto=Автоматично,creation=Ред на създаване,code=Код,reff=Ваш №)', 'caption=Влагане (на артикула за разпад)->Подреждане по,notNull,value=auto');
+        // Връщаме вальора на мястото му отпреди тази група (той също се добавя
+        // без after=/before= в setDocumentFields, затова без това щеше да остане след нея)
+        $this->setField('valior', 'mustOrder,before=inputStoreId');
+        $this->setField('storeId', 'caption=Произвеждане (заприхождаване на произведените артикули)->В склад,silent');
 
         $this->setField('deadline', 'caption=Информация->Срок до');
         $this->setField('note', 'caption=Информация->Бележки,after=deadline');
@@ -306,9 +306,9 @@ class planning_DisassemblyNote extends deals_ManifactureMaster
             'type'           => 'input',
             'isMainInput'    => 'yes',
             'productId'      => $jobRec->productId,
-            'packagingId'    => $jobRec->packagingId,
-            'quantityInPack' => $jobRec->quantityInPack,
-            'quantity'       => $jobRec->quantity,
+            'packagingId'    => $rec->mainInputPackagingId ?? $jobRec->packagingId,
+            'quantityInPack' => $rec->mainInputQuantityInPack ?? $jobRec->quantityInPack,
+            'quantity'       => $rec->mainInputQuantity ?? $jobRec->quantity,
         );
 
         if (isset($rec->inputStoreId) && cat_Products::fetchField($jobRec->productId, 'canStore') == 'yes') {
@@ -417,6 +417,23 @@ class planning_DisassemblyNote extends deals_ManifactureMaster
                     $form->setDefault('storeId', key($inputStores));
                 }
             }
+
+            // Бързо въвеждане на к-во/опаковка на основния влаган артикул (от Заданието),
+            // само при добавяне - вместо да се пренася само цялото планирано к-во
+            if(empty($rec->id)){
+                $form->FNC('mainInputProductId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,maxSuggestions=100,forceAjax,titleFld=name,forceOpen)', 'caption=Влагане (на артикула за разпад)->Артикул,input,before=inputStoreId,mandatory');
+                $form->setFieldTypeParams('mainInputProductId', array('onlyIn' => array($jobRec->productId)));
+                $form->setDefault('mainInputProductId', $jobRec->productId);
+                $form->setReadOnly('mainInputProductId');
+
+                $packs = cat_Products::getPacks($jobRec->productId, $jobRec->packagingId);
+                $form->FNC('mainInputPackagingId', 'key(mvc=cat_UoM,select=shortName,select2MinItems=0)', 'caption=Влагане (на артикула за разпад)->Мярка,input,after=mainInputProductId');
+                $form->setOptions('mainInputPackagingId', $packs);
+                $form->setDefault('mainInputPackagingId', $jobRec->packagingId);
+
+                $form->FNC('mainInputPackQuantity', 'double(min=0)', 'caption=Влагане (на артикула за разпад)->Количество,input,mandatory,after=mainInputPackagingId');
+                $form->setDefault('mainInputPackQuantity', round($jobRec->quantity / $jobRec->quantityInPack, 5));
+            }
         }
     }
 
@@ -444,10 +461,9 @@ class planning_DisassemblyNote extends deals_ManifactureMaster
             }
         }
 
-        if ($rec->state == 'active' || $rec->state == 'rejected') {
+        if (in_array($rec->state, array('active', 'rejected'))) {
             planning_Jobs::updateDisassembledQuantity($rec->originId);
         }
-
     }
 
 
@@ -474,8 +490,6 @@ class planning_DisassemblyNote extends deals_ManifactureMaster
     }
 
 
-
-
     /**
      * Извиква се след въвеждането на данните от Request във формата ($form->rec)
      */
@@ -484,6 +498,13 @@ class planning_DisassemblyNote extends deals_ManifactureMaster
         $rec = &$form->rec;
 
         if($form->isSubmitted()) {
+            if(isset($rec->mainInputPackagingId)){
+                $jobRec = self::getJobRec($rec);
+                $productInfo = cat_Products::getProductInfo($jobRec->productId);
+                $rec->mainInputQuantityInPack = isset($productInfo->packagings[$rec->mainInputPackagingId]) ? $productInfo->packagings[$rec->mainInputPackagingId]->quantity : 1;
+                $rec->mainInputQuantity = $rec->mainInputPackQuantity * $rec->mainInputQuantityInPack;
+            }
+
             if(isset($rec->id)){
                 if($rec->state == 'active'){
                     $exRec = $mvc->fetch($rec->id, '*', false);

@@ -138,6 +138,8 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     {
         $form = &$data->form;
         $rec = &$form->rec;
+        $masterRec = &$data->masterRec;
+
         $data->singleTitle = ($rec->type == 'pop') ? 'отпадък' : (($rec->type == 'input') ? 'материал' : (($rec->type == 'subProduct') ? 'субпродукт' : 'отнесен разход'));
         $data->defaultMeta = ($rec->type == 'pop') ? 'canConvert,canStore' : (($rec->type == 'input') ? 'canConvert' : ($rec->type == 'subProduct' ? 'canManifacture,canStore' : null));
         if(empty($rec->id)){
@@ -147,7 +149,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
         $jobRec = planning_DirectProductionNote::getJobRec($rec->noteId);
         $productOptions = $expenseItemIdOptions = array();
         if($rec->type == 'allocated'){
-            $allocatedArr = planning_Jobs::getAllocatedServices($jobRec, $data->masterRec->valior);
+            $allocatedArr = planning_Jobs::getAllocatedServices($jobRec, $masterRec->valior);
             if(!countR($allocatedArr)){
                 $form->setError('productId', 'Няма все още отнесени разходи към производствени операции по заданието');
                 $form->setReadOnly('productId');
@@ -173,9 +175,9 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
             if ($prodRec->canStore == 'yes') {
                 $form->rec->_isStorable = true;
                 $form->setField('storeId', 'input');
-                if (empty($rec->id) && isset($data->masterRec->inputStoreId)) {
+                if (empty($rec->id) && isset($masterRec->inputStoreId)) {
                     $field = $rec->type == 'subProduct' ? 'storeId' : 'inputStoreId';
-                    $form->setDefault('storeId', $data->masterRec->{$field});
+                    $form->setDefault('storeId', $masterRec->{$field});
                 }
 
                 $Cover = doc_Folders::getCover($prodRec->folderId);
@@ -202,7 +204,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
 
                     $form->setDefault('fromAccId', '61102');
                     $form->setReadOnly('fromAccId');
-                } elseif($data->masterRec->inputServicesFrom == 'all'){
+                } elseif($masterRec->inputServicesFrom == 'all'){
                     if(empty($rec->id)){
                         $form->setDefault('fromAccId', '61102');
                     }
@@ -216,15 +218,15 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
         } elseif($rec->type == 'input'){
 
             // Ако ПП е в нишка на финална ПО и се произвежда друг артикул - то само този от заданието да може да се избира
-            $origin = doc_Threads::getFirstDocument($data->masterRec->threadId);
+            $origin = doc_Threads::getFirstDocument($masterRec->threadId);
             if($origin->isInstanceOf('planning_Tasks')){
                 $originRec = $origin->fetch('isFinal,productId');
-                if($originRec->isFinal == 'yes' && $data->masterRec->productId != $jobRec->productId){
+                if($originRec->isFinal == 'yes' && $masterRec->productId != $jobRec->productId){
                     $form->setFieldTypeParams('productId', array('onlyIn' => array($jobRec->productId)));
                 }
             }
         } elseif ($rec->type == 'subProduct') {
-            $form->setDefault('storeId', $data->masterRec->storeId);
+            $form->setDefault('storeId', $masterRec->storeId);
             $form->setField('storeId', 'caption=Засклаждане,mandatory,placeholder=Изберете склад');
         }
     }
@@ -364,13 +366,13 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     private function modifyRows($data)
     {
         if(!countR($data->rows)) return;
+        $masterRec = $data->masterData->rec;
 
-        $origin = doc_Containers::getDocument($data->masterData->rec->originId);
+        $origin = doc_Containers::getDocument($masterRec->originId);
         if($origin->isInstanceOf('planning_Tasks')){
             $origin = doc_Containers::getDocument($origin->fetchField('originId'));
         }
 
-        $masterRec = $data->masterData->rec;
         $workInProgressRecs = array();
         foreach ($data->rows as $id => &$row) {
             $rec = $data->recs[$id];

@@ -338,7 +338,7 @@ class marketing_Inquiries2 extends embed_Manager
         $caption = 'Количества|*';
         $uom = '';
         if (isset($data->Driver) || isset($form->rec->innerClass)) {
-            $uomId = $form->rec->measureId;
+            $uomId = $form->rec->measureId ?? null;
             if (isset($uomId) && ($uomId != cat_UoM::fetchBySysId('pcs')->id || $form->rec->quantityCount > 0)) {
                 $uom = cat_UoM::getShortName($uomId);
             }
@@ -580,7 +580,7 @@ class marketing_Inquiries2 extends embed_Manager
         }
         
         $row->innerClass = core_Classes::translateClassName($row->innerClass);
-        if(strpos($row->title, '||') !== false){
+        if(strpos($row->title ?? '', '||') !== false){
             $row->title = tr($row->title);
         }
     }
@@ -1261,7 +1261,7 @@ class marketing_Inquiries2 extends embed_Manager
                 $params = array();
                 $driverFields = marketing_Inquiries2::getDriverFields($Driver);
                 foreach (array_keys($driverFields) as $driverFld){
-                    $params[$driverFld] = $rec->{$driverFld};
+                    $params[$driverFld] = $rec->{$driverFld} ?? null;
                 }
                 if(isset($rec->moq)){
                     $params['manualMoq'] = $rec->moq;
@@ -1272,6 +1272,7 @@ class marketing_Inquiries2 extends embed_Manager
                     $rec->moq = $moqAfterTheParamsAreKnown;
                 }
             }
+            $rec->moq = $rec->moq ?? null;
             $moqVerbal = core_Type::getByName('double(smartRound)')->toVerbal($rec->moq);
             
             // Ако няма въведени количества
@@ -1526,7 +1527,7 @@ class marketing_Inquiries2 extends embed_Manager
         if(is_array($inquiryDriverFields)){
             $additionalData = array();
             foreach ($inquiryDriverFields as $name) {
-                $additionalData[$name] = $rec->{$name};
+                $additionalData[$name] = $rec->{$name} ?? null;
                 unset($rec->{$name});
             }
             

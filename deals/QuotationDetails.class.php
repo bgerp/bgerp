@@ -139,10 +139,10 @@ class deals_QuotationDetails extends doc_Detail
 
         if (!empty($rec->packPrice)) {
             if (strtolower(Request::get('Act')) != 'createproduct') {
-                $valior = !empty($masterRec->valior) ? $masterRec->valior : dt::today();
+                $valior = !empty($masterRec->date) ? $masterRec->date : dt::today();
                 $vat = cat_Products::getVat($rec->productId, $valior, $vatExceptionId);
             } else {
-                $vat = acc_Periods::fetchByDate($masterRec->valior)->vatRate;
+                $vat = acc_Periods::fetchByDate($masterRec->date)->vatRate;
             }
 
             $rec->packPrice = deals_Helper::getDisplayPrice($rec->packPrice, $vat, $masterRec->currencyRate, $masterRec->chargeVat);
@@ -150,7 +150,7 @@ class deals_QuotationDetails extends doc_Detail
 
         $form->fields['packPrice']->unit = '|*' . $masterRec->currencyId . ', ' .(($masterRec->chargeVat == 'yes') ? '|с ДДС|*' : '|без ДДС|*');
 
-        if ($form->rec->price && $masterRec->currencyRate) {
+        if (($form->rec->price ?? null) && $masterRec->currencyRate) {
             if ($masterRec->chargeVat == 'yes') {
                 ($rec->vatPercent) ? $vat = $rec->vatPercent : $vat = cat_Products::getVat($rec->productId, $masterRec->date, $vatExceptionId);
                 $rec->price = $rec->price * (1 + $vat);
@@ -174,8 +174,8 @@ class deals_QuotationDetails extends doc_Detail
         }
 
         // Показваме документа, който е бил източник на мастъра
-        if ($masterRec->originId || $rec->originId) {
-            $oDocId = $rec->originId;
+        if ($masterRec->originId || ($rec->originId ?? null)) {
+            $oDocId = $rec->originId ?? null;
 
             if (!$oDocId) {
                 $oDocId = $masterRec->originId;
@@ -217,7 +217,7 @@ class deals_QuotationDetails extends doc_Detail
         $vat = 0;
 
         if(isset($rec->productId)) {
-            $vat = cat_Products::getVat($rec->productId, $masterRec->valior, $vatExceptionId);
+            $vat = cat_Products::getVat($rec->productId, $masterRec->date, $vatExceptionId);
             $rec->vatPercent = $vat;
             $packs = cat_Products::getPacks($rec->productId, $rec->packagingId);
             $form->setOptions('packagingId', $packs);
@@ -787,8 +787,10 @@ class deals_QuotationDetails extends doc_Detail
             if(countR($mvc->_total->vats) == 1){
                 $onlyVatPercent = key($mvc->_total->vats);
                 $percentVal = str_replace('.', '', $onlyVatPercent);
-                $data->summary->onlyVat = $data->summary->{"vat{$percentVal}"};
-                unset($data->summary->{"vat{$percentVal}"});
+                if (isset($data->summary->{"vat{$percentVal}"})) {
+                    $data->summary->onlyVat = $data->summary->{"vat{$percentVal}"};
+                    unset($data->summary->{"vat{$percentVal}"});
+                }
             }
 
             // Обработваме сумарните данни
@@ -962,7 +964,7 @@ class deals_QuotationDetails extends doc_Detail
             }
 
             if ($masterRec->chargeVat != 'separate') {
-                $summary->vatAmount = tr($summary->vatAmount);
+                $summary->vatAmount = tr($summary->vatAmount ?? null);
             }
 
             $dTpl->placeObject($summary, 'SUMMARY');

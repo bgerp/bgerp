@@ -237,7 +237,7 @@ class sales_QuotationsDetails extends deals_QuotationDetails
     protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
         // Синхронизиране на сумата на транспорта
-        if ($rec->syncFee === true) {
+        if (($rec->syncFee ?? null) === true) {
             sales_TransportValues::sync($mvc->Master, $rec->quotationId, $rec->id, $rec->fee, $rec->deliveryTimeFromFee, $rec->_transportExplained);
         }
     }

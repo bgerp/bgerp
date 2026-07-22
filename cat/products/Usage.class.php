@@ -115,7 +115,7 @@ class cat_products_Usage extends core_Manager
         $tpl->append($this->renderJobs($data->jobData));
         
         if ($data->isPublic === false) {
-            $renderEvenIfEmpty = ($data->jobData->notManifacturable === true);
+            $renderEvenIfEmpty = (($data->jobData->notManifacturable ?? null) === true);
             $tpl->append($this->renderDocuments($data->saleData, $renderEvenIfEmpty));
             $tpl->append($this->renderDocuments($data->purData));
             $tpl->append($this->renderDocuments($data->quoteData));
@@ -298,7 +298,7 @@ class cat_products_Usage extends core_Manager
      */
     private function renderJobs($data)
     {
-        if ($data->hide === true) return;
+        if (($data->hide ?? null) === true) return;
 
         $tpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
 
@@ -334,7 +334,7 @@ class cat_products_Usage extends core_Manager
         $details = $table->get($data->rows, $data->listFields);
         
         // Ако артикула не е производим, показваме в детайла
-        if ($data->notManifacturable === true) {
+        if (($data->notManifacturable ?? null) === true) {
             $tpl->append(" <span class='red small'>(" . tr('Артикулът не е производим и не е едновременно вложим и складируем') . ')</span>', 'title');
             $tpl->append('state-rejected', 'TAB_STATE');
         }

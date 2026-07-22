@@ -209,7 +209,7 @@ class planning_Jobs extends core_Master
      *
      *  @var string
      */
-    public $hideListFieldsIfEmpty = 'quantityFromTasks,quantityNotStored';
+    public $hideListFieldsIfEmpty = 'quantityFromTasks,quantityNotStored,notes,inputStores,storeId';
 
 
     /**
@@ -413,7 +413,7 @@ class planning_Jobs extends core_Master
                 }
             }
         } else {
-            list($productId, $packagingId, $secondMeasureId) = array($rec->productId, $rec->packagingId, $rec->secondMeasureId);
+            list($productId, $packagingId, $secondMeasureId) = array($rec->productId ?? NULL, $rec->packagingId ?? NULL, $rec->secondMeasureId ?? NULL);
         }
 
         // Резолвваме източника (продажба/покупка), ако Заданието е обвързано с такъв

@@ -298,11 +298,18 @@ class batch_plg_DocumentMovement extends core_Plugin
             }
             
             $containerId = (isset($rec->containerId)) ? $rec->containerId : $mvc->fetchField($rec->id, 'containerId');
-            
+
             // Отразяване на движението, само ако в текущия хит не е отразено за същия документ
             if (!isset($mvc->savedMovements[$containerId])) {
+
+                // Изтриваме старите движения преди regenerate - saveMovement() винаги
+                // прави чист INSERT (в batch_Movements няма unique индекс), затова при
+                // реконтиране (повторен save с state=active) старите движения трябва
+                // изрично да се махнат, иначе се трупат дубликати. Същия модел като
+                // ръчния "debugreconto" екшън (@see acc_plg_Contable::on_BeforeAction)
+                batch_Movements::removeMovement($mvc, $rec->id);
                 batch_Movements::saveMovement($containerId);
-                
+
                 // Дига се флаг в текущия хит че движението е отразено
                 $mvc->savedMovements[$containerId] = true;
             }
