@@ -228,7 +228,7 @@ class deals_QuotationDetails extends doc_Detail
         if ($form->isSubmitted()) {
             if (!isset($form->rec->packQuantity)) {
                 $form->rec->defQuantity = true;
-                $form->setDefault('packQuantity', $rec->_moq ? $rec->_moq : deals_Helper::getDefaultPackQuantity($rec->productId, $rec->packagingId));
+                $form->setDefault('packQuantity', ($rec->_moq ?? null) ? $rec->_moq : deals_Helper::getDefaultPackQuantity($rec->productId, $rec->packagingId));
                 if (empty($rec->packQuantity)) {
                     if($rec->optional == 'yes'){
                         $form->setDefault('packQuantity', 1);
@@ -242,7 +242,7 @@ class deals_QuotationDetails extends doc_Detail
             $rec->quantityInPack = 1;
             if(isset($rec->productId)){
                 $productInfo = cat_Products::getProductInfo($rec->productId);
-                $rec->quantityInPack = ($productInfo->packagings[$rec->packagingId]) ? $productInfo->packagings[$rec->packagingId]->quantity : 1;
+                $rec->quantityInPack = (!empty($productInfo->packagings[$rec->packagingId])) ? $productInfo->packagings[$rec->packagingId]->quantity : 1;
             }
             $rec->quantity = $rec->packQuantity * $rec->quantityInPack;
 
