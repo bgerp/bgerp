@@ -299,12 +299,14 @@ class core_Settings extends core_Manager
             if (!$rec->data) {
                 continue;
             }
+
+            $userArr = array();
             
             // Определяме потребителите
             if ($rec->userOrRole < 0) {
                 $roleId = type_UserOrRole::getRoleIdFromSys($rec->userOrRole, $type);
                 if ($type == 'role') {
-                    $userArr = $userRolesArr[$roleId];
+                    $userArr = $userRolesArr[$roleId] ?? array();
                 }
             } else {
                 $userArr = arr::make($rec->userOrRole, true);
