@@ -255,14 +255,73 @@ class doc_plg_HidePrices extends core_Plugin
 
             return;
         }
-        
+
         $form = &$data->form;
         $priceFields = arr::make($mvc->priceFields ?? null);
-        
+
         foreach ($priceFields as $fld){
             if($form->getField($fld, false)){
                 $form->setField($fld, 'input=none');
             }
+        }
+
+        // Помним опаковката преди потребителския input - нужно е при добавяне/
+        // клониране на нов ред (без id), за да познаем дали е сменена от
+        // предварително попълнената стойност (@see on_AfterInputEditForm)
+        if (!empty($mvc->packagingFld)) {
+            $form->_hidePricesOldPackaging = $form->rec->{$mvc->packagingFld} ?? null;
+        }
+    }
+
+
+    /**
+     * След въвеждане на формата премахва скритите ценови полета, които зависят
+     * от променена опаковка. Така конкретният детайл може да ги изчисли наново.
+     */
+    public static function on_AfterInputEditForm($mvc, &$form)
+    {
+        if (!$form->isSubmitted() || $form->gotErrors() || empty($mvc->packagingFld)) {
+            return;
+        }
+
+        $rec = &$form->rec;
+
+        $packagingFld = $mvc->packagingFld;
+        if (!$form->getField($packagingFld, false)) {
+            return;
+        }
+
+        if (self::canSeePriceFields($mvc, null)) {
+            return;
+        }
+
+        if (isset($mvc->Master, $mvc->masterKey) && !empty($rec->{$mvc->masterKey})) {
+            $masterRec = $mvc->Master->fetch($rec->{$mvc->masterKey});
+            if (self::canSeePriceFields($mvc->Master, $masterRec)) {
+                return;
+            }
+        }
+
+        // Старата опаковка - от БД при промяна на съществуващ ред, или тази
+        // от преди потребителския input при добавяне/клониране на нов ред
+        if (!empty($rec->id)) {
+            $oldRec = $mvc->fetch($rec->id);
+            $oldPackaging = $oldRec->{$packagingFld} ?? null;
+        } else {
+            $oldPackaging = $form->_hidePricesOldPackaging ?? null;
+        }
+
+        if ($oldPackaging == ($rec->{$packagingFld} ?? null)) {
+            return;
+        }
+
+        $removeAndRefresh = $form->getFieldParam($packagingFld, 'removeAndRefreshForm');
+        $refreshFields = arr::make(str_replace('|', ',', $removeAndRefresh ?? ''), true);
+        $priceFields = arr::make($mvc->priceFields ?? null, true);
+        $fieldsToUnset = array_intersect_key($refreshFields, $priceFields);
+
+        foreach ($fieldsToUnset as $field => $dummy) {
+            unset($rec->{$field});
         }
     }
 
