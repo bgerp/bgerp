@@ -720,13 +720,14 @@ class crm_Persons extends core_Master
         if (!$ownCompany) {
             $ownCompany = crm_Companies::fetchOurCompany();
         }
-        if (is_object($ownCompany) && $ownCompany->country != $rec->country) {
+        $country = $rec->country ?? null;
+        if (isset($country) && is_object($ownCompany) && $ownCompany->country != $country) {
             $row->country = $mvc->getVerbal($rec, 'country');
         }
 
-        $pCode = $mvc->getVerbal($rec, 'pCode');
-        $place = $mvc->getVerbal($rec, 'place');
-        $address = $mvc->getVerbal($rec, 'address');
+        $pCode = property_exists($rec, 'pCode') ? $mvc->getVerbal($rec, 'pCode') : '';
+        $place = property_exists($rec, 'place') ? $mvc->getVerbal($rec, 'place') : '';
+        $address = property_exists($rec, 'address') ? $mvc->getVerbal($rec, 'address') : '';
 
 
         if (isset($fields['-list'])) {
@@ -793,12 +794,12 @@ class crm_Persons extends core_Master
             $row->nameList .= "<div style='font-size:0.8em;margin:3px;'>{$dateType}:&nbsp;{$birthday}</div>";
         }
 
-        if ($rec->buzCompanyId && crm_Companies::haveRightFor('single', $rec->buzCompanyId)) {
+        if (!empty($rec->buzCompanyId) && crm_Companies::haveRightFor('single', $rec->buzCompanyId)) {
             $lStyle = array();
             $cRec = crm_Companies::fetch($rec->buzCompanyId);
-            if ($cRec->state == 'closed') {
+            if (($cRec->state ?? null) == 'closed') {
                 $lStyle = array('style' => 'background-color:#ddd;');
-            } elseif ($cRec->state == 'rejected') {
+            } elseif (($cRec->state ?? null) == 'rejected') {
                 $lStyle = array('style' => 'background-color:#f3c9c8;');
             }
 
@@ -821,7 +822,7 @@ class crm_Persons extends core_Master
         $title = $rec->name;
 
         // Ако е зададена държава
-        if ($rec->country) {
+        if (!empty($rec->country)) {
 
             // Името на дръжавата
             $commonName = mb_strtolower(drdata_Countries::fetchField($rec->country, 'commonName'));
@@ -829,7 +830,7 @@ class crm_Persons extends core_Master
         }
 
         // Ако е зададен града и държавата не е същата
-        if ($rec->place && ($commonName == mb_strtolower($conf->BGERP_OWN_COMPANY_COUNTRY))) {
+        if (!empty($rec->place) && ($commonName == mb_strtolower($conf->BGERP_OWN_COMPANY_COUNTRY))) {
 
             // Добавяме града
             $title .= ' - ' . $rec->place;
