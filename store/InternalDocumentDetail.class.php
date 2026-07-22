@@ -159,11 +159,21 @@ abstract class store_InternalDocumentDetail extends doc_Detail
 
                 if (!isset($rec->packPrice) && $form->_needPrice) {
                     $autoPrice = true;
-                    $Policy = cls::get('price_ListToCustomers');
-                    
-                    $packPrice = $Policy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId, $rec->packQuantity * $rec->quantityInPack, $masterRec->valior, $currencyRate, $rec->chargeVat)->price;
-                    if (isset($packPrice)) {
-                        $rec->packPrice = $packPrice * $rec->quantityInPack;
+
+                    // Потребител БЕЗ права да вижда цени е сменил опаковката -
+                    // пренасяме старата (packaging-invariant) единична цена,
+                    // вместо да търсим нова от ценовата политика (тя може да
+                    // върне съвсем друга цена от предната, или изобщо да няма
+                    // намерена такава)
+                    if (isset($rec->_hidePricesOldUnitPrice) && !doc_plg_HidePrices::canSeePriceFields($mvc, null)) {
+                        $rec->packPrice = $rec->_hidePricesOldUnitPrice * $rec->quantityInPack;
+                    } else {
+                        $Policy = cls::get('price_ListToCustomers');
+
+                        $packPrice = $Policy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId, $rec->packQuantity * $rec->quantityInPack, $masterRec->valior, $currencyRate, $rec->chargeVat)->price;
+                        if (isset($packPrice)) {
+                            $rec->packPrice = $packPrice * $rec->quantityInPack;
+                        }
                     }
                 }
 
