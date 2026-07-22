@@ -253,7 +253,7 @@ class planning_interface_StepProductDriver extends cat_GeneralProductDriver
 
         $tpl->placeObject($data->row);
 
-        if ($data->noChange !== true || countR($data->params)) {
+        if (($data->noChange ?? null) !== true || countR($data->params ?? array())) {
             $paramTpl = cat_products_Params::renderParams($data);
             $tpl->append($paramTpl, 'PARAMS');
         }
@@ -341,7 +341,7 @@ class planning_interface_StepProductDriver extends cat_GeneralProductDriver
     public function getDefaultMetas($rec = null)
     {
         $meta = parent::getDefaultMetas($rec);
-        if($rec->planning_Steps_canStore == 'no'){
+        if(($rec->planning_Steps_canStore ?? null) == 'no'){
             unset($meta['canStore']);
         }
 
