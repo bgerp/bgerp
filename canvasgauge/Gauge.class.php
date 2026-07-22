@@ -69,8 +69,8 @@ class canvasgauge_Gauge
      */
     protected static function renderGauge($value = null, $canvasId = null, $valArr = array(), $type = 'radial')
     {
-        setIfNot($value, $valArr['value'], '0');
-        setIfNot($canvasId, $valArr['canvasId'], str::getRand());
+        setIfNot($value, $valArr['value'] ?? null, '0');
+        setIfNot($canvasId, $valArr['canvasId'] ?? null, str::getRand());
         
         $valArr['renderTo'] = $canvasId;
         $valArr['value'] = $value;
@@ -93,7 +93,7 @@ class canvasgauge_Gauge
         
         // Това е защита, когата са зададени стойности но не е начертано добре
         if (isset($valArr['minValue']) || isset($valArr['maxValue'])) {
-            if (!$valArr['majorTicks']) {
+            if (empty($valArr['majorTicks'])) {
                 setIfNot($valArr['exactTicks'], true);
                 expect($valArr['exactTicks'], 'Трябва да се зададе стойност на majorTicks');
             }
