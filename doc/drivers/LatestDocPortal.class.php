@@ -417,8 +417,6 @@ class doc_drivers_LatestDocPortal extends core_BaseClass
             $cArr[] = $tRec->firstContainerId;
         }
         
-        $tArr = type_Keylist::toArray($dRec->threads);
-        
         return md5(implode('|', $cArr));
     }
 }
