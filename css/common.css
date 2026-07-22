@@ -1401,6 +1401,9 @@ a.profile {
     color: #999999 !important;
     text-decoration: line-through !important; }
 
+.document table.listTable>tbody>tr.state-rejected>td {
+  color: #444444 !important; }
+
 .state-rejected .document .profile {
   text-decoration: none !important; }
 
