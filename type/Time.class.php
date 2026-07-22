@@ -275,8 +275,8 @@ class type_Time extends type_Varchar
         }
         
         if (isset($this->params['noSmart'])) {
-            $uom = ($this->params['uom']) ? $this->params['uom'] : 'sec';
-            $decimals = ($this->params['decimals']) ? $this->params['decimals'] : 0;
+            $uom = !empty($this->params['uom']) ? $this->params['uom'] : 'sec';
+            $decimals = !empty($this->params['decimals']) ? $this->params['decimals'] : 0;
 
             switch ($uom) {
                 case 'years':
