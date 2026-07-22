@@ -830,7 +830,7 @@ class deals_QuotationDetails extends doc_Detail
                 }
             }
         }
-        if(is_object($mvc->_total)){
+        if(isset($mvc->_total) && is_object($mvc->_total)){
             $data->_total = clone $mvc->_total;
         }
 
