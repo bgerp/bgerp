@@ -253,8 +253,9 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
 
         // Дали изобщо някой ред (в което и да е от 3-те подтаблици) има реално
         // съдържание в тулбара на plg_RowTools2 - ако няма никъде, '_rowTools'
-        // не се добавя насила в нито една от таблиците (@see orderMultiTableColumns)
-        $haveRowTools = $this->haveAnyRowTools($data->rows);
+        // не се добавя насила в нито една от таблиците (@see orderMultiTableColumns).
+        // При печат/PDF/inline изгледи колоната не е нужна, дори да има съдържание
+        $haveRowTools = !Mode::isReadOnly() && $this->haveAnyRowTools($data->rows);
 
         // Мини-таблица с ОСНОВНИЯ артикул за разпад - показва се отделно, над
         // таблицата с произведените артикули (виж MAIN_INPUT_PRODUCT_TABLE в
