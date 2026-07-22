@@ -161,7 +161,7 @@ class planning_DisassemblyNote extends deals_ManifactureMaster
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'valior, title=Документ, storeId=В склад, folderId, deadline, createdOn, createdBy';
+    public $listFields = 'valior, title=Документ,inputStoreId=От склад, storeId=В склад, folderId, deadline, createdOn, createdBy';
 
 
     /**
@@ -186,12 +186,6 @@ class planning_DisassemblyNote extends deals_ManifactureMaster
      * Поле за подредбата на детайла
      */
     public $detailOrderByField = 'detailOrderBy';
-
-
-    /**
-     * Полета, които при клониране да не са попълнени
-     */
-    public $fieldsNotToClone = 'debitAmount';
 
 
     /**
@@ -444,10 +438,9 @@ class planning_DisassemblyNote extends deals_ManifactureMaster
             }
         }
 
-        if ($rec->state == 'active' || $rec->state == 'rejected') {
+        if (in_array($rec->state, array('active', 'rejected'))) {
             planning_Jobs::updateDisassembledQuantity($rec->originId);
         }
-
     }
 
 
@@ -472,8 +465,6 @@ class planning_DisassemblyNote extends deals_ManifactureMaster
             $row->inputStoreId = store_Stores::getHyperlink($rec->inputStoreId, true);
         }
     }
-
-
 
 
     /**
