@@ -65,6 +65,12 @@ class deals_QuotationDetails extends doc_Detail
 
 
     /**
+     * Помощен масив за мапиране на полета изпозлвани в deals_Helper
+     */
+    public $map = array('valior' => 'date');
+
+
+    /**
      * Полета, които ще се показват в листов изглед
      */
     public $listFields = 'productId, packagingId, quantityInPack, packQuantity=К-во, packPrice, discount=Отст., tolerance, term, weight,optional, amount, discAmount,quantity';
@@ -219,7 +225,7 @@ class deals_QuotationDetails extends doc_Detail
         if(isset($rec->productId)) {
             $vat = cat_Products::getVat($rec->productId, $masterRec->date, $vatExceptionId);
             $rec->vatPercent = $vat;
-            $packs = cat_Products::getPacks($rec->productId, $rec->packagingId);
+            $packs = cat_Products::getPacks($rec->productId, $rec->packagingId ?? null);
             $form->setOptions('packagingId', $packs);
             $form->setDefault('packagingId', key($packs));
             $form->setField('packagingId', 'input');
@@ -228,7 +234,7 @@ class deals_QuotationDetails extends doc_Detail
         if ($form->isSubmitted()) {
             if (!isset($form->rec->packQuantity)) {
                 $form->rec->defQuantity = true;
-                $form->setDefault('packQuantity', $rec->_moq ? $rec->_moq : deals_Helper::getDefaultPackQuantity($rec->productId, $rec->packagingId));
+                $form->setDefault('packQuantity', ($rec->_moq ?? null) ? $rec->_moq : deals_Helper::getDefaultPackQuantity($rec->productId, $rec->packagingId));
                 if (empty($rec->packQuantity)) {
                     if($rec->optional == 'yes'){
                         $form->setDefault('packQuantity', 1);
@@ -242,7 +248,7 @@ class deals_QuotationDetails extends doc_Detail
             $rec->quantityInPack = 1;
             if(isset($rec->productId)){
                 $productInfo = cat_Products::getProductInfo($rec->productId);
-                $rec->quantityInPack = ($productInfo->packagings[$rec->packagingId]) ? $productInfo->packagings[$rec->packagingId]->quantity : 1;
+                $rec->quantityInPack = (!empty($productInfo->packagings[$rec->packagingId])) ? $productInfo->packagings[$rec->packagingId]->quantity : 1;
             }
             $rec->quantity = $rec->packQuantity * $rec->quantityInPack;
 
@@ -757,7 +763,7 @@ class deals_QuotationDetails extends doc_Detail
         $data->countOptional = countR($optional);
 
         // Подготовка за показване на задължителнтие продукти
-        deals_Helper::fillRecs($mvc, $notOptional, $masterRec);
+        deals_Helper::fillRecs($mvc, $notOptional, $masterRec, $mvc->map);
 
         $notDefinedAmount = false;
         $onlyNotOptionalRec = null;
@@ -830,12 +836,12 @@ class deals_QuotationDetails extends doc_Detail
                 }
             }
         }
-        if(is_object($mvc->_total)){
+        if(isset($mvc->_total) && is_object($mvc->_total)){
             $data->_total = clone $mvc->_total;
         }
 
         // Подготовка за показване на опционалните продукти
-        deals_Helper::fillRecs($mvc, $optional, $masterRec);
+        deals_Helper::fillRecs($mvc, $optional, $masterRec, $mvc->map);
         $recs = $notOptional + $optional;
 
         // Изчисляване на цената с отстъпка

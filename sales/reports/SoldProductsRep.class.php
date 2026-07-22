@@ -92,9 +92,9 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             'allowedTeams' => array(),
         );
 
-        if (haveRole('ceo,saleAllGlobal', $userId)) {
+        if (haveRole('ceo, saleAllGlobal', $userId)) {
             $res['canSeeAll'] = true;
-            $res['allowedDealers'] = self::getAllDealers();
+            $res['allowedDealers'] = self::getAllDealers();   // ползва се само за dropdown-а с търговци
             $res['allowedTeams'] = keylist::toArray(core_Roles::getRolesByType('team'));
 
             return $res;
@@ -702,6 +702,9 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 
         $recs = $invProd = array();
 
+        // Обхват по права на СЪЗДАТЕЛЯ на справката — ограничава данните по търговец (не по текущия потребител).
+        $scope = self::getDealerAccessScope($rec->createdBy ?? core_Users::getCurrent());
+
 
         //Ако има избрано разбивка "Артикули по контрагент"
         //Подготвяме масив с фактурираните артикули през избрания период
@@ -713,6 +716,8 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             $invDetQuery->where("#state = 'active'");
 
             $invDetQuery->where(array("#date >= '[#1#]' AND #date <= '[#2#]'", $rec->from, $rec->to));
+
+            self::applyInvoiceDealerScope($invDetQuery, $scope);
 
             while ($invDetRec = $invDetQuery->fetch()) {
                 $invQuantity = $discount = $invAmount = 0;
@@ -856,45 +861,44 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         }
 
 
-        // Сървърна защита на филтъра за дилър
+        // Сървърна защита на филтъра за дилър (обхватът $scope е изчислен по-горе).
         if ($rec->quantityType != 'invoiced') {
-            // Данните се ограничават по правата на създателя на справката, не на текущия потребител
-            $dealerAccessScope = self::getDealerAccessScope($rec->createdBy ?? core_Users::getCurrent());
+            // shipped / ordered → заявката има dealerId
             $dealersArr = [];
-            $hasDealerFilter = !empty($rec->dealers) || !empty($rec->dealersTeam);
 
-            // Добавяне на потребителите избрани в полето dealers
+            // Ръчно избрани търговци (поле dealers)
             if (!empty($rec->dealers)) {
                 $dealersArr = keylist::toArray($rec->dealers);
             }
 
-            // Добавяне на потребителите от избраните роли (екипи)
+            // Ръчно избрани екипи (поле dealersTeam)
             if (!empty($rec->dealersTeam)) {
-                $roleIds = keylist::toArray($rec->dealersTeam);
-                $teamUsers = self::getUsersByTeams($roleIds);
-
-                foreach ($teamUsers as $userId) {
+                foreach (self::getUsersByTeams(keylist::toArray($rec->dealersTeam)) as $userId) {
                     $dealersArr[$userId] = $userId;
                 }
             }
 
-            // Ръчно подадените dealers/dealersTeam се свеждат само до разрешените търговци
-            if ($hasDealerFilter) {
-                $dealersArr = array_intersect_key($dealersArr, $dealerAccessScope['allowedDealers']);
+            if ($scope['canSeeAll']) {
+                // Вижда всичко → ограничаваме само ако сам е избрал търговци
+                if (!empty($dealersArr)) {
+                    $query->in('dealerId', $dealersArr);
+                }
             } else {
-                $dealersArr = $dealerAccessScope['allowedDealers'];
-            }
+                // Ограничени права → само разрешените търговци
+                $dealersArr = !empty($dealersArr)
+                    ? array_intersect_key($dealersArr, $scope['allowedDealers'])
+                    : $scope['allowedDealers'];
 
-            // Ако няма разрешени търговци след пресичането, заявката не трябва да върне чужди данни
-            if (empty($dealersArr)) {
-                $dealersArr = array(-PHP_INT_MAX);
-            }
-
-            if (!empty($dealersArr)) {
-                $query->in('dealerId', $dealersArr);
+                // Празно = "нищо". core_Query::in([]) не добавя условие и би показало всичко.
+                if (empty($dealersArr)) {
+                    $query->where('1=2');
+                } else {
+                    $query->in('dealerId', $dealersArr);
+                }
             }
         } else {
-            // TODO: Да се реши връзката invoice -> dealer, за да се приложи dealer/team ограничението и при фактурирани количества.
+            // invoiced → фактурите нямат dealerId; атрибуцията към търговец е по нишката на сделката.
+            self::applyInvoiceDealerScope($query, $scope);
         }
 
         //Филтър за КОНТРАГЕНТ и ГРУПИ КОНТРАГЕНТИ
@@ -1131,7 +1135,6 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                         $quantityPrevious = (-1) * $recPrime->quantity;
                         $primeCostPrevious = (-1) * $pricePr * $recPrime->quantity;
 
-                        //@todo: на складовите разписки делтата е отрцателна по дефиниция. Как да се реагира?
                         $deltaPrevious = (-1) * $recPrime->delta;
 
                     } elseif ($DetClass instanceof sales_SalesDetails || $DetClass instanceof store_ShipmentOrderDetails || $DetClass instanceof pos_Reports) {
@@ -1422,6 +1425,8 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             $iQuery->where("#type = 'dc_note'");
             $iQuery->where("#date >= '{$rec->from}' AND #date <= '{$rec->to}'");
             $iQuery->where("#changeAmount IS NOT NULL");
+
+            self::applyInvoiceDealerScope($iQuery, $scope);
 
             $correctionArr = array();
 
@@ -1770,6 +1775,56 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
      *
      * @return array $invDetQuery
      */
+    /**
+     * Ограничава заявка за фактури до сделките (нишките) с разрешен търговец.
+     *
+     * Фактурите и известията (КИ/ДИ) нямат собствено поле dealerId — атрибуцията към
+     * търговец става през нишката на сделката: продажбата, фактурите и известията към нея
+     * са в една нишка. Затова се филтрира по threadId на продажбите с разрешен dealer.
+     * За потребител с пълни права (canSeeAll) не се прилага ограничение.
+     *
+     * @param core_Query $query        заявка с достъпно поле threadId (native или EXT от sales_Invoices)
+     * @param array      $scope        резултат от getDealerAccessScope()
+     * @param string     $threadField  име на полето с нишката (по подразбиране 'threadId')
+     */
+    protected static function applyInvoiceDealerScope($query, $scope, $threadField = 'threadId')
+    {
+        if ($scope['canSeeAll']) {
+
+            return;
+        }
+
+        // Нишките на разрешените продажби се смятат веднъж за заявка (кеш по набор търговци)
+        static $threadsCache = array();
+        $cacheKey = implode(',', array_keys($scope['allowedDealers']));
+
+        if (!isset($threadsCache[$cacheKey])) {
+            $allowedThreads = array();
+
+            if (!empty($scope['allowedDealers'])) {
+                $saleQuery = sales_Sales::getQuery();
+                $saleQuery->in('dealerId', $scope['allowedDealers']);
+                $saleQuery->where("#state != 'rejected' AND #state != 'draft'");
+                $saleQuery->show('threadId');
+                while ($saleRec = $saleQuery->fetch()) {
+                    $allowedThreads[$saleRec->threadId] = $saleRec->threadId;
+                }
+            }
+
+            $threadsCache[$cacheKey] = $allowedThreads;
+        }
+
+        $allowedThreads = $threadsCache[$cacheKey];
+
+        // Празно = "нищо". core_Query::in([]) не добавя условие и би показало всичко.
+        if (empty($allowedThreads)) {
+            $query->where('1=2');
+        } else {
+            $query->in($threadField, $allowedThreads);
+        }
+    }
+
+
     public static function getInvoicedProducts($rec)
     {
         $invDetQuery = array();
@@ -1781,6 +1836,8 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         $invDetQuery->EXT('number', 'sales_Invoices', 'externalName=number,externalKey=invoiceId');
 
         $invDetQuery->EXT('containerId', 'sales_Invoices', 'externalName=containerId,externalKey=invoiceId');
+
+        $invDetQuery->EXT('threadId', 'sales_Invoices', 'externalName=threadId,externalKey=invoiceId');
 
         $invDetQuery->EXT('originId', 'sales_Invoices', 'externalName=originId,externalKey=invoiceId');
 

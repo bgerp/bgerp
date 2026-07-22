@@ -1393,7 +1393,7 @@ class doclog_Documents extends core_Manager
         }
         
         // Ако има изпращач
-        if ($rec->data->sendedBy) {
+        if (!empty($rec->data->sendedBy)) {
             
             // Използваме него за createdBy
             $rec->createdBy = $rec->data->sendedBy;

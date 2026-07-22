@@ -463,6 +463,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
         plg_AlignDecimals2::alignDecimals($this, $iData->recs, $iData->rows);
         
         $iData->listFields = $this->orderMultiTableColumns($iData->listFields, array(
+            'packQuantity' => 'К-во->|*<small>|Въведено|*</small>',
             'quantityFromBom' => 'К-во->|*<small>|Рецепта|*</small>',
             'quantityExpected' => 'К-во->|*<small>|Очаквано|*</small>',
         ), $haveRowTools);
@@ -510,6 +511,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
                 plg_AlignDecimals2::alignDecimals($this, $pData->recs, $pData->rows);
                 $this->modifyRows($pData);
                 $pData->listFields = $this->orderMultiTableColumns($pData->listFields, array(
+                    'packQuantity' => 'К-во->|*<small>|Въведено|*</small>',
                     'quantityFromBom' => 'К-во->|*<small>|Рецепта|*</small>',
                     'quantityExpected' => 'К-во->|*<small>|Очаквано|*</small>',
                 ), $haveRowTools);

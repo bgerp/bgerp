@@ -160,49 +160,59 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
             if (!isset($rec->packPrice)) {
                 $autoPrice = true;
 
-                // Ако продукта има цена от пораждащия документ, взимаме нея, ако не я изчисляваме наново
-                $origin = $mvc->Master->getOrigin($masterRec);
-                if ($origin->haveInterface('bgerp_DealAggregatorIntf')) {
-                    $dealInfo = $origin->getAggregateDealInfo();
-                    $products = $dealInfo->get('products');
-                    
-                    if (countR($products)) {
-                        foreach ($products as $p) {
-                            if ($rec->productId == $p->productId && $rec->packagingId == $p->packagingId) {
-                                $policyInfo = new stdClass();
-                                $policyInfo->price = deals_Helper::getDisplayPrice($p->price, $vat, $masterRec->currencyRate, $masterRec->chargeVat);
-                                $policyInfo->discount = $p->discount;
-                                break;
+                // Потребител БЕЗ права да вижда цени е сменил опаковката -
+                // пренасяме старата (packaging-invariant) единична цена, вместо
+                // да търсим нова от ценовата политика (тя може да върне съвсем
+                // друга цена от предната, или изобщо да няма намерена такава)
+                if (isset($rec->_hidePricesOldUnitPrice) && !doc_plg_HidePrices::canSeePriceFields($mvc, null)) {
+                    $rec->price = deals_Helper::getDisplayPrice($rec->_hidePricesOldUnitPrice, $vat, $masterRec->currencyRate, $masterRec->chargeVat);
+                    $rec->packPrice = $rec->price * $rec->quantityInPack;
+                } else {
+
+                    // Ако продукта има цена от пораждащия документ, взимаме нея, ако не я изчисляваме наново
+                    $origin = $mvc->Master->getOrigin($masterRec);
+                    if ($origin->haveInterface('bgerp_DealAggregatorIntf')) {
+                        $dealInfo = $origin->getAggregateDealInfo();
+                        $products = $dealInfo->get('products');
+
+                        if (countR($products)) {
+                            foreach ($products as $p) {
+                                if ($rec->productId == $p->productId && $rec->packagingId == $p->packagingId) {
+                                    $policyInfo = new stdClass();
+                                    $policyInfo->price = deals_Helper::getDisplayPrice($p->price, $vat, $masterRec->currencyRate, $masterRec->chargeVat);
+                                    $policyInfo->discount = $p->discount;
+                                    break;
+                                }
                             }
                         }
                     }
-                }
-                
-                if (empty($policyInfo)) {
+
+                    if (empty($policyInfo)) {
+                        if(isset($rec->productId)){
+                            $listId = (isset($dealInfo) && $dealInfo->get('priceListId')) ? $dealInfo->get('priceListId') : null;
+
+                            // Ако има политика в документа и той не прави обратна транзакция, използваме нея, иначе продуктовия мениджър
+                            $Policy = ($masterRec->isReverse == 'yes') ? (($mvc->ReversePolicy) ? $mvc->ReversePolicy : cls::get('price_ListToCustomers')) : (($mvc->Policy) ? $mvc->Policy : cls::get('price_ListToCustomers'));
+                            $policyInfo = $Policy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId, $rec->quantity, $masterRec->valior, $masterRec->currencyRate, $masterRec->chargeVat, $listId);
+                        }
+                    }
+
+                    // Ако няма последна покупна цена и не се обновява запис в текущата покупка
                     if(isset($rec->productId)){
-                        $listId = (isset($dealInfo) && $dealInfo->get('priceListId')) ? $dealInfo->get('priceListId') : null;
+                        if (!isset($policyInfo->price)) {
+                            $errorMsg = isset($Policy) ? $Policy->notFoundPriceErrorMsg : 'Артикулът няма цена в избраната ценова политика. Въведете цена|*!';
+                            $form->setError('packPrice', $errorMsg);
+                        } else {
 
-                        // Ако има политика в документа и той не прави обратна транзакция, използваме нея, иначе продуктовия мениджър
-                        $Policy = ($masterRec->isReverse == 'yes') ? (($mvc->ReversePolicy) ? $mvc->ReversePolicy : cls::get('price_ListToCustomers')) : (($mvc->Policy) ? $mvc->Policy : cls::get('price_ListToCustomers'));
-                        $policyInfo = $Policy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId, $rec->quantity, $masterRec->valior, $masterRec->currencyRate, $masterRec->chargeVat, $listId);
+                            // Ако се обновява запис се взима цената от него, ако не от политиката
+                            $rec->price = $policyInfo->price;
+                            $rec->packPrice = $policyInfo->price * $rec->quantityInPack;
+                        }
                     }
-                }
-                
-                // Ако няма последна покупна цена и не се обновява запис в текущата покупка
-                if(isset($rec->productId)){
-                    if (!isset($policyInfo->price)) {
-                        $errorMsg = isset($Policy) ? $Policy->notFoundPriceErrorMsg : 'Артикулът няма цена в избраната ценова политика. Въведете цена|*!';
-                        $form->setError('packPrice', $errorMsg);
-                    } else {
 
-                        // Ако се обновява запис се взима цената от него, ако не от политиката
-                        $rec->price = $policyInfo->price;
-                        $rec->packPrice = $policyInfo->price * $rec->quantityInPack;
+                    if (isset($policyInfo->discount) && !isset($rec->discount)) {
+                        $rec->discount = $policyInfo->discount;
                     }
-                }
-                
-                if (isset($policyInfo->discount) && !isset($rec->discount)) {
-                    $rec->discount = $policyInfo->discount;
                 }
             } else {
                 $autoPrice = false;

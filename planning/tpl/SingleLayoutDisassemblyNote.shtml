@@ -18,12 +18,12 @@
                                             <div class="state [#STATE_CLASS#]" style='margin: 5px 0;'>[#state#]</div>
                                             <!--ET_END state-->
                                         </td>
-                                        <td class="cell" style='padding-top:8px; background-color:#eee'><b>|Произвежда се в|*:</b> <b style='font-size:18px;'>[#storeId#]</b></td>
+                                        <td class="cell" style='padding-top:8px; background-color:#eee'><b>|Произвеждане в|*:</b> <b style='font-size:18px;'>[#storeId#]</b></td>
                                     </tr>
                                     <tr>
                                         <td class="cell">
                                             <!--ET_BEGIN inputStoreId-->
-                                            <div>|Влага се от|*: [#inputStoreId#]</div>
+                                            <div>|Влагане от|*: [#inputStoreId#]</div>
                                             <hr>
                                             <!--ET_END inputStoreId-->
                                             <!--ET_BEGIN jobId-->

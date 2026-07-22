@@ -130,7 +130,7 @@ class planning_type_ProductionRate extends type_Varchar
     private function getRateOptions($value)
     {
         $measureId = null;
-        setIfNot($measureId, $this->params['measureId'], cat_UoM::fetchBySysId(static::$defaultMeasureId)->id);
+        setIfNot($measureId, $this->params['measureId'] ?? null, cat_UoM::fetchBySysId(static::$defaultMeasureId)->id);
         $measureName = cat_UoM::getVerbal($measureId, 'name');
 
         // Кои са разрешените опции (от константите + избраната вече в посочената стойност)
@@ -159,22 +159,25 @@ class planning_type_ProductionRate extends type_Varchar
      */
     private function parseValue($value)
     {
-        $leftVal = $rightVal = null;
+        $leftVal = null;
+        $rightVal = static::$defaultOption;
         if ($value) {
             if(is_array($value)){
-                $leftVal = $value['cL'];
-                $rightVal = $value['cR'];
+                $leftVal = $value['cL'] ?? null;
+                $rightVal = $value['cR'] ?? static::$defaultOption;
             } else {
-                list($leftVal, $rightVal) = explode('|', $value);
+                $valueParts = explode('|', $value, 2);
+                $leftVal = $valueParts[0] ?? null;
+                $rightVal = $valueParts[1] ?? static::$defaultOption;
                 setIfNot($rightVal, static::$defaultOption);
             }
         }
 
-        if(!strlen($leftVal)){
+        if(!strlen((string) $leftVal)){
             $leftVal = null;
         }
 
-        if(strpos($rightVal, 'min') !== false){
+        if(strpos((string) $rightVal, 'min') !== false){
             if(isset($leftVal)){
                 $leftVal /= 60;
             }

@@ -669,41 +669,51 @@ abstract class deals_InvoiceDetail extends doc_Detail
             // Ако няма въведена цена
             if (!isset($rec->packPrice) && $masterRec->type != 'dc_note') {
                 $autoPrice = true;
-                
-                // Ако продукта има цена от пораждащия документ, взимаме нея, ако не я изчисляваме наново
-                $origin = $mvc->Master->getOrigin($masterRec);
-                $dealInfo = $origin->getAggregateDealInfo();
-                $products = $dealInfo->get('products');
-                
-                if (countR($products)) {
-                    foreach ($products as $p) {
-                        if ($rec->productId == $p->productId && $rec->packagingId == $p->packagingId) {
-                            $policyInfo = new stdClass();
-                            $policyInfo->price = deals_Helper::getDisplayPrice($p->price, $vat, $masterRec->rate, 'no');
-                            $policyInfo->discount = $p->discount;
-                            break;
+
+                // Потребител БЕЗ права да вижда цени е сменил опаковката -
+                // пренасяме старата (packaging-invariant) единична цена, вместо
+                // да търсим нова от ценовата политика (тя може да върне съвсем
+                // друга цена от предната, или изобщо да няма намерена такава)
+                if (isset($rec->_hidePricesOldUnitPrice) && !doc_plg_HidePrices::canSeePriceFields($mvc, null)) {
+                    $rec->price = deals_Helper::getDisplayPrice($rec->_hidePricesOldUnitPrice, 0, $masterRec->rate, 'no');
+                    $rec->packPrice = $rec->price * $rec->quantityInPack;
+                } else {
+
+                    // Ако продукта има цена от пораждащия документ, взимаме нея, ако не я изчисляваме наново
+                    $origin = $mvc->Master->getOrigin($masterRec);
+                    $dealInfo = $origin->getAggregateDealInfo();
+                    $products = $dealInfo->get('products');
+
+                    if (countR($products)) {
+                        foreach ($products as $p) {
+                            if ($rec->productId == $p->productId && $rec->packagingId == $p->packagingId) {
+                                $policyInfo = new stdClass();
+                                $policyInfo->price = deals_Helper::getDisplayPrice($p->price, $vat, $masterRec->rate, 'no');
+                                $policyInfo->discount = $p->discount;
+                                break;
+                            }
                         }
                     }
-                }
 
-                if (!$policyInfo) {
-                    $Policy = (isset($mvc->Policy)) ? $mvc->Policy : cls::get('price_ListToCustomers');
-                    $listId = ($dealInfo->get('priceListId')) ? $dealInfo->get('priceListId') : null;
-                    $policyInfo = $Policy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId, $rec->quantity, dt::today(), $masterRec->rate, 'no', $listId);
-                }
-                
-                // Ако няма последна покупна цена и не се обновява запис в текущата покупка
-                if (!isset($policyInfo->price)) {
-                    $errorMsg = isset($Policy) ? $Policy->notFoundPriceErrorMsg : 'Артикулът няма цена в избраната ценова политика. Въведете цена|*!';
-                    $form->setError('packPrice', $errorMsg);
-                } else {
-                    
-                    // Ако се обновява запис се взима цената от него, ако не от политиката
-                    $rec->price = $policyInfo->price;
-                    $rec->packPrice = $policyInfo->price * $rec->quantityInPack;
-                    
-                    if ($policyInfo->discount && !isset($rec->discount)) {
-                        $rec->discount = $policyInfo->discount;
+                    if (!$policyInfo) {
+                        $Policy = (isset($mvc->Policy)) ? $mvc->Policy : cls::get('price_ListToCustomers');
+                        $listId = ($dealInfo->get('priceListId')) ? $dealInfo->get('priceListId') : null;
+                        $policyInfo = $Policy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId, $rec->quantity, dt::today(), $masterRec->rate, 'no', $listId);
+                    }
+
+                    // Ако няма последна покупна цена и не се обновява запис в текущата покупка
+                    if (!isset($policyInfo->price)) {
+                        $errorMsg = isset($Policy) ? $Policy->notFoundPriceErrorMsg : 'Артикулът няма цена в избраната ценова политика. Въведете цена|*!';
+                        $form->setError('packPrice', $errorMsg);
+                    } else {
+
+                        // Ако се обновява запис се взима цената от него, ако не от политиката
+                        $rec->price = $policyInfo->price;
+                        $rec->packPrice = $policyInfo->price * $rec->quantityInPack;
+
+                        if ($policyInfo->discount && !isset($rec->discount)) {
+                            $rec->discount = $policyInfo->discount;
+                        }
                     }
                 }
             } else {

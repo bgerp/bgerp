@@ -375,21 +375,30 @@ abstract class deals_DealDetail extends doc_Detail
             $price = null;
 
             if (!isset($rec->packPrice)) {
-                $Policy = (isset($mvc->Policy)) ? $mvc->Policy : cls::get('price_ListToCustomers');
-                
-                if (isset($rec->productId)) {
-                    $listId = ($masterRec->priceListId) ? $masterRec->priceListId : null;
-                    $policyInfo = $Policy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId, $rec->quantity, $masterRec->valior, $masterRec->currencyRate, $masterRec->chargeVat, $listId);
-                    if (!isset($policyInfo->price)) {
-                        $form->setError('packPrice', $Policy->notFoundPriceErrorMsg);
-                    } else {
+                // Потребител БЕЗ права да вижда цени е сменил опаковката -
+                // пренасяме старата (packaging-invariant) единична цена, вместо
+                // да търсим нова от ценовата политика (тя може да върне съвсем
+                // друга цена от предната, или изобщо да няма намерена такава)
+                if (isset($rec->_hidePricesOldUnitPrice) && !doc_plg_HidePrices::canSeePriceFields($mvc, null)) {
+                    $price = deals_Helper::getDisplayPrice($rec->_hidePricesOldUnitPrice, $vat, $masterRec->currencyRate, $masterRec->chargeVat);
+                    $rec->autoPrice = true;
+                } else {
+                    $Policy = (isset($mvc->Policy)) ? $mvc->Policy : cls::get('price_ListToCustomers');
 
-                        // Ако се обновява запис се взима цената от него, ако не от политиката
-                        $price = $policyInfo->price;
-                        if ($policyInfo->discount && !isset($rec->discount)) {
-                            $rec->discount = $policyInfo->discount;
+                    if (isset($rec->productId)) {
+                        $listId = ($masterRec->priceListId) ? $masterRec->priceListId : null;
+                        $policyInfo = $Policy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId, $rec->quantity, $masterRec->valior, $masterRec->currencyRate, $masterRec->chargeVat, $listId);
+                        if (!isset($policyInfo->price)) {
+                            $form->setError('packPrice', $Policy->notFoundPriceErrorMsg);
+                        } else {
+
+                            // Ако се обновява запис се взима цената от него, ако не от политиката
+                            $price = $policyInfo->price;
+                            if ($policyInfo->discount && !isset($rec->discount)) {
+                                $rec->discount = $policyInfo->discount;
+                            }
+                            $rec->autoPrice = true;
                         }
-                        $rec->autoPrice = true;
                     }
                 }
             } else {
