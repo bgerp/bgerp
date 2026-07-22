@@ -150,7 +150,7 @@ class deals_QuotationDetails extends doc_Detail
 
         $form->fields['packPrice']->unit = '|*' . $masterRec->currencyId . ', ' .(($masterRec->chargeVat == 'yes') ? '|с ДДС|*' : '|без ДДС|*');
 
-        if ($form->rec->price && $masterRec->currencyRate) {
+        if (($form->rec->price ?? null) && $masterRec->currencyRate) {
             if ($masterRec->chargeVat == 'yes') {
                 ($rec->vatPercent) ? $vat = $rec->vatPercent : $vat = cat_Products::getVat($rec->productId, $masterRec->date, $vatExceptionId);
                 $rec->price = $rec->price * (1 + $vat);
