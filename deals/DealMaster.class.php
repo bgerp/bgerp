@@ -2438,7 +2438,7 @@ abstract class deals_DealMaster extends deals_DealBase
         if(core_Packs::isInstalled('voucher')) {
             $allowedFields['voucherId'] = true;
         }
-        if(core_Packs::isInstalled('holding')) {
+        if(core_Packs::isInstalled('holding') && isset($me->ownCompanyFieldName)) {
             $allowedFields[$me->ownCompanyFieldName] = true;
         }
 
@@ -2508,7 +2508,7 @@ abstract class deals_DealMaster extends deals_DealBase
         }
 
         // Избраната наша фирма ще се запише само ако е инсталиран пакета
-        if(isset($fields[$me->ownCompanyFieldName])){
+        if(isset($me->ownCompanyFieldName) && isset($fields[$me->ownCompanyFieldName])){
             if(core_Packs::isInstalled('holding')){
                 $ownCompanyRec = holding_Companies::getRec($fields[$me->ownCompanyFieldName]);
                 expect(is_object($ownCompanyRec), 'Невалидна наша фирма');
