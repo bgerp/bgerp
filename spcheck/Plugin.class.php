@@ -81,19 +81,21 @@ class spcheck_Plugin extends core_Plugin
             
             if (($field->type instanceof type_Richtext) || ($field->type instanceof type_Text) || ($field->type instanceof type_Varchar)) {
                 $fName = $field->name;
-                
-                if (mb_strlen($data->row->{$fName}) < self::$minLenForCheck) {
+
+                $fieldValue = $data->row->{$fName} ?? null;
+                if (!isset($fieldValue) || mb_strlen((string) $fieldValue) < self::$minLenForCheck) {
                     continue;
                 }
-                
-                if ($data->rec->containerId) {
+
+                $lg = core_Lg::getCurrent();
+                if (!empty($data->rec->containerId)) {
                     $lg = doc_Containers::getLanguage($data->rec->containerId);
                     
-                    if (!$lg) {
+                    if (!$lg && !empty($data->rec->threadId)) {
                         $lg = doc_Threads::getLanguage($data->rec->threadId);
                     }
                     
-                    if (!$lg) {
+                    if (!$lg && !empty($data->rec->folderId)) {
                         $lg = doc_Folders::getLanguage($data->rec->folderId);
                     }
                     
@@ -108,7 +110,7 @@ class spcheck_Plugin extends core_Plugin
                     }
                 }
                 
-                $data->row->{$fName} = spcheck_Dictionary::highliteWrongWord($data->row->{$fName}, $lg);
+                $data->row->{$fName} = spcheck_Dictionary::highliteWrongWord($fieldValue, $lg);
             }
         }
     }
