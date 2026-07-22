@@ -264,20 +264,20 @@ class core_FieldSet extends core_BaseClass
             
             if ((isset($params['before']) && (countR($params['before'])) || (isset($params['after']) && countR($params['after']))) && $mustOrder) {
                 $newFields = array();
-                $isSet = false;
                 foreach ($this->fields as $exName => $exFld) {
                     if (isset($params['before']) && is_array($params['before']) && in_array($exName, $params['before'])) {
-                        $isSet = true;
+                        // unset() преди преприсвояване, за да се премести и когато $name
+                        // вече е бил добавен по-рано в $newFields (PHP не мести ключ,
+                        // който вече съществува в масива, само при преприсвояване)
+                        unset($newFields[$name]);
                         $newFields[$name] = &$this->fields[$name];
                     }
-                    
-                    if (!$isSet || ($exName != $name)) {
-                        $newFields[$exName] = &$this->fields[$exName];
-                    }
-                    
+
+                    $newFields[$exName] = &$this->fields[$exName];
+
                     if (isset($params['after']) && is_array($params['after']) && in_array($exName, $params['after'])) {
+                        unset($newFields[$name]);
                         $newFields[$name] = &$this->fields[$name];
-                        $isSet = true;
                     }
                 }
                 $this->fields = $newFields;
