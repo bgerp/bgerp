@@ -139,10 +139,10 @@ class deals_QuotationDetails extends doc_Detail
 
         if (!empty($rec->packPrice)) {
             if (strtolower(Request::get('Act')) != 'createproduct') {
-                $valior = !empty($masterRec->valior) ? $masterRec->valior : dt::today();
+                $valior = !empty($masterRec->date) ? $masterRec->date : dt::today();
                 $vat = cat_Products::getVat($rec->productId, $valior, $vatExceptionId);
             } else {
-                $vat = acc_Periods::fetchByDate($masterRec->valior)->vatRate;
+                $vat = acc_Periods::fetchByDate($masterRec->date)->vatRate;
             }
 
             $rec->packPrice = deals_Helper::getDisplayPrice($rec->packPrice, $vat, $masterRec->currencyRate, $masterRec->chargeVat);
@@ -217,7 +217,7 @@ class deals_QuotationDetails extends doc_Detail
         $vat = 0;
 
         if(isset($rec->productId)) {
-            $vat = cat_Products::getVat($rec->productId, $masterRec->valior, $vatExceptionId);
+            $vat = cat_Products::getVat($rec->productId, $masterRec->date, $vatExceptionId);
             $rec->vatPercent = $vat;
             $packs = cat_Products::getPacks($rec->productId, $rec->packagingId);
             $form->setOptions('packagingId', $packs);
