@@ -1052,7 +1052,7 @@ abstract class deals_DealMaster extends deals_DealBase
             }
         }
         
-        if ($rec->initiatorId) {
+        if (!empty($rec->initiatorId)) {
             $rec->sharedUsers = keylist::merge($rec->sharedUsers, $rec->initiatorId);
         }
         
