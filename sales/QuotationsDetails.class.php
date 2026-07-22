@@ -150,7 +150,7 @@ class sales_QuotationsDetails extends deals_QuotationDetails
         if(isset($rec->productId)) {
 
             if (isset($mvc->LastPricePolicy)) {
-                $policyInfoLast = $mvc->LastPricePolicy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId, $rec->packQuantity, $priceAtDate, $masterRec->currencyRate, $masterRec->chargeVat);
+                $policyInfoLast = $mvc->LastPricePolicy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId, $rec->packQuantity ?? null, $priceAtDate, $masterRec->currencyRate, $masterRec->chargeVat);
                 if ($policyInfoLast->price != 0) {
                     $form->setSuggestions('packPrice', array('' => '', "{$policyInfoLast->price}" => $policyInfoLast->price));
                 }
