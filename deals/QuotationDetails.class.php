@@ -962,7 +962,7 @@ class deals_QuotationDetails extends doc_Detail
             }
 
             if ($masterRec->chargeVat != 'separate') {
-                $summary->vatAmount = tr($summary->vatAmount);
+                $summary->vatAmount = tr($summary->vatAmount ?? null);
             }
 
             $dTpl->placeObject($summary, 'SUMMARY');
