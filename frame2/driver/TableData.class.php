@@ -490,7 +490,7 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
      * 
      * @return array $newRecs
      */
-    private function orderByGroupField($recs, $groupField, $sortFld = null, $sortDirection = null,$subGroupFieldOrder)
+    private function orderByGroupField($recs, $groupField, $sortFld = null, $sortDirection = null, $subGroupFieldOrder = null)
     {
         $newRecs = array();
 
