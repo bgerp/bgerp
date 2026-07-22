@@ -188,6 +188,9 @@ class plg_RowTools2 extends core_Plugin
         $mustShow = false;
         
         foreach ($data->rows as $id => &$row) {
+            if (!isset($data->recs[$id])) {
+                continue;
+            }
             $rec = $data->recs[$id];
             
             // Ако има тулбар за реда
