@@ -55,6 +55,7 @@ class type_ComplexType extends type_Varchar
     public function renderInput_($name, $value = '', &$attr = array())
     {
         // Разбиване на стойноста и извличане на лявата и дясната част
+        $left = $right = null;
         if ($value) {
             extract(type_ComplexType::getParts($value));
         }
