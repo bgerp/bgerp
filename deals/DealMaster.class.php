@@ -2636,7 +2636,7 @@ abstract class deals_DealMaster extends deals_DealBase
             $packagingId = $productInfo->productRec->measureId;
         }
         
-        $quantityInPack = ($productInfo->packagings[$packagingId]) ? $productInfo->packagings[$packagingId]->quantity : 1;
+        $quantityInPack = isset($productInfo->packagings[$packagingId]) ? $productInfo->packagings[$packagingId]->quantity : 1;
         
         // Ако няма цена, опитваме се да я намерим от съответната ценова политика
         if (empty($price)) {
