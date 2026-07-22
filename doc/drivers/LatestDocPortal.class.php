@@ -163,7 +163,7 @@ class doc_drivers_LatestDocPortal extends core_BaseClass
                         continue;
                     }
 
-                    if ($resArr[$cRec->folderId][$cRec->threadId . '|' . $cRec->id]) {
+                    if (isset($resArr[$cRec->folderId][$cRec->threadId . '|' . $cRec->id])) {
 
                         continue;
                     }
