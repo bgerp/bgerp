@@ -70,6 +70,11 @@ class SassNumber extends SassLiteral
   private $denominatorUnits = array();
 
   /**
+   * @var string cached string representation of this number's units
+   */
+  private $units;
+
+  /**
    * @var boolean whether this number is in an expression or a literal number
    * Used to determine whether division should take place
    */
