@@ -287,7 +287,7 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
                         $comparedWithPrimeCostObj->primeCost /= $masterRec->currencyRate;
                         $primeCostVerbal = core_Type::getByName('double(smartRound,minDecimals=2)')->toVerbal($comparedWithPrimeCostObj->primeCost * $rec->quantityInPack);
                         $warning = "{$warning}|*: {$primeCostVerbal} {$masterRec->currencyId} |без ДДС|*";
-                        if($comparedWithPrimeCostObj->isCache){
+                        if (!empty($comparedWithPrimeCostObj->isCache)) {
                             $warning .= " (|Кеш|*)";
                         }
                     }
