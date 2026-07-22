@@ -287,7 +287,7 @@ class core_page_InternalModern extends core_page_Active
         
         $active = bgerp_Menu::getActiveItem($menuObj);
         
-        $activeParts = explode(':', $active);
+        $activeParts = explode(':', (string) $active);
         $aMainMenu = $activeParts[0] ?? '';
         $aSubMenu = $activeParts[1] ?? '';
         
