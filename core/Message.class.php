@@ -67,20 +67,20 @@ class core_Message extends core_BaseClass
             // Попълване на шаблона
             $tpl->replace($msg->text, 'text');
             
-            if ($msg->cancel || $msg->next) {
+            if (!empty($msg->cancel) || !empty($msg->next)) {
                 $toolbar = cls::get('core_Toolbar');
                 
-                if ($msg->cancel) {
+                if (!empty($msg->cancel)) {
                     $toolbar->addBtn('Отказ', $msg->cancel);
                 }
                 
-                if ($msg->next) {
+                if (!empty($msg->next)) {
                     $toolbar->addBtn('Продължение', toUrl($msg->next));
                 }
                 $tpl->replace($toolbar->renderHtml(), 'TOOLBAR');
             }
             
-            if ($msg->wrapper) {
+            if (!empty($msg->wrapper)) {
                 MODE::set('wrapper', $msg->wrapper);
             }
             
