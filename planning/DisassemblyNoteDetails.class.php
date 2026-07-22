@@ -41,7 +41,7 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, plg_Created, planning_Wrapper, plg_Sorting, plg_SaveAndNew, cat_plg_LogPackUsage, plg_PrevAndNext, plg_AlignDecimals2, cat_plg_ShowCodes';
+    public $loadList = 'plg_RowTools2, plg_Created, doc_plg_DetailRevisions, planning_Wrapper, plg_Sorting, plg_SaveAndNew, cat_plg_LogPackUsage, plg_PrevAndNext, plg_AlignDecimals2, cat_plg_ShowCodes';
 
 
     /**
@@ -190,7 +190,7 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
             }
         }
 
-        $row->ROW_ATTR['class'] = $rec->type == 'input' ? "state-active" : 'row-subProduct';
+        $row->ROW_ATTR['class'] = $rec->state == 'rejected' ? 'state-rejected' : ($rec->type == 'input' ? "state-active" : 'row-subProduct');
     }
 
 
@@ -268,7 +268,7 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
             $mData->recs = array_intersect_key($mData->recs, $mData->rows);
             $this->invoke('BeforeRenderListTable', array(&$tpl, &$mData));
             $mData->listFields['storeId'] = 'От склад';
-            $this->alignMultiTableColumns($mData->listTableMvc, array('storeId' => 160));
+            $this->alignMultiTableColumns($mData->listTableMvc, array('storeId' => 160, 'packagingId' => 140));
             $mData->listFields = $this->orderMultiTableColumns($mData->listFields, array(), $haveRowTools);
 
             $mainInputTable = cls::get('core_TableView', array('mvc' => $mData->listTableMvc, 'tableClass' => $this->detailsTableClass));
@@ -286,7 +286,7 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
 
             $this->invoke('BeforeRenderListTable', array(&$tpl, &$iData));
             $iData->listFields['storeId'] = 'От склад';
-            $this->alignMultiTableColumns($iData->listTableMvc, array('storeId' => 160));
+            $this->alignMultiTableColumns($iData->listTableMvc, array('storeId' => 160, 'packagingId' => 140));
             $iData->listFields = $this->orderMultiTableColumns($iData->listFields, array(), $haveRowTools);
 
             $inputTable = cls::get('core_TableView', array('mvc' => $iData->listTableMvc, 'tableClass' => $this->detailsTableClass));
@@ -307,7 +307,7 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
         $pData->listFields['storeId'] = 'В склад';
 
         $this->invoke('BeforeRenderListTable', array(&$tpl, &$pData));
-        $this->alignMultiTableColumns($pData->listTableMvc, array('storeId' => 160));
+        $this->alignMultiTableColumns($pData->listTableMvc, array('storeId' => 160, 'packagingId' => 140));
         $pData->listFields = $this->orderMultiTableColumns($pData->listFields, array(), $haveRowTools);
 
         $productionTable = cls::get('core_TableView', array('mvc' => $pData->listTableMvc, 'tableClass' => $this->detailsTableClass));
@@ -319,6 +319,10 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
                 $tpl->append(ht::createBtn('Произведен артикул', array($this, 'add', 'noteId' => $data->masterId, 'type' => 'production', 'ret_url' => true), null, null, array('style' => 'margin-top:5px;margin-bottom:15px;', 'ef_icon' => 'img/16/door_in.png', 'title' => 'Добавяне на произведен артикул')), 'PRODUCED_PRODUCTS_TABLE');
             }
         }
+
+        // renderDetail_ е bespoke и не минава през стандартния renderDetailLayout_/[#ListToolbar#],
+        // затова добавяме бутона на doc_plg_DetailRevisions ръчно, а не през renderListToolbar()
+        $tpl->append(doc_plg_DetailRevisions::getToggleBtn($this, $data->masterId), 'PRODUCED_PRODUCTS_TABLE');
 
         return $tpl;
     }
