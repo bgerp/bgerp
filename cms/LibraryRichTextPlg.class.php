@@ -74,7 +74,7 @@ class cms_LibraryRichTextPlg extends core_Plugin
         
         $this->mvc->_htmlBoard[$place] = $tpl;
         
-        return "[#{$place}#]" . $match['end'];
+        return "[#{$place}#]" . ($match['end'] ?? '');
     }
     
     
