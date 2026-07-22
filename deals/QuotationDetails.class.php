@@ -174,8 +174,8 @@ class deals_QuotationDetails extends doc_Detail
         }
 
         // Показваме документа, който е бил източник на мастъра
-        if ($masterRec->originId || $rec->originId) {
-            $oDocId = $rec->originId;
+        if ($masterRec->originId || ($rec->originId ?? null)) {
+            $oDocId = $rec->originId ?? null;
 
             if (!$oDocId) {
                 $oDocId = $masterRec->originId;
