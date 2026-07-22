@@ -65,6 +65,12 @@ class deals_QuotationDetails extends doc_Detail
 
 
     /**
+     * Помощен масив за мапиране на полета изпозлвани в deals_Helper
+     */
+    public $map = array('valior' => 'date');
+
+
+    /**
      * Полета, които ще се показват в листов изглед
      */
     public $listFields = 'productId, packagingId, quantityInPack, packQuantity=К-во, packPrice, discount=Отст., tolerance, term, weight,optional, amount, discAmount,quantity';
@@ -757,7 +763,7 @@ class deals_QuotationDetails extends doc_Detail
         $data->countOptional = countR($optional);
 
         // Подготовка за показване на задължителнтие продукти
-        deals_Helper::fillRecs($mvc, $notOptional, $masterRec);
+        deals_Helper::fillRecs($mvc, $notOptional, $masterRec, $mvc->map);
 
         $notDefinedAmount = false;
         $onlyNotOptionalRec = null;
@@ -835,7 +841,7 @@ class deals_QuotationDetails extends doc_Detail
         }
 
         // Подготовка за показване на опционалните продукти
-        deals_Helper::fillRecs($mvc, $optional, $masterRec);
+        deals_Helper::fillRecs($mvc, $optional, $masterRec, $mvc->map);
         $recs = $notOptional + $optional;
 
         // Изчисляване на цената с отстъпка

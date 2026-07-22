@@ -1309,7 +1309,7 @@ abstract class deals_QuotationMaster extends core_Master
         $query->orderBy('optional=ASC,id=ASC');
         $dRecs = $query->fetchAll();
 
-        deals_Helper::fillRecs($Detail, $dRecs, $rec);
+        deals_Helper::fillRecs($Detail, $dRecs, $rec, $Detail->map);
 
         foreach ($dRecs as $dRec) {
             $index = "{$dRec->productId}|{$dRec->optional}|{$dRec->packagingId}|" .md5($dRec->notes);
