@@ -2121,7 +2121,7 @@ class doc_Threads extends core_Manager
      */
     public static function on_AfterSave($mvc, &$id, $rec)
     {
-        if ($rec->folderId) {
+        if (!empty($rec->folderId)) {
             $Folders = cls::get('doc_Folders');
             if (Mode::is('isMigrate')) {
                 $Folders->preventNotification[$rec->folderId] = $rec->folderId;
