@@ -61,8 +61,9 @@ class cms_LibraryRichTextPlg extends core_Plugin
         }
 
         //Ако принтираме или пращаме документа
+        $absolute = false;
         if ((Mode::is('text', 'xhtml')) || (Mode::is('text', 'plain'))) {
-            
+
             // Добавяме атрибута за да използваме абсолютни линкове
             $absolute = true;
         }
