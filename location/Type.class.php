@@ -113,7 +113,7 @@ class location_Type extends type_Varchar
     
     public function toVerbal_($value)
     {
-        $coords = explode(',', $value);
+        $coords = explode(',', (string) $value);
         
         static $n;
         

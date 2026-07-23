@@ -263,7 +263,7 @@ class cat_BomDetails extends doc_Detail
         }
         
         // Възможните етапи са етапите от текущата рецепта
-        $stepOptions = static::getParentOptions($rec->bomId, $rec->id);
+        $stepOptions = static::getParentOptions($rec->bomId, $rec->id ?? null);
         if (countR($stepOptions)) {
             $form->setOptions('parentId', array('' => '') + $stepOptions);
         } else {
@@ -1130,7 +1130,7 @@ class cat_BomDetails extends doc_Detail
         if (($action == 'edit' || $action == 'delete' || $action == 'add' || $action == 'expand' || $action == 'shrink') && isset($rec)) {
             if(isset($rec->bomId)){
                 $masterRec = cat_Boms::fetch($rec->bomId, 'state,originId');
-                if(in_array($action, array('add', 'edit', 'delete')) && $rec->type == 'stage'){
+                if(in_array($action, array('add', 'edit', 'delete')) && ($rec->type ?? null) == 'stage'){
                     if (in_array($masterRec->state, array('closed', 'rejected'))) {
                         $requiredRoles = 'no_one';
                     }

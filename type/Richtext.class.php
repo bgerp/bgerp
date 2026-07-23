@@ -712,7 +712,7 @@ class type_Richtext extends type_Blob
      */
     public static function stripTags($html)
     {
-        $res = str_ireplace(array('<br', '<div', '<p', '<table'), array("\n<br", "\n<div", "\n<p", "\n<table"), $html);
+        $res = str_ireplace(array('<br', '<div', '<p', '<table'), array("\n<br", "\n<div", "\n<p", "\n<table"), (string) $html);
         $res = strip_tags($res);
         
         return $res;

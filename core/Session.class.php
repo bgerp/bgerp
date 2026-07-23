@@ -89,7 +89,7 @@ class core_Session
     {
         if(self::$mute) return;
 
-        if(session_status() !== PHP_SESSION_ACTIVE) {
+        if (!headers_sent() && session_status() !== PHP_SESSION_ACTIVE) {
             ini_set('session.gc_maxlifetime', 7200);
             session_name($name);
         }

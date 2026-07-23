@@ -78,7 +78,7 @@ class cond_ParamTypeIntf extends embed_DriverIntf
      * @param mixed $domainId - ид на домейна
      * @return string
      */
-    public function getReplacementValueOnClone($rec, $domainClass = null, $domainId = null, $value)
+    public function getReplacementValueOnClone($rec, $domainClass = null, $domainId = null, $value = null)
     {
         return $this->class->getReplacementValueOnClone($rec, $domainClass, $domainId, $value);
     }

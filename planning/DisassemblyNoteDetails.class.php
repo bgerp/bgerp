@@ -190,7 +190,30 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
             }
         }
 
-        $row->ROW_ATTR['class'] = $rec->state == 'rejected' ? 'state-rejected' : ($rec->type == 'input' ? "state-active" : 'row-subProduct');
+        // 'state-rejected' е вече сложено (заедно с 'small') от doc_plg_DetailRevisions
+        if ($rec->state != 'rejected') {
+            $ownClass = ($rec->type == 'input') ? 'state-active' : 'row-subProduct';
+            $row->ROW_ATTR['class'] = trim(($row->ROW_ATTR['class'] ?? '') . ' ' . $ownClass);
+        }
+    }
+
+
+    /**
+     * doc_plg_DetailRevisions вече празни productId за оттеглените редове, но
+     * batch_plg_DocumentMovementDetail го презаписва (с "Без партида") на
+     * СЪЩОТО събитие СЛЕД него. Класовите хукове се изпълняват последни (@see
+     * core_BaseClass::invoke), затова тук - гарантирано най-накрая - пак го празним
+     */
+    protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
+    {
+        $activeGroups = doc_plg_DetailRevisions::groupsWithActiveRow($data->recs);
+
+        foreach ($data->rows as $id => $row) {
+            $rec = $data->recs[$id];
+            if ((($rec->state ?? null) == 'rejected') && isset($activeGroups[$rec->revisionRootId ?: $rec->id])) {
+                $row->productId = '';
+            }
+        }
     }
 
 
@@ -319,10 +342,6 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
                 $tpl->append(ht::createBtn('Произведен артикул', array($this, 'add', 'noteId' => $data->masterId, 'type' => 'production', 'ret_url' => true), null, null, array('style' => 'margin-top:5px;margin-bottom:15px;', 'ef_icon' => 'img/16/door_in.png', 'title' => 'Добавяне на произведен артикул')), 'PRODUCED_PRODUCTS_TABLE');
             }
         }
-
-        // renderDetail_ е bespoke и не минава през стандартния renderDetailLayout_/[#ListToolbar#],
-        // затова добавяме бутона на doc_plg_DetailRevisions ръчно, а не през renderListToolbar()
-        $tpl->append(doc_plg_DetailRevisions::getToggleBtn($this, $data->masterId), 'PRODUCED_PRODUCTS_TABLE');
 
         return $tpl;
     }

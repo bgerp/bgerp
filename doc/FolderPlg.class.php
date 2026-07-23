@@ -315,7 +315,7 @@ class doc_FolderPlg extends core_Plugin
         if ($action == 'createnewfolder' && isset($rec) && $requiredRoles != 'no_one') {
             if (!doc_Folders::haveRightToObject($rec, $userId)) {
                 $requiredRoles = 'no_one';
-            } elseif ($rec->state == 'rejected') {
+            } elseif (($rec->state ?? null) == 'rejected') {
                 $requiredRoles = 'no_one';
             }
         }
@@ -711,7 +711,7 @@ class doc_FolderPlg extends core_Plugin
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-        if ($rec->inCharge == -1) {
+        if (($rec->inCharge ?? null) == -1) {
             $row->inCharge = core_Setup::get('SYSTEM_NICK');
         }
         
@@ -735,7 +735,7 @@ class doc_FolderPlg extends core_Plugin
             $fName = $fParts[1] ?? null;
             $folderTitle = $mvc->getFolderTitle($rec->id, false);
             
-            if ($rec->folderId && ($fRec = doc_Folders::fetch($rec->folderId))) {
+            if (!empty($rec->folderId) && ($fRec = doc_Folders::fetch($rec->folderId))) {
                 $isRejectedUrl = !empty($currUrl['Rejected']);
                 if (doc_Folders::haveRightFor('single', $rec->folderId) && !$isRejectedUrl) {
                     core_RowToolbar::createIfNotExists($row->_rowTools);

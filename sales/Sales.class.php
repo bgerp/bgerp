@@ -437,9 +437,9 @@ class sales_Sales extends deals_DealMaster
     public static function on_BeforeSave($mvc, $res, $rec)
     {
         // Ако има б. сметка се нотифицират операторите и
-        if ($rec->bankAccountId) {
+        if (!empty($rec->bankAccountId)) {
             $operators = bank_OwnAccounts::fetchField("#bankAccountId = '{$rec->bankAccountId}'", 'operators');
-            $rec->sharedUsers = keylist::merge($rec->sharedUsers, $operators);
+            $rec->sharedUsers = keylist::merge($rec->sharedUsers ?? null, $operators);
         }
     }
     

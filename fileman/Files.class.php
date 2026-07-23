@@ -1471,7 +1471,7 @@ class fileman_Files extends core_Master
         $path = static::fetchByFh($fh, 'path');
         
         // Тримваме титлата
-        $title = trim($title);
+        $title = trim((string) $title);
         
         // Ако сме подали
         if ($title) {

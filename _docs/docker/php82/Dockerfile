@@ -19,7 +19,7 @@ RUN a2enmod rewrite headers
 # mysqli, mbstring, soap, exif, gd, calendar, zip, intl
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install -j$(nproc) \
-        mysqli mbstring soap exif gd calendar zip intl
+        mysqli mbstring soap exif gd calendar zip intl ftp
 
 # imap (+ calendar is already installed above)
 RUN docker-php-ext-configure imap --with-kerberos --with-imap-ssl \

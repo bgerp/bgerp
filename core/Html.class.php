@@ -1035,7 +1035,7 @@ class core_Html
             $name = 'sm';
             $attr['onChange'] = 'openUrl(this.options[this.selectedIndex].value, event)';
             $attr['onfocus'] = 'this.selectedIndex = -1;';
-            $attr['class'] = ($attr['class'] ? $attr['class'] . ' ' : '') . 'button';
+            $attr['class'] = (!empty($attr['class']) ? $attr['class'] . ' ' : '') . 'button';
             $attr['id'] = $name;
             $selectMenu = self::createSelect($name, $options, $selected, $attr);
             
