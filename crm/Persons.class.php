@@ -1572,7 +1572,7 @@ class crm_Persons extends core_Master
         while ($rec = $query->fetch()) {
 
             // Ако няма имейл, прескачаме
-            if (!trim($rec->buzEmail)) {
+            if (!trim((string) $rec->buzEmail)) {
                 continue;
             }
 
