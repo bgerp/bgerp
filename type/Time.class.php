@@ -74,7 +74,7 @@ class type_Time extends type_Varchar
      */
     public function fromVerbal_($val)
     {
-        $val = trim($val);
+        $val = trim((string) $val);
         
         // Празна стойност се приема за NULL
         if ($val === '') {
