@@ -725,7 +725,7 @@ class change_Log extends core_Manager
      */
     public static function getVersionFromString($versionStr)
     {
-        return explode(static::VERSION_DELIMITER, $versionStr);
+        return explode(static::VERSION_DELIMITER, (string) $versionStr);
     }
     
     
