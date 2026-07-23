@@ -3238,4 +3238,49 @@ class fileman_Files extends core_Master
 
         return preg_match($pattern, $fileExt) === 1;
     }
+
+
+    /**
+     * Връща резолюцията (широчина и височина) на подаденото изображение.
+     *
+     * @param string $fileHnd - Fileman handle на файла
+     * @return array|string   - Масив ['width' => int, 'height' => int] при успех,
+     *                          или съобщение за грешка при проблем.
+     */
+    public static function imageResolution($fileHnd)
+    {
+        // Проверка дали изобщо е подаден handle
+        $fileHnd = trim($fileHnd);
+        if (empty($fileHnd)) {
+            return 'Missing or empty file handle.';
+        }
+
+        // Проверка дали файлът наистина е изображение в базата на fileman
+        if (!fileman_Files::isImage($fileHnd)) {
+            return 'The file is not an image!';
+        }
+
+        // Вземане на връзката към физическия файл (dataId)
+        $id = fileman_Files::fetchByFh($fileHnd, 'dataId');
+        if (!$id) {
+            return 'File record not found in database.';
+        }
+
+        // Вземане на физическия път на файла на сървъра
+        $path = fileman_Data::fetchField($id, 'path');
+        if (empty($path) || !file_exists($path)) {
+            return 'Physical file does not exist on disk.';
+        }
+
+        // Безопасно прочитане на размерите
+        $fileInfo = @getimagesize($path);
+        if ($fileInfo === false) {
+            return 'Unable to determine image resolution (corrupted or unsupported format).';
+        }
+
+        return [
+            'width'  => (int) $fileInfo[0],
+            'height' => (int) $fileInfo[1]
+        ];
+    }
 }
