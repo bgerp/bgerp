@@ -448,7 +448,7 @@ class planning_plg_StateManager extends core_Plugin
             }
             
             $notifyToThread = true;
-            if ($mvc->notifyToThread === false) {
+            if (($mvc->notifyToThread ?? true) === false) {
                 $notifyToThread = false;
             }
             

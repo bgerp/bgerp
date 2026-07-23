@@ -201,7 +201,7 @@ class cat_products_VatGroups extends core_Detail
 
                 if ($rec->validFrom > $today) {
                     $row->ROW_ATTR['class'] = 'state-draft';
-                } elseif (is_null($currentGroup[$rec->exceptionId])) {
+                } elseif (!isset($currentGroup[$rec->exceptionId])) {
                     $currentGroup[$rec->exceptionId] = $rec->validFrom;
                     $row->ROW_ATTR['class'] = 'state-active';
                 } else {
