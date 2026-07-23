@@ -953,13 +953,13 @@ abstract class deals_InvoiceMaster extends core_Master
             $form->setDefault('detailOrderBy', $aggregateInfo->get('detailOrderBy'));
 
             if($aggregateInfo->get('currency') == 'BGN'){
-                $form->setDefault('currencyId', acc_Periods::getBaseCurrencyCode($rec->date));
+                $form->setDefault('currencyId', acc_Periods::getBaseCurrencyCode($rec->date ?? null));
             } else {
                 $form->setDefault('currencyId', $aggregateInfo->get('currency'));
             }
 
-            if(acc_Periods::getBaseCurrencyCode($aggregateInfo->get('agreedValior')) != acc_Periods::getBaseCurrencyCode($rec->date)){
-                $form->setDefault('rate', currency_CurrencyRates::getRate($rec->date, $rec->currencyId, null));
+            if(acc_Periods::getBaseCurrencyCode($aggregateInfo->get('agreedValior')) != acc_Periods::getBaseCurrencyCode($rec->date ?? null)){
+                $form->setDefault('rate', currency_CurrencyRates::getRate($rec->date ?? null, $rec->currencyId, null));
             } else {
                 $form->setDefault('rate', $aggregateInfo->get('rate'));
                 $form->setSuggestions('displayRate', array('' => '', $aggregateInfo->get('rate') => $aggregateInfo->get('rate')));
