@@ -238,12 +238,16 @@ class doc_plg_DetailRevisions extends core_Plugin
             return;
         }
 
-        $data->listFields['revision'] = 'Ревизия';
+        $data->listFields['revision'] = 'Промяна';
     }
 
 
     /**
-     * Добавя визуалното поле към MVC клонинга, с който ще се рендира таблицата
+     * Добавя визуалното поле към MVC клонинга, с който ще се рендира таблицата.
+     * Тук (не в on_AfterPrepareListRows) празним code/reff/tools само за оттеглените
+     * редове, защото при bespoke детайли (напр. planning_DisassemblyNoteDetails)
+     * собственият on_AfterPrepareDetail презаписва tools СЛЕД AfterPrepareListRows -
+     * BeforeRenderListTable е последният хук преди самото рендиране на таблицата
      */
     public static function on_BeforeRenderListTable($mvc, &$tpl, $data)
     {
@@ -252,7 +256,13 @@ class doc_plg_DetailRevisions extends core_Plugin
             return;
         }
 
-        $data->listTableMvc->FLD('revision', 'varchar', 'caption=Ревизия', 'tdClass=small nowrap,smartCenter');
+        $data->listTableMvc->FLD('revision', 'varchar', 'caption=Промяна', 'tdClass=small nowrap,smartCenter');
+
+        foreach ($data->rows as $id => $row) {
+            if ((($data->recs[$id]->state ?? null) == 'rejected')) {
+                $row->code = $row->reff = $row->tools = '';
+            }
+        }
     }
 
 
@@ -277,7 +287,7 @@ class doc_plg_DetailRevisions extends core_Plugin
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
         if (($rec->state ?? null) == 'rejected') {
-            $row->ROW_ATTR['class'] = trim(($row->ROW_ATTR['class'] ?? '') . ' state-rejected');
+            $row->ROW_ATTR['class'] = trim(($row->ROW_ATTR['class'] ?? '') . ' state-rejected small');
         }
     }
 

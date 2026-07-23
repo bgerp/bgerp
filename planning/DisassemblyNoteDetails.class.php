@@ -190,7 +190,11 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
             }
         }
 
-        $row->ROW_ATTR['class'] = $rec->state == 'rejected' ? 'state-rejected' : ($rec->type == 'input' ? "state-active" : 'row-subProduct');
+        // 'state-rejected' е вече сложено (заедно с 'small') от doc_plg_DetailRevisions
+        if ($rec->state != 'rejected') {
+            $ownClass = ($rec->type == 'input') ? 'state-active' : 'row-subProduct';
+            $row->ROW_ATTR['class'] = trim(($row->ROW_ATTR['class'] ?? '') . ' ' . $ownClass);
+        }
     }
 
 
