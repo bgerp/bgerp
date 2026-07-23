@@ -260,7 +260,7 @@ class doc_plg_DetailRevisions extends core_Plugin
 
         foreach ($data->rows as $id => $row) {
             if ((($data->recs[$id]->state ?? null) == 'rejected')) {
-                $row->code = $row->reff = $row->tools = '';
+                $row->code = $row->reff = $row->tools = $row->productId = '';
             }
         }
     }

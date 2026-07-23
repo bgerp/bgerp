@@ -199,6 +199,22 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
 
 
     /**
+     * doc_plg_DetailRevisions вече празни productId за оттеглените редове, но
+     * batch_plg_DocumentMovementDetail го презаписва (с "Без партида") на
+     * СЪЩОТО събитие СЛЕД него. Класовите хукове се изпълняват последни (@see
+     * core_BaseClass::invoke), затова тук - гарантирано най-накрая - пак го празним
+     */
+    protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
+    {
+        foreach ($data->rows as $id => $row) {
+            if ((($data->recs[$id]->state ?? null) == 'rejected')) {
+                $row->productId = '';
+            }
+        }
+    }
+
+
+    /**
      * След подготовка на детайлите - разделяне на редовете по вид (за 2-те таблици)
      */
     protected static function on_AfterPrepareDetail($mvc, $res, $data)
