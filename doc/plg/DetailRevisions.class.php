@@ -243,6 +243,26 @@ class doc_plg_DetailRevisions extends core_Plugin
 
 
     /**
+     * Групите (по revisionRootId, коренът на веригата), които в момента имат
+     * активен ред. За оттеглен ред от такава група показваме код/реф/№/артикул
+     * "изпразнени" (виж на_BeforeRenderListTable), защото те вече се виждат на
+     * активния наследник. Ако групата няма активен ред (цялата верига е приключила
+     * с изтриване), оттегленият ред си остава единственото място с тази информация.
+     */
+    public static function groupsWithActiveRow($recs)
+    {
+        $res = array();
+        foreach ($recs as $rec) {
+            if (($rec->state ?? null) != 'rejected') {
+                $res[$rec->revisionRootId ?: $rec->id] = true;
+            }
+        }
+
+        return $res;
+    }
+
+
+    /**
      * Добавя визуалното поле към MVC клонинга, с който ще се рендира таблицата.
      * Тук (не в on_AfterPrepareListRows) празним code/reff/tools само за оттеглените
      * редове, защото при bespoke детайли (напр. planning_DisassemblyNoteDetails)
@@ -258,8 +278,11 @@ class doc_plg_DetailRevisions extends core_Plugin
 
         $data->listTableMvc->FLD('revision', 'varchar', 'caption=Промяна', 'tdClass=small nowrap,smartCenter');
 
+        $activeGroups = self::groupsWithActiveRow($data->recs);
+
         foreach ($data->rows as $id => $row) {
-            if ((($data->recs[$id]->state ?? null) == 'rejected')) {
+            $rec = $data->recs[$id];
+            if ((($rec->state ?? null) == 'rejected') && isset($activeGroups[$rec->revisionRootId ?: $rec->id])) {
                 $row->code = $row->reff = $row->tools = $row->productId = '';
             }
         }
@@ -325,7 +348,7 @@ class doc_plg_DetailRevisions extends core_Plugin
                 $nick = !empty($rec->{$byField}) ? crm_Profiles::createLink($rec->{$byField}) : '';
 
                 if (!$isRejected && isset($activatedOn, $rec->createdOn) && $rec->createdOn >= $activatedOn) {
-                    $date = ht::createHint("<span class='red'>{$date}</span>", 'Добавено след активиране на документа', 'warning', false);
+                    $date = ht::createHint($date, 'Добавено след активиране на документа', 'notice', false, array('src' => 'img/16/add.png'));
                 }
 
                 $prefix = '';
