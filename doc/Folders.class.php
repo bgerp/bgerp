@@ -2358,7 +2358,7 @@ class doc_Folders extends core_Master
         $res = array();
 
         while ($rec = $query->fetch()) {
-            $res[$rec->id] = trim($rec->{$titleFld}) . ' (' . $rec->class . ')';
+            $res[$rec->id] = trim((string) $rec->{$titleFld}) . ' (' . $rec->class . ')';
         }
         
         return $res;
