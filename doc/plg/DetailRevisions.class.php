@@ -43,6 +43,10 @@ class doc_plg_DetailRevisions extends core_Plugin
 
         // Дали текущия $mvc в момента показва и оттеглените редове (виж on_AfterGetQuery)
         setPartIfNot($invoker, 'showDetailRevisions', false);
+
+        // По кое поле да се търси "мъртъв" (изтрит, без активен наследник) ред
+        // при добавяне на нов ред, за да се вържат в обща верига (@see on_BeforeSave)
+        setPartIfNot($invoker, 'revisionLinkField', 'productId');
     }
 
 
@@ -52,7 +56,13 @@ class doc_plg_DetailRevisions extends core_Plugin
      */
     public static function on_BeforeSave(&$invoker, &$res, &$rec, &$fields = null, &$mode = null)
     {
-        if (!empty($rec->_skipDetailRevision) || empty($rec->id) || ($rec->state ?? null) == 'rejected') {
+        if (!empty($rec->_skipDetailRevision) || ($rec->state ?? null) == 'rejected') {
+
+            return;
+        }
+
+        if (empty($rec->id)) {
+            self::linkToDeletedRow($invoker, $rec);
 
             return;
         }
@@ -80,6 +90,51 @@ class doc_plg_DetailRevisions extends core_Plugin
         // unset(id) -> INSERT вместо UPDATE; unset(createdOn/createdBy) -> plg_Created
         // (ако е зареден след нас в $loadList) ги попълва наново с текущия потребител/час
         unset($rec->id, $rec->createdOn, $rec->createdBy);
+    }
+
+
+    /**
+     * При добавяне на нов ред - ако има "мъртъв" ред (оттеглен чрез изтриване,
+     * без активен наследник) с един и същ $revisionLinkField (обичайно
+     * productId) в същия мастър, новият ред се включва в неговата верига,
+     * все едно е редакция на него - за да се виждат заедно в „Промени“
+     */
+    private static function linkToDeletedRow($invoker, &$rec)
+    {
+        $field = $invoker->revisionLinkField;
+        if (empty($rec->{$invoker->masterKey}) || !isset($rec->{$field})) {
+
+            return;
+        }
+
+        $masterState = $invoker->Master->fetchField($rec->{$invoker->masterKey}, 'state');
+        if (!in_array($masterState, arr::make($invoker->detailRevisionsStates, true))) {
+
+            return;
+        }
+
+        $cond = "#{$invoker->masterKey} = {$rec->{$invoker->masterKey}} AND #{$field} = {$rec->{$field}} AND #state = 'rejected' AND #rejectedReason = 'deleted'";
+        if (isset($rec->type) && isset($invoker->fields['type'])) {
+            $cond .= " AND #type = '{$rec->type}'";
+        }
+
+        $query = $invoker->getQuery();
+        $query->where($cond);
+        $query->orderBy('rejectedOn', 'DESC');
+
+        while ($deadRec = $query->fetch()) {
+            $groupKey = $deadRec->revisionRootId ?: $deadRec->id;
+
+            // Ако групата вече има активен ред, не е "мъртва" - пропускаме я
+            if ($invoker->count("#{$invoker->masterKey} = {$rec->{$invoker->masterKey}} AND (#id = {$groupKey} OR #revisionRootId = {$groupKey}) AND #state != 'rejected'")) {
+                continue;
+            }
+
+            $rec->revisionRootId = $groupKey;
+            $rec->revisionPrevId = $deadRec->id;
+
+            return;
+        }
     }
 
 
@@ -184,35 +239,6 @@ class doc_plg_DetailRevisions extends core_Plugin
 
 
     /**
-     * Групира версиите по логически ред. Активната версия е първа, следвана от
-     * предходните версии от най-нова към най-стара. Ръчно добавените редове
-     * започват собствена група, независимо дали артикулът съвпада.
-     */
-    public static function on_BeforePrepareListRecs($mvc, &$res, $data)
-    {
-        if (!$data->query) {
-
-            return;
-        }
-
-        $showIds = doc_plg_MasterRevision::getRequestedMasterIds($mvc->Master);
-        if (!in_array($data->masterId, $showIds)) {
-
-            return;
-        }
-
-        $data->query->XPR('filterDate', 'datetime', 'COALESCE(#rejectedOn, #createdOn)');
-        $data->query->XPR('revisionGroup', 'int', 'COALESCE(#revisionRootId, #id)');
-        $data->query->XPR('revisionStateOrder', 'int', "CASE WHEN #state = 'rejected' THEN 1 ELSE 0 END");
-
-        // Приоритетите изместват стандартното orderBy('id', 'ASC') на детайла
-        $data->query->orderBy('#revisionGroup', 'DESC', 3);
-        $data->query->orderBy('#revisionStateOrder', 'ASC', 2);
-        $data->query->orderBy('#filterDate', 'DESC', 1);
-    }
-
-
-    /**
      * Скрит филтър, който запазва режима за ревизии при действията на детайла
      */
     public static function on_AfterPrepareListFilter($mvc, &$data)
@@ -310,7 +336,7 @@ class doc_plg_DetailRevisions extends core_Plugin
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
         if (($rec->state ?? null) == 'rejected') {
-            $row->ROW_ATTR['class'] = trim(($row->ROW_ATTR['class'] ?? '') . ' state-rejected small');
+            $row->ROW_ATTR['class'] = trim(($row->ROW_ATTR['class'] ?? '') . ' rejected small');
         }
     }
 
@@ -366,5 +392,72 @@ class doc_plg_DetailRevisions extends core_Plugin
                 $row->_rowTools->links[$editId]->attr['title'] = 'Промяна на реда';
             }
         }
+
+        if ($showRevisions) {
+            self::regroupRevisionRows($data);
+        }
+    }
+
+
+    /**
+     * Подрежда редовете в режим „Промени“ по същия начин, по който биха стояли
+     * активните редове в нормалния режим (по каквото сортиране е избрано -
+     * @see cat_plg_ShowCodes) - това вече е готово в текущия ред на $data->rows
+     * до тук, ако се гледат само активните редове. Тук просто групираме
+     * оттеглените версии на всеки логически ред точно след него, хронологично
+     * от най-новата към най-старата, без да местим активните редове помежду им.
+     */
+    private static function regroupRevisionRows(&$data)
+    {
+        $groups = array();
+        $groupOrder = array();
+        $pos = 0;
+
+        foreach ($data->rows as $id => $row) {
+            $rec = $data->recs[$id];
+            $groupKey = $rec->revisionRootId ?: $rec->id;
+            $groups[$groupKey][] = $id;
+
+            // Позицията на групата се определя от активния и ред. Ако групата
+            // няма активен ред (веригата е приключила с изтриване), пази се
+            // позицията на първия и срещнат ред в текущия масив
+            if (($rec->state ?? null) != 'rejected' || !isset($groupOrder[$groupKey])) {
+                $groupOrder[$groupKey] = $pos;
+            }
+
+            $pos++;
+        }
+
+        asort($groupOrder);
+
+        $newRows = $newRecs = array();
+        foreach ($groupOrder as $groupKey => $ignored) {
+            $members = $groups[$groupKey];
+
+            usort($members, function ($a, $b) use ($data) {
+                $recA = $data->recs[$a];
+                $recB = $data->recs[$b];
+                $rejectedA = ($recA->state ?? null) == 'rejected';
+                $rejectedB = ($recB->state ?? null) == 'rejected';
+
+                if ($rejectedA != $rejectedB) {
+
+                    return $rejectedA <=> $rejectedB;
+                }
+
+                $dateA = $rejectedA ? $recA->rejectedOn : $recA->createdOn;
+                $dateB = $rejectedB ? $recB->rejectedOn : $recB->createdOn;
+
+                return strcmp((string) $dateB, (string) $dateA);
+            });
+
+            foreach ($members as $id) {
+                $newRows[$id] = $data->rows[$id];
+                $newRecs[$id] = $data->recs[$id];
+            }
+        }
+
+        $data->rows = $newRows;
+        $data->recs = $newRecs;
     }
 }

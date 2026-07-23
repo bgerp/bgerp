@@ -7523,8 +7523,12 @@ body.narrow {
 	@include cmrColor(#0082c8);
 }
 
-.row-subProduct {
-	background-color:#ece2ff;
+.rejected {
+	background-color: #f2d8d8;
+	color: #3d1414 !important;
+	i, span {
+		color: #3d1414 !important ;
+	}
 }
 
 @media handheld , only screen and (min-width: 1240px) {
