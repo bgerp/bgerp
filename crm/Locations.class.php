@@ -253,7 +253,7 @@ class crm_Locations extends core_Master
         $query->where(array("#contragentId = '[#1#]'", $contragentId));
         
         while ($rec = $query->fetch()) {
-            if (!trim($rec->email)) {
+            if (!trim((string) $rec->email)) {
                 continue;
             }
             
