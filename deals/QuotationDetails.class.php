@@ -515,14 +515,14 @@ class deals_QuotationDetails extends doc_Detail
         $query = $me->getQuery();
         $query->EXT('contragentClassId', $Master, 'externalName=contragentClassId,externalKey=quotationId');
         $query->EXT('contragentId', $Master, 'externalName=contragentId,externalKey=quotationId');
-        $query->EXT('state', $Master, 'externalName=state,externalKey=quotationId');
+        $query->EXT('mState', $Master, 'externalName=state,externalKey=quotationId');
         $query->EXT('date', $Master, 'externalName=date,externalKey=quotationId');
         $query->EXT('validFor', $Master, 'externalName=validFor,externalKey=quotationId');
         $query->XPR('expireOn', 'datetime', 'CAST(DATE_ADD(#date, INTERVAL #validFor SECOND) AS DATE)');
 
         // Филтрираме офертите за да намерим на каква цена последно сме оферирали артикула за посоченото количество
         $query->where("#contragentClassId = {$customerClass} AND #contragentId = {$customerId}");
-        $query->where("#state = 'active'");
+        $query->where("#mState = 'active'");
         $query->where("(#expireOn IS NULL AND #date >= '{$dateFilter}') OR (#expireOn IS NOT NULL AND #expireOn >= '{$dateFilter}')");
         $query->limit(1);
 

@@ -72,12 +72,12 @@ class purchase_PurchaseLastPricePolicy extends core_Mvc
             $detailQuery->EXT('contragentId', 'purchase_Purchases', 'externalName=contragentId,externalKey=requestId');
             $detailQuery->EXT('threadId', 'purchase_Purchases', 'externalName=threadId,externalKey=requestId');
             $detailQuery->EXT('valior', 'purchase_Purchases', 'externalName=valior,externalKey=requestId');
-            $detailQuery->EXT('state', 'purchase_Purchases', 'externalName=state,externalKey=requestId');
+            $detailQuery->EXT('mState', 'purchase_Purchases', 'externalName=state,externalKey=requestId');
             $detailQuery->where("#contragentClassId = {$customerClass}");
             $detailQuery->where("#contragentId = {$customerId}");
             $detailQuery->where("#valior <= '{$date}'");
             $detailQuery->where("#productId = '{$productId}'");
-            $detailQuery->where("#state = 'active' OR #state = 'closed'");
+            $detailQuery->where("#mState = 'active' OR #mState = 'closed'");
             $detailQuery->orderBy('#valior,#id', 'DESC');
             $lastRec = $detailQuery->fetch();
             if (!$lastRec) return;
