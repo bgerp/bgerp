@@ -13,8 +13,6 @@
  * @license   GPL 3
  *
  * @since     v 0.1
- *
- * @todo да се разработи
  */
 class batch_plg_DocumentMovementDetail extends core_Plugin
 {
@@ -45,9 +43,17 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
     {
         $form = &$data->form;
         $rec = &$form->rec;
+
+        // Ако за реда вече има разписани партиди, складът не бива да се сменя -
+        // иначе партидите остават разписани към склад, различен от този на реда
+        if (isset($rec->id) && isset($form->fields[$mvc->storeFieldName]) && batch_BatchesInDocuments::fetch("#detailClassId = {$mvc->getClassId()} AND #detailRecId = {$rec->id}")) {
+            $form->setField($mvc->storeFieldName, array('hint' => 'Склада не може да се смени, защото има разпределени партиди от него'));
+            $form->setReadOnly($mvc->storeFieldName);
+        }
+
         $storeId = ($mvc instanceof core_Detail) ? ($mvc->Master->fetchField($rec->{$mvc->masterKey}, $mvc->Master->storeFieldName)) : $rec->{$mvc->storeFieldName};
         if (!$storeId) {
-            
+
             return;
         }
 
@@ -370,8 +376,8 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
 
             $recInfo = $mvc->getRowInfo($rec);
             $storeId = $recInfo->operation[key($recInfo->operation)];
-            if (!$storeId) return;
-            
+            if (!$storeId) continue;
+
             if (!batch_Defs::getBatchDef($rec->{$mvc->productFieldName})) continue;
             
             $row->{$mvc->productFieldName} = new core_ET($row->{$mvc->productFieldName});

@@ -93,31 +93,41 @@ class doc_plg_MasterRevision extends core_Plugin
         $containerId = $data->rec->containerId;
         $requestedIds = self::getRequestedMasterIds($mvc);
         $showRevisions = isset($requestedIds[$masterId]);
-        $rejectedCnt = 0;
+
+        $activatedOn = $data->rec->activatedOn ?? null;
+        if (!isset($activatedOn)) {
+            $activatedOn = $mvc->fetchField($masterId, 'activatedOn');
+        }
+
+        $changesCnt = 0;
 
         foreach ($details as $Detail) {
             $oldShowRevisions = $Detail->showDetailRevisions;
             $Detail->showDetailRevisions = true;
-            $rejectedCnt += $Detail->count("#{$Detail->masterKey} = {$masterId} AND #state = 'rejected'");
+            $changesCnt += $Detail->count("#{$Detail->masterKey} = {$masterId} AND #state = 'rejected'");
+
+            // Ръчно добавени редове (не редакции) след активирането - също се броят за промяна
+            if (!empty($activatedOn)) {
+                $changesCnt += $Detail->count("#{$Detail->masterKey} = {$masterId} AND #state != 'rejected' AND #revisionPrevId IS NULL AND #createdOn > '{$activatedOn}'");
+            }
             $Detail->showDetailRevisions = $oldShowRevisions;
         }
 
-        if (!$showRevisions && !$rejectedCnt) {
+        if (!$showRevisions && !$changesCnt) {
             return;
         }
 
         $url = getCurrentUrl();
         $requested = arr::make(Request::get(self::REQUEST_PARAM), true);
+        $title = "Промени|* ({$changesCnt})";
         if ($showRevisions) {
             unset($requested[$containerId]);
-            $title = 'Текущи редове';
-            $icon = 'img/16/application_view_list.png';
-            $hint = 'Показване само на текущите редове';
+            $icon = 'img/16/checked.png';
+            $hint = 'Показване само на текущите редове|*!';
         } else {
             $requested[$containerId] = $containerId;
-            $title = "Промени|* ({$rejectedCnt})";
-            $icon = 'img/16/bin_closed.png';
-            $hint = 'Показване на промените след активирането на документа';
+            $icon = 'img/16/checkbox_no.png';
+            $hint = 'Показване на промените след активирането на документа|*!';
         }
 
         if (countR($requested)) {

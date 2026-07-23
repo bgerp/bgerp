@@ -16,6 +16,12 @@
 class doc_ConvertToPdfIntf
 {
     /**
+     * Инстанция на класа, който реализира интерфейса
+     */
+    public $class;
+
+
+    /**
      * Конвертира html към pdf файл
      *
      * @param string $html       - HTML стинга, който ще се конвертира

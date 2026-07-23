@@ -190,7 +190,27 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
             }
         }
 
-        $row->ROW_ATTR['class'] = $rec->state == 'rejected' ? 'state-rejected' : ($rec->type == 'input' ? "state-active" : 'row-subProduct');
+        // 'state-rejected' е вече сложено (заедно с 'small') от doc_plg_DetailRevisions
+        if ($rec->state != 'rejected') {
+            $ownClass = ($rec->type == 'input') ? 'state-active' : 'row-subProduct';
+            $row->ROW_ATTR['class'] = trim(($row->ROW_ATTR['class'] ?? '') . ' ' . $ownClass);
+        }
+    }
+
+
+    /**
+     * doc_plg_DetailRevisions вече празни productId за оттеглените редове, но
+     * batch_plg_DocumentMovementDetail го презаписва (с "Без партида") на
+     * СЪЩОТО събитие СЛЕД него. Класовите хукове се изпълняват последни (@see
+     * core_BaseClass::invoke), затова тук - гарантирано най-накрая - пак го празним
+     */
+    protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
+    {
+        foreach ($data->rows as $id => $row) {
+            if ((($data->recs[$id]->state ?? null) == 'rejected')) {
+                $row->productId = '';
+            }
+        }
     }
 
 
