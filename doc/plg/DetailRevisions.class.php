@@ -310,7 +310,7 @@ class doc_plg_DetailRevisions extends core_Plugin
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
         if (($rec->state ?? null) == 'rejected') {
-            $row->ROW_ATTR['class'] = trim(($row->ROW_ATTR['class'] ?? '') . ' state-rejected small');
+            $row->ROW_ATTR['class'] = trim(($row->ROW_ATTR['class'] ?? '') . ' rejected small');
         }
     }
 
