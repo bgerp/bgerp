@@ -1179,10 +1179,10 @@ class sales_Sales extends deals_DealMaster
             foreach (array('sales_SalesDetails', 'store_ShipmentOrderDetails', 'sales_ServicesDetails') as $Detail) {
                 $Detail = cls::get($Detail);
                 $dQuery = $Detail->getQuery();
-                $dQuery->where("#state IN ('active', 'closed')");
+                $dQuery->where("#mState IN ('active', 'closed')");
                 $dQuery->show("productId,price,{$Detail->masterKey},valior");
                 $dQuery->EXT('valior', $Detail->Master->className, "externalName=valior,externalKey={$Detail->masterKey}");
-                $dQuery->EXT('state', $Detail->Master->className, "externalName=state,externalKey={$Detail->masterKey}");
+                $dQuery->EXT('mState', $Detail->Master->className, "externalName=state,externalKey={$Detail->masterKey}");
                 $dQuery->EXT('contragentClassId', $Detail->Master->className, "externalName=contragentClassId,externalKey={$Detail->masterKey}");
                 $dQuery->EXT('contragentId', $Detail->Master->className, "externalName=contragentId,externalKey={$Detail->masterKey}");
                 $dQuery->where("#contragentClassId = {$Contragent->getClassId()} AND #contragentId = {$contragentId}");
