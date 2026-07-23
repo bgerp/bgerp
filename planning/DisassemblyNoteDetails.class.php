@@ -236,8 +236,8 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
                 // Иконка по вид на реда - артикулите за влагане/разпад имат
                 // отделна иконка от произведените/върнатите артикули
                 $icon = ($rec->type == 'input')
-                    ? "<span class='green' style='font-weight:bold;' title='Влагане'>↓</span>"
-                    : "<span class='red' style='font-weight:bold;' title='Връщане'>↑</span>";
+                    ? "<span class='green' style='font-weight:bold;' title='Влагане'>⇩</span>"
+                    : "<span class='red' style='font-weight:bold;' title='Връщане'>⇧</span>";
 
                 // Основният вложен артикул се показва отделно, в собствена таблица
                 // над таблицата с произведените артикули (@see renderDetail_/MAIN_INPUT_PRODUCT_TABLE),
