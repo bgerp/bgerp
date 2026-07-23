@@ -206,8 +206,11 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
      */
     protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
     {
+        $activeGroups = doc_plg_DetailRevisions::groupsWithActiveRow($data->recs);
+
         foreach ($data->rows as $id => $row) {
-            if ((($data->recs[$id]->state ?? null) == 'rejected')) {
+            $rec = $data->recs[$id];
+            if ((($rec->state ?? null) == 'rejected') && isset($activeGroups[$rec->revisionRootId ?: $rec->id])) {
                 $row->productId = '';
             }
         }
