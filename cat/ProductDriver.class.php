@@ -25,6 +25,12 @@ abstract class cat_ProductDriver extends core_BaseClass
 
 
     /**
+     * Записът на продукта, подаден от embed manager-а
+     */
+    public $driverRec;
+
+
+    /**
      * Кой може да избира драйвъра
      */
     public $canSelectDriver = 'user';
@@ -301,7 +307,7 @@ abstract class cat_ProductDriver extends core_BaseClass
      */
     public function renderProductDescription($data)
     {
-        if(!$data->defaultTpl){
+        if (empty($data->defaultTpl)) {
             $tpl = new ET(tr("|*
                     <div class='groupList'>
                         <div class='richtext' style='margin-top: 5px; font-weight:bold;'>[#title#]</div>
@@ -324,14 +330,14 @@ abstract class cat_ProductDriver extends core_BaseClass
         $form = cls::get('core_Form');
         $this->addFields($form);
         $driverFields = $form->fields;
-        $tpl->replace($data->row->info, 'info');
+        $tpl->replace($data->row->info ?? null, 'info');
 
         if (is_array($driverFields)) {
             $usedGroups = core_Form::getUsedGroups($form, $driverFields, $data->rec, $data->row, 'single');
             $lastGroup = null;
             
             foreach ($driverFields as $name => $field) {
-                if ($field->single != 'none' && isset($data->row->{$name})) {
+                if (($field->single ?? null) != 'none' && isset($data->row->{$name})) {
                     $caption = $field->caption;
                     
                     if (strpos($caption, '->')) {
@@ -352,16 +358,16 @@ abstract class cat_ProductDriver extends core_BaseClass
                     }
                     
                     $caption = tr($caption);
-                    $unit = tr($field->unit);
+                    $unit = tr($field->unit ?? '');
                     
-                    if ($field->inlineTo) {
+                    if ($inlineTo = ($field->inlineTo ?? null)) {
                         $dhtml = new ET(" {$caption} " . $data->row->{$name} . " {$unit}");
-                        $tpl->prepend($dhtml, $field->inlineTo);
+                        $tpl->prepend($dhtml, $inlineTo);
                     } else {
-                        if ($field->singleCaption == '@') {
+                        if (($field->singleCaption ?? null) == '@') {
                             $dhtml = new ET("<tr><td>&nbsp;&nbsp;</td><td colspan=2 style='padding-left:5px; font-weight:bold;'>" . $data->row->{$name} . " {$unit}[#{$name}#]</td></tr>");
-                        } elseif ($field->singleCaption) {
-                            $caption = tr($field->singleCaption);
+                        } elseif (($field->singleCaption ?? null)) {
+                            $caption = tr(($field->singleCaption ?? null));
                         } else {
                             $dhtml = new ET("<tr><td>&nbsp;-&nbsp;</td> <td> {$caption}:</td><td style='padding-left:5px; font-weight:bold;'>" . $data->row->{$name} . " {$unit}[#{$name}#]</td></tr>");
                         }
