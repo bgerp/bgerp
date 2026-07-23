@@ -57,6 +57,12 @@ class calendarpicker_Import
      * @todo Чака за документация...
      */
     public $calendarOptions;
+
+
+    /**
+     * Шаблон с необходимите CSS и JavaScript ресурси
+     */
+    public $includeCode;
     
     
     /**
