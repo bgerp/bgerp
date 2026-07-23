@@ -6582,8 +6582,12 @@ body.narrow {
     .cmr-blue td.border-top {
       border-top: 1px solid #0082c8; }
 
-.row-subProduct {
-  background-color: #ece2ff; }
+.rejected {
+  background-color: #f2d8d8;
+  color: #3d1414 !important; }
+  .rejected i,
+  .rejected span {
+    color: #3d1414 !important; }
 
 @media handheld,
 only screen and (min-width: 1240px) {

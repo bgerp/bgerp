@@ -421,7 +421,7 @@ class doc_LinkedTemplates extends core_Master
         
         static $preparedArr = array();
         
-        if ($preparedArr[$key]) {
+        if (!empty($preparedArr[$key])) {
             
             return ;
         }

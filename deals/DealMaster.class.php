@@ -1456,6 +1456,8 @@ abstract class deals_DealMaster extends deals_DealBase
                 }
             }
 
+            $row->notes = '';
+
             if ($rec->note) {
                 $notes = explode('<br>', $row->note);
                 foreach ($notes as $note) {

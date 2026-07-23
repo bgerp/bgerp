@@ -189,12 +189,6 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
                 $row->storeId = "<span class='red'>n/a</span>";
             }
         }
-
-        // 'state-rejected' е вече сложено (заедно с 'small') от doc_plg_DetailRevisions
-        if ($rec->state != 'rejected') {
-            $ownClass = ($rec->type == 'input') ? 'state-active' : 'row-subProduct';
-            $row->ROW_ATTR['class'] = trim(($row->ROW_ATTR['class'] ?? '') . ' ' . $ownClass);
-        }
     }
 
 
@@ -226,6 +220,11 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
         $countInput = $countProduction = 1;
         $Int = cls::get('type_Int');
 
+        // Пази вече раздадения пореден номер на всяка ревизионна група (@see
+        // doc_plg_DetailRevisions), за да не се пропуска номерацията заради
+        // оттеглени редове от историята на един и същ логически ред
+        $inputNumByGroup = $productionNumByGroup = array();
+
         if (countR($data->rows)) {
             foreach ($data->rows as $id => $row) {
                 $rec = $data->recs[$id];
@@ -234,26 +233,38 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
                     $row->tools = new ET('[#TOOLS#]');
                 }
 
+                // Иконка по вид на реда - артикулите за влагане/разпад имат
+                // отделна иконка от произведените/върнатите артикули
+                $icon = ($rec->type == 'input')
+                    ? "<span class='green' style='font-weight:bold;' title='" . tr('Влагане') . "'>⇩</span>"
+                    : "<span class='red' style='font-weight:bold;' title='" . tr('Връщане') . "'>⇧</span>";
+
                 // Основният вложен артикул се показва отделно, в собствена таблица
                 // над таблицата с произведените артикули (@see renderDetail_/MAIN_INPUT_PRODUCT_TABLE),
                 // а не в таблицата с (други) артикули за влагане
                 if ($rec->type == 'input' && $rec->isMainInput == 'yes') {
-                    $row->tools->append($Int->toVerbal(1), 'TOOLS');
+                    $row->tools->append("{$icon} " . $Int->toVerbal(1), 'TOOLS');
                     $data->mainInputArr[$id] = $row;
                     continue;
                 }
 
+                $groupKey = $rec->revisionRootId ?: $rec->id;
+
                 if ($rec->type == 'input') {
-                    $num = $Int->toVerbal($countInput);
+                    if (!isset($inputNumByGroup[$groupKey])) {
+                        $inputNumByGroup[$groupKey] = $countInput++;
+                    }
+                    $num = $Int->toVerbal($inputNumByGroup[$groupKey]);
                     $data->inputArr[$id] = $row;
-                    $countInput++;
                 } else {
-                    $num = $Int->toVerbal($countProduction);
+                    if (!isset($productionNumByGroup[$groupKey])) {
+                        $productionNumByGroup[$groupKey] = $countProduction++;
+                    }
+                    $num = $Int->toVerbal($productionNumByGroup[$groupKey]);
                     $data->productionArr[$id] = $row;
-                    $countProduction++;
                 }
 
-                $row->tools->append($num, 'TOOLS');
+                $row->tools->append("{$icon} {$num}", 'TOOLS');
             }
         }
     }
