@@ -44,7 +44,7 @@ class type_Percent extends type_Double
      */
     public function toVerbal($value)
     {
-        if (!strlen($value)) {
+        if (!strlen((string) $value)) {
             
             return;
         }
@@ -64,7 +64,7 @@ class type_Percent extends type_Double
      */
     public function fromVerbal($value)
     {
-        if (!strlen($value)) {
+        if (!strlen((string) $value)) {
             
             return;
         }
@@ -85,7 +85,7 @@ class type_Percent extends type_Double
             $value = trim($value);
         }
 
-        if (!($this->error) && strlen($value)) {
+        if (!($this->error) && strlen((string) $value)) {
             $value = (100 * $value) . ' %';
         }
         
