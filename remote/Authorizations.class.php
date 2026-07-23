@@ -254,7 +254,7 @@ class remote_Authorizations extends embed_Manager
 
         // Ако има такива с даден достъп, добавят се към опциите
         while ($rec = $query->fetch()){
-            if(is_object($rec->data) && $rec->data->lKeyCC) {
+            if(is_object($rec->data) && !empty($rec->data->lKeyCC)) {
                 $options[$rec->id] = type_Varchar::escape($rec->url);
             }
         }
@@ -281,7 +281,7 @@ class remote_Authorizations extends embed_Manager
             $query = self::getQuery();
             
             while ($rec = $query->fetch(array("#url LIKE '%[#1#]%' AND #userId = {$userId}", $url))) {
-                if (is_object($rec->data) && $rec->data->lKeyCC) {
+                if (is_object($rec->data) && !empty($rec->data->lKeyCC)) {
                     
                     return $rec->id;
                 }
