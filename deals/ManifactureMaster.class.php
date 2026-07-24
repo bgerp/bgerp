@@ -129,14 +129,12 @@ abstract class deals_ManifactureMaster extends core_Master
         if($mvc->haveRightFor('calcproductionamount', $rec) && !Mode::isReadOnly()){
             $row->calcPrimeCostBtn = ht::createBtn($caption, array($mvc, 'calcproductionamount', $rec->id, 'ret_url' => true), false, false, 'ef_icon=img/16/arrow_refresh.png');
             $calcedPrice = core_Permanent::get("{$mvc->className}_{$rec->id}_calcedPrimeCost");
-            if($calcedPrice['primecost'] == 0){
-                if(is_array($calcedPrice)){
-                    $cost = $calcedPrice['cost']; 
-                    $row->calcedPrimeCost = core_Type::getByName('double(decimals=2)')->toVerbal($cost);
-                    $row->calcedPrimeCost = currency_Currencies::decorate($row->calcedPrimeCost, null, true);
-                    $row->calcedPrimeCost = ht::styleNumber($row->calcedPrimeCost, $cost);
-                    $row->calcedPrimeCostDate = core_Type::getByName('datetime(format=smartTime)')->toVerbal($calcedPrice['date']);
-                }
+            if (is_array($calcedPrice) && isset($calcedPrice['primecost']) && $calcedPrice['primecost'] == 0) {
+                $cost = $calcedPrice['cost']; 
+                $row->calcedPrimeCost = core_Type::getByName('double(decimals=2)')->toVerbal($cost);
+                $row->calcedPrimeCost = currency_Currencies::decorate($row->calcedPrimeCost, null, true);
+                $row->calcedPrimeCost = ht::styleNumber($row->calcedPrimeCost, $cost);
+                $row->calcedPrimeCostDate = core_Type::getByName('datetime(format=smartTime)')->toVerbal($calcedPrice['date']);
             }
             
         }
