@@ -2068,7 +2068,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
      *
      * @return mixed $dueDate
      */
-    private static function getGroups($dRec, $verbal = true, $rec)
+    private static function getGroups($dRec, $verbal = true, $rec = null)
     {
         if ($rec->typeOfGroups == 'art') {
             $typeGroup = 'group';

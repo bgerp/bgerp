@@ -331,7 +331,7 @@ class core_Classes extends core_Manager
             self::loadClasses();
         }
         
-        $className = self::$classes[$classId];
+        $className = self::$classes[$classId] ?? null;
         
         return $className;
     }

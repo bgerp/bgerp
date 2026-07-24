@@ -722,7 +722,7 @@ class cat_Boms extends core_Master
         $measureId = cat_Products::fetchField($rec->productId, 'measureId');
 
         $shortUom = cat_UoM::getShortName($measureId);
-        $row->quantity .= ' ' . $shortUom;
+        $row->quantity = ($row->quantity ?? '') . ' ' . $shortUom;
 
         $row->title = $mvc->getHyperlink($rec, true);
         if (isset($fields['-single'])) {
