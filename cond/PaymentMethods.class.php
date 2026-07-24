@@ -168,6 +168,7 @@ class cond_PaymentMethods extends embed_Manager
         
         Mode::push('text', 'plain');
         
+        $title = '';
         if ($rec->downpayment) {
             $title .= round($rec->downpayment * 100, 2). '% ' . tr('авансово||downpayment');
         }
