@@ -967,7 +967,7 @@ abstract class deals_InvoiceMaster extends core_Master
 
             if ($aggregateInfo->get('paymentMethodId') && !($mvc instanceof sales_Proformas)) {
                 $paymentMethodId = $aggregateInfo->get('paymentMethodId');
-                $plan = cond_PaymentMethods::getPaymentPlan($paymentMethodId, $aggregateInfo->get('amount'), $form->rec->date);
+                $plan = cond_PaymentMethods::getPaymentPlan($paymentMethodId, $aggregateInfo->get('amount'), $rec->date ?? null);
 
                 if($plan['eventBalancePayment'] != 'invEndOfMonth'){
                     if (!isset($form->rec->id)) {

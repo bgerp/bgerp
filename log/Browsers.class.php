@@ -825,7 +825,7 @@ class log_Browsers extends core_Master
     public static function detectBot($userAgent = null)
     {
         if (!$userAgent) {
-            $userAgent = $_SERVER['HTTP_USER_AGENT'];
+            $userAgent = $_SERVER['HTTP_USER_AGENT'] ?? '';
         }
         
         $bots = 'GoogleBot|msnbot|Bingbot|Teoma|80legs|xenon|baidu|Charlotte|DotBot|Sosospider|Rambler|Yahoo|' .

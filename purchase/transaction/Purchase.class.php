@@ -522,7 +522,7 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
         $from = ($onlySupplier === true) ? '401' : null;
         $dInfo = acc_Balances::getBlAmounts($jRecs, $accs, 'debit', $from);
         
-        if (!countR($dInfo->recs)) {
+        if (!countR($dInfo->recs ?? null)) {
             
             return $res;
         }

@@ -573,7 +573,9 @@ class crm_Profiles extends core_Master
                 }
                 
                 // Заместваме данните
-                $lTpl->append($data->LoginLog->row->loginLogLink, 'loginLogLink');
+                if (!empty($data->LoginLog->row->loginLogLink)) {
+                    $lTpl->append($data->LoginLog->row->loginLogLink, 'loginLogLink');
+                }
             } else {
                 $lTpl = new ET(tr('Няма данни'));
             }
