@@ -229,7 +229,7 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
             foreach ($data->rows as $id => $row) {
                 $rec = $data->recs[$id];
 
-                if (!is_object($row->tools)) {
+                if (!is_object($row->tools ?? null)) {
                     $row->tools = new ET('[#TOOLS#]');
                 }
 
