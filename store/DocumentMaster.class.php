@@ -196,7 +196,7 @@ abstract class store_DocumentMaster extends core_Master
         
         // Поле за избор на локация - само локациите на контрагента по продажбата
         $form->setOptions('locationId', array('' => '') + crm_Locations::getContragentOptions($rec->contragentClassId, $rec->contragentId));
-        expect($origin = ($form->rec->originId) ? doc_Containers::getDocument($form->rec->originId) : doc_Threads::getFirstDocument($form->rec->threadId));
+        expect($origin = (!empty($form->rec->originId)) ? doc_Containers::getDocument($form->rec->originId) : doc_Threads::getFirstDocument($form->rec->threadId));
         expect($origin->haveInterface('bgerp_DealAggregatorIntf'));
         $dealInfo = $origin->getAggregateDealInfo();
         $form->dealInfo = $dealInfo;
@@ -899,7 +899,7 @@ abstract class store_DocumentMaster extends core_Master
         }
 
         // Ако оригиналния документ е закачен към ТЛ, закача се и този
-        if((empty($rec->id) || $rec->_replaceReverseContainerId) && isset($rec->reverseContainerId)){
+        if((empty($rec->id) || !empty($rec->_replaceReverseContainerId)) && isset($rec->reverseContainerId)){
             $Doc = doc_Containers::getDocument($rec->reverseContainerId);
 
             if(isset($Doc->lineFieldName)){

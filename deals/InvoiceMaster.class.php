@@ -482,7 +482,7 @@ abstract class deals_InvoiceMaster extends core_Master
         $dateFromWhichToGetName = !empty($form->rec->date) ? $form->rec->date : dt::now();
         $dateFromWhichToGetName = dt::mysql2verbal($dateFromWhichToGetName, 'Y-m-d 00:00:00');
         $cData = cls::get($form->rec->contragentClassId)->getContragentData($form->rec->contragentId, $dateFromWhichToGetName);
-        $cName = ($cData->personVerb) ? $cData->personVerb : $cData->companyVerb;
+        $cName = (!empty($cData->personVerb)) ? $cData->personVerb : $cData->companyVerb;
 
         if($invArr['currencyId'] != 'BGN' && acc_Periods::getBaseCurrencyCode($invArr['date']) != acc_Periods::getBaseCurrencyCode()){
             $displayRate = currency_CurrencyRates::getRate($form->rec->date, $invArr['currencyId'], null);
@@ -890,7 +890,7 @@ abstract class deals_InvoiceMaster extends core_Master
         $coverClass = doc_Folders::fetchCoverClassName($form->rec->folderId);
         $coverId = doc_Folders::fetchCoverId($form->rec->folderId);
 
-        if ($form->rec->template) {
+        if (!empty($form->rec->template)) {
             $mvc->pushTemplateLg($form->rec->template);
         }
 
@@ -898,7 +898,7 @@ abstract class deals_InvoiceMaster extends core_Master
         $form->setDefault('contragentName', $coverClass::getVerbal($coverId, 'name'));
         Mode::pop('htmlEntity');
 
-        if ($form->rec->template) {
+        if (!empty($form->rec->template)) {
             core_Lg::pop();
         }
 
@@ -2005,10 +2005,10 @@ abstract class deals_InvoiceMaster extends core_Master
         $origin = null;
         $rec = static::fetchRec($rec);
 
-        if ($rec->originId) {
+        if (!empty($rec->originId)) {
             return doc_Containers::getDocument($rec->originId);
         }
-        if ($rec->threadId) {
+        if (!empty($rec->threadId)) {
             return doc_Threads::getFirstDocument($rec->threadId);
         }
 
