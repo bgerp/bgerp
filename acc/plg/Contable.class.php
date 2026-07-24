@@ -711,7 +711,7 @@ class acc_plg_Contable extends core_Plugin
         $rec = $mvc->fetchRec($id);
         
         // Контирането е позволено само в съществуващ активен/чакащ/текущ период;
-        $period = acc_Periods::fetchByDate($rec->valior);
+        $period = acc_Periods::fetchByDate($mvc->getValiorValue($rec));
         expect($period && ($period->state != 'closed' && $period->state != 'draft'), 'Не може да се контира в несъществуващ, бъдещ или затворен период');
         $cRes = acc_Journal::saveTransaction($mvc->getClassId(), $rec);
         
