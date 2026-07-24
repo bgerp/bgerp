@@ -1258,7 +1258,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
      *
      * @return mixed $dueDate
      */
-    private static function getDueDate($dRec, $verbal = true, $rec)
+    private static function getDueDate($dRec, $verbal = true, $rec = null)
     {
         // Вербален формат + warning hint, ако фактурата е просрочена и има неплатен остатък.
         if ($rec->unpaid == 'unpaid' && !$rec->checkDate) {
@@ -1823,5 +1823,4 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
     }
 
 }
-
 

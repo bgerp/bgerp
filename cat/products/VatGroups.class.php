@@ -159,13 +159,9 @@ class cat_products_VatGroups extends core_Detail
     {
         $row->productId = cat_Products::getHyperlink($rec->productId, true);
         $row->vatGroup = acc_VatGroups::getTitleById($rec->vatGroup);
-        $row->vatGroupPurchase = acc_VatGroups::getTitleById($rec->vatGroupPurchase);
 
         $vatPercent = acc_VatGroups::getVerbal($rec->vatGroup, 'vat');
         $row->vatGroup = "{$row->vatGroup} <span class='quiet'>[{$vatPercent}]</span>";
-
-        $vatPercentPurchase = acc_VatGroups::getVerbal($rec->vatGroupPurchase, 'vat');
-        $row->vatGroupPurchase = "{$row->vatGroupPurchase}  <span class='quiet'>[{$vatPercentPurchase}]</span>";
     }
     
     
@@ -205,7 +201,7 @@ class cat_products_VatGroups extends core_Detail
 
                 if ($rec->validFrom > $today) {
                     $row->ROW_ATTR['class'] = 'state-draft';
-                } elseif (is_null($currentGroup[$rec->exceptionId])) {
+                } elseif (!isset($currentGroup[$rec->exceptionId])) {
                     $currentGroup[$rec->exceptionId] = $rec->validFrom;
                     $row->ROW_ATTR['class'] = 'state-active';
                 } else {

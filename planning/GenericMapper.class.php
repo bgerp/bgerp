@@ -700,4 +700,6 @@ class planning_GenericMapper extends core_Manager
 
         return $res;
     }
+
+
 }

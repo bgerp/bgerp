@@ -745,7 +745,7 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
      *
      * @return mixed $dueDate
      */
-    private static function getContragent($dRec, $verbal = true, $rec)
+    private static function getContragent($dRec, $verbal = true, $rec = null)
     {
         if ($verbal === true) {
             if ($dRec->contragentId) {

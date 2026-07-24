@@ -843,7 +843,7 @@ class acc_CostAllocations extends core_Manager
             // Ако артикула е ДМА се отнася като разход към себе си
             $obj->expenseItemId = array('cat_Products', $productId);
             $obj->reason = 'Приети ДА';
-        } elseif ($pInfo->meta['canConvert']) {
+        } elseif (isset($pInfo->meta['canConvert'])) {
             
             // Ако артикула е вложим, отива към 'неразпределени'
             $obj->expenseItemId = self::getUnallocatedItemId();

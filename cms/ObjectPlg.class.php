@@ -30,7 +30,7 @@ class cms_ObjectPlg extends core_Plugin
      */
     public static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
-        if (haveRole('cms,admin,ceo') && $data->rec->state != 'rejected') {
+        if (haveRole('cms,admin,ceo') && ($data->rec->state ?? null) != 'rejected') {
             Request::setProtected('sourceClass,type,sourceId');
             
             $data->toolbar->addBtn(

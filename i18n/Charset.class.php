@@ -1025,7 +1025,7 @@ class i18n_Charset extends core_MVC
      */
     public static function getCanonical($charset)
     {
-        $charset = strtoupper(trim($charset));
+        $charset = strtoupper(trim((string) $charset));
         
         if (!$charset) {
             
@@ -1039,7 +1039,8 @@ class i18n_Charset extends core_MVC
             return $charsetArr[$charset];
         }
         
-        if ($name = self::$charsetsMatchs[$charset]) {
+        $findCharset = null;
+        if ($name = (self::$charsetsMatchs[$charset] ?? null)) {
             $findCharset = $name;
         } else {
             foreach (self::$charsetsMatchs as $key => $name) {
@@ -1170,7 +1171,7 @@ class i18n_Charset extends core_MVC
             if (!$bFrom || is_array($bFrom)) {
                 $pattern = '/<meta[^>]+charset\s*=\s*[\'\"]?(.*?)[[\'\"]]?[\/\s>]/i';
                 preg_match($pattern, $text, $match);
-                $bFrom = self::getCanonical(($match[1]));
+                $bFrom = isset($match[1]) ? self::getCanonical($match[1]) : null;
             }
             
             if ($bFrom && $bFrom != $fromCharset) {

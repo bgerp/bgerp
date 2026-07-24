@@ -3,13 +3,13 @@
 
 /**
  * Клас 'planning_ProductionDocument' - базов клас за наследяване
- * на документи за засклаждане напроизведен артикул
+ * на документи за засклаждане на произведен артикул
  *
  * @category  bgerp
- * @package   mp
+ * @package   planning
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2026 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -20,8 +20,54 @@ abstract class planning_ProductionDocument extends deals_ManifactureMaster
      * Работен кеш
      */
     protected $arr = array();
+
+
+    /**
+     * Дали да се проверява за по-нов производствен документ при оттегляне
+     */
+    protected $checkNewerProductionDocument = true;
     
     
+    /**
+     * Рендиране на документа
+     */
+    public function renderSingle_($data)
+    {
+        $tpl = parent::renderSingle_($data);
+        $tpl->push('planning/tpl/styles.css', 'CSS');
+
+        return $tpl;
+    }
+
+
+    /**
+     * Връща грешка при опит за контиране/възстановяване, или null ако няма.
+     * Наследниците могат да предефинират за специфични проверки.
+     *
+     * @param stdClass|int $rec
+     * @param string       $action  'conto' или 'restore'
+     * @return string|null
+     */
+    protected function getErrorWhenTryingToConto($rec, $action = 'conto')
+    {
+        return null;
+    }
+
+
+    /**
+     * Изпълнява се преди контиране на документа
+     */
+    public static function on_BeforeConto(core_Mvc $mvc, &$res, $id)
+    {
+        $errorMsg = $mvc->getErrorWhenTryingToConto($id);
+        if (!empty($errorMsg)) {
+            core_Statuses::newStatus($errorMsg, 'error');
+
+            return false;
+        }
+    }
+
+
     /**
      * Проверка имали по нов производствен документ
      *
@@ -131,21 +177,26 @@ abstract class planning_ProductionDocument extends deals_ManifactureMaster
      */
     protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
-        $rec = $data->rec;
-        if (planning_Setup::get('PRODUCTION_NOTE_REJECTION') != 'no') {
-            
+        if (!$mvc->checkNewerProductionDocument) {
+
             return;
         }
-        
+
+        $rec = $data->rec;
+        if (planning_Setup::get('PRODUCTION_NOTE_REJECTION') != 'no') {
+
+            return;
+        }
+
         if ($rec->state == 'active') {
-            
+
             // Ако има по нов документ не може да се оттегля документа
             if ($data->toolbar->haveButton("btnDelete{$rec->containerId}")) {
                 if ($handle = $mvc->getNewerProductionDocumentHandle($rec)) {
                     $data->toolbar->setError(array("btnDelete{$rec->containerId}"), "Не може да бъде оттеглен, докато има по-нов производствен документ|* #{$handle}");
                 }
             }
-            
+
             // Ако има по нов документ не може да се възстановява документа
         } elseif ($rec->state == 'rejected' && $rec->brState == 'active') {
             if ($data->toolbar->haveButton("btnRestore{$rec->containerId}")) {
@@ -162,6 +213,11 @@ abstract class planning_ProductionDocument extends deals_ManifactureMaster
      */
     public static function on_BeforeReject($mvc, &$res, $id)
     {
+        if (!$mvc->checkNewerProductionDocument) {
+
+            return;
+        }
+
         $rec = $mvc->fetchRec($id);
         if ($rec->state == 'active' && planning_Setup::get('PRODUCTION_NOTE_REJECTION') != 'yes') {
             expect(!$mvc->getNewerProductionDocumentHandle($rec));
@@ -178,5 +234,63 @@ abstract class planning_ProductionDocument extends deals_ManifactureMaster
     public static function canAddToFolder($folderId)
     {
         return false;
+    }
+
+
+    /**
+     * Изчислява dateIn и dateOut за планирани наличности по протокол
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $rec
+     * @return array [$dateIn, $dateOut]
+     */
+    protected static function calcPlannedDates($mvc, $rec)
+    {
+        $date = !empty($rec->{$mvc->termDateFld}) ? $rec->{$mvc->termDateFld} : (!empty($rec->{$mvc->valiorFld}) ? $rec->{$mvc->valiorFld} : null);
+        $horizonAdd = store_Setup::get('PLANNED_DATE_ADDITIVE_IF_IN_THE_PAST');
+        $dateIn = $date;
+        if (empty($date) || $date < dt::today()) {
+            $dateIn = dt::addSecs($horizonAdd, dt::now());
+        }
+        $dateOut = empty($date) ? $rec->createdOn : $date;
+
+        return array($dateIn, $dateOut);
+    }
+
+
+    /**
+     * Изгражда обект за планирана наличност от ред на детайл с тип (input/production)
+     *
+     * @param stdClass $dRec  - ред от детайл (трябва да има: storeId, productId, totalQuantity, type, generic, canConvert)
+     * @param string   $dateIn
+     * @param string   $dateOut
+     * @return stdClass
+     */
+    protected static function buildPlannedStockEntry($dRec, $dateIn, $dateOut)
+    {
+        $genericProductId = null;
+        if ($dRec->generic == 'yes') {
+            $genericProductId = $dRec->productId;
+        } elseif ($dRec->canConvert == 'yes') {
+            $genericProductId = planning_GenericMapper::fetchField("#productId = {$dRec->productId}", 'genericProductId');
+        }
+
+        $quantityIn = $quantityOut = null;
+        if ($dRec->type == 'input') {
+            $detailDate = $dateOut;
+            $quantityOut = $dRec->totalQuantity;
+        } else {
+            $detailDate = $dateIn;
+            $quantityIn = $dRec->totalQuantity;
+        }
+
+        return (object) array(
+            'storeId'          => $dRec->storeId,
+            'productId'        => $dRec->productId,
+            'date'             => $detailDate,
+            'quantityIn'       => $quantityIn,
+            'quantityOut'      => $quantityOut,
+            'genericProductId' => $genericProductId,
+        );
     }
 }

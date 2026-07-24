@@ -13,8 +13,14 @@
  *
  * @since     v 0.1
  */
-class planning_DisassemblyNote extends deals_ManifactureMaster
+class planning_DisassemblyNote extends planning_ProductionDocument
 {
+    /**
+     * Протоколът за разпад не проверява за по-нов производствен документ
+     */
+    protected $checkNewerProductionDocument = false;
+
+
     /**
      * Заглавие
      */
@@ -245,15 +251,6 @@ class planning_DisassemblyNote extends deals_ManifactureMaster
 
 
     /**
-     * Може ли документа да се добави в посочената папка (не може да е начало на нишка)
-     */
-    public static function canAddToFolder($folderId)
-    {
-        return false;
-    }
-
-
-    /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
@@ -320,18 +317,17 @@ class planning_DisassemblyNote extends deals_ManifactureMaster
 
 
     /**
-     * Изпълнява се преди контиране на документа - трябва да има поне един
-     * артикул за произвеждане, и всички произвеждани артикули да имат склад
+     * Трябва да има поне един произведен артикул
      */
-    public static function on_BeforeConto(core_Mvc $mvc, &$res, $id)
+    protected function getErrorWhenTryingToConto($rec, $action = 'conto')
     {
-        $rec = $mvc->fetchRec($id);
+        $rec = $this->fetchRec($rec);
 
         if (!planning_DisassemblyNoteDetails::count("#noteId = {$rec->id} AND #type = 'production' AND #quantity != 0")) {
-            core_Statuses::newStatus('Не може да контирате протокола, защото няма посочени произведени артикули|*!', 'error');
-
-            return false;
+            return 'Не може да контирате протокола, защото няма посочени произведени артикули|*!';
         }
+
+        return null;
     }
 
 
@@ -352,13 +348,7 @@ class planning_DisassemblyNote extends deals_ManifactureMaster
         $id = is_object($rec) ? $rec->id : $rec;
         $rec = $this->fetch($id, '*', false);
 
-        $date = !empty($rec->{$this->termDateFld}) ? $rec->{$this->termDateFld} : (!empty($rec->{$this->valiorFld}) ? $rec->{$this->valiorFld} : null);
-        $horizonAdd = store_Setup::get('PLANNED_DATE_ADDITIVE_IF_IN_THE_PAST');
-        $dateIn = $date;
-        if (empty($date) || $date < dt::today()) {
-            $dateIn = dt::addSecs($horizonAdd, dt::now());
-        }
-        $dateOut = empty($date) ? $rec->createdOn : $date;
+        [$dateIn, $dateOut] = static::calcPlannedDates($this, $rec);
 
         $dQuery = planning_DisassemblyNoteDetails::getQuery();
         $dQuery->EXT('canConvert', 'cat_Products', 'externalName=canConvert,externalKey=productId');
@@ -369,28 +359,7 @@ class planning_DisassemblyNote extends deals_ManifactureMaster
         $dQuery->groupBy('productId,storeId,type');
 
         while ($dRec = $dQuery->fetch()) {
-            $genericProductId = null;
-            if ($dRec->generic == 'yes') {
-                $genericProductId = $dRec->productId;
-            } elseif ($dRec->canConvert == 'yes') {
-                $genericProductId = planning_GenericMapper::fetchField("#productId = {$dRec->productId}", 'genericProductId');
-            }
-
-            $quantityIn = $quantityOut = null;
-            if ($dRec->type == 'input') {
-                $detailDate = $dateOut;
-                $quantityOut = $dRec->totalQuantity;
-            } else {
-                $detailDate = $dateIn;
-                $quantityIn = $dRec->totalQuantity;
-            }
-
-            $res[] = (object) array('storeId' => $dRec->storeId,
-                'productId'                   => $dRec->productId,
-                'date'                        => $detailDate,
-                'quantityIn'                  => $quantityIn,
-                'quantityOut'                 => $quantityOut,
-                'genericProductId'            => $genericProductId);
+            $res[] = static::buildPlannedStockEntry($dRec, $dateIn, $dateOut);
         }
 
         return $res;
@@ -505,7 +474,7 @@ class planning_DisassemblyNote extends deals_ManifactureMaster
                 $rec->mainInputQuantity = $rec->mainInputPackQuantity * $rec->mainInputQuantityInPack;
             }
 
-            if(isset($rec->id)){
+            if(isset($rec->id) && !empty($rec->_cloneForm)){
                 if($rec->state == 'active'){
                     $exRec = $mvc->fetch($rec->id, '*', false);
                     if($rec->valior != $exRec->valior || $rec->expenses != $exRec->expenses){

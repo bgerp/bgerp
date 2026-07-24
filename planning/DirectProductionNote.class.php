@@ -16,6 +16,12 @@
 class planning_DirectProductionNote extends planning_ProductionDocument
 {
     /**
+     * Протоколът за производство проверява за по-нов производствен документ
+     */
+    protected $checkNewerProductionDocument = true;
+
+
+    /**
      * Заглавие
      */
     public $title = 'Протоколи за производство';
@@ -219,18 +225,6 @@ class planning_DirectProductionNote extends planning_ProductionDocument
      * Поле за подредбата на детайла
      */
     public $fieldsNotToClone = 'debitAmount';
-
-
-    /**
-     * Рендиране на документа
-     */
-    public function renderSingle_($data)
-    {
-        $tpl = parent::renderSingle_($data);
-        $tpl->push('planning/tpl/styles.css', 'CSS');
-
-        return $tpl;
-    }
 
 
     /**
@@ -1770,21 +1764,16 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         $res = array();
         $id = is_object($rec) ? $rec->id : $rec;
         $rec = $this->fetch($id, '*', false);
-        $date = !empty($rec->{$this->termDateFld}) ? $rec->{$this->termDateFld} : (!empty($rec->{$this->valiorFld}) ? $rec->{$this->valiorFld} : null);
-        $horizonAdd = store_Setup::get('PLANNED_DATE_ADDITIVE_IF_IN_THE_PAST');
-        $dateIn = $date;
-        if(empty($date) || $date < dt::today()){
-            $dateIn = dt::addSecs($horizonAdd, dt::now());
-        }
-        $dateOut = empty($date) ? $rec->createdOn : $date;
+
+        [$dateIn, $dateOut] = static::calcPlannedDates($this, $rec);
 
         $canStore = cat_Products::fetchField($rec->productId, 'canStore');
-        if($canStore == 'yes'){
-            $res[] = (object)array('storeId'          => $rec->storeId,
-                'productId'        => $rec->productId,
-                'date'             => $dateIn,
-                'quantityIn'       => $rec->quantity,
-                'quantityOut'      => null,
+        if ($canStore == 'yes') {
+            $res[] = (object) array('storeId' => $rec->storeId,
+                'productId'       => $rec->productId,
+                'date'            => $dateIn,
+                'quantityIn'      => $rec->quantity,
+                'quantityOut'     => null,
                 'genericProductId' => null);
         }
 
@@ -1797,28 +1786,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         $dQuery->groupBy('productId');
 
         while ($dRec = $dQuery->fetch()) {
-            $genericProductId = null;
-            if($dRec->generic == 'yes'){
-                $genericProductId = $dRec->productId;
-            } elseif($dRec->canConvert == 'yes'){
-                $genericProductId = planning_GenericMapper::fetchField("#productId = {$dRec->productId}", 'genericProductId');
-            }
-
-            $quantityIn = $quantityOut = null;
-            if($dRec->type == 'input'){
-                $detailDate = $dateOut;
-                $quantityOut = $dRec->totalQuantity;
-            } else {
-                $detailDate = $dateIn;
-                $quantityIn = $dRec->totalQuantity;
-            }
-
-            $res[] = (object)array('storeId'          => $dRec->storeId,
-                                   'productId'        => $dRec->productId,
-                                   'date'             => $detailDate,
-                                   'quantityIn'       => $quantityIn,
-                                   'quantityOut'      => $quantityOut,
-                                   'genericProductId' => $genericProductId);
+            $res[] = static::buildPlannedStockEntry($dRec, $dateIn, $dateOut);
         }
 
         return $res;
@@ -1885,7 +1853,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
      * @param $action
      * @return string|null
      */
-    private function getErrorWhenTryingToConto($rec, $action = 'conto')
+    protected function getErrorWhenTryingToConto($rec, $action = 'conto')
     {
         $errorMsg = null;
         $rec = $this->fetchRec($rec);
@@ -1921,20 +1889,6 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         }
 
         return $errorMsg;
-    }
-
-
-    /**
-     * Изпълнява се преди контиране на документа
-     */
-    public static function on_BeforeConto(core_Mvc $mvc, &$res, $id)
-    {
-        $errorMsg = $mvc->getErrorWhenTryingToConto($id);
-        if(!empty($errorMsg)){
-            core_Statuses::newStatus($errorMsg, 'error');
-
-            return false;
-        }
     }
 
 
