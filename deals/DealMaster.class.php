@@ -1447,6 +1447,8 @@ abstract class deals_DealMaster extends deals_DealBase
             }
 
 
+            $row->deliveryBlock = '';
+
             if(isset($rec->deliveryTermId)){
                 if ($Driver = cond_DeliveryTerms::getTransportCalculator($rec->deliveryTermId)) {
                     $deliveryDataArr = $Driver->getVerbalDeliveryData($rec->deliveryTermId, $rec->deliveryData, get_called_class());
