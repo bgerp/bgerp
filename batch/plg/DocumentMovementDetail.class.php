@@ -231,7 +231,7 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
     public static function on_AfterCreate($mvc, $rec)
     {
         if ($mvc->getBatchMovementDocument($rec) == 'out') {
-            if ($rec->_clonedWithBatches !== true) {
+            if (($rec->_clonedWithBatches ?? null) !== true) {
                 self::autoAllocate($mvc, $rec);
             }
         } else {
@@ -296,7 +296,7 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
     {
         if ($mvc->getBatchMovementDocument($rec) == 'out') {
             if(($rec->_forceBatch ?? false) !== true){
-                if ($rec->autoAllocate === true) {
+                if (($rec->autoAllocate ?? null) === true) {
                     batch_BatchesInDocuments::delete("#detailClassId = {$mvc->getClassId()} AND #detailRecId = {$rec->id}");
                     self::autoAllocate($mvc, $rec);
                     core_Statuses::newStatus('Преразпределени партиди, поради променено количество');
