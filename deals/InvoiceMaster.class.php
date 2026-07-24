@@ -1686,6 +1686,7 @@ abstract class deals_InvoiceMaster extends core_Master
             core_Lg::pop();
 
             // Показване на допълнителните условия от банковата сметка
+            $conditions = null;
             if($mvc->cacheAdditionalConditions){
                 $conditions = $rec->additionalConditions;
                 if (empty($conditions)) {
