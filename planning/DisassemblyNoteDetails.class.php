@@ -294,7 +294,6 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
             $mData->listTableMvc = clone $this;
             $mData->rows = $data->mainInputArr;
             $mData->recs = array_intersect_key($mData->recs, $mData->rows);
-            unset($mData->listFields['tools']);
 
             $this->invoke('BeforeRenderListTable', array(&$tpl, &$mData));
             $mData->listFields['storeId'] = 'От склад';
