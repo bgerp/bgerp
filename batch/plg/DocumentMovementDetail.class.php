@@ -306,7 +306,7 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
             }
         }
         
-        if ($rec->isEdited === true) {
+        if (($rec->isEdited ?? null) === true) {
             if (empty($rec->batch)) {
                 batch_BatchesInDocuments::delete("#detailClassId = {$mvc->getClassId()} AND #detailRecId = {$rec->id}");
             } else {
