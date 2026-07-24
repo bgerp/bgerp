@@ -260,7 +260,7 @@ abstract class deals_ClosedDeals extends core_Master
         }
         $form->setFieldType('valiorStrategy', "enum(" . arr::fromArray($strategyOptions). ")");
 
-        if($rec->valiorStrategy == 'manual'){
+        if(($rec->valiorStrategy ?? null) == 'manual'){
             $form->setField('valior', 'input');
         }
     }
