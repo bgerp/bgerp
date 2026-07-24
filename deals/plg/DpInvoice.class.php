@@ -342,7 +342,7 @@ class deals_plg_DpInvoice extends core_Plugin
                 return;
             }
 
-            $rec->dpAmount = ($rec->amountAccrued) ? $rec->amountAccrued : $rec->amountDeducted;
+            $rec->dpAmount = !empty($rec->amountAccrued) ? $rec->amountAccrued : ($rec->amountDeducted ?? null);
             $rec->dpOperation = 'none';
             $warningUnit = ($rec->vatRate != 'yes' && $rec->vatRate != 'separate') ? 'без ДДС' : 'с ДДС';
 
