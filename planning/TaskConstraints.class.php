@@ -905,6 +905,11 @@ class planning_TaskConstraints extends core_Master
                     $assetRec->packageLinks ?? array()
                 );
             }
+            // Предварителният преглед трябва да използва същата обявена следваща операция,
+            // която ще бъде записана при приемане на подадената ръчна подредба.
+            if (array_key_exists($assetId, (array)($options['committedTaskIdOverrides'] ?? array()))) {
+                $assetRec->committedTaskId = $options['committedTaskIdOverrides'][$assetId];
+            }
             if (isset($optimizeAssetIds[$assetId])) {
                 $assetRec->_forceOptimization = true;
             }

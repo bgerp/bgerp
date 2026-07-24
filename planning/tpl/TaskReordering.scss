@@ -2,6 +2,7 @@
 
 body {
   background: #fff !important;
+  padding-top: 38px;
 }
 
 table th {
@@ -28,7 +29,7 @@ table th {
 }
 
 .taskParamCol {
-  text-align: right;
+  text-align: left;
 }
 .modal-content input {
   font-size: 20px;
@@ -117,9 +118,24 @@ tr:hover td {
 
 .dependantProgress .doubleclicklink {
   display:inline-block;
+  margin: 0 1px;
+}
+.dependantProgress .doubleclicklink:last-child {
+  margin-right: 2px;
+}
+.dependantProgress .doubleclicklink > .document-handler {
+  display: inline-block;
+  width: auto;
+  height: auto;
+  margin: 0;
+  padding: 2px;
+  border-radius: 3px;
+}
+td.dependantProgress {
+  text-align: right !important;
+  padding-right: 0 !important;
 }
 .dependantProgress span {
-  margin: 0 2px;
   font-size: 0.95em;
   color: red;
   font-weight:bold;
@@ -159,6 +175,16 @@ tr:hover td {
 
     &:hover {
       background: #ccc !important;
+    }
+    &:disabled {
+      color: #888;
+      background: #eee !important;
+      border-color: #bbb;
+      box-shadow: none;
+      cursor: default;
+    }
+    &:disabled:hover {
+      background: #eee !important;
     }
   }
 }
@@ -305,11 +331,12 @@ tr:hover td {
   z-index: 100001;
   top: 44px;
   right: 12px;
-  width: 720px;
+  width: 1040px;
   max-width: calc(100vw - 24px);
   max-height: calc(100vh - 58px);
   box-sizing: border-box;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
   color: #222;
   background: #fff;
   border: 1px solid #aaa;
@@ -325,6 +352,13 @@ tr:hover td {
   &.hasNoOptimizationImprovement {
     border-left-color: #60717d;
   }
+}
+
+#savedOrderReportBackdrop {
+  position: fixed;
+  z-index: 100000;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.62);
 }
 
 .optimizationIdleReportHeader {
@@ -416,8 +450,8 @@ tr:hover td {
 
 .optimizationPlanMetric {
   display: grid;
-  grid-template-columns: minmax(240px, 1fr) auto auto;
-  align-items: baseline;
+  grid-template-columns: minmax(220px, 0.9fr) minmax(300px, 1.5fr) minmax(155px, 0.7fr);
+  align-items: start;
   gap: 3px 14px;
   padding: 4px 0;
 
@@ -434,7 +468,9 @@ tr:hover td {
 
 .optimizationPlanMetricValue,
 .optimizationPlanMetricChange {
-  white-space: nowrap;
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 
 .optimizationPlanMetricDetail {
@@ -516,6 +552,53 @@ tr:hover td {
 .optimizationIdleDifference {
   white-space: nowrap;
   font-weight: 700 !important;
+}
+
+.optimizationIdleReportActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 10px 12px;
+  background: #f5f5f5;
+  border-top: 1px solid #ddd;
+}
+
+.optimizationIdleReportCancel {
+  padding: 6px 18px;
+  color: #333;
+  background: #fff;
+  border: 1px solid #999;
+  border-radius: 3px;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:hover {
+    background: #eee;
+  }
+}
+
+.optimizationIdleReportConfirm {
+  padding: 6px 18px;
+  color: #fff;
+  background: #386f54;
+  border: 1px solid #2d5d46;
+  border-radius: 3px;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:hover {
+    background: #2f6048;
+  }
+}
+
+@media (max-width: 780px) {
+  .optimizationPlanMetric {
+    grid-template-columns: 1fr;
+  }
+
+  .optimizationPlanMetricDetail {
+    grid-column: auto;
+  }
 }
 
 

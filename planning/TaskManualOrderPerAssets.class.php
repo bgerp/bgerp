@@ -469,6 +469,22 @@ class planning_TaskManualOrderPerAssets extends core_Master
             $taskRecs = $query->fetchAll();
         }
 
+        $taskId = static::getCommittedTaskIdForOrder($assetId, $orderedTaskIds, $taskRecs);
+
+        return static::setCommittedTaskId($assetId, $taskId);
+    }
+
+
+    /**
+     * Определя обявената следваща операция от подаден ред, без да променя записите
+     *
+     * @param int $assetId
+     * @param array $orderedTaskIds
+     * @param array $taskRecs
+     * @return int|null
+     */
+    public static function getCommittedTaskIdForOrder($assetId, $orderedTaskIds, $taskRecs)
+    {
         $hasStarted = false;
         foreach ($orderedTaskIds as $taskId) {
             $task = $taskRecs[$taskId] ?? null;
@@ -478,11 +494,11 @@ class planning_TaskManualOrderPerAssets extends core_Master
                 continue;
             }
             if ($hasStarted && in_array($task->state, array('active', 'pending', 'wakeup', 'stopped'))) {
-                return static::setCommittedTaskId($assetId, $taskId);
+                return (int)$taskId;
             }
         }
 
-        return static::setCommittedTaskId($assetId, null);
+        return null;
     }
 
 
