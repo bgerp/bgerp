@@ -295,7 +295,7 @@ class deals_plg_DpInvoice extends core_Plugin
         }
 
         if ($dpOperation) {
-            if ($form->rec->dpOperation == 'accrued' && isset($form->rec->amountDeducted)) {
+            if ($dpOperation == 'accrued' && isset($form->rec->amountDeducted)) {
                 unset($form->rec->amountDeducted);
             }
         }
