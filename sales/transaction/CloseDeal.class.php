@@ -62,7 +62,7 @@ class sales_transaction_CloseDeal extends deals_ClosedDealTransaction
             'entries' => array()
         );
         
-        if ($rec->closeWith) {
+        if (!empty($rec->closeWith)) {
             if ($dealItem) {
                 $closeDeal = array('sales_Sales', $rec->closeWith);
                 $closeEntries = $this->class->getTransferEntries($dealItem, $result->totalAmount, $closeDeal, $rec);
