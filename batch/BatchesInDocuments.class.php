@@ -783,6 +783,13 @@ class batch_BatchesInDocuments extends core_Manager
                     }
                 }
 
+                // Batch-only промени не бива да отварят ревизия на реда.
+                // Ако чрез dialog-а се променя и самото количество, оставяме
+                // нормалното revision поведение.
+                if ($form->cmd != 'updateQuantity') {
+                    $dRec->_skipDetailRevision = true;
+                }
+
                 // Предизвиква се обновяване на документа
                 cls::get($detailClassId)->save($dRec);
                 if ($Detail instanceof core_Detail) {
