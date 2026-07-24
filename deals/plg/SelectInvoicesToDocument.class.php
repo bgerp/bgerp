@@ -49,7 +49,7 @@ class deals_plg_SelectInvoicesToDocument extends core_Plugin
      */
     protected static function on_BeforeSave($mvc, $id, $rec)
     {
-        if(isset($rec->id) && $rec->_isEdited){
+        if(isset($rec->id) && !empty($rec->_isEdited)){
             $oData = $mvc->getPaymentData($rec->id);
             $nData = $mvc->getPaymentData($rec);
 
