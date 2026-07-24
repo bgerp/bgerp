@@ -2487,6 +2487,11 @@ class doc_Threads extends core_Manager
      */
     public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = null, $userId = null)
     {
+        if (!is_object($rec)) {
+
+            return;
+        }
+
         if ($action == 'open') {
             if ($rec->state == 'closed') {
                 $res = $mvc->getRequiredRoles('single', $rec, $userId);
