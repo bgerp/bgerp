@@ -2914,7 +2914,7 @@ abstract class deals_DealMaster extends deals_DealBase
             }
             
             $dRec = clone $product;
-            $dRec->discount = $product->discount;
+            $dRec->discount = $product->discount ?? null;
             $dRec->price = ($product->amount) ? ($product->amount / $product->quantity) : $product->price;
             $dRec->quantity = $quantity / $product->quantityInPack;
             $dRec->rate = $rec->currencyRate;
