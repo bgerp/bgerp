@@ -538,7 +538,7 @@ class acc_plg_Contable extends core_Plugin
             }
             
             // Не може да се контира, ако документа не генерира валидна транзакция
-            if ($rec->isContable == 'no') {
+            if (($rec->isContable ?? null) == 'no') {
                 $requiredRoles = 'no_one';
             }
         } elseif ($action == 'revert') {
@@ -627,7 +627,7 @@ class acc_plg_Contable extends core_Plugin
             }
             
             // Ако документа не генерира валидна и непразна транзакция - не може да му се прави корекция
-            if (!$rec->isContable) {
+            if (empty($rec->isContable)) {
                 $requiredRoles = 'no_one';
             }
         }
@@ -948,7 +948,7 @@ class acc_plg_Contable extends core_Plugin
     {
         if (!$res) {
             $rec = $mvc->fetchRec($rec);
-            $res = dt::verbal2mysql($rec->{$mvc->valiorFld}, false);
+            $res = dt::verbal2mysql($rec->{$mvc->valiorFld} ?? null, false);
         }
     }
     
