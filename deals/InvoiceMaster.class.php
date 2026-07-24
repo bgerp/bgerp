@@ -779,11 +779,13 @@ abstract class deals_InvoiceMaster extends core_Master
                 $this->_total->vats["{$percent}"] = (object) array('amount' => $this->_total->vat, 'sum' => $this->_total->amount);
             }
 
-            $this->invoke('BeforePrepareSummary', array($this->_total));
-            $data->summary = deals_Helper::prepareSummary($this->_total, $rec->date, $rate, $rec->currencyId, $rec->vatRate, true, $rec->tplLang);
+            if (isset($this->_total)) {
+                $this->invoke('BeforePrepareSummary', array($this->_total));
+                $data->summary = deals_Helper::prepareSummary($this->_total, $rec->date, $rate, $rec->currencyId, $rec->vatRate, true, $rec->tplLang);
 
-            $data->row = (object) ((array) $data->row + (array) $data->summary);
-            $data->row->vatAmount = $data->summary->vatAmount ?? null;
+                $data->row = (object) ((array) $data->row + (array) $data->summary);
+                $data->row->vatAmount = $data->summary->vatAmount ?? null;
+            }
         } elseif(!doc_plg_HidePrices::canSeePriceFields($this, $rec)) {
             $data->row->value = doc_plg_HidePrices::getBuriedElement();
         }
@@ -1461,7 +1463,7 @@ abstract class deals_InvoiceMaster extends core_Master
         
         $containerId = ($rec->type != 'dc_note') ? $rec->containerId : $rec->originId;
         
-        $payments = $invoicePayments[$containerId]->payments;
+        $payments = $invoicePayments[$containerId]->payments ?? null;
         
         if (isset($payments) && countR($payments)) {
             $hasCash = array_key_exists('cash', $payments);
@@ -1582,7 +1584,7 @@ abstract class deals_InvoiceMaster extends core_Master
                 unset($row->rate);
             }
             
-            if (!$row->vatAmount) {
+            if (empty($row->vatAmount)) {
                 $coreConf = core_Packs::getConfig('core');
                 $pointSign = $coreConf->EF_NUMBER_DEC_POINT;
                 $row->vatAmount = "<span class='quiet'>0" . $pointSign . '00</span>';
@@ -2348,7 +2350,7 @@ abstract class deals_InvoiceMaster extends core_Master
         $tpl->push('sales/tpl/invoiceStyles.css', 'CSS');
 
         // Динамично рендиране на ДДС информацията
-        deals_Helper::renderVatDataLayout($tpl, $mvc, $mvc->_total->vats, $data->row);
+        deals_Helper::renderVatDataLayout($tpl, $mvc, $mvc->_total->vats ?? null, $data->row);
     }
 
 
