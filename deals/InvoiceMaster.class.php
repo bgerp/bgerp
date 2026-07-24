@@ -1491,7 +1491,7 @@ abstract class deals_InvoiceMaster extends core_Master
      */
     protected static function getVerbalInvoice($mvc, $rec, $row, $fields)
     {
-        $row->rate = ($rec->displayRate) ? $row->displayRate : $row->rate;
+        $row->rate = ($rec->displayRate) ? $mvc->getFieldType('rate')->toVerbal($rec->displayRate) : $row->rate;
         
         if ($rec->type == 'dc_note') {
             core_Lg::push($rec->tplLang);
