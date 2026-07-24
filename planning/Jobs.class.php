@@ -1430,8 +1430,8 @@ class planning_Jobs extends core_Master
     public function getNewBtnVariants_($rec)
     {
         return array(
-            array('title' => 'Задание за производство', 'icon' => $this->singleIcon, 'params' => array('type' => 'manifacture')),
-            array('title' => 'Задание за разпад', 'icon' => $this->singleIcon, 'params' => array('type' => 'disassembly')),
+            array('title' => 'Задание за производство', 'icon' => 'img/16/clipboard_text_1.png', 'params' => array('type' => 'manifacture')),
+            array('title' => 'Задание за разпад', 'icon' => 'img/16/clipboard_text.png', 'params' => array('type' => 'disassembly')),
         );
     }
 
