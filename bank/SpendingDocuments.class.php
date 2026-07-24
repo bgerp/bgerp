@@ -131,7 +131,7 @@ class bank_SpendingDocuments extends bank_Document
         }
         
         $cData = cls::get($contragentClassId)->getContragentData($contragentId);
-        $form->setReadOnly('contragentName', ($cData->person) ? $cData->person : $cData->company);
+        $form->setReadOnly('contragentName', (!empty($cData->person)) ? $cData->person : $cData->company);
 
         $form->setField('ownAccount', 'caption=От->Сметка,after=reason');
         $form->setField('currencyId', 'caption=От->Валута,after=ownAccount');

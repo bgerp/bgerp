@@ -115,7 +115,7 @@ class bank_IncomeDocuments extends bank_Document
         }
         
         $cData = cls::get($contragentClassId)->getContragentData($contragentId);
-        $form->setReadOnly('contragentName', ($cData->person) ? $cData->person : $cData->company);
+        $form->setReadOnly('contragentName', (!empty($cData->person)) ? $cData->person : $cData->company);
     }
     
     
