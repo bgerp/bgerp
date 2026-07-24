@@ -284,7 +284,7 @@ class purchase_Invoices extends deals_InvoiceMaster
             $form->setFieldType('number', core_Type::getByName('bigint(size=10)'));
         }
         
-        $clonedFh = $form->rec->fileHnd;
+        $clonedFh = $form->rec->fileHnd ?? null;
         
         if (!$clonedFh) {
             $clonedFh = Mode::get('invOriginFh');
