@@ -311,7 +311,7 @@ class deals_plg_DpInvoice extends core_Plugin
     public static function on_AfterInputDpInvoice($mvc, &$res, &$form)
     {
         // Ако сме в детайла пропускаме
-        if ($mvc->Master) {
+        if (!empty($mvc->Master)) {
             
             return;
         }
@@ -649,7 +649,7 @@ class deals_plg_DpInvoice extends core_Plugin
      */
     public static function on_AfterCreate($mvc, $rec)
     {
-        if ($mvc->Master) {
+        if (!empty($mvc->Master)) {
             
             return;
         }
