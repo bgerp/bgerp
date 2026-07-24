@@ -163,7 +163,7 @@ class cad2_Drawings extends embed_Manager
     
     public static function on_AfterRead($mvc, $rec)
     {
-        if (!$rec->name) {
+        if (empty($rec->name)) {
             $rec->name = tr($mvc->getVerbal($rec, 'driverClass')) . "({$rec->id})";
         }
     }
