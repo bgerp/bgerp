@@ -1000,7 +1000,7 @@ abstract class deals_InvoiceMaster extends core_Master
             $data->flag = true;
         } elseif ($origin->className == 'store_ShipmentOrders') {
             $originValior = $origin->fetchField('valior');
-            if ($originValior < $form->rec->date) {
+            if ($originValior < ($form->rec->date ?? null)) {
                 $form->setDefault('vatDate', $originValior);
             }
         }
@@ -1013,7 +1013,7 @@ abstract class deals_InvoiceMaster extends core_Master
         // Метод който да бъде прихванат от deals_plg_DpInvoice
         $mvc->prepareDpInvoicePlg($data);
         
-        if ($form->rec->currencyId == acc_Periods::getBaseCurrencyCode($form->rec->date)) {
+        if ($form->rec->currencyId == acc_Periods::getBaseCurrencyCode($form->rec->date ?? null)) {
             $form->setField('displayRate', 'input=hidden');
         }
         
