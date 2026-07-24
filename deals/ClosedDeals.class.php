@@ -315,7 +315,7 @@ abstract class deals_ClosedDeals extends core_Master
         }
 
         if($form->isSubmitted()){
-            if($rec->valiorStrategy == 'manual'){
+            if(($rec->valiorStrategy ?? null) == 'manual'){
                 if(empty($rec->valior)){
                     $form->setError('valior', 'Трябва да е посочена конкретна дата');
                 } else {
@@ -797,9 +797,9 @@ abstract class deals_ClosedDeals extends core_Master
     public function getValiorDate($rec)
     {
         // При ръчен вальор е с приоритет
-        if($rec->valiorStrategy == 'manual' && !empty($rec->valior)) {
+        if(($rec->valiorStrategy ?? null) == 'manual' && !empty($rec->valior)) {
             $date = $rec->valior;
-        } elseif($rec->valiorStrategy == 'createdOn'){
+        } elseif(($rec->valiorStrategy ?? null) == 'createdOn'){
             $date = $rec->createdOn;
         } else {
             $skipClasses = array(acc_RatesDifferences::getClassId());
