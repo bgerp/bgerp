@@ -288,7 +288,7 @@ class cond_ConditionsToCustomers extends core_Manager
         
         if (countR($data->rows)) {
             foreach ($data->rows as &$row) {
-                if (is_object($row->_rowTools)) {
+                if (is_object($row->_rowTools ?? null)) {
                     $row->tools = $row->_rowTools->renderHtml();
                 }
             }
