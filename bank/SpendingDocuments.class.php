@@ -115,7 +115,7 @@ class bank_SpendingDocuments extends bank_Document
         $form->setDefault('contragentClassId', $contragentClassId);
         
         expect($origin = $mvc->getOrigin($form->rec), $form->rec);
-        $accountOptions = $mvc->getOwnAccountOptions($form->rec->ownAccount);
+        $accountOptions = $mvc->getOwnAccountOptions($form->rec->ownAccount ?? null);
         $mvc->invoke('AfterGetOwnAccountOptions', array($form, &$accountOptions));
         $form->setOptions('ownAccount', $accountOptions);
 
