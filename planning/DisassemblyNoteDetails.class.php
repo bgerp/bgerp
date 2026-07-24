@@ -285,12 +285,6 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
             unset($data->listFields['tools']);
         }
 
-        // Дали изобщо някой ред (в което и да е от 3-те подтаблици) има реално
-        // съдържание в тулбара на plg_RowTools2 - ако няма никъде, '_rowTools'
-        // не се добавя насила в нито една от таблиците (@see orderMultiTableColumns).
-        // При печат/PDF/inline изгледи колоната не е нужна, дори да има съдържание
-        $haveRowTools = !Mode::isReadOnly() && $this->haveAnyRowTools($data->rows);
-
         // Мини-таблица с ОСНОВНИЯ артикул за разпад - показва се отделно, над
         // таблицата с произведените артикули (виж MAIN_INPUT_PRODUCT_TABLE в
         // шаблона), не заедно с (евентуални) други артикули за влагане
@@ -300,12 +294,13 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
             $mData->listTableMvc = clone $this;
             $mData->rows = $data->mainInputArr;
             $mData->recs = array_intersect_key($mData->recs, $mData->rows);
+            unset($mData->listFields['tools']);
+
             $this->invoke('BeforeRenderListTable', array(&$tpl, &$mData));
             $mData->listFields['storeId'] = 'От склад';
-            $this->alignMultiTableColumns($mData->listTableMvc, array('storeId' => 160, 'packagingId' => 140));
-            $mData->listFields = $this->orderMultiTableColumns($mData->listFields, array(), $haveRowTools);
+            $mData->listFields = core_TableView::filterEmptyColumns($mData->rows, $mData->listFields, '*');
 
-            $mainInputTable = cls::get('core_TableView', array('mvc' => $mData->listTableMvc, 'tableClass' => $this->detailsTableClass));
+            $mainInputTable = cls::get('core_TableView', array('mvc' => $mData->listTableMvc));
             $detailsMainInput = $mainInputTable->get($mData->rows, $mData->listFields);
             $tpl->append($detailsMainInput, 'MAIN_INPUT_PRODUCT_TABLE');
         }
@@ -319,11 +314,11 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
             $iData->recs = array_intersect_key($iData->recs, $iData->rows);
 
             $this->invoke('BeforeRenderListTable', array(&$tpl, &$iData));
+            $iData->listTableMvc->FNC('tools', 'int', 'tdClass=rowNumColumn');
             $iData->listFields['storeId'] = 'От склад';
-            $this->alignMultiTableColumns($iData->listTableMvc, array('storeId' => 160, 'packagingId' => 140));
-            $iData->listFields = $this->orderMultiTableColumns($iData->listFields, array(), $haveRowTools);
+            $iData->listFields = core_TableView::filterEmptyColumns($iData->rows, $iData->listFields, '*');
 
-            $inputTable = cls::get('core_TableView', array('mvc' => $iData->listTableMvc, 'tableClass' => $this->detailsTableClass));
+            $inputTable = cls::get('core_TableView', array('mvc' => $iData->listTableMvc));
             $detailsInput = $inputTable->get($iData->rows, $iData->listFields);
             $tpl->append($detailsInput, 'INPUT_PRODUCTS_TABLE');
         }
@@ -341,10 +336,10 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
         $pData->listFields['storeId'] = 'В склад';
 
         $this->invoke('BeforeRenderListTable', array(&$tpl, &$pData));
-        $this->alignMultiTableColumns($pData->listTableMvc, array('storeId' => 160, 'packagingId' => 140));
-        $pData->listFields = $this->orderMultiTableColumns($pData->listFields, array(), $haveRowTools);
+        $pData->listTableMvc->FNC('tools', 'int', 'tdClass=rowNumColumn');
+        $pData->listFields = core_TableView::filterEmptyColumns($pData->rows, $pData->listFields, '*');
 
-        $productionTable = cls::get('core_TableView', array('mvc' => $pData->listTableMvc, 'tableClass' => $this->detailsTableClass));
+        $productionTable = cls::get('core_TableView', array('mvc' => $pData->listTableMvc));
         $detailsProduction = $productionTable->get($pData->rows, $pData->listFields);
         $tpl->append($detailsProduction, 'PRODUCED_PRODUCTS_TABLE');
 
