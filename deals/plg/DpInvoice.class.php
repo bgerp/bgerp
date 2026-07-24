@@ -126,7 +126,7 @@ class deals_plg_DpInvoice extends core_Plugin
             $form->rec->dpAmount = $dpAmount;
         }
         
-        if ($form->rec->dpOperation == 'none') {
+        if (($form->rec->dpOperation ?? null) == 'none') {
             unset($form->rec->dpAmount);
         }
     }
