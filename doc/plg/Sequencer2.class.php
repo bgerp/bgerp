@@ -66,7 +66,7 @@ class doc_plg_Sequencer2 extends core_Plugin
         
         if($mvc->addNumberOnActivation === true){
             
-            if ($rec->state == 'active') {
+            if (($rec->state ?? null) == 'active') {
                 if (empty($rec->{$mvc->numberFld})) {
                     $errorMsg = null;
 
@@ -74,7 +74,7 @@ class doc_plg_Sequencer2 extends core_Plugin
                         $rec->{$mvc->numberFld} = cond_Ranges::getNextNumber($rec->{$mvc->rangeNumFld}, $mvc, $mvc->numberFld);
                         if(isset($rec->id)){
                             $exRec = $mvc->fetch("#id = {$rec->id}", 'state', false);
-                            if($exRec->state == 'active'){
+                            if(($exRec->state ?? null) == 'active'){
                                 $errorMsg = 'Документа е вече активиран';
                                 expect(false, 'Не бива да се стига до тук');
                             }
