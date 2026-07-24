@@ -289,7 +289,7 @@ abstract class deals_ClosedDeals extends core_Master
     {
         $rec = &$form->rec;
 
-        if($rec->valiorStrategy == 'manual'){
+        if(($rec->valiorStrategy ?? null) == 'manual'){
             $form->setField('valior', 'input,caption=Дата');
         }
 
@@ -305,7 +305,7 @@ abstract class deals_ClosedDeals extends core_Master
         $skipClasses = array(acc_RatesDifferences::getClassId());
         $biggestValior = $mvc->getBiggestValiorInDeal($rec, $skipClasses);
 
-        $displayValior = $rec->valior ? $rec->valior : ($rec->valiorStrategy == 'createdOn' ? $rec->createdOn : $biggestValior);
+        $displayValior = $rec->valior ? $rec->valior : (($rec->valiorStrategy ?? null) == 'createdOn' ? $rec->createdOn : $biggestValior);
         if (round($liveAmount, 2) > 0) {
             $incomeAmount = $liveAmount;
             $form->info = tr('Извънреден приход|*: <b style="color:blue">') . $Double->toVerbal($incomeAmount) . "</b> " . acc_Periods::getBaseCurrencyCode($displayValior);
