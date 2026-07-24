@@ -230,7 +230,7 @@ class acc_plg_DocumentSummary extends core_Plugin
         $cKey = $mvc->className . '|' . core_Users::getCurrent();
         $userFields = array();
 
-        if(!$mvc->hidePeriodFilter){
+        if(empty($mvc->hidePeriodFilter)){
             $data->listFilter->FNC('from', 'date', 'width=6em,caption=От,silent');
             $data->listFilter->FNC('to', 'date', 'width=6em,caption=До,silent');
 
