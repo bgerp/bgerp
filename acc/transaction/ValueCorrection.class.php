@@ -30,7 +30,7 @@ class acc_transaction_ValueCorrection extends acc_DocumentTransactionSource
         expect($rec = $this->class->fetchRec($id));
 
         $result = (object) array(
-            'reason' => $rec->notes,
+            'reason' => $rec->notes ?? null,
             'valior' => null,
             'totalAmount' => 0,
             'entries' => array()

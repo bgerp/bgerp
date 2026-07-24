@@ -62,7 +62,7 @@ class findeals_transaction_CloseDeal extends deals_ClosedDealTransaction
 
         // Създаване на обекта за транзакция
         $result = (object) array(
-            'reason' => $rec->notes,
+            'reason' => $rec->notes ?? null,
             'valior' => $this->valior,
             'totalAmount' => 0,
             'entries' => array(),
