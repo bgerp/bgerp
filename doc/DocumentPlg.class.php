@@ -2404,9 +2404,13 @@ class doc_DocumentPlg extends core_Plugin
         
         $saveBtnName = (haveRole('powerUser') && !((($mvc->canEditActivated ?? null) === true && in_array($rec->state ?? null, array('active', 'waiting', 'wakeup'))))) ? 'Чернова' : 'Запис';
         $form->toolbar->renameBtn('save', $saveBtnName);
-        
+
         if (isset($rec->state) && $rec->state == 'pending' && isset($rec->id)) {
-            $form->toolbar->setWarning('save', 'Наистина ли искате да направите документа чернова|*?');
+            if ($mvc->hasPlugin('doc_plg_MasterRevision')) {
+                $form->toolbar->removeBtn('save');
+            } else {
+                $form->toolbar->setWarning('save', 'Наистина ли искате да направите документа чернова|*?');
+            }
         }
         
         if ($mvc->haveRightFor('pending', $form->rec) || (isset($rec->state) && $rec->state == 'pending')) {

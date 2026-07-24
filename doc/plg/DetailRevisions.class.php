@@ -135,6 +135,10 @@ class doc_plg_DetailRevisions extends core_Plugin
 
             return;
         }
+
+        // Няма мъртъв ред за свързване, но сме в revision state - маркираме реда като
+        // нов добавен в това състояние (revisionRootId = 0), за да може брояча да го отчете
+        $rec->revisionRootId = 0;
     }
 
 
@@ -312,6 +316,20 @@ class doc_plg_DetailRevisions extends core_Plugin
                 $row->code = $row->reff = $row->tools = $row->productId = '';
             }
         }
+    }
+
+
+    /**
+     * Полетата добавени от плъгина не трябва да се клонират
+     */
+    public static function on_AfterGetFieldsNotToClone($mvc, &$res, $rec)
+    {
+        $res['state'] = 'state';
+        $res['rejectedOn'] = 'rejectedOn';
+        $res['rejectedBy'] = 'rejectedBy';
+        $res['revisionRootId'] = 'revisionRootId';
+        $res['revisionPrevId'] = 'revisionPrevId';
+        $res['rejectedReason'] = 'rejectedReason';
     }
 
 

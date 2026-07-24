@@ -505,7 +505,7 @@ class planning_DisassemblyNote extends deals_ManifactureMaster
                 $rec->mainInputQuantity = $rec->mainInputPackQuantity * $rec->mainInputQuantityInPack;
             }
 
-            if(isset($rec->id)){
+            if(isset($rec->id) && !empty($rec->_cloneForm)){
                 if($rec->state == 'active'){
                     $exRec = $mvc->fetch($rec->id, '*', false);
                     if($rec->valior != $exRec->valior || $rec->expenses != $exRec->expenses){

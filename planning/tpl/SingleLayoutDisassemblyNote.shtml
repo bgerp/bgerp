@@ -29,6 +29,9 @@
                                             <!--ET_BEGIN jobId-->
                                             <div>|Към|*: <b>[#jobId#]</b></div>
                                             <!--ET_END jobId-->
+                                            <!--ET_BEGIN deadline-->
+                                            <div>|Срок до|*: <b>[#deadline#]</b></div>
+                                            <!--ET_END deadline-->
                                         </td>
                                     </tr>
                                 </tbody>
@@ -52,22 +55,15 @@
                                 <tbody>
                                     <tr>
                                         <td class="topCell first vtop" style='width:50%;'>
+                                            <!--ET_BEGIN expenses-->
                                             <table class='shipment-table' style='width:100%;'>
-                                                <!--ET_BEGIN deadline-->
-                                                <tr>
-                                                    <td class='quiet nowrap aright' style='width:1%;'>|Срок до|*:</td>
-                                                    <td>[#deadline#]</td>
-                                                </tr>
-                                                <!--ET_END deadline-->
-                                                <!--ET_BEGIN expenses-->
                                                 <tr>
                                                     <td class='quiet nowrap aright' style='width:1%;'>|Реж. разходи|*:</td>
                                                     <td>[#expenses#]</td>
                                                 </tr>
-                                                <!--ET_END expenses-->
                                             </table>
+                                            <!--ET_END expenses-->
                                             <!--ET_BEGIN note-->
-                                            <hr>
                                             |Забележки|*:<br>
                                             [#note#]
                                             <!--ET_END note-->

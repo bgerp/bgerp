@@ -107,8 +107,11 @@ class doc_plg_MasterRevision extends core_Plugin
             $changesCnt += $Detail->count("#{$Detail->masterKey} = {$masterId} AND #state = 'rejected'");
 
             // Ръчно добавени редове (не редакции) след активирането - също се броят за промяна
+            $newRowsCond = "#{$Detail->masterKey} = {$masterId} AND #state != 'rejected' AND #revisionPrevId IS NULL";
             if (!empty($activatedOn)) {
-                $changesCnt += $Detail->count("#{$Detail->masterKey} = {$masterId} AND #state != 'rejected' AND #revisionPrevId IS NULL AND #createdOn > '{$activatedOn}'");
+                $changesCnt += $Detail->count($newRowsCond . " AND (#revisionRootId = 0 OR #createdOn > '{$activatedOn}')");
+            } else {
+                $changesCnt += $Detail->count($newRowsCond . " AND #revisionRootId = 0");
             }
             $Detail->showDetailRevisions = $oldShowRevisions;
         }
