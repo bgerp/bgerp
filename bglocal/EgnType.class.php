@@ -44,6 +44,7 @@ class bglocal_EgnType extends type_Varchar
         }
         
         $value = trim($value);
+        $err = null;
         
         try {
             $Egn = new bglocal_BulgarianEGN($value);
