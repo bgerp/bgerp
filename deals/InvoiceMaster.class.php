@@ -746,7 +746,7 @@ abstract class deals_InvoiceMaster extends core_Master
                         $det->price = ($det->price / $det->rate) * $rec->rate;
                     }
 
-                    $det->_importBatches = $rec->importBatches;
+                    $det->_importBatches = $rec->importBatches ?? null;
                     $det->{$Detail->masterKey} = $rec->id;
                     unset($det->batches);
                     unset($det->autoDiscount);
