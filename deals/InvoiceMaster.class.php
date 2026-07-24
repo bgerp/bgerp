@@ -2019,7 +2019,7 @@ abstract class deals_InvoiceMaster extends core_Master
     public static function getSourceOrigin($rec)
     {
         $rec = static::fetchRec($rec);
-        if ($rec->sourceContainerId) {
+        if (isset($rec->sourceContainerId)) {
             return doc_Containers::getDocument($rec->sourceContainerId);
         }
 
