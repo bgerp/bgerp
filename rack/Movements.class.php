@@ -304,6 +304,18 @@ class rack_Movements extends rack_MovementAbstract
         $rec->zoneList = (countR($zonesArr)) ? keylist::fromArray($zonesArr) : null;
         
         if ($rec->state == 'active' || $rec->_canceled === true || $rec->_isCreatedClosed === true) {
+            if ($rec->state == 'active' && !empty($rec->palletId) && $rec->position != rack_PositionType::FLOOR) {
+                $positionInfo = rack_Pallets::getPositionQuantityInfo($rec->position, $rec->storeId, $rec->productId);
+                $palletQuantity = rack_Pallets::fetchField($rec->palletId, 'quantity');
+                $rec->_palletStartDiagnostic = (object) array(
+                    'movementQuantity' => (float) $rec->quantity,
+                    'palletId' => $rec->palletId,
+                    'palletQuantity' => isset($palletQuantity) ? (float) $palletQuantity : null,
+                    'positionQuantity' => (float) $positionInfo->totalQuantity,
+                    'positionRows' => $positionInfo->rows,
+                );
+            }
+
             // Изпълнение на транзакцията
             $reverse = ($rec->_canceled === true) ? true : false;
             $transaction = $mvc->getTransaction($rec, $reverse);
@@ -395,7 +407,26 @@ class rack_Movements extends rack_MovementAbstract
             if($rec->state == 'waiting' && $rec->brState == 'pending'){
                 rack_Logs::add($rec->storeId, $rec->productId, 'waiting', $rec->position, $rec->id, "Запазване на движение #{$rec->id}");
             } elseif($rec->state == 'active'){
-                rack_Logs::add($rec->storeId, $rec->productId, 'start', $rec->position, $rec->id, "Започване на движение #{$rec->id}");
+                $message = "Започване на движение #{$rec->id}";
+                if (isset($rec->_palletStartDiagnostic)) {
+                    $diagnostic = $rec->_palletStartDiagnostic;
+                    $positionRows = array();
+                    foreach ($diagnostic->positionRows as $palletRec) {
+                        $batch = !empty($palletRec->batch) ? ", партида={$palletRec->batch}" : '';
+                        $positionRows[] = "#{$palletRec->id}=" . round($palletRec->quantity, 5) . $batch;
+                    }
+                    $positionRows = countR($positionRows) ? implode(', ', $positionRows) : 'няма';
+                    $palletQuantity = isset($diagnostic->palletQuantity) ? round($diagnostic->palletQuantity, 5) : 'липсва';
+                    $markerBeforeStart = isset($diagnostic->palletQuantity)
+                        && abs($diagnostic->movementQuantity - $diagnostic->palletQuantity) < 0.0001;
+                    $markerBeforeStart = $markerBeforeStart ? 'да' : 'не';
+                    $message .= " / Диагностика преди започване: движение=" . round($diagnostic->movementQuantity, 5)
+                        . "; свързан палет #{$diagnostic->palletId}={$palletQuantity}"
+                        . "; общо на позицията=" . round($diagnostic->positionQuantity, 5)
+                        . "; активни записи={$positionRows}"
+                        . "; условие за балон={$markerBeforeStart}";
+                }
+                rack_Logs::add($rec->storeId, $rec->productId, 'start', $rec->position, $rec->id, $message);
             } elseif($rec->brState == 'active' && ($rec->state == 'pending' || $rec->state == 'waiting')){
                 rack_Logs::add($rec->storeId, $rec->productId, 'return', $rec->position, $rec->id, "Връщане на движение #{$rec->id}");
             } elseif($rec->state == 'pending' && $rec->brState == 'waiting'){
