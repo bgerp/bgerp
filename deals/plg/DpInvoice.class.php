@@ -434,7 +434,7 @@ class deals_plg_DpInvoice extends core_Plugin
             }
 
             // Обновяваме данните на мастър-записа при редакция
-            if (isset($rec->id) && !$form->_cloneForm) {
+            if (isset($rec->id) && empty($form->_cloneForm)) {
                 $mvc->updateMaster($rec, false);
             }
         }
