@@ -523,8 +523,8 @@ abstract class store_DocumentMaster extends core_Master
                         $batches = $product->batches;
                     }
                     
-                    $price = (isset($product->price)) ? $product->price : $normalizedProducts[$index]->price;
-                    $discount = ($product->discount) ? $product->discount : $normalizedProducts[$index]->discount;
+                    $price = (isset($product->price)) ? $product->price : ($normalizedProducts[$index]->price ?? null);
+                    $discount = ($product->discount) ? $product->discount : ($normalizedProducts[$index]->discount ?? null);
 
                     // Пропускат се експедираните продукти
                     if ($toShip <= 0) continue;
@@ -1060,17 +1060,17 @@ abstract class store_DocumentMaster extends core_Master
                 if($firstDocument->haveInterface('trans_LogisticDataIntf')){
                     if(!$firstDocument->fetchField('deliveryLocationId')){
                         $firstDocumentLogisticData = $firstDocument->getLogisticData();
-                        $res["{$contrPart}Country"] = $firstDocumentLogisticData["{$contrPart}Country"];
-                        $res["{$contrPart}PCode"] = $firstDocumentLogisticData["{$contrPart}PCode"];
-                        $res["{$contrPart}Place"] = $firstDocumentLogisticData["{$contrPart}Place"];
-                        $res["{$contrPart}Address"] = $firstDocumentLogisticData["{$contrPart}Address"];
+                        $res["{$contrPart}Country"] = $firstDocumentLogisticData["{$contrPart}Country"] ?? null;
+                        $res["{$contrPart}PCode"] = $firstDocumentLogisticData["{$contrPart}PCode"] ?? null;
+                        $res["{$contrPart}Place"] = $firstDocumentLogisticData["{$contrPart}Place"] ?? null;
+                        $res["{$contrPart}Address"] = $firstDocumentLogisticData["{$contrPart}Address"] ?? null;
                         $res['instructions'] = $firstDocumentLogisticData['instructions'] ?? null;
-                        $res["{$contrPart}Company"] = $firstDocumentLogisticData["{$contrPart}Company"];
-                        $res["{$contrPart}Person"] = $firstDocumentLogisticData["{$contrPart}Person"];
-                        $res["{$contrPart}PersonPhones"] = $firstDocumentLogisticData["{$contrPart}PersonPhones"];
-                        $res["{$contrPart}LocationId"] = $firstDocumentLogisticData["{$contrPart}LocationId"];
-                        $res["{$contrPart}AddressInfo"] = $firstDocumentLogisticData["{$contrPart}AddressInfo"];
-                        $res["{$contrPart}AddressFeatures"] = $firstDocumentLogisticData["{$contrPart}AddressFeatures"];
+                        $res["{$contrPart}Company"] = $firstDocumentLogisticData["{$contrPart}Company"] ?? null;
+                        $res["{$contrPart}Person"] = $firstDocumentLogisticData["{$contrPart}Person"] ?? null;
+                        $res["{$contrPart}PersonPhones"] = $firstDocumentLogisticData["{$contrPart}PersonPhones"] ?? null;
+                        $res["{$contrPart}LocationId"] = $firstDocumentLogisticData["{$contrPart}LocationId"] ?? null;
+                        $res["{$contrPart}AddressInfo"] = $firstDocumentLogisticData["{$contrPart}AddressInfo"] ?? null;
+                        $res["{$contrPart}AddressFeatures"] = $firstDocumentLogisticData["{$contrPart}AddressFeatures"] ?? null;
                     }
                 }
             }
