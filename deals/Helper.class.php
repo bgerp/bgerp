@@ -3528,7 +3528,8 @@ abstract class deals_Helper
                     $term = $productDeliveryTime;
 
                     // Ако има изчислена доставка и за нея има срок на доставка добавя се
-                    if ($deliveryTime = sales_TransportValues::get($masterMvc, $dRec->{$Detail->masterKey}, $dRec->id)->deliveryTime) {
+                    $transportValues = sales_TransportValues::get($masterMvc, $dRec->{$Detail->masterKey}, $dRec->id);
+                    if ($deliveryTime = ($transportValues->deliveryTime ?? null)) {
                         $term += $deliveryTime;
                     } elseif($defaultDeliveryTime){
 
