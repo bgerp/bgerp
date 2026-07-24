@@ -335,7 +335,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
         if (countR($data->rows)) {
             foreach ($data->rows as $id => $row) {
                 $rec = $data->recs[$id];
-                if (!is_object($row->tools)) {
+                if (!is_object($row->tools ?? null)) {
                     $row->tools = new ET('[#TOOLS#]');
                 }
                 
