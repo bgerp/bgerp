@@ -1559,7 +1559,7 @@ abstract class deals_DealMaster extends deals_DealBase
             }
             
             if (isset($actions['pay'])) {
-                $row->isPaid .= mb_strtoupper(tr('платено'));
+                $row->isPaid = ($row->isPaid ?? '') . mb_strtoupper(tr('платено'));
                 if ($rec->state == 'rejected') {
                     $row->isPaid = "<span class='quiet'>{$row->isPaid}</span>";
                 }
