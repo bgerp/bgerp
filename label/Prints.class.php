@@ -900,7 +900,7 @@ class label_Prints extends core_Master
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-        if (!$fields['-single'] && $mvc->haveRightFor('print', $rec)) {
+        if (empty($fields['-single']) && $mvc->haveRightFor('print', $rec)) {
             $warning = false;
             
             // Ако съсотоянието е затворено показваме предупреждение
@@ -1037,16 +1037,16 @@ class label_Prints extends core_Master
             label_Media::prepareMediaPageLayout($pData);
         }
         
-        if (!$pData->pageLayout) {
+        if (empty($pData->pageLayout)) {
             $pData->pageLayout = new stdClass();
         }
         
-        if (!$pData->pageLayout->columnsCnt) {
+        if (empty($pData->pageLayout->columnsCnt)) {
             $pData->pageLayout->columnsCnt = 1;
         }
         
         // Ако няма стойност
-        if (!$pData->row) {
+        if (empty($pData->row)) {
             
             // Създаваме обект
             $pData->row = new stdClass();
@@ -1243,9 +1243,12 @@ class label_Prints extends core_Master
         
         // Брой записи на страница
         $itemsPerPage = $data->pageLayout->itemsPerPage ?? 1;
+        $rows = (array) ($data->rows ?? array());
+        $allCnt = $data->allCnt ?? countR($rows);
+        $tpl = null;
         
         // Обхождаме резултатите
-        foreach ((array) $data->rows as $rowId => $row) {
+        foreach ($rows as $rowId => $row) {
             
             // Номера на вътрешния шаблон
             $n = $rowId % $itemsPerPage;
@@ -1290,7 +1293,7 @@ class label_Prints extends core_Master
             $tpl->replace($template, $n);
             
             // Ако сме на последния запис в страницата или изобщо на последния запис
-            if (($rowId == ($data->allCnt - 1)) || ($n == ($itemsPerPage - 1))) {
+            if (($rowId == ($allCnt - 1)) || ($n == ($itemsPerPage - 1))) {
                 
                 // Добавяме към главния шаблон
                 $allTpl->append($tpl);
