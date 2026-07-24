@@ -510,7 +510,7 @@ class crm_Companies extends core_Master
             }
             foreach ($data->recs as $rec) {
                 if ($cnt[str::utf2ascii(trim($rec->name))] >= 2) {
-                    if ($data->rows[$rec->id]->folderName) {
+                    if (!empty($data->rows[$rec->id]->folderName)) {
                         $data->rows[$rec->id]->nameList .= $data->rows[$rec->id]->folderName;
                     } else {
                         $data->rows[$rec->id]->nameList .= $data->rows[$rec->id]->titleNumber;
