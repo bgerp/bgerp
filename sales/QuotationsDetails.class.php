@@ -108,7 +108,8 @@ class sales_QuotationsDetails extends deals_QuotationDetails
             $rec->price = deals_Helper::getPurePrice($rec->price, cat_Products::getVat($rec->productId, $masterRec->date, $masterRec->vatExceptionId), $masterRec->currencyRate, $masterRec->chargeVat);
             
             // Добавяне на транспортните разходи, ако има
-            $fee = sales_TransportValues::get('sales_Quotations', $rec->quotationId, $rec->id)->fee;
+            $transportValues = sales_TransportValues::get('sales_Quotations', $rec->quotationId, $rec->id);
+            $fee = $transportValues->fee ?? null;
             
             if (isset($fee) && $fee > 0) {
                 $rec->price += $fee / $rec->quantity;
@@ -181,7 +182,8 @@ class sales_QuotationsDetails extends deals_QuotationDetails
         if (!isset($term)) {
             if ($term = cat_Products::getDeliveryTime($rec->productId, $rec->quantity)) {
                 $hintTerm = true;
-                if ($deliveryTime = sales_TransportValues::get('sales_Quotations', $rec->quotationId, $rec->id)->deliveryTime) {
+                $transportValues = sales_TransportValues::get('sales_Quotations', $rec->quotationId, $rec->id);
+                if ($deliveryTime = ($transportValues->deliveryTime ?? null)) {
                     $term += $deliveryTime;
                 }
             }
