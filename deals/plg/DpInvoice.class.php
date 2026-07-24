@@ -225,6 +225,8 @@ class deals_plg_DpInvoice extends core_Plugin
                     $dpAmount = $invoicedDp - $deductedDp;
                     $dpOperation = 'deducted';
                     $form->_expectedDownpaymentReduction = true;
+                } else {
+                    $dpAmount = 0;
                 }
             } else {
                 // Ако няма фактуриран аванс
