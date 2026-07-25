@@ -555,7 +555,7 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
                     if ($groupByStore === true) {
                         $storePositionId = acc_Lists::getPosition(acc_Accounts::fetchField($p->debitAccId, 'systemId'), 'store_AccRegIntf');
                         
-                        if ($p->{"debitItem{$storePositionId}"}) {
+                        if (!empty($storePositionId) && $p->{"debitItem{$storePositionId}"}) {
                             $storeItem = acc_Items::fetch($p->{"debitItem{$storePositionId}"});
                             
                             $res[$index]->inStores[$storeItem->objectId]['amount'] = ($res[$index]->inStores[$storeItem->objectId]['amount'] ?? 0) + $amount;
@@ -566,7 +566,7 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
                     if ($groupByExpense === true) {
                         $expensePositionId = acc_Lists::getPosition(acc_Accounts::fetchField($p->debitAccId, 'systemId'), 'doc_DocumentIntf');
                         
-                        if ($p->{"debitItem{$expensePositionId}"}) {
+                        if (!empty($expensePositionId) && $p->{"debitItem{$expensePositionId}"}) {
                             $expenseItem = acc_Items::fetch($p->{"debitItem{$expensePositionId}"})->id;
                             
                             $res[$index]->expenseItems[$expenseItem]['amount'] = ($res[$index]->expenseItems[$expenseItem]['amount'] ?? 0) + $amount;
