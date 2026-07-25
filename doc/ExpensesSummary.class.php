@@ -211,7 +211,7 @@ class doc_ExpensesSummary extends core_Manager
      */
     public function renderExpenses($data)
     {
-        if ($data->renderExpenses === false) {
+        if (($data->renderExpenses ?? null) === false) {
             
             return;
         }
