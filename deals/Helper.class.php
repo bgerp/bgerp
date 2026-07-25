@@ -213,7 +213,7 @@ abstract class deals_Helper
                 }
             }
 
-            if (!(($masterRec->type ?? null) === 'dc_note' && ($rec->changedQuantity !== true && $rec->changedPrice !== true))) {
+            if (!(($masterRec->type ?? null) === 'dc_note' && (($rec->changedQuantity ?? null) !== true && ($rec->changedPrice ?? null) !== true))) {
                 if (!array_key_exists($vat, $vats)) {
                     $vats[$vat] = (object) array('amount' => 0, 'sum' => 0);
                 }

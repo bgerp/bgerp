@@ -137,6 +137,9 @@ abstract class trans_Helper
                 $key = "{$name}|{$pluralName}";
             }
 
+            if (!isset($combined[$key])) {
+                $combined[$key] = 0;
+            }
             $combined[$key] += $quantity;
         }
 
