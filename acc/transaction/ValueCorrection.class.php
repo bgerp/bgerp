@@ -270,8 +270,8 @@ class acc_transaction_ValueCorrection extends acc_DocumentTransactionSource
                         $obj = (object) array('productId' => $p->productId,
                             'quantity' => $q,
                             'amount' => $am,
-                            'transportWeight' => $p->transportWeight,
-                            'transportVolume' => $p->transportVolume,
+                            'transportWeight' => $p->transportWeight ?? null,
+                            'transportVolume' => $p->transportVolume ?? null,
                         );
 
                         $storesArr[$storeId] = $obj;
