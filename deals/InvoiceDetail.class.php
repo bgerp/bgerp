@@ -736,7 +736,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
                 $form->setError('packPrice,quantity', $msg);
             }
             
-            $rec->price = deals_Helper::getPurePrice($rec->price, 0, $masterRec->rate, $masterRec->chargeVat);
+            $rec->price = deals_Helper::getPurePrice($rec->price, 0, $masterRec->rate, $masterRec->vatRate);
 
             if(!$form->gotErrors()){
 
@@ -839,7 +839,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
         $quantityInPack = is_object($packRec) ? $packRec->quantity : 1;
 
         if(isset($row->price)){
-            $dRec->price = deals_Helper::getPurePrice($row->price, cat_Products::getVat($dRec->productId, null, $vatExceptionId), $rate, $masterRec->chargeVat);
+            $dRec->price = deals_Helper::getPurePrice($row->price, cat_Products::getVat($dRec->productId, null, $vatExceptionId), $rate, $masterRec->vatRate);
             $dRec->price /= $quantityInPack;
         } else {
             if(!isset($row->_dealInfo)){
