@@ -180,7 +180,7 @@ class doc_ExpensesSummary extends core_Manager
         $row->valior = cls::get('type_Date')->toVerbal($rec->valior);
         
         if ($rec->type == 'corrected') {
-            if ($rec->notDistributed !== true) {
+            if (($rec->notDistributed ?? null) !== true) {
                 unset($row->docId, $row->valior);
             }
             
@@ -191,7 +191,7 @@ class doc_ExpensesSummary extends core_Manager
                 $row->item2Id .= tr("|* |в склад|* <b>{$item1}</b>");
             }
             
-            if ($rec->notDistributed !== true) {
+            if (($rec->notDistributed ?? null) !== true) {
                 $row->item2Id = tr('за') . " {$row->item2Id}";
             }
             
