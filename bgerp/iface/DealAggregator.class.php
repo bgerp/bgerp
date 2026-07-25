@@ -139,6 +139,9 @@ class bgerp_iface_DealAggregator
     public function sumByArrIndex($name, $value, $index)
     {
         $a = &$this->{$name};
+        if (!isset($a[$index])) {
+            $a[$index] = 0;
+        }
         $a[$index] += $value;
     }
 }
