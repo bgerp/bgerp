@@ -256,7 +256,7 @@ class deals_plg_EditClonedDetails extends core_Plugin
                         $det->price /= $det->_rate;
                         $det->price *= $rec->{$mvc->rateFldName};
                     }
-               } elseif($det->_valior) {
+               } elseif(isset($det->_valior)) {
                     $det->price = deals_Helper::getSmartBaseCurrency($det->price, $det->_valior, $rec->{$mvc->valiorFld});
                 }
 

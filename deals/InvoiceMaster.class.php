@@ -508,13 +508,6 @@ abstract class deals_InvoiceMaster extends core_Master
             unset($invArr['dueDate']);
         }
 
-        if ($invArr['type'] == 'dc_note') {
-            foreach (array() as $fld){
-
-                unset($invArr[$fld]);
-            }
-        }
-
         // Копиране на повечето от полетата на фактурата
         foreach ($invArr as $field => $value) {
             $form->rec->{$field} = $value;
