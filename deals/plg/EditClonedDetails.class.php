@@ -261,7 +261,7 @@ class deals_plg_EditClonedDetails extends core_Plugin
                 }
 
                 $newPackQuantity = $updatePackQuantity = 0;
-                if (is_array($det->batches) && core_Packs::isInstalled('batch')) {
+                if (isset($det->batches) && is_array($det->batches) && core_Packs::isInstalled('batch')) {
                     foreach ($det->batches as &$bRec) {
                         $bMd5 = md5($bRec->batch);
                         $key = "quantity|{$bMd5}|{$det->id}|";
@@ -316,7 +316,7 @@ class deals_plg_EditClonedDetails extends core_Plugin
                     
                     $det->{$Detail->masterKey} = $rec->id;
                     $Detail->save($det);
-                    if (is_array($det->batches) && core_Packs::isInstalled('batch')) {
+                    if (isset($det->batches) && is_array($det->batches) && core_Packs::isInstalled('batch')) {
                         $batchesArr = array();
                         foreach ($det->batches as $batch) {
                             $d1 = $batch->oldQuantity - $batch->quantity;
