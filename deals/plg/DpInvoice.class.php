@@ -94,7 +94,8 @@ class deals_plg_DpInvoice extends core_Plugin
         
         if (isset($rec->dpAmount)) {
             $dpAmount = $rec->dpAmount / $rec->rate;
-            $vat = acc_Periods::fetchByDate($rec->date)->vatRate;
+            $periodRec = acc_Periods::fetchByDate($rec->date);
+            $vat = $periodRec->vatRate ?? null;
             if(isset($rec->dpVatGroupId)){
                 $vat = acc_VatGroups::fetchField($rec->dpVatGroupId, 'vat');
             }
@@ -183,8 +184,8 @@ class deals_plg_DpInvoice extends core_Plugin
             $dpVatGroupId =  isset($form->rec->dpVatGroupId) ? $form->rec->dpVatGroupId : key($dpByVats);
             $invoicedDp = deals_Helper::getSmartBaseCurrency($dpByVats[$dpVatGroupId], $form->dealInfo->get('agreedValior'), $rec->valior ?? null);
 
-            $dpDeductedByVats = $form->dealInfo->get('downpaymentDeductedByVats');
-            $deductedDp = $dpDeductedByVats[$dpVatGroupId];
+            $dpDeductedByVats = $form->dealInfo->get('downpaymentDeductedByVats') ?? array();
+            $deductedDp = $dpDeductedByVats[$dpVatGroupId] ?? null;
 
             if(in_array($rec->vatRate, array('yes', 'separate'))) {
                 if(($invoicedDp - $deductedDp) > 0){
@@ -401,7 +402,8 @@ class deals_plg_DpInvoice extends core_Plugin
                     $expectedDpVatGroupId = self::getDefaultDpVatGroupId($mvc, $rec);
                 }
 
-                $vat = acc_Periods::fetchByDate($rec->date)->vatRate;
+                $periodRec = acc_Periods::fetchByDate($rec->date);
+                $vat = $periodRec->vatRate ?? null;
                 if(empty($rec->id)){
                     if(isset($expectedDpVatGroupId) && isset($rec->dpVatGroupId) && $rec->dpVatGroupId != $expectedDpVatGroupId){
                         if($rec->dpOperation != 'deducted'){
@@ -696,7 +698,8 @@ class deals_plg_DpInvoice extends core_Plugin
         }
         
         // Колко е ддс-то
-        $vat = acc_Periods::fetchByDate($masterRec->date)->vatRate;
+        $periodRec = acc_Periods::fetchByDate($masterRec->date);
+        $vat = $periodRec->vatRate ?? null;
         if(isset($dpVatGroupId)){
             $vat = acc_VatGroups::fetchField($dpVatGroupId, 'vat');
         }

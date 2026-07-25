@@ -1208,7 +1208,8 @@ abstract class deals_InvoiceMaster extends core_Master
                     if (($originRec->dpOperation == 'accrued' || $originRec->dpOperation == 'deducted') && isset($originRec->dpVatGroupId)){
                         $vat = acc_VatGroups::fetchField($originRec->dpVatGroupId, 'vat');
                     } else {
-                        $vat = acc_Periods::fetchByDate()->vatRate;
+                        $periodRec = acc_Periods::fetchByDate();
+                        $vat = $periodRec->vatRate ?? null;
                     }
 
                     // Ако не трябва да се начислява ддс, не начисляваме
@@ -1770,7 +1771,8 @@ abstract class deals_InvoiceMaster extends core_Master
         $aggregator->setIfNot('invoicedValior', $rec->date);
 
         if (isset($rec->dpAmount)) {
-            $vat = acc_Periods::fetchByDate($rec->date)->vatRate;
+            $periodRec = acc_Periods::fetchByDate($rec->date);
+            $vat = $periodRec->vatRate ?? null;
             if(isset($rec->dpVatGroupId)){
                 $vat = acc_VatGroups::fetchField($rec->dpVatGroupId, 'vat');
             }
