@@ -167,7 +167,7 @@ abstract class deals_Helper
             }
             
             if ($discountVal) {
-                if (!(($masterRec->type ?? null) === 'dc_note' && $rec->changedQuantity !== true && $rec->changedPrice !== true)) {
+                if (!(($masterRec->type ?? null) === 'dc_note' && ($rec->changedQuantity ?? null) !== true && ($rec->changedPrice ?? null) !== true)) {
                     $discount += $rec->{$map['amountFld']} * $discountVal;
                 }
             }
@@ -178,7 +178,7 @@ abstract class deals_Helper
 
             // Ако документа е кредитно/дебитно известие сабираме само редовете с промяна
             if (($masterRec->type ?? null) === 'dc_note') {
-                if ($rec->changedQuantity === true || $rec->changedPrice === true) {
+                if (($rec->changedQuantity ?? null) === true || ($rec->changedPrice ?? null) === true) {
                     $amountRow += $rec->{$map['amountFld']};
                     $amount += $noVatAmount;
                     $amountVat += $vatRow;

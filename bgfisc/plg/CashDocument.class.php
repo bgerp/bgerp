@@ -510,7 +510,7 @@ class bgfisc_plg_CashDocument extends core_Plugin
                 
                 $dRecs = array_filter($dRecs, function ($a) {
                     
-                    return ($a->changedQuantity === true || $a->changedPrice === true);
+                    return (($a->changedQuantity ?? null) === true || ($a->changedPrice ?? null) === true);
                 });
                 $iName = ($originRec->changeAmount > 0) ? 'Плащане по ДИ' : 'Връщане по КИ';
             }

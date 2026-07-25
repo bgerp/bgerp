@@ -370,7 +370,7 @@ abstract class store_DocumentMaster extends core_Master
                     $details = $dQuery->fetchAll();
 
                     $invDetail::modifyDcDetails($details, $invRec, $invDetail);
-                    $withChangedQuantityDetails = array_filter($details, function($a) {return $a->changedQuantity === true;});
+                    $withChangedQuantityDetails = array_filter($details, function($a) {return ($a->changedQuantity ?? null) === true;});
 
                     $Detail = cls::get($mvc->mainDetail);
                     foreach ($withChangedQuantityDetails as $invDetailRec){
