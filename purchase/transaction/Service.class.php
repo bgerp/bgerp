@@ -44,7 +44,7 @@ class purchase_transaction_Service extends acc_DocumentTransactionSource
         $entries = array();
         
         // Всяко ЕН трябва да има поне един детайл
-        if (countR($rec->details) > 0) {
+        if (countR($rec->details ?? null) > 0) {
             if ($rec->isReverse == 'yes') {
                 
                 // Ако ЕН е обратна, тя прави контировка на СР но с отрицателни стойностти
