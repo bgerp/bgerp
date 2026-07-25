@@ -650,7 +650,7 @@ class acc_ValueCorrections extends core_Master
         // Обхождане на артикулите
         for ($i = 0; $i <= $count - 1; $i++) {
             $p = $values[$i];
-            $next = $values[$i + 1];
+            $next = $values[$i + 1] ?? null;
             
             if (is_object($next)) {
                 $coefficient = 0;
