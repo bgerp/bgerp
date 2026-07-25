@@ -341,7 +341,7 @@ class acc_ValueCorrections extends core_Master
             $form->setSuggestions('chosenProducts', $nProducts);
             
             // Ако има запис остават само тези, които са в кешираното блоб поле
-            if ($form->rec->id && $form->rec->{$dataField}) {
+            if (!empty($form->rec->id) && !empty($form->rec->{$dataField})) {
                 $products = array_intersect_key($products, $form->rec->{$dataField});
             }
             
