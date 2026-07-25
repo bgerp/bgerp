@@ -358,7 +358,7 @@ abstract class deals_InvoiceMaster extends core_Master
     {
         $rec = &$data->form->rec;
         if ($rec->type == 'dc_note') {
-            $data->singleTitle = ($rec->dealValue <= 0) ? 'кредитно известие' : 'дебитно известие';
+            $data->singleTitle = (($rec->dealValue ?? 0) <= 0) ? 'кредитно известие' : 'дебитно известие';
         } else {
             $data->singleTitle = $mvc->singleTitle;
         }
