@@ -153,7 +153,7 @@ class acc_transaction_ValueCorrection extends acc_DocumentTransactionSource
                         $total += $sign * $amount;
                     }
                 } else {
-                    if(is_array($prod->expenseItems) && countR($prod->expenseItems)){
+                    if(isset($prod->expenseItems) && is_array($prod->expenseItems) && countR($prod->expenseItems)){
                         foreach ($prod->expenseItems as $expenseItemId => $expenseData) {
                             $expenseQuantity = (is_array($expenseData)) ? $expenseData['quantity'] : $expenseData;
                             $amount = round($prod->allocated * ($expenseQuantity / $prod->quantity), 2);
@@ -299,7 +299,7 @@ class acc_transaction_ValueCorrection extends acc_DocumentTransactionSource
                             'credit' => $creditArr,
                             'reason' => 'Разпределяне на разходи');
                     }
-                } if(is_array($p->expenseItems) && countR($p->expenseItems)){
+                } if(isset($p->expenseItems) && is_array($p->expenseItems) && countR($p->expenseItems)){
                     foreach ($p->expenseItems as $expenseItemId1 => $expenseData) {
                         $expenseQuantity = (is_array($expenseData)) ? $expenseData['quantity'] : $expenseData;
                         $amount = round($p->allocated * ($expenseQuantity / $p->quantity), 2);
