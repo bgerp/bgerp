@@ -136,6 +136,7 @@ class acc_plg_ExpenseAllocation extends core_Plugin
                 }
             } elseif(isset($rec->expenseItemId) && isset($rec->allocationBy)) {
                 $rec->allocationFilter = $rec->allocationFilter ?? null;
+                $rec->productsData = $rec->productsData ?? array();
 
                 if(!in_array($rec->allocationBy, array('no', 'auto'))){
                     if (!countR($form->allProducts)) {
@@ -159,7 +160,7 @@ class acc_plg_ExpenseAllocation extends core_Plugin
                 if(!$form->gotErrors()){
                     if($rec->allocationBy != 'no'){
                         $packQuantity = isset($rec->packQuantity) ? $rec->packQuantity : deals_Helper::getDefaultPackQuantity($rec->productId, $rec->packagingId);
-                        if ($error = acc_ValueCorrections::allocateAmount($rec->productsData ?? array(), $packQuantity, $rec->allocationBy)) {
+                        if ($error = acc_ValueCorrections::allocateAmount($rec->productsData, $packQuantity, $rec->allocationBy)) {
                             $form->setError('allocateBy,chosenProducts', $error);
                         }
                     }
