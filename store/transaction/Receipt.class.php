@@ -190,7 +190,7 @@ class store_transaction_Receipt extends acc_DocumentTransactionSource
 
             if($canStore != 'yes'){
                 // Към кои разходни обекти ще се разпределят разходите
-                unset($detailRec->discount);
+                $detailRec->discount = null;
                 $splitRecs = acc_CostAllocations::getRecsByExpenses($dClass, $detailRec->id, $detailRec->productId, $detailRec->quantity, $amount, $detailRec->discount);
 
                 foreach ($splitRecs as $dRec1) {
