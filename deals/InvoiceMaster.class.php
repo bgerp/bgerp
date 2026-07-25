@@ -685,7 +685,7 @@ abstract class deals_InvoiceMaster extends core_Master
         }
 
         // И не се начислява аванс
-        if ($rec->dpAmount && $rec->dpOperation == 'accrued') {
+        if (!empty($rec->dpAmount) && $rec->dpOperation == 'accrued') {
             return;
         }
         
