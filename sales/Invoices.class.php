@@ -1011,7 +1011,8 @@ class sales_Invoices extends deals_InvoiceMaster
             $VatType = core_Type::getByName('drdata_VatType');
             $vatCheck = $VatType->isValid($rec->contragentVatNo);
 
-            return $vatCheck['warning'] ? array('text' => "Евентуален проблем при контиране на фактурата с полето|* ДДС №: |{$vatCheck['warning']}|*", 'severity' => acc_plg_Contable::SEVERITY_WARNING) : null;
+            // isValid връща NULL при празен ДДС № и масив без ключ 'warning' при валиден
+            return !empty($vatCheck['warning']) ? array('text' => "Евентуален проблем при контиране на фактурата с полето|* ДДС №: |{$vatCheck['warning']}|*", 'severity' => acc_plg_Contable::SEVERITY_WARNING) : null;
         }
 
         return null;
