@@ -1169,7 +1169,7 @@ class cms_Content extends core_Manager
         $used = array();
         
         while ($dRec = $dQuery->fetch()) {
-            if ($used[$dRec->domain]) {
+            if (isset($used[$dRec->domain])) {
                 continue;
             }
             self::registerSitemap($dRec);

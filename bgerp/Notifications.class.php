@@ -1963,7 +1963,11 @@ class bgerp_Notifications extends core_Manager
         while ($rec = $query->fetch()) {
             $urlArr = self::getUrl($rec);
 
-            $act = strtolower($urlArr['Act']);
+            $act = strtolower($urlArr['Act'] ?? 'default');
+            $ctr = $urlArr['Ctr'] ?? null;
+            $id = $urlArr['id'] ?? null;
+            $folderId = $urlArr['folderId'] ?? null;
+            $cRec = null;
             
             if ($act == 'default') {
                 $act = 'list';
@@ -1975,28 +1979,26 @@ class bgerp_Notifications extends core_Manager
 
             $isPartner = core_Users::isContractor($rec->userId);
             try {
-                $ctr = $urlArr['Ctr'];
-                
                 if (!$ctr) {
                     continue;
                 }
                 
-                if ((!cls::load($ctr, true)) || ($urlArr['id'] && !($cRec = $ctr::fetch($urlArr['id'])))) {
+                if ((!cls::load($ctr, true)) || ($id && !($cRec = $ctr::fetch($id)))) {
                     self::delete($rec->id);
                     self::logInfo('Изтрита нотификация за премахнат ресурс', $rec->id);
                 } else {
 
-                    if ($ctr == 'doc_Threads' && $urlArr['folderId'] && $act == 'list') {
-                        $haveRight = doc_Folders::haveRightFor('single', $urlArr['folderId'], $rec->userId);
+                    if ($ctr == 'doc_Threads' && $folderId && $act == 'list') {
+                        $haveRight = doc_Folders::haveRightFor('single', $folderId, $rec->userId);
                     } else {
-                        $haveRight = $ctr::haveRightFor($act, $urlArr['id'], $rec->userId);
+                        $haveRight = $ctr::haveRightFor($act, $id, $rec->userId);
 
                         // Ако е инсталиран пакета `colab` и потребителя е партньор и екшъна е сингъл и няма достъп до него
                         if($isColabInstalled && $act == 'single' && $isPartner && !$haveRight){
 
                             // Ако сингъла е към документ, който е видим за партньори и нишката му е видима от този партньор
                             if(cls::haveInterface('doc_DocumentIntf', $ctr)){
-                                $docRec = $ctr::fetch($urlArr['id'], 'threadId,containerId');
+                                $docRec = $ctr::fetch($id, 'threadId,containerId');
                                 $haveRight = colab_Threads::haveRightFor('single', doc_Threads::fetch($docRec->threadId), $rec->userId);
 
                                 // Ако няма достъп до него, да не го вижда

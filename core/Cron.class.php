@@ -474,6 +474,9 @@ class core_Cron extends core_Manager
                 // Ако извикания метод е генерирал резултат, то го добавяме
                 // подходящо форматиран към лога
                 if ($content) {
+                    if (!is_scalar($content)) {
+                        $content = core_Type::mixedToString($content);
+                    }
                     $content = "<p><i>{$content}</i></p>";
                     if (Request::get('forced')) {
                         echo $content;
