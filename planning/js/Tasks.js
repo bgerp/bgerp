@@ -255,7 +255,7 @@ $(document).ready(function () {
                 console.log("END");
                 // Невалидното междинно преминаване над фиксиран ред не трябва да отменя
                 // последващо валидно пускане върху плейсхолдъра. Проверяваме крайния DOM ред.
-                if (!isFinalTaskOrderAllowed() && dragSnapshot) {
+                if (!packageMoveState && !isFinalTaskOrderAllowed() && dragSnapshot) {
                     reorderTaskRows(dragSnapshot.order);
                     packageLinks = Object.assign({}, dragSnapshot.packageLinks);
                     anchorLinks = Object.assign({}, dragSnapshot.anchorLinks || {});
@@ -299,6 +299,27 @@ $(document).ready(function () {
                             table.querySelector('tbody').appendChild(item.element); // Добавяне, ако е пуснат в края
                         }
                     });
+                }
+
+                // При преместване на цял пакет Sortable първо мести водещия ред, а след това
+                // reinsertPackageRowsAsBlock() поставя окончателно всички негови членове.
+                // Затова защитата на започнатите операции трябва да се провери и върху
+                // крайния DOM ред, за да не може пакет или единична операция да остане пред тях.
+                if (!isFinalTaskOrderAllowed() && dragSnapshot) {
+                    reorderTaskRows(dragSnapshot.order);
+                    packageLinks = Object.assign({}, dragSnapshot.packageLinks);
+                    anchorLinks = Object.assign({}, dragSnapshot.anchorLinks || {});
+                    areMoved = dragSnapshot.areMoved;
+                    selectedElements.forEach((item) => item.element.classList.remove('dropped-highlight', 'selected'));
+                    clearSortableSelection();
+                    selectedElements = [];
+                    isScrolling = false;
+                    packageMoveState = null;
+                    packageMoveInProgress = false;
+                    dragSnapshot = null;
+                    updatePackageVisuals();
+
+                    return;
                 }
 
                 let currentOrder = getOrderedTasks();
