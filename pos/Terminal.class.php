@@ -338,10 +338,10 @@ class pos_Terminal extends peripheral_Terminal
                 $row->info = cat_Products::getVerbal($productRec, 'info');
                 
                 $pRow = cat_Products::recToVerbal($productRec);
-                $row->salePrice = $pRow->salePrice;
-                $row->maxSaleDiscount = $pRow->maxSaleDiscount;
-                $row->deliveryPrice = $pRow->deliveryPrice;
-                $row->storePlace = $pRow->storePlace;
+                $row->salePrice = $pRow->salePrice ?? null;
+                $row->maxSaleDiscount = $pRow->maxSaleDiscount ?? null;
+                $row->deliveryPrice = $pRow->deliveryPrice ?? null;
+                $row->storePlace = $pRow->storePlace ?? null;
                 
                 if ($productRec->canStore == 'yes') {
                     $stores = pos_Points::getStores($receiptRec->pointId);
