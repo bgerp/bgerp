@@ -1525,6 +1525,14 @@ class pos_ReceiptDetails extends core_Detail
         }
         core_Debug::stopTimer('TERMINAL_RESULT_GET_LOWER_PRICE_FETCH');
 
+        $price = is_object($price) ? $price : new stdClass();
+        $price->price = $price->price ?? null;
+        $price->discount = $price->discount ?? 0;
+
+        $contragentPrice = is_object($contragentPrice) ? $contragentPrice : new stdClass();
+        $contragentPrice->price = $contragentPrice->price ?? null;
+        $contragentPrice->discount = $contragentPrice->discount ?? 0;
+
         // Ще се взима по-малката крайна цена от тази на клиента и на пос-а
         if(!empty($price->price) && !empty($contragentPrice->price)){
             $priceRes = $price;
