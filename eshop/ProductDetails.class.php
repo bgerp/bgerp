@@ -453,7 +453,8 @@ class eshop_ProductDetails extends core_Detail
 
         $catalogPriceInfo = (object) array('price' => null, 'discount' => null);
         if($showPrice){
-            $catalogPriceInfo = self::getPublicDisplayPrice($rec->productId, $rec->packagingId, $rec->quantityInPack);
+            $catalogPriceInfo = self::getPublicDisplayPrice($rec->productId, $rec->packagingId, $rec->quantityInPack)
+                ?? (object) array('price' => null, 'discount' => null);
 
             if(isset($catalogPriceInfo->price)){
                 $row->catalogPrice = core_Type::getByName('double(smartRound,minDecimals=2)')->toVerbal($catalogPriceInfo->price);
