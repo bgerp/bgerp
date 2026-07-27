@@ -1022,8 +1022,9 @@ class eshop_Groups extends core_Master
         $res = array();
         $query = self::getQuery();
         $menuId = Request::get('menuId', 'int');
-        if (!$menuId || strpos($rec->sharedMenus, "|{$menuId}|") === false) {
-            $menuId = (int) $rec->menuId;
+        $sharedMenus = $rec->sharedMenus ?? '';
+        if (!$menuId || strpos($sharedMenus, "|{$menuId}|") === false) {
+            $menuId = (int) ($rec->menuId ?? 0);
         }
         if (!$menuId) {
             $menuId = cms_Content::getDefaultMenuId('eshop_Groups');
