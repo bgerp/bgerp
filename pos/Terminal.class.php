@@ -175,7 +175,8 @@ class pos_Terminal extends peripheral_Terminal
                 $tpl->replace($toolsTpl, 'TAB_TOOLS');
                 
                 // Добавяне на табовете показващи се в широк изглед отстрани
-                $lastRecId = pos_ReceiptDetails::getLastRec($rec->id)->id;
+                $lastRec = pos_ReceiptDetails::getLastRec($rec->id);
+                $lastRecId = is_object($lastRec) ? $lastRec->id : null;
                 $resultTabHtml = $this->renderResult($rec, $defaultOperation, $defaultSearchString, $lastRecId);
                 $tpl->append($resultTabHtml, 'SEARCH_RESULT');
             }
@@ -684,7 +685,7 @@ class pos_Terminal extends peripheral_Terminal
        
         // Добавяне на бутоните за операции + шорткътите към тях
         foreach ($buttons as $key => $btnObj){
-            $btnObj->body->append(ht::createElement('span', array('class' => 'buttonOverlay'), $shortCuts[$key], true));
+            $btnObj->body->append(ht::createElement('span', array('class' => 'buttonOverlay'), $shortCuts[$key] ?? '', true));
             
             $holderAttr = $btnObj->attr;
             $holderAttr['class'] .= " operationHolder";
@@ -697,7 +698,7 @@ class pos_Terminal extends peripheral_Terminal
             if(!empty($btnObj->linkUrl)){
                 $warning = !empty($btnObj->linkWarning) ? $btnObj->linkWarning : false;
                 $attr = array();
-                if($btnObj->newWindow === true){
+                if(!empty($btnObj->newWindow)){
                     $attr['target'] = '_blank';
                 }
                 $btn = ht::createLink($btn, $btnObj->linkUrl, $warning, $attr);
@@ -747,7 +748,8 @@ class pos_Terminal extends peripheral_Terminal
         }
         
         if(!is_object($selectedRec)){
-            $selectedRecId = pos_ReceiptDetails::getLastRec($id)->id;
+            $lastRec = pos_ReceiptDetails::getLastRec($id);
+            $selectedRecId = is_object($lastRec) ? $lastRec->id : null;
         }
        
         $oldSearchString = Mode::get("currentSearchString{$id}");
@@ -1148,10 +1150,10 @@ class pos_Terminal extends peripheral_Terminal
 
                 // Ако има клиентска карта с посочения номер, намира се контрагента ѝ
                 $cardInfo = crm_ext_Cards::getInfo($stringInput);
-                if($cardInfo['status'] == crm_ext_Cards::STATUS_ACTIVE){
+                if(($cardInfo['status'] ?? null) == crm_ext_Cards::STATUS_ACTIVE){
                     $cData  = cls::get($cardInfo['contragentClassId'])->getContragentData($cardInfo['contragentId']);
-                    $tel = !empty($cData->pTel) ? $cData->pTel : $cData->tel;
-                    $email = !empty($cData->pEmail) ? $cData->pEmail : $cData->email;
+                    $tel = !empty($cData->pTel) ? $cData->pTel : ($cData->tel ?? null);
+                    $email = !empty($cData->pEmail) ? $cData->pEmail : ($cData->email ?? null);
                     $contragents["{$cardInfo['contragentClassId']}|{$cardInfo['contragentId']}"] = (object)array('contragentClassId' => $cardInfo['contragentClassId'], 'contragentId' => $cardInfo['contragentId'], 'title' => cls::get($cardInfo['contragentClassId'])->fetchField($cardInfo['contragentId'], 'name'), 'tel' => $tel, 'email' => $email);
                     $count++;
                 }
@@ -1170,7 +1172,7 @@ class pos_Terminal extends peripheral_Terminal
                 $pQuery->fetch(array("#egn = '[#1#]' OR #vatId = '[#1#]'", $stringInput));
                 $pQuery->show('id,folderId,egn,vatId,name,email,tel');
                 while($pRec = $pQuery->fetch()){
-                    $contragents["{$personClassId}|{$pRec->id}"] = (object)array('contragentClassId' => crm_Persons::getClassId(), 'contragentId' => $pRec->id, 'title' => $cRec->name, 'egn' => $Varchar->toVerbal($cRec->egn), 'uicId' => $Varchar->toVerbal($cRec->uicId), 'email' => $cRec->email, 'tel' => $cRec->tel);
+                    $contragents["{$personClassId}|{$pRec->id}"] = (object)array('contragentClassId' => crm_Persons::getClassId(), 'contragentId' => $pRec->id, 'title' => $pRec->name, 'egn' => $Varchar->toVerbal($pRec->egn), 'vatId' => $Varchar->toVerbal($pRec->vatId), 'email' => $pRec->email, 'tel' => $pRec->tel);
                     $count++;
                 }
 
@@ -1190,7 +1192,7 @@ class pos_Terminal extends peripheral_Terminal
                     $pQuery->where(array("#vatId LIKE '[#1#]%' OR #egn LIKE '[#1#]%'", $searchString));
                     $pQuery->show('id,folderId,egn,vatId,name,email,tel');
                     while($pRec = $pQuery->fetch()){
-                        $contragents["{$personClassId}|{$pRec->id}"] = (object)array('contragentClassId' => crm_Persons::getClassId(), 'contragentId' => $pRec->id, 'title' => $cRec->name, 'egn' => $Varchar->toVerbal($cRec->egn), 'uicId' => $Varchar->toVerbal($cRec->uicId), 'email' => $pRec->email, 'tel' => $pRec->tel);
+                        $contragents["{$personClassId}|{$pRec->id}"] = (object)array('contragentClassId' => crm_Persons::getClassId(), 'contragentId' => $pRec->id, 'title' => $pRec->name, 'egn' => $Varchar->toVerbal($pRec->egn), 'vatId' => $Varchar->toVerbal($pRec->vatId), 'email' => $pRec->email, 'tel' => $pRec->tel);
                         $count++;
                     }
                 }
@@ -1798,13 +1800,12 @@ class pos_Terminal extends peripheral_Terminal
 
         $tpl->placeObject($data->row);
         
-        if($lastRecId = pos_ReceiptDetails::getLastRec($data->rec->id)->id){
-            $data->receiptDetails->rows[$lastRecId]->CLASS .= ' highlighted';
-        }
-        
         if($lastRec = pos_ReceiptDetails::getLastRec($data->rec->id)){
-            if(strpos($lastRec->action, 'payment') !== false){
-                $data->receiptDetails->rows[$lastRec->id]->CLASS .= ' highlighted';
+            if(isset($data->receiptDetails->rows[$lastRec->id])){
+                $data->receiptDetails->rows[$lastRec->id]->CLASS = ($data->receiptDetails->rows[$lastRec->id]->CLASS ?? '') . ' highlighted';
+                if(strpos($lastRec->action, 'payment') !== false){
+                    $data->receiptDetails->rows[$lastRec->id]->CLASS .= ' highlighted';
+                }
             }
         }
         
@@ -2048,7 +2049,7 @@ class pos_Terminal extends peripheral_Terminal
                     $pTpl->replace($groupData->name, 'GROUP_NAME');
 
                     // Подреждане на артикулите в бутоните спрямо избраното в групата
-                    $orderByGroup = $groupRecs[$groupId]->orderProductByInPos;
+                    $orderByGroup = isset($groupRecs[$groupId]) ? $groupRecs[$groupId]->orderProductByInPos : 'name';
                     $orderField = $orderByGroup == 'name' ? 'productId' : ($orderByGroup == 'code' ? 'code' : 'rating');
                     $orderByDir = $orderField == 'rating' ? 'DESC' : 'ASC';
                     arr::sortObjects($groupData->rows, $orderField, $orderByDir);
@@ -2068,7 +2069,7 @@ class pos_Terminal extends peripheral_Terminal
                 $pTpl = new core_ET("<div class='grid {$settings->productBtnTpl}'>[#RES#]</div>");
                 if(isset($rec->_selectedGroupId)){
                     if(!in_array($rec->_selectedGroupId, array('all', 'similar'))){
-                        $orderByGroup = $groupRecs[$rec->_selectedGroupId]->orderProductByInPos;
+                        $orderByGroup = isset($groupRecs[$rec->_selectedGroupId]) ? $groupRecs[$rec->_selectedGroupId]->orderProductByInPos : 'name';
                         $orderField = $orderByGroup == 'name' ? 'productId' : ($orderByGroup == 'code' ? 'code' : 'rating');
                         $orderByDir = $orderField == 'rating' ? 'DESC' : 'ASC';
                         arr::sortObjects($productRows, $orderField, $orderByDir);
@@ -2346,7 +2347,7 @@ class pos_Terminal extends peripheral_Terminal
             if(isset($pRec->packId)){
                 $packId = $pRec->packId;
             } else {
-                $productPacks = is_array($packs[$id]) ? $packs[$id] : array();
+                $productPacks = isset($packs[$id]) && is_array($packs[$id]) ? $packs[$id] : array();
                 $foundBasePackArr = array_filter($productPacks, function($a) {return $a->isBase == 'yes';});
                 if(countR($foundBasePackArr)){
                     $packId = key($foundBasePackArr);
@@ -2357,6 +2358,7 @@ class pos_Terminal extends peripheral_Terminal
 
 
             $perPack = isset($packs[$id][$packId]) ? $packs[$id][$packId]->quantity : 1;
+            $perPack = $perPack ?: 1;
             core_Debug::startTimer('TERMINAL_RESULT_GET_LOWER_PRICE');
             $priceRes = pos_ReceiptDetails::getLowerPriceObj($rec->_policy1, $rec->_policy2, $id, $packId, 1, $now);
             core_Debug::stopTimer('TERMINAL_RESULT_GET_LOWER_PRICE');
@@ -2366,6 +2368,8 @@ class pos_Terminal extends peripheral_Terminal
             $res[$id] = new stdClass();;
             $Double = core_Type::getByName('double(decimals=2)');
             $obj = (object) array('productId' => $id, 'measureId' => $pRec->measureId, 'packagingId' => $packId);
+            $stock = ($pRec->canStore == 'yes') ? pos_Receipts::getBiggestQuantity($id, $rec->pointId, true) : null;
+            $obj->stock = $stock ?? 0;
 
             if (empty($priceRes->price)){
                 $res[$id]->price = "<b class='red'>n/a</b>";
@@ -2402,13 +2406,12 @@ class pos_Terminal extends peripheral_Terminal
             $res[$id]->DATA_ENLARGE_CLASS_ID = $productClassId;
             $res[$id]->DATA_MODAL_TITLE = cat_Products::getRecTitle($productRec);
             $res[$id]->id = $id;
-            $res[$id]->rating = $pRec->rating;
+            $res[$id]->rating = $pRec->rating ?? 0;
             $res[$id]->packagingId = cat_UoM::getSmartName($packagingId, $obj->stock);
             if($pRec->canSell != 'yes'){
                 $res[$id]->CLASS .= ' notSellable';
             }
 
-            $stock = ($pRec->canStore == 'yes') ? pos_Receipts::getBiggestQuantity($id, $rec->pointId, true) : null;
             if(cat_UoM::isWeightMeasure($packId, true)){
                 $res[$id]->weightMeasure = cat_UoM::fetchField($packId, 'sysId');
             }
@@ -2428,7 +2431,7 @@ class pos_Terminal extends peripheral_Terminal
                     $res[$id]->measureId = "<span class='notInStock'>0 {$measureId}</span>";
                 }
             }
-            $res[$id]->_groups = $pRec->groups;
+            $res[$id]->_groups = $pRec->groups ?? '';
         }
 
         return $res;
