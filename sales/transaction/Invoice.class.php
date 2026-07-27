@@ -75,7 +75,7 @@ class sales_transaction_Invoice extends acc_DocumentTransactionSource
             // Проверяват се всички артитули имат ли го зададен
             foreach ($dRecs as $dRec) {
                 if($rec->type != 'invoice'){
-                    if ($dRec->changedQuantity !== true && $dRec->changedPrice !== true) continue;
+                    if (($dRec->changedQuantity ?? null) !== true && ($dRec->changedPrice ?? null) !== true) continue;
                 }
 
                 $productArr[$dRec->productId] = $dRec->productId;

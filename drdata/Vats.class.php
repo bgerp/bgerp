@@ -584,6 +584,7 @@ class drdata_Vats extends core_Manager
         $self = cls::get(get_called_class());
         
         $vat = $self->canonize($vat);
+        $uic = $vat;
         
         if (substr($vat, 0, 2) == 'BG') {
             $uic = substr($vat, 2);

@@ -730,7 +730,7 @@ class acc_CostAllocations extends core_Manager
             // За всеки запис
             for ($i = 0; $i <= countR($dRecs) - 1; $i++) {
                 $dRec = $dRecs[$i];
-                $nextRec = $dRecs[$i + 1];
+                $nextRec = $dRecs[$i + 1] ?? null;
                 
                 // Подготвят се данните за разпределяне
                 $r = (object) array('productId' => $productId);

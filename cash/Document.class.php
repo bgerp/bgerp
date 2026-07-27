@@ -361,7 +361,7 @@ abstract class cash_Document extends deals_PaymentDocument
         }
         
         $cData = cls::get($contragentClassId)->getContragentData($contragentId);
-        $form->setReadOnly('contragentName', ($cData->person) ? $cData->person : $cData->company);
+        $form->setReadOnly('contragentName', (!empty($cData->person)) ? $cData->person : $cData->company);
         
         $form->setField('amountDeal', array('unit' => "|*{$dealInfo->get('currency')} |по сделката|*"));
         

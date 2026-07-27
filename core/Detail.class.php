@@ -376,7 +376,7 @@ class core_Detail extends core_Manager
 
                     // Ако има указани допълнителни полета за филтриране на детайлите
                     if(isset($rec->_filterFld)){
-                        $sign = ($rec->_filterFldNot) ? '!=' : '=';
+                        $sign = ($rec->_filterFldNot ?? false) ? '!=' : '=';
                         $query->where("#{$rec->_filterFld} {$sign} '{$rec->_filterFldVal}'");
                     }
 

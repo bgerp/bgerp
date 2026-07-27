@@ -681,9 +681,22 @@ class rack_ZoneDetails extends core_Detail
                 $availableQty = rack_Pallets::fetchField($mRec->palletId, 'quantity');
                 if (!empty($availableQty) && abs($mRec->quantity - $availableQty) < 0.0001) {
                     if (!empty($rRow->movement)) {
+                        $positionInfo = rack_Pallets::getPositionQuantityInfo($mRec->position, $mRec->storeId, $mRec->productId);
+                        $positionRows = array();
+                        foreach ($positionInfo->rows as $palletRec) {
+                            $batch = !empty($palletRec->batch) ? ", партида={$palletRec->batch}" : '';
+                            $positionRows[] = "#{$palletRec->id}=" . round($palletRec->quantity, 5) . $batch;
+                        }
+                        $positionRows = countR($positionRows) ? implode(', ', $positionRows) : 'няма';
+                        $diagnosticTitle = "Цялото налично количество на позицията! Диагностика: движение #{$mRec->id}; състояние={$mRec->state}; количество на движението="
+                            . round($mRec->quantity, 5)
+                            . "; свързан палет #{$mRec->palletId}=" . round($availableQty, 5)
+                            . "; общо на позицията=" . round($positionInfo->totalQuantity, 5)
+                            . "; активни записи={$positionRows}";
+                        $diagnosticTitle = ht::escapeAttr($diagnosticTitle);
                         $rRow->movement = preg_replace(
                             '/\(([^)]+)\)(?=.*»)/u',
-                            '( <span style="background:#c0c0c0; border-radius:6px; padding:1px 6px; font-weight:bold; color:#000;" title="Цялото налично количество на позицията!">$1</span> )',
+                            '( <span style="background:#c0c0c0; border-radius:6px; padding:1px 6px; font-weight:bold; color:#000;" title="' . $diagnosticTitle . '">$1</span> )',
                             $rRow->movement,
                             1 // само първото срещане
                         );

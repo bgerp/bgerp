@@ -52,7 +52,7 @@ class spas_Helper extends core_Mvc
             }
         }
 
-        return $resArr[$hash];
+        return $resArr[$hash] ?? null;
     }
 
 
@@ -94,7 +94,7 @@ class spas_Helper extends core_Mvc
             }
         }
 
-        return $resArr[$hash];
+        return $resArr[$hash] ?? null;
     }
 
 
@@ -133,7 +133,7 @@ class spas_Helper extends core_Mvc
             }
         }
 
-        return $instArr[$hash];
+        return $instArr[$hash] ?? null;
     }
 }
 

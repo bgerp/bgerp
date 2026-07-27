@@ -411,10 +411,10 @@ class drdata_Address extends core_MVC
      *
      * @return stdClass
      */
-    public function extractContact($text, $assumed = array(), $avoid = array())
+    public function extractContact($text, $assumed = array(), $avoid = array(), $mime = null)
     {
         $cData = new stdClass();
-        cls::get(get_called_class())->invoke('ParseAddress', array($cData, $text, $assumed));
+        cls::get(get_called_class())->invoke('ParseAddress', array($cData, $text, $assumed, $mime));
 
         if (!empty((array) $cData)) {
 

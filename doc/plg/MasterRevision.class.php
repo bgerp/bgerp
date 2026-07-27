@@ -125,10 +125,14 @@ class doc_plg_MasterRevision extends core_Plugin
         $title = "Промени|* ({$changesCnt})";
         if ($showRevisions) {
             unset($requested[$containerId]);
+            unset($url['Cid']);
+            unset($url['Tab']);
             $icon = 'img/16/checked.png';
             $hint = 'Показване само на текущите редове|*!';
         } else {
             $requested[$containerId] = $containerId;
+            $url['Cid'] = $containerId;
+            $url['Tab'] = 'History';
             $icon = 'img/16/checkbox_no.png';
             $hint = 'Показване на промените след активирането на документа|*!';
         }
@@ -140,7 +144,11 @@ class doc_plg_MasterRevision extends core_Plugin
         }
 
         if (cls::haveInterface('doc_DocumentIntf', $mvc)) {
-            $url['#'] = $mvc->getHandle($masterId);
+            $handle = $mvc->getHandle($masterId);
+            $url['#'] = $handle;
+            if (!$showRevisions) {
+                $url['docId'] = $handle;
+            }
         }
 
         $data->toolbar->addBtn($title, $url, "id=btnDetailRevisions_{$containerId},row=1", "ef_icon={$icon},title={$hint}");

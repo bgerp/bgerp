@@ -1164,7 +1164,7 @@ class planning_Jobs extends core_Master
         }
         
         if (isset($fields['-list'])) {
-            $row->productId = ($fields['__isDetail']) ? cat_Products::getLink($rec->productId, 0) : cat_Products::getHyperlink($rec->productId, true);
+            $row->productId = (!empty($fields['__isDetail'])) ? cat_Products::getLink($rec->productId, 0) : cat_Products::getHyperlink($rec->productId, true);
             if ($rec->quantityNotStored > 0) {
                 if (planning_DirectProductionNote::haveRightFor('add', (object) array('originId' => $rec->containerId))) {
                     core_RowToolbar::createIfNotExists($row->_rowTools);
@@ -1183,7 +1183,7 @@ class planning_Jobs extends core_Master
         
         list($sourceClass, $sourceId) = self::getSourceInfo($rec);
         if (isset($sourceClass)) {
-            $row->sourceId = ($fields['__isDetail']) ? $sourceClass::getLink($sourceId, 0) : $sourceClass::getLink($sourceId);
+            $row->sourceId = !empty($fields['__isDetail']) ? $sourceClass::getLink($sourceId, 0) : $sourceClass::getLink($sourceId);
             $sourceRec = $sourceClass::fetch($sourceId, 'folderId,deliveryAdress,state');
             $row->sourceFolderId = doc_Folders::recToVerbal(doc_Folders::fetch($sourceRec->folderId))->title;
             if (!empty($sourceRec->deliveryAdress)) {
@@ -1248,7 +1248,8 @@ class planning_Jobs extends core_Master
             }
 
             foreach (array('sBomId' => array('salesBomIdOnActivation', 'sales'), 'iBomId' => array('instantBomIdOnActivation', 'instant'), 'pBomId' =>  array('productionBomIdOnActivation', 'production')) as $bomFld => $activationBomArr) {
-                if ($bomId = cat_Products::getLastActiveBom($rec->productId, $activationBomArr[1])->id) {
+                $lastActiveBom = cat_Products::getLastActiveBom($rec->productId, $activationBomArr[1]);
+                if ($bomId = ($lastActiveBom->id ?? null)) {
                     $row->{$bomFld} = cat_Boms::getLink($bomId, 0);
                     if(isset($rec->{$activationBomArr[0]}) && $bomId != $rec->{$activationBomArr[0]}){
                         $oldBomHandle = cat_Boms::getHandle($rec->{$activationBomArr[0]});
@@ -1275,8 +1276,8 @@ class planning_Jobs extends core_Master
             // За Разпад полетата "Произвеждане в"/"Влагане от" визуално са разменени -
             // разменяме и показваните стойности
             if ($rec->type == 'disassembly') {
-                $tmpStoreId = $row->storeId;
-                $row->storeId = $row->inputStores;
+                $tmpStoreId = $row->storeId ?? null;
+                $row->storeId = $row->inputStores ?? null;
                 $row->inputStores = $tmpStoreId;
             }
 
@@ -1429,8 +1430,8 @@ class planning_Jobs extends core_Master
     public function getNewBtnVariants_($rec)
     {
         return array(
-            array('title' => 'Задание за производство', 'icon' => $this->singleIcon, 'params' => array('type' => 'manifacture')),
-            array('title' => 'Задание за разпад', 'icon' => $this->singleIcon, 'params' => array('type' => 'disassembly')),
+            array('title' => 'Задание за производство', 'icon' => 'img/16/clipboard_text_1.png', 'params' => array('type' => 'manifacture')),
+            array('title' => 'Задание за разпад', 'icon' => 'img/16/clipboard_text.png', 'params' => array('type' => 'disassembly')),
         );
     }
 

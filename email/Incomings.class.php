@@ -3092,7 +3092,12 @@ class email_Incomings extends core_Master
     {
         //Данните за имейл-а
         $msg = email_Incomings::fetch($id);
-        
+        if(!empty($msg->emlFile)){
+            $fRec = fileman::fetch($msg->emlFile);
+            $source = fileman_Files::getContent($fRec->fileHnd);
+            $mime = cls::get('email_Mime');
+            $mime->parseAll($source);
+        }
         $addrParse = cls::get('drdata_Address');
         
         Mode::push('text', 'plain');
@@ -3126,7 +3131,7 @@ class email_Incomings extends core_Master
         }
 
         $contragentData = $addrParse->extractContact($textPart, array('email' => $msg->fromEml, 'lg' => $msg->lg,
-                                                    'country' => $msg->country, 'deepExtract' => $deepExtract), $avoid);
+                                                    'country' => $msg->country, 'deepExtract' => $deepExtract), $avoid, $mime);
         
         $headersArr = array();
         

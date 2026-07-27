@@ -297,7 +297,6 @@ class pos_Receipts extends core_Master
             $cu = core_Users::getCurrent();
             $query = $this->getQuery();
             $query->where("#pointId = {$pointId} AND #createdBy = {$cu} AND #state = 'draft' AND #revertId IS NULL");
-            $query->show('valior,contragentClass,contragentObjectId,total');
             $query->orderBy('id', 'DESC');
             $lastDraft = $query->fetch();
 
@@ -629,8 +628,9 @@ class pos_Receipts extends core_Master
                     break;
                 case 'payment':
                     $paidAmount = $dRec->amount;
-                    if ($action[1] != '-1') {
-                        $paidAmount = cond_Payments::toBaseCurrency($action[1], $paidAmount, $rec->valior);
+                    $paymentId = $action[1] ?? '-1';
+                    if ($paymentId != '-1') {
+                        $paidAmount = cond_Payments::toBaseCurrency($paymentId, $paidAmount, $rec->valior);
                     }
 
                     $rec->paid += $paidAmount;
@@ -731,7 +731,7 @@ class pos_Receipts extends core_Master
                     if (is_numeric($filter->payment)) {
                         $dQuery->where("#action = 'payment|{$filter->payment}'");
                     } else {
-                        list($paymentId, $paymentParam, $deviceId) = explode('|', $filter->payment);
+                        list($paymentId, $paymentParam, $deviceId) = array_pad(explode('|', $filter->payment, 3), 3, null);
                         $dQuery->where("#action = 'payment|{$paymentId}'");
                         if(!empty($paymentParam)){
                             $dQuery->where("#param = '{$paymentParam}'");
@@ -1176,7 +1176,7 @@ class pos_Receipts extends core_Master
             $dQuery = $Details->getQuery();
             $dQuery->where("#receiptId = {$rec->id} AND #action  LIKE '%payment%'");
             while ($dRec = $dQuery->fetch()) {
-                list(, $paymentId) = explode('|', $dRec->action);
+                list(, $paymentId) = array_pad(explode('|', $dRec->action, 2), 2, null);
                 if($paymentId > 0){
                     $key = "{$paymentId}|{$dRec->deviceId}|{$dRec->param}";
                     if(!array_key_exists($key, $nonCashPayments)){
@@ -1722,7 +1722,7 @@ class pos_Receipts extends core_Master
             $storeId = pos_Points::fetchField($receiptRec->pointId, 'storeId');
             $index = "{$receiptRec->productId}|{$storeId}";
             
-            $monthsBetween = countR(dt::getMonthsBetween($receiptRec->valior));
+            $monthsBetween = max(1, countR(dt::getMonthsBetween($receiptRec->valior)));
             $rating = round(12 / $monthsBetween);
             $rating = 100 * $rating;
             
@@ -1739,7 +1739,7 @@ class pos_Receipts extends core_Master
         $reportClassId = pos_Reports::getClassId();
         while ($deltaRec = $deltaQuery->fetch()){
             $rating = ($deltaRec->detailClassId == $reportClassId) ? 150 : 1;
-            $monthsBetween = countR(dt::getMonthsBetween($receiptRec->valior));
+            $monthsBetween = max(1, countR(dt::getMonthsBetween($deltaRec->valior)));
             $rating = $rating * round(12 / $monthsBetween);
             
             $index = "{$deltaRec->productId}|{$deltaRec->storeId}";
@@ -1825,7 +1825,7 @@ class pos_Receipts extends core_Master
         $storeArr = store_Products::getQuantitiesByStore($productId, null, $stores, $checkFreeQuantity);
         arsort($storeArr);
 
-        return $storeArr[key($storeArr)];
+        return countR($storeArr) ? $storeArr[key($storeArr)] : 0;
     }
 
 
@@ -1895,14 +1895,15 @@ class pos_Receipts extends core_Master
         $link = $params['link'] ?? false;
         $icon = $params['icon'] ?? false;
 
-        $attr = ($params['blank']) ? array('target' => '_blank') : array();
+        $attr = !empty($params['blank']) ? array('target' => '_blank') : array();
         if($Class instanceof crm_Companies){
 
             return ($link) ? $Class->getHyperlink($contragentId, $icon, false, $attr) : $Class->getTitleById($contragentId);
         } else {
             $date = $params['date'] ?? dt::now();
             $defaultContragentId = pos_Points::defaultContragent($pointId);
-            $contragentPriceListId = $params['policyId'] ? $params['policyId'] : (($defaultContragentId == $contragentId) ? pos_Points::getSettings($pointId, 'policyId') : price_ListToCustomers::getListForCustomer($contragentClassId, $contragentId, $date));
+            $policyId = $params['policyId'] ?? null;
+            $contragentPriceListId = $policyId ? $policyId : (($defaultContragentId == $contragentId) ? pos_Points::getSettings($pointId, 'policyId') : price_ListToCustomers::getListForCustomer($contragentClassId, $contragentId, $date));
 
             $title = tr("Политика|*: ") . price_Lists::getTitleById($contragentPriceListId);
             if($link && !Mode::isReadOnly()){

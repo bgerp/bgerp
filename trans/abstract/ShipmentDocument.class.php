@@ -150,7 +150,8 @@ abstract class trans_abstract_ShipmentDocument extends core_Master
             if($requiredRoles != 'no_one'){
 
                 // Ако има вече създаден неоттеглен документ към източника да не може да се създава нов
-                if($mvc->fetchField("#originId = {$rec->originId} AND #state != 'rejected' AND #id != '{$rec->id}'", 'id')){
+                $recId = $rec->id ?? 0;
+                if($mvc->fetchField("#originId = {$rec->originId} AND #state != 'rejected' AND #id != '{$recId}'", 'id')){
                     $requiredRoles = 'no_one';
                 } elseif($mvc instanceof trans_IntraCommunitySupplyConfirmations) {
 

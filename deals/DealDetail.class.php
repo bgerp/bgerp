@@ -248,7 +248,8 @@ abstract class deals_DealDetail extends doc_Detail
             if (strtolower(Request::get('Act')) != 'createproduct') {
                 $vat = cat_Products::getVat($rec->productId, $masterRec->valior, $vatExceptionId);
             } else {
-                $vat = acc_Periods::fetchByDate($masterRec->valior)->vatRate;
+                $periodRec = acc_Periods::fetchByDate($masterRec->valior);
+                $vat = $periodRec->vatRate ?? null;
             }
             
             $rec->packPrice = deals_Helper::getDisplayPrice($rec->packPrice, $vat, $masterRec->currencyRate, $masterRec->chargeVat);
@@ -386,7 +387,7 @@ abstract class deals_DealDetail extends doc_Detail
                     $Policy = (isset($mvc->Policy)) ? $mvc->Policy : cls::get('price_ListToCustomers');
 
                     if (isset($rec->productId)) {
-                        $listId = ($masterRec->priceListId) ? $masterRec->priceListId : null;
+                        $listId = $masterRec->priceListId ?? null;
                         $policyInfo = $Policy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId, $rec->quantity, $masterRec->valior, $masterRec->currencyRate, $masterRec->chargeVat, $listId);
                         if (!isset($policyInfo->price)) {
                             $form->setError('packPrice', $Policy->notFoundPriceErrorMsg);
@@ -661,7 +662,7 @@ abstract class deals_DealDetail extends doc_Detail
 
 
                 if (!isset($rec->id)) {
-                    $listId = ($saleRec->priceListId) ? $saleRec->priceListId : null;
+                    $listId = $saleRec->priceListId ?? null;
                     
                     $policyInfo = (isset($lRec->price)) ? (object) array('price' => $lRec->price) : $Policy->getPriceInfo($saleRec->contragentClassId, $saleRec->contragentId, $productId, $packagingId, $quantity, $saleRec->valior, $saleRec->currencyRate, $saleRec->chargeVat, $listId);
                     

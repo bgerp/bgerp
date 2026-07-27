@@ -62,7 +62,7 @@ class findeals_transaction_CloseDeal extends deals_ClosedDealTransaction
 
         // Създаване на обекта за транзакция
         $result = (object) array(
-            'reason' => $rec->notes,
+            'reason' => $rec->notes ?? null,
             'valior' => $this->valior,
             'totalAmount' => 0,
             'entries' => array(),
@@ -73,7 +73,7 @@ class findeals_transaction_CloseDeal extends deals_ClosedDealTransaction
             return $result;
         }
         
-        if ($rec->closeWith) {
+        if (!empty($rec->closeWith)) {
             $dealItem = acc_Items::fetch("#classId = {$firstDoc->getInstance()->getClassId()} AND #objectId = '{$firstDoc->that}' ");
             $closeDealItem = array($firstDoc->className, $rec->closeWith);
             $closeEntries = $this->class->getTransferEntries($dealItem, $result->totalAmount, $closeDealItem, $rec);

@@ -148,14 +148,14 @@ class plg_Settings extends core_Plugin
             foreach ($settingFields as $settingField) {
                 if (isset($clone->{$settingField})) {
                     $res->{$settingField} = $clone->{$settingField};
-                } elseif (is_object($protoRec)) {
+                } elseif (is_object($protoRec) && isset($protoRec->{$settingField})) {
                     $res->{$settingField} = $protoRec->{$settingField};
                     $inherited->{$settingField} = $settingField;
                 }
             }
             
             if (isset($field)) {
-                $res = $res->{$field};
+                $res = $res->{$field} ?? null;
             }
         }
     }

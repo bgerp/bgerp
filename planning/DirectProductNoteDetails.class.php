@@ -335,7 +335,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
         if (countR($data->rows)) {
             foreach ($data->rows as $id => $row) {
                 $rec = $data->recs[$id];
-                if (!is_object($row->tools)) {
+                if (!is_object($row->tools ?? null)) {
                     $row->tools = new ET('[#TOOLS#]');
                 }
                 
@@ -431,11 +431,6 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
             unset($data->listFields['tools']);
         }
 
-        // Дали изобщо някой ред (в което и да е от подтаблиците) има реално
-        // съдържание в тулбара на plg_RowTools2 - ако няма никъде, '_rowTools'
-        // не се добавя насила в нито една от таблиците (@see orderMultiTableColumns)
-        $haveRowTools = $this->haveAnyRowTools($data->rows);
-
         // Рендираме таблицата с вложените материали
         $data->listFields['productId'] = 'Вложени артикули|* ';
         $firstDoc = doc_Threads::getFirstDocument($data->masterData->rec->threadId);
@@ -445,14 +440,8 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
         }
 
         $fieldset = clone $this;
-        $this->alignMultiTableColumns($fieldset, array(
-            'productId' => 320,
-            'storeId' => 130,
-            'packQuantity' => 35,
-            'quantityFromBom' => 25,
-            'quantityExpected' => 25,
-        ));
-        $table = cls::get('core_TableView', array('mvc' => $fieldset, 'tableClass' => $this->detailsTableClass));
+        $fieldset->FNC('num', 'int');
+        $table = cls::get('core_TableView', array('mvc' => $fieldset));
         
         $iData = clone $data;
         $iData->listTableMvc = clone $this;
@@ -462,11 +451,18 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
         $this->invoke('BeforeRenderListTable', array(&$tpl, &$iData));
         plg_AlignDecimals2::alignDecimals($this, $iData->recs, $iData->rows);
         
-        $iData->listFields = $this->orderMultiTableColumns($iData->listFields, array(
-            'packQuantity' => 'К-во->|*<small>|Въведено|*</small>',
-            'quantityFromBom' => 'К-во->|*<small>|Рецепта|*</small>',
-            'quantityExpected' => 'К-во->|*<small>|Очаквано|*</small>',
-        ), $haveRowTools);
+        $iData->listFields = core_TableView::filterEmptyColumns($iData->rows, $iData->listFields, '*');
+        if(empty($iData->listFields['quantityFromBom']) && empty($iData->listFields['quantityExpected'])){
+            $iData->listFields['packQuantity'] = 'К-во';
+        }
+
+        if(isset($iData->listFields['quantityFromBom'])){
+            $iData->listFields['quantityFromBom'] = 'К-во->|*<small>|Рецепта|*</small>';
+        }
+
+        if(isset($iData->listFields['quantityExpected'])){
+            $iData->listFields['quantityExpected'] = 'К-во->|*<small>|Очаквано|*</small>';
+        }
 
         $this->modifyRows($iData);
         $detailsInput = $table->get($iData->rows, $iData->listFields);
@@ -511,12 +507,16 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
 
                 $this->invoke('BeforeRenderListTable', array(&$tpl, &$pData));
                 plg_AlignDecimals2::alignDecimals($this, $pData->recs, $pData->rows);
+                $pData->listFields = core_TableView::filterEmptyColumns($pData->rows, $pData->listFields, '*');
                 $this->modifyRows($pData);
-                $pData->listFields = $this->orderMultiTableColumns($pData->listFields, array(
-                    'packQuantity' => 'К-во->|*<small>|Въведено|*</small>',
-                    'quantityFromBom' => 'К-во->|*<small>|Рецепта|*</small>',
-                    'quantityExpected' => 'К-во->|*<small>|Очаквано|*</small>',
-                ), $haveRowTools);
+
+                if(isset($pData->listFields['quantityFromBom'])){
+                    $pData->listFields['quantityFromBom'] = 'Количество->|*<small>|Рецепта|*</small>';
+                }
+
+                if(empty($pData->listFields['quantityFromBom'])){
+                    $pData->listFields['packQuantity'] = 'Количество';
+                }
 
                 $popTable = $table->get($pData->rows, $pData->listFields);
                 $detailsPop = new core_ET("<span style='margin-top:5px;'>[#1#]</span>", $popTable);

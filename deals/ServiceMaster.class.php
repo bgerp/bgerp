@@ -146,11 +146,11 @@ abstract class deals_ServiceMaster extends core_Master
             }
         }
 
-        if ($rec->_isCreated !== true) {
+        if (($rec->_isCreated ?? null) !== true) {
             
             return;
         }
-        if ($rec->_isClone === true) {
+        if (($rec->_isClone ?? null) === true) {
             
             return;
         }
@@ -181,8 +181,8 @@ abstract class deals_ServiceMaster extends core_Master
                     $toShip = $product->quantity;
                 }
                 
-                $price = ($product->price) ? $product->price : $normalizedProducts[$index]->price;
-                $discount = ($product->discount) ? $product->discount : $normalizedProducts[$index]->discount;
+                $price = ($product->price) ? $product->price : ($normalizedProducts[$index]->price ?? null);
+                $discount = ($product->discount) ? $product->discount : ($normalizedProducts[$index]->discount ?? null);
                 
                 // Пропускат се експедираните и складируемите артикули
                 if (isset($info->meta['canStore']) || ($toShip <= 0)) {
@@ -256,7 +256,7 @@ abstract class deals_ServiceMaster extends core_Master
         parent::prepareSingle_($data);
         
         $rec = &$data->rec;
-        if (empty($data->noTotal)) {
+        if (empty($data->noTotal) && isset($this->_total)) {
             $data->summary = deals_Helper::prepareSummary($this->_total, $rec->valior, $rec->currencyRate, $rec->currencyId, $rec->chargeVat, false, $rec->tplLang);
             $data->row = (object) ((array) $data->row + (array) $data->summary);
         }
@@ -507,7 +507,7 @@ abstract class deals_ServiceMaster extends core_Master
         $rec = is_object($id) ? $id : $this->fetchRec($id, '*', false);
         $amount = round($rec->amountDelivered / $rec->currencyRate, 2);
 
-        return (object)array('amount' => $amount, 'currencyId' => currency_Currencies::getIdByCode($rec->currencyId), 'operationSysId' => $rec->operationSysId, 'isReverse' => ($rec->isReverse == 'yes'), 'cashDiscount' => null);
+        return (object)array('amount' => $amount, 'currencyId' => currency_Currencies::getIdByCode($rec->currencyId), 'operationSysId' => ($rec->operationSysId ?? null), 'isReverse' => ($rec->isReverse == 'yes'), 'cashDiscount' => null);
     }
 
     /**
@@ -569,7 +569,7 @@ abstract class deals_ServiceMaster extends core_Master
     public static function on_AfterRenderSingleLayout($mvc, &$tpl, &$data)
     {
         // Динамично рендиране на ДДС информацията
-        deals_Helper::renderVatDataLayout($tpl, $mvc, $mvc->_total->vats, $data->row);
+        deals_Helper::renderVatDataLayout($tpl, $mvc, $mvc->_total->vats ?? null, $data->row);
     }
 }
 

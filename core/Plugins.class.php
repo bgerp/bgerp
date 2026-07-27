@@ -348,6 +348,7 @@ class core_Plugins extends core_Manager
     public function repair()
     {
         $query = $this->getQuery();
+        $res = '';
         
         while ($rec = $query->fetch()) {
             if (!cls::load($rec->plugin, true)) {

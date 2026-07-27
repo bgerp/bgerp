@@ -78,6 +78,11 @@ class bgerp_iface_DealAggregator
      */
     public function sum($name, $value)
     {
+        // Ако няма такова пропърти, създаваме го
+        if (!isset($this->{$name})) {
+            $this->{$name} = 0;
+        }
+
         // Добавяме към стойността на пропъртито
         $this->{$name} += $value;
     }
@@ -134,6 +139,9 @@ class bgerp_iface_DealAggregator
     public function sumByArrIndex($name, $value, $index)
     {
         $a = &$this->{$name};
+        if (!isset($a[$index])) {
+            $a[$index] = 0;
+        }
         $a[$index] += $value;
     }
 }

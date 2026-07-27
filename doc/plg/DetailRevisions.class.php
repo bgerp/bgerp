@@ -161,10 +161,18 @@ class doc_plg_DetailRevisions extends core_Plugin
         $bRecs = $bQuery->fetchAll();
 
         if (countR($bRecs)) {
+            $clones = array();
             foreach ($bRecs as $bRec) {
-                $bRec->detailRecId = $rec->id;
+                $clone = clone $bRec;
+                unset($clone->id);
+                $clone->detailRecId = $rec->id;
+                $clone->isHistoric = 'no';
+                $clones[] = $clone;
+
+                $bRec->isHistoric = 'yes';
             }
             batch_BatchesInDocuments::saveArray($bRecs);
+            batch_BatchesInDocuments::saveArray($clones);
         }
     }
 
