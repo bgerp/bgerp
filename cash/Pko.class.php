@@ -115,7 +115,7 @@ class cash_Pko extends cash_Document
         if(!countR($paymentSuggestions)) return;
 
         // Добавяне на таблица за избор на безналични плащания
-        $rec->exPayments = cash_NonCashPaymentDetails::getPaymentsTableArr($rec->id, $mvc->getClassId());
+        $rec->exPayments = cash_NonCashPaymentDetails::getPaymentsTableArr($rec->id ?? null, $mvc->getClassId());
         $form->FLD('payments', "table(columns=paymentId|amount,captions=Плащане|Сума,validate=cash_NonCashPaymentDetails::validatePayments)", "caption=Безналично плащане->Избор,before=contragentName");
 
         $bankPeripheralOptions = array();
@@ -145,7 +145,7 @@ class cash_Pko extends cash_Document
         $rec->nonCashPayments = array();
         
         $nonCashSumInBaseCurrency = 0;
-        $payments = type_Table::toArray($rec->payments);
+        $payments = type_Table::toArray($rec->payments ?? null);
         if(empty($payments)) return;
 
         // Колко е общата сума на безналичните плащания
@@ -179,7 +179,8 @@ class cash_Pko extends cash_Document
     {
         if(empty($rec->payments) && empty($rec->exPayments)) return;
         
-        $payments = type_Table::toArray($rec->payments);
+        $payments = type_Table::toArray($rec->payments ?? null);
+        $exPayments = is_array($rec->exPayments ?? null) ? $rec->exPayments : array();
         
         // Обновяване на безналичните плащания ако има
         $update = $notDelete = array();
@@ -189,9 +190,10 @@ class cash_Pko extends cash_Document
             $paymentId = $obj->paymentId;
             $notDelete[$paymentId] = $paymentId;
             
-            if(is_array($rec->exPayments)){
-                $foundRec = array_filter($rec->exPayments, function ($a) use ($paymentId) { return $paymentId == $a->paymentId;});
-                if(isset($foundRec->id)){
+            if (countR($exPayments)) {
+                $foundRecs = array_filter($exPayments, function ($a) use ($paymentId) { return $paymentId == $a->paymentId;});
+                $foundRec = reset($foundRecs);
+                if (is_object($foundRec) && isset($foundRec->id)) {
                     $update[$obj->paymentId]->id = $foundRec->id;
                 }
             }
@@ -203,8 +205,8 @@ class cash_Pko extends cash_Document
         }
         
         // Изтриване на старите записи
-        if(is_array($rec->exPayments)){
-            $delete = array_filter($rec->exPayments, function ($a) use ($notDelete) { return !array_key_exists($a->paymentId, $notDelete);});
+        if (countR($exPayments)) {
+            $delete = array_filter($exPayments, function ($a) use ($notDelete) { return !array_key_exists($a->paymentId, $notDelete);});
             if (countR($delete)) {
                 foreach ($delete as $obj) {
                     cash_NonCashPaymentDetails::delete($obj->id);
