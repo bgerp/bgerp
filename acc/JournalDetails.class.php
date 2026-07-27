@@ -43,7 +43,7 @@ class acc_JournalDetails extends core_Detail
     /**
      * Кои полета да се извличат при изтриване
      */
-    public $fetchFieldsBeforeDelete = 'debitItem1,debitItem2,debitItem3,creditItem1,creditItem2,creditItem3';
+    public $fetchFieldsBeforeDelete = 'journalId,debitItem1,debitItem2,debitItem3,creditItem1,creditItem2,creditItem3';
     
     
     /**
