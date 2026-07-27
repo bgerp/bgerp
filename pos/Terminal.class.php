@@ -351,6 +351,7 @@ class pos_Terminal extends peripheral_Terminal
                         $block = clone $modalTpl->getBlock('INSTOCK_BLOCK');
                         $storeRow = (object)array('storeId' => store_Stores::getTitleById($storeId));
                         $stockRec = store_Products::fetch("#storeId = '{$storeId}' AND #productId = '{$productRec->id}'");
+                        $stockRec = is_object($stockRec) ? $stockRec : (object)array('reservedQuantity' => 0, 'expectedQuantity' => 0, 'quantity' => 0);
 
                         foreach (array('reservedQuantity', 'expectedQuantity', 'quantity') as $fld){
                             $verbalQuantity = core_Type::getByName('double(smartRound)')->toVerbal($stockRec->{$fld});
@@ -362,7 +363,7 @@ class pos_Terminal extends peripheral_Terminal
                         $freeVerbal = ht::styleIfNegative($freeVerbal, $freeQuantity);
                         $storeRow->freeQuantity = $freeVerbal;
                         $block->placeObject($storeRow);
-                        $row->INSTOCK .= $block->getContent();
+                        $row->INSTOCK = ($row->INSTOCK ?? '') . $block->getContent();
                     }
                 }
 
@@ -1038,7 +1039,7 @@ class pos_Terminal extends peripheral_Terminal
             
             $textCaption = (!empty($text)) ? $text : tr('Без');
             $class .= (!empty($text)) ? '' : ' emptyText';
-            $class .= ($text == $selectedRec->text) ? ' selected' : '';
+            $class .= ($text == ($selectedRec->text ?? null)) ? ' selected' : '';
             $element = ht::createElement('div', array("id" => "text{$count}", "class" => $class, 'data-url' => $dataUrl), $textCaption, true);
             $tpl->append($element);
             $count++;
@@ -1073,7 +1074,7 @@ class pos_Terminal extends peripheral_Terminal
         
         $discountTpl = new core_ET("");
         foreach ($discountsArr as $discountPercent){
-            $class = ($discountPercent == $selectedRec->discountPercent) ? 'current' : '';
+            $class = ($discountPercent == ($selectedRec->discountPercent ?? null)) ? 'current' : '';
             
             $discAmount = $discountPercent * 100;
             $url = toUrl(array('pos_ReceiptDetails', 'updateRec', 'receiptId' => $rec->id, 'action' => 'setdiscount', 'string' => "{$discAmount}"), 'local');
@@ -2455,7 +2456,8 @@ class pos_Terminal extends peripheral_Terminal
     private function getPosProductPreview($productId, $width, $height, $settings = array())
     {
         $photo = cat_Products::getParams($productId, 'preview');
-        if(in_array($settings->productBtnTpl, array('pictureAndText', 'rows')) && empty($photo)) return;
+        $productBtnTpl = is_object($settings) ? ($settings->productBtnTpl ?? 'wide') : 'wide';
+        if(in_array($productBtnTpl, array('pictureAndText', 'rows')) && empty($photo)) return;
 
         $arr = array();
         core_Debug::startTimer('RENDER_RESULT_GET_PREVIEW_THUMB');
