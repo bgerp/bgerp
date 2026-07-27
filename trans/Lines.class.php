@@ -802,7 +802,7 @@ class trans_Lines extends core_Master
      */
     protected static function on_BeforeSave($mvc, &$id, $rec, $fields = null, $mode = null)
     {
-        if ($rec->__isReplicate) {
+        if (!empty($rec->__isReplicate)) {
             $rec->countStoreDocuments = 0;
             $rec->countActiveDocuments = 0;
             $rec->countReadyDocuments = 0;
