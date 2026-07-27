@@ -821,7 +821,7 @@ class eshop_Carts extends core_Master
         }
         
         vislog_History::add('Финализиране на количка');
-        if ($saleRec->_paymentInstructionsSend === true) {
+        if (($saleRec->_paymentInstructionsSend ?? false) === true) {
             $msg .= ' |Изпратихме Ви имейл с инструкции за плащането|*.';
         }
         
@@ -1315,7 +1315,7 @@ class eshop_Carts extends core_Master
                 }
             }
             
-            if($saleRec->_paymentInstructionsSend !== true){
+            if (($saleRec->_paymentInstructionsSend ?? false) !== true) {
                 Mode::push('text', 'plain');
                 $amount = currency_CurrencyRates::convertAmount($rec->total, null, null, $settings->currencyId);
                 $amountVerbal = core_Type::getByName('double(decimals=2)')->toVerbal($amount);
@@ -1968,14 +1968,15 @@ class eshop_Carts extends core_Master
         while ($dRec = $dQuery->fetch()) {
             $data->recs[$dRec->id] = $dRec;
             $row = eshop_CartDetails::recToVerbal($dRec, $fields);
-            if($dRec->_updatedPrice === true){
+            if (($dRec->_updatedPrice ?? false) === true) {
                 $data->rec->_updatedPrice = true;
             }
             if (!empty($dRec->discount) || !empty($dRec->autoDiscount)) {
                 $discountType = type_Set::toArray($settings->discountType ?? '');
+                $manualDiscount = $dRec->discount ?? 0;
 
-                $amountWithoutPureDiscount = (isset($dRec->discount) && $dRec->discount != 1) ? $dRec->finalPrice / (1 - $dRec->discount): $dRec->finalPrice;
-                $discount = isset($dRec->autoDiscount) ? round((1 - (1 - $dRec->discount) * (1 - $dRec->autoDiscount)), 4) : $dRec->discount;
+                $amountWithoutPureDiscount = ($manualDiscount != 1) ? $dRec->finalPrice / (1 - $manualDiscount): $dRec->finalPrice;
+                $discount = isset($dRec->autoDiscount) ? round((1 - (1 - $manualDiscount) * (1 - $dRec->autoDiscount)), 4) : $manualDiscount;
 
                 $row->finalPrice = "<span class='end-price'>{$row->finalPrice}</span>";
                 $row->finalPrice .= "<div class='external-discount'>";
