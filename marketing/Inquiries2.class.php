@@ -561,8 +561,9 @@ class marketing_Inquiries2 extends embed_Manager
         
         $cntQuantities = 0;
         foreach (range(1, 3) as $i) {
-            if ($rec->{"quantity{$i}"}) {
-                $row->{"quantity{$i}"} .= " {$shortName}";
+            $quantityField = "quantity{$i}";
+            if (!empty($rec->{$quantityField})) {
+                $row->{$quantityField} = ($row->{$quantityField} ?? '') . " {$shortName}";
                 $cntQuantities++;
             }
         }
@@ -1292,7 +1293,7 @@ class marketing_Inquiries2 extends embed_Manager
             
             // Проверка на въведените количества
             foreach (range(1, 3) as $i) {
-                $quantity = $rec->{"quantity{$i}"};
+                $quantity = $rec->{"quantity{$i}"} ?? null;
                 if (empty($quantity)) {
                     continue;
                 }
