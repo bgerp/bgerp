@@ -94,7 +94,7 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
             $vat = cat_Products::getVat($rec->productId, $masterRec->valior, $vatExceptionId);
             $productInfo = cat_Products::getProductInfo($rec->productId);
             
-            $packs = cat_Products::getPacks($rec->productId, $rec->packagingId);
+            $packs = cat_Products::getPacks($rec->productId, $rec->packagingId ?? null);
             $form->setOptions('packagingId', $packs);
             $form->setDefault('packagingId', key($packs));
             $form->setField('packagingId', 'input');
@@ -116,8 +116,8 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 
             $LastPolicy = ($masterRec->isReverse == 'yes') ? 'ReverseLastPricePolicy' : 'LastPricePolicy';
             if (isset($mvc->{$LastPolicy})) {
-                $policyInfoLast = $mvc->{$LastPolicy}->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId, $rec->packQuantity, $masterRec->valior, $masterRec->currencyRate, $masterRec->chargeVat);
-                if ($policyInfoLast->price != 0) {
+                $policyInfoLast = $mvc->{$LastPolicy}->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId ?? null, $rec->packQuantity ?? null, $masterRec->valior, $masterRec->currencyRate, $masterRec->chargeVat);
+                if (($policyInfoLast->price ?? 0) != 0) {
                     $form->setSuggestions('packPrice', array('' => '', "{$policyInfoLast->price}" => $policyInfoLast->price));
                 }
             }
@@ -125,7 +125,7 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
             // Ако има такъв запис, сетваме грешка
             $setWarning = deals_Setup::get('WARNING_ON_DUPLICATED_ROWS');
             if($setWarning == 'yes'){
-                $countSameProduct = $mvc->count("#{$mvc->masterKey} = '{$rec->{$mvc->masterKey}}' AND #id != '{$rec->id}' AND #productId = {$rec->productId}");
+                $countSameProduct = $mvc->count("#{$mvc->masterKey} = '{$rec->{$mvc->masterKey}}' AND #id != '" . ($rec->id ?? 0) . "' AND #productId = {$rec->productId}");
                 if ($countSameProduct) {
                     $form->setWarning('productId', 'Артикулът вече присъства на друг ред в документа|*');
                 }
@@ -134,7 +134,7 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 
         if ($form->isSubmitted() && !$form->gotErrors()) {
             if (!isset($rec->packQuantity)) {
-                $form->setDefault('packQuantity', $rec->_moq ? $rec->_moq : deals_Helper::getDefaultPackQuantity($rec->productId, $rec->packagingId));
+                $form->setDefault('packQuantity', !empty($rec->_moq) ? $rec->_moq : deals_Helper::getDefaultPackQuantity($rec->productId, $rec->packagingId));
                 $form->setError('packQuantity', 'Не е въведено количество');
             }
             
@@ -145,7 +145,8 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
             }
             
             // Ако артикула няма опаковка к-то в опаковка е 1, ако има и вече не е свързана към него е това каквото е било досега, ако още я има опаковката обновяваме к-то в опаковка
-            $rec->quantityInPack = ($productInfo->packagings[$rec->packagingId]) ? $productInfo->packagings[$rec->packagingId]->quantity : 1;
+            $packagingRec = $productInfo->packagings[$rec->packagingId] ?? null;
+            $rec->quantityInPack = $packagingRec ? $packagingRec->quantity : 1;
             
             if (!empty($rec->baseQuantity)) {
                 if (empty($rec->packQuantity)) {
