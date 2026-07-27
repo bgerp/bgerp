@@ -1671,9 +1671,10 @@ class pos_Terminal extends peripheral_Terminal
      */
     private function renderDeleteRowBtn($rec, $selectedRec)
     {
-        $deleteAttr = array('id' => "delete{$selectedRec->id}", 'class' => "posBtns deleteRow", 'title' => 'Изтриване на реда');
-        if($selectedRec && !$rec->_disableAllPayments){
-            if(strpos($selectedRec->action, 'payment') !== false){
+        $selectedRecId = is_object($selectedRec) ? ($selectedRec->id ?? null) : null;
+        $deleteAttr = array('id' => "delete{$selectedRecId}", 'class' => "posBtns deleteRow", 'title' => 'Изтриване на реда');
+        if(is_object($selectedRec) && empty($rec->_disableAllPayments)){
+            if(strpos($selectedRec->action ?? '', 'payment') !== false){
                 $deleteAttr['class'] .= (pos_ReceiptDetails::haveRightFor('delete', $selectedRec)) ? ' navigable' : ' disabledBtn';
             } else {
                 $deleteAttr['class'] .= (empty($rec->paid) && pos_ReceiptDetails::haveRightFor('delete', $selectedRec)) ? ' navigable' : ' disabledBtn';
