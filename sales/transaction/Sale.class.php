@@ -609,12 +609,12 @@ class sales_transaction_Sale extends acc_DocumentTransactionSource
         $Class = cls::get($class);
         core_Debug::startTimer('FAST_PRODUCTION_ENTRIES');
         $entries = $bomDataCombined = array();
-        if(!is_array($rec->details)) return $entries;
+        if(!is_array($rec->details ?? null)) return $entries;
 
-        $storeId = $rec->{$storeField};
+        $storeId = $rec->{$storeField} ?? null;
         if($Class instanceof pos_Reports){
             $pointRec = pos_Points::fetch($rec->pointId);
-            $storeId = !empty($storeId) ? $storeId : $pointRec->storeId;
+            $storeId = !empty($storeId) ? $storeId : ($pointRec->storeId ?? null);
         }
 
         foreach ($rec->details as $dRec1){
