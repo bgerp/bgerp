@@ -928,9 +928,10 @@ class pos_ReceiptDetails extends core_Detail
                 $row->paymentCaption = (empty($receiptRec->revertId)) ? tr('Плащане') : tr('Връщане');
                 $row->amount = ht::styleNumber($row->amount, $rec->amount);
 
-                $paymentRec = ($action->value != -1) ? cond_Payments::fetch($action->value) : 0;
-                if($paymentRec->currencyCode){
-                    $row->amount = currency_Currencies::decorate($row->amount, $paymentRec->currencyCode, true);
+                $paymentRec = ($action->value != -1) ? cond_Payments::fetch($action->value) : null;
+                $paymentCurrencyCode = is_object($paymentRec) ? ($paymentRec->currencyCode ?? null) : null;
+                if($paymentCurrencyCode){
+                    $row->amount = currency_Currencies::decorate($row->amount, $paymentCurrencyCode, true);
                 } else {
                     $row->amount = currency_Currencies::decorate($row->amount, $row->currency, true);
                 }
