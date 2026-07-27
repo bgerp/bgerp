@@ -493,7 +493,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
             if (countR($arr) || $data->masterData->rec->state == 'draft') {
                 $data->listFields['productId'] = ($type == 'subProduct') ? 'Субпродукти' : "Отпадъци|* <small style='font-weight:normal'>( |остават в незавършеното производство|* )</small>";
                 if($type == 'pop'){
-                    $data->listFields['storeId'] = '|*&nbsp;';
+                    $data->listFields['storeId'] = 'Остава в';
                 } else {
                     $data->listFields['storeId'] = 'Засклаждане';
                 }
@@ -503,6 +503,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
                 $pData->rows = $arr;
                 $pData->recs = array_intersect_key($pData->recs, $pData->rows);
 
+                $pData->sortableTable = false;
                 $this->invoke('BeforeRenderListTable', array(&$tpl, &$pData));
                 plg_AlignDecimals2::alignDecimals($this, $pData->recs, $pData->rows);
                 //$pData->listFields = core_TableView::filterEmptyColumns($pData->rows, $pData->listFields, '*');
