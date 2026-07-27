@@ -886,8 +886,10 @@ class pos_Terminal extends peripheral_Terminal
         
         $saleTpl = $blocksTpl->getBlock('sale');
         $paymentTpl = $blocksTpl->getBlock('payment');
-        if (is_array($data->rows)) {
-            foreach ($data->rows as $id => $row) {
+        $rowTemplates = array('sale' => $saleTpl, 'payment' => $paymentTpl);
+        $rows = (isset($data->rows) && is_array($data->rows)) ? $data->rows : array();
+        if (countR($rows)) {
+            foreach ($rows as $id => $row) {
                 $row->id = $id;
                 
                 $row->ROW_CLASS = 'receiptRow';
@@ -905,22 +907,25 @@ class pos_Terminal extends peripheral_Terminal
                     $row->DATA_DELETE_WARNING = tr('|Наистина ли искате да изтриете избрания ред|*?');
                 }
                 
-                $action = cls::get('pos_ReceiptDetails')->getAction($data->rows[$id]->action);
+                $action = cls::get('pos_ReceiptDetails')->getAction($row->action);
                 if($action->type == 'sale'){
-                    $row->ENLARGABLE_CLASS_ID = cat_Products::getClassId();
-                    $row->ENLARGABLE_OBJECT_ID = $data->recs[$id]->productId;
-                    $row->ENLARGABLE_MODAL_TITLE = cat_Products::getTitleById($data->recs[$id]->productId);
+                    $detailRec = $data->recs[$id] ?? null;
+                    if(is_object($detailRec)){
+                        $row->ENLARGABLE_CLASS_ID = cat_Products::getClassId();
+                        $row->ENLARGABLE_OBJECT_ID = $detailRec->productId;
+                        $row->ENLARGABLE_MODAL_TITLE = cat_Products::getTitleById($detailRec->productId);
 
-                    if(!isset($data->revertsReceipt)){
-                        core_RowToolbar::createIfNotExists($row->_rowTools);
-                        cat_Products::addButtonsToDocToolbar($data->recs[$id]->productId, $row->_rowTools, 'pos_ReceiptDetails', $id);
-                        $row->PRODUCT_BTNS = $row->_rowTools->renderHtml(10);
+                        if(!isset($data->revertsReceipt)){
+                            core_RowToolbar::createIfNotExists($row->_rowTools);
+                            cat_Products::addButtonsToDocToolbar($detailRec->productId, $row->_rowTools, 'pos_ReceiptDetails', $id);
+                            $row->PRODUCT_BTNS = $row->_rowTools->renderHtml(10);
+                        }
                     }
                 }
 
-                $at = ${"{$action->type}Tpl"};
-                if (is_object($at)) {
-                    $rowTpl = clone(${"{$action->type}Tpl"});
+                $rowTemplate = $rowTemplates[$action->type] ?? null;
+                if (is_object($rowTemplate)) {
+                    $rowTpl = clone $rowTemplate;
                     $rowTpl->placeObject($row);
                     $rowTpl->removeBlocks();
                     $tpl->append($rowTpl);
