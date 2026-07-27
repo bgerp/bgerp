@@ -313,8 +313,8 @@ class embed_Detail extends core_Detail
                     break;
                 
                 case 'aftergetrequiredroles':
-                    if (is_object($args[2])) {
-                        $driverClass = $args[2]->{$this->driverClassField};
+                    if (is_object($args[2] ?? null)) {
+                        $driverClass = $args[2]->{$this->driverClassField} ?? null;
                     }
                     break;
                 
