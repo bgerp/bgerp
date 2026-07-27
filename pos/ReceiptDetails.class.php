@@ -1224,8 +1224,8 @@ class pos_ReceiptDetails extends core_Detail
         }
 
         if ($action == 'delete' && isset($rec->receiptId)) {
-            if(strpos($rec->action, 'payment') !== false){
-                if($rec->param == 'card'){
+            if(strpos($rec->action ?? '', 'payment') !== false){
+                if(($rec->param ?? null) == 'card'){
                     $res = 'no_one';
                 }
             }
