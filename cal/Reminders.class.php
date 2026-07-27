@@ -302,7 +302,9 @@ class cal_Reminders extends core_Master
      */
     public static function on_AfterPrepareEditForm($mvc, $data)
     {
-        $Cover = doc_Folders::getCover($data->form->rec->folderId);
+        $rec = $data->form->rec;
+        $id = $rec->id ?? null;
+        $Cover = doc_Folders::getCover($rec->folderId);
 
         // Трябва да е в папка на лице или на фирма
         if (!($Cover->className == 'crm_Persons' || $Cover->className == 'crm_Companies')) {
@@ -314,14 +316,15 @@ class cal_Reminders extends core_Master
 
         $data->form->setSuggestions('repetitionEach', $arr);
 
-        if ($data->form->rec->threadId) {
+        $title = null;
+        if (!empty($rec->threadId)) {
             //Добавяме в полето Заглавие отговор на съобщението
-            $title = doc_Threads::getThreadTitle($data->form->rec->threadId, false);
+            $title = doc_Threads::getThreadTitle($rec->threadId, false);
             $for = tr('|За|*: ');
             $title = $for . $title;
         }
 
-        if (!$data->form->rec->id) {
+        if (!$id) {
             $cu = core_Users::getCurrent();
             $nextWorkDay = cal_Calendar::nextWorkingDay();
 
@@ -344,6 +347,7 @@ class cal_Reminders extends core_Master
     public function on_AfterInputEditForm($mvc, $form)
     {
         if ($form->isSubmitted()) {
+            $id = $form->rec->id ?? null;
             $sharedUsersArr = type_UserList::toArray($form->rec->sharedUsers);
 
             if (empty($sharedUsersArr)) {
@@ -358,13 +362,13 @@ class cal_Reminders extends core_Master
                     $form->setWarning('timeStart', 'Датата за напомняне трябва да е след|* ' . dt::mysql2verbal($now));
                 }
             } else {
-                if (!$form->rec->id) {
+                if (!$id) {
                     $form->rec->timeStart = $now;
                 }
             }
 
-            if ($form->rec->id) {
-                $exState = self::fetchField($form->rec->id, 'state');
+            if ($id) {
+                $exState = self::fetchField($id, 'state');
 
                 if ($form->rec->timeStart < $now && ($form->rec->state != $exState && $form->rec->state != 'rejected')) {
                     // Добавяме съобщение за грешка
