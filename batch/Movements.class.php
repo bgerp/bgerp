@@ -208,7 +208,7 @@ class batch_Movements extends core_Detail
             }
             
             if (!empty($fRec->batch)) {
-                if($fRec->searchType == 'full'){
+                if(($fRec->searchType ?? 'full') == 'full'){
                     $data->query->where(array("#batch = '[#1#]'", $fRec->batch));
                 } else {
                     $data->query->where(array("#batch LIKE '%[#1#]%'", $fRec->batch));
@@ -361,7 +361,7 @@ class batch_Movements extends core_Detail
                 $titles[] = "<b style='color:green'>" . cat_Products::getTitleById($fRec->productId) . '</b>';
             }
             
-            if ($fRec->batch) {
+            if (!empty($fRec->batch)) {
                 $titles[] = "<b style='color:green'>" . cls::get('type_Varchar')->toVerbal(str_replace('|', '/', $fRec->batch)) . '</b>';
             }
             
