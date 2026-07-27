@@ -278,8 +278,8 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 
                 $form->input();
 
-                if (empty($form->rec->packagingId)) {
-                    $form->rec->packagingId =  $form->rec->measureId;
+                if (empty($form->rec->packagingId) && !empty($form->rec->measureId)) {
+                    $form->rec->packagingId = $form->rec->measureId;
                 }
                 
                 if ($Driver->canAutoCalcPrimeCost($form->rec) !== true) {
