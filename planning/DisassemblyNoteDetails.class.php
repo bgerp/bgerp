@@ -312,6 +312,10 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
             unset($data->listFields['tools']);
         }
 
+        // Запазваме еднакъв набор и ред на колоните във всички таблици.
+        $allRows = $data->mainInputArr + $data->inputArr + $data->productionArr;
+        $commonListFields = core_TableView::filterEmptyColumns($allRows, $data->listFields, '*');
+
         // Мини-таблица с ОСНОВНИЯ артикул за разпад - показва се отделно, над
         // таблицата с произведените артикули (виж MAIN_INPUT_PRODUCT_TABLE в
         // шаблона), не заедно с (евентуални) други артикули за влагане
@@ -319,14 +323,17 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
             $data->listFields['productId'] = 'Артикули за разпад|* ';
             $mData = clone $data;
             $mData->listTableMvc = clone $this;
+            $mData->listFields = $commonListFields;
+            $mData->listFields['productId'] = 'Артикули за разпад|* ';
             $mData->rows = $data->mainInputArr;
             $mData->recs = array_intersect_key($mData->recs, $mData->rows);
 
             $this->invoke('BeforeRenderListTable', array(&$tpl, &$mData));
+            $mData->listTableMvc->fields['productId']->tdClass = trim(($mData->listTableMvc->fields['productId']->tdClass ?? '') . ' disassemblyProductColumn');
             $mData->listFields['storeId'] = 'От склад';
-            $mData->listFields = core_TableView::filterEmptyColumns($mData->rows, $mData->listFields, '*');
 
             $mainInputTable = cls::get('core_TableView', array('mvc' => $mData->listTableMvc));
+            $mainInputTable->tableClass = 'listTable disassemblyNoteTable';
             $detailsMainInput = $mainInputTable->get($mData->rows, $mData->listFields);
             $tpl->append($detailsMainInput, 'MAIN_INPUT_PRODUCT_TABLE');
         }
@@ -336,15 +343,18 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
             $data->listFields['productId'] = 'Артикули за разпад|* ';
             $iData = clone $data;
             $iData->listTableMvc = clone $this;
+            $iData->listFields = $commonListFields;
+            $iData->listFields['productId'] = 'Артикули за разпад|* ';
             $iData->rows = $data->inputArr;
             $iData->recs = array_intersect_key($iData->recs, $iData->rows);
 
             $this->invoke('BeforeRenderListTable', array(&$tpl, &$iData));
+            $iData->listTableMvc->fields['productId']->tdClass = trim(($iData->listTableMvc->fields['productId']->tdClass ?? '') . ' disassemblyProductColumn');
             $iData->listTableMvc->FNC('tools', 'int', 'tdClass=rowNumColumn');
             $iData->listFields['storeId'] = 'От склад';
-            $iData->listFields = core_TableView::filterEmptyColumns($iData->rows, $iData->listFields, '*');
 
             $inputTable = cls::get('core_TableView', array('mvc' => $iData->listTableMvc));
+            $inputTable->tableClass = 'listTable disassemblyNoteTable';
             $detailsInput = $inputTable->get($iData->rows, $iData->listFields);
             $tpl->append($detailsInput, 'INPUT_PRODUCTS_TABLE');
         }
@@ -357,15 +367,18 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
         $data->listFields['productId'] = 'Произведени артикули|* ';
         $pData = clone $data;
         $pData->listTableMvc = clone $this;
+        $pData->listFields = $commonListFields;
+        $pData->listFields['productId'] = 'Произведени артикули|* ';
         $pData->rows = $data->productionArr;
         $pData->recs = array_intersect_key($pData->recs, $pData->rows);
         $pData->listFields['storeId'] = 'В склад';
 
         $this->invoke('BeforeRenderListTable', array(&$tpl, &$pData));
+        $pData->listTableMvc->fields['productId']->tdClass = trim(($pData->listTableMvc->fields['productId']->tdClass ?? '') . ' disassemblyProductColumn');
         $pData->listTableMvc->FNC('tools', 'int', 'tdClass=rowNumColumn');
-        $pData->listFields = core_TableView::filterEmptyColumns($pData->rows, $pData->listFields, '*');
 
         $productionTable = cls::get('core_TableView', array('mvc' => $pData->listTableMvc));
+        $productionTable->tableClass = 'listTable disassemblyNoteTable';
         $detailsProduction = $productionTable->get($pData->rows, $pData->listFields);
         $tpl->append($detailsProduction, 'PRODUCED_PRODUCTS_TABLE');
 
@@ -374,6 +387,10 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
                 $tpl->append(ht::createBtn('Произведен артикул', array($this, 'add', 'noteId' => $data->masterId, 'type' => 'production', 'ret_url' => true), null, null, array('style' => 'margin-top:5px;margin-bottom:15px;', 'ef_icon' => 'img/16/door_in.png', 'title' => 'Добавяне на произведен артикул')), 'PRODUCED_PRODUCTS_TABLE');
             }
         }
+
+        $tpl->push('planning/js/DisassemblyNoteTables.js', 'JS');
+        jquery_Jquery::run($tpl, 'syncDisassemblyNoteTables();');
+        jquery_Jquery::runAfterAjax($tpl, 'syncDisassemblyNoteTables');
 
         return $tpl;
     }
