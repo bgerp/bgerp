@@ -1165,7 +1165,21 @@ class marketing_Inquiries2 extends embed_Manager
                 // Винаги се рутира към правилната папка
                 $domainId = cms_Domains::getPublicDomain()->id;
                 $routerExplanation = null;
-                $rec->folderId = marketing_InquiryRouter::route($rec->company, $rec->personNames, $rec->email, $rec->tel, $rec->country, $rec->pCode, $rec->place, $rec->address, $rec->brid, $rec->vatId, $rec->uicId, $routerExplanation, $domainId);
+                $rec->folderId = marketing_InquiryRouter::route(
+                    $rec->company ?? null,
+                    $rec->personNames ?? null,
+                    $rec->email ?? null,
+                    $rec->tel ?? null,
+                    $rec->country ?? null,
+                    $rec->pCode ?? null,
+                    $rec->place ?? null,
+                    $rec->address ?? null,
+                    $rec->brid ?? null,
+                    $rec->vatId ?? null,
+                    $rec->uicId ?? null,
+                    $routerExplanation,
+                    $domainId
+                );
                 
                 // Запис и редирект
                 if ($this->haveRightFor('new')) {
@@ -1177,15 +1191,16 @@ class marketing_Inquiries2 extends embed_Manager
                         $fieldNamesArr = array_keys($contactFields);
                         $userData = array();
                         foreach ((array) $fieldNamesArr as $fName) {
-                            if (!trim($form->rec->{$fName})) {
+                            $value = $form->rec->{$fName} ?? null;
+                            if (!trim((string) $value)) {
                                 continue;
                             }
-                            $userData[$fName] = $form->rec->{$fName};
+                            $userData[$fName] = $value;
                         }
                         log_Browsers::setVars($userData);
                     }
 
-                    if(!$sourceData['possibleSpam']){
+                    if (empty($sourceData['possibleSpam'])) {
                         $id = $this->save($rec);
                         doc_Threads::doUpdateThread($rec->threadId);
                         $this->logWrite('Създаване от е-артикул', $id);
