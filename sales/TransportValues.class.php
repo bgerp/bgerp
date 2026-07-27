@@ -767,7 +767,7 @@ class sales_TransportValues extends core_Manager
                 $rec->deliveryTimeFromFee = null;
             }
             
-            if ($rec->autoPrice === true) {
+            if (($rec->autoPrice ?? null) === true) {
                 if (isset($feeArr['singleFee'])) {
                     $newFee = $feeArr['totalFee'] / $rec->{$map['quantity']};
                     $newFee = $newFee / $masterRec->{$map['currencyRate']};

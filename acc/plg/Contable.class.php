@@ -490,7 +490,7 @@ class acc_plg_Contable extends core_Plugin
             $error = 'Не може да се контира в несъществуващ сч. период';
         }
         
-        return ($error) ? false : true;
+        return !$error;
     }
     
     
@@ -538,7 +538,7 @@ class acc_plg_Contable extends core_Plugin
             }
             
             // Не може да се контира, ако документа не генерира валидна транзакция
-            if ($rec->isContable == 'no') {
+            if (($rec->isContable ?? null) == 'no') {
                 $requiredRoles = 'no_one';
             }
         } elseif ($action == 'revert') {
@@ -627,7 +627,7 @@ class acc_plg_Contable extends core_Plugin
             }
             
             // Ако документа не генерира валидна и непразна транзакция - не може да му се прави корекция
-            if (!$rec->isContable) {
+            if (empty($rec->isContable)) {
                 $requiredRoles = 'no_one';
             }
         }
@@ -711,7 +711,7 @@ class acc_plg_Contable extends core_Plugin
         $rec = $mvc->fetchRec($id);
         
         // Контирането е позволено само в съществуващ активен/чакащ/текущ период;
-        $period = acc_Periods::fetchByDate($rec->valior);
+        $period = acc_Periods::fetchByDate($mvc->getValiorValue($rec));
         expect($period && ($period->state != 'closed' && $period->state != 'draft'), 'Не може да се контира в несъществуващ, бъдещ или затворен период');
         $cRes = acc_Journal::saveTransaction($mvc->getClassId(), $rec);
         
@@ -948,7 +948,7 @@ class acc_plg_Contable extends core_Plugin
     {
         if (!$res) {
             $rec = $mvc->fetchRec($rec);
-            $res = dt::verbal2mysql($rec->{$mvc->valiorFld}, false);
+            $res = dt::verbal2mysql($rec->{$mvc->valiorFld} ?? null, false);
         }
     }
     
@@ -1195,7 +1195,7 @@ class acc_plg_Contable extends core_Plugin
             }
 
             // Забрана да не може да се контират определени документи ако са създадени преди ЕЗ, но вальора им е след нея
-            if($mvc->currencyFld && isset($rec->{$mvc->currencyFld}) && !($mvc instanceof deals_PaymentDocument)){
+            if(!empty($mvc->currencyFld) && isset($rec->{$mvc->currencyFld}) && !($mvc instanceof deals_PaymentDocument)){
                 $valior = $rec->{$mvc->valiorFld} ?? dt::today();
                 if($rec->createdOn < acc_Setup::getEurozoneDate() && $valior >= acc_Setup::getEurozoneDate()){
                     core_Statuses::newStatus('Не може да се контира документ създаден преди Еврозоната с вальор след нея|*!', 'error');

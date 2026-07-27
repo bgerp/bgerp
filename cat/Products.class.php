@@ -909,7 +909,8 @@ class cat_Products extends embed_Manager
         } else {
             if (isset($rec->measureId) && !is_numeric($rec->measureId)) {
                 $measureName = $rec->measureId;
-                $rec->measureId = cat_UoM::fetchBySinonim($rec->measureId)->id;
+                $uomRec = cat_UoM::fetchBySinonim($rec->measureId);
+                $rec->measureId = is_object($uomRec) ? $uomRec->id : null;
                 
                 if (!$rec->measureId) {
                     $rec->__errStr = "Липсваща мярка при импортиране: {$measureName}";
@@ -1763,12 +1764,6 @@ class cat_Products extends embed_Manager
     public static function getProductOptions($params, $limit = null, $q = '', $onlyIds = null, $includeHiddens = false)
     {
         $private = $products = $templates = $favourites = array();
-
-        // При избор на артикул за задание не изпълняваме тежка нефилтрирана
-        // заявка. Конкретно избрана стойност по id трябва да може да се зареди.
-        if (!empty($params['allowedForJobs']) && !trim($q) && empty($onlyIds)) {
-            return array();
-        }
 
         $query = cat_Products::getQuery();
         $reverseOrder = false;

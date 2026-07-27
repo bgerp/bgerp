@@ -167,7 +167,7 @@ abstract class deals_Helper
             }
             
             if ($discountVal) {
-                if (!(($masterRec->type ?? null) === 'dc_note' && $rec->changedQuantity !== true && $rec->changedPrice !== true)) {
+                if (!(($masterRec->type ?? null) === 'dc_note' && ($rec->changedQuantity ?? null) !== true && ($rec->changedPrice ?? null) !== true)) {
                     $discount += $rec->{$map['amountFld']} * $discountVal;
                 }
             }
@@ -178,7 +178,7 @@ abstract class deals_Helper
 
             // Ако документа е кредитно/дебитно известие сабираме само редовете с промяна
             if (($masterRec->type ?? null) === 'dc_note') {
-                if ($rec->changedQuantity === true || $rec->changedPrice === true) {
+                if (($rec->changedQuantity ?? null) === true || ($rec->changedPrice ?? null) === true) {
                     $amountRow += $rec->{$map['amountFld']};
                     $amount += $noVatAmount;
                     $amountVat += $vatRow;
@@ -213,7 +213,7 @@ abstract class deals_Helper
                 }
             }
 
-            if (!(($masterRec->type ?? null) === 'dc_note' && ($rec->changedQuantity !== true && $rec->changedPrice !== true))) {
+            if (!(($masterRec->type ?? null) === 'dc_note' && (($rec->changedQuantity ?? null) !== true && ($rec->changedPrice ?? null) !== true))) {
                 if (!array_key_exists($vat, $vats)) {
                     $vats[$vat] = (object) array('amount' => 0, 'sum' => 0);
                 }
@@ -1576,7 +1576,8 @@ abstract class deals_Helper
                 //$rec->displayRate = $newRate;
                 if ($rec->dpOperation == 'accrued' || isset($rec->changeAmount)) {
                     // Изчисляване на стойността на ддс-то
-                    $vat = acc_Periods::fetchByDate()->vatRate;
+                    $periodRec = acc_Periods::fetchByDate();
+                    $vat = $periodRec->vatRate ?? null;
                     if(isset($rec->dpVatGroupId)){
                         $vat = acc_VatGroups::fetchField($rec->dpVatGroupId, 'vat');
                     }
@@ -3528,7 +3529,8 @@ abstract class deals_Helper
                     $term = $productDeliveryTime;
 
                     // Ако има изчислена доставка и за нея има срок на доставка добавя се
-                    if ($deliveryTime = sales_TransportValues::get($masterMvc, $dRec->{$Detail->masterKey}, $dRec->id)->deliveryTime) {
+                    $transportValues = sales_TransportValues::get($masterMvc, $dRec->{$Detail->masterKey}, $dRec->id);
+                    if ($deliveryTime = ($transportValues->deliveryTime ?? null)) {
                         $term += $deliveryTime;
                     } elseif($defaultDeliveryTime){
 

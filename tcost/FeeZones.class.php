@@ -247,12 +247,14 @@ class tcost_FeeZones extends core_Master
         $zoneRec = tcost_Zones::getZoneIdAndDeliveryTerm($deliveryTermId, $toCountry, $toPostalCode);
         $fee = tcost_Fees::calcFee($zoneRec, $totalVolumicWeight, $singleWeight);
 
-        $zoneId = $fee[2];
-        $deliveryTime = ($fee[3]) ? $fee[3] : null;
-        
+        $zoneId = null;
+        $deliveryTime = null;
+
         // Ако цената може да бъде изчислена се връща
-        if (!($fee < 0)) {
-            $fee = (isset($fee[1])) ? $fee[1] : 0;
+        if (is_array($fee)) {
+            $zoneId = $fee[2] ?? null;
+            $deliveryTime = $fee[3] ?? null;
+            $fee = $fee[1] ?? 0;
         }
         
         $explain = null;

@@ -148,7 +148,8 @@ class deals_QuotationDetails extends doc_Detail
                 $valior = !empty($masterRec->date) ? $masterRec->date : dt::today();
                 $vat = cat_Products::getVat($rec->productId, $valior, $vatExceptionId);
             } else {
-                $vat = acc_Periods::fetchByDate($masterRec->date)->vatRate;
+                $periodRec = acc_Periods::fetchByDate($masterRec->date);
+                $vat = $periodRec->vatRate ?? null;
             }
 
             $rec->packPrice = deals_Helper::getDisplayPrice($rec->packPrice, $vat, $masterRec->currencyRate, $masterRec->chargeVat);

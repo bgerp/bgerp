@@ -322,7 +322,10 @@ class planning_WorkInProgress extends core_Manager
     public static function applyQuantityHintIfNegative(&$rows, $recs, $productFldName = 'productId', $quantityFld = 'quantity', $hintFld = 'packQuantity')
     {
         $totalQuantities = array();
-        array_walk($recs, function (&$a) use (&$totalQuantities, $productFldName, $quantityFld) {$totalQuantities[$a->{$productFldName}] += $a->{$quantityFld};});
+        array_walk($recs, function (&$a) use (&$totalQuantities, $productFldName, $quantityFld) {
+            $productId = $a->{$productFldName};
+            $totalQuantities[$productId] = ($totalQuantities[$productId] ?? 0) + $a->{$quantityFld};
+        });
         $inStock = planning_WorkInProgress::getQuantities(arr::extractValuesFromArray($recs, 'productId'));
 
         foreach ($recs as $i => &$rec) {

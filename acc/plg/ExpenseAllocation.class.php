@@ -93,7 +93,7 @@ class acc_plg_ExpenseAllocation extends core_Plugin
                                 $form->setDefault('allocationBy', 'no');
                             }
 
-                            if($rec->allocationBy == 'auto'){
+                            if(($rec->allocationBy ?? null) == 'auto'){
                                 $form->setField('allocationFilter', 'input');
                                 $form->setDefault('allocationFilter', 'all');
                             }
@@ -135,6 +135,9 @@ class acc_plg_ExpenseAllocation extends core_Plugin
                     $form->setError($mvc->packQuantityFld, "Въведеното к-во е по-малко от к-то разпределеното по разходи|* <b>{$allocatedVerbal}</b> |{$uomName}|*");
                 }
             } elseif(isset($rec->expenseItemId) && isset($rec->allocationBy)) {
+                $rec->allocationFilter = $rec->allocationFilter ?? null;
+                $rec->productsData = $rec->productsData ?? array();
+
                 if(!in_array($rec->allocationBy, array('no', 'auto'))){
                     if (!countR($form->allProducts)) {
                         $form->setError('allocationBy,expenseItemId', 'В избраната сделка няма експедирани/заскладени артикули');
@@ -150,7 +153,7 @@ class acc_plg_ExpenseAllocation extends core_Plugin
                 }
 
                 $expenseItemError = null;
-                if(!acc_CostAllocations::checkSelectedExpenseItem($rec->expenseItemId, $rec->allocationFilter, $mvc, $rec->id, $expenseItemError)){
+                if(!acc_CostAllocations::checkSelectedExpenseItem($rec->expenseItemId, $rec->allocationFilter, $mvc, $rec->id ?? null, $expenseItemError)){
                     $form->setError('expenseItemId', $expenseItemError);
                 }
 
@@ -183,8 +186,8 @@ class acc_plg_ExpenseAllocation extends core_Plugin
                 'detailRecId' => $rec->id,
                 'productId' => $rec->{$mvc->productFld},
                 'quantity' => $rec->{$mvc->quantityFld},
-                'allocationFilter' => $rec->allocationFilter,
-                'productsData' => $rec->productsData,
+                'allocationFilter' => $rec->allocationFilter ?? null,
+                'productsData' => $rec->productsData ?? null,
                 'containerId' => $containerId);
             
             // Запис на разхода

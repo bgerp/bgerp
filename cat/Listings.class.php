@@ -332,7 +332,7 @@ class cat_Listings extends core_Master
             return false;
         });
 
-        $firstFound = $res[key($res)];
+        $firstFound = reset($res);
         $reff = (is_object($firstFound)) ? (($firstFound->reff != $firstFound->code) ? $firstFound->reff : null) : null;
         return $reff;
     }

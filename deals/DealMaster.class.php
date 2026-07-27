@@ -1447,6 +1447,8 @@ abstract class deals_DealMaster extends deals_DealBase
             }
 
 
+            $row->deliveryBlock = '';
+
             if(isset($rec->deliveryTermId)){
                 if ($Driver = cond_DeliveryTerms::getTransportCalculator($rec->deliveryTermId)) {
                     $deliveryDataArr = $Driver->getVerbalDeliveryData($rec->deliveryTermId, $rec->deliveryData, get_called_class());
@@ -1557,7 +1559,7 @@ abstract class deals_DealMaster extends deals_DealBase
             }
             
             if (isset($actions['pay'])) {
-                $row->isPaid .= mb_strtoupper(tr('платено'));
+                $row->isPaid = ($row->isPaid ?? '') . mb_strtoupper(tr('платено'));
                 if ($rec->state == 'rejected') {
                     $row->isPaid = "<span class='quiet'>{$row->isPaid}</span>";
                 }
@@ -2912,7 +2914,7 @@ abstract class deals_DealMaster extends deals_DealBase
             }
             
             $dRec = clone $product;
-            $dRec->discount = $product->discount;
+            $dRec->discount = $product->discount ?? null;
             $dRec->price = ($product->amount) ? ($product->amount / $product->quantity) : $product->price;
             $dRec->quantity = $quantity / $product->quantityInPack;
             $dRec->rate = $rec->currencyRate;

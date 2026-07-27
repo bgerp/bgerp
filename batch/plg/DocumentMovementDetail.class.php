@@ -231,7 +231,7 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
     public static function on_AfterCreate($mvc, $rec)
     {
         if ($mvc->getBatchMovementDocument($rec) == 'out') {
-            if ($rec->_clonedWithBatches !== true) {
+            if (($rec->_clonedWithBatches ?? null) !== true) {
                 self::autoAllocate($mvc, $rec);
             }
         } else {
@@ -273,7 +273,7 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
         }
 
         // Ако записа е редактиран и к-то е променено
-        if ($rec->isEdited === true && isset($rec->id)) {
+        if (($rec->isEdited ?? null) === true && isset($rec->id)) {
             if ($rec->quantity != $mvc->fetchField($rec->id, 'quantity')) {
                 if($BatchClass = batch_Defs::getBatchDef($rec->{$mvc->productFieldName})){
                     if ($BatchClass->canAutoAllocate()) {
@@ -296,7 +296,7 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
     {
         if ($mvc->getBatchMovementDocument($rec) == 'out') {
             if(($rec->_forceBatch ?? false) !== true){
-                if ($rec->autoAllocate === true) {
+                if (($rec->autoAllocate ?? null) === true) {
                     batch_BatchesInDocuments::delete("#detailClassId = {$mvc->getClassId()} AND #detailRecId = {$rec->id}");
                     self::autoAllocate($mvc, $rec);
                     core_Statuses::newStatus('Преразпределени партиди, поради променено количество');
@@ -306,7 +306,7 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
             }
         }
         
-        if ($rec->isEdited === true) {
+        if (($rec->isEdited ?? null) === true) {
             if (empty($rec->batch)) {
                 batch_BatchesInDocuments::delete("#detailClassId = {$mvc->getClassId()} AND #detailRecId = {$rec->id}");
             } else {

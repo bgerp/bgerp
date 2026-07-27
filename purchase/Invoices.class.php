@@ -284,7 +284,7 @@ class purchase_Invoices extends deals_InvoiceMaster
             $form->setFieldType('number', core_Type::getByName('bigint(size=10)'));
         }
         
-        $clonedFh = $form->rec->fileHnd;
+        $clonedFh = $form->rec->fileHnd ?? null;
         
         if (!$clonedFh) {
             $clonedFh = Mode::get('invOriginFh');
@@ -1120,6 +1120,7 @@ class purchase_Invoices extends deals_InvoiceMaster
      */
     public static function getValiorValue($rec)
     {
+        $rec = static::fetchRec($rec);
         $valior = (!empty($rec->journalDate)) ? $rec->journalDate : $rec->date;
         $valior = dt::verbal2mysql($valior, false);
         

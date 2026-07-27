@@ -354,7 +354,7 @@ class sales_SalesDetails extends deals_DealDetail
 
         // Синхронизиране на сумата на транспорта
         if (($rec->syncFee ?? null) === true) {
-            sales_TransportValues::sync($mvc->Master, $rec->{$mvc->masterKey}, $rec->id, $rec->fee, $rec->deliveryTimeFromFee, $rec->_transportExplained);
+            sales_TransportValues::sync($mvc->Master, $rec->{$mvc->masterKey}, $rec->id, $rec->fee, $rec->deliveryTimeFromFee, ($rec->_transportExplained ?? null));
         }
     }
     

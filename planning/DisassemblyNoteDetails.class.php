@@ -162,8 +162,13 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
             $rec = $mvc->fetchRec($rec);
             if ($rec->isMainInput == 'yes') {
                 $requiredRoles = 'no_one';
-            } elseif(planning_DisassemblyNoteDetails::count("#type = 'production' AND #noteId = {$rec->noteId}") == 1){
-                $requiredRoles = 'no_one';
+            } elseif($rec->noteId) {
+                $masterRec = $mvc->Master->fetch($rec->noteId, 'state');
+                if($masterRec->state != 'draft') {
+                    if($mvc->count("#type = 'production' AND #noteId = '{$rec->noteId}'") == 1) {
+                        $requiredRoles = 'no_one';
+                    }
+                }
             }
         }
 
@@ -193,19 +198,41 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
 
 
     /**
-     * doc_plg_DetailRevisions вече празни productId за оттеглените редове, но
-     * batch_plg_DocumentMovementDetail го презаписва (с "Без партида") на
-     * СЪЩОТО събитие СЛЕД него. Класовите хукове се изпълняват последни (@see
-     * core_BaseClass::invoke), затова тук - гарантирано най-накрая - пак го празним
+     * При оттеглените версии скриваме повторения артикул, но оставяме
+     * рендирания snapshot на партидите, когато такъв съществува.
      */
     protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
     {
         $activeGroups = doc_plg_DetailRevisions::groupsWithActiveRow($data->recs);
-
-        foreach ($data->rows as $id => $row) {
-            $rec = $data->recs[$id];
+        $rejectedIds = array();
+        foreach ($data->recs as $rec) {
             if ((($rec->state ?? null) == 'rejected') && isset($activeGroups[$rec->revisionRootId ?: $rec->id])) {
-                $row->productId = '';
+                $rejectedIds[$rec->id] = $rec->id;
+            }
+        }
+
+        if (!countR($rejectedIds)) {
+
+            return;
+        }
+
+        $idsWithBatches = array();
+        Mode::push('showHistoricBatches', true);
+        try {
+            $query = batch_BatchesInDocuments::getQuery();
+            $query->where("#detailClassId = {$mvc->getClassId()}");
+            $query->in('detailRecId', $rejectedIds);
+            $query->show('detailRecId');
+            while ($bRec = $query->fetch()) {
+                $idsWithBatches[$bRec->detailRecId] = true;
+            }
+        } finally {
+            Mode::pop('showHistoricBatches');
+        }
+
+        foreach ($rejectedIds as $id) {
+            if (!isset($idsWithBatches[$id])) {
+                $data->rows[$id]->productId = '';
             }
         }
     }
@@ -229,7 +256,7 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
             foreach ($data->rows as $id => $row) {
                 $rec = $data->recs[$id];
 
-                if (!is_object($row->tools)) {
+                if (!is_object($row->tools ?? null)) {
                     $row->tools = new ET('[#TOOLS#]');
                 }
 
@@ -285,11 +312,9 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
             unset($data->listFields['tools']);
         }
 
-        // Дали изобщо някой ред (в което и да е от 3-те подтаблици) има реално
-        // съдържание в тулбара на plg_RowTools2 - ако няма никъде, '_rowTools'
-        // не се добавя насила в нито една от таблиците (@see orderMultiTableColumns).
-        // При печат/PDF/inline изгледи колоната не е нужна, дори да има съдържание
-        $haveRowTools = !Mode::isReadOnly() && $this->haveAnyRowTools($data->rows);
+        // Запазваме еднакъв набор и ред на колоните във всички таблици.
+        $allRows = $data->mainInputArr + $data->inputArr + $data->productionArr;
+        $commonListFields = core_TableView::filterEmptyColumns($allRows, $data->listFields, '*');
 
         // Мини-таблица с ОСНОВНИЯ артикул за разпад - показва се отделно, над
         // таблицата с произведените артикули (виж MAIN_INPUT_PRODUCT_TABLE в
@@ -298,14 +323,17 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
             $data->listFields['productId'] = 'Артикули за разпад|* ';
             $mData = clone $data;
             $mData->listTableMvc = clone $this;
+            $mData->listFields = $commonListFields;
+            $mData->listFields['productId'] = 'Артикули за разпад|* ';
             $mData->rows = $data->mainInputArr;
             $mData->recs = array_intersect_key($mData->recs, $mData->rows);
-            $this->invoke('BeforeRenderListTable', array(&$tpl, &$mData));
-            $mData->listFields['storeId'] = 'От склад';
-            $this->alignMultiTableColumns($mData->listTableMvc, array('storeId' => 160, 'packagingId' => 140));
-            $mData->listFields = $this->orderMultiTableColumns($mData->listFields, array(), $haveRowTools);
 
-            $mainInputTable = cls::get('core_TableView', array('mvc' => $mData->listTableMvc, 'tableClass' => $this->detailsTableClass));
+            $this->invoke('BeforeRenderListTable', array(&$tpl, &$mData));
+            $mData->listTableMvc->fields['productId']->tdClass = trim(($mData->listTableMvc->fields['productId']->tdClass ?? '') . ' disassemblyProductColumn');
+            $mData->listFields['storeId'] = 'От склад';
+
+            $mainInputTable = cls::get('core_TableView', array('mvc' => $mData->listTableMvc));
+            $mainInputTable->tableClass = 'listTable disassemblyNoteTable';
             $detailsMainInput = $mainInputTable->get($mData->rows, $mData->listFields);
             $tpl->append($detailsMainInput, 'MAIN_INPUT_PRODUCT_TABLE');
         }
@@ -315,15 +343,18 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
             $data->listFields['productId'] = 'Артикули за разпад|* ';
             $iData = clone $data;
             $iData->listTableMvc = clone $this;
+            $iData->listFields = $commonListFields;
+            $iData->listFields['productId'] = 'Артикули за разпад|* ';
             $iData->rows = $data->inputArr;
             $iData->recs = array_intersect_key($iData->recs, $iData->rows);
 
             $this->invoke('BeforeRenderListTable', array(&$tpl, &$iData));
+            $iData->listTableMvc->fields['productId']->tdClass = trim(($iData->listTableMvc->fields['productId']->tdClass ?? '') . ' disassemblyProductColumn');
+            $iData->listTableMvc->FNC('tools', 'int', 'tdClass=rowNumColumn');
             $iData->listFields['storeId'] = 'От склад';
-            $this->alignMultiTableColumns($iData->listTableMvc, array('storeId' => 160, 'packagingId' => 140));
-            $iData->listFields = $this->orderMultiTableColumns($iData->listFields, array(), $haveRowTools);
 
-            $inputTable = cls::get('core_TableView', array('mvc' => $iData->listTableMvc, 'tableClass' => $this->detailsTableClass));
+            $inputTable = cls::get('core_TableView', array('mvc' => $iData->listTableMvc));
+            $inputTable->tableClass = 'listTable disassemblyNoteTable';
             $detailsInput = $inputTable->get($iData->rows, $iData->listFields);
             $tpl->append($detailsInput, 'INPUT_PRODUCTS_TABLE');
         }
@@ -336,15 +367,18 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
         $data->listFields['productId'] = 'Произведени артикули|* ';
         $pData = clone $data;
         $pData->listTableMvc = clone $this;
+        $pData->listFields = $commonListFields;
+        $pData->listFields['productId'] = 'Произведени артикули|* ';
         $pData->rows = $data->productionArr;
         $pData->recs = array_intersect_key($pData->recs, $pData->rows);
         $pData->listFields['storeId'] = 'В склад';
 
         $this->invoke('BeforeRenderListTable', array(&$tpl, &$pData));
-        $this->alignMultiTableColumns($pData->listTableMvc, array('storeId' => 160, 'packagingId' => 140));
-        $pData->listFields = $this->orderMultiTableColumns($pData->listFields, array(), $haveRowTools);
+        $pData->listTableMvc->fields['productId']->tdClass = trim(($pData->listTableMvc->fields['productId']->tdClass ?? '') . ' disassemblyProductColumn');
+        $pData->listTableMvc->FNC('tools', 'int', 'tdClass=rowNumColumn');
 
-        $productionTable = cls::get('core_TableView', array('mvc' => $pData->listTableMvc, 'tableClass' => $this->detailsTableClass));
+        $productionTable = cls::get('core_TableView', array('mvc' => $pData->listTableMvc));
+        $productionTable->tableClass = 'listTable disassemblyNoteTable';
         $detailsProduction = $productionTable->get($pData->rows, $pData->listFields);
         $tpl->append($detailsProduction, 'PRODUCED_PRODUCTS_TABLE');
 
@@ -353,6 +387,10 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
                 $tpl->append(ht::createBtn('Произведен артикул', array($this, 'add', 'noteId' => $data->masterId, 'type' => 'production', 'ret_url' => true), null, null, array('style' => 'margin-top:5px;margin-bottom:15px;', 'ef_icon' => 'img/16/door_in.png', 'title' => 'Добавяне на произведен артикул')), 'PRODUCED_PRODUCTS_TABLE');
             }
         }
+
+        $tpl->push('planning/js/DisassemblyNoteTables.js', 'JS');
+        jquery_Jquery::run($tpl, 'syncDisassemblyNoteTables();');
+        jquery_Jquery::runAfterAjax($tpl, 'syncDisassemblyNoteTables');
 
         return $tpl;
     }

@@ -115,7 +115,7 @@ class bank_SpendingDocuments extends bank_Document
         $form->setDefault('contragentClassId', $contragentClassId);
         
         expect($origin = $mvc->getOrigin($form->rec), $form->rec);
-        $accountOptions = $mvc->getOwnAccountOptions($form->rec->ownAccount);
+        $accountOptions = $mvc->getOwnAccountOptions($form->rec->ownAccount ?? null);
         $mvc->invoke('AfterGetOwnAccountOptions', array($form, &$accountOptions));
         $form->setOptions('ownAccount', $accountOptions);
 
@@ -131,7 +131,7 @@ class bank_SpendingDocuments extends bank_Document
         }
         
         $cData = cls::get($contragentClassId)->getContragentData($contragentId);
-        $form->setReadOnly('contragentName', ($cData->person) ? $cData->person : $cData->company);
+        $form->setReadOnly('contragentName', (!empty($cData->person)) ? $cData->person : $cData->company);
 
         $form->setField('ownAccount', 'caption=От->Сметка,after=reason');
         $form->setField('currencyId', 'caption=От->Валута,after=ownAccount');

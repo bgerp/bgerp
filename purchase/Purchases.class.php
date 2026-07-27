@@ -820,7 +820,7 @@ class purchase_Purchases extends deals_DealMaster
                 unset($ship->price);
                 $ship->name = cat_Products::getTitleById($ship->productId, false);
                 
-                if(is_array($ship->expenseItems)){
+                if(isset($ship->expenseItems) && is_array($ship->expenseItems)){
                     foreach ($ship->expenseItems as $expenseId => $expenseObj){
                         
                         $allocatedArr = array();

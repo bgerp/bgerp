@@ -74,7 +74,7 @@ class cat_plg_ShowCodes extends core_Plugin
             $row->code = cat_Products::getVerbal($rec->{$mvc->productFld}, 'code');
         }
 
-        if($mvc->Master->detailOrderByField){
+        if(isset($mvc->Master->detailOrderByField)){
             $sortRequest = Request::get('Sort');
 
             // Ако все пак се сортира по артикула от стрелките да се игнорира зададеното сортиране

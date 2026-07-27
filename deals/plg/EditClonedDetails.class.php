@@ -256,12 +256,12 @@ class deals_plg_EditClonedDetails extends core_Plugin
                         $det->price /= $det->_rate;
                         $det->price *= $rec->{$mvc->rateFldName};
                     }
-               } elseif($det->_valior) {
+               } elseif(isset($det->_valior)) {
                     $det->price = deals_Helper::getSmartBaseCurrency($det->price, $det->_valior, $rec->{$mvc->valiorFld});
                 }
 
                 $newPackQuantity = $updatePackQuantity = 0;
-                if (is_array($det->batches) && core_Packs::isInstalled('batch')) {
+                if (isset($det->batches) && is_array($det->batches) && core_Packs::isInstalled('batch')) {
                     foreach ($det->batches as &$bRec) {
                         $bMd5 = md5($bRec->batch);
                         $key = "quantity|{$bMd5}|{$det->id}|";
@@ -279,8 +279,8 @@ class deals_plg_EditClonedDetails extends core_Plugin
                         $bRec->storeId = $rec->storeId;
                     }
                 }
-                $newPackQuantity += $rec->{"quantity||{$det->id}|"};
-                $updatePackQuantity += $rec->{"quantity||{$det->id}|"};
+                $newPackQuantity += $rec->{"quantity||{$det->id}|"} ?? 0;
+                $updatePackQuantity += $rec->{"quantity||{$det->id}|"} ?? 0;
                 if (!empty($newPackQuantity)) {
                     if (!empty($det->baseQuantity)) {
                         $det->quantityInPack = $det->baseQuantity / $newPackQuantity;
@@ -316,7 +316,7 @@ class deals_plg_EditClonedDetails extends core_Plugin
                     
                     $det->{$Detail->masterKey} = $rec->id;
                     $Detail->save($det);
-                    if (is_array($det->batches) && core_Packs::isInstalled('batch')) {
+                    if (isset($det->batches) && is_array($det->batches) && core_Packs::isInstalled('batch')) {
                         $batchesArr = array();
                         foreach ($det->batches as $batch) {
                             $d1 = $batch->oldQuantity - $batch->quantity;

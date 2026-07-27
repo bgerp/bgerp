@@ -703,7 +703,7 @@ class core_Manager extends core_Mvc
         // без опции или с налични само една
         if(isset($data->listFilter)){
             core_Debug::startTimer('HIDE_EMPTY_OPTIONS');
-            $showFields = arr::make($data->listFilter->showFields, true);
+            $showFields = arr::make($data->listFilter->showFields ?? null, true);
 
             foreach ($showFields as $name) {
                 core_Debug::startTimer("HIDE_EMPTY_OPTIONS_{$name}");

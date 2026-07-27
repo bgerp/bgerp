@@ -66,6 +66,8 @@ class drdata_plg_Canonize extends core_Plugin
      */
     public static function on_AfterGetVerbal($mvc, &$num, $rec, $part)
     {
+        if (!is_object($rec)) return;
+
         $canonizeFields = $mvc->getCanonizedFields($rec);
         if(!countR($canonizeFields)) return;
 
