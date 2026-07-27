@@ -1598,7 +1598,7 @@ abstract class deals_InvoiceMaster extends core_Master
             
             foreach (array('contragentPlace', 'contragentAddress') as $cfld) {
                 if (!empty($rec->{$cfld})) {
-                    $row->{$cfld} = core_Lg::transliterate($row->{$cfld});
+                    $row->{$cfld} = core_Lg::transliterate($row->{$cfld} ?? $rec->{$cfld});
                 }
             }
             

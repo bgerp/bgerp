@@ -339,7 +339,8 @@ class acc_JournalDetails extends core_Detail
         $row->creditAccId = acc_Balances::getAccountLink($rec->creditAccId, $balanceValior);
         
         if (!empty($rec->reasonCode)) {
-            $row->reasonCode = "<div style='color:#444;font-size:0.9em;margin-left:10px'>{$rec->reasonCode}</div>";
+            $reasonCodeVerbal = $row->reasonCode ?? $mvc->getVerbal($rec, 'reasonCode');
+            $row->reasonCode = "<div style='color:#444;font-size:0.9em;margin-left:10px'>{$reasonCodeVerbal}</div>";
         }
     }
     
