@@ -886,7 +886,7 @@ class pos_Terminal extends peripheral_Terminal
         
         $saleTpl = $blocksTpl->getBlock('sale');
         $paymentTpl = $blocksTpl->getBlock('payment');
-        if ($data->rows) {
+        if (is_array($data->rows)) {
             foreach ($data->rows as $id => $row) {
                 $row->id = $id;
                 
