@@ -312,7 +312,7 @@ td.dependantProgress {
 
 .overflow-scroll {
   overflow: auto;
-  margin-top: 38px;
+  margin-top: 0;
   box-sizing: border-box;
   height: calc(100vh - 40px); }
 
