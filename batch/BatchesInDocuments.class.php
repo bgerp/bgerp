@@ -485,7 +485,9 @@ class batch_BatchesInDocuments extends core_Manager
         $recInfo = $Detail->getRowInfo($detailRecId);
         $recInfo->detailClassId = $detailClassId;
         $recInfo->detailRecId = $detailRecId;
-        $storeId = $recInfo->operation[key($recInfo->operation)];
+        $operations = is_array($recInfo->operation ?? null) ? $recInfo->operation : array();
+        expect(countR($operations), $recInfo);
+        $storeId = reset($operations);
         $Def = batch_Defs::getBatchDef($recInfo->productId);
         $detailRec = $Detail->fetch($detailRecId);
 
@@ -683,7 +685,8 @@ class batch_BatchesInDocuments extends core_Manager
             $BatchType = $Def->getBatchClassType($Detail, $detailRecId);
             if ($BatchType instanceof type_Enum) {
                 $bOptions = $BatchType->options;
-                $suggestions = array_combine(array_values($bOptions), array_values($bOptions)) + $suggestions;
+                $suggestionOptions = is_array($suggestions) ? $suggestions : array();
+                $suggestions = array_combine(array_values($bOptions), array_values($bOptions)) + $suggestionOptions;
             }
 
             if($haveMoreThenDisplayedBatches && !$Detail->canReceiveNewBatch($detailRec)){
@@ -984,26 +987,29 @@ class batch_BatchesInDocuments extends core_Manager
         $res = array();
         $Def = $Type->params['batchDefinition'];
         $tableData = (array) $tableData;
-        $isSerial = $Def instanceof batch_definitions_Serial;
-        
-        $error = $errorFields = array();
-        $batches = $tableData['batch'];
         if (empty($tableData)) {
-            
+
             return;
         }
+
+        $isSerial = $Def instanceof batch_definitions_Serial;
+
+        $error = $errorFields = array();
+        $batches = is_array($tableData['batch'] ?? null) ? $tableData['batch'] : array();
+        $quantities = is_array($tableData['quantity'] ?? null) ? $tableData['quantity'] : array();
 
         $bArray = array();
         foreach ($batches as $key => $batch) {
             if (!empty($batch)) {
                 if ($isSerial) {
-                    if (empty($tableData['quantity'][$key])) {
-                        $tableData['quantity'][$key] = 1;
+                    if (empty($quantities[$key])) {
+                        $quantities[$key] = 1;
                     }
                 }
                 $msg = null;
-                if (!$Def->isValid($batch, $tableData['quantity'][$key], $msg)) {
-                    if($tableData['quantity'][$key] != 0){
+                $quantity = $quantities[$key] ?? null;
+                if (!$Def->isValid($batch, $quantity, $msg)) {
+                    if($quantity != 0){
                         $error[] = "{$batch} :|* {$msg}";
                         $errorFields['batch'][$key] = "{$batch} :|* {$msg}";
                     }
@@ -1018,10 +1024,10 @@ class batch_BatchesInDocuments extends core_Manager
             }
         }
         
-        if (is_array($tableData['quantity'])) {
-            foreach ($tableData['quantity'] as $key => $quantity) {
+        if (countR($quantities)) {
+            foreach ($quantities as $key => $quantity) {
                 if (!empty($quantity)) {
-                    if (empty($tableData['batch'][$key])) {
+                    if (empty($batches[$key])) {
                         $error[] = 'Попълнено количество без да има партида';
                         $errorFields['quantity'][$key] = 'Попълнено количество без да има партида';
                         $errorFields['batch'][$key] = 'Попълнено количество без да има партида';
@@ -1193,7 +1199,12 @@ class batch_BatchesInDocuments extends core_Manager
      */
     public static function displayBatchesForInvoice($productId, $batches)
     {
-        $batches = explode(',', $batches);
+        if (!is_string($batches) && !is_numeric($batches)) {
+
+            return;
+        }
+
+        $batches = explode(',', (string) $batches);
         if (!countR($batches)) {
             
             return;
@@ -1305,7 +1316,7 @@ class batch_BatchesInDocuments extends core_Manager
         foreach ($toSave as $saveRec){
             $saveRec->_clonedWithBatches = true;
             $Detail::save($saveRec);
-            if(is_array($saveRec->_batches) && core_Packs::isInstalled('batch')){
+            if(isset($saveRec->_batches) && is_array($saveRec->_batches) && core_Packs::isInstalled('batch')){
                 batch_BatchesInDocuments::saveBatches($Detail, $saveRec->id, $saveRec->_batches);
             }
         }
