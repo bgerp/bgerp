@@ -1580,8 +1580,8 @@ class pos_Terminal extends peripheral_Terminal
                 $btnCaption = "|{$packName}|*</br> <small>" . core_Type::getByName('double(smartRound)')->toVerbal($packRec->quantity) . " " . tr(cat_UoM::getSmartName($baseMeasureId, $packRec->quantity)) . "</small>";
             }
             
-            $selected = ($selectedRec->value == $packagingId) ? 'selected' : '';
-            $buttons[$packRec->packagingId] = ht::createElement("div", array('id' => "packaging{$count}", 'class' => "{$baseClass} {$selected}", 'data-pack' => $packName, 'data-url' => $dataUrl), tr($btnCaption), true);
+            $selected = (($selectedRec->value ?? null) == $packagingId) ? 'selected' : '';
+            $buttons[$packagingId] = ht::createElement("div", array('id' => "packaging{$count}", 'class' => "{$baseClass} {$selected}", 'data-pack' => $packName, 'data-url' => $dataUrl), tr($btnCaption), true);
             $count++;
         }
         
