@@ -96,10 +96,14 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
                 $measureId = null;
                 
                 //Заприходено количество
-                $quantity = ($Master->className == 'store_InventoryNotes') ?(round($detail->quantity - $detail->blQuantity, 4)) : $detail->quantity;
+                if ($Master->className == 'store_InventoryNotes') {
+                    $quantity = round(($detail->quantity ?? 0) - ($detail->blQuantity ?? 0), 4);
+                } else {
+                    $quantity = $detail->quantity ?? null;
+                }
                 
                 //Артикул
-                $productId = $detail->productId;
+                $productId = $detail->productId ?? null;
                 
                 if ($productId) {
                     $measureId = cat_Products::fetchField($productId, 'measureId');
@@ -136,7 +140,7 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
                     $storeId = acc_Items::fetch("{$detail->debitEnt1}")->id;
                     
                     //Заприходено количество
-                    $quantity = $detail->debitQuantity;
+                    $quantity = $detail->debitQuantity ?? null;
                 }
                 
                 if ($quantity < 0) {
