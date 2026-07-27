@@ -297,7 +297,6 @@ class pos_Receipts extends core_Master
             $cu = core_Users::getCurrent();
             $query = $this->getQuery();
             $query->where("#pointId = {$pointId} AND #createdBy = {$cu} AND #state = 'draft' AND #revertId IS NULL");
-            $query->show('valior,contragentClass,contragentObjectId,total');
             $query->orderBy('id', 'DESC');
             $lastDraft = $query->fetch();
 
