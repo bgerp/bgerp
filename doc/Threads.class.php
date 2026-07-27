@@ -1143,12 +1143,13 @@ class doc_Threads extends core_Manager
         } catch (core_Exception_Expect $expect) {
             $row->hnd = ($row->hnd ?? '') . (($rec->handle ?? null) ? substr($rec->handle, 0, strlen($rec->handle) - 3) : '???');
             $row->title = '?????????????';
+            $cRec = null;
             if ($rec->firstContainerId) {
                 $cRec = doc_Containers::fetch($rec->firstContainerId);
             }
             $row->author = crm_Profiles::createLink($rec->createdBy);
             
-            if ($cRec->docClass) {
+            if (is_object($cRec) && !empty($cRec->docClass)) {
                 if ($classRec = core_Classes::fetch($cRec->docClass)) {
                     $row->title = $classRec->title;
                 }
