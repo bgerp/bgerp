@@ -198,19 +198,41 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
 
 
     /**
-     * doc_plg_DetailRevisions вече празни productId за оттеглените редове, но
-     * batch_plg_DocumentMovementDetail го презаписва (с "Без партида") на
-     * СЪЩОТО събитие СЛЕД него. Класовите хукове се изпълняват последни (@see
-     * core_BaseClass::invoke), затова тук - гарантирано най-накрая - пак го празним
+     * При оттеглените версии скриваме повторения артикул, но оставяме
+     * рендирания snapshot на партидите, когато такъв съществува.
      */
     protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
     {
         $activeGroups = doc_plg_DetailRevisions::groupsWithActiveRow($data->recs);
-
-        foreach ($data->rows as $id => $row) {
-            $rec = $data->recs[$id];
+        $rejectedIds = array();
+        foreach ($data->recs as $rec) {
             if ((($rec->state ?? null) == 'rejected') && isset($activeGroups[$rec->revisionRootId ?: $rec->id])) {
-                $row->productId = '';
+                $rejectedIds[$rec->id] = $rec->id;
+            }
+        }
+
+        if (!countR($rejectedIds)) {
+
+            return;
+        }
+
+        $idsWithBatches = array();
+        Mode::push('showHistoricBatches', true);
+        try {
+            $query = batch_BatchesInDocuments::getQuery();
+            $query->where("#detailClassId = {$mvc->getClassId()}");
+            $query->in('detailRecId', $rejectedIds);
+            $query->show('detailRecId');
+            while ($bRec = $query->fetch()) {
+                $idsWithBatches[$bRec->detailRecId] = true;
+            }
+        } finally {
+            Mode::pop('showHistoricBatches');
+        }
+
+        foreach ($rejectedIds as $id) {
+            if (!isset($idsWithBatches[$id])) {
+                $data->rows[$id]->productId = '';
             }
         }
     }
