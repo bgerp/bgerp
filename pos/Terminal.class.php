@@ -1212,7 +1212,7 @@ class pos_Terminal extends peripheral_Terminal
                 
                 if($ContragentClass == 'crm_Companies'){
                     $cQuery->where("#id != {$ownCompany->id}");
-                    $cQuery->show('id,folderId,vatId,uicId,name');
+                    $cQuery->show('id,folderId,vatId,uicId,name,email,tel');
                     $uicField = 'uicId';
                 } else {
                     $cQuery->show('id,folderId,name,egn,vatId,name,email,tel');
@@ -1231,7 +1231,7 @@ class pos_Terminal extends peripheral_Terminal
                     // Ако го съдържат в името си се добавят
                     if(empty($searchString) || strpos($name, $searchString) !== false){
                         if(!array_key_exists("{$classId}|{$cRec->id}", $contragents)){
-                            $contragents["{$classId}|{$cRec->id}"] = (object)array('contragentClassId' => $ContragentClass::getClassId(), 'contragentId' => $cRec->id, 'title' => $cRec->name, 'vatId' => $Varchar->toVerbal($cRec->vatId), "{$uicField}" => $Varchar->toVerbal($cRec->{$uicField}), 'email' => $cRec->email, 'tel' => $cRec->tel);
+                            $contragents["{$classId}|{$cRec->id}"] = (object)array('contragentClassId' => $ContragentClass::getClassId(), 'contragentId' => $cRec->id, 'title' => $cRec->name, 'vatId' => $Varchar->toVerbal($cRec->vatId ?? null), "{$uicField}" => $Varchar->toVerbal($cRec->{$uicField} ?? null), 'email' => $cRec->email ?? null, 'tel' => $cRec->tel ?? null);
                             $count++;
                         }
                     }
@@ -1246,7 +1246,7 @@ class pos_Terminal extends peripheral_Terminal
                     $cQuery = $ContragentClass::getQuery();
                     $cQuery->where("#state != 'rejected' AND #state != 'closed'");
                     if($ContragentClass == 'crm_Companies'){
-                        $cQuery->show('id,folderId,name,vatId,uicId');
+                        $cQuery->show('id,folderId,name,vatId,uicId,email,tel');
                         $cQuery->where("#id != {$ownCompany->id}");
                         $uicField = 'uicId';
                     } else {
@@ -1260,7 +1260,7 @@ class pos_Terminal extends peripheral_Terminal
                     plg_Search::applySearch($stringInput, $cQuery);
                     while($cRec = $cQuery->fetch()){
                         if(!array_key_exists("{$classId}|{$cRec->id}", $contragents)){
-                            $contragents["{$classId}|{$cRec->id}"] = (object)array('contragentClassId' => $ContragentClass::getClassId(), 'contragentId' => $cRec->id, 'title' => $cRec->name, 'vatId' => $Varchar->toVerbal($cRec->vatId), "{$uicField}" => $Varchar->toVerbal($cRec->{$uicField}), 'email' => $cRec->email, 'tel' => $cRec->tel);
+                            $contragents["{$classId}|{$cRec->id}"] = (object)array('contragentClassId' => $ContragentClass::getClassId(), 'contragentId' => $cRec->id, 'title' => $cRec->name, 'vatId' => $Varchar->toVerbal($cRec->vatId ?? null), "{$uicField}" => $Varchar->toVerbal($cRec->{$uicField} ?? null), 'email' => $cRec->email ?? null, 'tel' => $cRec->tel ?? null);
                             $count++;
                         }
 
