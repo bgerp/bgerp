@@ -451,7 +451,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
         $this->invoke('BeforeRenderListTable', array(&$tpl, &$iData));
         plg_AlignDecimals2::alignDecimals($this, $iData->recs, $iData->rows);
         
-        $iData->listFields = core_TableView::filterEmptyColumns($iData->rows, $iData->listFields, '*');
+        //$iData->listFields = core_TableView::filterEmptyColumns($iData->rows, $iData->listFields, '*');
         if(empty($iData->listFields['quantityFromBom']) && empty($iData->listFields['quantityExpected'])){
             $iData->listFields['packQuantity'] = 'К-во';
         }
@@ -505,7 +505,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
 
                 $this->invoke('BeforeRenderListTable', array(&$tpl, &$pData));
                 plg_AlignDecimals2::alignDecimals($this, $pData->recs, $pData->rows);
-                $pData->listFields = core_TableView::filterEmptyColumns($pData->rows, $pData->listFields, '*');
+                //$pData->listFields = core_TableView::filterEmptyColumns($pData->rows, $pData->listFields, '*');
                 $this->modifyRows($pData);
 
                 if(isset($pData->listFields['quantityFromBom'])){
