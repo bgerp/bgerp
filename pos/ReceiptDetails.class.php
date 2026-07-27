@@ -1094,10 +1094,10 @@ class pos_ReceiptDetails extends core_Detail
     public function getProductInfo(&$rec)
     {
         $product = null;
-        if ($rec->productId) {
+        if (!empty($rec->productId)) {
             expect(cat_Products::fetchField($rec->productId));
             $product = (object) array('productId' => $rec->productId);
-        } elseif ($rec->ean) {
+        } elseif (!empty($rec->ean)) {
             $product = cat_Products::getByCode($rec->ean);
         }
 
@@ -1112,10 +1112,11 @@ class pos_ReceiptDetails extends core_Detail
             return;
         }
 
-        if (!$product->packagingId) {
+        $packagingId = $product->packagingId ?? null;
+        if (!$packagingId) {
             $basePackId = (isset($rec->value)) ? $rec->value : key(cat_Products::getPacks($product->productId));
         } else {
-            $basePackId = $product->packagingId;
+            $basePackId = $packagingId;
         }
 
         $packRec = cat_products_Packagings::getPack($product->productId, $basePackId);
