@@ -151,7 +151,7 @@ class type_UserList extends type_Keylist
                 $this->suggestions[$gName] = $group;
                 foreach ($gVals->suggArr as $uId) {
                     if ($uId > 1) {
-                        if ($uRec = $userArr['r'][$uId]) {
+                        if ($uRec = ($userArr['r'][$uId] ?? null)) {
                             $key = $this->getKey($gKey, $uId);
                             $this->suggestions[$key] = html_entity_decode(core_Users::getVerbal($uRec, 'nick'));
                             if (EF_USSERS_EMAIL_AS_NICK) {
@@ -180,13 +180,16 @@ class type_UserList extends type_Keylist
             
             $teamMembers = 0;
             
-            foreach ((array) $userArr[$t] as $uId) {
-                $uRec = $userArr['r'][$uId];
+            foreach ((array) ($userArr[$t] ?? array()) as $uId) {
+                $uRec = $userArr['r'][$uId] ?? null;
+                if (!$uRec) {
+                    continue;
+                }
                 if ($uRec->state == 'rejected' || $uRec->state == 'draft') {
                     continue;
                 }
 
-                if ($this->params['showClosedUsers'] == 'no') {
+                if (($this->params['showClosedUsers'] ?? null) == 'no') {
                     if ($uRec->state == 'closed') {
                         continue;
                     }

@@ -681,7 +681,11 @@ class cat_products_Packagings extends core_Detail
      */
     public function preparePackagings($data)
     {
-        $data->_masterRec = is_object($data->masterData->rec) ? $data->masterData->rec : $data->masterMvc->fetch($data->masterId);
+        if (isset($data->masterData->rec) && is_object($data->masterData->rec)) {
+            $data->_masterRec = $data->masterData->rec;
+        } else {
+            $data->_masterRec = $data->masterMvc->fetch($data->masterId);
+        }
 
         $data->recs = $data->rows = array();
         $fields = $this->selectFields();
@@ -720,7 +724,7 @@ class cat_products_Packagings extends core_Detail
         }
         $tpl = (isset($data->tpl)) ? $data->tpl : getTplFromFile('cat/tpl/PackagingDetail.shtml');
 
-        if ($data->addUrl && !Mode::isReadOnly()) {
+        if (!empty($data->addUrl) && !Mode::isReadOnly()) {
             $addBtn = ht::createLink('<img src=' . sbf('img/16/add.png') . " style='vertical-align: middle; margin-left:5px;'>", $data->addUrl, false, 'title=Добавяне на нова опаковка/мярка');
             $tpl->append($addBtn, 'TITLE');
         }

@@ -26,3 +26,9 @@
 .smaller {
   font-size: 0.9em; }
 
+.document .manifactureDetailsTable {
+  table-layout: fixed;
+  width: 100%; }
+
+.document .listTable.manifactureDetailsTable th {
+  white-space: normal; }

@@ -2149,18 +2149,22 @@ class eshop_Carts extends core_Master
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-        if ($rec->userId){
+        if (!empty($rec->userId)){
             $row->userId = crm_Profiles::createLink($rec->userId) . "</br>";
         }
-        
-        $settings = cms_Domains::getSettings($rec->domainId);
-        $row->userId .= type_Ip::decorateIp($rec->ip, $rec->createdOn)."</br>" .log_Browsers::getLink($rec->brid);
-        $row->ROW_ATTR['class'] = "state-{$rec->state}";
+
+        $domainId = $rec->domainId ?? null;
+        $state = $rec->state ?? null;
+        $settings = cms_Domains::getSettings($domainId);
+        $row->userId = ($row->userId ?? '') . type_Ip::decorateIp($rec->ip ?? null, $rec->createdOn ?? null)."</br>" . log_Browsers::getLink($rec->brid ?? null);
+        $row->ROW_ATTR['class'] = isset($state) ? "state-{$state}" : '';
         $row->STATE_CLASS = $row->ROW_ATTR['class'];
-        $row->domainId = cms_Domains::getHyperlink($rec->domainId);
+        if (isset($domainId)) {
+            $row->domainId = cms_Domains::getHyperlink($domainId);
+        }
         
         if (isset($fields['-single'])) {
-            if ($rec->state == 'draft') {
+            if ($state == 'draft') {
                 $delitionTime = self::getDeletionTime($rec);
                 $row->delitionTime = core_Type::getByName('datetime(format=smartTime)')->toVerbal($delitionTime);
                 
@@ -2175,10 +2179,12 @@ class eshop_Carts extends core_Master
             }
         }
         
-        $currencyCode = $rec->currencyId;
-        $rec->vatAmount = $rec->total - $rec->totalNoVat;
+        $currencyCode = $rec->currencyId ?? null;
+        if (isset($rec->total, $rec->totalNoVat)) {
+            $rec->vatAmount = $rec->total - $rec->totalNoVat;
+        }
         
-        if ($rec->freeDelivery != 'yes' && $rec->deliveryNoVat > 0) {
+        if (($rec->freeDelivery ?? null) != 'yes' && ($rec->deliveryNoVat ?? 0) > 0 && isset($rec->totalNoVat)) {
             $rec->totalNoVat = $rec->totalNoVat - $rec->deliveryNoVat;
         }
 
@@ -2189,13 +2195,13 @@ class eshop_Carts extends core_Master
             }
         }
         
-        if ($rec->freeDelivery == 'yes') {
+        if (($rec->freeDelivery ?? null) == 'yes') {
             $row->deliveryNoVat = "<span style='text-transform: uppercase;color:green;font-weight:bold';>" . tr('Безплатна') . '</span>';
         }
         
         if (isset($fields['-list'])) {
-            if (!empty($rec->email) && $rec->state == 'draft') {
-                $row->productCount = ht::createHint($row->productCount, 'Има попълнени данни за поръчка|*!', 'notice', false);
+            if (!empty($rec->email) && $state == 'draft') {
+                $row->productCount = ht::createHint($row->productCount ?? '', 'Има попълнени данни за поръчка|*!', 'notice', false);
             }
         }
         
@@ -2230,7 +2236,7 @@ class eshop_Carts extends core_Master
                 $row->EXPECTED_DELIVERY = $expectedDeliveryText;
             }
         } else {
-            if($rec->deliveryNoVat < 0){
+            if(($rec->deliveryNoVat ?? 0) < 0){
                 $row->deliveryNoVat = ht::createHint("", "Има проблем при изчислението на доставката|* [{$rec->deliveryNoVat}]", 'warning', false);
             }
         }
@@ -3085,7 +3091,7 @@ class eshop_Carts extends core_Master
      */
     protected static function on_AfterGetCanonizedFields($mvc, &$res, $rec)
     {
-        if($rec->makeInvoice != 'company'){
+        if(($rec->makeInvoice ?? null) != 'company'){
             unset($res['uicNo']);
         }
     }

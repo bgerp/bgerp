@@ -132,7 +132,7 @@ class change_History extends core_Manager
 
         // Към тях се добавят текущия и новия запис
         foreach (array('m' => $oldRec, 'n' => $newRec) as $k => $r1){
-            if(!isset($r1)) continue;
+            if(!is_object($r1)) continue;
             $data = new stdClass();
             foreach ($loggableFields as $logFld){
                 $data->{$logFld} = $r1->{$logFld} ?? null;

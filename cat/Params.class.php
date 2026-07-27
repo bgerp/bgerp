@@ -235,10 +235,11 @@ class cat_Params extends bgerp_ProtoParam
         if (is_array($paramArr)) {
             foreach ($paramArr as &$row2) {
                 $block = clone $tpl->getBlock('PARAM_GROUP_ROW');
-                if ($row2->group != $lastGroupId) {
-                    $block->replace($row2->group, 'group');
+                $group = $row2->group ?? null;
+                if ($group != $lastGroupId) {
+                    $block->replace($group, 'group');
                 }
-                $lastGroupId = $row2->group;
+                $lastGroupId = $group;
                 unset($row2->group);
                 $block->placeObject($row2);
                 $block->removeBlocks();

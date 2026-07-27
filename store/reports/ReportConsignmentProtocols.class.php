@@ -402,7 +402,7 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
 
                     $singleUrl = toUrl(array($Doc->className, 'single', $v->docId));
                     $row->debitDocuments = ($row->debitDocuments ?? '') . "<span class= 'state-{$state} document-handler' style='margin: 1px 3px;'>" .
-                        ht::createLink("#{$handle}", $singleUrl, false, array('target' => '_blank', 'ef_icon' => "{$Doc->singleIcon}")) . '</span>';
+                        ht::createLink("#{$handle}", $singleUrl, false, array('target' => '_blank', 'ef_icon' => "{$Doc->getSingleIcon($v->docId)}")) . '</span>';
 //ht::createLink($str, $str, false, array('target' => '_blank')),
                 }
             }
@@ -422,7 +422,7 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
 
                     $singleUrl = toUrl(array($Doc->className, 'single', $v->docId));
                     $row->creditDocuments = ($row->creditDocuments ?? '') . "<span class= 'state-{$state} document-handler' style='margin: 1px 3px;'>" .
-                        ht::createLink("#{$handle}", $singleUrl, false, array('target' => '_blank', 'ef_icon' => "{$Doc->singleIcon}")) . '</span>';
+                        ht::createLink("#{$handle}", $singleUrl, false, array('target' => '_blank', 'ef_icon' => "{$Doc->getSingleIcon($v->docId)}")) . '</span>';
 
                 }
             }

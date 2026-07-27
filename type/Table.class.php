@@ -74,7 +74,7 @@ class type_Table extends type_Blob
                 $row0 .= "<td class='formTypeTable'>{$fObj->caption}</td>";
             }
             
-            $attr[$field] = array('name' => $name . '[' . $field . '][]');
+            $attr[$field] = array('name' => $name . '[' . $field . '][]', 'style' => '');
             
             // При натискане на ентер да се добавя нов ред
             $attr[$field]['onkeypress'] = "if (event && (event.which == 13)) { if ($(event.target).closest('tr').is(':last-child')) { $('#dblRow_{$name}').click();} $(event.target).closest('tr').nextAll('tr').find('td :input').first().focus(); return false;}";

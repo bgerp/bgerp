@@ -33,3 +33,13 @@
 .smaller {
 	font-size: 0.9em;
 }
+
+// Еднаква геометрия на отделните таблици в производствените документи
+.document .manifactureDetailsTable {
+	table-layout: fixed;
+	width: 100%;
+}
+
+.document .listTable.manifactureDetailsTable th {
+	white-space: normal;
+}

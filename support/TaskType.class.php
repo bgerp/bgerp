@@ -16,6 +16,12 @@
 class support_TaskType extends core_Mvc
 {
     public $interfaces = 'cal_TaskTypeIntf';
+
+
+    /**
+     * Мениджърът, в който е вграден драйверът
+     */
+    public $Embedder = null;
     
     
     public $title = 'Сигнал';
@@ -724,19 +730,19 @@ class support_TaskType extends core_Mvc
         $me = cls::get(get_called_class());
         $query = $Tasks->getQuery();
         $query->where("#driverClass = {$me->getClassId()}");
-        if ($data->_statesArr) {
+        if (!empty($data->_statesArr)) {
             $query->orWhereArr('state', $data->_statesArr);
         } else {
             $query->where("#state != 'rejected'");
         }
-        if ($data->_ignoreId) {
+        if (!empty($data->_ignoreId)) {
             $query->where("#id != {$data->_ignoreId}");
         }
         $query->where("#assetResourceId = {$data->masterId}");
         $query->orderBy('createdOn=DESC,id=DESC');
-        $data->Pager = cls::get('core_Pager', array('itemsPerPage' => $data->itemsPerPage));
+        $data->Pager = cls::get('core_Pager', array('itemsPerPage' => $data->itemsPerPage ?? null));
         $data->Pager->setPageVar($data->masterMvc->className, $data->masterId);
-        if ($data->_itemsPerPage) {
+        if (!empty($data->_itemsPerPage)) {
             $data->Pager->itemsPerPage = $data->_itemsPerPage;
         }
         $data->Pager->setLimit($query);

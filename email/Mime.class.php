@@ -751,6 +751,7 @@ class email_Mime extends core_BaseClass
     public static function getHeadersFromArr($headersArr, $name, $headerIndex = 0, $decode = true, $charset = null)
     {
         $name = strtolower($name);
+        $res = null;
         
         if ($headerIndex == '*') {
             if (!empty($headersArr[$name]) && is_array($headersArr[$name])) {

@@ -124,7 +124,7 @@ class doc_plg_Prototype extends core_Plugin
             // Махат се определени полета от всичките
             $unsetFields = arr::make(self::$unsetFields, true);
             $fieldsNotToClone = arr::make($mvc->fieldsNotToClone, true);
-            $fieldsNotToCopyFromTemplate = arr::make($mvc->fieldsNotToCopyFromTemplate, true);
+            $fieldsNotToCopyFromTemplate = arr::make($mvc->fieldsNotToCopyFromTemplate ?? null, true);
             $unsetFields = $unsetFields + $fieldsNotToClone + $fieldsNotToCopyFromTemplate;
             $fields = array_diff_key($fields, $unsetFields);
 

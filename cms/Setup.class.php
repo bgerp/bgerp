@@ -36,6 +36,11 @@ defIfNot('CMS_OGRAPH_IMAGE', '');
  */
 defIfNot('CMS_PAGE_WRAPPER', 'cms_page_External');
 
+/**
+ * Дали да се показва менюто във футъра
+ */
+defIfNot('CMS_FOOTER_MENU', 'no');
+
 
 /**
  * Синоними за СЕО оптимизация
@@ -91,6 +96,8 @@ class cms_Setup extends core_ProtoSetup
     public $configDescription = array(
         
         'CMS_PAGE_WRAPPER' => array('class(interface=cms_page_WrapperIntf,select=title)', 'caption=Външен изглед->Страница'),
+
+        'CMS_FOOTER_MENU' => array('enum(yes=Да, no=Не)', 'caption=Външен изглед->Меню във футъра'),
         
         'CMS_BROWSER_CACHE_EXPIRES' => array('time', 'caption=Кеширане в браузъра->Време'),
         

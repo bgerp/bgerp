@@ -1563,9 +1563,9 @@ class planning_ProductionTaskDetails extends doc_Detail
             unset($data->listFields['createdBy']);
             unset($data->listFields['productId']);
             unset($data->listFields['taskId']);
-            $data->groupByField = '_createdDate';
+            $data->groupByField = '_groupedDate';
         } else {
-            unset($data->listFields['_createdDate']);
+            unset($data->listFields['_groupedDate']);
             $data->listFilter->FLD('from', 'date', 'caption=От,input');
             $data->listFilter->FLD('to', 'date', 'caption=До,input');
 
@@ -1645,7 +1645,7 @@ class planning_ProductionTaskDetails extends doc_Detail
         // Трябва да има поне един артикул възможен за добавяне
         if ($action == 'add' && isset($rec->type)) {
             if ($requiredRoles != 'no_one') {
-                $pOptions = planning_ProductionTaskProducts::getOptionsByType($rec->taskId, $rec->type, $rec->inputType);
+                $pOptions = planning_ProductionTaskProducts::getOptionsByType($rec->taskId, $rec->type, $rec->inputType ?? null);
                 if(!isset($rec->scrapRecId)){
                     unset($pOptions['']);
                 }

@@ -150,6 +150,104 @@ class cms_page_External extends core_page_Active
     
     
     /**
+     * Рендира менюто във футъра на публичната страница
+     *
+     * @return core_ET
+     */
+    public static function renderFooterMenu()
+    {
+        $conf = core_Packs::getConfig('cms');
+
+        if ($conf->CMS_FOOTER_MENU && $conf->CMS_FOOTER_MENU == 'no') {
+            return new ET('');
+        }
+
+        $domainId = cms_Domains::getPublicDomain('id');
+        if (!$domainId) {
+            return new ET('');
+        }
+
+        $menuQuery = cms_Content::getQuery();
+        $menuQuery->where("#state = 'active' AND #domainId = {$domainId}");
+        $menuQuery->orderBy('#order', 'ASC');
+
+        $html = '';
+        while ($menuRec = $menuQuery->fetch()) {
+            $menuHtml = self::getFooterMenuItems_($menuRec);
+            if (!$menuHtml) {
+                continue;
+            }
+
+            $html .= "<div>";
+            $html .= "<p>" . type_Varchar::escape($menuRec->menu) . "</p>";
+            $html .= $menuHtml;
+            $html .= "</div>";
+        }
+
+        return new ET($html);
+    }
+
+
+    /**
+     * Връща HTML за футъра за съответното меню и източник
+     *
+     * @param stdClass $menuRec
+     * @return string
+     */
+    private static function getFooterMenuItems_($menuRec)
+    {
+        $items = array();
+        $source = cls::getClassName($menuRec->source, true);
+
+        if ($source && cls::load($source, true) && cls::haveInterface('cms_SourceIntf', $source)) {
+            $Source = cls::getInterface('cms_SourceIntf', $source);
+            $items = $Source->getFooterMenuItems($menuRec);
+        }
+
+        if (!is_array($items) || !count($items)) {
+            $url = cms_Content::getContentUrl($menuRec);
+            if (!$url) {
+                $url = '#';
+            }
+
+            $items[] = (object) array(
+                'id' => $menuRec->id,
+                'parentId' => 0,
+                'title' => $menuRec->menu,
+                'url' => $url,
+            );
+        }
+
+        return self::renderFooterMenuList_($items);
+    }
+
+
+    /**
+     * Рендира елементите на футър менюто като плосък UL/LI списък
+     *
+     * @param array $items
+     * @return string
+     */
+    private static function renderFooterMenuList_($items)
+    {
+        if (!is_array($items) || !count($items)) {
+            return '';
+        }
+
+        $html = "
+<ul>";
+        foreach ($items as $item) {
+            $html .= "
+    <li>" . ht::createLink($item->title, $item->url)->getContent() . "</li>";
+        }
+        $html .= "
+</ul>";
+
+        return $html;
+    }
+    
+    
+    /**
      * Прихваща изпращането към изхода, за да постави нотификации, ако има
      */
     public static function on_Output(&$invoker)

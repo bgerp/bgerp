@@ -185,7 +185,7 @@ class type_Emails extends type_Varchar
     public function toVerbal_($str)
     {
         //Тримваме полето
-        $str = trim($str);
+        $str = trim((string) $str);
         
         //Ескейпваме стринга
 //         $str = parent::escape($str);

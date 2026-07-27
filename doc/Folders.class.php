@@ -192,7 +192,7 @@ class doc_Folders extends core_Master
         $haveRight = static::haveRightFor('single', $rec);
         $iconStyle = 'background-image:url(' . static::getIconImg($rec, $haveRight) . ');';
         
-        if ($attr['url']) {
+        if (!empty($attr['url'])) {
             $url = $attr['url'];
         } else {
             $url = array('doc_Folders', 'single', $id);
@@ -393,12 +393,19 @@ class doc_Folders extends core_Master
      */
     public static function haveRightToObject($rec, $userId = null)
     {
+        if (!is_object($rec)) {
+            return false;
+        }
+
         if (!$userId) {
             $userId = core_Users::getCurrent();
         }
+
+        $inCharge = $rec->inCharge ?? null;
+        $access = $rec->access ?? null;
         
         // Всеки има право на достъп до папката за която отговаря
-        if ($rec->inCharge && ($rec->inCharge == $userId)) {
+        if ($inCharge && ($inCharge == $userId)) {
             
             return true;
         }
@@ -410,7 +417,7 @@ class doc_Folders extends core_Master
         }
         
         // Всеки има право на достъп до общите папки
-        if (($rec->access == 'public') && !core_Users::isContractor()) {
+        if (($access == 'public') && !core_Users::isContractor()) {
             
             return true;
         }
@@ -419,10 +426,10 @@ class doc_Folders extends core_Master
         if (core_Users::haveRole('ceo', $userId)) {
             
             // с изключение на личните и секретните на други CEO
-            if (core_Users::haveRole('ceo', $rec->inCharge) && (($rec->access == 'private') || ($rec->access == 'secret'))) {
+            if (core_Users::haveRole('ceo', $inCharge) && (($access == 'private') || ($access == 'secret'))) {
                 
                 // и ако не е оттеглен
-                $uState = core_Users::fetchField($rec->inCharge, 'state');
+                $uState = core_Users::fetchField($inCharge, 'state');
                 if (($uState != 'rejected') && ($uState != 'draft')) {
                     
                     return false;
@@ -436,23 +443,23 @@ class doc_Folders extends core_Master
         $teamMembers = core_Users::getTeammates($userId);
         
         // Дали обекта има отговорник - съекипник
-        $fromTeam = strpos($teamMembers, '|' . $rec->inCharge . '|') !== false;
+        $fromTeam = strpos($teamMembers, '|' . $inCharge . '|') !== false;
         
         // Ако папката е екипна, и е на член от екипа на потребителя, и потребителя е manager или officer или executive - има достъп
-        if ($rec->access == 'team' && $fromTeam && core_Users::haveRole('manager,officer,executive', $userId)) {
+        if ($access == 'team' && $fromTeam && core_Users::haveRole('manager,officer,executive', $userId)) {
             
             return true;
         }
         
-        if ($rec->inCharge) {
+        if ($inCharge) {
             // Ако собственика на папката има права 'manager' или 'ceo' отказваме достъпа
-            if (core_Users::haveRole('manager,ceo', $rec->inCharge)) {
+            if (core_Users::haveRole('manager,ceo', $inCharge)) {
                 
                 // Ако собственика на папката има права 'manager' и е оттеглене и текущия потребител е такъв и са от един и същи екип
-                if ($rec->access != 'secret' && core_Users::haveRole('manager', $userId) && (!core_Users::haveRole('ceo', $rec->inCharge))) {
-                    $uState = core_Users::fetchField($rec->inCharge, 'state');
+                if ($access != 'secret' && core_Users::haveRole('manager', $userId) && (!core_Users::haveRole('ceo', $inCharge))) {
+                    $uState = core_Users::fetchField($inCharge, 'state');
                     if (($uState == 'rejected') || ($uState == 'draft')) {
-                        if (core_Users::isFromSameTeam($userId, $rec->inCharge)) {
+                        if (core_Users::isFromSameTeam($userId, $inCharge)) {
                             
                             return true;
                         }
@@ -472,7 +479,7 @@ class doc_Folders extends core_Master
         }
         
         // Ако папката е лична на член от екипа, и потребителя има права 'manager' - има достъп
-        if ($rec->access == 'private' && $fromTeam && core_Users::haveRole('manager', $userId)) {
+        if ($access == 'private' && $fromTeam && core_Users::haveRole('manager', $userId)) {
             
             return true;
         }
@@ -1962,7 +1969,7 @@ class doc_Folders extends core_Master
         // За да може да промени трябва да има достъп до сингъла на папката
         // Да променя собствените си настройки или да е admin|ceo
         
-        list(, $id) = explode('::', $key);
+        list(, $id) = explode('::', $key) + [null, null];
         
         $currUser = core_Users::getCurrent();
         
@@ -2005,7 +2012,7 @@ class doc_Folders extends core_Master
         $this->currentTab = 'Теми';
         
         // Вземаме id на папката от ключа
-        list(, $folderId) = explode('::', $form->rec->_key);
+        list(, $folderId) = explode('::', $form->rec->_key) + [null, null];
         
         // Определяме заглавито
         $rec = $this->fetch($folderId);
@@ -2350,7 +2357,7 @@ class doc_Folders extends core_Master
         $res = array();
 
         while ($rec = $query->fetch()) {
-            $res[$rec->id] = trim($rec->{$titleFld}) . ' (' . $rec->class . ')';
+            $res[$rec->id] = trim((string) $rec->{$titleFld}) . ' (' . $rec->class . ')';
         }
         
         return $res;

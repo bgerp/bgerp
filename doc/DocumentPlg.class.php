@@ -554,6 +554,21 @@ class doc_DocumentPlg extends core_Plugin
         }
     }
 
+
+    /**
+     * Дефолтно - 1 бутон "Нов" на класа (стария вид). Класове, които искат
+     * няколко варианта за добавяне (напр. planning_Jobs - производство/разпад,
+     * с различни URL параметри) дефинират собствен getNewBtnVariants()
+     *
+     * @see doc_Containers::getNewDocMenu()
+     */
+    public static function on_AfterGetNewBtnVariants($mvc, &$res, $rec)
+    {
+        if (empty($res)) {
+            $res = array(array('title' => $mvc->singleTitle, 'icon' => $mvc->singleIcon, 'params' => array()));
+        }
+    }
+
     
     /**
      * Добавя бутон за показване на оттеглените записи
@@ -661,12 +676,16 @@ class doc_DocumentPlg extends core_Plugin
      */
     public function on_AfterRecToVerbal(&$invoker, &$row, &$rec, $fields = array())
     {
-        if (($invoker->addRowClass ?? null) !== false) {
-            $row->ROW_ATTR['class'] = ($row->ROW_ATTR['class'] ?? '') . " state-{$rec->state}";
+        $state = $rec->state ?? null;
+        if (isset($state) && ($invoker->addRowClass ?? null) !== false) {
+            $row->ROW_ATTR['class'] = ($row->ROW_ATTR['class'] ?? '') . " state-{$state}";
         }
-        $row->STATE_CLASS = ($row->STATE_CLASS ?? '') . " state-{$rec->state}";
+        $row->STATE_CLASS = $row->STATE_CLASS ?? '';
+        if (isset($state)) {
+            $row->STATE_CLASS .= " state-{$state}";
+        }
         
-        $row->modifiedDate = dt::mysql2verbal($rec->modifiedOn, 'd.m.Y');
+        $row->modifiedDate = dt::mysql2verbal($rec->modifiedOn ?? null, 'd.m.Y');
         $row->createdDate = dt::mysql2verbal($rec->createdOn ?? null, 'd.m.Y');
         
         if (isset($fields['-single'])) {
@@ -2385,9 +2404,13 @@ class doc_DocumentPlg extends core_Plugin
         
         $saveBtnName = (haveRole('powerUser') && !((($mvc->canEditActivated ?? null) === true && in_array($rec->state ?? null, array('active', 'waiting', 'wakeup'))))) ? 'Чернова' : 'Запис';
         $form->toolbar->renameBtn('save', $saveBtnName);
-        
+
         if (isset($rec->state) && $rec->state == 'pending' && isset($rec->id)) {
-            $form->toolbar->setWarning('save', 'Наистина ли искате да направите документа чернова|*?');
+            if ($mvc->hasPlugin('doc_plg_MasterRevision')) {
+                $form->toolbar->removeBtn('save');
+            } else {
+                $form->toolbar->setWarning('save', 'Наистина ли искате да направите документа чернова|*?');
+            }
         }
         
         if ($mvc->haveRightFor('pending', $form->rec) || (isset($rec->state) && $rec->state == 'pending')) {
@@ -2407,7 +2430,7 @@ class doc_DocumentPlg extends core_Plugin
         //Добавяме текст по подразбиране за титлата на формата
         if ($form->rec->folderId) {
             $fRec = doc_Folders::fetch($form->rec->folderId);
-            $title = tr(mb_strtolower($mvc->singleTitle));
+            $title = tr(mb_strtolower($data->singleTitle ?? $mvc->singleTitle));
             if (core_Users::getCurrent('id', false)) {
                 list($t, ) = explode('<div', doc_Folders::recToVerbal($fRec)->title);
                 $title .= ' |в|* ' . $t;
@@ -2471,7 +2494,7 @@ class doc_DocumentPlg extends core_Plugin
             }
             
             // Ако документа е бил на заявка преди, обръща се в чернова
-            if (isset($rec->id) && $rec->state == 'pending' && ($form->cmd == 'save') && (!$form->rec->__isBeingChanged)) {
+            if (isset($rec->id) && $rec->state == 'pending' && ($form->cmd == 'save') && empty($form->rec->__isBeingChanged)) {
                 $rec->state = 'draft';
                 $rec->brState = 'pending';
                 $rec->pendingSaved = true;

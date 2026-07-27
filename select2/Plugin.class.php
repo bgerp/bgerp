@@ -237,7 +237,7 @@ class select2_Plugin extends core_Plugin
                     $optionsAttrArr['selected'] = 'selected';
                 }
             } else {
-                if (strstr($value, $newKey)) {
+                if (strstr((string) $value, $newKey)) {
                     $optionsAttrArr['selected'] = 'selected';
                 }
             }

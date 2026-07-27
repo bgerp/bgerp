@@ -372,16 +372,20 @@ class cond_Texts extends core_Manager
      */
     public static function replaceView($body, $rec)
     {
-        $res = $rec->body;
         $rec = self::fetchRec($rec);
-        if ($rec->view) {
+        if (!$rec) {
+            return $body;
+        }
+
+        $res = $rec->body ?? $body;
+        if (!empty($rec->view)) {
             $res = str_replace('{{CONTENT}}', $body, $rec->view);
 
             for ($i=1; $i<=3; $i++) {
                 $imgField = 'img' . $i;
                 $imgUrl = '';
                 $imgBase = '';
-                if ($rec->{$imgField}) {
+                if (!empty($rec->{$imgField})) {
                     $imgUrl = fileman_Download::getDownloadUrl($rec->{$imgField}, 1000000);
                     $imgBase = 'data:' . fileman::getType(fileman::fetchByFh($rec->{$imgField}, 'name')) . ';base64,' . base64_encode(fileman::extractStr($rec->{$imgField}));
                 }

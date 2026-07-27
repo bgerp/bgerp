@@ -258,7 +258,7 @@ class social_Sharings extends core_Master
      */
     public static function on_BeforeSave($mvc, $res, $rec)
     {
-        if ($rec->csv_order == 0) {
+        if (empty($rec->csv_order)) {
             static $i;
             
             if (!$i) {

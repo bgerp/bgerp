@@ -685,7 +685,9 @@ class change_Plugin extends core_Plugin
                 
                 // Вземаме всички, полета които могат да се променят
                 $allowedFieldsArr = static::getAllowedFields($form, $mvc->changableFields);
-                
+
+                $haveChange = false;
+
                 // Обхождаме полетта
                 foreach ((array) $allowedFieldsArr as $field) {
                     

@@ -58,6 +58,18 @@ abstract class deals_ManifactureDetail extends doc_Detail
 
 
     /**
+     * В кои състояния на мастъра може да се редактира детайла
+     */
+    protected $allowedInMasterStates = array('draft');
+
+
+    /**
+     * Общ клас за таблиците в производствените документи
+     */
+    public $detailsTableClass = 'listTable manifactureDetailsTable';
+
+
+    /**
      * След описанието на модела
      */
     public static function on_AfterDescription(&$mvc)
@@ -86,6 +98,93 @@ abstract class deals_ManifactureDetail extends doc_Detail
         $mvc->FLD('notes', 'richtext(rows=3,bucket=Notes)', 'caption=Допълнително->Забележки,formOrder=110001');
 
         $mvc->setDbIndex('productId,packagingId');
+    }
+
+
+    /**
+     * Уеднаквява ширините на колоните в отделните таблици на детайла
+     */
+    protected function alignMultiTableColumns($listTableMvc, $widths = array())
+    {
+        $widths += array(
+            '_rowTools' => 30,
+            'tools' => 30,
+            'code' => 110,
+            'reff' => 110,
+            'packagingId' => 60,
+            'packQuantity' => 70,
+        );
+
+        // Постоянна структурна колона пази подравняването, когато само някои редове имат toolbar
+        if (!isset($listTableMvc->fields['_rowTools'])) {
+            $listTableMvc->FNC('_rowTools', 'int');
+        }
+        if (!isset($listTableMvc->fields['tools'])) {
+            $listTableMvc->FNC('tools', 'int', 'tdClass=rowNumColumn');
+        }
+        if ($this->showCodeColumn && !isset($listTableMvc->fields['code'])) {
+            $listTableMvc->FNC('code', 'varchar', 'tdClass=small-field morePadding wrap');
+        }
+        if (!empty($this->showReffCode) && !isset($listTableMvc->fields['reff'])) {
+            $listTableMvc->FNC('reff', 'varchar', 'tdClass=small-field morePadding wrap');
+        }
+
+        foreach ($widths as $field => $width) {
+            if (isset($listTableMvc->fields[$field])) {
+                $listTableMvc->fields[$field]->thAttr = array('style' => "width:{$width}px");
+            }
+        }
+    }
+
+
+    /**
+     * Има ли поне един ред (от подадените масиви) с реално съдържание в тулбара
+     * на plg_RowTools2 - ползва се преди orderMultiTableColumns(), за да не се
+     * показва празна '_rowTools' колона във всички подтаблици, когато никъде
+     * няма нищо за показване в нея
+     */
+    protected function haveAnyRowTools(...$rowArrays)
+    {
+        foreach ($rowArrays as $rows) {
+            foreach ((array) $rows as $row) {
+                if (!empty($row->_rowTools) && is_object($row->_rowTools) && method_exists($row->_rowTools, 'count') && $row->_rowTools->count()) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+
+    /**
+     * Подрежда еднаквите колони на едни и същи позиции във всички подтаблици
+     *
+     * @param bool $forceRowTools - да се добавя ли '_rowTools' и в подтаблиците, в
+     *                              които не е добавена от plg_RowTools2 (@see haveAnyRowTools)
+     */
+    protected function orderMultiTableColumns($listFields, $captions = array(), $forceRowTools = true)
+    {
+        $listFields = arr::make($listFields, true);
+        if ($forceRowTools && !array_key_exists('_rowTools', $listFields)) {
+            $listFields = array('_rowTools' => '|*&nbsp;') + $listFields;
+        }
+
+        foreach ($captions as $field => $caption) {
+            if (array_key_exists($field, $listFields)) {
+                $listFields[$field] = $caption;
+            }
+        }
+
+        $ordered = array();
+        foreach (array('_rowTools', 'tools', 'code', 'reff', 'productId', 'packagingId', 'packQuantity', 'quantityFromBom', 'quantityExpected', 'storeId') as $field) {
+            if (array_key_exists($field, $listFields)) {
+                $ordered[$field] = $listFields[$field];
+                unset($listFields[$field]);
+            }
+        }
+
+        return $ordered + $listFields;
     }
     
     
@@ -186,8 +285,15 @@ abstract class deals_ManifactureDetail extends doc_Detail
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         if (($action == 'edit' || $action == 'delete' || $action == 'add') && isset($rec)) {
-            if ($mvc->Master->fetchField($rec->{$mvc->masterKey}, 'state') != 'draft') {
+            $allowedInMasterStates = arr::make($mvc->allowedInMasterStates, true);
+            $masterState = $mvc->Master->fetchField($rec->{$mvc->masterKey}, 'state');
+
+            if (!in_array($masterState, $allowedInMasterStates)) {
                 $requiredRoles = 'no_one';
+            } elseif($masterState == 'active' && !empty($mvc->Master->requiredRolesToEditWhenActive)){
+                if(!haveRole($mvc->Master->requiredRolesToEditWhenActive, $userId)){
+                    $requiredRoles = 'no_one';
+                }
             }
         }
         

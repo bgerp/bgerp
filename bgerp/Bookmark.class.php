@@ -272,6 +272,7 @@ class bgerp_Bookmark extends core_Manager
         }
         
         $res = '<ul>';
+        $openGroup = null;
 
         foreach($links as $rec) {
 
@@ -292,7 +293,7 @@ class bgerp_Bookmark extends core_Manager
             if ($rec->type == 'group') {
                 $class = 'ul-group';
                 $display = "style='display:none;'";
-                if ($opened[$rec->id]) {
+                if (!empty($opened[$rec->id])) {
                     $class .= ' open';
                     $display = '';
                 }
@@ -306,7 +307,7 @@ class bgerp_Bookmark extends core_Manager
                 $rec->url = str_replace('/default', '', $rec->url);
                 if (stripos(str_replace('//', '/', $rec->url), $localUrl) !== false) {
                     $attr['class'] = 'active';
-                    $attr['style'] .= ';background-color:#503A66';
+                    $attr['style'] = ($attr['style'] ?? '') . ';background-color:#503A66';
                     self::$curRec = $rec;
                 }
                 $res .= ht::createElement('li', $attr, $link);
@@ -329,6 +330,8 @@ class bgerp_Bookmark extends core_Manager
      */
     public static function getLinkFromUrl($url, $title = null, $attr = array())
     {
+        $target = null;
+
         if (!preg_match('/^http[s]?\:\/\//i', $url) && (strpos($url, Request::get('App')) === 0)) {
             try {
                 $urlArr = parseLocalUrl($url);
@@ -346,7 +349,7 @@ class bgerp_Bookmark extends core_Manager
                 if (!$auths) {
                     $aQuery = remote_Authorizations::getQuery();
                     while ($aRec = $aQuery->fetch("#userId = {$cu}")) {
-                        if (is_object($aRec->data) && $aRec->data->lKeyCC) {
+                        if (is_object($aRec->data) && !empty($aRec->data->lKeyCC)) {
                             $aUrl = rtrim(strtolower($aRec->url), '/ ');
                             $auths[$aRec->id] = $aUrl;
                         }

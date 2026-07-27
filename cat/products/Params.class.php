@@ -202,7 +202,7 @@ class cat_products_Params extends doc_Detail
 
         if (empty($rec->id)) {
             $form->setField('paramId', array('removeAndRefreshForm' => 'paramValue|paramValue[lP]|paramValue[rP]'));
-            $options = self::getRemainingOptions($rec->classId, $rec->productId, $rec->id);
+            $options = self::getRemainingOptions($rec->classId, $rec->productId, $rec->id ?? null);
             
             if (!countR($options)) {
                 $warningMsg = 'Няма параметри за добавяне';
@@ -226,14 +226,14 @@ class cat_products_Params extends doc_Detail
         
         if (!empty($rec->paramId)) {
             $pRec = cat_Params::fetch($rec->paramId);
-            if ($Type = cat_Params::getTypeInstance($rec->paramId, $rec->classId, $rec->productId, $rec->paramValue)) {
+            if ($Type = cat_Params::getTypeInstance($rec->paramId, $rec->classId, $rec->productId, $rec->paramValue ?? null)) {
                 $form->setField('paramValue', 'input');
                 $form->setFieldType('paramValue', $Type);
                 if($Type instanceof type_Key2 || $Type instanceof type_Key){
                     $form->setField('paramValue', 'class=w100');
                 }
             
-                $defaultValue = cat_Params::getDefaultValue($rec->paramId, $rec->classId, $rec->productId, $rec->paramValue);
+                $defaultValue = cat_Params::getDefaultValue($rec->paramId, $rec->classId, $rec->productId, $rec->paramValue ?? null);
                 $form->setDefault('paramValue', $defaultValue);
                 if($pRec->valueType == 'readonly' && isset($rec->id)){
                     if(isset($defaultValue)){
@@ -290,7 +290,7 @@ class cat_products_Params extends doc_Detail
                 }
             }
 
-            if($rec->type == 'readOnly' && !strlen($rec->paramValue)){
+            if (($rec->type ?? null) == 'readOnly' && !strlen($rec->paramValue ?? '')) {
                 $form->setError('type,paramValue', 'При опция "Само за четене" не може стойноста да е празна');
             }
         }
@@ -463,7 +463,7 @@ class cat_products_Params extends doc_Detail
         $query->orderBy('group,orderEx,id', 'ASC');
 
         // Ако подготвяме за външен документ, да се показват само параметрите за външни документи
-        if ($data->documentType == 'public' || $data->documentType == 'invoice') {
+        if (in_array($data->documentType ?? null, array('public', 'invoice'), true)) {
             $query->EXT('showInPublicDocuments', 'cat_Params', 'externalName=showInPublicDocuments,externalKey=paramId');
             $query->where("#showInPublicDocuments = 'yes'");
         }
@@ -959,5 +959,3 @@ class cat_products_Params extends doc_Detail
         $data->query->orderBy('id', 'DESC');
     }
 }
-
-

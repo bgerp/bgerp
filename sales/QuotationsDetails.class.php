@@ -150,8 +150,8 @@ class sales_QuotationsDetails extends deals_QuotationDetails
         if(isset($rec->productId)) {
 
             if (isset($mvc->LastPricePolicy)) {
-                $policyInfoLast = $mvc->LastPricePolicy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId, $rec->packQuantity, $priceAtDate, $masterRec->currencyRate, $masterRec->chargeVat);
-                if ($policyInfoLast->price != 0) {
+                $policyInfoLast = $mvc->LastPricePolicy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId, $rec->packQuantity ?? null, $priceAtDate, $masterRec->currencyRate, $masterRec->chargeVat);
+                if ($policyInfoLast && $policyInfoLast->price != 0) {
                     $form->setSuggestions('packPrice', array('' => '', "{$policyInfoLast->price}" => $policyInfoLast->price));
                 }
             }
@@ -237,7 +237,7 @@ class sales_QuotationsDetails extends deals_QuotationDetails
     protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
         // Синхронизиране на сумата на транспорта
-        if ($rec->syncFee === true) {
+        if (($rec->syncFee ?? null) === true) {
             sales_TransportValues::sync($mvc->Master, $rec->quotationId, $rec->id, $rec->fee, $rec->deliveryTimeFromFee, $rec->_transportExplained);
         }
     }

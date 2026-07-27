@@ -2121,7 +2121,7 @@ class doc_Threads extends core_Manager
      */
     public static function on_AfterSave($mvc, &$id, $rec)
     {
-        if ($rec->folderId) {
+        if (!empty($rec->folderId)) {
             $Folders = cls::get('doc_Folders');
             if (Mode::is('isMigrate')) {
                 $Folders->preventNotification[$rec->folderId] = $rec->folderId;
@@ -2487,6 +2487,11 @@ class doc_Threads extends core_Manager
      */
     public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = null, $userId = null)
     {
+        if (!is_object($rec)) {
+
+            return;
+        }
+
         if ($action == 'open') {
             if ($rec->state == 'closed') {
                 $res = $mvc->getRequiredRoles('single', $rec, $userId);
@@ -3099,7 +3104,7 @@ class doc_Threads extends core_Manager
         // За да може да промени трябва да има достъп до сингъла на нишката
         // Да променя собствените си настройки или да е admin|ceo
         
-        list(, $id) = explode('::', $key);
+        list(, $id) = explode('::', $key) + [null, null];
         
         $currUser = core_Users::getCurrent();
         
@@ -3142,7 +3147,7 @@ class doc_Threads extends core_Manager
         $this->currentTab = 'Теми';
         
         // Вземаме id на папката от ключа
-        list(, $threadId) = explode('::', $form->rec->_key);
+        list(, $threadId) = explode('::', $form->rec->_key) + [null, null];
         
         // Определяме заглавито
         $rec = $this->fetch($threadId);

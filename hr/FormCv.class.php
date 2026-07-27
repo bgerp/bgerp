@@ -422,4 +422,16 @@ class hr_FormCv extends core_Master
         
         return $url;
     }
+
+
+    /**
+     * Връща елементите за футър менюто, генерирани от този източник
+     *
+     * @param stdClass $menuRec
+     * @return array
+     */
+    public function getFooterMenuItems($menuRec)
+    {
+        return array();
+    }
 }

@@ -208,7 +208,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
 
         $row->document = "#{$handle}";
         if (!Mode::isReadOnly()) {
-            $row->document = ht::createLink("#{$handle}", $singleUrl, false, "ef_icon={$Document->singleIcon}");
+            $row->document = ht::createLink("#{$handle}", $singleUrl, false, "ef_icon={$Document->getSingleIcon()}");
 
             // Показване на информация за доставките до същата локация
             if(countR($sameLocationDocuments) && $dRec->readiness != 0){

@@ -18,7 +18,7 @@
         	
         	<!--ET_BEGIN JOB_INFO-->
             <div class="scrolling-holder" style='padding-bottom:10px'>
-            <div>|Задания за производство|* [#JOB_ADD_BTN#]</div>
+            <div>|Задания|* [#JOB_ADD_BTN#]</div>
             [#JOB_INFO#]
             </div>
             <!--ET_END JOB_INFO-->

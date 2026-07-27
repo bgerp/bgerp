@@ -52,7 +52,7 @@ class colab_plg_Document extends core_Plugin
                     
                     $link = colab_DocumentLog::renderViewedLink($rec->containerId);
                     
-                    $row->DocumentSettings = new ET($row->DocumentSettings);
+                    $row->DocumentSettings = new ET($row->DocumentSettings ?? '');
                     
                     $row->DocumentSettings->append($link);
                     

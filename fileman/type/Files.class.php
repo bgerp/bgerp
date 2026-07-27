@@ -103,7 +103,7 @@ class fileman_type_Files extends type_Keylist
         foreach ($fhArr as $id) {
             $fh = fileman_Files::fetchField($id, 'fileHnd');
             if (isset($fh)) {
-                if ($this->params['showButton']) {
+                if (!empty($this->params['showButton'])) {
                     $fh = fileman_Files::fetchField($id, 'fileHnd');
                     if (isset($fh)) {
                         $fRec = fileman::fetchByFh($fh);

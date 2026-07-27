@@ -103,6 +103,10 @@
             <td>
                 <table>
                     <tr>
+                        <td class='quiet' style='text-align: left'>|Вид|*:</td>
+                        <td>[#type#]</td>
+                    </tr>
+                    <tr>
                         <td class='quiet' style='text-align: left'>|Падеж|*:</td>
                         <td>[#dueDate#]</td>
                     </tr>
@@ -149,10 +153,12 @@
                     </tr>
                     <!--ET_END department-->
 
+                    <!--ET_BEGIN allowSecondMeasure-->
                     <tr style='padding-bottom:80px;padding-top:80px'>
                         <td class='quiet' style='text-align: left'>|Втора мярка|*:</td>
                         <td>[#allowSecondMeasure#]<!--ET_BEGIN secondMeasureId--> (<span style="color:darkblue;font-size:15px;font-style:italic;">[#secondMeasureId#]</span>)<!--ET_END secondMeasureId--></td>
                     </tr>
+                    <!--ET_END allowSecondMeasure-->
                     <!--ET_BEGIN RECEIPTS-->
                     [#RECEIPTS#]
                     <!--ET_BEGIN sBomId-->
@@ -250,22 +256,22 @@
         <tr>
             <td colspan="2">
                 <table>
-                    <!--ET_BEGIN saleId-->
+                    <!--ET_BEGIN sourceId-->
                     <tr>
-                        <td class='quiet'>|Договор|*</td>
-                        <td>[#saleId#]</td>
+                        <td class='quiet'>|Сделка|*</td>
+                        <td>[#sourceId#]</td>
                     </tr>
-                    <!--ET_END saleId-->
-                    <!--ET_BEGIN saleFolderId-->
+                    <!--ET_END sourceId-->
+                    <!--ET_BEGIN sourceFolderId-->
                     <tr>
                         <td class='quiet'>|В папка|*</td>
-                        <td>[#saleFolderId#]</td>
+                        <td>[#sourceFolderId#]</td>
                     </tr>
-                    <!--ET_END saleFolderId-->
+                    <!--ET_END sourceFolderId-->
                     <!--ET_BEGIN deliveryTermId-->
                     <tr>
                         <td class='quiet'>|Условие на доставка|*</td>
-                        <td>[#deliveryTermId#]<!--ET_BEGIN saleDeliveryAddress-->: [#saleDeliveryAddress#]<!--ET_END saleDeliveryAddress--></td>
+                        <td>[#deliveryTermId#]<!--ET_BEGIN sourceDeliveryAddress-->: [#sourceDeliveryAddress#]<!--ET_END sourceDeliveryAddress--></td>
                     </tr>
                     <!--ET_END deliveryTermId-->
                     <!--ET_BEGIN deliveryPlace-->

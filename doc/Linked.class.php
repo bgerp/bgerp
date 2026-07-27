@@ -630,7 +630,7 @@ class doc_Linked extends core_Manager
         
         $act = trim($form->rec->act ?? '');
         
-        if ($act && !doc_Linked::$actArr[$act]) {
+        if ($act && empty(doc_Linked::$actArr[$act])) {
             // Подготвяме формата от интерфейсните методи
             foreach ($intfArr as $intfCls) {
                 if ($type == 'doc') {
@@ -649,7 +649,7 @@ class doc_Linked extends core_Manager
         
         $res = null;
         
-        if ($act && !doc_Linked::$actArr[$act]) {
+        if ($act && empty(doc_Linked::$actArr[$act])) {
             // Субмитваме формата от интерфейсни методи
             foreach ($intfArr as $intfCls) {
                 if ($type == 'doc') {
@@ -666,7 +666,7 @@ class doc_Linked extends core_Manager
         
         // Ако формата е субмитната
         if ($form->isSubmitted()) {
-            if (!$act || doc_Linked::$actArr[$act]) {
+            if (!$act || !empty(doc_Linked::$actArr[$act])) {
                 $res = $this->onSubmitFormForAct($form, $act, $type, $originFId);
             }
         }

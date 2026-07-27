@@ -225,7 +225,7 @@ abstract class cond_type_abstract_Proto extends core_BaseClass
      * @param mixed $domainId - ид на домейна
      * @return string
      */
-    public function getReplacementValueOnClone($rec, $domainClass = null, $domainId = null, $value)
+    public function getReplacementValueOnClone($rec, $domainClass = null, $domainId = null, $value = null)
     {
         return $value;
     }

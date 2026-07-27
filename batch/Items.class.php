@@ -524,14 +524,14 @@ class batch_Items extends core_Master
 
 
         $filterRec = $data->form->rec;
-        $filterState = $filterRec->{"state{$data->masterId}"};
+        $filterState = $filterRec->{"state{$data->masterId}"} ?? 'active';
         if ($filterState != 'all') {
             if($filterState == 'inStock'){
                 $query->where("#quantity > 0");
             } elseif($filterState == 'notInStock'){
                 $query->where("#quantity <= 0");
             } else {
-                $query->where("#state = '{$filterRec->{"state{$data->masterId}"}}'");
+                $query->where("#state = '{$filterState}'");
                 $query->orderBy('id', 'desc');
             }
         }
@@ -595,9 +595,9 @@ class batch_Items extends core_Master
 
         // Подготвяме страницирането
         $url = getCurrentUrl();
-        $url["storeId{$data->masterId}"] = $form->rec->{"storeId{$data->masterId}"};
-        $url["state{$data->masterId}"] = $form->rec->{"state{$data->masterId}"};
-        $url["filter{$data->masterId}"] = $form->rec->{"filter{$data->masterId}"};
+        $url["storeId{$data->masterId}"] = $form->rec->{"storeId{$data->masterId}"} ?? null;
+        $url["state{$data->masterId}"] = $form->rec->{"state{$data->masterId}"} ?? 'active';
+        $url["filter{$data->masterId}"] = $form->rec->{"filter{$data->masterId}"} ?? 'asc';
         $url["#"] = "batchBlock{$data->masterId}";
 
         $pager = cls::get('core_Pager', array('itemsPerPage' => 20, 'url' => toUrl($url)));
@@ -808,7 +808,7 @@ class batch_Items extends core_Master
         if (!$def) return $res;
 
         $found = static::getProductsWithMovement($storeId, $productId, $date, $limit, $except, $batch, $showMovementsWithClosedBatches);
-        $res = is_array($found[$productId]) ? $found[$productId] : array();
+        $res = is_array($found[$productId] ?? null) ? $found[$productId] : array();
 
         // Добавяне и на партидите от активни документи в черновата на журнала
         $bQuery = batch_BatchesInDocuments::getQuery();

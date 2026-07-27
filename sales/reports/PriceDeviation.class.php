@@ -569,7 +569,7 @@ class sales_reports_PriceDeviation extends frame2_driver_TableData
             "#{$handle}",
             $singleUrl,
             false,
-            "ef_icon={$Sale->singleIcon}"
+            "ef_icon={$Sale->getSingleIcon()}"
         ) . '</span>' . ' »  ' . "<span class= 'quiet small'>" .
              $folderLink . '</span></div>';
         }

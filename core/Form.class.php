@@ -1401,6 +1401,9 @@ class core_Form extends core_FieldSet
             $method = 'render' . $view;
             $tpl->append($this->$method(), "FORM_{$view}");
         }
+
+        jquery_Jquery::run($tpl, 'alignFormFilterButtons();');
+        jquery_Jquery::runAfterAjax($tpl, 'alignFormFilterButtons');
         
         if ($this->cmd == 'refresh' && Request::get('ajax_mode')) {
             $this->ajaxOutput($tpl);

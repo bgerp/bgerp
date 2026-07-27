@@ -65,6 +65,12 @@ abstract class deals_ManifactureMaster extends core_Master
 
 
     /**
+     * Кои роли се изискват да може да се редактира, когато е активиран
+     */
+    public $requiredRolesToEditWhenActive = 'no_one';
+
+
+    /**
      * Кои са задължителните полета за модела
      */
     protected static function setDocumentFields($mvc)
@@ -271,6 +277,7 @@ abstract class deals_ManifactureMaster extends core_Master
         // Записваме документа за да му се обновят полетата
         $rec = $this->fetchRec($id);
         if ($rec !== false) {
+            $rec->_updateMaster = true;
             $this->save($rec);
         }
     }

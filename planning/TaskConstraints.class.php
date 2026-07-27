@@ -412,9 +412,10 @@ class planning_TaskConstraints extends core_Master
      * @param array $problemTaskIds
      * @param array $taskAssetOverrides
      * @param array $packageLinks
+     * @param array $anchorLinks
      * @return bool
      */
-    public static function validateManualOrder($assetId, $orderedTaskIds, &$problemTaskIds = array(), $taskAssetOverrides = array(), $packageLinks = array())
+    public static function validateManualOrder($assetId, $orderedTaskIds, &$problemTaskIds = array(), $taskAssetOverrides = array(), $packageLinks = array(), $anchorLinks = array())
     {
         $problemTaskIds = array();
         $tasks = static::getDefaultArr(null, 'actualStart,timeStart,assetId,dueDate,state,originId,saoOrder');
@@ -503,7 +504,8 @@ class planning_TaskConstraints extends core_Master
             $cleanOrder,
             static::mergeRequiredPackageLinks($requiredPackageLinks, $packageLinks)
         );
-        if (countR($packageLinks)) {
+        $anchorLinks = planning_TaskManualOrderPerAssets::sanitizeAnchorLinks($cleanOrder, $anchorLinks, $packageLinks);
+        if (countR($packageLinks) || countR($anchorLinks)) {
             $adjacency = array();
             foreach ($constraints as $constraint) {
                 $adjacency[$constraint->previousTaskId][$constraint->taskId] = $constraint->taskId;
@@ -512,9 +514,15 @@ class planning_TaskConstraints extends core_Master
             // Existing packages on the other resources participate in the global graph.
             $manualQuery = planning_TaskManualOrderPerAssets::getQuery();
             $manualQuery->where("#assetId != {$assetId}");
-            $manualQuery->show('data,packageLinks');
+            $manualQuery->show('data,packageLinks,anchorLinks');
             while ($manualRec = $manualQuery->fetch()) {
                 $existingLinks = planning_TaskManualOrderPerAssets::sanitizePackageLinks($manualRec->data, $manualRec->packageLinks);
+                $existingAnchorLinks = planning_TaskManualOrderPerAssets::sanitizeAnchorLinks(
+                    $manualRec->data,
+                    $manualRec->anchorLinks ?? array(),
+                    $existingLinks
+                );
+                $existingLinks += $existingAnchorLinks;
                 foreach ($existingLinks as $taskId => $previousTaskId) {
                     if (isset($remaining[$taskId], $remaining[$previousTaskId])) {
                         $adjacency[$previousTaskId][$taskId] = $taskId;
@@ -522,7 +530,7 @@ class planning_TaskConstraints extends core_Master
                 }
             }
 
-            foreach ($packageLinks as $taskId => $previousTaskId) {
+            foreach ($packageLinks + $anchorLinks as $taskId => $previousTaskId) {
                 if (!isset($allTasksById[$taskId], $allTasksById[$previousTaskId])) {
                     continue;
                 }
@@ -842,6 +850,11 @@ class planning_TaskConstraints extends core_Master
             if (isset($assets[$manualRec->assetId])) {
                 $assets[$manualRec->assetId]->manualOrder = $manualRec->data;
                 $assets[$manualRec->assetId]->packageLinks = planning_TaskManualOrderPerAssets::sanitizePackageLinks($manualRec->data, $manualRec->packageLinks);
+                $assets[$manualRec->assetId]->anchorLinks = planning_TaskManualOrderPerAssets::sanitizeAnchorLinks(
+                    $manualRec->data,
+                    $manualRec->anchorLinks ?? array(),
+                    $assets[$manualRec->assetId]->packageLinks
+                );
                 $assets[$manualRec->assetId]->autoPackageLinks = planning_TaskManualOrderPerAssets::sanitizePackageLinks($manualRec->data, $manualRec->autoPackageLinks ?? array());
                 $assets[$manualRec->assetId]->excludedAutoGroupTasks = planning_TaskManualOrderPerAssets::sanitizeTaskSet($manualRec->excludedAutoGroupTasks ?? array(), $manualRec->data);
                 $assets[$manualRec->assetId]->committedTaskId = $manualRec->committedTaskId ?? null;
@@ -856,6 +869,7 @@ class planning_TaskConstraints extends core_Master
             if (isset($options['manualOrderOverrides'][$assetId])) {
                 $oldOrder = $assetRec->manualOrder ?? array();
                 $oldLinks = $assetRec->packageLinks ?? array();
+                $oldAnchorLinks = $assetRec->anchorLinks ?? array();
                 $newOrder = array_values((array)$options['manualOrderOverrides'][$assetId]);
                 $newLinks = isset($options['packageLinkOverrides'][$assetId])
                     ? $options['packageLinkOverrides'][$assetId]
@@ -872,10 +886,22 @@ class planning_TaskConstraints extends core_Master
                 $assetRec->packageLinks = $packageState->packageLinks;
                 $assetRec->autoPackageLinks = $packageState->autoPackageLinks;
                 $assetRec->excludedAutoGroupTasks = $packageState->excludedAutoGroupTasks;
+                $assetRec->anchorLinks = planning_TaskManualOrderPerAssets::sanitizeAnchorLinks(
+                    $newOrder,
+                    $options['anchorLinkOverrides'][$assetId] ?? $oldAnchorLinks,
+                    $assetRec->packageLinks
+                );
             } elseif (isset($options['packageLinkOverrides'][$assetId])) {
                 $assetRec->packageLinks = planning_TaskManualOrderPerAssets::sanitizePackageLinks(
                     $assetRec->manualOrder ?? array(),
                     $options['packageLinkOverrides'][$assetId]
+                );
+            }
+            if (isset($options['anchorLinkOverrides'][$assetId]) && !isset($options['manualOrderOverrides'][$assetId])) {
+                $assetRec->anchorLinks = planning_TaskManualOrderPerAssets::sanitizeAnchorLinks(
+                    $assetRec->manualOrder ?? array(),
+                    $options['anchorLinkOverrides'][$assetId],
+                    $assetRec->packageLinks ?? array()
                 );
             }
             if (isset($optimizeAssetIds[$assetId])) {
@@ -1038,6 +1064,12 @@ class planning_TaskConstraints extends core_Master
                     $packageAdjacency[$previousTaskId][$taskId] = (int)$taskId;
                 }
             }
+            foreach ((array)($assetRec->anchorLinks ?? array()) as $taskId => $previousTaskId) {
+                if (isset($allTasks[$taskId], $allTasks[$previousTaskId])
+                    && $allTasks[$taskId]->assetId == $assetId && $allTasks[$previousTaskId]->assetId == $assetId) {
+                    $packageAdjacency[$previousTaskId][$taskId] = (int)$taskId;
+                }
+            }
         }
         $sameResourceJobLinks = static::getSameResourceJobPackageLinks($allTasks);
         foreach ($sameResourceJobLinks as $taskId => $previousTaskId) {
@@ -1091,7 +1123,7 @@ class planning_TaskConstraints extends core_Master
         }
 
         // Persisted user packages are directed chains on one resource.
-        $manualPackageNext = $manualPackagePrevious = $manualPackageChains = array();
+        $manualPackageNext = $manualPackagePrevious = $manualPackageChains = $manualAnchorPrevious = array();
         foreach ($assets as $assetId => $assetRec) {
             foreach ((array)($assetRec->packageLinks ?? array()) as $taskId => $previousTaskId) {
                 if (!isset($allTasks[$taskId], $allTasks[$previousTaskId])
@@ -1099,6 +1131,19 @@ class planning_TaskConstraints extends core_Master
                     continue;
                 }
 
+                $manualPackageNext[$previousTaskId] = (int)$taskId;
+                $manualPackagePrevious[$taskId] = (int)$previousTaskId;
+            }
+            foreach ((array)($assetRec->anchorLinks ?? array()) as $taskId => $previousTaskId) {
+                if (!isset($allTasks[$taskId], $allTasks[$previousTaskId])
+                    || $allTasks[$taskId]->assetId != $assetId || $allTasks[$previousTaskId]->assetId != $assetId) {
+                    continue;
+                }
+
+                $manualAnchorPrevious[$taskId] = (int)$previousTaskId;
+                // An anchor is visually not package membership, but for the scheduler both
+                // sides form one uninterrupted execution run. This delays the run as a whole
+                // until every member is ready instead of leaving a gap after the anchor.
                 $manualPackageNext[$previousTaskId] = (int)$taskId;
                 $manualPackagePrevious[$taskId] = (int)$previousTaskId;
             }
@@ -1161,6 +1206,11 @@ class planning_TaskConstraints extends core_Master
                 static::addPlanningEdge($previousTaskId, $taskId, $inDegree, $successors);
             }
         }
+        foreach ($manualAnchorPrevious as $taskId => $previousTaskId) {
+            if (isset($remaining[$taskId], $remaining[$previousTaskId])) {
+                static::addPlanningEdge($previousTaskId, $taskId, $inDegree, $successors);
+            }
+        }
 
         // A package head waits for all independent prerequisites of its members.
         // A prerequisite which itself depends on the package is left inside the chain,
@@ -1185,12 +1235,15 @@ class planning_TaskConstraints extends core_Master
                 $plannedTime = static::getGraphReadyTime($remaining[$taskId], $previousTasks, $planned, $allTasks, $now);
                 $previousTaskId = $previousTaskByJob[$taskId] ?? null;
                 $manualPreviousTaskId = $manualPackagePrevious[$taskId] ?? null;
+                $anchorPreviousTaskId = $manualAnchorPrevious[$taskId] ?? null;
                 $isManualContinuation = isset($planned[$manualPreviousTaskId]);
-                $isResourceContinuation = $isManualContinuation || (isset($planned[$previousTaskId])
-                    && static::canContinueOnResource($remaining[$taskId], $planned[$previousTaskId], $plannedTime));
-                $continuationPriority = $isResourceContinuation ? 0 : 1;
+                $isAnchorContinuation = isset($planned[$anchorPreviousTaskId]);
+                $isResourceContinuation = isset($planned[$previousTaskId])
+                    && static::canContinueOnResource($remaining[$taskId], $planned[$previousTaskId], $plannedTime);
+                $continuationPriority = $isManualContinuation ? 0 : ($isAnchorContinuation ? 1 : 2);
+                $resourceContinuationPriority = $isResourceContinuation ? 0 : 1;
                 $commitmentPriority = (($assets[$remaining[$taskId]->assetId]->committedTaskId ?? null) == $taskId) ? 0 : 1;
-                static::readyHeapPush($readyHeap, static::getReadyHeapItem($remaining[$taskId], $plannedTime, $manualPosition[$taskId], $continuationPriority, $commitmentPriority));
+                static::readyHeapPush($readyHeap, static::getReadyHeapItem($remaining[$taskId], $plannedTime, $manualPosition[$taskId], $continuationPriority, $commitmentPriority, $resourceContinuationPriority));
             }
         }
 
@@ -1207,6 +1260,10 @@ class planning_TaskConstraints extends core_Master
             $manualPreviousTaskId = $manualPackagePrevious[$taskId] ?? null;
             if (isset($planned[$manualPreviousTaskId]) && $planned[$manualPreviousTaskId]->expectedTimeEnd < self::NOT_FOUND_DATE) {
                 $packageStart = max($packageStart, $planned[$manualPreviousTaskId]->expectedTimeEnd);
+            }
+            $anchorPreviousTaskId = $manualAnchorPrevious[$taskId] ?? null;
+            if (isset($planned[$anchorPreviousTaskId]) && $planned[$anchorPreviousTaskId]->expectedTimeEnd < self::NOT_FOUND_DATE) {
+                $packageStart = max($packageStart, $planned[$anchorPreviousTaskId]->expectedTimeEnd);
             }
             if (count($packageRun) > 1) {
                 $packageStart = static::getManualPackageStartTime($packageRun, $packageStart, $remaining, $previousTasks, $planned, $allTasks, $now);
@@ -1244,13 +1301,16 @@ class planning_TaskConstraints extends core_Master
 
                         $plannedTime = static::getGraphReadyTime($remaining[$successorId], $previousTasks, $planned, $allTasks, $now);
                         $manualPreviousTaskId = $manualPackagePrevious[$successorId] ?? null;
+                        $anchorPreviousTaskId = $manualAnchorPrevious[$successorId] ?? null;
                         $isManualContinuation = isset($planned[$manualPreviousTaskId]);
-                        $isResourceContinuation = $isManualContinuation || (isset($nextTaskByJob[$packageTaskId])
+                        $isAnchorContinuation = isset($planned[$anchorPreviousTaskId]);
+                        $isResourceContinuation = isset($nextTaskByJob[$packageTaskId])
                             && $nextTaskByJob[$packageTaskId] == $successorId
-                            && static::canContinueOnResource($remaining[$successorId], $planned[$packageTaskId], $plannedTime));
-                        $continuationPriority = $isResourceContinuation ? 0 : 1;
+                            && static::canContinueOnResource($remaining[$successorId], $planned[$packageTaskId], $plannedTime);
+                        $continuationPriority = $isManualContinuation ? 0 : ($isAnchorContinuation ? 1 : 2);
+                        $resourceContinuationPriority = $isResourceContinuation ? 0 : 1;
                         $commitmentPriority = (($assets[$remaining[$successorId]->assetId]->committedTaskId ?? null) == $successorId) ? 0 : 1;
-                        static::readyHeapPush($readyHeap, static::getReadyHeapItem($remaining[$successorId], $plannedTime, $manualPosition[$successorId], $continuationPriority, $commitmentPriority));
+                        static::readyHeapPush($readyHeap, static::getReadyHeapItem($remaining[$successorId], $plannedTime, $manualPosition[$successorId], $continuationPriority, $commitmentPriority, $resourceContinuationPriority));
                     }
                 }
             }
@@ -1689,6 +1749,11 @@ class planning_TaskConstraints extends core_Master
         $hasPersistedOrder = isset($assetRec->manualOrder) && is_array($assetRec->manualOrder);
         $oldOrder = $hasPersistedOrder ? array_values($assetRec->manualOrder) : array();
         $oldLinks = (array)($assetRec->packageLinks ?? array());
+        $oldAnchorLinks = planning_TaskManualOrderPerAssets::sanitizeAnchorLinks(
+            $oldOrder,
+            $assetRec->anchorLinks ?? array(),
+            $oldLinks
+        );
         $oldAutoLinks = array_intersect_assoc((array)($assetRec->autoPackageLinks ?? array()), $oldLinks);
         $manualLinks = array_diff_assoc($oldLinks, $oldAutoLinks);
         $oldExcludedTasks = planning_TaskManualOrderPerAssets::sanitizeTaskSet($assetRec->excludedAutoGroupTasks ?? array());
@@ -1719,13 +1784,15 @@ class planning_TaskConstraints extends core_Master
         $allAssetTasks += $tasks;
         $fullTaskOrder = array_combine(array_keys($allAssetTasks), array_keys($allAssetTasks));
         $excludedTasks = planning_TaskManualOrderPerAssets::sanitizeTaskSet($oldExcludedTasks, $fullTaskOrder);
-        $nonAttachableTaskIds = $requiredMembers + $excludedTasks;
+        $anchorMembers = array_fill_keys(array_merge(array_keys($oldAnchorLinks), array_values($oldAnchorLinks)), true);
+        $nonAttachableTaskIds = $requiredMembers + $anchorMembers + $excludedTasks;
         if ($hasPersistedOrder && !$forceOptimization) {
             $allAssetTasks = static::reorderTasksByManualOrder($allAssetTasks, $oldOrder);
         }
         $baseLinks = $initialConversion ? $manualLinks : $oldLinks;
         $combinedLinks = static::mergeRequiredPackageLinks($requiredLinks, $baseLinks);
-        $allAssetTasks = static::reorderTasksByPackageLinks($allAssetTasks, $combinedLinks);
+        $positionLinks = static::mergeRequiredPackageLinks($combinedLinks, $oldAnchorLinks);
+        $allAssetTasks = static::reorderTasksByPackageLinks($allAssetTasks, $positionLinks);
         $fullCurrentOrder = array_combine(array_keys($allAssetTasks), array_keys($allAssetTasks));
         $fullActiveLinks = planning_TaskManualOrderPerAssets::sanitizePackageLinks($fullCurrentOrder, $combinedLinks);
         $tasks = static::reorderTasksByPackageLinks($tasks, $fullActiveLinks);
@@ -1818,12 +1885,14 @@ class planning_TaskConstraints extends core_Master
         foreach ($newOrder as $taskId) {
             if (isset($allAssetTasks[$taskId])) $newOrderTasks[$taskId] = $allAssetTasks[$taskId];
         }
-        $newOrderTasks = static::reorderTasksByPackageLinks($newOrderTasks, $newLinks);
+        $hardPositionLinks = static::mergeRequiredPackageLinks($newLinks, $oldAnchorLinks);
+        $newOrderTasks = static::reorderTasksByPackageLinks($newOrderTasks, $hardPositionLinks);
         $newOrder = array_values(array_keys($newOrderTasks));
         $result = static::reorderTasksByManualOrder($result, $newOrder);
 
         $newFullOrder = count($newOrder) ? array_combine($newOrder, $newOrder) : array();
         $newLinks = planning_TaskManualOrderPerAssets::sanitizePackageLinks($newFullOrder, $newLinks);
+        $newAnchorLinks = planning_TaskManualOrderPerAssets::sanitizeAnchorLinks($newFullOrder, $oldAnchorLinks, $newLinks);
         $hardLinks = planning_TaskManualOrderPerAssets::sanitizePackageLinks($newFullOrder, $hardLinks);
         $newAutoLinks = array_diff_assoc($newLinks, $hardLinks);
         $addedAutomaticLinks = count(array_diff_assoc($newAutoLinks, $oldAutoLinks));
@@ -1833,6 +1902,7 @@ class planning_TaskConstraints extends core_Master
 
         $assetRec->manualOrder = $newFullOrder;
         $assetRec->packageLinks = $newLinks;
+        $assetRec->anchorLinks = $newAnchorLinks;
         $assetRec->autoPackageLinks = $newAutoLinks;
         $assetRec->excludedAutoGroupTasks = $excludedTasks;
         $assetRec->autoGroupVersion = planning_TaskManualOrderPerAssets::AUTO_GROUP_VERSION;
@@ -2215,7 +2285,7 @@ class planning_TaskConstraints extends core_Master
     /**
      * Creates one deterministic min-heap item.
      */
-    private static function getReadyHeapItem($task, $plannedTime, $manualPosition, $continuationPriority = 1, $commitmentPriority = 1)
+    private static function getReadyHeapItem($task, $plannedTime, $manualPosition, $continuationPriority = 2, $commitmentPriority = 1, $resourceContinuationPriority = 1)
     {
         $plannedTimestamp = strtotime($plannedTime);
         $dueTimestamp = !empty($task->dueDate) ? strtotime($task->dueDate) : false;
@@ -2227,6 +2297,7 @@ class planning_TaskConstraints extends core_Master
             'manualPosition' => $manualPosition,
             'commitmentPriority' => $commitmentPriority,
             'continuationPriority' => $continuationPriority,
+            'resourceContinuationPriority' => $resourceContinuationPriority,
             'dueTimestamp' => ($dueTimestamp === false) ? PHP_INT_MAX : $dueTimestamp,
         );
     }
@@ -2296,7 +2367,7 @@ class planning_TaskConstraints extends core_Master
      */
     private static function compareReadyHeapItems($a, $b)
     {
-        foreach (array('commitmentPriority', 'continuationPriority', 'plannedTimestamp', 'manualPosition', 'dueTimestamp', 'taskId') as $field) {
+        foreach (array('continuationPriority', 'commitmentPriority', 'resourceContinuationPriority', 'plannedTimestamp', 'manualPosition', 'dueTimestamp', 'taskId') as $field) {
             if ($a[$field] == $b[$field]) {
                 continue;
             }

@@ -121,7 +121,7 @@ class drdata_VatType extends type_Varchar
         $attr = array();
         $attr['title'] = $status[0];
         
-        if (trim($info)) {
+        if (trim((string) $info)) {
             $attr['title'] .= "|*\n" . $info;
         }
         $attr['class'] = $status[1];

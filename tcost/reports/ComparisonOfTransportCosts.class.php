@@ -398,7 +398,7 @@ class tcost_reports_ComparisonOfTransportCosts extends frame2_driver_TableData
             "#{$saleHandle}",
             $singleUrl,
             false,
-            "ef_icon={$Sale->singleIcon}"
+            "ef_icon={$Sale->getSingleIcon()}"
             ). '</span>';
 
         if($dRec->deliveryTermId){
@@ -431,7 +431,7 @@ class tcost_reports_ComparisonOfTransportCosts extends frame2_driver_TableData
                             "#{$purchaseHandle}",
                             $singleUrl,
                             false,
-                            "ef_icon={$Purchase->singleIcon}"
+                            "ef_icon={$Purchase->getSingleIcon()}"
                             ). '</span>'.' ';
             }
             

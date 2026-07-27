@@ -753,7 +753,9 @@ class price_ListRules extends core_Detail
         }
         
         // Ако цената има повече от 2 дробни цифри, показва се до 5-я знак, иначе до втория
-        $strlen = strlen(substr(strrchr($rec->price, '.'), 1));
+        $priceStr = (string) ($rec->price ?? '');
+        $decimalPart = strrchr($priceStr, '.');
+        $strlen = ($decimalPart === false) ? 0 : strlen(substr($decimalPart, 1));
         if ($strlen > 2) {
             $mvc->getFieldType('price')->params['decimals'] = 5;
         } else {

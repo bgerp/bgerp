@@ -1456,7 +1456,7 @@ class crm_Companies extends core_Master
             // Визитката е оттеглена - изтриваме всички правила за рутиране, свързани с нея
             email_Router::removeRules('company', $rec->id);
         } else {
-            if ($rec->email) {
+            if (!empty($rec->email)) {
                 static::createRoutingRules($rec->email, $rec->id);
             }
         }
@@ -2000,15 +2000,15 @@ class crm_Companies extends core_Master
             $requiredRoles = 'no_one';
         }
         
-        if ($action == 'edit' && isset($rec)) {
+        if ($action == 'edit' && is_object($rec)) {
             if ($rec->id == crm_Setup::BGERP_OWN_COMPANY_ID) {
                 if (!haveRole('ceo,admin')) {
                     $requiredRoles = 'no_one';
                 }
             }
         }
-        
-        if ($action == 'close' && isset($rec)) {
+
+        if ($action == 'close' && is_object($rec)) {
             if ($rec->id == crm_Setup::BGERP_OWN_COMPANY_ID) {
                 $requiredRoles = 'no_one';
             }

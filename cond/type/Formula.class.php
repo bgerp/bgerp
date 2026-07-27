@@ -354,7 +354,7 @@ class cond_type_Formula extends cond_type_Text
      * @param mixed $domainId - ид на домейна
      * @return string
      */
-    public function getReplacementValueOnClone($rec, $domainClass = null, $domainId = null, $value)
+    public function getReplacementValueOnClone($rec, $domainClass = null, $domainId = null, $value = null)
     {
         $newFormula = cat_ParamFormulaVersions::getReplacementFormula($rec->id, $domainClass, $domainId, $value);
         if(!empty($newFormula)) return $newFormula;

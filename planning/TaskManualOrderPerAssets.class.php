@@ -65,7 +65,7 @@ class planning_TaskManualOrderPerAssets extends core_Master
     /**
      * Кой може да го разглежда?
      */
-    public $listFields = 'assetId,data,packageLinks,autoPackageLinks,excludedAutoGroupTasks,committedTaskId,autoGroupVersion,autoGroupSettingsHash,createdOn,createdBy';
+    public $listFields = 'assetId,data,packageLinks,anchorLinks,autoPackageLinks,excludedAutoGroupTasks,committedTaskId,autoGroupVersion,autoGroupSettingsHash,createdOn,createdBy';
 
 
     /**
@@ -82,6 +82,7 @@ class planning_TaskManualOrderPerAssets extends core_Master
         $this->FLD('assetId', 'key(mvc=planning_AssetResources,select=name,allowEmpty)', 'caption=Оборудване');
         $this->FLD('data', 'blob(serialize, compress)', 'caption=Данни,input=none');
         $this->FLD('packageLinks', 'blob(serialize, compress)', 'caption=Пакетни връзки,input=none');
+        $this->FLD('anchorLinks', 'blob(serialize, compress)', 'caption=Котви към предходна операция,input=none');
         $this->FLD('committedTaskId', 'key(mvc=planning_Tasks,select=id,allowEmpty)', 'caption=Ангажирана следваща операция,input=none');
         $this->FLD('autoGroupVersion', 'int', 'caption=Версия на автоматичното групиране,input=none');
         $this->FLD('order', 'int', 'caption=Подредба');
@@ -127,6 +128,15 @@ class planning_TaskManualOrderPerAssets extends core_Master
                 $linksHtml[] = $previousTaskLink->getContent() . ' → ' . $taskLink->getContent();
             }
             $row->packageLinks = implode('<br>', $linksHtml);
+        }
+        if (isset($rec->anchorLinks) && is_array($rec->anchorLinks)) {
+            $linksHtml = array();
+            foreach ($rec->anchorLinks as $taskId => $previousTaskId) {
+                $previousTaskLink = planning_Tasks::getLink($previousTaskId, 0);
+                $taskLink = planning_Tasks::getLink($taskId, 0);
+                $linksHtml[] = $previousTaskLink->getContent() . ' → ' . $taskLink->getContent();
+            }
+            $row->anchorLinks = implode('<br>', $linksHtml);
         }
         if (isset($rec->autoPackageLinks) && is_array($rec->autoPackageLinks)) {
             $linksHtml = array();
@@ -216,15 +226,17 @@ class planning_TaskManualOrderPerAssets extends core_Master
      * @param int $assetId
      * @param array $arr
      * @param array|null $packageLinks
+     * @param array|null $anchorLinks
      * @return int
      */
-    public static function force($assetId, $arr, $packageLinks = null)
+    public static function force($assetId, $arr, $packageLinks = null, $anchorLinks = null)
     {
         $arr = array_values((array)$arr);
         $manualRec = planning_TaskManualOrderPerAssets::fetch("#assetId = {$assetId}");
         $manualRec = is_object($manualRec) ? $manualRec : (object)array('assetId' => $assetId);
         $oldOrder = (array)($manualRec->data ?? array());
         $oldLinks = (array)($manualRec->packageLinks ?? array());
+        $oldAnchorLinks = (array)($manualRec->anchorLinks ?? array());
         $newOrder = countR($arr) ? array_combine($arr, $arr) : array();
         if (isset($packageLinks)) {
             $packageState = static::reconcileManualPackageState(
@@ -243,6 +255,11 @@ class planning_TaskManualOrderPerAssets extends core_Master
             $manualRec->autoPackageLinks = static::sanitizePackageLinks($newOrder, $manualRec->autoPackageLinks ?? array());
             $manualRec->excludedAutoGroupTasks = static::sanitizeTaskSet($manualRec->excludedAutoGroupTasks ?? array(), $newOrder);
         }
+        $manualRec->anchorLinks = static::sanitizeAnchorLinks(
+            $newOrder,
+            isset($anchorLinks) ? $anchorLinks : $oldAnchorLinks,
+            $manualRec->packageLinks
+        );
         $manualRec->data = $newOrder;
         // A user save is authoritative. Automatic grouping may subsequently add only new tasks.
         $manualRec->autoGroupVersion = static::AUTO_GROUP_VERSION;
@@ -382,6 +399,22 @@ class planning_TaskManualOrderPerAssets extends core_Master
 
 
     /**
+     * Returns hard positioning links which keep a package head immediately after another
+     * operation without merging both sides into one movable package.
+     */
+    public static function getAnchorLinks($assetId, $manualOrder = null, $packageLinks = null)
+    {
+        $rec = static::fetch("#assetId = {$assetId}", 'data,packageLinks,anchorLinks');
+        if (!is_object($rec)) return array();
+
+        $manualOrder = isset($manualOrder) ? $manualOrder : $rec->data;
+        $packageLinks = isset($packageLinks) ? $packageLinks : ($rec->packageLinks ?? array());
+
+        return static::sanitizeAnchorLinks($manualOrder, $rec->anchorLinks ?? array(), $packageLinks);
+    }
+
+
+    /**
      * Returns the next operation which is already announced to the resource operators.
      */
     public static function getCommittedTaskId($assetId)
@@ -479,6 +512,20 @@ class planning_TaskManualOrderPerAssets extends core_Master
 
 
     /**
+     * Keeps only adjacent positioning links which are not package-membership links.
+     */
+    public static function sanitizeAnchorLinks($manualOrder, $anchorLinks, $packageLinks = array())
+    {
+        $result = static::sanitizePackageLinks($manualOrder, $anchorLinks);
+        foreach ((array)$packageLinks as $taskId => $previousTaskId) {
+            if (($result[$taskId] ?? null) == $previousTaskId) unset($result[$taskId]);
+        }
+
+        return $result;
+    }
+
+
+    /**
      * Removes operations which no longer belong to the resource.
      *
      * @param int $assetId
@@ -529,14 +576,23 @@ class planning_TaskManualOrderPerAssets extends core_Master
             }
         }
         $packageLinks = static::sanitizePackageLinks($newData, $packageLinks);
-        if (count($newData) == count($manualRec->data) && $packageLinks == (array)($manualRec->packageLinks ?? array()) && !$removeCommitted) {
+        $anchorLinks = (array)($manualRec->anchorLinks ?? array());
+        foreach ($anchorLinks as $taskId => $previousTaskId) {
+            if (isset($remove[(int)$taskId]) || isset($remove[(int)$previousTaskId])) unset($anchorLinks[$taskId]);
+        }
+        $anchorLinks = static::sanitizeAnchorLinks($newData, $anchorLinks, $packageLinks);
+        if (count($newData) == count($manualRec->data)
+            && $packageLinks == (array)($manualRec->packageLinks ?? array())
+            && $anchorLinks == (array)($manualRec->anchorLinks ?? array())
+            && !$removeCommitted) {
             return null;
         }
 
         $manualRec->data = $newData;
         $manualRec->packageLinks = $packageLinks;
+        $manualRec->anchorLinks = $anchorLinks;
         if ($removeCommitted) $manualRec->committedTaskId = null;
 
-        return static::save($manualRec, 'data,packageLinks,committedTaskId');
+        return static::save($manualRec, 'data,packageLinks,anchorLinks,committedTaskId');
     }
 }

@@ -44,8 +44,8 @@ class deals_plg_UpdateCurrencyRates extends core_Plugin
             $dQuery->EXT('currencyId', $Detail->Master->className, "externalName=currencyId,externalKey={$Detail->masterKey}");
             $dQuery->EXT($Detail->Master->rateFldName, $Detail->Master->className, "externalName={$Detail->Master->rateFldName},externalKey={$Detail->masterKey}");
             $dQuery->EXT($Detail->Master->valiorFld, $Detail->Master->className, "externalName={$Detail->Master->valiorFld},externalKey={$Detail->masterKey}");
-            $dQuery->EXT('state', $Detail->Master->className, "externalName=state,externalKey={$Detail->masterKey}");
-            $dQuery->in("state", array('draft', 'pending'));
+            $dQuery->EXT('mState', $Detail->Master->className, "externalName=state,externalKey={$Detail->masterKey}");
+            $dQuery->in("mState", array('draft', 'pending'));
             $dQuery->show("{$Detail->masterKey},currencyId,{$Detail->Master->rateFldName},price,{$Detail->priceInCurrencyFieldName},productId");
             $dQuery->where("#{$Detail->Master->valiorFld} IS NULL AND #currencyId != 'BGN' AND #currencyId != 'EUR'");
 

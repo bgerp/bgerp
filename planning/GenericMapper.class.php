@@ -491,8 +491,10 @@ class planning_GenericMapper extends core_Manager
         expect($productId);
         
         // Проверяваме за тази група артикули, имали кеширана средна цена
-        $cachePrice = static::$cache[current(preg_grep("|{$productId}|", array_keys(static::$cache)))];
-        if ($cachePrice) {
+        $cacheKeys = preg_grep("|{$productId}|", array_keys(static::$cache));
+        $cacheKey = reset($cacheKeys);
+        if ($cacheKey !== false && array_key_exists($cacheKey, static::$cache)) {
+            $cachePrice = static::$cache[$cacheKey];
             
             return $cachePrice;
         }
@@ -698,5 +700,6 @@ class planning_GenericMapper extends core_Manager
 
         return $res;
     }
+
+
 }
-    

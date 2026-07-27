@@ -15,7 +15,7 @@
 class thumb_FastImageSize
 {
     private $strpos = 0;
-    private $str;
+    private $str = '';
     private $type;
     private $handle;
     
@@ -33,6 +33,10 @@ class thumb_FastImageSize
         if ($this->handle) {
             $this->close();
         }
+
+        $this->strpos = 0;
+        $this->str = '';
+        $this->type = null;
         
         $this->handle = fopen($uri, 'r');
     }
@@ -44,7 +48,7 @@ class thumb_FastImageSize
             fclose($this->handle);
             $this->handle = null;
             $this->type = null;
-            $this->str = null;
+            $this->str = '';
         }
     }
     

@@ -16,6 +16,12 @@
 class planning_DirectProductionNote extends planning_ProductionDocument
 {
     /**
+     * Протоколът за производство проверява за по-нов производствен документ
+     */
+    protected $checkNewerProductionDocument = true;
+
+
+    /**
      * Заглавие
      */
     public $title = 'Протоколи за производство';
@@ -173,7 +179,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
     /**
      * Кои полета от листовия изглед да се скриват ако няма записи в тях
      */
-    public $hideListFieldsIfEmpty = 'deadline,expenseItemId,storeId';
+    public $hideListFieldsIfEmpty = 'deadline,expenseItemId,storeId,note';
 
 
     /**
@@ -810,9 +816,10 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                             if($originDoc->isInstanceOf('planning_Jobs')){
 
                                 // Ако заданието е за производим артикул само тогава да може да се пуска протокол от него
-                                $productId = $originDoc->fetchField('productId');
+                                $jobRec = $originDoc->fetch('productId,type');
+                                $productId = $jobRec->productId;
                                 $productRec = cat_Products::fetch($productId, 'canManifacture,generic');
-                                if ($state == 'closed' || $productRec->canManifacture != 'yes' || $productRec->generic == 'yes') {
+                                if ($jobRec->type == 'disassembly' || $state == 'closed' || $productRec->canManifacture != 'yes' || $productRec->generic == 'yes') {
                                     $requiredRoles = 'no_one';
                                 }
                             } elseif($originDoc->isInstanceOf('planning_Tasks')){
@@ -1757,21 +1764,16 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         $res = array();
         $id = is_object($rec) ? $rec->id : $rec;
         $rec = $this->fetch($id, '*', false);
-        $date = !empty($rec->{$this->termDateFld}) ? $rec->{$this->termDateFld} : (!empty($rec->{$this->valiorFld}) ? $rec->{$this->valiorFld} : null);
-        $horizonAdd = store_Setup::get('PLANNED_DATE_ADDITIVE_IF_IN_THE_PAST');
-        $dateIn = $date;
-        if(empty($date) || $date < dt::today()){
-            $dateIn = dt::addSecs($horizonAdd, dt::now());
-        }
-        $dateOut = empty($date) ? $rec->createdOn : $date;
+
+        [$dateIn, $dateOut] = static::calcPlannedDates($this, $rec);
 
         $canStore = cat_Products::fetchField($rec->productId, 'canStore');
-        if($canStore == 'yes'){
-            $res[] = (object)array('storeId'          => $rec->storeId,
-                'productId'        => $rec->productId,
-                'date'             => $dateIn,
-                'quantityIn'       => $rec->quantity,
-                'quantityOut'      => null,
+        if ($canStore == 'yes') {
+            $res[] = (object) array('storeId' => $rec->storeId,
+                'productId'       => $rec->productId,
+                'date'            => $dateIn,
+                'quantityIn'      => $rec->quantity,
+                'quantityOut'     => null,
                 'genericProductId' => null);
         }
 
@@ -1784,28 +1786,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         $dQuery->groupBy('productId');
 
         while ($dRec = $dQuery->fetch()) {
-            $genericProductId = null;
-            if($dRec->generic == 'yes'){
-                $genericProductId = $dRec->productId;
-            } elseif($dRec->canConvert == 'yes'){
-                $genericProductId = planning_GenericMapper::fetchField("#productId = {$dRec->productId}", 'genericProductId');
-            }
-
-            $quantityIn = $quantityOut = null;
-            if($dRec->type == 'input'){
-                $detailDate = $dateOut;
-                $quantityOut = $dRec->totalQuantity;
-            } else {
-                $detailDate = $dateIn;
-                $quantityIn = $dRec->totalQuantity;
-            }
-
-            $res[] = (object)array('storeId'          => $dRec->storeId,
-                                   'productId'        => $dRec->productId,
-                                   'date'             => $detailDate,
-                                   'quantityIn'       => $quantityIn,
-                                   'quantityOut'      => $quantityOut,
-                                   'genericProductId' => $genericProductId);
+            $res[] = static::buildPlannedStockEntry($dRec, $dateIn, $dateOut);
         }
 
         return $res;
@@ -1872,7 +1853,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
      * @param $action
      * @return string|null
      */
-    private function getErrorWhenTryingToConto($rec, $action = 'conto')
+    protected function getErrorWhenTryingToConto($rec, $action = 'conto')
     {
         $errorMsg = null;
         $rec = $this->fetchRec($rec);
@@ -1908,20 +1889,6 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         }
 
         return $errorMsg;
-    }
-
-
-    /**
-     * Изпълнява се преди контиране на документа
-     */
-    public static function on_BeforeConto(core_Mvc $mvc, &$res, $id)
-    {
-        $errorMsg = $mvc->getErrorWhenTryingToConto($id);
-        if(!empty($errorMsg)){
-            core_Statuses::newStatus($errorMsg, 'error');
-
-            return false;
-        }
     }
 
 
@@ -1987,5 +1954,31 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         }
 
         return $res;
+    }
+
+
+    /**
+     * Подготовка на филтър формата
+     */
+    protected static function on_AfterPrepareListFilter($mvc, &$data)
+    {
+        $data->listFilter->FLD('productionType', 'enum(,additionalMeasure=С втора мярка,withoutAdditionalMeasure=Без втора мярка,nonDetailed=Бездетайлно произвеждане,detailed=Детайлно произвеждане)', 'caption=Производство,input');
+        $data->listFilter->showFields .= ",productionType";
+        $data->listFilter->input('productionType');
+
+        // Прилагане на допълнителни филтри
+        if($filter = $data->listFilter->rec){
+            if(!empty($filter->productionType)){
+                if($filter->productionType == 'detailed'){
+                    $data->query->where("#debitAmount IS NULL");
+                } elseif($filter->productionType == 'nonDetailed'){
+                    $data->query->where("#debitAmount IS NOT NULL");
+                } elseif($filter->productionType == 'additionalMeasure'){
+                    $data->query->where("#additionalMeasureId IS NOT NULL");
+                } elseif($filter->productionType == 'withoutAdditionalMeasure'){
+                    $data->query->where("#additionalMeasureId IS NULL");
+                }
+            }
+        }
     }
 }

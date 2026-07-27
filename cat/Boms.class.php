@@ -722,13 +722,13 @@ class cat_Boms extends core_Master
         $measureId = cat_Products::fetchField($rec->productId, 'measureId');
 
         $shortUom = cat_UoM::getShortName($measureId);
-        $row->quantity .= ' ' . $shortUom;
+        $row->quantity = ($row->quantity ?? '') . ' ' . $shortUom;
 
         $row->title = $mvc->getHyperlink($rec, true);
         if (isset($fields['-single'])) {
             if(!doc_HiddenContainers::isHidden($rec->containerId)) {
                 $row->title = empty($rec->title) ? null : $mvc->getVerbal($rec, 'title');
-                $rec->quantityForPrice = isset($rec->quantityForPrice) ? $rec->quantityForPrice : $rec->quantity;
+                $rec->quantityForPrice = $rec->quantityForPrice ?? $rec->quantity;
 
                 try {
                     $jobQuantity = null;
@@ -931,12 +931,13 @@ class cat_Boms extends core_Master
         
         $Double = cls::get('type_Double');
         $Richtext = cls::get('type_Richtext');
-        
+
+        $originRec = $origin->rec();
         $rec = (object) array('productId' => $productId,
             'type' => $type,
             'originId' => $originId,
-            'folderId' => $origin->rec()->folderId,
-            'threadId' => $origin->rec()->threadId,
+            'folderId' => $originRec->folderId ?? null,
+            'threadId' => $originRec->threadId ?? null,
             'quantity' => $Double->fromVerbal($quantity),
             'expenses' => $expenses);
         if ($notes) {

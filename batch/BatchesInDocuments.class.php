@@ -192,8 +192,10 @@ class batch_BatchesInDocuments extends core_Manager
             return;
         }
 
-        $showBatchLink = core_Packs::isInstalled('rack') && $rInfo->operation['in'] && ($Class->hasPlugin('rack_plg_IncomingShipmentDetails') || $Class instanceof planning_DirectProductionNote) && $rInfo->state != 'rejected';
-        $palletStoreId = $rInfo->operation['in'] ?? $storeId;
+        $inStoreId = $rInfo->operation['in'] ?? null;
+        $outStoreId = $rInfo->operation['out'] ?? null;
+        $showBatchLink = core_Packs::isInstalled('rack') && $inStoreId && ($Class->hasPlugin('rack_plg_IncomingShipmentDetails') || $Class instanceof planning_DirectProductionNote) && $rInfo->state != 'rejected';
+        $palletStoreId = $inStoreId ?? $storeId;
         $palletStoreId = $palletStoreId == batch_Items::WORK_IN_PROGRESS_ID ? null : $palletStoreId;
 
         $bRecs = array();
@@ -244,7 +246,7 @@ class batch_BatchesInDocuments extends core_Manager
             if (countR($batch1) == 1 && (!($batchDef instanceof batch_definitions_Serial))) {
 
                 $quantity = core_Type::getByName('double(smartRound)')->toVerbal($q);
-                if ($rInfo->operation['out'] && in_array($rInfo->state, array('draft', 'pending'))) {
+                if ($outStoreId && in_array($rInfo->state, array('draft', 'pending'))) {
                     $batchQuantityInStore = batch_Items::getQuantity($rec->productId, $rec->batch, $storeId);
                     if ($rec->quantity > $batchQuantityInStore) {
                         $batchQuantityInStoreVerbal = core_Type::getByName('double(smartRound)')->toVerbal($batchQuantityInStore / $quantityInPack);
@@ -271,7 +273,7 @@ class batch_BatchesInDocuments extends core_Manager
 
                 if(in_array($rInfo->state, array('draft', 'pending'))){
 
-                    if ($rInfo->operation['out']) {
+                    if ($outStoreId) {
                         $batchQuantityInStore = batch_Items::getQuantity($rec->productId, $rec->batch, $storeId);
                         $batchQuantityInStoreVerbal = core_Type::getByName('double(smartRound)')->toVerbal($batchQuantityInStore / $quantityInPack);
 
@@ -280,7 +282,7 @@ class batch_BatchesInDocuments extends core_Manager
                         }
                     }
 
-                    if ($rInfo->operation['in'] && empty($rInfo->operation['out'])) {
+                    if ($inStoreId && !$outStoreId) {
                         $batchQuantityInAllStores = batch_Items::getBatchQuantitiesInStore($rec->productId, null, null, null, array(), false, $rec->batch);
                         $batchQuantityInStoreVerbal = core_Type::getByName('double(smartRound)')->toVerbal($batchQuantityInAllStores[$rec->batch] / $quantityInPack);
 
@@ -535,6 +537,7 @@ class batch_BatchesInDocuments extends core_Manager
             $bOptions = $Detail->getAllowedInBatches($detailRecId);
         }
 
+        $tableRec = $exTableRec = array();
         if ($Def instanceof batch_definitions_Serial) {
 
             // Ако е сериен номер добавя се и бутон за маркиране/отмаркиране на всички чекбоксове
@@ -578,7 +581,6 @@ class batch_BatchesInDocuments extends core_Manager
         } else {
             Mode::push('htmlEntity', 'none');
             $i = $j = 0;
-            $tableRec = $exTableRec = array();
             $batchesCount = countR($batches);
             foreach ($batches as $batch => $quantityInStore) {
                 Mode::push('text', 'plain');
@@ -820,6 +822,13 @@ class batch_BatchesInDocuments extends core_Manager
         if (!($Detail instanceof planning_Jobs)) {
             $form->toolbar->addSbBtn('Това е к-то', 'updateQuantity', 'id=updateQuantity,ef_icon = img/16/disk.png,title = Обновяване на количеството');
             $form->toolbar->setBtnOrder('updateQuantity', 30);
+        }
+
+        if (doc_Containers::getDocument($recInfo->containerId)->rec('state') == 'active') {
+            $form->toolbar->setWarning('btnSave', 'Документът е вече контиран, при запис ще бъде реконтиран|*!');
+            if ($form->toolbar->haveButton('updateQuantity')) {
+                $form->toolbar->setWarning('updateQuantity', 'Документът е вече контиран, при запис ще бъде реконтиран|*!');
+            }
         }
 
         $operation = key($recInfo->operation);

@@ -576,8 +576,9 @@ class planning_Tasks extends core_Master
         }
 
         foreach (array('plannedQuantity', 'totalQuantity', 'scrappedQuantity', 'producedQuantity', 'notConvertedQuantity') as $quantityFld) {
-            $row->{$quantityFld} = ($rec->{$quantityFld}) ? $row->{$quantityFld} : 0;
-            $row->{$quantityFld} = ht::styleNumber($row->{$quantityFld}, $rec->{$quantityFld});
+            $quantity = $rec->{$quantityFld} ?? 0;
+            $row->{$quantityFld} = $quantity ? ($row->{$quantityFld} ?? 0) : 0;
+            $row->{$quantityFld} = ht::styleNumber($row->{$quantityFld}, $quantity);
         }
 
         if (isset($rec->storeId)) {
@@ -1370,6 +1371,8 @@ class planning_Tasks extends core_Master
                 if ($origin = doc_Containers::getDocument($rec->originId)) {
                     if (!$origin->isInstanceOf('planning_Jobs')) {
                         $requiredRoles = 'no_one';
+                    } elseif ($origin->fetchField('type') == 'disassembly') {
+                        $requiredRoles = 'no_one';
                     }
                 }
             } elseif (!empty($rec->folderId)) {
@@ -2069,6 +2072,12 @@ class planning_Tasks extends core_Master
      */
     public function prepareTasks($data)
     {
+        if ($data->masterMvc instanceof planning_Jobs && $data->masterData->rec->type == 'disassembly') {
+            $data->hide = true;
+
+            return;
+        }
+
         if ($data->masterMvc instanceof planning_AssetResources) {
             if(empty($data->masterData->rec->simultaneity)) {
                 $data->hide = true;
@@ -2190,11 +2199,11 @@ class planning_Tasks extends core_Master
      */
     public function renderTasks($data)
     {
+        if (($data->hide ?? false) === true) return null;
+
         $tpl = new ET('');
 
         if ($data->masterMvc instanceof planning_AssetResources) {
-            if($data->hide) return null;
-
             $data->TabCaption = 'Операции';
             $tpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
         }
@@ -2254,11 +2263,13 @@ class planning_Tasks extends core_Master
         $data->listFilter->setSuggestions('folders', array('' => '') + doc_Folders::getOptionsByCoverInterface('planning_ActivityCenterIntf', array(), true));
         $data->listFilter->input('folders');
         $orderByField = 'orderByDate';
-        $data->listFilter->FNC('saleId', 'key2(mvc=sales_Sales,select=id,allowEmpty,input,remember,forceAjax, maxSuggestions=100)', 'caption=Продажба,input, after=isFinalSelect,class=w100');
+        $data->listFilter->FNC('saleId', 'key2(mvc=sales_Sales,select=id,allowEmpty,input,remember,forceAjax, maxSuggestions=100)', 'caption=Продажба,input,after=isFinalSelect,class=w100,silent,removeAndRefreshForm=purchaseId');
         $data->listFilter->setFieldTypeParams("saleId", array('state' => 'active,closed'));
-        $data->listFilter->showFields .= ',folders,productId, saleId';
+        $data->listFilter->FNC('purchaseId', 'key2(mvc=purchase_Purchases,select=id,allowEmpty,input,remember,forceAjax,maxSuggestions=100)', 'caption=Покупка,input,after=saleId,class=w100,silent,removeAndRefreshForm=saleId');
+        $data->listFilter->setFieldTypeParams('purchaseId', array('state' => 'active,closed'));
+        $data->listFilter->showFields .= ',folders,productId,saleId,purchaseId';
         $data->listFilter->setField('productId','before=isFinalSelect');
-        $data->listFilter->input('productId, saleId');
+        $data->listFilter->input('productId,saleId,purchaseId');
         $data->query->isSlowQuery = true;
 
         // Добавят се за избор само използваните в ПО оборудвания
@@ -2350,9 +2361,18 @@ class planning_Tasks extends core_Master
         $data->query->XPR('orderByDate', 'datetime', $orderByDateCoalesce);
         $data->query->orderBy($orderByField, $orderByDir);
 
-        if(!empty($data->listFilter->rec->saleId)){
+        $jobSourceField = $jobSourceId = null;
+        if (!empty($data->listFilter->rec->saleId)) {
+            $jobSourceField = 'saleId';
+            $jobSourceId = $data->listFilter->rec->saleId;
+        } elseif (!empty($data->listFilter->rec->purchaseId)) {
+            $jobSourceField = 'purchaseId';
+            $jobSourceId = $data->listFilter->rec->purchaseId;
+        }
+
+        if (isset($jobSourceField)) {
             $jQuery = planning_Jobs::getQuery();
-            $jQuery->where("#saleId = {$data->listFilter->rec->saleId}");
+            $jQuery->where("#{$jobSourceField} = {$jobSourceId}");
             $jRecs = $jQuery->fetchAll();
             $containerIds = arr::extractValuesFromArray($jRecs,'containerId');
 
@@ -2461,9 +2481,13 @@ class planning_Tasks extends core_Master
      */
     protected static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
     {
-        // Ако ПО е към задание по продажба - добавя се хендлъра на продажбата в ключовите думи
-        if($jobRec = planning_Jobs::fetch("#containerId = '{$rec->originId}'", 'saleId,productId')){
-            $res .= ' ' . plg_Search::normalizeText(sales_Sales::getHandle($jobRec->saleId));
+        // Ако ПО е към задание по сделка - добавя се хендлъра на сделката в ключовите думи
+        if($jobRec = planning_Jobs::fetch("#containerId = '{$rec->originId}'", 'saleId,purchaseId,productId')){
+            if (!empty($jobRec->saleId)) {
+                $res .= ' ' . plg_Search::normalizeText(sales_Sales::getHandle($jobRec->saleId));
+            } elseif (!empty($jobRec->purchaseId)) {
+                $res .= ' ' . plg_Search::normalizeText(purchase_Purchases::getHandle($jobRec->purchaseId));
+            }
 
             // Добавяне на драйвера на артикула в ключовите думи
             $productDriverClass = cat_Products::getVerbal($jobRec->productId, 'innerClass');
@@ -3341,6 +3365,13 @@ class planning_Tasks extends core_Master
                 planning_TaskManualOrderPerAssets::getPackageLinks($data->listFilter->rec->assetId)
             )
             : array();
+        $manualAnchorLinks = Mode::is('isReorder')
+            ? planning_TaskManualOrderPerAssets::getAnchorLinks(
+                $data->listFilter->rec->assetId,
+                null,
+                $manualPackageLinks
+            )
+            : array();
 
         foreach ($rows as $id => $row) {
             core_Debug::startTimer('RENDER_ROW');
@@ -3361,13 +3392,14 @@ class planning_Tasks extends core_Master
             $row->ROW_ATTR['data-id'] = $rec->id;
             if (Mode::is('isReorder')) {
                 $linkedPreviousTaskId = $manualPackageLinks[$rec->id] ?? null;
+                $anchoredPreviousTaskId = $manualAnchorLinks[$rec->id] ?? null;
                 $requiredPackageLink = isset($requiredPackageLinks[$rec->id]);
-                $checked = isset($linkedPreviousTaskId) ? ' checked' : '';
+                $checked = (isset($linkedPreviousTaskId) || isset($anchoredPreviousTaskId)) ? ' checked' : '';
                 $isStartedForReorder = !empty($rec->actualStart) && $rec->state != 'stopped';
                 $disabled = (($isStartedForReorder && $manualPlanning == 'no') || $requiredPackageLink) ? ' disabled' : '';
                 $packageTitle = ht::escapeAttr(tr($requiredPackageLink
                     ? 'Задължителна пакетна връзка между последователни операции от едно задание на една машина'
-                    : 'Изпълни операцията в пакет с непосредствено предходната'));
+                    : 'Изпълни непосредствено след предходната; при първи ред на пакет това е котва и пакетите остават отделни'));
                 $movePackageTitle = ht::escapeAttr(tr('Премести целия пакет'));
                 $disabledMoveTitle = ht::escapeAttr(tr('Пакет със започната операция не може да бъде преместен'));
                 $packageHandle = "<span class='packageDragHandle' data-move-title='{$movePackageTitle}' data-disabled-title='{$disabledMoveTitle}' title='{$movePackageTitle}' aria-label='{$movePackageTitle}'>&#8942;</span>";
@@ -3375,6 +3407,9 @@ class planning_Tasks extends core_Master
                 $row->packageLink = "{$packageHandle}<input type='checkbox' class='packageLinkToggle inline-checkbox' data-task-id='{$rec->id}'{$requiredAttr}{$checked}{$disabled} title='{$packageTitle}'>";
                 if (isset($linkedPreviousTaskId)) {
                     $row->ROW_ATTR['data-package-previous'] = $linkedPreviousTaskId;
+                }
+                if (isset($anchoredPreviousTaskId)) {
+                    $row->ROW_ATTR['data-anchor-previous'] = $anchoredPreviousTaskId;
                 }
                 if ($requiredPackageLink || in_array($rec->id, $requiredPackageLinks)) {
                     $row->ROW_ATTR['data-required-package'] = '1';
@@ -4032,7 +4067,7 @@ class planning_Tasks extends core_Master
     /**
      * Runs one side-effect-free planning candidate and returns its order and quality metrics.
      */
-    private static function calculateOptimizationCandidate($tasks, $previousTasks, $now, $assetId, $order, $packageLinks, $requiredLinks, $forceRegroup = false)
+    private static function calculateOptimizationCandidate($tasks, $previousTasks, $now, $assetId, $order, $packageLinks, $anchorLinks, $requiredLinks, $forceRegroup = false)
     {
         $candidateTasks = array();
         foreach ($tasks as $taskId => $task) $candidateTasks[$taskId] = clone $task;
@@ -4040,6 +4075,7 @@ class planning_Tasks extends core_Master
         $options = array(
             'manualOrderOverrides' => array($assetId => array_values($order)),
             'packageLinkOverrides' => array($assetId => $packageLinks),
+            'anchorLinkOverrides' => array($assetId => $anchorLinks),
         );
         if ($forceRegroup) {
             $options['optimizeAssetIds'] = array($assetId);
@@ -4052,6 +4088,12 @@ class planning_Tasks extends core_Master
             $linkCandidates,
             $scheduledData->assets[$assetId]->packageLinks ?? array()
         );
+        $anchorCandidates = planning_TaskManualOrderPerAssets::sanitizeAnchorLinks(
+            $order,
+            $scheduledData->assets[$assetId]->anchorLinks ?? $anchorLinks,
+            $linkCandidates
+        );
+        $positionCandidates = planning_TaskConstraints::mergeRequiredPackageLinks($linkCandidates, $anchorCandidates);
         $plannedTasks = array_values((array)($scheduledData->tasks[$assetId] ?? array()));
         usort($plannedTasks, function($a, $b) {
             $startA = strtotime($a->expectedTimeStart);
@@ -4063,7 +4105,7 @@ class planning_Tasks extends core_Master
 
         $plannedTasksById = array();
         foreach ($plannedTasks as $task) $plannedTasksById[$task->id] = $task;
-        $plannedTasksById = planning_TaskConstraints::applyPackageLinksOrder($plannedTasksById, $linkCandidates);
+        $plannedTasksById = planning_TaskConstraints::applyPackageLinksOrder($plannedTasksById, $positionCandidates);
         $candidateOrder = array_values(array_map('intval', array_keys($plannedTasksById)));
         $includedTaskIds = array_fill_keys($candidateOrder, true);
         foreach ((array)$order as $taskId) {
@@ -4075,13 +4117,15 @@ class planning_Tasks extends core_Master
         }
         $candidateOrderObjects = array();
         foreach ($candidateOrder as $taskId) $candidateOrderObjects[$taskId] = $tasks[$taskId] ?? (object)array('id' => $taskId);
-        $candidateOrderObjects = planning_TaskConstraints::applyPackageLinksOrder($candidateOrderObjects, $linkCandidates);
+        $candidateOrderObjects = planning_TaskConstraints::applyPackageLinksOrder($candidateOrderObjects, $positionCandidates);
         $candidateOrder = array_values(array_map('intval', array_keys($candidateOrderObjects)));
         $candidateLinks = planning_TaskManualOrderPerAssets::sanitizePackageLinks($candidateOrder, $linkCandidates);
+        $candidateAnchorLinks = planning_TaskManualOrderPerAssets::sanitizeAnchorLinks($candidateOrder, $anchorCandidates, $candidateLinks);
 
         return (object)array(
             'order' => $candidateOrder,
             'packageLinks' => $candidateLinks,
+            'anchorLinks' => $candidateAnchorLinks,
             'scheduledData' => $scheduledData,
             'metrics' => static::getOptimizationMetrics($scheduledData, $now, $tasks, $assetId),
         );
@@ -4247,7 +4291,11 @@ class planning_Tasks extends core_Master
      */
     private static function getOptimizationNeighbourOrders($candidate, $tasksById, $assetId, $now, $limit = 12, $knownOrderHashes = array())
     {
-        $blocks = static::getOptimizationBlocks($candidate->order, $candidate->packageLinks, $tasksById);
+        $positionLinks = planning_TaskConstraints::mergeRequiredPackageLinks(
+            $candidate->packageLinks,
+            $candidate->anchorLinks ?? array()
+        );
+        $blocks = static::getOptimizationBlocks($candidate->order, $positionLinks, $tasksById);
         if (count($blocks) < 2) return array();
 
         $limit = max(1, (int)$limit);
@@ -5015,6 +5063,12 @@ class planning_Tasks extends core_Master
         $orderedTaskIds = array_values(array_filter(array_map('intval', (array)$orderedTaskIds)));
         $submittedLinks = json_decode(Request::get('packageLinks', 'varchar'), true);
         $submittedLinks = planning_TaskManualOrderPerAssets::sanitizePackageLinks($orderedTaskIds, $submittedLinks);
+        $submittedAnchorLinks = json_decode(Request::get('anchorLinks', 'varchar'), true);
+        $submittedAnchorLinks = planning_TaskManualOrderPerAssets::sanitizeAnchorLinks(
+            $orderedTaskIds,
+            $submittedAnchorLinks,
+            $submittedLinks
+        );
 
         $tasks = planning_TaskConstraints::getDefaultArr(null, 'actualStart,timeStart,calcedCurrentDuration,assetId,dueDate,state,modifiedOn,originId,saoOrder,productId,jobProductId,folderId');
         core_App::setTimeLimit(countR($tasks) * 0.6, false, 120);
@@ -5028,6 +5082,11 @@ class planning_Tasks extends core_Master
         $submittedLinks = planning_TaskManualOrderPerAssets::sanitizePackageLinks(
             $orderedTaskIds,
             planning_TaskConstraints::mergeRequiredPackageLinks($requiredLinks, $submittedLinks)
+        );
+        $submittedAnchorLinks = planning_TaskManualOrderPerAssets::sanitizeAnchorLinks(
+            $orderedTaskIds,
+            $submittedAnchorLinks,
+            $submittedLinks
         );
 
         $previousTasks = array();
@@ -5056,11 +5115,13 @@ class planning_Tasks extends core_Master
             $assetId,
             $orderedTaskIds,
             $submittedLinks,
+            $submittedAnchorLinks,
             $requiredLinks
         );
         // When no better candidate is found the form must remain exactly as submitted.
         $baselineCandidate->order = $orderedTaskIds;
         $baselineCandidate->packageLinks = $submittedLinks;
+        $baselineCandidate->anchorLinks = $submittedAnchorLinks;
         $bestCandidate = $baselineCandidate;
         $testedCandidates++;
         $seenOrders = array(implode(',', $orderedTaskIds) => true);
@@ -5074,6 +5135,7 @@ class planning_Tasks extends core_Master
                 $assetId,
                 $orderedTaskIds,
                 $submittedLinks,
+                $submittedAnchorLinks,
                 $requiredLinks,
                 true
             );
@@ -5125,6 +5187,7 @@ class planning_Tasks extends core_Master
                     $assetId,
                     $neighbourOrder,
                     $searchCandidate->packageLinks,
+                    $searchCandidate->anchorLinks,
                     $requiredLinks
                 );
                 $testedCandidates++;
@@ -5152,6 +5215,7 @@ class planning_Tasks extends core_Master
         $hasImprovement = static::isOptimizationImprovement($bestCandidate->metrics, $baselineCandidate->metrics);
         $optimizedOrder = $bestCandidate->order;
         $optimizedLinks = $bestCandidate->packageLinks;
+        $optimizedAnchorLinks = $bestCandidate->anchorLinks;
         $baselineIdle = $baselineCandidate->metrics['idleByAsset'];
         $optimizedIdle = $bestCandidate->metrics['idleByAsset'];
         $idleChanges = static::getIdleChanges($baselineIdle, $optimizedIdle);
@@ -5162,6 +5226,7 @@ class planning_Tasks extends core_Master
             'order' => $optimizedOrder,
             'currentTaskIds' => $currentTargetTaskIds,
             'packageLinks' => $optimizedLinks,
+            'anchorLinks' => $optimizedAnchorLinks,
             'idleMessage' => static::getIdleChangesMessage($idleChanges, 'Предварително оптимизиране.'),
             'idleChanges' => static::getIdleChangesReport($baselineIdle, $optimizedIdle, $idleChanges),
             'idleTotals' => static::getIdleChangesTotals($idleChanges),
@@ -5206,6 +5271,8 @@ class planning_Tasks extends core_Master
 
             $packageLinks = Request::get('packageLinks', 'varchar');
             $packageLinks = json_decode($packageLinks, true);
+            $anchorLinks = Request::get('anchorLinks', 'varchar');
+            $anchorLinks = json_decode($anchorLinks, true);
             $orderTaskRecs = array();
             if (countR($inOrderTasks)) {
                 $orderQuery = $this->getQuery();
@@ -5218,9 +5285,14 @@ class planning_Tasks extends core_Master
                 $inOrderTasks,
                 planning_TaskConstraints::mergeRequiredPackageLinks($requiredPackageLinks, $packageLinks)
             );
+            $anchorLinks = planning_TaskManualOrderPerAssets::sanitizeAnchorLinks(
+                $inOrderTasks,
+                $anchorLinks,
+                $packageLinks
+            );
 
             $problemTaskIds = array();
-            if (!planning_TaskConstraints::validateManualOrder($assetId, $inOrderTasks, $problemTaskIds, array(), $packageLinks)) {
+            if (!planning_TaskConstraints::validateManualOrder($assetId, $inOrderTasks, $problemTaskIds, array(), $packageLinks, $anchorLinks)) {
                 $problemHandles = array();
                 foreach ($problemTaskIds as $problemTaskId) {
                     $problemHandles[] = '#' . $this->getHandle($problemTaskId);
@@ -5259,7 +5331,7 @@ class planning_Tasks extends core_Master
                 }
 
                 $this->reorderIdleBaseline = static::getIdleSecondsByAsset();
-                planning_TaskManualOrderPerAssets::force($assetId, $inOrderTasks, $packageLinks);
+                planning_TaskManualOrderPerAssets::force($assetId, $inOrderTasks, $packageLinks, $anchorLinks);
                 planning_TaskManualOrderPerAssets::refreshCommittedTask($assetId, $inOrderTasks, $orderTaskRecs);
                 $this->forceCalcTimes = true;
 

@@ -111,9 +111,9 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
                 $amount = $detail->amount ?? null;
                 
                 //Склад
-                $storeId = $clone->storeId;
-                
-                
+                $storeId = $clone->storeId ?? null;
+
+
                 //Ако документа е мемориален ордер
                 if ($Master->className == 'acc_Articles') {
                     $price = $detail->debitPrice;
@@ -303,7 +303,7 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
                     'productId' => $prodRec->productId,
                     'measureId' => $measureId,
                     'amount' => (($firstDocClass == 'sales_Sales') ? $prodRec->sellCost : $prodRec->amount),
-                    'weight' => $prodRec->weight,
+                    'weight' => $prodRec->weight ?? null,
                     'quantity' => $prodRec->quantity,
                 );
                 

@@ -151,7 +151,7 @@ class sales_transaction_Sale extends acc_DocumentTransactionSource
         }
 
         $transaction = (object) array(
-            'reason' => 'Продажба #' . $rec->id,
+            'reason' => 'Продажба #' . ($rec->id ?? ''),
             'valior' => $rec->valior,
             'entries' => $entries,
         );

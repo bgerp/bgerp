@@ -1476,6 +1476,13 @@ a.profile {
     }
 }
 
+.document table.listTable>tbody>tr.state-rejected>td {
+	color: #444 !important;
+	i, .no-border td {
+		color: #444 !important;
+	}
+}
+
 .state-rejected .document .profile{
     text-decoration: none !important;
 }

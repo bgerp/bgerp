@@ -476,7 +476,7 @@ abstract class bgerp_ProtoParam extends embed_Manager
      * @param mixed $domainId - ид на домейна
      * @return string
      */
-    public static function getReplacementValueOnClone($id, $domainClass = null, $domainId = null, $value)
+    public static function getReplacementValueOnClone($id, $domainClass = null, $domainId = null, $value = null)
     {
         if($Driver = static::getDriver($id)){
             $rec = static::fetchRec($id);
