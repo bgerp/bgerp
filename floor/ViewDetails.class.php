@@ -100,8 +100,13 @@ class floor_ViewDetails extends core_Detail {
     public static function getSaoItems($rec)
     {
         $res = array();
+        $viewId = $rec->viewId ?? null;
+        if (!$viewId) {
+            return $res;
+        }
+
         $query = self::getQuery();
-        $query->where(array("#viewId = '[#1#]'", $rec->viewId));
+        $query->where(array("#viewId = '[#1#]'", $viewId));
         while ($rec = $query->fetch()) {
             $res[$rec->id] = $rec;
         }

@@ -1485,7 +1485,7 @@ class eshop_Products extends core_Master
         $res = array();
         $groupId = Request::get('groupId', 'int');
         if (!$groupId) {
-            $groupId = $rec->groupId;
+            $groupId = $rec->groupId ?? null;
         }
         if (!$groupId) {
             return $res;
