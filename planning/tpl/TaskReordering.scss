@@ -332,8 +332,8 @@ td.dependantProgress {
   top: 44px;
   right: 12px;
   width: 1040px;
-  max-width: calc(100vw - 24px);
-  max-height: calc(100vh - 58px);
+  max-width: unquote("calc(100vw - 24px)");
+  max-height: unquote("calc(100vh - 58px)");
   box-sizing: border-box;
   overflow-x: hidden;
   overflow-y: auto;
@@ -511,7 +511,7 @@ td.dependantProgress {
 }
 
 .optimizationIdleTableHolder {
-  max-height: calc(100vh - 280px);
+  max-height: unquote("calc(100vh - 280px)");
   overflow: auto;
 }
 
