@@ -335,7 +335,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 
                 $defaultPack = $originRec->{$defaultOriginPackField};
             } else {
-                $packs = cat_Products::getPacks($rec->productId, $rec->packagingId);
+                $packs = cat_Products::getPacks($rec->productId, $rec->packagingId ?? null);
 
                 if($originDoc->isInstanceOf('planning_Tasks')){
                     $pInfo = planning_ProductionTaskProducts::getInfo($originRec->id, $rec->productId, 'production');

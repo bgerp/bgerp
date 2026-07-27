@@ -217,7 +217,7 @@ class store_InventoryNoteDetails extends doc_Detail
         
         // Кеш на предишния запис
         $lastId = Mode::get("InventoryNoteLastSavedRow{$rec->noteId}");
-        if ($lastId && $lastId != $rec->id) {
+        if ($lastId && $lastId != ($rec->id ?? null)) {
             if ($lastRec = $this->fetch($lastId)) {
                 $row = $this->recToVerbal($lastRec);
                 $info = new core_ET(tr("|*<b>|Предишно|*</b>: {$row->productId} {$row->packQuantity} {$row->packagingId} [#tools#]"));
@@ -232,13 +232,13 @@ class store_InventoryNoteDetails extends doc_Detail
         $form->setDefault('keepProduct', $permanentName);
         
         $defProduct = Mode::get("InventoryNoteNextProduct{$rec->noteId}");
-        if($form->cmd != 'refresh'){
+        if (($form->cmd ?? null) != 'refresh') {
             $form->setDefault('productId', $defProduct);
         }
         
         // Рендиране на опаковките
         if (isset($rec->productId)) {
-            $packs = cat_Products::getPacks($rec->productId, $rec->packagingId);
+            $packs = cat_Products::getPacks($rec->productId, $rec->packagingId ?? null);
             $form->setOptions('packagingId', $packs);
             $form->setDefault('packagingId', key($packs));
         } else {
@@ -266,7 +266,7 @@ class store_InventoryNoteDetails extends doc_Detail
     {
         $rec = $form->rec;
         
-        if ($form->notMandatoryQ !== true) {
+        if (($form->notMandatoryQ ?? false) !== true) {
             $form->setField('packQuantity', 'mandatory');
         }
         
@@ -279,7 +279,7 @@ class store_InventoryNoteDetails extends doc_Detail
             }
             
             $productInfo = cat_Products::getProductInfo($rec->productId);
-            $rec->quantityInPack = ($productInfo->packagings[$rec->packagingId]) ? $productInfo->packagings[$rec->packagingId]->quantity : 1;
+            $rec->quantityInPack = isset($productInfo->packagings[$rec->packagingId]) ? $productInfo->packagings[$rec->packagingId]->quantity : 1;
             $rec->quantity = (isset($rec->packQuantity)) ? $rec->packQuantity * $rec->quantityInPack : null;
         }
 
