@@ -86,12 +86,14 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 
             $vatExceptionId = cond_VatExceptions::getFromThreadId($masterRec->threadId);
             $cloneId = Request::get('cloneId', 'int');
+            $cloneRec = null;
             if ($cloneId) {
                 $cloneRec = $mvc->fetch($cloneId);
+                expect(is_object($cloneRec), 'Несъществуващ ред за клониране');
             }
             $action = (isset($cloneRec)) ? 'cloneRecInDocument' : 'createProductInDocument';
             
-            $mvc->requireRightFor('createproduct', (object) array($mvc->masterKey => $masterId, 'cloneId' => $cloneRec->id));
+            $mvc->requireRightFor('createproduct', (object) array($mvc->masterKey => $masterId, 'cloneId' => $cloneRec->id ?? null));
             $Products = cls::get('cat_Products');
             unset($Products->doc_plg_Prototype);
             
