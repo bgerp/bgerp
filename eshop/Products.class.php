@@ -237,7 +237,7 @@ class eshop_Products extends core_Master
     {
         $rec = $form->rec;
         
-        if ($form->rec->coDriver) {
+        if (!empty($form->rec->coDriver)) {
             $protoProducts = doc_Prototypes::getPrototypes('cat_Products', $form->rec->coDriver);
             
             if (countR($protoProducts)) {
@@ -256,19 +256,19 @@ class eshop_Products extends core_Master
         }
         
         if ($form->isSubmitted()) {
-            if($rec->possibleSpam == 'yes'){
+            if (($rec->possibleSpam ?? null) == 'yes'){
                 $form->setWarning('possibleSpam', 'Сигурни ли сте, че искате за този артикул да не се записват направените запитвания|*?');
             }
 
             $query = self::getQuery();
             $query->EXT('menuId', 'eshop_Groups', 'externalName=menuId,externalKey=groupId');
-            if ($rec->id) {
+            if ($rec->id ?? null) {
                 $query->where("#id != {$rec->id}");
             }
             
             $menuId = eshop_Groups::fetchField($rec->groupId, 'menuId');
             
-            if (strlen($rec->code) && ($query->fetch(array("#code = '[#1#]' AND #menuId = '[#2#]'", $rec->code, $menuId)))) {
+            if (strlen($rec->code ?? '') && ($query->fetch(array("#code = '[#1#]' AND #menuId = '[#2#]'", $rec->code, $menuId)))) {
                 $form->setError('code', 'Вече има продукт със същия код|*: <strong>' . eshop_Products::getHyperlink($rec, true) . '</strong>');
             }
             
@@ -661,7 +661,7 @@ class eshop_Products extends core_Master
      */
     public static function prepareGroupList($data)
     {
-        $data->lastOrderedData = $data->recs = array();
+        $data->lastOrderedData = $data->recs = $data->rows = array();
         $pQuery = self::getQuery();
         $displayedGroupRec = null;
         if($data->groupId == eshop_Favourites::FAVOURITE_SYSTEM_GROUP_ID){
@@ -701,7 +701,7 @@ class eshop_Products extends core_Master
         $settings = cms_Domains::getSettings();
         while($pRec1 = $pQuery->fetch()){
             $showProductsWithoutPrices = is_object($displayedGroupRec) ? $displayedGroupRec->showProductsWithoutPrices : $pRec1->showProductsWithoutPrices;
-            $pRec1->showProductsWithoutPrices = ($showProductsWithoutPrices == 'auto') ? $settings->showProductsWithoutPrices : $showProductsWithoutPrices;
+            $pRec1->showProductsWithoutPrices = ($showProductsWithoutPrices == 'auto') ? ($settings->showProductsWithoutPrices ?? 'yes') : $showProductsWithoutPrices;
             if($pRec1->showProductsWithoutPrices == 'no' && !$haveDebug) continue;
             $data->recs[$pRec1->id] = $pRec1;
         }
@@ -774,15 +774,15 @@ class eshop_Products extends core_Master
                         $dRow = eshop_ProductDetails::getExternalRow($pRecClone);
 
                         $pRow->saleInfo = $dRow->saleInfo;
-                        $pRow->singleCurrencyId = $settings->currencyId;
-                        $pRow->chargeVat = ($settings->chargeVat == 'yes') ? tr('с ДДС') : tr('без ДДС');
+                        $pRow->singleCurrencyId = $settings->currencyId ?? null;
+                        $pRow->chargeVat = (($settings->chargeVat ?? 'no') == 'yes') ? tr('с ДДС') : tr('без ДДС');
                         $pRow->catalogPrice = "<b>" . $dRow->catalogPrice . "</b>";
                         $pRow->packagingId = $dRow->packagingId;
                         $pRow->btn = $dRow->btn;
                     }
                 }
             } elseif ($saleState == 'multi') {
-                $pRow->btn = ht::createBtn($settings->addToCartBtn . '...', self::getUrl($pRec->id), false, false, 'title=Избор на артикул,class=productBtn addToCard,ef_icon=img/16/cart_go.png');
+                $pRow->btn = ht::createBtn(($settings->addToCartBtn ?? tr('Купи')) . '...', self::getUrl($pRec->id), false, false, 'title=Избор на артикул,class=productBtn addToCard,ef_icon=img/16/cart_go.png');
             } elseif ($saleState == 'closed' && empty($pRec->coDriver)) {
                 $pRow->saleInfo = "<span class='option-not-in-stock'>" . mb_strtoupper(tr(('Спрян||Not available'))) . '</span>';
             } elseif($saleState == 'stopped'){
@@ -827,7 +827,7 @@ class eshop_Products extends core_Master
     {
         $layout = new ET();
 
-        if (is_array($data->groups)) {
+        if (is_array($data->groups ?? null)) {
             foreach ($data->groups as $gData) {
                 if (!countR($gData->recs)) {
                     continue;
@@ -835,10 +835,10 @@ class eshop_Products extends core_Master
 
                 if($gData->groupId == eshop_Favourites::FAVOURITE_SYSTEM_GROUP_ID){
                     $settings = cms_Domains::getSettings();
-                    $groupName = str::mbUcfirst($settings->favouriteProductBtnCaption);
+                    $groupName = str::mbUcfirst($settings->favouriteProductBtnCaption ?? tr('Любими'));
                 } elseif($gData->groupId == eshop_Carts::LAST_SALES_SYSTEM_ID){
                     $settings = cms_Domains::getSettings();
-                    $groupName = str::mbUcfirst($settings->lastOrderedProductBtnCaption);
+                    $groupName = str::mbUcfirst($settings->lastOrderedProductBtnCaption ?? tr('Последно поръчани'));
                 } else {
                     $groupName = eshop_Groups::getVerbal($gData->groupRec, 'name');
                 }
@@ -902,7 +902,7 @@ class eshop_Products extends core_Master
     {
         $layout = new ET("<div class='eshop-product-list-holder'>[#BLOCK#]</div>");
 
-        if (is_array($data->rows)) {
+        if (is_array($data->rows ?? null)) {
             if(countR($data->lastOrderedData)){
                 $layout = new ET("[#BLOCK#]");
 
@@ -930,7 +930,7 @@ class eshop_Products extends core_Master
             }
         }
         
-        if ($data->Pager) {
+        if (isset($data->Pager)) {
             $layout->append($data->Pager->getHtml());
         }
 
@@ -967,7 +967,7 @@ class eshop_Products extends core_Master
             return new Redirect(array('cms_Content', 'Show'));
         }
         
-        $data->rec = self::fetch($data->productId);
+        expect($data->rec = self::fetch($data->productId), $data->productId);
         if ($data->rec->state == 'closed') {
             $groupRec = eshop_Groups::fetch($data->rec->groupId);
             
@@ -977,7 +977,7 @@ class eshop_Products extends core_Master
         $data->groups = new stdClass();
         $data->groups->groupId = $data->rec->groupId;
         if ($groupId = Request::get('groupId', 'int')) {
-            if (strpos($data->rec->sharedInGroups, "|{$groupId}|") !== false) {
+            if (strpos($data->rec->sharedInGroups ?? '', "|{$groupId}|") !== false) {
                 $data->groups->groupId = $groupId;
             }
         }
@@ -1036,8 +1036,8 @@ class eshop_Products extends core_Master
      */
     public function prepareProduct($data)
     {
-        $data->rec->info = trim($data->rec->info);
-        $data->rec->longInfo = trim($data->rec->longInfo);
+        $data->rec->info = trim($data->rec->info ?? '');
+        $data->rec->longInfo = trim($data->rec->longInfo ?? '');
         
         $fields = $this->selectFields();
         $fields['-external'] = true;
@@ -1071,7 +1071,7 @@ class eshop_Products extends core_Master
 
         // Подменят се имиджите така, че първия намерен да е по-напред
         foreach (array('image', 'image2', 'image3', 'image4', 'image5') as $i => $imgFld1) {
-            $data->row->{$imgFld1} = $data->row->imageArray[$i];
+            $data->row->{$imgFld1} = $data->row->imageArray[$i] ?? null;
         }
 
         if (self::haveRightFor('single', $data->rec)) {
@@ -1083,7 +1083,7 @@ class eshop_Products extends core_Master
         }
         
         Mode::set('SOC_TITLE', $data->row->name);
-        Mode::set('SOC_SUMMARY', $data->row->info);
+        Mode::set('SOC_SUMMARY', $data->row->info ?? null);
         
         $data->detailData = (object) array('rec' => $data->rec, 'hideProductIfItIsWithoutPrices' => $data->hideProductIfItIsWithoutPrices);
         eshop_ProductDetails::prepareExternal($data->detailData);
@@ -1187,7 +1187,7 @@ class eshop_Products extends core_Master
         }
 
         $settings = cms_Domains::getSettings($data->rec->domainId);
-        if($settings->imageDisplayType == 'carousel' && countR($data->row->imageArray) > 1){
+        if(($settings->imageDisplayType ?? null) == 'carousel' && countR($data->row->imageArray) > 1){
             $imgTpl = getTplFromFile('eshop/tpl/ProductImagesCarousel.shtml');
         } else {
             $imgTpl = getTplFromFile('eshop/tpl/ProductImagesStandart.shtml');
@@ -1201,12 +1201,12 @@ class eshop_Products extends core_Master
         }
 
         $tpl->push('css/no-sass.css', 'CSS');
-        if (is_array($data->detailData->rows) && countR($data->detailData->rows)) {
+        if (is_array($data->detailData->rows ?? null) && countR($data->detailData->rows)) {
             $tpl->replace(eshop_ProductDetails::renderExternal($data->detailData), 'PRODUCT_OPT');
         }
         
         // Рендиране на свързаните артикули
-        if (is_array($data->row->nearRows)) {
+        if (is_array($data->row->nearRows ?? null)) {
             foreach ($data->row->nearRows as $nearRow) {
                 $block = clone $tpl->getBlock('nearLink');
                 $block->placeObject($nearRow);
@@ -1216,7 +1216,7 @@ class eshop_Products extends core_Master
         }
 
         if(!empty($data->relationData)){
-            if($data->relationData->hide !== true){
+            if(($data->relationData->hide ?? false) !== true){
                 $Relations = cls::get('cat_products_Relations');
                 $relTpl = $Relations->renderRelations($data->relationData);
                 $relTpl->removeBlocksAndPlaces();
@@ -1309,7 +1309,7 @@ class eshop_Products extends core_Master
         
         // Добавяне на избор само на драйверите, до които потребителя има достъп
         $driverOptions = marketing_Inquiries2::getAvailableDriverOptions();
-        if ($form->rec->coDriver && !array_key_exists($form->rec->coDriver, $driverOptions)) {
+        if (!empty($form->rec->coDriver) && !array_key_exists($form->rec->coDriver, $driverOptions)) {
             $name = core_Classes::fetchField($form->rec->coDriver, 'title');
             $driverOptions[$form->rec->coDriver] = core_Classes::translateClassName($name);
         }
@@ -1322,7 +1322,7 @@ class eshop_Products extends core_Master
         $form->setSuggestions('showParams', cat_Params::getPublic());
         $form->setSuggestions('showListParams', cat_Params::getPublic());
 
-        if ($id = $form->rec->id) {
+        if ($id = ($form->rec->id ?? null)) {
             $rec = self::fetch($id);
             $gRec = eshop_Groups::fetch($rec->groupId);
             $cRec = cms_Content::fetch($gRec->menuId);
@@ -1331,7 +1331,7 @@ class eshop_Products extends core_Master
         
         $groups = eshop_Groups::getByDomain();
         $form->setOptions('groupId', array('' => '') + $groups);
-        if ($groupId = $form->rec->groupId) {
+        if ($groupId = ($form->rec->groupId ?? null)) {
             unset($groups[$groupId]);
         }
         

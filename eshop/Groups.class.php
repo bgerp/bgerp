@@ -158,7 +158,7 @@ class eshop_Groups extends core_Master
             cms_Domains::selectCurrent($domainId);
         }
 
-        if($data->action == 'clone'){
+        if(($data->action ?? null) == 'clone'){
             $form->FLD('domainId', 'key(mvc=cms_Domains,select=domain)', 'silent,removeAndRefreshForm=menuId|sharedMenus|cloneProducts,input,mandatory,caption=Меню->Домейн,before=menuId');
             $domainOptions = cms_Domains::getDomainOptions();
             unset($domainOptions[cms_Domains::getCurrent()]);
@@ -216,9 +216,10 @@ class eshop_Groups extends core_Master
     {
         if ($form->isSubmitted()) {
             $rec = $form->rec;
+            $id = $rec->id ?? 0;
 
             // Дали в същото меню има група със същото име
-            if (eshop_Groups::fetchField(array("#menuId = {$rec->menuId} && #id != '{$rec->id}' && #name = '[#1#]' COLLATE {$mvc->db->dbCharset}_general_ci", $rec->name))) {
+            if (eshop_Groups::fetchField(array("#menuId = {$rec->menuId} && #id != '{$id}' && #name = '[#1#]' COLLATE {$mvc->db->dbCharset}_general_ci", $rec->name))) {
                 $form->setError('name', 'В същото основно меню, има група със същото име');
             }
             
@@ -229,7 +230,7 @@ class eshop_Groups extends core_Master
                 $menuesWithSameGroup = array();
                 $arr = keylist::toArray($rec->sharedMenus);
                 foreach ($arr as $menuId) {
-                    if (eshop_Groups::fetch(array("#menuId = {$menuId} && #id != '{$rec->id}' && #name = '[#1#]' COLLATE {$mvc->db->dbCharset}_general_ci", $rec->name))) {
+                    if (eshop_Groups::fetch(array("#menuId = {$menuId} && #id != '{$id}' && #name = '[#1#]' COLLATE {$mvc->db->dbCharset}_general_ci", $rec->name))) {
                         $title = cms_Content::getVerbal($menuId, 'menu') . ' (' . cms_Content::getVerbal($menuId, 'domainId') . ')';
                         $menuesWithSameGroup[$menuId] = "<b>{$title}</b>";
                     }
@@ -260,11 +261,11 @@ class eshop_Groups extends core_Master
                 $row->_rowTools->addLink('Преглед', self::getUrl($rec), 'alwaysShow,ef_icon=img/16/monitor.png,title=Преглед във външната част');
             }
             
-            if ($rec->_isShared == 'yes') {
+            if (($rec->_isShared ?? null) == 'yes') {
                 $row->name = ht::createHint($row->name, 'Групата е споделена към менюто', 'notice', false);
                 $otherDomainId = cms_Content::fetchField($rec->menuId, 'domainId');
                 $otherDomainName = cms_Domains::getTitleById($otherDomainId);
-                $row->menuId .= " [<span style='color:green'>{$otherDomainName}</span>]";
+                $row->menuId = ($row->menuId ?? '') . " [<span style='color:green'>{$otherDomainName}</span>]";
             }
         }
         
@@ -284,7 +285,7 @@ class eshop_Groups extends core_Master
             }
         }
         
-        $row->perPage = !empty($rec->perPage) ? $row->perPage : ht::createHint(eshop_Setup::get('PRODUCTS_PER_PAGE'), 'Стойност по подразбиране', 'notice', false);
+        $row->perPage = !empty($rec->perPage) ? ($row->perPage ?? $mvc->getVerbal($rec, 'perPage')) : ht::createHint(eshop_Setup::get('PRODUCTS_PER_PAGE'), 'Стойност по подразбиране', 'notice', false);
     }
     
     
@@ -399,7 +400,7 @@ class eshop_Groups extends core_Master
         }
         
         $settings = cms_Domains::getSettings();
-        $showNavigation = ($settings->showNavigation == 'yes');
+        $showNavigation = (($settings->showNavigation ?? 'no') == 'yes');
        
         return $showNavigation;
     }
@@ -490,6 +491,7 @@ class eshop_Groups extends core_Master
      */
     public function prepareAllGroups($data, $groupId = null)
     {
+        $data->recs = array();
         $query = self::getQuery();
         self::setOrder($query, $data->menuId);
         
@@ -579,17 +581,17 @@ class eshop_Groups extends core_Master
     {
         $all = new ET('<div class="productHolder">');
         
-        if (is_array($data->recs)) {
+        if (is_array($data->recs ?? null)) {
             foreach ($data->recs as $rec) {
                 $tpl = new ET(getFileContent('eshop/tpl/GroupButton.shtml'));
                 
-                if ($rec->icon) {
+                if (!empty($rec->icon)) {
                     $img = new thumb_Img($rec->icon, 600, 450, 'fileman');
-                    $tpl->replace(ht::createLink($img->createImg(), $rec->url, false, array('title' => $rec->seoTitle ? $rec->seoTitle : null)), 'img');
+                    $tpl->replace(ht::createLink($img->createImg(), $rec->url, false, array('title' => $rec->seoTitle ?? null)), 'img');
                 } else {
                     continue;
                 }
-                $name = ht::createLink($this->getVerbal($rec, 'name', false, array('title' => $rec->seoTitle ? $rec->seoTitle : null)), $rec->url);
+                $name = ht::createLink($this->getVerbal($rec, 'name', false, array('title' => $rec->seoTitle ?? null)), $rec->url);
                 $tpl->replace($name, 'name');
                 $all->append($tpl);
             }
@@ -616,7 +618,7 @@ class eshop_Groups extends core_Master
             $groupTpl->append('</div>', 'PRODUCTS');
         }
         
-        $rec = $data->rec;
+        $rec = $data->rec ?? null;
         
         // Подготвяме данните за SEO
         if($data->groupId > 0){
@@ -666,6 +668,7 @@ class eshop_Groups extends core_Master
      */
     public function prepareNavigation_($data)
     {
+        $data->links = array();
         $query = $this->getQuery();
         self::setOrder($query, $data->menuId);
         
@@ -716,9 +719,9 @@ class eshop_Groups extends core_Master
         }
         $settings = cms_Domains::getSettings();
 
-        $data->hasRootNavigation = ($settings->showRootNavigation == 'yes');
+        $data->hasRootNavigation = (($settings->showRootNavigation ?? 'no') == 'yes');
         if($data->hasRootNavigation){
-            $l->title = $settings->rootNavigationName;
+            $l->title = $settings->rootNavigationName ?? '';
             $l->level = 1;
             $data->links[] = $l;
         }
