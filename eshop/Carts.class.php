@@ -379,7 +379,7 @@ class eshop_Carts extends core_Master
                 $productName = eshop_ProductDetails::getPublicProductTitle($eshopProductId, $productId, true);
                 
                 $settings = cms_Domains::getSettings();
-                $addText = new core_ET($settings->addProductText);
+                $addText = new core_ET($settings->addProductText ?? '');
                 
                 $cartName = self::getCartDisplayName();
                 $cartName = ht::createLink($cartName, array('eshop_Carts', 'view', $cartId), false, 'class=eshop-card-add-item-status');
@@ -578,14 +578,15 @@ class eshop_Carts extends core_Master
             }
 
             // Дигане на флаг ако има артикули очакващи доставка
-            if($rec->haveProductsWithExpectedDelivery != 'yes' && countR($settings->inStockStores) && $dRec->canStore == 'yes'){
-                $quantityInStore = store_Products::getQuantities($dRec->productId, $settings->inStockStores)->free;
+            $inStockStores = $settings->inStockStores ?? array();
+            if($rec->haveProductsWithExpectedDelivery != 'yes' && countR($inStockStores) && $dRec->canStore == 'yes'){
+                $quantityInStore = store_Products::getQuantities($dRec->productId, $inStockStores)->free;
                 if($quantityInStore < $dRec->quantity){
                     $eshopProductRec = eshop_ProductDetails::fetch("#eshopProductId = {$dRec->eshopProductId} AND #productId = {$dRec->productId}", 'deliveryTime');
-                    $deliveryTime = !empty($eshopProductRec->deliveryTime) ? $eshopProductRec->deliveryTime : eshop_Setup::get('SHOW_EXPECTED_DELIVERY_MIN_TIME');
+                    $deliveryTime = is_object($eshopProductRec) && !empty($eshopProductRec->deliveryTime) ? $eshopProductRec->deliveryTime : eshop_Setup::get('SHOW_EXPECTED_DELIVERY_MIN_TIME');
                     $horizon = dt::addSecs($deliveryTime, null,false);
 
-                    $quantityExpected = store_Products::getQuantities($dRec->productId, $settings->inStockStores, $horizon)->free;
+                    $quantityExpected = store_Products::getQuantities($dRec->productId, $inStockStores, $horizon)->free;
                     if($quantityExpected >= $dRec->quantity){
                         $rec->haveProductsWithExpectedDelivery = 'yes';
                     }
@@ -602,8 +603,8 @@ class eshop_Carts extends core_Master
                     $TransCalc->onUpdateCartMaster($rec);
                 }
                 
-                if ($delivery['amount'] >= 0) {
-                    $rec->deliveryTime = $delivery['deliveryTime'];
+                if (($delivery['amount'] ?? -1) >= 0) {
+                    $rec->deliveryTime = $delivery['deliveryTime'] ?? null;
                     $rec->deliveryNoVat = $delivery['amount'];
                     
                     // Ако има сума за безплатна доставка и доставката е над нея, тя не се начислява
@@ -616,8 +617,8 @@ class eshop_Carts extends core_Master
                     $rec->totalNoVat += $deliveryNoVat;
 
                     $transportVat = 0;
-                    if(in_array($settings->chargeVat, array('yes', 'separate'))){
-                        $transportVat = cat_Products::getVat($transportId,null, $settings->vatExceptionId);
+                    if(in_array($settings->chargeVat ?? null, array('yes', 'separate'))){
+                        $transportVat = cat_Products::getVat($transportId,null, $settings->vatExceptionId ?? null);
                     }
 
                     $rec->total += $deliveryNoVat * (1 + $transportVat);
@@ -1211,9 +1212,9 @@ class eshop_Carts extends core_Master
         // Подготовка на тялото на имейла
         $file = ($lang == 'bg') ? 'eshop/tpl/email/PlacedOrderBg.shtml' : 'eshop/tpl/email/PlacedOrderEn.shtml';
         $body = getTplFromFile($file);
-        $body->replace(new core_ET($settings->emailBodyIntroduction), 'INTRODUCTION');
+        $body->replace(new core_ET($settings->emailBodyIntroduction ?? ''), 'INTRODUCTION');
 
-        $footerHtml = new core_ET($settings->emailBodyFooter);
+        $footerHtml = new core_ET($settings->emailBodyFooter ?? '');
         $domainLink = cms_Domains::getAbsoluteUrl($rec->domainId);
         $domainName = cms_Domains::getVerbal($rec->domainId, 'domain');
         $footerHtml->append( "\n" . "[link={$domainLink}]{$domainName}[/link]");
@@ -1784,7 +1785,7 @@ class eshop_Carts extends core_Master
             } else {
                 if (static::calcChargeVat($rec) == 'yes') {
                     $transportId = cat_Products::fetchField("#code = 'transport'", 'id');
-                    $transportVat = cat_Products::getVat($transportId,null, $settings->vatExceptionId);
+                    $transportVat = cat_Products::getVat($transportId,null, $settings->vatExceptionId ?? null);
                     
                     $deliveryAmount = $rec->deliveryNoVat * (1 + $transportVat);
                     $amountWithoutDelivery -= $deliveryNoVat * (1 + $transportVat);
@@ -1971,7 +1972,7 @@ class eshop_Carts extends core_Master
                 $data->rec->_updatedPrice = true;
             }
             if (!empty($dRec->discount) || !empty($dRec->autoDiscount)) {
-                $discountType = type_Set::toArray($settings->discountType);
+                $discountType = type_Set::toArray($settings->discountType ?? '');
 
                 $amountWithoutPureDiscount = (isset($dRec->discount) && $dRec->discount != 1) ? $dRec->finalPrice / (1 - $dRec->discount): $dRec->finalPrice;
                 $discount = isset($dRec->autoDiscount) ? round((1 - (1 - $dRec->discount) * (1 - $dRec->autoDiscount)), 4) : $dRec->discount;
@@ -2249,7 +2250,7 @@ class eshop_Carts extends core_Master
     private static function getExpectedDeliveryText($rec, $settings)
     {
         if($rec->haveProductsWithExpectedDelivery == 'yes'){
-            $expectedDeliveryText = new core_ET($settings->expectedDeliveryText);
+            $expectedDeliveryText = new core_ET($settings->expectedDeliveryText ?? '');
             $cartName = self::getCartDisplayName();
             $expectedDeliveryText->replace(mb_strtolower($cartName), 'cartName');
             
@@ -2278,7 +2279,7 @@ class eshop_Carts extends core_Master
         vislog_History::add('Въвеждане на данни за количка');
         
         $settings = cms_Domains::getSettings();
-        $countries = keylist::toArray($settings->countries);
+        $countries = keylist::toArray($settings->countries ?? '');
 
         $data = new stdClass();
         $data->action = 'order';
@@ -2298,7 +2299,7 @@ class eshop_Carts extends core_Master
         $form->input(null, 'silent');
 
         $cu = core_Users::getCurrent('id', false);
-        if (isset($cu) && $form->rec->makeInvoice != 'none') {
+        if (isset($cu) && ($form->rec->makeInvoice ?? null) != 'none') {
             if (isset($form->rec->saleFolderId)) {
                 $Cover = doc_Folders::getCover($form->rec->saleFolderId);
                 $form->rec->makeInvoice = ($Cover->isInstanceOf('crm_Persons')) ? 'person' : 'company';
@@ -2354,7 +2355,7 @@ class eshop_Carts extends core_Master
         $this->modifyInvoiceFields($form);
         $form->input();
         
-        if ($rec->makeInvoice != 'none') {
+        if (($rec->makeInvoice ?? null) != 'none') {
             $form->setDefault('invoiceCountry', $rec->deliveryCountry);
             $form->setDefault('invoicePCode', $rec->deliveryPCode);
             $form->setDefault('invoicePlace', $rec->deliveryPlace);
@@ -2484,7 +2485,7 @@ class eshop_Carts extends core_Master
         $form->toolbar->addSbBtn('Обобщение||Submit', 'save', 'ef_icon = img/16/move.png, title = Запис на данните за поръчката, class=submitBtn');
         $form->toolbar->addBtn('Назад', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
         
-        if ($form->cmd == 'refresh') {
+        if (($form->cmd ?? null) == 'refresh') {
             $form->renderLayout();
             
             if ($form->layout) {
@@ -2529,12 +2530,12 @@ class eshop_Carts extends core_Master
             }
             
             $profileRec = crm_Profiles::getProfile($cu);
-            $email = !empty($profileRec->email) ? $profileRec->email : core_Users::fetchField($cu, 'email');
+            $email = is_object($profileRec) && !empty($profileRec->email) ? $profileRec->email : core_Users::fetchField($cu, 'email');
             
-            $form->setDefault('personNames', $profileRec->name);
+            $form->setDefault('personNames', $profileRec->name ?? null);
             $emails = type_Emails::toArray($email);
-            $form->setDefault('email', $emails[0]);
-            $form->setDefault('tel', $profileRec->tel);
+            $form->setDefault('email', $emails[0] ?? null);
+            $form->setDefault('tel', $profileRec->tel ?? null);
 
             // Задаване като опции
             if (countR($options)) {
@@ -2587,10 +2588,10 @@ class eshop_Carts extends core_Master
             $form->setDefault('termId', $settings->defaultTermId);
         }
         
-        $originalRec = static::fetch($form->rec->id, '*', false);
+        $originalRec = isset($form->rec->id) ? static::fetch($form->rec->id, '*', false) : false;
         if (countR($deliveryTerms) == 1) {
             $form->setDefault('termId', key($deliveryTerms));
-        } elseif(empty($originalRec->personNames)) {
+        } elseif (!is_object($originalRec) || empty($originalRec->personNames)) {
             $deliveryTerms = array('' => '') + $deliveryTerms;
         }
         $form->setOptions('termId', $deliveryTerms);
@@ -2638,16 +2639,18 @@ class eshop_Carts extends core_Master
         $locations = array();
         if (isset($folderId)) {
             if ($contragentData = doc_Folders::getContragentData($folderId)) {
-                $invName = ($rec->makeInvoice == 'person') ? $contragentData->person : $contragentData->company;
+                $invName = (($rec->makeInvoice ?? null) == 'person') ? ($contragentData->person ?? null) : ($contragentData->company ?? null);
                 $form->rec->invoiceNames = $invName;
-                $form->rec->invoiceVatNo = $contragentData->vatNo;
-                $form->rec->invoiceUicNo = $contragentData->uicId;
-                $form->rec->invoiceCountry = $contragentData->countryId;
-                $form->rec->invoicePCode = $contragentData->pCode;
-                $form->rec->invoicePlace = $contragentData->place;
-                $form->rec->invoiceAddress = $contragentData->address;
+                $form->rec->invoiceVatNo = $contragentData->vatNo ?? null;
+                $form->rec->invoiceUicNo = $contragentData->uicId ?? null;
+                $form->rec->invoiceCountry = $contragentData->countryId ?? null;
+                $form->rec->invoicePCode = $contragentData->pCode ?? null;
+                $form->rec->invoicePlace = $contragentData->place ?? null;
+                $form->rec->invoiceAddress = $contragentData->address ?? null;
                 
-                $form->countries[$contragentData->countryId] = $contragentData->countryId;
+                if (!empty($contragentData->countryId)) {
+                    $form->countries[$contragentData->countryId] = $contragentData->countryId;
+                }
                 $contragentCover = doc_Folders::getCover($folderId);
                 $locations = crm_Locations::getContragentOptions($contragentCover->className, $contragentCover->that, true, true, $form->countries, $onlyLocationsWithRoutes);
             }
@@ -2707,11 +2710,11 @@ class eshop_Carts extends core_Master
                 if ($lastCart = $cQuery->fetch()) {
                     foreach (array('termId', 'deliveryCountry', 'deliveryPCode', 'deliveryPlace', 'deliveryAddress', 'locationId') as $field) {
                         
-                        if($field == 'locationId' && $form->cmd == 'refresh'){
+                        if ($field == 'locationId' && ($form->cmd ?? null) == 'refresh') {
                             continue;
                         }
                         
-                        $form->setDefault($field, $lastCart->{$field});
+                        $form->setDefault($field, $lastCart->{$field} ?? null);
                     }
                 }
             }
@@ -2723,7 +2726,7 @@ class eshop_Carts extends core_Master
             
             if ($lastCart2 = $cQuery2->fetch()) {
                 foreach (array('invoiceNames', 'invoiceVatNo', 'invoiceUicNo', 'invoiceCountry', 'invoicePlace', 'invoiceAddress') as $field) {
-                    $form->setDefault($field, $lastCart2->{$field});
+                    $form->setDefault($field, $lastCart2->{$field} ?? null);
                 }
             }
             
@@ -2924,9 +2927,9 @@ class eshop_Carts extends core_Master
             $file = ($var == 'html') ? $file : $fileTxt;
             $tpl = getTplFromFile($file);
             if($var == 'html'){
-                $settings->emailBodyFooter = str_replace("\n", '<br>', $settings->emailBodyFooter);
+                $settings->emailBodyFooter = str_replace("\n", '<br>', $settings->emailBodyFooter ?? '');
             }
-            $tpl->replace(new core_ET($settings->emailBodyFooter), 'FOOTER');
+            $tpl->replace(new core_ET($settings->emailBodyFooter ?? ''), 'FOOTER');
             $body->{$var} = $tpl;
             
             $link = ht::createLink($domainName, $cartUrl)->getContent();
@@ -3103,7 +3106,7 @@ class eshop_Carts extends core_Master
     public static function getLastOrderedUrl()
     {
         $settings = cms_Domains::getSettings();
-        $vId = str::mbUcfirst(str::removeWhiteSpace($settings->favouriteProductBtnCaption, '-'));
+        $vId = str::mbUcfirst(str::removeWhiteSpace($settings->favouriteProductBtnCaption ?? '', '-'));
         $url = array('A', 'LO', $vId);
 
         return $url;
@@ -3126,7 +3129,7 @@ class eshop_Carts extends core_Master
                 $cId = Request::get('id') == static::LAST_SALES_SYSTEM_ID;
                 $selClass = $cId ? 'sel_page' : '';
                 $settings = cms_Domains::getSettings();
-                $caption = str::mbUcfirst($settings->lastOrderedProductBtnCaption);
+                $caption = str::mbUcfirst($settings->lastOrderedProductBtnCaption ?? '');
                 if($cMenuId = Request::get('cMenuId', 'int')){
                     $lastOrderUrl['cMenuId'] = $cMenuId;
                 }
@@ -3198,7 +3201,8 @@ class eshop_Carts extends core_Master
     {
         $rec = static::fetchRec($rec);
         $settings = eshop_Settings::getSettings('cms_Domains', $rec->domainId);
-        if($settings->chargeVat == 'yes') return 'yes';
+        $chargeVat = $settings->chargeVat ?? 'no';
+        if ($chargeVat == 'yes') return 'yes';
 
         if(!empty($rec->invoiceCountry)) {
             $bgId = drdata_Countries::getIdByName('Bulgaria');
@@ -3209,7 +3213,7 @@ class eshop_Carts extends core_Master
             }
 
             if(drdata_Countries::isEu($rec->invoiceCountry)){
-                if($rec->makeInvoice == 'person') {
+                if (($rec->makeInvoice ?? null) == 'person') {
                     $msg = 'Фактурането е за лице от ЕС, начислено е ДДС|*!';
 
                     return 'separate';
@@ -3227,7 +3231,7 @@ class eshop_Carts extends core_Master
             }
         }
 
-        return $settings->chargeVat;
+        return $chargeVat;
     }
 
     /**
@@ -3239,7 +3243,7 @@ class eshop_Carts extends core_Master
     protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
         $form = &$data->form;
-        if($data->action != 'order'){
+        if (($data->action ?? null) != 'order') {
             $mvc->modifyInvoiceFields($data->form);
         }
     }
@@ -3263,7 +3267,7 @@ class eshop_Carts extends core_Master
                 $form->setField('invoiceNames', 'caption=Данни за фактуриране->Име');
                 $form->setField('invoiceUicNo', 'caption=Данни за фактуриране->ЕГН');
                 $form->setFieldType('invoiceUicNo', 'bglocal_EgnType');
-                $form->setDefault('invoiceNames', $form->rec->personNames);
+                $form->setDefault('invoiceNames', $form->rec->personNames ?? null);
             } else {
                 $form->setFieldType('invoiceUicNo', 'drdata_type_Uic');
                 $form->setField('invoiceNames', 'caption=Данни за фактуриране->Фирма');
@@ -3275,6 +3279,7 @@ class eshop_Carts extends core_Master
             $form->setFieldAttr('deliveryPlace', 'data-updateonchange=invoicePlace,class=updateonchange');
             $form->setFieldAttr('deliveryAddress', 'data-updateonchange=invoiceAddress,class=updateonchange');
 
+            $form->countries = is_array($form->countries ?? null) ? $form->countries : array();
             if (!empty($form->rec->invoiceCountry)) {
                 $form->countries[$form->rec->invoiceCountry] = $form->rec->invoiceCountry;
             }
@@ -3369,7 +3374,7 @@ class eshop_Carts extends core_Master
         $discountData = price_ListBasicDiscounts::getAutoDiscountsByGroups($basicDiscountListRec, 'eshop_Carts', $rec, 'pos_ReceiptDetails', $detailsAll);
 
         foreach ($detailsAll as $dRec){
-            foreach ($discountData['groups'] as $groupId => $d){
+            foreach ($discountData['groups'] ?? array() as $groupId => $d){
                 if(!keylist::isIn($groupId, $dRec->groups)) continue;
                 if(empty($d['percent'])) continue;
                 $dRec->autoDiscount = $d['percent'];

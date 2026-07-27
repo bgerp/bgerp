@@ -146,8 +146,8 @@ class eshop_CartDetails extends core_Detail
             $form->setField('packagingId', 'input');
             $form->setField('packQuantity', 'input');
 
-            if(isset($dRec->productId)){
-                $packs = cat_Products::getPacks($dRec->productId, $dRec->packagingId);
+            if (is_object($dRec)) {
+                $packs = cat_Products::getPacks($dRec->productId);
                 $packsSelected = keylist::toArray($dRec->packagings);
                 $packs = array_intersect_key($packs, $packsSelected);
                 $form->setOptions('packagingId', $packs);
@@ -178,7 +178,7 @@ class eshop_CartDetails extends core_Detail
     {
         $rec = $form->rec;
 
-        if ($form->isSubmitted()) {
+        if ($form->isSubmitted() && isset($rec->productId, $rec->packagingId, $rec->packQuantity)) {
             $productInfo = cat_Products::getProductInfo($rec->productId);
             $rec->quantityInPack = isset($productInfo->packagings[$rec->packagingId])
                 ? $productInfo->packagings[$rec->packagingId]->quantity
@@ -241,7 +241,7 @@ class eshop_CartDetails extends core_Detail
             'eshopProductId' => $eshopProductId,
             'productId' => $productId,
             'packagingId' => $packagingId,
-            'vat' => cat_Products::getVat($productId, null, $settings->vatExceptionId),
+            'vat' => cat_Products::getVat($productId, null, $settings->vatExceptionId ?? null),
             'quantityInPack' => $quantityInPack,
             'quantity' => $quantity,
             'currencyId' => $currencyId,
@@ -274,7 +274,7 @@ class eshop_CartDetails extends core_Detail
      */
     protected static function on_BeforeSave(core_Manager $mvc, $res, $rec)
     {
-        if ($rec->_updatePrice === false) {
+        if (($rec->_updatePrice ?? true) === false) {
             
             return;
         }
@@ -300,7 +300,8 @@ class eshop_CartDetails extends core_Detail
         $canStore = cat_Products::fetchField($productId, 'canStore');
         $settings = cms_Domains::getSettings();
         if($canStore == 'yes'){
-            if (countR($settings->inStockStores)) {
+            $inStockStores = $settings->inStockStores ?? array();
+            if (countR($inStockStores)) {
                 $horizon = dt::today();
                 if($useHorizon){
                     $deliveryTime = eshop_ProductDetails::fetchField("#eshopProductId = {$eshopProductId} AND #productId = {$productId}", 'deliveryTime');
@@ -308,7 +309,7 @@ class eshop_CartDetails extends core_Detail
                     $horizon = dt::addSecs($deliveryTime, null,false);
                 }
 
-                $quantityInStore = store_Products::getQuantities($productId, $settings->inStockStores, $horizon)->free;
+                $quantityInStore = store_Products::getQuantities($productId, $inStockStores, $horizon)->free;
                 $maxQuantity = $quantityInStore;
             }
             if(!empty($settings->remoteStores)) {
@@ -327,7 +328,8 @@ class eshop_CartDetails extends core_Detail
                 if(isset($ignoreId)){
                     $dQuery->where("#id != {$ignoreId}");
                 }
-                $maxQuantity -= $dQuery->fetch()->sum;
+                $sumRec = $dQuery->fetch();
+                $maxQuantity -= $sumRec->sum ?? 0;
             }
         }
 
@@ -384,7 +386,7 @@ class eshop_CartDetails extends core_Detail
             if(isset($rec->finalPrice)){
                 $finalPrice = $rec->finalPrice;
                 if(isset($rec->autoDiscount)){
-                    $rec->oldPrice = ($rec->discount) ? $finalPrice / (1 - $rec->discount) : $finalPrice;
+                    $rec->oldPrice = !empty($rec->discount) ? $finalPrice / (1 - $rec->discount) : $finalPrice;
                     $finalPrice *= (1 - $rec->autoDiscount);
                 }
 
@@ -394,7 +396,7 @@ class eshop_CartDetails extends core_Detail
                 $row->finalPrice = core_Type::getByName('double(smartRound)')->toVerbal($finalPrice);
                 $row->finalPrice = currency_Currencies::decorate($row->finalPrice, $settings->currencyId, true);
                 
-                if ($rec->oldPrice) {
+                if (!empty($rec->oldPrice)) {
                     $difference = round($finalPrice, 2) - round($rec->oldPrice, 2);
                     $caption = ($difference > 0) ? 'увеличена' : 'намалена';
                     $hintIcon = ($difference > 0) ? 'img/16/up16.png' : 'img/16/down16.png';
@@ -427,16 +429,17 @@ class eshop_CartDetails extends core_Detail
             }
         }
         
+        $inStockStores = is_object($settings) ? ($settings->inStockStores ?? array()) : array();
         $productRec = cat_Products::fetch($rec->productId, 'canStore');
-        if (countR($settings->inStockStores) && $productRec->canStore == 'yes') {
+        if (countR($inStockStores) && is_object($productRec) && $productRec->canStore == 'yes') {
             $eshopProductRec = eshop_ProductDetails::fetch("#eshopProductId = {$rec->eshopProductId} AND #productId = {$rec->productId}", 'deliveryTime');
 
             if ($maxQuantity <= 0) {
                 // Ако няма наличност, но се очаква доставка към подададената дата
-                $deliveryTime = !empty($eshopProductRec->deliveryTime) ? $eshopProductRec->deliveryTime : eshop_Setup::get('SHOW_EXPECTED_DELIVERY_MIN_TIME');
+                $deliveryTime = is_object($eshopProductRec) && !empty($eshopProductRec->deliveryTime) ? $eshopProductRec->deliveryTime : eshop_Setup::get('SHOW_EXPECTED_DELIVERY_MIN_TIME');
                 $horizon = dt::addSecs($deliveryTime, null,false);
 
-                $quantityExpected = store_Products::getQuantities($rec->productId, $settings->inStockStores, $horizon)->free;
+                $quantityExpected = store_Products::getQuantities($rec->productId, $inStockStores, $horizon)->free;
                 if(!empty($quantityExpected)){
                     $row->productId .= "<br><span  class='option-not-in-stock waitingDelivery'>" . tr('Очаква се доставка') . '</span>';
                 }
@@ -637,8 +640,13 @@ class eshop_CartDetails extends core_Detail
             return;
         }
         
-        $deliveryData = array('deliveryCountry' => $masterRec->deliveryCountry, 'deliveryPCode' => $masterRec->deliveryPCode, 'deliveryPlace' => $masterRec->deliveryPlace, 'deliveryAddress' => $masterRec->deliveryAddress);
-        $deliveryData += $masterRec->deliveryData;
+        $deliveryData = array(
+            'deliveryCountry' => $masterRec->deliveryCountry ?? null,
+            'deliveryPCode' => $masterRec->deliveryPCode ?? null,
+            'deliveryPlace' => $masterRec->deliveryPlace ?? null,
+            'deliveryAddress' => $masterRec->deliveryAddress ?? null,
+        );
+        $deliveryData += is_array($masterRec->deliveryData ?? null) ? $masterRec->deliveryData : array();
         
         // Колко е общото тегло и обем за доставка
         $products = arr::extractSubArray($query->fetchAll(), 'productId,quantity,packagingId');
@@ -773,7 +781,7 @@ class eshop_CartDetails extends core_Detail
             $paramRec = cat_Params::fetch($paramId, 'driverClass,suffix,name');
             $value = (!empty($paramRec->suffix)) ? $value .  ' ' . tr($paramRec->suffix) : $value;
            
-            if($asRichText && in_array($paramRec->driverClass, $fileTypes)){
+            if ($asRichText && in_array($paramRec->driverClass, $fileTypes) && isset($pureParams[$paramId])) {
                 $handler = $pureParams[$paramId];
                 $fileName = strip_tags($value);
                 $value = "[file={$handler}]{$fileName}[/file]";
