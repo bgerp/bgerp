@@ -162,8 +162,13 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
             $rec = $mvc->fetchRec($rec);
             if ($rec->isMainInput == 'yes') {
                 $requiredRoles = 'no_one';
-            } elseif(planning_DisassemblyNoteDetails::count("#type = 'production' AND #noteId = {$rec->noteId}") == 1){
-                $requiredRoles = 'no_one';
+            } elseif($rec->noteId) {
+                $masterRec = $mvc->Master->fetch($rec->noteId, 'state');
+                if($masterRec->state != 'draft') {
+                    if($mvc->count("#type = 'production' AND #noteId = '{$rec->noteId}'") == 1) {
+                        $requiredRoles = 'no_one';
+                    }
+                }
             }
         }
 
