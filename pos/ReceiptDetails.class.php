@@ -637,19 +637,19 @@ class pos_ReceiptDetails extends core_Detail
             $this->getProductInfo($rec);
             core_Debug::stopTimer('ADD_PRODUCT_GET_PRODUCT_INFO');
 
-            if($rec->ean && empty($rec->productId)){
+            if(!empty($rec->ean) && empty($rec->productId)){
                 $operation = Mode::get("currentOperation{$rec->receiptId}");
                 $forwardUrl = array('Ctr' =>'pos_Terminal', 'Act' =>'displayOperation', 'search' => $rec->ean, 'receiptId' => $receiptId, 'operation' => $operation, 'refreshPanel' => 'no');
 
                 $check4Voucher = true;
                 if(pos_Receipts::haveRightFor('setcontragent', $receiptRec)){
                     $cardInfo = crm_ext_Cards::getInfo($rec->ean);
-                    if($cardInfo['status'] == crm_ext_Cards::STATUS_ACTIVE){
+                    if(($cardInfo['status'] ?? null) == crm_ext_Cards::STATUS_ACTIVE){
                         $redirectToNotEmptyReceiptResponse = $this->getRedirectToNotEmptyReceiptAjaxResponse($receiptRec, $cardInfo['contragentClassId'], $cardInfo['contragentId']);
                         if(is_array($redirectToNotEmptyReceiptResponse)) return $redirectToNotEmptyReceiptResponse;
                         $check4Voucher = false;
                         $forwardUrl = array('Ctr' =>'pos_Receipts', 'Act' => 'setcontragent', 'id' => $rec->receiptId, 'ajax_mode' => 1,'contragentClassId' => $cardInfo['contragentClassId'], 'contragentId' => $cardInfo['contragentId'], 'autoSelect' => true);
-                    } elseif($cardInfo['status'] == crm_ext_Cards::STATUS_NOT_ACTIVE){
+                    } elseif(($cardInfo['status'] ?? null) == crm_ext_Cards::STATUS_NOT_ACTIVE){
                         $check4Voucher = false;
                         core_Statuses::newStatus("Клиентската карта е неактивна|*!", 'warning');
                     }
@@ -670,8 +670,8 @@ class pos_ReceiptDetails extends core_Detail
                 return core_Request::forward($forwardUrl);
             }
 
-            expect($rec->productId, 'Няма такъв продукт в системата|*!', $rec);
-            expect($rec->notSellable !== true, 'Артикулът е спрян от продажба|*!');
+            expect(!empty($rec->productId), 'Няма такъв продукт в системата|*!', $rec);
+            expect(empty($rec->notSellable), 'Артикулът е спрян от продажба|*!');
 
             // Ако няма цена
             if (!$rec->price) {
@@ -709,14 +709,15 @@ class pos_ReceiptDetails extends core_Detail
                 }
             }
 
-            if((!empty($selectedRec->batch) && empty($rec->batch))){
+            $batch = $rec->batch ?? null;
+            if((!empty($selectedRec->batch) && empty($batch))){
                 $selectedRec = null;
             }
 
             $separateInPos = cat_Products::getParams($rec->productId, 'separateInPos');
-            if($selectedRec->productId == $rec->productId && $selectedRec->value == $rec->value && $selectedRec->batch == $rec->batch){
+            if(is_object($selectedRec) && $selectedRec->productId == $rec->productId && $selectedRec->value == $rec->value && ($selectedRec->batch ?? null) == $batch){
                 $rec->value = $selectedRec->value;
-                $rec->batch = $selectedRec->batch;
+                $rec->batch = $selectedRec->batch ?? null;
             } else {
                 if($separateInPos != 'yes'){
                     $count = $this->count("#receiptId = {$rec->receiptId} && #productId = {$rec->productId} AND #value = {$rec->value}");
@@ -726,11 +727,11 @@ class pos_ReceiptDetails extends core_Detail
 
             // Намираме дали този проект го има въведен
             if($separateInPos != 'yes'){
-                $sameProduct = $this->findSale($rec->productId, $rec->receiptId, $rec->value, $rec->batch);
+                $sameProduct = $this->findSale($rec->productId, $rec->receiptId, $rec->value, $batch);
                 if ($sameProduct) {
 
                     // Ако текущо селектирания ред е избрания инкрементира се, ако не се задава ново количество
-                    $newQuantity = ($selectedRec->id == $sameProduct->id) ? $rec->quantity + $sameProduct->quantity : (($increment === true) ? ($rec->quantity + $sameProduct->quantity) : $rec->quantity);
+                    $newQuantity = (is_object($selectedRec) && $selectedRec->id == $sameProduct->id) ? $rec->quantity + $sameProduct->quantity : (($increment === true) ? ($rec->quantity + $sameProduct->quantity) : $rec->quantity);
                     if($newQuantity <= 0 && !isset($receiptRec->revertId)){
                         core_Statuses::newStatus('Редът беше изтрит защото количеството стана отрицателно|*!');
 
