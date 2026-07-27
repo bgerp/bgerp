@@ -715,8 +715,8 @@ class eshop_CartDetails extends core_Detail
             }
 
             $finalPrice = $price * $rec->quantityInPack;
-            if ($rec->haveVat == 'yes') {
-                $finalPrice *= 1 + $rec->vat;
+            if (($rec->haveVat ?? null) == 'yes') {
+                $finalPrice *= 1 + ($rec->vat ?? 0);
             }
            
             $finalPrice = currency_CurrencyRates::convertAmount($finalPrice, null, null, $rec->currencyId);
@@ -726,7 +726,7 @@ class eshop_CartDetails extends core_Detail
         $toleranceDiff = !empty($toleranceDiff) ? $toleranceDiff * 100 : 1;
         
         if(empty($finalPrice) && is_null($price)){
-            if(is_null($rec->finalPrice)) return;
+            if (!isset($rec->finalPrice)) return;
             
             $rec->oldPrice = $rec->finalPrice;
             $rec->finalPrice = null;
@@ -738,7 +738,7 @@ class eshop_CartDetails extends core_Detail
             // Ако цената е променена, обновява се
             $update = false;
             if (!isset($rec->finalPrice) || (abs(core_Math::diffInPercent($finalPrice, $rec->finalPrice)) > $toleranceDiff)) {
-                $rec->oldPrice = $rec->finalPrice;
+                $rec->oldPrice = $rec->finalPrice ?? null;
                 $rec->finalPrice = $finalPrice;
                 $rec->discount = $discount;
                 $rec->amount = $rec->finalPrice * ($rec->quantity / $rec->quantityInPack);
