@@ -945,13 +945,13 @@ class acc_BalanceDetails extends core_Detail
                             $rec['balanceId'] = $balanceId;
 
                             foreach (['blAmount', 'baseAmount'] as $fld) {
-                                if (!is_null($rec[$fld])) {
+                                if (!is_null($rec[$fld] ?? null)) {
                                     $rec[$fld] = round($rec[$fld], 8);
                                 }
                             }
 
                             foreach (['blQuantity', 'baseQuantity'] as $fld) {
-                                if (!is_null($rec[$fld]) && round($rec[$fld], 8) == 0) {
+                                if (!is_null($rec[$fld] ?? null) && round($rec[$fld], 8) == 0) {
                                     $rec[$fld] = round($rec[$fld], 8);
                                 }
                             }
