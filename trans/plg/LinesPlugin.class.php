@@ -354,8 +354,9 @@ class trans_plg_LinesPlugin extends core_Plugin
 
         // Оставят се само потребителите различни от посочения, които са редактирали транспорта
         unset($editorsArr[$userId]);
-        if(isset($rec->{$mvc->storeFieldName})){
-            $notifyUsers = store_Stores::fetchField($rec->{$mvc->storeFieldName}, 'notifyUsers');
+        $storeFieldName = $mvc->storeFieldName ?? null;
+        if ($storeFieldName && isset($rec->{$storeFieldName})) {
+            $notifyUsers = store_Stores::fetchField($rec->{$storeFieldName}, 'notifyUsers');
             if(!empty($notifyUsers)){
                 $editorsArr += keylist::toArray($notifyUsers);
             }

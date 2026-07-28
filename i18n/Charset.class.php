@@ -490,7 +490,7 @@ class i18n_Charset extends core_MVC
         if ($max < 1.1) {
             // Намираме скриптовите рейтинги на всички често срещани кодировки
             foreach (static::$commonCharsets as $cs => $scripts) {
-                if ($rates[$cs]) {
+                if (!empty($rates[$cs])) {
                     continue;
                 }
                 
@@ -515,7 +515,7 @@ class i18n_Charset extends core_MVC
         // Ако нямаме максимална стойност над 1, то разглеждаме и няколко по-редки
         if ($max < 1.1) {
             foreach (static::$rareCharsets as $cs => $scripts) {
-                if ($rates[$cs]) {
+                if (!empty($rates[$cs])) {
                     continue;
                 }
                 
