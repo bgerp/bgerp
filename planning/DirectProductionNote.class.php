@@ -290,13 +290,13 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         $originDoc = doc_Containers::getDocument($form->rec->originId);
         $originRec = $originDoc->rec();
 
-        $storeId = $originRec->storeId;
-        $saleId = $originRec->saleId;
+        $storeId = $originRec->storeId ?? null;
+        $saleId = $originRec->saleId ?? null;
         if($originDoc->isInstanceOf('planning_Tasks')){
             $defaultOriginPackField = 'measureId';
             $jobRec = doc_Containers::getDocument($originRec->originId)->fetch();
-            $storeId = ($originRec->storeId) ? $originRec->storeId : $jobRec->storeId;
-            $saleId = $jobRec->saleId;
+            $storeId = !empty($originRec->storeId) ? $originRec->storeId : ($jobRec->storeId ?? null);
+            $saleId = $jobRec->saleId ?? null;
             $productOptions = planning_ProductionTaskProducts::getOptionsByType($originDoc->that, 'production');
             unset($productOptions[$jobRec->productId]);
             $form->setField('inputStoreId', 'input=none');
@@ -358,7 +358,9 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                 // Ако заданието, към което е протокола е към продажба, избираме я по дефолт
                 if (empty($rec->id) && isset($saleId)) {
                     $saleItem = acc_Items::fetchItem('sales_Sales', $saleId);
-                    $form->setDefault('expenseItemId', $saleItem->id);
+                    if ($saleItem) {
+                        $form->setDefault('expenseItemId', $saleItem->id);
+                    }
                 }
 
                 $form->setField('storeId', 'input=none');
