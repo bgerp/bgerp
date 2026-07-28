@@ -175,8 +175,9 @@ class doc_FolderResources extends core_Manager
             $tpl->replace("style='margin-top:10px'", 'STYLE');
             $hint = $hint2 = '';
         } else {
-            $hint = ',title=Добавяне на оборудване към ' . mb_strtolower($data->masterMvc->singleTitle);
-            $hint2 = ',title=Създаване на ново оборудване към ' . mb_strtolower($data->masterMvc->singleTitle);
+            $masterTitle = (string) ($data->masterMvc->singleTitle ?? '');
+            $hint = ',title=Добавяне на оборудване към ' . mb_strtolower($masterTitle);
+            $hint2 = ',title=Създаване на ново оборудване към ' . mb_strtolower($masterTitle);
         }
 
         $title = ($DetailName == 'planning_Hr') ? 'Оператори' : 'Оборудване';
@@ -274,7 +275,7 @@ class doc_FolderResources extends core_Manager
         $form->title = "Промяна на {$typeTitle} към|* " . doc_Folders::getCover($folderId)->getFormTitleLink();
         $form->setSuggestions('select', $options);
         
-        $default = array_combine($default, $default);
+        $default = array_combine($default, $default) ?: array();
         $form->setDefault('select', keylist::fromArray($default));
         $form->input();
         
@@ -282,7 +283,7 @@ class doc_FolderResources extends core_Manager
         if ($form->isSubmitted()) {
             $Cover = doc_Folders::getCover($folderId);
             $crmGroupId = $Cover->isInstanceOf('planning_Centers') ? $Cover->syncCrmGroup() : null;
-            $selected = keylist::toArray($form->rec->select);
+            $selected = keylist::toArray($form->rec->select ?? null);
             $Folders = cls::get('planning_AssetResourceFolders');
             $hrSyncPersons = array();
 
@@ -300,9 +301,10 @@ class doc_FolderResources extends core_Manager
 
                     // Ако има група за добавяне на визитката - ще се добави в нея
                     if(isset($crmGroupId)){
-                        if(!keylist::isIn($crmGroupId, $hrSyncPersons[$id]->groupListInput)){
-                            $hrSyncPersons[$id] = crm_Persons::fetch($id);
-                            $hrSyncPersons[$id]->groupListInput = keylist::addKey($hrSyncPersons[$id]->groupListInput, $crmGroupId);
+                        $personRec = crm_Persons::fetch($id);
+                        if ($personRec && !keylist::isIn($crmGroupId, $personRec->groupListInput ?? null)) {
+                            $personRec->groupListInput = keylist::addKey($personRec->groupListInput ?? null, $crmGroupId);
+                            $hrSyncPersons[$id] = $personRec;
                         }
                     }
                 } else {
@@ -333,8 +335,13 @@ class doc_FolderResources extends core_Manager
                     $delId = $rId;
                     if ($type != 'asset') {
                         $delId = planning_Hr::fetchField("#personId = {$rId}");
-                        $hrSyncPersons[$rId] = crm_Persons::fetch($rId);
-                        $hrSyncPersons[$rId]->groupListInput = keylist::removeKey($hrSyncPersons[$rId]->groupListInput, $crmGroupId);
+                        if (isset($crmGroupId)) {
+                            $personRec = crm_Persons::fetch($rId);
+                            if ($personRec) {
+                                $personRec->groupListInput = keylist::removeKey($personRec->groupListInput ?? null, $crmGroupId);
+                                $hrSyncPersons[$rId] = $personRec;
+                            }
+                        }
                     }
 
                     planning_AssetResourceFolders::delete("#classId = {$classId} AND #objectId = {$delId} AND #folderId = {$folderId}");
@@ -364,7 +371,7 @@ class doc_FolderResources extends core_Manager
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
-        if ($action == 'selectresource' && isset($rec)) {
+        if ($action == 'selectresource' && isset($rec->folderId)) {
             if (!doc_Folders::haveRightToFolder($rec->folderId, $userId)) {
                 $requiredRoles = 'no_one';
             } else {
