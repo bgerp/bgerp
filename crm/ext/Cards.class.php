@@ -263,6 +263,7 @@ class crm_ext_Cards extends core_Manager
     public function prepareCards($data)
     {
         $masterRec = $data->masterData->rec;
+        $data->rows = array();
 
         // Подготовка на клиентските карти
         $query = $this->getQuery();
@@ -416,7 +417,7 @@ class crm_ext_Cards extends core_Manager
 
         if ($action == 'checkcard') {
             $settings = cms_Domains::getSettings($rec->domainId);
-            if($settings->inputCardBtn != 'yes'){
+            if(($settings->inputCardBtn ?? null) != 'yes'){
                 $requiredRoles = 'no_one';
             } elseif (!core_Packs::isInstalled('colab') && !core_Packs::isInstalled('voucher')) {
                 $requiredRoles = 'no_one';
@@ -463,7 +464,7 @@ class crm_ext_Cards extends core_Manager
 
             if(!$isCard && core_Packs::isInstalled('voucher')) {
                 $voucherInfo = voucher_Cards::getByNumber($number);
-                if ($voucherInfo['error']) {
+                if (!empty($voucherInfo['error'])) {
                     $form->setError('search', $voucherInfo['error']);
                 } elseif (isset($voucherInfo['id'])) {
                     $isVoucher = true;
@@ -574,7 +575,7 @@ class crm_ext_Cards extends core_Manager
             });
 
             // Синхронизиране на записите от източника с вече наличните
-            $synced = arr::syncArrays($cardsToSync, $eRecs[$sourceClassId], 'number', 'personId,companyId,type,state');
+            $synced = arr::syncArrays($cardsToSync, $eRecs[$sourceClassId] ?? array(), 'number', 'personId,companyId,type,state');
 
             // Добавяне на новите номера, ако има дублиране с ръчно добавени се бие нотификация
             if(countR($synced['insert'])){
