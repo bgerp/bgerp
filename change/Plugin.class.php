@@ -435,15 +435,15 @@ class change_Plugin extends core_Plugin
         $oldRec->changeModifiedOn = $newRec->changeModifiedOn = dt::now();
         $oldRec->changeModifiedBy = $newRec->changeModifiedBy = core_Users::getCurrent();
 
-        if (!$oldRec->id) {
-            $oldRec->id = $newRec->id;
+        if (empty($oldRec->id)) {
+            $oldRec->id = $newRec->id ?? null;
         }
         if (!isset($oldRec->subVersion)) {
-            $oldRec->subVersion = $newRec->subVersion;
+            $oldRec->subVersion = $newRec->subVersion ?? 0;
         }
 
         if (!isset($oldRec->version)) {
-            $oldRec->version = $newRec->version;
+            $oldRec->version = $newRec->version ?? 0;
         }
 
         $savedRecsArr = change_Log::create($mvc->className, $changeFieldsArr, $oldRec, $newRec);
@@ -685,10 +685,13 @@ class change_Plugin extends core_Plugin
         if ($form->isSubmitted()) {
             
             // Ако редактраиме записа
-            if ($id = $form->rec->id) {
+            if ($id = ($form->rec->id ?? null)) {
                 
                 // Вземаме записа
                 $rec = $mvc->fetch($id);
+                if (!$rec) {
+                    return;
+                }
                 
                 // Вземаме всички, полета които могат да се променят
                 $allowedFieldsArr = static::getAllowedFields($form, $mvc->changableFields ?? null);
@@ -699,7 +702,7 @@ class change_Plugin extends core_Plugin
                 foreach ((array) $allowedFieldsArr as $field) {
                     
                     // Ако има променя
-                    if ($form->rec->$field != $rec->$field) {
+                    if (($form->rec->{$field} ?? null) != ($rec->{$field} ?? null)) {
                         
                         // Вдигаме флага
                         $haveChange = true;
