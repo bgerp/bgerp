@@ -240,7 +240,7 @@ class label_Prints extends core_Master
                 core_Lg::push($lang);
                 $oLang = $lang;
             }
-            $labelDataArr = $intfInst->getLabelPlaceholders($objId, $rec->series);
+            $labelDataArr = $intfInst->getLabelPlaceholders($objId, $rec->series ?? null);
 
             if ($lang) {
                 core_Lg::pop();
@@ -250,7 +250,7 @@ class label_Prints extends core_Master
         
         // Определяме най-добрия шаблон
         if (!empty($labelDataArr)) {
-            $templatesArr = cls::get($classId)->getLabelTemplates($objId, $rec->series, true);
+            $templatesArr = cls::get($classId)->getLabelTemplates($objId, $rec->series ?? null, true);
 
             if (!countR($templatesArr)) {
                 
@@ -333,7 +333,7 @@ class label_Prints extends core_Master
             // Ако е променен езика, вземаме данните пак
             if ($lang != $oLang) {
                 if ($classId && $objId) {
-                    $labelDataArr = $intfInst->getLabelPlaceholders($objId, $rec->series);
+                    $labelDataArr = $intfInst->getLabelPlaceholders($objId, $rec->series ?? null);
                 }
             }
 
@@ -422,12 +422,12 @@ class label_Prints extends core_Master
         if ($classId && $objId) {
             $mvc->requireRightFor('add', (object) array('classId' => $classId, 'objectId' => $objId));
             
-            $lName = $intfInst->getLabelName($objId, $rec->series);
+            $lName = $intfInst->getLabelName($objId, $rec->series ?? null);
             if ($lName) {
                 $form->setDefault('title', $lName);
             }
             
-            $estCnt = $intfInst->getLabelEstimatedCnt($objId, $rec->series);
+            $estCnt = $intfInst->getLabelEstimatedCnt($objId, $rec->series ?? null);
         }
         
         if(isset($rec->mediaId)){
@@ -626,7 +626,7 @@ class label_Prints extends core_Master
             if (!empty($rec->classId) && !empty($rec->objectId)) {
                 $intfInst = cls::getInterface('label_SequenceIntf', $rec->classId);
                 
-                $estCnt = $intfInst->getLabelEstimatedCnt($rec->objectId, $rec->series);
+                $estCnt = $intfInst->getLabelEstimatedCnt($rec->objectId, $rec->series ?? null);
                 
                 // Ако излезем над разрешената стойност
                 if (isset($estCnt) && $rec->labelsCnt > $estCnt) {
@@ -672,7 +672,7 @@ class label_Prints extends core_Master
                 
                 $tpl = new ET("<div class='preview-holder floatedElement' style='display: inline-block; min-width: 0;'><div style='margin-top:20px; margin-bottom:-10px; padding:5px;'><b>" . tr('Етикет') . "</b></div><div class='preview-label'>[#LABEL_PREVIEW#]</div></div><div class='clearfix21'></div>");
                 
-                $pData = $mvc->getLabelDataFromRec($rec, true, null, $rec->series);
+                $pData = $mvc->getLabelDataFromRec($rec, true, null, $rec->series ?? null);
                 
                 $labelPreview = $mvc->renderLabel($pData);
                 
@@ -976,7 +976,7 @@ class label_Prints extends core_Master
         
         if ($action == 'add' && $rec && $requiredRoles != 'no_one') {
             if (!empty($rec->classId) && !empty($rec->objectId)) {
-                if (!cls::get($rec->classId)->getLabelTemplates($rec->objectId, $rec->series, false)) {
+                if (!cls::get($rec->classId)->getLabelTemplates($rec->objectId, $rec->series ?? null, false)) {
                     $requiredRoles = 'no_one';
                 }
             }
@@ -1067,8 +1067,8 @@ class label_Prints extends core_Master
                 
                 core_Mode::push('prepareLabel', true);
                 core_Lg::push($lang);
-                $labelDataArr = (array) $intfInst->getLabelData($rec->objectId, $pData->cnt, $preview, $rec, $rec->series);
-                $placeArr = (array) $intfInst->getLabelPlaceholders($rec->objectId, $rec->series);
+                $labelDataArr = (array) $intfInst->getLabelData($rec->objectId, $pData->cnt, $preview, $rec, $rec->series ?? null);
+                $placeArr = (array) $intfInst->getLabelPlaceholders($rec->objectId, $rec->series ?? null);
                 core_Lg::pop();
                 core_Mode::pop('prepareLabel');
                 
