@@ -741,10 +741,11 @@ class planning_ProductionTaskDetails extends doc_Detail
         // Ако е субпродукт се търси тарата от неговия параметър или опаковката
         if($isSubProduct){
             $subProductMeasureId =  cat_Products::fetchField($productId, 'measureId');
+            $prodPackagingId = $prodInfo->packagingId ?? $prodInfo->measureId ?? $subProductMeasureId;
 
             if(empty($prodInfo->tareWeight)){
                 // Ако субпродукта се произвежда в основната си мярка се търси първо посочения параметър в центъра за тара
-                if($prodInfo->packagingId == $subProductMeasureId){
+                if($prodPackagingId == $subProductMeasureId){
                     if(!empty($centerRec->useTareFromParamId)){
                         $taskWeightSubtractValue = cat_Products::getParams($productId, $centerRec->useTareFromParamId);
                         $subtractTareWeightValVerbal = cls::get('cat_type_Weight')->toVerbal($taskWeightSubtractValue);
@@ -754,9 +755,9 @@ class planning_ProductionTaskDetails extends doc_Detail
 
                 // Ако няма се търси има ли тара за тази опаковка/мярка
                 if(!$taskWeightSubtractValue){
-                    $taskWeightSubtractValue = cat_products_Packagings::fetchField("#productId = {$productId} AND #packagingId = {$prodInfo->packagingId}",'tareWeight');
+                    $taskWeightSubtractValue = cat_products_Packagings::fetchField("#productId = {$productId} AND #packagingId = {$prodPackagingId}",'tareWeight');
                     $subtractTareWeightValVerbal = cls::get('cat_type_Weight')->toVerbal($taskWeightSubtractValue);
-                    $packName = cat_UoM::getTitleById($prodInfo->packagingId);
+                    $packName = cat_UoM::getTitleById($prodPackagingId);
                     $errorMsgIfNegative = "Получава се невалидно тегло, като се приспадне стойността на тарата от опаковката|* <b>{$packName}</b> : {$subtractTareWeightValVerbal}";
                 }
             } else {
@@ -1120,13 +1121,14 @@ class planning_ProductionTaskDetails extends doc_Detail
         $singleUrl = cat_Products::getSingleUrlArray($rec->productId);
         $row->productId = (countR($singleUrl) && !Mode::is('printing')) ? ht::createLinkRef($row->productId, $singleUrl) : $row->productId;
         $foundRec = planning_ProductionTaskProducts::getInfo($rec->taskId, $rec->productId, $rec->type, $rec->fixedAsset ?? null);
+        $foundProductId = $foundRec->productId ?? $rec->productId;
 
-        if($taskRec->productId != $foundRec->productId){
+        if($taskRec->productId != $foundProductId){
             $measureId = $foundRec->packagingId ?? $foundRec->measureId ?? $pRec->measureId;
             $labelPackagingId = $foundRec->packagingId ?? $pRec->measureId;
         } else {
-            $measureId = $foundRec->measureId;
-            $labelPackagingId = (!empty($foundRec->labelPackagingId)) ? $foundRec->labelPackagingId : $foundRec->measureId;
+            $measureId = $foundRec->measureId ?? $foundRec->packagingId ?? $pRec->measureId;
+            $labelPackagingId = $foundRec->labelPackagingId ?? $foundRec->packagingId ?? $measureId;
         }
 
         if (isset($rec->employees)) {
@@ -1154,8 +1156,8 @@ class planning_ProductionTaskDetails extends doc_Detail
         }
 
         if ($rec->type == 'production') {
-            $productionCaption = ($pRec->canStore == 'yes' && $taskRec->productId != $foundRec->productId) ? 'Субпродукт' : 'Произвеждане';
-            $productionCaptionShort = ($pRec->canStore == 'yes' && $taskRec->productId != $foundRec->productId) ? 'Субпр.' : 'Произв.';
+            $productionCaption = ($pRec->canStore == 'yes' && $taskRec->productId != $foundProductId) ? 'Субпродукт' : 'Произвеждане';
+            $productionCaptionShort = ($pRec->canStore == 'yes' && $taskRec->productId != $foundProductId) ? 'Субпр.' : 'Произв.';
             $row->type = (!empty($labelPackagingName) && ($labelPackagingId !== $measureId)) ? "<small>" . tr("{$productionCaptionShort}|* {$labelPackagingName}") . "</small>": "<small>" . tr($productionCaption) . "</small>";
         }
 
@@ -1340,6 +1342,7 @@ class planning_ProductionTaskDetails extends doc_Detail
                     }
 
                     $weightQuantity = $rec->quantity;
+                    $qInPack = 1;
                     if($rec->type == 'production'){
                         $qInPack = $masterRec->quantityInPack;
                         $isProduct4Tasks = planning_ProductionTaskProducts::isProduct4Task($rec->taskId, $rec->productId);
@@ -1989,7 +1992,7 @@ class planning_ProductionTaskDetails extends doc_Detail
             $quantity *= $taskRec->quantityInPack;
             expect($quantity = core_Type::getByName('double')->fromVerbal($quantity), 'Невалидно число');
         } elseif($params['type'] == 'production' && isset($taskRec->labelPackagingId)){
-            $packRec = cat_products_Packagings::getPack($taskRec->productId, $taskRec->packagingId);
+            $packRec = cat_products_Packagings::getPack($taskRec->productId, $taskRec->labelPackagingId);
             $quantity = is_object($packRec) ? ($packRec->quantity / $taskRec->quantityInPack) : 1;
         }
         
