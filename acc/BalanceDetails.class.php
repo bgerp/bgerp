@@ -820,7 +820,7 @@ class acc_BalanceDetails extends core_Detail
         $form->FNC('accId', 'int', 'silent,input=hidden');
         $form->input('accId', true);
         foreach ($listRecs as $i => $listRec) {
-            $this->setGroupingForField($i, $listRec, $form, $items[$i]);
+            $this->setGroupingForField($i, $listRec, $form, $items[$i] ?? array());
         }
         $form->FLD('sortBy', 'enum(,baseAmount=Начално салдо,debitAmount=Дебитен оборот,creditAmount=Кредитен оборот,blAmount=Крайно салдо,baseAmountNotNull=Начално салдо (Различно от 0),debitAmountNotNull=Дебитен оборот (Различно от 0),creditAmountNotNull=Кредитен оборот (Различно от 0),blAmountNotNull=Крайно салдо (Различно от 0),closeToZero=Крайни салда (Близки до 0))', 'caption=Подредба,input');
         $form->showFields .= 'sortBy,';
