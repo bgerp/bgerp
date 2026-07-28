@@ -427,7 +427,7 @@ abstract class rack_MovementAbstract extends core_Manager
     protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
     {
         $data->listTableMvc->FLD('movement', 'varchar', 'tdClass=movement-description');
-        if(!$data->inlineMovement){
+        if(empty($data->inlineMovement)){
             $data->listTableMvc->FLD('leftColBtns', 'varchar', 'tdClass=centered');
             $data->listTableMvc->FLD('rightColBtns', 'varchar', 'tdClass=centered');
             $data->listTableMvc->setField('workerId', 'tdClass=centered');
