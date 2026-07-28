@@ -638,7 +638,10 @@ class store_InventoryNotes extends core_Master
                 // Записите, които не са от избрания склад ги пропускаме
                 if ($bRec->ent1Id != $storeItemId) continue;
 
-                $productId = $iRecs[$bRec->{"ent{$productPositionId}Id"}]->objectId;
+                $productItemId = $bRec->{"ent{$productPositionId}Id"} ?? null;
+                if (!isset($iRecs[$productItemId])) continue;
+
+                $productId = $iRecs[$productItemId]->objectId;
                 $aRec = (object) array('noteId' => $rec->id,
                                        'productId' => $productId,
                                        'groups' => null,
@@ -749,7 +752,7 @@ class store_InventoryNotes extends core_Master
         // Целта е ако потребителя е въвел артикул, който не е в избраните групи с к-во, неговото очаквано
         // к-во да дойде от баланса
         foreach ($balanceArr as $id => $new) {
-            if ($rec->hideOthers == 'yes') {
+            if (($rec->hideOthers ?? null) == 'yes') {
                 if (!keylist::isIn($rGroup, $new->groups) && !in_array($new->productId, $productArr)) {
                     unset($balanceArr[$id]);
                 }
@@ -761,19 +764,19 @@ class store_InventoryNotes extends core_Master
         $Summary = cls::get('store_InventoryNoteSummary');
         
         // Ако има нови артикули, добавяме ги
-        if (countR($syncedArr['insert'])) {
+        if (countR($syncedArr['insert'] ?? array())) {
             $Summary->saveArray($syncedArr['insert']);
         }
         
         // На останалите им обновяваме определени полета
-        if (countR($syncedArr['update'])) {
+        if (countR($syncedArr['update'] ?? array())) {
             $Summary->saveArray($syncedArr['update'], 'id,noteId,productId,blQuantity,groups,modifiedOn,searchKeywords');
         }
         
         $deleted = 0;
         
         // Ако трябва да се трият артикули
-        if (countR($syncedArr['delete'])) {
+        if (countR($syncedArr['delete'] ?? array())) {
             core_Debug::startTimer('SYNC_DELETE_RECS');
             foreach ($syncedArr['delete'] as $deleteId) {
 
@@ -1141,7 +1144,8 @@ class store_InventoryNotes extends core_Master
         $dQuery->where("#noteId = {$rec->id}");
         $dQuery->show('productId,batch');
         while ($dRec = $dQuery->fetch()){
-            $exRecs[$dRec->productId][$dRec->batch] = true;
+            $batch = $dRec->batch ?? '';
+            $exRecs[$dRec->productId][$batch] = true;
         }
 
         $count = $summaryQuery->count();

@@ -543,13 +543,14 @@ class store_InventoryNoteDetails extends doc_Detail
         $packRec = cat_products_Packagings::getPack($pRec->productId, $pRec->packagingId);
         $quantityInPack  = is_object($packRec) ? $packRec->quantity : 1;
 
-        $dRec = (object) array('noteId' => $masterId, 'productId' => $pRec->productId, 'quantity' => $row->quantity * $quantityInPack, 'quantityInPack' => $quantityInPack, 'packagingId' => $pRec->packagingId, 'batch' => $row->batch);
+        $batch = $row->batch ?? null;
+        $dRec = (object) array('noteId' => $masterId, 'productId' => $pRec->productId, 'quantity' => $row->quantity * $quantityInPack, 'quantityInPack' => $quantityInPack, 'packagingId' => $pRec->packagingId, 'batch' => $batch);
 
         // Ако е избрано заместване при дублиране да се заместват
         $onDuplicate = Mode::get('onDuplicate');
         if($onDuplicate){
             $batchCond = isset($row->batch) ? "#batch = '[#1#]'" : "#batch IS NULL";
-            $n = self::delete(array("#noteId = {$masterId} AND #productId = {$pRec->productId} AND {$batchCond}", $row->batch));
+            $n = self::delete(array("#noteId = {$masterId} AND #productId = {$pRec->productId} AND {$batchCond}", $batch));
             core_Statuses::newStatus($n, 'warning');
         }
 
