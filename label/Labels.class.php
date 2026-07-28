@@ -570,17 +570,18 @@ class label_Labels extends core_Master
         if (!$rec) {
             $rec = static::fetch($data->Label->id);
         }
+        $recId = $rec->id ?? null;
         
         // Ако не е сетната бройката
         setPartIfNot($data, 'cnt', 1);
         setPartIfNot($data, 'copyCnt', 1);
         
-        if (!$data->allCnt) {
+        if (empty($data->allCnt)) {
             $data->allCnt = $data->cnt * $data->copyCnt;
         }
         
         // Ако няма стойност
-        if (!$data->row) {
+        if (empty($data->row)) {
             
             // Създаваме обект
             $data->row = new stdClass();
@@ -593,41 +594,41 @@ class label_Labels extends core_Master
         $placesArr = label_Templates::getPlaceholders($data->row->Template);
         
         // Параметрите
-        $params = $rec->params;
+        $params = (array) ($rec->params ?? array());
         
         // Плейсхолдери за брой отпечатване и текущ етикет
         $printCntField = label_TemplateFormats::getPlaceholderFieldName('Общо_етикети');
         $currPrintCntField = label_TemplateFormats::getPlaceholderFieldName('Текущ_етикет');
         $currPageCntField = label_TemplateFormats::getPlaceholderFieldName('Страница');
 
-        $itemsPerPage = $itemsPerPage ?? $data->pageLayout->itemsPerPage ?? 1;
+        $itemsPerPage = $data->pageLayout->itemsPerPage ?? 1;
         
         // Ако не е зададена стойност за брой отпечатвания
         $params[$printCntField] = $params[$printCntField] ?? $data->printCnt ?? $data->cnt ?? 1;
         
         // Ако не е зададена стойност за текущия отпечатван етикет
         $updatePrintCnt = false;
-        if (!$params[$currPrintCntField]) {
+        if (empty($params[$currPrintCntField])) {
             $updatePrintCnt = true;
             $params[$currPrintCntField] = 0;
         }
         
         // Ако не е зададена стойност за текущата страница
         $updatePageCnt = false;
-        if (!$params[$currPageCntField]) {
+        if (empty($params[$currPageCntField])) {
             $updatePageCnt = true;
             $params[$currPageCntField] = 0;
         }
         
         $rowId = 0;
         $perPageCnt = 0;
-        $lDataNo = ($data->rec && $data->rec->begin) ? $data->rec->begin : 0;
+        $lDataNo = !empty($data->rec->begin) ? $data->rec->begin : 0;
         
         // Докато достигнем броя на принтиранията
         for ($i = 0; $i < $data->cnt; $i++) {
             
             // Вземаме стойностите на плейсхолдерите от обекта
-            if ($rec->objId && $rec->classId) {
+            if (!empty($rec->objId) && !empty($rec->classId)) {
                 $intfInst = cls::getInterface('label_SequenceIntf', $rec->classId);
                 
                 $lang = label_Templates::fetchField($rec->templateId, 'lang');
@@ -674,7 +675,7 @@ class label_Labels extends core_Master
                 $fPlace = label_TemplateFormats::getPlaceholderFieldName($place);
                 
                 // Вземаме вербалната стойност
-                $data->rows[$rowId][$place] = label_TemplateFormats::getVerbalTemplate($rec->templateId, $place, $params[$fPlace], $rec->id, $data->updateTempData);
+                $data->rows[$rowId][$place] = label_TemplateFormats::getVerbalTemplate($rec->templateId, $place, $params[$fPlace] ?? null, $recId, $data->updateTempData);
             }
             
             $newCurrPage = false;
@@ -687,7 +688,7 @@ class label_Labels extends core_Master
                 // При копиятата, ако сме минали на нова страница, да се увеличи брояча за всички следващи копия
                 if (($updatePageCnt) && ($perPageCnt % $itemsPerPage == 0)) {
                     $params[$currPageCntField]++;
-                    $newCurrPage = label_TemplateFormats::getVerbalTemplate($rec->templateId, $currPageCntField, $params[$currPageCntField], $rec->id, $data->updateTempData);
+                    $newCurrPage = label_TemplateFormats::getVerbalTemplate($rec->templateId, $currPageCntField, $params[$currPageCntField], $recId, $data->updateTempData);
                 }
                 
                 if ($newCurrPage) {
@@ -787,7 +788,7 @@ class label_Labels extends core_Master
     protected static function on_AfterPrepareRetUrl($mvc, &$res, &$data)
     {
         // Ако е субмитната формата и сме натиснали бутона "Запис и нов"
-        if ($data->form && $data->form->isSubmitted() && $data->form->cmd == 'save') {
+        if (!empty($data->form) && $data->form->isSubmitted() && $data->form->cmd == 'save') {
             
             // Променяма да сочи към single'a
             $data->retUrl = toUrl(array($mvc, 'single', $data->form->rec->id));
@@ -808,12 +809,13 @@ class label_Labels extends core_Master
     {
         // Ако има запис
         if ($rec) {
+            $state = $rec->state ?? null;
             
             // Ако ще добавяме нов
             if ($action == 'add') {
                 
                 // Вземаме записите
-                $templateRec = label_Templates::fetch($rec->templateId);
+                $templateRec = label_Templates::fetch($rec->templateId ?? null);
                 
                 // Вземаме правата за създаване на етикет
                 $requiredRoles = label_Templates::getRequiredRoles('createlabel', $templateRec);
@@ -823,11 +825,11 @@ class label_Labels extends core_Master
             if ($action == 'edit') {
                 
                 // Ако е оттеглено
-                if ($rec->state == 'rejected') {
+                if ($state == 'rejected') {
                     
                     // Оттеглените да не могат да се редактират
                     $requiredRoles = 'no_one';
-                } elseif ($rec->state != 'draft') {
+                } elseif ($state != 'draft') {
                     
                     // Потреибители, които имат роля за masterLabel могат да редактират
                     $requiredRoles = $mvc->getRequiredRoles('Masterlabel');
@@ -842,7 +844,7 @@ class label_Labels extends core_Master
             }
             
             if ($action == 'uselabel') {
-                if ($rec->state == 'rejected') {
+                if ($state == 'rejected') {
                     $requiredRoles = 'no_one';
                 }
             }
@@ -882,7 +884,7 @@ class label_Labels extends core_Master
         // Подреждаме по дата на модифициране
         $data->query->orderBy('#modifiedOn=DESC');
         
-        if ($state = $data->listFilter->rec->fState) {
+        if ($state = ($data->listFilter->rec->fState ?? null)) {
             $data->query->where(array("#state = '[#1#]'", $state));
         }
     }
@@ -897,8 +899,8 @@ class label_Labels extends core_Master
      */
     protected static function on_AfterSave($mvc, &$id, $rec)
     {
-        if (!$rec->templateId) {
-            expect($rec->id);
+        if (empty($rec->templateId)) {
+            expect($rec->id ?? null);
             $rec = $mvc->fetch($rec->id);
         }
         

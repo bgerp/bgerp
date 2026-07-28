@@ -1512,11 +1512,14 @@ class label_Prints extends core_Master
         $counterItemsQuery->where(array("#number = '[#1#]'", $str));
         
         while ($cRec = $counterItemsQuery->fetch()) {
-            if (!$cRec->printId) {
+            if (empty($cRec->printId)) {
                 continue;
             }
             
             $pRec = $this->fetch($cRec->printId);
+            if (!$pRec) {
+                continue;
+            }
             
             $res = new stdClass();
             
@@ -1533,7 +1536,7 @@ class label_Prints extends core_Master
                 $res->priority = 0;
             }
             
-            if ($pRec->classId && $pRec->objectId) {
+            if (!empty($pRec->classId) && !empty($pRec->objectId)) {
                 $res->priority = 3;
                 
                 $vRec = $this->recToVerbal($pRec, 'source');
@@ -1542,7 +1545,7 @@ class label_Prints extends core_Master
             }
             
             if (strlen($cRec->number) != strlen($oStr)) {
-                if ($res->priority) {
+                if (!empty($res->priority)) {
                     $res->priority /= 2;
                 }
             }

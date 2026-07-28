@@ -93,8 +93,8 @@ class export_Export extends core_Mvc
         $dInst = cls::get($clsId);
         
         $dRec = $dInst->fetch($objId);
-        
-        if (($dRec->state == 'rejected') || ($dRec->state == 'draft')) {
+
+        if (!$dRec || in_array(($dRec->state ?? null), array('rejected', 'draft'))) {
             $resArr[$key] = false;
             
             return $resArr[$key];
@@ -175,16 +175,17 @@ class export_Export extends core_Mvc
         
         if ($form->isSubmitted()) {
             $exportFormatsArr = $this->getPossibleExports($classId, $docId);
-            expect($exportFormatsArr[$form->rec->type]);
+            $type = $form->rec->type ?? null;
+            expect($type && !empty($exportFormatsArr[$type]));
 
             Mode::set('exporting', true);
 
-            $intfCls = cls::getInterface('export_ExportTypeIntf', $form->rec->type);
+            $intfCls = cls::getInterface('export_ExportTypeIntf', $type);
             
             $eRes = $intfCls->makeExport($form, $classId, $docId);
 
-            if ($form->rec->type) {
-                core_Permanent::set($pKey, $form->rec->type, 43200);
+            if ($type) {
+                core_Permanent::set($pKey, $type, 43200);
             }
 
             if (is_object($eRes) && $eRes instanceof core_Redirect) {
@@ -206,7 +207,7 @@ class export_Export extends core_Mvc
             if (!empty($intfArr) && $eRes) {
                 if ((strlen($eRes) == FILEMAN_HANDLER_LEN) || !defined('FILEMAN_HANDLER_LEN')) {
                     if ($fRec = fileman::fetchByFh($eRes)) {
-                        if ($dRec->containerId && $fRec->id) {
+                        if (!empty($dRec->containerId) && !empty($fRec->id)) {
                             doc_Linked::add($dRec->containerId, $fRec->id, 'doc', 'file', tr('Експортиране'));
                         }
                     }
@@ -250,8 +251,8 @@ class export_Export extends core_Mvc
         
         $mRec = $clsInst->fetch($objId);
         
-        expect($mRec && $mRec->containerId);
-        expect($mRec->state != 'rejected');
+        expect($mRec && !empty($mRec->containerId));
+        expect(($mRec->state ?? null) != 'rejected');
         
         expect($action = doclog_Documents::opened($mRec->containerId, $mid));
         doclog_Documents::popAction();
@@ -260,7 +261,7 @@ class export_Export extends core_Mvc
         $typeClsInst = cls::get($typeCls);
         
         // Ако е избран друг шаблон за отпечатване
-        if ($action->data->tplManagerId) {
+        if (!empty($action->data->tplManagerId)) {
             $mRec->template = $action->data->tplManagerId;
         }
         
@@ -268,7 +269,8 @@ class export_Export extends core_Mvc
         
         $mRec->__mid = $mid;
         
-        if ($action->createdBy) {
+        $su = null;
+        if (!empty($action->createdBy)) {
             $su = core_Users::sudo($action->createdBy);
         }
 
@@ -276,7 +278,9 @@ class export_Export extends core_Mvc
 
         $fileHnd = $typeClsInst->makeExport($form, $clsId, $mRec);
         
-        core_Users::exitSudo($su);
+        if (isset($su)) {
+            core_Users::exitSudo($su);
+        }
         
         if ($fileHnd) {
             $typeClsInst->logInfo('Експортиран документ');
