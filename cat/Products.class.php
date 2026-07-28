@@ -4588,10 +4588,11 @@ class cat_Products extends embed_Manager
             }
         }
 
-        $rate = isset($mRec->currencyRate) ? $mRec->currencyRate : $mRec->rate;
-        $chargeVat = isset($mRec->chargeVat) ? $mRec->chargeVat : $mRec->vatRate;
+        $rate = $mRec->currencyRate ?? ($mRec->rate ?? null);
+        $chargeVat = $mRec->chargeVat ?? ($mRec->vatRate ?? null);
 
-        $currencyId = is_numeric($mRec->currencyId) ? currency_Currencies::getCodeById($mRec->currencyId) : $mRec->currencyId;
+        $currencyId = $mRec->currencyId ?? null;
+        $currencyId = is_numeric($currencyId) ? currency_Currencies::getCodeById($currencyId) : $currencyId;
         $addMiscPriceFields = false;
 
             foreach ($recs as $rec){
