@@ -117,14 +117,19 @@ class survey_Alternatives extends core_Detail
      */
     protected static function on_AfterPrepareListRows($mvc, &$res)
     {
+        $res->rows = $res->rows ?? array();
+        $res->recs = $res->recs ?? array();
         $rows = &$res->rows;
         $recs = &$res->recs;
-        if ($res->masterData) {
+        if (!empty($res->masterData->rec)) {
             $masterRec = $res->masterData->rec;
             if (countR($recs) && !survey_Surveys::isClosed($masterRec->id)) {
                 foreach ($recs as $id => $rec) {
+                    if (empty($rows[$id])) {
+                        continue;
+                    }
                     $rows[$id]->answers = $mvc->options->prepareOptions($id, $rec->surveyId);
-                    if (!strlen($rows[$id]->answers) && $masterRec->state == 'active') {
+                    if (!strlen($rows[$id]->answers) && ($masterRec->state ?? null) == 'active') {
                         unset($rows[$id]);
                     }
                 }
@@ -166,7 +171,7 @@ class survey_Alternatives extends core_Detail
                 $row->addOption = ht::createLink('', $addUrl, null, array('ef_icon' => 'img/16/add.png', 'class' => 'addParams', 'title' => 'Добавяне на опция'));
             }
 
-            if ($rec->image) {
+            if (!empty($rec->image)) {
                 $Fancybox = cls::get('fancybox_Fancybox');
                 $row->image = $Fancybox->getImage($rec->image, array(400, 140), array(700, 500), null, array('class' => 'question-image'));
             }
@@ -185,7 +190,7 @@ class survey_Alternatives extends core_Detail
         $tplAlt = $tpl->getBlock('ROW');
         $count = 1;
 
-        if ($data->rows) {
+        if (!empty($data->rows)) {
             foreach ($data->rows as $row) {
                 $row->count = $count;
                 $rowTpl = clone($tplAlt);
@@ -259,7 +264,7 @@ class survey_Alternatives extends core_Detail
             if ($totalVotes != 0) {
                 $op->_votes = survey_Votes::countVotes($rec->id, $option->id);
                 $op->votes = $Int->toVerbal($op->_votes);
-                $op->percent = $Double->toVerbal(round($op->votes / $totalVotes * 100, 2));
+                $op->percent = $Double->toVerbal(round($op->_votes / $totalVotes * 100, 2));
             } else {
                 $op->_votes = 0;
                 $op->votes = 0;
