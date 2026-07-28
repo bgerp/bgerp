@@ -60,7 +60,7 @@ class sales_transaction_Service extends acc_DocumentTransactionSource
             }
         }
         
-        $transaction = (object) array('reason' => 'Протокол за доставка на услуги #' . $rec->id,
+        $transaction = (object) array('reason' => 'Протокол за доставка на услуги #' . ($rec->id ?? ''),
                                       'valior' => $rec->valior,
                                       'entries' => $entries,);
         

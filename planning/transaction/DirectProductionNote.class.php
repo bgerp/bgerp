@@ -37,16 +37,18 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
         $rec->valior = empty($rec->valior) ? dt::today() : $rec->valior;
        
         $result = (object) array(
-            'reason' => "Протокол за производство №{$rec->id}",
+            'reason' => 'Протокол за производство №' . ($rec->id ?? ''),
             'valior' => $rec->valior,
             'totalAmount' => null,
             'entries' => array()
         );
         
         // Ако има ид, добавяме записите
-        $entries = $this->getEntries($rec, $result->totalAmount);
-        if (countR($entries)) {
-            $result->entries = $entries;
+        if (isset($rec->id)) {
+            $entries = $this->getEntries($rec, $result->totalAmount);
+            if (countR($entries)) {
+                $result->entries = $entries;
+            }
         }
 
         if (acc_Journal::throwErrorsIfFoundWhenTryingToPost()) {
