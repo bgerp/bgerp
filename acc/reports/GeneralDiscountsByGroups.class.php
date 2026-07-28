@@ -131,13 +131,13 @@ class acc_reports_GeneralDiscountsByGroups extends frame2_driver_TableData
         $form = $data->form;
         $rec = $form->rec;
 
-        $form->setDefault('groupBy', 'contragentName');
+        $form->setDefault('seeBy', 'contragentName');
 
-        if ($rec->seeBy == 'contragentName') {
+        if (($rec->seeBy ?? 'contragentName') == 'contragentName') {
             $form->setField('inDet', 'input');
         }
 
-        if (is_null($rec->to)) {
+        if (is_null($rec->to ?? null)) {
             $form->setDefault('to', dt::today());
         }
 
