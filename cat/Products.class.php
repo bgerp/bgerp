@@ -4430,7 +4430,7 @@ class cat_Products extends embed_Manager
                                 if (!$canSeePrice) {
                                     continue;
                                 } elseif (!empty($tFieldsArr)) {
-                                    if (!$tFieldsArr[$v]) {
+                                    if (empty($tFieldsArr[$v])) {
                                         continue;
                                     }
                                 }
@@ -4457,7 +4457,7 @@ class cat_Products extends embed_Manager
                             if (!$canSeePrice) {
                                 continue;
                             } elseif (!empty($tFieldsArr)) {
-                                if (!$tFieldsArr[$k]) {
+                                if (empty($tFieldsArr[$k])) {
                                     continue;
                                 }
                             }
@@ -4479,8 +4479,8 @@ class cat_Products extends embed_Manager
                 // Добавяме отстъпката към цената
                 if (!empty($allFFieldsArr['packPrice'])) {
                     if(!Mode::is('csvExportInList')) {
-                        $price = ($masterMvc instanceof cat_Listings) ? $recs[$dRec->id]->price : $recs[$dRec->id]->packPrice;
-                        if ($price && $dRec->discount && !($masterMvc instanceof deals_InvoiceMaster && $mRec->type == 'dc_note')) {
+                        $price = ($masterMvc instanceof cat_Listings) ? ($recs[$dRec->id]->price ?? null) : ($recs[$dRec->id]->packPrice ?? null);
+                        if ($price && !empty($dRec->discount) && !($masterMvc instanceof deals_InvoiceMaster && ($mRec->type ?? null) == 'dc_note')) {
                             $recs[$dRec->id]->packPrice = $price;
                             $recs[$dRec->id]->packPrice -= ($recs[$dRec->id]->packPrice * $dRec->discount);
 
@@ -4494,8 +4494,8 @@ class cat_Products extends embed_Manager
                         }
                     } else {
                         if(Mode::is('csvExportInList')){
-                            $rate = $mRec->displayRate ?? ($mRec->currencyRate ?? $mRec->rate);
-                            if(isset($rate) && $rate != 1){
+                            $rate = $mRec->displayRate ?? ($mRec->currencyRate ?? ($mRec->rate ?? null));
+                            if (isset($recs[$dRec->id]->packPrice) && isset($rate) && $rate != 1) {
                                 $recs[$dRec->id]->packPrice /= $rate;
                                 $recs[$dRec->id]->packPrice = round($recs[$dRec->id]->packPrice, 5);
                             };
@@ -4503,12 +4503,12 @@ class cat_Products extends embed_Manager
                     }
                 }
 
-                $valior = !empty($masterMvc->valiorFld) ? $mRec->{$masterMvc->valiorFld} : dt::today();
+                $valior = !empty($masterMvc->valiorFld) ? ($mRec->{$masterMvc->valiorFld} ?? dt::today()) : dt::today();
                 $recs[$dRec->id]->vatPercent = cat_Products::getVat($dRec->{$dInst->productFld}, $valior, $vatExceptionId);
-                $recs[$dRec->id]->notes = $dRec->notes;
+                $recs[$dRec->id]->notes = $dRec->notes ?? null;
 
                 // За добавяне на бачовете
-                if (!empty($allFFieldsArr['batch']) && !empty($masterMvc->storeFieldName) && $mRec->{$masterMvc->storeFieldName}) {
+                if (!empty($allFFieldsArr['batch']) && !empty($masterMvc->storeFieldName) && !empty($mRec->{$masterMvc->storeFieldName})) {
                     $Def = batch_Defs::getBatchDef($dRec->{$dInst->productFld});
                     if (isset($recs[$dRec->id]) && isset($recs[$dRec->id]->packQuantity) && $Def) {
                         if (empty($csvFields->fields['batch'])) {
