@@ -673,7 +673,7 @@ class price_Lists extends core_Master
         }
 
         if ($action == 'add' && isset($rec->cClass, $rec->cId)) {
-            if (!cls::get($rec->cClass)->haveRightFor('single', $rec->id)) {
+            if (!cls::get($rec->cClass)->haveRightFor('single', $rec->cId)) {
                 $requiredRoles = 'no_one';
             }
         }
