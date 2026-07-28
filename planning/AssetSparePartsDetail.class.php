@@ -234,9 +234,7 @@ class planning_AssetSparePartsDetail extends core_Detail
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         foreach (array('quantity', 'quantityAll', 'reservedQuantity', 'expectedQuantity', 'resultDiff') as $fld){
-            if (isset($rec->{$fld})) {
-                $row->{$fld} = core_Type::getByName('double')->toVerbal($rec->{$fld});
-            }
+            $row->{$fld} = core_Type::getByName('double')->toVerbal($rec->{$fld} ?? null);
         }
         $row->productId = cat_Products::getHyperlink($rec->productId, true);
         $row->storeId = store_Stores::getHyperlink($rec->storeId, true);
@@ -278,7 +276,7 @@ class planning_AssetSparePartsDetail extends core_Detail
         foreach ($rows as $id => $row) {
             $rec = $data->recs[$id];
             foreach (array('quantity', 'quantityAll', 'reservedQuantity', 'expectedQuantity', 'resultDiff') as $fld){
-                $row->{$fld} = ht::styleNumber($row->{$fld}, $rec->{$fld});
+                $row->{$fld} = ht::styleNumber($row->{$fld} ?? null, $rec->{$fld} ?? null);
             }
 
             $pQuery = rack_Pallets::getQuery();
