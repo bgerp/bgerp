@@ -1388,7 +1388,7 @@ class planning_Tasks extends core_Master
 
         // Ако има прогрес, операцията не може да се оттегля
         if ($action == 'reject' && isset($rec)) {
-            if (planning_ProductionTaskDetails::fetchField("#taskId = {$rec->id} AND #state != 'rejected'")) {
+            if (empty($rec->id) || planning_ProductionTaskDetails::fetchField("#taskId = {$rec->id} AND #state != 'rejected'")) {
                 $requiredRoles = 'no_one';
             } elseif (!haveRole('task,ceo', $userId)) {
                 $requiredRoles = 'no_one';
@@ -1418,7 +1418,7 @@ class planning_Tasks extends core_Master
                 $requiredRoles = 'no_one';
             } else {
                 $jobRec = planning_Jobs::fetch($rec->jobId);
-                if (!$mvc->haveRightFor('add', (object)array('folderId' => $rec->folderId, 'originId' => $jobRec->containerId))) {
+                if (!$jobRec || !$mvc->haveRightFor('add', (object)array('folderId' => $rec->folderId ?? null, 'originId' => $jobRec->containerId))) {
                     $requiredRoles = 'no_one';
                 } else {
                     if ($rec->type == 'clone') {
@@ -1469,20 +1469,22 @@ class planning_Tasks extends core_Master
         if($action == 'editprevioustask'){
             $requiredRoles = $mvc->getRequiredRoles('edit', $rec, $userId);
             if(isset($rec)){
-                if(planning_Tasks::count("#originId = {$rec->originId} AND #state != 'rejected'") <= 1){
+                if(empty($rec->originId) || planning_Tasks::count("#originId = {$rec->originId} AND #state != 'rejected'") <= 1){
                     $requiredRoles = 'no_one';
                 }
             }
         }
 
         if ($action == 'activate' && isset($rec)) {
-            if ($rec->state != 'pending') {
+            $state = $rec->state ?? (!empty($rec->id) ? $mvc->fetchField($rec->id, 'state') : null);
+            if ($state != 'pending') {
                 $requiredRoles = 'no_one';
             }
         }
 
         if ($action == 'recalcindtime' && isset($rec)) {
-            if (!planning_ProductionTaskDetails::count("#taskId = {$rec->id}") || $rec->state == 'rejected') {
+            $state = $rec->state ?? (!empty($rec->id) ? $mvc->fetchField($rec->id, 'state') : null);
+            if (empty($rec->id) || !planning_ProductionTaskDetails::count("#taskId = {$rec->id}") || $state == 'rejected') {
                 $requiredRoles = 'no_one';
             }
         }
