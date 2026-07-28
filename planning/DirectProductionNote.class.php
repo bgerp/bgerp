@@ -700,7 +700,8 @@ class planning_DirectProductionNote extends planning_ProductionDocument
             $row->quantity = ($row->quantity ?? $mvc->getVerbal($rec, 'quantity')) . " {$shortUom}";
 
             if (isset($rec->debitAmount)) {
-                $row->debitAmount = currency_Currencies::decorate($row->debitAmount, null, true);
+                $debitAmount = $row->debitAmount ?? $mvc->getVerbal($rec, 'debitAmount');
+                $row->debitAmount = currency_Currencies::decorate($debitAmount, null, true);
             }
 
             $row->subTitle = (isset($rec->storeId)) ? 'Засклаждане на продукт' : 'Производство на услуга';
