@@ -992,9 +992,14 @@ class acc_BalanceDetails extends core_Detail
             acc_BalanceDebugger::log('final_balance', $finalRows);
         }
 
-        // Оригинална логика на запис (непроменена)
-        core_Locks::obtain(acc_Balances::saveLockKey);
+        core_Debug::log('BAL     saveBalance: подготвени ' . countR($toSave) . ' реда');
 
+        // Оригинална логика на запис (непроменена)
+        core_Debug::startTimer('BAL_SAVE_LOCK');
+        core_Locks::obtain(acc_Balances::saveLockKey);
+        core_Debug::stopTimer('BAL_SAVE_LOCK');
+
+        core_Debug::startTimer('BAL_SAVE_DIFF');
         $query = self::getQuery();
         while ($rec = $query->fetch("#balanceId = {$balanceId}")) {
             $key    = $rec->accountId . '|' . $rec->ent1Id . '|' . $rec->ent2Id . '|' . $rec->ent3Id;
@@ -1016,20 +1021,28 @@ class acc_BalanceDetails extends core_Detail
             }
         }
 
+        core_Debug::stopTimer('BAL_SAVE_DIFF');
+
         $res = false;
 
         if (countR($toSave)) {
             $this->logInfo('Save balance details: ' . countR($toSave));
+            core_Debug::startTimer('BAL_SAVE_ARRAY');
             $this->saveArray($toSave);
+            core_Debug::stopTimer('BAL_SAVE_ARRAY');
             $res = true;
         }
 
         if (countR($toDelete)) {
             $this->logInfo('Delete balance details: ' . countR($toDelete));
+            core_Debug::startTimer('BAL_SAVE_DELETE');
             $idList = implode(',', $toDelete);
             $this->delete("#id IN ({$idList})");
+            core_Debug::stopTimer('BAL_SAVE_DELETE');
             $res = true;
         }
+
+        core_Debug::log('BAL     saveBalance END: записани ' . countR($toSave) . ', изтрити ' . countR($toDelete) . ', промяна=' . ($res ? 'да' : 'не'));
 
         unset($this->balance, $this->strategies);
 
@@ -1058,8 +1071,12 @@ class acc_BalanceDetails extends core_Detail
 
         $tracing    = Mode::is('traceBalance');
         $loadedRows = [];
+        $loadedCnt  = 0;
+
+        core_Debug::startTimer('BAL_LOAD_BALANCE');
 
         while ($rec = $query->fetch()) {
+            $loadedCnt++;
             $accId  = $rec->accountId;
             $ent1Id = !empty($rec->ent1Id) ? $rec->ent1Id : null;
             $ent2Id = !empty($rec->ent2Id) ? $rec->ent2Id : null;
@@ -1163,12 +1180,15 @@ class acc_BalanceDetails extends core_Detail
             }
         }
 
+        core_Debug::stopTimer('BAL_LOAD_BALANCE');
+        core_Debug::log("BAL     loadBalance #{$balanceId}: заредени {$loadedCnt} реда (междинен=" . ($isMiddleBalance ? 'да' : 'не') . ')');
+
         if ($tracing) {
             acc_BalanceDebugger::log('load_balance_rows', $loadedRows);
         }
     }
-    
-    
+
+
     /**
      * Изчислява стойността на счетоводен баланс за зададен период от време.
      *
@@ -1185,12 +1205,18 @@ class acc_BalanceDetails extends core_Detail
             log_System::add('acc_Balances', 'calcBalanceForPeriod: ' . $from . ' - ' . $to . ' (Cron at ' . $t . ')', null, 'notice');
         }
 
+        core_Debug::log("BAL   calcBalanceForPeriod {$from}..{$to} (междинен=" . ($isMiddleBalance ? 'да' : 'не') . ')');
+
         $JournalDetails = &cls::get('acc_JournalDetails');
 
+        core_Debug::startTimer('BAL_JOURNAL_FETCH');
         $query = $JournalDetails->getQuery();
         acc_JournalDetails::filterQuery($query, $from, $to);
         $query->orderBy('valior,id', 'ASC');
         $recs = $query->fetchAll();
+        core_Debug::stopTimer('BAL_JOURNAL_FETCH');
+
+        core_Debug::log('BAL     журнални записи: ' . countR($recs));
 
         $timeLimit = ceil(countR($recs) / 3000) * 180;
         if ($timeLimit != 0) {
@@ -1201,41 +1227,61 @@ class acc_BalanceDetails extends core_Detail
 
         if (countR($recs)) {
             if ($isMiddleBalance === true) {
+                core_Debug::startTimer('BAL_STRATEGY_FETCH');
                 $queryClone = $JournalDetails->getQuery();
                 $to         = dt::getLastDayOfMonth($to);
                 acc_JournalDetails::filterQuery($queryClone, $from, $to);
                 $queryClone->orderBy('valior,id', 'ASC');
                 $strategyRecs = $queryClone->fetchAll();
+                core_Debug::stopTimer('BAL_STRATEGY_FETCH');
+                core_Debug::log('BAL     доп. записи за стратегия (до ' . $to . '): ' . countR($strategyRecs));
             } else {
                 $strategyRecs = $recs;
             }
 
             if (is_array($strategyRecs)) {
+                core_Debug::startTimer('BAL_FEED_STRATEGY');
                 foreach ($strategyRecs as $rec1) {
                     $this->feedStrategy($rec1);
                 }
+                core_Debug::stopTimer('BAL_FEED_STRATEGY');
             }
 
             $tracing     = Mode::is('traceBalance');
             $journalRows = [];
+            $updatedCnt  = 0;
+
+            core_Debug::startTimer('BAL_ENTRIES_LOOP');
 
             foreach ($recs as $rec) {
                 $amountBefore = $rec->amount;
+
+                core_Debug::startTimer('BAL_CALC_AMOUNT');
                 $this->calcAmount($rec);
+                core_Debug::stopTimer('BAL_CALC_AMOUNT');
+
                 $amountChanged = (round((float)$rec->amount, 8) != round((float)$amountBefore, 8));
+
+                core_Debug::startTimer('BAL_CALC_PRICE');
                 $update = $this->calcPrice($rec);
+                core_Debug::stopTimer('BAL_CALC_PRICE');
 
                 // Ако calcAmount е сменил сумата, записваме дори цената да не се е променила
                 if ($amountChanged) {
                     $update = true;
                 }
 
+                core_Debug::startTimer('BAL_ADD_ENTRY');
                 $this->addEntry($rec, 'debit');
                 $this->addEntry($rec, 'credit');
+                core_Debug::stopTimer('BAL_ADD_ENTRY');
 
                 if ($update) {
+                    core_Debug::startTimer('BAL_JOURNAL_SAVE');
                     $JournalDetails->save_($rec);
+                    core_Debug::stopTimer('BAL_JOURNAL_SAVE');
                     $hasUpdatedJournal = true;
+                    $updatedCnt++;
                 }
 
                 if ($tracing) {
@@ -1256,6 +1302,9 @@ class acc_BalanceDetails extends core_Detail
                     ];
                 }
             }
+
+            core_Debug::stopTimer('BAL_ENTRIES_LOOP');
+            core_Debug::log("BAL     обновени журнални записи: {$updatedCnt} от " . countR($recs));
 
             if ($tracing) {
                 acc_BalanceDebugger::log('journal_entries', $journalRows);

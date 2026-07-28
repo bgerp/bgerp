@@ -455,60 +455,70 @@ class acc_Balances extends core_Master
             $isValid = false;
         }
 
-        if (!$isValid) {
+        if ($isValid) {
+            core_Debug::log("BAL forceCalc SKIP (валиден) {$rec->fromDate}..{$rec->toDate}");
 
-            // Днешна дата
-            $today = dt::today();
-
-            // Ако изчисляваме текущия период, опитваме да преизчислим баланс за предишен работен ден
-            if ($rec->toDate == dt::getLastDayOfMonth()) {
-                if ($prevWorkingDay = self::getPrevWorkingDay($today)) {
-                    $prevRec = clone($rec);
-                    unset($prevRec->id);
-                    $prevRec->toDate = $prevWorkingDay;
-                    $prevRec->periodId = null;
-
-                    $prevStart = microtime(true);
-                    self::forceCalc($prevRec);
-                    $prevTime = round(microtime(true) - $prevStart, 3);
-                    if ($prevTime > 1) {
-                        self::logNotice("forceCalc на междинен баланс до {$prevWorkingDay}: {$prevTime} сек");
-                    }
-
-                    $fromDate = $prevRec->fromDate;
-                    $toDate = $prevRec->toDate;
-
-                    // Намираме и изтриваме всички баланси, които нямат период и не се отнасят за предишния ден
-                    $query = self::getQuery();
-                    while ($delRec = $query->fetch("(#fromDate != '{$fromDate}' OR #toDate != '{$toDate}') AND #periodId IS NULL")) {
-                        acc_BalanceDetails::delete("#balanceId = {$delRec->id}");
-                        self::delete($delRec->id);
-                    }
-                }
-            }
-
-            $calcStart = microtime(true);
-            self::calc($rec);
-            $calcTime = round(microtime(true) - $calcStart, 3);
-            if ($calcTime > 1) {
-                self::logNotice("calc() за {$rec->fromDate} - {$rec->toDate}: {$calcTime} сек");
-            }
-
-            // Преизчисляваме първия баланс, в който има промени още веднъж, за да подаде верни данни на следващите
-            static $rc1;
-
-            if (!$rc1 && $rec->lastCalculateChange != 'no') {
-                $calc2Start = microtime(true);
-                self::calc($rec);
-                $calc2Time = round(microtime(true) - $calc2Start, 3);
-                if ($calc2Time > 1) {
-                    self::logNotice("Втори calc() (rc1) за {$rec->fromDate} - {$rec->toDate}: {$calc2Time} сек");
-                }
-                $rc1 = true;
-            }
-
-            return true;
+            return;
         }
+
+        core_Debug::log("BAL forceCalc START {$rec->fromDate}..{$rec->toDate} (periodId=" . ($rec->periodId ?? 'null') . ')');
+
+        // Днешна дата
+        $today = dt::today();
+
+        // Ако изчисляваме текущия период, опитваме да преизчислим баланс за предишен работен ден
+        if ($rec->toDate == dt::getLastDayOfMonth()) {
+            if ($prevWorkingDay = self::getPrevWorkingDay($today)) {
+                $prevRec = clone($rec);
+                unset($prevRec->id);
+                $prevRec->toDate = $prevWorkingDay;
+                $prevRec->periodId = null;
+
+                core_Debug::log("BAL   междинен баланс до {$prevWorkingDay} - START");
+                core_Debug::startTimer('BAL_MIDDLE_FORCECALC');
+                self::forceCalc($prevRec);
+                core_Debug::stopTimer('BAL_MIDDLE_FORCECALC');
+                core_Debug::log("BAL   междинен баланс до {$prevWorkingDay} - END");
+
+                $fromDate = $prevRec->fromDate;
+                $toDate = $prevRec->toDate;
+
+                // Намираме и изтриваме всички баланси, които нямат период и не се отнасят за предишния ден
+                core_Debug::startTimer('BAL_DELETE_OLD_MIDDLE');
+                $delCnt = 0;
+                $query = self::getQuery();
+                while ($delRec = $query->fetch("(#fromDate != '{$fromDate}' OR #toDate != '{$toDate}') AND #periodId IS NULL")) {
+                    acc_BalanceDetails::delete("#balanceId = {$delRec->id}");
+                    self::delete($delRec->id);
+                    $delCnt++;
+                }
+                core_Debug::stopTimer('BAL_DELETE_OLD_MIDDLE');
+
+                if ($delCnt) {
+                    core_Debug::log("BAL   изтрити {$delCnt} стари междинни баланса");
+                }
+            }
+        }
+
+        core_Debug::startTimer('BAL_CALC');
+        self::calc($rec);
+        core_Debug::stopTimer('BAL_CALC');
+        core_Debug::log("BAL   calc() #1 {$rec->fromDate}..{$rec->toDate} промяна=" . ($rec->lastCalculateChange ?? '-'));
+
+        // Преизчисляваме първия баланс, в който има промени още веднъж, за да подаде верни данни на следващите
+        static $rc1;
+
+        if (!$rc1 && $rec->lastCalculateChange != 'no') {
+            core_Debug::startTimer('BAL_CALC_RC1');
+            self::calc($rec);
+            core_Debug::stopTimer('BAL_CALC_RC1');
+            core_Debug::log("BAL   calc() #2 (rc1) {$rec->fromDate}..{$rec->toDate} промяна=" . ($rec->lastCalculateChange ?? '-'));
+            $rc1 = true;
+        }
+
+        core_Debug::log("BAL forceCalc END {$rec->fromDate}..{$rec->toDate}");
+
+        return true;
     }
 
 
@@ -595,8 +605,16 @@ class acc_Balances extends core_Master
 
         $recalcStart = microtime(true);
 
+        core_Debug::startTimer('recalcBalance');
+        core_Debug::log('BAL recalc() START' . (core_Cron::getCurrentRec() ? ' (cron)' : ' (ръчно)'));
+
         // Ако изчисляването е заключено не го изпълняваме
-        if (!core_Locks::obtain($lockKey, self::MAX_PERIOD_CALC_TIME, 1)) {
+        core_Debug::startTimer('BAL_INITIAL_LOCK');
+        $gotLock = core_Locks::obtain($lockKey, self::MAX_PERIOD_CALC_TIME, 1);
+        core_Debug::stopTimer('BAL_INITIAL_LOCK');
+
+        if (!$gotLock) {
+            core_Debug::log('BAL recalc() ИЗХОД - заключено от друг процес');
             $this->logNotice('Изчисляването на баланса е заключено от друг процес');
 
             return;
@@ -629,6 +647,9 @@ class acc_Balances extends core_Master
         }
 
         $periodsCnt = 0;
+        $slowest = array('what' => null, 'time' => 0);
+
+        core_Debug::log('BAL прозорец на изчисляване: ' . ($windowStart ? "от {$windowStart}" : 'всички отворени периоди'));
 
         while ($pRec = $pQuery->fetch()) {
             $periodsCnt++;
@@ -639,21 +660,25 @@ class acc_Balances extends core_Master
             $rec->periodId = $pRec->id;
 
             $periodStart = microtime(true);
+            core_Debug::log("BAL === Период #{$pRec->id} {$rec->fromDate}..{$rec->toDate} START ===");
 
             // Преизчисляваме първия отворен баланс (когато в него има промени) 9+1 пъти, за да подаде верни данни на следващите
             $j = 0;
             do {
                 $lockStart = microtime(true);
+                core_Debug::startTimer('BAL_LOOP_LOCK');
                 core_Locks::obtain($lockKey, self::MAX_PERIOD_CALC_TIME);
+                core_Debug::stopTimer('BAL_LOOP_LOCK');
                 $lockWait = round(microtime(true) - $lockStart, 3);
 
                 $iterStart = microtime(true);
                 $r = self::forceCalc($rec);
                 $iterTime = round(microtime(true) - $iterStart, 3);
 
-                // Логваме само по-бавните итерации, за да не задръстваме лога
-                if ($iterTime > 1 || $lockWait > 1) {
-                    $this->logNotice("Период {$rec->fromDate} - {$rec->toDate}, итерация {$j}: заключване {$lockWait} сек, изчисление {$iterTime} сек, промяна=" . ($rec->lastCalculateChange ?? '-'));
+                core_Debug::log("BAL   итерация {$j}: лок {$lockWait}с, forceCalc {$iterTime}с, промяна=" . ($rec->lastCalculateChange ?? '-') . ', преизчислен=' . ($r ? 'да' : 'не'));
+
+                if ($iterTime > $slowest['time']) {
+                    $slowest = array('what' => "период {$rec->fromDate}..{$rec->toDate} итерация {$j}", 'time' => $iterTime);
                 }
 
                 if($r){
@@ -662,10 +687,8 @@ class acc_Balances extends core_Master
             } while ($rec->lastCalculateChange != 'no' && $j++ < 9 && $rc);
 
             $periodTime = round(microtime(true) - $periodStart, 3);
-            if ($periodTime > 1) {
-                $iterCnt = $j + 1;
-                $this->logNotice("Период {$rec->fromDate} - {$rec->toDate}: общо {$periodTime} сек за {$iterCnt} итерации");
-            }
+            $iterCnt = $j + 1;
+            core_Debug::log("BAL === Период #{$pRec->id} {$rec->fromDate}..{$rec->toDate} END: {$periodTime}с за {$iterCnt} итерации ===");
 
             $rc = false;
         }
@@ -674,7 +697,11 @@ class acc_Balances extends core_Master
         core_Locks::release($lockKey);
         core_Debug::stopTimer('recalcBalance');
 
-        $this->logNotice("Преизчисляването приключи: {$periodsCnt} периода за " . round(microtime(true) - $recalcStart, 3) . ' сек.');
+        $totalTime = round(microtime(true) - $recalcStart, 3);
+        core_Debug::log("BAL recalc() END: {$periodsCnt} периода за {$totalTime}с; най-бавно: " . ($slowest['what'] ?? '-') . " ({$slowest['time']}с)");
+
+        // В системния лог остава само обобщението, детайлите са в дебъг лога
+        $this->logNotice("Преизчисляване: {$periodsCnt} периода за {$totalTime} сек.");
 
         // Пораждаме събитие, че баланса е бил преизчислен
         $data->lastBalance = acc_Balances::getLastBalance();
@@ -688,7 +715,17 @@ class acc_Balances extends core_Master
      */
     public function cron_Recalc()
     {
-        $this->recalc();
+        // При пускане по крон core_Cron изключва дебъг лога на хита (@see core_Cron::act_ProcessRun).
+        // Включваме го временно, за да може забавянето да се проследи в log_Debug - иначе
+        // таймерите се записват, но времевата линия остава празна.
+        $isLoggingBefore = core_Debug::$isLogging;
+        core_Debug::$isLogging = true;
+
+        try {
+            $this->recalc();
+        } finally {
+            core_Debug::$isLogging = $isLoggingBefore;
+        }
     }
     
     
