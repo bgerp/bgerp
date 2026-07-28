@@ -784,10 +784,10 @@ class cat_BomDetails extends doc_Detail
         $path = array();
         $path[] = ($position) ? $rec->position : $rec->resourceId;
         
-        $parent = $rec->parentId;
+        $parent = $rec->parentId ?? null;
         while ($parent && ($pRec = $this->fetch($parent, 'parentId,position,resourceId'))) {
             $path[] = ($position) ? $pRec->position : $pRec->resourceId;
-            $parent = $pRec->parentId;
+            $parent = $pRec->parentId ?? null;
         }
         
         $path = array_reverse($path, true);
