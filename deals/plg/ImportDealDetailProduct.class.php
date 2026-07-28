@@ -68,6 +68,7 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
             
             self::prepareForm($form, $mvc);
 
+            $isFromClipboard = false;
             if (isset($form->rec->fromClipboard)) {
                 list($isFromClipboard) = explode('_', $form->rec->fromClipboard);
             }
@@ -547,6 +548,7 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
     {
         $cu = core_Users::getCurrent();
 
+        $isFromClipboard = false;
         if (isset($rec->fromClipboard)) {
             list($isFromClipboard) = explode('_', $rec->fromClipboard);
         }
