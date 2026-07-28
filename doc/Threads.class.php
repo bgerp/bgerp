@@ -1180,6 +1180,8 @@ class doc_Threads extends core_Manager
      */
     public function exp_Move($exp)
     {
+        $selArr = array();
+
         if ($selected = Request::get('Selected')) {
             $selArr = arr::make($selected);
             Request::push(array('threadId' => $selArr[0]));
