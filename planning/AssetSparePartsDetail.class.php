@@ -279,16 +279,18 @@ class planning_AssetSparePartsDetail extends core_Detail
                 $row->{$fld} = ht::styleNumber($row->{$fld} ?? null, $rec->{$fld} ?? null);
             }
 
-            $pQuery = rack_Pallets::getQuery();
-            $pQuery->where("#storeId = {$rec->storeId} AND #productId = {$rec->productId}");
-            $pQuery->show('position');
-            $pQuery->orderBy('position', 'ASC');
-            $palletRec = $pQuery->fetch();
-            $firstPalletPosition = $palletRec->position ?? null;
-            if(!empty($firstPalletPosition)){
-                $row->pallet = core_Type::getByName('varchar')->toVerbal($firstPalletPosition);
-                if(rack_Pallets::haveRightFor('forceopen', (object)array('storeId' => $rec->storeId))){
-                    $row->pallet = ht::createLink($row->pallet, array('rack_Pallets', 'forceopen', 'storeId' => $rec->storeId, 'productId' => $rec->productId, 'position' => $firstPalletPosition));
+            if(core_Packs::isInstalled('rack')){
+                $pQuery = rack_Pallets::getQuery();
+                $pQuery->where("#storeId = {$rec->storeId} AND #productId = {$rec->productId}");
+                $pQuery->show('position');
+                $pQuery->orderBy('position', 'ASC');
+                $palletRec = $pQuery->fetch();
+                $firstPalletPosition = $palletRec->position ?? null;
+                if(!empty($firstPalletPosition)){
+                    $row->pallet = core_Type::getByName('varchar')->toVerbal($firstPalletPosition);
+                    if(rack_Pallets::haveRightFor('forceopen', (object)array('storeId' => $rec->storeId))){
+                        $row->pallet = ht::createLink($row->pallet, array('rack_Pallets', 'forceopen', 'storeId' => $rec->storeId, 'productId' => $rec->productId, 'position' => $firstPalletPosition));
+                    }
                 }
             }
         }
