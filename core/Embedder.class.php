@@ -172,7 +172,7 @@ class core_Embedder extends core_Master
         }
         
         // Ако има запис, не може да се сменя източника и попълваме данните на формата с тези, които са записани
-        if ($id = $rec->id) {
+        if ($id = ($rec->id ?? null)) {
             if(!$mvc->allowDriverChange) {
                 $form->setReadOnly($mvc->innerClassField);
             }
