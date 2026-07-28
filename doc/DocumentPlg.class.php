@@ -2261,12 +2261,12 @@ class doc_DocumentPlg extends core_Plugin
             }
         }
         
-        if ($data->action == 'clone') {
+        if (($data->action ?? null) == 'clone') {
             if (!empty($rec->threadId) && !empty($rec->containerId)) {
                 $tRec = doc_Threads::fetch($rec->threadId);
                 
                 // Ако е първи документ, да се клонира в нова нишка
-                if ($tRec->firstContainerId == $rec->containerId) {
+                if ($tRec && $tRec->firstContainerId == $rec->containerId) {
                     unset($rec->threadId);
                 }
             }
@@ -2308,7 +2308,7 @@ class doc_DocumentPlg extends core_Plugin
     {
         $res = arr::make($res);
         
-        if (($rec->foreignId ?? null) && $otherParams['fType'] == 'doc') {
+        if (($rec->foreignId ?? null) && ($otherParams['fType'] ?? null) == 'doc') {
             $document = doc_Containers::getDocument($rec->foreignId);
             
             $titleFld = '';
@@ -2334,7 +2334,7 @@ class doc_DocumentPlg extends core_Plugin
                 $originId = $rec->originId;
             } elseif (!empty($rec->linkedHashKey)) {
                 $lRec = core_Permanent::get($rec->linkedHashKey);
-                if (($lRec->outType == 'doc') && $lRec->outVal) {
+                if (is_object($lRec) && ($lRec->outType ?? null) == 'doc' && !empty($lRec->outVal)) {
                     $originId = $lRec->outVal;
                 }
             }
@@ -2345,8 +2345,8 @@ class doc_DocumentPlg extends core_Plugin
                     $eRec = $document->fetch();
                     $allEmails = array();
                     foreach (array('allTo', 'allCc') as $fName) {
-                        foreach ((array)$eRec->toAndCc[$fName] as $eAdd) {
-                            $eAdd['address'] = trim($eAdd['address']);
+                        foreach ((array)($eRec->toAndCc[$fName] ?? null) as $eAdd) {
+                            $eAdd['address'] = trim($eAdd['address'] ?? '');
                             if (!$eAdd['address']) {
                                 continue;
                             }
@@ -2364,7 +2364,7 @@ class doc_DocumentPlg extends core_Plugin
                     unset($removedUsersArr[0]);
 
                     if (!empty($removedUsersArr)) {
-                        $res['sharedUsers'] = type_UserList::merge($res['sharedUsers'], $removedUsersArr);
+                        $res['sharedUsers'] = type_UserList::merge($res['sharedUsers'] ?? null, $removedUsersArr);
                     }
                 }
             }
@@ -2399,7 +2399,10 @@ class doc_DocumentPlg extends core_Plugin
         $rec = &$form->rec;
         
         if (empty($rec->id) && !empty($rec->threadId) && !empty($rec->originId)) {
-            $folderId = ($rec->folderId) ? $rec->folderId : doc_Threads::fetch($rec->threadId)->folderId;
+            $folderId = $rec->folderId ?? null;
+            if (!$folderId) {
+                $folderId = doc_Threads::fetchField($rec->threadId, 'folderId');
+            }
             
             if (($mvc->canAddToFolder($folderId) !== false) && ($mvc->onlyFirstInThread ?? null) !== false) {
                 $form->toolbar->addSbBtn('Нова нишка', 'save_new_thread', 'id=btnNewThread,order=9.99985', 'ef_icon = img/16/save_and_new.png');
