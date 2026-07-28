@@ -178,7 +178,7 @@ class change_Plugin extends core_Plugin
         expect($rec = $mvc->fetch($fRec->id));
         
         // Вземаме всички позволени полета
-        $allowedFieldsArr = static::getAllowedFields($form, $mvc->changableFields);
+        $allowedFieldsArr = static::getAllowedFields($form, $mvc->changableFields ?? null);
 
         // Очакваме да има зададени полета, които ще се променят
         expect(countR($allowedFieldsArr));
@@ -426,7 +426,7 @@ class change_Plugin extends core_Plugin
     public static function on_AfterSaveChanged($mvc, $oldRec, $newRec, $changeFieldsArr = array())
     {
         if (empty($changeFieldsArr)) {
-            $changeFieldsArr = self::getAllowedFields($mvc->getForm(), $mvc->changableFields);
+            $changeFieldsArr = self::getAllowedFields($mvc->getForm(), $mvc->changableFields ?? null);
         } else {
             // Вземи ключовете и ги добави като стойности
             $changeFieldsArr = array_keys($changeFieldsArr);
@@ -691,7 +691,7 @@ class change_Plugin extends core_Plugin
                 $rec = $mvc->fetch($id);
                 
                 // Вземаме всички, полета които могат да се променят
-                $allowedFieldsArr = static::getAllowedFields($form, $mvc->changableFields);
+                $allowedFieldsArr = static::getAllowedFields($form, $mvc->changableFields ?? null);
 
                 $haveChange = false;
 
