@@ -786,7 +786,7 @@ abstract class cash_Document extends deals_PaymentDocument
 
         $info['valior'] = $rec->valior ?? dt::today();
 
-        return $info;
+        return trans_Helper::normalizeTransportLineInfo($info);
     }
     
     
