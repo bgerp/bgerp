@@ -605,16 +605,16 @@ class i18n_Charset extends core_MVC
                         $k = 'mid';
                     }
                     
-                    $bitStr = $bitStrArr[$k];
+                    $bitStr = $bitStrArr[$k] ?? '';
                     
                     // Докато не намерим символ различен от 7 бита, правим проверка
                     if ($bitStr != $not7BitStr && ord($char) > 127) {
                         $bitStrArr[$k] = $bitStr = $not7BitStr;
                     }
                     
-                    if ($strCntArr[$k][$bitStr] <= $strMaxLen) {
-                        $strArr[$bitStr][$k] .= $char;
-                        $strCntArr[$k][$bitStr]++;
+                    if (($strCntArr[$k][$bitStr] ?? 0) <= $strMaxLen) {
+                        $strArr[$bitStr][$k] = ($strArr[$bitStr][$k] ?? '') . $char;
+                        $strCntArr[$k][$bitStr] = ($strCntArr[$k][$bitStr] ?? 0) + 1;
                     } else {
                         
                         // Ако сме намерили стринга, няма нужда да ходим до края в интервала
@@ -639,13 +639,13 @@ class i18n_Charset extends core_MVC
                     
                     // Ако не е 7 битов стринг, искаме да е над определена дължина (може да е намерен в края)
                     
-                    if ($vArr[$not7BitStr] > floor($strMaxLen / 2.5)) {
-                        $text .= $strArr[$not7BitStr][$key];
+                    if (($vArr[$not7BitStr] ?? 0) > floor($strMaxLen / 2.5)) {
+                        $text .= ($strArr[$not7BitStr][$key] ?? '');
                     } else {
-                        $text .= $strArr[''][$key];
+                        $text .= ($strArr[''][$key] ?? '');
                         
                         // Ако има много малко текст (под 160 символа), който не е 7 битово, да се конкатинира с 7 битовия
-                        if ($strArr[$not7BitStr][$key]) {
+                        if (!empty($strArr[$not7BitStr][$key])) {
                             $text .= $strArr[$not7BitStr][$key];
                         }
                     }
