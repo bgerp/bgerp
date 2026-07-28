@@ -121,15 +121,15 @@ class planning_AssetGroups extends core_Master
         $form = &$data->form;
         $rec = &$data->form->rec;
 
-        if($rec->showInPlanningTasks == 'yes'){
+        if(($rec->showInPlanningTasks ?? null) == 'yes'){
 
             // Ако групата ще се използва в ПО се показва полето за избор на планиращи параметри
             $form->setField('planningParams', 'input');
-            $paramSuggestions = cat_Params::getTaskParamOptions($form->rec->planningParams);
+            $paramSuggestions = cat_Params::getTaskParamOptions($form->rec->planningParams ?? null);
             $form->setSuggestions("planningParams", $paramSuggestions);
         }
 
-        if($rec->createdBy == core_Users::SYSTEM_USER){
+        if(($rec->createdBy ?? null) == core_Users::SYSTEM_USER){
             foreach (array('name', 'type', 'showInPlanningTasks') as $fld){
                 $form->setReadOnly($fld);
             }
@@ -149,7 +149,7 @@ class planning_AssetGroups extends core_Master
         }
 
         if($action == 'changestate' && isset($rec)){
-            if($rec->createdBy == core_Users::SYSTEM_USER){
+            if(($rec->createdBy ?? null) == core_Users::SYSTEM_USER){
                 $requiredRoles = 'no_one';
             }
         }
