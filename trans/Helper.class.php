@@ -208,6 +208,50 @@ abstract class trans_Helper
 
 
     /**
+     * Допълва транспортната информация до пълния договор на trans_TransportableIntf.
+     *
+     * @param mixed $info
+     *
+     * @return array
+     */
+    public static function normalizeTransportLineInfo($info)
+    {
+        $defaults = array(
+            'state' => null,
+            'baseAmount' => null,
+            'amount' => null,
+            'amountVerbal' => null,
+            'currencyId' => null,
+            'notes' => null,
+            'stores' => array(),
+            'cases' => array(),
+            'zoneId' => null,
+            'readiness' => null,
+            'weight' => null,
+            'volume' => null,
+            'transportUnits' => array(),
+            'contragentName' => null,
+            'address' => null,
+            'storeMovement' => null,
+            'locationId' => null,
+            'addressInfo' => null,
+            'countryId' => null,
+            'place' => null,
+            'features' => array(),
+            'deliveryOn' => null,
+            'valior' => null,
+        );
+
+        $res = array_replace($defaults, (array) $info);
+        foreach (array('stores', 'cases', 'transportUnits', 'features') as $arrayField) {
+            $res[$arrayField] = (array) $res[$arrayField];
+        }
+
+        return $res;
+    }
+
+
+    /**
      * Коя от датите ще се използва за експедиране
      *
      * @param string $valior      - вальор

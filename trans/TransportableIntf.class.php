@@ -55,6 +55,6 @@ class trans_TransportableIntf
      */
     public function getTransportLineInfo($rec, $lineId)
     {
-        return $this->class->getTransportLineInfo($rec, $lineId);
+        return trans_Helper::normalizeTransportLineInfo($this->class->getTransportLineInfo($rec, $lineId));
     }
 }

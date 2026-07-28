@@ -3002,7 +3002,7 @@ class doc_DocumentPlg extends core_Plugin
                 // И да е първия документ в нея
                 } elseif ($tRec->firstContainerId != $rec->containerId) {
                     $requiredRoles = 'no_one';
-                } elseif (acc_Items::fetchItem($mvc, $rec->id)->state == 'closed') {
+                } elseif (($itemRec = acc_Items::fetchItem($mvc, $rec->id)) && (($itemRec->state ?? null) == 'closed')) {
                     $requiredRoles = 'no_one';
                 } else {
                     // И да има активни контиращи документи и неконтиращи
@@ -3171,7 +3171,7 @@ class doc_DocumentPlg extends core_Plugin
                 if (is_object($options)) {
                     
                     // Ако не е обект, създаваме го
-                    if (!is_object($options->rec)) {
+                    if (!isset($options->rec) || !is_object($options->rec)) {
                         $options->rec = new stdClass();
                     }
                     
