@@ -104,7 +104,7 @@ class price_ListVariations extends core_Detail
 
         if (!isset($rec->id)) {
             $listRec = price_Lists::fetch($rec->listId);
-            if (price_Lists::haveRightFor('add', (object)array('folderId' => $rec->folderId))) {
+            if ($listRec && price_Lists::haveRightFor('add', (object)array('folderId' => $listRec->folderId))) {
                 $data->form->toolbar->addBtn('Нова вариация', array('price_Lists', 'add', 'folderId' => $listRec->folderId, 'variationOf' => $listRec->id, 'ret_url' => true), null, 'order=10.00015,ef_icon=img/16/page_white_star.png,title=Създаване на нова вариация на ценовата политика');
             }
         }
@@ -123,13 +123,15 @@ class price_ListVariations extends core_Detail
                 $rec->repeatInterval = 0;
             }
 
-            if ($rec->listId == $rec->variationId) {
+            if (isset($rec->listId, $rec->variationId) && $rec->listId == $rec->variationId) {
                 $form->setError('listId', 'Не може да изберете същата политика');
             }
 
-            $secsBetween = dt::secsBetween($rec->validUntil, $rec->validFrom);
-            if ($secsBetween >= $rec->repeatInterval) {
-                $form->setError('repeatInterval', 'Интервалът за повторение трябва да е по-голям от този между датите');
+            if (isset($rec->validUntil, $rec->validFrom)) {
+                $secsBetween = dt::secsBetween($rec->validUntil, $rec->validFrom);
+                if ($secsBetween >= $rec->repeatInterval) {
+                    $form->setError('repeatInterval', 'Интервалът за повторение трябва да е по-голям от този между датите');
+                }
             }
         }
     }

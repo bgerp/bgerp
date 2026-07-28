@@ -635,7 +635,7 @@ class price_ListRules extends core_Detail
                 }
             }
             
-            if ($rec->validUntil && ($rec->validUntil <= $rec->validFrom)) {
+            if (!empty($rec->validUntil) && ($rec->validUntil <= $rec->validFrom)) {
                 $form->setError('validUntil', 'Правилото трябва да е в сила до по-късен момент от началото му');
             }
 
@@ -648,7 +648,7 @@ class price_ListRules extends core_Detail
             }
             
             if (!$form->gotErrors()) {
-                Mode::setPermanent('PRICE_VALID_UNTIL', $rec->validUntil);
+                Mode::setPermanent('PRICE_VALID_UNTIL', $rec->validUntil ?? null);
             }
         }
     }
@@ -762,7 +762,7 @@ class price_ListRules extends core_Detail
             $mvc->getFieldType('price')->params['decimals'] = 2;
         }
         
-        $price = $mvc->getFieldType('price')->toVerbal($rec->price);
+        $price = $mvc->getFieldType('price')->toVerbal($rec->price ?? null);
         
         // Област
         if (isset($rec->productId)) {
@@ -922,7 +922,7 @@ class price_ListRules extends core_Detail
                         $groups[$gRec->id] = cat_Groups::getVerbal($gRec, 'name');
                     }
                     foreach ($recs as $r1) {
-                        $r1->_title = $groups[$r1->groupId];
+                        $r1->_title = $groups[$r1->groupId] ?? '';
                     }
 
                     usort($recs, function ($a, $b) {
@@ -940,7 +940,7 @@ class price_ListRules extends core_Detail
                 if (!$pager->isOnPage())  continue;
 
                 $data->{"rows{$priority}"}[$rec->id] = $this->recToVerbal($rec, arr::combine($data->listFields, '-list'));
-                if (is_object($data->{"rows{$priority}"}[$rec->id]->_rowTools)) {
+                if (isset($data->{"rows{$priority}"}[$rec->id]->_rowTools) && is_object($data->{"rows{$priority}"}[$rec->id]->_rowTools)) {
                     $data->{"rows{$priority}"}[$rec->id]->_rowTools = $data->{"rows{$priority}"}[$rec->id]->_rowTools->renderHtml();
                 }
             }
