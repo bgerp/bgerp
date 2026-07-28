@@ -149,6 +149,9 @@ class store_Products extends core_Detail
         if (!countR($data->recs)) return;
         
         foreach ($data->rows as $id => &$row) {
+            if (!isset($data->recs[$id])) {
+                continue;
+            }
             $rec = &$data->recs[$id];
             $row->productId = cat_Products::getVerbal($rec->productId, 'name');
 
@@ -623,18 +626,21 @@ class store_Products extends core_Detail
 
         $today = dt::today();
         foreach ($data->rows as $id => &$row) {
+            if (!isset($data->recs[$id])) {
+                continue;
+            }
             $rec = $data->recs[$id];
             $title = 'От кои документи е сформирано количеството';
 
             foreach (array('reservedQuantity', 'expectedQuantity', 'reservedQuantityMin', 'expectedQuantityMin', 'reservedOut', 'expectedIn') as $type){
                 if (!empty($rec->{$type})) {
-                    $date = in_array($type, array('reservedQuantity', 'expectedQuantity')) ? $today : (in_array($type, array('reservedQuantityMin', 'expectedQuantityMin')) ? $rec->dateMin : $data->horizon);
+                    $date = in_array($type, array('reservedQuantity', 'expectedQuantity')) ? $today : (in_array($type, array('reservedQuantityMin', 'expectedQuantityMin')) ? ($rec->dateMin ?? $today) : ($data->horizon ?? $today));
 
                     $tooltipUrl = toUrl(array('store_Products', 'ShowReservedDocs', 'productId' => $rec->productId, 'stores' => keylist::addKey('', $rec->storeId), 'replaceField' => "{$type}{$rec->id}", 'field' => $type, 'date' => $date), 'local');
                     $arrowImg = ht::createElement('img', array('height' => 16, 'width' => 16, 'src' => sbf('img/32/info-gray.png', '')));
                     $arrow = ht::createElement('span', array('class' => 'anchor-arrow tooltip-arrow-link', 'data-url' => $tooltipUrl, 'title' => $title), $arrowImg, true);
                     $arrow = "<span class='additionalInfo-holder'><span class='additionalInfo' id='{$type}{$rec->id}'></span>{$arrow}</span>";
-                    $row->{$type} = $arrow . $row->{$type};
+                    $row->{$type} = $arrow . ($row->{$type} ?? '');
                 }
             }
 
@@ -643,7 +649,8 @@ class store_Products extends core_Detail
             }
 
             if(!empty($rec->freeQuantityMin) && !isset($rec->reservedQuantityMin) && !isset($rec->expectedQuantityMin)){
-                $row->freeQuantityMin = "<span class='quiet'>{$row->freeQuantity}</span>";
+                $freeQuantityMin = $row->freeQuantityMin ?? '';
+                $row->freeQuantityMin = "<span class='quiet'>{$freeQuantityMin}</span>";
             }
 
             if(!empty($rec->resultDiff) && !isset($rec->reservedOut) && !isset($rec->expectedIn)){
@@ -652,12 +659,12 @@ class store_Products extends core_Detail
 
             $dateMin = !empty($rec->dateMin) ? $rec->dateMin : dt::today();
             $date = dt::mysql2verbal($dateMin, 'd.m.Y');
-            $row->freeQuantityMin = ht::createHint($row->freeQuantityMin, $date,'img/16/calendar_1.png', true, 'height=12px,width=12px');
+            $row->freeQuantityMin = ht::createHint($row->freeQuantityMin ?? '', $date,'img/16/calendar_1.png', true, 'height=12px,width=12px');
 
             // Ако се показва колонка за последно инвентаризиране - да се покаже последния документ
             if(is_array($data->inventoryRecs ?? null)){
                 $key = "{$rec->productId}|{$rec->storeId}";
-                if(is_array($data->inventoryRecs[$key])){
+                if (is_array($data->inventoryRecs[$key] ?? null) && countR($data->inventoryRecs[$key])) {
                     krsort($data->inventoryRecs[$key]);
                     $lastInvRec = $data->inventoryRecs[$key][key($data->inventoryRecs[$key])];
                     $lastInvVerbal = dt::mysql2verbal($lastInvRec->valior, 'd.m.y');
