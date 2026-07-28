@@ -1010,8 +1010,8 @@ class bgerp_Notifications extends core_Manager
             }
             
             // Ако преди това не е била забранена стойност
-            if (!$valsArr[$key][$kVal] || ($valsArr[$key][$kVal] != 'no')) {
-                $stoppedArr[$kClass][$kVal] = $valsArr[$key][$kVal];
+            if (!($valsArr[$key][$kVal] ?? null) || ($valsArr[$key][$kVal] != 'no')) {
+                $stoppedArr[$kClass][$kVal] = $valsArr[$key][$kVal] ?? null;
                 $valsArr[$key][$kVal] = 'no';
             }
         }
