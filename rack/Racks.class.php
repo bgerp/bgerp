@@ -545,7 +545,7 @@ class rack_Racks extends core_Master
         while ($row >= 'A') {
 
             $trStyle = ($row <= $rec->firstRowTo) ? 'border:1px solid #2cc3229e;' : '';
-            $resArr[$row] .= "<tr style='{$trStyle}'>";
+            $resArr[$row] = "<tr style='{$trStyle}'>";
             
              foreach (range($from, $to) as $i){
                 $attr = array();
