@@ -1750,7 +1750,7 @@ class planning_Tasks extends core_Master
                     }
                 }
             } else {
-                $measureOptions = cat_Products::getPacks($rec->productId, $rec->measureId, true);
+                $measureOptions = cat_Products::getPacks($rec->productId, $rec->measureId ?? null, true);
             }
 
             $measuresCount = countR($measureOptions);
