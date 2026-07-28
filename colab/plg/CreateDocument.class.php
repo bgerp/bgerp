@@ -74,7 +74,8 @@ class colab_plg_CreateDocument extends core_Plugin
                 
                 // Ако не са зададени специфични роли за външни потребители се взима по дефолт партньор
                 $externalRoles = isset($mvc->canWriteExternal) ? $mvc->canWriteExternal : 'partner';
-                $mvc->{$property} .= ",{$externalRoles}";
+                $currentRoles = $mvc->{$property} ?? '';
+                $mvc->{$property} = trim("{$currentRoles},{$externalRoles}", ',');
             }
         }
     }
