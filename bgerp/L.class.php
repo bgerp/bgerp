@@ -104,46 +104,51 @@ class bgerp_L extends core_Manager
             $options = (array) $action->data;
             
             // Ако има изпратено от
-            if (($action->data->sendedBy > 0) && (!$options['__userId'] || $options['__userId'] <= 0)) {
-                $options['__userId'] = $action->data->sendedBy;
+            $sendedBy = $action->data->sendedBy ?? null;
+            $optionsUserId = $options['__userId'] ?? null;
+            if (($sendedBy > 0) && (!$optionsUserId || $optionsUserId <= 0)) {
+                $options['__userId'] = $sendedBy;
             }
             
             // Ако е принтиран
             // TODO ще се оправи
             if ($action->action == doclog_Documents::ACTION_PRINT) {
-                $options['__toListId'] = $action->data->toListId;
+                $options['__toListId'] = $action->data->toListId ?? null;
                 
-                if ($action->createdBy > 0 && !$options['__userId']) {
+                if (($action->createdBy ?? null) > 0 && empty($options['__userId'])) {
                     $options['__userId'] = $action->createdBy;
                 }
             }
             
             // Ако е изпратен
             if ($action->action == doclog_Documents::ACTION_SEND) {
-                if ($action && $action->data->to) {
+                if (!empty($action->data->to)) {
                     $eArr = type_Emails::toArray($action->data->to);
-                    log_Browsers::setVars(array('email' => $eArr[0]), false, false);
+                    if (isset($eArr[0])) {
+                        log_Browsers::setVars(array('email' => $eArr[0]), false, false);
+                    }
                 }
                 
-                $activatedBy = $action->createdBy;
+                $activatedBy = $action->createdBy ?? null;
                 
                 // Активатора и последния модифицирал на изпратения документ
                 if (!$activatedBy || $activatedBy <= 0) {
                     $doc = doc_Containers::getDocument($cId);
                     if ($doc) {
                         $rec = $doc->fetch();
-                        $activatedBy = $rec->activatedBy;
+                        $activatedBy = $rec->activatedBy ?? null;
                     }
                 }
                 
                 // Активатора и последния модифицирал на изпратения документ
                 if (!$activatedBy || $activatedBy <= 0) {
                     $sendContainerRec = doc_Containers::fetch($action->containerId);
-                    $activatedBy = $sendContainerRec->activatedBy;
+                    $activatedBy = $sendContainerRec->activatedBy ?? null;
                 }
                 
                 // Ако няма потребител или е системата - за бласт
-                if (!$options['__userId'] || $options['__userId'] <= 0) {
+                $optionsUserId = $options['__userId'] ?? null;
+                if (!$optionsUserId || $optionsUserId <= 0) {
                     if ($activatedBy > 0) {
                         $options['__userId'] = $activatedBy;
                     }
