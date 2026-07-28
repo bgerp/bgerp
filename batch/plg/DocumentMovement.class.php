@@ -139,7 +139,8 @@ class batch_plg_DocumentMovement extends core_Plugin
                         }
                         foreach ($batchesArr as $batchValue){
                             $quantity = ($Def instanceof batch_definitions_Serial) ? 1 : $bdRec->quantity;
-                            $outBatches["{$bdRec->productId}|{$bdRec->storeId}"]->batches[$batchValue] += $quantity;
+                            $outBatch = $outBatches["{$bdRec->productId}|{$bdRec->storeId}"];
+                            $outBatch->batches[$batchValue] = ($outBatch->batches[$batchValue] ?? 0) + $quantity;
                         }
                     }
                 }
@@ -171,7 +172,7 @@ class batch_plg_DocumentMovement extends core_Plugin
 
         $errMsgSerials = '';
         foreach ($batchesWithSerials as $pId => $bArr1){
-            if(!is_array($bArr1['in'])) continue;
+            if (!is_array($bArr1['in'] ?? null)) continue;
             $bArr = $bArr1['in'];
 
             $batchQuantityInAllStores = batch_Items::getBatchQuantitiesInStore($pId, null, null, null);
@@ -182,7 +183,7 @@ class batch_plg_DocumentMovement extends core_Plugin
                 // Ако серийния номер дето се засклажда се изписва и със същия документ да не се прави проверка
                 if(isset($bArr1['out'][$b1])) continue;
 
-                if($batchQuantityInAllStores[$b1] >= 1){
+                if (($batchQuantityInAllStores[$b1] ?? 0) >= 1) {
                     $serialErrArr[$b1] = $b1;
                 }
             }
