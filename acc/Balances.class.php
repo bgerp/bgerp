@@ -467,7 +467,14 @@ class acc_Balances extends core_Master
                     unset($prevRec->id);
                     $prevRec->toDate = $prevWorkingDay;
                     $prevRec->periodId = null;
+
+                    $prevStart = microtime(true);
                     self::forceCalc($prevRec);
+                    $prevTime = round(microtime(true) - $prevStart, 3);
+                    if ($prevTime > 1) {
+                        self::logNotice("forceCalc на междинен баланс до {$prevWorkingDay}: {$prevTime} сек");
+                    }
+
                     $fromDate = $prevRec->fromDate;
                     $toDate = $prevRec->toDate;
 
@@ -480,13 +487,23 @@ class acc_Balances extends core_Master
                 }
             }
 
+            $calcStart = microtime(true);
             self::calc($rec);
+            $calcTime = round(microtime(true) - $calcStart, 3);
+            if ($calcTime > 1) {
+                self::logNotice("calc() за {$rec->fromDate} - {$rec->toDate}: {$calcTime} сек");
+            }
 
             // Преизчисляваме първия баланс, в който има промени още веднъж, за да подаде верни данни на следващите
             static $rc1;
 
             if (!$rc1 && $rec->lastCalculateChange != 'no') {
+                $calc2Start = microtime(true);
                 self::calc($rec);
+                $calc2Time = round(microtime(true) - $calc2Start, 3);
+                if ($calc2Time > 1) {
+                    self::logNotice("Втори calc() (rc1) за {$rec->fromDate} - {$rec->toDate}: {$calc2Time} сек");
+                }
                 $rc1 = true;
             }
 
@@ -576,6 +593,8 @@ class acc_Balances extends core_Master
     {
         $lockKey = 'RecalcBalances';
 
+        $recalcStart = microtime(true);
+
         // Ако изчисляването е заключено не го изпълняваме
         if (!core_Locks::obtain($lockKey, self::MAX_PERIOD_CALC_TIME, 1)) {
             $this->logNotice('Изчисляването на баланса е заключено от друг процес');
@@ -609,27 +628,53 @@ class acc_Balances extends core_Master
             $pQuery->where("#end >= '{$windowStart}'");
         }
 
+        $periodsCnt = 0;
+
         while ($pRec = $pQuery->fetch()) {
+            $periodsCnt++;
+
             $rec = new stdClass();
             $rec->fromDate = $pRec->start;
             $rec->toDate = $pRec->end;
             $rec->periodId = $pRec->id;
 
+            $periodStart = microtime(true);
+
             // Преизчисляваме първия отворен баланс (когато в него има промени) 9+1 пъти, за да подаде верни данни на следващите
             $j = 0;
             do {
+                $lockStart = microtime(true);
                 core_Locks::obtain($lockKey, self::MAX_PERIOD_CALC_TIME);
+                $lockWait = round(microtime(true) - $lockStart, 3);
+
+                $iterStart = microtime(true);
                 $r = self::forceCalc($rec);
+                $iterTime = round(microtime(true) - $iterStart, 3);
+
+                // Логваме само по-бавните итерации, за да не задръстваме лога
+                if ($iterTime > 1 || $lockWait > 1) {
+                    $this->logNotice("Период {$rec->fromDate} - {$rec->toDate}, итерация {$j}: заключване {$lockWait} сек, изчисление {$iterTime} сек, промяна=" . ($rec->lastCalculateChange ?? '-'));
+                }
+
                 if($r){
                     $data->recalcedBalances[$rec->toDate] = $rec;
                 }
             } while ($rec->lastCalculateChange != 'no' && $j++ < 9 && $rc);
+
+            $periodTime = round(microtime(true) - $periodStart, 3);
+            if ($periodTime > 1) {
+                $iterCnt = $j + 1;
+                $this->logNotice("Период {$rec->fromDate} - {$rec->toDate}: общо {$periodTime} сек за {$iterCnt} итерации");
+            }
+
             $rc = false;
         }
 
         // Освобождаваме заключването на процеса
         core_Locks::release($lockKey);
         core_Debug::stopTimer('recalcBalance');
+
+        $this->logNotice("Преизчисляването приключи: {$periodsCnt} периода за " . round(microtime(true) - $recalcStart, 3) . ' сек.');
 
         // Пораждаме събитие, че баланса е бил преизчислен
         $data->lastBalance = acc_Balances::getLastBalance();
