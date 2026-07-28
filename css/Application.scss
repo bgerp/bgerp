@@ -6494,15 +6494,20 @@ div.location.public {
 	margin-top: 10px;
 }
 
-.details  .formToolbar #filter{
+.details .formToolbar #filter{
 	background-color: #e5e5e5;
-	padding: 6px 4px !important;
-	width: 26px;
 	background-position: center;
 	&:hover {
 		background-color: #ccc;
 	}
 }
+
+.details .log  .formToolbar #filter {
+	width: 26px;
+	background-position: center;
+	padding: 6px 4px !important;
+}
+
 .docStatistic form .horizontal {
 	border: 1px solid #eee;
 	padding: 5px 10px 3px;

@@ -5635,13 +5635,16 @@ div.location.public {
 .acc_JournalDetails {
   margin-top: 10px; }
 
-.details  .formToolbar #filter {
+.details .formToolbar #filter {
   background-color: #e5e5e5;
-  padding: 6px 4px !important;
-  width: 26px;
   background-position: center; }
-  .details  .formToolbar #filter:hover {
+  .details .formToolbar #filter:hover {
     background-color: #cccccc; }
+
+.details .log  .formToolbar #filter {
+  width: 26px;
+  background-position: center;
+  padding: 6px 4px !important; }
 
 .docStatistic form .horizontal {
   border: 1px solid #eeeeee;
