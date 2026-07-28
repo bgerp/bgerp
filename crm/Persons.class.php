@@ -2452,14 +2452,14 @@ class crm_Persons extends core_Master
                 $similarPersons .= ht::createLink(self::getVerbal($similarRec, 'name'), $singleUrl, null, $otherParamArr);
 
                 if ($haveRightForSingle) {
-                    if ($similarRec->egn) {
+                    if (!empty($similarRec->egn)) {
                         $similarPersons .= ', ' . self::getVerbal($similarRec, 'egn');
                     } elseif ($birthday = self::getverbal($similarRec, 'birthday')) {
                         $similarPersons .= ', ' . $birthday;
                     }
                 }
 
-                if (trim($similarRec->place)) {
+                if (!empty(trim($similarRec->place ?? ''))) {
                     $similarPersons .= ', ' . self::getVerbal($similarRec, 'place');
                 }
 
@@ -2491,12 +2491,10 @@ class crm_Persons extends core_Master
     {
         $similarsArr = array();
 
-        $similarName = $similarEgn = false;
-
         $fieldsArr = array();
 
         // Правим проверка за дублиране с друг запис
-        $nameL = plg_Search::normalizeText($rec->name);
+        $nameL = plg_Search::normalizeText($rec->name ?? '');
 
         $oQuery = self::getQuery();
         self::restrictAccess($oQuery);
@@ -2504,7 +2502,7 @@ class crm_Persons extends core_Master
         $nQuery = clone $oQuery;
 
         $nQuery->where(array("#searchKeywords LIKE '% [#1#] %'", $nameL));
-        if ($rec->country) {
+        if (!empty($rec->country)) {
             $nQuery->where(array("#country = '[#1#]'", $rec->country));
         }
 
@@ -2517,7 +2515,7 @@ class crm_Persons extends core_Master
             $fieldsArr['name'] = 'name';
         }
 
-        if ($rec->egn) {
+        if (!empty($rec->egn)) {
             $egnNumb = preg_replace('/[^0-9]/', '', $rec->egn);
 
             if ($egnNumb) {
@@ -2536,8 +2534,10 @@ class crm_Persons extends core_Master
         }
 
 
-        if ($rec->email || $rec->buzEmail) {
-            $emailArr = type_Emails::toArray($rec->email . ', ' . $rec->buzEmail);
+        $email = $rec->email ?? '';
+        $buzEmail = $rec->buzEmail ?? '';
+        if ($email || $buzEmail) {
+            $emailArr = type_Emails::toArray($email . ', ' . $buzEmail);
 
             if (!empty($emailArr)) {
                 $eQuery = clone $oQuery;
@@ -2556,7 +2556,7 @@ class crm_Persons extends core_Master
                     }
 
                     $similarsArr[$similarRec->id] = $similarRec;
-                    if ($rec->buzEmail) {
+                    if ($buzEmail) {
                         $fieldsArr['buzEmail'] = 'buzEmail';
                     } else {
                         $fieldsArr['email'] = 'email';
