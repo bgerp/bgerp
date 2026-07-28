@@ -293,7 +293,8 @@ class cat_ListingDetails extends doc_Detail
             }
             
             $exPack = cat_products_Packagings::getPack($rec->productId, $rec->packagingId);
-            deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, ($exPack->quantity) ? $exPack->quantity : 1);
+            $quantityInPack = (is_object($exPack) && $exPack->quantity) ? $exPack->quantity : 1;
+            deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $quantityInPack);
             if($deactivatedPack){
                 $row->packagingId = ht::createHint($row->packagingId, 'Опаковката/мярката е деактивирана в момента|*!', 'warning', false);
             }
