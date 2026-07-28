@@ -181,6 +181,8 @@ class support_Systems extends core_Master
             $sQuery->orWhere($allSystemId);
         }
 
+        $allowedTypes = null;
+
         // Обхождаме всички открити записи
         while ($sRec = $sQuery->fetch()) {
 
