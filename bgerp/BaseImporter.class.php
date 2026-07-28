@@ -129,7 +129,7 @@ class bgerp_BaseImporter extends core_Manager
                 $rec->id = $exRec->id;
             }
 
-            if ($rec->id) {
+            if (!empty($rec->id)) {
                 if ($onExist == 'skip') {
                     $skipped++;
                     continue;

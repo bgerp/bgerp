@@ -335,7 +335,7 @@ class fileman_Data extends core_Manager
         $path = self::getGoodFilePath($rec);
         
         // Ако не е имал такъв запис
-        if (!$rec->id || !@file_exists($path) || (@filesize($path) != $rec->fileLen)) {
+        if (empty($rec->id) || !@file_exists($path) || (@filesize($path) != $rec->fileLen)) {
             
             // Проверка за права в директорията
             $dir = pathinfo($path, PATHINFO_DIRNAME);
@@ -586,7 +586,7 @@ class fileman_Data extends core_Manager
             } else {
                 error('@Не може да бъде копиран файла', $file, $path);
             }
-        } elseif ($rec->id) {
+        } elseif (!empty($rec->id)) {
             self::resetProcess($rec);
         }
         
@@ -616,7 +616,7 @@ class fileman_Data extends core_Manager
             
             $rec->links = 0;
             $status = static::save($rec);
-        } elseif ($rec->id) {
+        } elseif (!empty($rec->id)) {
             self::resetProcess($rec);
         }
         

@@ -2509,7 +2509,7 @@ class crm_Persons extends core_Master
         }
 
         while ($similarRec = $nQuery->fetch()) {
-            if ($rec->id && ($similarRec->id == $rec->id)) {
+            if (!empty($rec->id) && ($similarRec->id == $rec->id)) {
                 continue;
             }
 
@@ -2525,7 +2525,7 @@ class crm_Persons extends core_Master
                 $eQuery->where((array("#egn LIKE '[#1#]'", $egnNumb)));
 
                 while ($similarRec = $eQuery->fetch()) {
-                    if ($rec->id && ($similarRec->id == $rec->id)) {
+                    if (!empty($rec->id) && ($similarRec->id == $rec->id)) {
                         continue;
                     }
 
@@ -2551,7 +2551,7 @@ class crm_Persons extends core_Master
                 }
 
                 while ($similarRec = $eQuery->fetch()) {
-                    if ($rec->id && ($similarRec->id == $rec->id)) {
+                    if (!empty($rec->id) && ($similarRec->id == $rec->id)) {
                         continue;
                     }
 

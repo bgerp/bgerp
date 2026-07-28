@@ -1749,7 +1749,7 @@ class email_Incomings extends core_Master
         
         $rec->toAndCc = array('allTo' => $rec->AllTo, 'allCc' => $rec->AllCc);
         
-        if ($rec->id && $saveIfNotExist) {
+        if (!empty($rec->id) && $saveIfNotExist) {
             $inst = cls::get(get_called_class());
             $inst->save_($rec, 'toAndCc');
         }
@@ -2897,7 +2897,7 @@ class email_Incomings extends core_Master
             }
         }
         
-        if ($rec->id && $forceSave) {
+        if (!empty($rec->id) && $forceSave) {
             
             return $this->save_($rec, 'userInboxes');
         }
