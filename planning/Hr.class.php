@@ -527,6 +527,8 @@ class planning_Hr extends core_Master
      */
     protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec, &$fields = null, $mode = null)
     {
+        if (!isset($rec->centers)) return;
+
         $syncFolders = keylist::toArray($rec->centers);
         if(countR($syncFolders)){
             $AssetFolders = cls::get('planning_AssetResourceFolders');
