@@ -674,8 +674,23 @@ class expert_Expert extends core_FieldSet
         $this->vals[$name] = $value;
         
         $this->setInStep[$name] = $this->currentStep;
+
+        if (is_array($value) || is_object($value)) {
+            $reasonValue = json_encode($value, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+            if ($reasonValue === false) {
+                $reasonValue = print_r($value, true);
+            }
+        } elseif (is_bool($value)) {
+            $reasonValue = $value ? 'true' : 'false';
+        } elseif ($value === null) {
+            $reasonValue = 'NULL';
+        } elseif (is_scalar($value)) {
+            $reasonValue = (string) $value;
+        } else {
+            $reasonValue = gettype($value);
+        }
         
-        $this->reason[] = "{$name}=  " . type_Varchar::escape($value) . ' [' . $this->currentStep . ']';
+        $this->reason[] = "{$name}=  " . type_Varchar::escape($reasonValue) . ' [' . $this->currentStep . ']';
     }
     
     
