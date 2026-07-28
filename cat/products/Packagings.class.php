@@ -1348,7 +1348,8 @@ class cat_products_Packagings extends core_Detail
 
                     // Ако ще може да му се показва продажната цена
                     if (!($Doc->isInstanceOf('planning_ReturnNotes') || $Doc->isInstanceOf('planning_ConsumptionNotes') || $Doc->isInstanceOf('store_Transfers'))) {
-                        $Policy = ($isReverse == 'yes') ? (($Detail->ReversePolicy) ? $Detail->ReversePolicy : cls::get('price_ListToCustomers')) : (($Detail->Policy) ? $Detail->Policy : cls::get('price_ListToCustomers'));
+                        $policyClass = ($isReverse == 'yes') ? ($Detail->ReversePolicy ?? null) : ($Detail->Policy ?? null);
+                        $Policy = $policyClass ?: cls::get('price_ListToCustomers');
                         $docRec = $Doc->fetch('contragentClassId, contragentId, chargeVat, valior, currencyRate,currencyId');
 
                         $policyInfo = $Policy->getPriceInfo($docRec->contragentClassId, $docRec->contragentId, $productData->productId, $productData->packagingId, $quantityInPack, $docRec->valior, $docRec->currencyRate, $docRec->chargeVat);

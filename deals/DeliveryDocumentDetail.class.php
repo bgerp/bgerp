@@ -193,7 +193,8 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
                             $listId = (isset($dealInfo) && $dealInfo->get('priceListId')) ? $dealInfo->get('priceListId') : null;
 
                             // Ако има политика в документа и той не прави обратна транзакция, използваме нея, иначе продуктовия мениджър
-                            $Policy = ($masterRec->isReverse == 'yes') ? (($mvc->ReversePolicy) ? $mvc->ReversePolicy : cls::get('price_ListToCustomers')) : (($mvc->Policy) ? $mvc->Policy : cls::get('price_ListToCustomers'));
+                            $policyClass = ($masterRec->isReverse == 'yes') ? ($mvc->ReversePolicy ?? null) : ($mvc->Policy ?? null);
+                            $Policy = $policyClass ?: cls::get('price_ListToCustomers');
                             $policyInfo = $Policy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId, $rec->quantity, $masterRec->valior, $masterRec->currencyRate, $masterRec->chargeVat, $listId);
                         }
                     }
