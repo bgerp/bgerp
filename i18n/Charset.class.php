@@ -1086,6 +1086,14 @@ class i18n_Charset extends core_MVC
         }
 
         [$toCharset, $mode] = explode('//', $toCharset) + [1 => null];
+
+        // Някои iconv реализации разпознават Mac Roman само като MACINTOSH
+        if (strtoupper((string) $fromCharset) == 'MACROMAN') {
+            $fromCharset = 'MACINTOSH';
+        }
+        if (strtoupper((string) $toCharset) == 'MACROMAN') {
+            $toCharset = 'MACINTOSH';
+        }
         
         if ($mode && strpos($mode, '//') !== 0) {
             $mode = "//{$mode}";
