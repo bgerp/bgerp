@@ -649,7 +649,7 @@ class cat_Products extends embed_Manager
             if (isset($rec->folderId)) {
                 $Cover = doc_Folders::getCover($rec->folderId);
                 if ($Cover->haveInterface('crm_ContragentAccRegIntf')) {
-                    $cond = (($form->_cloneForm ?? false) !== true) ? "AND #id != '{$rec->id}'" : '';
+                    $cond = (($form->_cloneForm ?? false) !== true && !empty($rec->id)) ? "AND #id != '{$rec->id}'" : '';
                     while (cat_Products::fetchField(array("#folderId = {$rec->folderId} AND #name = '[#1#]' {$cond}", $rec->name), 'id')) {
                         $rec->name = str::addIncrementSuffix($rec->name, 'v', 2);
                     }
@@ -670,7 +670,7 @@ class cat_Products extends embed_Manager
             }
             
             $metaError = null;
-            $checkMetaProductId = !empty($rec->_isBeingCloned) ? null : $rec->id;
+            $checkMetaProductId = !empty($rec->_isBeingCloned) ? null : ($rec->id ?? null);
             if (!cat_Categories::checkMetas($rec->meta, $rec->innerClass, $checkMetaProductId, $metaError)) {
                 $form->setError('meta', $metaError);
             }
