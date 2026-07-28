@@ -1964,18 +1964,20 @@ class doclog_Documents extends core_Manager
     {
         // Екшъна за проманя
         $changeAction = static::ACTION_CHANGE;
+        $rec = null;
         
         // Обхождаме масива с логовете
         foreach ((array) $logRecArr as $logRec) {
             
             // Ако има docId и docClass
-            if ($logRec->docId && $logRec->docClass) {
+            if (!empty($logRec->docId) && !empty($logRec->docClass)) {
                 
                 // Инстанция на класа
                 $docClass = cls::get($logRec->docClass);
                 
                 // Записите за съответния клас
                 $dRec = $docClass->fetch($logRec->docId);
+                if (!$dRec) continue;
                 
                 // id на контейнера
                 $containerId = $dRec->containerId;
@@ -2007,10 +2009,10 @@ class doclog_Documents extends core_Manager
                     'docId' => $logRec->docId,
                     'docClass' => $logRec->docClass
                 );
+
+                // Пушваме съответното действие
+                static::pushAction($rec);
             }
-            
-            // Пушваме съответното действие
-            static::pushAction($rec);
         }
         
         return $rec;
