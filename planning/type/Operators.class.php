@@ -77,7 +77,7 @@ class planning_type_Operators extends type_Keylist
         }
 
         // Сигнализиране на потребителя, ако въведе по-дълъг текст от допустимото
-        $size = $this->params['size'] ?? $this->params[0] ?? $this->dbFieldLen;
+        $size = $this->params['size'] ?? $this->params[0] ?? $this->dbFieldLen ?? null;
         if (!empty($this->params['readonly'])) {
             $attr['readonly'] = 'readonly';
         }
