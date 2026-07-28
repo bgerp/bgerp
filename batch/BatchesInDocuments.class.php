@@ -721,6 +721,8 @@ class batch_BatchesInDocuments extends core_Manager
                 if (isset($selArr[$currentPosition + 1])) {
                     $form->next = $selArr[$currentPosition + 1];
                 }
+            } else {
+                $selArr = array();
             }
         }
 

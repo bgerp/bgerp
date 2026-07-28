@@ -58,7 +58,7 @@ class batch_plg_DocumentMovement extends core_Plugin
      */
     private static function getContoError($mvc, &$res, $rec)
     {
-        $actions = type_Set::toArray($rec->contoActions);
+        $actions = !empty($rec->contoActions) ? type_Set::toArray($rec->contoActions) : array();
 
         // Ако няма избран склад, няма какво да се прави
         if(empty($rec->{$mvc->storeFieldName}) || ($mvc instanceof sales_Sales && !isset($actions['ship']))) {
@@ -291,7 +291,8 @@ class batch_plg_DocumentMovement extends core_Plugin
         // Ако документа се променя от бутона за промяна или при преизчисляване на курса да не се дублират партидите
         if(($rec->__isBeingChanged ?? null) || ($rec->_recalcRate ?? null) || ($rec->_changeLine ?? null)) return;
 
-        if ($rec->state == 'active') {
+        $state = $rec->state ?? null;
+        if ($state == 'active') {
             if ($mvc->hasPlugin('acc_plg_Contable')) {
 
                 if (isset($saveFields)) return;
@@ -313,7 +314,7 @@ class batch_plg_DocumentMovement extends core_Plugin
                 // Дига се флаг в текущия хит че движението е отразено
                 $mvc->savedMovements[$containerId] = true;
             }
-        } elseif (in_array($rec->state, array('rejected', 'stopped'))) {
+        } elseif (in_array($state, array('rejected', 'stopped'))) {
             $containerId = (isset($rec->containerId)) ? $rec->containerId : $mvc->fetchField($rec->id, 'containerId');
             $doc = doc_Containers::getDocument($containerId);
             batch_Movements::removeMovement($doc->getInstance(), $doc->that);
