@@ -321,7 +321,7 @@ class acc_reports_BalanceImpl extends frame_BaseDriver
             $tpl->append($beforeRow, 'ROW_BEFORE');
         }
         
-        if ($data->pager) {
+        if (!empty($data->pager)) {
             $tpl->append($data->pager->getHtml(), 'PAGER_BOTTOM');
             $tpl->append($data->pager->getHtml(), 'PAGER_TOP');
         }

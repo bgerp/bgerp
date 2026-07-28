@@ -2106,7 +2106,7 @@ class doclog_Documents extends core_Manager
         if (empty($rec->data)) {
             $rec->dataBlob = null;
         } else {
-            if (is_array($rec->data)) {
+            if (!empty($rec->data) && is_array($rec->data)) {
                 $rec->data = (object) $rec->data;
             }
             

@@ -291,6 +291,7 @@ class batch_Movements extends core_Detail
                                           'docType' => $doc->getClassId(),
                                           'docId' => $doc->that,
                                           'date' => $jRec->date,
+                                          'quantity' => 0,
                     );
                     $totalMovements[$key] = $mRec;
                 }
@@ -440,7 +441,7 @@ class batch_Movements extends core_Detail
         $summaryQuery->show('productId,operation,quantity');
         while($sumRec = $summaryQuery->fetch()){
             $sign = ($sumRec->operation == 'in') ? 1 : (($sumRec->operation == 'out') ? -1 : 0);
-            $total[$sumRec->productId] += $sign * $sumRec->quantity;
+            $total[$sumRec->productId] = ($total[$sumRec->productId] ?? 0) + $sign * $sumRec->quantity;
         }
 
         // Ако се показват повече от 1 нищо не се прави

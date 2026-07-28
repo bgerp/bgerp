@@ -425,7 +425,7 @@ class distro_Actions extends embed_Manager
         $this->prepareListPager($data);
         
         // Името на променливата за страниране на детайл
-        if (is_object($data->pager)) {
+        if (!empty($data->pager)) {
             $data->pager->setPageVar($data->masterMvc->className, $data->masterId, $this->className);
             $data->pager->addToUrl = array('#' => $data->masterMvc->getHandle($data->masterId));
         }

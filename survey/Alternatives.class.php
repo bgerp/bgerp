@@ -200,7 +200,7 @@ class survey_Alternatives extends core_Detail
         $tpl->appendOnce("voteUrl = '{$url}';", 'SCRIPTS');
         
         // Рендиране на пейджъра
-        if ($data->pager) {
+        if (!empty($data->pager)) {
             $tpl->append($data->pager->getHtml(), 'PAGER');
         }
         

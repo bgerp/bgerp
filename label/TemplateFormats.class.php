@@ -601,7 +601,8 @@ class label_TemplateFormats extends core_Detail
             } elseif ($rec->type == 'caption') {
                 
                 // Ако е зададена максимална дължина
-                if (is_array($rec->formatParams) && ($maxLength = $rec->formatParams['MaxLength'])) {
+                if (!empty($rec->formatParams['MaxLength'])) {
+                    $maxLength = $rec->formatParams['MaxLength'];
                     
                     // Задаваме стрингов тип с максимална дължина
                     $type = "varchar({$maxLength})";
@@ -616,7 +617,8 @@ class label_TemplateFormats extends core_Detail
             } elseif ($rec->type == 'html') {
                 
                 // Ако е зададена максимална дължина
-                if (is_array($rec->formatParams) && ($maxLength = $rec->formatParams['MaxLength'])) {
+                if (!empty($rec->formatParams['MaxLength'])) {
+                    $maxLength = $rec->formatParams['MaxLength'];
                     
                     // Задаваме стрингов тип с максимална дължина
                     $type = "html({$maxLength})";
@@ -630,7 +632,8 @@ class label_TemplateFormats extends core_Detail
             } elseif ($rec->type == 'text') {
                 
                 // Ако е зададена максимална дължина
-                if (is_array($rec->formatParams) && ($maxLength = $rec->formatParams['MaxLength'])) {
+                if (!empty($rec->formatParams['MaxLength'])) {
+                    $maxLength = $rec->formatParams['MaxLength'];
                     
                     // Задаваме стрингов тип с максимална дължина
                     $type = "text({$maxLength})";
@@ -643,10 +646,11 @@ class label_TemplateFormats extends core_Detail
                 $form->FNC($placeHolderField, $type, "caption={$caption}, input=input, silent");
             } elseif ($rec->type == 'barcode') {
                 $bType = 'text(rows=2)';
-                if (($rec->formatParams['BarcodeType'] == 'ean13') || ($rec->formatParams['BarcodeType'] == 'ean8')) {
+                $barcodeType = $rec->formatParams['BarcodeType'] ?? null;
+                if (($barcodeType == 'ean13') || ($barcodeType == 'ean8')) {
                     $bType = cls::get('gs1_TypeEan');
                     
-                    if ($rec->formatParams['BarcodeType'] == 'ean13') {
+                    if ($barcodeType == 'ean13') {
                         $bType->params['gln'] = true;
                     }
                     $bType->nullIfEmpty = false;

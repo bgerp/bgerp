@@ -242,7 +242,7 @@ class docarch_Volumes extends core_Master
         }
         
         $row->includedVolumes = '';
-        if (is_array($rec->includedVolumes)) {
+        if (!empty($rec->includedVolumes) && is_array($rec->includedVolumes)) {
             foreach ($rec->includedVolumes as $val) {
                 $row->includedVolumes .= docarch_Volumes::getHyperlink($val).'</br>';
             }

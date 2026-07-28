@@ -309,7 +309,7 @@ class acc_reports_PurchasedProducts extends acc_reports_CorespondingImpl
             $tpl->append($afterRow, 'ROW_AFTER');
         }
         
-        if ($data->pager) {
+        if (!empty($data->pager)) {
             $tpl->append($data->pager->getHtml(), 'PAGER_BOTTOM');
             $tpl->append($data->pager->getHtml(), 'PAGER_TOP');
         }

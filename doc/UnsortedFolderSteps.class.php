@@ -369,7 +369,7 @@ class doc_UnsortedFolderSteps extends core_Master
         $this->invoke('BeforeRenderListTable', array($tpl, &$data));
 
         $tpl->append($table->get($data->rows, $data->listFields));
-        if ($data->Pager) {
+        if (!empty($data->Pager)) {
             $tpl->append($data->Pager->getHtml());
         }
 
