@@ -690,9 +690,13 @@ class i18n_Charset extends core_MVC
             // Горе се взема не в mb и затова го вземаме пак, но този път ще е на по-кратък стринг
             $len = mb_strlen($text);
             
-            $sL = $SL = 'sign';
-            
+            $sL = $sLL = 'sign';
+            $SL = $SLL = 'sign';
+
             $c = '';
+            $cL = $cLL = '';
+            $mL = $mLL = '';
+            $total = 0;
             
             $i = 0;
             
@@ -717,7 +721,7 @@ class i18n_Charset extends core_MVC
                 // Ако имаме знак - даваме +1
                 if ($S != 'sign') {
                     if ($S == $SL || $SL == 'sign') {
-                        if ($scripts[$S] || $S == 'latin' || $scripts['all']) {
+                        if (!empty($scripts[$S]) || $S == 'latin' || !empty($scripts['all'])) {
                             ++$total;
                             
                             // $debug .= '+mono:' . $total . ';';
@@ -728,7 +732,7 @@ class i18n_Charset extends core_MVC
                         // $debug .= '-mono:' . $total . ';';
                     }
                     
-                    if ($scripts[$S] || $S == 'latin' || $scripts['all']) {
+                    if (!empty($scripts[$S]) || $S == 'latin' || !empty($scripts['all'])) {
                         $total += 0.05;
                         
                         // $debug .= "+{$S}:" . $total . ';';

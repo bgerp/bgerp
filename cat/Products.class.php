@@ -4256,7 +4256,7 @@ class cat_Products extends embed_Manager
     {
         expect($mRec);
 
-        $vatExceptionId = cond_VatExceptions::getFromThreadId($mRec->threadId);
+        $vatExceptionId = cond_VatExceptions::getFromThreadId($mRec->threadId ?? null);
         $canSeePrice = haveRole('seePrice,ceo', $activatedBy);
         $pStrName = 'price';
 
@@ -4274,7 +4274,10 @@ class cat_Products extends embed_Manager
             $csvFields->FLD('moq', 'double(smartRound)', 'caption=МКП');
         }
 
-        $listId = cat_plg_ShowCodes::getReffListId($Detail, $mRec->contragentClassId, $mRec->contragentId, $mRec->threadId);
+        $listId = null;
+        if (isset($mRec->contragentClassId, $mRec->contragentId)) {
+            $listId = cat_plg_ShowCodes::getReffListId($Detail, $mRec->contragentClassId, $mRec->contragentId, $mRec->threadId ?? null);
+        }
         expect(!empty($detArr));
 
         $recs = array();
@@ -4338,8 +4341,8 @@ class cat_Products extends embed_Manager
             $dQuery->orderBy('id', 'ASC');
 
             while ($dRec = $dQuery->fetch()) {
-                if (!$dInst || !$dInst->productFld) {
-                    wp('Лоши данни при експорт', $dName, $dInst, $dInst->productFld, $dRec);
+                if (empty($dInst->productFld)) {
+                    wp('Лоши данни при експорт', $dName, $dInst, $dInst->productFld ?? null, $dRec);
 
                     continue;
                 }
@@ -4350,9 +4353,9 @@ class cat_Products extends embed_Manager
 
                     $recs[$dRec->id]->_productId = $dRec->{$dInst->productFld};
                     $recs[$dRec->id]->id = $dRec->id;
-                    $recs[$dRec->id]->clonedFromDetailId = $dRec->clonedFromDetailId;
+                    $recs[$dRec->id]->clonedFromDetailId = $dRec->clonedFromDetailId ?? null;
                     if($masterMvc instanceof cat_Listings) {
-                        $recs[$dRec->id]->moq = $dRec->moq;
+                        $recs[$dRec->id]->moq = $dRec->moq ?? null;
                     }
 
                     // Показване на вашия реф, ако има
@@ -4390,7 +4393,7 @@ class cat_Products extends embed_Manager
 
                 $allFFieldsArr = $fFieldsArr;
 
-                if ($dInst->exportToMaster) {
+                if (!empty($dInst->exportToMaster)) {
                     $exportToMasterArr = arr::make($dInst->exportToMaster, true);
 
                     foreach ($exportToMasterArr as $eName => $eFields) {
@@ -4415,7 +4418,7 @@ class cat_Products extends embed_Manager
 
                         $vInst = cls::get($dInst->fields[$k]->type->params['mvc']);
 
-                        if (!$dRec->{$k}) {
+                        if (empty($dRec->{$k})) {
                             continue;
                         }
 
