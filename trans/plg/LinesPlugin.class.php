@@ -513,7 +513,7 @@ class trans_plg_LinesPlugin extends core_Plugin
             }
 
             // Вербално показване на общото нето тегло
-            $rec->{$mvc->totalNetWeightFieldName} = $rec->{$mvc->totalNetWeightFieldName} ?? $transInfo->netWeight;
+            $rec->{$mvc->totalNetWeightFieldName} = $rec->{$mvc->totalNetWeightFieldName} ?? ($transInfo->netWeight ?? null);
             $rec->calcedNetWeight = $rec->{$mvc->totalNetWeightFieldName};
             $rec->{$mvc->totalNetWeightFieldName} = ($rec->netWeightInput) ? $rec->netWeightInput : $rec->{$mvc->totalNetWeightFieldName};
 
@@ -532,7 +532,7 @@ class trans_plg_LinesPlugin extends core_Plugin
             }
 
             // Вербално показване на общото нето тегло
-            $rec->{$mvc->totalTareWeightFieldName} = $rec->{$mvc->totalTareWeightFieldName} ?? $transInfo->tareWeight;
+            $rec->{$mvc->totalTareWeightFieldName} = $rec->{$mvc->totalTareWeightFieldName} ?? ($transInfo->tareWeight ?? null);
             $rec->calcedTareWeight = $rec->{$mvc->totalTareWeightFieldName};
             $rec->{$mvc->totalTareWeightFieldName} = ($rec->tareWeightInput) ? $rec->tareWeightInput : $rec->{$mvc->totalTareWeightFieldName};
 
