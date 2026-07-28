@@ -116,7 +116,7 @@ class vislog_History extends core_Manager
         $History->save($rec);
         
         if ($returnCnt) {
-            if ($rec->id) {
+            if (!empty($rec->id)) {
                 
                 // Преброяваме и връщаме броя посещения на ресурса
                 $historyQuery = $History->getQuery();
