@@ -1108,10 +1108,14 @@ class acc_BalanceDetails extends core_Detail
             }
 
             $b = &$this->balance[$accId][$ent1Id][$ent2Id][$ent3Id];
-            $b['accountId'] = $accId;
-            $b['ent1Id']    = $ent1Id;
-            $b['ent2Id']    = $ent2Id;
-            $b['ent3Id']    = $ent3Id;
+            $b['accountId']    = $accId;
+            $b['ent1Id']       = $ent1Id;
+            $b['ent2Id']       = $ent2Id;
+            $b['ent3Id']       = $ent3Id;
+            $b['baseQuantity'] = $b['baseQuantity'] ?? 0;
+            $b['baseAmount']   = $b['baseAmount'] ?? 0;
+            $b['blQuantity']   = $b['blQuantity'] ?? 0;
+            $b['blAmount']     = $b['blAmount'] ?? 0;
 
             if ($isMiddleBalance) {
                 $debitAmount  = $rec->debitAmount;
