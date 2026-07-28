@@ -409,7 +409,7 @@ class accda_Da extends core_Master
     public static function on_AfterSave($mvc, &$id, $rec, $fields = null)
     {
         // След запис и нов да се контира
-        if ($rec->_conto_n_new) {
+        if (!empty($rec->_conto_n_new)) {
             $contoUrl = $mvc->getContoUrl($rec->id);
             if ($contoUrl) {
                 Request::forward($contoUrl);

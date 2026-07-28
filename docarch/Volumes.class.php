@@ -364,7 +364,7 @@ class docarch_Volumes extends core_Master
      */
     protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
-        if ($rec->_isCreated !== true) {
+        if (($rec->_isCreated ?? false) !== true) {
             
             // Прави запис в модела на движенията
             $className = get_class();

@@ -154,7 +154,7 @@ class ztm_ProfileDetails extends core_Detail
      */
     public static function on_AfterSave(core_Mvc $mvc, &$id, $rec, &$fields = null, $mode = null)
     {
-        if ($rec->__changeValues) {
+        if (!empty($rec->__changeValues)) {
             $mvc->changeValues($rec);
         }
     }

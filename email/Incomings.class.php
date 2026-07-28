@@ -2462,7 +2462,7 @@ class email_Incomings extends core_Master
         }
 
         // Първо рутираме по ръчно зададените правила
-        if ($rec->_prerouteRecArr) {
+        if (!empty($rec->_prerouteRecArr)) {
 
             foreach ($rec->_prerouteRecArr as $fName => $fVal) {
                 $rec->{$fName} = $fVal;
@@ -2471,7 +2471,7 @@ class email_Incomings extends core_Master
             // Добавяме начина на рутиране
             $rec->routeBy = 'preroute';
 
-            if ($rec->_prerouteRecArr['folderId']) {
+            if (!empty($rec->_prerouteRecArr['folderId'])) {
 
                 return ;
             }
