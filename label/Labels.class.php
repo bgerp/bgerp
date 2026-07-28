@@ -146,13 +146,15 @@ class label_Labels extends core_Master
     public static function updatePrintCnt($id, $printedCnt)
     {
         $rec = self::fetch($id);
-        $rec->id = $rec->id;
+        if (!$rec) {
+            return false;
+        }
         
         if ($rec->state == 'draft') {
             $rec->state = 'active';
         }
         
-        $rec->printedCnt += $printedCnt;
+        $rec->printedCnt = ($rec->printedCnt ?? 0) + $printedCnt;
         
         self::save($rec, 'printedCnt, state');
     }
@@ -170,7 +172,8 @@ class label_Labels extends core_Master
         $rec = &$form->rec;
         
         // Вземаме данните от предишния запис
-        $readOnlyArr = $dataArr = $rec->params;
+        $readOnlyArr = $dataArr = $rec->params ?? array();
+        $templateId = $rec->templateId ?? null;
         
         // Ако формата не е субмитната и не я редактираме
         if (empty($rec->id)) {
@@ -212,7 +215,7 @@ class label_Labels extends core_Master
             }
         } else {
             // Полетата, които идват от обекта, да не могат да се редактират
-            if ($rec->classId && $rec->objId) {
+            if (!empty($rec->classId) && !empty($rec->objId)) {
                 $clsInst = cls::getInterface('label_SequenceIntf', $rec->classId);
                 $readOnlyArr = $clsInst->getReadOnlyPlaceholders($rec->objId);
             }
@@ -222,7 +225,7 @@ class label_Labels extends core_Master
         if (!$templateId) {
             
             // Вземаме от записа
-            $templateId = $rec->templateId;
+            $templateId = $rec->templateId ?? null;
             
             // Очакваме вече да има
             expect($templateId);
@@ -240,8 +243,8 @@ class label_Labels extends core_Master
             $rec->{$fieldName} = $value;
             
             // Стойностите, които идват от интерфейса не се очаква да ги попълва потребителя
-            if ($rec->objId && $rec->classId) {
-                if ($form->fields[$fieldName] && isset($readOnlyArr[$oFieldName])) {
+            if (!empty($rec->objId) && !empty($rec->classId)) {
+                if (!empty($form->fields[$fieldName]) && isset($readOnlyArr[$oFieldName])) {
                     $form->setField($fieldName, 'input=none');
                 }
             }
@@ -272,9 +275,7 @@ class label_Labels extends core_Master
         
         // Ако формата е субмитната
         if ($form->isSubmitted()) {
-            
-            // Вземаме типа
-            $type = $form->rec->type;
+            $oldDataArr = array();
             
             // Ако редактираме записа
             if (!empty($form->rec->id)) {
@@ -283,7 +284,7 @@ class label_Labels extends core_Master
                 $rec = $mvc->fetch($form->rec->id);
                 
                 // Вземаме старите стойности
-                $oldDataArr = $rec->params;
+                $oldDataArr = $rec->params ?? array();
             }
             
             // Форма за функционалните полета
@@ -298,14 +299,15 @@ class label_Labels extends core_Master
             foreach ((array) $fncForm->fields as $fieldName => $dummy) {
                 
                 // Ако има масив за старите данни и новта стойност е NULL
-                if ($oldDataArr && ($form->rec->$fieldName === null)) {
+                $fieldValue = $form->rec->{$fieldName} ?? null;
+                if ($oldDataArr && $fieldValue === null) {
                     
                     // Използваме старата стойност
-                    $dataArr[$fieldName] = $oldDataArr[$fieldName];
+                    $dataArr[$fieldName] = $oldDataArr[$fieldName] ?? null;
                 } else {
                     
                     // Добавяме данните от формата
-                    $dataArr[$fieldName] = $form->rec->$fieldName;
+                    $dataArr[$fieldName] = $fieldValue;
                 }
             }
             
@@ -344,7 +346,7 @@ class label_Labels extends core_Master
     protected static function on_AfterPrepareListToolbar($mvc, &$res, $data)
     {
         // Документа не може да се създава  в нова нишка, ако е възоснова на друг
-        if (!empty($data->toolbar->buttons['btnAdd'])) {
+        if ($data->toolbar->haveButton('btnAdd')) {
             $data->toolbar->removeBtn('btnAdd');
             $data->toolbar->addBtn('Нов запис', array($mvc, 'selectTemplate'), 'ef_icon=img/16/star_2.png,title=Добавяне на нов етикет');
         }
