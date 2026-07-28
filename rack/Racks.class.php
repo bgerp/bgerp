@@ -530,7 +530,7 @@ class rack_Racks extends core_Master
 
         $used = rack_Pallets::getUsed();
         list($movedFrom, $movedTo) = rack_Movements::getExpected();
-        $hlProdId = $used[$hlFullPos];
+        $hlProdId = $used[$hlFullPos] ?? null;
 
         // Откъде започва номерацията
         if(in_array($rec->direction, array('leftToRight', 'topToRight'))){
