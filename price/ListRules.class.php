@@ -393,7 +393,7 @@ class price_ListRules extends core_Detail
 
                     $price = self::getPrice($parent, $productId, $packagingId, $datetime, $validFrom, false, 1, 'no', $discountIncluded);
                     if (isset($price)) {
-                        if ($rec->calculation == 'reverse') {
+                        if (($rec->calculation ?? null) == 'reverse') {
                             $price = $price / (1 + $rec->discount);
                         } else {
                             $price = $price * (1 + $rec->discount);
@@ -588,18 +588,18 @@ class price_ListRules extends core_Detail
         if ($form->isSubmitted()) {
             $now = dt::verbal2mysql();
             
-            if (!$rec->validFrom) {
+            if (empty($rec->validFrom)) {
                 $rec->validFrom = $now;
                 Mode::setPermanent('PRICE_VALID_FROM', null);
             }
             
             // Проверка за грешки и изчисляване на отстъпката, ако е зададена само желаната цена
-            if ($rec->type == 'discount' || $rec->type == 'groupDiscount') {
+            if (in_array($rec->type ?? null, array('discount', 'groupDiscount'))) {
                 if (!isset($rec->discount) && !isset($rec->targetPrice)) {
                     $form->setError('discount,targetPrice', 'Трябва да се зададе стойност или за отстъка или за желана цена');
-                } elseif ($rec->discount && $rec->targetPrice) {
+                } elseif (!empty($rec->discount) && !empty($rec->targetPrice)) {
                     $form->setError('discount,targetPrice', 'Не може да се зададе стойност едновременно за отстъка и за желана цена');
-                } elseif ($rec->targetPrice) {
+                } elseif (!empty($rec->targetPrice)) {
                     $listRec = price_Lists::fetch($rec->listId);
                     expect($listRec->parent);
                     $parentPrice = self::getPrice($listRec->parent, $rec->productId, null, $rec->validFrom);
@@ -619,11 +619,11 @@ class price_ListRules extends core_Detail
                         // В каква валута е този ценоразпис?
                         $currency = $listRec->currency;
                         if (!$currency) {
-                            $currency = acc_Periods::getBaseCurrencyCode($listRec->validFrom);
+                            $currency = acc_Periods::getBaseCurrencyCode($rec->validFrom);
                         }
                         
                         // Конвертираме в базова валута
-                        $parentPrice = currency_CurrencyRates::convertAmount($parentPrice, $listRec->validFrom, $currency);
+                        $parentPrice = currency_CurrencyRates::convertAmount($parentPrice, $rec->validFrom, $currency);
                         $parentPrice = round($parentPrice, 10);
                         
                         if ($rec->calculation == 'reverse') {
