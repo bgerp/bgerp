@@ -2467,7 +2467,7 @@ class cal_Tasks extends embed_Manager
             '#3CB371',
             '#AFEEEE',
         );
-        if ($data->recs) {
+        if (!empty($data->recs)) {
             // за всеки едиин запис от базата данни
             foreach ($data->recs as $v => $rec) {
                 if ($rec->timeStart) {
@@ -2509,7 +2509,7 @@ class cal_Tasks extends embed_Manager
                                 'duration' => $timeDuration,
                                 'startTime' => dt::mysql2timestamp($rec->timeStart))),
                         
-                        'color' => $colors[$v % 50],
+                        'color' => $colors[$rec->id % countR($colors)],
                         'hint' => $rec->title,
                         'url' => $flagUrl,
                         'progress' => $rec->progress
@@ -2639,9 +2639,11 @@ class cal_Tasks extends embed_Manager
     public static function getNextGanttType($ganttType)
     {
         $currUrl = getCurrentUrl();
-        
-        // текущия ни гант тайп
-        $ganttType = Request::get('View');
+
+        $prevUrl = $nextUrl = null;
+        if (!isset(self::$view[$ganttType])) {
+            $ganttType = 'WeekDay';
+        }
         
         // намираме го в масива
         $curIndex = self::$view[$ganttType];
@@ -2683,6 +2685,9 @@ class cal_Tasks extends embed_Manager
         date_default_timezone_set('UTC');
         
         $ganttType = Request::get('View');
+        if (!isset(self::$view[$ganttType])) {
+            $ganttType = self::getGanttTimeType($data);
+        }
         
         $url = self::getNextGanttType($ganttType);
         
@@ -2705,7 +2710,7 @@ class cal_Tasks extends embed_Manager
         
         $imgPlus = ht::createElement('img', array('src' => $iconPlus));
         $imgMinus = ht::createElement('img', array('src' => $iconMinus));
-        $otherParams = $headerInfo = $res = array();
+        $otherParams = $headerInfo = $res = $subInfo = array();
         
         switch ($ganttType) {
         
@@ -3025,6 +3030,7 @@ class cal_Tasks extends embed_Manager
     public static function calcTasksMinStartMaxEndTime($data)
     {
         $start = $end = array();
+        $timeStart = $timeEnd = null;
         if (is_object($data) && !empty($data->recs)) {
             $data = $data->recs;
         }
@@ -3048,18 +3054,17 @@ class cal_Tasks extends embed_Manager
                     // правим 2 масива с начални и крайни часове
                     if ($timeStart) {
                         $start[] = dt::mysql2timestamp($timeStart);
-                        $end[] = dt::mysql2timestamp($timeEnd);
+                        $end[] = dt::mysql2timestamp($timeEnd ?: $timeStart);
                     }
                 }
             }
         }
         
-        if (countR($start) >= 2 && countR($end) >= 2) {
+        if (countR($start) && countR($end)) {
             $startTime = min($start);
             $endTime = max($end);
         } else {
-            $startTime = dt::mysql2timestamp($timeStart);
-            $endTime = dt::mysql2timestamp($timeEnd);
+            $startTime = $endTime = dt::mysql2timestamp(dt::now());
         }
         
         return (object) array('minStartTaskTime' => $startTime, 'maxEndTaskTime' => $endTime);
