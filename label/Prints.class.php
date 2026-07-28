@@ -1142,9 +1142,8 @@ class label_Prints extends core_Master
         $printCntField = label_TemplateFormats::getPlaceholderFieldName('Общо_етикети');
         $currPrintCntField = label_TemplateFormats::getPlaceholderFieldName('Текущ_етикет');
         $currPageCntField = label_TemplateFormats::getPlaceholderFieldName('Страница');
-        
-        setIfNot($itemsPerPage, $data->pageLayout->itemsPerPage, 1);
-        
+        $itemsPerPage = $data->pageLayout->itemsPerPage ?? 1;
+
         $rowId = 0;
         $perPageCnt = 1;
         
