@@ -243,7 +243,7 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
             $rec->price = deals_Helper::getPurePrice($rec->price, $vat, $masterRec->currencyRate, $masterRec->chargeVat);
 
             // При редакция, ако е променена опаковката слагаме преудпреждение
-            if ($rec->id) {
+            if (!empty($rec->id)) {
                 $oldRec = $mvc->fetch($rec->id);
                 if ($oldRec && $rec->packagingId != $oldRec->packagingId && !empty($rec->packPrice) && trim($rec->packPrice) == trim($oldRec->packPrice)) {
                     $form->setWarning('packPrice,packagingId', 'Опаковката е променена без да е променена цената|*.<br />|Сигурни ли сте, че зададената цена отговаря на новата опаковка|*?');

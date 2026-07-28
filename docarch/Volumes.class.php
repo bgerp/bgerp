@@ -168,7 +168,7 @@ class docarch_Volumes extends core_Master
         $currentUser = core_Users::getCurrent();
         $form->setDefault('inCharge', "{$currentUser}");
         
-        if ($rec->id) {
+        if (!empty($rec->id)) {
             $rec->_isCreated = true;
             
             $mQuery = docarch_Movements::getQuery();
@@ -447,7 +447,7 @@ class docarch_Volumes extends core_Master
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         //Тома  може да бъде изтрит ако е празен
-        if ($rec->id && $action == 'delete') {
+        if (!empty($rec->id) && $action == 'delete') {
             if (!is_null($rec->docCnt)) {
                 if (($rec->docCnt != 0)) {
                     $requiredRoles = 'no_one' ;
@@ -461,7 +461,7 @@ class docarch_Volumes extends core_Master
         }
         
         //Reject = Унищожаване
-        if ($rec->id && $action == 'reject') {
+        if (!empty($rec->id) && $action == 'reject') {
             $storageTimeMarker = true;
             
             $now = dt::now();
@@ -520,13 +520,13 @@ class docarch_Volumes extends core_Master
             }
         }
         
-        if ($rec->id && $action == 'edit') {
+        if (!empty($rec->id) && $action == 'edit') {
             if (($rec->state == 'closed')) {
                 $requiredRoles = 'no_one' ;
             }
         }
         
-        if ($rec->id && (
+        if (!empty($rec->id) && (
             $action == 'delete' ||
                          $action == 'reject' ||
                          $action == 'edit' ||

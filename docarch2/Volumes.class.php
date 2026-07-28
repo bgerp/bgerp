@@ -361,22 +361,22 @@ class docarch2_Volumes extends core_Master
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         //Тома не може да бъде изтрит ако е празен
-        if ($rec->id && $action == 'delete') {
+        if (!empty($rec->id) && $action == 'delete') {
             $requiredRoles = 'no_one' ;
         }
         
         //Reject = Унищожаване
-        if ($rec->id && $action == 'reject') {
+        if (!empty($rec->id) && $action == 'reject') {
             $requiredRoles = 'no_one' ;
         }
         
-        if ($rec->id && $action == 'edit') {
+        if (!empty($rec->id) && $action == 'edit') {
             if (($rec->state == 'closed')) {
                 $requiredRoles = 'no_one' ;
             }
         }
         
-        if ($rec->id && (
+        if (!empty($rec->id) && (
                          $action == 'delete' ||
                          $action == 'reject' ||
                          $action == 'edit' ||

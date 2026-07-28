@@ -888,7 +888,7 @@ class cms_Articles extends core_Master
      */
     protected static function on_BeforeSave($mvc, &$res, $rec, $fields = null, $mode = null)
     {
-        if ($rec->id && $rec->level) {
+        if (!empty($rec->id) && $rec->level) {
             $exRec = self::fetch($rec->id);
             
             $exRec->level = self::trim3zeros($exRec->level);

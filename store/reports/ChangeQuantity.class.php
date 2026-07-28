@@ -62,7 +62,7 @@ class store_reports_ChangeQuantity extends frame2_driver_TableData
         $rec = $form->rec;
         
         
-        if ($rec->id) {
+        if (!empty($rec->id)) {
             $form->setReadOnly('storeId');
         }
     }

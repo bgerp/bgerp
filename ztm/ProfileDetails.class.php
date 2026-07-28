@@ -128,7 +128,7 @@ class ztm_ProfileDetails extends core_Detail
     {
         $rec->value = ztm_Registers::recordValue($rec->registerId, $rec->extValue);
         
-        if ($rec->id) {
+        if (!empty($rec->id)) {
             $oRec = $mvc->fetch($rec->id);
             
             // Ако променяме стойността

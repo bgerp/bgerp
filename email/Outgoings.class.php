@@ -1465,7 +1465,7 @@ class email_Outgoings extends core_Master
         }
         
         // Ако има id
-        if ($rec->id) {
+        if (!empty($rec->id)) {
             
             // Вземаме целия запис
             $nRec = $mvc->fetch($rec->id);

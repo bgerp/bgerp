@@ -220,7 +220,7 @@ class hr_FormCv extends core_Master
         
         $form->setDefault('country', drdata_Countries::getIdByName('bul'));
         
-        if ($rec->id) {
+        if (!empty($rec->id)) {
             $exRec = $mvc->fetch($rec->id);
         } else {
             $exRec = $rec;

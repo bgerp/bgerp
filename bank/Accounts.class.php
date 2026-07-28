@@ -194,7 +194,7 @@ class bank_Accounts extends core_Master
     {
         $rec = $form->rec;
         $contragentRec = cls::get($rec->contragentCls)->fetch($rec->contragentId);
-        if (!$rec->id) {
+        if (empty($rec->id)) {
             // По подразбиране, валутата е тази, която е в обръщение в страната на контрагента
             if ($contragentRec->country) {
                 $countryRec = drdata_Countries::fetch($contragentRec->country);

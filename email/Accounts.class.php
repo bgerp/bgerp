@@ -518,7 +518,7 @@ class email_Accounts extends core_Master
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         if ($action == 'delete') {
-            if ($rec->id) {
+            if (!empty($rec->id)) {
                 if (email_Inboxes::fetch("#accountId = {$rec->id}")) {
                     $requiredRoles = 'no_one';
                 }
@@ -535,7 +535,7 @@ class email_Accounts extends core_Master
         // Вдигаме флаг, да се създаде корпоративен имейл на всички потребители с определена роля
         // Ако се добавя активна корпоративна сметка или се сменя домейна
         if (($rec->type == 'corporate') && ($rec->state == 'active')) {
-            if (!$rec->id) {
+            if (empty($rec->id)) {
                 $rec->AddCorporateEmail = true;
             } else {
                 $oCAcc = $mvc->getCorporateAcc();

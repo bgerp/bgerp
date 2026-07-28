@@ -985,7 +985,7 @@ class doc_FolderPlg extends core_Plugin
             // Ако след записа няма да имаме достъп до корицата слагаме предупреждение
             if (!doc_Folders::haveRightToObject($rec)) {
                 $prevHaveRight = true;
-                if ($rec->id) {
+                if (!empty($rec->id)) {
                     $oRec = $mvc->fetch($rec->id);
                     $prevHaveRight = doc_Folders::haveRightToObject($oRec);
                 }
@@ -997,7 +997,7 @@ class doc_FolderPlg extends core_Plugin
         }
         
         if ($form->isSubmitted()) {
-            if ($rec->id) {
+            if (!empty($rec->id)) {
                 $oRec = $mvc->fetch($form->rec->id);
                 $rec->__mustNotify = true;
                 $rec->__oShared = $oRec->shared;

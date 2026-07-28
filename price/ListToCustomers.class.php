@@ -138,7 +138,7 @@ class price_ListToCustomers extends core_Manager
     {
         $rec = $data->form->rec;
         
-        if (!$rec->id) {
+        if (empty($rec->id)) {
             $rec->validFrom = Mode::get('PRICE_VALID_FROM');
         }
         

@@ -173,7 +173,7 @@ class label_Labels extends core_Master
         $readOnlyArr = $dataArr = $rec->params;
         
         // Ако формата не е субмитната и не я редактираме
-        if (!$rec->id) {
+        if (empty($rec->id)) {
             // id на шаблона
             $templateId = Request::get('templateId', 'int');
             $lang = label_Templates::fetchField($templateId, 'lang');

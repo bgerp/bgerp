@@ -295,7 +295,7 @@ class blast_Letters extends core_Master
         $rec = $data->form->rec;
         
         // Ако създаваме нов
-        if (!$rec->id) {
+            if (empty($rec->id)) {
             
             //Слага state = draft по подразбиране при нов запис
             $form->setDefault('state', 'draft');

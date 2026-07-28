@@ -407,7 +407,7 @@ class price_Lists extends core_Master
         $form->setDefault('currency', acc_Periods::getBaseCurrencyCode());
         
         // За политиката себестойност, скриваме определени полета
-        if ($rec->id == price_ListRules::PRICE_LIST_COST) {
+        if (($rec->id ?? null) == price_ListRules::PRICE_LIST_COST) {
             foreach (array('parent', 'public', 'discountCompared', 'defaultSurcharge', 'minSurcharge', 'maxSurcharge') as $fld) {
                 $form->setField($fld, 'input=hidden');
             }

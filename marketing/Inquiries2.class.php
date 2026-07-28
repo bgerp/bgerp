@@ -1508,7 +1508,7 @@ class marketing_Inquiries2 extends embed_Manager
     protected static function on_BeforeSave($mvc, &$id, $rec, $fields = null, $mode = null)
     {
         // Допълваме данните само при създаване
-        if ($rec->id) {
+        if (!empty($rec->id)) {
             
             return;
         }

@@ -2154,7 +2154,7 @@ class fileman_Files extends core_Master
                 
                 $rec->fileHnd = str::getRand(fileman_Setup::get('HANDLER_PTR'));
             } while ($mvc->fetch("#fileHnd = '{$rec->fileHnd}'"));
-        } elseif (!$rec->id && $rec->fileHnd) {
+        } elseif (empty($rec->id) && $rec->fileHnd) {
             $existingRec = $mvc->fetch(array("#fileHnd = '[#1#]'", $rec->fileHnd));
             
             if ($existingRec) {
