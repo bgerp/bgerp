@@ -181,13 +181,13 @@ class expert_Expert extends core_FieldSet
             $this->Cmd = Request::get('Cmd');
             
             if (is_array($this->Cmd)) {
-                if ($this->Cmd['back']) {
+                if (!empty($this->Cmd['back'])) {
                     $this->Cmd = 'back';
-                } elseif ($this->Cmd['cancel']) {
+                } elseif (!empty($this->Cmd['cancel'])) {
                     $this->Cmd = 'cancel';
-                } elseif ($this->Cmd['next']) {
+                } elseif (!empty($this->Cmd['next'])) {
                     $this->Cmd = 'next';
-                } elseif ($this->Cmd['default']) {
+                } elseif (!empty($this->Cmd['default'])) {
                     $this->Cmd = 'next';
                 }
             }
