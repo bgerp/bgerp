@@ -104,7 +104,7 @@ abstract class rack_MovementAbstract extends core_Manager
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-        $makeLinks = !($fields['-inline'] && !isset($fields['-inline-single']));
+        $makeLinks = !(!empty($fields['-inline']) && !isset($fields['-inline-single']));
         if (!empty($rec->note)) {
             $row->note = "<div style='font-size:0.8em;'>{$row->note}</div>";
         }
