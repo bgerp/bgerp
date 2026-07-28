@@ -230,13 +230,14 @@ class hr_FormCv extends core_Master
         
         $form->input('typeOfPosition');
         
-        if ($exRec->typeOfPosition) {
+        if (!empty($exRec->typeOfPosition)) {
             $options = hr_WorkPreff::getOptionsForChoice();
             
             if (is_array($options)) {
                 foreach ($options as $v) {
                     if (in_array($exRec->typeOfPosition, $v->typeOfPosition)) {
                         if ($v->type == 'enum') {
+                            $parts = '';
                             foreach ($v->parts as $k => $venum) {
                                 $parts .= $k.'='.$venum.',' ;
                             }
@@ -246,12 +247,13 @@ class hr_FormCv extends core_Master
                             
                             $form->FLD("workpreff_{$v->id}", "enum({$parts})", "caption={$v->name},maxRadio={$v->count},columns=3,input");
                             
-                            $form->setDefault("workpreff_{$v->id}", $exRec->workpreff[$v->id]->value);
+                            $form->setDefault("workpreff_{$v->id}", $exRec->workpreff[$v->id]->value ?? null);
                             
                             unset($parts);
                         }
                         
                         if ($v->type == 'set') {
+                            $parts = '';
                             foreach ($v->parts as $k => $vset) {
                                 $parts .= $k.'='.$vset.',' ;
                             }
@@ -262,7 +264,7 @@ class hr_FormCv extends core_Master
                             $form->FLD("workpreff_{$v->id}", "set({$parts})", "caption ={$v->name},input");
                             
                             
-                            $form->setDefault("workpreff_{$v->id}", $exRec->workpreff[$v->id]->value);
+                            $form->setDefault("workpreff_{$v->id}", $exRec->workpreff[$v->id]->value ?? null);
                             
                             unset($parts);
                         }

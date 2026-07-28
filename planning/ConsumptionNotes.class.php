@@ -246,13 +246,13 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
     {
         $rec = &$form->rec;
         if($form->isSubmitted()){
-            if($rec->state == 'draft' || empty($rec->state)){
-                if(is_array($rec->_inputStores) && countR($rec->_inputStores)){
+            $state = $rec->state ?? null;
+            if($state == 'draft' || empty($state)){
+                $inputStores = $rec->_inputStores ?? null;
+                if(is_array($inputStores) && countR($inputStores)){
                     if(empty($rec->storeId)){
-                        if(countR($rec->_inputStores)){
-                            $form->setWarning('storeId', 'Не е избран склад при очакван такъв по Задание|*!');
-                        }
-                    } elseif(!in_array($rec->storeId, $rec->_inputStores)) {
+                        $form->setWarning('storeId', 'Не е избран склад при очакван такъв по Задание|*!');
+                    } elseif(!in_array($rec->storeId, $inputStores)) {
                         $form->setWarning('storeId', 'Избраният склад не е от очакваните по Задание|*!');
                     }
                 }
