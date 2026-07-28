@@ -697,7 +697,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 
             $productRec = cat_Products::fetch($rec->productId, 'measureId');
             $shortUom = cat_UoM::getShortName($productRec->measureId);
-            $row->quantity .= " {$shortUom}";
+            $row->quantity = ($row->quantity ?? $mvc->getVerbal($rec, 'quantity')) . " {$shortUom}";
 
             if (isset($rec->debitAmount)) {
                 $row->debitAmount = currency_Currencies::decorate($row->debitAmount, null, true);
