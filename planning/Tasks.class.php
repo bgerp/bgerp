@@ -3597,7 +3597,7 @@ class planning_Tasks extends core_Master
             // За всяка ПО ако има
             foreach($data->rows as $id => $row){
                 $rec = $data->recs[$id];
-                if(is_array($rec->gapData)){
+                if (!empty($rec->gapData) && is_array($rec->gapData)) {
                     $row->gaps = "<ul class='gapList'>";
                     foreach ($rec->gapData as $gapArr){
                         $caption = $gapArr['type'] == 'idle' ? tr('Престой') : tr('Почивка');

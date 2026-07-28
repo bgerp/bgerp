@@ -99,7 +99,7 @@ class sales_ProductRelations extends core_Manager
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-        if(is_array($rec->data)) {
+        if (!empty($rec->data) && is_array($rec->data)) {
             $row->data = '';
             foreach($rec->data as $productId => $weight) {
                 $row->data .= "<li>" . cat_Products::getTitleById($productId) . ' - ' . $weight . "</li>";

@@ -434,7 +434,7 @@ class eshop_Products extends core_Master
         $row->groupId = eshop_Groups::getHyperlink($rec->groupId, true);
         $row->domainId = cms_Domains::getHyperlink($rec->domainId, true);
         
-        if (is_array($rec->nearProducts)) {
+        if (!empty($rec->nearProducts) && is_array($rec->nearProducts)) {
             if (isset($fields['-external'])) {
                 $row->nearRows = $mvc->prepareNearProducts($rec);
             } else {

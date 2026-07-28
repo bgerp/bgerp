@@ -377,7 +377,7 @@ class hr_FormCv extends core_Master
         
         $prepare = '';
         
-        if (is_array($rec->workpreff)) {
+        if (!empty($rec->workpreff) && is_array($rec->workpreff)) {
             foreach ($rec->workpreff as $k => $v) {
                 $printChoice = '';
                 

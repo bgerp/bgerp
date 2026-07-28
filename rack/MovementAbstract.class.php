@@ -188,7 +188,7 @@ abstract class rack_MovementAbstract extends core_Manager
 
         $class = '';
         if ($palletId = cat_UoM::fetchBySinonim('pallet')->id) {
-            if(is_array($rec->packagings)){
+            if (!empty($rec->packagings) && is_array($rec->packagings)) {
                 $palletRecs = array_filter($rec->packagings, function($a) use ($palletId){
                     return $a['packagingId'] == $palletId;
                 });
@@ -243,7 +243,7 @@ abstract class rack_MovementAbstract extends core_Manager
         foreach ($quantities as $k => $a){
             if(empty($a->quantity) && $k == 'from') continue;
 
-            if(is_array($rec->packagings)){
+            if (!empty($rec->packagings) && is_array($rec->packagings)) {
                 $convertedQuantity = static::getSmartPackagings($rec->productId, $rec->packagings, $a->quantity, $rec->packagingId);
                 if(isset($convertedQuantity)){
                     $movementArr[$k] = "{$a->position} (<span {$a->class}>{$convertedQuantity}</span>)";

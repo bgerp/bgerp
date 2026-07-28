@@ -172,7 +172,7 @@ class trans_Cmrs extends trans_abstract_ShipmentDocument
     protected static function on_AfterRead($mvc, $rec)
     {
         // Разпъване на компресираните полета
-        if (is_array($rec->goodsData)) {
+        if (!empty($rec->goodsData) && is_array($rec->goodsData)) {
             foreach ($rec->goodsData as $field => $value) {
                 $rec->{$field} = $value;
             }
@@ -448,7 +448,7 @@ class trans_Cmrs extends trans_abstract_ShipmentDocument
         if (isset($fields['-single'])) {
             
             // Вербализиранре на компресираните полета
-            if (is_array($rec->goodsData)) {
+            if (!empty($rec->goodsData) && is_array($rec->goodsData)) {
                 foreach ($rec->goodsData as $field => $value) {
                     if (isset($value)) {
                         $row->{$field} = core_Type::getByName('varchar')->toVerbal($value);

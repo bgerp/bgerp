@@ -174,7 +174,7 @@ class bgerp_plg_CsvExport extends core_BaseClass
         
         $fieldsArr = arr::make($filter->fields, true);
 
-        if ($fieldsArr['ExternalLink'] && $recs) {
+        if (!empty($fieldsArr['ExternalLink']) && $recs) {
             $this->prepareExternalLink($recs);
         }
 

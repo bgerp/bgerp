@@ -1510,7 +1510,7 @@ class planning_Jobs extends core_Master
 
         // Подготвяме данните на историята за показване
         $row->history = array();
-        if (is_array($rec->history)) {
+        if (!empty($rec->history) && is_array($rec->history)) {
             foreach ($rec->history as $historyRec) {
                 $historyRec['action'] = tr($historyRec['action']);
                 
