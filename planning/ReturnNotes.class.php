@@ -186,7 +186,7 @@ class planning_ReturnNotes extends deals_ManifactureMaster
     public function getDetailsToCloneAndChange_($rec)
     {
         $Detail = cls::get($this->mainDetail);
-        $id = $rec->clonedFromId;
+        $id = $rec->clonedFromId ?? null;
 
         $additionalWhereClause = '';
         if (isset($rec->originId) && empty($rec->id)) {
