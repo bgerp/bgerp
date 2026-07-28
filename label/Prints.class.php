@@ -339,10 +339,10 @@ class label_Prints extends core_Master
 
             // При редакция да се попълват стойностите
             if (!empty($rec->id)) {
-                foreach ((array) $rec->params as $fieldName => $val) {
-                    if (!$labelDataArr[$fieldName]) {
+                foreach ((array) ($rec->params ?? array()) as $fieldName => $val) {
+                    if (empty($labelDataArr[$fieldName])) {
                         $fieldName = label_TemplateFormats::getPlaceholderFieldName($fieldName);
-                        if (!$labelDataArr[$fieldName]) {
+                        if (empty($labelDataArr[$fieldName])) {
                             $labelDataArr[$fieldName] = new stdClass;
                         }
                     }
@@ -358,27 +358,28 @@ class label_Prints extends core_Master
             // Обхождаме масива
             foreach ((array) $labelDataArr as $fieldName => $v) {
                 $fieldName = label_TemplateFormats::getPlaceholderFieldName($fieldName);
-                if(is_array($v->suggestions) && countR($v->suggestions)){
+                if (!empty($v->suggestions) && is_array($v->suggestions)) {
                     $form->setSuggestions($fieldName, $v->suggestions);
                 }
 
-                if (!$form->fields[$fieldName]) {
+                if (empty($form->fields[$fieldName])) {
                     continue;
                 }
 
                 if (!$form->cmd || $form->cmd == 'refresh') {
                     // Добавяме данните от записите
-                    $rec->{$fieldName} = $v->example;
-                    Request::push(array($fieldName => $v->example));
+                    $example = $v->example ?? null;
+                    $rec->{$fieldName} = $example;
+                    Request::push(array($fieldName => $example));
                 }
                 
-                if ($v->hidden) {
+                if (!empty($v->hidden)) {
                     $form->setField($fieldName, 'input=hidden');
-                } elseif ($v->readonly) {
+                } elseif (!empty($v->readonly)) {
                     $form->setReadonly($fieldName);
                 }
 
-                if($v->recently){
+                if (!empty($v->recently)) {
                     $form->setField($fieldName, 'recently');
                 }
             }
