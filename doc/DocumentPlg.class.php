@@ -702,8 +702,8 @@ class doc_DocumentPlg extends core_Plugin
             }
             
             // Ако документа е скрит и е оттеглен, показваме от кого
-            if (doc_HiddenContainers::isHidden($rec->containerId)) {
-                if ($rec->state == 'rejected') {
+            if (doc_HiddenContainers::isHidden($rec->containerId ?? null)) {
+                if ($state == 'rejected') {
                     $tpl = new ET(tr('|* |от|* [#user#] |на|* [#date#]'));
                     $row->state .= $tpl->placeArray(array('user' => crm_Profiles::createLink($rec->modifiedBy), 'date' => dt::mysql2Verbal($rec->modifiedOn)));
                 }
@@ -867,6 +867,10 @@ class doc_DocumentPlg extends core_Plugin
     public static function on_AfterSave($mvc, &$id, $rec, $fields = null)
     {
         $fields = arr::make($fields, true);
+        $rec->id = $rec->id ?? $id;
+        if (!isset($rec->state)) {
+            $rec->state = $mvc->fetchField($rec->id, 'state');
+        }
 
         setPartIfNot($mvc, 'saveFileArr', array());
         $mvc->saveFileArr[$rec->id] = $rec;
@@ -1000,9 +1004,9 @@ class doc_DocumentPlg extends core_Plugin
 
                         if ($settingsNotifyArr) {
                             foreach ($settingsNotifyArr as $userId => $uConfArr) {
-                                if ($uConfArr[$pName] == 'no') {
+                                if (($uConfArr[$pName] ?? null) == 'no') {
                                     unset($notifyArr[$userId]);
-                                } elseif ($uConfArr[$pName] == 'yes') {
+                                } elseif (($uConfArr[$pName] ?? null) == 'yes') {
                                     if ($mvc->haveRightFor('single', $rec, $userId)) {
                                         $notifyArr[$userId] = $userId;
                                     }
@@ -1014,9 +1018,9 @@ class doc_DocumentPlg extends core_Plugin
                         $fKey = doc_Folders::getSettingsKey($rec->folderId);
                         $newPendingNotifications = core_Settings::fetchUsers($fKey, 'newPending');
                         foreach ((array) $newPendingNotifications as $userId => $newPending) {
-                            if ($newPending['newPending'] == 'no') {
+                            if (($newPending['newPending'] ?? null) == 'no') {
                                 unset($notifyArr[$userId]);
-                            } elseif ($newPending['newPending'] == 'yes') {
+                            } elseif (($newPending['newPending'] ?? null) == 'yes') {
                                 // Може да е абониран, но да няма права
                                 if ($mvc->haveRightFor('single', $rec, $userId)) {
                                     $notifyArr[$userId] = $userId;
@@ -1034,7 +1038,7 @@ class doc_DocumentPlg extends core_Plugin
                     $currUserNick = type_Nick::normalize($currUserNick);
                     
                     $docRow = $mvc->getDocumentRow($rec->id);
-                    $docTitle = $docRow->recTitle ? $docRow->recTitle : $docRow->title;
+                    $docTitle = !empty($docRow->recTitle) ? $docRow->recTitle : ($docRow->title ?? '');
                     $docTitle = strip_tags(str_replace('&nbsp;', ' ', $docTitle));
                     
                     $folderTitle = doc_Folders::getTitleById($rec->folderId, false);
@@ -1046,10 +1050,10 @@ class doc_DocumentPlg extends core_Plugin
                     $pSettingsNotifyArr = core_Settings::fetchUsers($pSettingsKey, $prop);
                     
                     foreach ($notifyArr as $uId) {
-                        $uSelArr = $pSettingsNotifyArr[$uId];
+                        $uSelArr = $pSettingsNotifyArr[$uId] ?? null;
                         
                         // Ако съответния потребител не иска да получава нотификация за документа, да не се праща
-                        if ($uSelArr && ($propValStr = $uSelArr[$prop]) && (type_Keylist::isIn($mvc->getClassId(), $propValStr))) {
+                        if ($uSelArr && ($propValStr = ($uSelArr[$prop] ?? null)) && (type_Keylist::isIn($mvc->getClassId(), $propValStr))) {
                             continue;
                         }
                         bgerp_Notifications::add($message, $urlArr, $uId);
