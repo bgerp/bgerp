@@ -2825,7 +2825,7 @@ class doc_DocumentPlg extends core_Plugin
                         
                         $cId = $rec->containerId;
                         
-                        if (!$cId && $rec->id) {
+                        if (!$cId && !empty($rec->id)) {
                             $cId = $mvc->fetchField($rec->id, 'containerId');
                         }
                         

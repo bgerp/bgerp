@@ -3729,7 +3729,7 @@ class email_Incomings extends core_Master
             $rec = $this->fetch($rec);
         }
 
-        if (!property_exists($rec, 'files') && $rec->id) {
+        if (!property_exists($rec, 'files') && !empty($rec->id)) {
             $cRec = $this->fetch($rec->id);
         } else {
             $cRec = clone $rec;

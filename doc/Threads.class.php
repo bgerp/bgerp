@@ -389,7 +389,7 @@ class doc_Threads extends core_Manager
                     
                     // Ако не може да се определи първия документ в нишката, изтриваме нишката
                     if (!$firstCid) {
-                        if ($rec->id) {
+                        if (!empty($rec->id)) {
                             self::delete($rec->id);
                             $resArr['del_cnt']++;
                             

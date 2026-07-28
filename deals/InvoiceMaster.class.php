@@ -357,7 +357,7 @@ abstract class deals_InvoiceMaster extends core_Master
     public static function on_BeforePrepareEditTitle($mvc, &$res, &$data)
     {
         $rec = &$data->form->rec;
-        if ($rec->type == 'dc_note') {
+        if (($rec->type ?? null) == 'dc_note') {
             $data->singleTitle = (($rec->dealValue ?? 0) <= 0) ? 'кредитно известие' : 'дебитно известие';
         } else {
             $data->singleTitle = $mvc->singleTitle;
@@ -1487,7 +1487,7 @@ abstract class deals_InvoiceMaster extends core_Master
     {
         $row->rate = ($rec->displayRate) ? $mvc->getFieldType('rate')->toVerbal($rec->displayRate) : $row->rate;
         
-        if ($rec->type == 'dc_note') {
+        if (($rec->type ?? null) == 'dc_note') {
             core_Lg::push($rec->tplLang);
             $row->type = ($rec->dealValue <= 0) ? tr('Кредитно известие') : tr('Дебитно известие');
             core_Lg::pop();

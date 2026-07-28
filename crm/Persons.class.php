@@ -2722,7 +2722,7 @@ class crm_Persons extends core_Master
         } else {
 
             // Ако има запис и имаме права admin
-            if ($rec->id && haveRole('admin') && $rec->state != 'rejected') {
+            if (!empty($rec->id) && haveRole('admin') && $rec->state != 'rejected') {
 
                 // sysId на групата
                 $crmId = crm_Groups::getIdFromSysId('users');

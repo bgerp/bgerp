@@ -500,7 +500,7 @@ class bgerp_Menu extends core_Manager
                 $res .= "<li class='debug-info'>Без промяна на елемента на менюто <b>{$rec->menu} » {$rec->subMenu}</b></li>\n";
             }
         } else {
-            if ($rec->id) {
+            if (!empty($rec->id)) {
                 $res .= "<li class='debug-new'>Създаване елемент на менюто <b>{$rec->menu} » {$rec->subMenu}</b></li>";
             }
         }

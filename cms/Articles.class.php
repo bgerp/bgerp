@@ -324,7 +324,7 @@ class cms_Articles extends core_Master
         }
         
         
-        if ($rec && $rec->id) {
+        if ($rec && !empty($rec->id)) {
             if (core_Packs::fetch("#name = 'vislog'")) {
                 vislog_History::add($rec->title);
             }

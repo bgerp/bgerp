@@ -531,7 +531,7 @@ class core_Cron extends core_Manager
      */
     public function unlockProcess($rec)
     {
-        if (!$rec || !$rec->id) {
+        if (!$rec || empty($rec->id)) {
             
             return ;
         }

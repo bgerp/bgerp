@@ -2684,7 +2684,7 @@ class doc_Containers extends core_Manager
                     $rec->docId = $docId;
                     self::save($rec, 'docId');
                 } else {
-                    if ($rec->id) {
+                    if (!empty($rec->id)) {
                         
                         // Ако не може да се намери съответен документ, изтриваме го
                         if (self::delete($rec->id)) {

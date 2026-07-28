@@ -246,20 +246,20 @@ class docarch2_Volumes extends core_Master
         //Включване на том в по-голям
         $possibleVolArr = self::getVolumePossibleForInclude($rec);
 
-        if ($rec->id && is_null($rec->parentId) && $rec->state != 'closed'  && !empty($possibleVolArr)) {
+        if (!empty($rec->id) && is_null($rec->parentId) && $rec->state != 'closed'  && !empty($possibleVolArr)) {
             $data->toolbar->addBtn('Включване', array('docarch2_Movements','VolIn',$rec->id,'ret_url' => true));
         }
 
         //Изключване на том от по-голям
         
-        if ($rec->id && !is_null($rec->parentId) && $rec->state != 'closed') {
+        if (!empty($rec->id) && !is_null($rec->parentId) && $rec->state != 'closed') {
             $data->toolbar->addBtn('Изключване', array('docarch2_Movements','VolOut',$rec->id,'ret_url' => true));
         }
 
         //Преместване на том
 
         $condArr = self::getVolumePossibleForInclude($rec);
-        if ($rec->id && !is_null($rec->parentId) && $rec->state != 'closed' && !empty($condArr)) {
+        if (!empty($rec->id) && !is_null($rec->parentId) && $rec->state != 'closed' && !empty($condArr)) {
             $data->toolbar->addBtn('Преместване', array('docarch2_Movements','VolRelocation',$rec->id,'ret_url' => true));
         }
     }

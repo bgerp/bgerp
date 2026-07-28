@@ -393,7 +393,7 @@ class distro_Group extends core_Master
         
         $title = trim($title);
         
-        if (!$haveAbbr && $rec->id) {
+        if (!$haveAbbr && !empty($rec->id)) {
             $subDir = self::getHandle($rec->id) . ' - ' . $title;
         } else {
             $subDir = $title;

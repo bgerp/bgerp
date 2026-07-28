@@ -1382,7 +1382,7 @@ class cal_Tasks extends embed_Manager
         }
         
         if ($action == 'edit') {
-            if (is_object($rec) && $rec->id) {
+            if (is_object($rec) && !empty($rec->id)) {
                 if (!cal_Tasks::haveRightFor('single', $rec)) {
                     $requiredRoles = 'no_one';
                 }
@@ -3197,7 +3197,7 @@ class cal_Tasks extends embed_Manager
             } else {
                 $calcTime = $rec->timeStart;
             }
-        } elseif (!$rec->timeStart && !$rec->id) {
+        } elseif (!$rec->timeStart && empty($rec->id)) {
             $calcTime = $now;
         }
         

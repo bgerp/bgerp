@@ -633,7 +633,7 @@ class sens2_Controllers extends core_Master
         }
         
         // Записване стойността в индикаторите
-        if ($rec->id && $portName) {
+        if (!empty($rec->id) && $portName) {
             sens2_Indicators::setValue($rec->id, $portName, $value, dt::verbal2mysql());
         }
         

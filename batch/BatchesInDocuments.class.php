@@ -642,7 +642,7 @@ class batch_BatchesInDocuments extends core_Manager
             }
             Mode::pop('htmlEntity');
             $displayBatches = batch_Setup::get('COUNT_IN_EDIT_WINDOW');
-            $displayBatches = max($displayBatches, countR($exTableRec['batch']));
+            $displayBatches = max($displayBatches, countR($exTableRec['batch'] ?? array()));
             // Ако всички партиди са над разрешените показваме първите N
             if ($batchesCount > $displayBatches) {
                 $finalTableRec = $tableRec;

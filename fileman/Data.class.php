@@ -465,7 +465,7 @@ class fileman_Data extends core_Manager
     public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
         // При добавяне на нов файл, ако все още не са определени ключовите думи, да вкара поне името на файла
-        if (!trim($rec->searchKeywords) && $rec->id) {
+        if (!trim($rec->searchKeywords) && !empty($rec->id)) {
             $fNames = '';
             $fQuery = fileman_Files::getQuery();
             $fQuery->where(array("#dataId = '[#1#]'", $rec->id));
@@ -579,7 +579,7 @@ class fileman_Data extends core_Manager
         
         $path = self::getGoodFilePath($rec);
         
-        if ($create && ((!$rec->id) || !file_exists($path))) {
+        if ($create && (empty($rec->id) || !file_exists($path))) {
             if (@copy($file, $path)) {
                 $rec->links = 0;
                 $status = static::save($rec);
@@ -611,7 +611,7 @@ class fileman_Data extends core_Manager
         $rec->id = static::fetchField("#fileLen = {$rec->fileLen}  AND #md5 = '{$rec->md5}'", 'id');
         $path = self::getGoodFilePath($rec);
         
-        if ($create && ((!$rec->id) || !file_exists($path))) {
+        if ($create && (empty($rec->id) || !file_exists($path))) {
             expect(false !== @file_put_contents($path, $string), $path, $rec);
             
             $rec->links = 0;
