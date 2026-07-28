@@ -79,7 +79,7 @@ class cond_Parameters extends bgerp_ProtoParam
         );
         
         $cntObj = csv_Lib::importOnce($this, $file, $fields);
-        $res = $cntObj->html;
+        $res = $cntObj->html ?? '';
         
         return $res;
     }
@@ -111,7 +111,7 @@ class cond_Parameters extends bgerp_ProtoParam
         
         // Връщаме стойността ако има директен запис за условието
         $value = cond_ConditionsToCustomers::fetchByCustomer($Class, $cId, $condId);
-        if ($value) return $value;
+        if ($value !== null) return $value;
         
         // Търси се метод дефиниран за връщане на стойността на условието
         $method = "get{$conditionSysId}";
@@ -123,7 +123,8 @@ class cond_Parameters extends bgerp_ProtoParam
         $condQuery->where("#conditionId = {$condId}");
         $condQuery->orderBy('createdBy', 'ASC');
         while($condRec = $condQuery->fetch()){
-            $allConditions[$condRec->country] = $condRec;
+            $countryId = $condRec->country ?? '';
+            $allConditions[$countryId] = $condRec;
         }
 
         // Ако има поле за държава
@@ -131,7 +132,7 @@ class cond_Parameters extends bgerp_ProtoParam
         if (isset($countryFieldName)) {
 
             // Търси се имали дефинирано търговско условие за държавата на контрагента
-            $countryId = $cRec->{$countryFieldName};
+            $countryId = $cRec->{$countryFieldName} ?? null;
             if ($countryId) {
                 if(array_key_exists($countryId, $allConditions)) return $allConditions[$countryId]->value;
             }
