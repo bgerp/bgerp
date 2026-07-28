@@ -530,7 +530,8 @@ class planning_Centers extends core_Master
     {
         // Искаме състоянието на оттеглените чернови да се казва 'Анулиран'
         if ($part == 'name') {
-            if ($rec->id == self::UNDEFINED_ACTIVITY_CENTER_ID) {
+            $recId = is_object($rec) ? ($rec->id ?? null) : $rec;
+            if ($recId == self::UNDEFINED_ACTIVITY_CENTER_ID) {
                 $num = planning_Setup::get('UNDEFINED_CENTER_DISPLAY_NAME');
             }
         }
