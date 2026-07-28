@@ -102,20 +102,30 @@ class core_Embedder extends core_Master
     public function getDriver_($id)
     {
         $rec = $this->fetchRec($id);
-        $rec->{$this->innerClassField} = (!empty($rec->{$this->innerClassField})) ? $rec->{$this->innerClassField} : $this->fetchField($rec->id ?? null, $this->innerClassField);
+        $innerForm = $innerState = null;
+        $innerClass = $rec->{$this->innerClassField} ?? null;
+        if (empty($innerClass) && !empty($rec->id)) {
+            $innerClass = $this->fetchField($rec->id, $this->innerClassField);
+        }
+        if (empty($innerClass)) {
+
+            return false;
+        }
+        $rec->{$this->innerClassField} = $innerClass;
 
         if (!empty($rec->id)) {
             $innerForm = (isset($rec->{$this->innerFormField})) ? $rec->{$this->innerFormField} : $this->fetchField($rec->id, $this->innerFormField);
             $innerState = (isset($rec->{$this->innerStateField})) ? $rec->{$this->innerStateField} : $this->fetchField($rec->id, $this->innerStateField);
         }
-        
-        if (empty($this->Drivers[$rec->id])) {
+
+        $driverKey = $rec->id ?? "new_{$innerClass}";
+        if (empty($this->Drivers[$driverKey])) {
             // Извлича се името на класа от ид-то за да се подсигури че ще работи ако класа е деактивиран
-            $className = core_Classes::fetchField($rec->{$this->innerClassField}, 'name');
+            $className = core_Classes::fetchField($innerClass, 'name');
             if (cls::load($className, true)) {
                 $Driver = cls::get($className);
-                $Driver->EmbedderRec = new core_ObjectReference($this, $rec->id);
-                $this->Drivers[$rec->id] = $Driver;
+                $Driver->EmbedderRec = new core_ObjectReference($this, $rec->id ?? null);
+                $this->Drivers[$driverKey] = $Driver;
             } else {
                 
                 return false;
@@ -123,10 +133,10 @@ class core_Embedder extends core_Master
         }
         
         // За всеки случай задава наново вътрешното състояние и форма
-        $this->Drivers[$rec->id]->setInnerForm($innerForm);
-        $this->Drivers[$rec->id]->setInnerState($innerState);
+        $this->Drivers[$driverKey]->setInnerForm($innerForm);
+        $this->Drivers[$driverKey]->setInnerState($innerState);
         
-        return $this->Drivers[$rec->id];
+        return $this->Drivers[$driverKey];
     }
     
     
@@ -177,7 +187,8 @@ class core_Embedder extends core_Master
                 $form->setReadOnly($mvc->innerClassField);
             }
             
-            $filter = (is_object($rec->{$mvc->innerFormField})) ? clone $rec->{$mvc->innerFormField} : $rec->{$mvc->innerFormField};
+            $innerForm = $rec->{$mvc->innerFormField} ?? null;
+            $filter = is_object($innerForm) ? clone $innerForm : $innerForm;
             
             foreach ((array) $filter as $key => $value) {
                 if (empty($rec->{$key})) {
@@ -190,7 +201,7 @@ class core_Embedder extends core_Master
         }
         
         // Ако има източник инстанцираме го
-        if ($rec->{$mvc->innerClassField}) {
+        if (!empty($rec->{$mvc->innerClassField})) {
             if ($Driver = $mvc->getDriver($rec)) {
                 $fieldsBefore = arr::make(array_keys($form->selectFields()), true);
                 
@@ -225,7 +236,7 @@ class core_Embedder extends core_Master
      */
     public static function on_AfterInputEditForm($mvc, &$form)
     {
-        if ($form->rec->{$mvc->innerClassField}) {
+        if (!empty($form->rec->{$mvc->innerClassField})) {
             
             // Инстанцираме драйвера
             if ($Driver = $mvc->getDriver($form->rec)) {
@@ -293,6 +304,8 @@ class core_Embedder extends core_Master
             return;
         }
         $innerDrv = cls::get($innerClass);
+        $rec->{$mvc->innerStateField} = $rec->{$mvc->innerStateField} ?? null;
+        $rec->{$mvc->innerFormField} = $rec->{$mvc->innerFormField} ?? null;
         
         // Извикваме на драйвера събитие, той да се грижи за вътрешното си състояние
         if ($res = $innerDrv->invoke('BeforeSave', array(&$rec->{$mvc->innerStateField}, &$rec->{$mvc->innerFormField}, &$rec, $fields, $mode))) {
@@ -303,7 +316,7 @@ class core_Embedder extends core_Master
                 
                 // За всяко от тях присвояваме зададената стойност от вътрешното състояние на формата
                 foreach ($fieldsToManage as $fName) {
-                    $rec->$fName = $rec->{$mvc->innerFormField}->$fName;
+                    $rec->$fName = $rec->{$mvc->innerFormField}->{$fName} ?? null;
                 }
             }
         }
@@ -320,6 +333,8 @@ class core_Embedder extends core_Master
         $innerClass = (!empty($rec->{$mvc->innerClassField})) ? $rec->{$mvc->innerClassField} : $mvc->fetchField($rec->id ?? null, $mvc->innerClassField);
 
         $innerDrv = cls::get($innerClass);
+        $rec->{$mvc->innerStateField} = $rec->{$mvc->innerStateField} ?? null;
+        $rec->{$mvc->innerFormField} = $rec->{$mvc->innerFormField} ?? null;
         
         return $innerDrv->invoke('AfterSave', array(&$rec->{$mvc->innerStateField}, $rec->{$mvc->innerFormField}, &$rec, $fields, $mode));
     }
