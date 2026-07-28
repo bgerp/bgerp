@@ -126,7 +126,7 @@ class export_Llm extends core_Mvc
     public function getExternalExportLink($clsId, $objId, $mid)
     {
         Request::setProtected(array('objId', 'clsId', 'mid', 'typeCls'));
-        $link = ht::createLink('AI TXT', array('export_Export', 'exportInExternal', 'objId' => $objId, 'clsId' => $clsId, 'mid' => $mid, 'typeCls' => get_called_class(), 'ret_url' => true), null, array('class' => 'hideLink inlineLinks', 'ef_icon' => 'fileman/icons/16/txt.png', 'title' => 'Сваляне на документа като|* AI TXT|* файл'));
+        $link = ht::createLink('LLM TXT', array('export_Export', 'exportInExternal', 'objId' => $objId, 'clsId' => $clsId, 'mid' => $mid, 'typeCls' => get_called_class(), 'ret_url' => true), null, array('class' => 'hideLink inlineLinks', 'ef_icon' => 'fileman/icons/16/txt.png', 'title' => 'Сваляне на документа като|* AI TXT|* файл'));
 
         return $link;
     }
