@@ -1750,7 +1750,7 @@ class planning_Tasks extends core_Master
                     }
                 }
             } else {
-                $measureOptions = cat_Products::getPacks($rec->productId, $rec->measureId, true);
+                $measureOptions = cat_Products::getPacks($rec->productId, $rec->measureId ?? null, true);
             }
 
             $measuresCount = countR($measureOptions);
@@ -3597,7 +3597,7 @@ class planning_Tasks extends core_Master
             // За всяка ПО ако има
             foreach($data->rows as $id => $row){
                 $rec = $data->recs[$id];
-                if(is_array($rec->gapData)){
+                if (!empty($rec->gapData) && is_array($rec->gapData)) {
                     $row->gaps = "<ul class='gapList'>";
                     foreach ($rec->gapData as $gapArr){
                         $caption = $gapArr['type'] == 'idle' ? tr('Престой') : tr('Почивка');

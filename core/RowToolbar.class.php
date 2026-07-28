@@ -55,6 +55,7 @@ class core_RowToolbar extends core_BaseClass
         $btn->type = 'function';
         $btn->title = $title;
         $btn->fn = $function;
+        $btn->url = array();
 
         $this->add($btn, $params, $moreParams);
     }
@@ -66,6 +67,7 @@ class core_RowToolbar extends core_BaseClass
     public function add(&$btn, &$params, &$moreParams)
     {
         $params = arr::combine($params, $moreParams);
+        $btn->title = $btn->title ?? '';
         
         if (isset($params['warning'])) {
             $btn->warning = $params['warning'];
@@ -110,7 +112,7 @@ class core_RowToolbar extends core_BaseClass
      */
     public function renameLink($id, $name)
     {
-        expect($this->links[$id]);
+        expect(isset($this->links[$id]));
         $this->links[$id]->title = $name;
     }
     
@@ -148,7 +150,7 @@ class core_RowToolbar extends core_BaseClass
         
         $buttons = (isset($ids['*'])) ? $this->links : $ids;
         foreach ($buttons as $id => $btn) {
-            expect($this->links[$id]);
+            expect(isset($this->links[$id]));
             $this->links[$id]->warning = $warning;
         }
     }
@@ -167,7 +169,7 @@ class core_RowToolbar extends core_BaseClass
         
         $buttons = (isset($ids['*'])) ? $this->links : $ids;
         foreach ($buttons as $id => $btn) {
-            expect($this->links[$id]);
+            expect(isset($this->links[$id]));
             $this->links[$id]->error = $error;
         }
     }
@@ -207,10 +209,10 @@ class core_RowToolbar extends core_BaseClass
         if (countR($this->links) <= $showWithoutToolbar) {
             $layout = new core_ET('<span>[#ROW_TOOLS#]</span>');
             foreach ($this->links as $linkObj) {
-                setIfNot($linkObj->attr['hint'], $linkObj->title);
-
+                $attr = (array) ($linkObj->attr ?? array());
+                setIfNot($attr['hint'], $linkObj->title ?? '');
                 $btnTitle = '';
-                $attr = (array) $linkObj->attr;
+                $url = $linkObj->url ?? array();
 
                 if (isset($linkObj->fn)) {
                     $attr['onclick'] = $linkObj->fn;
@@ -226,7 +228,7 @@ class core_RowToolbar extends core_BaseClass
                         }
                     }
                 }
-                $btn = ht::createLink($btnTitle, $linkObj->url, tr(($linkObj->error ?? null) ?: ($linkObj->warning ?? null)), $attr);
+                $btn = ht::createLink($btnTitle, $url, tr(($linkObj->error ?? null) ?: ($linkObj->warning ?? null)), $attr);
 
                 $layout->append($btn, 'ROW_TOOLS');
             }
@@ -240,10 +242,11 @@ class core_RowToolbar extends core_BaseClass
             arr::sortObjects($this->links);
 
             foreach ($this->links as $id => $linkObj) {
-                $attr = $linkObj->attr;
+                $attr = (array) ($linkObj->attr ?? array());
+                $url = $linkObj->url ?? array();
                 ht::setUniqId($attr);
                 
-                $btnTitle = tr($linkObj->title);
+                $btnTitle = tr($linkObj->title ?? '');
                 if (empty($attr['alwaysShow'])) {
                     $placeholder = 'ROW_LINKS';
                 } else {
@@ -264,7 +267,7 @@ class core_RowToolbar extends core_BaseClass
                     $attr['onMouseLeave'] = "document.body.style.cursor = '';";
                 }
 
-                $link = ht::createLink($btnTitle, $linkObj->url, ($linkObj->error ?? null) ?: ($linkObj->warning ?? null), $attr);
+                $link = ht::createLink($btnTitle, $url, ($linkObj->error ?? null) ?: ($linkObj->warning ?? null), $attr);
                 $layout->append($link, $placeholder);
             }
             
@@ -301,7 +304,7 @@ class core_RowToolbar extends core_BaseClass
     public function replaceBtnUrl($id, $newUrl)
     {
         if ($this->haveButton($id)) {
-            if (is_array($this->links[$id]->url)) {
+            if (is_array($this->links[$id]->url ?? null)) {
                 expect(is_array($newUrl));
                 $this->links[$id]->url = $newUrl;
             }

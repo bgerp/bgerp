@@ -2004,7 +2004,7 @@ class crm_Persons extends core_Master
         $form = &$data->form;
 
         if (!empty($form->rec->buzCompanyId)) {
-            $form->title = core_Detail::getEditTitle('crm_Companies', $form->rec->buzCompanyId, 'представител', $form->rec->id);
+            $form->title = core_Detail::getEditTitle('crm_Companies', $form->rec->buzCompanyId, 'представител', $form->rec->id ?? null);
         }
     }
 
@@ -2509,7 +2509,7 @@ class crm_Persons extends core_Master
         }
 
         while ($similarRec = $nQuery->fetch()) {
-            if ($rec->id && ($similarRec->id == $rec->id)) {
+            if (!empty($rec->id) && ($similarRec->id == $rec->id)) {
                 continue;
             }
 
@@ -2525,7 +2525,7 @@ class crm_Persons extends core_Master
                 $eQuery->where((array("#egn LIKE '[#1#]'", $egnNumb)));
 
                 while ($similarRec = $eQuery->fetch()) {
-                    if ($rec->id && ($similarRec->id == $rec->id)) {
+                    if (!empty($rec->id) && ($similarRec->id == $rec->id)) {
                         continue;
                     }
 
@@ -2551,7 +2551,7 @@ class crm_Persons extends core_Master
                 }
 
                 while ($similarRec = $eQuery->fetch()) {
-                    if ($rec->id && ($similarRec->id == $rec->id)) {
+                    if (!empty($rec->id) && ($similarRec->id == $rec->id)) {
                         continue;
                     }
 
@@ -2722,7 +2722,7 @@ class crm_Persons extends core_Master
         } else {
 
             // Ако има запис и имаме права admin
-            if ($rec->id && haveRole('admin') && $rec->state != 'rejected') {
+            if (!empty($rec->id) && haveRole('admin') && $rec->state != 'rejected') {
 
                 // sysId на групата
                 $crmId = crm_Groups::getIdFromSysId('users');

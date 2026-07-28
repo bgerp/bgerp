@@ -157,7 +157,7 @@ class catering_Menu extends core_Master
             $data->filter = $data->listFilter->input();
             
             // Ако филтъра е задействан
-            if ($data->filter->dateFilter) {
+            if (!empty($data->filter->dateFilter)) {
                 $selectedWeekDay = $mvc->getRepeatDay($data->filter->dateFilter);
                 
                 // Избиране всички записи, които са за:

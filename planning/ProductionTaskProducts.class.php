@@ -167,7 +167,7 @@ class planning_ProductionTaskProducts extends core_Detail
         }
         
         if (isset($rec->productId)) {
-            $packs = cat_Products::getPacks($rec->productId, $rec->packagingId);
+            $packs = cat_Products::getPacks($rec->productId, $rec->packagingId ?? null);
             $form->setOptions('packagingId', $packs);
             $form->setDefault('packagingId', key($packs));
             

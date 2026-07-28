@@ -99,7 +99,7 @@
             <!--ET_BEGIN planningParamSimilarity-->
                 <tr>
                     <td class="gray-title aright" style="padding-right: 5px;">
-                        |Минимално съвпадение|*:
+                        |Автом. групиране - съвпадение над |*:
                     </td>
                     <td>[#planningParamSimilarity#]</td>
                 </tr>
@@ -107,7 +107,7 @@
             <!--ET_BEGIN planningParamGroupDays-->
                 <tr>
                     <td class="gray-title aright" style="padding-right: 5px;">
-                        |Период за автоматично групиране|*:
+                        |Автоматично групиране - период под|*:
                     </td>
                     <td>[#planningParamGroupDays#] |дни|*</td>
                 </tr>

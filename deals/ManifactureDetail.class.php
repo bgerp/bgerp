@@ -168,7 +168,7 @@ abstract class deals_ManifactureDetail extends doc_Detail
             $form->setDefault('measureId', $measureId);
             
             if(empty($form->_replaceProduct)){
-                $packs = cat_Products::getPacks($rec->productId, $rec->packagingId);
+                $packs = cat_Products::getPacks($rec->productId, $rec->packagingId ?? null);
 
                 // Ако е само една разрешената мярка да се зареди тя
                 if(isset($rec->_onlyAllowedPackId)){

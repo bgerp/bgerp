@@ -201,14 +201,19 @@ class sales_DeliveryData extends core_Manager
         $exRecs = $eQuery->fetchAll();
         $sync = arr::syncArrays($toSave, $exRecs, 'containerId', 'countryId,place,pCode,address,readiness');
 
-        core_Debug::log("GET GET_LOGISTIC_DATA " . round(core_Debug::$timers["GET_LOGISTIC_DATA"]->workingTime, 6));
-        core_Debug::log("GET GET_READY_SALE_PERCENTAGE " . round(core_Debug::$timers["GET_READY_SALE_PERCENTAGE"]->workingTime, 6));
-        core_Debug::log("GET GET_READY_EXP_PERCENTAGE " . round(core_Debug::$timers["GET_READY_EXP_PERCENTAGE"]->workingTime, 6));
-        core_Debug::log("GET GET_DEAL_DATA " . round(core_Debug::$timers["GET_DEAL_DATA"]->workingTime, 6));
-
-        core_Debug::log("GET GET_JOB_DATA " . round(core_Debug::$timers["GET_JOB_DATA"]->workingTime, 6));
-        core_Debug::log("GET GET_SALE_DETAIL_DATA " . round(core_Debug::$timers["GET_SALE_DETAIL_DATA"]->workingTime, 6));
-        core_Debug::log("GET GET_SALE_ENTRIES " . round(core_Debug::$timers["GET_SALE_ENTRIES"]->workingTime, 6));
+        $timerNames = array(
+            'GET_LOGISTIC_DATA',
+            'GET_READY_SALE_PERCENTAGE',
+            'GET_READY_EXP_PERCENTAGE',
+            'GET_DEAL_DATA',
+            'GET_JOB_DATA',
+            'GET_SALE_DETAIL_DATA',
+            'GET_SALE_ENTRIES',
+        );
+        foreach ($timerNames as $timerName) {
+            $workingTime = core_Debug::$timers[$timerName]->workingTime ?? 0;
+            core_Debug::log("GET {$timerName} " . round($workingTime, 6));
+        }
 
         // Добавят се новите записи
         if(countR($sync['insert'])){

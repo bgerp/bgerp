@@ -401,7 +401,7 @@ class cms_GalleryImages extends core_Manager
             // Ако няма запис
             if (!$rec) {
                 $rec = new stdClass();
-            } elseif ($rec->id) {
+            } elseif (!empty($rec->id)) {
                 
                 // Ако сме променили нещо при редактирането
                 if (($rec->title != $form->rec->imgTitle) || ($rec->groupId != $form->rec->imgGroupId) || ($rec->src != $form->rec->imgFile)) {

@@ -950,7 +950,10 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
         $tpl = $this->getReportLayoutTpl($rec);
         if(!($tpl instanceof core_ET)) return null;
 
-        $tpl->placeObject($data->row);
+        if (isset($data->row)) {
+            $tpl->placeObject($data->row);
+        }
+
         foreach ($data->rows as $row){
             if($row instanceof core_ET){
                 try{

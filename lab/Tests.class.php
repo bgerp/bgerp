@@ -570,14 +570,17 @@ class lab_Tests extends core_Master
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
+        $recId = is_object($rec) ? ($rec->id ?? null) : null;
+        $recState = is_object($rec) ? ($rec->state ?? null) : null;
+
         if ($action == 'activate') {
-            if (is_object($rec) && $rec->id) {
-                $haveDetail = is_object(lab_TestDetails::fetch("#testId = {$rec->id}"));
+            if ($recId) {
+                $haveDetail = is_object(lab_TestDetails::fetch("#testId = {$recId}"));
             } else {
                 $haveDetail = false;
             }
             
-            if (! is_object($rec) || ! $rec->id || $rec->state != 'pending' || ! $haveDetail) {
+            if (!$recId || $recState != 'pending' || !$haveDetail) {
                 $requiredRoles = 'no_one';
                 
                 return;
@@ -586,9 +589,9 @@ class lab_Tests extends core_Master
         
         if (is_object($rec)) {
             if ($action == 'compare') {
-                $haveOtherTests = is_object(lab_Tests::fetch("#id != {$rec->id}"));
+                $haveOtherTests = $recId && is_object(lab_Tests::fetch("#id != {$recId}"));
                 
-                if ($rec->state == 'draft' || ! $haveOtherTests) {
+                if ($recState == 'draft' || !$haveOtherTests) {
                     $requiredRoles = 'no_one';
                     
                     return;

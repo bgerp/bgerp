@@ -1173,7 +1173,7 @@ class cal_Tasks extends embed_Manager
                     continue;
                 }
                 
-                if ($rec->id && ($rec->id == $urlArr['id'])) {
+        if (!empty($rec->id) && ($rec->id == $urlArr['id'])) {
                     
                     continue;
                 }
@@ -1374,7 +1374,7 @@ class cal_Tasks extends embed_Manager
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         if ($action == 'postpone') {
-            if ($rec->id) {
+            if (!empty($rec->id)) {
                 if ($rec->state !== 'active' || (!$rec->timeStart)) {
                     $requiredRoles = 'no_one';
                 }
@@ -1382,7 +1382,7 @@ class cal_Tasks extends embed_Manager
         }
         
         if ($action == 'edit') {
-            if (is_object($rec) && $rec->id) {
+            if (is_object($rec) && !empty($rec->id)) {
                 if (!cal_Tasks::haveRightFor('single', $rec)) {
                     $requiredRoles = 'no_one';
                 }
@@ -1399,7 +1399,7 @@ class cal_Tasks extends embed_Manager
         
         if ($action == 'edit' && is_object($rec) && $rec->state == 'pending') {
             $oState = null;
-            if ($rec->id) {
+            if (!empty($rec->id)) {
                 $oState = $mvc->fetchField($rec->id, 'state');
             }
             if (!isset($oState) || ($oState == 'pending')) {
@@ -1476,7 +1476,7 @@ class cal_Tasks extends embed_Manager
             $rec->state = 'waiting';
         }
         
-        if ($rec->id) {
+        if (!empty($rec->id)) {
             $mvc->updateTaskToCalendar($rec->id);
         }
     }
@@ -3095,7 +3095,7 @@ class cal_Tasks extends embed_Manager
         $calcTimeS = $arrCond = array();
         
         // Ако сме активирали през singleToolbar-а
-        if ($rec->id) {
+        if (!empty($rec->id)) {
             $query = cal_TaskConditions::getQuery();
             $query->where("#baseId = '{$rec->id}'");
             
@@ -3165,7 +3165,7 @@ class cal_Tasks extends embed_Manager
             }
             
             return $calcTime;
-        } elseif (!$rec->id && $rec->timeStart) {
+        } elseif (empty($rec->id) && $rec->timeStart) {
             if (!empty($arrCond)) {
                 foreach ($arrCond as $cond) {
                     if ($cond->activationCond == 'onProgress') {
@@ -3197,7 +3197,7 @@ class cal_Tasks extends embed_Manager
             } else {
                 $calcTime = $rec->timeStart;
             }
-        } elseif (!$rec->timeStart && !$rec->id) {
+        } elseif (!$rec->timeStart && empty($rec->id)) {
             $calcTime = $now;
         }
         
@@ -3437,7 +3437,7 @@ class cal_Tasks extends embed_Manager
         // можем да кажем кога е началото й
         } elseif ($timeEnd && !$timeStart && !$rec->timeDuration) {
             $expEnd = $timeEnd;
-            if ($rec->id) {
+        if (!empty($rec->id)) {
                 $expStart = $rec->modifiedOn;
             }
             
@@ -4242,7 +4242,7 @@ class cal_Tasks extends embed_Manager
         $table = cls::get('core_TableView', array('mvc' => $listTableMvc));
         $this->invoke('BeforeRenderListTable', array($tpl, &$data));
         $tpl->append($table->get($data->rows, $data->listFields));
-        if ($data->Pager) {
+        if (!empty($data->Pager)) {
             $tpl->append($data->Pager->getHtml());
         }
 

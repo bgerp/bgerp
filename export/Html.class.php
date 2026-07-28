@@ -65,13 +65,14 @@ class export_Html extends core_Mvc
     {
         $clsInst = cls::get($clsId);
         $cRec = $clsInst->fetchRec($objId);
+        expect($cRec);
         
         $opt = new stdClass();
         $opt->rec = $cRec;
         if (!$opt->rec) {
             $opt->rec = new stdClass();
         }
-        if (!$cRec->__mid) {
+        if (empty($cRec->__mid)) {
             $opt->rec->__mid = doclog_Documents::saveAction(
                             array(
                                     'action' => doclog_Documents::ACTION_PRINT,
@@ -101,12 +102,12 @@ class export_Html extends core_Mvc
         
         // Ако линка ще сочи към частна мрежа, показваме предупреждение
         if (core_App::checkCurrentHostIsPrivate()) {
-            $host = defined('BGERP_ABSOLUTE_HTTP_HOST') ? BGERP_ABSOLUTE_HTTP_HOST : $_SERVER['HTTP_HOST'];
+            $host = defined('BGERP_ABSOLUTE_HTTP_HOST') ? BGERP_ABSOLUTE_HTTP_HOST : ($_SERVER['HTTP_HOST'] ?? '');
             
             $form->info = "<div class='formNotice'>" . tr("Внимание|*! |Понеже линкът сочи към локален адрес|* ({$host}), |той няма да е достъпен от други компютри в Интернет|*.") . '</div>';
         }
         
-        $form->info .= '<b>' . tr('Файл|*: ') . '</b>' . fileman::getLink($fileHnd);
+        $form->info = ($form->info ?? '') . '<b>' . tr('Файл|*: ') . '</b>' . fileman::getLink($fileHnd);
         
         $clsInst->logWrite('Генериране на HTML', $objId);
         

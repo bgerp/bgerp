@@ -347,7 +347,7 @@ abstract class embed_Manager extends core_Master
                     }
                     break;
                 case 'aftergetrequiredroles':
-                    if (is_object($args[2])) {
+                    if (is_object($args[2] ?? null)) {
                         $driverClass = $args[2]->{$this->driverClassField} ?? null;
                     }
                     break;

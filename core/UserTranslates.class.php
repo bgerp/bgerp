@@ -461,7 +461,7 @@ class core_UserTranslates extends core_Manager
      */
     public static function on_BeforeSave($mvc, &$id, $rec, &$fields = null, $mode = null)
     {
-        if ($rec->id === 0) {
+        if (($rec->id ?? null) === 0) {
             $rec->id = null;
         }
         $recArr = (array) $rec;

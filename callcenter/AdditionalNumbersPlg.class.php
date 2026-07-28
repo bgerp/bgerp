@@ -115,7 +115,7 @@ class callcenter_AdditionalNumbersPlg extends core_Plugin
      */
     static function on_AfterUpdateNumbers($mvc, &$res, $rec)
     {
-        if (!$rec->id) {
+        if (empty($rec->id)) {
             
             return ;
         }

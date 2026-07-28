@@ -106,7 +106,7 @@ class planning_AssetResourceFolders extends core_Manager
         $this->prepareListPager($data);
         
         // Името на променливата за страниране на детайл
-        if (is_object($data->pager)) {
+        if (!empty($data->pager)) {
             $data->pager->setPageVar($data->masterMvc->className, $data->masterId, $this->className);
             if (cls::existsMethod($data->masterMvc, 'getHandle')) {
                 $data->pager->addToUrl = array('#' => $data->masterMvc->getHandle($data->masterId));
@@ -277,7 +277,7 @@ class planning_AssetResourceFolders extends core_Manager
     {
         $rec = $data->form->rec;
         if ($rec->classId) {
-            $data->form->title = core_Detail::getEditTitle($rec->classId, $rec->objectId, $mvc->singleTitle, $rec->id, 'към');
+            $data->form->title = core_Detail::getEditTitle($rec->classId, $rec->objectId, $mvc->singleTitle, $rec->id ?? null, 'към');
         }
     }
 

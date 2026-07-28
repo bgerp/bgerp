@@ -230,6 +230,8 @@ class price_ListVariations extends core_Detail
         $data->TabCaption = tr('Вариация');
         $activeVariations = static::getActiveVariations($data->masterId ?? null);
         foreach ($data->rows as $id => &$row){
+            $row->ROW_ATTR['class'] = $row->ROW_ATTR['class'] ?? '';
+
             if(array_key_exists($id, $activeVariations)){
                 $row->ROW_ATTR['class'] .= ' state-active';
                 $row->variationId = ht::createHint($row->variationId, 'Активна е към момента');
@@ -248,7 +250,7 @@ class price_ListVariations extends core_Detail
      */
     public function renderDetail_($data)
     {
-        if($data->hide) return new core_ET("");
+        if (!empty($data->hide)) return new core_ET("");
 
         $tpl = parent::renderDetail_($data);
 

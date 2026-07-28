@@ -363,7 +363,7 @@ class support_Issues extends core_Master
      */
     public static function prepareBodyAndSubject($rec)
     {
-        if ($rec->id) {
+        if (!empty($rec->id)) {
             
             return ;
         }

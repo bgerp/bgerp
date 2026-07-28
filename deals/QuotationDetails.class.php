@@ -279,7 +279,7 @@ class deals_QuotationDetails extends doc_Detail
             }
 
             // При редакция, ако е променена опаковката слагаме предупреждение
-            if ($rec->id) {
+            if (!empty($rec->id)) {
                 $oldRec = $mvc->fetch($rec->id);
                 if ($oldRec && $rec->packagingId != $oldRec->packagingId && !empty($rec->packPrice) && round($rec->packPrice, 4) == round($oldRec->packPrice, 4)) {
                     $form->setWarning('packPrice,packagingId', 'Опаковката е променена без да е променена цената|*.<br />|Сигурни ли сте, че зададената цена отговаря на  новата опаковка|*?');

@@ -71,12 +71,14 @@ class pos_transaction_Report extends acc_DocumentTransactionSource
             }
         }
 
-        if (countR($rec->details['receiptDetails'])) {
-            foreach ($rec->details['receiptDetails'] as $dRec) {
+        $receiptDetails = $rec->details['receiptDetails'] ?? array();
+        if (countR($receiptDetails)) {
+            foreach ($receiptDetails as $dRec) {
                 if ($dRec->action == 'sale') {
                     $productsArr[] = $dRec;
                     if(core_Packs::isInstalled('batch')){
-                        $batchesByStores[$dRec->storeId][$dRec->value][$dRec->batch] += $dRec->quantity;
+                        $batchQuantity = $batchesByStores[$dRec->storeId][$dRec->value][$dRec->batch] ?? 0;
+                        $batchesByStores[$dRec->storeId][$dRec->value][$dRec->batch] = $batchQuantity + $dRec->quantity;
                     }
                 } elseif ($dRec->action == 'payment') {
                     $key = "{$dRec->contragentClassId}|{$dRec->contragentId}|{$dRec->value}|{$dRec->caseId}";
@@ -85,7 +87,8 @@ class pos_transaction_Report extends acc_DocumentTransactionSource
                             'contragentId' => $dRec->contragentId,
                             'value' => $dRec->value,
                             'date' => $dRec->date,
-                            'caseId' => $dRec->caseId);
+                            'caseId' => $dRec->caseId,
+                            'amount' => 0);
                     }
                     $paymentsArr[$key]->amount += $dRec->amount;
                 }
@@ -248,7 +251,9 @@ class pos_transaction_Report extends acc_DocumentTransactionSource
                 $combined[$key] = (object)array('contragentClassId' => $product->contragentClassId,
                     'contragentId' => $product->contragentId,
                     'storeId' => $product->storeId,
-                    'value' => $product->value);
+                    'value' => $product->value,
+                    'totalQuantity' => 0,
+                    'totalAmount' => 0);
             }
 
             $combined[$key]->totalQuantity += round($product->quantity * $product->quantityInPack, 2);
@@ -258,7 +263,8 @@ class pos_transaction_Report extends acc_DocumentTransactionSource
 
             $combined[$key]->totalAmount += $product->amount;
             if ($product->param) {
-                $totalVat[$product->contragentClassId .'|'. $product->contragentId] += $product->param * $product->amount;
+                $vatKey = $product->contragentClassId .'|'. $product->contragentId;
+                $totalVat[$vatKey] = ($totalVat[$vatKey] ?? 0) + $product->param * $product->amount;
             }
         }
         $currencyId = acc_Periods::getBaseCurrencyId($rec->createdOn);
@@ -408,7 +414,7 @@ class pos_transaction_Report extends acc_DocumentTransactionSource
             $key = "{$payment->contragentClassId}|{$payment->contragentId}|{$payment->caseId}|{$payment->value}";
             if(!array_key_exists($key, $takingParts)){
                 $clone = clone $payment;
-                unset($clone->amount);
+                $clone->amount = 0;
                 $takingParts[$key] = $clone;
             }
             $takingParts[$key]->amount += $payment->amount;

@@ -365,11 +365,11 @@ class crm_ext_ContragentInfo extends core_manager
             $newRecs = array();
             while ($cRec = $cQuery->fetch()) {
                 $r = self::prepareNewRec($classId, $cRec->id, array('createdOn' => $now));
-                $total = is_array($dealData['sales'][$cRec->id]['total']) ? $dealData['sales'][$cRec->id]['total'] : array();
-                $overDues = is_array($dealData['sales'][$cRec->id]['overdue']) ? $dealData['sales'][$cRec->id]['overdue'] : array();
-                $active = is_array($dealData['sales'][$cRec->id]['active']) ? $dealData['sales'][$cRec->id]['active'] : array();
-                $purchasesTotal = is_array($dealData['purchases'][$cRec->id]['total']) ? $dealData['purchases'][$cRec->id]['total'] : array();
-                $purchasesActive = is_array($dealData['purchases'][$cRec->id]['active']) ? $dealData['purchases'][$cRec->id]['active'] : array();
+                $total = $dealData['sales'][$cRec->id]['total'] ?? array();
+                $overDues = $dealData['sales'][$cRec->id]['overdue'] ?? array();
+                $active = $dealData['sales'][$cRec->id]['active'] ?? array();
+                $purchasesTotal = $dealData['purchases'][$cRec->id]['total'] ?? array();
+                $purchasesActive = $dealData['purchases'][$cRec->id]['active'] ?? array();
 
                 $r->haveOverdueSales = 'no';
                 $r->overdueSalesCount = $r->overdueSalesAmount = $r->overdueSalesThreshold = $r->overdueSalesThresholdParam =  null;

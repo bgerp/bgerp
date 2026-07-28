@@ -148,7 +148,7 @@ class planning_AssetSparePartsDetail extends core_Detail
      */
     public function renderDetail_($data)
     {
-        if($data->hide) return new core_ET("");
+        if (!empty($data->hide)) return new core_ET("");
 
         $tpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
         $title = tr('Резервни части');
@@ -164,7 +164,7 @@ class planning_AssetSparePartsDetail extends core_Detail
 
         $details = $table->get($data->rows, $data->listFields);
         $tpl->append($details, 'content');
-        if ($data->pager) {
+        if (!empty($data->pager)) {
             $tpl->append($data->pager->getHtml(), 'content');
         }
 

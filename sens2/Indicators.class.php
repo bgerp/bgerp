@@ -186,7 +186,7 @@ class sens2_Indicators extends core_Detail
     {
         $form = $data->form;
         $rec = $form->rec;
-        if ($rec->id) {
+        if (!empty($rec->id)) {
             $form->setField('controllerId', 'input');
             $form->setReadOnly('controllerId');
             $form->setReadOnly('port');

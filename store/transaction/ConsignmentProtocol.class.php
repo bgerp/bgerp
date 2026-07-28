@@ -37,7 +37,7 @@ class store_transaction_ConsignmentProtocol extends acc_DocumentTransactionSourc
             'entries' => array()
         );
         
-        if ($rec->id) {
+        if (!empty($rec->id)) {
             $result->entries = $this->getEntries($rec);
         }
         

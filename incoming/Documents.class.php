@@ -270,7 +270,7 @@ class incoming_Documents extends core_Master
     public function on_AfterInputEditForm($mvc, $form)
     {
         // Ако формата е изпратена
-        if (($form->isSubmitted()) && (!$form->rec->id)) {
+        if (($form->isSubmitted()) && empty($form->rec->id)) {
             
             // id от fileman_Data
             $dataId = fileman_Files::fetchByFh($form->rec->fileHnd, 'dataId');

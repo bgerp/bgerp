@@ -679,10 +679,10 @@ class pos_ReceiptDetails extends core_Detail
                 expect(false,  "Артикулът няма цена към|* <b>{$now}</b>");
             }
 
-            if (!empty($receiptRec->revertId)) {
-                if($receiptRec->revertId != pos_Receipts::DEFAULT_REVERT_RECEIPT){
-                    expect($originProductRec = $this->findSale($rec->productId, $receiptRec->revertId, $rec->value), 'Артикулът го няма в оригиналната бележка|*!');
-                }
+            $originProductRec = null;
+            if (!empty($receiptRec->revertId) && $receiptRec->revertId != pos_Receipts::DEFAULT_REVERT_RECEIPT) {
+                $originProductRec = $this->findSale($rec->productId, $receiptRec->revertId, $rec->value);
+                expect(is_object($originProductRec), 'Артикулът го няма в оригиналната бележка|*!');
             }
 
             // Проверка дали избраната мярка приема подаденото количество
@@ -761,7 +761,7 @@ class pos_ReceiptDetails extends core_Detail
             }
 
             $error = $warningQuantity = null;
-            if ($rec->_canStore == 'yes') {
+            if (($rec->_canStore ?? 'no') == 'yes') {
                 if(!pos_Receipts::checkQuantity($rec, $error, $warningQuantity)){
                     expect(false, $error);
                 }
@@ -771,11 +771,15 @@ class pos_ReceiptDetails extends core_Detail
                 core_Statuses::newStatus($warningQuantity, 'warning');
             }
 
-            expect(!(!empty($receiptRec->revertId) && ($receiptRec->revertId != pos_Receipts::DEFAULT_REVERT_RECEIPT) && abs($originProductRec->quantity) < abs($rec->quantity)), "Количеството е по-голямо от продаденото|* " . core_Type::getByName('double(smartRound)')->toVerbal($originProductRec->quantity));
+            if (is_object($originProductRec)) {
+                $originQuantityVerbal = core_Type::getByName('double(smartRound)')->toVerbal($originProductRec->quantity);
+                expect(abs($originProductRec->quantity) >= abs($rec->quantity), "Количеството е по-голямо от продаденото|* {$originQuantityVerbal}");
+            }
+
             $pointRec = pos_Points::getSettings($receiptRec->pointId);
 
-            if($pointRec->chargeVat == 'yes'){
-                $rec->param = cat_Products::getVat($rec->productId, dt::now(), $pointRec->vatExceptionId);
+            if(($pointRec->chargeVat ?? 'yes') == 'yes'){
+                $rec->param = cat_Products::getVat($rec->productId, dt::now(), $pointRec->vatExceptionId ?? null);
             } else {
                 $rec->param = 0;
             }
@@ -924,9 +928,10 @@ class pos_ReceiptDetails extends core_Detail
                 $row->paymentCaption = (empty($receiptRec->revertId)) ? tr('Плащане') : tr('Връщане');
                 $row->amount = ht::styleNumber($row->amount, $rec->amount);
 
-                $paymentRec = ($action->value != -1) ? cond_Payments::fetch($action->value) : 0;
-                if($paymentRec->currencyCode){
-                    $row->amount = currency_Currencies::decorate($row->amount, $paymentRec->currencyCode, true);
+                $paymentRec = ($action->value != -1) ? cond_Payments::fetch($action->value) : null;
+                $paymentCurrencyCode = is_object($paymentRec) ? ($paymentRec->currencyCode ?? null) : null;
+                if($paymentCurrencyCode){
+                    $row->amount = currency_Currencies::decorate($row->amount, $paymentCurrencyCode, true);
                 } else {
                     $row->amount = currency_Currencies::decorate($row->amount, $row->currency, true);
                 }
@@ -1219,8 +1224,8 @@ class pos_ReceiptDetails extends core_Detail
         }
 
         if ($action == 'delete' && isset($rec->receiptId)) {
-            if(strpos($rec->action, 'payment') !== false){
-                if($rec->param == 'card'){
+            if(strpos($rec->action ?? '', 'payment') !== false){
+                if(($rec->param ?? null) == 'card'){
                     $res = 'no_one';
                 }
             }

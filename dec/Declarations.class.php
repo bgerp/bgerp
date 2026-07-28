@@ -494,7 +494,7 @@ class dec_Declarations extends core_Master
       
         // Ако имаме въведени стойности във FNC полетата
         // ще ги покажем в шаблона
-        if(is_array($rec->formatParams)) {
+        if (!empty($rec->formatParams) && is_array($rec->formatParams)) {
             foreach ($rec->formatParams as $placeholder => $value) { 
                 if(strlen($value) !== 0) {
                     if(strpos($placeholder, "_") == 0) {

@@ -153,7 +153,7 @@ class cat_ListingDetails extends doc_Detail
         
         // Ако е избран артикул, показва се и опаковката му
         if (isset($rec->productId)) {
-            $packs = cat_Products::getPacks($rec->productId, $rec->packagingId);
+            $packs = cat_Products::getPacks($rec->productId, $rec->packagingId ?? null);
             $form->setField('packagingId', 'input');
             $form->setOptions('packagingId', $packs);
             $form->setDefault('packagingId', key($packs));
@@ -293,7 +293,8 @@ class cat_ListingDetails extends doc_Detail
             }
             
             $exPack = cat_products_Packagings::getPack($rec->productId, $rec->packagingId);
-            deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, ($exPack->quantity) ? $exPack->quantity : 1);
+            $quantityInPack = (is_object($exPack) && $exPack->quantity) ? $exPack->quantity : 1;
+            deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $quantityInPack);
             if($deactivatedPack){
                 $row->packagingId = ht::createHint($row->packagingId, 'Опаковката/мярката е деактивирана в момента|*!', 'warning', false);
             }

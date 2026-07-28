@@ -944,14 +944,20 @@ class acc_BalanceDetails extends core_Detail
                         foreach ($l2 as $ent3 => $rec) {
                             $rec['balanceId'] = $balanceId;
 
+                            foreach (['baseQuantity', 'baseAmount', 'debitQuantity', 'debitAmount', 'creditQuantity', 'creditAmount', 'blQuantity', 'blAmount'] as $fld) {
+                                if (!array_key_exists($fld, $rec)) {
+                                    $rec[$fld] = null;
+                                }
+                            }
+
                             foreach (['blAmount', 'baseAmount'] as $fld) {
-                                if (!is_null($rec[$fld])) {
+                                if (!is_null($rec[$fld] ?? null)) {
                                     $rec[$fld] = round($rec[$fld], 8);
                                 }
                             }
 
                             foreach (['blQuantity', 'baseQuantity'] as $fld) {
-                                if (!is_null($rec[$fld]) && round($rec[$fld], 8) == 0) {
+                                if (!is_null($rec[$fld] ?? null) && round($rec[$fld], 8) == 0) {
                                     $rec[$fld] = round($rec[$fld], 8);
                                 }
                             }
@@ -1102,10 +1108,14 @@ class acc_BalanceDetails extends core_Detail
             }
 
             $b = &$this->balance[$accId][$ent1Id][$ent2Id][$ent3Id];
-            $b['accountId'] = $accId;
-            $b['ent1Id']    = $ent1Id;
-            $b['ent2Id']    = $ent2Id;
-            $b['ent3Id']    = $ent3Id;
+            $b['accountId']    = $accId;
+            $b['ent1Id']       = $ent1Id;
+            $b['ent2Id']       = $ent2Id;
+            $b['ent3Id']       = $ent3Id;
+            $b['baseQuantity'] = $b['baseQuantity'] ?? 0;
+            $b['baseAmount']   = $b['baseAmount'] ?? 0;
+            $b['blQuantity']   = $b['blQuantity'] ?? 0;
+            $b['blAmount']     = $b['blAmount'] ?? 0;
 
             if ($isMiddleBalance) {
                 $debitAmount  = $rec->debitAmount;

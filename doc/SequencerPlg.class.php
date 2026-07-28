@@ -91,7 +91,7 @@ class doc_SequencerPlg extends core_Plugin
     public static function on_BeforeSave($mvc, &$id, $rec)
     {
         $seqField = static::getSeqField($mvc);
-        if (!$rec->id) {
+        if (empty($rec->id)) {
             if (empty($rec->{$seqField})) {
                 $rec->{$seqField} = $mvc::getNextNumber();
             }

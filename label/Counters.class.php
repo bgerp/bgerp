@@ -143,6 +143,7 @@ class label_Counters extends core_Master
         
         // Вземае записа
         $cRec = self::fetch($counterId);
+        expect($cRec, 'Липсващ брояч');
         
         // Ако брояча е оттеглен
         expect($cRec->state != 'rejected', 'Брояча е оттеглен');

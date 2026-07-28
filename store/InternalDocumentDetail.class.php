@@ -135,7 +135,7 @@ abstract class store_InternalDocumentDetail extends doc_Detail
         }
         
         if ($form->rec->productId) {
-            $packs = cat_Products::getPacks($rec->productId, $rec->packagingId);
+            $packs = cat_Products::getPacks($rec->productId, $rec->packagingId ?? null);
             $form->setField('packagingId', 'input');
             $form->setOptions('packagingId', $packs);
             $form->setDefault('packagingId', key($packs));

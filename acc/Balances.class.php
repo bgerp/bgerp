@@ -450,7 +450,7 @@ class acc_Balances extends core_Master
         // Ако не е валиден го преизчисляваме, като всяка от
         // десетте минути след преизчисляването - пак го преизчисляваме
         if ($force !== true) {
-            $isValid = self::isValid($rec, $rec->lastCalculateChange != 'no' ? 10 : 1);
+            $isValid = self::isValid($rec, ($rec->lastCalculateChange ?? null) != 'no' ? 10 : 1);
         } else {
             $isValid = false;
         }

@@ -442,7 +442,7 @@ class borsa_Bids extends core_Manager
     {
         $form = $data->form;
         $rec = $form->rec;
-        if ($rec->id) {
+        if (!empty($rec->id)) {
             $form->setReadOnly('periodId');
             $form->setReadOnly('lotId');
             $form->setReadOnly('companyId');

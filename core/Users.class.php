@@ -1225,7 +1225,7 @@ class core_Users extends core_Manager
         }
         
         if (!$fields || in_array('roles', $fields = arr::make($fields)) || in_array('state', $fields = arr::make($fields))) {
-            if ($rec->id) {
+            if (!empty($rec->id)) {
                 expect($oRec = $mvc->fetch($rec->id));
 
                 if (!$fields || in_array('state', $fields = arr::make($fields))) {
@@ -1249,7 +1249,7 @@ class core_Users extends core_Manager
             }
         }
         
-        if ($rec->id) {
+        if (!empty($rec->id)) {
             // Ако е сменен ника
             if (!empty($mvc->changeNick)) {
                 core_LoginLog::add('change_nick', $rec->id);

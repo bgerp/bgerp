@@ -1555,7 +1555,7 @@ class blast_Emails extends core_Master
             
             if ($form->cmd != 'refresh') {
                 // Очакваме да може да персонализира, ако не се редактира записа
-                if (!$form->rec->id) {
+                if (empty($form->rec->id)) {
                     expect($perClsInst->canUsePersonalization($perSrcObjId));
                 }
             }
@@ -1636,7 +1636,7 @@ class blast_Emails extends core_Master
         $form->setDefault('perSrcObjectId', $perSrcObjId);
         $form->setDefault('lg', $defLg);
 
-        if ($form->rec->id) {
+        if (!empty($form->rec->id)) {
             $form->fields['perSrcObjectId']->removeAndRefreshForm = 'lg';
         }
         
@@ -1653,7 +1653,7 @@ class blast_Emails extends core_Master
         // Ако създаваме нов, тогава попълва данните за адресата по - подразбиране
         $rec = $data->form->rec;
         
-        if ((!$rec->id) && $data->action != 'clone') {
+        if (empty($rec->id) && $data->action != 'clone') {
             
             // По подразбиране да е избран текущия имейл на потребителя
             $form->setDefault('from', email_Outgoings::getDefaultInboxId($rec->folderId));

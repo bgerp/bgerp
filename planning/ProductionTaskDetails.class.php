@@ -395,7 +395,7 @@ class planning_ProductionTaskDetails extends doc_Detail
                 }
 
                 $form->setField('quantity', "placeholder=|*{$defaultQuantity}");
-                if ($rec->_isKgMeasureId) {
+                if (!empty($rec->_isKgMeasureId)) {
                     $form->setField('weight', "placeholder=|*{$defaultQuantity}");
                 }
                 $form->rec->_defaultQuantity = $defaultQuantity;
@@ -403,7 +403,7 @@ class planning_ProductionTaskDetails extends doc_Detail
                 $unitMeasureId = isset($info->packagingId) ? $info->packagingId : $info->measureId;
                 $unit = cat_UoM::getShortName($unitMeasureId);
                 $form->setField('quantity', "unit={$unit}");
-                if ($rec->_isKgMeasureId) {
+                if (!empty($rec->_isKgMeasureId)) {
                     $form->setField('weight', "unit={$unit}");
                 }
             }

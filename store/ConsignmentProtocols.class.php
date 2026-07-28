@@ -756,7 +756,7 @@ class store_ConsignmentProtocols extends core_Master
         if (isset($rec->contragentClassId, $rec->contragentId)) {
             $Crm = cls::get($rec->contragentClassId);
             $cRec = $Crm->getContragentData($rec->contragentId);
-            $contragent = str::limitLen($cRec->person ? $cRec->person : $cRec->company, 16);
+            $contragent = str::limitLen(($cRec->person ?? null) ?: ($cRec->company ?? null), 16);
         } else {
             $contragent = tr('Проблем при показването');
         }

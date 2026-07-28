@@ -41,7 +41,7 @@ class accda_transaction_Da extends acc_DocumentTransactionSource
         
         $entries = array();
         
-        if ($rec->id) {
+        if (!empty($rec->id)) {
             $pInfo = cat_Products::getProductInfo($rec->productId);
             if (isset($pInfo->meta['canStore'])) {
                 if (acc_Journal::throwErrorsIfFoundWhenTryingToPost()) {

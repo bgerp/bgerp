@@ -639,7 +639,7 @@ class price_ListRules extends core_Detail
                 $form->setError('validUntil', 'Правилото трябва да е в сила до по-късен момент от началото му');
             }
 
-            if($rec->currency == 'BGN' && $rec->validFrom >= acc_Setup::getEurozoneDate()) {
+            if (($rec->currency ?? null) == 'BGN' && $rec->validFrom >= acc_Setup::getEurozoneDate()) {
                 $form->setError('currency,validUntil', 'Не може да се задава правило в BGN с период на валидност след влизането в еврозоната|*!');
             }
 
@@ -1063,6 +1063,7 @@ class price_ListRules extends core_Detail
     public static function getSellableProducts($params, $limit = null, $q = '', $onlyIds = null, $includeHiddens = false)
     {
         $products = array();
+        $listId = $params['listId'] ?? null;
         $pQuery = cat_Products::getQuery();
         
         // Ако има зададен лист, ще се избират всички артикули в него (освен ако вече няма филтър)
@@ -1092,14 +1093,12 @@ class price_ListRules extends core_Detail
                 $pQuery->where("#isPublic = 'yes'");
             }
 
-            if ($params['listId'] != price_ListRules::PRICE_LIST_COST) {
+            if ($listId != price_ListRules::PRICE_LIST_COST) {
                 $pQuery->where("#canSell = 'yes'");
             }
             
-            if (isset($params['listId'])) {
-                if ($params['listId'] == price_ListRules::PRICE_LIST_COST) {
-                    $pQuery->orWhere("#generic = 'yes'");
-                }
+            if ($listId == price_ListRules::PRICE_LIST_COST) {
+                $pQuery->orWhere("#generic = 'yes'");
             }
             
             // Ако има подадени групи се филтрира по тях

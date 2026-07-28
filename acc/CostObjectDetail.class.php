@@ -273,7 +273,7 @@ class acc_CostObjectDetail extends core_Manager
      */
     public function renderDetail_($data)
     {
-        if($data->hide) return null;
+        if (!empty($data->hide)) return null;
 
         $tpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
         $tpl->append(tr('Отнесени разходи'), 'title');

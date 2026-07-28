@@ -107,7 +107,7 @@ class core_Detail extends core_Manager
         $this->prepareListPager($data);
         
         // Името на променливата за страниране на детайл
-        if (is_object($data->pager ?? null)) {
+        if (!empty($data->pager)) {
             $data->pager->setPageVar($data->masterMvc->className, $data->masterId, $this->className);
             if (cls::existsMethod($data->masterMvc, 'getHandle')) {
                 $data->pager->addToUrl = array('#' => $data->masterMvc->getHandle($data->masterId));
@@ -425,7 +425,7 @@ class core_Detail extends core_Manager
         foreach ($masters as $masterKey => $masterInstance) {
             if ($rec->{$masterKey} ?? null) {
                 $masterId = $rec->{$masterKey};
-            } elseif ($rec->id) {
+            } elseif (!empty($rec->id)) {
                 $masterId = $this->fetchField($rec->id, $masterKey);
             }
 

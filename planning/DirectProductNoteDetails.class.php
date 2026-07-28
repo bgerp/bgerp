@@ -17,6 +17,22 @@
  */
 class planning_DirectProductNoteDetails extends deals_ManifactureDetail
 {
+
+    /**
+     * Добавя CSS клас само върху локално копие на поле от таблицата.
+     */
+    protected static function addTableFieldClass($mvc, $fieldName, $className)
+    {
+        if (!isset($mvc->fields[$fieldName])) {
+            return;
+        }
+
+        $mvc->fields[$fieldName] = clone $mvc->fields[$fieldName];
+        $classes = arr::make($mvc->fields[$fieldName]->tdClass ?? '', true);
+        $classes[$className] = $className;
+        $mvc->fields[$fieldName]->tdClass = implode(' ', $classes);
+    }
+
     /**
      * Заглавие
      */
@@ -90,7 +106,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=№,productId=Материал, packagingId, packQuantity=К-во->|*<small>|Въведено|*</small>,quantityFromBom=К-во->Рецепта,quantityExpected=К-во->Очаквано,storeId';
+    public $listFields = 'tools=№,productId=Материал, packagingId, packQuantity=К-во->|*<small>|Въведено|*</small>,quantityFromBom=К-во->Рецепта,quantityExpected=К-во->|*<small>|Очаквано|*</small>,storeId';
     
     
     /**
@@ -116,8 +132,14 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
         $this->FLD('type', 'enum(input=Влагане,pop=Отпадък,allocated=Разходи,subProduct=Субпродукт)', 'caption=Действие,silent,input=hidden');
         parent::setDetailFields($this);
         $this->setField('quantity', 'caption=Количества');
-        $this->FLD('quantityFromBom', 'double', 'caption=От рецепта,input=none,smartCenter,tdClass=noteBomCol');
-        $this->FLD('quantityExpected', 'double', 'caption=Реално вложено,input=none,smartCenter,tdClass=noteExpectedCol');
+        $this->FLD('quantityFromBom', 'double', 'caption=От рецепта,input=none,tdClass=noteBomCol aright');
+        $this->FLD('quantityExpected', 'double', 'caption=Реално вложено,input=none,tdClass=noteExpectedCol aright');
+
+        unset($this->fields['packQuantity']->smartCenter);
+        $packQuantityClasses = arr::make($this->fields['packQuantity']->tdClass ?? '', true);
+        $packQuantityClasses['aright'] = 'aright';
+        $this->fields['packQuantity']->tdClass = implode(' ', $packQuantityClasses);
+
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Изписване,input=none,tdClass=custom-field nowrap,placeholder=Незавършено производство,silent,removeAndRefreshForm');
         $this->FLD('isOutsourced', 'enum(no=Не,yes=Да)', 'caption=Ишлеме|*?,input=hidden,maxRadio=2,notNull,value=no');
         $this->FLD('fromAccId', 'customKey(mvc=acc_Accounts,key=systemId,select=systemId)', 'caption=Изписване,input=none,tdClass=small-field nowrap,placeholder=Незавършено производство');
@@ -426,10 +448,16 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     public function renderDetail_($data)
     {
         $tpl = new ET('');
+        $tpl->push('planning/js/DisassemblyNoteTables.js', 'JS');
+        jquery_Jquery::run($tpl, 'syncDisassemblyNoteTables();');
+        jquery_Jquery::runAfterAjax($tpl, 'syncDisassemblyNoteTables');
 
         if (Mode::is('printing')) {
             unset($data->listFields['tools']);
         }
+
+        $commonListFields = arr::make($data->listFields, true);
+        $showRowToolsColumn = !Mode::is('printing') && $data->masterData->rec->state != 'active';
 
         // Рендираме таблицата с вложените материали
         $data->listFields['productId'] = 'Вложени артикули|* ';
@@ -441,17 +469,42 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
 
         $fieldset = clone $this;
         $fieldset->FNC('num', 'int');
+        if (!isset($fieldset->fields['tools'])) {
+            $fieldset->FNC('tools', 'int', 'tdClass=rowNumColumn');
+        }
+        if (!isset($fieldset->fields['_rowTools'])) {
+            $fieldset->FNC('_rowTools', 'varchar', 'tdClass=rowtools-column');
+        }
+        self::addTableFieldClass($fieldset, 'productId', 'disassemblyProductColumn');
+        self::addTableFieldClass($fieldset, 'tools', 'productionToolsColumn');
+        self::addTableFieldClass($fieldset, 'tools', 'rightCol');
+        self::addTableFieldClass($fieldset, 'packQuantity', 'directProductionQuantityColumn');
+        self::addTableFieldClass($fieldset, 'quantityFromBom', 'directProductionQuantityColumn');
+        self::addTableFieldClass($fieldset, 'quantityExpected', 'directProductionQuantityColumn');
         $table = cls::get('core_TableView', array('mvc' => $fieldset));
+        $table->tableClass = 'listTable disassemblyNoteTable';
         
         $iData = clone $data;
         $iData->listTableMvc = clone $this;
+        $iData->listFields = $commonListFields;
+        $iData->listFields['productId'] = 'Вложени артикули|* ';
         $iData->rows = $data->inputArr;
         $iData->recs = array_intersect_key($iData->recs, $iData->rows);
 
         $this->invoke('BeforeRenderListTable', array(&$tpl, &$iData));
+        if ($showRowToolsColumn) {
+            $rowToolsIcon = ht::createElement('img', array('src' => sbf('img/16/tools.png', '')));
+            $iData->listFields = arr::combine(array('_rowTools' => '|*' . $rowToolsIcon->getContent()), $iData->listFields);
+            arr::placeInAssocArray($iData->listFields, array('tools' => '№'), 'productId');
+        } else {
+            unset($iData->listFields['_rowTools']);
+        }
+        if (isset($iData->listFields['code']) && !isset($fieldset->fields['code'])) {
+            $fieldset->FNC('code', 'varchar', 'tdClass=small-field morePadding nowrap productionCodeColumn');
+        }
+        self::addTableFieldClass($fieldset, 'code', 'rightCol');
         plg_AlignDecimals2::alignDecimals($this, $iData->recs, $iData->rows);
         
-        $iData->listFields = core_TableView::filterEmptyColumns($iData->rows, $iData->listFields, '*');
         if(empty($iData->listFields['quantityFromBom']) && empty($iData->listFields['quantityExpected'])){
             $iData->listFields['packQuantity'] = 'К-во';
         }
@@ -493,27 +546,37 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
             if (countR($arr) || $data->masterData->rec->state == 'draft') {
                 $data->listFields['productId'] = ($type == 'subProduct') ? 'Субпродукти' : "Отпадъци|* <small style='font-weight:normal'>( |остават в незавършеното производство|* )</small>";
                 if($type == 'pop'){
-                    $data->listFields['storeId'] = '|*&nbsp;';
+                    $data->listFields['storeId'] = 'Остава в';
                 } else {
                     $data->listFields['storeId'] = 'Засклаждане';
                 }
 
                 $pData = clone $data;
                 $pData->listTableMvc = clone $this;
+                $pData->listFields = $commonListFields;
+                $pData->listFields['productId'] = $data->listFields['productId'];
+                $pData->listFields['storeId'] = $data->listFields['storeId'];
                 $pData->rows = $arr;
                 $pData->recs = array_intersect_key($pData->recs, $pData->rows);
 
+                $pData->sortableTable = false;
                 $this->invoke('BeforeRenderListTable', array(&$tpl, &$pData));
+                if ($showRowToolsColumn) {
+                    $rowToolsIcon = ht::createElement('img', array('src' => sbf('img/16/tools.png', '')));
+                    $pData->listFields = arr::combine(array('_rowTools' => '|*' . $rowToolsIcon->getContent()), $pData->listFields);
+                    arr::placeInAssocArray($pData->listFields, array('tools' => '№'), 'productId');
+                } else {
+                    unset($pData->listFields['_rowTools']);
+                }
                 plg_AlignDecimals2::alignDecimals($this, $pData->recs, $pData->rows);
-                $pData->listFields = core_TableView::filterEmptyColumns($pData->rows, $pData->listFields, '*');
                 $this->modifyRows($pData);
 
                 if(isset($pData->listFields['quantityFromBom'])){
-                    $pData->listFields['quantityFromBom'] = 'Количество->|*<small>|Рецепта|*</small>';
+                    $pData->listFields['quantityFromBom'] = 'К-во->|*<small>|Рецепта|*</small>';
                 }
 
                 if(empty($pData->listFields['quantityFromBom'])){
-                    $pData->listFields['packQuantity'] = 'Количество';
+                    $pData->listFields['packQuantity'] = 'К-во';
                 }
 
                 $popTable = $table->get($pData->rows, $pData->listFields);

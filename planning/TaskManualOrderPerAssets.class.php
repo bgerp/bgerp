@@ -106,7 +106,7 @@ class planning_TaskManualOrderPerAssets extends core_Master
             $row->assetId = ht::createLink($row->assetId, $url);
         }
 
-        if(is_array($rec->data)){
+        if (!empty($rec->data) && is_array($rec->data)) {
             $tableHtml = "<table>";
             $count = 1;
             foreach ($rec->data as $taskId){
@@ -120,7 +120,7 @@ class planning_TaskManualOrderPerAssets extends core_Master
             $row->data = $tableHtml;
         }
 
-        if (is_array($rec->packageLinks)) {
+        if (!empty($rec->packageLinks) && is_array($rec->packageLinks)) {
             $linksHtml = array();
             foreach ($rec->packageLinks as $taskId => $previousTaskId) {
                 $previousTaskLink = planning_Tasks::getLink($previousTaskId, 0);

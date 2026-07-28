@@ -69,7 +69,7 @@ class plg_Vid extends core_Plugin
         
         $cond = "#{$this->fieldName} LIKE '[#1#]'";
         
-        if ($rec->id) {
+        if (!empty($rec->id)) {
             $cond .= " AND #id != {$rec->id}";
         }
         

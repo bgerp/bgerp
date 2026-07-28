@@ -642,7 +642,7 @@ class batch_BatchesInDocuments extends core_Manager
             }
             Mode::pop('htmlEntity');
             $displayBatches = batch_Setup::get('COUNT_IN_EDIT_WINDOW');
-            $displayBatches = max($displayBatches, countR($exTableRec['batch']));
+            $displayBatches = max($displayBatches, countR($exTableRec['batch'] ?? array()));
             // Ако всички партиди са над разрешените показваме първите N
             if ($batchesCount > $displayBatches) {
                 $finalTableRec = $tableRec;
@@ -674,7 +674,7 @@ class batch_BatchesInDocuments extends core_Manager
         $hideTable = (($Def instanceof batch_definitions_Serial) && !empty($btnoff)) || (!empty($btnoff) && !countR($suggestions) && !($Def instanceof batch_definitions_Serial));
         $batchReadOnly = ($Def instanceof batch_definitions_Serial) ? '' : ',batch_ro=readonly';
         if ($hideTable === false) {
-            $form->FLD('newArray', "table({$btnoff},columns={$columns},batch_class=batchNameTd{$batchReadOnly},captions={$captions},{$noCaptions},validate=batch_BatchesInDocuments::validateNewBatches)", "caption=Партиди{$middleCaption}{$caption},placeholder={$Def->placeholder}");
+            $form->FLD('newArray', "table({$btnoff},columns={$columns},batch_class=batchNameTd{$batchReadOnly},captions={$captions},{$noCaptions},validate=batch_BatchesInDocuments::validateNewBatches)", "caption=Партиди{$middleCaption}{$caption},placeholder={$Def->fieldPlaceholder}");
 
             if (is_array($bOptions)) {
                 $bOptions = array_combine(array_values($bOptions), array_values($bOptions));
@@ -709,12 +709,21 @@ class batch_BatchesInDocuments extends core_Manager
         $saveBatches = array();
 
         $selArr = Mode::get("{$this->className}_{$Detail->className}_prevAndNext");
-        if(!empty($selArr)){
+        if (!empty($selArr)) {
+            $selArr = array_values($selArr);
             $currentPosition = array_search($detailRecId, $selArr);
-            $pos = $currentPosition + 1;
-            $prevAndNextIndicator = $pos . '/' . countR($selArr);
-            $form->prev = $selArr[$currentPosition - 1];
-            $form->next = $selArr[$currentPosition + 1];
+            if ($currentPosition !== false) {
+                $pos = $currentPosition + 1;
+                $prevAndNextIndicator = $pos . '/' . countR($selArr);
+                if (isset($selArr[$currentPosition - 1])) {
+                    $form->prev = $selArr[$currentPosition - 1];
+                }
+                if (isset($selArr[$currentPosition + 1])) {
+                    $form->next = $selArr[$currentPosition + 1];
+                }
+            } else {
+                $selArr = array();
+            }
         }
 
         // След събмит

@@ -50,6 +50,8 @@ class cat_GeneralProductDriver extends cat_ProductDriver
     {
         $form = &$data->form;
         $rec = &$form->rec;
+        $action = $data->action ?? null;
+        $recId = $rec->id ?? null;
         
         if(empty($rec->name) && !empty($rec->proto)){
             $form->setDefault('name', cat_Products::fetchField($rec->proto, 'name'));
@@ -71,11 +73,11 @@ class cat_GeneralProductDriver extends cat_ProductDriver
         }
         
         // Само при добавянето на нов артикул
-        if (empty($rec->id) || $data->action == 'clone') {
+        if (empty($recId) || $action == 'clone') {
             $refreshFields = array('param');
            
             // Имали дефолтни параметри
-            $defaultParams = $Driver->getDefaultParams($rec, $Embedder->getClassId(), $data->action);
+            $defaultParams = $Driver->getDefaultParams($rec, $Embedder->getClassId(), $action);
 
             if (cls::haveInterface('marketing_InquiryEmbedderIntf', $Embedder) && isset($rec->proto)) {
                 $protoState = cat_Products::fetchField($rec->proto, 'state');
@@ -104,7 +106,7 @@ class cat_GeneralProductDriver extends cat_ProductDriver
                     $position = "after=planning_Steps_wastePercent";
                 }
                 $form->FLD("paramcat{$id}", 'double', "caption={$caption},categoryParams,{$position}");
-                $form->setFieldType("paramcat{$id}", cat_Params::getTypeInstance($id, $Embedder, $rec->id));
+                $form->setFieldType("paramcat{$id}", cat_Params::getTypeInstance($id, $Embedder, $recId));
 
                 // Ако параметъра има суфикс, добавяме го след полето
                 if (!empty($paramRec->suffix)) {
@@ -113,8 +115,8 @@ class cat_GeneralProductDriver extends cat_ProductDriver
                 }
 
                 $value = $defaultArr['value'];
-                if($data->action == 'clone'){
-                    $value = cat_Params::getReplacementValueOnClone($id, $Embedder, $rec->id, $value);
+                if ($action == 'clone') {
+                    $value = cat_Params::getReplacementValueOnClone($id, $Embedder, $recId, $value);
                 }
 
                 // Ако има дефолтна стойност, задаваме и нея
@@ -127,7 +129,7 @@ class cat_GeneralProductDriver extends cat_ProductDriver
                 } elseif($defaultArr['isReadOnly'] === true){
                     $form->setReadOnly("paramcat{$id}");
                 }
-                $form->setDefault("paramcat{$id}", cat_Params::getDefaultValue($id, $Embedder, $rec->id));
+                $form->setDefault("paramcat{$id}", cat_Params::getDefaultValue($id, $Embedder, $recId));
             }
             
             $refreshFields = implode('|', $refreshFields);
@@ -356,7 +358,7 @@ class cat_GeneralProductDriver extends cat_ProductDriver
     {
         $preview = null;
         $previewHandler = $this->getParams($Embedder, $rec->id, 'preview');
-        $handler = !empty($previewHandler) ? $previewHandler : $rec->photo;
+        $handler = !empty($previewHandler) ? $previewHandler : ($rec->photo ?? null);
 
         if (!empty($handler)) {
             $Fancybox = cls::get('fancybox_Fancybox');
@@ -427,7 +429,8 @@ class cat_GeneralProductDriver extends cat_ProductDriver
         }
         
         // Ако не е зададен шаблон, взимаме дефолтния
-        $layout = ($data->isSingle !== true) ? 'cat/tpl/SingleLayoutBaseDriverShort.shtml' : 'cat/tpl/SingleLayoutBaseDriver.shtml';
+        $isSingle = ($data->isSingle ?? false) === true;
+        $layout = !$isSingle ? 'cat/tpl/SingleLayoutBaseDriverShort.shtml' : 'cat/tpl/SingleLayoutBaseDriver.shtml';
         $tpl = getTplFromFile($layout);
         $tpl->placeObject($data->row);
         
@@ -442,7 +445,7 @@ class cat_GeneralProductDriver extends cat_ProductDriver
             $tpl->append($paramTpl, 'PARAMS');
         }
         
-        if ($data->isSingle !== true) {
+        if (!$isSingle) {
             $wrapTpl = new ET("<!--ET_BEGIN paramBody--><div class='general-product-description'>[#paramBody#][#COMPONENTS#]</div><!--ET_END paramBody-->");
             if (strlen(trim($tpl->getContent()))) {
                 $wrapTpl->append($tpl, 'paramBody');

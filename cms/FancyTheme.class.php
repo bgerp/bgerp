@@ -362,7 +362,7 @@ class cms_FancyTheme extends core_ProtoInner
      */
     public static function on_BeforeSave($mvc, &$innerStateField, &$innerFormField, $rec, $fields = null, $mode = null)
     {
-        if (!trim($innerFormField->title) && !$rec->id && core_Users::isSystemUser()) {
+        if (!trim($innerFormField->title) && empty($rec->id) && core_Users::isSystemUser()) {
             if (!$innerFormField) {
                 $innerFormField = new stdClass();
             }
@@ -380,7 +380,7 @@ class cms_FancyTheme extends core_ProtoInner
      */
     public function prepareEmbeddedForm(core_Form &$form)
     {
-        if (!$form->rec->id) {
+        if (empty($form->rec->id)) {
             $form->setDefault('title', core_Setup::get('EF_APP_TITLE', true));
         }
     }

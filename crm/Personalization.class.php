@@ -124,7 +124,7 @@ class crm_Personalization extends core_Detail
         if (!Mode::is('printing')) {
             
             // Ако има записи
-            if ($rec->id) {
+        if (!empty($rec->id)) {
                 
                 // URL за промяна
                 $url = array('crm_Personalization', 'edit', $rec->id, 'ret_url' => true);

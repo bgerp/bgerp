@@ -1025,7 +1025,7 @@ class doc_Folders extends core_Master
             $mustSave = true;
         }
 
-        if (!$mustSave && $rec->id) {
+        if (!$mustSave && !empty($rec->id)) {
             if (cls::get('doc_Folders')->getSearchKeywords($rec) != $rec->searchKeywords) {
                 $mustSave = true;
             }

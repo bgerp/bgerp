@@ -37,7 +37,7 @@ class store_transaction_InventoryNote extends acc_DocumentTransactionSource
             'entries' => array()
         );
         
-        if ($rec->id) {
+        if (!empty($rec->id)) {
             
             // При контиране за първи път
             if (Mode::get('saveTransaction')) {

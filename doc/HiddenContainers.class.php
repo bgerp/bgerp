@@ -375,7 +375,7 @@ class doc_HiddenContainers extends core_Manager
                 self::save($rec);
                 self::$hiddenDocsArr[$cId] = false;
             } else {
-                if ($rec->id) {
+                if (!empty($rec->id)) {
                     self::delete($rec->id);
                 }
             }

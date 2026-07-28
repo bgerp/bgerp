@@ -389,7 +389,7 @@ class doc_Threads extends core_Manager
                     
                     // Ако не може да се определи първия документ в нишката, изтриваме нишката
                     if (!$firstCid) {
-                        if ($rec->id) {
+                        if (!empty($rec->id)) {
                             self::delete($rec->id);
                             $resArr['del_cnt']++;
                             
@@ -1143,12 +1143,13 @@ class doc_Threads extends core_Manager
         } catch (core_Exception_Expect $expect) {
             $row->hnd = ($row->hnd ?? '') . (($rec->handle ?? null) ? substr($rec->handle, 0, strlen($rec->handle) - 3) : '???');
             $row->title = '?????????????';
+            $cRec = null;
             if ($rec->firstContainerId) {
                 $cRec = doc_Containers::fetch($rec->firstContainerId);
             }
             $row->author = crm_Profiles::createLink($rec->createdBy);
             
-            if ($cRec->docClass) {
+            if (is_object($cRec) && !empty($cRec->docClass)) {
                 if ($classRec = core_Classes::fetch($cRec->docClass)) {
                     $row->title = $classRec->title;
                 }
@@ -1179,6 +1180,8 @@ class doc_Threads extends core_Manager
      */
     public function exp_Move($exp)
     {
+        $selArr = array();
+
         if ($selected = Request::get('Selected')) {
             $selArr = arr::make($selected);
             Request::push(array('threadId' => $selArr[0]));
@@ -1511,7 +1514,7 @@ class doc_Threads extends core_Manager
         if (cls::haveInterface('doc_ContragentDataIntf', $class)) {
             $cData = $class->getContragentData($fRec->coverId);
             
-            if ($cData->email) {
+            if ($cData->email ?? null) {
                 $altFolderId = email_Router::getEmailFolder($cData->email);
             }
         }

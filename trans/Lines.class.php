@@ -361,8 +361,8 @@ class trans_Lines extends core_Master
 
         // Подмяна на бутона за принтиране с такъв да отчита натиснатия таб на детайла
         $printBtnId = plg_Printing::getPrintBtnId($mvc, $rec->id);
-        if ($data->toolbar->buttons[$printBtnId]) {
-            $data->toolbar->removeBtn[$printBtnId];
+        if ($data->toolbar->haveButton($printBtnId)) {
+            $data->toolbar->removeBtn($printBtnId);
             $url = array($mvc, 'single', $rec->id, 'Printing' => 'yes', 'Width' => 'yes', 'lineTab' => Request::get('lineTab'));
             $data->toolbar->addBtn('Печат', $url, 'target=_blank,row=2', "id={$printBtnId},target=_blank,row=2,ef_icon = img/16/printer.png,title=Печат на документа");
         }
@@ -481,7 +481,7 @@ class trans_Lines extends core_Master
             }
         }
 
-        if(empty($rec->shipmentOn)){
+        if (empty($rec->shipmentOn) && isset($row->shipmentOnCalc)) {
             $row->shipmentOnCalc = ht::createHint($row->shipmentOnCalc, 'Използва се началото, защото няма конкретно въведена дата за експедиране|*!', 'notice', false);
         }
 
@@ -802,7 +802,7 @@ class trans_Lines extends core_Master
      */
     protected static function on_BeforeSave($mvc, &$id, $rec, $fields = null, $mode = null)
     {
-        if ($rec->__isReplicate) {
+        if (!empty($rec->__isReplicate)) {
             $rec->countStoreDocuments = 0;
             $rec->countActiveDocuments = 0;
             $rec->countReadyDocuments = 0;

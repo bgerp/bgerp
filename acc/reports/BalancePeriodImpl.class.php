@@ -349,7 +349,7 @@ class acc_reports_BalancePeriodImpl extends frame_BaseDriver
 
             $tpl->append($table->get($data->rows, $data->listFields), 'CONTENT');
 
-            if($data->pager){
+            if (!empty($data->pager)) {
                 $tpl->append($data->pager->getHtml(), 'PAGER');
             }
         }*/
@@ -360,7 +360,7 @@ class acc_reports_BalancePeriodImpl extends frame_BaseDriver
         
         $tpl->append($table->get($data->rows, $data->listFields), 'CONTENT');
         
-        if ($data->pager) {
+        if (!empty($data->pager)) {
             $tpl->append($data->pager->getHtml(), 'PAGER');
         }
         

@@ -1372,7 +1372,7 @@ class core_Query extends core_FieldSet
         for ($i = 1; $i < $cntArr; $i++) {
             $a[] = "[#{$i}#]";
            // $b[] = "[#{$i}{$key}#]";
-            $c[] = $this->mvc->db->escape($arr[$i]);
+            $c[] = $this->mvc->db->escape($arr[$i] ?? null);
         }
         
         $exp = str_replace($a, $c, $exp);

@@ -83,9 +83,9 @@ class export_Txt extends core_Mvc
 
         if ($fileHnd) {
             $form->toolbar->addBtn('Сваляне', array('fileman_Download', 'download', 'fh' => $fileHnd, 'forceDownload' => true), 'ef_icon = fileman/icons/16/txt.png, title=Сваляне на документа');
-            $form->info .= '<b>' . tr('Файл|*: ') . '</b>' . fileman::getLink($fileHnd);
+            $form->info = ($form->info ?? '') . '<b>' . tr('Файл|*: ') . '</b>' . fileman::getLink($fileHnd);
         } else {
-            $form->info .= "<div class='formNotice'>" . tr('Няма данни за експорт|*.') . '</div>';
+            $form->info = ($form->info ?? '') . "<div class='formNotice'>" . tr('Няма данни за експорт|*.') . '</div>';
         }
 
         $Cls->logWrite('Генериране на Txt', $objId);

@@ -198,7 +198,7 @@ class borsa_Periods extends core_Manager
     {
         $form = $data->form;
         $rec = $form->rec;
-        if ($rec->id) {
+        if (!empty($rec->id)) {
             $form->setReadOnly('lotId');
             $form->setReadOnly('from');
             $form->setReadOnly('to');

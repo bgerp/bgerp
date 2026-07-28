@@ -292,7 +292,7 @@ class doc_reports_Docs extends frame_BaseDriver
     	                                       createdBy=Създадени документи->Автор,
     	                                       cnt=Създадени документи->Брой'), 'DOCS');
         
-        if ($data->pager) {
+        if (!empty($data->pager)) {
             $tpl->append($data->pager->getHtml(), 'PAGER');
         }
         
