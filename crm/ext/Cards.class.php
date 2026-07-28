@@ -130,7 +130,7 @@ class crm_ext_Cards extends core_Manager
         $form = &$data->form;
         $rec = &$form->rec;
 
-        $userId = crm_Profiles::getUserByPerson($rec->personId);
+        $userId = crm_Profiles::getUserByPerson($rec->personId ?? null);
         $companyOptions = array();
         if ($userId) {
             if (core_Packs::isInstalled('colab')) {
@@ -148,7 +148,7 @@ class crm_ext_Cards extends core_Manager
             $form->setReadOnly('type', 'personal');
         }
 
-        if ($rec->type == 'company') {
+        if (($rec->type ?? 'personal') == 'company') {
             $form->setField('companyId', 'input,mandatory');
             $form->setOptions('companyId', array('' => '') + $companyOptions);
         } else {
@@ -214,7 +214,7 @@ class crm_ext_Cards extends core_Manager
         if (isset($rec->companyId)) {
             $row->companyId = crm_Companies::getHyperLink($rec->companyId, true);
         }
-        $row->created = tr("|* {$row->createdOn} |от|* {$row->createdBy}");
+        $row->created = tr('|* ' . ($row->createdOn ?? '') . ' |от|* ' . ($row->createdBy ?? ''));
 
         if ($info = static::getInfo($rec->number)) {
             if ($info['status'] == static::STATUS_NOT_ACTIVE) {
@@ -250,7 +250,7 @@ class crm_ext_Cards extends core_Manager
         $data->listFilter->input();
 
         if ($filter = $data->listFilter->rec) {
-            if ($filter->typeFilter != 'all') {
+            if (($filter->typeFilter ?? 'all') != 'all') {
                 $data->query->where("#type = '{$filter->typeFilter}'");
             }
         }
@@ -303,8 +303,10 @@ class crm_ext_Cards extends core_Manager
         $table = cls::get('core_TableView', array('mvc' => $fieldset));
 
         $this->invoke('BeforeRenderListTable', array($tpl, &$data));
-        $data->listFields = core_TableView::filterEmptyColumns($data->rows, $data->listFields, 'companyId');
-        $details = $table->get($data->rows, $data->listFields);
+        $rows = $data->rows ?? array();
+        $listFields = $data->listFields ?? array();
+        $data->listFields = core_TableView::filterEmptyColumns($rows, $listFields, 'companyId');
+        $details = $table->get($rows, $data->listFields);
         $tpl->append($details);
 
         if (isset($data->addBtn)) {
@@ -329,7 +331,7 @@ class crm_ext_Cards extends core_Manager
      */
     public static function getInfo($number, $strict = false)
     {
-        $number = mb_strtolower($number);
+        $number = mb_strtolower((string) $number);
         $info = array('status' => self::STATUS_NOT_FOUND);
 
         // Опит за намиране на карта с този номер
@@ -409,14 +411,15 @@ class crm_ext_Cards extends core_Manager
             }
         }
 
-        if(in_array($action, array('add', 'delete', 'edit', 'write', 'changestate')) & isset($rec)){
+        if(in_array($action, array('add', 'delete', 'edit', 'write', 'changestate')) && isset($rec)){
             if(!empty($rec->source)){
                 $requiredRoles = 'no_one';
             }
         }
 
         if ($action == 'checkcard') {
-            $settings = cms_Domains::getSettings($rec->domainId);
+            $domainId = $rec->domainId ?? cms_Domains::getPublicDomain('id');
+            $settings = cms_Domains::getSettings($domainId);
             if(($settings->inputCardBtn ?? null) != 'yes'){
                 $requiredRoles = 'no_one';
             } elseif (!core_Packs::isInstalled('colab') && !core_Packs::isInstalled('voucher')) {
@@ -565,7 +568,7 @@ class crm_ext_Cards extends core_Manager
 
             // Извличат се неговите данни за клиентски карти
             $Interface = cls::getInterface('crm_interface_CardSourceIntf', $Source);
-            $cardsToSync = $Interface->getCards();
+            $cardsToSync = (array) $Interface->getCards();
 
             // Добавяне на статичните данни към записа
             array_walk($cardsToSync, function($a) use ($sourceClassId, $now) {
