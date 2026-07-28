@@ -97,7 +97,7 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
                 $inputedRecsWorkInProgress = array();
                 array_walk($rec->_details, function($a) use (&$inputedRecsWorkInProgress) {
                     if($a->type == 'input' && empty($a->storeId) && empty($a->fromAccId)){
-                        $inputedRecsWorkInProgress[$a->productId] += $a->quantity;
+                        $inputedRecsWorkInProgress[$a->productId] = ($inputedRecsWorkInProgress[$a->productId] ?? 0) + $a->quantity;
                     }
                 });
 
@@ -215,18 +215,19 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
         }
 
         // Генериране на транзакцията за произвеждане на основния артикул
-        $equalizePrimeCost = $rec->equalizePrimeCost == 'yes';
+        $equalizePrimeCost = ($rec->equalizePrimeCost ?? null) == 'yes';
 
         $stockableQuantity = $rec->quantity;
         $productRec = cat_Products::fetch($rec->productId);
-        if($rec->packagingId == $productRec->measureId){
+        expect($productRec);
+        if (($rec->packagingId ?? null) == ($productRec->measureId ?? null)) {
             $stockableQuantity = $rec->packQuantity;
         } else {
             $round = cat_UoM::fetchField($productRec->measureId, 'round');
             $stockableQuantity = round($stockableQuantity, $round);
         }
 
-        $entries1 = self::getProductionEntries($productRec, $stockableQuantity, $rec->storeId, $rec->debitAmount, $this->class, $rec->id, $rec->expenseItemId, $rec->valior, $rec->expenses, $rec->_details, $rec->jobQuantity, $equalizePrimeCost);
+        $entries1 = self::getProductionEntries($productRec, $stockableQuantity, $rec->storeId ?? null, $rec->debitAmount ?? null, $this->class, $rec->id, $rec->expenseItemId ?? null, $rec->valior, $rec->expenses ?? null, $rec->_details, $rec->jobQuantity ?? null, $equalizePrimeCost);
         if (countR($entries1)) {
             $entries = array_merge($entries, $entries1);
         }
@@ -255,6 +256,7 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
     {
         $entries = $array = array();
         $prodRec = cat_Products::fetchRec($productId);
+        expect($prodRec);
         $productId = $prodRec->id;
         $foundConvertedProducedRecs = array_filter($details, function($a) use ($productId){return $a->productId == $productId && $a->type == 'input' && isset($a->storeId);});
         $foundOtherInputedRecs = array_filter($details, function($a) use ($productId){return $a->productId != $productId && $a->type == 'input';});
@@ -296,12 +298,12 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
                 $saleId = $documentId;
             } elseif($Doc instanceof store_ShipmentOrders){
                 $firstDoc = doc_Threads::getFirstDocument($Doc->fetchField($documentId, 'threadId'));
-                if($firstDoc->isInstanceOf('sales_Sales')){
+                if ($firstDoc && $firstDoc->isInstanceOf('sales_Sales')) {
                     $saleId = $firstDoc->that;
                 }
             } elseif($Doc instanceof planning_DirectProductionNote){
                 $jobRec = planning_DirectProductionNote::getJobRec($documentId);
-                $saleId = $jobRec->saleId;
+                $saleId = $jobRec->saleId ?? null;
             }
         }
 
@@ -313,7 +315,7 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
             $saleRec = sales_Sales::fetch($saleId, 'threadId,contragentClassId,contragentId');
         }
 
-        $outsourced = array_filter($details, function($a){ return $a->isOutsourced == 'yes';});
+        $outsourced = array_filter($details, function($a){ return ($a->isOutsourced ?? null) == 'yes';});
 
         // Ако има вложени получени от ПОП артикули ще им се прави отделна контировка
         $consignmentAmount = 0;
@@ -437,7 +439,7 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
                             $primeCost = planning_GenericMapper::getWacAmountInProduction($cQuantity, $dRec1->productId, $valior);
                         }
                         if(empty($primeCost)){
-                            $primeCost = planning_GenericMapper::getWacAmountInAllCostsAcc($cQuantity, $dRec1->productId, $valior, $dRec1->expenseItemId);
+                            $primeCost = planning_GenericMapper::getWacAmountInAllCostsAcc($cQuantity, $dRec1->productId, $valior, $dRec1->expenseItemId ?? null);
                         }
                     }
 
@@ -573,9 +575,13 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
                 $eItem = acc_Items::fetch($expenseItem);
             }
 
-            if ($eItem->classId == sales_Sales::getClassId()) {
+            if ($eItem && ($eItem->classId ?? null) == sales_Sales::getClassId()) {
                 $array['quantity'] = $quantity;
                 $saleRec = sales_Sales::fetch($eItem->objectId, 'contragentClassId, contragentId');
+                if (!$saleRec) {
+                    return $entries;
+                }
+
                 $entry4 = array('debit' => array('703',
                     array($saleRec->contragentClassId, $saleRec->contragentId),
                     array($eItem->classId, $eItem->objectId),
