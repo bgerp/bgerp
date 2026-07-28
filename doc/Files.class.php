@@ -114,15 +114,16 @@ class doc_Files extends core_Manager
                         $doc = doc_Containers::getDocument($cid);
                         
                         $dRec = $doc->fetch();
+                        if (!$dRec) continue;
                         
                         if ($dRec->state == 'rejected') {
                             continue;
                         }
                         
                         if ($fInterface && $dRec->folderId) {
-                            $fRec = doc_Folders::fetchRec($dRec->folderId);
+                            $folderRec = doc_Folders::fetchRec($dRec->folderId);
                             
-                            if (!cls::haveInterface($fInterface, $fRec->coverClass)) {
+                            if (!$folderRec || !cls::haveInterface($fInterface, $folderRec->coverClass)) {
                                 continue;
                             }
                         }
@@ -148,9 +149,9 @@ class doc_Files extends core_Manager
 
         while ($rec = $query->fetch()) {
             if ($fInterface && $rec->folderId) {
-                $fRec = doc_Folders::fetchRec($rec->folderId);
+                $folderRec = doc_Folders::fetchRec($rec->folderId);
                 
-                if (!cls::haveInterface($fInterface, $fRec->coverClass)) {
+                if (!$folderRec || !cls::haveInterface($fInterface, $folderRec->coverClass)) {
                     continue;
                 }
             }
@@ -221,7 +222,7 @@ class doc_Files extends core_Manager
                 
                 $cRec = doc_Containers::fetch($containerId);
                 
-                if ($cRec->state == 'rejected') {
+                if (!$cRec || $cRec->state == 'rejected') {
                     $hideArr[$dRec->id] = $dRec;
                     continue;
                 }
@@ -243,9 +244,9 @@ class doc_Files extends core_Manager
         }
 
         // Скриваме файлове, които не трябва да се показват
-        foreach ((array) $updateArr['hide'] as $hideArr) {
+        foreach ($updateArr['hide'] as $hideArr) {
             foreach ($hideArr as $hRec) {
-                if (!$hRec->show || $hRec->show != 'no') {
+                if (($hRec->show ?? null) != 'no') {
                     $hRec->show = 'no';
                     self::save($hRec, 'show');
                     $rArr[$cId] = null;
@@ -254,10 +255,12 @@ class doc_Files extends core_Manager
         }
         
         // Показваме файла
-        foreach ((array) $updateArr['show'] as $bestRec) {
+        foreach ($updateArr['show'] as $bestRec) {
+            if (!$bestRec) continue;
+
             self::fixShow($bestRec);
-            if (isset($bestRec) && (!$bestRec->show || $bestRec->show != 'yes')) {
-                if ($bestRec->show != 'isSearch') {
+            if (($bestRec->show ?? null) != 'yes') {
+                if (($bestRec->show ?? null) != 'isSearch') {
                     $bestRec->show = 'yes';
                 }
                 self::save($bestRec, 'show');
@@ -275,17 +278,19 @@ class doc_Files extends core_Manager
      */
     protected static function fixShow(&$bestRec)
     {
-        if ($bestRec->show == 'yes') {
-            if ($bestRec->fileHnd) {
+        if (!is_object($bestRec)) return;
+
+        if (($bestRec->show ?? null) == 'yes') {
+            if (!empty($bestRec->fileHnd)) {
                 $fRec = fileman::fetchByFh($bestRec->fileHnd);
                 if ($fRec) {
-                    $nameAndExt = fileman::getNameAndExt(mb_strtolower($fRec->name));
-                    if ($nameAndExt['ext'] == 'eml') {
+                    $nameAndExt = fileman::getNameAndExt(mb_strtolower($fRec->name ?? ''));
+                    if (($nameAndExt['ext'] ?? null) == 'eml') {
                         $bestRec->show = 'isSearch';
                     }
 
-                    if ($nameAndExt['ext'] == 'html') {
-                        if (preg_match('/[0-9]+\_[a-f0-9]{6}/', $nameAndExt['name'])) {
+                    if (($nameAndExt['ext'] ?? null) == 'html') {
+                        if (preg_match('/[0-9]+\_[a-f0-9]{6}/', $nameAndExt['name'] ?? '')) {
                             $bestRec->show = 'isSearch';
                         }
                     }
@@ -320,13 +325,13 @@ class doc_Files extends core_Manager
     public static function saveFile($invoker, $rec)
     {
         // Вземаме данните
-        $id = $rec->id;
+        $id = $rec->id ?? null;
         $containerId = $rec->containerId ?? null;
         $folderId = $rec->folderId ?? null;
         $threadId = $rec->threadId ?? null;
         
         $show = 'yes';
-        if ($rec->state == 'rejected') {
+        if (($rec->state ?? null) == 'rejected') {
             $show = 'no';
         }
         
@@ -337,8 +342,10 @@ class doc_Files extends core_Manager
         if (!$containerId) {
             
             // Намираме контейнера
-            $rec = $invoker->fetch($id);
-            $containerId = $rec->containerId;
+            expect($rec = $invoker->fetch($id));
+            $containerId = $rec->containerId ?? null;
+            $folderId = $folderId ?: ($rec->folderId ?? null);
+            $threadId = $threadId ?: ($rec->threadId ?? null);
         }
         
         // Очакваме да има такъв запис
@@ -351,7 +358,7 @@ class doc_Files extends core_Manager
         if (!$folderId || !$threadId) {
             
             // Записите за контейнера
-            $cRec = doc_Containers::fetch($containerId);
+            expect($cRec = doc_Containers::fetch($containerId));
         }
         
         // Ако няма папка
@@ -407,7 +414,9 @@ class doc_Files extends core_Manager
             $nRec->show = $show;
 
             $fRec = fileman::fetchByFh($fh);
-            cls::get('fileman_Files')->logRead('Добавяне към документ', $fRec->id);
+            if ($fRec) {
+                cls::get('fileman_Files')->logRead('Добавяне към документ', $fRec->id);
+            }
 
             static::save($nRec, null, 'IGNORE');
         }
@@ -463,7 +472,7 @@ class doc_Files extends core_Manager
             
             $cRec = doc_Containers::fetch($fRec->containerId);
             
-            if ($cRec->state == 'rejected') {
+            if (!$cRec || $cRec->state == 'rejected') {
                 continue;
             }
             
@@ -513,14 +522,16 @@ class doc_Files extends core_Manager
 
         $lastFolderId = Mode::get('lastfolderId');
 
-        if ($lastFolderId && !$lastFoldersArr[$lastFolderId]) {
+        if ($lastFolderId && empty($lastFoldersArr[$lastFolderId])) {
             $lastFoldersArr[$lastFolderId] = $lastFolderId;
         }
 
         foreach ($lastFoldersArr as $folderId) {
             if ($folderId) {
                 $fRec = doc_Folders::fetch($folderId);
-                $suggArr[$folderPrefix . $folderId] = $fRec->title;
+                if ($fRec) {
+                    $suggArr[$folderPrefix . $folderId] = $fRec->title;
+                }
             }
         }
         
@@ -555,10 +566,10 @@ class doc_Files extends core_Manager
             $data->query->orWhere("#show = 'isSearch'");
         }
 
-        if ($filter->range) {
+        if (!empty($filter->range)) {
             if ($filter->range == $folderPrefix . 'allFolders') {
                 $minLen = 3;
-                if (mb_strlen($filter->search) <= $minLen) {
+                if (mb_strlen($filter->search ?? '') <= $minLen) {
                     $msg = 'Когато се търси по "Всички папки" трябва да се попълни и "Ключови думи" с поне ' . ++$minLen . ' буквен стринг';
                     if (haveRole('manager')) {
                         $data->listFilter->setWarning('search, range', $msg);
@@ -575,7 +586,7 @@ class doc_Files extends core_Manager
             }
         }
 
-        if ($filter->range) {
+        if (!empty($filter->range)) {
             // Ако се филтрира по папките на текущия потребител или файловете му
             if (stripos($filter->range, $sPrefix) === 0) {
                 $fSearch = '';
@@ -675,8 +686,8 @@ class doc_Files extends core_Manager
         // Определяме датата
         setIfNot($rec->date, $rec->lastUse ?? null, $rec->lastOn ?? null, $rec->cModifiedOn ?? null);
         if (!isset($rec->date)) {
-            $fRec = fileman_Files::fetchByFh($rec->fileHnd);
-            $rec->date = $fRec->createdOn;
+            $fRec = fileman_Files::fetchByFh($rec->fileHnd ?? null);
+            $rec->date = $fRec->createdOn ?? null;
         }
         
         // TODO - ще се премахне след JOIN
@@ -702,6 +713,7 @@ class doc_Files extends core_Manager
                 
                 if ($doc->haveRightFor('single')) {
                     $dRec = $doc->fetch();
+                    if (!$dRec) continue;
                     
                     $rec->containerId = $dRec->containerId;
                     $rec->threadId = $dRec->threadId;
@@ -749,6 +761,8 @@ class doc_Files extends core_Manager
     public static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         $url = null;
+        $doc = null;
+        $attr = array();
         if (!empty($rec->containerId)) {
             try {
                 // Документа
@@ -758,7 +772,6 @@ class doc_Files extends core_Manager
                 $docRow = $doc->getDocumentRow();
                 
                 // Атрибутеите на линка
-                $attr = array();
                 $attr['title'] = '|*' . $docRow->title;
                 
                 // Документа да е линк към single' а на документа
@@ -769,7 +782,7 @@ class doc_Files extends core_Manager
             
             try {
                 // id' то на контейнера на пъривя документ
-                $firstContainerId = doc_Threads::fetchField($rec->threadId, 'firstContainerId');
+                $firstContainerId = !empty($rec->threadId) ? doc_Threads::fetchField($rec->threadId, 'firstContainerId') : null;
                 if ($firstContainerId != $rec->containerId) {
                     
                     // Първия документ в нишката
@@ -810,7 +823,7 @@ class doc_Files extends core_Manager
     public static function updateRec($cRec)
     {
         // Ако няма containerId не се прави нищо
-        if (!$cRec->id || !$cRec->folderId) {
+        if (!is_object($cRec) || empty($cRec->id) || empty($cRec->folderId)) {
             
             return ;
         }
