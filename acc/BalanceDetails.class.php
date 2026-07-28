@@ -944,6 +944,12 @@ class acc_BalanceDetails extends core_Detail
                         foreach ($l2 as $ent3 => $rec) {
                             $rec['balanceId'] = $balanceId;
 
+                            foreach (['baseQuantity', 'baseAmount', 'debitQuantity', 'debitAmount', 'creditQuantity', 'creditAmount', 'blQuantity', 'blAmount'] as $fld) {
+                                if (!array_key_exists($fld, $rec)) {
+                                    $rec[$fld] = null;
+                                }
+                            }
+
                             foreach (['blAmount', 'baseAmount'] as $fld) {
                                 if (!is_null($rec[$fld] ?? null)) {
                                     $rec[$fld] = round($rec[$fld], 8);
