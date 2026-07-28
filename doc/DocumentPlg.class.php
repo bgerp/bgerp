@@ -3171,7 +3171,7 @@ class doc_DocumentPlg extends core_Plugin
                 if (is_object($options)) {
                     
                     // Ако не е обект, създаваме го
-                    if (!is_object($options->rec)) {
+                    if (!isset($options->rec) || !is_object($options->rec)) {
                         $options->rec = new stdClass();
                     }
                     
