@@ -2220,6 +2220,7 @@ abstract class deals_InvoiceMaster extends core_Master
     public static function on_AfterActivation($mvc, &$rec)
     {
         $rec = $mvc->fetchRec($rec);
+        $saveFields = array();
 
         if($mvc->cacheAdditionalConditions){
             if (empty($rec->additionalConditions)) {
@@ -2271,8 +2272,9 @@ abstract class deals_InvoiceMaster extends core_Master
             if(isset($Detail->productInvoiceInfoParamName)){
                 $invoiceInfo = cat_Products::getParams($dRec->productId, $Detail->productInvoiceInfoParamName);
                 if(!empty($invoiceInfo)){
-                    if (strpos($dRec->notes, "{$invoiceInfo}") === false) {
-                        $dRec->notes = $invoiceInfo . ((!empty($dRec->notes) ? "\n" : '') . $dRec->notes);
+                    $notes = $dRec->notes ?? '';
+                    if (strpos($notes, "{$invoiceInfo}") === false) {
+                        $dRec->notes = $invoiceInfo . ((!empty($notes) ? "\n" : '') . $notes);
                         $save = true;
                     }
                 }
