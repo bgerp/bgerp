@@ -481,7 +481,7 @@ class trans_Lines extends core_Master
             }
         }
 
-        if(empty($rec->shipmentOn)){
+        if (empty($rec->shipmentOn) && isset($row->shipmentOnCalc)) {
             $row->shipmentOnCalc = ht::createHint($row->shipmentOnCalc, 'Използва се началото, защото няма конкретно въведена дата за експедиране|*!', 'notice', false);
         }
 
