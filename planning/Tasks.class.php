@@ -1066,14 +1066,14 @@ class planning_Tasks extends core_Master
                 }
             }
 
-            if (!$form->rec->_editActive) {
+            if (empty($form->rec->_editActive)) {
                 if (isset($rec->wasteProductId)) {
                     $wasteRec = cat_Products::fetch($rec->wasteProductId, 'measureId,generic');
-                    if ($wasteRec->generic == 'yes') {
+                    if (($wasteRec->generic ?? null) == 'yes') {
                         $form->setError('wasteProductId', "Избраният отпадък е генеричен (обобщаващ)|*! |Трябва да бъде заместен с конкретния такъв|*!");
                     }
 
-                    if (($rec->wasteStart + $rec->wastePercent) <= 0) {
+                    if ((($rec->wasteStart ?? 0) + ($rec->wastePercent ?? 0)) <= 0) {
                         $form->setError('wasteStart,wastePercent', "Количеството на отпадъка не може да се сметне|*!");
                     }
                 } else {
