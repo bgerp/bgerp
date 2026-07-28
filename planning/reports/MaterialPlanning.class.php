@@ -126,12 +126,12 @@ class planning_reports_MaterialPlanning extends frame2_driver_TableData
         $form->setDefault('period', 'byWeeks');
 
 
-        if ($rec->type == 'bySales'){
+        if (($rec->type ?? null) == 'bySales'){
             $form->setField('weeks', 'input=hidden');
             $form->setField('period', 'input=hidden');
             $form->setField('slalesDog', 'mandatory');
         }
-        if ($rec->type == 'byWeeks'){
+        if (($rec->type ?? null) == 'byWeeks'){
 
             $form->setField('slalesDog', 'input=hidden');
 
