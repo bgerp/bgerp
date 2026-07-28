@@ -95,7 +95,7 @@ class cat_plg_LogPackUsage extends core_Plugin
     protected static function on_BeforeSave($mvc, $id, $rec)
     {
         $rec->_syncPacks = $mvc->canSyncPacks($rec);
-        if(isset($rec->id) && $rec->_syncPacks){
+        if(isset($rec->id) && !empty($rec->_syncPacks)){
 
             // Преди запис се извличат старите опаковки
             $packagingFields = $mvc->getPackagingFields();

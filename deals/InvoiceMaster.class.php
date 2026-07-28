@@ -680,7 +680,7 @@ abstract class deals_InvoiceMaster extends core_Master
         }
 
         // Само ако записа е след редакция
-        if (isset($rec->_isClone) && $rec->_edited !== true) {
+        if (isset($rec->_isClone) && ($rec->_edited ?? false) !== true) {
             return;
         }
 
