@@ -1125,6 +1125,7 @@ class label_Prints extends core_Master
             
             $rec = $this->fetch($data->Label->id);
         }
+        $recId = $rec->id ?? null;
         
         // Ако не е сетната бройката
         $data->cnt = $data->cnt ?? 1;
@@ -1196,10 +1197,10 @@ class label_Prints extends core_Master
                 
                 try {
                     // Вземаме вербалната стойност
-                    $data->rows[$rowId][$place] = label_TemplateFormats::getVerbalTemplate($rec->templateId, $place, $params[$fPlace] ?? null, $rec->id, $data->updateTempData);
+                    $data->rows[$rowId][$place] = label_TemplateFormats::getVerbalTemplate($rec->templateId, $place, $params[$fPlace] ?? null, $recId, $data->updateTempData);
                 } catch (core_exception_Expect $e) {
                     $data->rows[$rowId][$place] = "<span style='color: #c00;'>" . tr('Грешка при показване на данните') . '!!!</span>';
-                    $this->logWarning('Грешка при показване на данните: ' . $e->getMessage(), $rec->id);
+                    $this->logWarning('Грешка при показване на данните: ' . $e->getMessage(), $recId);
                 }
             }
             
@@ -1217,7 +1218,7 @@ class label_Prints extends core_Master
                     $params[$currPageCntField] = $currPageCnt++;
                 }
                 
-                $newCurrPage = label_TemplateFormats::getVerbalTemplate($rec->templateId, $currPageCntField, $params[$currPageCntField], $rec->id, $data->updateTempData);
+                $newCurrPage = label_TemplateFormats::getVerbalTemplate($rec->templateId, $currPageCntField, $params[$currPageCntField], $recId, $data->updateTempData);
                 
                 if ($newCurrPage) {
                     $data->rows[$copyField][$currPageCntField] = $newCurrPage;
