@@ -947,14 +947,14 @@ class cat_Boms extends core_Master
         // Ако има данни за детайли, проверяваме дали са валидни
         if (countR($details)) {
             foreach ($details as &$d) {
-                expect($d->resourceId);
+                expect(!empty($d->resourceId));
                 expect(cat_Products::fetch($d->resourceId));
-                $d->type = ($d->type) ? $d->type : 'input';
+                $d->type = !empty($d->type) ? $d->type : 'input';
                 expect(in_array($d->type, array('input', 'pop', 'subProduct')));
                 
-                $d->baseQuantity = $Double->fromVerbal($d->baseQuantity);
-                $d->propQuantity = $Double->fromVerbal($d->propQuantity);
-                $d->quantityInPack = $Double->fromVerbal($d->quantityInPack);
+                $d->baseQuantity = $Double->fromVerbal($d->baseQuantity ?? null);
+                $d->propQuantity = $Double->fromVerbal($d->propQuantity ?? null);
+                $d->quantityInPack = $Double->fromVerbal($d->quantityInPack ?? null);
                 expect($d->baseQuantity || $d->propQuantity);
             }
         }
@@ -1495,7 +1495,7 @@ class cat_Boms extends core_Master
                 $params1 = $scope;
                 
                 // Ъпдейтваме кешираните стойност и параметри само при промяна
-                if (trim($rec->primeCost) != trim($primeCost) || serialize($rec->params) != serialize($params1)) {
+                if (trim((string) ($rec->primeCost ?? '')) != trim((string) $primeCost) || serialize($rec->params ?? null) != serialize($params1)) {
                     $rec->primeCost = $primeCost;
                     $rec->params = $params1;
                     
@@ -2361,7 +2361,7 @@ class cat_Boms extends core_Master
             if (!array_key_exists($dRec->paramId, $params)) continue;
 
             $val = $params[$dRec->paramId];
-            if (!strlen($val)) continue;
+            if (!strlen((string) $val)) continue;
 
             // Опит за подмяна на материала
             $err = self::tryReplaceBomMaterial($dRec, $val);
