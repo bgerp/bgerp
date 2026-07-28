@@ -313,7 +313,7 @@ class sales_Invoices extends deals_InvoiceMaster
         $form = &$data->form;
         $rec = &$form->rec;
 
-        if($data->action != 'changefields'){
+        if(($data->action ?? null) != 'changefields'){
             $form->setField('contragentCountryId', 'removeAndRefreshForm=additionalInfo');
         }
 

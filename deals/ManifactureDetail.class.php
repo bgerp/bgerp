@@ -150,7 +150,7 @@ abstract class deals_ManifactureDetail extends doc_Detail
         }
         $form->setFieldTypeParams('productId', $params);
         
-        if (isset($form->rec->id) && $data->action != 'replaceproduct') {
+        if (isset($form->rec->id) && ($data->action ?? null) != 'replaceproduct') {
             $data->form->setReadOnly('productId');
         }
     }

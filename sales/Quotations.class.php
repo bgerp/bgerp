@@ -217,7 +217,7 @@ class sales_Quotations extends deals_QuotationMaster
         }
         $form->setOptions('bankAccountId', $options);
 
-        if (isset($rec->originId) && $data->action != 'clone' && empty($form->rec->id)) {
+        if (isset($rec->originId) && ($data->action ?? null) != 'clone' && empty($form->rec->id)) {
             
             // Ако офертата има ориджин
             $origin = doc_Containers::getDocument($rec->originId);

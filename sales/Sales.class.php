@@ -474,7 +474,7 @@ class sales_Sales extends deals_DealMaster
         }
 
         if(!array_key_exists($rec->bankAccountId ?? null, $options)){
-            if($data->action != 'clone'){
+            if(($data->action ?? null) != 'clone'){
                 $options[$rec->bankAccountId ?? null] = $rec->bankAccountId ?? null;
             } else {
                 $query = $mvc->getQuery();

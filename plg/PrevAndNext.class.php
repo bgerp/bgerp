@@ -240,7 +240,7 @@ class plg_PrevAndNext extends core_Plugin
                 $data->form->rec = (object) arr::fillMissingKeys($exRec, $data->form->rec);
             }
             
-            if($data->action == 'manage'){
+            if(($data->action ?? null) == 'manage'){
                 $mvc->requireRightFor('edit', $data->form->rec);
             }
         } elseif (!($data->form->cmd == 'save_n_next' || $data->form->cmd == 'refresh' || $data->form->cmd == 'save_n_prev' || Request::get('PrevAndNext'))) {

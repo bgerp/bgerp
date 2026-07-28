@@ -294,7 +294,7 @@ class store_InventoryNotes extends core_Master
         $form->setDefault('hideOthers', 'no');
         $form->setDefault('expandGroups', 'no');
 
-        if (isset($form->rec->id) && $data->action != 'clone') {
+        if (isset($form->rec->id) && ($data->action ?? null) != 'clone') {
             $form->setReadOnly('storeId');
             if(store_InventoryNoteDetails::count("#noteId = {$rec->id}")){
                 $form->setReadOnly('valior');

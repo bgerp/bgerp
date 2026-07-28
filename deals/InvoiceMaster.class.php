@@ -831,7 +831,7 @@ abstract class deals_InvoiceMaster extends core_Master
         $form = &$data->form;
         $rec = $form->rec;
 
-        if($data->action == 'changefields'){
+        if(($data->action ?? null) == 'changefields'){
 
             // При промяна да има бутон за бърза смяна на контрагентските данни
             $cData = cls::get($rec->contragentClassId)->getContragentData($rec->contragentId, null);
@@ -1035,7 +1035,7 @@ abstract class deals_InvoiceMaster extends core_Master
             }
         }
 
-        if($data->action == 'changefields'){
+        if(($data->action ?? null) == 'changefields'){
             // При промяна да се показва поле за редакция на кешираните допълнителни условия от банковата сметка
             if($mvc->cacheAdditionalConditions){
                 $exRec = $mvc->fetch($rec->id, 'additionalConditions,accountId', false);

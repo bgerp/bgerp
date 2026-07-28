@@ -235,7 +235,7 @@ class cat_BomDetails extends doc_Detail
 
         if(!isset($rec->id)){
             $form->setFieldTypeParams('resourceId', array('forceOpen' => 'forceOpen'));
-        } elseif($data->action != 'replaceproduct') {
+        } elseif(($data->action ?? null) != 'replaceproduct') {
             $form->setReadOnly('resourceId');
         }
 

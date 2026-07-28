@@ -302,7 +302,7 @@ class blast_Letters extends core_Master
         }
         
         // Ако създваме
-        if (empty($rec->id) && ($data->action != 'clone')) {
+        if (empty($rec->id) && (($data->action ?? null) != 'clone')) {
             
             // Задваме стойности по подразбиране
             $rec->recipient = '[#company#]';

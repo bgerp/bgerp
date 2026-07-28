@@ -61,7 +61,7 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
             
             return;
         }
-        if (isset($rec->id) && $data->action != 'clone') {
+        if (isset($rec->id) && ($data->action ?? null) != 'clone') {
 
             return;
         }

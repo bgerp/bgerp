@@ -1609,7 +1609,7 @@ class planning_Tasks extends core_Master
                 $rec->folderId = $folderId;
             }
         } else {
-            if ($data->action != 'clone' && in_array($rec->state, array('active', 'wakeup', 'stopped'))) {
+            if (($data->action ?? null) != 'clone' && in_array($rec->state, array('active', 'wakeup', 'stopped'))) {
                 $form->setField('wasteProductId', 'input=none');
                 $form->setField('wasteStart', 'input=none');
                 $form->setField('wastePercent', 'input=none');
@@ -1940,7 +1940,7 @@ class planning_Tasks extends core_Master
 
         if (isset($rec->id)) {
             $form->setReadOnly('productId');
-            if ($data->action != 'clone') {
+            if (($data->action ?? null) != 'clone') {
                 if (planning_ProductionTaskDetails::fetchField("#taskId = {$rec->id}")) {
                     $form->setReadOnly('labelPackagingId');
                     if ($form->getFieldParam('labelQuantityInPack', 'input') != 'hidden') {

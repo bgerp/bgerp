@@ -394,7 +394,7 @@ abstract class deals_DealMaster extends deals_DealBase
             }
         }
         $form->setDefault('makeInvoice', $defaultMakeInvoice);
-        if($data->action == 'clone'){
+        if(($data->action ?? null) == 'clone'){
             $form->rec->_isBeingCloned = true;
         }
 
@@ -416,7 +416,7 @@ abstract class deals_DealMaster extends deals_DealBase
             if ($mvc->$Detail->fetch("#{$mvc->{$Detail}->masterKey} = {$rec->id}")) {
                 foreach (array('chargeVat', 'currencyId', 'deliveryTermId', 'vatExceptionId') as $fld) {
                     $readOnlyVal = $rec->{$fld} ?? $mvc->fetchField($rec->id, $fld);
-                    if($data->action == 'clone' && !isset($readOnlyVal)) continue;
+                    if(($data->action ?? null) == 'clone' && !isset($readOnlyVal)) continue;
 
                     $form->setReadOnly($fld, $rec->{$fld} ?? $readOnlyVal);
                 }
@@ -425,7 +425,7 @@ abstract class deals_DealMaster extends deals_DealBase
         
         $form->setField('sharedUsers', 'input=none');
 
-        if($data->action != 'changefields'){
+        if(($data->action ?? null) != 'changefields'){
             $form->input('deliveryTermId');
             if(isset($rec->deliveryTermId)){
                 cond_DeliveryTerms::prepareDocumentForm($rec->deliveryTermId, $form, $mvc);

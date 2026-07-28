@@ -439,7 +439,7 @@ class cat_Products extends embed_Manager
     {
         $form = &$data->form;
         $rec = $form->rec;
-        if($data->action == 'clone'){
+        if(($data->action ?? null) == 'clone'){
             $rec->_isBeingCloned = true;
         }
 
@@ -485,7 +485,7 @@ class cat_Products extends embed_Manager
                 }
 
                 // При клониране се използва кода на клонирания артикул
-                if($data->action == 'clone'){
+                if(($data->action ?? null) == 'clone'){
                     if($clonedCode = cat_Products::fetchField($rec->clonedFromId, 'code')){
                         $lastCode = $clonedCode;
                     }
@@ -506,7 +506,7 @@ class cat_Products extends embed_Manager
                         }
                     }
 
-                    if($data->action == 'clone'){
+                    if(($data->action ?? null) == 'clone'){
                         $data->form->setField('code', 'focus');
                     }
                     $form->setDefault('groupsInput', $CategoryRec->markers);
@@ -530,7 +530,7 @@ class cat_Products extends embed_Manager
                     while (cat_Products::getByCode($newCode)) {
                         $newCode = str::increment($newCode);
                     }
-                } elseif(($data->_isSaveAndNew ?? null) || $data->action == 'clone') {
+                } elseif(($data->_isSaveAndNew ?? null) || ($data->action ?? null) == 'clone') {
                     // Ако все пак има предишен код, който не е инкремениран попълва се той
                     $newCode = $lastCode;
                 }
@@ -580,7 +580,7 @@ class cat_Products extends embed_Manager
             $form->setOptions('measureId', array('' => '') + $measureOptions);
             
             // При редакция ако артикула е използван с тази мярка, тя не може да се променя
-            if (isset($rec->id) && $data->action != 'clone') {
+            if (isset($rec->id) && ($data->action ?? null) != 'clone') {
                 if (cat_products_Packagings::fetch("#productId = {$rec->id}")) {
                     $isUsed = true;
                 } else {
