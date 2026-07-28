@@ -296,30 +296,30 @@ class blast_Emails extends core_Master
         
         // Задаваме стойности за останалите полета
         foreach ((array) $otherFieldParams as $fieldName => $value) {
-            if ($rec->$fieldName) {
+            if (!empty($rec->{$fieldName})) {
                 continue;
             }
-            $rec->$fieldName = $value;
+            $rec->{$fieldName} = $value;
         }
         
         // Ако не е зададен имейл на изпращача, да се използва дефолтният му
-        if (!$rec->from) {
+        if (empty($rec->from)) {
             $rec->from = email_Outgoings::getDefaultInboxId();
         }
         
         expect($rec->from, 'Не може да се определи имейл по подразбиране за изпращача');
 
-        $rec->canUnsubscribe = $otherParamsArr['canUnsubscribe'] ? $otherParamsArr['canUnsubscribe'] : 'yes';
+        $rec->canUnsubscribe = !empty($otherParamsArr['canUnsubscribe']) ? $otherParamsArr['canUnsubscribe'] : 'yes';
 
-        if ($otherParamsArr['sharedUsers']) {
+        if (!empty($otherParamsArr['sharedUsers'])) {
             $rec->sharedUsers = $otherParamsArr['sharedUsers'];
         }
 
-        if ($otherParamsArr['lg']) {
+        if (!empty($otherParamsArr['lg'])) {
             $rec->lg = $otherParamsArr['lg'];
         }
 
-        if ($otherParamsArr['folderId']) {
+        if (!empty($otherParamsArr['folderId'])) {
             $rec->folderId = $otherParamsArr['folderId'];
         }
 
@@ -1120,7 +1120,7 @@ class blast_Emails extends core_Master
         
         // Ако формата е изпратена без грешки
         if ($form->isSubmitted()) {
-            if ($form->rec->sendingFrom && $form->rec->sendingTo) {
+            if (!empty($form->rec->sendingFrom) && !empty($form->rec->sendingTo)) {
                 if ($form->rec->sendingFrom >= $form->rec->sendingTo) {
                     $form->setError('sendingTo, sendingFrom', 'Началният час трябва да е преди крайния');
                 }
@@ -1155,8 +1155,8 @@ class blast_Emails extends core_Master
             blast_Emails::save($form->rec, 'state,sendPerCall,activatedBy,modifiedBy,modifiedOn, sendingDay, sendingFrom, sendingTo, errMsg');
             
             $updateCntArr = self::updateEmailList($form->rec->id);
-            $updateCnt = $updateCntArr['add'];
-            $removeCnt = $updateCntArr['remove'];
+            $updateCnt = $updateCntArr['add'] ?? 0;
+            $removeCnt = $updateCntArr['remove'] ?? 0;
             
             // В зависимост от броя на обновления променяме състоянието
             if ($updateCnt) {
@@ -1483,8 +1483,10 @@ class blast_Emails extends core_Master
     public static function on_AfterPrepareEditForm(&$mvc, &$res, &$data)
     {
         $form = $data->form;
+        $canUnsubscribe = $form->rec->canUnsubscribe ?? 'yes';
+        $form->setDefault('canUnsubscribe', $canUnsubscribe);
 
-        if ($form->rec->canUnsubscribe == 'no') {
+        if ($canUnsubscribe == 'no') {
             $form->setField('unsubscribe', 'input=none');
         }
 
@@ -1512,10 +1514,11 @@ class blast_Emails extends core_Master
         $data->form->setDefault('perSrcClassId', $defPerSrcClassId);
         
         // Инстанция на източника за персонализация
-        $perClsInst = cls::getInterface('bgerp_PersonalizationSourceIntf', $data->form->rec->perSrcClassId);
+        $perSrcClassId = $data->form->rec->perSrcClassId ?? $defPerSrcClassId;
+        $perClsInst = cls::getInterface('bgerp_PersonalizationSourceIntf', $perSrcClassId);
 
         // id на обекта на персонализация
-        $perSrcObjId = $data->form->rec->perSrcObjectId;
+        $perSrcObjId = $data->form->rec->perSrcObjectId ?? null;
 
         $perBody = $perClsInst->getPersonalizationBody($perSrcObjId, false);
         $data->form->setDefault('body', $perBody);
@@ -1563,7 +1566,7 @@ class blast_Emails extends core_Master
             // Заглавието за персонализация
             $perTitle = $perClsInst->getPersonalizationTitle($perSrcObjId, false);
             
-            $oHash = $pFingerPrint[$perSrcObjId];
+            $oHash = $pFingerPrint[$perSrcObjId] ?? null;
             
             if ($oHash) {
                 foreach ($pFingerPrint as $id => $hash) {
@@ -1611,7 +1614,7 @@ class blast_Emails extends core_Master
             $perSrcObjId = key($perOptArr);
         }
 
-        $defLg = $form->rec->lg;
+        $defLg = $form->rec->lg ?? null;
         if ($defLg == 'auto') {
             unset($defLg);
         }
@@ -1629,7 +1632,7 @@ class blast_Emails extends core_Master
         $unsubscribeText = tr($unsubscribeText);
         core_Lg::pop();
 
-        if ($form->rec->canUnsubscribe != 'no') {
+        if ($canUnsubscribe != 'no') {
             $form->setDefault('unsubscribe', $unsubscribeText);
         }
 
@@ -1642,7 +1645,7 @@ class blast_Emails extends core_Master
         
         try {
             // Само имейлите достъпни до потребителя да се показват
-            $emailOption = email_Inboxes::getFromEmailOptions($form->rec->folderId);
+            $emailOption = email_Inboxes::getFromEmailOptions($form->rec->folderId ?? null);
         } catch (ErrorException $e) {
             email_Inboxes::redirect();
             $emailOption = array();
@@ -1656,7 +1659,7 @@ class blast_Emails extends core_Master
         if (empty($rec->id) && ($data->action ?? null) != 'clone') {
             
             // По подразбиране да е избран текущия имейл на потребителя
-            $form->setDefault('from', email_Outgoings::getDefaultInboxId($rec->folderId));
+            $form->setDefault('from', email_Outgoings::getDefaultInboxId($rec->folderId ?? null));
             
             $fieldsArr = array('company' => 'company',
                 'person' => 'person',
@@ -1672,15 +1675,15 @@ class blast_Emails extends core_Master
                 $fieldsArr = $perClsInst->getPersonalizationDescr($perSrcObjId);
             }
             
-            $rec->recipient = $fieldsArr['company'] ? '[#company#]' : '';
-            $rec->attn = $fieldsArr['person'] ? '[#person#]' : '';
-            $rec->email = $fieldsArr['email'] ? '[#email#]' : '';
-            $rec->tel = $fieldsArr['tel'] ? '[#tel#]' : '';
-            $rec->fax = $fieldsArr['fax'] ? '[#fax#]' : '';
-            $rec->country = $fieldsArr['country'] ? '[#country#]' : '';
-            $rec->pcode = $fieldsArr['pCode'] ? '[#pCode#]' : '';
-            $rec->place = $fieldsArr['place'] ? '[#place#]' : '';
-            $rec->address = $fieldsArr['address'] ? '[#address#]' : '';
+            $rec->recipient = !empty($fieldsArr['company']) ? '[#company#]' : '';
+            $rec->attn = !empty($fieldsArr['person']) ? '[#person#]' : '';
+            $rec->email = !empty($fieldsArr['email']) ? '[#email#]' : '';
+            $rec->tel = !empty($fieldsArr['tel']) ? '[#tel#]' : '';
+            $rec->fax = !empty($fieldsArr['fax']) ? '[#fax#]' : '';
+            $rec->country = !empty($fieldsArr['country']) ? '[#country#]' : '';
+            $rec->pcode = !empty($fieldsArr['pCode']) ? '[#pCode#]' : '';
+            $rec->place = !empty($fieldsArr['place']) ? '[#place#]' : '';
+            $rec->address = !empty($fieldsArr['address']) ? '[#address#]' : '';
         }
         
         //Добавя в лист само списъци с имейли
@@ -1690,9 +1693,9 @@ class blast_Emails extends core_Master
         $query->orderBy('createdOn', 'DESC');
         
         // Премахваме избрания списък
-        if ($rec->perSrcClassId && $rec->perSrcObjectId) {
-            if (cls::getInterface('bgerp_PersonalizationSourceIntf', $rec->perSrcClassId)->class instanceof blast_Lists) {
-                $query->where(array("#id != '[#1#]'", $rec->perSrcObjectId));
+        if ($perSrcClassId && $perSrcObjId) {
+            if (cls::getInterface('bgerp_PersonalizationSourceIntf', $perSrcClassId)->class instanceof blast_Lists) {
+                $query->where(array("#id != '[#1#]'", $perSrcObjId));
             }
         }
         
@@ -1710,7 +1713,7 @@ class blast_Emails extends core_Master
             $lists = array('' => '') + $lists;
 
             // Показваме всички списъци
-            $form->setSuggestions('negativeList', $lists, $form->rec->id);
+            $form->setSuggestions('negativeList', $lists, $form->rec->id ?? null);
         }
     }
     
