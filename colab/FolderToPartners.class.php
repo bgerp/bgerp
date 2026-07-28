@@ -479,7 +479,7 @@ class colab_FolderToPartners extends core_Manager
             $dTpl->append($ht, 'addBtn');
         }
         
-        if(cls::haveInterface('crm_ContragentAccRegIntf', $data->masterMvc)){
+        if(cls::haveInterface('crm_ContragentAccRegIntf', $data->masterMvc ?? null)){
             Request::setProtected(array('companyId', 'className'));
             if (haveRole('admin')) {
                 // Добавяме бутон за създаването на нов партньор, визитка и профил

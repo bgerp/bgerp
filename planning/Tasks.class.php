@@ -2087,13 +2087,13 @@ class planning_Tasks extends core_Master
      */
     public function prepareTasks($data)
     {
-        if ($data->masterMvc instanceof planning_Jobs && $data->masterData->rec->type == 'disassembly') {
+        if (($data->masterMvc ?? null) instanceof planning_Jobs && $data->masterData->rec->type == 'disassembly') {
             $data->hide = true;
 
             return;
         }
 
-        if ($data->masterMvc instanceof planning_AssetResources) {
+        if (($data->masterMvc ?? null) instanceof planning_AssetResources) {
             if(empty($data->masterData->rec->simultaneity)) {
                 $data->hide = true;
                 return;
@@ -2110,7 +2110,7 @@ class planning_Tasks extends core_Master
         $query->XPR('orderByDate', 'datetime', "COALESCE(#expectedTimeStart, 9999999999999)");
         $query->where("#state != 'rejected'");
 
-        if ($data->masterMvc instanceof planning_AssetResources) {
+        if (($data->masterMvc ?? null) instanceof planning_AssetResources) {
             $query->orderBy('orderByDate', 'ASC');
             $query->where("#assetId = {$data->masterId}");
             $query->in("state", array('pending', 'active', 'wakeup', 'stopped'));
@@ -2199,7 +2199,7 @@ class planning_Tasks extends core_Master
         $this->invoke('AfterPrepareListRows', array($data, $data));
 
         // Ако потребителя може да добавя операция от съответния тип, ще показваме бутон за добавяне
-        if ($data->masterMvc instanceof planning_Jobs) {
+        if (($data->masterMvc ?? null) instanceof planning_Jobs) {
             if ($this->haveRightFor('add', (object)array('originId' => $data->masterData->rec->containerId))) {
                 if (!Mode::isReadOnly()) {
                     $data->addUrlArray = array('planning_Jobs', 'selectTaskAction', 'originId' => $data->masterData->rec->containerId, 'ret_url' => true);
@@ -2218,7 +2218,7 @@ class planning_Tasks extends core_Master
 
         $tpl = new ET('');
 
-        if ($data->masterMvc instanceof planning_AssetResources) {
+        if (($data->masterMvc ?? null) instanceof planning_AssetResources) {
             $data->TabCaption = 'Операции';
             $tpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
         }
@@ -2232,7 +2232,7 @@ class planning_Tasks extends core_Master
         $table = cls::get('core_TableView', array('mvc' => $data->listTableMvc));
         $fields = arr::make('saoOrder=№,expectedTimeStart=Начало,title=Операция,progress=Прогрес,plannedQuantity=План.,totalQuantity=Произв.,producedQuantity=Заскл.,notConvertedQuantity=Невл.,costsCount=Разходи,taskWastePercent=Отп., assetId=Оборудв.,gaps=@gaps');
         $fields['taskWastePercent'] = "|*<small class='quiet'>|Отп.|*</small>";
-        if ($data->masterMvc instanceof planning_AssetResources) {
+        if (($data->masterMvc ?? null) instanceof planning_AssetResources) {
             unset($fields['assetId']);
             unset($fields['saoOrder']);
         }
@@ -2253,7 +2253,7 @@ class planning_Tasks extends core_Master
             $contentTpl->append($btn, 'btnTasks');
         }
 
-        if ($data->masterMvc instanceof planning_AssetResources) {
+        if (($data->masterMvc ?? null) instanceof planning_AssetResources) {
             $tpl->append("Производствени операции (заявки, активни, събудени, спрени)", 'title');
             if(planning_Tasks::haveRightFor('list')){
                 $filterLink = ht::createLink('', array('planning_Tasks', 'list', 'assetId' => $data->masterId), false, 'ef_icon=img/16/funnel.png,title=Филтър по център на дейност и оборудване');
@@ -3149,7 +3149,7 @@ class planning_Tasks extends core_Master
 
         // В таба "Употреба" на артикул (cat_products_Usage) се показват само title/folderId/created/дата -
         // не са нужни тагове, задания, зависими операции и планиращи параметри
-        if ($data->masterMvc instanceof cat_Products) {
+        if (isset($data->masterMvc) && $data->masterMvc instanceof cat_Products) {
             core_Debug::stopTimer('RENDER_TABLE');
 
             return;
@@ -3261,7 +3261,7 @@ class planning_Tasks extends core_Master
         }
 
         $tableClass = '';
-        if(!$data->masterMvc){
+        if(empty($data->masterMvc)){
             $tableClass = 'small';
         }
 
@@ -3600,7 +3600,7 @@ class planning_Tasks extends core_Master
             $data->listFields['notes'] = $notesCaption;
         }
         // Ако е филтрирано по машина (или е в сингъла на машината) и не се преподрежда ще се визуализират дупките
-        if ((isset($data->listFilter->rec->assetId) || (isset($data->masterId) && ($data->masterMvc instanceof planning_AssetResources))) && !Mode::is('isReorder')) {
+        if ((isset($data->listFilter->rec->assetId) || (isset($data->masterId) && (($data->masterMvc ?? null) instanceof planning_AssetResources))) && !Mode::is('isReorder')) {
             $gap = planning_Setup::get('MIN_TIME_FOR_GAP');
 
             // За всяка ПО ако има

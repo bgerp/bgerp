@@ -967,7 +967,7 @@ class store_Products extends core_Detail
      */
     public function prepareDetail_($data)
     {
-        if($data->masterMvc instanceof cat_Products){
+        if(($data->masterMvc ?? null) instanceof cat_Products){
             $data->masterKey = 'productId';
            
             $data->render = true;

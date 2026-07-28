@@ -266,7 +266,7 @@ class crm_ext_Cards extends core_Manager
 
         // Подготовка на клиентските карти
         $query = $this->getQuery();
-        if ($data->masterMvc instanceof crm_Persons) {
+        if (($data->masterMvc ?? null) instanceof crm_Persons) {
             $data->listFields = arr::make('number=Карта,type=Вид,companyId=Фирма,source=Източник,state=Състояние', true);
             $query->where("#personId = '{$masterRec->id}'");
         } else {
@@ -281,7 +281,7 @@ class crm_ext_Cards extends core_Manager
         }
 
         // Добавяне на бутон при нужда
-        if ($data->masterMvc instanceof crm_Persons) {
+        if (($data->masterMvc ?? null) instanceof crm_Persons) {
             if ($this->haveRightFor('add', (object)array('personId' => $data->masterId))) {
                 $addUrl = array($this, 'add', 'personId' => $data->masterId, 'ret_url' => true);
                 $data->addBtn = ht::createLink('', $addUrl, null, array('ef_icon' => 'img/16/add.png', 'class' => 'addSalecond', 'title' => 'Добавяне на нова клиентска карта'));

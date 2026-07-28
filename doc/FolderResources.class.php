@@ -155,7 +155,7 @@ class doc_FolderResources extends core_Manager
             }
         }
         
-        if (is_object($data->masterMvc)) {
+        if (is_object($data->masterMvc ?? null)) {
             $data->masterMvc->invoke('AfterPrepareResourceData', array($data, $DetailName));
         }
     }

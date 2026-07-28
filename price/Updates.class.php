@@ -675,7 +675,7 @@ class price_Updates extends core_Manager
     public function prepareDetail($data)
     {
         $data->recs = array();
-        $type = ($data->masterMvc instanceof cat_Categories) ? 'category' : (($data->masterMvc instanceof cat_Groups) ? 'group' : 'product');
+        $type = (($data->masterMvc ?? null) instanceof cat_Categories) ? 'category' : ((($data->masterMvc ?? null) instanceof cat_Groups) ? 'group' : 'product');
 
         if($type == 'product'){
             if($uRec = price_Updates::fetch("#type = 'product' AND #objectId = {$data->masterId}")){
@@ -736,7 +736,7 @@ class price_Updates extends core_Manager
         if(!empty($data->hide)) return new core_ET("");
 
         $tpl = new core_ET("<div><div>[#title#]</div>[#RULES#]<!--ET_BEGIN RULE--><div style='margin:5px;text-align:center;'>[#RULE#]</div><!--ET_END RULE--></div>");
-        $isFromProduct = $data->masterMvc instanceof cat_Products;
+        $isFromProduct = ($data->masterMvc ?? null) instanceof cat_Products;
         $caption = tr('Правила за обновяване на себестойност');
 
         if(countR($data->recs)){
@@ -757,7 +757,7 @@ class price_Updates extends core_Manager
         }
 
         $btnPlaceholder = 'title';
-        if(!($data->masterMvc instanceof cat_Products)){
+        if(!(($data->masterMvc ?? null) instanceof cat_Products)){
             $tpl->removeBlocksAndPlaces();
             $finalTpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
             $finalTpl->append(tr('Обновяване на себестойности'), 'title');
@@ -821,7 +821,7 @@ class price_Updates extends core_Manager
 
         if (price_Updates::haveRightFor('saveprimecost', $rec)) {
             $url = array('price_Updates', 'saveprimecost', $rec->id, 'ret_url' => true);
-            if($data->masterMvc instanceof cat_Products){
+            if(($data->masterMvc ?? null) instanceof cat_Products){
                 $url['productId'] = $data->masterId;
             }
 

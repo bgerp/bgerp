@@ -371,10 +371,10 @@ class hr_Schedules extends core_Master
 
         // Ако графика се показва към обордуване
         $data->scheduleId = $data->masterId;
-        if($data->masterMvc instanceof planning_AssetResources){
+        if(($data->masterMvc ?? null) instanceof planning_AssetResources){
             $data->scheduleId = planning_AssetResources::getScheduleId($data->masterId);
             $data->TabCaption = 'График';
-        } elseif($data->masterMvc instanceof crm_Persons){
+        } elseif(($data->masterMvc ?? null) instanceof crm_Persons){
             $data->scheduleId = planning_Hr::getSchedule($data->masterId);
         }
 
