@@ -1539,7 +1539,7 @@ class marketing_Inquiries2 extends embed_Manager
         }
         
         // Добавяне на полетата от запитването в блоб
-        $inquiryDriverFields = array_keys($mvc->getInquiryFields($rec->proto, $Driver));
+        $inquiryDriverFields = array_keys($mvc->getInquiryFields($rec->proto ?? null, $Driver));
         if(is_array($inquiryDriverFields)){
             $additionalData = array();
             foreach ($inquiryDriverFields as $name) {
