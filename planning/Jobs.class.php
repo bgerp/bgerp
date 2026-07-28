@@ -2056,7 +2056,9 @@ class planning_Jobs extends core_Master
         $query->limit(1);
         $query->show('quantity');
         
-        return  $query->fetch()->quantity;
+        $lastJobRec = $query->fetch();
+
+        return $lastJobRec->quantity ?? null;
     }
 
 
@@ -2583,7 +2585,8 @@ class planning_Jobs extends core_Master
         $query->limit(1);
 
         // Ако има връща се тя
-        $folderId = $query->fetch()->folderId ?? null;
+        $lastJobRec = $query->fetch();
+        $folderId = $lastJobRec->folderId ?? null;
         if(!empty($folderId))  return $folderId;
 
         // Ако потребителя не е създавал, гледам папката в чиято нишка на задание, потребителя е променял документи
@@ -2596,7 +2599,9 @@ class planning_Jobs extends core_Master
         $cQuery->orderBy('modifiedOn', 'DESC');
         $cQuery->limit(1);
 
-        return $cQuery->fetch()->folderId;
+        $lastContainerRec = $cQuery->fetch();
+
+        return $lastContainerRec->folderId ?? null;
     }
 
 
