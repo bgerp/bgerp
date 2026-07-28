@@ -1514,7 +1514,7 @@ class doc_Threads extends core_Manager
         if (cls::haveInterface('doc_ContragentDataIntf', $class)) {
             $cData = $class->getContragentData($fRec->coverId);
             
-            if ($cData->email) {
+            if ($cData->email ?? null) {
                 $altFolderId = email_Router::getEmailFolder($cData->email);
             }
         }
