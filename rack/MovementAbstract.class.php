@@ -332,7 +332,7 @@ abstract class rack_MovementAbstract extends core_Manager
                 $data->title = "{$mvc->title} |*<b style='color:green'>" . store_Stores::getHyperlink($filterRec->storeId, true) . "</b>";
             }
 
-            if (in_array($filterRec->state1, array('active', 'closed', 'pending', 'waiting'))) {
+            if (in_array($filterRec->state1 ?? null, array('active', 'closed', 'pending', 'waiting'))) {
                 $data->query->where("#state = '{$filterRec->state1}'");
             }
 
