@@ -1617,7 +1617,7 @@ class planning_Jobs extends core_Master
         $mvc->save_($rec, $updateFields);
         
         // Ако заданието е затворено, затваряме и задачите към него
-        if($rec->state == 'stopped' || ($rec->brState == 'stopped' && $rec->state == 'active')){
+        if($rec->state == 'stopped' || (($rec->brState ?? null) == 'stopped' && $rec->state == 'active')){
             $Tasks = cls::get('planning_Tasks');
 
             $inStates = ($rec->state == 'stopped') ? array('active', 'wakeup') : array('stopped');
@@ -1980,7 +1980,7 @@ class planning_Jobs extends core_Master
         $query = self::getQuery();
         $query->where("#state IN ('active', 'closed', 'wakeup') || (#state = 'rejected' && (#brState = 'active' || #brState = 'closed'))");
         $query->where("#modifiedOn >= '{$timeline}'");
-        $query->show('activatedBy,activatedOn,modifiedOn,state,createdBy,productId,lastChangeStateBy');
+        $query->show('activatedBy,activatedOn,modifiedOn,state,brState,createdBy,modifiedBy,productId,lastChangeStateBy,lastChangeStateOn');
 
         while ($rec = $query->fetch()) {
             $activatedBy = isset($rec->activatedBy) ? $rec->activatedBy : $rec->createdBy;
@@ -2002,8 +2002,8 @@ class planning_Jobs extends core_Master
                 }
             }
 
-            if($rec->state == 'closed' || ($rec->brState == 'closed' && $isRejected)) {
-                if ($rec->lastChangeStateBy == core_Users::SYSTEM_USER) continue;
+            if($rec->state == 'closed' || (($rec->brState ?? null) == 'closed' && $isRejected)) {
+                if (($rec->lastChangeStateBy ?? null) == core_Users::SYSTEM_USER) continue;
                 $lastChangeStateBy = $rec->lastChangeStateBy ?? $rec->modifiedBy;
                 $lastChangeStateOn = $rec->lastChangeStateOn ?? $rec->modifiedOn;
                 $lastChangeStateOn = dt::verbal2mysql($lastChangeStateOn, false);
