@@ -3237,16 +3237,19 @@ class cat_Products extends embed_Manager
         
         // Взимат се балансите от складовите сметки
         $balanceRec = acc_Balances::getLastBalance();
-        $bQuery = acc_BalanceDetails::getQuery();
-        acc_BalanceDetails::filterQuery($bQuery, $balanceRec->id, '321,323');
-        $bQuery->show('accountNum,ent2Id,blAmount');
-        $balances = $bQuery->fetchAll();
+        $balances = array();
+        if (!empty($balanceRec->id)) {
+            $bQuery = acc_BalanceDetails::getQuery();
+            acc_BalanceDetails::filterQuery($bQuery, $balanceRec->id, '321,323');
+            $bQuery->show('accountNum,ent2Id,blAmount');
+            $balances = $bQuery->fetchAll();
+        }
         
         // Групират се по артикул
         $blAmounts = array();
         foreach ($balances as $bRec){
             if(isset($bRec->ent2Id)){
-                $blAmounts[$bRec->ent2Id] += $bRec->blAmount;
+                $blAmounts[$bRec->ent2Id] = ($blAmounts[$bRec->ent2Id] ?? 0) + $bRec->blAmount;
             }
         }
         
@@ -3263,7 +3266,7 @@ class cat_Products extends embed_Manager
                 
                 // Ако са използвани и са складируеми, гледаме какво салдо имат в 321 и 323. Ако е под-минимума затваряме ги
                 $minAmount = ($pRec->lastItemUsedOn >= $treshhold1) ? 10 : 20;
-                if(round($blAmounts[$pRec->itemId], 2) <= $minAmount){
+                if(round($blAmounts[$pRec->itemId] ?? 0, 2) <= $minAmount){
                     $close = true;
                 }
             }
