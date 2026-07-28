@@ -898,6 +898,7 @@ class purchase_Invoices extends deals_InvoiceMaster
             }
             $createDocArr['purchase_Invoices'] = array('details' => 'purchase_InvoiceDetails', 'masterKey' => 'invoiceId');
             
+            $invId = null;
             foreach ($createDocArr as $clsName => $detArr) {
                 $detailsArr = arr::make($detArr['details']);
                 
