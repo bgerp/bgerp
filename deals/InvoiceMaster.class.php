@@ -302,7 +302,7 @@ abstract class deals_InvoiceMaster extends core_Master
      */
     public static function on_AfterUpdate($mvc, $rec, $fields = null)
     {
-        if ($rec->type === 'dc_note') {
+        if (($rec->type ?? null) === 'dc_note') {
             
             // Ако е известие и има поне един детайл обновяваме мастъра
             $Detail = $mvc->mainDetail;
@@ -405,13 +405,13 @@ abstract class deals_InvoiceMaster extends core_Master
     {
         $rec = &$data->rec;
         
-        if ($rec->type == 'invoice' && $rec->state == 'active') {
+        if (($rec->type ?? null) == 'invoice' && ($rec->state ?? null) == 'active') {
             if ($mvc->haveRightFor('add', (object) array('type' => 'dc_note','threadId' => $rec->threadId)) && $mvc->canAddToThread($rec->threadId)) {
                 $data->toolbar->addBtn('Известие||D/C note', array($mvc, 'add', 'originId' => $rec->containerId, 'type' => 'dc_note', 'ret_url' => true), 'ef_icon=img/16/layout_join_vertical.png,title=Дебитно или кредитно известие към документа,rows=2');
             }
         }
 
-        if ($rec->type == 'dc_note' && $rec->state == 'active'){
+        if (($rec->type ?? null) == 'dc_note' && ($rec->state ?? null) == 'active'){
             if(acc_ValueCorrections::haveRightFor('add', (object)array('threadId' => $rec->threadId))){
                 $data->toolbar->addBtn('Корекция на стойност', array('acc_ValueCorrections', 'add', 'threadId' => $rec->threadId, 'fromContainerId' => $rec->containerId, 'ret_url' => true), 'ef_icon=img/16/page_white_text.png,title=Корекция на стойност към сделката');
             }
@@ -545,7 +545,7 @@ abstract class deals_InvoiceMaster extends core_Master
         
         if ($this->getField('type', false)) {
             $rec = static::fetch($id);
-            switch ($rec->type) {
+            switch ($rec->type ?? null) {
                 case 'invoice':
                     $type = 'приложената фактура';
                     break;
@@ -623,7 +623,7 @@ abstract class deals_InvoiceMaster extends core_Master
      */
     public static function on_AfterCanActivate($mvc, &$res, $rec)
     {
-        if ($rec->type == 'dc_note' && (isset($rec->changeAmount) || isset($rec->dpAmount))) {
+        if (($rec->type ?? null) == 'dc_note' && (isset($rec->changeAmount) || isset($rec->dpAmount))) {
             $res = true;
             return;
         }
@@ -693,7 +693,7 @@ abstract class deals_InvoiceMaster extends core_Master
         doc_DocumentCache::cacheInvalidation($Source->fetchField('containerId'));
 
         // Ако е ДИ или КИ и има зададена сума не се  зарежда нищо
-        if ($rec->type != 'invoice' && isset($rec->changeAmount)) {
+        if (isset($rec->type) && $rec->type != 'invoice' && isset($rec->changeAmount)) {
             
             // Изтриване на детайлите на известието, ако е въведена сума на известието
             $Detail = cls::get($mvc->mainDetail);
@@ -1018,7 +1018,7 @@ abstract class deals_InvoiceMaster extends core_Master
         $suggestions = array('' => '', $noReason1 => $noReason1, $noReason2 => $noReason2, $noReason3 => $noReason3);
         $form->setSuggestions('vatReason', $suggestions);
 
-        if(empty($rec->id) && $rec->type == 'invoice'){
+        if (empty($rec->id) && ($rec->type ?? null) == 'invoice') {
             $types = $mvc->autoAddProductStrategies;
             if(isset($rec->sourceContainerId)){
                 $types += array('fromSource' => "Артикулите от #" . doc_Containers::getDocument($rec->sourceContainerId)->getHandle());
@@ -1127,7 +1127,7 @@ abstract class deals_InvoiceMaster extends core_Master
                 }
             }
 
-            if(isset($rec->id) && isset($rec->displayRate) && $rec->type != 'dc_note' && empty($rec->_recalcBaseCurrency)){
+            if (isset($rec->id, $rec->displayRate, $rec->type) && $rec->type != 'dc_note' && empty($rec->_recalcBaseCurrency)) {
                 // Предупреждение ако вальора е сменен, но курса е различен от очаквания
                 $expectedRate = currency_CurrencyRates::getRate($rec->date, $rec->currencyId, null);
                 if(round($expectedRate, 5) != round($rec->displayRate, 5)){
@@ -1175,7 +1175,7 @@ abstract class deals_InvoiceMaster extends core_Master
             }
 
             // Ако е ДИ или КИ
-            if ($rec->type != 'invoice') {
+            if (isset($rec->type) && $rec->type != 'invoice') {
                 if (isset($rec->changeAmount)) {
                     if ($rec->changeAmount == 0) {
                         $form->setError('changeAmount', 'Не може да се създаде известие с нулева стойност');
@@ -1351,7 +1351,7 @@ abstract class deals_InvoiceMaster extends core_Master
             core_Statuses::newStatus("Валутата е сменена за да отговаря на съответната за документа към вальора", 'warning');
         }
 
-        if ($rec->type == 'dc_note') {
+        if (($rec->type ?? null) == 'dc_note') {
             if(!empty($rec->dcChangeAmountDeducted)){
                 $rec->dpAmount = $rec->dcChangeAmountDeducted * $rec->rate;
                 $rec->dpOperation = 'deducted';
@@ -1455,7 +1455,7 @@ abstract class deals_InvoiceMaster extends core_Master
             $invoicePayments = deals_Helper::getInvoicePayments($rec->threadId);
         }
         
-        $containerId = ($rec->type != 'dc_note') ? $rec->containerId : $rec->originId;
+        $containerId = (($rec->type ?? null) != 'dc_note') ? $rec->containerId : $rec->originId;
         
         $payments = $invoicePayments[$containerId]->payments ?? null;
         
@@ -1667,7 +1667,7 @@ abstract class deals_InvoiceMaster extends core_Master
                 $row->paymentType = ht::createHint($row->paymentType, "Автоматично '{$rec->autoPaymentType}'", 'img/16/bug.png');
             }
 
-            if($rec->type == 'dc_note' && $rec->state != 'rejected'){
+            if ($type == 'dc_note' && ($rec->state ?? null) != 'rejected') {
                 if(!Mode::isReadOnly()){
                     $documents = deals_InvoicesToDocuments::getDocumentsToInvoices($rec->containerId, 'acc_ValueCorrections,store_Receipts,store_ShipmentOrders,sales_Services,purchase_Services');
                     if(!countR($documents)){
@@ -1733,7 +1733,7 @@ abstract class deals_InvoiceMaster extends core_Master
         $singleTitle = $me->singleTitle;
         if ($me->getField('type', false)) {
             $singleTitle = $me->getVerbal($rec, 'type');
-            if ($rec->type == 'dc_note') {
+            if (($rec->type ?? null) == 'dc_note') {
                 $singleTitle = ($rec->dealValue <= 0) ? 'Кредитно известие' : 'Дебитно известие';
             }
         }
@@ -1757,7 +1757,7 @@ abstract class deals_InvoiceMaster extends core_Master
         $dealValior = $aggregator->get('agreedValior');
         $rec = $this->fetchRec($id);
         $total = $rec->dealValue + $rec->vatAmount - $rec->discountAmount;
-        $total = ($rec->type == 'credit_note') ? -1 * $total : $total;
+        $total = (($rec->type ?? null) == 'credit_note') ? -1 * $total : $total;
 
         $displayRate = ($rec->displayRate) ? $rec->displayRate : $rec->rate;
         if($rec->currencyId == 'EUR'){
@@ -1767,7 +1767,7 @@ abstract class deals_InvoiceMaster extends core_Master
         }
 
         $dueDate = $rec->dueDate ?? $rec->date;
-        $aggregator->push('invoices', array('dueDate' => $dueDate, 'total' => $totalInDealBaseCurrency, 'type' => $rec->type));
+        $aggregator->push('invoices', array('dueDate' => $dueDate, 'total' => $totalInDealBaseCurrency, 'type' => $rec->type ?? null));
         $aggregator->sum('invoicedAmount', $totalInDealBaseCurrency);
         $aggregator->setIfNot('invoicedValior', $rec->date);
 
@@ -1789,7 +1789,7 @@ abstract class deals_InvoiceMaster extends core_Master
                     $deductedDealBaseCurrency = ($rec->dpAmount / $displayRate) * $aggregator->get('rate');
                 }
                 // Колко е приспаднатото плащане с ддс
-                $deducted = $rec->type == 'dc_note' ? $deductedDealBaseCurrency : abs($deductedDealBaseCurrency);
+                $deducted = (($rec->type ?? null) == 'dc_note') ? $deductedDealBaseCurrency : abs($deductedDealBaseCurrency);
                 $vatAmount = ($rec->vatRate == 'yes' || $rec->vatRate == 'separate') ? ($deducted) * $vat : 0;
                 $aggregator->sum('downpaymentDeducted', $deducted + $vatAmount);
                 $aggregator->sumByArrIndex('downpaymentDeductedByVats', $deducted + $vatAmount, $dpVatId);
@@ -1797,7 +1797,7 @@ abstract class deals_InvoiceMaster extends core_Master
         } else {
 
             // Ако е ДИ и КИ към ф-ра за начисляване на авансово плащане, променяме платения аванс по сделката
-            if ($rec->type == 'dc_note') {
+            if (($rec->type ?? null) == 'dc_note') {
                 $originRec = doc_Containers::getDocument($rec->originId)->fetch('dpOperation,dpVatGroupId,date');
 
                 if ($originRec->dpOperation == 'accrued') {
@@ -1982,7 +1982,7 @@ abstract class deals_InvoiceMaster extends core_Master
         // Не може да се контира КИ и ДИ, ако оригиналната фактура е оттеглена
         if ($action == 'conto' && isset($rec)) {
             if ($res != 'no_one') {
-                if ($rec->type == 'dc_note') {
+                if (($rec->type ?? null) == 'dc_note') {
                     $origin = doc_Containers::getDocument($rec->originId);
                     if ($origin->fetchField('state') == 'rejected') {
                         $res = 'no_one';
@@ -2183,7 +2183,7 @@ abstract class deals_InvoiceMaster extends core_Master
      */
     public static function canAddDocumentToOriginAsLink_($rec)
     {
-        return $rec->type == 'dc_note';
+        return ($rec->type ?? null) == 'dc_note';
     }
 
 
@@ -2398,7 +2398,7 @@ abstract class deals_InvoiceMaster extends core_Master
     public function canHaveTotalDiscount($rec)
     {
         $rec = $this->fetchRec($rec);
-        if($rec->type){
+        if (!empty($rec->type)) {
             if($rec->type != 'invoice' || $rec->dpOperation == 'accrued') return false;
         }
 
@@ -2473,7 +2473,7 @@ abstract class deals_InvoiceMaster extends core_Master
             }
         } else {
 
-            if(isset($rec->changeAmount) && $rec->type == 'dc_note' && empty($rec->vatAmount)){
+            if (isset($rec->changeAmount) && ($rec->type ?? null) == 'dc_note' && empty($rec->vatAmount)) {
 
                 return 'При известие с нулева ставка, трябва да е посочено основание за неначисляване на ДДС|*!';
             }
