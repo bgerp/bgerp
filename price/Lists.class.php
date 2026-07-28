@@ -453,7 +453,7 @@ class price_Lists extends core_Master
     {
         $rec = $data->form->rec;
         if ($rec->cId && $rec->cClass) {
-            $data->form->title = core_Detail::getEditTitle($rec->cClass, $rec->cId, 'ценова политика', $rec->id, 'на');
+            $data->form->title = core_Detail::getEditTitle($rec->cClass, $rec->cId, 'ценова политика', $rec->id ?? null, 'на');
         }
     }
     
@@ -841,8 +841,8 @@ class price_Lists extends core_Master
             $clQuery = price_ListToCustomers::getQuery();
             $clQuery->where("#listId = {$rec->id}");
             $foundRec = $clQuery->fetch();
-            $rec->cClass = $foundRec->cClass;
-            $rec->cId = $foundRec->cId;
+            $rec->cClass = $foundRec->cClass ?? null;
+            $rec->cId = $foundRec->cId ?? null;
         }
         
         $this->save_($rec, 'public,cClass,cId');

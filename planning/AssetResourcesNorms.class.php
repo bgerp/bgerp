@@ -211,7 +211,7 @@ class planning_AssetResourcesNorms extends core_Manager
      */
     protected static function on_AfterPrepareEditTitle($mvc, &$res, &$data)
     {
-        $data->form->title = core_Detail::getEditTitle($data->form->rec->classId, $data->form->rec->objectId, $mvc->singleTitle, $data->form->rec->id);
+        $data->form->title = core_Detail::getEditTitle($data->form->rec->classId, $data->form->rec->objectId, $mvc->singleTitle, $data->form->rec->id ?? null);
     }
     
     

@@ -158,7 +158,7 @@ class price_Updates extends core_Manager
     {
         $rec = $data->form->rec;
         $objectClass = ($rec->type == 'category') ? 'cat_Categories' : (($rec->type == 'group') ? 'cat_Groups' : 'cat_Products');
-        $data->form->title = core_Detail::getEditTitle($objectClass, $rec->objectId, $mvc->singleTitle, $rec->id);
+        $data->form->title = core_Detail::getEditTitle($objectClass, $rec->objectId, $mvc->singleTitle, $rec->id ?? null);
     }
     
     

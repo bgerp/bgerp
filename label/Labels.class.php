@@ -254,7 +254,7 @@ class label_Labels extends core_Master
      */
     protected static function on_AfterPrepareEditTitle($mvc, &$res, &$data)
     {
-        $data->form->title = core_Detail::getEditTitle('label_Templates', $data->form->rec->templateId, $mvc->singleTitle, $data->form->rec->id);
+        $data->form->title = core_Detail::getEditTitle('label_Templates', $data->form->rec->templateId, $mvc->singleTitle, $data->form->rec->id ?? null);
     }
     
     

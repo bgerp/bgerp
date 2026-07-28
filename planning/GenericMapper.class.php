@@ -112,7 +112,7 @@ class planning_GenericMapper extends core_Manager
             $productId = $rec->genericProductId;
         }
         
-        $data->form->title = core_Detail::getEditTitle('cat_Products', $productId, $mvc->singleTitle, $rec->id);
+        $data->form->title = core_Detail::getEditTitle('cat_Products', $productId, $mvc->singleTitle, $rec->id ?? null);
 		
 		if (empty($rec->genericProductId)) {
 				$data->form->toolbar->removeBtn('saveAndNew');

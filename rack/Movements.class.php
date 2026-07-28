@@ -1144,13 +1144,13 @@ class rack_Movements extends rack_MovementAbstract
         
         switch ($rec->movementType) {
             case 'floor2rack':
-                $title = core_Detail::getEditTitle('store_Stores', $rec->storeId, 'нов палет', $rec->id, tr('в'));
+                $title = core_Detail::getEditTitle('store_Stores', $rec->storeId, 'нов палет', $rec->id ?? null, tr('в'));
                 break;
             case 'rack2floor':
                 $title = 'Сваляне на палет на пода в склад|* ' . cls::get('store_Stores')->getFormTitleLink($rec->storeId);
                 break;
             default:
-                $title = core_Detail::getEditTitle('store_Stores', $rec->storeId, $mvc->singleTitle, $rec->id, tr('в'));
+                $title = core_Detail::getEditTitle('store_Stores', $rec->storeId, $mvc->singleTitle, $rec->id ?? null, tr('в'));
                 break;
         }
         

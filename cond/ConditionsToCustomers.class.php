@@ -127,7 +127,7 @@ class cond_ConditionsToCustomers extends core_Manager
     protected static function on_AfterPrepareEditTitle($mvc, &$res, &$data)
     {
         $rec = $data->form->rec;
-        $data->form->title = core_Detail::getEditTitle($rec->cClass, $rec->cId, $mvc->singleTitle, $rec->id, 'за');
+        $data->form->title = core_Detail::getEditTitle($rec->cClass, $rec->cId, $mvc->singleTitle, $rec->id ?? null, 'за');
         
         // Маха се бутона запис и нов, ако е само едно търговското условие
         if (countR($data->form->conditionOptions) <= 1) {

@@ -165,7 +165,7 @@ class plg_Current extends core_Plugin
                 
                 $lastId = core_Permanent::get($key);
                 
-                if ($lastId && $opt[$lastId]) {
+                if ($lastId && !empty($opt[$lastId])) {
                     $form->setDefault('choice', $lastId);
                 }
                 
@@ -175,7 +175,7 @@ class plg_Current extends core_Plugin
                     $rec->choice = key($opt);
                 }
                 
-                if ($rec->choice && ($form->isSubmitted() || countR($opt) == 1)) {
+                if (!empty($rec->choice) && ($form->isSubmitted() || countR($opt) == 1)) {
                     if ($mvc->haveRightFor('select')) {
                         $rec = $mvc->fetch($rec->choice);
                         Mode::push('getPublicDomain', false);

@@ -117,7 +117,7 @@ class crm_ext_Cards extends core_Manager
     {
         $rec = $data->form->rec;
         if (isset($rec->personId)) {
-            $data->form->title = core_Detail::getEditTitle('crm_Persons', $rec->personId, $mvc->singleTitle, $rec->id, 'на');
+            $data->form->title = core_Detail::getEditTitle('crm_Persons', $rec->personId, $mvc->singleTitle, $rec->id ?? null, 'на');
         }
     }
 
