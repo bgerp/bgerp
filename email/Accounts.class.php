@@ -440,7 +440,7 @@ class email_Accounts extends core_Master
             if ($form->rec->type == 'corporate' && ($form->rec->state != 'stopped')) {
                 $cAcc = $mvc->getCorporateAcc();
                 
-                if ($cAcc && (!$form->rec->id || $form->rec->id != $cAcc->id)) {
+                if ($cAcc && (empty($form->rec->id) || $form->rec->id != $cAcc->id)) {
                     $form->setError('type', 'Можете да имате само една активна корпоративна сметка');
                 }
             }
@@ -459,7 +459,7 @@ class email_Accounts extends core_Master
             $accRec = $form->rec;
             
             // Ако се редактира записа, непопълнените полета ги вземаме от модела
-            if ($form->rec->id) {
+            if (!empty($form->rec->id)) {
                 $sRec = $mvc->fetch($form->rec->id);
                 foreach ((array) $sRec as $k => $v) {
                     if (!empty($accRec->{$k})) {

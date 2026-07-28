@@ -277,7 +277,7 @@ class label_Labels extends core_Master
             $type = $form->rec->type;
             
             // Ако редактираме записа
-            if ($form->rec->id) {
+            if (!empty($form->rec->id)) {
                 
                 // Вземаме записа
                 $rec = $mvc->fetch($form->rec->id);

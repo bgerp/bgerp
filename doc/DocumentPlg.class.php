@@ -2513,7 +2513,7 @@ class doc_DocumentPlg extends core_Plugin
                 $form->rec->state = 'pending';
                 $form->rec->pendingSaved = true;
 
-                if ($form->rec->id) {
+                if (!empty($form->rec->id)) {
                     $oldRec = $mvc->fetch($form->rec->id);
                     doc_Containers::changeNotifications($rec, $oldRec->sharedUsers, $rec->sharedUsers);
                 }

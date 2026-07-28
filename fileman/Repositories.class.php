@@ -255,7 +255,7 @@ class fileman_Repositories extends core_Master
                 $fullPath = static::getFullPath($form->rec->basePath, $form->rec->subPath);
                 
                 // Ако редактираме записа
-                if ($form->rec->id) {
+                if (!empty($form->rec->id)) {
                     
                     // Вземаме записа от модела
                     $rec = $mvc->fetch($form->rec->id);

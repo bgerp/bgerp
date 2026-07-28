@@ -305,7 +305,7 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
     {
         $form = &$data->form;
         
-        if (!$form->rec->id) {
+        if (empty($form->rec->id)) {
             $form->setDefault('footerText', 'Отпечатано с bgERP');
             $form->setDefault('serverIp', 'http://127.0.0.1');
             $form->setDefault('serverTcpPort', 4444);
@@ -341,7 +341,7 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
             }
         }
         
-        if (!$form->rec->id) {
+        if (empty($form->rec->id)) {
             $form->setDefault('serialSpeed', 115200);
         }
         

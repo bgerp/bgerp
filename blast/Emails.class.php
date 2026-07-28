@@ -1555,7 +1555,7 @@ class blast_Emails extends core_Master
             
             if ($form->cmd != 'refresh') {
                 // Очакваме да може да персонализира, ако не се редактира записа
-                if (!$form->rec->id) {
+                if (empty($form->rec->id)) {
                     expect($perClsInst->canUsePersonalization($perSrcObjId));
                 }
             }
@@ -1636,7 +1636,7 @@ class blast_Emails extends core_Master
         $form->setDefault('perSrcObjectId', $perSrcObjId);
         $form->setDefault('lg', $defLg);
 
-        if ($form->rec->id) {
+        if (!empty($form->rec->id)) {
             $form->fields['perSrcObjectId']->removeAndRefreshForm = 'lg';
         }
         

@@ -95,7 +95,7 @@ class cond_ConditionsToCustomers extends core_Manager
         $form = &$data->form;
         $rec = &$form->rec;
         
-        if (!$form->rec->id) {
+        if (empty($form->rec->id)) {
             $options = static::getRemainingOptions($rec->cClass, $rec->cId);
             $form->setOptions('conditionId', array('' => '') + $options);
             if (countR($options) == 1) {

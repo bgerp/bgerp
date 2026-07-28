@@ -717,7 +717,7 @@ class change_Plugin extends core_Plugin
         
         // Ако формата е изпратена успешно
         if ($form->isSubmitted()) {
-            if (!$form->rec->id) {
+            if (empty($form->rec->id)) {
                 $form->rec->version = '0';
                 $form->rec->subVersion = 1;
             }

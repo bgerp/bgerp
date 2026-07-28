@@ -347,7 +347,7 @@ class cash_InternalMoneyTransfer extends core_Master
         $form = &$data->form;
         
         // Очакваме и намираме коя е извършената операция
-        if (!$form->rec->id) {
+        if (empty($form->rec->id)) {
             expect($operationSysId = Request::get('operationSysId'));
         } else {
             $operationSysId = $form->rec->operationSysId;

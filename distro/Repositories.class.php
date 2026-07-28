@@ -737,7 +737,7 @@ class distro_Repositories extends core_Master
             }
             
             if (!$hostConfig) {
-                if (!$form->rec->id) {
+                if (empty($form->rec->id)) {
                     $form->setError('hostId', 'Не може да се осъществи връзка с отдалечения хост');
                 } else {
                     $form->setWarning('hostId', 'Не може да се осъществи връзка с отдалечения хост');
