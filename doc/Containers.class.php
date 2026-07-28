@@ -1338,9 +1338,11 @@ class doc_Containers extends core_Manager
             
             // Други добавки от съответния потребител
             $currUserOther = '';
+
+            $currUserDocsCnt = $authorArr[$currUserId] ?? 0;
             
             // Ако текущия потребител е добавил повече от един документ
-            if ($authorArr[$currUserId] > 1) {
+            if ($currUserDocsCnt > 1) {
                 
                 // В зависимост от текста определяме началния текст
                 if ($action != 'добави') {
@@ -1350,9 +1352,9 @@ class doc_Containers extends core_Manager
                 }
                 
                 // В зависимост от броя документи, определяме текста
-                if ($authorArr[$currUserId] == 2) {
+                if ($currUserDocsCnt == 2) {
                     $currUserOther .= ' друг документ';
-                } elseif ($authorArr[$currUserId] > 2) {
+                } elseif ($currUserDocsCnt > 2) {
                     $currUserOther .= ' други документи';
                 }
                 
