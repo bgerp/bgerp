@@ -248,7 +248,7 @@ class price_ListVariations extends core_Detail
      */
     public function renderDetail_($data)
     {
-        if($data->hide) return new core_ET("");
+        if (!empty($data->hide)) return new core_ET("");
 
         $tpl = parent::renderDetail_($data);
 

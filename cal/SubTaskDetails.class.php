@@ -60,7 +60,7 @@ class cal_SubTaskDetails extends core_Manager
      */
     public function renderDetail_($data)
     {
-        if($data->hide) return null;
+        if (!empty($data->hide)) return null;
 
         $tpl = new ET('<div class="clearfix21 portal" style="margin-top:20px;background-color:transparent;">
                             <div class="legend" style="background-color:#ffc;font-size:0.9em;padding:2px;color:black">' . tr('Подзадачи') . '</div>

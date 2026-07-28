@@ -372,7 +372,7 @@ class planning_GenericMapper extends core_Manager
      */
     public function renderResources(&$data)
     {
-        if($data->hide) return;
+        if (!empty($data->hide)) return;
 
         $tpl = new core_ET("[#generic#]<div style='margin-top:10px'>[#boms#]</div>");
         $genTpl = $this->renderGenericData($data->genData);

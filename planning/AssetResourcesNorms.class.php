@@ -171,7 +171,7 @@ class planning_AssetResourcesNorms extends core_Manager
      */
     public function renderDetail_($data)
     {
-        if($data->hide) return new core_ET("");
+        if (!empty($data->hide)) return new core_ET("");
 
         $tpl = $this->renderList($data);
         
