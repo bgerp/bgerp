@@ -243,9 +243,13 @@ class deals_plg_EditClonedDetails extends core_Plugin
         $dontCloneFields = arr::make($Detail->fieldsNotToClone ?? null, true);
 
         if (countR($rec->details ?? null)) {
-            $currencyId = $rec->{$mvc->currencyFld} ?? $mvc->fetchField($id, $mvc->currencyFld);
-            $currencyRate = $rec->{$mvc->rateFldName} ?? $mvc->fetchField($id, $mvc->rateFldName);
-            $valior = $rec->{$mvc->valiorFld} ?? $mvc->fetchField($id, $mvc->valiorFld);
+            $currencyFld = $mvc->currencyFld ?? null;
+            $rateFld = $mvc->rateFldName ?? null;
+            $valiorFld = $mvc->valiorFld ?? null;
+
+            $currencyId = isset($currencyFld) ? ($rec->{$currencyFld} ?? ($mvc->getField($currencyFld, false) ? $mvc->fetchField($id, $currencyFld) : null)) : null;
+            $currencyRate = isset($rateFld) ? ($rec->{$rateFld} ?? ($mvc->getField($rateFld, false) ? $mvc->fetchField($id, $rateFld) : null)) : null;
+            $valior = isset($valiorFld) ? ($rec->{$valiorFld} ?? ($mvc->getField($valiorFld, false) ? $mvc->fetchField($id, $valiorFld) : null)) : null;
             $containerId = $rec->containerId ?? $mvc->fetchField($id, 'containerId');
             $storeId = $rec->storeId ?? ($mvc->getField('storeId', false) ? $mvc->fetchField($id, 'storeId') : null);
 
