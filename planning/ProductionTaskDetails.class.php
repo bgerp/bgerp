@@ -385,7 +385,7 @@ class planning_ProductionTaskDetails extends doc_Detail
             $productIsTaskProduct = planning_ProductionTaskProducts::isProduct4Task($masterRec, $rec->productId);
             $info = planning_ProductionTaskProducts::getInfo($rec->taskId, $rec->productId, $rec->type, $rec->fixedAsset ?? null);
 
-            $shortMeasureId = ($productIsTaskProduct) ? $masterRec->measureId : $info->packagingId;
+            $shortMeasureId = ($productIsTaskProduct) ? $masterRec->measureId : ($info->packagingId ?? $info->measureId ?? $pRec->measureId);
             $shortMeasure = cat_UoM::getShortName($shortMeasureId);
             $rec->_isKgMeasureId = ($shortMeasureId == cat_UoM::fetchBySinonim('kg')->id);
 
@@ -405,7 +405,7 @@ class planning_ProductionTaskDetails extends doc_Detail
                 }
                 $form->rec->_defaultQuantity = $defaultQuantity;
             } else {
-                $unitMeasureId = isset($info->packagingId) ? $info->packagingId : $info->measureId;
+                $unitMeasureId = $info->packagingId ?? $info->measureId ?? $pRec->measureId;
                 $unit = cat_UoM::getShortName($unitMeasureId);
                 $form->setField('quantity', "unit={$unit}");
                 if (!empty($rec->_isKgMeasureId)) {
@@ -469,7 +469,7 @@ class planning_ProductionTaskDetails extends doc_Detail
             }
 
             if (isset($rec->productId)) {
-                $productRec = cat_Products::fetch($rec->productId, 'canStore,generic');
+                $productRec = cat_Products::fetch($rec->productId, 'canStore,generic,measureId');
 
                 if(!empty($rec->weight)){
                     $maxBrutWeight = planning_Setup::get('TASK_PROGRESS_MAX_BRUT_WEIGHT');
@@ -609,7 +609,7 @@ class planning_ProductionTaskDetails extends doc_Detail
                 // Проверка за допустимоста на дробното число към количеството
                 $warning = null;
                 $pInfo = planning_ProductionTaskProducts::getInfo($rec->taskId, $rec->productId, $rec->type, $masterRec->assetId);
-                $packagingId = ($pInfo->packagingId) ? $pInfo->packagingId : $pInfo->measureId;
+                $packagingId = $pInfo->packagingId ?? $pInfo->measureId ?? $productRec->measureId;
                 deals_Helper::checkQuantity($packagingId, $rec->quantity, $warning);
                 if(!empty($warning)){
                     $form->setWarning('quantity', $warning);
@@ -940,7 +940,7 @@ class planning_ProductionTaskDetails extends doc_Detail
         $query->EXT('labelPackagingId', 'planning_Tasks', "externalName=labelPackagingId,externalKey=taskId");
         if($type == 'input'){
             $pInfo = planning_ProductionTaskProducts::getInfo($taskId, $productId, 'input', $taskRec->assetId);
-            $labelPackagingValue = ($pInfo->packagingId) ? $pInfo->packagingId : $pInfo->measureId;
+            $labelPackagingValue = $pInfo->packagingId ?? $pInfo->measureId ?? cat_Products::fetchField($productId, 'measureId');
         } else {
             $labelPackagingValue = isset($taskRec->labelPackagingId) ? $taskRec->labelPackagingId : $taskRec->measureId;
             $query->where("#labelPackagingId = {$labelPackagingValue} OR (#labelPackagingId IS NULL AND #measureId = {$labelPackagingValue})");
@@ -1122,8 +1122,8 @@ class planning_ProductionTaskDetails extends doc_Detail
         $foundRec = planning_ProductionTaskProducts::getInfo($rec->taskId, $rec->productId, $rec->type, $rec->fixedAsset ?? null);
 
         if($taskRec->productId != $foundRec->productId){
-            $measureId = $foundRec->packagingId;
-            $labelPackagingId = (!empty($foundRec->packagingId)) ? $foundRec->packagingId : $pRec->measureId;
+            $measureId = $foundRec->packagingId ?? $foundRec->measureId ?? $pRec->measureId;
+            $labelPackagingId = $foundRec->packagingId ?? $pRec->measureId;
         } else {
             $measureId = $foundRec->measureId;
             $labelPackagingId = (!empty($foundRec->labelPackagingId)) ? $foundRec->labelPackagingId : $foundRec->measureId;
