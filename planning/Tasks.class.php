@@ -3538,7 +3538,7 @@ class planning_Tasks extends core_Master
                 $row->originId = ht::createElement("span", array('class' => 'doubleclicklink', 'data-doubleclick-url' => $singleJobUrl, 'title' => $jobTitle, 'onmouseUp' => 'selectInnerText(this);'), $jobTitle, true);
             } else {
                 $row->originId = planning_Jobs::getHyperlink($jobRecs[$rec->originId], true);
-                $row->title->append("{$inlineTags[$rec->containerId]}");
+                $row->title->append($inlineTags[$rec->containerId] ?? '');
             }
 
             $row->jobQuantity = $quantityStr;
