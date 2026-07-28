@@ -472,7 +472,7 @@ abstract class rack_MovementAbstract extends core_Manager
         }
 
         // Подобрено сортиране
-        uasort($packs, function (&$a, &$b)  {
+        uasort($packs, function ($a, $b)  {
             if ($a['quantity'] == $b['quantity']) { return $a['id'] > $b['id'] ? 1 : -1;}
 
             return ($a['quantity'] > $b['quantity']) ? -1 : 1;
