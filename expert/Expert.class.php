@@ -981,9 +981,10 @@ class expert_Expert extends core_FieldSet
             $this->ruleOn = false;
             
             foreach ($this->knowledge as $id => $kRec) {
-                if (in_array($kRec->element, array('rule', 'error', 'warning', 'info', 'suggestions', 'options', 'assume')) && !$this->midRes) {
+                $element = $kRec->element ?? null;
+                if (in_array($element, array('rule', 'error', 'warning', 'info', 'suggestions', 'options', 'assume')) && !$this->midRes) {
                     // Опит да сработи правило, предупреждение или грешка
-                    $method = 'do' . $kRec->element;
+                    $method = 'do' . $element;
                     $this->{$method}($kRec);
                 }
             }
@@ -993,7 +994,7 @@ class expert_Expert extends core_FieldSet
         // Проверяваме дали няма подходящ въпрос, който да зададем
         if (!$this->areTrusty($goal) && !$this->midRes) {
             foreach ($this->knowledge as $id => $kRec) {
-                if ($kRec->element == 'question') {
+                if (($kRec->element ?? null) == 'question') {
                     // Опит да сработи въпрос
                     $method = 'do' . $kRec->element;
                     $this->{$method}($kRec);
@@ -1410,8 +1411,9 @@ class expert_Expert extends core_FieldSet
                                 continue;
                             }
 
-                            unset($skRec->element);
-                            $sskRec = $this->calcExprAttr($skRec);
+                            $sskRec = clone $skRec;
+                            unset($sskRec->element);
+                            $sskRec = $this->calcExprAttr($sskRec);
                             $form->FNC($name, $sskRec->type ?? null, $sskRec);
 
                             if ($sskRec->value ?? null) {
@@ -1432,8 +1434,9 @@ class expert_Expert extends core_FieldSet
                         $this->trimPrefix($name);
                         
                         if ($name == $var) {
-                            unset($skRec->element);
-                            $sskRec = $this->calcExprAttr($skRec);
+                            $sskRec = clone $skRec;
+                            unset($sskRec->element);
+                            $sskRec = $this->calcExprAttr($sskRec);
                             $form->FNC($name, $skRec->type ?? null, $sskRec);
 
                             if ($sskRec->value ?? null) {
