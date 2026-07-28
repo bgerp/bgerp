@@ -142,7 +142,7 @@ class planning_AssetGroups extends core_Master
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
-        if ($action == 'delete' && isset($rec)) {
+        if ($action == 'delete' && isset($rec->id)) {
             if (planning_AssetResources::fetchField("#groupId = {$rec->id} AND #state = 'active'") || planning_AssetResourcesNorms::fetchField("#objectId = {$rec->id} AND #classId = {$mvc->getClassId()}")) {
                 $requiredRoles = 'no_one';
             }
@@ -165,7 +165,7 @@ class planning_AssetGroups extends core_Master
      */
     public function getChangeStateWarning($rec)
     {
-        $msg = ($rec->state == 'active') ? 'Наистина ли желаете да деактивирате вида и всички оборудвания към него|*?' : 'Наистина ли желаете да активирате вида и всички оборудвания към него|*?';
+        $msg = (($rec->state ?? null) == 'active') ? 'Наистина ли желаете да деактивирате вида и всички оборудвания към него|*?' : 'Наистина ли желаете да активирате вида и всички оборудвания към него|*?';
         
         return $msg;
     }
@@ -177,12 +177,13 @@ class planning_AssetGroups extends core_Master
     protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec, $fields = null, $mode = null)
     {
         if ($fields == 'state') {
+            $state = $rec->state ?? $mvc->fetchField($id, 'state');
             foreach (array('planning_AssetResources', 'planning_AssetResourcesNorms') as $det) {
                 $Detail = cls::get($det);
                 $dQuery = $Detail->getQuery();
-                $dQuery->where("#groupId = {$rec->id}");
+                $dQuery->where("#groupId = {$id}");
                 while ($dRec = $dQuery->fetch()) {
-                    $dRec->state = $rec->state;
+                    $dRec->state = $state;
                     $Detail->save($dRec, 'state');
                 }
             }
