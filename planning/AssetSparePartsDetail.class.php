@@ -219,7 +219,7 @@ class planning_AssetSparePartsDetail extends core_Detail
                 }
             }
 
-            $rec->resultDiff = $rec->quantityAll - $rec->reservedQuantityt + $rec->expectedQuantity;
+            $rec->resultDiff = $rec->quantityAll - $rec->reservedQuantity + $rec->expectedQuantity;
         }
     }
 
@@ -234,16 +234,18 @@ class planning_AssetSparePartsDetail extends core_Detail
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         foreach (array('quantity', 'quantityAll', 'reservedQuantity', 'expectedQuantity', 'resultDiff') as $fld){
-            $row->{$fld} = core_Type::getByName('double')->toVerbal($rec->{$fld});
+            if (isset($rec->{$fld})) {
+                $row->{$fld} = core_Type::getByName('double')->toVerbal($rec->{$fld});
+            }
         }
         $row->productId = cat_Products::getHyperlink($rec->productId, true);
         $row->storeId = store_Stores::getHyperlink($rec->storeId, true);
         $row->assetId = planning_AssetResources::getHyperlink($rec->assetId, true);
-        $row->ROW_ATTR['class'] .= ' state-' . cat_Products::fetchField($rec->productId, 'state');
+        $row->ROW_ATTR['class'] = ($row->ROW_ATTR['class'] ?? '') . ' state-' . cat_Products::fetchField($rec->productId, 'state');
 
         if ($mvc->haveRightFor('fastconvert', $rec)) {
             $url = array($mvc, 'fastconvert', 'id' => $rec->id, 'ret_url' => true);
-            $alwaysShow = (!$fields['-singleProduct']);
+            $alwaysShow = empty($fields['-singleProduct']);
             core_RowToolbar::createIfNotExists($row->_rowTools);
             $row->_rowTools->addLink('Влагане', $url, array('ef_icon' => 'img/16/produce_in.png', 'title' => 'Добавяне в протокол за влагане към активен сигнал', 'alwaysShow' => $alwaysShow));
         }
@@ -283,7 +285,8 @@ class planning_AssetSparePartsDetail extends core_Detail
             $pQuery->where("#storeId = {$rec->storeId} AND #productId = {$rec->productId}");
             $pQuery->show('position');
             $pQuery->orderBy('position', 'ASC');
-            $firstPalletPosition = $pQuery->fetch()->position;
+            $palletRec = $pQuery->fetch();
+            $firstPalletPosition = $palletRec->position ?? null;
             if(!empty($firstPalletPosition)){
                 $row->pallet = core_Type::getByName('varchar')->toVerbal($firstPalletPosition);
                 if(rack_Pallets::haveRightFor('forceopen', (object)array('storeId' => $rec->storeId))){
