@@ -737,10 +737,10 @@ class store_Products extends core_Detail
 
             // Намират се старите им записи
             $exRecs = array_filter($oldRecs, function($a) use ($newObj) { return $a->storeId == $newObj->storeId && $a->productId == $newObj->productId;});
-            if(is_array($exRecs)){
+            if (countR($exRecs)) {
                 $exRec = $exRecs[key($exRecs)];
                 $currentFreeQuantity = $exRec->quantity - $exRec->reservedQuantity + $exRec->expectedQuantity;
-                $newFreeQuantity = $exRec->quantity - $newObj->reservedQuantityMin + $newObj->expectedQuantityMin;
+                $newFreeQuantity = $exRec->quantity - ($newObj->reservedQuantityMin ?? 0) + ($newObj->expectedQuantityMin ?? 0);
 
                 // Ако текущото разполагаемо е по-малко или равно на намереното минимално разполагаемо, то текущото ще стане минимално !
                 if($currentFreeQuantity <= $newFreeQuantity){
@@ -765,7 +765,7 @@ class store_Products extends core_Detail
         $this->saveArray($res['update'], 'id,reservedQuantity,expectedQuantity,reservedQuantityMin,expectedQuantityMin,dateMin,lastUpdated');
 
         // Намиране на тези записи, от старите които са имали резервирано к-во, но вече нямат
-        $unsetArr = array_filter($oldRecs, function (&$r) use ($reservedMax, $reserved, $now) {
+        $unsetArr = array_filter($oldRecs, function ($r) use ($reservedMax, $reserved, $now) {
             $unset = false;
 
             // Ако е имало запазено/очаквано за днеска, но вече няма ще се ънсетнат
@@ -908,7 +908,7 @@ class store_Products extends core_Detail
                 if(countR($dRecs)){
                     array_walk($dRecs, function($a) use (&$products, $Detail, &$totalValue, $isTransfer){
                         if(!array_key_exists($a->{$Detail->productFld}, $products)){
-                            $products[$a->{$Detail->productFld}] = new stdClass();
+                            $products[$a->{$Detail->productFld}] = (object) array('quantity' => 0, 'amount' => 0);
                         }
                         
                         $products[$a->{$Detail->productFld}]->quantity += $a->quantity;
@@ -925,14 +925,14 @@ class store_Products extends core_Detail
                     $storeQuery->show('productId,quantity');
                     $sRecs = $storeQuery->fetchAll();
                     array_walk($sRecs, function($a) use (&$quantities){
-                        $quantities[$a->productId] += $a->quantity;
+                        $quantities[$a->productId] = ($quantities[$a->productId] ?? 0) + $a->quantity;
                     });
                     
                     // Колко е готовноста
                     $missingAmount = 0;
                     foreach ($products as $productId => $object){
                         $singlePrice = (!empty(round($object->quantity, 4))) ? round($object->amount / $object->quantity, 6) : 0;
-                        $inStore = $quantities[$productId];
+                        $inStore = $quantities[$productId] ?? 0;
                         $inStore = (empty($inStore) || $inStore < 0) ? 0 : $inStore;
                         
                         // Каква е сумата на липсващото к-во. (За МСТ си е само количеството)
