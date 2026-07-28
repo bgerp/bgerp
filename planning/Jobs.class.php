@@ -968,7 +968,7 @@ class planning_Jobs extends core_Master
             $nettoWeight = cat_Products::convertToUom($rec->productId, 'kg');
             $rec->weight = (!empty($nettoWeight)) ? $nettoWeight : null;
 
-            if($rec->allowSecondMeasure == 'no'){
+            if(($rec->allowSecondMeasure ?? null) == 'no'){
                 unset($rec->secondMeasureId);
             }
 
