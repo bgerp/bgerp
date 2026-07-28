@@ -709,12 +709,19 @@ class batch_BatchesInDocuments extends core_Manager
         $saveBatches = array();
 
         $selArr = Mode::get("{$this->className}_{$Detail->className}_prevAndNext");
-        if(!empty($selArr)){
+        if (!empty($selArr)) {
+            $selArr = array_values($selArr);
             $currentPosition = array_search($detailRecId, $selArr);
-            $pos = $currentPosition + 1;
-            $prevAndNextIndicator = $pos . '/' . countR($selArr);
-            $form->prev = $selArr[$currentPosition - 1];
-            $form->next = $selArr[$currentPosition + 1];
+            if ($currentPosition !== false) {
+                $pos = $currentPosition + 1;
+                $prevAndNextIndicator = $pos . '/' . countR($selArr);
+                if (isset($selArr[$currentPosition - 1])) {
+                    $form->prev = $selArr[$currentPosition - 1];
+                }
+                if (isset($selArr[$currentPosition + 1])) {
+                    $form->next = $selArr[$currentPosition + 1];
+                }
+            }
         }
 
         // След събмит
