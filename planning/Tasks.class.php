@@ -3572,7 +3572,7 @@ class planning_Tasks extends core_Master
         $data->listFields = core_TableView::filterEmptyColumns($rows, $data->listFields, $fieldsToFilterIfEmpty);
 
         // При показване на приключените да се подмени колонката за датата
-        if ($data->listFilter->rec->state == 'closed') {
+        if (($data->listFilter->rec->state ?? null) == 'closed') {
             $modifiedData = array();
             $firstProgressCaption = $data->listFields['firstProgress'];
             $lastProgressProductionCaption = $data->listFields['lastProgressProduction'];
