@@ -94,8 +94,8 @@ class plg_Rejected extends core_Plugin
             $allUrl = (isset($data->masterMvc) && isset($data->masterId)) ? array($data->masterMvc, 'single', $data->masterId) : array($mvc);
 
             $data->toolbar->addBtn('Всички', $allUrl, 'id=listBtn', 'ef_icon = img/16/application_view_list.png,title=Всички ' . mb_strtolower($mvc->title));
-        } elseif($data->showRejectedRows === false) {
-            $rejCnt = $data->rejQuery->count();
+        } elseif(($data->showRejectedRows ?? $mvc->showRejectedRows ?? false) === false) {
+            $rejCnt = isset($data->rejQuery) ? $data->rejQuery->count() : 0;
             
             if ($rejCnt) {
                 $data->rejQuery->orderBy('#modifiedOn', 'DESC', 100);
@@ -111,7 +111,7 @@ class plg_Rejected extends core_Plugin
             }
         }
         if (Request::get('Rejected')) {
-            $data->title = new ET('[#1#]', tr($data->title ? $data->title : $mvc->title));
+            $data->title = new ET('[#1#]', tr(!empty($data->title) ? $data->title : $mvc->title));
             $data->title->append("&nbsp;<span class='state-rejected stateIndicator'>&nbsp;" . tr('оттеглени') . '&nbsp;</span>');
         }
     }
@@ -264,7 +264,7 @@ class plg_Rejected extends core_Plugin
      */
     public static function on_AfterPrepareListFilter($mvc, $data)
     {
-        $data->showRejectedRows = $data->showRejectedRows ?? $mvc->showRejectedRows;
+        $data->showRejectedRows = $data->showRejectedRows ?? $mvc->showRejectedRows ?? false;
         
         // Добавяме скрито полето за оттегляне
         if (!isset($data->listFilter->fields['Rejected'])) {
@@ -289,10 +289,10 @@ class plg_Rejected extends core_Plugin
      */
     public static function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
-        if ($data->query) {
+        if (!empty($data->query)) {
             if (Request::get('Rejected')) {
                 $data->query->where("#state = 'rejected'");
-            } elseif($data->showRejectedRows === false) {
+            } elseif(($data->showRejectedRows ?? $mvc->showRejectedRows ?? false) === false) {
                 $data->rejQuery = clone($data->query);
                 $data->query->where("#state != 'rejected' OR #state IS NULL");
                 $data->rejQuery->where("#state = 'rejected'");
