@@ -1626,11 +1626,13 @@ class cat_Products extends embed_Manager
     protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec, $fields = null, $mode = null)
     {
         $touchedGroups = '';
+        $productId = $rec->id ?? $id;
+        $groups = $rec->groups ?? ($rec->_oldGroups ?? null);
         if(isset($rec->_oldGroups)){
-            $touchedGroups = keylist::diff($rec->_oldGroups, $rec->groups);
-            $touchedGroups = keylist::merge($touchedGroups, keylist::diff($rec->groups, $rec->_oldGroups));
+            $touchedGroups = keylist::diff($rec->_oldGroups, $groups);
+            $touchedGroups = keylist::merge($touchedGroups, keylist::diff($groups, $rec->_oldGroups));
         } elseif (!empty($rec->_isCreated)) {
-            $touchedGroups = $rec->groups;
+            $touchedGroups = $groups;
         }
 
         // Записване в перманентния кеш докоснатите групи
@@ -1638,9 +1640,9 @@ class cat_Products extends embed_Manager
             core_Permanent::set("touchedGroups|{$touchedGroups}", $touchedGroups, 120);
         }
 
-        if ($rec->groups) {
+        if ($groups) {
             if (($rec->isPublic ?? null) == 'yes') {
-                price_Cache::invalidateProduct($rec->id);
+                price_Cache::invalidateProduct($productId);
             }
         }
 
@@ -1656,22 +1658,22 @@ class cat_Products extends embed_Manager
         
         // Ако артикула е редактиран, преизчислява се транспорта
         if (!empty($rec->_isEditedFromForm)) {
-            sales_TransportValues::recalcTransportByProductId($rec->id);
+            sales_TransportValues::recalcTransportByProductId($productId);
         }
 
         // Ако има споделени папки импортират се и те
         if(!empty($rec->_sharedFolders)){
             $sharedFolders = keylist::toArray($rec->_sharedFolders);
             foreach ($sharedFolders as $folderId){
-                $sharedRec = (object)array('productId' => $rec->id, 'folderId' => $folderId);
+                $sharedRec = (object)array('productId' => $productId, 'folderId' => $folderId);
                 cat_products_SharedInFolders::save($sharedRec);
             }
         }
 
         // Ако се затваря артикула затварят се и готовите задания
-        if($rec->state == 'closed' && $rec->brState == 'active'){
+        if(($rec->state ?? null) == 'closed' && ($rec->brState ?? null) == 'active'){
             if($completeJobTolerance = planning_Setup::get('JOB_AUTO_COMPLETION_PERCENT')){
-                if($closedCount = planning_Jobs::closeActiveJobs($completeJobTolerance, $rec->id, null, planning_Setup::get('JOB_AUTO_COMPLETION_DELAY'), 'Приключване след затваряне на артикул')){
+                if($closedCount = planning_Jobs::closeActiveJobs($completeJobTolerance, $productId, null, planning_Setup::get('JOB_AUTO_COMPLETION_DELAY'), 'Приключване след затваряне на артикул')){
                     core_Statuses::newStatus("Затворени активни/събудени задания: {$closedCount}");
                 }
             }
