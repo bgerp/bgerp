@@ -71,14 +71,14 @@ class planning_type_Operators extends type_Keylist
         // Задаване на атрибут при избор на съджешчъни да се допълват към инпута, разделени със запетая
         $attr['data-role'] = 'list';
 
-        if(!$this->error){
+        if(empty($this->error)){
             // Обръщане на кейлиста в стринг за парсиране
             $value = !empty($value) ? planning_Hr::keylistToParsableString($value): null;
         }
 
         // Сигнализиране на потребителя, ако въведе по-дълъг текст от допустимото
-        setIfNot($size, $this->params['size'], $this->params[0], $this->dbFieldLen);
-        if ($this->params['readonly']) {
+        $size = $this->params['size'] ?? $this->params[0] ?? $this->dbFieldLen;
+        if (!empty($this->params['readonly'])) {
             $attr['readonly'] = 'readonly';
         }
 
