@@ -281,6 +281,17 @@ class hr_Schedules extends core_Master
     {
 
     }
+
+
+    /**
+     * След преобразуване на записа в четим за хора вид
+     */
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    {
+        if (isset($rec->parentId)) {
+            $row->parentId = $mvc->getHyperlink($rec->parentId, true);
+        }
+    }
     
     
     /**
