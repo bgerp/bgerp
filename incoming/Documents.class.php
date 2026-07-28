@@ -202,7 +202,7 @@ class incoming_Documents extends core_Master
      */
     public static function getRecTitle($rec, $escaped = true)
     {
-        $title = incoming_Types::fetchField($rec->typeId, 'name') . ' ';
+        $title = incoming_Types::fetchField($rec->typeId ?? null, 'name') . ' ';
         
         if (strlen($rec->number ?? '')) {
             $title .= '№' . $rec->number;
@@ -276,7 +276,7 @@ class incoming_Documents extends core_Master
             $dataId = fileman_Files::fetchByFh($form->rec->fileHnd ?? null, 'dataId');
             
             // Проверяваме да няма създаден документ за съответния запис
-            if ($dRec = static::fetch("#dataId = '{$dataId}'")) {
+            if ($dataId && ($dRec = static::fetch("#dataId = '{$dataId}'"))) {
                 
                 // Съобщение за грешка
                 $error = '|Има създаден документ за файла|*';
