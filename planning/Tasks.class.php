@@ -1595,6 +1595,7 @@ class planning_Tasks extends core_Master
     {
         $form = &$data->form;
         $rec = $form->rec;
+        $recId = $rec->id ?? null;
 
         $form->setField('state', 'input=hidden');
         $fixedAssetOptions = array();
@@ -1602,7 +1603,7 @@ class planning_Tasks extends core_Master
         if (isset($rec->systemId)) {
             $form->setField('prototypeId', 'input=none');
         }
-        if (empty($rec->id)) {
+        if (!$recId) {
             if ($folderId = Request::get('folderId', 'key(mvc=doc_Folders)')) {
                 unset($rec->threadId);
                 $rec->folderId = $folderId;
@@ -1632,7 +1633,7 @@ class planning_Tasks extends core_Master
 
         // Задаване на дефолти от шаблонни ПО
         $tasks = cat_Products::getDefaultProductionTasks($originRec, $originRec->quantity);
-        if (isset($rec->systemId, $tasks[$rec->systemId]) && empty($rec->id)) {
+        if (isset($rec->systemId, $tasks[$rec->systemId]) && !$recId) {
             $taskData = (array)$tasks[$rec->systemId];
             unset($taskData['products']);
             foreach ($taskData as $fieldName => $defaultValue) {
@@ -1661,7 +1662,10 @@ class planning_Tasks extends core_Master
             $form->setField('measureId', 'input');
 
             $eQuery = static::getQuery();
-            $eQuery->where("#id != '{$rec->id}' AND #productId = {$rec->productId}");
+            $eQuery->where("#productId = {$rec->productId}");
+            if ($recId) {
+                $eQuery->where("#id != {$recId}");
+            }
             $eQuery->show('indPackagingId,indTimeAllocation');
             $eQuery->orderBy('id', 'DESC');
             $lastTask4Step = $eQuery->fetch();
@@ -1685,7 +1689,7 @@ class planning_Tasks extends core_Master
                 $productionData = $Driver->getProductionData($rec->productId);
             }
 
-            if (!isset($rec->systemId) && empty($rec->id)) {
+            if (!isset($rec->systemId) && !$recId) {
                 $defFields = arr::make("employees=employees,labelType=labelType,labelTemplate=labelTemplate,isFinal=isFinal,wasteProductId=wasteProductId,wastePercent=wastePercent,wasteStart=wasteStart,storeId=storeIn,indTime=norm,showadditionalUom=calcWeightMode,mandatoryDocuments=mandatoryDocuments,offsetAfter=offsetAfter");
                 foreach ($defFields as $fld => $val) {
                     if (array_key_exists($val, $productionData)) {
@@ -1710,17 +1714,17 @@ class planning_Tasks extends core_Master
                 $fixedAssetOptions = $productionData['fixedAssets'];
             }
 
-            $employeeOptions = planning_Hr::getByFolderId($rec->folderId, $rec->employees);
+            $employeeOptions = planning_Hr::getByFolderId($rec->folderId, $rec->employees ?? null);
             if (countR($employeeOptions)) {
                 $form->setSuggestions('employees', array('' => '') + $employeeOptions);
             } else {
                 $form->setField('employees', 'input=none');
             }
 
-            $productId4Form = ($rec->isFinal == 'yes') ? $originRec->productId : $rec->productId;
+            $productId4Form = (($rec->isFinal ?? null) == 'yes') ? $originRec->productId : $rec->productId;
             $productRec = cat_Products::fetch($productId4Form, 'canConvert,canStore,measureId');
             $similarMeasures = cat_UoM::getSameTypeMeasures($productRec->measureId);
-            if ($rec->isFinal == 'yes') {
+            if (($rec->isFinal ?? null) == 'yes') {
                 $form->info = "<div class='richtext-info-no-image'>" . tr('Финална операция към|* ') . $origin->getHyperlink(true) . "</div>";
                 $measureOptions = array();
                 $jobPackagingType = cat_UoM::fetchField($originRec->packagingId, 'type');
@@ -1763,7 +1767,7 @@ class planning_Tasks extends core_Master
             }
 
             $form->setFieldTypeParams("indTime", array('measureId' => $rec->measureId));
-            if ($rec->isFinal == 'yes') {
+            if (($rec->isFinal ?? null) == 'yes') {
                 $packType = cat_UoM::fetchField($originRec->packagingId, 'type');
                 $defaultPlannedQuantity = $originRec->quantity;
                 if ($rec->measureId != $originRec->packagingId) {
@@ -1810,7 +1814,7 @@ class planning_Tasks extends core_Master
                 });
             }
 
-            cat_products_Params::addProductParamsToForm($mvc, $rec->id, $originRec->productId, $rec->productId, $form);
+            cat_products_Params::addProductParamsToForm($mvc, $recId, $originRec->productId, $rec->productId, $form);
 
             // Ако дефолтите са от шаблонна операция, то нейните параметри са с приоритет
             if (isset($rec->systemId, $tasks[$rec->systemId])) {
@@ -1823,7 +1827,7 @@ class planning_Tasks extends core_Master
             }
 
             if ($productRec->canStore == 'yes') {
-                $packs = planning_Tasks::getAllowedLabelPackagingOptions($rec->measureId, $productId4Form, $rec->labelPackagingId);
+                $packs = planning_Tasks::getAllowedLabelPackagingOptions($rec->measureId, $productId4Form, $rec->labelPackagingId ?? null);
                 $form->setOptions('labelPackagingId', array('' => '') + $packs);
                 $indPacks = array($rec->measureId => cat_UoM::getTitleById($rec->measureId, false)) + cat_products_Packagings::getOnlyPacks($productId4Form);
 
@@ -1832,7 +1836,7 @@ class planning_Tasks extends core_Master
                     $form->setDefault('indPackagingId', $productionData['normPackagingId']);
                 }
 
-                if ($rec->isFinal != 'yes') {
+                if (($rec->isFinal ?? null) != 'yes') {
                     if (isset($productionData['labelPackagingId']) && array_key_exists($productionData['labelPackagingId'], $packs)) {
                         $form->setDefault('labelPackagingId', $productionData['labelPackagingId']);
                     }
@@ -1859,8 +1863,8 @@ class planning_Tasks extends core_Master
                 $form->setField('labelQuantityInPack', 'input');
                 $form->setField('labelTemplate', 'input');
 
-                if ($rec->isFinal != 'yes' && $rec->labelPackagingId == ($productionData['labelPackagingId'] ?? null)) {
-                    if (empty($rec->id)) {
+                if (($rec->isFinal ?? null) != 'yes' && $rec->labelPackagingId == ($productionData['labelPackagingId'] ?? null)) {
+                    if (!$recId) {
                         $stepMeasureId = cat_Products::fetchField($rec->productId, 'measureId');
                         $stepSimilarMeasures = cat_UoM::getSameTypeMeasures($stepMeasureId);
                         if (isset($productionData['labelQuantityInPack']) && array_key_exists($productRec->measureId, $stepSimilarMeasures)) {
@@ -1872,17 +1876,17 @@ class planning_Tasks extends core_Master
                     }
                 }
 
-                $quantityInPackDefault = static::getDefaultQuantityInLabelPackagingId($productId4Form, $rec->measureId, $rec->labelPackagingId, $rec->id);
+                $quantityInPackDefault = static::getDefaultQuantityInLabelPackagingId($productId4Form, $rec->measureId, $rec->labelPackagingId, $recId);
                 $form->setField('labelQuantityInPack', "placeholder={$quantityInPackDefault}");
 
-                $templateOptions = static::getAllAvailableLabelTemplates($rec->labelTemplate);
+                $templateOptions = static::getAllAvailableLabelTemplates($rec->labelTemplate ?? null);
                 $form->setOptions('labelTemplate', $templateOptions);
                 $form->setDefault('labelTemplate', key($templateOptions));
             } else {
                 $form->setField('labelTemplate', 'input=hidden');
             }
 
-            if (empty($rec->id)) {
+            if (!$recId) {
                 $form->setDefault('indPackagingId', $rec->measureId);
             }
 
@@ -1914,7 +1918,7 @@ class planning_Tasks extends core_Master
 
         if ($countAssets) {
             $form->setField('assetId', 'input');
-            if ($countAssets == 1 && empty($rec->id)) {
+            if ($countAssets == 1 && !$recId) {
                 $form->setDefault('assetId', key($fixedAssetOptions));
             } else {
                 $fixedAssetOptions = array('' => '') + $fixedAssetOptions;
