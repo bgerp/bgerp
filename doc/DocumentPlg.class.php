@@ -3002,7 +3002,7 @@ class doc_DocumentPlg extends core_Plugin
                 // И да е първия документ в нея
                 } elseif ($tRec->firstContainerId != $rec->containerId) {
                     $requiredRoles = 'no_one';
-                } elseif (acc_Items::fetchItem($mvc, $rec->id)->state == 'closed') {
+                } elseif (($itemRec = acc_Items::fetchItem($mvc, $rec->id)) && (($itemRec->state ?? null) == 'closed')) {
                     $requiredRoles = 'no_one';
                 } else {
                     // И да има активни контиращи документи и неконтиращи
