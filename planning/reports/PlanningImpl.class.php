@@ -432,7 +432,7 @@ class planning_reports_PlanningImpl extends frame_BaseDriver
         
         $tpl->append($table->get($data->rows, $data->listFields), 'CONTENT');
         
-        if ($data->pager) {
+        if (!empty($data->pager)) {
             $tpl->append($data->pager->getHtml(), 'PAGER');
         }
         

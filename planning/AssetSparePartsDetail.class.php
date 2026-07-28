@@ -164,7 +164,7 @@ class planning_AssetSparePartsDetail extends core_Detail
 
         $details = $table->get($data->rows, $data->listFields);
         $tpl->append($details, 'content');
-        if ($data->pager) {
+        if (!empty($data->pager)) {
             $tpl->append($data->pager->getHtml(), 'content');
         }
 

@@ -291,7 +291,7 @@ class deals_reports_ArrearsImpl extends frame_BaseDriver
             $tpl->append($afterRow, 'ROW_AFTER');
         }
         
-        if ($data->pager) {
+        if (!empty($data->pager)) {
             $tpl->append($data->pager->getHtml(), 'PAGER');
         }
         

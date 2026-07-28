@@ -342,7 +342,7 @@ class cat_reports_SalesArticle extends frame_BaseDriver
     					     shipmentCnt=Доставка (бр.),
                              '), 'CONTENT');
         
-        if ($data->pager) {
+        if (!empty($data->pager)) {
             $tpl->append($data->pager->getHtml(), 'PAGER');
         }
         

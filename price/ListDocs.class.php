@@ -663,7 +663,7 @@ class price_ListDocs extends core_Master
             $tpl->replace("<tr><td colspan='6'> " . tr('Няма артикули') . '</td></tr>', 'GROUP');
         }
         
-        if ($data->pager) {
+        if (!empty($data->pager)) {
             $tpl->replace($data->pager->getHtml(), 'PAGER_TOP');
             $tpl->replace($data->pager->getHtml(), 'PAGER');
         }
