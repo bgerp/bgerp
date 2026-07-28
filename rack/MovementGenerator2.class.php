@@ -64,14 +64,12 @@ class rack_MovementGenerator2 extends core_Manager
         
         $rec = $form->input();
         
-        $invArr = $payArr = array();
+        $p = $q = $packs = $mArr = array();
         
         if ($form->isSubmitted()) {
             $pArr = json_decode($rec->pallets);
             $qArr = json_decode($rec->zones);
             $packArr = json_decode($rec->packagings);
-            $p = $q = $packs = array();
-
             foreach ($pArr->pallet as $i => $key) {
                 if ($pArr->quantity[$i]) {
                     $qVerbal = core_Type::getByName('double')->fromVerbal($pArr->quantity[$i]);

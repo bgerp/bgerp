@@ -251,8 +251,8 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
             }
             
             if ($Document->isInstanceOf('sales_Sales')) {
-                $sRec = $Document->fetchField('amountPaid,paymentState');
-                if ($sRec->paymentState == 'paid' && !empty($sRec->amountPaid)) {
+                $sRec = $Document->fetch('amountPaid,paymentState');
+                if (($sRec->paymentState ?? null) == 'paid' && !empty($sRec->amountPaid)) {
                     $row->readiness = ht::createHint($row->readiness, 'Сделката е платена', 'notice', false);
                 }
             }
@@ -384,7 +384,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
         
         if (isset($data->rec->countries)) {
             $countryCaption = ($data->rec->ignore == 'yes') ? tr('Без държави') : tr('Държави');
-            if($data->rec->countryType == 'delivery') {
+            if(($data->rec->countryType ?? 'contragent') == 'delivery') {
                 $countryCaption .= " (" . tr('на доставка') . ")";
             } else {
                 $countryCaption .= " (" . tr('на клиента') . ")";
@@ -475,7 +475,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
             
             // Ако има филтър по държава
             if ($cCount) {
-                if($rec->countryType != 'delivery'){
+                if(($rec->countryType ?? 'contragent') != 'delivery'){
                     if(!array_key_exists($sRec->folderId, $folderContragentCountries)){
                         $Cover = doc_Folders::getCover($sRec->folderId);
                         $folderContragentCountries[$sRec->folderId] = $Cover->fetchField('country');

@@ -279,6 +279,10 @@ class sales_DeliveryData extends core_Manager
         }
 
         $res = array();
+        if (!isset(self::$cacheRecs['recs'][$containerId])) {
+            return $res;
+        }
+
         $thisLocationRec = self::$cacheRecs['recs'][$containerId];
         foreach (self::$cacheRecs['recs'] as $locationRec){
 
@@ -303,7 +307,7 @@ class sales_DeliveryData extends core_Manager
             }
 
             if($isSimilar){
-                $res[$locationRec->id] = (object)array('locationId' => $locationRec->id, 'readiness' => $locationRec->readiness, 'locationName' => $locationRec->locationName);
+                $res[$locationRec->id] = (object)array('locationId' => $locationRec->id, 'readiness' => $locationRec->readiness);
             }
         }
 

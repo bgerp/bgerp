@@ -148,7 +148,11 @@ class planning_Jobs extends core_Master
     {
         $rec = $id ? self::fetchRec($id, 'type') : null;
 
-        if ($rec && $rec->type == 'disassembly') {
+        if ($rec && !isset($rec->type) && isset($rec->id)) {
+            $rec = self::fetchRec($rec, 'type', false);
+        }
+
+        if (isset($rec->type) && $rec->type == 'disassembly') {
             return 'img/16/clipboard_text.png';
         }
 
