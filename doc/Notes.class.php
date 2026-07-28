@@ -259,11 +259,11 @@ class doc_Notes extends core_Master
         if ($key = Request::get('key')) {
             $kVal = core_Cache::get('pwa_Share', $key);
 
-            if ($kVal['body']) {
+            if (!empty($kVal['body'])) {
                 $data->form->setDefault('body', $kVal['body']);
             }
 
-            if ($kVal['subject']) {
+            if (!empty($kVal['subject'])) {
                 $data->form->setDefault('subject', $kVal['subject']);
             }
         }
@@ -279,9 +279,8 @@ class doc_Notes extends core_Master
      */
     public static function on_AfterPrepareSingle($mvc, &$res, $data)
     {
-        if ($data->row->LastVersion != '0.1') {
-            $data->row->currentVersionInHeader = $data->row->LastSelectedVersion ? $data->row->LastSelectedVersion : $data->row->FirstSelectedVersion;
-            $data->row->currentVersionInHeader = $data->row->currentVersionInHeader ? $data->row->currentVersionInHeader : $data->row->LastVersion;
+        if (isset($data->row->LastVersion) && $data->row->LastVersion != '0.1') {
+            $data->row->currentVersionInHeader = ($data->row->LastSelectedVersion ?? null) ?: ($data->row->FirstSelectedVersion ?? null) ?: $data->row->LastVersion;
         }
     }
     
@@ -315,7 +314,7 @@ class doc_Notes extends core_Master
         $hideArr = array();
         
         // Ако има само една версия, тогава да не се показва във вътрешната част
-        if ($row->LastVersion == '0.1') {
+        if (($row->LastVersion ?? null) == '0.1') {
             $hideArr['internal']['versionAndDate'] = true;
             $hideArr['internal']['date'] = true;
             $hideArr['internal']['version'] = true;
