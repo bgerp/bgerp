@@ -155,10 +155,10 @@ class tcost_Fees extends core_Detail
 
             // Проверка на избраната валута
             $oldRec = isset($rec->id) ? $mvc->fetch($rec->id, '', false) : null;
-            foreach (array('currencyId', 'secondCurrencyId', 'thirdCurrencyId') as $fld){
-                if(!empty($rec->{$fld}) && $rec->{$fld} != $oldRec->{$fld}){
+            foreach (array('currencyId', 'secondCurrencyId', 'thirdCurrencyId') as $fld) {
+                if (!empty($rec->{$fld}) && $rec->{$fld} != ($oldRec->{$fld} ?? null)) {
                     $currencyError = null;
-                    if(!currency_Currencies::checkCurrency($rec->{$fld}, null, $currencyError)){
+                    if (!currency_Currencies::checkCurrency($rec->{$fld}, null, $currencyError)) {
                         $form->setError($fld, $currencyError);
                     }
                 }

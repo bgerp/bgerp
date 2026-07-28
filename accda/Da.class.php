@@ -568,10 +568,18 @@ class accda_Da extends core_Master
     protected static function on_AfterGetClosedItemsInTransaction($mvc, &$res, $id)
     {
         $rec = $mvc->fetchRec($id);
+        if (!$rec || empty($rec->id)) {
+            return;
+        }
         
         // От списъка с приключените пера, премахваме това на приключения документ, така че да може
         // приключването да се оттегля/възстановява въпреки, че има в нея приключено перо
-        $itemId = acc_Items::fetchItem($mvc->getClassId(), $rec->id)->id;
+        $itemRec = acc_Items::fetchItem($mvc->getClassId(), $rec->id);
+        if (!$itemRec || empty($itemRec->id)) {
+            return;
+        }
+
+        $itemId = $itemRec->id;
         
         unset($res[$itemId]);
     }

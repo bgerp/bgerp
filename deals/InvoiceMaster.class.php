@@ -1377,7 +1377,7 @@ abstract class deals_InvoiceMaster extends core_Master
                     if($firstDocument = doc_Threads::getFirstDocument($rec->threadId)){
                         $aggregateInfo = $firstDocument->getAggregateDealInfo();
                         $plan = cond_PaymentMethods::getPaymentPlan($rec->paymentMethodId, $aggregateInfo->get('amount'), $rec->date);
-                        if($plan['eventBalancePayment'] == 'invEndOfMonth' && !empty($plan['deadlineForBalancePayment'])){
+                        if (($plan['eventBalancePayment'] ?? null) == 'invEndOfMonth' && !empty($plan['deadlineForBalancePayment'])) {
                             if(empty($rec->dueTime) && empty($rec->dueDate)){
                                 $rec->dueDate = $plan['deadlineForBalancePayment'];
                             }
@@ -1386,7 +1386,7 @@ abstract class deals_InvoiceMaster extends core_Master
                 }
 
                 if (empty($rec->dueDate)) {
-                    $dueTime = ($rec->dueTime) ? $rec->dueTime : sales_Setup::get('INVOICE_DEFAULT_VALID_FOR');
+                    $dueTime = !empty($rec->dueTime) ? $rec->dueTime : sales_Setup::get('INVOICE_DEFAULT_VALID_FOR');
 
                     if ($dueTime) {
                         $rec->dueDate = dt::verbal2mysql(dt::addSecs($dueTime, $rec->date), false);

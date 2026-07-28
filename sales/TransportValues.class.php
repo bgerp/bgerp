@@ -840,7 +840,7 @@ class sales_TransportValues extends core_Manager
         }
         
         sales_TransportValues::prepareFee($detailRec, $form, $clone, $map);
-        sales_TransportValues::sync($Detail->Master, $detailRec->{$Detail->masterKey}, $detailRec->id, $detailRec->fee, $detailRec->deliveryTimeFromFee, $detailRec->_transportExplained);
+        sales_TransportValues::sync($Detail->Master, $detailRec->{$Detail->masterKey}, $detailRec->id, $detailRec->fee, $detailRec->deliveryTimeFromFee, $detailRec->_transportExplained ?? null);
     
         return isset($detailRec->fee);
     }

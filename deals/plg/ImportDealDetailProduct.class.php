@@ -34,6 +34,8 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
     {
         $mvc->declareInterface('deals_DealImportProductIntf');
         setPartIfNot($mvc, 'allowPriceImport', true);
+        setPartIfNot($mvc, 'allowImportReplacement', false);
+        setPartIfNot($mvc, 'combineImportRecs', false);
     }
     
     

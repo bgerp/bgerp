@@ -183,10 +183,10 @@ class plg_RowTools2 extends core_Plugin
      */
     public static function on_BeforeRenderListTable($mvc, &$res, $data)
     {
-        $data->listFields = arr::make($data->listFields, true);
+        $data->listFields = arr::make($data->listFields ?? array(), true);
         unset($data->listFields['_rowTools']);
         
-        if (!is_array($data->rows) || empty($data->rows) || Mode::is('hideToolbar') === true) {
+        if (empty($data->rows) || !is_array($data->rows) || Mode::is('hideToolbar') === true) {
             return ;
         }
         
