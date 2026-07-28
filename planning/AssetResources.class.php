@@ -159,8 +159,8 @@ class planning_AssetResources extends core_Master
         $this->FLD('assetUsers', "keylist(mvc=core_Users, select=nick, where=#state !\\= \\'rejected\\' AND #roles LIKE '%|{$powerUserId}|%')", 'caption=Използване за производство->Отговорници,remember');
         $this->FLD('simultaneity', 'int(min=0)', 'caption=Използване за производство->Едновременност,notNull,value=1, oldFieldName=quantity,remember');
         $this->FLD('planningParams', 'keylist(mvc=cat_Params,select=typeExt)', 'caption=Използване за производство->Планиращи параметри');
-        $this->FLD('planningParamSimilarity', 'percent(Min=0,Max=1,decimals=0)', 'caption=Използване за производство->Минимално съвпадение за автоматично групиране,placeholder=Автоматично');
-        $this->FLD('planningParamGroupDays', 'int(Min=1)', 'caption=Използване за производство->Период за автоматично групиране,placeholder=Автоматично,unit=дни,hint=Максимална разлика в дни между падежите на операции със сходни планиращи параметри');
+        $this->FLD('planningParamSimilarity', 'percent(Min=0,Max=1,decimals=0)', 'caption=Използване за производство->Автоматично групиране на операциите на база подобни планиращи параметри при->Съвпадение над,placeholder=Автоматично');
+        $this->FLD('planningParamGroupDays', 'int(Min=1)', 'caption=Използване за производство->Автоматично групиране на операциите на база подобни планиращи параметри при->Период до,placeholder=Автоматично,unit=дни,hint=Максимална разлика в дни между падежите на операции със сходни планиращи параметри');
         // Запазва се само за съвместимост и за временно връщане към стария планировчик.
         $this->FLD('taskQuantization', 'enum(day=Дневно,weekly=Седмично,monthly=Месечно)', 'caption=Използване за производство->Старо квантуване,input=none,column=none,notNull,value=weekly');
 
