@@ -263,6 +263,10 @@ class sens2_Indicators extends core_Detail
     public static function setValue($controllerId, $port, $value, $time)
     {
         $ap = sens2_Controllers::getActivePorts($controllerId);
+        if (!isset($ap[$port])) {
+
+            return;
+        }
         
         $uom = $ap[$port]->uom;
         $rec = null;
@@ -332,7 +336,7 @@ class sens2_Indicators extends core_Detail
         if (!empty($rec->name)) {
             $title = $rec->name;
             if ($escape) {
-                $res = type_Varchar::escape($title);
+                $title = type_Varchar::escape($title);
             }
             
             return $title;
@@ -383,7 +387,7 @@ class sens2_Indicators extends core_Detail
         $data->listFilter->FNC('driver', 'class(interface=sens2_ControllerIntf, allowEmpty, select=title)', 'caption=Драйвер,silent,placeholder=Драйвер,removeAndRefreshForm=controllerId');
         $data->listFilter->view = 'horizontal';
         $ctr = Request::get('Ctr');
-        if ($mvc instanceof $ctr) {
+        if ($ctr && $mvc instanceof $ctr) {
             $data->listFilter->showFields = 'title, controllerId, driver';
         } else {
             $data->listFilter->showFields = 'title';
