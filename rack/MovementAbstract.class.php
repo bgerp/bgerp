@@ -142,7 +142,7 @@ abstract class rack_MovementAbstract extends core_Manager
             }
         }
 
-        if(!$fields['-inline'] && !$fields['-inline-single']){
+        if(empty($fields['-inline']) && empty($fields['-inline-single'])){
             if($Def = batch_Defs::getBatchDef($rec->productId)){
                 if(!empty($rec->batch)){
                     $row->batch = $Def->toVerbal($rec->batch);
