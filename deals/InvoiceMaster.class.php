@@ -1485,9 +1485,10 @@ abstract class deals_InvoiceMaster extends core_Master
      */
     protected static function getVerbalInvoice($mvc, $rec, $row, $fields)
     {
+        $type = $rec->type ?? null;
         $row->rate = ($rec->displayRate) ? $mvc->getFieldType('rate')->toVerbal($rec->displayRate) : $row->rate;
         
-        if (($rec->type ?? null) == 'dc_note') {
+        if ($type == 'dc_note') {
             core_Lg::push($rec->tplLang);
             $row->type = ($rec->dealValue <= 0) ? tr('Кредитно известие') : tr('Дебитно известие');
             core_Lg::pop();
@@ -1542,7 +1543,7 @@ abstract class deals_InvoiceMaster extends core_Master
             
             core_Lg::push($rec->tplLang);
             
-            if ($rec->originId && $rec->type != 'invoice') {
+            if (!empty($rec->originId) && $type && $type != 'invoice') {
                 unset($row->deliveryPlaceId, $row->deliveryId);
             }
 
@@ -1560,7 +1561,7 @@ abstract class deals_InvoiceMaster extends core_Master
                 $row->userCode = substr($row->userCode, 0, 6);
             }
             
-            if ($rec->type != 'invoice' && !($mvc instanceof sales_Proformas)) {
+            if ($type && $type != 'invoice' && !($mvc instanceof sales_Proformas)) {
                 $originRec = $mvc->getSourceOrigin($rec)->fetch();
                 $originRow = $mvc->recToVerbal($originRec);
                 $row->originInv = $originRow->number;
