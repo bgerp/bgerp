@@ -230,7 +230,7 @@ class plg_Rejected extends core_Plugin
                     $requiredRoles = 'no_one';
                 }
                 
-                if (($requiredRoles != 'no_one') && ($rec->createdBy == core_Users::SYSTEM_USER)) {
+                if (($requiredRoles != 'no_one') && (($rec->createdBy ?? null) == core_Users::SYSTEM_USER)) {
                     $requiredRoles = $mvc->getRequiredRoles('rejectsysdata', $rec, $userId);
                 }
             }
