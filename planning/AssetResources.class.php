@@ -694,7 +694,7 @@ class planning_AssetResources extends core_Master
     {
         if ($folderId = Request::get('folderId', 'int')) {
             $Cover = doc_Folders::getCover($folderId);
-            $data->form->title = core_Detail::getEditTitle($Cover->className, $Cover->that, $mvc->singleTitle, $data->form->rec->id, $mvc->formTitlePreposition);
+            $data->form->title = core_Detail::getEditTitle($Cover->className, $Cover->that, $mvc->singleTitle, $data->form->rec->id ?? null, $mvc->formTitlePreposition);
         }
     }
     

@@ -403,7 +403,7 @@ class eshop_Settings extends core_Master
             $query = self::getQuery();
             $query->in('objectId', array_keys($domainArr));
             $alreadyIn = arr::extractValuesFromArray($query->fetchAll(), 'objectId');
-            if($rec->id) {
+            if (!empty($rec->id)) {
                 unset($alreadyIn[$rec->objectId]);
             }
             $options = array_diff_key($domainArr, $alreadyIn);

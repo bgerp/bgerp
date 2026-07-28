@@ -425,7 +425,7 @@ class core_Detail extends core_Manager
         foreach ($masters as $masterKey => $masterInstance) {
             if ($rec->{$masterKey} ?? null) {
                 $masterId = $rec->{$masterKey};
-            } elseif ($rec->id) {
+            } elseif (!empty($rec->id)) {
                 $masterId = $this->fetchField($rec->id, $masterKey);
             }
 

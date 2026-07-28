@@ -237,7 +237,7 @@ class support_Resolutions extends core_Master
     public static function on_BeforeActivation($mvc, &$rec)
     {
         // Вземаме записа
-        if (!$rec->threadId && $rec->id) {
+        if (!$rec->threadId && !empty($rec->id)) {
             $nRec = $mvc->fetch($rec->id);
         } elseif ($rec->threadId) {
             $nRec = clone($rec);

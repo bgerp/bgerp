@@ -213,7 +213,7 @@ class blogm_Comments extends core_Detail
      */
     public static function on_BeforeSave($mvc, &$id, &$rec, $fields = null)
     {
-        if (!$rec->id) {
+        if (empty($rec->id)) {
             if (!haveRole('cms,ceo,admin') || $rec->state == 'draft') {
                 $artRec = $mvc->Master->fetch($rec->articleId);
                 $rec->state = ($artRec->commentsMode == 'enabled') ? 'active' : 'pending';
@@ -281,7 +281,7 @@ class blogm_Comments extends core_Detail
         }
         
         // Изключваме текущия запис, ако е записан
-        if ($rec->id) {
+        if (!empty($rec->id)) {
             $idCond = " AND #id != {$rec->id}";
         } else {
             $idCond = '';
@@ -305,7 +305,7 @@ class blogm_Comments extends core_Detail
         
         $rec->spamRate = (int) $sr;
         
-        if (!$rec->id && $rec->spamRate <= 3) {
+        if (empty($rec->id) && $rec->spamRate <= 3) {
             $artRec = $mvc->Master->fetch($rec->articleId);
             $title = $mvc->Master->getVerbal($artRec, 'title');
             bgerp_Notifications::add(
@@ -318,7 +318,7 @@ class blogm_Comments extends core_Detail
         // Да не се обновява мастера, ако коментара не става видим или се премахва от видимите
         if ($rec->state != 'active') {
             $stopMasterUpdate = false;
-            if (!$rec->id) {
+            if (empty($rec->id)) {
                 $stopMasterUpdate = true;
             } else {
                 $oRec = $mvc->fetch($rec->id);

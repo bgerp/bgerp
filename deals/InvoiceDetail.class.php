@@ -103,7 +103,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
             $data->form->setReadOnly('productId');
         }
         
-        if ($masterRec->type === 'dc_note') {
+        if (($masterRec->type ?? null) === 'dc_note') {
             $data->form->info = tr('|*<div style="color:#333;margin-top:3px;margin-bottom:12px">|Моля, въведете крайното количество|* <b>|или|*</b> |цена след промяната|* <br><small>( |системата автоматично ще изчисли и попълни разликата в известието|* )</small></div>');
             $data->form->setField('quantity', 'caption=|Крайни|* (|след известието|*)->К-во');
             $data->form->setField('packPrice', 'caption=|Крайни|* (|след известието|*)->Цена');
@@ -285,7 +285,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
     public function calculateAmount_(&$recs, &$rec)
     {
         // Ако документа е известие
-        if ($rec->type === 'dc_note') {
+        if (($rec->type ?? null) === 'dc_note') {
             self::modifyDcDetails($recs, $rec, $this);
         }
         
@@ -301,7 +301,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
      */
     public static function modifyDcDetails(&$recs, $rec, $mvc)
     {
-        expect($rec->type != 'invoice');
+        expect(isset($rec->type) && $rec->type != 'invoice');
         arr::sortObjects($recs, 'id', 'ASC');
 
         if (countR($recs)) {
@@ -409,7 +409,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
             }
         }
         
-        if ($masterRec->type != 'dc_note') {
+        if (($masterRec->type ?? 'invoice') != 'dc_note') {
             
             return;
         }
@@ -531,7 +531,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
         // Показваме подробната информация за опаковката при нужда
         deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
         
-        if ($masterRec->type == 'invoice') {
+        if (($masterRec->type ?? null) == 'invoice') {
             if (empty($rec->quantity) && !Mode::isReadOnly()) {
                 $row->ROW_ATTR['style'] = ' background-color:#f1f1f1;color:#777';
             }
@@ -609,7 +609,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
         $masterRec = $mvc->Master->fetch($rec->{$mvc->masterKey});
         $vatExceptionId = cond_VatExceptions::getFromThreadId($masterRec->threadId);
 
-        if (!empty($form->rec->productId) && $masterRec->type != 'dc_note' && ($form->editActive ?? false) !== true) {
+        if (!empty($form->rec->productId) && ($masterRec->type ?? 'invoice') != 'dc_note' && ($form->editActive ?? false) !== true) {
             $vat = cat_Products::getVat($rec->productId, $masterRec->date, $vatExceptionId);
             
             $packs = cat_Products::getPacks($rec->productId, $rec->packagingId ?? null);
@@ -638,7 +638,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
         }
         
         if ($form->isSubmitted() && !$form->gotErrors()) {
-            if (!isset($rec->quantity) && $masterRec->type != 'dc_note') {
+            if (!isset($rec->quantity) && ($masterRec->type ?? 'invoice') != 'dc_note') {
                 $defaultQuantity = !empty($rec->_moq) ? $rec->_moq : deals_Helper::getDefaultPackQuantity($rec->productId, $rec->packagingId);
                 $form->setDefault('quantity', $defaultQuantity);
                 if (empty($rec->quantity)) {
@@ -647,7 +647,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
                 }
             }
             
-            if ($masterRec->type == 'dc_note') {
+            if (($masterRec->type ?? null) == 'dc_note') {
                 if (!isset($rec->packPrice) || !isset($rec->quantity)) {
                     $form->setError('packPrice,packQuantity', 'Количеството и сумата трябва да са попълнени');
                     
@@ -657,18 +657,18 @@ abstract class deals_InvoiceDetail extends doc_Detail
             
             // Проверка на к-то, само ако не е КИ или ДИ
             $warning = null;
-            if (!deals_Helper::checkQuantity($rec->packagingId, $rec->quantity, $warning) && $masterRec->type != 'dc_note') {
+            if (!deals_Helper::checkQuantity($rec->packagingId, $rec->quantity, $warning) && ($masterRec->type ?? 'invoice') != 'dc_note') {
                 $form->setWarning('quantity', $warning);
             }
 
             $productInfo = cat_Products::getProductInfo($rec->productId);
-            if ($masterRec->type != 'dc_note') {
+            if (($masterRec->type ?? 'invoice') != 'dc_note') {
                 $packagingRec = $productInfo->packagings[$rec->packagingId] ?? null;
                 $rec->quantityInPack = $packagingRec ? $packagingRec->quantity : 1;
             }
 
             // Ако няма въведена цена
-            if (!isset($rec->packPrice) && $masterRec->type != 'dc_note') {
+            if (!isset($rec->packPrice) && ($masterRec->type ?? 'invoice') != 'dc_note') {
                 $autoPrice = true;
 
                 // Потребител БЕЗ права да вижда цени е сменил опаковката -
@@ -750,7 +750,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
                     }
                 }
 
-                if ($masterRec->type === 'dc_note') {
+                if (($masterRec->type ?? null) === 'dc_note') {
 
                     // Проверка дали са променени и цената и количеството
                     $cache = $mvc->Master->getInvoiceDetailedInfo($masterRec->originId, true);

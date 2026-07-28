@@ -143,7 +143,7 @@ class deals_plg_SelectInvoicesToDocument extends core_Plugin
                     $rec->fromContainerId = null;
                     $mvc->save_($rec, 'fromContainerId');
                 }
-            } elseif($rec->_amountChange == 'decrease') {
+            } elseif (($rec->_amountChange ?? null) == 'decrease') {
 
                 // Ако е само една и сумата е намалена то остава по-малкото от новата сума и старата разпределена
                 $nData = $mvc->getPaymentData($rec);

@@ -1144,7 +1144,7 @@ class cal_Reminders extends core_Master
     public static function getNextStartingTime2($rec, $usePreviously = true)
     {
         // При активиране, ако не е подаден целия rec
-        if ($rec->_isActivatedDoc && $rec->id) {
+        if (!empty($rec->_isActivatedDoc) && !empty($rec->id)) {
             $oRec = self::fetch($rec->id);
             $oRecArr = (array) $oRec;
             $recArr = (array) $rec;

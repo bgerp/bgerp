@@ -449,7 +449,7 @@ class doc_View extends core_Master
             if ($form->cmd == 'fullView') {
                 $form->rec->_toFullView = true;
 
-                if (!$form->rec->id) {
+                if (empty($form->rec->id)) {
                     status_Messages::newStatus('Документът е записан');
                 } else {
                     status_Messages::newStatus('Документът е обновен');

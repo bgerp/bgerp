@@ -60,7 +60,7 @@ class acc_transaction_BalanceRepair extends acc_DocumentTransactionSource
         );
         
         // Ако има ид
-        if ($rec->id) {
+        if (!empty($rec->id)) {
             
             // За всяка сметка в детайла
             $dQuery = acc_BalanceRepairDetails::getQuery();

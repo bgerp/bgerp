@@ -173,7 +173,7 @@ class label_Labels extends core_Master
         $readOnlyArr = $dataArr = $rec->params;
         
         // Ако формата не е субмитната и не я редактираме
-        if (!$rec->id) {
+        if (empty($rec->id)) {
             // id на шаблона
             $templateId = Request::get('templateId', 'int');
             $lang = label_Templates::fetchField($templateId, 'lang');
@@ -254,7 +254,7 @@ class label_Labels extends core_Master
      */
     protected static function on_AfterPrepareEditTitle($mvc, &$res, &$data)
     {
-        $data->form->title = core_Detail::getEditTitle('label_Templates', $data->form->rec->templateId, $mvc->singleTitle, $data->form->rec->id);
+        $data->form->title = core_Detail::getEditTitle('label_Templates', $data->form->rec->templateId, $mvc->singleTitle, $data->form->rec->id ?? null);
     }
     
     
@@ -277,7 +277,7 @@ class label_Labels extends core_Master
             $type = $form->rec->type;
             
             // Ако редактираме записа
-            if ($form->rec->id) {
+            if (!empty($form->rec->id)) {
                 
                 // Вземаме записа
                 $rec = $mvc->fetch($form->rec->id);

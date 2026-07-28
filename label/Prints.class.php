@@ -338,7 +338,7 @@ class label_Prints extends core_Master
             }
 
             // При редакция да се попълват стойностите
-            if ($rec->id) {
+            if (!empty($rec->id)) {
                 foreach ((array) $rec->params as $fieldName => $val) {
                     if (!$labelDataArr[$fieldName]) {
                         $fieldName = label_TemplateFormats::getPlaceholderFieldName($fieldName);
@@ -570,7 +570,7 @@ class label_Prints extends core_Master
             $oldDataArr = array();
             
             // Ако редактираме записа
-            if ($rec->id) {
+            if (!empty($rec->id)) {
                 
                 // Вземаме записа
                 $oRec = $mvc->fetch($rec->id);
@@ -642,7 +642,7 @@ class label_Prints extends core_Master
         if (!empty($rec->templateId)) {
             $renderView = false;
             
-            if ($rec->id) {
+            if (!empty($rec->id)) {
                 $renderView = true;
             }
             

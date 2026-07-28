@@ -533,7 +533,7 @@ class acc_plg_Contable extends core_Plugin
             $requiredRoles = $mvc->getRequiredRoles('restore', $rec);
             
             // Не може да се реконтират само активни и приключени документи
-            if ($rec->id && ($rec->state == 'draft' || $rec->state == 'rejected' || $rec->state == 'pending' || $rec->state == 'stopped')) {
+            if (!empty($rec->id) && ($rec->state == 'draft' || $rec->state == 'rejected' || $rec->state == 'pending' || $rec->state == 'stopped')) {
                 $requiredRoles = 'no_one';
             }
             
@@ -542,7 +542,7 @@ class acc_plg_Contable extends core_Plugin
                 $requiredRoles = 'no_one';
             }
         } elseif ($action == 'revert') {
-            if ($rec->id) {
+            if (!empty($rec->id)) {
                 
                 // Ако има запис в журнала, вальора е този от него, иначе е полето за вальор от документа
                 $jRec = acc_Journal::fetchByDoc($mvc->getClassId(), $rec->id);
@@ -555,7 +555,7 @@ class acc_plg_Contable extends core_Plugin
                 }
             }
         } elseif ($action == 'reject') {
-            if ($rec->id) {
+            if (!empty($rec->id)) {
                 
                 // Ако има запис в журнала, вальора е този от него, иначе е полето за вальор от документа
                 $jRec = acc_Journal::fetchByDoc($mvc->getClassId(), $rec->id);
@@ -880,7 +880,7 @@ class acc_plg_Contable extends core_Plugin
                     if(in_array($name, $ignoreDetailsToCheckWhenTryingToPost)) continue;
                     $haveDetailsToAdd = true;
                     $Details = cls::get($name);
-                    if ($rec->id && $Details->masterKey) {
+                    if (!empty($rec->id) && $Details->masterKey) {
                         if ($Details->fetch("#{$Details->masterKey} = {$rec->id}")) {
                             $hasDetail = true;
                             break;

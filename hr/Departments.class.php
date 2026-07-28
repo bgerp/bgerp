@@ -189,7 +189,7 @@ class hr_Departments extends core_Master
         }
         $rec->orderStr .= str_pad(mb_substr($rec->name, 0, 10), 10, ' ', STR_PAD_RIGHT);
         
-        if (!$rec->id) {
+        if (empty($rec->id)) {
             $rec->state = 'active';
         }
     }
@@ -274,7 +274,7 @@ class hr_Departments extends core_Master
         
         // Основния департамент не може да бъде променян
         if (($action == 'edit' || $action == 'restore' || $action == 'delete' || $action == 'reject') && isset($rec)) {
-            if ($rec->id == self::ROOT_DEPARTMENT_ID) {
+            if (($rec->id ?? null) == self::ROOT_DEPARTMENT_ID) {
                 $requiredRoles = 'no_one';
             }
         }

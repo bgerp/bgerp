@@ -691,7 +691,7 @@ class distro_Files extends core_Detail
         $rec = $data->form->rec;
         
         // Ако редактираме записа
-        if ($rec->id) {
+        if (!empty($rec->id)) {
             // Избора на файл да е задължителен
             $data->form->setField('sourceFh', 'input=none');
             $data->form->setField('repos', 'input=none');
@@ -731,7 +731,7 @@ class distro_Files extends core_Detail
                 $rec->name = fileman_Files::fetchByFh($form->rec->sourceFh, 'name');
                 $rec->md5 = fileman_Files::fetchByFh($form->rec->sourceFh, 'md5');
                 
-                if (!$rec->id && $rec->repos) {
+                if (empty($rec->id) && $rec->repos) {
                     $rec->__addToRepo = true;
                 }
             }

@@ -1749,7 +1749,7 @@ class email_Incomings extends core_Master
         
         $rec->toAndCc = array('allTo' => $rec->AllTo, 'allCc' => $rec->AllCc);
         
-        if ($rec->id && $saveIfNotExist) {
+        if (!empty($rec->id) && $saveIfNotExist) {
             $inst = cls::get(get_called_class());
             $inst->save_($rec, 'toAndCc');
         }
@@ -2462,7 +2462,7 @@ class email_Incomings extends core_Master
         }
 
         // Първо рутираме по ръчно зададените правила
-        if ($rec->_prerouteRecArr) {
+        if (!empty($rec->_prerouteRecArr)) {
 
             foreach ($rec->_prerouteRecArr as $fName => $fVal) {
                 $rec->{$fName} = $fVal;
@@ -2471,7 +2471,7 @@ class email_Incomings extends core_Master
             // Добавяме начина на рутиране
             $rec->routeBy = 'preroute';
 
-            if ($rec->_prerouteRecArr['folderId']) {
+            if (!empty($rec->_prerouteRecArr['folderId'])) {
 
                 return ;
             }
@@ -2897,7 +2897,7 @@ class email_Incomings extends core_Master
             }
         }
         
-        if ($rec->id && $forceSave) {
+        if (!empty($rec->id) && $forceSave) {
             
             return $this->save_($rec, 'userInboxes');
         }
@@ -3729,7 +3729,7 @@ class email_Incomings extends core_Master
             $rec = $this->fetch($rec);
         }
 
-        if (!property_exists($rec, 'files') && $rec->id) {
+        if (!property_exists($rec, 'files') && !empty($rec->id)) {
             $cRec = $this->fetch($rec->id);
         } else {
             $cRec = clone $rec;

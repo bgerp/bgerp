@@ -2108,7 +2108,7 @@ class eshop_Carts extends core_Master
             if ($rec->state != 'draft') {
                 $requiredRoles = 'no_one';
             } else {
-                $compareDate = dt::addSecs($rec->createdOn, 60 * 60 * 24 * 2);
+                $compareDate = dt::addSecs(60 * 60 * 24 * 2, $rec->createdOn);
                 if ($compareDate >= dt::now()) {
                     $requiredRoles = 'no_one';
                 }
@@ -2368,6 +2368,7 @@ class eshop_Carts extends core_Master
 
             // Ако има въведен номер на ваучер - той се записва успешно
             $voucherAddedStatus = false;
+            $rec->voucherId = $rec->voucherId ?? null;
             $oldVoucherId = $rec->voucherId;
 
             if(!empty($rec->voucherNo) && core_Packs::isInstalled('voucher')){
@@ -2378,7 +2379,7 @@ class eshop_Carts extends core_Master
 
                     $form->setError('voucherNo', $vInfo['error']);
                 } elseif(isset($vInfo['id'])) {
-                    if($rec->voucherId != $vInfo['id']){
+                    if ($oldVoucherId != $vInfo['id']) {
                         $voucherAddedStatus = true;
                     }
                     $rec->voucherId = $vInfo['id'];

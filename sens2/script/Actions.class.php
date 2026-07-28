@@ -112,7 +112,7 @@ class sens2_script_Actions extends core_Detail
         $form = &$data->form;
         $rec = &$form->rec;
         
-        if ($rec->id) {
+        if (!empty($rec->id)) {
             $form->setReadOnly('action');
             $data = (array) self::fetch($rec->id)->data;
             if (is_array($data)) {

@@ -166,17 +166,19 @@ class doc_plg_Prototype extends core_Plugin
      */
     public static function on_AfterGetPrototypes($mvc, &$res, $rec)
     {
-        if(!isset($res)){
+        if (!isset($res)) {
+            $folderId = $rec->folderId ?? null;
+
             if ($mvc instanceof embed_Manager) {
                 if (isset($rec->{$mvc->driverClassField})) {
-                    $res = doc_Prototypes::getPrototypes($mvc, $rec->{$mvc->driverClassField}, $rec->folderId);
+                    $res = doc_Prototypes::getPrototypes($mvc, $rec->{$mvc->driverClassField}, $folderId);
                 }
             } elseif ($mvc instanceof core_Embedder) {
                 if (isset($rec->{$mvc->innerClassField})) {
-                    $res = doc_Prototypes::getPrototypes($mvc, $rec->{$mvc->innerClassField}, $rec->folderId);
+                    $res = doc_Prototypes::getPrototypes($mvc, $rec->{$mvc->innerClassField}, $folderId);
                 }
             } else {
-                $res = doc_Prototypes::getPrototypes($mvc, null, $rec->folderId);
+                $res = doc_Prototypes::getPrototypes($mvc, null, $folderId);
             }
         }
     }

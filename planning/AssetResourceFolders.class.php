@@ -277,7 +277,7 @@ class planning_AssetResourceFolders extends core_Manager
     {
         $rec = $data->form->rec;
         if ($rec->classId) {
-            $data->form->title = core_Detail::getEditTitle($rec->classId, $rec->objectId, $mvc->singleTitle, $rec->id, 'към');
+            $data->form->title = core_Detail::getEditTitle($rec->classId, $rec->objectId, $mvc->singleTitle, $rec->id ?? null, 'към');
         }
     }
 

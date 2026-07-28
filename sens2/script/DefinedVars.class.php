@@ -232,7 +232,7 @@ class sens2_script_DefinedVars extends core_Detail
      */
     public function on_BeforeSave($mvc, &$id, $rec, $fields = null)
     {
-        if (!$rec->id && $rec->scope == 'global' && isset($rec->name)) {
+        if (empty($rec->id) && $rec->scope == 'global' && isset($rec->name)) {
             $exRec = self::fetch(array("#name = '[#1#]' AND #scope = 'global'", $rec->name));
             if ($exRec) {
                 $rec->value = $exRec->value;

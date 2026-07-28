@@ -354,7 +354,7 @@ class doc_UnsortedFolderSteps extends core_Master
      */
     public function renderSteps(&$data)
     {
-        if($data->hide) return;
+        if (!empty($data->hide)) return;
 
         $tpl = new core_ET('');
 

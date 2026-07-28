@@ -129,7 +129,7 @@ class rack_RackDetails extends core_Detail
         $form->setReadOnly('row');
         $form->setReadOnly('col');
         
-        if (!$rec->id) {
+        if (empty($rec->id)) {
             if ($exRec = self::fetch(array("#rackId = [#1#] AND #row = '[#2#]' AND #col = [#3#]", $rec->rackId, $rec->row, $rec->col))) {
                 $rec = $exRec;
             }

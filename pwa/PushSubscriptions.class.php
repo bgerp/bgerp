@@ -417,7 +417,7 @@ class pwa_PushSubscriptions extends core_Manager
             $this->save($rec, NULL, 'REPLACE');
 
             // При подновяване показваме известие само
-            if ($rec->id) {
+            if (!empty($rec->id)) {
                 if (!$oRec || ($oRec->state == 'closed')) {
                     // При успешно абониране, показваме PUSH известие
                     $msgTitle = "Абониране за PUSH известия в " . core_Setup::get('EF_APP_TITLE', true);

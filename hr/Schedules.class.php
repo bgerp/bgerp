@@ -511,7 +511,7 @@ class hr_Schedules extends core_Master
      */
     protected static function on_AfterUpdate($mvc, &$rec, $id)
     {
-        if($rec->_exnonWorking != $rec->nonWorking || $rec->_exnparentId != $rec->parentId){
+        if (($rec->_exnonWorking ?? null) != $rec->nonWorking || ($rec->_exnparentId ?? null) != $rec->parentId) {
             core_Cache::removeByType('work_schedule');
         }
     }

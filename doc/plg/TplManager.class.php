@@ -132,7 +132,7 @@ class doc_plg_TplManager extends core_Plugin
     protected static function on_BeforeRecToVerbal($mvc, &$row, $rec)
     {
         if (is_object($rec)) {
-            if ($rec->id) {
+            if (!empty($rec->id)) {
                 
                 // Ако няма шаблон, за шаблон се приема първия такъв за модела
                 $rec->template = $mvc->getTemplate($rec);

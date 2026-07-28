@@ -389,7 +389,7 @@ class doc_Threads extends core_Manager
                     
                     // Ако не може да се определи първия документ в нишката, изтриваме нишката
                     if (!$firstCid) {
-                        if ($rec->id) {
+                        if (!empty($rec->id)) {
                             self::delete($rec->id);
                             $resArr['del_cnt']++;
                             
@@ -1180,6 +1180,8 @@ class doc_Threads extends core_Manager
      */
     public function exp_Move($exp)
     {
+        $selArr = array();
+
         if ($selected = Request::get('Selected')) {
             $selArr = arr::make($selected);
             Request::push(array('threadId' => $selArr[0]));
@@ -1512,7 +1514,7 @@ class doc_Threads extends core_Manager
         if (cls::haveInterface('doc_ContragentDataIntf', $class)) {
             $cData = $class->getContragentData($fRec->coverId);
             
-            if ($cData->email) {
+            if ($cData->email ?? null) {
                 $altFolderId = email_Router::getEmailFolder($cData->email);
             }
         }

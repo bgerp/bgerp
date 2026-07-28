@@ -343,7 +343,7 @@ class forum_Boards extends core_Master
      */
     public function renderSearchForm_(&$data)
     {
-        if ($data->searchForm) {
+        if (!empty($data->searchForm)) {
             
             return $data->searchForm->renderHtml();
         }

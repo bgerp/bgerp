@@ -247,7 +247,7 @@ class blast_ListDetails extends doc_Detail
         $form->rec->key = str::convertToFixedKey(mb_strtolower(trim($form->rec->{$keyField})));
         
         $idCond = '';
-        if ($form->rec->id) {
+        if (!empty($form->rec->id)) {
             $idCond = " AND #id != {$form->rec->id}";
         }
         

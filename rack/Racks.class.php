@@ -198,7 +198,7 @@ class rack_Racks extends core_Master
         $rec = &$form->rec;
         $form->setDefault('useGroups', 'yes');
 
-        if (!$rec->id) {
+        if (empty($rec->id)) {
             $storeId = store_Stores::getCurrent();
             $form->setDefault('storeId', $storeId);
             
@@ -444,7 +444,7 @@ class rack_Racks extends core_Master
                 $form->setError('rows,columns', $error);
             }
             
-            if ($rec->id && rack_RackDetails::fetch("#rackId = {$rec->id} AND (#row > '{$rec->rows}' OR #col > {$rec->columns}) AND #status != 'usable'")) {
+            if (!empty($rec->id) && rack_RackDetails::fetch("#rackId = {$rec->id} AND (#row > '{$rec->rows}' OR #col > {$rec->columns}) AND #status != 'usable'")) {
                 $form->setWarning('rows,columns', 'Информацията за запазени или неизползваеми места извън новите размери ще бъде изтрита');
             }
 

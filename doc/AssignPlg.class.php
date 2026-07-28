@@ -225,7 +225,7 @@ class doc_AssignPlg extends core_Plugin
             if (!isset($rec->assignedOn) && !isset($rec->assignedBy)) {
                 $update = false;
                 $oRec = null;
-                if ($rec->id) {
+                if (!empty($rec->id)) {
                     $oRec = $mvc->fetch($rec->id, null, false);
                 } else {
                     $update = true;

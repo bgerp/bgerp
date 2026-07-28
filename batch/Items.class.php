@@ -646,7 +646,7 @@ class batch_Items extends core_Master
     public function renderBatches($data)
     {
         // Ако не рендираме таба, не правим нищо
-        if ($data->hide === true) return;
+        if (($data->hide ?? false) === true) return;
         
         // Кой е шаблона?
         $title = new core_ET('( [#def#] [#btn#])');

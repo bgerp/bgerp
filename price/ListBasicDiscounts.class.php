@@ -208,7 +208,7 @@ class price_ListBasicDiscounts extends core_Detail
      */
     public function renderDetail_($data)
     {
-        if($data->hide) return new core_ET("");
+        if (!empty($data->hide)) return new core_ET("");
 
         // Ако не се иска да се показва детайла - да се скрива
         $vatUnit = ($data->masterData->rec->vat == 'yes') ? tr('с ДДС') : tr('без ДДС');

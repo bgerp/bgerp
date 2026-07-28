@@ -471,7 +471,10 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
     public static function getBlAmount($jRecs, $id)
     {
         $rec = purchase_Purchases::fetchRec($id);
+        if (!is_object($rec)) return 0;
+
         $itemRec = acc_items::fetchItem('purchase_Purchases', $rec->id);
+        if (!is_object($itemRec)) return 0;
 
         $useCurrencyField = !in_array($rec->currencyId, array('EUR', 'BGN'));
         $paid = acc_Balances::getBlAmounts($jRecs, '401', null, null, array(null, $itemRec->id, null), array(), $rec->valior, $useCurrencyField)->amount;
@@ -488,7 +491,10 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
     public static function getDeliveryAmount($jRecs, $id)
     {
         $rec = purchase_Purchases::fetchRec($id);
+        if (!is_object($rec)) return 0;
+
         $itemRec = acc_items::fetchItem('purchase_Purchases', $rec->id);
+        if (!is_object($itemRec)) return 0;
 
         $useCurrencyField = !in_array($rec->currencyId, array('EUR', 'BGN'));
         $delivered = acc_Balances::getBlAmounts($jRecs, '401', 'credit', null, array(null, $itemRec->id, null), array(), $rec->valior, $useCurrencyField)->amount;

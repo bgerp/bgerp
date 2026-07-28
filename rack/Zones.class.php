@@ -759,7 +759,7 @@ class rack_Zones extends core_Master
     {
         // По-хубаво заглавие на формата
         $rec = $data->form->rec;
-        $data->form->title = core_Detail::getEditTitle('store_Stores', $rec->storeId, 'зона', $rec->id, tr('в склад'));
+        $data->form->title = core_Detail::getEditTitle('store_Stores', $rec->storeId, 'зона', $rec->id ?? null, tr('в склад'));
     }
 
 

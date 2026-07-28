@@ -453,7 +453,7 @@ class bgerp_Bookmark extends core_Manager
         }
 
         // При създаване на връзка, да не може да се редактира
-        if ($form->rec->url && !$form->rec->id && !$form->cmd) {
+        if ($form->rec->url && empty($form->rec->id) && !$form->cmd) {
             $form->setReadOnly('url');
         }
     }

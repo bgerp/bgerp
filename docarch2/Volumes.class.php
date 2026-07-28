@@ -246,20 +246,20 @@ class docarch2_Volumes extends core_Master
         //Включване на том в по-голям
         $possibleVolArr = self::getVolumePossibleForInclude($rec);
 
-        if ($rec->id && is_null($rec->parentId) && $rec->state != 'closed'  && !empty($possibleVolArr)) {
+        if (!empty($rec->id) && is_null($rec->parentId) && $rec->state != 'closed'  && !empty($possibleVolArr)) {
             $data->toolbar->addBtn('Включване', array('docarch2_Movements','VolIn',$rec->id,'ret_url' => true));
         }
 
         //Изключване на том от по-голям
         
-        if ($rec->id && !is_null($rec->parentId) && $rec->state != 'closed') {
+        if (!empty($rec->id) && !is_null($rec->parentId) && $rec->state != 'closed') {
             $data->toolbar->addBtn('Изключване', array('docarch2_Movements','VolOut',$rec->id,'ret_url' => true));
         }
 
         //Преместване на том
 
         $condArr = self::getVolumePossibleForInclude($rec);
-        if ($rec->id && !is_null($rec->parentId) && $rec->state != 'closed' && !empty($condArr)) {
+        if (!empty($rec->id) && !is_null($rec->parentId) && $rec->state != 'closed' && !empty($condArr)) {
             $data->toolbar->addBtn('Преместване', array('docarch2_Movements','VolRelocation',$rec->id,'ret_url' => true));
         }
     }
@@ -361,22 +361,22 @@ class docarch2_Volumes extends core_Master
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         //Тома не може да бъде изтрит ако е празен
-        if ($rec->id && $action == 'delete') {
+        if (!empty($rec->id) && $action == 'delete') {
             $requiredRoles = 'no_one' ;
         }
         
         //Reject = Унищожаване
-        if ($rec->id && $action == 'reject') {
+        if (!empty($rec->id) && $action == 'reject') {
             $requiredRoles = 'no_one' ;
         }
         
-        if ($rec->id && $action == 'edit') {
+        if (!empty($rec->id) && $action == 'edit') {
             if (($rec->state == 'closed')) {
                 $requiredRoles = 'no_one' ;
             }
         }
         
-        if ($rec->id && (
+        if (!empty($rec->id) && (
                          $action == 'delete' ||
                          $action == 'reject' ||
                          $action == 'edit' ||

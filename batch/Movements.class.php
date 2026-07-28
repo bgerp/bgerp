@@ -264,6 +264,7 @@ class batch_Movements extends core_Detail
         $jQuery->orderBy('id', 'ASC');
         $docRec = $doc->fetch();
         $totalMovements = array();
+        $result = true;
 
         // За всяка
         while ($jRec = $jQuery->fetch()) {
@@ -277,8 +278,6 @@ class batch_Movements extends core_Detail
             
             // Записва се движението и
             foreach ($batches as $key => $b) {
-                $result = true;
-
                 $itemId = batch_Items::forceItem($jRec->productId, $key, $jRec->storeId);
                 if (empty($jRec->date)) {
                     $jRec->date = $doc->fetchField($doc->valiorFld);

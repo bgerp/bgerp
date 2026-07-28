@@ -122,7 +122,7 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
         $form->setSuggestions('caseId', array('' => '') + $cases);
 
         // Задаваме дефолтните стойности само при създаване на нова справка
-        if (!$form->rec->id) {
+        if (empty($form->rec->id)) {
             $form->setDefault('documentType', 'all');
             $form->setDefault('sortDirection', 'desc');
             $form->setDefault('groupBy', 'yes');

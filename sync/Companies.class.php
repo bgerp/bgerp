@@ -139,7 +139,7 @@ class sync_Companies extends sync_Helper
                     }
                 }
                 if ($class == 'cat_Listings') {
-                    if ($rec->_companyId) {
+                    if (!empty($rec->_companyId)) {
                         $cId = sync_Map::importRec('crm_Companies', $rec->_companyId, $resArr, $me, $update);
                         $haveListing = cond_Parameters::getParameter('crm_Companies', $cId, 'salesList');
                         if ($haveListing) {

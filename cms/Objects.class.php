@@ -117,7 +117,7 @@ class cms_Objects extends core_Master
             $rec->tpl = $source->getDefaultCmsTpl($objData)->content;
         }
         
-        if (!$rec->id) {
+        if (empty($rec->id)) {
             $query = self::getQuery();
             
             $query->where("#sourceClass = {$rec->sourceClass} AND #sourceId = {$rec->sourceId} AND #type = '{$rec->type}'");

@@ -405,7 +405,7 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
         if ($rec->type == 'input' && isset($rec->productId) && !empty($rec->storeId)) {
             $masterRec = planning_DisassemblyNote::fetch($rec->noteId, 'deadline,valior');
             $deliveryDate = (!empty($masterRec->deadline)) ? $masterRec->deadline : $masterRec->valior;
-            $storeInfo = deals_Helper::checkProductQuantityInStore($rec->productId, $rec->packagingId, $rec->packQuantity, $rec->storeId, $deliveryDate);
+            $storeInfo = deals_Helper::checkProductQuantityInStore($rec->productId, $rec->packagingId ?? null, $rec->packQuantity ?? null, $rec->storeId, $deliveryDate);
             $form->info = $storeInfo->formInfo;
         }
     }

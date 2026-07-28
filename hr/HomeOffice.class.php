@@ -393,7 +393,7 @@ class hr_HomeOffice extends core_Master
      */
     protected static function on_BeforeActivation($mvc, $rec)
     {
-        if (!isset($rec->personId) && $rec->id) {
+        if (!isset($rec->personId) && !empty($rec->id)) {
             $rec = $mvc->fetch($rec->id);
         }
 

@@ -64,12 +64,12 @@ class prosody_RemoteDriver extends core_Mvc
         $setNewPass = false;
         
         $rec = $form->rec;
-        if ($rec->id) {
+        if (!empty($rec->id)) {
             $exRec = $embedder->fetch($rec->id);
         }
         $nick = $rec->xmppUser;
         if ($form->isSubmitted()) {
-            if (!$rec->id) {
+            if (empty($rec->id)) {
                 // Възможни грешки при създаване на нов потребител:
                 
                 // 1. Имаме такъв потребител в локалната система, и той не е за който се задава
@@ -147,7 +147,7 @@ class prosody_RemoteDriver extends core_Mvc
             $form->setReadonly('xmppUser');
         }
         
-        if (!$rec->id) {
+        if (empty($rec->id)) {
             $form->setDefault('blockNecessitous', 'night');
             $form->setDefault('blockNormal', 'night,nonworking');
             $form->setField('xmppPass', 'mandatory');
