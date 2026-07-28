@@ -184,7 +184,7 @@ class hr_FormCv extends core_Master
         
         $form->input(null, 'silent');
         $data = (object) array('form' => $form);
-        self::expandEditForm($mvc, $data);
+        self::expandEditForm($this, $data);
         
         
         $form->input();
@@ -331,7 +331,7 @@ class hr_FormCv extends core_Master
         $row->authorId = $rec->createdBy;
         $row->author = $this->getVerbal($rec, 'createdBy');
         $row->state = $rec->state;
-        $row->recTitle = $rec->title;
+        $row->recTitle = $row->title;
         
         return $row;
     }
@@ -367,11 +367,11 @@ class hr_FormCv extends core_Master
             $tArr = array(120, 120);
             $mArr = array(450, 450);
             
-            if ($rec->photo) {
+            if (!empty($rec->photo)) {
                 $row->image = $Fancybox->getImage($rec->photo, $tArr, $mArr);
             }
             
-            $row->egn = $rec->egn;
+            $row->egn = $rec->egn ?? null;
         }
         
         
@@ -379,11 +379,15 @@ class hr_FormCv extends core_Master
         
         if (!empty($rec->workpreff) && is_array($rec->workpreff)) {
             foreach ($rec->workpreff as $k => $v) {
-                $printChoice = '';
+                $choiceRec = hr_WorkPreff::fetch($k);
+                if (!$choiceRec) {
+
+                    continue;
+                }
+
+                $printChoice = $choiceRec->name;
                 
-                $printChoice = hr_WorkPreff::fetch($k)->name;
-                
-                $printValues = explode(',', $v->value);
+                $printValues = explode(',', $v->value ?? '');
                 
                 $printValue = '';
                 
@@ -392,7 +396,10 @@ class hr_FormCv extends core_Master
                     if (!$vp) {
                         continue;
                     }
-                    $printValue .= '<div>' . hr_WorkPreffDetails::fetch($vp)->name . '</div>';
+                    $detailRec = hr_WorkPreffDetails::fetch($vp);
+                    if ($detailRec) {
+                        $printValue .= '<div>' . $detailRec->name . '</div>';
+                    }
                 }
                 if (!empty($printValue)) {
                     $prepare .= "<tr><td class='aright'>" . $printChoice . ': ' . "</td><td class='aleft' colspan='2'>" . $printValue . '</td></tr>';
