@@ -492,7 +492,7 @@ class rack_Racks extends core_Master
 
         if (isset($fields['-single'])) {
             $row->places = self::renderRack($rec);
-            $row->comment .= "<div style='font-size:0.8em;color:999;'>" .
+            $row->comment = ($row->comment ?? '') . "<div style='font-size:0.8em;color:999;'>" .
                 tr('Клик върху клетка, за да я редактирате или задръжте мишката за информация') .
                 '</div>';
         }
