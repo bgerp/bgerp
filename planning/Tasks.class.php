@@ -3199,13 +3199,18 @@ class planning_Tasks extends core_Master
 
         // Ако има избран център - тези параметри от тях/ ако няма всички параметри от центровете с листвани задачи
         if (empty($data->masterMvc)) {
-            if(!empty($data->listFilter->rec->folders)){
+            if (!empty($data->listFilter->rec->folders)) {
                 $folderIds = keylist::toArray($data->listFilter->rec->folders);
+            } else {
+                $folderIds = arr::extractValuesFromArray($data->recs, 'folderId');
+            }
+
+            if (countR($folderIds)) {
                 $cQuery = planning_Centers::getQuery();
                 $cQuery->in('folderId', $folderIds);
                 $cQuery->where("#planningParams IS NOT NULL");
                 $cQuery->show('planningParams');
-                while($cRec = $cQuery->fetch()){
+                while ($cRec = $cQuery->fetch()) {
                     $plannedParams += keylist::toArray($cRec->planningParams);
                 }
             }
