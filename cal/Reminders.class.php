@@ -1389,7 +1389,7 @@ class cal_Reminders extends core_Master
         }
 
         foreach ($allFieldsArr as $fieldName => $val) {
-            if ($row->{$fieldName}) {
+            if (!empty($row->{$fieldName})) {
                 $resArr[$fieldName] = array('name' => tr($val), 'val' => "[#{$fieldName}#]");
             }
         }
