@@ -44,7 +44,7 @@ class cams_Records extends core_Master
     /**
      * Зареждане на използваните мениджъри
      */
-    public $loadList = 'plg_RowTools, cams_Wrapper, Cameras=cams_Cameras';
+    public $loadList = 'plg_RowTools2, cams_Wrapper, Cameras=cams_Cameras';
     
     
     /**

@@ -32,7 +32,7 @@ class planning_WorkCards extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'planning_Wrapper, label_plg_Print, plg_Created, plg_State, plg_Modified, plg_Rejected, plg_RowTools';
+    public $loadList = 'planning_Wrapper, label_plg_Print, plg_Created, plg_State, plg_Modified, plg_Rejected, plg_RowTools2';
     
     
     /**

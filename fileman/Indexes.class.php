@@ -66,7 +66,7 @@ class fileman_Indexes extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'fileman_Wrapper, plg_RowTools, plg_Created';
+    public $loadList = 'fileman_Wrapper, plg_RowTools2, plg_Created';
     
     
     public $interfaces = 'fileman_ProcessIntf';

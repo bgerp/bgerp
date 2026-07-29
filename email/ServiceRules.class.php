@@ -50,7 +50,7 @@ class email_ServiceRules extends embed_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_State2, email_Wrapper, plg_RowTools, plg_Clone';
+    public $loadList = 'plg_Created, plg_State2, email_Wrapper, plg_RowTools2, plg_Clone';
     
     
     /**

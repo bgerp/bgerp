@@ -89,7 +89,7 @@ class log_Browsers extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_SystemWrapper, log_Wrapper, plg_Created, plg_GroupByDate, plg_RowTools';
+    public $loadList = 'plg_SystemWrapper, log_Wrapper, plg_Created, plg_GroupByDate, plg_RowTools2';
     
     
     /**

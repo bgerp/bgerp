@@ -22,7 +22,7 @@ class email_Router extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_RowTools, email_Wrapper, plg_Sorting';
+    public $loadList = 'plg_Created, plg_RowTools2, email_Wrapper, plg_Sorting';
     
     
     /**

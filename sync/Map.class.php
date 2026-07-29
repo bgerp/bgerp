@@ -38,7 +38,7 @@ class sync_Map extends core_Manager
     /**
      * Добавяне на плъгини
      */
-    public $loadList = 'plg_Sorting, plg_RowTools';
+    public $loadList = 'plg_Sorting, plg_RowTools2';
     
     
     /**

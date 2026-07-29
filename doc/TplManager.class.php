@@ -38,7 +38,7 @@ class doc_TplManager extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_SaveAndNew, plg_State2, plg_Modified, doc_Wrapper, plg_RowTools, plg_Sorting, plg_Search';
+    public $loadList = 'plg_Created, plg_SaveAndNew, plg_State2, plg_Modified, doc_Wrapper, plg_RowTools2, plg_Sorting, plg_Search';
 
     
     /**

@@ -38,7 +38,7 @@ class accda_Documents extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, doc_DocumentPlg, plg_SaveAndNew, 
+    public $loadList = 'plg_RowTools2, doc_DocumentPlg, plg_SaveAndNew, 
                     accda_Wrapper, plg_Search';
     
     

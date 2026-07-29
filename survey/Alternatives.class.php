@@ -25,7 +25,7 @@ class survey_Alternatives extends core_Detail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, survey_Wrapper, plg_SaveAndNew,options=survey_Options,plg_Clone';
+    public $loadList = 'plg_RowTools2, survey_Wrapper, plg_SaveAndNew,options=survey_Options,plg_Clone';
     
     
     /**

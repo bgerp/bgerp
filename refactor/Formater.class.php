@@ -47,7 +47,7 @@ class refactor_Formater extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools,plg_Sorting,plg_Sorting,plg_Search, refactor_Wrapper';
+    public $loadList = 'plg_RowTools2,plg_Sorting,plg_Sorting,plg_Search, refactor_Wrapper';
     
     
     /**

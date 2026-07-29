@@ -25,7 +25,7 @@ class doc_DocumentCache extends core_Master
     /**
      * Необходими плъгини
      */
-    public $loadList = 'plg_RowTools, doc_Wrapper';
+    public $loadList = 'plg_RowTools2, doc_Wrapper';
     
     
     /**
