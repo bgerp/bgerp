@@ -233,11 +233,11 @@ class acc_Items extends core_Manager
             $rec->oldLists = $mvc->fetchField($rec->id, 'lists');
         }
         
-        if ($rec->state == 'closed') {
+        if (($rec->state ?? null) == 'closed') {
             $oRec = cls::get($rec->classId)->fetch($rec->objectId);
             $closedOn = (isset($oRec->closedOn)) ? $oRec->closedOn : dt::today();
             $rec->closedOn = dt::verbal2mysql($closedOn, false);
-        } elseif ($rec->state == 'active') {
+        } elseif (($rec->state ?? null) == 'active') {
             $rec->closedOn = null;
         }
     }
@@ -250,7 +250,7 @@ class acc_Items extends core_Manager
     public static function on_AfterSave($mvc, $id, $rec)
     {
         // Информацията на кои номенклатури трябва да се обнови
-        $lists = keylist::toArray($rec->lists) + keylist::toArray($rec->oldLists ?? null);
+        $lists = keylist::toArray($rec->lists ?? null) + keylist::toArray($rec->oldLists ?? null);
         
         foreach ($lists as $listId) {
             $mvc->Lists->updateSummary($listId);
@@ -264,7 +264,7 @@ class acc_Items extends core_Manager
         }
         
         // Ако няма номенклатури, и перото е активно - затваряме го
-        if (empty($rec->lists) && $rec->state == 'active') {
+        if (empty($rec->lists) && ($rec->state ?? null) == 'active') {
             $rec->state = 'closed';
             $mvc->save($rec);
         }
@@ -363,7 +363,7 @@ class acc_Items extends core_Manager
         $filter = $data->listFilter->input();
         
         
-        if ($filter->listId) {
+        if ($filter->listId ?? null) {
             $data->query->where("#lists LIKE '%|{$filter->listId}|%'");
         }
         
@@ -405,6 +405,8 @@ class acc_Items extends core_Manager
             $listRec = acc_Lists::fetch(reset($rec->lists));
             if (!$listRec) {
                 $res = 'no_one';
+
+                return;
             }
             
             if ($listRec->regInterfaceId) {
@@ -598,7 +600,7 @@ class acc_Items extends core_Manager
         $rec->classId = $classId;
         $rec->objectId = $objectId;
         
-        if (!empty($rec->id) && keylist::isIn($listId, $rec->lists)) {
+        if (!empty($rec->id) && keylist::isIn($listId, $rec->lists ?? null)) {
             // Идеята е да се буферира многократното обновяване на едно и също перо само за
             // да му се смени състоянието и датата на последно използване
             self::touch($rec);
@@ -712,7 +714,7 @@ class acc_Items extends core_Manager
             $Class = cls::get($rec->classId);
             
             // Ако има избрани обекти, те се добавят към номенклатурата
-            $items = keylist::toArray($form->rec->objects);
+            $items = keylist::toArray($form->rec->objects ?? null);
             if (countR($items)) {
                 foreach ($items as $id) {
                     $Class->logWrite('Ръчен импорт като счетоводно перо', $id);
@@ -727,7 +729,7 @@ class acc_Items extends core_Manager
                 $title = ($count == 1) ? $Class->singleTitle : $Class->title;
                 $title = mb_strtolower($title);
                 
-                $this->logWrite('Добавяне на обекти, като пера', $rec->id);
+                $this->logWrite('Добавяне на обекти, като пера');
                 
                 followRetUrl(null, "|Добавяне на|* {$count} |{$title}|* |в номенклатура|* '{$listName}'");
             }
@@ -1008,7 +1010,7 @@ class acc_Items extends core_Manager
         }
         
         $features = acc_Features::getFeaturesByItems(array($rec->id));
-        $features = $features[$rec->id];
+        $features = $features[$rec->id] ?? array();
         
         if (is_array($features)) {
             $row->features = '';
@@ -1192,6 +1194,8 @@ class acc_Items extends core_Manager
         $query->orderBy('id', 'ASC');
         
         $query->show('id');
+
+        $maxId = null;
         
         while ($rec = $query->fetch()) {
             if (dt::now() >= $maxTime) {
@@ -1207,8 +1211,10 @@ class acc_Items extends core_Manager
             $maxId = $rec->id;
         }
         
-        $clsInst->logDebug('Синхронизиране на перата до id=' . $maxId);
-        core_Permanent::set($pKey, $maxId, 100000);
+        if (isset($maxId)) {
+            $clsInst->logDebug('Синхронизиране на перата до id=' . $maxId);
+            core_Permanent::set($pKey, $maxId, 100000);
+        }
     }
 
 
