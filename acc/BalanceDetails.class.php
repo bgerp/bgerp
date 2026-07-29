@@ -171,7 +171,7 @@ class acc_BalanceDetails extends core_Detail
                     list($part1, $part2, $part3) = explode('->', $data->listFields[$fld]) + [null, null, null];
                     $data->listFields[$fld] = "{$part1}->{$part2}->{$part3}|* <small>({$baseCurrencyCode})</small>";
                 } else {
-                    list($part1, $part2) = explode('->', $data->listFields[$fld]);
+                    list($part1, $part2) = explode('->', $data->listFields[$fld]) + [null, null];
                     $data->listFields[$fld] = "{$part1}->{$part2}|* <small>({$baseCurrencyCode})</small>";
                 }
             }
@@ -188,6 +188,15 @@ class acc_BalanceDetails extends core_Detail
             $by = null;
             if ($data->groupingForm->isSubmitted()) {
                 $by = (array) $data->groupingForm->rec;
+                $by += [
+                    'grouping1' => null,
+                    'grouping2' => null,
+                    'grouping3' => null,
+                    'feat1' => null,
+                    'feat2' => null,
+                    'feat3' => null,
+                    'sortBy' => null,
+                ];
                 
                 self::modifyListFields($data->listFields, $data->groupingForm->cmd, $by['grouping1'], $by['grouping2'], $by['grouping3'], $by['feat1'], $by['feat2'], $by['feat3']);
                 
@@ -297,7 +306,7 @@ class acc_BalanceDetails extends core_Detail
                 if (isset($rec->{"grouping{$i}"})) {
                     $sortField .= $rec->{"grouping{$i}"};
                 } else {
-                    $sortField .= $usedItems[$rec->{"ent{$i}Id"}];
+                    $sortField .= $usedItems[$rec->{"ent{$i}Id"}] ?? '';
                 }
             }
             
@@ -562,7 +571,7 @@ class acc_BalanceDetails extends core_Detail
         
         $groupedRecs = $groupedIdx = array();
         foreach ($recs as $rec1) {
-            $r = &$groupedIdx[strip_tags($rec1->grouping1)][strip_tags($rec1->grouping2)][strip_tags($rec1->grouping3)];
+            $r = &$groupedIdx[strip_tags($rec1->grouping1 ?? '')][strip_tags($rec1->grouping2 ?? '')][strip_tags($rec1->grouping3 ?? '')];
             
             if (!isset($r)) {
                 $r = new stdClass();
@@ -820,7 +829,7 @@ class acc_BalanceDetails extends core_Detail
         $form->FNC('accId', 'int', 'silent,input=hidden');
         $form->input('accId', true);
         foreach ($listRecs as $i => $listRec) {
-            $this->setGroupingForField($i, $listRec, $form, $items[$i]);
+            $this->setGroupingForField($i, $listRec, $form, $items[$i] ?? array());
         }
         $form->FLD('sortBy', 'enum(,baseAmount=Начално салдо,debitAmount=Дебитен оборот,creditAmount=Кредитен оборот,blAmount=Крайно салдо,baseAmountNotNull=Начално салдо (Различно от 0),debitAmountNotNull=Дебитен оборот (Различно от 0),creditAmountNotNull=Кредитен оборот (Различно от 0),blAmountNotNull=Крайно салдо (Различно от 0),closeToZero=Крайни салда (Близки до 0))', 'caption=Подредба,input');
         $form->showFields .= 'sortBy,';
@@ -992,13 +1001,19 @@ class acc_BalanceDetails extends core_Detail
             acc_BalanceDebugger::log('final_balance', $finalRows);
         }
 
-        // Оригинална логика на запис (непроменена)
-        core_Locks::obtain(acc_Balances::saveLockKey);
+        $saveStart   = microtime(true);
+        $preparedCnt = countR($toSave);
 
+        // Оригинална логика на запис (непроменена)
+        acc_Balances::timerStart('BAL_SAVE_LOCK');
+        core_Locks::obtain(acc_Balances::saveLockKey);
+        acc_Balances::timerStop('BAL_SAVE_LOCK');
+
+        acc_Balances::timerStart('BAL_SAVE_DIFF');
         $query = self::getQuery();
         while ($rec = $query->fetch("#balanceId = {$balanceId}")) {
             $key    = $rec->accountId . '|' . $rec->ent1Id . '|' . $rec->ent2Id . '|' . $rec->ent3Id;
-            $newRec = $toSave[$key];
+            $newRec = $toSave[$key] ?? null;
             if (isset($newRec)) {
                 if ($newRec->blAmount       != $rec->blAmount       || $newRec->baseAmount     != $rec->baseAmount     ||
                     $newRec->blQuantity     != $rec->blQuantity     || $newRec->baseQuantity   != $rec->baseQuantity   ||
@@ -1016,20 +1031,28 @@ class acc_BalanceDetails extends core_Detail
             }
         }
 
+        acc_Balances::timerStop('BAL_SAVE_DIFF');
+
         $res = false;
 
         if (countR($toSave)) {
             $this->logInfo('Save balance details: ' . countR($toSave));
+            acc_Balances::timerStart('BAL_SAVE_ARRAY');
             $this->saveArray($toSave);
+            acc_Balances::timerStop('BAL_SAVE_ARRAY');
             $res = true;
         }
 
         if (countR($toDelete)) {
             $this->logInfo('Delete balance details: ' . countR($toDelete));
+            acc_Balances::timerStart('BAL_SAVE_DELETE');
             $idList = implode(',', $toDelete);
             $this->delete("#id IN ({$idList})");
+            acc_Balances::timerStop('BAL_SAVE_DELETE');
             $res = true;
         }
+
+        acc_Balances::logCalcStep("    saveBalance #{$balanceId}: подготвени {$preparedCnt}, записани " . countR($toSave) . ', изтрити ' . countR($toDelete) . ', промяна=' . ($res ? 'да' : 'не'), microtime(true) - $saveStart);
 
         unset($this->balance, $this->strategies);
 
@@ -1058,8 +1081,13 @@ class acc_BalanceDetails extends core_Detail
 
         $tracing    = Mode::is('traceBalance');
         $loadedRows = [];
+        $loadedCnt  = 0;
+        $loadStart  = microtime(true);
+
+        acc_Balances::timerStart('BAL_LOAD_BALANCE');
 
         while ($rec = $query->fetch()) {
+            $loadedCnt++;
             $accId  = $rec->accountId;
             $ent1Id = !empty($rec->ent1Id) ? $rec->ent1Id : null;
             $ent2Id = !empty($rec->ent2Id) ? $rec->ent2Id : null;
@@ -1163,12 +1191,15 @@ class acc_BalanceDetails extends core_Detail
             }
         }
 
+        acc_Balances::timerStop('BAL_LOAD_BALANCE');
+        acc_Balances::logCalcStep("    loadBalance #{$balanceId}: заредени {$loadedCnt} реда (междинен=" . ($isMiddleBalance ? 'да' : 'не') . ')', microtime(true) - $loadStart);
+
         if ($tracing) {
             acc_BalanceDebugger::log('load_balance_rows', $loadedRows);
         }
     }
-    
-    
+
+
     /**
      * Изчислява стойността на счетоводен баланс за зададен период от време.
      *
@@ -1182,15 +1213,20 @@ class acc_BalanceDetails extends core_Detail
     {
         if ($cronRec = core_Cron::getCurrentRec()) {
             list($d, $t) = explode(' ', $cronRec->lastStart);
-            log_System::add('acc_Balances', 'calcBalanceForPeriod: ' . $from . ' - ' . $to . ' (Cron at ' . $t . ')', null, 'notice');
+            log_System::add('acc_Balances', 'calcBalanceForPeriod: ' . $from . ' - ' . $to . ' (Cron at ' . $t . ')', null, 'debug', 1);
         }
+
+        $periodStart  = microtime(true);
+        $strategyCnt  = 0;
 
         $JournalDetails = &cls::get('acc_JournalDetails');
 
+        acc_Balances::timerStart('BAL_JOURNAL_FETCH');
         $query = $JournalDetails->getQuery();
         acc_JournalDetails::filterQuery($query, $from, $to);
         $query->orderBy('valior,id', 'ASC');
         $recs = $query->fetchAll();
+        acc_Balances::timerStop('BAL_JOURNAL_FETCH');
 
         $timeLimit = ceil(countR($recs) / 3000) * 180;
         if ($timeLimit != 0) {
@@ -1201,41 +1237,61 @@ class acc_BalanceDetails extends core_Detail
 
         if (countR($recs)) {
             if ($isMiddleBalance === true) {
+                acc_Balances::timerStart('BAL_STRATEGY_FETCH');
                 $queryClone = $JournalDetails->getQuery();
                 $to         = dt::getLastDayOfMonth($to);
                 acc_JournalDetails::filterQuery($queryClone, $from, $to);
                 $queryClone->orderBy('valior,id', 'ASC');
                 $strategyRecs = $queryClone->fetchAll();
+                acc_Balances::timerStop('BAL_STRATEGY_FETCH');
+                $strategyCnt = countR($strategyRecs);
             } else {
                 $strategyRecs = $recs;
             }
 
             if (is_array($strategyRecs)) {
+                acc_Balances::timerStart('BAL_FEED_STRATEGY');
                 foreach ($strategyRecs as $rec1) {
                     $this->feedStrategy($rec1);
                 }
+                acc_Balances::timerStop('BAL_FEED_STRATEGY');
             }
 
             $tracing     = Mode::is('traceBalance');
             $journalRows = [];
+            $updatedCnt  = 0;
+
+            acc_Balances::timerStart('BAL_ENTRIES_LOOP');
 
             foreach ($recs as $rec) {
                 $amountBefore = $rec->amount;
+
+                acc_Balances::timerStart('BAL_CALC_AMOUNT');
                 $this->calcAmount($rec);
+                acc_Balances::timerStop('BAL_CALC_AMOUNT');
+
                 $amountChanged = (round((float)$rec->amount, 8) != round((float)$amountBefore, 8));
+
+                acc_Balances::timerStart('BAL_CALC_PRICE');
                 $update = $this->calcPrice($rec);
+                acc_Balances::timerStop('BAL_CALC_PRICE');
 
                 // Ако calcAmount е сменил сумата, записваме дори цената да не се е променила
                 if ($amountChanged) {
                     $update = true;
                 }
 
+                acc_Balances::timerStart('BAL_ADD_ENTRY');
                 $this->addEntry($rec, 'debit');
                 $this->addEntry($rec, 'credit');
+                acc_Balances::timerStop('BAL_ADD_ENTRY');
 
                 if ($update) {
+                    acc_Balances::timerStart('BAL_JOURNAL_SAVE');
                     $JournalDetails->save_($rec);
+                    acc_Balances::timerStop('BAL_JOURNAL_SAVE');
                     $hasUpdatedJournal = true;
+                    $updatedCnt++;
                 }
 
                 if ($tracing) {
@@ -1256,6 +1312,13 @@ class acc_BalanceDetails extends core_Detail
                     ];
                 }
             }
+
+            acc_Balances::timerStop('BAL_ENTRIES_LOOP');
+
+            acc_Balances::logCalcStep("    calcBalanceForPeriod {$from}..{$to} (междинен=" . ($isMiddleBalance ? 'да' : 'не') . '): ' .
+                countR($recs) . ' журнални записа' .
+                ($strategyCnt ? ", {$strategyCnt} за стратегия" : '') .
+                ", обновени {$updatedCnt}", microtime(true) - $periodStart);
 
             if ($tracing) {
                 acc_BalanceDebugger::log('journal_entries', $journalRows);

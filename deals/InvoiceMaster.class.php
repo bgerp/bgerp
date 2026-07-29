@@ -680,7 +680,7 @@ abstract class deals_InvoiceMaster extends core_Master
         }
 
         // Само ако записа е след редакция
-        if (isset($rec->_isClone) && $rec->_edited !== true) {
+        if (isset($rec->_isClone) && ($rec->_edited ?? false) !== true) {
             return;
         }
 
@@ -831,7 +831,7 @@ abstract class deals_InvoiceMaster extends core_Master
         $form = &$data->form;
         $rec = $form->rec;
 
-        if($data->action == 'changefields'){
+        if(($data->action ?? null) == 'changefields'){
 
             // При промяна да има бутон за бърза смяна на контрагентските данни
             $cData = cls::get($rec->contragentClassId)->getContragentData($rec->contragentId, null);
@@ -1035,7 +1035,7 @@ abstract class deals_InvoiceMaster extends core_Master
             }
         }
 
-        if($data->action == 'changefields'){
+        if(($data->action ?? null) == 'changefields'){
             // При промяна да се показва поле за редакция на кешираните допълнителни условия от банковата сметка
             if($mvc->cacheAdditionalConditions){
                 $exRec = $mvc->fetch($rec->id, 'additionalConditions,accountId', false);
@@ -1377,7 +1377,7 @@ abstract class deals_InvoiceMaster extends core_Master
                     if($firstDocument = doc_Threads::getFirstDocument($rec->threadId)){
                         $aggregateInfo = $firstDocument->getAggregateDealInfo();
                         $plan = cond_PaymentMethods::getPaymentPlan($rec->paymentMethodId, $aggregateInfo->get('amount'), $rec->date);
-                        if($plan['eventBalancePayment'] == 'invEndOfMonth' && !empty($plan['deadlineForBalancePayment'])){
+                        if (($plan['eventBalancePayment'] ?? null) == 'invEndOfMonth' && !empty($plan['deadlineForBalancePayment'])) {
                             if(empty($rec->dueTime) && empty($rec->dueDate)){
                                 $rec->dueDate = $plan['deadlineForBalancePayment'];
                             }
@@ -1386,7 +1386,7 @@ abstract class deals_InvoiceMaster extends core_Master
                 }
 
                 if (empty($rec->dueDate)) {
-                    $dueTime = ($rec->dueTime) ? $rec->dueTime : sales_Setup::get('INVOICE_DEFAULT_VALID_FOR');
+                    $dueTime = !empty($rec->dueTime) ? $rec->dueTime : sales_Setup::get('INVOICE_DEFAULT_VALID_FOR');
 
                     if ($dueTime) {
                         $rec->dueDate = dt::verbal2mysql(dt::addSecs($dueTime, $rec->date), false);
@@ -2220,6 +2220,7 @@ abstract class deals_InvoiceMaster extends core_Master
     public static function on_AfterActivation($mvc, &$rec)
     {
         $rec = $mvc->fetchRec($rec);
+        $saveFields = array();
 
         if($mvc->cacheAdditionalConditions){
             if (empty($rec->additionalConditions)) {
@@ -2271,8 +2272,9 @@ abstract class deals_InvoiceMaster extends core_Master
             if(isset($Detail->productInvoiceInfoParamName)){
                 $invoiceInfo = cat_Products::getParams($dRec->productId, $Detail->productInvoiceInfoParamName);
                 if(!empty($invoiceInfo)){
-                    if (strpos($dRec->notes, "{$invoiceInfo}") === false) {
-                        $dRec->notes = $invoiceInfo . ((!empty($dRec->notes) ? "\n" : '') . $dRec->notes);
+                    $notes = $dRec->notes ?? '';
+                    if (strpos($notes, "{$invoiceInfo}") === false) {
+                        $dRec->notes = $invoiceInfo . ((!empty($notes) ? "\n" : '') . $notes);
                         $save = true;
                     }
                 }

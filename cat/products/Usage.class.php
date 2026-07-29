@@ -313,11 +313,11 @@ class cat_products_Usage extends core_Manager
         $addBtns = '';
         if (isset($data->addUrls)) {
             if (isset($data->addUrls['manifacture'])) {
-                $addBtns .= ht::createBtn('Производство', $data->addUrls['manifacture'], false, false, 'ef_icon=img/16/add.png,title=Добавяне на ново задание за производство');
+                $addBtns .= ht::createLink('Производство', $data->addUrls['manifacture'], false, 'ef_icon=img/16/add.png,class=button,title=Добавяне на ново задание за производство');
             }
 
             if (isset($data->addUrls['disassembly'])) {
-                $addBtns .= ht::createBtn('Разпад', $data->addUrls['disassembly'], false, false, 'ef_icon=img/16/add.png,title=Добавяне на ново задание за разпад');
+                $addBtns .= ht::createLink('Разпад', $data->addUrls['disassembly'], false, 'ef_icon=img/16/add.png,class=button,title=Добавяне на ново задание за разпад');
             }
         }
         

@@ -31,7 +31,7 @@ class store_transaction_ConsignmentProtocol extends acc_DocumentTransactionSourc
         $rec->valior = empty($rec->valior) ? dt::today() : $rec->valior;
         
         $result = (object) array(
-            'reason' => "Протокол за отговорно пазене №{$rec->id}",
+            'reason' => 'Протокол за отговорно пазене №' . ($rec->id ?? ''),
             'valior' => $rec->valior,
             'totalAmount' => null,
             'entries' => array()

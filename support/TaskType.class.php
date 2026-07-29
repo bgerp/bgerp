@@ -321,7 +321,7 @@ class support_TaskType extends core_Mvc
     {
         $rec = &$form->rec;
         if($form->isSubmitted()){
-            if(empty($rec->assetResourceId) && empty($rec->stepId) && $rec->_assetsAllowed){
+            if(empty($rec->assetResourceId) && empty($rec->stepId) && !empty($rec->_assetsAllowed)){
                 $form->setWarning('assetResourceId', 'За по-бърза обработка на сигнала, моля изберете "Ресурс"!');
             }
         }

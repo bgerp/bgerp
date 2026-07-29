@@ -336,7 +336,7 @@ class change_History extends core_Manager
     public function prepareDetail_($data)
     {
         $tabParam = 'Tab';
-        if(!cls::haveInterface('doc_FolderIntf', $data->masterMvc)){
+        if(!cls::haveInterface('doc_FolderIntf', $data->masterMvc ?? null)){
             $tabParam = $data->masterData->tabTopParam;
         }
         $prepareTab = Request::get($tabParam);

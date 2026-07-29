@@ -20,7 +20,7 @@ class doc_FilesPlg extends core_Plugin
      */
     public function on_BeforeRenderWrapping($mvc, &$res, &$tpl, $data = null)
     {
-        if ($data->action != 'single') {
+        if (($data->action ?? null) != 'single') {
             
             return ;
         }
@@ -95,7 +95,7 @@ class doc_FilesPlg extends core_Plugin
             }
             
             // Ако сме обходили съответния контейнер, прескачаме
-            if ($containerArr[$fRec->containerId]) {
+            if (!empty($containerArr[$fRec->containerId])) {
                 continue;
             }
             
@@ -136,7 +136,7 @@ class doc_FilesPlg extends core_Plugin
             if ($firstContainerId && ($firstContainerId != $fRec->containerId)) {
                 
                 // Ако има първи контейнер
-                if (!$threadArr[$fRec->threadId]) {
+                if (empty($threadArr[$fRec->threadId])) {
                     try {
                         // Първия документ в нишката
                         $docProxy = doc_Containers::getDocument($firstContainerId);
@@ -169,7 +169,7 @@ class doc_FilesPlg extends core_Plugin
             }
             
             // Ако не сме минавали от папката
-            if (!$folderArr[$fRec->folderId]) {
+            if (empty($folderArr[$fRec->folderId])) {
                 
                 // Линка към папката
                 $folderLink = doc_Folders::getLink($fRec->folderId, 35);
@@ -228,10 +228,10 @@ class doc_FilesPlg extends core_Plugin
         $query->where("#dataId = '{$rec->dataId}'");
 
         $navArr = core_Cache::get('doc_Files', 'fileNavArr|' . core_Users::getCurrent());
-        if ($navArr && $navArr[$rec->fileHnd]) {
+        if (is_array($navArr) && !empty($navArr[$rec->fileHnd])) {
             $fNavArr = $navArr[$rec->fileHnd];
 
-            if ($fNavArr['cid']) {
+            if (!empty($fNavArr['cid'])) {
                 $cid = (int) $fNavArr['cid'];
                 $query->XPR('containerOrder', 'int', "IF((#containerId = '{$cid}'), 1, 2)");
                 $query->orderBy('containerOrder', 'ASC');
@@ -279,6 +279,9 @@ class doc_FilesPlg extends core_Plugin
                     // Първия документ в нишката
                     $docProxy = doc_Containers::getDocument($firstContainerId);
                 } catch (ErrorException $e) {
+                    continue;
+                }
+                if (!$docProxy || !$docProxy->haveRightFor('single')) {
                     continue;
                 }
                 
@@ -329,7 +332,7 @@ class doc_FilesPlg extends core_Plugin
     public function on_AfterPrepareSingleToolbar($mvc, &$res, $data)
     {
         // Добавяме бутон за създаване на задача
-        if ($data->rec->id && haveRole('powerUser')) {
+        if (!empty($data->rec->id) && haveRole('powerUser')) {
             Request::setProtected(array('inType', 'foreignId'));
             
             $data->toolbar->addBtn('Връзка', array(

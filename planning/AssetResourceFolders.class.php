@@ -119,7 +119,7 @@ class planning_AssetResourceFolders extends core_Manager
         // Подготвяме вербалните стойности за редовете
         $this->prepareListRows($data);
 
-        if($data->masterMvc instanceof planning_AssetResources){
+        if(($data->masterMvc ?? null) instanceof planning_AssetResources){
             foreach ($data->rows as $id => $row){
                 $rec = $data->recs[$id];
             }

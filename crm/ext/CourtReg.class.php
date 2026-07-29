@@ -84,14 +84,14 @@ class crm_ext_CourtReg extends core_Detail
     {
         $data->TabCaption = 'Регистрация';
         
-        if ($data->isCurrent === false) {
+        if (($data->isCurrent ?? null) === false) {
             
             return;
         }
         
-        expect($data->masterId);
+        expect(!empty($data->masterId));
         
-        if (!$data->CourtReg) {
+        if (empty($data->CourtReg)) {
             $data->CourtReg = new stdClass();
         }
         
@@ -109,18 +109,18 @@ class crm_ext_CourtReg extends core_Detail
     public static function renderCourtReg($data)
     {
         $tpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
+        $courtRegTpl = new ET(tr('Няма данни'));
         
         $tpl->append(tr('Съдебна регистрация'), 'title');
         
-        if ($data->canChange && !Mode::is('printing')) {
-            $rec = $data->CourtReg->rec;
+        if (!empty($data->canChange) && !Mode::is('printing')) {
+            $rec = $data->CourtReg->rec ?? null;
             
-            if ($rec->regCourt || $rec->regDecisionNumber || $rec->regDecisionDate || $rec->regCompanyFileNumber || $rec->regCompanyFileYear) {
+            if ($rec && (!empty($rec->regCourt) || !empty($rec->regDecisionNumber) || !empty($rec->regDecisionDate) || !empty($rec->regCompanyFileNumber) || !empty($rec->regCompanyFileYear))) {
                 $url = array(get_called_class(), 'edit', $rec->id, 'ret_url' => true);
                 $courtRegTpl = new ET(getFileContent('crm/tpl/CourtReg.shtml'));
-                $courtRegTpl->placeObject($data->CourtReg->row);
+                $courtRegTpl->placeObject($data->CourtReg->row ?? new stdClass());
             } else {
-                $courtRegTpl = new ET(tr('Няма данни'));
                 $url = array(get_called_class(), 'add', 'companyId' => $data->masterId, 'ret_url' => true);
             }
             

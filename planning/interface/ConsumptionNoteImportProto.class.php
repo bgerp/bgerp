@@ -48,7 +48,7 @@ abstract class planning_interface_ConsumptionNoteImportProto extends planning_in
     protected function getImportRecs(core_Manager $mvc, $rec)
     {
         $recs = array();
-        if (!is_array($rec->_details)) return $recs;
+        if (!is_array($rec->_details ?? null)) return $recs;
 
         foreach ($rec->_details as $key => $data) {
 

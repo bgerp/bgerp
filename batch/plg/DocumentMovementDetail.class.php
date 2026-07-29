@@ -61,7 +61,7 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
             
             return;
         }
-        if (isset($rec->id) && $data->action != 'clone') {
+        if (isset($rec->id) && ($data->action ?? null) != 'clone') {
 
             return;
         }
@@ -159,7 +159,7 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
             return;
         }
 
-        if (isset($rec->id) && !$form->_cloneForm) {
+        if (isset($rec->id) && !($form->_cloneForm ?? false)) {
             
             return;
         }
@@ -186,8 +186,8 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
                 if (is_object($BatchClass)) {
                     if (!empty($rec->batch)) {
                         $productInfo = cat_Products::getProductInfo($rec->{$mvc->productFieldName});
-                        $quantityInPack = ($productInfo->packagings[$rec->packagingId]) ? $productInfo->packagings[$rec->packagingId]->quantity : 1;
-                        $quantity = ($rec->packQuantity) ? $rec->packQuantity * $quantityInPack : $quantityInPack;
+                        $quantityInPack = !empty($productInfo->packagings[$rec->packagingId]) ? $productInfo->packagings[$rec->packagingId]->quantity : 1;
+                        $quantity = !empty($rec->packQuantity) ? $rec->packQuantity * $quantityInPack : $quantityInPack;
 
                         $msg = null;
                         if (!$BatchClass->isValid($rec->batch, $quantity, $msg)) {
@@ -264,7 +264,7 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
     {
         // Нормализираме полето за партидата
         if (!empty($rec->batch)) {
-            $BatchClass = batch_Defs::getBatchDef($rec->productId);
+            $BatchClass = batch_Defs::getBatchDef($rec->{$mvc->productFieldName});
             if (is_object($BatchClass)) {
                 $rec->batch = $BatchClass->normalize($rec->batch);
             }
@@ -274,7 +274,12 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
 
         // Ако записа е редактиран и к-то е променено
         if (($rec->isEdited ?? null) === true && isset($rec->id)) {
-            if ($rec->quantity != $mvc->fetchField($rec->id, 'quantity')) {
+            $quantity = $rec->quantity ?? null;
+            if (!isset($quantity) && isset($rec->packQuantity, $rec->quantityInPack)) {
+                $quantity = $rec->packQuantity * $rec->quantityInPack;
+            }
+
+            if (isset($quantity) && $quantity != $mvc->fetchField($rec->id, 'quantity')) {
                 if($BatchClass = batch_Defs::getBatchDef($rec->{$mvc->productFieldName})){
                     if ($BatchClass->canAutoAllocate()) {
                         $rec->autoAllocate = true;
@@ -311,7 +316,7 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
                 batch_BatchesInDocuments::delete("#detailClassId = {$mvc->getClassId()} AND #detailRecId = {$rec->id}");
             } else {
                 if (!isset($rec->quantity)) {
-                    $rec->quantity = $rec->packQuantity * $rec->quantityInPack;
+                    $rec->quantity = ($rec->packQuantity ?? 0) * ($rec->quantityInPack ?? 0);
                 }
                 
                 batch_BatchesInDocuments::saveBatches($mvc, $rec->id, array($rec->batch => $rec->quantity), true);
@@ -427,10 +432,13 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
             $Master = $mvc;
         }
         
+        $quantityInPack = $rec->quantityInPack ?? 1;
+        $quantity = $rec->quantity ?? (($rec->packQuantity ?? 0) * $quantityInPack);
+
         $res = (object) array('productId' => $rec->{$mvc->productFieldName},
-            'packagingId' => $rec->packagingId,
-            'quantity' => $rec->quantity,
-            'quantityInPack' => $rec->quantityInPack,
+            'packagingId' => $rec->packagingId ?? null,
+            'quantity' => $quantity,
+            'quantityInPack' => $quantityInPack,
             'containerId' => $masterRec->containerId,
             'date' => $masterRec->{$Master->valiorFld},
             'state' => $masterRec->state,

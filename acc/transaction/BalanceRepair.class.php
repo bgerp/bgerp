@@ -53,7 +53,7 @@ class acc_transaction_BalanceRepair extends acc_DocumentTransactionSource
         $this->date = acc_Periods::forceYearItem($rec->valior);
         
         $result = (object) array(
-            'reason' => "Счетоводна разлика №{$rec->id}",
+            'reason' => 'Счетоводна разлика №' . ($rec->id ?? ''),
             'valior' => $pRec->end,
             'totalAmount' => null,
             'entries' => array()

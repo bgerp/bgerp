@@ -144,11 +144,11 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
 
         $form->setDefault('orderLimit', 80);
 
-        if ($rec->arhGroups) {
+        if (!empty($rec->arhGroups)) {
             $rec->groups = $rec->arhGroups;
         }
 
-        if ($rec->limits == 'no') {
+        if (($rec->limits ?? null) == 'no') {
 
             unset($rec->orderBy);
             unset($rec->groupsChecked);
@@ -156,15 +156,15 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
             $form->setField('orderLimit', 'input=hidden');
         }
 
-        if ($rec->typeOfQuantity == 'free' || $rec->typeOfQuantity == 'diff') {
+        if (($rec->typeOfQuantity ?? null) == 'free' || ($rec->typeOfQuantity ?? null) == 'diff') {
 
             $form->setField('typeOfPeriod', 'input');
 
-            if ($rec->typeOfPeriod == 'toDate') {
+            if (($rec->typeOfPeriod ?? null) == 'toDate') {
 
                 $form->setField('date', 'input');
             }
-            if ($rec->typeOfPeriod == 'period') {
+            if (($rec->typeOfPeriod ?? null) == 'period') {
 
                 $form->setField('period', 'input');
             }
@@ -172,7 +172,7 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
 
         }
 
-        if ($rec->filters == 'condQuantity') {
+        if (($rec->filters ?? null) == 'condQuantity') {
             $form->setField('condFilter', 'input');
         }
 

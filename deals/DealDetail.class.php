@@ -292,6 +292,7 @@ abstract class deals_DealDetail extends doc_Detail
         $rec = &$form->rec;
         
         $masterRec = $mvc->Master->fetch($rec->{$mvc->masterKey});
+        $vat = null;
         
         if (!empty($rec->productInfo)) {
             $productInfo = $rec->productInfo;
@@ -341,6 +342,9 @@ abstract class deals_DealDetail extends doc_Detail
                     }
                 }
             }
+        } else {
+            $periodRec = acc_Periods::fetchByDate($masterRec->valior);
+            $vat = $periodRec->vatRate ?? null;
         }
         
         if ($form->isSubmitted() && !$form->gotErrors()) {
@@ -353,7 +357,10 @@ abstract class deals_DealDetail extends doc_Detail
             
             // Извличане на информация за продукта - количество в опаковка, единична цена
             if (!isset($rec->packQuantity)) {
-                $defaultPackQuantity = (isset($rec->_moq)) ? $rec->_moq : deals_Helper::getDefaultPackQuantity($rec->productId, $rec->packagingId);
+                $defaultPackQuantity = $rec->_moq ?? null;
+                if (!isset($defaultPackQuantity) && isset($rec->productId)) {
+                    $defaultPackQuantity = deals_Helper::getDefaultPackQuantity($rec->productId, $rec->packagingId);
+                }
                 $form->setDefault('packQuantity', $defaultPackQuantity);
                 if(empty($defaultPackQuantity)){
                     $form->setError('packQuantity', 'Не е въведено количество');
@@ -372,7 +379,9 @@ abstract class deals_DealDetail extends doc_Detail
             
             // Проверка дали к-то е под МКП
             $action = ($mvc instanceof sales_SalesDetails) ? 'sell' : 'buy';
-            deals_Helper::isQuantityBellowMoq($form, $rec->productId, $rec->quantity, $rec->quantityInPack, 'packQuantity', $action);
+            if (isset($rec->productId)) {
+                deals_Helper::isQuantityBellowMoq($form, $rec->productId, $rec->quantity, $rec->quantityInPack, 'packQuantity', $action);
+            }
             $price = null;
 
             if (!isset($rec->packPrice)) {
@@ -546,7 +555,7 @@ abstract class deals_DealDetail extends doc_Detail
         $Master = $this->Master;
         
         $pRec = cat_Products::getByCode($row->code);
-        $pRec->packagingId = (isset($pRec->packagingId)) ? $pRec->packagingId : $row->pack;
+        $pRec->packagingId = $pRec->packagingId ?? ($row->pack ?? null);
         $meta = cat_Products::fetchField($pRec->productId, $this->metaProducts);
         if ($meta != 'yes') {
             
@@ -556,7 +565,7 @@ abstract class deals_DealDetail extends doc_Detail
         $price = null;
         
         // Ако има цена я обръщаме в основна валута без ддс, спрямо мастъра на детайла
-        if ($row->price) {
+        if (!empty($row->price)) {
             $packRec = cat_products_Packagings::getPack($pRec->productId, $pRec->packagingId);
             $quantityInPack = is_object($packRec) ? $packRec->quantity : 1;
             $row->price /= $quantityInPack;
@@ -566,7 +575,7 @@ abstract class deals_DealDetail extends doc_Detail
             $price = deals_Helper::getPurePrice($row->price, cat_Products::getVat($pRec->productId, null, $vatExceptionId), $masterRec->currencyRate, $masterRec->chargeVat);
         }
 
-        return $Master::addRow($masterId, $pRec->productId, $row->quantity, $price, $pRec->packagingId, null, null, null, null, $row->batch);
+        return $Master::addRow($masterId, $pRec->productId, $row->quantity, $price, $pRec->packagingId, null, null, null, null, $row->batch ?? null);
     }
     
     
@@ -853,7 +862,7 @@ abstract class deals_DealDetail extends doc_Detail
             });
             
             $key = key($res);
-            $exRec = $res[$key];
+            $exRec = isset($key) ? $res[$key] : null;
             
             // Подготовка на полета за всеки артикул
             $form->FLD("productId{$lId}", 'int', 'К-во,input=hidden');

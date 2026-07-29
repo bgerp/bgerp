@@ -31,7 +31,7 @@ class planning_transaction_ReturnNote extends acc_DocumentTransactionSource
         $rec->valior = empty($rec->valior) ? dt::today() : $rec->valior;
         
         $result = (object) array(
-            'reason' => "Протокол за връщане от производство №{$rec->id}",
+            'reason' => 'Протокол за връщане от производство №' . ($rec->id ?? ''),
             'valior' => $rec->valior,
             'totalAmount' => null,
             'entries' => array()

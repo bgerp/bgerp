@@ -205,7 +205,7 @@ class batch_Templates extends embed_Manager
             $form->setField('productId', 'input');
             $form->setOptions('productId', array($rec->productId => cat_Products::getTitleById($rec->productId, false)));
         }
-        if ($rec->createdBy == core_Users::SYSTEM_USER && isset($rec->id)) {
+        if (isset($rec->id) && ($rec->createdBy ?? null) == core_Users::SYSTEM_USER) {
             $fields = array_keys($form->selectFields("#input != 'none' AND #input != 'hidden'"));
             foreach ($fields as $name) {
                 if (in_array($name, array('autoAllocate', 'uniqueProduct', 'alwaysRequire', 'onlyExistingBatches', 'autoAllocateInOtherDocuments'))) {

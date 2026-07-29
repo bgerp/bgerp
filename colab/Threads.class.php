@@ -140,7 +140,7 @@ class colab_Threads extends core_Manager
         $data->action = 'single';
         $data->listFields = 'created=Създаване,document=Документи';
         $data->threadId = $id;
-        $data->threadRec = $this->Threads->fetch($id);
+        expect($data->threadRec = $this->Threads->fetch($id));
         $data->folderId = $data->threadRec->folderId;
         
         // Трябва да можем да гледаме сингъла на нишката:
@@ -262,7 +262,7 @@ class colab_Threads extends core_Manager
             colab_Folders::setLastActiveContragentFolder($folderId);
         }
 
-        $folderRec = doc_Folders::fetch($folderId);
+        expect($folderRec = doc_Folders::fetch($folderId));
         bgerp_Recently::add('folder', $folderId, null, ($folderRec->state == 'rejected') ? 'yes' : 'no');
 
         return parent::act_List();
@@ -276,17 +276,18 @@ class colab_Threads extends core_Manager
     {
         $title = new ET("<div class='path-title'>[#folder#] ([#folderCover#])<!--ET_BEGIN threadTitle--> » [#threadTitle#]<!--ET_END threadTitle--></div>");
         
-        $data->folderId = ($data->folderId) ? $data->folderId : Request::get('folderId', 'key(mvc=doc_Folders)');
+        $data->folderId = !empty($data->folderId) ? $data->folderId : Request::get('folderId', 'key(mvc=doc_Folders)');
         
         $folderTitle = doc_Folders::getVerbal($data->folderId, 'title');
         if (colab_Threads::haveRightFor('list', $data)) {
             $folderTitle = ht::createLink($folderTitle, array('colab_Threads', 'list', 'folderId' => $data->folderId), false, 'ef_icon=img/16/folder-icon.png');
         }
-        $coverType = doc_Folders::recToVerbal(doc_Folders::fetch($data->folderId))->type;
+        expect($folderRec = doc_Folders::fetch($data->folderId));
+        $coverType = doc_Folders::recToVerbal($folderRec)->type;
         $title->replace($folderTitle, 'folder');
         $title->replace($coverType, 'folderCover');
         
-        if ($data->threadRec->firstContainerId) {
+        if (!empty($data->threadRec->firstContainerId)) {
             $document = $this->Containers->getDocument($data->threadRec->firstContainerId);
             $docRow = $document->getDocumentRow();
             $docTitle = str::limitLen($docRow->title, 70);
@@ -322,11 +323,11 @@ class colab_Threads extends core_Manager
                     $row->title = ht::createLink($docRow->title, array($this, 'single', 'threadId' => $id), false, "ef_icon={$docProxy->getIcon()},title=Разглеждане на нишката{$class}");
                 }
                 
-                if ($docRow->subTitle) {
+                if (!empty($docRow->subTitle)) {
                     $row->title .= "\n<div class='threadSubTitle'>{$docRow->subTitle}</div>";
                 }
                 
-                $row->allDocCnt = $row->partnerDocCnt;
+                $row->allDocCnt = $row->partnerDocCnt ?? 0;
                 $data->rows[$id] = $row;
             }
         }
@@ -414,7 +415,7 @@ class colab_Threads extends core_Manager
         }
         
         if ($action == 'list' && isset($rec->folderId)) {
-            if ($rec->folderState == 'rejected') {
+            if (($rec->folderState ?? null) == 'rejected') {
                 $requiredRoles = 'no_one';
             }
         }
@@ -451,12 +452,12 @@ class colab_Threads extends core_Manager
                 }
             }
             
-            if ($rec->visibleForPartners != 'yes') {
+            if (($rec->visibleForPartners ?? null) != 'yes') {
                 $requiredRoles = 'no_one';
             }
             
             if(isset($userId) && !haveRole('powerPartner', $userId)){
-                if(!empty($rec->createdBy) && ($rec->createdBy != $userId && !keylist::isIn($userId, $rec->shared))){
+                if(!empty($rec->createdBy) && ($rec->createdBy != $userId && !keylist::isIn($userId, $rec->shared ?? null))){
                     $requiredRoles = 'no_one';
                 } elseif(empty($rec->createdBy)) {
                     $email = core_Users::fetchField($userId, 'email');
@@ -468,7 +469,7 @@ class colab_Threads extends core_Manager
                 }
             }
             
-            if ($rec->visibleForPartners != 'yes') {
+            if (($rec->visibleForPartners ?? null) != 'yes') {
                 if (!core_Users::haveRole('partner', $userId)) {
                     $requiredRoles = 'no_one';
                 }
@@ -543,7 +544,7 @@ class colab_Threads extends core_Manager
         $docProxy = doc_Containers::getDocument($threadRec->firstContainerId);
         $docRow = $docProxy->getDocumentRow();
         
-        return strtolower(trim($docRow->author)) == strtolower(trim($cuEmail));
+        return strtolower(trim($docRow->author ?? '')) == strtolower(trim($cuEmail ?? ''));
     }
     
     

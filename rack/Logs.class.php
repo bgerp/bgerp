@@ -146,7 +146,7 @@ class rack_Logs extends core_Manager
 
         foreach ($actionOptions as $action => $actionCaption){
             $actionOptionRec = new stdClass();
-            $actionOptionRec->attr = array('class' => static::$actionClasses[$action]);
+            $actionOptionRec->attr = array('class' => static::$actionClasses[$action] ?? null);
             $actionOptionRec->title = $actionCaption;
             $newOptions[$action] = $actionOptionRec;
         }

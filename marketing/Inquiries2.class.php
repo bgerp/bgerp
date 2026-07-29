@@ -313,7 +313,7 @@ class marketing_Inquiries2 extends embed_Manager
 
         // Ако има избран прототип, зареждаме му данните в река
         $Driver = $this->getDriver($form->rec);
-        if (isset($form->rec->proto) && $data->action != 'clone') {
+        if (isset($form->rec->proto) && ($data->action ?? null) != 'clone') {
             if ($pRec = cat_Products::fetch($form->rec->proto)) {
                 
                 if (is_array($pRec->driverRec)) {
@@ -1539,7 +1539,7 @@ class marketing_Inquiries2 extends embed_Manager
         }
         
         // Добавяне на полетата от запитването в блоб
-        $inquiryDriverFields = array_keys($mvc->getInquiryFields($rec->proto, $Driver));
+        $inquiryDriverFields = array_keys($mvc->getInquiryFields($rec->proto ?? null, $Driver));
         if(is_array($inquiryDriverFields)){
             $additionalData = array();
             foreach ($inquiryDriverFields as $name) {

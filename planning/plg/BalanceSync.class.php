@@ -41,10 +41,16 @@ class planning_plg_BalanceSync extends core_Plugin
         $balanceRec = acc_Balances::getLastBalance();
 
         // Ако няма баланс няма какво да подготвяме
-        if (empty($balanceRec)) return $arr;
+        if (empty($balanceRec)) {
+            return $arr;
+        }
 
         // Извличане на сметките по които ще се ситематизират данните
-        $wIProgressAccId = acc_Accounts::getRecBySystemId(planning_WorkInProgress::DEFAULT_ACC_SYS_ID)->id;
+        $wIProgressAccRec = acc_Accounts::getRecBySystemId(planning_WorkInProgress::DEFAULT_ACC_SYS_ID);
+        if (empty($wIProgressAccRec->id)) {
+            return $arr;
+        }
+        $wIProgressAccId = $wIProgressAccRec->id;
 
         // Филтриране да се показват само записите от зададените сметки
         $dQuery = acc_BalanceDetails::getQuery();
@@ -52,16 +58,20 @@ class planning_plg_BalanceSync extends core_Plugin
         $dQuery->where("#balanceId = {$balanceRec->id}");
         $recs = $dQuery->fetchAll();
 
-        if(!countR($recs)) return $arr;
+        if (!countR($recs)) {
+            return $arr;
+        }
 
         // Кои са ид-та на перата от баланса
         $itemIds = array();
         foreach ($recs as $rec1) {
-            if (!array_key_exists($rec1->{"ent1Id"}, $itemIds)) {
-                if (isset($rec1->{"ent1Id"})) {
-                    $itemIds[$rec1->{"ent1Id"}] = $rec1->{"ent1Id"};
-                }
+            $itemId = $rec1->ent1Id ?? null;
+            if ($itemId) {
+                $itemIds[$itemId] = $itemId;
             }
+        }
+        if (!countR($itemIds)) {
+            return $arr;
         }
 
         // Извличаме наведнъж записите им
@@ -77,7 +87,14 @@ class planning_plg_BalanceSync extends core_Plugin
         $now = dt::now();
         foreach ($recs as $rec) {
             // Перо 'Артикул'
-            $pItem = $iRecs[$rec->ent1Id];
+            $itemId = $rec->ent1Id ?? null;
+            if (!$itemId || !isset($iRecs[$itemId])) {
+                continue;
+            }
+            $pItem = $iRecs[$itemId];
+            if (empty($pItem->objectId)) {
+                continue;
+            }
 
             // Ако няма такъв продукт в масива, се записва
             $arr[$pItem->objectId] = new stdClass();

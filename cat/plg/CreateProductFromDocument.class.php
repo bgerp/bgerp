@@ -429,6 +429,7 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
                     
                     $dRec = (object) array_diff_key($arrRec, $productFields);
                     $dRec->productId = $productId;
+                    $dRec->autoPrice = $dRec->autoPrice ?? false;
                     
                     if (!isset($cloneRec)) {
                         $dRec->packagingId = $pRec->measureId;
@@ -446,7 +447,7 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 
                         if ($Driver->canAutoCalcPrimeCost($productId) == true && empty($dRec->packPrice)) {
                             $Policy = (isset($mvc->Master->Policy)) ? $mvc->Master->Policy : cls::get('price_ListToCustomers');
-                            $listId = ($masterRec->priceListId) ? $masterRec->priceListId : null;
+                            $listId = $masterRec->priceListId ?? null;
                             
                             if(empty($masterRec->currencyRate)){
                                 $masterRec->currencyRate = currency_CurrencyRates::getRate(dt::now(), null, $masterRec->currencyId);
@@ -463,7 +464,7 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
                             $policyInfo = $Policy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $dRec->productId, $dRec->packagingId, $dRec->quantity, $masterRec->valior, $masterRec->currencyRate, $masterRec->chargeVat, $listId);
                             
                             $price = $policyInfo->price;
-                            if ($policyInfo->discount && !isset($dRec->discount)) {
+                            if (!empty($policyInfo->discount) && !isset($dRec->discount)) {
                                 $dRec->discount = $policyInfo->discount;
                             }
                             $dRec->autoPrice = true;
@@ -483,7 +484,7 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
                         }
                     }
 
-                    if (!$dRec->autoPrice && $action != 'cloneRecInDocument') {
+                    if (!$dRec->autoPrice && $action != 'cloneRecInDocument' && isset($dRec->price)) {
                         $vat = cat_Products::getVat($productId, $masterRec->valior, $vatExceptionId);
                         if ($masterRec->chargeVat == 'yes') {
                             $dRec->price = $dRec->price / (1 + $vat);

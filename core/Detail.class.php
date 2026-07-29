@@ -86,7 +86,7 @@ class core_Detail extends core_Manager
         
         // Очакваме да masterKey да е зададен
         expect($data->masterKey);
-        expect($data->masterMvc instanceof core_Master);
+        expect(($data->masterMvc ?? null) instanceof core_Master);
         
         // Подготвяме заявката за детайла
         $this->prepareDetailQuery($data);
@@ -263,7 +263,7 @@ class core_Detail extends core_Manager
         // Очакваме да masterKey да е зададен
         expect($data->masterKey, $data);
         if($this->requireMasterBeInstanceOfCoreMaster){
-            expect($data->masterMvc instanceof core_Master, $data);
+            expect(($data->masterMvc ?? null) instanceof core_Master, $data);
         }
         
         $masterKey = $data->masterKey;

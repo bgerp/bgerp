@@ -210,7 +210,7 @@ class doc_plg_Prototype extends core_Plugin
      */
     public static function on_AfterCreate($mvc, $rec)
     {
-        if (isset($rec->{$mvc->protoFieldName}) && ($rec->_isClone !== true)) {
+        if (isset($rec->{$mvc->protoFieldName}) && (($rec->_isClone ?? false) !== true)) {
             
             // След създаване на документ с избран прототип, клонират се детайлите му
             $Details = $mvc->getDetailsToClone($rec);

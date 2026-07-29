@@ -38,7 +38,7 @@ class sales_transaction_Invoice extends acc_DocumentTransactionSource
         $cloneRec = clone $rec;
 
         $result = (object) array(
-            'reason' => "Фактура №{$rec->id}", // основанието за ордера
+            'reason' => 'Фактура №' . ($rec->id ?? ''), // основанието за ордера
             'valior' => !empty($rec->date) ? $rec->date : dt::today(),   // датата на ордера
             'entries' => array(),
         );

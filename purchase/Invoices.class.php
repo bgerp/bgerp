@@ -268,11 +268,11 @@ class purchase_Invoices extends deals_InvoiceMaster
             }
         }
         
-        $coverClass = doc_Folders::fetchCoverClassName($form->rec->folderId);
-        $coverId = doc_Folders::fetchCoverId($form->rec->folderId);
+        $coverClass = doc_Folders::fetchCoverClassName($form->rec->folderId ?? null);
+        $coverId = doc_Folders::fetchCoverId($form->rec->folderId ?? null);
         $form->setOptions('accountId', bank_Accounts::getContragentIbans($coverId, $coverClass, true));
         
-        if (!in_array($form->rec->vatRate, array('yes', 'separate'))) {
+        if (!in_array($form->rec->vatRate ?? null, array('yes', 'separate'))) {
             if(!$mvc->isOwnCompanyVatRegistered($rec)){
                 $form->setField('vatReason', 'mandatory');
             }
@@ -280,7 +280,7 @@ class purchase_Invoices extends deals_InvoiceMaster
         
         $bgId = drdata_Countries::fetchField("#commonName = 'Bulgaria'", 'id');
         
-        if ($rec->contragentCountryId == $bgId) {
+        if (($rec->contragentCountryId ?? null) == $bgId) {
             $form->setFieldType('number', core_Type::getByName('bigint(size=10)'));
         }
         
@@ -601,11 +601,10 @@ class purchase_Invoices extends deals_InvoiceMaster
      */
     public static function getActionsForFile($fRec)
     {
+        $arr = array();
         if (self::haveRightFor('createfromfile') && self::canKeepDoc($fRec->name, $fRec->fileLen)) {
             
             // Създаваме масива за създаване на визитка
-            $arr = array();
-            
             $me = cls::get(get_called_class());
             
             $arr['incomingInv']['url'] = array($me, 'createFromFile', 'fh' => $fRec->fileHnd, 'ret_url' => true);
@@ -669,7 +668,7 @@ class purchase_Invoices extends deals_InvoiceMaster
         $showClosedLimit = 3;
         $maxLimitForShow = 300;
         
-        $bestPosArr = doc_Files::getBestContainer($fileHnd, 'crm_ContragentAccRegIntf');
+        $bestPosArr = (array) doc_Files::getBestContainer($fileHnd, 'crm_ContragentAccRegIntf');
         
         $form->FNC('folderId', 'key2(mvc=doc_Folders,select=title,allowEmpty,coverInterface=crm_ContragentAccRegIntf)', 'caption=Контрагент, input, removeAndRefreshForm=acceptance|purId');
         $form->FNC('purId', 'key(mvc=purchase_Purchases,allowEmpty)', 'caption=Покупка, input, removeAndRefreshForm=acceptance, mandatory');
@@ -682,7 +681,7 @@ class purchase_Invoices extends deals_InvoiceMaster
         $form->input('folderId, purId');
         
         if ($form->cmd != 'refresh') {
-            if ($bestPosArr['folderId']) {
+            if (!empty($bestPosArr['folderId'])) {
                 $form->setDefault('folderId', $bestPosArr['folderId']);
             }
         }
@@ -693,7 +692,7 @@ class purchase_Invoices extends deals_InvoiceMaster
         
         doc_Threads::restrictAccess($pQuery);
         
-        if ($form->rec->folderId) {
+        if (!empty($form->rec->folderId)) {
             $pQuery->where(array('#folderId = [#1#]', $form->rec->folderId));
         }
         
@@ -749,12 +748,12 @@ class purchase_Invoices extends deals_InvoiceMaster
         
         // Улесняваме избора на потребителя, като избираме покупката или поне папката
         if ($form->cmd != 'refresh') {
-            if ($bestPosArr['threadId']) {
+            if (!empty($bestPosArr['threadId'])) {
                 $fContainerId = doc_Threads::getFirstContainerId($bestPosArr['threadId']);
                 
                 $doc = doc_Containers::fetch($fContainerId);
                 
-                if (($doc->docClass == purchase_Purchases::getClassId()) && ($purArr[$doc->docId])) {
+                if ($doc && ($doc->docClass == purchase_Purchases::getClassId()) && isset($purArr[$doc->docId])) {
                     $form->setDefault('purId', $doc->docId);
                 }
             }
@@ -767,9 +766,7 @@ class purchase_Invoices extends deals_InvoiceMaster
         
         $pRec = false;
         
-        if ($form->rec->purId) {
-            $pRec = purchase_Purchases::fetch($form->rec->purId);
-            
+        if (!empty($form->rec->purId) && ($pRec = purchase_Purchases::fetch($form->rec->purId))) {
             if ($pRec->state != 'closed') {
                 if (($pRec->chargeVat == 'exempt') || ($pRec->chargeVat == 'no')) {
                     $form->FNC('invVatReason', 'varchar(255)', 'caption=Данъчни параметри->Основание,recently,Основание за размера на ДДС, input, before=acceptance, mandatory');
@@ -866,7 +863,7 @@ class purchase_Invoices extends deals_InvoiceMaster
                 $form->setField('acceptance', 'input=none');
                 $form->setField('invNum', 'input=none');
                 $form->setField('invDate', 'input=none');
-            } elseif ($pAct['ship']) {
+            } elseif (!empty($pAct['ship'])) {
                 $form->setField('acceptance', 'input=none');
             } else {
                 $form->setDefault('acceptance', $aSet);
@@ -888,19 +885,20 @@ class purchase_Invoices extends deals_InvoiceMaster
             $recArr = (array) $form->rec;
             
             // Кои документи и в каква последователност да се създадат
-            if ($form->rec->acceptance) {
+            if (!empty($form->rec->acceptance)) {
                 $acceptanceArr = type_Set::toArray($form->rec->acceptance);
                 
-                if ($acceptanceArr['service']) {
+                if (!empty($acceptanceArr['service'])) {
                     $createDocArr['purchase_Services'] = array('details' => 'purchase_ServicesDetails', 'masterKey' => 'shipmentId');
                 }
                 
-                if ($acceptanceArr['store']) {
+                if (!empty($acceptanceArr['store'])) {
                     $createDocArr['store_Receipts'] = array('details' => 'store_ReceiptDetails', 'masterKey' => 'receiptId');
                 }
             }
             $createDocArr['purchase_Invoices'] = array('details' => 'purchase_InvoiceDetails', 'masterKey' => 'invoiceId');
             
+            $invId = null;
             foreach ($createDocArr as $clsName => $detArr) {
                 $detailsArr = arr::make($detArr['details']);
                 
@@ -923,7 +921,7 @@ class purchase_Invoices extends deals_InvoiceMaster
                 
                 if ($clsName == 'purchase_Invoices') {
                     $invForm->rec->fileHnd = $fileHnd;
-                    $invForm->rec->vatReason = $form->rec->invVatReason;
+                    $invForm->rec->vatReason = $form->rec->invVatReason ?? null;
                     $invForm->rec->number = $form->rec->invNum;
                     $invForm->rec->date = $form->rec->invDate;
                     $invForm->rec->type = 'invoice';
@@ -1103,8 +1101,8 @@ class purchase_Invoices extends deals_InvoiceMaster
      */
     protected static function on_AfterSaveLogChange($mvc, $recsArr)
     {
-        if (is_array($recsArr)) {
-            expect($fRec = $recsArr[0]);
+        if (isset($recsArr[0])) {
+            $fRec = $recsArr[0];
             $containerId = $mvc->fetchField($fRec->docId, 'containerId');
             acc_Journal::reconto($containerId);
         }

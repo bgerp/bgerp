@@ -121,13 +121,13 @@ class colab_FolderToPartners extends core_Manager
             return false;
         }
         
-        $rec = self::fetchField("#folderId = {$folderId} AND #contractorId = {$userId}");
-        if (!$rec) {
+        $id = self::fetchField("#folderId = {$folderId} AND #contractorId = {$userId}");
+        if (!$id) {
             $rec = (object) array('folderId' => $folderId, 'contractorId' => $userId);
-            self::save($rec);
+            $id = self::save($rec);
         }
         
-        return $rec->id;
+        return $id;
     }
     
     
@@ -168,6 +168,7 @@ class colab_FolderToPartners extends core_Manager
      */
     private static function getLastSharedFolder($cu, $class)
     {
+        $folderId = null;
         $Class = cls::get($class);
         $query = self::getQuery();
         $query->where("#contractorId = {$cu}");
@@ -231,12 +232,13 @@ class colab_FolderToPartners extends core_Manager
      */
     public static function getFolderOptions($params, $limit = null, $q = '', $onlyIds = null, $includeHiddens = false)
     {
+        $params = (array) $params;
         $excludeArr = array();
-        if ($params['removeDuplicate'] || $params['exludeContractors']) {
+        if (!empty($params['removeDuplicate']) || !empty($params['exludeContractors'])) {
             $query = self::getQuery();
             $query->show('folderId');
             
-            if ($params['exludeContractors']) {
+            if (!empty($params['exludeContractors'])) {
                 $cArr = explode('|', $params['exludeContractors']);
                 $query->orWhereArr('contractorId', $cArr);
             }
@@ -261,13 +263,14 @@ class colab_FolderToPartners extends core_Manager
      */
     public static function getContractorOptions($params, $limit = null, $q = '', $onlyIds = null, $includeHiddens = false)
     {
+        $params = (array) $params;
         $excludeArr = array();
-        if ($params['removeDuplicate'] || $params['excludeFolders']) {
+        if (!empty($params['removeDuplicate']) || !empty($params['excludeFolders'])) {
             $query = self::getQuery();
             
             $query->show('contractorId');
             
-            if ($params['excludeFolders']) {
+            if (!empty($params['excludeFolders'])) {
                 $foldersArr = explode('|', $params['excludeFolders']);
                 $query->orWhereArr('folderId', $foldersArr);
             }
@@ -282,7 +285,7 @@ class colab_FolderToPartners extends core_Manager
         }
         
         $resArr = core_Users::getSelectArr($params, $limit, $q, $onlyIds, $includeHiddens);
-        if(countR($resArr) && $params['titleFld'] == 'nick'){
+        if(countR($resArr) && ($params['titleFld'] ?? null) == 'nick'){
             foreach ($resArr as $userId => $nick){
                 $resArr[$userId] = "{$nick} (" . core_Users::fetchField($userId, 'names'). ")";
             }
@@ -313,11 +316,11 @@ class colab_FolderToPartners extends core_Manager
             }
         }
         
-        if ($form->rec->folderId) {
+        if (!empty($form->rec->folderId)) {
             $form->fields['contractorId']->type->params['excludeFolders'] = $form->rec->folderId;
         }
         
-        if ($form->rec->contractorId) {
+        if (!empty($form->rec->contractorId)) {
             $form->fields['folderId']->type->params['exludeContractors'] = $form->rec->contractorId;
         }
     }
@@ -352,7 +355,7 @@ class colab_FolderToPartners extends core_Manager
             $count = 1;
             while ($rec = $query->fetch()) {
                 $uRec = core_Users::fetch($rec->contractorId);
-                if ($uRec->state != 'rejected') {
+                if (is_object($uRec) && ($uRec->state ?? null) != 'rejected') {
                     $data->rows[$rec->contractorId] = self::recToVerbal($rec);
                     $data->rows[$rec->contractorId]->count = cls::get('type_Int')->toVerbal($count);
                     $count++;
@@ -381,7 +384,7 @@ class colab_FolderToPartners extends core_Manager
         if ($action == 'add' && isset($rec)) {
             
             // Само към папка на контрагент
-            if ($rec->folderId) {
+            if (!empty($rec->folderId)) {
                 $cover = doc_Folders::getCover($rec->folderId);
                 if (false && !$cover->haveInterface('crm_ContragentAccRegIntf')) {
                     $requiredRoles = 'no_one';
@@ -433,7 +436,7 @@ class colab_FolderToPartners extends core_Manager
         $row->names = "{$nick} ({$names}) ";
         $row->lastLogin = core_Users::getVerbal($rec->contractorId, 'lastLoginTime');
         
-        if ($rec->RestoreLink) {
+        if (!empty($rec->RestoreLink)) {
             if ($pId = crm_Profiles::getProfileId($rec->contractorId)) {
                 if (crm_Profiles::haveRightFor('restore', $pId)) {
                     core_RowToolbar::createIfNotExists($row->_rowTools);
@@ -444,7 +447,9 @@ class colab_FolderToPartners extends core_Manager
 
         if(isset($fields['-list'])){
             $row->contractorId = crm_Profiles::createLink($rec->contractorId);
-            $row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
+            if ($folderRec = doc_Folders::fetch($rec->folderId)) {
+                $row->folderId = doc_Folders::recToVerbal($folderRec)->title;
+            }
         }
     }
     
@@ -479,7 +484,7 @@ class colab_FolderToPartners extends core_Manager
             $dTpl->append($ht, 'addBtn');
         }
         
-        if(cls::haveInterface('crm_ContragentAccRegIntf', $data->masterMvc)){
+        if(cls::haveInterface('crm_ContragentAccRegIntf', $data->masterMvc ?? null)){
             Request::setProtected(array('companyId', 'className'));
             if (haveRole('admin')) {
                 // Добавяме бутон за създаването на нов партньор, визитка и профил
@@ -521,9 +526,10 @@ class colab_FolderToPartners extends core_Manager
      */
     public static function callback_Createnewcontractor($data)
     {
+        $data = (array) $data;
         Request::setProtected(array('companyId', 'rand', 'email', 'fromEmail', 'userNames', 'className', 'onlyPartner'));
         
-        redirect(array('colab_FolderToPartners', 'Createnewcontractor', 'companyId' => $data['companyId'], 'email' => $data['email'], 'rand' => $data['rand'], 'userNames' => $data['userNames'], 'className' => $data['className'], 'onlyPartner' => $data['onlyPartner'], 'fromEmail' => true));
+        redirect(array('colab_FolderToPartners', 'Createnewcontractor', 'companyId' => $data['companyId'] ?? null, 'email' => $data['email'] ?? null, 'rand' => $data['rand'] ?? null, 'userNames' => $data['userNames'] ?? null, 'className' => $data['className'] ?? null, 'onlyPartner' => $data['onlyPartner'] ?? null, 'fromEmail' => true));
     }
     
     
@@ -543,7 +549,7 @@ class colab_FolderToPartners extends core_Manager
         $this->requireRightFor('sendemail');
         $this->requireRightFor('sendemail', (object) array('className' => $className, 'objectId' => $objectId));
         $Class = cls::get($className);
-        $objectRec = $Class->fetch($objectId);
+        expect($objectRec = $Class->fetch($objectId));
         
         $contragentName = $Class->getVerbal($objectId, 'name');
         $form = cls::get('core_Form');
@@ -556,7 +562,7 @@ class colab_FolderToPartners extends core_Manager
         $form->FNC('onlyPartner', 'enum(no,yes)', 'input=hidden,silent');
         $form->input(null, 'silent');
 
-        $allEmails = type_Emails::toArray($objectRec->email);
+        $allEmails = type_Emails::toArray($objectRec->email ?? null);
         if(!empty($objectRec->buzEmail)){
             $allEmails = array_merge(type_Emails::toArray($objectRec->buzEmail), $allEmails);
         }
@@ -570,14 +576,14 @@ class colab_FolderToPartners extends core_Manager
         }
 
         $form->setDefault('from', email_Outgoings::getDefaultInboxId());
-        core_Lg::push(drdata_Countries::getLang($objectRec->country));
+        core_Lg::push(drdata_Countries::getLang($objectRec->country ?? null));
         
         $subject = tr('Създайте нов акаунт в') . ' ' . core_Setup::get('EF_APP_TITLE', true);
         $form->setDefault('subject', $subject);
         $placeHolder = '{{' . tr('линк||link') . '}}';
 
         $lg = core_Lg::getCurrent();
-        if($form->rec->onlyPartner == 'yes') {
+        if(($form->rec->onlyPartner ?? null) == 'yes') {
             $bodyText = ($lg == 'bg')  ? colab_Setup::get('DEFAULT_EMAIL_ESHOP_REGISTRATION_BG') : colab_Setup::get('DEFAULT_EMAIL_ESHOP_REGISTRATION_EN');
         } else {
             if($Class instanceof crm_Companies){
@@ -595,7 +601,7 @@ class colab_FolderToPartners extends core_Manager
         $body->replace($lifetimeVerbal, 'lifetime');
 
         $body->replace($companyName, 'company');
-        $footer = cls::get('email_Outgoings')->getFooter($objectRec->country);
+        $footer = cls::get('email_Outgoings')->getFooter($objectRec->country ?? null);
         $body = $body->getContent() . "\n\n" . $footer;
 
         $form->setDefault('body', $body);
@@ -604,7 +610,7 @@ class colab_FolderToPartners extends core_Manager
         
         // Проверка за грешки
         if ($form->isSubmitted()) {
-            if (!strpos($form->rec->body, $placeHolder)) {
+            if (strpos($form->rec->body ?? '', $placeHolder) === false) {
                 $form->setError('body', 'Липсва плейсхолдера на линка за регистриране|* - ' . $placeHolder);
             }
         }
@@ -645,9 +651,11 @@ class colab_FolderToPartners extends core_Manager
         $PML = email_Accounts::getPML($sentFrom);
         
         // Ако има дестинационни имейли, ще изпратим имейла до тези които са избрани
-        if ($rec->to) {
+        $userEmail = null;
+        if (!empty($rec->to)) {
             $toArr = type_Emails::toArray($rec->to);
             foreach ($toArr as $to) {
+                $userEmail = $userEmail ?? $to;
                 $PML->AddAddress($to);
                 if (!core_Users::fetch(array("#email = '[#1#]'", $to))) {
                     $userEmail = $to;
@@ -656,7 +664,7 @@ class colab_FolderToPartners extends core_Manager
         }
 
         $userName = '';
-        if($rec->className == 'crm_Persons'){
+        if(($rec->className ?? null) == 'crm_Persons'){
             $personUserId = crm_Profiles::getUserByPerson($rec->companyId);
             if(empty($personUserId)){
                 $userName = crm_Persons::fetchField($rec->companyId, 'name');
@@ -665,7 +673,7 @@ class colab_FolderToPartners extends core_Manager
 
         $lifetime = colab_Setup::get('PARTNER_REGISTRATION_LINK_LIFETIME');
         $PML->Encoding = 'quoted-printable';
-        $url = core_Forwards::getUrl(get_called_class(), 'Createnewcontractor', array('companyId' => (int) $rec->companyId, 'email' => $userEmail, 'rand' => str::getRand(), 'userNames' => $userName, 'className' => $rec->className, 'onlyPartner' => $rec->onlyPartner), $lifetime);
+        $url = core_Forwards::getUrl(get_called_class(), 'Createnewcontractor', array('companyId' => (int) $rec->companyId, 'email' => $userEmail, 'rand' => str::getRand(), 'userNames' => $userName, 'className' => $rec->className, 'onlyPartner' => $rec->onlyPartner ?? null), $lifetime);
         $rec->body = str_replace($rec->placeHolder, "[link={$url}]link[/link]", $rec->body);
         
         Mode::push('text', 'plain');
@@ -733,7 +741,7 @@ class colab_FolderToPartners extends core_Manager
         $onlyPartner = Request::get('onlyPartner');
 
         $Users = cls::get('core_Users');
-        core_Lg::push(drdata_Countries::getLang($contragentRec->country));
+        core_Lg::push(drdata_Countries::getLang($contragentRec->country ?? null));
         $rand = Request::get('rand');
         $contragentName = $Class->getTitleById($objectId);
         
@@ -748,7 +756,7 @@ class colab_FolderToPartners extends core_Manager
         $form->title = "Регистриране на нов акаунт на партньор";
         $form->FLD('contragentName', 'varchar', "caption=Папка,after=passRe");
         $form->setReadOnly('contragentName',  $contragentName);
-        $form->setDefault('country', $contragentRec->country);
+        $form->setDefault('country', $contragentRec->country ?? null);
         
         // Ако има готово име, попълва се
         if ($userNames = Request::get('userNames', 'varchar')) {
@@ -821,7 +829,8 @@ class colab_FolderToPartners extends core_Manager
             if (!$Users->isUnique($form->rec, $fields)) {
                 $loginLink = ht::createLink(tr('тук'), array('core_Users', 'login'));
                 
-                $msg = ($fields[0] == 'nick') ? 'Вече има регистриран потребител с този ник. Ако това сте Вие, може да се логнете от': (($fields[0] == 'email') ? 'Вече има регистриран потребител с този имейл. Ако това сте Вие, може да се логнете от' : 'Има вече такъв потребител. Ако това сте Вие, може да се логнете от');
+                $firstField = $fields[0] ?? null;
+                $msg = ($firstField == 'nick') ? 'Вече има регистриран потребител с този ник. Ако това сте Вие, може да се логнете от': (($firstField == 'email') ? 'Вече има регистриран потребител с този имейл. Ако това сте Вие, може да се логнете от' : 'Има вече такъв потребител. Ако това сте Вие, може да се логнете от');
                 $msg = "{$msg}|* " . $loginLink;
                 $form->setError($fields, $msg);
             }
@@ -853,7 +862,7 @@ class colab_FolderToPartners extends core_Manager
             
             if ($fields) {
                 $fieldsArr = arr::make($fields, true);
-                if ($fieldsArr['name']) {
+                if (!empty($fieldsArr['name'])) {
                     $fieldsArr['names'] = 'names';
                     unset($fieldsArr['name']);
                     $fields = implode(',', $fieldsArr);
@@ -873,7 +882,7 @@ class colab_FolderToPartners extends core_Manager
             if($Class instanceof crm_Persons){
                 if(empty(crm_Profiles::fetch("#personId = {$objectId}"))){
 
-                    $personEmails = arr::make(type_Emails::toArray($contragentRec->email), true);
+                    $personEmails = arr::make(type_Emails::toArray($contragentRec->email ?? null), true);
                     $msg = "Person: {$contragentRec->name} emails: (" . implode($personEmails) . ") - User: {$form->rec->names} email: '{$form->rec->email}'";
                     if(in_array($form->rec->email, $personEmails)){
                         
@@ -894,18 +903,19 @@ class colab_FolderToPartners extends core_Manager
             
             if ($Class instanceof crm_Companies) {
                 $personId = crm_Profiles::fetchField("#userId = {$uId}", 'personId');
-                $personRec = crm_Persons::fetch($personId);
+                expect($personRec = crm_Persons::fetch($personId));
 
                 // Свързваме лицето към фирмата
                 $personRec->buzCompanyId = $objectId;
                 $personRec->country = $form->rec->country;
-                $inChargeState = core_Users::fetchField($contragentRec->inCharge, 'state');
-                $personRec->inCharge = in_array($inChargeState, array('active', 'blocked')) ? $contragentRec->inCharge : doc_FolderPlg::getDefaultInCharge();
+                $inCharge = $contragentRec->inCharge ?? null;
+                $inChargeState = $inCharge ? core_Users::fetchField($inCharge, 'state') : null;
+                $personRec->inCharge = in_array($inChargeState, array('active', 'blocked')) ? $inCharge : doc_FolderPlg::getDefaultInCharge();
                 $personRec->access = doc_Setup::get('DEFAULT_ACCESS');
 
                 // Имейлът да е бизнес имейла му
-                $buzEmailsArr = type_Emails::toArray($personRec->buzEmail);
-                $buzEmailsArr[] = $personRec->email;
+                $buzEmailsArr = type_Emails::toArray($personRec->buzEmail ?? null);
+                $buzEmailsArr[] = $personRec->email ?? null;
                 $personRec->buzEmail = type_Emails::fromArray($buzEmailsArr);
                 $personRec->email = '';
                 
@@ -1027,16 +1037,18 @@ class colab_FolderToPartners extends core_Manager
         if(core_Packs::isInstalled('eshop')){
             if($cartId = eshop_Carts::force(null, null, false)){
                 $cartRec = eshop_Carts::fetch($cartId, 'personNames,email');
-                $url['userNames'] = $cartRec->personNames;
-                $url['email'] = $cartRec->email;
+                if ($cartRec) {
+                    $url['userNames'] = $cartRec->personNames ?? null;
+                    $url['email'] = $cartRec->email ?? null;
+                }
             }
         }
             
         if($Class instanceof crm_Persons){
-            $personRec = crm_Persons::fetch($objectId);
+            expect($personRec = crm_Persons::fetch($objectId));
             $url['userNames'] = $personRec->name;
             
-            $emails = type_Emails::toArray($personRec->email);
+            $emails = type_Emails::toArray($personRec->email ?? null);
             if(array_key_exists(0, $emails)){
                 $url['email'] = $emails[0];
             }
@@ -1070,7 +1082,8 @@ class colab_FolderToPartners extends core_Manager
     {
         // Добавено следене как се трие споделената лична папка на партньора
         while ($rec = $query->fetch($cond)) {
-            $profileFolderId = crm_Profiles::getProfile($rec->contractorId)->folderId;
+            $profileRec = crm_Profiles::getProfile($rec->contractorId);
+            $profileFolderId = $profileRec->folderId ?? null;
             if($profileFolderId == $rec->folderId){
                 wp($query, $cond, $res);
             }

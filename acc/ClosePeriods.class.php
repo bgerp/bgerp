@@ -165,10 +165,7 @@ class acc_ClosePeriods extends core_Master
         $form = &$data->form;
         $rec = &$form->rec;
         
-        $pQuery = acc_Periods::getQuery();
-        $pQuery->where("#state = 'pending'");
-        
-        $options = acc_Periods::makeArray4Select(null, array("#state = 'active' OR #state = 'pending'", $root));
+        $options = acc_Periods::makeArray4Select(null, "#state = 'active' OR #state = 'pending'");
         $form->setOptions('periodId', $options);
         
         if (empty($rec->id)) {

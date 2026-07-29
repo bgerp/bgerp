@@ -407,7 +407,7 @@ class distro_Actions extends embed_Manager
         
         // Очакваме да masterKey да е зададен
         expect($data->masterKey);
-        expect($data->masterMvc instanceof core_Master);
+        expect(($data->masterMvc ?? null) instanceof core_Master);
         
         // Подготвяме заявката за детайла
         $this->prepareDetailQuery($data);

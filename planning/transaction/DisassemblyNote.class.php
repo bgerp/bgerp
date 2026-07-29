@@ -29,7 +29,7 @@ class planning_transaction_DisassemblyNote extends acc_DocumentTransactionSource
         $rec->valior = empty($rec->valior) ? dt::today() : $rec->valior;
 
         $result = (object) array(
-            'reason'      => "Протокол за разпад №{$rec->id}",
+            'reason'      => 'Протокол за разпад №' . ($rec->id ?? ''),
             'valior'      => $rec->valior,
             'totalAmount' => null,
             'entries'     => array(),

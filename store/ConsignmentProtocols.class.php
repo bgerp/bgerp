@@ -635,10 +635,21 @@ class store_ConsignmentProtocols extends core_Master
         
         $nullVolume = ($count1 && is_null($res1->volume)) || ($count2 && is_null($res2->volume)) || (!$count1 && !$count2);
         $volume = ($nullVolume) ? null : $res1->volume + $res2->volume;
+
+        $nullNetWeight = ($count1 && is_null($res1->netWeight)) || ($count2 && is_null($res2->netWeight)) || (!$count1 && !$count2);
+        $netWeight = ($nullNetWeight) ? null : $res1->netWeight + $res2->netWeight;
+
+        $nullTareWeight = ($count1 && is_null($res1->tareWeight)) || ($count2 && is_null($res2->tareWeight)) || (!$count1 && !$count2);
+        $tareWeight = ($nullTareWeight) ? null : $res1->tareWeight + $res2->tareWeight;
         
         $units = trans_Helper::getCombinedTransUnits($res1->transUnits, $res2->transUnits);
         
-        return (object) array('weight' => $weight, 'volume' => $volume, 'transUnits' => $units);
+        return (object) array('weight' => $weight,
+            'volume' => $volume,
+            'netWeight' => $netWeight,
+            'tareWeight' => $tareWeight,
+            'transUnits' => $units,
+        );
     }
     
     
@@ -716,7 +727,7 @@ class store_ConsignmentProtocols extends core_Master
         $res['cases'] = array();
         $res['valior'] = $rec->valior ?? dt::today();
 
-        return $res;
+        return trans_Helper::normalizeTransportLineInfo($res);
     }
     
     

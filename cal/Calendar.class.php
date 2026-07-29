@@ -322,7 +322,7 @@ class cal_Calendar extends core_Master
             
             bgerp_Portal::prepareSearchForm($mvc, $data->listFilter);
         
-        } elseif ($data->action === "list"){
+        } elseif (($data->action ?? null) === "list"){
             
             // Показваме само това поле. Иначе и другите полета 
             // на модела ще се появят
@@ -352,7 +352,7 @@ class cal_Calendar extends core_Master
         //Изключваме приключените
         $data->query->where("#state != 'closed'");
         
-        if ($data->action == 'list' || $data->action == 'day' || $data->action == 'week') {
+        if (($data->action ?? null) == 'list' || ($data->action ?? null) == 'day' || ($data->action ?? null) == 'week') {
             if ($from = $data->listFilter->rec->from) {
                 $data->query->where("#time >= date('$from') OR #timeEnd >= date('$from')");
 	        }

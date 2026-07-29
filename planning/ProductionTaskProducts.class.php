@@ -219,7 +219,7 @@ class planning_ProductionTaskProducts extends core_Detail
             $form->setField('plannedQuantity', array('unit' => $unit));
             
             if(isset($rec->id)){
-                if($data->action != 'replaceproduct'){
+                if(($data->action ?? null) != 'replaceproduct'){
                     $form->setReadOnly('productId');
                     if(planning_ProductionTaskDetails::fetchField("#taskId = {$masterRec->id} AND #productId = {$rec->productId} AND #type = '{$rec->type}'")){
                         $form->setReadOnly('packagingId');
@@ -359,7 +359,7 @@ class planning_ProductionTaskProducts extends core_Detail
                 if ($action == 'add') {
                     $requiredRoles = $mvc->getRequiredRoles('addtoactive', $rec);
                 }
-            } elseif($tRec->state == 'closed' && $rec->type == 'production'){
+            } elseif($tRec->state == 'closed' && ($rec->type ?? null) == 'production'){
                 $howLong = dt::addSecs(planning_Setup::get('TASK_PRODUCTION_PROGRESS_ALLOWED_AFTER_CLOSURE'), $tRec->timeClosed);
                 if(dt::now() >= $howLong){
                     $requiredRoles = 'no_one';

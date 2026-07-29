@@ -116,10 +116,10 @@ class sales_reports_PriceComparison extends frame2_driver_TableData
         $form->setDefault('typePercent', 'none');
         $form->setDefault('withoutPrice', 'show');
 
-        if ($rec->priceListLow) {
+        if (!empty($rec->priceListLow)) {
             $form->setReadOnly('policyClassId');
         }
-        if ($rec->policyClassId) {
+        if (!empty($rec->policyClassId)) {
             $form->setReadOnly('priceListLow');
         }
 

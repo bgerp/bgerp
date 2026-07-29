@@ -344,7 +344,7 @@ class doc_Log extends core_Manager
         $inst = cls::get('core_TableView');
 
         // Полета в таблицата
-        $caption = $data->action == 'addFolderDialog' ? 'Папка' : 'Документ';
+        $caption = ($data->action ?? null) == 'addFolderDialog' ? 'Папка' : 'Документ';
         $tableCaptionArr = array('document' => $caption, 'created' => 'Създадено');
 
         // Вземаме таблицата с попълнени данни
@@ -354,7 +354,7 @@ class doc_Log extends core_Manager
         $tpl->append($tableTpl, 'tableContent');
 
         // Добавяме заглавието
-        $title = $data->action == 'addFolderDialog' ? 'Избор на папка' : $this->title;
+        $title = ($data->action ?? null) == 'addFolderDialog' ? 'Избор на папка' : $this->title;
         $tpl->append(tr($title), 'title');
 
         // Заместваме страницирането

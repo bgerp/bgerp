@@ -664,7 +664,8 @@ class rack_Pallets extends core_Manager
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         
         $rec = $data->listFilter->input();
-        if (!$rec->productId) {
+        $order = false;
+        if (empty($rec->productId)) {
             $rec->productId = Request::get('productId', 'int');
             $data->listFilter->setDefault('productId', $rec->productId);
         }

@@ -281,6 +281,17 @@ class hr_Schedules extends core_Master
     {
 
     }
+
+
+    /**
+     * След преобразуване на записа в четим за хора вид
+     */
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    {
+        if (isset($rec->parentId)) {
+            $row->parentId = $mvc->getHyperlink($rec->parentId, true);
+        }
+    }
     
     
     /**
@@ -371,10 +382,10 @@ class hr_Schedules extends core_Master
 
         // Ако графика се показва към обордуване
         $data->scheduleId = $data->masterId;
-        if($data->masterMvc instanceof planning_AssetResources){
+        if(($data->masterMvc ?? null) instanceof planning_AssetResources){
             $data->scheduleId = planning_AssetResources::getScheduleId($data->masterId);
             $data->TabCaption = 'График';
-        } elseif($data->masterMvc instanceof crm_Persons){
+        } elseif(($data->masterMvc ?? null) instanceof crm_Persons){
             $data->scheduleId = planning_Hr::getSchedule($data->masterId);
         }
 

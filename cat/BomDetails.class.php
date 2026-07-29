@@ -235,7 +235,7 @@ class cat_BomDetails extends doc_Detail
 
         if(!isset($rec->id)){
             $form->setFieldTypeParams('resourceId', array('forceOpen' => 'forceOpen'));
-        } elseif($data->action != 'replaceproduct') {
+        } elseif(($data->action ?? null) != 'replaceproduct') {
             $form->setReadOnly('resourceId');
         }
 
@@ -427,6 +427,7 @@ class cat_BomDetails extends doc_Detail
      */
     public static function calcExpr($expr, $params)
     {
+        $expr = (string) $expr;
         $expr = preg_replace('/\$Начално\s*=\s*/iu', '1/$T*', $expr);
         $expr = preg_replace('/(\d+)+\,(\d+)+/', '$1.$2', $expr);
 
@@ -460,6 +461,7 @@ class cat_BomDetails extends doc_Detail
     private static function replaceFunctionsInFormula($match)
     {
         $res = $match[0];
+        $paramC = $match['paramC'] ?? null;
 
         $fncName = strtolower($match['fncName']);
         if($fncName == 'select'){
@@ -467,7 +469,7 @@ class cat_BomDetails extends doc_Detail
                 if(cls::load($match['paramA'], true)){
                     if(type_Int::isInt($match['paramB'])){
                         try{
-                            $res = $match['paramA']::fetchField(trim($match['paramB']), $match['paramC']);
+                            $res = $match['paramA']::fetchField(trim($match['paramB']), $paramC);
                         } catch(core_exception_Expect $e){}
                     }
                 }
@@ -481,7 +483,7 @@ class cat_BomDetails extends doc_Detail
                 $evalSuccess = null;
                 $val = str::calcMathExpr($val, $evalSuccess);
                 if(!is_numeric($val) || $evalSuccess === false) {
-                    $val = $match['paramC'];
+                    $val = $paramC;
                     $evalSuccess = null;
                     $val = str::calcMathExpr($val, $evalSuccess);
                 }
@@ -498,16 +500,16 @@ class cat_BomDetails extends doc_Detail
 
                     if(is_numeric($paramVal)) {
                         $res = $paramVal;
-                    } elseif(strlen($match['paramC'])){
-                        $res = $match['paramC'];
+                    } elseif(strlen((string) $paramC)){
+                        $res = $paramC;
                     }
                 } catch(core_exception_Expect $e){
-                    if (strlen($match['paramC'])) {
-                        $res = $match['paramC'];
+                    if (strlen((string) $paramC)) {
+                        $res = $paramC;
                     }
                 }
-            } elseif (strlen($match['paramC'])) {
-                $res = $match['paramC'];
+            } elseif (strlen((string) $paramC)) {
+                $res = $paramC;
             }
         }
 
@@ -988,7 +990,7 @@ class cat_BomDetails extends doc_Detail
         $row->propQuantity = static::highlightExpr($propQuantity, $rec->params, $coefficient);
 
         if(!is_numeric($propQuantity)){
-            if(mb_strlen($rec->propQuantity) > 80){
+            if(mb_strlen((string) $rec->propQuantity) > 80){
                 $formula = "<i>" . tr('Покажи') . "</i>" . " <a href=\"javascript:toggleDisplay('{$rec->id}formula')\"  style=\"background-image:url(" . sbf('img/16/toggle1.png', "'") . ');" class=" plus-icon more-btn"> </a>';
                 $highlightedExpr = static::highlightExpr($propQuantity, $rec->params, $coefficient);
                 $divContent = ($highlightedExpr instanceof core_ET) ? $highlightedExpr->getContent() : $highlightedExpr;
@@ -1223,7 +1225,7 @@ class cat_BomDetails extends doc_Detail
             $obj = new stdClass();
             $obj->resourceId = $rec->resourceId;
             $obj->packagingId = $rec->packagingId;
-            $obj->propQuantity = trim($rec->propQuantity);
+            $obj->propQuantity = trim((string) $rec->propQuantity);
             $res[$rec->resourceId . '|' . $rec->packagingId] = $obj;
             
             if ($rec->type != 'stage') {
@@ -1255,7 +1257,7 @@ class cat_BomDetails extends doc_Detail
                 $obj = new stdClass();
                 $obj->resourceId = $dRec->resourceId;
                 $obj->packagingId = $dRec->packagingId;
-                $obj->propQuantity = trim($dRec->propQuantity);
+                $obj->propQuantity = trim((string) $dRec->propQuantity);
                 $res[$dRec->resourceId . '|' . $dRec->packagingId] = $obj;
                 
                 if ($dRec->type != 'stage') {

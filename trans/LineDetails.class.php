@@ -205,18 +205,21 @@ class trans_LineDetails extends doc_Detail
         $transportInfo = $Document->getTransportLineInfo($rec->lineId);
         core_RowToolbar::createIfNotExists($row->_rowTools);
         $lineRec = trans_Lines::fetch($rec->lineId);
+        $row->address = $row->address ?? '';
+        $row->notes = $row->notes ?? '';
+        $row->logistic = $row->logistic ?? '';
 
         // Линк към документа
         $handle = $Document->getHandle();
         $row->containerId = "#{$handle}";
-        $row->num = core_Type::getByName('int')->toVerbal($rec->num);
+        $row->num = core_Type::getByName('int')->toVerbal($rec->num ?? null);
         if (!core_Mode::isReadOnly()) {
             $row->containerId = $Document->getLink(0);
             $createdBy = core_Users::getNick($Document->fetchField('createdBy'));
             $displayContainerId = $row->containerId;
             $displayContainerId .= " / {$createdBy}";
 
-            if(!empty($lineRec->activatedOn) && $rec->createdOn >= $lineRec->activatedOn){
+            if(!empty($lineRec->activatedOn) && ($rec->createdOn ?? null) >= $lineRec->activatedOn){
                 $createdVerbal = dt::mysql2verbal($rec->createdOn);
                 $displayContainerId .= " / <b style='color:red;'>" . tr('Добавен') . ": {$createdVerbal}</b>";
             }
@@ -225,9 +228,9 @@ class trans_LineDetails extends doc_Detail
         }
 
         $tags = tags_Logs::getTagsFor($Document->getClassId(), $Document->that);
-        if(count($tags)){
+        if(countR($tags)){
             $tagsStr = '';
-            array_walk($tags, function($a) use (&$tagsStr){$tagsStr  .= $a['span'];});
+            array_walk($tags, function($a) use (&$tagsStr){$tagsStr .= $a['span'] ?? '';});
             $row->containerId .= "<span class='documentTags'>{$tagsStr}</span>";
         }
 
@@ -251,8 +254,9 @@ class trans_LineDetails extends doc_Detail
 
         // Визуализиране на движението на складовете
         if (!empty($transportInfo['stores'])) {
-            if (countR($transportInfo['stores']) == 1) {
-                $row->storeId = store_Stores::getHyperlink($transportInfo['stores'][0]);
+            $transportStores = array_values($transportInfo['stores']);
+            if (countR($transportStores) == 1) {
+                $row->storeId = store_Stores::getHyperlink($transportStores[0]);
                 if($transportInfo['storeMovement'] == 'both'){
                     $row->storeId .= " &#8660; ";
                 } else {
@@ -260,7 +264,7 @@ class trans_LineDetails extends doc_Detail
                     $row->storeId .= " {$symbol}";
                 }
             } else {
-                $row->storeId = store_Stores::getHyperlink($transportInfo['stores'][0]) . ' &#8658; ' . store_Stores::getHyperlink($transportInfo['stores'][1]);
+                $row->storeId = store_Stores::getHyperlink($transportStores[0]) . ' &#8658; ' . store_Stores::getHyperlink($transportStores[1]);
             }
 
             $row->address = "{$row->storeId} {$transportInfo['contragentName']}" . (!empty($row->address) ? ", {$row->address}" : '');
@@ -349,7 +353,7 @@ class trans_LineDetails extends doc_Detail
 
         // Бутон за създаване на коментар
         $masterRec = trans_Lines::fetch($rec->lineId);
-        if (doc_Comments::haveRightFor('add', (object) array('originId' => $masterRec->containerId)) && $masterRec->state != 'rejected') {
+        if ($masterRec && doc_Comments::haveRightFor('add', (object) array('originId' => $masterRec->containerId)) && $masterRec->state != 'rejected') {
             $commentUrl = array('doc_Comments', 'add', 'originId' => $masterRec->containerId, 'detId' => $rec->id, 'ret_url' => true);
             $row->_rowTools->addLink('Известяване', $commentUrl, array('ef_icon' => 'img/16/comment_add.png', 'alwaysShow' => true, 'title' => 'Известяване на отговорниците на документа'));
         }
@@ -397,7 +401,7 @@ class trans_LineDetails extends doc_Detail
         }
 
         // Ако има платежни документи към складовия
-        if(is_array($rec->paymentsArr) && $rec->status != 'removed'){
+        if(is_array($rec->paymentsArr ?? null) && $rec->status != 'removed'){
             $rec->_allPaymentActive = (bool)countR($rec->paymentsArr);
             $amountTpl = new core_ET("");
             foreach ($rec->paymentsArr as $p){
@@ -428,13 +432,14 @@ class trans_LineDetails extends doc_Detail
         }
 
         // В какъв цвят да се оцвети реда на линията
+        $transportState = $transportInfo['state'];
         if($Document->haveInterface('store_iface_DocumentIntf')){
-            $class = (in_array($transportInfo['state'], array('active', 'rejected '))) ? $transportInfo['state'] : 'waiting';
+            $class = in_array($transportState, array('active', 'rejected')) ? $transportState : 'waiting';
             if(($rec->_allPaymentActive) ?? null && $class == 'active'){
                 $class = 'closed';
             }
         } else {
-            $class = (in_array($transportInfo['state'], array('active', 'rejected '))) ? 'closed' : 'waiting';
+            $class = in_array($transportState, array('active', 'rejected')) ? 'closed' : 'waiting';
         }
 
         $row->ROW_ATTR['class'] = ($rec->status == 'removed') ? 'state-removed' : "state-{$class}";
@@ -459,7 +464,7 @@ class trans_LineDetails extends doc_Detail
         $this->save($rec, 'status');
 
         $Document = doc_Containers::getDocument($rec->containerId);
-        $docRec = $Document->fetch();
+        expect($docRec = $Document->fetch());
         $docRec->lineId = null;
         $Document->getInstance()->save($docRec, 'lineId');
 
@@ -535,8 +540,8 @@ class trans_LineDetails extends doc_Detail
     public static function validateTransTable($tableData, $Type)
     {
         $res = array();
-        $units = $tableData['unitId'];
-        $quantities = $tableData['quantity'];
+        $units = (array) ($tableData['unitId'] ?? array());
+        $quantities = (array) ($tableData['quantity'] ?? array());
         $error = $errorFields = array();
         
         if (countR($units) != countR(array_unique($units))) {
@@ -586,16 +591,16 @@ class trans_LineDetails extends doc_Detail
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
-        if ($action == 'remove' && isset($rec)) {
+        if ($action == 'remove' && isset($rec->lineId)) {
             $state = trans_Lines::fetchField($rec->lineId, 'state');
-            if (in_array($state, array('rejected', 'closed', 'draft', 'pending')) || $rec->status == 'removed') {
+            if (in_array($state, array('rejected', 'closed', 'draft', 'pending')) || ($rec->status ?? null) == 'removed') {
                 $requiredRoles = 'no_one';
             }
         }
         
-        if ($action == 'delete' && isset($rec)) {
+        if ($action == 'delete' && isset($rec->lineId)) {
             $state = trans_Lines::fetchField($rec->lineId, 'state');
-            if (in_array($state, array('rejected', 'closed', 'active')) || $rec->status == 'removed') {
+            if (in_array($state, array('rejected', 'closed', 'active')) || ($rec->status ?? null) == 'removed') {
                 $requiredRoles = 'no_one';
             }
         }
@@ -610,7 +615,7 @@ class trans_LineDetails extends doc_Detail
         // Към коя група спада документа
         if (!array_key_exists($groupId, self::$cache)) {
             $className = ($groupId == 'removed') ? 'removed' : cls::getClassName($groupId);
-            $className = tr(self::$classGroups[$className]);
+            $className = tr(self::$classGroups[$className] ?? $className);
 
             if(!Mode::isReadOnly() && $groupId == 'removed'){
                 $className .= " <a id= 'groupBtn{$groupId}' href=\"javascript:toggleDisplayByClass('groupBtn{$groupId}','group{$groupId}')\"  style=\"background-image:url(" . sbf('img/16/toggle1.png', "'") . ');" class=" plus-icon more-btn"> </a>';
@@ -675,7 +680,7 @@ class trans_LineDetails extends doc_Detail
                 $PaymentDoc = doc_Containers::getDocument($a->containerId);
                 $paymentRec = $PaymentDoc->fetch('originId,threadId');
 
-                return ($paymentRec->originId == $rec->containerId);
+                return (($paymentRec->originId ?? null) == $rec->containerId);
             });
 
             // Премахване на платежните документи, закачени към Складов документ от последващо показване в линията
@@ -696,10 +701,10 @@ class trans_LineDetails extends doc_Detail
                 $PaymentDoc = doc_Containers::getDocument($a->containerId);
                 $paymentRec = $PaymentDoc->fetch('originId,threadId');
 
-                return ($paymentRec->threadId == $rec1->containerThreadId);
+                return (($paymentRec->threadId ?? null) == ($rec1->containerThreadId ?? null));
             });
 
-            if(!is_array($rec1->paymentsArr)){
+            if(!is_array($rec1->paymentsArr ?? null)){
                 $rec1->paymentsArr = array();
             }
 
@@ -746,6 +751,7 @@ class trans_LineDetails extends doc_Detail
             
             // Изтриване от документа че е към тази линия
             $rec = $Document->fetch();
+            if (!$rec) continue;
             $rec->lineId = null;
             $Document->getInstance()->save_($rec, 'lineId,modifiedOn,modifiedBy');
             doc_DocumentCache::invalidateByOriginId($rec->containerId);

@@ -394,7 +394,7 @@ abstract class deals_DealMaster extends deals_DealBase
             }
         }
         $form->setDefault('makeInvoice', $defaultMakeInvoice);
-        if($data->action == 'clone'){
+        if(($data->action ?? null) == 'clone'){
             $form->rec->_isBeingCloned = true;
         }
 
@@ -416,7 +416,7 @@ abstract class deals_DealMaster extends deals_DealBase
             if ($mvc->$Detail->fetch("#{$mvc->{$Detail}->masterKey} = {$rec->id}")) {
                 foreach (array('chargeVat', 'currencyId', 'deliveryTermId', 'vatExceptionId') as $fld) {
                     $readOnlyVal = $rec->{$fld} ?? $mvc->fetchField($rec->id, $fld);
-                    if($data->action == 'clone' && !isset($readOnlyVal)) continue;
+                    if(($data->action ?? null) == 'clone' && !isset($readOnlyVal)) continue;
 
                     $form->setReadOnly($fld, $rec->{$fld} ?? $readOnlyVal);
                 }
@@ -425,7 +425,7 @@ abstract class deals_DealMaster extends deals_DealBase
         
         $form->setField('sharedUsers', 'input=none');
 
-        if($data->action != 'changefields'){
+        if(($data->action ?? null) != 'changefields'){
             $form->input('deliveryTermId');
             if(isset($rec->deliveryTermId)){
                 cond_DeliveryTerms::prepareDocumentForm($rec->deliveryTermId, $form, $mvc);
@@ -2352,10 +2352,10 @@ abstract class deals_DealMaster extends deals_DealBase
         if (isset($data->addJobUrls)) {
             $addLinks = '';
             if (isset($data->addJobUrls['manifacture'])) {
-                $addLinks .= ht::createBtn('Производство', $data->addJobUrls['manifacture'], false, false, 'ef_icon=img/16/add.png,title=Създаване на ново задание за производство');
+                $addLinks .= ht::createLink('Производство', $data->addJobUrls['manifacture'], false, 'ef_icon=img/16/add.png,class=button,title=Създаване на ново задание за производство');
             }
             if (isset($data->addJobUrls['disassembly'])) {
-                $addLinks .= ht::createBtn('Разпад', $data->addJobUrls['disassembly'], false, false, 'ef_icon=img/16/add.png,title=Създаване на ново задание за разпад');
+                $addLinks .= ht::createLink('Разпад', $data->addJobUrls['disassembly'], false, 'ef_icon=img/16/add.png,class=button,title=Създаване на ново задание за разпад');
             }
             $tpl->replace($addLinks, 'JOB_ADD_BTN');
         }

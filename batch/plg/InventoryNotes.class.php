@@ -62,8 +62,9 @@ class batch_plg_InventoryNotes extends core_Plugin
             }
             
             $quantities = batch_Items::getBatchQuantitiesInStore($rec->productId, $masterRec->storeId, $valior, null, array(), true, null, false, true);
-            $selected = $Def->makeArray($rec->batch);
-            if (!empty($rec->batch) && !array_key_exists($rec->batch, $quantities)) {
+            $selectedBatch = $rec->batch ?? null;
+            $selected = $Def->makeArray($selectedBatch);
+            if (!empty($selectedBatch) && !array_key_exists($selectedBatch, $quantities)) {
                 foreach ($selected as $k => $b) {
                     if (!array_key_exists($k, $quantities)) {
                         $quantities[$k] = 0;
@@ -430,6 +431,7 @@ class batch_plg_InventoryNotes extends core_Plugin
         $obj = (object) array('docId' => $rec->id, 'docType' => store_InventoryNotes::getClassId(), 'date' => $valior);
         $dQuery = store_InventoryNoteSummary::getQuery();
         $dQuery->where("#noteId = {$rec->id}");
+        $result = true;
         while ($dRec = $dQuery->fetch()) {
             try {
                 $summary = self::getBatchSummary($dRec->noteId, $dRec->productId, 0, $storeId, $valior);

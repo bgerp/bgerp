@@ -373,7 +373,7 @@ class frame2_Reports extends embed_Manager
                         $diff = array_diff_key($diff, $mustExist);
                         unset($diff[$mvc->driverClassField]);
                         
-                        if ($data->action == 'clone') {
+                        if (($data->action ?? null) == 'clone') {
                             unset($diff['sharedUsers'], $diff['notificationText'], $diff['updateDays'], $diff['updateTime'], $diff['maxKeepHistory']);
                         }
                         $diff = array_keys($diff);

@@ -419,9 +419,9 @@ class i18n_Charset extends core_MVC
         if ($isHtml) {
             $pattern = '/<meta[^>]+charset\s*=\s*[\'\"]?(.*?)[[\'\"]]?[\/\s>]/i';
             preg_match($pattern, $text, $match);
-            if ($match[1]) {
+            if (!empty($match[1])) {
                 if ($cs = self::getCanonical(($match[1]))) {
-                    $assumedCharsets[$cs] += $step * 0.7;
+                    $assumedCharsets[$cs] = ($assumedCharsets[$cs] ?? 0) + $step * 0.7;
                 }
             }
 
@@ -451,6 +451,7 @@ class i18n_Charset extends core_MVC
 
         // Ако текста е 7-битов
         if (self::is7bit($text)) {
+            $cs = null;
             if (countR($assumedCharsets)) {
                 $cs = array_search(max($assumedCharsets), $assumedCharsets);
             }
@@ -529,8 +530,8 @@ class i18n_Charset extends core_MVC
                 $resDebug[$cs] = $debug;
                 
                 // Добавка за правилно UTF-8 кодиране
-                if (strpos($cs, 'REP_UTF8')) {
-                    $weight = $assumedCharsets['UTF-8'];
+                if (strpos($cs, 'REP_UTF8') !== false) {
+                    $weight = $assumedCharsets['UTF-8'] ?? 0;
                     $rates[$cs] = $rates[$cs] * (1 + $weight / 100) + $weight / 1000;
                 }
             }
@@ -1086,6 +1087,14 @@ class i18n_Charset extends core_MVC
         }
 
         [$toCharset, $mode] = explode('//', $toCharset) + [1 => null];
+
+        // Някои iconv реализации разпознават Mac Roman само като MACINTOSH
+        if (strtoupper((string) $fromCharset) == 'MACROMAN') {
+            $fromCharset = 'MACINTOSH';
+        }
+        if (strtoupper((string) $toCharset) == 'MACROMAN') {
+            $toCharset = 'MACINTOSH';
+        }
         
         if ($mode && strpos($mode, '//') !== 0) {
             $mode = "//{$mode}";

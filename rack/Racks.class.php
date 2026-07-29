@@ -492,7 +492,7 @@ class rack_Racks extends core_Master
 
         if (isset($fields['-single'])) {
             $row->places = self::renderRack($rec);
-            $row->comment .= "<div style='font-size:0.8em;color:999;'>" .
+            $row->comment = ($row->comment ?? '') . "<div style='font-size:0.8em;color:999;'>" .
                 tr('Клик върху клетка, за да я редактирате или задръжте мишката за информация') .
                 '</div>';
         }
@@ -530,7 +530,7 @@ class rack_Racks extends core_Master
 
         $used = rack_Pallets::getUsed();
         list($movedFrom, $movedTo) = rack_Movements::getExpected();
-        $hlProdId = $used[$hlFullPos];
+        $hlProdId = $used[$hlFullPos] ?? null;
 
         // Откъде започва номерацията
         if(in_array($rec->direction, array('leftToRight', 'topToRight'))){
@@ -545,7 +545,7 @@ class rack_Racks extends core_Master
         while ($row >= 'A') {
 
             $trStyle = ($row <= $rec->firstRowTo) ? 'border:1px solid #2cc3229e;' : '';
-            $resArr[$row] .= "<tr style='{$trStyle}'>";
+            $resArr[$row] = "<tr style='{$trStyle}'>";
             
              foreach (range($from, $to) as $i){
                 $attr = array();
@@ -565,7 +565,7 @@ class rack_Racks extends core_Master
                 $bgColorAll = '';
                 $tdBackground = '';
                 // Ако е заето с нещо
-                if (!isset($title) && ($pArr = $used[$posFull])) {
+                if (!isset($title) && ($pArr = $used[$posFull] ?? null)) {
                     $prodTitle = '';
 
                     foreach ($pArr as $productId => $batches){
@@ -604,7 +604,7 @@ class rack_Racks extends core_Master
                 }
                 
                 // Ако е неизползваемо
-                if (!isset($title) && $unusable[$posFull]) {
+                if (!isset($title) && !empty($unusable[$posFull])) {
                     $hint = $posFull . " " . tr('е неизползваемо|*!');
                     $title = 'X';
                     $attr['style'] = 'text-align:center;color:#7c7c7c;';
@@ -612,7 +612,7 @@ class rack_Racks extends core_Master
                 }
                 
                 // Ако е резервирано за нещо
-                if (!isset($title) && ($pId = $reserved[$posFull])) {
+                if (!isset($title) && ($pId = $reserved[$posFull] ?? null)) {
                     $title = $pos;
                     $attr['style'] = 'color:#ffe666;';
                     $hint = tr('Запазено място');
@@ -625,14 +625,14 @@ class rack_Racks extends core_Master
                 }
                 
                 // Ако се очаква палет
-                if (!isset($title) && $movedTo[$posFull]) {
+                if (!isset($title) && !empty($movedTo[$posFull])) {
                     $title = $pos;
                     $attr['style'] = 'color:#6c6;';
-                    $hint = tr('Очаква се палет') . ": {$prodTitle}";
+                    $hint = tr('Очаква се палет') . ": " . ($prodTitle ?? '');
                 }
                 
                 // Ако ще се премества палет
-                if ($movedFrom[$posFull]) {
+                if (!empty($movedFrom[$posFull])) {
                     $attr['style'] .= ';text-decoration:underline;';
                     $hint = tr('Предстои преместване');
                 }

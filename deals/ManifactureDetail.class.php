@@ -150,7 +150,7 @@ abstract class deals_ManifactureDetail extends doc_Detail
         }
         $form->setFieldTypeParams('productId', $params);
         
-        if (isset($form->rec->id) && $data->action != 'replaceproduct') {
+        if (isset($form->rec->id) && ($data->action ?? null) != 'replaceproduct') {
             $data->form->setReadOnly('productId');
         }
     }
@@ -227,6 +227,7 @@ abstract class deals_ManifactureDetail extends doc_Detail
         if (!empty($data->toolbar->buttons['btnAdd']) && isset($mvc->defaultMeta)) {
             unset($data->toolbar->buttons['btnAdd']);
             $products = cat_Products::getByProperty($mvc->defaultMeta, null, 1);
+            $error = '';
             
             if (!countR($products)) {
                 $error = 'error=Няма артикули, ';

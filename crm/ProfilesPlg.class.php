@@ -33,6 +33,11 @@ class crm_ProfilesPlg extends core_Plugin
             return;
         }
 
+        $rec = $mvc->fetchRec($rec);
+        if (!$rec || !is_object($row)) {
+            return;
+        }
+
         if (is_object($fields)) {
             $fields = (array) $fields;
         }
@@ -52,10 +57,10 @@ class crm_ProfilesPlg extends core_Plugin
                 
                 // Ако е от type_Key
                 if (cls::isSubclass($type, 'type_Key')) {
-                    if (cls::isSubclass($type->params['mvc'], 'core_Users')) {
-                        $select = isset($type->params['select']) ? $type->params['select'] : null;
+                    if (cls::isSubclass($type->params['mvc'] ?? null, 'core_Users')) {
+                        $select = $type->params['select'] ?? null;
                         if ($select == 'nick' || !$select) {
-                            if ((($rec->{$name} ?? 0) > 0) && !strpos(($row->{$name} ?? ''), '<')) {
+                            if ((($rec->{$name} ?? 0) > 0) && strpos(($row->{$name} ?? ''), '<') === false) {
                                 $row->{$name} = crm_Profiles::createLink($rec->{$name});
                             }
                         }
@@ -64,10 +69,12 @@ class crm_ProfilesPlg extends core_Plugin
                 
                 // Ако е от тип type_Keylist
                 if (cls::isSubclass($type, 'type_Keylist')) {
-                    if (cls::isSubclass($type->params['mvc'], 'core_Users')) {
-                        if ($type->params['select'] == 'nick' || !$type->params['select']) {
-                            if ($rec->{$name} && !strpos($row->{$name}, '<')) {
-                                $usersArr = keylist::toArray($rec->{$name});
+                    if (cls::isSubclass($type->params['mvc'] ?? null, 'core_Users')) {
+                        $select = $type->params['select'] ?? null;
+                        if ($select == 'nick' || !$select) {
+                            $value = $rec->{$name} ?? null;
+                            if ($value && strpos(($row->{$name} ?? ''), '<') === false) {
+                                $usersArr = keylist::toArray($value);
                                 $row->{$name} = '';
                                 foreach ($usersArr as $userId) {
                                     $row->{$name} .= ($row->{$name} ? ', ' : '') . crm_Profiles::createLink($userId);

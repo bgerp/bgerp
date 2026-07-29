@@ -1213,7 +1213,7 @@ class cal_Reminders extends core_Master
      */
     public static function calcNextStartTime($rec, $usePreviously = true)
     {
-        $timeStart = $rec->__nextStartTime ? $rec->__nextStartTime : $rec->timeStart;
+        $timeStart = !empty($rec->__nextStartTime) ? $rec->__nextStartTime : $rec->timeStart;
 
         // Секундите на началната дата
         $startTs = dt::mysql2timestamp($timeStart);

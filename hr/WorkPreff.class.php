@@ -53,6 +53,8 @@ class hr_WorkPreff extends core_Master
     public static function getOptionsForChoice()
     {
         $parts = array();
+        $detArr = array();
+        $workPreffOptions = array();
         
         $detQuery = hr_WorkPreffDetails::getQuery();
         

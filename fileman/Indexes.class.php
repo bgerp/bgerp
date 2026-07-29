@@ -130,7 +130,7 @@ class fileman_Indexes extends core_Manager
      */
     public static function prepare_(&$data, $fh)
     {
-        if (!haveRole('debug') && $data->rec) {
+        if (!haveRole('debug') && !empty($data->rec)) {
             if (fileman_Files::isDanger($data->rec, 0.00001)) {
 
                 return ;
@@ -139,6 +139,11 @@ class fileman_Indexes extends core_Manager
 
         // Записи за текущия файл
         $data->fRec = fileman_Files::fetchByFh($fh);
+        if (!$data->fRec) {
+            $data->tabs = array();
+
+            return;
+        }
         
         // Разширението на файла
         $ext = fileman_Files::getExt($data->fRec->name);
@@ -167,24 +172,27 @@ class fileman_Indexes extends core_Manager
     public static function render_($data)
     {
         // Масив с всички табове
-        $tabsArr = $data->tabs;
+        $tabsArr = $data->tabs ?? array();
         
-        if (! countR($data->tabs)) {
+        if (!countR($tabsArr)) {
             
             return false;
         }
         
-        setIfNot($data->fhName, 'id');
+        if (empty($data->fhName)) {
+            $data->fhName = 'id';
+        }
         
         // Подреждаме масивити според order
         $tabsArr = static::orderTabs($tabsArr);
+        $selectedTab = $data->currentTab ?? null;
         
         // Ако е избран някой таб
-        if (!empty($tabsArr[$data->currentTab])) {
+        if (!empty($tabsArr[$selectedTab])) {
 
             // Задаваме той да е текущия
-            $currentTab = $data->currentTab;
-        } elseif (!empty($tabsArr['__defaultTab']) && $tabsArr['__defaultTab']->name && !empty($tabsArr[$tabsArr['__defaultTab']->name])) {
+            $currentTab = $selectedTab;
+        } elseif (!empty($tabsArr['__defaultTab']->name) && !empty($tabsArr[$tabsArr['__defaultTab']->name])) {
             
             // Ако не е избран таб, избираме таба по подразбиране зададен от класа
             $currentTab = $tabsArr['__defaultTab']->name;
@@ -197,6 +205,7 @@ class fileman_Indexes extends core_Manager
         
         // Създаваме рендер на табове
         $tabs = cls::get('core_Tabs', array('htmlClass' => 'alphabet'));
+        $body = '';
         
         // Обикаляме всички табове
         foreach ($tabsArr as $name => $rec) {
@@ -211,7 +220,8 @@ class fileman_Indexes extends core_Manager
                 $urlArr['currentTab'] = $name;
                 $urlArr['#'] = 'fileDetail';
             } else {
-                $urlArr = array($data->fhName => $data->rec->fileHnd, 'currentTab' => $name, '#' => 'fileDetail');
+                $fileHnd = $data->rec->fileHnd ?? ($data->fRec->fileHnd ?? null);
+                $urlArr = array($data->fhName => $fileHnd, 'currentTab' => $name, '#' => 'fileDetail');
 
                 if (!empty($data->retUrl)) {
                     $urlArr['ret_url'] = $data->retUrl;
@@ -272,7 +282,7 @@ class fileman_Indexes extends core_Manager
                 // Вземаме уеб-драйверите за това файлово разширение
                 $res = self::getDriver($nExt, $fArr['name'], $pathArr);
                 
-                if ($res[0] && ($res[0]->className != 'fileman_webdrv_Generic')) {
+                if (!empty($res[0]) && ($res[0]->className != 'fileman_webdrv_Generic')) {
                     
                     return $res;
                 }

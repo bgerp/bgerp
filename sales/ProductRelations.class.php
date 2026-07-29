@@ -171,7 +171,8 @@ class sales_ProductRelations extends core_Manager
         $a = min($aId, $bId);
         $b = max($aId, $bId);
 
-        $res["{$a}|{$b}"] += $points;
+        $key = "{$a}|{$b}";
+        $res[$key] = ($res[$key] ?? 0) + $points;
     }
 
 

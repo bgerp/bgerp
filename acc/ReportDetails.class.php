@@ -70,7 +70,7 @@ class acc_ReportDetails extends core_Manager
         $prepareTab = Request::get($tabParam);
         $data->prepareTab = false;
 
-        if ((!$prepareTab && !($data->masterMvc instanceof cat_Products)) || $prepareTab == 'AccReports') {
+        if ((!$prepareTab && !(($data->masterMvc ?? null) instanceof cat_Products)) || $prepareTab == 'AccReports') {
             $data->prepareTab = true;
         }
 
@@ -210,9 +210,9 @@ class acc_ReportDetails extends core_Manager
                 } else {
                     $objPos = acc_Lists::getPosition($accSysId, $groupBy);
                     if(empty($objPos)){
-                        if($data->masterMvc instanceof crm_Companies){
+                        if(($data->masterMvc ?? null) instanceof crm_Companies){
                             $objPos = acc_Lists::getPosition($accSysId, 'crm_CompanyAccRegIntf');
-                        } elseif($data->masterMvc instanceof crm_Persons){
+                        } elseif(($data->masterMvc ?? null) instanceof crm_Persons){
                             $objPos = acc_Lists::getPosition($accSysId, 'crm_PersonAccRegIntf');
                         }
                     }

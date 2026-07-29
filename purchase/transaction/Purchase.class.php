@@ -132,7 +132,7 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
         }
         
         $transaction = (object) array(
-            'reason' => 'Покупка #' . $rec->id,
+            'reason' => 'Покупка #' . ($rec->id ?? ''),
             'valior' => $rec->valior,
             'entries' => $entries,
         );

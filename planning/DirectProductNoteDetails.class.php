@@ -500,7 +500,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
             unset($iData->listFields['_rowTools']);
         }
         if (isset($iData->listFields['code']) && !isset($fieldset->fields['code'])) {
-            $fieldset->FNC('code', 'varchar', 'tdClass=small-field morePadding nowrap productionCodeColumn');
+            $fieldset->FNC('code', 'varchar', 'tdClass=small-field morePadding nowrap directProductionCodeColumn');
         }
         self::addTableFieldClass($fieldset, 'code', 'rightCol');
         plg_AlignDecimals2::alignDecimals($this, $iData->recs, $iData->rows);

@@ -94,11 +94,14 @@ abstract class store_InternalDocumentDetail extends doc_Detail
             $form->setReadOnly('productId');
         }
 
-        $productType = $rec->productType ?? $masterRec->productType;
+        $productType = $rec->productType ?? ($masterRec->productType ?? null);
+        $detailType = $rec->type ?? null;
+        $isIncoming = ($mvc instanceof store_ConsignmentProtocolDetailsReceived) || $detailType == 'in';
+        $isOutgoing = ($mvc instanceof store_ConsignmentProtocolDetailsSend) || $detailType == 'out';
         $form->_needPrice = true;
-        if($productType == 'ours' && (($mvc instanceof store_ConsignmentProtocolDetailsReceived) || $rec->type == 'in')){
+        if($productType == 'ours' && $isIncoming){
             $form->_needPrice = false;
-        } elseif($productType == 'other' && (($mvc instanceof store_ConsignmentProtocolDetailsSend) || $rec->type == 'out')){
+        } elseif($productType == 'other' && $isOutgoing){
             $form->_needPrice = false;
         }
 
@@ -133,16 +136,18 @@ abstract class store_InternalDocumentDetail extends doc_Detail
         if (!$currencyRate) {
             $form->setError('currencyRate', 'Не може да се изчисли курс');
         }
+
+        $autoPrice = false;
         
-        if ($form->rec->productId) {
+        if (!empty($rec->productId)) {
             $packs = cat_Products::getPacks($rec->productId, $rec->packagingId ?? null);
             $form->setField('packagingId', 'input');
             $form->setOptions('packagingId', $packs);
             $form->setDefault('packagingId', key($packs));
             
             // Слагаме цената от политиката за последна цена
-            if (isset($mvc->LastPricePolicy)) {
-                $policyInfoLast = $mvc->LastPricePolicy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId, $rec->packQuantity, $masterRec->valior, $currencyRate, $rec->chargeVat);
+            if ($form->_needPrice && isset($mvc->LastPricePolicy)) {
+                $policyInfoLast = $mvc->LastPricePolicy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId ?? null, $rec->packQuantity ?? null, $masterRec->valior, $currencyRate, $rec->chargeVat);
                 if ($policyInfoLast->price != 0) {
                     $form->setSuggestions('packPrice', array('' => '', "{$policyInfoLast->price}" => $policyInfoLast->price));
                 }
@@ -154,8 +159,7 @@ abstract class store_InternalDocumentDetail extends doc_Detail
                 $productInfo = cat_Products::getProductInfo($rec->productId);
                 
                 // Ако артикула няма опаковка к-то в опаковка е 1, ако има и вече не е свързана към него е това каквото е било досега, ако още я има опаковката обновяваме к-то в опаковка
-                $rec->quantityInPack = ($productInfo->packagings[$rec->packagingId]) ? $productInfo->packagings[$rec->packagingId]->quantity : 1;
-                $autoPrice = false;
+                $rec->quantityInPack = !empty($productInfo->packagings[$rec->packagingId]) ? $productInfo->packagings[$rec->packagingId]->quantity : 1;
 
                 if (!isset($rec->packPrice) && $form->_needPrice) {
                     $autoPrice = true;
@@ -188,7 +192,7 @@ abstract class store_InternalDocumentDetail extends doc_Detail
             }
             
             if (!isset($rec->packPrice) && (Request::get('Act') != 'CreateProduct') && $form->_needPrice) {
-                $productType = ($rec->productType) ? $rec->productType : $masterRec->productType;
+                $productType = $rec->productType ?? ($masterRec->productType ?? null);
                 $errorMsg = "Артикулът няма цена в избраната ценова политика. Въведете цена";
                 if($productType == 'other'){
                     $errorMsg .= " или - за автоматично попълване на цени - артикулът трябва да е продаваем и да участва в ценова политика към контрагента";
@@ -197,9 +201,9 @@ abstract class store_InternalDocumentDetail extends doc_Detail
             }
 
             // Проверка на цената
-            $quantity = $rec->packQuantity * $rec->quantityInPack;
+            $quantity = ($rec->packQuantity ?? 0) * ($rec->quantityInPack ?? 0);
             $msg = null;
-            if (!deals_Helper::isPriceAllowed($rec->packPrice, $quantity, $autoPrice, $msg)) {
+            if (!deals_Helper::isPriceAllowed($rec->packPrice ?? null, $quantity, $autoPrice, $msg)) {
                 $form->setError('packPrice,packQuantity', $msg);
             }
             
@@ -239,7 +243,7 @@ abstract class store_InternalDocumentDetail extends doc_Detail
 
         foreach ($data->rows as $i => &$row) {
             $rec = &$data->recs[$i];
-            if($data->showCodeColumn){
+            if(!empty($data->showCodeColumn)){
                 $row->productId = cat_Products::getVerbal($rec->productId, 'name');
                 $singleProductUrl = cat_Products::getSingleUrlArray($rec->productId);
                 if(countR($singleProductUrl) && !Mode::isReadOnly()){
@@ -334,7 +338,7 @@ abstract class store_InternalDocumentDetail extends doc_Detail
         $Master = $this->Master;
         
         $pRec = cat_Products::getByCode($row->code);
-        $pRec->packagingId = (isset($pRec->packagingId)) ? $pRec->packagingId : $row->pack;
+        $pRec->packagingId = $pRec->packagingId ?? ($row->pack ?? null);
         $pacRec = cat_products_Packagings::getPack($pRec->productId, $pRec->packagingId);
         $quantityInPack = (is_object($pacRec)) ? $pacRec->quantity : 1;
         
@@ -343,7 +347,7 @@ abstract class store_InternalDocumentDetail extends doc_Detail
         $currencyRate = currency_CurrencyRates::getRate($masterRec->valior, $masterRec->currencyId, acc_Periods::getBaseCurrencyCode($masterRec->valior));
 
         // Ако има цена я обръщаме в основна валута без ддс, спрямо мастъра на детайла
-        if ($row->price) {
+        if (!empty($row->price)) {
             $price = deals_Helper::getPurePrice($row->price, cat_Products::getVat($pRec->productId, $masterRec->valior), $currencyRate, $chargeVat);
         } else {
             $Policy = cls::get('price_ListToCustomers');

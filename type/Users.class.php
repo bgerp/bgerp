@@ -411,8 +411,13 @@ class type_Users extends type_Keylist
     public function fromVerbal_($value)
     {
         $this->prepareOptions();
+
+        if (!isset($value) || $value === '') {
+
+            return;
+        }
         
-        if (isset($value) && empty($this->options[$value])) {
+        if (empty($this->options[$value])) {
             if (type_Keylist::isKeylist($value)) {
 
                 return $value;

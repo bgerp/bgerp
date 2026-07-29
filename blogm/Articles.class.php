@@ -366,7 +366,7 @@ class blogm_Articles extends core_Master
         }
         
         // Ако метода е 'browse' показваме само активните статии
-        if ($data->action == 'browse') {
+        if (($data->action ?? null) == 'browse') {
             
             // Показваме само статиите които са активни
             $data->query->where("#state = 'active'");

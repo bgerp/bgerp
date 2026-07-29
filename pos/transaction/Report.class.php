@@ -137,7 +137,7 @@ class pos_transaction_Report extends acc_DocumentTransactionSource
         }
 
         $transaction = (object) array(
-            'reason' => 'Отчет за POS продажба №' . $rec->id,
+            'reason' => 'Отчет за POS продажба №' . ($rec->id ?? ''),
             'valior' => $rec->valior,
             'totalAmount' => $this->totalAmount,
             'entries' => $entries,
