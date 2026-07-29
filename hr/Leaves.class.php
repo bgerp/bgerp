@@ -385,10 +385,11 @@ class hr_Leaves extends core_Master
             redirect(array('crm_Persons', 'list'), false, '|Липсва избор за служители|*');
         }
         
-        $folderClass = doc_Folders::fetchCoverClassName($rec->folderId);
+        $folderId = $rec->folderId ?? null;
+        $folderClass = isset($folderId) ? doc_Folders::fetchCoverClassName($folderId) : null;
         
-        if ($rec->folderId && $folderClass == 'crm_Persons') {
-            $form->setDefault('personId', doc_Folders::fetchCoverId($rec->folderId));
+        if (isset($folderId) && $folderClass == 'crm_Persons') {
+            $form->setDefault('personId', doc_Folders::fetchCoverId($folderId));
             $form->setReadonly('personId');
             
             if (!haveRole('ceo,hrLeaves')) {
