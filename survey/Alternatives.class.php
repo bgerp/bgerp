@@ -193,6 +193,8 @@ class survey_Alternatives extends core_Detail
         if (!empty($data->rows)) {
             foreach ($data->rows as $row) {
                 $row->count = $count;
+                core_RowToolbar::createIfNotExists($row->_rowTools);
+                $row->tools = $row->_rowTools->renderHtml();
                 $rowTpl = clone($tplAlt);
                 $rowTpl->placeObject($row);
                 $rowTpl->removeBlocks();

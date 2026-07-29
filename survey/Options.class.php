@@ -148,6 +148,8 @@ class survey_Options extends core_Manager
         $row->text = str::mbUcfirst($row->text);
         $tpl->replace($row->text, 'answer');
         $tpl->replace($params, 'data');
+        core_RowToolbar::createIfNotExists($row->_rowTools);
+        $row->tools = $row->_rowTools->renderHtml();
         $tpl->replace($row->tools, 'tools');
         
         // Ако потребителя вече е гласувал, чекваме радио бутона
