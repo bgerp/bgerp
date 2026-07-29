@@ -261,6 +261,7 @@ class acc_Balances extends core_Master
         $conn = $connArr[connection_status()] ?? connection_status();
 
         self::logCalcStep("recalc() ПРЕКЪСНАТ след {$elapsed}с » последна точка: " . (self::$lastStep ?? '-') .
+            ' » при изчитане на ред: ' . (core_Query::$lastFetchStep ?? '-') .
             " » {$errStr} » връзка: {$conn}, ignore_user_abort=" . ini_get('ignore_user_abort') .
             " » пикова памет {$mem}MB (лимит " . ini_get('memory_limit') . ')');
     }
