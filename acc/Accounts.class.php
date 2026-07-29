@@ -25,7 +25,7 @@ class acc_Accounts extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, plg_Created, plg_State2, plg_SaveAndNew, plg_Search, acc_WrapperSettings';
+    public $loadList = 'plg_RowTools2, plg_Created, plg_State2, plg_SaveAndNew, plg_Search, acc_WrapperSettings';
     
     
     /**
@@ -104,14 +104,8 @@ class acc_Accounts extends core_Manager
      * Полета, които ще се показват в листов изглед
      */
     public $listFields = 'id=ID,num,title,type,lists=Номенклатури,systemId,state,tools=Пулт';
-    
-    
-    /**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
-     */
-    public $rowToolsField = 'tools';
-    
-    
+
+
     /**
      * Работен кеш
      */
