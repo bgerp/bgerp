@@ -404,7 +404,7 @@ abstract class deals_DealDetail extends doc_Detail
 
                             // Ако се обновява запис се взима цената от него, ако не от политиката
                             $price = $policyInfo->price;
-                            if (!empty($policyInfo->discount) && !isset($rec->discount)) {
+                            if ($policyInfo->discount && !isset($rec->discount)) {
                                 $rec->discount = $policyInfo->discount;
                             }
                             $rec->autoPrice = true;
@@ -687,7 +687,7 @@ abstract class deals_DealDetail extends doc_Detail
                         }
                         
                         $packPrice = $price * $quantityInPack;
-                        $discount = $policyInfo->discount ?? null;
+                        $discount = $policyInfo->discount;
                     }
                 }
                 

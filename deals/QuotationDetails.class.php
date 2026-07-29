@@ -556,7 +556,7 @@ class deals_QuotationDetails extends doc_Detail
                 }
             }
 
-            if (!empty($rec->discount)) {
+            if ($rec->discount) {
                 $res->discount = $rec->discount;
             }
 

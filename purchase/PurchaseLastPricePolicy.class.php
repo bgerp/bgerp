@@ -88,7 +88,7 @@ class purchase_PurchaseLastPricePolicy extends core_Mvc
             }
 
             $price = deals_Helper::getSmartBaseCurrency($lastRec->price, $lastRec->valior, $date);
-            $rec = (object)array('price' => $price, 'discount' => $lastRec->discount ?? null);
+            $rec = (object)array('price' => $price, 'discount' => $lastRec->discount);
             $vatExceptionId = cond_VatExceptions::getFromThreadId($lastRec->threadId);
         }
 
@@ -98,7 +98,6 @@ class purchase_PurchaseLastPricePolicy extends core_Mvc
         }
 
         unset($rec->threadId);
-        $rec->discount = $rec->discount ?? null;
 
         return $rec;
     }

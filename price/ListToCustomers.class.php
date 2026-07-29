@@ -384,8 +384,6 @@ class price_ListToCustomers extends core_Manager
             $rec->price = deals_Helper::getDisplayPrice($rec->price, $vat, $rate, $chargeVat);
         }
 
-        $rec->discount = $rec->discount ?? null;
-        
         // Връщане на цената
         return $rec;
     }
