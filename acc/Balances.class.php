@@ -194,6 +194,8 @@ class acc_Balances extends core_Master
      */
     public static function logCalcStep($msg, $elapsed = null, $threshold = 0.5)
     {
+        self::markStep($msg);
+
         if (isset($elapsed)) {
             if ($elapsed < $threshold) {
 
@@ -204,6 +206,28 @@ class acc_Balances extends core_Master
         }
 
         log_System::add('acc_Balances', $msg, null, 'debug', 1);
+    }
+
+
+    /**
+     * Последната достигната точка в преизчисляването.
+     *
+     * @see markStep()
+     */
+    private static $lastStep;
+
+
+    /**
+     * Отбелязва докъде е стигнало изпълнението, без да пише в лога.
+     *
+     * Ако процесът бъде прекратен, shutdown хендлърът извежда последната отметка -
+     * така се локализира точният ред без да се наливат записи при всяко пускане.
+     *
+     * @param string $msg
+     */
+    public static function markStep($msg)
+    {
+        self::$lastStep = $msg;
     }
 
 
@@ -232,7 +256,13 @@ class acc_Balances extends core_Master
         $errStr = $err ? "{$err['type']}: {$err['message']} @ {$err['file']}:{$err['line']}" : 'няма регистрирана PHP грешка';
         $mem = round(memory_get_peak_usage(true) / 1048576, 1);
 
-        self::logCalcStep("recalc() ПРЕКЪСНАТ след {$elapsed}с » {$errStr} » пикова памет {$mem}MB (лимит " . ini_get('memory_limit') . ')');
+        // Ако няма нито грешка, нито изключение, остава прекъсната връзка или изричен exit()
+        $connArr = array(0 => 'NORMAL', 1 => 'ABORTED', 2 => 'TIMEOUT', 3 => 'ABORTED+TIMEOUT');
+        $conn = $connArr[connection_status()] ?? connection_status();
+
+        self::logCalcStep("recalc() ПРЕКЪСНАТ след {$elapsed}с » последна точка: " . (self::$lastStep ?? '-') .
+            " » {$errStr} » връзка: {$conn}, ignore_user_abort=" . ini_get('ignore_user_abort') .
+            " » пикова памет {$mem}MB (лимит " . ini_get('memory_limit') . ')');
     }
 
 
@@ -814,8 +844,11 @@ class acc_Balances extends core_Master
         // Изключение тук досега оставаше невидимо - хитът приключваше без да мине през
         // core_Locks::release() и без да отбележи край, което заключваше крон процеса
         try {
+            self::markStep('преди fetch на период #1');
+
             while ($pRec = $pQuery->fetch()) {
                 $periodsCnt++;
+                self::markStep("fetch на период #{$pRec->id} OK");
 
                 $rec = new stdClass();
                 $rec->fromDate = $pRec->start;
@@ -854,7 +887,10 @@ class acc_Balances extends core_Master
                 self::logCalcStep("Период #{$pRec->id} {$rec->fromDate}..{$rec->toDate} END: {$iterCnt} итерации за {$periodTime}с");
 
                 $rc = false;
+                self::markStep('преди fetch на следващ период (след #' . $pRec->id . ')');
             }
+
+            self::markStep('след цикъла по периоди');
         } catch (Throwable $e) {
             self::logCalcStep('recalc() ИЗКЛЮЧЕНИЕ след ' . $periodsCnt . ' периода » ' . get_class($e) . ': ' . $e->getMessage() .
                 ' @ ' . $e->getFile() . ':' . $e->getLine());
@@ -868,8 +904,28 @@ class acc_Balances extends core_Master
             throw $e;
         }
 
+        // Заявката връща ту 0, ту 2 периода - показваме какви състояния реално има,
+        // за да се види дали периодите се затварят/отварят между пусканията
+        if (!$periodsCnt) {
+            $sQuery = acc_Periods::getQuery();
+            $sQuery->show('state');
+            $states = array();
+            while ($sRec = $sQuery->fetch()) {
+                $states[$sRec->state] = ($states[$sRec->state] ?? 0) + 1;
+            }
+
+            $statesStr = array();
+            foreach ($states as $state => $cnt) {
+                $statesStr[] = "{$state}={$cnt}";
+            }
+
+            self::logCalcStep('recalc() 0 периода » състояния в acc_Periods: ' . (countR($statesStr) ? implode(', ', $statesStr) : 'таблицата е празна'));
+        }
+
         // Освобождаваме заключването на процеса
+        self::markStep('преди core_Locks::release()');
         core_Locks::release($lockKey);
+        self::markStep('след core_Locks::release()');
         self::timerStop('recalcBalance');
 
         $totalTime = round(microtime(true) - $recalcStart, 3);
@@ -888,6 +944,8 @@ class acc_Balances extends core_Master
         $data->lastBalance = acc_Balances::getLastBalance();
 
         $this->invoke('AfterRecalcBalances', array($data));
+
+        self::logCalcStep('recalc() ИЗХОД (след AfterRecalcBalances)');
     }
 
 
