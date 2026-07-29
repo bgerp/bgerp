@@ -58,7 +58,9 @@ class sales_SalesLastPricePolicy extends core_Mvc
     public function getPriceInfo($customerClass, $customerId, $productId, $packagingId = null, $quantity = null, $datetime = null, $rate = 1, $chargeVat = 'no', $listId = null, $quotationPriceFirst = true, $discountListId = null)
     {
         $lastPrices = sales_Sales::getLastProductPrices($customerClass, $customerId);
-        if (!array_key_exists($productId, $lastPrices)) return;
+        if (!array_key_exists($productId, $lastPrices)) {
+            return (object) array('price' => null, 'discount' => null);
+        }
 
         $price = is_object($lastPrices[$productId]) ? $lastPrices[$productId]->price : $lastPrices[$productId];
         $valior = is_object($lastPrices[$productId]) ? $lastPrices[$productId]->date : null;
@@ -71,6 +73,6 @@ class sales_SalesLastPricePolicy extends core_Mvc
         $vat = cat_Products::getVat($productId);
         $packPrice = deals_Helper::getDisplayPrice($packPrice, $vat, $rate, $chargeVat);
 
-        return (object) array('price' => deals_Helper::roundPrice($packPrice));
+        return (object) array('price' => deals_Helper::roundPrice($packPrice), 'discount' => null);
     }
 }

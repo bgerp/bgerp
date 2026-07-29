@@ -526,6 +526,7 @@ class deals_QuotationDetails extends doc_Detail
         $query->EXT('mState', $Master, 'externalName=state,externalKey=quotationId');
         $query->EXT('date', $Master, 'externalName=date,externalKey=quotationId');
         $query->EXT('validFor', $Master, 'externalName=validFor,externalKey=quotationId');
+        $query->EXT('threadId', $Master, 'externalName=threadId,externalKey=quotationId');
         $query->XPR('expireOn', 'datetime', 'CAST(DATE_ADD(#date, INTERVAL #validFor SECOND) AS DATE)');
 
         // Филтрираме офертите за да намерим на каква цена последно сме оферирали артикула за посоченото количество
@@ -544,9 +545,10 @@ class deals_QuotationDetails extends doc_Detail
         $rec1 = $query->fetch();
         $rec = is_object($rec1) ? $rec1 : $cloneQuery->fetch();
 
-        $res = (object)array('price' => null);
+        $res = (object)array('price' => null, 'discount' => null);
         if ($rec) {
             $res->price = $rec->price;
+            $res->threadId = $rec->threadId;
             if($me instanceof sales_QuotationsDetails){
                 $fee = sales_TransportValues::get('sales_Quotations', $rec->quotationId, $rec->id);
                 if (is_object($fee) && $fee->fee > 0) {
@@ -554,7 +556,7 @@ class deals_QuotationDetails extends doc_Detail
                 }
             }
 
-            if ($rec->discount) {
+            if (!empty($rec->discount)) {
                 $res->discount = $rec->discount;
             }
 
