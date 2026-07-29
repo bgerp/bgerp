@@ -720,10 +720,10 @@ class sales_TransportValues extends core_Manager
         }
         
         $countryId = null;
-        if ($masterRec->deliveryAdress) {
+        if (!empty($masterRec->deliveryAdress)) {
             if ($parsePlace = drdata_Address::parsePlace($masterRec->deliveryAdress)) {
                 $countryId = $parsePlace->countryId;
-                $PCode = $parsePlace->pCode;
+                $PCode = $parsePlace->pCode ?? null;
             }
         }
 
@@ -742,10 +742,11 @@ class sales_TransportValues extends core_Manager
         }
         
         // Колко е очаквания транспорт
-        $deliveryData = is_array($masterRec->{$map['deliveryData']}) ? $masterRec->{$map['deliveryData']} : array();
-        $deliveryData['deliveryCalcTransport'] = $masterRec->{$map['deliveryCalcTransport']};
+        $deliveryDataValue = $masterRec->{$map['deliveryData']} ?? null;
+        $deliveryData = is_array($deliveryDataValue) ? $deliveryDataValue : array();
+        $deliveryData['deliveryCalcTransport'] = $masterRec->{$map['deliveryCalcTransport']} ?? null;
 
-        $locationId = $masterRec->{$map['deliveryLocationId']};
+        $locationId = $masterRec->{$map['deliveryLocationId']} ?? null;
         if($map['masterMvc'] == 'sales_Quotations'){
             if(!empty($masterRec->{$map['deliveryLocationId']})){
                 if(!is_numeric($masterRec->{$map['deliveryLocationId']})){
