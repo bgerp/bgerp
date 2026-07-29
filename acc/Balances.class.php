@@ -137,6 +137,117 @@ class acc_Balances extends core_Master
 
 
     /**
+     * Натрупани времена за диагностика на преизчисляването.
+     *
+     * Ключ е името на етапа, стойността - масив с 'start', 'total' и 'cnt'.
+     */
+    private static $timings = array();
+
+
+    /**
+     * Пуска хронометър за даден етап от преизчисляването.
+     *
+     * За разлика от core_Debug таймерите, тези се натрупват винаги и се извеждат
+     * в системния лог - при крон дебъг логът на хита е изключен (@see core_Cron::act_ProcessRun).
+     *
+     * @param string $name
+     */
+    public static function timerStart($name)
+    {
+        core_Debug::startTimer($name);
+        self::$timings[$name]['start'] = microtime(true);
+    }
+
+
+    /**
+     * Спира хронометъра за даден етап и натрупва изминалото време
+     *
+     * @param string $name
+     */
+    public static function timerStop($name)
+    {
+        core_Debug::stopTimer($name);
+
+        if (!isset(self::$timings[$name]['start'])) {
+
+            return;
+        }
+
+        self::$timings[$name]['total'] = (self::$timings[$name]['total'] ?? 0) + (microtime(true) - self::$timings[$name]['start']);
+        self::$timings[$name]['cnt'] = (self::$timings[$name]['cnt'] ?? 0) + 1;
+        self::$timings[$name]['start'] = null;
+    }
+
+
+    /**
+     * Записва диагностичен ред за преизчисляването в системния лог с тип 'debug'.
+     *
+     * Използва се вместо core_Debug::log(), защото при пускане по крон дебъг логът
+     * на хита е изключен (@see core_Cron::act_ProcessRun) и там нищо не се вижда.
+     *
+     * Ако е подадено $elapsed, редът се записва само когато етапът е отнел поне
+     * $threshold секунди - иначе ежеминутният крон би наливал стотици записи.
+     *
+     * @param string     $msg
+     * @param float|NULL $elapsed   - времетраене на етапа в секунди
+     * @param float      $threshold - под това време етапът се пропуска
+     */
+    public static function logCalcStep($msg, $elapsed = null, $threshold = 0.5)
+    {
+        if (isset($elapsed)) {
+            if ($elapsed < $threshold) {
+
+                return;
+            }
+
+            $msg .= ' [' . round($elapsed, 2) . 'с]';
+        }
+
+        log_System::add('acc_Balances', $msg, null, 'debug', 1);
+    }
+
+
+    /**
+     * Връща натрупаните времена, подредени от най-бавния етап към най-бързия
+     *
+     * @param int   $topN     - колко етапа да се включат
+     * @param float $minTotal - етапи под това време (сек) се пропускат
+     *
+     * @return string
+     */
+    public static function timersReport($topN = 12, $minTotal = 0.05)
+    {
+        $arr = array();
+        foreach (self::$timings as $name => $t) {
+            if (($t['total'] ?? 0) >= $minTotal) {
+                $arr[$name] = $t;
+            }
+        }
+
+        if (!countR($arr)) {
+
+            return 'без отчетени времена';
+        }
+
+        uasort($arr, function ($a, $b) {
+
+            return $b['total'] <=> $a['total'];
+        });
+
+        $parts = array();
+        $i = 0;
+        foreach ($arr as $name => $t) {
+            if ($i++ >= $topN) {
+                break;
+            }
+            $parts[] = $name . '=' . round($t['total'], 2) . 'с/' . $t['cnt'] . 'х';
+        }
+
+        return implode(', ', $parts);
+    }
+
+
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -456,12 +567,14 @@ class acc_Balances extends core_Master
         }
 
         if ($isValid) {
-            core_Debug::log("BAL forceCalc SKIP (валиден) {$rec->fromDate}..{$rec->toDate}");
 
             return;
         }
 
-        core_Debug::log("BAL forceCalc START {$rec->fromDate}..{$rec->toDate} (periodId=" . ($rec->periodId ?? 'null') . ')');
+        $forceCalcStart = microtime(true);
+
+        // Маркерът е безусловен - по него се вижда докъде е стигнал "увиснал" процес
+        self::logCalcStep("forceCalc START {$rec->fromDate}..{$rec->toDate} (periodId=" . ($rec->periodId ?? 'null') . ')');
 
         // Днешна дата
         $today = dt::today();
@@ -474,17 +587,18 @@ class acc_Balances extends core_Master
                 $prevRec->toDate = $prevWorkingDay;
                 $prevRec->periodId = null;
 
-                core_Debug::log("BAL   междинен баланс до {$prevWorkingDay} - START");
-                core_Debug::startTimer('BAL_MIDDLE_FORCECALC');
+                $stepStart = microtime(true);
+                self::timerStart('BAL_MIDDLE_FORCECALC');
                 self::forceCalc($prevRec);
-                core_Debug::stopTimer('BAL_MIDDLE_FORCECALC');
-                core_Debug::log("BAL   междинен баланс до {$prevWorkingDay} - END");
+                self::timerStop('BAL_MIDDLE_FORCECALC');
+                self::logCalcStep("  междинен баланс до {$prevWorkingDay}", microtime(true) - $stepStart);
 
                 $fromDate = $prevRec->fromDate;
                 $toDate = $prevRec->toDate;
 
                 // Намираме и изтриваме всички баланси, които нямат период и не се отнасят за предишния ден
-                core_Debug::startTimer('BAL_DELETE_OLD_MIDDLE');
+                $stepStart = microtime(true);
+                self::timerStart('BAL_DELETE_OLD_MIDDLE');
                 $delCnt = 0;
                 $query = self::getQuery();
                 while ($delRec = $query->fetch("(#fromDate != '{$fromDate}' OR #toDate != '{$toDate}') AND #periodId IS NULL")) {
@@ -492,31 +606,33 @@ class acc_Balances extends core_Master
                     self::delete($delRec->id);
                     $delCnt++;
                 }
-                core_Debug::stopTimer('BAL_DELETE_OLD_MIDDLE');
+                self::timerStop('BAL_DELETE_OLD_MIDDLE');
 
                 if ($delCnt) {
-                    core_Debug::log("BAL   изтрити {$delCnt} стари междинни баланса");
+                    self::logCalcStep("  изтрити {$delCnt} стари междинни баланса", microtime(true) - $stepStart);
                 }
             }
         }
 
-        core_Debug::startTimer('BAL_CALC');
+        $stepStart = microtime(true);
+        self::timerStart('BAL_CALC');
         self::calc($rec);
-        core_Debug::stopTimer('BAL_CALC');
-        core_Debug::log("BAL   calc() #1 {$rec->fromDate}..{$rec->toDate} промяна=" . ($rec->lastCalculateChange ?? '-'));
+        self::timerStop('BAL_CALC');
+        self::logCalcStep("  calc() #1 {$rec->fromDate}..{$rec->toDate} промяна=" . ($rec->lastCalculateChange ?? '-'), microtime(true) - $stepStart);
 
         // Преизчисляваме първия баланс, в който има промени още веднъж, за да подаде верни данни на следващите
         static $rc1;
 
         if (!$rc1 && $rec->lastCalculateChange != 'no') {
-            core_Debug::startTimer('BAL_CALC_RC1');
+            $stepStart = microtime(true);
+            self::timerStart('BAL_CALC_RC1');
             self::calc($rec);
-            core_Debug::stopTimer('BAL_CALC_RC1');
-            core_Debug::log("BAL   calc() #2 (rc1) {$rec->fromDate}..{$rec->toDate} промяна=" . ($rec->lastCalculateChange ?? '-'));
+            self::timerStop('BAL_CALC_RC1');
+            self::logCalcStep("  calc() #2 (rc1) {$rec->fromDate}..{$rec->toDate} промяна=" . ($rec->lastCalculateChange ?? '-'), microtime(true) - $stepStart);
             $rc1 = true;
         }
 
-        core_Debug::log("BAL forceCalc END {$rec->fromDate}..{$rec->toDate}");
+        self::logCalcStep("forceCalc END {$rec->fromDate}..{$rec->toDate}", microtime(true) - $forceCalcStart);
 
         return true;
     }
@@ -605,17 +721,21 @@ class acc_Balances extends core_Master
 
         $recalcStart = microtime(true);
 
-        core_Debug::startTimer('recalcBalance');
-        core_Debug::log('BAL recalc() START' . (core_Cron::getCurrentRec() ? ' (cron)' : ' (ръчно)'));
+        self::timerStart('recalcBalance');
+        self::logCalcStep('recalc() START' . (core_Cron::getCurrentRec() ? ' (крон)' : ' (ръчно)'));
 
         // Ако изчисляването е заключено не го изпълняваме
-        core_Debug::startTimer('BAL_INITIAL_LOCK');
+        self::timerStart('BAL_INITIAL_LOCK');
         $gotLock = core_Locks::obtain($lockKey, self::MAX_PERIOD_CALC_TIME, 1);
-        core_Debug::stopTimer('BAL_INITIAL_LOCK');
+        self::timerStop('BAL_INITIAL_LOCK');
 
         if (!$gotLock) {
-            core_Debug::log('BAL recalc() ИЗХОД - заключено от друг процес');
-            $this->logNotice('Изчисляването на баланса е заключено от друг процес');
+
+            // Показваме и колко още държи лока - така се вижда дали лок от "увиснал"
+            // процес блокира следващите крон пускания за цели MAX_PERIOD_CALC_TIME секунди
+            $lockRec = core_Locks::fetch(array("#objectId = '[#1#]'", str::convertToFixedKey($lockKey, 32, 4)), null, false);
+            $lockInfo = $lockRec ? ('изтича след ' . ($lockRec->lockExpire - time()) . ' сек, потребител ' . $lockRec->user) : 'няма запис за лока';
+            self::logCalcStep("recalc() ИЗХОД - заключено от друг процес ({$lockInfo})");
 
             return;
         }
@@ -649,8 +769,6 @@ class acc_Balances extends core_Master
         $periodsCnt = 0;
         $slowest = array('what' => null, 'time' => 0);
 
-        core_Debug::log('BAL прозорец на изчисляване: ' . ($windowStart ? "от {$windowStart}" : 'всички отворени периоди'));
-
         while ($pRec = $pQuery->fetch()) {
             $periodsCnt++;
 
@@ -660,22 +778,21 @@ class acc_Balances extends core_Master
             $rec->periodId = $pRec->id;
 
             $periodStart = microtime(true);
-            core_Debug::log("BAL === Период #{$pRec->id} {$rec->fromDate}..{$rec->toDate} START ===");
 
             // Преизчисляваме първия отворен баланс (когато в него има промени) 9+1 пъти, за да подаде верни данни на следващите
             $j = 0;
             do {
                 $lockStart = microtime(true);
-                core_Debug::startTimer('BAL_LOOP_LOCK');
+                self::timerStart('BAL_LOOP_LOCK');
                 core_Locks::obtain($lockKey, self::MAX_PERIOD_CALC_TIME);
-                core_Debug::stopTimer('BAL_LOOP_LOCK');
+                self::timerStop('BAL_LOOP_LOCK');
                 $lockWait = round(microtime(true) - $lockStart, 3);
 
                 $iterStart = microtime(true);
                 $r = self::forceCalc($rec);
                 $iterTime = round(microtime(true) - $iterStart, 3);
 
-                core_Debug::log("BAL   итерация {$j}: лок {$lockWait}с, forceCalc {$iterTime}с, промяна=" . ($rec->lastCalculateChange ?? '-') . ', преизчислен=' . ($r ? 'да' : 'не'));
+                self::logCalcStep("  период #{$pRec->id} итерация {$j}: лок {$lockWait}с, промяна=" . ($rec->lastCalculateChange ?? '-') . ', преизчислен=' . ($r ? 'да' : 'не'), $iterTime);
 
                 if ($iterTime > $slowest['time']) {
                     $slowest = array('what' => "период {$rec->fromDate}..{$rec->toDate} итерация {$j}", 'time' => $iterTime);
@@ -686,22 +803,24 @@ class acc_Balances extends core_Master
                 }
             } while ($rec->lastCalculateChange != 'no' && $j++ < 9 && $rc);
 
-            $periodTime = round(microtime(true) - $periodStart, 3);
+            $periodTime = microtime(true) - $periodStart;
             $iterCnt = $j + 1;
-            core_Debug::log("BAL === Период #{$pRec->id} {$rec->fromDate}..{$rec->toDate} END: {$periodTime}с за {$iterCnt} итерации ===");
+            self::logCalcStep("Период #{$pRec->id} {$rec->fromDate}..{$rec->toDate}: {$iterCnt} итерации", $periodTime);
 
             $rc = false;
         }
 
         // Освобождаваме заключването на процеса
         core_Locks::release($lockKey);
-        core_Debug::stopTimer('recalcBalance');
+        self::timerStop('recalcBalance');
 
         $totalTime = round(microtime(true) - $recalcStart, 3);
-        core_Debug::log("BAL recalc() END: {$periodsCnt} периода за {$totalTime}с; най-бавно: " . ($slowest['what'] ?? '-') . " ({$slowest['time']}с)");
+        $slowestWhat = $slowest['what'] ?? '-';
 
-        // В системния лог остава само обобщението, детайлите са в дебъг лога
-        $this->logNotice("Преизчисляване: {$periodsCnt} периода за {$totalTime} сек.");
+        // Обобщението е безусловно - по него се вижда всяко пускане и разбивката по етапи
+        self::logCalcStep("recalc() END: {$periodsCnt} периода за {$totalTime} сек." .
+            " » най-бавно: {$slowestWhat} ({$slowest['time']}с)" .
+            ' » етапи: ' . self::timersReport());
 
         // Пораждаме събитие, че баланса е бил преизчислен
         $data->lastBalance = acc_Balances::getLastBalance();
@@ -715,17 +834,7 @@ class acc_Balances extends core_Master
      */
     public function cron_Recalc()
     {
-        // При пускане по крон core_Cron изключва дебъг лога на хита (@see core_Cron::act_ProcessRun).
-        // Включваме го временно, за да може забавянето да се проследи в log_Debug - иначе
-        // таймерите се записват, но времевата линия остава празна.
-        $isLoggingBefore = core_Debug::$isLogging;
-        core_Debug::$isLogging = true;
-
-        try {
-            $this->recalc();
-        } finally {
-            core_Debug::$isLogging = $isLoggingBefore;
-        }
+        $this->recalc();
     }
     
     
