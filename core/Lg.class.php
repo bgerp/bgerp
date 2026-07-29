@@ -149,7 +149,7 @@ class core_Lg extends core_Manager
         }
         
         foreach ($res as $key => $rec) {
-            if ($rec->remove) {
+            if (!empty($rec->remove)) {
                 unset($res[$key]);
             } else {
                 $res[$key]->lg = $lg;
