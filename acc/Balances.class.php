@@ -208,6 +208,35 @@ class acc_Balances extends core_Master
 
 
     /**
+     * Момент на стартиране на текущия recalc(), или NULL ако не тече такъв.
+     *
+     * Служи на shutdown хендлъра да разбере, че процесът е приключил аварийно.
+     */
+    private static $recalcStartedOn;
+
+
+    /**
+     * Извиква се на края на хита. Ако recalc() е започнал, но не е отбелязал край,
+     * значи процесът е убит (фатална грешка, изчерпана памет или време) - точно
+     * това остава невидимо в лога и заключва крон процеса до изтичане на timeLimit.
+     */
+    public static function onRecalcShutdown()
+    {
+        if (!isset(self::$recalcStartedOn)) {
+
+            return;
+        }
+
+        $elapsed = round(microtime(true) - self::$recalcStartedOn, 2);
+        $err = error_get_last();
+        $errStr = $err ? "{$err['type']}: {$err['message']} @ {$err['file']}:{$err['line']}" : 'няма регистрирана PHP грешка';
+        $mem = round(memory_get_peak_usage(true) / 1048576, 1);
+
+        self::logCalcStep("recalc() ПРЕКЪСНАТ след {$elapsed}с » {$errStr} » пикова памет {$mem}MB (лимит " . ini_get('memory_limit') . ')');
+    }
+
+
+    /**
      * Връща натрупаните времена, подредени от най-бавния етап към най-бързия
      *
      * @param int   $topN     - колко етапа да се включат
@@ -567,6 +596,7 @@ class acc_Balances extends core_Master
         }
 
         if ($isValid) {
+            self::logCalcStep("forceCalc ПРОПУСНАТ (валиден) {$rec->fromDate}..{$rec->toDate}");
 
             return;
         }
@@ -724,6 +754,11 @@ class acc_Balances extends core_Master
         self::timerStart('recalcBalance');
         self::logCalcStep('recalc() START' . (core_Cron::getCurrentRec() ? ' (крон)' : ' (ръчно)'));
 
+        // Ако процесът бъде убит (памет/време/фатална грешка), нищо повече не се логва
+        // и крон процесът остава заключен - затова отбелязваме аварийния край
+        self::$recalcStartedOn = $recalcStart;
+        register_shutdown_function(array(__CLASS__, 'onRecalcShutdown'));
+
         // Ако изчисляването е заключено не го изпълняваме
         self::timerStart('BAL_INITIAL_LOCK');
         $gotLock = core_Locks::obtain($lockKey, self::MAX_PERIOD_CALC_TIME, 1);
@@ -736,15 +771,20 @@ class acc_Balances extends core_Master
             $lockRec = core_Locks::fetch(array("#objectId = '[#1#]'", str::convertToFixedKey($lockKey, 32, 4)), null, false);
             $lockInfo = $lockRec ? ('изтича след ' . ($lockRec->lockExpire - time()) . ' сек, потребител ' . $lockRec->user) : 'няма запис за лока';
             self::logCalcStep("recalc() ИЗХОД - заключено от друг процес ({$lockInfo})");
+            self::$recalcStartedOn = null;
 
             return;
         }
+
+        self::logCalcStep('recalc() лок взет');
 
         $data = new stdClass();
         $data->recalcedBalances = array();
         if ($oldLastBalance = acc_Balances::getLastBalance()) {
             $data->oldLastBalance = clone $oldLastBalance;
         }
+
+        self::logCalcStep('recalc() getLastBalance() OK');
 
         // Обикаляме всички активни и чакъщи периоди от по-старите, към по-новите
         // Ако периода се нуждае от прекалкулиране - правим го
@@ -769,6 +809,8 @@ class acc_Balances extends core_Master
         $periodsCnt = 0;
         $slowest = array('what' => null, 'time' => 0);
 
+        self::logCalcStep('recalc() начало на цикъла по периоди' . ($windowStart ? " (от {$windowStart})" : ' (всички отворени)'));
+
         while ($pRec = $pQuery->fetch()) {
             $periodsCnt++;
 
@@ -778,6 +820,7 @@ class acc_Balances extends core_Master
             $rec->periodId = $pRec->id;
 
             $periodStart = microtime(true);
+            self::logCalcStep("Период #{$pRec->id} {$rec->fromDate}..{$rec->toDate} START");
 
             // Преизчисляваме първия отворен баланс (когато в него има промени) 9+1 пъти, за да подаде верни данни на следващите
             $j = 0;
@@ -803,9 +846,9 @@ class acc_Balances extends core_Master
                 }
             } while ($rec->lastCalculateChange != 'no' && $j++ < 9 && $rc);
 
-            $periodTime = microtime(true) - $periodStart;
+            $periodTime = round(microtime(true) - $periodStart, 3);
             $iterCnt = $j + 1;
-            self::logCalcStep("Период #{$pRec->id} {$rec->fromDate}..{$rec->toDate}: {$iterCnt} итерации", $periodTime);
+            self::logCalcStep("Период #{$pRec->id} {$rec->fromDate}..{$rec->toDate} END: {$iterCnt} итерации за {$periodTime}с");
 
             $rc = false;
         }
@@ -820,7 +863,11 @@ class acc_Balances extends core_Master
         // Обобщението е безусловно - по него се вижда всяко пускане и разбивката по етапи
         self::logCalcStep("recalc() END: {$periodsCnt} периода за {$totalTime} сек." .
             " » най-бавно: {$slowestWhat} ({$slowest['time']}с)" .
+            ' » пикова памет ' . round(memory_get_peak_usage(true) / 1048576, 1) . 'MB' .
             ' » етапи: ' . self::timersReport());
+
+        // Стигнахме до край - shutdown хендлърът няма какво да докладва
+        self::$recalcStartedOn = null;
 
         // Пораждаме събитие, че баланса е бил преизчислен
         $data->lastBalance = acc_Balances::getLastBalance();
