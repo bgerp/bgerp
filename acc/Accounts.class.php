@@ -103,7 +103,7 @@ class acc_Accounts extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id=ID,num,title,type,lists=Номенклатури,systemId,state,tools=Пулт';
+    public $listFields = 'id=ID,num,title,type,lists=Номенклатури,systemId,state';
 
 
     /**
@@ -426,8 +426,6 @@ class acc_Accounts extends core_Manager
             $mvc->getVerbal($rec, 'strategy') . '</div>';
         }
     }
-    
-    
     /**
      * Извиква се след SetUp-а на таблицата за модела
      */
