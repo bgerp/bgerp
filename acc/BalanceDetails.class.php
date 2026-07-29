@@ -171,7 +171,7 @@ class acc_BalanceDetails extends core_Detail
                     list($part1, $part2, $part3) = explode('->', $data->listFields[$fld]) + [null, null, null];
                     $data->listFields[$fld] = "{$part1}->{$part2}->{$part3}|* <small>({$baseCurrencyCode})</small>";
                 } else {
-                    list($part1, $part2) = explode('->', $data->listFields[$fld]);
+                    list($part1, $part2) = explode('->', $data->listFields[$fld]) + [null, null];
                     $data->listFields[$fld] = "{$part1}->{$part2}|* <small>({$baseCurrencyCode})</small>";
                 }
             }
@@ -188,6 +188,15 @@ class acc_BalanceDetails extends core_Detail
             $by = null;
             if ($data->groupingForm->isSubmitted()) {
                 $by = (array) $data->groupingForm->rec;
+                $by += [
+                    'grouping1' => null,
+                    'grouping2' => null,
+                    'grouping3' => null,
+                    'feat1' => null,
+                    'feat2' => null,
+                    'feat3' => null,
+                    'sortBy' => null,
+                ];
                 
                 self::modifyListFields($data->listFields, $data->groupingForm->cmd, $by['grouping1'], $by['grouping2'], $by['grouping3'], $by['feat1'], $by['feat2'], $by['feat3']);
                 
@@ -297,7 +306,7 @@ class acc_BalanceDetails extends core_Detail
                 if (isset($rec->{"grouping{$i}"})) {
                     $sortField .= $rec->{"grouping{$i}"};
                 } else {
-                    $sortField .= $usedItems[$rec->{"ent{$i}Id"}];
+                    $sortField .= $usedItems[$rec->{"ent{$i}Id"}] ?? '';
                 }
             }
             
@@ -562,7 +571,7 @@ class acc_BalanceDetails extends core_Detail
         
         $groupedRecs = $groupedIdx = array();
         foreach ($recs as $rec1) {
-            $r = &$groupedIdx[strip_tags($rec1->grouping1)][strip_tags($rec1->grouping2)][strip_tags($rec1->grouping3)];
+            $r = &$groupedIdx[strip_tags($rec1->grouping1 ?? '')][strip_tags($rec1->grouping2 ?? '')][strip_tags($rec1->grouping3 ?? '')];
             
             if (!isset($r)) {
                 $r = new stdClass();
@@ -1004,7 +1013,7 @@ class acc_BalanceDetails extends core_Detail
         $query = self::getQuery();
         while ($rec = $query->fetch("#balanceId = {$balanceId}")) {
             $key    = $rec->accountId . '|' . $rec->ent1Id . '|' . $rec->ent2Id . '|' . $rec->ent3Id;
-            $newRec = $toSave[$key];
+            $newRec = $toSave[$key] ?? null;
             if (isset($newRec)) {
                 if ($newRec->blAmount       != $rec->blAmount       || $newRec->baseAmount     != $rec->baseAmount     ||
                     $newRec->blQuantity     != $rec->blQuantity     || $newRec->baseQuantity   != $rec->baseQuantity   ||
