@@ -3177,8 +3177,9 @@ class planning_Tasks extends core_Master
 
         // Ако има избрано оборудване добавят се параметрите от него и от групата му
         $manualPlanning = planning_Setup::get('MANUAL_ORDER_IN_ASSET');
+        $assetRec = null;
         if (isset($data->listFilter->rec->assetId)) {
-            $assetRec = planning_AssetResources::fetch($data->listFilter->rec->assetId, 'planningParams,groupId');
+            $assetRec = planning_AssetResources::fetch($data->listFilter->rec->assetId, 'planningParams,groupId,assetFolders');
             $plannedParams += keylist::toArray($assetRec->planningParams);
             $groupParams = planning_AssetGroups::fetchField($assetRec->groupId, 'planningParams');
             $plannedParams += keylist::toArray($groupParams);
@@ -3197,12 +3198,32 @@ class planning_Tasks extends core_Master
             $data->listFields = array('packageLink' => 'С пред.') + $data->listFields;
         }
 
-        // Ако има избран център - тези параметри от тях/ ако няма всички параметри от центровете с листвани задачи
+        // Ако има избран Етап, подготвяме данните му еднократно. Неговият Център
+        // участва в наследяването и когато не е избран изрично във филтъра.
+        $productionData = $stepCenterRec = null;
+        if (!empty($data->listFilter->rec->productId)) {
+            $productId = $data->listFilter->rec->productId;
+            if ($Driver = cat_Products::getDriver($productId)) {
+                $productionData = $Driver->getProductionData($productId);
+                $centerId = $productionData['centerId'] ?? null;
+                if (isset($centerId)) {
+                    $stepCenterRec = planning_Centers::fetch($centerId, 'folderId,showTaskPlanningParams');
+                }
+            }
+        }
+
+        // Центровете се наследяват само от изрично избран Център, Машина или Етап.
+        // При напълно празен филтър не се показват динамични планиращи параметри.
         if (empty($data->masterMvc)) {
+            $folderIds = array();
             if (!empty($data->listFilter->rec->folders)) {
                 $folderIds = keylist::toArray($data->listFilter->rec->folders);
-            } else {
-                $folderIds = arr::extractValuesFromArray($data->recs, 'folderId');
+            } elseif (!empty($data->listFilter->rec->assetId)) {
+                // Центровете на машината са част от настройките ѝ и не зависят
+                // от операциите, попаднали в текущия филтър или период.
+                $folderIds = keylist::toArray($assetRec->assetFolders ?? null);
+            } elseif (is_object($stepCenterRec) && !empty($stepCenterRec->folderId)) {
+                $folderIds[$stepCenterRec->folderId] = $stepCenterRec->folderId;
             }
 
             if (countR($folderIds)) {
@@ -3221,23 +3242,16 @@ class planning_Tasks extends core_Master
 
         // Ако има намерени планиращи параметри - показват се в таблицата
         $firstColumnsIfNotSelected = arr::make(array_keys($data->listFields), true);
-    
-        // Параметрите от Етапа да са планиращи (при филтриране по Етап)
-        if(!empty($data->listFilter->rec->productId)){
-            $productId = $data->listFilter->rec->productId;
-            if($Driver = cat_Products::getDriver($productId)){
-                $productionData = $Driver->getProductionData($productId);
-                $centerId = $productionData['centerId'] ?? null;
-                $showTaskPlanningParams = planning_Centers::fetchField($centerId,'showTaskPlanningParams');
 
-                if($showTaskPlanningParams == 'yes'){
-                    $plannedParams = keylist::toArray($productionData['planningParams'] ?? null);
-                } elseif($showTaskPlanningParams == 'yesAdd'){
-                    $plannedParams += keylist::toArray($productionData['planningParams'] ?? null);
-                }
+        // Параметрите от Етапа да са планиращи (при филтриране по Етап)
+        if (is_array($productionData) && is_object($stepCenterRec)) {
+            if ($stepCenterRec->showTaskPlanningParams == 'yes') {
+                $plannedParams = keylist::toArray($productionData['planningParams'] ?? null);
+            } elseif ($stepCenterRec->showTaskPlanningParams == 'yesAdd') {
+                $plannedParams += keylist::toArray($productionData['planningParams'] ?? null);
             }
         }
-       
+
         if (countR($plannedParams)) {
             $pQuery = cat_Params::getQuery();
             $pQuery->in('id', $plannedParams);
