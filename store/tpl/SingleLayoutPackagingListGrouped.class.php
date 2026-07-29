@@ -193,6 +193,18 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
         $unsetWeightCol = $unsetNetWeightCol = $unsetTareWeightCol = false;
         foreach ($data->tariffCodes as $tariffNumber => $tariffObject) {
             $tariffCodeRec = store_ShipmentOrderTariffCodeSummary::getRec($masterRec->id, $tariffNumber);
+            if (!$tariffCodeRec) {
+                $tariffCodeRec = (object)array(
+                    'typeOfPacking' => null,
+                    'weight' => null,
+                    'netWeight' => null,
+                    'tareWeight' => null,
+                    'amount' => null,
+                    'displayTariffCode' => null,
+                    'displayDescription' => null,
+                    'transUnits' => null,
+                );
+            }
             $typeOfPacking = $tariffCodeRec->typeOfPacking;
             $typeOfPackingVerbal = null;
             if(empty($typeOfPacking)){
