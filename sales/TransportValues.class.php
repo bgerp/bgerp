@@ -140,11 +140,11 @@ class sales_TransportValues extends core_Manager
         $totalVolumicWeight = self::normalizeTotalWeight($totalVolumicWeight, $productId, $TransportCostDriver, $deliveryTermId, $deliveryData);
         $totalFee = $TransportCostDriver->getTransportFee($deliveryTermId, $volumicWeight, $totalVolumicWeight, $deliveryData, $valior);
         
-        $fee = $totalFee['fee'];
+        $fee = $totalFee['fee'] ?? null;
         
         $res = array('totalFee' => $fee);
         
-        if ($fee > 0) {
+        if ($fee > 0 && !empty($quantity)) {
             $res['singleFee'] = $fee / $quantity;
         }
         
@@ -567,13 +567,14 @@ class sales_TransportValues extends core_Manager
     public static function getCostArray($deliveryTermId, $contragentClassId, $contragentId, $productId, $packagingId, $quantity, $deliveryLocationId, $countryId = null, $pCode = null, $params = array(), $valior = null)
     {
         //  Ако изрично е забранено начисляване не се начислява
-        if($params['deliveryCalcTransport'] == 'no' || empty($productId)) {
+        $deliveryCalcTransport = $params['deliveryCalcTransport'] ?? null;
+        if($deliveryCalcTransport == 'no' || empty($productId)) {
 
             return;
         }
         
         // Ако може да се изчислява скрит транспорт
-        if ($params['deliveryCalcTransport'] != 'yes' || !cond_DeliveryTerms::canCalcHiddenCost($deliveryTermId, $productId)) {
+        if ($deliveryCalcTransport != 'yes' || !cond_DeliveryTerms::canCalcHiddenCost($deliveryTermId, $productId)) {
 
             return;
         }
@@ -675,7 +676,7 @@ class sales_TransportValues extends core_Manager
         $params = $params + array('deliveryCountry' => $codeAndCountryArr['countryId'], 'deliveryPCode' => $codeAndCountryArr['pCode'], 'fromCountry' => $ourCompany->country, 'fromPostalCode' => $ourCompany->pCode);
         $totalFee = $Driver->getTransportFee($deliveryTermId, 1, 1000, $params);
         
-        if ($totalFee['fee'] < 0) {
+        if (($totalFee['fee'] ?? null) < 0) {
             $toCountryId = core_Type::getByName('key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg)')->toVerbal($codeAndCountryArr['countryId']);
             $errAddress = cond_DeliveryTerms::getVerbal($deliveryTermId, 'codeName') . ', ' . $toCountryId . ' ' . $codeAndCountryArr['pCode'];
             
@@ -812,7 +813,7 @@ class sales_TransportValues extends core_Manager
         
         if (($rec->autoPrice ?? null) !== true) {
             if (cond_DeliveryTerms::canCalcHiddenCost($deliveryTermId, $productId)) {
-                if (isset($rec->{$map['price']}) && isset($quantity)) {
+                if (isset($rec->{$map['price']}) && isset($quantity) && isset($rec->fee) && !empty($currencyRate)) {
                     // Проверка дали цената е допустима спрямо сумата на транспорта
                     $amount = round($rec->{$map['price']} * $quantity, 2);
                     
@@ -942,9 +943,9 @@ class sales_TransportValues extends core_Manager
         if (!is_object($TransportCostDriver)) return;
 
         // Изчисляване на дефолтния транспорт
-        $countryId = $deliveryData['countryId'];
-        $pCode = $deliveryData['pCode'];
-        $locationId = $deliveryData['locationId'];
+        $countryId = $deliveryData['countryId'] ?? null;
+        $pCode = $deliveryData['pCode'] ?? null;
+        $locationId = $deliveryData['locationId'] ?? null;
         $deliveryData['deliveryCalcTransport'] = 'yes';
         $packagingId = isset($packagingId) ? $packagingId : cat_Products::fetchField($productId, 'measureId');
 
