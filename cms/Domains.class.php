@@ -261,14 +261,20 @@ class cms_Domains extends core_Embedder
      */
     public static function getPublicDomain($part = null, $lang = null, $getCurrentDomainId = true)
     {
+        // ВРЕМЕННА ДИАГНОСТИКА @see core_Query::$fetchTrail
+        core_Query::markFetchStep('cms_Domains::getPublicDomain вход (getCurrentDomainId=' . ($getCurrentDomainId ? 'да' : 'не') . ', кеширан=' . (Mode::get(self::CMS_CURRENT_DOMAIN_REC) ? 'да' : 'не') . ')');
+
         $domainRec = Mode::get(self::CMS_CURRENT_DOMAIN_REC);
 
         if ($getCurrentDomainId) {
             $domainId = cms_Domains::getCurrent('id', false);
+            core_Query::markFetchStep('cms_Domains::getPublicDomain след getCurrent (domainId=' . ($domainId ?? 'null') . ')');
         }
 
         if (isset($domainId) && (!isset($domainRec) || ($domainRec->id != $domainId))) {
+            core_Query::markFetchStep('cms_Domains::getPublicDomain → setPublicDomain(' . $domainId . ')');
             self::setPublicDomain($domainId);
+            core_Query::markFetchStep('cms_Domains::getPublicDomain ← setPublicDomain OK');
             $domainRec = Mode::get(self::CMS_CURRENT_DOMAIN_REC);
         }
         
@@ -339,6 +345,25 @@ class cms_Domains extends core_Embedder
     
     
     /**
+     * Дали хитът е вътрешен (крон, CLI), а не заявка от браузър към публичния сайт.
+     *
+     * При такива хитове хостът е служебен и не бива да се прави редирект към
+     * публичния домейн - редиректът прекратява изпълнението.
+     *
+     * @return bool
+     */
+    private static function isInternalHit()
+    {
+        if (php_sapi_name() === 'cli' || empty($_SERVER['HTTP_HOST'])) {
+
+            return true;
+        }
+
+        return (bool) core_Cron::getCurrentRec();
+    }
+
+
+    /**
      * Задава текущия публичен домейн
      */
     public static function setPublicDomain($id)
@@ -357,15 +382,23 @@ class cms_Domains extends core_Embedder
         $newHost = ($rec->domain == 'localhost') ? $mainHost : $rec->domain;
         $requestMethod = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 
-        if(($newHost != $rec->actualDomain) && $requestMethod === 'GET') {
+        // Редиректът има смисъл само за реална заявка към публичния сайт. При крон,
+        // CLI и други вътрешни извиквания хостът е служебен, така че несъответствието
+        // е нормално - а redirect() прекратява хита с exit() (@see core_App::redirect),
+        // което убива процеса насред работата му, без грешка и без изключение
+        // ВРЕМЕННА ДИАГНОСТИКА @see core_Query::$fetchTrail
+        core_Query::markFetchStep("cms_Domains::setPublicDomain (домейн='{$rec->domain}', реален='{$rec->actualDomain}', нов='{$newHost}', метод={$requestMethod}, вътрешен=" . (self::isInternalHit() ? 'да' : 'не') . ')');
+
+        if(($newHost != $rec->actualDomain) && $requestMethod === 'GET' && !self::isInternalHit()) {
             $httpHost = $_SERVER['HTTP_HOST'] ?? '';
             $requestUri = $_SERVER['REQUEST_URI'] ?? '/';
             $url = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://{$httpHost}{$requestUri}";
             $newUrl = core_Url::change($url, array(), $newHost);
-            
+
+            core_Query::markFetchStep("cms_Domains::setPublicDomain РЕДИРЕКТ към {$newUrl} - тук хитът приключва");
             redirect($newUrl, false, null,'notice', true);
         }
-        
+
         Mode::setPermanent(self::CMS_CURRENT_DOMAIN_REC, $rec);
     }
     
