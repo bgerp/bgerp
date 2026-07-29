@@ -431,6 +431,7 @@ class batch_plg_InventoryNotes extends core_Plugin
         $obj = (object) array('docId' => $rec->id, 'docType' => store_InventoryNotes::getClassId(), 'date' => $valior);
         $dQuery = store_InventoryNoteSummary::getQuery();
         $dQuery->where("#noteId = {$rec->id}");
+        $result = true;
         while ($dRec = $dQuery->fetch()) {
             try {
                 $summary = self::getBatchSummary($dRec->noteId, $dRec->productId, 0, $storeId, $valior);
