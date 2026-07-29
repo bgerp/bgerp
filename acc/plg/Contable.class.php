@@ -479,7 +479,9 @@ class acc_plg_Contable extends core_Plugin
     public static function checkPeriod($valior, &$error)
     {
         $docPeriod = acc_Periods::fetchByDate($valior);
-        
+        if(haveRole('debug')){
+            bp($docPeriod, $valior, cash_Pko::fetch(3));
+        }
         if ($docPeriod) {
             if ($docPeriod->state == 'closed') {
                 $error = "Не може да се контира в затворения сч. период|* \'{$docPeriod->title}\'";
