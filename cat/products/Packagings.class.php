@@ -570,7 +570,8 @@ class cat_products_Packagings extends core_Detail
                 // Ако драйвера няма втора мярка, и това ще е първата различна мярка, тя по-дефолт ще е втора
                 if (!array_key_exists($rec->packagingId, $derivitiveMeasures)) {
                     $form->setField('isSecondMeasure', 'input');
-                    $alreadyHaveSecondMeasure = cat_products_Packagings::fetchField("#productId = {$rec->productId} AND #isSecondMeasure = 'yes' AND #id != '{$rec->id}'");
+                    $recId = $rec->id ?? 0;
+                    $alreadyHaveSecondMeasure = cat_products_Packagings::fetchField("#productId = {$rec->productId} AND #isSecondMeasure = 'yes' AND #id != '{$recId}'");
                     if ($alreadyHaveSecondMeasure) {
                         $form->setDefault('isSecondMeasure', 'no');
                     } else {
