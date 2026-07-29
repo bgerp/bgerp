@@ -113,7 +113,8 @@ class store_ShipmentOrderTariffCodeSummary extends core_Manager
         $shipmentRec = store_ShipmentOrders::fetch($shipmentId);
 
         $form = static::getForm();
-        $form->title = core_Detail::getEditTitle('store_ShipmentOrders', $shipmentId, 'митническа информация', $exRec->id);
+        $exRecId = is_object($exRec) ? $exRec->id : null;
+        $form->title = core_Detail::getEditTitle('store_ShipmentOrders', $shipmentId, 'митническа информация', $exRecId);
         $form->input(null, 'silent');
         $dCode = ($form->rec->tariffCode == store_tpl_SingleLayoutPackagingListGrouped::EMPTY_TARIFF_NUMBER) ? tr('Без тарифен код') : $form->rec->tariffCode;
         $form->setField('displayTariffCode', "placeholder={$dCode},caption=Митнически код|*: <b>{$dCode}</b>->Код");
