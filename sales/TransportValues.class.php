@@ -707,6 +707,11 @@ class sales_TransportValues extends core_Manager
         }
 
         $map = array_merge(self::$map, $map);
+        $productFld = $map['productId'];
+
+        if (!isset($rec->{$productFld})) {
+            return;
+        }
 
         // Имали вече начислен транспорт
         if (!empty($rec->id) && ($cRec = self::get($map['masterMvc'], $masterRec->id, $rec->id))) {
@@ -728,14 +733,12 @@ class sales_TransportValues extends core_Manager
         }
         
         // Ако драйвера не иска да се начислява цената да не се начислява
-        if (isset($rec->{$map['productId']})) {
-            $Driver = cat_Products::getDriver($rec->{$map['productId']});
-            if(!is_object($Driver)) return;
+        $Driver = cat_Products::getDriver($rec->{$productFld});
+        if(!is_object($Driver)) return;
+
+        if (!$Driver->canCalcTransportFee($rec->{$productFld})) {
             
-            if (!$Driver->canCalcTransportFee($rec->{$map['productId']})) {
-                
-                return;
-            }
+            return;
         }
         
         // Колко е очаквания транспорт
@@ -753,7 +756,7 @@ class sales_TransportValues extends core_Manager
             }
         }
 
-        $feeArr = self::getCostArray($masterRec->{$map['deliveryTermId']}, $masterRec->{$map['contragentClassId']}, $masterRec->{$map['contragentId']}, $rec->{$map['productId']}, $rec->{$map['packagingId']}, $rec->{$map['quantity']}, $locationId, $countryId, $PCode, $deliveryData, $masterRec->{$map['valior']});
+        $feeArr = self::getCostArray($masterRec->{$map['deliveryTermId']}, $masterRec->{$map['contragentClassId']}, $masterRec->{$map['contragentId']}, $rec->{$productFld}, $rec->{$map['packagingId']}, $rec->{$map['quantity']}, $locationId, $countryId, $PCode, $deliveryData, $masterRec->{$map['valior']});
         
         // Ако има такъв към цената се добавя
         if (is_array($feeArr)) {
@@ -772,7 +775,7 @@ class sales_TransportValues extends core_Manager
                     $newFee = $feeArr['totalFee'] / $rec->{$map['quantity']};
                     $newFee = $newFee / $masterRec->{$map['currencyRate']};
                     if ($masterRec->{$map['chargeVat']} == 'yes') {
-                        $vat = cat_Products::getVat($rec->productId, $masterRec->{$map['valior']}, $masterRec->vatExceptionId);
+                        $vat = cat_Products::getVat($rec->{$productFld}, $masterRec->{$map['valior']}, $masterRec->vatExceptionId);
                         $newFee = $newFee * (1 + $vat);
                     }
                     
@@ -795,7 +798,7 @@ class sales_TransportValues extends core_Manager
         }
         
         if (($rec->autoPrice ?? null) !== true) {
-            if (cond_DeliveryTerms::canCalcHiddenCost($masterRec->deliveryTermId, $rec->productId)) {
+            if (cond_DeliveryTerms::canCalcHiddenCost($masterRec->deliveryTermId, $rec->{$productFld})) {
                 if (isset($rec->{$map['price']})) {
                     // Проверка дали цената е допустима спрямо сумата на транспорта
                     $amount = round($rec->{$map['price']} * $rec->{$map['quantity']}, 2);
