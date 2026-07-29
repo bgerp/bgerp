@@ -844,11 +844,11 @@ class acc_Balances extends core_Master
         // Изключение тук досега оставаше невидимо - хитът приключваше без да мине през
         // core_Locks::release() и без да отбележи край, което заключваше крон процеса
         try {
-            self::markStep('преди fetch на период #1');
+            self::markStep('преди fetch на период №1');
 
             while ($pRec = $pQuery->fetch()) {
                 $periodsCnt++;
-                self::markStep("fetch на период #{$pRec->id} OK");
+                self::markStep("fetch на период №{$pRec->id} OK");
 
                 $rec = new stdClass();
                 $rec->fromDate = $pRec->start;
@@ -856,7 +856,7 @@ class acc_Balances extends core_Master
                 $rec->periodId = $pRec->id;
 
                 $periodStart = microtime(true);
-                self::logCalcStep("Период #{$pRec->id} {$rec->fromDate}..{$rec->toDate} START");
+                self::logCalcStep("Период №{$pRec->id} {$rec->fromDate}..{$rec->toDate} START");
 
                 // Преизчисляваме първия отворен баланс (когато в него има промени) 9+1 пъти, за да подаде верни данни на следващите
                 $j = 0;
@@ -871,7 +871,7 @@ class acc_Balances extends core_Master
                     $r = self::forceCalc($rec);
                     $iterTime = round(microtime(true) - $iterStart, 3);
 
-                    self::logCalcStep("  период #{$pRec->id} итерация {$j}: лок {$lockWait}с, промяна=" . ($rec->lastCalculateChange ?? '-') . ', преизчислен=' . ($r ? 'да' : 'не'), $iterTime);
+                    self::logCalcStep("  период №{$pRec->id} итерация {$j}: лок {$lockWait}с, промяна=" . ($rec->lastCalculateChange ?? '-') . ', преизчислен=' . ($r ? 'да' : 'не'), $iterTime);
 
                     if ($iterTime > $slowest['time']) {
                         $slowest = array('what' => "период {$rec->fromDate}..{$rec->toDate} итерация {$j}", 'time' => $iterTime);
@@ -884,10 +884,10 @@ class acc_Balances extends core_Master
 
                 $periodTime = round(microtime(true) - $periodStart, 3);
                 $iterCnt = $j + 1;
-                self::logCalcStep("Период #{$pRec->id} {$rec->fromDate}..{$rec->toDate} END: {$iterCnt} итерации за {$periodTime}с");
+                self::logCalcStep("Период №{$pRec->id} {$rec->fromDate}..{$rec->toDate} END: {$iterCnt} итерации за {$periodTime}с");
 
                 $rc = false;
-                self::markStep('преди fetch на следващ период (след #' . $pRec->id . ')');
+                self::markStep('преди fetch на следващ период (след №' . $pRec->id . ')');
             }
 
             self::markStep('след цикъла по периоди');

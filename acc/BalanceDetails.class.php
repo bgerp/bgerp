@@ -1052,7 +1052,7 @@ class acc_BalanceDetails extends core_Detail
             $res = true;
         }
 
-        acc_Balances::logCalcStep("    saveBalance #{$balanceId}: подготвени {$preparedCnt}, записани " . countR($toSave) . ', изтрити ' . countR($toDelete) . ', промяна=' . ($res ? 'да' : 'не'), microtime(true) - $saveStart);
+        acc_Balances::logCalcStep("    saveBalance №{$balanceId}: подготвени {$preparedCnt}, записани " . countR($toSave) . ', изтрити ' . countR($toDelete) . ', промяна=' . ($res ? 'да' : 'не'), microtime(true) - $saveStart);
 
         unset($this->balance, $this->strategies);
 
@@ -1192,7 +1192,7 @@ class acc_BalanceDetails extends core_Detail
         }
 
         acc_Balances::timerStop('BAL_LOAD_BALANCE');
-        acc_Balances::logCalcStep("    loadBalance #{$balanceId}: заредени {$loadedCnt} реда (междинен=" . ($isMiddleBalance ? 'да' : 'не') . ')', microtime(true) - $loadStart);
+        acc_Balances::logCalcStep("    loadBalance №{$balanceId}: заредени {$loadedCnt} реда (междинен=" . ($isMiddleBalance ? 'да' : 'не') . ')', microtime(true) - $loadStart);
 
         if ($tracing) {
             acc_BalanceDebugger::log('load_balance_rows', $loadedRows);
