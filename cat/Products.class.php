@@ -485,7 +485,7 @@ class cat_Products extends embed_Manager
                 }
 
                 // При клониране се използва кода на клонирания артикул
-                if(($data->action ?? null) == 'clone'){
+                if(($data->action ?? null) == 'clone' && !empty($rec->clonedFromId)){
                     if($clonedCode = cat_Products::fetchField($rec->clonedFromId, 'code')){
                         $lastCode = $clonedCode;
                     }

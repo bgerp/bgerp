@@ -1434,7 +1434,7 @@ abstract class store_DocumentMaster extends core_Master
     public function getDetailsToCloneAndChange_($rec)
     {
         $Detail = cls::get($this->mainDetail);
-        $id = $rec->clonedFromId;
+        $id = $rec->clonedFromId ?? null;
 
         // Ако е създаден като обратен документ взима детайлите от него
         if (isset($rec->reverseContainerId) && empty($rec->id)) {
