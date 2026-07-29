@@ -839,7 +839,7 @@ class acc_BalanceDetails extends core_Detail
         
         if ($form->isSubmitted()) {
             foreach (range(1, 3) as $i) {
-                if ($form->rec->{"grouping{$i}"} && $form->rec->{"feat{$i}"}) {
+                if (!empty($form->rec->{"grouping{$i}"}) && !empty($form->rec->{"feat{$i}"})) {
                     $form->setError("grouping{$i},feat{$i}", 'Не може да са избрани едновременно перо и свойтво за една позиция');
                 }
             }
