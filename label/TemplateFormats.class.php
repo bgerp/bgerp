@@ -52,7 +52,7 @@ class label_TemplateFormats extends core_Detail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'label_Wrapper, plg_RowTools, plg_SaveAndNew';
+    public $loadList = 'label_Wrapper, plg_RowTools2, plg_SaveAndNew';
     
     
     /**
@@ -62,9 +62,6 @@ class label_TemplateFormats extends core_Detail
     
     
     public $listFields = 'type, placeHolder, formatParams';
-    
-    
-    public $rowToolsField = 'type';
     
     
     /**
