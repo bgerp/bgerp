@@ -844,7 +844,15 @@ class acc_Balances extends core_Master
         // Изключение тук досега оставаше невидимо - хитът приключваше без да мине през
         // core_Locks::release() и без да отбележи край, което заключваше крон процеса
         try {
-            self::markStep('преди fetch на период №1');
+
+            // Изпълняваме SQL-а отделно от изчитането на редовете. Така отметките
+            // разделят двете фази: изпълнение на заявката срещу обработка на реда
+            // (типове на полетата и Calc хендлърите на виртуалните полета)
+            self::markStep('преди select() на периодите - изпълнение на SQL');
+            $selectedCnt = $pQuery->select();
+            self::markStep('след select() - SQL изпълнен, преди първи fetch');
+
+            self::logCalcStep('recalc() SQL за периодите върна ' . (int) $selectedCnt . ' реда');
 
             while ($pRec = $pQuery->fetch()) {
                 $periodsCnt++;
