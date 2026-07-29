@@ -50,12 +50,12 @@ class core_Query extends core_FieldSet
      *
      * @param string $msg
      */
-    protected static function markFetchStep($msg)
+    public static function markFetchStep($msg)
     {
         self::$lastFetchStep = $msg;
 
         self::$fetchTrail[] = $msg;
-        if (countR(self::$fetchTrail) > 24) {
+        if (countR(self::$fetchTrail) > 60) {
             array_shift(self::$fetchTrail);
         }
     }
