@@ -811,46 +811,61 @@ class acc_Balances extends core_Master
 
         self::logCalcStep('recalc() начало на цикъла по периоди' . ($windowStart ? " (от {$windowStart})" : ' (всички отворени)'));
 
-        while ($pRec = $pQuery->fetch()) {
-            $periodsCnt++;
+        // Изключение тук досега оставаше невидимо - хитът приключваше без да мине през
+        // core_Locks::release() и без да отбележи край, което заключваше крон процеса
+        try {
+            while ($pRec = $pQuery->fetch()) {
+                $periodsCnt++;
 
-            $rec = new stdClass();
-            $rec->fromDate = $pRec->start;
-            $rec->toDate = $pRec->end;
-            $rec->periodId = $pRec->id;
+                $rec = new stdClass();
+                $rec->fromDate = $pRec->start;
+                $rec->toDate = $pRec->end;
+                $rec->periodId = $pRec->id;
 
-            $periodStart = microtime(true);
-            self::logCalcStep("Период #{$pRec->id} {$rec->fromDate}..{$rec->toDate} START");
+                $periodStart = microtime(true);
+                self::logCalcStep("Период #{$pRec->id} {$rec->fromDate}..{$rec->toDate} START");
 
-            // Преизчисляваме първия отворен баланс (когато в него има промени) 9+1 пъти, за да подаде верни данни на следващите
-            $j = 0;
-            do {
-                $lockStart = microtime(true);
-                self::timerStart('BAL_LOOP_LOCK');
-                core_Locks::obtain($lockKey, self::MAX_PERIOD_CALC_TIME);
-                self::timerStop('BAL_LOOP_LOCK');
-                $lockWait = round(microtime(true) - $lockStart, 3);
+                // Преизчисляваме първия отворен баланс (когато в него има промени) 9+1 пъти, за да подаде верни данни на следващите
+                $j = 0;
+                do {
+                    $lockStart = microtime(true);
+                    self::timerStart('BAL_LOOP_LOCK');
+                    core_Locks::obtain($lockKey, self::MAX_PERIOD_CALC_TIME);
+                    self::timerStop('BAL_LOOP_LOCK');
+                    $lockWait = round(microtime(true) - $lockStart, 3);
 
-                $iterStart = microtime(true);
-                $r = self::forceCalc($rec);
-                $iterTime = round(microtime(true) - $iterStart, 3);
+                    $iterStart = microtime(true);
+                    $r = self::forceCalc($rec);
+                    $iterTime = round(microtime(true) - $iterStart, 3);
 
-                self::logCalcStep("  период #{$pRec->id} итерация {$j}: лок {$lockWait}с, промяна=" . ($rec->lastCalculateChange ?? '-') . ', преизчислен=' . ($r ? 'да' : 'не'), $iterTime);
+                    self::logCalcStep("  период #{$pRec->id} итерация {$j}: лок {$lockWait}с, промяна=" . ($rec->lastCalculateChange ?? '-') . ', преизчислен=' . ($r ? 'да' : 'не'), $iterTime);
 
-                if ($iterTime > $slowest['time']) {
-                    $slowest = array('what' => "период {$rec->fromDate}..{$rec->toDate} итерация {$j}", 'time' => $iterTime);
-                }
+                    if ($iterTime > $slowest['time']) {
+                        $slowest = array('what' => "период {$rec->fromDate}..{$rec->toDate} итерация {$j}", 'time' => $iterTime);
+                    }
 
-                if($r){
-                    $data->recalcedBalances[$rec->toDate] = $rec;
-                }
-            } while ($rec->lastCalculateChange != 'no' && $j++ < 9 && $rc);
+                    if($r){
+                        $data->recalcedBalances[$rec->toDate] = $rec;
+                    }
+                } while ($rec->lastCalculateChange != 'no' && $j++ < 9 && $rc);
 
-            $periodTime = round(microtime(true) - $periodStart, 3);
-            $iterCnt = $j + 1;
-            self::logCalcStep("Период #{$pRec->id} {$rec->fromDate}..{$rec->toDate} END: {$iterCnt} итерации за {$periodTime}с");
+                $periodTime = round(microtime(true) - $periodStart, 3);
+                $iterCnt = $j + 1;
+                self::logCalcStep("Период #{$pRec->id} {$rec->fromDate}..{$rec->toDate} END: {$iterCnt} итерации за {$periodTime}с");
 
-            $rc = false;
+                $rc = false;
+            }
+        } catch (Throwable $e) {
+            self::logCalcStep('recalc() ИЗКЛЮЧЕНИЕ след ' . $periodsCnt . ' периода » ' . get_class($e) . ': ' . $e->getMessage() .
+                ' @ ' . $e->getFile() . ':' . $e->getLine());
+            self::logCalcStep('recalc() стек » ' . str_replace("\n", ' | ', $e->getTraceAsString()));
+
+            // Освобождаваме лока, преди да върнем изключението нагоре - иначе остава
+            // зает до MAX_PERIOD_CALC_TIME и блокира следващите крон пускания
+            core_Locks::release($lockKey);
+            self::$recalcStartedOn = null;
+
+            throw $e;
         }
 
         // Освобождаваме заключването на процеса
