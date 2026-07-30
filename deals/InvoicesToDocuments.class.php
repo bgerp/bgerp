@@ -294,6 +294,29 @@ class deals_InvoicesToDocuments extends core_Manager
                         $form->setError('invoicesList', "Сумата на КИ трябва да е точно толкова колкото е сумата на сконтото на РБД-то|*: <b>{$amountCashDiscount} {$currencyCode}</b>");
                     }
                 }
+            } elseif($Document instanceof store_ShipmentOrders){
+
+                // Предупреждение ако обвързаната по ЕН-та (текущото + вече съществуващите от други ЕН/Приемания/Проформи) сума надвишава стойността на ф-та
+                $amountWarnings = array();
+                foreach ($invArr as $iRec){
+                    if(empty($iRec->amount)) continue;
+
+                    $expectedAmountToPayData = static::getExpectedAmountToPay($iRec->containerId, $rec->containerId, true, true);
+                    $eAmount = round(currency_CurrencyRates::convertAmount($expectedAmountToPayData->amount, null, $expectedAmountToPayData->currencyCode, $paymentCurrencyCode), 2);
+
+                    if(round($iRec->amount, 2) > $eAmount){
+                        $invRec = $fullRecs[$iRec->containerId];
+                        $Invoice = doc_Containers::getDocument($iRec->containerId);
+                        $iInst = $Invoice->getInstance();
+                        $number = $iInst->getField('number', false) ? $iInst->getVerbal($invRec, 'number') : ('#' . $Invoice->getHandle());
+                        $expectedAmountVerbal = core_Type::getByName('double(smartRound)')->toVerbal($eAmount);
+                        $amountWarnings[] = "Над наличната сума на фактурата по|* {$number} - {$expectedAmountVerbal} {$paymentCurrencyCode}";
+                    }
+                }
+
+                if(countR($amountWarnings)){
+                    $form->setWarning('invoices,fromContainerId,invoicesList', implode("<li>", $amountWarnings));
+                }
             }
 
             if(!$form->gotErrors()){
@@ -392,7 +415,7 @@ class deals_InvoicesToDocuments extends core_Manager
      * @param boolean $subtractPayedByNow
      * @return array
      */
-    public static function getExpectedAmountToPay($invoiceContainerId, $ignoreDocumentContainerId, $subtractPayedByNow = true)
+    public static function getExpectedAmountToPay($invoiceContainerId, $ignoreDocumentContainerId, $subtractPayedByNow = true, $onlyExceptClasses = false)
     {
         $Document = doc_Containers::getDocument($invoiceContainerId);
         $iRec = doc_Containers::getDocument($invoiceContainerId)->fetch();
@@ -408,7 +431,13 @@ class deals_InvoicesToDocuments extends core_Manager
         $query = static::getQuery();
         $query->EXT('docClass', 'doc_Containers', 'externalKey=documentContainerId');
         $query->where("#containerId = {$invoiceContainerId} AND #documentContainerId != {$ignoreDocumentContainerId}" );
-        $query->notIn('docClass', $exceptClassIds);
+        if($onlyExceptClasses){
+
+            // Само вече обвързаните суми от ЕН/Приемания/Проформи към тази ф-ра (те не се броят за "платено" по-долу за другите класове)
+            $query->in('docClass', $exceptClassIds);
+        } else {
+            $query->notIn('docClass', $exceptClassIds);
+        }
 
         $toPay = $vAmount;
         if($subtractPayedByNow){
