@@ -212,9 +212,11 @@ class doc_TplManager extends core_Master
             $form->setField('docClassId', array('removeAndRefreshForm' => 'lang|content|toggleFields|path'));
         }
         
+        $docClassId = $rec->docClassId ?? null;
+
         // Ако има избран документ, се подготвят допълнителните полета
-        if ($rec->docClassId) {
-            $DocClass = cls::get($rec->docClassId);
+        if ($docClassId) {
+            $DocClass = cls::get($docClassId);
             $mvc->prepareToggleFields($DocClass, $form);
         }
 
@@ -229,7 +231,7 @@ class doc_TplManager extends core_Master
 
         $handlers = core_Classes::getOptionsByInterface('doc_TplScriptIntf', 'title');
         foreach ($handlers as $handlerKey => $handlerVal){
-            if(!cls::get($handlerKey)->canAddToClass($rec->docClassId)){
+            if(!cls::get($handlerKey)->canAddToClass($docClassId)){
                 unset($handlers[$handlerKey]);
             }
         }
