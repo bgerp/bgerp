@@ -105,30 +105,32 @@ class hr_reports_WorkFromHomeAndAbsence extends frame2_driver_TableData
         $numberOfLeavesDays = $numberOfTripsesDays = $numberOfSickdays = 0;
 
         $typeOfAbsent = explode(',', $rec->type);
+        $rec->firstDayOfPeriod = $rec->from;
+        $rec->periods = dt::mysql2verbal($rec->from, 'dmy');
 
         //Болнични за периода
         $sickdaysQuery = hr_Sickdays::getQuery();
 
-        $sickdaysQuery->where("(#startDate >= '{$rec->from}' AND #startDate <= '{$rec->to}') OR (#toDate >= '{$rec->from}' AND #toDate <= '{$rec->to}')");
+        $sickdaysQuery->where("#startDate <= '{$rec->to}' AND #toDate >= '{$rec->from}'");
 
         $sickdaysQuery->where("#state != 'rejected'");
 
         //Отпуски за периода
         $leavesQuery = hr_Leaves::getQuery();
 
-        $leavesQuery->where("(#leaveFrom >= '{$rec->from}' AND #leaveFrom <= '{$rec->to}') OR (#leaveTo <= '{$rec->to}' AND #leaveTo >= '{$rec->from}')");
+        $leavesQuery->where("#leaveFrom <= '{$rec->to}' AND #leaveTo >= '{$rec->from}'");
 
         $leavesQuery->where("#state = 'active'");
 
         //Командировки
         $tripsQuery = hr_Trips::getQuery();
 
-        $tripsQuery->where("(#startDate >= '{$rec->from}' AND #startDate <= '{$rec->to}') OR (#toDate >= '{$rec->from}' AND #toDate <= '{$rec->to}')");
+        $tripsQuery->where("#startDate <= '{$rec->to}' AND #toDate >= '{$rec->from}'");
 
         $tripsQuery->where("#state != 'rejected'");
 
         //Филтър по служители
-        if ($rec->employee) {
+        if (!empty($rec->employee)) {
 
             $employees = type_Keylist::toArray($rec->employee);
 
@@ -165,7 +167,7 @@ class hr_reports_WorkFromHomeAndAbsence extends frame2_driver_TableData
                 $docPeriod = self::getPeriod($rec, $doc);
                 $numberOfSickdays = $docPeriod['workingDays'];
 
-                if (!array_key_exists($sickdays->productId, $pRecs)) {
+                if (!array_key_exists($sickdays->personId, $pRecs)) {
                     $pRecs[$sickdays->personId] = (object)array(
 
                         'personId' => $sickdays->personId,
@@ -178,7 +180,7 @@ class hr_reports_WorkFromHomeAndAbsence extends frame2_driver_TableData
 
                     );
                 } else {
-                    $obj = &$pRecs[$sickdays->productId];
+                    $obj = &$pRecs[$sickdays->personId];
 
                     $obj->numberOfSickdays += $numberOfSickdays;
                 }
@@ -273,12 +275,6 @@ class hr_reports_WorkFromHomeAndAbsence extends frame2_driver_TableData
             }
         }
 
-        $rec->firstDayOfPeriod = dt::addDays(1, $lastDayOfPeriod, false);
-
-        if ($period <= ($rec->numberOfPeriods - 1)) {
-            $rec->periods = ($rec->periods ?? '') . ',' . dt::mysql2verbal($rec->firstDayOfPeriod, 'dmy');
-        }
-
         unset($sickdaysQuery);
 
         unset($leavesQuery);
@@ -338,6 +334,7 @@ class hr_reports_WorkFromHomeAndAbsence extends frame2_driver_TableData
             $fld->FLD('employee', 'varchar', 'caption=Потребител');
 
             $periodsArr = explode(',', $rec->periods);
+            $fieldNameArr = array();
 
             foreach ($periodsArr as $key => $val) {
                 $fieldNameArr[$key] = 'a' . $val;
@@ -380,10 +377,23 @@ class hr_reports_WorkFromHomeAndAbsence extends frame2_driver_TableData
         $row = new stdClass();
 
         $periodsArr = explode(',', $rec->periods);
+        if (!empty($dRec->total)) {
+            $row->employee = "<b>" . $dRec->total['total'] . "</b>";
+            $totalAbs = 0;
+            foreach ($periodsArr as $val) {
+                $fieldName = 'a' . $val;
+                $periodTotal = $dRec->total[$fieldName] ?? 0;
+                $row->{$fieldName} = "<b>" . $Int->toVerbal($periodTotal) . "</b>";
+                $totalAbs += $periodTotal;
+            }
+            $row->totalAbs = "<b>" . $Int->toVerbal($totalAbs) . "</b>";
 
-        $absencesDaysArr = explode(',', $dRec->absencesDays);
+            return $row;
+        }
 
-        if ($dRec->personId) {
+        $absencesDaysArr = explode(',', $dRec->absencesDays ?? '');
+
+        if (!empty($dRec->personId)) {
             $row->employee = crm_Persons::getContragentData($dRec->personId)->person;
         }
 
@@ -400,31 +410,16 @@ class hr_reports_WorkFromHomeAndAbsence extends frame2_driver_TableData
 
                     $val = 'a' . $val;
 
-                    $row->$val = $Int->toVerbal($absencesDaysArr[$key1]);
+                    $absenceDays = $absencesDaysArr[$key1] ?? 0;
+                    $row->$val = $Int->toVerbal($absenceDays);
 
-                    $totalAbs += (int) $absencesDaysArr[$key1];
+                    $totalAbs += (int) $absenceDays;
 
                 }
             }
         }
 
         $row->totalAbs = "<b>" . $Int->toVerbal($totalAbs) . "</b>";
-
-        if ($dRec->total) {
-
-            $row->employee = "<b>" . $dRec->total['total'] . "</b>";
-
-            foreach ($periodsArr as $key => $val) {
-
-                $val = 'a' . $val;
-
-                $row->$val = "<b>" . $Int->toVerbal($dRec->total[$val]) . "</b>";
-
-                $totalAbs += $dRec->total[$val];
-            }
-
-            $row->totalAbs = "<b>" . $Int->toVerbal($totalAbs) . "</b>";
-        }
 
         return $row;
     }
@@ -459,6 +454,7 @@ class hr_reports_WorkFromHomeAndAbsence extends frame2_driver_TableData
         }
 
         if ((isset($data->rec->employee)) && ((min(array_keys(keylist::toArray($data->rec->employee))) >= 1))) {
+            $employeeVerb = '';
             foreach (type_Keylist::toArray($data->rec->employee) as $employee) {
                 $employeeVerb .= (core_Users::getTitleById($employee) . ', ');
             }
@@ -504,34 +500,16 @@ class hr_reports_WorkFromHomeAndAbsence extends frame2_driver_TableData
      */
     public function getPeriod($rec, $doc)
     {
-        $period = array();
+        $period = array(
+            'startDate' => max($rec->firstDayOfPeriod, $doc['startDate']),
+            'endDate' => min($rec->to, $doc['endDate']),
+            'workingDays' => 0,
+            'numberOfDays' => 0
+        );
 
-        if (($rec->firstDayOfPeriod <= $doc['startDate']) && ($rec->to >= $doc['endDate'])) {
-            $period['startDate'] = $doc['startDate'];
-            $period['endDate'] = $doc['endDate'];
+        if ($period['startDate'] > $period['endDate']) {
+            return $period;
         }
-
-        if ($rec->firstDayOfPeriod > $doc['startDate']) {
-            if (($rec->to < $doc['endDate'])) {
-                $period['startDate'] = $rec->firstDayOfPeriod;
-                $period['endDate'] = $rec->to;
-            }
-
-            if (($rec->to >= $doc['endDate'])) {
-                $period['startDate'] = $rec->firstDayOfPeriod;
-                $period['endDate'] = $doc['endDate'];
-            }
-        }
-
-        if ($rec->to < $doc['endDate']) {
-            if ($rec->firstDayOfPeriod <= $doc['startDate']) {
-                $period['startDate'] = $doc['startDate'];
-                $period['endDate'] = $rec->to;
-            }
-        }
-
-        $period['workingDays'] = 0;
-        $period['numberOfDays'] = 0;
 
         $checkDate = $period['startDate'];
 
