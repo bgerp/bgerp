@@ -333,7 +333,8 @@ class hr_reports_WorkFromHomeAndAbsence extends frame2_driver_TableData
         if ($export === false) {
             $fld->FLD('employee', 'varchar', 'caption=Потребител');
 
-            $periodsArr = explode(',', $rec->periods);
+            $periods = $rec->periods ?? dt::mysql2verbal($rec->from, 'dmy');
+            $periodsArr = explode(',', $periods);
             $fieldNameArr = array();
 
             foreach ($periodsArr as $key => $val) {
@@ -376,7 +377,8 @@ class hr_reports_WorkFromHomeAndAbsence extends frame2_driver_TableData
         $Date = cls::get('type_Date');
         $row = new stdClass();
 
-        $periodsArr = explode(',', $rec->periods);
+        $periods = $rec->periods ?? dt::mysql2verbal($rec->from, 'dmy');
+        $periodsArr = explode(',', $periods);
         if (!empty($dRec->total)) {
             $row->employee = "<b>" . $dRec->total['total'] . "</b>";
             $totalAbs = 0;
