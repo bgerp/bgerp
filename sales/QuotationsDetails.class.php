@@ -240,7 +240,7 @@ class sales_QuotationsDetails extends deals_QuotationDetails
     {
         // Синхронизиране на сумата на транспорта
         if (($rec->syncFee ?? null) === true) {
-            sales_TransportValues::sync($mvc->Master, $rec->quotationId, $rec->id, $rec->fee, $rec->deliveryTimeFromFee, $rec->_transportExplained);
+            sales_TransportValues::sync($mvc->Master, $rec->quotationId, $rec->id, $rec->fee, $rec->deliveryTimeFromFee, $rec->_transportExplained ?? null);
         }
     }
     

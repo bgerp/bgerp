@@ -197,7 +197,7 @@ class core_UserReg extends core_Manager
 
             $rec->phone = $form->rec->phone;
             $rec->email = $form->rec->email;
-            if (!$rec->id) {
+            if (empty($rec->id)) {
                 $rec->phoneIsVerified = 'no';
                 $rec->emailIsVerified = 'no';
                 $rec->nick = $form->rec->nick;

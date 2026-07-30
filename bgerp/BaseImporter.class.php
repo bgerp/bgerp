@@ -116,7 +116,7 @@ class bgerp_BaseImporter extends core_Manager
             $fieldsUn = array();
 
             if ($this->mvc->invoke('BeforeImportRec', array(&$rec)) === false) {
-                if ($rec->__errStr) {
+                if (!empty($rec->__errStr)) {
                     $row['__errStr'] = $rec->__errStr;
                 }
                 $errArr[] = $row;
@@ -129,7 +129,7 @@ class bgerp_BaseImporter extends core_Manager
                 $rec->id = $exRec->id;
             }
 
-            if ($rec->id) {
+            if (!empty($rec->id)) {
                 if ($onExist == 'skip') {
                     $skipped++;
                     continue;

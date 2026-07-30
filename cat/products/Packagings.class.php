@@ -1159,8 +1159,9 @@ class cat_products_Packagings extends core_Detail
             $dArr = arr::make($mvc->details);
             foreach ($dArr as $detail) {
                 $Detail = cls::get($detail);
+                $productFld = $Detail->productFld ?? 'productId';
 
-                if (empty($Detail->fields['packagingId'])) {
+                if (empty($Detail->fields['packagingId']) || empty($Detail->fields[$productFld]) || empty($Detail->fields['quantityInPack'])) {
 
                     continue;
                 }
@@ -1170,23 +1171,26 @@ class cat_products_Packagings extends core_Detail
                 $dQuery->where(array("#{$masterKey} = '[#1#]'", $rec->id));
 
                 while ($dRec = $dQuery->fetch()) {
-                    if ($dRec->packagingId && $dRec->productId) {
-                        $quantity = self::fetchField(array("#productId = '[#1#]' AND #packagingId = '[#2#]'", $dRec->productId, $dRec->packagingId), 'quantity');
+                    $productId = $dRec->{$productFld} ?? null;
+                    if (($dRec->packagingId ?? null) && $productId && isset($dRec->quantityInPack)) {
+                        $quantity = self::fetchField(array("#productId = '[#1#]' AND #packagingId = '[#2#]'", $productId, $dRec->packagingId), 'quantity');
                         if (isset($quantity)) {
                             if ($quantity != $dRec->quantityInPack) {
-                                $notMatchArr[$dRec->productId] = $quantity;
+                                $notMatchArr[$productId] = $quantity;
                             }
                         }
                     }
                 }
             }
         } else {
-            if ($rec->packagingId && $rec->productId) {
-                $quantity = self::fetchField(array("#productId = '[#1#]' AND #packagingId = '[#2#]'", $rec->productId, $rec->packagingId), 'quantity');
+            $productFld = $mvc->productFld ?? 'productId';
+            $productId = $rec->{$productFld} ?? null;
+            if (($rec->packagingId ?? null) && $productId && isset($rec->quantityInPack)) {
+                $quantity = self::fetchField(array("#productId = '[#1#]' AND #packagingId = '[#2#]'", $productId, $rec->packagingId), 'quantity');
 
                 if (isset($quantity)) {
                     if ($quantity != $rec->quantityInPack) {
-                        $notMatchArr[$rec->productId] = $quantity;
+                        $notMatchArr[$productId] = $quantity;
                     }
                 }
             }
@@ -1344,7 +1348,8 @@ class cat_products_Packagings extends core_Detail
 
                     // Ако ще може да му се показва продажната цена
                     if (!($Doc->isInstanceOf('planning_ReturnNotes') || $Doc->isInstanceOf('planning_ConsumptionNotes') || $Doc->isInstanceOf('store_Transfers'))) {
-                        $Policy = ($isReverse == 'yes') ? (($Detail->ReversePolicy) ? $Detail->ReversePolicy : cls::get('price_ListToCustomers')) : (($Detail->Policy) ? $Detail->Policy : cls::get('price_ListToCustomers'));
+                        $policyClass = ($isReverse == 'yes') ? ($Detail->ReversePolicy ?? null) : ($Detail->Policy ?? null);
+                        $Policy = $policyClass ?: cls::get('price_ListToCustomers');
                         $docRec = $Doc->fetch('contragentClassId, contragentId, chargeVat, valior, currencyRate,currencyId');
 
                         $policyInfo = $Policy->getPriceInfo($docRec->contragentClassId, $docRec->contragentId, $productData->productId, $productData->packagingId, $quantityInPack, $docRec->valior, $docRec->currencyRate, $docRec->chargeVat);

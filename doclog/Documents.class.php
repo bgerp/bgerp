@@ -1964,18 +1964,20 @@ class doclog_Documents extends core_Manager
     {
         // Екшъна за проманя
         $changeAction = static::ACTION_CHANGE;
+        $rec = null;
         
         // Обхождаме масива с логовете
         foreach ((array) $logRecArr as $logRec) {
             
             // Ако има docId и docClass
-            if ($logRec->docId && $logRec->docClass) {
+            if (!empty($logRec->docId) && !empty($logRec->docClass)) {
                 
                 // Инстанция на класа
                 $docClass = cls::get($logRec->docClass);
                 
                 // Записите за съответния клас
                 $dRec = $docClass->fetch($logRec->docId);
+                if (!$dRec) continue;
                 
                 // id на контейнера
                 $containerId = $dRec->containerId;
@@ -2007,10 +2009,10 @@ class doclog_Documents extends core_Manager
                     'docId' => $logRec->docId,
                     'docClass' => $logRec->docClass
                 );
+
+                // Пушваме съответното действие
+                static::pushAction($rec);
             }
-            
-            // Пушваме съответното действие
-            static::pushAction($rec);
         }
         
         return $rec;
@@ -2106,7 +2108,7 @@ class doclog_Documents extends core_Manager
         if (empty($rec->data)) {
             $rec->dataBlob = null;
         } else {
-            if (is_array($rec->data)) {
+            if (!empty($rec->data) && is_array($rec->data)) {
                 $rec->data = (object) $rec->data;
             }
             
@@ -2138,13 +2140,14 @@ class doclog_Documents extends core_Manager
                 $doc = doc_Containers::getDocument($rec->containerId);
                 
                 if ($doc && (($doc->instance->stopRiskIpNotfications ?? null) !== true)) {
-                    $sendEmailsArr = doclog_Documents::getSendEmails(null, $rec->mid);
+                    $mid = $rec->mid ?? null;
+                    $sendEmailsArr = doclog_Documents::getSendEmails(null, $mid);
                     
                     $emailsTld = type_Emails::getCountryFromTld($sendEmailsArr, 'letterCode2');
                     
                     $folderId = doc_Containers::fetchField($rec->containerId, 'folderId');
                     
-                    $viewIp = doclog_Documents::getViewIp(null, null, $rec->mid);
+                    $viewIp = doclog_Documents::getViewIp(null, null, $mid);
                     
                     $badIpArr = email_Incomings::getBadIpArr($viewIp, $folderId, $emailsTld);
                     
@@ -2180,7 +2183,7 @@ class doclog_Documents extends core_Manager
                             }
                         }
                         
-                        $kKey = md5($keyStr . '|' . $userId . '|' . $rec->containerId . '|' . $rec->mid);
+                        $kKey = md5($keyStr . '|' . $userId . '|' . $rec->containerId . '|' . $mid);
                         $keyVal = core_Permanent::get($kKey);
                         if (!isset($keyVal)) {
                             core_Permanent::set($kKey, true, 10000);

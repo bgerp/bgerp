@@ -95,7 +95,7 @@ class cond_ConditionsToCustomers extends core_Manager
         $form = &$data->form;
         $rec = &$form->rec;
         
-        if (!$form->rec->id) {
+        if (empty($form->rec->id)) {
             $options = static::getRemainingOptions($rec->cClass, $rec->cId);
             $form->setOptions('conditionId', array('' => '') + $options);
             if (countR($options) == 1) {
@@ -107,11 +107,13 @@ class cond_ConditionsToCustomers extends core_Manager
             $form->setReadOnly('conditionId');
         }
         
-        if ($form->rec->conditionId) {
-            if ($Type = cond_Parameters::getTypeInstance($rec->conditionId, $rec->cClass, $rec->cId, $rec->value)) {
+        $conditionId = $rec->conditionId ?? null;
+        if ($conditionId) {
+            $value = $rec->value ?? null;
+            if ($Type = cond_Parameters::getTypeInstance($conditionId, $rec->cClass, $rec->cId, $value)) {
                 $form->setField('value', 'input');
                 $form->setFieldType('value', $Type);
-                $form->setDefault('value', cond_Parameters::getDefaultValue($rec->conditionId, $rec->cClass, $rec->cId, $rec->value));
+                $form->setDefault('value', cond_Parameters::getDefaultValue($conditionId, $rec->cClass, $rec->cId, $value));
             } else {
                 $form->setError('conditionId', 'Има проблем при зареждането на типа');
             }
@@ -127,10 +129,10 @@ class cond_ConditionsToCustomers extends core_Manager
     protected static function on_AfterPrepareEditTitle($mvc, &$res, &$data)
     {
         $rec = $data->form->rec;
-        $data->form->title = core_Detail::getEditTitle($rec->cClass, $rec->cId, $mvc->singleTitle, $rec->id, 'за');
+        $data->form->title = core_Detail::getEditTitle($rec->cClass, $rec->cId, $mvc->singleTitle, $rec->id ?? null, 'за');
         
         // Маха се бутона запис и нов, ако е само едно търговското условие
-        if (countR($data->form->conditionOptions) <= 1) {
+        if (countR($data->form->conditionOptions ?? array()) <= 1) {
             $data->form->toolbar->removeBtn('saveAndNew');
         }
     }
@@ -171,6 +173,7 @@ class cond_ConditionsToCustomers extends core_Manager
         expect($data->cClass = core_Classes::getId($data->masterMvc));
         expect($data->masterId);
         $cData = $data->masterMvc->getContragentData($data->masterId);
+        $countryId = $cData->countryId ?? null;
         
         $query = static::getQuery();
         $query->EXT('group', 'cond_Parameters', 'externalName=group,externalKey=conditionId');
@@ -190,7 +193,7 @@ class cond_ConditionsToCustomers extends core_Manager
         }
         
         $defQuery = cond_Countries::getQuery();
-        $defQuery->where("#country = '{$cData->countryId}' OR #country IS NULL");
+        $defQuery->where(array("#country = '[#1#]' OR #country IS NULL", $countryId));
         $defQuery->EXT('group', 'cond_Parameters', 'externalName=group,externalKey=conditionId');
         $defQuery->EXT('order', 'cond_Parameters', 'externalName=order,externalKey=conditionId');
         $defQuery->EXT('sysId', 'cond_Parameters', 'externalName=sysId,externalKey=conditionId');
@@ -212,7 +215,7 @@ class cond_ConditionsToCustomers extends core_Manager
 
         foreach ($conditionIds as $condId){
             $fRec = $countryRules[$condId] ?? $allRules[$condId];
-            $caption = isset($countryRules[$condId]) ? $cData->country : "Всички държави";
+            $caption = isset($countryRules[$condId]) ? ($cData->country ?? '') : "Всички държави";
             $data->recs[$condId] = $fRec;
             $dRow = cond_Countries::recToVerbal($fRec);
             $dRow->group = $fRec->group;
@@ -406,6 +409,7 @@ class cond_ConditionsToCustomers extends core_Manager
      */
     public static function getFeatures($class, $objectId, $features)
     {
+        $features = (array) $features;
         $classId = cls::get($class)->getClassId();
         $query = static::getQuery();
         
@@ -509,8 +513,9 @@ class cond_ConditionsToCustomers extends core_Manager
         $form->FLD('value', 'varchar', 'mandatory,caption=Нова стойност,input=none');
         $form->input(null, 'silent');
         
-        if ($form->rec->conditionId) {
-            if ($Type = cond_Parameters::getTypeInstance($form->rec->conditionId, null, null, $form->rec->value)) {
+        $conditionId = $form->rec->conditionId ?? null;
+        if ($conditionId) {
+            if ($Type = cond_Parameters::getTypeInstance($conditionId, null, null, $form->rec->value ?? null)) {
                 $form->setField('oldValue', 'input');
                 $form->setFieldType('oldValue', $Type);
                 

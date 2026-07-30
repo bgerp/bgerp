@@ -71,6 +71,7 @@ class export_Doc extends core_Mvc
     {
         $clsInst = cls::get($clsId);
         $cRec = $clsInst->fetchRec($objId);
+        expect($cRec);
         
         $opt = new stdClass();
         
@@ -79,7 +80,7 @@ class export_Doc extends core_Mvc
             $opt->rec = new stdClass();
         }
         
-        if (!$cRec->__mid) {
+        if (empty($cRec->__mid)) {
             $opt->rec->__mid = doclog_Documents::saveAction(
                             array(
                                     'action' => doclog_Documents::ACTION_PRINT,
@@ -112,7 +113,7 @@ class export_Doc extends core_Mvc
         
         $form->toolbar->addBtn('Сваляне', array('fileman_Download', 'download', 'fh' => $fileHnd, 'forceDownload' => true), 'ef_icon = fileman/icons/16/doc.png, title=Сваляне на документа');
         
-        $form->info .= '<b>' . tr('Файл|*: ') . '</b>' . fileman::getLink($fileHnd);
+        $form->info = ($form->info ?? '') . '<b>' . tr('Файл|*: ') . '</b>' . fileman::getLink($fileHnd);
         
         $clsInst->logWrite('Генериране на DOC', $objId);
         
@@ -139,7 +140,9 @@ class export_Doc extends core_Mvc
         $error = fileman_Indexes::haveErrors($script->outFilePath, $params);
         
         // Отключваме предишния процес
-        core_Locks::release($params['lockId']);
+        if (!empty($params['lockId'])) {
+            core_Locks::release($params['lockId']);
+        }
         
         // Да не се изтрива директрояита, след като качим файла
         return false;

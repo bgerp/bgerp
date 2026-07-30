@@ -293,7 +293,7 @@ class hr_Trips extends core_Master
             }
         }
 
-        if($data->action != 'changefields'){
+        if(($data->action ?? null) != 'changefields'){
             foreach (array('amountRoad', 'amountDaily', 'amountHouse', 'currencyId') as $fld){
                 $form->setField($fld, "autohide");
             }

@@ -602,7 +602,7 @@ class ztm_Devices extends core_Master
      */
     public static function on_BeforeSave(core_Mvc $mvc, &$id, $rec, &$fields = null, $mode = null)
     {
-        if ($rec->id) {
+        if (!empty($rec->id)) {
             $oRec = $mvc->fetch($rec->id);
             $nName = $mvc->prepareName($rec);
             $oName = $mvc->prepareName($oRec);

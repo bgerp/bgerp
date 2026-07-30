@@ -49,6 +49,9 @@ class webkittopdf_Converter extends core_Manager
     {
         // Вземаме конфигурационните данни
         $conf = core_Packs::getConfig('webkittopdf');
+        $jsScript = null;
+        $xvfb = null;
+        $useXServer = false;
         
         $bin = $isImage ? $conf->WEBKIT_TO_IMAGE_BIN : $conf->WEBKIT_TO_PDF_BIN;
         
@@ -77,7 +80,7 @@ class webkittopdf_Converter extends core_Manager
         if ($conf->WEBKIT_TO_PDF_USE_JS == 'yes' && !$isImage) {
             
             // Обхождаме масива с JS файловете
-            foreach ((array) $jsArr['JS'] as $js) {
+            foreach ((array) ($jsArr['JS'] ?? array()) as $js) {
                 
                 // Добавяме в шаблона
                 $wrapperTpl->push($js, 'JS');

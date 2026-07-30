@@ -53,7 +53,7 @@ class plg_RowTools extends core_Plugin
             if ($singleField = ($mvc->rowToolsSingleField ?? null)) {
                 $attr1['class'] = 'linkWithIcon';
                 $attr1['ef_icon'] = $icon;
-                $row->{$singleField} = str::limitLen(strip_tags($row->{$singleField}), 70);
+                $row->{$singleField} = str::limitLen(strip_tags($row->{$singleField} ?? ''), 70);
                 $row->{$singleField} = ht::createLink($row->{$singleField}, $singleUrl, null, $attr1);
             } else {
                 $singleImg = '<img src=' . sbf($mvc->singleIcon) . '>';
@@ -105,7 +105,8 @@ class plg_RowTools extends core_Plugin
         } else {
             $loadList = arr::make($mvc->loadList);
             if (in_array('plg_Rejected', $loadList)) {
-                if ($rec->state != 'rejected' && $mvc->haveRightFor('reject', $rec->id) && !($mvc instanceof core_Master)) {
+                $state = $rec->state ?? null;
+                if ($state != 'rejected' && $mvc->haveRightFor('reject', $rec->id) && !($mvc instanceof core_Master)) {
                     $deleteImg = '<img src=' . sbf("img/{$iconSize}/reject.png") . ' width=16  height=16 alt="' . tr('Оттегляне') . '">';
                     $deleteUrl = array(
                         $mvc,
@@ -118,7 +119,7 @@ class plg_RowTools extends core_Plugin
                         tr('Наистина ли желаете записът да бъде оттеглен?'),
                          "id=rej{$rec->id},title=" . tr('Оттегляне на') . ' ' . $singleTitle
                      );
-                } elseif ($rec->state == 'rejected' && $mvc->haveRightFor('restore', $rec->id)) {
+                } elseif ($state == 'rejected' && $mvc->haveRightFor('restore', $rec->id)) {
                     $restoreImg = '<img src=' . sbf("img/{$iconSize}/restore.png") . ' width=16  height=16 alt="' . tr('Възстановяване') . '">';
                     
                     $restoreUrl = array(
@@ -223,8 +224,8 @@ class plg_RowTools extends core_Plugin
     public static function on_BeforeGetDeleteUrl($mvc, &$deleteUrl, $rec)
     {
         // URL за връщане след редакция
-        if (cls::existsMethod($mvc, 'getDeleteUrl')) {
-            $retUrl = $mvc->getDeleteUrl($rec);
+        if (cls::existsMethod($mvc, 'getRetUrl')) {
+            $retUrl = $mvc->getRetUrl($rec);
         } else {
             $retUrl = true;
         }
@@ -256,7 +257,9 @@ class plg_RowTools extends core_Plugin
                 
                 // Ако в някой от полетата има промяна по шаблона
                 if (isset($row->{$field})) {
-                    if ($rowToolsTpl->content != $row->{$field}->content) {
+                    if (!is_object($row->{$field}) ||
+                        !isset($row->{$field}->content) ||
+                        $rowToolsTpl->content != $row->{$field}->content) {
                         
                         return;
                     }

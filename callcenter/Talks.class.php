@@ -341,7 +341,7 @@ class callcenter_Talks extends core_Master
         }
         
         // Добавяме бутон за създаване на сигнал
-        if ($rec->id && cal_Tasks::haveRightFor('add')) {
+        if (!empty($rec->id) && cal_Tasks::haveRightFor('add')) {
             $urlArr = cal_Tasks::getUrlForCreate($rec->id, $mvc->className);
             $row->_rowTools->addLink('Сигнал', $urlArr, 'ef_icon=img/16/support.png, title=Създаване на сигнал от обаждане');
         }
@@ -1070,7 +1070,7 @@ class callcenter_Talks extends core_Master
         $savedId = null;
 
         // Ако има такъв запис
-        if (is_object($rec) && $rec->id) {
+        if (is_object($rec) && !empty($rec->id)) {
             
             // Типа на обаждането
             $outgoing = Request::get('outgoing');

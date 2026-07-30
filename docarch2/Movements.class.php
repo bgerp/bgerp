@@ -104,7 +104,7 @@ class docarch2_Movements extends core_Master
         $form->setOptions('type', $types);
 
         //Архивиране на документ
-        if (($rec->objectId && !$rec->id)) {
+        if (($rec->objectId && empty($rec->id))) {
 
             $currentUser = core_Users::getCurrent();
 

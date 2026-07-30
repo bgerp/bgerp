@@ -321,7 +321,7 @@ class bgerp_Portal extends embed_Manager
      */
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
-        if ($data->action != 'clone' && !$data->form->rec->id) {
+        if (($data->action ?? null) != 'clone' && !$data->form->rec->id) {
             $optArr = $data->form->fields[$mvc->driverClassField]->type->prepareOptions();
             
             $recsArr = $mvc->getRecsForUser(null, false);

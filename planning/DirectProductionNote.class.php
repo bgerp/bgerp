@@ -290,13 +290,13 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         $originDoc = doc_Containers::getDocument($form->rec->originId);
         $originRec = $originDoc->rec();
 
-        $storeId = $originRec->storeId;
-        $saleId = $originRec->saleId;
+        $storeId = $originRec->storeId ?? null;
+        $saleId = $originRec->saleId ?? null;
         if($originDoc->isInstanceOf('planning_Tasks')){
             $defaultOriginPackField = 'measureId';
             $jobRec = doc_Containers::getDocument($originRec->originId)->fetch();
-            $storeId = ($originRec->storeId) ? $originRec->storeId : $jobRec->storeId;
-            $saleId = $jobRec->saleId;
+            $storeId = !empty($originRec->storeId) ? $originRec->storeId : ($jobRec->storeId ?? null);
+            $saleId = $jobRec->saleId ?? null;
             $productOptions = planning_ProductionTaskProducts::getOptionsByType($originDoc->that, 'production');
             unset($productOptions[$jobRec->productId]);
             $form->setField('inputStoreId', 'input=none');
@@ -321,7 +321,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
             $secondMeasureDerivatives = array();
             $productRec = cat_Products::fetch($rec->productId, 'canStore,fixedAsset,canConvert,measureId');
             if($rec->productId == $jobRec->productId){
-                $packs = cat_Products::getPacks($rec->productId, $rec->packagingId, false, $jobRec->secondMeasureId);
+                $packs = cat_Products::getPacks($rec->productId, $rec->packagingId ?? null, false, $jobRec->secondMeasureId);
                 if($jobRec->secondMeasureId){
                     $secondMeasureDerivatives = cat_UoM::getSameTypeMeasures($jobRec->secondMeasureId);
                 }
@@ -335,7 +335,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 
                 $defaultPack = $originRec->{$defaultOriginPackField};
             } else {
-                $packs = cat_Products::getPacks($rec->productId, $rec->packagingId);
+                $packs = cat_Products::getPacks($rec->productId, $rec->packagingId ?? null);
 
                 if($originDoc->isInstanceOf('planning_Tasks')){
                     $pInfo = planning_ProductionTaskProducts::getInfo($originRec->id, $rec->productId, 'production');
@@ -358,7 +358,9 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                 // Ако заданието, към което е протокола е към продажба, избираме я по дефолт
                 if (empty($rec->id) && isset($saleId)) {
                     $saleItem = acc_Items::fetchItem('sales_Sales', $saleId);
-                    $form->setDefault('expenseItemId', $saleItem->id);
+                    if ($saleItem) {
+                        $form->setDefault('expenseItemId', $saleItem->id);
+                    }
                 }
 
                 $form->setField('storeId', 'input=none');
@@ -697,10 +699,11 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 
             $productRec = cat_Products::fetch($rec->productId, 'measureId');
             $shortUom = cat_UoM::getShortName($productRec->measureId);
-            $row->quantity .= " {$shortUom}";
+            $row->quantity = ($row->quantity ?? $mvc->getVerbal($rec, 'quantity')) . " {$shortUom}";
 
             if (isset($rec->debitAmount)) {
-                $row->debitAmount = currency_Currencies::decorate($row->debitAmount, null, true);
+                $debitAmount = $row->debitAmount ?? $mvc->getVerbal($rec, 'debitAmount');
+                $row->debitAmount = currency_Currencies::decorate($debitAmount, null, true);
             }
 
             $row->subTitle = (isset($rec->storeId)) ? 'Засклаждане на продукт' : 'Производство на услуга';
@@ -919,7 +922,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                         $d2->quantityFromBom = $bomEntry->quantityFromBom;
                         $d2->quantity = $d2->quantityFromBom;
                         $mergedNotes = array();
-                        foreach (array($d2->notes, $bomEntry->notes) as $notesStr) {
+                        foreach (array($d2->notes ?? null, $bomEntry->notes ?? null) as $notesStr) {
                             $lines = is_array($notesStr) ? $notesStr : explode("\n", (string)$notesStr);
                             foreach ($lines as $line) {
                                 if (($line = trim($line)) !== '') {
@@ -934,27 +937,31 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                         $d2->quantity = 0;
                     }
 
-                    $key = "{$d2->productId}|{$d2->packagingId}|{$d2->type}|{$d2->storeId}|{$d2->expenseItemId}";
+                    $storeId = $d2->storeId ?? null;
+                    $expenseItemId = $d2->expenseItemId ?? null;
+                    $key = "{$d2->productId}|{$d2->packagingId}|{$d2->type}|{$storeId}|{$expenseItemId}";
                     $obj = clone $d2;
                     if(!array_key_exists($key, $details)){
                         $obj->quantityExpected = 0;
+                        $obj->batches = $obj->batches ?? array();
                         $details[$key] = $obj;
                     }
 
                     if(!empty($d2->batch)){
-                        $details[$key]->batches[$d2->batch] = $d2->quantityExpected;
+                        $details[$key]->batches[$d2->batch] = $d2->quantityExpected ?? 0;
                     }
 
-                    $details[$key]->quantityExpected += $d2->quantityExpected;
+                    $details[$key]->quantityExpected += ($d2->quantityExpected ?? 0);
                     if(empty($d2->quantityFromBom)){
-                        $details[$key]->quantity += $d2->quantityExpected;
+                        $details[$key]->quantity += ($d2->quantityExpected ?? 0);
                     }
                 }
             }
 
             if(countR($detailsFromBom)) {
                 foreach ($detailsFromBom as $d3) {
-                    $key = "{$d3->productId}|{$d3->packagingId}|{$d3->type}|{$d3->storeId}";
+                    $storeId = $d3->storeId ?? null;
+                    $key = "{$d3->productId}|{$d3->packagingId}|{$d3->type}|{$storeId}";
                     if(!array_key_exists($key, $details)){
                         $obj1 = clone $d3;
                         $obj1->quantity = $obj1->quantityFromBom;
@@ -968,9 +975,9 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                     if(core_Packs::isInstalled('batch')){
                         if($details[$key]->type == 'subProduct'){
                             if($batchDef = batch_Defs::getBatchDef($details[$key]->productId)){
-                                $defValue = $batchDef->getAutoValue($this, $rec->id, $rec->storeId, $rec->valior);
+                                $defValue = $batchDef->getAutoValue($this, $rec->id, $rec->storeId ?? null, $rec->valior);
                                 if(isset($defValue)){
-                                    $details[$key]->batches[$defValue] += $details[$key]->quantity;
+                                    $details[$key]->batches[$defValue] = ($details[$key]->batches[$defValue] ?? 0) + $details[$key]->quantity;
                                 }
                             }
                         }

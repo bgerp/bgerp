@@ -548,7 +548,7 @@ class acc_Periods extends core_Manager
         }
         
         // Период може да се затваря само ако е изтекъл
-        if ($action == 'close' && is_object($rec) && $rec->id) {
+        if ($action == 'close' && is_object($rec) && !empty($rec->id)) {
             $rec = self::fetch($rec->id);
             
             if ($rec->end >= $curPerEnd || $rec->state != 'active') {

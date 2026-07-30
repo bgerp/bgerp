@@ -156,9 +156,10 @@ class fileman_type_Files extends type_Keylist
         
         $attrInp = $attr;
         $attrInp['id'] = $name . '_files_name_id';
-        $align = $this->params['align'] ? $this->params['align'] : 'horizontal';
-        $attrInp['class'] .= $attr['class'] . ' input_align_' . $align;
+        $align = !empty($this->params['align']) ? $this->params['align'] : 'horizontal';
+        $attrInp['class'] = ($attr['class'] ?? '') . ' input_align_' . $align;
         
+        $html = '';
         $valueFhArr = array();
         if(is_array($value)) {
             $value = self::fromArray($value, false);
@@ -171,6 +172,7 @@ class fileman_type_Files extends type_Keylist
             
             foreach ($valueArr as $vId) {
                 $fRec = fileman_Files::fetch($vId);
+                if (!$fRec) continue;
                 
                 $valueFhArr[$fRec->fileHnd] = $fRec->fileHnd;
                 
@@ -185,7 +187,7 @@ class fileman_type_Files extends type_Keylist
         
         $tpl->append("<input name='{$name}' value='{$valueStr}' id='{$name}_id' type='hidden'>");
         
-        $bucket = $this->params['bucket'];
+        $bucket = $this->params['bucket'] ?? null;
         
         $bucketId = fileman_Buckets::fetchByName($bucket);
         

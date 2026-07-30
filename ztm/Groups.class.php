@@ -121,7 +121,7 @@ class ztm_Groups extends core_Manager
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
-        if ($rec->id && $action == 'edit') {
+        if (!empty($rec->id) && $action == 'edit') {
             if (ztm_Devices::fetch(array("#accessGroupId = '[#1#]'", $rec->id))) {
                 
                 $requiredRoles = 'no_one';

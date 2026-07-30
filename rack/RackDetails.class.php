@@ -129,7 +129,7 @@ class rack_RackDetails extends core_Detail
         $form->setReadOnly('row');
         $form->setReadOnly('col');
         
-        if (!$rec->id) {
+        if (empty($rec->id)) {
             if ($exRec = self::fetch(array("#rackId = [#1#] AND #row = '[#2#]' AND #col = [#3#]", $rec->rackId, $rec->row, $rec->col))) {
                 $rec = $exRec;
             }
@@ -240,7 +240,7 @@ class rack_RackDetails extends core_Detail
      */
     public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
-        if (is_array($rec->_toSave) && countR($rec->_toSave)) {
+        if (is_array($rec->_toSave ?? null) && countR($rec->_toSave)) {
             foreach ($rec->_toSave as $r) {
                 $r->id = self::fetch("#col = {$r->col} AND #row = '{$r->row}' AND #rackId = {$r->rackId}")->id;
                 

@@ -1465,7 +1465,7 @@ class email_Outgoings extends core_Master
         }
         
         // Ако има id
-        if ($rec->id) {
+        if (!empty($rec->id)) {
             
             // Вземаме целия запис
             $nRec = $mvc->fetch($rec->id);
@@ -1635,7 +1635,7 @@ class email_Outgoings extends core_Master
 
         // Ако се препраща
         $isForwarding = (boolean) Request::get('forward');
-        $isCloning = (boolean) ($data->action == 'clone');
+        $isCloning = (boolean) (($data->action ?? null) == 'clone');
         $isEditing = (boolean) ($rec->id ?? null);
         
         $faxTo = Request::get('faxto');

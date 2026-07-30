@@ -97,6 +97,7 @@ class fileman_Mimes extends core_Mvc
         
         self::loadExt2Mime();
         self::loadMime2Ext();
+        $res = '';
         
         foreach (self::$mime2ext as $mime => $exts) {
             foreach (explode(' ', $exts) as $ext) {
@@ -130,8 +131,25 @@ class fileman_Mimes extends core_Mvc
         self::loadMime2Ext();
         
         $mime = trim(strtolower($mime));
-        
-        $exts = self::$mime2ext[$mime];
+
+        // Wildcard MIME типове, например image/*
+        if (substr($mime, -2) === '/*') {
+            $mimePrefix = substr($mime, 0, -1);
+            $extArr = array();
+            foreach (self::$mime2ext as $knownMime => $knownExts) {
+                if (strpos($knownMime, $mimePrefix) === 0) {
+                    foreach (explode(' ', $knownExts) as $ext) {
+                        if (strlen($ext)) {
+                            $extArr[$ext] = $ext;
+                        }
+                    }
+                }
+            }
+
+            return array_values($extArr);
+        }
+
+        $exts = self::$mime2ext[$mime] ?? null;
         
         if (!$exts) {
             

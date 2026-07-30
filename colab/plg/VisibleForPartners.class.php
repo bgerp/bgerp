@@ -60,7 +60,7 @@ class colab_plg_VisibleForPartners extends core_Plugin
                     $showField = true;
                     if(isset($rec->threadId) && !($mvc instanceof planning_Tasks)){
                         $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
-                        if(($rec->containerId ?? null) != $firstDoc->fetchField('containerId')){
+                        if($firstDoc && ($rec->containerId ?? null) != $firstDoc->fetchField('containerId')){
                             if(!$firstDoc->isVisibleForPartners()){
                                 $showField = false;
                             }
@@ -78,7 +78,7 @@ class colab_plg_VisibleForPartners extends core_Plugin
                         
                     // Ако документа е създаден от контрактор или предишния документ е видим, тогава да е споделен по-подразбиране
                     if (empty($rec->id)) {
-                        if (core_Users::haveRole('partner', $dRec->createdBy) || $doc->isVisibleForPartners()) {
+                        if (core_Users::haveRole('partner', $dRec->createdBy ?? null) || $doc->isVisibleForPartners()) {
                             $data->form->setDefault('visibleForPartners', 'yes');
                         }
                     }
@@ -140,12 +140,12 @@ class colab_plg_VisibleForPartners extends core_Plugin
                 // Обхождаме всички полета от модела, за да разберем кои са ричтекст
                 foreach ((array) $mvc->fields as $name => $field) {
                     if ($field->type instanceof type_Richtext) {
-                        if ($field->type->params['nickToLink'] == 'no') {
+                        if (($field->type->params['nickToLink'] ?? null) == 'no') {
                             continue;
                         }
 
                         // Вземаме споделените потребители
-                        $sharedUsersArr = rtac_Plugin::getNicksArr($rec->$name);
+                        $sharedUsersArr = rtac_Plugin::getNicksArr($rec->{$name} ?? null);
                         if (empty($sharedUsersArr)) {
                             continue;
                         }
@@ -205,7 +205,7 @@ class colab_plg_VisibleForPartners extends core_Plugin
             }
 
             if (countR($selectedPartners)) {
-                if($rec->visibleForPartners != 'yes'){
+                if(($rec->visibleForPartners ?? null) != 'yes'){
                     $nicks = array();
                     array_walk($selectedPartners, function($a) use (&$nicks) {$nicks[] = core_Users::getNick($a);});
                     $partnerWarningMsg = "При забранено споделяне с партньори, ще бъде заличено споделянето с|* " . implode(',', $nicks);
@@ -222,7 +222,7 @@ class colab_plg_VisibleForPartners extends core_Plugin
      */
     public static function on_BeforeSave($mvc, &$id, $rec, $fields = null, $mode = null)
     {
-        if($rec->visibleForPartners == 'no' && isset($rec->sharedUsers)) {
+        if(($rec->visibleForPartners ?? null) == 'no' && isset($rec->sharedUsers)) {
             $sharedUsers = keylist::toArray($rec->sharedUsers);
             $partners = core_Users::getByRole('partner');
             $withoutSelectedPartners = array_diff_key($sharedUsers, $partners);
@@ -247,7 +247,7 @@ class colab_plg_VisibleForPartners extends core_Plugin
         $rec = $mvc->fetchRec($rec);
         
         if (!isset($res)) {
-            if ($rec->visibleForPartners === 'yes') {
+            if (($rec->visibleForPartners ?? null) === 'yes') {
                 $res = true;
             }
         }

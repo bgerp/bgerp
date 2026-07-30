@@ -134,11 +134,12 @@ class colab_DocumentLog extends core_Manager
      */
     public static function renderViewedLink($containerId)
     {
+        $viewLink = '';
         if (self::haveRightFor('renderview')) {
             $title = 'Документът е видим за партньори';
             if ($containerId) {
                 $cRec = doc_Containers::fetch($containerId);
-                if ((($cRec->state == 'draft') || ($cRec->state == 'rejected')) && !haveRole('partner', $cRec->createdBy)) {
+                if ($cRec && in_array($cRec->state, array('draft', 'rejected')) && !haveRole('partner', $cRec->createdBy)) {
                     $isHiddenNow = true;
 
 //                     if ($cRec->state == 'rejected') {
@@ -365,7 +366,7 @@ class colab_DocumentLog extends core_Manager
                 $nRec = $rec;
             }
             
-            $nRec->cnt++;
+            $nRec->cnt = ($nRec->cnt ?? 0) + 1;
             
             $mvc->save($nRec);
         }
@@ -402,7 +403,7 @@ class colab_DocumentLog extends core_Manager
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
         // Ако има from
-        if ($rec->createdBy) {
+        if (!empty($rec->createdBy)) {
             
             // Линк към визитката
             $row->createdBy = crm_Profiles::createLink($rec->createdBy);

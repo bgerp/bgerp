@@ -285,10 +285,10 @@ class doc_UnsortedFolderSteps extends core_Master
         }
 
         $stepArr = array_keys(static::getOptionArr($steps));
-        $driverClassId = ($data->masterMvc instanceof support_Systems) ? support_TaskType::getClassId() : cal_TaskType::getClassId();
-        $icon = ($data->masterMvc instanceof support_Systems) ? 'img/16/support.png' : 'img/16/task-normal.png';
-        $addHint = ($data->masterMvc instanceof support_Systems) ? 'Създаване на нов сигнал за етапа' : 'Създаване на нова задача за етапа';
-        $countHint = ($data->masterMvc instanceof support_Systems) ? 'Филтър на създадените сигнали' : 'Филтър на създадените задачи';
+        $driverClassId = (($data->masterMvc ?? null) instanceof support_Systems) ? support_TaskType::getClassId() : cal_TaskType::getClassId();
+        $icon = (($data->masterMvc ?? null) instanceof support_Systems) ? 'img/16/support.png' : 'img/16/task-normal.png';
+        $addHint = (($data->masterMvc ?? null) instanceof support_Systems) ? 'Създаване на нов сигнал за етапа' : 'Създаване на нова задача за етапа';
+        $countHint = (($data->masterMvc ?? null) instanceof support_Systems) ? 'Филтър на създадените сигнали' : 'Филтър на създадените задачи';
 
         $taskArr = array();
         $tQuery = cal_Tasks::getQuery();
@@ -354,12 +354,12 @@ class doc_UnsortedFolderSteps extends core_Master
      */
     public function renderSteps(&$data)
     {
-        if($data->hide) return;
+        if (!empty($data->hide)) return;
 
         $tpl = new core_ET('');
 
         // Рендиране на таблицата с оборудването
-        $taskCaption = ($data->masterMvc instanceof support_Systems) ? 'Сигнали' : 'Задачи';
+        $taskCaption = (($data->masterMvc ?? null) instanceof support_Systems) ? 'Сигнали' : 'Задачи';
         $data->listFields = arr::make("stepId=Етап,tasksCount={$taskCaption}");
 
         $listTableMvc = clone $this;
@@ -369,7 +369,7 @@ class doc_UnsortedFolderSteps extends core_Master
         $this->invoke('BeforeRenderListTable', array($tpl, &$data));
 
         $tpl->append($table->get($data->rows, $data->listFields));
-        if ($data->Pager) {
+        if (!empty($data->Pager)) {
             $tpl->append($data->Pager->getHtml());
         }
 

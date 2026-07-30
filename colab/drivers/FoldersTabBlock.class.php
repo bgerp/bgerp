@@ -67,7 +67,8 @@ class colab_drivers_FoldersTabBlock extends core_BaseClass
                 $res = true;
             } else {
                 $query = colab_Folders::getQuery();
-                $folderId = $query->fetch()->id;
+                $folderRec = $query->fetch();
+                $folderId = $folderRec->id ?? null;
             }
 
             if ($folderId) {

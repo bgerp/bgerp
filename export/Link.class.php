@@ -65,6 +65,7 @@ class export_Link extends core_Mvc
     {
         $clsInst = cls::get($clsId);
         $cRec = $clsInst->fetchRec($objId);
+        expect($cRec);
         
         $mid = doclog_Documents::saveAction(
                         array(
@@ -84,12 +85,12 @@ class export_Link extends core_Mvc
         
         // Ако линка ще сочи към частна мрежа, показваме предупреждение
         if (core_App::checkCurrentHostIsPrivate()) {
-            $host = defined('BGERP_ABSOLUTE_HTTP_HOST') ? BGERP_ABSOLUTE_HTTP_HOST : $_SERVER['HTTP_HOST'];
+            $host = defined('BGERP_ABSOLUTE_HTTP_HOST') ? BGERP_ABSOLUTE_HTTP_HOST : ($_SERVER['HTTP_HOST'] ?? '');
             
             $form->info = "<div class='formNotice'>" . tr("Внимание|*! |Понеже линкът сочи към локален адрес|* ({$host}), |той няма да е достъпен от други компютри в Интернет|*.") . '</div>';
         }
         
-        $form->info .= $externalLink;
+        $form->info = ($form->info ?? '') . $externalLink;
         
         $clsInst->logWrite('Генериране на линк за сваляне', $objId);
     }

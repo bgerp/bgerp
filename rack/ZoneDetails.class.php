@@ -638,7 +638,7 @@ class rack_ZoneDetails extends core_Detail
         }
 
         $rec->_movements = $data->recs;
-		if (countR($rec->_movements)) {
+		if (countR($rec->_movements ?? null)) {
 			$allocated += $rec->_movements;
 		}
 

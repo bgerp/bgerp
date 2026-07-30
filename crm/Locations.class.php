@@ -494,6 +494,7 @@ class crm_Locations extends core_Master
     protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
         $rec = &$data->rec;
+        $address = null;
         
         if ($rec->gpsCoords) {
             $address = $rec->gpsCoords;

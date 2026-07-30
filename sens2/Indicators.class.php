@@ -169,10 +169,10 @@ class sens2_Indicators extends core_Detail
     protected static function on_AfterInputEditForm($mvc, &$form)
     {
         if ($form->isSubmitted()) {
-            if($form->rec->name !== null) {
+            if(($form->rec->name ?? null) !== null) {
                 $form->rec->name = str_replace(' ', '_', $form->rec->name);
             }
-            if (strlen($form->rec->name) && !preg_match('/^[\\p{L}0-9_\.]+$/u', $form->rec->name)) {
+            if (strlen($form->rec->name ?? '') && !preg_match('/^[\\p{L}0-9_\.]+$/u', $form->rec->name)) {
                 $form->setError('name', 'Наименованието трябва да съдържа само букви, цифри, точка и символа `_`');
             }
         }
@@ -186,15 +186,15 @@ class sens2_Indicators extends core_Detail
     {
         $form = $data->form;
         $rec = $form->rec;
-        if ($rec->id) {
+        if (!empty($rec->id)) {
             $form->setField('controllerId', 'input');
             $form->setReadOnly('controllerId');
             $form->setReadOnly('port');
         }
         
-        if ($rec->controllerId && !$rec->port) {
+        if (!empty($rec->controllerId) && empty($rec->port)) {
             $ap = sens2_Controllers::getActivePorts($rec->controllerId);
-            
+            $opt = array();
             foreach ($ap as $port => $pRec) {
                 if (!self::fetch(array("#controllerId = {$rec->controllerId} AND #port = '[#1#]'", $port)) || $port == $rec->port) {
                     $opt[$port] = $pRec->caption;
@@ -213,7 +213,7 @@ class sens2_Indicators extends core_Detail
     {
         static $outputs;
         
-        if (!$outputs[$rec->controllerId]) {
+        if (empty($outputs[$rec->controllerId])) {
             $drv = sens2_Controllers::getDriver($rec->controllerId, true);
 
             if ($drv !== false) {
@@ -221,7 +221,7 @@ class sens2_Indicators extends core_Detail
             }
         }
         
-        if ($outputs[$rec->controllerId][$rec->port]) {
+        if (!empty($outputs[$rec->controllerId][$rec->port])) {
             $rec->isOutput = 'yes';
         } else {
             $rec->isOutput = 'no';
@@ -240,12 +240,13 @@ class sens2_Indicators extends core_Detail
     
     public static function getContex($scriptId)
     {
-        if (!self::$contex[$scriptId]) {
+        if (empty(self::$contex[$scriptId])) {
             $query = self::getQuery();
             $query->where("#state != 'rejected'");
             self::$contex[$scriptId] = array();
             while ($iRec = $query->fetch()) {
-                self::$contex[$scriptId]['$' . $iRec->title] = (double) $iRec->value;
+                $title = self::getRecTitle($iRec);
+                self::$contex[$scriptId]['$' . $title] = (double) $iRec->value;
                 $controller = self::getVerbal($iRec, 'controllerId');
                 self::$contex[$scriptId]['$' . $controller . '.' . $iRec->port] = (double) $iRec->value;
             }
@@ -262,8 +263,13 @@ class sens2_Indicators extends core_Detail
     public static function setValue($controllerId, $port, $value, $time)
     {
         $ap = sens2_Controllers::getActivePorts($controllerId);
+        if (!isset($ap[$port])) {
+
+            return;
+        }
         
         $uom = $ap[$port]->uom;
+        $rec = null;
         
         $query = self::getQuery();
         
@@ -327,10 +333,10 @@ class sens2_Indicators extends core_Detail
      */
     public static function getRecTitle($rec, $escape = true)
     {
-        if ($rec->name) {
+        if (!empty($rec->name)) {
             $title = $rec->name;
             if ($escape) {
-                $res = type_Varchar::escape($title);
+                $title = type_Varchar::escape($title);
             }
             
             return $title;
@@ -341,9 +347,10 @@ class sens2_Indicators extends core_Detail
         $title = sens2_Controllers::getVerbal($cRec, 'name') . '.';
         
         $nameVar = $rec->port . '_name';
+        $portName = $cRec->config->{$nameVar} ?? null;
 
-        if ($cRec->config->{$nameVar}) {
-            $title .= $cRec->config->{$nameVar};
+        if ($portName) {
+            $title .= $portName;
         } else {
             $title .= $rec->port;
         }
@@ -380,7 +387,7 @@ class sens2_Indicators extends core_Detail
         $data->listFilter->FNC('driver', 'class(interface=sens2_ControllerIntf, allowEmpty, select=title)', 'caption=Драйвер,silent,placeholder=Драйвер,removeAndRefreshForm=controllerId');
         $data->listFilter->view = 'horizontal';
         $ctr = Request::get('Ctr');
-        if ($mvc instanceof $ctr) {
+        if ($ctr && $mvc instanceof $ctr) {
             $data->listFilter->showFields = 'title, controllerId, driver';
         } else {
             $data->listFilter->showFields = 'title';
@@ -414,12 +421,14 @@ class sens2_Indicators extends core_Detail
             $data->listFilter->getField('controllerId')->type->options = $controllerOptArr;
         }
 
-        if (strlen($data->listFilter->rec->title)) {
+        $filterTitle = $data->listFilter->rec->title ?? '';
+        if (strlen($filterTitle)) {
             $data->query->EXT('cName', 'sens2_Controllers', 'externalName=name,externalKey=controllerId');
 
-            $data->query->where(array("LOWER(#port) LIKE '%[#1#]%'", mb_strtolower($data->listFilter->rec->title)));
-            $data->query->orWhere(array("LOWER(#name) LIKE '%[#1#]%'", mb_strtolower($data->listFilter->rec->title)));
-            $data->query->orWhere(array("LOWER(#cName) LIKE '%[#1#]%'", mb_strtolower($data->listFilter->rec->title)));
+            $filterTitle = mb_strtolower($filterTitle);
+            $data->query->where(array("LOWER(#port) LIKE '%[#1#]%'", $filterTitle));
+            $data->query->orWhere(array("LOWER(#name) LIKE '%[#1#]%'", $filterTitle));
+            $data->query->orWhere(array("LOWER(#cName) LIKE '%[#1#]%'", $filterTitle));
         }
 
         $data->listFilter->fields['controllerId']->refreshForm = 'controllerId';
@@ -437,7 +446,7 @@ class sens2_Indicators extends core_Detail
     {
         if (is_array($data->rows)) {
             foreach ($data->rows as $id => &$row) {
-                if (strlen($data->recs[$id]->value)) {
+                if (strlen((string) ($data->recs[$id]->value ?? ''))) {
                     $row->value .= "<span class='measure'>" . self::getVerbal($data->recs[$id], 'uom') . '</span>';
                     if(isset($row->statusText)) {
                         $row->value = $row->statusText . ' ' . $row->value;
@@ -460,31 +469,34 @@ class sens2_Indicators extends core_Detail
         static $configs = array();
         static $params = array();
         
-        if ($rec->lastValue) {
+        if (!empty($rec->lastValue)) {
             $color = dt::getColorByTime($rec->lastValue);
             $row->lastValue = ht::createElement('span', array('style' => "color:#{$color}"), $row->lastValue);
         }
         
-        if ($rec->error && $rec->lastUpdate) {
+        if (!empty($rec->error) && !empty($rec->lastUpdate)) {
             $color = dt::getColorByTime($rec->lastUpdate);
             $row->error = ht::createElement('span', array('style' => "font-size:0.8em;color:#{$color}"), $row->error);
         }
         
         // Определяне на вербалното име на порта
         
-        if (!$configs[$rec->controllerId]) {
+        if (empty($configs[$rec->controllerId])) {
             $configs[$rec->controllerId] = sens2_Controllers::fetchField($rec->controllerId, 'config');
         }
         
-        if (!$params[$rec->controllerId]) {
+        if (empty($params[$rec->controllerId])) {
             $driver = sens2_Controllers::getDriver($rec->controllerId);
             $ctrRec = sens2_Controllers::fetch($rec->controllerId);
-            $params[$rec->controllerId] = arr::combine($driver->getInputPorts($ctrRec->config), $driver->getOutputPorts($ctrRec->config));
+            $params[$rec->controllerId] = ($driver && $ctrRec)
+                ? arr::combine($driver->getInputPorts($ctrRec->config), $driver->getOutputPorts($ctrRec->config))
+                : array();
         }
         
         $var = $rec->port . '_name';
-        if ($configs[$rec->controllerId]->{$var}) {
-            $row->port = type_Varchar::escape($rec->port . ' (' . $configs[$rec->controllerId]->{$var} . ')');
+        $portName = $configs[$rec->controllerId]->{$var} ?? null;
+        if ($portName) {
+            $row->port = type_Varchar::escape($rec->port . ' (' . $portName . ')');
         } elseif (!empty($params[$rec->controllerId][$rec->port]->caption)) {
             $row->port = $rec->port . ' (' . type_Varchar::escape($params[$rec->controllerId][$rec->port]->caption . ')');
         } else {
@@ -502,13 +514,13 @@ class sens2_Indicators extends core_Detail
         
         $row->controllerId = sens2_Controllers::getLinkToSingle($rec->controllerId, 'name');
         
-        if ($rec->isOutput == 'no') {
+        if (($rec->isOutput ?? null) == 'no') {
             $icon = 'property.png';
         } else {
             $icon = 'hand-point.png';
         }
         
-        $rec->format = type_Table::toArray($rec->format);
+        $rec->format = type_Table::toArray($rec->format ?? null);
         
         foreach($rec->format as $r) {
             if(!isset($r->cond) || !isset($r->value)) continue;
@@ -527,7 +539,7 @@ class sens2_Indicators extends core_Detail
                     error("Unknown condition {$r->cond}");
             }
     
-            switch($r->statusType) {
+            switch($r->statusType ?? null) {
                 case 'ok': $color = 'green';
                     break;
                 case 'on': $color = 'blue';
@@ -542,14 +554,14 @@ class sens2_Indicators extends core_Detail
                     $color = '#333';
             }
             if($cond) {
-                 $row->statusText = "<small style='color:{$color}'>" . type_Varchar::escape($r->statusText) . '</small>';
+                 $row->statusText = "<small style='color:{$color}'>" . type_Varchar::escape($r->statusText ?? '') . '</small>';
                  break;
             }
         }
 
         $row->title = ht::createLink($row->title, $url, null, "ef_icon=img/16/{$icon}");
 
-        if ($rec->error) {
+        if (!empty($rec->error)) {
             $row->ROW_ATTR['class'] = 'state-closed';
         }
     }

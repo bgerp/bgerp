@@ -209,21 +209,22 @@ class accda_Da extends core_Master
         $form->setDefault('valior', dt::today());
         $form->setDefault('syncWithAsset', 'no');
 
-        if (isset($rec->id) && $data->action != 'clone') {
+        if (isset($rec->id) && ($data->action ?? null) != 'clone') {
             $form->setReadOnly('productId');
         }
         
         if (isset($rec->productId)) {
             $pRec = cat_Products::fetch($rec->productId, 'name,canStore');
-            $form->setDefault('title', $pRec->name);
+            $form->setDefault('title', $pRec->name ?? null);
             
-            if ($pRec->canStore == 'yes') {
+            if (($pRec->canStore ?? null) == 'yes') {
                 $form->setField('storeId', 'input,mandatory');
                 $form->setFieldTypeParams('accountId', 'root=20');
                 
                 // Ако е избран склад
-                if ($rec->storeId) {
-                    $form->info = deals_Helper::checkProductQuantityInStore($rec->productId, null, 1, $rec->storeId, $rec->valior)->formInfo;
+                if (!empty($rec->storeId)) {
+                    $storeInfo = deals_Helper::checkProductQuantityInStore($rec->productId, null, 1, $rec->storeId, $rec->valior ?? dt::today());
+                    $form->info = $storeInfo->formInfo ?? null;
                 }
             } else {
                 $form->setFieldTypeParams('accountId', 'root=21');
@@ -246,7 +247,7 @@ class accda_Da extends core_Master
             // Опитваме се да определим координатите от локацията
             if (($form->rec->location ?? null) && !($form->rec->gpsCoords ?? null)) {
                 $lRec = crm_Locations::fetch($form->rec->location);
-                if ($lRec && $lRec->gpsCoords) {
+                if ($lRec && !empty($lRec->gpsCoords)) {
                     $form->rec->gpsCoords = $lRec->gpsCoords;
                 }
             }
@@ -254,7 +255,7 @@ class accda_Da extends core_Master
             // Добавяме снимка от артикула
             if (($form->rec->productId ?? null) && !($form->rec->image ?? null)) {
                 $pRec = cat_Products::fetch($form->rec->productId);
-                if ($pRec && $pRec->photo) {
+                if ($pRec && !empty($pRec->photo)) {
                     $form->rec->image = $pRec->photo;
                 }
             }
@@ -265,7 +266,7 @@ class accda_Da extends core_Master
             $form->toolbar->addSbBtn('Контиране', 'save_n_conto', array('id' => 'btnConto'), "ef_icon = img/16/tick-circle-frame.png,title=Контиране на документа");
         }
 
-        if($rec->syncWithAsset == 'new'){
+        if (($rec->syncWithAsset ?? null) == 'new') {
             foreach (array('assetCode', 'assetGroupId', 'assetResourceFolderId', 'assetSupportFolderId') as $fld){
                 $form->setField($fld, 'input');
             }
@@ -279,7 +280,7 @@ class accda_Da extends core_Master
             $supportFolderParams = array('titleFld' => 'title', 'restrictViewAccess' => 'yes', 'coverClasses' => 'support_Systems');
             $supportSuggestionsArr = doc_Folders::getSelectArr($supportFolderParams);
             $form->setOptions('assetSupportFolderId', array('' => '') + $supportSuggestionsArr);
-        } elseif($rec->syncWithAsset == 'existing'){
+        } elseif (($rec->syncWithAsset ?? null) == 'existing') {
             $form->setField('exAssetId', 'input');
             $form->setOptions('exAssetId', $mvc->getSelectableResourcesToLink());
         }
@@ -409,7 +410,7 @@ class accda_Da extends core_Master
     public static function on_AfterSave($mvc, &$id, $rec, $fields = null)
     {
         // След запис и нов да се контира
-        if ($rec->_conto_n_new) {
+        if (!empty($rec->_conto_n_new)) {
             $contoUrl = $mvc->getContoUrl($rec->id);
             if ($contoUrl) {
                 Request::forward($contoUrl);
@@ -567,10 +568,18 @@ class accda_Da extends core_Master
     protected static function on_AfterGetClosedItemsInTransaction($mvc, &$res, $id)
     {
         $rec = $mvc->fetchRec($id);
+        if (!$rec || empty($rec->id)) {
+            return;
+        }
         
         // От списъка с приключените пера, премахваме това на приключения документ, така че да може
         // приключването да се оттегля/възстановява въпреки, че има в нея приключено перо
-        $itemId = acc_Items::fetchItem($mvc->getClassId(), $rec->id)->id;
+        $itemRec = acc_Items::fetchItem($mvc->getClassId(), $rec->id);
+        if (!$itemRec || empty($itemRec->id)) {
+            return;
+        }
+
+        $itemId = $itemRec->id;
         
         unset($res[$itemId]);
     }

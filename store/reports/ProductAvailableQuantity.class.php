@@ -119,18 +119,18 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
         $form->input('additional');
         $form->setDefault('typeOfQuantity', 'free');
 
-        if ($rec->limmits == 'no') {
+        if (($rec->limmits ?? null) == 'no') {
 
             unset($rec->orderBy);
             unset($rec->groupsChecked);
             $form->setField('orderBy', 'input=none');
         }
 
-        if ($rec->typeOfQuantity == 'free') {
+        if (($rec->typeOfQuantity ?? null) == 'free') {
             $form->setField('date', 'input');
         }
 
-        if (!$rec->additional) {
+        if (empty($rec->additional)) {
             $form->setField('groupId', 'mandatory');
         }
     }
@@ -146,11 +146,15 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
      */
     protected static function on_AfterInputEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$form)
     {
-        if ($form->rec->limmits == 'yes') {
-            if (is_string($form->rec->additional)) {
-                $details = json_decode($form->rec->additional);
+        $limmits = $form->rec->limmits ?? null;
+        $additional = $form->rec->additional ?? null;
+        $details = new stdClass();
+
+        if ($limmits == 'yes') {
+            if (is_string($additional)) {
+                $details = json_decode($additional) ?: new stdClass();
             } else {
-                $details = $form->rec->additional;
+                $details = is_object($additional) ? $additional : new stdClass();
             }
         } else {
             $form->setField('additional', 'input=none');
@@ -158,7 +162,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
 
         $fldArr = array('minQuantity','maxQuantity');
         foreach ($fldArr as $fld){
-            if(is_array($details->$fld)) {
+            if(is_array($details->{$fld} ?? null)) {
                 foreach ($details->$fld as $key => $val) {
                     if ($val) {
                         $Double = core_Type::getByName('double');

@@ -303,7 +303,7 @@ class rack_Movements extends rack_MovementAbstract
         $zonesArr = arr::extractValuesFromArray(static::getZoneArr($rec), 'zone');
         $rec->zoneList = (countR($zonesArr)) ? keylist::fromArray($zonesArr) : null;
         
-        if ($rec->state == 'active' || $rec->_canceled === true || $rec->_isCreatedClosed === true) {
+        if ($rec->state == 'active' || ($rec->_canceled ?? false) === true || ($rec->_isCreatedClosed ?? false) === true) {
             if ($rec->state == 'active' && !empty($rec->palletId) && $rec->position != rack_PositionType::FLOOR) {
                 $positionInfo = rack_Pallets::getPositionQuantityInfo($rec->position, $rec->storeId, $rec->productId);
                 $palletQuantity = rack_Pallets::fetchField($rec->palletId, 'quantity');
@@ -317,7 +317,7 @@ class rack_Movements extends rack_MovementAbstract
             }
 
             // Изпълнение на транзакцията
-            $reverse = ($rec->_canceled === true) ? true : false;
+            $reverse = (($rec->_canceled ?? false) === true);
             $transaction = $mvc->getTransaction($rec, $reverse);
             $result = $mvc->doTransaction($transaction);
             
@@ -329,7 +329,7 @@ class rack_Movements extends rack_MovementAbstract
             }
         }
         
-        if ($rec->state == 'active' || $rec->_isCreatedClosed === true){
+        if ($rec->state == 'active' || ($rec->_isCreatedClosed ?? false) === true){
             if(is_array($zonesArr)){
                 $documents = array();
                 foreach ($zonesArr as $zoneId){
@@ -364,7 +364,7 @@ class rack_Movements extends rack_MovementAbstract
     {
         // Ако се създава запис в чернова със зони, в зоните се създава празен запис
         $zonesQuantityArr = static::getZoneArr($rec);
-        if($rec->state == 'pending' && $rec->_canceled !== true){
+        if($rec->state == 'pending' && ($rec->_canceled ?? false) !== true){
             $batch = $rec->batch;
             if(empty($batch) && isset($rec->palletId)){
                 $palletBatch = rack_Pallets::fetchField($rec->palletId, 'batch');
@@ -558,7 +558,7 @@ class rack_Movements extends rack_MovementAbstract
             
             $form->setField('packagingId', 'input');
             
-            $packs = cat_Products::getPacks($rec->productId, $rec->packagingId);
+            $packs = cat_Products::getPacks($rec->productId, $rec->packagingId ?? null);
             $form->setOptions('packagingId', $packs);
             
             // ------------------------------
@@ -1144,13 +1144,13 @@ class rack_Movements extends rack_MovementAbstract
         
         switch ($rec->movementType) {
             case 'floor2rack':
-                $title = core_Detail::getEditTitle('store_Stores', $rec->storeId, 'нов палет', $rec->id, tr('в'));
+                $title = core_Detail::getEditTitle('store_Stores', $rec->storeId, 'нов палет', $rec->id ?? null, tr('в'));
                 break;
             case 'rack2floor':
                 $title = 'Сваляне на палет на пода в склад|* ' . cls::get('store_Stores')->getFormTitleLink($rec->storeId);
                 break;
             default:
-                $title = core_Detail::getEditTitle('store_Stores', $rec->storeId, $mvc->singleTitle, $rec->id, tr('в'));
+                $title = core_Detail::getEditTitle('store_Stores', $rec->storeId, $mvc->singleTitle, $rec->id ?? null, tr('в'));
                 break;
         }
         

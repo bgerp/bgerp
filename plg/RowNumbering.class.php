@@ -43,7 +43,7 @@ class plg_RowNumbering extends core_Plugin
     {
         if ($cnt = countR($data->recs)) {
             if ($data->reverseOrder ?? null) {
-                if ($data->pager) {
+                if (!empty($data->pager)) {
                     $number = $data->pager->itemsCount - $data->pager->rangeStart;
                 } else {
                     $number = countR($data->rows);
@@ -51,7 +51,7 @@ class plg_RowNumbering extends core_Plugin
                 
                 $increment = -1;
             } else {
-                if ($data->pager) {
+                if (!empty($data->pager)) {
                     $number = $data->pager->rangeStart + 1;
                 } else {
                     $number = 1;
@@ -81,7 +81,7 @@ class plg_RowNumbering extends core_Plugin
         }
         
         if (!($data->listFields['RowNumb'] ?? null) && $mvc instanceof core_Detail) {
-            $data->listFields = arr::combine(array('RowNumb' => '№'), $data->listFields);
+            $data->listFields = arr::combine(array('RowNumb' => '№'), $data->listFields ?? array());
         }
     }
     

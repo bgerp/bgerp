@@ -78,7 +78,7 @@ class pos_ReportDetails extends core_Manager
         }
 
         $detail->rows = array_filter($detail->receiptDetails, function($a) use ($actionVal){ return $a->action == $actionVal;});
-        $detail->masterRec = $data->rec;
+        $detail->masterRec = $data->masterData->rec;
 
         // Инстанцираме пейджър-а
         $newRows = array();
@@ -148,11 +148,11 @@ class pos_ReportDetails extends core_Manager
         $row = new stdClass();
 
         $Double = core_Type::getByName('double(decimals=2)');
-        $quantityVerbal = $Double->toVerbal($obj->quantity);
-        $row->quantity = ht::styleNumber($quantityVerbal, $obj->amount);
         if ($obj->action == 'sale') {
 
             // Ако детайла е продажба
+            $quantityVerbal = $Double->toVerbal($obj->quantity);
+            $row->quantity = ht::styleNumber($quantityVerbal, $obj->amount);
             $row->ROW_ATTR['class'] = 'report-sale';
             if(isset($obj->storeId)){
                 $row->storeId = store_Stores::getHyperlink($obj->storeId, true);
@@ -185,8 +185,6 @@ class pos_ReportDetails extends core_Manager
             $value = ($obj->value != -1) ? cond_Payments::getTitleById($obj->value) : tr('В брой');
             $row->value = "<i>{$value}</i>";
             $row->ROW_ATTR['class'] = 'report-payment';
-            unset($row->quantity);
-
             if($obj->value != '-1'){
                 $obj->amount = cond_Payments::toBaseCurrency($obj->value, $obj->amount, $obj->date);
             }
@@ -218,14 +216,14 @@ class pos_ReportDetails extends core_Manager
     private function renderTab($data)
     {
         $tpl = new core_ET('');
-        if($data->hide) return $tpl;
+        if(!empty($data->hide)) return $tpl;
 
         $data->details->listFields = core_TableView::filterEmptyColumns($data->details->rows, $data->details->listFields, 'userId');
         $data->details->listTableMvc = new core_FieldSet();
         $data->details->listTableMvc->FLD('value', 'varchar', 'tdClass=largeCell');
         $data->details->listTableMvc->FLD('quantity', 'double');
         $tpl->append(cls::get('pos_Reports')->renderListTable($data->details));
-        if ($data->pager) {
+        if (isset($data->pager)) {
             $tpl->append($data->pager->getHtml());
         }
 
@@ -308,7 +306,7 @@ class pos_ReportDetails extends core_Manager
     public function renderReceipts($data)
     {
         $tpl = new core_ET("");
-        if($data->hide) return $tpl;
+        if(!empty($data->hide)) return $tpl;
 
         $fieldset = clone cls::get('pos_Receipts');
         $fieldset->FLD('created', 'varchar', 'smartCenter');
@@ -319,7 +317,7 @@ class pos_ReportDetails extends core_Manager
         // Рендиране на таблицата с резултатите
         $dTpl = $table->get($data->receiptRows, $fields);
         $tpl->append($dTpl);
-        if ($data->pager) {
+        if (isset($data->pager)) {
             $tpl->append($data->pager->getHtml());
         }
 

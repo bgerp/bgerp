@@ -803,7 +803,7 @@ class findeals_Deals extends deals_DealBase
         
         $tpl->append($table->get($data->history, $fields), 'HISTORY');
         
-        if ($data->pager) {
+        if (!empty($data->pager)) {
             $tpl->replace($data->pager->getHtml(), 'PAGER');
         }
     }

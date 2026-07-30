@@ -313,7 +313,7 @@ class sales_Invoices extends deals_InvoiceMaster
         $form = &$data->form;
         $rec = &$form->rec;
 
-        if($data->action != 'changefields'){
+        if(($data->action ?? null) != 'changefields'){
             $form->setField('contragentCountryId', 'removeAndRefreshForm=additionalInfo');
         }
 
@@ -654,13 +654,14 @@ class sales_Invoices extends deals_InvoiceMaster
                 unset($row->BANK_BLOCK_CLASS);
             }
 
-            $displayRange = str::removeWhiteSpace(cond_Ranges::displayRange($rec->numlimit));
+            $displayRange = str::removeWhiteSpace(cond_Ranges::displayRange($rec->numlimit ?? null));
             if(empty($rec->number)){
                 $row->number = "<span style='color:blue;'>{$displayRange}</span>";
                 $row->number = ht::createHint($row->number, 'При активиране номерът ще бъде в този диапазон', 'notice', false);
             } else {
                 if(haveRole('debug')){
-                    $row->number = ht::createElement("span", array('title' => "|*ID: {$rec->id} / D: {$displayRange} [{$rec->numlimit}]"), $row->number);
+                    $number = $row->number ?? $mvc->getVerbal($rec, 'number');
+                    $row->number = ht::createElement("span", array('title' => "|*ID: " . ($rec->id ?? '') . " / D: {$displayRange} [" . ($rec->numlimit ?? '') . ']'), $number);
                 }
             }
         }

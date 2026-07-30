@@ -440,7 +440,7 @@ class email_Accounts extends core_Master
             if ($form->rec->type == 'corporate' && ($form->rec->state != 'stopped')) {
                 $cAcc = $mvc->getCorporateAcc();
                 
-                if ($cAcc && (!$form->rec->id || $form->rec->id != $cAcc->id)) {
+                if ($cAcc && (empty($form->rec->id) || $form->rec->id != $cAcc->id)) {
                     $form->setError('type', 'Можете да имате само една активна корпоративна сметка');
                 }
             }
@@ -459,7 +459,7 @@ class email_Accounts extends core_Master
             $accRec = $form->rec;
             
             // Ако се редактира записа, непопълнените полета ги вземаме от модела
-            if ($form->rec->id) {
+            if (!empty($form->rec->id)) {
                 $sRec = $mvc->fetch($form->rec->id);
                 foreach ((array) $sRec as $k => $v) {
                     if (!empty($accRec->{$k})) {
@@ -518,7 +518,7 @@ class email_Accounts extends core_Master
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         if ($action == 'delete') {
-            if ($rec->id) {
+            if (!empty($rec->id)) {
                 if (email_Inboxes::fetch("#accountId = {$rec->id}")) {
                     $requiredRoles = 'no_one';
                 }
@@ -535,7 +535,7 @@ class email_Accounts extends core_Master
         // Вдигаме флаг, да се създаде корпоративен имейл на всички потребители с определена роля
         // Ако се добавя активна корпоративна сметка или се сменя домейна
         if (($rec->type == 'corporate') && ($rec->state == 'active')) {
-            if (!$rec->id) {
+            if (empty($rec->id)) {
                 $rec->AddCorporateEmail = true;
             } else {
                 $oCAcc = $mvc->getCorporateAcc();

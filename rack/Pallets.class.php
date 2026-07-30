@@ -321,7 +321,7 @@ class rack_Pallets extends core_Manager
             $form->setField('newPackagingId', 'input');
             $form->setField('newPackQuantity', 'input');
 
-            $packs = cat_Products::getPacks($rec->newProductId, $rec->newPackagingId);
+            $packs = cat_Products::getPacks($rec->newProductId, $rec->newPackagingId ?? null);
             $form->setOptions('newPackagingId', $packs);
             $form->setDefault('newPackagingId', cat_Products::fetchField($rec->newProductId, 'measureId'));
 
@@ -664,7 +664,8 @@ class rack_Pallets extends core_Manager
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         
         $rec = $data->listFilter->input();
-        if (!$rec->productId) {
+        $order = false;
+        if (empty($rec->productId)) {
             $rec->productId = Request::get('productId', 'int');
             $data->listFilter->setDefault('productId', $rec->productId);
         }

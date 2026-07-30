@@ -150,7 +150,7 @@ abstract class deals_ManifactureDetail extends doc_Detail
         }
         $form->setFieldTypeParams('productId', $params);
         
-        if (isset($form->rec->id) && $data->action != 'replaceproduct') {
+        if (isset($form->rec->id) && ($data->action ?? null) != 'replaceproduct') {
             $data->form->setReadOnly('productId');
         }
     }
@@ -168,7 +168,7 @@ abstract class deals_ManifactureDetail extends doc_Detail
             $form->setDefault('measureId', $measureId);
             
             if(empty($form->_replaceProduct)){
-                $packs = cat_Products::getPacks($rec->productId, $rec->packagingId);
+                $packs = cat_Products::getPacks($rec->productId, $rec->packagingId ?? null);
 
                 // Ако е само една разрешената мярка да се зареди тя
                 if(isset($rec->_onlyAllowedPackId)){
@@ -227,6 +227,7 @@ abstract class deals_ManifactureDetail extends doc_Detail
         if (!empty($data->toolbar->buttons['btnAdd']) && isset($mvc->defaultMeta)) {
             unset($data->toolbar->buttons['btnAdd']);
             $products = cat_Products::getByProperty($mvc->defaultMeta, null, 1);
+            $error = '';
             
             if (!countR($products)) {
                 $error = 'error=Няма артикули, ';

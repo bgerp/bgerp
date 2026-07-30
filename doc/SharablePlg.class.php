@@ -102,7 +102,7 @@ class doc_SharablePlg extends core_Plugin
                     $nick = strtolower($nick);
                     $id = core_Users::fetchField(array("LOWER(#nick) = '[#1#]'", $nick), 'id');
 
-                    $rec->sharedUsers = type_Keylist::addKey($rec->sharedUsers, $id);
+                    $rec->sharedUsers = type_Keylist::addKey($rec->sharedUsers ?? null, $id);
                 }
             }
         }
@@ -270,7 +270,7 @@ class doc_SharablePlg extends core_Plugin
         }
         
         // изчисляваме колко са потребителите със съответните роли
-        $roles = $data->form->getField('sharedUsers')->type->params['roles'];
+        $roles = $data->form->getField('sharedUsers')->type->params['roles'] ?? null;
         
         $roles = core_Roles::getRolesAsKeylist($roles);
         
@@ -309,18 +309,24 @@ class doc_SharablePlg extends core_Plugin
         }
 
         if(core_Packs::isInstalled('colab') && $mvc->hasPlugin('colab_plg_VisibleForPartners')){
-            $folderId = $form->rec->folderId ?? (isset($form->rec->originId) ? doc_Containers::fetchField($form->rec->originId, 'folderId') : (($form->rec->threadId) ? doc_Threads::fetchField($form->rec->threadId, 'folderId') : $form->rec->folderId));
+            $folderId = $form->rec->folderId ?? null;
+            if (!$folderId && isset($form->rec->originId)) {
+                $folderId = doc_Containers::fetchField($form->rec->originId, 'folderId');
+            } elseif (!$folderId && !empty($form->rec->threadId)) {
+                $folderId = doc_Threads::fetchField($form->rec->threadId, 'folderId');
+            }
+
             $contractorIds = colab_FolderToPartners::getContractorsInFolder($folderId);
             $showPartners = countR($contractorIds);
 
             $threadId = $form->rec->threadId ?? (isset($form->rec->originId) ? doc_Containers::fetchField($form->rec->originId, 'threadId') : null);
             if(isset($threadId)){
                 $firstDoc = doc_Threads::getFirstDocument($threadId);
-                if(!$firstDoc->isVisibleForPartners() && $data->action != 'changefields'){
+                if(!$firstDoc->isVisibleForPartners() && ($data->action ?? null) != 'changefields'){
                     $showPartners = false;
                 } else {
                     $firstRec = $firstDoc->fetch();
-                    if($form->rec->containerId != $firstRec->containerId) {
+                    if(($form->rec->containerId ?? null) != $firstRec->containerId) {
                         foreach ($contractorIds as $contractorId) {
                             if($firstRec->createdBy != $contractorId && !keylist::isIn($contractorId, $firstRec->sharedUsers)) {
                                 if(!haveRole('powerPartner', $contractorId)) {
@@ -378,10 +384,10 @@ class doc_SharablePlg extends core_Plugin
             $shareUsers += type_Keylist::toArray($vals['shareUsers']);
         } else {
             $fRec = doc_Folders::fetch($folderId);
-            if ($fRec->shared) {
+            if (!empty($fRec->shared)) {
                 $shareUsers += type_Keylist::toArray($fRec->shared);
             }
-            if ($fRec->inCharge > 0) {
+            if (($fRec->inCharge ?? 0) > 0) {
                 $shareUsers[$fRec->inCharge] = $fRec->inCharge;
             }
         }
@@ -431,7 +437,7 @@ class doc_SharablePlg extends core_Plugin
             }
             $mRec = $mvc->fetch($rec->docId);
             
-            if (!$mRec->threadId || !$mRec->containerId) {
+            if (!$mRec || empty($mRec->threadId) || empty($mRec->containerId)) {
                 continue;
             }
             
@@ -443,7 +449,7 @@ class doc_SharablePlg extends core_Plugin
             $subscribedArr += $sharedArr;
             
             // Вземаме, ако има приоритета от документа
-            $priority = ($mRec && $mRec->priority) ? $mRec->priority : 'normal';
+            $priority = !empty($mRec->priority) ? $mRec->priority : 'normal';
             
             doc_Containers::addNotifications($subscribedArr, $mvc, $cRec, 'промени', true, $priority);
             
@@ -521,7 +527,7 @@ class doc_SharablePlg extends core_Plugin
                 if ($createdBy == $currUserId) {
                     if ($mvc->autoShareOriginShared) {
                         foreach ($shareFieldsArr as $sharFName) {
-                            if ($dRec->{$sharFName}) {
+                            if (!empty($dRec->{$sharFName})) {
                                 $sharedArr = type_Keylist::toArray($dRec->{$sharFName});
                                 if (!$mvc->autoShareCurrentUser) {
                                     unset($sharedArr[$currUserId]);

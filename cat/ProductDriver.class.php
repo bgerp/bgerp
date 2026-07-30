@@ -495,6 +495,7 @@ abstract class cat_ProductDriver extends core_BaseClass
     public function getBomForPrice($productId)
     {
         // Търсим първо активната търговска рецепта, ако няма търсим активната работна
+        $bomRec = false;
         $productRec = cat_Products::fetchRec($productId, 'proto,id');
         
         if(isset($productRec->id)){
@@ -1144,7 +1145,7 @@ abstract class cat_ProductDriver extends core_BaseClass
                 $changeIcon = "img/16/checked-not-green.png";
                 $changeTitle = 'Показване на разликите с оригинала';
             }
-            $row->clonedFromId .= "&nbsp;" . ht::createLink('', $cUrl, false, "title={$changeTitle},ef_icon={$changeIcon}")->getContent();
+            $row->clonedFromId = ($row->clonedFromId ?? '') . "&nbsp;" . ht::createLink('', $cUrl, false, "title={$changeTitle},ef_icon={$changeIcon}")->getContent();
         }
     }
 

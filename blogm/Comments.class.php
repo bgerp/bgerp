@@ -213,7 +213,7 @@ class blogm_Comments extends core_Detail
      */
     public static function on_BeforeSave($mvc, &$id, &$rec, $fields = null)
     {
-        if (!$rec->id) {
+        if (empty($rec->id)) {
             if (!haveRole('cms,ceo,admin') || $rec->state == 'draft') {
                 $artRec = $mvc->Master->fetch($rec->articleId);
                 $rec->state = ($artRec->commentsMode == 'enabled') ? 'active' : 'pending';
@@ -281,7 +281,7 @@ class blogm_Comments extends core_Detail
         }
         
         // Изключваме текущия запис, ако е записан
-        if ($rec->id) {
+        if (!empty($rec->id)) {
             $idCond = " AND #id != {$rec->id}";
         } else {
             $idCond = '';
@@ -305,7 +305,7 @@ class blogm_Comments extends core_Detail
         
         $rec->spamRate = (int) $sr;
         
-        if (!$rec->id && $rec->spamRate <= 3) {
+        if (empty($rec->id) && $rec->spamRate <= 3) {
             $artRec = $mvc->Master->fetch($rec->articleId);
             $title = $mvc->Master->getVerbal($artRec, 'title');
             bgerp_Notifications::add(
@@ -318,7 +318,7 @@ class blogm_Comments extends core_Detail
         // Да не се обновява мастера, ако коментара не става видим или се премахва от видимите
         if ($rec->state != 'active') {
             $stopMasterUpdate = false;
-            if (!$rec->id) {
+            if (empty($rec->id)) {
                 $stopMasterUpdate = true;
             } else {
                 $oRec = $mvc->fetch($rec->id);
@@ -455,7 +455,8 @@ class blogm_Comments extends core_Detail
         $before25m = dt::addSecs(-25 * 60);
         $before5d = dt::addDays(-5);
         $before14d = dt::addDays(-14);
-        $deleteCnt = $deleteCnt = 0;
+        $res = null;
+        $deleteCnt = 0;
         $rejectedCnt = 0;
         
         // Оттегляме, всички, които по-голям рейтинг от 5 и са на повече от 25 минути или имат по-голям рейтинг от 3 и са от преди повече от 5 дни
@@ -469,7 +470,7 @@ class blogm_Comments extends core_Detail
         
         $deleteCnt = $this->delete("#state = 'rejected' AND #createdOn < '{$before14d}'");
         
-        if ($deleteCnt + $deleteCnt) {
+        if ($rejectedCnt + $deleteCnt) {
             $res = "Бяха оттеглени {$rejectedCnt} и изтрити {$deleteCnt} СПАМ коментара от блога.";
         }
         

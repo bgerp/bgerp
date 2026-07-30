@@ -69,6 +69,7 @@ class export_Clipboard extends core_Mvc
     {
         $clsInst = cls::get($clsId);
         $cRec = $clsInst->fetchRec($objId);
+        expect($cRec);
 
         $action = array(
                 'action' => doclog_Documents::ACTION_EXPORT,
@@ -82,27 +83,27 @@ class export_Clipboard extends core_Mvc
 
         $lg = '';
         $isPushed = false;
-        if ($cRec->template) {
+        if (!empty($cRec->template)) {
             $lg = $clsInst->pushTemplateLg($cRec->template);
         }
 
         $userId = core_Users::getCurrent();
 
         if ($userId < 1) {
-            $userId = $cRec->activatedBy;
+            $userId = $cRec->activatedBy ?? null;
         }
 
         if ($userId < 1) {
-            $userId = $cRec->createdBy;
+            $userId = $cRec->createdBy ?? null;
         }
 
-        if (($userId < 1) && ($cRec->containerId)) {
+        if (($userId < 1) && !empty($cRec->containerId)) {
             $sContainerRec = doc_Containers::fetch($cRec->containerId);
-            $userId = $sContainerRec->activatedBy;
+            $userId = $sContainerRec->activatedBy ?? null;
             if ($userId < 1) {
-                if ($sContainerRec->modifiedBy >= 0) {
+                if (($sContainerRec->modifiedBy ?? -1) >= 0) {
                     $userId = $sContainerRec->modifiedBy;
-                } elseif ($sContainerRec->createdBy >= 0) {
+                } elseif (($sContainerRec->createdBy ?? -1) >= 0) {
                     $userId = $sContainerRec->createdBy;
                 }
             }
@@ -225,7 +226,7 @@ class export_Clipboard extends core_Mvc
 
         $oArr = array($objId => $data);
 
-        if ($pValArr[$classId]) {
+        if (!empty($pValArr[$classId])) {
             $oArr += $pValArr[$classId];
         }
 

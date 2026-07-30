@@ -217,7 +217,7 @@ class sales_Quotations extends deals_QuotationMaster
         }
         $form->setOptions('bankAccountId', $options);
 
-        if (isset($rec->originId) && $data->action != 'clone' && empty($form->rec->id)) {
+        if (isset($rec->originId) && ($data->action ?? null) != 'clone' && empty($form->rec->id)) {
             
             // Ако офертата има ориджин
             $origin = doc_Containers::getDocument($rec->originId);
@@ -364,7 +364,7 @@ class sales_Quotations extends deals_QuotationMaster
             $items = $mvc->getItems($rec->id, true, true);
             
             if (is_array($items)) {
-                $row->transportCurrencyId = $row->currencyId;
+                $row->transportCurrencyId = $row->currencyId ?? $mvc->getVerbal($rec, 'currencyId');
                 
                 $hiddenTransportCost = sales_TransportValues::calcInDocument($mvc, $rec->id);
                 $expectedTransportCost = $mvc->getExpectedTransportCost($rec);

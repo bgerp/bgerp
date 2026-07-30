@@ -168,7 +168,7 @@ class docarch_Volumes extends core_Master
         $currentUser = core_Users::getCurrent();
         $form->setDefault('inCharge', "{$currentUser}");
         
-        if ($rec->id) {
+        if (!empty($rec->id)) {
             $rec->_isCreated = true;
             
             $mQuery = docarch_Movements::getQuery();
@@ -242,7 +242,7 @@ class docarch_Volumes extends core_Master
         }
         
         $row->includedVolumes = '';
-        if (is_array($rec->includedVolumes)) {
+        if (!empty($rec->includedVolumes) && is_array($rec->includedVolumes)) {
             foreach ($rec->includedVolumes as $val) {
                 $row->includedVolumes .= docarch_Volumes::getHyperlink($val).'</br>';
             }
@@ -321,13 +321,13 @@ class docarch_Volumes extends core_Master
         //Включване на том в по-голям
         $possibleVolArr = self::getVolumePossibleForInclude($rec);
         
-        if ($rec->id && is_null($rec->includeIn) && $rec->state != 'closed' && $rec->type != 'warehouse' && !is_null($possibleVolArr)) {
+        if (!empty($rec->id) && is_null($rec->includeIn) && $rec->state != 'closed' && $rec->type != 'warehouse' && !is_null($possibleVolArr)) {
             $data->toolbar->addBtn('Включване', array('docarch_Movements','Include',$rec->id,'ret_url' => true));
         }
         
         //Изключване на том от по-голям
         
-        if ($rec->id && !is_null($rec->includeIn) && $rec->state != 'closed') {
+        if (!empty($rec->id) && !is_null($rec->includeIn) && $rec->state != 'closed') {
             $data->toolbar->addBtn('Изключване', array('docarch_Movements','Exclude',$rec->id,'ret_url' => true));
         }
     }
@@ -364,7 +364,7 @@ class docarch_Volumes extends core_Master
      */
     protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
-        if ($rec->_isCreated !== true) {
+        if (($rec->_isCreated ?? false) !== true) {
             
             // Прави запис в модела на движенията
             $className = get_class();
@@ -447,7 +447,7 @@ class docarch_Volumes extends core_Master
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         //Тома  може да бъде изтрит ако е празен
-        if ($rec->id && $action == 'delete') {
+        if (!empty($rec->id) && $action == 'delete') {
             if (!is_null($rec->docCnt)) {
                 if (($rec->docCnt != 0)) {
                     $requiredRoles = 'no_one' ;
@@ -461,7 +461,7 @@ class docarch_Volumes extends core_Master
         }
         
         //Reject = Унищожаване
-        if ($rec->id && $action == 'reject') {
+        if (!empty($rec->id) && $action == 'reject') {
             $storageTimeMarker = true;
             
             $now = dt::now();
@@ -520,13 +520,13 @@ class docarch_Volumes extends core_Master
             }
         }
         
-        if ($rec->id && $action == 'edit') {
+        if (!empty($rec->id) && $action == 'edit') {
             if (($rec->state == 'closed')) {
                 $requiredRoles = 'no_one' ;
             }
         }
         
-        if ($rec->id && (
+        if (!empty($rec->id) && (
             $action == 'delete' ||
                          $action == 'reject' ||
                          $action == 'edit' ||

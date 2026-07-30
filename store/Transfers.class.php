@@ -670,7 +670,7 @@ class store_Transfers extends core_Master
         }
         $res['valior'] = $rec->valior ?? dt::today();
 
-        return $res;
+        return trans_Helper::normalizeTransportLineInfo($res);
     }
 
 

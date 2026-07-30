@@ -157,7 +157,7 @@ class planning_ConsumptionNoteDetails extends deals_ManifactureDetail
             
             if (isset($masterRec->storeId) && $canStore == 'yes') {
                 $deliveryDate = (!empty($masterRec->deadline)) ? $masterRec->deadline : $masterRec->valior;
-                $storeInfo = deals_Helper::checkProductQuantityInStore($rec->productId, $rec->packagingId, $rec->packQuantity, $masterRec->storeId, $deliveryDate);
+                $storeInfo = deals_Helper::checkProductQuantityInStore($rec->productId, $rec->packagingId ?? null, $rec->packQuantity ?? null, $masterRec->storeId, $deliveryDate);
                 $form->info = $storeInfo->formInfo;
             }
         }

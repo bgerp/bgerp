@@ -222,7 +222,7 @@ class planning_Steps extends core_Extender
                 if(isset($rec->id)){
                     $packRec = cat_products_Packagings::getPack($rec->id, $rec->{"{$mvc->className}_labelPackagingId"});
                     $quantityInPack = is_object($packRec) ? $packRec->quantity : 1;
-                    if($data->action == 'clone'){
+                    if(($data->action ?? null) == 'clone'){
                         $form->setDefault("{$mvc->className}_labelQuantityInPack", $quantityInPack);
                     } else {
                         $form->setField("{$mvc->className}_labelQuantityInPack", "placeholder={$quantityInPack}");

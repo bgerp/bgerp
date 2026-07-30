@@ -84,7 +84,7 @@ class rtac_TextPlugin extends core_Plugin
                 
                 $tpl->appendOnce("rtacObj.textCompleteObj.{$id} = " . json_encode($suggestionsArr) . ';', 'SCRIPTS');
 
-                setIfNot($maxShowCnt, $mvc->params['maxOptionsShowCount'], rtac_Setup::get('MAX_SHOW_COUNT'));
+                setIfNot($maxShowCnt, ($mvc->params['maxOptionsShowCount'] ?? null), rtac_Setup::get('MAX_SHOW_COUNT'));
 
                 // Стартираме скрипта
                 $inst->runAutocompleteText($tpl, $id, $maxShowCnt);

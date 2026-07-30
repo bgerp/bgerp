@@ -157,7 +157,7 @@ class eshop_ProductDetails extends core_Detail
             }
 
             if ($productRec->canStore == 'yes') {
-                $packs = cat_Products::getPacks($rec->productId, $rec->packagingId);
+                $packs = cat_Products::getPacks($rec->productId);
                 
                 $allowedPacks = eshop_Products::getSettingField($rec->eshopProductId, null, 'showPacks');
                 if(countR($allowedPacks)){
@@ -222,8 +222,8 @@ class eshop_ProductDetails extends core_Detail
                 $priceObject = cls::get('price_ListToCustomers')->getPriceByList($listId, $productId, $packagingId, $quantityInPack, $now);
 
                 $price *= $quantityInPack;
-                if ($settings->chargeVat == 'yes') {
-                    $price *= 1 + cat_Products::getVat($productId, null, $settings->vatExceptionId);
+                if (($settings->chargeVat ?? 'no') == 'yes') {
+                    $price *= 1 + cat_Products::getVat($productId, null, $settings->vatExceptionId ?? null);
                 }
                 $price = currency_CurrencyRates::convertAmount($price, null, null, $settings->currencyId);
                 $res->price = price_Lists::roundPrice($listId, $price);
@@ -341,7 +341,8 @@ class eshop_ProductDetails extends core_Detail
 
         $settings = cms_Domains::getSettings();
         $groupRec = eshop_Groups::fetch($data->rec->groupId);
-        $showProductsWithoutPrices = ($groupRec->showProductsWithoutPrices == 'auto') ? $settings->showProductsWithoutPrices : $groupRec->showProductsWithoutPrices;
+        $groupShowWithoutPrices = is_object($groupRec) ? $groupRec->showProductsWithoutPrices : 'auto';
+        $showProductsWithoutPrices = ($groupShowWithoutPrices == 'auto') ? ($settings->showProductsWithoutPrices ?? 'yes') : $groupShowWithoutPrices;
 
         $onlyServices = true;
         foreach ($recs as $rec){
@@ -351,7 +352,7 @@ class eshop_ProductDetails extends core_Detail
                 $onlyServices = false;
             }
 
-            $newRec = (object) array('recId' => $rec->id, 'eshopProductId' => $rec->eshopProductId, 'productId' => $rec->productId, 'title' => $rec->title, 'deliveryTime' => $rec->deliveryTime, 'action' => $rec->action);
+            $newRec = (object) array('recId' => $rec->id, 'eshopProductId' => $rec->eshopProductId, 'productId' => $rec->productId, 'title' => $rec->title ?? null, 'deliveryTime' => $rec->deliveryTime ?? null, 'action' => $rec->action);
             $paramsText = eshop_CartDetails::getUniqueParamsAsText($rec->eshopProductId, $rec->productId, false, false);
             
             $packagings = keylist::toArray($rec->packagings);
@@ -373,7 +374,7 @@ class eshop_ProductDetails extends core_Detail
                 $row->catalogPrice = "<b>{$row->catalogPrice}</b>";
                 if(isset($row->_noPrice) && $showProductsWithoutPrices == 'no') {
                     if(!haveRole('debug')) continue;
-                    $row->ROW_ATTR['class'] .= 'eshopHiddenRow';
+                    $row->ROW_ATTR['class'] = trim(($row->ROW_ATTR['class'] ?? '') . ' eshopHiddenRow');
                 }
 
                 $row->paramsText = $paramsText;
@@ -428,6 +429,8 @@ class eshop_ProductDetails extends core_Detail
         $me = cls::get(get_called_class());
         $settings = cms_Domains::getSettings();
         $row = new stdClass();
+        $row->catalogPrice = '';
+        $row->saleInfo = '';
         $row->productId = static::getPublicProductTitle($rec->eshopProductId, $rec->productId);
         $fullCode = cat_products::getVerbal($rec->productId, 'code');
         $row->code = mb_substr($fullCode, 0, 10);
@@ -450,7 +453,8 @@ class eshop_ProductDetails extends core_Detail
 
         $catalogPriceInfo = (object) array('price' => null, 'discount' => null);
         if($showPrice){
-            $catalogPriceInfo = self::getPublicDisplayPrice($rec->productId, $rec->packagingId, $rec->quantityInPack);
+            $catalogPriceInfo = self::getPublicDisplayPrice($rec->productId, $rec->packagingId, $rec->quantityInPack)
+                ?? (object) array('price' => null, 'discount' => null);
 
             if(isset($catalogPriceInfo->price)){
                 $row->catalogPrice = core_Type::getByName('double(smartRound,minDecimals=2)')->toVerbal($catalogPriceInfo->price);
@@ -484,13 +488,13 @@ class eshop_ProductDetails extends core_Detail
         $row->orderPrice = $catalogPriceInfo->price;
         $row->orderCode = $fullCode;
         $addUrl = toUrl(array('eshop_Carts', 'addtocart'), 'local');
-        $class = ($rec->_listView === true) ? 'group-row' : '';
+        $class = (($rec->_listView ?? false) === true) ? 'group-row' : '';
 
         $stopSale = (!empty($startSale) && $now < $startSale) || static::hasSaleEnded($rec->productId);
 
         if($showCartBtn && !$stopSale){
             if (!empty($catalogPriceInfo->discount)) {
-                $style = ($rec->_listView === true) ? 'style="display:inline-block;font-weight:normal"' : '';
+                $style = (($rec->_listView ?? false) === true) ? 'style="display:inline-block;font-weight:normal"' : '';
                 
                 $row->catalogPrice = "<span class='{$class} eshop-discounted-price'>{$row->catalogPrice}</span>";
                 $discountType = type_Set::toArray($settings->discountType);
@@ -573,8 +577,9 @@ class eshop_ProductDetails extends core_Detail
 
         $canStore = cat_Products::fetchField($rec->productId, 'canStore');
 
-        if (countR($settings->inStockStores) && $canStore == 'yes' && !$stopSale) {
-            $quantity = store_Products::getQuantities($rec->productId, $settings->inStockStores)->free;
+        $inStockStores = $settings->inStockStores ?? array();
+        if (countR($inStockStores) && $canStore == 'yes' && !$stopSale) {
+            $quantity = store_Products::getQuantities($rec->productId, $inStockStores)->free;
             $quantityInRemote = 0;
             if(!empty($settings->remoteStores)) {
                 $quantityInRemote = sync_StoreStocks::getQuantityInRemoteStores($rec->productId, $settings->remoteStores);
@@ -587,7 +592,7 @@ class eshop_ProductDetails extends core_Detail
 
                 // Ако няма наличност, но се очаква доставка към подададената дата
                 $horizon = dt::addSecs($deliveryTime, null,false);
-                $quantityExpected = store_Products::getQuantities($rec->productId, $settings->inStockStores, $horizon)->free;
+                $quantityExpected = store_Products::getQuantities($rec->productId, $inStockStores, $horizon)->free;
                 if($quantityExpected >= $rec->quantityInPack){
                     $row->saleInfo = "<span class='{$class} option-not-in-stock waitingDelivery'>" . tr('Очаква се доставка') . '</span>';
                 } else {
@@ -831,7 +836,7 @@ class eshop_ProductDetails extends core_Detail
      */
     public function renderEshopProductDetail($data)
     {
-        if ($data->hide === true) {
+        if (($data->hide ?? false) === true) {
             
             return;
         }
@@ -839,7 +844,7 @@ class eshop_ProductDetails extends core_Detail
         $tpl = new ET('');
         $tpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
         $tabTitle = tr('Онлайн магазин');
-        if($data->isNotOk){
+        if(!empty($data->isNotOk)){
             $tabTitle = ht::createHint($tabTitle, 'Артикулът е бил добавен в Е-маг, но вече не отговаря на условията|*', 'warning');
         }
         $tpl->append($tabTitle, 'title');
@@ -1030,4 +1035,3 @@ class eshop_ProductDetails extends core_Detail
         return array('packagingId' => $minPackagingId, 'quantity' => $minQuantityInPack);
     }
 }
-

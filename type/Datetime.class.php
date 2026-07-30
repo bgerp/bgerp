@@ -176,7 +176,7 @@ class type_Datetime extends type_Date
         
         $time = trim($value['t']);
         
-        if(isset($this->params['requireTime']) && !$this->_isRefreshed){
+        if(isset($this->params['requireTime']) && empty($this->_isRefreshed)){
             if(!empty($value['d']) && empty($value['t'])){
                 $this->error = 'Посочването на време е задължително';
                 

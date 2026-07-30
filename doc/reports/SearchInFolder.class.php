@@ -66,8 +66,13 @@ class doc_reports_SearchInFolder extends frame2_driver_TableData
      */
     protected static function on_AfterInputEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$form)
     {
+        if (!$form->isSubmitted()) {
+
+            return;
+        }
+
         $unique = array();
-        $words = explode("\n", $form->rec->text);
+        $words = explode("\n", $form->rec->text ?? '');
         $duplicatedWords = array();
         
         // Проверка за повтарящи се думи
@@ -176,7 +181,6 @@ class doc_reports_SearchInFolder extends frame2_driver_TableData
             $row->count = ht::createLink($row->count, array('doc_Threads', 'list', 'folderId' => $rec->folder, 'search' => $dRec->string));
         }
         
-        $row->num = $Int->toVerbal($dRec->num);
         $diff = self::getDiff($rec, $dRec);
         
         if (!empty($diff)) {
@@ -215,6 +219,7 @@ class doc_reports_SearchInFolder extends frame2_driver_TableData
      */
     private static function getDiff($rec, $dRec)
     {
+        $diff = 0;
         if (!isset(self::$versionData[$rec->id])) {
             self::$versionData[$rec->id] = self::getVersionBeforeData($rec);
         }
@@ -265,12 +270,17 @@ class doc_reports_SearchInFolder extends frame2_driver_TableData
             $query->orderBy('id', 'DESC');
             $query->show('versionBefore');
             
-            $versionBeforeId = $query->fetch()->versionBefore;
+            $versionRec = $query->fetch();
+            $versionBeforeId = $versionRec->versionBefore ?? null;
         } else {
             $versionBeforeId = frame2_ReportVersions::fetchField($selectedVersionId, 'versionBefore');
         }
         
-        $versionBeforeData = (isset($versionBeforeId)) ? frame2_ReportVersions::fetchField($versionBeforeId, 'oldRec')->data->recs : array();
+        $versionBeforeData = array();
+        if (isset($versionBeforeId)) {
+            $oldRec = frame2_ReportVersions::fetchField($versionBeforeId, 'oldRec');
+            $versionBeforeData = is_array($oldRec->data->recs ?? null) ? $oldRec->data->recs : array();
+        }
         
         return $versionBeforeData;
     }

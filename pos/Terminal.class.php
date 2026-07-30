@@ -338,10 +338,10 @@ class pos_Terminal extends peripheral_Terminal
                 $row->info = cat_Products::getVerbal($productRec, 'info');
                 
                 $pRow = cat_Products::recToVerbal($productRec);
-                $row->salePrice = $pRow->salePrice;
-                $row->maxSaleDiscount = $pRow->maxSaleDiscount;
-                $row->deliveryPrice = $pRow->deliveryPrice;
-                $row->storePlace = $pRow->storePlace;
+                $row->salePrice = $pRow->salePrice ?? null;
+                $row->maxSaleDiscount = $pRow->maxSaleDiscount ?? null;
+                $row->deliveryPrice = $pRow->deliveryPrice ?? null;
+                $row->storePlace = $pRow->storePlace ?? null;
                 
                 if ($productRec->canStore == 'yes') {
                     $stores = pos_Points::getStores($receiptRec->pointId);
@@ -1580,8 +1580,8 @@ class pos_Terminal extends peripheral_Terminal
                 $btnCaption = "|{$packName}|*</br> <small>" . core_Type::getByName('double(smartRound)')->toVerbal($packRec->quantity) . " " . tr(cat_UoM::getSmartName($baseMeasureId, $packRec->quantity)) . "</small>";
             }
             
-            $selected = ($selectedRec->value == $packagingId) ? 'selected' : '';
-            $buttons[$packRec->packagingId] = ht::createElement("div", array('id' => "packaging{$count}", 'class' => "{$baseClass} {$selected}", 'data-pack' => $packName, 'data-url' => $dataUrl), tr($btnCaption), true);
+            $selected = (($selectedRec->value ?? null) == $packagingId) ? 'selected' : '';
+            $buttons[$packagingId] = ht::createElement("div", array('id' => "packaging{$count}", 'class' => "{$baseClass} {$selected}", 'data-pack' => $packName, 'data-url' => $dataUrl), tr($btnCaption), true);
             $count++;
         }
         

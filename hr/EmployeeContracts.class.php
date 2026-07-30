@@ -885,8 +885,15 @@ class hr_EmployeeContracts extends core_Master
         $query->where("#state = 'active'");
     
         while ($rec = $query->fetch()) {
-            if (!is_object($persons[$rec->personId])) {
-                $persons[$rec->personId] = (object) array('stateInfo' => null, 'stateDateFrom' => null, 'stateDateTo' => null);
+            if (!isset($persons[$rec->personId]) || !is_object($persons[$rec->personId])) {
+                $persons[$rec->personId] = (object) array(
+                    'stateInfo' => null,
+                    'stateDateFrom' => null,
+                    'stateDateTo' => null,
+                    'stateAlternatePersons' => null,
+                    'stateAnswerSystem' => null,
+                    'stateEmoji' => null,
+                );
             }
             if ($rec->stateInfo == $persons[$rec->personId]->stateInfo &&
                 $rec->stateDateFrom == $persons[$rec->personId]->stateDateFrom &&

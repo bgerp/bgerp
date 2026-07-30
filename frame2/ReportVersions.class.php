@@ -148,13 +148,13 @@ class frame2_ReportVersions extends core_Detail
         $obj = new stdClass();
         
         // Изчислената дата
-        $obj->data = $rec->data;
+        $obj->data = $rec->data ?? null;
         
         // И полетата от драйвера
         if ($Driver = frame2_Reports::getDriver($rec)) {
             $fields = frame2_Reports::getDriverFields($Driver);
             foreach ($fields as $name => $caption) {
-                $obj->{$name} = $rec->{$name};
+                $obj->{$name} = $rec->{$name} ?? null;
             }
         }
         
@@ -197,7 +197,7 @@ class frame2_ReportVersions extends core_Detail
                 $row->ROW_ATTR['style'] = 'background-color:#fefec2';
             }
 
-            if($rec->oldRec->data == frame2_Reports::DATA_ERROR_STATE){
+            if(($rec->oldRec->data ?? null) == frame2_Reports::DATA_ERROR_STATE){
                 $row->createdOn = ht::createHint($row->createdOn, 'Имало е проблем при изчисление на версията','img/16/error.png', false);
             }
         }
@@ -246,7 +246,7 @@ class frame2_ReportVersions extends core_Detail
     public function renderDetail_($data)
     {
         // Не се рендира детайла, ако има само една версия или режима е само за показване
-        if ($data->render === false || countR($data->recs) == 1 || Mode::isReadOnly()) {
+        if (($data->render ?? true) === false || countR($data->recs ?? array()) == 1 || Mode::isReadOnly()) {
             
             return new core_ET('');
         }
@@ -350,7 +350,9 @@ class frame2_ReportVersions extends core_Detail
         $query->orderBy('id', 'DESC');
         $query->show('id');
         
-        return $query->fetch()->id;
+        $latestRec = $query->fetch();
+
+        return $latestRec->id ?? null;
     }
     
     

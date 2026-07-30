@@ -764,15 +764,17 @@ class log_Data extends core_Manager
         }
         
         // Филтрираме по време
-        if (($rec->from ?? null) || ($rec->to ?? null)) {
+        $from = $rec->from ?? null;
+        $to = $rec->to ?? null;
+        if ($from || $to) {
             $dateRange = array();
 
-            if ($rec->from ?? null) {
-                $dateRange[0] = $rec->from;
+            if ($from) {
+                $dateRange[0] = $from;
             }
 
-            if ($rec->to ?? null) {
-                $dateRange[1] = $rec->to;
+            if ($to) {
+                $dateRange[1] = $to;
             }
             
             if (countR($dateRange) == 2) {
@@ -801,7 +803,7 @@ class log_Data extends core_Manager
         $cQuery = clone $query;
         
         // Ако не е въведена дата, ограничаваме времето - това е само за показване на класовете
-        if ((!$rec->from && !$rec->to) || (!is_null(Request::get('class')))) {
+        if ((!$from && !$to) || (!is_null(Request::get('class')))) {
             $beforeT = dt::mysql2timestamp(dt::now(false));
             $cQuery->where(array("#time >= '[#1#]'", $beforeT));
         }

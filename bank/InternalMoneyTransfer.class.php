@@ -264,7 +264,7 @@ class bank_InternalMoneyTransfer extends core_Master
         $form = &$data->form;
         
         // Очакваме и намираме коя е извършената операция
-        if (!$form->rec->id) {
+        if (empty($form->rec->id)) {
             expect($operationSysId = Request::get('operationSysId'));
         } else {
             $operationSysId = $form->rec->operationSysId;
@@ -381,7 +381,7 @@ class bank_InternalMoneyTransfer extends core_Master
             $row->currency = currency_Currencies::getCodeById($rec->currencyId);
             
             // Изчисляваме равностойността на сумата в основната валута
-            if ($rec->rate != '1' && isset($rec->rate)) {
+            if (isset($rec->rate) && $rec->rate != '1') {
                 $double = cls::get('type_Double');
                 $double->params['decimals'] = 2;
                 $equals = currency_CurrencyRates::convertAmount($rec->amount, $rec->valior, $row->currency);

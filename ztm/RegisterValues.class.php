@@ -594,7 +594,7 @@ class ztm_RegisterValues extends core_Manager
      */
     protected static function on_BeforeSave(core_Mvc $mvc, &$id, $rec, &$fields = null, $mode = null)
     {
-        if ($rec->_skip !== true) {
+        if (($rec->_skip ?? false) !== true) {
             $rec->value = ztm_Registers::recordValue($rec->registerId, $rec->extValue);
             $rec->updatedOn = dt::now();
         }

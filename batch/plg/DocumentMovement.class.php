@@ -39,7 +39,7 @@ class batch_plg_DocumentMovement extends core_Plugin
         $form = &$data->form;
         
         // Ако има вече разпределени партиди, склада не може да се сменя
-        if (isset($form->rec->containerId) && $data->action != 'clone') {
+        if (isset($form->rec->containerId) && ($data->action ?? null) != 'clone') {
             if (batch_BatchesInDocuments::fetchField("#containerId = {$form->rec->containerId}")) {
                 $form->setField($mvc->storeFieldName, array('hint' => 'Склада не може да се смени, защото има разпределени партиди от него'));
                 $form->setReadOnly($mvc->storeFieldName);
@@ -58,7 +58,7 @@ class batch_plg_DocumentMovement extends core_Plugin
      */
     private static function getContoError($mvc, &$res, $rec)
     {
-        $actions = type_Set::toArray($rec->contoActions);
+        $actions = !empty($rec->contoActions) ? type_Set::toArray($rec->contoActions) : array();
 
         // Ако няма избран склад, няма какво да се прави
         if(empty($rec->{$mvc->storeFieldName}) || ($mvc instanceof sales_Sales && !isset($actions['ship']))) {
@@ -139,7 +139,8 @@ class batch_plg_DocumentMovement extends core_Plugin
                         }
                         foreach ($batchesArr as $batchValue){
                             $quantity = ($Def instanceof batch_definitions_Serial) ? 1 : $bdRec->quantity;
-                            $outBatches["{$bdRec->productId}|{$bdRec->storeId}"]->batches[$batchValue] += $quantity;
+                            $outBatch = $outBatches["{$bdRec->productId}|{$bdRec->storeId}"];
+                            $outBatch->batches[$batchValue] = ($outBatch->batches[$batchValue] ?? 0) + $quantity;
                         }
                     }
                 }
@@ -171,7 +172,7 @@ class batch_plg_DocumentMovement extends core_Plugin
 
         $errMsgSerials = '';
         foreach ($batchesWithSerials as $pId => $bArr1){
-            if(!is_array($bArr1['in'])) continue;
+            if (!is_array($bArr1['in'] ?? null)) continue;
             $bArr = $bArr1['in'];
 
             $batchQuantityInAllStores = batch_Items::getBatchQuantitiesInStore($pId, null, null, null);
@@ -182,7 +183,7 @@ class batch_plg_DocumentMovement extends core_Plugin
                 // Ако серийния номер дето се засклажда се изписва и със същия документ да не се прави проверка
                 if(isset($bArr1['out'][$b1])) continue;
 
-                if($batchQuantityInAllStores[$b1] >= 1){
+                if (($batchQuantityInAllStores[$b1] ?? 0) >= 1) {
                     $serialErrArr[$b1] = $b1;
                 }
             }
@@ -291,7 +292,8 @@ class batch_plg_DocumentMovement extends core_Plugin
         // Ако документа се променя от бутона за промяна или при преизчисляване на курса да не се дублират партидите
         if(($rec->__isBeingChanged ?? null) || ($rec->_recalcRate ?? null) || ($rec->_changeLine ?? null)) return;
 
-        if ($rec->state == 'active') {
+        $state = $rec->state ?? null;
+        if ($state == 'active') {
             if ($mvc->hasPlugin('acc_plg_Contable')) {
 
                 if (isset($saveFields)) return;
@@ -313,7 +315,7 @@ class batch_plg_DocumentMovement extends core_Plugin
                 // Дига се флаг в текущия хит че движението е отразено
                 $mvc->savedMovements[$containerId] = true;
             }
-        } elseif (in_array($rec->state, array('rejected', 'stopped'))) {
+        } elseif (in_array($state, array('rejected', 'stopped'))) {
             $containerId = (isset($rec->containerId)) ? $rec->containerId : $mvc->fetchField($rec->id, 'containerId');
             $doc = doc_Containers::getDocument($containerId);
             batch_Movements::removeMovement($doc->getInstance(), $doc->that);

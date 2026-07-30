@@ -100,12 +100,12 @@ class bank_IncomeDocuments extends bank_Document
         
         expect($origin = $mvc->getOrigin($rec), $rec);
 
-        $accountOptions = $mvc->getOwnAccountOptions($rec->ownAccount);
+        $accountOptions = $mvc->getOwnAccountOptions($rec->ownAccount ?? null);
         $mvc->invoke('AfterGetOwnAccountOptions', array($form, &$accountOptions));
         $form->setOptions('ownAccount', $accountOptions);
         $options = array();
         $mvc->setDefaultsFromOrigin($origin, $form, $options);
-        $form->setSuggestions('contragentIban', bank_Accounts::getContragentIbans($rec->contragentId, $form->rec->contragentClassId));
+        $form->setSuggestions('contragentIban', bank_Accounts::getContragentIbans($contragentId, $contragentClassId));
         $form->setDefault('currencyId', acc_Periods::getBaseCurrencyId($today));
         
         $form->setOptions('operationSysId', $options);

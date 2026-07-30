@@ -1187,6 +1187,9 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
      */
     private static function getPaidDates($dRec, $verbal = true)
     {
+        $paidDatesList = '';
+        $paidDates = '';
+
         // Обхождат се платежните документи, записани към реда на фактурата/проформата.
         if (is_array($dRec->payDocuments ?? null)) {
             foreach ($dRec->payDocuments as $onePayDoc) {

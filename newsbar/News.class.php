@@ -288,7 +288,7 @@ class newsbar_News extends core_Master
         $form = &$data->form;
         $rec = &$form->rec;
         
-        if (!$form->rec->id) {
+        if (empty($form->rec->id)) {
             $form->setDefault('domainId', cms_Domains::getCurrent());
         }
         

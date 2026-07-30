@@ -199,7 +199,7 @@ class pos_Reports extends core_Master
     protected static function on_BeforeRecToVerbal($mvc, &$row, $rec, $fields)
     {
         // Ако няма записани детайли извличаме актуалните
-        if (!$rec->details) {
+        if (empty($rec->details)) {
             $mvc->extractData($rec);
         }
     }
@@ -263,7 +263,7 @@ class pos_Reports extends core_Master
             }
 
             $query = $mvc->getReceiptQuery($rec);
-            $query->show('waitingOn');
+            $query->show('id,waitingOn,createdOn');
             if(!$query->count()){
                 $form->setError('valior','Няма чакащи (неприключени) бележки с избрания или по-малък вальор|*!');
             } else {
@@ -413,7 +413,8 @@ class pos_Reports extends core_Master
         $summedPayments = $change = array();
         $rDetails = $rQuery->fetchAll();
         foreach ($rDetails as $rRec1){
-            $key = "{$rRec1->receiptId}|{$rRec1->deviceId}|{$rRec1->action}";
+            $deviceId = $rRec1->deviceId ?? null;
+            $key = "{$rRec1->receiptId}|{$deviceId}|{$rRec1->action}";
             if(!array_key_exists($key, $summedPayments)){
                 $summedPayments[$key] = $rRec1;
             } else {
@@ -423,9 +424,9 @@ class pos_Reports extends core_Master
         }
 
         foreach ($summedPayments as &$rRec){
-            $action = explode('|', $rRec->action);
+            $action = array_pad(explode('|', $rRec->action, 2), 2, '-1');
             if($action[1] == -1 || $action[1] == $bgnPaymentId){
-                if($change[$rRec->receiptId]){
+                if(!empty($change[$rRec->receiptId])){
                     $changeAmount = $change[$rRec->receiptId];
                     if($action[1] == $bgnPaymentId){
                         $changeAmount =currency_CurrencyRates::convertAmount($changeAmount, $rRec->createdOn, null, 'BGN');
@@ -452,7 +453,7 @@ class pos_Reports extends core_Master
             }
 
             if($action[1] == $cardPaymentId){
-                if($rRec->deviceId){
+                if(!empty($rRec->deviceId)){
                     if (!array_key_exists("{$action[1]}|{$rRec->deviceId}", $data->statisticArr[$rRec->calcedUser]->payments)) {
                         $data->statisticArr[$rRec->calcedUser]->payments["{$action[1]}|{$rRec->deviceId}"] = (object)array('value' => $action[1], 'amount' => 0, 'deviceId' => $rRec->deviceId);
                     }
@@ -575,9 +576,18 @@ class pos_Reports extends core_Master
             $data = pos_ReceiptDetails::fetchReportData($rec->id);
 
             foreach ($data as $obj) {
-                $indexArr = array($obj->action, $obj->pack, $obj->contragentClassId, $obj->contragentId, $obj->value, $obj->param, $obj->storeId, $obj->userId);
+                $indexArr = array(
+                    $obj->action ?? null,
+                    $obj->pack ?? null,
+                    $obj->contragentClassId ?? null,
+                    $obj->contragentId ?? null,
+                    $obj->value ?? null,
+                    $obj->param ?? null,
+                    $obj->storeId ?? null,
+                    $obj->userId ?? null,
+                );
                 if(core_Packs::isInstalled('batch')){
-                    $indexArr[] = str_replace('|', '>', $obj->batch);
+                    $indexArr[] = str_replace('|', '>', $obj->batch ?? '');
                 }
                 
                 $index = implode('|', $indexArr);
@@ -600,7 +610,7 @@ class pos_Reports extends core_Master
      */
     protected static function on_BeforeSave(core_Manager $mvc, $res, $rec)
     {
-        if ($rec->state == 'active' && $rec->brState != 'closed') {
+        if (($rec->state ?? null) == 'active' && ($rec->brState ?? null) != 'closed') {
             
             // Ако няма записани детайли извличаме актуалните
             $mvc->extractData($rec);
@@ -726,7 +736,7 @@ class pos_Reports extends core_Master
                 
                 $receiptRec->modifiedBy = core_Users::getCurrent();
                 $receiptRec->modifiedOn = dt::now();
-                $receiptRec->exState = $receiptRec->state;
+                $receiptRec->exState = $state;
                 $receiptRec->state = $nextState;
 
                 $Receipts->save($receiptRec, 'state,modifiedOn,modifiedBy,exState');

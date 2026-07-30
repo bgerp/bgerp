@@ -231,7 +231,7 @@ class core_Locks extends core_Manager
             foreach ($mvc->locks as $rec) {
 
                 // Дали да се изтрие преди излизане от хита - за асинхронни процеси
-                if ($rec->_delOnShutDown) {
+                if (!empty($rec->_delOnShutDown)) {
                     $mvc->delete($rec->id);
                 }
             }

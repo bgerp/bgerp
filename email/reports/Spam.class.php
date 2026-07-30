@@ -46,7 +46,7 @@ class email_reports_Spam extends frame2_driver_TableData
     protected static function on_AfterPrepareEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$data)
     {
         $emailsLimit = 10000;
-        if ($data->form->rec->id) {
+        if (!empty($data->form->rec->id)) {
             $emailsLimit = 0;
         }
         
@@ -191,10 +191,9 @@ class email_reports_Spam extends frame2_driver_TableData
             $resArr[$eRec->id]->folderId = $eRec->folderId;
             $resArr[$eRec->id]->spamScore = $eRec->spamScore;
             $resArr[$eRec->id]->id = $eRec->id;
-            if ($eRec->state == 'rejected') {
-                $resArr[$eRec->id]->state = $eRec->state;
-                $resArr[$eRec->id]->modifiedBy = $eRec->modifiedBy;
-            } else {
+            $resArr[$eRec->id]->state = $eRec->state;
+            $resArr[$eRec->id]->modifiedBy = $eRec->modifiedBy;
+            if ($eRec->state != 'rejected') {
                 $resArr[$eRec->id]->brState = $eRec->brState;
             }
         }
@@ -313,7 +312,7 @@ class email_reports_Spam extends frame2_driver_TableData
         
         list($emailId, $repId, $cUserId) = explode('|', $data);
         
-        expect($emailId && $repId && cUserId);
+        expect($emailId && $repId && $cUserId);
         
         $eRec = email_Incomings::fetch($emailId);
         expect($eRec);

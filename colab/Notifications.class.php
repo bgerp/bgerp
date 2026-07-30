@@ -45,7 +45,8 @@ class colab_Notifications extends core_Manager
         $recArr = $Portal->getRecsForUser(null, true, 'team', 'bgerp_drivers_Notifications');
 
         $cu = core_Users::getCurrent();
-        $rec = $recArr[key($recArr)];
+        $rec = countR($recArr) ? $recArr[key($recArr)] : null;
+        expect($rec);
 
         $rData = new stdClass();
         Mode::push('renderNotificationsInExternalWrapper', true);

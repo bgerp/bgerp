@@ -439,7 +439,7 @@ class cat_Products extends embed_Manager
     {
         $form = &$data->form;
         $rec = $form->rec;
-        if($data->action == 'clone'){
+        if(($data->action ?? null) == 'clone'){
             $rec->_isBeingCloned = true;
         }
 
@@ -485,7 +485,7 @@ class cat_Products extends embed_Manager
                 }
 
                 // При клониране се използва кода на клонирания артикул
-                if($data->action == 'clone'){
+                if(($data->action ?? null) == 'clone'){
                     if($clonedCode = cat_Products::fetchField($rec->clonedFromId, 'code')){
                         $lastCode = $clonedCode;
                     }
@@ -506,7 +506,7 @@ class cat_Products extends embed_Manager
                         }
                     }
 
-                    if($data->action == 'clone'){
+                    if(($data->action ?? null) == 'clone'){
                         $data->form->setField('code', 'focus');
                     }
                     $form->setDefault('groupsInput', $CategoryRec->markers);
@@ -530,7 +530,7 @@ class cat_Products extends embed_Manager
                     while (cat_Products::getByCode($newCode)) {
                         $newCode = str::increment($newCode);
                     }
-                } elseif(($data->_isSaveAndNew ?? null) || $data->action == 'clone') {
+                } elseif(($data->_isSaveAndNew ?? null) || ($data->action ?? null) == 'clone') {
                     // Ако все пак има предишен код, който не е инкремениран попълва се той
                     $newCode = $lastCode;
                 }
@@ -580,7 +580,7 @@ class cat_Products extends embed_Manager
             $form->setOptions('measureId', array('' => '') + $measureOptions);
             
             // При редакция ако артикула е използван с тази мярка, тя не може да се променя
-            if (isset($rec->id) && $data->action != 'clone') {
+            if (isset($rec->id) && ($data->action ?? null) != 'clone') {
                 if (cat_products_Packagings::fetch("#productId = {$rec->id}")) {
                     $isUsed = true;
                 } else {
@@ -649,7 +649,7 @@ class cat_Products extends embed_Manager
             if (isset($rec->folderId)) {
                 $Cover = doc_Folders::getCover($rec->folderId);
                 if ($Cover->haveInterface('crm_ContragentAccRegIntf')) {
-                    $cond = (($form->_cloneForm ?? false) !== true) ? "AND #id != '{$rec->id}'" : '';
+                    $cond = (($form->_cloneForm ?? false) !== true && !empty($rec->id)) ? "AND #id != '{$rec->id}'" : '';
                     while (cat_Products::fetchField(array("#folderId = {$rec->folderId} AND #name = '[#1#]' {$cond}", $rec->name), 'id')) {
                         $rec->name = str::addIncrementSuffix($rec->name, 'v', 2);
                     }
@@ -670,7 +670,7 @@ class cat_Products extends embed_Manager
             }
             
             $metaError = null;
-            $checkMetaProductId = !empty($rec->_isBeingCloned) ? null : $rec->id;
+            $checkMetaProductId = !empty($rec->_isBeingCloned) ? null : ($rec->id ?? null);
             if (!cat_Categories::checkMetas($rec->meta, $rec->innerClass, $checkMetaProductId, $metaError)) {
                 $form->setError('meta', $metaError);
             }
@@ -742,9 +742,9 @@ class cat_Products extends embed_Manager
         
         $rec->code = (($rec->code ?? null) == '') ? null : ($rec->code ?? null);
 
-        if(isset($rec->id)){
+        if (isset($rec->id, $rec->measureId)) {
             $exMeasureId = $mvc->fetchField($rec->id, 'measureId', false);
-            if($rec->measureId != $exMeasureId){
+            if ($rec->measureId != $exMeasureId) {
                 wp('Промяна на мярката на артикул', $rec->measureId, $exMeasureId);
             }
         }
@@ -1626,11 +1626,13 @@ class cat_Products extends embed_Manager
     protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec, $fields = null, $mode = null)
     {
         $touchedGroups = '';
+        $productId = $rec->id ?? $id;
+        $groups = $rec->groups ?? ($rec->_oldGroups ?? null);
         if(isset($rec->_oldGroups)){
-            $touchedGroups = keylist::diff($rec->_oldGroups, $rec->groups);
-            $touchedGroups = keylist::merge($touchedGroups, keylist::diff($rec->groups, $rec->_oldGroups));
+            $touchedGroups = keylist::diff($rec->_oldGroups, $groups);
+            $touchedGroups = keylist::merge($touchedGroups, keylist::diff($groups, $rec->_oldGroups));
         } elseif (!empty($rec->_isCreated)) {
-            $touchedGroups = $rec->groups;
+            $touchedGroups = $groups;
         }
 
         // Записване в перманентния кеш докоснатите групи
@@ -1638,9 +1640,9 @@ class cat_Products extends embed_Manager
             core_Permanent::set("touchedGroups|{$touchedGroups}", $touchedGroups, 120);
         }
 
-        if ($rec->groups) {
+        if ($groups) {
             if (($rec->isPublic ?? null) == 'yes') {
-                price_Cache::invalidateProduct($rec->id);
+                price_Cache::invalidateProduct($productId);
             }
         }
 
@@ -1656,22 +1658,22 @@ class cat_Products extends embed_Manager
         
         // Ако артикула е редактиран, преизчислява се транспорта
         if (!empty($rec->_isEditedFromForm)) {
-            sales_TransportValues::recalcTransportByProductId($rec->id);
+            sales_TransportValues::recalcTransportByProductId($productId);
         }
 
         // Ако има споделени папки импортират се и те
         if(!empty($rec->_sharedFolders)){
             $sharedFolders = keylist::toArray($rec->_sharedFolders);
             foreach ($sharedFolders as $folderId){
-                $sharedRec = (object)array('productId' => $rec->id, 'folderId' => $folderId);
+                $sharedRec = (object)array('productId' => $productId, 'folderId' => $folderId);
                 cat_products_SharedInFolders::save($sharedRec);
             }
         }
 
         // Ако се затваря артикула затварят се и готовите задания
-        if($rec->state == 'closed' && $rec->brState == 'active'){
+        if(($rec->state ?? null) == 'closed' && ($rec->brState ?? null) == 'active'){
             if($completeJobTolerance = planning_Setup::get('JOB_AUTO_COMPLETION_PERCENT')){
-                if($closedCount = planning_Jobs::closeActiveJobs($completeJobTolerance, $rec->id, null, planning_Setup::get('JOB_AUTO_COMPLETION_DELAY'), 'Приключване след затваряне на артикул')){
+                if($closedCount = planning_Jobs::closeActiveJobs($completeJobTolerance, $productId, null, planning_Setup::get('JOB_AUTO_COMPLETION_DELAY'), 'Приключване след затваряне на артикул')){
                     core_Statuses::newStatus("Затворени активни/събудени задания: {$closedCount}");
                 }
             }
@@ -3235,16 +3237,19 @@ class cat_Products extends embed_Manager
         
         // Взимат се балансите от складовите сметки
         $balanceRec = acc_Balances::getLastBalance();
-        $bQuery = acc_BalanceDetails::getQuery();
-        acc_BalanceDetails::filterQuery($bQuery, $balanceRec->id, '321,323');
-        $bQuery->show('accountNum,ent2Id,blAmount');
-        $balances = $bQuery->fetchAll();
+        $balances = array();
+        if (!empty($balanceRec->id)) {
+            $bQuery = acc_BalanceDetails::getQuery();
+            acc_BalanceDetails::filterQuery($bQuery, $balanceRec->id, '321,323');
+            $bQuery->show('accountNum,ent2Id,blAmount');
+            $balances = $bQuery->fetchAll();
+        }
         
         // Групират се по артикул
         $blAmounts = array();
         foreach ($balances as $bRec){
             if(isset($bRec->ent2Id)){
-                $blAmounts[$bRec->ent2Id] += $bRec->blAmount;
+                $blAmounts[$bRec->ent2Id] = ($blAmounts[$bRec->ent2Id] ?? 0) + $bRec->blAmount;
             }
         }
         
@@ -3261,7 +3266,7 @@ class cat_Products extends embed_Manager
                 
                 // Ако са използвани и са складируеми, гледаме какво салдо имат в 321 и 323. Ако е под-минимума затваряме ги
                 $minAmount = ($pRec->lastItemUsedOn >= $treshhold1) ? 10 : 20;
-                if(round($blAmounts[$pRec->itemId], 2) <= $minAmount){
+                if(round($blAmounts[$pRec->itemId] ?? 0, 2) <= $minAmount){
                     $close = true;
                 }
             }
@@ -4256,7 +4261,7 @@ class cat_Products extends embed_Manager
     {
         expect($mRec);
 
-        $vatExceptionId = cond_VatExceptions::getFromThreadId($mRec->threadId);
+        $vatExceptionId = cond_VatExceptions::getFromThreadId($mRec->threadId ?? null);
         $canSeePrice = haveRole('seePrice,ceo', $activatedBy);
         $pStrName = 'price';
 
@@ -4274,7 +4279,10 @@ class cat_Products extends embed_Manager
             $csvFields->FLD('moq', 'double(smartRound)', 'caption=МКП');
         }
 
-        $listId = cat_plg_ShowCodes::getReffListId($Detail, $mRec->contragentClassId, $mRec->contragentId, $mRec->threadId);
+        $listId = null;
+        if (isset($mRec->contragentClassId, $mRec->contragentId)) {
+            $listId = cat_plg_ShowCodes::getReffListId($Detail, $mRec->contragentClassId, $mRec->contragentId, $mRec->threadId ?? null);
+        }
         expect(!empty($detArr));
 
         $recs = array();
@@ -4338,8 +4346,8 @@ class cat_Products extends embed_Manager
             $dQuery->orderBy('id', 'ASC');
 
             while ($dRec = $dQuery->fetch()) {
-                if (!$dInst || !$dInst->productFld) {
-                    wp('Лоши данни при експорт', $dName, $dInst, $dInst->productFld, $dRec);
+                if (empty($dInst->productFld)) {
+                    wp('Лоши данни при експорт', $dName, $dInst, $dInst->productFld ?? null, $dRec);
 
                     continue;
                 }
@@ -4350,9 +4358,9 @@ class cat_Products extends embed_Manager
 
                     $recs[$dRec->id]->_productId = $dRec->{$dInst->productFld};
                     $recs[$dRec->id]->id = $dRec->id;
-                    $recs[$dRec->id]->clonedFromDetailId = $dRec->clonedFromDetailId;
+                    $recs[$dRec->id]->clonedFromDetailId = $dRec->clonedFromDetailId ?? null;
                     if($masterMvc instanceof cat_Listings) {
-                        $recs[$dRec->id]->moq = $dRec->moq;
+                        $recs[$dRec->id]->moq = $dRec->moq ?? null;
                     }
 
                     // Показване на вашия реф, ако има
@@ -4390,7 +4398,7 @@ class cat_Products extends embed_Manager
 
                 $allFFieldsArr = $fFieldsArr;
 
-                if ($dInst->exportToMaster) {
+                if (!empty($dInst->exportToMaster)) {
                     $exportToMasterArr = arr::make($dInst->exportToMaster, true);
 
                     foreach ($exportToMasterArr as $eName => $eFields) {
@@ -4415,7 +4423,7 @@ class cat_Products extends embed_Manager
 
                         $vInst = cls::get($dInst->fields[$k]->type->params['mvc']);
 
-                        if (!$dRec->{$k}) {
+                        if (empty($dRec->{$k})) {
                             continue;
                         }
 
@@ -4427,7 +4435,7 @@ class cat_Products extends embed_Manager
                                 if (!$canSeePrice) {
                                     continue;
                                 } elseif (!empty($tFieldsArr)) {
-                                    if (!$tFieldsArr[$v]) {
+                                    if (empty($tFieldsArr[$v])) {
                                         continue;
                                     }
                                 }
@@ -4454,7 +4462,7 @@ class cat_Products extends embed_Manager
                             if (!$canSeePrice) {
                                 continue;
                             } elseif (!empty($tFieldsArr)) {
-                                if (!$tFieldsArr[$k]) {
+                                if (empty($tFieldsArr[$k])) {
                                     continue;
                                 }
                             }
@@ -4476,8 +4484,8 @@ class cat_Products extends embed_Manager
                 // Добавяме отстъпката към цената
                 if (!empty($allFFieldsArr['packPrice'])) {
                     if(!Mode::is('csvExportInList')) {
-                        $price = ($masterMvc instanceof cat_Listings) ? $recs[$dRec->id]->price : $recs[$dRec->id]->packPrice;
-                        if ($price && $dRec->discount && !($masterMvc instanceof deals_InvoiceMaster && $mRec->type == 'dc_note')) {
+                        $price = ($masterMvc instanceof cat_Listings) ? ($recs[$dRec->id]->price ?? null) : ($recs[$dRec->id]->packPrice ?? null);
+                        if ($price && !empty($dRec->discount) && !($masterMvc instanceof deals_InvoiceMaster && ($mRec->type ?? null) == 'dc_note')) {
                             $recs[$dRec->id]->packPrice = $price;
                             $recs[$dRec->id]->packPrice -= ($recs[$dRec->id]->packPrice * $dRec->discount);
 
@@ -4491,8 +4499,8 @@ class cat_Products extends embed_Manager
                         }
                     } else {
                         if(Mode::is('csvExportInList')){
-                            $rate = $mRec->displayRate ?? ($mRec->currencyRate ?? $mRec->rate);
-                            if(isset($rate) && $rate != 1){
+                            $rate = $mRec->displayRate ?? ($mRec->currencyRate ?? ($mRec->rate ?? null));
+                            if (isset($recs[$dRec->id]->packPrice) && isset($rate) && $rate != 1) {
                                 $recs[$dRec->id]->packPrice /= $rate;
                                 $recs[$dRec->id]->packPrice = round($recs[$dRec->id]->packPrice, 5);
                             };
@@ -4500,12 +4508,12 @@ class cat_Products extends embed_Manager
                     }
                 }
 
-                $valior = !empty($masterMvc->valiorFld) ? $mRec->{$masterMvc->valiorFld} : dt::today();
+                $valior = !empty($masterMvc->valiorFld) ? ($mRec->{$masterMvc->valiorFld} ?? dt::today()) : dt::today();
                 $recs[$dRec->id]->vatPercent = cat_Products::getVat($dRec->{$dInst->productFld}, $valior, $vatExceptionId);
-                $recs[$dRec->id]->notes = $dRec->notes;
+                $recs[$dRec->id]->notes = $dRec->notes ?? null;
 
                 // За добавяне на бачовете
-                if (!empty($allFFieldsArr['batch']) && !empty($masterMvc->storeFieldName) && $mRec->{$masterMvc->storeFieldName}) {
+                if (!empty($allFFieldsArr['batch']) && !empty($masterMvc->storeFieldName) && !empty($mRec->{$masterMvc->storeFieldName})) {
                     $Def = batch_Defs::getBatchDef($dRec->{$dInst->productFld});
                     if (isset($recs[$dRec->id]) && isset($recs[$dRec->id]->packQuantity) && $Def) {
                         if (empty($csvFields->fields['batch'])) {
@@ -4585,10 +4593,11 @@ class cat_Products extends embed_Manager
             }
         }
 
-        $rate = isset($mRec->currencyRate) ? $mRec->currencyRate : $mRec->rate;
-        $chargeVat = isset($mRec->chargeVat) ? $mRec->chargeVat : $mRec->vatRate;
+        $rate = $mRec->currencyRate ?? ($mRec->rate ?? null);
+        $chargeVat = $mRec->chargeVat ?? ($mRec->vatRate ?? null);
 
-        $currencyId = is_numeric($mRec->currencyId) ? currency_Currencies::getCodeById($mRec->currencyId) : $mRec->currencyId;
+        $currencyId = $mRec->currencyId ?? null;
+        $currencyId = is_numeric($currencyId) ? currency_Currencies::getCodeById($currencyId) : $currencyId;
         $addMiscPriceFields = false;
 
             foreach ($recs as $rec){

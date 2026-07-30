@@ -911,7 +911,7 @@ class blast_Lists extends core_Master
                 return array($rec->id => $rec);
             }
 
-            if (($paramsArr['ifExist'] == 'truncateAndUpdate') && $rec->id) {
+            if (($paramsArr['ifExist'] == 'truncateAndUpdate') && !empty($rec->id)) {
                 blast_ListDetails::delete(array("#listId = '[#1#]'", $rec->id));
             }
         } else {

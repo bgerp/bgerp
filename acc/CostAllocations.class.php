@@ -214,7 +214,7 @@ class acc_CostAllocations extends core_Manager
         $rec = $data->form->rec;
         if (isset($rec->containerId)) {
             $origin = doc_Containers::getDocument($rec->containerId);
-            $data->form->title = core_Detail::getEditTitle($origin->getClassId(), $origin->that, $mvc->singleTitle, $rec->id);
+            $data->form->title = core_Detail::getEditTitle($origin->getClassId(), $origin->that, $mvc->singleTitle, $rec->id ?? null);
         }
     }
     

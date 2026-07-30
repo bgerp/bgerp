@@ -378,7 +378,7 @@ class type_UserList extends type_Keylist
                     foreach ($this->userOtherGroup as $gName => $gVal) {
                         $key = $this->getKey($gName, $uId);
                         
-                        if ($this->suggestions[$key]) {
+                        if (!empty($this->suggestions[$key])) {
                             $nValArr[$key] = $key;
                             $haveMatch = true;
                             

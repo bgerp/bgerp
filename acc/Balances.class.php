@@ -137,6 +137,146 @@ class acc_Balances extends core_Master
 
 
     /**
+     * Натрупани времена за диагностика на преизчисляването.
+     *
+     * Ключ е името на етапа, стойността - масив с 'start', 'total' и 'cnt'.
+     */
+    private static $timings = array();
+
+
+    /**
+     * Пуска хронометър за даден етап от преизчисляването.
+     *
+     * За разлика от core_Debug таймерите, тези се натрупват винаги и се извеждат
+     * в системния лог - при крон дебъг логът на хита е изключен (@see core_Cron::act_ProcessRun).
+     *
+     * @param string $name
+     */
+    public static function timerStart($name)
+    {
+        core_Debug::startTimer($name);
+        self::$timings[$name]['start'] = microtime(true);
+    }
+
+
+    /**
+     * Спира хронометъра за даден етап и натрупва изминалото време
+     *
+     * @param string $name
+     */
+    public static function timerStop($name)
+    {
+        core_Debug::stopTimer($name);
+
+        if (!isset(self::$timings[$name]['start'])) {
+
+            return;
+        }
+
+        self::$timings[$name]['total'] = (self::$timings[$name]['total'] ?? 0) + (microtime(true) - self::$timings[$name]['start']);
+        self::$timings[$name]['cnt'] = (self::$timings[$name]['cnt'] ?? 0) + 1;
+        self::$timings[$name]['start'] = null;
+    }
+
+
+    /**
+     * Записва диагностичен ред за преизчисляването в системния лог с тип 'debug'.
+     *
+     * Използва се вместо core_Debug::log(), защото при пускане по крон дебъг логът
+     * на хита е изключен (@see core_Cron::act_ProcessRun) и там нищо не се вижда.
+     *
+     * Ако е подадено $elapsed, редът се записва само когато етапът е отнел поне
+     * $threshold секунди - иначе ежеминутният крон би наливал стотици записи.
+     *
+     * @param string     $msg
+     * @param float|NULL $elapsed   - времетраене на етапа в секунди
+     * @param float      $threshold - под това време етапът се пропуска
+     */
+    public static function logCalcStep($msg, $elapsed = null, $threshold = 0.5)
+    {
+        if (isset($elapsed)) {
+            if ($elapsed < $threshold) {
+
+                return;
+            }
+
+            $msg .= ' [' . round($elapsed, 2) . 'с]';
+        }
+
+        log_System::add('acc_Balances', $msg, null, 'debug', 1);
+    }
+
+
+    /**
+     * Момент на стартиране на текущия recalc(), или NULL ако не тече такъв.
+     *
+     * Служи на shutdown хендлъра да разбере, че процесът е приключил аварийно.
+     */
+    private static $recalcStartedOn;
+
+
+    /**
+     * Извиква се на края на хита. Ако recalc() е започнал, но не е отбелязал край,
+     * значи процесът е убит (фатална грешка, изчерпана памет или време) - точно
+     * това остава невидимо в лога и заключва крон процеса до изтичане на timeLimit.
+     */
+    public static function onRecalcShutdown()
+    {
+        if (!isset(self::$recalcStartedOn)) {
+
+            return;
+        }
+
+        $elapsed = round(microtime(true) - self::$recalcStartedOn, 2);
+        $err = error_get_last();
+        $errStr = $err ? "{$err['type']}: {$err['message']} @ {$err['file']}:{$err['line']}" : 'няма регистрирана PHP грешка';
+        $mem = round(memory_get_peak_usage(true) / 1048576, 1);
+
+        self::logCalcStep("recalc() ПРЕКЪСНАТ след {$elapsed}с » {$errStr} » пикова памет {$mem}MB (лимит " . ini_get('memory_limit') . ')');
+    }
+
+
+    /**
+     * Връща натрупаните времена, подредени от най-бавния етап към най-бързия
+     *
+     * @param int   $topN     - колко етапа да се включат
+     * @param float $minTotal - етапи под това време (сек) се пропускат
+     *
+     * @return string
+     */
+    public static function timersReport($topN = 12, $minTotal = 0.05)
+    {
+        $arr = array();
+        foreach (self::$timings as $name => $t) {
+            if (($t['total'] ?? 0) >= $minTotal) {
+                $arr[$name] = $t;
+            }
+        }
+
+        if (!countR($arr)) {
+
+            return 'без отчетени времена';
+        }
+
+        uasort($arr, function ($a, $b) {
+
+            return $b['total'] <=> $a['total'];
+        });
+
+        $parts = array();
+        $i = 0;
+        foreach ($arr as $name => $t) {
+            if ($i++ >= $topN) {
+                break;
+            }
+            $parts[] = $name . '=' . round($t['total'], 2) . 'с/' . $t['cnt'] . 'х';
+        }
+
+        return implode(', ', $parts);
+    }
+
+
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -450,48 +590,81 @@ class acc_Balances extends core_Master
         // Ако не е валиден го преизчисляваме, като всяка от
         // десетте минути след преизчисляването - пак го преизчисляваме
         if ($force !== true) {
-            $isValid = self::isValid($rec, $rec->lastCalculateChange != 'no' ? 10 : 1);
+            $isValid = self::isValid($rec, ($rec->lastCalculateChange ?? null) != 'no' ? 10 : 1);
         } else {
             $isValid = false;
         }
 
-        if (!$isValid) {
+        if ($isValid) {
+            self::logCalcStep("forceCalc ПРОПУСНАТ (валиден) {$rec->fromDate}..{$rec->toDate}");
 
-            // Днешна дата
-            $today = dt::today();
+            return;
+        }
 
-            // Ако изчисляваме текущия период, опитваме да преизчислим баланс за предишен работен ден
-            if ($rec->toDate == dt::getLastDayOfMonth()) {
-                if ($prevWorkingDay = self::getPrevWorkingDay($today)) {
-                    $prevRec = clone($rec);
-                    unset($prevRec->id);
-                    $prevRec->toDate = $prevWorkingDay;
-                    $prevRec->periodId = null;
-                    self::forceCalc($prevRec);
-                    $fromDate = $prevRec->fromDate;
-                    $toDate = $prevRec->toDate;
+        $forceCalcStart = microtime(true);
 
-                    // Намираме и изтриваме всички баланси, които нямат период и не се отнасят за предишния ден
-                    $query = self::getQuery();
-                    while ($delRec = $query->fetch("(#fromDate != '{$fromDate}' OR #toDate != '{$toDate}') AND #periodId IS NULL")) {
-                        acc_BalanceDetails::delete("#balanceId = {$delRec->id}");
-                        self::delete($delRec->id);
-                    }
+        // Маркерът е безусловен - по него се вижда докъде е стигнал "увиснал" процес
+        self::logCalcStep("forceCalc START {$rec->fromDate}..{$rec->toDate} (periodId=" . ($rec->periodId ?? 'null') . ')');
+
+        // Днешна дата
+        $today = dt::today();
+
+        // Ако изчисляваме текущия период, опитваме да преизчислим баланс за предишен работен ден
+        if ($rec->toDate == dt::getLastDayOfMonth()) {
+            if ($prevWorkingDay = self::getPrevWorkingDay($today)) {
+                $prevRec = clone($rec);
+                unset($prevRec->id);
+                $prevRec->toDate = $prevWorkingDay;
+                $prevRec->periodId = null;
+
+                $stepStart = microtime(true);
+                self::timerStart('BAL_MIDDLE_FORCECALC');
+                self::forceCalc($prevRec);
+                self::timerStop('BAL_MIDDLE_FORCECALC');
+                self::logCalcStep("  междинен баланс до {$prevWorkingDay}", microtime(true) - $stepStart);
+
+                $fromDate = $prevRec->fromDate;
+                $toDate = $prevRec->toDate;
+
+                // Намираме и изтриваме всички баланси, които нямат период и не се отнасят за предишния ден
+                $stepStart = microtime(true);
+                self::timerStart('BAL_DELETE_OLD_MIDDLE');
+                $delCnt = 0;
+                $query = self::getQuery();
+                while ($delRec = $query->fetch("(#fromDate != '{$fromDate}' OR #toDate != '{$toDate}') AND #periodId IS NULL")) {
+                    acc_BalanceDetails::delete("#balanceId = {$delRec->id}");
+                    self::delete($delRec->id);
+                    $delCnt++;
+                }
+                self::timerStop('BAL_DELETE_OLD_MIDDLE');
+
+                if ($delCnt) {
+                    self::logCalcStep("  изтрити {$delCnt} стари междинни баланса", microtime(true) - $stepStart);
                 }
             }
-
-            self::calc($rec);
-
-            // Преизчисляваме първия баланс, в който има промени още веднъж, за да подаде верни данни на следващите
-            static $rc1;
-
-            if (!$rc1 && $rec->lastCalculateChange != 'no') {
-                self::calc($rec);
-                $rc1 = true;
-            }
-
-            return true;
         }
+
+        $stepStart = microtime(true);
+        self::timerStart('BAL_CALC');
+        self::calc($rec);
+        self::timerStop('BAL_CALC');
+        self::logCalcStep("  calc() #1 {$rec->fromDate}..{$rec->toDate} промяна=" . ($rec->lastCalculateChange ?? '-'), microtime(true) - $stepStart);
+
+        // Преизчисляваме първия баланс, в който има промени още веднъж, за да подаде верни данни на следващите
+        static $rc1;
+
+        if (!$rc1 && $rec->lastCalculateChange != 'no') {
+            $stepStart = microtime(true);
+            self::timerStart('BAL_CALC_RC1');
+            self::calc($rec);
+            self::timerStop('BAL_CALC_RC1');
+            self::logCalcStep("  calc() #2 (rc1) {$rec->fromDate}..{$rec->toDate} промяна=" . ($rec->lastCalculateChange ?? '-'), microtime(true) - $stepStart);
+            $rc1 = true;
+        }
+
+        self::logCalcStep("forceCalc END {$rec->fromDate}..{$rec->toDate}", microtime(true) - $forceCalcStart);
+
+        return true;
     }
 
 
@@ -576,18 +749,42 @@ class acc_Balances extends core_Master
     {
         $lockKey = 'RecalcBalances';
 
+        $recalcStart = microtime(true);
+
+        self::timerStart('recalcBalance');
+        self::logCalcStep('recalc() START' . (core_Cron::getCurrentRec() ? ' (крон)' : ' (ръчно)'));
+
+        // Ако процесът бъде убит (памет/време/фатална грешка), нищо повече не се логва
+        // и крон процесът остава заключен - затова отбелязваме аварийния край
+        self::$recalcStartedOn = $recalcStart;
+        register_shutdown_function(array(__CLASS__, 'onRecalcShutdown'));
+
         // Ако изчисляването е заключено не го изпълняваме
-        if (!core_Locks::obtain($lockKey, self::MAX_PERIOD_CALC_TIME, 1)) {
-            $this->logNotice('Изчисляването на баланса е заключено от друг процес');
+        self::timerStart('BAL_INITIAL_LOCK');
+        $gotLock = core_Locks::obtain($lockKey, self::MAX_PERIOD_CALC_TIME, 1);
+        self::timerStop('BAL_INITIAL_LOCK');
+
+        if (!$gotLock) {
+
+            // Показваме и колко още държи лока - така се вижда дали лок от "увиснал"
+            // процес блокира следващите крон пускания за цели MAX_PERIOD_CALC_TIME секунди
+            $lockRec = core_Locks::fetch(array("#objectId = '[#1#]'", str::convertToFixedKey($lockKey, 32, 4)), null, false);
+            $lockInfo = $lockRec ? ('изтича след ' . ($lockRec->lockExpire - time()) . ' сек, потребител ' . $lockRec->user) : 'няма запис за лока';
+            self::logCalcStep("recalc() ИЗХОД - заключено от друг процес ({$lockInfo})");
+            self::$recalcStartedOn = null;
 
             return;
         }
+
+        self::logCalcStep('recalc() лок взет');
 
         $data = new stdClass();
         $data->recalcedBalances = array();
         if ($oldLastBalance = acc_Balances::getLastBalance()) {
             $data->oldLastBalance = clone $oldLastBalance;
         }
+
+        self::logCalcStep('recalc() getLastBalance() OK');
 
         // Обикаляме всички активни и чакъщи периоди от по-старите, към по-новите
         // Ако периода се нуждае от прекалкулиране - правим го
@@ -609,27 +806,83 @@ class acc_Balances extends core_Master
             $pQuery->where("#end >= '{$windowStart}'");
         }
 
-        while ($pRec = $pQuery->fetch()) {
-            $rec = new stdClass();
-            $rec->fromDate = $pRec->start;
-            $rec->toDate = $pRec->end;
-            $rec->periodId = $pRec->id;
+        $periodsCnt = 0;
+        $slowest = array('what' => null, 'time' => 0);
 
-            // Преизчисляваме първия отворен баланс (когато в него има промени) 9+1 пъти, за да подаде верни данни на следващите
-            $j = 0;
-            do {
-                core_Locks::obtain($lockKey, self::MAX_PERIOD_CALC_TIME);
-                $r = self::forceCalc($rec);
-                if($r){
-                    $data->recalcedBalances[$rec->toDate] = $rec;
-                }
-            } while ($rec->lastCalculateChange != 'no' && $j++ < 9 && $rc);
-            $rc = false;
+        self::logCalcStep('recalc() начало на цикъла по периоди' . ($windowStart ? " (от {$windowStart})" : ' (всички отворени)'));
+
+        // Изключение тук досега оставаше невидимо - хитът приключваше без да мине през
+        // core_Locks::release() и без да отбележи край, което заключваше крон процеса
+        try {
+            while ($pRec = $pQuery->fetch()) {
+                $periodsCnt++;
+
+                $rec = new stdClass();
+                $rec->fromDate = $pRec->start;
+                $rec->toDate = $pRec->end;
+                $rec->periodId = $pRec->id;
+
+                $periodStart = microtime(true);
+                self::logCalcStep("Период #{$pRec->id} {$rec->fromDate}..{$rec->toDate} START");
+
+                // Преизчисляваме първия отворен баланс (когато в него има промени) 9+1 пъти, за да подаде верни данни на следващите
+                $j = 0;
+                do {
+                    $lockStart = microtime(true);
+                    self::timerStart('BAL_LOOP_LOCK');
+                    core_Locks::obtain($lockKey, self::MAX_PERIOD_CALC_TIME);
+                    self::timerStop('BAL_LOOP_LOCK');
+                    $lockWait = round(microtime(true) - $lockStart, 3);
+
+                    $iterStart = microtime(true);
+                    $r = self::forceCalc($rec);
+                    $iterTime = round(microtime(true) - $iterStart, 3);
+
+                    self::logCalcStep("  период #{$pRec->id} итерация {$j}: лок {$lockWait}с, промяна=" . ($rec->lastCalculateChange ?? '-') . ', преизчислен=' . ($r ? 'да' : 'не'), $iterTime);
+
+                    if ($iterTime > $slowest['time']) {
+                        $slowest = array('what' => "период {$rec->fromDate}..{$rec->toDate} итерация {$j}", 'time' => $iterTime);
+                    }
+
+                    if($r){
+                        $data->recalcedBalances[$rec->toDate] = $rec;
+                    }
+                } while ($rec->lastCalculateChange != 'no' && $j++ < 9 && $rc);
+
+                $periodTime = round(microtime(true) - $periodStart, 3);
+                $iterCnt = $j + 1;
+                self::logCalcStep("Период #{$pRec->id} {$rec->fromDate}..{$rec->toDate} END: {$iterCnt} итерации за {$periodTime}с");
+
+                $rc = false;
+            }
+        } catch (Throwable $e) {
+            self::logCalcStep('recalc() ИЗКЛЮЧЕНИЕ след ' . $periodsCnt . ' периода » ' . get_class($e) . ': ' . $e->getMessage() .
+                ' @ ' . $e->getFile() . ':' . $e->getLine());
+            self::logCalcStep('recalc() стек » ' . str_replace("\n", ' | ', $e->getTraceAsString()));
+
+            // Освобождаваме лока, преди да върнем изключението нагоре - иначе остава
+            // зает до MAX_PERIOD_CALC_TIME и блокира следващите крон пускания
+            core_Locks::release($lockKey);
+            self::$recalcStartedOn = null;
+
+            throw $e;
         }
 
         // Освобождаваме заключването на процеса
         core_Locks::release($lockKey);
-        core_Debug::stopTimer('recalcBalance');
+        self::timerStop('recalcBalance');
+
+        $totalTime = round(microtime(true) - $recalcStart, 3);
+        $slowestWhat = $slowest['what'] ?? '-';
+
+        // Обобщението е безусловно - по него се вижда всяко пускане и разбивката по етапи
+        self::logCalcStep("recalc() END: {$periodsCnt} периода за {$totalTime} сек." .
+            " » най-бавно: {$slowestWhat} ({$slowest['time']}с)" .
+            ' » пикова памет ' . round(memory_get_peak_usage(true) / 1048576, 1) . 'MB' .
+            ' » етапи: ' . self::timersReport());
+
+        // Стигнахме до край - shutdown хендлърът няма какво да докладва
+        self::$recalcStartedOn = null;
 
         // Пораждаме събитие, че баланса е бил преизчислен
         $data->lastBalance = acc_Balances::getLastBalance();

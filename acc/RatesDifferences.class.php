@@ -241,7 +241,7 @@ class acc_RatesDifferences extends core_Master
             $row->total = ht::createHint($row->total, "Преди|*: {$oldTotalVerbal} {$row->baseCurrencyCode}", $icon, false);
         }
 
-        if(is_array($rec->data)){
+        if (!empty($rec->data) && is_array($rec->data)) {
             if(countR($rec->data)){
                 $displayData = array();
                 foreach ($rec->data as $containerId => $amountCorrected){

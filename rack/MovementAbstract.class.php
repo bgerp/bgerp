@@ -104,7 +104,7 @@ abstract class rack_MovementAbstract extends core_Manager
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-        $makeLinks = !($fields['-inline'] && !isset($fields['-inline-single']));
+        $makeLinks = !(!empty($fields['-inline']) && !isset($fields['-inline-single']));
         if (!empty($rec->note)) {
             $row->note = "<div style='font-size:0.8em;'>{$row->note}</div>";
         }
@@ -142,7 +142,7 @@ abstract class rack_MovementAbstract extends core_Manager
             }
         }
 
-        if(!$fields['-inline'] && !$fields['-inline-single']){
+        if(empty($fields['-inline']) && empty($fields['-inline-single'])){
             if($Def = batch_Defs::getBatchDef($rec->productId)){
                 if(!empty($rec->batch)){
                     $row->batch = $Def->toVerbal($rec->batch);
@@ -188,7 +188,7 @@ abstract class rack_MovementAbstract extends core_Manager
 
         $class = '';
         if ($palletId = cat_UoM::fetchBySinonim('pallet')->id) {
-            if(is_array($rec->packagings)){
+            if (!empty($rec->packagings) && is_array($rec->packagings)) {
                 $palletRecs = array_filter($rec->packagings, function($a) use ($palletId){
                     return $a['packagingId'] == $palletId;
                 });
@@ -243,7 +243,7 @@ abstract class rack_MovementAbstract extends core_Manager
         foreach ($quantities as $k => $a){
             if(empty($a->quantity) && $k == 'from') continue;
 
-            if(is_array($rec->packagings)){
+            if (!empty($rec->packagings) && is_array($rec->packagings)) {
                 $convertedQuantity = static::getSmartPackagings($rec->productId, $rec->packagings, $a->quantity, $rec->packagingId);
                 if(isset($convertedQuantity)){
                     $movementArr[$k] = "{$a->position} (<span {$a->class}>{$convertedQuantity}</span>)";
@@ -332,7 +332,7 @@ abstract class rack_MovementAbstract extends core_Manager
                 $data->title = "{$mvc->title} |*<b style='color:green'>" . store_Stores::getHyperlink($filterRec->storeId, true) . "</b>";
             }
 
-            if (in_array($filterRec->state1, array('active', 'closed', 'pending', 'waiting'))) {
+            if (in_array($filterRec->state1 ?? null, array('active', 'closed', 'pending', 'waiting'))) {
                 $data->query->where("#state = '{$filterRec->state1}'");
             }
 
@@ -427,7 +427,7 @@ abstract class rack_MovementAbstract extends core_Manager
     protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
     {
         $data->listTableMvc->FLD('movement', 'varchar', 'tdClass=movement-description');
-        if(!$data->inlineMovement){
+        if(empty($data->inlineMovement)){
             $data->listTableMvc->FLD('leftColBtns', 'varchar', 'tdClass=centered');
             $data->listTableMvc->FLD('rightColBtns', 'varchar', 'tdClass=centered');
             $data->listTableMvc->setField('workerId', 'tdClass=centered');
@@ -472,7 +472,7 @@ abstract class rack_MovementAbstract extends core_Manager
         }
 
         // Подобрено сортиране
-        uasort($packs, function (&$a, &$b)  {
+        uasort($packs, function ($a, $b)  {
             if ($a['quantity'] == $b['quantity']) { return $a['id'] > $b['id'] ? 1 : -1;}
 
             return ($a['quantity'] > $b['quantity']) ? -1 : 1;

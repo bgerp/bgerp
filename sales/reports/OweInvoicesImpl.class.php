@@ -538,7 +538,7 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
             $tpl->append($afterRow, 'ROW_AFTER');
         }
         
-        if ($data->pager) {
+        if (!empty($data->pager)) {
             $tpl->append($data->pager->getHtml(), 'PAGER');
         }
         

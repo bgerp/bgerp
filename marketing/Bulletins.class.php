@@ -631,7 +631,7 @@ class marketing_Bulletins extends core_Master
      */
     protected function on_CalcScriptTag($mvc, $rec)
     {
-        if (!$rec->domain || !$rec->id) {
+        if (!$rec->domain || empty($rec->id)) {
             
             return ;
         }

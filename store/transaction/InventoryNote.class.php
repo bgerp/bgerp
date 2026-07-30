@@ -31,13 +31,13 @@ class store_transaction_InventoryNote extends acc_DocumentTransactionSource
         $rec->valior = empty($rec->valior) ? dt::today() : $rec->valior;
         
         $result = (object) array(
-            'reason' => "Протокол за инвентаризация №{$rec->id}",
+            'reason' => 'Протокол за инвентаризация №' . ($rec->id ?? ''),
             'valior' => $rec->valior,
             'totalAmount' => null,
             'entries' => array()
         );
         
-        if ($rec->id) {
+        if (!empty($rec->id)) {
             
             // При контиране за първи път
             if (Mode::get('saveTransaction')) {

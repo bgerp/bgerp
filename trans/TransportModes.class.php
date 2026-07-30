@@ -82,7 +82,7 @@ class trans_TransportModes extends core_Manager
             $rec = $mvc->fetch($rec->id);
         }
         
-        if (($action == 'delete' || $action == 'edit') && $rec->id) {
+        if (($action == 'delete' || $action == 'edit') && !empty($rec->id)) {
             if ($rec->createdBy != core_Users::getCurrent()) {
                 $roles = 'ceo';
             }

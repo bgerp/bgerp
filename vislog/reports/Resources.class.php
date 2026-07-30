@@ -252,7 +252,7 @@ class vislog_reports_Resources extends frame_BaseDriver
         
         $tpl->append($table->get($data->rows, $fields), 'RESOURCES');
         
-        if ($data->pager) {
+        if (!empty($data->pager)) {
             $tpl->append($data->pager->getHtml(), 'PAGER');
         }
         

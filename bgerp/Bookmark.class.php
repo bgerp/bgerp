@@ -453,7 +453,7 @@ class bgerp_Bookmark extends core_Manager
         }
 
         // При създаване на връзка, да не може да се редактира
-        if ($form->rec->url && !$form->rec->id && !$form->cmd) {
+        if ($form->rec->url && empty($form->rec->id) && !$form->cmd) {
             $form->setReadOnly('url');
         }
     }
@@ -507,10 +507,10 @@ class bgerp_Bookmark extends core_Manager
      */
     public static function getSaoItems($rec)
     {
-        setIfNot($rec->user, core_Users::getCurrent());
+        $userId = $rec->user ?? core_Users::getCurrent();
         $query = self::getQuery();
         $res = array();
-        $query->where("#user = {$rec->user}");
+        $query->where("#user = {$userId}");
         while ($rec = $query->fetch()) {
             $res[$rec->id] = $rec;
         }

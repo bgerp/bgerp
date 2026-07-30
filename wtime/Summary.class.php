@@ -755,7 +755,7 @@ class wtime_Summary extends core_Manager
 
 
         $tpl->append($dTable);
-        if ($data->Pager) {
+        if (!empty($data->Pager)) {
             $tpl->append($data->Pager->getHtml());
         }
 

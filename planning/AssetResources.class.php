@@ -159,8 +159,8 @@ class planning_AssetResources extends core_Master
         $this->FLD('assetUsers', "keylist(mvc=core_Users, select=nick, where=#state !\\= \\'rejected\\' AND #roles LIKE '%|{$powerUserId}|%')", 'caption=Използване за производство->Отговорници,remember');
         $this->FLD('simultaneity', 'int(min=0)', 'caption=Използване за производство->Едновременност,notNull,value=1, oldFieldName=quantity,remember');
         $this->FLD('planningParams', 'keylist(mvc=cat_Params,select=typeExt)', 'caption=Използване за производство->Планиращи параметри');
-        $this->FLD('planningParamSimilarity', 'percent(Min=0,Max=1,decimals=0)', 'caption=Използване за производство->Минимално съвпадение за автоматично групиране,placeholder=Автоматично');
-        $this->FLD('planningParamGroupDays', 'int(Min=1)', 'caption=Използване за производство->Период за автоматично групиране,placeholder=Автоматично,unit=дни,hint=Максимална разлика в дни между падежите на операции със сходни планиращи параметри');
+        $this->FLD('planningParamSimilarity', 'percent(Min=0,Max=1,decimals=0)', 'caption=Използване за производство->Автоматично групиране на операциите на база подобни планиращи параметри при->Съвпадение над,placeholder=Автоматично');
+        $this->FLD('planningParamGroupDays', 'int(Min=1)', 'caption=Използване за производство->Автоматично групиране на операциите на база подобни планиращи параметри при->Период до,placeholder=Автоматично,unit=дни,hint=Максимална разлика в дни между падежите на операции със сходни планиращи параметри');
         // Запазва се само за съвместимост и за временно връщане към стария планировчик.
         $this->FLD('taskQuantization', 'enum(day=Дневно,weekly=Седмично,monthly=Месечно)', 'caption=Използване за производство->Старо квантуване,input=none,column=none,notNull,value=weekly');
 
@@ -208,7 +208,11 @@ class planning_AssetResources extends core_Master
             $form->info = "<div class='formCustomInfo'>" . tr('Обвързано с')  . ' ' . implode(',', $protocolLinks) . "</div>";
         }
         
-        $defOptArr = array();
+        $defOptArr = array(
+            'unsortedFolders' => array('folders' => array(), 'users' => null),
+            'assetFolders' => array('folders' => array(), 'users' => null),
+            'systemFolderId' => array('folders' => array(), 'users' => null),
+        );
         if (isset($rec->id)) {
             $fQuery = planning_AssetResourceFolders::getQuery();
             $fQuery->where(array("#classId = '[#1#]' AND #objectId = '[#2#]'", $mvc->getClassId(), $rec->id));
@@ -216,7 +220,7 @@ class planning_AssetResources extends core_Master
                 $Cover = doc_Folders::getCover($fRec->folderId);
                 $keyName = $Cover->isInstanceOf('doc_UnsortedFolders') ? 'unsortedFolders' : (($Cover->isInstanceOf('support_Systems') ? 'systemFolderId' : 'assetFolders'));
                 $defOptArr[$keyName]['folders'][$fRec->folderId] = $fRec->folderId;
-                if ($fRec->users) {
+                if (!empty($fRec->users)) {
                     $defOptArr[$keyName]['users'] = type_Keylist::merge($defOptArr[$keyName]['users'], $fRec->users);
                 }
             }
@@ -301,7 +305,7 @@ class planning_AssetResources extends core_Master
         if ($form->isSubmitted()) {
             $assetFolderErrors = array();
             if (empty($rec->assetFolders)) {
-                if($rec->assetUsers){
+                if(!empty($rec->assetUsers)){
                     $assetFolderErrors[] = '|Не е избран център на дейност, но са избрани отговорници|*!';
                 }
 
@@ -318,19 +322,19 @@ class planning_AssetResources extends core_Master
                }
             }
             
-            if (!$rec->systemFolderId && $rec->systemUsers) {
+            if (empty($rec->systemFolderId) && !empty($rec->systemUsers)) {
                 $form->setError('systemFolderId', 'Не е избрана система за поддръжка, но са избрани отговорници|*!');
             }
 
-            if (!$rec->unsortedFolders && $rec->unsortedUsers) {
+            if (empty($rec->unsortedFolders) && !empty($rec->unsortedUsers)) {
                 $form->setError('unsortedFolders', 'Не е избран проект, но са избрани отговорници|*!');
             }
 
-            if(empty($rec->simultaneity) && $rec->assetFolders){
+            if(empty($rec->simultaneity) && !empty($rec->assetFolders)){
                 $form->setWarning('simultaneity', "Ако изберете '0' ресурсът няма да може да бъде избиран в производствени операции|*!");
             }
 
-            if (!$rec->assetFolders && $rec->simultaneity) {
+            if (empty($rec->assetFolders) && !empty($rec->simultaneity)) {
                 $form->setWarning('assetFolders,simultaneity', "Избрана е едновременност, но не е избран център на дейност - ресурсът няма да може да бъде избиран в производствени операции|*!");
             }
         }
@@ -377,17 +381,17 @@ class planning_AssetResources extends core_Master
 
             $row->SingleIcon = ht::createElement('img', array('src' => sbf(str_replace('/16/', '/32/', $mvc->singleIcon), ''), 'alt' => ''));
             
-            if ($rec->image) {
+            if (!empty($rec->image)) {
                 $row->image = fancybox_Fancybox::getImage($rec->image, array(120, 120), array(1200, 1200));
             }
 
             // Сензорите
-            if ($rec->indicators) {
+            if (!empty($rec->indicators)) {
                 $row->sensors = sens2_Indicators::renderIndicator(type_Keylist::toArray($rec->indicators));
             }
             
             // Камери
-            if ($rec->cameras) {
+            if (!empty($rec->cameras)) {
                 $row->cams = '';
                 foreach (type_Keylist::toArray($rec->cameras) as $cId) {
                     try {
@@ -407,7 +411,7 @@ class planning_AssetResources extends core_Master
             }
             
             // Проследяване
-            if ($rec->vehicle) {
+            if (!empty($rec->vehicle)) {
                 $vRec = tracking_Vehicles::fetch($rec->vehicle);
                 $vRow = tracking_Vehicles::recToVerbal($vRec);
                 $vehicle = "{$vRow->make} {$vRow->model} {$vRow->number} -  {$vRow->personId}";
@@ -509,7 +513,7 @@ class planning_AssetResources extends core_Master
                 $data->query->where("#groupId = {$filterRec->groupId}");
             }
 
-            if ($filterRec->type) {
+            if (!empty($filterRec->type)) {
                 $data->query->EXT('type', 'planning_AssetGroups', 'externalName=type,externalKey=groupId');
                 $data->query->where(array("#type = '[#1#]'", $filterRec->type));
             }
@@ -520,7 +524,7 @@ class planning_AssetResources extends core_Master
                 $data->query->orLikeKeylist('unsortedFolders', $filterRec->folderId);
             }
 
-            if ($filterRec->state && $filterRec->state != 'all') {
+            if (!empty($filterRec->state) && $filterRec->state != 'all') {
                 if($filterRec->state == 'usedInTask') {
                     $data->query->where("#usedInTask = 'yes'");
                 } elseif($filterRec->state == 'notUsedInTask') {
@@ -694,7 +698,7 @@ class planning_AssetResources extends core_Master
     {
         if ($folderId = Request::get('folderId', 'int')) {
             $Cover = doc_Folders::getCover($folderId);
-            $data->form->title = core_Detail::getEditTitle($Cover->className, $Cover->that, $mvc->singleTitle, $data->form->rec->id, $mvc->formTitlePreposition);
+            $data->form->title = core_Detail::getEditTitle($Cover->className, $Cover->that, $mvc->singleTitle, $data->form->rec->id ?? null, $mvc->formTitlePreposition);
         }
     }
     
@@ -710,19 +714,22 @@ class planning_AssetResources extends core_Master
      */
     protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec, &$fields = null, $mode = null)
     {
+        $rec = $mvc->fetch($id);
+        if (!$rec) return;
+
         $rArr = array();
         $allFoldersArr = array();
 
-        if ($rec->unsortedFolders) {
-            $rArr[] = array('folderId' => type_Keylist::toArray($rec->unsortedFolders), 'users' => $rec->unsortedUsers);
+        if (!empty($rec->unsortedFolders)) {
+            $rArr[] = array('folderId' => type_Keylist::toArray($rec->unsortedFolders), 'users' => $rec->unsortedUsers ?? null);
         }
 
-        if ($rec->assetFolders) {
-            $rArr[] = array('folderId' => type_Keylist::toArray($rec->assetFolders), 'users' => $rec->assetUsers);
+        if (!empty($rec->assetFolders)) {
+            $rArr[] = array('folderId' => type_Keylist::toArray($rec->assetFolders), 'users' => $rec->assetUsers ?? null);
         }
         
-        if ($rec->systemFolderId) {
-            $rArr[] = array('folderId' => type_Keylist::toArray($rec->systemFolderId), 'users' => $rec->systemUsers);
+        if (!empty($rec->systemFolderId)) {
+            $rArr[] = array('folderId' => type_Keylist::toArray($rec->systemFolderId), 'users' => $rec->systemUsers ?? null);
         }
 
         $clsId = $mvc->getClassId();
@@ -753,7 +760,7 @@ class planning_AssetResources extends core_Master
                 $delFolders = true;
             } else {
                 $fields = arr::make(true);
-                if ($fields['assetFolders'] || $fields['systemFolderId'] || $fields['unsortedFolders']) {
+                if (!empty($fields['assetFolders']) || !empty($fields['systemFolderId']) || !empty($fields['unsortedFolders'])) {
                     $delFolders = true;
                 }
             }
@@ -776,7 +783,7 @@ class planning_AssetResources extends core_Master
             $rec->taskQuantization = 'weekly';
         }
         if(empty($rec->id) && isset($rec->fromProtocolId)){
-            $rec->protocols = keylist::addKey($rec->protocols, $rec->fromProtocolId);
+            $rec->protocols = keylist::addKey($rec->protocols ?? null, $rec->fromProtocolId);
         }
     }
 
@@ -1018,7 +1025,7 @@ class planning_AssetResources extends core_Master
         foreach ($constraintsArr as $cRec){
             if($cRec->type == 'prevId') {
                 if(!empty($cRec->previousTaskId)){
-                    $previousTasks[$cRec->taskId][$cRec->previousTaskId] = (object)array('previousTaskId' => $cRec->previousTaskId, 'waitingTime' => $cRec->waitingTime, 'intersect' => $cRec->intersect ?? 'yes');
+                    $previousTasks[$cRec->taskId][$cRec->previousTaskId] = (object)array('previousTaskId' => $cRec->previousTaskId, 'waitingTime' => $cRec->waitingTime ?? null, 'intersect' => $cRec->intersect ?? 'yes');
                 }
             }
         }

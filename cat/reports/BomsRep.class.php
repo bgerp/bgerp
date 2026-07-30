@@ -428,7 +428,7 @@ class cat_reports_BomsRep extends frame_BaseDriver
         $f->FLD('mCnt', 'int', 'tdClass=accItemClass,smartCenter');
         $table = cls::get('core_TableView', array('mvc' => $f));
         $tpl->append($table->get($data->rows, $data->listFields), 'CONTENT');
-        if ($data->pager) {
+        if (!empty($data->pager)) {
             $tpl->append($data->pager->getHtml(), 'PAGER');
         }
         $embedderTpl->append($tpl, 'data');

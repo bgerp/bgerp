@@ -143,7 +143,8 @@ class purchase_ClosedDeals extends deals_ClosedDeals
         
         if ($rec->closeWith) {
             $dealState = purchase_Purchases::fetchField($rec->closeWith, 'state');
-            $row->closeWith = ht::createLink($row->closeWith, array('purchase_Purchases', 'single', $rec->closeWith));
+            $closeWith = $row->closeWith ?? $mvc->getVerbal($rec, 'closeWith');
+            $row->closeWith = ht::createLink($closeWith, array('purchase_Purchases', 'single', $rec->closeWith));
             $row->closeWith = "<span class= 'state-{$dealState} document-handler'>{$row->closeWith}</span>";
         }
     }
