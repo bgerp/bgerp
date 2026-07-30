@@ -1,7 +1,8 @@
 [#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
 
     <h3 class="centered"><b>[#documentTitle#]</b></h3>
-    <p class="centered">№ [#id#] / [#date#]</p>
+    <p class="centered"> <!--ET_BEGIN id--> № [#id#] / <!--ET_END id-->  [#date#]</p>
+        
     [#content#]
 
 [#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]
