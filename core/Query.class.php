@@ -24,6 +24,12 @@ class core_Query extends core_FieldSet
 
 
     /**
+     * Дали заявката е бавна
+     */
+    public $isSlowQuery = false;
+
+
+    /**
      *
      */
     protected $useExpr = false;
