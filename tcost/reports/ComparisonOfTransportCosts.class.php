@@ -229,7 +229,7 @@ class tcost_reports_ComparisonOfTransportCosts extends frame2_driver_TableData
                 continue;
             }
 
-            $productRec = cat_Products::fetch($detailRec->productId, 'isPublic,toCountry');
+            $productRec = cat_Products::fetch($detailRec->productId);
             if (!$productRec) {
                 continue;
             }
@@ -273,8 +273,9 @@ class tcost_reports_ComparisonOfTransportCosts extends frame2_driver_TableData
             }
 
             if (is_null($recs[$alocatedCost->expenseItemId]->countryId)) {
-                if (!is_null($productRec->toCountry)) {
-                    $recs[$alocatedCost->expenseItemId]->countryId = $productRec->toCountry;
+                $toCountry = $productRec->toCountry ?? null;
+                if (!is_null($toCountry)) {
+                    $recs[$alocatedCost->expenseItemId]->countryId = $toCountry;
                 }
             }
             
