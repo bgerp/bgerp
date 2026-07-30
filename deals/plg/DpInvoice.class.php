@@ -682,7 +682,7 @@ class deals_plg_DpInvoice extends core_Plugin
 
         $dpAmount = $masterRec->dpAmount;
         $dpVatGroupId = $masterRec->dpVatGroupId;
-        if($masterRec->type == 'dc_note'){
+        if(($masterRec->type ?? null) == 'dc_note'){
             $originInv = doc_Containers::getDocument($masterRec->originId);
             $dpVatGroupId = $originInv->fetchField('dpVatGroupId');
             if($masterRec->dpOperation == 'deducted'){
