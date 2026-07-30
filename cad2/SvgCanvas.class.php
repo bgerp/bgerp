@@ -163,8 +163,8 @@ class cad2_SvgCanvas extends cad2_Canvas
     public function getAttr($name)
     {
         expect(in_array($name, $this->alowedAttributes), $name);
-        
-        return $this->attr[$name];
+
+        return $this->attr[$name] ?? null;
     }
     
     
