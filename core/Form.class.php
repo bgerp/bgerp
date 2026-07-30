@@ -773,7 +773,7 @@ class core_Form extends core_FieldSet
                         $field->type->prepareOptions();
                     }
                     
-                    $options = $field->options;
+                    $options = $field->options ?? null;
                     
                     if (($field->type instanceof type_Key2) && (!isset($options) || empty($options))) {
                         $options = $field->type->getOptions();
