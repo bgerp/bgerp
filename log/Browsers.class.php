@@ -872,7 +872,7 @@ class log_Browsers extends core_Master
      */
     public static function getUserAgent()
     {
-        $userAgent = $_SERVER['HTTP_USER_AGENT'];
+        $userAgent = $_SERVER['HTTP_USER_AGENT'] ?? '';
 
         return $userAgent;
     }
