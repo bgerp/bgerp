@@ -234,6 +234,11 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
                     $rec->packPrice = deals_Helper::getPurePrice($rec->packPrice, $vat, $masterRec->currencyRate, $masterRec->chargeVat);
                 }
             }
+
+            // Ако не е намерена цена, грешката вече е зададена във формата
+            if (!isset($rec->price)) {
+                return;
+            }
             
             // Проверка на цената
             $msg = null;

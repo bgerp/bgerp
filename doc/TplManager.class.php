@@ -38,7 +38,7 @@ class doc_TplManager extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_SaveAndNew, plg_State2, plg_Modified, doc_Wrapper, plg_RowTools, plg_Sorting, plg_Search';
+    public $loadList = 'plg_Created, plg_SaveAndNew, plg_State2, plg_Modified, doc_Wrapper, plg_RowTools2, plg_Sorting, plg_Search';
 
     
     /**
@@ -194,7 +194,8 @@ class doc_TplManager extends core_Master
         $rec = $form->rec;
 
         // Ако шаблона е клонинг
-        if ($originId = $rec->originId) {
+        if (!empty($rec->originId)) {
+            $originId = $rec->originId;
             
             // Копират се нужните данни от ориджина
             expect($origin = static::fetch($originId));
@@ -211,9 +212,11 @@ class doc_TplManager extends core_Master
             $form->setField('docClassId', array('removeAndRefreshForm' => 'lang|content|toggleFields|path'));
         }
         
+        $docClassId = $rec->docClassId ?? null;
+
         // Ако има избран документ, се подготвят допълнителните полета
-        if ($rec->docClassId) {
-            $DocClass = cls::get($rec->docClassId);
+        if ($docClassId) {
+            $DocClass = cls::get($docClassId);
             $mvc->prepareToggleFields($DocClass, $form);
         }
 
@@ -228,7 +231,7 @@ class doc_TplManager extends core_Master
 
         $handlers = core_Classes::getOptionsByInterface('doc_TplScriptIntf', 'title');
         foreach ($handlers as $handlerKey => $handlerVal){
-            if(!cls::get($handlerKey)->canAddToClass($rec->docClassId)){
+            if(!cls::get($handlerKey)->canAddToClass($docClassId)){
                 unset($handlers[$handlerKey]);
             }
         }
@@ -312,7 +315,8 @@ class doc_TplManager extends core_Master
             }
             
             // Ако шаблона е клонинг
-            if ($originId = $rec->originId) {
+            if (!empty($rec->originId)) {
+                $originId = $rec->originId;
                 expect($origin = static::fetch($originId));
                 $new = preg_replace("/\s+/", '', $form->rec->content);
                 $old = preg_replace("/\s+/", '', $origin->content);

@@ -19,7 +19,7 @@ class core_Interfaces extends core_Manager
     /**
      * Плъгини и класове за начално зареждане
      */
-    public $loadList = 'plg_Created, plg_SystemWrapper, plg_RowTools,plg_Sorting';
+    public $loadList = 'plg_Created, plg_SystemWrapper, plg_RowTools2,plg_Sorting';
     
     
     /**

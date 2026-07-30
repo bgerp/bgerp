@@ -631,7 +631,9 @@ class sales_Invoices extends deals_InvoiceMaster
                     $row->bank = $Varchar->toVerbal($ownAcc->bank);
                     core_Lg::push($rec->tplLang);
                     $row->bank = transliterate(tr($row->bank));
-                    $row->place = transliterate($row->place);
+                    if (isset($row->place)) {
+                        $row->place = transliterate($row->place);
+                    }
                     core_Lg::pop();
                     $row->bic = $Varchar->toVerbal($ownAcc->bic);
 

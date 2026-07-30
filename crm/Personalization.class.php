@@ -28,7 +28,7 @@ class crm_Personalization extends core_Detail
     /**
      * Плъгини и MVC класове, които се зареждат при инициализация
      */
-    public $loadList = 'crm_Wrapper,plg_RowTools';
+    public $loadList = 'crm_Wrapper,plg_RowTools2';
     
     
     public $currentTab = 'Профили';

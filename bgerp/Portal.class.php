@@ -135,7 +135,7 @@ class bgerp_Portal extends embed_Manager
      */
     public static function on_CalcOriginIdCalc($mvc, &$rec)
     {
-        if ($rec->clonedFromId) {
+        if ($rec->clonedFromId ?? null) {
             $rec->originIdCalc = $rec->clonedFromId;
         } else {
             $rec->originIdCalc = $rec->id;

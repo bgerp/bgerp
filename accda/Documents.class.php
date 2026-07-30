@@ -38,7 +38,7 @@ class accda_Documents extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, doc_DocumentPlg, plg_SaveAndNew, 
+    public $loadList = 'plg_RowTools2, doc_DocumentPlg, plg_SaveAndNew, 
                     accda_Wrapper, plg_Search';
     
     
@@ -112,6 +112,19 @@ class accda_Documents extends core_Master
      * Дали в листовия изглед да се показва бутона за добавяне
      */
     public $listAddBtn = false;
+
+
+    /**
+     * Поставя инструментите в съществуващата колона "tools"
+     */
+    protected static function on_AfterPrepareListRows($mvc, &$data)
+    {
+        foreach ((array) ($data->rows ?? array()) as $row) {
+            core_RowToolbar::createIfNotExists($row->_rowTools);
+            $row->tools = $row->_rowTools->renderHtml();
+            unset($row->_rowTools);
+        }
+    }
     
     
     /**

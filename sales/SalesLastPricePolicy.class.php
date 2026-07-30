@@ -66,7 +66,7 @@ class sales_SalesLastPricePolicy extends core_Mvc
         $valior = is_object($lastPrices[$productId]) ? $lastPrices[$productId]->date : null;
 
         $pInfo = cat_Products::getProductInfo($productId);
-        $quantityInPack = ($pInfo->packagings[$packagingId]) ? $pInfo->packagings[$packagingId]->quantity : 1;
+        $quantityInPack = ($pInfo->packagings[$packagingId] ?? null) ? $pInfo->packagings[$packagingId]->quantity : 1;
         $packPrice = $price * $quantityInPack;
 
         $packPrice = deals_Helper::getSmartBaseCurrency($packPrice, $valior, $datetime);

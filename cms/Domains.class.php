@@ -339,25 +339,43 @@ class cms_Domains extends core_Embedder
     
     
     /**
+     * Дали хитът е вътрешен (крон, CLI), а не заявка от браузър към публичния сайт
+     *
+     * @return bool
+     */
+    private static function isInternalHit()
+    {
+        if (php_sapi_name() === 'cli' || empty($_SERVER['HTTP_HOST'])) {
+
+            return true;
+        }
+
+        return (bool) core_Cron::getCurrentRec();
+    }
+
+
+    /**
      * Задава текущия публичен домейн
      */
     public static function setPublicDomain($id)
     {
         $rec = self::fetch($id);
-        
+
         // Задаваме действителния домейн, на който е намерен този
-        $rec->actualDomain = strtolower(trim($_SERVER['SERVER_NAME']));
-        
+        $rec->actualDomain = strtolower(trim($_SERVER['SERVER_NAME'] ?? ''));
+
         if(defined('BGERP_ABSOLUTE_HTTP_HOST')) {
             $mainHost = BGERP_ABSOLUTE_HTTP_HOST;
         } else {
             $mainHost = $rec->actualDomain;
         }
-        
+
         $newHost = ($rec->domain == 'localhost') ? $mainHost : $rec->domain;
         $requestMethod = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 
-        if(($newHost != $rec->actualDomain) && $requestMethod === 'GET') {
+        // При крон и CLI хостът е служебен и несъответствието с домейна е нормално -
+        // redirect() би прекратил хита с exit() насред работата му (@see core_App::redirect)
+        if(($newHost != $rec->actualDomain) && $requestMethod === 'GET' && !self::isInternalHit()) {
             $httpHost = $_SERVER['HTTP_HOST'] ?? '';
             $requestUri = $_SERVER['REQUEST_URI'] ?? '/';
             $url = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://{$httpHost}{$requestUri}";

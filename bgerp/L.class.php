@@ -26,7 +26,7 @@ class bgerp_L extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'bgerp_Wrapper, plg_RowTools, plg_Printing, plg_Created';
+    public $loadList = 'bgerp_Wrapper, plg_RowTools2, plg_Printing, plg_Created';
     
     
     /**

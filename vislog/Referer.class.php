@@ -58,7 +58,7 @@ class vislog_Referer extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools,plg_Created,plg_Search,vislog_Wrapper';
+    public $loadList = 'plg_RowTools2,plg_Created,plg_Search,vislog_Wrapper';
    
     
     /**

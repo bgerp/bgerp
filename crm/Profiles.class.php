@@ -56,7 +56,7 @@ class crm_Profiles extends core_Master
     /**
      * Плъгини и MVC класове, които се зареждат при инициализация
      */
-    public $loadList = 'plg_Created,crm_Wrapper,plg_RowTools, plg_Printing, plg_Search, plg_Rejected';
+    public $loadList = 'plg_Created,crm_Wrapper,plg_RowTools2, plg_Printing, plg_Search, plg_Rejected';
     
     
     /**

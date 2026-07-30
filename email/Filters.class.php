@@ -39,7 +39,7 @@ class email_Filters extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_State2, email_Wrapper, plg_RowTools, plg_Clone, plg_Sorting';
+    public $loadList = 'plg_Created, plg_State2, email_Wrapper, plg_RowTools2, plg_Clone, plg_Sorting';
     
     
     /**

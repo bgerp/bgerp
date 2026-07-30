@@ -19,7 +19,7 @@ class email_ThreadHandles extends core_Manager
     /**
      * Зареждаме плъгините
      */
-    public $loadList = 'email_Wrapper,plg_RowTools';
+    public $loadList = 'email_Wrapper,plg_RowTools2';
     
     
     /**

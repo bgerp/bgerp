@@ -22,7 +22,7 @@ class sens2_script_Actions extends core_Detail
     /**
      * Необходими плъгини
      */
-    public $loadList = 'plg_Created, plg_RowTools, sens2_Wrapper, plg_State, plg_Search';
+    public $loadList = 'plg_Created, plg_RowTools2, sens2_Wrapper, plg_State, plg_Search';
     
     
     /**

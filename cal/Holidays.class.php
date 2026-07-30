@@ -19,7 +19,7 @@ class cal_Holidays extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'cal_Wrapper, plg_RowTools, plg_Sorting, plg_Search';
+    public $loadList = 'cal_Wrapper, plg_RowTools2, plg_Sorting, plg_Search';
     
     
     /**
@@ -457,7 +457,8 @@ class cal_Holidays extends core_Master
         $names = str_replace(array('и др', '.'), array('', ''), $names);
         $names = trim($names, ', ');
         $namesArr = explode(',', str::utf2ascii($names));
-        
+
+        $res = array();
         foreach ($namesArr as $n) {
             $n = strtolower(trim($n));
             $res[$n] = $n;
@@ -552,7 +553,7 @@ class cal_Holidays extends core_Master
     {
         if ((BGERP_GIT_BRANCH == 'dev') || (BGERP_GIT_BRANCH == 'test')) {
             if ($oRec = $mvc->fetch(array("#key = '[#1#]'", $rec->key))) {
-                $info = $rec->info;
+                $info = $rec->info ?? null;
                 if (!$info) {
                     if (isset($rec->csv_info) && strlen($rec->csv_info) != 0) {
                         $info = str_replace('\"', '"', $rec->csv_info);

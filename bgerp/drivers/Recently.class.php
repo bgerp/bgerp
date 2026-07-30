@@ -182,8 +182,10 @@ class bgerp_drivers_Recently extends core_BaseClass
         // Попълваме долния страньор
         $tpl->append($Recently->renderListPager($data), 'PortalPagerBottom');
         
-        // Попълваме таблицата с редовете
+        // Попълваме таблицата с редовете без инструменти за отделните редове
+        Mode::push('hideToolbar', true);
         $tpl->append($Recently->renderListTable($data), 'PortalTable');
+        Mode::pop('hideToolbar');
         
         return $tpl;
     }

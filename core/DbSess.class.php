@@ -21,7 +21,7 @@ class core_DbSess extends core_Manager
     public $doReplication = false;
     public static $stopCaching = false;
 
-    public $loadList = 'plg_Sorting,plg_RowTools,plg_SystemWrapper';
+    public $loadList = 'plg_Sorting,plg_RowTools2,plg_SystemWrapper';
 
     public $vars = array();
     protected $loaded = false;

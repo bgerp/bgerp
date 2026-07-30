@@ -3777,10 +3777,12 @@ abstract class deals_Helper
      * @param int $countryId      - за коя държава
      * @param string $divider     - разделител
      * @param string $alwaysDecorate - дали винаги да се декорира
+     * @param bool $hidden        - дали цената е заличена от doc_plg_HidePrices - тогава не смятаме и не показваме втора валута
      * @return mixed|string
      */
-    public static function displayDualAmount($amountRow, $amount, $date, $currencyId, $countryId, $divider = "<br />", $alwaysDecorate = false)
+    public static function displayDualAmount($amountRow, $amount, $date, $currencyId, $countryId, $divider = "<br />", $alwaysDecorate = false, $hidden = false)
     {
+        if($hidden) return $amountRow;
         if(!in_array($currencyId, array('BGN', 'EUR')))  return $amountRow;
         $date = isset($date) ? dt::verbal2mysql($date, false) : dt::today();
 

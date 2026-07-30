@@ -22,7 +22,7 @@ class sens2_script_DefinedVars extends core_Detail
     /**
      * Необходими плъгини
      */
-    public $loadList = 'plg_Created, plg_Modified,plg_RowTools, sens2_Wrapper, plg_Search';
+    public $loadList = 'plg_Created, plg_Modified,plg_RowTools2, sens2_Wrapper, plg_Search';
     
     
     /**

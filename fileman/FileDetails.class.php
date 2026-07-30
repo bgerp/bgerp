@@ -49,7 +49,7 @@ class fileman_FileDetails extends core_Detail
 //    /**
 //     * Плъгини за зареждане
 //     */
-//    var $loadList = 'plg_Created, plg_RowTools, acc_Wrapper, plg_RowNumbering, plg_AlignDecimals,
+//    var $loadList = 'plg_Created, plg_RowTools2, acc_Wrapper, plg_RowNumbering, plg_AlignDecimals,
 //        Accounts=acc_Accounts, Lists=acc_Lists, Items=acc_Items, plg_AlignDecimals, plg_SaveAndNew';
     public $loadList = 'plg_Created';
 

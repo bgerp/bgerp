@@ -302,7 +302,7 @@ class marketing_Inquiries2 extends embed_Manager
     private function expandEditForm(&$data)
     {
         $cu = core_Users::getCurrent('id', false);
-        $hide = (isset($cu) && core_Users::haveRole('partner', $cu)) ? true : false;
+        $hide = isset($cu) && core_Users::haveRole('partner', $cu);
         
         $form = &$data->form;
         $form->setField('innerClass', 'remember,removeAndRefreshForm=proto|measureId|meta');
