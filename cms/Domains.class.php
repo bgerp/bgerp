@@ -261,8 +261,8 @@ class cms_Domains extends core_Embedder
      */
     public static function getPublicDomain($part = null, $lang = null, $getCurrentDomainId = true)
     {
-        // ВРЕМЕННА ДИАГНОСТИКА @see core_Query::$fetchTrail
-        core_Query::markFetchStep('cms_Domains::getPublicDomain вход (getCurrentDomainId=' . ($getCurrentDomainId ? 'да' : 'не') . ', кеширан=' . (Mode::get(self::CMS_CURRENT_DOMAIN_REC) ? 'да' : 'не') . ')');
+        // ВРЕМЕННА ДИАГНОСТИКА @see core_Query::$fetchTrail - откъде реално се вика getPublicDomain()
+        core_Query::markFetchStep('cms_Domains::getPublicDomain вход (getCurrentDomainId=' . ($getCurrentDomainId ? 'да' : 'не') . ', кеширан=' . (Mode::get(self::CMS_CURRENT_DOMAIN_REC) ? 'да' : 'не') . ') ' . core_App::getCallerTrace());
 
         $domainRec = Mode::get(self::CMS_CURRENT_DOMAIN_REC);
 
