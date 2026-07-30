@@ -370,41 +370,10 @@ class core_App
     
     
     /**
-     * ВРЕМЕННА ДИАГНОСТИКА
-     *
-     * Връща компактен стек на извикванията, водещи до текущата точка
-     *
-     * @param int $depth
-     *
-     * @return string
-     */
-    public static function getCallerTrace($depth = 14)
-    {
-        $resArr = array();
-
-        foreach (debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, $depth) as $i => $b) {
-            if ($i == 0) {
-                continue;
-            }
-
-            $name = isset($b['class']) ? $b['class'] . '::' . $b['function'] : $b['function'];
-            $where = isset($b['file']) ? basename($b['file']) . ':' . ($b['line'] ?? '?') : '?';
-
-            $resArr[] = "{$name}() @ {$where}";
-        }
-
-        return countR($resArr) ? '← ' . implode(' ← ', $resArr) : '← (няма стек)';
-    }
-
-
-    /**
      * Излизаме от изпълнението на скрипта
      */
     public static function exitScript()
     {
-        // ВРЕМЕННА ДИАГНОСТИКА @see core_Query::$fetchTrail - откъде е извикан изходът
-        core_Query::markFetchStep('ИЗХОД ОТ СКРИПТА ' . self::getCallerTrace());
-
         if (defined('DEBUG_FATAL_ERRORS_FILE')) {
             $debugCode = '2';
             $logHit = true;
@@ -644,9 +613,6 @@ class core_App
      */
     public static function halt($err)
     {
-        // ВРЕМЕННА ДИАГНОСТИКА @see core_Query::$fetchTrail
-        core_Query::markFetchStep('HALT: ' . $err . ' ' . self::getCallerTrace());
-
         if (isDebug()) {
             echo '<li>' . $err . ' | Halt on ' . date('d.m.Y H:i:s');
         } else {

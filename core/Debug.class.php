@@ -1046,12 +1046,6 @@ class core_Debug
             // Само логваме показването на грешката
             self::renderErrorState($state, true);
         } else {
-            // ВРЕМЕННА ДИАГНОСТИКА @see core_Query::$fetchTrail - това die() убива процеса
-            // без registered PHP error (error_get_last() е NULL при обработена грешка)
-            if (class_exists('core_Query', false)) {
-                core_Query::markFetchStep("PHP ГРЕШКА ({$errno}) СЛЕДВА die: {$errstr} @ {$breakFile}:{$breakLine} " . core_App::getCallerTrace(20));
-            }
-
             self::renderErrorState($state);
             die;
         }

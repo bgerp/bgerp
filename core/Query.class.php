@@ -24,44 +24,6 @@ class core_Query extends core_FieldSet
 
 
     /**
-     * ВРЕМЕННА ДИАГНОСТИКА: последната фаза при изчитане на ред в fetch().
-     *
-     * Служи да се локализира код, който прекратява хита (exit/die) по време на
-     * изчитане на запис - при такова прекратяване не остава нито изключение,
-     * нито PHP грешка. Чете се от shutdown хендлъри (@see acc_Balances::onRecalcShutdown).
-     *
-     * Може да се премахне, след като причината бъде намерена.
-     */
-    public static $lastFetchStep;
-
-
-    /**
-     * ВРЕМЕННА ДИАГНОСТИКА: последните фази при изчитане на редове.
-     *
-     * Само последната фаза не стига - вложена заявка (напр. зареждане на
-     * конфигурация) презаписва контекста на външната. Историята показва
-     * последователността и от двете нива.
-     */
-    public static $fetchTrail = array();
-
-
-    /**
-     * ВРЕМЕННА ДИАГНОСТИКА: отбелязва фаза при изчитане на ред
-     *
-     * @param string $msg
-     */
-    public static function markFetchStep($msg)
-    {
-        self::$lastFetchStep = $msg;
-
-        self::$fetchTrail[] = $msg;
-        if (countR(self::$fetchTrail) > 60) {
-            array_shift(self::$fetchTrail);
-        }
-    }
-
-
-    /**
      *
      */
     protected $useExpr = false;
@@ -962,18 +924,12 @@ class core_Query extends core_FieldSet
             
             $rec = new stdClass();
             
-            // ВРЕМЕННА ДИАГНОСТИКА @see self::$lastFetchStep
-            $mvcName = cls::getClassName($this->mvc);
-
             if ($arr) {
                 if (countR($arr) > 0) {
                     foreach ($arr as $fld => $val) {
-                        self::markFetchStep("{$mvcName}: fromMysql на поле '{$fld}'");
-
                         if (is_object($this->fields[$fld]->type)) {
                             $rec->{$fld} = $this->fields[$fld]->type->fromMysql($val);
                         } else {
-                            self::markFetchStep("{$mvcName}: wp() - колона '{$fld}' няма поле в модела");
                             wp($this, $fld);
                         }
                     }
@@ -984,7 +940,6 @@ class core_Query extends core_FieldSet
                     $virtualFields = array_intersect($this->virtualFields, array_keys($this->show));
 
                     foreach ($virtualFields as $fld) {
-                        self::markFetchStep("{$mvcName}: Calc{$fld} (виртуално поле)");
                         $this->mvc->invoke('Calc' . $fld, array(&$rec));
                     }
                 }
@@ -998,14 +953,11 @@ class core_Query extends core_FieldSet
             
             if(!$preventEvent) {
                 // Изпълняваме външни действия, указани за след четене
-                self::markFetchStep("{$mvcName}: invoke('AfterRead')");
                 $this->mvc->invoke('AfterRead', array(&$rec));
             }
-
+            
             $this->mvc->lastFetchedRec = $rec;
-
-            self::markFetchStep("{$mvcName}: редът е изчетен успешно");
-
+            
             return $rec;
         }
     }
