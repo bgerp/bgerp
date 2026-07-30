@@ -346,12 +346,10 @@ class acc_CostAllocations extends core_Manager
                 $documentItemRec = acc_Items::fetchItem($mvc, $id);
             }
 
-            if(isset($documentItemRec)){
-                if($documentItemRec->id == $expenseItemId){
-                    $error = "Ако с документа се разпределя разход върху същия документ, то не може да е върху всички артикули|*!";
+            if ($documentItemRec && $documentItemRec->id == $expenseItemId) {
+                $error = "Ако с документа се разпределя разход върху същия документ, то не може да е върху всички артикули|*!";
 
-                    return false;
-                }
+                return false;
             }
         }
 
