@@ -368,7 +368,6 @@ class acc_CostAllocations extends core_Manager
         $rec = &$form->rec;
         $Detail = cls::get($rec->detailClassId);
         $allocationFilter = $rec->allocationFilter ?? null;
-        $allProducts = $form->allProducts ?? array();
 
         if (isset($rec->expenseItemId)) {
             $itemClassId = acc_Items::fetchField($rec->expenseItemId, 'classId');
@@ -381,6 +380,7 @@ class acc_CostAllocations extends core_Manager
                 }
             }
         }
+        $allProducts = $form->allProducts ?? array();
         
         if ($form->isSubmitted()) {
             $expenseItemError = null;

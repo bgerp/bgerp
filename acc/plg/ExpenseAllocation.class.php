@@ -115,13 +115,13 @@ class acc_plg_ExpenseAllocation extends core_Plugin
     public static function on_AfterInputEditForm($mvc, &$form)
     {
         $rec = $form->rec;
-        $allProducts = $form->allProducts ?? array();
 
         if (isset($rec->allocationBy) && !in_array($rec->allocationBy, array('no', 'auto'))) {
             $itemRec = acc_Items::fetch($rec->expenseItemId);
             $origin = new core_ObjectReference($itemRec->classId, $itemRec->objectId);
             acc_ValueCorrections::addProductsFromOriginToForm($form, $origin, $mvc->Master);
         }
+        $allProducts = $form->allProducts ?? array();
 
         if ($form->isSubmitted()) {
 
