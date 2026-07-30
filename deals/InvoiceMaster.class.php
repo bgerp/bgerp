@@ -1708,7 +1708,7 @@ abstract class deals_InvoiceMaster extends core_Master
                     if(!is_object($cond)){
                         $cond = core_Type::getByName('richtext')->toVerbal($cond);
                     }
-                    $row->additionalInfo .= "\n" . $cond;
+                    $row->additionalInfo = ($row->additionalInfo ?? '') . "\n" . $cond;
                 }
             }
         }
