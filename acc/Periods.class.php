@@ -328,7 +328,7 @@ class acc_Periods extends core_Manager
         
         // Ако датата е точно началния период, създаваме го, ако липсва и го връщаме
         if ($end == $firstRec->end) {
-            if (!$firstRec->id) {
+            if (empty($firstRec->id)) {
                 $firstRec->vatRate = $conf->ACC_DEFAULT_VAT_RATE;
                 $firstRec->baseCurrencyId = currency_Currencies::getIdByCode(acc_Setup::getDefaultCurrencyCode($firstRec->end));
                 self::save($firstRec);
@@ -548,7 +548,7 @@ class acc_Periods extends core_Manager
         }
         
         // Период може да се затваря само ако е изтекъл
-        if ($action == 'close' && is_object($rec) && $rec->id) {
+        if ($action == 'close' && is_object($rec) && !empty($rec->id)) {
             $rec = self::fetch($rec->id);
             
             if ($rec->end >= $curPerEnd || $rec->state != 'active') {

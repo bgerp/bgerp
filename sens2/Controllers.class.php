@@ -169,7 +169,7 @@ class sens2_Controllers extends core_Master
             self::prepareConfigForm($form, $rec);
         }
         
-        if ($rec->id) {
+        if (!empty($rec->id)) {
             $form->setReadOnly('driver');
             $config = (array) self::fetch($rec->id)->config;
             if (is_array($config)) {
@@ -263,7 +263,7 @@ class sens2_Controllers extends core_Master
      */
     public static function prepareConfigForm($form, $rec)
     {
-        if (!$rec->id && $rec->driver) {
+        if (empty($rec->id) && $rec->driver) {
             $drv = cls::get($rec->driver);
         } else {
             $drv = self::getDriver($rec->id);
@@ -633,7 +633,7 @@ class sens2_Controllers extends core_Master
         }
         
         // Записване стойността в индикаторите
-        if ($rec->id && $portName) {
+        if (!empty($rec->id) && $portName) {
             sens2_Indicators::setValue($rec->id, $portName, $value, dt::verbal2mysql());
         }
         

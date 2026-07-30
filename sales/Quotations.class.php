@@ -217,7 +217,7 @@ class sales_Quotations extends deals_QuotationMaster
         }
         $form->setOptions('bankAccountId', $options);
 
-        if (isset($rec->originId) && $data->action != 'clone' && empty($form->rec->id)) {
+        if (isset($rec->originId) && ($data->action ?? null) != 'clone' && empty($form->rec->id)) {
             
             // Ако офертата има ориджин
             $origin = doc_Containers::getDocument($rec->originId);
@@ -227,9 +227,9 @@ class sales_Quotations extends deals_QuotationMaster
                 
                 if($Driver = $origin->getDriver()){
                     $quantitiesArr = $Driver->getQuantitiesForQuotation($origin->getInstance(), $origin->fetch());
-                    $form->setDefault('row1', $quantitiesArr[0]);
-                    $form->setDefault('row2', $quantitiesArr[1]);
-                    $form->setDefault('row3', $quantitiesArr[2]);
+                    $form->setDefault('row1', $quantitiesArr[0] ?? null);
+                    $form->setDefault('row2', $quantitiesArr[1] ?? null);
+                    $form->setDefault('row3', $quantitiesArr[2] ?? null);
                 }
             }
         }
@@ -303,8 +303,8 @@ class sales_Quotations extends deals_QuotationMaster
                 foreach (range(1, 3) as $i) {
                     
                     // Ако има дефолтно количество
-                    $quantity = $rec->{"quantity{$i}"};
-                    $price = $rec->{"price{$i}"};
+                    $quantity = $rec->{"quantity{$i}"} ?? null;
+                    $price = $rec->{"price{$i}"} ?? null;
                     if (!$quantity) {
                         continue;
                     }
@@ -364,7 +364,7 @@ class sales_Quotations extends deals_QuotationMaster
             $items = $mvc->getItems($rec->id, true, true);
             
             if (is_array($items)) {
-                $row->transportCurrencyId = $row->currencyId;
+                $row->transportCurrencyId = $row->currencyId ?? $mvc->getVerbal($rec, 'currencyId');
                 
                 $hiddenTransportCost = sales_TransportValues::calcInDocument($mvc, $rec->id);
                 $expectedTransportCost = $mvc->getExpectedTransportCost($rec);

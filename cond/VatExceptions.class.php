@@ -92,8 +92,9 @@ class cond_VatExceptions extends core_Manager
                 }
             }
 
-            if($rec->state == 'active') {
-                if ($rec->validTo && $rec->validTo <= dt::today()) {
+            $state = $rec->state ?? (!empty($rec->id) ? $mvc->fetchField($rec->id, 'state') : null);
+            if($state == 'active') {
+                if (!empty($rec->validTo) && $rec->validTo <= dt::today()) {
                     $form->setWarning('validTo', "Въведен е срок на валидност в миналото, изключението ще се деактивира|*!");
                 }
             }
@@ -109,12 +110,23 @@ class cond_VatExceptions extends core_Manager
      */
     private function syncState($rec)
     {
+        if (empty($rec->id)) {
+            return;
+        }
+
+        $dbRec = null;
+        if (!property_exists($rec, 'state') || !property_exists($rec, 'validFrom') || !property_exists($rec, 'validTo')) {
+            $dbRec = $this->fetch($rec->id, 'state,validFrom,validTo');
+        }
+
         $today = dt::today();
-        $oldState = $rec->state;
+        $oldState = $rec->state ?? ($dbRec->state ?? null);
+        $validFrom = $rec->validFrom ?? ($dbRec->validFrom ?? null);
+        $validTo = $rec->validTo ?? ($dbRec->validTo ?? null);
 
         $rec->state = 'active';
-        $from = !empty($rec->validFrom) ? $rec->validFrom : '0000-00-00';
-        $to = !empty($rec->validTo) ? $rec->validTo : '9999-12-31';
+        $from = !empty($validFrom) ? $validFrom : '0000-00-00';
+        $to = !empty($validTo) ? $validTo : '9999-12-31';
         if($today <= $from){
             $rec->state = 'draft';
         } elseif($to <= $today){
@@ -189,6 +201,7 @@ class cond_VatExceptions extends core_Manager
     {
         // Ако не е ръчно сменено състоянието
         if(empty($rec->_manualStateChange)){
+            $rec->id = $rec->id ?? $id;
             $mvc->syncState($rec);
         }
     }

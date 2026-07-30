@@ -288,7 +288,8 @@ class bgfisc_plg_PrintFiscReceipt extends core_Plugin
         $currencyId = dt::today() >= acc_Setup::getEurozoneDate() ? 'EUR' : 'BGN';
         foreach ($all as $dRec) {
             $amountWithVatNotRound = $dRec->amount;
-            $vatSysId = cat_products_VatGroups::getCurrentGroup($dRec->productId, null, $vatExceptionId)->sysId;
+            $vatGroupRec = cat_products_VatGroups::getCurrentGroup($dRec->productId, null, $vatExceptionId);
+            $vatSysId = $vatGroupRec->sysId ?? null;
             $amount = $dRec->amount;
             
             if (in_array($originRec->chargeVat, array('yes', 'separate'))) {

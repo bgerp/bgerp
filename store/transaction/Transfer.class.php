@@ -31,7 +31,7 @@ class store_transaction_Transfer extends acc_DocumentTransactionSource
         $rec->valior = empty($rec->valior) ? dt::today() : $rec->valior;
         
         $result = (object) array(
-            'reason' => "Междускладов трансфер №{$rec->id}",
+            'reason' => 'Междускладов трансфер №' . ($rec->id ?? ''),
             'valior' => $rec->valior,
             'totalAmount' => null,
             'entries' => array()

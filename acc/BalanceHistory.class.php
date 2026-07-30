@@ -738,7 +738,7 @@ class acc_BalanceHistory extends core_Manager
         
         if (!Mode::is('printing')) {
             // Рендиране на пейджъра
-            if ($data->pager) {
+            if (!empty($data->pager)) {
                 $tpl->append($data->pager->getHtml(), 'PAGER');
             }
         }

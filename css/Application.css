@@ -3491,29 +3491,38 @@ span.sharing-history-title {
 .filterForm #filter {
   padding-left: 20px !important; }
 
-@supports not (-moz-appearance: none) {
+.wide .twoColsFilter {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 20px; }
+
+.wide .twoColsFilter .listFilter form {
+  column-count: 2; }
+
+.wide .twoColsFilter .summary-block {
+  margin-left: 20px;
+  align-self: flex-start; }
+
+@supports (-moz-appearance: none) {
   .wide .twoColsFilter {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 20px; }
+    display: block;
+    margin-bottom: 0; }
 
   .wide .twoColsFilter .listFilter form {
-    column-count: 2; }
+    column-count: 1; }
 
   .wide .twoColsFilter .summary-block {
-    margin-left: 20px;
-    align-self: flex-start; } }
+    margin-left: 0; } }
 
 @media handheld,
 only screen and (max-width: 1400px) {
-  @supports not (-moz-appearance: none) {
-    .wide .twoColsFilter {
-      display: block;
-      margin-bottom: 0; }
-      .wide .twoColsFilter .listFilter form {
-        column-count: 1; }
-      .wide .twoColsFilter .summary-block {
-        margin-left: 0; } } }
+  .wide .twoColsFilter {
+    display: block;
+    margin-bottom: 0; }
+    .wide .twoColsFilter .listFilter form {
+      column-count: 1; }
+    .wide .twoColsFilter .summary-block {
+      margin-left: 0; } }
 
 /*
  * край на външни стилове за ширина
@@ -5626,13 +5635,16 @@ div.location.public {
 .acc_JournalDetails {
   margin-top: 10px; }
 
-.details  .formToolbar #filter {
+.details .formToolbar #filter {
   background-color: #e5e5e5;
-  padding: 6px 4px !important;
-  width: 26px;
   background-position: center; }
-  .details  .formToolbar #filter:hover {
+  .details .formToolbar #filter:hover {
     background-color: #cccccc; }
+
+.details .log  .formToolbar #filter {
+  width: 26px;
+  background-position: center;
+  padding: 6px 4px !important; }
 
 .docStatistic form .horizontal {
   border: 1px solid #eeeeee;
@@ -6573,8 +6585,12 @@ body.narrow {
     .cmr-blue td.border-top {
       border-top: 1px solid #0082c8; }
 
-.row-subProduct {
-  background-color: #ece2ff; }
+.rejected {
+  background-color: #f2d8d8;
+  color: #3d1414 !important; }
+  .rejected i,
+  .rejected span {
+    color: #3d1414 !important; }
 
 @media handheld,
 only screen and (min-width: 1240px) {

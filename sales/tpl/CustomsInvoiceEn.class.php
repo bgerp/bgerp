@@ -91,7 +91,7 @@ class sales_tpl_CustomsInvoiceEn extends doc_TplScript
             if(!array_key_exists($rec1->tariffNumber, $data->tariffCodes)){
                 $data->tariffCodes[$rec1->tariffNumber] = (object)array('tariffNumber' => $rec1->tariffNumber, 'isLive' => false);
             }
-            if($row->_isLiveTariffNumber){
+            if (!empty($row->_isLiveTariffNumber)) {
                 $data->tariffCodes[$rec1->tariffNumber]->isLive = true;
             }
         }

@@ -184,7 +184,7 @@ class hr_FormCv extends core_Master
         
         $form->input(null, 'silent');
         $data = (object) array('form' => $form);
-        self::expandEditForm($mvc, $data);
+        self::expandEditForm($this, $data);
         
         
         $form->input();
@@ -220,7 +220,7 @@ class hr_FormCv extends core_Master
         
         $form->setDefault('country', drdata_Countries::getIdByName('bul'));
         
-        if ($rec->id) {
+        if (!empty($rec->id)) {
             $exRec = $mvc->fetch($rec->id);
         } else {
             $exRec = $rec;
@@ -230,13 +230,14 @@ class hr_FormCv extends core_Master
         
         $form->input('typeOfPosition');
         
-        if ($exRec->typeOfPosition) {
+        if (!empty($exRec->typeOfPosition)) {
             $options = hr_WorkPreff::getOptionsForChoice();
             
             if (is_array($options)) {
                 foreach ($options as $v) {
                     if (in_array($exRec->typeOfPosition, $v->typeOfPosition)) {
                         if ($v->type == 'enum') {
+                            $parts = '';
                             foreach ($v->parts as $k => $venum) {
                                 $parts .= $k.'='.$venum.',' ;
                             }
@@ -246,12 +247,13 @@ class hr_FormCv extends core_Master
                             
                             $form->FLD("workpreff_{$v->id}", "enum({$parts})", "caption={$v->name},maxRadio={$v->count},columns=3,input");
                             
-                            $form->setDefault("workpreff_{$v->id}", $exRec->workpreff[$v->id]->value);
+                            $form->setDefault("workpreff_{$v->id}", $exRec->workpreff[$v->id]->value ?? null);
                             
                             unset($parts);
                         }
                         
                         if ($v->type == 'set') {
+                            $parts = '';
                             foreach ($v->parts as $k => $vset) {
                                 $parts .= $k.'='.$vset.',' ;
                             }
@@ -262,7 +264,7 @@ class hr_FormCv extends core_Master
                             $form->FLD("workpreff_{$v->id}", "set({$parts})", "caption ={$v->name},input");
                             
                             
-                            $form->setDefault("workpreff_{$v->id}", $exRec->workpreff[$v->id]->value);
+                            $form->setDefault("workpreff_{$v->id}", $exRec->workpreff[$v->id]->value ?? null);
                             
                             unset($parts);
                         }
@@ -329,7 +331,7 @@ class hr_FormCv extends core_Master
         $row->authorId = $rec->createdBy;
         $row->author = $this->getVerbal($rec, 'createdBy');
         $row->state = $rec->state;
-        $row->recTitle = $rec->title;
+        $row->recTitle = $row->title;
         
         return $row;
     }
@@ -365,23 +367,27 @@ class hr_FormCv extends core_Master
             $tArr = array(120, 120);
             $mArr = array(450, 450);
             
-            if ($rec->photo) {
+            if (!empty($rec->photo)) {
                 $row->image = $Fancybox->getImage($rec->photo, $tArr, $mArr);
             }
             
-            $row->egn = $rec->egn;
+            $row->egn = $rec->egn ?? null;
         }
         
         
         $prepare = '';
         
-        if (is_array($rec->workpreff)) {
+        if (!empty($rec->workpreff) && is_array($rec->workpreff)) {
             foreach ($rec->workpreff as $k => $v) {
-                $printChoice = '';
+                $choiceRec = hr_WorkPreff::fetch($k);
+                if (!$choiceRec) {
+
+                    continue;
+                }
+
+                $printChoice = $choiceRec->name;
                 
-                $printChoice = hr_WorkPreff::fetch($k)->name;
-                
-                $printValues = explode(',', $v->value);
+                $printValues = explode(',', $v->value ?? '');
                 
                 $printValue = '';
                 
@@ -390,7 +396,10 @@ class hr_FormCv extends core_Master
                     if (!$vp) {
                         continue;
                     }
-                    $printValue .= '<div>' . hr_WorkPreffDetails::fetch($vp)->name . '</div>';
+                    $detailRec = hr_WorkPreffDetails::fetch($vp);
+                    if ($detailRec) {
+                        $printValue .= '<div>' . $detailRec->name . '</div>';
+                    }
                 }
                 if (!empty($printValue)) {
                     $prepare .= "<tr><td class='aright'>" . $printChoice . ': ' . "</td><td class='aleft' colspan='2'>" . $printValue . '</td></tr>';
@@ -421,5 +430,17 @@ class hr_FormCv extends core_Master
         $url = array('hr_FormCv', 'list');
         
         return $url;
+    }
+
+
+    /**
+     * Връща елементите за футър менюто, генерирани от този източник
+     *
+     * @param stdClass $menuRec
+     * @return array
+     */
+    public function getFooterMenuItems($menuRec)
+    {
+        return array();
     }
 }

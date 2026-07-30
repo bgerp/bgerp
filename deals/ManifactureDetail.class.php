@@ -58,6 +58,18 @@ abstract class deals_ManifactureDetail extends doc_Detail
 
 
     /**
+     * В кои състояния на мастъра може да се редактира детайла
+     */
+    protected $allowedInMasterStates = array('draft');
+
+
+    /**
+     * Общ клас за таблиците в производствените документи
+     */
+    public $detailsTableClass = 'listTable manifactureDetailsTable';
+
+
+    /**
      * След описанието на модела
      */
     public static function on_AfterDescription(&$mvc)
@@ -87,8 +99,8 @@ abstract class deals_ManifactureDetail extends doc_Detail
 
         $mvc->setDbIndex('productId,packagingId');
     }
-    
-    
+
+
     /**
      * Подготовка на филтър формата
      */
@@ -138,7 +150,7 @@ abstract class deals_ManifactureDetail extends doc_Detail
         }
         $form->setFieldTypeParams('productId', $params);
         
-        if (isset($form->rec->id) && $data->action != 'replaceproduct') {
+        if (isset($form->rec->id) && ($data->action ?? null) != 'replaceproduct') {
             $data->form->setReadOnly('productId');
         }
     }
@@ -156,7 +168,7 @@ abstract class deals_ManifactureDetail extends doc_Detail
             $form->setDefault('measureId', $measureId);
             
             if(empty($form->_replaceProduct)){
-                $packs = cat_Products::getPacks($rec->productId, $rec->packagingId);
+                $packs = cat_Products::getPacks($rec->productId, $rec->packagingId ?? null);
 
                 // Ако е само една разрешената мярка да се зареди тя
                 if(isset($rec->_onlyAllowedPackId)){
@@ -186,8 +198,15 @@ abstract class deals_ManifactureDetail extends doc_Detail
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         if (($action == 'edit' || $action == 'delete' || $action == 'add') && isset($rec)) {
-            if ($mvc->Master->fetchField($rec->{$mvc->masterKey}, 'state') != 'draft') {
+            $allowedInMasterStates = arr::make($mvc->allowedInMasterStates, true);
+            $masterState = $mvc->Master->fetchField($rec->{$mvc->masterKey}, 'state');
+
+            if (!in_array($masterState, $allowedInMasterStates)) {
                 $requiredRoles = 'no_one';
+            } elseif($masterState == 'active' && !empty($mvc->Master->requiredRolesToEditWhenActive)){
+                if(!haveRole($mvc->Master->requiredRolesToEditWhenActive, $userId)){
+                    $requiredRoles = 'no_one';
+                }
             }
         }
         
@@ -208,6 +227,7 @@ abstract class deals_ManifactureDetail extends doc_Detail
         if (!empty($data->toolbar->buttons['btnAdd']) && isset($mvc->defaultMeta)) {
             unset($data->toolbar->buttons['btnAdd']);
             $products = cat_Products::getByProperty($mvc->defaultMeta, null, 1);
+            $error = '';
             
             if (!countR($products)) {
                 $error = 'error=Няма артикули, ';

@@ -261,8 +261,10 @@ class acc_Journal extends core_Master
      */
     protected static function on_AfterRecToVerbal($mvc, $row, $rec, $fields = array())
     {
-        $row->totalAmount = '<strong>' . $row->totalAmount . '</strong>';
-        if ($rec->docType && cls::load($rec->docType, true)) {
+        if (isset($row->totalAmount)) {
+            $row->totalAmount = '<strong>' . $row->totalAmount . '</strong>';
+        }
+        if (!empty($rec->docType) && !empty($rec->docId) && cls::load($rec->docType, true)) {
             $doc = new core_ObjectReference($rec->docType, $rec->docId);
 
             try {
@@ -272,12 +274,12 @@ class acc_Journal extends core_Master
             }
         }
         
-        if (isset($fields['-list'])) {
+        if (isset($fields['-list']) && !empty($rec->id)) {
             $dQuery = acc_JournalDetails::getQuery();
             $dQuery->where("#journalId = {$rec->id}");
             $details = $dQuery->fetchAll();
             
-            $row->docType = $row->docType . " <a href=\"javascript:toggleDisplay('{$rec->id}inf')\"  style=\"background-image:url(" . sbf('img/16/toggle1.png', "'") . ');" class=" plus-icon more-btn"> </a>';
+            $row->docType = ($row->docType ?? '') . " <a href=\"javascript:toggleDisplay('{$rec->id}inf')\"  style=\"background-image:url(" . sbf('img/16/toggle1.png', "'") . ');" class=" plus-icon more-btn"> </a>';
             
             $row->docType .= "<ol style='margin-top:2px;margin-top:2px;margin-bottom:2px;color:#888;display:none' id='{$rec->id}inf'>";
             

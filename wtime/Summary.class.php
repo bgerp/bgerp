@@ -149,7 +149,7 @@ class wtime_Summary extends core_Manager
             $scheduleId = planning_Hr::getSchedule($rec->personId);
             $row->scheduleId = hr_Schedules::getHyperlink($scheduleId, true);
         }
-        $row->ROW_ATTR['class'] = ($rec->_isSummary) ? 'state-closed' : 'state-active';
+        $row->ROW_ATTR['class'] = !empty($rec->_isSummary) ? 'state-closed' : 'state-active';
 
         foreach(arr::make('onSiteTime,onSiteTimeOnHolidays,onSiteTimeOnNonWorkingDays,onSiteTimeNightShift,onSiteTimeOffSchedule,onlineTime,onlineTimeRemote,onlineTimeOffSchedule', true) as $fld){
             if(empty($rec->{$fld})){
@@ -755,7 +755,7 @@ class wtime_Summary extends core_Manager
 
 
         $tpl->append($dTable);
-        if ($data->Pager) {
+        if (!empty($data->Pager)) {
             $tpl->append($data->Pager->getHtml());
         }
 

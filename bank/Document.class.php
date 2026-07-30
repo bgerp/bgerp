@@ -301,7 +301,7 @@ abstract class bank_Document extends deals_PaymentDocument
             $fields['contragentName'] = core_Type::getByName('varchar')->fromVerbal($fields['contragentName']);
         } else {
             $cData = cls::get($rec->contragentClassId)->getContragentData($rec->contragentId);
-            $fields['contragentName'] = ($cData->person) ? $cData->person : $cData->company;
+            $fields['contragentName'] = (!empty($cData->person)) ? $cData->person : $cData->company;
         }
         $rec->contragentName = $fields['contragentName'];
 

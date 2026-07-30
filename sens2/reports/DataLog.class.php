@@ -157,7 +157,7 @@ class sens2_reports_DataLog extends frame_BaseDriver
         
         $layout->append($table->get($data->rows, 'time=Време,indicatorId=Индикатор,value=Стойност'), 'data');
         
-        if ($data->pager) {
+        if (!empty($data->pager)) {
             $layout->append($data->pager->getHtml(), 'data');
         }
         

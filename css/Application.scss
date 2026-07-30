@@ -4075,7 +4075,7 @@ fieldset.sharing-history {
 }
 
 // двете колони във филтъра да не са в мозила
-@supports not (-moz-appearance: none) {
+
 	.wide .twoColsFilter {
 		display: flex;
 		justify-content: space-between;
@@ -4090,21 +4090,36 @@ fieldset.sharing-history {
 		margin-left: 20px;
 		align-self: flex-start;
 	}
+
+
+
+
+@supports (-moz-appearance: none) {
+	.wide .twoColsFilter {
+		display: block;
+		margin-bottom: 0;
+	}
+
+	.wide .twoColsFilter .listFilter form {
+		column-count: 1;
+	}
+
+	.wide .twoColsFilter .summary-block {
+		margin-left: 0;
+	}
 }
 
 @media handheld, only screen and (max-width: 1400px) {
-	@supports not (-moz-appearance: none) {
-		.wide .twoColsFilter {
-			display: block;
-			margin-bottom: 0;
+	.wide .twoColsFilter {
+		display: block;
+		margin-bottom: 0;
 
-			.listFilter form {
-				column-count: 1;
-			}
+		.listFilter form {
+			column-count: 1;
+		}
 
-			.summary-block {
-				margin-left: 0;
-			}
+		.summary-block {
+			margin-left: 0;
 		}
 	}
 }
@@ -6479,15 +6494,20 @@ div.location.public {
 	margin-top: 10px;
 }
 
-.details  .formToolbar #filter{
+.details .formToolbar #filter{
 	background-color: #e5e5e5;
-	padding: 6px 4px !important;
-	width: 26px;
 	background-position: center;
 	&:hover {
 		background-color: #ccc;
 	}
 }
+
+.details .log  .formToolbar #filter {
+	width: 26px;
+	background-position: center;
+	padding: 6px 4px !important;
+}
+
 .docStatistic form .horizontal {
 	border: 1px solid #eee;
 	padding: 5px 10px 3px;
@@ -7508,8 +7528,12 @@ body.narrow {
 	@include cmrColor(#0082c8);
 }
 
-.row-subProduct {
-	background-color:#ece2ff;
+.rejected {
+	background-color: #f2d8d8;
+	color: #3d1414 !important;
+	i, span {
+		color: #3d1414 !important ;
+	}
 }
 
 @media handheld , only screen and (min-width: 1240px) {

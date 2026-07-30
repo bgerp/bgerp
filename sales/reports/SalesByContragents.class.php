@@ -94,29 +94,32 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
      */
     protected static function on_AfterInputEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$form)
     {
-        if ($form->rec->orderBy == 'salesArr') {
+        $orderBy = $form->rec->orderBy ?? null;
+        $see = $form->rec->see ?? null;
 
-            if (!$form->rec->see) {
+        if ($orderBy == 'salesArr') {
+
+            if (!$see) {
                 $form->rec->see = 'sales';
             } else {
 
-                if (strpos($form->rec->see, 'sales') === false) {
-                    $seeStr = 'sales,' . $form->rec->see;
+                if (strpos($see, 'sales') === false) {
+                    $seeStr = 'sales,' . $see;
                     $form->rec->see = $seeStr;
                 }
             }
-        } elseif ($form->rec->orderBy == 'unicart') {
-            if (!$form->rec->see) {
+        } elseif ($orderBy == 'unicart') {
+            if (!$see) {
                 $form->rec->see = 'articles';
             } else {
 
-                if (strpos($form->rec->see, 'articles') === false) {
-                    $seeStr = 'articles,' . $form->rec->see;
+                if (strpos($see, 'articles') === false) {
+                    $seeStr = 'articles,' . $see;
                     $form->rec->see = $seeStr;
                 }
             }
         }
-        if ($form->rec->orderBy == 'delta') {
+        if ($orderBy == 'delta') {
 
             $form->rec->seeDelta = 'yes';
 
@@ -157,7 +160,7 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
             $form->setField('seeDelta', 'input=hidden');
         }
 
-        if ($rec->compare == 'month') {
+        if (($rec->compare ?? null) == 'month') {
             $form->setField('from', 'input=hidden');
             $form->setField('to', 'input=hidden');
             $form->setField('selectPeriod', 'input=hidden');
@@ -745,7 +748,7 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
      *
      * @return mixed $dueDate
      */
-    private static function getContragent($dRec, $verbal = true, $rec)
+    private static function getContragent($dRec, $verbal = true, $rec = null)
     {
         if ($verbal === true) {
             if ($dRec->contragentId) {

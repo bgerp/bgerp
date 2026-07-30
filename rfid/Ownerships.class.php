@@ -109,7 +109,7 @@ class rfid_Ownerships extends core_Manager
     public function prepareHolders($data)
     {
         $data->rfidRecs = $data->rfidRows = array();
-        expect($data->masterMvc instanceof crm_Persons);
+        expect(($data->masterMvc ?? null) instanceof crm_Persons);
         $query = self::getQuery();
         $query->where("#holderId = {$data->masterId}");
         while ($rec = $query->fetch()) {

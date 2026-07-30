@@ -49,7 +49,7 @@ class deals_plg_SelectInvoicesToDocument extends core_Plugin
      */
     protected static function on_BeforeSave($mvc, $id, $rec)
     {
-        if(isset($rec->id) && $rec->_isEdited){
+        if(isset($rec->id) && !empty($rec->_isEdited)){
             $oData = $mvc->getPaymentData($rec->id);
             $nData = $mvc->getPaymentData($rec);
 
@@ -144,7 +144,7 @@ class deals_plg_SelectInvoicesToDocument extends core_Plugin
                     $rec->fromContainerId = null;
                     $mvc->save_($rec, 'fromContainerId');
                 }
-            } elseif($rec->_amountChange == 'decrease') {
+            } elseif (($rec->_amountChange ?? null) == 'decrease') {
 
                 // Ако е само една и сумата е намалена то остава по-малкото от новата сума и старата разпределена
                 $nData = $mvc->getPaymentData($rec);

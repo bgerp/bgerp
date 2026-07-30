@@ -514,7 +514,7 @@ class deals_InvoicesToDocuments extends core_Manager
         $valior = $masterRec->{$data->masterMvc->valiorFld} ?? dt::today();
 
         // Ако има сконто то няма да участва като неразпределени
-        if($data->masterMvc instanceof bank_SpendingDocuments){
+        if(($data->masterMvc ?? null) instanceof bank_SpendingDocuments){
             if(!empty($masterRec->earlyPaymentUntil) && !empty($masterRec->earlyPaymentPercent) && $valior <= $masterRec->earlyPaymentUntil){
                 $unallocated *= 1 - $masterRec->earlyPaymentPercent;
             }
@@ -614,7 +614,7 @@ class deals_InvoicesToDocuments extends core_Manager
     {
         $tpl = new core_ET("");
         $block = getTplFromFile('deals/tpl/InvoicesToDocuments.shtml');
-        if(!($data->masterMvc instanceof deals_Document)){
+        if(!(($data->masterMvc ?? null) instanceof deals_Document)){
             $block->replace('no-border', 'INV_CLASS');
         }
 

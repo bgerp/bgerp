@@ -112,7 +112,8 @@ class colab_Folders extends core_Manager
      */
     public function prepareListRows_(&$data)
     {
-        if (countR($data->recs)) {
+        $data->rows = array();
+        if (countR($data->recs ?? null)) {
             foreach ($data->recs as $id => $rec) {
                 $title = $this->Folders->getVerbal($rec, 'title');
                 $row = $this->Folders->recToVerbal($rec, $this->listFields);

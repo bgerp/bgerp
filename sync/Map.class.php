@@ -492,8 +492,8 @@ class sync_Map extends core_Manager
         }
         
         // Фикс, ако е параметъра е файл
-        if ($rec->__paramValue) {
-            if (($mvc->className == 'cat_products_Params') && ($rec->__paramId)) {
+        if (!empty($rec->__paramValue)) {
+            if (($mvc->className == 'cat_products_Params') && !empty($rec->__paramId)) {
                 $cParamId = self::importRec('cat_Params', $rec->__paramId, $res, $controller, $update);
                 
                 $cParRec = cat_Params::fetch($cParamId);
@@ -543,7 +543,7 @@ class sync_Map extends core_Manager
             }
         }
         
-        if ($rec->__id) {
+        if (!empty($rec->__id)) {
             $rec->id = $rec->__id;
             unset($rec->__id);
         }

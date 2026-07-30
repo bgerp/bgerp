@@ -314,7 +314,7 @@ class cash_InternalMoneyTransfer extends core_Master
         $form->toolbar->addBtn('Отказ', $retUrl, 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
 
         $folderId = null;
-        $cFolderId = $form->rec->folderId;
+        $cFolderId = $form->rec->folderId ?? null;
         if(isset($cFolderId)){
             $Cover = doc_Folders::getCover($cFolderId);
             if($Cover->isInstanceOf('cash_Cases')){
@@ -347,7 +347,7 @@ class cash_InternalMoneyTransfer extends core_Master
         $form = &$data->form;
         
         // Очакваме и намираме коя е извършената операция
-        if (!$form->rec->id) {
+        if (empty($form->rec->id)) {
             expect($operationSysId = Request::get('operationSysId'));
         } else {
             $operationSysId = $form->rec->operationSysId;

@@ -111,7 +111,7 @@ class sync_Helper extends core_Manager
         $resArr = array_reverse($resArr, true);
         
         if ($usersFirst) {
-            if ($resArr['core_Users'] && (countR($resArr) > 1)) {
+            if (!empty($resArr['core_Users']) && (countR($resArr) > 1)) {
                 $resArr2 = array();
                 $resArr2['core_Users'] = $resArr['core_Users'];
                 unset($resArr['core_Users']);

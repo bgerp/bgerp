@@ -65,7 +65,7 @@ class callcenter_Numbers extends core_Manager
     /**
      * Кои полета да се извличат при изтриване
      */
-    public $fetchFieldsBeforeDelete = 'id,number';
+    public $fetchFieldsBeforeDelete = 'id,number,type';
     
     
     /**
@@ -461,7 +461,10 @@ class callcenter_Numbers extends core_Manager
                 
                 // Вземаме записа
                 $rec = $mvc->fetch($id);
-                
+                if (empty($rec)) {
+                    continue;
+                }
+
                 // Ако е вътрешен
                 if ($rec->type == 'internal') {
                     
@@ -583,7 +586,7 @@ class callcenter_Numbers extends core_Manager
         $form->setField('classId', 'input=none');
         
         // Ако добавяме нов
-        if ($form->rec->id) {
+        if (!empty($form->rec->id)) {
             // Да е избран потребителя, който редактираме
             $userId = crm_Profiles::fetchField($form->rec->contragentId, 'userId');
             $form->setDefault('userId', $userId);
@@ -631,7 +634,7 @@ class callcenter_Numbers extends core_Manager
             $rec->contragentId = $profileId;
             
             // Ако създаваме нов
-            if (!$form->rec->id) {
+            if (empty($form->rec->id)) {
                 
                 // Типа да е вътрешен
                 $rec->type = 'internal';

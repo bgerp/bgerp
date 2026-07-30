@@ -117,7 +117,7 @@ class docarch_Movements extends core_Master
         $form->setOptions('type', $types);
         
         //Архивиране на документ
-        if (($rec->documentId && !$rec->id)) {
+        if (($rec->documentId && empty($rec->id))) {
             $arcivesArr = array();
             $archArr = array();
             
@@ -204,7 +204,7 @@ class docarch_Movements extends core_Master
             $form->setDefault('userID', "{$currentUser}");
         }
         
-        if (($rec->documentId && $rec->id)) {
+        if (($rec->documentId && !empty($rec->id))) {
         }
     }
     

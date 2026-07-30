@@ -361,8 +361,8 @@ class trans_Lines extends core_Master
 
         // Подмяна на бутона за принтиране с такъв да отчита натиснатия таб на детайла
         $printBtnId = plg_Printing::getPrintBtnId($mvc, $rec->id);
-        if ($data->toolbar->buttons[$printBtnId]) {
-            $data->toolbar->removeBtn[$printBtnId];
+        if ($data->toolbar->haveButton($printBtnId)) {
+            $data->toolbar->removeBtn($printBtnId);
             $url = array($mvc, 'single', $rec->id, 'Printing' => 'yes', 'Width' => 'yes', 'lineTab' => Request::get('lineTab'));
             $data->toolbar->addBtn('Печат', $url, 'target=_blank,row=2', "id={$printBtnId},target=_blank,row=2,ef_icon = img/16/printer.png,title=Печат на документа");
         }
@@ -425,6 +425,8 @@ class trans_Lines extends core_Master
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
+        $transUnitsTotal = array();
+
         if (isset($fields['-single'])) {
             if (isset($rec->defaultCaseId)) {
                 $row->defaultCaseId = cash_Cases::getHyperlink($rec->defaultCaseId, true);
@@ -457,7 +459,6 @@ class trans_Lines extends core_Master
             }
 
             // Лайв изчисление на общите ЛЕ
-            $transUnitsTotal = array();
             $dQuery = trans_LineDetails::getQuery();
             $dQuery->where("#lineId = {$rec->id} AND #containerState != 'rejected' AND #status != 'removed'");
             while ($dRec = $dQuery->fetch()) {
@@ -466,9 +467,7 @@ class trans_Lines extends core_Master
                     $mvc->cacheLineInfo[$dRec->containerId] = $Document->getTransportLineInfo($rec->id);
                 }
                 $transportInfo = $mvc->cacheLineInfo[$dRec->containerId];
-                if (is_array($transportInfo['transportUnits'])) {
-                    trans_Helper::sumTransUnits($transUnitsTotal, $transportInfo['transportUnits']);
-                }
+                trans_Helper::sumTransUnits($transUnitsTotal, $transportInfo['transportUnits']);
             }
         }
 
@@ -481,7 +480,7 @@ class trans_Lines extends core_Master
             }
         }
 
-        if(empty($rec->shipmentOn)){
+        if (empty($rec->shipmentOn) && isset($row->shipmentOnCalc)) {
             $row->shipmentOnCalc = ht::createHint($row->shipmentOnCalc, 'Използва се началото, защото няма конкретно въведена дата за експедиране|*!', 'notice', false);
         }
 
@@ -496,7 +495,7 @@ class trans_Lines extends core_Master
 
         $row->readiness = "{$row->countStoreDocuments} / {$row->countActiveDocuments} / {$row->countReadyDocuments}";
         if (!Mode::isReadOnly()) {
-            if ($rec->countStoreDocuments != ($rec->countActiveDocuments + $rec->countReadyDocuments)) {
+            if (($rec->countStoreDocuments ?? 0) != (($rec->countActiveDocuments ?? 0) + ($rec->countReadyDocuments ?? 0))) {
                 $row->readiness = "<span class='red'>{$row->readiness}</span>";
             }
         }
@@ -513,7 +512,7 @@ class trans_Lines extends core_Master
                 $row->cases = $mvc->getVerbal($rec, 'cases');
                 $row->handler .= "<div class='small'> " . tr('Каси') . ": {$row->cases}</div>";
             }
-            $transUnitsTotal = $rec->transUnitsTotal;
+            $transUnitsTotal = $rec->transUnitsTotal ?? array();
         }
 
         $row->transUnitsTotal = empty($transUnitsTotal) ? "<span class='quiet'>N/A</span>" : trans_Helper::displayTransUnits($transUnitsTotal, false, '<br>');
@@ -556,7 +555,7 @@ class trans_Lines extends core_Master
 
             // Сумиране на теглото от редовете
             if ($sumWeight === true) {
-                if ($transInfo['weight']) {
+                if (!empty($transInfo['weight'])) {
                     $weight += $transInfo['weight'];
                 } elseif ($isStoreDocument) {
                     unset($weight);
@@ -566,7 +565,7 @@ class trans_Lines extends core_Master
 
             // Сумиране на обема от редовете
             if ($sumVolume === true) {
-                if ($transInfo['volume']) {
+                if (!empty($transInfo['volume'])) {
                     $volume += $transInfo['volume'];
                 } elseif ($isStoreDocument) {
                     unset($volume);
@@ -706,9 +705,7 @@ class trans_Lines extends core_Master
                     }
                 }
 
-                if(is_array($lineInfo['transportUnits'])){
-                    trans_Helper::sumTransUnits($transUnitsTotal, $lineInfo['transportUnits']);
-                }
+                trans_Helper::sumTransUnits($transUnitsTotal, $lineInfo['transportUnits']);
             }
 
             $stores = array_merge($stores, $lineInfo['stores']);
@@ -802,7 +799,7 @@ class trans_Lines extends core_Master
      */
     protected static function on_BeforeSave($mvc, &$id, $rec, $fields = null, $mode = null)
     {
-        if ($rec->__isReplicate) {
+        if (!empty($rec->__isReplicate)) {
             $rec->countStoreDocuments = 0;
             $rec->countActiveDocuments = 0;
             $rec->countReadyDocuments = 0;
@@ -830,12 +827,14 @@ class trans_Lines extends core_Master
         $Document = doc_Containers::getDocument($docContainerId);
 
         $documentRec = $Document->fetch();
+        if (!$documentRec) return $res;
+
         $res['body'] = 'За: #' . $Document->getHandle() . "\n";
 
         $users = '';
-        $users = keylist::addKey($users, $documentRec->createdBy);
-        $users = keylist::addKey($users, $documentRec->modifiedBy);
-        $users = keylist::merge($users, $documentRec->sharedUsers);
+        $users = keylist::addKey($users, $documentRec->createdBy ?? null);
+        $users = keylist::addKey($users, $documentRec->modifiedBy ?? null);
+        $users = keylist::merge($users, $documentRec->sharedUsers ?? null);
         $res['sharedUsers'] = $users;
 
         return $res;
@@ -908,8 +907,8 @@ class trans_Lines extends core_Master
                     $this->logWrite('Автоматично приключване на активна линия', $rec->id);
                 }
             } else {
-                $start = $rec->start;
-                if (strpos($rec->start, ' 00:00:00')) {
+                $start = $rec->start ?? null;
+                if ($start && strpos($start, ' 00:00:00') !== false) {
                     $start = str_replace(' 00:00:00', ' 23:59:59', $rec->start);
                 }
 

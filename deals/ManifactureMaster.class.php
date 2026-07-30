@@ -65,6 +65,12 @@ abstract class deals_ManifactureMaster extends core_Master
 
 
     /**
+     * Кои роли се изискват да може да се редактира, когато е активиран
+     */
+    public $requiredRolesToEditWhenActive = 'no_one';
+
+
+    /**
      * Кои са задължителните полета за модела
      */
     protected static function setDocumentFields($mvc)
@@ -123,14 +129,12 @@ abstract class deals_ManifactureMaster extends core_Master
         if($mvc->haveRightFor('calcproductionamount', $rec) && !Mode::isReadOnly()){
             $row->calcPrimeCostBtn = ht::createBtn($caption, array($mvc, 'calcproductionamount', $rec->id, 'ret_url' => true), false, false, 'ef_icon=img/16/arrow_refresh.png');
             $calcedPrice = core_Permanent::get("{$mvc->className}_{$rec->id}_calcedPrimeCost");
-            if($calcedPrice['primecost'] == 0){
-                if(is_array($calcedPrice)){
-                    $cost = $calcedPrice['cost']; 
-                    $row->calcedPrimeCost = core_Type::getByName('double(decimals=2)')->toVerbal($cost);
-                    $row->calcedPrimeCost = currency_Currencies::decorate($row->calcedPrimeCost, null, true);
-                    $row->calcedPrimeCost = ht::styleNumber($row->calcedPrimeCost, $cost);
-                    $row->calcedPrimeCostDate = core_Type::getByName('datetime(format=smartTime)')->toVerbal($calcedPrice['date']);
-                }
+            if (is_array($calcedPrice) && isset($calcedPrice['primecost']) && $calcedPrice['primecost'] == 0) {
+                $cost = $calcedPrice['cost']; 
+                $row->calcedPrimeCost = core_Type::getByName('double(decimals=2)')->toVerbal($cost);
+                $row->calcedPrimeCost = currency_Currencies::decorate($row->calcedPrimeCost, null, true);
+                $row->calcedPrimeCost = ht::styleNumber($row->calcedPrimeCost, $cost);
+                $row->calcedPrimeCostDate = core_Type::getByName('datetime(format=smartTime)')->toVerbal($calcedPrice['date']);
             }
             
         }
@@ -146,11 +150,14 @@ abstract class deals_ManifactureMaster extends core_Master
     public static function getJobRec($rec)
     {
         $rec = static::fetchRec($rec);
-        $threadId = isset($rec->originId) ? doc_Containers::fetchField($rec->originId, 'threadId') : $rec->threadId;
-        $firstDoc = doc_Threads::getFirstDocument($threadId);
+        if (!$rec) return null;
+
+        $originId = $rec->originId ?? null;
+        $threadId = $originId ? doc_Containers::fetchField($originId, 'threadId') : ($rec->threadId ?? null);
+        $firstDoc = $threadId ? doc_Threads::getFirstDocument($threadId) : null;
         if(isset($firstDoc) && $firstDoc->isInstanceOf('deals_ManifactureMaster')) return null;
 
-        $Origin = isset($rec->originId) ? doc_Containers::getDocument($rec->originId) : $firstDoc;
+        $Origin = $originId ? doc_Containers::getDocument($originId) : $firstDoc;
         if($Origin){
             if($Origin->isInstanceOf('planning_Jobs')) return $Origin->fetch();
             if($Origin->isInstanceOf('planning_ConsumptionNotes')) return $Origin->getJobRec();
@@ -271,6 +278,7 @@ abstract class deals_ManifactureMaster extends core_Master
         // Записваме документа за да му се обновят полетата
         $rec = $this->fetchRec($id);
         if ($rec !== false) {
+            $rec->_updateMaster = true;
             $this->save($rec);
         }
     }

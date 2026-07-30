@@ -275,7 +275,7 @@ class doc_FolderPlg extends core_Plugin
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         // Ако оттегляме документа
-        if ($action == 'reject' && $rec && $rec->folderId && $requiredRoles != 'no_one') {
+        if ($action == 'reject' && is_object($rec) && $rec->folderId && $requiredRoles != 'no_one') {
 
             // Ако има запис, който не е оттеглен
             $fRec = doc_Folders::fetch($rec->folderId);
@@ -296,7 +296,7 @@ class doc_FolderPlg extends core_Plugin
                 if ($requiredRoles != 'no_one' && $rec->access == 'team') {
                     
                     // Ако има зададени мастър роли за достъп
-                    $requiredRoles = $mvc->coverMasterRoles ? $mvc->coverMasterRoles : 'no_one';
+                    $requiredRoles = !empty($mvc->coverMasterRoles) ? $mvc->coverMasterRoles : 'no_one';
                 } else {
                     $requiredRoles = 'no_one';
                 }
@@ -315,7 +315,7 @@ class doc_FolderPlg extends core_Plugin
         if ($action == 'createnewfolder' && isset($rec) && $requiredRoles != 'no_one') {
             if (!doc_Folders::haveRightToObject($rec, $userId)) {
                 $requiredRoles = 'no_one';
-            } elseif ($rec->state == 'rejected') {
+            } elseif (($rec->state ?? null) == 'rejected') {
                 $requiredRoles = 'no_one';
             }
         }
@@ -711,7 +711,7 @@ class doc_FolderPlg extends core_Plugin
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-        if ($rec->inCharge == -1) {
+        if (($rec->inCharge ?? null) == -1) {
             $row->inCharge = core_Setup::get('SYSTEM_NICK');
         }
         
@@ -735,7 +735,7 @@ class doc_FolderPlg extends core_Plugin
             $fName = $fParts[1] ?? null;
             $folderTitle = $mvc->getFolderTitle($rec->id, false);
             
-            if ($rec->folderId && ($fRec = doc_Folders::fetch($rec->folderId))) {
+            if (!empty($rec->folderId) && ($fRec = doc_Folders::fetch($rec->folderId))) {
                 $isRejectedUrl = !empty($currUrl['Rejected']);
                 if (doc_Folders::haveRightFor('single', $rec->folderId) && !$isRejectedUrl) {
                     core_RowToolbar::createIfNotExists($row->_rowTools);
@@ -985,7 +985,7 @@ class doc_FolderPlg extends core_Plugin
             // Ако след записа няма да имаме достъп до корицата слагаме предупреждение
             if (!doc_Folders::haveRightToObject($rec)) {
                 $prevHaveRight = true;
-                if ($rec->id) {
+                if (!empty($rec->id)) {
                     $oRec = $mvc->fetch($rec->id);
                     $prevHaveRight = doc_Folders::haveRightToObject($oRec);
                 }
@@ -997,7 +997,7 @@ class doc_FolderPlg extends core_Plugin
         }
         
         if ($form->isSubmitted()) {
-            if ($rec->id) {
+            if (!empty($rec->id)) {
                 $oRec = $mvc->fetch($form->rec->id);
                 $rec->__mustNotify = true;
                 $rec->__oShared = $oRec->shared;

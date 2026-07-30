@@ -16,6 +16,12 @@
 class planning_DirectProductionNote extends planning_ProductionDocument
 {
     /**
+     * Протоколът за производство проверява за по-нов производствен документ
+     */
+    protected $checkNewerProductionDocument = true;
+
+
+    /**
      * Заглавие
      */
     public $title = 'Протоколи за производство';
@@ -173,7 +179,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
     /**
      * Кои полета от листовия изглед да се скриват ако няма записи в тях
      */
-    public $hideListFieldsIfEmpty = 'deadline,expenseItemId,storeId';
+    public $hideListFieldsIfEmpty = 'deadline,expenseItemId,storeId,note';
 
 
     /**
@@ -284,13 +290,13 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         $originDoc = doc_Containers::getDocument($form->rec->originId);
         $originRec = $originDoc->rec();
 
-        $storeId = $originRec->storeId;
-        $saleId = $originRec->saleId;
+        $storeId = $originRec->storeId ?? null;
+        $saleId = $originRec->saleId ?? null;
         if($originDoc->isInstanceOf('planning_Tasks')){
             $defaultOriginPackField = 'measureId';
             $jobRec = doc_Containers::getDocument($originRec->originId)->fetch();
-            $storeId = ($originRec->storeId) ? $originRec->storeId : $jobRec->storeId;
-            $saleId = $jobRec->saleId;
+            $storeId = !empty($originRec->storeId) ? $originRec->storeId : ($jobRec->storeId ?? null);
+            $saleId = $jobRec->saleId ?? null;
             $productOptions = planning_ProductionTaskProducts::getOptionsByType($originDoc->that, 'production');
             unset($productOptions[$jobRec->productId]);
             $form->setField('inputStoreId', 'input=none');
@@ -315,7 +321,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
             $secondMeasureDerivatives = array();
             $productRec = cat_Products::fetch($rec->productId, 'canStore,fixedAsset,canConvert,measureId');
             if($rec->productId == $jobRec->productId){
-                $packs = cat_Products::getPacks($rec->productId, $rec->packagingId, false, $jobRec->secondMeasureId);
+                $packs = cat_Products::getPacks($rec->productId, $rec->packagingId ?? null, false, $jobRec->secondMeasureId);
                 if($jobRec->secondMeasureId){
                     $secondMeasureDerivatives = cat_UoM::getSameTypeMeasures($jobRec->secondMeasureId);
                 }
@@ -329,7 +335,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 
                 $defaultPack = $originRec->{$defaultOriginPackField};
             } else {
-                $packs = cat_Products::getPacks($rec->productId, $rec->packagingId);
+                $packs = cat_Products::getPacks($rec->productId, $rec->packagingId ?? null);
 
                 if($originDoc->isInstanceOf('planning_Tasks')){
                     $pInfo = planning_ProductionTaskProducts::getInfo($originRec->id, $rec->productId, 'production');
@@ -352,7 +358,9 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                 // Ако заданието, към което е протокола е към продажба, избираме я по дефолт
                 if (empty($rec->id) && isset($saleId)) {
                     $saleItem = acc_Items::fetchItem('sales_Sales', $saleId);
-                    $form->setDefault('expenseItemId', $saleItem->id);
+                    if ($saleItem) {
+                        $form->setDefault('expenseItemId', $saleItem->id);
+                    }
                 }
 
                 $form->setField('storeId', 'input=none');
@@ -691,10 +699,11 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 
             $productRec = cat_Products::fetch($rec->productId, 'measureId');
             $shortUom = cat_UoM::getShortName($productRec->measureId);
-            $row->quantity .= " {$shortUom}";
+            $row->quantity = ($row->quantity ?? $mvc->getVerbal($rec, 'quantity')) . " {$shortUom}";
 
             if (isset($rec->debitAmount)) {
-                $row->debitAmount = currency_Currencies::decorate($row->debitAmount, null, true);
+                $debitAmount = $row->debitAmount ?? $mvc->getVerbal($rec, 'debitAmount');
+                $row->debitAmount = currency_Currencies::decorate($debitAmount, null, true);
             }
 
             $row->subTitle = (isset($rec->storeId)) ? 'Засклаждане на продукт' : 'Производство на услуга';
@@ -810,9 +819,10 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                             if($originDoc->isInstanceOf('planning_Jobs')){
 
                                 // Ако заданието е за производим артикул само тогава да може да се пуска протокол от него
-                                $productId = $originDoc->fetchField('productId');
+                                $jobRec = $originDoc->fetch('productId,type');
+                                $productId = $jobRec->productId;
                                 $productRec = cat_Products::fetch($productId, 'canManifacture,generic');
-                                if ($state == 'closed' || $productRec->canManifacture != 'yes' || $productRec->generic == 'yes') {
+                                if ($jobRec->type == 'disassembly' || $state == 'closed' || $productRec->canManifacture != 'yes' || $productRec->generic == 'yes') {
                                     $requiredRoles = 'no_one';
                                 }
                             } elseif($originDoc->isInstanceOf('planning_Tasks')){
@@ -912,7 +922,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                         $d2->quantityFromBom = $bomEntry->quantityFromBom;
                         $d2->quantity = $d2->quantityFromBom;
                         $mergedNotes = array();
-                        foreach (array($d2->notes, $bomEntry->notes) as $notesStr) {
+                        foreach (array($d2->notes ?? null, $bomEntry->notes ?? null) as $notesStr) {
                             $lines = is_array($notesStr) ? $notesStr : explode("\n", (string)$notesStr);
                             foreach ($lines as $line) {
                                 if (($line = trim($line)) !== '') {
@@ -927,27 +937,31 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                         $d2->quantity = 0;
                     }
 
-                    $key = "{$d2->productId}|{$d2->packagingId}|{$d2->type}|{$d2->storeId}|{$d2->expenseItemId}";
+                    $storeId = $d2->storeId ?? null;
+                    $expenseItemId = $d2->expenseItemId ?? null;
+                    $key = "{$d2->productId}|{$d2->packagingId}|{$d2->type}|{$storeId}|{$expenseItemId}";
                     $obj = clone $d2;
                     if(!array_key_exists($key, $details)){
                         $obj->quantityExpected = 0;
+                        $obj->batches = $obj->batches ?? array();
                         $details[$key] = $obj;
                     }
 
                     if(!empty($d2->batch)){
-                        $details[$key]->batches[$d2->batch] = $d2->quantityExpected;
+                        $details[$key]->batches[$d2->batch] = $d2->quantityExpected ?? 0;
                     }
 
-                    $details[$key]->quantityExpected += $d2->quantityExpected;
+                    $details[$key]->quantityExpected += ($d2->quantityExpected ?? 0);
                     if(empty($d2->quantityFromBom)){
-                        $details[$key]->quantity += $d2->quantityExpected;
+                        $details[$key]->quantity += ($d2->quantityExpected ?? 0);
                     }
                 }
             }
 
             if(countR($detailsFromBom)) {
                 foreach ($detailsFromBom as $d3) {
-                    $key = "{$d3->productId}|{$d3->packagingId}|{$d3->type}|{$d3->storeId}";
+                    $storeId = $d3->storeId ?? null;
+                    $key = "{$d3->productId}|{$d3->packagingId}|{$d3->type}|{$storeId}";
                     if(!array_key_exists($key, $details)){
                         $obj1 = clone $d3;
                         $obj1->quantity = $obj1->quantityFromBom;
@@ -961,9 +975,9 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                     if(core_Packs::isInstalled('batch')){
                         if($details[$key]->type == 'subProduct'){
                             if($batchDef = batch_Defs::getBatchDef($details[$key]->productId)){
-                                $defValue = $batchDef->getAutoValue($this, $rec->id, $rec->storeId, $rec->valior);
+                                $defValue = $batchDef->getAutoValue($this, $rec->id, $rec->storeId ?? null, $rec->valior);
                                 if(isset($defValue)){
-                                    $details[$key]->batches[$defValue] += $details[$key]->quantity;
+                                    $details[$key]->batches[$defValue] = ($details[$key]->batches[$defValue] ?? 0) + $details[$key]->quantity;
                                 }
                             }
                         }
@@ -1757,21 +1771,16 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         $res = array();
         $id = is_object($rec) ? $rec->id : $rec;
         $rec = $this->fetch($id, '*', false);
-        $date = !empty($rec->{$this->termDateFld}) ? $rec->{$this->termDateFld} : (!empty($rec->{$this->valiorFld}) ? $rec->{$this->valiorFld} : null);
-        $horizonAdd = store_Setup::get('PLANNED_DATE_ADDITIVE_IF_IN_THE_PAST');
-        $dateIn = $date;
-        if(empty($date) || $date < dt::today()){
-            $dateIn = dt::addSecs($horizonAdd, dt::now());
-        }
-        $dateOut = empty($date) ? $rec->createdOn : $date;
+
+        [$dateIn, $dateOut] = static::calcPlannedDates($this, $rec);
 
         $canStore = cat_Products::fetchField($rec->productId, 'canStore');
-        if($canStore == 'yes'){
-            $res[] = (object)array('storeId'          => $rec->storeId,
-                'productId'        => $rec->productId,
-                'date'             => $dateIn,
-                'quantityIn'       => $rec->quantity,
-                'quantityOut'      => null,
+        if ($canStore == 'yes') {
+            $res[] = (object) array('storeId' => $rec->storeId,
+                'productId'       => $rec->productId,
+                'date'            => $dateIn,
+                'quantityIn'      => $rec->quantity,
+                'quantityOut'     => null,
                 'genericProductId' => null);
         }
 
@@ -1784,28 +1793,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         $dQuery->groupBy('productId');
 
         while ($dRec = $dQuery->fetch()) {
-            $genericProductId = null;
-            if($dRec->generic == 'yes'){
-                $genericProductId = $dRec->productId;
-            } elseif($dRec->canConvert == 'yes'){
-                $genericProductId = planning_GenericMapper::fetchField("#productId = {$dRec->productId}", 'genericProductId');
-            }
-
-            $quantityIn = $quantityOut = null;
-            if($dRec->type == 'input'){
-                $detailDate = $dateOut;
-                $quantityOut = $dRec->totalQuantity;
-            } else {
-                $detailDate = $dateIn;
-                $quantityIn = $dRec->totalQuantity;
-            }
-
-            $res[] = (object)array('storeId'          => $dRec->storeId,
-                                   'productId'        => $dRec->productId,
-                                   'date'             => $detailDate,
-                                   'quantityIn'       => $quantityIn,
-                                   'quantityOut'      => $quantityOut,
-                                   'genericProductId' => $genericProductId);
+            $res[] = static::buildPlannedStockEntry($dRec, $dateIn, $dateOut);
         }
 
         return $res;
@@ -1872,7 +1860,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
      * @param $action
      * @return string|null
      */
-    private function getErrorWhenTryingToConto($rec, $action = 'conto')
+    protected function getErrorWhenTryingToConto($rec, $action = 'conto')
     {
         $errorMsg = null;
         $rec = $this->fetchRec($rec);
@@ -1908,20 +1896,6 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         }
 
         return $errorMsg;
-    }
-
-
-    /**
-     * Изпълнява се преди контиране на документа
-     */
-    public static function on_BeforeConto(core_Mvc $mvc, &$res, $id)
-    {
-        $errorMsg = $mvc->getErrorWhenTryingToConto($id);
-        if(!empty($errorMsg)){
-            core_Statuses::newStatus($errorMsg, 'error');
-
-            return false;
-        }
     }
 
 
@@ -1987,5 +1961,31 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         }
 
         return $res;
+    }
+
+
+    /**
+     * Подготовка на филтър формата
+     */
+    protected static function on_AfterPrepareListFilter($mvc, &$data)
+    {
+        $data->listFilter->FLD('productionType', 'enum(,additionalMeasure=С втора мярка,withoutAdditionalMeasure=Без втора мярка,nonDetailed=Бездетайлно произвеждане,detailed=Детайлно произвеждане)', 'caption=Производство,input');
+        $data->listFilter->showFields .= ",productionType";
+        $data->listFilter->input('productionType');
+
+        // Прилагане на допълнителни филтри
+        if($filter = $data->listFilter->rec){
+            if(!empty($filter->productionType)){
+                if($filter->productionType == 'detailed'){
+                    $data->query->where("#debitAmount IS NULL");
+                } elseif($filter->productionType == 'nonDetailed'){
+                    $data->query->where("#debitAmount IS NOT NULL");
+                } elseif($filter->productionType == 'additionalMeasure'){
+                    $data->query->where("#additionalMeasureId IS NOT NULL");
+                } elseif($filter->productionType == 'withoutAdditionalMeasure'){
+                    $data->query->where("#additionalMeasureId IS NULL");
+                }
+            }
+        }
     }
 }

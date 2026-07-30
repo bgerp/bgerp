@@ -214,7 +214,7 @@ class acc_CostAllocations extends core_Manager
         $rec = $data->form->rec;
         if (isset($rec->containerId)) {
             $origin = doc_Containers::getDocument($rec->containerId);
-            $data->form->title = core_Detail::getEditTitle($origin->getClassId(), $origin->that, $mvc->singleTitle, $rec->id);
+            $data->form->title = core_Detail::getEditTitle($origin->getClassId(), $origin->that, $mvc->singleTitle, $rec->id ?? null);
         }
     }
     
@@ -730,7 +730,7 @@ class acc_CostAllocations extends core_Manager
             // За всеки запис
             for ($i = 0; $i <= countR($dRecs) - 1; $i++) {
                 $dRec = $dRecs[$i];
-                $nextRec = $dRecs[$i + 1];
+                $nextRec = $dRecs[$i + 1] ?? null;
                 
                 // Подготвят се данните за разпределяне
                 $r = (object) array('productId' => $productId);
@@ -843,7 +843,7 @@ class acc_CostAllocations extends core_Manager
             // Ако артикула е ДМА се отнася като разход към себе си
             $obj->expenseItemId = array('cat_Products', $productId);
             $obj->reason = 'Приети ДА';
-        } elseif ($pInfo->meta['canConvert']) {
+        } elseif (isset($pInfo->meta['canConvert'])) {
             
             // Ако артикула е вложим, отива към 'неразпределени'
             $obj->expenseItemId = self::getUnallocatedItemId();

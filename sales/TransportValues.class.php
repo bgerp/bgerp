@@ -698,10 +698,23 @@ class sales_TransportValues extends core_Manager
      */
     public static function prepareFee(&$rec, &$form, $masterRec, $map = array())
     {
+        // Ако мастър класа държи вальора в друго поле (напр. offertите - 'date' вместо 'valior')
+        if (!array_key_exists('valior', $map)) {
+            $masterClass = cls::get($map['masterMvc'] ?? self::$map['masterMvc']);
+            if (!empty($masterClass->valiorFld)) {
+                $map['valior'] = $masterClass->valiorFld;
+            }
+        }
+
         $map = array_merge(self::$map, $map);
-        
+        $productFld = $map['productId'];
+
+        if (!isset($rec->{$productFld})) {
+            return;
+        }
+
         // Имали вече начислен транспорт
-        if ($cRec = self::get($map['masterMvc'], $masterRec->id, $rec->id)) {
+        if (!empty($rec->id) && ($cRec = self::get($map['masterMvc'], $masterRec->id, $rec->id))) {
             $rec->fee = $cRec->fee;
             $rec->deliveryTimeFromFee = $cRec->deliveryTime;
         }
@@ -720,14 +733,12 @@ class sales_TransportValues extends core_Manager
         }
         
         // Ако драйвера не иска да се начислява цената да не се начислява
-        if (isset($rec->{$map['productId']})) {
-            $Driver = cat_Products::getDriver($rec->{$map['productId']});
-            if(!is_object($Driver)) return;
+        $Driver = cat_Products::getDriver($rec->{$productFld});
+        if(!is_object($Driver)) return;
+
+        if (!$Driver->canCalcTransportFee($rec->{$productFld})) {
             
-            if (!$Driver->canCalcTransportFee($rec->{$map['productId']})) {
-                
-                return;
-            }
+            return;
         }
         
         // Колко е очаквания транспорт
@@ -745,7 +756,7 @@ class sales_TransportValues extends core_Manager
             }
         }
 
-        $feeArr = self::getCostArray($masterRec->{$map['deliveryTermId']}, $masterRec->{$map['contragentClassId']}, $masterRec->{$map['contragentId']}, $rec->{$map['productId']}, $rec->{$map['packagingId']}, $rec->{$map['quantity']}, $locationId, $countryId, $PCode, $deliveryData, $masterRec->{$map['valior']});
+        $feeArr = self::getCostArray($masterRec->{$map['deliveryTermId']}, $masterRec->{$map['contragentClassId']}, $masterRec->{$map['contragentId']}, $rec->{$productFld}, $rec->{$map['packagingId']}, $rec->{$map['quantity']}, $locationId, $countryId, $PCode, $deliveryData, $masterRec->{$map['valior']});
         
         // Ако има такъв към цената се добавя
         if (is_array($feeArr)) {
@@ -759,12 +770,12 @@ class sales_TransportValues extends core_Manager
                 $rec->deliveryTimeFromFee = null;
             }
             
-            if ($rec->autoPrice === true) {
+            if (($rec->autoPrice ?? null) === true) {
                 if (isset($feeArr['singleFee'])) {
                     $newFee = $feeArr['totalFee'] / $rec->{$map['quantity']};
                     $newFee = $newFee / $masterRec->{$map['currencyRate']};
                     if ($masterRec->{$map['chargeVat']} == 'yes') {
-                        $vat = cat_Products::getVat($rec->productId, $masterRec->{$map['valior']}, $masterRec->vatExceptionId);
+                        $vat = cat_Products::getVat($rec->{$productFld}, $masterRec->{$map['valior']}, $masterRec->vatExceptionId);
                         $newFee = $newFee * (1 + $vat);
                     }
                     
@@ -787,7 +798,7 @@ class sales_TransportValues extends core_Manager
         }
         
         if (($rec->autoPrice ?? null) !== true) {
-            if (cond_DeliveryTerms::canCalcHiddenCost($masterRec->deliveryTermId, $rec->productId)) {
+            if (cond_DeliveryTerms::canCalcHiddenCost($masterRec->deliveryTermId, $rec->{$productFld})) {
                 if (isset($rec->{$map['price']})) {
                     // Проверка дали цената е допустима спрямо сумата на транспорта
                     $amount = round($rec->{$map['price']} * $rec->{$map['quantity']}, 2);
@@ -832,7 +843,7 @@ class sales_TransportValues extends core_Manager
         }
         
         sales_TransportValues::prepareFee($detailRec, $form, $clone, $map);
-        sales_TransportValues::sync($Detail->Master, $detailRec->{$Detail->masterKey}, $detailRec->id, $detailRec->fee, $detailRec->deliveryTimeFromFee, $detailRec->_transportExplained);
+        sales_TransportValues::sync($Detail->Master, $detailRec->{$Detail->masterKey}, $detailRec->id, $detailRec->fee, $detailRec->deliveryTimeFromFee, $detailRec->_transportExplained ?? null);
     
         return isset($detailRec->fee);
     }

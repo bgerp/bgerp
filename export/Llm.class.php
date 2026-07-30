@@ -73,12 +73,15 @@ class export_Llm extends core_Mvc
     {
         $Cls = cls::get($clsId);
         $rec = $Cls->fetchRec($objId);
-        $threadId = $rec->threadId;
+        expect($rec);
+        $threadId = $rec->threadId ?? null;
+        expect($threadId);
         $firstDocInThread = doc_Threads::getFirstDocument($threadId);
 
-        $whole = $form->rec->exportWholeThread === 'yes';
-        if($rec->id == $firstDocInThread->that && $whole){
+        $whole = ($form->rec->exportWholeThread ?? null) === 'yes';
+        if (($rec->id ?? null) == ($firstDocInThread->that ?? null) && $whole) {
             $threadRec = doc_Threads::fetch($threadId);
+            expect($threadRec);
             $threadName = doc_Threads::getThreadTitle($threadRec->id);
             $threadName = ai_utility_Helper::cleanText($threadName);
             $threadName = str_replace('"', '', $threadName);
@@ -100,9 +103,9 @@ class export_Llm extends core_Mvc
 
         if ($fileHnd) {
             $form->toolbar->addBtn('Сваляне', array('fileman_Download', 'download', 'fh' => $fileHnd, 'forceDownload' => true), 'ef_icon = fileman/icons/16/txt.png, title=Сваляне на документа');
-            $form->info .= '<b>' . tr('Файл|*: ') . '</b>' . fileman::getLink($fileHnd);
+            $form->info = ($form->info ?? '') . '<b>' . tr('Файл|*: ') . '</b>' . fileman::getLink($fileHnd);
         } else {
-            $form->info .= "<div class='formNotice'>" . tr('Няма данни за експорт|*.') . '</div>';
+            $form->info = ($form->info ?? '') . "<div class='formNotice'>" . tr('Няма данни за експорт|*.') . '</div>';
         }
 
         $Cls->logWrite('Генериране на LLM експорт', $objId);
@@ -123,7 +126,7 @@ class export_Llm extends core_Mvc
     public function getExternalExportLink($clsId, $objId, $mid)
     {
         Request::setProtected(array('objId', 'clsId', 'mid', 'typeCls'));
-        $link = ht::createLink('AI TXT', array('export_Export', 'exportInExternal', 'objId' => $objId, 'clsId' => $clsId, 'mid' => $mid, 'typeCls' => get_called_class(), 'ret_url' => true), null, array('class' => 'hideLink inlineLinks', 'ef_icon' => 'fileman/icons/16/txt.png', 'title' => 'Сваляне на документа като|* AI TXT|* файл'));
+        $link = ht::createLink('LLM TXT', array('export_Export', 'exportInExternal', 'objId' => $objId, 'clsId' => $clsId, 'mid' => $mid, 'typeCls' => get_called_class(), 'ret_url' => true), null, array('class' => 'hideLink inlineLinks', 'ef_icon' => 'fileman/icons/16/txt.png', 'title' => 'Сваляне на документа като|* AI TXT|* файл'));
 
         return $link;
     }
@@ -142,13 +145,20 @@ class export_Llm extends core_Mvc
     {
         $Cls = cls::get($clsId);
         $rec = $Cls->fetch($objId);
+        if (!$rec || empty($rec->threadId)) {
+            return;
+        }
+
         $threadId = $rec->threadId;
         $threadRec = doc_Threads::fetch($threadId);
+        if (!$threadRec) {
+            return;
+        }
 
         // Ако е първи документ в нишка, с повече от 1 документ да се появи възможност за избор на цялата нишка
-        if($threadRec->allDocCnt != 1){
+        if (($threadRec->allDocCnt ?? null) != 1) {
             $firstDocInThread = doc_Threads::getFirstDocument($threadId);
-            if($rec->id == $firstDocInThread->that){
+            if (($rec->id ?? null) == ($firstDocInThread->that ?? null)) {
                 $form->FLD('exportWholeThread', 'enum(no=Не,yes=Да)', 'caption=Да се експортира ли цялата нишка?->Избор,autohide,silent');
                 $form->setDefault('exportWholeThread', 'no');
             }

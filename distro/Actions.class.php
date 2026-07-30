@@ -407,7 +407,7 @@ class distro_Actions extends embed_Manager
         
         // Очакваме да masterKey да е зададен
         expect($data->masterKey);
-        expect($data->masterMvc instanceof core_Master);
+        expect(($data->masterMvc ?? null) instanceof core_Master);
         
         // Подготвяме заявката за детайла
         $this->prepareDetailQuery($data);
@@ -425,7 +425,7 @@ class distro_Actions extends embed_Manager
         $this->prepareListPager($data);
         
         // Името на променливата за страниране на детайл
-        if (is_object($data->pager)) {
+        if (!empty($data->pager)) {
             $data->pager->setPageVar($data->masterMvc->className, $data->masterId, $this->className);
             $data->pager->addToUrl = array('#' => $data->masterMvc->getHandle($data->masterId));
         }

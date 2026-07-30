@@ -138,7 +138,7 @@ class price_ListToCustomers extends core_Manager
     {
         $rec = $data->form->rec;
         
-        if (!$rec->id) {
+        if (empty($rec->id)) {
             $rec->validFrom = Mode::get('PRICE_VALID_FROM');
         }
         
@@ -163,7 +163,7 @@ class price_ListToCustomers extends core_Manager
     {
         $rec = $data->form->rec;
         if (isset($rec->cClass, $rec->cId)) {
-            $data->form->title = core_Detail::getEditTitle($rec->cClass, $rec->cId, $mvc->singleTitle, $rec->id, $mvc->formTitlePreposition);
+            $data->form->title = core_Detail::getEditTitle($rec->cClass, $rec->cId, $mvc->singleTitle, $rec->id ?? null, $mvc->formTitlePreposition);
         }
     }
     
@@ -314,7 +314,7 @@ class price_ListToCustomers extends core_Manager
      */
     public function getPriceInfo($customerClass, $customerId, $productId, $packagingId = null, $quantity = null, $datetime = null, $rate = 1, $chargeVat = 'no', $listId = null, $quotationPriceFirst = true, $discountListId = null)
     {
-        $rec = (object) array('price' => null);
+        $rec = (object) array('price' => null, 'discount' => null);
         $productRec = cat_Products::fetch($productId, 'isPublic,proto');
         
         // Проверява се имали последна цена по оферта
@@ -328,7 +328,7 @@ class price_ListToCustomers extends core_Manager
 
             // Проверяваме дали артикула е частен или стандартен
             if ($productRec->isPublic == 'no') {
-                $rec = (object) array('price' => null);
+                $rec = (object) array('price' => null, 'discount' => null);
                 $deltas = price_ListToCustomers::getMinAndMaxDelta($customerClass, $customerId, $listId);
                 
                 // Ако драйвера може да върне цена, връщаме нея
@@ -337,6 +337,8 @@ class price_ListToCustomers extends core_Manager
                     $rec = $Driver->getPrice($productId, $quantity, $deltas->minDelta, $deltas->maxDelta, $datetime, $rate, $chargeVat);
                     Mode::pop('contragentListId');
                     $rec = is_object($rec) ? $rec : (object)array('price' => $rec);
+                    $rec->price = $rec->price ?? null;
+                    $rec->discount = $rec->discount ?? null;
 
                     // @TODO хак за закръгляне на цените
                     if (isset($rec->price) && $rate > 0) {
@@ -381,7 +383,7 @@ class price_ListToCustomers extends core_Manager
             $vat = cat_Products::getVat($productId, $datetime, $vatExceptionId);
             $rec->price = deals_Helper::getDisplayPrice($rec->price, $vat, $rate, $chargeVat);
         }
-        
+
         // Връщане на цената
         return $rec;
     }
@@ -430,7 +432,7 @@ class price_ListToCustomers extends core_Manager
      */
     public function getPriceByList($listId, $productId, $packagingId = null, $quantity = null, $datetime = null, $rate = 1, $chargeVat = 'no', $discountListId = null)
     {
-        $rec = new stdClass();
+        $rec = (object) array('price' => null, 'discount' => null);
         $isFirstCall = true;
         $validFrom = null;
         $discountIncluded = null;

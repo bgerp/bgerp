@@ -102,7 +102,7 @@ class planning_AssetResourcesNorms extends core_Manager
      */
     public function prepareDetail_(&$data)
     {
-        if(!($data->masterMvc instanceof planning_AssetGroups)){
+        if(!(($data->masterMvc ?? null) instanceof planning_AssetGroups)){
             if(empty($data->masterData->rec->simultaneity)) {
                 $data->hide = true;
                 return;
@@ -128,7 +128,7 @@ class planning_AssetResourcesNorms extends core_Manager
         }
         
         // Ако се показва в Оборудването
-        if ($data->masterMvc instanceof  planning_AssetResources) {
+        if (($data->masterMvc ?? null) instanceof planning_AssetResources) {
             
             // Взимат се всички норми от групата му
             $gQuery = self::getQuery();
@@ -171,7 +171,7 @@ class planning_AssetResourcesNorms extends core_Manager
      */
     public function renderDetail_($data)
     {
-        if($data->hide) return new core_ET("");
+        if (!empty($data->hide)) return new core_ET("");
 
         $tpl = $this->renderList($data);
         
@@ -211,7 +211,7 @@ class planning_AssetResourcesNorms extends core_Manager
      */
     protected static function on_AfterPrepareEditTitle($mvc, &$res, &$data)
     {
-        $data->form->title = core_Detail::getEditTitle($data->form->rec->classId, $data->form->rec->objectId, $mvc->singleTitle, $data->form->rec->id);
+        $data->form->title = core_Detail::getEditTitle($data->form->rec->classId, $data->form->rec->objectId, $mvc->singleTitle, $data->form->rec->id ?? null);
     }
     
     

@@ -58,10 +58,13 @@ class purchase_PurchaseLastPricePolicy extends core_Mvc
     public function getPriceInfo($customerClass, $customerId, $productId, $packagingId = null, $quantity = null, $datetime = null, $rate = 1, $chargeVat = 'no', $listId = null, $quotationPriceFirst = true, $discountListId = null)
     {
         $date =  !empty($datetime) ? $datetime : dt::today();
+        $rec = (object) array('price' => null, 'discount' => null);
+        $vatExceptionId = null;
 
         // Проверява се имали последна цена по оферта
         if ($quotationPriceFirst === true) {
             $rec = purchase_QuotationDetails::getPriceInfo($customerClass, $customerId, $date, $productId, $packagingId, $quantity);
+            $vatExceptionId = cond_VatExceptions::getFromThreadId($rec->threadId ?? null);
         }
 
         // Ако няма цена по оферта или не се изисква
@@ -72,25 +75,29 @@ class purchase_PurchaseLastPricePolicy extends core_Mvc
             $detailQuery->EXT('contragentId', 'purchase_Purchases', 'externalName=contragentId,externalKey=requestId');
             $detailQuery->EXT('threadId', 'purchase_Purchases', 'externalName=threadId,externalKey=requestId');
             $detailQuery->EXT('valior', 'purchase_Purchases', 'externalName=valior,externalKey=requestId');
-            $detailQuery->EXT('state', 'purchase_Purchases', 'externalName=state,externalKey=requestId');
+            $detailQuery->EXT('mState', 'purchase_Purchases', 'externalName=state,externalKey=requestId');
             $detailQuery->where("#contragentClassId = {$customerClass}");
             $detailQuery->where("#contragentId = {$customerId}");
             $detailQuery->where("#valior <= '{$date}'");
             $detailQuery->where("#productId = '{$productId}'");
-            $detailQuery->where("#state = 'active' OR #state = 'closed'");
+            $detailQuery->where("#mState = 'active' OR #mState = 'closed'");
             $detailQuery->orderBy('#valior,#id', 'DESC');
             $lastRec = $detailQuery->fetch();
-            if (!$lastRec) return;
+            if (!$lastRec) {
+                return $rec;
+            }
 
             $price = deals_Helper::getSmartBaseCurrency($lastRec->price, $lastRec->valior, $date);
             $rec = (object)array('price' => $price, 'discount' => $lastRec->discount);
+            $vatExceptionId = cond_VatExceptions::getFromThreadId($lastRec->threadId);
         }
 
         if (!is_null($rec->price)) {
-            $vatExceptionId = cond_VatExceptions::getFromThreadId($rec->threadId);
             $vat = cat_Products::getVat($productId, $date, $vatExceptionId);
             $rec->price = deals_Helper::getDisplayPrice($rec->price, $vat, $rate, $chargeVat);
         }
+
+        unset($rec->threadId);
 
         return $rec;
     }

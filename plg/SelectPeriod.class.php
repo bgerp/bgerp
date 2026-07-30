@@ -86,8 +86,10 @@ class plg_SelectPeriod extends core_Plugin
 
         if (!$form->isSubmitted() && ($form->cmd != 'refresh')) {
             if (!$keySel) {
-                if ($data->form->rec->id && $fF && $fT) {
-                    if ((!$rec->{$fF} || !$rec->{$fT}) && ($rec->{$fF} || $rec->{$fT})) {
+                if (!empty($rec->id) && $fF && $fT) {
+                    $from = $rec->{$fF} ?? null;
+                    $to = $rec->{$fT} ?? null;
+                    if ((!$from || !$to) && ($from || $to)) {
                         $keySel = 'select';
                     }
                 }
@@ -138,7 +140,7 @@ class plg_SelectPeriod extends core_Plugin
         }
         
         $fF = !empty($mvc->filterDateFrom) ? $mvc->filterDateFrom : 'from';
-        $fT = !empty($mvc->filterDateTo) ? $mvc->filterDateFrom : 'to';
+        $fT = !empty($mvc->filterDateTo) ? $mvc->filterDateTo : 'to';
         
         $form = $data->listFilter ?? null;
         
@@ -180,10 +182,11 @@ class plg_SelectPeriod extends core_Plugin
         $fTEsc = json_encode($fT);
         
         $form->FLD('selectPeriod', 'varchar', 'caption=Период,input,before=from,silent,printListFilter=none', array('attr' => array('onchange' => "spr(this, true, {$fFEsc}, {$fTEsc});")));
-        if (strpos($form->showFields ?? '', $fF) !== false) {
-            $form->showFields = trim(str_replace(",{$fF},", ",selectPeriod,{$fF},", ',' . $form->showFields . ','), ',');
+        $showFields = $form->showFields ?? '';
+        if (strpos($showFields, $fF) !== false) {
+            $form->showFields = trim(str_replace(",{$fF},", ",selectPeriod,{$fF},", ',' . $showFields . ','), ',');
         } else {
-            $form->showFields .= ($form->showFields ? ',' : '') . 'selectPeriod';
+            $form->showFields = $showFields . ($showFields ? ',' : '') . 'selectPeriod';
         }
         
         $form->input($data->listFilter->showFields, 'silent');
@@ -232,7 +235,7 @@ class plg_SelectPeriod extends core_Plugin
             $form->setField($fF, array('rowStyle' => 'display:none'));
         }
 
-        if (($form->fields[$fF] ?? null) && (($form->rec->selectPeriod ?? null) != 'select')) {
+        if (($form->fields[$fT] ?? null) && (($form->rec->selectPeriod ?? null) != 'select')) {
             $form->setField($fT, array('rowStyle' => 'display:none'));
         }
         $form->defOrder = $form->defOrder ?? $data->defOrder ?? true;
@@ -489,7 +492,11 @@ class plg_SelectPeriod extends core_Plugin
                 if (!$val) {
                     continue;
                 }
-                list($key, $title) = explode('=>', $val);
+                $recentlyValue = explode('=>', $val, 2);
+                if (count($recentlyValue) != 2) {
+                    continue;
+                }
+                list($key, $title) = $recentlyValue;
                 if (empty($opt[$key])) {
                     $opt[$key] = $title;
                 }

@@ -113,11 +113,9 @@ class store_reports_DeficitInStores extends frame2_driver_TableData
      */
     protected static function on_AfterInputEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$form)
     {
-        $details = (json_decode($form->rec->additional));
+        $details = json_decode($form->rec->additional ?? '') ?: new stdClass();
         
         if ($form->isSubmitted()) {
-            $details = (json_decode($form->rec->additional));
-            
             if (is_array($details->code ?? null)) {
                 foreach ($details->code as $v) {
                     $v = trim($v);
@@ -152,10 +150,10 @@ class store_reports_DeficitInStores extends frame2_driver_TableData
         } else {
             $rec = $form->rec;
             
-            if ($form->cmd == 'refresh' && $rec->groupId) {
+            if ($form->cmd == 'refresh' && !empty($rec->groupId)) {
                 $maxPost = ini_get('max_input_vars') - self::MAX_POST_ART;
                 
-                $arts = countR($details->code);
+                $arts = countR($details->code ?? array());
                 
                 $grInArts = cat_Groups::fetch($rec->groupId)->productCnt;
                 

@@ -500,7 +500,7 @@ class bgerp_Menu extends core_Manager
                 $res .= "<li class='debug-info'>Без промяна на елемента на менюто <b>{$rec->menu} » {$rec->subMenu}</b></li>\n";
             }
         } else {
-            if ($rec->id) {
+            if (!empty($rec->id)) {
                 $res .= "<li class='debug-new'>Създаване елемент на менюто <b>{$rec->menu} » {$rec->subMenu}</b></li>";
             }
         }
@@ -579,6 +579,7 @@ class bgerp_Menu extends core_Manager
         
         // Изтриване на входните точки от менюто
         $delCnt = bgerp_Menu::delete("#ctr LIKE '{$name}\\_%'");
+        $msg = '';
         
         if ($delCnt == 1) {
             $msg = "<li class='debug-notice'>Беше изтрита една входна точка от менюто.</li>";

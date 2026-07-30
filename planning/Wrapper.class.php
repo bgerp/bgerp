@@ -22,11 +22,12 @@ class planning_Wrapper extends plg_ProtoWrapper
     public function description()
     {
         $this->TAB('planning_DirectProductionNote', 'Протоколи->Производство', 'ceo,production,planningAll');
+        $this->TAB('planning_DisassemblyNote', 'Протоколи->Разпад', 'ceo,production,planningAll');
         $this->TAB('planning_ConsumptionNotes', 'Протоколи->Влагане', 'ceo,consumption,planningAll');
         $this->TAB('planning_ReturnNotes', 'Протоколи->Връщане', 'ceo,consumption,planningAll');
         $this->TAB('planning_WorkInProgress', 'Протоколи->Незавършено производство', 'ceo,planning,production,planningAll');
-
-        $this->TAB('planning_Jobs', 'Задания', 'ceo,jobSee,planningAll');
+        $this->TAB(array('planning_Jobs', 'type' => 'manifacture'), 'Задания->Производство', 'ceo,jobSee,planningAll');
+        $this->TAB(array('planning_Jobs', 'type' => 'disassembly'), 'Задания->Разпад', 'ceo,jobSee,planningAll');
         $this->TAB('planning_Tasks', 'Операции->Списък', 'ceo,taskSee,planningAll');
         $this->TAB('planning_ProductionTaskDetails', 'Операции->Прогрес', 'ceo,taskSee,planningAll');
         $this->TAB('planning_WorkCards', 'Операции->Работни карти', 'ceo,planning,admin');

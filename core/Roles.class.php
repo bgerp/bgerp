@@ -127,7 +127,7 @@ class core_Roles extends core_Manager
         
         if (!$exRec) {
             $res = "<li class=\"debug-new\">Създаване на роля <b>{$role}</b></li>";
-        } elseif ($rec->id) {
+        } elseif (!empty($rec->id)) {
             if ($rec->inheritInput == $exRec->inheritInput) {
                 $res = "<li class=\"debug-info\">Без промяна на роля <b>{$role}</b></li>";
             } else {

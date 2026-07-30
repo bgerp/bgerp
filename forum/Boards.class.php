@@ -343,7 +343,7 @@ class forum_Boards extends core_Master
      */
     public function renderSearchForm_(&$data)
     {
-        if ($data->searchForm) {
+        if (!empty($data->searchForm)) {
             
             return $data->searchForm->renderHtml();
         }
@@ -726,5 +726,17 @@ class forum_Boards extends core_Master
         $url = array('forum_Boards', 'list');
         
         return $url;
+    }
+
+
+    /**
+     * Връща елементите за футър менюто, генерирани от този източник
+     *
+     * @param stdClass $menuRec
+     * @return array
+     */
+    public function getFooterMenuItems($menuRec)
+    {
+        return array();
     }
 }

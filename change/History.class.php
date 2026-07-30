@@ -132,7 +132,7 @@ class change_History extends core_Manager
 
         // Към тях се добавят текущия и новия запис
         foreach (array('m' => $oldRec, 'n' => $newRec) as $k => $r1){
-            if(!isset($r1)) continue;
+            if(!is_object($r1)) continue;
             $data = new stdClass();
             foreach ($loggableFields as $logFld){
                 $data->{$logFld} = $r1->{$logFld} ?? null;
@@ -336,7 +336,7 @@ class change_History extends core_Manager
     public function prepareDetail_($data)
     {
         $tabParam = 'Tab';
-        if(!cls::haveInterface('doc_FolderIntf', $data->masterMvc)){
+        if(!cls::haveInterface('doc_FolderIntf', $data->masterMvc ?? null)){
             $tabParam = $data->masterData->tabTopParam;
         }
         $prepareTab = Request::get($tabParam);

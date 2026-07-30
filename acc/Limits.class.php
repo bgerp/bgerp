@@ -208,7 +208,7 @@ class acc_Limits extends core_Manager
     {
         $rec = $data->form->rec;
         if (isset($rec->classId, $rec->objectId)) {
-            $data->form->title = core_Detail::getEditTitle($rec->classId, $rec->objectId, $mvc->singleTitle, $rec->id);
+            $data->form->title = core_Detail::getEditTitle($rec->classId, $rec->objectId, $mvc->singleTitle, $rec->id ?? null);
         }
     }
     

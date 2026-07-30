@@ -217,7 +217,7 @@ class store_InventoryNoteDetails extends doc_Detail
         
         // Кеш на предишния запис
         $lastId = Mode::get("InventoryNoteLastSavedRow{$rec->noteId}");
-        if ($lastId && $lastId != $rec->id) {
+        if ($lastId && $lastId != ($rec->id ?? null)) {
             if ($lastRec = $this->fetch($lastId)) {
                 $row = $this->recToVerbal($lastRec);
                 $info = new core_ET(tr("|*<b>|Предишно|*</b>: {$row->productId} {$row->packQuantity} {$row->packagingId} [#tools#]"));
@@ -232,13 +232,13 @@ class store_InventoryNoteDetails extends doc_Detail
         $form->setDefault('keepProduct', $permanentName);
         
         $defProduct = Mode::get("InventoryNoteNextProduct{$rec->noteId}");
-        if($form->cmd != 'refresh'){
+        if (($form->cmd ?? null) != 'refresh') {
             $form->setDefault('productId', $defProduct);
         }
         
         // Рендиране на опаковките
         if (isset($rec->productId)) {
-            $packs = cat_Products::getPacks($rec->productId, $rec->packagingId);
+            $packs = cat_Products::getPacks($rec->productId, $rec->packagingId ?? null);
             $form->setOptions('packagingId', $packs);
             $form->setDefault('packagingId', key($packs));
         } else {
@@ -266,7 +266,7 @@ class store_InventoryNoteDetails extends doc_Detail
     {
         $rec = $form->rec;
         
-        if ($form->notMandatoryQ !== true) {
+        if (($form->notMandatoryQ ?? false) !== true) {
             $form->setField('packQuantity', 'mandatory');
         }
         
@@ -279,7 +279,7 @@ class store_InventoryNoteDetails extends doc_Detail
             }
             
             $productInfo = cat_Products::getProductInfo($rec->productId);
-            $rec->quantityInPack = ($productInfo->packagings[$rec->packagingId]) ? $productInfo->packagings[$rec->packagingId]->quantity : 1;
+            $rec->quantityInPack = isset($productInfo->packagings[$rec->packagingId]) ? $productInfo->packagings[$rec->packagingId]->quantity : 1;
             $rec->quantity = (isset($rec->packQuantity)) ? $rec->packQuantity * $rec->quantityInPack : null;
         }
 
@@ -543,13 +543,14 @@ class store_InventoryNoteDetails extends doc_Detail
         $packRec = cat_products_Packagings::getPack($pRec->productId, $pRec->packagingId);
         $quantityInPack  = is_object($packRec) ? $packRec->quantity : 1;
 
-        $dRec = (object) array('noteId' => $masterId, 'productId' => $pRec->productId, 'quantity' => $row->quantity * $quantityInPack, 'quantityInPack' => $quantityInPack, 'packagingId' => $pRec->packagingId, 'batch' => $row->batch);
+        $batch = $row->batch ?? null;
+        $dRec = (object) array('noteId' => $masterId, 'productId' => $pRec->productId, 'quantity' => $row->quantity * $quantityInPack, 'quantityInPack' => $quantityInPack, 'packagingId' => $pRec->packagingId, 'batch' => $batch);
 
         // Ако е избрано заместване при дублиране да се заместват
         $onDuplicate = Mode::get('onDuplicate');
         if($onDuplicate){
             $batchCond = isset($row->batch) ? "#batch = '[#1#]'" : "#batch IS NULL";
-            $n = self::delete(array("#noteId = {$masterId} AND #productId = {$pRec->productId} AND {$batchCond}", $row->batch));
+            $n = self::delete(array("#noteId = {$masterId} AND #productId = {$pRec->productId} AND {$batchCond}", $batch));
             core_Statuses::newStatus($n, 'warning');
         }
 

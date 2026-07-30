@@ -92,7 +92,7 @@ class type_Key extends type_Int
                 
                 if (isset($this->params['makeLink'])) {
                     if (method_exists($mvc, 'getSingleUrlArray')) {
-                        $v = ht::createLink($v, $mvc->getSingleUrlArray($rec->id), false, "ef_icon={$mvc->singleIcon}");
+                        $v = ht::createLink($v, $mvc->getSingleUrlArray($rec->id), false, "ef_icon={$mvc->getSingleIcon($rec->id)}");
                     }
                 }
                 
@@ -653,7 +653,7 @@ class type_Key extends type_Int
 
             $maxRadio = $this->params['maxRadio'] ?? null;
             if (empty(($attr['_isRefresh']))) {
-                if (!strlen($maxRadio ?? '') && $maxRadio !== 0 && $maxRadio !== '0' && !$this->params['isHorizontal']) {
+                if (!strlen($maxRadio ?? '') && $maxRadio !== 0 && $maxRadio !== '0' && empty($this->params['isHorizontal'])) {
                     if(arr::isOptionsTotalLenBellowAllowed($options)){
                         $maxRadio = 4;
                         $this->params['select2MinItems'] = 10000;
@@ -669,7 +669,7 @@ class type_Key extends type_Int
                     $this->params['autocomplete'] = 'off';
                 }
                 
-                if ($this->params['autocomplete']) {
+                if (!empty($this->params['autocomplete'])) {
                     $attr['autocomplete'] = $this->params['autocomplete'];
                 }
                 
@@ -698,7 +698,7 @@ class type_Key extends type_Int
                 
                 // Ако е id определяме стойността която ще се показва, като вербализираме
                 // Иначе - запазваме предходния вариянт. Работил ли е някога?
-                $setVal = self::getOptionTitle($selOptCache[$value]['title']);
+                $setVal = self::getOptionTitle($selOptCache[$value]['title'] ?? '');
                 
                 if (!$setVal && is_numeric($value)) {
                     $setVal = $this->toVerbal($value);
@@ -708,7 +708,7 @@ class type_Key extends type_Int
                 unset($selOpt[$setVal]);
                 $selOpt = array($setVal => $setVal) + $selOpt;
                 
-                if ($selOpt['']) {
+                if (!empty($selOpt[''])) {
                     $selOpt = array('' => $selOpt['']) + $selOpt;
                 }
                 

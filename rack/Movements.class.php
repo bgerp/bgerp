@@ -303,9 +303,21 @@ class rack_Movements extends rack_MovementAbstract
         $zonesArr = arr::extractValuesFromArray(static::getZoneArr($rec), 'zone');
         $rec->zoneList = (countR($zonesArr)) ? keylist::fromArray($zonesArr) : null;
         
-        if ($rec->state == 'active' || $rec->_canceled === true || $rec->_isCreatedClosed === true) {
+        if ($rec->state == 'active' || ($rec->_canceled ?? false) === true || ($rec->_isCreatedClosed ?? false) === true) {
+            if ($rec->state == 'active' && !empty($rec->palletId) && $rec->position != rack_PositionType::FLOOR) {
+                $positionInfo = rack_Pallets::getPositionQuantityInfo($rec->position, $rec->storeId, $rec->productId);
+                $palletQuantity = rack_Pallets::fetchField($rec->palletId, 'quantity');
+                $rec->_palletStartDiagnostic = (object) array(
+                    'movementQuantity' => (float) $rec->quantity,
+                    'palletId' => $rec->palletId,
+                    'palletQuantity' => isset($palletQuantity) ? (float) $palletQuantity : null,
+                    'positionQuantity' => (float) $positionInfo->totalQuantity,
+                    'positionRows' => $positionInfo->rows,
+                );
+            }
+
             // Изпълнение на транзакцията
-            $reverse = ($rec->_canceled === true) ? true : false;
+            $reverse = (($rec->_canceled ?? false) === true);
             $transaction = $mvc->getTransaction($rec, $reverse);
             $result = $mvc->doTransaction($transaction);
             
@@ -317,7 +329,7 @@ class rack_Movements extends rack_MovementAbstract
             }
         }
         
-        if ($rec->state == 'active' || $rec->_isCreatedClosed === true){
+        if ($rec->state == 'active' || ($rec->_isCreatedClosed ?? false) === true){
             if(is_array($zonesArr)){
                 $documents = array();
                 foreach ($zonesArr as $zoneId){
@@ -352,7 +364,7 @@ class rack_Movements extends rack_MovementAbstract
     {
         // Ако се създава запис в чернова със зони, в зоните се създава празен запис
         $zonesQuantityArr = static::getZoneArr($rec);
-        if($rec->state == 'pending' && $rec->_canceled !== true){
+        if($rec->state == 'pending' && ($rec->_canceled ?? false) !== true){
             $batch = $rec->batch;
             if(empty($batch) && isset($rec->palletId)){
                 $palletBatch = rack_Pallets::fetchField($rec->palletId, 'batch');
@@ -395,7 +407,26 @@ class rack_Movements extends rack_MovementAbstract
             if($rec->state == 'waiting' && $rec->brState == 'pending'){
                 rack_Logs::add($rec->storeId, $rec->productId, 'waiting', $rec->position, $rec->id, "Запазване на движение #{$rec->id}");
             } elseif($rec->state == 'active'){
-                rack_Logs::add($rec->storeId, $rec->productId, 'start', $rec->position, $rec->id, "Започване на движение #{$rec->id}");
+                $message = "Започване на движение #{$rec->id}";
+                if (isset($rec->_palletStartDiagnostic)) {
+                    $diagnostic = $rec->_palletStartDiagnostic;
+                    $positionRows = array();
+                    foreach ($diagnostic->positionRows as $palletRec) {
+                        $batch = !empty($palletRec->batch) ? ", партида={$palletRec->batch}" : '';
+                        $positionRows[] = "#{$palletRec->id}=" . round($palletRec->quantity, 5) . $batch;
+                    }
+                    $positionRows = countR($positionRows) ? implode(', ', $positionRows) : 'няма';
+                    $palletQuantity = isset($diagnostic->palletQuantity) ? round($diagnostic->palletQuantity, 5) : 'липсва';
+                    $markerBeforeStart = isset($diagnostic->palletQuantity)
+                        && abs($diagnostic->movementQuantity - $diagnostic->palletQuantity) < 0.0001;
+                    $markerBeforeStart = $markerBeforeStart ? 'да' : 'не';
+                    $message .= " / Диагностика преди започване: движение=" . round($diagnostic->movementQuantity, 5)
+                        . "; свързан палет #{$diagnostic->palletId}={$palletQuantity}"
+                        . "; общо на позицията=" . round($diagnostic->positionQuantity, 5)
+                        . "; активни записи={$positionRows}"
+                        . "; условие за балон={$markerBeforeStart}";
+                }
+                rack_Logs::add($rec->storeId, $rec->productId, 'start', $rec->position, $rec->id, $message);
             } elseif($rec->brState == 'active' && ($rec->state == 'pending' || $rec->state == 'waiting')){
                 rack_Logs::add($rec->storeId, $rec->productId, 'return', $rec->position, $rec->id, "Връщане на движение #{$rec->id}");
             } elseif($rec->state == 'pending' && $rec->brState == 'waiting'){
@@ -527,7 +558,7 @@ class rack_Movements extends rack_MovementAbstract
             
             $form->setField('packagingId', 'input');
             
-            $packs = cat_Products::getPacks($rec->productId, $rec->packagingId);
+            $packs = cat_Products::getPacks($rec->productId, $rec->packagingId ?? null);
             $form->setOptions('packagingId', $packs);
             
             // ------------------------------
@@ -1113,13 +1144,13 @@ class rack_Movements extends rack_MovementAbstract
         
         switch ($rec->movementType) {
             case 'floor2rack':
-                $title = core_Detail::getEditTitle('store_Stores', $rec->storeId, 'нов палет', $rec->id, tr('в'));
+                $title = core_Detail::getEditTitle('store_Stores', $rec->storeId, 'нов палет', $rec->id ?? null, tr('в'));
                 break;
             case 'rack2floor':
                 $title = 'Сваляне на палет на пода в склад|* ' . cls::get('store_Stores')->getFormTitleLink($rec->storeId);
                 break;
             default:
-                $title = core_Detail::getEditTitle('store_Stores', $rec->storeId, $mvc->singleTitle, $rec->id, tr('в'));
+                $title = core_Detail::getEditTitle('store_Stores', $rec->storeId, $mvc->singleTitle, $rec->id ?? null, tr('в'));
                 break;
         }
         

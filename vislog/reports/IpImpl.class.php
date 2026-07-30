@@ -244,7 +244,7 @@ class vislog_reports_IpImpl extends frame_BaseDriver
         
         $tpl->append($table->get($data->rows, $fields), 'VISITS');
         
-        if ($data->pager) {
+        if (!empty($data->pager)) {
             $tpl->append($data->pager->getHtml(), 'PAGER');
         }
         

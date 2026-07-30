@@ -510,7 +510,7 @@ class crm_Companies extends core_Master
             }
             foreach ($data->recs as $rec) {
                 if ($cnt[str::utf2ascii(trim($rec->name))] >= 2) {
-                    if ($data->rows[$rec->id]->folderName) {
+                    if (!empty($data->rows[$rec->id]->folderName)) {
                         $data->rows[$rec->id]->nameList .= $data->rows[$rec->id]->folderName;
                     } else {
                         $data->rows[$rec->id]->nameList .= $data->rows[$rec->id]->titleNumber;
@@ -802,7 +802,7 @@ class crm_Companies extends core_Master
         }
         
         while ($similarRec = $nQuery->fetch()) {
-            if ($rec->id && ($similarRec->id == $rec->id)) {
+            if (!empty($rec->id) && ($similarRec->id == $rec->id)) {
                 continue;
             }
             
@@ -817,7 +817,7 @@ class crm_Companies extends core_Master
             $vQuery->where(array("#vatId LIKE '%[#1#]%'", $vatNumb));
             
             while ($similarRec = $vQuery->fetch()) {
-                if ($rec->id && ($similarRec->id == $rec->id)) {
+                if (!empty($rec->id) && ($similarRec->id == $rec->id)) {
                     continue;
                 }
                 
@@ -837,7 +837,7 @@ class crm_Companies extends core_Master
                         $fRec = doc_Folders::fetch($folderId);
                         
                         if ($fRec->coverClass == core_Classes::getId('crm_Companies')) {
-                            if ($rec->id && ($fRec->coverId == $rec->id)) {
+                            if (!empty($rec->id) && ($fRec->coverId == $rec->id)) {
                                 continue;
                             }
                             
@@ -1456,7 +1456,7 @@ class crm_Companies extends core_Master
             // Визитката е оттеглена - изтриваме всички правила за рутиране, свързани с нея
             email_Router::removeRules('company', $rec->id);
         } else {
-            if ($rec->email) {
+            if (!empty($rec->email)) {
                 static::createRoutingRules($rec->email, $rec->id);
             }
         }
@@ -2000,16 +2000,16 @@ class crm_Companies extends core_Master
             $requiredRoles = 'no_one';
         }
         
-        if ($action == 'edit' && isset($rec)) {
-            if ($rec->id == crm_Setup::BGERP_OWN_COMPANY_ID) {
+        if ($action == 'edit' && is_object($rec)) {
+            if (($rec->id ?? null) == crm_Setup::BGERP_OWN_COMPANY_ID) {
                 if (!haveRole('ceo,admin')) {
                     $requiredRoles = 'no_one';
                 }
             }
         }
-        
-        if ($action == 'close' && isset($rec)) {
-            if ($rec->id == crm_Setup::BGERP_OWN_COMPANY_ID) {
+
+        if ($action == 'close' && is_object($rec)) {
+            if (($rec->id ?? null) == crm_Setup::BGERP_OWN_COMPANY_ID) {
                 $requiredRoles = 'no_one';
             }
         }

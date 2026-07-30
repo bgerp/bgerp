@@ -106,7 +106,7 @@ class type_Set extends core_Type
         $trOpen = true;
         
         if (countR($this->suggestions)) {
-            if (countR($this->suggestions) == 1 && $value === null && $this->params['mandatory'] && empty($displayHtml)) {
+            if (countR($this->suggestions) == 1 && $value === null && !empty($this->params['mandatory']) && empty($displayHtml)) {
                 $key = key($this->suggestions);
                 $values[$key] = $key;
             }

@@ -374,7 +374,7 @@ class batch_Defs extends core_Manager
     protected static function on_AfterPrepareEditToolbar($mvc, $data)
     {
         $rec = $data->form->rec;
-        if(batch_Templates::haveRightFor('add', (object)array('productId' => $rec->productId))){
+        if (!empty($rec->productId) && batch_Templates::haveRightFor('add', (object) array('productId' => $rec->productId))) {
             $data->form->toolbar->addBtn('Нова партидност', array('batch_Templates', 'add', 'productId' => $rec->productId, 'ret_url' => true), 'order=9.9997,ef_icon=img/16/add.png,title=Добавяне на нова партидност');
         }
     }

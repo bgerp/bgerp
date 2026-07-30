@@ -276,7 +276,7 @@ class acc_reports_SaleArticles extends acc_reports_BalanceImpl
             $tpl->append($beforeRow, 'ROW_BEFORE');
         }
         
-        if ($data->pager) {
+        if (!empty($data->pager)) {
             $tpl->append($data->pager->getHtml(), 'PAGER_BOTTOM');
             $tpl->append($data->pager->getHtml(), 'PAGER_TOP');
         }

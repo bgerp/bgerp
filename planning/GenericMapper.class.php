@@ -112,7 +112,7 @@ class planning_GenericMapper extends core_Manager
             $productId = $rec->genericProductId;
         }
         
-        $data->form->title = core_Detail::getEditTitle('cat_Products', $productId, $mvc->singleTitle, $rec->id);
+        $data->form->title = core_Detail::getEditTitle('cat_Products', $productId, $mvc->singleTitle, $rec->id ?? null);
 		
 		if (empty($rec->genericProductId)) {
 				$data->form->toolbar->removeBtn('saveAndNew');
@@ -209,7 +209,7 @@ class planning_GenericMapper extends core_Manager
         $data->recData = clone $data;
         $this->prepareBoms($data->recData);
 
-        if($data->notConvertableAnymore && !countR($data->genData->rows) && !countR($data->recData->rows)){
+        if(!empty($data->notConvertableAnymore) && !countR($data->genData->rows) && !countR($data->recData->rows)){
             $data->hide = true;
 
             return $data;
@@ -268,7 +268,7 @@ class planning_GenericMapper extends core_Manager
     {
         $tpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
 
-        if ($data->notConvertableAnymore === true) {
+        if (($data->notConvertableAnymore ?? null) === true) {
             if(countR($data->rows)){
                 $title = tr('Артикулът вече не е вложим');
                 $title = "<small class='red'>{$title}</small>";
@@ -372,7 +372,7 @@ class planning_GenericMapper extends core_Manager
      */
     public function renderResources(&$data)
     {
-        if($data->hide) return;
+        if (!empty($data->hide)) return;
 
         $tpl = new core_ET("[#generic#]<div style='margin-top:10px'>[#boms#]</div>");
         $genTpl = $this->renderGenericData($data->genData);
@@ -491,8 +491,10 @@ class planning_GenericMapper extends core_Manager
         expect($productId);
         
         // Проверяваме за тази група артикули, имали кеширана средна цена
-        $cachePrice = static::$cache[current(preg_grep("|{$productId}|", array_keys(static::$cache)))];
-        if ($cachePrice) {
+        $cacheKeys = preg_grep("|{$productId}|", array_keys(static::$cache));
+        $cacheKey = reset($cacheKeys);
+        if ($cacheKey !== false && array_key_exists($cacheKey, static::$cache)) {
+            $cachePrice = static::$cache[$cacheKey];
             
             return $cachePrice;
         }
@@ -698,5 +700,6 @@ class planning_GenericMapper extends core_Manager
 
         return $res;
     }
+
+
 }
-    

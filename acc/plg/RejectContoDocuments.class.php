@@ -99,7 +99,7 @@ class acc_plg_RejectContoDocuments extends core_Plugin
             }
             
             // Ако документа е използван в контировката на документ от друг тред, показваме съобщение и връщаме FALSE
-            if (countR($mvc->usedIn)) {
+            if (countR($mvc->usedIn ?? null)) {
                 if($action != 'conto'){
                     foreach ($mvc->usedIn as $itemId => $used) {
                         $itemName = acc_Items::getVerbal($itemId, 'title');

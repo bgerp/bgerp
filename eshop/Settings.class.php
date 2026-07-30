@@ -403,7 +403,7 @@ class eshop_Settings extends core_Master
             $query = self::getQuery();
             $query->in('objectId', array_keys($domainArr));
             $alreadyIn = arr::extractValuesFromArray($query->fetchAll(), 'objectId');
-            if($rec->id) {
+            if (!empty($rec->id)) {
                 unset($alreadyIn[$rec->objectId]);
             }
             $options = array_diff_key($domainArr, $alreadyIn);
@@ -562,16 +562,14 @@ class eshop_Settings extends core_Master
         $cacheKey = "{$classId}|{$objectId}";
         
         if (isset($date)) {
-            
-            return self::get($classId, $objectId, $date);
-        }
-        
-        $settingRec = core_Cache::get('eshop_Settings', $cacheKey, 1440, array('eshop_Settings'));
-        if (!is_object($settingRec)) {
-            $date = dt::now();
             $settingRec = self::get($classId, $objectId, $date);
-            if (is_object($settingRec)) {
-                core_Cache::set('eshop_Settings', $cacheKey, $settingRec, 1440, array('eshop_Settings'));
+        } else {
+            $settingRec = core_Cache::get('eshop_Settings', $cacheKey, 1440, array('eshop_Settings'));
+            if (!is_object($settingRec)) {
+                $settingRec = self::get($classId, $objectId, dt::now());
+                if (is_object($settingRec)) {
+                    core_Cache::set('eshop_Settings', $cacheKey, $settingRec, 1440, array('eshop_Settings'));
+                }
             }
         }
         
@@ -627,11 +625,14 @@ class eshop_Settings extends core_Master
             }
             
             if (empty($settingRec->countries)) {
-                $settingRec->countries = keylist::addKey('', crm_Companies::fetchOurCompany('country')->country);
+                $ownCompanyRec = crm_Companies::fetchOurCompany('country');
+                $settingRec->countries = is_object($ownCompanyRec) && !empty($ownCompanyRec->country)
+                    ? keylist::addKey('', $ownCompanyRec->country)
+                    : '';
             }
             
             if (empty($settingRec->partnerTerms)) {
-                $settingRec->partnerTerms = $settingRec->terms;
+                $settingRec->partnerTerms = $settingRec->terms ?? null;
             }
 
             if (empty($settingRec->favouriteProductBtnCaption)) {
@@ -650,13 +651,17 @@ class eshop_Settings extends core_Master
                 $settingRec->salePendingText = ($lang == 'bg') ? self::DEFAULT_SALE_PENDING_TEXT_BG : self::DEFAULT_SALE_PENDING_TEXT_EN;
             }
 
-            $settingRec->showNavigation = (in_array($settingRec->showNavigation, array('yes', 'no'))) ? $settingRec->showNavigation : eshop_Setup::get('SHOW_NAVIGATION');
+            $showNavigation = $settingRec->showNavigation ?? null;
+            $settingRec->showNavigation = in_array($showNavigation, array('yes', 'no')) ? $showNavigation : eshop_Setup::get('SHOW_NAVIGATION');
             $fldArr = array('mandatoryEcartContactFields' => 'MANDATORY_CONTACT_FIELDS', 'mandatoryInquiryContactFields' => 'MANDATORY_INQUIRY_CONTACT_FIELDS', 'mandatoryEGN' => 'MANDATORY_EGN', 'mandatoryUicId' => 'MANDATORY_UIC_ID', 'mandatoryVatId' => 'MANDATORY_VAT_ID', 'listId' => 'DEFAULT_POLICY_ID', 'payments' => 'DEFAULT_PAYMENTS', 'terms' => 'DEFAULT_DELIVERY_TERMS');
             foreach ($fldArr as $fld => $const){
                 $settingRec->{$fld} = (empty($settingRec->{$fld}) || $settingRec->{$fld} == 'auto') ? eshop_Setup::get($const) : $settingRec->{$fld};
             }
 
-            $settingRec->inStockStores = keylist::toArray(keylist::merge(keylist::addKey('', $settingRec->storeId), $settingRec->otherStores));
+            $storeId = $settingRec->storeId ?? null;
+            $otherStores = $settingRec->otherStores ?? '';
+            $stores = !empty($storeId) ? keylist::addKey('', $storeId) : '';
+            $settingRec->inStockStores = keylist::toArray(keylist::merge($stores, $otherStores));
         }
 
         return $settingRec;

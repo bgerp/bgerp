@@ -340,22 +340,23 @@ class marketing_Router extends core_Manager
         $mQuery->orderBy('createdOn', 'DESC');
 
         $mRec = $mQuery->fetch();
-        if($mRec->folderId){
-            $folderData = doc_Folders::getContragentData($mRec->folderId);
+        $folderId = $mRec->folderId ?? null;
+        if (!empty($folderId)) {
+            $folderData = doc_Folders::getContragentData($folderId);
 
             // Ако има ДДС номер и той е същия като подадения, това е папката
-            if(!empty($vatId) && !empty($folderData->vatNo)) {
-                if (str::removeWhiteSpace($vatId) == str::removeWhiteSpace($folderData->vatNo)) return $mRec->folderId;
+            if (is_object($folderData) && !empty($vatId) && !empty($folderData->vatNo)) {
+                if (str::removeWhiteSpace($vatId) == str::removeWhiteSpace($folderData->vatNo)) return $folderId;
             }
 
             // Ако има ЕИК/ЕГН номер и той е същия като на запитването, това е папката
-            if(!empty($uicId) && !empty($folderData->uicId)) {
-                if(str::removeWhiteSpace($uicId) == str::removeWhiteSpace($folderData->uicId)) return $mRec->folderId;
+            if (is_object($folderData) && !empty($uicId) && !empty($folderData->uicId)) {
+                if(str::removeWhiteSpace($uicId) == str::removeWhiteSpace($folderData->uicId)) return $folderId;
             }
 
             if(empty($vatId) && empty($uicId)){
 
-                return $mRec->folderId;
+                return $folderId;
             }
         }
 

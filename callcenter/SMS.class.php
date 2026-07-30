@@ -721,6 +721,8 @@ class callcenter_SMS extends core_Master
             }
         }
         
+        $row->SMSStatusClass = '';
+
         // В зависмост от състоянието на съобщенията, опделяме клас за реда в таблицата
         if ($rec->status == 'received') {
             $row->SMSStatusClass .= ' sms-received';

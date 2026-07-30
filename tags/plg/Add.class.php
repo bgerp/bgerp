@@ -125,7 +125,7 @@ class tags_plg_Add extends core_Plugin
             $rowObj = new stdClass();
         }
 
-        if (is_object($rec) && $rec->id) {
+        if (is_object($rec) && !empty($rec->id)) {
             $tagsArr = tags_Logs::getTagsFor($mvc->getClassId(), $id);
 
             $sTitleStr = '';

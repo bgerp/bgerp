@@ -86,12 +86,14 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 
             $vatExceptionId = cond_VatExceptions::getFromThreadId($masterRec->threadId);
             $cloneId = Request::get('cloneId', 'int');
+            $cloneRec = null;
             if ($cloneId) {
                 $cloneRec = $mvc->fetch($cloneId);
+                expect(is_object($cloneRec), 'Несъществуващ ред за клониране');
             }
             $action = (isset($cloneRec)) ? 'cloneRecInDocument' : 'createProductInDocument';
             
-            $mvc->requireRightFor('createproduct', (object) array($mvc->masterKey => $masterId, 'cloneId' => $cloneRec->id));
+            $mvc->requireRightFor('createproduct', (object) array($mvc->masterKey => $masterId, 'cloneId' => $cloneRec->id ?? null));
             $Products = cls::get('cat_Products');
             unset($Products->doc_plg_Prototype);
             
@@ -110,18 +112,19 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
             $form->FLD('proto', 'key(mvc=cat_Products,allowEmpty,select=name)', 'caption=Шаблон,input=hidden,silent,refreshForm,placeholder=Популярни продукти,before=packagingId');
             
             $form->input(null, 'silent');
-            
-            if ($form->rec->innerClass) {
-                $form->setDefault('innerClass', $form->rec->innerClass);
+
+            $innerClass = $form->rec->innerClass ?? null;
+            if ($innerClass) {
+                $form->setDefault('innerClass', $innerClass);
             } elseif (isset($cloneRec)) {
                 $innerClass = cat_Products::fetchField($cloneRec->productId, 'innerClass');
                 $form->setDefault('innerClass', $innerClass);
             }
             
             // Наличните прототипи + клонирания
-            if (isset($form->rec->innerClass)) {
-                $protos = cat_Categories::getProtoOptions($form->rec->innerClass, $mvc->filterProtoByMeta, null, $masterRec->folderId);
-                $Driver = cls::get($form->rec->innerClass);
+            if ($innerClass) {
+                $protos = cat_Categories::getProtoOptions($innerClass, $mvc->filterProtoByMeta, null, $masterRec->folderId);
+                $Driver = cls::get($innerClass);
             } else {
                 $protos = array();
             }
@@ -155,7 +158,7 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
                 
                 $detailFields['proto'] = 'proto';
                 $excludeArr = array('packQuantity',  'price', 'packPrice', 'discount');
-                if ($form->rec->innerClass) {
+                if (!empty($form->rec->innerClass)) {
                     $excludeArr[] = 'packagingId';
                 }
                 foreach ($form->fields as $n => $f1) {
@@ -186,10 +189,10 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
             if (isset($form->rec->proto) || isset($form->rec->innerClass) || isset($d)) {
                 
                 // Взимаме от драйвера нужните полета
-                $proto = $form->rec->proto;
+                $proto = $form->rec->proto ?? null;
                 
                 // =================================================================================================
-                cat_Products::setAutoCloneFormFields($form, $proto, $form->rec->innerClass);
+                cat_Products::setAutoCloneFormFields($form, $proto, $form->rec->innerClass ?? null);
                 
                 // $form->setDefault('productId', $form->rec->proto);
                 
@@ -233,11 +236,11 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
                 $form->rec->_createProductForm = true;
                 
                 // Извикваме в класа и драйвера нужните ивенти
-                if ($proto && !$form->rec->innerClass) {
+                if ($proto && empty($form->rec->innerClass)) {
                     $Driver = cat_Products::getDriver($proto);
                     $Driver->invoke('AfterPrepareEditForm', array($Products, (object) array('form' => $form, 'action' => $action)));
                 } else {
-                    $Driver = cls::get($form->rec->innerClass);
+                    $Driver = cls::get($form->rec->innerClass ?? $innerClass);
                     $cover = doc_Folders::getCover($form->rec->folderId);
                     
                     $defMetas = $Driver->getDefaultMetas();
@@ -275,8 +278,8 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 
                 $form->input();
 
-                if (empty($form->rec->packagingId)) {
-                    $form->rec->packagingId =  $form->rec->measureId;
+                if (empty($form->rec->packagingId) && !empty($form->rec->measureId)) {
+                    $form->rec->packagingId = $form->rec->measureId;
                 }
                 
                 if ($Driver->canAutoCalcPrimeCost($form->rec) !== true) {
@@ -289,7 +292,7 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
                     $params = array();
                     $driverFields = marketing_Inquiries2::getDriverFields($Driver);
                     foreach (array_keys($driverFields) as $driverFld) {
-                        $params[$driverFld] = $form->rec->{$driverFld};
+                        $params[$driverFld] = $form->rec->{$driverFld} ?? null;
                     }
                     $form->rec->_moq = $Driver->getMoq(null, 'sell', $params);
                 }
@@ -297,7 +300,7 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
                 $form->rec->productInfo = clone($form->rec);
                 $mvc->invoke('AfterInputEditForm', array($form));
 
-                if ($form->rec->packagingId) {
+                if (!empty($form->rec->packagingId)) {
                     $form->setReadOnly('packagingId');
                 }
                 $productKeys = array_keys($productFields);
@@ -349,7 +352,7 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
                 $arrRec = (array) $rec;
 
                 // Намираме полетата на артикула
-                $pRec = (object) (array('proto' => $rec->proto) + array_intersect_key($arrRec, $productFields));
+                $pRec = (object) (array('proto' => $rec->proto ?? null) + array_intersect_key($arrRec, $productFields));
                 $pRec->folderId = $masterRec->folderId;
                 $pRec->threadId = $masterRec->threadId;
                 $pRec->isPublic = 'no';
@@ -367,7 +370,7 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 
                     $detDocs = array('purchase_QuotationDetails' => 'quotationId', 'sales_QuotationsDetails' => 'quotationId', 'purchase_PurchasesDetails' => 'requestId', 'sales_SalesDetails' => 'saleId');
                     foreach ($detDocs as $detMvc => $masterKey) {
-                        if ($rec->{$masterKey}) {
+                        if (!empty($rec->{$masterKey})) {
                             $detQuery = $detMvc::getQuery();
                             while ($detRec = $detQuery->fetch("#{$masterKey} = " . $rec->{$masterKey})) {
                                 $ids[] = $detRec->productId;
@@ -402,6 +405,8 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
                 }
 
                 if (!$form->gotErrors()) {
+                    $sameProduct = null;
+
                     // Създаване на нов артикул само при нужда
                     if (!empty($productId) && $mvc instanceof sales_QuotationsDetails) {
                         $sameProduct = $mvc->fetch("#quotationId = {$rec->quotationId} AND #productId = {$productId}  AND #quantity='{$rec->quantity}'");
@@ -424,24 +429,25 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
                     
                     $dRec = (object) array_diff_key($arrRec, $productFields);
                     $dRec->productId = $productId;
+                    $dRec->autoPrice = $dRec->autoPrice ?? false;
                     
                     if (!isset($cloneRec)) {
                         $dRec->packagingId = $pRec->measureId;
                         $dRec->quantityInPack = 1;
                     }
                     
-                    if (empty($rec->packQuantity) || $rec->defQuantity === true) {
+                    if (empty($rec->packQuantity) || ($rec->defQuantity ?? false) === true) {
                         $dRec->quantity = deals_Helper::getDefaultPackQuantity($productId, $pRec->measureId);
                     }
                     
-                    $dRec->quantity = ($dRec->quantity) ? $dRec->quantity : 1;
+                    $dRec->quantity = !empty($dRec->quantity) ? $dRec->quantity : 1;
 
                     // Хакване на автоматично изчислена цена
                     if (!($mvc instanceof sales_QuotationsDetails)) {
 
                         if ($Driver->canAutoCalcPrimeCost($productId) == true && empty($dRec->packPrice)) {
                             $Policy = (isset($mvc->Master->Policy)) ? $mvc->Master->Policy : cls::get('price_ListToCustomers');
-                            $listId = ($masterRec->priceListId) ? $masterRec->priceListId : null;
+                            $listId = $masterRec->priceListId ?? null;
                             
                             if(empty($masterRec->currencyRate)){
                                 $masterRec->currencyRate = currency_CurrencyRates::getRate(dt::now(), null, $masterRec->currencyId);
@@ -458,7 +464,7 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
                             $policyInfo = $Policy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $dRec->productId, $dRec->packagingId, $dRec->quantity, $masterRec->valior, $masterRec->currencyRate, $masterRec->chargeVat, $listId);
                             
                             $price = $policyInfo->price;
-                            if ($policyInfo->discount && !isset($dRec->discount)) {
+                            if (!empty($policyInfo->discount) && !isset($dRec->discount)) {
                                 $dRec->discount = $policyInfo->discount;
                             }
                             $dRec->autoPrice = true;
@@ -478,7 +484,7 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
                         }
                     }
 
-                    if (!$dRec->autoPrice && $action != 'cloneRecInDocument') {
+                    if (!$dRec->autoPrice && $action != 'cloneRecInDocument' && isset($dRec->price)) {
                         $vat = cat_Products::getVat($productId, $masterRec->valior, $vatExceptionId);
                         if ($masterRec->chargeVat == 'yes') {
                             $dRec->price = $dRec->price / (1 + $vat);

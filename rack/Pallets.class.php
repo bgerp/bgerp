@@ -321,7 +321,7 @@ class rack_Pallets extends core_Manager
             $form->setField('newPackagingId', 'input');
             $form->setField('newPackQuantity', 'input');
 
-            $packs = cat_Products::getPacks($rec->newProductId, $rec->newPackagingId);
+            $packs = cat_Products::getPacks($rec->newProductId, $rec->newPackagingId ?? null);
             $form->setOptions('newPackagingId', $packs);
             $form->setDefault('newPackagingId', cat_Products::fetchField($rec->newProductId, 'measureId'));
 
@@ -664,7 +664,8 @@ class rack_Pallets extends core_Manager
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         
         $rec = $data->listFilter->input();
-        if (!$rec->productId) {
+        $order = false;
+        if (empty($rec->productId)) {
             $rec->productId = Request::get('productId', 'int');
             $data->listFilter->setDefault('productId', $rec->productId);
         }
@@ -1154,6 +1155,48 @@ class rack_Pallets extends core_Manager
         }
 
         return is_object($rec) ? (object) array('id' => $rec->id, 'productId' => $rec->productId, 'batch' => $rec->batch, 'quantity' => $rec->quantity, 'state' => $rec->state) : null;
+    }
+
+
+    /**
+     * Обобщава активните палетни записи за артикул на конкретна позиция
+     *
+     * @param string      $position
+     * @param int         $storeId
+     * @param int         $productId
+     * @param string|null $batch
+     *
+     * @return stdClass
+     */
+    public static function getPositionQuantityInfo($position, $storeId, $productId, $batch = null)
+    {
+        $res = (object) array('totalQuantity' => 0, 'rows' => array());
+        if (empty($position) || $position == rack_PositionType::FLOOR || empty($storeId) || empty($productId)) {
+
+            return $res;
+        }
+
+        $query = static::getQuery();
+        $query->where(array("#position = '[#1#]' AND #storeId = {$storeId} AND #productId = {$productId} AND #state != 'closed'", $position));
+        if (!is_null($batch)) {
+            $query->XPR('batchCalc', 'varchar', "COALESCE(#batch, '')");
+            $query->where(array("#batchCalc = '[#1#]'", $batch));
+        }
+        $query->show('id,quantity,batch,state');
+
+        while ($rec = $query->fetch()) {
+            $res->totalQuantity += (float) $rec->quantity;
+            $res->rows[$rec->id] = (object) array(
+                'id' => $rec->id,
+                'quantity' => (float) $rec->quantity,
+                'batch' => $rec->batch,
+                'state' => $rec->state,
+            );
+        }
+
+        $res->totalQuantity = round($res->totalQuantity, 5);
+
+        return $res;
     }
     
     

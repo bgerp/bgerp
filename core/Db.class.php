@@ -933,7 +933,7 @@ class core_Db
 
         expect(!is_array($value), $value);
 
-        return $link->real_escape_string($value);
+        return $link->real_escape_string((string) $value);
     }
     
     

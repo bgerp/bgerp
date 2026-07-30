@@ -146,10 +146,12 @@ class git_Lib
         $command = 'log -1 --abbrev-commit';
         
         if (self::cmdExec($command, $out, $repoPath)) {
-            $res = new stdClass();
+            $res = (object) array('commit' => null, 'date' => null, 'author' => null);
             
             foreach ($out as $line) {
-                list($h, $value) = explode(' ', $line, 2);
+                $parts = explode(' ', $line, 2);
+                $h = $parts[0];
+                $value = $parts[1] ?? null;
                 if ($h == 'commit' && !$res->commit) {
                     $res->commit = $value;
                 }

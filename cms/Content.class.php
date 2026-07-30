@@ -139,7 +139,7 @@ class cms_Content extends core_Manager
         cms_Domains::getPublicDomain(null, $lang);
         
         $langArr = arr::make(core_Lg::getLangs());
-        if ($langArr[$lang]) {
+        if (!empty($langArr[$lang])) {
             core_Lg::push($lang);
         }
     }
@@ -152,7 +152,7 @@ class cms_Content extends core_Manager
     {
         $langsArr = cms_Domains::getCmsLangs();
         
-        $lang = $langsArr[Request::get('lang')];
+        $lang = $langsArr[Request::get('lang')] ?? null;
         
         if ($lang) {
             self::setLang($lang, true);
@@ -256,7 +256,7 @@ class cms_Content extends core_Manager
         
         $loginLink = false;
         
-        if (is_array($data->items)) {
+        if (is_array($data->items ?? null)) {
             foreach ($data->items as $rec) {
                 $attr = array();
                 if (($cMenuId == $rec->id)) {
@@ -339,6 +339,7 @@ class cms_Content extends core_Manager
                 $tpl->append(ht::createLink($img, $url, null, $attr));
             }
         } elseif (countR($usedLangsArr) > 1) {
+            $attr = array();
             $attr['class'] = 'selectLang langIcon';
             $attr['title'] = implode(', ', $usedLangsArr);
             if (Request::get('Ctr') == 'cms_Content' && Request::get('Act') == 'selectLang') {
@@ -367,8 +368,8 @@ class cms_Content extends core_Manager
         core_Request::addUrlHash($url);
         
         if ($absolute && is_array($url)) {
-            $domain = cms_Domains::fetch($rec->domainId)->domain;
-            if ($domain != 'localhost' || in_array($_SERVER['REMOTE_ADDR'], array('127.0.0.1', '::1'))) {
+            $domain = cms_Domains::fetchField($rec->domainId, 'domain');
+            if ($domain != 'localhost' || in_array($_SERVER['REMOTE_ADDR'] ?? null, array('127.0.0.1', '::1'))) {
                 $url = core_Url::change(toUrl($url, 'absolute'), null, $domain);
             }
         }
@@ -415,7 +416,7 @@ class cms_Content extends core_Manager
             }
         }
         
-        if ($cUrl['Ctr'] && cls::existsMethod($cUrl['Ctr'], 'getShortUrl')) {
+        if (is_array($cUrl) && !empty($cUrl['Ctr']) && cls::existsMethod($cUrl['Ctr'], 'getShortUrl')) {
             $man = cls::get($cUrl['Ctr']);
             $cUrl = $man->getShortUrl($cUrl);
         }
@@ -639,7 +640,7 @@ class cms_Content extends core_Manager
      */
     protected static function on_BeforeSave($mvc, &$id, $rec, $fields = null)
     {
-        if (!$rec->order) {
+        if (empty($rec->order)) {
             $lastOrder = 0;
             $query = self::getQuery();
             $query->orderBy('#order', 'DESC');
@@ -660,7 +661,7 @@ class cms_Content extends core_Manager
      */
     public static function addCanonicalUrl($url, $tpl)
     {
-        $selfUrl = 'http' . (isset($_SERVER['HTTPS']) ? 's' : '') . '://' . rtrim($_SERVER['HTTP_HOST'], '/') . '/' . ltrim($_SERVER['REQUEST_URI'], '/');
+        $selfUrl = 'http' . (isset($_SERVER['HTTPS']) ? 's' : '') . '://' . rtrim($_SERVER['HTTP_HOST'] ?? '', '/') . '/' . ltrim($_SERVER['REQUEST_URI'] ?? '', '/');
         
         if ($url != $selfUrl) {
             $tpl->append("\n<link rel=\"canonical\" href=\"{$url}\">", 'HEAD');
@@ -730,17 +731,17 @@ class cms_Content extends core_Manager
     {
         expect(is_object($rec), $rec);
         
-        if ($rec->seoTitle) {
+        if (!empty($rec->seoTitle)) {
             $content->prependOnce($rec->seoTitle . ' » ', 'PAGE_TITLE');
         }
         
         // seoDescription
-        if ($rec->seoDescription) {
+        if (!empty($rec->seoDescription)) {
             $content->replace($rec->seoDescription, 'META_DESCRIPTION');
         }
         
         // seoKeywords
-        if ($rec->seoKeywords) {
+        if (!empty($rec->seoKeywords)) {
             $content->replace($rec->seoKeywords, 'META_KEYWORDS');
         }
     }
@@ -802,7 +803,7 @@ class cms_Content extends core_Manager
         if (!empty($matches[1])) {
             $iHnd = $matches[1];
             $iRec = cms_GalleryImages::fetch(array("#title = '[#1#]'", $iHnd));
-            $fileSrc = $iRec->src;
+            $fileSrc = $iRec->src ?? null;
         }
         
         return $fileSrc;
@@ -846,9 +847,9 @@ class cms_Content extends core_Manager
                 if (countR($res)) {
                     $domainName = '';
                     if ($rec->domainId != $domainId) {
-                        $domainHost = cms_Domains::fetch($rec->domainId)->domain;
+                        $domainHost = cms_Domains::fetchField($rec->domainId, 'domain');
                         Mode::push('BGERP_CURRENT_DOMAIN', $domainHost);
-                        $domainTitle = cms_Domains::fetch($rec->domainId)->domain;
+                        $domainTitle = $domainHost;
                         if ($domainTitle != 'localhost') {
                             $domainName = ' (' . $domainTitle . ')';
                         }
@@ -906,7 +907,7 @@ class cms_Content extends core_Manager
             }
             
             if (empty($html)) {
-                $html = new ET('<h1>'. tr('При търсене на') . " \"<strong style='color:green'>" . type_Varchar::escape(strlen($oQ) ? $oQ : $q) . '</strong>" ' . tr('не бяха открити резултати') . '</h1>');
+                $html = new ET('<h1>'. tr('При търсене на') . " \"<strong style='color:green'>" . type_Varchar::escape(!empty($oQ) ? $oQ : $q) . '</strong>" ' . tr('не бяха открити резултати') . '</h1>');
             }
         }
         
@@ -935,6 +936,10 @@ class cms_Content extends core_Manager
         $lastW = null;
 
         foreach ($qArr as $j => &$w) {
+            $w = (string) $w;
+            if ($w === '') {
+                continue;
+            }
             
             $f = $w[0];
             $len = strlen($w);
@@ -1060,6 +1065,11 @@ class cms_Content extends core_Manager
                 if (cls::existsMethod($cls, 'getAllSearchKeywords')) {
                     $newWords = $cls::getAllSearchKeywords($rec->id);
                     foreach ($newWords as $w => $bool) {
+                        $w = (string) $w;
+                        if ($w === '') {
+                            continue;
+                        }
+
                         $kArr[$w[0]][strlen($w)][] = $w;
                     }
                 }
@@ -1146,7 +1156,7 @@ class cms_Content extends core_Manager
      */
     public static function registerSitemap($dRec)
     {
-        if ($dRec->sitemap) {
+        if (!empty($dRec->sitemap)) {
             // Регистриране на sitemap.xml
             $xml = cms_Content::getSitemapXml($dRec);
             if ($xml) {
@@ -1169,7 +1179,7 @@ class cms_Content extends core_Manager
         $used = array();
         
         while ($dRec = $dQuery->fetch()) {
-            if ($used[$dRec->domain]) {
+            if (isset($used[$dRec->domain])) {
                 continue;
             }
             self::registerSitemap($dRec);

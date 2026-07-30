@@ -118,7 +118,7 @@ class plg_ExpandInput extends core_Plugin
         if (isset($fields)) {
             $fieldsArr = arr::make($fields, true);
             $mustSave = false;
-            if ($fieldsArr[$mvc->expandFieldName] || $fieldsArr[$mvc->expandInputFieldName]) {
+            if (($fieldsArr[$mvc->expandFieldName] ?? null) || ($fieldsArr[$mvc->expandInputFieldName] ?? null)) {
                 $fieldsArr[$mvc->expandFieldName] = $mvc->expandFieldName;
                 $fieldsArr[$mvc->expandInputFieldName] = $mvc->expandInputFieldName;
                 $fieldsArr[$expand36Name] = $expand36Name;

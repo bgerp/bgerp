@@ -2083,6 +2083,20 @@ function markElementsForRefresh() {
     });
 }
 
+
+/**
+ * Подравнява бутоните във вертикалните филтри с елементите за попълване.
+ */
+function alignFormFilterButtons() {
+    $('.form-filter-btn').each(function () {
+        var $buttonHolder = $(this);
+        var $caption = $buttonHolder.closest('form').find('.formFieldCaption:visible').first();
+
+        $buttonHolder.css('margin-left', $('body').hasClass('narrow') || !$caption.length ? 0 : $caption.outerWidth() + 3);
+    });
+}
+
+
 /**
  * Задава ширина на елементите от форма в зависимост от ширината на прозореца/устройството
  */

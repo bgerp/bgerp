@@ -103,7 +103,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
             $data->form->setReadOnly('productId');
         }
         
-        if ($masterRec->type === 'dc_note') {
+        if (($masterRec->type ?? null) === 'dc_note') {
             $data->form->info = tr('|*<div style="color:#333;margin-top:3px;margin-bottom:12px">|Моля, въведете крайното количество|* <b>|или|*</b> |цена след промяната|* <br><small>( |системата автоматично ще изчисли и попълни разликата в известието|* )</small></div>');
             $data->form->setField('quantity', 'caption=|Крайни|* (|след известието|*)->К-во');
             $data->form->setField('packPrice', 'caption=|Крайни|* (|след известието|*)->Цена');
@@ -285,7 +285,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
     public function calculateAmount_(&$recs, &$rec)
     {
         // Ако документа е известие
-        if ($rec->type === 'dc_note') {
+        if (($rec->type ?? null) === 'dc_note') {
             self::modifyDcDetails($recs, $rec, $this);
         }
         
@@ -301,7 +301,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
      */
     public static function modifyDcDetails(&$recs, $rec, $mvc)
     {
-        expect($rec->type != 'invoice');
+        expect(isset($rec->type) && $rec->type != 'invoice');
         arr::sortObjects($recs, 'id', 'ASC');
 
         if (countR($recs)) {
@@ -402,14 +402,14 @@ abstract class deals_InvoiceDetail extends doc_Detail
                 }
             }
             
-            deals_Helper::addNotesToProductRow($row1->productId, $rec->notes);
+            deals_Helper::addNotesToProductRow($row1->productId, $rec->notes ?? null);
 
             if (!isset($masterRec->type) || $masterRec->type != 'dc_note') {
                 $row1->discount = deals_Helper::getDiscountRow($rec->discount, $rec->inputDiscount, $rec->autoDiscount, $masterRec->state);
             }
         }
         
-        if ($masterRec->type != 'dc_note') {
+        if (($masterRec->type ?? 'invoice') != 'dc_note') {
             
             return;
         }
@@ -531,7 +531,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
         // Показваме подробната информация за опаковката при нужда
         deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
         
-        if ($masterRec->type == 'invoice') {
+        if (($masterRec->type ?? null) == 'invoice') {
             if (empty($rec->quantity) && !Mode::isReadOnly()) {
                 $row->ROW_ATTR['style'] = ' background-color:#f1f1f1;color:#777';
             }
@@ -609,18 +609,18 @@ abstract class deals_InvoiceDetail extends doc_Detail
         $masterRec = $mvc->Master->fetch($rec->{$mvc->masterKey});
         $vatExceptionId = cond_VatExceptions::getFromThreadId($masterRec->threadId);
 
-        if ($form->rec->productId && $masterRec->type != 'dc_note' && $form->editActive !== true) {
+        if (!empty($form->rec->productId) && ($masterRec->type ?? 'invoice') != 'dc_note' && ($form->editActive ?? false) !== true) {
             $vat = cat_Products::getVat($rec->productId, $masterRec->date, $vatExceptionId);
             
-            $packs = cat_Products::getPacks($rec->productId, $rec->packagingId);
+            $packs = cat_Products::getPacks($rec->productId, $rec->packagingId ?? null);
             $form->setOptions('packagingId', $packs);
             $form->setDefault('packagingId', key($packs));
             $form->setField('packagingId', 'input');
             
             if (isset($mvc->LastPricePolicy)) {
-                $policyInfoLast = $mvc->LastPricePolicy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId, $masterRec->rate);
+                $policyInfoLast = $mvc->LastPricePolicy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId ?? null, $masterRec->rate);
                 
-                if ($policyInfoLast->price != 0) {
+                if (($policyInfoLast->price ?? 0) != 0) {
                     $form->setSuggestions('packPrice', array('' => '', "{$policyInfoLast->price}" => $policyInfoLast->price));
                 }
             }
@@ -628,7 +628,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
             // Ако има такъв запис, сетваме грешка
             $setWarning = deals_Setup::get('WARNING_ON_DUPLICATED_ROWS');
             if($setWarning == 'yes'){
-                $countSameProduct = $mvc->count("#{$mvc->masterKey} = '{$rec->{$mvc->masterKey}}' AND #id != '{$rec->id}' AND #productId = {$rec->productId}");
+                $countSameProduct = $mvc->count("#{$mvc->masterKey} = '{$rec->{$mvc->masterKey}}' AND #id != '" . ($rec->id ?? 0) . "' AND #productId = {$rec->productId}");
                 if ($countSameProduct) {
                     $form->setWarning('productId', 'Артикулът вече присъства на друг ред в документа|*!');
                 }
@@ -638,8 +638,8 @@ abstract class deals_InvoiceDetail extends doc_Detail
         }
         
         if ($form->isSubmitted() && !$form->gotErrors()) {
-            if (!isset($rec->quantity) && $masterRec->type != 'dc_note') {
-                $defaultQuantity = $rec->_moq ? $rec->_moq : deals_Helper::getDefaultPackQuantity($rec->productId, $rec->packagingId);
+            if (!isset($rec->quantity) && ($masterRec->type ?? 'invoice') != 'dc_note') {
+                $defaultQuantity = !empty($rec->_moq) ? $rec->_moq : deals_Helper::getDefaultPackQuantity($rec->productId, $rec->packagingId);
                 $form->setDefault('quantity', $defaultQuantity);
                 if (empty($rec->quantity)) {
                     $form->setError('quantity', 'Не е въведено количество');
@@ -647,7 +647,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
                 }
             }
             
-            if ($masterRec->type == 'dc_note') {
+            if (($masterRec->type ?? null) == 'dc_note') {
                 if (!isset($rec->packPrice) || !isset($rec->quantity)) {
                     $form->setError('packPrice,packQuantity', 'Количеството и сумата трябва да са попълнени');
                     
@@ -657,53 +657,65 @@ abstract class deals_InvoiceDetail extends doc_Detail
             
             // Проверка на к-то, само ако не е КИ или ДИ
             $warning = null;
-            if (!deals_Helper::checkQuantity($rec->packagingId, $rec->quantity, $warning) && $masterRec->type != 'dc_note') {
+            if (!deals_Helper::checkQuantity($rec->packagingId, $rec->quantity, $warning) && ($masterRec->type ?? 'invoice') != 'dc_note') {
                 $form->setWarning('quantity', $warning);
             }
 
             $productInfo = cat_Products::getProductInfo($rec->productId);
-            if ($masterRec->type != 'dc_note') {
-                $rec->quantityInPack = ($productInfo->packagings[$rec->packagingId]) ? $productInfo->packagings[$rec->packagingId]->quantity : 1;
+            if (($masterRec->type ?? 'invoice') != 'dc_note') {
+                $packagingRec = $productInfo->packagings[$rec->packagingId] ?? null;
+                $rec->quantityInPack = $packagingRec ? $packagingRec->quantity : 1;
             }
 
             // Ако няма въведена цена
-            if (!isset($rec->packPrice) && $masterRec->type != 'dc_note') {
+            if (!isset($rec->packPrice) && ($masterRec->type ?? 'invoice') != 'dc_note') {
                 $autoPrice = true;
-                
-                // Ако продукта има цена от пораждащия документ, взимаме нея, ако не я изчисляваме наново
-                $origin = $mvc->Master->getOrigin($masterRec);
-                $dealInfo = $origin->getAggregateDealInfo();
-                $products = $dealInfo->get('products');
-                
-                if (countR($products)) {
-                    foreach ($products as $p) {
-                        if ($rec->productId == $p->productId && $rec->packagingId == $p->packagingId) {
-                            $policyInfo = new stdClass();
-                            $policyInfo->price = deals_Helper::getDisplayPrice($p->price, $vat, $masterRec->rate, 'no');
-                            $policyInfo->discount = $p->discount;
-                            break;
+
+                // Потребител БЕЗ права да вижда цени е сменил опаковката -
+                // пренасяме старата (packaging-invariant) единична цена, вместо
+                // да търсим нова от ценовата политика (тя може да върне съвсем
+                // друга цена от предната, или изобщо да няма намерена такава)
+                if (isset($rec->_hidePricesOldUnitPrice) && !doc_plg_HidePrices::canSeePriceFields($mvc, null)) {
+                    $rec->price = deals_Helper::getDisplayPrice($rec->_hidePricesOldUnitPrice, 0, $masterRec->rate, 'no');
+                    $rec->packPrice = $rec->price * $rec->quantityInPack;
+                } else {
+
+                    // Ако продукта има цена от пораждащия документ, взимаме нея, ако не я изчисляваме наново
+                    $origin = $mvc->Master->getOrigin($masterRec);
+                    $dealInfo = $origin->getAggregateDealInfo();
+                    $products = $dealInfo->get('products');
+                    $policyInfo = null;
+
+                    if (countR($products)) {
+                        foreach ($products as $p) {
+                            if ($rec->productId == $p->productId && $rec->packagingId == $p->packagingId) {
+                                $policyInfo = new stdClass();
+                                $policyInfo->price = deals_Helper::getDisplayPrice($p->price, $vat, $masterRec->rate, 'no');
+                                $policyInfo->discount = $p->discount ?? null;
+                                break;
+                            }
                         }
                     }
-                }
 
-                if (!$policyInfo) {
-                    $Policy = (isset($mvc->Policy)) ? $mvc->Policy : cls::get('price_ListToCustomers');
-                    $listId = ($dealInfo->get('priceListId')) ? $dealInfo->get('priceListId') : null;
-                    $policyInfo = $Policy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId, $rec->quantity, dt::today(), $masterRec->rate, 'no', $listId);
-                }
-                
-                // Ако няма последна покупна цена и не се обновява запис в текущата покупка
-                if (!isset($policyInfo->price)) {
-                    $errorMsg = isset($Policy) ? $Policy->notFoundPriceErrorMsg : 'Артикулът няма цена в избраната ценова политика. Въведете цена|*!';
-                    $form->setError('packPrice', $errorMsg);
-                } else {
-                    
-                    // Ако се обновява запис се взима цената от него, ако не от политиката
-                    $rec->price = $policyInfo->price;
-                    $rec->packPrice = $policyInfo->price * $rec->quantityInPack;
-                    
-                    if ($policyInfo->discount && !isset($rec->discount)) {
-                        $rec->discount = $policyInfo->discount;
+                    if (!$policyInfo) {
+                        $Policy = (isset($mvc->Policy)) ? $mvc->Policy : cls::get('price_ListToCustomers');
+                        $listId = ($dealInfo->get('priceListId')) ? $dealInfo->get('priceListId') : null;
+                        $policyInfo = $Policy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId, $rec->quantity, dt::today(), $masterRec->rate, 'no', $listId);
+                    }
+
+                    // Ако няма последна покупна цена и не се обновява запис в текущата покупка
+                    if (!isset($policyInfo->price)) {
+                        $errorMsg = isset($Policy) ? $Policy->notFoundPriceErrorMsg : 'Артикулът няма цена в избраната ценова политика. Въведете цена|*!';
+                        $form->setError('packPrice', $errorMsg);
+                    } else {
+
+                        // Ако се обновява запис се взима цената от него, ако не от политиката
+                        $rec->price = $policyInfo->price;
+                        $rec->packPrice = $policyInfo->price * $rec->quantityInPack;
+
+                        if (!empty($policyInfo->discount) && !isset($rec->discount)) {
+                            $rec->discount = $policyInfo->discount;
+                        }
                     }
                 }
             } else {
@@ -726,19 +738,19 @@ abstract class deals_InvoiceDetail extends doc_Detail
                 $form->setError('packPrice,quantity', $msg);
             }
             
-            $rec->price = deals_Helper::getPurePrice($rec->price, 0, $masterRec->rate, $masterRec->chargeVat);
+            $rec->price = deals_Helper::getPurePrice($rec->price, 0, $masterRec->rate, $masterRec->vatRate);
 
             if(!$form->gotErrors()){
 
                 // При редакция, ако е променена опаковката слагаме преудпреждение
-                if ($rec->id) {
+                if ($rec->id ?? null) {
                     $oldRec = $mvc->fetch($rec->id);
                     if ($oldRec && $rec->packagingId != $oldRec->packagingId && !empty($rec->packPrice) && trim($rec->packPrice) == trim($oldRec->packPrice)) {
                         $form->setWarning('packPrice,packagingId', 'Опаковката е променена без да е променена цената|*.<br />|Сигурни ли сте, че зададената цена отговаря на новата опаковка|*?');
                     }
                 }
 
-                if ($masterRec->type === 'dc_note') {
+                if (($masterRec->type ?? null) === 'dc_note') {
 
                     // Проверка дали са променени и цената и количеството
                     $cache = $mvc->Master->getInvoiceDetailedInfo($masterRec->originId, true);
@@ -829,7 +841,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
         $quantityInPack = is_object($packRec) ? $packRec->quantity : 1;
 
         if(isset($row->price)){
-            $dRec->price = deals_Helper::getPurePrice($row->price, cat_Products::getVat($dRec->productId, null, $vatExceptionId), $rate, $masterRec->chargeVat);
+            $dRec->price = deals_Helper::getPurePrice($row->price, cat_Products::getVat($dRec->productId, null, $vatExceptionId), $rate, $masterRec->vatRate);
             $dRec->price /= $quantityInPack;
         } else {
             if(!isset($row->_dealInfo)){

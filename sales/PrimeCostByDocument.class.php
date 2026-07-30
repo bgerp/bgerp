@@ -329,7 +329,7 @@ class sales_PrimeCostByDocument extends core_Manager
                 if (!isset($masters[$dRec->containerId])) {
                     try {
                         $Document = doc_Containers::getDocument($dRec->containerId);
-                        $masters[$dRec->containerId] = array($Document, $dRec->state, $dRec->isReverse);
+                        $masters[$dRec->containerId] = array($Document, $dRec->state, $dRec->isReverse ?? null);
                         $masters[$dRec->containerId]['chargeVat'] = $dRec->chargeVat;
                         if($Document->isInstanceOf('sales_Sales')){
                             $masters[$dRec->containerId]['total'] = $dRec->amountDeal;

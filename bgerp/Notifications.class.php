@@ -319,13 +319,16 @@ class bgerp_Notifications extends core_Manager
 
                 $calRec = new stdClass();
                 if (cal_Calendar::isAbsent(null, $userId, array('leaves', 'sick', 'working-travel'), $calRec)) {
-                    if ($calRec && $calRec->url) {
+                    if (!empty($calRec->url)) {
                         $alternateUsersArr = array();
                         $calUrlArr = parseLocalUrl($calRec->url, false);
-                        if ($calUrlArr['id'] && strtolower($calUrlArr['Act']) == 'single') {
-                            if (cls::load($calUrlArr['Ctr'], true)) {
-                                $cRec = cls::get($calUrlArr['Ctr'])->fetch($calUrlArr['id']);
-                                if ($cRec && $cRec->alternatePersons) {
+                        $calId = $calUrlArr['id'] ?? null;
+                        $calAct = strtolower($calUrlArr['Act'] ?? '');
+                        $calCtr = $calUrlArr['Ctr'] ?? null;
+                        if ($calId && $calAct == 'single') {
+                            if ($calCtr && cls::load($calCtr, true)) {
+                                $cRec = cls::get($calCtr)->fetch($calId);
+                                if ($cRec && !empty($cRec->alternatePersons)) {
                                     foreach (type_Keylist::toArray($cRec->alternatePersons) as $aPersonId) {
                                         $alternateUserId = crm_Profiles::fetchField(array("#personId = '[#1#]'", $aPersonId), 'userId');
                                         if ($alternateUserId && !cal_Calendar::isAbsent(null, $alternateUserId, array('leaves', 'sick', 'working-travel'))) {
@@ -392,13 +395,15 @@ class bgerp_Notifications extends core_Manager
 
                                             // Ако има права към споделянто, ще получи известие
                                             $lUrlArr = self::getUrl($rec);
-                                            $lAct = strtolower($lUrlArr['Act']);
-                                            $lCtr = $lUrlArr['Ctr'];
+                                            $lAct = strtolower($lUrlArr['Act'] ?? '');
+                                            $lCtr = $lUrlArr['Ctr'] ?? null;
+                                            $lId = $lUrlArr['id'] ?? null;
+                                            $lFolderId = $lUrlArr['folderId'] ?? null;
 
-                                            if ($lCtr == 'doc_Threads' && $lUrlArr['folderId'] && $lAct == 'list') {
-                                                $haveRight = doc_Folders::haveRightFor('single', $lUrlArr['folderId'], $alternateUserId);
+                                            if ($lCtr == 'doc_Threads' && $lFolderId && $lAct == 'list') {
+                                                $haveRight = doc_Folders::haveRightFor('single', $lFolderId, $alternateUserId);
                                             } else {
-                                                $haveRight = $lCtr::haveRightFor($lAct, $lUrlArr['id'], $alternateUserId);
+                                                $haveRight = $lCtr && $lAct && $lCtr::haveRightFor($lAct, $lId, $alternateUserId);
                                             }
 
                                             if ($haveRight) {
@@ -634,7 +639,7 @@ class bgerp_Notifications extends core_Manager
                         $rec->hidden = $hidden;
                     } else {
                         if ($rec->userId) {
-                            if (!$shareArr[$rec->userId] && !$subArr[$rec->userId]) {
+                            if (empty($shareArr[$rec->userId]) && empty($subArr[$rec->userId])) {
                                 $rec->hidden = $hidden;
                             } else {
                                 $rec->cnt++;
@@ -655,7 +660,7 @@ class bgerp_Notifications extends core_Manager
                 } else {
                     if ($rec->userId) {
 
-                        if ($shareArr[$rec->userId] || $subArr[$rec->userId]) {
+                        if (!empty($shareArr[$rec->userId]) || !empty($subArr[$rec->userId])) {
                             $rec->hidden = $hidden;
                             $rec->cnt++;
                         } else {
@@ -695,10 +700,11 @@ class bgerp_Notifications extends core_Manager
             if ($rec->hidden == 'no') {
                 try {
                     $urlArr = self::getUrl($rec);
-                    $act = strtolower($urlArr['Act']);
+                    $act = strtolower($urlArr['Act'] ?? '');
                     
-                    $ctr = $urlArr['Ctr'];
-                    if (!$ctr::haveRightFor($act, $urlArr['id'], $rec->userId)) {
+                    $ctr = $urlArr['Ctr'] ?? null;
+                    $urlId = $urlArr['id'] ?? null;
+                    if (!$ctr || !$act || !$ctr::haveRightFor($act, $urlId, $rec->userId)) {
                         continue;
                     }
                 } catch (Exception $e) {
@@ -844,7 +850,7 @@ class bgerp_Notifications extends core_Manager
         }
         
         // Бутон за настройки
-        $ctr = $url['Ctr'];
+        $ctr = $url['Ctr'] ?? null;
         if ($ctr) {
             if (cls::load($ctr, true)) {
                 $ctrInst = cls::get($ctr);
@@ -894,23 +900,22 @@ class bgerp_Notifications extends core_Manager
         // Вземаме необходимите параметри от URL-то
         $url = self::getUrl($rec);
         
-        $ctr = $url['Ctr'];
-        $act = $url['Act'];
+        $ctr = $url['Ctr'] ?? null;
+        $act = $url['Act'] ?? null;
         $dId = $url['id'] ?? null;
+        $folderId = $url['folderId'] ?? null;
+        $threadId = $url['threadId'] ?? null;
+        $containerId = $url['containerId'] ?? null;
 
-        if (cls::load($ctr, true)) {
+        if ($ctr && $act && cls::load($ctr, true)) {
             $clsInst = cls::get($ctr);
 
             if (($clsInst instanceof core_Manager) && ($clsInst->haveRightFor($act, $dId))) {
-                $folderId = $url['folderId'] ?? null;
-                $threadId = $url['threadId'] ?? null;
-                $containerId = $url['containerId'] ?? null;
-                
                 if ($dId) {
                     if (is_numeric($dId) && $dRec = $clsInst->fetch($dId)) {
-                        $folderId = $dRec->folderId;
-                        $threadId = $dRec->threadId;
-                        $containerId = $dRec->containerId;
+                        $folderId = $dRec->folderId ?? $folderId;
+                        $threadId = $dRec->threadId ?? $threadId;
+                        $containerId = $dRec->containerId ?? $containerId;
                     }
                 }
                 
@@ -948,8 +953,8 @@ class bgerp_Notifications extends core_Manager
                 
                 $plugins = arr::make($doc->instance->loadList, true);
                 
-                if ($plugins['planning_plg_StateManager']) {
-                    if ($nActArr = $doc->instance->notifyActionNamesArr) {
+                if (!empty($plugins['planning_plg_StateManager'])) {
+                    if ($nActArr = ($doc->instance->notifyActionNamesArr ?? null)) {
                         foreach ($nActArr as $actName) {
                             $actName = mb_strtolower($actName);
                             
@@ -984,7 +989,7 @@ class bgerp_Notifications extends core_Manager
                 if (!$fKey) {
                     $fKey = doc_Folders::getSettingsKey($folderId);
                     
-                    $valsArr[$fKey] = core_Settings::fetchKeyNoMerge($fKey);
+                    $valsArr[$fKey] = (array) core_Settings::fetchKeyNoMerge($fKey);
                 }
                 
                 $key = $fKey;
@@ -1003,15 +1008,15 @@ class bgerp_Notifications extends core_Manager
                 if (!$tKey) {
                     $tKey = doc_Threads::getSettingsKey($threadId);
                     
-                    $valsArr[$tKey] = core_Settings::fetchKeyNoMerge($tKey);
+                    $valsArr[$tKey] = (array) core_Settings::fetchKeyNoMerge($tKey);
                 }
                 
                 $key = $tKey;
             }
             
             // Ако преди това не е била забранена стойност
-            if (!$valsArr[$key][$kVal] || ($valsArr[$key][$kVal] != 'no')) {
-                $stoppedArr[$kClass][$kVal] = $valsArr[$key][$kVal];
+            if (!($valsArr[$key][$kVal] ?? null) || ($valsArr[$key][$kVal] != 'no')) {
+                $stoppedArr[$kClass][$kVal] = $valsArr[$key][$kVal] ?? null;
                 $valsArr[$key][$kVal] = 'no';
             }
         }
@@ -1102,12 +1107,12 @@ class bgerp_Notifications extends core_Manager
                 $retUrl = array('Portal', 'show');
             }
             
-            return new Redirect($retUrl, $valsArr['notifyMsg']);
+            return new Redirect($retUrl, $valsArr['notifyMsg'] ?? null);
         }
         
         $res = array();
         
-        if ($valsArr['notifyMsg']) {
+        if (!empty($valsArr['notifyMsg'])) {
             $hitId = rand();
             status_Messages::newStatus($valsArr['notifyMsg'], 'notice', null, 60, $hitId);
             $res = status_Messages::getStatusesData(Request::get('hitTime', 'int'), 0, $hitId);
@@ -1140,6 +1145,7 @@ class bgerp_Notifications extends core_Manager
         
         expect($rec->userId == core_Users::getCurrent());
         
+        $valsArr = array();
         if ($rec->state == 'active') {
             $rec->state = 'closed';
             $msg = 'отмаркирахте';
@@ -1161,7 +1167,7 @@ class bgerp_Notifications extends core_Manager
         
         $this->logWrite($act . ' на нотификация', $rec->id);
         
-        $notifyMsg = $valsArr['notifyMsg'];
+        $notifyMsg = $valsArr['notifyMsg'] ?? null;
         
         if (!Request::get('ajax_mode')) {
             $notifyMsg = $notifyMsg ? '<br>' . $notifyMsg : '';
@@ -1234,13 +1240,13 @@ class bgerp_Notifications extends core_Manager
         
         $url = self::getUrl($rec);
         
-        $ctr = $url['Ctr'];
-        $act = $url['Act'];
+        $ctr = $url['Ctr'] ?? null;
+        $act = $url['Act'] ?? null;
         $dId = $url['id'] ?? null;
 
         $retUrl = getRetUrl();
 
-        if (!cls::load($ctr, true) || !$ctr::haveRightFor($act, $dId)) {
+        if (!$ctr || !$act || !cls::load($ctr, true) || !$ctr::haveRightFor($act, $dId)) {
 
             return new Redirect($retUrl, '|Не може да се настройва', 'warning');
         }
@@ -1310,7 +1316,7 @@ class bgerp_Notifications extends core_Manager
             $sArr[$fKey] = array('newDoc', 'newThread', 'newPending', 'stateChange', 'folOpenings', 'personalEmailIncoming');
             
             // Добавяме стойностите по подразбиране
-            $valsArr[$fKey] = core_Settings::fetchKeyNoMerge($fKey);
+            $valsArr[$fKey] = (array) core_Settings::fetchKeyNoMerge($fKey);
             setIfNot($valsArr[$fKey]['newDoc'], 'default');
             setIfNot($valsArr[$fKey]['newThread'], 'default');
             setIfNot($valsArr[$fKey]['folOpenings'], 'default');
@@ -1340,14 +1346,14 @@ class bgerp_Notifications extends core_Manager
             $sArr[$tKey] = array('notify');
             
             // Добавяме стойностите по подразбиране
-            $valsArr[$tKey] = core_Settings::fetchKeyNoMerge($tKey);
-            setIfNot($valsArr[$fKey]['notify'], 'default');
+            $valsArr[$tKey] = (array) core_Settings::fetchKeyNoMerge($tKey);
+            setIfNot($valsArr[$tKey]['notify'], 'default');
         }
         
         // Сетваме необходимите стойности
         foreach ($sArr as $fKey => $fArr) {
             foreach ($fArr as $valKey) {
-                $val = $valsArr[$fKey][$valKey];
+                $val = $valsArr[$fKey][$valKey] ?? null;
                 
                 setIfNot($val, 'default');
                 
@@ -1408,7 +1414,7 @@ class bgerp_Notifications extends core_Manager
     {
         $rec = self::fetchRec($rec);
         
-        return parseLocalUrl($rec->customUrl ? $rec->customUrl : $rec->url, false);
+        return parseLocalUrl(!empty($rec->customUrl) ? $rec->customUrl : ($rec->url ?? ''), false);
     }
     
     
@@ -1453,6 +1459,10 @@ class bgerp_Notifications extends core_Manager
         $query->orderBy('#modifiedOnTop', 'DESC');
         
         $lastRec = $query->fetch();
+        if (!$lastRec) {
+            return new core_ET('');
+        }
+
         $lRecModifiedOnTop = $lastRec->modifiedOnTop;
         
         // Ако времето на промяна съвпада с текущото
@@ -1475,7 +1485,7 @@ class bgerp_Notifications extends core_Manager
         $cQuery->orderBy('modifiedOn', 'DESC');
         $cQuery->orderBy('lastTime', 'DESC');
         if ($cLastRec = $cQuery->fetch()) {
-            $lRecLastTime = $lastRec->lastTime;
+            $lRecLastTime = $lastRec->lastTime ?? null;
             
             // Ако времето на промяна съвпада с текущото
             if ($lRecLastTime >= $now) {
@@ -1618,7 +1628,7 @@ class bgerp_Notifications extends core_Manager
             return ;
         }
         
-        return $resRec->{$field};
+        return $resRec->{$field} ?? null;
     }
     
     
@@ -1723,7 +1733,7 @@ class bgerp_Notifications extends core_Manager
             if ($filter = $data->listFilter->rec) {
 
                 // Ако се търси по всички и има права ceo
-                if ((strpos($filter->usersSearch, '|-1|') !== false) && (haveRole('ceo'))) {
+                if ((strpos($filter->usersSearch ?? '', '|-1|') !== false) && (haveRole('ceo'))) {
                     // Търсим всичко
                 } else {
                     if (isset($filter->usersSearch)) {
@@ -1869,7 +1879,7 @@ class bgerp_Notifications extends core_Manager
         $res = self::count("#state = 'active' AND #hidden = 'no' AND #userId = {$userId} AND #modifiedOn >= '{$lastTime}'");
         
         
-        if (is_array($arg) && $arg['priority']) {
+        if (is_array($arg) && !empty($arg['priority'])) {
             if ($msgRec = self::fetch("#state = 'active' AND #hidden = 'no' AND #userId = {$userId} AND #modifiedOn >= '{$lastTime}' AND #priority = 'alert'")) {
                 $priority = 'alert';
             } elseif ($msgRec = self::fetch("#state = 'active' AND #hidden = 'no' AND #userId = {$userId} AND #modifiedOn >= '{$lastTime}' AND #priority = 'warning'")) {
@@ -1963,7 +1973,11 @@ class bgerp_Notifications extends core_Manager
         while ($rec = $query->fetch()) {
             $urlArr = self::getUrl($rec);
 
-            $act = strtolower($urlArr['Act']);
+            $act = strtolower($urlArr['Act'] ?? 'default');
+            $ctr = $urlArr['Ctr'] ?? null;
+            $id = $urlArr['id'] ?? null;
+            $folderId = $urlArr['folderId'] ?? null;
+            $cRec = null;
             
             if ($act == 'default') {
                 $act = 'list';
@@ -1975,28 +1989,26 @@ class bgerp_Notifications extends core_Manager
 
             $isPartner = core_Users::isContractor($rec->userId);
             try {
-                $ctr = $urlArr['Ctr'];
-                
                 if (!$ctr) {
                     continue;
                 }
                 
-                if ((!cls::load($ctr, true)) || ($urlArr['id'] && !($cRec = $ctr::fetch($urlArr['id'])))) {
+                if ((!cls::load($ctr, true)) || ($id && !($cRec = $ctr::fetch($id)))) {
                     self::delete($rec->id);
                     self::logInfo('Изтрита нотификация за премахнат ресурс', $rec->id);
                 } else {
 
-                    if ($ctr == 'doc_Threads' && $urlArr['folderId'] && $act == 'list') {
-                        $haveRight = doc_Folders::haveRightFor('single', $urlArr['folderId'], $rec->userId);
+                    if ($ctr == 'doc_Threads' && $folderId && $act == 'list') {
+                        $haveRight = doc_Folders::haveRightFor('single', $folderId, $rec->userId);
                     } else {
-                        $haveRight = $ctr::haveRightFor($act, $urlArr['id'], $rec->userId);
+                        $haveRight = $ctr::haveRightFor($act, $id, $rec->userId);
 
                         // Ако е инсталиран пакета `colab` и потребителя е партньор и екшъна е сингъл и няма достъп до него
                         if($isColabInstalled && $act == 'single' && $isPartner && !$haveRight){
 
                             // Ако сингъла е към документ, който е видим за партньори и нишката му е видима от този партньор
                             if(cls::haveInterface('doc_DocumentIntf', $ctr)){
-                                $docRec = $ctr::fetch($urlArr['id'], 'threadId,containerId');
+                                $docRec = $ctr::fetch($id, 'threadId,containerId');
                                 $haveRight = colab_Threads::haveRightFor('single', doc_Threads::fetch($docRec->threadId), $rec->userId);
 
                                 // Ако няма достъп до него, да не го вижда
@@ -2044,7 +2056,10 @@ class bgerp_Notifications extends core_Manager
     public static function on_BeforeSave(&$invoker, &$id, &$rec, &$fields = null)
     {
         // Премахва кеша за броя на нотификациите на този потребител
-        core_Cache::remove('OpenNtfCnt', $rec->userId);
+        $userId = $rec->userId ?? (!empty($rec->id) ? self::fetchField($rec->id, 'userId') : null);
+        if (isset($userId)) {
+            core_Cache::remove('OpenNtfCnt', $userId);
+        }
 
         if (!empty($rec->id)) {
             if ($fields !== null) {

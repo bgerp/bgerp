@@ -78,7 +78,9 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
         $form = &$data->form;
         if(empty($form->rec->fromDate) && empty($form->rec->toDate)){
             $periodToday = acc_Periods::fetchByDate(dt::now());
-            $form->setDefault('periods', $periodToday->id);
+            if ($periodToday) {
+                $form->setDefault('periods', $periodToday->id);
+            }
         }
 
         $cu = core_Users::getCurrent();
@@ -126,11 +128,13 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
             $rec = $form->rec;
 
             $dateFields = array();
-            $inputPeriods = $form->getFieldParam('periods', 'input');
-            $inputfromDate = $form->getFieldParam('fromDate', 'input');
-            $inputtoDate = $form->getFieldParam('toDate', 'input');
+            $dateInputs = array(
+                'periods' => $form->getFieldParam('periods', 'input'),
+                'fromDate' => $form->getFieldParam('fromDate', 'input'),
+                'toDate' => $form->getFieldParam('toDate', 'input'),
+            );
             foreach (array('periods', 'fromDate', 'toDate') as $dateFld){
-                if(${"input{$dateFld}"} == 'none'){
+                if(($dateInputs[$dateFld] ?? null) == 'none'){
                     $dateFields[] = $dateFld;
                 }
             }
@@ -140,7 +144,7 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
             }
 
             if(!empty($rec->periods)){
-                if($inputfromDate == 'none' && $inputtoDate == 'none'){
+                if($dateInputs['fromDate'] == 'none' && $dateInputs['toDate'] == 'none'){
                     $rec->fromDate = $rec->toDate = null;
                 } else {
                     $form->setError($dateFields, 'Трябва или да е избран точен месец, или конкретни дати|*!');
@@ -170,7 +174,8 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
 
         if(!empty($rec->periods)){
             $periodRec = acc_Periods::fetch($rec->periods);
-            list($start, $end) = array($periodRec->start, $periodRec->end);
+            $start = $periodRec->start ?? null;
+            $end = $periodRec->end ?? null;
         } else {
             $start = !empty($rec->fromDate) ? $rec->fromDate : null;
             $end = !empty($rec->toDate) ? $rec->toDate : null;
@@ -245,7 +250,9 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
             
             $iName = hr_IndicatorNames::fetchField($recIndic->indicatorId, 'name');
             
-            $context[$recIndic->personId]['$' . $iName] += $recIndic->value;
+            $contextKey = '$' . $iName;
+            $context[$recIndic->personId][$contextKey] =
+                ($context[$recIndic->personId][$contextKey] ?? 0) + $recIndic->value;
         }
         
         if (!empty($rec->formula)) {
@@ -276,7 +283,7 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
                 } else {
                     if (is_array($r->context ?? null)) {
                         foreach ($r->context as $k => $v) {
-                            $total[$r->indicatorId][$k] += $v;
+                            $total[$r->indicatorId][$k] = ($total[$r->indicatorId][$k] ?? 0) + $v;
                         }
                     }
                 }
@@ -359,10 +366,10 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
         if (isset($dRec->indicatorId)) {
             if ($dRec->indicatorId != 'formula') {
                 $row->indicatorId = hr_IndicatorNames::fetchField($dRec->indicatorId, 'name');
-            } elseif ($rec->formula) {
+            } elseif (!empty($rec->formula)) {
                 $row->indicatorId = tr('Формула');
                 
-                $value = self::calcFormula($rec->formula, $dRec->context);
+                $value = self::calcFormula($rec->formula, $dRec->context ?? array());
                 $row->value = (is_numeric($value)) ? '<b>' . $Double->toVerbal($value) . '</b>' : "<small style='font-style:italic;color:red;'>{$value}</small>";
             }
         }
@@ -376,8 +383,10 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
 
             if(!empty($rec->periods)){
                 $start = acc_Periods::fetchField($rec->periods, 'start');
-                $date = new DateTime($start);
-                $url['period'] = $date->format('Y-m-01');
+                if (!empty($start)) {
+                    $date = new DateTime($start);
+                    $url['period'] = $date->format('Y-m-01');
+                }
             } else{
                 if(!empty($rec->fromDate)){
                     $url['from'] = $rec->fromDate;
@@ -451,7 +460,7 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
             $res->indicatorId = hr_IndicatorNames::getTitleById($dRec->indicatorId);
         } else {
             $res->indicatorId = tr('Формула');
-            $res->value = static::calcFormula($rec->formula, $dRec->context);
+            $res->value = static::calcFormula($rec->formula ?? '', $dRec->context ?? array());
         }
     }
     
@@ -505,7 +514,7 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
             $row->persons = implode(', ', $persons);
         }
         
-        if (isset($rec->formula)) {
+        if (!empty($rec->formula)) {
             $row->formula = '<b>' . core_Type::getByName('text')->toVerbal($rec->formula) . '</b>';
         }
     }
@@ -527,7 +536,7 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
 
         foreach (array('indocators', 'formula', 'persons') as $fld) {
             if (!empty($data->rec->{$fld})) {
-                $fieldTpl->append($data->row->{$fld}, $fld);
+                $fieldTpl->append($data->row->{$fld} ?? '', $fld);
             }
         }
         
@@ -547,10 +556,12 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
     {
         if(isset($rec->periods)){
             $periodRec = acc_Periods::fetch($rec->periods);
+            if ($periodRec) {
 
-            return array('from' => $periodRec->start, 'to' => $periodRec->end);
+                return array('from' => $periodRec->start, 'to' => $periodRec->end);
+            }
         }
 
-        return array('from' => $rec->fromDate, 'to' => $rec->toDate);
+        return array('from' => $rec->fromDate ?? null, 'to' => $rec->toDate ?? null);
     }
 }

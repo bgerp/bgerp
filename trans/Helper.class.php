@@ -137,6 +137,9 @@ abstract class trans_Helper
                 $key = "{$name}|{$pluralName}";
             }
 
+            if (!isset($combined[$key])) {
+                $combined[$key] = 0;
+            }
             $combined[$key] += $quantity;
         }
 
@@ -201,6 +204,50 @@ abstract class trans_Helper
         }
         
         return (serialize($arr1) == serialize($arr2));
+    }
+
+
+    /**
+     * Допълва транспортната информация до пълния договор на trans_TransportableIntf.
+     *
+     * @param mixed $info
+     *
+     * @return array
+     */
+    public static function normalizeTransportLineInfo($info)
+    {
+        $defaults = array(
+            'state' => null,
+            'baseAmount' => null,
+            'amount' => null,
+            'amountVerbal' => null,
+            'currencyId' => null,
+            'notes' => null,
+            'stores' => array(),
+            'cases' => array(),
+            'zoneId' => null,
+            'readiness' => null,
+            'weight' => null,
+            'volume' => null,
+            'transportUnits' => array(),
+            'contragentName' => null,
+            'address' => null,
+            'storeMovement' => null,
+            'locationId' => null,
+            'addressInfo' => null,
+            'countryId' => null,
+            'place' => null,
+            'features' => array(),
+            'deliveryOn' => null,
+            'valior' => null,
+        );
+
+        $res = array_replace($defaults, (array) $info);
+        foreach (array('stores', 'cases', 'transportUnits', 'features') as $arrayField) {
+            $res[$arrayField] = (array) $res[$arrayField];
+        }
+
+        return $res;
     }
 
 

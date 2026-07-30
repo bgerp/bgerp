@@ -554,6 +554,21 @@ class doc_DocumentPlg extends core_Plugin
         }
     }
 
+
+    /**
+     * Дефолтно - 1 бутон "Нов" на класа (стария вид). Класове, които искат
+     * няколко варианта за добавяне (напр. planning_Jobs - производство/разпад,
+     * с различни URL параметри) дефинират собствен getNewBtnVariants()
+     *
+     * @see doc_Containers::getNewDocMenu()
+     */
+    public static function on_AfterGetNewBtnVariants($mvc, &$res, $rec)
+    {
+        if (empty($res)) {
+            $res = array(array('title' => $mvc->singleTitle, 'icon' => $mvc->singleIcon, 'params' => array()));
+        }
+    }
+
     
     /**
      * Добавя бутон за показване на оттеглените записи
@@ -661,12 +676,16 @@ class doc_DocumentPlg extends core_Plugin
      */
     public function on_AfterRecToVerbal(&$invoker, &$row, &$rec, $fields = array())
     {
-        if (($invoker->addRowClass ?? null) !== false) {
-            $row->ROW_ATTR['class'] = ($row->ROW_ATTR['class'] ?? '') . " state-{$rec->state}";
+        $state = $rec->state ?? null;
+        if (isset($state) && ($invoker->addRowClass ?? null) !== false) {
+            $row->ROW_ATTR['class'] = ($row->ROW_ATTR['class'] ?? '') . " state-{$state}";
         }
-        $row->STATE_CLASS = ($row->STATE_CLASS ?? '') . " state-{$rec->state}";
+        $row->STATE_CLASS = $row->STATE_CLASS ?? '';
+        if (isset($state)) {
+            $row->STATE_CLASS .= " state-{$state}";
+        }
         
-        $row->modifiedDate = dt::mysql2verbal($rec->modifiedOn, 'd.m.Y');
+        $row->modifiedDate = dt::mysql2verbal($rec->modifiedOn ?? null, 'd.m.Y');
         $row->createdDate = dt::mysql2verbal($rec->createdOn ?? null, 'd.m.Y');
         
         if (isset($fields['-single'])) {
@@ -683,8 +702,8 @@ class doc_DocumentPlg extends core_Plugin
             }
             
             // Ако документа е скрит и е оттеглен, показваме от кого
-            if (doc_HiddenContainers::isHidden($rec->containerId)) {
-                if ($rec->state == 'rejected') {
+            if (doc_HiddenContainers::isHidden($rec->containerId ?? null)) {
+                if ($state == 'rejected') {
                     $tpl = new ET(tr('|* |от|* [#user#] |на|* [#date#]'));
                     $row->state .= $tpl->placeArray(array('user' => crm_Profiles::createLink($rec->modifiedBy), 'date' => dt::mysql2Verbal($rec->modifiedOn)));
                 }
@@ -828,10 +847,10 @@ class doc_DocumentPlg extends core_Plugin
             $rec->modifiedOn = dt::verbal2Mysql();
         }
         
-        if (!Mode::is('MassImporting') && (($rec->state == 'draft' && !empty($rec->brState) && ($rec->brState ?? null) != 'rejected') || $rec->state != 'draft')) {
+        if (!Mode::is('MassImporting') && ((($rec->state ?? null) == 'draft' && !empty($rec->brState) && ($rec->brState ?? null) != 'rejected') || ($rec->state ?? null) != 'draft')) {
             if (!empty($rec->id)) {
                 $oRec = $mvc->fetch($rec->id);
-                if (!$oRec || $rec->state !== $oRec->state) {
+                if (!$oRec || ($rec->state ?? null) !== $oRec->state) {
                     $mvc->mustUpdateUsed = true;
                 }
             } else {
@@ -848,6 +867,10 @@ class doc_DocumentPlg extends core_Plugin
     public static function on_AfterSave($mvc, &$id, $rec, $fields = null)
     {
         $fields = arr::make($fields, true);
+        $rec->id = $rec->id ?? $id;
+        if (!isset($rec->state)) {
+            $rec->state = $mvc->fetchField($rec->id, 'state');
+        }
 
         setPartIfNot($mvc, 'saveFileArr', array());
         $mvc->saveFileArr[$rec->id] = $rec;
@@ -981,9 +1004,9 @@ class doc_DocumentPlg extends core_Plugin
 
                         if ($settingsNotifyArr) {
                             foreach ($settingsNotifyArr as $userId => $uConfArr) {
-                                if ($uConfArr[$pName] == 'no') {
+                                if (($uConfArr[$pName] ?? null) == 'no') {
                                     unset($notifyArr[$userId]);
-                                } elseif ($uConfArr[$pName] == 'yes') {
+                                } elseif (($uConfArr[$pName] ?? null) == 'yes') {
                                     if ($mvc->haveRightFor('single', $rec, $userId)) {
                                         $notifyArr[$userId] = $userId;
                                     }
@@ -995,9 +1018,9 @@ class doc_DocumentPlg extends core_Plugin
                         $fKey = doc_Folders::getSettingsKey($rec->folderId);
                         $newPendingNotifications = core_Settings::fetchUsers($fKey, 'newPending');
                         foreach ((array) $newPendingNotifications as $userId => $newPending) {
-                            if ($newPending['newPending'] == 'no') {
+                            if (($newPending['newPending'] ?? null) == 'no') {
                                 unset($notifyArr[$userId]);
-                            } elseif ($newPending['newPending'] == 'yes') {
+                            } elseif (($newPending['newPending'] ?? null) == 'yes') {
                                 // Може да е абониран, но да няма права
                                 if ($mvc->haveRightFor('single', $rec, $userId)) {
                                     $notifyArr[$userId] = $userId;
@@ -1015,7 +1038,7 @@ class doc_DocumentPlg extends core_Plugin
                     $currUserNick = type_Nick::normalize($currUserNick);
                     
                     $docRow = $mvc->getDocumentRow($rec->id);
-                    $docTitle = $docRow->recTitle ? $docRow->recTitle : $docRow->title;
+                    $docTitle = !empty($docRow->recTitle) ? $docRow->recTitle : ($docRow->title ?? '');
                     $docTitle = strip_tags(str_replace('&nbsp;', ' ', $docTitle));
                     
                     $folderTitle = doc_Folders::getTitleById($rec->folderId, false);
@@ -1027,10 +1050,10 @@ class doc_DocumentPlg extends core_Plugin
                     $pSettingsNotifyArr = core_Settings::fetchUsers($pSettingsKey, $prop);
                     
                     foreach ($notifyArr as $uId) {
-                        $uSelArr = $pSettingsNotifyArr[$uId];
+                        $uSelArr = $pSettingsNotifyArr[$uId] ?? null;
                         
                         // Ако съответния потребител не иска да получава нотификация за документа, да не се праща
-                        if ($uSelArr && ($propValStr = $uSelArr[$prop]) && (type_Keylist::isIn($mvc->getClassId(), $propValStr))) {
+                        if ($uSelArr && ($propValStr = ($uSelArr[$prop] ?? null)) && (type_Keylist::isIn($mvc->getClassId(), $propValStr))) {
                             continue;
                         }
                         bgerp_Notifications::add($message, $urlArr, $uId);
@@ -2238,12 +2261,12 @@ class doc_DocumentPlg extends core_Plugin
             }
         }
         
-        if ($data->action == 'clone') {
+        if (($data->action ?? null) == 'clone') {
             if (!empty($rec->threadId) && !empty($rec->containerId)) {
                 $tRec = doc_Threads::fetch($rec->threadId);
                 
                 // Ако е първи документ, да се клонира в нова нишка
-                if ($tRec->firstContainerId == $rec->containerId) {
+                if ($tRec && $tRec->firstContainerId == $rec->containerId) {
                     unset($rec->threadId);
                 }
             }
@@ -2285,7 +2308,7 @@ class doc_DocumentPlg extends core_Plugin
     {
         $res = arr::make($res);
         
-        if (($rec->foreignId ?? null) && $otherParams['fType'] == 'doc') {
+        if (($rec->foreignId ?? null) && ($otherParams['fType'] ?? null) == 'doc') {
             $document = doc_Containers::getDocument($rec->foreignId);
             
             $titleFld = '';
@@ -2311,7 +2334,7 @@ class doc_DocumentPlg extends core_Plugin
                 $originId = $rec->originId;
             } elseif (!empty($rec->linkedHashKey)) {
                 $lRec = core_Permanent::get($rec->linkedHashKey);
-                if (($lRec->outType == 'doc') && $lRec->outVal) {
+                if (is_object($lRec) && ($lRec->outType ?? null) == 'doc' && !empty($lRec->outVal)) {
                     $originId = $lRec->outVal;
                 }
             }
@@ -2322,8 +2345,8 @@ class doc_DocumentPlg extends core_Plugin
                     $eRec = $document->fetch();
                     $allEmails = array();
                     foreach (array('allTo', 'allCc') as $fName) {
-                        foreach ((array)$eRec->toAndCc[$fName] as $eAdd) {
-                            $eAdd['address'] = trim($eAdd['address']);
+                        foreach ((array)($eRec->toAndCc[$fName] ?? null) as $eAdd) {
+                            $eAdd['address'] = trim($eAdd['address'] ?? '');
                             if (!$eAdd['address']) {
                                 continue;
                             }
@@ -2341,7 +2364,7 @@ class doc_DocumentPlg extends core_Plugin
                     unset($removedUsersArr[0]);
 
                     if (!empty($removedUsersArr)) {
-                        $res['sharedUsers'] = type_UserList::merge($res['sharedUsers'], $removedUsersArr);
+                        $res['sharedUsers'] = type_UserList::merge($res['sharedUsers'] ?? null, $removedUsersArr);
                     }
                 }
             }
@@ -2376,7 +2399,10 @@ class doc_DocumentPlg extends core_Plugin
         $rec = &$form->rec;
         
         if (empty($rec->id) && !empty($rec->threadId) && !empty($rec->originId)) {
-            $folderId = ($rec->folderId) ? $rec->folderId : doc_Threads::fetch($rec->threadId)->folderId;
+            $folderId = $rec->folderId ?? null;
+            if (!$folderId) {
+                $folderId = doc_Threads::fetchField($rec->threadId, 'folderId');
+            }
             
             if (($mvc->canAddToFolder($folderId) !== false) && ($mvc->onlyFirstInThread ?? null) !== false) {
                 $form->toolbar->addSbBtn('Нова нишка', 'save_new_thread', 'id=btnNewThread,order=9.99985', 'ef_icon = img/16/save_and_new.png');
@@ -2385,9 +2411,13 @@ class doc_DocumentPlg extends core_Plugin
         
         $saveBtnName = (haveRole('powerUser') && !((($mvc->canEditActivated ?? null) === true && in_array($rec->state ?? null, array('active', 'waiting', 'wakeup'))))) ? 'Чернова' : 'Запис';
         $form->toolbar->renameBtn('save', $saveBtnName);
-        
+
         if (isset($rec->state) && $rec->state == 'pending' && isset($rec->id)) {
-            $form->toolbar->setWarning('save', 'Наистина ли искате да направите документа чернова|*?');
+            if ($mvc->hasPlugin('doc_plg_MasterRevision')) {
+                $form->toolbar->removeBtn('save');
+            } else {
+                $form->toolbar->setWarning('save', 'Наистина ли искате да направите документа чернова|*?');
+            }
         }
         
         if ($mvc->haveRightFor('pending', $form->rec) || (isset($rec->state) && $rec->state == 'pending')) {
@@ -2407,7 +2437,7 @@ class doc_DocumentPlg extends core_Plugin
         //Добавяме текст по подразбиране за титлата на формата
         if ($form->rec->folderId) {
             $fRec = doc_Folders::fetch($form->rec->folderId);
-            $title = tr(mb_strtolower($mvc->singleTitle));
+            $title = tr(mb_strtolower($data->singleTitle ?? $mvc->singleTitle));
             if (core_Users::getCurrent('id', false)) {
                 list($t, ) = explode('<div', doc_Folders::recToVerbal($fRec)->title);
                 $title .= ' |в|* ' . $t;
@@ -2471,7 +2501,7 @@ class doc_DocumentPlg extends core_Plugin
             }
             
             // Ако документа е бил на заявка преди, обръща се в чернова
-            if (isset($rec->id) && $rec->state == 'pending' && ($form->cmd == 'save') && (!$form->rec->__isBeingChanged)) {
+            if (isset($rec->id) && ($rec->state ?? null) == 'pending' && ($form->cmd == 'save') && empty($form->rec->__isBeingChanged)) {
                 $rec->state = 'draft';
                 $rec->brState = 'pending';
                 $rec->pendingSaved = true;
@@ -2490,7 +2520,7 @@ class doc_DocumentPlg extends core_Plugin
                 $form->rec->state = 'pending';
                 $form->rec->pendingSaved = true;
 
-                if ($form->rec->id) {
+                if (!empty($form->rec->id)) {
                     $oldRec = $mvc->fetch($form->rec->id);
                     doc_Containers::changeNotifications($rec, $oldRec->sharedUsers, $rec->sharedUsers);
                 }
@@ -2802,7 +2832,7 @@ class doc_DocumentPlg extends core_Plugin
                         
                         $cId = $rec->containerId;
                         
-                        if (!$cId && $rec->id) {
+                        if (!$cId && !empty($rec->id)) {
                             $cId = $mvc->fetchField($rec->id, 'containerId');
                         }
                         
@@ -2979,7 +3009,7 @@ class doc_DocumentPlg extends core_Plugin
                 // И да е първия документ в нея
                 } elseif ($tRec->firstContainerId != $rec->containerId) {
                     $requiredRoles = 'no_one';
-                } elseif (acc_Items::fetchItem($mvc, $rec->id)->state == 'closed') {
+                } elseif (($itemRec = acc_Items::fetchItem($mvc, $rec->id)) && (($itemRec->state ?? null) == 'closed')) {
                     $requiredRoles = 'no_one';
                 } else {
                     // И да има активни контиращи документи и неконтиращи
@@ -3148,7 +3178,7 @@ class doc_DocumentPlg extends core_Plugin
                 if (is_object($options)) {
                     
                     // Ако не е обект, създаваме го
-                    if (!is_object($options->rec)) {
+                    if (!isset($options->rec) || !is_object($options->rec)) {
                         $options->rec = new stdClass();
                     }
                     
@@ -4028,7 +4058,7 @@ class doc_DocumentPlg extends core_Plugin
         
         $rec = $mvc->fetchRec($rec);
         
-        $origin = doc_Threads::getFirstDocument($rec->threadId);
+        $origin = doc_Threads::getFirstDocument($rec->threadId ?? null);
     }
     
     

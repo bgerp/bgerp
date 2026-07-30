@@ -731,7 +731,7 @@ class price_reports_PriceList extends frame2_driver_TableData
         }
 
         foreach (array('periodDate', 'date', 'period', 'productGroups', 'notInGroups', 'packagings', 'policyId', 'currencyId', 'variationId') as $field) {
-            $fieldTpl->replace($data->row->{$field}, $field);
+            $fieldTpl->replace($data->row->{$field} ?? null, $field);
         }
 
         $tpl->append($fieldTpl, 'DRIVER_FIELDS');

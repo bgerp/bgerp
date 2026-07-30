@@ -103,7 +103,7 @@ class acc_journal_EntrySide
             array('data' => $transactionData)
         );
         
-        $data->amount = $transactionData['amount'];  // Сума в основна валута
+        $data->amount = $transactionData['amount'] ?? null;  // Сума в основна валута
         if (array_key_exists('quantity', $d)) {
             $data->quantity = $d['quantity'];
             unset($d['quantity']);

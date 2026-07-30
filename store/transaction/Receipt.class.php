@@ -85,7 +85,7 @@ class store_transaction_Receipt extends acc_DocumentTransactionSource
         $rec->valior = empty($rec->valior) ? dt::today() : $rec->valior;
         
         $transaction = (object) array(
-            'reason' => 'Складова разписка №' . $rec->id,
+            'reason' => 'Складова разписка №' . ($rec->id ?? ''),
             'valior' => $rec->valior,
             'entries' => $entries,
         );
@@ -190,7 +190,7 @@ class store_transaction_Receipt extends acc_DocumentTransactionSource
 
             if($canStore != 'yes'){
                 // Към кои разходни обекти ще се разпределят разходите
-                unset($detailRec->discount);
+                $detailRec->discount = null;
                 $splitRecs = acc_CostAllocations::getRecsByExpenses($dClass, $detailRec->id, $detailRec->productId, $detailRec->quantity, $amount, $detailRec->discount);
 
                 foreach ($splitRecs as $dRec1) {

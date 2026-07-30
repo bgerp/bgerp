@@ -394,7 +394,7 @@ abstract class deals_DealMaster extends deals_DealBase
             }
         }
         $form->setDefault('makeInvoice', $defaultMakeInvoice);
-        if($data->action == 'clone'){
+        if(($data->action ?? null) == 'clone'){
             $form->rec->_isBeingCloned = true;
         }
 
@@ -416,7 +416,7 @@ abstract class deals_DealMaster extends deals_DealBase
             if ($mvc->$Detail->fetch("#{$mvc->{$Detail}->masterKey} = {$rec->id}")) {
                 foreach (array('chargeVat', 'currencyId', 'deliveryTermId', 'vatExceptionId') as $fld) {
                     $readOnlyVal = $rec->{$fld} ?? $mvc->fetchField($rec->id, $fld);
-                    if($data->action == 'clone' && !isset($readOnlyVal)) continue;
+                    if(($data->action ?? null) == 'clone' && !isset($readOnlyVal)) continue;
 
                     $form->setReadOnly($fld, $rec->{$fld} ?? $readOnlyVal);
                 }
@@ -425,7 +425,7 @@ abstract class deals_DealMaster extends deals_DealBase
         
         $form->setField('sharedUsers', 'input=none');
 
-        if($data->action != 'changefields'){
+        if(($data->action ?? null) != 'changefields'){
             $form->input('deliveryTermId');
             if(isset($rec->deliveryTermId)){
                 cond_DeliveryTerms::prepareDocumentForm($rec->deliveryTermId, $form, $mvc);
@@ -1052,7 +1052,7 @@ abstract class deals_DealMaster extends deals_DealBase
             }
         }
         
-        if ($rec->initiatorId) {
+        if (!empty($rec->initiatorId)) {
             $rec->sharedUsers = keylist::merge($rec->sharedUsers, $rec->initiatorId);
         }
         
@@ -1447,6 +1447,8 @@ abstract class deals_DealMaster extends deals_DealBase
             }
 
 
+            $row->deliveryBlock = '';
+
             if(isset($rec->deliveryTermId)){
                 if ($Driver = cond_DeliveryTerms::getTransportCalculator($rec->deliveryTermId)) {
                     $deliveryDataArr = $Driver->getVerbalDeliveryData($rec->deliveryTermId, $rec->deliveryData, get_called_class());
@@ -1455,6 +1457,8 @@ abstract class deals_DealMaster extends deals_DealBase
                     }
                 }
             }
+
+            $row->notes = '';
 
             if ($rec->note) {
                 $notes = explode('<br>', $row->note);
@@ -1555,7 +1559,7 @@ abstract class deals_DealMaster extends deals_DealBase
             }
             
             if (isset($actions['pay'])) {
-                $row->isPaid .= mb_strtoupper(tr('платено'));
+                $row->isPaid = ($row->isPaid ?? '') . mb_strtoupper(tr('платено'));
                 if ($rec->state == 'rejected') {
                     $row->isPaid = "<span class='quiet'>{$row->isPaid}</span>";
                 }
@@ -1601,7 +1605,7 @@ abstract class deals_DealMaster extends deals_DealBase
      */
     protected function getConditionArr($rec, $auto = false)
     {
-        $lang = isset($rec->tplLang) ? $rec->tplLang : doc_TplManager::fetchField($rec->template, 'lang');
+        $lang = $rec->tplLang ?? doc_TplManager::fetchField($rec->template, 'lang');
 
         $conditions = array();
         $calc = ($auto === false) || in_array($rec->state, array('pending', 'draft'));
@@ -2143,8 +2147,221 @@ abstract class deals_DealMaster extends deals_DealBase
            }
         }
     }
-    
-    
+
+
+    /**
+     * Връща всички артикули от сделката (продажба/покупка), годни за Задание за
+     * производство. Общо за sales_Sales/purchase_Purchases - detail класа и
+     * master key-полето, свързващо детайла с мастъра, се вземат динамично от
+     * $this->mainDetail/$Detail->masterKey (същия идиом като updateMaster_()
+     * по-долу в този файл), не са хардкоднати - purchase_PurchasesDetails
+     * реферира мастъра си като requestId, не purchaseId.
+     *
+     * @param int|stdClass $id - ид или запис
+     * @param boolean $onlyActive - дали да са само активните артикули
+     * @param string|null $jobType - вид задание (manifacture|disassembly)
+     *
+     * @return array $res - масив с годните артикули
+     */
+    public static function getProducts4Job($id, $onlyActive = false, $jobType = null)
+    {
+        $res = array();
+        $rec = static::fetchRec($id);
+        $mvc = cls::get(get_called_class());
+        $Detail = cls::get($mvc->mainDetail);
+
+        $query = $Detail->getQuery();
+        $query->where("#{$Detail->masterKey} = {$rec->id}");
+        $query->EXT('canManifacture', 'cat_Products', 'externalName=canManifacture,externalKey=productId');
+        $query->EXT('canConvert', 'cat_Products', 'externalName=canConvert,externalKey=productId');
+        $query->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
+        $query->EXT('generic', 'cat_Products', 'externalName=generic,externalKey=productId');
+        $query->EXT('code', 'cat_Products', 'externalName=code,externalKey=productId');
+        if ($jobType == 'manifacture') {
+            $query->where("#canManifacture = 'yes'");
+        } elseif ($jobType == 'disassembly') {
+            $query->where("#canConvert = 'yes' AND #canStore = 'yes'");
+        } else {
+            $query->where("#canManifacture = 'yes' OR (#canConvert = 'yes' AND #canStore = 'yes')");
+        }
+        $query->where("#generic IS NULL OR #generic != 'yes'");
+        $query->orderBy('id', 'ASC');
+        $query->XPR('codeExp', 'varchar', "LOWER(COALESCE(#code, CONCAT('Art', #id)))");
+        $query->show('productId,packagingId,codeExp');
+
+        if($onlyActive){
+            $query->EXT('state', 'cat_Products', 'externalName=state,externalKey=productId');
+            $query->where("#state = 'active'");
+        }
+
+        // Извличане на кода и рефа (ако има ценова листа за контрагента), за да
+        // са готови за сортиране
+        $productArr = array();
+        $listSysId = ($mvc instanceof sales_Sales) ? 'salesList' : 'purchaseList';
+        $listId = cond_Parameters::getParameter($rec->contragentClassId, $rec->contragentId, $listSysId);
+        while($dRec = $query->fetch()){
+            $productArr[$dRec->productId] = (object)array('productId' => $dRec->productId, 'code' => $dRec->codeExp);
+            if (isset($listId)) {
+                $productArr[$dRec->productId]->reff = cat_Listings::getReffByProductId($listId, $dRec->productId, $dRec->packagingId ?? null);
+            }
+        }
+
+        // Сортиране на артикулите, както сa подредени в сделката
+        $detailOrderBy = $rec->detailOrderBy;
+        if($detailOrderBy == 'code'){
+            arr::sortObjects($productArr, 'code', 'ASC', 'natural');
+        } elseif($detailOrderBy == 'reff' && isset($listId)){
+            arr::sortObjects($productArr, 'reff', 'ASC', 'natural');
+        }
+
+        $productArr = array_keys($productArr);
+        foreach ($productArr as $productId){
+            $res[$productId] = cat_Products::getTitleById($productId, false);
+        }
+
+        return $res;
+    }
+
+
+    /**
+     * За избран набор от артикули - опаковки и количества, в които участват в
+     * сделката (продажба/покупка). Използва се от planning_Jobs за дефолтите на
+     * productId/packagingId/packQuantity при създаване на Задание.
+     *
+     * @param int   $id         - ид на продажбата/покупката
+     * @param array $productIds - артикули, за които да върне опаковки/к-ва
+     *
+     * @return array [productId => [packagingId => packQuantity]]
+     */
+    public static function getProductPacksInDeal($id, array $productIds)
+    {
+        $res = array();
+        if (!countR($productIds)) {
+
+            return $res;
+        }
+
+        $mvc = cls::get(get_called_class());
+        $Detail = cls::get($mvc->mainDetail);
+
+        $query = $Detail->getQuery();
+        $query->where("#{$Detail->masterKey} = {$id}");
+        $query->in('productId', $productIds);
+        $query->show('productId,packagingId,packQuantity');
+        while($dRec = $query->fetch()){
+            $res[$dRec->productId][$dRec->packagingId] = $dRec->packQuantity;
+        }
+
+        return $res;
+    }
+
+
+    /**
+     * След подготовка на сингъла - подготвя информацията за Заданията за
+     * производство над сделката (продажба/покупка). Споделено между
+     * sales_Sales и purchase_Purchases.
+     */
+    public static function on_AfterPrepareSingle($mvc, &$res, &$data)
+    {
+        if (haveRole('ceo,planning,sales,purchase,store,job')) {
+            $dealTab = Request::get('dealTab');
+            if (empty($dealTab) || $dealTab == 'Statistic') {
+                $mvc->prepareJobsInfo($data);
+            }
+        }
+    }
+
+
+    /**
+     * След рендиране на единичния изглед - рендира информацията за Заданията,
+     * подготвена в prepareJobsInfo(). Споделено между sales_Sales и
+     * purchase_Purchases.
+     */
+    public static function on_AfterRenderSingle($mvc, &$tpl, $data)
+    {
+        if (isset($data->jobs) && is_array($data->jobs) === true) {
+            $mvc->renderJobsInfo($tpl, $data);
+        }
+    }
+
+
+    /**
+     * Подготвяме информацията за наличните задания към артикули от сделката
+     * (продажба/покупка). Кой FK ключ на planning_Jobs да се ползва се决ва от
+     * $this->jobSourceField, деклариран на конкретния наследник.
+     *
+     * @param stdClass $data
+     *
+     * @return void
+     */
+    protected function prepareJobsInfo($data)
+    {
+        $rec = $data->rec;
+        $jobField = $this->jobSourceField;
+        if (empty($jobField)) {
+
+            return;
+        }
+
+        $products = static::getProducts4Job($data->rec);
+        if (!countR($products)) {
+            return;
+        }
+
+        $jQuery = planning_Jobs::getQuery();
+        $jQuery->in('productId', array_keys($products));
+        $jQuery->where("#{$jobField} = {$rec->id}");
+        $jQuery->XPR('order', 'int', "(CASE #state WHEN 'draft' THEN 1 WHEN 'active' THEN 2 WHEN 'stopped' THEN 3 WHEN 'wakeup' THEN 4 WHEN 'closed' THEN 5 ELSE 3 END)");
+        $jQuery->orderBy('order', 'ASC');
+
+        $fields = cls::get('planning_Jobs')->selectFields();
+        $fields['-list'] = true;
+
+        $data->jobs = array();
+        while ($jRec = $jQuery->fetch()) {
+            $data->jobs[$jRec->id] = planning_Jobs::recToVerbal($jRec, $fields);
+        }
+
+        foreach (array('manifacture', 'disassembly') as $jobType) {
+            $jobRec = (object) array($jobField => $rec->id, 'type' => $jobType);
+            if (countR(static::getProducts4Job($rec, true, $jobType)) && planning_Jobs::haveRightFor('add', $jobRec)) {
+                $data->addJobUrls[$jobType] = array('planning_Jobs', 'add', $jobField => $rec->id, 'type' => $jobType, 'foreignId' => $rec->containerId, 'ret_url' => true);
+                if(doc_Threads::haveRightFor('single', $rec->threadId)){
+                    $data->addJobUrls[$jobType]['threadId'] = $rec->threadId;
+                }
+            }
+        }
+    }
+
+
+    /**
+     * Рендиране на информацията на заданията
+     *
+     * @param core_ET  $tpl
+     * @param stdClass $data
+     */
+    protected function renderJobsInfo(&$tpl, $data)
+    {
+        $table = cls::get('core_TableView', array('mvc' => cls::get('planning_Jobs')));
+
+        $jobsTable = $table->get($data->jobs, 'title=Задание,type=Вид,dueDate=Падеж,packQuantity=Планирано,quantityFromTasks=Произведено,quantityProduced=Заскладено,packagingId=Мярка');
+        $jobTpl = new core_ET("<div style='margin-top:6px'>[#table#]</div>");
+        $jobTpl->replace($jobsTable, 'table');
+        $tpl->replace($jobTpl, 'JOB_INFO');
+
+        if (isset($data->addJobUrls)) {
+            $addLinks = '';
+            if (isset($data->addJobUrls['manifacture'])) {
+                $addLinks .= ht::createLink('Производство', $data->addJobUrls['manifacture'], false, 'ef_icon=img/16/add.png,class=button,title=Създаване на ново задание за производство');
+            }
+            if (isset($data->addJobUrls['disassembly'])) {
+                $addLinks .= ht::createLink('Разпад', $data->addJobUrls['disassembly'], false, 'ef_icon=img/16/add.png,class=button,title=Създаване на ново задание за разпад');
+            }
+            $tpl->replace($addLinks, 'JOB_ADD_BTN');
+        }
+    }
+
+
     /**
      * Извиква се преди рендирането на 'опаковката'
      */
@@ -2225,7 +2442,7 @@ abstract class deals_DealMaster extends deals_DealBase
         if(core_Packs::isInstalled('voucher')) {
             $allowedFields['voucherId'] = true;
         }
-        if(core_Packs::isInstalled('holding')) {
+        if(core_Packs::isInstalled('holding') && isset($me->ownCompanyFieldName)) {
             $allowedFields[$me->ownCompanyFieldName] = true;
         }
 
@@ -2295,7 +2512,7 @@ abstract class deals_DealMaster extends deals_DealBase
         }
 
         // Избраната наша фирма ще се запише само ако е инсталиран пакета
-        if(isset($fields[$me->ownCompanyFieldName])){
+        if(isset($me->ownCompanyFieldName) && isset($fields[$me->ownCompanyFieldName])){
             if(core_Packs::isInstalled('holding')){
                 $ownCompanyRec = holding_Companies::getRec($fields[$me->ownCompanyFieldName]);
                 expect(is_object($ownCompanyRec), 'Невалидна наша фирма');
@@ -2338,7 +2555,7 @@ abstract class deals_DealMaster extends deals_DealBase
             $rec->bankAccountId = $fields['bankAccountId'];
         }
 
-        if ($fields['onlineSale'] === true) {
+        if (($fields['onlineSale'] ?? null) === true) {
             $rec->_onlineSale = true;
         }
         
@@ -2423,7 +2640,7 @@ abstract class deals_DealMaster extends deals_DealBase
             $packagingId = $productInfo->productRec->measureId;
         }
         
-        $quantityInPack = ($productInfo->packagings[$packagingId]) ? $productInfo->packagings[$packagingId]->quantity : 1;
+        $quantityInPack = isset($productInfo->packagings[$packagingId]) ? $productInfo->packagings[$packagingId]->quantity : 1;
         
         // Ако няма цена, опитваме се да я намерим от съответната ценова политика
         if (empty($price)) {
@@ -2652,7 +2869,7 @@ abstract class deals_DealMaster extends deals_DealBase
         if($strategy == 'onlyFromDeal') {
             $products = $agreed;
             foreach ($products as $product1) {
-                if (!($forMvc instanceof sales_Proformas)) {
+                if (!($ForMvc instanceof sales_Proformas)) {
                     $product1->price -= $product1->price * $product1->discount;
                     unset($product1->discount);
                 }
@@ -2697,7 +2914,7 @@ abstract class deals_DealMaster extends deals_DealBase
             }
             
             $dRec = clone $product;
-            $dRec->discount = $product->discount;
+            $dRec->discount = $product->discount ?? null;
             $dRec->price = ($product->amount) ? ($product->amount / $product->quantity) : $product->price;
             $dRec->quantity = $quantity / $product->quantityInPack;
             $dRec->rate = $rec->currencyRate;
@@ -3028,6 +3245,7 @@ abstract class deals_DealMaster extends deals_DealBase
         }
         
         // Създаване на мастър на документа
+        $redirectUrl = getRetUrl();
         try{
             $masterId = static::createNewDraft($Cover->getClassId(), $Cover->that, $fields);
             if(isset($productId)){
@@ -3035,12 +3253,13 @@ abstract class deals_DealMaster extends deals_DealBase
             } else {
                 static::logWrite('Създаване', $masterId);
             }
+
+            $redirectUrl = array($this, 'single', $masterId);
         } catch(core_exception_Expect $e){
             reportException($e);
             followRetUrl(null, "|Проблем при създаване на|* " . mb_strtolower($this->singleTitle));
         }
-        
-        $redirectUrl = array($this, 'single', $masterId);
+
         $Detail = cls::get($this->mainDetail);
         
         // Редирект към добавянето на детайл
@@ -3346,8 +3565,8 @@ abstract class deals_DealMaster extends deals_DealBase
         $files = deals_Helper::getLinkedFilesInDocument($this, $rec, 'note', 'notes');
 
         // Добавят се и файловете от допълнителните условия, ако има такова
-        $additionalConditions = is_array($rec->additionalConditions) ? $rec->additionalConditions : array();
-        if(in_array($rec->state, array('pending', 'draft'))) {
+        $additionalConditions = is_array($rec->additionalConditions ?? null) ? $rec->additionalConditions : array();
+        if(in_array($rec->state ?? null, array('pending', 'draft'))) {
             $additionalConditions = $this->getConditionArr($rec);
         }
         foreach ($additionalConditions as $aCond) {

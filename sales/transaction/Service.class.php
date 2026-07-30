@@ -36,7 +36,7 @@ class sales_transaction_Service extends acc_DocumentTransactionSource
         $rec = $this->class->fetchRec($id);
         $origin = $this->class->getOrigin($rec);
         
-        if ($rec->id) {
+        if (!empty($rec->id)) {
             $dQuery = sales_ServicesDetails::getQuery();
             $dQuery->where("#shipmentId = {$rec->id}");
             $rec->details = $dQuery->fetchAll();
@@ -45,7 +45,7 @@ class sales_transaction_Service extends acc_DocumentTransactionSource
         $rec->valior = empty($rec->valior) ? dt::today() : $rec->valior;
 
         // Всяко ЕН трябва да има поне един детайл
-        if (countR($rec->details)) {
+        if (countR($rec->details ?? array())) {
             if ($rec->isReverse == 'yes') {
                 
                 // Ако ЕН е обратна, тя прави контировка на СР но с отрицателни стойностти
@@ -60,7 +60,7 @@ class sales_transaction_Service extends acc_DocumentTransactionSource
             }
         }
         
-        $transaction = (object) array('reason' => 'Протокол за доставка на услуги #' . $rec->id,
+        $transaction = (object) array('reason' => 'Протокол за доставка на услуги #' . ($rec->id ?? ''),
                                       'valior' => $rec->valior,
                                       'entries' => $entries,);
         

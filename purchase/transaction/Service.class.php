@@ -44,7 +44,7 @@ class purchase_transaction_Service extends acc_DocumentTransactionSource
         $entries = array();
         
         // Всяко ЕН трябва да има поне един детайл
-        if (countR($rec->details) > 0) {
+        if (countR($rec->details ?? null) > 0) {
             if ($rec->isReverse == 'yes') {
                 
                 // Ако ЕН е обратна, тя прави контировка на СР но с отрицателни стойностти
@@ -59,7 +59,7 @@ class purchase_transaction_Service extends acc_DocumentTransactionSource
         $rec->valior = empty($rec->valior) ? dt::today() : $rec->valior;
         
         $transaction = (object) array(
-            'reason' => 'Протокол за покупка на услуги #' . $rec->id,
+            'reason' => 'Протокол за покупка на услуги #' . ($rec->id ?? ''),
             'valior' => $rec->valior,
             'entries' => $entries,
         );

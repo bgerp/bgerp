@@ -263,7 +263,7 @@ class acc_reports_UnactiveContableDocs extends frame2_driver_TableData
         
         $row->states = '<span class= normal >' . cls::get($className)->getFieldType('state')->toVerbal($dRec->states) . '</span>';
         
-        $row->handle = "<span class= 'state-{$state} document-handler' >" . ht::createLink("#{$handle} </span>", $singleUrl, false, "ef_icon={$Document->singleIcon}") . '</span>';
+        $row->handle = "<span class= 'state-{$state} document-handler' >" . ht::createLink("#{$handle} </span>", $singleUrl, false, "ef_icon={$Document->getSingleIcon()}") . '</span>';
         
         $row->documentFolder = doc_Folders::getHyperlink($dRec->documentFolder);
         

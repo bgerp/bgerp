@@ -106,7 +106,7 @@ class docarch_Archives extends core_Master
         $form = $data->form;
         $rec = $form->rec;
         
-        if ($rec->id) {
+        if (!empty($rec->id)) {
             $rec->typeArr = explode(',', $rec->volType);
         }
         
@@ -139,7 +139,7 @@ class docarch_Archives extends core_Master
         if ($form->isSubmitted()) {
             $typesArr = explode(',', $rec->volType);
             
-            if ($rec->id) {
+            if (!empty($rec->id)) {
                 foreach ($rec->typeArr as $v) {
                 if ((!in_array($v, $typesArr)) && ($rec->typeArr[0] != '')) {
                         $form->setError('volType', 'Не може да се премахват дефинирани типове');
@@ -263,7 +263,7 @@ class docarch_Archives extends core_Master
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
-        if ($rec->id && $action == 'edit') {
+        if (!empty($rec->id) && $action == 'edit') {
             if (($rec->state == 'closed')) {
                 $requiredRoles = 'no_one' ;
             }

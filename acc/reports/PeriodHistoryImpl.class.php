@@ -277,7 +277,7 @@ class acc_reports_PeriodHistoryImpl extends acc_reports_HistoryImpl
         
         $tpl->append($table->get($data->rows, $data->listFields), 'DETAILS');
         
-        if ($data->Pager) {
+        if (!empty($data->Pager)) {
             $tpl->append($data->Pager->getHtml(), 'PAGER_TOP');
             $tpl->append($data->Pager->getHtml(), 'PAGER_BOTTOM');
         }

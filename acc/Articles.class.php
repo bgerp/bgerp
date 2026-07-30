@@ -248,8 +248,11 @@ class acc_Articles extends core_Master
      */
     public static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
+        if (!isset($row->totalAmount)) {
+            $row->totalAmount = $mvc->getFieldType('totalAmount')->toVerbal($rec->totalAmount ?? 0);
+        }
+
         if (empty($rec->totalAmount)) {
-            $row->totalAmount = $mvc->getFieldType('totalAmount')->toVerbal(0);
             $row->totalAmount = "<b class='quiet'>{$row->totalAmount}</b>";
         } elseif ($rec->totalAmount < 0) {
             $row->totalAmount = "<span class='red'>{$row->totalAmount}</span>";

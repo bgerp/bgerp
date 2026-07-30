@@ -103,7 +103,7 @@ class hr_Payroll extends core_Manager
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-        if (is_array($rec->indicators)) {
+        if (!empty($rec->indicators) && is_array($rec->indicators)) {
             foreach ($rec->indicators as $name => $value) {
                 $row->data .= ($row->data ? ', ' : '') . $name . '=' . '<strong>' . $value . '</strong>';
             }

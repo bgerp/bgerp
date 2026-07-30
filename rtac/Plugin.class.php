@@ -34,7 +34,7 @@ class rtac_Plugin extends core_Plugin
         
         $nickArr = array();
         
-        if (!$matches['nick']) {
+        if (empty($matches['nick'])) {
             
             return $nickArr;
         }
@@ -51,7 +51,7 @@ class rtac_Plugin extends core_Plugin
             }
             $nick = strtolower($nick);
             
-            if (!$userArr[$nick]) {
+            if (empty($userArr[$nick])) {
                 continue;
             }
             $nickArr[$nick] = $nick;
@@ -99,7 +99,7 @@ class rtac_Plugin extends core_Plugin
         $inst->loadPacks($tpl);
         
         // id на ричтекста
-        list($id) = explode(' ', $attr['id']);
+        list($id) = explode(' ', $attr['id'] ?? '');
         $id = trim($id);
         
         // Ако са подадени роли до които може да се споделя
@@ -128,14 +128,14 @@ class rtac_Plugin extends core_Plugin
             $folderId = Request::get('folderId');
             if (!$folderId && ($originId = Request::get('originId'))) {
                 $oRec = doc_Containers::fetch($originId);
-                $folderId = $oRec->folderId;
-                $threadId = $oRec->threadId;
+                $folderId = $oRec->folderId ?? null;
+                $threadId = $oRec->threadId ?? null;
             }
 
             if (!$folderId && $threadId = Request::get('threadId')) {
                 $tRec = doc_Threads::fetch($threadId);
-                $folderId = $tRec->folderId;
-                $threadId = $tRec->id;
+                $folderId = $tRec->folderId ?? null;
+                $threadId = $tRec->id ?? null;
             }
 
             if (!$folderId && ($rId = Request::get('id')) && ($ctr = Request::get('Ctr'))) {
@@ -143,7 +143,7 @@ class rtac_Plugin extends core_Plugin
                     $ctr = cls::get($ctr);
                     if ($ctr instanceof core_Manager) {
                         $cRec = $ctr->fetch($rId);
-                        if ($cRec && $cRec->folderId) {
+                        if (is_object($cRec) && !empty($cRec->folderId)) {
                             $folderId = $cRec->folderId;
                             $threadId = $cRec->threadId ?? null;
                         }
@@ -209,7 +209,7 @@ class rtac_Plugin extends core_Plugin
                 $term = Request::get('term');
 
                 // Роли на потребителите
-                $roles = Request::get('roles');
+                $roles = Request::get('roles') ?? '';
                 $roles = str_replace('|', ',', $roles);
 
                 $conf = core_Packs::getConfig('rtac');
@@ -226,7 +226,9 @@ class rtac_Plugin extends core_Plugin
                     $users = explode(',', $users);
                     foreach ((array) $users as $uId) {
                         $uRec = core_Users::fetch($uId);
-                        $usersArr[$uRec->nick] = core_Users::prepareUserNames($uRec->names);
+                        if (is_object($uRec)) {
+                            $usersArr[$uRec->nick] = core_Users::prepareUserNames($uRec->names);
+                        }
                     }
                 }
 

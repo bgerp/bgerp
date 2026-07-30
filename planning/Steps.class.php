@@ -164,7 +164,7 @@ class planning_Steps extends core_Extender
         $form->setFieldTypeParams("{$mvc->className}_wasteProductId", array('hasProperties' => 'canStore,canConvert', 'groups' => $wasteSysId));
 
         // Добавяне на избор само на Параметрите за производствени операции
-        $paramSuggestions = cat_Params::getTaskParamOptions($rec->{"{$mvc->className}_planningParams"});
+        $paramSuggestions = cat_Params::getTaskParamOptions($rec->{"{$mvc->className}_planningParams"} ?? null);
         $form->setSuggestions("{$mvc->className}_planningParams", $paramSuggestions);
 
         $mandatoryClassOptions = static::getMandatoryClassOptions();
@@ -185,11 +185,11 @@ class planning_Steps extends core_Extender
         // Добавяне на достъпните ресурси от центъра
         if(isset($rec->{"{$mvc->className}_centerId"})){
             $centerRec = planning_Centers::fetch($rec->{"{$mvc->className}_centerId"}, 'folderId,showPreviousJobField');
-            $actionOptions = planning_AssetResourcesNorms::getAllNormOptions($rec->{"{$mvc->className}_centerId"}, $rec->{"{$mvc->className}_planningActions"});
+            $actionOptions = planning_AssetResourcesNorms::getAllNormOptions($rec->{"{$mvc->className}_centerId"}, $rec->{"{$mvc->className}_planningActions"} ?? null);
 
             $form->setSuggestions("{$mvc->className}_planningActions", $actionOptions);
-            $form->setSuggestions("{$mvc->className}_employees", planning_Hr::getByFolderId($centerRec->folderId, $rec->{"{$mvc->className}_employees"}));
-            $form->setSuggestions("{$mvc->className}_fixedAssets", planning_AssetResources::getByFolderId($centerRec->folderId, $rec->{"{$mvc->className}_fixedAssets"}, 'planning_Tasks',true));
+            $form->setSuggestions("{$mvc->className}_employees", planning_Hr::getByFolderId($centerRec->folderId, $rec->{"{$mvc->className}_employees"} ?? null));
+            $form->setSuggestions("{$mvc->className}_fixedAssets", planning_AssetResources::getByFolderId($centerRec->folderId, $rec->{"{$mvc->className}_fixedAssets"} ?? null, 'planning_Tasks',true));
             $form->setDefault("{$mvc->className}_showPreviousJobField", $centerRec->showPreviousJobField);
         }
 
@@ -197,7 +197,7 @@ class planning_Steps extends core_Extender
             $form->setFieldTypeParams("{$mvc->className}_norm", array('measureId' => $rec->measureId));
         }
 
-        if($rec->{"{$mvc->className}_canStore"} != 'yes'){
+        if(($rec->{"{$mvc->className}_canStore"} ?? null) != 'yes'){
             $form->setField("{$mvc->className}_storeIn", 'input=none');
         } else {
 
@@ -205,12 +205,12 @@ class planning_Steps extends core_Extender
             $form->setField("{$mvc->className}_labelPackagingId", 'input');
 
             // Ако артикула е съществуващ само наличните опаковки са достъпни
-            $labelPacks = planning_Tasks::getAllowedLabelPackagingOptions($rec->measureId, $rec->id, $rec->{"{$mvc->className}_labelPackagingId"});
+            $labelPacks = planning_Tasks::getAllowedLabelPackagingOptions($rec->measureId ?? null, $rec->id ?? null, $rec->{"{$mvc->className}_labelPackagingId"} ?? null);
             $form->setOptions("{$mvc->className}_labelPackagingId", $labelPacks);
 
             // Ако има избрана опаковка за етикиране
             if(!empty($rec->{"{$mvc->className}_labelPackagingId"})){
-                $templateOptions = planning_Tasks::getAllAvailableLabelTemplates($rec->{"{$mvc->className}_labelTemplate"});
+                $templateOptions = planning_Tasks::getAllAvailableLabelTemplates($rec->{"{$mvc->className}_labelTemplate"} ?? null);
                 $form->setOptions("{$mvc->className}_labelTemplate", $templateOptions);
 
                 $form->setField("{$mvc->className}_labelQuantityInPack", 'input');
@@ -222,7 +222,7 @@ class planning_Steps extends core_Extender
                 if(isset($rec->id)){
                     $packRec = cat_products_Packagings::getPack($rec->id, $rec->{"{$mvc->className}_labelPackagingId"});
                     $quantityInPack = is_object($packRec) ? $packRec->quantity : 1;
-                    if($data->action == 'clone'){
+                    if(($data->action ?? null) == 'clone'){
                         $form->setDefault("{$mvc->className}_labelQuantityInPack", $quantityInPack);
                     } else {
                         $form->setField("{$mvc->className}_labelQuantityInPack", "placeholder={$quantityInPack}");
@@ -456,6 +456,7 @@ class planning_Steps extends core_Extender
         }
 
         if($Extended = $mvc->getExtended($rec)){
+            $row->planningActions = $row->planningActions ?? '';
             if(empty($rec->planningActions)){
                 $row->planningActions = "<i class='quiet'>n/a</i>";
             }

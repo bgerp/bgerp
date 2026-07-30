@@ -115,7 +115,7 @@ class cat_products_Usage extends core_Manager
         $tpl->append($this->renderJobs($data->jobData));
         
         if ($data->isPublic === false) {
-            $renderEvenIfEmpty = ($data->jobData->notManifacturable === true);
+            $renderEvenIfEmpty = (($data->jobData->notManifacturable ?? null) === true);
             $tpl->append($this->renderDocuments($data->saleData, $renderEvenIfEmpty));
             $tpl->append($this->renderDocuments($data->purData));
             $tpl->append($this->renderDocuments($data->quoteData));
@@ -185,7 +185,7 @@ class cat_products_Usage extends core_Manager
 
         $ids = arr::extractValuesFromArray($dQuery->fetchAll(), $Detail->masterKey);
 
-        if($data->_useMasterField){
+        if($data->_useMasterField ?? null){
             $query2 = $data->Document->getQuery();
             $query2->where("#{$data->_useMasterField} = {$data->masterId} AND #state != 'rejected'");
             $ids += arr::extractValuesFromArray($query2->fetchAll(), 'id');
@@ -298,7 +298,7 @@ class cat_products_Usage extends core_Manager
      */
     private function renderJobs($data)
     {
-        if ($data->hide === true) return;
+        if (($data->hide ?? null) === true) return;
 
         $tpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
 
@@ -307,31 +307,39 @@ class cat_products_Usage extends core_Manager
         $anchorId = 'usage_' . get_class($data->Jobs) . '_' . $data->masterData->rec->containerId;
         $tpl->append("<span id='{$anchorId}'></span>", 'title');
 
-        $title = tr('Задания за производство');
+        $title = tr('Задание');
         $tpl->append($title, 'title');
-        
-        if (isset($data->addUrl)) {
-            $addBtn = ht::createLink('', $data->addUrl, false, 'ef_icon=img/16/add.png,title=Добавяне на ново задание за производство');
-            $tpl->append($addBtn, 'title');
+
+        $addBtns = '';
+        if (isset($data->addUrls)) {
+            if (isset($data->addUrls['manifacture'])) {
+                $addBtns .= ht::createLink('Производство', $data->addUrls['manifacture'], false, 'ef_icon=img/16/add.png,class=button,title=Добавяне на ново задание за производство');
+            }
+
+            if (isset($data->addUrls['disassembly'])) {
+                $addBtns .= ht::createLink('Разпад', $data->addUrls['disassembly'], false, 'ef_icon=img/16/add.png,class=button,title=Добавяне на ново задание за разпад');
+            }
         }
         
-        $listFields = arr::make('title=Задание,productId=Артикул,dueDate=Падеж,saleId=Продажба,packQuantity=Планирано,quantityProduced=Заскладено,packagingId=Мярка');
-        $listFields = core_TableView::filterEmptyColumns($data->rows, $listFields, 'saleId');
+        $listFields = arr::make('title=Задание,type=Вид,productId=Артикул,dueDate=Падеж,dealId=Сделка,packQuantity=Планирано,quantityProduced=Заскладено,packagingId=Мярка');
+        $listFields = core_TableView::filterEmptyColumns($data->rows, $listFields, 'dealId');
         $data->listFields = $listFields;
         $data->Jobs->invoke('BeforeRenderListTable', array($tpl, &$data));
         
         $listTableMvc = clone $data->Jobs;
         $listTableMvc->FLD('title', 'varchar', 'tdClass=leftCell');
+        $listTableMvc->FNC('dealId', 'varchar');
         
         $table = cls::get('core_TableView', array('mvc' => $listTableMvc));
         $details = $table->get($data->rows, $data->listFields);
         
         // Ако артикула не е производим, показваме в детайла
-        if ($data->notManifacturable === true) {
-            $tpl->append(" <span class='red small'>(" . tr('Артикулът не е производим') . ')</span>', 'title');
+        if (($data->notManifacturable ?? null) === true) {
+            $tpl->append(" <span class='red small'>(" . tr('Артикулът не е производим и не е едновременно вложим и складируем') . ')</span>', 'title');
             $tpl->append('state-rejected', 'TAB_STATE');
         }
         
+        $tpl->append($addBtns, 'content');
         $tpl->append($details, 'content');
         if (isset($data->Pager)) {
             $data->Pager->addToUrl = array('#' => $anchorId);
@@ -384,10 +392,14 @@ class cat_products_Usage extends core_Manager
         foreach ($data->recs as $id => $rec){
             if ($data->Pager->isOnPage()) {
                 $data->rows[$id] = $data->Jobs->recToVerbal($rec, $fields);
+                $data->rows[$id]->dealId = $data->rows[$id]->sourceId ?? null;
             }
         }
         
-        if ($masterRec->canManifacture != 'yes' || $masterRec->generic == 'yes') {
+        $canManifacture = ($masterRec->canManifacture == 'yes');
+        $canDisassemble = ($masterRec->canConvert == 'yes' && $masterRec->canStore == 'yes');
+
+        if ((!$canManifacture && !$canDisassemble) || $masterRec->generic == 'yes') {
             $data->notManifacturable = true;
         }
         
@@ -396,14 +408,20 @@ class cat_products_Usage extends core_Manager
             
             return;
         }
-        
+
         // Проверяваме можем ли да добавяме нови задания
-        if ($data->Jobs->haveRightFor('add', (object) array('productId' => $data->masterId))) {
-            $data->addUrl = array('planning_Jobs', 'add', 'productId' => $data->masterId, 'foreignId' => $masterRec->containerId, 'ret_url' => true);
+        foreach (array('manifacture' => $canManifacture, 'disassembly' => $canDisassemble) as $jobType => $isAllowed) {
+            $jobRec = (object) array('productId' => $data->masterId, 'type' => $jobType);
+
+            if (!$data->Jobs->haveRightFor('add', $jobRec)) {
+                continue;
+            }
+
+            $data->addUrls[$jobType] = array('planning_Jobs', 'add', 'productId' => $data->masterId, 'type' => $jobType, 'foreignId' => $masterRec->containerId, 'ret_url' => true);
             if($Driver = cat_Products::getDriver($data->masterId)) {
                 $productionData = $Driver->getProductionData($data->masterId);
                 if(isset($productionData['centerId'])){
-                    $data->addUrl['folderId'] = planning_Centers::fetchField($productionData['centerId'], 'folderId');
+                    $data->addUrls[$jobType]['folderId'] = planning_Centers::fetchField($productionData['centerId'], 'folderId');
                 }
             }
         }

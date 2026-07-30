@@ -1034,7 +1034,7 @@ input.more-btn {
 	padding-left: 0.3em !important;
 	padding-right: 0.3em !important;
 	width: 1.9em;
-	height: 2em \9;
+	height: 2em;
 }
 
 .more-btn:not(.toolbar-btn, .transparent) {
@@ -1476,6 +1476,13 @@ a.profile {
     }
 }
 
+.document table.listTable>tbody>tr.state-rejected>td {
+	color: #444 !important;
+	i, .no-border td {
+		color: #444 !important;
+	}
+}
+
 .state-rejected .document .profile{
     text-decoration: none !important;
 }
@@ -1680,7 +1687,7 @@ table.listTable:not(.noHoverTable) > tbody > tr:hover, table.listTable:not(.noHo
 }
 
 .formMiddleCaption {
-	margin: 0 2px 0 0 !important;
+	margin: 0 2px 0 1em !important;
     border: solid 1px #ccc;
     background: #eee;
 	color: #333;

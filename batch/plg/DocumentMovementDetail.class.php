@@ -13,8 +13,6 @@
  * @license   GPL 3
  *
  * @since     v 0.1
- *
- * @todo да се разработи
  */
 class batch_plg_DocumentMovementDetail extends core_Plugin
 {
@@ -45,9 +43,17 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
     {
         $form = &$data->form;
         $rec = &$form->rec;
+
+        // Ако за реда вече има разписани партиди, складът не бива да се сменя -
+        // иначе партидите остават разписани към склад, различен от този на реда
+        if (isset($rec->id) && isset($form->fields[$mvc->storeFieldName]) && batch_BatchesInDocuments::fetch("#detailClassId = {$mvc->getClassId()} AND #detailRecId = {$rec->id}")) {
+            $form->setField($mvc->storeFieldName, array('hint' => 'Склада не може да се смени, защото има разпределени партиди от него'));
+            $form->setReadOnly($mvc->storeFieldName);
+        }
+
         $storeId = ($mvc instanceof core_Detail) ? ($mvc->Master->fetchField($rec->{$mvc->masterKey}, $mvc->Master->storeFieldName)) : $rec->{$mvc->storeFieldName};
         if (!$storeId) {
-            
+
             return;
         }
 
@@ -55,7 +61,7 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
             
             return;
         }
-        if (isset($rec->id) && $data->action != 'clone') {
+        if (isset($rec->id) && ($data->action ?? null) != 'clone') {
 
             return;
         }
@@ -153,7 +159,7 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
             return;
         }
 
-        if (isset($rec->id) && !$form->_cloneForm) {
+        if (isset($rec->id) && !($form->_cloneForm ?? false)) {
             
             return;
         }
@@ -180,8 +186,8 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
                 if (is_object($BatchClass)) {
                     if (!empty($rec->batch)) {
                         $productInfo = cat_Products::getProductInfo($rec->{$mvc->productFieldName});
-                        $quantityInPack = ($productInfo->packagings[$rec->packagingId]) ? $productInfo->packagings[$rec->packagingId]->quantity : 1;
-                        $quantity = ($rec->packQuantity) ? $rec->packQuantity * $quantityInPack : $quantityInPack;
+                        $quantityInPack = !empty($productInfo->packagings[$rec->packagingId]) ? $productInfo->packagings[$rec->packagingId]->quantity : 1;
+                        $quantity = !empty($rec->packQuantity) ? $rec->packQuantity * $quantityInPack : $quantityInPack;
 
                         $msg = null;
                         if (!$BatchClass->isValid($rec->batch, $quantity, $msg)) {
@@ -225,7 +231,7 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
     public static function on_AfterCreate($mvc, $rec)
     {
         if ($mvc->getBatchMovementDocument($rec) == 'out') {
-            if ($rec->_clonedWithBatches !== true) {
+            if (($rec->_clonedWithBatches ?? null) !== true) {
                 self::autoAllocate($mvc, $rec);
             }
         } else {
@@ -258,7 +264,7 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
     {
         // Нормализираме полето за партидата
         if (!empty($rec->batch)) {
-            $BatchClass = batch_Defs::getBatchDef($rec->productId);
+            $BatchClass = batch_Defs::getBatchDef($rec->{$mvc->productFieldName});
             if (is_object($BatchClass)) {
                 $rec->batch = $BatchClass->normalize($rec->batch);
             }
@@ -267,8 +273,13 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
         }
 
         // Ако записа е редактиран и к-то е променено
-        if ($rec->isEdited === true && isset($rec->id)) {
-            if ($rec->quantity != $mvc->fetchField($rec->id, 'quantity')) {
+        if (($rec->isEdited ?? null) === true && isset($rec->id)) {
+            $quantity = $rec->quantity ?? null;
+            if (!isset($quantity) && isset($rec->packQuantity, $rec->quantityInPack)) {
+                $quantity = $rec->packQuantity * $rec->quantityInPack;
+            }
+
+            if (isset($quantity) && $quantity != $mvc->fetchField($rec->id, 'quantity')) {
                 if($BatchClass = batch_Defs::getBatchDef($rec->{$mvc->productFieldName})){
                     if ($BatchClass->canAutoAllocate()) {
                         $rec->autoAllocate = true;
@@ -290,7 +301,7 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
     {
         if ($mvc->getBatchMovementDocument($rec) == 'out') {
             if(($rec->_forceBatch ?? false) !== true){
-                if ($rec->autoAllocate === true) {
+                if (($rec->autoAllocate ?? null) === true) {
                     batch_BatchesInDocuments::delete("#detailClassId = {$mvc->getClassId()} AND #detailRecId = {$rec->id}");
                     self::autoAllocate($mvc, $rec);
                     core_Statuses::newStatus('Преразпределени партиди, поради променено количество');
@@ -300,12 +311,12 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
             }
         }
         
-        if ($rec->isEdited === true) {
+        if (($rec->isEdited ?? null) === true) {
             if (empty($rec->batch)) {
                 batch_BatchesInDocuments::delete("#detailClassId = {$mvc->getClassId()} AND #detailRecId = {$rec->id}");
             } else {
                 if (!isset($rec->quantity)) {
-                    $rec->quantity = $rec->packQuantity * $rec->quantityInPack;
+                    $rec->quantity = ($rec->packQuantity ?? 0) * ($rec->quantityInPack ?? 0);
                 }
                 
                 batch_BatchesInDocuments::saveBatches($mvc, $rec->id, array($rec->batch => $rec->quantity), true);
@@ -370,8 +381,8 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
 
             $recInfo = $mvc->getRowInfo($rec);
             $storeId = $recInfo->operation[key($recInfo->operation)];
-            if (!$storeId) return;
-            
+            if (!$storeId) continue;
+
             if (!batch_Defs::getBatchDef($rec->{$mvc->productFieldName})) continue;
             
             $row->{$mvc->productFieldName} = new core_ET($row->{$mvc->productFieldName});
@@ -421,10 +432,13 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
             $Master = $mvc;
         }
         
+        $quantityInPack = $rec->quantityInPack ?? 1;
+        $quantity = $rec->quantity ?? (($rec->packQuantity ?? 0) * $quantityInPack);
+
         $res = (object) array('productId' => $rec->{$mvc->productFieldName},
-            'packagingId' => $rec->packagingId,
-            'quantity' => $rec->quantity,
-            'quantityInPack' => $rec->quantityInPack,
+            'packagingId' => $rec->packagingId ?? null,
+            'quantity' => $quantity,
+            'quantityInPack' => $quantityInPack,
             'containerId' => $masterRec->containerId,
             'date' => $masterRec->{$Master->valiorFld},
             'state' => $masterRec->state,

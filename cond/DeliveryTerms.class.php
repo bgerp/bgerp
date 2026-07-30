@@ -193,7 +193,7 @@ class cond_DeliveryTerms extends core_Master
     {
         if (!empty($id)) {
             $rec = self::fetchRec($id);
-            if (cls::load($rec->costCalc, true)) {
+            if (!empty($rec->costCalc) && cls::load($rec->costCalc, true)) {
                 
                 return cls::getInterface('cond_TransportCalc', $rec->costCalc);
             }
@@ -211,7 +211,7 @@ class cond_DeliveryTerms extends core_Master
     {
         if (!empty($id)) {
             $rec = self::fetchRec($id);
-            if (cls::load($rec->courierApi, true)) {
+            if (!empty($rec->courierApi) && cls::load($rec->courierApi, true)) {
                 if($instance) return cls::getInterface('cond_CourierApiIntf', $rec->courierApi);
 
                 return $rec->courierApi;
@@ -370,7 +370,7 @@ class cond_DeliveryTerms extends core_Master
             }
         }
 
-        $address = trim(strip_tags($address));
+        $address = trim(strip_tags($address ?? ''));
 
         return $address;
     }
@@ -440,7 +440,10 @@ class cond_DeliveryTerms extends core_Master
                 // Ако има взима се нейния адрес, ако не адреса на "Моята фирма"
                 if(isset($locationId)){
                     $locationRec = crm_Locations::fetch($locationId, 'countryId,place,pCode,address');
-                    $countryId = (!empty($locationRec->country)) ? $locationRec->country : $countryId;
+                }
+
+                if (!empty($locationRec)) {
+                    $countryId = (!empty($locationRec->countryId)) ? $locationRec->countryId : $countryId;
                     $pCode = $locationRec->pCode;
                     $place = $locationRec->place;
                     $address = $locationRec->address;
@@ -462,7 +465,7 @@ class cond_DeliveryTerms extends core_Master
         $isColabReceiver = ($cu && $rec->address == 'receiver' && ($Document instanceof eshop_Carts) && core_Users::isContractor($cu));
         
         $settings = cms_Domains::getSettings();
-        if($isColabReceiver && $settings->locationIsMandatory == 'yes'){
+        if($isColabReceiver && ($settings->locationIsMandatory ?? null) == 'yes'){
             $form->setField('deliveryCountry', 'input=hidden');
             $form->setField('deliveryPCode', 'input=hidden');
             $form->setField('deliveryPlace', 'input=hidden');
@@ -481,8 +484,9 @@ class cond_DeliveryTerms extends core_Master
             $fields = self::getAdditionalFields($rec, $document);
            
             if(countR($fields)){
+                $deliveryData = is_array($form->rec->deliveryData ?? null) ? $form->rec->deliveryData : array();
                 foreach ($fields as $fld) {
-                    $form->setDefault($fld, $form->rec->deliveryData[$fld]);
+                    $form->setDefault($fld, $deliveryData[$fld] ?? null);
                 }
             } else {
                 $form->rec->deliveryData = null;
@@ -511,23 +515,24 @@ class cond_DeliveryTerms extends core_Master
             $formRec->deliveryData = array();
             $fields = self::getAdditionalFields($id, $document);
             foreach ($fields as $name) {
-                $formRec->deliveryData[$name] = $formRec->{$name};
+                $formRec->deliveryData[$name] = $formRec->{$name} ?? null;
             }
         }
         
         if ($Document instanceof sales_Sales || $Document instanceof sales_Quotations) {
-            $deliveryData = is_array($formRec->deliveryData) ? $formRec->deliveryData : array();
+            $deliveryData = is_array($formRec->deliveryData ?? null) ? $formRec->deliveryData : array();
             
-            $locationId = $formRec->deliveryLocationId;
+            $locationId = $formRec->deliveryLocationId ?? null;
             if($Document instanceof sales_Quotations){
                 if(!empty($formRec->deliveryPlaceId)){
                     $locationId = crm_Locations::fetchField(array("#title = '[#1#]' AND #contragentCls = '{$formRec->contragentClassId}' AND #contragentId = '{$formRec->contragentId}'", $formRec->deliveryPlaceId), 'id');
                 }
             }
 
-            if(!$formRec->__isBeingChanged){
+            if (empty($formRec->__isBeingChanged)) {
                 if ($error = sales_TransportValues::getDeliveryTermError($id, $formRec->deliveryAdress, $formRec->contragentClassId, $formRec->contragentId, $locationId, $deliveryData)) {
-                    $form->setError('deliveryTermId,deliveryAdress,deliveryLocationId', $error);
+                    $locationField = ($Document instanceof sales_Quotations) ? 'deliveryPlaceId' : 'deliveryLocationId';
+                    $form->setError("deliveryTermId,deliveryAdress,{$locationField}", $error);
                 }
             }
         }

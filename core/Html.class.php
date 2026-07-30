@@ -870,7 +870,8 @@ class core_Html
             $attr['style'] = ($attr['style'] ?? '') . 'color:#772200;';
         }
         
-        $attr['class'] .= ($attr['class'] ? ' ' : '') . 'button';
+        $class = $attr['class'] ?? '';
+        $attr['class'] = $class . ($class ? ' ' : '') . 'button';
         
         // Добавяме икона на бутона, ако има
         if (!Mode::is('screenMode', 'narrow')) {
@@ -913,7 +914,7 @@ class core_Html
                     $url = toUrl($url);
                 } catch (core_exception_Expect $e) {
                     $url = null;
-                    $attr['style'] .= ' border:dotted 1px red;';
+                    $attr['style'] = ($attr['style'] ?? '') . ' border:dotted 1px red;';
                 }
             } else {
                 $url = '';
@@ -922,7 +923,7 @@ class core_Html
         
         if ($url) {
             if (($warning || ($attr['rel'] ?? null) == 'nofollow') && ((!Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('pdf') && !Mode::is('text', 'plain')))) {
-                $attr['onclick'] .= " document.location='{$url}'";
+                $attr['onclick'] = ($attr['onclick'] ?? '') . " document.location='{$url}'";
                 $attr['href'] = 'javascript:void(0)';
             } else {
                 $attr['href'] = $url;
@@ -1035,7 +1036,7 @@ class core_Html
             $name = 'sm';
             $attr['onChange'] = 'openUrl(this.options[this.selectedIndex].value, event)';
             $attr['onfocus'] = 'this.selectedIndex = -1;';
-            $attr['class'] = ($attr['class'] ? $attr['class'] . ' ' : '') . 'button';
+            $attr['class'] = (!empty($attr['class']) ? $attr['class'] . ' ' : '') . 'button';
             $attr['id'] = $name;
             $selectMenu = self::createSelect($name, $options, $selected, $attr);
             

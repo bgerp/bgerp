@@ -516,7 +516,7 @@ class csv_Lib
     {
         $rowsArr = self::getCsvRowsFromFile($csvData, array('delimiter' => $delimiter, 'enclosure' => $enclosure, 'firstRow' => $firstRow));
         
-        return $rowsArr['data'];
+        return $rowsArr['data'] ?? array();
     }
     
     
@@ -537,15 +537,15 @@ class csv_Lib
     {
         $rowsArr = self::getCsvRowsFromFile($csvData, array('delimiter' => $delimiter, 'enclosure' => $enclosure, 'firstRow' => 'columnNames'));
         
-        if ($checkErr && $rowsArr['error']) {
+        if ($checkErr && !empty($rowsArr['error'])) {
             
             return array();
         }
         
-        if ($rowsArr['firstRow']) {
+        if (!empty($rowsArr['firstRow'])) {
             $resArr = (array) $rowsArr['firstRow'];
         } else {
-            $resArr = $rowsArr['data'][0];
+            $resArr = $rowsArr['data'][0] ?? array();
         }
         
         if ($firstEmpty) {
@@ -554,9 +554,9 @@ class csv_Lib
 
         if ($caption) {
             $captionC = trim(mb_strtolower($caption));
-            $nameC = trim(mb_strtolower($name));
+            $nameC = trim(mb_strtolower((string) $name));
 
-            $cDataArr = $rowsArr['firstRow'] ? $rowsArr['firstRow'] : $rowsArr['data'][0];
+            $cDataArr = !empty($rowsArr['firstRow']) ? $rowsArr['firstRow'] : ($rowsArr['data'][0] ?? array());
             foreach ((array) $cDataArr as $id => $val) {
                 $valC = trim(mb_strtolower($val));
 
@@ -662,11 +662,26 @@ class csv_Lib
     {
         $maxRows = 1000;
         $res = array();
-        foreach ($data as $row) {
-            foreach ($row as $i => $col) {
-                $col = trim($col);
+        foreach ((array) $data as $row) {
+            foreach ((array) $row as $i => $col) {
+                $col = trim((string) $col);
                 if (strlen($col) == 0) {
                     continue;
+                }
+
+                if (!isset($res[$i])) {
+                    $res[$i] = array(
+                        'unsigned' => true,
+                        'int' => true,
+                        'money' => true,
+                        'number' => true,
+                        'percent' => true,
+                        'code' => true,
+                        'email' => true,
+                        'emails' => true,
+                        'minLen' => null,
+                        'maxLen' => null,
+                    );
                 }
                 
                 // Положително цяло число
@@ -783,14 +798,14 @@ class csv_Lib
         $csv = str_replace(chr(194).chr(160), '', $csv);
         
         // Определяне на формата
-        if (strlen($delimiter)) {
+        if (strlen((string) $delimiter)) {
             $delimiter = str_replace('tab', "\t", $delimiter);
             $dArr = array($delimiter);
         } else {
             $dArr = array('|', "\t", ',', ';', ' ', ':');
         }
         
-        if (strlen($enclosure)) {
+        if (strlen((string) $enclosure)) {
             $eArr = array($enclosure);
         } else {
             $eArr = array('"', '\'');
@@ -804,6 +819,7 @@ class csv_Lib
         $fp = fopen('php://memory', 'r+');
         fputs($fp, $csv);
         $best = null;
+        $parse = array();
         
         foreach ($dArr as $d) {
             foreach ($eArr as $e) {
@@ -883,10 +899,10 @@ class csv_Lib
         
         $fr = 0;
         
-        if (is_array($parse[0])) {
+        if (is_array($parse[0] ?? null)) {
             foreach ($parse[0] as $i => $c0) {
-                $c1 = $parse[1][$i];
-                $c2 = $parse[2][$i];
+                $c1 = $parse[1][$i] ?? '';
+                $c2 = $parse[2][$i] ?? '';
                 
                 if (strlen(trim($c0)) == 0) {
                     $fr += -1;

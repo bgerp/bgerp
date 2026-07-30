@@ -419,9 +419,9 @@ class i18n_Charset extends core_MVC
         if ($isHtml) {
             $pattern = '/<meta[^>]+charset\s*=\s*[\'\"]?(.*?)[[\'\"]]?[\/\s>]/i';
             preg_match($pattern, $text, $match);
-            if ($match[1]) {
+            if (!empty($match[1])) {
                 if ($cs = self::getCanonical(($match[1]))) {
-                    $assumedCharsets[$cs] += $step * 0.7;
+                    $assumedCharsets[$cs] = ($assumedCharsets[$cs] ?? 0) + $step * 0.7;
                 }
             }
 
@@ -451,6 +451,7 @@ class i18n_Charset extends core_MVC
 
         // Ако текста е 7-битов
         if (self::is7bit($text)) {
+            $cs = null;
             if (countR($assumedCharsets)) {
                 $cs = array_search(max($assumedCharsets), $assumedCharsets);
             }
@@ -490,7 +491,7 @@ class i18n_Charset extends core_MVC
         if ($max < 1.1) {
             // Намираме скриптовите рейтинги на всички често срещани кодировки
             foreach (static::$commonCharsets as $cs => $scripts) {
-                if ($rates[$cs]) {
+                if (!empty($rates[$cs])) {
                     continue;
                 }
                 
@@ -515,7 +516,7 @@ class i18n_Charset extends core_MVC
         // Ако нямаме максимална стойност над 1, то разглеждаме и няколко по-редки
         if ($max < 1.1) {
             foreach (static::$rareCharsets as $cs => $scripts) {
-                if ($rates[$cs]) {
+                if (!empty($rates[$cs])) {
                     continue;
                 }
                 
@@ -529,8 +530,8 @@ class i18n_Charset extends core_MVC
                 $resDebug[$cs] = $debug;
                 
                 // Добавка за правилно UTF-8 кодиране
-                if (strpos($cs, 'REP_UTF8')) {
-                    $weight = $assumedCharsets['UTF-8'];
+                if (strpos($cs, 'REP_UTF8') !== false) {
+                    $weight = $assumedCharsets['UTF-8'] ?? 0;
                     $rates[$cs] = $rates[$cs] * (1 + $weight / 100) + $weight / 1000;
                 }
             }
@@ -605,16 +606,16 @@ class i18n_Charset extends core_MVC
                         $k = 'mid';
                     }
                     
-                    $bitStr = $bitStrArr[$k];
+                    $bitStr = $bitStrArr[$k] ?? '';
                     
                     // Докато не намерим символ различен от 7 бита, правим проверка
                     if ($bitStr != $not7BitStr && ord($char) > 127) {
                         $bitStrArr[$k] = $bitStr = $not7BitStr;
                     }
                     
-                    if ($strCntArr[$k][$bitStr] <= $strMaxLen) {
-                        $strArr[$bitStr][$k] .= $char;
-                        $strCntArr[$k][$bitStr]++;
+                    if (($strCntArr[$k][$bitStr] ?? 0) <= $strMaxLen) {
+                        $strArr[$bitStr][$k] = ($strArr[$bitStr][$k] ?? '') . $char;
+                        $strCntArr[$k][$bitStr] = ($strCntArr[$k][$bitStr] ?? 0) + 1;
                     } else {
                         
                         // Ако сме намерили стринга, няма нужда да ходим до края в интервала
@@ -639,13 +640,13 @@ class i18n_Charset extends core_MVC
                     
                     // Ако не е 7 битов стринг, искаме да е над определена дължина (може да е намерен в края)
                     
-                    if ($vArr[$not7BitStr] > floor($strMaxLen / 2.5)) {
-                        $text .= $strArr[$not7BitStr][$key];
+                    if (($vArr[$not7BitStr] ?? 0) > floor($strMaxLen / 2.5)) {
+                        $text .= ($strArr[$not7BitStr][$key] ?? '');
                     } else {
-                        $text .= $strArr[''][$key];
+                        $text .= ($strArr[''][$key] ?? '');
                         
                         // Ако има много малко текст (под 160 символа), който не е 7 битово, да се конкатинира с 7 битовия
-                        if ($strArr[$not7BitStr][$key]) {
+                        if (!empty($strArr[$not7BitStr][$key])) {
                             $text .= $strArr[$not7BitStr][$key];
                         }
                     }
@@ -690,9 +691,13 @@ class i18n_Charset extends core_MVC
             // Горе се взема не в mb и затова го вземаме пак, но този път ще е на по-кратък стринг
             $len = mb_strlen($text);
             
-            $sL = $SL = 'sign';
-            
+            $sL = $sLL = 'sign';
+            $SL = $SLL = 'sign';
+
             $c = '';
+            $cL = $cLL = '';
+            $mL = $mLL = '';
+            $total = 0;
             
             $i = 0;
             
@@ -717,7 +722,7 @@ class i18n_Charset extends core_MVC
                 // Ако имаме знак - даваме +1
                 if ($S != 'sign') {
                     if ($S == $SL || $SL == 'sign') {
-                        if ($scripts[$S] || $S == 'latin' || $scripts['all']) {
+                        if (!empty($scripts[$S]) || $S == 'latin' || !empty($scripts['all'])) {
                             ++$total;
                             
                             // $debug .= '+mono:' . $total . ';';
@@ -728,7 +733,7 @@ class i18n_Charset extends core_MVC
                         // $debug .= '-mono:' . $total . ';';
                     }
                     
-                    if ($scripts[$S] || $S == 'latin' || $scripts['all']) {
+                    if (!empty($scripts[$S]) || $S == 'latin' || !empty($scripts['all'])) {
                         $total += 0.05;
                         
                         // $debug .= "+{$S}:" . $total . ';';
@@ -1025,7 +1030,7 @@ class i18n_Charset extends core_MVC
      */
     public static function getCanonical($charset)
     {
-        $charset = strtoupper(trim($charset));
+        $charset = strtoupper(trim((string) $charset));
         
         if (!$charset) {
             
@@ -1039,7 +1044,8 @@ class i18n_Charset extends core_MVC
             return $charsetArr[$charset];
         }
         
-        if ($name = self::$charsetsMatchs[$charset]) {
+        $findCharset = null;
+        if ($name = (self::$charsetsMatchs[$charset] ?? null)) {
             $findCharset = $name;
         } else {
             foreach (self::$charsetsMatchs as $key => $name) {
@@ -1081,6 +1087,14 @@ class i18n_Charset extends core_MVC
         }
 
         [$toCharset, $mode] = explode('//', $toCharset) + [1 => null];
+
+        // Някои iconv реализации разпознават Mac Roman само като MACINTOSH
+        if (strtoupper((string) $fromCharset) == 'MACROMAN') {
+            $fromCharset = 'MACINTOSH';
+        }
+        if (strtoupper((string) $toCharset) == 'MACROMAN') {
+            $toCharset = 'MACINTOSH';
+        }
         
         if ($mode && strpos($mode, '//') !== 0) {
             $mode = "//{$mode}";
@@ -1170,7 +1184,7 @@ class i18n_Charset extends core_MVC
             if (!$bFrom || is_array($bFrom)) {
                 $pattern = '/<meta[^>]+charset\s*=\s*[\'\"]?(.*?)[[\'\"]]?[\/\s>]/i';
                 preg_match($pattern, $text, $match);
-                $bFrom = self::getCanonical(($match[1]));
+                $bFrom = isset($match[1]) ? self::getCanonical($match[1]) : null;
             }
             
             if ($bFrom && $bFrom != $fromCharset) {

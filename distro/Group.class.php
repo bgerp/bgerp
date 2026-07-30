@@ -265,7 +265,7 @@ class distro_Group extends core_Master
      */
     public static function on_BeforeActivation($mvc, &$rec)
     {
-        if ($rec->id) {
+        if (!empty($rec->id)) {
             $rRec = $mvc->fetch($rec->id);
             
             if ($rRec->repos) {
@@ -393,7 +393,7 @@ class distro_Group extends core_Master
         
         $title = trim($title);
         
-        if (!$haveAbbr && $rec->id) {
+        if (!$haveAbbr && !empty($rec->id)) {
             $subDir = self::getHandle($rec->id) . ' - ' . $title;
         } else {
             $subDir = $title;
@@ -516,7 +516,7 @@ class distro_Group extends core_Master
         
         $rec = $this->fetchRec($rec);
         
-        if (!$rec->id) {
+        if (empty($rec->id)) {
             
             return $resArr;
         }
@@ -610,7 +610,7 @@ class distro_Group extends core_Master
     {
         // Използваме заглавието на първия документ в нишката или на originId
         $rec = $data->form->rec;
-        if (!$rec->id && !$rec->title) {
+        if (empty($rec->id) && !$rec->title) {
             $cid = null;
             
             //Ако имаме originId

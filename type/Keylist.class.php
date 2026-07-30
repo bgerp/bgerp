@@ -78,6 +78,7 @@ class type_Keylist extends core_Type
         $mvc = cls::get($this->params['mvc']);
         
         $ids = str_replace($div, ',', $value);
+        $res = '';
         
         if ($ids) {
             $idsKey = md5($ids . '|' . json_encode($this->params) . '|' . Mode::get('text-export') . '|' . Mode::get('text'));
@@ -600,7 +601,7 @@ class type_Keylist extends core_Type
                 
                 if ($select != '*') {
                     $name = $mvc->getVerbal($rec, $select);
-                    $name = str_replace(array('&lt;', '&amp;'), array('<', '&'), $name);
+                    $name = str_replace(array('&lt;', '&amp;'), array('<', '&'), (string) $name);
                     $this->suggestions[$rec->id] = $name;
                 } else {
                     $this->suggestions[$rec->id] = $mvc->getTitleById($rec->id, false);

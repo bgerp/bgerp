@@ -181,6 +181,8 @@ class support_Systems extends core_Master
             $sQuery->orWhere($allSystemId);
         }
 
+        $allowedTypes = null;
+
         // Обхождаме всички открити записи
         while ($sRec = $sQuery->fetch()) {
 
@@ -355,7 +357,7 @@ class support_Systems extends core_Master
         if ($form->isSubmitted()) {
 
             // Ако е въведен прототип
-            if ($form->rec->id) {
+            if (!empty($form->rec->id)) {
 
                 // Ако сме избрали протип на същата система
                 if ($form->rec->prototype == $form->rec->id) {

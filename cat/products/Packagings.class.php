@@ -263,7 +263,7 @@ class cat_products_Packagings extends core_Detail
     protected static function on_BeforeSave($mvc, $id, $rec)
     {
         // Ако за този продукт има друга втора мярка, тя става не основна
-        if ($rec->isSecondMeasure == 'yes') {
+        if (($rec->isSecondMeasure ?? null) == 'yes') {
             if ($packRec = static::fetch("#productId = {$rec->productId} AND #isSecondMeasure = 'yes' AND #id != '{$rec->id}'")) {
                 $packRec->isSecondMeasure = 'no';
                 $mvc->save_($packRec, 'isSecondMeasure');
@@ -681,7 +681,11 @@ class cat_products_Packagings extends core_Detail
      */
     public function preparePackagings($data)
     {
-        $data->_masterRec = is_object($data->masterData->rec) ? $data->masterData->rec : $data->masterMvc->fetch($data->masterId);
+        if (isset($data->masterData->rec) && is_object($data->masterData->rec)) {
+            $data->_masterRec = $data->masterData->rec;
+        } else {
+            $data->_masterRec = $data->masterMvc->fetch($data->masterId);
+        }
 
         $data->recs = $data->rows = array();
         $fields = $this->selectFields();
@@ -720,7 +724,7 @@ class cat_products_Packagings extends core_Detail
         }
         $tpl = (isset($data->tpl)) ? $data->tpl : getTplFromFile('cat/tpl/PackagingDetail.shtml');
 
-        if ($data->addUrl && !Mode::isReadOnly()) {
+        if (!empty($data->addUrl) && !Mode::isReadOnly()) {
             $addBtn = ht::createLink('<img src=' . sbf('img/16/add.png') . " style='vertical-align: middle; margin-left:5px;'>", $data->addUrl, false, 'title=Добавяне на нова опаковка/мярка');
             $tpl->append($addBtn, 'TITLE');
         }
@@ -1155,8 +1159,9 @@ class cat_products_Packagings extends core_Detail
             $dArr = arr::make($mvc->details);
             foreach ($dArr as $detail) {
                 $Detail = cls::get($detail);
+                $productFld = $Detail->productFld ?? 'productId';
 
-                if (empty($Detail->fields['packagingId'])) {
+                if (empty($Detail->fields['packagingId']) || empty($Detail->fields[$productFld]) || empty($Detail->fields['quantityInPack'])) {
 
                     continue;
                 }
@@ -1166,23 +1171,26 @@ class cat_products_Packagings extends core_Detail
                 $dQuery->where(array("#{$masterKey} = '[#1#]'", $rec->id));
 
                 while ($dRec = $dQuery->fetch()) {
-                    if ($dRec->packagingId && $dRec->productId) {
-                        $quantity = self::fetchField(array("#productId = '[#1#]' AND #packagingId = '[#2#]'", $dRec->productId, $dRec->packagingId), 'quantity');
+                    $productId = $dRec->{$productFld} ?? null;
+                    if (($dRec->packagingId ?? null) && $productId && isset($dRec->quantityInPack)) {
+                        $quantity = self::fetchField(array("#productId = '[#1#]' AND #packagingId = '[#2#]'", $productId, $dRec->packagingId), 'quantity');
                         if (isset($quantity)) {
                             if ($quantity != $dRec->quantityInPack) {
-                                $notMatchArr[$dRec->productId] = $quantity;
+                                $notMatchArr[$productId] = $quantity;
                             }
                         }
                     }
                 }
             }
         } else {
-            if ($rec->packagingId && $rec->productId) {
-                $quantity = self::fetchField(array("#productId = '[#1#]' AND #packagingId = '[#2#]'", $rec->productId, $rec->packagingId), 'quantity');
+            $productFld = $mvc->productFld ?? 'productId';
+            $productId = $rec->{$productFld} ?? null;
+            if (($rec->packagingId ?? null) && $productId && isset($rec->quantityInPack)) {
+                $quantity = self::fetchField(array("#productId = '[#1#]' AND #packagingId = '[#2#]'", $productId, $rec->packagingId), 'quantity');
 
                 if (isset($quantity)) {
                     if ($quantity != $rec->quantityInPack) {
-                        $notMatchArr[$rec->productId] = $quantity;
+                        $notMatchArr[$productId] = $quantity;
                     }
                 }
             }
@@ -1340,7 +1348,8 @@ class cat_products_Packagings extends core_Detail
 
                     // Ако ще може да му се показва продажната цена
                     if (!($Doc->isInstanceOf('planning_ReturnNotes') || $Doc->isInstanceOf('planning_ConsumptionNotes') || $Doc->isInstanceOf('store_Transfers'))) {
-                        $Policy = ($isReverse == 'yes') ? (($Detail->ReversePolicy) ? $Detail->ReversePolicy : cls::get('price_ListToCustomers')) : (($Detail->Policy) ? $Detail->Policy : cls::get('price_ListToCustomers'));
+                        $policyClass = ($isReverse == 'yes') ? ($Detail->ReversePolicy ?? null) : ($Detail->Policy ?? null);
+                        $Policy = $policyClass ?: cls::get('price_ListToCustomers');
                         $docRec = $Doc->fetch('contragentClassId, contragentId, chargeVat, valior, currencyRate,currencyId');
 
                         $policyInfo = $Policy->getPriceInfo($docRec->contragentClassId, $docRec->contragentId, $productData->productId, $productData->packagingId, $quantityInPack, $docRec->valior, $docRec->currencyRate, $docRec->chargeVat);

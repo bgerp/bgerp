@@ -166,7 +166,7 @@ class borsa_Companies extends core_Manager
     public static function on_AfterInputEditForm($mvc, &$form)
     {
         if ($form->rec->email && $form->isSubmitted()) {
-            if ($form->rec->id) {
+            if (!empty($form->rec->id)) {
                 $haveRec = $mvc->fetch(array("#email = '[#1#]' AND #id != '[#1#]'", $form->rec->email, $form->rec->id));
             } else {
                 $haveRec = $mvc->fetch(array("#email = '[#1#]'", $form->rec->email));

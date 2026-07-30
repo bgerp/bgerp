@@ -207,7 +207,7 @@ class acc_plg_Contable extends core_Plugin
             $rec->isContable = 'no';
         }
         
-        if ($rec->id) {
+        if (isset($rec->id)) {
             $mvc->save_($rec, 'isContable');
         }
     }
@@ -479,7 +479,7 @@ class acc_plg_Contable extends core_Plugin
     public static function checkPeriod($valior, &$error)
     {
         $docPeriod = acc_Periods::fetchByDate($valior);
-        
+
         if ($docPeriod) {
             if ($docPeriod->state == 'closed') {
                 $error = "Не може да се контира в затворения сч. период|* \'{$docPeriod->title}\'";
@@ -490,7 +490,7 @@ class acc_plg_Contable extends core_Plugin
             $error = 'Не може да се контира в несъществуващ сч. период';
         }
         
-        return ($error) ? false : true;
+        return !$error;
     }
     
     
@@ -533,16 +533,16 @@ class acc_plg_Contable extends core_Plugin
             $requiredRoles = $mvc->getRequiredRoles('restore', $rec);
             
             // Не може да се реконтират само активни и приключени документи
-            if ($rec->id && ($rec->state == 'draft' || $rec->state == 'rejected' || $rec->state == 'pending' || $rec->state == 'stopped')) {
+            if (!empty($rec->id) && ($rec->state == 'draft' || $rec->state == 'rejected' || $rec->state == 'pending' || $rec->state == 'stopped')) {
                 $requiredRoles = 'no_one';
             }
             
             // Не може да се контира, ако документа не генерира валидна транзакция
-            if ($rec->isContable == 'no') {
+            if (($rec->isContable ?? null) == 'no') {
                 $requiredRoles = 'no_one';
             }
         } elseif ($action == 'revert') {
-            if ($rec->id) {
+            if (!empty($rec->id)) {
                 
                 // Ако има запис в журнала, вальора е този от него, иначе е полето за вальор от документа
                 $jRec = acc_Journal::fetchByDoc($mvc->getClassId(), $rec->id);
@@ -555,7 +555,7 @@ class acc_plg_Contable extends core_Plugin
                 }
             }
         } elseif ($action == 'reject') {
-            if ($rec->id) {
+            if (!empty($rec->id)) {
                 
                 // Ако има запис в журнала, вальора е този от него, иначе е полето за вальор от документа
                 $jRec = acc_Journal::fetchByDoc($mvc->getClassId(), $rec->id);
@@ -596,7 +596,7 @@ class acc_plg_Contable extends core_Plugin
                 
                 // Ако сч. период на записа е затворен, документа не може да се възстановява
                 $periodRec = acc_Periods::fetchByDate($mvc->getValiorValue($rec));
-                if ($periodRec->state == 'closed' && $rec->brState != 'draft') {
+                if (($periodRec->state ?? null) == 'closed' && $rec->brState != 'draft') {
                     $requiredRoles = 'no_one';
                 }
             }
@@ -627,7 +627,7 @@ class acc_plg_Contable extends core_Plugin
             }
             
             // Ако документа не генерира валидна и непразна транзакция - не може да му се прави корекция
-            if (!$rec->isContable) {
+            if (empty($rec->isContable)) {
                 $requiredRoles = 'no_one';
             }
         }
@@ -644,7 +644,7 @@ class acc_plg_Contable extends core_Plugin
         
         if ($action == 'closewith' && isset($rec)) {
             $periodRec = acc_Periods::fetchByDate($mvc->getValiorValue($rec));
-            if ($periodRec->state == 'closed' && $rec->brState != 'draft') {
+            if (($periodRec->state ?? null) == 'closed' && $rec->brState != 'draft') {
                 $requiredRoles = 'no_one';
             } elseif($rec->state == 'pending'){
                 $requiredRoles = 'no_one';
@@ -711,7 +711,7 @@ class acc_plg_Contable extends core_Plugin
         $rec = $mvc->fetchRec($id);
         
         // Контирането е позволено само в съществуващ активен/чакащ/текущ период;
-        $period = acc_Periods::fetchByDate($rec->valior);
+        $period = acc_Periods::fetchByDate($mvc->getValiorValue($rec));
         expect($period && ($period->state != 'closed' && $period->state != 'draft'), 'Не може да се контира в несъществуващ, бъдещ или затворен период');
         $cRes = acc_Journal::saveTransaction($mvc->getClassId(), $rec);
         
@@ -880,7 +880,7 @@ class acc_plg_Contable extends core_Plugin
                     if(in_array($name, $ignoreDetailsToCheckWhenTryingToPost)) continue;
                     $haveDetailsToAdd = true;
                     $Details = cls::get($name);
-                    if ($rec->id && $Details->masterKey) {
+                    if (!empty($rec->id) && $Details->masterKey) {
                         if ($Details->fetch("#{$Details->masterKey} = {$rec->id}")) {
                             $hasDetail = true;
                             break;
@@ -948,7 +948,7 @@ class acc_plg_Contable extends core_Plugin
     {
         if (!$res) {
             $rec = $mvc->fetchRec($rec);
-            $res = dt::verbal2mysql($rec->{$mvc->valiorFld}, false);
+            $res = dt::verbal2mysql($rec->{$mvc->valiorFld} ?? null, false);
         }
     }
     
@@ -1195,7 +1195,7 @@ class acc_plg_Contable extends core_Plugin
             }
 
             // Забрана да не може да се контират определени документи ако са създадени преди ЕЗ, но вальора им е след нея
-            if($mvc->currencyFld && isset($rec->{$mvc->currencyFld}) && !($mvc instanceof deals_PaymentDocument)){
+            if(!empty($mvc->currencyFld) && isset($rec->{$mvc->currencyFld}) && !($mvc instanceof deals_PaymentDocument)){
                 $valior = $rec->{$mvc->valiorFld} ?? dt::today();
                 if($rec->createdOn < acc_Setup::getEurozoneDate() && $valior >= acc_Setup::getEurozoneDate()){
                     core_Statuses::newStatus('Не може да се контира документ създаден преди Еврозоната с вальор след нея|*!', 'error');

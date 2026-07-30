@@ -116,7 +116,7 @@ class escpos_Helper
             // Ако е ДИ или КИ има специална логика
             if ($Inst instanceof sales_Invoices) {
                 if ($data->rec->type == 'dc_note') {
-                    if ($dRec->changedPrice !== true && $dRec->changedQuantity !== true) {
+                    if (($dRec->changedPrice ?? null) !== true && ($dRec->changedQuantity ?? null) !== true) {
                         continue;
                     }
                     

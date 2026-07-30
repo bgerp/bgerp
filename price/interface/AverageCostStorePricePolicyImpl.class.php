@@ -153,7 +153,7 @@ class price_interface_AverageCostStorePricePolicyImpl extends price_interface_Ba
      * @return array
      */
     private function getLastDebitRecs($productItemIds, $storeItemIds, $useCachedDate = true)
-    {
+    {'ссс';
         // Ако баланса се изчислява в момента да не прави нищо
         if ($useCachedDate && !core_Locks::obtain('RecalcBalances', 600, 100, 30)) {
             log_System::logDebug('AVG BALANCE NOT FREE');

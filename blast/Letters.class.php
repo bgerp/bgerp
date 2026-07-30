@@ -278,7 +278,7 @@ class blast_Letters extends core_Master
                 redirect(array('blast_Lists', 'add'), false, '|Нямате добавен списък за циркулярни писма');
             }
             
-            if (!$form->rec->id) {
+            if (empty($form->rec->id)) {
                 
                 //Ако добавяме нов показваме всички списъци
                 $form->setOptions('listId', $files, $form->rec->id);
@@ -295,14 +295,14 @@ class blast_Letters extends core_Master
         $rec = $data->form->rec;
         
         // Ако създаваме нов
-        if (!$rec->id) {
+            if (empty($rec->id)) {
             
             //Слага state = draft по подразбиране при нов запис
             $form->setDefault('state', 'draft');
         }
         
         // Ако създваме
-        if ((!$rec->id) && ($data->action != 'clone')) {
+        if (empty($rec->id) && (($data->action ?? null) != 'clone')) {
             
             // Задваме стойности по подразбиране
             $rec->recipient = '[#company#]';

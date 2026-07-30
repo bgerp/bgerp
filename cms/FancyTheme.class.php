@@ -134,13 +134,13 @@ class cms_FancyTheme extends core_ProtoInner
 
         if (phpcolor_Adapter::checkColor($baseColor, 'dark')) {
             $mixColor = '#aaa';
-            $css .= "\n    #cmsBottom a, #cmsBottom a:hover, #cmsMenu a {color:#fff !important; text-shadow: 0px 0px 2px #000}";
+            $css .= "\n    #cmsBottom p, #cmsBottom a, #cmsBottom a:hover, #cmsMenu a {color:#fff !important; text-shadow: 0px 0px 2px #000}";
             $css .= "\n    .vertical .formTitle, .vertical .formGroup, .vertical .formMiddleCaption, .vertical form[method=post] input[type=submit], form[method=post] .formTable input[type=submit] {color:#fff !important;}";
         } else {
             $mixColor = '#666';
 
             // стилове за тъмен цвят
-            $css .= "\n     #cmsBottom a, #cmsBottom a:hover, #cmsMenu a {color:#000 !important; text-shadow: none}";
+            $css .= "\n     #cmsBottom p, #cmsBottom a, #cmsBottom a:hover, #cmsMenu a {color:#000 !important; text-shadow: none}";
             $css .= "\n    .vertical .formTitle, .vertical .formGroup, .vertical .formMiddleCaption, .vertical form[method=post] input[type=submit], form[method=post] .formTable input[type=submit] {color:#000 !important;}";
         }
 
@@ -362,7 +362,7 @@ class cms_FancyTheme extends core_ProtoInner
      */
     public static function on_BeforeSave($mvc, &$innerStateField, &$innerFormField, $rec, $fields = null, $mode = null)
     {
-        if (!trim($innerFormField->title) && !$rec->id && core_Users::isSystemUser()) {
+        if (!trim($innerFormField->title) && empty($rec->id) && core_Users::isSystemUser()) {
             if (!$innerFormField) {
                 $innerFormField = new stdClass();
             }
@@ -380,7 +380,7 @@ class cms_FancyTheme extends core_ProtoInner
      */
     public function prepareEmbeddedForm(core_Form &$form)
     {
-        if (!$form->rec->id) {
+        if (empty($form->rec->id)) {
             $form->setDefault('title', core_Setup::get('EF_APP_TITLE', true));
         }
     }

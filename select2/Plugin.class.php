@@ -100,7 +100,7 @@ class select2_Plugin extends core_Plugin
                 $vArr = $invoker->toArray($value);
                 
                 foreach ($vArr as $v) {
-                    $sValArr[$v] = $invoker->suggestions[$v];
+                    $sValArr[$v] = $invoker->suggestions[$v] ?? $v;
                     unset($invoker->suggestions[$v]);
                 }
             }
@@ -116,7 +116,7 @@ class select2_Plugin extends core_Plugin
             
             // Ако последният елемент е група, премахваме от списъка
             $endElement = end($invoker->suggestions);
-            if ($rSugg > 2 && is_object($endElement) && $endElement->group) {
+            if ($rSugg > 2 && is_object($endElement) && !empty($endElement->group)) {
                 array_pop($invoker->suggestions);
             }
             
@@ -145,7 +145,7 @@ class select2_Plugin extends core_Plugin
         
         $minItems = isset($invoker->params['select2MinItems']) ? $invoker->params['select2MinItems'] : self::$minItems;
         
-        $optArr = isset($invoker->suggestions) ? $invoker->suggestions : $invoker->options;
+        $optArr = $invoker->suggestions ?? $invoker->options ?? array();
         
         $cnt = self::$suggCnt;
         
@@ -153,7 +153,7 @@ class select2_Plugin extends core_Plugin
             if (isset($invoker->suggestions)) {
                 $cnt = countR($invoker->suggestions);
             } else {
-                $cnt = countR($invoker->options);
+                $cnt = countR($optArr);
             }
         }
         
@@ -164,7 +164,7 @@ class select2_Plugin extends core_Plugin
         }
         
         // Ако все още няма id
-        if (!$attr['id']) {
+        if (empty($attr['id'])) {
             $attr['id'] = str::getRand('aaaaaaaa');
         }
         
@@ -186,6 +186,7 @@ class select2_Plugin extends core_Plugin
             
             $dataPup = array();
             $dataL = array();
+            $dataNonLeaf = array();
             while($rec = $query->fetch("#id IN ({$keys})")) {
                 if ($rec->{$parentIdName}) {
                     $dataPup[$rec->id] = $rec->{$parentIdName};
@@ -202,7 +203,7 @@ class select2_Plugin extends core_Plugin
                     while (true) {
                         if (!empty($dataL[$pId])) {
                             $dataL[$id]++;
-                            $pId = $dataPup[$pId];
+                            $pId = $dataPup[$pId] ?? null;
                             if (!--$mCnt) break;
                         } else {
                             break;
@@ -221,23 +222,23 @@ class select2_Plugin extends core_Plugin
                     if ($mustCloseGroup) {
                         $options->append("</optgroup>\n");
                     }
-                    $val->title = htmlspecialchars($val->title);
+                    $val->title = htmlspecialchars($val->title ?? '');
                     $options->append("<optgroup label=\"{$val->title}\">\n");
                     $mustCloseGroup = true;
                     continue;
                 }
-                $optionsAttrArr = $val->attr;
-                $val = $val->title;
+                $optionsAttrArr = $val->attr ?? array();
+                $val = $val->title ?? '';
             }
             
             $newKey = "|{$key}|";
             
             if (is_array($value)) {
-                if ($value[$key]) {
+                if (!empty($value[$key])) {
                     $optionsAttrArr['selected'] = 'selected';
                 }
             } else {
-                if (strstr($value, $newKey)) {
+                if (strstr((string) $value, $newKey)) {
                     $optionsAttrArr['selected'] = 'selected';
                 }
             }
@@ -275,7 +276,7 @@ class select2_Plugin extends core_Plugin
             $selectAttrArray['multiple'] = 'multiple';
         }
         
-        $selectAttrArray['class'] = self::$className . ' ' . $attr['class'];
+        $selectAttrArray['class'] = self::$className . ' ' . ($attr['class'] ?? '');
         $selectAttrArray['id'] = $attr['id'];
         $selectAttrArray['name'] = $name . '[]';
         $selectAttrArray['style'] = 'width:100%';
@@ -344,7 +345,7 @@ class select2_Plugin extends core_Plugin
         $newSugg = array();
         foreach ($invoker->suggestions as $key => $sugg) {
             if (is_object($sugg)) {
-                $suggV = $sugg->title;
+                $suggV = $sugg->title ?? '';
             } else {
                 $suggV = $sugg;
             }

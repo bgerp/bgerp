@@ -163,7 +163,7 @@ class doc_drivers_LatestDocPortal extends core_BaseClass
                         continue;
                     }
 
-                    if ($resArr[$cRec->folderId][$cRec->threadId . '|' . $cRec->id]) {
+                    if (isset($resArr[$cRec->folderId][$cRec->threadId . '|' . $cRec->id])) {
 
                         continue;
                     }
@@ -229,7 +229,7 @@ class doc_drivers_LatestDocPortal extends core_BaseClass
                     $rQuery->orderBy('last', 'DESC');
                     $rQuery->show('last');
                     $rRec = $rQuery->fetch();
-                    $last = $rRec->last;
+                    $last = $rRec ? $rRec->last : null;
                     
                     $cloneQ = clone $cQuery;
                     
@@ -263,6 +263,10 @@ class doc_drivers_LatestDocPortal extends core_BaseClass
                         $lRec = $cloneQ->fetch();
                     } else {
                         $tUnsighted = 'tUnsighted';
+                    }
+
+                    if (!$lRec) {
+                        continue;
                     }
                     
                     try {
@@ -416,8 +420,6 @@ class doc_drivers_LatestDocPortal extends core_BaseClass
             $cArr[] = $tRec->last;
             $cArr[] = $tRec->firstContainerId;
         }
-        
-        $tArr = type_Keylist::toArray($dRec->threads);
         
         return md5(implode('|', $cArr));
     }

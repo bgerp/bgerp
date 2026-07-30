@@ -253,7 +253,7 @@ class crm_Locations extends core_Master
         $query->where(array("#contragentId = '[#1#]'", $contragentId));
         
         while ($rec = $query->fetch()) {
-            if (!trim($rec->email)) {
+            if (!trim((string) $rec->email)) {
                 continue;
             }
             
@@ -325,7 +325,7 @@ class crm_Locations extends core_Master
     protected static function on_AfterPrepareEditTitle($mvc, &$res, &$data)
     {
         $rec = $data->form->rec;
-        $data->form->title = core_Detail::getEditTitle($rec->contragentCls, $rec->contragentId, $mvc->singleTitle, $rec->id, 'на');
+        $data->form->title = core_Detail::getEditTitle($rec->contragentCls, $rec->contragentId, $mvc->singleTitle, $rec->id ?? null, 'на');
     }
     
     
@@ -334,10 +334,14 @@ class crm_Locations extends core_Master
      */
     protected static function on_AfterInputEditForm($mvc, $form)
     {
+        if (!$form->isSubmitted()) {
+            return;
+        }
+
         $rec = $form->rec;
         if (!$rec->gpsCoords && $rec->image) {
             if ($gps = exif_Reader::getGps($rec->image)) {
-                
+
                 // Ако има GPS коодинати в снимката ги извличаме
                 $rec->gpsCoords = $gps['lat'] . ', ' . $gps['lon'];
             }
@@ -490,6 +494,7 @@ class crm_Locations extends core_Master
     protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
         $rec = &$data->rec;
+        $address = null;
         
         if ($rec->gpsCoords) {
             $address = $rec->gpsCoords;
@@ -791,13 +796,13 @@ class crm_Locations extends core_Master
      */
     protected static function updateRoutingRules($rec)
     {
-        if (!$rec || !$rec->email) {
-            
+        if (!$rec || !($rec->email ?? null)) {
+
             return ;
         }
-        
-        if (!$rec->contragentCls || !$rec->contragentId) {
-            
+
+        if (!($rec->contragentCls ?? null) || !($rec->contragentId ?? null)) {
+
             return ;
         }
         
@@ -819,13 +824,13 @@ class crm_Locations extends core_Master
      */
     protected static function updateNumbers($rec)
     {
-        if (!$rec || !$rec->tel) {
-            
+        if (!$rec || !($rec->tel ?? null)) {
+
             return ;
         }
-        
-        if (!$rec->contragentCls || !$rec->contragentId) {
-            
+
+        if (!($rec->contragentCls ?? null) || !($rec->contragentId ?? null)) {
+
             return ;
         }
         

@@ -361,7 +361,7 @@ abstract class cash_Document extends deals_PaymentDocument
         }
         
         $cData = cls::get($contragentClassId)->getContragentData($contragentId);
-        $form->setReadOnly('contragentName', ($cData->person) ? $cData->person : $cData->company);
+        $form->setReadOnly('contragentName', (!empty($cData->person)) ? $cData->person : $cData->company);
         
         $form->setField('amountDeal', array('unit' => "|*{$dealInfo->get('currency')} |по сделката|*"));
         
@@ -593,7 +593,7 @@ abstract class cash_Document extends deals_PaymentDocument
             $row->amountVerbal = str::mbUcfirst($amountVerbal);
             
             // Вземаме данните за нашата фирма
-            $headerInfo = deals_Helper::getDocumentHeaderInfo($rec->containerId, $rec->contragentClassId, $rec->contragentId, $row->contragentName);
+            $headerInfo = deals_Helper::getDocumentHeaderInfo($rec->containerId, $rec->contragentClassId, $rec->contragentId, $row->contragentName ?? $rec->contragentName);
             foreach (array('MyCompany', 'MyAddress', 'contragentName', 'contragentAddress') as $fld) {
                 $row->{$fld} = $headerInfo[$fld];
             }
@@ -786,7 +786,7 @@ abstract class cash_Document extends deals_PaymentDocument
 
         $info['valior'] = $rec->valior ?? dt::today();
 
-        return $info;
+        return trans_Helper::normalizeTransportLineInfo($info);
     }
     
     

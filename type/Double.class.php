@@ -179,7 +179,7 @@ class type_Double extends core_Type
      */
     public function toVerbal($value)
     {
-        if (!strlen($value)) {
+        if ($value === null || !strlen($value)) {
             
             return;
         }

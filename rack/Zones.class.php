@@ -759,7 +759,7 @@ class rack_Zones extends core_Master
     {
         // По-хубаво заглавие на формата
         $rec = $data->form->rec;
-        $data->form->title = core_Detail::getEditTitle('store_Stores', $rec->storeId, 'зона', $rec->id, tr('в склад'));
+        $data->form->title = core_Detail::getEditTitle('store_Stores', $rec->storeId, 'зона', $rec->id ?? null, tr('в склад'));
     }
 
 
@@ -2127,7 +2127,7 @@ class rack_Zones extends core_Master
      */
     protected function on_AfterPrepareRetUrl($mvc, $data)
     {
-        if($data->action == 'manage' && $data->form->cmd != 'save_n_new'){
+        if(($data->action ?? null) == 'manage' && $data->form->cmd != 'save_n_new'){
             $data->retUrl = array('rack_Zones', 'list');
         }
     }

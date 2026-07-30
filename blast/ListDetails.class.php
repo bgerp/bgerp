@@ -247,7 +247,7 @@ class blast_ListDetails extends doc_Detail
         $form->rec->key = str::convertToFixedKey(mb_strtolower(trim($form->rec->{$keyField})));
         
         $idCond = '';
-        if ($form->rec->id) {
+        if (!empty($form->rec->id)) {
             $idCond = " AND #id != {$form->rec->id}";
         }
         
@@ -652,6 +652,7 @@ class blast_ListDetails extends doc_Detail
         $listRec = blast_Lists::fetch($listId);
         $fieldsArr = $this->getFncFieldsArr($listRec->allFields);
         
+        $qFields = '';
         foreach ($fieldsArr as $name => $caption) {
             $exp->DEF("#col{$name}={$caption}", 'int', 'mandatory');
             $exp->OPTIONS("#col{$name}", 'getCsvColNames(#csvData,#delimiter,#enclosure, NULL, FALSE)');
@@ -670,7 +671,8 @@ class blast_ListDetails extends doc_Detail
         $exp->DEF('#priority=Приоритет', 'enum(data=Съществуващите данни да се запазят,update=Новите данни да обновят съществуващите)', 'mandatory');
         $exp->rule('#priority', '"data"', $listRec->contactsCnt ? '0' : '1');
         
-        $exp->question('#priority', tr('Какъв да бъде приоритета в случай, че има нов контакт с дублирано съдържание на полето') . " <span class=\"green\">'" . $fieldsArr[$listRec->keyField] . "'</span> ?", true, 'title=' . tr('Приоритет на данните'));
+        $keyFieldCaption = $fieldsArr[$listRec->keyField] ?? $listRec->keyField;
+        $exp->question('#priority', tr('Какъв да бъде приоритета в случай, че има нов контакт с дублирано съдържание на полето') . " <span class=\"green\">'" . $keyFieldCaption . "'</span> ?", true, 'title=' . tr('Приоритет на данните'));
 
         $exp->question($qFields, tr('Въведете съответстващите полета') . ':', true, 'title=' . tr('Съответствие между полетата на източника и списъка'));
         
@@ -712,7 +714,7 @@ class blast_ListDetails extends doc_Detail
                         if ($id === null) {
                             continue;
                         }
-                        $rec->{$name} = trim($rowArr[$id - 1]);
+                        $rec->{$name} = trim((string) ($rowArr[$id - 1] ?? ''));
                     }
                     
                     $err = $this->normalizeRec($rec);
@@ -1295,9 +1297,9 @@ class blast_ListDetails extends doc_Detail
                         if ($cInstRec) {
                             $emails = $cInstRec->buzEmail;
                             $emails .= $emails ? ',' : '';
-                            $emails = $cInstRec->email;
+                            $emails .= $cInstRec->email;
                             $emailsArr = type_Emails::toArray($emails);
-                            $email = trim($emailsArr[0]);
+                            $email = trim($emailsArr[0] ?? '');
                         }
                     }
                     
@@ -1305,7 +1307,7 @@ class blast_ListDetails extends doc_Detail
                         continue ;
                     }
                     
-                    if ($allEmailArr[$email]) {
+                    if (!empty($allEmailArr[$email])) {
                         continue;
                     }
 
@@ -1367,8 +1369,8 @@ class blast_ListDetails extends doc_Detail
                     if (!$email) {
                         continue ;
                     }
-                    
-                    if ($allEmailArr[$email]) {
+
+                    if (!empty($allEmailArr[$email])) {
                         continue;
                     }
                     
@@ -1508,7 +1510,7 @@ class blast_ListDetails extends doc_Detail
                         continue ;
                     }
 
-                    if ($allEmailArr[$email]) {
+                    if (!empty($allEmailArr[$email])) {
                         continue;
                     }
 
@@ -1741,7 +1743,7 @@ class blast_ListDetails extends doc_Detail
                     if (($type instanceof type_Email) || ($type instanceof type_Emails)) {
                         $eArr = type_Emails::toArray($value);
                         foreach ($eArr as $e) {
-                            if ($ignoreEmailArr[$e]) {
+                            if (!empty($ignoreEmailArr[$e])) {
                                 $ignore = true;
 
                                 break;

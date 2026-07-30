@@ -134,7 +134,7 @@ abstract class deals_Helper
             }
 
             // Калкулира се цената с и без ддс и се показва една от тях взависимост трябвали да се показва ддс-то
-            $price = self::calcPrice($rec->{$map['priceFld']}, $vat, $masterRec->{$map['rateFld']});
+            $price = self::calcPrice($rec->{$map['priceFld']} ?? null, $vat, $masterRec->{$map['rateFld']});
             $rec->{$map['priceFld']} = ($hasVat) ? $price->withVat : $price->noVat;
             $noVatAmount = round($price->noVat * $rec->{$map['quantityFld']}, $vatDecimals);
             $discountVal = $rec->{$map['discount']};
@@ -167,7 +167,7 @@ abstract class deals_Helper
             }
             
             if ($discountVal) {
-                if (!(($masterRec->type ?? null) === 'dc_note' && $rec->changedQuantity !== true && $rec->changedPrice !== true)) {
+                if (!(($masterRec->type ?? null) === 'dc_note' && ($rec->changedQuantity ?? null) !== true && ($rec->changedPrice ?? null) !== true)) {
                     $discount += $rec->{$map['amountFld']} * $discountVal;
                 }
             }
@@ -178,7 +178,7 @@ abstract class deals_Helper
 
             // Ако документа е кредитно/дебитно известие сабираме само редовете с промяна
             if (($masterRec->type ?? null) === 'dc_note') {
-                if ($rec->changedQuantity === true || $rec->changedPrice === true) {
+                if (($rec->changedQuantity ?? null) === true || ($rec->changedPrice ?? null) === true) {
                     $amountRow += $rec->{$map['amountFld']};
                     $amount += $noVatAmount;
                     $amountVat += $vatRow;
@@ -213,7 +213,7 @@ abstract class deals_Helper
                 }
             }
 
-            if (!(($masterRec->type ?? null) === 'dc_note' && ($rec->changedQuantity !== true && $rec->changedPrice !== true))) {
+            if (!(($masterRec->type ?? null) === 'dc_note' && (($rec->changedQuantity ?? null) !== true && ($rec->changedPrice ?? null) !== true))) {
                 if (!array_key_exists($vat, $vats)) {
                     $vats[$vat] = (object) array('amount' => 0, 'sum' => 0);
                 }
@@ -1252,19 +1252,27 @@ abstract class deals_Helper
     public static function getContragentDataCompareString($cData1, $cData2)
     {
         $warningMsgArr = array();
-        $cName1 = ($cData1->personVerb) ? $cData1->personVerb : $cData1->companyVerb;
-        $cName2 = ($cData2->personVerb) ? $cData2->personVerb : $cData2->companyVerb;
+        $personVerb1 = $cData1->personVerb ?? null;
+        $personVerb2 = $cData2->personVerb ?? null;
+        $vatNo1 = $cData1->vatNo ?? null;
+        $vatNo2 = $cData2->vatNo ?? null;
+        $eori1 = $cData1->eori ?? null;
+        $eori2 = $cData2->eori ?? null;
+        $uicId1 = $cData1->uicId ?? null;
+        $uicId2 = $cData2->uicId ?? null;
+        $cName1 = $personVerb1 ?: ($cData1->companyVerb ?? null);
+        $cName2 = $personVerb2 ?: ($cData2->companyVerb ?? null);
         if ($cName1 != $cName2) {
             $warningMsgArr[] = tr('Име') . (!empty($cName2) ? " [{$cName2}]" : "");
         }
-        if ($cData1->vatNo != $cData2->vatNo) {
-            $warningMsgArr[] = tr('ДДС№') . (!empty($cData2->vatNo) ? " [{$cData2->vatNo}]" : "");
+        if ($vatNo1 != $vatNo2) {
+            $warningMsgArr[] = tr('ДДС№') . (!empty($vatNo2) ? " [{$vatNo2}]" : "");
         }
-        if ($cData1->eori != $cData2->eori) {
-            $warningMsgArr[] = tr('ЕОРИ') . " [{$cData2->eori}]";
+        if ($eori1 != $eori2) {
+            $warningMsgArr[] = tr('ЕОРИ') . " [{$eori2}]";
         }
-        if ($cData1->uicId != $cData2->uicId) {
-            $warningMsgArr[] = ($cData1->personVerb) ? tr('ЕГН') : (tr('Нац. №') . (!empty($cData2->uicId) ? " [{$cData2->uicId}]" : ''));
+        if ($uicId1 != $uicId2) {
+            $warningMsgArr[] = $personVerb1 ? tr('ЕГН') : (tr('Нац. №') . (!empty($uicId2) ? " [{$uicId2}]" : ''));
         }
 
         return $warningMsgArr;
@@ -1568,7 +1576,8 @@ abstract class deals_Helper
                 //$rec->displayRate = $newRate;
                 if ($rec->dpOperation == 'accrued' || isset($rec->changeAmount)) {
                     // Изчисляване на стойността на ддс-то
-                    $vat = acc_Periods::fetchByDate()->vatRate;
+                    $periodRec = acc_Periods::fetchByDate();
+                    $vat = $periodRec->vatRate ?? null;
                     if(isset($rec->dpVatGroupId)){
                         $vat = acc_VatGroups::fetchField($rec->dpVatGroupId, 'vat');
                     }
@@ -3520,7 +3529,8 @@ abstract class deals_Helper
                     $term = $productDeliveryTime;
 
                     // Ако има изчислена доставка и за нея има срок на доставка добавя се
-                    if ($deliveryTime = sales_TransportValues::get($masterMvc, $dRec->{$Detail->masterKey}, $dRec->id)->deliveryTime) {
+                    $transportValues = sales_TransportValues::get($masterMvc, $dRec->{$Detail->masterKey}, $dRec->id);
+                    if ($deliveryTime = ($transportValues->deliveryTime ?? null)) {
                         $term += $deliveryTime;
                     } elseif($defaultDeliveryTime){
 

@@ -1017,18 +1017,28 @@ class core_Form extends core_FieldSet
                 continue;
             }
             
-            list($group, $caption) = explode('->', $field->caption) + ['', ''];
+            $captionArr = explode('->', $field->caption);
+            list($group, $caption) = $captionArr + ['', ''];
             if (!$caption) {
                 $group = 'autoGroup' . $i++;
             } else {
                 $group = tr($group);
             }
-            $res[$group][$name] = $field;
+
+            // Групираме и по междинния кепшън, а полетата без такъв остават самостоятелни
+            if (countR($captionArr) >= 3 && strlen($captionArr[1])) {
+                $middleGroup = 'caption:' . tr($captionArr[1]);
+            } else {
+                $middleGroup = 'field:' . $name;
+            }
+            $res[$group][$middleGroup][$name] = $field;
         }
         
-        foreach ($res as $group => $fArr) {
-            foreach ($fArr as $name => $field) {
-                $fields[$name] = $field;
+        foreach ($res as $middleGroups) {
+            foreach ($middleGroups as $fArr) {
+                foreach ($fArr as $name => $field) {
+                    $fields[$name] = $field;
+                }
             }
         }
         
@@ -1096,11 +1106,20 @@ class core_Form extends core_FieldSet
                     $headerRow .= '<div class="formGroup" >' . tr($captionArr[0]);
                     $rowCaption = tr($captionArr[1]);
                     $caption = tr($captionArr[2]);
+
+                    // Еднаквият междинен кепшън се показва веднъж за общата му секция
+                    $currentCaptionArr = array(tr($captionArr[0]), $rowCaption);
+                    if ($lastCaptionArr === $currentCaptionArr) {
+                        $rowCaption = '';
+                    }
+                    $lastCaptionArr = $currentCaptionArr;
                 } elseif ($captionArrCount == 2) {
                     $headerRow .= '<div class="formGroup" >' . tr($captionArr[0]);
                     $caption = tr($captionArr[1]);
+                    $lastCaptionArr = array();
                 } else {
                     $caption = tr($captionArr[0]);
+                    $lastCaptionArr = array();
                 }
 
                 $emptyRow = $exHeaderRow && empty($headerRow);
@@ -1401,6 +1420,9 @@ class core_Form extends core_FieldSet
             $method = 'render' . $view;
             $tpl->append($this->$method(), "FORM_{$view}");
         }
+
+        jquery_Jquery::run($tpl, 'alignFormFilterButtons();');
+        jquery_Jquery::runAfterAjax($tpl, 'alignFormFilterButtons');
         
         if ($this->cmd == 'refresh' && Request::get('ajax_mode')) {
             $this->ajaxOutput($tpl);

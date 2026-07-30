@@ -132,7 +132,13 @@ class core_Toolbar extends core_BaseClass
         
         $btn->attr = $params;
         
-        $id = !empty($params['id']) ? $params['id'] : $btn->title;
+        if (!empty($params['id'])) {
+            $id = $params['id'];
+        } elseif (isset($btn->title)) {
+            $id = $btn->title;
+        } else {
+            $id = ($btn->type ?? 'button') . '_' . countR($this->buttons);
+        }
         
         $this->buttons[$id] = $btn;
     }

@@ -146,7 +146,7 @@ class label_plg_Print extends core_Plugin
             $logId = ($mvc instanceof core_Detail) ? $rec->{$mvc->masterKey} : $rec->id;
 
             $lRec = $logMvc->fetch($logId);
-            if ($lRec->threadId) {
+            if (!empty($lRec->threadId)) {
                 doc_ThreadRefreshPlg::checkHash($lRec->threadId, array(), true);
             }
 
@@ -331,7 +331,7 @@ class label_plg_Print extends core_Plugin
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         if ($action == 'printlabel' && isset($rec)) {
-            if (in_array($rec->state, array('rejected', 'draft', 'template', 'closed'))) {
+            if (in_array($rec->state ?? null, array('rejected', 'draft', 'template', 'closed'))) {
                 $requiredRoles = 'no_one';
             }
         }

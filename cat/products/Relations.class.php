@@ -557,7 +557,7 @@ class cat_products_Relations extends core_Manager
     public function renderRelations_(&$data)
     {
         $tpl = new core_ET("[#content#]");
-        if ($data->hide) return $tpl;
+        if (!empty($data->hide)) return $tpl;
 
         $isExternal = Mode::is('wrapper', 'cms_page_External');
 

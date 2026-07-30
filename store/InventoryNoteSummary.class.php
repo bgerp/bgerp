@@ -389,14 +389,14 @@ class store_InventoryNoteSummary extends doc_Detail
         }
 
         foreach ($data->rows as $id => &$row) {
-            $rec = &$data->recs[$id];
-            if($data->masterData->rec->state == 'active'){
+            $rec = $data->recs[$id] ?? null;
+            if(isset($rec) && $data->masterData->rec->state == 'active'){
                 if(empty($rec->quantity)){
                     $row->ROW_ATTR['class'] = ' state-closed';
                 }
             }
 
-            if(($rec->quantityHasAddedValues ?? null) == 'yes'){
+            if(isset($rec) && ($rec->quantityHasAddedValues ?? null) == 'yes'){
                 if($rec->isBatch ?? false){
                     if(!isset($rec->quantity)){
                         $row->quantity = $row->blQuantity;
@@ -414,7 +414,8 @@ class store_InventoryNoteSummary extends doc_Detail
 
             if (isset($rec)) {
                 $row->delta = static::renderDeltaCell($rec);
-                $row->delta = "<div id='delta{$rec->id}'>{$row->delta}</div>";
+                $deltaId = $rec->id ?? $id;
+                $row->delta = "<div id='delta{$deltaId}'>{$row->delta}</div>";
             }
             
             if (isset($data->pager) && !$data->pager->isOnPage()) {
@@ -484,8 +485,8 @@ class store_InventoryNoteSummary extends doc_Detail
             }
 
             if (isset($rec)) {
-                $row->quantity = ht::styleIfNegative($row->quantity, $rec->quantity);
-                $row->blQuantity = ht::styleIfNegative($row->blQuantity, $rec->blQuantity);
+                $row->quantity = ht::styleIfNegative($row->quantity ?? null, $rec->quantity ?? null);
+                $row->blQuantity = ht::styleIfNegative($row->blQuantity ?? null, $rec->blQuantity ?? null);
             }
         }
         
@@ -562,8 +563,8 @@ class store_InventoryNoteSummary extends doc_Detail
         $productItemRec = acc_Items::fetchItem('cat_Products', $productId);
         $Balance = new acc_ActiveShortBalance(array('from' => $from, 'to' => $to, 'accs' => '321', 'cacheBalance' => false, 'item1' => $storeItemId, 'item2' => $productItemRec->id, 'keepUnique' => true));
         $bRecs = $Balance->getBalance('321');
-        $bRec = $bRecs[key($bRecs)];
-        $sRec->blQuantity = $bRec->blQuantity;
+        $bRec = is_array($bRecs) ? reset($bRecs) : false;
+        $sRec->blQuantity = $bRec->blQuantity ?? 0;
 
         // Ако няма запис, създаваме го
         return self::save($sRec);
@@ -672,7 +673,9 @@ class store_InventoryNoteSummary extends doc_Detail
         foreach ($data->recs as &$rec) {
             
             // Взимаме записа от кеша
-            $pRec = $tmpRecs[$rec->productId];
+            $pRec = $tmpRecs[$rec->productId] ?? null;
+            if (!$pRec) continue;
+
             cat_Products::setCodeIfEmpty($pRec);
 
             // Вербализираме и нормализираме кода, за да можем да подредим по него
@@ -931,7 +934,8 @@ class store_InventoryNoteSummary extends doc_Detail
         $query->XPR('sumQuantity', 'double', 'SUM(#quantity)');
         $query->show('sumQuantity,quantity');
 
-        $rec->quantity = $query->fetch()->sumQuantity;
+        $sumRec = $query->fetch();
+        $rec->quantity = $sumRec->sumQuantity ?? null;
         if(isset($rec->quantity)){
             $rec->quantity = round($rec->quantity, 4);
         } else {

@@ -81,7 +81,9 @@ class bgtaxes_plg_SaleInvoiceDetail extends core_Plugin
     {
         // Ако няма акциз се записва
         $exciseId = cat_Params::fetchIdBySysId('exciseBgn');
-        if(!isset($rec->exciseTax)){
+
+        // Параметърът може да е дефиниран, но артикулът да няма стойност по него
+        if(!isset($rec->exciseTax) && !empty($exciseId) && isset($params[$exciseId])){
             $rec->exciseTax = $params[$exciseId];
             $res = true;
         }

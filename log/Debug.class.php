@@ -1376,15 +1376,7 @@ class log_Debug extends core_Manager
         foreach ($fArr as $fName => $cDate) {
             list($v) = explode('_', $fName, 2);
             
-            $delOn = $delTimeMapArr[$v];
-            
-            if (!$delOn) {
-                $delOn = $delTimeMapArr[$v[0]];
-            }
-            
-            if (!$delOn) {
-                $delOn = $delTimeMapArr['def'];
-            }
+            $delOn = $delTimeMapArr[$v] ?? $delTimeMapArr[substr($v, 0, 1)] ?? $delTimeMapArr['def'];
             
             list($cDate) = explode('|', $cDate, 2);
             

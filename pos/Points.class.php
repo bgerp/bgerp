@@ -549,6 +549,25 @@ class pos_Points extends core_Master
                     $res->{$field} = empty($res->{$field}) ? null : $res->{$field};
                 }
             }
+
+            $defaults = array(
+                'policyId' => cat_Setup::get('DEFAULT_PRICELIST'),
+                'chargeVat' => 'yes',
+                'vatExceptionId' => null,
+                'productGroups' => null,
+                'productBtnTpl' => 'wide',
+                'showProductCode' => 'yes',
+                'setPrices' => 'yes',
+                'setDiscounts' => 'yes',
+                'usedDiscounts' => null,
+            );
+
+            foreach ($defaults as $name => $value) {
+                if (!isset($res->{$name})) {
+                    $res->{$name} = $value;
+                    $inherited->{$name} = $name;
+                }
+            }
         }
     }
 

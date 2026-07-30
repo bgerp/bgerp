@@ -108,7 +108,8 @@ class sales_QuotationsDetails extends deals_QuotationDetails
             $rec->price = deals_Helper::getPurePrice($rec->price, cat_Products::getVat($rec->productId, $masterRec->date, $masterRec->vatExceptionId), $masterRec->currencyRate, $masterRec->chargeVat);
             
             // Добавяне на транспортните разходи, ако има
-            $fee = sales_TransportValues::get('sales_Quotations', $rec->quotationId, $rec->id)->fee;
+            $transportValues = sales_TransportValues::get('sales_Quotations', $rec->quotationId, $rec->id);
+            $fee = $transportValues->fee ?? null;
             
             if (isset($fee) && $fee > 0) {
                 $rec->price += $fee / $rec->quantity;
@@ -150,8 +151,8 @@ class sales_QuotationsDetails extends deals_QuotationDetails
         if(isset($rec->productId)) {
 
             if (isset($mvc->LastPricePolicy)) {
-                $policyInfoLast = $mvc->LastPricePolicy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId, $rec->packQuantity, $priceAtDate, $masterRec->currencyRate, $masterRec->chargeVat);
-                if ($policyInfoLast->price != 0) {
+                $policyInfoLast = $mvc->LastPricePolicy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId, $rec->packQuantity ?? null, $priceAtDate, $masterRec->currencyRate, $masterRec->chargeVat);
+                if ($policyInfoLast && $policyInfoLast->price != 0) {
                     $form->setSuggestions('packPrice', array('' => '', "{$policyInfoLast->price}" => $policyInfoLast->price));
                 }
             }
@@ -181,7 +182,8 @@ class sales_QuotationsDetails extends deals_QuotationDetails
         if (!isset($term)) {
             if ($term = cat_Products::getDeliveryTime($rec->productId, $rec->quantity)) {
                 $hintTerm = true;
-                if ($deliveryTime = sales_TransportValues::get('sales_Quotations', $rec->quotationId, $rec->id)->deliveryTime) {
+                $transportValues = sales_TransportValues::get('sales_Quotations', $rec->quotationId, $rec->id);
+                if ($deliveryTime = ($transportValues->deliveryTime ?? null)) {
                     $term += $deliveryTime;
                 }
             }
@@ -237,8 +239,8 @@ class sales_QuotationsDetails extends deals_QuotationDetails
     protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
         // Синхронизиране на сумата на транспорта
-        if ($rec->syncFee === true) {
-            sales_TransportValues::sync($mvc->Master, $rec->quotationId, $rec->id, $rec->fee, $rec->deliveryTimeFromFee, $rec->_transportExplained);
+        if (($rec->syncFee ?? null) === true) {
+            sales_TransportValues::sync($mvc->Master, $rec->quotationId, $rec->id, $rec->fee, $rec->deliveryTimeFromFee, $rec->_transportExplained ?? null);
         }
     }
     
