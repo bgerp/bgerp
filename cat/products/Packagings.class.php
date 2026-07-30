@@ -808,9 +808,9 @@ class cat_products_Packagings extends core_Detail
      */
     protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
-        cat_PackParams::sync($rec->packagingId, $rec->sizeWidth, $rec->sizeHeight, $rec->sizeDepth, $rec->tareWeight);
+        cat_PackParams::sync($rec->packagingId ?? null, $rec->sizeWidth ?? null, $rec->sizeHeight ?? null, $rec->sizeDepth ?? null, $rec->tareWeight ?? null);
 
-        if ($rec->state == 'closed' && $rec->isBase == 'yes') {
+        if (($rec->state ?? null) == 'closed' && ($rec->isBase ?? null) == 'yes') {
             $rec->isBase = 'no';
             $mvc->save_($rec, 'isBase');
         }
