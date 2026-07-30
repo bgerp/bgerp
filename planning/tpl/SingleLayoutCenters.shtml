@@ -5,6 +5,7 @@
 	        <div class='block_title [#STATE_CLASS#] special-title'>
 	            [#SingleIcon#] |Център на дейност|* <b>[#name#]</b>
 	        </div>
+            
 	        <fieldset class="detail-info">
 	            <legend class="groupTitle">|Информация|*</legend>
 	            <div class="groupList">
@@ -18,55 +19,7 @@
 					<!--ET_BEGIN scheduleId-->
 					<div>|График|*: <b>[#scheduleId#]</b></div>
 					<!--ET_END scheduleId-->
-					<!--ET_BEGIN planningParams-->
-					<div>|Параметри за планиране|*: <b>[#planningParams#]</b></div>
-					<!--ET_END planningParams-->
-					<!--ET_BEGIN planningParamSimilarity-->
-					<div>|Минимално съвпадение за автоматично групиране|*: <b>[#planningParamSimilarity#]</b></div>
-					<!--ET_END planningParamSimilarity-->
-					<!--ET_BEGIN planningParamGroupDays-->
-					<div>|Период за автоматично групиране|*: <b>[#planningParamGroupDays#] |дни|*</b></div>
-					<!--ET_END planningParamGroupDays-->
-					<!--ET_BEGIN showTaskPlanningParams-->
-					<div>|Параметрите от Етапа да са планиращи (при филтриране по Етап)|*: <b>[#showTaskPlanningParams#]</b></div>
-					<!--ET_END showTaskPlanningParams-->
-					<!--ET_BEGIN mandatoryOperatorsInTasks-->
-					<div>|Оператор в прогрес на ПО|*: <b>[#mandatoryOperatorsInTasks#]</b></div>
-					<!--ET_END mandatoryOperatorsInTasks-->
-					<!--ET_BEGIN showPreviousJobField-->
-					<div>|Показване на предишно задание в ПО|*: <b>[#showPreviousJobField#]</b></div>
-					<!--ET_END showPreviousJobField-->
-					<!--ET_BEGIN showSerialWarningOnDuplication-->
-					<div>|Показване на предупреждение при дублиране на произв. номера в ПО|*: <b>[#showSerialWarningOnDuplication#]</b></div>
-					<!--ET_END showSerialWarningOnDuplication-->
-					<!--ET_BEGIN allowDuplicateSerialProgress-->
-					<div>|Използване на един производствен номер в различни Операции|*: <b>[#allowDuplicateSerialProgress#]</b></div>
-					<!--ET_END allowDuplicateSerialProgress-->
-					<!--ET_BEGIN useTareFromParamId-->
-					<div>|Приспадане от теглото в ПО на Тара от Параметър|*: <b>[#useTareFromParamId#]</b></div>
-					<!--ET_END useTareFromParamId-->
-					<!--ET_BEGIN useTareFromPackagings-->
-					<div>|Приспадане от теглото в ПО на Тара от Опаковки|*: <b>[#useTareFromPackagings#]</b></div>
-					<!--ET_END useTareFromPackagings-->
 
-					<!--ET_BEGIN deviationNettoNotice-->
-					<div>|Разминаване на Нетото в ПО - Информация|*: <b>[#deviationNettoNotice#]</b></div>
-					<!--ET_END deviationNettoNotice-->
-					<!--ET_BEGIN deviationNettoWarning-->
-					<div>|Разминаване на Нетото в ПО - Предупреждение|*: <b>[#deviationNettoWarning#]</b></div>
-					<!--ET_END deviationNettoWarning-->
-					<!--ET_BEGIN deviationNettoCritical-->
-					<div>|Разминаване на Нетото в ПО - Критично|*: <b>[#deviationNettoCritical#]</b></div>
-					<!--ET_END deviationNettoCritical-->
-					<!--ET_BEGIN paramExpectedNetWeight-->
-					<div>|Параметър за единично тегло|*: <b>[#paramExpectedNetWeight#]</b></div>
-					<!--ET_END paramExpectedNetWeight-->
-					<!--ET_BEGIN showMaxPreviousTasksInATask-->
-					<div>|За колко от предходните Операции да се визуализира готовността|*: <b>[#showMaxPreviousTasksInATask#]</b></div>
-					<!--ET_END showMaxPreviousTasksInATask-->
-					<!--ET_BEGIN autoCreateTaskState-->
-					<div>|Състояние на ПО след автоматично създаване от Рецепта|*: <b>[#autoCreateTaskState#]</b></div>
-					<!--ET_END autoCreateTaskState-->
 					<!--ET_BEGIN nkid-->
 	                <div>|Номер по НКИД|*: <b>[#nkid#]</b></div>
 	                <!--ET_END nkid-->
@@ -91,11 +44,80 @@
 					<div>|Отговорници при подаване на сигнали|*: [#supportUsers#]</div>
 					<!--ET_END supportUsers-->
 
+	            </div>
+	        </fieldset>
+            
+            <fieldset class="detail-info">
+	            <legend class="groupTitle">|Производствени операции|*</legend>
+	            <div class="groupList">
+					<!--ET_BEGIN mandatoryOperatorsInTasks-->
+					<div>|Оператор в прогрес на ПО|*: <b>[#mandatoryOperatorsInTasks#]</b></div>
+					<!--ET_END mandatoryOperatorsInTasks-->
+					<!--ET_BEGIN showPreviousJobField-->
+					<div>|Показване на предишно задание в ПО|*: <b>[#showPreviousJobField#]</b></div>
+					<!--ET_END showPreviousJobField-->
+					<!--ET_BEGIN showSerialWarningOnDuplication-->
+					<div>|Показване на предупреждение при дублиране на произв. номера в ПО|*: <b>[#showSerialWarningOnDuplication#]</b></div>
+					<!--ET_END showSerialWarningOnDuplication-->
+					<!--ET_BEGIN allowDuplicateSerialProgress-->
+					<div>|Използване на един производствен номер в различни Операции|*: <b>[#allowDuplicateSerialProgress#]</b></div>
+					<!--ET_END allowDuplicateSerialProgress-->
+					<!--ET_BEGIN showMaxPreviousTasksInATask-->
+					<div>|За колко от предходните Операции да се визуализира готовността|*: <b>[#showMaxPreviousTasksInATask#]</b></div>
+					<!--ET_END showMaxPreviousTasksInATask-->
+					<!--ET_BEGIN autoCreateTaskState-->
+					<div>|Състояние на ПО след автоматично създаване от Рецепта|*: <b>[#autoCreateTaskState#]</b></div>
+					<!--ET_END autoCreateTaskState-->
+
 					<!--ET_BEGIN autoAddConvertableInTask-->
 					<div>|Автоматично добавяне на артикули от Протокол за влагане (на Заявка) в ПО|*: [#autoAddConvertableInTask#]</div>
 					<!--ET_END autoAddConvertableInTask-->
 	            </div>
 	        </fieldset>
+            
+            <fieldset class="detail-info">
+	            <legend class="groupTitle">|Тегла в производствените операции|*</legend>
+	            <div class="groupList">
+					<!--ET_BEGIN useTareFromParamId-->
+					<div>|Приспадане от теглото в ПО на Тара от Параметър|*: <b>[#useTareFromParamId#]</b></div>
+					<!--ET_END useTareFromParamId-->
+					<!--ET_BEGIN useTareFromPackagings-->
+					<div>|Приспадане от теглото в ПО на Тара от Опаковки|*: <b>[#useTareFromPackagings#]</b></div>
+					<!--ET_END useTareFromPackagings-->
+
+					<!--ET_BEGIN deviationNettoNotice-->
+					<div>|Разминаване на Нетото в ПО - Информация|*: <b>[#deviationNettoNotice#]</b></div>
+					<!--ET_END deviationNettoNotice-->
+					<!--ET_BEGIN deviationNettoWarning-->
+					<div>|Разминаване на Нетото в ПО - Предупреждение|*: <b>[#deviationNettoWarning#]</b></div>
+					<!--ET_END deviationNettoWarning-->
+					<!--ET_BEGIN deviationNettoCritical-->
+					<div>|Разминаване на Нетото в ПО - Критично|*: <b>[#deviationNettoCritical#]</b></div>
+					<!--ET_END deviationNettoCritical-->
+					<!--ET_BEGIN paramExpectedNetWeight-->
+					<div>|Параметър за единично тегло|*: <b>[#paramExpectedNetWeight#]</b></div>
+					<!--ET_END paramExpectedNetWeight-->
+	            </div>
+	        </fieldset>
+
+            <fieldset class="detail-info">
+	            <legend class="groupTitle">|Планиращи параметри|*</legend>
+	            <div class="groupList">
+	                <!--ET_BEGIN planningParams-->
+					<div>|Параметри за планиране|*: <b>[#planningParams#]</b></div>
+					<!--ET_END planningParams-->
+					<!--ET_BEGIN planningParamSimilarity-->
+					<div>|Минимално съвпадение за автоматично групиране|*: <b>[#planningParamSimilarity#]</b></div>
+					<!--ET_END planningParamSimilarity-->
+					<!--ET_BEGIN planningParamGroupDays-->
+					<div>|Период за автоматично групиране|*: <b>[#planningParamGroupDays#] |дни|*</b></div>
+					<!--ET_END planningParamGroupDays-->
+					<!--ET_BEGIN showTaskPlanningParams-->
+					<div>|Параметрите от Етапа да са планиращи (при филтриране по Етап)|*: <b>[#showTaskPlanningParams#]</b></div>
+					<!--ET_END showTaskPlanningParams-->
+				</div>
+	        </fieldset>
+
 	        [#Assets#]
 	   <!--ET_BEGIN DETAILS-->
 	        [#DETAILS#]
