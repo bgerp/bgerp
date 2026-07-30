@@ -258,7 +258,7 @@ class acc_CostAllocations extends core_Manager
     {
         $form = &$data->form;
         $rec = $data->form->rec;
-        $rec->_oldExpenceItemId = $rec->expenseItemId;
+        $rec->_oldExpenceItemId = $rec->expenseItemId ?? null;
         
         // Какво к-во се очаква да се разпредели
         $maxQuantity = cls::get($rec->detailClassId)->getMaxQuantity($rec->detailRecId);
@@ -272,7 +272,7 @@ class acc_CostAllocations extends core_Manager
         $form->info .= tr("|Общо к-во|* <b>{$maxQuantityVerbal}</b> {$shortUom}<br>");
         
         // Колко има още за разпределяне
-        $allocatedQuantity = self::getAllocatedInDocument($rec->detailClassId, $rec->detailRecId, $rec->id);
+        $allocatedQuantity = self::getAllocatedInDocument($rec->detailClassId, $rec->detailRecId, $rec->id ?? null);
         $toAllocate = round($maxQuantity - $allocatedQuantity, 6);
         $form->setDefault('quantity', $toAllocate);
         
@@ -304,7 +304,7 @@ class acc_CostAllocations extends core_Manager
                     $form->setDefault('allocationBy', 'no');
                 }
 
-                if($rec->allocationBy == 'auto'){
+                if(($rec->allocationBy ?? null) == 'auto'){
                     $form->setField('allocationFilter', 'input');
                     $form->setDefault('allocationFilter', 'all');
                 }
@@ -369,6 +369,8 @@ class acc_CostAllocations extends core_Manager
     {
         $rec = &$form->rec;
         $Detail = cls::get($rec->detailClassId);
+        $allocationFilter = $rec->allocationFilter ?? null;
+        $allProducts = $form->allProducts ?? array();
 
         if (isset($rec->expenseItemId)) {
             $itemClassId = acc_Items::fetchField($rec->expenseItemId, 'classId');
@@ -384,12 +386,12 @@ class acc_CostAllocations extends core_Manager
         
         if ($form->isSubmitted()) {
             $expenseItemError = null;
-            if(!static::checkSelectedExpenseItem($rec->expenseItemId, $rec->allocationFilter, $rec->detailClassId, $rec->detailRecId,$expenseItemError)){
+            if(!static::checkSelectedExpenseItem($rec->expenseItemId, $allocationFilter, $rec->detailClassId, $rec->detailRecId, $expenseItemError)){
                 $form->setError('expenseItemId', $expenseItemError);
             }
 
             // Колко ще бъде разпределено след записа
-            $allocatedQuantity = self::getAllocatedInDocument($rec->detailClassId, $rec->detailRecId, $rec->id);
+            $allocatedQuantity = self::getAllocatedInDocument($rec->detailClassId, $rec->detailRecId, $rec->id ?? null);
             $allocatedQuantity += $rec->quantity;
             $uomId = key(cat_Products::getPacks($rec->productId));
             
@@ -423,7 +425,7 @@ class acc_CostAllocations extends core_Manager
                 // Проверка на избраните артикули
                 if (isset($rec->allocationBy)) {
                     if(!in_array($rec->allocationBy, array('no', 'auto'))){
-                        if (!countR($form->allProducts)) {
+                        if (!countR($allProducts)) {
                             $form->setError('allocationBy', 'В избраната сделка няма експедирани/заскладени артикули');
                         }
                     }
@@ -433,10 +435,10 @@ class acc_CostAllocations extends core_Manager
                             $errorField = 'allocateBy,chosenProducts';
                             $itemRec = acc_Items::fetch($rec->expenseItemId, 'classId,objectId');
                             $origin = new core_ObjectReference($itemRec->classId, $itemRec->objectId);
-                            $rec->productsData = $origin->getCorrectableProducts($Detail->Master, $rec->allocationFilter);
+                            $rec->productsData = $origin->getCorrectableProducts($Detail->Master, $allocationFilter);
                         } else {
                             $errorField = 'allocateBy';
-                            $rec->productsData = array_intersect_key($form->allProducts, type_Set::toArray($rec->chosenProducts));
+                            $rec->productsData = array_intersect_key($allProducts, type_Set::toArray($rec->chosenProducts ?? null));
                         }
 
                         $copyArr = $rec->productsData;

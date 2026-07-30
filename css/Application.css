@@ -3493,36 +3493,41 @@ span.sharing-history-title {
 
 .wide .twoColsFilter {
   display: flex;
-  justify-content: space-between;
-  margin-bottom: 20px; }
-
-.wide .twoColsFilter .listFilter form {
-  column-count: 2; }
-
-.wide .twoColsFilter .summary-block {
-  margin-left: 20px;
-  align-self: flex-start; }
-
-@supports (-moz-appearance: none) {
-  .wide .twoColsFilter {
-    display: block;
-    margin-bottom: 0; }
-
-  .wide .twoColsFilter .listFilter form {
-    column-count: 1; }
-
+  justify-content: flex-start;
+  column-gap: 20px;
+  margin-bottom: 6px; }
+  .wide .twoColsFilter .listFilter {
+    flex: 0 1 calc(calc(400px + 6em + 1em) + calc(400px + 6em + 1em) + 1em);
+    min-width: 0;
+    margin-left: 0; }
+      .wide .twoColsFilter .listFilter .vertical .formTable {
+        width: 100%;
+        max-width: none; }
+      .wide .twoColsFilter .listFilter .vertical .formSection {
+        padding-left: 0;
+        padding-right: 0; }
+    .wide .twoColsFilter .listFilter .vFormField {
+      display: block;
+      width: 100%; }
+      .wide .twoColsFilter .listFilter .vFormField > tbody {
+        display: block;
+        column-count: 2;
+        column-width: calc(400px + 6em + 1em);
+        column-gap: 1em; }
+        .wide .twoColsFilter .listFilter .vFormField > tbody > tr {
+          display: table;
+          width: calc(400px + 6em + 1em);
+          break-inside: avoid; }
+      .wide .twoColsFilter .listFilter .vFormField .formFieldCaption {
+        width: 6em; }
+    .wide .twoColsFilter .listFilter .formToolbar {
+      margin-left: 7em; }
   .wide .twoColsFilter .summary-block {
-    margin-left: 0; } }
-
-@media handheld,
-only screen and (max-width: 1400px) {
-  .wide .twoColsFilter {
-    display: block;
-    margin-bottom: 0; }
-    .wide .twoColsFilter .listFilter form {
-      column-count: 1; }
-    .wide .twoColsFilter .summary-block {
-      margin-left: 0; } }
+    flex: 0 0 auto;
+    margin-left: auto;
+    margin-right: auto;
+    transform: translateX(20px);
+    align-self: flex-start; }
 
 /*
  * край на външни стилове за ширина
@@ -8439,4 +8444,3 @@ td.td-clamp[data-overflow="true"][data-expanded="true"] .clamp-ellipsis::after {
 .block_title .folder-handle:hover {
   background: white;
   color: #555555; }
-
