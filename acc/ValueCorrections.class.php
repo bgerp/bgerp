@@ -900,7 +900,7 @@ class acc_ValueCorrections extends core_Master
     {
         // Намират се вальорите на всички експедиции от нишката
         $productValiors = $periods = array();
-        $productIds = $productIds ?? (is_array($rec->productsData) ? $rec->productsData : type_Set::toArray($rec->chosenProducts));
+        $productIds = $productIds ?? (is_array($rec->productsData ?? null) ? $rec->productsData : type_Set::toArray($rec->chosenProducts ?? null));
         $storeDocs = array('store_ShipmentOrders' => 'store_ShipmentOrderDetails', 'store_Receipts' => 'store_ReceiptDetails', 'sales_Sales' => 'sales_SalesDetails', 'purchase_Purchases' => 'purchase_PurchasesDetails', 'sales_Services' => 'sales_ServicesDetails', 'purchase_Services' => 'purchase_ServicesDetails');
 
         // В кои нишки, ако договора е обединяващ гледа се и в нишките на обединените договори
