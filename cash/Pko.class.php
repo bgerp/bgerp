@@ -296,7 +296,7 @@ class cash_Pko extends cash_Document
             $amount = round($cardPaymentRec->amount * $rec->rate, 2);
 
             // Има ли избрано устройство
-            $deviceRec = $rec->bankPeripheralDeviceId ? peripheral_Devices::fetch($rec->bankPeripheralDeviceId) : peripheral_Devices::getDevice('bank_interface_POS')->id;
+            $deviceRec = $rec->bankPeripheralDeviceId ? peripheral_Devices::fetch($rec->bankPeripheralDeviceId) : peripheral_Devices::getDevice('bank_interface_POS');
             if(!is_object($deviceRec)) return;
 
             $data->toolbar->removeBtn('btnConto');
