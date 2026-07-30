@@ -4074,53 +4074,70 @@ fieldset.sharing-history {
 	padding-left: 20px !important;
 }
 
-// двете колони във филтъра да не са в мозила
+// Двуколонен филтър за широк екран
 
-	.wide .twoColsFilter {
-		display: flex;
-		justify-content: space-between;
-		margin-bottom: 20px;
-	}
+// Една колона побира максималното поле от филтъра, заглавието и отстоянията им
+$twoColsFilterMaxFieldWidth: 400px;
+$twoColsFilterCaptionWidth: 6em;
+$twoColsFilterColumnWidth: unquote("calc(#{$twoColsFilterMaxFieldWidth} + #{$twoColsFilterCaptionWidth} + 1em)");
+$twoColsFilterWidth: unquote("calc(#{$twoColsFilterColumnWidth} + #{$twoColsFilterColumnWidth} + 1em)");
 
-	.wide .twoColsFilter .listFilter form {
-		column-count: 2;
-	}
+.wide .twoColsFilter {
+	display: flex;
+	justify-content: flex-start;
+	column-gap: 20px;
+	margin-bottom: 6px;
 
-	.wide .twoColsFilter .summary-block {
-		margin-left: 20px;
-		align-self: flex-start;
-	}
-
-
-
-
-@supports (-moz-appearance: none) {
-	.wide .twoColsFilter {
-		display: block;
-		margin-bottom: 0;
-	}
-
-	.wide .twoColsFilter .listFilter form {
-		column-count: 1;
-	}
-
-	.wide .twoColsFilter .summary-block {
+	.listFilter {
+		flex: 0 1 $twoColsFilterWidth;
+		min-width: 0;
 		margin-left: 0;
+
+		.vertical {
+			.formTable {
+				width: 100%;
+				max-width: none;
+			}
+
+			.formSection {
+				padding-left: 0;
+				padding-right: 0;
+			}
+		}
+
+		.vFormField {
+			display: block;
+			width: 100%;
+
+			> tbody {
+				display: block;
+				column-count: 2;
+				column-width: $twoColsFilterColumnWidth;
+				column-gap: 1em;
+
+				> tr {
+					display: table;
+					width: $twoColsFilterColumnWidth;
+					break-inside: avoid;
+				}
+			}
+
+			.formFieldCaption {
+				width: $twoColsFilterCaptionWidth;
+			}
+		}
+
+		.formToolbar {
+			margin-left: 7em;
+		}
 	}
-}
 
-@media handheld, only screen and (max-width: 1400px) {
-	.wide .twoColsFilter {
-		display: block;
-		margin-bottom: 0;
-
-		.listFilter form {
-			column-count: 1;
-		}
-
-		.summary-block {
-			margin-left: 0;
-		}
+	.summary-block {
+		flex: 0 0 auto;
+		margin-left: auto;
+		margin-right: auto;
+		transform: translateX(20px);
+		align-self: flex-start;
 	}
 }
 
