@@ -520,7 +520,7 @@ class acc_ValueCorrections extends core_Master
             } else {
                 $currentAmount = $pRec->{$rec->allocateBy};
             }
-            $totalArr["{$vat}"] += $currentAmount;
+            $totalArr["{$vat}"] = ($totalArr["{$vat}"] ?? 0) + $currentAmount;
             $total += $currentAmount;
         }
 
