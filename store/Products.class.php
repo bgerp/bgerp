@@ -184,13 +184,17 @@ class store_Products extends core_Detail
 
             // Линк към хронологията
             if (acc_BalanceDetails::haveRightFor('history')) {
-                $to = dt::today();
-                $from = dt::mysql2verbal($to, 'Y-m-1', null, false);
-                $histUrl = array('acc_BalanceHistory', 'History', 'fromDate' => $from, 'toDate' => $to, 'accNum' => 321);
-                $histUrl['ent1Id'] = acc_Items::fetchItem('store_Stores', $rec->storeId)->id;
-                $histUrl['ent2Id'] = acc_Items::fetchItem('cat_Products', $rec->productId)->id;
-                $histUrl['ent3Id'] = null;
-                $row->history = ht::createLink('', $histUrl, null, 'title=Хронологична справка,ef_icon=img/16/clock_history.png');
+                $storeItemRec = acc_Items::fetchItem('store_Stores', $rec->storeId);
+                $productItemRec = acc_Items::fetchItem('cat_Products', $rec->productId);
+                if ($storeItemRec && $productItemRec) {
+                    $to = dt::today();
+                    $from = dt::mysql2verbal($to, 'Y-m-1', null, false);
+                    $histUrl = array('acc_BalanceHistory', 'History', 'fromDate' => $from, 'toDate' => $to, 'accNum' => 321);
+                    $histUrl['ent1Id'] = $storeItemRec->id;
+                    $histUrl['ent2Id'] = $productItemRec->id;
+                    $histUrl['ent3Id'] = null;
+                    $row->history = ht::createLink('', $histUrl, null, 'title=Хронологична справка,ef_icon=img/16/clock_history.png');
+                }
             }
             
             $row->storeId = store_Stores::getHyperlink($rec->storeId, true);
