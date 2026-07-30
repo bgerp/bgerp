@@ -220,7 +220,7 @@ class support_Systems extends core_Master
         $sRec = static::fetch($systemId);
 
         // Ако има прототип
-        if ($sRec->prototype) {
+        if (!empty($sRec->prototype)) {
 
             // Вземаме системата
             $arr += static::getSystems($sRec->prototype);
@@ -258,7 +258,7 @@ class support_Systems extends core_Master
             );
         }
 
-        if ($rec->addFromEveryOne == 'yes') {
+        if (($rec->addFromEveryOne ?? null) == 'yes') {
             $row->linkFromOutside = "<div onmouseup='selectInnerText(this);'>" . toUrl(array('cal_Tasks', 'New', $rec->id), 'absolute') . "</div>";
         }
     }
@@ -353,14 +353,19 @@ class support_Systems extends core_Master
 
     public static function on_AfterInputEditForm($mvc, $form)
     {
+        $id = $form->rec->id ?? null;
+        $prototype = $form->rec->prototype ?? null;
+        $allowedTypes = $form->rec->allowedTypes ?? null;
+        $defaultType = $form->rec->defaultType ?? null;
+
         // Ако формата е изпратена успешно
         if ($form->isSubmitted()) {
 
             // Ако е въведен прототип
-            if (!empty($form->rec->id)) {
+            if ($id) {
 
                 // Ако сме избрали протип на същата система
-                if ($form->rec->prototype == $form->rec->id) {
+                if ($prototype == $id) {
 
                     // Сетваме грешката
                     $form->setError('prototype', 'Не може да се използва същата система.');
@@ -368,10 +373,10 @@ class support_Systems extends core_Master
             }
 
             // Ако сме избрали прототип
-            if (!$form->rec->prototype) {
+            if (!$prototype) {
 
                 // Ако не сме избрали тип
-                if (!$form->rec->allowedTypes) {
+                if (!$allowedTypes) {
 
                     // Сетваме грешка, ако няма родител и няма позволен тип
                     $form->setError('allowedTypes', "Ако не сте избрали '{$form->fields['prototype']->caption}', трябва да изберете тип.");
@@ -379,10 +384,10 @@ class support_Systems extends core_Master
             } else {
 
                 // Вземаме всички прототипи
-                $prototypesArr = static::getSystems($form->rec->prototype);
+                $prototypesArr = static::getSystems($prototype);
 
                 // Ако сме избрали за прототип някой от наследниците
-                if ($prototypesArr[$form->rec->id]) {
+                if (!empty($prototypesArr[$id])) {
 
                     // Сетваме грешка
                     $form->setError('prototype', 'Не може да се използва наследника като родител.');
@@ -391,15 +396,15 @@ class support_Systems extends core_Master
         }
 
         if ($form->isSubmitted()) {
-            if ($form->rec->defaultType) {
+            if ($defaultType) {
                 $parentAllowed = '';
-                if ($form->rec->prototype) {
-                    $parentAllowed = $mvc->getAllowedFieldsArr($form->rec->prototype);
+                if ($prototype) {
+                    $parentAllowed = $mvc->getAllowedFieldsArr($prototype);
                 }
 
-                $allAllowed = type_Keylist::merge($parentAllowed, $form->rec->allowedTypes);
+                $allAllowed = type_Keylist::merge($parentAllowed, $allowedTypes);
 
-                if (!type_Keylist::isIn($form->rec->defaultType, $allAllowed)) {
+                if (!type_Keylist::isIn($defaultType, $allAllowed)) {
                     $form->setError('defaultType', 'Сигналът по подразбиране трябва да е добавен в използвани');
                 }
             }
@@ -434,7 +439,7 @@ class support_Systems extends core_Master
         $form->setSuggestions('allowedTypes', $options);
         $form->input('addFromEveryOne');
 
-        if ($form->rec->addFromEveryOne == 'yes') {
+        if (($form->rec->addFromEveryOne ?? null) == 'yes') {
             $form->setField('defaultTitle', array('input' => 'input'));
             $form->setField('addContragentValues', array('input' => 'input'));
         }
@@ -518,23 +523,31 @@ class support_Systems extends core_Master
             $tQuery->where("#threadState = 'opened'");
 
             while ($tRec = $tQuery->fetch()) {
-                $assertResourceArr[(int) $tRec->assetResourceId]['openedCnt']++;
+                $resourceId = (int) $tRec->assetResourceId;
+                if (!isset($assertResourceArr[$resourceId])) {
+                    $assertResourceArr[$resourceId] = array('openedCnt' => 0, 'priority' => null, 'modifiedOn' => null, 'modifiedBy' => null);
+                }
+                $assertResourceArr[$resourceId]['openedCnt']++;
 
-                if (!$assertResourceArr[(int) $tRec->assetResourceId]['priority']) {
-                    $assertResourceArr[(int) $tRec->assetResourceId]['priority'] = $tRec->priority;
+                if (!$assertResourceArr[$resourceId]['priority']) {
+                    $assertResourceArr[$resourceId]['priority'] = $tRec->priority;
                 } else {
-                    $maxPriorityVal = $priorityLevelMap[$assertResourceArr[(int) $tRec->assetResourceId]['priority']];
+                    $maxPriorityVal = $priorityLevelMap[$assertResourceArr[$resourceId]['priority']];
                     $currPriorityVal = $priorityLevelMap[$tRec->priority];
                     if ($currPriorityVal > $maxPriorityVal) {
-                        $assertResourceArr[(int) $tRec->assetResourceId]['priority'] = $tRec->priority;
+                        $assertResourceArr[$resourceId]['priority'] = $tRec->priority;
                     }
                 }
             }
 
             while ($tLastRec = $tLastQuery->fetch()) {
-                if ($assertResourceArr[(int) $tLastRec->assetResourceId]['modifiedOn'] < $tLastRec->modifiedOn) {
-                    $assertResourceArr[(int) $tLastRec->assetResourceId]['modifiedOn'] = $tLastRec->modifiedOn;
-                    $assertResourceArr[(int) $tLastRec->assetResourceId]['modifiedBy'] = $tLastRec->modifiedBy;
+                $resourceId = (int) $tLastRec->assetResourceId;
+                if (!isset($assertResourceArr[$resourceId])) {
+                    $assertResourceArr[$resourceId] = array('openedCnt' => 0, 'priority' => null, 'modifiedOn' => null, 'modifiedBy' => null);
+                }
+                if ($assertResourceArr[$resourceId]['modifiedOn'] < $tLastRec->modifiedOn) {
+                    $assertResourceArr[$resourceId]['modifiedOn'] = $tLastRec->modifiedOn;
+                    $assertResourceArr[$resourceId]['modifiedBy'] = $tLastRec->modifiedBy;
                 }
             }
         }
@@ -548,7 +561,8 @@ class support_Systems extends core_Master
         }
 
         foreach ((array) $data->rows as $id => $row) {
-            $nameLink = $row->code . ' ';
+            $resourceData = $assertResourceArr[$id] ?? array('openedCnt' => 0, 'priority' => null, 'modifiedOn' => null, 'modifiedBy' => null);
+            $nameLink = ($row->code ?? '') . ' ';
             if ($id) {
                 $nameLink .= str::limitLen(type_Varchar::escape($data->recs[$id]->name), 32);
                 $urlArr = $detailInst->getSingleUrlArray($id);
@@ -561,13 +575,14 @@ class support_Systems extends core_Master
 
             $row->name = '';
             $row->btns = '';
+            $listUrl = array();
             if (!$mvc->haveRightFor('single', $data->masterData->rec)) {
                 continue;
             }
 
             // Бутон за нов сигнал към съответния ресурс
             if (cal_Tasks::haveRightFor('add')) {
-                $row->btns .= ht::createLink('', array($Tasks, 'add', $taskField => $supportTaskId, 'folderId' => $folderId, 'assetResourceId' => $id, 'ret_url' => true), $false, array('ef_icon' => 'img/16/support.png', 'title' => 'Създаване на сигнал'));
+                $row->btns .= ht::createLink('', array($Tasks, 'add', $taskField => $supportTaskId, 'folderId' => $folderId, 'assetResourceId' => $id, 'ret_url' => true), false, array('ef_icon' => 'img/16/support.png', 'title' => 'Създаване на сигнал'));
             }
 
             if (cal_Tasks::haveRightFor('listsupporttasks')) {
@@ -582,21 +597,21 @@ class support_Systems extends core_Master
             }
 
             // Бутон към филтриране на изгледа и броя на отворените нишки
-            if ($assertResourceArr[$id] && $assertResourceArr[$id]['openedCnt']) {
-                $class = $assertResourceArr[$id]['priority'] . '_priority';
-                $opendCntLink = ht::createLink($assertResourceArr[$id]['openedCnt'], $listUrl, $false, array('title' => 'Разглеждане на сигналите'));
+            if ($resourceData['openedCnt']) {
+                $class = $resourceData['priority'] . '_priority';
+                $opendCntLink = ht::createLink($resourceData['openedCnt'], $listUrl, false, array('title' => 'Разглеждане на сигналите'));
                 $row->btns .= "<span class='systemFlag {$class}'>{$opendCntLink}</span>";
             } else {
-                $row->btns .= ht::createLink('', $listUrl, $false, array('ef_icon' => 'img/16/page_white_text.png', 'title' => 'Разглеждане на сигналите'));
+                $row->btns .= ht::createLink('', $listUrl, false, array('ef_icon' => 'img/16/page_white_text.png', 'title' => 'Разглеждане на сигналите'));
             }
 
             // Времето на последната промяна
-            if ($assertResourceArr[$id]['modifiedOn']) {
-                $row->modified = dt::mysql2verbal($assertResourceArr[$id]['modifiedOn'], 'smartTime');
-                $row->modified .= ' ' . tr('от') . ' ' . crm_Profiles::createLink($assertResourceArr[$id]['modifiedBy']);
+            if ($resourceData['modifiedOn']) {
+                $row->modified = dt::mysql2verbal($resourceData['modifiedOn'], 'smartTime');
+                $row->modified .= ' ' . tr('от') . ' ' . crm_Profiles::createLink($resourceData['modifiedBy']);
             }
 
-            $row->_modifiedOnOrder = $assertResourceArr[$id]['modifiedOn'];
+            $row->_modifiedOnOrder = $resourceData['modifiedOn'];
             $row->name .= $nameLink;
         }
 
