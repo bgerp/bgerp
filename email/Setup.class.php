@@ -260,9 +260,9 @@ defIfNot('EMAIL_CLOSEST_EMAIL_PERCENT', 80);
 
 
 /**
- * Повторна проверка за валидност на имейли след - 1 седмица
+ * Повторна проверка за валидност на имейли след - 3 дена
  */
-defIfNot('EMAIL_RECHECK_EMAILS_AFTER', 604800);
+defIfNot('EMAIL_RECHECK_EMAILS_AFTER', 259200);
 
 
 /**
