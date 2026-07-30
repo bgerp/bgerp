@@ -267,6 +267,11 @@ class acc_Balances extends core_Master
         // Отделен ред - историята е дълга и се чете по-лесно самостоятелно
         self::logCalcStep('recalc() ПРЕКЪСНАТ » история на изчитането: ' .
             (countR(core_Query::$fetchTrail) ? implode('  ›  ', core_Query::$fetchTrail) : '-'));
+
+        // Хендлърът се изпълнява само при аварийно прекъсване с наш лок - освобождаваме
+        // го, за да не остане следващият крон процес блокиран до изтичане на timeLimit
+        core_Locks::release('RecalcBalances');
+        self::logCalcStep('recalc() ПРЕКЪСНАТ » локът е освободен принудително');
     }
 
 
