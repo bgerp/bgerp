@@ -194,7 +194,8 @@ class doc_TplManager extends core_Master
         $rec = $form->rec;
 
         // Ако шаблона е клонинг
-        if ($originId = $rec->originId) {
+        if (!empty($rec->originId)) {
+            $originId = $rec->originId;
             
             // Копират се нужните данни от ориджина
             expect($origin = static::fetch($originId));
@@ -312,7 +313,8 @@ class doc_TplManager extends core_Master
             }
             
             // Ако шаблона е клонинг
-            if ($originId = $rec->originId) {
+            if (!empty($rec->originId)) {
+                $originId = $rec->originId;
                 expect($origin = static::fetch($originId));
                 $new = preg_replace("/\s+/", '', $form->rec->content);
                 $old = preg_replace("/\s+/", '', $origin->content);
