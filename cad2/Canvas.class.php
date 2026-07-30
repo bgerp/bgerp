@@ -35,6 +35,13 @@ abstract class cad2_Canvas extends core_BaseClass
      * Параметри за чертане
      */
     public $p = array();
+
+
+    /**
+     * Текущ прозорец (array($x1, $y1, $x2, $y2)), в който трябва да попада точката,
+     * или null ако няма зададен прозорец
+     */
+    protected $window;
     
     
     /**
