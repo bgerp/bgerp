@@ -145,7 +145,7 @@ class sens2_IOPorts extends embed_Detail
         $pQuery = sens2_IOPorts::getQuery();
         $res = array();
         while ($pRec = $pQuery->fetch("#controllerId = {$controllerId}")) {
-            $res[$pRec->slot]++;
+            $res[$pRec->slot] = ($res[$pRec->slot] ?? 0) + 1;
         }
         
         return $res;
