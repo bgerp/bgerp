@@ -362,7 +362,7 @@ abstract class deals_DealDetail extends doc_Detail
                     $defaultPackQuantity = deals_Helper::getDefaultPackQuantity($rec->productId, $rec->packagingId);
                 }
                 $form->setDefault('packQuantity', $defaultPackQuantity);
-                if(empty($defaultPackQuantity)){
+                if(empty($defaultPackQuantity) && Request::get('Act') != 'CreateProduct'){
                     $form->setError('packQuantity', 'Не е въведено количество');
                 }
             }
