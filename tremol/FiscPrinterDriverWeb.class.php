@@ -151,11 +151,36 @@ class tremol_FiscPrinterDriverWeb extends tremol_FiscPrinterDriverParent
     {
         // Шаблона за JS
         $js = getTplFromFile('/tremol/js/fiscPrintTpl.shtml');
-        
+
         $this->addTplFile($js, $pRec->driverVersion);
-        
+
+        // Всички следващи параметри са документирано опционални (виж докблока по-горе) -
+        // подсигуряваме ги да съществуват в $params, за да не гърми undefined-key/deprecation
+        // при директните им четения по-долу (?? не пипа вече зададена стойност)
+        $params['SERIAL_KEEP_PORT_OPEN'] = $params['SERIAL_KEEP_PORT_OPEN'] ?? false;
+        $params['IS_DETAILED'] = $params['IS_DETAILED'] ?? false;
+        $params['IS_PRINT_VAT'] = $params['IS_PRINT_VAT'] ?? false;
+        $params['IS_STORNO'] = $params['IS_STORNO'] ?? false;
+        $params['IS_CREDIT_NOTE'] = $params['IS_CREDIT_NOTE'] ?? false;
+        $params['IS_INVOICE'] = $params['IS_INVOICE'] ?? false;
+        $params['RCP_NUM'] = $params['RCP_NUM'] ?? '';
+        $params['QR_CODE_DATA'] = $params['QR_CODE_DATA'] ?? '';
+        $params['RELATED_TO_RCP_NUM'] = $params['RELATED_TO_RCP_NUM'] ?? '';
+        $params['RELATED_TO_RCP_DATE_TIME'] = $params['RELATED_TO_RCP_DATE_TIME'] ?? '';
+        $params['RELATED_TO_INV_DATE_TIME'] = $params['RELATED_TO_INV_DATE_TIME'] ?? '';
+        $params['FM_NUM'] = $params['FM_NUM'] ?? '';
+        $params['RECIPIENT'] = $params['RECIPIENT'] ?? '';
+        $params['BUYER'] = $params['BUYER'] ?? '';
+        $params['VAT_NUMBER'] = $params['VAT_NUMBER'] ?? '';
+        $params['UIC'] = $params['UIC'] ?? '';
+        $params['ADDRESS'] = $params['ADDRESS'] ?? '';
+        $params['UIC_TYPE_STR'] = $params['UIC_TYPE_STR'] ?? '';
+        $params['RELATED_TO_INV_NUM'] = $params['RELATED_TO_INV_NUM'] ?? '';
+        $params['payments'] = $params['payments'] ?? null;
+        $params['products'] = $params['products'] ?? array();
+
         $this->connectToPrinter($js, $pRec, $params['SERIAL_KEEP_PORT_OPEN']);
-        
+
         // Задаваме параметрите за отваряне на ФБ
         setIfNot($params['OPER_NUM'], 1);
         if (!isset($params['OPER_PASS'])) {
@@ -205,7 +230,7 @@ class tremol_FiscPrinterDriverWeb extends tremol_FiscPrinterDriverParent
             
             // Опитваме се да попълним няко от задължителните параметри
             if ($params['QR_CODE_DATA']) {
-                list($fmNum, $toRcpNum, $toRcpDate, $toRcpTime) = explode('*', $params['QR_CODE_DATA']);
+                list($fmNum, $toRcpNum, $toRcpDate, $toRcpTime) = array_pad(explode('*', $params['QR_CODE_DATA']), 4, null);
                 
                 setIfNot($params['FM_NUM'], $fmNum);
                 setIfNot($params['RELATED_TO_RCP_NUM'], (int) $toRcpNum);
