@@ -31,6 +31,12 @@ class cad2_PdfCanvas extends cad2_Canvas
      */
     public $width;
     public $height;
+
+    // Граници на съдържанието
+    public $minX = 0;
+    public $maxX = 0;
+    public $minY = 0;
+    public $maxY = 0;
     
     // Падинги на страницата
     public $paddingTop;
