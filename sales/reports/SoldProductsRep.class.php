@@ -54,6 +54,42 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         }
     }
 
+
+    /**
+     * Уеднаквява редовете от заявките за експедирани, поръчани и фактурирани артикули
+     */
+    protected static function applyDataRecDefaults($rec)
+    {
+        $defaults = array(
+            'category' => null,
+            'code' => null,
+            'containerId' => null,
+            'contragentClassId' => null,
+            'contragentId' => null,
+            'delta' => 0,
+            'detailClassId' => null,
+            'discount' => 0,
+            'folderId' => null,
+            'groupList' => null,
+            'groupMat' => null,
+            'price' => 0,
+            'productId' => null,
+            'productIsPublic' => null,
+            'productMeasureId' => null,
+            'quantity' => 0,
+            'quantityInPack' => 1,
+            'sellCost' => 0,
+            'type' => null,
+            'valior' => null,
+        );
+
+        foreach ($defaults as $name => $value) {
+            if (!isset($rec->{$name})) {
+                $rec->{$name} = $value;
+            }
+        }
+    }
+
     /**
      * Кой може да избира драйвъра
      */
@@ -769,6 +805,8 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             self::applyInvoiceDealerScope($invDetQuery, $scope);
 
             while ($invDetRec = $invDetQuery->fetch()) {
+                self::applyDataRecDefaults($invDetRec);
+
                 $invQuantity = $discount = $invAmount = 0;
                 $originQuantity = $changeQuatity = 0;
 
@@ -1096,6 +1134,15 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         $posContragentCache = array();
 
         while ($recPrime = $query->fetch()) {
+            self::applyDataRecDefaults($recPrime);
+
+            if (empty($recPrime->productId) || empty($recPrime->containerId)) {
+                continue;
+            }
+            if ($rec->quantityType == 'shipped' && empty($recPrime->detailClassId)) {
+                continue;
+            }
+
             $quantity = $primeCost = $delta = 0;
             $quantityPrevious = $primeCostPrevious = $deltaPrevious = 0;
             $quantityLastYear = $primeCostLastYear = $deltaLastYear = 0;
