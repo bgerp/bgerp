@@ -212,12 +212,16 @@ EOH;
      * @access Private
      */
     function _parseHtml($html) {
+        $html = (string) $html;
         $html = preg_replace("/<!DOCTYPE((.|\n)*?)>/ims", "", $html);
         $html = preg_replace("/<script((.|\n)*?)>((.|\n)*?)<\/script>/ims", "", $html);
-        preg_match("/<head>((.|\n)*?)<\/head>/ims", $html, $matches);
-        $head = $matches[1];
-        preg_match("/<title>((.|\n)*?)<\/title>/ims", $head, $matches);
-        $this->title = $matches[1];
+        $head = '';
+        if (preg_match("/<head>((.|\n)*?)<\/head>/ims", $html, $matches)) {
+            $head = $matches[1] ?? '';
+        }
+        if (preg_match("/<title>((.|\n)*?)<\/title>/ims", $head, $matches)) {
+            $this->title = $matches[1] ?? $this->title;
+        }
         $html = preg_replace("/<head>((.|\n)*?)<\/head>/ims", "", $html);
         $head = preg_replace("/<title>((.|\n)*?)<\/title>/ims", "", $head);
         $head = preg_replace("/<\/?head>/ims", "", $head);
