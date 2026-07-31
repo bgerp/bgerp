@@ -130,37 +130,38 @@ class sens2_DataLogs extends core_Manager
         $data->listFilter->input('indicatorId,groupBy', 'silent');
         
         $rec = $data->listFilter->rec;
-        
-        
-        if ($indicatorId = $data->listFilter->rec->indicatorId) {
+        $indicatorId = $rec->indicatorId ?? null;
+        $groupBy = $rec->groupBy ?? null;
+
+        if ($indicatorId) {
             $data->query->where("#indicatorId = {$indicatorId}");
         }
         
         
-        if ($rec->groupBy == 'all' || !$rec->groupBy) {
+        if ($groupBy == 'all' || !$groupBy) {
             $data->query->XPR('timeGroup', 'date', '#time');
-        } elseif ($rec->groupBy == 'day') {
+        } elseif ($groupBy == 'day') {
             $data->query->XPR('timeGroup', 'date', 'DATE(#time)');
             $data->query->XPR('valueRes', 'float', 'AVG(#value)');
-        } elseif ($rec->groupBy == 'dayMax') {
+        } elseif ($groupBy == 'dayMax') {
             $data->query->XPR('timeGroup', 'date', 'DATE(#time)');
             $data->query->XPR('valueRes', 'float', 'MAX(#value)');
             $data->query->fields['value'] = $data->query->fields['valueRes'];
-        } elseif ($rec->groupBy == 'dayMin') {
+        } elseif ($groupBy == 'dayMin') {
             $data->query->XPR('timeGroup', 'date', 'DATE(#time)');
             $data->query->XPR('valueRes', 'float', 'MIN(#value)');
             $data->query->fields['value'] = $data->query->fields['valueRes'];
-        } elseif ($rec->groupBy == 'howr') {
+        } elseif ($groupBy == 'howr') {
             $data->query->XPR('timeGroup', 'date', "DATE_FORMAT(#time,'%Y-%m-%d %H:00')");
             $data->query->XPR('valueRes', 'float', 'AVG(#value)');
             $data->query->fields['value'] = $data->query->fields['valueRes'];
-        } elseif ($rec->groupBy == 'week') {
+        } elseif ($groupBy == 'week') {
             $data->query->XPR('timeGroup', 'varchar(16)', "STR_TO_DATE(DATE_FORMAT(#time,'%x%v Monday'), '%x%v %W') ");
             $data->query->XPR('valueRes', 'float', 'AVG(#value)');
             $data->query->fields['value'] = $data->query->fields['valueRes'];
         }
         
-        if ($rec->groupBy && $rec->groupBy != 'all') {
+        if ($groupBy && $groupBy != 'all') {
             $data->query->groupBy('indicatorId,timeGroup');
             $data->query->show('id,indicatorId,value,time,timeGroup,valueRes');
         }
@@ -177,15 +178,15 @@ class sens2_DataLogs extends core_Manager
     {
         $row->indicatorId = sens2_Indicators::getTitleById($rec->indicatorId);
         
-        if ($rec->timeGroup) {
+        if (!empty($rec->timeGroup)) {
             $row->time = $rec->timeGroup;
         }
-        if ($rec->time) {
+        if (!empty($rec->time)) {
             $color = dt::getColorByTime($rec->time);
             $row->time = ht::createElement('span', array('style' => "color:#{$color}"), $row->time);
         }
         
-        if ($rec->valueRec) {
+        if (!empty($rec->valueRec)) {
             $rec->value = $rec->valueRec;
             $row->value = self::getVerbal($rec, 'value');
         }
