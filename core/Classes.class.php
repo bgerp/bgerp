@@ -310,7 +310,7 @@ class core_Classes extends core_Manager
                 self::loadClasses();
             }
             
-            $classId = self::$classes[$className];
+            $classId = self::$classes[$className] ?? null;
         }
         
         expect($silent || $classId, $class);
