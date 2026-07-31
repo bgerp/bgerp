@@ -146,7 +146,7 @@ class bgfisc_plg_CashDocument extends core_Plugin
         
         // Проверка ще се контира ли
         $error = null;
-        $caseId = ($mvc instanceof sales_Sales) ? $rec->caseId : (($rec->peroCase) ? $rec->peroCase : $mvc->getDefaultCase($rec));
+        $caseId = ($mvc instanceof sales_Sales) ? $rec->caseId : (($rec->peroCase ?? null) ? $rec->peroCase : $mvc->getDefaultCase($rec));
         if (!bgfisc_plg_PrintFiscReceipt::checkBeforeConto($caseId, $rec->currencyId, $error)) {
             
             throw new core_exception_Expect($error, 'Несъответствие');
@@ -640,7 +640,7 @@ class bgfisc_plg_CashDocument extends core_Plugin
                 if (isset($anotherArr['PERCENT'])) {
                     $beforePluText .= "-{$anotherArr['PERCENT']}%";
                 }
-                $beforePluText .= '=' . round($anotherArr['PRICE'] + $anotherArr['DISC_ADD_V'], 2) . 'лв';
+                $beforePluText .= '=' . round($anotherArr['PRICE'] + ($anotherArr['DISC_ADD_V'] ?? 0), 2) . 'лв';
                 $beforeTextArr[] = $beforePluText;
             }
             
@@ -800,7 +800,7 @@ class bgfisc_plg_CashDocument extends core_Plugin
                                 $form->setError($errFld, "Има вече издадена бележка с код|*:<b>{$qrCode}</b>");
                             }
                         } else {
-                            $parsedQr = explode('*', $qrCode);
+                            $parsedQr = array_pad(explode('*', $qrCode), 5, '');
                             if(!empty($fRec->qr)){
                                 if(countR($parsedQr) != 5){
                                     $form->setError('qr', "QR кода трябва да съдържа пет низа разделени с|* '*'");

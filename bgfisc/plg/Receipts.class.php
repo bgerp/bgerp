@@ -87,7 +87,7 @@ class bgfisc_plg_Receipts extends core_Plugin
                     $rQuery->limit(1);
 
                     $lastReceipt = $rQuery->fetch();
-                    if($lastReceipt->classId == $mvc->getClassId() && $lastReceipt->objectId == $rec->id){
+                    if($lastReceipt && $lastReceipt->classId == $mvc->getClassId() && $lastReceipt->objectId == $rec->id){
                         $closeBtn = ht::createBtn("Дубликат", array($fiscDriver, 'printduplicate', $deviceRec->id, 'ret_url' => true, 'rand' => str::getRand()), false, false, "class=printReceiptBtn posBtns navigable,title=Отпечатване на дубликат");
                         $buttons["duplicate"] = (object)array('body' => $closeBtn, 'placeholder' => 'CLOSE_BTNS');
                     }
@@ -433,7 +433,7 @@ class bgfisc_plg_Receipts extends core_Plugin
 
                 $discountVal = 0;
                 foreach ($products as $pArr){
-                    $discountVal += abs($pArr['DISC_ADD_V']);
+                    $discountVal += abs($pArr['DISC_ADD_V'] ?? 0);
                 }
                 if($discountVal){
                     $fiscFuRound = bgfisc_Setup::get('PRICE_FU_ROUND');
