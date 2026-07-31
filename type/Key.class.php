@@ -182,7 +182,7 @@ class type_Key extends type_Int
         $rec = $this->fetchVal($value);
         
         if (!$rec) {
-            if (($this->params['allowEmpty']) && ($oValue == ' ')) {
+            if (($this->params['allowEmpty'] ?? null) && ($oValue == ' ')) {
                 
                 return $value;
             }
@@ -811,7 +811,7 @@ class type_Key extends type_Int
                 $element = 'option';
                 
                 if (is_object($title)) {
-                    if ($title->group) {
+                    if ($title->group ?? null) {
                         if ($openGroup) {
                             // затваряме групата
                             $select->append('</optgroup>');
@@ -881,9 +881,9 @@ class type_Key extends type_Int
         // Проверяваме дали мениджъра има поле sysId или systemId
         $groupQuery = $GroupManager->getQuery();
         
-        if ($sysIdField = $GroupManager->fields['sysId']) {
+        if ($sysIdField = ($GroupManager->fields['sysId'] ?? null)) {
             $sysIdField = 'sysId';
-        } elseif ($GroupManager->fields['systemId']) {
+        } elseif ($GroupManager->fields['systemId'] ?? null) {
             $sysIdField = 'systemId';
         }
         

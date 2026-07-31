@@ -46,7 +46,7 @@ class bgfisc_plg_CashDocument extends core_Plugin
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         if ($action == 'add' && isset($rec)) {
-            if (!self::isApplicable($rec->threadId)) {
+            if (!self::isApplicable($rec->threadId ?? null)) {
                 
                 return;
             }
@@ -95,7 +95,7 @@ class bgfisc_plg_CashDocument extends core_Plugin
         }
         
         if ($action == 'conto' && isset($rec)) {
-            if (self::isApplicable($rec->threadId)) {
+            if (self::isApplicable($rec->threadId ?? null)) {
                 if ($rec->state == 'active') {
                     $requiredRoles = 'no_one';
                 } elseif (bgfisc_PrintedReceipts::getQrCode($mvc, $rec->id)) {
@@ -105,7 +105,7 @@ class bgfisc_plg_CashDocument extends core_Plugin
         }
         
         if (in_array($action, array('reject', 'restore', 'correction', 'revert')) && isset($rec)) {
-            if (!self::isApplicable($rec->threadId)) {
+            if (!self::isApplicable($rec->threadId ?? null)) {
                 
                 return;
             }
@@ -116,7 +116,7 @@ class bgfisc_plg_CashDocument extends core_Plugin
         
         // Не може да се променя след създаване към коя фактура е документа
         if (in_array($action, array('clonerec')) && isset($rec)) {
-            if (!self::isApplicable($rec->threadId)) {
+            if (!self::isApplicable($rec->threadId ?? null)) {
                 
                 return;
             }
@@ -124,7 +124,7 @@ class bgfisc_plg_CashDocument extends core_Plugin
         }
         
         if ($mvc instanceof cash_Pko && in_array($action, array('selectinvoice')) && isset($rec)) {
-            if (!self::isApplicable($rec->threadId)) {
+            if (!self::isApplicable($rec->threadId ?? null)) {
                 
                 return;
             }
@@ -139,14 +139,14 @@ class bgfisc_plg_CashDocument extends core_Plugin
     public static function on_BeforeConto(core_Mvc $mvc, &$res, $id)
     {
         $rec = $mvc->fetchRec($id);
-        if (!self::isApplicable($rec->threadId)) {
+        if (!self::isApplicable($rec->threadId ?? null)) {
             
             return;
         }
         
         // Проверка ще се контира ли
         $error = null;
-        $caseId = ($mvc instanceof sales_Sales) ? $rec->caseId : (($rec->peroCase) ? $rec->peroCase : $mvc->getDefaultCase($rec));
+        $caseId = ($mvc instanceof sales_Sales) ? $rec->caseId : (($rec->peroCase ?? null) ? $rec->peroCase : $mvc->getDefaultCase($rec));
         if (!bgfisc_plg_PrintFiscReceipt::checkBeforeConto($caseId, $rec->currencyId, $error)) {
             
             throw new core_exception_Expect($error, 'Несъответствие');
@@ -236,7 +236,7 @@ class bgfisc_plg_CashDocument extends core_Plugin
     public static function on_BeforeRenderSingleToolbar($mvc, &$res, &$data)
     {
         $rec = &$data->rec;
-        if (!self::isApplicable($rec->threadId)) {
+        if (!self::isApplicable($rec->threadId ?? null)) {
             
             return;
         }
@@ -273,7 +273,7 @@ class bgfisc_plg_CashDocument extends core_Plugin
      */
     public static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
-        if (!self::isApplicable($data->rec->threadId)) {
+        if (!self::isApplicable($data->rec->threadId ?? null)) {
             
             return;
         }
@@ -304,7 +304,7 @@ class bgfisc_plg_CashDocument extends core_Plugin
     public static function on_AfterInputEditForm($mvc, &$form)
     {
         $rec = &$form->rec;
-        if (!self::isApplicable($rec->threadId)) return;
+        if (!self::isApplicable($rec->threadId ?? null)) return;
         
         if($form->isSubmitted()){
             if(isset($rec->_allIsPaid)){
@@ -341,7 +341,7 @@ class bgfisc_plg_CashDocument extends core_Plugin
      */
     public static function on_AfterRenderSingle($mvc, &$tpl, $data)
     {
-        if (!self::isApplicable($data->rec->threadId)) {
+        if (!self::isApplicable($data->rec->threadId ?? null)) {
             
             return;
         }
@@ -363,6 +363,11 @@ class bgfisc_plg_CashDocument extends core_Plugin
      */
     public static function isApplicable($threadId)
     {
+        if (empty($threadId)) {
+
+            return false;
+        }
+
         $firstDoc = doc_Threads::getFirstDocument($threadId);
         if (empty($firstDoc)) {
             
@@ -380,7 +385,7 @@ class bgfisc_plg_CashDocument extends core_Plugin
     {
         $rec = &$data->rec;
         $row = &$data->row;
-        if (!self::isApplicable($rec->threadId)) {
+        if (!self::isApplicable($rec->threadId ?? null)) {
             
             return;
         }
@@ -640,7 +645,7 @@ class bgfisc_plg_CashDocument extends core_Plugin
                 if (isset($anotherArr['PERCENT'])) {
                     $beforePluText .= "-{$anotherArr['PERCENT']}%";
                 }
-                $beforePluText .= '=' . round($anotherArr['PRICE'] + $anotherArr['DISC_ADD_V'], 2) . 'лв';
+                $beforePluText .= '=' . round($anotherArr['PRICE'] + ($anotherArr['DISC_ADD_V'] ?? 0), 2) . 'лв';
                 $beforeTextArr[] = $beforePluText;
             }
             
@@ -800,7 +805,7 @@ class bgfisc_plg_CashDocument extends core_Plugin
                                 $form->setError($errFld, "Има вече издадена бележка с код|*:<b>{$qrCode}</b>");
                             }
                         } else {
-                            $parsedQr = explode('*', $qrCode);
+                            $parsedQr = array_pad(explode('*', $qrCode), 5, '');
                             if(!empty($fRec->qr)){
                                 if(countR($parsedQr) != 5){
                                     $form->setError('qr', "QR кода трябва да съдържа пет низа разделени с|* '*'");
@@ -875,7 +880,7 @@ class bgfisc_plg_CashDocument extends core_Plugin
             }
         }
         
-        if (!self::isApplicable($rec->threadId) || (is_null($res) && $mvc instanceof cash_Pko)) {
+        if (!self::isApplicable($rec->threadId ?? null) || (is_null($res) && $mvc instanceof cash_Pko)) {
             
             return;
         }
@@ -987,7 +992,8 @@ class bgfisc_plg_CashDocument extends core_Plugin
                 
                 // Добавяне на УНП-то на основния документ
                 $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
-                if ($urn = bgfisc_Register::getRec($firstDoc->getInstance(), $firstDoc->that)->urn) {
+                $cashReg = bgfisc_Register::getRec($firstDoc->getInstance(), $firstDoc->that);
+                if ($urn = $cashReg->urn ?? null) {
                     $res .= ' ' . plg_Search::normalizeText($urn);
                 }
             }

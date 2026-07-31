@@ -50,7 +50,7 @@ class deals_plg_DpInvoice extends core_Plugin
         }
         
         // Ако е ДИ или КИ не правим нищо
-        if ($rec->type != 'invoice') {
+        if (($rec->type ?? null) != 'invoice') {
             
             return;
         }
@@ -497,7 +497,7 @@ class deals_plg_DpInvoice extends core_Plugin
 
             // Сумата се обръща в валутата на фактурата
             $dpAmount = currency_Currencies::round($masterRec->dpAmount / $masterRec->rate);
-            $sign = $masterRec->type == 'dc_note' ? -1 : 1;
+            $sign = (($masterRec->type ?? null) == 'dc_note') ? -1 : 1;
             $dpAmount = $sign * $dpAmount;
             $dpAmountVerbal = core_Type::getByName('double(decimals=2)')->toVerbal($dpAmount);
             $data->dpInfo = (object) array('dpAmount' => $dpAmount, 'dpOperation' => $masterRec->dpOperation, 'dpAmountVerbal' => $dpAmountVerbal);
@@ -544,7 +544,7 @@ class deals_plg_DpInvoice extends core_Plugin
         } else {
             $fields = core_TableView::filterEmptyColumns($data->rows, $data->listFields, $mvc->hideListFieldsIfEmpty);
 
-            $deductCaption = ($masterRec->type == 'invoice' || !isset($masterRec->type)) ? tr('Приспадане на авансово плащане') : ($data->dpInfo->dpAmount < 0 ? tr('Увеличаване на приспаднат аванс') : tr('Намаляване на приспаднат аванс'));
+            $deductCaption = (($masterRec->type ?? 'invoice') == 'invoice') ? tr('Приспадане на авансово плащане') : ($data->dpInfo->dpAmount < 0 ? tr('Увеличаване на приспаднат аванс') : tr('Намаляване на приспаднат аванс'));
             if ($data->dpInfo->dpAmount < 0) {
                 $data->dpInfo->dpAmount = "<span style='color:red'>{$data->dpInfo->dpAmountVerbal}</span>";
             } elseif ($data->dpInfo->dpAmount > 0) {
@@ -578,7 +578,7 @@ class deals_plg_DpInvoice extends core_Plugin
         $firstDoc = doc_Threads::getFirstDocument($masterRec->threadId);
         $valior = $firstDoc->getVerbal('valior');
 
-        if($masterRec->type == 'dc_note') {
+        if(($masterRec->type ?? null) == 'dc_note') {
             $origin = doc_Containers::getDocument($masterRec->originId);
             if(!empty($masterRec->dcReason)) return $masterRec->dcReason;
 
@@ -658,7 +658,7 @@ class deals_plg_DpInvoice extends core_Plugin
         }
         
         // Ако е ДИ или КИ не правим нищо
-        if ($rec->type != 'invoice') {
+        if (($rec->type ?? null) != 'invoice') {
             
             return;
         }
@@ -682,7 +682,7 @@ class deals_plg_DpInvoice extends core_Plugin
 
         $dpAmount = $masterRec->dpAmount;
         $dpVatGroupId = $masterRec->dpVatGroupId;
-        if($masterRec->type == 'dc_note'){
+        if(($masterRec->type ?? null) == 'dc_note'){
             $originInv = doc_Containers::getDocument($masterRec->originId);
             $dpVatGroupId = $originInv->fetchField('dpVatGroupId');
             if($masterRec->dpOperation == 'deducted'){

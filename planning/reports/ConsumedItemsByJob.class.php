@@ -155,8 +155,9 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
     {
         $form = $data->form;
         $rec = $form->rec;
+        $option = $rec->option ?? 'no';
 
-        if ($rec->option == 'yes') {
+        if ($option == 'yes') {
             $form->setField('products', 'input');
             $form->setField('jobses', 'input=none');
             $form->setField('department', 'input=none');
@@ -171,7 +172,7 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
 
 
         $suggestions = array();
-        foreach (keylist::toArray($rec->jobses) as $val) {
+        foreach (keylist::toArray($rec->jobses ?? null) as $val) {
             $suggestions[$val] = planning_Jobs::getTitleById($val);
         }
 
@@ -191,13 +192,13 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
         $form->setSuggestions('jobses', $suggestions);
 
         //Когато е избрано 'по артикули'зареждаме за избор само онези артикули, които имат задания през периода
-        if ($rec->option == 'yes') {
+        if ($option == 'yes') {
 
             $jQuery = planning_Jobs::getQuery();
 
             $jQuery->in('state', $stateArr);
 
-            if ($rec->department) {
+            if (!empty($rec->department)) {
                 $jQuery->in('department', keylist::toArray($rec->department));
             }
 

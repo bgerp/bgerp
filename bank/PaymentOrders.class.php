@@ -112,7 +112,7 @@ class bank_PaymentOrders extends bank_DocumentBlank
     protected static function on_AfterPrepareEditForm($mvc, $res, $data)
     {
         $form = &$data->form;
-        $originId = $form->rec->originId;
+        $originId = $form->rec->originId ?? null;
         
         if ($originId) {
             $doc = doc_Containers::getDocument($originId);
@@ -175,8 +175,9 @@ class bank_PaymentOrders extends bank_DocumentBlank
     protected static function on_AfterInputEditForm($mvc, &$form)
     {
         $rec = &$form->rec;
+        $documentType = $rec->documentType ?? 'transfer';
         
-        if ($rec->documentType != 'budget') {
+        if ($documentType != 'budget') {
             $form->setField('paymentType', 'input=none');
             $form->setField('documentNumber', 'input=none');
             $form->setField('periodStart', 'input=none');
@@ -188,12 +189,14 @@ class bank_PaymentOrders extends bank_DocumentBlank
         }
         
         if ($form->isSubmitted()) {
-            if (!$rec->execBank) {
-                $rec->execBank = bglocal_Banks::getBankName($rec->ordererIban);
+            $ordererIban = $rec->ordererIban ?? null;
+
+            if (empty($rec->execBank)) {
+                $rec->execBank = bglocal_Banks::getBankName($ordererIban);
             }
             
-            if (!$rec->execBankBic) {
-                $rec->execBankBic = bglocal_Banks::getBankBic($rec->ordererIban);
+            if (empty($rec->execBankBic)) {
+                $rec->execBankBic = bglocal_Banks::getBankBic($ordererIban);
             }
             
             if ((int) !empty($rec->LNC) + (int) !empty($rec->EGN) + (int) !empty($rec->vatId) > 1) {
@@ -227,8 +230,9 @@ class bank_PaymentOrders extends bank_DocumentBlank
         if (isset($fields['-single'])) {
             
             // Извличаме името на банката и BIC-а на получателя от IBAN-а му
-            $row->contragentBank = bglocal_Banks::getBankName($rec->beneficiaryIban);
-            $row->contragentBankBic = bglocal_Banks::getBankBic($rec->beneficiaryIban);
+            $beneficiaryIban = $rec->beneficiaryIban ?? null;
+            $row->contragentBank = bglocal_Banks::getBankName($beneficiaryIban);
+            $row->contragentBankBic = bglocal_Banks::getBankBic($beneficiaryIban);
             $row->sayWords = self::spellAmount($rec);
         }
     }
@@ -262,7 +266,7 @@ class bank_PaymentOrders extends bank_DocumentBlank
         $tpl = parent::renderSingleLayout_($data);
         
         if (Mode::is('printing')) {
-            if ($data->row->originClassId == 'bank_IncomeDocuments') {
+            if (($data->row->originClassId ?? null) == 'bank_IncomeDocuments') {
                 
                 // скриваме логото на моята фирма
                 $tpl->replace('', 'blank');
@@ -298,7 +302,7 @@ class bank_PaymentOrders extends bank_DocumentBlank
      */
     protected static function on_AfterRenderSingleLayout($mvc, $tpl, $data)
     {
-        if ($data->rec->documentType != 'budget') {
+        if (($data->rec->documentType ?? 'transfer') != 'budget') {
             $tpl->removeBlock('budgetBlock');
             $tpl->removeBlock('paymentType');
             $tpl->removeBlock('sayWords');
@@ -327,8 +331,8 @@ class bank_PaymentOrders extends bank_DocumentBlank
        // Проверка на входните параметри
        $row = new stdClass();
        $row->reason = $reason;
-       $row->currencyId = $fields->currencyCode;
-       $documentType = isset($fields->documentType) ? $fields->documentType : 'transfer';
+       $row->currencyId = $fields->currencyCode ?? null;
+       $documentType = $fields->documentType ?? 'transfer';
        expect(in_array($documentType, array('transfer', 'budget')));
        $row->documentType = cls::get(get_called_class())->getFieldType('documentType')->toVerbal($documentType);
        $row->valior = (isset($fields->valior)) ? dt::mysql2verbal($fields->valior, 'd.m.Y') : null;

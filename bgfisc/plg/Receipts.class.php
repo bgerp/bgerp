@@ -87,7 +87,7 @@ class bgfisc_plg_Receipts extends core_Plugin
                     $rQuery->limit(1);
 
                     $lastReceipt = $rQuery->fetch();
-                    if($lastReceipt->classId == $mvc->getClassId() && $lastReceipt->objectId == $rec->id){
+                    if($lastReceipt && $lastReceipt->classId == $mvc->getClassId() && $lastReceipt->objectId == $rec->id){
                         $closeBtn = ht::createBtn("Дубликат", array($fiscDriver, 'printduplicate', $deviceRec->id, 'ret_url' => true, 'rand' => str::getRand()), false, false, "class=printReceiptBtn posBtns navigable,title=Отпечатване на дубликат");
                         $buttons["duplicate"] = (object)array('body' => $closeBtn, 'placeholder' => 'CLOSE_BTNS');
                     }
@@ -255,7 +255,7 @@ class bgfisc_plg_Receipts extends core_Plugin
         $today = dt::today();
         $bgnPaymentId = eurozone_Setup::getBgnPaymentId();
         while ($dRec = $query->fetch()) {
-            list(, $paymentType) = explode('|', $dRec->action);
+            list(, $paymentType) = array_pad(explode('|', $dRec->action), 2, null);
 
             $code = 0;
             $amount = $dRec->amount;
@@ -433,7 +433,7 @@ class bgfisc_plg_Receipts extends core_Plugin
 
                 $discountVal = 0;
                 foreach ($products as $pArr){
-                    $discountVal += abs($pArr['DISC_ADD_V']);
+                    $discountVal += abs($pArr['DISC_ADD_V'] ?? 0);
                 }
                 if($discountVal){
                     $fiscFuRound = bgfisc_Setup::get('PRICE_FU_ROUND');
@@ -442,11 +442,9 @@ class bgfisc_plg_Receipts extends core_Plugin
                     $fiscalArr['END_TEXT'][] = "Обща отстъпка: {$discountVal} евро";
                 }
 
-                if($rec->voucherId){
-                    if(core_Packs::isInstalled('voucher')){
-                        $endVoucher = substr(voucher_Cards::getVerbal($rec->voucherId, 'number'), 12, 4);
-                        $fiscalArr['END_TEXT'][] = "Ваучер: *{$endVoucher}";
-                    }
+                if(core_Packs::isInstalled('voucher') && !empty($rec->voucherId)){
+                    $endVoucher = substr(voucher_Cards::getVerbal($rec->voucherId, 'number'), 12, 4);
+                    $fiscalArr['END_TEXT'][] = "Ваучер: *{$endVoucher}";
                 }
 
                 $showPosDevice = bgfisc_Setup::get('SHOW_BPT_IN_RECEIPT') == 'yes';
@@ -503,7 +501,7 @@ class bgfisc_plg_Receipts extends core_Plugin
                         $redirectUrl = $successUrl . "&res={$result}";
                         
                         if ($lRec->isElectronic == 'yes' && empty($rec->revertId)) {
-                            list(, $receiptNum) = explode('*', $result);
+                            list(, $receiptNum) = array_pad(explode('*', $result), 2, null);
                             try {
                                 usleep(1000000);
                                 $fh = $interface->saveReceiptToFile($lRec, $receiptNum);
@@ -700,7 +698,7 @@ class bgfisc_plg_Receipts extends core_Plugin
             $cashReg = bgfisc_Register::getRec('pos_Receipts', $rec->revertId);
         }
         
-        return $cashReg->urn;
+        return $cashReg->urn ?? null;
     }
     
     
@@ -764,8 +762,8 @@ class bgfisc_plg_Receipts extends core_Plugin
         // Добавяне на използваните платежни методи към ключовите думи
         if(isset($rec->id)){
             $cashReg = ($rec->revertId) ? bgfisc_Register::getRec($mvc, $rec->revertId) : bgfisc_Register::getRec($mvc, $rec->id);
-            
-            $res = ' ' . $res . ' ' . plg_Search::normalizeText($cashReg->urn);
+
+            $res = ' ' . $res . ' ' . plg_Search::normalizeText($cashReg->urn ?? null);
         }
     }
 }

@@ -111,7 +111,7 @@ class bgfisc_plg_PrintFiscReceipt extends core_Plugin
      */
     public static function getFiscReceiptTpl($mvc, $rec)
     {
-        $caseId = ($mvc instanceof sales_Sales) ? $rec->caseId : (($rec->peroCase) ? $rec->peroCase : $mvc->getDefaultCase($rec));
+        $caseId = ($mvc instanceof sales_Sales) ? $rec->caseId : (($rec->peroCase ?? null) ? $rec->peroCase : $mvc->getDefaultCase($rec));
 
         $registerRec = bgfisc_Register::getFiscDevice($caseId);
        
@@ -239,7 +239,7 @@ class bgfisc_plg_PrintFiscReceipt extends core_Plugin
             $redirectUrl = $logUrl . "&res={$result}";
             
             if ($registerRec->isElectronic == 'yes' && $rec->isReverse != 'yes' && !empty($result)) {
-                list(, $receiptNum) = explode('*', $result);
+                list(, $receiptNum) = array_pad(explode('*', $result), 2, null);
                 usleep(1000000);
                 $fh = $interface->saveReceiptToFile($registerRec, $receiptNum);
                 if ($fh !== false) {

@@ -100,7 +100,7 @@ class bgfisc_reports_DetailedSalesData extends frame2_driver_TableData
         $suggestions = ($suggestionsPos+$suggestionsSales);
         
         foreach ($suggestions as $val) {
-            $suggestions[$val] = core_Users::fetch("#id = {$val}")->names;
+            $suggestions[$val] = core_Users::fetch("#id = {$val}")->names ?? null;
         }
         
         asort($suggestions);
@@ -501,7 +501,7 @@ class bgfisc_reports_DetailedSalesData extends frame2_driver_TableData
         }
         
         if (isset($data->rec->operator)) {
-            $fieldTpl->append('<b>' . core_Users::fetch($data->rec->operator)->names . '</b>', 'operator');
+            $fieldTpl->append('<b>' . (core_Users::fetch($data->rec->operator)->names ?? null) . '</b>', 'operator');
         } else {
             $fieldTpl->append('<b>' . 'Всички' . '</b>', 'operator');
         }

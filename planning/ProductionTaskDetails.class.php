@@ -600,7 +600,7 @@ class planning_ProductionTaskDetails extends doc_Detail
                     }
 
                     if (empty($rec->batch)) {
-                        if ($masterRec->followBatchesForFinalProduct == 'yes') {
+                        if (($masterRec->followBatchesForFinalProduct ?? null) == 'yes') {
                         $rec->batch = $serialInfo['batch'] ?? null;
                         }
                     }
@@ -615,7 +615,7 @@ class planning_ProductionTaskDetails extends doc_Detail
                     $form->setWarning('quantity', $warning);
                 }
 
-                if ($masterRec->followBatchesForFinalProduct == 'yes') {
+                if (($masterRec->followBatchesForFinalProduct ?? null) == 'yes') {
                     if(empty($rec->batch) && $rec->type == 'production'){
                         $form->setError('batch', "Посочете партида! В операцията е избрано да се отчита по партида");
                     }

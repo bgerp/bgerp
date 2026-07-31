@@ -127,7 +127,8 @@ class sens2_script_Logs extends core_Manager
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         $data->query->orderBy('id', 'DESC');
-        if($field = $data->listFilter->rec->name) {  
+        $field = $data->listFilter->rec->name ?? null;
+        if($field) {
  
             $data->query->where(array("#name LIKE '%[#1#]%'", $field));
             
@@ -146,11 +147,11 @@ class sens2_script_Logs extends core_Manager
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
-        if($rec->actionId) {
+        if (!empty($rec->actionId)) {
             $actionRec = sens2_script_Actions::fetch($rec->actionId);
             $row->actionId = ht::createLink($row->actionId, array('sens2_Scripts', 'Single', $rec->scriptId, 'order' => $actionRec->order)); 
         }
-        if($rec->error) {
+        if (!empty($rec->error)) {
             $row->ROW_ATTR = array('style' => 'background-color:#faa;');
         }
 

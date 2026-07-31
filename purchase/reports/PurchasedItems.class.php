@@ -157,15 +157,15 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
         $rec = $form->rec;
         $suggestions = array();
 
-        if ($rec->compare != 'checked') {
+        if (($rec->compare ?? 'no') != 'checked') {
             $form->setField('compareStart', 'input=none');
         }
 
-        if ($rec->seeCrmGroup != 'yes') {
+        if (($rec->seeCrmGroup ?? null) != 'yes') {
             $form->setField('crmGroup', 'input=none');
         }
 
-        if ($rec->seeGroup != 'yes') {
+        if (($rec->seeGroup ?? null) != 'yes') {
             $form->setField('group', 'input=none');
         }
 

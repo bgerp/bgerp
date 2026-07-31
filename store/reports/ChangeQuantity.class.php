@@ -274,13 +274,18 @@ class store_reports_ChangeQuantity extends frame2_driver_TableData
             $query->where("#reportId = {$rec->id}");
             $query->orderBy('id', 'DESC');
             $query->show('versionBefore');
-            
-            $versionBeforeId = $query->fetch()->versionBefore;
+
+            $versionRec = $query->fetch();
+            $versionBeforeId = $versionRec->versionBefore ?? null;
         } else {
             $versionBeforeId = frame2_ReportVersions::fetchField($selectedVersionId, 'versionBefore');
         }
-        
-        $versionBeforeData = (isset($versionBeforeId)) ? frame2_ReportVersions::fetchField($versionBeforeId, 'oldRec')->data->recs : array();
+
+        $versionBeforeData = array();
+        if (isset($versionBeforeId)) {
+            $oldRec = frame2_ReportVersions::fetchField($versionBeforeId, 'oldRec');
+            $versionBeforeData = is_array($oldRec->data->recs ?? null) ? $oldRec->data->recs : array();
+        }
         
         return $versionBeforeData;
     }

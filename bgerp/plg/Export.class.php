@@ -101,14 +101,15 @@ class bgerp_plg_Export extends core_Plugin
                     $selId = (int) $selId;
                     expect(is_int($selId));
                 }
+                $recs = array();
                 if (!empty($selectedArr)) {
                     $selected = implode(',', $selectedArr);
                     $query = $mvc->getQuery();
                     $query->in('id', $selected);
-                    
+
                     $recs = $query->fetchAll();
                 }
-                
+
                 core_App::setTimeLimit(countR($recs) / 10);
                 
                 $cu = core_Users::getCurrent();
@@ -167,7 +168,7 @@ class bgerp_plg_Export extends core_Plugin
                     return false;
                 }
 
-                if($Driver->exportIsFh === true){
+                if(($Driver->exportIsFh ?? null) === true){
                     $fh = $content;
                 } else {
                     $name = $Driver->getExportedFileName();

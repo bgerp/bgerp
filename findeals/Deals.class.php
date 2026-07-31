@@ -335,7 +335,7 @@ class findeals_Deals extends deals_DealBase
             expect(in_array($newFields['baseAmountType'], array('debit', 'credit')));
         }
         
-        if (isset($fields['baseAccountSysId']) || $fields['baseAmount'] || $fields['baseAmountType']) {
+        if (isset($fields['baseAccountSysId']) || isset($fields['baseAmount']) || isset($fields['baseAmountType'])) {
             expect(isset($fields['baseAccountSysId'], $fields['baseAmount'], $fields['baseAmountType']));
         }
 

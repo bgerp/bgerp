@@ -181,7 +181,7 @@ class price_reports_PriceList extends frame2_driver_TableData
                 // Ако справката не е в папка на клиент, проверява се дали политиката е частна
                 // ако е частна, взима се списъка от листваните артикули на клиента
                 $listRec = price_Lists::fetch($rec->policyId);
-                if($listRec->isPublic == 'no'){
+                if($listRec->public == 'no'){
                     if($foundRec = price_ListToCustomers::fetch("#listId = {$rec->policyId}")){
                         $listingId = cond_Parameters::getParameter($foundRec->cClass, $foundRec->cId, 'salesList');
                     }
@@ -300,7 +300,8 @@ class price_reports_PriceList extends frame2_driver_TableData
                 'isPublic' => $productRec->isPublic,
                 'vat' => cat_Products::getVat($productRec->id, $date, $rec->vatExceptionId),
                 'packs' => array(),
-                'groups' => $productRec->groups);
+                'groups' => $productRec->groups,
+                'type' => null);
 
             if ($rec->packType == 'base') {
                 if(array_key_exists($productRec->id, $basePackagings)){

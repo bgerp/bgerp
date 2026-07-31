@@ -49,7 +49,7 @@ class bgfisc_plg_SaleDocument extends core_Plugin
         $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
         if ($cashReg = bgfisc_Register::getRec($firstDoc->getInstance(), $firstDoc->that)) {
             $urn = bgfisc_Register::getUrlLink($cashReg->urn);
-            $row->{$mvc->notesFld} = tr("|*<div><span class='quiet'>|УНП|*</span>: {$urn}</div>") . $row->{$mvc->notesFld};
+            $row->{$mvc->notesFld} = tr("|*<div><span class='quiet'>|УНП|*</span>: {$urn}</div>") . ($row->{$mvc->notesFld} ?? '');
         }
     }
     
@@ -64,7 +64,8 @@ class bgfisc_plg_SaleDocument extends core_Plugin
                 
                 // Добавяне на УНП-то на основния документ
                 $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
-                if ($urn = bgfisc_Register::getRec($firstDoc->getInstance(), $firstDoc->that)->urn) {
+                $cashReg = bgfisc_Register::getRec($firstDoc->getInstance(), $firstDoc->that);
+                if ($urn = $cashReg->urn ?? null) {
                     $res .= ' ' . plg_Search::normalizeText($urn);
                 }
             }

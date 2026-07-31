@@ -350,12 +350,12 @@ class log_Data extends core_Manager
             $names = core_Users::fetchField($dRec->objectId, 'names');
             $names = core_Users::prepareUserNames($names);
 
-            if (!$bridArr[$dRec->bridStr]) {
+            if (!($bridArr[$dRec->bridStr] ?? null)) {
                 $template = "{$nick} <span class='autocomplete-name'>{$names} ({$dRec->bridStr})</span>";
                 $bridArr[$dRec->bridStr] = array('val' => $dRec->bridStr, 'template' => $template, 'search' => $dRec->bridStr . ' ' . $nick . ' ' . $names);
             }
 
-            if (!$ipArr[$dRec->ipStr]) {
+            if (!($ipArr[$dRec->ipStr] ?? null)) {
                 $template = "{$nick} <span class='autocomplete-name'>{$names} ({$dRec->ipStr})</span>";
                 $ipArr[$dRec->ipStr] = array('val' => $dRec->ipStr, 'template' => $template, 'search' => $dRec->ipStr . ' ' . $nick . ' ' . $names);
             }

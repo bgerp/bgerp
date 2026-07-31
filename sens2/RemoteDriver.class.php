@@ -66,7 +66,14 @@ class sens2_RemoteDriver extends sens2_ProtoDriver
 
         $aQuery = remote_Authorizations::getQuery();
         
-        $bgerpClassId = core_Classes::getId('remote_BgerpDriver');
+        $bgerpClassId = core_Classes::getId('remote_BgerpDriver', true);
+
+        if (!$bgerpClassId) {
+            $form->setError('authorizationId', 'Липсва регистрация на драйвера за отдалечен bgERP. Обновете setup-а на пакет remote');
+            $form->setOptions('authorizationId', array());
+
+            return;
+        }
 
         $cu = core_Users::getCurrent();
 
@@ -155,9 +162,14 @@ class sens2_RemoteDriver extends sens2_ProtoDriver
      */
     private function loadState()
     {   
-        $authorizationId = $this->driverRec->config->authorizationId;
+        $authorizationId = $this->driverRec->config->authorizationId ?? null;
+        if (!$authorizationId) {
+            $this->state = array();
 
-        if(!($this->state = self::$states[$authorizationId])) {
+            return;
+        }
+
+        if (!($this->state = self::$states[$authorizationId] ?? null)) {
             $aRec = remote_Authorizations::fetch($authorizationId);
             $this->state = remote_BgerpDriver::sendQuestion($aRec, __CLASS__, 'getState', array('priority' => true));
 

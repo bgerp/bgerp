@@ -77,7 +77,7 @@ class sens2_script_ActionSMS
     public function run($rec)
     {
         // Ако има условие и то не е изпълнено - не правим нищо
-        if (trim($rec->cond)) {
+        if (trim($rec->cond ?? '')) {
             $cond = sens2_Scripts::calcExpr($rec->cond, $rec->scriptId);
             if ($cond === sens2_Scripts::CALC_ERROR) {
                 
