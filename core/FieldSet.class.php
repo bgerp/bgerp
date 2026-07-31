@@ -118,9 +118,8 @@ class core_FieldSet extends core_BaseClass
             }
         }
         
+        expect(isset($mvc->fields[$params['externalName']]), $params['externalName'], $mvc->fields, $mvc->className);
         $fieldType = $mvc->fields[$params['externalName']]->type;
-        
-        expect(isset($fieldType), $params['externalName'], $mvc->fields, $mvc->className);
         
         $this->setField($name, arr::combine(array(
             'kind' => 'EXT',
@@ -196,7 +195,7 @@ class core_FieldSet extends core_BaseClass
             $mustOrder = isset($params['mustOrder']) ? $params['mustOrder'] : null;
             
             if ($newField && isset($this->fields[$name])) {
-                if ($params['forceField']) {
+                if (!empty($params['forceField'])) {
                     
                     return;
                 }
