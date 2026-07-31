@@ -44,6 +44,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             'dealers' => null,
             'dealersTeam' => null,
             'currency' => null,
+            'grFilter' => null,
         );
 
         foreach ($defaults as $name => $value) {
@@ -228,6 +229,8 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
      */
     protected static function getGroupFilterSuggestions($rec)
     {
+        self::applyRecDefaults($rec);
+
         $suggestions = array();
 
         if (empty($rec->data->recs) || !is_array($rec->data->recs)) {
@@ -1392,6 +1395,8 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                 }
             }
 
+            $invProdRec = $invProd[$id] ?? (object) array('invQuantity' => 0, 'invAmount' => 0);
+
             //Ако има избрана валута и тя е различна от основната преизчислява сумите
             if ($rec->currency && ($rec->currency != $baseCurrencyId)) {
                 $checkedCurrencyCode = currency_Currencies::getCodeById($rec->currency);
@@ -1404,8 +1409,8 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                 $deltaPrevious *= $rate;
                 $primeCostLastYear *= $rate;
                 $deltaLastYear *= $rate;
-                if ($invProd[$id]->invAmount) {
-                    $invProd[$id]->invAmount *= $rate;
+                if ($invProdRec->invAmount) {
+                    $invProdRec->invAmount *= $rate;
                 }
             }
 
@@ -1439,8 +1444,8 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                     'group' => $recPrime->groupMat,                       // В кои групи е включен артикула
                     'groupList' => $recPrime->groupList,                  //В кои групи е включен контрагента
 
-                    'invQuantity' => $invProd[$id]->invQuantity,          // Фактурирано количество от този артикул на този контрагент
-                    'invAmount' => $invProd[$id]->invAmount,              // Стойност на фактурираното количество от този артикул на този контрагент
+                    'invQuantity' => $invProdRec->invQuantity,            // Фактурирано количество от този артикул на този контрагент
+                    'invAmount' => $invProdRec->invAmount,                // Стойност на фактурираното количество от този артикул на този контрагент
 
 
                 );
@@ -1686,27 +1691,28 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             $recs = $tempArr;
 
             foreach ($recs as $v) {
-                $v->groupValues = $groupValues[$v->$typeGroup];
-                $v->groupQuantity = $groupQuantity[$v->$typeGroup];
-                $v->groupDeltas = $groupDeltas[$v->$typeGroup];
-                $v->groupPrimeCostPrevious = $groupPrimeCostPrevious[$v->$typeGroup];
-                $v->groupDeltaPrevious = $groupDeltaPrevious[$v->$typeGroup];
-                $v->groupPrimeCostLastYear = $groupPrimeCostLastYear[$v->$typeGroup];
-                $v->groupDeltaLastYear = $groupDeltaLastYear[$v->$typeGroup];
+                $groupKey = $v->$typeGroup;
+                $v->groupValues = $groupValues[$groupKey] ?? 0;
+                $v->groupQuantity = $groupQuantity[$groupKey] ?? 0;
+                $v->groupDeltas = $groupDeltas[$groupKey] ?? 0;
+                $v->groupPrimeCostPrevious = $groupPrimeCostPrevious[$groupKey] ?? 0;
+                $v->groupDeltaPrevious = $groupDeltaPrevious[$groupKey] ?? 0;
+                $v->groupPrimeCostLastYear = $groupPrimeCostLastYear[$groupKey] ?? 0;
+                $v->groupDeltaLastYear = $groupDeltaLastYear[$groupKey] ?? 0;
             }
             unset($v);
         } else {
             foreach ($recs as $v) {
                 foreach ($v->$typeGroup as $gro) {
-                    $v->groupValues = $groupValues[$gro];
-                    $v->groupQuantity = $groupQuantity[$gro];
-                    $v->groupDeltas = $groupDeltas[$gro];
+                    $v->groupValues = $groupValues[$gro] ?? 0;
+                    $v->groupQuantity = $groupQuantity[$gro] ?? 0;
+                    $v->groupDeltas = $groupDeltas[$gro] ?? 0;
 
-                    $v->groupPrimeCostPrevious = $groupPrimeCostPrevious[$gro];
-                    $v->groupDeltaPrevious = $groupDeltaPrevious[$gro];
+                    $v->groupPrimeCostPrevious = $groupPrimeCostPrevious[$gro] ?? 0;
+                    $v->groupDeltaPrevious = $groupDeltaPrevious[$gro] ?? 0;
 
-                    $v->groupPrimeCostLastYear = $groupPrimeCostLastYear[$gro];
-                    $v->groupDeltaLastYear = $groupDeltaLastYear[$gro];
+                    $v->groupPrimeCostLastYear = $groupPrimeCostLastYear[$gro] ?? 0;
+                    $v->groupDeltaLastYear = $groupDeltaLastYear[$gro] ?? 0;
                 }
             }
             unset($v, $gro);
@@ -2480,6 +2486,8 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
      */
     protected static function on_AfterRenderSingle(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$tpl, $data)
     {
+        self::applyRecDefaults($data->rec);
+
         $fieldTpl = new core_ET(tr("|*<!--ET_BEGIN BLOCK-->[#BLOCK#]
                                 <fieldset class='detail-info'><legend class='groupTitle'><small><b>|Филтър|*</b></small></legend>
                                     <div class='small'>
@@ -2649,10 +2657,11 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 
         if ($grFilter) {
             if ($data->rec->typeOfGroups == 'category') {
-                $grFilterName = cat_Categories::fetch($grFilter)->name;
+                $grFilterRec = cat_Categories::fetch($grFilter);
             } else {
-                $grFilterName = cat_Groups::fetch($grFilter)->name;
+                $grFilterRec = cat_Groups::fetch($grFilter);
             }
+            $grFilterName = $grFilterRec->name ?? 'Не е избрана';
         } else {
             $grFilterName = 'Не е избрана';
         }
@@ -2686,6 +2695,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 
         frame2_Reports::refresh($rec);
         $rec = frame2_Reports::fetch($recId);
+        self::applyRecDefaults($rec);
 
         if (!in_array($rec->typeOfGroups, array('art', 'category'))) {
             core_Statuses::newStatus('Филтърът по група е достъпен само при "Групи артикули" или "Категории артикули"', 'error');
@@ -2724,7 +2734,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png');
 
         if ($form->isSubmitted()) {
-            $rec->grFilter = $form->rec->groupFilter;
+            $rec->grFilter = $form->rec->groupFilter ?? null;
 
             frame2_Reports::save($rec);
             frame2_Reports::refresh($rec);
@@ -2744,6 +2754,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         expect($recId = Request::get('recId', 'int'));
 
         $rec = frame2_Reports::fetch($recId);
+        self::applyRecDefaults($rec);
 
         if (Request::get('clearArtFilter', 'int')) {
             frame2_Reports::refresh($rec);
@@ -2760,11 +2771,11 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         $form->title = 'Филтър по артикул';
 
         $artSuggestionsArr = array();
-        if (is_array($filterRec->data->recs) && !empty($filterRec->data->recs)) {
+        if (!empty($filterRec->data->recs) && is_array($filterRec->data->recs)) {
             $prArr = arr::extractValuesFromArray($filterRec->data->recs, 'productId');
             foreach (array_keys($prArr) as $val) {
                 $pRec = cat_Products::fetch($val);
-                $code = $pRec->code ?: 'Art' . $pRec->productId;
+                $code = $pRec->code ?: 'Art' . $pRec->id;
                 $artSuggestionsArr[$val] = $code . '|' . $pRec->name;
             }
         }
@@ -2779,16 +2790,17 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png');
 
         if ($form->isSubmitted()) {
+            $artFilter = $form->rec->artFilter ?? null;
             $rec->data = $filterRec->data;
             foreach ($rec->data->recs as $key => $pRec) {
-                if (($pRec->productId) && ($form->rec->artFilter != $pRec->productId)) {
+                if (!empty($pRec->productId) && $artFilter != $pRec->productId) {
                     unset($rec->data->recs[$key]);
                 }
             }
 
             frame2_Reports::save($rec);
 
-            return new Redirect(array('doc_Containers', 'list', 'threadId' => $rec->threadId, 'docId' => $recId, 'artFilter' => $form->rec->artFilter, 'ret_url' => true));
+            return new Redirect(array('doc_Containers', 'list', 'threadId' => $rec->threadId, 'docId' => $recId, 'artFilter' => $artFilter, 'ret_url' => true));
         }
 
         return $form->renderHtml();
