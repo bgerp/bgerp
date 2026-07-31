@@ -442,11 +442,9 @@ class bgfisc_plg_Receipts extends core_Plugin
                     $fiscalArr['END_TEXT'][] = "Обща отстъпка: {$discountVal} евро";
                 }
 
-                if($rec->voucherId){
-                    if(core_Packs::isInstalled('voucher')){
-                        $endVoucher = substr(voucher_Cards::getVerbal($rec->voucherId, 'number'), 12, 4);
-                        $fiscalArr['END_TEXT'][] = "Ваучер: *{$endVoucher}";
-                    }
+                if(core_Packs::isInstalled('voucher') && !empty($rec->voucherId)){
+                    $endVoucher = substr(voucher_Cards::getVerbal($rec->voucherId, 'number'), 12, 4);
+                    $fiscalArr['END_TEXT'][] = "Ваучер: *{$endVoucher}";
                 }
 
                 $showPosDevice = bgfisc_Setup::get('SHOW_BPT_IN_RECEIPT') == 'yes';
