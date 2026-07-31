@@ -1208,6 +1208,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
      */
     private static function getPaidAmount($dRec, $verbal = true)
     {
+        self::normalizeDetailRec($dRec);
         $invoicePayout = $dRec->invoicePayout ?? 0;
         $rate = $dRec->rate ?? 1;
 
@@ -1235,6 +1236,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
      */
     private static function getPaidDates($dRec, $verbal = true)
     {
+        self::normalizeDetailRec($dRec);
         $paidDatesList = '';
         $paidDates = '';
 
@@ -1244,6 +1246,9 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                 if (!empty($onePayDoc->containerId)) {
                     $Document = doc_Containers::getDocument($onePayDoc->containerId);
                 } else {
+                    continue;
+                }
+                if (!$Document) {
                     continue;
                 }
                 $payDocClass = $Document->className;
@@ -1257,20 +1262,32 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                 //if ($dRec->type != 'invoice') continue;
 
                 // При директно насочено плащане се проверява дали сочи към текущия документ.
-                if ($payDocumentRec->fromContainerId) {
-                    if ($dRec->invoiceContainerId != $payDocumentRec->fromContainerId) {
+                $fromContainerId = $payDocumentRec->fromContainerId ?? null;
+                if ($fromContainerId) {
+                    if ($dRec->invoiceContainerId != $fromContainerId) {
                         continue;
                     }
 
-                    $paidDatesList .= ',' . $payDocumentRec->valior;
+                    if (!empty($payDocumentRec->valior)) {
+                        $paidDatesList .= ',' . $payDocumentRec->valior;
+                    }
                 } else {
                     // При разпределено плащане датата се взима от връзката между плащане и документ.
-                    if (is_array(deals_InvoicesToDocuments::getInvoiceArr($payDocumentRec->containerId))) {
-                        foreach (deals_InvoicesToDocuments::getInvoiceArr($payDocumentRec->containerId) as $val) {
+                    $paymentContainerId = $payDocumentRec->containerId ?? null;
+                    $invoiceArr = $paymentContainerId ? deals_InvoicesToDocuments::getInvoiceArr($paymentContainerId) : array();
+                    if (is_array($invoiceArr)) {
+                        foreach ($invoiceArr as $val) {
 
-                            $pDocumnt = doc_Containers::getDocument($val->documentContainerId);
+                            $documentContainerId = $val->documentContainerId ?? null;
+                            if (!$documentContainerId) {
+                                continue;
+                            }
+                            $pDocumnt = doc_Containers::getDocument($documentContainerId);
+                            if (!$pDocumnt) {
+                                continue;
+                            }
                             $linkedPayRec = $payDocClass::fetch($pDocumnt->that);
-                            if ($linkedPayRec) {
+                            if ($linkedPayRec && !empty($linkedPayRec->valior)) {
                                 $paidDatesList .= ',' . $linkedPayRec->valior;
                             }
                             break;
@@ -1281,6 +1298,10 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
         }
 
         // Форматира се списъкът с дати според режима на показване или експорт.
+        if ($paidDatesList === '') {
+            return '';
+        }
+
         if ($verbal === true) {
             $amountsValiors = explode(',', trim($paidDatesList, ','));
 
@@ -1314,6 +1335,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
      */
     private static function getDueDate($dRec, $verbal = true, $rec = null)
     {
+        self::normalizeDetailRec($dRec);
         // Вербален формат + warning hint, ако фактурата е просрочена и има неплатен остатък.
         if ($rec->unpaid == 'unpaid' && !$rec->checkDate) {
             $checkDate = dt::now();
@@ -1354,6 +1376,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
      */
     protected function detailRecToVerbal($rec, &$dRec)
     {
+        self::normalizeDetailRec($dRec);
         $isPlain = Mode::is('text', 'plain');
         $Int = cls::get('type_Int');
         // Типове за форматиране на дати и суми в таблицата.
@@ -1794,7 +1817,14 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                 if (!empty($invArr)) {
                     foreach ($invArr as $key => $val) {
 
-                        $pDocoment = doc_Containers::getDocument($val->containerId);
+                        $targetContainerId = $val->containerId ?? null;
+                        if (!$targetContainerId) {
+                            continue;
+                        }
+                        $pDocoment = doc_Containers::getDocument($targetContainerId);
+                        if (!$pDocoment) {
+                            continue;
+                        }
 
                         if ($pDocoment->className != 'sales_Proformas') {
                             continue;
@@ -1825,6 +1855,47 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
 
 
     /**
+     * Допълва липсващите полета в редове от стари версии на справката.
+     *
+     * @param stdClass $dRec
+     */
+    private static function normalizeDetailRec($dRec)
+    {
+        $defaults = array(
+            'threadId' => null,
+            'className' => null,
+            'invoiceId' => null,
+            'invoiceNo' => '',
+            'invoiceDate' => null,
+            'dueDate' => null,
+            'invoiceContainerId' => null,
+            'currencyId' => null,
+            'rate' => 1,
+            'invoiceValue' => 0,
+            'invoiceVAT' => 0,
+            'invoicePayout' => 0,
+            'invoiceCurrentSumm' => 0,
+            'contragent' => '',
+            'type' => 'invoice',
+            'payDocuments' => array(),
+            'dcPay' => array(),
+            'fastMarker' => 1,
+            'totalInvoiceValue' => 0,
+            'totalInvoicePayout' => 0,
+            'totalInvoiceNotPayd' => 0,
+            'totalInvoiceOverPaid' => 0,
+            'totalInvoiceOverDue' => 0,
+        );
+
+        foreach ($defaults as $name => $value) {
+            if (!property_exists($dRec, $name)) {
+                $dRec->{$name} = $value;
+            }
+        }
+    }
+
+
+    /**
      * След подготовка на реда за експорт
      *
      * @param frame2_driver_Proto $Driver
@@ -1834,6 +1905,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
      */
     protected static function on_AfterGetExportRec(frame2_driver_Proto $Driver, &$res, $rec, $dRec, $ExportClass)
     {
+        self::normalizeDetailRec($dRec);
         // Форматира дати, суми и статус „просрочен“ за CSV/Excel експорт.
         $Date = cls::get('type_Date');
 
@@ -1847,7 +1919,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
         $dcMark = $invoiceValue < 0 ? -1 : 1;
         if (($dRec->type ?? 'invoice') != 'invoice') {
             foreach ((array)($dRec->dcPay ?? array()) as $k => $val) {
-                $res->paidAmount = ($res->paidAmount ?? '') . $val->amount * $dcMark;
+                $res->paidAmount = ($res->paidAmount ?? '') . ($val->amount ?? 0) * $dcMark;
             }
         } else {
             $res->paidAmount = self::getPaidAmount($dRec);
@@ -1855,7 +1927,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
 
         if (($dRec->type ?? 'invoice') != 'invoice') {
             foreach ((array)($dRec->dcPay ?? array()) as $k => $val) {
-                $res->paidDates = ($res->paidDates ?? '') . $Date->toVerbal($val->payDate) . "\n\r";
+                $res->paidDates = ($res->paidDates ?? '') . $Date->toVerbal($val->payDate ?? null) . "\n\r";
             }
         } else {
             $res->paidDates = self::getPaidDates($dRec, false);
