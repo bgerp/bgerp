@@ -17,6 +17,24 @@
 class sens2_ProtoDriver extends core_BaseClass
 {
     /**
+     * Запис на контролера, когато драйверът е зареден за съществуващ контролер
+     */
+    public $driverRec = null;
+
+
+    /**
+     * Статично описани входни портове
+     */
+    public $inputs = array();
+
+
+    /**
+     * Статично описани изходни портове
+     */
+    public $outputs = array();
+
+
+    /**
      * Дали портовете на контролера се поддържат като детайли
      */
     public $hasDetail = false;
@@ -240,7 +258,7 @@ class sens2_ProtoDriver extends core_BaseClass
         }
         
         $map = array('uom' => 'uom', 'scale' => 'scale', 'update' => 'readPeriod', 'log' => 'logPeriod');
-        $config = $this->driverRec->config;
+        $config = $this->driverRec->config ?? new stdClass();
 
         if (is_array($this->inputs)) {
             foreach ($this->inputs as $name => $descArr) {
