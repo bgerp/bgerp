@@ -18,6 +18,42 @@
 class sales_reports_SoldProductsRep extends frame2_driver_TableData
 {
     /**
+     * Допълва липсващите параметри в нови и стари записи на справката
+     */
+    protected static function applyRecDefaults($rec)
+    {
+        $defaults = array(
+            'compare' => 'no',
+            'typeOfGroups' => 'art',
+            'articleType' => 'all',
+            'grouping' => 'no',
+            'seeByContragent' => 'no',
+            'seeCategory' => 'no',
+            'engName' => 'no',
+            'seeDelta' => 'no',
+            'seeWeight' => 'no',
+            'quantityType' => 'shipped',
+            'primeCostType' => 'standartPrimeCost',
+            'orderBy' => 'primeCost',
+            'order' => 'desc',
+            'group' => null,
+            'category' => null,
+            'products' => null,
+            'contragent' => null,
+            'crmGroup' => null,
+            'dealers' => null,
+            'dealersTeam' => null,
+            'currency' => null,
+        );
+
+        foreach ($defaults as $name => $value) {
+            if (!isset($rec->{$name})) {
+                $rec->{$name} = $value;
+            }
+        }
+    }
+
+    /**
      * Кой може да избира драйвъра
      */
     public $canSelectDriver = 'ceo, planning, sales, debug';
@@ -406,6 +442,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 
         $form = $data->form;
         $rec = $form->rec;
+        self::applyRecDefaults($rec);
         if (date('d') < 10) {
             $form->setDefault('selectPeriod', 'last_month');
         } else {
@@ -672,6 +709,8 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
      */
     protected function prepareRecs($rec, &$data = null)
     {
+        self::applyRecDefaults($rec);
+
         //Код и Id  на основната валута в края на периода
         $baseCurrency = acc_Periods::getBaseCurrencyCode($rec->to);
         $baseCurrencyId = currency_Currencies::getIdByCode($baseCurrency);
@@ -747,7 +786,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                         continue;
                     }
 
-                    $invQuantity = $correctionArray['quanttity'];
+                    $invQuantity = $correctionArray['quantity'];
                     $invAmount = $correctionArray['amount'];   //превалутирано в метода
 
                 }
@@ -931,6 +970,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 
             if ($rec->crmGroup && !$rec->contragent) {
                 $contragentsInGroupFoldersArr = self::getContragentsInGroups($rec);
+                $contragentsInGroup = array();
 
                 foreach ($contragentsInGroupFoldersArr as $contragent) {
 
@@ -1512,7 +1552,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         $groupDeltas = $groupDeltaPrevious = $groupDeltaLastYear = array();
         $tempArr = array();
         $totalArr = array();
-        $totalValue = $totalDelta = 0;
+        $totalValue = $totalDelta = $totalPrimeCostPrevious = $totalDeltaPrevious = $totalPrimeCostLastYear = $totalDeltaLastYear = 0;
 
         if ($rec->typeOfGroups == 'art' || $rec->typeOfGroups == 'nogrp') {
             $typeGroup = 'group';
@@ -1698,17 +1738,17 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                 $recs[$k] = (object)array(
                     'group' => $k,                                                                    //Група артикули
                     'primeCost' => $v,                                                                //Продажби за текущия период за групата
-                    'delta' => $groupDeltas[$k],                                                      //Делта за текущия период за групата
+                    'delta' => $groupDeltas[$k] ?? 0,                                                 //Делта за текущия период за групата
 
-                    'groupPrimeCostPrevious' => $groupPrimeCostPrevious[$k],                          //Продажби за предходен период за групата
-                    'changeGroupPrimeCostPrevious' => $v - $groupPrimeCostPrevious[$k],               //Промяна в продажбите спрямо предходен период за групата
-                    'groupDeltaPrevious' => $groupDeltaPrevious[$k],                                  //Делта за предходен период за групата
-                    'changeGroupDeltaPrevious' => $groupDeltas[$k] - $groupDeltaPrevious[$k],   //Промяна в делтите спрямо предходен период за групата
+                    'groupPrimeCostPrevious' => $groupPrimeCostPrevious[$k] ?? 0,                     //Продажби за предходен период за групата
+                    'changeGroupPrimeCostPrevious' => $v - ($groupPrimeCostPrevious[$k] ?? 0),        //Промяна в продажбите спрямо предходен период за групата
+                    'groupDeltaPrevious' => $groupDeltaPrevious[$k] ?? 0,                             //Делта за предходен период за групата
+                    'changeGroupDeltaPrevious' => ($groupDeltas[$k] ?? 0) - ($groupDeltaPrevious[$k] ?? 0),
 
-                    'groupPrimeCostLastYear' => $groupPrimeCostLastYear[$k],                //Продажби за предходна година за групата
-                    'changeGroupPrimeCostLastYear' => $v - $groupPrimeCostLastYear[$k],             //Промяна в продажбите спрямо предходна година за групата
-                    'groupDeltaLastYear' => $groupDeltaLastYear[$k],                    //Делта за предходна година за групата
-                    'changeGroupDeltaLastYear' => $groupDeltas[$k] - $groupDeltaLastYear[$k],   //Промяна в делтите спрямо предходна година за групата
+                    'groupPrimeCostLastYear' => $groupPrimeCostLastYear[$k] ?? 0,
+                    'changeGroupPrimeCostLastYear' => $v - ($groupPrimeCostLastYear[$k] ?? 0),
+                    'groupDeltaLastYear' => $groupDeltaLastYear[$k] ?? 0,
+                    'changeGroupDeltaLastYear' => ($groupDeltas[$k] ?? 0) - ($groupDeltaLastYear[$k] ?? 0),
                 );
             }
 
@@ -1888,12 +1928,16 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                                                            #id = '$dcRec->clonedFromDetailId' 
                                                            AND (#quantity != '$dcRec->quantity' OR #price != '$dcRec->price')");
 
+        if (!$originDetRec) {
+            return $res;
+        }
+
         $originQuantity = $originDetRec->quantity * $originDetRec->quantityInPack;
 
         $changeQuatity = $dcRec->quantity * $dcRec->quantityInPack - $originQuantity;
         $changePrice = $dcRec->price - $originDetRec->price;
 
-        if (($changeQuatity == 0 && $changePrice == 0) || !$originDetRec) {
+        if ($changeQuatity == 0 && $changePrice == 0) {
             return $res;
         }
 
@@ -1927,6 +1971,8 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
      */
     protected function getTableFieldSet($rec, $export = false)
     {
+        self::applyRecDefaults($rec);
+
         $fld = cls::get('core_FieldSet');
 
         if ($rec->compare == 'month') {
@@ -2128,13 +2174,15 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
      */
     protected function detailRecToVerbal($rec, &$dRec)
     {
+        self::applyRecDefaults($rec);
+
         $Double = cls::get('type_Double');
         $Double->params['decimals'] = 2;
 
         $row = new stdClass();
 
         $euroZoneDate = acc_Setup::getEurozoneDate();
-        $baseCurrency = acc_Periods::getBaseCurrencyCode($rec->checkDate);
+        $baseCurrency = acc_Periods::getBaseCurrencyCode($rec->checkDate ?? $rec->to);
 
         //Извеждане на реда с ОБЩО
         if (isset($dRec->totalValue)) {
@@ -2245,7 +2293,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         //Ако имаме избрано показване "ПО АРТИКУЛИ"
         if ($rec->grouping == 'no') {
 
-            $row->contragentName = $dRec->contragentName;
+            $row->contragentName = $dRec->contragentName ?? null;
 
 
             if (isset($dRec->code)) {
@@ -2377,6 +2425,8 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
      */
     protected static function on_AfterRecToVerbal(frame2_driver_Proto $Driver, embed_Manager $Embedder, $row, $rec, $fields = array())
     {
+        self::applyRecDefaults($rec);
+
         $groArr = array();
         $artArr = array();
 
@@ -2413,7 +2463,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             'year' => 'С миналогодишен период',
             'month' => 'По месеци'
         );
-        $row->compare = $arrCompare[$rec->compare];
+        $row->compare = $arrCompare[$rec->compare] ?? $rec->compare;
     }
 
 
@@ -2752,8 +2802,9 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
      */
     protected static function on_AfterGetExportRec(frame2_driver_Proto $Driver, &$res, $rec, $dRec, $ExportClass)
     {
+        self::applyRecDefaults($rec);
 
-        if ($dRec->productId) {
+        if (!empty($dRec->productId)) {
             $prodRec = cat_Products::fetch($dRec->productId);
         }
 
@@ -2790,7 +2841,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             }
         }
 
-        if ($res->totalValue) {
+        if (!empty($res->totalValue)) {
             $res->group = 'ОБЩО ЗА ПЕРИОДА:';
             $res->primeCost = $dRec->totalValue;
             $res->delta = $dRec->totalDelta;
@@ -2863,7 +2914,11 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
     {
         //id на мярката 'килограм'
 
-        $kgMeasureId = cat_UoM::getQuery()->fetch("#name = 'килограм'")->id;
+        $kgMeasureRec = cat_UoM::getQuery()->fetch("#name = 'килограм'");
+        if (!$kgMeasureRec) {
+            return 'n.a.';
+        }
+        $kgMeasureId = $kgMeasureRec->id;
 
         //Взема единичното тегло на целия продукт
         $singleProductWeight = null;
@@ -2876,17 +2931,16 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             $singleProductWeight = cat_Products::getParams($rec->id, 'weightKg');
         }
 
-        $isSecondMeasure = cat_products_Packagings::getPack($rec->id, $kgMeasureId)->isSecondMeasure;
+        $kgPackRec = cat_products_Packagings::getPack($rec->id, $kgMeasureId);
 
         if ($rec->measureId == $kgMeasureId) {
             $singleProductWeight = 1;
         }
 
         if (!$singleProductWeight){
-            $packReck = cat_products_Packagings::getPack($rec->id, $kgMeasureId);
-         if($packReck->isSecondMeasure == 'yes'){
+         if($kgPackRec && $kgPackRec->isSecondMeasure == 'yes' && !empty($kgPackRec->quantity)){
 
-             $singleProductWeight = 1/$packReck->quantity;
+             $singleProductWeight = 1/$kgPackRec->quantity;
          }
         }
 
