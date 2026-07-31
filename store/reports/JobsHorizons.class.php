@@ -327,7 +327,7 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
         $row->delrow = '';
         $row->delrow = ($row->delrow ?? '') . ht::createLink('', array('store_reports_JobsHorizons', 'editminmax', 'productId' => $dRec->productId, 'code' => $dRec->code, 'recId' => $rec->id, 'ret_url' => true), null, "ef_icon=img/16/edit.png");
 
-        if ($dRec->store) {
+        if (!empty($dRec->store)) {
             $row->store = store_Stores::getHyperlink($dRec->store);
         } else {
             $row->store = 'Без';
@@ -588,7 +588,7 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
         $res->docExpectedQuantyti = $dRec->docExpectedQuantyti;
         $res->docReservedQuantyti = $dRec->docReservedQuantyti;
 
-        if ($dRec->store) {
+        if (!empty($dRec->store)) {
             $res->store = store_Stores::fetch($dRec->store)->name;
         } else {
             $res->store = 'Без';
