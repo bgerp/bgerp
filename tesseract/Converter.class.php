@@ -79,7 +79,7 @@ class tesseract_Converter extends core_Manager
             // Ако вече е извлечена текстовата част
             $procTextOcr = fileman_Indexes::isProcessStarted(array('type' => 'textOcr', 'dataId' => $fRec->dataId));
             if ($procTextOcr) {
-                $btnParams['warning'] = 'Файлът е преминал през разпознаване на текст';
+                $btnParams['warning'] = 'Tesseract: Файлът е преминал през разпознаване на текст';
             } elseif (!self::haveTextForOcr($fRec)) {
                 $btnParams['warning'] = 'Няма текст за разпознаване';
             }
