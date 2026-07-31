@@ -563,7 +563,7 @@ abstract class deals_QuotationMaster extends core_Master
                 if ($Driver = cond_DeliveryTerms::getTransportCalculator($rec->deliveryTermId)) {
                     $deliveryDataArr = $Driver->getVerbalDeliveryData($rec->deliveryTermId, $rec->deliveryData, get_called_class());
                     foreach ($deliveryDataArr as $delObj){
-                        $row->deliveryBlock .= "<li>{$delObj->caption}: {$delObj->value}</li>";
+                        $row->deliveryBlock = ($row->deliveryBlock ?? '') . "<li>{$delObj->caption}: {$delObj->value}</li>";
                     }
                 }
             }
@@ -572,7 +572,7 @@ abstract class deals_QuotationMaster extends core_Master
             $additionalConditions = deals_Helper::getConditionsFromProducts($mvc->mainDetail, $mvc, $rec->id, $rec->tplLang);
             if (is_array($additionalConditions)) {
                 foreach ($additionalConditions as $cond) {
-                    $row->others .= (!$isPlain) ? "<li>{$cond}</li>" : strip_tags($cond) . ", ";
+                    $row->others = ($row->others ?? '') . ((!$isPlain) ? "<li>{$cond}</li>" : strip_tags($cond) . ", ");
                 }
             }
 
