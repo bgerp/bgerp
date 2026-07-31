@@ -17,6 +17,18 @@
 class sens2_ProtoDriver extends core_BaseClass
 {
     /**
+     * Дали портовете на контролера се поддържат като детайли
+     */
+    public $hasDetail = false;
+
+
+    /**
+     * Дали конфигурационната форма да не се разширява с входните портове
+     */
+    public $notExpandForm = false;
+
+
+    /**
      * От кой номер започва броенето на слотовете
      */
     const FIRST_SLOT_NO = 0;
