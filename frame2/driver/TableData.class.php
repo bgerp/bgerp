@@ -314,6 +314,10 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
             
             return;
         }
+
+        foreach ($fieldsToSumArr as $fld) {
+            $summaryRow->{$fld} = 0;
+        }
         
         // Ако има полета за сумиране
         array_walk($data->recs, function ($a) use (&$summaryRow, $fieldsToSumArr){
