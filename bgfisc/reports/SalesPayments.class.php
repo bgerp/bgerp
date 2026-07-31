@@ -194,9 +194,9 @@ class bgfisc_reports_SalesPayments extends frame2_driver_TableData
                     $paidAmount = $posRec->paid + $stornoAmount;
                     
                     //Вид плащане
-                    list($pay, $payType) = explode('|', trim($posDet->action));
-                    
-                    $paymentType = $payType != -1 ? cond_Payments::fetch($payType)->title : 'В брой';
+                    list($pay, $payType) = array_pad(explode('|', trim($posDet->action)), 2, null);
+
+                    $paymentType = $payType != -1 ? (cond_Payments::fetch($payType)->title ?? null) : 'В брой';
                 }
                 
                 // добавяме в масива
@@ -260,23 +260,23 @@ class bgfisc_reports_SalesPayments extends frame2_driver_TableData
                 if (!empty($prntRcptRevArr)) {
                     foreach ($prntRcptRevArr as $val) {
                         $prntRcptRev = bgfisc_PrintedReceipts::fetch($val);
-                        $objectClassName = cls::get($prntRcptRev->classId)->className;
-                        
+                        $objectClassName = cls::get($prntRcptRev->classId ?? null)->className;
+
                         //РКО към който е издаден ФБ
-                        $rcoRec = $objectClassName::fetch($prntRcptRev->objectId);
-                        
+                        $rcoRec = $objectClassName::fetch($prntRcptRev->objectId ?? null);
+
                         //Документа към който е издаден РКО (СклРаз примерно)
-                        $revDocClassId = doc_Containers::fetch($rcoRec->fromContainerId)->docClass;
+                        $revDocClassId = doc_Containers::fetch($rcoRec->fromContainerId ?? null)->docClass ?? null;
                         $revDocClassName = cls::get($revDocClassId)->className;
-                        $revDocId = doc_Containers::fetch($rcoRec->fromContainerId)->docId;
+                        $revDocId = doc_Containers::fetch($rcoRec->fromContainerId ?? null)->docId ?? null;
                         $revDocRec = $revDocClassName::fetch($revDocId);
-                        
+
                         //ПКО-то към който е издаден РКО на тази бележка
-                        $pcoDoc = doc_Containers:: getDocument($rcoRec->originId);
-                        $pcoKey = core_Classes::getId($pcoDoc->className).'|'.$pcoDoc->that.'|'.$prntRcptRev->id;
-                        
+                        $pcoDoc = doc_Containers:: getDocument($rcoRec->originId ?? null);
+                        $pcoKey = core_Classes::getId($pcoDoc->className).'|'.$pcoDoc->that.'|'.($prntRcptRev->id ?? null);
+
                         //Сторнирани стойности по ПКО и сторно бележка
-                        $stornoAmountArr[$pcoKey] = ($stornoAmountArr[$pcoKey] ?? 0) + $rcoRec->amountDeal;
+                        $stornoAmountArr[$pcoKey] = ($stornoAmountArr[$pcoKey] ?? 0) + ($rcoRec->amountDeal ?? 0);
                     }
                 }
                 
@@ -316,7 +316,7 @@ class bgfisc_reports_SalesPayments extends frame2_driver_TableData
                         
                         $userId1 = str_pad(substr($userId, -4), 4, '0', STR_PAD_LEFT);
                         if ($saleRec->paymentMethodId) {
-                            $paymentType = cond_PaymentMethods::fetch($saleRec->paymentMethodId)->type;
+                            $paymentType = cond_PaymentMethods::fetch($saleRec->paymentMethodId)->type ?? null;
                         } else {
                             $paymentType = '';
                         }
@@ -353,7 +353,7 @@ class bgfisc_reports_SalesPayments extends frame2_driver_TableData
                         foreach ($amountPaidArr as $key => $val) {
                             $id .= '|'.$key;
                             $amountPaid = $val -> amount;
-                            $paymentType = ($val->payType != -1) ? cond_Payments::fetch($val->payType)->title : 'В брой';
+                            $paymentType = ($val->payType != -1) ? (cond_Payments::fetch($val->payType)->title ?? null) : 'В брой';
                             
                             
                             // добавяме в масива

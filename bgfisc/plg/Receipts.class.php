@@ -255,7 +255,7 @@ class bgfisc_plg_Receipts extends core_Plugin
         $today = dt::today();
         $bgnPaymentId = eurozone_Setup::getBgnPaymentId();
         while ($dRec = $query->fetch()) {
-            list(, $paymentType) = explode('|', $dRec->action);
+            list(, $paymentType) = array_pad(explode('|', $dRec->action), 2, null);
 
             $code = 0;
             $amount = $dRec->amount;
@@ -503,7 +503,7 @@ class bgfisc_plg_Receipts extends core_Plugin
                         $redirectUrl = $successUrl . "&res={$result}";
                         
                         if ($lRec->isElectronic == 'yes' && empty($rec->revertId)) {
-                            list(, $receiptNum) = explode('*', $result);
+                            list(, $receiptNum) = array_pad(explode('*', $result), 2, null);
                             try {
                                 usleep(1000000);
                                 $fh = $interface->saveReceiptToFile($lRec, $receiptNum);
@@ -700,7 +700,7 @@ class bgfisc_plg_Receipts extends core_Plugin
             $cashReg = bgfisc_Register::getRec('pos_Receipts', $rec->revertId);
         }
         
-        return $cashReg->urn;
+        return $cashReg->urn ?? null;
     }
     
     
@@ -764,8 +764,8 @@ class bgfisc_plg_Receipts extends core_Plugin
         // Добавяне на използваните платежни методи към ключовите думи
         if(isset($rec->id)){
             $cashReg = ($rec->revertId) ? bgfisc_Register::getRec($mvc, $rec->revertId) : bgfisc_Register::getRec($mvc, $rec->id);
-            
-            $res = ' ' . $res . ' ' . plg_Search::normalizeText($cashReg->urn);
+
+            $res = ' ' . $res . ' ' . plg_Search::normalizeText($cashReg->urn ?? null);
         }
     }
 }

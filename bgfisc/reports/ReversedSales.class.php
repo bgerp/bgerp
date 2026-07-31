@@ -215,14 +215,14 @@ class bgfisc_reports_ReversedSales extends frame2_driver_TableData
                     $valUrn = $val->urnId;
                     if ($regRec->id == $valUrn) {
                         $revertReceptRec = bgfisc_PrintedReceipts::fetch($key); // rec-a на касова бележка от това УНП
-                        $revKey = $valUrn.'|'.$revertReceptRec->objectId;
+                        $revKey = $valUrn.'|'.($revertReceptRec->objectId ?? null);
                         $revertReceptRecArr[$revKey] = $revertReceptRec;
-                        
+
                         //Дата на приключване на продажбата: датата на последната касова бележка
-                        $saleCloseDate = dt::mysql2verbal(max(bgfisc_PrintedReceipts::fetch($key)->createdOn, $saleCloseDate), 'd.m.Y');
-                        
+                        $saleCloseDate = dt::mysql2verbal(max($revertReceptRec->createdOn ?? null, $saleCloseDate), 'd.m.Y');
+
                         //Време на приключване на продажбата
-                        $saleCloseTime = dt::mysql2verbal(max(bgfisc_PrintedReceipts::fetch($key)->createdOn, $saleCloseTime), 'H:i:s');
+                        $saleCloseTime = dt::mysql2verbal(max($revertReceptRec->createdOn ?? null, $saleCloseTime), 'H:i:s');
                     }
                 }
                 
@@ -265,19 +265,19 @@ class bgfisc_reports_ReversedSales extends frame2_driver_TableData
                     $cashKey = $regRec->id.'|'.$detail->receiptId;
                     
                     //Отпечатана сторнираЩА касова бележка
-                    $revRcpPrnt = $revertReceptRecArr[$cashKey];
-                    
+                    $revRcpPrnt = $revertReceptRecArr[$cashKey] ?? null;
+
                     //Дата на сторниране на продажбата
-                    $revertDate = dt::mysql2verbal($revRcpPrnt->createdOn, 'd.m.Y');
-                    
+                    $revertDate = dt::mysql2verbal($revRcpPrnt->createdOn ?? null, 'd.m.Y');
+
                     //Време на сторниране на продажбата
-                    $revertTime = dt::mysql2verbal($revRcpPrnt->createdOn, 'H:i:s');
-                    
+                    $revertTime = dt::mysql2verbal($revRcpPrnt->createdOn ?? null, 'H:i:s');
+
                     // Индивидуален номер на ФУ регистрирал сторнирането
                     $cashRegNum = $regRec->cashRegNum;
-                    
+
                     //Код на оператор, регистрирал плащането
-                    $userId = $revRcpPrnt->createdBy;
+                    $userId = $revRcpPrnt->createdBy ?? null;
                     
                     // добавяме в масива
                     if (!array_key_exists($id, $recs)) {
@@ -319,9 +319,9 @@ class bgfisc_reports_ReversedSales extends frame2_driver_TableData
                 
                 $Master = $className;
                 
-                if (!in_array($className::fetch($regRec->objectId)->state, $stateArr))continue;
-                
-                $saleThreadId = $className::fetch($regRec->objectId)->threadId;
+                if (!in_array($className::fetch($regRec->objectId)->state ?? null, $stateArr))continue;
+
+                $saleThreadId = $className::fetch($regRec->objectId)->threadId ?? null;
                 
                 foreach ($revReceiptArr as $revReceipt) {
                     if ($saleThreadId != $revReceipt->threadId) {
@@ -345,12 +345,12 @@ class bgfisc_reports_ReversedSales extends frame2_driver_TableData
                         $id = $regRec->id.'|'.$revReceipt->fromDocId;
                         
                         //Дата на приключване на продажбата: датата на последната касова бележка
-                        $saleCloseDate = dt::mysql2verbal($className::fetch($regRec->objectId)->closedOn, 'd.m.Y');
-                        
+                        $saleCloseDate = dt::mysql2verbal($className::fetch($regRec->objectId)->closedOn ?? null, 'd.m.Y');
+
                         //Време на приключване на продажбата
-                        $saleCloseTime = dt::mysql2verbal($className::fetch($regRec->objectId)->closedOn, 'H:i:s');
-                        
-                        
+                        $saleCloseTime = dt::mysql2verbal($className::fetch($regRec->objectId)->closedOn ?? null, 'H:i:s');
+
+
                         // добавяме в масива
                         if (!array_key_exists($id, $recs)) {
                             $recs[$id] = (object) array(
@@ -382,12 +382,12 @@ class bgfisc_reports_ReversedSales extends frame2_driver_TableData
                     }
                     
                     //Дата на приключване на продажбата: датата на последната касова бележка
-                    $saleCloseDate = dt::mysql2verbal($className::fetch($regRec->objectId)->closedOn, 'd.m.Y');
-                    
+                    $saleCloseDate = dt::mysql2verbal($className::fetch($regRec->objectId)->closedOn ?? null, 'd.m.Y');
+
                     //Време на приключване на продажбата
-                    $saleCloseTime = dt::mysql2verbal($className::fetch($regRec->objectId)->closedOn, 'H:i:s');
-                    
-                    
+                    $saleCloseTime = dt::mysql2verbal($className::fetch($regRec->objectId)->closedOn ?? null, 'H:i:s');
+
+
                     foreach ($detailsArr as $detail) {
                         $vatSum = $amountSum = 0;
                         

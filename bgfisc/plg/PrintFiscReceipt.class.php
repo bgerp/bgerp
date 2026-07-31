@@ -239,7 +239,7 @@ class bgfisc_plg_PrintFiscReceipt extends core_Plugin
             $redirectUrl = $logUrl . "&res={$result}";
             
             if ($registerRec->isElectronic == 'yes' && $rec->isReverse != 'yes' && !empty($result)) {
-                list(, $receiptNum) = explode('*', $result);
+                list(, $receiptNum) = array_pad(explode('*', $result), 2, null);
                 usleep(1000000);
                 $fh = $interface->saveReceiptToFile($registerRec, $receiptNum);
                 if ($fh !== false) {

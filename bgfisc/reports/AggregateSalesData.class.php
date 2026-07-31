@@ -77,7 +77,7 @@ class bgfisc_reports_AggregateSalesData extends frame2_driver_TableData
          $suggestions = $suggestionsPos+$suggestionsSales;
         
          foreach ($suggestions as $val) {
-             $suggestions[$val] = core_Users::fetch("#id = {$val}")->names;
+             $suggestions[$val] = core_Users::fetch("#id = {$val}")->names ?? null;
          }
         
          asort($suggestions);
@@ -178,7 +178,7 @@ class bgfisc_reports_AggregateSalesData extends frame2_driver_TableData
                 
                 //Код и наименование на търговски обект
                 if (!is_null($posRec->pointId)) {
-                    $storeId = pos_Points::fetch($posRec->pointId)->storeId;
+                    $storeId = pos_Points::fetch($posRec->pointId)->storeId ?? null;
                     
                     if ($storeLocationId = store_Stores::fetchField($storeId, 'locationId')) {
                         $storeAddress = crm_Locations::getAddress($storeLocationId);
@@ -187,7 +187,7 @@ class bgfisc_reports_AggregateSalesData extends frame2_driver_TableData
                 
                 //Код на работното място
                 $pointRec = pos_Points::fetch($posRec->pointId);
-                $workplace = cash_Cases::getTitleById($pointRec->caseId);
+                $workplace = cash_Cases::getTitleById($pointRec->caseId ?? null);
                 
                 $posDet = pos_ReceiptDetails::getQuery();
                 $posDet->where(array('#receiptId = [#1#]',$posRec->id));
@@ -310,18 +310,18 @@ class bgfisc_reports_AggregateSalesData extends frame2_driver_TableData
                         while ($prntRcptRev = $prntQuery->fetch()) {
                             $objectClassName = cls::get($prntRcptRev->classId)->className;
                             $rcoRec = $objectClassName::fetch($prntRcptRev->objectId);
-                            
-                            if (!is_null($rcoRec->fromContainerId)) {
+
+                            if (!is_null($rcoRec->fromContainerId ?? null)) {
                                 continue;
                             }
                             
-                            $revDocClassId = doc_Containers::fetch($rcoRec->fromContainerId)->docClass;
+                            $revDocClassId = doc_Containers::fetch($rcoRec->fromContainerId)->docClass ?? null;
                             $revDocClassName = cls::get($revDocClassId)->className;
-                            $revDocId = doc_Containers::fetch($rcoRec->fromContainerId)->docId;
+                            $revDocId = doc_Containers::fetch($rcoRec->fromContainerId)->docId ?? null;
                             $revDocRec = $revDocClassName::fetch($revDocId);
-                            
-                            $stornoVat += $revDocRec->amountDeliveredVat;
-                            $stornoAmount += $revDocRec->amountDelivered - $stornoVat;
+
+                            $stornoVat += $revDocRec->amountDeliveredVat ?? 0;
+                            $stornoAmount += ($revDocRec->amountDelivered ?? 0) - $stornoVat;
                         }
                     }
                     
@@ -338,9 +338,9 @@ class bgfisc_reports_AggregateSalesData extends frame2_driver_TableData
                             $storeAddress = crm_Locations::getAddress($storeLocationId);
                         }
                     } else {
-                        $storeId = store_ShipmentOrders::fetch("#threadId = {$saleRec->threadId} AND #storeId IS NOT NULL")->storeId;
-                        
-                        if ((!is_null($storeId)) && $storeLocationId = store_Stores::fetch($storeId)->locationId) {
+                        $storeId = store_ShipmentOrders::fetch("#threadId = {$saleRec->threadId} AND #storeId IS NOT NULL")->storeId ?? null;
+
+                        if ((!is_null($storeId)) && $storeLocationId = (store_Stores::fetch($storeId)->locationId ?? null)) {
                             $storeAddress = crm_Locations::getAddress($storeLocationId);
                         }
                     }
@@ -599,7 +599,7 @@ class bgfisc_reports_AggregateSalesData extends frame2_driver_TableData
         }
         
         if (isset($data->rec->operator)) {
-            $fieldTpl->append('<b>' . core_Users::fetch($data->rec->operator)->names . '</b>', 'operator');
+            $fieldTpl->append('<b>' . (core_Users::fetch($data->rec->operator)->names ?? null) . '</b>', 'operator');
         } else {
             $fieldTpl->append('<b>' . 'Всички' . '</b>', 'operator');
         }

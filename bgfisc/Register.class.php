@@ -162,8 +162,8 @@ class bgfisc_Register extends core_Manager
         $query->useIndex('cash_reg_num_number');
         $query->limit(1);
         
-        $number = $query->fetch()->number;
-        $number = isset($number) ? str::increment($number) : $firstNum;
+        $lastRec = $query->fetch();
+        $number = $lastRec ? str::increment($lastRec->number) : $firstNum;
 
         return $number;
     }
@@ -365,9 +365,8 @@ class bgfisc_Register extends core_Manager
             $arr = explode('-', $urn); 
         }
         
-        $cashRegNum = strtolower($arr[0]);
-        $userHash = $arr[1];
-        $number = $arr[2];
+        list($cashRegNum, $userHash, $number) = array_pad($arr, 3, null);
+        $cashRegNum = strtolower($cashRegNum ?? '');
         
         // @todo временно 
         // @todo да се направи да работи със УНП на стара продажба
@@ -479,7 +478,7 @@ class bgfisc_Register extends core_Manager
     public static function doRequireFiscForConto($mvc, $rec)
     {
         $serialNum = null;
-        $caseId = ($mvc instanceof sales_Sales) ? $rec->caseId : (($rec->peroCase) ? $rec->peroCase : $mvc->getDefaultCase($rec));
+        $caseId = ($mvc instanceof sales_Sales) ? $rec->caseId : (($rec->peroCase ?? null) ? $rec->peroCase : $mvc->getDefaultCase($rec));
         bgfisc_Register::getFiscDevice($caseId, $serialNum);
 
         return $serialNum != bgfisc_Register::WITHOUT_REG_NUM;

@@ -64,7 +64,8 @@ class bgfisc_plg_SaleDocument extends core_Plugin
                 
                 // Добавяне на УНП-то на основния документ
                 $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
-                if ($urn = bgfisc_Register::getRec($firstDoc->getInstance(), $firstDoc->that)->urn) {
+                $cashReg = bgfisc_Register::getRec($firstDoc->getInstance(), $firstDoc->that);
+                if ($urn = $cashReg->urn ?? null) {
                     $res .= ' ' . plg_Search::normalizeText($urn);
                 }
             }
