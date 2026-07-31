@@ -38,7 +38,10 @@ class plg_RowTools2 extends core_Plugin
         }
 
         $recObj = is_object($rec) ? $rec : $mvc->fetch($rec);
-        $recId = $recObj->id ?? $rec;
+        $recId = $recObj->id ?? (is_scalar($rec) ? $rec : null);
+        if (!isset($recId) || !is_scalar($recId)) {
+            return;
+        }
         
         core_RowToolbar::createIfNotExists($row->_rowTools);
         $ddTools = &$row->_rowTools;

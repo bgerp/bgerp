@@ -128,9 +128,19 @@ class plg_ExpandInput extends core_Plugin
         }
         
         if($mustSave) {
+            $inputFieldName = $mvc->expandInputFieldName;
+
+            // При програмни записи input полето може да не е заредено
+            if (!property_exists($rec, $inputFieldName)) {
+                if (!empty($rec->id)) {
+                    $rec->{$inputFieldName} = $mvc->fetchField($rec->id, $inputFieldName, false);
+                } else {
+                    $rec->{$inputFieldName} = $rec->{$mvc->expandFieldName} ?? null;
+                }
+            }
 
             // Вземаме всички въведени от потребителя стойност
-            $inputArr = type_Keylist::toArray($rec->{$mvc->expandInputFieldName});
+            $inputArr = type_Keylist::toArray($rec->{$inputFieldName});
             
             // Намираме всички свъразани
             $resArr = $mvc->expandInput($inputArr);
@@ -278,7 +288,7 @@ class plg_ExpandInput extends core_Plugin
 
             // Ако има промени само те ще се запишат
             if(countR($updateRecs)){
-                $mvc->saveArray($updateRecs, "id,{$mvc->expandFieldName},{$mvc->expandInputFieldName}}");
+                $mvc->saveArray($updateRecs, "id,{$mvc->expandFieldName},{$mvc->expandInputFieldName}");
             }
             core_Debug::stopTimer('recalcExpandedInputs');
             core_Debug::log("{$mvc->className} Total {$count} : REGEN FIELDS: " . round(core_Debug::$timers['recalcExpandedInputs']->workingTime, 2));

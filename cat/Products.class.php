@@ -451,7 +451,7 @@ class cat_Products extends embed_Manager
         $Driver = null;
         if (isset($rec->folderId)) {
             $cover = doc_Folders::getCover($rec->folderId);
-            $isTemplate = isset($rec->id) ? ($rec->state == 'template') :  $cover->getProductType() == 'template';
+            $isTemplate = isset($rec->id) ? (($rec->state ?? null) == 'template') :  $cover->getProductType() == 'template';
 
             $defMetas = array();
             if (isset($rec->proto)) {
@@ -485,7 +485,7 @@ class cat_Products extends embed_Manager
                 }
 
                 // При клониране се използва кода на клонирания артикул
-                if(($data->action ?? null) == 'clone'){
+                if(($data->action ?? null) == 'clone' && !empty($rec->clonedFromId)){
                     if($clonedCode = cat_Products::fetchField($rec->clonedFromId, 'code')){
                         $lastCode = $clonedCode;
                     }
@@ -584,7 +584,7 @@ class cat_Products extends embed_Manager
                 if (cat_products_Packagings::fetch("#productId = {$rec->id}")) {
                     $isUsed = true;
                 } else {
-                    $isUsed = cat_products_Packagings::canEditOrDeletePack($rec->id, $rec->measureId);
+                    $isUsed = cat_products_Packagings::canEditOrDeletePack($rec->id, $rec->measureId ?? null);
                 }
                 
                 // Ако артикулът е използван, мярката му не може да бъде сменена

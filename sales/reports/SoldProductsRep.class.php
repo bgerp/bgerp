@@ -368,7 +368,11 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             if (($form->rec->orderBy == 'code') && ($form->rec->grouping == 'yes')) {
                 $form->setError('orderBy', 'При ГРУПИРАНО показване не може да има подредба по КОД.');
             }
-            
+
+            if (($form->rec->orderBy == 'quantity') && ($form->rec->grouping == 'yes')) {
+                $form->setError('orderBy', 'При ГРУПИРАНО показване не може да има подредба по КОЛИЧЕСТВО.');
+            }
+
             if (($form->rec->compare == 'no') && (($form->rec->orderBy == 'changeCost') || ($form->rec->orderBy == 'changeDelta'))) {
                 $form->setError('orderBy,compare', 'Не е посочен период за сравнение. Няма промяна.');
             }
@@ -1696,9 +1700,9 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             if ($rec->orderBy == 'changeCost') {
                 $orderBy = $changePrimeCost;
             }
-            
-            if ($rec->orderBy == 'quantity') {
-                //  $orderBy = $changePrimeCost;
+
+            if ($rec->orderBy == 'quantity' && $rec->grouping == 'yes') {
+               // $orderBy = 'group';
             }
             
             arr::sortObjects($recs, $orderBy, $rec->order, $typeOrder);

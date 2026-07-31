@@ -22,7 +22,7 @@ class doc_Containers extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_Modified,plg_RowTools,doc_Wrapper,plg_State, doc_ThreadRefreshPlg';
+    public $loadList = 'plg_Created, plg_Modified, doc_Wrapper, plg_State, doc_ThreadRefreshPlg';
     
     
     /**

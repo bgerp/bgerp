@@ -65,7 +65,7 @@ class planning_transaction_ReturnNote extends acc_DocumentTransactionSource
 
             $prodRec = cat_Products::fetch($dRec->productId, 'canStore,fixedAsset');
             $productsArr[$dRec->productId] = $dRec->productId;
-            $quantities[$dRec->productId] += $dRec->quantity;
+            $quantities[$dRec->productId] = ($quantities[$dRec->productId] ?? 0) + $dRec->quantity;
 
             $creditArr = null;
             
@@ -114,7 +114,7 @@ class planning_transaction_ReturnNote extends acc_DocumentTransactionSource
             
             if (!is_null($averageAmount)) {
                 $entry['amount'] = $averageAmount;
-                $total += $averageAmount;
+                $total = ($total ?? 0) + $averageAmount;
             }
             
             $entries[] = $entry;

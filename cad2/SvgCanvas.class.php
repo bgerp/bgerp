@@ -56,9 +56,9 @@ class cad2_SvgCanvas extends cad2_Canvas
         $this->encoding = 'UTF-8';
         
         $this->minX = 0;
-        $this->maxX = $width * $pixPerMm;
+        $this->maxX = 0;
         $this->minY = 0;
-        $this->maxY = $height * $pixPerMm;
+        $this->maxY = 0;
         
         
         $this->setAttr('stroke', 'black');

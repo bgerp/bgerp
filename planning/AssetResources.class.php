@@ -795,6 +795,9 @@ class planning_AssetResources extends core_Master
     {
         if (isset($rec->fromProtocolId)) {
             accda_Da::logWrite('Създаване на ново оборудване', $rec->fromProtocolId);
+
+            // Инвалидираме кеша на ДА-то, към което сега е свързан новия актив
+            doc_DocumentCache::cacheInvalidation(accda_Da::fetchField($rec->fromProtocolId, 'containerId'));
         }
     }
     

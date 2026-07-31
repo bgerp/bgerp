@@ -288,7 +288,9 @@ class hr_Sickdays extends core_Master
         
         // Намират се всички служители
         $employees = crm_Persons::getEmployeesOptions();
-        unset($employees[$rec->personId]);
+        if (isset($rec->personId)) {
+            unset($employees[$rec->personId]);
+        }
         
         if (countR($employees)) {
             $form->setOptions('personId', $employees);
@@ -298,10 +300,11 @@ class hr_Sickdays extends core_Master
         }
         
         $form->setDefault('reason', 3);
-        $folderClass = doc_Folders::fetchCoverClassName($rec->folderId);
+        $folderId = $rec->folderId ?? null;
+        $folderClass = isset($folderId) ? doc_Folders::fetchCoverClassName($folderId) : null;
         
-        if ($rec->folderId && $folderClass == 'crm_Persons') {
-            $form->setDefault('personId', doc_Folders::fetchCoverId($rec->folderId));
+        if (isset($folderId) && $folderClass == 'crm_Persons') {
+            $form->setDefault('personId', doc_Folders::fetchCoverId($folderId));
             $form->setReadonly('personId');
             
             if (!haveRole('ceo,hrSickdays')) {

@@ -29,7 +29,7 @@ class cal_Calendar extends core_Master
     /**
      * Класове за автоматично зареждане
      */
-    public $loadList = 'plg_Created, plg_RowTools, cal_Wrapper, plg_Sorting, plg_State, plg_GroupByDate, plg_Printing, plg_SelectPeriod, plg_Search';
+    public $loadList = 'plg_Created, plg_RowTools2, cal_Wrapper, plg_Sorting, plg_State, plg_GroupByDate, plg_Printing, plg_SelectPeriod, plg_Search';
     
     
     /**

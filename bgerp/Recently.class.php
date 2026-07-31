@@ -32,7 +32,7 @@ class bgerp_Recently extends core_Manager
     /**
      * Необходими мениджъри
      */
-    public $loadList = 'bgerp_Wrapper, plg_RowTools, plg_GroupByDate, plg_Search, bgerp_RefreshRowsPlg';
+    public $loadList = 'bgerp_Wrapper, plg_RowTools2, plg_GroupByDate, plg_Search, bgerp_RefreshRowsPlg';
     
     
     /**

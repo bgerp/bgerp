@@ -1708,7 +1708,7 @@ abstract class deals_InvoiceMaster extends core_Master
                     if(!is_object($cond)){
                         $cond = core_Type::getByName('richtext')->toVerbal($cond);
                     }
-                    $row->additionalInfo .= "\n" . $cond;
+                    $row->additionalInfo = ($row->additionalInfo ?? '') . "\n" . $cond;
                 }
             }
         }
@@ -2331,7 +2331,7 @@ abstract class deals_InvoiceMaster extends core_Master
      */
     public function getContragentCoverFieldsToUpdate($rec)
     {
-        if($rec->state == 'rejected') return array();
+        if(($rec->state ?? null) == 'rejected' || !isset($rec->folderId, $rec->contragentName)) return array();
 
         $Cover = doc_Folders::getCover($rec->folderId);
         Mode::push('htmlEntity', 'none');

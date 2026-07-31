@@ -430,19 +430,22 @@ class deals_QuotationDetails extends doc_Detail
         $masterRec = $data->masterData->rec;
         $countryId = $data->cData->countryId;
 
+        // Дали цените са заличени за текущия потребител от doc_plg_HidePrices - тогава не показваме и еквивалента в другата валута
+        $pricesHidden = !doc_plg_HidePrices::canSeePriceFields($data->masterMvc, $masterRec) && $data->dontHidePrices !== true;
+
         // Групираме записите за по-лесно показване
         foreach ($data->rows as $i => $row) {
             $rec = $data->recs[$i];
 
             if($data->masterMvc->showDualPrices($masterRec->folderId)){
-                $row->packPrice = deals_Helper::displayDualAmount($row->packPrice, $rec->packPrice, $masterRec->activatedOn, $masterRec->currencyId, $countryId);
+                $row->packPrice = deals_Helper::displayDualAmount($row->packPrice, $rec->packPrice, $masterRec->activatedOn, $masterRec->currencyId, $countryId, "<br />", false, $pricesHidden);
                 if($masterRec->chargeVat == 'separate' && !empty($row->vatPackPrice)){
-                    $row->vatPackPrice = deals_Helper::displayDualAmount($row->vatPackPrice, $rec->vatPackPrice, $masterRec->activatedOn, $masterRec->currencyId, $countryId);
+                    $row->vatPackPrice = deals_Helper::displayDualAmount($row->vatPackPrice, $rec->vatPackPrice, $masterRec->activatedOn, $masterRec->currencyId, $countryId, "<br />", false, $pricesHidden);
                 }
             }
 
             if($data->masterMvc->showDualPrices($masterRec->folderId)){
-                $row->amount = deals_Helper::displayDualAmount($row->amount, $rec->amount, $masterRec->activatedOn, $masterRec->currencyId, $countryId);
+                $row->amount = deals_Helper::displayDualAmount($row->amount, $rec->amount, $masterRec->activatedOn, $masterRec->currencyId, $countryId, "<br />", false, $pricesHidden);
             }
 
             if (($rec->livePrice ?? null) === true) {

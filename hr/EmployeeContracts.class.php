@@ -237,11 +237,12 @@ class hr_EmployeeContracts extends core_Master
     {
         $form = &$data->form;
         $rec = &$data->form->rec;
-        $coverClass = doc_Folders::fetchCoverClassName($rec->folderId);
+        $folderId = $rec->folderId ?? null;
+        $coverClass = isset($folderId) ? doc_Folders::fetchCoverClassName($folderId) : null;
         
         //Полето Служител->Име не може да се променя
         if ('crm_Persons' == $coverClass) {
-            $form->setDefault('personId', doc_Folders::fetchCoverId($rec->folderId));
+            $form->setDefault('personId', doc_Folders::fetchCoverId($folderId));
             $form->setReadonly('personId');
         }
         

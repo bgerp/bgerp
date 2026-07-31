@@ -24,6 +24,7 @@ class batch_plg_PosReports extends core_Plugin
     public static function on_AfterDescription(core_Mvc $mvc)
     {
         setIfNot($mvc->allowInstantProductionBatches, true);
+        setIfNot($mvc->saveMovementsOnShutdown, array());
     }
 
 

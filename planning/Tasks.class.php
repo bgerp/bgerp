@@ -48,6 +48,12 @@ class planning_Tasks extends core_Master
 
 
     /**
+     * Приложените стойности на филтъра за периодичното AJAX обновяване
+     */
+    protected $refreshRowsListFilterValues = array();
+
+
+    /**
      * Заглавие
      */
     public $title = 'Производствени операции';
@@ -2269,6 +2275,91 @@ class planning_Tasks extends core_Master
 
 
     /**
+     * Полета от листовия филтър, чиито последни стойности се пазят за потребителя
+     *
+     * @return array
+     */
+    protected static function getPersistentListFilterFields()
+    {
+        return arr::make(
+            'search,selectPeriod,from,to,filterDateField,folders,productId,saleId,purchaseId,assetId,state,isFinalSelect',
+            true
+        );
+    }
+
+
+    /**
+     * Възстановява постоянните потребителски настройки още преди подготовката на листа
+     *
+     * Това трябва да стане преди събитията BeforePrepareListFilter на плъгините,
+     * защото някои от тях ограничават заявката според текущите стойности в Request.
+     */
+    protected static function restorePersistentListFilter()
+    {
+        if (Mode::is('isReorder') || Request::get('reorder', 'int')) {
+            return;
+        }
+
+        $savedValues = core_Settings::fetchKeyNoMerge(
+            'planningTasksListFilter',
+            core_Users::getCurrent()
+        );
+        $restoreValues = array();
+        $hasExplicitValues = false;
+
+        foreach (self::getPersistentListFilterFields() as $fieldName) {
+            if (Request::get($fieldName, false) !== null) {
+                $hasExplicitValues = true;
+                continue;
+            }
+
+            if (array_key_exists($fieldName, $savedValues)) {
+                $restoreValues[$fieldName] = $savedValues[$fieldName];
+            }
+        }
+
+        if (countR($restoreValues)) {
+            Request::push($restoreValues);
+        }
+
+        // След повторно логване адресът може да съдържа всички стойности на филтъра,
+        // но без Cmd. Тогава полетата се виждат във формата, но нетихите входове не
+        // участват в заявката. Третираме и този адрес като изпратен листов филтър.
+        if (($hasExplicitValues || countR($restoreValues)) && Request::get('Cmd', false) === null) {
+            Request::push(array('Cmd' => array('default' => 1)));
+        }
+
+        Mode::set('planningTasksListFilterHasExplicitValues', $hasExplicitValues);
+    }
+
+
+    /**
+     * Записва последните изрично подадени настройки на листовия филтър
+     *
+     * @param stdClass $data
+     */
+    protected static function savePersistentListFilter($data)
+    {
+        if (!Mode::get('planningTasksListFilterHasExplicitValues') ||
+            !empty($data->masterMvc) ||
+            Mode::is('isReorder')) {
+            return;
+        }
+
+        $values = array();
+        foreach (self::getPersistentListFilterFields() as $fieldName) {
+            $values[$fieldName] = $data->listFilter->rec->{$fieldName} ?? '';
+        }
+
+        core_Settings::setValues(
+            'planningTasksListFilter',
+            $values,
+            core_Users::getCurrent()
+        );
+    }
+
+
+    /**
      * Подготовка на филтър формата
      */
     protected static function on_AfterPrepareListFilter($mvc, $data)
@@ -2397,11 +2488,33 @@ class planning_Tasks extends core_Master
             }
         }
 
+        self::savePersistentListFilter($data);
+
+        if (!Mode::is('isReorder') && empty($data->masterMvc)) {
+            foreach (self::getPersistentListFilterFields() as $fieldName) {
+                $mvc->refreshRowsListFilterValues[$fieldName] =
+                    $data->listFilter->rec->{$fieldName} ?? '';
+            }
+        }
 
         if(Mode::get('isReorder')){
             $data->listFilter->hide = true;
             $mvc->cacheAssetDataOnShutdown[$filter->assetId] = $filter->assetId;
         }
+    }
+
+
+    /**
+     * Добавя реално приложените филтри към адреса за периодично обновяване
+     */
+    protected static function on_AfterPrepareRefreshRowsUrl($mvc, &$res, $url)
+    {
+        if (Mode::is('isReorder') || !countR($mvc->refreshRowsListFilterValues)) {
+            return;
+        }
+
+        $res = array_merge(is_array($res) ? $res : $url, $mvc->refreshRowsListFilterValues);
+        $res['Cmd'] = array('default' => 1);
     }
 
 
@@ -2431,6 +2544,8 @@ class planning_Tasks extends core_Master
             if(Mode::is('isReorder')){
                 Mode::set('wrapper', 'page_Empty');
                 unset($mvc->_plugins['planning_Wrapper']);
+            } else {
+                self::restorePersistentListFilter();
             }
         }
     }

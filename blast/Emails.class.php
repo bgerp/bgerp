@@ -531,7 +531,8 @@ class blast_Emails extends core_Master
             }
             
             // Вземаме данните за имейлите, до които ще пращаме
-            $dataArr = blast_EmailSend::getDataArrForEmailId($rec->id, $rec->sendPerCall);
+            $recipientArr = array();
+            $dataArr = blast_EmailSend::getDataArrForEmailId($rec->id, $rec->sendPerCall, $recipientArr);
             
             // Ако няма данни, затваряме
             if (empty($dataArr)) {
@@ -542,22 +543,8 @@ class blast_Emails extends core_Master
                 continue;
             }
             
-            // Инстанция на обекта
-            $srcClassInst = cls::getInterface('bgerp_PersonalizationSourceIntf', $rec->perSrcClassId);
-
-            // Масив с полетата и описаниите за съответния обект
-            $descArr = $srcClassInst->getPersonalizationDescr($rec->perSrcObjectId);
-            
             // Маркираме имейлите, като изпратени
             blast_EmailSend::markAsSent($dataArr);
-            
-            // Вземаме всички полета, които могат да бъдат имейли
-            $emailPlaceArr = self::getEmailFields($descArr);
-            
-            // Ако няма полета за имейли, няма смисъл да се праща
-            if (empty($emailPlaceArr)) {
-                continue;
-            }
             
             $notSendDataArr = $dataArr;
             
@@ -575,30 +562,20 @@ class blast_Emails extends core_Master
                     break;
                 }
                 
-                $toEmail = '';
+                // Използваме получателя, който е избран и записан при създаването на опашката
+                $toEmail = $recipientArr[$detId] ?? '';
                 
-                // Обединяваме всички възможни имейли
-                foreach ($emailPlaceArr as $place => $type) {
-                    $emailsStr = $emailsStr ? ', ' . $detArr[$place] : $detArr[$place];
-                }
-                
-                // Вземаме имейлите
-                $emailsArr = type_Emails::toArray($emailsStr);
-                
-                // Първия валиден имейл, който не е в блокорани, да е получателя
-                foreach ((array) $emailsArr as $email) {
-                    if ($canUnsubscribe != 'no') {
-                        if (email_AddressesInfo::isBlocked($email)) {
-                            continue;
-                        }
-                    }
-
-                    $toEmail = $email;
-                    break;
-                }
-                
-                // Ако няма имейл, нямя до кого да се праща
+                // Ако няма имейл, няма до кого да се праща
                 if (!$toEmail) {
+                    unset($notSendDataArr[$detId]);
+
+                    continue;
+                }
+
+                // Блокирането може да е настъпило след създаването на опашката
+                if (($canUnsubscribe != 'no') && email_AddressesInfo::isBlocked($toEmail)) {
+                    unset($notSendDataArr[$detId]);
+
                     continue;
                 }
                 

@@ -246,12 +246,15 @@ class hr_HomeOffice extends core_Master
         $rec = $form->rec;
 
         $employees = crm_Persons::getEmployeesOptions(false, null, false, 'active');
-        unset($employees[$rec->personId]);
+        if (isset($rec->personId)) {
+            unset($employees[$rec->personId]);
+        }
         $form->setSuggestions('alternatePersons', $employees);
-        $folderClass = doc_Folders::fetchCoverClassName($rec->folderId);
+        $folderId = $rec->folderId ?? null;
+        $folderClass = isset($folderId) ? doc_Folders::fetchCoverClassName($folderId) : null;
 
-        if ($rec->folderId && $folderClass == 'crm_Persons') {
-            $form->setDefault('personId', doc_Folders::fetchCoverId($rec->folderId));
+        if (isset($folderId) && $folderClass == 'crm_Persons') {
+            $form->setDefault('personId', doc_Folders::fetchCoverId($folderId));
             $form->setReadonly('personId');
 
             if (!haveRole('ceo,hrHomeOffice')) {

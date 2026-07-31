@@ -334,7 +334,7 @@ abstract class deals_ServiceMaster extends core_Master
                 }
             }
             
-            if (!empty($rec->delivered)) {
+            if (!empty($rec->delivered) && isset($row->delivered)) {
                 $row->delivered = core_Lg::transliterate($row->delivered);
             }
             
@@ -572,4 +572,3 @@ abstract class deals_ServiceMaster extends core_Master
         deals_Helper::renderVatDataLayout($tpl, $mvc, $mvc->_total->vats ?? null, $data->row);
     }
 }
-

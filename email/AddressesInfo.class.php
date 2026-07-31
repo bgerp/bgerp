@@ -351,7 +351,7 @@ class email_AddressesInfo extends core_Manager
      */
     public static function isBlocked($email)
     {
-        if (self::fetch(array("#email = '[#1#]' AND (#state = 'blocked' OR (#state = 'error' AND #checkPoint = 0))", $email))) {
+        if (self::fetch(array("#email = '[#1#]' AND (#state = 'blocked' OR (#state = 'error' AND #checkPoint < 4))", $email))) {
             
             return true;
         }
@@ -687,6 +687,11 @@ class email_AddressesInfo extends core_Manager
             $rec->lastChecked = dt::now();
             if (!self::validateEmail($rec->email)) {
                 $rec->state = 'error';
+                self::save($rec, 'lastChecked, state, checkPoint');
+            } else {
+                // Валиден: записваме проверката и връщаме състоянието на 'ok' (възстановява и точките).
+                // Иначе lastChecked остава непроменен и същите записи запушват лимита (гладуване на опашката).
+                $rec->state = 'ok';
                 self::save($rec, 'lastChecked, state, checkPoint');
             }
         }

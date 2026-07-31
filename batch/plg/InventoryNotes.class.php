@@ -153,29 +153,31 @@ class batch_plg_InventoryNotes extends core_Plugin
                 return;
             }
             $BatchClass->params['allowZero'] = true;
-            if (!empty($rec->batchEx) && !empty($rec->batchNew)) {
+            $batchEx = $rec->batchEx ?? null;
+            $batchNew = $rec->batchNew ?? null;
+            if (!empty($batchEx) && !empty($batchNew)) {
                 $form->setError('batchNew,batchEx', 'Само едното поле може да е попълнено, или никое');
             }
 
             if (!isset($rec->quantity)) {
                 if(!isset($rec->editSummary)){
-                    $b = $BatchClass->normalize($rec->batchNew);
+                    $b = $BatchClass->normalize($batchNew);
                     $b = $BatchClass->makeArray($b);
                     $rec->quantity = countR($b);
                 }
             }
             
-            if (!empty($rec->batchNew)) {
+            if (!empty($batchNew)) {
                 
                 // Трябва да е валидна
                 $msg = null;
-                if (!$BatchClass->isValid($rec->batchNew, $rec->quantity, $msg)) {
+                if (!$BatchClass->isValid($batchNew, $rec->quantity ?? null, $msg)) {
                     $form->setError('batchNew', $msg);
                 }
             }
 
             if (!$form->gotErrors()) {
-                $rec->batch = (!empty($rec->batchEx)) ? $rec->batchEx : $rec->batchNew;
+                $rec->batch = !empty($batchEx) ? $batchEx : $batchNew;
                 if ($rec->batch === '') {
                     $rec->batch = null;
                 }

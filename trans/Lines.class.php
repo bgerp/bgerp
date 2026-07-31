@@ -17,6 +17,12 @@
 class trans_Lines extends core_Master
 {
     /**
+     * Минимално сходство на заглавията за предупреждение за възможно дублиране
+     */
+    const DUPLICATE_TITLE_SIMILARITY = 0.75;
+
+
+    /**
      * Заглавие
      */
     public $title = 'Транспортни линии';
@@ -415,6 +421,36 @@ class trans_Lines extends core_Master
 
             if ($rec->start < dt::today()) {
                 $form->setError('start', 'Не може да се създаде линия за предишен ден!');
+            }
+
+            // Предупреждение за възможно дублиране на нова транспортна линия
+            if (empty($rec->id) && !empty($rec->start) && !empty($rec->title)) {
+                $date = substr($rec->start, 0, 10);
+                $normalizedTitle = strtolower(str::canonize($rec->title, ' '));
+
+                $query = $mvc->getQuery();
+                $query->where(array("#start >= '[#1#] 00:00:00' AND #start <= '[#1#] 23:59:59'", $date));
+                $query->where("#state != 'rejected'");
+                $query->show('id,title,start');
+
+                $similarLines = array();
+                while ($existingRec = $query->fetch()) {
+                    $existingTitle = strtolower(str::canonize($existingRec->title, ' '));
+                    similar_text($normalizedTitle, $existingTitle, $percent);
+
+                    if (($percent / 100) >= self::DUPLICATE_TITLE_SIMILARITY) {
+                        $handle = $mvc->getHandle($existingRec->id);
+                        $link = ht::createLink("#{$handle}", $mvc->getSingleUrlArray($existingRec->id));
+                        $similarLines[] = $link . ' (' . round($percent) . '%)';
+                    }
+                }
+
+                if (countR($similarLines)) {
+                    $form->setWarning(
+                        'title,start',
+                        'За същата дата вече има транспортни линии с подобно заглавие|*: ' . implode(', ', $similarLines)
+                    );
+                }
             }
         }
     }

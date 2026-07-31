@@ -166,7 +166,7 @@ abstract class store_DocumentMaster extends core_Master
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         if (!deals_Helper::canSelectObjectInDocument($action, $rec, 'store_Stores', 'storeId')) {
-            if(($action == 'reject' && $rec->state == 'pending') || ($action == 'restore' && $rec->brState == 'pending')) return;
+            if(($action == 'reject' && ($rec->state ?? null) == 'pending') || ($action == 'restore' && ($rec->brState ?? null) == 'pending')) return;
             $requiredRoles = 'no_one';
         }
     }
@@ -431,7 +431,8 @@ abstract class store_DocumentMaster extends core_Master
                             $bQuery->where($mWhere);
                             $bQuery->show('productId,quantity,batch');
                             while($bRec = $bQuery->fetch()){
-                                $byNowShippedBatches[$bRec->productId][$bRec->batch] += $bRec->quantity;
+                                $byNowShippedBatches[$bRec->productId][$bRec->batch] =
+                                    ($byNowShippedBatches[$bRec->productId][$bRec->batch] ?? 0) + $bRec->quantity;
                             }
                         }
 
@@ -486,7 +487,7 @@ abstract class store_DocumentMaster extends core_Master
                         $p1->quantity = min($agreedQuantity, $inStock);
 
                         // Оставяне само на наличните партиди
-                        if(is_array($p1->batches) && core_Packs::isInstalled('batch')){
+                        if(is_array($p1->batches ?? null) && core_Packs::isInstalled('batch')){
                             $productBatchQuantitiesInStore = batch_Items::getBatchQuantitiesInStore($p1->productId,$rec->storeId, $rec->valior);
                             foreach ($p1->batches as $b => $q){
                                 $batchQuantityInStore = !empty($productBatchQuantitiesInStore[$b]) ? $productBatchQuantitiesInStore[$b] : 0;
@@ -517,14 +518,14 @@ abstract class store_DocumentMaster extends core_Master
                     
                     if (isset($normalizedProducts[$index])) {
                         $toShip = $normalizedProducts[$index]->quantity;
-                        $batches = $normalizedProducts[$index]->batches;
+                        $batches = $normalizedProducts[$index]->batches ?? null;
                     } else {
                         $toShip = $product->quantity;
-                        $batches = $product->batches;
+                        $batches = $product->batches ?? null;
                     }
                     
                     $price = (isset($product->price)) ? $product->price : ($normalizedProducts[$index]->price ?? null);
-                    $discount = ($product->discount) ? $product->discount : ($normalizedProducts[$index]->discount ?? null);
+                    $discount = !empty($product->discount) ? $product->discount : ($normalizedProducts[$index]->discount ?? null);
 
                     // Пропускат се експедираните продукти
                     if ($toShip <= 0) continue;
@@ -540,7 +541,7 @@ abstract class store_DocumentMaster extends core_Master
                         $shipProduct->price = $shipProduct->price / $aggregatedDealInfo->get('rate') * $rec->currencyRate;
                     }
                     $shipProduct->discount = $discount;
-                    $shipProduct->notes = $product->notes;
+                    $shipProduct->notes = $product->notes ?? null;
                     $shipProduct->quantityInPack = $product->quantityInPack;
 
                     if (core_Packs::isInstalled('batch') && $copyBatches === true) {
@@ -553,7 +554,7 @@ abstract class store_DocumentMaster extends core_Master
 
                     // Копира партидата ако артикулите идат 1 към 1 от договора
                     if (core_Packs::isInstalled('batch') && $copyBatches === true) {
-                        if (is_array($shipProduct->batches)) {
+                        if (is_array($shipProduct->batches ?? null)) {
 
                             // Ако има генерирана нова партида и има без партида оставено от договора - ще се зададе за остатъка
                             if(!empty($shipProduct->batch)){
@@ -701,7 +702,7 @@ abstract class store_DocumentMaster extends core_Master
             // Скриваме "Особености" на локацията ПРИ ПЕЧАТ И ИЗПРАЩАНЕ
             // ВИНАГИ когато ЕН е включено в Транспортна линия и в нея "Изпълнител" НЕ Е "Моята фирма"
             if (Mode::is('text', 'xhtml') || Mode::is('printing')) {
-                if($rec->{$mvc->lineFieldName}){
+                if($rec->{$mvc->lineFieldName} ?? null){
                     $forwarderId = trans_Lines::fetchField($rec->{$mvc->lineFieldName}, 'forwarderId');
                     if(isset($forwarderId) && $forwarderId != crm_Setup::BGERP_OWN_COMPANY_ID){
                         unset($addressData['features']);
@@ -1172,7 +1173,7 @@ abstract class store_DocumentMaster extends core_Master
     public function getTransportLineInfo_($rec, $lineId)
     {
         $rec = static::fetchRec($rec);
-        $res = array('baseAmount' => null, 'amount' => null, 'currencyId' => null, 'notes' => $rec->lineNotes, 'deliveryOn' => $rec->deliveryOn);
+        $res = array('baseAmount' => null, 'amount' => null, 'currencyId' => null, 'notes' => $rec->lineNotes ?? null, 'deliveryOn' => $rec->deliveryOn ?? null);
         $res['stores'] = array($rec->storeId);
         $res['storeMovement'] = ($this instanceof store_Receipts) ? (($rec->isReverse == 'yes') ? 'out' : 'in') : (($rec->isReverse == 'yes') ? 'in' : 'out');
         $res['cases'] = array();
@@ -1187,7 +1188,7 @@ abstract class store_DocumentMaster extends core_Master
         $logisticData = $this->getLogisticData($rec);
 
         $countryId = drdata_Countries::getIdByName($logisticData["{$part}Country"]);
-        $res['countryId'] .= $countryId;
+        $res['countryId'] = $countryId;
 
         if($logisticData['fromCountry'] != $logisticData['toCountry']){
             $this->pushTemplateLg($rec->template);
@@ -1208,7 +1209,7 @@ abstract class store_DocumentMaster extends core_Master
         }
 
         if(!empty($logisticData["{$part}LocationId"])){
-            $res['locationId'] .= $logisticData["{$part}LocationId"];
+            $res['locationId'] = $logisticData["{$part}LocationId"];
         }
 
         if(!empty($logisticData["{$part}Place"])){
@@ -1303,7 +1304,7 @@ abstract class store_DocumentMaster extends core_Master
             $packagingId = $productInfo->productRec->measureId;
         }
         
-        $quantityInPack = ($productInfo->packagings[$packagingId]) ? $productInfo->packagings[$packagingId]->quantity : 1;
+        $quantityInPack = isset($productInfo->packagings[$packagingId]) ? $productInfo->packagings[$packagingId]->quantity : 1;
         
         // Ако няма цена, опитваме се да я намерим от съответната ценова политика
         if (empty($price)) {
@@ -1434,7 +1435,7 @@ abstract class store_DocumentMaster extends core_Master
     public function getDetailsToCloneAndChange_($rec)
     {
         $Detail = cls::get($this->mainDetail);
-        $id = $rec->clonedFromId;
+        $id = $rec->clonedFromId ?? null;
 
         // Ако е създаден като обратен документ взима детайлите от него
         if (isset($rec->reverseContainerId) && empty($rec->id)) {

@@ -20,7 +20,7 @@ class core_Classes extends core_Manager
     /**
      * Списък за начално
      */
-    public $loadList = 'plg_Created, plg_SystemWrapper, plg_State2, plg_RowTools, plg_Search,plg_Sorting';
+    public $loadList = 'plg_Created, plg_SystemWrapper, plg_State2, plg_RowTools2, plg_Search,plg_Sorting';
     
     
     /**
