@@ -138,11 +138,13 @@ class sens2_Controllers extends core_Master
         if (!isset($drivers[$controllerId])) {
             $rec = self::fetch($controllerId);
 
-            if ($silent === true) {
-                if (!cls::load($rec->driver, true)) {
+            if (!$rec || empty($rec->driver) || !cls::load($rec->driver, true)) {
+                if ($silent === true) {
 
                     return false;
                 }
+
+                expect(false, $controllerId, $rec->driver ?? null);
             }
 
             $drivers[$controllerId] = cls::get($rec->driver);
@@ -465,7 +467,13 @@ class sens2_Controllers extends core_Master
         
         expect($rec = self::fetch($id));
         
-        $Driver = self::getDriver($id);
+        $Driver = self::getDriver($id, true);
+
+        if (!$Driver) {
+            self::logWarning('Липсва или не може да бъде зареден драйверът на контролера', $id);
+
+            return 0;
+        }
         
         $ports = $Driver->getInputPorts($rec->config);
         

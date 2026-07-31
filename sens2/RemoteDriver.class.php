@@ -66,7 +66,14 @@ class sens2_RemoteDriver extends sens2_ProtoDriver
 
         $aQuery = remote_Authorizations::getQuery();
         
-        $bgerpClassId = core_Classes::getId('remote_BgerpDriver');
+        $bgerpClassId = core_Classes::getId('remote_BgerpDriver', true);
+
+        if (!$bgerpClassId) {
+            $form->setError('authorizationId', 'Липсва регистрация на драйвера за отдалечен bgERP. Обновете setup-а на пакет remote');
+            $form->setOptions('authorizationId', array());
+
+            return;
+        }
 
         $cu = core_Users::getCurrent();
 
