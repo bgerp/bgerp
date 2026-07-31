@@ -316,9 +316,9 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
         // В серийния порт автоматично се опитва да открие скорост и порт
         if (($form->rec->type ?? null) == 'serial') {
             $form->input('serialPort, serialSpeed', false);
-            if (!$form->rec->serialPort || !$form->rec->serialSpeed) {
+            if (!($form->rec->serialPort ?? null) || !($form->rec->serialSpeed ?? null)) {
                 $form->input('serverIp, serverTcpPort', false);
-                if ($form->rec->serverIp && $form->rec->serverTcpPort) {
+                if (($form->rec->serverIp ?? null) && ($form->rec->serverTcpPort ?? null)) {
                     $form->input('driverVersion', false);
                     $jsTpl = null;
                     $dPortArr = $Driver->findDevicePort($form->rec, $jsTpl);
