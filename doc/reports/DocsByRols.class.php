@@ -117,7 +117,19 @@ class doc_reports_DocsByRols extends frame2_driver_TableData
             $dDoc = array();
             
             foreach ($documentsForCheck as $doc) {
-                $recs[$doc->createdBy]['user'] = $doc->createdBy;
+                if (!isset($recs[$doc->createdBy])) {
+                    $recs[$doc->createdBy] = array(
+                        'user' => $doc->createdBy,
+                        'classes' => array(),
+                        'details' => array(),
+                        'cnt' => 0,
+                    );
+                }
+
+                if (!isset($recs[$doc->createdBy]['classes'][$doc->docClass])) {
+                    $recs[$doc->createdBy]['classes'][$doc->docClass] = 0;
+                    $recs[$doc->createdBy]['details'][$doc->docClass] = 0;
+                }
                 
                 $recs[$doc->createdBy]['classes'][$doc->docClass]++;
                 

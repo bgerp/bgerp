@@ -192,17 +192,19 @@ class sales_reports_PurBomsRep extends frame2_driver_TableData
             
             // Артикулите
             $agreedProducts = $dealInfo->get('products');
+
+            $salesArr = null;
+            $salesSrt = null;
+            if ($sRec->closedDocuments != null) {
+                $newKeylist = keylist::addKey($sRec->closedDocuments, $sRec->id);
+                $salesArr = keylist::toArray($newKeylist);
+                $salesSrt = implode(',', $salesArr);
+            }
             
             // За всеки договорен артикул
             foreach ($agreedProducts as $pId => $pRec) {
                 // ако е нестандартен
                 $productRec = cat_Products::fetch($pId, 'canManifacture,isPublic,nameEn');
-                
-                if ($sRec->closedDocuments != null) {
-                    $newKeylist = keylist::addKey($sRec->closedDocuments, $sRec->id);
-                    $salesArr = keylist::toArray($newKeylist);
-                    $salesSrt = implode(',', $salesArr);
-                }
                 
                 // Ако артикула е нестандартен и няма задание по продажбата
                 // артикула да е произведим

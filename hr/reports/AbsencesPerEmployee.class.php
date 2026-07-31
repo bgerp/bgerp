@@ -427,18 +427,33 @@ class hr_reports_AbsencesPerEmployee extends frame2_driver_TableData
         $Int = cls::get('type_Int');
         $Date = cls::get('type_Date');
         $row = new stdClass();
+        $totalAbs = 0;
        
         $periodsArr = explode(',', $rec->periods);
-        
-        $absencesDaysArr = explode(',', $dRec->absencesDays);
-        
-        if ($dRec->personId) {
+
+        if (!empty($dRec->total)) {
+            $row->employee = "<b>" . $dRec->total['total'] . "</b>";
+
+            foreach ($periodsArr as $val) {
+                $val = 'a' . $val;
+                $periodTotal = $dRec->total[$val] ?? 0;
+                $row->$val = "<b>" . $Int->toVerbal($periodTotal) . "</b>";
+                $totalAbs += $periodTotal;
+            }
+
+            $row->totalAbs = "<b>" . $Int->toVerbal($totalAbs) . "</b>";
+
+            return $row;
+        }
+
+        $absencesDaysArr = explode(',', $dRec->absencesDays ?? '');
+
+        if (!empty($dRec->personId)) {
             $row->employee = crm_Persons::getContragentData($dRec->personId)->person;
         }
-        
-        foreach ($periodsArr as $key => $val) {
-            
-            $startPeriods = explode(',', $dRec->startPeriod);
+
+        $startPeriods = explode(',', $dRec->startPeriod ?? '');
+        foreach ($periodsArr as $val) {
             
             foreach ($startPeriods as $key1 => $start) {
                 
@@ -448,31 +463,16 @@ class hr_reports_AbsencesPerEmployee extends frame2_driver_TableData
                     
                     $val = 'a' . $val;
                     
-                    $row->$val = $Int->toVerbal($absencesDaysArr[$key1]);
-                    
-                    $totalAbs += $absencesDaysArr[$key1];
+                    $absenceDays = $absencesDaysArr[$key1] ?? 0;
+                    $row->$val = $Int->toVerbal($absenceDays);
+
+                    $totalAbs += $absenceDays;
                     
                 }
             }
         }
         
         $row->totalAbs = "<b>" . $Int->toVerbal($totalAbs) . "</b>";
-        
-        if ($dRec->total) {
-            
-            $row->employee = "<b>" . $dRec->total['total'] . "</b>";
-            
-            foreach ($periodsArr as $key => $val) {
-                
-                $val = 'a' . $val;
-                
-                $row->$val = "<b>" . $Int->toVerbal($dRec->total[$val] ) . "</b>";
-                
-                $totalAbs += $dRec->total[$val];
-            }
-            
-            $row->totalAbs = "<b>" . $Int->toVerbal($totalAbs) . "</b>";
-        }
         
         return $row;
     }
