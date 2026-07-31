@@ -206,21 +206,24 @@ class email_AutomaticResponse extends core_Master
     public function on_AfterPrepareRetUrl($mvc, $data)
     {
          // Ако е субмитната формата
-        if ($data->form && $data->form->isSubmitted()) {
+        if (isset($data->form) && $data->form->isSubmitted()) {
 
             // Променяма да сочи към single-a
             $profile = crm_Profiles::fetch("#userId = {$data->form->rec->userId}");
-            $data->retUrl = array('crm_Profiles', 'single', $profile->id);        
+            if ($profile) {
+                $data->retUrl = array('crm_Profiles', 'single', $profile->id);
+            }
         }
 
         //да може след изтриване да се връща в профила
-        if($data->cmd == 'delete'){
+        if(($data->cmd ?? null) == 'delete'){
             if($id = Request::get('id', 'int')){
                 $rec = $mvc->fetch($id);
-                $profile = crm_Profiles::fetch("#userId = {$rec->userId}");
-                $data->retUrl =  array('crm_Profiles', 'single', $profile->id);
+                if ($rec && ($profile = crm_Profiles::fetch("#userId = {$rec->userId}"))) {
+                    $data->retUrl = array('crm_Profiles', 'single', $profile->id);
+                }
             }
-        }   
+        }
     }
 
 
