@@ -529,24 +529,25 @@ class bgerp_drivers_Calendar extends core_BaseClass
         $subTitle = "<span class='threadSubTitle'> {$dRow->subTitleNoTime}</span>";
 
         $linkArr = array('ef_icon' => $Tasks->getIcon($rec->id));
+        $subTitleDateRec = $dRow->subTitleDateRec ?? null;
 
-        if ($dRow->subTitleDateRec) {
-            $rec->title = $this->removeDateAndHoursFromTitle($rec->title, $dRow->subTitleDateRec);
+        if ($subTitleDateRec) {
+            $rec->title = $this->removeDateAndHoursFromTitle($rec->title, $subTitleDateRec);
             $rec->title = $this->removeDateAndHoursFromTitle($rec->title, $rec->timeStart);
             $rec->title = $this->removeDateAndHoursFromTitle($rec->title, $rec->timeEnd);
             $rec->title = $this->removeDateAndHoursFromTitle($rec->title, $rec->expectationTimeEnd);
             $rec->title = $this->removeDateAndHoursFromTitle($rec->title, $rec->expectationTimeStart);
 
-            $time = dt::mysql2verbal($dRow->subTitleDateRec, 'H:i');
+            $time = dt::mysql2verbal($subTitleDateRec, 'H:i');
 
             if (!$showDate) {
                 if ($time != '00:00') {
                     $rec->title =  $time . ' ' . $rec->title;
                 }
             } else {
-                if ($dRow->subTitleDateRec) {
+                if ($subTitleDateRec) {
                     $title = str::limitLen(type_Varchar::escape($rec->title), 60, 30, ' ... ', true);
-                    $date = dt::mysql2verbal($dRow->subTitleDateRec, 'smartDate');
+                    $date = dt::mysql2verbal($subTitleDateRec, 'smartDate');
                     $title =  $date . ' ' . $title;
                     if ($time != '00:00') {
                         $linkArr['title'] = $time;
