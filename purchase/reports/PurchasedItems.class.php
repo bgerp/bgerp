@@ -210,6 +210,16 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
      */
     protected function prepareRecs($rec, &$data = null)
     {
+        // Стари записи на справката може да нямат полетата, добавени по-късно
+        $rec->group = $rec->group ?? null;
+        $rec->contragent = $rec->contragent ?? null;
+        $rec->crmGroup = $rec->crmGroup ?? null;
+        $rec->storeId = $rec->storeId ?? null;
+        $rec->articleType = $rec->articleType ?? 'all';
+        $rec->compare = $rec->compare ?? 'no';
+        $rec->grouping = $rec->grouping ?? 'art';
+        $rec->orderBy = $rec->orderBy ?? 'amount';
+
         //Показването да бъде ли ГРУПИРАНО
         if (($rec->grouping == 'art') && $rec->group) {
             $this->groupByField = 'group';
@@ -555,7 +565,8 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
         }
 
         //Масив избрани дилъри $dealers
-        if ((min(array_keys(keylist::toArray($rec->dealers))) >= 1)) {
+        $dealers = null;
+        if (!empty($rec->dealers) && (min(array_keys(keylist::toArray($rec->dealers))) >= 1)) {
             $dealers = keylist::toArray($rec->dealers);
         }
 
@@ -668,7 +679,6 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
                         'amountCheckedPeriod' => $amountCheckedPeriod,        //Избран период - стойност на продажбите за артикула
 
                         'group' => $detRec->groups,                           // В кои групи е включен артикула
-                        'groupList' => $detRec->groupList,                    //В кои групи е включен контрагента
 
                     );
                 } else {
@@ -706,7 +716,7 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
         $groupValues = $groupAmountPrevious = $groupAmountLastYear = $groupAmountCheckedPeriod = array();
         $tempArr = array();
         $totalArr = array();
-        $totalValue = 0;
+        $totalValue = $totalAmountPrevious = $totalAmountLastYear = $totalAmountCheckedPeriod = 0;
 
         // Изчисляване на общите покупки и покупките по групи
         foreach ($recs as $v) {
@@ -810,22 +820,22 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
             $recs = $tempArr;
 
             foreach ($recs as $v) {
-                $v->groupValues = $groupValues[$v->group];
-                $v->groupAmountPrevious = $groupAmountPrevious[$v->group];
-                $v->groupAmountLastYear = $groupAmountLastYear[$v->group];
-                $v->groupAmountCheckedPeriod = $groupAmountCheckedPeriod[$v->group];
+                $v->groupValues = $groupValues[$v->group] ?? 0;
+                $v->groupAmountPrevious = $groupAmountPrevious[$v->group] ?? 0;
+                $v->groupAmountLastYear = $groupAmountLastYear[$v->group] ?? 0;
+                $v->groupAmountCheckedPeriod = $groupAmountCheckedPeriod[$v->group] ?? 0;
             }
             unset($v);
         } else {
             foreach ($recs as $v) {
                 foreach ($v->group as $gro) {
-                    $v->groupValues = $groupValues[$gro];
+                    $v->groupValues = $groupValues[$gro] ?? 0;
 
-                    $v->groupAmountPrevious = $groupAmountPrevious[$gro];
+                    $v->groupAmountPrevious = $groupAmountPrevious[$gro] ?? 0;
 
-                    $v->groupAmountLastYear = $groupAmountLastYear[$gro];
+                    $v->groupAmountLastYear = $groupAmountLastYear[$gro] ?? 0;
 
-                    $v->groupAmountCheckedPeriod = $groupAmountCheckedPeriod[$gro];
+                    $v->groupAmountCheckedPeriod = $groupAmountCheckedPeriod[$gro] ?? 0;
                 }
             }
             unset($v, $gro);
