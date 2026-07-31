@@ -1500,8 +1500,12 @@ class pos_Terminal extends peripheral_Terminal
                             $attr['data-sendfunction'] = $intf->getSendAmountFncName($deviceRec);
 
                             $deviceBtnName = cash_NonCashPaymentDetails::getCardPaymentBtnName($deviceRec);
-                            $attr['data-deviceUrl'] = "{$deviceRec->protocol}://{$deviceRec->hostName}:{$deviceRec->port}";
-                            $attr['data-deviceComPort'] = $deviceRec->comPort;
+                            if (isset($deviceRec->protocol, $deviceRec->hostName, $deviceRec->port)) {
+                                $attr['data-deviceUrl'] = "{$deviceRec->protocol}://{$deviceRec->hostName}:{$deviceRec->port}";
+                            }
+                            if (isset($deviceRec->comPort)) {
+                                $attr['data-deviceComPort'] = $deviceRec->comPort;
+                            }
                             $attr['data-deviceName'] = $deviceBtnName;
                             $attr['data-modal-subTitle'] = tr('Моля, изчакайте'). "!";
                             $attr['data-deviceId'] = $deviceRec->id;
