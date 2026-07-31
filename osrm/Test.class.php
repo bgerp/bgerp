@@ -4,6 +4,9 @@ class osrm_Test extends core_Manager
 {
     public function act_Test()
     {
+        requireRole('admin');
+        requireRole('debug');
+
         $startCoord = "23.3219,42.6977";
         $endCoord = "27.9147,43.2141";
 
