@@ -237,7 +237,7 @@ class sens2_ProtoDriver extends core_BaseClass
                 $p->readable = true;
                 foreach ($map as $confPart => $portPart) {
                     $confField = $name . '_' . $confPart;
-                    if ($config && strlen($config->{$confField})) {
+                    if (!empty($config->{$confField})) {
                         $p->{$portPart} = $config->{$confField};
                     }
                 }
@@ -252,7 +252,7 @@ class sens2_ProtoDriver extends core_BaseClass
                 $p->writable = true;
                 foreach ($map as $confPart => $portPart) {
                     $confField = $name . '_' . $confPart;
-                    if ($config && strlen($config->{$confField})) {
+                    if (!empty($config->{$confField})) {
                         $p->{$portPart} = $config->{$confField};
                     }
                 }

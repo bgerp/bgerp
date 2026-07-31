@@ -155,9 +155,14 @@ class sens2_RemoteDriver extends sens2_ProtoDriver
      */
     private function loadState()
     {   
-        $authorizationId = $this->driverRec->config->authorizationId;
+        $authorizationId = $this->driverRec->config->authorizationId ?? null;
+        if (!$authorizationId) {
+            $this->state = array();
 
-        if(!($this->state = self::$states[$authorizationId])) {
+            return;
+        }
+
+        if (!($this->state = self::$states[$authorizationId] ?? null)) {
             $aRec = remote_Authorizations::fetch($authorizationId);
             $this->state = remote_BgerpDriver::sendQuestion($aRec, __CLASS__, 'getState', array('priority' => true));
 

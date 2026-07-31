@@ -76,7 +76,7 @@ abstract class sens2_ioport_Abstract extends core_BaseClass
      */
     public function canSelectDriver($rec, $userId = null)
     {
-        if ($rec->controllerId && static::SLOT_TYPES) {
+        if (!empty($rec->controllerId) && static::SLOT_TYPES) {
             $Plc = sens2_Controllers::getDriver($rec->controllerId);
             $slotTypesArr = arr::make(static::SLOT_TYPES, true);
             $slotsCnt = $Plc->getSlotOpt($slotTypesArr, true);

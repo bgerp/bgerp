@@ -91,7 +91,7 @@ class sens2_IOPorts extends embed_Detail
         $form = $data->form;
         $rec = $form->rec;
         
-        if ($rec->driverClass) {
+        if (!empty($rec->driverClass)) {
             $driver = sens2_Controllers::getDriver($rec->controllerId);
             $portClass = cls::get($rec->driverClass);
             
@@ -100,13 +100,13 @@ class sens2_IOPorts extends embed_Detail
             
             // Добавяме индикация след името на слота, колко пъти е използван до сега
             $usedSlots = self::getUsedSlots($rec->controllerId);
-            if ($rec->slot) {
+            if (!empty($rec->slot)) {
                 $opt[$rec->slot] = $rec->slot;
                 $usedSlots[$rec->slot]--;
             }
             
             foreach ($usedSlots as $slot => $cnt) {
-                if ($opt[$slot] && $cnt > 0) {
+                if (!empty($opt[$slot]) && $cnt > 0) {
                     $opt[$slot] = $slot . ' (' . $cnt . ')';
                 }
             }

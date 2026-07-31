@@ -200,7 +200,7 @@ class sens2_DataLogs extends core_Manager
     {
         if (is_array($data->rows)) {
             foreach ($data->rows as $id => &$row) {
-                $row->value .= "<span class='measure'>" .
+                $row->value = ($row->value ?? '') . "<span class='measure'>" .
                     type_Varchar::escape(sens2_Indicators::fetch($data->recs[$id]->indicatorId)->uom) . '</span>';
             }
         }

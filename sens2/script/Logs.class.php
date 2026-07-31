@@ -147,11 +147,11 @@ class sens2_script_Logs extends core_Manager
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
-        if($rec->actionId) {
+        if (!empty($rec->actionId)) {
             $actionRec = sens2_script_Actions::fetch($rec->actionId);
             $row->actionId = ht::createLink($row->actionId, array('sens2_Scripts', 'Single', $rec->scriptId, 'order' => $actionRec->order)); 
         }
-        if($rec->error) {
+        if (!empty($rec->error)) {
             $row->ROW_ATTR = array('style' => 'background-color:#faa;');
         }
 

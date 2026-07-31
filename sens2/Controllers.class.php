@@ -165,7 +165,7 @@ class sens2_Controllers extends core_Master
         $rec = $form->rec;
         $exFields = $form->selectFields();
         
-        if ($rec->driver) {
+        if (!empty($rec->driver)) {
             self::prepareConfigForm($form, $rec);
         }
         
@@ -181,7 +181,7 @@ class sens2_Controllers extends core_Master
             $fldList = '';
             $newFields = $form->selectFields();
             foreach ($newFields as $name => $fld) {
-                if (!$exFields[$name]) {
+                if (empty($exFields[$name])) {
                     $fldList .= ($fldList ? '|' : '') . $name;
                 }
             }
@@ -219,9 +219,10 @@ class sens2_Controllers extends core_Master
             $config = $rec->config;
             foreach ($ports as $port => $params) {
                 $partName = $port . '_name';
-                if ($config->{$partName}) {
-                    $caption = $port . ' ('. $config->{$partName} . ')';
-                    $title = '$' . $rec->name . '.' . $config->{$partName};
+                $partNameValue = $config->{$partName} ?? null;
+                if ($partNameValue) {
+                    $caption = $port . ' ('. $partNameValue . ')';
+                    $title = '$' . $rec->name . '.' . $partNameValue;
                 } else {
                     $caption = new stdClass();
                     $caption->title = $port;
@@ -232,7 +233,7 @@ class sens2_Controllers extends core_Master
                     $title = '$' . $rec->name . '.' . $port;
                 }
                 $partUom = $port . '_uom';
-                $res = (object) array('caption' => $caption, 'uom' => $config->{$partUom}, 'title' => $title);
+                $res = (object) array('caption' => $caption, 'uom' => $config->{$partUom} ?? null, 'title' => $title);
                 $res->uom = $res->uom ?? $params->uom;
                 
                 $ap[$controllerId . '_' . $type][$port] = $res;
@@ -263,7 +264,7 @@ class sens2_Controllers extends core_Master
      */
     public static function prepareConfigForm($form, $rec)
     {
-        if (empty($rec->id) && $rec->driver) {
+        if (empty($rec->id) && !empty($rec->driver)) {
             $drv = cls::get($rec->driver);
         } else {
             $drv = self::getDriver($rec->id);
@@ -342,7 +343,7 @@ class sens2_Controllers extends core_Master
      */
     public function on_AfterInputEditForm($mvc, $form)
     {
-        if ($form->isSubmitted() && $form->rec->driver) {
+        if ($form->isSubmitted() && !empty($form->rec->driver)) {
             $drv = cls::get($form->rec->driver);
             $drv->checkConfigform($form);
             if (!$form->gotErrors()) {
@@ -362,7 +363,7 @@ class sens2_Controllers extends core_Master
      */
     protected static function on_AfterSave($mvc, $id, $rec)
     {
-        if ($rec->driver) {
+        if (!empty($rec->driver)) {
             $drv = cls::get($rec->driver);
             $drv->afterUpdateController($rec, false);
         }
@@ -376,7 +377,7 @@ class sens2_Controllers extends core_Master
     {
         // След изтриване, форсираме преизчисляването на консумациите
         foreach ($query->getDeletedRecs() as $rec) {
-            if ($rec->driver) {
+            if (!empty($rec->driver)) {
                 $drv = cls::get($rec->driver);
                 $drv->afterUpdateController($rec, true);
             }
@@ -488,7 +489,7 @@ class sens2_Controllers extends core_Master
         if (is_array($inputs) && countR($inputs)) {
             
             // Прочитаме състоянието на входовете от драйвера
-            if ($rec->persistentState) {
+            if (!empty($rec->persistentState)) {
                 $hash = md5(serialize($rec->persistentState));
             }
             
@@ -508,7 +509,7 @@ class sens2_Controllers extends core_Master
             
  
             // Ако перманентното състояние е променено - записва го
-            if ($rec->persistentState && ($hash != md5(serialize($rec->persistentState)))) {
+            if (!empty($rec->persistentState) && ($hash != md5(serialize($rec->persistentState)))) {
                 self::save($rec, 'persistentState');
             }
             
@@ -589,7 +590,7 @@ class sens2_Controllers extends core_Master
             
             foreach ($ports as $p => $pObj) {
                 $part = $p . '_name';
-                if ($p == $name || $rec->config->{$part} == $name) {
+                if ($p == $name || ($rec->config->{$part} ?? null) == $name) {
                     $portName = $p;
                     break;
                 }
@@ -598,7 +599,7 @@ class sens2_Controllers extends core_Master
             if ($portName) {
                 $sets = array($portName => $value);
                 
-                if ($rec->persistentState) {
+                if (!empty($rec->persistentState)) {
                     $hash = md5(serialize($rec->persistentState));
                 }
 
@@ -617,7 +618,7 @@ class sens2_Controllers extends core_Master
                     $res = $drv->writeOutputs($sets, $rec->config, $rec->persistentState);
                 }
 
-                if ($rec->persistentState && $hash != md5(serialize($rec->persistentState))) {
+                if (!empty($rec->persistentState) && $hash != md5(serialize($rec->persistentState))) {
                     self::save($rec, 'persistentState');
                 }
             }

@@ -81,11 +81,11 @@ class sens2_reports_DataLog extends frame_BaseDriver
     public function checkEmbeddedForm(core_Form &$form)
     {
         if ($form->isSubmitted()) {
-            if ($form->rec->orderField == '') {
+            if (($form->rec->orderField ?? '') == '') {
                 unset($form->rec->orderField);
             }
             
-            if ($form->rec->orderBy == '') {
+            if (($form->rec->orderBy ?? '') == '') {
                 unset($form->rec->orderBy);
             }
         }
