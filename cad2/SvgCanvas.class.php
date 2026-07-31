@@ -639,6 +639,8 @@ class cad2_SvgCanvas extends cad2_Canvas
                 if (empty($tag->data)) {
                     $tag->data = array();
                 }
+                $tag->attr['d'] = $tag->attr['d'] ?? '';
+
                 foreach ($tag->data as $cmd) {
                     $cmdName = $cmd[0];
                     
@@ -673,6 +675,8 @@ class cad2_SvgCanvas extends cad2_Canvas
             
             if ($tag->name == 'g') {
                 if (is_array($tag->attr['_transform'] ?? null)) {
+                    $tag->attr['transform'] = $tag->attr['transform'] ?? '';
+
                     foreach ($tag->attr['_transform'] as $tArr) {
                         switch ($tArr[0]) {
                             case 'scale':
