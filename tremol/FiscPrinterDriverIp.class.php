@@ -683,7 +683,7 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
             // Настройваме хедърите и футърите на ФУ
             if (Request::get('update')) {
                 // Променя серийния номер на ФУ, ако не е коректно
-                if ($sn) {
+                if (!empty($sn)) {
                     if ($sn != $data->rec->serialNumber) {
                         $data->rec->serialNumber = $sn;
                         
@@ -701,7 +701,7 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
                 }
                 
                 if (isset($oPass)) {
-                    if ($oPass != $data->rec->otherData['operPass']) {
+                    if ($oPass != ($data->rec->otherData['operPass'] ?? null)) {
                         $data->rec->otherData['operPass'] = $oPass;
                         
                         $Embedder->save($data->rec, 'otherData');
@@ -714,7 +714,7 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
                     $Driver->handleAndShowException($e);
                 }
                 
-                if ($dPaymArr['defPaymArr']) {
+                if (!empty($dPaymArr['defPaymArr'])) {
                     $data->rec->otherData['defPaymArr'] = $dPaymArr['defPaymArr'];
                     $data->rec->otherData['exRate'] = $dPaymArr['exRate'];
                     

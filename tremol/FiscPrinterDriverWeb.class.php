@@ -900,7 +900,7 @@ class tremol_FiscPrinterDriverWeb extends tremol_FiscPrinterDriverParent
         
         $res = array();
         
-        if ($pRec->otherData['operPass'] != $operPass) {
+        if (($pRec->otherData['operPass'] ?? null) != $operPass) {
             $pRec->otherData['operPass'] = $operPass;
             
             peripheral_Devices::save($pRec, 'otherData');
@@ -937,7 +937,7 @@ class tremol_FiscPrinterDriverWeb extends tremol_FiscPrinterDriverParent
         
         $dPaymArr = json_decode($defPaym, true);
         
-        if ($dPaymArr['defPaymArr']) {
+        if (!empty($dPaymArr['defPaymArr'])) {
             $pRec->otherData['defPaymArr'] = $dPaymArr['defPaymArr'];
             $pRec->otherData['exRate'] = $dPaymArr['exRate'];
             
