@@ -72,7 +72,7 @@ class mistral_Converter extends core_Manager
 
             $arr = array();
             $arr['mistral']['url'] = array(get_called_class(), 'getTextByOcr', $fRec->fileHnd, 'ret_url' => true);
-            $arr['mistral']['title'] = 'OCR';
+            $arr['mistral']['title'] = 'Mistral OCR';
             $arr['mistral']['icon'] = 'img/16/mistral.png';
             $arr['mistral']['btnParams'] = $btnParams;
         }

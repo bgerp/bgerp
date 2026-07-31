@@ -86,7 +86,7 @@ class abbyyocr_Converter extends core_Manager
             
             $arr = array();
             $arr['abbyyocr']['url'] = array(get_called_class(), 'getTextByOcr', $fRec->fileHnd ?? null, 'ret_url' => true);
-            $arr['abbyyocr']['title'] = 'OCR';
+            $arr['abbyyocr']['title'] = 'Abbyy OCR';
             $arr['abbyyocr']['icon'] = 'img/16/scanner.png';
             $arr['abbyyocr']['btnParams'] = $btnParams;
         }
