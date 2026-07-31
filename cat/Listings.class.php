@@ -179,7 +179,8 @@ class cat_Listings extends core_Master
 
         if ($Cover->haveInterface('crm_ContragentAccRegIntf')) {
             $form->setDefault('currencyId', $Cover->getDefaultCurrencyId());
-            $Class = $rec->type == 'canSell' ? 'sales_Sales' : 'purchase_Purchases';
+            $type = $rec->type ?? 'canSell';
+            $Class = $type == 'canSell' ? 'sales_Sales' : 'purchase_Purchases';
             $form->setDefault('vat', ($Cover->shouldChargeVat($Class)) ? 'yes' : 'no');
         }
 

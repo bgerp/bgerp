@@ -300,7 +300,8 @@ class price_reports_PriceList extends frame2_driver_TableData
                 'isPublic' => $productRec->isPublic,
                 'vat' => cat_Products::getVat($productRec->id, $date, $rec->vatExceptionId),
                 'packs' => array(),
-                'groups' => $productRec->groups);
+                'groups' => $productRec->groups,
+                'type' => null);
 
             if ($rec->packType == 'base') {
                 if(array_key_exists($productRec->id, $basePackagings)){
