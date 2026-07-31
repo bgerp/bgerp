@@ -75,7 +75,7 @@
          
          
          $suggestions = array();
-         foreach (keylist::toArray($rec->forwarderPersonId ?? null) as $val) {
+         foreach (keylist::toArray($rec->forwarderPersonId) as $val) {
              $suggestions[$val] = crm_Persons::fetch($val)->name;
          }
          
