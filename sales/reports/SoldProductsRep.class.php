@@ -381,7 +381,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
     {
         if ($form->isSubmitted()) {
 
-            if (($form->rec->compare != 'month') && (!($form->rec->from && $form->rec->to))) {
+            if (($form->rec->compare ?? 'no') != 'month' && (empty($form->rec->from) || empty($form->rec->to))) {
                 $form->setError('from,to,selectPeriod', 'Изберете период.');
             }
 
@@ -475,21 +475,24 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         }
 
         $form->input('selectPeriod,from,to',true);
-        $periodStart = $rec->from;
-        $periodEnd = $rec->to;
+        $currentPeriod = acc_Periods::fetchByDate(dt::today());
+        $periodStart = $rec->from ?? $currentPeriod->start;
+        $periodEnd = $rec->to ?? $currentPeriod->end;
 
-        $monthSugg = (acc_Periods::fetchByDate(dt::today())->id);
+        $monthSugg = $currentPeriod->id;
 
         $form->setDefault('firstMonth', $monthSugg);
         $form->setDefault('secondMonth', $monthSugg);
 
 
         if ($rec->compare == 'month') {
-            $periodStart = acc_Periods::fetch($rec->firstMonth)->start;
-            $periodEnd = acc_Periods::fetch($rec->secondMonth)->end;
+            $firstMonth = acc_Periods::fetch($rec->firstMonth ?? $monthSugg);
+            $secondMonth = acc_Periods::fetch($rec->secondMonth ?? $monthSugg);
+            $periodStart = $firstMonth->start;
+            $periodEnd = $secondMonth->end;
 
-            $periodStart1 = acc_Periods::fetch($rec->secondMonth)->start;
-            $periodEnd1 = acc_Periods::fetch($rec->secondMonth)->end;
+            $periodStart1 = $secondMonth->start;
+            $periodEnd1 = $secondMonth->end;
         }
 
         $form->setDefault('articleType', 'all');
