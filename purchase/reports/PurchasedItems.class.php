@@ -133,11 +133,11 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
         if ($form->isSubmitted()) {
 
             //Проверка за правилна подредба
-            if (($form->rec->orderBy == 'code') && ($form->rec->grouping == 'grouped')) {
+            if ((($form->rec->orderBy ?? null) == 'code') && (($form->rec->grouping ?? null) == 'grouped')) {
                 $form->setError('orderBy', 'При ГРУПИРАНО показване не може да има подредба по КОД.');
             }
 
-            if (($form->rec->orderBy == 'changeAmount') && ($form->rec->compare == 'no')) {
+            if ((($form->rec->orderBy ?? null) == 'changeAmount') && (($form->rec->compare ?? 'no') == 'no')) {
                 $form->setError('orderBy', 'Когато няма сравнение не се отчита промяна.');
             }
         }
@@ -364,7 +364,7 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
 
         // сравнение с ПРЕДХОДЕН ПЕРИОД
         if (($rec->compare == 'previous')) {
-            if ($periodType == 'дни') {
+            if ($periodType == 'дни' || $periodType == 'ден' || $periodType == 'дена') {
                 $fromPreviuos = dt::addDays(-$periodCount, $rec->from, false);
                 $toPreviuos = dt::addDays(-$periodCount, $dateEnd, false);
             }
@@ -469,8 +469,10 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
                 $contragentsArr = keylist::toArray($rec->contragent);
 
                 foreach ($contragentsArr as $val) {
-                    $contragentCoversId[$val] = doc_Folders::fetch($val)->coverId;
-                    $contragentCoverClasses[$val] = doc_Folders::fetch($val)->coverClass;
+                    if ($folderRec = doc_Folders::fetch($val)) {
+                        $contragentCoversId[$val] = $folderRec->coverId;
+                        $contragentCoverClasses[$val] = $folderRec->coverClass;
+                    }
                 }
 
                 $receiptsDetQuery->in('contragentId', $contragentCoversId);
@@ -503,8 +505,10 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
 
 
                 foreach ($contragentsArr as $val) {
-                    $contragentCoversId[$val] = doc_Folders::fetch($val)->coverId;
-                    $contragentCoverClasses[$val] = doc_Folders::fetch($val)->coverClass;
+                    if ($folderRec = doc_Folders::fetch($val)) {
+                        $contragentCoversId[$val] = $folderRec->coverId;
+                        $contragentCoverClasses[$val] = $folderRec->coverClass;
+                    }
                 }
 
                 $receiptsDetQuery->in('contragentId', $contragentCoversId);
@@ -612,7 +616,7 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
 
                     $thisClassName = $firstDocument->className;
 
-                    $thisDealerId = $thisClassName::fetch($firstDocument->that)->dealerId;
+                    $thisDealerId = $thisClassName::fetchField($firstDocument->that, 'dealerId');
 
                     if (!in_array($thisDealerId, $dealers)) {
                         continue;
@@ -717,6 +721,7 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
         $tempArr = array();
         $totalArr = array();
         $totalValue = $totalAmountPrevious = $totalAmountLastYear = $totalAmountCheckedPeriod = 0;
+        $changeAmount = 'amount';
 
         // Изчисляване на общите покупки и покупките по групи
         foreach ($recs as $v) {
@@ -850,14 +855,14 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
                     'group' => $k,                                                  //Група артикули
                     'amount' => $v,                                                 //Покупки за текущия период за групата
 
-                    'groupAmountPrevious' => $groupAmountPrevious[$k],               //Покупки за предходен период за групата
-                    'changeGroupAmountPrevious' => $v - $groupAmountPrevious[$k],             //Промяна в покупките спрямо предходен период за групата
+                    'groupAmountPrevious' => $groupAmountPrevious[$k] ?? 0,               //Покупки за предходен период за групата
+                    'changeGroupAmountPrevious' => $v - ($groupAmountPrevious[$k] ?? 0),             //Промяна в покупките спрямо предходен период за групата
 
-                    'groupAmountLastYear' => $groupAmountLastYear[$k],                  //Покупки за предходна година за групата
-                    'changeGroupAmountLastYear' => $v - $groupAmountLastYear[$k],             //Промяна в покупките спрямо предходна година за групата
+                    'groupAmountLastYear' => $groupAmountLastYear[$k] ?? 0,                  //Покупки за предходна година за групата
+                    'changeGroupAmountLastYear' => $v - ($groupAmountLastYear[$k] ?? 0),             //Промяна в покупките спрямо предходна година за групата
 
-                    'groupAmountCheckedPeriod' => $groupAmountCheckedPeriod[$k],        //Покупки за избрания период за групата
-                    'changeGroupAmountCheckedPeriod' => $v - $groupAmountCheckedPeriod[$k],   //Промяна в покупките спрямо избрания период за групата
+                    'groupAmountCheckedPeriod' => $groupAmountCheckedPeriod[$k] ?? 0,        //Покупки за избрания период за групата
+                    'changeGroupAmountCheckedPeriod' => $v - ($groupAmountCheckedPeriod[$k] ?? 0),   //Промяна в покупките спрямо избрания период за групата
                 );
             }
 
@@ -1247,10 +1252,11 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
             'checked' => 'Избран период'
         );
 
-        if ($rec->compare == 'checked') {
-            $row->compare = $arrCompare[$rec->compare] . ' ( ' . $Date->toverbal($rec->compareStart) . ' - ' . $Date->toverbal($rec->toChecked) . ' )';
+        $compare = $rec->compare ?? 'no';
+        if ($compare == 'checked') {
+            $row->compare = $arrCompare[$compare] . ' ( ' . $Date->toverbal($rec->compareStart ?? null) . ' - ' . $Date->toverbal($rec->toChecked ?? null) . ' )';
         } else {
-            $row->compare = $arrCompare[$rec->compare];
+            $row->compare = $arrCompare[$compare] ?? $arrCompare['no'];
         }
     }
 
@@ -1288,8 +1294,10 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
             $fieldTpl->append('<b>' . $data->row->to . '</b>', 'to');
         }
 
-        if ((isset($data->rec->dealers)) && ((min(array_keys(keylist::toArray($data->rec->dealers))) >= 1))) {
-            foreach (type_Keylist::toArray($data->rec->dealers) as $dealer) {
+        $dealersVerb = '';
+        $dealers = type_Keylist::toArray($data->rec->dealers ?? null);
+        if (!empty($dealers) && (min(array_keys($dealers)) >= 1)) {
+            foreach ($dealers as $dealer) {
                 $dealersVerb .= (core_Users::getTitleById($dealer) . ', ');
             }
 
@@ -1298,6 +1306,7 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
             $fieldTpl->append('<b>' . 'Всички' . '</b>', 'dealers');
         }
 
+        $groupVerb = $contragentVerb = '';
         if (isset($data->rec->contragent) || isset($data->rec->crmGroup)) {
             $marker = 0;
             if (isset($data->rec->crmGroup)) {
@@ -1338,7 +1347,7 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
         }
 
         if (isset($data->rec->article)) {
-            $fieldTpl->append($data->rec->art, 'art');
+            $fieldTpl->append($data->rec->article, 'art');
         }
 
         if (isset($data->rec->compare)) {
@@ -1361,6 +1370,13 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
     {
         $Double = cls::get('type_Double');
         $Double->params['decimals'] = 2;
+
+        // Обобщаващият ред няма полетата на обикновените редове
+        if (isset($dRec->totalValue)) {
+            $res->amount = $dRec->totalValue;
+
+            return;
+        }
 
         //Ако имаме избрано показване "ГРУПИРАНО"
         if ($rec->grouping == 'grouped') {
