@@ -685,7 +685,7 @@ class sales_Quotations extends deals_QuotationMaster
 
                 if (!isset($dRec->term)) {
                     if ($term = cat_Products::getDeliveryTime($dRec->productId, $dRec->quantity)) {
-                        if ($deliveryTime = sales_TransportValues::get('sales_Quotations', $dRec->quotationId, $dRec->id)->deliveryTime) {
+                        if ($deliveryTime = sales_TransportValues::get('sales_Quotations', $dRec->quotationId, $dRec->id)->deliveryTime ?? null) {
                             $term += $deliveryTime;
                         }
                         $dRec->term = $term;

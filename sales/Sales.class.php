@@ -1107,14 +1107,19 @@ class sales_Sales extends deals_DealMaster
     public static function on_AfterRenderSingleLayout($mvc, &$tpl, &$data)
     {
         $rec = $data->rec;
-        
+        $tplLang = $rec->tplLang ?? null;
+
         // Изкарваме езика на шаблона от сесията за да се рендира статистиката с езика на интерфейса
-        core_Lg::pop();
+        if ($tplLang) {
+            core_Lg::pop();
+        }
         $statisticTpl = getTplFromFile('sales/tpl/SaleStatisticLayout.shtml');
         $tpl->replace($statisticTpl, 'STATISTIC_BAR');
-        
+
         // Отново вкарваме езика на шаблона в сесията
-        core_Lg::push($rec->tplLang);
+        if ($tplLang) {
+            core_Lg::push($tplLang);
+        }
         
         // Скриване на секцията с транспорт, при определени условия
         if (Mode::isReadOnly() || core_Users::haveRole('partner') || empty($rec->deliveryTermId) || (!empty($rec->deliveryTermId) && !cond_DeliveryTerms::getTransportCalculator($rec->deliveryTermId))) {
@@ -1286,8 +1291,11 @@ class sales_Sales extends deals_DealMaster
             }
         }
         
-        core_Lg::push($rec->tplLang);
-        
+        $tplLang = $rec->tplLang ?? null;
+        if ($tplLang) {
+            core_Lg::push($tplLang);
+        }
+
         if (!empty($rec->bankAccountId)) {
             if (!Mode::isReadOnly()) {
 
@@ -1359,8 +1367,10 @@ class sales_Sales extends deals_DealMaster
 
             $row->detailOrderBy = mb_strtolower($row->detailOrderBy);
 			$row->detailOrderBy = ht::createHint("", "Подреждане артикули по|*: |{$row->detailOrderBy}|*");
-            
-            core_Lg::pop();
+
+            if ($tplLang) {
+                core_Lg::pop();
+            }
             $row->transportCurrencyId = $row->currencyId;
             $hiddenTransportCost = sales_TransportValues::calcInDocument($mvc, $rec->id);
             $expectedTransportCost = $mvc->getExpectedTransportCost($rec);
@@ -1392,7 +1402,9 @@ class sales_Sales extends deals_DealMaster
                 }
             }
 
-            core_Lg::push($rec->tplLang);
+            if ($tplLang) {
+                core_Lg::push($tplLang);
+            }
         } elseif (isset($fields['-list']) && doc_Setup::get('LIST_FIELDS_EXTRA_LINE') != 'no') {
             $row->title = '<b>' . $row->title . '</b>';
             $row->title .= '  «  ' . $row->folderId;
@@ -1443,7 +1455,9 @@ class sales_Sales extends deals_DealMaster
             $row->BANK_BLOCK_CLASS = 'quiet saleBankBlock';
         }
 
-        core_Lg::pop();
+        if ($tplLang) {
+            core_Lg::pop();
+        }
     }
     
     
