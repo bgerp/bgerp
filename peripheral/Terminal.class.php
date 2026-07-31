@@ -89,10 +89,10 @@ abstract class peripheral_Terminal extends peripheral_DeviceDriver
 
             $data->form->input('name');
             
-            if ($data->form->rec->name && $pArr[$data->form->rec->name]) {
+            if (($data->form->rec->name ?? null) && ($pArr[$data->form->rec->name] ?? null)) {
                 $pRec = $clsName::fetch(array("#{$nameField} = '[#1#]'", $data->form->rec->name));
 
-                if ($Driver->fieldArr) {
+                if ($pRec && $Driver->fieldArr) {
                     foreach ($Driver->fieldArr as $fName) {
                         $data->form->setDefault($fName, $pRec->{$fName});
                     }
@@ -116,7 +116,7 @@ abstract class peripheral_Terminal extends peripheral_DeviceDriver
         $nameField = $Driver->nameField;
         $clsName = $Driver->clsName;
         
-        if (!$rec->data['clsName'] || !$rec->data['objVal']) {
+        if (empty($rec->data['clsName']) || empty($rec->data['objVal'])) {
             $dRec = $clsName::fetch(array("#{$nameField} = '[#1#]'", $rec->{$nameField}));
         } else {
             $dRec = cls::get($rec->data['clsName'])->fetch($rec->data['objVal']);
