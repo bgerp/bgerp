@@ -1708,7 +1708,7 @@ class planning_Tasks extends core_Master
             if (isset($productionData['wasteProductId'])) {
                 $wasteOptions = planning_GenericMapper::getEquivalentProducts($productionData['wasteProductId'], null, true, true);
                 if (countR($wasteOptions)) {
-                    $form->setFieldType('wasteProductId', 'int(maxRadio=1)');
+                    $form->setFieldType('wasteProductId', 'int');
                     $form->setOptions('wasteProductId', $wasteOptions);
                 }
             }
