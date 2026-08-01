@@ -60,9 +60,9 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
         $fieldset->FLD('periods', 'key(mvc=acc_Periods,select=title,allowEmpty)', 'caption=Период->Месец,after=title,removeAndRefreshForm=fromDate|toDate');
         $fieldset->FLD('fromDate', 'date(format=smartTime)', 'caption=Период->От,after=periods,silent,removeAndRefreshForm=periods');
         $fieldset->FLD('toDate', 'date(format=smartTime)', 'caption=Период->До,after=fromDate,silent,removeAndRefreshForm=periods');
-        $fieldset->FLD('indocators', 'keylist(mvc=hr_IndicatorNames,select=name,allowEmpty)', 'caption=Настройки->Индикатори,after=toDate');
+        $fieldset->FLD('indocators', 'keylist(mvc=hr_IndicatorNames,select=name,allowEmpty)', 'caption=Настройки->Индикатори,placeholder=Всички,after=toDate');
         $fieldset->FLD('formula', 'text(rows=2)', 'caption=Настройки->Формула,after=indocators,single=none');
-        $fieldset->FLD('personId', 'keylist(mvc=core_Users,select=nick)', 'caption=Настройки->Потребители,after=formula,single=none');
+        $fieldset->FLD('personId', 'keylist(mvc=core_Users,select=nick)', 'caption=Настройки->Потребители,placeholder=Всички,after=formula,single=none');
     }
     
     

@@ -1408,7 +1408,8 @@ class frame2_Reports extends embed_Manager
      */
     protected static function on_AfterPrepareListFilter($mvc, &$res, $data)
     {
-        $data->listFilter->FLD('user', 'user(rolesForAll=ceo, rolesForTeams=manager|officer, roles=executive, allowEmpty)', 'caption=Потребител');
+        $data->listFilter->FLD('user', 'user(rolesForAll=ceo, rolesForTeams=manager|officer, roles=executive, allowEmpty)', 'caption=Потребител,placeholder=Всички');
+        $data->listFilter->setField('driverClass', 'placeholder=Всички');
         $data->listFilter->showFields = 'search, driverClass, user';
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');

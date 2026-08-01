@@ -105,6 +105,7 @@ class newsbar_News extends core_Master
         $data->listFilter->fields['domainId']->type->params['allowEmpty'] = 'allowEmpty';
         
         $data->listFilter->fields['domainId']->caption = 'Домейн';
+        $data->listFilter->setField('domainId', 'placeholder=Всички');
         
         $data->listFilter->title = 'Търсене';
         $data->listFilter->view = 'horizontal';

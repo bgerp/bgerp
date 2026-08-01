@@ -1628,7 +1628,8 @@ class cat_products_Packagings extends core_Detail
     protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
         $data->listFilter->showFields = 'productId,packagingId';
-        $data->listFilter->setField('productId', 'input,title=Артикул');
+        $data->listFilter->setField('productId', 'input,title=Артикул,placeholder=Всички');
+        $data->listFilter->setField('packagingId', 'placeholder=Всички');
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
         $data->listFilter->input('productId,packagingId');

@@ -1861,7 +1861,7 @@ class callcenter_Talks extends core_Master
         $data->listFilter->FNC('usersSearch', 'users(rolesForAll=ceo|callcenter, rolesForTeams=ceo|manager|callcenter)', 'caption=Потребител,input,silent,autoFilter');
         
         // Функционално поле за търсене по статус и тип на разговора
-        $data->listFilter->FNC('dialStatusType', 'enum()', 'caption=Състояние,input,autoFilter');
+        $data->listFilter->FNC('dialStatusType', 'enum()', 'caption=Състояние,placeholder=Всички,input,autoFilter');
         
         // Полета за търсене по дата
         $data->listFilter->FNC('from', 'date', 'width=6em,caption=От,input');

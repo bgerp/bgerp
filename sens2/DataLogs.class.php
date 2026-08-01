@@ -126,6 +126,7 @@ class sens2_DataLogs extends core_Manager
     {
         $data->listFilter->toolbar->addSbBtn('Филтър');
         $data->listFilter->view = 'horizontal';
+        $data->listFilter->setField('indicatorId', 'placeholder=Всички');
         $data->listFilter->showFields = 'indicatorId,groupBy';
         $data->listFilter->input('indicatorId,groupBy', 'silent');
         

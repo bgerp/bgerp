@@ -561,7 +561,7 @@ class core_Users extends core_Manager
         $data->listFilter->FNC(
             'role',
             'key(mvc=core_Roles,select=role,allowEmpty)',
-            'placeholder=Роля,caption=Роля,input,silent,autoFilter'
+            'placeholder=Всички,caption=Роля,input,silent,autoFilter'
         );
         
         

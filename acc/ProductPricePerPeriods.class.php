@@ -284,13 +284,14 @@ class acc_ProductPricePerPeriods extends core_Manager
         $type = Request::get('type', 'enum(stores,production,costs)');
         $data->listFilter->input(null, 'silent');
 
-        $data->listFilter->FLD('balanceId', 'varchar', 'caption=Баланс');
+        $data->listFilter->FLD('balanceId', 'varchar', 'caption=Баланс,placeholder=Всички');
         $data->listFilter->FLD('toDate', 'date', 'caption=Към дата');
         $balanceOptions = array('' => '') + acc_Balances::getSelectOptions('DESC', $skipClosed = false);
         $data->listFilter->setOptions('balanceId', $balanceOptions);
         $productListNum = acc_Lists::fetchBySystemId('catProducts')->num;
 
         $data->listFilter->setFieldTypeParams('productItemId', array('lists' => $productListNum));
+        $data->listFilter->setField('productItemId', 'placeholder=Всички');
         if($type == 'production'){
             unset($data->listFields['otherItemId']);
             $mvc->currentTab = 'Цени от баланса->Незавършено производство';
@@ -300,6 +301,7 @@ class acc_ProductPricePerPeriods extends core_Manager
         if($type == 'stores'){
             $storeListNum = acc_Lists::fetchBySystemId('stores')->num;
             $data->listFilter->setFieldTypeParams('otherItemId', array('lists' => $storeListNum));
+            $data->listFilter->setField('otherItemId', 'placeholder=Всички');
             $data->listFilter->showFields = 'balanceId,otherItemId,productItemId,toDate';
         } else {
             $data->listFilter->showFields = 'balanceId,productItemId,toDate';

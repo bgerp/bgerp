@@ -103,8 +103,8 @@ class ztm_RegisterValues extends core_Manager
         }
 
         $data->listFilter->FNC('keyWord', 'varchar(32)', 'caption=Ключова дума, remember,silent');
-        $data->listFilter->FNC('devices', 'keylist(mvc=ztm_Devices, select=name, find=everywhere)', 'caption=Устройства, remember,class=largeSelect,silent');
-        $data->listFilter->FNC('registers', 'keylist(mvc=ztm_Registers, select=name)', 'caption=Регистри, remember,class=largeSelect,silent');
+        $data->listFilter->FNC('devices', 'keylist(mvc=ztm_Devices, select=name, find=everywhere)', 'caption=Устройства,placeholder=Всички,remember,class=largeSelect,silent');
+        $data->listFilter->FNC('registers', 'keylist(mvc=ztm_Registers, select=name)', 'caption=Регистри,placeholder=Всички,remember,class=largeSelect,silent');
 
         $defDeviceId = Request::get('deviceId');
         if ($defDeviceId && $deviceOptions[$defDeviceId]) {

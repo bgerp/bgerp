@@ -270,7 +270,7 @@ class trans_Lines extends core_Master
     {
         $data->listFilter->setFieldTypeParams('folder', array('containingDocumentIds' => trans_Lines::getClassId()));
         $data->listFilter->FLD('lineState', 'enum(pendingAndActive=Заявка+Активни,all=Всички,draft=Чернова,pending=Заявка,active=Активен,closed=Затворен)', 'caption=Състояние');
-        $data->listFilter->FLD('countryId', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Държава');
+        $data->listFilter->FLD('countryId', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Държава,placeholder=Всички');
         $data->listFilter->FLD('groupByShippedOn', 'enum(no=Без,yes=По експедиране)', 'caption=Групиране,autoFilter,silent');
         $data->listFilter->FLD('storesByLocation', 'varchar', 'caption=Складове,placeholder=Всички');
         $data->listFilter->setDefault('groupByShippedOn', 'no');

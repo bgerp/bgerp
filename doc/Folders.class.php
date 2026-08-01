@@ -335,7 +335,7 @@ class doc_Folders extends core_Master
         // Добавяме поле във формата за търсене
         $data->listFilter->FNC('users', 'users(rolesForAll = |officer|manager|ceo|)', 'caption=Потребител,input,silent,autoFilter');
         $data->listFilter->FNC('order', 'enum(pending=Първо отворените,last=Сортиране по "последно", inCharge=Без споделените)', 'caption=Подредба,input,silent,autoFilter');
-        $data->listFilter->FNC('docType', 'class(interface=doc_FolderIntf,select=title,allowEmpty)', 'caption=Тип папка,input,silent,autoFilter');
+        $data->listFilter->FNC('docType', 'class(interface=doc_FolderIntf,select=title,allowEmpty)', 'caption=Тип папка,placeholder=Всички,input,silent,autoFilter');
 
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');

@@ -44,8 +44,8 @@ class store_reports_ChangeQuantity extends frame2_driver_TableData
      */
     public function addFields(core_Fieldset &$fieldset)
     {
-        $fieldset->FLD('group', 'keylist(mvc=cat_Groups,select=name)', 'caption=Група,after=title,single=none');
-        $fieldset->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,after=group');
+        $fieldset->FLD('group', 'keylist(mvc=cat_Groups,select=name)', 'caption=Група,placeholder=Всички,after=title,single=none');
+        $fieldset->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,placeholder=Всички,after=group');
     }
     
     

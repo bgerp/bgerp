@@ -248,7 +248,7 @@ abstract class deals_InvoiceMaster extends core_Master
      */
     public static function on_AfterPrepareListFilter($mvc, $data)
     {
-        $data->listFilter->FNC('countryGroups', 'key(mvc=drdata_CountryGroups,select=name,allowEmpty)', 'caption=Държави,input');
+        $data->listFilter->FNC('countryGroups', 'key(mvc=drdata_CountryGroups,select=name,allowEmpty)', 'caption=Държави,placeholder=Всички,input');
 
         if ($mvc->getField('type', false)) {
             $typeEnumOptions = "enum(all=Всички,invoice=Фактура, credit_note=Кредитно известие, debit_note=Дебитно известие,accrued=Фактура с начислен аванс,deducted=Фактура с приспаднат аванс)";

@@ -976,11 +976,12 @@ class sales_PrimeCostByDocument extends core_Manager
      */
     protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
-        $data->listFilter->FLD('productDriverClassId', 'class(interface=cat_ProductDriverIntf, allowEmpty, select=title)', 'caption=Вид');
+        $data->listFilter->FLD('productDriverClassId', 'class(interface=cat_ProductDriverIntf, allowEmpty, select=title)', 'caption=Вид,placeholder=Всички');
         $data->listFilter->setOptions('productDriverClassId', cat_Products::getAvailableDriverOptions());
         $data->listFilter->FLD('documentId', 'varchar', 'caption=Документ или контейнер, silent');
-        $data->listFilter->FLD('folder', 'key2(mvc=doc_Folders,select=title,allowEmpty,coverInterface=crm_ContragentAccRegIntf)', 'caption=Папка');
+        $data->listFilter->FLD('folder', 'key2(mvc=doc_Folders,select=title,allowEmpty,coverInterface=crm_ContragentAccRegIntf)', 'caption=Папка,placeholder=Всички');
         $data->listFilter->FLD('primeCostType', 'enum(all=Със себестойност,positive=Положителна себестойност,negative=Отрицателна себестойност,zero=Нулева себестойност,empty=Без себестойност)', 'caption=Вид себестойност, silent');
+        $data->listFilter->setField('productId', 'placeholder=Всички');
         $data->listFilter->showFields = 'documentId,productId,productDriverClassId,primeCostType,folder';
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');

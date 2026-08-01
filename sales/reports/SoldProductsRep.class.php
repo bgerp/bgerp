@@ -2756,7 +2756,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         $isCategoryFilter = ($rec->typeOfGroups == 'category');
         $groupFilterType = $isCategoryFilter ? 'key(mvc=cat_Categories,allowEmpty,select=name)' : 'key(mvc=cat_Groups,allowEmpty,select=name)';
 
-        $form->FLD('groupFilter', $groupFilterType, 'caption=Покажи група,placeholder=Изчисти филтъра,silent');
+        $form->FLD('groupFilter', $groupFilterType, 'caption=Покажи група,placeholder=Всички,silent');
 
         $suggestions = self::getGroupFilterSuggestions($rec);
         if ($rec->grFilter && !isset($suggestions[$rec->grFilter])) {

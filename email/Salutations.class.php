@@ -459,6 +459,7 @@ class email_Salutations extends core_Manager
     public static function on_AfterPrepareListFilter($mvc, &$data)
     {
         $data->listFilter->view = 'horizontal';
+        $data->listFilter->setField('folderId', 'placeholder=Всички');
         $data->listFilter->showFields = 'folderId,search';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
         $data->query->orderBy('createdOn', 'DESC');

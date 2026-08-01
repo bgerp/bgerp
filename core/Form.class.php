@@ -842,7 +842,13 @@ class core_Form extends core_FieldSet
                 }
                 
                 if (!empty($field->placeholder)) {
-                    $attr['placeholder'] = tr($field->placeholder);
+                    // В кратките хоризонтални филтри caption-ът не се вижда и трябва да остане част от ориентиращия текст
+                    if ($isHorizontal && strtolower($this->getMethod()) == 'get' && $field->placeholder == 'Всички' && !empty($field->caption)) {
+                        $captions = str_replace('->', '|* » |', $field->caption);
+                        $attr['placeholder'] = tr($captions) . ' (' . mb_strtolower(tr('Всички')) . ')';
+                    } else {
+                        $attr['placeholder'] = tr($field->placeholder);
+                    }
                 } elseif (($this->view ?? null) == 'horizontal') {
                     $captions = str_replace('->', '|* » |', $field->caption);
                     $attr['placeholder'] = tr($captions);

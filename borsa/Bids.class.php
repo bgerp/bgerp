@@ -128,6 +128,8 @@ class borsa_Bids extends core_Manager
         
         
         $data->listFilter->setFieldTypeParams('companyId', array('allowEmpty' => 'allowEmpty'));
+        $data->listFilter->setField('companyId', 'placeholder=Всички');
+        $data->listFilter->setField('lotId', 'placeholder=Всички');
         
         $data->listFilter->showFields = 'lotId, companyId';
         

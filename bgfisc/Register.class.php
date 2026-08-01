@@ -334,6 +334,7 @@ class bgfisc_Register extends core_Manager
         $data->listFilter->showFields .= 'search,userId';
         $data->listFilter->view = 'horizontal';
         $data->listFilter->setFieldTypeParams('userId', array('allowEmpty' => 'allowEmpty'));
+        $data->listFilter->setField('userId', 'placeholder=Всички');
         $data->listFilter->input();
         
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');

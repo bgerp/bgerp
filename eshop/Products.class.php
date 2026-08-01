@@ -1425,7 +1425,7 @@ class eshop_Products extends core_Master
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         
-        $data->listFilter->setField('groupId', 'autoFilter');
+        $data->listFilter->setField('groupId', 'placeholder=Всички,autoFilter');
         $data->listFilter->setField('domainId', 'autoFilter,silent');
         $data->listFilter->setDefault('domainId', cms_Domains::getCurrent());
         $data->listFilter->input(null, 'silent');

@@ -304,7 +304,7 @@ class price_ListRules extends core_Detail
         
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
-        $data->listFilter->FNC('product', "key2(mvc=cat_Products,select=name,showAllInListId={$data->masterId},selectSource=price_ListRules::getSellableProducts)", 'input,caption=Артикул,silent');
+        $data->listFilter->FNC('product', "key2(mvc=cat_Products,select=name,showAllInListId={$data->masterId},selectSource=price_ListRules::getSellableProducts)", 'input,caption=Артикул,placeholder=Всички,silent');
         $data->listFilter->FNC('threadId', 'int', 'input=hidden,silent');
         $data->listFilter->setDefault('threadId', $data->masterData->rec->threadId);
         $data->listFilter->showFields = 'product';

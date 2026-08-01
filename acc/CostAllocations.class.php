@@ -1030,6 +1030,7 @@ class acc_CostAllocations extends core_Manager
     protected static function on_AfterPrepareListFilter($mvc, &$res, $data)
     {
         $data->listFilter->FLD('documentId', 'varchar', 'caption=Хендлър, silent');
+        $data->listFilter->setField('expenseItemId', 'placeholder=Всички');
         $data->listFilter->showFields = 'documentId,expenseItemId,allocationBy';
         $data->listFilter->setFieldType('allocationBy', 'enum(all=Разпределяне,auto=Автоматично (по стойност),no=Няма,value=По стойност,quantity=По количество,weight=По тегло,volume=По обем)');
         $data->listFilter->view = 'horizontal';

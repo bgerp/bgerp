@@ -85,13 +85,13 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
         $fieldset->FLD('compareStart', 'date', 'caption=Сравнение->Начало,after=compare,single=none,mandatory');
 
         //Контрагенти и групи контрагенти
-        $fieldset->FLD('contragent', 'keylist(mvc=doc_Folders,select=title,allowEmpty)', 'caption=Контрагенти->Контрагент,single=none,after=compareStart');
+        $fieldset->FLD('contragent', 'keylist(mvc=doc_Folders,select=title,allowEmpty)', 'caption=Контрагенти->Контрагент,placeholder=Всички,single=none,after=compareStart');
         $fieldset->FLD('seeCrmGroup', 'set(yes = )', 'caption=Контрагенти->Група контрагенти,after=contragent,removeAndRefreshForm,silent,single=none');
 
         if (BGERP_GIT_BRANCH == 'dev') {
-            $fieldset->FLD('crmGroup', 'keylist(mvc=crm_Groups,select=name, parentId=parentId)', 'caption=Контрагенти->Група контрагенти,after=seeCrmGroup,single=none');
+            $fieldset->FLD('crmGroup', 'keylist(mvc=crm_Groups,select=name, parentId=parentId)', 'caption=Контрагенти->Група контрагенти,placeholder=Всички,after=seeCrmGroup,single=none');
         } else {
-            $fieldset->FLD('crmGroup', 'treelist(mvc=crm_Groups,select=name, parentId=parentId)', 'caption=Контрагенти->Група контрагенти,after=seeCrmGroup,single=none');
+            $fieldset->FLD('crmGroup', 'treelist(mvc=crm_Groups,select=name, parentId=parentId)', 'caption=Контрагенти->Група контрагенти,placeholder=Всички,after=seeCrmGroup,single=none');
         }
 
         //Склад
@@ -101,9 +101,9 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
         $fieldset->FLD('seeGroup', 'set(yes = )', 'caption=Артикули->Група артикули,after=storeId,removeAndRefreshForm,silent,single=none');
 
         if (BGERP_GIT_BRANCH == 'dev') {
-            $fieldset->FLD('group', 'keylist(mvc=cat_Groups,select=name, parentId=parentId)', 'caption=Артикули->Група артикули,after=seeGroup,single=none');
+            $fieldset->FLD('group', 'keylist(mvc=cat_Groups,select=name, parentId=parentId)', 'caption=Артикули->Група артикули,placeholder=Всички,after=seeGroup,single=none');
         } else {
-            $fieldset->FLD('group', 'treelist(mvc=cat_Groups,select=name, parentId=parentId)', 'caption=Артикули->Група артикули,after=seeGroup,single=none');
+            $fieldset->FLD('group', 'treelist(mvc=cat_Groups,select=name, parentId=parentId)', 'caption=Артикули->Група артикули,placeholder=Всички,after=seeGroup,single=none');
         }
 
         $fieldset->FLD('articleType', 'enum(yes=Стандартни,no=Нестандартни,all=Всички)', 'caption=Артикули->Тип артикули,after=group,single=none');

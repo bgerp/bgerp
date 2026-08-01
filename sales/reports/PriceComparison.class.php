@@ -89,7 +89,7 @@ class sales_reports_PriceComparison extends frame2_driver_TableData
 
         $fieldset->FLD('products', 'keylist2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,maxSuggestions=100,forceAjax)', 'caption=Артикули->Артикул,after=priceListHigh,placeholder=Избери,silent,single=none,class=w100');
 
-        $fieldset->FLD('groups', 'keylist(mvc=cat_Groups,select=name)', 'caption=Артикули->Групи артикули,after=products,placeholder=Избери,silent,single=none');
+        $fieldset->FLD('groups', 'keylist(mvc=cat_Groups,select=name)', 'caption=Артикули->Групи артикули,after=products,placeholder=Всички,silent,single=none');
 
         $fieldset->FLD('withoutPrice', 'enum(show=Показване,hide=Скриване)', 'caption=Артикули->Без цена,maxRadio=2,columns=2,after=groups,single=none');
 

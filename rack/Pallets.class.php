@@ -654,9 +654,11 @@ class rack_Pallets extends core_Manager
         $rackOptions = rack_Racks::getOptionsByStoreId($storeId);
         Mode::pop('text', 'plain');
         $data->listFilter->setOptions('rackId', array('' => '') + $rackOptions);
+        $data->listFilter->setField('rackId', 'placeholder=Всички');
 
         $data->listFilter->setFieldType('productId', 'key2(mvc=cat_Products,select=name,allowEmpty,selectSourceArr=rack_Products::getStorableProducts)');
-        $data->listFilter->FLD('stateFilter', 'enum(,active=Активни,closed=Затворено)', 'caption=Всички,silent');
+        $data->listFilter->setField('productId', 'placeholder=Всички');
+        $data->listFilter->FLD('stateFilter', 'enum(,active=Активни,closed=Затворено)', 'caption=Състояние,placeholder=Всички,silent');
         $data->listFilter->setDefault('stateFilter', 'active');
         
         $data->listFilter->showFields = 'productId,search,rackId,stateFilter';

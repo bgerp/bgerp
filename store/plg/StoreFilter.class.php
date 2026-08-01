@@ -26,7 +26,7 @@ class store_plg_StoreFilter extends core_Plugin
         $storeFields = $mvc->filterStoreFields;
         
         if (!Request::get('Rejected', 'int')) {
-            $data->listFilter->FNC('store', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,input,silent');
+            $data->listFilter->FNC('store', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,placeholder=Всички,input,silent');
             $data->listFilter->showFields .= ',store';
             $data->listFilter->input();
             

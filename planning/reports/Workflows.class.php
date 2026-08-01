@@ -89,7 +89,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
         $fieldset->FLD('start', 'datetime', 'caption=От,after=title,single=none,mandatory');
         $fieldset->FLD('to', 'datetime', 'caption=До,after=start,single=none,mandatory');
 
-        $fieldset->FLD('centre', 'keylist(mvc=planning_Centers,select=name)', 'caption=Центрове,after=to,single=none');
+        $fieldset->FLD('centre', 'keylist(mvc=planning_Centers,select=name)', 'caption=Центрове,placeholder=Всички,after=to,single=none');
 
         $fieldset->FLD('assetResources', 'keylist(mvc=planning_AssetResources)', 'caption=Машини,placeholder=Всички,after=centre,single=none,input=none');
 
@@ -1032,9 +1032,9 @@ class planning_reports_Workflows extends frame2_driver_TableData
                 unset($sugg);
             }
 
-            $form->FLD('empployFilter', 'keylist(mvc=crm_Persons,select=name,allowEmpty)', 'caption=Избери служители,placeholder=Изчисти филтъра,silent');
+            $form->FLD('empployFilter', 'keylist(mvc=crm_Persons,select=name,allowEmpty)', 'caption=Избери служители,placeholder=Всички,silent');
 
-            $form->FLD('assetFilter', 'keylist(mvc=planning_AssetResources,select=name)', 'caption=Избери оборудване,placeholder=Изчисти филтъра,silent');
+            $form->FLD('assetFilter', 'keylist(mvc=planning_AssetResources,select=name)', 'caption=Избери оборудване,placeholder=Всички,silent');
 
             $form->setSuggestions('empployFilter', $suggestionsEmpl);
             $form->setSuggestions('assetFilter', $suggestionsAssets);

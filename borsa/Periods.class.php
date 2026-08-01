@@ -169,6 +169,7 @@ class borsa_Periods extends core_Manager
         $data->query->orderBy('modifiedOn', 'DESC');
         
         $data->listFilter->setFieldTypeParams('lotId', array('allowEmpty' => 'allowEmpty'));
+        $data->listFilter->setField('lotId', 'placeholder=Всички');
         
         $data->listFilter->showFields = 'lotId';
         

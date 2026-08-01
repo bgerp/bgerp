@@ -97,7 +97,7 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
 
         // Филтър по дилъри (потребители с определени роли)
         $fieldset->FLD('dealers', 'users(rolesForAll=ceo|repAllGlobal, rolesForTeams=ceo|manager|repAll|repAllGlobal)',
-            'caption=Дилър,single=none,after=groups');
+            'caption=Дилър,placeholder=Всички,single=none,after=groups');
 
         // Филтър по работници
         $fieldset->FLD('employees', 'keylist(mvc=crm_Persons,select=name,group=employees,allowEmpty=true)',

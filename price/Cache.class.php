@@ -118,6 +118,8 @@ class price_Cache extends core_Manager
         
         // Показваме само това поле. Иначе и другите полета
         // на модела ще се появят
+        $form->setField('listId', 'placeholder=Всички');
+        $form->setField('productId', 'placeholder=Всички');
         $form->showFields = 'listId, productId';
         
         $form->fields['productId']->mandatory = false;

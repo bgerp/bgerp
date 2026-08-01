@@ -5627,7 +5627,7 @@ Experta.prototype.saveBodyId = function () {
 
 
 /*
-    да може деселектира радио бутон, ако е allowEmpty
+    задава началната стойност на радио групите
  */
 function radioButtonActions() {
 

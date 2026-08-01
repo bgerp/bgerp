@@ -239,6 +239,7 @@ class log_System extends core_Manager
         
         $data->listFilter->fields['type']->caption = 'Тип';
         $data->listFilter->fields['type']->type->options = array('' => '') + $data->listFilter->fields['type']->type->options;
+        $data->listFilter->setField('type', 'placeholder=Всички');
         $data->listFilter->fields['type']->autoFilter = 'autoFilter';
         
         $data->listFilter->showFields = 'date, search, type';

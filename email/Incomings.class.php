@@ -955,6 +955,8 @@ class email_Incomings extends core_Master
         
         // Показваме само това поле. Иначе и другите полета
         // на модела ще се появят
+        $form->setField('country', 'placeholder=Всички');
+        $form->setField('accId', 'placeholder=Всички');
         $form->showFields = 'country, accId';
         
         

@@ -237,6 +237,9 @@ class store_StockPlanning extends core_Manager
     {
         $data->listFilter->input(null, 'silent');
         $data->listFilter->view = 'horizontal';
+        $data->listFilter->setField('productId', 'placeholder=Всички');
+        $data->listFilter->setField('storeId', 'placeholder=Всички');
+        $data->listFilter->setField('sourceClassId', 'placeholder=Всички');
         $showFields = arr::make('date,productId,storeId,threadId,sourceClassId', true);
         $data->listFilter->input();
         $data->listFilter->setFieldType('date', 'date');

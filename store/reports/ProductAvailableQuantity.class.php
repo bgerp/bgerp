@@ -88,7 +88,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
 
         $fieldset->FLD('additional', 'table(columns=code|name|minQuantity|maxQuantity,captions=Код на артикула|Мярка / Наименование|Мин к-во|Макс к-во,widths=5em|20em|5em|5em,validate=store_reports_ProductAvailableQuantity::validateTable)', 'caption=Артикули||Additional,autohide,advanced,after=date,single=none');
 
-        $fieldset->FLD('storeId', 'keylist(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,single=none,after=additional');
+        $fieldset->FLD('storeId', 'keylist(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,placeholder=Всички,single=none,after=additional');
         $fieldset->FLD('groupId', 'key(mvc=cat_Groups,select=name,allowEmpty)', 'caption=Група продукти,after=storeId,silent,single=none,removeAndRefreshForm');
 
         $fieldset->FLD('inputArts', 'varchar', 'caption=Наблюдавани артикули,after=groupId,input=hidden,single=none');
