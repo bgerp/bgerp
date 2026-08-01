@@ -5632,44 +5632,22 @@ Experta.prototype.saveBodyId = function () {
 function radioButtonActions() {
 
     setTimeout(function () {
-        let lastChecked = null;
-
-        //отбелязваме всички чекнати радио бутони
-        $('input[type="radio"]').each(function () {
-            $(this).data('wasChecked', $(this).prop('checked')); // Начално състояние
-            if ($(this).prop('checked')) {
-                lastChecked = $(this); //задаване на последния избран бутон
-            }
-        });
-
         // Маркирай първия бутон, ако не е allowEmpty и няма маркиран в групата
-        $('.notAllowEmptyRadioHolder input[type="radio"]:visible').each(function () {
-            const groupName = $(this).attr('name');
-            const radiosInGroup = $(`input[name="${groupName}"]`);
+        $('.notAllowEmptyRadioHolder').each(function () {
+            const radiosInGroup = $(this).find('input[type="radio"]:visible');
 
             if (!radiosInGroup.filter(':checked').length) {
                 const firstRadio = radiosInGroup.first();
                 firstRadio.prop('checked', true);
-                firstRadio.data('wasChecked', true);
             }
         });
 
-        $('.allowEmptyRadioHolder input[type="radio"]').click(function () {
-            let $this = $(this);
-
-            // Ако е чекнат, се размаркирва
-            if ($this.data('wasChecked')) {
-                $this.prop('checked', false);
-                $this.data('wasChecked', false);
-                lastChecked = null;
-            } else {
-                // Маркираме го чекнат и го записваме като последен
-                $this.data('wasChecked', true);
-                lastChecked = $this;
+        // При allowEmpty празната опция е видима и представя липсата на избрана стойност
+        $('.allowEmptyRadioHolder').each(function () {
+            const radiosInGroup = $(this).find('input[type="radio"]:visible');
+            if (!radiosInGroup.filter(':checked').length) {
+                radiosInGroup.filter('[value=""]').first().prop('checked', true);
             }
-
-            // Махаме всички останали радио бутони
-            $('.allowEmptyRadioHolder input[type="radio"]').not($this).data('wasChecked', false);
         });
     }, 100)
 }

@@ -394,6 +394,15 @@ class core_Html
         $maxRadio = $maxRadio ?? 0;
         $maxColumns = $maxColumns ?? 4;
 
+        $hasEmptyOption = is_array($options) && array_key_exists('', $options);
+        $emptyOptionIsDisabled = $hasEmptyOption && is_object($options['']) &&
+            is_array($options['']->attr ?? null) && !empty($options['']->attr['disabled']);
+        $allowEmpty = !empty($attr['_isAllowEmpty']) || ($hasEmptyOption && !$emptyOptionIsDisabled);
+        if ($allowEmpty && !$hasEmptyOption) {
+            $options = array('' => '') + $options;
+            $hasEmptyOption = true;
+        }
+
         $optionsCnt = self::countOptions($options);
         
         setIfNot($attr['data-hiddenName'], $name);
@@ -458,10 +467,32 @@ class core_Html
                 $keyListClass = ' shrinked';
             }
 
-            // Ако има празна опция, да може да се изчиства и да не се показва тази опция
-            if (isset($options['']) && !isset($attr['_isAllowEmpty'])) {
+            // Празната allowEmpty опция остава видима и получава еднозначен надпис
+            if ($allowEmpty && $hasEmptyOption) {
+                $emptyOption = $options[''];
+                if ($emptyOption instanceof core_ET) {
+                    $emptyTitle = trim($emptyOption->getContent());
+                } elseif (is_object($emptyOption)) {
+                    $emptyTitle = trim($emptyOption->title ?? '');
+                } else {
+                    $emptyTitle = trim((string) $emptyOption);
+                }
+
+                if (!strlen($emptyTitle)) {
+                    $emptyTitle = trim($attr['placeholder'] ?? '');
+                    $emptyTitle = strlen($emptyTitle) ? $emptyTitle : tr('Без избор');
+
+                    if (is_object($emptyOption) && !($emptyOption instanceof core_ET)) {
+                        $emptyOption = clone $emptyOption;
+                        $emptyOption->title = $emptyTitle;
+                        $options[''] = $emptyOption;
+                    } else {
+                        $options[''] = $emptyTitle;
+                    }
+                }
+            } elseif ($hasEmptyOption) {
+                // Служебният placeholder на задължително поле не е позволен избор
                 unset($options['']);
-                $attr['_isAllowEmpty'] = true;
             }
 
             // Когато броя на опциите са по-малко
@@ -507,6 +538,12 @@ class core_Html
                         ? (($opt instanceof core_ET) ? type_Varchar::escape($opt->getContent()) : ($opt->title ?? ''))
                         : $opt;
                     $attrLabel = (is_object($opt) && is_array($opt->attr ?? null)) ? $opt->attr : array();
+                    if ($id === '' && $allowEmpty) {
+                        $labelStyle = trim($attrLabel['style'] ?? '');
+                        if (!preg_match('/(?:^|;)\s*color\s*:\s*#777\s*(?:;|$)/i', $labelStyle)) {
+                            $attrLabel['style'] = rtrim($labelStyle, ';') . (strlen($labelStyle) ? ';' : '') . 'color:#777;';
+                        }
+                    }
                     $radioAttr = array('type' => 'radio', 'name' => $name, 'value' => $id);
                     
                     self::setUniqId($radioAttr);
@@ -541,7 +578,7 @@ class core_Html
             // Добавка (временна) за да не се свиват радио бутоните от w25 - w75
             $attr['style'] = ($attr['style'] ?? '') . ';width:100%;';
 
-            if(isset($attr['_isAllowEmpty'])){
+            if($allowEmpty){
                 $attr['class'] = ($attr['class'] ?? '') . ' allowEmptyRadioHolder';
                 unset($attr['_isAllowEmpty']);
             } else {

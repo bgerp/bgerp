@@ -957,15 +957,7 @@ class core_Form extends core_FieldSet
                             if(arr::isOptionsTotalLenBellowAllowed($options)){
                                 $maxRadio = 4;
                                 $type->params['select2MinItems'] = 10000;
-                            }
-                        }
-
-                        // ако ще се рендират опциите като радио-бутони маха се празната опция
-                        if(isset($maxRadio) && countR($options) <= $maxRadio){
-                            if($type->params['allowEmpty'] ?? null){
-                                if(isset($options['']) && (empty($options['']) || (is_object($options['']) && empty(trim($options['']->title)))) && countR($options) >= 2) {
-                                    unset($options['']);
-                                }
+                                $type->params['columns'] = (countR($options) > 3) ? 4 : 3;
                             }
                         }
                     }
