@@ -167,26 +167,24 @@ class planning_interface_StepProductDriver extends cat_GeneralProductDriver
         $rec = is_object($rec) ? $rec : new stdClass();
         $productRec = is_object($productRec) ? $productRec : new stdClass();
 
-        $res = array(
+        $res = array_replace(parent::getProductionData($productId), array(
             'name' => $rec->name ?? ($productRec->name ?? null),
             'centerId' => $rec->centerId ?? null,
             'storeIn' => $rec->storeIn ?? null,
             'inputStores' => $rec->inputStores ?? null,
+            'isFinal' => $rec->isFinal ?? null,
             'wasteProductId' => $rec->wasteProductId ?? null,
             'wasteStart' => $rec->wasteStart ?? null,
             'wastePercent' => $rec->wastePercent ?? null,
             'mandatoryDocuments' => $rec->mandatoryDocuments ?? null,
+            'description' => $productRec->info ?? null,
             'offsetAfter' => $rec->offsetAfter ?? null,
-        );
-        if(!empty($productRec->info)){
-            $res['description'] = $productRec->info;
-        }
+        ));
         if(!empty($rec->norm)){
             $res['norm'] = $rec->norm;
             $res['normPackagingId'] = $productRec->measureId ?? null;
         }
 
-        $res['fixedAssets'] = null;
         if(!empty($rec->fixedAssets)){
 
             // От свързаните оборудвания остават само активните
@@ -199,29 +197,31 @@ class planning_interface_StepProductDriver extends cat_GeneralProductDriver
         }
 
         $res['employees'] = !empty($rec->employees) ? keylist::toArray($rec->employees) : null;
-        $res['planningParams'] = !empty($rec->planningParams) ? keylist::toArray($rec->planningParams) : array();
-        $res['actions'] = !empty($rec->planningActions) ? keylist::toArray($rec->planningActions) : array();
-        $calcWeightMode = $rec->calcWeightMode ?? 'auto';
-        $res['calcWeightMode'] = ($calcWeightMode == 'auto') ? planning_Setup::get('TASK_WEIGHT_MODE') : $calcWeightMode;
-        $fastProgressBtn = $rec->fastProgressBtn ?? 'auto';
-        $res['fastProgressBtn'] = ($fastProgressBtn == 'auto') ? planning_Setup::get('TASK_FAST_PROGRESS_BTN') : $fastProgressBtn;
+        $res['planningParams'] = !empty($rec->planningParams) ? keylist::toArray($rec->planningParams) : null;
+        $res['actions'] = !empty($rec->planningActions) ? keylist::toArray($rec->planningActions) : null;
+        if (isset($rec->calcWeightMode)) {
+            $res['calcWeightMode'] = ($rec->calcWeightMode == 'auto') ? planning_Setup::get('TASK_WEIGHT_MODE') : $rec->calcWeightMode;
+        }
+        if (isset($rec->fastProgressBtn)) {
+            $res['fastProgressBtn'] = ($rec->fastProgressBtn == 'auto') ? planning_Setup::get('TASK_FAST_PROGRESS_BTN') : $rec->fastProgressBtn;
+        }
 
         $res['supportSystemFolderId'] = $rec->supportSystemFolderId ?? (!empty($rec->centerId) ? planning_Centers::fetchField($rec->centerId, 'supportSystemFolderId') : null);
 
-        $showPreviousJobField = $rec->showPreviousJobField ?? 'auto';
-        if ($showPreviousJobField == 'auto') {
-            $centerShowPreviousJobField = !empty($rec->centerId) ? planning_Centers::fetchField($rec->centerId, 'showPreviousJobField') : 'auto';
-            if($centerShowPreviousJobField == 'auto'){
-                $res['showPreviousJobField'] = (planning_Setup::get('SHOW_PREVIOUS_JOB_FIELD_IN_TASK') == 'yes');
+        if (isset($rec->showPreviousJobField)) {
+            if ($rec->showPreviousJobField == 'auto') {
+                $centerShowPreviousJobField = !empty($rec->centerId) ? planning_Centers::fetchField($rec->centerId, 'showPreviousJobField') : 'auto';
+                if($centerShowPreviousJobField == 'auto'){
+                    $res['showPreviousJobField'] = (planning_Setup::get('SHOW_PREVIOUS_JOB_FIELD_IN_TASK') == 'yes');
+                } else {
+                    $res['showPreviousJobField'] = ($centerShowPreviousJobField == 'yes');
+                }
             } else {
-                $res['showPreviousJobField'] = ($centerShowPreviousJobField == 'yes');
+                $res['showPreviousJobField'] = ($rec->showPreviousJobField == 'yes');
             }
-        } else {
-            $res['showPreviousJobField'] = ($showPreviousJobField == 'yes');
         }
 
-        $res['isFinal'] = $rec->isFinal ?? 'no';
-        if (($rec->canStore ?? 'yes') == 'yes') {
+        if (($rec->canStore ?? null) == 'yes') {
             $res['labelPackagingId'] = $rec->labelPackagingId ?? null;
             if (($rec->labelTransferQuantityInPack ?? 'yes') != 'no') {
                 $res['labelQuantityInPack'] = $rec->labelQuantityInPack ?? null;

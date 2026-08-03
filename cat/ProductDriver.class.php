@@ -1049,7 +1049,25 @@ abstract class cat_ProductDriver extends core_BaseClass
      */
     public function getProductionData($productId)
     {
-        return array();
+        return static::getDefaultProductionData();
+    }
+
+
+    /**
+     * Връща пълния празен шаблон за производствени данни.
+     *
+     * @return array
+     */
+    public static function getDefaultProductionData()
+    {
+        return array_fill_keys(array(
+            'name', 'centerId', 'storeIn', 'inputStores', 'fixedAssets', 'employees',
+            'norm', 'normPackagingId', 'labelPackagingId', 'labelQuantityInPack',
+            'labelType', 'labelTemplate', 'planningParams', 'actions', 'isFinal',
+            'showPreviousJobField', 'wasteProductId', 'wasteStart', 'wastePercent',
+            'calcWeightMode', 'fastProgressBtn', 'mandatoryDocuments', 'description',
+            'supportSystemFolderId', 'offsetAfter'
+        ), null);
     }
 
 
