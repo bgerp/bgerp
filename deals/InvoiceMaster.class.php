@@ -524,7 +524,7 @@ abstract class deals_InvoiceMaster extends core_Master
         $readOnlyContragentData = ($form->rec->type == 'dc_note' && empty($originRec->displayContragentId) && $cName == $originRec->contragentName);
         if($readOnlyContragentData){
             foreach (array('contragentName', 'contragentEori', 'contragentVatNo', 'uicNo', 'contragentCountryId', 'contragentPCode', 'contragentPlace', 'contragentAddress', 'displayContragentClassId', 'displayContragentId') as $name) {
-                if ($form->rec->{$name}) {
+                if (!empty($form->rec->{$name})) {
                     $form->setReadOnly($name);
                 }
             }
