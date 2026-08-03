@@ -481,10 +481,11 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
         $row->groupId = ($dRec->groupId !== 'total') ? cat_Groups::getVerbal($dRec->groupId, 'name') : tr('Общо');
 
         foreach (array('baseQuantity', 'delivered', 'produced', 'converted', 'sold', 'blQuantity') as $fld) {
-            $row->{$fld} = $Double->toVerbal($dRec->{$fld});
-            if ($dRec->{$fld} < 0) {
+            $value = $dRec->{$fld} ?? 0;
+            $row->{$fld} = $Double->toVerbal($value);
+            if ($value < 0) {
                 $row->{$fld} = "<span class='red'>{$row->{$fld}}</span>";
-            } elseif ($dRec->{$fld} == 0) {
+            } elseif ($value == 0) {
                 $row->{$fld} = "<span class='quiet'>{$row->{$fld}}</span>";
             }
         }
