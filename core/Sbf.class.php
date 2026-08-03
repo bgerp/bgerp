@@ -97,9 +97,10 @@ class core_Sbf extends core_Mvc
         if ($time) {
             $timeSuffix = '_' . date('mdHis', $time);
         }
+        $extension = isset($pathArr['extension']) ? '.' . $pathArr['extension'] : '';
         
         // Новото име на файла, зависещо от времето на последната му модификация
-        $sbfPath = EF_SBF_PATH . '/' . $pathArr['dirname'] . '/' . $pathArr['filename'] . $timeSuffix . '.' . $pathArr['extension'];
+        $sbfPath = EF_SBF_PATH . '/' . $pathArr['dirname'] . '/' . $pathArr['filename'] . $timeSuffix . $extension;
         
         return $sbfPath;
     }
