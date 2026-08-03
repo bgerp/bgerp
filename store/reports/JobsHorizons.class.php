@@ -421,7 +421,7 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
         }
 
         //Филтър по група
-        $grFilter = $data->rec->grFilter;
+        $grFilter = $data->rec->grFilter ?? null;
 
         if ($grFilter) {
             $grFilterName = cat_Groups::fetch($grFilter)->name;
