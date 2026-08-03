@@ -681,7 +681,7 @@ class deals_plg_DpInvoice extends core_Plugin
         if (!isset($masterRec->dpAmount)) return;
 
         $dpAmount = $masterRec->dpAmount;
-        $dpVatGroupId = $masterRec->dpVatGroupId;
+        $dpVatGroupId = $masterRec->dpVatGroupId ?? null;
         if(($masterRec->type ?? null) == 'dc_note'){
             $originInv = doc_Containers::getDocument($masterRec->originId);
             $dpVatGroupId = $originInv->fetchField('dpVatGroupId');
@@ -690,12 +690,11 @@ class deals_plg_DpInvoice extends core_Plugin
             }
         }
 
-        $total = &$mvc->Master->_total;
-
         // Ако няма детайли, инстанцираме обекта
-        if (!$total) {
-            $total = (object) array('amount' => 0, 'vat' => 0, 'discount' => 0);
+        if (!isset($mvc->Master->_total)) {
+            $mvc->Master->_total = (object) array('amount' => 0, 'vat' => 0, 'discount' => 0, 'vats' => array());
         }
+        $total = &$mvc->Master->_total;
         
         // Колко е ддс-то
         $periodRec = acc_Periods::fetchByDate($masterRec->date);
