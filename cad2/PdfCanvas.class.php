@@ -430,7 +430,6 @@ class cad2_PdfCanvas extends cad2_Canvas
         }
         
         $res = $this->pdf->getPDFData();
-        $this->pdf->endPage();
         
         return $res;
     }
