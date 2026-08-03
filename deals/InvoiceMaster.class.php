@@ -1071,9 +1071,10 @@ abstract class deals_InvoiceMaster extends core_Master
             $oldRec = null;
 
             if(isset($rec->id)){
-                if($rec->state == 'active'){
+                $state = $rec->state ?? $mvc->fetchField($rec->id, 'state', false);
+                if($state == 'active'){
                     $oldRec = $mvc->fetch($rec->id, '*', false);
-                    $haveChange = (trim($oldRec->contragentName) != trim($rec->contragentName)) || (trim($oldRec->contragentCountryId) != trim($rec->contragentCountryId)) || (trim($oldRec->contragentVatNo) != trim($rec->contragentVatNo)) || (trim($oldRec->uicNo) != trim($rec->uicNo));
+                    $haveChange = (trim((string) ($oldRec->contragentName ?? null)) != trim((string) ($rec->contragentName ?? null))) || (trim((string) ($oldRec->contragentCountryId ?? null)) != trim((string) ($rec->contragentCountryId ?? null))) || (trim((string) ($oldRec->contragentVatNo ?? null)) != trim((string) ($rec->contragentVatNo ?? null))) || (trim((string) ($oldRec->uicNo ?? null)) != trim((string) ($rec->uicNo ?? null)));
                     $rec->_changedContragentData = true;
                 }
             }
