@@ -341,7 +341,7 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
 
         $row = new stdClass();
 
-        if ($dRec->info) {
+        if (!empty($dRec->info)) {
             $row->productId = '<b>' . 'Артикули без себестойност:' . '</b></br></br>';
             $i=0;
             foreach ($dRec->array as $val) {
