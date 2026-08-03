@@ -360,7 +360,7 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
         foreach ($groups as $grId => $groupName) {
 
             // Отделяме тези записи, които съдържат текущия маркер
-            $res = array_filter($recs, function (&$e) use ($grId, $groupName, &$data) {
+            $res = array_filter($recs, function ($e) use ($grId, $groupName, &$data) {
                 if (keylist::isIn($grId, $e->groups ?? null) || $grId === 'total') {
                     $e->groupId = $grId;
                     if (!isset($data->totals[$e->groupId])) {
