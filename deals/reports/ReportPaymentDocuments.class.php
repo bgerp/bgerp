@@ -206,7 +206,7 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
         $docClasses = $caseRecs = $bankRecs = $recs = array();
 
         // ЗАДАВАМЕ ГРУПИРАНЕТО СПОРЕД ИЗБОРА ОТ ФОРМАТА
-        if ($rec->groupBy == 'yes') {
+        if (($rec->groupBy ?? null) == 'yes') {
             $this->groupByField = 'contragentName';
         }
 
@@ -392,7 +392,7 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
         $row->documentId = $DoocClass->getLink($dRec->documentId, 0);
 
         // Групиращ ред (ако сме в групиране)
-        if ($rec->groupBy == 'yes') {
+        if (($rec->groupBy ?? null) == 'yes') {
             $sums = array();
             foreach ($dRec->totalSumContr as $cur => $val) {
                 $absVal = abs($val);
