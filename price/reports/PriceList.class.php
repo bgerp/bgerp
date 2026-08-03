@@ -438,7 +438,7 @@ class price_reports_PriceList extends frame2_driver_TableData
         $display = ($rec->displayDetailed == 'yes') ? 'detailed' : 'short';
         $date = $rec->date ?? dt::today();
 
-        if($rec->templateType == 'foods'){
+        if(($rec->templateType ?? 'default') == 'foods'){
             $row->productId = cat_Products::getAutoProductDesc($dRec->productId, null, 'short', 'public', $rec->lang, null, false);
             $previewHandler = cat_Products::getParams($dRec->productId, 'preview');
             if($previewHandler){
@@ -472,7 +472,7 @@ class price_reports_PriceList extends frame2_driver_TableData
         if($dRec->isPublic != 'yes'){
             $row->productId = ht::createHint($row->productId, "Артикулът е нестандартен|*!", 'warning', false);
         }
-        if($rec->templateType == 'foods'){
+        if(($rec->templateType ?? 'default') == 'foods'){
             $showDualPrice = $date <= '2026-08-08' && in_array($rec->currencyId, array('BGN', 'EUR'));
             if($showDualPrice){
                 if($rec->currencyId == 'BGN'){
@@ -658,7 +658,7 @@ class price_reports_PriceList extends frame2_driver_TableData
 
         $vatRow = core_Type::getByName('enum(yes=с включено ДДС,no=без ДДС)')->toVerbal($rec->vat);
         $beforeRow = tr("Всички цени са в|* {$rec->currencyId}, |{$vatRow}|*");
-        $vatPlaceholder = ($rec->templateType == 'foods') ? 'VAT_STATE' : 'TABLE_BEFORE';
+        $vatPlaceholder = (($rec->templateType ?? 'default') == 'foods') ? 'VAT_STATE' : 'TABLE_BEFORE';
         $tpl->prepend($beforeRow, $vatPlaceholder);
 
         if($rec->displayDetailed == 'yes'){
@@ -895,7 +895,7 @@ class price_reports_PriceList extends frame2_driver_TableData
      */
     protected function getReportLayoutTpl($rec)
     {
-        if($rec->templateType == 'foods') return getTplFromFile("price/tpl/templates/FoodPriceList.shtml");
+        if(($rec->templateType ?? 'default') == 'foods') return getTplFromFile("price/tpl/templates/FoodPriceList.shtml");
 
         return null;
     }
