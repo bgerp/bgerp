@@ -130,13 +130,13 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
         $form->setDefault('typeOfReport', 'standard');
         $form->setDefault('seeZeroRows', null);
 
-        if ($rec->typeOfReport == 'zeroRows') {
+        if (($rec->typeOfReport ?? 'standard') == 'zeroRows') {
             $form->setField('crmGroup', 'input');
             $form->setField('contragent', 'input=hidden');
             $form->setField('seeZeroRows', 'input=hidden');
         }
 
-        if ($rec->typeOfReport == 'standard') {
+        if (($rec->typeOfReport ?? 'standard') == 'standard') {
 
             $consignmentQuery = store_ConsignmentProtocols::getQuery();
 
@@ -179,23 +179,32 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
     {
 
         $recs = array();
+        $rec->from = $rec->from ?? date('Y-m-01');
+        $rec->to = $rec->to ?? dt::today();
+        $rec->typeOfReport = $rec->typeOfReport ?? 'standard';
+        $rec->crmGroup = $rec->crmGroup ?? null;
+        $rec->contragent = $rec->contragent ?? null;
+        $rec->seeZeroRows = $rec->seeZeroRows ?? null;
+
         $stateArr = array('rejected');
-        // фирми, които са включени в избраните групи
-        $crmComp = crm_Companies::getQuery();
-        $crmComp->in('state', $stateArr, true);
-        $crmComp->likeKeylist('groupList', $rec->crmGroup);
-        $crmComp->where("#folderId IS NOT NULL");
+        $contragentsInGroups = array();
+        if ($rec->typeOfReport == 'zeroRows' && $rec->crmGroup) {
+            // фирми, които са включени в избраните групи
+            $crmComp = crm_Companies::getQuery();
+            $crmComp->in('state', $stateArr, true);
+            $crmComp->likeKeylist('groupList', $rec->crmGroup);
+            $crmComp->where("#folderId IS NOT NULL");
+            $contragentsInGroups = arr::extractValuesFromArray($crmComp->fetchAll(), 'folderId');
 
-        $contragentsInGroups = arr::extractValuesFromArray($crmComp->fetchAll(), 'folderId');
+            // лица, които са включени в избраните групи
+            $crmPers = crm_Persons::getQuery();
+            $crmPers->in('state', $stateArr, true);
+            $crmPers->likeKeylist('groupList', $rec->crmGroup);
+            $crmPers->where("#folderId IS NOT NULL");
 
-        //лица, които са включени в избраните групи
-        $crmPers = crm_Persons::getQuery();
-        $crmPers->in('state', $stateArr, true);
-        $crmPers->likeKeylist('groupList', $rec->crmGroup);
-        $crmPers->where("#folderId IS NOT NULL");
-
-        //общо контрагенти в избраните групи
-        $contragentsInGroups = $contragentsInGroups + arr::extractValuesFromArray($crmPers->fetchAll(), 'folderId');
+            // общо контрагенти в избраните групи
+            $contragentsInGroups += arr::extractValuesFromArray($crmPers->fetchAll(), 'folderId');
+        }
 
         $Balance = new acc_ActiveShortBalance(array('from' => $rec->from, 'to' => $rec->to, 'accs' => '3231', 'cacheBalance' => false, 'keepUnique' => true));
 
@@ -203,9 +212,18 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
 
         $documentsDebitQuantity1 = $documentsCreditQuantity1 = array();
 
-        foreach ($balHistory['history'] as $jRec) {
+        foreach (($balHistory['history'] ?? array()) as $jRec) {
 
-            $pRec = cls::get($jRec['docType'])->fetch($jRec['docId']);
+            $docType = $jRec['docType'] ?? null;
+            $docId = $jRec['docId'] ?? null;
+            if (!$docType || !$docId) {
+                continue;
+            }
+
+            $pRec = cls::get($docType)->fetch($docId);
+            if (!$pRec || empty($pRec->folderId)) {
+                continue;
+            }
 
             $debitQuantity = $creditQuantity = 0;
 
@@ -218,17 +236,24 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
             //филтър по контрагент когато е избран режим на справката стандартен
             if ($rec->typeOfReport == 'standard' && $rec->contragent && !in_array($pRec->folderId, keylist::toArray($rec->contragent))) continue;
 
-            $item = acc_Items::fetch($jRec['debitItem2']);
+            $itemId = $jRec['debitItem2'] ?? $jRec['creditItem2'] ?? null;
+            $item = acc_Items::fetch($itemId);
+            if (!$item) {
+                continue;
+            }
 
             $prodRec = cls::get($item->classId)->fetch($item->objectId);
-
-            if ($jRec['debitQuantity']) {
-                $debitQuantity = $jRec['debitQuantity'];
-                $documentsDebitQuantity1[$jRec['docId'] . '|' . $prodRec->id] = (object)array('docType' => $jRec['docType'], 'docId' => $jRec['docId'], 'productId' => $prodRec->id, 'contragent' => $pRec->folderId);
+            if (!$prodRec || empty($prodRec->id)) {
+                continue;
             }
-            if ($jRec['creditQuantity']) {
+
+            if (!empty($jRec['debitQuantity'])) {
+                $debitQuantity = $jRec['debitQuantity'];
+                $documentsDebitQuantity1[$docId . '|' . $prodRec->id] = (object)array('docType' => $docType, 'docId' => $docId, 'productId' => $prodRec->id, 'contragent' => $pRec->folderId);
+            }
+            if (!empty($jRec['creditQuantity'])) {
                 $creditQuantity = $jRec['creditQuantity'];
-                $documentsCreditQuantity1[$jRec['docId'] . '|' . $prodRec->id] = (object)array('docType' => $jRec['docType'], 'docId' => $jRec['docId'], 'productId' => $prodRec->id, 'contragent' => $pRec->folderId);
+                $documentsCreditQuantity1[$docId . '|' . $prodRec->id] = (object)array('docType' => $docType, 'docId' => $docId, 'productId' => $prodRec->id, 'contragent' => $pRec->folderId);
 
             }
 
@@ -239,16 +264,16 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
 
                     'contragent' => $pRec->folderId,
                     'contragentName' => $contragentName,
-                    'docClsId' => $jRec['docType'],
-                    'docId' => $jRec['docId'],
+                    'docClsId' => $docType,
+                    'docId' => $docId,
                     'productId' => $prodRec->id,
-                    'measureId' => $prodRec->measureId,
+                    'measureId' => $prodRec->measureId ?? null,
                     'debitQuantity' => $debitQuantity,
                     'creditQuantity' => $creditQuantity,
                     'documentsDebitQuantity' => array(),
                     'documentsCreditQuantity' => array(),
-                    'date' => $pRec->valior,
-                    'storeId' => $pRec->storeId,
+                    'date' => $pRec->valior ?? null,
+                    'storeId' => $pRec->storeId ?? null,
 
                 );
             } else {
