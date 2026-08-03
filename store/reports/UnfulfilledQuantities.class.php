@@ -517,6 +517,7 @@ class store_reports_UnfulfilledQuantities extends frame2_driver_TableData
 
         if (isset($data->rec->contragent)) {
             $marker = 0;
+            $contragentVerb = '';
             foreach (type_Keylist::toArray($data->rec->contragent) as $contragent) {
                 $marker++;
 

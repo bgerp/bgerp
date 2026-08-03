@@ -791,6 +791,7 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
         }
 
         $marker = 0;
+        $groupVerb = '';
         if ($data->rec->consumed == 'yes') {
             if (isset($data->rec->groupsMat)) {
                 foreach (type_Keylist::toArray($data->rec->groupsMat) as $groupMat) {

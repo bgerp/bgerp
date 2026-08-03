@@ -196,6 +196,7 @@ class planning_reports_WasteAndScrapByTasks extends frame2_driver_TableData
         }
 
         $wasteQuantity = null;
+        $wasteWeight = 0;
 
         while ($taskRec = $taskQuery->fetch()) {
 

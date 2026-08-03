@@ -2534,6 +2534,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
     protected static function on_AfterRenderSingle(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$tpl, $data)
     {
         self::applyRecDefaults($data->rec);
+        $dealersVerb = $groupVerb = $contragentVerb = $categoryVerb = '';
 
         $fieldTpl = new core_ET(tr("|*<!--ET_BEGIN BLOCK-->[#BLOCK#]
                                 <fieldset class='detail-info'><legend class='groupTitle'><small><b>|Филтър|*</b></small></legend>
