@@ -1031,7 +1031,15 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
 
                 $group = cat_Groups::getVerbal($dRec->group, 'name') . "<span class= 'fright'><span class= ''>" . 'Общо за групата ( стойност: ' . core_Type::getByName('double(decimals=2)')->toVerbal($groupVal) . '</span>';
             } else {
-                $group = $dRec->group . "<span class= 'fright'>" . 'Общо за групата ( стойност: ' . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->groupValues) . '</span>';
+                $groupName = $dRec->group;
+                if (is_array($groupName)) {
+                    foreach ($groupName as &$groupId) {
+                        $groupId = is_numeric($groupId) ? cat_Groups::getVerbal($groupId, 'name') : $groupId;
+                    }
+                    unset($groupId);
+                    $groupName = implode(', ', $groupName);
+                }
+                $group = $groupName . "<span class= 'fright'>" . 'Общо за групата ( стойност: ' . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->groupValues) . '</span>';
             }
         } else {
             if (!is_numeric($dRec->group)) {
