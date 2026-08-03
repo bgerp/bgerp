@@ -107,7 +107,7 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
     {
         if ($form->isSubmitted()) {
 
-            if (isset($form->rec->workingPdogresOn) && $form->rec->workingPdogresOn == 'included' && ($form->rec->type == 'long')) {
+            if (isset($form->rec->workingPdogresOn) && $form->rec->workingPdogresOn == 'included' && (($form->rec->type ?? null) == 'long')) {
                 $form->setError('type', 'Незавършено производство може да се включи само при избран вариант "Кратка".');
             }
 
@@ -129,6 +129,7 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
 
         $form->setDefault('typeOfReport', 'standard');
         $form->setDefault('seeZeroRows', null);
+        $rec->typeOfReport = $rec->typeOfReport ?? 'standard';
 
         if (($rec->typeOfReport ?? 'standard') == 'zeroRows') {
             $form->setField('crmGroup', 'input');
@@ -203,7 +204,8 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
             $crmPers->where("#folderId IS NOT NULL");
 
             // общо контрагенти в избраните групи
-            $contragentsInGroups += arr::extractValuesFromArray($crmPers->fetchAll(), 'folderId');
+            $personFolders = arr::extractValuesFromArray($crmPers->fetchAll(), 'folderId');
+            $contragentsInGroups = array_values(array_unique(array_merge($contragentsInGroups, $personFolders)));
         }
 
         $Balance = new acc_ActiveShortBalance(array('from' => $rec->from, 'to' => $rec->to, 'accs' => '3231', 'cacheBalance' => false, 'keepUnique' => true));
@@ -374,7 +376,9 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
         $Double->params['decimals'] = 2;
         $Date = cls::get('type_Date');
 
-        if ($rec->seeZeroRows == null && (($dRec->debitQuantity - $dRec->creditQuantity) == 0) && $rec->typeOfReport == 'standard') {
+        $debitQuantity = $dRec->debitQuantity ?? 0;
+        $creditQuantity = $dRec->creditQuantity ?? 0;
+        if (($rec->seeZeroRows ?? null) == null && (($debitQuantity - $creditQuantity) == 0) && ($rec->typeOfReport ?? 'standard') == 'standard') {
 
             return;
         }
@@ -403,7 +407,7 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
         }
 
         if (isset($dRec->debitQuantity) || isset($dRec->creditQuantity)) {
-            $row->quantity = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->debitQuantity - $dRec->creditQuantity);
+            $row->quantity = core_Type::getByName('double(decimals=2)')->toVerbal($debitQuantity - $creditQuantity);
         }
 
         if (isset($dRec->debitQuantity)) {
@@ -422,8 +426,11 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
 
                     $Doc = cls::get($v->docType);
                     $rDoc = $Doc->fetch($v->docId);
+                    if (!$rDoc) {
+                        continue;
+                    }
                     $handle = $Doc->className::getHandle($v->docId);
-                    $state = $rDoc->state;
+                    $state = $rDoc->state ?? null;
 
                     $singleUrl = toUrl(array($Doc->className, 'single', $v->docId));
                     $row->debitDocuments = ($row->debitDocuments ?? '') . "<span class= 'state-{$state} document-handler' style='margin: 1px 3px;'>" .
@@ -442,8 +449,11 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
 
                     $Doc = cls::get($v->docType);
                     $rDoc = $Doc->fetch($v->docId);
+                    if (!$rDoc) {
+                        continue;
+                    }
                     $handle = $Doc->className::getHandle($v->docId);
-                    $state = $rDoc->state;
+                    $state = $rDoc->state ?? null;
 
                     $singleUrl = toUrl(array($Doc->className, 'single', $v->docId));
                     $row->creditDocuments = ($row->creditDocuments ?? '') . "<span class= 'state-{$state} document-handler' style='margin: 1px 3px;'>" .
@@ -541,6 +551,7 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
 
         $form->title = "Избор на полета";
         $fRec = doc_Folders::fetch($contragentFolder);
+        expect($fRec);
         $contragentClassId = $fRec->coverClass;
         $contragentId = $fRec->coverId;
 
