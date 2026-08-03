@@ -301,22 +301,22 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
 
 
                 //Количество в началото на периода
-                $baseQuantity = $item->baseQuantity;
+                $baseQuantity = $item->baseQuantity ?? 0;
 
                 //Стойност в началото на периода
-                $baseAmount = $item->baseAmount;
+                $baseAmount = $item->baseAmount ?? 0;
 
                 //Дебит оборот количество
-                $debitQuantity = $item->debitQuantity;
+                $debitQuantity = $item->debitQuantity ?? 0;
 
                 //Дебит оборот стойност
-                $debitAmount = $item->debitAmount;
+                $debitAmount = $item->debitAmount ?? 0;
 
                 //Кредит оборот количество
-                $creditQuantity = $item->creditQuantity;
+                $creditQuantity = $item->creditQuantity ?? 0;
 
                 //Кредит оборот стойност
-                $creditAmount = $item->creditAmount;
+                $creditAmount = $item->creditAmount ?? 0;
 
                 //Количество в края на периода
                 $blQuantity = $item->blQuantity;
@@ -431,7 +431,7 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
 
             //Добавяне на резервираните количества
             foreach ($reQuantitiesArr as $key => $val) {
-                if ($recs[$key]) {
+                if (isset($recs[$key])) {
                     $recs[$key]->reservedQuantity = $val->reservedQuantity;
                     $recs[$key]->expectedQuantity = $val->expectedQuantity;
                     $recs[$key]->freeQuantity = $val->freeQuantity;
@@ -472,8 +472,9 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
             //Себестойност на артикула
 
             //ako количеството закръглено до минималната заначеща стойност на мярката е 0, го нулирам
+            $mround = 0;
             if($val->measureId){
-            $mround = cat_UoM::fetch($val->measureId)->round;
+                $mround = cat_UoM::fetch($val->measureId)->round;
             }
             if (round($val->blQuantity, $mround) == 0) {
 
