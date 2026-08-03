@@ -201,6 +201,10 @@ class cat_BomDetails extends doc_Detail
     protected static function on_AfterPrepareListFields($mvc, $data)
     {
         $baseCurrencyCode = acc_Periods::getBaseCurrencyCode();
+        $masterRow = $data->masterData->row ?? null;
+        $masterRec = $data->masterData->rec ?? null;
+        $masterQuantity = $masterRow->quantity ?? ($masterRec->quantity ?? null);
+
         $data->listFields['resourceId'] .= "|* <a href=\"javascript:clickAllClasses('bomResourceColName{$data->masterData->rec->id}','bomDetailStepDescription{$data->masterData->rec->id}')\"  style=\"background-image:url(" . sbf('img/16/toggle1.png', "'") . ");\" class=' plus-icon more-btn' id='bomResourceColName{$data->masterData->rec->id}'> </a>";
 
         if(cat_BomDetails::count("#bomId = {$data->masterId} AND #parentId IS NOT NULL")) {
@@ -209,9 +213,9 @@ class cat_BomDetails extends doc_Detail
             }
         }
 
-        $data->listFields['propQuantity'] = "|К-во влагане за|* {$data->masterData->row->quantity}->|Формула|*";
-        $data->listFields['rowQuantity'] = "|К-во влагане за|* {$data->masterData->row->quantity}->|Количество|*";
-        $data->listFields['primeCost'] = "|К-во влагане за|* {$data->masterData->row->quantity}->|Сума|* <small>({$baseCurrencyCode})</small>";
+        $data->listFields['propQuantity'] = "|К-во влагане за|* {$masterQuantity}->|Формула|*";
+        $data->listFields['rowQuantity'] = "|К-во влагане за|* {$masterQuantity}->|Количество|*";
+        $data->listFields['primeCost'] = "|К-во влагане за|* {$masterQuantity}->|Сума|* <small>({$baseCurrencyCode})</small>";
         if (!haveRole('ceo, acc, cat, price')) {
             unset($data->listFields['primeCost']);
         }
