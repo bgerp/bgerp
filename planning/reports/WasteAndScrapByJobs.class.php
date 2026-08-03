@@ -402,7 +402,7 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
 
             foreach ($waste as $v) {
 
-                if ($v->quantity) {
+                if (!empty($v->quantity)) {
 
                     if (self::isWeightMeasure($v->packagingId) === false) {
 

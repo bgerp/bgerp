@@ -415,7 +415,7 @@ class frame2_Reports extends embed_Manager
                     // Ако записа бива редактиран и няма променени полета от драйвера не се преизчислява
                     $fields = $mvc->getDriverFields($Driver);
                     foreach ($fields as $name => $caption) {
-                        if ($oldRec->{$name} !== $rec->{$name}) {
+                        if (($oldRec->{$name} ?? null) !== ($rec->{$name} ?? null)) {
                             $refresh = true;
                             break;
                         }
