@@ -253,17 +253,18 @@ class doc_reports_DocsByRols extends frame2_driver_TableData
         $row->document = ($row->document ?? '') . '<table style="width: 100%;">';
         
         foreach ($dRec['classes'] as $docId => $cnt) {
+            $detailsCnt = $dRec['details'][$docId] ?? 0;
             $row->document = ($row->document ?? '') . '<tr>'.'<td style="border: none">'.$vClassArr[$docId]
                                     .' ('.$vClsNameArr[$docId].')'.'</td>'
                                     .'<td style="min-width: 7%;border: none">'.$cnt.'</td>';
             
-            if (!empty($dRec['details'][$docId])) {
+            if ($detailsCnt) {
                 $row->document = ($row->document ?? '') . '<td style="min-width: 3%;border: none">'.':'.'</td>';
             } else {
                 $row->document = ($row->document ?? '') . '<td style="min-width: 3%;border: none">'.' '.'</td>';
             }
             
-            $row->document = ($row->document ?? '') . '<td style="min-width: 7%;border: none">'.$dRec['details'][$docId].'</td>'.'</tr>';
+            $row->document = ($row->document ?? '') . '<td style="min-width: 7%;border: none">'.$detailsCnt.'</td>'.'</tr>';
             
             
             /**
