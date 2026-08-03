@@ -141,12 +141,6 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
 
 
     /**
-     * Допълнителен CSS клас на listTopContainer
-     */
-    public $listTopContainerHtmlClass = 'twoColsFilter';
-
-
-    /**
      * Икона на единичния изглед
      */
     public $singleIcon = 'img/16/produce_in.png';

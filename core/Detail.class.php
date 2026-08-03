@@ -143,7 +143,7 @@ class core_Detail extends core_Manager
         // Шаблон за листовия изглед
         $listLayout = new ET("
             <div class='clearfix21 {$className}'>
-            	<div class='{$listTopContainerClass}'>
+                <div class='{$listTopContainerClass}[#LIST_TOP_CONTAINER_AUTO_CLASS#]'>
                     [#ListFilter#]
                 </div>
                 [#ListPagerTop#]
@@ -177,6 +177,7 @@ class core_Detail extends core_Manager
         
         // Попълваме формата-филтър
         $tpl->append($this->renderListFilter($data), 'ListFilter');
+        $tpl->replace($this->getAutoListTopContainerClass($data), 'LIST_TOP_CONTAINER_AUTO_CLASS');
         
         // Попълваме обобщената информация
         $tpl->append($this->renderListSummary($data), 'ListSummary');

@@ -203,12 +203,6 @@ class planning_Jobs extends core_Master
 
 
     /**
-     * Допълнителен CSS клас на listTopContainer
-     */
-    public $listTopContainerHtmlClass = 'twoColsFilter';
-
-
-    /**
      * Кои полета от листовия изглед да се скриват ако няма записи в тях
      *
      *  @var string

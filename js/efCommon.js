@@ -2098,6 +2098,220 @@ function alignFormFilterButtons() {
 
 
 /**
+ * При промяна на прозореца превключва режима само с вече измерените размери.
+ */
+var twoColsFilterResizeFrame = null;
+var twoColsFilterResizeBound = false;
+
+function scheduleTwoColsFilterModeUpdate() {
+    if (twoColsFilterResizeFrame !== null) {
+        return;
+    }
+
+    var refresh = function () {
+        twoColsFilterResizeFrame = null;
+        updateTwoColsFilterModes();
+    };
+
+    twoColsFilterResizeFrame = window.requestAnimationFrame ?
+        window.requestAnimationFrame(refresh) : window.setTimeout(refresh, 16);
+}
+
+
+/**
+ * Връща свободната видима ширина вдясно от началото на филтъра.
+ */
+function getTwoColsFilterVisibleWidth(filter) {
+    var visibleRight = document.documentElement.clientWidth;
+    var metrics = filter.twoColsFilterMetrics;
+
+    if (metrics && metrics.content) {
+        visibleRight = Math.min(visibleRight, metrics.content.getBoundingClientRect().right);
+    }
+
+    return visibleRight - Math.max(0, filter.getBoundingClientRect().left);
+}
+
+
+/**
+ * Превключва една/две колони без повторно клониране и измерване на формата.
+ */
+function updateTwoColsFilterModes() {
+    var filters = document.querySelectorAll('.wide .twoColsFilter');
+
+    for (var i = 0; i < filters.length; i++) {
+        var filter = filters[i];
+        var metrics = filter.twoColsFilterMetrics;
+
+        if (!metrics) {
+            continue;
+        }
+
+        var visibleWidth = Math.floor(getTwoColsFilterVisibleWidth(filter));
+        var useTwoColumns = metrics.twoColumnsMinWidth <= visibleWidth;
+        var putSummaryBelow = !useTwoColumns &&
+            metrics.singleColumnMinWidth > visibleWidth;
+
+        if (filter.classList.contains('twoColsFilterActive') !== useTwoColumns) {
+            filter.classList.toggle('twoColsFilterActive', useTwoColumns);
+        }
+
+        if (filter.classList.contains('twoColsFilterSummaryBelow') !== putSummaryBelow) {
+            filter.classList.toggle('twoColsFilterSummaryBelow', putSummaryBelow);
+        }
+    }
+}
+
+
+/**
+ * Измерва филтъра еднократно след рендиране и запазва размерите за ресайз.
+ */
+function setTwoColsFilterWidth() {
+    var $filters = $('.wide .twoColsFilter');
+    if (!$filters.length) {
+        return;
+    }
+
+    if (!twoColsFilterResizeBound) {
+        twoColsFilterResizeBound = true;
+        window.addEventListener('resize', scheduleTwoColsFilterModeUpdate);
+    }
+
+    $filters.each(function () {
+        var filter = this;
+        var $filter = $(filter);
+        $filter.removeClass('twoColsFilterActive twoColsFilterSummaryBelow');
+        filter.twoColsFilterMetrics = null;
+
+        var $fieldTable = $filter.find('.listFilter .vFormField').first();
+
+        if (!$fieldTable.length) {
+            return;
+        }
+
+        var rowIndexes = [];
+        var $allRows = $fieldTable.children('tbody').children('tr');
+        $allRows.each(function (index) {
+            // Допълнителните филтри участват в измерването, а условно скритите полета - не
+            if ($(this).css('display') != 'none' || $(this).hasClass('toggable')) {
+                rowIndexes.push(index);
+            }
+        });
+
+        if (rowIndexes.length <= 5) {
+            return;
+        }
+
+        var $measure = $("<div class='listFilter'></div>").css({
+            position: 'absolute',
+            visibility: 'hidden',
+            left: '-10000px',
+            top: 0,
+            display: 'inline-block',
+            width: 'max-content',
+            maxWidth: 'none'
+        }).appendTo('body');
+
+        // Копията са извън двуколонния контейнер и запазват стандартните размери на полетата
+        function getTableCopy(indexes, captionWidth) {
+            var $copy = $fieldTable.clone().css({
+                display: 'table',
+                width: 'auto',
+                maxWidth: 'none',
+                tableLayout: 'auto'
+            });
+
+            $copy.children('tbody').css({
+                display: 'table-row-group',
+                columnCount: 'auto',
+                columnWidth: 'auto',
+                columnGap: 'normal'
+            }).children('tr').each(function (index) {
+                if ($.inArray(index, indexes) == -1) {
+                    $(this).remove();
+                } else {
+                    $(this).css({display: 'table-row', width: 'auto', transform: 'none'});
+                }
+            });
+
+            $copy.find('.formFieldCaption').css({
+                boxSizing: 'content-box',
+                width: captionWidth ? captionWidth + 'px' : '1px'
+            });
+            $copy.find('[id]').removeAttr('id');
+            $measure.append($copy);
+
+            return $copy;
+        }
+
+        var $singleColumnCopy = getTableCopy(rowIndexes);
+        var captionWidth = Math.ceil($singleColumnCopy.find('.formFieldCaption').first().outerWidth());
+        var singleColumnWidth = Math.ceil($singleColumnCopy.outerWidth());
+        $singleColumnCopy.remove();
+
+        var rowsInFirstColumn = Math.ceil(rowIndexes.length / 2);
+        var $leftColumnCopy = getTableCopy(rowIndexes.slice(0, rowsInFirstColumn), captionWidth);
+        var leftColumnWidth = Math.ceil($leftColumnCopy.outerWidth());
+        $leftColumnCopy.remove();
+
+        var $rightColumnCopy = getTableCopy(rowIndexes.slice(rowsInFirstColumn), captionWidth);
+        var rightColumnWidth = Math.ceil($rightColumnCopy.outerWidth());
+        $rightColumnCopy.remove();
+
+        var $summary = $filter.children('.summary-block').first();
+        var summaryWidth = 0;
+        if ($summary.length) {
+            var $summaryCopy = $summary.clone().css({
+                display: 'inline-block',
+                float: 'none',
+                width: 'max-content',
+                maxWidth: 'none',
+                margin: 0,
+                transform: 'none'
+            });
+            $summaryCopy.find('[id]').removeAttr('id');
+            $measure.append($summaryCopy);
+            summaryWidth = Math.ceil($summaryCopy.outerWidth());
+        }
+
+        $measure.remove();
+
+        if (!captionWidth || !singleColumnWidth || !leftColumnWidth || !rightColumnWidth) {
+            return;
+        }
+
+        var columnGap = Math.ceil(parseFloat($fieldTable.css('font-size')) || 16);
+        var summaryGap = $summary.length ? (parseFloat($filter.css('column-gap')) || 0) : 0;
+        var twoColumnsWidth = leftColumnWidth + columnGap + rightColumnWidth;
+        var $content = $filter.closest('#packWrapper, #main-container');
+        // Двата auto отстъпа и старото визуално изместване пазят статистиката в рамките на таблицата
+        var summarySafetySpace = $summary.length ? 40 : 0;
+        var singleColumnMinWidth = summaryWidth ?
+            singleColumnWidth + summaryGap + summaryWidth + summarySafetySpace : 0;
+        var twoColumnsMinWidth = twoColumnsWidth + summaryGap + summaryWidth + summarySafetySpace;
+
+        filter.style.setProperty('--two-cols-filter-caption-width', captionWidth + 'px');
+        filter.style.setProperty('--two-cols-filter-caption-offset', captionWidth + 3 + 'px');
+        filter.style.setProperty('--two-cols-filter-single-width', singleColumnWidth + 'px');
+        filter.style.setProperty('--two-cols-filter-left-width', leftColumnWidth + 'px');
+        filter.style.setProperty('--two-cols-filter-right-width', rightColumnWidth + 'px');
+        filter.style.setProperty('--two-cols-filter-width', twoColumnsWidth + 'px');
+        filter.style.setProperty('--two-cols-filter-row-count', rowsInFirstColumn);
+        filter.style.setProperty('--two-cols-filter-summary-max-width',
+            'calc(100% - ' + Math.ceil(singleColumnWidth + summaryGap) + 'px)');
+        filter.twoColsFilterMetrics = {
+            content: $content.length ? $content[0] : null,
+            singleColumnMinWidth: singleColumnMinWidth,
+            twoColumnsMinWidth: twoColumnsMinWidth
+        };
+    });
+
+    updateTwoColsFilterModes();
+    alignFormFilterButtons();
+}
+
+
+/**
  * Задава ширина на елементите от форма в зависимост от ширината на прозореца/устройството
  */
 function setFormElementsWidth() {

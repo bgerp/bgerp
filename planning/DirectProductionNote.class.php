@@ -153,12 +153,6 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 
 
     /**
-     * Допълнителен CSS клас на listTopContainer
-     */
-    public $listTopContainerHtmlClass = 'twoColsFilter';
-
-
-    /**
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
     public $rowToolsSingleField = 'title';
