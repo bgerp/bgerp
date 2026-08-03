@@ -737,7 +737,7 @@ class bgerp_drivers_Calendar extends core_BaseClass
             if ($orderH == '00:00:00') {
                 $orderH = 30;
             } else {
-                $oTim = dt::mysql2verbal($rec->time, 'H:i');
+                $oTime = dt::mysql2verbal($rec->time, 'H:i');
             }
             
             $orderH .= ' ' . ++$i;
@@ -746,8 +746,8 @@ class bgerp_drivers_Calendar extends core_BaseClass
             $type = strtolower($rec->type);
 
             if ($pArr['search'] || !empty($expandTypeArr[$type]) || $type[0] == '_') {
-                if ($oTim) {
-                    $rec->title = $oTim . ' ' . $rec->title;
+                if ($oTime) {
+                    $rec->title = $oTime . ' ' . $rec->title;
                 }
 
                 $cRec = $Calendar->recToVerbal($rec, 'title');
