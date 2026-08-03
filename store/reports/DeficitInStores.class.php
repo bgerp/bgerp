@@ -80,7 +80,7 @@ class store_reports_DeficitInStores extends frame2_driver_TableData
     {
         $fieldset->FLD('typeOfQuantity', 'enum(existent=Налично,free=Разполагаемо)', 'caption=Количество за показване,maxRadio=2,columns=2,after=title,mandatory,single=none');
         $fieldset->FLD('additional', 'table(columns=code|name,captions=Код на артикула|Наименование,widths=8em|20em)', 'caption=Артикули||Additional,autohide,advanced,after=storeId,single=none');
-        $fieldset->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,placeholder=Всички,after=typeOfQuantity');
+        $fieldset->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,placeholderType=all,after=typeOfQuantity');
         $fieldset->FLD('groupId', 'key(mvc=cat_Groups,select=name,allowEmpty)', 'caption=Група продукти,after=storeId,silent,single=none,removeAndRefreshForm');
         $fieldset->FLD('horizon', 'time', 'caption=Хоризонт,after=groupId');
     }

@@ -534,7 +534,7 @@ class bank_Accounts extends core_Master
         $data->listFilter->setField('contragentCls', 'input=none');
         $data->listFilter->setField('contragentId', 'input=none');
         $data->listFilter->setFieldTypeParams('currencyId', array('allowEmpty' => 'allowEmpty'));
-        $data->listFilter->setField('currencyId', 'placeholder=Всички');
+        $data->listFilter->setField('currencyId', 'placeholderType=all');
         $data->listFilter->showFields = 'search,currencyId';
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');

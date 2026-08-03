@@ -173,7 +173,7 @@ class planning_TaskManualOrderPerAssets extends core_Master
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         $assetOptions = planning_AssetResources::getUsedAssetsInTasks();
         $data->listFilter->setOptions('assetId', $assetOptions);
-        $data->listFilter->setField('assetId', 'placeholder=Всички');
+        $data->listFilter->setField('assetId', 'placeholderType=all');
         $data->listFilter->showFields = 'assetId';
         $data->listFilter->input();
 

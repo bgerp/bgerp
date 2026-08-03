@@ -106,7 +106,7 @@ class bgerp_LastSeenDocumentByUser extends core_Manager
     {
         // Добавяме поле във формата за търсене
         $data->listFilter->setFieldTypeParams('docClass', 'allowEmpty');
-        $data->listFilter->setField('docClass', 'placeholder=Всички');
+        $data->listFilter->setField('docClass', 'placeholderType=all');
         $data->listFilter->view = 'horizontal';
         $data->listFilter->FNC('users', 'users(rolesForAll=ceo, rolesForTeams=ceo|manager|admin)', 'caption=Потребител,input,silent,refreshForm');
         $data->listFilter->showFields = "docClass,users";

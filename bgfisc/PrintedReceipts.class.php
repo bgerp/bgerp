@@ -245,7 +245,7 @@ class bgfisc_PrintedReceipts extends core_Manager
         $data->query->orderBy('id', 'DESC');
         $data->listFilter->FLD('from', 'date', 'caption=От,silent');
         $data->listFilter->FLD('to', 'date', 'caption=До,silent');
-        $data->listFilter->setField('createdBy', 'placeholder=Всички,formOrder=11');
+        $data->listFilter->setField('createdBy', 'placeholderType=all,formOrder=11');
 
         $data->listFilter->class = 'simpleForm';
         $data->listFilter->setFieldTypeParams('createdBy', array('allowEmpty' => 'allowEmpty'));

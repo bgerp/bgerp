@@ -102,7 +102,7 @@ class pos_reports_BestSellingItems extends frame2_driver_TableData
         $fieldset->FLD('from', 'date', 'caption=От,refreshForm,after=title,single=none');
         $fieldset->FLD('to', 'date', 'caption=До,refreshForm,after=from,single=none');
 
-        $fieldset->FLD('pos', 'keylist(mvc=pos_Points,select=name,allowEmpty)', 'caption=ПОС терминали->ПОС,placeholder=Всички,after=to,single=none');
+        $fieldset->FLD('pos', 'keylist(mvc=pos_Points,select=name,allowEmpty)', 'caption=ПОС терминали->ПОС,placeholderType=all,after=to,single=none');
 
         $fieldset->FLD('begin', 'hour', 'caption=Времена на засичане->Начало,after=pos,mandatory,single=none');
         $fieldset->FLD('end', 'hour', 'caption=Времена на засичане->Край,after=begin,single=none,mandatory');

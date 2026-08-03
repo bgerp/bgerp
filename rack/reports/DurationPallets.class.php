@@ -85,7 +85,7 @@ class rack_reports_DurationPallets extends frame2_driver_TableData
         $fieldset->FLD('from', 'date', 'caption=От,after=title,single=none');
         $fieldset->FLD('to', 'date', 'caption=До,after=from,single=none');
         
-        $fieldset->FLD('storeId', 'keylist(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,placeholder=Всички,after=to,single=none');
+        $fieldset->FLD('storeId', 'keylist(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,placeholderType=all,after=to,single=none');
         
        
     }

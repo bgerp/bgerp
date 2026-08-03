@@ -647,7 +647,7 @@ class email_AddressesInfo extends core_Manager
         $data->listFilter->view = 'horizontal';
         
         $data->listFilter->setFieldTypeParams('state', 'allowEmpty');
-        $data->listFilter->setField('state', 'placeholder=Всички');
+        $data->listFilter->setField('state', 'placeholderType=all');
         
         $data->listFilter->setDefault('state', '');
         

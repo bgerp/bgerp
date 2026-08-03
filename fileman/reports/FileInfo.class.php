@@ -58,7 +58,7 @@ class fileman_reports_FileInfo extends frame_BaseDriver
         $form->FLD('groupBy', 'enum(users=Потребители, buckets=Кофи, files=Файлове)', 'caption=Групиране по');
         $form->FLD('sorting', 'enum(,group_a=Група (възходящо),group_z=Група (низходящо),cnt_a=Брой (възходящо),cnt_z=Брой (низходящо),
     								len_a=Размер (възходящо),len_z=Размер (низходящо))', 'caption=Подреждане по');
-        $form->FLD('bucketId', 'key(mvc=fileman_Buckets, select=name, allowEmpty)', 'caption=Кофа, placeholder=Всички');
+        $form->FLD('bucketId', 'key(mvc=fileman_Buckets, select=name, allowEmpty)', 'caption=Кофа, placeholderType=all');
         $form->FLD('from', 'date', 'caption=Начало');
         $form->FLD('to', 'date', 'caption=Край');
     }

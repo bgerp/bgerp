@@ -47,7 +47,7 @@ class core_tests_Form extends unit_Class
     public static function test_AllowEmptyRadioInStandardForm(core_Form $Form)
     {
         $editForm = clone $Form;
-        $editForm->FLD('choice', 'varchar(allowEmpty)', 'caption=Избор,placeholder=Всички');
+        $editForm->FLD('choice', 'varchar(allowEmpty)', 'caption=Избор,placeholderType=all');
         $editForm->setOptions('choice', array('first' => 'Първа', 'second' => 'Втора'));
 
         $html = $editForm->renderHtml()->getContent();
@@ -64,7 +64,7 @@ class core_tests_Form extends unit_Class
     public static function test_AllowEmptySelectInStandardForm(core_Form $Form)
     {
         $editForm = clone $Form;
-        $editForm->FLD('choice', 'varchar(allowEmpty)', 'caption=Избор,placeholder=Всички');
+        $editForm->FLD('choice', 'varchar(allowEmpty)', 'caption=Избор,placeholderType=all');
         $editForm->setOptions('choice', array(
             'first' => 'Първа',
             'second' => 'Втора',
@@ -77,6 +77,41 @@ class core_tests_Form extends unit_Class
         ut::expectEqual((bool) preg_match('/<select(?=[^>]*name="choice")[^>]*>/', $html), true);
         ut::expectEqual(strpos($html, '>Всички</option>') !== false, true);
         ut::expectEqual((bool) preg_match('/<input(?=[^>]*type="radio")(?=[^>]*name="choice")[^>]*>/', $html), false);
+    }
+
+
+    /**
+     * Проверява ориентиращия текст за общата празна стойност в хоризонтален GET филтър
+     */
+    public static function test_AllPlaceholderInHorizontalFilter(core_Form $Form)
+    {
+        $filterForm = clone $Form;
+        $filterForm->method = 'GET';
+        $filterForm->view = 'horizontal';
+        $filterForm->FLD('choice', 'varchar(allowEmpty)', 'caption=Артикул,placeholderType=all');
+        $filterForm->setOptions('choice', array('first' => 'Първа', 'second' => 'Втора'));
+
+        $html = $filterForm->renderHtml()->getContent();
+
+        ut::expectEqual(strpos($html, 'Артикул (всички)') !== false, true);
+    }
+
+
+    /**
+     * Проверява, че конкретният placeholder има приоритет в хоризонтален GET филтър
+     */
+    public static function test_CustomPlaceholderInHorizontalFilter(core_Form $Form)
+    {
+        $filterForm = clone $Form;
+        $filterForm->method = 'GET';
+        $filterForm->view = 'horizontal';
+        $filterForm->FLD('choice', 'varchar(allowEmpty)', 'caption=Група,placeholder=Всички групи');
+        $filterForm->setOptions('choice', array('first' => 'Първа', 'second' => 'Втора'));
+
+        $html = $filterForm->renderHtml()->getContent();
+
+        ut::expectEqual(strpos($html, 'Всички групи') !== false, true);
+        ut::expectEqual(strpos($html, 'Група (всички)') !== false, false);
     }
 
 

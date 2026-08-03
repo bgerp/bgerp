@@ -52,7 +52,7 @@
          $fieldset->FLD('from', 'date', 'caption=От,after=title,single=none,mandatory');
          $fieldset->FLD('to', 'date', 'caption=До,after=from,single=none,mandatory');
          
-         $fieldset->FLD('forwarderPersonId', 'keylist(mvc=crm_Persons,title=name,allowEmpty)', 'caption=Шофьор,placeholder=Всички,after=to,single=none');
+         $fieldset->FLD('forwarderPersonId', 'keylist(mvc=crm_Persons,title=name,allowEmpty)', 'caption=Шофьор,placeholderType=all,after=to,single=none');
     
          $fieldset->FLD('seeLines', 'set(yes = )', 'caption=Покажи линиите,after=forwarderPersonId,single=none');
          

@@ -186,7 +186,7 @@ class core_RoleLogs extends core_Manager
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         
         $data->listFilter->fields['state']->type->options = array('' => '') + $data->listFilter->fields['state']->type->options;
-        $data->listFilter->setField('state', 'placeholder=Всички');
+        $data->listFilter->setField('state', 'placeholderType=all');
         
         // Избираме го по подразбиране
         $data->listFilter->setDefault('state', '');

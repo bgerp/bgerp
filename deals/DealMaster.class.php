@@ -789,14 +789,14 @@ abstract class deals_DealMaster extends deals_DealBase
         if (!Request::get('Rejected', 'int')) {
             $fType = cls::get('type_Enum', array('options' => $mvc->getListFilterTypeOptions($data)));
             $data->listFilter->FNC('type', 'varchar', 'caption=Състояние,refreshForm,silent');
-            $data->listFilter->setField('paymentMethodId', 'caption=Плащане,placeholder=Всички,formOrder=1003,input');
+            $data->listFilter->setField('paymentMethodId', 'caption=Плащане,placeholderType=all,formOrder=1003,input');
 
             $data->listFilter->input('type', 'silent');
             $data->listFilter->setFieldType('type', $fType);
             $data->listFilter->setDefault('type', 'notClosedWith');
             $data->listFilter->showFields .= ',type';
         }
-        $data->listFilter->FNC('groupId', 'key(mvc=crm_Groups,select=name,allowEmpty)', 'caption=Група,placeholder=Всички,refreshForm');
+        $data->listFilter->FNC('groupId', 'key(mvc=crm_Groups,select=name,allowEmpty)', 'caption=Група,placeholderType=all,refreshForm');
         $data->listFilter->showFields .= ',groupId,paymentMethodId';
         $data->listFilter->mvc->toggableFieldsInVerticalListFilter .= ',paymentMethodId';
 

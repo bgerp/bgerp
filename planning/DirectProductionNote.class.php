@@ -1963,7 +1963,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
      */
     protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
-        $data->listFilter->FLD('productionType', 'enum(,additionalMeasure=С втора мярка,withoutAdditionalMeasure=Без втора мярка,nonDetailed=Бездетайлно произвеждане,detailed=Детайлно произвеждане)', 'caption=Производство,placeholder=Всички,input');
+        $data->listFilter->FLD('productionType', 'enum(,additionalMeasure=С втора мярка,withoutAdditionalMeasure=Без втора мярка,nonDetailed=Бездетайлно произвеждане,detailed=Детайлно произвеждане)', 'caption=Производство,placeholderType=all,input');
         $data->listFilter->showFields .= ",productionType";
         $data->listFilter->input('productionType');
 

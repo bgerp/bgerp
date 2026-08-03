@@ -196,7 +196,7 @@ class cond_Countries extends core_Manager
     {
         // Подготовка на филтъра
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
-        $data->listFilter->setField('conditionId', 'placeholder=Всички');
+        $data->listFilter->setField('conditionId', 'placeholderType=all');
         $data->listFilter->showFields = 'country,conditionId';
         $data->listFilter->view = 'horizontal';
         $data->listFilter->input();

@@ -685,7 +685,7 @@ class bank_OwnAccounts extends core_Master
      */
     public static function prepareBankFilter(&$data, $fields = array())
     {
-        $data->listFilter->FNC('own', 'key(mvc=bank_OwnAccounts,select=bankAccountId,allowEmpty)', 'caption=Сметка,placeholder=Всички,silent');
+        $data->listFilter->FNC('own', 'key(mvc=bank_OwnAccounts,select=bankAccountId,allowEmpty)', 'caption=Сметка,placeholderType=all,silent');
         $data->listFilter->showFields .= ',own';
         $data->listFilter->setDefault('own', static::getCurrent('id', false));
         $data->listFilter->input();

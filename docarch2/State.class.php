@@ -225,11 +225,11 @@ class docarch2_State extends core_Master
 
         $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
 
-        $data->listFilter->FNC('registerIdFilter', 'varchar', 'caption=Регистри,placeholder=Всички,silent');
+        $data->listFilter->FNC('registerIdFilter', 'varchar', 'caption=Регистри,placeholderType=all,silent');
 
         $registersForChois = self::suggestionRegisters();
 
-        $data->listFilter->FNC('volumeIdFilter', 'varchar', 'caption=Томове,placeholder=Всички,input = hidden');
+        $data->listFilter->FNC('volumeIdFilter', 'varchar', 'caption=Томове,placeholderType=all,input = hidden');
 
         $data->listFilter->setOptions('registerIdFilter', array('' => ' ', '0' => 'Сборен') + $registersForChois);
 

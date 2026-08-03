@@ -44,7 +44,7 @@ class bgfisc_reports_SalesPayments extends frame2_driver_TableData
         $fieldset->FLD('from', 'date', 'caption=От,after=compare,single=none');
         $fieldset->FLD('to', 'date', 'caption=До,after=from,single=none');
         
-        $fieldset->FLD('operator', 'key(mvc=core_Users,select=names,allowEmpty)', 'caption=Оператор,after=to,placeholder=Всички,single=none');
+        $fieldset->FLD('operator', 'key(mvc=core_Users,select=names,allowEmpty)', 'caption=Оператор,after=to,placeholderType=all,single=none');
     }
     
     

@@ -236,7 +236,7 @@ class sales_Routes extends core_Manager
         $data->listFilter->layout = new ET(tr('|*' . getFileContent('acc/plg/tpl/FilterForm.shtml')));
 
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
-        $data->listFilter->FNC('user', 'user(roles=sales|ceo)', 'input,caption=Търговец,placeholder=Всички,silent,autoFilter');
+        $data->listFilter->FNC('user', 'user(roles=sales|ceo)', 'input,caption=Търговец,placeholderType=all,silent,autoFilter');
         $data->listFilter->FNC('date', 'date', 'input,caption=Дата,silent');
         $data->listFilter->setFieldType('type', "enum(all=Вид,visit=Посещение,delivery=Доставка,mixed=Посещение и доставка)");
 

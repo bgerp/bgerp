@@ -344,7 +344,7 @@ class acc_Items extends core_Manager
     protected static function on_AfterPrepareListFilter($mvc, $data)
     {
         // Добавяме поле във формата за търсене
-        $data->listFilter->FNC('listId', 'varchar', 'input,caption=Номенклатура,autoFilter,placeholder=Всички');
+        $data->listFilter->FNC('listId', 'varchar', 'input,caption=Номенклатура,autoFilter,placeholderType=all');
         $listOptions = acc_Lists::makeArray4Select('name', '');
         if (haveRole('admin,ceo,debug')) {
             $listOptions += array('-1' => '[Без номенклатури]');

@@ -670,8 +670,8 @@ class log_Data extends core_Manager
         $data->listFilter->FNC('ip', 'varchar(32)', 'caption=IP адрес');
         $data->listFilter->FNC('from', 'datetime', 'caption=От');
         $data->listFilter->FNC('to', 'datetime', 'caption=До');
-        $data->listFilter->FNC('class', 'varchar', 'caption=Клас,placeholder=Всички,removeAndRefreshForm=object, allowEmpty, silent');
-        $data->listFilter->FNC('object', 'varchar', 'caption=Обект,placeholder=Всички,autoFilter, allowEmpty, silent');
+        $data->listFilter->FNC('class', 'varchar', 'caption=Клас,placeholderType=all,removeAndRefreshForm=object, allowEmpty, silent');
+        $data->listFilter->FNC('object', 'varchar', 'caption=Обект,placeholderType=all,autoFilter, allowEmpty, silent');
         
         $def = setIfNot($def, Request::get('users'), 'all_users');
         $default = $data->listFilter->getField('users')->type->fitInDomain($def);

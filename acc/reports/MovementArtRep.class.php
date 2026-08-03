@@ -54,7 +54,7 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
     {
         $fieldset->FLD('from', 'date', 'caption=От,after=title');
         $fieldset->FLD('to', 'date', 'caption=До,after=from');
-        $fieldset->FLD('group', 'keylist(mvc=cat_Groups,select=name)', 'caption=Група,placeholder=Всички,after=to,single=none');
+        $fieldset->FLD('group', 'keylist(mvc=cat_Groups,select=name)', 'caption=Група,placeholderType=all,after=to,single=none');
         $fieldset->FLD('uomKg', 'enum(base=Основна, weight=Тегловна)', 'notNull,caption=Мярка,maxRadio=2,after=group,single=none');
 
     }

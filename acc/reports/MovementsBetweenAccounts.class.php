@@ -206,12 +206,12 @@ class acc_reports_MovementsBetweenAccounts extends frame_BaseDriver
             
             if ($form->rec->{$field}) {
                 if ($form->rec->{$field} == '*') {
-                    $form->FLD($valField, 'keylist(mvc=acc_Items,select=title)', 'placeholder=Всички', array('caption' => "|*{$caption}->|Стойности", 'after' => $field));
+                    $form->FLD($valField, 'keylist(mvc=acc_Items,select=title)', 'placeholderType=all', array('caption' => "|*{$caption}->|Стойности", 'after' => $field));
                     $form->setSuggestions($valField, $items);
                 } else {
                     $featureTitleId = acc_FeatureTitles::fetchIdByTitle($form->rec->{$field});
                     $featureValuesOpt = acc_Features::getFeatureValueOptions($featureTitleId);
-                    $form->FLD($valField, 'keylist(mvc=acc_Features,select=value)', 'placeholder=Всички', array('caption' => "|*{$caption}->|Стойности", 'after' => $field));
+                    $form->FLD($valField, 'keylist(mvc=acc_Features,select=value)', 'placeholderType=all', array('caption' => "|*{$caption}->|Стойности", 'after' => $field));
                     $form->setSuggestions($valField, $featureValuesOpt);
                 }
                 

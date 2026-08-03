@@ -50,7 +50,7 @@ class bgfisc_reports_DetailedSalesData extends frame2_driver_TableData
         $fieldset->FLD('from', 'date', 'caption=От,after=compare,removeAndRefreshForm,single=none');
         $fieldset->FLD('to', 'date', 'caption=До,after=from,removeAndRefreshForm,single=none');
         
-        $fieldset->FLD('operator', 'key(mvc=core_Users,select=names,allowEmpty)', 'caption=Оператор,after=to,placeholder=Всички,single=none');
+        $fieldset->FLD('operator', 'key(mvc=core_Users,select=names,allowEmpty)', 'caption=Оператор,after=to,placeholderType=all,single=none');
     }
     
     

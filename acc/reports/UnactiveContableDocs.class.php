@@ -58,9 +58,9 @@ class acc_reports_UnactiveContableDocs extends frame2_driver_TableData
         $fieldset->FLD('from', 'date(smartTime)', 'caption=От,after=title,single=none,mandatory');
         $fieldset->FLD('to', 'date(smartTime)', 'caption=До,after=from,single=none,mandatory');
         $fieldset->FLD('selectedOff', 'set(FALSE=)', 'caption=Изключи избраните,after=documentType');
-        $fieldset->FLD('documentType', 'keylist(mvc=core_Classes,select=title,allowEmpty)', 'caption=Документи,placeholder=Всички,single=none,after=to');
-        $fieldset->FLD('states', 'keylist(mvc=doc_Containers,allowEmpty)', 'caption=Състояние,placeholder=Всички,after=selectedOff,single=none');
-        $fieldset->FLD('dealerId', 'userList(rolesForAll=sales|ceo,allowEmpty,roles=ceo|sales)', 'caption=Търговец,placeholder=Всички,after=states,single=none');
+        $fieldset->FLD('documentType', 'keylist(mvc=core_Classes,select=title,allowEmpty)', 'caption=Документи,placeholderType=all,single=none,after=to');
+        $fieldset->FLD('states', 'keylist(mvc=doc_Containers,allowEmpty)', 'caption=Състояние,placeholderType=all,after=selectedOff,single=none');
+        $fieldset->FLD('dealerId', 'userList(rolesForAll=sales|ceo,allowEmpty,roles=ceo|sales)', 'caption=Търговец,placeholderType=all,after=states,single=none');
     }
     
     

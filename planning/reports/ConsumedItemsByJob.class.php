@@ -83,7 +83,7 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
 
 
         //Център на дейност
-        $fieldset->FLD('department', 'keylist(mvc=planning_Centers,select=name,allowEmpty)', 'caption=Ц-р дейност,after=title,placeholder=Всички,removeAndRefreshForm,silent');
+        $fieldset->FLD('department', 'keylist(mvc=planning_Centers,select=name,allowEmpty)', 'caption=Ц-р дейност,after=title,placeholderType=all,removeAndRefreshForm,silent');
 
         //Задания
         $fieldset->FLD('jobses', 'keylist(mvc=planning_Jobs,allowEmpty)', 'caption=Задания,placeholder=Всички активни,after=department,single=none');
@@ -92,7 +92,7 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
         $fieldset->FLD('option', 'enum(yes=Включен,no=Изключен)', 'caption=Артикули по задание->Филтър по артикул,after=jobses,removeAndRefreshForm,silent');
 
         //Артикули
-        $fieldset->FLD('products', 'keylist(mvc=cat_Products,select=name)', 'caption=Артикули по задание->Артикул,placeholder=Всички,after=option,single=none,input=none,class=w100');
+        $fieldset->FLD('products', 'keylist(mvc=cat_Products,select=name)', 'caption=Артикули по задание->Артикул,placeholderType=all,after=option,single=none,input=none,class=w100');
 
 
         //Групи артикули
