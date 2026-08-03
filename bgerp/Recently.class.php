@@ -181,9 +181,12 @@ class bgerp_Recently extends core_Manager
      */
     public static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
+        $state = null;
+
         if ($rec->type == 'folder') {
             try {
                 $folderRec = doc_Folders::fetch($rec->objectId);
+                expect($folderRec);
                 $folderRow = doc_Folders::recToVerbal($folderRec);
                 
                 $attr = array();
@@ -207,10 +210,11 @@ class bgerp_Recently extends core_Manager
                 $docRow = $docProxy->getDocumentRow();
                 
                 $docRec = $docProxy->fetch();
+                expect($docRec);
                 if (!$threadRec) {
                     $threadRec = doc_Threads::fetch($docRec->threadId);
                 }
-                $state = $threadRec->state;
+                $state = $threadRec->state ?? ($docRec->state ?? null);
                 
                 $attr = array();
                 if (!isset($attr['class'])) {
@@ -221,7 +225,9 @@ class bgerp_Recently extends core_Manager
                 $modOn = $docRec->modifiedOn;
                 if ($docRec->threadId) {
                     $tRec = doc_Threads::fetch($docRec->threadId);
-                    $modOn = max(array($modOn, $tRec->last));
+                    if ($tRec) {
+                        $modOn = max(array($modOn, $tRec->last));
+                    }
                 }
                 
                 if ($modOn > $mvc->getLastDocumentSee($docRec->containerId, null, false)) {
@@ -235,6 +241,7 @@ class bgerp_Recently extends core_Manager
                 }
                 
                 // Ако имамем права, тогава генерирам линк
+                $linkUrl = null;
                 if ($docProxy->haveRightFor('single') || doc_Threads::haveRightFor('single', $docRec->threadId)) {
                     $linkUrl = array($docProxy->getInstance(), 'single',
                         'id' => $docRec->id);
@@ -243,7 +250,7 @@ class bgerp_Recently extends core_Manager
                 $doubleClickUrl = $docProxy->getUrlForDblClick($linkUrl);
                 if(isset($doubleClickUrl)){
                     $doubleClickDataUrl = toUrl($doubleClickUrl);
-                    $attr['data-doubleclick'] .= $doubleClickDataUrl;
+                    $attr['data-doubleclick'] = ($attr['data-doubleclick'] ?? '') . $doubleClickDataUrl;
                 }
 
                 $row->title = ht::createLink(
@@ -284,6 +291,7 @@ class bgerp_Recently extends core_Manager
         try {
             if ($rec->type == 'folder') {
                 $folderRec = doc_Folders::fetch($rec->objectId);
+                expect($folderRec);
                 $objectTitle = $folderRec->title;
             } else {
                 $docProxy = doc_Containers::getDocument($rec->objectId);
@@ -305,12 +313,18 @@ class bgerp_Recently extends core_Manager
      */
     public static function getLastDocumentSee($doc, $userId = null, $isFirstContainerId = false)
     {
+        $lastTime = null;
+
         if (!$isFirstContainerId) {
             if (is_object($doc)) {
                 $cRec = $doc;
             } else {
                 expect(is_numeric($doc));
                 $cRec = doc_Containers::fetch($doc);
+            }
+
+            if (!$cRec) {
+                return null;
             }
             
             if (!$cRec->threadId) {
@@ -387,10 +401,12 @@ class bgerp_Recently extends core_Manager
         $query->limit(1);
         $query->orderBy('#last', 'DESC');
         $lastRec = $query->fetch();
+        $lastModifiedOn = $lastRec->last ?? null;
         $key = md5($userId . '_' . Request::get('ajax_mode') . '_' . Mode::get('screenMode') . '_' . Request::get('P_bgerp_Recently') . '_' . Request::get('recentlySearch') . '_' . core_Lg::getCurrent());
-        list($tpl, $createdOn) = core_Cache::get('RecentDoc', $key);
+        $cachedData = core_Cache::get('RecentDoc', $key);
+        list($tpl, $createdOn) = is_array($cachedData) ? $cachedData : array(null, null);
         
-        if (!$tpl || $createdOn != $lastRec->last) {
+        if (!$tpl || $createdOn != $lastModifiedOn) {
             
             // Създаваме обекта $data
             $data = new stdClass();
@@ -427,7 +443,7 @@ class bgerp_Recently extends core_Manager
             // Рендираме изгледа
             $tpl = $Recently->renderPortal($data);
             
-            core_Cache::set('RecentDoc', $key, array($tpl, $lastRec->last), doc_Setup::get('CACHE_LIFETIME'));
+            core_Cache::set('RecentDoc', $key, array($tpl, $lastModifiedOn), doc_Setup::get('CACHE_LIFETIME'));
         }
         
         return $tpl;
