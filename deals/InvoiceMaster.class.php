@@ -340,6 +340,9 @@ abstract class deals_InvoiceMaster extends core_Master
         $Detail->calculateAmount($recs, $rec);
 
         $rate = ($rec->displayRate) ? $rec->displayRate : $rec->rate;
+        if (!isset($this->_total)) {
+            $this->_total = (object)array('amount' => 0, 'vat' => 0, 'discount' => 0, 'vats' => array());
+        }
 
         $rec->dealValue = $this->_total->amount * $rate;
         $rec->vatAmount = empty($this->_total->vat) ? 0 : $this->_total->vat * $rate;
