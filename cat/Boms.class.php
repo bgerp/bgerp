@@ -746,7 +746,7 @@ class cat_Boms extends core_Master
                     $price = 0;
                 }
 
-                $overheadCost = $rec->expenses;
+                $overheadCost = $rec->expenses ?? null;
                 if (!isset($rec->expenses)) {
                     $defaultOverheadCost = cat_Products::getDefaultOverheadCost($rec->productId);
                     if (!empty($defaultOverheadCost)) {
@@ -1981,7 +1981,7 @@ class cat_Boms extends core_Master
         $res = array();
         $bomInfo = cat_Boms::getResourceInfo($bomId, $quantity, dt::now(), $jobQuantity);
 
-        if (!countR($bomInfo['resources'])) return $res;
+        if (!countR($bomInfo['resources'] ?? null)) return $res;
 
         foreach ($bomInfo['resources'] as $pRec) {
             $productRec = cat_Products::fetch($pRec->productId, 'canStore,generic');
@@ -2003,6 +2003,9 @@ class cat_Boms extends core_Master
                     $sQuery = store_StockPlanning::getQuery();
                     $sQuery->where("#storeId = {$storeId}");
                     foreach ($ignoreReservedByDocsArr as $ignoreArr){
+                        if (!isset($ignoreArr[0], $ignoreArr[1])) {
+                            continue;
+                        }
                         $sQuery->where("#sourceClassId = {$ignoreArr[0]} AND #sourceId = {$ignoreArr[1]}");
                     }
                     while($sRec = $sQuery->fetch()) {
@@ -2015,8 +2018,8 @@ class cat_Boms extends core_Master
                 array_walk($productArr, function($pId) use (&$quantity, $storeId, $reservedByJobs) {
                     $quantity += store_Products::getQuantities($pId, $storeId)->free;
                     if(array_key_exists($pId, $reservedByJobs)){
-                        $quantity += $reservedByJobs[$pId]->quantityOut;
-                        $quantity -= $reservedByJobs[$pId]->quantityIn;
+                        $quantity += $reservedByJobs[$pId]->quantityOut ?? 0;
+                        $quantity -= $reservedByJobs[$pId]->quantityIn ?? 0;
                     }
                 });
 

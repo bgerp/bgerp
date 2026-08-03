@@ -375,7 +375,7 @@ class cat_BomDetails extends doc_Detail
 
                 $masterRec = cat_Boms::fetch($rec->bomId);
                 if(empty($rec->id)){
-                    cat_products_Params::addProductParamsToForm($mvc, $rec->id, $masterRec->productId, $rec->resourceId, $form);
+                    cat_products_Params::addProductParamsToForm($mvc, $rec->id ?? null, $masterRec->productId, $rec->resourceId, $form);
                 }
 
                 $form->setFieldTypeParams("norm", array('measureId' => cat_Products::fetchField($rec->resourceId, 'measureId')));
@@ -722,7 +722,7 @@ class cat_BomDetails extends doc_Detail
 
             // Ако има артикул със същата позиция, или няма позиция добавяме нова
             if (!isset($rec->position)) {
-                $rec->position = $mvc->getDefaultPosition($rec->bomId, $rec->parentId);
+                $rec->position = $mvc->getDefaultPosition($rec->bomId, $rec->parentId ?? null);
             }
             
             if (!$form->gotErrors()) {
