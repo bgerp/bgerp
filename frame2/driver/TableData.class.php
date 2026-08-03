@@ -570,7 +570,8 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
         
         $groups = array();
         foreach ($rows as $index => $row) {
-            $groups[$recs[$index]->{$field}] = $row->{$field};
+            $groupId = $recs[$index]->{$field} ?? null;
+            $groups[$groupId] = $row->{$field} ?? '';
         }
         
         $newRows = $rowAttr = array();
@@ -593,7 +594,7 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
             // За всички записи
             foreach ($rows as $index => $row1) {
                 $r = $recs[$index];
-                if ($r->{$field} == $groupId) {
+                if (($r->{$field} ?? null) == $groupId) {
                     if ($data->groupedFieldOnNewRow === true || ($data->groupedFieldOnNewRow === false && $firstRow !== true)) {
                         unset($rows[$index]->{$field});
                     }
