@@ -22,7 +22,7 @@ class sass_Plugin extends core_Plugin
     {
         $pathArr = pathinfo($path);
         
-        if ($pathArr['extension'] == 'css') {
+        if (($pathArr['extension'] ?? null) == 'css') {
             $scssRelPath = $pathArr['dirname'] . '/' . $pathArr['filename'] . '.scss';
             $scssFile = getFullPath($scssRelPath);
             if (file_exists($scssFile)) {
