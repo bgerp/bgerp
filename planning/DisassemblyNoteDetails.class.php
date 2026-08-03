@@ -356,8 +356,7 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
             $iData->recs = array_intersect_key($iData->recs, $iData->rows);
 
             $this->invoke('BeforeRenderListTable', array(&$tpl, &$iData));
-            $iData->listTableMvc->appendFieldClass('code', 'tdClass', 'productionCodeColumn');
-            $iData->listTableMvc->appendFieldClass('code', 'tdClass', 'rightCol');
+            $iData->listTableMvc->appendFieldClass('code', 'tdClass', 'productionCodeColumn rightCol');
             $iData->listFields['storeId'] = 'От склад';
 
             $inputTable = cls::get('core_TableView', array('mvc' => $iData->listTableMvc));
@@ -381,7 +380,7 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
         $pData->listFields['storeId'] = 'В склад';
 
         $this->invoke('BeforeRenderListTable', array(&$tpl, &$pData));
-        $pData->listTableMvc->appendFieldClass('code', 'tdClass', 'productionCodeColumn');
+        $pData->listTableMvc->appendFieldClass('code', 'tdClass', 'productionCodeColumn rightCol');
 
         $productionTable = cls::get('core_TableView', array('mvc' => $pData->listTableMvc));
         $productionTable->tableClass = 'listTable disassemblyNoteTable';
