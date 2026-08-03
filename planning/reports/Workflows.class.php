@@ -906,39 +906,41 @@ class planning_reports_Workflows extends frame2_driver_TableData
      */
     protected static function on_AfterGetExportRec(frame2_driver_Proto $Driver, &$res, $rec, $dRec, $ExportClass)
     {
-        if ($dRec->originId) {
+        if (!empty($dRec->originId)) {
             $Job = doc_Containers::getDocument($dRec->originId);
-            $handle = $Job->getHandle();
+            $handle = $Job ? $Job->getHandle() : null;
 
-            $res->jobs = $handle;
+            if ($handle) {
+                $res->jobs = $handle;
+            }
         }
-        if(!$dRec->total) {
-            $res->taskId = planning_Tasks::getTitleById($dRec->taskId);
-            $res->productId = cat_Products::getTitleById($dRec->productId);
-            $res->measureId = cat_UoM::getShortName($dRec->measureId);
+        if(empty($dRec->total)) {
+            $res->taskId = planning_Tasks::getTitleById($dRec->taskId ?? null);
+            $res->productId = cat_Products::getTitleById($dRec->productId ?? null);
+            $res->measureId = cat_UoM::getShortName($dRec->measureId ?? null);
         }
         if (isset($dRec->employees)) {
             foreach (keylist::toArray($dRec->employees) as $key => $val) {
 
-                $res->employees = crm_Persons::fetch($val)->name;
+                $res->employees = crm_Persons::fetchField($val, 'name');
             }
         }
 
-        if (isset($dRec->assetResources)) {
-            $res->assetResources = planning_AssetResources::fetch($dRec->assetResources)->name;
+        if (!empty($dRec->assetResources)) {
+            $res->assetResources = planning_AssetResources::fetchField($dRec->assetResources, 'name');
         } else {
             $res->assetResources = '';
         }
 
-        if ($rec->typeOfReport == 'short') {
-            $res->indTimeSum = ($dRec->indTimeSum / 60);
+        if (($rec->typeOfReport ?? 'short') == 'short') {
+            $res->indTimeSum = (($dRec->indTimeSum ?? 0) / 60);
         }
 
 
-        $res->min = ($dRec->indTimeSum / 60);
+        $res->min = (($dRec->indTimeSum ?? 0) / 60);
 
-        $res->labelMeasure = ($dRec->type == 'input') ? 'бр.' : cat_UoM::getShortName($dRec->labelMeasure);
-        $res->labelQuantity = ($dRec->labelQuantity);
+        $res->labelMeasure = (($dRec->type ?? null) == 'input') ? 'бр.' : cat_UoM::getShortName($dRec->labelMeasure ?? null);
+        $res->labelQuantity = $dRec->labelQuantity ?? 0;
     }
 
 
@@ -953,7 +955,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
     {
         $key = '';
 
-        switch ($rec->resultsOn) {
+        switch ($rec->resultsOn ?? 'users') {
 
             case 'arts':
                 $key = $tRec->taskId . '|' . $tRec->productId;
@@ -1003,6 +1005,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
         expect($recId = Request::get('recId', 'int'));
 
         $rec = frame2_Reports::fetch($recId);
+        expect($rec);
 
         frame2_Reports::refresh($rec);
 
@@ -1011,7 +1014,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
         $form->title = "Филтър по служители и машини ";
 
 
-        if ($rec->centre) {
+        if (!empty($rec->centre)) {
 
 
             $suggestionsEmpl = array();
@@ -1019,7 +1022,12 @@ class planning_reports_Workflows extends frame2_driver_TableData
 
             foreach (keylist::toArray($rec->centre) as $val) {
 
-                $sugg = planning_Hr::getByFolderId(planning_Centers::fetch($val)->folderId);
+                $folderId = planning_Centers::fetchField($val, 'folderId');
+                if (!$folderId) {
+                    continue;
+                }
+                $sugg = planning_Hr::getByFolderId($folderId);
+                $sugg = is_array($sugg) ? $sugg : array();
 
                 if (empty($suggestionsEmpl)) {
                     $suggestionsEmpl = $sugg;
@@ -1036,7 +1044,8 @@ class planning_reports_Workflows extends frame2_driver_TableData
 
                 unset($sugg);
 
-                $sugg = planning_AssetResources::getByFolderId(planning_Centers::fetch($val)->folderId);
+                $sugg = planning_AssetResources::getByFolderId($folderId);
+                $sugg = is_array($sugg) ? $sugg : array();
 
                 if (empty($suggestionsAssets)) {
                     $suggestionsAssets = $sugg;
@@ -1057,10 +1066,10 @@ class planning_reports_Workflows extends frame2_driver_TableData
 
             $form->setSuggestions('empployFilter', $suggestionsEmpl);
             $form->setSuggestions('assetFilter', $suggestionsAssets);
-            if ($rec->employees) {
+            if (!empty($rec->employees)) {
                 $form->rec->empployFilter = $rec->employees;
             }
-            if ($rec->assetResources) {
+            if (!empty($rec->assetResources)) {
                 $form->rec->assetFilter = $rec->assetResources;
             }
 
@@ -1072,12 +1081,12 @@ class planning_reports_Workflows extends frame2_driver_TableData
 
             if ($form->isSubmitted()) {
 
-                if (!$form->rec->empployFilter) {
+                if (empty($form->rec->empployFilter)) {
                     $rec->employees = null;
                 } else {
                     $rec->employees = $form->rec->empployFilter;
                 }
-                if (!$form->rec->assetFilter) {
+                if (empty($form->rec->assetFilter)) {
                     $rec->assetResources = null;
                 } else {
                     $rec->assetResources = $form->rec->assetFilter;
@@ -1085,12 +1094,12 @@ class planning_reports_Workflows extends frame2_driver_TableData
 
                 frame2_Reports::save($rec);
                 frame2_Reports::refresh($rec);
-                return new Redirect(array('doc_Containers', 'list', 'threadId' => $rec->threadId, 'docId' => $recId, 'ret_url' => true));
+                return new Redirect(array('doc_Containers', 'list', 'threadId' => $rec->threadId ?? null, 'docId' => $recId, 'ret_url' => true));
             }
 
         } else {
             status_Messages::newStatus('Липсва избран център на дейност', 'warning');
-            return new Redirect(array('doc_Containers', 'list', 'threadId' => $rec->threadId, 'docId' => $recId, 'ret_url' => true));
+            return new Redirect(array('doc_Containers', 'list', 'threadId' => $rec->threadId ?? null, 'docId' => $recId, 'ret_url' => true));
         }
         return $form->renderHtml();
     }
