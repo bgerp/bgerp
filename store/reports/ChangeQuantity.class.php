@@ -114,7 +114,7 @@ class store_reports_ChangeQuantity extends frame2_driver_TableData
             $recMaterial->quantity = $recMaterial->quantity ?? 0;
             $recMaterial->reservedQuantity = $recMaterial->reservedQuantity ?? 0;
             $recMaterial->expectedQuantity = $recMaterial->expectedQuantity ?? 0;
-            
+
             // добавяме в масива събитието
             if (!array_key_exists($id, $recs)) {
                 $productInfo = cat_Products::getProductInfo($id);
