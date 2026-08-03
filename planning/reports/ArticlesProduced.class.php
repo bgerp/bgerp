@@ -553,7 +553,7 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
         }
 
         //Добавяне на колона за теглото
-        if ($rec->seeWeight == 'yes' && $rec->accProd == 'no') {
+        if (($rec->seeWeight ?? 'no') == 'yes' && $rec->accProd == 'no') {
 
             foreach ($recs as $val) {
 
@@ -619,7 +619,7 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
         $fld->FLD('amount', 'varchar', 'caption=Стойност,tdClass=centered');
 
 
-        if ($rec->seeWeight == 'yes') {
+        if (($rec->seeWeight ?? 'no') == 'yes') {
             $fld->FLD('weight', 'double(smartRound,decimals=2)', "smartCenter,caption=Тегло->[кг]");
         }
         $monthArr = $rec->montsArr;
