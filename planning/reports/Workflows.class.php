@@ -689,7 +689,8 @@ class planning_reports_Workflows extends frame2_driver_TableData
         }
 
         if ($dRec->taskId){
-            $row->taskId = '№'.$dRec->saoOrder.' / '. planning_Tasks::getHyperlink($dRec->taskId, true);
+            $saoOrder = $dRec->saoOrder ?? planning_Tasks::fetchField($dRec->taskId, 'saoOrder');
+            $row->taskId = ($saoOrder ? "№{$saoOrder} / " : '') . planning_Tasks::getHyperlink($dRec->taskId, true);
         }
 
         $row->productId = cat_Products::getHyperlink($dRec->productId, true);
