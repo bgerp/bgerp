@@ -23,9 +23,11 @@ class cat_type_Size extends cat_type_Uom
      */
     public function init($params = array())
     {
+        $typeParams = is_array($params) && is_array($params['params'] ?? null) ? $params['params'] : array();
+
         // Основната мярка на типа е метри
-        $this->params['unit'] = ($params['params']['unit'] ?? null) ?: 'm';
-        $this->params = array_merge($this->params, $params['params']);
+        $this->params['unit'] = ($typeParams['unit'] ?? null) ?: 'm';
+        $this->params = array_merge($this->params, $typeParams);
         
         parent::init($this->params);
     }

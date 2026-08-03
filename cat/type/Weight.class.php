@@ -23,11 +23,11 @@ class cat_type_Weight extends cat_type_Uom
      */
     public function init($params = array())
     {
+        $typeParams = is_array($params) && is_array($params['params'] ?? null) ? $params['params'] : array();
+
         // Основната мярка на типа е килограм
         $this->params['unit'] = 'kg';
-        if (is_array($params['params'])) {
-            $this->params = array_merge($this->params, $params['params']);
-        }
+        $this->params = array_merge($this->params, $typeParams);
         
         parent::init($this->params);
     }
