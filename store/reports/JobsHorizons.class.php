@@ -408,7 +408,7 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
             $fieldTpl->append('<b>' . $data->rec->ariculsData . '</b>', 'ariculsData');
         }
 
-        if ($data->rec->typeOfQuantity == 'free') {
+        if (($data->rec->typeOfQuantity ?? null) == 'free') {
 
             $dateVerb = dt::mysql2verbal($data->rec->date, 'd.m.Y');
             $fieldTpl->append('<b>' . 'Разполагаемо към ' . $dateVerb . '</b>', 'typeOfQuantity');
