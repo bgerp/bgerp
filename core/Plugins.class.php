@@ -41,8 +41,14 @@ class core_Plugins extends core_Manager
      * @var array
      */
     private $attachedPlugins;
-    
-    
+
+
+    /**
+     * Брой записи на страница
+     */
+    public $listItemsPerPage = 500;
+
+
     /**
      * Описание на модела
      */
