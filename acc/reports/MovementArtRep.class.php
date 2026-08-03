@@ -98,7 +98,7 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
         if ($form->isSubmitted()) {
 
             // Проверка има ли избрани вложени групи
-            if (cat_Groups::checkForNestedGroups($rec->group)) {
+            if (cat_Groups::checkForNestedGroups($rec->group ?? null)) {
                 $form->setError('group', 'Избрани са вложени групи');
             }
 
@@ -133,6 +133,10 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
     {
         $recs = array();
         $itemAll = array();
+        $rec->from = $rec->from ?? date('Y-m-01');
+        $rec->to = $rec->to ?? dt::today();
+        $rec->group = $rec->group ?? null;
+        $rec->uomKg = $rec->uomKg ?? 'base';
 
         // Обръщаме се към продуктите и търсим всички складируеми и неоттеглени продукти
         $query = cat_Products::getQuery();
@@ -170,22 +174,24 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
         // Начално количество
         $baseQuantities = array();
 
-        // Намира се баланса на началния период
-        $periodRec = acc_Periods::fetchByDate($rec->from);
-        $balanceId = acc_Balances::fetchField("#periodId = {$periodRec->id}", 'id');
-
         // Извличат се само записите за сметка 321 с участието на перата на артикулите
         $Balance = new acc_ActiveShortBalance(array('from' => $rec->from, 'to' => $rec->to, 'accs' => '321', 'cacheBalance' => false, 'keepUnique' => true));
         $balanceRec = $Balance->getBalance('321');
+        $balanceRec = is_array($balanceRec) ? $balanceRec : array();
 
         // От баланса извличаме всички начални количества във всички складове, групирани по артикули
         foreach ($balanceRec as $bRec) {
-            $productId = $productItemsFlip[$bRec->ent2Id];
+            $productId = $productItemsFlip[$bRec->ent2Id ?? null] ?? null;
+            if (!$productId) {
+                continue;
+            }
+
+            $baseQuantity = $bRec->baseQuantity ?? 0;
 
             if (!array_key_exists($productId, $baseQuantities)) {
-                $baseQuantities[$productId] = $bRec->baseQuantity;
+                $baseQuantities[$productId] = $baseQuantity;
             } else {
-                $baseQuantities[$productId] = ($baseQuantities[$productId] ?? 0) + $bRec->baseQuantity;
+                $baseQuantities[$productId] = ($baseQuantities[$productId] ?? 0) + $baseQuantity;
             }
         }
 
@@ -240,17 +246,17 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
 
                 // Доставено: Влязло в склада от доставчици
                 if ($delRes = acc_Balances::getBlQuantities($jRecs, '321', 'debit', '401', array(null, $itemId, null))) {
-                    $obj->delivered = $delRes[$itemId]->quantity;
+                    $obj->delivered = $delRes[$itemId]->quantity ?? 0;
                 }
 
                 // Доставено влязло в склада от инвентаризация
                 if ($delRes1 = acc_Balances::getBlQuantities($jRecs, '321', 'credit', '799', array(null, $itemId, null))) {
-                    $obj->delivered -= $delRes1[$itemId]->quantity;
+                    $obj->delivered -= $delRes1[$itemId]->quantity ?? 0;
                 }
 
                 // Вложено детайлно
                 if ($convRes = acc_Balances::getBlQuantities($jRecs5, '61101', 'debit', '321', array($itemId, null, null))) {
-                    $obj->converted = $convRes[$itemId]->quantity;
+                    $obj->converted = $convRes[$itemId]->quantity ?? 0;
                 }
 
 //                 // Вложено в протокола за производство - мисля, че е излишно
@@ -259,57 +265,57 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
 //                 }
                 // Вложено бездетайлно
                 if ($convRes2 = acc_Balances::getBlQuantities($jRecs5, '321', 'credit', '61102', array(null, $itemId, null))) {
-                    $obj->converted += $convRes2[$itemId]->quantity;
+                    $obj->converted += $convRes2[$itemId]->quantity ?? 0;
                 }
 
                 // Вложено в протокола за производство
                 if ($convRes3 = acc_Balances::getBlQuantities($jRecs5, '321', 'credit', '61103', array(null, $itemId, null))) {
-                    $obj->converted += $convRes3[$itemId]->quantity;
+                    $obj->converted += $convRes3[$itemId]->quantity ?? 0;
                 }
                 // Вложено от инвентаризация
                 if ($convRes4 = acc_Balances::getBlQuantities($jRecs5, '321', 'credit', '699', array(null, $itemId, null))) {
-                    $obj->converted += $convRes4[$itemId]->quantity;
+                    $obj->converted += $convRes4[$itemId]->quantity ?? 0;
                 }
 
                 // Приспадане на вложеното с върнатото от производството детайлно
                 if ($convRes5 = acc_Balances::getBlQuantities($jRecs3, '321', 'debit', '61101', array(null, $itemId, null))) {
-                    $obj->converted -= $convRes5[$itemId]->quantity;
+                    $obj->converted -= $convRes5[$itemId]->quantity ?? 0;
                 }
 
                 // Приспадане на вложеното с върнатото от производството бездетайлно
                 if ($convRes6 = acc_Balances::getBlQuantities($jRecs3, '321', 'debit', '61102', array(null, $itemId, null))) {
-                    $obj->converted -= $convRes6[$itemId]->quantity;
+                    $obj->converted -= $convRes6[$itemId]->quantity ?? 0;
                 }
 
                 // Произведено от протокол за производство (Незавършено производство)
                 if ($prodRes1 = acc_Balances::getBlQuantities($jRecs2, '321', 'debit', '61101', array(null, $itemId, null))) {
-                    $obj->produced += $prodRes1[$itemId]->quantity;
+                    $obj->produced += $prodRes1[$itemId]->quantity ?? 0;
                 }
 
                 // Произведено от протокол за производство (Бездетайлно произвеждане)
                 if ($prodRes2 = acc_Balances::getBlQuantities($jRecs2, '321', 'debit', '61102', array(null, $itemId, null))) {
-                    $obj->produced += $prodRes2[$itemId]->quantity;
+                    $obj->produced += $prodRes2[$itemId]->quantity ?? 0;
                 }
 
                 // Произведено от протокол за производство (Влагане на материал в производството от склад)
                 if ($prodRes3 = acc_Balances::getBlQuantities($jRecs2, '321', 'debit', '61103', array(null, $itemId, null))) {
-                    $obj->produced += $prodRes3[$itemId]->quantity;
+                    $obj->produced += $prodRes3[$itemId]->quantity ?? 0;
                 }
 
                 // Продадено
                 if ($soldRes = acc_Balances::getBlQuantities($jRecs, '701', 'debit', '321', array(null, null, $itemId))) {
-                    $obj->sold = $soldRes[$itemId]->quantity;
+                    $obj->sold = $soldRes[$itemId]->quantity ?? 0;
                 }
 
                 // Продадено
                 if ($soldRes2 = acc_Balances::getBlQuantities($jRecs, '706', 'debit', '321', array(null, null, $itemId))) {
-                    $obj->sold += $soldRes2[$itemId]->quantity;
+                    $obj->sold += $soldRes2[$itemId]->quantity ?? 0;
                 }
 
                 // Крайно количество
                 $obj->blQuantity = $baseQuantity;
                 if ($blRes = acc_Balances::getBlQuantities($jRecs, '321', null, null, array(null, $itemId, null))) {
-                    $obj->blQuantity += $blRes[$itemId]->quantity;
+                    $obj->blQuantity += $blRes[$itemId]->quantity ?? 0;
                 }
 
                 $recs[$productRec->id] = $obj;
@@ -355,8 +361,18 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
 
             // Отделяме тези записи, които съдържат текущия маркер
             $res = array_filter($recs, function (&$e) use ($grId, $groupName, &$data) {
-                if (keylist::isIn($grId, $e->groups) || $grId === 'total') {
+                if (keylist::isIn($grId, $e->groups ?? null) || $grId === 'total') {
                     $e->groupId = $grId;
+                    if (!isset($data->totals[$e->groupId])) {
+                        $data->totals[$e->groupId] = array(
+                            'baseQuantity' => 0,
+                            'blQuantity' => 0,
+                            'delivered' => 0,
+                            'produced' => 0,
+                            'converted' => 0,
+                            'sold' => 0,
+                        );
+                    }
                     $data->totals[$e->groupId]['baseQuantity'] += $e->baseQuantity;
                     $data->totals[$e->groupId]['blQuantity'] += $e->blQuantity;
                     $data->totals[$e->groupId]['delivered'] += $e->delivered;
@@ -394,8 +410,9 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
     {
         $baseQuantity = $blQuantity = $delivered = $produced = $converted = $sold = '';
         foreach (array('baseQuantity', 'blQuantity', 'delivered', 'produced', 'converted', 'sold') as $totalFld) {
-            ${$totalFld} = core_Type::getByName('double(decimals=2)')->toVerbal($data->totals[$groupValue][$totalFld]);
-            if ($data->totals[$groupValue][$totalFld] < 0) {
+            $totalValue = $data->totals[$groupValue][$totalFld] ?? 0;
+            ${$totalFld} = core_Type::getByName('double(decimals=2)')->toVerbal($totalValue);
+            if ($totalValue < 0) {
                 ${$totalFld} = "<span class='red'>{${$totalFld}}</span>";
             }
         }
@@ -428,7 +445,7 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
         $fld->FLD('sold', 'double(smartRound,decimals=2)', 'caption=Количество->Продадено');
         $fld->FLD('blQuantity', 'double(smartRound,decimals=2)', 'caption=Количество->Крайно');
 
-        if(haveRole('debug') && $rec->uomKg == 'weight'){
+        if(haveRole('debug') && ($rec->uomKg ?? 'base') == 'weight'){
             $fld->FLD('singleWeight', 'double(decimals=3)', 'caption=Ед.тегло');
         }
 
@@ -471,7 +488,7 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
                 $row->{$fld} = "<span class='quiet'>{$row->{$fld}}</span>";
             }
         }
-        $row->singleWeight =$dRec->singleWeight;
+        $row->singleWeight = $dRec->singleWeight ?? null;
         return $row;
     }
 
@@ -546,6 +563,7 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
     {
 
         $res = $weightMeasuresId = array();
+        $kgMeasureId = null;
         $query = cat_UoM::getQuery();
         $query->in('name', array('килограм', 'тон', 'грам'));
         while ($qRec = $query->fetch()) {
@@ -556,6 +574,14 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
             }
         }
 
+        if (!$kgMeasureId) {
+            $kgMeasure = cat_UoM::fetchBySysId('kg');
+            $kgMeasureId = $kgMeasure->id ?? null;
+        }
+        if (!$kgMeasureId) {
+            return $recs;
+        }
+
         $res = $recs;
         foreach ($recs as $key => $val) {
 
@@ -563,8 +589,6 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
 
                 //Взема единичното тегло на целия продукт
                 $singleProductWeight = null;
-                $prodRec = cat_Products::fetch($val->productId);
-
                 $singleProductWeight = cat_Products::getParams($val->productId, 'weight');
 
                 if ($singleProductWeight) {
@@ -578,8 +602,8 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
                     $prodInfo = cat_Products::getProductInfo($val->productId);
                     if(!empty($prodInfo->packagings)){
                         foreach ($prodInfo->packagings as $measure){
-                            if($measure->isSecondMeasure == 'yes'){
-                                $singleProductWeight = 1/$measure->quantity;
+                            if(($measure->isSecondMeasure ?? 'no') == 'yes' && !empty($measure->quantity)){
+                                $singleProductWeight = 1 / $measure->quantity;
                             }
                         }
                     }
@@ -622,14 +646,16 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
      */
     protected function getPeriodRange($rec)
     {
-        $from = $rec->from;
-        if(is_numeric($rec->from)){
-            $from = acc_Periods::fetch($rec->from)->start;
+        $from = $rec->from ?? null;
+        if(is_numeric($from)){
+            $fromPeriod = acc_Periods::fetch($from);
+            $from = $fromPeriod->start ?? null;
         }
 
-        $to = $rec->to;
-        if(is_numeric($rec->to)){
-            $to = dt::getLastDayOfMonth(acc_Periods::fetch($rec->to)->start);
+        $to = $rec->to ?? null;
+        if(is_numeric($to)){
+            $toPeriod = acc_Periods::fetch($to);
+            $to = isset($toPeriod->start) ? dt::getLastDayOfMonth($toPeriod->start) : null;
         }
 
         return array('from' => $from, 'to' => $to);
