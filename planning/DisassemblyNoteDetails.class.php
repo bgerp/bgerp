@@ -112,7 +112,7 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
         $this->FLD('isMainInput', 'enum(no=Не,yes=Да)', 'caption=Основен артикул за влагане,input=none,notNull,value=no');
         parent::setDetailFields($this);
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty,mandatory)', 'caption=Склад,input=none,tdClass=custom-field nowrap', array('thAttr' => array('style' => 'width:160px')));
-
+        $this->setField('packagingId', "tdClass=small-field");
         $this->setDbIndex('productId');
         $this->setDbIndex('noteId,type');
     }
@@ -331,6 +331,8 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
         // Запазваме еднакъв набор и ред на колоните във всички таблици.
         $commonListFields = arr::make($data->listFields, true);
 
+        $data->listTableMvc = clone $this;
+
         // Мини-таблица с ОСНОВНИЯ артикул за разпад - показва се отделно, над
         // таблицата с произведените артикули (виж MAIN_INPUT_PRODUCT_TABLE в
         // шаблона), не заедно с (евентуални) други артикули за влагане
@@ -344,11 +346,11 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
             $mData->recs = array_intersect_key($mData->recs, $mData->rows);
 
             $this->invoke('BeforeRenderListTable', array(&$tpl, &$mData));
-            self::addTableFieldClass($mData->listTableMvc, 'productId', 'disassemblyProductColumn');
+            $mData->listTableMvc->setField('productId', "tdClass=productCell leftCol wrap disassemblyProductColumn");
             self::addTableFieldClass($mData->listTableMvc, 'packQuantity', 'productionQuantityColumn');
             self::addTableFieldClass($mData->listTableMvc, 'code', 'productionCodeColumn');
             self::addTableFieldClass($mData->listTableMvc, 'code', 'rightCol');
-            self::addTableFieldClass($mData->listTableMvc, 'tools', 'rightCol');
+            $mData->listTableMvc->FNC('tools', 'int', 'tdClass=rowNumColumn');
             $mData->listFields['storeId'] = 'От склад';
 
             $mainInputTable = cls::get('core_TableView', array('mvc' => $mData->listTableMvc));
@@ -373,7 +375,6 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
             self::addTableFieldClass($iData->listTableMvc, 'code', 'productionCodeColumn');
             self::addTableFieldClass($iData->listTableMvc, 'code', 'rightCol');
             $iData->listTableMvc->FNC('tools', 'int', 'tdClass=rowNumColumn');
-            self::addTableFieldClass($iData->listTableMvc, 'tools', 'rightCol');
             $iData->listFields['storeId'] = 'От склад';
 
             $inputTable = cls::get('core_TableView', array('mvc' => $iData->listTableMvc));
@@ -400,9 +401,7 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
         self::addTableFieldClass($pData->listTableMvc, 'productId', 'disassemblyProductColumn');
         self::addTableFieldClass($pData->listTableMvc, 'packQuantity', 'productionQuantityColumn');
         self::addTableFieldClass($pData->listTableMvc, 'code', 'productionCodeColumn');
-        self::addTableFieldClass($pData->listTableMvc, 'code', 'rightCol');
         $pData->listTableMvc->FNC('tools', 'int', 'tdClass=rowNumColumn');
-        self::addTableFieldClass($pData->listTableMvc, 'tools', 'rightCol');
 
         $productionTable = cls::get('core_TableView', array('mvc' => $pData->listTableMvc));
         $productionTable->tableClass = 'listTable disassemblyNoteTable';
