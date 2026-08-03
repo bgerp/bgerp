@@ -638,7 +638,7 @@ class cat_products_Packagings extends core_Detail
         }
 
         if (!empty($rec->tareWeight)) {
-            $row->weight .= "<span class='quiet'>" . tr('Тара') . ': </span>' . $row->tareWeight;
+            $row->weight = ($row->weight ?? '') . "<span class='quiet'>" . tr('Тара') . ': </span>' . $row->tareWeight;
         }
 
         if ($rec->isBase == 'yes') {
