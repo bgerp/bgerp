@@ -197,6 +197,7 @@ class pos_reports_BestSellingItems extends frame2_driver_TableData
                 //Честота на продажбите(брой дни в които е продаван артикул)
                 if (!array_key_exists($receiptDetailRec->productId . '|' . $sellDate, $date)) {
                     $date[$receiptDetailRec->productId . '|' . $sellDate] = $sellDate;
+                    $salesFrequency[$receiptDetailRec->productId] = $salesFrequency[$receiptDetailRec->productId] ?? 0;
                     $salesFrequency[$receiptDetailRec->productId]++;
                 }
 
@@ -383,4 +384,3 @@ class pos_reports_BestSellingItems extends frame2_driver_TableData
     }
 
 }
-

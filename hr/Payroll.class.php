@@ -131,6 +131,8 @@ class hr_Payroll extends core_Manager
      */
     protected static function on_AfterPrepareListFilter($mvc, &$res, $data)
     {
+        $data->listFilter->setField('periodId', 'placeholder=Всички');
+        $data->listFilter->setField('personId', 'placeholder=Всички');
         $data->listFilter->showFields = 'periodId,personId';
         $data->listFilter->view = 'horizontal';
         $data->listFilter->input();

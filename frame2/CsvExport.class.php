@@ -113,16 +113,18 @@ class frame2_CsvExport extends core_Mvc
         
         // Подготовка на данните
         $lang = null;
+        $Driver = null;
+        $fileHnd = null;
         $csvRecs = $fields = array();
-        $title = $frameRec->titie;
+        $title = $frameRec->title ?? $Frame->getTitleById($objId);
         if ($Driver = $Frame->getDriver($frameRec)) {
-            $title = $Driver->getTitle($frameRec);
+            $title = $Driver->getTitle($frameRec) ?: $title;
             $lang = $Driver->getRenderLang($frameRec);
             if(isset($lang)){
                 core_Lg::push($lang);
             }
 
-            Mode::push('series', $form->rec->series);
+            Mode::push('series', $form->rec->series ?? null);
             $csvRecs = $Driver->getExportRecs($frameRec, $this);
             $fields = $Driver->getCsvExportFieldset($frameRec);
             Mode::pop('series');
@@ -133,10 +135,6 @@ class frame2_CsvExport extends core_Mvc
             
             // Създаване на csv-то
             $csv = csv_Lib::createCsv($csvRecs, $fields, null, $params);
-            
-            if(isset($lang)){
-                core_Lg::pop();
-            }
             
             // Подсигуряване че енкодига е UTF8
             $csv = mb_convert_encoding($csv, 'UTF-8', 'UTF-8');
@@ -152,6 +150,10 @@ class frame2_CsvExport extends core_Mvc
             $fileId = fileman::fetchByFh($fileHnd, 'id');
             doc_Linked::add($frameRec->containerId, $fileId, 'doc', 'file');
         }
+
+        if (isset($lang)) {
+            core_Lg::pop();
+        }
         
         if (isset($fileHnd)) {
             $form->toolbar->addBtn('Сваляне', array('fileman_Download', 'download', 'fh' => $fileHnd, 'forceDownload' => true), 'ef_icon = fileman/icons/16/csv.png, title=Сваляне на документа');
@@ -166,8 +168,10 @@ class frame2_CsvExport extends core_Mvc
             $form->setField($fld, 'input=none');
         }
 
-        $cacheKey = $this->getCacheKey($Driver);
-        core_Permanent::set("{$cacheKey}_encoding", $params['encoding'], core_Permanent::FOREVER_VALUE);
+        if ($Driver) {
+            $cacheKey = $this->getCacheKey($Driver);
+            core_Permanent::set("{$cacheKey}_encoding", $params['encoding'], core_Permanent::FOREVER_VALUE);
+        }
 
         return $fileHnd;
     }

@@ -212,7 +212,7 @@ class trans_TransportUnits extends core_Manager
                 $res = null;
 
                 // и има опаковки на които количеството е кратно
-                if(is_array($calcQuantity[0])){
+                if(is_array($calcQuantity[0] ?? null)){
                     if(array_key_exists($packagingId, $calcQuantity[0])){
 
                         // С приоритет е опаковката от документа

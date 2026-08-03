@@ -494,7 +494,8 @@ class planning_AssetResources extends core_Master
      */
     protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
-        $data->listFilter->FNC('folderId', 'key(mvc=doc_Folders, select=title, allowEmpty)', 'caption=Папка,silent,remember,input,refreshForm');
+        $data->listFilter->FNC('folderId', 'key(mvc=doc_Folders, select=title, allowEmpty)', 'caption=Папка,placeholder=Всички,silent,remember,input,refreshForm');
+        $data->listFilter->setField('groupId', 'placeholder=Всички');
         $data->listFilter->setFieldType('state', 'enum(all=Всички,active=Активни,closed=Затворени,usedInTask=Използвани в ПО,notUsedInTask=Неизползвани в ПО)');
         $data->listFilter->setDefault('state', 'active');
 

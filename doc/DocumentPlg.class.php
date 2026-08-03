@@ -802,7 +802,7 @@ class doc_DocumentPlg extends core_Plugin
         // Ако създаваме нов документ и ...
         if (empty($rec->id)) {
             if(($mvc->addLinkedOriginFieldName ?? null) && !empty($rec->{$mvc->addLinkedOriginFieldName}) && $mvc->canAddDocumentToOriginAsLink($rec)){
-                $mvc->addDocumentLinks[$rec->id] = $rec;
+                $mvc->addDocumentLinks[spl_object_hash($rec)] = $rec;
             }
 
             // Опит за извличане на създателя

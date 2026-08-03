@@ -579,6 +579,7 @@ class price_ListToCustomers extends core_Manager
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         $data->listFilter->setFieldTypeParams('listId', array('allowEmpty' => 'allowEmpty'));
+        $data->listFilter->setField('listId', 'placeholder=Всички');
         $data->listFilter->showFields = 'listId';
         $data->listFilter->input(null, 'silent');
 

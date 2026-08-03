@@ -193,6 +193,7 @@ class cat_Serials extends core_Manager
         $data->listFilter->view = 'horizontal';
         $data->listFilter->showFields = 'serial,sourceClassId';
         $data->listFilter->setFieldTypeParams('sourceClassId', 'allowEmpty');
+        $data->listFilter->setField('sourceClassId', 'placeholder=Всички');
         $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
         $data->listFilter->input();
         $data->query->orderBy("#id", "DESC");

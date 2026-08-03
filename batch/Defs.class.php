@@ -109,7 +109,8 @@ class batch_Defs extends core_Manager
      */
     protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
-        $data->listFilter->FLD('type', 'class(interface=batch_BatchTypeIntf,select=title,allowEmpty)', 'caption=Тип,silent');
+        $data->listFilter->FLD('type', 'class(interface=batch_BatchTypeIntf,select=title,allowEmpty)', 'caption=Тип,placeholder=Всички,silent');
+        $data->listFilter->setField('templateId', 'placeholder=Всички');
         $data->listFilter->view = 'horizontal';
         $data->listFilter->showFields = 'search,templateId,type';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');

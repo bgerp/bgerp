@@ -310,11 +310,11 @@ abstract class rack_MovementAbstract extends core_Manager
 
         $data->listFilter->setField('fromIncomingDocument', 'input=none');
         $data->listFilter->setFieldTypeParams('storeId', array('allowEmpty' => 'allowEmpty'));
-        $data->listFilter->setField('storeId', 'autoFilter');
+        $data->listFilter->setField('storeId', 'placeholder=Всички,autoFilter');
         $data->listFilter->FLD('from', 'date', 'caption=От');
         $data->listFilter->FLD('to', 'date', 'caption=До');
         $data->listFilter->FNC('filterUser', 'enum(workerId=Товарач,createdBy=Създадено от)', 'caption=Филтър по,after=to,input');
-        $data->listFilter->FNC('userId', 'user(roles=ceo|rack, rolesForTeams=officer|manager|ceo|storeAll, rolesForAll=ceo|storeAllGlobal,allowEmpty)', 'caption=Потребител,after=filterUser,input');
+        $data->listFilter->FNC('userId', 'user(roles=ceo|rack, rolesForTeams=officer|manager|ceo|storeAll, rolesForAll=ceo|storeAllGlobal,allowEmpty)', 'caption=Потребител,placeholder=Всички,after=filterUser,input');
 
         $data->listFilter->FNC('documentHnd', 'varchar', 'placeholder=Документ,caption=Документ,input,silent,recently');
         $data->listFilter->FLD('state1', 'enum(all=Всички,pending=Чакащи,waiting=Запазени,active=Активни,closed=Приключени)', 'caption=Състояние');

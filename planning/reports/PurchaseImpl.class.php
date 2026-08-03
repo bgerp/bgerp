@@ -63,7 +63,7 @@ class planning_reports_PurchaseImpl extends frame_BaseDriver
     public function addEmbeddedFields(core_FieldSet &$form)
     {
         $form->FLD('time', 'time(suggestions=на момента|1 седмица|2 седмица|3 седмица|4 седмиц|)', 'caption=Хоризонт');
-        $form->FLD('store', 'key(mvc=store_Stores, select=name, allowEmpty)', 'caption=Склад');
+        $form->FLD('store', 'key(mvc=store_Stores, select=name, allowEmpty)', 'caption=Склад,placeholder=Всички');
         
         $this->invoke('AfterAddEmbeddedFields', array($form));
     }

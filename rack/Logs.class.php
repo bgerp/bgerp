@@ -151,12 +151,14 @@ class rack_Logs extends core_Manager
             $newOptions[$action] = $actionOptionRec;
         }
         $data->listFilter->setOptions('action', array('' => '') + $newOptions);
+        $data->listFilter->setField('action', 'placeholder=Всички');
         if($movementId = Request::get('movementId', 'int')){
             $data->query->where("#movementId = {$movementId}");
         }
 
         $data->listFilter->FLD('from', 'date', 'caption=От');
         $data->listFilter->FLD('to', 'date', 'caption=До');
+        $data->listFilter->setField('productId', 'placeholder=Всички');
         $data->listFilter->showFields = 'selectPeriod, from, to, createdBy, search, productId, action';
         $data->listFilter->setField('createdBy', 'caption=Потребител,placeholder=Всички');
         $data->listFilter->setFieldTypeParams('createdBy', array('allowEmpty' => 'allowEmpty'));

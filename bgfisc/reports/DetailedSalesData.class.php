@@ -65,6 +65,9 @@ class bgfisc_reports_DetailedSalesData extends frame2_driver_TableData
     {
         $form = $data->form;
         $rec = $form->rec;
+        $rec->from = $rec->from ?? null;
+        $rec->to = $rec->to ?? null;
+        $rec->operator = $rec->operator ?? null;
         
         
         $form->input('operator');
@@ -97,10 +100,11 @@ class bgfisc_reports_DetailedSalesData extends frame2_driver_TableData
         
         $suggestionsSales = arr::extractValuesFromArray($salesQuery->fetchAll(), 'createdBy');
         
-        $suggestions = ($suggestionsPos+$suggestionsSales);
-        
-        foreach ($suggestions as $val) {
-            $suggestions[$val] = core_Users::fetch("#id = {$val}")->names ?? null;
+        $suggestions = array();
+        foreach (array_unique(array_merge($suggestionsPos, $suggestionsSales)) as $userId) {
+            if ($names = core_Users::fetchField($userId, 'names')) {
+                $suggestions[$userId] = $names;
+            }
         }
         
         asort($suggestions);
@@ -138,6 +142,10 @@ class bgfisc_reports_DetailedSalesData extends frame2_driver_TableData
      */
     protected function prepareRecs($rec, &$data = null)
     {
+        $rec->from = $rec->from ?? null;
+        $rec->to = $rec->to ?? null;
+        $rec->operator = $rec->operator ?? null;
+
         $recs = array();
         
         //Състояние на документите , които влизат в справката
@@ -155,24 +163,32 @@ class bgfisc_reports_DetailedSalesData extends frame2_driver_TableData
         }
         
         while ($regRec = $sQuery -> fetch()) {
+            $classId = $regRec->classId ?? null;
+            $objectId = $regRec->objectId ?? null;
+            if (!$classId || !$objectId) {
+                continue;
+            }
             
             //Уникален номер на продажбата
-            $urn = $regRec->urn;
+            $urn = $regRec->urn ?? '';
             
             //Системен номер на продажбата
-            $sysNumber = $regRec->number;
+            $sysNumber = $regRec->number ?? '';
             
-            $RegClass = cls::get($regRec->classId);
+            $RegClass = cls::get($classId);
             
             $className = $RegClass->className;
             
             
             //Продажби от POS
             if ($RegClass instanceof pos_Receipts) {
-                $posRec = $className::fetch($regRec->objectId);
+                $posRec = $className::fetch($objectId);
+                if (!$posRec) {
+                    continue;
+                }
                 
                 //Ако продажбата Е СТОРНИРАНА не влиза в отчета
-                if (!is_null($posRec->revertId)) {
+                if (!is_null($posRec->revertId ?? null)) {
                     continue;
                 }
                 
@@ -182,7 +198,7 @@ class bgfisc_reports_DetailedSalesData extends frame2_driver_TableData
                 
                 $posDetQuery->EXT('state', 'pos_Receipts', 'externalName=state,externalKey=receiptId');
                 
-                $posDetQuery->EXT('createdBy', 'pos_Receipts', 'externalName=createdBy,externalKey=receiptId');
+                $posDetQuery->EXT('receiptCreatedBy', 'pos_Receipts', 'externalName=createdBy,externalKey=receiptId');
                 
                 $posDetQuery->where(array('#receiptId = [#1#]',$posRec->id));
                 
@@ -191,48 +207,54 @@ class bgfisc_reports_DetailedSalesData extends frame2_driver_TableData
                 
                 //Филтър по оператор
                 if($rec->operator){
-                    $posDetQuery->where("#createdBy = $rec->operator");
+                    $posDetQuery->where("#receiptCreatedBy = $rec->operator");
                 }
                 
                 $vatSum = $amountSum = 0;
                 while ($detail = $posDetQuery->fetch()) {
                     
-                    if (strpos($detail->action, 'sale') === false) {
+                    if (strpos((string)($detail->action ?? ''), 'sale') === false) {
                         continue;
                     }
                     
+                    $productId = $detail->productId ?? null;
+                    if (!$productId) {
+                        continue;
+                    }
+
                     //Ключ за $recs
-                    $id = $regRec->id.'|'.$detail->productId;
+                    $id = ($regRec->id ?? $objectId) . '|' . $productId;
                     
                     //Код на стоката/услугата
-                    if (!is_null(cat_Products::fetchField($detail->productId, 'code'))) {
-                        $productCode = cat_Products::fetchField($detail->productId, 'code');
+                    if (!is_null(cat_Products::fetchField($productId, 'code'))) {
+                        $productCode = cat_Products::fetchField($productId, 'code');
                     } else {
-                        $productCode = 'Art'.$detail->productId;
+                        $productCode = 'Art' . $productId;
                     }
                     
                     //Наименование на стоката/услугата
-                    $name = cat_Products::fetchField($detail->productId, 'name');
+                    $name = cat_Products::fetchField($productId, 'name') ?? '';
                     
                     //количество
-                    $quantity = $detail->quantity;
+                    $quantity = $detail->quantity ?? 0;
                     
                     //Единична цена
-                    $price = $detail->price;
+                    $price = $detail->price ?? 0;
                     
                     //Отстъпка
-                    $discount = $detail->amount * $detail->discountPercent;
+                    $detailAmount = $detail->amount ?? 0;
+                    $discount = $detailAmount * ($detail->discountPercent ?? 0);
                     
                     //ДДС ставка
-                    $vatKoef = $detail->param;
+                    $vatKoef = $detail->param ?? 0;
                     $vatRate = $vatKoef * 100;
                     
                     
                     //ДДС - сума
-                    $vatSum = ($detail->amount - $discount) * $vatKoef;
+                    $vatSum = ($detailAmount - $discount) * $vatKoef;
                     
                     //Обща сума
-                    $amountSum = ($detail->amount - $discount) + $vatSum;
+                    $amountSum = ($detailAmount - $discount) + $vatSum;
                     
                     // добавяме в масива
                     if (!array_key_exists($id, $recs)) {
@@ -258,7 +280,10 @@ class bgfisc_reports_DetailedSalesData extends frame2_driver_TableData
             //Продажби по договор
             if (!$RegClass instanceof pos_Receipts) {
                 
-                $saleRec = $className::fetch($regRec->objectId);
+                $saleRec = $className::fetch($objectId);
+                if (!$saleRec || empty($saleRec->threadId)) {
+                    continue;
+                }
                 
                 $documents = array('sales_Sales' => 'sales_SalesDetails','store_ShipmentOrders' => 'store_ShipmentOrderDetails');
                 foreach ($documents as $key => $val){
@@ -283,8 +308,11 @@ class bgfisc_reports_DetailedSalesData extends frame2_driver_TableData
                 
                 $Detail = $documents[$Master];
                 $Detail = cls::get($Detail);
-                $masterKey = $Detail->masterKey;
-                $detailName = $Detail->className;
+                $masterKey = $Detail->masterKey ?? null;
+                $detailName = $Detail->className ?? null;
+                if (!$masterKey || !$detailName) {
+                    continue;
+                }
                
                 $saleDet = $detailName::getQuery();
                
@@ -294,40 +322,45 @@ class bgfisc_reports_DetailedSalesData extends frame2_driver_TableData
                 
                 $vatSum = $amountSum = 0;
                 while ($detail = $saleDet->fetch()) {
+                    $productId = $detail->productId ?? null;
+                    if (!$productId) {
+                        continue;
+                    }
                     
                     //Ключ за $recs
-                    $id = $regRec->id.'|'.$detail->productId;
+                    $id = ($regRec->id ?? $objectId) . '|' . $productId;
                     
                     //Код на стоката/услугата
-                    if (!is_null(cat_Products::fetchField($detail->productId, 'code'))) {
-                        $productCode = cat_Products::fetchField($detail->productId, 'code');
+                    if (!is_null(cat_Products::fetchField($productId, 'code'))) {
+                        $productCode = cat_Products::fetchField($productId, 'code');
                     } else {
-                        $productCode = 'Art'.$detail->productId;
+                        $productCode = 'Art' . $productId;
                     }
                     
                     //Наименование на стоката/услугата
-                    $name = cat_Products::fetchField($detail->productId, 'name');
+                    $name = cat_Products::fetchField($productId, 'name') ?? '';
                     
                     //количество
-                    $quantity = $detail->quantity;
+                    $quantity = $detail->quantity ?? 0;
                     
                     //Единична цена
-                    $price = $detail->price;
+                    $price = $detail->price ?? 0;
                     
                     //ДДС ставка
-                    $vatKoef = cat_Products::getVat($detail->productId);
+                    $vatKoef = cat_Products::getVat($productId) ?? 0;
                     $vatRate = $vatKoef * 100;
                     
                      //Отстъпка
-                    $discount = $detail->amount * $detail->discount;
+                    $detailAmount = $detail->amount ?? 0;
+                    $discount = $detailAmount * ($detail->discount ?? 0);
                     
                     //ДДС - сума
-                    $vatSum = ($detail->amount - $discount) * $vatKoef;///if ($saleRec->id == 1362)bp($detail,$detail->amount - $discount);
+                    $vatSum = ($detailAmount - $discount) * $vatKoef;
                     
                    
                     
                     //Обща сума
-                    $amountSum = ($detail->amount - $discount) + $vatSum;
+                    $amountSum = ($detailAmount - $discount) + $vatSum;
                     
                     // добавяме в масива
                     if (!array_key_exists($id, $recs)) {
@@ -501,7 +534,7 @@ class bgfisc_reports_DetailedSalesData extends frame2_driver_TableData
         }
         
         if (isset($data->rec->operator)) {
-            $fieldTpl->append('<b>' . (core_Users::fetch($data->rec->operator)->names ?? null) . '</b>', 'operator');
+            $fieldTpl->append('<b>' . core_Users::fetchField($data->rec->operator, 'names') . '</b>', 'operator');
         } else {
             $fieldTpl->append('<b>' . 'Всички' . '</b>', 'operator');
         }

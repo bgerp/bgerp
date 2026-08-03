@@ -65,7 +65,7 @@ class sales_reports_PurBomsRep extends frame2_driver_TableData
      */
     public function addFields(core_Fieldset &$fieldset)
     {
-        $fieldset->FLD('dealers', 'keylist(mvc=core_Users,select=nick)', 'caption=Търговци,after=title,single=none');
+        $fieldset->FLD('dealers', 'keylist(mvc=core_Users,select=nick)', 'caption=Търговци,placeholder=Всички,after=title,single=none');
         $fieldset->FLD('precision', 'percent(min=0,max=1)', 'caption=Авансово платено,unit=и нагоре,after=dealers,remember');
     }
     

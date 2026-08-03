@@ -842,7 +842,13 @@ class core_Form extends core_FieldSet
                 }
                 
                 if (!empty($field->placeholder)) {
-                    $attr['placeholder'] = tr($field->placeholder);
+                    // В кратките хоризонтални филтри caption-ът не се вижда и трябва да остане част от ориентиращия текст
+                    if ($isHorizontal && strtolower($this->getMethod()) == 'get' && $field->placeholder == 'Всички' && !empty($field->caption)) {
+                        $captions = str_replace('->', '|* » |', $field->caption);
+                        $attr['placeholder'] = tr($captions) . ' (' . mb_strtolower(tr('Всички')) . ')';
+                    } else {
+                        $attr['placeholder'] = tr($field->placeholder);
+                    }
                 } elseif (($this->view ?? null) == 'horizontal') {
                     $captions = str_replace('->', '|* » |', $field->caption);
                     $attr['placeholder'] = tr($captions);
@@ -957,15 +963,7 @@ class core_Form extends core_FieldSet
                             if(arr::isOptionsTotalLenBellowAllowed($options)){
                                 $maxRadio = 4;
                                 $type->params['select2MinItems'] = 10000;
-                            }
-                        }
-
-                        // ако ще се рендират опциите като радио-бутони маха се празната опция
-                        if(isset($maxRadio) && countR($options) <= $maxRadio){
-                            if($type->params['allowEmpty'] ?? null){
-                                if(isset($options['']) && (empty($options['']) || (is_object($options['']) && empty(trim($options['']->title)))) && countR($options) >= 2) {
-                                    unset($options['']);
-                                }
+                                $type->params['columns'] = (countR($options) > 3) ? 4 : 3;
                             }
                         }
                     }

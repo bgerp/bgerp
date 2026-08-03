@@ -196,10 +196,10 @@ class wtime_OnSiteEntries extends core_Manager
 
         $showFields = 'selectPeriod,from,to,search,personId,type';
         $data->listFilter->setFieldType('type', 'enum(all=Влиза / Излиза,in=Влиза,out=Излиза)');
-        $data->listFilter->setField('type', 'maxRadio=0');
+        $data->listFilter->setField('personId', 'placeholder=Всички');
         $data->listFilter->input('personId', 'silent');
         if(countR($sourceOptions)){
-            $data->listFilter->FLD('source', 'varchar', 'caption=Източник,maxRadio=0,placeholder=Всички');
+            $data->listFilter->FLD('source', 'varchar', 'caption=Източник,placeholder=Всички');
             $data->listFilter->setOptions('source', array('' => '', 'manual' => 'Ръчно добавени') + $sourceOptions);
             $showFields .= ',source';
         }

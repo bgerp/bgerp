@@ -89,7 +89,7 @@ class planning_reports_WasteAndScrapByTasks extends frame2_driver_TableData
 
         $fieldset->FLD('assetResources', 'keylist(mvc=planning_AssetResources,select=name)', 'caption=Машини,placeholder=Всички,after=employees,single=none');
 
-        $fieldset->FLD('centre', 'keylist(mvc=planning_Centers,select=name)', 'caption=Центрове,after=assetResources,single=none');
+        $fieldset->FLD('centre', 'keylist(mvc=planning_Centers,select=name)', 'caption=Центрове,placeholder=Всички,after=assetResources,single=none');
 
     }
 
@@ -196,6 +196,7 @@ class planning_reports_WasteAndScrapByTasks extends frame2_driver_TableData
         }
 
         $wasteQuantity = null;
+        $wasteWeight = 0;
 
         while ($taskRec = $taskQuery->fetch()) {
 

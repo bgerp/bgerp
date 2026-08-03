@@ -270,44 +270,62 @@ class trans_Lines extends core_Master
     {
         $data->listFilter->setFieldTypeParams('folder', array('containingDocumentIds' => trans_Lines::getClassId()));
         $data->listFilter->FLD('lineState', 'enum(pendingAndActive=Заявка+Активни,all=Всички,draft=Чернова,pending=Заявка,active=Активен,closed=Затворен)', 'caption=Състояние');
-        $data->listFilter->FLD('countryId', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Държава');
+        $data->listFilter->FLD('countryId', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Държава,placeholder=Всички');
         $data->listFilter->FLD('groupByShippedOn', 'enum(no=Без,yes=По експедиране)', 'caption=Групиране,autoFilter,silent');
         $data->listFilter->FLD('storesByLocation', 'varchar', 'caption=Складове,placeholder=Всички');
         $data->listFilter->setDefault('groupByShippedOn', 'no');
 
-        // Опция за избор на складове по градове
-        $storesByLocations = $storeOptions = $locationOptions =  $storesByPCode = $storesByPCodeOptions = array();
+        // Опции за избор на складове по населено място и пощенски код
+        $storesByLocations = $storeOptions = $locationOptions = $storesByPCode = $storesByPCodeOptions = array();
+        $bulgariaId = drdata_Countries::getIdByName('Bulgaria');
         $sQuery = store_Stores::getQuery();
         $sQuery->where("#state NOT IN ('rejected', 'closed')");
 
         while($sRec = $sQuery->fetch()) {
             $storeOptions[keylist::addKey('-1', $sRec->id)] = store_Stores::getTitleById($sRec->id);
-            if(isset($sRec->locationId)){
-                $locationRec = crm_Locations::fetch($sRec->locationId);
-                if(!empty($locationRec->pCode)){
-                    $visiblePart = substr($locationRec->pCode, 0, 2) . "XX";
-                    $storesByPCode["Всички от ПК| {$visiblePart}"][$sRec->id] = $sRec->id;
+            if (empty($sRec->locationId) || !($locationRec = crm_Locations::fetch($sRec->locationId))) {
+                continue;
+            }
+
+            // Групирането по пощенски код е по първите две цифри на валиден български код
+            if ($locationRec->countryId == $bulgariaId && !empty($locationRec->pCode)) {
+                $pCode = preg_replace('/\D+/', '', $locationRec->pCode);
+                if (strlen($pCode) == 4) {
+                    $visiblePart = substr($pCode, 0, 2) . 'XX';
+                    $storesByPCode[$visiblePart][$sRec->id] = $sRec->id;
                 }
-                if(!empty($locationRec->place)){
-                    $storesByLocations[$locationRec->place][$sRec->id] = $sRec->id;
+            }
+
+            if (!empty($locationRec->place)) {
+                $place = bglocal_Address::canonizePlace($locationRec->place);
+                $placeKey = "{$locationRec->countryId}|" . mb_strtolower($place);
+                $placeTitle = $place;
+                if (!empty($locationRec->countryId) && $locationRec->countryId != $bulgariaId) {
+                    $countryName = drdata_Countries::getCountryName($locationRec->countryId);
+                    $placeTitle .= !empty($countryName) ? ", {$countryName}" : '';
                 }
+
+                $storesByLocations[$placeKey]['title'] = $placeTitle;
+                $storesByLocations[$placeKey]['storeIds'][$sRec->id] = $sRec->id;
             }
         }
 
+        ksort($storesByPCode, SORT_NATURAL);
         foreach ($storesByPCode as $key => $storeIds){
-            $storesByPCodeOptions["p|" . keylist::fromArray($storeIds)] = tr($key);
+            $storesByPCodeOptions["p|" . keylist::fromArray($storeIds)] = "ПК {$key}";
         }
-        foreach ($storesByLocations as $key => $storeIds){
-            $locationOptions["l|" . keylist::fromArray($storeIds)] = tr($key);
+        foreach ($storesByLocations as $location){
+            $locationOptions["l|" . keylist::fromArray($location['storeIds'])] = $location['title'];
         }
+        asort($locationOptions, SORT_NATURAL | SORT_FLAG_CASE);
 
         if(countR($storesByLocations) || countR($storesByPCodeOptions)){
             $storeOptions = array("s" => (object) array('title' => tr('Складове'), 'group' => true)) + $storeOptions;
             if(countR($locationOptions)){
-               // $storeOptions += array("p" => (object) array('title' => tr('В градове'), 'group' => true,)) + $locationOptions;
+                $storeOptions += array("p" => (object) array('title' => tr('Населени места'), 'group' => true)) + $locationOptions;
             }
             if(countR($storesByPCodeOptions)){
-               // $storeOptions += array("c" => (object) array('title' => tr('Пощенски код'), 'group' => true,)) + $storesByPCodeOptions;
+                $storeOptions += array("c" => (object) array('title' => tr('Пощенски кодове'), 'group' => true)) + $storesByPCodeOptions;
             }
         }
 
@@ -337,9 +355,11 @@ class trans_Lines extends core_Master
                 $data->query->where("LOCATE('|{$filterRec->countryId}|', #countries)");
             }
 
-            if (isset($filterRec->storesByLocation)) {
-                $storeIds = str_replace('p|', '', $filterRec->storesByLocation);
-                $storeIds = str_replace('l|', '', $storeIds);
+            if (!empty($filterRec->storesByLocation)) {
+                $storeIds = $filterRec->storesByLocation;
+                if (preg_match('/^[lp]\|(.+)$/', $storeIds, $matches)) {
+                    $storeIds = $matches[1];
+                }
                 $data->query->likeKeylist("stores", $storeIds);
             }
         }

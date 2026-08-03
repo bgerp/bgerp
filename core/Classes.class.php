@@ -99,7 +99,7 @@ class core_Classes extends core_Manager
     {
         $data->query->orderBy('name');
         
-        $data->listFilter->FLD('interface', 'key(mvc=core_Interfaces,select=name, allowEmpty)', 'placeholder=Интерфейс');
+        $data->listFilter->FLD('interface', 'key(mvc=core_Interfaces,select=name, allowEmpty)', 'caption=Интерфейс,placeholder=Всички');
         $data->listFilter->showFields = 'search,interface';
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');

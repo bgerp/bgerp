@@ -333,7 +333,7 @@ class docarch_Movements extends core_Master
         
         $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
         
-        $data->listFilter->FNC('toVolume', 'key(mvc=docarch_Volumes,allowEmpty, select=title)', 'caption=Входящ том,placeholder=Входящ том');
+        $data->listFilter->FNC('toVolume', 'key(mvc=docarch_Volumes,allowEmpty, select=title)', 'caption=Входящ том,placeholder=Всички');
         
         $data->listFilter->showFields = 'toVolume';
         

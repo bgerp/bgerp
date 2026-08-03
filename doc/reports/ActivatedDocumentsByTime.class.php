@@ -89,7 +89,7 @@ class doc_reports_ActivatedDocumentsByTime extends frame2_driver_TableData
         //Задания
         $fieldset->FLD('documents', 'classes(interface = doc_DocumentIntf,select = title)', 'caption=Вид документи,placeholder=Избери вид документи,after=to,single=none,mandatory');
         
-        $fieldset->FLD('grouping', 'enum(day=24 часа, week=7 дни, , year=12 месеца)', 'caption=Групиране,after=documents,removeAndRefreshForm');
+        $fieldset->FLD('grouping', 'enum(day=24 часа, week=7 дни, year=12 месеца)', 'caption=Групиране,after=documents,removeAndRefreshForm,mandatory');
         
         $fieldset->FLD('users', 'userList(rolesForAll=ceo|repAllGlobal, rolesForTeams=ceo|manager|repAll|repAllGlobal)', 'caption=Потребители,single=none,mandatory,after=grouping');
         
@@ -177,8 +177,10 @@ class doc_reports_ActivatedDocumentsByTime extends frame2_driver_TableData
             $year = dt::mysql2Verbal($dateCheck, 'Y');
             
             $rec->dateEnd = $dateCheck;
-            
+
             //Определяне ключа на масива в зависимост от избраното групиране
+            $id = null;
+
             if ($rec->grouping == 'day') {
                 if ($dateCheck > $rec->from && $dateCheck < $rec->to) {
                     $id = date('H', dt::mysql2timestamp($dateCheck));
@@ -206,6 +208,10 @@ class doc_reports_ActivatedDocumentsByTime extends frame2_driver_TableData
                 }
             }
             
+            if (!isset($id)) {
+                continue;
+            }
+
             if (!array_key_exists($id, $recs)) {
                 $recs[$id] = (object) array(
                     

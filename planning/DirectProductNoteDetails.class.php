@@ -19,21 +19,6 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
 {
 
     /**
-     * Добавя CSS клас само върху локално копие на поле от таблицата.
-     */
-    protected static function addTableFieldClass($mvc, $fieldName, $className)
-    {
-        if (!isset($mvc->fields[$fieldName])) {
-            return;
-        }
-
-        $mvc->fields[$fieldName] = clone $mvc->fields[$fieldName];
-        $classes = arr::make($mvc->fields[$fieldName]->tdClass ?? '', true);
-        $classes[$className] = $className;
-        $mvc->fields[$fieldName]->tdClass = implode(' ', $classes);
-    }
-
-    /**
      * Заглавие
      */
     public $title = 'Детайли на протокола за производство';
@@ -475,12 +460,12 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
         if (!isset($fieldset->fields['_rowTools'])) {
             $fieldset->FNC('_rowTools', 'varchar', 'tdClass=rowtools-column');
         }
-        self::addTableFieldClass($fieldset, 'productId', 'disassemblyProductColumn');
-        self::addTableFieldClass($fieldset, 'tools', 'productionToolsColumn');
-        self::addTableFieldClass($fieldset, 'tools', 'rightCol');
-        self::addTableFieldClass($fieldset, 'packQuantity', 'directProductionQuantityColumn');
-        self::addTableFieldClass($fieldset, 'quantityFromBom', 'directProductionQuantityColumn');
-        self::addTableFieldClass($fieldset, 'quantityExpected', 'directProductionQuantityColumn');
+        $fieldset->appendFieldClass('productId', 'tdClass', 'disassemblyProductColumn');
+        $fieldset->appendFieldClass('tools', 'tdClass', 'productionToolsColumn');
+        $fieldset->appendFieldClass('tools', 'tdClass', 'rightCol');
+        $fieldset->appendFieldClass('packQuantity', 'tdClass', 'directProductionQuantityColumn');
+        $fieldset->appendFieldClass('quantityFromBom', 'tdClass', 'directProductionQuantityColumn');
+        $fieldset->appendFieldClass('quantityExpected', 'tdClass', 'directProductionQuantityColumn');
         $table = cls::get('core_TableView', array('mvc' => $fieldset));
         $table->tableClass = 'listTable disassemblyNoteTable';
         
@@ -502,7 +487,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
         if (isset($iData->listFields['code']) && !isset($fieldset->fields['code'])) {
             $fieldset->FNC('code', 'varchar', 'tdClass=small-field morePadding nowrap directProductionCodeColumn');
         }
-        self::addTableFieldClass($fieldset, 'code', 'rightCol');
+        $fieldset->appendFieldClass('code', 'tdClass', 'rightCol');
         plg_AlignDecimals2::alignDecimals($this, $iData->recs, $iData->rows);
         
         if(empty($iData->listFields['quantityFromBom']) && empty($iData->listFields['quantityExpected'])){

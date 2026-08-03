@@ -321,7 +321,7 @@ class tags_Tags extends core_Manager
      */
     protected static function on_AfterPrepareListFilter($mvc, $data)
     {
-        $data->listFilter->FLD('tagId', 'key(mvc=tags_Tags, select=name, allowEmpty)', 'caption=Таг, refreshForm');
+        $data->listFilter->FLD('tagId', 'key(mvc=tags_Tags, select=name, allowEmpty)', 'caption=Таг,placeholder=Всички, refreshForm');
 
         $data->listFilter->view = 'horizontal';
         $data->listFilter->showFields = 'search,tagId';

@@ -90,6 +90,9 @@ class price_reports_PriceList extends frame2_driver_TableData
         $fieldset->FLD('showUiextLabels', 'enum(yes=Включено,no=Изключено)', 'caption=Допълнително->Тагове на редовете,after=showEan,single=internal');
         $fieldset->FLD('templateType', 'enum(default=Стандартен изглед,foods=Храни)', 'caption=Допълнително->Изглед,after=lang,single=internal');
         $fieldset->FLD('templateCssClass', 'varchar(16)', 'caption=Допълнително->CSS клас,after=templateType,single=internal');
+        $fieldset->FLD('showTextIfNoVariation', 'enum(yes=Да,no=Не)', 'caption=Показване на данни ако няма активна вариация->Избор,after=templateCssClass,single=none,silent,removeAndRefreshForm=noVariationText|noVariationTextEn');
+        $fieldset->FLD('noVariationText', 'text(rows=3)', 'caption=Показване на данни ако няма активна вариация->Текст (БГ),after=showTextIfNoVariation,single=none');
+        $fieldset->FLD('noVariationTextEn', 'text(rows=3)', 'caption=Показване на данни ако няма активна вариация->Текст (EN),after=noVariationText,single=none');
 
     }
 
@@ -133,8 +136,13 @@ class price_reports_PriceList extends frame2_driver_TableData
         $form->setDefault('displayDetailed', 'no');
         $form->setDefault('packType', 'yes');
         $form->setDefault('showUiextLabels', 'no');
+        $form->setDefault('showTextIfNoVariation', 'no');
         if(!core_Packs::isInstalled('uiext')){
             $form->setField('showUiextLabels', 'input=none');
+        }
+        if ($form->rec->showTextIfNoVariation != 'yes') {
+            $form->setField('noVariationText', 'input=none');
+            $form->setField('noVariationTextEn', 'input=none');
         }
 
         $suggestions = cat_UoM::getPackagingOptions();
@@ -210,6 +218,15 @@ class price_reports_PriceList extends frame2_driver_TableData
         $date = !empty($rec->date) ? $rec->date : dt::now();
         $date = strlen($date) == 10 ? "{$date} 23:59:59" : $date;
 
+        $data->variationId = price_ListVariations::getActiveVariationId($rec->policyId, $date);
+
+        // Ако е избрано вместо артикулите да се показва текст, когато няма активна вариация
+        if ($rec->showTextIfNoVariation == 'yes' && empty($data->variationId)) {
+            $data->noVariationTextMode = true;
+
+            return array();
+        }
+
         $dateBefore = (!empty($rec->period)) ? (dt::addSecs(-1 * $rec->period, $date, false) . ' 23:59:59') : null;
         $round = !empty($rec->round) ? $rec->round : self::DEFAULT_ROUND;
         $sellableProducts = cat_Products::getProducts(null, null, null, 'canSell', null, null, false, $rec->productGroups, $rec->notInGroups, 'yes');
@@ -245,7 +262,6 @@ class price_reports_PriceList extends frame2_driver_TableData
         if ($rec->packType == 'yes') {
             $packArr = (!empty($rec->packagings)) ? keylist::toArray($rec->packagings) : arr::make(array_keys(cat_UoM::getPackagingOptions(), true));
         }
-        $data->variationId = price_ListVariations::getActiveVariationId($rec->policyId, $date);
 
         // Нормализиран lookup за избраните опаковки (за филтриране в PHP)
         $packLookup = array();
@@ -628,6 +644,16 @@ class price_reports_PriceList extends frame2_driver_TableData
      */
     protected function renderTable($rec, &$data)
     {
+        if (!empty($data->noVariationTextMode)) {
+            $lang = $this->getRenderLang($rec) ?? core_Lg::getCurrent();
+            $text = ($lang == 'en' && !empty($rec->noVariationTextEn)) ? $rec->noVariationTextEn : $rec->noVariationText;
+
+            $tpl = new core_ET("<div class='priceListNoVariationText' style='padding: 24px 20px; font-size: 1.15em; line-height: 1.5; text-align: center;'>[#TEXT#]</div>");
+            $tpl->replace(core_Type::getByName('text')->toVerbal($text), 'TEXT');
+
+            return $tpl;
+        }
+
         $tpl = parent::renderTable($rec, $data);
 
         $vatRow = core_Type::getByName('enum(yes=с включено ДДС,no=без ДДС)')->toVerbal($rec->vat);
@@ -755,6 +781,10 @@ class price_reports_PriceList extends frame2_driver_TableData
 
             if ($form->rec->packType != 'yes') {
                 $form->rec->packagings = null;
+            }
+
+            if ($form->rec->showTextIfNoVariation == 'yes' && trim($form->rec->noVariationText) === '') {
+                $form->setError('noVariationText', 'Въведете текст, който да се показва при липса на активна вариация|*!');
             }
         }
     }

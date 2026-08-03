@@ -44,7 +44,7 @@ class doc_reports_DocsByRols extends frame2_driver_TableData
         $fieldset->FLD('roleId', 'key(mvc=core_Roles,select=role,allowEmpty)', 'caption=Роля,after=title,mandatory');
         $fieldset->FLD('from', 'date', 'caption=От,mandatory,after=roleId');
         $fieldset->FLD('to', 'date', 'caption=До,mandatory,after=from');
-        $fieldset->FLD('documents', 'keylist(mvc=core_Classes,select=title)', 'caption=Документи,after=to');
+        $fieldset->FLD('documents', 'keylist(mvc=core_Classes,select=title)', 'caption=Документи,placeholder=Всички,after=to');
         $fieldset->FLD('order', 'enum(cnt=брой документи,letter=азбучен ред)', 'caption=Подреди по,after=documents,mandatory,column=none');
     }
     

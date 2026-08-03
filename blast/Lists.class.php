@@ -270,7 +270,7 @@ class blast_Lists extends core_Master
                 $fieldName = preg_replace('/[^a-z0-9]/', '_', $fieldName);
                 
                 //Премахваме празните интервали в края и в началото в заглавието на полето
-                $caption = trim($valueArr[1]);
+                $caption = trim($valueArr[1] ?? '');
                 
                 //Ескейпваме заглавието
                 //                $caption = htmlspecialchars($caption, ENT_COMPAT | ENT_HTML401, 'UTF-8');
@@ -464,7 +464,7 @@ class blast_Lists extends core_Master
             $row = array();
             
             foreach ($fieldsArr as $key => $caption) {
-                $row[$key] = $data[$key];
+                $row[$key] = $data[$key] ?? null;
             }
             
             self::addCsvRow($csv, $row);
@@ -617,10 +617,13 @@ class blast_Lists extends core_Master
         
         $resArr = array();
         
-        $rec = $this->fetchRec($id);
+        $rec = $this->fetchRec($id, '*', false);
+        if (!$rec) {
+            return $resArr;
+        }
         
         $nArr = array();
-        if ($rec->negativeList && $maxIter++ < 100) {
+        if (!empty($rec->negativeList) && $maxIter++ < 100) {
             $negativeListArr = type_Keylist::toArray($rec->negativeList);
             foreach ($negativeListArr as $nId) {
                 Mode::push('isGettingNegative', true);
@@ -634,7 +637,7 @@ class blast_Lists extends core_Master
         // Когото вземаме отрицателния списък, да не се махат отрицателния от бащата 
         if (!Mode::is('isGettingNegative')) {
             foreach ($nArr as $nArrVal) {
-                $nKeyValStr = trim($nArrVal[$rec->keyField]);
+                $nKeyValStr = trim((string) ($nArrVal[$rec->keyField] ?? ''));
                 if (!$nKeyValStr) continue;
                 $nKeyValStr = strtolower($nKeyValStr);
                 $nValArr[$nKeyValStr] = $nKeyValStr;
@@ -651,10 +654,10 @@ class blast_Lists extends core_Master
         
         while ($dRec = $detailQuery->fetch()) {
             $nData = unserialize($dRec->data);
-            $nDataValStr = trim($nData[$rec->keyField]);
+            $nDataValStr = trim((string) ($nData[$rec->keyField] ?? ''));
             $nDataValStr = strtolower($nDataValStr);
             
-            if (!empty($nValArr) && $nValArr[$nDataValStr]) {
+            if (!empty($nValArr[$nDataValStr])) {
                 continue;
             }
             
@@ -886,6 +889,7 @@ class blast_Lists extends core_Master
      */
     public static function createList($paramsArr)
     {
+        $paramsArr += array('title' => '', 'folderId' => null, 'lg' => null, 'sharedUsers' => null, 'fieldsArr' => array(), 'listFieldsDetArr' => array());
         $paramsArr['title'] = trim($paramsArr['title']);
 
         setIfNot($paramsArr['ifExist'], 'update');

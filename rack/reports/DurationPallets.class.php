@@ -274,6 +274,7 @@ class rack_reports_DurationPallets extends frame2_driver_TableData
         
         
         $marker = 0;
+        $storeVerb = '';
         if (isset($data->rec->storeId)) {
             foreach (type_Keylist::toArray($data->rec->storeId) as $storeId) {
                 $marker++;

@@ -203,6 +203,7 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
             }
 
             $jQuery->show('productId');
+            $prodSuggestions = array();
             $prodArr = arr::extractValuesFromArray($jQuery->fetchAll(), 'productId');
             if (!empty($prodArr)) {
                 foreach ($prodArr as $val) {
@@ -227,6 +228,18 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
      */
     protected function prepareRecs($rec, &$data = null)
     {
+        // Стари записи на справката може да нямат полетата, добавени по-късно
+        $rec->groupBy = $rec->groupBy ?? 'no';
+        $rec->option = $rec->option ?? 'no';
+        $rec->department = $rec->department ?? null;
+        $rec->jobses = $rec->jobses ?? null;
+        $rec->groups = $rec->groups ?? null;
+        $rec->products = $rec->products ?? null;
+        $rec->unstackableOn = $rec->unstackableOn ?? null;
+        $rec->pricesType = $rec->pricesType ?? 'selfPrice';
+        $rec->orderBy = $rec->orderBy ?? 'code';
+        $rec->orderType = $rec->orderType ?? 'desc';
+
         //Показването да бъде ли ГРУПИРАНО
         if ($rec->groupBy != 'no') {
             $this->groupByField = $rec->groupBy;
@@ -350,11 +363,14 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
 
                 $code = $pRec->code ? $pRec->code : 'Art' . $pRec->productId;
 
-                $name = cat_Products::fetch($pRec->productId)->name;
+                $name = cat_Products::fetchField($pRec->productId, 'name');
 
                 $FirstDocument = doc_Threads::getFirstDocument($pRec->threadId);
+                if (!$FirstDocument) {
+                    continue;
+                }
 
-                unset($jobId, $jobProductId);
+                $jobId = $jobProductId = null;
                 if (($FirstDocument->className == 'planning_Jobs')) {
 
                     $Job = $FirstDocument->fetch('id,productId');
@@ -391,8 +407,8 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
                 }
                 list($year, $mounth) = explode('-', $pRec->valior);
 
-                unset($secondPartKey);
-                if ($rec->groupBy) {
+                if ($rec->groupBy != 'no') {
+                    $secondPartKey = '';
                     switch ($rec->groupBy) {
 
                         case 'jobId':
@@ -415,6 +431,9 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
                             $secondPartKey = $year;
                             break;
 
+                        default:
+                            $secondPartKey = $rec->groupBy;
+                            break;
                     }
 
                     $id = $pRec->productId . '|' . $secondPartKey;
@@ -473,7 +492,7 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
         }
 
         //Подредба на резултатите
-        if (!is_null($recs)) {
+        if (!empty($recs)) {
             $order = ($rec->orderBy == 'name' || $rec->orderBy == 'code') ? 'stri' : 'native';
             $orderType = $rec->orderType;
             $orderBy = $rec->orderBy;
@@ -506,16 +525,16 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
             $fld->FLD('measure', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,tdClass=centered');
 
             $fld->FLD('consumedQuantity', 'double(smartRound,decimals=2)', 'smartCenter,caption=Вложено->Количество');
-            if (!is_null($rec->seeAmount)) {
+            if (!empty($rec->seeAmount)) {
                 $fld->FLD('consumedAmount', 'double(smartRound,decimals=2)', 'smartCenter,caption=Вложено->Стойност');
             }
             $fld->FLD('returnedQuantity', 'double(smartRound,decimals=2)', 'smartCenter,caption=Върнато->Количество');
-            if (!is_null($rec->seeAmount)) {
+            if (!empty($rec->seeAmount)) {
                 $fld->FLD('returnedAmount', 'double(smartRound,decimals=2)', 'smartCenter,caption=Върнато->Стойност');
             }
 
             $fld->FLD('totalQuantity', 'double(smartRound,decimals=2)', 'smartCenter,caption=Резултат->Количество');
-            if (!is_null($rec->seeAmount)) {
+            if (!empty($rec->seeAmount)) {
                 $fld->FLD('totalAmount', 'double(smartRound,decimals=2)', 'caption=Резултат->Стойност');
             }
         } else {
@@ -523,16 +542,16 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
             $fld->FLD('name', 'varchar', 'caption=Артикул');
             $fld->FLD('measure', 'varchar', 'caption=Мярка,tdClass=centered');
             $fld->FLD('consumedQuantity', 'double(decimals=2)', 'smartCenter,caption=Вложено->Количество');
-            if (!is_null($rec->seeAmount)) {
+            if (!empty($rec->seeAmount)) {
                 $fld->FLD('consumedAmount', 'double(decimals=2)', 'smartCenter,caption=Вложено->Стойност');
             }
             $fld->FLD('returnedQuantity', 'double(decimals=2)', 'smartCenter,caption=Върнато->Количество');
-            if (!is_null($rec->seeAmount)) {
+            if (!empty($rec->seeAmount)) {
                 $fld->FLD('returnedAmount', 'double(decimals=2)', 'smartCenter,caption=Върнато->Стойност');
             }
 
             $fld->FLD('totalQuantity', 'double(decimals=2)', 'smartCenter,caption=Резултат->Количество');
-            if (!is_null($rec->seeAmount)) {
+            if (!empty($rec->seeAmount)) {
                 $fld->FLD('totalAmount', 'double(decimals=2)', 'caption=Резултат->Стойност');
             }
 
@@ -593,7 +612,8 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
             $row->name = cat_Products::getLinkToSingle_($dRec->productId, 'name');
         }
 
-        $row->measure = cat_UoM::fetchField(cat_Products::fetch($dRec->productId)->measureId, 'shortName');
+        $measureId = cat_Products::fetchField($dRec->productId, 'measureId');
+        $row->measure = cat_UoM::fetchField($measureId, 'shortName');
 
 
         if (isset($dRec->consumedQuantity)) {
@@ -676,6 +696,7 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
         }
 
         $marker = 0;
+        $groupVerb = '';
         if (isset($data->rec->groups)) {
             foreach (type_Keylist::toArray($data->rec->groups) as $group) {
                 $marker++;
@@ -693,7 +714,8 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
         }
 
         $marker = 0;
-        if ($data->rec->option == 'yes') {
+        $productVerb = '';
+        if (($data->rec->option ?? 'no') == 'yes') {
             if (isset($data->rec->products)) {
                 foreach (type_Keylist::toArray($data->rec->products) as $product) {
                     $marker++;
@@ -712,12 +734,17 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
         }
 
         $marker = 0;
-        if ($data->rec->option == 'no') {
+        $jobVerb = '';
+        if (($data->rec->option ?? 'no') == 'no') {
             if (isset($data->rec->jobses)) {
                 foreach (type_Keylist::toArray($data->rec->jobses) as $job) {
                     $marker++;
 
                     $jRec = planning_Jobs::fetch($job);
+
+                    if (!$jRec) {
+                        continue;
+                    }
 
                     $jContainer = $jRec->containerId;
 
@@ -754,8 +781,9 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
     protected static function on_AfterGetExportRec(frame2_driver_Proto $Driver, &$res, $rec, $dRec, $ExportClass)
     {
 
-        $res->name = cat_Products::fetch($dRec->productId)->name;
-        $res->measure = cat_UoM::fetchField(cat_Products::fetch($dRec->productId)->measureId, 'shortName');
+        $productRec = cat_Products::fetch($dRec->productId);
+        $res->name = $productRec->name ?? '';
+        $res->measure = cat_UoM::fetchField($productRec->measureId ?? null, 'shortName');
     }
 
 
@@ -768,6 +796,7 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
     {
         if ($priceType == 'accPrice') {
             $docTypeId = core_Classes::getId($master);
+            $resonIdArr = array();
 
             $q = acc_Operations::getQuery();
 
@@ -780,18 +809,21 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
 
             //  $resonId = acc_Operations::getIdByTitle('Влагане на материал в производството' OR 'Влагане на услуга в производството');
 
-            if (!$masterJurnalId = acc_Journal::fetch("#docType = {$docTypeId} AND #docId = {$pRec->noteId}")->id) return;
+            $journalRec = acc_Journal::fetch("#docType = {$docTypeId} AND #docId = {$pRec->noteId}");
+            if (!$journalRec) return;
+            $masterJurnalId = $journalRec->id;
             //$masterJurnalId = acc_Journal::fetch("#docType = ${docTypeId} AND #docId = {$pRec->noteId}")->id;
 
             $jdQuery = acc_JournalDetails::getQuery();
 
             $jdQuery->where("#journalId = {$masterJurnalId}");
 
+            if (empty($resonIdArr)) return;
             $jdQuery->in('reasonCode', $resonIdArr);
 
             while ($jdRec = $jdQuery->fetch()) {
                 unset($prodJournalId);
-                $prodJournalId = acc_Items::fetch($jdRec->creditItem2)->objectId;
+                $prodJournalId = acc_Items::fetchField($jdRec->creditItem2, 'objectId');
                 if ($pRec->productId == $prodJournalId) {
 
                     return $jdRec->creditPrice;

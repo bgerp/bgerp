@@ -52,8 +52,8 @@ class hr_reports_LeaveDaysPersons extends frame_BaseDriver
     {
         $form->FLD('from', 'date', 'caption=От, mandatory');
         $form->FLD('to', 'date', 'caption=До,mandatory');
-        $form->FLD('departments', 'key(mvc=hr_Departments, select=name,allowEmpty)', 'caption=Отдел');
-        $form->FLD('team', 'key(mvc=core_Roles, select=role)', 'caption=Екип');
+        $form->FLD('departments', 'key(mvc=hr_Departments, select=name,allowEmpty)', 'caption=Отдел,placeholder=Всички');
+        $form->FLD('team', 'key(mvc=core_Roles, select=role)', 'caption=Екип,placeholder=Всички');
         
         $this->invoke('AfterAddEmbeddedFields', array($form));
     }

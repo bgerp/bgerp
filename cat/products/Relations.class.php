@@ -651,7 +651,8 @@ class cat_products_Relations extends core_Manager
         $data->listFilter->title = 'Търсене';
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
-        $data->listFilter->FNC("productId", 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,maxSuggestions=100,allowEmpty)', 'caption=Артикул');
+        $data->listFilter->FNC("productId", 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,maxSuggestions=100,allowEmpty)', 'caption=Артикул,placeholder=Всички');
+        $data->listFilter->setField('relTypeId', 'placeholder=Всички');
 
         $data->listFilter->showFields = 'productId,relTypeId';
         $data->listFilter->input(null, 'silent');

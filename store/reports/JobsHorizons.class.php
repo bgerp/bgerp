@@ -84,7 +84,7 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
 
         $fieldset->FLD('date', 'date', 'caption=Към дата,after=title,silent,single=none');
 
-        $fieldset->FLD('stores', 'keylist(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,single=none,after=date');
+        $fieldset->FLD('stores', 'keylist(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,placeholder=Всички,single=none,after=date');
 
         $fieldset->FLD('groups', 'keylist(mvc=cat_Groups,select=name,allowEmpty)', 'caption=Група продукти,after=stores,mandatory,silent,single=none');
 
@@ -349,6 +349,7 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
     protected static function on_AfterRenderSingle(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$tpl, $data)
     {
         $Date = cls::get('type_Date');
+        $groupVerb = $storeIdVerb = '';
 
         $fieldTpl = new core_ET(tr("|*<!--ET_BEGIN BLOCK-->[#BLOCK#]
                                 <fieldset class='detail-info'><legend class='groupTitle'><small><b>|Филтър|*</b></small></legend>
@@ -459,6 +460,7 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
         $recsToExport = $this->getRecsForExport($rec, $ExportClass);
 
         $recs = array();
+        $markFirst = 0;
         if (is_array($recsToExport)) {
             foreach ($recsToExport as $dRec) {
 
@@ -758,7 +760,7 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
 
         }
 
-        $form->FLD('groupFilter', 'key(mvc=cat_Groups,allowEmpty, select=name)', 'caption=Покажи група,placeholder=Изчисти филтъра,silent');
+        $form->FLD('groupFilter', 'key(mvc=cat_Groups,allowEmpty, select=name)', 'caption=Покажи група,placeholder=Всички,silent');
 
         $form->setOptions('groupFilter', $groupsSuggestionsArr);
 

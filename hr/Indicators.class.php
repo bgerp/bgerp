@@ -681,12 +681,14 @@ class hr_Indicators extends core_Manager
             $data->listFilter->setDefault('period', date('Y-m-01'));
             $data->listFilter->input('period,from,to,document,Tab');
             $data->listFilter->setField('id', 'input=none');
-            $data->listFilter->setField('period', 'placeholder=Период');
+            $data->listFilter->setField('period', 'placeholder=Всички');
             $data->listFilter->showFields = 'period,document';
             $data->listFilter->view = 'horizontal';
         } else {
             $data->listFilter->setFieldTypeParams('personId', array('allowEmpty' => 'allowEmpty'));
             $data->listFilter->setFieldTypeParams('indicatorId', array('allowEmpty' => 'allowEmpty'));
+            $data->listFilter->setField('personId', 'placeholder=Всички');
+            $data->listFilter->setField('indicatorId', 'placeholder=Всички');
             $data->listFilter->showFields = 'period,from,to,document,personId,indicatorId,Protected';
             $data->listFilter->input('period,from,to,document,personId,indicatorId,Protected');
         }

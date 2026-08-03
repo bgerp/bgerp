@@ -365,7 +365,7 @@ class colab_Threads extends core_Manager
             'enum(' . doc_Threads::filterList . ')',
                 'allowEmpty,caption=Подредба,input,silent,autoFilter'
         );
-        $data->listFilter->FNC('documentClassId', 'class(interface=doc_DocumentIntf,select=title,allowEmpty)', 'caption=Вид документ,input,recently');
+        $data->listFilter->FNC('documentClassId', 'class(interface=doc_DocumentIntf,select=title,allowEmpty)', 'caption=Вид документ,placeholder=Всички,input,recently');
         
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Търсене', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');

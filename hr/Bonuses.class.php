@@ -193,6 +193,7 @@ class hr_Bonuses extends core_Master
     public static function on_AfterPrepareListFilter($mvc, $data)
     {
         $data->listFilter->setFieldTypeParams('personId', array('allowEmpty' => 'allowEmpty', 'groups' => keylist::addKey('', crm_Groups::getIdFromSysId('employees'))));
+        $data->listFilter->setField('personId', 'placeholder=Всички');
         $data->listFilter->showFields = 'personId,date';
         $data->listFilter->view = 'vertical';
         $data->listFilter->input('personId, date', 'silent');

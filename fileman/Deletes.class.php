@@ -133,6 +133,7 @@ class fileman_Deletes extends core_Manager
     public static function on_AfterPrepareListFilter($mvc, &$res, $data)
     {
         // Да се показва полето за търсене
+        $data->listFilter->setField('isUsing', 'placeholder=Всички');
         $data->listFilter->showFields = 'isUsing';
 
         $data->listFilter->view = 'horizontal';

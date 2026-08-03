@@ -336,6 +336,7 @@ class eshop_Favourites extends core_Manager
     protected static function on_AfterPrepareListFilter($mvc, &$res, $data)
     {
         $data->query->orderBy('id', "ASC");
+        $data->listFilter->setField('userId', 'placeholder=Всички');
         $data->listFilter->showFields = 'userId,brid';
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');

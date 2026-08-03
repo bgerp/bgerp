@@ -54,7 +54,7 @@ class acc_reports_SoldProductsByPrimeCost extends frame2_driver_TableData
     /**
      * Кои полета може да се променят от потребител споделен към справката, но нямащ права за нея
      */
-    protected $changeableFields = 'period,groups,stores';
+    protected $changeableFields = 'from,to,groups,stores';
 
 
     /**
@@ -118,12 +118,19 @@ class acc_reports_SoldProductsByPrimeCost extends frame2_driver_TableData
     protected function prepareRecs($rec, &$data = null)
     {
         $recs = array();
+        $rec->stores = $rec->stores ?? null;
+        $rec->groups = $rec->groups ?? null;
+        $from = $rec->from ?? null;
+        $to = $rec->to ?? null;
+        if (!$from || !$to) {
+            return $recs;
+        }
 
-        $debitAccId = acc_Accounts::fetch("#num = 701")->id;
-        $creditAccId = acc_Accounts::fetch("#num = 321")->id;
-
-        $from = $rec->from;
-        $to = $rec->to;
+        $debitAccId = acc_Accounts::fetchField("#num = 701", 'id');
+        $creditAccId = acc_Accounts::fetchField("#num = 321", 'id');
+        if (!$debitAccId || !$creditAccId) {
+            return $recs;
+        }
 
         $sallDetQuery = acc_JournalDetails::getQuery();
 
@@ -138,23 +145,27 @@ class acc_reports_SoldProductsByPrimeCost extends frame2_driver_TableData
 
             //Филтър по склад
             if ($rec->stores) {
-                $storeRec = store_Stores::fetch(acc_Items::fetch($saleDetRec->creditItem1)->objectId);
-                if (!keylist::isIn($storeRec->id, $rec->stores)) continue;
+                $storeId = acc_Items::fetchField($saleDetRec->creditItem1, 'objectId');
+                if (!$storeId || !keylist::isIn($storeId, $rec->stores)) continue;
             }
 
             //Артикул
-            $pRec = cat_Products::fetch(acc_Items::fetch($saleDetRec->creditItem2)->objectId);
+            $productId = acc_Items::fetchField($saleDetRec->creditItem2, 'objectId');
+            $pRec = cat_Products::fetch($productId);
+            if (!$pRec) {
+                continue;
+            }
 
             //Филтър по групи артикули
             if ($rec->groups) {
                 if (!keylist::isIn(keylist::toArray($pRec->groups), $rec->groups)) continue;
             }
 
-            $artCode = $pRec->code;
+            $artCode = $pRec->code ?? "Art{$pRec->id}";
 
-            $quantity = $saleDetRec->creditQuantity;
+            $quantity = $saleDetRec->creditQuantity ?? 0;
 
-            $amount = $saleDetRec->amount;
+            $amount = $saleDetRec->amount ?? 0;
 
             $id = $pRec->id;
 
@@ -166,9 +177,7 @@ class acc_reports_SoldProductsByPrimeCost extends frame2_driver_TableData
 
                     'productId' => $pRec->id,                             //Id на артикула
 
-                    'measureId' => $pRec->measureId,                        //Мярка
-
-                    'store' => $storeRec->id,                             //количество
+                    'measureId' => $pRec->measureId ?? null,                 //Мярка
 
                     'quantity' => $quantity,                              //количество
                     'amount' => $amount,                                  //стойност на продажбите за артикула
@@ -248,8 +257,12 @@ class acc_reports_SoldProductsByPrimeCost extends frame2_driver_TableData
             $row->measureId = cat_UoM::fetchField($dRec->measureId, 'shortName');
         }
 
-        $row->quantity = $Double->toVerbal($dRec->quantity);
-        $row->amount = $Double->toVerbal($dRec->amount);
+        if (isset($dRec->quantity)) {
+            $row->quantity = $Double->toVerbal($dRec->quantity);
+        }
+        if (isset($dRec->amount)) {
+            $row->amount = $Double->toVerbal($dRec->amount);
+        }
 
 
         return $row;
@@ -278,7 +291,9 @@ class acc_reports_SoldProductsByPrimeCost extends frame2_driver_TableData
 
 
         if (isset($data->rec->period)) {
-            $fieldTpl->append('<b>' . acc_Periods::fetch($data->rec->period)->title . '</b>', 'period');
+            if ($periodTitle = acc_Periods::fetchField($data->rec->period, 'title')) {
+                $fieldTpl->append('<b>' . $periodTitle . '</b>', 'period');
+            }
         }
 
         if (isset($data->rec->groups)) {
@@ -332,8 +347,9 @@ class acc_reports_SoldProductsByPrimeCost extends frame2_driver_TableData
      */
     protected static function on_AfterGetExportRec(frame2_driver_Proto $Driver, &$res, $rec, $dRec, $ExportClass)
     {
-
-        $res->measureId = cat_UoM::fetchField($dRec->measureId, 'shortName');
+        if (isset($dRec->measureId)) {
+            $res->measureId = cat_UoM::fetchField($dRec->measureId, 'shortName');
+        }
     }
 
 

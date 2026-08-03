@@ -419,7 +419,7 @@ class label_Templates extends core_Master
         $form->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         $sourceOptions = array('-1' => 'Без източник') + core_Classes::getOptionsByInterface('label_SequenceIntf', 'title');
         
-        $form->FNC('fClassId', 'varchar', 'caption=Източник');
+        $form->FNC('fClassId', 'varchar', 'caption=Източник,placeholder=Всички');
         $form->setOptions('fClassId', array('' => '') + $sourceOptions);
         
         $q = $mvc->getQuery();
@@ -434,7 +434,7 @@ class label_Templates extends core_Master
         
         $form->showFields = 'search,fClassId,sizes';
         if (!core_Request::get('Rejected', 'int')) {
-            $form->FNC('fState', 'enum(, active=Използвани, closed=Затворени)', 'caption=Всички, allowEmpty,autoFilter');
+            $form->FNC('fState', 'enum(, active=Използвани, closed=Затворени)', 'caption=Състояние,placeholder=Всички, allowEmpty,autoFilter');
             $form->showFields = ($form->showFields ?? '') . ', fState';
             $form->setDefault('fState', 'active');
             

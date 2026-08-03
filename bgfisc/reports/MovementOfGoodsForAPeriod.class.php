@@ -296,6 +296,7 @@ class bgfisc_reports_MovementOfGoodsForAPeriod extends frame2_driver_TableData
      */
     protected static function on_AfterRenderSingle(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$tpl, $data)
     {
+        $dealersVerb = '';
         $Date = cls::get('type_Date');
         
         $fieldTpl = new core_ET(tr("|*<!--ET_BEGIN BLOCK-->[#BLOCK#]

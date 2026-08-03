@@ -112,6 +112,7 @@ class wtime_Summary extends core_Manager
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         $data->listFilter->class = 'simpleForm';
         $data->listFilter->defOrder = false;
+        $data->listFilter->setField('personId', 'placeholder=Всички');
         $data->listFilter->showFields = 'selectPeriod,personId,from,to,type';
         $data->listFilter->input(null, 'silent');
         $data->listFilter->input();

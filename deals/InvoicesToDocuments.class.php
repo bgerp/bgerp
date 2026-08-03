@@ -71,8 +71,10 @@ class deals_InvoicesToDocuments extends core_Manager
         $Document->requireRightFor('selectinvoice');
         $Document->requireRightFor('selectinvoice', $rec);
         $paymentData = $Document->getPaymentData($rec);
-        $isTransfer = in_array($paymentData->operationSysId, array('case2customer', 'bank2customer', 'caseAdvance2customer', 'bankAdvance2customer', 'supplier2case', 'supplier2bank', 'supplierAdvance2case', 'supplierAdvance2bank'));
-        $isReverseWithTransfer = ($isTransfer && $paymentData->isReverse);
+        $operationSysId = $paymentData->operationSysId ?? null;
+        $isReverse = $paymentData->isReverse ?? false;
+        $isTransfer = in_array($operationSysId, array('case2customer', 'bank2customer', 'caseAdvance2customer', 'bankAdvance2customer', 'supplier2case', 'supplier2bank', 'supplierAdvance2case', 'supplierAdvance2bank'));
+        $isReverseWithTransfer = ($isTransfer && $isReverse);
 
         $form = cls::get('core_Form');
         $form->title = "Избор на фактури към|* " . cls::get($Document)->getFormTitleLink($documentId);
@@ -109,7 +111,7 @@ class deals_InvoicesToDocuments extends core_Manager
             // Ако ще е само една ф-ра ще се показва като избор
             $form->FLD('fromContainerId', "int", "caption=Избор");
             $form->setOptions('fromContainerId', array('' => '') + $invoices);
-            $form->setDefault('fromContainerId', $rec->fromContainerId);
+            $form->setDefault('fromContainerId', $rec->fromContainerId ?? null);
         } else {
 
             // Ако може да са няколко ф-ри и няма сконто се показва таблица, потребителя да си разписва свободно
@@ -154,7 +156,7 @@ class deals_InvoicesToDocuments extends core_Manager
                         }
                         $vAmount = currency_CurrencyRates::convertAmount($expectedAmountToPayData->amount, null, $expectedAmountToPayData->currencyCode, $paymentCurrencyCode);
                         $vAmount = round($vAmount, 2);
-                        if($paymentData->isReverse){
+                        if($isReverse){
                             $vAmount = abs($vAmount);
                         }
                         if($iDoc->getInstance()->fetch("#type = 'dc_note' AND #originId = {$iData['containerId'][$k]} AND #dealValue < 0 AND #state = 'active'")){
@@ -250,7 +252,7 @@ class deals_InvoicesToDocuments extends core_Manager
                 }
 
                 // Ако не е обратен документа и е към РБД със сконто
-                if(!$paymentData->isReverse && $haveCashDiscount){
+                if(!$isReverse && $haveCashDiscount){
                     $countInvoices = $countCreditNotesWithQuantity = $amountInvoice = $amountCreditNotes = 0;
 
                     foreach ($fullRecs as $iRec1){

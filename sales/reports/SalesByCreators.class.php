@@ -95,21 +95,6 @@ class sales_reports_SalesByCreators extends frame2_driver_TableData
 
 
     /**
-     * Преди показване на форма за добавяне/промяна.
-     *
-     * @param frame2_driver_Proto $Driver
-     * @param embed_Manager $Embedder
-     * @param stdClass $data
-     */
-    protected static function on_AfterPrepareEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$data)
-    {
-        $suggestions = array();
-        $form = $data->form;
-        $rec = $form->rec;
-
-    }
-
-    /**
      * Кои записи ще се показват в таблицата
      *
      * @param stdClass $rec
@@ -119,27 +104,24 @@ class sales_reports_SalesByCreators extends frame2_driver_TableData
      */
     protected function prepareRecs($rec, &$data = null)
     {
-        if (is_null($rec->crmGroup) && is_null($rec->contragent)) {
-            $this->groupByField = '';
-        }
+        $this->groupByField = '';
 
         $recs = array();
-        $salesWithShipArr = $salesArr = array();
+        if (empty($rec->creator) || empty($rec->from) || empty($rec->to)) {
+            return $recs;
+        }
 
         $id = $rec->creator;
-
-        $contragentsId = array();
 
         //Договори за продажба създадени през периода от избрания служител
         $query = sales_Sales::getQuery();
 
         $query->where("#state != 'rejected'");
 
-        //$query->where("#valior >= '{$rec->from}' AND #valior <= '{$rec->to}'.' 23:59:59'");
-        $query->where(array("#valior>= '[#1#]' AND #valior <= '[#2#]'",$rec->from. ' 00:00:00',$rec->to . ' 23:59:59'));
+        $query->where(array("#valior >= '[#1#]' AND #valior <= '[#2#]'", $rec->from . ' 00:00:00', $rec->to . ' 23:59:59'));
 
-        if (isset($rec->creator)) {
-            $query->where("#createdBy = $rec->creator");
+        if (!empty($rec->creator)) {
+            $query->where(array("#createdBy = '[#1#]'", $rec->creator));
         }
 
         // Синхронизира таймлимита с броя записи //
@@ -155,7 +137,7 @@ class sales_reports_SalesByCreators extends frame2_driver_TableData
                 $recs[$id] = (object)array(
 
                     'creator' => $rec->creator,
-                    'salesAmount' => $sRec->amountDeal - $sRec->amountVat,
+                    'salesAmount' => ($sRec->amountDeal ?? 0) - ($sRec->amountVat ?? 0),
                     'salesCount' => 1,
                     'delta' => 0,
                     'detailsCount' => 0,
@@ -163,7 +145,7 @@ class sales_reports_SalesByCreators extends frame2_driver_TableData
                 );
             } else {
                 $obj = &$recs[$id];
-                $obj->salesAmount += $sRec->amountDeal- $sRec->amountVat;
+                $obj->salesAmount += ($sRec->amountDeal ?? 0) - ($sRec->amountVat ?? 0);
                 $obj->salesCount++;
             }
         }
@@ -175,22 +157,23 @@ class sales_reports_SalesByCreators extends frame2_driver_TableData
 
         $primeQuery->where("#state != 'rejected'");
 
-        $primeQuery->where("#valior >= '{$rec->from}' AND #valior <= '{$rec->to}'");
+        $primeQuery->where(array("#valior >= '[#1#]' AND #valior <= '[#2#]'", $rec->from, $rec->to));
 
         while ($pRec = $primeQuery->fetch()) {
 
             //Продажбата в която се формират делтите
+            if (empty($pRec->threadId)) continue;
             $firstDoc = doc_Threads::getFirstDocument($pRec->threadId);
 
-            if ($firstDoc->className != 'sales_Sales') continue;
+            if (!$firstDoc || $firstDoc->className != 'sales_Sales') continue;
 
             $fDocRec = sales_Sales::fetch($firstDoc->that);
 
-            if ($fDocRec->createdBy != $rec->creator || !$pRec->delta) continue;
+            if (!$fDocRec || ($fDocRec->createdBy ?? null) != $rec->creator || empty($pRec->delta)) continue;
 
             if (!empty($recs)) {
                 $recs[$id]->delta += $pRec->delta;
-                $recs[$id]->detailsAmount += $pRec->sellCost * $pRec->quantity;
+                $recs[$id]->detailsAmount += ($pRec->sellCost ?? 0) * ($pRec->quantity ?? 0);
                 $recs[$id]->detailsCount++;
             }
 
@@ -258,23 +241,30 @@ class sales_reports_SalesByCreators extends frame2_driver_TableData
 
         $row = new stdClass();
 
-        $personId = (crm_Profiles::fetch("#userId = $dRec->creator")->personId);
-        $row->creator = crm_Persons::getHyperlink($personId);
+        $creatorId = $dRec->creator ?? null;
+        $personId = $creatorId ? crm_Profiles::fetchField(array("#userId = '[#1#]'", $creatorId), 'personId') : null;
+        $row->creator = $personId ? crm_Persons::getHyperlink($personId) : core_Users::getTitleById($creatorId);
 
-        $row->salesCount = '<b>' . core_Type::getByName('int')->toVerbal($dRec->salesCount) . '</b>';
-        $row->salesCount = ht::styleNumber($row->salesCount, $dRec->salesCount);
+        $salesCount = $dRec->salesCount ?? 0;
+        $salesAmount = $dRec->salesAmount ?? 0;
+        $detailsAmount = $dRec->detailsAmount ?? 0;
+        $detailsCount = $dRec->detailsCount ?? 0;
+        $delta = $dRec->delta ?? 0;
 
-        $row->salesAmount = '<b>' . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->salesAmount) . '</b>';
-        $row->salesAmount = ht::styleNumber($row->salesAmount, $dRec->salesAmount);
+        $row->salesCount = '<b>' . core_Type::getByName('int')->toVerbal($salesCount) . '</b>';
+        $row->salesCount = ht::styleNumber($row->salesCount, $salesCount);
 
-        $row->detailsAmount = '<b>' . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->detailsAmount) . '</b>';
-        $row->detailsAmount = ht::styleNumber($row->detailsAmount, $dRec->detailsAmount);
+        $row->salesAmount = '<b>' . core_Type::getByName('double(decimals=2)')->toVerbal($salesAmount) . '</b>';
+        $row->salesAmount = ht::styleNumber($row->salesAmount, $salesAmount);
 
-        $row->detailsCount = '<b>' . core_Type::getByName('int')->toVerbal($dRec->detailsCount) . '</b>';
-        $row->detailsCount = ht::styleNumber($row->detailsCount, $dRec->detailsCount);
+        $row->detailsAmount = '<b>' . core_Type::getByName('double(decimals=2)')->toVerbal($detailsAmount) . '</b>';
+        $row->detailsAmount = ht::styleNumber($row->detailsAmount, $detailsAmount);
 
-        $row->delta = '<b>' . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->delta) . '</b>';
-        $row->delta = ht::styleNumber($row->delta, $dRec->delta);
+        $row->detailsCount = '<b>' . core_Type::getByName('int')->toVerbal($detailsCount) . '</b>';
+        $row->detailsCount = ht::styleNumber($row->detailsCount, $detailsCount);
+
+        $row->delta = '<b>' . core_Type::getByName('double(decimals=2)')->toVerbal($delta) . '</b>';
+        $row->delta = ht::styleNumber($row->delta, $delta);
 
         return $row;
     }
@@ -337,8 +327,9 @@ class sales_reports_SalesByCreators extends frame2_driver_TableData
      */
     protected static function on_AfterGetExportRec(frame2_driver_Proto $Driver, &$res, $rec, $dRec, $ExportClass)
     {
-        $personId = (crm_Profiles::fetch("#userId = $dRec->creator")->personId);
-        $res->creator = crm_Persons::getHyperlink($personId);
+        $creatorId = $dRec->creator ?? null;
+        $personId = $creatorId ? crm_Profiles::fetchField(array("#userId = '[#1#]'", $creatorId), 'personId') : null;
+        $res->creator = $personId ? crm_Persons::getTitleById($personId) : core_Users::getTitleById($creatorId);
 
     }
 }

@@ -281,6 +281,7 @@ class email_Inboxes extends core_Master
         
         unset($data->listFilter->fields['accountId']->mandatory);
         $data->listFilter->setParams('accountId', array('allowEmpty' => 'allowEmpty'));
+        $data->listFilter->setField('accountId', 'placeholder=Всички');
         
         // В хоризонтален вид
         $form->view = 'horizontal';
