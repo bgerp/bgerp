@@ -125,7 +125,7 @@ class dec_Setup extends core_ProtoSetup
         $query->orderBy('id', 'ASC');
         $dArr = array();
         while ($rec = $query->fetch()) {
-            if ($dArr[$rec->title]) {
+            if (isset($dArr[$rec->title])) {
                 $n = 1000;
                 $i = 1;
                 while (true) {

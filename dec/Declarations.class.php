@@ -199,12 +199,12 @@ class dec_Declarations extends core_Master
     {
         $form = &$data->form;
     
-        // Масива, който ще връщаме
-        static $placesArr = array();
+        // Запазените стойности за динамичните полета
+        $placesArr = is_array($form->rec->formatParams ?? null) ? $form->rec->formatParams : array();
 
         // Проверяваме имаме ли зареден шаблон
         $statementOptions = array();
-        if($data->form->rec->template) {
+        if (!empty($form->rec->template)) {
             // кой е езика на шаблона
             $lang = doc_TplManager::fetch($form->rec->template)->lang;
 
@@ -221,9 +221,9 @@ class dec_Declarations extends core_Master
             $allPlaceholders = label_Templates::getPlaceholders($tpl->content);
          
             // обхождаме плейсхолдерите
-            if(is_array($allPlaceholders)) { 
-               
-                foreach ($allPlaceholders as $pA) {   
+            if (is_array($allPlaceholders)) {
+                $placeholderFields = array();
+                foreach ($allPlaceholders as $pA) {
                     // Правим имената на плейсхолдерите с главна буква,
                     // за да нямаме дублиране с FLD
                     $p = "_".($pA);
@@ -233,10 +233,17 @@ class dec_Declarations extends core_Master
                  
                     // Правим функционални (виртуални) полета
                     $form->FNC("{$p}", 'varchar(255)', "caption=Други настройки->{$p1},input=input, silent,recently,autohide");
-                    $form->input();
-                    $placesArr[$p] = $form->rec->{$p};
+                    $form->rec->{$p} = $form->rec->{$p} ?? ($placesArr[$p] ?? null);
+                    $placeholderFields[$p] = $p;
                 }
-            } 
+
+                if (countR($placeholderFields)) {
+                    $form->input(implode(',', $placeholderFields));
+                    foreach ($placeholderFields as $p) {
+                        $placesArr[$p] = $form->rec->{$p} ?? null;
+                    }
+                }
+            }
         }
    
         // Записваме blob полето
@@ -253,7 +260,7 @@ class dec_Declarations extends core_Master
         }
                 
         // Записваме оригиналното ид, ако имаме такова
-        if ($form->rec->originId) {
+        if (!empty($form->rec->originId)) {
             $form->setDefault('doc', $data->form->rec->originId);
 
             // и е към документ
@@ -291,7 +298,7 @@ class dec_Declarations extends core_Master
 
             if(countR($locationOptions)){
                 $form->setOptions('locationId', $locationOptions);
-                $form->setDefault('locationId', $rec->deliveryPlaceId);
+                $form->setDefault('locationId', $rec->deliveryPlaceId ?? null);
             } else {
                 $form->setReadOnly('locationId');
             }
@@ -305,7 +312,7 @@ class dec_Declarations extends core_Master
         }
 
         // ако не е указана дата взимаме днешната
-        if (!$data->form->rec->date) {
+        if (empty($form->rec->date)) {
             $data->form->setDefault('date', dt::now(false));
         }
     }
@@ -494,7 +501,7 @@ class dec_Declarations extends core_Master
             $row->contragentAddress = transliterate(tr($row->contragentAddress));
 
             $uicContragent = drdata_Vats::getUicByVatNo($recOrigin->contragentVatNo); 
-            if ($uic != $recOrigin->contragentVatNo) {
+            if ($uicContragent != $recOrigin->contragentVatNo) {
                 $row->contragentCompanyVatNo = $Varchar->toVerbal($recOrigin->contragentVatNo);
             }
             
@@ -545,7 +552,7 @@ class dec_Declarations extends core_Master
             }
             
             foreach ($rec->formatParams as $placeholder => $value) {
-                if (strlen($value) !== 0) {
+                if (strlen((string)$value) !== 0) {
                     
                     if (strpos($placeholder, "_") == 0) {
                         $placeholder = substr($placeholder, 1);
