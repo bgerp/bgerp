@@ -340,10 +340,9 @@ class blast_Emails extends core_Master
     {
         // Записа
         $rec = self::getRec($id);
-        
-        self::logWrite('Активиран циркулярен имейл', $rec->id);
-        
         expect($rec, 'Няма такъв запис');
+
+        self::logWrite('Активиран циркулярен имейл', $rec->id);
         
         // Обновяваме списъка с имейлите
         $updateCntArr = self::updateEmailList($id);
@@ -808,17 +807,18 @@ class blast_Emails extends core_Master
         }
         
         $docsArr = array();
-        $attFhArr = array();
+        $attFhArr = $docsFhArr = array();
+        $attachArr = array();
         
         if ($sending) {
             
             //Дали да прикачим файловете
-            if ($rec->attachments) {
+            if (!empty($rec->attachments)) {
                 $attachArr = type_Set::toArray($rec->attachments);
             }
             
             //Ако сме избрали да се добавят документите, като прикачени
-            if ($attachArr['documents']) {
+            if (!empty($attachArr['documents'])) {
                 $nRec = clone $rec;
                 
                 $this->prepareRec($nRec, $detArr);
@@ -842,7 +842,7 @@ class blast_Emails extends core_Master
             }
             
             //Ако сме избрали да се добавят файловете, като прикачени
-            if ($attachArr['files']) {
+            if (!empty($attachArr['files'])) {
                 
                 //Вземаме манупулаторите на файловете
                 $attFhArr = $this->getAttachments($rec);
@@ -985,14 +985,14 @@ class blast_Emails extends core_Master
         $langArr = arr::make(EF_LANGUAGES, true);
         
         // Ако подадения език е в допустимите, да се използва
-        if ($lang && $langArr[$lang]) {
+        if ($lang && !empty($langArr[$lang])) {
             $lg = $lang;
         } else {
             // Масив с всички предполагаеми езици
             $lg = i18n_Language::detect($body);
             
             // Ако езика не е допустимите за системата, да е английски
-            if (!$langArr[$lg]) {
+            if (empty($langArr[$lg])) {
                 $lg = 'en';
             }
         }
@@ -1359,17 +1359,19 @@ class blast_Emails extends core_Master
         }
         
         if (!$lang || ($lang == 'auto')) {
-            if ($rec->perSrcClassId) {
+            if (!empty($rec->perSrcClassId)) {
                 $perClsInst = cls::getInterface('bgerp_PersonalizationSourceIntf', $rec->perSrcClassId);
+                $lang = $perClsInst->getPersonalizationLg($rec->perSrcObjectId ?? null);
+            } else {
+                $lang = 'en';
             }
-            $lang = $perClsInst->getPersonalizationLg($rec->perSrcObjectId);
         }
         
         $allLangArr = arr::make(EF_LANGUAGES);
         
         $pushedLg = false;
         
-        if ($allLangArr[$lang]) {
+        if (!empty($allLangArr[$lang])) {
             // Сменяме езика за да може да  се преведат съобщенията
             core_Lg::push($lang);
             
@@ -1710,16 +1712,17 @@ class blast_Emails extends core_Master
             
             // Ако ще се прикачат документи или файлове
             // Проверяваме разширенията им
-            if ($rec->attachments) {
+            if (!empty($rec->attachments)) {
                 $attachArr = type_Set::toArray($rec->attachments);
+                $docsSizesArr = $filesSizesArr = array();
                 
-                if ($attachArr['documents']) {
+                if (!empty($attachArr['documents'])) {
                     // Прикачените документи
                     $docsArr = $mvc->getDocuments($rec);
                     $docsSizesArr = $mvc->getDocumentsSizes($docsArr);
                 }
                 
-                if ($attachArr['files']) {
+                if (!empty($attachArr['files'])) {
                     // Прикачените файлове
                     $attachmentsArr = $mvc->getAttachments($rec);
                     $filesSizesArr = $mvc->getFilesSizes($attachmentsArr);
@@ -1733,9 +1736,9 @@ class blast_Emails extends core_Master
                     // Вербалният размер на файловете и документите
                     $docAndFilesSizeVerbal = $mvc->getVerbalSizesFromArray($allAttachmentsArr);
                     
-                    if ($attachArr['documents'] && $attachArr['files']) {
+                    if (!empty($attachArr['documents']) && !empty($attachArr['files'])) {
                         $str = 'файлове и документи';
-                    } elseif ($attachArr['documents']) {
+                    } elseif (!empty($attachArr['documents'])) {
                         $str = 'документи';
                     } else {
                         $str = 'файлове';
@@ -1759,19 +1762,21 @@ class blast_Emails extends core_Master
             $recArr = (array) $form->rec;
             
             // Вземаме Относно и Съобщение
-            $bodyAndSubject = $recArr['body'] . ' ' . $recArr['subject'] . ' ' . $recArr['unsubscribe'];
+            $bodyAndSubject = ($recArr['body'] ?? '') . ' ' . ($recArr['subject'] ?? '') . ' ' . ($recArr['unsubscribe'] ?? '');
             
             // Масив с данни от плейсхолдера
             $nRecArr = array();
-            $nRecArr['recipient'] = $recArr['recipient'];
-            $nRecArr['attn'] = $recArr['attn'];
-            $nRecArr['email'] = $recArr['email'];
-            $nRecArr['tel'] = $recArr['tel'];
-            $nRecArr['fax'] = $recArr['fax'];
-            $nRecArr['country'] = $recArr['country'];
-            $nRecArr['pcode'] = $recArr['pcode'];
-            $nRecArr['place'] = $recArr['place'];
-            $nRecArr['address'] = $recArr['address'];
+            $nRecArr['recipient'] = $recArr['recipient'] ?? '';
+            $nRecArr['attn'] = $recArr['attn'] ?? '';
+            $nRecArr['email'] = $recArr['email'] ?? '';
+            $nRecArr['tel'] = $recArr['tel'] ?? '';
+            $nRecArr['fax'] = $recArr['fax'] ?? '';
+            $nRecArr['country'] = $recArr['country'] ?? '';
+            $nRecArr['pcode'] = $recArr['pcode'] ?? '';
+            $nRecArr['place'] = $recArr['place'] ?? '';
+            $nRecArr['address'] = $recArr['address'] ?? '';
+
+            $allRecsWithPlaceHolders = '';
             
             // Обикаляме всички останали стойности в масива
             foreach ($nRecArr as $field) {
@@ -1813,13 +1818,14 @@ class blast_Emails extends core_Master
             $allPlaceHolder = array_unique($allPlaceHolder);
             
             $warningPlaceHolderArr = array();
+            $warning = $error = '';
             
             // Търсим всички полета, които сме въвели, но ги няма в полетата за заместване
             foreach ($allPlaceHolder as $placeHolder) {
                 $placeHolderL = strtolower($placeHolder);
                 
                 // Ако плейсхолдера го няма във листа
-                if (!$fieldsArr[$placeHolderL]) {
+                if (empty($fieldsArr[$placeHolderL])) {
                     
                     // Добавяме към съобщението за предупреждение
                     $warning .= ($warning) ? ", {$placeHolder}" : $placeHolder;
@@ -1840,7 +1846,7 @@ class blast_Emails extends core_Master
                 $placeHolderL = strtolower($placeHolder);
                 
                 // Ако плейсхолдера го няма във листа
-                if (!$fieldsArr[$placeHolderL]) {
+                if (empty($fieldsArr[$placeHolderL])) {
                     
                     // Добавяме към съобщението за грешка
                     $error .= ($error) ? ", {$placeHolder}" : $placeHolder;
@@ -1931,18 +1937,18 @@ class blast_Emails extends core_Master
         $blue = new color_Object('#2244cc');
         $grey = new color_Object('#bbb');
         
-        $progressPx = min(100, round(100 * $rec->progress));
+        $progressPx = min(100, round(100 * ($rec->progress ?? 0)));
         $progressRemainPx = 100 - $progressPx;
         $row->progressBar = "<div style='white-space: nowrap; display: inline-block;'><div style='display:inline-block;top:-5px;border-bottom:solid 10px {$blue}; width:{$progressPx}px;'> </div><div style='display:inline-block;top:-5px;border-bottom:solid 10px {$grey};width:{$progressRemainPx}px;'></div></div>";
         
         //При рендиране на листовия изглед показваме дали ще се прикачат файловете и/или документите
-        $attachArr = type_Set::toArray($rec->attachments);
+        $attachArr = type_Set::toArray($rec->attachments ?? null);
         
-        if ($attachArr['files']) {
+        if (!empty($attachArr['files'])) {
             $row->Files = tr('Файловете');
         }
         
-        if ($attachArr['documents']) {
+        if (!empty($attachArr['documents'])) {
             $row->Documents = tr('Документите');
         }
         
@@ -1950,7 +1956,7 @@ class blast_Emails extends core_Master
         $row->handle = $mvc->getHandle($rec->id);
         
         // Линка към обекта, който се използва за персонализация
-        if ($rec->perSrcClassId && isset($rec->perSrcObjectId)) {
+        if (!empty($rec->perSrcClassId) && isset($rec->perSrcObjectId)) {
             if (cls::load($rec->perSrcClassId, true)) {
                 $inst = cls::getInterface('bgerp_PersonalizationSourceIntf', $rec->perSrcClassId);
                 
@@ -1960,7 +1966,7 @@ class blast_Emails extends core_Master
             }
         }
         
-        if ($rec->errMsg) {
+        if (!empty($rec->errMsg)) {
             $row->errMsg = tr('|*' . $rec->errMsg);
             $row->errMsg = type_Varchar::escape($row->errMsg);
         }
@@ -2113,23 +2119,24 @@ class blast_Emails extends core_Master
         
         $today = dt::mysql2timestamp($nowF);
         
-        if ($rec->sendingFrom) {
+        $sendingFrom = $sendingTo = null;
+        if (!empty($rec->sendingFrom)) {
             $sendingFrom = $today + $rec->sendingFrom;
             $sendingFrom = dt::timestamp2Mysql($sendingFrom);
         }
         
-        if ($rec->sendingTo) {
+        if (!empty($rec->sendingTo)) {
             $sendingTo = $today + $rec->sendingTo;
             $sendingTo = dt::timestamp2Mysql($sendingTo);
         }
         
-        $sendingArr = type_Set::toArray($rec->sendingDay);
+        $sendingArr = type_Set::toArray($rec->sendingDay ?? null);
         
         $dayOfWeek = date('w');
         
         $haveNextStartTime = false;
         
-        if (empty($sendingArr) || ($sendingArr[$dayOfWeek])) {
+        if (empty($sendingArr) || !empty($sendingArr[$dayOfWeek])) {
             if ((($nextStartTime >= $sendingFrom) || !$sendingFrom) && (($nextStartTime < $sendingTo) || !$sendingTo)) {
                 $haveNextStartTime = true;
             }
@@ -2152,7 +2159,7 @@ class blast_Emails extends core_Master
             }
             
             if (!isset($nextStartDay)) {
-                if ($dw = $sendingArr[$dayOfWeek]) {
+                if ($dw = ($sendingArr[$dayOfWeek] ?? null)) {
                     if (!$sendingTo || ($nextStartTime < $sendingTo)) {
                         $nextStartDay = $dw;
                     }
@@ -2169,7 +2176,7 @@ class blast_Emails extends core_Master
             
             $nextStartTime = dt::addDays($nextStartDay - $dayOfWeek, $nowF);
             
-            if ($rec->sendingFrom) {
+            if (!empty($rec->sendingFrom)) {
                 $nextStartTime = dt::addSecs($rec->sendingFrom, $nextStartTime);
             }
         }
@@ -2466,6 +2473,7 @@ class blast_Emails extends core_Master
      */
     public static function createListAndEmail($listParams, $emailParams)
     {
+        $emailParams += array('fields' => array(), 'canUnsubscribe' => 'yes', 'sharedUsers' => null, 'lg' => null, 'folderId' => null, 'text' => '', 'subject' => '');
         $listId = blast_Lists::createList($listParams);
 
         expect($listId);
