@@ -469,7 +469,8 @@ class price_reports_PriceList extends frame2_driver_TableData
         $row->price = $Double->toVerbal($dRec->price);
         $row->price = currency_Currencies::decorate($row->price, $rec->currencyId, true);
 
-        if($dRec->isPublic != 'yes'){
+        $isPublic = $dRec->isPublic ?? cat_Products::fetchField($dRec->productId, 'isPublic');
+        if($isPublic != 'yes'){
             $row->productId = ht::createHint($row->productId, "Артикулът е нестандартен|*!", 'warning', false);
         }
         if(($rec->templateType ?? 'default') == 'foods'){
