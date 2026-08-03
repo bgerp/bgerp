@@ -109,6 +109,12 @@ class acc_reports_UnactiveContableDocs extends frame2_driver_TableData
     {
         $recs = array();
         $counter = array();
+        $rec->from = $rec->from ?? date('Y-m-01');
+        $rec->to = $rec->to ?? dt::today();
+        $rec->states = $rec->states ?? null;
+        $rec->documentType = $rec->documentType ?? null;
+        $rec->selectedOff = $rec->selectedOff ?? null;
+        $rec->dealerId = $rec->dealerId ?? null;
         
         $contoClasses = core_Classes::getOptionsByInterface('acc_TransactionSourceIntf');
         
@@ -148,44 +154,55 @@ class acc_reports_UnactiveContableDocs extends frame2_driver_TableData
         
         while ($document = $query->fetch()) {
             $Document = doc_Containers::getDocument($document->id);
-            
-            $className = $Document->className;
-            $contDoc = $className::fetch($Document->that);
-            
-            $documentType = $className . '|' . $contDoc->state;
-            
-            $handle = $className::getHandle($Document->that);
-            
-            if ($contDoc->valior < $rec->from || $contDoc->valior > $rec->to) {
+            if (!$Document) {
                 continue;
             }
             
-            $counterKey = $className . $contDoc->state;
+            $className = $Document->className;
+            $contDoc = $className::fetch($Document->that);
+            if (!$contDoc) {
+                continue;
+            }
+
+            $state = $contDoc->state ?? $document->state ?? null;
+            $valior = $contDoc->valior ?? null;
+            if (!$state || !$valior) {
+                continue;
+            }
             
-            $counter[$counterKey] ++;
+            $documentType = $className . '|' . $state;
             
-            if (! array_key_exists($Document->that, $recs)) {
-                $recs[$Document->that] = (object) array(
+            $handle = $className::getHandle($Document->that);
+            
+            if ($valior < $rec->from || $valior > $rec->to) {
+                continue;
+            }
+            
+            $counterKey = $documentType;
+            
+            $counter[$counterKey] = ($counter[$counterKey] ?? 0) + 1;
+            
+            if (! array_key_exists($document->id, $recs)) {
+                $recs[$document->id] = (object) array(
                     
                     'documentType' => $documentType,
                     'counter' => '',
                     'documentFolder' => $document->folderId,
                     'containerId' => $document->id,
                     'documentId' => $Document->that,
-                    'valior' => $contDoc->valior,
+                    'valior' => $valior,
                     'dealerId' => $document->createdBy,
                     'handle' => $handle,
-                    'states' => $contDoc->state
+                    'states' => $state
                 );
             }
-            
-            $documentsArr[] = $contDoc;
         }
         
         if (countR($recs)) {
             arr::sortObjects($recs, 'documentType', 'asc', 'stri');
         }
         
+        $temp = array();
         foreach ($recs as $v) {
             $v->counter = $counter;
             $temp[] = $v;
@@ -210,7 +227,7 @@ class acc_reports_UnactiveContableDocs extends frame2_driver_TableData
             $fld->FLD('valior', 'date', 'caption=Дата,smartCenter');
             $fld->FLD('handle', 'varchar', 'caption=Документ,smartCenter');
             $fld->FLD('documentFolder', 'varchar', 'caption=Папка,smartCenter');
-            if (countR(type_Keylist::toArray($rec->dealerId)) > 1 || ! $rec->dealerId) {
+            if (countR(type_Keylist::toArray($rec->dealerId ?? null)) > 1 || empty($rec->dealerId)) {
                 $fld->FLD('dealerId', 'varchar', 'caption=Търговец,smartCenter');
             }
         }
@@ -236,14 +253,22 @@ class acc_reports_UnactiveContableDocs extends frame2_driver_TableData
         $Date = cls::get('type_Date');
         
         $row = new stdClass();
+        $thisCounter = 0;
         
         $Document = doc_Containers::getDocument($dRec->containerId);
+        if (!$Document) {
+            return $row;
+        }
         
-        list($className, $other) = explode('|', $dRec->documentType);
+        $documentTypeParts = explode('|', $dRec->documentType ?? '', 2);
+        if (count($documentTypeParts) != 2) {
+            return $row;
+        }
+        list($className, $other) = $documentTypeParts;
         
         if (is_array($dRec->counter ?? null)) {
             foreach ($dRec->counter as $k => $v) {
-                if ($k == $className . $other) {
+                if ($k == $className . '|' . $other) {
                     $thisCounter = $v;
                 }
             }
@@ -284,6 +309,7 @@ class acc_reports_UnactiveContableDocs extends frame2_driver_TableData
     protected static function on_AfterRenderSingle(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$tpl, $data)
     {
         $Date = cls::get('type_Date');
+        $statesVerb = $dealersVerb = $dokumentsVerb = '';
         $fieldTpl = new core_ET(tr("|*<!--ET_BEGIN BLOCK-->[#BLOCK#]
 								<fieldset class='detail-info'><legend class='groupTitle'><small><b>|Филтър|*</b></small></legend>
                                     <div class='small'>
@@ -324,7 +350,7 @@ class acc_reports_UnactiveContableDocs extends frame2_driver_TableData
             foreach (type_Keylist::toArray($data->rec->documentType) as $documentsChecked) {
                 $dokumentsVerb .= (core_Classes::getTitleById($documentsChecked) . ', ');
             }
-            if (! $data->rec->selectedOff) {
+            if (empty($data->rec->selectedOff)) {
                 $fieldTpl->append(trim($dokumentsVerb, ',  '), 'documentType');
             } else {
                 $fieldTpl->append('<b>'.'Всички без: '.'</b>'.trim($dokumentsVerb, ',  '), 'documentType');
