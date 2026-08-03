@@ -2373,6 +2373,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                 $prodCategory = doc_Folders::fetch($prodFolderId)->title;
                 $row->category = $prodCategory;
             }
+            $dRec->delta = $dRec->delta ?? 0;
             foreach (array(
                          'quantity',
                          'invQuantity',
