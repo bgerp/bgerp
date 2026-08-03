@@ -318,7 +318,7 @@ class type_UserList extends type_Keylist
         
         foreach ($ids as $id) {
             if (strlen($id) && ($id > 1)) {
-                if (!($nick = $uar['r'][$id]->nick)) {
+                if (!($nick = ($uar['r'][$id]->nick ?? null))) {
                     $res = parent::toVerbal_($value);
                     break;
                 }
