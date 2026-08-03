@@ -316,7 +316,7 @@ class cat_BomDetails extends doc_Detail
                     $form->setField('labelPackagingId', 'input');
 
                     $productMeasureId = cat_Products::fetchField($rec->resourceId, 'measureId');
-                    $packs = planning_Tasks::getAllowedLabelPackagingOptions($productMeasureId, $rec->resourceId, $rec->labelPackagingId);
+                    $packs = planning_Tasks::getAllowedLabelPackagingOptions($productMeasureId, $rec->resourceId, $rec->labelPackagingId ?? null);
                     $form->setOptions("labelPackagingId", $packs);
                 }
 
@@ -339,7 +339,7 @@ class cat_BomDetails extends doc_Detail
                 }
 
                 if (!isset($productionData['normPackagingId'])) {
-                    $form->setFieldTypeParams('norm', array('measureId' => $rec->packagingId));
+                    $form->setFieldTypeParams('norm', array('measureId' => $rec->packagingId ?? $productMeasureId));
                 }
 
                 // Ако има опаковка за етикетиране
@@ -349,7 +349,7 @@ class cat_BomDetails extends doc_Detail
                     $form->setField('labelType', 'input');
 
                     // Наличните за избор шаблони
-                    $templateOptions = planning_Tasks::getAllAvailableLabelTemplates($rec->labelTemplate);
+                    $templateOptions = planning_Tasks::getAllAvailableLabelTemplates($rec->labelTemplate ?? null);
                     $form->setOptions("labelTemplate", $templateOptions);
 
                     // К-то в опаковката като хинт
@@ -365,11 +365,11 @@ class cat_BomDetails extends doc_Detail
                     $form->setField('employees', 'input');
 
                     // Налични оборудвания от избрания център
-                    $fixedAssets = planning_AssetResources::getByFolderId($folderId, $rec->fixedAssets, 'planning_Tasks', true);
+                    $fixedAssets = planning_AssetResources::getByFolderId($folderId, $rec->fixedAssets ?? null, 'planning_Tasks', true);
                     $form->setSuggestions("fixedAssets", $fixedAssets);
 
                     // Наличните човешки ресурси от избрания център
-                    $hrAssets = planning_Hr::getByFolderId($folderId, $rec->employees);
+                    $hrAssets = planning_Hr::getByFolderId($folderId, $rec->employees ?? null);
                     $form->setSuggestions("employees", $hrAssets);
                 }
 
@@ -1349,8 +1349,9 @@ class cat_BomDetails extends doc_Detail
                 $rec = $data->recs[$id];
                 if ($rec->parentId) {
                     if ($rec->rowQuantity != cat_BomDetails::CALC_ERROR) {
-                        if ($data->recs[$rec->parentId]->rowQuantity != cat_BomDetails::CALC_ERROR) {
-                            $rec->rowQuantity *= $data->recs[$rec->parentId]->rowQuantity;
+                        $parentRec = $data->recs[$rec->parentId] ?? null;
+                        if ($parentRec && $parentRec->rowQuantity != cat_BomDetails::CALC_ERROR) {
+                            $rec->rowQuantity *= $parentRec->rowQuantity;
                         }
                     }
                 }
