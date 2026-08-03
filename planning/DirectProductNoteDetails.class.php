@@ -34,6 +34,21 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     }
 
     /**
+     * Премахва CSS клас само от локално копие на поле от таблицата.
+     */
+    protected static function removeTableFieldClass($mvc, $fieldName, $className)
+    {
+        if (!isset($mvc->fields[$fieldName])) {
+            return;
+        }
+
+        $mvc->fields[$fieldName] = clone $mvc->fields[$fieldName];
+        $classes = arr::make($mvc->fields[$fieldName]->tdClass ?? '', true);
+        unset($classes[$className]);
+        $mvc->fields[$fieldName]->tdClass = implode(' ', $classes);
+    }
+
+    /**
      * Заглавие
      */
     public $title = 'Детайли на протокола за производство';
@@ -475,6 +490,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
         if (!isset($fieldset->fields['_rowTools'])) {
             $fieldset->FNC('_rowTools', 'varchar', 'tdClass=rowtools-column');
         }
+        self::removeTableFieldClass($fieldset, 'packagingId', 'nowrap');
         self::addTableFieldClass($fieldset, 'productId', 'disassemblyProductColumn');
         self::addTableFieldClass($fieldset, 'tools', 'productionToolsColumn');
         self::addTableFieldClass($fieldset, 'tools', 'rightCol');
