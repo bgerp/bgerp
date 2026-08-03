@@ -540,6 +540,7 @@ class email_Router extends core_Manager
         
         // Ако е подадена кутия, опитваме се да определим от акаунта
         if ($boxFrom) {
+            $accEmail = null;
             $accId = email_Inboxes::fetchField($boxFrom, 'accountId');
             if ($accId) {
                 $accEmail = email_Accounts::fetchField($accId, 'email');
@@ -549,7 +550,7 @@ class email_Router extends core_Manager
                 list(, $hostNameArr[$boxFrom]) = explode('@', $accEmail);
             }
             
-            if ($hostNameArr[$boxFrom]) {
+            if (!empty($hostNameArr[$boxFrom])) {
                 
                 return $hostNameArr[$boxFrom];
             }
@@ -797,6 +798,7 @@ class email_Router extends core_Manager
      */
     public function repair()
     {
+        $missedCompanies = $missedPersons = $missedDocuments = $html = '';
         $query = self::getQuery();
         while ($rec = $query->fetch()) {
             if ($rec->objectType == 'company') {

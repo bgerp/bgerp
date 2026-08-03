@@ -729,7 +729,7 @@ class email_Inboxes extends core_Master
             if ($domain == $corpAccRec->domain) {
                 $powerUsers = email_Inboxes::getPowerUsers();
                 
-                if ($userRec = $powerUsers[$user]) {
+                if ($userRec = ($powerUsers[$user] ?? null)) {
                     $rec = new stdClass();
                     $rec->email = $email;
                     $rec->accountId = $corpAccRec;

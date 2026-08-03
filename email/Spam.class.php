@@ -165,7 +165,7 @@ class email_Spam extends email_ServiceEmails
         
         $hash = md5(serialize($headerArr));
         
-        if (!$scoreArr[$hash]) {
+        if (!isset($scoreArr[$hash])) {
             $score = null;
             
             // Проверяваме рейтинга във всички зададени хедъри

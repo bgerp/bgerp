@@ -654,7 +654,7 @@ class email_Setup extends core_ProtoSetup
         $logoArr['BGERP_COMPANY_LOGO_EN'] = core_Settings::fetchUsers(crm_Profiles::getSettingsKey(), 'BGERP_COMPANY_LOGO_EN');
         foreach ($logoArr as $lKey => $logoLgArr) {
             foreach ((array) $logoLgArr as $lArr) {
-                if (!$lArr[$lKey]) {
+                if (empty($lArr[$lKey])) {
                     continue;
                 }
 

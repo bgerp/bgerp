@@ -78,6 +78,7 @@ class email_drivers_DeleteEmails extends core_BaseClass
         $msg = '';
 
         while ($sRec = $sQuery->fetch()) {
+            $lastFolderId = null;
             $before = dt::subtractSecs($sRec->keepDays);
             $iQuery = email_Incomings::getQuery();
             $iQuery->where(array("#modifiedOn <= '[#1#]'", $before));
@@ -89,7 +90,7 @@ class email_drivers_DeleteEmails extends core_BaseClass
 
             $iQuery->limit(100);
 
-            $iQuery->show('id, threadId, containerId, subject');
+            $iQuery->show('id, threadId, folderId, containerId, subject');
 
             foreach ($fieldArrMap as $serviceFieldName => $recFieldName) {
 
@@ -114,6 +115,7 @@ class email_drivers_DeleteEmails extends core_BaseClass
             $delCnt = 0;
 
             while ($iRec = $iQuery->fetch()) {
+                $lastFolderId = $iRec->folderId ?? $lastFolderId;
                 if ($iRec->docCnt < 1) {
 
                     $cQuery = doc_Containers::getQuery();
@@ -146,7 +148,9 @@ class email_drivers_DeleteEmails extends core_BaseClass
                 $rulesInst->logNotice($nMsg, $sRec->id);
             }
 
-            doc_Folders::updateFolderByContent($iRec->folderId);
+            if (isset($lastFolderId)) {
+                doc_Folders::updateFolderByContent($lastFolderId);
+            }
         }
 
         return $msg;
