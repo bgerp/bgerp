@@ -1433,7 +1433,7 @@ class cal_Reminders extends core_Master
             
             }
             
-            if (!$row->each) {
+            if (empty($row->each)) {
                 $row->each = tr('всеки');
             }
             
