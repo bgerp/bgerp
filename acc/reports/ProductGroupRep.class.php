@@ -31,7 +31,7 @@ class acc_reports_ProductGroupRep extends frame2_driver_TableData
      *
      * @var string
      */
-    protected $hashField = '$recIndic';
+    protected $hashField = 'productId,docId';
     
     
     /**
