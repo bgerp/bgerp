@@ -606,7 +606,7 @@ class support_TaskType extends core_Mvc
             }
         }
         
-        if ($row->file) {
+        if ($row->file ?? null) {
             $resArr['file'] = array('name' => tr('Файл'), 'val' => '[#file#]');
         }
         
