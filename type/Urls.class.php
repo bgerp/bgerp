@@ -116,7 +116,7 @@ class type_Urls extends type_Varchar
             return;
         }
    
-        $urlsArr = preg_split(self::$pattern, $value, null, PREG_SPLIT_NO_EMPTY);
+        $urlsArr = preg_split(self::$pattern, $value, -1, PREG_SPLIT_NO_EMPTY);
         foreach($urlsArr as &$url) {
             if(stripos($url, '://') === false) {
                 $url = 'http://' . $url;
@@ -138,7 +138,7 @@ class type_Urls extends type_Varchar
     public function toVerbal_($str)
     {
         //Тримваме полето
-        $str = trim($str);
+        $str = trim($str ?? '');
         
         //ако е празен, връщаме NULL
         if (empty($str)) {
@@ -176,7 +176,7 @@ class type_Urls extends type_Varchar
     public static function toArray($str, $only = self::VALID)
     {
         //Масив с всички URL-та
-        $urlsArr = preg_split(self::$pattern, $str, null, PREG_SPLIT_NO_EMPTY);
+        $urlsArr = preg_split(self::$pattern, $str, -1, PREG_SPLIT_NO_EMPTY);
 
         if ($only != self::ALL) {
             foreach ($urlsArr as $i => $url) {

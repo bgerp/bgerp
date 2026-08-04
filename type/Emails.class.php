@@ -250,7 +250,7 @@ class type_Emails extends type_Varchar
     public static function toArray($str, $only = self::VALID)
     {
         //Масив с всички имейли
-        $emailsArr = preg_split(self::$pattern, $str, null, PREG_SPLIT_NO_EMPTY);
+        $emailsArr = preg_split(self::$pattern, $str, -1, PREG_SPLIT_NO_EMPTY);
         
         if ($only != self::ALL) {
             foreach ($emailsArr as $i => $email) {
