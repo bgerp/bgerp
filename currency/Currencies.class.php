@@ -175,7 +175,7 @@ class currency_Currencies extends core_Master
             $currency = self::getCodeById($currency);
         }
 
-        if (!strlen($currency) == 3) {
+        if (strlen($currency ?? '') != 3) {
             $currency = acc_Periods::getBaseCurrencyCode();
         }
         $currency = strtoupper($currency);
