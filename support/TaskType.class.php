@@ -555,7 +555,7 @@ class support_TaskType extends core_Mvc
      */
     public static function on_AfterGetFieldForLetterHead($Driver, $mvc, &$resArr, $rec, $row)
     {
-        if ($row->systemId) {
+        if ($row->systemId ?? null) {
             $resArr['systemId'] = array('name' => tr('Система'), 'val' => '[#systemId#]');
         }
 
@@ -563,18 +563,18 @@ class support_TaskType extends core_Mvc
             $resArr['typeId'] = array('name' => tr('Тип'), 'val' => '[#typeId#]');
         }
         
-        if ($row->name) {
+        if ($row->name ?? null) {
             $resArr['name'] = array('name' => tr('Име'), 'val' => '[#name#]');
         }
         
-        if ($row->email) {
+        if ($row->email ?? null) {
             $resArr['email'] = array('name' => tr('Имейл'), 'val' => '[#email#]');
         }
         
-        if (trim($rec->url)) {
+        if (trim((string) $rec->url)) {
             
             // Когато стойността е празна, трябва да върнем NULL
-            $url = trim($rec->url);
+            $url = trim((string) $rec->url);
             
             $attr = array();
             $attr['target'] = '_blank';
@@ -593,18 +593,20 @@ class support_TaskType extends core_Mvc
             $resArr['url'] = array('name' => tr('URL'), 'val' => $url);
         }
         
-        if ($row->ip) {
+        if ($row->ip ?? null) {
             $resArr['ip'] = array('name' => tr('IP'), 'val' => '[#ip#]');
         }
         
-        if (trim($rec->brid) && trim($row->brid)) {
-            $bridLink = log_Browsers::getLink(trim($rec->brid));
+        $recBrid = trim((string) ($rec->brid ?? ''));
+        $rowBrid = trim((string) ($row->brid ?? ''));
+        if ($recBrid && $rowBrid) {
+            $bridLink = log_Browsers::getLink($recBrid);
             if ($bridLink) {
                 $resArr['brid'] = array('name' => tr('BRID'), 'val' => $bridLink);
             }
         }
         
-        if ($row->file) {
+        if ($row->file ?? null) {
             $resArr['file'] = array('name' => tr('Файл'), 'val' => '[#file#]');
         }
         

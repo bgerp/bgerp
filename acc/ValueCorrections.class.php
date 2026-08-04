@@ -520,7 +520,7 @@ class acc_ValueCorrections extends core_Master
             } else {
                 $currentAmount = $pRec->{$rec->allocateBy};
             }
-            $totalArr["{$vat}"] += $currentAmount;
+            $totalArr["{$vat}"] = ($totalArr["{$vat}"] ?? 0) + $currentAmount;
             $total += $currentAmount;
         }
 
@@ -1010,6 +1010,6 @@ class acc_ValueCorrections extends core_Master
         }
         $amount = round($amount / $rec->rate, 2);
 
-        return (object)array('amount' => $amount, 'currencyId' => currency_Currencies::getIdByCode($rec->currencyId), 'isReverse' => $rec->action == 'decrease', 'cashDiscount' => null);
+        return (object)array('amount' => $amount, 'currencyId' => currency_Currencies::getIdByCode($rec->currencyId), 'operationSysId' => null, 'isReverse' => $rec->action == 'decrease', 'cashDiscount' => null);
     }
 }

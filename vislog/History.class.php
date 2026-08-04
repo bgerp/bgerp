@@ -137,6 +137,7 @@ class vislog_History extends core_Manager
      */
     public static function on_AfterPrepareListFilter($mvc, &$res, $data)
     {
+        $data->listFilter->setField('domainId', 'placeholderType=all');
         $data->listFilter->showFields = 'ip, brid,domainId';  //, HistoryResourceId';
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');

@@ -111,6 +111,7 @@ class sms_Sender extends core_Manager
      */
     public static function on_AfterPrepareListFilter($mvc, $data)
     {
+        $data->listFilter->setField('status', 'placeholderType=all');
         $data->listFilter->showFields = 'status';
         
         $data->listFilter->toolbar->addSbBtn('Филтър');

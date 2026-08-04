@@ -329,7 +329,7 @@ class core_Form extends core_FieldSet
                 $this->setErrorFromResult($result, $field, $name);
             }
 
-            if ($this->cmd != 'refresh' || is_array($value) || strlen($value)) {
+            if ($this->cmd != 'refresh' || is_array($value) || strlen($value ?? '')) {
                 $this->rec->{$name} = $value;
             }
         }
@@ -827,7 +827,8 @@ class core_Form extends core_FieldSet
                     $attr['style'] .= "height:{$field->height};";
                 }
                 
-                if (strtolower($this->getMethod()) == 'get') {
+                $isGet = ($this->getMethod() === 'GET');
+                if ($isGet) {
                     if (!empty($field->autoFilter) || !empty($field->refreshForm)) {
                         $attr['onchange'] = 'this.form.submit();';
                     }
@@ -843,6 +844,14 @@ class core_Form extends core_FieldSet
                 
                 if (!empty($field->placeholder)) {
                     $attr['placeholder'] = tr($field->placeholder);
+                } elseif (($field->placeholderType ?? null) === 'all') {
+                    // При общата празна стойност поведението се задава семантично, а видимият текст остава преводим
+                    if ($isHorizontal && $isGet && !empty($field->caption)) {
+                        $captions = str_replace('->', '|* » |', $field->caption);
+                        $attr['placeholder'] = tr($captions) . ' (' . mb_strtolower(tr('Всички')) . ')';
+                    } else {
+                        $attr['placeholder'] = tr('Всички');
+                    }
                 } elseif (($this->view ?? null) == 'horizontal') {
                     $captions = str_replace('->', '|* » |', $field->caption);
                     $attr['placeholder'] = tr($captions);
@@ -953,19 +962,11 @@ class core_Form extends core_FieldSet
 
                     $maxRadio = $type->params['maxRadio'] ?? null;
                     if (empty($attr['_isRefresh'])) {
-                        if (!strlen($maxRadio) && $maxRadio !== 0 && $maxRadio !== '0' && empty($type->params['isHorizontal'])){
+                        if (!strlen($maxRadio ?? '') && $maxRadio !== 0 && $maxRadio !== '0' && empty($type->params['isHorizontal'])){
                             if(arr::isOptionsTotalLenBellowAllowed($options)){
                                 $maxRadio = 4;
                                 $type->params['select2MinItems'] = 10000;
-                            }
-                        }
-
-                        // ако ще се рендират опциите като радио-бутони маха се празната опция
-                        if(isset($maxRadio) && countR($options) <= $maxRadio){
-                            if($type->params['allowEmpty'] ?? null){
-                                if(isset($options['']) && (empty($options['']) || (is_object($options['']) && empty(trim($options['']->title)))) && countR($options) >= 2) {
-                                    unset($options['']);
-                                }
+                                $type->params['columns'] = (countR($options) > 3) ? 4 : 3;
                             }
                         }
                     }

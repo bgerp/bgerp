@@ -296,7 +296,7 @@ class cash_Pko extends cash_Document
             $amount = round($cardPaymentRec->amount * $rec->rate, 2);
 
             // Има ли избрано устройство
-            $deviceRec = $rec->bankPeripheralDeviceId ? peripheral_Devices::fetch($rec->bankPeripheralDeviceId) : peripheral_Devices::getDevice('bank_interface_POS')->id;
+            $deviceRec = $rec->bankPeripheralDeviceId ? peripheral_Devices::fetch($rec->bankPeripheralDeviceId) : peripheral_Devices::getDevice('bank_interface_POS');
             if(!is_object($deviceRec)) return;
 
             $data->toolbar->removeBtn('btnConto');
@@ -319,8 +319,12 @@ class cash_Pko extends cash_Document
             $btnAttr['data-oncancel'] = tr("Отказвано плащане с банков терминал|*!: {$deviceName}");
 
             $btnAttr['data-deviceName'] = $deviceName;
-            $btnAttr['data-deviceUrl'] = "{$deviceRec->protocol}://{$deviceRec->hostName}:{$deviceRec->port}";
-            $btnAttr['data-deviceComPort'] = $deviceRec->comPort;
+            if (isset($deviceRec->protocol, $deviceRec->hostName, $deviceRec->port)) {
+                $btnAttr['data-deviceUrl'] = "{$deviceRec->protocol}://{$deviceRec->hostName}:{$deviceRec->port}";
+            }
+            if (isset($deviceRec->comPort)) {
+                $btnAttr['data-deviceComPort'] = $deviceRec->comPort;
+            }
             $data->toolbar->addFnBtn('Контиране', '', $btnAttr);
         }
     }

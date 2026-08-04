@@ -28,7 +28,7 @@ class vislog_DecoratePlugin extends core_Plugin
             return $ip;
         }
         
-        if (!strtolower(trim($ip))) {
+        if (!strtolower(trim((string) $ip))) {
             
             return $ip;
         }

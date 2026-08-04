@@ -49,7 +49,7 @@ class hr_reports_WorkFromHomeAndAbsence extends frame2_driver_TableData
         $fieldset->FLD('from', 'date', 'caption=От,after=title,single=none,mandatory');
         $fieldset->FLD('to', 'date', 'caption=До,after=from,single=none,mandatory');
         $fieldset->FLD('type', 'set(leave=Отпуска, sick=Болничен, trips=Командировка)', 'notNull,caption=Причина за отсъствието,maxRadio=3,after=to,single=none');
-        $fieldset->FLD('employee', 'users(rolesForAll=ceo|repAllGlobal, rolesForTeams=ceo|manager|repAll|repAllGlobal)', 'caption=Служител,after=type,single=none');
+        $fieldset->FLD('employee', 'users(rolesForAll=ceo|repAllGlobal, rolesForTeams=ceo|manager|repAll|repAllGlobal)', 'caption=Служител,placeholderType=all,after=type,single=none');
 
     }
 

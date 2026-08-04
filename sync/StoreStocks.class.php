@@ -105,11 +105,13 @@ class sync_StoreStocks extends sync_Helper
     protected static function on_AfterPrepareListFilter($mvc, $data)
     {
         $data->listFilter->setFieldType('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,hasProperties=canStore,allowEmpty,maxSuggestions=10,forceAjax)');
+        $data->listFilter->setField('productId', 'placeholderType=all');
         $data->listFilter->view = 'horizontal';
         $data->listFilter->showFields = 'productId,syncedStoreId';
 
         $syncedStores = sync_Stores::getStoreOptions();
         $data->listFilter->setOptions('syncedStoreId', array('' => '') + $syncedStores);
+        $data->listFilter->setField('syncedStoreId', 'placeholderType=all');
         $data->listFilter->input();
 
         if($filter = $data->listFilter->rec){

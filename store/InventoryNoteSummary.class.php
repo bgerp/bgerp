@@ -777,7 +777,7 @@ class store_InventoryNoteSummary extends doc_Detail
             foreach ($desc as $dId => $dName){
                 
                 // Отделяме тези записи, които съдържат текущия маркер
-                $res = array_filter($recs, function (&$e) use ($dId, $dName, $groupFld) {
+                $res = array_filter($recs, function ($e) use ($dId, $dName, $groupFld) {
                     
                     if (keylist::isIn($dId, $e->{$groupFld})) {
                         $e->groupName = $dName;

@@ -265,7 +265,13 @@ class expert_Dataset extends core_BaseClass
             expect(false, $code);
         }
         
-        $res = eval($code);
+        try {
+            $res = eval($code);
+        } catch (DivisionByZeroError $e) {
+            // До PHP 8 делението на нула връщаше false с E_WARNING.
+            // Запазваме старото поведение за съществуващите експертни правила.
+            $res = false;
+        }
         
         return $res;
     }

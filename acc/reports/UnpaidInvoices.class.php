@@ -400,7 +400,7 @@ class acc_reports_UnpaidInvoices extends frame2_driver_TableData
      */
     private static function getPaidAmount($dRec, $verbal = true)
     {
-        $paidAmount = $dRec->invoicePayout;
+        $paidAmount = $dRec->invoicePayout ?? 0;
         
         return $paidAmount;
     }
@@ -416,37 +416,28 @@ class acc_reports_UnpaidInvoices extends frame2_driver_TableData
      */
     private static function getPaidDates($dRec, $verbal = true)
     {
+        $paidDatesList = array();
         if (is_array($dRec->payDocuments ?? null)) {
             foreach ($dRec->payDocuments as $onePayDoc) {
-                if (! is_null($onePayDoc->containerId)) {
+                if (!empty($onePayDoc->containerId)) {
                     $Document = doc_Containers::getDocument($onePayDoc->containerId);
                 } else {
                     continue;
                 }
+                if (!$Document) continue;
                 $payDocClass = $Document->className;
-                
-                $paidDatesList .= ',' . $payDocClass::fetch($Document->that)->valior;
+
+                $valior = $payDocClass::fetchField($Document->that, 'valior');
+                if ($valior) $paidDatesList[] = $valior;
             }
         }
-        if ($verbal === true) {
-            $amountsValiors = explode(',', trim($paidDatesList, ','));
-            
-            foreach ($amountsValiors as $v) {
-                $paidDate = dt::mysql2verbal($v, $mask = 'd.m.y');
-                
-                $paidDates .= "{$paidDate}" . '<br>';
-            }
-        } else {
-            $amountsValiors = explode(',', trim($paidDatesList, ','));
-            
-            foreach ($amountsValiors as $v) {
-                $paidDate = dt::mysql2verbal($v, $mask = 'd.m.y');
-                
-                $paidDates .= "{$paidDate}" . "\n\r";
-            }
+
+        $paidDates = array();
+        foreach ($paidDatesList as $v) {
+            $paidDates[] = dt::mysql2verbal($v, 'd.m.y');
         }
-        
-        return $paidDates;
+
+        return implode($verbal ? '<br>' : "\n", $paidDates);
     }
     
     
@@ -519,7 +510,7 @@ class acc_reports_UnpaidInvoices extends frame2_driver_TableData
         
         $row->currencyId = $dRec->currencyId;
         
-        $invoiceValue = $dRec->invoiceValue + $dRec->invoiceVat;
+        $invoiceValue = $dRec->invoiceValue + $dRec->invoiceVAT;
         
         $row->invoiceValue = core_Type::getByName('double(decimals=2)')->toVerbal($invoiceValue);
         

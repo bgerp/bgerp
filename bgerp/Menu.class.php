@@ -172,7 +172,7 @@ class bgerp_Menu extends core_Manager
         $act = Request::get('Act');
         
         // При логване да не показва менютата
-        if ($ctr == 'core_Users' && strtolower($act) == 'login') {
+        if ($ctr == 'core_Users' && strtolower((string) $act) == 'login') {
             return '_none_';
         }
         

@@ -74,7 +74,7 @@ class peripheral_DeviceWebPlg extends core_Plugin
     protected static function on_AfterRecToVerbal($Driver, $Embedder, &$row, $rec, $fields = array())
     {
         $row->ip = '';
-        $rec->ip = str_replace(array(',', ';'), ' ', $rec->ip);
+        $rec->ip = str_replace(array(',', ';'), ' ', $rec->ip ?? '');
         $ipArr = explode(' ', $rec->ip);
         foreach ($ipArr as $ip)  {
             $row->ip .= $row->ip ? "<br>" : '';

@@ -222,12 +222,6 @@ class planning_Tasks extends core_Master
 
 
     /**
-     * Допълнителен CSS клас на listTopContainer
-     */
-    public $listTopContainerHtmlClass = 'twoColsFilter';
-
-
-    /**
      * Кои са детайлите на класа
      */
     public $details = 'planning_ProductionTaskDetails,planning_ProductionTaskProducts';
@@ -1650,7 +1644,9 @@ class planning_Tasks extends core_Master
             }
 
             if (isset($taskData['productId'])) {
-                $isFinal = planning_Steps::getRec('cat_Products', $taskData['productId'])->isFinal;
+                $stepRec = planning_Steps::getRec('cat_Products', $taskData['productId']);
+                $isFinal = $stepRec ? $stepRec->isFinal : null;
+
                 $form->setReadOnly('productId');
                 $form->setDefault('isFinal', $isFinal);
             }
@@ -1707,7 +1703,7 @@ class planning_Tasks extends core_Master
             if (isset($productionData['wasteProductId'])) {
                 $wasteOptions = planning_GenericMapper::getEquivalentProducts($productionData['wasteProductId'], null, true, true);
                 if (countR($wasteOptions)) {
-                    $form->setFieldType('wasteProductId', 'int(maxRadio=1)');
+                    $form->setFieldType('wasteProductId', 'int');
                     $form->setOptions('wasteProductId', $wasteOptions);
                 }
             }
@@ -2364,16 +2360,16 @@ class planning_Tasks extends core_Master
      */
     protected static function on_AfterPrepareListFilter($mvc, $data)
     {
-        $data->listFilter->FLD('folders', 'keylist(mvc=doc_Folders, select=title, allowEmpty)', 'caption=Центрове');
+        $data->listFilter->FLD('folders', 'keylist(mvc=doc_Folders, select=title, allowEmpty)', 'caption=Центрове,placeholderType=all');
         $data->listFilter->setSuggestions('folders', array('' => '') + doc_Folders::getOptionsByCoverInterface('planning_ActivityCenterIntf', array(), true));
         $data->listFilter->input('folders');
         $orderByField = 'orderByDate';
-        $data->listFilter->FNC('saleId', 'key2(mvc=sales_Sales,select=id,allowEmpty,input,remember,forceAjax, maxSuggestions=100)', 'caption=Продажба,input,after=isFinalSelect,class=w100,silent,removeAndRefreshForm=purchaseId');
+        $data->listFilter->FNC('saleId', 'key2(mvc=sales_Sales,select=id,allowEmpty,input,remember,forceAjax, maxSuggestions=100)', 'caption=Продажба,placeholderType=all,input,after=isFinalSelect,class=w100,silent,removeAndRefreshForm=purchaseId');
         $data->listFilter->setFieldTypeParams("saleId", array('state' => 'active,closed'));
-        $data->listFilter->FNC('purchaseId', 'key2(mvc=purchase_Purchases,select=id,allowEmpty,input,remember,forceAjax,maxSuggestions=100)', 'caption=Покупка,input,after=saleId,class=w100,silent,removeAndRefreshForm=saleId');
+        $data->listFilter->FNC('purchaseId', 'key2(mvc=purchase_Purchases,select=id,allowEmpty,input,remember,forceAjax,maxSuggestions=100)', 'caption=Покупка,placeholderType=all,input,after=saleId,class=w100,silent,removeAndRefreshForm=saleId');
         $data->listFilter->setFieldTypeParams('purchaseId', array('state' => 'active,closed'));
         $data->listFilter->showFields .= ',folders,productId,saleId,purchaseId';
-        $data->listFilter->setField('productId','before=isFinalSelect');
+        $data->listFilter->setField('productId','placeholderType=all,before=isFinalSelect');
         $data->listFilter->input('productId,saleId,purchaseId');
         $data->query->isSlowQuery = true;
 
@@ -2381,7 +2377,7 @@ class planning_Tasks extends core_Master
         $assetInTasks = planning_AssetResources::getUsedAssetsInTasks($data->listFilter->rec->folders ?? null);
 
         if (countR($assetInTasks)) {
-            $data->listFilter->setField('assetId', 'caption=Оборудване,silent,autoFilter');
+            $data->listFilter->setField('assetId', 'caption=Оборудване,placeholderType=all,silent,autoFilter');
             $data->listFilter->setOptions('assetId', array('' => '') + $assetInTasks);
             $data->listFilter->showFields .= ',assetId';
             $data->listFilter->input('assetId', 'silent');
@@ -5434,6 +5430,8 @@ class planning_Tasks extends core_Master
         // Кои са неоттеглените ПО към заданието
         $debugRes = array();
         $jobRec = planning_Jobs::fetch("#containerId = {$containerId}");
+        if (!$jobRec) return;
+
         $tQuery = planning_Tasks::getQuery();
         $tQuery->where("#originId = {$jobRec->containerId} AND #state != 'rejected'");
         $tQuery->orderBy('saoOrder', "ASC");

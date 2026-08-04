@@ -113,7 +113,7 @@ class docarch2_Volumes extends core_Master
     {
 
         //Към кой архив регистър се отнася ако е '0' означава, че тома се използва за архивиране на томове от различни други регистри
-        $this->FLD('registerId', 'key(mvc=docarch2_Registers,allowEmpty)', 'caption=В регистър,placeholder=Всички,refreshForm,silent');
+        $this->FLD('registerId', 'key(mvc=docarch2_Registers,allowEmpty)', 'caption=В регистър,placeholderType=all,refreshForm,silent');
         
         //В какъв тип контейнер/том от избрания архив се съхранява документа
         $this->FLD('type', 'key(mvc=docarch2_ContainerTypes)', 'caption=Тип,mandatory');

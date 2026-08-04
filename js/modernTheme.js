@@ -113,7 +113,12 @@ function setMaxWidth() {
 		$('.folder-cover .scrolling-holder').css('max-width', viewportWidth - 45);
 	} else {
 		if($('.single-thread .listTable').length) return;
-		$('.listBlock').css({'display': 'table'});
+		// Първо се премахват ограниченията от предишен тесен изглед, за да се измери естествената ширина
+		$('#packWrapper').css('width', '');
+		$('.listBlock').css({'max-width': '', 'overflow-x': '', 'display': 'table'});
+		$('.listRows > .listTable > tbody > tr > td:last-child').css('min-width', '');
+		$('.document').css('width', '');
+		$('.document .scrolling-holder').removeClass('overflow-scroll');
 		var contentWidth = viewportWidth - $('.sidemenu-open').length * $('.sidemenu-open').outerWidth() - 30;
 		if(contentWidth < $('.listTable').first().width()){
 			$('#packWrapper').width(contentWidth);
@@ -126,6 +131,11 @@ function setMaxWidth() {
 			$('.document').css('width', contentWidth - 3);
 			$('.document .scrolling-holder').addClass('overflow-scroll');
 		}
+	}
+
+	// Филтърът се проверява след окончателното възстановяване на ширините от темата
+	if (typeof updateTwoColsFilterModes == 'function') {
+		updateTwoColsFilterModes();
 	}
 }
 

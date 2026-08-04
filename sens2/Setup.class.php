@@ -186,7 +186,7 @@ class sens2_Setup extends core_ProtoSetup
         
         while ($rec = $query->fetch()) {
             foreach (array('cond', 'expr', 'output') as $w) {
-                if ($rec->data->{$w}) {
+                if (!empty($rec->data->{$w})) {
                     $rec->data->{$w} = str_replace('->', '.', $rec->data->{$w});
                     $query->mvc->save($rec);
                 }

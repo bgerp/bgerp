@@ -24,6 +24,12 @@ class core_Query extends core_FieldSet
 
 
     /**
+     * Дали заявката е бавна
+     */
+    public $isSlowQuery = false;
+
+
+    /**
      *
      */
     protected $useExpr = false;
@@ -1365,7 +1371,7 @@ class core_Query extends core_FieldSet
     {
         //$key = Mode::getProcessKey();
         
-        $exp = $arr[0] ?? null;
+        $exp = $arr[0] ?? '';
 
         $a = $c = array();
         $cntArr = countR($arr);

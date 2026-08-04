@@ -27,7 +27,7 @@ class deepl_Exception extends core_exception_Expect
     public static function expect($condition, $message, $options = array())
     {
         if (!(boolean) $condition) {
-            throw new deepl_Exception($message, $options);
+            throw new deepl_Exception($message, 'Изключение', $options);
         }
     }
 }

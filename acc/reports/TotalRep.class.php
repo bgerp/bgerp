@@ -53,16 +53,20 @@ class acc_reports_TotalRep extends frame2_driver_TableData
      */
     protected function prepareRecs($rec, &$data = null)
     {
+        $rec->targets = $rec->targets ?? array();
         if (is_string($rec->targets)) {
             $rec->targets = json_decode($rec->targets, true);
+        }
+        if (!is_array($rec->targets)) {
+            $rec->targets = array();
         }
         $recs = array();
         
         $deltaId = $this->getDeltaId();
         
-        foreach ($rec->targets['month'] as $i => $month) {
-            $year = $rec->targets['year'][$i];
-            $target = (int) $rec->targets['target'][$i];
+        foreach (($rec->targets['month'] ?? array()) as $i => $month) {
+            $year = $rec->targets['year'][$i] ?? null;
+            $target = (int) ($rec->targets['target'][$i] ?? 0);
             if (!($month > 0 && $year > 0 && $target > 0) || !$deltaId) {
                 continue;
             }
@@ -183,10 +187,12 @@ class acc_reports_TotalRep extends frame2_driver_TableData
      */
     protected static function on_AfterRenderSingle(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$tpl, $data)
     {
-        $arr = array();
         $key = date('m/Y');
-        
-        $tpl->append($Driver->getSpeedRatioGauge($data->rec->data->recs[$key]->speed), 'DRIVER_FIELDS');
+        $speed = $data->rec->data->recs[$key]->speed ?? null;
+
+        if (isset($speed)) {
+            $tpl->append($Driver->getSpeedRatioGauge($speed), 'DRIVER_FIELDS');
+        }
     }
     
     

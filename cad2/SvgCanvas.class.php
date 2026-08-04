@@ -163,8 +163,8 @@ class cad2_SvgCanvas extends cad2_Canvas
     public function getAttr($name)
     {
         expect(in_array($name, $this->alowedAttributes), $name);
-        
-        return $this->attr[$name];
+
+        return $this->attr[$name] ?? null;
     }
     
     
@@ -225,7 +225,7 @@ class cad2_SvgCanvas extends cad2_Canvas
     {
         $path = $this->getCurrentPath();
         
-        if ($path && (!$path->closed)) {
+        if ($path && (!($path->closed ?? null))) {
             if ($close) {
                 $path->data[] = array('z');
             }
@@ -247,10 +247,10 @@ class cad2_SvgCanvas extends cad2_Canvas
         
         
         $this->setCP($x, $y, $absolute);
-        
+
         if (!$absolute) {
-            $x1 = $x0 + $x;
-            $y1 = $y0 + $y;
+            $x1 = $this->x;
+            $y1 = $this->y;
         } else {
             $x1 = $x;
             $y1 = $y;
@@ -357,7 +357,9 @@ class cad2_SvgCanvas extends cad2_Canvas
     public function writeText($x, $y, $text, $rotation = 0, $absolute = true, $link = null)
     {
         $this->closePath(false);
-        
+
+        $style = '';
+
         if (!$absolute) {
             list($x0, $y0) = $this->getCP();
             $x = $x + $x0;
@@ -582,6 +584,8 @@ class cad2_SvgCanvas extends cad2_Canvas
      */
     public function render()
     {
+        $res = '';
+
         // Параметрите на viewbox
         $this->addX = -$this->minX + $this->paddingLeft;
         $this->addY = -$this->minY + $this->paddingTop;
@@ -626,13 +630,17 @@ class cad2_SvgCanvas extends cad2_Canvas
      */
     private function getXML($tag)
     {
+        $attrStr = '';
+
         if ($tag->name) {
             list($aX, $aY) = array($this->addX, $this->addY);
             
             if ($tag->name == 'path') {
-                if (!$tag->data) {
+                if (empty($tag->data)) {
                     $tag->data = array();
                 }
+                $tag->attr['d'] = $tag->attr['d'] ?? '';
+
                 foreach ($tag->data as $cmd) {
                     $cmdName = $cmd[0];
                     
@@ -666,7 +674,9 @@ class cad2_SvgCanvas extends cad2_Canvas
             }
             
             if ($tag->name == 'g') {
-                if (is_array($tag->attr['_transform'])) {
+                if (is_array($tag->attr['_transform'] ?? null)) {
+                    $tag->attr['transform'] = $tag->attr['transform'] ?? '';
+
                     foreach ($tag->attr['_transform'] as $tArr) {
                         switch ($tArr[0]) {
                             case 'scale':
@@ -698,7 +708,7 @@ class cad2_SvgCanvas extends cad2_Canvas
                     unset($tag->attr['_transform']);
                 }
                 
-                if (is_array($tag->transform)) {
+                if (is_array($tag->transform ?? null)) {
                     list($width, $height, $rotation, $x, $y) = $tag->transform;
                     
                     list($aX, $aY) = array($this->addX, $this->addY);
@@ -730,9 +740,9 @@ class cad2_SvgCanvas extends cad2_Canvas
             }
             
             
-            if ($tag->attr && countR($tag->attr)) {
+            if (!empty($tag->attr) && countR($tag->attr)) {
                 foreach ($tag->attr as $name => $val) {
-                    if (strlen($val) == 0) {
+                    if ($val === null || $val === '' || $val === false) {
                         continue;
                     }
                     
@@ -760,7 +770,7 @@ class cad2_SvgCanvas extends cad2_Canvas
             }
             
             if (!isset($tag->body)) {
-                if ($tag->haveBody || $tag->name[0] == '/') {
+                if (($tag->haveBody ?? null) || $tag->name[0] == '/') {
                     $element = "<{$tag->name}{$attrStr}>\n";
                 } else {
                     $element = "<{$tag->name}{$attrStr}/>\n";
@@ -782,7 +792,7 @@ class cad2_SvgCanvas extends cad2_Canvas
      */
     public function getHex($name)
     {
-        if ($color = color_Object::getNamedColor($hexColor)) {
+        if ($color = color_Object::getNamedColor($name)) {
             $name = $color;
         }
         

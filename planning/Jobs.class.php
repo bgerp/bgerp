@@ -203,12 +203,6 @@ class planning_Jobs extends core_Master
 
 
     /**
-     * Допълнителен CSS клас на listTopContainer
-     */
-    public $listTopContainerHtmlClass = 'twoColsFilter';
-
-
-    /**
      * Кои полета от листовия изглед да се скриват ако няма записи в тях
      *
      *  @var string
@@ -722,7 +716,7 @@ class planning_Jobs extends core_Master
         $data->listFilter->showFields .= ',type';
 
         $data->listFilter->setField('selectPeriod', 'caption=Период');
-        $data->listFilter->FLD('contragentFolderId', 'key2(mvc=doc_Folders,allowEmpty,coverInterface=crm_ContragentAccRegIntf)', 'caption=Контрагент,silent,after=view');
+        $data->listFilter->FLD('contragentFolderId', 'key2(mvc=doc_Folders,allowEmpty,coverInterface=crm_ContragentAccRegIntf)', 'caption=Контрагент,placeholderType=all,silent,after=view');
         $data->listFilter->input('contragentFolderId', 'silent');
         $data->listFilter->input();
         $data->listFilter->showFields .= ',contragentFolderId';

@@ -51,7 +51,7 @@ class acc_reports_NegativeQuantities extends frame2_driver_TableData
     {
         $fieldset->FLD('period', 'key(mvc=acc_Periods,title=title)', 'caption = Период,after=accountId,single=none');
         $fieldset->FLD('accountId', 'key(mvc=acc_Accounts,title=title)', 'caption = Сметка,after=title,single=none');
-        $fieldset->FLD('storeId', 'keylist(mvc=store_Stores,select=name)', 'caption = Склад,after=accountId');
+        $fieldset->FLD('storeId', 'keylist(mvc=store_Stores,select=name)', 'caption = Склад,placeholderType=all,after=accountId');
         $fieldset->FLD('minval', 'double(decimals=2)', 'caption = Минимален праг за отчитане,unit= (количество),
                         placeholder=Без праг,after=period,single=none');
         
@@ -204,7 +204,14 @@ class acc_reports_NegativeQuantities extends frame2_driver_TableData
         
         $row->uomId = cat_UoM::getTitleById($dRec->uomId);
         
-        $resArr = array_combine($dRec->storeId, $dRec->quantity);
+        $storeIds = (array) ($dRec->storeId ?? array());
+        $quantities = (array) ($dRec->quantity ?? array());
+        $resArr = array();
+        foreach ($storeIds as $key => $storeId) {
+            if (array_key_exists($key, $quantities)) {
+                $resArr[$storeId] = $quantities[$key];
+            }
+        }
         
         asort($resArr);
         

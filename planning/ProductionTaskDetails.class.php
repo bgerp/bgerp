@@ -600,7 +600,7 @@ class planning_ProductionTaskDetails extends doc_Detail
                     }
 
                     if (empty($rec->batch)) {
-                        if ($masterRec->followBatchesForFinalProduct == 'yes') {
+                        if (($masterRec->followBatchesForFinalProduct ?? null) == 'yes') {
                         $rec->batch = $serialInfo['batch'] ?? null;
                         }
                     }
@@ -615,7 +615,7 @@ class planning_ProductionTaskDetails extends doc_Detail
                     $form->setWarning('quantity', $warning);
                 }
 
-                if ($masterRec->followBatchesForFinalProduct == 'yes') {
+                if (($masterRec->followBatchesForFinalProduct ?? null) == 'yes') {
                     if(empty($rec->batch) && $rec->type == 'production'){
                         $form->setError('batch', "Посочете партида! В операцията е избрано да се отчита по партида");
                     }
@@ -1593,6 +1593,7 @@ class planning_ProductionTaskDetails extends doc_Detail
             $assetInTasks = planning_AssetResources::getUsedAssetsInTasks();
             if(countR($assetInTasks)){
                 $data->listFilter->setOptions('fixedAsset', array('' => '') + $assetInTasks);
+                $data->listFilter->setField('fixedAsset', 'placeholderType=all');
                 $data->listFilter->showFields .= ",fixedAsset";
             }
 
@@ -1600,7 +1601,7 @@ class planning_ProductionTaskDetails extends doc_Detail
             if(countR($employees)){
                 $data->listFilter->setSuggestions('employees', array('' => '') + $employees);
                 $data->listFilter->showFields .= ",employees";
-                $data->listFilter->setField('employees', 'input');
+                $data->listFilter->setField('employees', 'input,placeholderType=all');
             }
             $data->listFilter->showFields = "from,to,{$data->listFilter->showFields}";
         }

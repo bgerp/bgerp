@@ -27,7 +27,7 @@ class cvc_Exception extends core_exception_Expect
     public static function expect($condition, $message, $options = array())
     {
         if (!(boolean) $condition) {
-            throw new cvc_Exception($message, $options);
+            throw new cvc_Exception($message, 'Изключение', $options);
         }
     }
 }

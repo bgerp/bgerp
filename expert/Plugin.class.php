@@ -37,7 +37,7 @@ class expert_Plugin extends core_Plugin
             }
             
             if ($content == 'FAIL') {
-                if ($exp->onFail) {
+                if (!empty($exp->onFail)) {
                     $content = $mvc->onFail($exp);
                 } else {
                     $exp->setRedirect();
@@ -48,11 +48,11 @@ class expert_Plugin extends core_Plugin
             }
             
             if ($content == 'SUCCESS') {
-                if ($exp->onSuccess) {
+                if (!empty($exp->onSuccess)) {
                     $content = $mvc->onSuccess($exp);
                 } else {
                     $exp->setRedirect();
-                    $exp->setRedirectMsgType($exp->redirectMsgType);
+                    $exp->setRedirectMsgType($exp->redirectMsgType ?? 'notice');
                     setIfNot($exp->midRes->alert, $exp->message, tr('Крайната цел е достигната'));
                     $content = $exp->getResult();
                 }

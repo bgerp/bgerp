@@ -544,7 +544,7 @@ class crm_ext_ContragentInfo extends core_manager
      */
     protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
-        $data->listFilter->FLD('folder', 'key2(mvc=doc_Folders,select=title,allowEmpty,coverInterface=crm_ContragentAccRegIntf)', 'caption=Контрагент');
+        $data->listFilter->FLD('folder', 'key2(mvc=doc_Folders,select=title,allowEmpty,coverInterface=crm_ContragentAccRegIntf)', 'caption=Контрагент,placeholderType=all');
         $data->listFilter->FLD('type', 'enum(all=Всички,overdue=Просрочия,empty=Празни,withoutActive=Без активни,havePurchase=С покупки,haveSales=С продажби)', 'caption=Вид');
 
         $data->listFilter->showFields = 'folder,type';

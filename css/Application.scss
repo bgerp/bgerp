@@ -3023,6 +3023,10 @@ form select.w50 + .select2 {
 	white-space: normal !important;
 }
 
+th:has(.wrapText) {
+	white-space: normal !important;
+}
+
 .shipment-table tr td{
 	padding:1px  3px !important;
 }
@@ -4076,68 +4080,99 @@ fieldset.sharing-history {
 
 // Двуколонен филтър за широк екран
 
-// Една колона побира максималното поле от филтъра, заглавието и отстоянията им
-$twoColsFilterMaxFieldWidth: 400px;
-$twoColsFilterCaptionWidth: 6em;
-$twoColsFilterColumnWidth: unquote("calc(#{$twoColsFilterMaxFieldWidth} + #{$twoColsFilterCaptionWidth} + 1em)");
-$twoColsFilterWidth: unquote("calc(#{$twoColsFilterColumnWidth} + #{$twoColsFilterColumnWidth} + 1em)");
+// JavaScript подава готови стойности, за да останат съвместими и със стария Sass компилатор
+$twoColsFilterCaptionWidth: unquote("var(--two-cols-filter-caption-width, 6em)");
+$twoColsFilterCaptionOffset: unquote("var(--two-cols-filter-caption-offset, 7em)");
+$twoColsFilterSingleWidth: unquote("var(--two-cols-filter-single-width, calc(400px + 6em + 1em))");
+$twoColsFilterLeftWidth: unquote("var(--two-cols-filter-left-width, calc(400px + 6em + 1em))");
+$twoColsFilterRightWidth: unquote("var(--two-cols-filter-right-width, calc(400px + 6em + 1em))");
+$twoColsFilterWidth: unquote("var(--two-cols-filter-width, calc(800px + 12em + 3em))");
+$twoColsFilterRowCount: unquote("var(--two-cols-filter-row-count, 3)");
+$twoColsFilterSummaryMaxWidth: unquote("var(--two-cols-filter-summary-max-width, calc(100% - 400px - 6em - 1em - 20px))");
 
 .wide .twoColsFilter {
 	display: flex;
+	flex-wrap: wrap;
 	justify-content: flex-start;
 	column-gap: 20px;
 	margin-bottom: 6px;
 
 	.listFilter {
-		flex: 0 1 $twoColsFilterWidth;
+		flex: 0 1 $twoColsFilterSingleWidth;
 		min-width: 0;
 		margin-left: 0;
-
-		.vertical {
-			.formTable {
-				width: 100%;
-				max-width: none;
-			}
-
-			.formSection {
-				padding-left: 0;
-				padding-right: 0;
-			}
-		}
-
-		.vFormField {
-			display: block;
-			width: 100%;
-
-			> tbody {
-				display: block;
-				column-count: 2;
-				column-width: $twoColsFilterColumnWidth;
-				column-gap: 1em;
-
-				> tr {
-					display: table;
-					width: $twoColsFilterColumnWidth;
-					break-inside: avoid;
-				}
-			}
-
-			.formFieldCaption {
-				width: $twoColsFilterCaptionWidth;
-			}
-		}
-
-		.formToolbar {
-			margin-left: 7em;
-		}
 	}
 
 	.summary-block {
 		flex: 0 0 auto;
+		max-width: $twoColsFilterSummaryMaxWidth;
+		overflow-wrap: break-word;
+		overflow-wrap: anywhere;
 		margin-left: auto;
 		margin-right: auto;
 		transform: translateX(20px);
 		align-self: flex-start;
+	}
+
+	&.twoColsFilterSummaryBelow {
+		.listFilter {
+			flex: 0 0 100%;
+		}
+
+		.summary-block {
+			max-width: none;
+			margin: 6px auto 0 $twoColsFilterCaptionOffset;
+			transform: none;
+		}
+	}
+
+	&.twoColsFilterActive {
+		// Филтърът може да излезе визуално извън тясна таблица, без да я разширява
+		flex-wrap: nowrap;
+		contain: inline-size;
+
+		.listFilter {
+			flex: 0 0 $twoColsFilterWidth;
+			min-width: $twoColsFilterWidth;
+
+			.vFormField {
+				display: block;
+				width: $twoColsFilterWidth;
+				max-width: none;
+
+				> tbody {
+					display: grid;
+					grid-template-columns: $twoColsFilterLeftWidth $twoColsFilterRightWidth;
+					grid-template-rows: repeat($twoColsFilterRowCount, auto);
+					grid-auto-flow: column;
+					column-gap: 1em;
+
+					> tr {
+						display: table;
+						table-layout: fixed;
+						width: 100%;
+						break-inside: avoid;
+					}
+
+					> tr.toggable {
+						display: table !important;
+					}
+				}
+
+				.formFieldCaption {
+					box-sizing: border-box;
+					width: $twoColsFilterCaptionWidth;
+				}
+			}
+
+			.toggleListFilterBtn {
+				display: none !important;
+			}
+		}
+
+		.summary-block {
+			max-width: none;
+		}
 	}
 }
 

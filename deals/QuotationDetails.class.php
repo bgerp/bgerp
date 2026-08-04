@@ -346,7 +346,7 @@ class deals_QuotationDetails extends doc_Detail
     /**
      * Проверява дали има вариация на продукт
      */
-    protected function checkUnique($recs, $productId, $id, $isOptional = 'no', $notes)
+    protected function checkUnique($recs, $productId, $id, $isOptional, $notes)
     {
         $other = array_values(array_filter($recs, function ($val) use ($productId, $id, $isOptional, $notes) {
             if ($val->optional == $isOptional && $val->productId == $productId && $val->id != $id && md5($notes) == md5($val->notes)) {

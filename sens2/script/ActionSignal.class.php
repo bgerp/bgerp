@@ -98,7 +98,7 @@ class sens2_script_ActionSignal
         $cond = sens2_Scripts::highliteExpr($rec->cond, $rec->scriptId);
         
         $res = "{$output} = {$expr}";
-        if ($rec->cond) {
+        if (!empty($rec->cond)) {
             $res .= ", ако {$cond}";
         }
         
@@ -112,7 +112,7 @@ class sens2_script_ActionSignal
     public function run($rec)
     {
         // Ако има условие и то не е изпълнено - не правим нищо
-        if (trim($rec->cond)) {
+        if (trim($rec->cond ?? '')) {
             $cond = sens2_Scripts::calcExpr($rec->cond, $rec->scriptId);
             if ($cond === sens2_Scripts::CALC_ERROR) {
                 

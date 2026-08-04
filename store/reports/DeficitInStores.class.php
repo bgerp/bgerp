@@ -80,7 +80,7 @@ class store_reports_DeficitInStores extends frame2_driver_TableData
     {
         $fieldset->FLD('typeOfQuantity', 'enum(existent=Налично,free=Разполагаемо)', 'caption=Количество за показване,maxRadio=2,columns=2,after=title,mandatory,single=none');
         $fieldset->FLD('additional', 'table(columns=code|name,captions=Код на артикула|Наименование,widths=8em|20em)', 'caption=Артикули||Additional,autohide,advanced,after=storeId,single=none');
-        $fieldset->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,after=typeOfQuantity');
+        $fieldset->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,placeholderType=all,after=typeOfQuantity');
         $fieldset->FLD('groupId', 'key(mvc=cat_Groups,select=name,allowEmpty)', 'caption=Група продукти,after=storeId,silent,single=none,removeAndRefreshForm');
         $fieldset->FLD('horizon', 'time', 'caption=Хоризонт,after=groupId');
     }
@@ -131,11 +131,11 @@ class store_reports_DeficitInStores extends frame2_driver_TableData
                 
                 $grDetails = (array) $details;
                 
-                foreach ($grDetails['name'] as $k => $detail) {
-                    if (! $detail && $grDetails['code'][$k]) {
+                foreach (($grDetails['name'] ?? array()) as $k => $detail) {
+                    if (! $detail && !empty($grDetails['code'][$k])) {
                         $prId = cat_Products::getByCode($grDetails['code'][$k]);
                         
-                        if ($prId->productId) {
+                        if (!empty($prId->productId)) {
                             $prName = cat_Products::getTitleById($prId->productId, $escaped = true);
                             
                             $grDetails['name'][$k] = $prName;
@@ -155,14 +155,14 @@ class store_reports_DeficitInStores extends frame2_driver_TableData
                 
                 $arts = countR($details->code ?? array());
                 
-                $grInArts = cat_Groups::fetch($rec->groupId)->productCnt;
+                $grInArts = (int) cat_Groups::fetchField($rec->groupId, 'productCnt');
                 
-                $groupName = cat_Products::getTitleById($rec->groupId);
+                $groupName = cat_Groups::getTitleById($rec->groupId);
                 
                 $prodForCut = ($arts + $grInArts) - $maxPost;
                 
                 if (($arts + $grInArts) > $maxPost) {
-                    $form->setError('droupId', "Лимита за следени продукти е достигнат.
+                    $form->setError('groupId', "Лимита за следени продукти е достигнат.
             				За да добавите група \" {$groupName}\" трябва да премахнете {$prodForCut} артикула ");
                 } else {
                     
@@ -171,6 +171,8 @@ class store_reports_DeficitInStores extends frame2_driver_TableData
                     $rQuery = cat_Products::getQuery();
                     
                     $details = (array) $details;
+                    $details += array('code' => array(), 'name' => array(), 'minQuantity' => array(), 'maxQuantity' => array());
+                    $grDetails = array('code' => array(), 'name' => array(), 'minQuantity' => array(), 'maxQuantity' => array());
                     
                     $rQuery->where("#groups Like'%|{$rec->groupId}|%'");
                     
@@ -188,7 +190,7 @@ class store_reports_DeficitInStores extends frame2_driver_TableData
                     
                     if (is_array($grDetails['code'] ?? null)) {
                         foreach ($grDetails['code'] as $k => $v) {
-                            if ($details['code'] && in_array($v, $details['code'])) {
+                            if (!empty($details['code']) && in_array($v, $details['code'])) {
                                 unset($grDetails['code'][$k]);
                                 unset($grDetails['name'][$k]);
                                 unset($grDetails['minQuantity'][$k]);
@@ -201,11 +203,13 @@ class store_reports_DeficitInStores extends frame2_driver_TableData
                     
                     if (is_array($grDetails['name'] ?? null)) {
                         foreach ($grDetails['name'] as $k => $v) {
-                            if ($grDetails['code'][$k]) {
-                                $isPublic = (cat_Products::fetch(cat_Products::getByCode($grDetails['code'][$k])->productId)->isPublic);
+                            $isPublic = null;
+                            $code = $grDetails['code'][$k] ?? null;
+                            if ($code && ($productByCode = cat_Products::getByCode($code))) {
+                                $isPublic = cat_Products::fetchField($productByCode->productId, 'isPublic');
                             }
                             
-                            if (! $grDetails['code'][$k] || $isPublic == 'no') {
+                            if (!$code || $isPublic == 'no') {
                                 unset($grDetails['code'][$k]);
                                 unset($grDetails['name'][$k]);
                                 unset($grDetails['minQuantity'][$k]);
@@ -233,13 +237,13 @@ class store_reports_DeficitInStores extends frame2_driver_TableData
                             }
                             
                             $details['code'][] = $grDetails['code'][$k];
-                            $details['name'][] = $grDetails['name'][$k];
-                            $details['minQuantity'][] = $grDetails['minQuantity'][$k];
-                            $details['maxQuantity'][] = $grDetails['maxQuantity'][$k];
+                            $details['name'][] = $grDetails['name'][$k] ?? null;
+                            $details['minQuantity'][] = $grDetails['minQuantity'][$k] ?? null;
+                            $details['maxQuantity'][] = $grDetails['maxQuantity'][$k] ?? null;
                         }
                         
                         if ($countUnset > 0) {
-                            $groupName = cat_Products::getTitleById($rec->groupId);
+                            $groupName = cat_Groups::getTitleById($rec->groupId);
                             $maxArt = self::NUMBER_OF_ITEMS_TO_ADD;
                             
                             $form->setWarning('groupId', "{$countUnset} артикула от група {$groupName} няма да  бъдат добавени.
@@ -313,7 +317,6 @@ class store_reports_DeficitInStores extends frame2_driver_TableData
          * Масив с артикули по складови разписки за доставка
          */
         while ($receiptArt = $receipQuery->fetch()) {
-            $recArr[] = $receiptArt;
             if (! array_key_exists($receiptArt->productId, $receiptProducts)) {
                 $receiptProducts[$receiptArt->productId] =
                 
@@ -377,6 +380,7 @@ class store_reports_DeficitInStores extends frame2_driver_TableData
 
         if (is_array($productsForJobs)) {
             foreach ($productsForJobs as $v) {
+                $bommMaterials = array();
                 $lastActivBomm = cat_Products::getLastActiveBom($v->productId);
                 
                 if ($lastActivBomm) {
@@ -440,7 +444,8 @@ class store_reports_DeficitInStores extends frame2_driver_TableData
             array_push($neseseryMaterialsId, $v->productId);
         }
         
-        $products = (json_decode($rec->additional, false));
+        $products = json_decode($rec->additional ?? '', false);
+        $products = is_object($products) ? $products : new stdClass();
         
         /*
          * Премахваме повтарящи се артикули
@@ -456,16 +461,20 @@ class store_reports_DeficitInStores extends frame2_driver_TableData
             
             $products->code = $tempProducts;
             
-            foreach ($products->code as $key => $code) {
-                if (! isset($products->code[$key])) {
-                    $code = 0;
+            $selectedProductsId = array();
+            $productCodes = array();
+            foreach ($products->code as $code) {
+                $productByCode = cat_Products::getByCode($code);
+                if (empty($productByCode->productId)) {
+                    continue;
                 }
-                
-                $productId = cat_Products::getByCode($code)->productId;
-                
+
+                $productId = $productByCode->productId;
                 $selectedProductsId[] = $productId;
+                $productCodes[$productId] = $code;
             }
-            
+
+            $temp = array();
             foreach ($selectedProductsId as $v) {
                 foreach ($neseseryMaterialsId as $vk) {
                     if ($v == $vk) {
@@ -481,7 +490,7 @@ class store_reports_DeficitInStores extends frame2_driver_TableData
             
             $query->WhereArr('productId', $selectedProductsId, true);
             
-            if (isset($rec->storeId)) {
+            if (!empty($rec->storeId)) {
                 $query->where("#storeId = {$rec->storeId}");
             }
             
@@ -489,7 +498,10 @@ class store_reports_DeficitInStores extends frame2_driver_TableData
                 
                 $id = $recProduct->productId;
 
-                $quantity = ($rec->typeOfQuantity == 'existent') ? store_Products::getQuantities($id, $recProduct->storeId)->quantity : store_Products::getQuantities($id, $recProduct->storeId)->free;
+                $quantities = store_Products::getQuantities($id, $recProduct->storeId);
+                $quantity = (($rec->typeOfQuantity ?? 'free') == 'existent')
+                    ? ($quantities->quantity ?? 0)
+                    : ($quantities->free ?? 0);
 
                 if (! array_key_exists($id, $recs)) {
                     $recs[$id] =
@@ -498,17 +510,17 @@ class store_reports_DeficitInStores extends frame2_driver_TableData
                         
                         'measure' => cat_Products::fetchField($id, 'measureId'),
                         'productId' => $id,
-                        'storeId' => $rec->storeId,
+                        'storeId' => $rec->storeId ?? null,
                         'quantity' => $quantity,
-                        'code' => $products->code[$key],
-                        'shipmentQuantity' => $shipmentProducts[$id]->quantity,
-                        'jobsQuantity' => $bommsMaterials[$id]->quantity,
-                        'receiptQuantity' => $receiptProducts[$id]->quantity
+                        'code' => $productCodes[$id] ?? null,
+                        'shipmentQuantity' => $shipmentProducts[$id]->quantity ?? 0,
+                        'jobsQuantity' => $bommsMaterials[$id]->quantity ?? 0,
+                        'receiptQuantity' => $receiptProducts[$id]->quantity ?? 0
                     );
                 } else {
                     $obj = &$recs[$id];
                     
-                    $obj->quantity += $recProduct->quantity;
+                    $obj->quantity += $quantity;
                 }
             } // цикъл за добавяне
         }
@@ -534,10 +546,10 @@ class store_reports_DeficitInStores extends frame2_driver_TableData
         if ($export === false) {
             $fld->FLD('productId', 'varchar', 'caption=Артикул');
             $fld->FLD('measure', 'varchar', 'caption=Мярка,tdClass=centered');
-            if ($rec->typeOfQuantity == 'free') {
+            if (($rec->typeOfQuantity ?? 'free') == 'free') {
                 $fld->FLD('quantity', 'double(smartRound,decimals=2)', 'caption=Количество->Разполагаемо,smartCenter');
             }
-            if ($rec->typeOfQuantity == 'existent') {
+            if (($rec->typeOfQuantity ?? 'free') == 'existent') {
                 $fld->FLD('quantity', 'double(smartRound,decimals=2)', 'caption=Количество->Налично,smartCenter');
             }
             $fld->FLD('receiptQuantity', 'double', 'caption=Количество->За получаване,smartCenter');
@@ -606,10 +618,11 @@ class store_reports_DeficitInStores extends frame2_driver_TableData
             $row->neseseryQuantity = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->neseseryQuantity);
         }
         
-        if ($dRec->quantity < 0) {
+        if (($dRec->quantity ?? 0) < 0) {
             $dRec->quantity = 0;
         }
-        $deliveryQuantity = ($dRec->shipmentQuantity + $dRec->jobsQuantity) - ($dRec->receiptQuantity + $dRec->quantity);
+        $deliveryQuantity = (($dRec->shipmentQuantity ?? 0) + ($dRec->jobsQuantity ?? 0))
+            - (($dRec->receiptQuantity ?? 0) + ($dRec->quantity ?? 0));
         
         if ($deliveryQuantity > 0) {
             $row->deliveryQuantity = core_Type::getByName('double(decimals=2)')->toVerbal($deliveryQuantity);
@@ -620,7 +633,8 @@ class store_reports_DeficitInStores extends frame2_driver_TableData
         }
         
         if ((isset($dRec->conditionQuantity) && ((isset($dRec->minQuantity)) || (isset($dRec->maxQuantity))))) {
-            $row->conditionQuantity = "<span style='color: {$dRec->conditionColor}'>{$dRec->conditionQuantity}</span>";
+            $conditionColor = $dRec->conditionColor ?? null;
+            $row->conditionQuantity = "<span style='color: {$conditionColor}'>{$dRec->conditionQuantity}</span>";
         }
         
         return $row;
@@ -638,10 +652,13 @@ class store_reports_DeficitInStores extends frame2_driver_TableData
      */
     protected static function on_AfterGetExportRec(frame2_driver_Proto $Driver, &$res, $rec, $dRec, $ExportClass)
     {
-        $code = cat_Products::fetchField($dRec->productId, 'code');
-        $res->code = ($code) ? $code : "Art{$dRec->productId}";
-        $res->quantity = ($dRec->quantity < 0) ? 0 : $dRec->quantity;
-        $res->deliveryQuantity = ($dRec->shipmentQuantity + $dRec->jobsQuantity) - ($dRec->receiptQuantity + $dRec->quantity);
+        $productId = $dRec->productId ?? null;
+        $code = cat_Products::fetchField($productId, 'code');
+        $res->code = ($code) ? $code : "Art{$productId}";
+        $quantity = $dRec->quantity ?? 0;
+        $res->quantity = ($quantity < 0) ? 0 : $quantity;
+        $res->deliveryQuantity = (($dRec->shipmentQuantity ?? 0) + ($dRec->jobsQuantity ?? 0))
+            - (($dRec->receiptQuantity ?? 0) + $quantity);
     }
     
     
@@ -672,8 +689,6 @@ class store_reports_DeficitInStores extends frame2_driver_TableData
             }
         }
         
-        $groupNamerr = $tempArr;
-        
-        return $arr;
+        return $tempArr;
     }
 }

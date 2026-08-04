@@ -209,7 +209,7 @@ class type_Combodate extends type_Varchar
             list($y, $m, $d) = explode($div, $cDate);
         }
 
-        if (strlen($d) > 2) {
+        if (strlen($d ?? '') > 2) {
             $t = $d;
             $d = $y;
             $y = $t;
@@ -297,8 +297,8 @@ class type_Combodate extends type_Varchar
         $this->months = array($m => '') + dt::getMonthOptions('FM');
         
         // Подготовка на годините
-        $min = $this->params['minYear'] ? $this->params['minYear'] : 1900;
-        $max = $this->params['maxYear'] ? $this->params['maxYear'] : 2030;
+        $min = !empty($this->params['minYear']) ? $this->params['minYear'] : 1900;
+        $max = !empty($this->params['maxYear']) ? $this->params['maxYear'] : 2030;
         $cur = date('Y');
         for ($i = $max; $i >= $cur; $i--) {
             $this->years[$i] = $i;

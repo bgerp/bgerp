@@ -823,7 +823,8 @@ class label_Prints extends core_Master
         // По подразбиране да се показват черновите записи най-отпред
         $data->query->orderBy('createdOn', 'DESC');
         
-        $data->listFilter->setField('mediaId', 'allowEmpty');
+        $data->listFilter->setField('mediaId', 'allowEmpty,placeholderType=all');
+        $data->listFilter->setField('templateId', 'placeholderType=all');
         unset($data->listFilter->fields['mediaId']->notNull);
         unset($data->listFilter->fields['mediaId']->removeAndRefreshForm);
         unset($data->listFilter->fields['mediaId']->mandatory);

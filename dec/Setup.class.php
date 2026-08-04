@@ -12,6 +12,11 @@ defIfNot('DEC_DEF_TPL_BG', '');
  */
 defIfNot('DEC_DEF_TPL_EN', '');
 
+/**
+ * Дефолтна константа за параметри на продуктите
+ */
+defIfNot('DEC_PARAM_PROD', '');
+
 
 /**
  * class dec_Setup
@@ -80,6 +85,7 @@ class dec_Setup extends core_ProtoSetup
         
         'DEC_DEF_TPL_BG' => array('key(mvc=doc_TplManager,allowEmpty)', 'caption=Декларация за съответствие->Български,optionsFunc=dec_Declarations::getTemplateBgOptions'),
         'DEC_DEF_TPL_EN' => array('key(mvc=doc_TplManager,allowEmpty)', 'caption=Декларация за съответствие->Английски,optionsFunc=dec_Declarations::getTemplateEnOptions'),
+        'DEC_PARAM_PROD' => array('key(mvc=cat_Params,allowEmpty)', 'caption=Параметър на продуктите'),
     
     );
     
@@ -119,7 +125,7 @@ class dec_Setup extends core_ProtoSetup
         $query->orderBy('id', 'ASC');
         $dArr = array();
         while ($rec = $query->fetch()) {
-            if ($dArr[$rec->title]) {
+            if (isset($dArr[$rec->title])) {
                 $n = 1000;
                 $i = 1;
                 while (true) {

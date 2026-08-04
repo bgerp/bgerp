@@ -63,7 +63,7 @@ class sales_reports_MostFrequentlySoldQuantities extends frame2_driver_TableData
     {
         $fieldset->FLD('period', 'time(suggestions=|7 дни|30 дни|180 дни|365 дни)', 'caption=Период, after=title,mandatory,single=none,removeAndRefreshForm');
 
-        $fieldset->FLD('group', 'keylist(mvc=cat_Groups,select=name)', 'caption=Филтри->Група артикули,placeholder=Всички,after=period,single=none');
+        $fieldset->FLD('group', 'keylist(mvc=cat_Groups,select=name)', 'caption=Филтри->Група артикули,placeholderType=all,after=period,single=none');
 
     }
 

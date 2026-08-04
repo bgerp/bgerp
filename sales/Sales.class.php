@@ -353,9 +353,9 @@ class sales_Sales extends deals_DealMaster
     public function description()
     {
         parent::setDealFields($this);
-        $this->FLD('bankAccountId', 'key(mvc=bank_Accounts,select=iban,allowEmpty,maxRadio=1)', 'caption=Плащане->Банкова с-ка,after=currencyManualRate,notChangeableByContractor');
+        $this->FLD('bankAccountId', 'key(mvc=bank_Accounts,select=iban,allowEmpty)', 'caption=Плащане->Банкова с-ка,after=currencyManualRate,notChangeableByContractor');
         $this->FLD('expectedTransportCost', 'double', 'input=none,caption=Очакван транспорт');
-        $this->FLD('priceListId', 'key(mvc=price_Lists,select=title,allowEmpty,maxRadio=0)', 'caption=Артикули->Цени,before=detailOrderBy,notChangeableByContractor');
+        $this->FLD('priceListId', 'key(mvc=price_Lists,select=title,allowEmpty)', 'caption=Артикули->Цени,before=detailOrderBy,notChangeableByContractor');
         $this->FLD('deliveryCalcTransport', 'enum(yes=Скрит транспорт,no=Явен транспорт)', 'input=hidden,caption=Доставка->Начисляване,after=deliveryTermId,silent');
         $this->FLD('courierApi', 'class(interface=cond_CourierApiIntf,allowEmpty,select=title)', 'input=hidden,caption=Доставка->Куриерско Api,after=deliveryCalcTransport,notChangeableIfHidden,placeholder=Автоматично');
         $this->FLD('visiblePricesByAllInThread', 'enum(no=Видими от потребители с права,yes=Видими от всички)', 'input=none');
@@ -1107,14 +1107,19 @@ class sales_Sales extends deals_DealMaster
     public static function on_AfterRenderSingleLayout($mvc, &$tpl, &$data)
     {
         $rec = $data->rec;
-        
+        $tplLang = $rec->tplLang ?? null;
+
         // Изкарваме езика на шаблона от сесията за да се рендира статистиката с езика на интерфейса
-        core_Lg::pop();
+        if ($tplLang) {
+            core_Lg::pop();
+        }
         $statisticTpl = getTplFromFile('sales/tpl/SaleStatisticLayout.shtml');
         $tpl->replace($statisticTpl, 'STATISTIC_BAR');
-        
+
         // Отново вкарваме езика на шаблона в сесията
-        core_Lg::push($rec->tplLang);
+        if ($tplLang) {
+            core_Lg::push($tplLang);
+        }
         
         // Скриване на секцията с транспорт, при определени условия
         if (Mode::isReadOnly() || core_Users::haveRole('partner') || empty($rec->deliveryTermId) || (!empty($rec->deliveryTermId) && !cond_DeliveryTerms::getTransportCalculator($rec->deliveryTermId))) {
@@ -1286,8 +1291,11 @@ class sales_Sales extends deals_DealMaster
             }
         }
         
-        core_Lg::push($rec->tplLang);
-        
+        $tplLang = $rec->tplLang ?? null;
+        if ($tplLang) {
+            core_Lg::push($tplLang);
+        }
+
         if (!empty($rec->bankAccountId)) {
             if (!Mode::isReadOnly()) {
 
@@ -1359,8 +1367,10 @@ class sales_Sales extends deals_DealMaster
 
             $row->detailOrderBy = mb_strtolower($row->detailOrderBy);
 			$row->detailOrderBy = ht::createHint("", "Подреждане артикули по|*: |{$row->detailOrderBy}|*");
-            
-            core_Lg::pop();
+
+            if ($tplLang) {
+                core_Lg::pop();
+            }
             $row->transportCurrencyId = $row->currencyId;
             $hiddenTransportCost = sales_TransportValues::calcInDocument($mvc, $rec->id);
             $expectedTransportCost = $mvc->getExpectedTransportCost($rec);
@@ -1392,7 +1402,9 @@ class sales_Sales extends deals_DealMaster
                 }
             }
 
-            core_Lg::push($rec->tplLang);
+            if ($tplLang) {
+                core_Lg::push($tplLang);
+            }
         } elseif (isset($fields['-list']) && doc_Setup::get('LIST_FIELDS_EXTRA_LINE') != 'no') {
             $row->title = '<b>' . $row->title . '</b>';
             $row->title .= '  «  ' . $row->folderId;
@@ -1443,7 +1455,9 @@ class sales_Sales extends deals_DealMaster
             $row->BANK_BLOCK_CLASS = 'quiet saleBankBlock';
         }
 
-        core_Lg::pop();
+        if ($tplLang) {
+            core_Lg::pop();
+        }
     }
     
     

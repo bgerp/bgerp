@@ -720,6 +720,7 @@ class support_Issues extends core_Master
         // Задаваме на полета да имат възможност за задаване на празна стойност
         $data->listFilter->getField('systemId')->type->params['allowEmpty'] = true;
         $data->listFilter->getField('componentId')->type->params['allowEmpty'] = true;
+        $data->listFilter->setField('componentId', 'placeholderType=all');
         
         // Добавяме функционално поле за отговорници
         $data->listFilter->FNC('maintainers', 'type_Users(rolesForAll=support|ceo|admin)', 'caption=Отговорник,input,silent,autoFilter');
@@ -859,6 +860,7 @@ class support_Issues extends core_Master
         }
         
         if ($component) {
+            $row->subTitle = $row->subTitle ?? '';
             if ($row->subTitle) {
                 $row->subTitle .= ', ';
             }

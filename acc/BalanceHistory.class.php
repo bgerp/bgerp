@@ -325,7 +325,7 @@ class acc_BalanceHistory extends core_Manager
         
         self::addPeriodFields($filter);
         $filter->FNC('accNum', 'int', 'input=hidden');
-        $filter->FNC('type', 'class(interface=acc_TransactionSourceIntf,select=title,allowEmpty)', 'input,caption=Документ');
+        $filter->FNC('type', 'class(interface=acc_TransactionSourceIntf,select=title,allowEmpty)', 'input,caption=Документ,placeholderType=all');
         $filter->FNC('isGrouped', 'enum(yes=Да,no=Не)', 'input,caption=Групиране');
         $filter->showFields = 'selectPeriod,toDate,fromDate,type,isGrouped';
         $data->accountInfo = acc_Accounts::getAccountInfo($data->rec->accountId);
@@ -345,7 +345,7 @@ class acc_BalanceHistory extends core_Manager
         foreach (array(3, 2, 1) as $i) {
             if (isset($data->accountInfo->groups[$i]) && is_object($data->accountInfo->groups[$i])) {
                 $listRec = $data->accountInfo->groups[$i]->rec;
-                $filter->FNC("ent{$i}Id", "acc_type_Item(lists={$listRec->num},select=titleLink,showAll,allowEmpty)", "input,class=w75,caption={$listRec->name}");
+                $filter->FNC("ent{$i}Id", "acc_type_Item(lists={$listRec->num},select=titleLink,showAll,allowEmpty)", "input,class=w75,caption={$listRec->name},placeholderType=all");
                 $filter->showFields = "ent{$i}Id,{$filter->showFields}";
             } else {
                 $filter->FNC("ent{$i}Id", 'int', 'input=hidden');
@@ -453,10 +453,10 @@ class acc_BalanceHistory extends core_Manager
             foreach ($data->recs as $dKey => $dArr){
                 if($dArr['docType'] == $data->type){
                     $filteredRecs[$dKey] = $dArr;
-                    $debitQuantity += $dArr['debitQuantity'];
-                    $debitAmount += $dArr['debitAmount'];
-                    $creditQuantity += $dArr['creditQuantity'];
-                    $creditAmount += $dArr['creditAmount'];
+                    $debitQuantity += $dArr['debitQuantity'] ?? 0;
+                    $debitAmount += $dArr['debitAmount'] ?? 0;
+                    $creditQuantity += $dArr['creditQuantity'] ?? 0;
+                    $creditAmount += $dArr['creditAmount'] ?? 0;
                 }
             }
             $data->recs = $filteredRecs;

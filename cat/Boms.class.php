@@ -746,7 +746,7 @@ class cat_Boms extends core_Master
                     $price = 0;
                 }
 
-                $overheadCost = $rec->expenses;
+                $overheadCost = $rec->expenses ?? null;
                 if (!isset($rec->expenses)) {
                     $defaultOverheadCost = cat_Products::getDefaultOverheadCost($rec->productId);
                     if (!empty($defaultOverheadCost)) {
@@ -1820,6 +1820,7 @@ class cat_Boms extends core_Master
         // За всеки етап намираме подетапите му
         $tasks = array();
         foreach ($allStages as $dRec) {
+            $dRec->params = (array) ($dRec->params ?? array());
             $dRec->params['$T'] = $quantity;
             $dRec->params['$тираж_задание'] = $quantity;
             $quantityP = cat_BomDetails::calcExpr($dRec->propQuantity, $dRec->params);
@@ -1830,6 +1831,7 @@ class cat_Boms extends core_Master
             $parent = $dRec->parentId;
             while ($parent && isset($stageParentCache[$parent])) {
                 $bRec = $stageParentCache[$parent];
+                $bRec->params = (array) ($bRec->params ?? array());
                 $bRec->params['$T'] = $quantity;
                 $bRec->params['$тираж_задание'] = $quantity;
                 $q = cat_BomDetails::calcExpr($bRec->propQuantity, $bRec->params);
@@ -1865,11 +1867,11 @@ class cat_Boms extends core_Master
                 'labelQuantityInPack' => $dRec->labelQuantityInPack,
                 'labelType' => $dRec->labelType,
                 'labelTemplate' => $dRec->labelTemplate,
-                'showadditionalUom' => ($productRec->planning_Steps_calcWeightMode == 'auto') ? planning_Setup::get('TASK_WEIGHT_MODE') : $productRec->planning_Steps_calcWeightMode,
+                'showadditionalUom' => (($productRec->planning_Steps_calcWeightMode ?? null) == 'auto') ? planning_Setup::get('TASK_WEIGHT_MODE') : ($productRec->planning_Steps_calcWeightMode ?? null),
                 'params' => array(),
-                'wasteProductId' => ($dRec->wasteProductId) ? $dRec->wasteProductId : $productRec->planning_Steps_wasteProductId,
-                'wasteStart' => ($dRec->wasteStart) ? $dRec->wasteStart : $productRec->planning_Steps_wasteStart,
-                'wastePercent' => ($dRec->wastePercent) ? $dRec->wastePercent : $productRec->planning_Steps_wastePercent,
+                'wasteProductId' => !empty($dRec->wasteProductId) ? $dRec->wasteProductId : ($productRec->planning_Steps_wasteProductId ?? null),
+                'wasteStart' => !empty($dRec->wasteStart) ? $dRec->wasteStart : ($productRec->planning_Steps_wasteStart ?? null),
+                'wastePercent' => !empty($dRec->wastePercent) ? $dRec->wastePercent : ($productRec->planning_Steps_wastePercent ?? null),
                 'products' => array('input' => array(), 'waste' => array(), 'production' => array()));
 
             $pQuery = cat_products_Params::getQuery();
@@ -1884,7 +1886,7 @@ class cat_Boms extends core_Master
                 if ($cRec->parentId != $dRec->id) continue;
                 if ($cRec->innerClass == $productStepClassId) continue;
 
-                $quantityS = cat_BomDetails::calcExpr($cRec->propQuantity, $cRec->params);
+                $quantityS = cat_BomDetails::calcExpr($cRec->propQuantity, (array) ($cRec->params ?? array()));
                 if ($quantityS == cat_BomDetails::CALC_ERROR) {
                     $quantityS = 0;
                 }
@@ -1979,7 +1981,7 @@ class cat_Boms extends core_Master
         $res = array();
         $bomInfo = cat_Boms::getResourceInfo($bomId, $quantity, dt::now(), $jobQuantity);
 
-        if (!countR($bomInfo['resources'])) return $res;
+        if (!countR($bomInfo['resources'] ?? null)) return $res;
 
         foreach ($bomInfo['resources'] as $pRec) {
             $productRec = cat_Products::fetch($pRec->productId, 'canStore,generic');
@@ -2001,6 +2003,9 @@ class cat_Boms extends core_Master
                     $sQuery = store_StockPlanning::getQuery();
                     $sQuery->where("#storeId = {$storeId}");
                     foreach ($ignoreReservedByDocsArr as $ignoreArr){
+                        if (!isset($ignoreArr[0], $ignoreArr[1])) {
+                            continue;
+                        }
                         $sQuery->where("#sourceClassId = {$ignoreArr[0]} AND #sourceId = {$ignoreArr[1]}");
                     }
                     while($sRec = $sQuery->fetch()) {
@@ -2013,8 +2018,8 @@ class cat_Boms extends core_Master
                 array_walk($productArr, function($pId) use (&$quantity, $storeId, $reservedByJobs) {
                     $quantity += store_Products::getQuantities($pId, $storeId)->free;
                     if(array_key_exists($pId, $reservedByJobs)){
-                        $quantity += $reservedByJobs[$pId]->quantityOut;
-                        $quantity -= $reservedByJobs[$pId]->quantityIn;
+                        $quantity += $reservedByJobs[$pId]->quantityOut ?? 0;
+                        $quantity -= $reservedByJobs[$pId]->quantityIn ?? 0;
                     }
                 });
 
@@ -2172,7 +2177,8 @@ class cat_Boms extends core_Master
             $Driver = cat_Products::getDriver($dRec->resourceId);
             $productionData = $Driver->getProductionData($dRec->resourceId);
             foreach (array('centerId', 'norm', 'storeIn', 'inputStores', 'fixedAssets', 'employees', 'labelPackagingId', 'labelQuantityInPack', 'labelType', 'labelTemplate') as $productionFld) {
-                $defaultValue = is_array($productionData[$productionFld]) ? keylist::fromArray($productionData[$productionFld]) : $productionData[$productionFld];
+                $productionValue = $productionData[$productionFld] ?? null;
+                $defaultValue = is_array($productionValue) ? keylist::fromArray($productionValue) : $productionValue;
                 $dRec->{$productionFld} = $defaultValue;
             }
         }

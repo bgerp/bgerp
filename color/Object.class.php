@@ -93,6 +93,11 @@ class color_Object
      */
     public static function hexToRgb($hexColor, &$r, &$g, &$b)
     {
+        if (!is_string($hexColor) || $hexColor === '') {
+
+            return false;
+        }
+
         if ($hexColor[0] == '#') {
             $hexColor = substr($hexColor, 1);
         }
@@ -206,6 +211,11 @@ class color_Object
      */
     public static function hexToRgbArr($hexColor)
     {
+        if (!is_string($hexColor) || $hexColor === '') {
+
+            return false;
+        }
+
         if ($color = self::getNamedColor($hexColor)) {
             $hexColor = $color;
         }
@@ -244,6 +254,11 @@ class color_Object
     public static function getNamedColor($color)
     {
         static $hexColors;
+
+        if (!is_string($color) || $color === '') {
+
+            return null;
+        }
         
         if (!$hexColors) {
             $hexColors = array('aliceblue' => 'f0f8ff', 'amethyst' => '9966cc',
@@ -294,6 +309,6 @@ class color_Object
                 'whitesmoke' => 'f5f5f5', 'yellow' => 'ffff00', 'yellowgreen' => '9acd32');
         }
         
-        return $hexColors[strtolower($color)];
+        return $hexColors[strtolower($color)] ?? null;
     }
 }

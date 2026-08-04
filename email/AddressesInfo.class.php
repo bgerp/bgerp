@@ -168,7 +168,7 @@ class email_AddressesInfo extends core_Manager
     public static function getEmail($email)
     {
         $oEmail = $email;
-        $email = trim($email);
+        $email = trim($email ?? '');
         $email = mb_strtolower($email);
 
         if (isset(self::$mapArr[$email])) {
@@ -647,6 +647,7 @@ class email_AddressesInfo extends core_Manager
         $data->listFilter->view = 'horizontal';
         
         $data->listFilter->setFieldTypeParams('state', 'allowEmpty');
+        $data->listFilter->setField('state', 'placeholderType=all');
         
         $data->listFilter->setDefault('state', '');
         

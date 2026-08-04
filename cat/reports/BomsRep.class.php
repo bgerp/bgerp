@@ -79,7 +79,7 @@ class cat_reports_BomsRep extends frame_BaseDriver
     public function addEmbeddedFields(core_FieldSet &$form)
     {
         $form->FLD('saleId', 'keylist(mvc=sales_Sales, select=id)', 'caption=Договор за продажба');
-        $form->FLD('groupId', 'keylist(mvc=cat_Groups,select=name)', 'caption=Група');
+        $form->FLD('groupId', 'keylist(mvc=cat_Groups,select=name)', 'caption=Група,placeholderType=all');
     }
     
     

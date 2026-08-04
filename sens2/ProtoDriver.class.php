@@ -17,6 +17,36 @@
 class sens2_ProtoDriver extends core_BaseClass
 {
     /**
+     * Запис на контролера, когато драйверът е зареден за съществуващ контролер
+     */
+    public $driverRec = null;
+
+
+    /**
+     * Статично описани входни портове
+     */
+    public $inputs = array();
+
+
+    /**
+     * Статично описани изходни портове
+     */
+    public $outputs = array();
+
+
+    /**
+     * Дали портовете на контролера се поддържат като детайли
+     */
+    public $hasDetail = false;
+
+
+    /**
+     * Дали конфигурационната форма да не се разширява с входните портове
+     */
+    public $notExpandForm = false;
+
+
+    /**
      * От кой номер започва броенето на слотовете
      */
     const FIRST_SLOT_NO = 0;
@@ -42,7 +72,7 @@ class sens2_ProtoDriver extends core_BaseClass
         $ports = $this->discovery();
         
         foreach ($ports as $p) {
-            if ($p->readable) {
+            if (!empty($p->readable)) {
                 $res[$p->name] = $p;
             }
         }
@@ -64,7 +94,7 @@ class sens2_ProtoDriver extends core_BaseClass
         
         $ports = $this->discovery();
         foreach ($ports as $p) {
-            if ($p->writable) {
+            if (!empty($p->writable)) {
                 $res[$p->name] = $p;
             }
         }
@@ -159,12 +189,12 @@ class sens2_ProtoDriver extends core_BaseClass
         
         $res = array();
         foreach ($typeArr as $st) {
-            $cnt = (int) $slots[$st];
+            $cnt = (int) ($slots[$st] ?? 0);
             
             for ($i = static::FIRST_SLOT_NO; $i < $cnt + static::FIRST_SLOT_NO; $i++) {
                 $name = $st . '-' . $i;
                 
-                if ($onlyAviable && $used[$name] >= $this->getMaxPortsPerSlot($st)) {
+                if ($onlyAviable && ($used[$name] ?? 0) >= $this->getMaxPortsPerSlot($st)) {
                     continue;
                 }
                 
@@ -185,7 +215,7 @@ class sens2_ProtoDriver extends core_BaseClass
         $slots = array();
         if ($this->driverRec) {
             while ($pRec = $pQuery->fetch("#controllerId = {$this->driverRec->id}")) {
-                $slots[$pRec->slot]++;
+                $slots[$pRec->slot] = ($slots[$pRec->slot] ?? 0) + 1;
             }
         }
         
@@ -228,7 +258,7 @@ class sens2_ProtoDriver extends core_BaseClass
         }
         
         $map = array('uom' => 'uom', 'scale' => 'scale', 'update' => 'readPeriod', 'log' => 'logPeriod');
-        $config = $this->driverRec->config;
+        $config = $this->driverRec->config ?? new stdClass();
 
         if (is_array($this->inputs)) {
             foreach ($this->inputs as $name => $descArr) {
@@ -237,7 +267,7 @@ class sens2_ProtoDriver extends core_BaseClass
                 $p->readable = true;
                 foreach ($map as $confPart => $portPart) {
                     $confField = $name . '_' . $confPart;
-                    if ($config && strlen($config->{$confField})) {
+                    if (!empty($config->{$confField})) {
                         $p->{$portPart} = $config->{$confField};
                     }
                 }
@@ -252,7 +282,7 @@ class sens2_ProtoDriver extends core_BaseClass
                 $p->writable = true;
                 foreach ($map as $confPart => $portPart) {
                     $confField = $name . '_' . $confPart;
-                    if ($config && strlen($config->{$confField})) {
+                    if (!empty($config->{$confField})) {
                         $p->{$portPart} = $config->{$confField};
                     }
                 }
@@ -262,10 +292,14 @@ class sens2_ProtoDriver extends core_BaseClass
         
         $res = array();
         foreach ($ports as $p) {
+            $p->caption = $p->caption ?? $p->name;
+            $p->uom = $p->uom ?? null;
+            $p->scale = $p->scale ?? null;
+            $p->readPeriod = $p->readPeriod ?? 0;
+            $p->logPeriod = $p->logPeriod ?? 0;
+            $p->readable = $p->readable ?? false;
+            $p->writable = $p->writable ?? false;
             $res[$p->name] = $p;
-            if (!isset($p->caption)) {
-                $p->caption = $p->name;
-            }
         }
         
         return $res;

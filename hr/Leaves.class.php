@@ -267,7 +267,7 @@ class hr_Leaves extends core_Master
      */
     public static function on_AfterPrepareListFilter($mvc, $data)
     {
-        $data->listFilter->FLD('employeeId', 'key(mvc=crm_Persons,select=name,allowEmpty,group=employees)', 'caption=Служител,silent,before=paid');
+        $data->listFilter->FLD('employeeId', 'key(mvc=crm_Persons,select=name,allowEmpty,group=employees)', 'caption=Служител,placeholderType=all,silent,before=paid');
         $data->listFilter->showFields = $data->listFilter->showFields . ',employeeId';
         $data->listFilter->input('employeeId', 'silent');
         

@@ -906,9 +906,9 @@ class price_Updates extends core_Manager
      */
     protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
-        $data->listFilter->FLD('classId', 'class(interface=price_CostPolicyIntf,select=title,allowEmpty)', 'caption=Източник');
+        $data->listFilter->FLD('classId', 'class(interface=price_CostPolicyIntf,select=title,allowEmpty)', 'caption=Източник,placeholderType=all');
         $data->listFilter->setFieldType('type', "enum(,category=Категория,product=Артикул,group=Група)");
-        $data->listFilter->setField('type', 'input');
+        $data->listFilter->setField('type', 'input,placeholderType=all');
         $data->listFilter->setOptions('classId', price_Updates::getCostPoliciesOptions());
         $data->listFilter->view = 'horizontal';
         $data->listFilter->showFields = 'type,classId';

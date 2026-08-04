@@ -194,7 +194,7 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
         if ($fieldset instanceof core_Form) {
             $fieldset->input('type');
             
-            if ($fieldset->rec->type != 'serial') {
+            if (($fieldset->rec->type ?? null) != 'serial') {
                 $fieldset->setField('serialPort', 'input=none');
                 $fieldset->setField('serialSpeed', 'input=none');
             } else {
@@ -314,11 +314,11 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
         }
         
         // В серийния порт автоматично се опитва да открие скорост и порт
-        if ($form->rec->type == 'serial') {
+        if (($form->rec->type ?? null) == 'serial') {
             $form->input('serialPort, serialSpeed', false);
-            if (!$form->rec->serialPort || !$form->rec->serialSpeed) {
+            if (!($form->rec->serialPort ?? null) || !($form->rec->serialSpeed ?? null)) {
                 $form->input('serverIp, serverTcpPort', false);
-                if ($form->rec->serverIp && $form->rec->serverTcpPort) {
+                if (($form->rec->serverIp ?? null) && ($form->rec->serverTcpPort ?? null)) {
                     $form->input('driverVersion', false);
                     $jsTpl = null;
                     $dPortArr = $Driver->findDevicePort($form->rec, $jsTpl);
@@ -359,7 +359,7 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
         }
         
         $form->input('footer');
-        if ($form->rec->footer == 'no') {
+        if (($form->rec->footer ?? null) == 'no') {
             $form->setField('footerText', 'input=none');
             $form->setField('footerPos', 'input=none');
         }
@@ -506,8 +506,7 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
     private function getNormalizedPaymentNames($rec)
     {
         // Нормализиране на имената на заредените плащания
-        $defPaymentMap = $rec->otherData['defPaymArr'];
-        $defPaymentMap = is_array($rec->otherData['defPaymArr']) ? $rec->otherData['defPaymArr'] : array();
+        $defPaymentMap = is_array($rec->otherData['defPaymArr'] ?? null) ? $rec->otherData['defPaymArr'] : array();
         $paymentNames = array();
         foreach ($defPaymentMap as $name => $code){
             $nameNorm = trim(plg_Search::normalizeText($name));
@@ -554,7 +553,7 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
      */
     public function getDepartmentArr($rec)
     {
-        $res = $rec->otherData['depArr'] ? $rec->otherData['depArr'] : array();
+        $res = ($rec->otherData['depArr'] ?? null) ? $rec->otherData['depArr'] : array();
         
         return $res;
     }
@@ -617,7 +616,9 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
     protected static function getOperPass($operNum, $pRec)
     {
         
-        return strlen($pRec->otherData['operPass']) ? $pRec->otherData['operPass'] : '0000';
+        $operPass = $pRec->otherData['operPass'] ?? '';
+
+        return strlen($operPass) ? $operPass : '0000';
     }
     
     
@@ -701,7 +702,7 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
 
             $defPaymentType = 0;
             $pType = 'Лева';
-            if ($pRec->otherData['defPaymArr']) {
+            if ($pRec->otherData['defPaymArr'] ?? null) {
                 if (isset($pRec->otherData['defPaymArr'][$pType])) {
                     $defPaymentType = $pRec->otherData['defPaymArr'][$pType];
                 }
@@ -831,24 +832,25 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
         $form->FLD('report', 'enum(day=Дневен,operator=Операторски (дневен),period=Период,month=Месечен,monthPayments=Месечен (плащания),year=Годишен,klen=КЛЕН,csv=CSV,number=По номер)', 'caption=Отчет->Вид, mandatory, removeAndRefreshForm=zeroing,isDetailed,operNum,fromDate,toDate,flagReports,flagReceipts,csvFormat,printIn,saveType,printType');
         
         $form->input('report');
-        
+        $reportType = $form->rec->report ?? null;
+
         $form->FLD('zeroing', 'enum(no=Не, yes=Да)', 'caption=Отчет->Нулиране, mandatory');
         $form->FLD('isDetailed', 'enum(no=Не, yes=Да)', 'caption=Отчет->Детайлен, mandatory');
         
         $form->setDefault('zeroing', 'yes');
         
-        if ($form->rec->report == 'operator') {
+        if ($reportType == 'operator') {
             $form->FLD('operNum', 'int(min=0, max=20)', 'caption=Отчет->Оператор, mandatory');
             $form->setField('isDetailed', 'input=none');
             $form->setDefault('operNum', 0);
-        } elseif (($form->rec->report == 'period') || ($form->rec->report == 'month') || ($form->rec->report == 'monthPayments') || ($form->rec->report == 'year') || ($form->rec->report == 'klen') || ($form->rec->report == 'csv')) {
+        } elseif (($reportType == 'period') || ($reportType == 'month') || ($reportType == 'monthPayments') || ($reportType == 'year') || ($reportType == 'klen') || ($reportType == 'csv')) {
             $form->FLD('fromDate', 'date', 'caption=Дата->От, mandatory');
             $form->FLD('toDate', 'date', 'caption=Дата->До, mandatory');
             
-            if ($form->rec->report == 'period') {
+            if ($reportType == 'period') {
                 $form->setDefault('fromDate', date('d-m-Y', strtotime('this week')));
                 $form->setDefault('toDate', dt::now(false));
-            } elseif (($form->rec->report == 'month') || ($form->rec->report == 'monthPayments')) {
+            } elseif (($reportType == 'month') || ($reportType == 'monthPayments')) {
                 if (date('d') <= 20) {
                     $form->setDefault('fromDate', date('d-m-Y', strtotime('first day of previous month')));
                     $form->setDefault('toDate', date('d-m-Y', strtotime('last day of previous month')));
@@ -856,9 +858,9 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
                     $form->setDefault('fromDate', date('d-m-Y', strtotime('first day of this month')));
                     $form->setDefault('toDate', dt::now(false));
                 }
-            } elseif (($form->rec->report == 'year') || ($form->rec->report == 'klen') || ($form->rec->report == 'csv')) {
+            } elseif (($reportType == 'year') || ($reportType == 'klen') || ($reportType == 'csv')) {
                 $y = date('Y');
-                if ((date('n') <= 11) && (($form->rec->report != 'klen') && ($form->rec->report != 'csv'))) {
+                if ((date('n') <= 11) && (($reportType != 'klen') && ($reportType != 'csv'))) {
                     $y--;
                     $form->setDefault('fromDate', date('d-m-Y', strtotime(date('01-01-' . $y))));
                     $form->setDefault('toDate', date('d-m-Y', strtotime(date('31-12-' . $y))));
@@ -867,12 +869,12 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
                     $form->setDefault('toDate', dt::now(false));
                 }
                 
-                if (($form->rec->report == 'klen') || ($form->rec->report == 'csv')) {
+                if (($reportType == 'klen') || ($reportType == 'csv')) {
                     $form->FLD('printType', 'enum(print=Отпечатване, save=Запис)', 'caption=Действие, mandatory, removeAndRefreshForm=saveType');
                     
                     $form->input('printType');
                     
-                    if ($form->rec->printType == 'save') {
+                    if (($form->rec->printType ?? null) == 'save') {
                         $form->FLD('saveType', 'enum(sd=SD карта, usb=USB)', 'caption=Запис в, mandatory');
                         
                         $submitTitle = 'Запис';
@@ -883,7 +885,7 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
                     unset($form->rec->zeroing);
                     $form->setField('zeroing', 'input=none');
                     
-                    if ($form->rec->report == 'csv') {
+                    if ($reportType == 'csv') {
                         unset($form->rec->isDetailed);
                         $form->setField('isDetailed', 'input=none');
                         $form->FLD('csvFormat', 'enum(yes=Да, no=Не)', 'caption=CSV формат, mandatory');
@@ -894,13 +896,13 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
                         $form->setDefault('flagReceipts', 1);
                         $form->setDefault('flagReports', 1);
                         
-                        if ($form->rec->printType != 'save') {
+                        if (($form->rec->printType ?? null) != 'save') {
                             $form->setOptions('printIn', array('PC' => 'Компютър'));
                         }
                     }
                 }
             }
-        } elseif ($form->rec->report == 'number') {
+        } elseif ($reportType == 'number') {
             unset($form->rec->isDetailed);
             $form->setField('isDetailed', 'input=none');
             
@@ -911,14 +913,14 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
             
             $form->input('printType');
             
-            if ($form->rec->printType == 'save') {
+            if (($form->rec->printType ?? null) == 'save') {
                 $form->FLD('saveType', 'enum(sd=SD карта, usb=USB)', 'caption=Запис в, mandatory');
                 
                 $submitTitle = 'Запис';
             }
         }
 
-        if ($form->rec->report && ($form->rec->report != 'operator') && ($form->rec->report != 'day')) {
+        if ($reportType && ($reportType != 'operator') && ($reportType != 'day')) {
             unset($form->rec->zeroing);
             $form->setField('zeroing', 'input=none');
         }

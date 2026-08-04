@@ -57,7 +57,13 @@ class plg_GroupByField extends core_Plugin
         
         // Изчличаме в масив всички уникални стойностти на полето
         foreach ($recs as $index => $rec1) {
-            $groups[$rec1->{$field}] = $data->rows[$index]->{$field};
+            $row = $data->rows[$index] ?? null;
+            if (!is_object($row)) continue;
+
+            // Полето може да е виртуално и да съществува само във вербалния ред
+            $groupId = $rec1->{$field} ?? ($row->{$field} ?? null);
+            $groupId = isset($groupId) ? $groupId : '';
+            $groups[$groupId] = $row->{$field} ?? $groupId;
         }
         
         $rows = array();
@@ -82,18 +88,20 @@ class plg_GroupByField extends core_Plugin
             
             // За всички записи
             foreach ($recs as $id => $rec) {
+                $row = $data->rows[$id] ?? null;
+                if (!is_object($row)) continue;
+                $recGroupId = $rec->{$field} ?? ($row->{$field} ?? null);
+                $recGroupId = isset($recGroupId) ? $recGroupId : '';
                 
                 // Ако стойността на полето им за групиране е същата като текущото
-                if ($rec->{$field} == $groupId) {
+                if ($recGroupId == $groupId) {
                     
                     // Скриваме това поле от записа, и поставяме реда под групиращото поле
-                    unset($data->rows[$id]->{$field});
-                    if (is_object($data->rows[$id])) {
-                        $rows[$id] = clone $data->rows[$id];
-                        
-                        // Веднъж групирано, премахваме записа от старите записи
-                        unset($data->rows[$id]);
-                    }
+                    unset($row->{$field});
+                    $rows[$id] = clone $row;
+
+                    // Веднъж групирано, премахваме записа от старите записи
+                    unset($data->rows[$id]);
                 }
             }
         }

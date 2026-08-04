@@ -424,7 +424,7 @@ class accda_Da extends core_Master
      */
     public static function on_AfterPrepareListFilter($mvc, &$data)
     {
-        $data->listFilter->setField('location', 'caption=Локация');
+        $data->listFilter->setField('location', 'caption=Локация,placeholderType=all');
         $ownCompany = crm_Companies::fetchOurCompany();
         $ourLocations = crm_Locations::getContragentOptions('crm_Companies', $ownCompany->id ?? null);
         if (countR($ourLocations)) {

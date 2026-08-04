@@ -578,7 +578,7 @@ class planning_ProductionTaskProducts extends core_Detail
     protected static function on_AfterCreate($mvc, $rec)
     {
         if (!empty($rec->inputedQuantity)) {
-            $dRec = (object) array('taskId' => $rec->taskId, 'productId' => $rec->productId, 'type' => $rec->type, 'quantity' => $rec->inputedQuantity, 'employees' => $rec->employees, 'norm' => $rec->norm);
+            $dRec = (object) array('taskId' => $rec->taskId, 'productId' => $rec->productId, 'type' => $rec->type, 'quantity' => $rec->inputedQuantity, 'employees' => $rec->employees, 'norm' => $rec->norm ?? null);
             planning_ProductionTaskDetails::save($dRec);
         }
     }

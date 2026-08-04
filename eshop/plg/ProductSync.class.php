@@ -138,7 +138,7 @@ class eshop_plg_ProductSync extends core_Plugin
     public static function on_AfterSaveCloneRec($mvc, $rec, $nRec)
     {
         // Ако потребителя иска да клонира връзката към Е-маг
-        if($nRec->cloneToEshop == 'yes'){
+        if(($nRec->cloneToEshop ?? null) == 'yes'){
             $eDetails = cls::get('eshop_ProductDetails');
 
             $dQuery = $eDetails->getQuery();

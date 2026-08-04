@@ -365,7 +365,7 @@ class minify_Js
      */
     protected function isEOF($a)
     {
-        return ord($a) <= self::ORD_LF;
+        return $a === null || ord($a) <= self::ORD_LF;
     }
     
     
@@ -404,7 +404,7 @@ class minify_Js
         while (true) {
             $get = $this->get();
             $comment .= $get;
-            if (ord($get) <= self::ORD_LF) { // end of line reached
+            if ($get === null || ord($get) <= self::ORD_LF) { // end of line reached
                 // if IE conditional comment
                 if (preg_match('/^\\/@(?:cc_on|if|elif|else|end)\\b/', $comment)) {
                     $this->keptComment .= "/{$comment}";

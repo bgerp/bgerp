@@ -293,7 +293,7 @@ class cal_Calendar extends core_Master
         $data->listFilter->FNC('from', 'date', 'caption=От,input,silent, width = 150px,autoFilter');
         $data->listFilter->FNC('to', 'date', 'caption=До,input,silent, width = 150px,autoFilter');
         $data->listFilter->FNC('selectedUsers', 'users(rolesForAll = ceo|hrMaster, rolesForTeams = manager|hrSickdays|hrLeaves|hrTrips, showClosedGroups)', 'caption=Потребител,input,silent,autoFilter');
-        $data->listFilter->FNC('types', 'varchar(32)', 'caption=Тип,autoFilter,silent');
+        $data->listFilter->FNC('types', 'varchar(32)', 'caption=Тип,placeholderType=all,autoFilter,silent');
 
         $data->listFilter->setDefault('from', dt::now(false));
         $data->listFilter->setDefault('to', dt::now(false));

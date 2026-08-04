@@ -350,12 +350,12 @@ class log_Data extends core_Manager
             $names = core_Users::fetchField($dRec->objectId, 'names');
             $names = core_Users::prepareUserNames($names);
 
-            if (!$bridArr[$dRec->bridStr]) {
+            if (!($bridArr[$dRec->bridStr] ?? null)) {
                 $template = "{$nick} <span class='autocomplete-name'>{$names} ({$dRec->bridStr})</span>";
                 $bridArr[$dRec->bridStr] = array('val' => $dRec->bridStr, 'template' => $template, 'search' => $dRec->bridStr . ' ' . $nick . ' ' . $names);
             }
 
-            if (!$ipArr[$dRec->ipStr]) {
+            if (!($ipArr[$dRec->ipStr] ?? null)) {
                 $template = "{$nick} <span class='autocomplete-name'>{$names} ({$dRec->ipStr})</span>";
                 $ipArr[$dRec->ipStr] = array('val' => $dRec->ipStr, 'template' => $template, 'search' => $dRec->ipStr . ' ' . $nick . ' ' . $names);
             }
@@ -670,8 +670,8 @@ class log_Data extends core_Manager
         $data->listFilter->FNC('ip', 'varchar(32)', 'caption=IP адрес');
         $data->listFilter->FNC('from', 'datetime', 'caption=От');
         $data->listFilter->FNC('to', 'datetime', 'caption=До');
-        $data->listFilter->FNC('class', 'varchar', 'caption=Клас,removeAndRefreshForm=object, allowEmpty, silent');
-        $data->listFilter->FNC('object', 'varchar', 'caption=Обект,autoFilter, allowEmpty, silent');
+        $data->listFilter->FNC('class', 'varchar', 'caption=Клас,placeholderType=all,removeAndRefreshForm=object, allowEmpty, silent');
+        $data->listFilter->FNC('object', 'varchar', 'caption=Обект,placeholderType=all,autoFilter, allowEmpty, silent');
         
         $def = setIfNot($def, Request::get('users'), 'all_users');
         $default = $data->listFilter->getField('users')->type->fitInDomain($def);

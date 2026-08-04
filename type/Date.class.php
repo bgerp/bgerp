@@ -70,7 +70,7 @@ class type_Date extends core_Type
             $value = $value['d'];
         }
         
-        $value = trim($value);
+        $value = trim($value ?? '');
         
         if (empty($value)) {
             

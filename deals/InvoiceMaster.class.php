@@ -248,7 +248,7 @@ abstract class deals_InvoiceMaster extends core_Master
      */
     public static function on_AfterPrepareListFilter($mvc, $data)
     {
-        $data->listFilter->FNC('countryGroups', 'key(mvc=drdata_CountryGroups,select=name,allowEmpty)', 'caption=Държави,input');
+        $data->listFilter->FNC('countryGroups', 'key(mvc=drdata_CountryGroups,select=name,allowEmpty)', 'caption=Държави,placeholderType=all,input');
 
         if ($mvc->getField('type', false)) {
             $typeEnumOptions = "enum(all=Всички,invoice=Фактура, credit_note=Кредитно известие, debit_note=Дебитно известие,accrued=Фактура с начислен аванс,deducted=Фактура с приспаднат аванс)";
@@ -340,6 +340,9 @@ abstract class deals_InvoiceMaster extends core_Master
         $Detail->calculateAmount($recs, $rec);
 
         $rate = ($rec->displayRate) ? $rec->displayRate : $rec->rate;
+        if (!isset($this->_total)) {
+            $this->_total = (object)array('amount' => 0, 'vat' => 0, 'discount' => 0, 'vats' => array());
+        }
 
         $rec->dealValue = $this->_total->amount * $rate;
         $rec->vatAmount = empty($this->_total->vat) ? 0 : $this->_total->vat * $rate;
@@ -521,7 +524,7 @@ abstract class deals_InvoiceMaster extends core_Master
         $readOnlyContragentData = ($form->rec->type == 'dc_note' && empty($originRec->displayContragentId) && $cName == $originRec->contragentName);
         if($readOnlyContragentData){
             foreach (array('contragentName', 'contragentEori', 'contragentVatNo', 'uicNo', 'contragentCountryId', 'contragentPCode', 'contragentPlace', 'contragentAddress', 'displayContragentClassId', 'displayContragentId') as $name) {
-                if ($form->rec->{$name}) {
+                if (!empty($form->rec->{$name})) {
                     $form->setReadOnly($name);
                 }
             }
@@ -1068,9 +1071,10 @@ abstract class deals_InvoiceMaster extends core_Master
             $oldRec = null;
 
             if(isset($rec->id)){
-                if($rec->state == 'active'){
+                $state = $rec->state ?? $mvc->fetchField($rec->id, 'state', false);
+                if($state == 'active'){
                     $oldRec = $mvc->fetch($rec->id, '*', false);
-                    $haveChange = (trim($oldRec->contragentName) != trim($rec->contragentName)) || (trim($oldRec->contragentCountryId) != trim($rec->contragentCountryId)) || (trim($oldRec->contragentVatNo) != trim($rec->contragentVatNo)) || (trim($oldRec->uicNo) != trim($rec->uicNo));
+                    $haveChange = (trim((string) ($oldRec->contragentName ?? null)) != trim((string) ($rec->contragentName ?? null))) || (trim((string) ($oldRec->contragentCountryId ?? null)) != trim((string) ($rec->contragentCountryId ?? null))) || (trim((string) ($oldRec->contragentVatNo ?? null)) != trim((string) ($rec->contragentVatNo ?? null))) || (trim((string) ($oldRec->uicNo ?? null)) != trim((string) ($rec->uicNo ?? null)));
                     $rec->_changedContragentData = true;
                 }
             }

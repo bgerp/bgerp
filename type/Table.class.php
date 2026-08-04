@@ -282,7 +282,7 @@ class type_Table extends type_Blob
             
             foreach ($value as $r => $obj) {
                 foreach ($columns as $c) {
-                    if (strlen($obj->{$c}) == 0) {
+                    if (strlen((string) ($obj->{$c} ?? '')) == 0) {
                         $errFld[$c][$r] = true;
                     }
                 }
@@ -296,7 +296,7 @@ class type_Table extends type_Blob
             }
         }
         
-        if ($this->params['validate']) {
+        if (!empty($this->params['validate'])) {
             $valueToValidate = @json_decode($value, true);
             $res = call_user_func_array($this->params['validate'], array($valueToValidate, $this));
             
@@ -345,7 +345,7 @@ class type_Table extends type_Blob
                 $empty = true;
                 $row = '';
                 foreach ($columns as $field => $fObj) {
-                    $tdClass = ($this->params["{$field}_class"]) ? "class={$this->params["{$field}_class"]}" : '';
+                    $tdClass = !empty($this->params["{$field}_class"]) ? "class={$this->params["{$field}_class"]}" : '';
 
                     $cellVal = $value[$field][$i] ?? null;
                     if (isset($opt[$field])) {
@@ -444,10 +444,10 @@ class type_Table extends type_Blob
     public function getColumns()
     {
         $colsArr = explode('|', $this->params['columns']);
-        if (core_Lg::getCurrent() != 'bg' && $this->params['captionsEn']) {
+        if (core_Lg::getCurrent() != 'bg' && !empty($this->params['captionsEn'])) {
             $captionArr = explode('|', $this->params['captionsEn']);
         } else {
-            $captionArr = explode('|', $this->params['captions']);
+            $captionArr = explode('|', $this->params['captions'] ?? $this->params['columns']);
         }
         
         $widthsArr = array();

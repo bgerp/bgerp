@@ -21,7 +21,7 @@ class store_type_PalletPlace extends type_Varchar
      */
     public function fromVerbal($position)
     {
-        $position = trim($position);
+        $position = trim($position ?? '');
         
         if (empty($position)) {
             

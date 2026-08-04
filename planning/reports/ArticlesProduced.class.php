@@ -90,9 +90,9 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
 
 
         //Филтри
-        $fieldset->FLD('groups', 'keylist(mvc=cat_Groups,select=name)', 'caption=Филтър по->Групи артикули,after=accProd,removeAndRefreshForm,placeholder=Всички,silent,single=none');
-        $fieldset->FLD('centre', 'keylist(mvc=planning_Centers,select=name)', 'caption=Филтър по->Центрове,placeholder=Всички,after=groups');
-        $fieldset->FLD('storeId', 'keylist(mvc=store_Stores,select=name,allowEmpty)', 'caption=Филтър по->Склад,placeholder=Всички,after=centre');
+        $fieldset->FLD('groups', 'keylist(mvc=cat_Groups,select=name)', 'caption=Филтър по->Групи артикули,after=accProd,removeAndRefreshForm,placeholderType=all,silent,single=none');
+        $fieldset->FLD('centre', 'keylist(mvc=planning_Centers,select=name)', 'caption=Филтър по->Центрове,placeholderType=all,after=groups');
+        $fieldset->FLD('storeId', 'keylist(mvc=store_Stores,select=name,allowEmpty)', 'caption=Филтър по->Склад,placeholderType=all,after=centre');
 
         $fieldset->FLD('seeWeight', 'enum(yes=да, no=не)', 'caption=Показване->Покажи тегло,after=storeId,single=none');
 
@@ -553,7 +553,7 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
         }
 
         //Добавяне на колона за теглото
-        if ($rec->seeWeight == 'yes' && $rec->accProd == 'no') {
+        if (($rec->seeWeight ?? 'no') == 'yes' && $rec->accProd == 'no') {
 
             foreach ($recs as $val) {
 
@@ -619,7 +619,7 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
         $fld->FLD('amount', 'varchar', 'caption=Стойност,tdClass=centered');
 
 
-        if ($rec->seeWeight == 'yes') {
+        if (($rec->seeWeight ?? 'no') == 'yes') {
             $fld->FLD('weight', 'double(smartRound,decimals=2)', "smartCenter,caption=Тегло->[кг]");
         }
         $monthArr = $rec->montsArr;
@@ -791,6 +791,7 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
         }
 
         $marker = 0;
+        $groupVerb = '';
         if ($data->rec->consumed == 'yes') {
             if (isset($data->rec->groupsMat)) {
                 foreach (type_Keylist::toArray($data->rec->groupsMat) as $groupMat) {

@@ -418,6 +418,116 @@ class eshop_ProductDetails extends core_Detail
     
     
     /**
+     * Връща структурирана информация за публичната наличност на опция
+     *
+     * Състояния на наличността:
+     * - notChecked: за артикула не се следят наличности в публични складове
+     * - local: има достатъчно количество в локален склад
+     * - remote: има достатъчно количество във външен склад
+     * - mixed: общото локално и външно количество е достатъчно
+     * - expected: очакваното количество в срока за доставка е достатъчно
+     * - outOfStock: няма достатъчно текущо или очаквано количество
+     *
+     * @param stdClass $rec
+     *
+     * @return stdClass
+     */
+    public static function getPublicAvailability($rec)
+    {
+        $settings = cms_Domains::getSettings();
+        $now = dt::now();
+        $startSale = cat_Products::getParams($rec->productId, 'startSales');
+        $productRec = cat_Products::fetch($rec->productId, 'state,canStore');
+
+        $res = (object) array(
+            'actionAllowsBuy' => in_array($rec->action, array('buy', 'both')),
+            'showPrice' => !($productRec->state == 'template' || $rec->action == 'stopped'),
+            'hasPublicPrice' => false,
+            'priceInfo' => (object) array('price' => null, 'discount' => null),
+            'canBuy' => false,
+            'saleStopped' => false,
+            'saleState' => 'active',
+            'startSale' => $startSale,
+            'checkedOn' => $now,
+            'stockChecked' => false,
+            'stockState' => 'notChecked',
+        );
+
+        if ($res->showPrice) {
+            $priceInfo = self::getPublicDisplayPrice(
+                $rec->productId,
+                $rec->packagingId,
+                $rec->quantityInPack
+            );
+
+            if (is_object($priceInfo)) {
+                $res->priceInfo = $priceInfo;
+            }
+
+            $res->hasPublicPrice = isset($res->priceInfo->price);
+        }
+
+        if (!empty($startSale) && $now < $startSale) {
+            $res->saleStopped = true;
+            $res->saleState = 'pending';
+        } elseif (static::hasSaleEnded($rec->productId, $now)) {
+            $res->saleStopped = true;
+            $res->saleState = 'ended';
+        }
+
+        if (countR($settings->inStockStores)
+            && $productRec->canStore == 'yes'
+            && !$res->saleStopped) {
+            $res->stockChecked = true;
+
+            $localQuantity = store_Products::getQuantities(
+                $rec->productId,
+                $settings->inStockStores
+            )->free;
+            $remoteQuantity = 0;
+
+            if (!empty($settings->remoteStores)) {
+                $remoteQuantity = sync_StoreStocks::getQuantityInRemoteStores(
+                    $rec->productId,
+                    $settings->remoteStores
+                );
+            }
+
+            $totalQuantity = $localQuantity + $remoteQuantity;
+
+            if ($totalQuantity < $rec->quantityInPack) {
+                $deliveryTime = !empty($rec->deliveryTime)
+                    ? $rec->deliveryTime
+                    : eshop_Setup::get('SHOW_EXPECTED_DELIVERY_MIN_TIME');
+                $horizon = dt::addSecs($deliveryTime, null, false);
+                $expectedQuantity = store_Products::getQuantities(
+                    $rec->productId,
+                    $settings->inStockStores,
+                    $horizon
+                )->free;
+
+                $res->stockState = ($expectedQuantity >= $rec->quantityInPack)
+                    ? 'expected'
+                    : 'outOfStock';
+            } elseif ($localQuantity >= $rec->quantityInPack) {
+                $res->stockState = 'local';
+            } elseif ($remoteQuantity >= $rec->quantityInPack) {
+                $res->stockState = 'remote';
+            } else {
+                $res->stockState = 'mixed';
+            }
+        }
+
+        $res->canBuy = $res->actionAllowsBuy
+            && $res->hasPublicPrice
+            && !$res->saleStopped
+            && $res->stockState != 'outOfStock';
+
+        return $res;
+    }
+
+
+    /**
      * Външното представяне на артикула
      *
      * @param stdClass $rec

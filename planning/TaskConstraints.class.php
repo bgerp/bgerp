@@ -330,7 +330,7 @@ class planning_TaskConstraints extends core_Master
                 $prevTaskIds[$taskRec->previousTask] = $prevSteps[$taskRec->productId][$prevTaskProductId] ?? null;
             } else {
                 $prevStepsArr = array_key_exists($taskRec->productId, $prevSteps) ? $prevSteps[$taskRec->productId] : array();
-                foreach ($tasksByJobs[$taskRec->originId] as $a) {
+                foreach ($tasksByJobs[$taskRec->originId] ?? array() as $a) {
                     if (array_key_exists($a->productId, $prevStepsArr)) {
                         $prevTaskIds[$a->id] = $prevStepsArr[$a->productId];
                     }

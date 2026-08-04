@@ -858,11 +858,14 @@ class email_Outgoings extends core_Master
                 // Масив, с информация за документа
                 $documentInfoArr = doc_RichTextPlg::getFileInfo($name);
                 
-                if (!$documentInfoArr['className']) {
+                if (empty($documentInfoArr['className'])) {
                     continue;
                 }
                 
                 $rec = $documentInfoArr['className']::fetchByHandle($documentInfoArr);
+                if (!$rec) {
+                    continue;
+                }
                 
                 // Вземаме прикачените файлове от линковете към други документи в имейла
                 $filesArr += (array) $documentInfoArr['className']::getAttachments($rec->id);
@@ -999,7 +1002,7 @@ class email_Outgoings extends core_Master
         } else {
             
             // Ако има кутия за изпращане и конфигурацията и е в допустимите, използваме нея
-            if ($emailOptions[$defaultSentBox]) {
+            if (!empty($emailOptions[$defaultSentBox])) {
                 $boxId = $defaultSentBox;
             } elseif (!is_numeric($defaultSentBox)) {
                 
@@ -1111,14 +1114,14 @@ class email_Outgoings extends core_Master
                         foreach ($noReplayEmailsArr as $noReplayEmail) {
                             
                             // Ако имейла е в До
-                            if ($emailsToArr[$noReplayEmail]) {
+                            if (!empty($emailsToArr[$noReplayEmail])) {
                                 
                                 // Добавяме в масива
                                 $toWarningArr[$noReplayEmail] = $noReplayEmail;
                             }
                             
                             // Ако имейла е в CC
-                            if ($emailsCcArr[$noReplayEmail]) {
+                            if (!empty($emailsCcArr[$noReplayEmail])) {
                                 
                                 // Добавяме в масива
                                 $ccWarningArr[$noReplayEmail] = $noReplayEmail;
@@ -1803,7 +1806,7 @@ class email_Outgoings extends core_Master
             if ($contragentData->replyToEmail ?? null) {
                 $removeFromGroup = $recEmailsArr;
             } else {
-                if ($recEmailsArr && $recEmailsArr[0]) {
+                if (!empty($recEmailsArr[0])) {
                     $removeFromGroup = array($recEmailsArr[0]);
                     $recEmailsArr = $removeFromGroup;
                 } else {
@@ -2509,7 +2512,7 @@ class email_Outgoings extends core_Master
             $footerData['street'] = transliterate(tr($companyRec->address));
             
             $footerData['pCodeAndCity'] = '';
-            if ($footerData['pCode']) {
+            if (!empty($footerData['pCode'])) {
                 $footerData['pCodeAndCity'] = $footerData['pCode'] . ' ';
             }
 
@@ -2575,7 +2578,7 @@ class email_Outgoings extends core_Master
             }
             
             // Ако е имало плейсхолдер, който е заместен и има друг стринг в реда, премхаваме целия ред
-            if (($tplWithPlaceholdersArr[$key] != $line) && ($tplWithoutPlaceholdersArr[$key] == $line)) {
+            if ((($tplWithPlaceholdersArr[$key] ?? null) != $line) && (($tplWithoutPlaceholdersArr[$key] ?? null) == $line)) {
                 continue;
             }
             
@@ -3134,7 +3137,7 @@ class email_Outgoings extends core_Master
         
         if ($lRecsArr) {
             foreach ($lRecsArr as $lRec) {
-                if (!$lRec->data->to) {
+                if (empty($lRec->data->to)) {
                     continue;
                 }
                 
@@ -3842,10 +3845,12 @@ class email_Outgoings extends core_Master
         $allArr = array();
 
         while ($r = $q->fetch()) {
+            $oRec = null;
             try {
-                $hash = $r->containerId . '|' . $r->data->to . '|' . $r->data->cc;
+                $logData = $r->data ?? new stdClass();
+                $hash = $r->containerId . '|' . ($logData->to ?? '') . '|' . ($logData->cc ?? '');
                 $hash = md5($hash);
-                if ($allArr[$hash]) {
+                if (!empty($allArr[$hash])) {
                     continue;
                 }
                 $allArr[$hash] = true;
@@ -3854,9 +3859,9 @@ class email_Outgoings extends core_Master
                 $lg = email_Outgoings::getLanguage($oRec->originId, $oRec->threadId, $oRec->folderId, $oRec->body);
                 $options = new stdClass();
 
-                $options->emailsTo = $r->data->to;
-                $options->emailCc = $r->data->cc;
-                $options->boxFrom = $r->data->from;
+                $options->emailsTo = $logData->to ?? '';
+                $options->emailCc = $logData->cc ?? '';
+                $options->boxFrom = $logData->from ?? null;
                 $options->encoding = 'utf-8';
 
                 core_Users::sudo($oRec->createdBy);
@@ -3867,10 +3872,10 @@ class email_Outgoings extends core_Master
 
                 $succ++;
             } catch (Exception $e) {
-                email_Outgoings::logDebug('Грешка при изпращане на имейл CID=' . $r->containerId, $oRec->id );
+                email_Outgoings::logDebug('Грешка при изпращане на имейл CID=' . $r->containerId, $oRec->id ?? null);
                 $err++;
             } catch (Error $e) {
-                email_Outgoings::logDebug('Грешка при изпращане на имейл CID=' . $r->containerId, $oRec->id );
+                email_Outgoings::logDebug('Грешка при изпращане на имейл CID=' . $r->containerId, $oRec->id ?? null);
                 $err++;
             }
         }

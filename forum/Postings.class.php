@@ -1083,7 +1083,7 @@ class forum_Postings extends core_Detail
     {
         $data->listFilter->title = tr('Търсене');
         $data->listFilter->FNC('posting', 'enum(themes=Теми,all=Всички,comments=Коментари)', 'placeholder=Тип,input,value=themes,silent');
-        $data->listFilter->FNC('board', 'key(mvc=forum_Boards,select=title,allowEmpty)', 'placeholder=Дъска,input,silent');
+        $data->listFilter->FNC('board', 'key(mvc=forum_Boards,select=title,allowEmpty)', 'caption=Дъска,placeholderType=all,input,silent');
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter,class=btn-filter');
         $data->listFilter->view = 'horizontal';
         $data->listFilter->showFields = 'search, posting, board';

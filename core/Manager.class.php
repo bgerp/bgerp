@@ -1056,6 +1056,7 @@ class core_Manager extends core_Mvc
         
         // Попълваме формата-филтър
         $tpl->append($this->renderListFilter($data), 'ListFilter');
+        $tpl->replace($this->getAutoListTopContainerClass($data), 'LIST_TOP_CONTAINER_AUTO_CLASS');
         
         // Попълваме обобщената информация
         $tpl->append($this->renderListSummary($data), 'ListSummary');
@@ -1095,7 +1096,7 @@ class core_Manager extends core_Mvc
         $listLayout = new ET("
             <div class='clearfix21 listBlock {$className}'>
                 [#ListTitle#]
-                <div class='{$listTopContainerClass}'>
+                <div class='{$listTopContainerClass}[#LIST_TOP_CONTAINER_AUTO_CLASS#]'>
                     [#ListFilter#]
                     [#ListSummary#]
                 </div>
@@ -1118,6 +1119,40 @@ class core_Manager extends core_Mvc
         jquery_Jquery::run( $listLayout, 'toggleListFilter();', true);
 
         return $listLayout;
+    }
+
+
+    /**
+     * Връща автоматичния CSS клас за стандартен вертикален филтър с повече от 5 видими полета
+     *
+     * @param stdClass $data
+     */
+    protected function getAutoListTopContainerClass($data)
+    {
+        $listFilter = $data->listFilter ?? null;
+
+        if (!is_object($listFilter) || ($listFilter->hide ?? null) === true ||
+            ($listFilter->view ?? 'vertical') != 'vertical' ||
+            !empty($listFilter->fieldsLayout)) {
+
+            return '';
+        }
+
+        $showFields = arr::make($listFilter->showFields ?? null, true);
+        if (countR($showFields) <= 5) {
+
+            return '';
+        }
+
+        $fields = $listFilter->selectFields("#input != 'hidden' && #input != 'none'", $showFields);
+
+        foreach ($fields as $name => $field) {
+            if (!empty($field->displayInToolbar)) {
+                unset($fields[$name]);
+            }
+        }
+
+        return countR($fields) > 5 ? ' twoColsFilter' : '';
     }
     
     
@@ -1178,6 +1213,8 @@ class core_Manager extends core_Mvc
 
             $tpl = new ET("<div class='listFilter'>[#1#]</div>", $listFilter->renderHtml(null, $listFilter->rec));
             core_Form::preventDoubleSubmission($tpl, $listFilter);
+            jquery_Jquery::run($tpl, 'setTwoColsFilterWidth();');
+            jquery_Jquery::runAfterAjax($tpl, 'setTwoColsFilterWidth');
             
             return $tpl;
         }
@@ -1335,6 +1372,9 @@ class core_Manager extends core_Mvc
 
         if ($duration > 0 && $userId > 0 && !isset(self::$cacheRights[$userId])) {
             self::$cacheRights[$userId] = core_Cache::get('RightsForObject', $userId);
+            if (!is_array(self::$cacheRights[$userId])) {
+                self::$cacheRights[$userId] = array();
+            }
         }
 
         $key = crc32("{$className}|{$action}") . "|" . (is_scalar($id) ? $id : serialize($id)) . "|" . crc32(serialize($rec));

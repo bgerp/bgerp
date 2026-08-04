@@ -76,7 +76,7 @@ class marketing_InquiryRouter extends core_Manager
      *
      * @return int $folderId
      */
-    private static function routeInquiryFromPerson($company, $personNames, $email, $tel, $countryId, $pCode, $place, $address, $brid = null, $vatId = null, $uicId = null, &$explained, $domainId)
+    private static function routeInquiryFromPerson($company, $personNames, $email, $tel, $countryId, $pCode, $place, $address, $brid, $vatId, $uicId, &$explained, $domainId)
     {
         $inCharge = marketing_Router::getInChargeUser($place, $countryId, $domainId);
 
@@ -154,7 +154,7 @@ class marketing_InquiryRouter extends core_Manager
      * 
      * @return int $folderId
      */
-    private static function routeInquiryFromCompany($company, $personNames, $email, $tel, $countryId, $pCode, $place, $address, $brid = null, $vatId = null, $uicId = null, &$explained, $domainId)
+    private static function routeInquiryFromCompany($company, $personNames, $email, $tel, $countryId, $pCode, $place, $address, $brid, $vatId, $uicId, &$explained, $domainId)
     {
         // Дефолтния отговорник
         $inCharge = marketing_Router::getInChargeUser($place, $countryId, $domainId);

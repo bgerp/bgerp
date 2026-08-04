@@ -198,12 +198,13 @@ class email_Filters extends core_Manager
 
         // Ако нещо е останало ...
         if (countR($emails) > 0) {
+            $firstEmail = reset($emails);
             
             // Ако първия имейл не се съдържа в изпращача
-            if (strpos($rec->fromEml, $emails[0]) === false) {
+            if (strpos($rec->fromEml, $firstEmail) === false) {
                 
                 // Задаваме първия имейл
-                $rec->fromName = trim($emails[0]);
+                $rec->fromName = trim($firstEmail);
             } else {
                 
                 // Тримваме
@@ -214,7 +215,7 @@ class email_Filters extends core_Manager
             $rec->fromName .= ' чрез ' . $rec->fromEml;
             
             // Задаваме първия имейл
-            $rec->fromEml = $emails[0];
+            $rec->fromEml = $firstEmail;
         }
     }
     
@@ -308,7 +309,7 @@ class email_Filters extends core_Manager
     {
         static $filtersArr = array();
         
-        if ($filtersArr[$str]) {
+        if (!empty($filtersArr[$str])) {
             
             return $filtersArr[$str];
         }

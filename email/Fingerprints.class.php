@@ -101,6 +101,7 @@ class email_Fingerprints extends core_Manager
         
         // Показваме само това поле. Иначе и другите полета
         // на модела ще се появят
+        $form->setField('accountId', 'placeholderType=all');
         $form->showFields = 'accountId';
         
         $form->input('accountId', 'silent');

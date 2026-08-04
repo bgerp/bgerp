@@ -73,7 +73,7 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
      */
     public function addFields(core_Fieldset &$fieldset)
     {
-        $fieldset->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,placeholder=Всички,after=title,single=none');
+        $fieldset->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,placeholderType=all,after=title,single=none');
         $fieldset->FLD('period', 'time(suggestions=1 месец|3 месеца|6 месеца|1 година)', 'caption=Период, after=storeId,mandatory,single=none,removeAndRefreshForm');
         $fieldset->FLD('minCost', 'double', 'caption=Мин. наличност, after=period,single=none, unit= лв.');
         $fieldset->FLD('reversibility', 'percent(suggestions=1%|5% |10%|20%)', 'caption=Обращаемост, after=minCost,mandatory,single=none');
@@ -341,7 +341,7 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
 
         $row = new stdClass();
 
-        if ($dRec->info) {
+        if (!empty($dRec->info)) {
             $row->productId = '<b>' . 'Артикули без себестойност:' . '</b></br></br>';
             $i=0;
             foreach ($dRec->array as $val) {

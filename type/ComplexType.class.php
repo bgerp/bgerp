@@ -95,8 +95,8 @@ class type_ComplexType extends type_Varchar
         }
         
         // Извличане на лявата и дясната част на полето
-        $vLeft = (strlen($value['cL'])) ? trim($value['cL']) : null;
-        $vRight = (strlen($value['cR'])) ? trim($value['cR']) : null;
+        $vLeft = (strlen($value['cL'] ?? '')) ? trim($value['cL']) : null;
+        $vRight = (strlen($value['cR'] ?? '')) ? trim($value['cR']) : null;
         
         // Ако има поне едно сетнато поле
         if (isset($vLeft) || isset($vRight)) {
@@ -154,11 +154,11 @@ class type_ComplexType extends type_Varchar
     public function toVerbal($value)
     {
         // Ако няма стойност
-        if (!strlen($value)) {
-            
+        if (!strlen($value ?? '')) {
+
             return;
         }
-        
+
         // Извличане на лявата и дясната част на записа
         extract(type_ComplexType::getParts($value));
         
@@ -175,7 +175,7 @@ class type_ComplexType extends type_Varchar
         }
         
         // Ако дясната част има стойност
-        if (strlen($right)) {
+        if (strlen($right ?? '')) {
             $res .= (strlen($left)) ? '; ' : '';
             
             // Ако дясната част има има се показва

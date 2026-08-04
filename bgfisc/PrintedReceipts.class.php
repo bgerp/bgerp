@@ -214,22 +214,30 @@ class bgfisc_PrintedReceipts extends core_Manager
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-        $urnRec = bgfisc_Register::fetch($rec->urnId);
-        $row->urnId = bgfisc_Register::getUrlLink($urnRec->urn);
-        
-        try {
-            $Class = cls::get($rec->classId);
-            $row->objectId = (cls::haveInterface('doc_DocumentIntf', $Class)) ? $Class->getLink($rec->objectId, 0) : $Class->getHyperlink($rec->objectId, true);
-        } catch (core_exception_Expect $e) {
-            $row->objectId = "<span class='red'>" . tr('Проблем с показването') . '</span>';
+        if (isset($rec->urnId)) {
+            $urnRec = bgfisc_Register::fetch($rec->urnId);
+            if (is_object($urnRec)) {
+                $row->urnId = bgfisc_Register::getUrlLink($urnRec->urn);
+            }
         }
         
-        $row->ROW_ATTR['class'] = "state-{$rec->state}";
-        if ($rec->type == 'reverted') {
+        if (isset($rec->classId, $rec->objectId)) {
+            try {
+                $Class = cls::get($rec->classId);
+                $row->objectId = (cls::haveInterface('doc_DocumentIntf', $Class)) ? $Class->getLink($rec->objectId, 0) : $Class->getHyperlink($rec->objectId, true);
+            } catch (core_exception_Expect $e) {
+                $row->objectId = "<span class='red'>" . tr('Проблем с показването') . '</span>';
+            }
+        }
+        
+        if (isset($rec->state)) {
+            $row->ROW_ATTR['class'] = "state-{$rec->state}";
+        }
+        if (($rec->type ?? null) == 'reverted' && isset($row->type)) {
             $row->type = "<b class='red'>{$row->type}</b>";
         }
         
-        if($rec->string == self::MISSING_QR_CODE){
+        if(($rec->string ?? null) == self::MISSING_QR_CODE){
             $row->string = "<span class='red'>" . tr('Отпечатана, но QR кода не е върнат') . "</span>";
         }
     }
@@ -245,7 +253,7 @@ class bgfisc_PrintedReceipts extends core_Manager
         $data->query->orderBy('id', 'DESC');
         $data->listFilter->FLD('from', 'date', 'caption=От,silent');
         $data->listFilter->FLD('to', 'date', 'caption=До,silent');
-        $data->listFilter->setField('createdBy', 'placeholder=Потребител,formOrder=11');
+        $data->listFilter->setField('createdBy', 'placeholderType=all,formOrder=11');
 
         $data->listFilter->class = 'simpleForm';
         $data->listFilter->setFieldTypeParams('createdBy', array('allowEmpty' => 'allowEmpty'));

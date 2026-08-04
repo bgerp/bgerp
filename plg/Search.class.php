@@ -562,7 +562,8 @@ class plg_Search extends core_Plugin
     public static function normalizeText($str, $ignoreParamsArr = array())
     {
         $ignoreParamsArr = arr::make($ignoreParamsArr);
-        
+        $str = $str ?? '';
+
         if (strlen($str) > 32000) {
             static $maxLen;
             

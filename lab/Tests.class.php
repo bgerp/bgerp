@@ -468,7 +468,7 @@ class lab_Tests extends core_Master
 		$data->listFilter->FNC(
 			'paramIdFilter',
 			'varchar',
-			'caption=Параметри,placeholder=Параметър'
+			'caption=Параметри,placeholderType=all'
 		);
 		
 		$paramsForChois = self::suggestionsParams();
