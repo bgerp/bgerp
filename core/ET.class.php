@@ -592,6 +592,8 @@ class core_ET extends core_BaseClass
         $place = $this->preparePlace($placeHolder);
         
         // DEBUG::stopTimer("SUB3");
+
+        $this->content = $this->content ?? '';
         
         if (strpos($this->content, $place) !== false) {
             if ($once) {
