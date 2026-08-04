@@ -225,7 +225,7 @@ class fileman_Buckets extends core_Manager
         
         $row = self::recToVerbal($rec);
         
-        if (trim($rec->extensions)) {
+        if (trim($rec->extensions ?? '')) {
             $extensions = arr::make($rec->extensions, true);
             
             if (($dotPos = mb_strrpos($fileName, '.')) !== false) {
