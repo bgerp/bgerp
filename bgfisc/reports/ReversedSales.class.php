@@ -99,6 +99,9 @@ class bgfisc_reports_ReversedSales extends frame2_driver_TableData
     protected function prepareRecs($rec, &$data = null)
     {
         $recs = array();
+        $rec->from = $rec->from ?? null;
+        $rec->to = $rec->to ?? null;
+        $rec->dealers = $rec->dealers ?? null;
         
         //Състояние на документите , които влизат в справката
         $stateArr = array('active', 'closed','waiting');
@@ -122,15 +125,19 @@ class bgfisc_reports_ReversedSales extends frame2_driver_TableData
         while ($revReceipt = $revReceiptsQuery->fetch()) {
             $costDocClassName = cls::get($revReceipt->classId)->className;
             $costDocRec = $costDocClassName::fetch($revReceipt->objectId);
-            
-            if (!is_null($costDocRec->fromContainerId)) {
+            $fromDocClassRec = $fromDocRec = null;
+            $fromDocClassName = null;
+
+            if (is_object($costDocRec) && !is_null($costDocRec->fromContainerId ?? null)) {
                 $fromDocClassRec = doc_Containers::fetch($costDocRec->fromContainerId);
             }
             
-            if ($fromDocClassRec) {
+            if (is_object($fromDocClassRec)) {
                 $fromDocClassName = cls::get($fromDocClassRec->docClass)->className;
                 $fromDocRec = $fromDocClassName::fetch($fromDocClassRec->docId);
             }
+
+            if (!is_object($costDocRec) || !is_object($fromDocRec)) continue;
             
             $revReceiptArr[$revReceipt->id] = (object) array(
                 'revReceiptId' => $revReceipt->id,
@@ -146,9 +153,7 @@ class bgfisc_reports_ReversedSales extends frame2_driver_TableData
         }
         
         if (empty($revReceiptArr)) {
-            $recs = array();
-            
-            return ;
+            return $recs;
         }
         
         $sQuery->in('id', core_Array::extractValuesFromArray($revReceiptArr, 'urnId'));
@@ -159,9 +164,7 @@ class bgfisc_reports_ReversedSales extends frame2_driver_TableData
         }
         
         if (empty($regRecArr)) {
-            $recs = array();
-            
-            return ;
+            return $recs;
         }
         
         
@@ -211,6 +214,7 @@ class bgfisc_reports_ReversedSales extends frame2_driver_TableData
                 
                 // Отпечатани фискални бонове към това УНП
                 $revertReceptRecArr = array();
+                $lastRevertOn = null;
                 foreach ($revReceiptArr as $key => $val) {
                     $valUrn = $val->urnId;
                     if ($regRec->id == $valUrn) {
@@ -218,13 +222,13 @@ class bgfisc_reports_ReversedSales extends frame2_driver_TableData
                         $revKey = $valUrn.'|'.($revertReceptRec->objectId ?? null);
                         $revertReceptRecArr[$revKey] = $revertReceptRec;
 
-                        //Дата на приключване на продажбата: датата на последната касова бележка
-                        $saleCloseDate = dt::mysql2verbal(max($revertReceptRec->createdOn ?? null, $saleCloseDate), 'd.m.Y');
-
-                        //Време на приключване на продажбата
-                        $saleCloseTime = dt::mysql2verbal(max($revertReceptRec->createdOn ?? null, $saleCloseTime), 'H:i:s');
+                        if (!empty($revertReceptRec->createdOn) && ($lastRevertOn === null || $revertReceptRec->createdOn > $lastRevertOn)) {
+                            $lastRevertOn = $revertReceptRec->createdOn;
+                        }
                     }
                 }
+                $saleCloseDate = isset($lastRevertOn) ? dt::mysql2verbal($lastRevertOn, 'd.m.Y') : '';
+                $saleCloseTime = isset($lastRevertOn) ? dt::mysql2verbal($lastRevertOn, 'H:i:s') : '';
                 
                 foreach ($posDetailsArr as $detail) {
                     $vatSum = $amountSum = 0;
@@ -318,10 +322,10 @@ class bgfisc_reports_ReversedSales extends frame2_driver_TableData
                 
                 
                 $Master = $className;
-                
-                if (!in_array($className::fetch($regRec->objectId)->state ?? null, $stateArr))continue;
+                $masterRec = $className::fetch($regRec->objectId);
+                if (!is_object($masterRec) || !in_array($masterRec->state ?? null, $stateArr)) continue;
 
-                $saleThreadId = $className::fetch($regRec->objectId)->threadId ?? null;
+                $saleThreadId = $masterRec->threadId ?? null;
                 
                 foreach ($revReceiptArr as $revReceipt) {
                     if ($saleThreadId != $revReceipt->threadId) {
@@ -329,6 +333,7 @@ class bgfisc_reports_ReversedSales extends frame2_driver_TableData
                     }
                     
                     
+                    if (!isset($documents[$revReceipt->fromDocClassName])) continue;
                     $Detail = $documents[$revReceipt->fromDocClassName];
                     $Detail = cls::get($Detail);
                     $masterKey = $Detail->masterKey;
@@ -340,15 +345,17 @@ class bgfisc_reports_ReversedSales extends frame2_driver_TableData
                     
                     //Ако сторно бележката е издадена по кредитно известие и няма детайли
                     if (empty($detQuery->fetchAll())) {
+                        $productCode = $name = $quantity = $price = $discount = $vatRate = $vatSum = $amountSum = '';
+                        $revertDate = $revertTime = $cashRegNum = $userId = '';
                     
                     //Ключ за $recs
                         $id = $regRec->id.'|'.$revReceipt->fromDocId;
                         
                         //Дата на приключване на продажбата: датата на последната касова бележка
-                        $saleCloseDate = dt::mysql2verbal($className::fetch($regRec->objectId)->closedOn ?? null, 'd.m.Y');
+                        $saleCloseDate = dt::mysql2verbal($masterRec->closedOn ?? null, 'd.m.Y');
 
                         //Време на приключване на продажбата
-                        $saleCloseTime = dt::mysql2verbal($className::fetch($regRec->objectId)->closedOn ?? null, 'H:i:s');
+                        $saleCloseTime = dt::mysql2verbal($masterRec->closedOn ?? null, 'H:i:s');
 
 
                         // добавяме в масива
@@ -382,10 +389,10 @@ class bgfisc_reports_ReversedSales extends frame2_driver_TableData
                     }
                     
                     //Дата на приключване на продажбата: датата на последната касова бележка
-                    $saleCloseDate = dt::mysql2verbal($className::fetch($regRec->objectId)->closedOn ?? null, 'd.m.Y');
+                    $saleCloseDate = dt::mysql2verbal($masterRec->closedOn ?? null, 'd.m.Y');
 
                     //Време на приключване на продажбата
-                    $saleCloseTime = dt::mysql2verbal($className::fetch($regRec->objectId)->closedOn ?? null, 'H:i:s');
+                    $saleCloseTime = dt::mysql2verbal($masterRec->closedOn ?? null, 'H:i:s');
 
 
                     foreach ($detailsArr as $detail) {
@@ -428,19 +435,19 @@ class bgfisc_reports_ReversedSales extends frame2_driver_TableData
                         $cashKey = $regRec->id.'|'.$detail->receiptId;
                         
                         //Отпечатана сторнираЩА касова бележка
-                        $revRcpPrnt = $revertReceptRecArr[$cashKey];
+                        $revRcpPrnt = $revertReceptRecArr[$cashKey] ?? null;
                         
                         //Дата на сторниране на продажбата
-                        $revertDate = dt::mysql2verbal($revRcpPrnt->createdOn, 'd.m.Y');
+                        $revertDate = dt::mysql2verbal($revRcpPrnt->createdOn ?? null, 'd.m.Y');
                         
                         //Време на сторниране на продажбата
-                        $revertTime = dt::mysql2verbal($revRcpPrnt->createdOn, 'H:i:s');
+                        $revertTime = dt::mysql2verbal($revRcpPrnt->createdOn ?? null, 'H:i:s');
                         
                         // Индивидуален номер на ФУ регистрирал сторнирането
                         $cashRegNum = $regRec->cashRegNum;
                         
                         //Код на оператор, регистрирал плащането
-                        $userId = $revRcpPrnt->createdBy;
+                        $userId = $revRcpPrnt->createdBy ?? null;
                         
                         // добавяме в масива
                         if (!array_key_exists($id, $recs)) {
@@ -653,8 +660,9 @@ class bgfisc_reports_ReversedSales extends frame2_driver_TableData
             $fieldTpl->append('<b>' . $Date->toVerbal($data->rec->to) . '</b>', 'to');
         }
         
-        if ((isset($data->rec->dealers)) && ((min(array_keys(keylist::toArray($data->rec->dealers))) >= 1))) {
-            foreach (type_Keylist::toArray($data->rec->dealers) as $dealer) {
+        $dealers = keylist::toArray($data->rec->dealers ?? null);
+        if (!empty($dealers) && min(array_keys($dealers)) >= 1) {
+            foreach ($dealers as $dealer) {
                 $dealersVerb .= (core_Users::getTitleById($dealer) . ', ');
             }
             

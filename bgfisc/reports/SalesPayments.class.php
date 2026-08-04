@@ -93,6 +93,9 @@ class bgfisc_reports_SalesPayments extends frame2_driver_TableData
     protected function prepareRecs($rec, &$data = null)
     {
         $recs = array();
+        $rec->from = $rec->from ?? null;
+        $rec->to = $rec->to ?? null;
+        $rec->operator = $rec->operator ?? null;
         
         $sQuery = bgfisc_Register::getQuery();
         
@@ -128,6 +131,8 @@ class bgfisc_reports_SalesPayments extends frame2_driver_TableData
                 $dueAmount = $paidAmount = 0;
                 
                 $posRec = $className::fetch($regRec->objectId);
+                if (!is_object($posRec)) continue;
+                $paymentDate = $userId = $paymentType = null;
                 
                 //Ако по продажбата има сторниране
                 $prntQuery = bgfisc_PrintedReceipts::getQuery();
@@ -160,10 +165,12 @@ class bgfisc_reports_SalesPayments extends frame2_driver_TableData
                 if (!empty($prntRcptRevArr)) {
                     foreach ($prntRcptRevArr as $val) {
                         $prntRcptRev = bgfisc_PrintedReceipts::fetch($val);
+                        if (!is_object($prntRcptRev)) continue;
                         $objectClassName = cls::get($prntRcptRev->classId)->className;
                         $revRec = $objectClassName::fetch($prntRcptRev->objectId);
-                        
-                        $stornoAmount += $revRec->paid;                                               //Сторнирана стойност
+                        if (is_object($revRec)) {
+                            $stornoAmount += $revRec->paid ?? 0;                                     //Сторнирана стойност
+                        }
                     }
                 }
                 
@@ -227,6 +234,7 @@ class bgfisc_reports_SalesPayments extends frame2_driver_TableData
                 $paymentDateArr = array();
                 
                 $saleRec = $className::fetch($regRec->objectId);
+                if (!is_object($saleRec)) continue;
                 
                 //Дата на откриване на продажбата
                 $saleOpenDate = dt::mysql2verbal($saleRec->createdOn, 'd.m.Y');
@@ -260,15 +268,20 @@ class bgfisc_reports_SalesPayments extends frame2_driver_TableData
                 if (!empty($prntRcptRevArr)) {
                     foreach ($prntRcptRevArr as $val) {
                         $prntRcptRev = bgfisc_PrintedReceipts::fetch($val);
+                        if (!is_object($prntRcptRev)) continue;
                         $objectClassName = cls::get($prntRcptRev->classId ?? null)->className;
 
                         //РКО към който е издаден ФБ
                         $rcoRec = $objectClassName::fetch($prntRcptRev->objectId ?? null);
+                        if (!is_object($rcoRec) || empty($rcoRec->fromContainerId)) continue;
 
                         //Документа към който е издаден РКО (СклРаз примерно)
-                        $revDocClassId = doc_Containers::fetch($rcoRec->fromContainerId ?? null)->docClass ?? null;
+                        $revContainerRec = doc_Containers::fetch($rcoRec->fromContainerId);
+                        if (!is_object($revContainerRec)) continue;
+                        $revDocClassId = $revContainerRec->docClass ?? null;
+                        if (!$revDocClassId) continue;
                         $revDocClassName = cls::get($revDocClassId)->className;
-                        $revDocId = doc_Containers::fetch($rcoRec->fromContainerId ?? null)->docId ?? null;
+                        $revDocId = $revContainerRec->docId ?? null;
                         $revDocRec = $revDocClassName::fetch($revDocId);
 
                         //ПКО-то към който е издаден РКО на тази бележка
@@ -292,6 +305,7 @@ class bgfisc_reports_SalesPayments extends frame2_driver_TableData
                 
                 foreach ($prntRcptArr as $val) {
                     $prntRcpt = bgfisc_PrintedReceipts::fetch($val);
+                    if (!is_object($prntRcpt)) continue;
                     $clsName = core_Classes::getName($prntRcpt->classId);
                     
                     $stornoAmount = 0;
@@ -337,8 +351,6 @@ class bgfisc_reports_SalesPayments extends frame2_driver_TableData
                         }
                         
                         if (!empty($amountPaidArr)) {
-                            $aaa = 10;
-                            
                             $amountPaidArr[-1] = (object) array(
                                 'amount' => $amountPaid - $nonPaidSum,
                                 'payType' => -1,
@@ -529,8 +541,9 @@ class bgfisc_reports_SalesPayments extends frame2_driver_TableData
             $fieldTpl->append('<b>' . $Date->toVerbal($data->rec->to) . '</b>', 'to');
         }
         
-        if ((isset($data->rec->dealers)) && ((min(array_keys(keylist::toArray($data->rec->dealers))) >= 1))) {
-            foreach (type_Keylist::toArray($data->rec->dealers) as $dealer) {
+        $dealers = keylist::toArray($data->rec->dealers ?? null);
+        if (!empty($dealers) && min(array_keys($dealers)) >= 1) {
+            foreach ($dealers as $dealer) {
                 $dealersVerb .= (core_Users::getTitleById($dealer) . ', ');
             }
             

@@ -116,6 +116,9 @@ class bgfisc_reports_AggregateSalesData extends frame2_driver_TableData
     protected function prepareRecs($rec, &$data = null)
     {
         $recs = array();
+        $rec->from = $rec->from ?? null;
+        $rec->to = $rec->to ?? null;
+        $rec->operator = $rec->operator ?? null;
         
         $sQuery = bgfisc_Register::getQuery();
         
@@ -153,6 +156,7 @@ class bgfisc_reports_AggregateSalesData extends frame2_driver_TableData
             //Продажби от POS
             if ($RegClass instanceof pos_Receipts) {
                 $posRec = $className::fetch($regRec->objectId);
+                if (!is_object($posRec)) continue;
                 
                 //Филтър по състояние
                 if (!in_array($posRec->state, $stateArr)) {
@@ -177,6 +181,7 @@ class bgfisc_reports_AggregateSalesData extends frame2_driver_TableData
                 $saleOpenTime = dt::mysql2verbal($posRec->createdOn, 'H:i:s');
                 
                 //Код и наименование на търговски обект
+                $storeAddress = '';
                 if (!is_null($posRec->pointId)) {
                     $storeId = pos_Points::fetch($posRec->pointId)->storeId ?? null;
                     
@@ -233,6 +238,7 @@ class bgfisc_reports_AggregateSalesData extends frame2_driver_TableData
                 
                 //Клиент име
                 $contragentName = $posRec->contragentName;
+                $invoiceNumber = $invoiceDate = '';
                 
                 // добавяме в масива
                 if (!array_key_exists($id, $recs)) {
@@ -248,8 +254,8 @@ class bgfisc_reports_AggregateSalesData extends frame2_driver_TableData
                         'discount' => $discount,
                         'vat' => $vatSum,
                         'dueAmount' => $dueAmount,
-                        'invoiceNumber' => $invoice->number,
-                        'invoiceDate' => $invoice->date,
+                        'invoiceNumber' => $invoiceNumber,
+                        'invoiceDate' => $invoiceDate,
                         'saleCloseDate' => $saleCloseDate,
                         'saleCloseTime' => $saleCloseTime,
                         'contragentCode' => $contragentCode,
@@ -262,6 +268,7 @@ class bgfisc_reports_AggregateSalesData extends frame2_driver_TableData
             //Продажби по договор за продажба
             if ($RegClass instanceof sales_Sales) {
                 $saleRec = $className::fetch($regRec->objectId);
+                if (!is_object($saleRec)) continue;
                 
                 //Филтър по състояние
                 if (!in_array($saleRec->state, $stateArr)) {
@@ -269,7 +276,7 @@ class bgfisc_reports_AggregateSalesData extends frame2_driver_TableData
                 }
                 
                 //Филтър по оператор
-                if ($rec->operator && $rec->operator != $posRec->createdBy) {
+                if ($rec->operator && $rec->operator != $saleRec->createdBy) {
                     continue;
                 }
                 
@@ -311,14 +318,18 @@ class bgfisc_reports_AggregateSalesData extends frame2_driver_TableData
                             $objectClassName = cls::get($prntRcptRev->classId)->className;
                             $rcoRec = $objectClassName::fetch($prntRcptRev->objectId);
 
-                            if (!is_null($rcoRec->fromContainerId ?? null)) {
+                            if (!is_object($rcoRec) || is_null($rcoRec->fromContainerId ?? null)) {
                                 continue;
                             }
-                            
-                            $revDocClassId = doc_Containers::fetch($rcoRec->fromContainerId)->docClass ?? null;
+
+                            $revContainerRec = doc_Containers::fetch($rcoRec->fromContainerId);
+                            if (!is_object($revContainerRec)) continue;
+                            $revDocClassId = $revContainerRec->docClass ?? null;
+                            if (!$revDocClassId) continue;
                             $revDocClassName = cls::get($revDocClassId)->className;
-                            $revDocId = doc_Containers::fetch($rcoRec->fromContainerId)->docId ?? null;
+                            $revDocId = $revContainerRec->docId ?? null;
                             $revDocRec = $revDocClassName::fetch($revDocId);
+                            if (!is_object($revDocRec)) continue;
 
                             $stornoVat += $revDocRec->amountDeliveredVat ?? 0;
                             $stornoAmount += ($revDocRec->amountDelivered ?? 0) - $stornoVat;
