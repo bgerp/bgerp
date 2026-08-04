@@ -69,6 +69,8 @@ class planning_GraphSort extends core_Mvc
         $visited[$v] = true;
         if (!empty($graph[$v])) {
             foreach ($graph[$v] as $neighbor) {
+                // Съсед извън графа (напр. оттеглена предходна операция) се пропуска
+                if (!array_key_exists($neighbor, $visited)) continue;
                 if (!$visited[$neighbor]) {
                     static::topologicalSortUtil($neighbor, $visited, $sorted, $graph);
                 }

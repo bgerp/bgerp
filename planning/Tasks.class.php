@@ -5430,6 +5430,8 @@ class planning_Tasks extends core_Master
         // Кои са неоттеглените ПО към заданието
         $debugRes = array();
         $jobRec = planning_Jobs::fetch("#containerId = {$containerId}");
+        if (!$jobRec) return;
+
         $tQuery = planning_Tasks::getQuery();
         $tQuery->where("#originId = {$jobRec->containerId} AND #state != 'rejected'");
         $tQuery->orderBy('saoOrder', "ASC");
