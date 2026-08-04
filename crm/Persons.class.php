@@ -775,7 +775,7 @@ class crm_Persons extends core_Master
         $row->title = $mvc->getTitleById($rec);
         $row->titleNumber = "<div class='number-block' style='display:inline'>№{$rec->id}</div>";
 
-        $birthday = trim($mvc->getVerbal($rec, 'birthday'));
+        $birthday = trim((string) $mvc->getVerbal($rec, 'birthday'));
 
         if ($birthday && !empty($mvc->birthdayFilter)) {
             if (strlen($birthday) == 5) {
