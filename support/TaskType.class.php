@@ -563,7 +563,7 @@ class support_TaskType extends core_Mvc
             $resArr['typeId'] = array('name' => tr('Тип'), 'val' => '[#typeId#]');
         }
         
-        if ($row->name) {
+        if ($row->name ?? null) {
             $resArr['name'] = array('name' => tr('Име'), 'val' => '[#name#]');
         }
         
