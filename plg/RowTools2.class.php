@@ -71,7 +71,7 @@ class plg_RowTools2 extends core_Plugin
         
         $singleTitle = $mvc->singleTitle;
         $singleTitle = tr($singleTitle);
-        $singleTitle = mb_strtolower($singleTitle);
+        $singleTitle = mb_strtolower($singleTitle ?? '');
         
         if (!empty($singleUrl)) {
             $ddTools->addLink('Разглеждане', $singleUrl, "ef_icon={$singleIcon},title=Разглеждане на|* {$singleTitle},id=single{$recId}");
