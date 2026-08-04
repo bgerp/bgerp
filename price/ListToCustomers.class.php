@@ -367,7 +367,7 @@ class price_ListToCustomers extends core_Manager
         }
 
         // Подсигуряване, че няма да е NaN цената
-        if(is_nan($rec->price)){
+        if(isset($rec->price) && is_nan($rec->price)){
             $rec->price = null;
             wp($customerClass, $customerId, $productId, $packagingId, $quantity, $datetime, $rate, $chargeVat, $listId, $quotationPriceFirst);
         }
