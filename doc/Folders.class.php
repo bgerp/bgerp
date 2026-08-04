@@ -2546,6 +2546,6 @@ class doc_Folders extends core_Master
      */
     protected static function on_BeforeRenderListTable($mvc, &$res, $data)
     {
-        $data->listTableMvc->FLD('handle', 'varchar', 'tdClass=small rightCol small-field');
+        $data->listTableMvc->FLD('handle', 'varchar', 'tdClass=small leftCol small-field');
     }
 }
