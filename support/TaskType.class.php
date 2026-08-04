@@ -555,7 +555,7 @@ class support_TaskType extends core_Mvc
      */
     public static function on_AfterGetFieldForLetterHead($Driver, $mvc, &$resArr, $rec, $row)
     {
-        if ($row->systemId) {
+        if ($row->systemId ?? null) {
             $resArr['systemId'] = array('name' => tr('Система'), 'val' => '[#systemId#]');
         }
 
