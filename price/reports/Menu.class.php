@@ -66,9 +66,9 @@ class price_reports_Menu extends price_reports_PriceListProto
         parent::addFields($fieldset);
 
         $fieldset->FLD('templateCssClass', 'varchar(16)', 'caption=Допълнително->CSS клас,after=lang,single=internal');
-        $fieldset->FLD('showTextIfNoVariation', 'enum(yes=Да,no=Не)', 'caption=Показване на данни ако няма активна вариация->Избор,after=templateCssClass,single=none,silent,removeAndRefreshForm=noVariationText|noVariationTextEn');
-        $fieldset->FLD('noVariationText', 'text(rows=3)', 'caption=Показване на данни ако няма активна вариация->Текст (БГ),after=showTextIfNoVariation,single=none');
-        $fieldset->FLD('noVariationTextEn', 'text(rows=3)', 'caption=Показване на данни ако няма активна вариация->Текст (EN),after=noVariationText,single=none');
+        $fieldset->FLD('showTextIfNoVariation', 'enum(yes=Да,no=Не)', 'caption=Показване на съобщение ако няма активна вариация->Избор,after=templateCssClass,single=none,silent,removeAndRefreshForm=noVariationText|noVariationTextEn');
+        $fieldset->FLD('noVariationText', 'text(rows=3)', 'caption=Показване на съобщение ако няма активна вариация->Текст (БГ),after=showTextIfNoVariation,single=none');
+        $fieldset->FLD('noVariationTextEn', 'text(rows=3)', 'caption=Показване на съобщение ако няма активна вариация->Текст (EN),after=noVariationText,single=none');
     }
 
 
