@@ -363,6 +363,8 @@ class core_String
      */
     public static function convertToFixedKey($str, $length = 64, $md5Len = 32, $separator = '_', $byChars = false)
     {
+        $str = $str ?? '';
+
         // --- Символен режим (mb_*) ---
         if ($byChars) {
             if (mb_strlen($str, 'UTF-8') <= $length) {
