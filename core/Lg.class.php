@@ -591,7 +591,7 @@ class core_Lg extends core_Manager
         }
         
         // Ако е празен стринг
-        if (!trim($str)) {
+        if (!trim((string) $str)) {
             
             return $str;
         }
