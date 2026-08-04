@@ -597,8 +597,10 @@ class support_TaskType extends core_Mvc
             $resArr['ip'] = array('name' => tr('IP'), 'val' => '[#ip#]');
         }
         
-        if (trim($rec->brid) && trim($row->brid)) {
-            $bridLink = log_Browsers::getLink(trim($rec->brid));
+        $recBrid = trim((string) ($rec->brid ?? ''));
+        $rowBrid = trim((string) ($row->brid ?? ''));
+        if ($recBrid && $rowBrid) {
+            $bridLink = log_Browsers::getLink($recBrid);
             if ($bridLink) {
                 $resArr['brid'] = array('name' => tr('BRID'), 'val' => $bridLink);
             }
