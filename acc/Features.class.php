@@ -272,7 +272,8 @@ class acc_Features extends core_Manager
      */
     public static function syncFeatures($classId, $objectId)
     {
-        $itemId = acc_Items::fetchItem($classId, $objectId)->id;
+        $itemRec = acc_Items::fetchItem($classId, $objectId);
+        $itemId = $itemRec ? $itemRec->id : null;
         
         if ($itemId) {
             acc_Features::syncItem($itemId);
