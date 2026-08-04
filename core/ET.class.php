@@ -585,7 +585,10 @@ class core_ET extends core_BaseClass
         
         //DEBUG::startTimer("SUB2");
         $str = $this->processContent($content) ?? '';
-        
+        if (is_array($str)) {
+            $str = implode('', $str);
+        }
+
         //DEBUG::stopTimer("SUB2");
         
         // DEBUG::startTimer("SUB3");
