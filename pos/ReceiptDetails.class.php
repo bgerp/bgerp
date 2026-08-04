@@ -267,7 +267,8 @@ class pos_ReceiptDetails extends core_Detail
 
         try{
             $id = Request::get('recId', 'int');
-            $id = isset($id) ? $id : self::getLastRec($receiptId, 'sale')->id;
+            $lastSaleRec = self::getLastRec($receiptId, 'sale');
+            $id = isset($id) ? $id : ($lastSaleRec ? $lastSaleRec->id : null);
             expect($id, 'Не е избран ред');
             expect($rec = self::fetch($id), 'Не е избран ред');
             $this->requireRightFor('edit', $rec);
@@ -875,7 +876,8 @@ class pos_ReceiptDetails extends core_Detail
 
         Mode::setPermanent("currentOperation{$rec->receiptId}", $defaultOperation);
         Mode::setPermanent("currentSearchString{$rec->receiptId}", null);
-        $lastRecId = pos_ReceiptDetails::getLastRec($rec->receiptId)->id;
+        $lastRec = pos_ReceiptDetails::getLastRec($rec->receiptId);
+        $lastRecId = $lastRec ? $lastRec->id : null;
 
         if(strpos($rec->action, 'payment') !== false && $rec->param == 'card'){
             $this->logWrite("Изтриване на потвърдено плащане", $rec->receiptId);
