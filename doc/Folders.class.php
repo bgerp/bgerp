@@ -508,6 +508,9 @@ class doc_Folders extends core_Master
         }
 
         $row->handle = $mvc->getHandle($rec);
+        if (!empty($fields['-list'])) {
+            $row->handle = ht::createElement('span', array('class' => 'folder-handle', 'onmouseUp' => 'selectInnerText(this);'), $row->handle, true);
+        }
         $openThreads = $mvc->getVerbal($rec, 'openThreadsCnt');
         
         if (!empty($rec->openThreadsCnt)) {
