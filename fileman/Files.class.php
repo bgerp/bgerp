@@ -978,7 +978,7 @@ class fileman_Files extends core_Master
     {
         $ptr = '/^[a-z][a-z0-9]{' . (fileman_Setup::get('HANDLER_LEN') - 1) . '}$/i';
         
-        return preg_match($ptr, $str);
+        return preg_match($ptr, $str ?? '');
     }
     
     
