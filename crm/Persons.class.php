@@ -515,11 +515,11 @@ class crm_Persons extends core_Master
         if (is_array($data->recs)) {
             $cnt = array();
             foreach ($data->recs as $rec) {
-                $key = str::utf2ascii(trim($rec->name));
+                $key = str::utf2ascii(trim((string) $rec->name));
                 $cnt[$key] = ($cnt[$key] ?? 0) + 1;
             }
             foreach ($data->recs as $rec) {
-                if ($cnt[str::utf2ascii(trim($rec->name))] >= 2) {
+                if ($cnt[str::utf2ascii(trim((string) $rec->name))] >= 2) {
                     $data->rows[$rec->id]->nameList .= $data->rows[$rec->id]->titleNumber;
                 }
             }
