@@ -82,7 +82,7 @@ class core_String
      */
     public static function mbUcfirst($string)
     {
-        $string = trim($string);
+        $string = trim($string ?? '');
         $string = mb_strtoupper(mb_substr($string, 0, 1)) . mb_substr($string, 1);
         
         return $string;
