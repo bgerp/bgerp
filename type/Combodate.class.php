@@ -209,7 +209,7 @@ class type_Combodate extends type_Varchar
             list($y, $m, $d) = explode($div, $cDate);
         }
 
-        if (strlen($d) > 2) {
+        if (strlen($d ?? '') > 2) {
             $t = $d;
             $d = $y;
             $y = $t;
