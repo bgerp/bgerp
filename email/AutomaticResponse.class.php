@@ -174,13 +174,10 @@ class email_AutomaticResponse extends core_Master
         }
         
         //избиране имейл от който да се изпрати отговора
-        $queryEmails = email_Inboxes::getQuery();
-        $queryEmails->where("#inCharge = $rec->userId");
-        $queryEmails->where("#state = 'active'");
-
-        $emails = array();
-        while($emailRec = $queryEmails->fetch()){
-            $emails[$emailRec->id] = $emailRec->email;
+        try {
+            $emails = email_Inboxes::getFromEmailOptions(false, $rec->userId ?? null, false);
+        } catch (core_exception_Expect $e) {
+            $emails = array();
         }
         $form->setOptions('inboxEmail', $emails);
 
