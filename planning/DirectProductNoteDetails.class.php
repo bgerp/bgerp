@@ -564,6 +564,12 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
                     $pData->listFields['packQuantity'] = 'К-во';
                 }
 
+                if ($type == 'pop') {
+                    $fieldset->fields['productId']->thAttr = array('style' => 'white-space:normal;');
+                } else {
+                    unset($fieldset->fields['productId']->thAttr);
+                }
+
                 $popTable = $table->get($pData->rows, $pData->listFields);
                 $detailsPop = new core_ET("<span style='margin-top:5px;'>[#1#]</span>", $popTable);
                 $placeholder = $type == 'subProduct' ? 'SUB_PRODUCTS_TABLE' : 'WASTE_PRODUCTS_TABLE';

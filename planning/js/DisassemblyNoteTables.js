@@ -100,13 +100,6 @@ function syncDisassemblyNoteTableGroup(tables)
             return;
         }
 
-        tables.find('th').filter(function () {
-            return /артикул|материал|субпродукт|отпадък/i.test($(this).text());
-        }).css({
-            'white-space': 'normal',
-            'overflow-wrap': 'anywhere'
-        });
-
         for (var column = 0; column < columnCount; column++) {
             var maxWidth = widths[column] || 44;
             var maxDataWidth = 0;
