@@ -180,7 +180,7 @@ class doc_DocumentCache extends core_Master
         self::logDebug('Изтрити кеширани документа: ' . $cnt);
         
         // Ресетваме ид-та веднъж на 1000 минути
-        if (round((time() / 60) % 1000) == 500) {
+        if (intdiv(time(), 60) % 1000 == 500) {
             $this->db->query("ALTER TABLE {$this->dbTableName} AUTO_INCREMENT = 1");
             self::logInfo('Ресетнати id-та');
         }
