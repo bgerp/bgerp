@@ -593,7 +593,7 @@ class support_TaskType extends core_Mvc
             $resArr['url'] = array('name' => tr('URL'), 'val' => $url);
         }
         
-        if ($row->ip) {
+        if ($row->ip ?? null) {
             $resArr['ip'] = array('name' => tr('IP'), 'val' => '[#ip#]');
         }
         
