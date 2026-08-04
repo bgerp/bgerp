@@ -485,6 +485,8 @@ class sales_reports_PriceDeviation extends frame2_driver_TableData
      */
     private static function getDeviationCatPrice($dRec, $verbal = true)
     {
+        $deviationCatPrice = null;
+
         if (is_numeric($dRec->catPrice) && ($dRec->price != $dRec->catPrice)) {
             $marker = (double) (($dRec->price - $dRec->catPrice) / $dRec->catPrice);
             if ($dRec->catPrice != 0) {
@@ -514,6 +516,8 @@ class sales_reports_PriceDeviation extends frame2_driver_TableData
      */
     private static function getDeviationDownSelf($dRec, $verbal = true)
     {
+        $deviationDownSelf = null;
+
         if (is_numeric($dRec->selfPrice) && ($dRec->price < $dRec->selfPrice)) {
             $marker = (double) (($dRec->price - $dRec->selfPrice) / $dRec->selfPrice);
             if ($dRec->selfPrice != 0) {
