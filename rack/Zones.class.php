@@ -2018,7 +2018,7 @@ class rack_Zones extends core_Master
         $mQuery->limit(1);
         $rec = $mQuery->fetch();
 
-        $res = md5("{$rec->storeId}|{$rec->modifiedOn}|{$rec->id}");
+        $res = $rec ? md5("{$rec->storeId}|{$rec->modifiedOn}|{$rec->id}") : md5("{$storeId}|");
 
     }
 
