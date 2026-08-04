@@ -204,7 +204,14 @@ class acc_reports_NegativeQuantities extends frame2_driver_TableData
         
         $row->uomId = cat_UoM::getTitleById($dRec->uomId);
         
-        $resArr = array_combine($dRec->storeId, $dRec->quantity);
+        $storeIds = (array) ($dRec->storeId ?? array());
+        $quantities = (array) ($dRec->quantity ?? array());
+        $resArr = array();
+        foreach ($storeIds as $key => $storeId) {
+            if (array_key_exists($key, $quantities)) {
+                $resArr[$storeId] = $quantities[$key];
+            }
+        }
         
         asort($resArr);
         
