@@ -68,9 +68,9 @@ class acc_reports_SoldProductsByPrimeCost extends frame2_driver_TableData
         $fieldset->FLD('from', 'date', 'caption=От,after=title,single=none,mandatory');
         $fieldset->FLD('to', 'date', 'caption=До,after=from,single=none,mandatory');
 
-        $fieldset->FLD('groups', 'keylist(mvc=cat_Groups,select=name)', 'caption=Групи артикули,after=to,placeholder=Всички,silent,single=none');
+        $fieldset->FLD('groups', 'keylist(mvc=cat_Groups,select=name)', 'caption=Групи артикули,after=to,placeholderType=all,silent,single=none');
 
-        $fieldset->FLD('stores', 'keylist(mvc=store_Stores,select=name)', 'caption=Склад,after=groups,placeholder=Всички,silent,single=none');
+        $fieldset->FLD('stores', 'keylist(mvc=store_Stores,select=name)', 'caption=Склад,after=groups,placeholderType=all,silent,single=none');
 
     }
 

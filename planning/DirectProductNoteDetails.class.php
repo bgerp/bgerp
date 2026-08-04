@@ -635,16 +635,17 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
                 // Ако детайла е в ПП в нишка на финална операция
                 $jobRec = planning_DirectProductionNote::getJobRec($rec->noteId);
                 $masterRec = planning_DirectProductionNote::fetch($rec->noteId);
+                $type = $rec->type ?? null;
                 $origin = doc_Containers::getDocument($masterRec->originId);
                 if($origin->isInstanceOf('planning_Tasks')){
                     $originRec = $origin->fetch('isFinal,productId');
                     if($originRec->isFinal == 'no'){
                         $requiredRoles = 'no_one';
-                    } elseif($masterRec->productId != $jobRec->productId && $rec->type != 'input'){
+                    } elseif($masterRec->productId != $jobRec->productId && $type != 'input'){
                         $requiredRoles = 'no_one';
                     } elseif($action == 'import'){
                         $requiredRoles = 'no_one';
-                    } elseif($rec->type == 'input'){
+                    } elseif($type == 'input'){
                         $isConvertable = cat_Products::fetchField($jobRec->productId, 'canConvert');
                         if($isConvertable != 'yes'){
                             $requiredRoles = 'no_one';

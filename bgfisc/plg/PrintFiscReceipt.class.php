@@ -200,8 +200,9 @@ class bgfisc_plg_PrintFiscReceipt extends core_Plugin
         $errorUrl = toUrl(array($mvc, 'printreceipterror', $rec->id, 'hash' => $hash));
         Request::removeProtected('hash');
         
+        $fiscalArr['END_TEXT'] = array();
         if(countR($textArr)){
-            $fiscalArr['END_TEXT'] = implode(', ', $textArr);
+            $fiscalArr['END_TEXT'][] = implode(', ', $textArr);
         }
 
         $showPosDevice = bgfisc_Setup::get('SHOW_BPT_IN_RECEIPT') == 'yes';

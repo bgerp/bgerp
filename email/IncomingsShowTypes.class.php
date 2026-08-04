@@ -127,7 +127,7 @@ class email_IncomingsShowTypes extends core_Manager
         $data->listFilter->input();
 
         $data->listFilter->setFieldTypeParams('userId', array('allowEmpty' => 'allowEmpty'));
-        $data->listFilter->setField('userId', 'placeholder=Всички,refreshForm');
+        $data->listFilter->setField('userId', 'placeholderType=all,refreshForm');
 
         if ($data->listFilter->rec->userId) {
             $data->query->where(array("#userId = '[#1#]'", $data->listFilter->rec->userId));

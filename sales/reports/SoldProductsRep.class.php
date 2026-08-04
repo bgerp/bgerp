@@ -369,16 +369,16 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         $fieldset->FLD('secondMonth', 'key(mvc=acc_Periods,select=title)', 'caption=Месец 2,after=firstMonth,removeAndRefreshForm,single=none,input=none,silent');
 
     //   $fieldset->FLD('dealers', 'userlist(rolesForAll=ceo|repAllGlobal, rolesForTeams=ceo|manager|repAll|repAllGlobal)', 'caption=Търговци,single=none,after=to,silent,mandatory');
-        $fieldset->FLD('dealers', 'keylist(mvc=core_Users,select=names)', 'caption=Търговци->Търговец,placeholder=Всички,after=secondMonth,single=none');
-        $fieldset->FLD('dealersTeam', 'keylist(mvc=core_Roles,select=role,allowEmpty)', 'caption=Търговци->Екип,placeholder=Всички,after=dealers,single=none');
+        $fieldset->FLD('dealers', 'keylist(mvc=core_Users,select=names)', 'caption=Търговци->Търговец,placeholderType=all,after=secondMonth,single=none');
+        $fieldset->FLD('dealersTeam', 'keylist(mvc=core_Roles,select=role,allowEmpty)', 'caption=Търговци->Екип,placeholderType=all,after=dealers,single=none');
 
-        $fieldset->FLD('contragent', 'keylist(mvc=doc_Folders,select=title,allowEmpty)', 'caption=Контрагенти->Контрагент,placeholder=Всички,single=none,after=dealersTeam');
-        $fieldset->FLD('crmGroup', 'keylist(mvc=crm_Groups,select=name)', 'caption=Контрагенти->Група контрагенти,placeholder=Всички,after=contragent,single=none');
+        $fieldset->FLD('contragent', 'keylist(mvc=doc_Folders,select=title,allowEmpty)', 'caption=Контрагенти->Контрагент,placeholderType=all,single=none,after=dealersTeam');
+        $fieldset->FLD('crmGroup', 'keylist(mvc=crm_Groups,select=name)', 'caption=Контрагенти->Група контрагенти,placeholderType=all,after=contragent,single=none');
 
         $fieldset->FLD('typeOfGroups', 'enum(no=Всички групи/категории, category=Категории артикули, art=Групи артикули, nogrp=Изключи избраните групи артикули)', 'caption=Артикули->Филтър по,removeAndRefreshForm,after=crmGroup');
-        $fieldset->FLD('category', 'keylist(mvc=cat_Categories,select=name)', 'caption=Артикули->Категории артикули,after=typeOfGroups,removeAndRefreshForm,placeholder=Всички,silent,single=none');
-        $fieldset->FLD('group', 'keylist(mvc=cat_Groups,select=name)', 'caption=Артикули->Групи артикули,after=category,removeAndRefreshForm,placeholder=Всички,silent,single=none');
-        $fieldset->FLD('products', 'keylist(mvc=cat_Products,select=name)', 'caption=Артикули->Артикули,placeholder=Всички,after=group,single=none,input=none,class=w100');
+        $fieldset->FLD('category', 'keylist(mvc=cat_Categories,select=name)', 'caption=Артикули->Категории артикули,after=typeOfGroups,removeAndRefreshForm,placeholderType=all,silent,single=none');
+        $fieldset->FLD('group', 'keylist(mvc=cat_Groups,select=name)', 'caption=Артикули->Групи артикули,after=category,removeAndRefreshForm,placeholderType=all,silent,single=none');
+        $fieldset->FLD('products', 'keylist(mvc=cat_Products,select=name)', 'caption=Артикули->Артикули,placeholderType=all,after=group,single=none,input=none,class=w100');
         $fieldset->FLD('articleType', 'enum(yes=Стандартни,no=Нестандартни,all=Всички)', 'caption=Артикули->Тип артикули,maxRadio=3,columns=3,after=productId,single=none');
         $fieldset->FLD('quantityType', 'enum(shipped=Експедирани, ordered=Поръчани,invoiced=Фактурирано)', 'caption=Артикули->Количества,removeAndRefreshForm,silent,after=articleType');
 
@@ -2373,6 +2373,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                 $prodCategory = doc_Folders::fetch($prodFolderId)->title;
                 $row->category = $prodCategory;
             }
+            $dRec->delta = $dRec->delta ?? 0;
             foreach (array(
                          'quantity',
                          'invQuantity',
@@ -2757,7 +2758,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         $isCategoryFilter = ($rec->typeOfGroups == 'category');
         $groupFilterType = $isCategoryFilter ? 'key(mvc=cat_Categories,allowEmpty,select=name)' : 'key(mvc=cat_Groups,allowEmpty,select=name)';
 
-        $form->FLD('groupFilter', $groupFilterType, 'caption=Покажи група,placeholder=Всички,silent');
+        $form->FLD('groupFilter', $groupFilterType, 'caption=Покажи група,placeholderType=all,silent');
 
         $suggestions = self::getGroupFilterSuggestions($rec);
         if ($rec->grFilter && !isset($suggestions[$rec->grFilter])) {

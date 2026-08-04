@@ -52,9 +52,9 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
         $fieldset->FLD('checkDate', 'date', 'caption=Към дата,after=title,single=none');
         $fieldset->FLD('additional', 'table(columns=limit1|limit2,captions=Праг 1|Праг 2,widths=3em|3em,btnOff,unit=дни просрочие)', 'caption=Периоди||Additional,autohide,advanced,after=checkDate,single=none');
         $fieldset->FLD('typeGrupping', 'enum(contragent=Контрагент,overduePeriod=Период на просрочие)', 'caption=Групиране,maxRadio=2,columns=2,after=additional');
-        $fieldset->FLD('dealer', 'user(rolesForAll=sales|ceo,allowEmpty,roles=ceo|sales)', 'caption=Филтри->Търговец,placeholder=Всички,single=none,after=typeGrupping,input');
-        $fieldset->FLD('contragent', 'keylist(mvc=doc_Folders,select=title,allowEmpty)', 'caption=Филтри->Контрагент,placeholder=Всички,single=none,after=dealer');
-        $fieldset->FLD('countryGroup', 'key(mvc=drdata_CountryGroups,select=name,allowEmpty)', 'caption=Филтри->Група държави,single=none,placeholder=Всички,after=contragent'
+        $fieldset->FLD('dealer', 'user(rolesForAll=sales|ceo,allowEmpty,roles=ceo|sales)', 'caption=Филтри->Търговец,placeholderType=all,single=none,after=typeGrupping,input');
+        $fieldset->FLD('contragent', 'keylist(mvc=doc_Folders,select=title,allowEmpty)', 'caption=Филтри->Контрагент,placeholderType=all,single=none,after=dealer');
+        $fieldset->FLD('countryGroup', 'key(mvc=drdata_CountryGroups,select=name,allowEmpty)', 'caption=Филтри->Група държави,single=none,placeholderType=all,after=contragent'
         );
 
         //Праг за минимална просрочена сума за показване

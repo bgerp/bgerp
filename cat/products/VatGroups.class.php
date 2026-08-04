@@ -405,7 +405,7 @@ class cat_products_VatGroups extends core_Detail
      */
     protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
-        $data->listFilter->setField('productId', 'input,placeholder=Всички');
+        $data->listFilter->setField('productId', 'input,placeholderType=all');
         $data->listFilter->showFields = 'productId';
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');

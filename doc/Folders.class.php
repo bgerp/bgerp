@@ -335,7 +335,7 @@ class doc_Folders extends core_Master
         // Добавяме поле във формата за търсене
         $data->listFilter->FNC('users', 'users(rolesForAll = |officer|manager|ceo|)', 'caption=Потребител,input,silent,autoFilter');
         $data->listFilter->FNC('order', 'enum(pending=Първо отворените,last=Сортиране по "последно", inCharge=Без споделените)', 'caption=Подредба,input,silent,autoFilter');
-        $data->listFilter->FNC('docType', 'class(interface=doc_FolderIntf,select=title,allowEmpty)', 'caption=Тип папка,placeholder=Всички,input,silent,autoFilter');
+        $data->listFilter->FNC('docType', 'class(interface=doc_FolderIntf,select=title,allowEmpty)', 'caption=Тип папка,placeholderType=all,input,silent,autoFilter');
 
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
@@ -508,6 +508,9 @@ class doc_Folders extends core_Master
         }
 
         $row->handle = $mvc->getHandle($rec);
+        if (!empty($fields['-list'])) {
+            $row->handle = ht::createElement('span', array('class' => 'folder-handle', 'onmouseUp' => 'selectInnerText(this);'), $row->handle, true);
+        }
         $openThreads = $mvc->getVerbal($rec, 'openThreadsCnt');
         
         if (!empty($rec->openThreadsCnt)) {
@@ -2543,6 +2546,6 @@ class doc_Folders extends core_Master
      */
     protected static function on_BeforeRenderListTable($mvc, &$res, $data)
     {
-        $data->listTableMvc->FLD('handle', 'varchar', 'tdClass=centerCol');
+        $data->listTableMvc->FLD('handle', 'varchar', 'tdClass=small rightCol small-field');
     }
 }

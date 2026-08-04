@@ -100,8 +100,8 @@ class planning_GenericProductPerDocuments extends core_Manager
         $data->query->orderBy('id', 'DESC');
 
         $data->listFilter->FLD('docId', 'varchar', 'caption=Документ');
-        $data->listFilter->FLD('product', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,maxSuggestions=100,forceAjax)', 'caption=Артикул,placeholder=Всички');
-        $data->listFilter->setField('detailClassId', 'placeholder=Всички');
+        $data->listFilter->FLD('product', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,maxSuggestions=100,forceAjax)', 'caption=Артикул,placeholderType=all');
+        $data->listFilter->setField('detailClassId', 'placeholderType=all');
         $data->listFilter->showFields .= "docId,product,detailClassId";
         $data->listFilter->input(null, 'silent');
 

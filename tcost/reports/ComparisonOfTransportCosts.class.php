@@ -450,7 +450,7 @@ class tcost_reports_ComparisonOfTransportCosts extends frame2_driver_TableData
             
             $row->purchaseId = trim($purchases);
         }
-        if (!is_null($dRec->countryId)) {
+        if (isset($dRec->countryId)) {
             $row->country = drdata_Countries::getCountryName($dRec->countryId);
         }
         
@@ -531,7 +531,7 @@ class tcost_reports_ComparisonOfTransportCosts extends frame2_driver_TableData
             $contragentClass = core_Classes::getName($dRec->contragentClassId);
             $res->contragent = $contragentClass::fetchField($dRec->contragentId, 'name');
             
-            if (!is_null($dRec->countryId)) {
+            if (isset($dRec->countryId)) {
                 $res->country = drdata_Countries::getCountryName($dRec->countryId);
             }
             

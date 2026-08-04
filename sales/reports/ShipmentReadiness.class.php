@@ -94,9 +94,9 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
      */
     public function addFields(core_Fieldset &$fieldset)
     {
-        $fieldset->FLD('dealers', 'keylist(mvc=core_Users,select=nick)', 'caption=Потребители,placeholder=Всички,after=title,single=none');
+        $fieldset->FLD('dealers', 'keylist(mvc=core_Users,select=nick)', 'caption=Потребители,placeholderType=all,after=title,single=none');
         $fieldset->FLD('dealerType', 'enum(,dealer=Търговец,inCharge=Отговорник на папка)', 'caption=Потребителят е,after=dealers,single=none,placeholder=Търговец или отговорник');
-        $fieldset->FLD('countries', 'keylist(mvc=drdata_Countries,select=commonNameBg,allowEmpty)', 'caption=Доставка->Държави,placeholder=Всички,after=dealerType,single=none');
+        $fieldset->FLD('countries', 'keylist(mvc=drdata_Countries,select=commonNameBg,allowEmpty)', 'caption=Доставка->Държави,placeholderType=all,after=dealerType,single=none');
         $fieldset->FLD('countryType', 'enum(contragent=на контрагента,delivery=на доставка)', 'caption=Доставка->Държава,after=countries,single=none');
         $fieldset->FLD('ignore', 'enum(,yes=Без избраните държави)', 'caption=Доставка->Игнориране,after=countryType,single=none');
         $fieldset->FLD('terms', 'keylist(mvc=cond_DeliveryTerms,select=codeName)', 'caption=Доставка->Условие,placeholder=Всички условия,after=ignore');

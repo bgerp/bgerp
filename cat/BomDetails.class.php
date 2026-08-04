@@ -201,6 +201,10 @@ class cat_BomDetails extends doc_Detail
     protected static function on_AfterPrepareListFields($mvc, $data)
     {
         $baseCurrencyCode = acc_Periods::getBaseCurrencyCode();
+        $masterRow = $data->masterData->row ?? null;
+        $masterRec = $data->masterData->rec ?? null;
+        $masterQuantity = $masterRow->quantity ?? ($masterRec->quantity ?? null);
+
         $data->listFields['resourceId'] .= "|* <a href=\"javascript:clickAllClasses('bomResourceColName{$data->masterData->rec->id}','bomDetailStepDescription{$data->masterData->rec->id}')\"  style=\"background-image:url(" . sbf('img/16/toggle1.png', "'") . ");\" class=' plus-icon more-btn' id='bomResourceColName{$data->masterData->rec->id}'> </a>";
 
         if(cat_BomDetails::count("#bomId = {$data->masterId} AND #parentId IS NOT NULL")) {
@@ -209,9 +213,9 @@ class cat_BomDetails extends doc_Detail
             }
         }
 
-        $data->listFields['propQuantity'] = "|К-во влагане за|* {$data->masterData->row->quantity}->|Формула|*";
-        $data->listFields['rowQuantity'] = "|К-во влагане за|* {$data->masterData->row->quantity}->|Количество|*";
-        $data->listFields['primeCost'] = "|К-во влагане за|* {$data->masterData->row->quantity}->|Сума|* <small>({$baseCurrencyCode})</small>";
+        $data->listFields['propQuantity'] = "|К-во влагане за|* {$masterQuantity}->|Формула|*";
+        $data->listFields['rowQuantity'] = "|К-во влагане за|* {$masterQuantity}->|Количество|*";
+        $data->listFields['primeCost'] = "|К-во влагане за|* {$masterQuantity}->|Сума|* <small>({$baseCurrencyCode})</small>";
         if (!haveRole('ceo, acc, cat, price')) {
             unset($data->listFields['primeCost']);
         }
@@ -316,7 +320,7 @@ class cat_BomDetails extends doc_Detail
                     $form->setField('labelPackagingId', 'input');
 
                     $productMeasureId = cat_Products::fetchField($rec->resourceId, 'measureId');
-                    $packs = planning_Tasks::getAllowedLabelPackagingOptions($productMeasureId, $rec->resourceId, $rec->labelPackagingId);
+                    $packs = planning_Tasks::getAllowedLabelPackagingOptions($productMeasureId, $rec->resourceId, $rec->labelPackagingId ?? null);
                     $form->setOptions("labelPackagingId", $packs);
                 }
 
@@ -339,7 +343,7 @@ class cat_BomDetails extends doc_Detail
                 }
 
                 if (!isset($productionData['normPackagingId'])) {
-                    $form->setFieldTypeParams('norm', array('measureId' => $rec->packagingId));
+                    $form->setFieldTypeParams('norm', array('measureId' => $rec->packagingId ?? $productMeasureId));
                 }
 
                 // Ако има опаковка за етикетиране
@@ -349,7 +353,7 @@ class cat_BomDetails extends doc_Detail
                     $form->setField('labelType', 'input');
 
                     // Наличните за избор шаблони
-                    $templateOptions = planning_Tasks::getAllAvailableLabelTemplates($rec->labelTemplate);
+                    $templateOptions = planning_Tasks::getAllAvailableLabelTemplates($rec->labelTemplate ?? null);
                     $form->setOptions("labelTemplate", $templateOptions);
 
                     // К-то в опаковката като хинт
@@ -365,17 +369,17 @@ class cat_BomDetails extends doc_Detail
                     $form->setField('employees', 'input');
 
                     // Налични оборудвания от избрания център
-                    $fixedAssets = planning_AssetResources::getByFolderId($folderId, $rec->fixedAssets, 'planning_Tasks', true);
+                    $fixedAssets = planning_AssetResources::getByFolderId($folderId, $rec->fixedAssets ?? null, 'planning_Tasks', true);
                     $form->setSuggestions("fixedAssets", $fixedAssets);
 
                     // Наличните човешки ресурси от избрания център
-                    $hrAssets = planning_Hr::getByFolderId($folderId, $rec->employees);
+                    $hrAssets = planning_Hr::getByFolderId($folderId, $rec->employees ?? null);
                     $form->setSuggestions("employees", $hrAssets);
                 }
 
                 $masterRec = cat_Boms::fetch($rec->bomId);
                 if(empty($rec->id)){
-                    cat_products_Params::addProductParamsToForm($mvc, $rec->id, $masterRec->productId, $rec->resourceId, $form);
+                    cat_products_Params::addProductParamsToForm($mvc, $rec->id ?? null, $masterRec->productId, $rec->resourceId, $form);
                 }
 
                 $form->setFieldTypeParams("norm", array('measureId' => cat_Products::fetchField($rec->resourceId, 'measureId')));
@@ -722,7 +726,7 @@ class cat_BomDetails extends doc_Detail
 
             // Ако има артикул със същата позиция, или няма позиция добавяме нова
             if (!isset($rec->position)) {
-                $rec->position = $mvc->getDefaultPosition($rec->bomId, $rec->parentId);
+                $rec->position = $mvc->getDefaultPosition($rec->bomId, $rec->parentId ?? null);
             }
             
             if (!$form->gotErrors()) {
@@ -1349,8 +1353,9 @@ class cat_BomDetails extends doc_Detail
                 $rec = $data->recs[$id];
                 if ($rec->parentId) {
                     if ($rec->rowQuantity != cat_BomDetails::CALC_ERROR) {
-                        if ($data->recs[$rec->parentId]->rowQuantity != cat_BomDetails::CALC_ERROR) {
-                            $rec->rowQuantity *= $data->recs[$rec->parentId]->rowQuantity;
+                        $parentRec = $data->recs[$rec->parentId] ?? null;
+                        if ($parentRec && $parentRec->rowQuantity != cat_BomDetails::CALC_ERROR) {
+                            $rec->rowQuantity *= $parentRec->rowQuantity;
                         }
                     }
                 }

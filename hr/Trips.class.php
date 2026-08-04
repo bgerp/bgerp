@@ -228,7 +228,7 @@ class hr_Trips extends core_Master
      */
     public static function on_AfterPrepareListFilter($mvc, $data)
     {
-        $data->listFilter->FLD('employeeId', 'key(mvc=crm_Persons,select=name,allowEmpty,,group=employees)', 'caption=Служител,placeholder=Всички,silent,before=selectPeriod');
+        $data->listFilter->FLD('employeeId', 'key(mvc=crm_Persons,select=name,allowEmpty,,group=employees)', 'caption=Служител,placeholderType=all,silent,before=selectPeriod');
         $data->listFilter->showFields = $data->listFilter->showFields . ',employeeId';
         $data->listFilter->input('employeeId', 'silent');
         

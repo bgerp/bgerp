@@ -397,7 +397,7 @@ class email_Incomings extends core_Master
             // Цикълът може да прекъсне, ако надвишим максималното време за сваляне на писма
             for ($i = $firstUnreadMsgNo; $i <= $numMsg && (($deadline - 5 > time()) || ($i == $firstUnreadMsgNo)); $i++) {
                 $status = self::processMsg($i, $imapConn, $accRec, $doExpunge);
-                $statusSum[$status]++;
+                $statusSum[$status] = ($statusSum[$status] ?? 0) + 1;
             }
         }
         
@@ -420,7 +420,7 @@ class email_Incomings extends core_Master
                 if (!$fRec) {
                     // Ако писмото липсва в хеша на свалетите писма - правим нов опит за свалянето му
                     $status = $this->processMsg($msgNo, $imapConn, $accRec, $doExpunge);
-                    $statusSum[$status]++;
+                    $statusSum[$status] = ($statusSum[$status] ?? 0) + 1;
                     
                     continue;
                 }
@@ -641,11 +641,11 @@ class email_Incomings extends core_Master
 
             if ($sId) {
                 if (is_array($status)) {
-                    if ($status['closeThread']) {
+                    if (!empty($status['closeThread'])) {
                         $this->threadState[$sId] = false;
                     }
 
-                    if ($status['rejectThread']) {
+                    if (!empty($status['rejectThread'])) {
                         $sRec = $this->fetch($sId);
 
                         $sRec->state = 'rejected';
@@ -724,7 +724,7 @@ class email_Incomings extends core_Master
         // Преобразуваме в масив с хедъри и сериализираме
         $rec->headers = $mime->parseHeaders($headersStr);
 
-        if (!$spamDataArr && $spamDataArr['checkSpam'] !== false) {
+        if (empty($spamDataArr) || (($spamDataArr['checkSpam'] ?? null) !== false)) {
             $rec->spamScore = email_Spam::getSpamScore($rec->headers, true, $mime, $rec);
         } else {
             $rec->spamScore = 0;
@@ -781,7 +781,7 @@ class email_Incomings extends core_Master
                             $email = strtolower($email);
 
                             // Ако е свалян същият имейл до същия получател в същия хит - прескачаме
-                            if ($this->processedDuplicate[$hHash][$email]) {
+                            if (!empty($this->processedDuplicate[$hHash][$email])) {
 
                                 continue;
                             }
@@ -955,8 +955,8 @@ class email_Incomings extends core_Master
         
         // Показваме само това поле. Иначе и другите полета
         // на модела ще се появят
-        $form->setField('country', 'placeholder=Всички');
-        $form->setField('accId', 'placeholder=Всички');
+        $form->setField('country', 'placeholderType=all');
+        $form->setField('accId', 'placeholderType=all');
         $form->showFields = 'country, accId';
         
         
@@ -1433,7 +1433,7 @@ class email_Incomings extends core_Master
         }
         
         if ($closestEmail) {
-            if (!$allEmailToArr[$closestEmail]) {
+            if (empty($allEmailToArr[$closestEmail])) {
                 $res = ht::createHint($body, tr('Имейлът е пренасочен към') . ' ' . type_Varchar::escape($closestEmail), 'warning');
                 if ($isString) {
                     $body = (string) $res;
@@ -1670,7 +1670,7 @@ class email_Incomings extends core_Master
                     $trimEmail = strtolower($trimEmail);
                     
                     // Ако няма такъв корпоративен имейл
-                    if (!empty($allEmailsArr) && !$allEmailsArr[$trimEmail]) {
+                    if (!empty($allEmailsArr) && empty($allEmailsArr[$trimEmail])) {
                         $emailsArr[$key]['isWrong'] = true;
                     }
                 }
@@ -2053,11 +2053,11 @@ class email_Incomings extends core_Master
         
         $out .= "<li>Добавени {$stats['added']}, изтрити {$stats['removed']} домейн(а)</li>";
         
-        if ($stats['addErrors']) {
+        if (!empty($stats['addErrors'])) {
             $out .= "<li class=\"error\">Проблем при добавянето на {$stats['addErrors']} домейн(а)!</li>";
         }
         
-        if ($stats['removeErrors']) {
+        if (!empty($stats['removeErrors'])) {
             $out .= "<li class=\"error\">Проблем при изтриването на {$stats['removeErrors']} домейн(а)!</li>";
         }
         
@@ -2179,7 +2179,7 @@ class email_Incomings extends core_Master
                 $haveEmail = false;
                 foreach ((array) $rec->toAndCc['allTo'] as $emailAddArr) {
                     $email = strtolower(trim($emailAddArr['address']));
-                    if ($allBoxesArrNew[$email]) {
+                    if (!empty($allBoxesArrNew[$email])) {
                         $haveEmail = true;
                         break;
                     }
@@ -2188,7 +2188,7 @@ class email_Incomings extends core_Master
                 if (!$haveEmail) {
                     foreach ((array) $rec->toAndCc['allCc'] as $emailAddArr) {
                         $email = strtolower(trim($emailAddArr['address']));
-                        if ($allBoxesArrNew[$email]) {
+                        if (!empty($allBoxesArrNew[$email])) {
                             $haveEmail = true;
                             break;
                         }
@@ -2429,7 +2429,8 @@ class email_Incomings extends core_Master
                 $cQuery->limit(1);
                 $cQuery->show('id');
                 
-                $originId = $cQuery->fetch()->id;
+                $lastContainerRec = $cQuery->fetch();
+                $originId = $lastContainerRec->id ?? null;
             }
         }
         $rArr = array('folderId' => null, 'threadId' => null, 'routeBy' => null, 'originId' => $originId);
@@ -2651,6 +2652,9 @@ class email_Incomings extends core_Master
                     }
                     
                     $fRec = fileman_Files::fetch((int) $fileId);
+                    if (!$fRec) {
+                        continue;
+                    }
                     $ext = fileman_Files::getExt($fRec->name);
                     
                     if (!$ext) {
@@ -2661,7 +2665,7 @@ class email_Incomings extends core_Master
                     $allowedExt = mb_strtolower(email_Setup::get('ALLOWED_EXT_FOR_BARCOCE'));
                     $allowedExtArr = arr::make($allowedExt, true);
                     
-                    if (!$allowedExtArr[$ext]) {
+                    if (empty($allowedExtArr[$ext])) {
                         continue;
                     }
                     
@@ -2780,11 +2784,11 @@ class email_Incomings extends core_Master
         
         $rating = 0;
         
-        if ($cRec->modifiedOn) {
+        if (!empty($cRec->modifiedOn)) {
             $rating = dt::mysql2timestamp($cRec->modifiedOn);
         }
         
-        if ($rating && ($cRec->state == 'rejected')) {
+        if ($rating && (($cRec->state ?? null) == 'rejected')) {
             $rating /= 1000;
         }
         
@@ -3206,11 +3210,13 @@ class email_Incomings extends core_Master
         
         // Добавяме всички имейли в масив
         $allEmailsArr = array();
-        $allEmailsArr['email'] = $contragentData->email;
-        $allEmailsArr['replyToEmail'] = $contragentData->replyToEmail;
-        $allEmailsArr['toEmail'] = $contragentData->toEmail;
-        $allEmailsArr['ccEmail'] = $contragentData->ccEmail;
-        $allEmailsArr['buzEmail'] = $contragentData->coverGroupEmails;
+        $allEmailsArr['email'] = $contragentData->email ?? null;
+        $allEmailsArr['replyToEmail'] = $contragentData->replyToEmail ?? null;
+        $allEmailsArr['toEmail'] = $contragentData->toEmail ?? null;
+        $allEmailsArr['ccEmail'] = $contragentData->ccEmail ?? null;
+        $allEmailsArr['buzEmail'] = $contragentData->coverGroupEmails ?? null;
+
+        $allEmails = '';
         
         // Обхождаме масива
         foreach ($allEmailsArr as $email) {
@@ -3486,7 +3492,8 @@ class email_Incomings extends core_Master
                 $onClickArr = array();
                 if ($data->rec->state != 'rejected' && $data->rec->folderId && $data->rec->threadId && $data->rec->containerId) {
                     if (doc_Folders::haveRightFor('single', $data->rec->folderId)) {
-                        if ($data->rec->threadId && doc_Threads::fetch($data->rec->threadId)->allDocCnt <= 1) {
+                        $threadRec = doc_Threads::fetch($data->rec->threadId);
+                        if ($threadRec && $threadRec->allDocCnt <= 1) {
                             $onClickArr['onclick'] = "document.getElementById('btnDelete{$data->rec->containerId}').click();";
                         }
                     }
@@ -3812,7 +3819,7 @@ class email_Incomings extends core_Master
             $query = $mvc->getQuery();
         }
         
-        if ($params['fromEml']) {
+        if (!empty($params['fromEml'])) {
             $query->where(array("LOWER(#fromEml) = '[#1#]'", mb_strtolower($params['fromEml'])));
         }
         

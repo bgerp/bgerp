@@ -1023,8 +1023,8 @@ class cat_Products extends embed_Manager
     protected static function on_AfterPrepareListFilter($mvc, $data)
     {
         $data->listFilter->FNC('filters', "bgerp_type_CustomFilter(classes=cat_Products)", 'caption=Филтри,input,silent,remember,autoFilter,row=2');
-        $data->listFilter->FNC('groupId', 'key2(mvc=cat_Groups,select=name,allowEmpty)', 'placeholder=Всички,caption=Група,input,silent,remember,autoFilter');
-        $data->listFilter->FNC('folder', 'key2(mvc=doc_Folders,select=title,allowEmpty,coverInterface=cat_ProductFolderCoverIntf)', 'input,caption=Папка,placeholder=Всички');
+        $data->listFilter->FNC('groupId', 'key2(mvc=cat_Groups,select=name,allowEmpty)', 'placeholderType=all,caption=Група,input,silent,remember,autoFilter');
+        $data->listFilter->FNC('folder', 'key2(mvc=doc_Folders,select=title,allowEmpty,coverInterface=cat_ProductFolderCoverIntf)', 'input,caption=Папка,placeholderType=all');
         $data->listFilter->view = 'horizontal';
 
         $data->listFilter->input(null, 'silent');
@@ -1034,7 +1034,7 @@ class cat_Products extends embed_Manager
         }
 
         $data->listFilter->setDefault('filters', $defOrder);
-        $data->listFilter->FNC('type', 'class', 'caption=Вид,placeholder=Всички');
+        $data->listFilter->FNC('type', 'class', 'caption=Вид,placeholderType=all');
         $classes = core_Classes::getOptionsByInterface('cat_ProductDriverIntf', 'title');
         $data->listFilter->setOptions('type', array('' => '') + $classes);
         $data->listFilter->showFields = 'search,filters,type,groupId,folder';

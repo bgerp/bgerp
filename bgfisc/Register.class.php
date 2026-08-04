@@ -196,16 +196,23 @@ class bgfisc_Register extends core_Manager
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-        $Class = cls::get($rec->classId);
-        $row->objectId = $Class->getHyperlink($rec->objectId, true);
-        
-        $receiptNum = bgfisc_PrintedReceipts::count("#urnId = {$rec->id}");
-        $row->receiptNums = core_Type::getByName('int')->toVerbal($receiptNum);
-        $row->urn = ht::createLink($row->urn, array('bgfisc_PrintedReceipts', 'list', 'search' => $rec->urn));
-        $row->cashRegNum = ht::createLink($row->cashRegNum, array('bgfisc_PrintedReceipts', 'list', 'search' => $rec->cashRegNum));
-        
-        $state = $Class->fetchField($rec->objectId, 'state');
-        $row->objectId = "<span class='state-{$state} document-handler'>{$row->objectId}</span>";
+        if (isset($rec->classId, $rec->objectId)) {
+            $Class = cls::get($rec->classId);
+            $row->objectId = $Class->getHyperlink($rec->objectId, true);
+            $state = $Class->fetchField($rec->objectId, 'state');
+            $row->objectId = "<span class='state-{$state} document-handler'>{$row->objectId}</span>";
+        }
+
+        if (isset($rec->id)) {
+            $receiptNum = bgfisc_PrintedReceipts::count("#urnId = {$rec->id}");
+            $row->receiptNums = core_Type::getByName('int')->toVerbal($receiptNum);
+        }
+        if (isset($row->urn, $rec->urn)) {
+            $row->urn = ht::createLink($row->urn, array('bgfisc_PrintedReceipts', 'list', 'search' => $rec->urn));
+        }
+        if (isset($row->cashRegNum, $rec->cashRegNum)) {
+            $row->cashRegNum = ht::createLink($row->cashRegNum, array('bgfisc_PrintedReceipts', 'list', 'search' => $rec->cashRegNum));
+        }
     }
     
     
@@ -221,6 +228,7 @@ class bgfisc_Register extends core_Manager
     {
         $Class = cls::get($class);
         $rec = $Class->fetchRec($objectId);
+        if (!is_object($rec)) return false;
         
         return self::fetch("#classId = {$Class->getClassId()} AND #objectId = '{$rec->id}'");
     }
@@ -269,7 +277,9 @@ class bgfisc_Register extends core_Manager
         if ($Class instanceof cash_Document) {
             
             // Форсира се УНП-то на продажбата му
-            $threadId = $Class->fetchRec($objectId, 'threadId')->threadId;
+            $objectRec = $Class->fetchRec($objectId, 'threadId');
+            expect(is_object($objectRec));
+            $threadId = $objectRec->threadId;
             expect($firstDoc = doc_Threads::getFirstDocument($threadId));
             
             // Това УНП ще се използва
@@ -334,7 +344,7 @@ class bgfisc_Register extends core_Manager
         $data->listFilter->showFields .= 'search,userId';
         $data->listFilter->view = 'horizontal';
         $data->listFilter->setFieldTypeParams('userId', array('allowEmpty' => 'allowEmpty'));
-        $data->listFilter->setField('userId', 'placeholder=Всички');
+        $data->listFilter->setField('userId', 'placeholderType=all');
         $data->listFilter->input();
         
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');

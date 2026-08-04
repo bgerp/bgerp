@@ -112,7 +112,7 @@ class wtime_Summary extends core_Manager
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         $data->listFilter->class = 'simpleForm';
         $data->listFilter->defOrder = false;
-        $data->listFilter->setField('personId', 'placeholder=Всички');
+        $data->listFilter->setField('personId', 'placeholderType=all');
         $data->listFilter->showFields = 'selectPeriod,personId,from,to,type';
         $data->listFilter->input(null, 'silent');
         $data->listFilter->input();
@@ -197,7 +197,7 @@ class wtime_Summary extends core_Manager
         $form = cls::get('core_Form');
         $form->title = "Преизчисляване на обобщенията";
         $form->FLD('from', 'date', 'caption=От,mandatory');
-        $form->FLD('personId', 'key2(mvc=crm_Persons,select=names,allowEmpty)', 'caption=Служител,placeholder=Всички');
+        $form->FLD('personId', 'key2(mvc=crm_Persons,select=names,allowEmpty)', 'caption=Служител,placeholderType=all');
         $form->setDefault('from', dt::addDays(-2, null, false) . " 00:00:00");
         $emplGroupId = crm_Groups::getIdFromSysId('employees');
         $form->setFieldTypeParams('personId', array('groups' => keylist::addKey('', $emplGroupId)));

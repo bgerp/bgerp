@@ -459,7 +459,7 @@ class planning_Hr extends core_Master
      */
     protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
-        $data->listFilter->FLD('centerId', 'key(mvc=planning_Centers,select=name,allowEmpty)', 'caption=Център на дейност,placeholder=Всички');
+        $data->listFilter->FLD('centerId', 'key(mvc=planning_Centers,select=name,allowEmpty)', 'caption=Център на дейност,placeholderType=all');
         $data->listFilter->FLD('order', 'enum(active=Активни,notActive=Неактивни)', 'caption=Показване');
         $data->listFilter->setDefault('order', 'active');
         $data->listFilter->showFields = 'search,centerId,order';

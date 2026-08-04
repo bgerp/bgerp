@@ -307,8 +307,8 @@ class planning_AssetSparePartsDetail extends core_Detail
     {
         if($data->masterMvc ?? null) return;
 
-        $data->listFilter->setField('assetId', 'placeholder=Всички');
-        $data->listFilter->setField('productId', 'placeholder=Всички');
+        $data->listFilter->setField('assetId', 'placeholderType=all');
+        $data->listFilter->setField('productId', 'placeholderType=all');
         $data->listFilter->showFields = 'assetId,productId';
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');

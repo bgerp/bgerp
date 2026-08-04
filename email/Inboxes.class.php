@@ -281,7 +281,7 @@ class email_Inboxes extends core_Master
         
         unset($data->listFilter->fields['accountId']->mandatory);
         $data->listFilter->setParams('accountId', array('allowEmpty' => 'allowEmpty'));
-        $data->listFilter->setField('accountId', 'placeholder=Всички');
+        $data->listFilter->setField('accountId', 'placeholderType=all');
         
         // В хоризонтален вид
         $form->view = 'horizontal';
@@ -729,7 +729,7 @@ class email_Inboxes extends core_Master
             if ($domain == $corpAccRec->domain) {
                 $powerUsers = email_Inboxes::getPowerUsers();
                 
-                if ($userRec = $powerUsers[$user]) {
+                if ($userRec = ($powerUsers[$user] ?? null)) {
                     $rec = new stdClass();
                     $rec->email = $email;
                     $rec->accountId = $corpAccRec;

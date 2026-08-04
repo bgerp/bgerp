@@ -249,13 +249,15 @@ class bgfisc_plg_CashDocument extends core_Plugin
 
                 $data->toolbar->removeBtn('btnConto');
                 $contoUrl = toUrl(array($mvc, 'contocash', $rec->id), 'local');
-                $warning = $mvc->getContoWarning($rec, $rec->isContable);
+                $warning = $mvc->getContoWarning($rec, $rec->isContable ?? null);
+                $warningText = $warning['text'] ?? null;
+                $warningSeverity = $warning['severity'] ?? acc_plg_Contable::SEVERITY_NOTICE;
 
                 // Един-единствен стилизиран модал (виж acc_plg_Contable::buildContoConfirmJs()) -
                 // цветовете на модала следват severity, бутонът остава винаги в стандартния
                 // "warning" цвят, както преди (иначе слаган автоматично от core_Html::createFnBtn()
                 // само когато е подаден warning=)
-                $btnAttr = array('id' => 'btnConto', 'data-url' => $contoUrl, 'class' => 'document-conto-btn', 'onclick' => acc_plg_Contable::buildContoConfirmJs($warning['text'], $warning['severity']), 'style' => 'color:' . acc_plg_Contable::getSeverityColor(acc_plg_Contable::SEVERITY_WARNING) . ';');
+                $btnAttr = array('id' => 'btnConto', 'data-url' => $contoUrl, 'class' => 'document-conto-btn', 'onclick' => acc_plg_Contable::buildContoConfirmJs($warningText, $warningSeverity), 'style' => 'color:' . acc_plg_Contable::getSeverityColor(acc_plg_Contable::SEVERITY_WARNING) . ';');
 
                 $data->toolbar->addFnBtn('Контиране', '', $btnAttr, 'ef_icon = img/16/tick-circle-frame.png,title=Контиране на документа');
             }
@@ -402,7 +404,7 @@ class bgfisc_plg_CashDocument extends core_Plugin
         if ($peroCaseId) {
             $serial = !empty($rec->cashRegNum) ? $rec->cashRegNum : cash_Cases::fetchField($peroCaseId, 'cashRegNum');
             $serialLink = bgfisc_Register::getFuLinkBySerial($serial);
-            $row->peroCase .= tr("|*<br><span style='font-weight:normal'>|ФУ|*: <b>{$serialLink}</b></span>");
+            $row->peroCase = ($row->peroCase ?? '') . tr("|*<br><span style='font-weight:normal'>|ФУ|*: <b>{$serialLink}</b></span>");
         }
     }
     
@@ -637,6 +639,7 @@ class bgfisc_plg_CashDocument extends core_Plugin
         } else {
             $vats = array();
             $beforeTextArr = array();
+            $vatClass = null;
             foreach ($anotherRes as $anotherArr) {
                 $vatClass = $anotherArr['VAT_CLASS'];
                 $vats[$vatClass] = $vatClass;
@@ -951,8 +954,9 @@ class bgfisc_plg_CashDocument extends core_Plugin
     public static function on_AfterPrepareNonCashPayments($mvc, &$data)
     {
         // Ако има дефинирано ФУ
-        $registerRec = bgfisc_Register::getFiscDevice($data->masterData->rec->peroCase);
-        if(!is_object($registerRec) || Mode::isReadOnly() || !count($data->rows)) {
+        $masterRec = $data->masterData->rec ?? null;
+        $registerRec = bgfisc_Register::getFiscDevice($masterRec->peroCase ?? null);
+        if(!is_object($registerRec) || Mode::isReadOnly() || !countR($data->rows ?? null)) {
             
             return;
         }
@@ -964,9 +968,10 @@ class bgfisc_plg_CashDocument extends core_Plugin
         }
         
         // За всеки безналичен метод проверява се има ли код във ФУ
-        $valior = !empty($data->masterData->rec->valior) ? $data->masterData->rec->valior : dt::today();
+        $valior = !empty($masterRec->valior) ? $masterRec->valior : dt::today();
         foreach ($data->rows as $id => &$row){
-            $rec = $data->recs[$id];
+            $rec = $data->recs[$id] ?? null;
+            if (!is_object($rec)) continue;
 
             // Ако сме в периода за приемане на плащане в лева да не се проверява дали съответства код
             if($rec->paymentId == eurozone_Setup::getBgnPaymentId()){
@@ -975,7 +980,7 @@ class bgfisc_plg_CashDocument extends core_Plugin
 
             if($rec->paymentId == -1) continue;
             if(!$Driver->getPaymentCode($registerRec, $rec->paymentId)){
-                $row->paymentId = "<b class='red'>{$row->paymentId}</b>";
+                $row->paymentId = "<b class='red'>" . ($row->paymentId ?? '') . "</b>";
                 $row->paymentId = ht::createHint($row->paymentId, 'Безналичният метод на плащане не е зададен във ФУ', 'error', false);
             }
         }

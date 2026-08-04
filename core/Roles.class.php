@@ -548,7 +548,7 @@ class core_Roles extends core_Manager
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
         $data->listFilter->fields['type']->type->options = array('' => '') + $data->listFilter->fields['type']->type->options;
-        $data->listFilter->setField('type', 'placeholder=Всички');
+        $data->listFilter->setField('type', 'placeholderType=all');
         
         $data->listFilter->input('search, type');
         

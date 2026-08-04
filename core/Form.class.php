@@ -827,7 +827,8 @@ class core_Form extends core_FieldSet
                     $attr['style'] .= "height:{$field->height};";
                 }
                 
-                if (strtolower($this->getMethod()) == 'get') {
+                $isGet = ($this->getMethod() === 'GET');
+                if ($isGet) {
                     if (!empty($field->autoFilter) || !empty($field->refreshForm)) {
                         $attr['onchange'] = 'this.form.submit();';
                     }
@@ -842,12 +843,14 @@ class core_Form extends core_FieldSet
                 }
                 
                 if (!empty($field->placeholder)) {
-                    // В кратките хоризонтални филтри caption-ът не се вижда и трябва да остане част от ориентиращия текст
-                    if ($isHorizontal && strtolower($this->getMethod()) == 'get' && $field->placeholder == 'Всички' && !empty($field->caption)) {
+                    $attr['placeholder'] = tr($field->placeholder);
+                } elseif (($field->placeholderType ?? null) === 'all') {
+                    // При общата празна стойност поведението се задава семантично, а видимият текст остава преводим
+                    if ($isHorizontal && $isGet && !empty($field->caption)) {
                         $captions = str_replace('->', '|* » |', $field->caption);
                         $attr['placeholder'] = tr($captions) . ' (' . mb_strtolower(tr('Всички')) . ')';
                     } else {
-                        $attr['placeholder'] = tr($field->placeholder);
+                        $attr['placeholder'] = tr('Всички');
                     }
                 } elseif (($this->view ?? null) == 'horizontal') {
                     $captions = str_replace('->', '|* » |', $field->caption);

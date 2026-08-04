@@ -91,7 +91,7 @@ class hr_reports_TimeToWorkWithTheSystem extends frame2_driver_TableData
         $fieldset->FLD('maxTimeWaiting', 'time(suggestions=|5 мин|10 мин|15 мин|20 мин)', 'caption=Макс. изчакване, after=inIp,mandatory,single=none');
 
         //Потребители
-         $fieldset->FLD('users', 'users(rolesForAll=ceo|repAllGlobal, rolesForTeams=ceo|manager|repAll|repAllGlobal)', 'caption=Потребител/Екип,placeholder=Всички,single=none');
+         $fieldset->FLD('users', 'users(rolesForAll=ceo|repAllGlobal, rolesForTeams=ceo|manager|repAll|repAllGlobal)', 'caption=Потребител/Екип,placeholderType=all,single=none');
 
     }
 

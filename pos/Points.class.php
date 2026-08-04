@@ -491,7 +491,7 @@ class pos_Points extends core_Master
      */
     public static function addPointFilter(core_Fieldset &$filter, core_Query &$query, $pointFld = 'pointId')
     {
-        $filter->FNC('point', 'key(mvc=pos_Points, select=name, allowEmpty)', 'caption=Точка,placeholder=Всички,width=12em,silent');
+        $filter->FNC('point', 'key(mvc=pos_Points, select=name, allowEmpty)', 'caption=Точка,placeholderType=all,width=12em,silent');
         $filter->showFields .= ',point';
         $filter->setDefault('point', static::getCurrent('id', false));
         $filter->input();

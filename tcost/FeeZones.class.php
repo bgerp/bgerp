@@ -554,7 +554,7 @@ class tcost_FeeZones extends core_Master
      */
     protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
-        $data->listFilter->setField('deliveryTermId', 'placeholder=Всички');
+        $data->listFilter->setField('deliveryTermId', 'placeholderType=all');
         $data->listFilter->showFields = 'deliveryTermId';
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');

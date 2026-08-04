@@ -1167,7 +1167,7 @@ class fileman_Indexes extends core_Manager
         $data->listFilter->view = 'horizontal';
         
         // Добавяме поле във формата за търсене
-        $data->listFilter->FNC('indexType', 'enum(,text=Текст)', 'caption=Тип,placeholder=Всички, allowEmpty,autoFilter');
+        $data->listFilter->FNC('indexType', 'enum(,text=Текст)', 'caption=Тип,placeholderType=all, allowEmpty,autoFilter');
         
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         

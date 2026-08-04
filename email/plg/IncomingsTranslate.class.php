@@ -30,7 +30,7 @@ class email_plg_IncomingsTranslate extends core_Plugin
         }
         
         $rLg = strtolower($rec->lg);
-        if (empty($translateLgCodeArr) || $translateLgCodeArr[$rLg]) {
+        if (empty($translateLgCodeArr) || !empty($translateLgCodeArr[$rLg])) {
             if ($rLg != core_Lg::getCurrent() &&
                 !(Mode::is('text', 'xhtml') && !Mode::is('printing')) &&
                 !Mode::is('text', 'plain') &&

@@ -1593,7 +1593,7 @@ class planning_ProductionTaskDetails extends doc_Detail
             $assetInTasks = planning_AssetResources::getUsedAssetsInTasks();
             if(countR($assetInTasks)){
                 $data->listFilter->setOptions('fixedAsset', array('' => '') + $assetInTasks);
-                $data->listFilter->setField('fixedAsset', 'placeholder=Всички');
+                $data->listFilter->setField('fixedAsset', 'placeholderType=all');
                 $data->listFilter->showFields .= ",fixedAsset";
             }
 
@@ -1601,7 +1601,7 @@ class planning_ProductionTaskDetails extends doc_Detail
             if(countR($employees)){
                 $data->listFilter->setSuggestions('employees', array('' => '') + $employees);
                 $data->listFilter->showFields .= ",employees";
-                $data->listFilter->setField('employees', 'input,placeholder=Всички');
+                $data->listFilter->setField('employees', 'input,placeholderType=all');
             }
             $data->listFilter->showFields = "from,to,{$data->listFilter->showFields}";
         }

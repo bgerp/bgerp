@@ -53,10 +53,8 @@
             <div>|Политика|*</span>: <b>[#policyId#]</b></div>
             <!--ET_BEGIN variationId--><div>|Вариация|*</span>: <b>[#variationId#]</b></div><!--ET_END variationId-->
             <div>|Цени към|*</span>: <b>[#date#]</b></div>
-            <!--ET_BEGIN period--><div>|Изменени за|*: [#period#] (|от|* [#periodDate#])</div><!--ET_END period-->
             <div>|Групи|*: [#productGroups#]</div>
             <!--ET_BEGIN notInGroups--><div>|С изключение на|*: [#notInGroups#]</div><!--ET_END notInGroups-->
-            <div>|Опаковки|*: [#packagings#]</div>
         </div>
     </fieldset>
     <!--ET_END MASTER_BLOCK-->

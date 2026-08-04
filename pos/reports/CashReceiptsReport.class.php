@@ -77,10 +77,10 @@ class pos_reports_CashReceiptsReport extends frame2_driver_TableData
         $fieldset->FLD('start', 'datetime(smartTime)', 'caption=От,refreshForm,after=title');
         $fieldset->FLD('end', 'datetime(smartTime)', 'caption=До,refreshForm,after=start');
 
-        $fieldset->FLD('customers', 'keylist(mvc=core_Users,select=names,allowEmpty)', 'caption=Клиент,placeholder=Всички,after=end,single=none');
+        $fieldset->FLD('customers', 'keylist(mvc=core_Users,select=names,allowEmpty)', 'caption=Клиент,placeholderType=all,after=end,single=none');
 
 
-        $fieldset->FLD('pos', 'keylist(mvc=pos_Points,select=name,allowEmpty)', 'caption=ПОС,placeholder=Всички,after=customers,single=none');
+        $fieldset->FLD('pos', 'keylist(mvc=pos_Points,select=name,allowEmpty)', 'caption=ПОС,placeholderType=all,after=customers,single=none');
 
 
         //Групиране на резултатите

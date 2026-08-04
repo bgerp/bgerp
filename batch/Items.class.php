@@ -330,7 +330,7 @@ class batch_Items extends core_Master
         // Сетване на новите опции
         $data->listFilter->setOptions('filterState', $options);
         $data->listFilter->setDefault('filterState', 'active');
-        $data->listFilter->setField('productId', 'placeholder=Всички');
+        $data->listFilter->setField('productId', 'placeholderType=all');
         if($mvc instanceof rack_ProductsByBatches){
             $data->listFilter->showFields = 'search,productId,filterState';
         } else {

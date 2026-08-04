@@ -510,7 +510,7 @@ class acc_reports_UnpaidInvoices extends frame2_driver_TableData
         
         $row->currencyId = $dRec->currencyId;
         
-        $invoiceValue = $dRec->invoiceValue + $dRec->invoiceVat;
+        $invoiceValue = $dRec->invoiceValue + $dRec->invoiceVAT;
         
         $row->invoiceValue = core_Type::getByName('double(decimals=2)')->toVerbal($invoiceValue);
         

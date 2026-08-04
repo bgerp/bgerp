@@ -236,7 +236,7 @@ class eshop_reports_ReferersOfCarts extends frame2_driver_TableData
         $url = eshop_Carts::getSingleUrlArray_($dRec->cartId);
 
 
-        $row->products = ht::createLinkRef($dRec->products,$url);
+        $row->products = ht::createLinkRef($dRec->products ?? '', $url);
 
         $row->totalNoVat = $Double->toVerbal($dRec->totalNoVat);
 

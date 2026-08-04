@@ -103,6 +103,8 @@ class change_Plugin extends core_Plugin
                 $btnName = 'Освобождаване';
                 $btnTitle = 'Премахване на възлагането към себе си';
                 $row = 2;
+            } elseif (!type_Keylist::isEmpty($data->rec->assign)) {
+                $row = 2;
             }
 
             $data->toolbar->addBtn($btnName, $pickUrl, array('id' => 'pickBtn' . $data->rec->id,'order' => '19.09', 'ef_icon' => 'img/16/hand.png', 'title' => $btnTitle, 'row' => $row));

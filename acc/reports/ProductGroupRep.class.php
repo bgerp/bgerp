@@ -57,7 +57,7 @@ class acc_reports_ProductGroupRep extends frame2_driver_TableData
     {
         $fieldset->FLD('from', 'date(smartTime)', 'caption=От,after=title,single=none');
         $fieldset->FLD('to', 'date(smartTime)', 'caption=До,after=from,single=none');
-        $fieldset->FLD('group', 'keylist(mvc=cat_Groups,select=name)', 'caption=Група,placeholder=Всички,after=to,single=none');
+        $fieldset->FLD('group', 'keylist(mvc=cat_Groups,select=name)', 'caption=Група,placeholderType=all,after=to,single=none');
         $fieldset->FLD('groupBy', 'enum(none= Няма,users=Потребители)', 'caption=Групиране по,after=group,single=none');
     }
     

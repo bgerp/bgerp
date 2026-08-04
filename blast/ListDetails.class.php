@@ -574,7 +574,7 @@ class blast_ListDetails extends doc_Detail
         $exp->question('#companiesGroup,#inChargeUsers, #noSalesFrom, #noSalesTo, #city', tr('Посочете група от фирми, от която да се импортират контактните данни') . ':', "#source == 'groupCompanies'", 'title=' . tr('Избор на група фирми'));
         $exp->question('#personsGroup,#inChargeUsers, #noSalesFrom, #noSalesTo, #city', tr('Посочете група от лица, от която да се импортират контактните данни') . ':', "#source == 'groupPersons'", 'title=' . tr('Избор на група лица'));
         
-        $exp->DEF('#countriesInclude=Държава->Само тези', 'keylist(mvc=drdata_Countries, select=commonName, selectBg=commonNameBg, allowEmpty)', 'placeholder=Всички, notNull');
+        $exp->DEF('#countriesInclude=Държава->Само тези', 'keylist(mvc=drdata_Countries, select=commonName, selectBg=commonNameBg, allowEmpty)', 'placeholderType=all, notNull');
         $exp->SUGGESTIONS('#countriesInclude', 'getCountriesFromGroup(#companiesGroup)');
         $exp->SUGGESTIONS('#countriesInclude', 'getCountriesFromGroup(#personsGroup, "crm_Persons")');
         
@@ -582,11 +582,11 @@ class blast_ListDetails extends doc_Detail
         $exp->SUGGESTIONS('#countriesExclude', 'getCountriesFromGroup(#companiesGroup)');
         $exp->SUGGESTIONS('#countriesExclude', 'getCountriesFromGroup(#personsGroup, "crm_Persons")');
         
-        $exp->DEF('#documentType=Вид', 'keylist(mvc=core_Classes, select=title)', 'placeholder=Всички, notNull');
+        $exp->DEF('#documentType=Вид', 'keylist(mvc=core_Classes, select=title)', 'placeholderType=all, notNull');
         $exp->SUGGESTIONS('#documentType', 'getDocumentTypes()');
         $exp->ASSUME('#documentType', 'getDocumentTypesAssume()');
-        $exp->DEF('#catGroups=Продуктови групи', 'keylist(mvc=cat_Groups,select=name, allowEmpty)', 'placeholder=Всички, notNull');
-        $exp->DEF('#contragentType=Вид контрагент->Избор', 'enum(,crm_Companies=Фирми,crm_Persons=Лица)', 'placeholder=Всички, notNull');
+        $exp->DEF('#catGroups=Продуктови групи', 'keylist(mvc=cat_Groups,select=name, allowEmpty)', 'placeholderType=all, notNull');
+        $exp->DEF('#contragentType=Вид контрагент->Избор', 'enum(,crm_Companies=Фирми,crm_Persons=Лица)', 'placeholderType=all, notNull');
         $exp->DEF('#contragentAccess=Вид контрагент->Достъп', 'enum(, noAccess=Без Достъп, withAccess=С достъп)', 'placeholder=Без значение, notNull');
 
         $exp->DEF('#noSalesFrom=Без продажби през->От', 'date', 'placeholder=Игнорарине след, notNull');

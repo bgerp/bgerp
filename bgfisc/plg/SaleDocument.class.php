@@ -40,7 +40,7 @@ class bgfisc_plg_SaleDocument extends core_Plugin
     {
         $rec = &$data->rec;
         $row = &$data->row;
-        if (!bgfisc_plg_CashDocument::isApplicable($rec->threadId)) {
+        if (!bgfisc_plg_CashDocument::isApplicable($rec->threadId ?? null)) {
             
             return;
         }

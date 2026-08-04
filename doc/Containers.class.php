@@ -2036,7 +2036,7 @@ class doc_Containers extends core_Manager
             // Очакваме да имаме права за съответния екшън
             expect($rec && ($ctrInst->haveRightFor('single', $rec) || $ctrInst->haveRightFor('viewpsingle', $rec)));
             
-            if ($rec->containerId) {
+            if (!empty($rec->containerId)) {
                 $urlArr = array('L', 'S', $rec->containerId);
             }
         } catch (core_exception_Expect $e) {

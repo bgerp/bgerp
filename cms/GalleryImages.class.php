@@ -151,7 +151,7 @@ class cms_GalleryImages extends core_Manager
     public static function on_AfterPrepareListFilter($mvc, $data)
     {
         // Добавяме поле във формата за търсене
-        $data->listFilter->FNC('groupSearch', 'key(mvc=cms_GalleryGroups,select=title, allowEmpty)', 'caption=Група,placeholder=Всички,input,silent,autoFilter');
+        $data->listFilter->FNC('groupSearch', 'key(mvc=cms_GalleryGroups,select=title, allowEmpty)', 'caption=Група,placeholderType=all,input,silent,autoFilter');
         $data->listFilter->FNC('usersSearch', 'users(rolesForAll=user, rolesForTeams=user)', 'caption=Потребител,input,silent,autoFilter');
         
         // В хоризонтален вид

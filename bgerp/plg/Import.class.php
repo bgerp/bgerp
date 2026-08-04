@@ -141,6 +141,7 @@ class bgerp_plg_Import extends core_Plugin
                 }
                 
                 // Преобразуване на csv-то в масив, по зададените параметри
+                $cols = array();
                 $rows = csv_Lib::getCsvRows($csvData, $delimiter, $enclosure, $firstRow, $cols);
                 
                 if ($mvc->haveRightFor('import')) {
@@ -173,7 +174,7 @@ class bgerp_plg_Import extends core_Plugin
             }
             
             if ($content == 'FAIL') {
-                if ($exp->onFail) {
+                if (!empty($exp->onFail)) {
                     $content = $mvc->onFail($exp);
                 } else {
                     $exp->setRedirect();
@@ -253,8 +254,9 @@ class bgerp_plg_Import extends core_Plugin
         $exp->SUGGESTIONS('#enclosure', array('' => '', '"' => '"', '\'' => '\''));
         $exp->DEF('#firstRow=Първи ред', 'enum(columnNames=Имена на колони,data=Данни)', 'mandatory');
 
-        if ($exp->mvc->expOnExist) {
-            $exp->ASSUME('#onExist', '"' . $exp->mvc->expOnExist . '"');
+        $expOnExist = $exp->mvc->expOnExist ?? null;
+        if ($expOnExist) {
+            $exp->ASSUME('#onExist', '"' . $expOnExist . '"');
         }
         
         // Проверка дали броя на колоните отговаря навсякъде
@@ -268,18 +270,22 @@ class bgerp_plg_Import extends core_Plugin
             $Driver = cls::get($driverId, array('mvc' => $exp->mvc));
             $fieldsArr = $Driver->getFields();
 
-            $onExistParams = ($Driver->hideImportOnExistOption) ? 'input=hidden' : 'mandatory';
+            $hideImportOnExistOption = $Driver->hideImportOnExistOption ?? false;
+            $onExistParams = $hideImportOnExistOption ? 'input=hidden' : 'mandatory';
             $exp->DEF('#onExist=При съвпадение', 'enum(skip=Пропускане, update=Обновяване, duplicate=Дублиране)', $onExistParams);
 
             // Поставяне на възможност да се направи мачване на
             // полетата от модела и полетата от csv-то
+            $qFields = '';
             foreach ($fieldsArr as $name => $fld) {
-                $type = ($fld['type']) ? $fld['type'] : 'int';
-                $exp->DEF("#col{$name}={$fld['caption']}", $type, "{$fld['mandatory']}");
+                $type = $fld['type'] ?? 'int';
+                $caption = $fld['caption'] ?? $name;
+                $mandatory = $fld['mandatory'] ?? '';
+                $exp->DEF("#col{$name}={$caption}", $type, $mandatory);
                 if (!isset($fld['notColumn'])) {
                     $exp->OPTIONS("#col{$name}", 'getCsvColNames(#csvData,#delimiter,#enclosure,TRUE)');
 
-                    $caption = str_replace(array('"', "'"), array('\\"', "\\'"), $fld['caption']);
+                    $caption = str_replace(array('"', "'"), array('\\"', "\\'"), $caption);
                     $nameEsc = str_replace(array('"', "'"), array('\\"', "\\'"), $name);
 
                     $exp->ASSUME("#col{$name}", "getCsvColNames(#csvData,#delimiter,#enclosure,TRUE, FALSE, '{$caption}', '{$nameEsc}')");
@@ -301,7 +307,7 @@ class bgerp_plg_Import extends core_Plugin
             $exp->question($qFields, tr("Въведете съответстващите полета за \"{$exp->mvc->title}\"") . ':', true, 'label=lastQ,title=' . tr('Съответствие между полетата на източника и списъка'));
 
             $solveFields = '#driver,#source,#delimiter,#enclosure,#firstRow,#onExist,#lastQ';
-            if($Driver->hideImportOnExistOption){
+            if ($hideImportOnExistOption) {
                 $solveFields = '#driver,#source,#delimiter,#enclosure,#firstRow,#lastQ';
             }
             $res = $exp->solve($solveFields);

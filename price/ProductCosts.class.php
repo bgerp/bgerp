@@ -300,8 +300,8 @@ class price_ProductCosts extends core_Manager
     protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
         $data->listFilter->setOptions('classId', price_Updates::getCostPoliciesOptions());
-        $data->listFilter->setField('productId', 'placeholder=Всички');
-        $data->listFilter->setField('classId', 'placeholder=Всички');
+        $data->listFilter->setField('productId', 'placeholderType=all');
+        $data->listFilter->setField('classId', 'placeholderType=all');
         $data->listFilter->view = 'horizontal';
         $data->listFilter->showFields = 'productId,classId';
         $data->listFilter->input();

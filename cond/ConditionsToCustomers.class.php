@@ -568,7 +568,7 @@ class cond_ConditionsToCustomers extends core_Manager
     protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
         $data->listFilter->view = 'horizontal';
-        $data->listFilter->setField('conditionId', 'placeholder=Всички');
+        $data->listFilter->setField('conditionId', 'placeholderType=all');
         $data->listFilter->showFields = 'conditionId';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
         $data->listFilter->input('conditionId');

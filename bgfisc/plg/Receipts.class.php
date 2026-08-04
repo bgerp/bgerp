@@ -430,6 +430,7 @@ class bgfisc_plg_Receipts extends core_Plugin
                 $cu = core_Users::getCurrent();
                 $fiscalArr['BEGIN_TEXT'] = 'Касиер: ' . core_Users::getVerbal($cu, 'names');
                 $fiscalArr['IS_PRINT_VAT'] = bgfisc_Setup::get('PRINT_VAT_GROUPS') == 'yes';
+                $fiscalArr['END_TEXT'] = array();
 
                 $discountVal = 0;
                 foreach ($products as $pArr){
@@ -660,6 +661,8 @@ class bgfisc_plg_Receipts extends core_Plugin
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
+        if (!isset($rec->id)) return;
+
         try{
             $urn = self::getReceiptUrn($rec);
         } catch(core_exception_Expect $e){
@@ -693,8 +696,9 @@ class bgfisc_plg_Receipts extends core_Plugin
     private static function getReceiptUrn($rec)
     {
         $rec = pos_Receipts::fetchRec($rec);
+        if (!is_object($rec)) return null;
         $cashReg = bgfisc_Register::getRec('pos_Receipts', $rec->id);
-        if(empty($cashReg)){
+        if(empty($cashReg) && !empty($rec->revertId)){
             $cashReg = bgfisc_Register::getRec('pos_Receipts', $rec->revertId);
         }
         

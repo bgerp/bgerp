@@ -157,7 +157,7 @@ class batch_Movements extends core_Detail
         $data->listFilter->FLD('searchType', 'enum(full=Точно съвпадение,notFull=Частично съвпадение)', 'caption=Търсене,silent');
         batch_Items::setStoreFilter($data->listFilter);
 
-        $data->listFilter->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,hasProperties=canStore,hasnotProperties=generic,maxSuggestions=100,forceAjax)', 'caption=Артикул,placeholder=Всички');
+        $data->listFilter->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,hasProperties=canStore,hasnotProperties=generic,maxSuggestions=100,forceAjax)', 'caption=Артикул,placeholderType=all');
         $data->listFilter->FLD('document', 'varchar(128)', 'silent,caption=Документ,placeholder=Хендлър');
         $data->listFilter->FNC('action', 'enum(all=Всички,in=Влиза, out=Излиза, stay=Стои)', 'caption=Операция,input');
         $data->listFilter->FLD('from', 'date', 'caption=От,silent');

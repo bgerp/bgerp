@@ -93,23 +93,23 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
 
         // Филтриране по групи артикули
         $fieldset->FLD('groups', 'keylist(mvc=cat_Groups,select=name)',
-            'caption=Групи артикули,after=type,placeholder=Всички,silent,single=none');
+            'caption=Групи артикули,after=type,placeholderType=all,silent,single=none');
 
         // Филтър по дилъри (потребители с определени роли)
         $fieldset->FLD('dealers', 'users(rolesForAll=ceo|repAllGlobal, rolesForTeams=ceo|manager|repAll|repAllGlobal)',
-            'caption=Дилър,placeholder=Всички,single=none,after=groups');
+            'caption=Дилър,placeholderType=all,single=none,after=groups');
 
         // Филтър по работници
         $fieldset->FLD('employees', 'keylist(mvc=crm_Persons,select=name,group=employees,allowEmpty=true)',
-            'caption=Работници,placeholder=Всички,after=dealers');
+            'caption=Работници,placeholderType=all,after=dealers');
 
         // Филтър по машини (активи)
         $fieldset->FLD('assetResources', 'keylist(mvc=planning_AssetResources,select=name)',
-            'caption=Машини,placeholder=Всички,after=employees,single=none');
+            'caption=Машини,placeholderType=all,after=employees,single=none');
 
         // Филтър по центрове
         $fieldset->FLD('centre', 'keylist(mvc=planning_Centers,select=name)',
-            'caption=Центрове,placeholder=Всички,after=assetResources,single=none');
+            'caption=Центрове,placeholderType=all,after=assetResources,single=none');
 
         // Сортиране по показател (напр. по брак или отпадък)
         $fieldset->FLD('orderBy', 'enum(jobId=Задание, taskId=Операция, scrappedWeight=Брак, wasteWeight=Отпадък)',

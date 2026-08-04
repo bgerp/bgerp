@@ -948,7 +948,7 @@ class cat_products_Params extends doc_Detail
         $data->listFilter->view = 'horizontal';
         $data->listFilter->showFields = 'paramId';
         $data->listFilter->setFieldTypeParams('paramId', array('allowEmpty' => 'allowEmpty'));
-        $data->listFilter->setField('paramId', 'placeholder=Всички');
+        $data->listFilter->setField('paramId', 'placeholderType=all');
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         $data->listFilter->input();
         if($filter = $data->listFilter->rec){

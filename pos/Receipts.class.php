@@ -684,7 +684,7 @@ class pos_Receipts extends core_Master
     {
         pos_Points::addPointFilter($data->listFilter, $data->query);
         $filterDateFld = $data->listFilter->rec->filterDateField ?? null;
-        $data->listFilter->FLD('revertState', 'enum(,no=Без сторниране,revertId=Сторниращи,isReverted=Сторнирани)', 'caption=Сторно,placeholder=Всички');
+        $data->listFilter->FLD('revertState', 'enum(,no=Без сторниране,revertId=Сторниращи,isReverted=Сторнирани)', 'caption=Сторно,placeholderType=all');
 
         // Добавяне на филтър по начините на плащане
         $paymentOptions = array();

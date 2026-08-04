@@ -190,11 +190,11 @@ class email_Mime extends core_BaseClass
 
         $fromEmlStr = $fromName = '';
         foreach ((array)$parseFrom as $p) {
-            if (!$fromEmlStr && $p['address'] && type_Email::isValidEmail($p['address'])) {
+            if (!$fromEmlStr && !empty($p['address']) && type_Email::isValidEmail($p['address'])) {
                 $fromEmlStr .= $p['address'] . ',';
             }
 
-            $p['name'] = trim($p['name']);
+            $p['name'] = trim($p['name'] ?? '');
             $fromName .= $fromName ? ' ' : '';
             $fromName .= $p['name'] ? $p['name'] : '';
         }
@@ -472,6 +472,7 @@ class email_Mime extends core_BaseClass
      */
     public function getFiles()
     {
+        $list = '';
         foreach ($this->files as  $fRec) {
             $list .= ($list ? '' : '|') . $fRec->fmId . '|';
         }
@@ -1262,6 +1263,7 @@ class email_Mime extends core_BaseClass
      */
     public static function getAllEmailsFromStr($str, $uniq = false)
     {
+        $res = '';
         // Инстанция на класа
         $toParser = new email_Rfc822Addr();
         

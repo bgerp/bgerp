@@ -78,14 +78,14 @@ class doc_Search extends core_Manager
     public static function on_AfterPrepareListFilter($mvc, &$res, $data)
     {
         $data->listFilter->title = 'Търсене на документи';
-        $data->listFilter->FNC('scopeFolderId', 'key2(mvc=doc_Folders, allowEmpty, , maxSuggestions=5)', ' silent,width=100%,caption=Обхват,placeholder=Всички');
+        $data->listFilter->FNC('scopeFolderId', 'key2(mvc=doc_Folders, allowEmpty, , maxSuggestions=5)', ' silent,width=100%,caption=Обхват,placeholderType=all');
         $data->listFilter->FNC('fromDate', 'date', 'input,silent,caption=От,width=140px, placeholder=Дата');
         $data->listFilter->FNC('toDate', 'date', 'input,silent,caption=До,width=140px, placeholder=Дата');
         $data->listFilter->FNC('author', 'type_Users(rolesForAll=user)', 'caption=Автор');
-        $data->listFilter->FNC('withMe', 'enum(,shared_with_me=Споделени с мен, liked_from_me=Харесани от мен,tag_from_me=Тагнати от мен)', 'caption=Само, placeholder=Всички');
+        $data->listFilter->FNC('withMe', 'enum(,shared_with_me=Споделени с мен, liked_from_me=Харесани от мен,tag_from_me=Тагнати от мен)', 'caption=Само, placeholderType=all');
         $data->listFilter->FNC('toDateHorizon', 'time', 'silent');
 
-        $data->listFilter->FNC('tags', 'keylist(mvc=tags_Tags, select=name)', 'caption=Таг, placeholder=Всички, silent');
+        $data->listFilter->FNC('tags', 'keylist(mvc=tags_Tags, select=name)', 'caption=Таг, placeholderType=all, silent');
         $data->listFilter->getField('state')->type->options = array('all' => 'Всички') + $data->listFilter->getField('state')->type->options;
 
         unset($data->listFilter->getField('state')->type->options['opened'],
@@ -94,7 +94,7 @@ class doc_Search extends core_Manager
             );
         $data->listFilter->setField('state', 'minimumResultsForSearch=20');
         $data->listFilter->setField('search', 'caption=Ключови думи');
-        $data->listFilter->setField('docClass', 'caption=Вид документ,placeholder=Всички');
+        $data->listFilter->setField('docClass', 'caption=Вид документ,placeholderType=all');
         
         $data->listFilter->setDefault('author', 'all_users');
 

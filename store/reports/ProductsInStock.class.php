@@ -88,13 +88,13 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
 
         $fieldset->FLD('date', 'date', 'caption=Към дата,after=type,single=none');
 
-        $fieldset->FLD('storeId', 'keylist(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,placeholder=Всички,after=date,single=none');
+        $fieldset->FLD('storeId', 'keylist(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,placeholderType=all,after=date,single=none');
 
         $fieldset->FLD('selfPrices', 'enum(balance=По баланс, manager=Мениджърска)', 'notNull,caption=Филтри->Вид цени,after=storeId,single=none');
 
-        $fieldset->FLD('group', 'keylist(mvc=cat_Groups,select=name)', 'caption=Филтри->Група артикули,placeholder=Всички,after=selfPrices,single=none');
+        $fieldset->FLD('group', 'keylist(mvc=cat_Groups,select=name)', 'caption=Филтри->Група артикули,placeholderType=all,after=selfPrices,single=none');
 
-        $fieldset->FLD('products', 'keylist(mvc=cat_Products,select=name)', 'caption=Филтри->Артикули,placeholder=Всички,after=group,single=none,class=w100');
+        $fieldset->FLD('products', 'keylist(mvc=cat_Products,select=name)', 'caption=Филтри->Артикули,placeholderType=all,after=group,single=none,class=w100');
 
         $fieldset->FLD('availability', 'set(available=Положителна,neg=Отрицателна,zero=Нулева)', 'notNull,caption=Филтри->Наличност,maxRadio=4,columns=4,after=products,mandatory,single=none');
 

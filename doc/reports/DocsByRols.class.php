@@ -44,7 +44,7 @@ class doc_reports_DocsByRols extends frame2_driver_TableData
         $fieldset->FLD('roleId', 'key(mvc=core_Roles,select=role,allowEmpty)', 'caption=Роля,after=title,mandatory');
         $fieldset->FLD('from', 'date', 'caption=От,mandatory,after=roleId');
         $fieldset->FLD('to', 'date', 'caption=До,mandatory,after=from');
-        $fieldset->FLD('documents', 'keylist(mvc=core_Classes,select=title)', 'caption=Документи,placeholder=Всички,after=to');
+        $fieldset->FLD('documents', 'keylist(mvc=core_Classes,select=title)', 'caption=Документи,placeholderType=all,after=to');
         $fieldset->FLD('order', 'enum(cnt=брой документи,letter=азбучен ред)', 'caption=Подреди по,after=documents,mandatory,column=none');
     }
     
@@ -253,17 +253,18 @@ class doc_reports_DocsByRols extends frame2_driver_TableData
         $row->document = ($row->document ?? '') . '<table style="width: 100%;">';
         
         foreach ($dRec['classes'] as $docId => $cnt) {
+            $detailsCnt = $dRec['details'][$docId] ?? 0;
             $row->document = ($row->document ?? '') . '<tr>'.'<td style="border: none">'.$vClassArr[$docId]
                                     .' ('.$vClsNameArr[$docId].')'.'</td>'
                                     .'<td style="min-width: 7%;border: none">'.$cnt.'</td>';
             
-            if (!empty($dRec['details'][$docId])) {
+            if ($detailsCnt) {
                 $row->document = ($row->document ?? '') . '<td style="min-width: 3%;border: none">'.':'.'</td>';
             } else {
                 $row->document = ($row->document ?? '') . '<td style="min-width: 3%;border: none">'.' '.'</td>';
             }
             
-            $row->document = ($row->document ?? '') . '<td style="min-width: 7%;border: none">'.$dRec['details'][$docId].'</td>'.'</tr>';
+            $row->document = ($row->document ?? '') . '<td style="min-width: 7%;border: none">'.$detailsCnt.'</td>'.'</tr>';
             
             
             /**

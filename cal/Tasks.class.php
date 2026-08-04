@@ -1533,10 +1533,10 @@ class cal_Tasks extends embed_Manager
         $data->listFilter->FNC('Chart', 'varchar', 'caption=Таблица,input=hidden,silent,autoFilter');
         $data->listFilter->FNC('View', 'varchar', 'caption=Изглед,input=hidden,silent,autoFilter');
         $data->listFilter->FNC('stateTask', 'enum(all=Всички,active=Активни,draft=Чернови,waiting=Чакащи,pending=Заявка,actPend=Активни+Чакащи+Събудени+Спрени+Заявка,closed=Приключени)', 'caption=Състояние,input,silent,autoFilter');
-        $data->listFilter->FNC('folder', 'key2(mvc=doc_FoldersProxy, allowEmpty, selectSourceArr=doc_Folders::getSelectArr, forceProxy)', 'caption=Папка,placeholder=Всички,silent,autoFilter,input');
+        $data->listFilter->FNC('folder', 'key2(mvc=doc_FoldersProxy, allowEmpty, selectSourceArr=doc_Folders::getSelectArr, forceProxy)', 'caption=Папка,placeholderType=all,silent,autoFilter,input');
         $data->listFilter->setOptions('stepId', doc_UnsortedFolderSteps::getOptionArr());
-        $data->listFilter->setField('stepId', 'placeholder=Всички');
-        $data->listFilter->setField('assetResourceId', 'placeholder=Всички');
+        $data->listFilter->setField('stepId', 'placeholderType=all');
+        $data->listFilter->setField('assetResourceId', 'placeholderType=all');
         $data->listFilter->input('folder', 'silent');
         $options = array();
         

@@ -235,7 +235,7 @@ class store_Products extends core_Detail
 
         // Подготвяме формата
         $data->listFilter->FNC('filters', "bgerp_type_CustomFilter(classes=store_Products)", 'caption=Филтри,input,silent,remember,autoFilter');
-        $data->listFilter->FNC('groupId', 'key2(mvc=cat_Groups,select=name,allowEmpty)', 'placeholder=Всички,caption=Група,input,silent,remember,autoFilter');
+        $data->listFilter->FNC('groupId', 'key2(mvc=cat_Groups,select=name,allowEmpty)', 'placeholderType=all,caption=Група,input,silent,remember,autoFilter');
         $data->listFilter->FNC('folder', 'key2(mvc=doc_Folders,select=title,allowEmpty,coverInterface=cat_ProductFolderCoverIntf)', 'input,caption=Папка');
         $data->listFilter->FNC('horizon', 'time(suggestions=1 ден|1 седмица|2 седмици|1 месец|3 месеца)', 'placeholder=Хоризонт,caption=Хоризонт,input,class=w30');
         $data->listFilter->FNC('search', 'varchar', 'placeholder=Търсене,caption=Търсене,input,silent,recently');
@@ -254,7 +254,7 @@ class store_Products extends core_Detail
 
         $stores = cls::get('store_Stores')->makeArray4Select('name', "#state != 'rejected'");
         $data->listFilter->setOptions('storeId', array('' => '') + $stores);
-        $data->listFilter->setField('storeId', 'autoFilter,placeholder=Всички');
+        $data->listFilter->setField('storeId', 'autoFilter,placeholderType=all');
         
         if ($mvc->mandatoryStoreFilter === true) {
             $storeId = store_Stores::getCurrent();
