@@ -390,6 +390,7 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
         // Линк към документа
         $DoocClass = cls::get($dRec->className);
         $row->documentId = $DoocClass->getLink($dRec->documentId, 0);
+        $contragentName = $dRec->contragentName ?? doc_Folders::getTitleById($dRec->folderId ?? null);
 
         // Групиращ ред (ако сме в групиране)
         if (($rec->groupBy ?? null) == 'yes') {
@@ -405,9 +406,9 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
 
                 $sums[] = "<span class='fright'>{$styledVal} <span class='cCode'>{$cur}</span></span>";
             }
-            $row->contragentName = $dRec->contragentName . implode('', $sums);
+            $row->contragentName = $contragentName . implode('', $sums);
         } else {
-            $row->contragentName = $dRec->contragentName;
+            $row->contragentName = $contragentName;
         }
 
         // Форматиране на amountDeal с цвят според типа на документа
