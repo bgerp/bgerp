@@ -38,7 +38,7 @@ class type_Ip extends type_Varchar
      */
     public function fromVerbal_($value)
     {
-        $value = trim($value);
+        $value = trim($value ?? '');
         
         if (empty($value)) {
             
@@ -210,7 +210,7 @@ class type_Ip extends type_Varchar
      */
     public static function extractIps($input): array
     {
-        $lines = preg_split('/[\r\n,;]+/', trim($input));
+        $lines = preg_split('/[\r\n,;]+/', trim($input ?? ''));
         $ips = $ipsRaw = $nets = $netsRaw = array();
 
         foreach ($lines as $line) {

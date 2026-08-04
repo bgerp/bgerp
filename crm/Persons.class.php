@@ -515,11 +515,11 @@ class crm_Persons extends core_Master
         if (is_array($data->recs)) {
             $cnt = array();
             foreach ($data->recs as $rec) {
-                $key = str::utf2ascii(trim($rec->name));
+                $key = str::utf2ascii(trim((string) $rec->name));
                 $cnt[$key] = ($cnt[$key] ?? 0) + 1;
             }
             foreach ($data->recs as $rec) {
-                if ($cnt[str::utf2ascii(trim($rec->name))] >= 2) {
+                if ($cnt[str::utf2ascii(trim((string) $rec->name))] >= 2) {
                     $data->rows[$rec->id]->nameList .= $data->rows[$rec->id]->titleNumber;
                 }
             }
@@ -775,7 +775,7 @@ class crm_Persons extends core_Master
         $row->title = $mvc->getTitleById($rec);
         $row->titleNumber = "<div class='number-block' style='display:inline'>№{$rec->id}</div>";
 
-        $birthday = trim($mvc->getVerbal($rec, 'birthday'));
+        $birthday = trim((string) $mvc->getVerbal($rec, 'birthday'));
 
         if ($birthday && !empty($mvc->birthdayFilter)) {
             if (strlen($birthday) == 5) {

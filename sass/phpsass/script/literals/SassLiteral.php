@@ -57,7 +57,7 @@ abstract class SassLiteral
    * @param string $value value of the literal type
    * @return SassLiteral
    */
-  public function __construct($value = null, $context)
+  public function __construct($value, $context)
   {
     $this->value = $value;
     $this->context = $context;

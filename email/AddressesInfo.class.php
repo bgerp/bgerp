@@ -168,7 +168,7 @@ class email_AddressesInfo extends core_Manager
     public static function getEmail($email)
     {
         $oEmail = $email;
-        $email = trim($email);
+        $email = trim($email ?? '');
         $email = mb_strtolower($email);
 
         if (isset(self::$mapArr[$email])) {

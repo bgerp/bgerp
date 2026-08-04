@@ -961,6 +961,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                         $obj1->quantity = $obj1->quantityFromBom;
                         $obj1->quantityExpected = null;
                         $obj1->quantityFromBom = 0;
+                        $obj1->batches = $obj1->batches ?? array();
                         $details[$key] = $obj1;
                         $details[$key]->quantityFromBom += $d3->quantityFromBom;
                     }
@@ -1084,6 +1085,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                 $dRec->fromAccId = '61102';
             }
             $dRec->measureId = $pRec->measureId;
+            $dRec->batches = array();
             $index = $dRec->productId . '|' . $dRec->type;
             $details[$index] = $dRec;
         }
@@ -1138,7 +1140,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 
                 // От вложените партиди остават само толкова колкото са нужни за крайното к-во
                 if(core_Packs::isInstalled('batch')){
-                    if(is_array($dRec->batches)){
+                    if(isset($dRec->batches) && is_array($dRec->batches)){
                         $neededQty = $dRec->quantity;
                         $neededBatches = array();
                         foreach ($dRec->batches as $batch => $qty) {

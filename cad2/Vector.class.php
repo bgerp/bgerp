@@ -6,6 +6,11 @@
  */
 class cad2_Vector
 {
+    public $x;
+    public $y;
+    public $a;
+    public $r;
+
     public function __construct($x, $y, $type = 'cartesian', $angleUnit = 'rad')
     {
         if ($type == 'polar') {

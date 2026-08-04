@@ -699,7 +699,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
         $row->quantity = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->quantity);
         $row->quantity = ht::styleNumber($row->quantity, $dRec->quantity);
 
-        $row->labelMeasure = ($dRec->type == 'input') ? 'бр.' : cat_UoM::getShortName($dRec->labelMeasure);
+        $row->labelMeasure = (($dRec->type ?? null) == 'input') ? 'бр.' : cat_UoM::getShortName($dRec->labelMeasure ?? null);
         $row->labelQuantity = $Double->toVerbal($dRec->labelQuantity);
 
         $row->scrap = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->scrap);

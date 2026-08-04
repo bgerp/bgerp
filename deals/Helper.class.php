@@ -1654,7 +1654,7 @@ abstract class deals_Helper
     /**
      * Помощна ф-я за намиране на транспортното тегло/обем
      */
-    private static function getMeasureRow($productId, $packagingId, $quantity, $type, &$value = null, $masterState)
+    private static function getMeasureRow($productId, $packagingId, $quantity, $type, &$value, $masterState)
     {
         expect(in_array($type, array('volume', 'weight', 'netWeight', 'tareWeight')));
         $hint = $warning = false;
@@ -3172,7 +3172,7 @@ abstract class deals_Helper
      *
      * @return stdClass|null
      */
-    public static function checkPriceWithContragentPrice($productId, $price, $discount, $quantity, $quantityInPack, $contragentClassId, $contragentId, $valior, $listId = null, $useQuotationPrice = true, $mvc, $threadId, $rate, $currencyId, $transportFeeRec = null)
+    public static function checkPriceWithContragentPrice($productId, $price, $discount, $quantity, $quantityInPack, $contragentClassId, $contragentId, $valior, $listId, $useQuotationPrice, $mvc, $threadId, $rate, $currencyId, $transportFeeRec = null)
     {
         static $useBomVal;
         $price = $price * (1 - $discount);

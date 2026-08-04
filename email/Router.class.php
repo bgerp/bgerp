@@ -239,8 +239,8 @@ class email_Router extends core_Manager
         $keys = array();
         
         // Нормализация на имейлите - само малки букви
-        $fromEmail = strtolower($fromEmail);
-        $toEmail = strtolower($toEmail);
+        $fromEmail = strtolower($fromEmail ?? '');
+        $toEmail = strtolower($toEmail ?? '');
         
         $toEmail = email_Inboxes::replaceDomains($toEmail);
         

@@ -31,7 +31,7 @@ class doc_type_SayTime extends type_Varchar
      */
     public function fromVerbal($timeStr)
     {
-        $timeStr = trim($timeStr);
+        $timeStr = trim($timeStr ?? '');
         
         if ($timeStr == 'на момента') {
             $timeInMins['value'] = 0;

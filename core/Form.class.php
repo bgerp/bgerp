@@ -329,7 +329,7 @@ class core_Form extends core_FieldSet
                 $this->setErrorFromResult($result, $field, $name);
             }
 
-            if ($this->cmd != 'refresh' || is_array($value) || strlen($value)) {
+            if ($this->cmd != 'refresh' || is_array($value) || strlen($value ?? '')) {
                 $this->rec->{$name} = $value;
             }
         }
@@ -962,7 +962,7 @@ class core_Form extends core_FieldSet
 
                     $maxRadio = $type->params['maxRadio'] ?? null;
                     if (empty($attr['_isRefresh'])) {
-                        if (!strlen($maxRadio) && $maxRadio !== 0 && $maxRadio !== '0' && empty($type->params['isHorizontal'])){
+                        if (!strlen($maxRadio ?? '') && $maxRadio !== 0 && $maxRadio !== '0' && empty($type->params['isHorizontal'])){
                             if(arr::isOptionsTotalLenBellowAllowed($options)){
                                 $maxRadio = 4;
                                 $type->params['select2MinItems'] = 10000;

@@ -118,7 +118,7 @@ class drdata_type_Eori extends type_Varchar
         $attr = array();
         $attr['title'] = $status[0];
         
-        if (trim($info)) {
+        if (trim($info ?? '')) {
             $attr['title'] .= "|*\n" . $info;
         }
         $attr['class'] = $status[1];

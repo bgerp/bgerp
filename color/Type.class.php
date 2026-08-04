@@ -40,7 +40,7 @@ class color_Type extends type_Varchar
      */
     public function toVerbal($value)
     {
-        if (!trim($value)) {
+        if (!trim($value ?? '')) {
             
             return;
         }
@@ -60,7 +60,7 @@ class color_Type extends type_Varchar
      */
     public function fromVerbal($value)
     {
-        if (!trim($value)) {
+        if (!trim($value ?? '')) {
             
             return;
         }

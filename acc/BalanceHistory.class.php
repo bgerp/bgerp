@@ -453,10 +453,10 @@ class acc_BalanceHistory extends core_Manager
             foreach ($data->recs as $dKey => $dArr){
                 if($dArr['docType'] == $data->type){
                     $filteredRecs[$dKey] = $dArr;
-                    $debitQuantity += $dArr['debitQuantity'];
-                    $debitAmount += $dArr['debitAmount'];
-                    $creditQuantity += $dArr['creditQuantity'];
-                    $creditAmount += $dArr['creditAmount'];
+                    $debitQuantity += $dArr['debitQuantity'] ?? 0;
+                    $debitAmount += $dArr['debitAmount'] ?? 0;
+                    $creditQuantity += $dArr['creditQuantity'] ?? 0;
+                    $creditAmount += $dArr['creditAmount'] ?? 0;
                 }
             }
             $data->recs = $filteredRecs;

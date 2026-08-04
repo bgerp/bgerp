@@ -99,7 +99,7 @@ class captcha_Type extends core_Type
         
         core_Cache::remove(CAPTCHA_CACHE_TYPE, $handler);
         
-        $value = trim($value['value']);
+        $value = trim($value['value'] ?? '');
         
         if ($code == $value) {
             
@@ -176,7 +176,7 @@ class captcha_Type extends core_Type
      */
     public function unprotectId($id)
     {
-        $idStrip = substr($id, 0, strlen($id) - EF_ID_CHECKSUM_LEN);
+        $idStrip = substr($id, 0, strlen($id ?? '') - EF_ID_CHECKSUM_LEN);
         
         $idProt = $this->protectId($idStrip);
         

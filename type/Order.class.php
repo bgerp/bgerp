@@ -28,7 +28,7 @@ class type_Order extends type_Varchar
      */
     public function fromVerbal_($val)
     {
-        $val = trim($val);
+        $val = trim($val ?? '');
         
         // Празна стойност се приема за NULL
         if ($val === '') {
@@ -65,7 +65,7 @@ class type_Order extends type_Varchar
      */
     public function renderInput_($name, $value = '', &$attr = array())
     {
-        if (strlen($value)) {
+        if (strlen($value ?? '')) {
             $value = $this->toVerbal_($value);
         }
         
@@ -78,7 +78,7 @@ class type_Order extends type_Varchar
      */
     public function toVerbal_($value)
     {
-        $value = trim($value);
+        $value = trim($value ?? '');
         
         if (!($len = strlen($value))) {
             

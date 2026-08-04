@@ -1372,6 +1372,9 @@ class core_Manager extends core_Mvc
 
         if ($duration > 0 && $userId > 0 && !isset(self::$cacheRights[$userId])) {
             self::$cacheRights[$userId] = core_Cache::get('RightsForObject', $userId);
+            if (!is_array(self::$cacheRights[$userId])) {
+                self::$cacheRights[$userId] = array();
+            }
         }
 
         $key = crc32("{$className}|{$action}") . "|" . (is_scalar($id) ? $id : serialize($id)) . "|" . crc32(serialize($rec));

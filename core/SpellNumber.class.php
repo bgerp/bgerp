@@ -53,7 +53,7 @@ class core_SpellNumber
      */
     public function dig2Text($d2, $d1, $d0, $g = 'n')
     {
-        $text = null;
+        $text = '';
         
         switch ($d2) {
             case 1: {

@@ -1423,7 +1423,7 @@ class core_App
         expect(is_numeric($time));
         
         // Подсигуряване че времето не е много малко
-        $time = max($time, $minTime);
+        $time = (int) ceil(max($time, $minTime));
         
         $now = time();
         

@@ -50,7 +50,7 @@ class type_Interface extends type_Key
             
             $suffix = $this->params['suffix'];
             
-            $lenSuffix = strlen($suffix);
+            $lenSuffix = strlen($suffix ?? '');
             
             if (countR($allInterfaces)) {
                 foreach ($allInterfaces as $id => $name) {

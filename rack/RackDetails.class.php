@@ -135,7 +135,7 @@ class rack_RackDetails extends core_Detail
             }
         }
 
-        if (in_array($rec->status, array('reservedSoft', 'reserved'))) {
+        if (in_array($rec->status ?? null, array('reservedSoft', 'reserved'))) {
             $form->setField('productId', 'input=input');
         }
         

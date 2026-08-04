@@ -17,6 +17,10 @@
  */
 class planning_OrderTasksInJobStrategyIntf
 {
+    /**
+     * Инстанция на мениджъра имащ интерфейса
+     */
+    public $class;
 
 
     /**

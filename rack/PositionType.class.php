@@ -40,7 +40,7 @@ class rack_PositionType extends type_Varchar
      */
     public function fromVerbal($value)
     {
-        if (!trim($value)) {
+        if (!trim($value ?? '')) {
             
             return;
         }
@@ -95,7 +95,7 @@ class rack_PositionType extends type_Varchar
             $value = tr('Под');
         }
         
-        if (!strpos($value, '-') || Mode::is('printing') || Mode::is('text', 'plain') || Mode::is('text', 'printing')) {
+        if ($value === null || !strpos($value, '-') || Mode::is('printing') || Mode::is('text', 'plain') || Mode::is('text', 'printing')) {
             
             return $value;
         }

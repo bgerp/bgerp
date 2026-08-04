@@ -64,7 +64,7 @@ class type_Double extends core_Type
      */
     public function fromVerbal($value)
     {
-        $value = trim($value);
+        $value = trim($value ?? '');
         
         $allowOct = (boolean) (($this->params['allowOct'] ?? null) == 'allowOct');
         $allowHex = (boolean) (($this->params['allowHex'] ?? null) == 'allowHex');
@@ -158,7 +158,7 @@ class type_Double extends core_Type
     public function renderInput_($name, $value = '', &$attr = array())
     {
         // Ако числото е в научна нотация и полето не се рендира във форма с грешка да не се ревербализира
-        if(preg_match('/^\$?[+-]?\d+(\.\d+)?[Ee][+-]?\d+$/i', $value)){
+        if(preg_match('/^\$?[+-]?\d+(\.\d+)?[Ee][+-]?\d+$/i', (string) $value)){
             if(!$this->formWithErrors){
                 $value = rtrim(sprintf("%.9f", $value), "0");
             }

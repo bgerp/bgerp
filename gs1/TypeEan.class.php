@@ -224,8 +224,8 @@ class gs1_TypeEan extends type_Varchar
         if(substr($value, 0, 1) == '#'){
             return array();
         }
-        if (!trim($value)) {
-            
+        if (!trim($value ?? '')) {
+
             return array('value' => '');
         }
         if (countR($this->autoRange)) {

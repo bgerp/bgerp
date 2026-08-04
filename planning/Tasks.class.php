@@ -1644,7 +1644,8 @@ class planning_Tasks extends core_Master
             }
 
             if (isset($taskData['productId'])) {
-                $isFinal = planning_Steps::getRec('cat_Products', $taskData['productId'])->isFinal;
+                $stepRec = planning_Steps::getRec('cat_Products', $taskData['productId']);
+                $isFinal = $stepRec ? $stepRec->isFinal : null;
 
                 $form->setReadOnly('productId');
                 $form->setDefault('isFinal', $isFinal);
@@ -5429,6 +5430,8 @@ class planning_Tasks extends core_Master
         // Кои са неоттеглените ПО към заданието
         $debugRes = array();
         $jobRec = planning_Jobs::fetch("#containerId = {$containerId}");
+        if (!$jobRec) return;
+
         $tQuery = planning_Tasks::getQuery();
         $tQuery->where("#originId = {$jobRec->containerId} AND #state != 'rejected'");
         $tQuery->orderBy('saoOrder', "ASC");

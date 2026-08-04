@@ -742,7 +742,7 @@ class cad2_SvgCanvas extends cad2_Canvas
             
             if (!empty($tag->attr) && countR($tag->attr)) {
                 foreach ($tag->attr as $name => $val) {
-                    if (strlen($val) == 0) {
+                    if ($val === null || $val === '' || $val === false) {
                         continue;
                     }
                     

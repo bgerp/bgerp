@@ -3023,6 +3023,10 @@ form select.w50 + .select2 {
 	white-space: normal !important;
 }
 
+th:has(.wrapText) {
+	white-space: normal !important;
+}
+
 .shipment-table tr td{
 	padding:1px  3px !important;
 }

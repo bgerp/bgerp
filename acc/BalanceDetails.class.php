@@ -213,11 +213,11 @@ class acc_BalanceDetails extends core_Detail
             if (is_array($by) && ($sortBy = $by['sortBy'])) {
                 if(strpos($sortBy, 'NotNull') !== false){
                     $sortBy = str_replace('NotNull', '', $sortBy);
-                    $data->recs = array_filter($data->recs, function($a) use($sortBy) {return abs(round($a->{$sortBy}, 2)) > 0;});
+                    $data->recs = array_filter($data->recs, function($a) use($sortBy) {return abs(round($a->{$sortBy} ?? 0, 2)) > 0;});
                 } elseif($sortBy == 'closeToZero'){
                     $sortBy = 'blAmount';
                     $data->recs = array_filter($data->recs, function($a) {
-                        return !(abs($a->blQuantity) > 0.001 or abs($a->blAmount) > 0.05);
+                        return !(abs($a->blQuantity ?? 0) > 0.001 or abs($a->blAmount ?? 0) > 0.05);
                     });
                 }
                 arr::sortObjects($data->recs, $sortBy, 'desc');
@@ -254,7 +254,7 @@ class acc_BalanceDetails extends core_Detail
             foreach (array('base', 'debit', 'credit', 'bl') as $fieldPart) {
                 $haveSame = true;
                 foreach ($data->recs as $id => $r) {
-                    if(round($r->{"{$fieldPart}Quantity"}, 2) != round($r->{"{$fieldPart}Amount"}, 2)){
+                    if(round($r->{"{$fieldPart}Quantity"} ?? 0, 2) != round($r->{"{$fieldPart}Amount"} ?? 0, 2)){
                         $haveSame = false;
                         break;
                     }
@@ -923,7 +923,7 @@ class acc_BalanceDetails extends core_Detail
                 }
             }
         } else {
-            $row->ROW_ATTR['class'] = ($row->ROW_ATTR['class'] ?? '') . ' level-' . strlen($rec->accountNum);
+            $row->ROW_ATTR['class'] = ($row->ROW_ATTR['class'] ?? '') . ' level-' . strlen($rec->accountNum ?? '');
             $row->accountId = acc_Balances::getAccountLink($rec->accountId, $masterRec, false, true);
         }
     }
@@ -1311,7 +1311,7 @@ class acc_BalanceDetails extends core_Detail
                 }
                 
                 // Ако изчислената сума е различна от записаната в журнала
-                if (trim($rec->{$priceField}) != trim($price)) {
+                if (trim($rec->{$priceField} ?? '') != trim($price)) {
                     
                     // Ако няма сума на записа
                     if (!isset($rec->amount)) {

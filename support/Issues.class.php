@@ -860,6 +860,7 @@ class support_Issues extends core_Master
         }
         
         if ($component) {
+            $row->subTitle = $row->subTitle ?? '';
             if ($row->subTitle) {
                 $row->subTitle .= ', ';
             }

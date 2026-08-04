@@ -451,7 +451,7 @@ class doc_Folders extends core_Master
         $teamMembers = core_Users::getTeammates($userId);
         
         // Дали обекта има отговорник - съекипник
-        $fromTeam = strpos($teamMembers, '|' . $inCharge . '|') !== false;
+        $fromTeam = strpos($teamMembers ?? '', '|' . $inCharge . '|') !== false;
         
         // Ако папката е екипна, и е на член от екипа на потребителя, и потребителя е manager или officer или executive - има достъп
         if ($access == 'team' && $fromTeam && core_Users::haveRole('manager,officer,executive', $userId)) {
@@ -2546,6 +2546,6 @@ class doc_Folders extends core_Master
      */
     protected static function on_BeforeRenderListTable($mvc, &$res, $data)
     {
-        $data->listTableMvc->FLD('handle', 'varchar', 'tdClass=small rightCol small-field');
+        $data->listTableMvc->FLD('handle', 'varchar', 'tdClass=small leftCol small-field');
     }
 }
