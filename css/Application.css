@@ -2614,6 +2614,9 @@ form select.w50 + .select2 {
 .wrapText {
   white-space: normal !important; }
 
+th:has(.wrapText) {
+  white-space: normal !important; }
+
 .shipment-table tr td {
   padding: 1px 3px !important; }
 
@@ -8462,3 +8465,4 @@ td.td-clamp[data-overflow="true"][data-expanded="true"] .clamp-ellipsis::after {
 .block_title .folder-handle:hover {
   background: white;
   color: #555555; }
+
