@@ -584,7 +584,7 @@ class core_ET extends core_BaseClass
         //DEBUG::stopTimer("SUB1");
         
         //DEBUG::startTimer("SUB2");
-        $str = $this->processContent($content);
+        $str = $this->processContent($content) ?? '';
         
         //DEBUG::stopTimer("SUB2");
         
