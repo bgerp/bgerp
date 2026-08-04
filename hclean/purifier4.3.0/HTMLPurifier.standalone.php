@@ -6642,6 +6642,7 @@ class HTMLPurifier_StringHash extends ArrayObject
     /**
      * Retrieves a value, and logs the access.
      */
+    #[\ReturnTypeWillChange]
     public function offsetGet($index) {
         $this->accessed[$index] = true;
         return parent::offsetGet($index);
@@ -16831,5 +16832,4 @@ class HTMLPurifier_VarParser_Native extends HTMLPurifier_VarParser
     }
 
 }
-
 
