@@ -121,7 +121,7 @@ class type_Emails extends type_Varchar
     {
         $oValue = $value;
 
-        $value = trim($value);
+        $value = trim($value ?? '');
         
         $value = type_Email::replaceEscaped($value);
 
@@ -153,7 +153,7 @@ class type_Emails extends type_Varchar
     public function isValid($value)
     {
         //Ако няма въведено нищо връщаме резултата
-        if (!trim($value)) {
+        if (!trim($value ?? '')) {
             
             return;
         }
@@ -220,7 +220,7 @@ class type_Emails extends type_Varchar
     public function renderInput_($name, $value = '', &$attr = array())
     {
         if (empty($this->params['showOriginal'])) {
-            if (strlen($value)) {
+            if (strlen($value ?? '')) {
                 //Вземаме всички имейли
                 $emailsArr = self::toArray($value, self::ALL);
 

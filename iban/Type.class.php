@@ -43,7 +43,7 @@ class iban_Type extends type_Varchar
     {
         self::loadCode();
         
-        $value = trim($value);
+        $value = trim($value ?? '');
         
         $res = new stdClass();
         

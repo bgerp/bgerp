@@ -79,7 +79,7 @@ class type_Urls extends type_Varchar
     public function isValid($value)
     {
         //Ако няма въведено нищо връщаме резултата
-        if (!trim($value)) {
+        if (!trim($value ?? '')) {
             
             return;
         }
@@ -109,7 +109,7 @@ class type_Urls extends type_Varchar
      */
     public function fromVerbal($value)
     {
-        $value = trim($value);
+        $value = trim($value ?? '');
      
         if (empty($value)) {
             

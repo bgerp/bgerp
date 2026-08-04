@@ -87,7 +87,7 @@ class cat_type_Uom extends type_Varchar
             return $value;
         }
         
-        if (!strlen($value['lP'])) {
+        if (!strlen($value['lP'] ?? '')) {
             
             return;
         }
