@@ -73,7 +73,7 @@ class core_Html
                 $element = "<{$name}{$attrStr}>";
             } else {
                 if (in_array(strtolower($name), array('textarea', 'option'))) {
-                    $body = str_replace(array('&', '<', '>'), array('&amp;', '&lt;', '&gt;'), $body);
+                    $body = str_replace(array('&', '<', '>'), array('&amp;', '&lt;', '&gt;'), $body ?? '');
                 }
                 $element = "<{$name}{$attrStr}>{$body}</{$name}>";
             }
