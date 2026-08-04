@@ -2111,14 +2111,6 @@ function scheduleTwoColsFilterModeUpdate() {
     var refresh = function () {
         twoColsFilterResizeFrame = null;
         updateTwoColsFilterModes();
-
-        $('.wide .twoColsFilter select.combo').each(function () {
-            var $input = $(this).siblings('input.combo').first();
-
-            if ($input.length && $input.attr('id') && this.id) {
-                comboBoxInit($input.attr('id'), this.id);
-            }
-        });
     };
 
     twoColsFilterResizeFrame = window.requestAnimationFrame ?
@@ -2314,7 +2306,7 @@ function setTwoColsFilterWidth() {
         };
     });
 
-    scheduleTwoColsFilterModeUpdate();
+    updateTwoColsFilterModes();
     alignFormFilterButtons();
 }
 
