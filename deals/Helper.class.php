@@ -3172,7 +3172,7 @@ abstract class deals_Helper
      *
      * @return stdClass|null
      */
-    public static function checkPriceWithContragentPrice($productId, $price, $discount, $quantity, $quantityInPack, $contragentClassId, $contragentId, $valior, $listId = null, $useQuotationPrice = true, $mvc, $threadId, $rate, $currencyId, $transportFeeRec = null)
+    public static function checkPriceWithContragentPrice($productId, $price, $discount, $quantity, $quantityInPack, $contragentClassId, $contragentId, $valior, $listId, $useQuotationPrice, $mvc, $threadId, $rate, $currencyId, $transportFeeRec = null)
     {
         static $useBomVal;
         $price = $price * (1 - $discount);
