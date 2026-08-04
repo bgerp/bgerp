@@ -349,7 +349,7 @@ class deals_QuotationDetails extends doc_Detail
     protected function checkUnique($recs, $productId, $id, $isOptional, $notes)
     {
         $other = array_values(array_filter($recs, function ($val) use ($productId, $id, $isOptional, $notes) {
-            if ($val->optional == $isOptional && $val->productId == $productId && $val->id != $id && md5($notes) == md5($val->notes)) {
+            if ($val->optional == $isOptional && $val->productId == $productId && $val->id != $id && md5((string) $notes) == md5((string) $val->notes)) {
 
                 return $val;
             }
@@ -463,7 +463,7 @@ class deals_QuotationDetails extends doc_Detail
 
             // Създава се специален индекс на записа productId|optional, така
             // резултатите са разделени по продукти и дали са опционални или не
-            $pId = $pId . "|{$optional}|" . md5($rec->notes);
+            $pId = $pId . "|{$optional}|" . md5((string) $rec->notes);
 
             $newRows[$pId][] = $row;
         }
