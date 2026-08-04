@@ -208,7 +208,7 @@ class rack_Products extends store_Products
         $inIds = arr::extractValuesFromArray($query->fetchAll(), 'productId');
         
         // Подсигуряване че конкретните артикули, ще са винаги заредени в опциите
-        if(ctype_digit($onlyIds) && !array_key_exists($onlyIds, $inIds)){
+        if(ctype_digit((string) $onlyIds) && !array_key_exists($onlyIds, $inIds)){
             $inIds[$onlyIds] = $onlyIds;
         }
         
