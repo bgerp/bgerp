@@ -210,7 +210,7 @@ class type_Classes extends type_Keylist
                 if ($name) {
                     $haveGroupName = true;
                 }
-                $name = trim($name);
+                $name = trim($name ?? '');
                 $group = trim($group);
                 
                 $name = $name ? $name : $group;
