@@ -962,7 +962,7 @@ class core_Form extends core_FieldSet
 
                     $maxRadio = $type->params['maxRadio'] ?? null;
                     if (empty($attr['_isRefresh'])) {
-                        if (!strlen($maxRadio) && $maxRadio !== 0 && $maxRadio !== '0' && empty($type->params['isHorizontal'])){
+                        if (!strlen($maxRadio ?? '') && $maxRadio !== 0 && $maxRadio !== '0' && empty($type->params['isHorizontal'])){
                             if(arr::isOptionsTotalLenBellowAllowed($options)){
                                 $maxRadio = 4;
                                 $type->params['select2MinItems'] = 10000;
