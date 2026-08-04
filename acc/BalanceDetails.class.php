@@ -254,7 +254,7 @@ class acc_BalanceDetails extends core_Detail
             foreach (array('base', 'debit', 'credit', 'bl') as $fieldPart) {
                 $haveSame = true;
                 foreach ($data->recs as $id => $r) {
-                    if(round($r->{"{$fieldPart}Quantity"}, 2) != round($r->{"{$fieldPart}Amount"}, 2)){
+                    if(round($r->{"{$fieldPart}Quantity"} ?? 0, 2) != round($r->{"{$fieldPart}Amount"} ?? 0, 2)){
                         $haveSame = false;
                         break;
                     }
