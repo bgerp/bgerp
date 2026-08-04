@@ -4791,7 +4791,7 @@ class cat_Products extends embed_Manager
             } else {
                 $paramValue = self::getParams($productId, 'weightKg');
 
-                return !is_nan($paramValue) ? $paramValue : null;
+                return (isset($paramValue) && !is_nan($paramValue)) ? $paramValue : null;
             }
         }
     }
