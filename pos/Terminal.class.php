@@ -1743,7 +1743,7 @@ class pos_Terminal extends peripheral_Terminal
             $dataUrl = toUrl(array('pos_ReceiptDetails', 'updaterec', 'receiptId' => $rec->id, 'action' => 'setprice', 'string' => $price), 'local');
             
             $cnt++;
-            $buttons[$dRec->price] = ht::createElement("div", array('id' => "price{$cnt}",'class' => 'resultPrice posBtns navigable', 'data-url' => $dataUrl, 'title' => 'Задаване на избраната цена'), tr($btnName), true);
+            $buttons[(string) $dRec->price] = ht::createElement("div", array('id' => "price{$cnt}",'class' => 'resultPrice posBtns navigable', 'data-url' => $dataUrl, 'title' => 'Задаване на избраната цена'), tr($btnName), true);
         }
 
         $priceTpl = new core_ET("");
