@@ -1644,7 +1644,8 @@ class planning_Tasks extends core_Master
             }
 
             if (isset($taskData['productId'])) {
-                $isFinal = planning_Steps::getRec('cat_Products', $taskData['productId'])->isFinal;
+                $stepRec = planning_Steps::getRec('cat_Products', $taskData['productId']);
+                $isFinal = $stepRec ? $stepRec->isFinal : null;
 
                 $form->setReadOnly('productId');
                 $form->setDefault('isFinal', $isFinal);
