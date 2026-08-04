@@ -788,7 +788,7 @@ class pos_Terminal extends peripheral_Terminal
             return new core_ET("");
         }
         
-        $string = trim($string);
+        $string = trim($string ?? '');
         $selectedRec = isset($selectedRecId) ? pos_ReceiptDetails::fetchRec($selectedRecId) : null;
         
         switch($currOperation){
