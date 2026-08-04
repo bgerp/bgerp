@@ -961,6 +961,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                         $obj1->quantity = $obj1->quantityFromBom;
                         $obj1->quantityExpected = null;
                         $obj1->quantityFromBom = 0;
+                        $obj1->batches = $obj1->batches ?? array();
                         $details[$key] = $obj1;
                         $details[$key]->quantityFromBom += $d3->quantityFromBom;
                     }
