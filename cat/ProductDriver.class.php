@@ -324,7 +324,7 @@ abstract class cat_ProductDriver extends core_BaseClass
         } else {
             $tpl = $data->defaultTpl;
         }
-        $title = tr($this->singleTitle);
+        $title = tr($this->singleTitle ?? $this->title ?? '');
         $tpl->append($title, 'title');
 
         $form = cls::get('core_Form');

@@ -85,7 +85,7 @@ class doc_Search extends core_Manager
         $data->listFilter->FNC('withMe', 'enum(,shared_with_me=Споделени с мен, liked_from_me=Харесани от мен,tag_from_me=Тагнати от мен)', 'caption=Само, placeholderType=all');
         $data->listFilter->FNC('toDateHorizon', 'time', 'silent');
 
-        $data->listFilter->FNC('tags', 'keylist(mvc=tags_Tags, select=name)', 'caption=Таг, placeholderType=all, silent');
+        $data->listFilter->FNC('tags', 'keylist(mvc=tags_Tags, select=name)', 'caption=Таг, placeholderType=all, silent, class=twoColsFilterCompactSelect');
         $data->listFilter->getField('state')->type->options = array('all' => 'Всички') + $data->listFilter->getField('state')->type->options;
 
         unset($data->listFilter->getField('state')->type->options['opened'],
