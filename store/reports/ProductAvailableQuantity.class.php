@@ -644,7 +644,8 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
         }
 
         if ((isset($dRec->conditionQuantity) && ((isset($dRec->minQuantity)) || (isset($dRec->maxQuantity))))) {
-            list($a, $conditionQuantity) = explode('|', $dRec->conditionQuantity);
+            $conditionParts = explode('|', $dRec->conditionQuantity, 2);
+            $conditionQuantity = $conditionParts[1] ?? $conditionParts[0];
 
             $row->conditionQuantity = "<span style='color: {$dRec->conditionColor}'>{$conditionQuantity}</span>";
         }
