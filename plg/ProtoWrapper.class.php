@@ -217,7 +217,7 @@ class plg_ProtoWrapper extends core_Plugin
             }
         }
         
-        $currentTabParts = explode('->', $currentTab);
+        $currentTabParts = explode('->', (string) $currentTab);
         $currentMainTab = $currentTabParts[0];
         $currentSubTab = $currentTabParts[1] ?? null;
 
