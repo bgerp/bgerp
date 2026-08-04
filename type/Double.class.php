@@ -64,7 +64,7 @@ class type_Double extends core_Type
      */
     public function fromVerbal($value)
     {
-        $value = trim($value);
+        $value = trim($value ?? '');
         
         $allowOct = (boolean) (($this->params['allowOct'] ?? null) == 'allowOct');
         $allowHex = (boolean) (($this->params['allowHex'] ?? null) == 'allowHex');
