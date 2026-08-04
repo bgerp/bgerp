@@ -392,11 +392,11 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
             $typeOfDate = $dRec->dueDate;
         }
         
-        $tasksContainerIdArr = explode(',', $dRec->tasksContainerId);
+        $tasksContainerIdArr = !empty($dRec->tasksContainerId) ? explode(',', $dRec->tasksContainerId) : array();
         
-        $tasksFolderIdArr = explode(',', $dRec->tasksFolderId);
+        $tasksFolderIdArr = !empty($dRec->tasksFolderId) ? explode(',', $dRec->tasksFolderId) : array();
         
-        $linkFromArr = explode(',', $dRec->linkFrom);
+        $linkFromArr = !empty($dRec->linkFrom) ? explode(',', $dRec->linkFrom) : array();
         
         $row->jobsId = planning_Jobs::getHyperlink($dRec->jobsId) . '<br>';
         
