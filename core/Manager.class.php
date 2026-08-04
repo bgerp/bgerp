@@ -1154,6 +1154,26 @@ class core_Manager extends core_Mvc
 
         return countR($fields) > 5 ? ' twoColsFilter' : '';
     }
+
+
+    /**
+     * Проверява дали листовият филтър използва адаптивния двуколонен изглед
+     *
+     * @param stdClass $data
+     *
+     * @return bool
+     */
+    protected function useTwoColsListFilter($data)
+    {
+        if ($this->getAutoListTopContainerClass($data)) {
+
+            return true;
+        }
+
+        $classes = ' ' . trim($data->listTopContainerHtmlClass ?? $this->listTopContainerHtmlClass ?? '') . ' ';
+
+        return strpos($classes, ' twoColsFilter ') !== false;
+    }
     
     
     /**
@@ -1213,8 +1233,12 @@ class core_Manager extends core_Mvc
 
             $tpl = new ET("<div class='listFilter'>[#1#]</div>", $listFilter->renderHtml(null, $listFilter->rec));
             core_Form::preventDoubleSubmission($tpl, $listFilter);
-            jquery_Jquery::run($tpl, 'setTwoColsFilterWidth();');
-            jquery_Jquery::runAfterAjax($tpl, 'setTwoColsFilterWidth');
+            if ($this->useTwoColsListFilter($data)) {
+                $tpl->push('css/twoColsFilter.css', 'CSS');
+                $tpl->push('js/twoColsFilter.js', 'JS');
+                jquery_Jquery::run($tpl, 'setTwoColsFilterWidth();');
+                jquery_Jquery::runAfterAjax($tpl, 'setTwoColsFilterWidth');
+            }
             
             return $tpl;
         }
