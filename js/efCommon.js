@@ -2111,15 +2111,6 @@ function scheduleTwoColsFilterModeUpdate() {
     var refresh = function () {
         twoColsFilterResizeFrame = null;
         updateTwoColsFilterModes();
-        $(".wide .twoColsFilter input.combo").each(function () {
-            var selectId = this.id + "_cs";
-            var select = get$(selectId);
-
-            if (select && select.offsetWidth) {
-                this.style.width = Math.max(0, select.offsetWidth - 1) + "px";
-                comboBoxInit(this.id, selectId);
-            }
-        });
     };
 
     twoColsFilterResizeFrame = window.requestAnimationFrame ?
