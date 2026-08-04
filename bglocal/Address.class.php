@@ -220,7 +220,7 @@ class bglocal_Address extends core_MVC
      */
     public static function canonizePlace($place)
     {
-        $place = trim($place);
+        $place = trim($place ?? '');
         
         $placeL = strtolower(STR::utf2ascii($place));
         $placeL = trim(preg_replace('/[^a-zа-я]+/u', ' ', $placeL));
