@@ -529,7 +529,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
         foreach (array('subProduct', 'pop') as $type){
             $arr = $data->{"{$type}Arr"};
             if (countR($arr) || $data->masterData->rec->state == 'draft') {
-                $data->listFields['productId'] = ($type == 'subProduct') ? 'Субпродукти' : "Отпадъци|* <small style='font-weight:normal'>( |остават в незавършеното производство|* )</small>";
+                $data->listFields['productId'] = ($type == 'subProduct') ? 'Субпродукти' : "Отпадъци|* <small class='wrapText' style='font-weight:normal'>( |остават в незавършеното производство|* )</small>";
                 if($type == 'pop'){
                     $data->listFields['storeId'] = 'Остава в';
                 } else {
