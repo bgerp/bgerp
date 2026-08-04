@@ -2318,10 +2318,16 @@ class planning_Tasks extends core_Master
             Request::push($restoreValues);
         }
 
-        // След повторно логване адресът може да съдържа всички стойности на филтъра,
-        // но без Cmd. Тогава полетата се виждат във формата, но нетихите входове не
-        // участват в заявката. Третираме и този адрес като изпратен листов филтър.
-        if (($hasExplicitValues || countR($restoreValues)) && Request::get('Cmd', false) === null) {
+        // След повторно логване адресът може да е без Cmd или с Cmd[refresh], добавен
+        // от core_Users::forceLogin() при изтекла сесия. Във втория случай формата
+        // показва стойностите, но refresh-командата не прилага целия листов филтър.
+        // При обикновено зареждане го третираме като нормално изпращане на филтъра.
+        $cmd = Request::get('Cmd', false);
+        $isFullPageRefresh = !Request::get('ajax_mode', 'int') &&
+            is_array($cmd) && isset($cmd['refresh']) && countR($cmd) == 1;
+
+        if (($hasExplicitValues || countR($restoreValues)) &&
+            ($cmd === null || $isFullPageRefresh)) {
             Request::push(array('Cmd' => array('default' => 1)));
         }
 
