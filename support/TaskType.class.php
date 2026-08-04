@@ -571,10 +571,10 @@ class support_TaskType extends core_Mvc
             $resArr['email'] = array('name' => tr('Имейл'), 'val' => '[#email#]');
         }
         
-        if (trim($rec->url)) {
+        if (trim((string) $rec->url)) {
             
             // Когато стойността е празна, трябва да върнем NULL
-            $url = trim($rec->url);
+            $url = trim((string) $rec->url);
             
             $attr = array();
             $attr['target'] = '_blank';
