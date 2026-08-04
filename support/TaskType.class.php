@@ -567,7 +567,7 @@ class support_TaskType extends core_Mvc
             $resArr['name'] = array('name' => tr('Име'), 'val' => '[#name#]');
         }
         
-        if ($row->email) {
+        if ($row->email ?? null) {
             $resArr['email'] = array('name' => tr('Имейл'), 'val' => '[#email#]');
         }
         
