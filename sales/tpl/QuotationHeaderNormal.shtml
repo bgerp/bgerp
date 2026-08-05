@@ -34,6 +34,7 @@
                                 <div class='receiver-contacts'><!--ET_BEGIN tel--><span class='receiver-contact'>[#tel#]</span><!--ET_END tel--><!--ET_BEGIN fax--><span class='receiver-contact'>[#fax#]</span><!--ET_END fax--></div>
                                 <!--ET_BEGIN email--><div class='receiver-contact'>[#email#]</div><!--ET_END email-->
                             </div>
+                        </div>
                     </td>
                     <td class="cell">
                         <b>[#MyCompany#]</b>
