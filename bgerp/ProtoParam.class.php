@@ -407,7 +407,7 @@ abstract class bgerp_ProtoParam extends embed_Manager
     {
         $rec = static::fetchRec($id);
         if ($Driver = static::getDriver($rec)){
-            $value = trim($value);
+            $value = trim((string) $value);
 
             $res = $Driver->toVerbal($rec, $domainClass, $domainId, $value);
             

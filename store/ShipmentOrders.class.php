@@ -552,7 +552,7 @@ class store_ShipmentOrders extends store_DocumentMaster
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         if (($action == 'asclient') && $rec) {
-            if (!trim($rec->company) && !trim($rec->person) && !$rec->country) {
+            if (!trim((string) ($rec->company ?? '')) && !trim((string) ($rec->person ?? '')) && !($rec->country ?? null)) {
                 $requiredRoles = 'no_one';
             }
         }
