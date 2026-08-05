@@ -114,6 +114,12 @@ class cat_DisassemblyBoms extends core_Master
 
 
     /**
+     * Да се показва ли антетката
+     */
+    public $showLetterHead = true;
+
+
+    /**
      * Кой може да пише?
      */
     public $canEdit = 'ceo,production,store';
@@ -476,6 +482,26 @@ class cat_DisassemblyBoms extends core_Master
 
 
     /**
+     * Добавя допълнителни полета в антетката (@see doc_DocumentPlg)
+     */
+    public static function on_AfterGetFieldForLetterHead($mvc, &$resArr, $rec, $row)
+    {
+        $resArr = arr::make($resArr);
+
+        $resArr['quantity'] = array('name' => tr('Разпад'), 'val' => tr("|*<table class='docHeaderVal'>
+                <tr><td style='font-weight:normal'>|За|*:</td><td>[#quantity#]</td></tr>
+                <!--ET_BEGIN expenses--><tr><td style='font-weight:normal'>|Режийни разходи|*:</td><td>[#expenses#]</td></tr><!--ET_END expenses-->
+                <!--ET_BEGIN priceListId--><tr><td style='font-weight:normal'>|Политика за разпад|*:</td><td>[#priceListId#]</td></tr><!--ET_END priceListId-->
+                </table>"));
+
+        $resArr['info'] = array('name' => tr('Информация'), 'val' => tr("|*<table class='docHeaderVal'>
+                <tr><td style='font-weight:normal'>|Модифициранe|*:</td><td>[#modifiedOn#]</b> |от|* [#modifiedBy#]</td></tr>
+                <!--ET_BEGIN clonedFromId--><tr><td style='font-weight:normal'>|Клонирано от|*:</td><td>[#clonedFromId#]</td></tr><!--ET_END clonedFromId-->
+                </table>"));
+    }
+
+
+    /**
      * Имплементиране на интерфейсен метод (@see doc_DocumentIntf)
      */
     public function getDocumentRow_($id)
@@ -502,6 +528,24 @@ class cat_DisassemblyBoms extends core_Master
             $row->productId = cat_Products::getHyperlink($rec->productId, true);
         }
 
-        $row->title = $mvc->getHyperlink($rec, true);
+        $shortUom = cat_UoM::getShortName(cat_Products::fetchField($rec->productId, 'measureId'));
+        $row->quantity = ($row->quantity ?? '') . ' ' . $shortUom;
+
+        // В сингъла заглавието се показва само ако е въведено ръчно - иначе
+        // заглавният ред би повторил getRecTitle (@see cat_Boms)
+        if (isset($fields['-single'])) {
+            $row->title = empty($rec->title) ? null : $mvc->getVerbal($rec, 'title');
+
+            if(!empty($rec->priceListId)){
+                $row->priceListId = price_Lists::getHyperlink($rec->priceListId, true);
+            }
+        } else {
+            $row->title = $mvc->getHyperlink($rec, true);
+        }
+
+        // Полето се добавя от plg_Clone без 'select', затова му правим линк ръчно
+        if (isset($rec->clonedFromId)) {
+            $row->clonedFromId = $mvc->getLink($rec->clonedFromId, 0);
+        }
     }
 }

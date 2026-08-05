@@ -5,9 +5,11 @@
  * Клас 'cat_DisassemblyBomDetails'
  *
  * Детайли на рецептата за разпад. Два вида редове:
- * - 'input'      - артикулът за разпад (винаги точно 1 ред, автоматично
- *                  създаден от произхода на рецептата, @see
- *                  cat_DisassemblyBoms::on_AfterCreate)
+ * - 'input'      - допълнителни артикули за влагане. Основният артикул за
+ *                  разпад стои в мастъра (@see cat_DisassemblyBoms), а
+ *                  добавянето на допълнителни засега е забранено интерфейсно
+ *                  (@see on_AfterGetRequiredRoles) - моделът ги поддържа за
+ *                  когато бъдат разрешени
  * - 'production' - произведените от разпада артикули (могат да са няколко)
  *
  * Полето `quantity` е базовото количество на реда (в основна мярка), спрямо
@@ -181,6 +183,10 @@ class cat_DisassemblyBomDetails extends doc_Detail
             $row->productId = ht::createLinkRef($row->productId, $singleUrl);
         }
 
+        // Вложимите редове са зелени като в технологичната рецепта, а произведените
+        // се отличават с 'state-active' - и двата класа са налични в стиловете
+        $row->ROW_ATTR['class'] = ($rec->type == 'input') ? 'row-added' : 'state-active';
+
         if ($rec->type == 'production') {
             static $costCache = array();
             if (!array_key_exists($rec->bomId, $costCache)) {
@@ -278,7 +284,7 @@ class cat_DisassemblyBomDetails extends doc_Detail
         $tpl->append($productionTable->get($pData->rows, $pData->listFields), 'PRODUCED_PRODUCTS_TABLE');
 
         if (!Mode::isReadOnly() && $this->haveRightFor('add', (object) array('bomId' => $data->masterId, 'type' => 'production'))) {
-            $tpl->append(ht::createBtn('Произведен артикул', array($this, 'add', 'bomId' => $data->masterId, 'type' => 'production', 'ret_url' => true), null, null, array('style' => 'margin-top:5px;margin-bottom:15px;', 'ef_icon' => 'img/16/door_in.png', 'title' => 'Добавяне на произведен артикул')), 'PRODUCED_PRODUCTS_TABLE');
+            $tpl->append(ht::createBtn('Произвеждане', array($this, 'add', 'bomId' => $data->masterId, 'type' => 'production', 'ret_url' => true), null, null, array('style' => 'margin-top:5px;margin-bottom:15px;', 'ef_icon' => 'img/16/door_in.png', 'title' => 'Добавяне на произведен артикул')), 'PRODUCED_PRODUCTS_TABLE');
         }
 
         return $tpl;
