@@ -1006,7 +1006,24 @@ class cat_Boms extends core_Master
             $data->notManifacturable = true;
         }
 
-        if (!haveRole('ceo,sales,cat,planning') || (($data->notManifacturable ?? false) === true && !countR($data->rows))) {
+        // Рецептите за разпад на артикула (@see #Tsk9167) - изчисляваме преди
+        // проверката за скриване, за да не се скрие табът на непроизводим
+        // артикул, който обаче има рецепти за разпад
+        $data->disassemblyBomRows = array();
+        $dQuery = cat_DisassemblyBoms::getQuery();
+        $dQuery->where("#productId = {$data->masterId} AND #state != 'rejected'");
+        $dQuery->orderBy('id', 'DESC');
+        while ($bomRec = $dQuery->fetch()) {
+            $data->disassemblyBomRows[$bomRec->id] = cat_DisassemblyBoms::recToVerbal($bomRec);
+        }
+
+        // Табът се показва, ако артикулът е производим и/или складируем+вложим
+        // (т.е. може да се разпада), или ако вече има технологични рецепти или
+        // рецепти за разпад (@see #Tsk9167)
+        $data->canBeDisassembled = isset($masterInfo->meta['canStore']) && isset($masterInfo->meta['canConvert']);
+        $showTab = (($data->notManifacturable ?? false) !== true) || $data->canBeDisassembled || countR($data->rows) || countR($data->disassemblyBomRows);
+
+        if (!haveRole('ceo,sales,cat,planning') || !$showTab) {
             $data->hide = true;
 
             return;
@@ -1019,6 +1036,11 @@ class cat_Boms extends core_Master
         if ($this->haveRightFor('add', (object) array('productId' => $data->masterId, 'originId' => $data->masterData->rec->containerId))) {
             $data->addUrl1 = array('cat_Boms', 'add', 'productId' => $data->masterData->rec->id, 'originId' => $data->masterData->rec->containerId, 'type' => 'sales', 'ret_url' => true);
             $data->addUrl2 = array('cat_Boms', 'add', 'productId' => $data->masterData->rec->id, 'originId' => $data->masterData->rec->containerId, 'type' => 'instant', 'ret_url' => true);
+        }
+
+        // Рецепта за разпад - на артикула, който се разпада (@see #Tsk9167)
+        if (cat_DisassemblyBoms::haveRightFor('add', (object) array('productId' => $data->masterId, 'originId' => $data->masterData->rec->containerId))) {
+            $data->addUrlDisassembly = array('cat_DisassemblyBoms', 'add', 'productId' => $data->masterData->rec->id, 'originId' => $data->masterData->rec->containerId, 'ret_url' => true);
         }
     }
     
@@ -1038,8 +1060,8 @@ class cat_Boms extends core_Master
             $title = tr('Технологични рецепти');
             $tpl->append($title, 'title');
         }
-        
-        $data->listFields = arr::make('title=Рецепта,type=Вид,action=Като,quantity=Количество,createdBy=От||By,createdOn=На');
+
+        $data->listFields = arr::make('title=Технологична рецепта,type=Вид,action=Като,quantity=К-во,createdBy=От||By,createdOn=На');
         $table = cls::get('core_TableView', array('mvc' => $this));
         $this->invoke('BeforeRenderListTable', array($tpl, &$data));
         $details = $table->get($data->rows, $data->listFields);
@@ -1047,13 +1069,27 @@ class cat_Boms extends core_Master
             $details->append($data->Pager->getHtml());
         }
 
-        // Ако артикула не е производим, показваме в детайла
-        if (!empty($data->notManifacturable)) {
+        // Ако артикула не е производим, показваме в детайла. При вложим+складируем
+        // артикул табът е там заради рецептите за разпад, а не по погрешка -
+        // затова не го маркираме като проблемен (@see #Tsk9167)
+        if (!empty($data->notManifacturable) && empty($data->canBeDisassembled)) {
             $tpl->append(" <span class='red small'>(" . tr('Артикулът не е производим') . ')</span>', 'title');
             $tpl->append('state-rejected', 'TAB_STATE');
         }
 
         $tpl->append($details, 'content');
+
+        // Рецепти за разпад на артикула - в отделна таблица, само ако има такива.
+        // Полето може да липсва, защото renderBoms се вика и от таб 'Влагане'
+        // с данни от planning_GenericMapper::prepareBoms (@see #Tsk9167)
+        if (countR($data->disassemblyBomRows ?? array())) {
+            $dbListFields = arr::make('title=Рецепта за разпад,quantity=К-во,createdBy=От||By,createdOn=На');
+            $this->invoke('BeforeRenderListTable', array($tpl, &$data));
+
+            $dTable = cls::get('core_TableView', array('mvc' => cls::get('cat_DisassemblyBoms')));
+            $dDetails = $dTable->get($data->disassemblyBomRows, $dbListFields);
+            $tpl->append($dDetails, 'content');
+        }
 
         if(!Mode::isReadOnly()){
             if (isset($data->addUrl1)) {
@@ -1063,6 +1099,11 @@ class cat_Boms extends core_Master
             
             if (isset($data->addUrl2)) {
                 $addBtn = ht::createBtn('Моментна', $data->addUrl2, false, false, "ef_icon={$this->singleIcon},title=Добавяне на нова моментна технологична рецепта");
+                $tpl->append($addBtn, 'toolbar');
+            }
+
+            if (isset($data->addUrlDisassembly)) {
+                $addBtn = ht::createBtn('За разпад', $data->addUrlDisassembly, false, false, 'ef_icon=img/16/protocol_decay.png,title=Добавяне на нова рецепта за разпад');
                 $tpl->append($addBtn, 'toolbar');
             }
 

@@ -48,7 +48,7 @@ class cat_DisassemblyBoms extends core_Master
     /**
      * Абревиатура
      */
-    public $abbr = 'Dbm';
+    public $abbr = 'Bdm';
 
 
     /**
@@ -60,7 +60,7 @@ class cat_DisassemblyBoms extends core_Master
     /**
      * Полетата, които могат да се променят с change_Plugin
      */
-    public $changableFields = 'title,priceListId,notes';
+    public $changableFields = 'title,expenses,priceListId,notes';
 
 
     /**
@@ -166,12 +166,13 @@ class cat_DisassemblyBoms extends core_Master
     public function description()
     {
         $this->FLD('title', 'varchar(124,nullIfEmpty)', 'caption=Заглавие,tdClass=nameCell');
-        $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул за разпад,input,silent,mandatory');
+        $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул,input,silent,mandatory,input=hidden');
         $this->FLD('quantity', 'double(smartRound,Min=0)', 'caption=За,silent,mandatory');
+        $this->FLD('expenses', 'percent(min=0)', 'caption=Реж. разходи,changeable');
 
-        $this->FLD('priceListId', 'key(mvc=price_Lists,select=title,allowEmpty)', 'caption=Ценова политика за разпад');
+        $this->FLD('priceListId', 'key(mvc=price_Lists,select=title,allowEmpty)', 'caption=Ценова политика за разпад->Избор');
         $this->FLD('state', 'enum(draft=Чернова,active=Активирана,rejected=Оттеглена,closed=Затворена)', 'caption=Статус,input=none');
-        $this->FLD('notes', 'richtext(rows=4,bucket=Notes)', 'caption=Забележки');
+        $this->FLD('notes', 'richtext(rows=4,bucket=Notes)', 'caption=Допълнително->Забележки');
 
         $this->setDbIndex('productId');
         $this->setDbIndex('state');
@@ -322,7 +323,16 @@ class cat_DisassemblyBoms extends core_Master
         // когато се разрешат допълнителни артикули за влагане в детайла,
         // тяхната стойност трябва да се натрупа тук
         $unitPrice = cat_Products::getWacAmountInStore(1, $rec->productId, dt::now());
-        $totalValue = round(((float) $unitPrice) * $rec->quantity, 4);
+        $totalValue = ((float) $unitPrice) * $rec->quantity;
+
+        // Режийните разходи оскъпяват вложеното и се разпределят заедно с него,
+        // както при контирането на Протокола за разпад
+        // (@see planning_transaction_DisassemblyNote)
+        if (!empty($rec->expenses)) {
+            $totalValue = $totalValue * (1 + $rec->expenses);
+        }
+
+        $totalValue = round($totalValue, 4);
 
         // 1) Ако всички произведени артикули са в еднаква (или производна) мярка -
         // разпределяме пропорционално на количествата им (мярката на вложения е без значение)
