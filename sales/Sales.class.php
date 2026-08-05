@@ -2061,6 +2061,15 @@ class sales_Sales extends deals_DealMaster
     
     
     /**
+     * Преди рендиране на таблицата в листовия изглед
+     */
+    protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
+    {
+        $data->listTableMvc->setFieldType('paymentState', 'double');
+    }
+
+
+    /**
      * След извличане на опциите за филтър по тип
      */
     protected static function on_AfterGetListFilterTypeOptions($mvc, &$res, $data)
