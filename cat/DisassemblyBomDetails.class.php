@@ -16,7 +16,7 @@
  * което по-късно ще се мащабира Протоколът за разпад. `costPercent` е
  * незадължителен ръчно зададен % от себестойността на вложения артикул,
  * ползван само за 'production' редове, когато произведените артикули не са
- * в еднаква мярка (@see cat_DisassemblyBoms::calcAllocation).
+ * в еднаква мярка (@see cat_DisassemblyBoms::on_BeforeActivation).
  *
  * @category  bgerp
  * @package   cat
@@ -74,7 +74,14 @@ class cat_DisassemblyBomDetails extends doc_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=№,productId=Артикул,packagingId,packQuantity=К-во,costPercent=%,allocatedCost=Разпред. себестойност';
+    public $listFields = 'tools=№,productId=Артикул,packagingId,packQuantity=К-во,costPercent=% (сб-ст),amount=Сума';
+
+
+    /**
+     * Кои полета от листовия изглед да се скриват ако няма записи в тях - сумата
+     * се смята само когато артикулите са в различни мерки, иначе колоната отпада
+     */
+    public $hideListFieldsIfEmpty = 'amount';
 
 
     /**
@@ -97,8 +104,8 @@ class cat_DisassemblyBomDetails extends doc_Detail
         $this->FLD('quantityInPack', 'double(smartRound)', 'input=none,notNull,value=1');
         $this->FLD('quantity', 'double', 'caption=Количество,input=none,smartCenter');
 
-        $this->FLD('costPercent', 'percent(min=0,max=1,allowEmpty)', 'caption=% от себестойността,tdClass=accCell,placeholder=Автоматично');
-        $this->FNC('allocatedCost', 'double(decimals=2)', 'caption=Разпределена себестойност,input=none,tdClass=accCell');
+        $this->FLD('costPercent', 'percent(min=0,max=1,allowEmpty)', 'caption=От сб-ста,tdClass=accCell,hint=Каква част от себестойноста на вложимия артикул е');
+        $this->FNC('amount', 'double(decimals=2)', 'caption=Сума,input=none,tdClass=accCell');
 
         $this->setDbIndex('productId');
         $this->setDbIndex('bomId,type');
@@ -166,8 +173,7 @@ class cat_DisassemblyBomDetails extends doc_Detail
      */
     public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = null, $userId = null)
     {
-        // Детайлът се променя само докато рецептата е чернова - активирана,
-        // затворена или оттеглена не се пипа (@see cat_BomDetails)
+        // Детайлът се променя само докато рецептата е чернова - активирана
         if (in_array($action, array('add', 'edit', 'delete')) && isset($rec->bomId)) {
             if (cat_DisassemblyBoms::fetchField($rec->bomId, 'state') != 'draft') {
                 $res = 'no_one';
@@ -195,18 +201,16 @@ class cat_DisassemblyBomDetails extends doc_Detail
         // се отличават с 'state-active' - и двата класа са налични в стиловете
         $row->ROW_ATTR['class'] = ($rec->type == 'input') ? 'row-added' : 'state-active';
 
-        if ($rec->type == 'production') {
-            static $costCache = array();
-            if (!array_key_exists($rec->bomId, $costCache)) {
-                $costCache[$rec->bomId] = cat_DisassemblyBoms::getProductionCosts($rec->bomId);
-            }
-            $costs = $costCache[$rec->bomId];
+        // Сумата по избраната ценова политика има смисъл само когато артикулите
+        // са в различни мерки - тогава по нея се разпределя себестойността
+        static $masterCache = array();
+        if (!array_key_exists($rec->bomId, $masterCache)) {
+            $masterCache[$rec->bomId] = cat_DisassemblyBoms::fetch($rec->bomId, 'priceListId,allProductsAreInTheSameUomId');
+        }
+        $bomRec = $masterCache[$rec->bomId];
 
-            if (is_array($costs) && isset($costs[$rec->id])) {
-                $row->allocatedCost = cls::get('type_Double', array('params' => array('decimals' => 2)))->toVerbal($costs[$rec->id]);
-            } else {
-                $row->allocatedCost = ht::createHint("<span class='red'>???</span>", 'Себестойността не може да се изчисли', 'warning', false);
-            }
+        if (is_object($bomRec) && $bomRec->allProductsAreInTheSameUomId == 'no') {
+            $row->amount = cat_DisassemblyBoms::getAmountVerbal($bomRec->priceListId, $rec->productId, $rec->quantity);
         }
     }
 
@@ -263,7 +267,6 @@ class cat_DisassemblyBomDetails extends doc_Detail
 
         // Мини-таблица с допълнителните артикули за влагане - засега винаги
         // празна, защото добавянето им е забранено интерфейсно
-        // (@see on_AfterGetRequiredRoles), основният е в мастъра
         if (countR($data->inputArr)) {
             $iData = clone $data;
             $iData->listTableMvc = clone $data->listTableMvc;
@@ -293,6 +296,12 @@ class cat_DisassemblyBomDetails extends doc_Detail
 
         if (!Mode::isReadOnly() && $this->haveRightFor('add', (object) array('bomId' => $data->masterId, 'type' => 'production'))) {
             $tpl->append(ht::createBtn('Произвеждане', array($this, 'add', 'bomId' => $data->masterId, 'type' => 'production', 'ret_url' => true), null, null, array('style' => 'margin-top:5px;margin-bottom:15px;', 'ef_icon' => 'img/16/door_in.png', 'title' => 'Добавяне на произведен артикул')), 'PRODUCED_PRODUCTS_TABLE');
+        }
+
+        // Групово изтриване - само на произведените редове. Тулбарът на
+        // core_Detail не се рендира тук, затова бутонът се слага ръчно
+        if ($this->haveRightFor('selectrowstodelete', (object) array('bomId' => $data->masterId, '_filterFld' => 'type', '_filterFldVal' => 'production'))) {
+            $tpl->append(ht::createBtn('Изтриване', array($this, 'selectRowsToDelete', 'bomId' => $data->masterId, '_filterFld' => 'type', '_filterFldVal' => 'production', 'ret_url' => true), null, null, array('style' => 'margin-top:5px;margin-bottom:15px;', 'ef_icon' => 'img/16/delete.png', 'title' => 'Форма за избор на редове за изтриване', 'class' => 'selectDeleteRowsBtn')), 'PRODUCED_PRODUCTS_TABLE');
         }
 
         return $tpl;

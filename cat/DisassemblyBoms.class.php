@@ -5,16 +5,15 @@
  * Клас 'cat_DisassemblyBoms' - Документ за рецепта за разпад
  *
  * Съдържа един артикул за влагане (вложим и складируем) и няколко произведени
- * артикула (складируеми и нескладируеми) - виж #Tsk9167. Себестойността на
- * произведените артикули се изчислява живо (@see getProductionCosts) по
- * правилата, обсъдени в нишката на задачата:
- * - ако всички произведени артикули са в еднаква (или производна) мярка -
- *   пропорционално на количествата им;
- * - иначе, ако всички имат зададен ръчно % и сборът им е точно 100% -
- *   по зададения %;
- * - иначе, ако всички имат цена по избраната ценова политика ($priceListId) -
- *   пропорционално на стойността им (к-во х цена);
- * - иначе рецептата не може да се активира.
+ * артикула (складируеми и нескладируеми) - виж #Tsk9167.
+ *
+ * Как се разпределя себестойността на вложения артикул зависи от мерките на
+ * произведените (@see $allProductsAreInTheSameUomId, updateMaster_):
+ * - еднаква (или производна) мярка - по ръчно зададените проценти, които при
+ *   активиране трябва да правят точно 100%; цената не участва;
+ * - различни мерки - по стойността на артикулите (к-во х цена) по избраната
+ *   ценова политика ($priceListId), затова при активиране се изисква и
+ *   вложеният, и всички произведени артикули да имат цена по нея.
  *
  * @category  bgerp
  * @package   cat
@@ -315,6 +314,50 @@ class cat_DisassemblyBoms extends core_Master
 
 
     /**
+     * Сумата на артикула по подадената ценова политика
+     *
+     * @param int|null $priceListId
+     * @param int      $productId
+     * @param float    $quantity
+     *
+     * @return float|null - null, ако няма политика или цена по нея
+     */
+    public static function getAmount($priceListId, $productId, $quantity)
+    {
+        if (empty($priceListId)) return null;
+
+        $price = price_ListRules::getPrice($priceListId, $productId, null, dt::now());
+        if (!isset($price)) return null;
+
+        return $price * $quantity;
+    }
+
+
+    /**
+     * Сумата във вербален вид - в синьо, а при липсваща цена червено '???'
+     *
+     * @param int|null $priceListId
+     * @param int      $productId
+     * @param float    $quantity
+     *
+     * @return string
+     */
+    public static function getAmountVerbal($priceListId, $productId, $quantity)
+    {
+        $amount = static::getAmount($priceListId, $productId, $quantity);
+        if (!isset($amount)) {
+            $hint = empty($priceListId) ? 'Не е избрана ценова политика за разпад' : 'Артикулът няма цена по избраната ценова политика';
+
+            return ht::createHint("<span class='red'>???</span>", $hint, 'warning', false);
+        }
+
+        $amountVerbal = core_Type::getByName('double(decimals=2)')->toVerbal($amount);
+
+        return "<span style='color:blue'>{$amountVerbal}</span>";
+    }
+
+
+    /**
      * Обновява данни в мастъра при промяна по детайла - живо смятаната
      * себестойност зависи от редовете, затова кешът трябва да се инвалидира
      *
@@ -359,194 +402,55 @@ class cat_DisassemblyBoms extends core_Master
     {
         if (empty($res->id)) return;
 
-        $allocation = static::calcAllocation($res->id);
-        if (!$allocation->ok) {
-            core_Statuses::newStatus($allocation->error, 'warning');
+        $rec = $mvc->fetchRec($res->id);
+
+        $dQuery = cat_DisassemblyBomDetails::getQuery();
+        $dQuery->where("#bomId = {$rec->id} AND #type = 'production'");
+        $prodRecs = $dQuery->fetchAll();
+
+        if (!countR($prodRecs)) {
+            core_Statuses::newStatus('Не е посочен нито един произведен артикул', 'error');
 
             return false;
         }
-    }
 
+        if ($rec->allProductsAreInTheSameUomId == 'yes') {
 
-    /**
-     * Пропорционално разпределя $totalValue между записите на $recs, по тегло,
-     * върнато от $weightFn за всеки от тях. Remainder-safe - последният ред
-     * поема остатъка от закръгляне (@see planning_transaction_DisassemblyNote)
-     *
-     * @param stdClass[] $recs
-     * @param float      $totalValue
-     * @param callable   $weightFn
-     *
-     * @return array $id => float
-     */
-    private static function allocateByRatio($recs, $totalValue, $weightFn)
-    {
-        $rows = array();
-        $totalWeight = 0;
-        foreach ($recs as $dRec) {
-            $totalWeight += $weightFn($dRec);
-        }
-
-        if (!$totalWeight) {
-            foreach ($recs as $dRec) {
-                $rows[$dRec->id] = 0.0;
+            // Еднакви мерки - себестойността се разпределя по ръчно зададените
+            // проценти, затова те трябва да покриват точно 100%
+            $percentSum = 0;
+            foreach ($prodRecs as $dRec) {
+                $percentSum += (float) $dRec->costPercent;
             }
 
-            return $rows;
-        }
+            if (abs($percentSum - 1) > 0.0001) {
+                $percentVerbal = core_Type::getByName('percent')->toVerbal($percentSum);
+                core_Statuses::newStatus("Сумата на процентите от себестойността трябва да е 100%|*, |а е|*: {$percentVerbal}", 'error');
 
-        $allocated = 0;
-        $count = countR($recs);
-        $i = 0;
-        foreach ($recs as $dRec) {
-            $i++;
-            if ($i == $count) {
-                $rows[$dRec->id] = round($totalValue - $allocated, 2);
-            } else {
-                $rows[$dRec->id] = round($totalValue * $weightFn($dRec) / $totalWeight, 2);
+                return false;
             }
-            $allocated += $rows[$dRec->id];
-        }
+        } else {
 
-        return $rows;
-    }
-
-
-    /**
-     * Изчислява живо разпределението на себестойността на вложения артикул
-     * между произведените артикули, по правилата от нишката на #Tsk9167
-     *
-     * @param int $id
-     *
-     * @return stdClass ->ok bool, ->mode string|null (quantity|percent|value),
-     *                  ->error string|null, ->rows array [detailId => float]
-     */
-    public static function calcAllocation($id)
-    {
-        $res = (object) array('ok' => false, 'mode' => null, 'error' => null, 'rows' => array());
-
-        $rec = static::fetchRec($id);
-        if (empty($rec->productId) || empty($rec->quantity)) {
-            $res->error = 'Не е зададено количество на артикула за разпад';
-
-            return $res;
-        }
-
-        $prodQuery = cat_DisassemblyBomDetails::getQuery();
-        $prodQuery->where("#bomId = {$rec->id} AND #type = 'production' AND #quantity != 0");
-        $prodQuery->orderBy('id', 'ASC');
-        $prodRecs = $prodQuery->fetchAll();
-
-        if (!countR($prodRecs)) {
-            $res->error = 'Не е посочен нито един произведен артикул';
-
-            return $res;
-        }
-
-        // Стойността на вложеното - засега само основният артикул от мастъра;
-        // когато се разрешат допълнителни артикули за влагане в детайла,
-        // тяхната стойност трябва да се натрупа тук
-        $unitPrice = cat_Products::getWacAmountInStore(1, $rec->productId, dt::now());
-        $totalValue = ((float) $unitPrice) * $rec->quantity;
-
-        // Режийните разходи оскъпяват вложеното и се разпределят заедно с него,
-        // както при контирането на Протокола за разпад
-        // (@see planning_transaction_DisassemblyNote)
-        if (!empty($rec->expenses)) {
-            $totalValue = $totalValue * (1 + $rec->expenses);
-        }
-
-        $totalValue = round($totalValue, 4);
-
-        // 1) Ако всички произведени артикули са в еднаква (или производна) мярка -
-        // разпределяме пропорционално на количествата им (мярката на вложения е без значение)
-        $baseMeasureId = null;
-        $sameUom = true;
-        foreach ($prodRecs as $dRec) {
-            $measureId = cat_Products::fetchField($dRec->productId, 'measureId');
-            if ($baseMeasureId === null) {
-                $baseMeasureId = $measureId;
-                continue;
+            // Различни мерки - разпределя се по стойност, значи и вложеният, и
+            // всички произведени артикули трябва да имат цена по избраната ЦП
+            $missing = array();
+            if (static::getAmount($rec->priceListId, $rec->productId, $rec->quantity) === null) {
+                $missing[] = cat_Products::getTitleById($rec->productId);
             }
-            if ($measureId != $baseMeasureId && !cat_Products::convertToUom($dRec->productId, $baseMeasureId)) {
-                $sameUom = false;
-                break;
+
+            foreach ($prodRecs as $dRec) {
+                if (static::getAmount($rec->priceListId, $dRec->productId, $dRec->quantity) === null) {
+                    $missing[] = cat_Products::getTitleById($dRec->productId);
+                }
+            }
+
+            if (countR($missing)) {
+                $msg = empty($rec->priceListId) ? 'Артикулите са в различни мерки - изберете ценова политика за разпад' : ('Артикулите са в различни мерки, а следните нямат цена по избраната ценова политика|*: <b>' . implode(', ', $missing) . '</b>');
+                core_Statuses::newStatus($msg, 'error');
+
+                return false;
             }
         }
-
-        if ($sameUom) {
-            $res->mode = 'quantity';
-            $res->rows = static::allocateByRatio($prodRecs, $totalValue, function ($dRec) {
-                return $dRec->quantity;
-            });
-            $res->ok = true;
-
-            return $res;
-        }
-
-        // 2) Иначе, ако всички имат ръчно зададен % и сборът им е точно 100% - по %
-        $allHavePercent = true;
-        $percentSum = 0.0;
-        foreach ($prodRecs as $dRec) {
-            if (!strlen((string) ($dRec->costPercent ?? ''))) {
-                $allHavePercent = false;
-                break;
-            }
-            $percentSum += (float) $dRec->costPercent;
-        }
-
-        if ($allHavePercent && abs($percentSum - 1) < 0.0001) {
-            $res->mode = 'percent';
-            $res->rows = static::allocateByRatio($prodRecs, $totalValue, function ($dRec) {
-                return (float) $dRec->costPercent;
-            });
-            $res->ok = true;
-
-            return $res;
-        }
-
-        // 3) Иначе, ако всички имат цена по избраната ценова политика - по стойност (к-во х цена)
-        $missingNames = array();
-        $values = array();
-        $date = dt::now();
-        foreach ($prodRecs as $dRec) {
-            $price = (!empty($rec->priceListId)) ? price_ListRules::getPrice($rec->priceListId, $dRec->productId, null, $date) : null;
-            if (!isset($price)) {
-                $missingNames[] = cat_Products::fetch($dRec->productId, 'name')->name;
-            } else {
-                $values[$dRec->id] = $price * $dRec->quantity;
-            }
-        }
-
-        if (countR($missingNames)) {
-            $missingMsg = (empty($rec->priceListId)) ? 'не е избрана Ценова политика за разпад|*' : ('следните нямат цена по избраната ценова политика|*: <b>' . implode(', ', $missingNames) . '</b>');
-            $res->error = "Произведените артикули са в различни мерки, без зададени % за себестойност, и {$missingMsg}";
-
-            return $res;
-        }
-
-        $res->mode = 'value';
-        $res->rows = static::allocateByRatio($prodRecs, $totalValue, function ($dRec) use ($values) {
-            return $values[$dRec->id];
-        });
-        $res->ok = true;
-
-        return $res;
-    }
-
-
-    /**
-     * Живо изчислена себестойност на произведените артикули - за показване в детайла
-     *
-     * @param int $id
-     *
-     * @return array [detailId => float]|null
-     */
-    public static function getProductionCosts($id)
-    {
-        $allocation = static::calcAllocation($id);
-
-        return ($allocation->ok) ? $allocation->rows : null;
     }
 
 
@@ -561,7 +465,9 @@ class cat_DisassemblyBoms extends core_Master
     public static function getLastActiveBom($productId)
     {
         $productRec = cat_Products::fetchRec($productId, 'id');
-        if (!is_object($productRec)) return false;
+        if (!is_object($productRec) || ($productRec->canStore != 'yes' || $productRec->canConvert != 'yes')) {
+            return false;
+        }
 
         $query = static::getQuery();
         $query->where("#productId = {$productRec->id} AND #state = 'active'");
@@ -605,6 +511,7 @@ class cat_DisassemblyBoms extends core_Master
                 <!--ET_BEGIN expenses--><tr><td style='font-weight:normal'>|Режийни разходи|*:</td><td>[#expenses#]</td></tr><!--ET_END expenses-->
                 <!--ET_BEGIN priceListId--><tr><td style='font-weight:normal'>|Политика за разпад|*:</td><td>[#priceListId#]</td></tr><!--ET_END priceListId-->
                 <tr><td style='font-weight:normal'>|Еднаква мярка|*:</td><td>[#allProductsAreInTheSameUomId#]</td></tr>
+                <!--ET_BEGIN amount--><tr><td style='font-weight:normal'>|Сума|*:</td><td>[#amount#]</td></tr><!--ET_END amount-->
                 </table>"));
 
         $resArr['info'] = array('name' => tr('Информация'), 'val' => tr("|*<table class='docHeaderVal'>
@@ -657,6 +564,12 @@ class cat_DisassemblyBoms extends core_Master
             }
         } else {
             $row->title = $mvc->getHyperlink($rec, true);
+        }
+
+        // Сумата на вложения артикул по ЦП - показва се само при различни мерки,
+        // защото само тогава по нея се разпределя себестойността
+        if ($rec->allProductsAreInTheSameUomId == 'no') {
+            $row->amount = static::getAmountVerbal($rec->priceListId, $rec->productId, $rec->quantity);
         }
 
         // Полето се добавя от plg_Clone без 'select', затова му правим линк ръчно
