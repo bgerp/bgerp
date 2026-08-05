@@ -285,6 +285,7 @@ abstract class price_reports_PriceListProto extends frame2_driver_TableData
         // Ако е в папка на контрагент
         $defaultListId = price_ListRules::PRICE_LIST_CATALOG;
         $Cover = doc_Folders::getCover($form->rec->folderId);
+
         if ($Cover->haveInterface('crm_ContragentAccRegIntf')) {
             $defaultListId = price_ListToCustomers::getListForCustomer($Cover->getClassId(), $Cover->that);
             $form->setDefault('vat', deals_Helper::getDefaultChargeVat($Embedder, $form->rec));
@@ -292,6 +293,7 @@ abstract class price_reports_PriceListProto extends frame2_driver_TableData
 
             $listOptions = price_Lists::getAccessibleOptions($Cover->className, $Cover->that);
         } else {
+            $form->setDefault('currencyId', acc_Periods::getBaseCurrencyCode());
             $listOptions = price_Lists::getAccessibleOptions(null, null, false);
         }
 
