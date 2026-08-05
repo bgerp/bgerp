@@ -66,7 +66,7 @@ class store_transaction_Receipt extends acc_DocumentTransactionSource
         }
         
         $origin = $this->class->getOrigin($rec);
-        $packRecs = store_DocumentPackagingDetail::getRecs($this->class, $rec->id);
+        $packRecs = !empty($rec->id) ? store_DocumentPackagingDetail::getRecs($this->class, $rec->id) : array();
         
         // Всяка СР трябва да има поне един детайл
         if (countR($rec->details) > 0 || countR($packRecs) > 0) {
