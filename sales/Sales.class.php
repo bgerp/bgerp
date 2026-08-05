@@ -2066,6 +2066,7 @@ class sales_Sales extends deals_DealMaster
     protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
     {
         $data->listTableMvc->setFieldType('paymentState', 'double');
+        $data->listTableMvc->setField('dealerId', 'smartCenter');
     }
 
 
