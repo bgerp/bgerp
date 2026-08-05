@@ -182,7 +182,7 @@ class batch_type_StringExpiryDate extends type_Varchar
     protected function getDefaultExpirationDate($productId, $startDate = null)
     {
         $date = null;
-        $startDate = $startDate ?? dt::now();
+        $startDate = $startDate ?? ($this->params['startDate'] ?? dt::now());
         $productTime = isset($productId) ? cat_Products::getParams($productId, 'expiryTime') : null;
 
         if (empty($productTime)) {
