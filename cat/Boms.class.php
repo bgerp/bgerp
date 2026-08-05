@@ -9,7 +9,7 @@
  * @package   cat
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2023 Experta OOD
+ * @copyright 2006 - 2026 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -385,7 +385,7 @@ class cat_Boms extends core_Master
      * Ако има задания към артикула, при активиране на рецепта се обновяват
      * запазените им количества (@see doc_plg_SingleActiveDoc::on_Shutdown)
      */
-    public static function on_AfterSingleActiveDocActivated($mvc, $rec)
+    protected static function on_AfterSingleActiveDocActivated($mvc, $rec)
     {
         $jQuery = planning_Jobs::getQuery();
         $jQuery->where("#productId = {$rec->productId} AND #state IN ('active', 'stopped', 'wakeup')");
@@ -400,7 +400,7 @@ class cat_Boms extends core_Master
      * Ако по изключената рецепта е имало запазени количества, рекалкулират
      * се запазените по заданията (@see doc_plg_SingleActiveDoc::on_Shutdown)
      */
-    public static function on_AfterSingleActiveDocStopped($mvc, $rec)
+    protected static function on_AfterSingleActiveDocStopped($mvc, $rec)
     {
         store_StockPlanning::recalcByReff($mvc, $rec->id);
     }
@@ -1140,7 +1140,7 @@ class cat_Boms extends core_Master
             }
 
             if (isset($data->addUrlDisassembly)) {
-                $addBtn = ht::createBtn('За разпад', $data->addUrlDisassembly, false, false, 'ef_icon=img/16/protocol_decay.png,title=Добавяне на нова рецепта за разпад');
+                $addBtn = ht::createBtn('За разпад', $data->addUrlDisassembly, false, false, 'ef_icon=img/16/article_decay.png,title=Добавяне на нова рецепта за разпад');
                 $tpl->append($addBtn, 'toolbar');
             }
         }
@@ -2181,7 +2181,7 @@ class cat_Boms extends core_Master
      * Добавя допълнителни полетата в антетката
      *
      * @param core_Master $mvc
-     * @param NULL|array  $res
+     * @param NULL|array  $resArr
      * @param object      $rec
      * @param object      $row
      */

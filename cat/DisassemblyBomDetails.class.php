@@ -166,6 +166,14 @@ class cat_DisassemblyBomDetails extends doc_Detail
      */
     public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = null, $userId = null)
     {
+        // Детайлът се променя само докато рецептата е чернова - активирана,
+        // затворена или оттеглена не се пипа (@see cat_BomDetails)
+        if (in_array($action, array('add', 'edit', 'delete')) && isset($rec->bomId)) {
+            if (cat_DisassemblyBoms::fetchField($rec->bomId, 'state') != 'draft') {
+                $res = 'no_one';
+            }
+        }
+
         if ($action == 'add' && isset($rec->type) && $rec->type == 'input') {
             $res = 'no_one';
         }

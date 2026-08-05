@@ -260,7 +260,7 @@ class planning_Jobs extends core_Master
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'dueDate,quantityProduced,quantityDisassembled,history,oldJobId,secondMeasureQuantity,productViewCacheDate,salesBomIdOnActivation,instantBomIdOnActivation,productionBomIdOnActivation';
+    public $fieldsNotToClone = 'dueDate,quantityProduced,quantityDisassembled,history,oldJobId,secondMeasureQuantity,productViewCacheDate,salesBomIdOnActivation,instantBomIdOnActivation,productionBomIdOnActivation,disassemblyBomIdOnActivation';
 
 
     /**
@@ -347,6 +347,7 @@ class planning_Jobs extends core_Master
         $this->FLD('salesBomIdOnActivation', 'key(mvc=cat_Boms,select=title)', 'caption=Търговска рецепта при активиране,input=none');
         $this->FLD('instantBomIdOnActivation', 'key(mvc=cat_Boms,select=title)', 'caption=Моментна рецепта при активиране,input=none');
         $this->FLD('productionBomIdOnActivation', 'key(mvc=cat_Boms,select=title)', 'caption=Работна рецепта при активиране,input=none');
+        $this->FLD('disassemblyBomIdOnActivation', 'key(mvc=cat_DisassemblyBoms,select=title)', 'caption=Рецепта за разпад при активиране,input=none');
 
         $this->setDbIndex('state');
         $this->setDbIndex('productId');
@@ -375,7 +376,6 @@ class planning_Jobs extends core_Master
         $data->singleTitle = (($rec->type ?? null) == 'disassembly') ? tr('Задание за разпад') : tr('Задание за производство');
 
         if (($rec->type ?? null) == 'disassembly') {
-            $form->setField('productId', "unit=|*(|за РАЗПАД|*)");
             $form->setField('storeId', 'caption=Влагане от');
             $form->setField('inputStores', 'caption=Произвеждане в');
         }
@@ -1170,7 +1170,7 @@ class planning_Jobs extends core_Master
 
         if ($rec->type == 'disassembly' && cat_DisassemblyBoms::haveRightFor('add', (object) array('productId' => $rec->productId, 'originId' => $rec->containerId))) {
             core_RowToolbar::createIfNotExists($row->_rowTools);
-            $row->_rowTools->addLink('Рецепта за разпад', array('cat_DisassemblyBoms', 'add', 'productId' => $rec->productId, 'originId' => $rec->containerId, 'ret_url' => true), "ef_icon=img/16/protocol_decay.png,title=Създаване на нова рецепта за разпад");
+            $row->_rowTools->addLink('Рецепта за разпад', array('cat_DisassemblyBoms', 'add', 'productId' => $rec->productId, 'originId' => $rec->containerId, 'ret_url' => true), "ef_icon=img/16/article_decay.png,title=Създаване на нова рецепта за разпад");
         }
 
         if (isset($fields['-list'])) {
@@ -1261,13 +1261,25 @@ class planning_Jobs extends core_Master
                 $row->oldJobCaption = ($rec->productId != $oldJobProductId) ? tr('Подобно задание') : tr('Предходно задание');
             }
 
-            foreach (array('sBomId' => array('salesBomIdOnActivation', 'sales'), 'iBomId' => array('instantBomIdOnActivation', 'instant'), 'pBomId' =>  array('productionBomIdOnActivation', 'production')) as $bomFld => $activationBomArr) {
-                $lastActiveBom = cat_Products::getLastActiveBom($rec->productId, $activationBomArr[1]);
+            // Всеки вид задание показва само своите рецепти (@see #Tsk9167)
+            if ($rec->type == 'disassembly') {
+                $lastActiveBom = cat_DisassemblyBoms::getLastActiveBom($rec->productId);
                 if ($bomId = ($lastActiveBom->id ?? null)) {
-                    $row->{$bomFld} = cat_Boms::getLink($bomId, 0);
-                    if(isset($rec->{$activationBomArr[0]}) && $bomId != $rec->{$activationBomArr[0]}){
-                        $oldBomHandle = cat_Boms::getHandle($rec->{$activationBomArr[0]});
-                        $row->{$bomFld} = ht::createHint($row->{$bomFld}, "Рецептата при активиране е била|*: #{$oldBomHandle}", 'warning');
+                    $row->dBomId = cat_DisassemblyBoms::getLink($bomId, 0);
+                    if(isset($rec->disassemblyBomIdOnActivation) && $bomId != $rec->disassemblyBomIdOnActivation){
+                        $oldBomHandle = cat_DisassemblyBoms::getHandle($rec->disassemblyBomIdOnActivation);
+                        $row->dBomId = ht::createHint($row->dBomId, "Рецептата при активиране е била|*: #{$oldBomHandle}", 'warning');
+                    }
+                }
+            } else {
+                foreach (array('sBomId' => array('salesBomIdOnActivation', 'sales'), 'iBomId' => array('instantBomIdOnActivation', 'instant'), 'pBomId' =>  array('productionBomIdOnActivation', 'production')) as $bomFld => $activationBomArr) {
+                    $lastActiveBom = cat_Products::getLastActiveBom($rec->productId, $activationBomArr[1]);
+                    if ($bomId = ($lastActiveBom->id ?? null)) {
+                        $row->{$bomFld} = cat_Boms::getLink($bomId, 0);
+                        if(isset($rec->{$activationBomArr[0]}) && $bomId != $rec->{$activationBomArr[0]}){
+                            $oldBomHandle = cat_Boms::getHandle($rec->{$activationBomArr[0]});
+                            $row->{$bomFld} = ht::createHint($row->{$bomFld}, "Рецептата при активиране е била|*: #{$oldBomHandle}", 'warning');
+                        }
                     }
                 }
             }
@@ -1506,16 +1518,24 @@ class planning_Jobs extends core_Master
             }
         }
 
-        // Кеширане на актуалните рецепти към момента на активиране
-        foreach (array('salesBomIdOnActivation' => 'sales', 'instantBomIdOnActivation' => 'instant', 'productionBomIdOnActivation' => 'production') as $bomFld => $bomType){
-            $bomRec = cat_Products::getLastActiveBom($rec->productId, $bomType);
+        // Кеширане на актуалните рецепти към момента на активиране - всеки вид
+        // задание кешира само своите (@see #Tsk9167)
+        if ($rec->type == 'disassembly') {
+            $bomRec = cat_DisassemblyBoms::getLastActiveBom($rec->productId);
             if ($bId = ($bomRec->id ?? null)) {
-                $rec->{$bomFld} = $bId;
+                $rec->disassemblyBomIdOnActivation = $bId;
+            }
+        } else {
+            foreach (array('salesBomIdOnActivation' => 'sales', 'instantBomIdOnActivation' => 'instant', 'productionBomIdOnActivation' => 'production') as $bomFld => $bomType){
+                $bomRec = cat_Products::getLastActiveBom($rec->productId, $bomType);
+                if ($bId = ($bomRec->id ?? null)) {
+                    $rec->{$bomFld} = $bId;
+                }
             }
         }
 
         $rec->productViewCacheDate = dt::now();
-        $mvc->save_($rec, 'productViewCacheDate,salesBomIdOnActivation,instantBomIdOnActivation,productionBomIdOnActivation');
+        $mvc->save_($rec, 'productViewCacheDate,salesBomIdOnActivation,instantBomIdOnActivation,productionBomIdOnActivation,disassemblyBomIdOnActivation');
     }
     
     

@@ -54,13 +54,13 @@ class cat_DisassemblyBoms extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, cat_Wrapper, doc_DocumentPlg, plg_Printing, doc_plg_Close, doc_ActivatePlg, doc_plg_SingleActiveDoc, plg_Clone, cat_plg_AddSearchKeywords, plg_Search, plg_Sorting, change_Plugin';
+    public $loadList = 'plg_RowTools2, cat_Wrapper, doc_DocumentPlg, plg_Printing, doc_plg_Close, doc_plg_Prototype, acc_plg_DocumentSummary, doc_ActivatePlg, doc_plg_SingleActiveDoc, plg_Clone, cat_plg_AddSearchKeywords, plg_Search, plg_Sorting, change_Plugin';
 
 
     /**
      * Полетата, които могат да се променят с change_Plugin
      */
-    public $changableFields = 'title,expenses,priceListId,notes';
+    public $changableFields = 'title,expenses,notes';
 
 
     /**
@@ -96,6 +96,29 @@ class cat_DisassemblyBoms extends core_Master
 
 
     /**
+     * Полета, които при клониране да не са попълнени
+     *
+     * @see plg_Clone
+     */
+    public $fieldsNotToClone = 'title,lastUpdatedDetailOn,lastUpdatedDetailBy';
+
+
+    /**
+     * Кои полета да не бъдат презаписвани от шаблона - артикулът идва от URL-то
+     * и не бива да се взима от образеца (@see doc_plg_Prototype)
+     */
+    public $fieldsNotToCopyFromTemplate = 'productId';
+
+
+    /**
+     * Дали да се показват последно видяните документи при избора на шаблонен
+     *
+     * @see doc_plg_Prototype
+     */
+    public $showInPrototypesLastVisited = true;
+
+
+    /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
     public $rowToolsSingleField = 'title';
@@ -104,7 +127,7 @@ class cat_DisassemblyBoms extends core_Master
     /**
      * Икона на единичния изглед
      */
-    public $singleIcon = 'img/16/protocol_decay.png';
+    public $singleIcon = 'img/16/article_decay.png';
 
 
     /**
@@ -152,9 +175,23 @@ class cat_DisassemblyBoms extends core_Master
 
 
     /**
+     * Кой може да затваря?
+     */
+    public $canClose = 'ceo,production,store';
+
+
+    /**
      * Поле за филтриране по дата
      */
-    public $filterDateField = 'createdOn,modifiedOn';
+    public $filterDateField = 'createdOn,lastUpdatedDetailOn,modifiedOn';
+
+
+    /**
+     * Искаме ли в листовия филтър да е попълнен филтъра по дата
+     *
+     * @see acc_plg_DocumentSummary
+     */
+    public $filterAutoDate = false;
 
 
     /**
@@ -183,8 +220,10 @@ class cat_DisassemblyBoms extends core_Master
         $this->FLD('expenses', 'percent(min=0)', 'caption=Реж. разходи,changeable');
 
         $this->FLD('priceListId', 'key(mvc=price_Lists,select=title,allowEmpty)', 'caption=Ценова политика за разпад->Избор');
-        $this->FLD('state', 'enum(draft=Чернова,active=Активирана,rejected=Оттеглена,closed=Затворена)', 'caption=Статус,input=none');
+        $this->FLD('state', 'enum(draft=Чернова,active=Активирана,rejected=Оттеглена,closed=Затворена,template=Шаблон)', 'caption=Статус,input=none');
         $this->FLD('notes', 'richtext(rows=4,bucket=Notes)', 'caption=Допълнително->Забележки');
+        $this->FLD('lastUpdatedDetailOn', 'datetime(format=smartTime)', 'caption=Промяна на детайла->На,silent,input=none');
+        $this->FLD('lastUpdatedDetailBy', 'key(mvc=core_Users,select=nick)', 'caption=Промяна на детайла->От,input=none');
 
         $this->setDbIndex('productId');
         $this->setDbIndex('state');
@@ -210,11 +249,38 @@ class cat_DisassemblyBoms extends core_Master
 
 
     /**
+     * Подготовка на бутоните на формата за добавяне/редактиране
+     */
+    protected static function on_AfterPrepareEditToolbar($mvc, &$res, $data)
+    {
+        // Рецептата е винаги към артикул - не може да се създава в нова нишка
+        if (!empty($data->form->toolbar->buttons['btnNewThread'])) {
+            $data->form->toolbar->removeBtn('btnNewThread');
+        }
+    }
+
+
+    /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
      */
     public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = null, $userId = null)
     {
         if ($action == 'add' && isset($rec)) {
+
+            if (isset($rec->originId)) {
+                $origin = doc_Containers::getDocument($rec->originId);
+
+                if($origin->isInstanceOf('planning_Jobs')){
+                    $jobRec = $origin->fetch('threadId,state');
+                    if(in_array($jobRec->state, array('draft', 'rejected', 'closed'))) {
+                        $res = 'no_one';
+                    } elseif(!doc_Threads::haveRightFor('single', $jobRec->threadId)){
+                        $res = 'no_one';
+                    }
+                } elseif(!$origin->isInstanceOf('cat_Products')){
+                    $res = 'no_one';
+                }
+            }
 
             // Артикулът за разпад винаги идва през URL-то
             if (empty($rec->productId)) {
@@ -237,6 +303,32 @@ class cat_DisassemblyBoms extends core_Master
                 $res = 'no_one';
             }
         }
+
+        // Затваря се само вече активирана рецепта (или се отваря затворена)
+        if ($action == 'close' && isset($rec)) {
+            if (!in_array($rec->state, array('active', 'closed'))) {
+                $res = 'no_one';
+            }
+        }
+    }
+
+
+    /**
+     * Обновява данни в мастъра при промяна по детайла - живо смятаната
+     * себестойност зависи от редовете, затова кешът трябва да се инвалидира
+     *
+     * @param int $id
+     * @return int
+     */
+    public function updateMaster_($id)
+    {
+        $rec = $this->fetchRec($id);
+
+        doc_DocumentCache::cacheInvalidation($rec->containerId);
+        $rec->lastUpdatedDetailOn = dt::now();
+        $rec->lastUpdatedDetailBy = core_Users::getCurrent();
+
+        return $this->save_($rec, 'lastUpdatedDetailOn,lastUpdatedDetailBy,modifiedOn,modifiedBy,searchKeywords');
     }
 
 
@@ -484,7 +576,7 @@ class cat_DisassemblyBoms extends core_Master
     /**
      * Добавя допълнителни полета в антетката (@see doc_DocumentPlg)
      */
-    public static function on_AfterGetFieldForLetterHead($mvc, &$resArr, $rec, $row)
+    protected static function on_AfterGetFieldForLetterHead($mvc, &$resArr, $rec, $row)
     {
         $resArr = arr::make($resArr);
 
@@ -496,6 +588,7 @@ class cat_DisassemblyBoms extends core_Master
 
         $resArr['info'] = array('name' => tr('Информация'), 'val' => tr("|*<table class='docHeaderVal'>
                 <tr><td style='font-weight:normal'>|Модифициранe|*:</td><td>[#modifiedOn#]</b> |от|* [#modifiedBy#]</td></tr>
+                <!--ET_BEGIN lastUpdatedDetailOn--><tr><td style='font-weight:normal'>|Промяна на детайл|*:</td><td>[#lastUpdatedDetailOn#]</td></tr><!--ET_END lastUpdatedDetailOn-->
                 <!--ET_BEGIN clonedFromId--><tr><td style='font-weight:normal'>|Клонирано от|*:</td><td>[#clonedFromId#]</td></tr><!--ET_END clonedFromId-->
                 </table>"));
     }
