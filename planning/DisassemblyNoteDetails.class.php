@@ -212,7 +212,7 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
             }
         }
 
-        if (!countR($rejectedIds)) {
+        if (!countR($rejectedIds) || !core_Packs::isInstalled('batch')) {
 
             return;
         }
