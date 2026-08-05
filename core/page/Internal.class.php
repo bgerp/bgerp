@@ -35,7 +35,7 @@ class core_page_Internal extends core_page_Active
         $this->push('css/default-theme.css', 'CSS');
         
         // Добавяне на стил само за дефоултния андроидски браузър
-        $browserInfo = Mode::get('getUserAgent');
+        $browserInfo = (string) Mode::get('getUserAgent');
         if (strPos($browserInfo, 'Mozilla/5.0') !== false && strPos($browserInfo, 'Android') !== false &&
         strPos($browserInfo, 'AppleWebKit') !== false && strPos($browserInfo, 'Chrome') === false) {
             $this->append('
