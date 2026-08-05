@@ -108,6 +108,12 @@ class cat_DisassemblyBoms extends core_Master
 
 
     /**
+     * Файл с шаблон за единичен изглед
+     */
+    public $singleLayoutFile = 'cat/tpl/SingleLayoutDisassemblyBom.shtml';
+
+
+    /**
      * Кой може да пише?
      */
     public $canEdit = 'ceo,production,store';
@@ -423,6 +429,49 @@ class cat_DisassemblyBoms extends core_Master
         $allocation = static::calcAllocation($id);
 
         return ($allocation->ok) ? $allocation->rows : null;
+    }
+
+
+    /**
+     * Връща последната активна рецепта за разпад на артикула. Активната е
+     * най-много една (@see doc_plg_SingleActiveDoc), подредбата е застраховка
+     *
+     * @param mixed $productId - ид или запис на артикул
+     *
+     * @return stdClass|false
+     */
+    public static function getLastActiveBom($productId)
+    {
+        $productRec = cat_Products::fetchRec($productId, 'id');
+        if (!is_object($productRec)) return false;
+
+        $query = static::getQuery();
+        $query->where("#productId = {$productRec->id} AND #state = 'active'");
+        $query->orderBy('id', 'DESC');
+
+        return $query->fetch();
+    }
+
+
+    /**
+     * Заглавие на записа - хендълът (с префикса от $abbr), заглавието на
+     * рецептата и артикула, който се разпада
+     *
+     * @param mixed $rec
+     * @param bool  $escaped
+     *
+     * @return string
+     */
+    public static function getRecTitle($rec, $escaped = true)
+    {
+        $rec = static::fetchRec($rec);
+        $title = static::getHandle($rec);
+        if (!empty($rec->title)) {
+            $title .= '/' . static::getVerbal($rec, 'title');
+        }
+        $title .= '/' . cat_Products::getTitleById($rec->productId);
+
+        return str::limitLen($title, 94);
     }
 
 

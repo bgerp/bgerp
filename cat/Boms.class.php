@@ -974,6 +974,27 @@ class cat_Boms extends core_Master
     
     
     /**
+     * Балонче за вида на рецептата - червеникаво за разпад, зеленикаво за
+     * технологичните. Ползва се и от двата таба (@see planning_GenericMapper)
+     *
+     * @param string|null $typeVerbal
+     * @param bool        $isDisassembly
+     *
+     * @return string|null
+     */
+    public static function renderTypeBadge($typeVerbal, $isDisassembly = false)
+    {
+        if (empty($typeVerbal)) return $typeVerbal;
+
+        $color = $isDisassembly ? '#b71c1c' : '#1b5e20';
+        $bgColor = $isDisassembly ? '#fdecea' : '#e8f5e9';
+        $borderColor = $isDisassembly ? '#e57373' : '#81c784';
+
+        return "<span style='display:inline-block;padding:1px 7px;border-radius:9px;border:1px solid {$borderColor};background:{$bgColor};color:{$color};font-size:0.9em;white-space:nowrap;'>{$typeVerbal}</span>";
+    }
+
+
+    /**
      * Подготвяне на рецептите за един артикул
      *
      * @param stdClass $data
@@ -982,63 +1003,71 @@ class cat_Boms extends core_Master
      */
     public function prepareBoms(&$data)
     {
-        // Рецептите за разпад на артикула (@see #Tsk9167) - изчисляваме преди
-        // проверката за скриване, за да не се скрие табът на непроизводим
-        // артикул, който обаче има рецепти за разпад
+        // Технологичните рецепти и тези за разпад (@see #Tsk9167) вървят в една
+        // таблица - разликата се вижда в колонката "Вид". Ключовете се префиксират,
+        // защото ид-тата на двата мениджъра се застъпват, а plg_RowTools2 търси
+        // записа в $data->recs по ключа на реда
+        $data->rows = $data->recs = array();
         $bomSections = array(
-            array(
-                'mvc'       => $this,
-                'rowsKey'   => 'rows',
-                'pagerKey'  => 'Pager',
-                'orderExpr' => "(CASE #state WHEN 'active' THEN 1 WHEN 'closed' THEN 2 ELSE 3 END)",
-                'orderBy'   => 'orderByState',
-                'orderDir'  => 'ASC',
-                'storeRecs' => true,
+            array('mvc'    => $this,
+                  'prefix' => 'b',
+                  'type'   => null,
+                  'isDisassembly' => false,
             ),
-            array(
-                'mvc'       => cls::get('cat_DisassemblyBoms'),
-                'rowsKey'   => 'disassemblyBomRows',
-                'pagerKey'  => 'disassemblyPager',
-                'orderExpr' => "(CASE #state WHEN 'active' THEN 1 WHEN 'closed' THEN 2 ELSE 3 END)",
-                'orderBy'   => 'orderByState',
-                'orderDir'  => 'ASC',
-                'storeRecs' => false,
-            ),
+            array('mvc'    => cls::get('cat_DisassemblyBoms'),
+                  'prefix' => 'd',
+                  'type'   => 'Разпад',
+                  'isDisassembly' => true,
+                ),
         );
 
+        // Първо се събират записите от двата мениджъра - лимит на ниво заявка не
+        // може да обхване две отделни таблици, затова пейджърът се прилага после
+        // върху общия списък (@see core_Pager::isOnPage)
+        $allRecs = array();
         foreach ($bomSections as $section) {
-            $mvc = $section['mvc'];
-            $query = $mvc->getQuery();
+            $query = $section['mvc']->getQuery();
             $query->where("#productId = {$data->masterId}");
             $query->where("#state != 'rejected'");
-            if (!empty($section['orderExpr'])) {
-                $query->XPR($section['orderBy'], 'int', $section['orderExpr']);
-            }
-            $query->orderBy($section['orderBy'], $section['orderDir']);
-            $pager = cls::get('core_Pager', array('itemsPerPage' => 20));
-            $pager->setPageVar('cat_Products', $data->masterId, get_class($mvc));
-            $pager->setLimit($query);
-            $rows = array();
+            $query->XPR('orderByState', 'int', "(CASE #state WHEN 'active' THEN 1 WHEN 'closed' THEN 2 ELSE 3 END)");
+            $query->orderBy('orderByState', 'ASC');
+
             while ($rec = $query->fetch()) {
-                if ($section['storeRecs']) {
-                    $data->recs[$rec->id] = $rec;
-                }
-                $rows[$rec->id] = $mvc->recToVerbal($rec);
+                $allRecs[] = array('rec' => $rec, 'section' => $section);
             }
-            $data->{$section['rowsKey']} = $rows;
-            $data->{$section['pagerKey']} = $pager;
         }
-       
+
+        $data->Pager = cls::get('core_Pager', array('itemsPerPage' => 20));
+        $data->Pager->setPageVar('cat_Products', $data->masterId, 'cat_Boms');
+        $data->Pager->itemsCount = countR($allRecs);
+
+        foreach ($allRecs as $item) {
+
+            // isOnPage() брои по едно извикване на запис - вика се точно веднъж
+            // за всеки, преди по-скъпото recToVerbal()
+            if (!$data->Pager->isOnPage()) continue;
+
+            $rec = $item['rec'];
+            $section = $item['section'];
+            $key = $section['prefix'] . $rec->id;
+            $row = $section['mvc']->recToVerbal($rec);
+
+            $typeVerbal = isset($section['type']) ? tr($section['type']) : ($row->type ?? null);
+            $row->type = static::renderTypeBadge($typeVerbal, $section['isDisassembly']);
+
+            $data->recs[$key] = $rec;
+            $data->rows[$key] = $row;
+        }
+
         $masterRec = $data->masterData->rec;
         if ($masterRec->canManifacture != 'yes') {
             $data->notManifacturable = true;
         }
 
         // Табът се показва, ако артикулът е производим и/или складируем+вложим
-        // (т.е. може да се разпада), или ако вече има технологични рецепти или
-        // рецепти за разпад (@see #Tsk9167)
+        // (т.е. може да се разпада), или ако вече има някакви рецепти
         $data->canBeDisassembled = $masterRec->canStore == 'yes' && $masterRec->canConvert == 'yes';
-        $showTab = (($data->notManifacturable ?? false) !== true) || $data->canBeDisassembled || countR($data->rows) || countR($data->disassemblyBomRows);
+        $showTab = (($data->notManifacturable ?? false) !== true) || $data->canBeDisassembled || countR($data->rows);
 
         if (!haveRole('ceo,sales,cat,planning') || !$showTab) {
             $data->hide = true;
@@ -1073,9 +1102,11 @@ class cat_Boms extends core_Master
         if (!empty($data->hide)) return;
         
         $tpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
-        if(!empty($data->fromConvertable)){
-            $title = tr('Технологични рецепти');
-            $tpl->append($title, 'title');
+
+        // В таб 'Употреба' заглавието се слага от planning_GenericMapper::renderResources,
+        // защото там таблицата е с друг смисъл - рецептите, в които артикулът участва
+        if (empty($data->fromConvertable)) {
+            $tpl->append(tr('Всички рецепти'), 'title');
         }
 
         // Ако артикула не е производим, показваме в детайла. При вложим+складируем
@@ -1086,36 +1117,16 @@ class cat_Boms extends core_Master
             $tpl->append('state-rejected', 'TAB_STATE');
         }
 
-        // Рецептите за разпад може да липсват, когато renderBoms се вика от таб 'Влагане'
-        // с данни от planning_GenericMapper::prepareBoms (@see #Tsk9167)
-        $bomSections = array(
-            array(
-                'rows'   => $data->rows,
-                'fields' => 'title=Технологична рецепта,type=Вид,action=Като,quantity=К-во,createdBy=От||By,createdOn=На',
-                'mvc'    => $this,
-                'pager'  => $data->Pager ?? null,
-            ),
-            array(
-                'rows'   => $data->disassemblyBomRows ?? array(),
-                'fields' => 'title=Рецепта за разпад,quantity=К-во,createdBy=От||By,createdOn=На',
-                'mvc'    => cls::get('cat_DisassemblyBoms'),
-                'pager'  => $data->disassemblyPager ?? null,
-            ),
-        );
-
-        foreach ($bomSections as $section) {
-            if (!countR($section['rows'])) continue;
-            $sData = clone $data;
-            $sData->rows = $section['rows'];
-            $sData->listFields = arr::make($section['fields']);
-            $this->invoke('BeforeRenderListTable', array($tpl, &$sData));
-            $table = cls::get('core_TableView', array('mvc' => $section['mvc']));
-            $details = $table->get($sData->rows, $sData->listFields);
-            if ($section['pager']) {
-                $details->append($section['pager']->getHtml());
-            }
-            $tpl->append($details, 'content');
+        // Технологичните рецепти и тези за разпад са в обща таблица - различават
+        // се по колонката "Вид" (@see #Tsk9167)
+        $data->listFields = arr::make('title=Рецепта,type=Вид,action=Като,quantity=К-во,createdBy=От||By,createdOn=На');
+        $table = cls::get('core_TableView', array('mvc' => $this));
+        $this->invoke('BeforeRenderListTable', array($tpl, &$data));
+        $details = $table->get($data->rows, $data->listFields);
+        if (!empty($data->Pager)) {
+            $details->append($data->Pager->getHtml());
         }
+        $tpl->append($details, 'content');
 
         if(!Mode::isReadOnly()){
             if (isset($data->addUrl1)) {
@@ -1132,7 +1143,6 @@ class cat_Boms extends core_Master
                 $addBtn = ht::createBtn('За разпад', $data->addUrlDisassembly, false, false, 'ef_icon=img/16/protocol_decay.png,title=Добавяне на нова рецепта за разпад');
                 $tpl->append($addBtn, 'toolbar');
             }
-
         }
         
         return $tpl;

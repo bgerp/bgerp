@@ -83,7 +83,7 @@ class planning_GenericMapper extends core_Manager
 
 
     /**
-     * До колко рецепти да се разлиства пейджъра в таб 'Влагане' - над това само съобщение за общия брой
+     * До колко рецепти да се разлиства пейджъра в таб 'Употреба' - над това само съобщение за общия брой
      */
     public $maxBomsForPaging = 500;
 
@@ -193,7 +193,8 @@ class planning_GenericMapper extends core_Manager
     
     
     /**
-     * Подготвя показването на информацията за влагане
+     * Подготвя таб 'Употреба' - заместващите артикули и рецептите, в които
+     * артикулът участва като ред
      */
     public function prepareResources(&$data)
     {
@@ -215,7 +216,10 @@ class planning_GenericMapper extends core_Manager
             return $data;
         }
 
-        $data->TabCaption = 'Влагане';
+        // Не е само "Влагане" - тук е употребата на артикула изобщо: в кои чужди
+        // рецепти участва и в каква роля (вкл. изходните Отпадък, Субпродукт и
+        // Произвеждане от разпад), както и какво го замества - @see #Tsk9167
+        $data->TabCaption = 'Употреба';
         $data->Tab = 'top';
     }
 
@@ -278,7 +282,7 @@ class planning_GenericMapper extends core_Manager
                 return new core_ET("");
             }
         } else {
-            $tpl->append(tr('Влагане'), 'title');
+            $tpl->append(tr('Заместващи артикули'), 'title');
         }
 
         $listTableMvc = clone $this;
@@ -297,7 +301,8 @@ class planning_GenericMapper extends core_Manager
 
 
     /**
-     * Подготвяне на рецептите за един артикул
+     * Подготвяне на рецептите, в които артикулът участва като ред - технологични
+     * (като ресурс) и за разпад (@see #Tsk9167)
      *
      * @param stdClass $data
      * @return void
@@ -306,66 +311,96 @@ class planning_GenericMapper extends core_Manager
     {
         $data->rows = array();
 
-        $Details = cls::get('cat_BomDetails');
+        // Таблицата се рендира от cat_Boms::renderBoms, но заглавието ѝ се слага
+        // тук - в този таб рецептите са с друг смисъл (@see renderResources)
+        $data->fromConvertable = true;
 
-        // Намираме id-та на рецептите, в които участва артикула като ресурс (леко, само bomId)
-        $idQuery = $Details->getQuery();
-        $idQuery->EXT('state', 'cat_Boms', 'externalName=state,externalKey=bomId');
-        $idQuery->where("#resourceId = {$data->masterId} AND #state != 'rejected'");
-        $idQuery->show('bomId');
-        $bomIds = arr::extractValuesFromArray($idQuery->fetchAll(), 'bomId');
+        // Рецептите, в които артикулът участва като ред - технологичните (като
+        // ресурс) и тези за разпад (@see #Tsk9167). В коя роля участва се вижда
+        // в колонката 'Като' - и досега там имаше не само вложими роли, а и
+        // Отпадък/Субпродукт, които всъщност са изходи от рецептата
+        $bomSections = array(
+            array('details'       => cls::get('cat_BomDetails'),
+                  'master'       => cls::get('cat_Boms'),
+                  'productFld'   => 'resourceId',
+                  'prefix'       => 'b',
+                  'isDisassembly' => false,
+            ),
+            array('details'       => cls::get('cat_DisassemblyBomDetails'),
+                  'master'       => cls::get('cat_DisassemblyBoms'),
+                  'productFld'   => 'productId',
+                  'prefix'       => 'd',
+                  'isDisassembly' => true,
+            ),
+        );
+
+        // Първо се събират редовете от двата вида рецепти, пейджърът се прилага
+        // после върху общия списък (@see core_Pager::isOnPage)
+        $allRecs = array();
+        foreach ($bomSections as $section) {
+            $query = $section['details']->getQuery();
+            $query->EXT('state', get_class($section['master']), 'externalName=state,externalKey=bomId');
+            $query->XPR('orderByState', 'int', "(CASE #state WHEN 'active' THEN 1 WHEN 'closed' THEN 2 ELSE 3 END)");
+            $query->where("#{$section['productFld']} = {$data->masterId} AND #state != 'rejected'");
+            $query->groupBy('bomId');
+            $query->orderBy('orderByState', 'ASC');
+
+            while ($rec = $query->fetch()) {
+                $allRecs[] = array('rec' => $rec, 'section' => $section);
+            }
+        }
 
         // Странициране на записите - ограничено до maxBomsForPaging, за да не се получи пейджър с хиляди страници
         $data->Pager = cls::get('core_Pager', array('itemsPerPage' => 20));
         $data->Pager->setPageVar('cat_Products', $data->masterId, 'cat_Boms');
-        $data->totalCount = countR($bomIds);
+        $data->totalCount = countR($allRecs);
         $data->Pager->itemsCount = min($data->totalCount, $this->maxBomsForPaging);
-        $data->Pager->calc();
 
         $shortUom = tr(cat_UoM::getShortName($data->masterData->rec->measureId));
         $Param = core_Request::get($data->masterData->tabTopParam, 'varchar');
         $now = dt::now();
 
-        if (countR($bomIds)) {
+        foreach ($allRecs as $item) {
+            if (!$data->Pager->isOnPage()) continue;
 
-            // Заявка само за текущата страница
-            $query = $Details->getQuery();
-            $query->EXT('state', 'cat_Boms', 'externalName=state,externalKey=bomId');
-            $query->XPR('orderByState', 'int', "(CASE #state WHEN 'active' THEN 1 WHEN 'closed' THEN 2 ELSE 3 END)");
-            $query->where("#resourceId = {$data->masterId} AND #state != 'rejected'");
-            $query->groupBy('bomId');
-            $query->orderBy('orderByState', 'ASC');
-            $query->limit($data->Pager->itemsPerPage);
-            $query->startFrom($data->Pager->rangeStart);
+            $rec = $item['rec'];
+            $section = $item['section'];
+            $Master = $section['master'];
+            $key = $section['prefix'] . $rec->id;
 
-            while ($rec = $query->fetch()) {
-                $bomRec = cat_Boms::fetch($rec->bomId);
-                $data->rows[$rec->id] = cat_Boms::recToVerbal($bomRec);
-                $data->rows[$rec->id]->action = $Details->getFieldType('type')->toVerbal($rec->type);
+            $bomRec = $Master->fetch($rec->bomId);
+            $row = $Master->recToVerbal($bomRec);
 
-                $actionClass = ($rec->type == 'input') ? '#e6ffe0' : ($rec->type == 'pop' ? '#cce3fe' : '#ece2ff');
-                $data->rows[$rec->id]->action = "<div class='document-handler' style='background-color:{$actionClass};'>{$data->rows[$rec->id]->action}</div>";
+            // Вид на рецептата
+            $typeVerbal = $section['isDisassembly'] ? tr('Разпад') : ($row->type ?? null);
+            $row->type = cat_Boms::renderTypeBadge($typeVerbal, $section['isDisassembly']);
 
-                // Изчисляване за какво количество е вложено, ако се показват рецептите, в които е вложена
-                if($Param == 'Resources'){
-                    $rInfo = cat_Boms::getResourceInfo($bomRec->id, 1, $now);
+            // В каква роля участва артикулът
+            $actionVerbal = $section['details']->getFieldType('type')->toVerbal($rec->type);
+            $actionClass = ($rec->type == 'input') ? '#e6ffe0' : ($rec->type == 'production' ? '#ffe0e0' : ($rec->type == 'pop' ? '#cce3fe' : '#ece2ff'));
+            $row->action = "<div class='document-handler' style='background-color:{$actionClass};'>{$actionVerbal}</div>";
 
-                    if(is_array($rInfo['resources'])){
-                        $foundRec = array_filter($rInfo['resources'], function($a) use ($data){return $a->productId == $data->masterId;});
-                        $quantityVerbal = "<span class='red'>???</span>";
-                        if($foundRec[key($foundRec)]->propQuantity){
-                            $quantityVerbal = core_Type::getByName('double(smartRound)')->toVerbal($foundRec[key($foundRec)]->propQuantity);
-                        }
-                        $data->rows[$rec->id]->quantity = "{$quantityVerbal} {$shortUom}";
+            // Изчисляване за какво количество е вложено, ако се показват рецептите, в които е вложена
+            if (!$section['isDisassembly'] && $Param == 'Resources') {
+                $rInfo = cat_Boms::getResourceInfo($bomRec->id, 1, $now);
+
+                if(is_array($rInfo['resources'])){
+                    $foundRec = array_filter($rInfo['resources'], function($a) use ($data){return $a->productId == $data->masterId;});
+                    $quantityVerbal = "<span class='red'>???</span>";
+                    if($foundRec[key($foundRec)]->propQuantity){
+                        $quantityVerbal = core_Type::getByName('double(smartRound)')->toVerbal($foundRec[key($foundRec)]->propQuantity);
                     }
+                    $row->quantity = "{$quantityVerbal} {$shortUom}";
                 }
             }
+
+            $data->rows[$key] = $row;
         }
     }
 
 
     /**
-     * Рендира показването на ресурси
+     * Рендира таб 'Употреба'
      *
      * @param stdClass $data
      * @return core_ET $tpl
@@ -379,7 +414,7 @@ class planning_GenericMapper extends core_Manager
         $tpl->replace($genTpl, 'generic');
 
         $recTpl = cls::get('cat_Boms')->renderBoms($data->recData);
-        $recTpl->append(tr('Технологични рецепти, в които участва'), 'title');
+        $recTpl->append(tr('Рецепти, в които участва'), 'title');
 
         // При повече от maxBomsForPaging рецепти - пейджърът е ограничен, показваме реалния общ брой
         if ($data->recData->totalCount > $data->recData->Pager->itemsCount) {
