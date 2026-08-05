@@ -56,8 +56,11 @@ class batch_definitions_StringExpiryDate extends batch_definitions_Varchar
             'format'      => $this->rec->format,
             'defaultTime' => $this->rec->time,
             'delimiter'   => $this->rec->delimiter,
-            'sizeOfBatch' => $this->rec->sizeOfBatch,
         );
+
+        if (isset($this->rec->sizeOfBatch)) {
+            $params['sizeOfBatch'] = $this->rec->sizeOfBatch;
+        }
 
         $startDate = $this->getDocumentDate($class, $objectId);
         if (isset($startDate)) {
