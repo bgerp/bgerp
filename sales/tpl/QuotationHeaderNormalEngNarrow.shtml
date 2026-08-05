@@ -30,9 +30,10 @@
                         <!--ET_BEGIN company--><div><b>[#company#]</b></div><!--ET_END company-->
                         <!--ET_BEGIN person--> <div><b>[#person#]</b></div><!--ET_END person-->
                         <div class='address-block'>
-
-                            [#contragentCountryId#]<br> <!--ET_BEGIN pCode-->[#contragentpCode#] <!--ET_END pCode-->[#contragentplace#]<br> [#address#]<!--ET_BEGIN tel-->,<br>
-                            <!--ET_BEGIN tel-->[#tel#]<!--ET_END tel--><!--ET_BEGIN fax-->, [#fax#] <!--ET_END fax--><!--ET_BEGIN email-->, <br>[#email#]<!--ET_END email-->
+                            <!--ET_BEGIN contragentCountryId--><div>[#contragentCountryId#]</div><!--ET_END contragentCountryId-->
+                            <div><!--ET_BEGIN pCode-->[#contragentpCode#] <!--ET_END pCode--><!--ET_BEGIN contragentplace-->[#contragentplace#]<!--ET_END contragentplace--></div>
+                            <!--ET_BEGIN contragentaddress--><div>[#contragentaddress#]</div><!--ET_END contragentaddress-->
+                            <div class='receiver-contacts'><!--ET_BEGIN tel--><span class='receiver-contact'>[#tel#]</span><!--ET_END tel--><!--ET_BEGIN fax--><span class='receiver-contact'>[#fax#]</span><!--ET_END fax--><!--ET_BEGIN email--><span class='receiver-contact'>[#email#]</span><!--ET_END email--></div>
                         </div>
                     </td>
                 </tr>
