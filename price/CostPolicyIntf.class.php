@@ -17,6 +17,12 @@
  */
 class price_CostPolicyIntf
 {
+    /**
+     * Клас, имплементиращ интерфейса
+     */
+    public $class;
+
+
     
     
     /**

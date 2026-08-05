@@ -3845,7 +3845,7 @@ abstract class deals_Helper
         if($baseCurrencyCode == $valiorCurrencyCode) return $amount;
 
         // Ако сумата е 0, не се променя за да не стане гадно число
-        if(round($amount, 5) == 0) return $amount;
+        if(round((float) $amount, 5) == 0) return $amount;
 
         // Ако от левове ще става евро да се смята по централния курс
         if($baseCurrencyCode == 'EUR' && $valiorCurrencyCode == 'BGN') {
