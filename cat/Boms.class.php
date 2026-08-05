@@ -982,45 +982,62 @@ class cat_Boms extends core_Master
      */
     public function prepareBoms(&$data)
     {
-        $data->rows = array();
-
-        // Намираме неоттеглените задания
-        $query = cat_Boms::getQuery();
-        $query->XPR('orderByState', 'int', "(CASE #state WHEN 'active' THEN 1 WHEN 'closed' THEN 2 ELSE 3 END)");
-        
-        $query->where("#productId = {$data->masterId}");
-        $query->where("#state != 'rejected'");
-        $query->orderBy('orderByState', 'ASC');
-
-        $data->Pager = cls::get('core_Pager', array('itemsPerPage' => 20));
-        $data->Pager->setPageVar('cat_Products', $data->masterId, 'cat_Boms');
-        $data->Pager->setLimit($query);
-
-        while ($rec = $query->fetch()) {
-            $data->recs[$rec->id] = $rec;
-            $data->rows[$rec->id] = $this->recToVerbal($rec);
-        }
-        
-        $masterInfo = cat_Products::getProductInfo($data->masterId);
-        if (!isset($masterInfo->meta['canManifacture'])) {
-            $data->notManifacturable = true;
-        }
-
         // Рецептите за разпад на артикула (@see #Tsk9167) - изчисляваме преди
         // проверката за скриване, за да не се скрие табът на непроизводим
         // артикул, който обаче има рецепти за разпад
-        $data->disassemblyBomRows = array();
-        $dQuery = cat_DisassemblyBoms::getQuery();
-        $dQuery->where("#productId = {$data->masterId} AND #state != 'rejected'");
-        $dQuery->orderBy('id', 'DESC');
-        while ($bomRec = $dQuery->fetch()) {
-            $data->disassemblyBomRows[$bomRec->id] = cat_DisassemblyBoms::recToVerbal($bomRec);
+        $bomSections = array(
+            array(
+                'mvc'       => $this,
+                'rowsKey'   => 'rows',
+                'pagerKey'  => 'Pager',
+                'orderExpr' => "(CASE #state WHEN 'active' THEN 1 WHEN 'closed' THEN 2 ELSE 3 END)",
+                'orderBy'   => 'orderByState',
+                'orderDir'  => 'ASC',
+                'storeRecs' => true,
+            ),
+            array(
+                'mvc'       => cls::get('cat_DisassemblyBoms'),
+                'rowsKey'   => 'disassemblyBomRows',
+                'pagerKey'  => 'disassemblyPager',
+                'orderExpr' => "(CASE #state WHEN 'active' THEN 1 WHEN 'closed' THEN 2 ELSE 3 END)",
+                'orderBy'   => 'orderByState',
+                'orderDir'  => 'ASC',
+                'storeRecs' => false,
+            ),
+        );
+
+        foreach ($bomSections as $section) {
+            $mvc = $section['mvc'];
+            $query = $mvc->getQuery();
+            $query->where("#productId = {$data->masterId}");
+            $query->where("#state != 'rejected'");
+            if (!empty($section['orderExpr'])) {
+                $query->XPR($section['orderBy'], 'int', $section['orderExpr']);
+            }
+            $query->orderBy($section['orderBy'], $section['orderDir']);
+            $pager = cls::get('core_Pager', array('itemsPerPage' => 20));
+            $pager->setPageVar('cat_Products', $data->masterId, get_class($mvc));
+            $pager->setLimit($query);
+            $rows = array();
+            while ($rec = $query->fetch()) {
+                if ($section['storeRecs']) {
+                    $data->recs[$rec->id] = $rec;
+                }
+                $rows[$rec->id] = $mvc->recToVerbal($rec);
+            }
+            $data->{$section['rowsKey']} = $rows;
+            $data->{$section['pagerKey']} = $pager;
+        }
+       
+        $masterRec = $data->masterData->rec;
+        if ($masterRec->canManifacture != 'yes') {
+            $data->notManifacturable = true;
         }
 
         // Табът се показва, ако артикулът е производим и/или складируем+вложим
         // (т.е. може да се разпада), или ако вече има технологични рецепти или
         // рецепти за разпад (@see #Tsk9167)
-        $data->canBeDisassembled = isset($masterInfo->meta['canStore']) && isset($masterInfo->meta['canConvert']);
+        $data->canBeDisassembled = $masterRec->canStore == 'yes' && $masterRec->canConvert == 'yes';
         $showTab = (($data->notManifacturable ?? false) !== true) || $data->canBeDisassembled || countR($data->rows) || countR($data->disassemblyBomRows);
 
         if (!haveRole('ceo,sales,cat,planning') || !$showTab) {
@@ -1061,14 +1078,6 @@ class cat_Boms extends core_Master
             $tpl->append($title, 'title');
         }
 
-        $data->listFields = arr::make('title=Технологична рецепта,type=Вид,action=Като,quantity=К-во,createdBy=От||By,createdOn=На');
-        $table = cls::get('core_TableView', array('mvc' => $this));
-        $this->invoke('BeforeRenderListTable', array($tpl, &$data));
-        $details = $table->get($data->rows, $data->listFields);
-        if (!empty($data->Pager)) {
-            $details->append($data->Pager->getHtml());
-        }
-
         // Ако артикула не е производим, показваме в детайла. При вложим+складируем
         // артикул табът е там заради рецептите за разпад, а не по погрешка -
         // затова не го маркираме като проблемен (@see #Tsk9167)
@@ -1077,18 +1086,35 @@ class cat_Boms extends core_Master
             $tpl->append('state-rejected', 'TAB_STATE');
         }
 
-        $tpl->append($details, 'content');
-
-        // Рецепти за разпад на артикула - в отделна таблица, само ако има такива.
-        // Полето може да липсва, защото renderBoms се вика и от таб 'Влагане'
+        // Рецептите за разпад може да липсват, когато renderBoms се вика от таб 'Влагане'
         // с данни от planning_GenericMapper::prepareBoms (@see #Tsk9167)
-        if (countR($data->disassemblyBomRows ?? array())) {
-            $dbListFields = arr::make('title=Рецепта за разпад,quantity=К-во,createdBy=От||By,createdOn=На');
-            $this->invoke('BeforeRenderListTable', array($tpl, &$data));
+        $bomSections = array(
+            array(
+                'rows'   => $data->rows,
+                'fields' => 'title=Технологична рецепта,type=Вид,action=Като,quantity=К-во,createdBy=От||By,createdOn=На',
+                'mvc'    => $this,
+                'pager'  => $data->Pager ?? null,
+            ),
+            array(
+                'rows'   => $data->disassemblyBomRows ?? array(),
+                'fields' => 'title=Рецепта за разпад,quantity=К-во,createdBy=От||By,createdOn=На',
+                'mvc'    => cls::get('cat_DisassemblyBoms'),
+                'pager'  => $data->disassemblyPager ?? null,
+            ),
+        );
 
-            $dTable = cls::get('core_TableView', array('mvc' => cls::get('cat_DisassemblyBoms')));
-            $dDetails = $dTable->get($data->disassemblyBomRows, $dbListFields);
-            $tpl->append($dDetails, 'content');
+        foreach ($bomSections as $section) {
+            if (!countR($section['rows'])) continue;
+            $sData = clone $data;
+            $sData->rows = $section['rows'];
+            $sData->listFields = arr::make($section['fields']);
+            $this->invoke('BeforeRenderListTable', array($tpl, &$sData));
+            $table = cls::get('core_TableView', array('mvc' => $section['mvc']));
+            $details = $table->get($sData->rows, $sData->listFields);
+            if ($section['pager']) {
+                $details->append($section['pager']->getHtml());
+            }
+            $tpl->append($details, 'content');
         }
 
         if(!Mode::isReadOnly()){
