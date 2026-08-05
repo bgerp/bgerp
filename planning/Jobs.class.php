@@ -881,10 +881,15 @@ class planning_Jobs extends core_Master
         $rec = &$data->rec;
         $issueBtnRow = $rec->state == 'closed' ? 1 : 2;
         $data->toolbar->setBtnAttr("issueBtn{$rec->containerId}", 'row', $issueBtnRow);
-        if (cat_Boms::haveRightFor('add', (object) array('productId' => $rec->productId, 'type' => 'production', 'originId' => $rec->containerId))) {
+        if ($rec->type == 'manifacture' && cat_Boms::haveRightFor('add', (object) array('productId' => $rec->productId, 'type' => 'production', 'originId' => $rec->containerId))) {
             $data->toolbar->addBtn('Рецепта', array('cat_Boms', 'add', 'productId' => $rec->productId, 'originId' => $rec->containerId, 'quantityForPrice' => $rec->quantity, 'ret_url' => true, 'type' => 'production'), 'ef_icon = img/16/add.png,title=Създаване на нова работна рецепта,row=2');
         }
-        
+
+        // Бутон за добавяне на рецепта за разпад
+        if ($rec->type == 'disassembly' && cat_DisassemblyBoms::haveRightFor('add', (object) array('productId' => $rec->productId, 'originId' => $rec->containerId))) {
+            $data->toolbar->addBtn('Рецепта за разпад', array('cat_DisassemblyBoms', 'add', 'productId' => $rec->productId, 'originId' => $rec->containerId, 'ret_url' => true), 'ef_icon = img/16/add.png,title=Създаване на нова рецепта за разпад,row=2');
+        }
+
         // Бутон за добавяне на документ за производство
         if (planning_DirectProductionNote::haveRightFor('add', (object) array('originId' => $rec->containerId))) {
             $pUrl = array('planning_DirectProductionNote', 'add', 'originId' => $rec->containerId, 'ret_url' => true);
@@ -1158,11 +1163,16 @@ class planning_Jobs extends core_Master
             }
         }
         
-        if (cat_Boms::haveRightFor('add', (object) array('productId' => $rec->productId, 'type' => 'production', 'originId' => $rec->containerId))) {
+        if ($rec->type == 'manifacture' && cat_Boms::haveRightFor('add', (object) array('productId' => $rec->productId, 'type' => 'production', 'originId' => $rec->containerId))) {
             core_RowToolbar::createIfNotExists($row->_rowTools);
             $row->_rowTools->addLink('Работна рецепта', array('cat_Boms', 'add', 'productId' => $rec->productId, 'originId' => $rec->containerId, 'quantityForPrice' => $rec->quantity, 'ret_url' => true, 'type' => 'production'), "ef_icon=img/16/article.png,title=Създаване на нова работна рецепта");
         }
-        
+
+        if ($rec->type == 'disassembly' && cat_DisassemblyBoms::haveRightFor('add', (object) array('productId' => $rec->productId, 'originId' => $rec->containerId))) {
+            core_RowToolbar::createIfNotExists($row->_rowTools);
+            $row->_rowTools->addLink('Рецепта за разпад', array('cat_DisassemblyBoms', 'add', 'productId' => $rec->productId, 'originId' => $rec->containerId, 'ret_url' => true), "ef_icon=img/16/protocol_decay.png,title=Създаване на нова рецепта за разпад");
+        }
+
         if (isset($fields['-list'])) {
             $row->productId = (!empty($fields['__isDetail'])) ? cat_Products::getLink($rec->productId, 0) : cat_Products::getHyperlink($rec->productId, true);
             if ($rec->quantityNotStored > 0) {

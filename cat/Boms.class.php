@@ -31,7 +31,7 @@ class cat_Boms extends core_Master
     /**
      * Неща, подлежащи на начално зареждане
      */
-    public $loadList = 'plg_RowTools2, cat_Wrapper, doc_DocumentPlg, plg_Printing, doc_plg_Close, doc_plg_Prototype, acc_plg_DocumentSummary, doc_ActivatePlg, plg_Clone, cat_plg_AddSearchKeywords, plg_Search, change_Plugin, plg_Sorting,plg_Select';
+    public $loadList = 'plg_RowTools2, cat_Wrapper, doc_DocumentPlg, plg_Printing, doc_plg_Close, doc_plg_Prototype, acc_plg_DocumentSummary, doc_ActivatePlg, doc_plg_SingleActiveDoc, plg_Clone, cat_plg_AddSearchKeywords, plg_Search, change_Plugin, plg_Sorting,plg_Select';
     
     
     /**
@@ -194,19 +194,16 @@ class cat_Boms extends core_Master
      * Дали в листовия изглед да се показва бутона за добавяне
      */
     public $listAddBtn = false;
-    
-    
-    /**
-     * Опашка от активираните рецепти
-     */
-    private static $activatedBoms = array();
-    
-    
-    /**
-     * Опашка от спрените рецепти
-     */
-    private static $stoppedActiveBoms = array();
 
+
+    /**
+     * Полета, определящи групата за затваряне на "конкурентните" активни
+     * рецепти - само 1 активна рецепта за даден артикул и вид рецепта
+     *
+     * @see doc_plg_SingleActiveDoc
+     */
+    public $singleActiveDocRefField = 'productId,type';
+    
 
     /**
      * Полета, които при клониране да не са попълнени
@@ -385,149 +382,27 @@ class cat_Boms extends core_Master
     
     
     /**
-     * Активира последната затворена рецепта за артикула
-     *
-     * @param mixed $id
-     *
-     * @return FALSE|int
+     * Ако има задания към артикула, при активиране на рецепта се обновяват
+     * запазените им количества (@see doc_plg_SingleActiveDoc::on_Shutdown)
      */
-    private function activateLastBefore($id)
+    public static function on_AfterSingleActiveDocActivated($mvc, $rec)
     {
-        $rec = $this->fetchRec($id);
-        if ($rec->state != 'closed' && $rec->state != 'rejected') {
-            
-            return false;
-        }
-        
-        // Намираме последната приключена рецепта (различна от текущата за артикула)
-        $query = $this->getQuery();
-        $query->where("#state = 'closed' AND #id != {$rec->id} AND #productId = {$rec->productId} AND #type = '{$rec->type}'");
-        $query->orderBy('id', 'DESC');
-
-        while ($nextActiveBomRec = $query->fetch()) {
-
-            // Ако предишната активна рецепта е ОК - активира се
-            if($this->isOk($nextActiveBomRec)){
-                $nextActiveBomRec->state = 'active';
-                $nextActiveBomRec->brState = 'closed';
-                $nextActiveBomRec->modifiedOn = dt::now();
-
-                $id = $this->save_($nextActiveBomRec, 'state,brState,modifiedOn');
-                $this->logWrite("Активиране на последна '" . $this->getVerbal($rec, 'type') . "' рецепта", $id);
-                doc_DocumentCache::cacheInvalidation($nextActiveBomRec->containerId);
-
-                return $id;
-            }
-        }
-
-        return false;
-    }
-    
-    
-    /**
-     * Реакция в счетоводния журнал при оттегляне на счетоводен документ
-     *
-     * @param core_Mvc   $mvc
-     * @param mixed      $res
-     * @param int|object $id  първичен ключ или запис на $mvc
-     */
-    protected static function on_AfterReject(core_Mvc $mvc, &$res, $id)
-    {
-        $rec = $mvc->fetchRec($id);
-        
-        if($rec->brState == 'active'){
-            static::$stoppedActiveBoms[$rec->id] = $rec;
+        $jQuery = planning_Jobs::getQuery();
+        $jQuery->where("#productId = {$rec->productId} AND #state IN ('active', 'stopped', 'wakeup')");
+        $jQuery->show('id');
+        while($jRec = $jQuery->fetch()){
+            store_StockPlanning::updateByDocument('planning_Jobs', $jRec->id);
         }
     }
-    
-    
-    /**
-     * След промяна на състоянието
-     */
-    protected function on_AfterChangeState($mvc, $rec, $state)
-    {
-        $rec = $mvc->fetchRec($rec);
-        if ($state == 'closed' && $rec->brState == 'active') {
-            static::$stoppedActiveBoms[$rec->id] = $rec;
-        } elseif($state == 'active' && $rec->brState == 'closed'){
-            static::$activatedBoms[$rec->id] = $rec;
-        }
-    }
-    
-    
-    /**
-     * Реакция в счетоводния журнал при възстановяване на оттеглен счетоводен документ
-     *
-     * @param core_Mvc   $mvc
-     * @param mixed      $res
-     * @param int|object $id  първичен ключ или запис на $mvc
-     */
-    protected static function on_AfterRestore(core_Mvc $mvc, &$res, $id)
-    {
-        $rec = $mvc->fetchRec($id);
-        if($rec->state == 'active'){
-            static::$activatedBoms[$rec->id] = $rec;
-        }
-    }
-    
-    
-    /**
-     * Функция, която прихваща след активирането на документа
-     */
-    protected static function on_AfterActivation($mvc, &$rec)
-    {
-        $rec = $mvc->fetchRec($rec);
-        static::$activatedBoms[$rec->id] = $rec;
-    }
-    
-    
-    /**
-     * Обновява списъците със свойства на номенклатурите от които е имало засегнати пера
-     *
-     * @param acc_Items $mvc
-     */
-    public static function on_Shutdown($mvc)
-    {
-        if(countR(static::$activatedBoms)){
-            foreach (static::$activatedBoms as $rec){
 
-                // Намираме всички останали активни рецепти
-                $query = static::getQuery();
-                $query->where("#state = 'active' AND #id != {$rec->id} AND #productId = {$rec->productId} AND #type = '{$rec->type}'");
-                
-                // Затваряме ги
-                $idCount = 0;
-                while ($bomRec = $query->fetch()) {
-                    $bomRec->state = 'closed';
-                    $bomRec->brState = 'active';
-                    $bomRec->modifiedOn = dt::now();
-                    $mvc->save_($bomRec, 'state,brState,modifiedOn');
-                    $mvc->logWrite("Затваряне при активиране на нова '" . $mvc->getVerbal($rec, 'type') . "' рецепта", $bomRec->id);
-                    
-                    doc_DocumentCache::cacheInvalidation($bomRec->containerId);
-                    $idCount++;
-                }
-                
-                if ($idCount) {
-                    core_Statuses::newStatus("|Затворени рецепти|*: {$idCount}");
-                }
 
-                // Ако има задания към артикула да се обновят запазените им количества
-                $jQuery = planning_Jobs::getQuery();
-                $jQuery->where("#productId = {$rec->productId} AND #state IN ('active', 'stopped', 'wakeup')");
-                $jQuery->show('id');
-                while($jRec = $jQuery->fetch()){
-                    store_StockPlanning::updateByDocument('planning_Jobs', $jRec->id);
-                }
-            }
-        }
-
-        // Ако по изключените е имало запазени количества, рекалкулират се запазените по заданията
-        if(countR(static::$stoppedActiveBoms)){
-            foreach (static::$stoppedActiveBoms as $rec){
-                store_StockPlanning::recalcByReff($mvc, $rec->id);
-            }
-        }
+    /**
+     * Ако по изключената рецепта е имало запазени количества, рекалкулират
+     * се запазените по заданията (@see doc_plg_SingleActiveDoc::on_Shutdown)
+     */
+    public static function on_AfterSingleActiveDocStopped($mvc, $rec)
+    {
+        store_StockPlanning::recalcByReff($mvc, $rec->id);
     }
     
     
@@ -1131,14 +1006,15 @@ class cat_Boms extends core_Master
             $data->notManifacturable = true;
         }
 
-        if (!haveRole('ceo,sales,cat,planning') || (($data->notManifacturable ?? false) === true && !countR($data->rows))) {            $data->hide = true;
-            
+        if (!haveRole('ceo,sales,cat,planning') || (($data->notManifacturable ?? false) === true && !countR($data->rows))) {
+            $data->hide = true;
+
             return;
         }
-        
+
         $data->TabCaption = 'Рецепти';
         $data->Tab = 'top';
-        
+
         // Проверяваме можем ли да добавяме нови рецепти
         if ($this->haveRightFor('add', (object) array('productId' => $data->masterId, 'originId' => $data->masterData->rec->containerId))) {
             $data->addUrl1 = array('cat_Boms', 'add', 'productId' => $data->masterData->rec->id, 'originId' => $data->masterData->rec->containerId, 'type' => 'sales', 'ret_url' => true);
@@ -1178,7 +1054,7 @@ class cat_Boms extends core_Master
         }
 
         $tpl->append($details, 'content');
-        
+
         if(!Mode::isReadOnly()){
             if (isset($data->addUrl1)) {
                 $addBtn = ht::createBtn('Търговска', $data->addUrl1, false, false, "ef_icon={$this->singleIcon},title=Добавяне на нова търговска технологична рецепта");
@@ -1189,6 +1065,7 @@ class cat_Boms extends core_Master
                 $addBtn = ht::createBtn('Моментна', $data->addUrl2, false, false, "ef_icon={$this->singleIcon},title=Добавяне на нова моментна технологична рецепта");
                 $tpl->append($addBtn, 'toolbar');
             }
+
         }
         
         return $tpl;

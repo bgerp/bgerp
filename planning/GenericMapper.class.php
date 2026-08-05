@@ -209,7 +209,11 @@ class planning_GenericMapper extends core_Manager
         $data->recData = clone $data;
         $this->prepareBoms($data->recData);
 
-        if(!empty($data->notConvertableAnymore) && !countR($data->genData->rows) && !countR($data->recData->rows)){
+        // Подготовка на рецептите за разпад, в които участва като артикул за разпад (@see #Tsk9167)
+        $data->disassemblyBomData = clone $data;
+        $this->prepareDisassemblyBoms($data->disassemblyBomData);
+
+        if(!empty($data->notConvertableAnymore) && !countR($data->genData->rows) && !countR($data->recData->rows) && !countR($data->disassemblyBomData->rows)){
             $data->hide = true;
 
             return $data;
@@ -217,6 +221,59 @@ class planning_GenericMapper extends core_Manager
 
         $data->TabCaption = 'Влагане';
         $data->Tab = 'top';
+    }
+
+
+    /**
+     * Подготвя данните на рецептите за разпад на този артикул (@see #Tsk9167)
+     *
+     * @param stdClass $data
+     * @return void
+     */
+    private function prepareDisassemblyBoms($data)
+    {
+        $data->rows = array();
+
+        $dQuery = cat_DisassemblyBoms::getQuery();
+        $dQuery->where("#productId = {$data->masterId} AND #state != 'rejected'");
+        $dQuery->orderBy('id', 'DESC');
+        while ($bomRec = $dQuery->fetch()) {
+            $data->rows[$bomRec->id] = cat_DisassemblyBoms::recToVerbal($bomRec);
+        }
+
+        $data->listFields = arr::make('title=Документ,quantity=За,state,createdBy=От||By,createdOn=На', true);
+
+        if (!Mode::is('printing') && !Mode::is('inlineDocument')) {
+            if (cat_DisassemblyBoms::haveRightFor('add', (object) array('productId' => $data->masterId, 'originId' => $data->masterData->rec->containerId))) {
+                $data->addUrl = array('cat_DisassemblyBoms', 'add', 'productId' => $data->masterId, 'originId' => $data->masterData->rec->containerId, 'ret_url' => true);
+            }
+        }
+    }
+
+
+    /**
+     * Рендира рецептите за разпад на този артикул
+     *
+     * @param stdClass $data
+     * @return core_ET
+     */
+    private function renderDisassemblyBoms($data)
+    {
+        if (!countR($data->rows) && empty($data->addUrl)) return new core_ET('');
+
+        $tpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
+        $tpl->append(tr('Рецепти за разпад'), 'title');
+
+        $table = cls::get('core_TableView', array('mvc' => cls::get('cat_DisassemblyBoms')));
+        $this->invoke('BeforeRenderListTable', array($tpl, &$data));
+        $tpl->append($table->get($data->rows, $data->listFields), 'content');
+
+        if (!Mode::isReadOnly() && isset($data->addUrl)) {
+            $addBtn = ht::createBtn('За разпад', $data->addUrl, false, false, 'ef_icon=img/16/protocol_decay.png,title=Добавяне на нова рецепта за разпад');
+            $tpl->append($addBtn, 'toolbar');
+        }
+
+        return $tpl;
     }
 
 
@@ -374,7 +431,7 @@ class planning_GenericMapper extends core_Manager
     {
         if (!empty($data->hide)) return;
 
-        $tpl = new core_ET("[#generic#]<div style='margin-top:10px'>[#boms#]</div>");
+        $tpl = new core_ET("[#generic#]<div style='margin-top:10px'>[#boms#]</div><div style='margin-top:10px'>[#disassemblyBoms#]</div>");
         $genTpl = $this->renderGenericData($data->genData);
         $tpl->replace($genTpl, 'generic');
 
@@ -388,6 +445,9 @@ class planning_GenericMapper extends core_Manager
         }
 
         $tpl->replace($recTpl, 'boms');
+
+        // Рецепти за разпад на артикула - само ако има такива (@see #Tsk9167)
+        $tpl->replace($this->renderDisassemblyBoms($data->disassemblyBomData), 'disassemblyBoms');
 
         return $tpl;
     }
