@@ -86,7 +86,7 @@ class social_SharingCnts extends core_Master
         }
         
         // Уваеличаваме брояча и записваме
-        $rec->cnt++;
+        $rec->cnt = ($rec->cnt ?? 0) + 1;
         self::save($rec);
     }
     
