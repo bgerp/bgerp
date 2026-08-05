@@ -222,6 +222,7 @@ class cat_DisassemblyBoms extends core_Master
         $this->FLD('priceListId', 'key(mvc=price_Lists,select=title,allowEmpty)', 'caption=Ценова политика за разпад->Избор');
         $this->FLD('state', 'enum(draft=Чернова,active=Активирана,rejected=Оттеглена,closed=Затворена,template=Шаблон)', 'caption=Статус,input=none');
         $this->FLD('notes', 'richtext(rows=4,bucket=Notes)', 'caption=Допълнително->Забележки');
+        $this->FLD('allProductsAreInTheSameUomId', 'enum(yes=Да,no=Не)', 'caption=Всички артикули са в еднаква мярка,input=none,notNull,value=yes');
         $this->FLD('lastUpdatedDetailOn', 'datetime(format=smartTime)', 'caption=Промяна на детайла->На,silent,input=none');
         $this->FLD('lastUpdatedDetailBy', 'key(mvc=core_Users,select=nick)', 'caption=Промяна на детайла->От,input=none');
 
@@ -328,7 +329,26 @@ class cat_DisassemblyBoms extends core_Master
         $rec->lastUpdatedDetailOn = dt::now();
         $rec->lastUpdatedDetailBy = core_Users::getCurrent();
 
-        return $this->save_($rec, 'lastUpdatedDetailOn,lastUpdatedDetailBy,modifiedOn,modifiedBy,searchKeywords');
+        // Всички ли артикули от детайла са в мярка, производна на тази на артикула
+        // за разпад - напр. при основна мярка килограм минават кг/тон/грам, но не и брой
+        $rec->allProductsAreInTheSameUomId = 'yes';
+        $measureId = cat_Products::fetchField($rec->productId, 'measureId');
+        if (!empty($measureId)) {
+            $sameTypeMeasures = cat_UoM::getSameTypeMeasures($measureId);
+
+            $dQuery = cat_DisassemblyBomDetails::getQuery();
+            $dQuery->EXT('measureId', 'cat_Products', 'externalName=measureId,externalKey=productId');
+            $dQuery->where("#bomId = {$rec->id}");
+            $dQuery->show('measureId');
+            while ($dRec = $dQuery->fetch()) {
+                if (!array_key_exists($dRec->measureId, $sameTypeMeasures)) {
+                    $rec->allProductsAreInTheSameUomId = 'no';
+                    break;
+                }
+            }
+        }
+
+        return $this->save_($rec, 'lastUpdatedDetailOn,lastUpdatedDetailBy,allProductsAreInTheSameUomId,modifiedOn,modifiedBy,searchKeywords');
     }
 
 
@@ -584,6 +604,7 @@ class cat_DisassemblyBoms extends core_Master
                 <tr><td style='font-weight:normal'>|За|*:</td><td>[#quantity#]</td></tr>
                 <!--ET_BEGIN expenses--><tr><td style='font-weight:normal'>|Режийни разходи|*:</td><td>[#expenses#]</td></tr><!--ET_END expenses-->
                 <!--ET_BEGIN priceListId--><tr><td style='font-weight:normal'>|Политика за разпад|*:</td><td>[#priceListId#]</td></tr><!--ET_END priceListId-->
+                <tr><td style='font-weight:normal'>|Еднаква мярка|*:</td><td>[#allProductsAreInTheSameUomId#]</td></tr>
                 </table>"));
 
         $resArr['info'] = array('name' => tr('Информация'), 'val' => tr("|*<table class='docHeaderVal'>
@@ -631,6 +652,8 @@ class cat_DisassemblyBoms extends core_Master
 
             if(!empty($rec->priceListId)){
                 $row->priceListId = price_Lists::getHyperlink($rec->priceListId, true);
+            } else {
+                $row->priceListId = "<span class='red'>n/a</span>";
             }
         } else {
             $row->title = $mvc->getHyperlink($rec, true);
