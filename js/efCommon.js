@@ -4446,6 +4446,27 @@ function render_showToast(data) {
 
 
 /**
+ * Активира визуално бутоните на модала за картово плащане след 10 секунди.
+ *
+ * Бутоните „Ръчно потвърждение" / „Назад" се рендират с клас disabledBtn (изглеждат
+ * неактивни). Кликът върху тях работи през цялото време — класът е само визуален.
+ * След 10 секунди го махаме, за да личи, че операторът вече може да ги ползва при
+ * проблем/липса на комуникация. Централно за всички POS драйвери (POS терминал и
+ * каса). Извиква се при всяко показване на модала, така че таймерът се рестартира.
+ */
+function armCardPaymentModalButtons() {
+    var $btns = $('.fullScreenCardPayment .confirmPayment, .fullScreenCardPayment .closePaymentModal');
+    $btns.addClass('disabledBtn');
+    if (window.cardPaymentModalBtnTimer) {
+        clearTimeout(window.cardPaymentModalBtnTimer);
+    }
+    window.cardPaymentModalBtnTimer = setTimeout(function () {
+        $btns.removeClass('disabledBtn');
+    }, 10000);
+}
+
+
+/**
  * Накара документа да флашне/светне
  * Може да се комбинира с efae
  *
