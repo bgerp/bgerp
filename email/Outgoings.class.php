@@ -2468,10 +2468,12 @@ class email_Outgoings extends core_Master
         
         // Профила на текущият потребител
         $personRec = crm_Profiles::getProfile($userId);
-        
-        // Ако потребителя няма фирма
-        if (!($companyId = $personRec->buzCompanyId)) {
-            
+
+        // Фирмата на потребителя, ако има профил и зададена фирма
+        $companyId = $personRec->buzCompanyId ?? null;
+
+        // Ако потребителят няма фирма
+        if (!$companyId) {
             // Вземаме фирмата по подразбиране
             $companyId = crm_Setup::BGERP_OWN_COMPANY_ID;
         }
