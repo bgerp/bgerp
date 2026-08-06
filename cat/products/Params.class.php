@@ -749,10 +749,12 @@ class cat_products_Params extends doc_Detail
                 $pRec->paramValue = cat_Params::getReplacementValueOnClone($pRec->paramId, $classId, $objectId, $pRec->paramValue);
                 $paramValues[$pRec->paramId] = $pRec->paramValue;
             }
+
         } else {
             $paramValues = cat_Products::getParams($productId);
             $params = array_combine(array_keys($paramValues), array_keys($paramValues));
         }
+
 
         $stepParams = $prevRecValues = array();
         if(isset($planningStepProductId)){
@@ -760,6 +762,8 @@ class cat_products_Params extends doc_Detail
                 $pData = $StepDriver->getProductionData($planningStepProductId);
                 if(is_array($pData['planningParams'])){
                     $params = $pData['planningParams'];
+                } else {
+                    $params = array();
                 }
                 if(empty($objectId)){
                     $stepParams = cat_Products::getParams($planningStepProductId);
