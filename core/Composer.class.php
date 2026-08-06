@@ -255,9 +255,8 @@ class core_Composer extends core_Mvc
         
         if(isset(self::$packs[$pack])) {
             $res = true;
-            
-            if(strlen($version) && !version_compare(trim(self::$packs[$pack]), ltrim($version, 'v'), '>=')) {
-                
+            if ($version !== null && $version !== '' && !version_compare(trim(self::$packs[$pack]), ltrim($version, 'v'), '>=')) {
+
                 $res = false;
             }
         }
