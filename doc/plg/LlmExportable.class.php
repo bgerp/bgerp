@@ -32,31 +32,27 @@ class doc_plg_LlmExportable extends core_Plugin
 
         $rec = $mvc->fetchRec($id);
 
+        // Рендираме веднъж нормалния `plain` HTML, без renderForAI, за да останат
+        // групиращите редове, междинните суми и останалата таблична структура.
+        $content = doc_plg_TxtExportable::renderDocumentHtml($mvc, $id);
+        $content = self::prepareHtmlForMarkitdown($content);
+
         $string = '';
         $useMarkitdown = core_Packs::isInstalled('markitdown') && cls::load('markitdown_Converter', true);
 
         // MarkItDown трябва да получи истинската HTML таблица. В renderForAI режим
         // core_TableView вече я е превърнал в pipe-текст и colspan/rowspan контекстът е загубен.
         if ($useMarkitdown) {
-            $content = doc_plg_TxtExportable::renderDocumentHtml($mvc, $id);
-            $content = self::prepareHtmlForMarkitdown($content);
             $string = markitdown_Converter::convertHtml($content);
         }
 
-        // Запазваме досегашната реализация като fallback при липсващ пакет,
-        // липсваща програма, грешка при конвертиране или празен резултат.
+        // При липсващ пакет, програма или резултат вътрешният конвертор получава
+        // същия пълен HTML. Не рендираме повторно с renderForAI, защото някои
+        // справки пропускат групиращите записи още при създаването му.
         if ($string === '') {
-            Mode::push('renderForAI', true);
-            try {
-                $content = doc_plg_TxtExportable::renderDocumentHtml($mvc, $id);
-                $string = self::convertHtmlToLlmMarkdown($content);
-                $row = doc_plg_TxtExportable::getVerbalRow($mvc, $rec);
-            } finally {
-                Mode::pop('renderForAI');
-            }
-        } else {
-            $row = doc_plg_TxtExportable::getVerbalRow($mvc, $rec);
+            $string = self::convertHtmlToLlmMarkdown($content);
         }
+        $row = doc_plg_TxtExportable::getVerbalRow($mvc, $rec);
 
         $authorName = doc_plg_TxtExportable::getAuthorName($mvc, $rec);
         $text = doc_plg_TxtExportable::buildInfoHeader($mvc, $id, $row, $authorName) . $string;
