@@ -197,7 +197,7 @@ class planning_interface_StepProductDriver extends cat_GeneralProductDriver
         }
 
         $res['employees'] = !empty($rec->employees) ? keylist::toArray($rec->employees) : null;
-        $res['planningParams'] = !empty($rec->planningParams) ? keylist::toArray($rec->planningParams) : null;
+        $res['planningParams'] = !empty($rec->planningParams) ? keylist::toArray($rec->planningParams) : array();
         $res['actions'] = !empty($rec->planningActions) ? keylist::toArray($rec->planningActions) : null;
         if (isset($rec->calcWeightMode)) {
             $res['calcWeightMode'] = ($rec->calcWeightMode == 'auto') ? planning_Setup::get('TASK_WEIGHT_MODE') : $rec->calcWeightMode;
