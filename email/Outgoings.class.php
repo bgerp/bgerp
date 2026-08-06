@@ -1156,7 +1156,7 @@ class email_Outgoings extends core_Master
                 $docsSizesArr = $mvc->getDocumentsSizes($checkedDocs);
                 
                 // Прикачените файлове
-                $attachmentsArr = type_Set::toArray($rec->attachmentsSet);
+                $attachmentsArr = type_Set::toArray($rec->attachmentsSet ?? '');
                 $filesSizesArr = $mvc->getFilesSizes($attachmentsArr);
                 
                 // Проверяваме дали размерът им е над допсутимият
@@ -1643,8 +1643,8 @@ class email_Outgoings extends core_Master
         
         $faxTo = Request::get('faxto');
         $emailTo = Request::get('emailto');
-        
-        $emailTo = str_replace(email_ToLinkPlg::AT_ESCAPE, '@', $emailTo);
+
+        $emailTo = str_replace(email_ToLinkPlg::AT_ESCAPE, '@', (string) $emailTo);
         $emailTo = str_replace('mailto:', '', $emailTo);
 
         $orderVal = 10.000091;
@@ -2176,7 +2176,7 @@ class email_Outgoings extends core_Master
                     }
                     
                     $oRec = $oDoc->fetch();
-                    $fromEml = is_object($oRec) ? ($oRec->fromEml ?? null) : null;
+                    $fromEml = is_object($oRec) ? ($oRec->fromEml ?? '') : '';
                     $fromEml = trim($fromEml);
                     $fromEml = mb_strtolower($fromEml);
 
@@ -2324,6 +2324,8 @@ class email_Outgoings extends core_Master
      */
     protected function prepareSalutation($salutation, $name)
     {
+        $name = (string) $name;
+
         // Ако е към друг имейл, трябва да има съвпадение с хедърите
         if ($salutation && trim($name)) {
             if (mb_stripos($salutation, $name) === false) {
@@ -2704,8 +2706,10 @@ class email_Outgoings extends core_Master
         
         $data->lg = email_Outgoings::getLanguage($data->rec->originId, $data->rec->threadId, $data->rec->folderId, $data->rec->body);
 
-        if (!Mode::is('text', 'xhtml') && $data->rec->waiting && ($data->rec->state == 'waiting' || $data->rec->state == 'active' || $data->rec->state == 'pending')) {
-            $notifyDate = dt::addSecs($data->rec->waiting, $data->rec->lastSendedOn);
+        $waiting = $data->rec->waiting ?? null;
+
+        if (!Mode::is('text', 'xhtml') && $waiting && ($data->rec->state == 'waiting' || $data->rec->state == 'active' || $data->rec->state == 'pending')) {
+            $notifyDate = dt::addSecs($waiting, $data->rec->lastSendedOn);
             if ($notifyDate > dt::now()) {
                 $data->row->notifyDate = dt::mysql2verbal($notifyDate, 'smartTime');
                 $notifyUserId = $data->rec->lastSendedBy ? $data->rec->lastSendedBy : $data->rec->modifiedBy;
@@ -2883,8 +2887,7 @@ class email_Outgoings extends core_Master
                 }
             }
         }
-        
-        if ($rec->activatedOn) {
+        if (!empty($rec->activatedOn)) {
             $row->createdDate = dt::mysql2verbal($rec->activatedOn, 'd.m.Y');
         }
     }
