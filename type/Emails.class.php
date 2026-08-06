@@ -249,6 +249,8 @@ class type_Emails extends type_Varchar
      */
     public static function toArray($str, $only = self::VALID)
     {
+        $str = (string) $str;
+
         //Масив с всички имейли
         $emailsArr = preg_split(self::$pattern, $str, -1, PREG_SPLIT_NO_EMPTY);
         

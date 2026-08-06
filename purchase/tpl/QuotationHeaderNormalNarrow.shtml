@@ -29,6 +29,7 @@
                         <b>[#MyCompany#]</b>
                         <div class='address-block'>
                             [#mycompanyCountryId#]<br> <!--ET_BEGIN mycompanypCode-->[#mycompanypCode#] <!--ET_END mycompanypCode-->[#mycompanyplace#]<br> [#mycompanyaddress#]
+                            [#/deals/tpl/QuotationMyCompanyVatHeaderInfo.shtml#]
                         </div>
                     </td>
                 </tr>
@@ -42,6 +43,7 @@
                         <div class='address-block'>
                             [#contragentCountryId#]<br> <!--ET_BEGIN pCode-->[#pCode#] <!--ET_END pCode-->[#place#]<br> [#address#]<!--ET_BEGIN tel-->,<br>
                             <!--ET_BEGIN tel-->[#tel#]<!--ET_END tel--><!--ET_BEGIN fax-->, [#fax#] <!--ET_END fax--><!--ET_BEGIN email-->, [#email#]<!--ET_END email-->
+                            [#/deals/tpl/QuotationContragentVatHeaderInfo.shtml#]
                         </div>
                     </td>
                 </tr>

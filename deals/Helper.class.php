@@ -60,8 +60,8 @@ abstract class deals_Helper
         $precision = max(2, $minDigits - $p);
         
         // Изчисляваме закръглената цена
-        $price = round($price, $precision);
-        
+        $price = round((float) $price, $precision);
+
         return $price;
     }
     

@@ -32,17 +32,76 @@ class doc_plg_LlmExportable extends core_Plugin
 
         $rec = $mvc->fetchRec($id);
 
-        Mode::push('renderForAI', true);
-        $content = doc_plg_TxtExportable::renderDocumentHtml($mvc, $id);
-        $string = self::convertHtmlToLlmMarkdown($content);
-        $row = doc_plg_TxtExportable::getVerbalRow($mvc, $rec);
-        Mode::pop('renderForAI');
+        $string = '';
+        $useMarkitdown = core_Packs::isInstalled('markitdown') && cls::load('markitdown_Converter', true);
+
+        // MarkItDown трябва да получи истинската HTML таблица. В renderForAI режим
+        // core_TableView вече я е превърнал в pipe-текст и colspan/rowspan контекстът е загубен.
+        if ($useMarkitdown) {
+            $content = doc_plg_TxtExportable::renderDocumentHtml($mvc, $id);
+            $content = self::prepareHtmlForMarkitdown($content);
+            $string = markitdown_Converter::convertHtml($content);
+        }
+
+        // Запазваме досегашната реализация като fallback при липсващ пакет,
+        // липсваща програма, грешка при конвертиране или празен резултат.
+        if ($string === '') {
+            Mode::push('renderForAI', true);
+            try {
+                $content = doc_plg_TxtExportable::renderDocumentHtml($mvc, $id);
+                $string = self::convertHtmlToLlmMarkdown($content);
+                $row = doc_plg_TxtExportable::getVerbalRow($mvc, $rec);
+            } finally {
+                Mode::pop('renderForAI');
+            }
+        } else {
+            $row = doc_plg_TxtExportable::getVerbalRow($mvc, $rec);
+        }
 
         $authorName = doc_plg_TxtExportable::getAuthorName($mvc, $rec);
         $text = doc_plg_TxtExportable::buildInfoHeader($mvc, $id, $row, $authorName) . $string;
         $text = cms_GalleryRichTextPlg::replaceImageTagsWithFileTag($text);
 
         $mvc->invoke('AfterAfterGetLlmExport', array(&$text, $rec, $params));
+    }
+
+
+    /**
+     * Подготвя HTML от `plain` режима за MarkItDown чрез allowlist на структурните тагове.
+     *
+     * Запазва текста, таблиците и сумите, но премахва линкове, изображения и визуално
+     * форматиране, което иначе се превръща в URL-и, ![] и слепени *** маркери.
+     *
+     * @param string $html
+     *
+     * @return string
+     */
+    protected static function prepareHtmlForMarkitdown($html)
+    {
+        $html = preg_replace('/<!--.*?-->/s', '', $html);
+        $html = preg_replace('/<(script|style|noscript|template)\b[^>]*>.*?<\/\1>/si', '', $html);
+        $html = preg_replace('/&#(?:xa0|160);|&nbsp;|\xc2\xa0/i', ' ', $html);
+
+        // Както при вътрешния fallback, от изображенията запазваме само смислен tooltip.
+        // Декоративни и sort икони без title изчезват, вместо да стават ![](URL).
+        $html = preg_replace_callback('/<img\b[^>]*>/i', function ($match) {
+            if (!preg_match('/\btitle\s*=\s*(["\'])(.*?)\1/is', $match[0], $titleMatch)) return '';
+
+            return htmlspecialchars(html_entity_decode($titleMatch[2], ENT_QUOTES, 'UTF-8'), ENT_QUOTES, 'UTF-8');
+        }, $html);
+
+        // Съседните inline елементи често са визуално разделени чрез CSS. След като
+        // махнем презентационните тагове, оставяме интервал между тях, за да не се слепят.
+        $html = preg_replace('/(<\/(?:a|b|strong|span|i|em)>)(?=\s*<)/i', '$1 ', $html);
+
+        // `plain` е режим за рендиране, а не краен MIME тип: резултатът все още е HTML.
+        // Оставяме само структурните тагове, нужни на MarkItDown. strip_tags() разопакова
+        // линкове и визуално форматиране до текста им, а таблиците и colspan/rowspan остават.
+        $structuralTags = '<table><thead><tbody><tfoot><tr><th><td><caption><colgroup><col>'
+            . '<h1><h2><h3><h4><h5><h6><p><div><br><hr><ul><ol><li><dl><dt><dd>'
+            . '<blockquote><pre><code>';
+
+        return strip_tags($html, $structuralTags);
     }
 
 

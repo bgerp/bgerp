@@ -69,12 +69,6 @@ class visualcrossing_Forecasts extends core_Manager
         $this->FLD('icon', 'varchar(64)', 'caption=Икона');
 
         $this->setDbUnique('date,time,location');
-
-        //PM2.5
-        $this->FLD('pm25', 'double', 'caption=PM2.5 (µg/m3), after=precip' );
-
-        //UV-Index
-        $this->FLD('uvindex', 'double', 'caption=UV-Index, after=pm25');
     }
 
 
@@ -137,7 +131,7 @@ class visualcrossing_Forecasts extends core_Manager
         foreach ($locations as $location) {
             $locationEncode = rawurlencode($location);
 
-            $jsonRes = @file_get_contents("https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/{$locationEncode}?unitGroup=metric&elements=add%3Aaddress%2Cadd%3Aaod550%2Cadd%3Aaqielement%2Cadd%3Aaqieur%2Cadd%3Aaqius%2Cadd%3Acape%2Cadd%3Acin%2Cadd%3Aco%2Cadd%3Adeltat%2Cadd%3Adust%2Cadd%3Aelevation%2Cadd%3Ahainesindex%2Cadd%3Alatitude%2Cadd%3Alongitude%2Cadd%3Amoonrise%2Cadd%3Amoonset%2Cadd%3Ano2%2Cadd%3Ao3%2Cadd%3Apm1%2Cadd%3Apm10%2Cadd%3Apm2p5%2Cadd%3Aprecipremote%2Cadd%3AresolvedAddress%2Cadd%3Asmokecol%2Cadd%3Asmokesfc%2Cadd%3Aso2%2Cadd%3Asunazimuth%2Cadd%3Asunelevation%2Cadd%3Atempwet%2Cadd%3Atimezone%2Cadd%3Atzoffset%2Cadd%3Auvindex%2Cadd%3Awindspeedmax%2Cadd%3Awindspeedmean%2Cadd%3Awindspeedmin&key={$apiKey}&contentType=json");
+            $jsonRes = @file_get_contents("https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/{$locationEncode}?unitGroup=metric&key={$apiKey}&contentType=json");
 
             if ($jsonRes === false) {
                 self::logWarning('Грешка при извличане на данни за локацията');
@@ -146,12 +140,12 @@ class visualcrossing_Forecasts extends core_Manager
             }
 
             $weather = json_decode($jsonRes);
-            
+
             $forecastday = $weather->days;
 
             if (is_array($forecastday)) {
                 foreach ($forecastday as $data) {
-                    
+
                     $date = $data->datetime;
                     //$date = dt::timestamp2mysql($data->datetime);
                     $time = '';
@@ -171,8 +165,6 @@ class visualcrossing_Forecasts extends core_Manager
                     $rec->wind = $data->windspeed;
                     $rec->precip = $data->precip;
                     $rec->icon = $data->icon;
-                    $rec->uvindex = isset($data->uvindex) ? (double)$data->uvindex : null;
-                    $rec->pm25 = isset($data->pm2p5) ? (float)$data->pm2p5 : null;
 
                     self::save($rec);
 
@@ -198,10 +190,9 @@ class visualcrossing_Forecasts extends core_Manager
                         $rec->low = isset($hour->tempmin) ? $hour->tempmin : $hour->temp;
                         $rec->high = isset($hour->tempmax) ? $hour->tempmax : $hour->temp;
                         $rec->rh = $hour->humidity ? $hour->humidity / 100 : 0;
-                        $rec->wind = $hour->windspeed;                        $rec->precip = $hour->precip;
+                        $rec->wind = $hour->windspeed;
                         $rec->icon = $hour->icon;
-                        $rec->pm25 = isset($hour->pm2p5) ? (float)$hour->pm2p5 : null;
-                        $rec->uvindex = isset($hour->uvindex) ? (double)$hour->uvindex : null;
+                        $rec->precip = $hour->precip;
 
                         self::save($rec);
                     }
@@ -290,7 +281,7 @@ class visualcrossing_Forecasts extends core_Manager
 
                 continue;
             }
-           foreach (array('icon' => 'icon', 'rh' => 'rh', 'temp' => 'low', 'wind' => 'wind') as $key => $field) {
+            foreach (array('icon' => 'icon', 'rh' => 'rh', 'temp' => 'low', 'wind' => 'wind') as $key => $field) {
                 $eKey = "envm.forecast.{$key}_{$h}";
 
                 if ($profileId) {

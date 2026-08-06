@@ -31,6 +31,7 @@
                                 <!--ET_BEGIN contragentCountryId--><div>[#contragentCountryId#]</div><!--ET_END contragentCountryId-->
                                 <div><!--ET_BEGIN pCode-->[#contragentpCode#] <!--ET_END pCode--><!--ET_BEGIN contragentplace-->[#contragentplace#]<!--ET_END contragentplace--></div>
                                 <!--ET_BEGIN contragentaddress--><div>[#contragentaddress#]</div><!--ET_END contragentaddress-->
+                                [#/deals/tpl/QuotationContragentVatHeaderInfo.shtml#]
                                 <div class='receiver-contacts'><!--ET_BEGIN tel--><span class='receiver-contact'>[#tel#]</span><!--ET_END tel--><!--ET_BEGIN fax--><span class='receiver-contact'>[#fax#]</span><!--ET_END fax--></div>
                                 <!--ET_BEGIN email--><div class='receiver-contact'>[#email#]</div><!--ET_END email-->
                             </div>
@@ -40,6 +41,7 @@
                         <b>[#MyCompany#]</b>
                         <div class='address-block'>
                          [#mycompanyCountryId#]<br> <!--ET_BEGIN mycompanypCode-->[#mycompanypCode#] <!--ET_END mycompanypCode-->[#mycompanyplace#]<br> [#mycompanyaddress#]
+                         [#/deals/tpl/QuotationMyCompanyVatHeaderInfo.shtml#]
                         </div>
                     </td>
                 </tr>

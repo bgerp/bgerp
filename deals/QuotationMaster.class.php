@@ -71,6 +71,8 @@ abstract class deals_QuotationMaster extends core_Master
         'tel' => 'clientData',
         'fax' => 'clientData',
         'contragentCountryId' => 'clientData',
+        'contragentVatNo' => 'clientData',
+        'uicNo' => 'clientData',
         'template' => 'lastDocUser|lastDoc|defMethod',
     );
 
@@ -155,10 +157,12 @@ abstract class deals_QuotationMaster extends core_Master
         $mvc->FLD('email', 'varchar', 'caption=Имейл, changable, class=contactData,after=person');
         $mvc->FLD('tel', 'drdata_PhoneType(type=tel)', 'caption=Тел., changable, class=contactData,after=email');
         $mvc->FLD('fax', 'drdata_PhoneType(type=fax)', 'caption=Факс, changable, class=contactData,after=tel');
-        $mvc->FLD('contragentCountryId', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Получател->Държава,mandatory,contactData,contragentDataField=countryId,input=hidden');
-        $mvc->FLD('pCode', 'varchar', 'caption=Получател->П. код, changable, class=contactData,input=hidden');
-        $mvc->FLD('place', 'varchar', 'caption=Получател->Град/с, changable, class=contactData,input=hidden');
-        $mvc->FLD('address', 'varchar', 'caption=Получател->Адрес, changable, class=contactData,input=hidden');
+        $mvc->FLD('contragentCountryId', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Получател->Държава,mandatory,contactData,contragentDataField=countryId');
+        $mvc->FLD('contragentVatNo', 'drdata_VatType', 'caption=Получател->VAT №, changable, class=contactData,contragentDataField=vatNo');
+        $mvc->FLD('uicNo', 'drdata_type_Uic(26)', 'caption=Получател->Национален №, changable, class=contactData,contragentDataField=uicId');
+        $mvc->FLD('pCode', 'varchar', 'caption=Получател->П. код, changable, class=contactData');
+        $mvc->FLD('place', 'varchar', 'caption=Получател->Град/с, changable, class=contactData');
+        $mvc->FLD('address', 'varchar', 'caption=Получател->Адрес, changable, class=contactData');
 
         $mvc->FLD('validFor', 'time(uom=days,suggestions=10 дни|15 дни|30 дни|45 дни|60 дни|90 дни)', 'caption=Допълнително->Валидност,mandatory');
         $mvc->FLD('detailOrderBy', 'enum(auto=Ред на създаване,code=Код)', 'caption=Допълнително->Подреждане по,notNull,value=auto');
@@ -216,6 +220,24 @@ abstract class deals_QuotationMaster extends core_Master
 
 
     /**
+     * Изпълнява се преди преобразуването към вербални стойности на полетата на записа
+     *
+     * Националният номер на лице е ЕГН, а на фирма - ЕИК, чиято валидност зависи
+     * от държавата на контрагента (@see deals_InvoiceMaster)
+     */
+    protected static function on_BeforeRecToVerbal($mvc, &$row, $rec)
+    {
+        if (!is_object($rec) || empty($rec->contragentClassId)) return;
+
+        if ($rec->contragentClassId == crm_Persons::getClassId()) {
+            $mvc->setFieldType('uicNo', 'bglocal_EgnType(onlyString)');
+        } elseif (!empty($rec->contragentCountryId)) {
+            $mvc->setFieldType('uicNo', "drdata_type_Uic(countryId={$rec->contragentCountryId})");
+        }
+    }
+
+
+    /**
      * Преди показване на форма за добавяне/промяна.
      */
     protected static function on_AfterPrepareEditForm($mvc, &$data)
@@ -226,6 +248,15 @@ abstract class deals_QuotationMaster extends core_Master
 
         if(!$mvc->isOwnCompanyVatRegistered($rec) || $Cover->isInstanceOf('crm_Persons')) {
             $form->setReadOnly('chargeVat');
+        }
+
+        // Националният номер на лице е ЕГН, а на фирма - ЕИК, чиято валидност
+        // зависи от държавата (@see deals_InvoiceMaster)
+        if (($rec->contragentClassId ?? null) == crm_Persons::getClassId()) {
+            $form->setField('uicNo', 'caption=Получател->ЕГН');
+            $form->setFieldType('uicNo', 'bglocal_EgnType');
+        } elseif (!empty($rec->contragentCountryId)) {
+            $form->setFieldType('uicNo', "drdata_type_Uic(countryId={$rec->contragentCountryId})");
         }
 
         $form->input('deliveryTermId');
@@ -532,11 +563,15 @@ abstract class deals_QuotationMaster extends core_Master
 
             $fld = (($rec->tplLang ?? null) == 'bg') ? 'commonNameBg' : 'commonName';
             $row->mycompanyCountryId = drdata_Countries::getVerbal($ownCompanyData->countryId, $fld);
-            $row->contragentCountryId = drdata_Countries::getVerbal($cData->countryId, $fld);
+            $row->contragentCountryId = drdata_Countries::getVerbal($rec->contragentCountryId ?? $cData->countryId, $fld);
 
+            // Адресните данни се показват както са записани в офертата, защото
+            // потребителят може да ги е коригирал за конкретния документ. Само
+            // ако липсват в записа, се пада на визитката
             foreach (array('pCode', 'place', 'address') as $fld) {
-                if ($cData->{$fld}) {
-                    $row->{"contragent{$fld}"} = $Varchar->toVerbal($cData->{$fld});
+                $contragentValue = !empty($rec->{$fld}) ? $rec->{$fld} : $cData->{$fld};
+                if ($contragentValue) {
+                    $row->{"contragent{$fld}"} = $Varchar->toVerbal($contragentValue);
                 }
 
                 if ($ownCompanyData->{$fld}) {
@@ -545,6 +580,36 @@ abstract class deals_QuotationMaster extends core_Master
                 }
             }
 
+            // Националният номер на фирма и на лице се казва различно
+            $isPerson = $contragent->getInstance() instanceof crm_Persons;
+            if (!empty($rec->uicNo)) {
+                $row->contragentUicCaption = $isPerson ? tr('|ЕГН|*') : tr('ЕИК||TAX ID');
+            }
+
+            // Имената на 'Моята фирма' и на контрагента са линкове към визитките
+            // им, но не и в разпечатка/текстов вид (@see deals_Helper)
+            $makeLink = (!Mode::is('pdf') && !Mode::is('text', 'xhtml') && !Mode::is('text', 'plain'));
+            if ($makeLink === true) {
+                $row->MyCompany = ht::createLink($row->MyCompany, crm_Companies::getSingleUrlArray($ownCompanyData->companyId))->getContent();
+
+                // При контрагент лице името му е в 'person', а в 'company' стои
+                // фирмата, в която работи - тя сочи другаде и не се линква
+                $nameFld = $isPerson ? 'person' : 'company';
+                if (!empty($row->{$nameFld})) {
+                    $row->{$nameFld} = ht::createLink($row->{$nameFld}, $contragent->getInstance()->getSingleUrlArray($rec->contragentId))->getContent();
+                }
+            }
+
+            // ДДС и националният номер на 'Моята фирма' - ДДС номерът се показва
+            // само ако се различава от националния (@see deals_Helper)
+            $myUic = $ownCompanyData->uicId ?? drdata_Vats::getUicByVatNo($ownCompanyData->vatNo);
+            if (!empty($ownCompanyData->vatNo) && $myUic != $ownCompanyData->vatNo) {
+                $row->MyCompanyVatNo = core_Type::getByName('drdata_VatType')->toVerbal($ownCompanyData->vatNo);
+            }
+
+            if (!empty($myUic)) {
+                $row->uicId = $myUic;
+            }
 
             if (($rec->currencyRate ?? null) == 1) {
                 unset($row->currencyRate);
@@ -765,6 +830,11 @@ abstract class deals_QuotationMaster extends core_Master
         // Държавата
         $newRec->contragentCountryId = (isset($fields['countryId'])) ? $fields['countryId'] : $data->countryId;
         expect(drdata_Countries::fetch($newRec->contragentCountryId), 'Невалидна държава');
+
+        // ДДС и националният номер - извън горния цикъл, защото имената на
+        // полетата не съвпадат с тези в данните на контрагента
+        $newRec->contragentVatNo = (isset($fields['vatNo'])) ? $fields['vatNo'] : $data->vatNo;
+        $newRec->uicNo = (isset($fields['uicId'])) ? $fields['uicId'] : $data->uicId;
         $newRec->template = static::getDefaultTemplate($newRec);
 
         if(!empty($fields['others'])){

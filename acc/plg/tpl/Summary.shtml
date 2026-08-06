@@ -1,20 +1,19 @@
-<div class='summary-block'>
+<div class='summary-block' style="font-size: 0.97em">
     <table>
         <!--ET_BEGIN ROW-->
         <tr>
-            <td class='quiet'>|[#caption#]|*</td>
-            <td class='quiet'>[#measure#]</td>
+            <td style='text-align:right' class='quiet'>|[#caption#]|* </td>
             <td style='text-align:right' colspan="[#colspan#]">
                 <!--ET_BEGIN amount-->
                 <b>[#amount#]</b>
                 <!--ET_END amount-->
                 <!--ET_BEGIN quantity-->
-                <b>[#quantity#]</b>
+                <b>[#quantity#] </b>[#measure#]
                 <!--ET_END quantity-->
             </td>
             <!--ET_BEGIN amountBgn-->
             <td> / </td>
-            <td style='text-align:right'><b>[#amountBgn#]</b></td>
+            <td style='text-align:right' class="small"><b>[#amountBgn#]</b></td>
             <!--ET_END amountBgn-->
         </tr>
         <!--ET_END ROW-->
