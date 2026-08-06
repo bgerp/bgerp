@@ -443,7 +443,7 @@ class cat_DisassemblyBoms extends core_Master
         // което изисква всички произведени да са в еднаква мярка
         if (!$byAmount) {
             if (!$sameUom) {
-                $statuses['error'] = 'Произведените артикули са в различни мерки - изберете ценова политика за разпад!';
+                $statuses['error'] = 'Произведените артикули са в различни мерки - изберете ценова политика за разпад|*!';
 
                 return $productsArr;
             }
@@ -455,7 +455,7 @@ class cat_DisassemblyBoms extends core_Master
 
         $total = array_sum($weightArr);
         if (empty($total)) {
-            $statuses['error'] = $byAmount ? 'Стойността на произведените артикули по избраната ценова политика е нулева' : 'Количествата на произведените артикули са нулеви';
+            $statuses['error'] = $byAmount ? 'Стойността на произведените артикули по избраната ценова политика е нулева|*!' : 'Количествата на произведените артикули са нулеви|*!';
 
             return $productsArr;
         }
@@ -530,7 +530,7 @@ class cat_DisassemblyBoms extends core_Master
         }
 
         if (!countR($res)) {
-            $statuses['error'] = 'Не е посочен нито един произведен артикул';
+            $statuses['error'] = 'Не е посочен нито един произведен артикул|*!';
 
             return $res;
         }
@@ -572,7 +572,7 @@ class cat_DisassemblyBoms extends core_Master
 
         // Изчисленото се връща каквото е - грешката казва дали е годно за ползване
         if ($hasUnknown) {
-            $statuses['error'] = $statuses['autoError'] ?? 'Процентите от себестойността не могат да се изчислят';
+            $statuses['error'] = $statuses['autoError'] ?? 'Процентите от себестойността не могат да се изчислят|*!';
         } elseif (abs($percentSum - 1) > 0.0001) {
             $percentVerbal = core_Type::getByName('percent')->toVerbal($percentSum);
             $statuses['error'] = "Сумата на процентите от себестойността трябва да е 100%|*, |а е|*: {$percentVerbal}";
