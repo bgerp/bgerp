@@ -85,7 +85,7 @@ class cat_DisassemblyBomDetails extends doc_Detail
 
     /**
      * Кои полета от листовия изглед да се скриват ако няма записи в тях - сумата
-     * се смята само при избрана ценова политика, иначе колоната отпада
+     * я има само за произведените артикули
      */
     public $hideListFieldsIfEmpty = 'amount';
 
@@ -213,26 +213,31 @@ class cat_DisassemblyBomDetails extends doc_Detail
         $row->ROW_ATTR['class'] = ($rec->type == 'input') ? 'row-added' : 'state-active';
 
         // Сумата по избраната ценова политика - по нея се разпределя
-        // себестойността винаги, когато има избрана политика
+        // себестойността, когато има избрана политика
         static $masterCache = array();
         if (!array_key_exists($rec->bomId, $masterCache)) {
-            $masterCache[$rec->bomId] = cat_DisassemblyBoms::fetch($rec->bomId, 'priceListId');
+            $masterCache[$rec->bomId] = cat_DisassemblyBoms::fetch($rec->bomId, 'priceListId,allProductsAreInTheSameUomId');
         }
         $bomRec = $masterCache[$rec->bomId];
 
-        // Без избрана политика сумата изобщо не се показва - потребителят е
-        // избрал да не се работи с цени, а колоната се скрива като празна
-        if ($rec->type == 'production' && is_object($bomRec) && !empty($bomRec->priceListId)) {
+        // Без политика и с еднакви мерки разпределението е по количества и цени
+        // изобщо не трябват - тогава сумата не се пълни и колоната отпада
+        // (@see $hideListFieldsIfEmpty). При различни мерки обаче се показва
+        // червено '???', за да е ясно защо процентите не могат да се изчислят
+        $priceIsIrrelevant = is_object($bomRec) && empty($bomRec->priceListId) && $bomRec->allProductsAreInTheSameUomId == 'yes';
+
+        if ($rec->type == 'production' && is_object($bomRec) && !$priceIsIrrelevant) {
             $errorHint = null;
             $row->amount = static::getAmountVerbal($bomRec->priceListId, $rec->productId, $rec->quantity, null, $errorHint);
 
-            if (price_ListRules::haveRightFor('add', (object) array('productId' => $rec->productId, 'listId' => $bomRec->priceListId))) {
+            // Бърз линк за нова цена има смисъл само при избрана политика
+            if (!empty($bomRec->priceListId) && price_ListRules::haveRightFor('add', (object) array('productId' => $rec->productId, 'listId' => $bomRec->priceListId))) {
                 $addPriceUrl = array('price_ListRules', 'add', 'type' => 'value', 'listId' => $bomRec->priceListId, 'productId' => $rec->productId, 'priority' => 1, 'ret_url' => true);
                 if(empty($errorHint)){
                     core_RowToolbar::createIfNotExists($row->_rowTools);
-                    $row->_rowTools->addLink('Нова цена', $addPriceUrl, 'ef_icon=img/16/add.png,title=Създаване на нова цена по избраната ценова политика за разпад');
+                    $row->_rowTools->addLink('Нова цена', $addPriceUrl, 'ef_icon=img/16/add.png,title=Промяна на цената по избраната ценова политика за разпад');
                 } else {
-                    $row->amount .= ht::createLink('', $addPriceUrl, false, 'ef_icon=img/16/add.png,title=Създаване на нова цена по избраната ценова политика за разпад');
+                    $row->amount .= ht::createLink('', $addPriceUrl, false, 'ef_icon=img/16/add.png,title=Промяна на цената по избраната ценова политика за разпад');
                 }
             }
         }
@@ -412,6 +417,11 @@ class cat_DisassemblyBomDetails extends doc_Detail
         $pData->recs = array_intersect_key($pData->recs, $pData->rows);
 
         $this->invoke('BeforeRenderListTable', array(&$tpl, &$pData));
+
+        // Празните колони се махат ръчно - таблицата се рендира директно през
+        // core_TableView, а не през renderListTable, който го прави сам
+        $pData->listFields = core_TableView::filterEmptyColumns($pData->rows, $pData->listFields, arr::make($this->hideListFieldsIfEmpty, true));
+
         $productionTable = cls::get('core_TableView', array('mvc' => $pData->listTableMvc));
         $productionTable->tableClass = 'listTable disassemblyBomTable';
         $productionTableTpl = $productionTable->get($pData->rows, $pData->listFields);
