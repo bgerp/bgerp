@@ -61,6 +61,8 @@ class change_plg_History extends core_Plugin
         foreach ($loggableFields as $field){
             $fieldArr[$field] = property_exists($rec, $field) ? trim($rec->{$field} ?? '') : tr($exRec->{$field});
             $noArr[$field] = $fieldArr[$field];
+
+            $fieldArr[$field] = (string) $fieldArr[$field];
             $fieldArr[$field] = str_replace("\n\r", '', $fieldArr[$field]);
             $fieldArr[$field] = str_replace("\r\n", '', $fieldArr[$field]);
             $fieldArr[$field] = str_replace("\n", '', $fieldArr[$field]);
