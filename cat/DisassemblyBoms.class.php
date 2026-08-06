@@ -11,13 +11,18 @@
  * процент на ред. Ръчно зададеният процент винаги бие автоматично изчисления,
  * а сборът на важащите трябва да е точно 100% (@see getPercents).
  *
- * Автоматичният процент зависи ЕДИНСТВЕНО от мерките на произведените артикули
- * (@see $allProductsAreInTheSameUomId, updateMaster_) - количеството и мярката
- * на вложения не участват в сметката:
- * - еднаква (или производна) мярка - пропорционално на количествата, затова
- *   ценова политика не е нужна;
- * - различни мерки - по стойността на артикулите (к-во х цена) по избраната
- *   ценова политика ($priceListId).
+ * Автоматичният процент се определя от избраната ценова политика ($priceListId),
+ * а не от мерките - количеството и мярката на вложения не участват в сметката:
+ * - има избрана политика - по стойността на редовете (к-во х цена по нея),
+ *   независимо от мерките на произведените, защото така е по-прецизно;
+ * - няма избрана политика - потребителят е избрал да не се работи с цени и
+ *   разпределението е пропорционално на количествата, което пък изисква всички
+ *   произведени да са в еднаква мярка (@see $allProductsAreInTheSameUomId).
+ *
+ * Разпределянето по количества при ИЗБРАНА политика е само резервен вариант,
+ * когато в нея липсват цени - и то задължително с предупреждение към
+ * потребителя, защото по количества скъп и евтин артикул в една мярка получават
+ * еднакъв дял от себестойността.
  *
  * Процентите не се "заковават" в рецептата - смятат се на живо по актуалните
  * цени (@see calcAutoPercents), за да ги ползва после и Протоколът за разпад.
@@ -345,10 +350,18 @@ class cat_DisassemblyBoms extends core_Master
      *
      * Формулата е една и съща - "тежестта" на реда спрямо сбора на тежестите;
      * различава се само как се смята тежестта, според това с какви данни
-     * разполагаме:
-     * - ако всички артикули са в еднаква (или производна) мярка - количеството,
-     *   приведено към основната мярка; цената не участва;
-     * - иначе - стойността на реда (к-во х цена по подадената ценова политика).
+     * разполагаме. Кое от двете важи решава ЕДИНСТВЕНО дали е подадена ценова
+     * политика, а не мерките на артикулите:
+     * - има политика - стойността на реда (к-во х цена по нея). Мерките са без
+     *   значение, а претеглянето по стойност е по-прецизно, защото в една и съща
+     *   мярка може да има и скъп, и евтин артикул;
+     * - няма политика - потребителят е избрал да не се работи с цени, затова
+     *   тежестта е количеството, приведено към основната мярка. Това има смисъл
+     *   само ако всички произведени са в еднаква (или производна) мярка.
+     *
+     * Липсват ли цени в избраната политика, разпределянето по количества е само
+     * резервен вариант и то ако мерките са еднакви - тогава излиза предупреждение,
+     * а при различни мерки резервен вариант няма и излиза грешка.
      *
      * Количеството на вложения артикул не участва във формулата, затова и
      * неговата мярка е без значение.
@@ -363,15 +376,22 @@ class cat_DisassemblyBoms extends core_Master
      *                                     едно и също productId може да се повтаря
      * @param int|null      $priceListId  - ид на ценова политика
      * @param datetime|null $date         - към коя дата са цените (null - към сега)
-     * @param string|null   $error        - защо не е могло да се изчисли
+     * @param array         $statuses     - какво има да се каже за изчислението,
+     *                                      ключирано по вид съобщение:
+     *                                      ['error']   - защо не е могло да се
+     *                                                    изчисли;
+     *                                      ['warning'] - изчислено е, но не по
+     *                                                    стойност, а по количества,
+     *                                                    защото липсват цени.
+     *                                      Ключът липсва, ако няма такова
      *
      * @return array $productsArr - същите обекти с попълнено поле autoPercent.
      *                              Или всички редове получават процент, или нито
      *                              един - без общия сбор няма как да се смята
      */
-    public static function calcAutoPercents($productsArr, $priceListId, $date = null, &$error = null)
+    public static function calcAutoPercents($productsArr, $priceListId, $date = null, &$statuses = array())
     {
-        $error = null;
+        $statuses = array();
         $productIds = $weightArr = array();
         foreach ($productsArr as $obj) {
             $obj->autoPercent = null;
@@ -384,41 +404,58 @@ class cat_DisassemblyBoms extends core_Master
         $measureArr = array();
         $sameUom = cat_Products::areProductsInTheSameUom($productIds, $measureArr);
 
-        // Различни мерки, а няма по какво да се остойностят
-        if (!$sameUom && empty($priceListId)) {
-            $error = 'Произведените артикули са в различни мерки - изберете ценова политика за разпад';
-
-            return $productsArr;
-        }
-
-        $total = 0;
+        // Избрана политика - работи се по стойност, независимо от мерките
+        $byAmount = !empty($priceListId);
         $missing = array();
-        foreach ($productsArr as $k => $obj) {
-            if ($sameUom) {
-                $weight = cat_UoM::convertToBaseUnit($obj->quantity, $measureArr[$obj->productId]);
-            } else {
-                $weight = static::getAmount($priceListId, $obj->productId, $obj->quantity, $date);
+        if ($byAmount) {
+            foreach ($productsArr as $k => $obj) {
+                $amount = static::getAmount($priceListId, $obj->productId, $obj->quantity, $date);
 
-                // Липсва цена - тогава общият сбор е неизвестен и нито един от
-                // процентите не може да се изчисли, но изреждаме всички виновници
-                if (!isset($weight) && empty($missing[$obj->productId])) {
+                // Липсва цена - изреждат се всички виновници, а не само първият
+                if (!isset($amount)) {
                     $missing[$obj->productId] = cat_Products::getTitleById($obj->productId);
                     continue;
                 }
+
+                $weightArr[$k] = $amount;
+            }
+        }
+
+        // Липсват цени в избраната политика - приема се, че потребителят иска да
+        // работи с нея, но не я е попълнил правилно, затова задължително му се
+        // казва. При различни мерки резервен вариант няма
+        if (countR($missing)) {
+            $listTitle = price_Lists::getTitleById($priceListId);
+            $msg = 'За разпределянето на себестойността на произведените артикули е избрана ценова политика|* "' . $listTitle . '", |но в нея липсват цени за артикул|*: <b>' . implode(', ', $missing) . '</b>!';
+
+            if (!$sameUom) {
+                $statuses['error'] = $msg;
+
+                return $productsArr;
             }
 
-            $weightArr[$k] = $weight;
-            $total += $weight;
+            $statuses['warning'] = $msg . ' |Себестойността ще бъде разпределена пропорционално на количествата|*!';
+            $byAmount = false;
+            $weightArr = array();
         }
 
-        if (countR($missing)) {
-            $error = 'Произведените артикули са в различни мерки, а следните нямат цена по избраната ценова политика|*: <b>' . implode(', ', $missing) . '</b>';
+        // Без политика (или като резервен вариант към нея) - по количества,
+        // което изисква всички произведени да са в еднаква мярка
+        if (!$byAmount) {
+            if (!$sameUom) {
+                $statuses['error'] = 'Произведените артикули са в различни мерки - изберете ценова политика за разпад!';
 
-            return $productsArr;
+                return $productsArr;
+            }
+
+            foreach ($productsArr as $k => $obj) {
+                $weightArr[$k] = cat_UoM::convertToBaseUnit($obj->quantity, $measureArr[$obj->productId]);
+            }
         }
 
+        $total = array_sum($weightArr);
         if (empty($total)) {
-            $error = $sameUom ? 'Количествата на произведените артикули са нулеви' : 'Стойността на произведените артикули по избраната ценова политика е нулева';
+            $statuses['error'] = $byAmount ? 'Стойността на произведените артикули по избраната ценова политика е нулева' : 'Количествата на произведените артикули са нулеви';
 
             return $productsArr;
         }
@@ -446,10 +483,20 @@ class cat_DisassemblyBoms extends core_Master
      * от ценова политика, дори произведените артикули да са в различни мерки.
      *
      * @param int           $bomId
-     * @param datetime|null $date      - към коя дата са цените (null - към сега)
-     * @param string|null   $error     - защо важащите проценти не са валидни
-     * @param string|null   $autoError - защо не са се изчислили автоматичните
-     *                                   (те се смятат винаги, за показване)
+     * @param datetime|null $date     - към коя дата са цените (null - към сега)
+     * @param array         $statuses - какво има да се каже за процентите,
+     *                                  ключирано по вид съобщение:
+     *                                  ['error']       - защо важащите проценти
+     *                                                    не са валидни (само този
+     *                                                    ключ спира активирането);
+     *                                  ['autoError']   - защо не са се изчислили
+     *                                                    автоматичните (те се
+     *                                                    смятат винаги, за
+     *                                                    показване в детайла);
+     *                                  ['autoWarning'] - изчислени са, но не по
+     *                                                    стойност, а по количества
+     *                                                    (@see calcAutoPercents).
+     *                                  Ключът липсва, ако няма такова съобщение
      *
      * @return array - масив от обекти, ключирани по ид на ред от детайла (а не
      *                 по артикул - един артикул може да е на няколко реда, всеки
@@ -457,11 +504,11 @@ class cat_DisassemblyBoms extends core_Master
      *                 productId, quantity, costPercent, autoPercent и percent.
      *                 Изчисленото се връща винаги - `percent` е null само на ред,
      *                 на който не може да се определи, а дали процентите са годни
-     *                 за ползване казва $error
+     *                 за ползване казва $statuses['error']
      */
-    public static function getPercents($bomId, $date = null, &$error = null, &$autoError = null)
+    public static function getPercents($bomId, $date = null, &$statuses = array())
     {
-        $error = $autoError = null;
+        $statuses = array();
         $rec = static::fetchRec($bomId);
 
         $dQuery = cat_DisassemblyBomDetails::getQuery();
@@ -483,22 +530,30 @@ class cat_DisassemblyBoms extends core_Master
         }
 
         if (!countR($res)) {
-            $error = 'Не е посочен нито един произведен артикул';
+            $statuses['error'] = 'Не е посочен нито един произведен артикул';
 
             return $res;
         }
 
         // Автоматичните се смятат винаги - показват се в детайла, независимо
-        // дали важат
-        static::calcAutoPercents($res, $rec->priceListId, $date, $autoError);
+        // дали важат. Съобщенията от изчислението се преименуват на 'auto...',
+        // за да не се бъркат с тези за важащите проценти
+        $autoStatuses = array();
+        static::calcAutoPercents($res, $rec->priceListId, $date, $autoStatuses);
+        foreach ($autoStatuses as $type => $msg) {
+            $statuses['auto' . ucfirst($type)] = $msg;
+        }
 
         // Ръчният процент бие автоматичния, а без ръчен важи автоматичният.
         // Гледа се ред по ред - един и същ артикул може да е на няколко реда,
         // всеки със своето количество и свой ръчен процент
         $percentSum = 0;
-        $hasUnknown = false;
+        $hasUnknown = $usesAuto = false;
         foreach ($res as $obj) {
             $obj->percent = $obj->costPercent ?? $obj->autoPercent;
+            if (!isset($obj->costPercent)) {
+                $usesAuto = true;
+            }
 
             // Ред без ръчен процент, на който и автоматичният не се е изчислил
             if (!isset($obj->percent)) {
@@ -509,12 +564,18 @@ class cat_DisassemblyBoms extends core_Master
             $percentSum += $obj->percent;
         }
 
+        // На всички редове е зададен ръчен процент - тогава автоматичните не
+        // важат никъде и няма за какво да се предупреждава
+        if (!$usesAuto) {
+            unset($statuses['autoWarning']);
+        }
+
         // Изчисленото се връща каквото е - грешката казва дали е годно за ползване
         if ($hasUnknown) {
-            $error = $autoError;
+            $statuses['error'] = $statuses['autoError'] ?? 'Процентите от себестойността не могат да се изчислят';
         } elseif (abs($percentSum - 1) > 0.0001) {
             $percentVerbal = core_Type::getByName('percent')->toVerbal($percentSum);
-            $error = "Сумата на процентите от себестойността трябва да е 100%|*, |а е|*: {$percentVerbal}";
+            $statuses['error'] = "Сумата на процентите от себестойността трябва да е 100%|*, |а е|*: {$percentVerbal}";
         }
 
         return $res;
@@ -560,11 +621,17 @@ class cat_DisassemblyBoms extends core_Master
     {
         if (empty($res->id)) return;
 
-        $error = null;
-        static::getPercents($res->id, null, $error);
+        $statuses = array();
+        static::getPercents($res->id, null, $statuses);
 
-        if (isset($error)) {
-            core_Statuses::newStatus($error, 'error');
+        // Разпределението не е по стойност, а по количества - не спира
+        // активирането, но потребителят задължително се уведомява
+        if (isset($statuses['autoWarning'])) {
+            core_Statuses::newStatus($statuses['autoWarning'], 'warning');
+        }
+
+        if (isset($statuses['error'])) {
+            core_Statuses::newStatus($statuses['error'], 'error');
 
             return false;
         }

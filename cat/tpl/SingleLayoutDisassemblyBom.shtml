@@ -1,5 +1,6 @@
 [#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
 
+[#percentWarning#]
 <h3 style='margin-top:15px;margin-bottom:15px;'>[#productId#]</h3>
 <!--ET_BEGIN title-->
 <h4 style='margin-top:0px;margin-bottom:10px;color:green'>[#title#]</h4>

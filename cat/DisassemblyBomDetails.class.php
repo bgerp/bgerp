@@ -5,7 +5,10 @@
  * Клас 'cat_DisassemblyBomDetails'
  *
  * Детайли на рецептата за разпад. Два вида редове:
- * - 'input'      - допълнителни артикули за влагане
+ * - 'input'      - допълнителни артикули за влагане. Основният артикул за разпад
+ *                  стои в мастъра (@see cat_DisassemblyBoms), а добавянето на
+ *                  допълнителни засега е забранено интерфейсно
+ *                  (@see on_AfterGetRequiredRoles) - моделът ги поддържа за
  *                  когато бъдат разрешени
  * - 'production' - произведените от разпада артикули (могат да са няколко)
  *
@@ -82,7 +85,7 @@ class cat_DisassemblyBomDetails extends doc_Detail
 
     /**
      * Кои полета от листовия изглед да се скриват ако няма записи в тях - сумата
-     * се смята само когато артикулите са в различни мерки, иначе колоната отпада
+     * се смята само при избрана ценова политика, иначе колоната отпада
      */
     public $hideListFieldsIfEmpty = 'amount';
 
@@ -209,26 +212,27 @@ class cat_DisassemblyBomDetails extends doc_Detail
         // се отличават с 'state-active' - и двата класа са налични в стиловете
         $row->ROW_ATTR['class'] = ($rec->type == 'input') ? 'row-added' : 'state-active';
 
-        // Сумата по избраната ценова политика има смисъл само когато произведените
-        // артикули са в различни мерки - тогава по нея се разпределя себестойността
+        // Сумата по избраната ценова политика - по нея се разпределя
+        // себестойността винаги, когато има избрана политика
         static $masterCache = array();
         if (!array_key_exists($rec->bomId, $masterCache)) {
-            $masterCache[$rec->bomId] = cat_DisassemblyBoms::fetch($rec->bomId, 'priceListId,allProductsAreInTheSameUomId');
+            $masterCache[$rec->bomId] = cat_DisassemblyBoms::fetch($rec->bomId, 'priceListId');
         }
         $bomRec = $masterCache[$rec->bomId];
 
-        if ($rec->type == 'production' && is_object($bomRec)) {
+        // Без избрана политика сумата изобщо не се показва - потребителят е
+        // избрал да не се работи с цени, а колоната се скрива като празна
+        if ($rec->type == 'production' && is_object($bomRec) && !empty($bomRec->priceListId)) {
             $errorHint = null;
             $row->amount = static::getAmountVerbal($bomRec->priceListId, $rec->productId, $rec->quantity, null, $errorHint);
-            if(!empty($bomRec->priceListId)){
-                if (price_ListRules::haveRightFor('add', (object) array('productId' => $rec->productId, 'listId' => $bomRec->priceListId))) {
-                    $addPriceUrl = array('price_ListRules', 'add', 'type' => 'value', 'listId' => $bomRec->priceListId, 'productId' => $rec->productId, 'priority' => 1, 'ret_url' => true);
-                    if(empty($errorHint)){
-                        core_RowToolbar::createIfNotExists($row->_rowTools);
-                        $row->_rowTools->addLink('Нова цена', $addPriceUrl, 'ef_icon=img/16/add.png,title=Създаване на нова рецепта за разпад');
-                    } else {
-                        $row->amount .= ht::createLink('', $addPriceUrl, false, 'ef_icon=img/16/add.png,title=Създаване на нова рецепта за разпад');
-                    }
+
+            if (price_ListRules::haveRightFor('add', (object) array('productId' => $rec->productId, 'listId' => $bomRec->priceListId))) {
+                $addPriceUrl = array('price_ListRules', 'add', 'type' => 'value', 'listId' => $bomRec->priceListId, 'productId' => $rec->productId, 'priority' => 1, 'ret_url' => true);
+                if(empty($errorHint)){
+                    core_RowToolbar::createIfNotExists($row->_rowTools);
+                    $row->_rowTools->addLink('Нова цена', $addPriceUrl, 'ef_icon=img/16/add.png,title=Създаване на нова цена по избраната ценова политика за разпад');
+                } else {
+                    $row->amount .= ht::createLink('', $addPriceUrl, false, 'ef_icon=img/16/add.png,title=Създаване на нова цена по избраната ценова политика за разпад');
                 }
             }
         }
@@ -271,6 +275,8 @@ class cat_DisassemblyBomDetails extends doc_Detail
      */
     protected static function on_AfterPrepareListRows($mvc, &$res, &$data)
     {
+        $data->totalPercent = 0;
+        $data->autoWarning = null;
         if (!countR($data->recs ?? null)) return;
 
         // Групиране по рецепта - в детайла е винаги една, но листовият изглед
@@ -284,11 +290,17 @@ class cat_DisassemblyBomDetails extends doc_Detail
             }
         }
 
-        $data->totalPercent = 0;
         $Percent = core_Type::getByName('percent(decimals=2)');
+        $warningArr = array();
         foreach ($bomIds as $bomId) {
-            $error = $autoError = null;
-            $percentsArr = cat_DisassemblyBoms::getPercents($bomId, null, $error, $autoError);
+            $statuses = array();
+            $percentsArr = cat_DisassemblyBoms::getPercents($bomId, null, $statuses);
+
+            // Разпределението е по количества, макар да е избрана ценова
+            // политика - показва се над таблицата (@see renderDetail_)
+            if (isset($statuses['autoWarning'])) {
+                $warningArr[$bomId] = tr($statuses['autoWarning']);
+            }
 
             foreach ($percentsArr as $id => $obj) {
                 if (!array_key_exists($id, $data->rows)) continue;
@@ -312,11 +324,15 @@ class cat_DisassemblyBomDetails extends doc_Detail
 
                     // Общият сбор е неизвестен, значи никой от процентите не може
                     // да се изчисли - причината идва от самото изчисление
-                    $data->rows[$id]->autoPercent = ht::createHint("<span class='red'>n/a</span>", $autoError ?? 'Автоматичният процент не може да се изчисли', 'warning', false);
+                    $data->rows[$id]->autoPercent = ht::createHint("<span class='red'>n/a</span>", $statuses['autoError'] ?? 'Автоматичният процент не може да се изчисли', 'warning', false);
                 }
 
                 $data->totalPercent += $obj->costPercent ?? $obj->autoPercent ?? 0;
             }
+        }
+
+        if (countR($warningArr)) {
+            $data->autoWarning = implode('<br>', $warningArr);
         }
     }
 
@@ -408,6 +424,12 @@ class cat_DisassemblyBomDetails extends doc_Detail
             $totalPercentVerbal = "<span style='color:green'>{$totalPercentVerbal}</span>";
         }
         $productionTableTpl->append(tr("|*<tr style='background-color:#eee'><td colspan='{$columns}' style='text-align:right;'>|Общо|*: <b>{$totalPercentVerbal}</b></td></tr>"), 'ROW_AFTER');
+
+        // Предупреждение, че себестойността не се разпределя по стойност, а по
+        // количества - слага се най-горе, над името на артикула за разпад
+        if (!empty($data->autoWarning)) {
+            $tpl->append("<div class='richtext-message richtext-warning'>{$data->autoWarning}</div>", 'percentWarning');
+        }
 
         $tpl->append($productionTableTpl, 'PRODUCED_PRODUCTS_TABLE');
 
