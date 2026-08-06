@@ -2474,6 +2474,7 @@ class email_Outgoings extends core_Master
 
         // Ако потребителят няма фирма
         if (!$companyId) {
+            // Вземаме фирмата по подразбиране
             $companyId = crm_Setup::BGERP_OWN_COMPANY_ID;
         }
         
