@@ -2344,6 +2344,46 @@ class cat_Products extends embed_Manager
 
 
     /**
+     * Всички ли подадени артикули са в еднаква (или производна) мярка - напр. при
+     * основна мярка килограм минават кг/тон/грам, но не и брой
+     *
+     * @param array $productIds - ид-та на артикули (повторенията са без значение)
+     * @param array $measureArr - мерките на артикулите: productId => measureId
+     *
+     * @return bool
+     */
+    public static function areProductsInTheSameUom($productIds, &$measureArr = array())
+    {
+        $productIds = arr::make($productIds, true);
+        if (!countR($productIds)) return true;
+
+        // Извличане на мерките на артикула
+        $pQuery = static::getQuery();
+        $pQuery->in('id', $productIds);
+        $pQuery->show('measureId');
+        while ($pRec = $pQuery->fetch()) {
+            $measureArr[$pRec->id] = $pRec->measureId;
+        }
+
+        $sameTypeMeasures = null;
+        foreach ($productIds as $productId) {
+            $measureId = $measureArr[$productId] ?? null;
+            if (empty($measureId)) return false;
+
+            // Дали са всичките в една мярка
+            if (!isset($sameTypeMeasures)) {
+                $sameTypeMeasures = cat_UoM::getSameTypeMeasures($measureId);
+            } elseif (!array_key_exists($measureId, $sameTypeMeasures)) {
+
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+
+    /**
      * Връща масив със всички опаковки, в които може да участва един продукт + основната му мярка
      * Първия елемент на масива е основната опаковка (ако няма основната мярка)
      *
