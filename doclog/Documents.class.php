@@ -850,16 +850,16 @@ class doclog_Documents extends core_Manager
             
             // Данните, които ще се визуализрат
             $row = (object) array(
-                'time' => $rec->createdOn,
-                'from' => $rec->createdBy,
-                'toEmail' => $rec->data->to,
-                'cc' => $rec->data->cc,
-                'returnedOn' => $rec->returnedOn,
-                'fromEmail' => $rec->data->from,
+                'time' => $rec->createdOn ?? null,
+                'from' => $rec->createdBy ?? null,
+                'toEmail' => $rec->data->to ?? null,
+                'cc' => $rec->data->cc ?? null,
+                'returnedOn' => $rec->returnedOn ?? null,
+                'fromEmail' => $rec->data->from ?? null,
             );
             
             // Ако е факс
-            if ($rec->data->faxTo) {
+            if (!empty($rec->data->faxTo)) {
                 
                 // Добавяме факса и услугата
                 $row->faxTo = $rec->data->faxTo;
@@ -870,7 +870,7 @@ class doclog_Documents extends core_Manager
             $row = static::recToVerbal($row, array_keys(get_object_vars($row)));
             
             // Рендираме екшъна за виждане
-            $row->receivedOn = self::renderOpenActions($rec, $rec->receivedOn);
+            $row->receivedOn = self::renderOpenActions($rec, $rec->receivedOn ?? null);
             
             // Полето за върнато и получено
             $row->returnedAndReceived = $row->receivedOn;
@@ -880,8 +880,7 @@ class doclog_Documents extends core_Manager
                 $returnedStr = '';
                 
                 // Ако има отворено
-                if ($rec->data->receivedOn) {
-                    
+                if (!empty($rec->data->receivedOn)) {
                     // Добавяме нов ред
                     $returnedStr = '<br />';
                 }
@@ -913,7 +912,7 @@ class doclog_Documents extends core_Manager
             }
             
             // Ако имаме факс номер
-            if ($row->faxTo) {
+            if (!empty($row->faxTo)) {
                 
                 // Ако има имейл
                 if ($row->emails) {
@@ -2765,7 +2764,7 @@ class doclog_Documents extends core_Manager
         $count = 0;
         
         while ($action = static::popAction()) {
-            if (!$action->threadId && $action->containerId) {
+            if (empty($action->threadId) && !empty($action->containerId)) {
                 $action->threadId = doc_Containers::fetchField($action->containerId, 'threadId');
             }
             
