@@ -218,7 +218,19 @@ class cat_DisassemblyBomDetails extends doc_Detail
         $bomRec = $masterCache[$rec->bomId];
 
         if ($rec->type == 'production' && is_object($bomRec)) {
-            $row->amount = static::getAmountVerbal($bomRec->priceListId, $rec->productId, $rec->quantity);
+            $errorHint = null;
+            $row->amount = static::getAmountVerbal($bomRec->priceListId, $rec->productId, $rec->quantity, null, $errorHint);
+            if(!empty($bomRec->priceListId)){
+                if (price_ListRules::haveRightFor('add', (object) array('productId' => $rec->productId, 'listId' => $bomRec->priceListId))) {
+                    $addPriceUrl = array('price_ListRules', 'add', 'type' => 'value', 'listId' => $bomRec->priceListId, 'productId' => $rec->productId, 'priority' => 1, 'ret_url' => true);
+                    if(empty($errorHint)){
+                        core_RowToolbar::createIfNotExists($row->_rowTools);
+                        $row->_rowTools->addLink('Нова цена', $addPriceUrl, 'ef_icon=img/16/add.png,title=Създаване на нова рецепта за разпад');
+                    } else {
+                        $row->amount .= ht::createLink('', $addPriceUrl, false, 'ef_icon=img/16/add.png,title=Създаване на нова рецепта за разпад');
+                    }
+                }
+            }
         }
     }
 
@@ -230,16 +242,17 @@ class cat_DisassemblyBomDetails extends doc_Detail
      * @param int           $productId
      * @param float         $quantity
      * @param datetime|null $date - към коя дата е цената (null - към сега)
+     * @param null|string $errorHint - грешка, защо няма цена
      *
      * @return string
      */
-    private static function getAmountVerbal($priceListId, $productId, $quantity, $date = null)
+    private static function getAmountVerbal($priceListId, $productId, $quantity, $date = null, &$errorHint = null)
     {
         $amount = cat_DisassemblyBoms::getAmount($priceListId, $productId, $quantity, $date);
         if (!isset($amount)) {
-            $hint = empty($priceListId) ? 'Не е избрана ценова политика за разпад' : 'Артикулът няма цена по избраната ценова политика за разпад|*!';
+            $errorHint = empty($priceListId) ? 'Не е избрана ценова политика за разпад' : 'Артикулът няма цена по избраната ценова политика за разпад|*!';
 
-            return ht::createHint("<span class='red'>???</span>", $hint, 'warning', false);
+            return ht::createHint("<span class='red'>???</span>", $errorHint, 'warning', false);
         }
 
         $amountVerbal = core_Type::getByName('double(decimals=2)')->toVerbal($amount);
