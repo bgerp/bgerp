@@ -465,7 +465,7 @@ class fileman_Data extends core_Manager
     public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
         // При добавяне на нов файл, ако все още не са определени ключовите думи, да вкара поне името на файла
-        if (!trim($rec->searchKeywords) && !empty($rec->id)) {
+        if (!trim($rec->searchKeywords ?? '') && !empty($rec->id)) {
             $fNames = '';
             $fQuery = fileman_Files::getQuery();
             $fQuery->where(array("#dataId = '[#1#]'", $rec->id));

@@ -267,7 +267,7 @@ class acc_Limits extends core_Manager
         $form = $data->listFilter;
         $form->view = 'horizontal';
         
-        $form->FNC('account', 'acc_type_Account(allowEmpty)', 'caption=Сметка,input');
+        $form->FNC('account', 'acc_type_Account(allowEmpty)', 'caption=Сметка,placeholderType=all,input');
         $form->FNC('state2', 'enum(all=Всички,active=Активни,closed=Затворени,exceeded=Надвишени)', 'caption=Вид,input');
         $form->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         $form->showFields = 'search,account,state2';

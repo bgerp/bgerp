@@ -26,7 +26,7 @@ class cal_ReminderSnoozes extends core_Detail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools,plg_Created,cal_Wrapper';
+    public $loadList = 'plg_RowTools2,plg_Created,cal_Wrapper';
     
     
     /**

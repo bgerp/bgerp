@@ -82,7 +82,7 @@ class pos_Terminal extends peripheral_Terminal
      */
     public function addFields(core_Fieldset &$fieldset)
     {
-        $fieldset->FLD('payments', 'keylist(mvc=cond_Payments, select=title)', 'caption=Безналични начини на плащане->Позволени,placeholder=Всички');
+        $fieldset->FLD('payments', 'keylist(mvc=cond_Payments, select=title)', 'caption=Безналични начини на плащане->Позволени,placeholderType=all');
         $fieldset->FLD('policyId', 'key(mvc=price_Lists, select=title)', 'caption=Политика, silent, mandotory');
         $fieldset->FLD('caseId', 'key(mvc=cash_Cases, select=name)', 'caption=Каса, mandatory');
         $fieldset->FLD('storeId', 'key(mvc=store_Stores, select=name)', 'caption=Склад, mandatory');
@@ -788,7 +788,7 @@ class pos_Terminal extends peripheral_Terminal
             return new core_ET("");
         }
         
-        $string = trim($string);
+        $string = trim($string ?? '');
         $selectedRec = isset($selectedRecId) ? pos_ReceiptDetails::fetchRec($selectedRecId) : null;
         
         switch($currOperation){
@@ -1500,8 +1500,12 @@ class pos_Terminal extends peripheral_Terminal
                             $attr['data-sendfunction'] = $intf->getSendAmountFncName($deviceRec);
 
                             $deviceBtnName = cash_NonCashPaymentDetails::getCardPaymentBtnName($deviceRec);
-                            $attr['data-deviceUrl'] = "{$deviceRec->protocol}://{$deviceRec->hostName}:{$deviceRec->port}";
-                            $attr['data-deviceComPort'] = $deviceRec->comPort;
+                            if (isset($deviceRec->protocol, $deviceRec->hostName, $deviceRec->port)) {
+                                $attr['data-deviceUrl'] = "{$deviceRec->protocol}://{$deviceRec->hostName}:{$deviceRec->port}";
+                            }
+                            if (isset($deviceRec->comPort)) {
+                                $attr['data-deviceComPort'] = $deviceRec->comPort;
+                            }
                             $attr['data-deviceName'] = $deviceBtnName;
                             $attr['data-modal-subTitle'] = tr('Моля, изчакайте'). "!";
                             $attr['data-deviceId'] = $deviceRec->id;
@@ -1739,7 +1743,7 @@ class pos_Terminal extends peripheral_Terminal
             $dataUrl = toUrl(array('pos_ReceiptDetails', 'updaterec', 'receiptId' => $rec->id, 'action' => 'setprice', 'string' => $price), 'local');
             
             $cnt++;
-            $buttons[$dRec->price] = ht::createElement("div", array('id' => "price{$cnt}",'class' => 'resultPrice posBtns navigable', 'data-url' => $dataUrl, 'title' => 'Задаване на избраната цена'), tr($btnName), true);
+            $buttons[(string) $dRec->price] = ht::createElement("div", array('id' => "price{$cnt}",'class' => 'resultPrice posBtns navigable', 'data-url' => $dataUrl, 'title' => 'Задаване на избраната цена'), tr($btnName), true);
         }
 
         $priceTpl = new core_ET("");

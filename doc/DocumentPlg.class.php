@@ -802,7 +802,7 @@ class doc_DocumentPlg extends core_Plugin
         // Ако създаваме нов документ и ...
         if (empty($rec->id)) {
             if(($mvc->addLinkedOriginFieldName ?? null) && !empty($rec->{$mvc->addLinkedOriginFieldName}) && $mvc->canAddDocumentToOriginAsLink($rec)){
-                $mvc->addDocumentLinks[$rec->id] = $rec;
+                $mvc->addDocumentLinks[spl_object_hash($rec)] = $rec;
             }
 
             // Опит за извличане на създателя
@@ -4508,7 +4508,7 @@ class doc_DocumentPlg extends core_Plugin
         }
         
         // Ако има само една версия или няма версии, да не се показват версиите във външната част
-        if (!(isset($row->FirstSelectedVersion)) || $row->LastVersion == '0.1') {
+        if (!isset($row->FirstSelectedVersion) || !isset($row->LastVersion) || $row->LastVersion == '0.1') {
             $res['external']['versionAndDate'] = true;
             $res['external']['date'] = true;
             $res['external']['version'] = true;

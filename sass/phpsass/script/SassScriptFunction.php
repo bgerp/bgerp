@@ -198,7 +198,7 @@ class SassScriptFunction
     return $match;
   }
 
-  public static function extractArgs($string, $include_null = TRUE, $context)
+  public static function extractArgs($string, $include_null, $context)
   {
     $args = array();
     $arg = '';

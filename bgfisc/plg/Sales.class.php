@@ -80,7 +80,7 @@ class bgfisc_plg_Sales extends core_Plugin
         $regRec = bgfisc_Register::createUrn($mvc, $rec->id, true);
         
         // Добавяне на УНП-то в ключовите думи
-        $rec->searchKeywords .= ' ' . plg_Search::normalizeText($regRec->urn);
+        $rec->searchKeywords = ($rec->searchKeywords ?? '') . ' ' . plg_Search::normalizeText($regRec->urn);
         
         $rec->searchKeywords = plg_Search::purifyKeywods($rec->searchKeywords);
         
@@ -95,7 +95,8 @@ class bgfisc_plg_Sales extends core_Plugin
     {
         // Думите за търсене са името на документа-основания
         if(isset($rec->id)){
-            if($urn = bgfisc_Register::getRec($mvc, $rec->id)->urn){
+            $registerRec = bgfisc_Register::getRec($mvc, $rec->id);
+            if($urn = $registerRec->urn ?? null){
                 $res .= ' ' . plg_Search::normalizeText($urn);
             }
         }
@@ -107,7 +108,9 @@ class bgfisc_plg_Sales extends core_Plugin
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-        if($urn = bgfisc_Register::getRec($mvc, $rec->id)->urn){
+        if (!isset($rec->id)) return;
+        $registerRec = bgfisc_Register::getRec($mvc, $rec->id);
+        if($urn = $registerRec->urn ?? null){
             $row->cashRegNum = bgfisc_Register::getUrlLink($urn);
         } else {
             if(core_Users::isPowerUser()){

@@ -399,8 +399,8 @@ abstract class cash_Document extends deals_PaymentDocument
             $origin = $mvc->getOrigin($form->rec);
             $dealInfo = $origin->getAggregateDealInfo();
 
-            if(!cond_PaymentMethods::hasDownpayment($dealInfo->paymentMethodId)){
-                if(stripos($rec->operationSysId, 'advance')){
+            if(property_exists($dealInfo, 'paymentMethodId') && !cond_PaymentMethods::hasDownpayment($dealInfo->get('paymentMethodId'))){
+                if(stripos((string) ($rec->operationSysId ?? ''), 'advance') !== false){
                     $form->setWarning('operationSysId', 'По сделката не се очаква авансово плащане');
                 }
             }

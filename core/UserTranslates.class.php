@@ -88,9 +88,21 @@ class core_UserTranslates extends core_Manager
 
 
     /**
+     * Манипулатор на кеша с всички потребителски преводи
+     */
+    const CACHE_HANDLER = 'all';
+
+
+    /**
      * Колко минути да се пазят данните в кеша
      */
     const CACHE_KEEP_MINUTES = 1440;
+
+
+    /**
+     * Кешираните потребителски преводи за текущия хит
+     */
+    private static $cachedTranslations;
     
     
     public function description()
@@ -120,15 +132,28 @@ class core_UserTranslates extends core_Manager
         core_Debug::startTimer('getUserTranslatedStr_' . $classId);
         $handler = $classId . '|' . $recId . '|' . $lg;
 
-        $data = core_Cache::get(self::CACHE_TYPE, $handler, self::CACHE_KEEP_MINUTES, array('core_UserTranslates'));
+        if (!isset(self::$cachedTranslations)) {
+            // Не удължаваме срока при четене, за да не обновяваме общия DB ред при всеки хит
+            self::$cachedTranslations = core_Cache::get(self::CACHE_TYPE, self::CACHE_HANDLER, null, array('core_UserTranslates'));
 
-        if ($data === false) {
-            $rec = self::fetch(array("#classId = '[#1#]' AND #recId = '[#2#]' AND #lang = '[#3#]'", $classId, $recId, $lg));
+            if (self::$cachedTranslations === false) {
+                self::$cachedTranslations = array();
+                self::getDbTableUpdateTime();
+                $query = self::getQuery();
+                $query->show('classId,recId,lang,data');
 
-            $data = ($rec && is_array($rec->data)) ? $rec->data : array();
+                while ($rec = $query->fetch()) {
+                    if (is_array($rec->data)) {
+                        $recHandler = $rec->classId . '|' . $rec->recId . '|' . $rec->lang;
+                        self::$cachedTranslations[$recHandler] = $rec->data;
+                    }
+                }
 
-            core_Cache::set(self::CACHE_TYPE, $handler, $data, self::CACHE_KEEP_MINUTES, array('core_UserTranslates'));
+                core_Cache::set(self::CACHE_TYPE, self::CACHE_HANDLER, self::$cachedTranslations, self::CACHE_KEEP_MINUTES, array('core_UserTranslates'));
+            }
         }
+
+        $data = self::$cachedTranslations[$handler] ?? array();
 
         $tr = null;
 
@@ -227,6 +252,8 @@ class core_UserTranslates extends core_Manager
      */
     public static function on_AfterSave(core_Mvc $mvc, &$id, $rec, &$fields = null, $mode = null)
     {
+        self::invalidateCache();
+
         // Добавяме в ключовите думи на модела
         if ($rec->recId && $rec->classId && cls::load($rec->classId, true)) {
             $clsInst = cls::get($rec->classId);
@@ -240,6 +267,30 @@ class core_UserTranslates extends core_Manager
                 }
             }
         }
+    }
+
+
+    /**
+     * Извиква се след изтриване на записи от модела
+     *
+     * @param core_UserTranslates $mvc
+     * @param int                 $numRows
+     * @param core_Query          $query
+     * @param mixed               $cond
+     */
+    public static function on_AfterDelete($mvc, &$numRows, $query, $cond)
+    {
+        self::invalidateCache();
+    }
+
+
+    /**
+     * Изчиства кеша с потребителските преводи
+     */
+    private static function invalidateCache()
+    {
+        self::$cachedTranslations = null;
+        core_Cache::remove(self::CACHE_TYPE, self::CACHE_HANDLER);
     }
     
     

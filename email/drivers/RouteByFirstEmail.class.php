@@ -66,15 +66,16 @@ class email_drivers_RouteByFirstEmail extends core_BaseClass
 
         // Ако нещо е останало ...
         if (countR($emails) > 0) {
+            $firstEmail = reset($emails);
 
             $fromName = $mime->getFromName();
             $fromEml = $mime->getFromEmail();
 
             // Ако първия имейл не се съдържа в изпращача
-            if (strpos($fromEml, $emails[0]) === false) {
+            if (strpos($fromEml, $firstEmail) === false) {
 
                 // Задаваме първия имейл
-                $resArr['preroute']['fromName'] = trim($emails[0]);
+                $resArr['preroute']['fromName'] = trim($firstEmail);
             } else {
 
                 // Тримваме
@@ -85,7 +86,7 @@ class email_drivers_RouteByFirstEmail extends core_BaseClass
             $resArr['preroute']['fromName'] .= ' чрез ' . $fromEml;
 
             // Задаваме първия имейл
-            $resArr['preroute']['fromEml'] = $emails[0];
+            $resArr['preroute']['fromEml'] = $firstEmail;
         }
 
         return $resArr;

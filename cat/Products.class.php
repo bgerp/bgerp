@@ -451,7 +451,7 @@ class cat_Products extends embed_Manager
         $Driver = null;
         if (isset($rec->folderId)) {
             $cover = doc_Folders::getCover($rec->folderId);
-            $isTemplate = isset($rec->id) ? ($rec->state == 'template') :  $cover->getProductType() == 'template';
+            $isTemplate = isset($rec->id) ? (($rec->state ?? null) == 'template') :  $cover->getProductType() == 'template';
 
             $defMetas = array();
             if (isset($rec->proto)) {
@@ -485,7 +485,7 @@ class cat_Products extends embed_Manager
                 }
 
                 // При клониране се използва кода на клонирания артикул
-                if(($data->action ?? null) == 'clone'){
+                if(($data->action ?? null) == 'clone' && !empty($rec->clonedFromId)){
                     if($clonedCode = cat_Products::fetchField($rec->clonedFromId, 'code')){
                         $lastCode = $clonedCode;
                     }
@@ -584,7 +584,7 @@ class cat_Products extends embed_Manager
                 if (cat_products_Packagings::fetch("#productId = {$rec->id}")) {
                     $isUsed = true;
                 } else {
-                    $isUsed = cat_products_Packagings::canEditOrDeletePack($rec->id, $rec->measureId);
+                    $isUsed = cat_products_Packagings::canEditOrDeletePack($rec->id, $rec->measureId ?? null);
                 }
                 
                 // Ако артикулът е използван, мярката му не може да бъде сменена
@@ -1023,8 +1023,8 @@ class cat_Products extends embed_Manager
     protected static function on_AfterPrepareListFilter($mvc, $data)
     {
         $data->listFilter->FNC('filters', "bgerp_type_CustomFilter(classes=cat_Products)", 'caption=Филтри,input,silent,remember,autoFilter,row=2');
-        $data->listFilter->FNC('groupId', 'key2(mvc=cat_Groups,select=name,allowEmpty)', 'placeholder=Група,caption=Група,input,silent,remember,autoFilter');
-        $data->listFilter->FNC('folder', 'key2(mvc=doc_Folders,select=title,allowEmpty,coverInterface=cat_ProductFolderCoverIntf)', 'input,caption=Папка');
+        $data->listFilter->FNC('groupId', 'key2(mvc=cat_Groups,select=name,allowEmpty)', 'placeholderType=all,caption=Група,input,silent,remember,autoFilter');
+        $data->listFilter->FNC('folder', 'key2(mvc=doc_Folders,select=title,allowEmpty,coverInterface=cat_ProductFolderCoverIntf)', 'input,caption=Папка,placeholderType=all');
         $data->listFilter->view = 'horizontal';
 
         $data->listFilter->input(null, 'silent');
@@ -1034,7 +1034,7 @@ class cat_Products extends embed_Manager
         }
 
         $data->listFilter->setDefault('filters', $defOrder);
-        $data->listFilter->FNC('type', 'class', 'caption=Вид');
+        $data->listFilter->FNC('type', 'class', 'caption=Вид,placeholderType=all');
         $classes = core_Classes::getOptionsByInterface('cat_ProductDriverIntf', 'title');
         $data->listFilter->setOptions('type', array('' => '') + $classes);
         $data->listFilter->showFields = 'search,filters,type,groupId,folder';
@@ -4791,7 +4791,7 @@ class cat_Products extends embed_Manager
             } else {
                 $paramValue = self::getParams($productId, 'weightKg');
 
-                return !is_nan($paramValue) ? $paramValue : null;
+                return (isset($paramValue) && !is_nan($paramValue)) ? $paramValue : null;
             }
         }
     }

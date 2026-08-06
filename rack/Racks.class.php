@@ -448,7 +448,7 @@ class rack_Racks extends core_Master
                 $form->setWarning('rows,columns', 'Информацията за запазени или неизползваеми места извън новите размери ще бъде изтрита');
             }
 
-            $groups = type_Set::toArray($rec->groupSet);
+            $groups = type_Set::toArray($rec->groupSet ?? null);
             $rec->groups = keylist::fromArray($groups);
         }
     }

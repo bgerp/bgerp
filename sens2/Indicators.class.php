@@ -316,7 +316,7 @@ class sens2_Indicators extends core_Detail
         
         self::save($rec);
         
-        if (!$rec->error) {
+        if (empty($rec->error)) {
             // Записваме и в контекста, ако има такъв
             if (self::$contex) {
                 $title = self::getRecTitle($rec);
@@ -384,7 +384,8 @@ class sens2_Indicators extends core_Detail
     protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
-        $data->listFilter->FNC('driver', 'class(interface=sens2_ControllerIntf, allowEmpty, select=title)', 'caption=Драйвер,silent,placeholder=Драйвер,removeAndRefreshForm=controllerId');
+        $data->listFilter->FNC('driver', 'class(interface=sens2_ControllerIntf, allowEmpty, select=title)', 'caption=Драйвер,silent,placeholderType=all,removeAndRefreshForm=controllerId');
+        $data->listFilter->setField('controllerId', 'placeholderType=all');
         $data->listFilter->view = 'horizontal';
         $ctr = Request::get('Ctr');
         if ($ctr && $mvc instanceof $ctr) {
@@ -447,7 +448,7 @@ class sens2_Indicators extends core_Detail
         if (is_array($data->rows)) {
             foreach ($data->rows as $id => &$row) {
                 if (strlen((string) ($data->recs[$id]->value ?? ''))) {
-                    $row->value .= "<span class='measure'>" . self::getVerbal($data->recs[$id], 'uom') . '</span>';
+                    $row->value = ($row->value ?? '') . "<span class='measure'>" . self::getVerbal($data->recs[$id], 'uom') . '</span>';
                     if(isset($row->statusText)) {
                         $row->value = $row->statusText . ' ' . $row->value;
                     }

@@ -144,12 +144,6 @@ class planning_ReturnNotes extends deals_ManifactureMaster
 
 
     /**
-     * Допълнителен CSS клас на listTopContainer
-     */
-    public $listTopContainerHtmlClass = 'twoColsFilter';
-
-
-    /**
      * Кой може да го прави документа чакащ/чернова?
      */
     public $canPending = 'ceo,consumption,store';

@@ -404,6 +404,7 @@ class planning_reports_ProposalRequest extends frame2_driver_TableData
         
         
         $marker = 0;
+        $groupVerb = '';
         if (isset($data->rec->groups)) {
             foreach (type_Keylist::toArray($data->rec->groups) as $group) {
                 $marker++;
@@ -421,6 +422,7 @@ class planning_reports_ProposalRequest extends frame2_driver_TableData
         }
         
         $marker = 0;
+        $jobVerb = '';
         if (isset($data->rec->jobses)) {
             foreach (type_Keylist::toArray($data->rec->jobses) as $job) {
                 $marker++;

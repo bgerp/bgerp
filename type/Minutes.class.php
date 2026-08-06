@@ -29,7 +29,7 @@ class type_Minutes extends type_Int
      */
     public function fromVerbal_($val)
     {
-        $val = trim($val);
+        $val = trim($val ?? '');
         
         // Празна стойност се приема за NULL
         if ($val === '') {
@@ -80,7 +80,7 @@ class type_Minutes extends type_Int
             $minutes = $matches[2];
         }
         
-        if (strlen($minutes) || strlen($hours) || strlen($days) || strlen($weeks)) {
+        if (strlen($minutes ?? '') || strlen($hours ?? '') || strlen($days ?? '') || strlen($weeks ?? '')) {
             $duration = $minutes + 60 * $hours + 24 * 60 * $days + 7 * 24 * 60 * $weeks;
             
             return $duration;

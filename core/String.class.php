@@ -82,7 +82,7 @@ class core_String
      */
     public static function mbUcfirst($string)
     {
-        $string = trim($string);
+        $string = trim($string ?? '');
         $string = mb_strtoupper(mb_substr($string, 0, 1)) . mb_substr($string, 1);
         
         return $string;
@@ -363,6 +363,8 @@ class core_String
      */
     public static function convertToFixedKey($str, $length = 64, $md5Len = 32, $separator = '_', $byChars = false)
     {
+        $str = $str ?? '';
+
         // --- Символен режим (mb_*) ---
         if ($byChars) {
             if (mb_strlen($str, 'UTF-8') <= $length) {

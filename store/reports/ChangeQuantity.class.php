@@ -44,8 +44,8 @@ class store_reports_ChangeQuantity extends frame2_driver_TableData
      */
     public function addFields(core_Fieldset &$fieldset)
     {
-        $fieldset->FLD('group', 'keylist(mvc=cat_Groups,select=name)', 'caption=Група,after=title,single=none');
-        $fieldset->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,after=group');
+        $fieldset->FLD('group', 'keylist(mvc=cat_Groups,select=name)', 'caption=Група,placeholderType=all,after=title,single=none');
+        $fieldset->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,placeholderType=all,after=group');
     }
     
     
@@ -80,6 +80,9 @@ class store_reports_ChangeQuantity extends frame2_driver_TableData
     {
         $recs = array();
         $products = array();
+        $rec->id = $rec->id ?? 0;
+        $rec->group = $rec->group ?? null;
+        $rec->storeId = $rec->storeId ?? null;
         
         // Обръщаме се към трудовите договори
         $query = store_Products::getQuery();
@@ -103,49 +106,53 @@ class store_reports_ChangeQuantity extends frame2_driver_TableData
                 continue;
             }
             
-            $id = $recMaterial->productId;
-            
-            if ($recMaterial->reservedQuantity == null) {
-                $recMaterial->reservedQuantity = 0;
+            $id = $recMaterial->productId ?? null;
+            if (!$id) {
+                continue;
             }
             
+            $recMaterial->quantity = $recMaterial->quantity ?? 0;
+            $recMaterial->reservedQuantity = $recMaterial->reservedQuantity ?? 0;
+            $recMaterial->expectedQuantity = $recMaterial->expectedQuantity ?? 0;
+
             // добавяме в масива събитието
             if (!array_key_exists($id, $recs)) {
+                $productInfo = cat_Products::getProductInfo($id);
+                $measureId = $productInfo->productRec->measureId ?? cat_Products::fetchField($id, 'measureId');
                 $recs[$id] =
                     (object) array(
                         
                         'kod' => cat_Products::fetchField($recMaterial->productId, 'code'),
-                        'measure' => cat_Products::getProductInfo($recMaterial->productId)->productRec->measureId,
+                        'measure' => $measureId,
                         'productId' => $recMaterial->productId,
                         'quantity' => $recMaterial->quantity,
                         'group' => cat_Products::fetchField($recMaterial->productId, 'groups'),
                         'reservedQuantity' => $recMaterial->reservedQuantity,
                         'changeQuantity' => '',
-                        'expectedQuantity' => $recMaterial->expectedQuantityTotal
+                        'expectedQuantity' => $recMaterial->expectedQuantity
                     );
             } else {
                 $obj = &$recs[$id];
                 $obj->quantity += $recMaterial->quantity;
-                $obj->expectedQuantity += $recMaterial->expectedQuantityTotal;
+                $obj->expectedQuantity += $recMaterial->expectedQuantity;
                 $obj->reservedQuantity += $recMaterial->reservedQuantity;
             }
         }
         
         foreach ($recs as $idProd => $products) { 
             
-            $products->freeQuantity = $products->quantity - $products->reservedQuantity;
+            $products->freeQuantity = $products->quantity - $products->reservedQuantity + $products->expectedQuantity;
             if (is_array($oldData) && countR($oldData)) {
                 foreach ($oldData as $oData) {
-                    if ($oData->productId == $idProd) {
-                        $products->changeQuantity = $products->freeQuantity - $oData->freeQuantity;
+                    if (($oData->productId ?? null) == $idProd) {
+                        $products->changeQuantity = $products->freeQuantity - ($oData->freeQuantity ?? 0);
                     }
                 }
             }
         }
         
         usort($recs, function ($a, $b) {
-            
-            return ($a->changeQuantity > $b->changeQuantity) ? 1 : -1;
+            return ($a->changeQuantity ?? 0) <=> ($b->changeQuantity ?? 0);
         });
         
         return $recs;
@@ -192,8 +199,9 @@ class store_reports_ChangeQuantity extends frame2_driver_TableData
         $row->measure = cat_UoM::getShortName($dRec->measure);
         
         foreach (array('quantity', 'reservedQuantity', 'expectedQuantity', 'freeQuantity', 'changeQuantity') as $fld) {
-            $row->{$fld} = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->{$fld});
-            $row->{$fld} = ht::styleNumber($row->{$fld}, $dRec->{$fld});
+            $value = $dRec->{$fld} ?? 0;
+            $row->{$fld} = core_Type::getByName('double(decimals=2)')->toVerbal($value);
+            $row->{$fld} = ht::styleNumber($row->{$fld}, $value);
         }
         
         return $row;
@@ -274,13 +282,18 @@ class store_reports_ChangeQuantity extends frame2_driver_TableData
             $query->where("#reportId = {$rec->id}");
             $query->orderBy('id', 'DESC');
             $query->show('versionBefore');
-            
-            $versionBeforeId = $query->fetch()->versionBefore;
+
+            $versionRec = $query->fetch();
+            $versionBeforeId = $versionRec->versionBefore ?? null;
         } else {
             $versionBeforeId = frame2_ReportVersions::fetchField($selectedVersionId, 'versionBefore');
         }
-        
-        $versionBeforeData = (isset($versionBeforeId)) ? frame2_ReportVersions::fetchField($versionBeforeId, 'oldRec')->data->recs : array();
+
+        $versionBeforeData = array();
+        if (isset($versionBeforeId)) {
+            $oldRec = frame2_ReportVersions::fetchField($versionBeforeId, 'oldRec');
+            $versionBeforeData = is_array($oldRec->data->recs ?? null) ? $oldRec->data->recs : array();
+        }
         
         return $versionBeforeData;
     }

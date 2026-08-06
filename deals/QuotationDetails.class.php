@@ -346,10 +346,10 @@ class deals_QuotationDetails extends doc_Detail
     /**
      * Проверява дали има вариация на продукт
      */
-    protected function checkUnique($recs, $productId, $id, $isOptional = 'no', $notes)
+    protected function checkUnique($recs, $productId, $id, $isOptional, $notes)
     {
         $other = array_values(array_filter($recs, function ($val) use ($productId, $id, $isOptional, $notes) {
-            if ($val->optional == $isOptional && $val->productId == $productId && $val->id != $id && md5($notes) == md5($val->notes)) {
+            if ($val->optional == $isOptional && $val->productId == $productId && $val->id != $id && md5((string) $notes) == md5((string) $val->notes)) {
 
                 return $val;
             }
@@ -430,19 +430,22 @@ class deals_QuotationDetails extends doc_Detail
         $masterRec = $data->masterData->rec;
         $countryId = $data->cData->countryId;
 
+        // Дали цените са заличени за текущия потребител от doc_plg_HidePrices - тогава не показваме и еквивалента в другата валута
+        $pricesHidden = !doc_plg_HidePrices::canSeePriceFields($data->masterMvc, $masterRec) && $data->dontHidePrices !== true;
+
         // Групираме записите за по-лесно показване
         foreach ($data->rows as $i => $row) {
             $rec = $data->recs[$i];
 
             if($data->masterMvc->showDualPrices($masterRec->folderId)){
-                $row->packPrice = deals_Helper::displayDualAmount($row->packPrice, $rec->packPrice, $masterRec->activatedOn, $masterRec->currencyId, $countryId);
+                $row->packPrice = deals_Helper::displayDualAmount($row->packPrice, $rec->packPrice, $masterRec->activatedOn, $masterRec->currencyId, $countryId, "<br />", false, $pricesHidden);
                 if($masterRec->chargeVat == 'separate' && !empty($row->vatPackPrice)){
-                    $row->vatPackPrice = deals_Helper::displayDualAmount($row->vatPackPrice, $rec->vatPackPrice, $masterRec->activatedOn, $masterRec->currencyId, $countryId);
+                    $row->vatPackPrice = deals_Helper::displayDualAmount($row->vatPackPrice, $rec->vatPackPrice, $masterRec->activatedOn, $masterRec->currencyId, $countryId, "<br />", false, $pricesHidden);
                 }
             }
 
             if($data->masterMvc->showDualPrices($masterRec->folderId)){
-                $row->amount = deals_Helper::displayDualAmount($row->amount, $rec->amount, $masterRec->activatedOn, $masterRec->currencyId, $countryId);
+                $row->amount = deals_Helper::displayDualAmount($row->amount, $rec->amount, $masterRec->activatedOn, $masterRec->currencyId, $countryId, "<br />", false, $pricesHidden);
             }
 
             if (($rec->livePrice ?? null) === true) {
@@ -460,7 +463,7 @@ class deals_QuotationDetails extends doc_Detail
 
             // Създава се специален индекс на записа productId|optional, така
             // резултатите са разделени по продукти и дали са опционални или не
-            $pId = $pId . "|{$optional}|" . md5($rec->notes);
+            $pId = $pId . "|{$optional}|" . md5((string) $rec->notes);
 
             $newRows[$pId][] = $row;
         }

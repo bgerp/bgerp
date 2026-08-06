@@ -367,7 +367,7 @@ class price_ListToCustomers extends core_Manager
         }
 
         // Подсигуряване, че няма да е NaN цената
-        if(is_nan($rec->price)){
+        if(isset($rec->price) && is_nan($rec->price)){
             $rec->price = null;
             wp($customerClass, $customerId, $productId, $packagingId, $quantity, $datetime, $rate, $chargeVat, $listId, $quotationPriceFirst);
         }
@@ -579,6 +579,7 @@ class price_ListToCustomers extends core_Manager
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         $data->listFilter->setFieldTypeParams('listId', array('allowEmpty' => 'allowEmpty'));
+        $data->listFilter->setField('listId', 'placeholderType=all');
         $data->listFilter->showFields = 'listId';
         $data->listFilter->input(null, 'silent');
 

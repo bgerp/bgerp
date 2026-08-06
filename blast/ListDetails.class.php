@@ -237,14 +237,14 @@ class blast_ListDetails extends doc_Detail
         $data = array();
         
         foreach ($fieldsArr as $name => $caption) {
-            $data[$name] = $form->rec->{$name};
+            $data[$name] = $form->rec->{$name} ?? null;
         }
         
         $form->rec->data = serialize($data);
         
         $keyField = $masterRec->keyField;
         
-        $form->rec->key = str::convertToFixedKey(mb_strtolower(trim($form->rec->{$keyField})));
+        $form->rec->key = str::convertToFixedKey(mb_strtolower(trim((string) ($form->rec->{$keyField} ?? ''))));
         
         $idCond = '';
         if (!empty($form->rec->id)) {
@@ -574,7 +574,7 @@ class blast_ListDetails extends doc_Detail
         $exp->question('#companiesGroup,#inChargeUsers, #noSalesFrom, #noSalesTo, #city', tr('Посочете група от фирми, от която да се импортират контактните данни') . ':', "#source == 'groupCompanies'", 'title=' . tr('Избор на група фирми'));
         $exp->question('#personsGroup,#inChargeUsers, #noSalesFrom, #noSalesTo, #city', tr('Посочете група от лица, от която да се импортират контактните данни') . ':', "#source == 'groupPersons'", 'title=' . tr('Избор на група лица'));
         
-        $exp->DEF('#countriesInclude=Държава->Само тези', 'keylist(mvc=drdata_Countries, select=commonName, selectBg=commonNameBg, allowEmpty)', 'placeholder=Всички, notNull');
+        $exp->DEF('#countriesInclude=Държава->Само тези', 'keylist(mvc=drdata_Countries, select=commonName, selectBg=commonNameBg, allowEmpty)', 'placeholderType=all, notNull');
         $exp->SUGGESTIONS('#countriesInclude', 'getCountriesFromGroup(#companiesGroup)');
         $exp->SUGGESTIONS('#countriesInclude', 'getCountriesFromGroup(#personsGroup, "crm_Persons")');
         
@@ -582,11 +582,11 @@ class blast_ListDetails extends doc_Detail
         $exp->SUGGESTIONS('#countriesExclude', 'getCountriesFromGroup(#companiesGroup)');
         $exp->SUGGESTIONS('#countriesExclude', 'getCountriesFromGroup(#personsGroup, "crm_Persons")');
         
-        $exp->DEF('#documentType=Вид', 'keylist(mvc=core_Classes, select=title)', 'placeholder=Всички, notNull');
+        $exp->DEF('#documentType=Вид', 'keylist(mvc=core_Classes, select=title)', 'placeholderType=all, notNull');
         $exp->SUGGESTIONS('#documentType', 'getDocumentTypes()');
         $exp->ASSUME('#documentType', 'getDocumentTypesAssume()');
-        $exp->DEF('#catGroups=Продуктови групи', 'keylist(mvc=cat_Groups,select=name, allowEmpty)', 'placeholder=Всички, notNull');
-        $exp->DEF('#contragentType=Вид контрагент->Избор', 'enum(,crm_Companies=Фирми,crm_Persons=Лица)', 'placeholder=Всички, notNull');
+        $exp->DEF('#catGroups=Продуктови групи', 'keylist(mvc=cat_Groups,select=name, allowEmpty)', 'placeholderType=all, notNull');
+        $exp->DEF('#contragentType=Вид контрагент->Избор', 'enum(,crm_Companies=Фирми,crm_Persons=Лица)', 'placeholderType=all, notNull');
         $exp->DEF('#contragentAccess=Вид контрагент->Достъп', 'enum(, noAccess=Без Достъп, withAccess=С достъп)', 'placeholder=Без значение, notNull');
 
         $exp->DEF('#noSalesFrom=Без продажби през->От', 'date', 'placeholder=Игнорарине след, notNull');
@@ -707,6 +707,7 @@ class blast_ListDetails extends doc_Detail
                 foreach ($csvRows as $row) {
                     $rowArr = str_getcsv($row, $delimiter, $enclosure);
                     $rec = new stdClass();
+                    $exRec = null;
                     
                     foreach ($fieldsArr as $name => $caption) {
                         $id = $exp->getValue("#col{$name}");
@@ -721,7 +722,7 @@ class blast_ListDetails extends doc_Detail
                     $keyField = $listRec->keyField;
                     
                     // Вземаме стойността на ключовото поле;
-                    $key = $rec->{$keyField};
+                    $key = $rec->{$keyField} ?? null;
                     
                     // Ако ключа е празен, скипваме текущия ред
                     if (empty($key) || countR($err)) {
@@ -761,7 +762,7 @@ class blast_ListDetails extends doc_Detail
                     $data = array();
                     
                     foreach ($fieldsArr as $name => $caption) {
-                        setIfNot($data[$name], $rec->{$name}, $exRec->{$name});
+                        setIfNot($data[$name], $rec->{$name} ?? null, $exRec->{$name} ?? null);
                     }
                     
                     $rec->data = serialize($data);
@@ -1245,7 +1246,7 @@ class blast_ListDetails extends doc_Detail
                     
                     $fRec = doc_Folders::fetch($rec->folderId);
                     $cInstRec = null;
-                    if (($fRec->coverClass) && ($fRec->coverId)) {
+                    if ($fRec && !empty($fRec->coverClass) && !empty($fRec->coverId)) {
                         $cInst = cls::get($fRec->coverClass);
                         $cInstRec = $cInst->fetch($fRec->coverId);
                     }
@@ -1267,7 +1268,7 @@ class blast_ListDetails extends doc_Detail
                                     continue;
                                 }
                                 
-                                $email = trim($sendEmailsArr[0]);
+                                $email = trim($sendEmailsArr[0] ?? '');
                                 if ($email) {
                                     $eCDoc = doc_Containers::getDocument($eCRec->id);
                                     if ($eCDoc) {
@@ -1295,9 +1296,9 @@ class blast_ListDetails extends doc_Detail
                     // Ако все ощя няма имейл, използваме имейла от корицата
                     if (!$email) {
                         if ($cInstRec) {
-                            $emails = $cInstRec->buzEmail;
+                            $emails = $cInstRec->buzEmail ?? '';
                             $emails .= $emails ? ',' : '';
-                            $emails .= $cInstRec->email;
+                            $emails .= $cInstRec->email ?? '';
                             $emailsArr = type_Emails::toArray($emails);
                             $email = trim($emailsArr[0] ?? '');
                         }
@@ -1452,10 +1453,13 @@ class blast_ListDetails extends doc_Detail
                     }
                     $contragentCls = cls::get($rec->contragentClass);
                     $cRec = $contragentCls->fetch($rec->contragentObjectId);
+                    if (!$cRec) {
+                        continue;
+                    }
 
                     // Ако не е в сътоветната държава
                     if ($allFoldersArr !== false) {
-                        if (!$allFoldersArr[$cRec->folderId]) {
+                        if (!$cRec || empty($allFoldersArr[$cRec->folderId])) {
 
                             continue;
                         }
@@ -1606,7 +1610,7 @@ class blast_ListDetails extends doc_Detail
             }
         }
 
-        return $prodArrRes[$groupIds];
+        return $prodArrRes[$groupIds] ?? false;
     }
 
 

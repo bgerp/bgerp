@@ -1654,7 +1654,7 @@ abstract class deals_Helper
     /**
      * Помощна ф-я за намиране на транспортното тегло/обем
      */
-    private static function getMeasureRow($productId, $packagingId, $quantity, $type, &$value = null, $masterState)
+    private static function getMeasureRow($productId, $packagingId, $quantity, $type, &$value, $masterState)
     {
         expect(in_array($type, array('volume', 'weight', 'netWeight', 'tareWeight')));
         $hint = $warning = false;
@@ -3172,7 +3172,7 @@ abstract class deals_Helper
      *
      * @return stdClass|null
      */
-    public static function checkPriceWithContragentPrice($productId, $price, $discount, $quantity, $quantityInPack, $contragentClassId, $contragentId, $valior, $listId = null, $useQuotationPrice = true, $mvc, $threadId, $rate, $currencyId, $transportFeeRec = null)
+    public static function checkPriceWithContragentPrice($productId, $price, $discount, $quantity, $quantityInPack, $contragentClassId, $contragentId, $valior, $listId, $useQuotationPrice, $mvc, $threadId, $rate, $currencyId, $transportFeeRec = null)
     {
         static $useBomVal;
         $price = $price * (1 - $discount);
@@ -3777,10 +3777,12 @@ abstract class deals_Helper
      * @param int $countryId      - за коя държава
      * @param string $divider     - разделител
      * @param string $alwaysDecorate - дали винаги да се декорира
+     * @param bool $hidden        - дали цената е заличена от doc_plg_HidePrices - тогава не смятаме и не показваме втора валута
      * @return mixed|string
      */
-    public static function displayDualAmount($amountRow, $amount, $date, $currencyId, $countryId, $divider = "<br />", $alwaysDecorate = false)
+    public static function displayDualAmount($amountRow, $amount, $date, $currencyId, $countryId, $divider = "<br />", $alwaysDecorate = false, $hidden = false)
     {
+        if($hidden) return $amountRow;
         if(!in_array($currencyId, array('BGN', 'EUR')))  return $amountRow;
         $date = isset($date) ? dt::verbal2mysql($date, false) : dt::today();
 
@@ -3843,7 +3845,7 @@ abstract class deals_Helper
         if($baseCurrencyCode == $valiorCurrencyCode) return $amount;
 
         // Ако сумата е 0, не се променя за да не стане гадно число
-        if(round($amount, 5) == 0) return $amount;
+        if(round((float) $amount, 5) == 0) return $amount;
 
         // Ако от левове ще става евро да се смята по централния курс
         if($baseCurrencyCode == 'EUR' && $valiorCurrencyCode == 'BGN') {

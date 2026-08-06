@@ -107,7 +107,7 @@ class planning_Jobs extends core_Master
     /**
      * Икона на единичния изглед
      */
-    public $singleIcon = 'img/16/clipboard_text_1.png';
+    public $singleIcon = 'img/16/clipboard_text.png';
 
 
     /**
@@ -153,7 +153,7 @@ class planning_Jobs extends core_Master
         }
 
         if (isset($rec->type) && $rec->type == 'disassembly') {
-            return 'img/16/clipboard_text.png';
+            return 'img/16/clipboard_text_red.png';
         }
 
         return $this->singleIcon;
@@ -200,12 +200,6 @@ class planning_Jobs extends core_Master
      * Клас за отделния ред в листовия изглед
      */
     public $commonRowClass = 'separateRowTable';
-
-
-    /**
-     * Допълнителен CSS клас на listTopContainer
-     */
-    public $listTopContainerHtmlClass = 'twoColsFilter';
 
 
     /**
@@ -722,7 +716,7 @@ class planning_Jobs extends core_Master
         $data->listFilter->showFields .= ',type';
 
         $data->listFilter->setField('selectPeriod', 'caption=Период');
-        $data->listFilter->FLD('contragentFolderId', 'key2(mvc=doc_Folders,allowEmpty,coverInterface=crm_ContragentAccRegIntf)', 'caption=Контрагент,silent,after=view');
+        $data->listFilter->FLD('contragentFolderId', 'key2(mvc=doc_Folders,allowEmpty,coverInterface=crm_ContragentAccRegIntf)', 'caption=Контрагент,placeholderType=all,silent,after=view');
         $data->listFilter->input('contragentFolderId', 'silent');
         $data->listFilter->input();
         $data->listFilter->showFields .= ',contragentFolderId';
@@ -1440,8 +1434,8 @@ class planning_Jobs extends core_Master
     public function getNewBtnVariants_($rec)
     {
         return array(
-            array('title' => 'Задание за производство', 'icon' => 'img/16/clipboard_text_1.png', 'params' => array('type' => 'manifacture')),
-            array('title' => 'Задание за разпад', 'icon' => 'img/16/clipboard_text.png', 'params' => array('type' => 'disassembly')),
+            array('title' => 'Задание за производство', 'icon' => 'img/16/clipboard_text.png', 'params' => array('type' => 'manifacture')),
+            array('title' => 'Задание за разпад', 'icon' => 'img/16/clipboard_text_red.png', 'params' => array('type' => 'disassembly')),
         );
     }
 

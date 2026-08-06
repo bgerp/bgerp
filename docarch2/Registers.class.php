@@ -83,7 +83,7 @@ class docarch2_Registers extends core_Master
         $this->FLD('name', 'varchar(32)', 'caption=Наименование');
 
         //Какъв тип документи ще се съхраняват в този архив
-        $this->FLD('documents', 'classes(interface=doc_DocumentIntf, select=title, allowEmpty)', 'caption=Документи,placeholder=Всички');
+        $this->FLD('documents', 'classes(interface=doc_DocumentIntf, select=title, allowEmpty)', 'caption=Документи,placeholderType=all');
 
         $this->FLD('users', 'userList', 'caption=Потребители');
 

@@ -30,7 +30,7 @@ class rtac_Plugin extends core_Plugin
      */
     public static function getNicksArr($text)
     {
-        preg_match_all(static::$pattern, $text, $matches);
+        preg_match_all(static::$pattern, $text ?? '', $matches);
         
         $nickArr = array();
         

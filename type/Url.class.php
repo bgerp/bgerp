@@ -38,7 +38,7 @@ class type_Url extends type_Varchar
     public function toVerbal($value)
     {
         // Когато стойността е празна, трябва да върнем NULL
-        $value = trim($value);
+        $value = trim($value ?? '');
         
         if (empty($value)) {
             
@@ -108,7 +108,7 @@ class type_Url extends type_Varchar
      */
     public function isValid($value)
     {
-        $value = trim($value);
+        $value = trim($value ?? '');
         $value = strtolower($value);
         
         if (!$value) {
@@ -194,7 +194,7 @@ class type_Url extends type_Varchar
         }
         
         //Ако страницата върне 404, тогава показва warning
-        $number = substr(trim($explode[1]), 0, 1);
+        $number = substr(trim($explode[1] ?? ''), 0, 1);
         
         if ($number == 4) {
             $result['warning'] = 'Възможен проблем с това URL.';

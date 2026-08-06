@@ -417,6 +417,7 @@ class callcenter_Numbers extends core_Manager
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         
         $data->listFilter->fields['type']->type->options += array('' => '');
+        $data->listFilter->setField('type', 'placeholderType=all');
         
         // Показваме само това поле. Иначе и другите полета
         // на модела ще се появят

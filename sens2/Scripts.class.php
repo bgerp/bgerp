@@ -132,11 +132,12 @@ class sens2_Scripts extends core_Master
      */
     public function on_AfterInputEditForm($mvc, $form)
     {
-        if (!$form->rec->order) {
+        if (empty($form->rec->order)) {
             $query = $mvc->getQuery();
             $query->orderBy('#order', 'DESC');
             $query->limit(1);
-            $maxOrder = (int) $query->fetch()->order;
+            $maxOrderRec = $query->fetch();
+            $maxOrder = (int) ($maxOrderRec->order ?? 0);
             $form->setDefault('order', round(($maxOrder + 1) / 10) * 10 + 10);
         }
     }

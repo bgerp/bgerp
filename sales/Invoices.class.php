@@ -428,24 +428,25 @@ class sales_Invoices extends deals_InvoiceMaster
         }
 
         core_Lg::pop();
-        $invTextPrivate = cond_Parameters::getParameter($firstRec->contragentClassId, $firstRec->contragentId, 'invoiceText');
+        $selectInvoiceText = $rec->selectInvoiceText ?? null;
+        $invTextPrivate = (string)cond_Parameters::getParameter($firstRec->contragentClassId, $firstRec->contragentId, 'invoiceText');
         $invTextPublic = '';
         if(isset($rec->contragentCountryId)){
-            $invTextPublic = cond_Countries::getParameterByCountryId($rec->contragentCountryId, 'invoiceText');
+            $invTextPublic = (string)cond_Countries::getParameterByCountryId($rec->contragentCountryId, 'invoiceText');
         }
         if(!empty($invTextPrivate) && !empty($invTextPublic) && md5($invTextPrivate) != md5($invTextPublic)){
             $form->setField('selectInvoiceText', 'input');
         }
 
         // Ако има дефолтен текст за фактура добавяме и него
-        if(in_array($rec->selectInvoiceText, array('private', 'both'))){
-            if ($invTextPrivate = cond_Parameters::getParameter($firstRec->contragentClassId, $firstRec->contragentId, 'invoiceText')) {
+        if(in_array($selectInvoiceText, array('private', 'both'))){
+            if (!empty($invTextPrivate)) {
                 $defInfo .= "\n" . $invTextPrivate;
             }
         }
 
         // Ако има дефолтен текст за държавата и е различен, добавя се и той
-        if(in_array($rec->selectInvoiceText, array('public', 'both')) && isset($rec->contragentCountryId)) {
+        if(in_array($selectInvoiceText, array('public', 'both')) && isset($rec->contragentCountryId)) {
             if ($invTextPublic = cond_Countries::getParameterByCountryId($rec->contragentCountryId, 'invoiceText')) {
                 if(md5($invTextPrivate) != md5($invTextPublic)){
                     $defInfo .= "\n";
@@ -631,7 +632,9 @@ class sales_Invoices extends deals_InvoiceMaster
                     $row->bank = $Varchar->toVerbal($ownAcc->bank);
                     core_Lg::push($rec->tplLang);
                     $row->bank = transliterate(tr($row->bank));
-                    $row->place = transliterate($row->place);
+                    if (isset($row->place)) {
+                        $row->place = transliterate($row->place);
+                    }
                     core_Lg::pop();
                     $row->bic = $Varchar->toVerbal($ownAcc->bic);
 

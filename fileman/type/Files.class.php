@@ -107,6 +107,9 @@ class fileman_type_Files extends type_Keylist
                     $fh = fileman_Files::fetchField($id, 'fileHnd');
                     if (isset($fh)) {
                         $fRec = fileman::fetchByFh($fh);
+                        if (!$fRec) {
+                            continue;
+                        }
                         $ext = fileman_Files::getExt($fRec->name);
                         $icon = "fileman/icons/16/{$ext}.png";
                         if (!is_file(getFullPath($icon))) {
@@ -129,7 +132,7 @@ class fileman_type_Files extends type_Keylist
             return '';
         }
         
-        $align = $this->params['align'] ? $this->params['align'] : 'horizontal';
+        $align = !empty($this->params['align']) ? $this->params['align'] : 'horizontal';
         $align = 'align_' . $align;
         $res = "<span class='{$align}' style='padding-bottom:5px'>" . $res . '</span>';
         
@@ -269,21 +272,25 @@ class fileman_type_Files extends type_Keylist
     {
         $res = parent::isValid($value);
         
-        if ($this->params['allowedExtensions'] && $value) {
+        if (($this->params['allowedExtensions'] ?? null) && $value) {
             $vArr = $this->toArray($value);
-            
+
             setIfNot($res, array());
-            
+
             $eArr = explode('|', strtolower($this->params['allowedExtensions']));
-            
+
             foreach ($vArr as $vId) {
                 $fRec = fileman::fetch($vId);
-                
+
+                if (!$fRec) {
+                    continue;
+                }
+
                 $eArr = arr::make($eArr, true);
-                
+
                 $ext = fileman::getExt(strtolower($fRec->name));
-                
-                if (!$eArr[$ext]) {
+
+                if (!($eArr[$ext] ?? null)) {
                     $res['error'] = "Разширението на файла не е в допустимите|*: " . implode(', ', $eArr);
                     
                     if ($res['error']) {

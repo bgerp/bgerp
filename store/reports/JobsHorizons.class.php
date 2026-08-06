@@ -84,7 +84,7 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
 
         $fieldset->FLD('date', 'date', 'caption=Към дата,after=title,silent,single=none');
 
-        $fieldset->FLD('stores', 'keylist(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,single=none,after=date');
+        $fieldset->FLD('stores', 'keylist(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,placeholderType=all,single=none,after=date');
 
         $fieldset->FLD('groups', 'keylist(mvc=cat_Groups,select=name,allowEmpty)', 'caption=Група продукти,after=stores,mandatory,silent,single=none');
 
@@ -327,7 +327,7 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
         $row->delrow = '';
         $row->delrow = ($row->delrow ?? '') . ht::createLink('', array('store_reports_JobsHorizons', 'editminmax', 'productId' => $dRec->productId, 'code' => $dRec->code, 'recId' => $rec->id, 'ret_url' => true), null, "ef_icon=img/16/edit.png");
 
-        if ($dRec->store) {
+        if (!empty($dRec->store)) {
             $row->store = store_Stores::getHyperlink($dRec->store);
         } else {
             $row->store = 'Без';
@@ -349,6 +349,7 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
     protected static function on_AfterRenderSingle(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$tpl, $data)
     {
         $Date = cls::get('type_Date');
+        $groupVerb = $storeIdVerb = '';
 
         $fieldTpl = new core_ET(tr("|*<!--ET_BEGIN BLOCK-->[#BLOCK#]
                                 <fieldset class='detail-info'><legend class='groupTitle'><small><b>|Филтър|*</b></small></legend>
@@ -407,7 +408,7 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
             $fieldTpl->append('<b>' . $data->rec->ariculsData . '</b>', 'ariculsData');
         }
 
-        if ($data->rec->typeOfQuantity == 'free') {
+        if (($data->rec->typeOfQuantity ?? null) == 'free') {
 
             $dateVerb = dt::mysql2verbal($data->rec->date, 'd.m.Y');
             $fieldTpl->append('<b>' . 'Разполагаемо към ' . $dateVerb . '</b>', 'typeOfQuantity');
@@ -420,7 +421,7 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
         }
 
         //Филтър по група
-        $grFilter = $data->rec->grFilter;
+        $grFilter = $data->rec->grFilter ?? null;
 
         if ($grFilter) {
             $grFilterName = cat_Groups::fetch($grFilter)->name;
@@ -459,6 +460,7 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
         $recsToExport = $this->getRecsForExport($rec, $ExportClass);
 
         $recs = array();
+        $markFirst = 0;
         if (is_array($recsToExport)) {
             foreach ($recsToExport as $dRec) {
 
@@ -588,7 +590,7 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
         $res->docExpectedQuantyti = $dRec->docExpectedQuantyti;
         $res->docReservedQuantyti = $dRec->docReservedQuantyti;
 
-        if ($dRec->store) {
+        if (!empty($dRec->store)) {
             $res->store = store_Stores::fetch($dRec->store)->name;
         } else {
             $res->store = 'Без';
@@ -758,7 +760,7 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
 
         }
 
-        $form->FLD('groupFilter', 'key(mvc=cat_Groups,allowEmpty, select=name)', 'caption=Покажи група,placeholder=Изчисти филтъра,silent');
+        $form->FLD('groupFilter', 'key(mvc=cat_Groups,allowEmpty, select=name)', 'caption=Покажи група,placeholderType=all,silent');
 
         $form->setOptions('groupFilter', $groupsSuggestionsArr);
 

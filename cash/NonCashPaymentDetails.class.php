@@ -365,7 +365,8 @@ class cash_NonCashPaymentDetails extends core_Manager
     protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
         $data->listFilter->setField('objectId', 'input,silent');
-        $data->listFilter->setField('classId', 'input,silent');
+        $data->listFilter->setField('classId', 'input,silent,placeholderType=all');
+        $data->listFilter->setField('paymentId', 'placeholderType=all');
         $data->listFilter->setFieldTypeParams('classId', 'allowEmpty');
 
         $data->listFilter->showFields = 'classId,objectId,paymentId';

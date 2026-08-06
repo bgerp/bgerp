@@ -182,7 +182,7 @@ class type_Key extends type_Int
         $rec = $this->fetchVal($value);
         
         if (!$rec) {
-            if (($this->params['allowEmpty']) && ($oValue == ' ')) {
+            if (($this->params['allowEmpty'] ?? null) && ($oValue == ' ')) {
                 
                 return $value;
             }
@@ -657,7 +657,7 @@ class type_Key extends type_Int
                     if(arr::isOptionsTotalLenBellowAllowed($options)){
                         $maxRadio = 4;
                         $this->params['select2MinItems'] = 10000;
-                        $this->params['columns'] =  ($optionsCnt > 3) ?  4 : 3;
+                        $this->params['columns'] = (countR($options) > 3) ? 4 : 3;
                     }
                 }
             }
@@ -730,15 +730,6 @@ class type_Key extends type_Int
 
                     $tpl = new ET("<span class='{$cssClass}'>[#1#] [#2#]</div>", $msg, $title);
                 } else {
-                    // ако ще се рендират опциите като радио-бутони маха се празната опция
-                    if(isset($maxRadio) && $optionsCnt <= $maxRadio){
-                        if(!empty($this->params['allowEmpty'])){
-                            if(isset($options['']) && (empty($options['']) || (is_object($options['']) && empty(trim($options['']->title)))) && countR($options) >= 2){
-                                unset($options['']);
-                            }
-                        }
-                    }
-
                     // Ако полето е задължително и имаме само една не-празна опция - тя да е по подразбиране
                     if ((!empty($this->params['mandatory'])) && $optionsCnt == 2 && empty($value) && $options[key($options)] === '') {
                         list($o1, $o2) = array_keys($options);
@@ -811,7 +802,7 @@ class type_Key extends type_Int
                 $element = 'option';
                 
                 if (is_object($title)) {
-                    if ($title->group) {
+                    if ($title->group ?? null) {
                         if ($openGroup) {
                             // затваряме групата
                             $select->append('</optgroup>');
@@ -881,9 +872,9 @@ class type_Key extends type_Int
         // Проверяваме дали мениджъра има поле sysId или systemId
         $groupQuery = $GroupManager->getQuery();
         
-        if ($sysIdField = $GroupManager->fields['sysId']) {
+        if ($sysIdField = ($GroupManager->fields['sysId'] ?? null)) {
             $sysIdField = 'sysId';
-        } elseif ($GroupManager->fields['systemId']) {
+        } elseif ($GroupManager->fields['systemId'] ?? null) {
             $sysIdField = 'systemId';
         }
         

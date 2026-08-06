@@ -266,7 +266,7 @@ class hr_Sickdays extends core_Master
      */
     public static function on_AfterPrepareListFilter($mvc, $data)
     {
-        $data->listFilter->FLD('employeeId', 'key(mvc=crm_Persons,select=name,allowEmpty,group=employees)', 'caption=Служител,silent,before=selectPeriod');
+        $data->listFilter->FLD('employeeId', 'key(mvc=crm_Persons,select=name,allowEmpty,group=employees)', 'caption=Служител,placeholderType=all,silent,before=selectPeriod');
         $data->listFilter->showFields = $data->listFilter->showFields . ',employeeId';
         $data->listFilter->input('employeeId', 'silent');
         
@@ -288,7 +288,9 @@ class hr_Sickdays extends core_Master
         
         // Намират се всички служители
         $employees = crm_Persons::getEmployeesOptions();
-        unset($employees[$rec->personId]);
+        if (isset($rec->personId)) {
+            unset($employees[$rec->personId]);
+        }
         
         if (countR($employees)) {
             $form->setOptions('personId', $employees);
@@ -298,10 +300,11 @@ class hr_Sickdays extends core_Master
         }
         
         $form->setDefault('reason', 3);
-        $folderClass = doc_Folders::fetchCoverClassName($rec->folderId);
+        $folderId = $rec->folderId ?? null;
+        $folderClass = isset($folderId) ? doc_Folders::fetchCoverClassName($folderId) : null;
         
-        if ($rec->folderId && $folderClass == 'crm_Persons') {
-            $form->setDefault('personId', doc_Folders::fetchCoverId($rec->folderId));
+        if (isset($folderId) && $folderClass == 'crm_Persons') {
+            $form->setDefault('personId', doc_Folders::fetchCoverId($folderId));
             $form->setReadonly('personId');
             
             if (!haveRole('ceo,hrSickdays')) {

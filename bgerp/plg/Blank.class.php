@@ -50,7 +50,8 @@ class bgerp_plg_Blank extends core_Plugin
             $blank->replace($logo, 'blankImage');
             
             // Подготовка на QR кода
-            $qrA = self::getQrCode($data->rec->containerId, $data->__MID__ ?? null);
+            $containerId = $data->rec->containerId ?? null;
+            $qrA = isset($containerId) ? self::getQrCode($containerId, $data->__MID__ ?? null) : '';
             
             //Заместваме стойностите в шаблона
             $blank->replace($qrA, 'blankQr');
@@ -189,7 +190,7 @@ class bgerp_plg_Blank extends core_Plugin
                 // Използваме генерираното лого от SVG файла
                 if (!defined('EF_PRIVATE_PATH') || (strpos($companyLogo, EF_PRIVATE_PATH) !== 0)) {
                     $logoFromSvg = core_Packs::getConfigValue($conf, 'BGERP_COMPANY_LOGO_SVG');
-                    if (trim($logoFromSvg)) {
+                    if (!empty($logoFromSvg) && trim($logoFromSvg)) {
                         $companyLogo = $logoFromSvg;
                         $sourceType = 'fileman';
                     }
@@ -228,11 +229,12 @@ class bgerp_plg_Blank extends core_Plugin
             $form->setDefault('useBlank', $lastPrintedBlank);
             $form->input();
 
-            if ($form->rec->useBlank == 'no') {
+            $useBlank = $form->rec->useBlank ?? $lastPrintedBlank;
+            if ($useBlank == 'no') {
                 Mode::set('noBlank', true);
             }
 
-            core_Permanent::set("printBlank_{$mvc->className}_{$cu}", $form->rec->useBlank, core_Permanent::FOREVER_VALUE);
+            core_Permanent::set("printBlank_{$mvc->className}_{$cu}", $useBlank, core_Permanent::FOREVER_VALUE);
 
             Mode::push('forcePrinting', true);
             $data->_selectTplForm = $form->renderHtml();

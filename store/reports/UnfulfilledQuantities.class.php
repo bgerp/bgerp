@@ -75,9 +75,9 @@ class store_reports_UnfulfilledQuantities extends frame2_driver_TableData
         $fieldset->FLD('to', 'date', 'caption=До,after=from,single=none,mandatory');
         $fieldset->FLD('saleState', 'set(active=Активна, closed=Приключена, pending=В заявка)', 'notNull,caption=Статус на сделката,maxRadio=3,after=to,mandatory,single=none');
         $fieldset->FLD('storable', 'enum(storable=Складируеми, nonStorable=Не складируеми, all=Всички)', 'notNull,caption=Вид на артикула,maxRadio=3,after=saleState,mandatory,single=none');
-        $fieldset->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,placeholder=Всички,after=storable');
-        $fieldset->FLD('contragent', 'key(mvc=doc_Folders,select=title,allowEmpty)', 'caption=Контрагент,placeholder=Всички,single=none,after=storeId');
-        $fieldset->FLD('groups', 'keylist(mvc=cat_Groups,select=name)', 'caption=Група,after=contragent,placeholder=Всички,single=none');
+        $fieldset->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,placeholderType=all,after=storable');
+        $fieldset->FLD('contragent', 'key(mvc=doc_Folders,select=title,allowEmpty)', 'caption=Контрагент,placeholderType=all,single=none,after=storeId');
+        $fieldset->FLD('groups', 'keylist(mvc=cat_Groups,select=name)', 'caption=Група,after=contragent,placeholderType=all,single=none');
         $fieldset->FLD('tolerance', 'double', 'caption=Изпълнени под,after=groups,unit = %,single=none,mandatory');
     }
 
@@ -517,6 +517,7 @@ class store_reports_UnfulfilledQuantities extends frame2_driver_TableData
 
         if (isset($data->rec->contragent)) {
             $marker = 0;
+            $contragentVerb = '';
             foreach (type_Keylist::toArray($data->rec->contragent) as $contragent) {
                 $marker++;
 

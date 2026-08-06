@@ -424,7 +424,7 @@ class accda_Da extends core_Master
      */
     public static function on_AfterPrepareListFilter($mvc, &$data)
     {
-        $data->listFilter->setField('location', 'caption=Локация');
+        $data->listFilter->setField('location', 'caption=Локация,placeholderType=all');
         $ownCompany = crm_Companies::fetchOurCompany();
         $ourLocations = crm_Locations::getContragentOptions('crm_Companies', $ownCompany->id ?? null);
         if (countR($ourLocations)) {
@@ -526,9 +526,10 @@ class accda_Da extends core_Master
             $row->gpsCoords = null;
         }
 
+        $row->btns = $row->btns ?? '';
         $folderId = planning_AssetResources::canFolderHaveAsset($rec->folderId) ? $rec->folderId : null;
         if (planning_AssetResources::haveRightFor('add', (object) array('fromProtocolId' => $rec->id, 'folderId' => $folderId))) {
-            $row->btns = ht::createLink('', array('planning_AssetResources', 'add', 'fromProtocolId' => $rec->id, 'folderId' => $folderId), false, 'ef_icon = img/16/add.png,title=Създаване на ново оборудване')->getContent();
+            $row->btns .= ht::createLink('', array('planning_AssetResources', 'add', 'fromProtocolId' => $rec->id, 'folderId' => $folderId), false, 'ef_icon = img/16/add.png,title=Създаване на ново оборудване')->getContent();
         }
 
         if($mvc->haveRightFor('selectresource', $rec)){

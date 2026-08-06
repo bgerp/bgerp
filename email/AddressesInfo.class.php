@@ -168,7 +168,7 @@ class email_AddressesInfo extends core_Manager
     public static function getEmail($email)
     {
         $oEmail = $email;
-        $email = trim($email);
+        $email = trim($email ?? '');
         $email = mb_strtolower($email);
 
         if (isset(self::$mapArr[$email])) {
@@ -351,7 +351,7 @@ class email_AddressesInfo extends core_Manager
      */
     public static function isBlocked($email)
     {
-        if (self::fetch(array("#email = '[#1#]' AND (#state = 'blocked' OR (#state = 'error' AND #checkPoint = 0))", $email))) {
+        if (self::fetch(array("#email = '[#1#]' AND (#state = 'blocked' OR (#state = 'error' AND #checkPoint < 4))", $email))) {
             
             return true;
         }
@@ -647,6 +647,7 @@ class email_AddressesInfo extends core_Manager
         $data->listFilter->view = 'horizontal';
         
         $data->listFilter->setFieldTypeParams('state', 'allowEmpty');
+        $data->listFilter->setField('state', 'placeholderType=all');
         
         $data->listFilter->setDefault('state', '');
         
@@ -687,6 +688,11 @@ class email_AddressesInfo extends core_Manager
             $rec->lastChecked = dt::now();
             if (!self::validateEmail($rec->email)) {
                 $rec->state = 'error';
+                self::save($rec, 'lastChecked, state, checkPoint');
+            } else {
+                // Валиден: записваме проверката и връщаме състоянието на 'ok' (възстановява и точките).
+                // Иначе lastChecked остава непроменен и същите записи запушват лимита (гладуване на опашката).
+                $rec->state = 'ok';
                 self::save($rec, 'lastChecked, state, checkPoint');
             }
         }

@@ -250,7 +250,7 @@ class cond_Texts extends core_Manager
     {
         $form = $data->listFilter;
         $form->FLD('author', 'users(roles=powerUser, rolesForTeams=powerUser, rolesForAll=powerUser)', 'caption=Автор, autoFilter');
-        $form->FLD('langWithAllSelect', 'enum(,bg,en)', 'caption=Език, placeholder=Всички');
+        $form->FLD('langWithAllSelect', 'enum(,bg,en)', 'caption=Език, placeholderType=all');
 
         Request::setProtected('groupName, callback');
         $group = Request::get('groupName');

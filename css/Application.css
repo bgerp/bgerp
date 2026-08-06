@@ -2614,6 +2614,9 @@ form select.w50 + .select2 {
 .wrapText {
   white-space: normal !important; }
 
+th:has(.wrapText) {
+  white-space: normal !important; }
+
 .shipment-table tr td {
   padding: 1px 3px !important; }
 
@@ -3490,39 +3493,6 @@ span.sharing-history-title {
 
 .filterForm #filter {
   padding-left: 20px !important; }
-
-.wide .twoColsFilter {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 20px; }
-
-.wide .twoColsFilter .listFilter form {
-  column-count: 2; }
-
-.wide .twoColsFilter .summary-block {
-  margin-left: 20px;
-  align-self: flex-start; }
-
-@supports (-moz-appearance: none) {
-  .wide .twoColsFilter {
-    display: block;
-    margin-bottom: 0; }
-
-  .wide .twoColsFilter .listFilter form {
-    column-count: 1; }
-
-  .wide .twoColsFilter .summary-block {
-    margin-left: 0; } }
-
-@media handheld,
-only screen and (max-width: 1400px) {
-  .wide .twoColsFilter {
-    display: block;
-    margin-bottom: 0; }
-    .wide .twoColsFilter .listFilter form {
-      column-count: 1; }
-    .wide .twoColsFilter .summary-block {
-      margin-left: 0; } }
 
 /*
  * край на външни стилове за ширина

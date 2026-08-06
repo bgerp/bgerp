@@ -125,8 +125,8 @@ class gdocs_Plugin extends core_Plugin
         
         $conf = core_Packs::getConfig('gdocs');
         
-        setIfNot($width, $params['width'], $conf->GDOCS_DEFAULT_WIDTH);
-        setIfNot($height, $params['height'], $conf->GDOCS_DEFAULT_HEIGHT);
+        setIfNot($width, $params['width'] ?? null, $conf->GDOCS_DEFAULT_WIDTH);
+        setIfNot($height, $params['height'] ?? null, $conf->GDOCS_DEFAULT_HEIGHT);
         
         // Резултатния HTML
         $res['html'] = "<iframe src='{$url}' frameborder='0' width='{$width}' height='{$height}' allowfullscreen='true' mozallowfullscreen='true' webkitallowfullscreen='true'></iframe>";

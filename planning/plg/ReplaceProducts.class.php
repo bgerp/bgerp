@@ -209,8 +209,8 @@ class planning_plg_ReplaceProducts extends core_Plugin
                 if ($mvc->hasPlugin('plg_RowTools2')) {
                     core_RowToolbar::createIfNotExists($row->_rowTools);
                     $row->_rowTools->addLink('Заместване', $url, array('ef_icon' => 'img/16/arrow_refresh.png', 'title' => 'Избор на заместващ материал'));
-                    $row->{$mvc->replaceProductFieldName} = ht::createHint($row->{$mvc->replaceProductFieldName}, 'Артикулът може да бъде заместен с подобен', 'notice', false);
-                } elseif ($mvc->hasPlugin('plg_RowTools')) {
+                    $row->{$mvc->replaceProductFieldName} = ht::createHint($row->{$mvc->replaceProductFieldName}, 'Артикулът може да бъде заместен с подобен');
+                } elseif ($mvc->hasPlugin('plg_RowTools2')) {
                     if (!is_object($row->{$mvc->rowToolsField})) {
                         $row->{$mvc->rowToolsField} = new core_ET('[#TOOLS#]');
                     }

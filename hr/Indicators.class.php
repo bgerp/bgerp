@@ -661,10 +661,10 @@ class hr_Indicators extends core_Manager
         $data->listFilter->setField('indicatorId', 'silent');
 
         $data->listFilter->layout = new ET(tr('|*' . getFileContent('acc/plg/tpl/FilterForm.shtml')));
-        $data->listFilter->FLD('period', 'date(select2MinItems=11)', 'caption=Период,silent,autoFilter,placeholder=Всички');
+        $data->listFilter->FLD('period', 'date(select2MinItems=11)', 'caption=Период,silent,autoFilter,placeholderType=all');
         $data->listFilter->FLD('from', 'date', 'caption=От,silent');
         $data->listFilter->FLD('to', 'date', 'caption=До,silent');
-        $data->listFilter->FLD('document', 'varchar(16)', 'caption=Документ,silent,placeholder=Всички');
+        $data->listFilter->FLD('document', 'varchar(16)', 'caption=Документ,silent,placeholderType=all');
         $data->listFilter->FLD('Protected', 'varchar', 'caption=Документ,silent,input=hidden');
         $data->listFilter->input(null, 'silent');
         
@@ -681,12 +681,14 @@ class hr_Indicators extends core_Manager
             $data->listFilter->setDefault('period', date('Y-m-01'));
             $data->listFilter->input('period,from,to,document,Tab');
             $data->listFilter->setField('id', 'input=none');
-            $data->listFilter->setField('period', 'placeholder=Период');
+            $data->listFilter->setField('period', 'placeholderType=all');
             $data->listFilter->showFields = 'period,document';
             $data->listFilter->view = 'horizontal';
         } else {
             $data->listFilter->setFieldTypeParams('personId', array('allowEmpty' => 'allowEmpty'));
             $data->listFilter->setFieldTypeParams('indicatorId', array('allowEmpty' => 'allowEmpty'));
+            $data->listFilter->setField('personId', 'placeholderType=all');
+            $data->listFilter->setField('indicatorId', 'placeholderType=all');
             $data->listFilter->showFields = 'period,from,to,document,personId,indicatorId,Protected';
             $data->listFilter->input('period,from,to,document,personId,indicatorId,Protected');
         }

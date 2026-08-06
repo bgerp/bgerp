@@ -70,6 +70,14 @@ class remote_Setup extends core_ProtoSetup
      * Роли за достъп до модула
      */
     public $roles = 'remote';
+
+
+    /**
+     * Класове, предоставяни от пакета
+     */
+    public $defClasses = array(
+        'remote_BgerpDriver',
+    );
     
     
     /**

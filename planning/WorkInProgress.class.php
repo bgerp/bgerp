@@ -185,7 +185,7 @@ class planning_WorkInProgress extends core_Manager
         $data->title = "Незавършено производство към|*: <b style='color:green;'>" . dt::mysql2verbal(dt::now(), 'd.m.Y H:i') . "</b>";
         arr::placeInAssocArray($data->listFields, array('history' => ' '), 'code');
         $data->listFilter->FNC('filters', "bgerp_type_CustomFilter(classes=planning_WorkInProgress)", 'caption=Филтри,input,silent,remember,autoFilter');
-        $data->listFilter->FNC('groupId', 'key2(mvc=cat_Groups,select=name,allowEmpty)', 'placeholder=Група,caption=Група,input,silent,remember,autoFilter');
+        $data->listFilter->FNC('groupId', 'key2(mvc=cat_Groups,select=name,allowEmpty)', 'placeholderType=all,caption=Група,input,silent,remember,autoFilter');
         $data->listFilter->FNC('search', 'varchar', 'placeholder=Търсене,caption=Търсене,input,silent,recently');
 
         // Подготвяме в заявката да може да се търси по полета от друга таблица
@@ -199,6 +199,7 @@ class planning_WorkInProgress extends core_Manager
         $data->query->EXT('pState', 'cat_Products', 'externalName=state,externalKey=productId');
 
         $data->listFilter->layout = new ET(tr('|*' . getFileContent('acc/plg/tpl/FilterForm.shtml')));
+        $data->listFilter->setField('productId', 'placeholderType=all');
         $data->listFilter->setDefault('filters', 'activeProducts');
         $data->listFilter->showFields = 'search,productId,filters,groupId';
         $data->listFilter->input();

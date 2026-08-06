@@ -293,7 +293,7 @@ class cash_Cases extends core_Master
      */
     public static function prepareCaseFilter(&$data, $fields = array(), $operationFieldName = null)
     {
-        $data->listFilter->FNC('case', 'key(mvc=cash_Cases,select=name,allowEmpty)', 'caption=Каса,width=10em,silent');
+        $data->listFilter->FNC('case', 'key(mvc=cash_Cases,select=name,allowEmpty)', 'caption=Каса,placeholderType=all,width=10em,silent');
         $data->listFilter->showFields .= (!empty($data->listFilter->showFields) ? ',' : '') . 'case';
         $data->listFilter->setDefault('case', static::getCurrent('id', false));
 

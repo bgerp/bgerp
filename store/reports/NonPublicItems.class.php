@@ -291,12 +291,9 @@ class store_reports_NonPublicItems extends frame2_driver_TableData
 
         }
 
-        if ($dRec->stopNot === true) {
-            $icon = "ef_icon=img/16/checkbox_yes.png";
-        }
-        if ($dRec->stopNot === false) {
-            $icon = "ef_icon=img/16/checkbox_no.png";
-        }
+        $icon = !empty($dRec->stopNot)
+            ? "ef_icon=img/16/checkbox_yes.png"
+            : "ef_icon=img/16/checkbox_no.png";
         $row->stopNot = ($row->stopNot ?? '') . ht::createLink('', array('store_reports_NonPublicItems', 'SetStop', 'productId' => $dRec->productId, 'recId' => $rec->id, 'ret_url' => true), null, $icon);
 
         return $row;

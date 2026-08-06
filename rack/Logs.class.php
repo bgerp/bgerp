@@ -93,7 +93,7 @@ class rack_Logs extends core_Manager
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name)', 'caption=Склад');
         $this->FLD('productId', 'key2(mvc=cat_Products,select=name,allowEmpty,selectSourceArr=rack_Products::getStorableProducts)', 'caption=Артикул');
         $this->FLD('message', 'text', 'caption=Текст');
-        $this->FLD('action', 'enum(,create=Създаване,edit=Редактиране,waiting=Запазване,start=Започване,close=Приключване,return=Връщане,reject=Отказване,revision=Ревизия)', 'caption=Действие,after=to,placeholder=Всички');
+        $this->FLD('action', 'enum(,create=Създаване,edit=Редактиране,waiting=Запазване,start=Започване,close=Приключване,return=Връщане,reject=Отказване,revision=Ревизия)', 'caption=Действие,after=to,placeholderType=all');
 
         $this->setDbIndex('storeId');
         $this->setDbIndex('action');
@@ -151,14 +151,16 @@ class rack_Logs extends core_Manager
             $newOptions[$action] = $actionOptionRec;
         }
         $data->listFilter->setOptions('action', array('' => '') + $newOptions);
+        $data->listFilter->setField('action', 'placeholderType=all');
         if($movementId = Request::get('movementId', 'int')){
             $data->query->where("#movementId = {$movementId}");
         }
 
         $data->listFilter->FLD('from', 'date', 'caption=От');
         $data->listFilter->FLD('to', 'date', 'caption=До');
+        $data->listFilter->setField('productId', 'placeholderType=all');
         $data->listFilter->showFields = 'selectPeriod, from, to, createdBy, search, productId, action';
-        $data->listFilter->setField('createdBy', 'caption=Потребител,placeholder=Всички');
+        $data->listFilter->setField('createdBy', 'caption=Потребител,placeholderType=all');
         $data->listFilter->setFieldTypeParams('createdBy', array('allowEmpty' => 'allowEmpty'));
         $users = core_Users::getUsersByRoles('ceo,rack,store');
         $users = array(core_Users::SYSTEM_USER => core_Users::getTitleById(core_Users::SYSTEM_USER, 'nick')) + $users;

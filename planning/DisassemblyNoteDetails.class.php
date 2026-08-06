@@ -22,21 +22,6 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
 {
 
     /**
-     * Добавя CSS клас само върху локално копие на поле от таблицата.
-     */
-    protected static function addTableFieldClass($mvc, $fieldName, $className)
-    {
-        if (!isset($mvc->fields[$fieldName])) {
-            return;
-        }
-
-        $mvc->fields[$fieldName] = clone $mvc->fields[$fieldName];
-        $classes = arr::make($mvc->fields[$fieldName]->tdClass ?? '', true);
-        $classes[$className] = $className;
-        $mvc->fields[$fieldName]->tdClass = implode(' ', $classes);
-    }
-
-    /**
      * Заглавие
      */
     public $title = 'Детайли на протокола за разпад';
@@ -112,7 +97,7 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
         $this->FLD('isMainInput', 'enum(no=Не,yes=Да)', 'caption=Основен артикул за влагане,input=none,notNull,value=no');
         parent::setDetailFields($this);
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty,mandatory)', 'caption=Склад,input=none,tdClass=custom-field nowrap', array('thAttr' => array('style' => 'width:160px')));
-
+        $this->setField('packagingId', "tdClass=small-field");
         $this->setDbIndex('productId');
         $this->setDbIndex('noteId,type');
     }
@@ -331,24 +316,27 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
         // Запазваме еднакъв набор и ред на колоните във всички таблици.
         $commonListFields = arr::make($data->listFields, true);
 
+        // Общи CSS класове на колоните - еднаксви и за трите таблици
+        $data->listTableMvc = clone $this;
+        $data->listTableMvc->appendFieldClass('productId', 'tdClass', 'disassemblyProductColumn');
+        $data->listTableMvc->appendFieldClass('packQuantity', 'tdClass', 'productionQuantityColumn');
+        $data->listTableMvc->FNC('tools', 'int', 'tdClass=rowNumColumn');
+
         // Мини-таблица с ОСНОВНИЯ артикул за разпад - показва се отделно, над
         // таблицата с произведените артикули (виж MAIN_INPUT_PRODUCT_TABLE в
         // шаблона), не заедно с (евентуални) други артикули за влагане
         if (countR($data->mainInputArr)) {
             $data->listFields['productId'] = 'Артикули за разпад|* ';
             $mData = clone $data;
-            $mData->listTableMvc = clone $this;
+            $mData->listTableMvc = clone $data->listTableMvc;
             $mData->listFields = $commonListFields;
             $mData->listFields['productId'] = 'Артикули за разпад|* ';
             $mData->rows = $data->mainInputArr;
             $mData->recs = array_intersect_key($mData->recs, $mData->rows);
 
             $this->invoke('BeforeRenderListTable', array(&$tpl, &$mData));
-            self::addTableFieldClass($mData->listTableMvc, 'productId', 'disassemblyProductColumn');
-            self::addTableFieldClass($mData->listTableMvc, 'packQuantity', 'productionQuantityColumn');
-            self::addTableFieldClass($mData->listTableMvc, 'code', 'productionCodeColumn');
-            self::addTableFieldClass($mData->listTableMvc, 'code', 'rightCol');
-            self::addTableFieldClass($mData->listTableMvc, 'tools', 'rightCol');
+            $mData->listTableMvc->appendFieldClass('code', 'tdClass', 'productionCodeColumn');
+            $mData->listTableMvc->appendFieldClass('code', 'tdClass', 'rightCol');
             $mData->listFields['storeId'] = 'От склад';
 
             $mainInputTable = cls::get('core_TableView', array('mvc' => $mData->listTableMvc));
@@ -361,19 +349,14 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
         if (countR($data->inputArr)) {
             $data->listFields['productId'] = 'Артикули за разпад|* ';
             $iData = clone $data;
-            $iData->listTableMvc = clone $this;
+            $iData->listTableMvc = clone $data->listTableMvc;
             $iData->listFields = $commonListFields;
             $iData->listFields['productId'] = 'Артикули за разпад|* ';
             $iData->rows = $data->inputArr;
             $iData->recs = array_intersect_key($iData->recs, $iData->rows);
 
             $this->invoke('BeforeRenderListTable', array(&$tpl, &$iData));
-            self::addTableFieldClass($iData->listTableMvc, 'productId', 'disassemblyProductColumn');
-            self::addTableFieldClass($iData->listTableMvc, 'packQuantity', 'productionQuantityColumn');
-            self::addTableFieldClass($iData->listTableMvc, 'code', 'productionCodeColumn');
-            self::addTableFieldClass($iData->listTableMvc, 'code', 'rightCol');
-            $iData->listTableMvc->FNC('tools', 'int', 'tdClass=rowNumColumn');
-            self::addTableFieldClass($iData->listTableMvc, 'tools', 'rightCol');
+            $iData->listTableMvc->appendFieldClass('code', 'tdClass', 'productionCodeColumn rightCol');
             $iData->listFields['storeId'] = 'От склад';
 
             $inputTable = cls::get('core_TableView', array('mvc' => $iData->listTableMvc));
@@ -389,7 +372,7 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
         // Таблица с произведените от разпада артикули
         $data->listFields['productId'] = 'Произведени артикули|* ';
         $pData = clone $data;
-        $pData->listTableMvc = clone $this;
+        $pData->listTableMvc = clone $data->listTableMvc;
         $pData->listFields = $commonListFields;
         $pData->listFields['productId'] = 'Произведени артикули|* ';
         $pData->rows = $data->productionArr;
@@ -397,12 +380,7 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
         $pData->listFields['storeId'] = 'В склад';
 
         $this->invoke('BeforeRenderListTable', array(&$tpl, &$pData));
-        self::addTableFieldClass($pData->listTableMvc, 'productId', 'disassemblyProductColumn');
-        self::addTableFieldClass($pData->listTableMvc, 'packQuantity', 'productionQuantityColumn');
-        self::addTableFieldClass($pData->listTableMvc, 'code', 'productionCodeColumn');
-        self::addTableFieldClass($pData->listTableMvc, 'code', 'rightCol');
-        $pData->listTableMvc->FNC('tools', 'int', 'tdClass=rowNumColumn');
-        self::addTableFieldClass($pData->listTableMvc, 'tools', 'rightCol');
+        $pData->listTableMvc->appendFieldClass('code', 'tdClass', 'productionCodeColumn rightCol');
 
         $productionTable = cls::get('core_TableView', array('mvc' => $pData->listTableMvc));
         $productionTable->tableClass = 'listTable disassemblyNoteTable';

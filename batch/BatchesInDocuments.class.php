@@ -1156,7 +1156,8 @@ class batch_BatchesInDocuments extends core_Manager
         $data->listFilter->class = 'simpleForm';
         $data->listFilter->FLD('document', 'varchar(128)', 'silent,caption=Документ,placeholder=Хендлър');
         $data->listFilter->FNC('historicFilter', 'enum(all=Всички,no=Актуални,yes=Исторически)', 'caption=Вид,input,silent');
-        $data->listFilter->setField('productId', 'input');
+        $data->listFilter->setField('productId', 'input,placeholderType=all');
+        $data->listFilter->setField('detailClassId', 'placeholderType=all');
         $data->listFilter->setField('batch', 'input');
         $data->listFilter->setDefault('historicFilter', 'no');
         $data->listFilter->input(null, 'silent');

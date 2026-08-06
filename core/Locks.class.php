@@ -56,7 +56,7 @@ class core_Locks extends core_Manager
     /**
      * Плъгини и MVC класове за предварително зареждане
      */
-    public $loadList = 'plg_SystemWrapper, plg_RowTools,plg_Sorting';
+    public $loadList = 'plg_SystemWrapper, plg_RowTools2,plg_Sorting';
     
     
     /**

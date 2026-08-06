@@ -83,7 +83,7 @@ class type_Int extends core_Type
             $this->error = 'Недопустими символи в число/израз';
             
             // Проверка за опити за хакване
-            core_HackDetector::check($value, $this->params['hackTolerance'] ?? null);
+            core_HackDetector::check($originalVal, $this->params['hackTolerance'] ?? null);
 
             return false;
         }

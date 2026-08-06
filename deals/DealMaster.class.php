@@ -789,14 +789,14 @@ abstract class deals_DealMaster extends deals_DealBase
         if (!Request::get('Rejected', 'int')) {
             $fType = cls::get('type_Enum', array('options' => $mvc->getListFilterTypeOptions($data)));
             $data->listFilter->FNC('type', 'varchar', 'caption=Състояние,refreshForm,silent');
-            $data->listFilter->setField('paymentMethodId', 'caption=Плащане,formOrder=1003,input');
+            $data->listFilter->setField('paymentMethodId', 'caption=Плащане,placeholderType=all,formOrder=1003,input');
 
             $data->listFilter->input('type', 'silent');
             $data->listFilter->setFieldType('type', $fType);
             $data->listFilter->setDefault('type', 'notClosedWith');
             $data->listFilter->showFields .= ',type';
         }
-        $data->listFilter->FNC('groupId', 'key(mvc=crm_Groups,select=name,allowEmpty)', 'caption=Група,refreshForm');
+        $data->listFilter->FNC('groupId', 'key(mvc=crm_Groups,select=name,allowEmpty)', 'caption=Група,placeholderType=all,refreshForm');
         $data->listFilter->showFields .= ',groupId,paymentMethodId';
         $data->listFilter->mvc->toggableFieldsInVerticalListFilter .= ',paymentMethodId';
 
@@ -2915,7 +2915,7 @@ abstract class deals_DealMaster extends deals_DealBase
             
             $dRec = clone $product;
             $dRec->discount = $product->discount ?? null;
-            $dRec->price = ($product->amount) ? ($product->amount / $product->quantity) : $product->price;
+            $dRec->price = ($product->amount ?? null) ? ($product->amount / $product->quantity) : $product->price;
             $dRec->quantity = $quantity / $product->quantityInPack;
             $dRec->rate = $rec->currencyRate;
             $details[] = $dRec;

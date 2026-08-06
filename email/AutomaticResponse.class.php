@@ -174,13 +174,10 @@ class email_AutomaticResponse extends core_Master
         }
         
         //избиране имейл от който да се изпрати отговора
-        $queryEmails = email_Inboxes::getQuery();
-        $queryEmails->where("#inCharge = $rec->userId");
-        $queryEmails->where("#state = 'active'");
-
-        $emails = array();
-        while($emailRec = $queryEmails->fetch()){
-            $emails[$emailRec->id] = $emailRec->email;
+        try {
+            $emails = email_Inboxes::getFromEmailOptions(false, $rec->userId ?? null, false);
+        } catch (core_exception_Expect $e) {
+            $emails = array();
         }
         $form->setOptions('inboxEmail', $emails);
 
@@ -206,21 +203,24 @@ class email_AutomaticResponse extends core_Master
     public function on_AfterPrepareRetUrl($mvc, $data)
     {
          // Ако е субмитната формата
-        if ($data->form && $data->form->isSubmitted()) {
+        if (isset($data->form) && $data->form->isSubmitted()) {
 
             // Променяма да сочи към single-a
             $profile = crm_Profiles::fetch("#userId = {$data->form->rec->userId}");
-            $data->retUrl = array('crm_Profiles', 'single', $profile->id);        
+            if ($profile) {
+                $data->retUrl = array('crm_Profiles', 'single', $profile->id);
+            }
         }
 
         //да може след изтриване да се връща в профила
-        if($data->cmd == 'delete'){
+        if(($data->cmd ?? null) == 'delete'){
             if($id = Request::get('id', 'int')){
                 $rec = $mvc->fetch($id);
-                $profile = crm_Profiles::fetch("#userId = {$rec->userId}");
-                $data->retUrl =  array('crm_Profiles', 'single', $profile->id);
+                if ($rec && ($profile = crm_Profiles::fetch("#userId = {$rec->userId}"))) {
+                    $data->retUrl = array('crm_Profiles', 'single', $profile->id);
+                }
             }
-        }   
+        }
     }
 
 

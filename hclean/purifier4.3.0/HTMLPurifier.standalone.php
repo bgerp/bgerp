@@ -6585,6 +6585,7 @@ class HTMLPurifier_PropertyListIterator extends FilterIterator
         $this->filter = $filter;
     }
 
+    #[\ReturnTypeWillChange]
     public function accept() {
         $key = $this->getInnerIterator()->key();
         if( strncmp($key, $this->filter, $this->l) !== 0 ) {
@@ -6641,6 +6642,7 @@ class HTMLPurifier_StringHash extends ArrayObject
     /**
      * Retrieves a value, and logs the access.
      */
+    #[\ReturnTypeWillChange]
     public function offsetGet($index) {
         $this->accessed[$index] = true;
         return parent::offsetGet($index);
@@ -16830,6 +16832,4 @@ class HTMLPurifier_VarParser_Native extends HTMLPurifier_VarParser
     }
 
 }
-
-
 

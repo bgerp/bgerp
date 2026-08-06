@@ -875,9 +875,9 @@ class store_ShipmentOrders extends store_DocumentMaster
 
         if (isset($rec)) {
             $res['deliveryTime']['placeholder'] = ($cache && !empty($rec->deliveryTimeCalc)) ? $rec->deliveryTimeCalc : $this->getDefaultLoadingDate($rec, $rec->deliveryOn, $rec->deliveryTime);
-            $loadingOn = !empty($rec->deliveryTime) ? $rec->deliveryTime : $rec->deliveryTimeCalc;
+            $loadingOn = !empty($rec->deliveryTime) ? $rec->deliveryTime : ($rec->deliveryTimeCalc ?? null);
             $res['readyOn']['placeholder'] = ($cache && !empty($rec->readyOnCalc)) ? $rec->readyOnCalc : $this->getEarliestDateAllProductsAreAvailableInStore($rec);
-            $res['shipmentOn']['placeholder'] = ($cache && !empty($rec->shipmentOnCalc)) ? $rec->shipmentOnCalc : trans_Helper::calcShippedOnDate($rec->valior, $rec->lineId, $rec->activatedOn, $loadingOn);
+            $res['shipmentOn']['placeholder'] = ($cache && !empty($rec->shipmentOnCalc)) ? $rec->shipmentOnCalc : trans_Helper::calcShippedOnDate($rec->valior ?? null, $rec->lineId ?? null, $rec->activatedOn ?? null, $loadingOn);
             $res['deliveryOn']['placeholder'] = ($cache && !empty($rec->deliveryOnCalc)) ? $rec->deliveryOnCalc : trans_Helper::calcDeliveryOnDate($rec->threadId, $rec->valior);
         }
 

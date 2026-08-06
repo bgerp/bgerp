@@ -20,7 +20,7 @@ class core_Classes extends core_Manager
     /**
      * Списък за начално
      */
-    public $loadList = 'plg_Created, plg_SystemWrapper, plg_State2, plg_RowTools, plg_Search,plg_Sorting';
+    public $loadList = 'plg_Created, plg_SystemWrapper, plg_State2, plg_RowTools2, plg_Search,plg_Sorting';
     
     
     /**
@@ -99,7 +99,7 @@ class core_Classes extends core_Manager
     {
         $data->query->orderBy('name');
         
-        $data->listFilter->FLD('interface', 'key(mvc=core_Interfaces,select=name, allowEmpty)', 'placeholder=Интерфейс');
+        $data->listFilter->FLD('interface', 'key(mvc=core_Interfaces,select=name, allowEmpty)', 'caption=Интерфейс,placeholderType=all');
         $data->listFilter->showFields = 'search,interface';
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
@@ -310,7 +310,7 @@ class core_Classes extends core_Manager
                 self::loadClasses();
             }
             
-            $classId = self::$classes[$className];
+            $classId = self::$classes[$className] ?? null;
         }
         
         expect($silent || $classId, $class);

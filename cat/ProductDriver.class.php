@@ -284,7 +284,7 @@ abstract class cat_ProductDriver extends core_BaseClass
         $rec = $data->rec;
 
         // Ако режима е за показване на сравнения при клониране
-        if(!empty($data->_showDiff)){
+        if(!empty($data->_showDiff) && !empty($rec->clonedFromId)){
 
             // Подготвя се изгледа на оригиналния артикул и се показват разликите спрямо него
             $clonedRec = $Embedder->fetch($rec->clonedFromId);
@@ -324,7 +324,7 @@ abstract class cat_ProductDriver extends core_BaseClass
         } else {
             $tpl = $data->defaultTpl;
         }
-        $title = tr($this->singleTitle);
+        $title = tr($this->singleTitle ?? $this->title ?? '');
         $tpl->append($title, 'title');
 
         $form = cls::get('core_Form');
@@ -1049,7 +1049,25 @@ abstract class cat_ProductDriver extends core_BaseClass
      */
     public function getProductionData($productId)
     {
-        return array();
+        return static::getDefaultProductionData();
+    }
+
+
+    /**
+     * Връща пълния празен шаблон за производствени данни.
+     *
+     * @return array
+     */
+    public static function getDefaultProductionData()
+    {
+        return array_fill_keys(array(
+            'name', 'centerId', 'storeIn', 'inputStores', 'fixedAssets', 'employees',
+            'norm', 'normPackagingId', 'labelPackagingId', 'labelQuantityInPack',
+            'labelType', 'labelTemplate', 'planningParams', 'actions', 'isFinal',
+            'showPreviousJobField', 'wasteProductId', 'wasteStart', 'wastePercent',
+            'calcWeightMode', 'fastProgressBtn', 'mandatoryDocuments', 'description',
+            'supportSystemFolderId', 'offsetAfter'
+        ), null);
     }
 
 

@@ -260,9 +260,9 @@ defIfNot('EMAIL_CLOSEST_EMAIL_PERCENT', 80);
 
 
 /**
- * Повторна проверка за валидност на имейли след - 1 седмица
+ * Повторна проверка за валидност на имейли след - 3 дена
  */
-defIfNot('EMAIL_RECHECK_EMAILS_AFTER', 604800);
+defIfNot('EMAIL_RECHECK_EMAILS_AFTER', 259200);
 
 
 /**
@@ -654,7 +654,7 @@ class email_Setup extends core_ProtoSetup
         $logoArr['BGERP_COMPANY_LOGO_EN'] = core_Settings::fetchUsers(crm_Profiles::getSettingsKey(), 'BGERP_COMPANY_LOGO_EN');
         foreach ($logoArr as $lKey => $logoLgArr) {
             foreach ((array) $logoLgArr as $lArr) {
-                if (!$lArr[$lKey]) {
+                if (empty($lArr[$lKey])) {
                     continue;
                 }
 

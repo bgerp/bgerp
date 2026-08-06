@@ -35,6 +35,8 @@ class email_Sent
             return ;
         }
 
+        $options += array('encoding' => 'utf-8');
+
         // Премахване на всички картинки, които са в css стилове за фон
         if ($body->html) {
             $body->html = preg_replace_callback("/(<[^>]+)background\\-image\\:\\s*url\\(\\'([^\\']+)\\'\\)\\s*\\;/i", array('email_Sent', 'replaceBgImg'), $body->html);
@@ -106,7 +108,7 @@ class email_Sent
         // Намираме сметка за входящи писма от корпоративен тип, с домейла на имейла
         $corpAccRec = email_Accounts::getCorporateAcc();
         
-        if ($corpAccRec->domain == $senderDomain && empty($options['no_return_path'])) {
+        if ($corpAccRec && $corpAccRec->domain == $senderDomain && empty($options['no_return_path'])) {
             $message->headers['Return-Path'] = "{$senderName}+returned={$sentRec->mid}@{$senderDomain}";
         }
         
@@ -393,7 +395,7 @@ class email_Sent
     {
         $res = $matches[1];
         
-        if ($matches[2]) {
+        if (!empty($matches[2])) {
             $ext = fileman::getExt($matches[2]);
             
             $mime = fileman_Mimes::getMimeByExt($ext);

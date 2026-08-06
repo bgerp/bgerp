@@ -115,7 +115,7 @@ class docarch_Volumes extends core_Master
         $this->FNC('title', 'varchar', 'caption=Име');
         
         //Определя в кой архив се съхранява конкретния том
-        $this->FLD('archive', 'key(mvc=docarch_Archives,allowEmpty)', 'caption=В архив,placeholder=Всички,refreshForm,silent');
+        $this->FLD('archive', 'key(mvc=docarch_Archives,allowEmpty)', 'caption=В архив,placeholderType=all,refreshForm,silent');
         
         //В какъв тип контейнер/том от избрания архив се съхранява документа
         $this->FLD('type', 'varchar(folder=Папка,box=Кутия, case=Кашон, pallet=Палет, warehouse=Склад)', 'caption=Тип,mandatory');

@@ -151,7 +151,7 @@ class doc_plg_Prototype extends core_Plugin
                     // Данните му се зареждат
                     if (countR($fields)) {
                         foreach ($fields as $field) {
-                            $value = ($isCoreEmbedder === false) ? $protoRec->{$field} : $protoRec->{$mvc->innerFormField}->{$field};
+                            $value = ($isCoreEmbedder === false) ? ($protoRec->{$field} ?? null) : ($protoRec->{$mvc->innerFormField}->{$field} ?? null);
                             $form->rec->{$field} = $value;
                         }
                     }

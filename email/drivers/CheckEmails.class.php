@@ -102,7 +102,7 @@ class email_drivers_CheckEmails extends core_BaseClass
      */
     public static function on_BeforeSave($Driver, &$Embedder, &$id, &$rec, $fields = null)
     {
-        if ($fields != 'haveSuccess' && !is_array($fields) && !$fields['haveSuccess']) {
+        if ($fields != 'haveSuccess' && (!is_array($fields) || empty($fields['haveSuccess']))) {
             $rec->haveSuccess = 'no';
         }
     }
@@ -134,6 +134,7 @@ class email_drivers_CheckEmails extends core_BaseClass
         $allMsg = '';
 
         while ($sRec = $sQuery->fetch()) {
+            $lastFolderId = null;
 
             $iQuery = email_Incomings::getQuery();
 
@@ -179,7 +180,7 @@ class email_drivers_CheckEmails extends core_BaseClass
 
             $iQuery->limit(100);
 
-            $iQuery->show('id, threadId, containerId, subject, modifiedOn');
+            $iQuery->show('id, threadId, folderId, containerId, subject, modifiedOn');
 
             foreach ($fieldArrMap as $serviceFieldName => $recFieldName) {
 
@@ -204,6 +205,7 @@ class email_drivers_CheckEmails extends core_BaseClass
             $delCnt = $rejCnt = $closeCnt = 0;
 
             while ($iRec = $iQuery->fetch()) {
+                $lastFolderId = $iRec->folderId ?? $lastFolderId;
                 if ($iRec->docCnt < 1) {
 
                     $cQuery = doc_Containers::getQuery();
@@ -299,7 +301,9 @@ class email_drivers_CheckEmails extends core_BaseClass
             $allMsg .= $allMsg ? "<br>" : '';
             $allMsg .= $msg;
 
-            doc_Folders::updateFolderByContent($iRec->folderId);
+            if (isset($lastFolderId)) {
+                doc_Folders::updateFolderByContent($lastFolderId);
+            }
 
             if ($sRec->haveSuccess != 'yes') {
                 $sRec->haveSuccess = 'yes';

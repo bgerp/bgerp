@@ -147,7 +147,7 @@ class sales_PrimeCostByDocument extends core_Manager
      */
     protected static function on_CalcDelta(core_Mvc $mvc, $rec)
     {
-        if (isset($rec->primeCost, $rec->sellCost)) {
+        if (isset($rec->primeCost, $rec->sellCost, $rec->quantity)) {
             $delta = $rec->sellCost - $rec->primeCost;
             $rec->delta = $delta * $rec->quantity;
         }
@@ -191,6 +191,7 @@ class sales_PrimeCostByDocument extends core_Manager
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
+        $row->ROW_ATTR = $row->ROW_ATTR ?? array();
         $row->ROW_ATTR['class'] = "state-{$rec->state}";
         
         $row->productId = cat_Products::getHyperlink($rec->productId, true);
@@ -200,10 +201,13 @@ class sales_PrimeCostByDocument extends core_Manager
              $row->containerId = "<span class='red'>" . tr('Проблем с показването') . '</span>';
         }
         
-        $row->delta = ht::styleIfNegative($row->delta, $rec->delta);
+        $row->delta = ht::styleIfNegative($row->delta ?? null, $rec->delta ?? null);
         
         if(isset($rec->folderId)){
-            $row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
+            $folderRec = doc_Folders::fetch($rec->folderId);
+            if ($folderRec) {
+                $row->folderId = doc_Folders::recToVerbal($folderRec)->title;
+            }
         }
         
         if(isset($rec->storeId)){
@@ -249,7 +253,7 @@ class sales_PrimeCostByDocument extends core_Manager
             $firstDocRec = $firstDoc->fetch($fields);
             
             // Ако няма дилър това е отговорника на папката ако има права `sales`
-            if (empty($firstDocRec->dealerId)) {
+            if (empty($firstDocRec->dealerId) && isset($firstDocRec->folderId)) {
                 $inCharge = doc_Folders::fetchField($firstDocRec->folderId, 'inCharge');
                 if (core_Users::haveRole('sales', $inCharge)) {
                     $firstDocRec->dealerId = $inCharge;
@@ -363,9 +367,9 @@ class sales_PrimeCostByDocument extends core_Manager
             $masters[$pRec->containerId]['total'] = $pRec->total;
             $masters[$pRec->containerId]['chargeVat'] = $pRec->chargeVat;
 
-            if(is_array($pRec->details['receiptDetails'])){
+            if(is_array($pRec->details['receiptDetails'] ?? null)){
                 foreach ($pRec->details['receiptDetails'] as $pdRec){
-                    if($pdRec->action != 'sale') continue;
+                    if(($pdRec->action ?? null) != 'sale' || !isset($pdRec->value)) continue;
                     $key = "{$pRec->id}000{$pdRec->value}";
                     $posIds[$key] = $key;
                 }
@@ -591,16 +595,17 @@ class sales_PrimeCostByDocument extends core_Manager
 
         foreach($indicatorRecs as $iRec){
             if (!isset($iRec->dealerId))  continue;
-            if($iRec->isPublic != 'yes') continue;
+            if(($iRec->isPublic ?? null) != 'yes') continue;
 
             // Ако датата на последната продажба е в интервала между константите - няма да се начислява
-            $lDate = $lastDateArr[$iRec->productId][$iRec->folderId];
+            $lDate = $lastDateArr[$iRec->productId][$iRec->folderId] ?? null;
             if(isset($lDate)){
                 if($lDate < $thresholdTo && $lDate >= $thresholdFrom) continue;
             }
 
             $Document = $masters[$iRec->containerId][0];
-            $personFldValue = $personIds[$iRec->dealerId];
+            $personFldValue = $personIds[$iRec->dealerId] ?? null;
+            if (!isset($personFldValue)) continue;
             $isRejected = ($masters[$iRec->containerId][1] == 'rejected');
             $sign = ($masters[$iRec->containerId][2] == 'yes') ? -1 : 1;
             $value = round($sign * $iRec->delta, 2);
@@ -653,15 +658,16 @@ class sales_PrimeCostByDocument extends core_Manager
         // Обхождане на индикаторите
         foreach ($indicatorRecs as $iRec) {
             if (empty($iRec->dealerId))  continue;
-            $personId = $personIds[$iRec->dealerId];
+            $personId = $personIds[$iRec->dealerId] ?? null;
+            if (!isset($personId)) continue;
             $Document = $masters[$iRec->containerId][0];
 
             $isRejected = ($masters[$iRec->containerId][1] == 'rejected');
             $sign = ($masters[$iRec->containerId][2] == 'yes') ? -1 : 1;
             $value = round($sign * $iRec->delta, 2);
 
-            $pGroup = is_array($productGroups[$iRec->productId]) ? $productGroups[$iRec->productId] : array();
-            $cGroups = is_array($clientGroups[$iRec->folderId]) ? $clientGroups[$iRec->folderId] : array();
+            $pGroup = is_array($productGroups[$iRec->productId] ?? null) ? $productGroups[$iRec->productId] : array();
+            $cGroups = is_array($clientGroups[$iRec->folderId] ?? null) ? $clientGroups[$iRec->folderId] : array();
 
             // За всяка от клиентските групи, която е от посочените ще се натрупва отделен индикатор
             if($intersectedClientGroups = array_intersect_key($cGroups, $crmGroupMap)){
@@ -717,7 +723,7 @@ class sales_PrimeCostByDocument extends core_Manager
 
         // За всеки запис
         foreach ($indicatorRecs as $rec) {
-            if (!$rec->dealerId) continue;
+            if (empty($rec->dealerId)) continue;
             
             // Намира се в колко от търсените групи участва
             $groups = (isset($productGroups[$rec->productId]) && is_array($productGroups[$rec->productId]))
@@ -728,7 +734,8 @@ class sales_PrimeCostByDocument extends core_Manager
             $delimiter = countR($diff);
             
             $Document = $masters[$rec->containerId][0];
-            $personFldValue = $personIds[$rec->dealerId];
+            $personFldValue = $personIds[$rec->dealerId] ?? null;
+            if (!isset($personFldValue)) continue;
             $isRejected = ($masters[$rec->containerId][1] == 'rejected');
             $sign = ($masters[$rec->containerId][2] == 'yes') ? -1 : 1;
 
@@ -969,11 +976,12 @@ class sales_PrimeCostByDocument extends core_Manager
      */
     protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
-        $data->listFilter->FLD('productDriverClassId', 'class(interface=cat_ProductDriverIntf, allowEmpty, select=title)', 'caption=Вид');
+        $data->listFilter->FLD('productDriverClassId', 'class(interface=cat_ProductDriverIntf, allowEmpty, select=title)', 'caption=Вид,placeholderType=all');
         $data->listFilter->setOptions('productDriverClassId', cat_Products::getAvailableDriverOptions());
         $data->listFilter->FLD('documentId', 'varchar', 'caption=Документ или контейнер, silent');
-        $data->listFilter->FLD('folder', 'key2(mvc=doc_Folders,select=title,allowEmpty,coverInterface=crm_ContragentAccRegIntf)', 'caption=Папка');
+        $data->listFilter->FLD('folder', 'key2(mvc=doc_Folders,select=title,allowEmpty,coverInterface=crm_ContragentAccRegIntf)', 'caption=Папка,placeholderType=all');
         $data->listFilter->FLD('primeCostType', 'enum(all=Със себестойност,positive=Положителна себестойност,negative=Отрицателна себестойност,zero=Нулева себестойност,empty=Без себестойност)', 'caption=Вид себестойност, silent');
+        $data->listFilter->setField('productId', 'placeholderType=all');
         $data->listFilter->showFields = 'documentId,productId,productDriverClassId,primeCostType,folder';
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
@@ -992,14 +1000,15 @@ class sales_PrimeCostByDocument extends core_Manager
                 $data->query->where("#productDriverClassId = {$rec->productDriverClassId}");
             }
 
-            if ($rec->primeCostType != 'all') {
-                if($rec->primeCostType == 'positive'){
+            $primeCostType = $rec->primeCostType ?? 'all';
+            if ($primeCostType != 'all') {
+                if($primeCostType == 'positive'){
                     $data->query->where("#primeCost > 0");
-                } elseif($rec->primeCostType == 'negative') {
+                } elseif($primeCostType == 'negative') {
                     $data->query->where("#primeCost < 0");
-                } elseif($rec->primeCostType == 'empty') {
+                } elseif($primeCostType == 'empty') {
                     $data->query->where("#primeCost IS NULL");
-                } elseif($rec->primeCostType == 'zero') {
+                } elseif($primeCostType == 'zero') {
                     $data->query->where("#primeCost = 0");
                 }
             }
@@ -1055,9 +1064,11 @@ class sales_PrimeCostByDocument extends core_Manager
         $query->in('containerId', $containerIds);
         while ($rec = $query->fetch()) {
             $persons = self::getDealerAndInitiatorId($rec->containerId);
-            if ($rec->dealerId != $persons['dealerId'] || $rec->initiatorId != $persons['initiatorId']) {
-                $rec->dealerId = $persons['dealerId'];
-                $rec->initiatorId = $persons['initiatorId'];
+            $dealerId = $persons['dealerId'] ?? null;
+            $initiatorId = $persons['initiatorId'] ?? null;
+            if (($rec->dealerId ?? null) != $dealerId || ($rec->initiatorId ?? null) != $initiatorId) {
+                $rec->dealerId = $dealerId;
+                $rec->initiatorId = $initiatorId;
                 self::save($rec);
                 
                 if(!array_key_exists($rec->containerId, $touchedDocuments)){
@@ -1092,7 +1103,7 @@ class sales_PrimeCostByDocument extends core_Manager
 
         // Ако има зададена политика за делта, връща се цената по нея
         if(isset($deltaListId)){
-            $primeCost = price_ListRules::getPrice($deltaListId, $productId, $packagingId, $saleRec->activatedOn);
+            $primeCost = price_ListRules::getPrice($deltaListId, $productId, $packagingId, $saleRec->activatedOn ?? null);
             
             return $primeCost;
         }
@@ -1136,16 +1147,16 @@ class sales_PrimeCostByDocument extends core_Manager
         }
 
         // Ако няма намерена себестойност
-        $primeCost = cat_Products::getPrimeCost($productId, $packagingId, $quantity, $saleRec->activatedOn, price_ListRules::PRICE_LIST_COST);
+        $primeCost = cat_Products::getPrimeCost($productId, $packagingId, $quantity, $saleRec->activatedOn ?? null, price_ListRules::PRICE_LIST_COST);
         if (isset($primeCost)) {
-            $costs = sales_Sales::getCalcedTransports($saleRec->threadId);
-            if (isset($costs[$productId])) {
-                $primeCost += $costs[$productId]->fee / $costs[$productId]->quantity;
+            $costs = isset($saleRec->threadId) ? sales_Sales::getCalcedTransports($saleRec->threadId) : array();
+            if (isset($costs[$productId]) && !empty($costs[$productId]->quantity)) {
+                $primeCost += ($costs[$productId]->fee ?? 0) / $costs[$productId]->quantity;
             }
         }
 
         // Ако артикулът е 'Надценка' няма себестойност
-        if ($productRec->code == 'surcharge') {
+        if (($productRec->code ?? null) == 'surcharge') {
             $primeCost = 0;
         }
         
@@ -1281,7 +1292,8 @@ class sales_PrimeCostByDocument extends core_Manager
             $dQuery = sales_SalesDetails::getQuery();
             $dQuery->XPR('sum', 'double', 'SUM(#quantity)');
             $dQuery->where("#saleId = {$saleId} AND #productId = {$productId}");
-            if($sum = $dQuery->fetch()->sum){
+            $sumRec = $dQuery->fetch();
+            if($sum = $sumRec->sum ?? null){
                 $quantities[$saleId] = $sum;
             }
         }
@@ -1343,7 +1355,8 @@ class sales_PrimeCostByDocument extends core_Manager
             $dQuery->show("activatedOn,modifiedOn,containerId,{$Class->valiorFld}");
             while($dRec = $dQuery->fetch()) {
                 if(!array_key_exists($dRec->containerId, $activatedArr)) {
-                    $activatedArr[$dRec->containerId] = ($dRec->activatedOn) ? $dRec->activatedOn : (($dRec->{$Class->valiorFld}) ? "{$dRec->{$Class->valiorFld}} 23:59:59" : (($dRec->modifiedOn) ? $dRec->modifiedOn : '1970-01-01 00:00:00'));
+                    $valior = $dRec->{$Class->valiorFld} ?? null;
+                    $activatedArr[$dRec->containerId] = !empty($dRec->activatedOn) ? $dRec->activatedOn : ($valior ? "{$valior} 23:59:59" : (!empty($dRec->modifiedOn) ? $dRec->modifiedOn : '1970-01-01 00:00:00'));
                 }
 
                 if (dt::now() >= $maxTime) break;
@@ -1351,7 +1364,7 @@ class sales_PrimeCostByDocument extends core_Manager
 
             $filterArr = array_filter($recs, function($a) use ($classId){ return $a->docClass == $classId; });
             foreach ($filterArr as &$fRec) {
-                $fRec->activatedOn = $activatedArr[$fRec->containerId];
+                $fRec->activatedOn = $activatedArr[$fRec->containerId] ?? null;
             }
 
             if(countR($filterArr)) {

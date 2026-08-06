@@ -362,7 +362,7 @@ abstract class deals_DealDetail extends doc_Detail
                     $defaultPackQuantity = deals_Helper::getDefaultPackQuantity($rec->productId, $rec->packagingId);
                 }
                 $form->setDefault('packQuantity', $defaultPackQuantity);
-                if(empty($defaultPackQuantity)){
+                if(empty($defaultPackQuantity) && Request::get('Act') != 'CreateProduct'){
                     $form->setError('packQuantity', 'Не е въведено количество');
                 }
             }
@@ -467,19 +467,24 @@ abstract class deals_DealDetail extends doc_Detail
         $rows = &$data->rows;
         $masterRec = $data->masterData->rec;
         
-        core_Lg::push($masterRec->tplLang);
+        $tplLang = $masterRec->tplLang ?? null;
+        if ($tplLang) {
+            core_Lg::push($tplLang);
+        }
         $date = ($masterRec->state == 'draft') ? null : $masterRec->modifiedOn;
-        
+
         foreach ($rows as $id => &$row) {
             $rec = $recs[$id];
             core_RowToolbar::createIfNotExists($row->_rowTools);
             cat_Products::addButtonsToDocToolbar($rec->productId, $row->_rowTools, $mvc->className, $id);
-            $row->productId = cat_Products::getAutoProductDesc($rec->productId, $date, $rec->showMode, 'public', $masterRec->tplLang);
-            
+            $row->productId = cat_Products::getAutoProductDesc($rec->productId, $date, $rec->showMode, 'public', $tplLang);
+
             deals_Helper::addNotesToProductRow($row->productId, $rec->notes);
         }
-        
-        core_Lg::pop();
+
+        if ($tplLang) {
+            core_Lg::pop();
+        }
     }
     
     

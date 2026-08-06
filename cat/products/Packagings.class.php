@@ -570,7 +570,8 @@ class cat_products_Packagings extends core_Detail
                 // Ако драйвера няма втора мярка, и това ще е първата различна мярка, тя по-дефолт ще е втора
                 if (!array_key_exists($rec->packagingId, $derivitiveMeasures)) {
                     $form->setField('isSecondMeasure', 'input');
-                    $alreadyHaveSecondMeasure = cat_products_Packagings::fetchField("#productId = {$rec->productId} AND #isSecondMeasure = 'yes' AND #id != '{$rec->id}'");
+                    $recId = $rec->id ?? 0;
+                    $alreadyHaveSecondMeasure = cat_products_Packagings::fetchField("#productId = {$rec->productId} AND #isSecondMeasure = 'yes' AND #id != '{$recId}'");
                     if ($alreadyHaveSecondMeasure) {
                         $form->setDefault('isSecondMeasure', 'no');
                     } else {
@@ -637,7 +638,7 @@ class cat_products_Packagings extends core_Detail
         }
 
         if (!empty($rec->tareWeight)) {
-            $row->weight .= "<span class='quiet'>" . tr('Тара') . ': </span>' . $row->tareWeight;
+            $row->weight = ($row->weight ?? '') . "<span class='quiet'>" . tr('Тара') . ': </span>' . $row->tareWeight;
         }
 
         if ($rec->isBase == 'yes') {
@@ -807,9 +808,9 @@ class cat_products_Packagings extends core_Detail
      */
     protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
-        cat_PackParams::sync($rec->packagingId, $rec->sizeWidth, $rec->sizeHeight, $rec->sizeDepth, $rec->tareWeight);
+        cat_PackParams::sync($rec->packagingId ?? null, $rec->sizeWidth ?? null, $rec->sizeHeight ?? null, $rec->sizeDepth ?? null, $rec->tareWeight ?? null);
 
-        if ($rec->state == 'closed' && $rec->isBase == 'yes') {
+        if (($rec->state ?? null) == 'closed' && ($rec->isBase ?? null) == 'yes') {
             $rec->isBase = 'no';
             $mvc->save_($rec, 'isBase');
         }
@@ -1627,7 +1628,8 @@ class cat_products_Packagings extends core_Detail
     protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
         $data->listFilter->showFields = 'productId,packagingId';
-        $data->listFilter->setField('productId', 'input,title=Артикул');
+        $data->listFilter->setField('productId', 'input,title=Артикул,placeholderType=all');
+        $data->listFilter->setField('packagingId', 'placeholderType=all');
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
         $data->listFilter->input('productId,packagingId');

@@ -393,8 +393,8 @@ abstract class bank_Document extends deals_PaymentDocument
                 $form->setWarning('operationSysId', $warning);
             }
 
-            if (!cond_PaymentMethods::hasDownpayment($dealInfo->paymentMethodId)) {
-                if (stripos($rec->operationSysId, 'advance')) {
+            if (property_exists($dealInfo, 'paymentMethodId') && !cond_PaymentMethods::hasDownpayment($dealInfo->get('paymentMethodId'))) {
+                if (stripos((string) ($rec->operationSysId ?? ''), 'advance') !== false) {
                     $form->setWarning('operationSysId', 'По сделката не се очаква авансово плащане');
                 }
             }

@@ -808,7 +808,7 @@ class store_Transfers extends core_Master
                 while($dRec = $dQuery->fetch()){
                     $dRec->newProductId = $dRec->productId;
 
-                    $inStoreQuantity = store_Products::getQuantities($dRec->productId, $rec->storeId)->quantity;
+                    $inStoreQuantity = store_Products::getQuantities($dRec->productId, $rec->fromStore)->quantity;
                     $quantity = min($inStoreQuantity, $dRec->quantity);
                     $dRec->quantity = $quantity;
                     $dRec->packQuantity = $dRec->quantity / $dRec->quantityInPack;
@@ -922,7 +922,7 @@ class store_Transfers extends core_Master
 
         $Detail = cls::get('store_TransfersDetails');
         $nRec = (object)array('transferId' => $id, 'newProductId' => $productId, 'packagingId' => $packagingId, 'quantity' => $quantity, 'quantityInPack' => $quantityInPack, 'batch' => $batch);
-        $nRec->autoAllocate = !empty($row->batch);
+        $nRec->autoAllocate = !empty($batch);
 
         if(!empty($batch)) {
             expect($Def = batch_Defs::getBatchDef($productId), 'Опит за задаване на партида на артикул без партида');

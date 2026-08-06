@@ -66,7 +66,7 @@ class fileman_Indexes extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'fileman_Wrapper, plg_RowTools, plg_Created';
+    public $loadList = 'fileman_Wrapper, plg_RowTools2, plg_Created';
     
     
     public $interfaces = 'fileman_ProcessIntf';
@@ -1167,7 +1167,7 @@ class fileman_Indexes extends core_Manager
         $data->listFilter->view = 'horizontal';
         
         // Добавяме поле във формата за търсене
-        $data->listFilter->FNC('indexType', 'enum(,text=Текст)', 'caption=Тип, allowEmpty,autoFilter');
+        $data->listFilter->FNC('indexType', 'enum(,text=Текст)', 'caption=Тип,placeholderType=all, allowEmpty,autoFilter');
         
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         

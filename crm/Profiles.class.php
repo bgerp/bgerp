@@ -56,7 +56,7 @@ class crm_Profiles extends core_Master
     /**
      * Плъгини и MVC класове, които се зареждат при инициализация
      */
-    public $loadList = 'plg_Created,crm_Wrapper,plg_RowTools, plg_Printing, plg_Search, plg_Rejected';
+    public $loadList = 'plg_Created,crm_Wrapper,plg_RowTools2, plg_Printing, plg_Search, plg_Rejected';
     
     
     /**
@@ -1428,7 +1428,7 @@ class crm_Profiles extends core_Master
     {
         $rec = $data->listFilter->rec;
         
-        $data->listFilter->FNC('leave', 'enum(,missing=Отсъстващи,sickDay=Болничен,leaveDay=Отпуск,tripDay=Командировка,homeOffice=Работа от вкъщи)', 'width=6em,caption=Статус,silent,allowEmpty,autoFilter');
+        $data->listFilter->FNC('leave', 'enum(,missing=Отсъстващи,sickDay=Болничен,leaveDay=Отпуск,tripDay=Командировка,homeOffice=Работа от вкъщи)', 'width=6em,caption=Статус,placeholderType=all,silent,allowEmpty,autoFilter');
         
         $data->listFilter->view = 'horizontal';
         

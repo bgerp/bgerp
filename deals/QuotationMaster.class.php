@@ -551,6 +551,7 @@ abstract class deals_QuotationMaster extends core_Master
             }
 
             $isPlain = Mode::is('text', 'plain');
+            $row->others = $row->others ?? '';
             if (!empty($rec->others)) {
                 $others = explode('<br>', $row->others);
                 $row->others = '';
@@ -563,7 +564,7 @@ abstract class deals_QuotationMaster extends core_Master
                 if ($Driver = cond_DeliveryTerms::getTransportCalculator($rec->deliveryTermId)) {
                     $deliveryDataArr = $Driver->getVerbalDeliveryData($rec->deliveryTermId, $rec->deliveryData, get_called_class());
                     foreach ($deliveryDataArr as $delObj){
-                        $row->deliveryBlock .= "<li>{$delObj->caption}: {$delObj->value}</li>";
+                        $row->deliveryBlock = ($row->deliveryBlock ?? '') . "<li>{$delObj->caption}: {$delObj->value}</li>";
                     }
                 }
             }
@@ -1181,16 +1182,16 @@ abstract class deals_QuotationMaster extends core_Master
             $keys = array_keys($dData->rows);
             $firstProductRow = $dData->rows[$keys[0]][0];
 
-            if ($firstProductRow->tolerance) {
-                $data->row->others .= '<li>' . tr('Толеранс к-во') .": {$firstProductRow->tolerance}</li>";
+            if ($firstProductRow->tolerance ?? null) {
+                $data->row->others = ($data->row->others ?? '') . '<li>' . tr('Толеранс к-во') .": {$firstProductRow->tolerance}</li>";
             }
 
             if (isset($firstProductRow->term)) {
-                $data->row->others .= '<li>' . tr('Срок за д-ка') .": {$firstProductRow->term}</li>";
+                $data->row->others = ($data->row->others ?? '') . '<li>' . tr('Срок за д-ка') .": {$firstProductRow->term}</li>";
             }
 
             if (isset($firstProductRow->weight)) {
-                $data->row->others .= '<li>' . tr('Транспортно тегло') .": {$firstProductRow->weight}</li>";
+                $data->row->others = ($data->row->others ?? '') . '<li>' . tr('Транспортно тегло') .": {$firstProductRow->weight}</li>";
             }
             core_Lg::pop();
         }

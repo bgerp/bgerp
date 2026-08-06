@@ -166,8 +166,8 @@ class planning_Centers extends core_Master
                                  organization=Учреждение)', 'caption=Тип, mandatory,width=100%');
         $this->FLD('departmentId', 'key(mvc=hr_Departments,select=name)', 'caption=В състава на,silent');
         $this->FLD('planningParams', 'keylist(mvc=cat_Params,select=typeExt)', 'caption=Параметри за планиране->Списък');
-        $this->FLD('planningParamSimilarity', 'percent(Min=0,Max=1,decimals=0)', 'caption=Параметри за планиране->Минимално съвпадение за автоматично групиране,placeholder=Автоматично');
-        $this->FLD('planningParamGroupDays', 'int(Min=1)', 'caption=Параметри за планиране->Период за автоматично групиране,placeholder=Автоматично,unit=дни');
+        $this->FLD('planningParamSimilarity', 'percent(Min=0,Max=1,decimals=0)', 'caption=Параметри за планиране->Автоматично групиране на операциите на база подобни планиращи параметри при->Съвпадение над,placeholder=Автоматично,unit=%');
+        $this->FLD('planningParamGroupDays', 'int(Min=1)', 'caption=Параметри за планиране->Автоматично групиране на операциите на база подобни планиращи параметри при->Период до,placeholder=Автоматично,unit=дни');
         $this->FLD('showTaskPlanningParams', 'enum(yes=Само те, yesAdd=Допълват останалите, no=Не)', 'caption=Параметрите от Етапа да са планиращи (при филтриране по Етап)->Избор,notNull,value=no');
         $this->FLD('nkid', 'key(mvc=bglocal_NKID, select=title,allowEmpty=true)', 'caption=Служители->НКИД, hint=Номер по НКИД');
         $this->FLD('employmentTotal', 'int', 'caption=Служители->Щат, input=none');

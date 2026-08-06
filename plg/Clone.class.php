@@ -345,7 +345,7 @@ class plg_Clone extends core_Plugin
         if ($mvc->haveRightFor('clonerec', $data->rec)) {
             $singleTitle = tr($mvc->singleTitle);
             
-            $singleTitle = mb_strtolower($singleTitle);
+            $singleTitle = mb_strtolower($singleTitle ?? '');
             
             // Добавяме бутон за клониране в сингъл изгледа
             $title = tr('|Клониране на|*' . ' ' . $singleTitle);

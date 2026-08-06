@@ -58,14 +58,14 @@ class sens2_DomainMon extends sens2_ProtoDriver
         
         if ($inputs['reachable']) {
             $res['reachable'] = $this->getReachable($config->domain);
-            if(strlen($config->altDomain)) {
+            if (!empty($config->altDomain)) {
                 $res['reachable'] = min($res['reachable'], $this->getReachable($config->altDomain));
             }
         }
         
         if ($inputs['certValidity']) {
             $res['certValidity'] = $this->getCertValidity($config->domain);
-            if(strlen($config->altDomain)) {
+            if (!empty($config->altDomain)) {
                 $res['certValidity'] = min($res['certValidity'], $this->getCertValidity($config->altDomain));
             }
         }

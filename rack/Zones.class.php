@@ -787,12 +787,12 @@ class rack_Zones extends core_Master
         $data->query->orderBy('num', 'asc');
 
         // Добавяне на филтър по артикулите
-        $data->listFilter->FLD('productId', "key2(mvc=cat_Products,storeId={$storeId},select=name,allowEmpty,selectSource=rack_Zones::getProductsInZones)", 'caption=Артикул,autoFilter,silent');
+        $data->listFilter->FLD('productId', "key2(mvc=cat_Products,storeId={$storeId},select=name,allowEmpty,selectSource=rack_Zones::getProductsInZones)", 'caption=Артикул,placeholderType=all,autoFilter,silent');
         $data->listFilter->FNC('terminal', "int", 'caption=Артикул,silent,input=hidden');
         if($data->isTerminal) {
             $data->listFilter->FLD('additional', 'enum(onlyMine=Моите,pendingAndMine=Свободни+Мои,pending=Свободни,yes=С движения,all=Всички)', 'autoFilter,silent');
         }
-        $data->listFilter->FLD('grouping', "varchar", 'caption=Всички,autoFilter,silent');
+        $data->listFilter->FLD('grouping', "varchar", 'caption=Групиране,placeholderType=all,autoFilter,silent');
         $groupingOptions = array('' => '', 'no' => tr('Без групиране'), 'free' => tr('Свободни'), 'notfree' => tr('С документи'));
 
         // Добавяне на групите, както и самостоятелните зони
@@ -2018,7 +2018,7 @@ class rack_Zones extends core_Master
         $mQuery->limit(1);
         $rec = $mQuery->fetch();
 
-        $res = md5("{$rec->storeId}|{$rec->modifiedOn}|{$rec->id}");
+        $res = $rec ? md5("{$rec->storeId}|{$rec->modifiedOn}|{$rec->id}") : md5("{$storeId}|");
 
     }
 

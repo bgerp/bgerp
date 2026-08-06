@@ -193,11 +193,11 @@ class log_Debug extends core_Manager
         }
         
         $data->listFilter->FNC('user', 'varchar', 'caption=Потребител, input, silent,class=debugField');
-        $data->listFilter->FNC('execTime', 'enum(,fast=< 1 сек.,slow=< 5 сек.,verySlow=< 20 сек., overTime=> 20 сек.)', 'caption=Изпълнение, input, silent,class=debugField');
-        $data->listFilter->FNC('execSize', 'enum(,small=< 100K, big=< 300K, veryBig=> 300K, veryBig5=> 500K)', 'caption=Размер, input, silent,class=debugField');
+        $data->listFilter->FNC('execTime', 'enum(,fast=< 1 сек.,slow=< 5 сек.,verySlow=< 20 сек., overTime=> 20 сек.)', 'caption=Изпълнение,placeholderType=all, input, silent,class=debugField');
+        $data->listFilter->FNC('execSize', 'enum(,small=< 100K, big=< 300K, veryBig=> 300K, veryBig5=> 500K)', 'caption=Размер,placeholderType=all, input, silent,class=debugField');
         $data->listFilter->FNC('execTimeFrom', 'varchar', 'caption=Време->От, input, silent, suggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00,class=debugField');
         $data->listFilter->FNC('execTimeTo', 'varchar', 'caption=Време->До, input, silent, suggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00,class=debugField');
-        $data->listFilter->FNC('status', 'enum(,2xx=Успешен, 8xx=Успешен по AJAX, 000=Неприключен, 150=Наблюдение, 404=Липсваща страница, 500|505|510|0=Икзлючение, 501|520=Грешка, 503=Прекъсване, 550=Грешка в БД)', 'caption=Статус, input, silent,class=debugField');
+        $data->listFilter->FNC('status', 'enum(,2xx=Успешен, 8xx=Успешен по AJAX, 000=Неприключен, 150=Наблюдение, 404=Липсваща страница, 500|505|510|0=Икзлючение, 501|520=Грешка, 503=Прекъсване, 550=Грешка в БД)', 'caption=Статус,placeholderType=all, input, silent,class=debugField');
         $data->listFilter->FNC('debugFile', 'varchar', 'caption=Файл, input=hidden, silent');
         
         $data->listFilter->showFields = 'user, debugFile, execTime, execSize, execTimeFrom, execTimeTo, status';

@@ -149,7 +149,7 @@ class core_Lg extends core_Manager
         }
         
         foreach ($res as $key => $rec) {
-            if ($rec->remove) {
+            if (!empty($rec->remove)) {
                 unset($res[$key]);
             } else {
                 $res[$key]->lg = $lg;
@@ -250,7 +250,7 @@ class core_Lg extends core_Manager
 
                 // Обикаляме и добавяме в речника фразите на английски и фразите, които не се превеждат
                 foreach ($strArr as $i => $phrase) {
-                    if ($phrase === '' && $i >= 1) {
+                    if ($phrase === '' && $i >= 1 && array_key_exists($i - 1, $strArr) && array_key_exists($i + 1, $strArr)) {
                         $pKey = static::prepareKey($strArr[$i - 1]);
 
                         if ($lg == 'en') {
@@ -276,6 +276,10 @@ class core_Lg extends core_Manager
                 }
 
                 foreach ($strArr as $i => $phrase) {
+                    if ($phrase === '') {
+                        continue;
+                    }
+
                     if ($phrase[0] === '*') {
                         $translated[] = substr($phrase, 1);
                         continue;
@@ -587,7 +591,7 @@ class core_Lg extends core_Manager
         }
         
         // Ако е празен стринг
-        if (!trim($str)) {
+        if (!trim((string) $str)) {
             
             return $str;
         }

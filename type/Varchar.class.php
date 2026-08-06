@@ -95,7 +95,7 @@ class type_Varchar extends core_Type
             }
         }
  
-        if(strlen($value) > 4) {
+        if(strlen($value ?? '') > 4) {
             // Проверка за опити за хакване
             core_HackDetector::check($value, $this->params['hackTolerance'] ?? null);
         }

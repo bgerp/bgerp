@@ -125,7 +125,7 @@ class fileman_Repositories extends core_Master
         $this->FLD('basePath', 'varchar(readonly)', 'caption=Хранилище, mandatory, width=100%');
         $this->FLD('subPath', 'varchar', 'caption=Подпапка, width=100%');
         $this->FLD('verbalName', 'varchar', 'caption=Име, width=100%, mandatory');
-        $this->FLD('rolesForAccess', 'keylist(mvc=core_Roles, select=role, allowEmpty)', 'caption=Достъп->Роли, width=100%,placeholder=Всички');
+        $this->FLD('rolesForAccess', 'keylist(mvc=core_Roles, select=role, allowEmpty)', 'caption=Достъп->Роли, width=100%,placeholderType=all');
         $this->FLD('usersForAccess', 'userList', 'allowEmpty, caption=Достъп->Потребители, width=100%');
         $this->FLD('ignore', 'text', 'caption=Игнориране, width=100%');
         $this->FNC('fullPath', 'varchar', 'caption=Път, width=100%');

@@ -58,7 +58,7 @@ class bgerp_plg_CsvExport extends core_BaseClass
         $fieldset = new core_FieldSet();
 
         // Добавяне на кои полета може да се експортират
-        $exportableFields = arr::make($mvc->exportableCsvFields, true);
+        $exportableFields = arr::make($mvc->exportableCsvFields ?? null, true);
         foreach ($exportableFields as $name => $caption) {
             if ($mvc->getField($name, false)) {
                 $fieldset->fields[$name] = $mvc->getField($name, false);
@@ -206,7 +206,7 @@ class bgerp_plg_CsvExport extends core_BaseClass
         $params['text'] = 'plain';
 
         if($this->mvc instanceof core_Master){
-            $detailFields = array_keys(array_filter($fieldSet->fields, function($f) {return $f->detailField;}));
+            $detailFields = array_keys(array_filter($fieldSet->fields, function($f) {return !empty($f->detailField);}));
             $detailFields = array_combine($detailFields, $detailFields);
             $hasDetailFieldsInExport = array_intersect_key($fieldsArr, $detailFields);
             if(countR($hasDetailFieldsInExport)){
@@ -243,7 +243,7 @@ class bgerp_plg_CsvExport extends core_BaseClass
     protected function prepareExternalLink(&$recs)
     {
         foreach ((array) $recs as $id => $rec) {
-            if ($this->mvc->haveRightFor('single', $id) && $rec->containerId) {
+            if ($this->mvc->haveRightFor('single', $id) && ($rec->containerId ?? null)) {
                 $mid = doclog_Documents::saveAction(
                     array(
                         'action' => doclog_Documents::ACTION_EXPORT,

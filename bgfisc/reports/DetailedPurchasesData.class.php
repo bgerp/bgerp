@@ -93,6 +93,8 @@ class bgfisc_reports_DetailedPurchasesData extends frame2_driver_TableData
     protected function prepareRecs($rec, &$data = null)
     {
         $recs = array();
+        $rec->from = $rec->from ?? null;
+        $rec->to = $rec->to ?? null;
         
         $query = purchase_PurchasesData::getQuery();
         
@@ -106,7 +108,6 @@ class bgfisc_reports_DetailedPurchasesData extends frame2_driver_TableData
             }
             
             $firstDocRec = $firstDoc->className::fetch($firstDoc->that);
-            $aaa[] = $firstDocRec->createdOn;
             $cond = $firstDocRec->createdOn >= $rec->from. ' 00:00:00' && $firstDocRec->createdOn <= $rec->to. ' 23:59:59';
             if (!$cond) {
                 continue;
@@ -271,6 +272,7 @@ class bgfisc_reports_DetailedPurchasesData extends frame2_driver_TableData
      */
     protected static function on_AfterRenderSingle(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$tpl, $data)
     {
+        $dealersVerb = '';
         $Date = cls::get('type_Date');
         
         $fieldTpl = new core_ET(tr("|*<!--ET_BEGIN BLOCK-->[#BLOCK#]
@@ -291,8 +293,9 @@ class bgfisc_reports_DetailedPurchasesData extends frame2_driver_TableData
             $fieldTpl->append('<b>' . $Date->toVerbal($data->rec->to) . '</b>', 'to');
         }
         
-        if ((isset($data->rec->dealers)) && ((min(array_keys(keylist::toArray($data->rec->dealers))) >= 1))) {
-            foreach (type_Keylist::toArray($data->rec->dealers) as $dealer) {
+        $dealers = keylist::toArray($data->rec->dealers ?? null);
+        if (!empty($dealers) && min(array_keys($dealers)) >= 1) {
+            foreach ($dealers as $dealer) {
                 $dealersVerb .= (core_Users::getTitleById($dealer) . ', ');
             }
             

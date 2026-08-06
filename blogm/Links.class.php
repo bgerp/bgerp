@@ -25,7 +25,7 @@ class blogm_Links extends core_Manager
     /**
      * Зареждане на необходимите плъгини
      */
-    public $loadList = 'plg_RowTools, plg_State2, blogm_Wrapper, plg_Created, plg_Modified';
+    public $loadList = 'plg_RowTools2, plg_State2, blogm_Wrapper, plg_Created, plg_Modified';
     
     
     /**

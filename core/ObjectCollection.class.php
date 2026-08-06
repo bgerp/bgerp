@@ -45,53 +45,58 @@ class core_ObjectCollection implements Iterator
     /**
      * @todo Чака за документация...
      */
+    #[\ReturnTypeWillChange]
     public function rewind()
     {
         reset($this->container);
     }
-    
-    
+
+
     /**
      * @todo Чака за документация...
      */
+    #[\ReturnTypeWillChange]
     public function current()
     {
         $var = current($this->container);
-        
+
         return $var;
     }
-    
-    
+
+
     /**
      * @todo Чака за документация...
      */
+    #[\ReturnTypeWillChange]
     public function key()
     {
         $var = key($this->container);
-        
+
         return $var;
     }
-    
-    
+
+
     /**
      * @todo Чака за документация...
      */
+    #[\ReturnTypeWillChange]
     public function next()
     {
         $var = next($this->container);
-        
+
         return $var;
     }
-    
-    
+
+
     /**
      * @todo Чака за документация...
      */
+    #[\ReturnTypeWillChange]
     public function valid()
     {
         $key = key($this->container);
         $var = ($key !== null && $key !== false);
-        
+
         return $var;
     }
     

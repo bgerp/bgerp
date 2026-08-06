@@ -98,12 +98,14 @@ class core_Cache extends core_Manager
     public function description()
     {
         $this->FLD('key', 'identifier(' . (EF_CACHE_TYPE_SIZE + EF_CACHE_HANDLER_SIZE + 3) . ')', 'caption=Ключ,notNull');
+        $this->FLD('type', 'varchar(' . EF_CACHE_TYPE_SIZE . ')', 'caption=Тип,input=none');
         $this->FLD('data', 'blob(16777215,serialize,compress)', 'caption=Данни,tdClass=td-clamp');
         $this->FLD('lifetime', 'int', 'caption=Живот,notNull');     // В секунди
-        $this->load('plg_Created,plg_SystemWrapper,plg_RowTools');
-        
+        $this->load('plg_Created,plg_SystemWrapper,plg_RowTools2');
+
         $this->setDbUnique('key');
-        
+        $this->setDbIndex('type');
+
         // $this->dbEngine = 'InnoDB';
     }
     
@@ -179,9 +181,15 @@ class core_Cache extends core_Manager
     {
         $Cache = cls::get('core_Cache');
         $handler = null;
-        $key = $Cache->getKey($type, $handler);
+
+        // getKey преобразува $type (по референция) до фиксирания му вид,
+        // който се записва и в колоната #type. Така изтриването търси по
+        // индекс (точно съвпадение), вместо с LIKE '%...' (жокер в началото,
+        // който не може да ползва индекс и води до пълно сканиране).
+        $Cache->getKey($type, $handler);
+
         $query = self::getQuery();
-        while ($rec = $query->fetch(array("#key LIKE '%[#1#]'", "{$type}"))) {
+        while ($rec = $query->fetch(array("#type = '[#1#]'", "{$type}"))) {
             $Cache->deleteData($rec->key);
         }
     }
@@ -461,10 +469,16 @@ class core_Cache extends core_Manager
         }
         
         $rec = new stdClass();
-        
+
         // Задаваме ключа
         $rec->key = $key;
-        
+
+        // Типът е последният сегмент на ключа (виж getKey: "prefix|handler|type").
+        // Пази се в отделна индексирана колона за бързо изтриване по тип (@see removeByType).
+        // Ключове без разделител (напр. от getOrCalc) не са цел на removeByType - оставаме type празен.
+        $sepPos = strrpos($key, '|');
+        $rec->type = ($sepPos !== false) ? substr($key, $sepPos + 1) : '';
+
         if (!$saved) {
             
             // Сериализираме обекта

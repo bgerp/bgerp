@@ -99,7 +99,7 @@ class fileman_FileSize extends type_Bigint
        
         $arr = explode('-', $value1);
         
-        $res = trim($arr[0]) * trim($arr[1]);
+        $res = trim($arr[0]) * trim($arr[1] ?? '');
         
         if (!$res && $value > 0) {
             $this->error = 'Некоректен размер на файл';

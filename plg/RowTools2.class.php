@@ -38,7 +38,10 @@ class plg_RowTools2 extends core_Plugin
         }
 
         $recObj = is_object($rec) ? $rec : $mvc->fetch($rec);
-        $recId = $recObj->id ?? $rec;
+        $recId = $recObj->id ?? (is_scalar($rec) ? $rec : null);
+        if (!isset($recId) || !is_scalar($recId)) {
+            return;
+        }
         
         core_RowToolbar::createIfNotExists($row->_rowTools);
         $ddTools = &$row->_rowTools;
@@ -68,7 +71,7 @@ class plg_RowTools2 extends core_Plugin
         
         $singleTitle = $mvc->singleTitle;
         $singleTitle = tr($singleTitle);
-        $singleTitle = mb_strtolower($singleTitle);
+        $singleTitle = mb_strtolower($singleTitle ?? '');
         
         if (!empty($singleUrl)) {
             $ddTools->addLink('Разглеждане', $singleUrl, "ef_icon={$singleIcon},title=Разглеждане на|* {$singleTitle},id=single{$recId}");

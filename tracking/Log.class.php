@@ -69,6 +69,8 @@ class tracking_Log extends core_Master
     {
         $data->listFilter->FNC('dateFrom', 'date', 'caption=От,input');
         $data->listFilter->FNC('dateTo', 'date', 'caption=Сега,input');
+        $data->listFilter->setField('vehicleId', 'placeholderType=all');
+        $data->listFilter->setField('driverId', 'placeholderType=all');
         
         $data->listFilter->showFields = 'vehicleId,driverId,dateFrom,dateTo';
         

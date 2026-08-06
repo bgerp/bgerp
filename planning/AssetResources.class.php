@@ -494,7 +494,8 @@ class planning_AssetResources extends core_Master
      */
     protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
-        $data->listFilter->FNC('folderId', 'key(mvc=doc_Folders, select=title, allowEmpty)', 'caption=Папка,silent,remember,input,refreshForm');
+        $data->listFilter->FNC('folderId', 'key(mvc=doc_Folders, select=title, allowEmpty)', 'caption=Папка,placeholderType=all,silent,remember,input,refreshForm');
+        $data->listFilter->setField('groupId', 'placeholderType=all');
         $data->listFilter->setFieldType('state', 'enum(all=Всички,active=Активни,closed=Затворени,usedInTask=Използвани в ПО,notUsedInTask=Неизползвани в ПО)');
         $data->listFilter->setDefault('state', 'active');
 
@@ -795,6 +796,9 @@ class planning_AssetResources extends core_Master
     {
         if (isset($rec->fromProtocolId)) {
             accda_Da::logWrite('Създаване на ново оборудване', $rec->fromProtocolId);
+
+            // Инвалидираме кеша на ДА-то, към което сега е свързан новия актив
+            doc_DocumentCache::cacheInvalidation(accda_Da::fetchField($rec->fromProtocolId, 'containerId'));
         }
     }
     

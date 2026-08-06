@@ -41,7 +41,7 @@ class bgfisc_plg_Rko extends core_Plugin
      */
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
-        if (bgfisc_plg_CashDocument::isApplicable($data->form->rec->threadId)) {
+        if (bgfisc_plg_CashDocument::isApplicable($data->form->rec->threadId ?? null)) {
             $remFields = $data->form->getFieldParam('peroCase', 'removeAndRefreshForm');
             $remFields .= "|stornoReason";
             $data->form->setField('peroCase', "removeAndRefreshForm={$remFields}");
@@ -56,8 +56,8 @@ class bgfisc_plg_Rko extends core_Plugin
     {
         $rec = &$form->rec;
         
-        if (bgfisc_plg_CashDocument::isApplicable($rec->threadId)) {
-            $registerRec = bgfisc_Register::getFiscDevice($rec->peroCase);
+        if (bgfisc_plg_CashDocument::isApplicable($rec->threadId ?? null)) {
+            $registerRec = bgfisc_Register::getFiscDevice($rec->peroCase ?? null);
             
             if (!empty($registerRec)) {
                 $Driver = peripheral_Devices::getDriver($registerRec);
@@ -109,7 +109,7 @@ class bgfisc_plg_Rko extends core_Plugin
      */
     public static function on_AfterGetReasonContainerOptions($mvc, &$res, $rec)
     {
-        if (bgfisc_plg_CashDocument::isApplicable($rec->threadId)) {
+        if (bgfisc_plg_CashDocument::isApplicable($rec->threadId ?? null)) {
             $res = is_array($res) ? $res : array();
             $rQuery = store_Receipts::getQuery();
             $rQuery->where("#threadId = {$rec->threadId} AND #state = 'active'");
@@ -129,7 +129,7 @@ class bgfisc_plg_Rko extends core_Plugin
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-        $row->reason = "{$row->reason}{$row->stornoReason}";
+        $row->reason = ($row->reason ?? '') . ($row->stornoReason ?? '');
     }
     
     
@@ -145,11 +145,11 @@ class bgfisc_plg_Rko extends core_Plugin
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         if (in_array($action, array('selectinvoice')) && isset($rec)) {
-            if (!bgfisc_plg_CashDocument::isApplicable($rec->threadId)) {
+            if (!bgfisc_plg_CashDocument::isApplicable($rec->threadId ?? null)) {
                 
                 return;
             }
-            if ($rec->state == 'active' || $rec->state == 'rejected') {
+            if (($rec->state ?? null) == 'active' || ($rec->state ?? null) == 'rejected') {
                 $requiredRoles = 'no_one';
             }
         }

@@ -38,7 +38,7 @@ class acc_journal_Transaction
     /**
      * @var acc_JournalDetails
      */
-    public $JournalDetals;
+    public $JournalDetails;
     
     
     /**

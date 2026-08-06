@@ -42,7 +42,7 @@ class type_Email extends type_Varchar
      */
     public function fromVerbal($value)
     {
-        $value = trim($value);
+        $value = trim($value ?? '');
         
         $value = static::replaceEscaped($value);
         

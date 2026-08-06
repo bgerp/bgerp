@@ -136,6 +136,7 @@ class blast_LetterDetails extends doc_Detail
         
         // Вземаме записите
         $masterRec = $masterClass->fetch($rec->{$masterKey});
+        $str = '';
         
         // Обхождаме масива
         foreach ($listDetArr as $listDet) {

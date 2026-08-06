@@ -50,10 +50,14 @@ class dec_plg_Source extends core_Plugin
 
         $res = array();
         $Detail = cls::get($mvc->mainDetail);
+        $productFld = $Detail->productFld ?? 'productId';
         $dQuery = $Detail->getQuery();
         $dQuery->where("#{$Detail->masterKey} = {$rec->id}");
         while($dRec = $dQuery->fetch()){
-            $res[$dRec->{$Detail->productFld}] = (object)array('productId' => $dRec->{$Detail->productFld}, 'batches' => $dRec->batches);
+            $productId = $dRec->{$productFld} ?? null;
+            if (!$productId) continue;
+
+            $res[$productId] = (object)array('productId' => $productId, 'batches' => $dRec->batches ?? null);
         }
 
         return $res;

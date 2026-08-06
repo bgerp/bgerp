@@ -22,7 +22,7 @@ class sens2_script_Actions extends core_Detail
     /**
      * Необходими плъгини
      */
-    public $loadList = 'plg_Created, plg_RowTools, sens2_Wrapper, plg_State, plg_Search';
+    public $loadList = 'plg_Created, plg_RowTools2, sens2_Wrapper, plg_State, plg_Search';
     
     
     /**
@@ -122,7 +122,7 @@ class sens2_script_Actions extends core_Detail
             }
         }
         
-        if ($rec->action) {
+        if (!empty($rec->action)) {
             $action = cls::get($rec->action);
             $action->prepareActionForm($form);
         } else {
@@ -136,14 +136,14 @@ class sens2_script_Actions extends core_Detail
      */
     public function on_AfterInputEditForm($mvc, $form)
     {
-        if ($form->rec->action && !$form->rec->order) {
+        if (!empty($form->rec->action) && empty($form->rec->order)) {
             $query = $mvc->getQuery();
             $query->orderBy('#order', 'DESC');
             $query->limit(1);
             $maxOrder = (int) $query->fetch("#scriptId = {$form->rec->scriptId}")->order;
             $form->setDefault('order', round(($maxOrder + 1) / 10) * 10 + 10);
         }
-        if ($form->isSubmitted() && $form->rec->action) {
+        if ($form->isSubmitted() && !empty($form->rec->action)) {
             $action = cls::get($form->rec->action);
             $action->checkActionForm($form);
             if (!$form->gotErrors()) {

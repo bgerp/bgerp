@@ -79,14 +79,14 @@ class abbyyocr_Converter extends core_Manager
             // Ако вече е извлечена текстовата част
             $procTextOcr = fileman_Indexes::isProcessStarted(array('type' => 'textOcr', 'dataId' => $fRec->dataId ?? null));
             if ($procTextOcr) {
-                $btnParams['warning'] = 'Файлът е преминал през разпознаване на текст';
+                $btnParams['warning'] = 'AbbyyOCR: Файлът е преминал през разпознаване на текст';
             } elseif (!self::haveTextForOcr($fRec)) {
                 $btnParams['warning'] = 'Няма текст за разпознаване';
             }
             
             $arr = array();
             $arr['abbyyocr']['url'] = array(get_called_class(), 'getTextByOcr', $fRec->fileHnd ?? null, 'ret_url' => true);
-            $arr['abbyyocr']['title'] = 'OCR';
+            $arr['abbyyocr']['title'] = 'Abbyy OCR';
             $arr['abbyyocr']['icon'] = 'img/16/scanner.png';
             $arr['abbyyocr']['btnParams'] = $btnParams;
         }

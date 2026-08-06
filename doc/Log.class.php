@@ -27,6 +27,12 @@ class doc_Log extends core_Manager
 
 
     /**
+     * Брой документи на страница в диалоговия прозорец
+     */
+    public $dialogItemsPerPage = 8;
+
+
+    /**
      * Екшън за добавяне на документ от диалогов прозорец
      */
     public function act_AddDocDialog()
