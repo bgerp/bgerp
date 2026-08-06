@@ -224,7 +224,7 @@ class core_Composer extends core_Mvc
     public static function isInstalled($pack, $version = null)
     {
         if(!countR(self::$packs)) {
-            self::$packs = (array) core_Cache::get('COMPOSER', 'INSTALLED-PACKS');
+            self::$packs =  core_Cache::get('COMPOSER', 'INSTALLED-PACKS');
         }
         
         if(!countR(self::$packs)) {
