@@ -322,7 +322,7 @@ class doclog_Documents extends core_Manager
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
         // Ако има from
-        if ($rec->from) {
+        if ($rec->from ?? null) {
             
             // Линк към визитката
             $row->from = crm_Profiles::createLink($rec->from);

@@ -348,4 +348,8 @@ function setTwoColsFilterWidth() {
     });
 
     updateTwoColsFilterModes();
+
+    // Показваме филтъра и списъка едва след прилагането на окончателния изглед.
+    // Така при първоначално зареждане не се вижда междинният едноколонен кадър.
+    $filters.addClass('twoColsFilterReady');
 }

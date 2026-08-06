@@ -806,7 +806,7 @@ class store_InventoryNoteSummary extends doc_Detail
                   $field = ($orderProductBy === 'code') ? $codeFld : $nameFld;
                   $result = strcasecmp($a->{$field}, $b->{$field});
              } else {
-                  $result = $a->groupName > $b->groupName;
+                  $result = $a->groupName <=> $b->groupName;
              }
                 
              return $result;
