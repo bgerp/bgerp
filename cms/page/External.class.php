@@ -180,10 +180,7 @@ class cms_page_External extends core_page_Active
                 continue;
             }
 
-            $html .= "<div class='footer-menu'>";
-            $html .= "<p>" . type_Varchar::escape($menuRec->menu) . "</p>";
             $html .= $menuHtml;
-            $html .= "</div>";
         }
 
         return new ET($html);
@@ -221,7 +218,7 @@ class cms_page_External extends core_page_Active
             );
         }
 
-        return self::renderFooterMenuList_($items, $maxItemsInColumn);
+        return self::renderFooterMenuColumns_($items, $maxItemsInColumn, $menuRec->menu);
     }
 
 
@@ -230,28 +227,39 @@ class cms_page_External extends core_page_Active
      *
      * @param array $items
      * @param int $maxItemsInColumn
+     * @param string $menuTitle
      * @return string
      */
-    private static function renderFooterMenuList_($items, $maxItemsInColumn)
+    private static function renderFooterMenuColumns_($items, $maxItemsInColumn, $menuTitle)
     {
         if (!is_array($items) || !count($items)) {
             return '';
         }
 
-        $html = "
-<div class='footer-menu-columns'>";
-        foreach (array_chunk($items, $maxItemsInColumn) as $columnItems) {
+        $html = '';
+        $menuTitle = type_Varchar::escape($menuTitle);
+        foreach (array_chunk($items, $maxItemsInColumn) as $columnIndex => $columnItems) {
+            $class = 'footer-menu-column';
+            $titleClass = '';
+            $titleAttr = '';
+            if ($columnIndex) {
+                $class .= ' footer-menu-column-continuation';
+                $titleClass = " class='footer-menu-title-spacer'";
+                $titleAttr = " aria-hidden='true'";
+            }
+
             $html .= "
+<div class='{$class}'>
+    <p{$titleClass}{$titleAttr}>{$menuTitle}</p>
     <ul>";
             foreach ($columnItems as $item) {
                 $html .= "
         <li>" . ht::createLink($item->title, $item->url)->getContent() . "</li>";
             }
             $html .= "
-    </ul>";
-        }
-        $html .= "
+    </ul>
 </div>";
+        }
 
         return $html;
     }

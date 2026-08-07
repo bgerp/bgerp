@@ -1,41 +1,20 @@
 <style>
     .footer-menus {
-        display: flex;
-        align-items: flex-start;
-        flex-wrap: nowrap;
-        justify-content: space-around;
-        gap: 32px 48px;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        align-items: start;
+        gap: 32px 24px;
         padding: 18px 12px;
     }
 
-    .footer-menus > .footer-menu {
-        flex: 1 1 auto;
+    .footer-menu-column {
         min-width: 0;
     }
 
-    .narrow .footer-menus {
-        flex-wrap: wrap;
-        justify-content: flex-start;
-    }
-    .narrow .footer-menus > .footer-menu {
-        width: 100%;
+    .footer-menu-title-spacer {
+        visibility: hidden;
     }
 
-    .narrow .footer-menu-columns {
-        flex-wrap: wrap;
-    }
-
-    .narrow .footer-menus ul {
-        flex-basis: 140px;
-    }
-
-    .footer-menu-columns {
-        display: flex;
-        align-items: flex-start;
-        flex-wrap: nowrap;
-        gap: 12px 24px;
-        width: 100%;
-    }
     .footer-menus p {
         margin: 0 0 5px -1px;
         font-size: 16px;
@@ -47,13 +26,12 @@
         list-style: none;
         margin: 0;
         padding: 0;
-        flex: 1 1 0;
-        min-width: 0;
     }
 
     .footer-menus li {
         margin-bottom: 4px;
         font-size: 0.9em;
+        overflow-wrap: anywhere;
     }
 
     .footer-menus a {
