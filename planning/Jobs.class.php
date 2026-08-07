@@ -1061,8 +1061,10 @@ class planning_Jobs extends core_Master
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         $row->title = (!empty($fields['-single'])) ? $mvc->getRecTitle($rec) : $mvc->getLink($rec->id);
+        // Балонче за вида на заданието - със стила на рецептите (@see cat_Boms)
+        $row->type = cat_Boms::renderTypeBadge($row->type ?? null, $mvc, $rec);
+
         if ($rec->type == 'disassembly') {
-            $row->type = "<span style='display:inline-block;padding:1px 8px;border-radius:3px;background:#b71c1c;color:#fff;font-weight:bold;letter-spacing:0.08em;'>{$row->type}</span>";
             unset($row->allowSecondMeasure);
 
             // За Разпад "Заскладено" показва quantityDisassembled, не quantityProduced

@@ -974,17 +974,27 @@ class cat_Boms extends core_Master
     
     
     /**
-     * Балонче за вида на рецептата - червеникаво за разпад, зеленикаво за
-     * технологичните. Ползва се и от двата таба (@see planning_GenericMapper)
+     * Балонче за вида на рецептата/заданието - червеникаво за разпад,
+     * зеленикаво за производството. Ползва се и от двата таба
+     * (@see planning_GenericMapper), и от заданията (@see planning_Jobs)
      *
-     * @param string|null $typeVerbal
-     * @param bool        $isDisassembly
+     * Кой от двата стила важи, се определя от класа - рецептата за разпад е
+     * винаги разпад. Заданията обаче са и за производство, и за разпад, затова
+     * за тях решава видът в записа
+     *
+     * @param string|null   $typeVerbal - какво да пише в балончето
+     * @param mixed         $mvc        - клас (име или инстанция), чийто вид се показва
+     * @param stdClass|null $rec        - записът; нужен е само за класовете,
+     *                                    които са и за производство, и за разпад
      *
      * @return string|null
      */
-    public static function renderTypeBadge($typeVerbal, $isDisassembly = false)
+    public static function renderTypeBadge($typeVerbal, $mvc = null, $rec = null)
     {
         if (empty($typeVerbal)) return $typeVerbal;
+
+        $Mvc = (is_object($mvc) || is_string($mvc)) ? cls::get($mvc) : null;
+        $isDisassembly = ($Mvc instanceof cat_DisassemblyBoms) || (($rec->type ?? null) == 'disassembly');
 
         $color = $isDisassembly ? '#b71c1c' : '#1b5e20';
         $bgColor = $isDisassembly ? '#fdecea' : '#e8f5e9';
@@ -1053,7 +1063,7 @@ class cat_Boms extends core_Master
             $row = $section['mvc']->recToVerbal($rec);
 
             $typeVerbal = isset($section['type']) ? tr($section['type']) : ($row->type ?? null);
-            $row->type = static::renderTypeBadge($typeVerbal, $section['isDisassembly']);
+            $row->type = static::renderTypeBadge($typeVerbal, $section['mvc'], $rec);
 
             $data->recs[$key] = $rec;
             $data->rows[$key] = $row;

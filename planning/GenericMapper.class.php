@@ -339,9 +339,20 @@ class planning_GenericMapper extends core_Manager
         $allRecs = array();
         foreach ($bomSections as $section) {
             $query = $section['details']->getQuery();
-            $query->EXT('state', get_class($section['master']), 'externalName=state,externalKey=bomId');
-            $query->XPR('orderByState', 'int', "(CASE #state WHEN 'active' THEN 1 WHEN 'closed' THEN 2 ELSE 3 END)");
-            $query->where("#{$section['productFld']} = {$data->masterId} AND #state != 'rejected'");
+
+            // Състоянието на рецептата се взима под друго име - детайлът на
+            // рецептата за разпад си има собствено поле `state` за оттеглените
+            // ревизии на реда (@see doc_plg_DetailRevisions)
+            $query->EXT('bomState', get_class($section['master']), 'externalName=state,externalKey=bomId');
+            $query->XPR('orderByState', 'int', "(CASE #bomState WHEN 'active' THEN 1 WHEN 'closed' THEN 2 ELSE 3 END)");
+            $query->where("#{$section['productFld']} = {$data->masterId} AND #bomState != 'rejected'");
+
+            // Оттеглените ревизии на реда не участват - артикулът може вече да
+            // не е в рецептата
+            if ($section['details']->getField('state', false)) {
+                $query->where("#state != 'rejected' OR #state IS NULL");
+            }
+
             $query->groupBy('bomId');
             $query->orderBy('orderByState', 'ASC');
 
@@ -373,7 +384,7 @@ class planning_GenericMapper extends core_Manager
 
             // Вид на рецептата
             $typeVerbal = $section['isDisassembly'] ? tr('Разпад') : ($row->type ?? null);
-            $row->type = cat_Boms::renderTypeBadge($typeVerbal, $section['isDisassembly']);
+            $row->type = cat_Boms::renderTypeBadge($typeVerbal, $section['master'], $bomRec);
 
             // В каква роля участва артикулът
             $actionVerbal = $section['details']->getFieldType('type')->toVerbal($rec->type);
