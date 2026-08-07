@@ -17,10 +17,12 @@
  *
  * За 'production' редовете се показват два процента от себестойността на
  * вложения артикул:
- * - `autoPercent` - изчислява се на живо върху всички редове наведнъж, защото
- *   зависи от общия сбор (@see cat_DisassemblyBoms::calcAutoPercents);
- * - `costPercent` - ръчно зададеният, който е само спомагателен и важи
- *   единствено ако за реда автоматичен не може да се изчисли.
+ * - `autoPercent` - изчисленият за реда (по цена по избраната политика или
+ *   пропорционално на количеството). Смята се на живо върху всички редове
+ *   наведнъж, защото зависи от общия сбор (@see cat_DisassemblyBoms::calcAutoPercents);
+ * - `costPercent` - ръчно зададеният. Той е абсолютен - "заковава" се и се вади
+ *   от 100%, а остатъкът се разпределя между изчислимите редове. Важи само ако
+ *   за реда не е изчислен процент по цена.
  *
  * Кой от двата важи и дали изобщо се получава 100% решава единствено
  * @see cat_DisassemblyBoms::getPercents
@@ -110,7 +112,7 @@ class cat_DisassemblyBomDetails extends doc_Detail
         $this->FNC('packQuantity', 'double(min=0)', 'caption=Количество,input=input,mandatory,smartCenter');
         $this->FLD('quantityInPack', 'double(smartRound)', 'input=none,notNull,value=1');
         $this->FLD('quantity', 'double', 'caption=Количество,input=none,smartCenter');
-        $this->FLD('costPercent', 'percent(min=0,max=1,allowEmpty)', 'caption=% сб-ст,hint=Каква част от себестойноста на вложимия артикул е. Важи само ако автоматичният процент не може да се изчисли');
+        $this->FLD('costPercent', 'percent(min=0,max=1,allowEmpty)', 'caption=% сб-ст,hint=Каква част от себестойноста на вложимия артикул е. Заковава се и се вади от 100%, а остатъкът се разпределя между останалите редове. Не важи, ако за реда има цена по избраната ценова политика');
         $this->FLD('notes', 'richtext(rows=3,bucket=Notes)', 'caption=Описание');
 
         $this->FNC('autoPercent', 'percent(decimals=2)', 'caption=Авт. % от сб-ста,input=none,tdClass=accCell');
@@ -326,10 +328,10 @@ class cat_DisassemblyBomDetails extends doc_Detail
             $statuses = array();
             $percentsArr = cat_DisassemblyBoms::getPercents($bomId, null, $statuses);
 
-            // За кои артикули липсват цени и затова важи ръчният им процент -
-            // показва се над таблицата (@see renderDetail_)
-            if (isset($statuses['autoWarning'])) {
-                $warningArr[$bomId] = tr($statuses['autoWarning']);
+            // Кои артикули не се разпределят по избраната политика - показва се
+            // над таблицата (@see renderDetail_)
+            if (isset($statuses['warning'])) {
+                $warningArr[$bomId] = tr($statuses['warning']);
             }
 
             foreach ($percentsArr as $id => $obj) {
@@ -337,15 +339,16 @@ class cat_DisassemblyBomDetails extends doc_Detail
 
                 if (isset($obj->autoPercent)) {
 
-                    // Автоматичният бие ръчния - тогава ръчният е само за сведение
-                    // и се приглушава, а важащият автоматичен е в синьо
+                    // Изчисленият бие ръчния - тогава ръчният е само за сведение
+                    // и се приглушава, а важащият изчислен е в синьо
                     $percentVerbal = $Percent->toVerbal($obj->autoPercent);
-                    $data->rows[$id]->autoPercent = "<span style='color:blue'>{$percentVerbal}</span>";
+                    $hint = ($obj->source == 'price') ? 'Изчислен по цената на реда по избраната ценова политика' : 'Изчислен пропорционално на количеството на реда';
+                    $data->rows[$id]->autoPercent = ht::createHint("<span style='color:blue'>{$percentVerbal}</span>", $hint, 'notice', false);
 
                     if (isset($obj->costPercent)) {
                         $data->rows[$id]->costPercent = ht::createHint("<span class='quiet'>{$data->rows[$id]->costPercent}</span>", 'Не важи - за реда е изчислен автоматичен процент', 'notice', false);
                     }
-                } elseif (isset($obj->costPercent)) {
+                } elseif ($obj->source == 'manual') {
 
                     // Няма цена по политиката, затова важи ръчният процент
                     $data->rows[$id]->autoPercent = ht::createHint("<span class='quiet'>n/a</span>", 'Няма как да се изчисли - за реда важи ръчният процент', 'notice', false);
@@ -353,7 +356,7 @@ class cat_DisassemblyBomDetails extends doc_Detail
 
                     // Редът няма нито изчислен, нито ръчен процент - причината
                     // идва от самото изчисление
-                    $data->rows[$id]->autoPercent = ht::createHint("<span class='red'>n/a</span>", $statuses['autoError'] ?? 'Автоматичният процент не може да се изчисли', 'warning', false);
+                    $data->rows[$id]->autoPercent = ht::createHint("<span class='red'>n/a</span>", $statuses['error'] ?? 'Процентът не може да се изчисли', 'warning', false);
                 }
 
                 $data->totalPercent += $obj->percent ?? 0;
