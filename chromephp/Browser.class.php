@@ -75,15 +75,16 @@ class chromephp_Browser
         // Трети параметър трябва да е TRUE, за да се вземе и CSS
         $html = $wrapperTpl->getContent(null, 'CONTENT', true);
 
-        $binDir = chromephp_Setup::get('BIN_PATH');
-        if (!strlen(trim($binDir))) {
-            unset($binDir);
-        }
-
-        $browserFactory = new BrowserFactory($binDir);
+        $browserFactory = new BrowserFactory(self::getBinPath() ?: null);
         $browserFactory->addOptions(['ignoreCertificateErrors' => true, 'enableImages' => true]);
 
-        $browser = $browserFactory->createBrowser();
+        try {
+            $browser = $browserFactory->createBrowser();
+        } catch (\RuntimeException $e) {
+            // Chrome sandbox-а изисква user namespaces, които често са забранени за www-data
+            $browserFactory->addOptions(['noSandbox' => true]);
+            $browser = $browserFactory->createBrowser();
+        }
 
         $page = $browser->createPage();
 
@@ -127,6 +128,47 @@ class chromephp_Browser
             return false;
         }
 
-        return core_Composer::isInstalled('chrome-php/chrome');
+        if (!core_Composer::isInstalled('chrome-php/chrome')) {
+
+            return false;
+        }
+
+        return (bool) self::getBinPath();
+    }
+
+
+    /**
+     * Връща пътя до работещ изпълним файл на Chrome или FALSE, ако няма такъв
+     *
+     * @return string|FALSE
+     */
+    public static function getBinPath()
+    {
+        static $binPath = null;
+
+        if (isset($binPath)) {
+
+            return $binPath;
+        }
+
+        $binPath = false;
+
+        // Зададеният в конфигурацията бинарник
+        $confPath = trim((string) chromephp_Setup::get('BIN_PATH'));
+        if (strlen($confPath) && is_executable($confPath)) {
+
+            return $binPath = $confPath;
+        }
+
+        // Системно инсталиран Chrome/Chromium
+        foreach (array('chrome', 'google-chrome', 'google-chrome-stable', 'chromium', 'chromium-browser') as $bin) {
+            $found = trim((string) shell_exec("command -v {$bin} 2>/dev/null"));
+            if (strlen($found)) {
+
+                return $binPath = $found;
+            }
+        }
+
+        return $binPath;
     }
 }
