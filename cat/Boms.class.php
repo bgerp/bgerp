@@ -1018,17 +1018,14 @@ class cat_Boms extends core_Master
         // защото ид-тата на двата мениджъра се застъпват, а plg_RowTools2 търси
         // записа в $data->recs по ключа на реда
         $data->rows = $data->recs = array();
-        $bomSections = array(
-            array('mvc'    => $this,
-                  'prefix' => 'b',
-                  'type'   => null,
-                  'isDisassembly' => false,
-            ),
-            array('mvc'    => cls::get('cat_DisassemblyBoms'),
-                  'prefix' => 'd',
-                  'type'   => 'Разпад',
-                  'isDisassembly' => true,
-                ),
+        $bomSections = array(array('mvc'    => $this,
+                                   'prefix' => 'b',
+                                   'type'   => null,
+                                   'isDisassembly' => false,
+            ), array('mvc'    => cls::get('cat_DisassemblyBoms'),
+                    'prefix' => 'd',
+                    'type'   => 'Разпад',
+                    'isDisassembly' => true,),
         );
 
         // Първо се събират записите от двата мениджъра - лимит на ниво заявка не
