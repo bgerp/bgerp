@@ -15,6 +15,7 @@
  *
  * @since     v 0.1
  */
+#[\AllowDynamicProperties]
 class bgerp_iface_DealAggregator
 {
     /**

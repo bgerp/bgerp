@@ -1,3 +1,7 @@
+.wide .twoColsFilter:not(.twoColsFilterReady),
+.wide .twoColsFilter:not(.twoColsFilterReady) ~ * {
+  visibility: hidden; }
+
 .wide .twoColsFilter {
   display: flex;
   flex-wrap: wrap;

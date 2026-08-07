@@ -128,6 +128,14 @@ class bgerp_iface_DealProduct
     
     
     /**
+     * Разходно перо
+     *
+     * @var int
+     */
+    public $expenseItemId;
+
+
+    /**
      * Запис за разходи
      */
     public $expenseRecId;

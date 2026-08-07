@@ -1039,6 +1039,11 @@ function pressNavigable(element)
 
 			console.log('SEND:' + amount + " TO " + deviceUrl + "/ cPort " + comPort);
 			$(".fullScreenCardPayment").css("display", "block");
+			// Бутоните на модала (Ръчно потвърждение / Назад) стартират визуално
+			// неактивни (disabledBtn) и след 10 сек класът се маха, за да личи, че
+			// вече може да се натискат при проблем. Кликът работи през цялото
+			// време — класът е само визуален. Централно за всички POS драйвери.
+			armCardPaymentModalButtons();
 			$('.select-input-pos').prop("disabled", true);
 			$("#modalTitleSpan").text(" " + deviceName);
             $("#modalTitleSubSpan").text(" " + subTitle);

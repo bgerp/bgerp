@@ -271,7 +271,7 @@ class store_DocumentPackagingDetail extends store_InternalDocumentDetail
         $ourCombined = array();
         foreach ($ours as $ourRec) {
             if(!array_key_exists($ourRec->productId, $ourCombined)){
-                $ourCombined[$ourRec->productId] = (object)array('productId' => $ourRec->productId, 'productType' => 'ours');
+                $ourCombined[$ourRec->productId] = (object)array('productId' => $ourRec->productId, 'productType' => 'ours', 'quantity' => 0);
             }
 
             $signOurs = ($ourRec->type == 'in') ? 1 : -1;

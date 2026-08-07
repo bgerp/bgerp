@@ -195,6 +195,43 @@ class markitdown_Converter extends core_Manager
 
 
     /**
+     * Конвертира HTML стринг синхронно в Markdown.
+     *
+     * @param string $html
+     *
+     * @return string Празен стринг при неуспешно конвертиране
+     */
+    public static function convertHtml($html)
+    {
+        if (!is_string($html) || trim($html) === '') {
+
+            return '';
+        }
+
+        $filePath = null;
+
+        try {
+            $fileName = 'markitdown_' . str::getRand('dddddddd') . '.html';
+            $filePath = fileman::addStrToFile($html, $fileName);
+            if (!static::canExtract($filePath)) {
+
+                return '';
+            }
+            $content = cls::get(get_called_class())->getMarkdown($filePath);
+        } catch (Throwable $e) {
+            reportException($e);
+            $content = '';
+        } finally {
+            if ($filePath && is_file($filePath)) {
+                @unlink($filePath);
+            }
+        }
+
+        return is_string($content) ? trim($content) : '';
+    }
+
+
+    /**
      * Извлича съдържанието на подадения файл в markdown
      *
      * @param string $file   - Манипулатор на файла или път до файл

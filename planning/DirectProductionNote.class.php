@@ -307,6 +307,17 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         $form->setDefault('productId', key($productOptions));
         $originPackId = $originRec->packagingId;
 
+        if (core_Packs::isInstalled('batch') && isset($rec->productId)) {
+            $BatchDef = batch_Defs::getBatchDef($rec->productId);
+            if ($BatchDef instanceof batch_definitions_StringExpiryDate) {
+                $form->setField('valior', 'removeAndRefreshForm=batch');
+                $requestValior = Request::get('valior', 'date');
+                if (isset($requestValior)) {
+                    $rec->valior = $requestValior;
+                }
+            }
+        }
+
         if(isset($rec->productId)){
             if($rec->productId != $jobRec->productId){
                 $form->setField('inputStoreId', 'input=none');

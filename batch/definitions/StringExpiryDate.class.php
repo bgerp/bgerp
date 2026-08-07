@@ -49,15 +49,54 @@ class batch_definitions_StringExpiryDate extends batch_definitions_Varchar
      *
      * @return array
      */
-    protected function getBatchTypeParams()
+    protected function getBatchTypeParams($class = null, $objectId = null)
     {
-        return array(
+        $params = array(
             'productId'   => $this->rec->productId,
             'format'      => $this->rec->format,
             'defaultTime' => $this->rec->time,
             'delimiter'   => $this->rec->delimiter,
-            'sizeOfBatch' => $this->rec->sizeOfBatch,
         );
+
+        if (isset($this->rec->sizeOfBatch)) {
+            $params['sizeOfBatch'] = $this->rec->sizeOfBatch;
+        }
+
+        $startDate = $this->getDocumentDate($class, $objectId);
+        if (isset($startDate)) {
+            $params['startDate'] = $startDate;
+        }
+
+        return $params;
+    }
+
+
+    /**
+     * Връща датата на документа, от която да се изчисли срокът на годност
+     *
+     * @param mixed $class
+     * @param mixed $objectId
+     * @return datetime|null
+     */
+    protected function getDocumentDate($class, $objectId)
+    {
+        if (!isset($class) || !isset($objectId)) return null;
+
+        $Class = cls::get($class);
+        $rec = $Class->fetchRec($objectId);
+        if (!$rec) return null;
+
+        if ($Class instanceof core_Detail) {
+            $Master = cls::get($Class->Master);
+            $masterId = $rec->{$Class->masterKey} ?? null;
+            if (!isset($masterId) || empty($Master->valiorFld)) return null;
+
+            return $Master->fetchField($masterId, $Master->valiorFld);
+        }
+
+        if (empty($Class->valiorFld)) return null;
+
+        return $rec->{$Class->valiorFld} ?? null;
     }
 
     /**
@@ -69,7 +108,7 @@ class batch_definitions_StringExpiryDate extends batch_definitions_Varchar
      */
     public function getBatchClassType($class = null, $objectId = null)
     {
-        $params = $this->getBatchTypeParams();
+        $params = $this->getBatchTypeParams($class, $objectId);
         
         $paramStr = array();
         foreach ($params as $k => $v) {
