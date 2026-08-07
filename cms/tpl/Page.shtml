@@ -1,19 +1,20 @@
 <style>
     .footer-menus {
-        display: flex;
-        justify-content: space-around;
-        gap: 32px 48px;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        align-items: start;
+        gap: 32px 24px;
         padding: 18px 12px;
-
     }
 
-    .narrow .footer-menus {
-        flex-wrap: wrap;
-        justify-content: flex-start;
+    .footer-menu-column {
+        min-width: 0;
     }
-    .narrow .footer-menus div {
-        width: 100%;
+
+    .footer-menu-title-spacer {
+        visibility: hidden;
     }
+
     .footer-menus p {
         margin: 0 0 5px -1px;
         font-size: 16px;
@@ -23,7 +24,6 @@
 
     .footer-menus ul {
         list-style: none;
-        max-width: 400px;
         margin: 0;
         padding: 0;
     }
@@ -31,6 +31,7 @@
     .footer-menus li {
         margin-bottom: 4px;
         font-size: 0.9em;
+        overflow-wrap: anywhere;
     }
 
     .footer-menus a {
