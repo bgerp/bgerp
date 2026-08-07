@@ -217,7 +217,7 @@ class cat_DisassemblyBomDetails extends doc_Detail
         // себестойността, когато има избрана политика
         static $masterCache = array();
         if (!array_key_exists($rec->bomId, $masterCache)) {
-            $masterCache[$rec->bomId] = cat_DisassemblyBoms::fetch($rec->bomId, 'priceListId,allProductsAreInTheSameUomId');
+            $masterCache[$rec->bomId] = cat_DisassemblyBoms::fetch($rec->bomId);
         }
         $bomRec = $masterCache[$rec->bomId];
 
@@ -232,7 +232,7 @@ class cat_DisassemblyBomDetails extends doc_Detail
             $row->amount = static::getAmountVerbal($bomRec->priceListId, $rec->productId, $rec->quantity, null, $errorHint);
 
             // Бърз линк за нова цена има смисъл само при избрана политика
-            if (!empty($bomRec->priceListId) && price_ListRules::haveRightFor('add', (object) array('productId' => $rec->productId, 'listId' => $bomRec->priceListId))) {
+            if (!empty($bomRec->priceListId) && price_ListRules::haveRightFor('add', (object) array('productId' => $rec->productId, 'listId' => $bomRec->priceListId)) && $bomRec->state == 'draft') {
                 $addPriceUrl = array('price_ListRules', 'add', 'type' => 'value', 'listId' => $bomRec->priceListId, 'productId' => $rec->productId, 'priority' => 1, 'ret_url' => true);
                 if(empty($errorHint)){
                     core_RowToolbar::createIfNotExists($row->_rowTools);

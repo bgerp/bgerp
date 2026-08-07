@@ -402,6 +402,8 @@ class cat_DisassemblyBoms extends core_Master
      */
     public static function calcAutoPercents($productsArr, $priceListId, $date = null, &$statuses = array())
     {
+        core_Debug::startTimer('DISASSEMBLY_CALC_AUTO_PERCENTS');
+
         $statuses = array();
         $productIds = $weightArr = array();
         foreach ($productsArr as $obj) {
@@ -409,7 +411,11 @@ class cat_DisassemblyBoms extends core_Master
             $productIds[$obj->productId] = $obj->productId;
         }
 
-        if (!countR($productIds)) return $productsArr;
+        if (!countR($productIds)) {
+            core_Debug::stopTimer('DISASSEMBLY_CALC_AUTO_PERCENTS');
+
+            return $productsArr;
+        }
 
         // Мерките идват от проверката, за да не се фечват наново за всеки ред
         $measureArr = array();
@@ -450,6 +456,8 @@ class cat_DisassemblyBoms extends core_Master
                     // получава автоматичен процент и важат ръчните
                     $statuses['warning'] .= ' |Разпределянето по стойност отпада - за всички редове важат ръчно зададените проценти|*!';
 
+                    core_Debug::stopTimer('DISASSEMBLY_CALC_AUTO_PERCENTS');
+
                     return $productsArr;
                 }
             }
@@ -462,6 +470,8 @@ class cat_DisassemblyBoms extends core_Master
             if (!$sameUom) {
                 $statuses['error'] = 'Произведените артикули са в различни мерки - изберете ценова политика за разпад|*!';
 
+                core_Debug::stopTimer('DISASSEMBLY_CALC_AUTO_PERCENTS');
+
                 return $productsArr;
             }
 
@@ -472,11 +482,17 @@ class cat_DisassemblyBoms extends core_Master
 
         // Нито един ред не е изчислим - не е грешка сама по себе си, защото всички
         // могат да минат на ръчните си проценти (@see getPercents)
-        if (!countR($weightArr)) return $productsArr;
+        if (!countR($weightArr)) {
+            core_Debug::stopTimer('DISASSEMBLY_CALC_AUTO_PERCENTS');
+
+            return $productsArr;
+        }
 
         $total = array_sum($weightArr);
         if (empty($total)) {
             $statuses['error'] = $byAmount ? 'Стойността на произведените артикули по избраната ценова политика е нулева|*!' : 'Количествата на произведените артикули са нулеви|*!';
+
+            core_Debug::stopTimer('DISASSEMBLY_CALC_AUTO_PERCENTS');
 
             return $productsArr;
         }
@@ -486,6 +502,8 @@ class cat_DisassemblyBoms extends core_Master
                 $obj->autoPercent = $weightArr[$k] / $total;
             }
         }
+
+        core_Debug::stopTimer('DISASSEMBLY_CALC_AUTO_PERCENTS');
 
         return $productsArr;
     }
@@ -539,6 +557,8 @@ class cat_DisassemblyBoms extends core_Master
      */
     public static function getPercents($bomId, $date = null, &$statuses = array())
     {
+        core_Debug::startTimer('DISASSEMBLY_GET_PERCENTS');
+
         $statuses = array();
         $rec = static::fetchRec($bomId);
 
@@ -562,6 +582,7 @@ class cat_DisassemblyBoms extends core_Master
 
         if (!countR($res)) {
             $statuses['error'] = 'Не е посочен нито един произведен артикул|*!';
+            core_Debug::stopTimer('DISASSEMBLY_GET_PERCENTS');
 
             return $res;
         }
@@ -608,6 +629,8 @@ class cat_DisassemblyBoms extends core_Master
             $percentVerbal = core_Type::getByName('percent')->toVerbal($manualSum);
             $statuses['error'] = "Сумата на процентите от себестойността трябва да е 100%|*, |а е|*: {$percentVerbal}";
         }
+
+        core_Debug::stopTimer('DISASSEMBLY_GET_PERCENTS');
 
         return $res;
     }
