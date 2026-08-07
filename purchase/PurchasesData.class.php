@@ -256,6 +256,8 @@ class purchase_PurchasesData extends core_Manager
                 $form->rec->to . ' 23:59:59'
             ));
 
+
+            core_App::setTimeLimit(countR($purRecs) * 0.6, false, 900);
             foreach ($purRecs as $v) {
 
                 $pRec = doc_Containers::fetch($v);
@@ -286,7 +288,7 @@ class purchase_PurchasesData extends core_Manager
      *
      * Всеки ред от таблицата е по една UPDATE заявка върху `price`, `amount` и
      * `expenses`. Ползва се за оправяне на записи, останали в стара валута -
-     * напр. до края на 2025 курсът е приложен два пъти, а до 06.01.2026 - веднъж
+     * по подразбиране всичко до 06.01.2026 се дели веднъж на курса
      */
     public function act_Debug()
     {
@@ -297,13 +299,13 @@ class purchase_PurchasesData extends core_Manager
         $form->FLD('rules', 'table(columns=from|to|maxId|rate|times|action,captions=От вальор|До вальор|До ид (без него)|Курс|Пъти|Действие,widths=8em|8em|8em|7em|4em|7em,mandatory=rate|action,action_opt=умножи|раздели)', 'caption=Заявки,input,mandatory');
         $form->FLD('dryRun', 'enum(yes=Да,no=Не)', 'caption=Само показване на заявките,input,maxRadio=2,notNull');
 
-        // По подразбиране - двата случая с въвеждането на еврото
-        $form->setDefault('rules', json_encode(array('from' => array('', '01.01.2026'),
-                                                     'to' => array('31.12.2025', '06.01.2026'),
-                                                     'maxId' => array('', '28715'),
-                                                     'rate' => array('1.95583', '1.95583'),
-                                                     'times' => array('2', '1'),
-                                                     'action' => array('умножи', 'умножи'))));
+        // По подразбиране - всички записи до 06.01.2026 се делят веднъж на курса
+        $form->setDefault('rules', json_encode(array('from' => array(''),
+                                                     'to' => array('06.01.2026'),
+                                                     'maxId' => array('28715'),
+                                                     'rate' => array('1.95583'),
+                                                     'times' => array('1'),
+                                                     'action' => array('умножи'))));
         $form->setDefault('dryRun', 'yes');
         $form->input();
 
