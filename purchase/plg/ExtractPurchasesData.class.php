@@ -334,6 +334,12 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
             $costProdAmount = $costClassName::fetch($cost->detailRecId)->amount;
             $costProdAmount = ($cost->quantity < 1) ? $costProdAmount : ($costProdAmount / $cost->quantity);
 
+            // Разходът е в основната валута към вальора на разходния документ, а сумите на
+            // покупките - към днешната. Изравняват се, за да не се смесват двете валути
+            $costDocRec = $document->rec();
+            $costValior = $costDocRec->valior ?? ($costDocRec->date ?? $costDocRec->createdOn);
+            $costProdAmount = deals_Helper::getSmartBaseCurrency($costProdAmount, $costValior);
+
             foreach ($cost->productsData as $costProd) {
                 if (!$useCost) {
                     $costProdAmount = 0;

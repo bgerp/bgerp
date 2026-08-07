@@ -35,9 +35,6 @@
             <!--ET_BEGIN tel-->
             <p class='title-info'>|Тел|*: [#tel#]</p>
             <!--ET_END tel-->
-            <!--ET_BEGIN fax-->
-            <p class='title-info'>|Факс|*: [#fax#]</p>
-            <!--ET_END fax-->
         </div>
         
         <!--ET_BEGIN TRANSPORT_BAR-->
