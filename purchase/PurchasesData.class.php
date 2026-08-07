@@ -245,13 +245,14 @@ class purchase_PurchasesData extends core_Manager
                 $form->rec->to . ' 23:59:59'
             ));
 
-            $query->where("#isFromInventory = 'false'");
+            // Инвентаризациите не се пипат, но старите записи с празно поле са обикновени покупки
+            $query->where("(#isFromInventory IS NULL OR #isFromInventory != 'true')");
 
             $purRecs = arr::extractValuesFromArray($query->fetchAll(), 'containerId');
 
             // Изтриване на записите от този период
             $this->delete(array(
-                "#valior >= '[#1#]' AND #valior <= '[#2#]' AND #isFromInventory = 'false'",
+                "#valior >= '[#1#]' AND #valior <= '[#2#]' AND (#isFromInventory IS NULL OR #isFromInventory != 'true')",
                 $form->rec->from . ' 00:00:00',
                 $form->rec->to . ' 23:59:59'
             ));
@@ -261,10 +262,17 @@ class purchase_PurchasesData extends core_Manager
             foreach ($purRecs as $v) {
 
                 $pRec = doc_Containers::fetch($v);
+                if (empty($pRec)) continue;
 
                 $mvc = cls::get($pRec->docClass);
 
-                $docRec = $mvc->className::fetch($pRec->docId);
+                $docRec = $mvc->fetch($pRec->docId);
+                if (empty($docRec)) continue;
+
+                // Същата проверка както при контирането (@see purchase_plg_ExtractPurchasesData::on_AfterSaveJournalTransaction),
+                // за да не се възстановяват редове, каквито нормалният поток не създава
+                $isReverse = $docRec->isReverse ?? null;
+                if (($mvc instanceof store_Receipts && $isReverse == 'yes') || ($mvc instanceof store_ShipmentOrders && $isReverse != 'yes')) continue;
 
                 purchase_plg_ExtractPurchasesData::add($mvc, $docRec);
 
