@@ -57,7 +57,7 @@ class cat_DisassemblyBomDetails extends doc_Detail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, plg_Created, cat_Wrapper, plg_Sorting, plg_SaveAndNew, cat_plg_ShowCodes, plg_AlignDecimals2, plg_PrevAndNext';
+    public $loadList = 'plg_RowTools2, plg_Created, doc_plg_DetailRevisions, cat_Wrapper, plg_Sorting, plg_SaveAndNew, cat_plg_ShowCodes, plg_AlignDecimals2, plg_PrevAndNext';
 
 
     /**
@@ -116,7 +116,9 @@ class cat_DisassemblyBomDetails extends doc_Detail
         $this->FNC('autoPercent', 'percent(decimals=2)', 'caption=Авт. % от сб-ста,input=none,tdClass=accCell');
         $this->FNC('amount', 'double(decimals=2)', 'caption=Сума,input=none,tdClass=accCell');
 
-        $this->setDbUnique('bomId,type,productId');
+        // Уникалност по артикул няма - при редакция на активна рецепта старият
+        // ред се оттегля, а новият се записва със същия артикул
+        // (@see doc_plg_DetailRevisions)
         $this->setDbIndex('productId');
         $this->setDbIndex('bomId,type');
     }
@@ -168,6 +170,21 @@ class cat_DisassemblyBomDetails extends doc_Detail
         }
 
         if ($form->isSubmitted()) {
+
+            // Артикулът може да е само на един активен ред в рецептата. Проверката
+            // е тук, а не с уникален индекс, защото при редакция на активирана
+            // рецепта се плодят оттеглени редове със същия артикул
+            $exQuery = static::getQuery();
+            $exQuery->where(array("#bomId = [#1#] AND #type = '[#2#]' AND #productId = [#3#]", $rec->bomId, $rec->type, $rec->productId));
+            $exQuery->where("#state != 'rejected' OR #state IS NULL");
+            if (isset($rec->id)) {
+                $exQuery->where("#id != {$rec->id}");
+            }
+
+            if ($exQuery->fetch()) {
+                $form->setError('productId', 'Артикулът вече е добавен в рецептата|*!');
+            }
+
             $productInfo = cat_Products::getProductInfo($rec->productId);
             $rec->quantityInPack = isset($productInfo->packagings[$rec->packagingId]) ? $productInfo->packagings[$rec->packagingId]->quantity : 1;
             $rec->quantity = $rec->packQuantity * $rec->quantityInPack;
@@ -184,9 +201,12 @@ class cat_DisassemblyBomDetails extends doc_Detail
      */
     public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = null, $userId = null)
     {
-        // Детайлът се променя само докато рецептата е чернова - активирана
+        // Детайлът се променя докато рецептата е чернова или активирана. В
+        // чернова редакцията е на място, а в активирана старият ред се оттегля и
+        // се записва нов (@see doc_plg_DetailRevisions). Оттеглена, затворена или
+        // шаблонна рецепта не се пипа
         if (in_array($action, array('add', 'edit', 'delete')) && isset($rec->bomId)) {
-            if (cat_DisassemblyBoms::fetchField($rec->bomId, 'state') != 'draft') {
+            if (!in_array(cat_DisassemblyBoms::fetchField($rec->bomId, 'state'), array('draft', 'active'))) {
                 $res = 'no_one';
             }
         }
@@ -210,8 +230,12 @@ class cat_DisassemblyBomDetails extends doc_Detail
         deals_Helper::addNotesToProductRow($row->productId, $rec->notes);
 
         // Вложимите редове са зелени като в технологичната рецепта, а произведените
-        // се отличават с 'state-active' - и двата класа са налични в стиловете
-        $row->ROW_ATTR['class'] = ($rec->type == 'input') ? 'row-added' : 'state-active';
+        // се отличават с 'state-active' - и двата класа са налични в стиловете.
+        // Оттеглените ревизии се открояват от doc_plg_DetailRevisions и не им се
+        // слага класът за активен ред, за да не се бият стиловете
+        if (($rec->state ?? null) != 'rejected') {
+            $row->ROW_ATTR['class'] = ($rec->type == 'input') ? 'row-added' : 'state-active';
+        }
 
         // Сумата по избраната ценова политика - по нея се разпределя
         // себестойността, когато има избрана политика
@@ -351,6 +375,11 @@ class cat_DisassemblyBomDetails extends doc_Detail
         $count = 1;
         $Int = cls::get('type_Int');
 
+        // Пази вече раздадения пореден номер на всяка ревизионна група (@see
+        // doc_plg_DetailRevisions), за да не се пропуска номерацията заради
+        // оттеглени редове от историята на един и същ логически ред
+        $numByGroup = array();
+
         if (countR($data->rows)) {
             foreach ($data->rows as $id => $row) {
                 $rec = $data->recs[$id];
@@ -364,7 +393,12 @@ class cat_DisassemblyBomDetails extends doc_Detail
                     continue;
                 }
 
-                $row->tools->append($Int->toVerbal($count++), 'TOOLS');
+                $groupKey = ($rec->revisionRootId ?? null) ?: $rec->id;
+                if (!isset($numByGroup[$groupKey])) {
+                    $numByGroup[$groupKey] = $count++;
+                }
+
+                $row->tools->append($Int->toVerbal($numByGroup[$groupKey]), 'TOOLS');
                 $data->productionArr[$id] = $row;
             }
         }

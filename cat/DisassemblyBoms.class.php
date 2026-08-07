@@ -68,7 +68,7 @@ class cat_DisassemblyBoms extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, cat_Wrapper, doc_DocumentPlg, plg_Printing, doc_plg_Close, doc_plg_Prototype, acc_plg_DocumentSummary, doc_ActivatePlg, doc_plg_SingleActiveDoc, plg_Clone, cat_plg_AddSearchKeywords, plg_Search, plg_Sorting, change_Plugin';
+    public $loadList = 'plg_RowTools2, cat_Wrapper, doc_DocumentPlg, doc_plg_MasterRevision, plg_Printing, doc_plg_Close, doc_plg_Prototype, acc_plg_DocumentSummary, doc_ActivatePlg, doc_plg_SingleActiveDoc, plg_Clone, cat_plg_AddSearchKeywords, plg_Search, plg_Sorting, change_Plugin';
 
 
     /**
@@ -562,8 +562,13 @@ class cat_DisassemblyBoms extends core_Master
         $statuses = array();
         $rec = static::fetchRec($bomId);
 
+        // Оттеглените ревизии се изключват изрично, а не се разчита на филтъра
+        // на doc_plg_DetailRevisions - той пропуска и оттеглените, когато
+        // потребителят е включил режима "Ревизии", а сметката не бива да зависи
+        // от това какво се гледа в момента
         $dQuery = cat_DisassemblyBomDetails::getQuery();
         $dQuery->where("#bomId = {$rec->id} AND #type = 'production'");
+        $dQuery->where("#state != 'rejected' OR #state IS NULL");
         $dQuery->show('productId,quantity,costPercent');
 
         $res = array();
@@ -652,9 +657,11 @@ class cat_DisassemblyBoms extends core_Master
         $rec->lastUpdatedDetailBy = core_Users::getCurrent();
 
         // Всички ли ПРОИЗВЕДЕНИ артикули са в еднаква мярка помежду си - мярката
-        // на вложения артикул няма значение, защото не участва в сметката
+        // на вложения артикул няма значение, защото не участва в сметката.
+        // Оттеглените ревизии се изключват изрично (@see getPercents)
         $dQuery = cat_DisassemblyBomDetails::getQuery();
         $dQuery->where("#bomId = {$rec->id} AND #type = 'production'");
+        $dQuery->where("#state != 'rejected' OR #state IS NULL");
         $dQuery->show('productId');
         $productIds = arr::extractValuesFromArray($dQuery->fetchAll(), 'productId');
 
