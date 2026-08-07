@@ -329,8 +329,8 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
             }
             
             if ($params['IS_STORNO']) {
-                expect($params['RELATED_TO_RCP_NUM'] && $params['RELATED_TO_RCP_DATE_TIME'] && $params['FM_NUM']);
-                expect(dt::verbal2mysql($params['RELATED_TO_RCP_DATE_TIME']));
+                expect($params['RELATED_TO_RCP_NUM'] && $params['RELATED_TO_RCP_DATE_TIME'] && $params['FM_NUM'], $params);
+                expect(dt::verbal2mysql($params['RELATED_TO_RCP_DATE_TIME']), $params);
                 
                 if ($params['PRINT_TYPE_STR'] == 'postponed') {
                     $params['PRINT_TYPE'] = Tremol\OptionStornoRcpPrintType::Postponed_Printing;
