@@ -129,6 +129,12 @@ class markitdown_Setup extends core_ProtoSetup
 
         $error = $this->checkConfig();
 
+        // Ако програмата липсва - опитваме да я инсталираме в собствен venv
+        if ($error) {
+            $html .= $this->installMarkitdownBin();
+            $error = $this->checkConfig();
+        }
+
         if ($error) {
             $html .= "<li class='debug-error'>{$error}</li>";
         } else {
@@ -136,6 +142,88 @@ class markitdown_Setup extends core_ProtoSetup
         }
 
         return $html;
+    }
+
+
+    /**
+     * Инсталира markitdown в собствен Python venv в EF_VENDOR_PATH, без root права -
+     * venv-ът се създава с --without-pip (не изисква apt пакета python3-venv),
+     * а pip се подава като standalone zipapp (вижте Readme.md)
+     *
+     * @return string
+     */
+    private function installMarkitdownBin()
+    {
+        if (core_Os::isWindows()) {
+
+            return "<li class='debug-error'><strong>markitdown</strong>: няма автоматична инсталация за Windows - инсталирайте ръчно и задайте MARKITDOWN_PATH</li>";
+        }
+
+        // Дефинира EF_VENDOR_PATH, ако core_Composer още не е зареждан
+        cls::load('core_Composer');
+
+        $vPath = rtrim(EF_VENDOR_PATH, '/');
+        $envDir = $vPath . '/markitdown';
+        $binFile = $envDir . '/bin/markitdown';
+
+        if (!is_executable($binFile)) {
+
+            // Търсим python3 >= 3.10
+            $python = trim((string) shell_exec('command -v python3 2>/dev/null'));
+            if (!strlen($python)) {
+
+                return "<li class='debug-error'><strong>markitdown</strong>: не е намерен `python3` - инсталирайте го с root права (apt install python3) и пуснете инсталацията отново</li>";
+            }
+
+            $pVer = trim((string) shell_exec(escapeshellarg($python) . ' -c "import sys; print(\"%d.%d\" % sys.version_info[:2])" 2>/dev/null'));
+            if (!strlen($pVer) || version_compare($pVer, '3.10', '<')) {
+
+                return "<li class='debug-error'><strong>markitdown</strong>: наличният python3 е версия `{$pVer}`, а MarkItDown изисква >= 3.10</li>";
+            }
+
+            if (!is_dir($vPath) && !@mkdir($vPath)) {
+
+                return "<li class='debug-error'><strong>markitdown</strong>: няма права за създаване на `{$vPath}`</li>";
+            }
+
+            core_App::setTimeLimit(600);
+
+            // Създаваме venv без pip - така не е нужен apt пакетът python3-venv
+            exec(escapeshellarg($python) . ' -m venv --without-pip ' . escapeshellarg($envDir) . ' 2>&1', $output, $code);
+            if ($code != 0) {
+
+                return "<li class='debug-error'><strong>markitdown</strong>: грешка при създаване на venv: " . type_Varchar::escape(implode('; ', (array) $output)) . '</li>';
+            }
+
+            // Изтегляме standalone pip (zipapp)
+            $pipPyz = $vPath . '/pip.pyz';
+            if (!file_exists($pipPyz) && !@copy('https://bootstrap.pypa.io/pip/pip.pyz', $pipPyz)) {
+
+                return "<li class='debug-error'><strong>markitdown</strong>: грешка при изтегляне на `https://bootstrap.pypa.io/pip/pip.pyz`</li>";
+            }
+
+            // Инсталираме markitdown с нужните extras във venv-а
+            $cmd = escapeshellarg($envDir . '/bin/python') . ' ' . escapeshellarg($pipPyz) . ' install "markitdown[pdf,docx,xlsx,xls,pptx,outlook]" 2>&1';
+            exec($cmd, $pipOut, $pipCode);
+            @unlink($pipPyz);
+
+            if ($pipCode != 0) {
+
+                return "<li class='debug-error'><strong>markitdown</strong>: грешка при pip install: " . type_Varchar::escape(implode('; ', array_slice((array) $pipOut, -5))) . '</li>';
+            }
+
+            if (!is_executable($binFile)) {
+
+                return "<li class='debug-error'><strong>markitdown</strong>: `{$binFile}` липсва след инсталацията</li>";
+            }
+        }
+
+        // Записваме пътя в конфигурацията и инвалидираме кеша й,
+        // за да го види повторната проверка в текущата заявка
+        core_Packs::setConfig('markitdown', array('MARKITDOWN_PATH' => $binFile));
+        unset(core_ProtoSetup::$conf['markitdown']);
+
+        return "<li class='debug-new'><strong>markitdown</strong>: инсталиран е в собствен venv `{$envDir}`</li>";
     }
 
 

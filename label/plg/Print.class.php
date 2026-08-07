@@ -60,15 +60,28 @@ class label_plg_Print extends core_Plugin
             }
 
             if(($mvc instanceof core_Master && isset($fields['-single'])) || (!($mvc instanceof core_Master))){
+
+                // Ако вече има разпечатан етикет, той заема видимото място, а не бутонът за печат
+                $lastPrintArr = self::getLastPrintBtnParams($mvc, $rec);
+                $showPrintBtn = ($alwaysShow && !countR($lastPrintArr)) ? 'alwaysShow' : null;
+                $showLastPrintBtn = ($alwaysShow) ? 'alwaysShow' : null;
+
                 $btnsArr = self::getLabelBtnParams($mvc, $rec);
                 foreach ($btnsArr as $btnArr){
                     if (!empty($btnArr['url'])) {
                         core_RowToolbar::createIfNotExists($row->_rowTools);
                         $btnArr['attr'] = arr::make($btnArr['attr']);
                         $btnArr['attr']['style'] = 'position: relative; top: -2px;';
-                        $alwaysShow = ($alwaysShow) ? 'alwaysShow' : null;
-                        $row->_rowTools->addLink($btnArr['caption'], $btnArr['url'], $btnArr['attr'], $alwaysShow);
+                        $row->_rowTools->addLink($btnArr['caption'], $btnArr['url'], $btnArr['attr'], $showPrintBtn);
                     }
+                }
+
+                // Линк към последния разпечатан етикет, ако има такъв
+                foreach ($lastPrintArr as $btnArr){
+                    core_RowToolbar::createIfNotExists($row->_rowTools);
+                    $btnArr['attr'] = arr::make($btnArr['attr']);
+                    $btnArr['attr']['style'] = 'position: relative; top: -2px;';
+                    $row->_rowTools->addLink($btnArr['caption'], $btnArr['url'], $btnArr['attr'], $showLastPrintBtn);
                 }
             }
         }
@@ -251,8 +264,56 @@ class label_plg_Print extends core_Plugin
 
         return $res;
     }
-    
-    
+
+
+    /**
+     * Параметрите на бутона към последния разпечатан етикет от обекта
+     *
+     * @param core_mvc $mvc
+     * @param stdClass $rec
+     *
+     * @return array $res - по един елемент за всяка серия, в която има разпечатан етикет
+     *               ['url'] - урл към сингъла на последния етикет
+     *               ['attr'] - атрибути
+     *               ['caption'] - заглавие
+     */
+    private static function getLastPrintBtnParams($mvc, $rec)
+    {
+        $res = array();
+        $source = $mvc->getLabelSource($rec);
+        if (!cls::haveInterface('label_SequenceIntf', $source['class'])) {
+
+            return $res;
+        }
+
+        $classId = $source['class']->getClassid();
+        $series = $mvc->getLabelSeries($rec);
+
+        foreach ($series as $series => $caption) {
+
+            // Последният разпечатван етикет от източника в тази серия
+            $query = label_Prints::getQuery();
+            $query->where(array("#classId = '[#1#]' AND #objectId = '[#2#]'", $classId, $source['id']));
+            $query->where(array("#series = '[#1#]'", $series));
+            $query->where("#state != 'rejected' AND #printedCnt > 0");
+            $query->orderBy('createdOn,id', 'DESC');
+            $query->limit(1);
+
+            $printRec = $query->fetch();
+            if (empty($printRec)) continue;
+
+            // Показва се само ако потребителят има права за сингъла му
+            if (!label_Prints::haveRightFor('single', $printRec)) continue;
+
+            $res[$series] = array('url' => array('label_Prints', 'single', $printRec->id, 'ret_url' => true),
+                                  'caption' => $mvc->printLabelCaptionSingle . " №{$printRec->id}",
+                                  'attr' => "ef_icon=img/16/barcode-icon.png,title=Преглед на последния разпечатан ". mb_strtolower($mvc->printLabelCaptionSingle));
+        }
+
+        return $res;
+    }
+
+
     /**
      * Какви ще са параметрите на източника на етикета
      *
@@ -315,6 +376,13 @@ class label_plg_Print extends core_Plugin
             if (!empty($btnArr['url'])) {
                 $data->toolbar->addBtn($btnArr['caption'], $btnArr['url'], null, $btnArr['attr']);
             }
+        }
+
+        // Бутон към последния разпечатан етикет, ако има такъв - сред скритите бутони
+        foreach (self::getLastPrintBtnParams($mvc, $data->rec) as $btnArr){
+            $btnArr['attr'] = arr::make($btnArr['attr']);
+            $btnArr['attr']['row'] = 2;
+            $data->toolbar->addBtn($btnArr['caption'], $btnArr['url'], null, $btnArr['attr']);
         }
     }
     

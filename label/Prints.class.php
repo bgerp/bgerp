@@ -182,6 +182,8 @@ class label_Prints extends core_Master
         $this->setDbIndex('createdOn');
         $this->setDbIndex('templateId');
         $this->setDbIndex('objectId');
+        $this->setDbIndex('classId,objectId');                     // за филтъра по клас+обект
+        $this->setDbIndex('classId,createdBy,createdOn,templateId'); // за getDefaultTemplateId()
     }
     
     
