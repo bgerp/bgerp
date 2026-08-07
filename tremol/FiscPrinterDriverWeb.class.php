@@ -243,14 +243,14 @@ class tremol_FiscPrinterDriverWeb extends tremol_FiscPrinterDriverParent
             }
             
             if ($params['IS_STORNO']) {
-                expect($params['RELATED_TO_RCP_NUM'] && $params['RELATED_TO_RCP_DATE_TIME'] && $params['FM_NUM']);
-                expect(dt::verbal2mysql($params['RELATED_TO_RCP_DATE_TIME']));
+                expect($params['RELATED_TO_RCP_NUM'] && $params['RELATED_TO_RCP_DATE_TIME'] && $params['FM_NUM'], $params);
+                expect(dt::verbal2mysql($params['RELATED_TO_RCP_DATE_TIME']), $params);
                 
                 $js->removeBlock('OPEN_CREDIT_NOTE_1');
                 $js->removeBlock('OPEN_CREDIT_NOTE_2');
             } else if ($params['IS_CREDIT_NOTE']) {
-                expect($params['RELATED_TO_RCP_NUM'] && $params['RELATED_TO_INV_DATE_TIME'] && $params['FM_NUM']);
-                expect(dt::verbal2mysql($params['RELATED_TO_INV_DATE_TIME']));
+                expect($params['RELATED_TO_RCP_NUM'] && $params['RELATED_TO_INV_DATE_TIME'] && $params['FM_NUM'], $params);
+                expect(dt::verbal2mysql($params['RELATED_TO_INV_DATE_TIME']), $params);
                 
                 $js->removeBlock('OPEN_STORNO_RECEIPT_1');
                 $js->removeBlock('OPEN_STORNO_RECEIPT_2');
