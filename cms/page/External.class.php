@@ -162,6 +162,8 @@ class cms_page_External extends core_page_Active
             return new ET('');
         }
 
+        $maxItemsInColumn = max(1, (int) $conf->CMS_FOOTER_MAX_ELEMENTS_IN_COLUMN);
+
         $domainId = cms_Domains::getPublicDomain('id');
         if (!$domainId) {
             return new ET('');
@@ -173,12 +175,12 @@ class cms_page_External extends core_page_Active
 
         $html = '';
         while ($menuRec = $menuQuery->fetch()) {
-            $menuHtml = self::getFooterMenuItems_($menuRec);
+            $menuHtml = self::getFooterMenuItems_($menuRec, $maxItemsInColumn);
             if (!$menuHtml) {
                 continue;
             }
 
-            $html .= "<div>";
+            $html .= "<div class='footer-menu'>";
             $html .= "<p>" . type_Varchar::escape($menuRec->menu) . "</p>";
             $html .= $menuHtml;
             $html .= "</div>";
@@ -192,9 +194,10 @@ class cms_page_External extends core_page_Active
      * Връща HTML за футъра за съответното меню и източник
      *
      * @param stdClass $menuRec
+     * @param int $maxItemsInColumn
      * @return string
      */
-    private static function getFooterMenuItems_($menuRec)
+    private static function getFooterMenuItems_($menuRec, $maxItemsInColumn)
     {
         $items = array();
         $source = cls::getClassName($menuRec->source, true);
@@ -218,30 +221,37 @@ class cms_page_External extends core_page_Active
             );
         }
 
-        return self::renderFooterMenuList_($items);
+        return self::renderFooterMenuList_($items, $maxItemsInColumn);
     }
 
 
     /**
-     * Рендира елементите на футър менюто като плосък UL/LI списък
+     * Рендира елементите на футър менюто в колони
      *
      * @param array $items
+     * @param int $maxItemsInColumn
      * @return string
      */
-    private static function renderFooterMenuList_($items)
+    private static function renderFooterMenuList_($items, $maxItemsInColumn)
     {
         if (!is_array($items) || !count($items)) {
             return '';
         }
 
         $html = "
-<ul>";
-        foreach ($items as $item) {
+<div class='footer-menu-columns'>";
+        foreach (array_chunk($items, $maxItemsInColumn) as $columnItems) {
             $html .= "
-    <li>" . ht::createLink($item->title, $item->url)->getContent() . "</li>";
+    <ul>";
+            foreach ($columnItems as $item) {
+                $html .= "
+        <li>" . ht::createLink($item->title, $item->url)->getContent() . "</li>";
+            }
+            $html .= "
+    </ul>";
         }
         $html .= "
-</ul>";
+</div>";
 
         return $html;
     }

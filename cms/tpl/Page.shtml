@@ -1,17 +1,39 @@
 <style>
     .footer-menus {
         display: flex;
+        align-items: flex-start;
+        flex-wrap: nowrap;
         justify-content: space-around;
         gap: 32px 48px;
         padding: 18px 12px;
+    }
 
+    .footer-menus > .footer-menu {
+        flex: 1 1 auto;
+        min-width: 0;
     }
 
     .narrow .footer-menus {
         flex-wrap: wrap;
         justify-content: flex-start;
     }
-    .narrow .footer-menus div {
+    .narrow .footer-menus > .footer-menu {
+        width: 100%;
+    }
+
+    .narrow .footer-menu-columns {
+        flex-wrap: wrap;
+    }
+
+    .narrow .footer-menus ul {
+        flex-basis: 140px;
+    }
+
+    .footer-menu-columns {
+        display: flex;
+        align-items: flex-start;
+        flex-wrap: nowrap;
+        gap: 12px 24px;
         width: 100%;
     }
     .footer-menus p {
@@ -23,9 +45,10 @@
 
     .footer-menus ul {
         list-style: none;
-        max-width: 400px;
         margin: 0;
         padding: 0;
+        flex: 1 1 0;
+        min-width: 0;
     }
 
     .footer-menus li {
