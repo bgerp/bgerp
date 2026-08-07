@@ -74,7 +74,7 @@ class cat_DisassemblyBoms extends core_Master
     /**
      * Полетата, които могат да се променят с change_Plugin
      */
-    public $changableFields = 'title,expenses,notes';
+    public $changableFields = 'title,expenses,detailOrderBy,notes';
 
 
     /**
@@ -224,6 +224,12 @@ class cat_DisassemblyBoms extends core_Master
 
 
     /**
+     * Поле за подредбата на детайла (@see cat_plg_ShowCodes)
+     */
+    public $detailOrderByField = 'detailOrderBy';
+
+
+    /**
      * Описание на модела
      */
     public function description()
@@ -232,6 +238,7 @@ class cat_DisassemblyBoms extends core_Master
         $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул,input,silent,mandatory,input=hidden');
         $this->FLD('quantity', 'double(smartRound,Min=0)', 'caption=За,silent,mandatory');
         $this->FLD('expenses', 'percent(min=0)', 'caption=Реж. разходи,changeable');
+        $this->FLD('detailOrderBy', 'enum(auto=Автоматично,creation=Ред на създаване,code=Код,reff=Ваш №)', 'caption=Влагане (на артикула за разпад)->Подреждане по,notNull,value=auto');
 
         $this->FLD('priceListId', 'key(mvc=price_Lists,select=title,allowEmpty)', 'caption=Ценова политика за разпад->Избор');
         $this->FLD('state', 'enum(draft=Чернова,active=Активирана,rejected=Оттеглена,closed=Затворена,template=Шаблон)', 'caption=Статус,input=none');
