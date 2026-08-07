@@ -302,10 +302,8 @@ class cat_DisassemblyBomDetails extends doc_Detail
         $data->autoWarning = null;
         if (!countR($data->recs ?? null)) return;
 
-        // Групиране по рецепта - в детайла е винаги една, но листовият изглед
-        // може да смеси редове от няколко. Процентите се вземат за цялата
-        // рецепта, а не само за показаните редове - иначе при страниране сборът
-        // няма да е върху всички произведени артикули
+        // Процентите се вземат за цялата рецепта, а не само за показаните редове -
+        // иначе при страниране сборът няма да е върху всички произведени артикули
         $bomIds = array();
         foreach ($data->recs as $rec) {
             if ($rec->type == 'production') {
@@ -330,8 +328,7 @@ class cat_DisassemblyBomDetails extends doc_Detail
 
                 if (isset($obj->autoPercent)) {
 
-                    // Изчисленият бие ръчния - тогава ръчният е само за сведение
-                    // и се приглушава, а важащият изчислен е в синьо
+                    // Изчисленият бие ръчния - той се приглушава за сведение
                     $percentVerbal = $Percent->toVerbal($obj->autoPercent);
                     $hint = ($obj->source == 'price') ? 'Изчислен по цената на реда по избраната ценова политика' : 'Изчислен пропорционално на количеството на реда';
                     $data->rows[$id]->autoPercent = ht::createHint("<span style='color:blue'>{$percentVerbal}</span>", $hint, 'notice', false);
@@ -340,13 +337,10 @@ class cat_DisassemblyBomDetails extends doc_Detail
                         $data->rows[$id]->costPercent = ht::createHint("<span class='quiet'>{$data->rows[$id]->costPercent}</span>", 'Не важи - за реда е изчислен автоматичен процент', 'notice', false);
                     }
                 } elseif ($obj->source == 'manual') {
-
-                    // Няма цена по политиката, затова важи ръчният процент
                     $data->rows[$id]->autoPercent = ht::createHint("<span class='quiet'>n/a</span>", 'Няма как да се изчисли - за реда важи ръчният процент', 'notice', false);
                 } else {
 
-                    // Редът няма нито изчислен, нито ръчен процент - причината
-                    // идва от самото изчисление
+                    // Редът няма нито изчислен, нито ръчен процент
                     $data->rows[$id]->autoPercent = ht::createHint("<span class='red'>n/a</span>", $statuses['error'] ?? 'Процентът не може да се изчисли', 'warning', false);
                 }
 
@@ -462,8 +456,7 @@ class cat_DisassemblyBomDetails extends doc_Detail
         }
         $productionTableTpl->append(tr("|*<tr style='background-color:#eee'><td colspan='{$columns}' style='text-align:right;'>|Общо|*: <b>{$totalPercentVerbal}</b></td></tr>"), 'ROW_AFTER');
 
-        // Предупреждение, че себестойността не се разпределя по стойност, а по
-        // количества - слага се най-горе, над името на артикула за разпад
+        // Предупреждението се слага най-горе, над името на артикула за разпад
         if (!empty($data->autoWarning)) {
             $tpl->append("<div class='richtext-message richtext-warning'>{$data->autoWarning}</div>", 'percentWarning');
         }
