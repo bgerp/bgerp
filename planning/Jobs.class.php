@@ -887,7 +887,7 @@ class planning_Jobs extends core_Master
 
         // Бутон за добавяне на рецепта за разпад
         if ($rec->type == 'disassembly' && cat_DisassemblyBoms::haveRightFor('add', (object) array('productId' => $rec->productId, 'originId' => $rec->containerId))) {
-            $data->toolbar->addBtn('Рецепта за разпад', array('cat_DisassemblyBoms', 'add', 'productId' => $rec->productId, 'originId' => $rec->containerId, 'ret_url' => true), 'ef_icon = img/16/add.png,title=Създаване на нова рецепта за разпад,row=2');
+            $data->toolbar->addBtn('Рецепта (разпад)', array('cat_DisassemblyBoms', 'add', 'productId' => $rec->productId, 'originId' => $rec->containerId, 'ret_url' => true), 'ef_icon = img/16/add.png,title=Създаване на нова рецепта за разпад,row=2');
         }
 
         // Бутон за добавяне на документ за производство

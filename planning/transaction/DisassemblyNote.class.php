@@ -97,16 +97,24 @@ class planning_transaction_DisassemblyNote extends acc_DocumentTransactionSource
             );
         }
 
-        $totalProductionQuantity = array_sum(arr::extractValuesFromArray($productionRecs, 'quantity'));
+        // Разпределянето на себестойността е по процент на ред, а не по количество -
+        // процентите се смятат към ВАЛЬОРА, за да даде едно пре-контиране след месец
+        // същия резултат (@see planning_DisassemblyNote::getPercents)
+        $statuses = array();
+        $percentsArr = planning_DisassemblyNote::getPercents($rec, $rec->valior, $statuses);
+        expect(!isset($statuses['error']), $statuses['error'] ?? null);
+
         $allocatedInputQuantity = 0;
         $lastIndex = countR($productionRecs) - 1;
         $inputUomRec = cat_UoM::fetch($inputRec->packagingId, 'round,roundSignificant');
 
         foreach ($productionRecs as $index => $dRec) {
+            $percent = $percentsArr[$dRec->id]->percent ?? 0;
+
             // Последният ред обира остатъка, за да няма разлика от закръгляне.
             $inputQuantityPart = ($index == $lastIndex)
                 ? $inputRec->quantity - $allocatedInputQuantity
-                : core_Math::roundNumber($inputRec->quantity * $dRec->quantity / $totalProductionQuantity, $inputUomRec->round, $inputUomRec->roundSignificant);
+                : core_Math::roundNumber($inputRec->quantity * $percent, $inputUomRec->round, $inputUomRec->roundSignificant);
             $allocatedInputQuantity += $inputQuantityPart;
 
             $productRec = cat_Products::fetch($dRec->productId, 'canStore,fixedAsset');

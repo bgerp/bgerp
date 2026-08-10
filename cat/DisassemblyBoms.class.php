@@ -295,12 +295,11 @@ class cat_DisassemblyBoms extends core_Master
 
                 if($rec->allocationBy == 'quantity' && $exRec->allocationBy != 'quantity' && $exRec->allProductsAreInTheSameUomId == 'no'){
 
-                    // Количествата на редовете не са сравними - по тях няма как да се разпределя
+                    // Количествата не са сравними
                     $form->setError('allocationBy', 'Себестойността не може да се разпредели по количество|*, |защото произведените артикули не са в производни една на друга мерки|*!');
                 } elseif($exRec->allocationBy == 'manual' && $rec->allocationBy != 'manual' && cat_DisassemblyBomDetails::count("#bomId = {$rec->id} AND #type = 'production' AND #state != 'rejected' AND #costPercent IS NOT NULL")){
 
-                    // Излизане от ръчното разпределяне - въведените проценти повече
-                    // няма как да важат, затова се изчистват (@see on_AfterSave)
+                    // Въведените проценти повече не важат (@see on_AfterSave)
                     $rec->_resetCostPercents = true;
                     $form->setWarning('allocationBy', 'Ръчно зададените проценти на редовете ще бъдат занулени|*, |защото вече ще се изчисляват автоматично|*!');
                 }
@@ -320,10 +319,8 @@ class cat_DisassemblyBoms extends core_Master
     {
         if(empty($rec->_resetCostPercents)) return;
 
-        // Обещаното на формата зануляване (@see on_AfterInputEditForm). Редовете се
-        // ъпдейтват на място - зануляването не е редакция на реда и не бива да плоди
-        // версии в "Промени" (@see doc_plg_DetailRevisions). Вече оттеглените редове
-        // не се пипат, за да остане видимо какво е било
+        // Зануляване на място, без версии (@see on_AfterInputEditForm). Оттеглените
+        // редове не се пипат, за да остане видимо какво е било
         $Details = cls::get('cat_DisassemblyBomDetails');
         $dQuery = $Details->getQuery();
         $dQuery->where("#bomId = {$rec->id} AND #type = 'production' AND #state != 'rejected' AND #costPercent IS NOT NULL");
@@ -424,20 +421,65 @@ class cat_DisassemblyBoms extends core_Master
 
 
     /**
-     * Изчислява какъв % от себестойността се пада на всеки от подадените редове
+     * Сумата на реда във вербален вид - общо за рецептата и за Протокола за разпад
      *
-     * Начинът на разпределяне е един за цялата рецепта - трите варианта се
-     * изключват взаимно и не се смесват:
-     * - 'price'    - пропорционално на стойността на реда (к-во х цена по избраната
-     *                ценова политика). Ред без цена по нея получава 0%, но това не
-     *                минава мълчаливо - излиза предупреждение;
-     * - 'manual'   - ръчно зададеният процент на реда, както е въведен. Сборът им
-     *                трябва да е точно 100%;
-     * - 'quantity' - пропорционално на количеството в основна мярка. Изисква всички
-     *                редове да са в производни една на друга мерки.
+     * @param int           $priceListId
+     * @param int           $productId
+     * @param float         $quantity
+     * @param datetime|null $date      - към коя дата е цената (null - към сега)
+     * @param null|string   $errorHint - грешка, защо няма цена
      *
-     * Количеството и мярката на вложения артикул не участват в сметката - той дава
-     * само себестойността, която се разпределя.
+     * @return string
+     */
+    public static function getAmountVerbal($priceListId, $productId, $quantity, $date = null, &$errorHint = null)
+    {
+        $amount = static::getAmount($priceListId, $productId, $quantity, $date);
+        if (!isset($amount)) {
+            $errorHint = 'Артикулът няма цена по избраната ценова политика|*! |За него се пада 0% от себестойността|*!';
+
+            return ht::createHint("<span class='red'>???</span>", $errorHint, 'warning', false);
+        }
+
+        $amountVerbal = core_Type::getByName('double(decimals=2)')->toVerbal($amount);
+        $amountVerbal = currency_Currencies::decorate($amountVerbal, null, true);
+
+        return "<span style='color:blue'>{$amountVerbal}</span>";
+    }
+
+
+    /**
+     * Процентът на реда във вербален вид - общо за рецептата и за Протокола за разпад
+     *
+     * @param float|null  $percent      - изчисленият процент (null - неопределим)
+     * @param string      $allocationBy - 'price', 'manual' или 'quantity'
+     * @param string|null $error        - защо процентът не може да се определи
+     *
+     * @return string|null - null, когато важи ръчно въведеният процент
+     */
+    public static function getPercentVerbal($percent, $allocationBy, $error = null)
+    {
+        if (!isset($percent)) {
+
+            return ht::createHint("<span class='red'>n/a</span>", $error ?: 'Процентът не може да се определи', 'warning', false);
+        }
+
+        if ($allocationBy == 'manual') return null;
+
+        $percentVerbal = core_Type::getByName('percent(decimals=2)')->toVerbal($percent);
+        $hint = ($allocationBy == 'price') ? 'Изчислен по стойността на реда по избраната ценова политика' : 'Изчислен пропорционално на количеството на реда';
+
+        return ht::createHint("<span style='color:blue'>{$percentVerbal}</span>", $hint, 'notice', false);
+    }
+
+
+    /**
+     * Изчислява какъв % от себестойността се пада на всеки от подадените редове.
+     * Трите начина се изключват взаимно:
+     * - 'price'    - по стойността на реда (к-во х цена по политиката); без цена - 0%;
+     * - 'manual'   - по ръчно зададения процент, сборът трябва да е 100%;
+     * - 'quantity' - по количеството в основна мярка, иска производни мерки.
+     *
+     * Вложеният артикул не участва в сметката - той дава само себестойността.
      *
      * @param array         $productsArr  - обекти с productId, quantity и costPercent
      *                                      (последният само при 'manual'); productId
@@ -471,8 +513,7 @@ class cat_DisassemblyBoms extends core_Master
                 static::calcPercentsByQuantity($productsArr, $statuses);
             }
 
-            // Каквото и да е разпределението, сборът е точно 100% - при 'price' и
-            // 'quantity' това е по конструкция, при 'manual' зависи от потребителя
+            // Сборът е точно 100% при всяко разпределение
             if (!isset($statuses['error'])) {
                 $sum = 0;
                 foreach ($productsArr as $obj) {
@@ -493,8 +534,7 @@ class cat_DisassemblyBoms extends core_Master
 
 
     /**
-     * Разпределяне пропорционално на стойността на реда по избраната ценова
-     * политика (@see calcPercents)
+     * Разпределяне по стойността на реда по избраната политика (@see calcPercents)
      *
      * @param array         $productsArr
      * @param int|null      $priceListId
@@ -544,8 +584,7 @@ class cat_DisassemblyBoms extends core_Master
 
 
     /**
-     * Разпределяне по ръчно зададените проценти - важат както са въведени, затова
-     * всеки ред трябва да има процент (@see calcPercents)
+     * Разпределяне по ръчно зададените проценти (@see calcPercents)
      *
      * @param array $productsArr
      * @param array $statuses
@@ -571,8 +610,7 @@ class cat_DisassemblyBoms extends core_Master
 
 
     /**
-     * Разпределяне пропорционално на количеството в основна мярка - количествата
-     * са сравними само ако мерките са производни една на друга (@see calcPercents)
+     * Разпределяне по количеството в основна мярка (@see calcPercents)
      *
      * @param array $productsArr
      * @param array $statuses
@@ -616,8 +654,7 @@ class cat_DisassemblyBoms extends core_Master
      * Процентите от себестойността на вложения артикул, които се падат на всеки
      * от произведените редове на рецептата
      *
-     * Ползва се и от активирането, и от показването на детайла, а по-нататък и от
-     * Протокола за разпад, за да не се разминат (@see calcPercents)
+     * Ползва се и от активирането, и от показването на детайла (@see calcPercents)
      *
      * @param int           $bomId
      * @param datetime|null $date     - към коя дата са цените (null - към сега)
@@ -737,7 +774,7 @@ class cat_DisassemblyBoms extends core_Master
      */
     public static function getLastActiveBom($productId)
     {
-        $productRec = cat_Products::fetchRec($productId, 'id');
+        $productRec = cat_Products::fetchRec($productId, 'id,canStore,canConvert');
         if (!is_object($productRec) || ($productRec->canStore != 'yes' || $productRec->canConvert != 'yes')) {
             return false;
         }

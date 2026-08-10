@@ -211,6 +211,11 @@ class planning_DisassemblyNote extends planning_ProductionDocument
         $this->FLD('expenses', 'percent(min=0)', 'caption=Влагане (на артикула за разпад)->Реж. разходи');
         $this->FLD('detailOrderBy', 'enum(auto=Автоматично,creation=Ред на създаване,code=Код,reff=Ваш №)', 'caption=Влагане (на артикула за разпад)->Подреждане по,notNull,value=auto');
 
+        // Начинът на разпределяне (@see cat_DisassemblyBoms::calcPercents)
+        $this->FLD('allocationBy', 'enum(price=По ценова политика,manual=Ръчно (%),quantity=По количество)', 'caption=Разпределяне на себестойността->Начин,notNull,value=price,mandatory,silent,maxRadio=0,removeAndRefreshForm=priceListId');
+        $this->FLD('priceListId', 'key(mvc=price_Lists,select=title,allowEmpty)', 'caption=Разпределяне на себестойността->Ценова политика,input=hidden');
+        $this->FLD('bomId', 'key(mvc=cat_DisassemblyBoms,select=title)', 'caption=Рецепта за разпад,input=none');
+
         parent::setDocumentFields($this);
 
         // Връщаме вальора на мястото му отпреди тази група (той също се добавя
@@ -307,6 +312,171 @@ class planning_DisassemblyNote extends planning_ProductionDocument
         }
 
         planning_DisassemblyNoteDetails::save($dRec);
+
+        // Произведените артикули се пренасят от активната рецепта за разпад
+        $bomRec = cat_DisassemblyBoms::getLastActiveBom($jobRec->productId);
+        if (is_object($bomRec)) {
+            $rec->bomId = $bomRec->id;
+            $mvc->save_($rec, 'bomId');
+            static::transferBomDetails($rec, $bomRec, $dRec->quantity);
+        }
+    }
+
+
+    /**
+     * Пренася произведените артикули от рецептата, мащабирани спрямо вложеното
+     * количество. Редовете на 0% не се пренасят (@see getErrorWhenTryingToConto)
+     *
+     * @param stdClass $rec           - записът на протокола
+     * @param stdClass $bomRec        - записът на рецептата
+     * @param float    $inputQuantity - вложеното количество (в основна мярка)
+     *
+     * @return void
+     */
+    private static function transferBomDetails($rec, $bomRec, $inputQuantity)
+    {
+        if (empty($bomRec->quantity) || empty($inputQuantity)) return;
+
+        $ratio = $inputQuantity / $bomRec->quantity;
+
+        // Процентите на рецептата са към вальора на протокола
+        $statuses = array();
+        $percentsArr = cat_DisassemblyBoms::getPercents($bomRec->id, $rec->valior, $statuses);
+
+        foreach ($percentsArr as $bomDetailId => $obj) {
+            if (empty($obj->percent)) continue;
+
+            $bomDetailRec = cat_DisassemblyBomDetails::fetch($bomDetailId, 'productId,packagingId,quantityInPack,quantity');
+            $quantity = $bomDetailRec->quantity * $ratio;
+
+            $dRec = (object) array(
+                'noteId'         => $rec->id,
+                'type'           => 'production',
+                'productId'      => $bomDetailRec->productId,
+                'packagingId'    => $bomDetailRec->packagingId,
+                'quantityInPack' => $bomDetailRec->quantityInPack,
+                'quantity'       => $quantity,
+                'quantityFromBom' => $quantity,
+                'percentFromBom' => $obj->percent,
+            );
+
+            if (isset($rec->storeId) && cat_Products::fetchField($bomDetailRec->productId, 'canStore') == 'yes') {
+                $dRec->storeId = $rec->storeId;
+            }
+
+            // Наливането не е редакция на ред - без версии (@see doc_plg_DetailRevisions)
+            $dRec->_skipDetailRevision = true;
+            planning_DisassemblyNoteDetails::save($dRec);
+        }
+    }
+
+
+    /**
+     * Зарежда наново произведените артикули от активната рецепта, заедно с режима и
+     * политиката. Редът за влагане не се пипа - той е базата за мащабирането
+     * (@see planning_DirectProductionNote::act_fillNote)
+     */
+    public function act_Reloadfrombom()
+    {
+        requireRole('debug');
+        expect($id = Request::get('id', 'int'));
+        expect($rec = static::fetch($id));
+        $this->requireRightFor('edit', $rec);
+
+        planning_DisassemblyNoteDetails::delete("#noteId = {$rec->id} AND #type = 'production'");
+
+        $jobRec = static::getJobRec($rec);
+        $bomRec = is_object($jobRec) ? cat_DisassemblyBoms::getLastActiveBom($jobRec->productId) : null;
+        if (!is_object($bomRec)) {
+            followRetUrl(null, '|Редовете са изтрити|*, |но артикулът няма активна рецепта за разпад|*!', 'warning');
+
+            return;
+        }
+
+        $rec->bomId = $bomRec->id;
+        $rec->allocationBy = $bomRec->allocationBy;
+        $rec->priceListId = $bomRec->priceListId;
+        $this->save_($rec, 'bomId,allocationBy,priceListId');
+
+        $inputQuantity = planning_DisassemblyNoteDetails::fetchField("#noteId = {$rec->id} AND #type = 'input' AND #isMainInput = 'yes'", 'quantity');
+        static::transferBomDetails($rec, $bomRec, $inputQuantity);
+
+        followRetUrl(null, '|Редовете са заредени наново от рецептата');
+    }
+
+
+    /**
+     * Процентите от себестойността, които се падат на произведените редове. Смята се
+     * само по редовете на протокола - рецептата не участва (@see cat_DisassemblyBoms::calcPercents)
+     *
+     * @param mixed         $noteId   - ид или запис на протокол
+     * @param datetime|null $date     - към коя дата са цените (null - вальорът на протокола)
+     * @param array         $statuses - ['error'] и ['warning'] (@see cat_DisassemblyBoms::calcPercents)
+     *
+     * @return array - обекти, ключирани по ид на ред от детайла
+     */
+    public static function getPercents($noteId, $date = null, &$statuses = array())
+    {
+        $statuses = array();
+        $rec = static::fetchRec($noteId);
+        $date = $date ?? $rec->valior;
+
+        // Без оттеглените ревизии
+        $dQuery = planning_DisassemblyNoteDetails::getQuery();
+        $dQuery->where("#noteId = {$rec->id} AND #type = 'production'");
+        $dQuery->where("#state != 'rejected'");
+        $dQuery->show('productId,quantity,costPercent');
+
+        $res = array();
+        while ($dRec = $dQuery->fetch()) {
+
+            // Незададеният се нормализира до null (0% е валидно зададен)
+            $costPercent = (isset($dRec->costPercent) && $dRec->costPercent !== '') ? (float) $dRec->costPercent : null;
+
+            $res[$dRec->id] = (object) array('productId' => $dRec->productId,
+                                             'quantity' => $dRec->quantity,
+                                             'costPercent' => $costPercent,
+                                             'percent' => null,
+                                             'amount' => null);
+        }
+
+        if (!countR($res)) {
+            $statuses['error'] = 'Не е посочен нито един произведен артикул|*!';
+
+            return $res;
+        }
+
+        cat_DisassemblyBoms::calcPercents($res, $rec->allocationBy, $rec->priceListId, $date, $statuses);
+
+        return $res;
+    }
+
+
+    /**
+     * Дали произведените артикули са в производни една на друга мерки
+     *
+     * @param int      $noteId
+     * @param int|null $skipDetailId  - ред, който да не се брои (редактираният)
+     * @param int|null $addProductId  - артикул, който още не е записан (въвежданият)
+     *
+     * @return bool
+     */
+    public static function areProductionProductsInTheSameUom($noteId, $skipDetailId = null, $addProductId = null)
+    {
+        $dQuery = planning_DisassemblyNoteDetails::getQuery();
+        $dQuery->where("#noteId = {$noteId} AND #type = 'production'");
+        $dQuery->where("#state != 'rejected'");
+        if (isset($skipDetailId)) {
+            $dQuery->where("#id != {$skipDetailId}");
+        }
+        $dQuery->show('productId');
+
+        $productIds = arr::extractValuesFromArray($dQuery->fetchAll(), 'productId');
+        if (isset($addProductId)) {
+            $productIds[] = $addProductId;
+        }
+
+        return cat_Products::areProductsInTheSameUom($productIds);
     }
 
 
@@ -321,7 +491,62 @@ class planning_DisassemblyNote extends planning_ProductionDocument
             return 'Не може да контирате протокола, защото няма посочени произведени артикули|*!';
         }
 
+        // По процентите се определят количествата в кредита на 61103
+        $statuses = array();
+        $percentsArr = static::getPercents($rec, $rec->valior, $statuses);
+        if (isset($statuses['error'])) {
+
+            return $statuses['error'];
+        }
+
+        // Ред на 0% би заприходил артикула на нулева стойност
+        $zeroArr = array();
+        foreach ($percentsArr as $obj) {
+            if (empty($obj->percent)) {
+                $zeroArr[$obj->productId] = cat_Products::getTitleById($obj->productId);
+            }
+        }
+
+        if (countR($zeroArr)) {
+
+            return 'Нулев процент от себестойността се пада на артикул|*: <b>' . implode(', ', $zeroArr) . '</b>. |Премахнете ги от протокола или им осигурете дял|*!';
+        }
+
         return null;
+    }
+
+
+    /**
+     * Възстановяването реконтира, затова минава през същите проверки
+     */
+    protected static function on_BeforeRestore(core_Mvc $mvc, &$res, $id)
+    {
+        $rec = $mvc->fetchRec($id);
+        if ($errorMsg = $mvc->getErrorWhenTryingToConto($rec, 'restore')) {
+            core_Statuses::newStatus($errorMsg, 'error');
+
+            return false;
+        }
+    }
+
+
+    /**
+     * Запомня процентите, с които е контирано - само информационно
+     */
+    protected static function on_AfterConto(core_Mvc $mvc, &$res, $id)
+    {
+        $rec = $mvc->fetchRec($id);
+
+        $statuses = array();
+        $percentsArr = static::getPercents($rec, $rec->valior, $statuses);
+        foreach ($percentsArr as $detailId => $obj) {
+            $dRec = planning_DisassemblyNoteDetails::fetch($detailId);
+            $dRec->contoPercent = $obj->percent;
+
+            // Без версии
+            $dRec->_skipDetailRevision = true;
+            planning_DisassemblyNoteDetails::save($dRec, 'contoPercent');
+        }
     }
 
 
@@ -396,7 +621,28 @@ class planning_DisassemblyNote extends planning_ProductionDocument
 
                 $form->FNC('mainInputPackQuantity', 'double(min=0)', 'caption=Влагане (на артикула за разпад)->Количество,input,mandatory,after=mainInputPackagingId');
                 $form->setDefault('mainInputPackQuantity', round($jobRec->quantity / $jobRec->quantityInPack, 5));
+
+                // Подразбира се от активната рецепта за разпад
+                $bomRec = cat_DisassemblyBoms::getLastActiveBom($jobRec->productId);
+                if (is_object($bomRec)) {
+                    $form->setDefault('expenses', $bomRec->expenses);
+                    $form->setDefault('allocationBy', $bomRec->allocationBy);
+                    $form->setDefault('priceListId', $bomRec->priceListId);
+                }
             }
+        }
+
+        $listOptions = price_Lists::getAccessibleOptions(null, null, true);
+        $form->setOptions('priceListId', array('' => '') + $listOptions);
+
+        // Начинът се чете от заявката - prepareEditForm_ налива записа от базата
+        // ПОСЛЕ силентните полета и връща стария (@see core_Manager::prepareEditForm_)
+        $form->setDefault('allocationBy', 'price');
+        $allocationBy = Request::get('allocationBy', 'varchar') ?: $rec->allocationBy;
+        if ($allocationBy == 'price') {
+            $form->setField('priceListId', 'input');
+        } else {
+            $form->setField('priceListId', 'input=hidden');
         }
     }
 
@@ -410,22 +656,53 @@ class planning_DisassemblyNote extends planning_ProductionDocument
      */
     protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
+        // Зануляване преди реконтирането (@see on_AfterInputEditForm)
+        if (!empty($rec->_resetCostPercents)) {
+            $dQuery = planning_DisassemblyNoteDetails::getQuery();
+            $dQuery->where("#noteId = {$rec->id} AND #type = 'production' AND #state != 'rejected' AND #costPercent IS NOT NULL");
+            while ($dRec = $dQuery->fetch()) {
+                $dRec->costPercent = null;
+
+                // Без версии
+                $dRec->_skipDetailRevision = true;
+                planning_DisassemblyNoteDetails::save($dRec, 'costPercent');
+            }
+        }
+
         // При активиране/оттегляне
         if ($rec->state == 'active' && (!empty($rec->_updateMaster) || !empty($rec->_recontoAfterEdit))) {
-            try {
-                $success = acc_Journal::reconto($rec->containerId);
-                if($success){
-                    $lockKey = "doc_Threads_Update_Item_{$rec->threadId}_" . core_Users::getCurrent();
-                    core_Locks::release($lockKey);
-                    core_Statuses::newStatus("Протоколът е реконтиран|*!");
+
+            // Не се реконтира документ с неизчислими проценти
+            if ($errorMsg = $mvc->getErrorWhenTryingToConto($rec, 'reconto')) {
+                core_Statuses::newStatus("Протоколът не е реконтиран|*! {$errorMsg}", 'error');
+            } else {
+                try {
+                    $success = acc_Journal::reconto($rec->containerId);
+                    if($success){
+                        $lockKey = "doc_Threads_Update_Item_{$rec->threadId}_" . core_Users::getCurrent();
+                        core_Locks::release($lockKey);
+                        core_Statuses::newStatus("Протоколът е реконтиран|*!");
+                    }
+                } catch (core_exception_Expect $e) {
+                    reportException($e);
                 }
-            } catch (core_exception_Expect $e) {
-                reportException($e);
             }
         }
 
         if (in_array($rec->state, array('active', 'rejected'))) {
             planning_Jobs::updateDisassembledQuantity($rec->originId);
+        }
+    }
+
+
+    /**
+     * Подготовка на бутоните на единичния изглед
+     */
+    protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
+    {
+        $rec = $data->rec;
+        if (haveRole('debug') && $rec->state != 'rejected' && $mvc->haveRightFor('edit', $rec)) {
+            $data->toolbar->addBtn('Зареди очакваното', array($mvc, 'reloadfrombom', $rec->id, 'ret_url' => true), null, 'ef_icon=img/16/bug.png,title=Зареждане наново на произведените артикули от активната рецепта за разпад,row=2,warning=Произведените артикули ще бъдат заменени с тези от активната рецепта за разпад|*!');
         }
     }
 
@@ -450,6 +727,18 @@ class planning_DisassemblyNote extends planning_ProductionDocument
         if(isset($rec->inputStoreId)){
             $row->inputStoreId = store_Stores::getHyperlink($rec->inputStoreId, true);
         }
+
+        // Политиката се показва само когато по нея се разпределя себестойността -
+        // извън този режим записаната е бездейна
+        if($rec->allocationBy == 'price' && !empty($rec->priceListId)){
+            $row->priceListId = price_Lists::getHyperlink($rec->priceListId, true);
+        } else {
+            unset($row->priceListId);
+        }
+
+        if(!empty($rec->bomId)){
+            $row->bomId = cat_DisassemblyBoms::getLink($rec->bomId, 0);
+        }
     }
 
 
@@ -468,12 +757,39 @@ class planning_DisassemblyNote extends planning_ProductionDocument
                 $rec->mainInputQuantity = $rec->mainInputPackQuantity * $rec->mainInputQuantityInPack;
             }
 
+            if($rec->allocationBy == 'price' && empty($rec->priceListId)){
+                $form->setError('allocationBy,priceListId', 'При разпределяне по сб-ст, трябва да е посочена ценова политика|*!');
+            }
+
+            // Смяна на начина (@see cat_DisassemblyBoms::on_AfterInputEditForm)
+            if(isset($rec->id)){
+                $exRec = $mvc->fetch($rec->id, '*', false);
+
+                if($rec->allocationBy == 'quantity' && $exRec->allocationBy != 'quantity' && !static::areProductionProductsInTheSameUom($rec->id)){
+
+                    // Количествата на редовете не са сравними - по тях няма как да се разпределя
+                    $form->setError('allocationBy', 'Себестойността не може да се разпредели по количество|*, |защото произведените артикули не са в производни една на друга мерки|*!');
+                } elseif($exRec->allocationBy == 'manual' && $rec->allocationBy != 'manual' && planning_DisassemblyNoteDetails::count("#noteId = {$rec->id} AND #type = 'production' AND #state != 'rejected' AND #costPercent IS NOT NULL")){
+
+                    // Излизане от ръчното разпределяне - въведените проценти повече
+                    // няма как да важат, затова се изчистват (@see on_AfterSave)
+                    $rec->_resetCostPercents = true;
+                    $form->setWarning('allocationBy', 'Ръчно зададените проценти на редовете ще бъдат занулени|*, |защото вече ще се изчисляват автоматично|*!');
+                }
+            }
+
             if(isset($rec->id) && !empty($rec->_cloneForm)){
                 if($rec->state == 'active'){
                     $exRec = $mvc->fetch($rec->id, '*', false);
-                    if($rec->valior != $exRec->valior || $rec->expenses != $exRec->expenses){
-                        $rec->_recontoAfterEdit = true;
-                        $form->setWarning('valior,expenses', "Документа ще бъде реконтиран след запис, поради променени данни!");
+                    if($rec->valior != $exRec->valior || $rec->expenses != $exRec->expenses || $rec->allocationBy != $exRec->allocationBy || $rec->priceListId != $exRec->priceListId){
+
+                        // Проверява се с подадения запис, не със записания
+                        if($errorMsg = $mvc->getErrorWhenTryingToConto($rec, 'reconto')){
+                            $form->setError('allocationBy,priceListId,valior', $errorMsg);
+                        } else {
+                            $rec->_recontoAfterEdit = true;
+                            $form->setWarning('valior,expenses,allocationBy,priceListId', "Документа ще бъде реконтиран след запис, поради променени данни!");
+                        }
                     }
                 }
             }
