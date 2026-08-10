@@ -4,7 +4,8 @@
         grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
         align-items: start;
         gap: 32px 24px;
-        padding: 18px 12px;
+        padding: 20px 25px;
+        box-sizing: border-box;
     }
 
     .footer-menu-column {
