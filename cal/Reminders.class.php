@@ -1463,7 +1463,7 @@ class cal_Reminders extends core_Master
      */
     public static function getThreadState($id)
     {
-        if (self::$opened[$id]) {
+        if (!empty(self::$opened[$id])) {
             
             // self::logNotice('Върнато състояние opened ' . $id, $id);
             
