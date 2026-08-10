@@ -647,7 +647,8 @@ class pwa_Share extends core_Mvc
         $expectedLoss = isset($diagnostic->expectedCount) &&
             (int) $diagnostic->expectedCount > (int) $diagnostic->normalizedCount;
         $handleMismatch = (int) $diagnostic->normalizedCount !== $handleCount;
-        if ($expectedMismatch || $handleMismatch) {
+        $hasMismatch = $expectedMismatch || $handleMismatch;
+        if ($hasMismatch) {
             self::logWarning('PWA share upload count mismatch: ' . $summary);
         }
 
@@ -669,14 +670,11 @@ class pwa_Share extends core_Mvc
             );
         }
 
-        $hasFileSignal = isset($diagnostic->expectedCount) && (int) $diagnostic->expectedCount > 0;
-        $hasFileSignal = $hasFileSignal || (int) $diagnostic->nativeCount > 0 ||
-            (int) $diagnostic->workerCount > 0 || (int) $diagnostic->normalizedCount > 0 || $handleCount > 0;
-        if ($hasFileSignal && haveRole('debug')) {
+        if ($hasMismatch && haveRole('debug')) {
             self::showShareUploadDebugStatus($summary);
         }
 
-        return $hasFileSignal ? $summary : null;
+        return $hasMismatch ? $summary : null;
     }
 
 
