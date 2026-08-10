@@ -619,18 +619,18 @@ class pwa_Share extends core_Mvc
      * Показва броячите на debug потребител и предупреждава при реална загуба.
      *
      * @param stdClass $diagnostic
-     * @param int      $savedCount
+     * @param int      $handleCount
      *
      * @return string|null
      */
-    protected static function reportShareUploadDiagnostic($diagnostic, $savedCount)
+    protected static function reportShareUploadDiagnostic($diagnostic, $handleCount)
     {
         if (!is_object($diagnostic)) {
 
             return null;
         }
 
-        $savedCount = max(0, (int) $savedCount);
+        $handleCount = max(0, (int) $handleCount);
         $expectedText = isset($diagnostic->expectedCount) ? (string) $diagnostic->expectedCount : 'unknown';
         $summary = 'source=' . $diagnostic->source
             . '; field=' . $diagnostic->field
@@ -639,15 +639,15 @@ class pwa_Share extends core_Mvc
             . '; native=' . (int) $diagnostic->nativeCount
             . '; worker=' . (int) $diagnostic->workerCount
             . '; normalized=' . (int) $diagnostic->normalizedCount
-            . '; saved=' . $savedCount
+            . '; handles=' . $handleCount
             . '; max_file_uploads=' . (int) $diagnostic->maxFileUploads;
 
         $expectedMismatch = isset($diagnostic->expectedCount) &&
             (int) $diagnostic->expectedCount !== (int) $diagnostic->normalizedCount;
         $expectedLoss = isset($diagnostic->expectedCount) &&
             (int) $diagnostic->expectedCount > (int) $diagnostic->normalizedCount;
-        $savedMismatch = (int) $diagnostic->normalizedCount !== $savedCount;
-        if ($expectedMismatch || $savedMismatch) {
+        $handleMismatch = (int) $diagnostic->normalizedCount !== $handleCount;
+        if ($expectedMismatch || $handleMismatch) {
             self::logWarning('PWA share upload count mismatch: ' . $summary);
         }
 
@@ -659,10 +659,10 @@ class pwa_Share extends core_Mvc
                 null,
                 300
             );
-        } elseif ($savedMismatch) {
+        } elseif ($handleMismatch) {
             status_Messages::newStatus(
-                tr('Не всички приети файлове бяха записани.')
-                    . ' (' . $savedCount . '/' . (int) $diagnostic->normalizedCount . ')',
+                tr('Броят на файловите записи е различен от броя приети файлове. Проверете статуса; еднакви файлове може да са обединени.')
+                    . ' (' . $handleCount . '/' . (int) $diagnostic->normalizedCount . ')',
                 'warning',
                 null,
                 300
@@ -671,7 +671,7 @@ class pwa_Share extends core_Mvc
 
         $hasFileSignal = isset($diagnostic->expectedCount) && (int) $diagnostic->expectedCount > 0;
         $hasFileSignal = $hasFileSignal || (int) $diagnostic->nativeCount > 0 ||
-            (int) $diagnostic->workerCount > 0 || (int) $diagnostic->normalizedCount > 0 || $savedCount > 0;
+            (int) $diagnostic->workerCount > 0 || (int) $diagnostic->normalizedCount > 0 || $handleCount > 0;
         if ($hasFileSignal && haveRole('debug')) {
             self::showShareUploadDebugStatus($summary);
         }
