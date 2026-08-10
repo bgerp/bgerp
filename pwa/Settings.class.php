@@ -37,6 +37,18 @@ class pwa_Settings extends core_Manager
 
 
     /**
+     * Кеш за ограничаване на повторните опити за самовъзстановяване
+     */
+    const WEBROOT_REPAIR_CACHE_TYPE = 'pwaWebrootRepair';
+
+
+    /**
+     * Интервал между неуспешни автоматични опити (в минути)
+     */
+    const WEBROOT_REPAIR_CACHE_LIFETIME = 1;
+
+
+    /**
      * Версия на алгоритъма и вградените ресурси за манифеста
      *
      * Да се увеличава при промяна на генератора или комплектните икони.
@@ -169,6 +181,7 @@ class pwa_Settings extends core_Manager
         $resArr = array();
         $query = self::getQuery();
         $query->where("#state != 'closed'");
+        $query->orderBy('id', 'ASC');
 
         while ($rec = $query->fetch()) {
             $resArr[$rec->domainId] = cms_Domains::fetchField($rec->domainId, 'domain');
@@ -184,10 +197,16 @@ class pwa_Settings extends core_Manager
      * @param $domainId
      * @return false|string
      */
-    public static function getPWAManifest($domainId = null)
+    public static function getPWAManifest($domainId = null, $webrootDomain = null)
     {
         if (!isset($domainId)) {
             $domainId = cms_Domains::getCurrent('id', false);
+        }
+        if (!isset($webrootDomain)) {
+            $webrootDomain = self::getWebrootDomain($domainId);
+        }
+        if (!$webrootDomain) {
+            return false;
         }
 
         $rec = self::fetch(array("#domainId = '[#1#]'", $domainId));
@@ -206,7 +225,15 @@ class pwa_Settings extends core_Manager
         );
 
         if ($json === false) {
-            $iconInfoArr = self::prepareManifestIcons($rec, $domainId);
+            // Setup може да е стартиран през друг cms домейн. Манифестът
+            // трябва да се генерира на езика на конкретния domainId.
+            $domainLg = cms_Domains::fetchField($domainId, 'lang');
+            if ($domainLg) {
+                core_Lg::push($domainLg);
+            }
+
+            try {
+                $iconInfoArr = self::prepareManifestIcons($rec, $domainId, $webrootDomain);
 
             $shortcuts = array();
             $me = cls::get(get_called_class());
@@ -270,13 +297,18 @@ class pwa_Settings extends core_Manager
                 ),
             );
 
-            core_Cache::set(
-                self::MANIFEST_CACHE_TYPE,
-                $cacheHandler,
-                $json,
-                self::MANIFEST_CACHE_LIFETIME,
-                $cacheDepends
-            );
+                core_Cache::set(
+                    self::MANIFEST_CACHE_TYPE,
+                    $cacheHandler,
+                    $json,
+                    self::MANIFEST_CACHE_LIFETIME,
+                    $cacheDepends
+                );
+            } finally {
+                if ($domainLg) {
+                    core_Lg::pop();
+                }
+            }
         }
 
         return json_encode($json);
@@ -291,15 +323,16 @@ class pwa_Settings extends core_Manager
      *
      * @param stdClass $rec
      * @param int      $domainId
+     * @param string   $webrootDomain
      *
      * @return array
      */
-    protected static function prepareManifestIcons($rec, $domainId)
+    protected static function prepareManifestIcons($rec, $domainId, $webrootDomain)
     {
         $iconInfoArr = array();
         $resizeSource = null;
         if (!empty($rec->icons)) {
-            $iconInfoArr = self::extractCustomManifestIcons($rec->icons, $domainId, $resizeSource);
+            $iconInfoArr = self::extractCustomManifestIcons($rec->icons, $webrootDomain, $resizeSource);
         }
 
         $existingSizes = array();
@@ -323,7 +356,7 @@ class pwa_Settings extends core_Manager
 
             if ($content !== false) {
                 $fileName = 'pwa-icon-custom-' . $sizes . '-' . substr(md5($content), 0, 12) . '.png';
-                core_Webroot::register($content, 'Content-Type: image/png', $fileName, $domainId);
+                core_Webroot::register($content, 'Content-Type: image/png', $fileName, $webrootDomain);
                 $iconInfoArr[] = array(
                     'src' => '/' . $fileName,
                     'sizes' => $sizes,
@@ -346,7 +379,7 @@ class pwa_Settings extends core_Manager
             }
 
             $fileName = 'pwa-icon-' . $sizes . '-' . substr(md5($content), 0, 12) . '.png';
-            core_Webroot::register($content, 'Content-Type: image/png', $fileName, $domainId);
+            core_Webroot::register($content, 'Content-Type: image/png', $fileName, $webrootDomain);
             $iconInfoArr[] = array(
                 'src' => '/' . $fileName,
                 'sizes' => $sizes,
@@ -362,11 +395,11 @@ class pwa_Settings extends core_Manager
      * Извлича безопасните растерни икони от потребителския архив
      *
      * @param string $fileHnd
-     * @param int    $domainId
+     * @param string $webrootDomain
      *
      * @return array
      */
-    protected static function extractCustomManifestIcons($fileHnd, $domainId, &$resizeSource = null)
+    protected static function extractCustomManifestIcons($fileHnd, $webrootDomain, &$resizeSource = null)
     {
         $result = array();
         $archiveInst = null;
@@ -429,7 +462,7 @@ class pwa_Settings extends core_Manager
                 $seenIcons[$iconKey] = true;
 
                 $fileName = 'pwa-icon-custom-' . $sizes . '-' . substr($contentHash, 0, 12) . '.' . $imageInfo['extension'];
-                core_Webroot::register($content, 'Content-Type: ' . $imageInfo['mime'], $fileName, $domainId);
+                core_Webroot::register($content, 'Content-Type: ' . $imageInfo['mime'], $fileName, $webrootDomain);
                 $result[] = array(
                     'src' => '/' . $fileName,
                     'sizes' => $sizes,
@@ -686,9 +719,9 @@ class pwa_Settings extends core_Manager
      */
     public static function getManifestContentsForDomain($domainId)
     {
-        $customManifest = self::getCustomWebrootManifest($domainId);
-        if ($customManifest !== null) {
-            return $customManifest;
+        $customFiles = self::getCustomWebrootFiles($domainId);
+        if (array_key_exists('pwa.webmanifest', $customFiles)) {
+            return $customFiles['pwa.webmanifest'];
         }
 
         return self::getPWAManifest($domainId);
@@ -696,7 +729,181 @@ class pwa_Settings extends core_Manager
 
 
     /**
-     * Публикува отново физическия манифест за реалния хост
+     * Връща Service Worker-а, който трябва да се публикува за домейна
+     *
+     * Потребителският serviceWorker.js от cms_Domains::wrFiles има
+     * предимство пред стандартния файл на пакета.
+     *
+     * @param int $domainId
+     *
+     * @return false|string
+     */
+    public static function getServiceWorkerContentsForDomain($domainId)
+    {
+        $customFiles = self::getCustomWebrootFiles($domainId);
+        if (array_key_exists('serviceworker.js', $customFiles)) {
+            return $customFiles['serviceworker.js'];
+        }
+
+        $defaultPath = getFullPath('pwa/js/sw.js');
+        if (!$defaultPath || !is_file($defaultPath)) {
+            return false;
+        }
+
+        return @file_get_contents($defaultPath);
+    }
+
+
+    /**
+     * Публикува манифеста и Service Worker-а за конкретен домейн
+     *
+     * Това е единственото място, което записва двата основни PWA webroot
+     * файла. Така Setup, промяната на настройките и автоматичното
+     * възстановяване използват еднакви overrides, MIME headers и версии.
+     *
+     * @param int $domainId
+     *
+     * @return array|false
+     */
+    public static function publishWebrootFilesForDomain($domainId)
+    {
+        $domainId = (int) $domainId;
+        if (!$domainId || !cms_Domains::fetch($domainId)) {
+            return false;
+        }
+        $webrootDomain = self::getWebrootDomain($domainId);
+        if (!$webrootDomain) {
+            return false;
+        }
+
+        // Настройката може току-що да е записана. Не използваме стария
+        // генериран manifest, но запазваме стандартното dependency кеширане
+        // за следващите прочитания.
+        core_Cache::remove(self::MANIFEST_CACHE_TYPE, self::getManifestCacheHandler($domainId));
+
+        $customFiles = self::getCustomWebrootFiles($domainId);
+        if (array_key_exists('pwa.webmanifest', $customFiles)) {
+            $manifest = $customFiles['pwa.webmanifest'];
+        } else {
+            $manifest = self::getPWAManifest($domainId, $webrootDomain);
+        }
+
+        if (array_key_exists('serviceworker.js', $customFiles)) {
+            $serviceWorker = $customFiles['serviceworker.js'];
+        } else {
+            $defaultPath = getFullPath('pwa/js/sw.js');
+            $serviceWorker = ($defaultPath && is_file($defaultPath)) ? @file_get_contents($defaultPath) : false;
+        }
+
+        if ($manifest === false || $serviceWorker === false) {
+            return false;
+        }
+
+        $manifestBefore = core_Webroot::isExists('pwa.webmanifest', $webrootDomain)
+            ? core_Webroot::getContents('pwa.webmanifest', $webrootDomain)
+            : null;
+        $serviceWorkerBefore = core_Webroot::isExists('serviceworker.js', $webrootDomain)
+            ? core_Webroot::getContents('serviceworker.js', $webrootDomain)
+            : null;
+
+        // Записваме и при еднакво съдържание. cms_Domains може да е
+        // публикувал override със същите bytes, но с MIME по разширение.
+        core_Webroot::register(
+            $manifest,
+            'Content-Type: application/manifest+json',
+            'pwa.webmanifest',
+            $webrootDomain
+        );
+        core_Webroot::register(
+            $serviceWorker,
+            'Content-Type: text/javascript',
+            'serviceworker.js',
+            $webrootDomain
+        );
+
+        $manifestExists = core_Webroot::isExists('pwa.webmanifest', $webrootDomain);
+        $serviceWorkerExists = core_Webroot::isExists('serviceworker.js', $webrootDomain);
+        $manifestAfter = $manifestExists
+            ? core_Webroot::getContents('pwa.webmanifest', $webrootDomain)
+            : null;
+        $serviceWorkerAfter = $serviceWorkerExists
+            ? core_Webroot::getContents('serviceworker.js', $webrootDomain)
+            : null;
+
+        if ($manifestExists) {
+            self::setManifestVersion($domainId, $manifestAfter);
+        } else {
+            self::removeManifestVersion($domainId);
+        }
+
+        if (cls::load('pwa_Plugin', true)) {
+            if ($serviceWorkerExists) {
+                pwa_Plugin::setServiceWorkerVersion($domainId, $serviceWorkerAfter);
+            } else {
+                pwa_Plugin::removeServiceWorkerVersion($domainId);
+            }
+        }
+
+        return array(
+            'success' => $manifestExists && $serviceWorkerExists,
+            'manifest' => $manifestExists,
+            'serviceWorker' => $serviceWorkerExists,
+            'manifestChanged' => $manifestBefore !== $manifestAfter,
+            'serviceWorkerChanged' => $serviceWorkerBefore !== $serviceWorkerAfter,
+        );
+    }
+
+
+    /**
+     * Възстановява липсващите основни PWA файлове с кратък retry throttle
+     *
+     * При нормална работа методът прави само две проверки за съществуване.
+     * Кешът предпазва от тежко генериране на всеки хит при постоянен проблем
+     * с файловата система.
+     *
+     * @param int $domainId
+     *
+     * @return bool
+     */
+    public static function ensureWebrootFilesForDomain($domainId)
+    {
+        $webrootDomain = self::getWebrootDomain($domainId);
+        if (!$webrootDomain) {
+            return false;
+        }
+
+        if (
+            core_Webroot::isExists('pwa.webmanifest', $webrootDomain)
+            && core_Webroot::isExists('serviceworker.js', $webrootDomain)
+        ) {
+            return true;
+        }
+
+        $handler = md5(self::getManifestHost($domainId));
+        if (core_Cache::get(self::WEBROOT_REPAIR_CACHE_TYPE, $handler) !== false) {
+            return false;
+        }
+
+        // Маркерът се поставя преди генерирането. При exception или
+        // непреодолима грешка следващият хит няма да повтори веднага опита.
+        core_Cache::set(
+            self::WEBROOT_REPAIR_CACHE_TYPE,
+            $handler,
+            true,
+            self::WEBROOT_REPAIR_CACHE_LIFETIME
+        );
+
+        $res = self::regenerateManifestForDomain($domainId);
+        if ($res) {
+            core_Cache::remove(self::WEBROOT_REPAIR_CACHE_TYPE, $handler);
+        }
+
+        return $res;
+    }
+
+
+    /**
+     * Публикува отново физическите PWA файлове за реалния хост
      *
      * Няколко езикови записа могат да споделят един хост и един webroot.
      * Затова преизчисляваме крайния активен запис в същия ред, в който
@@ -714,7 +921,7 @@ class pwa_Settings extends core_Manager
 
 
     /**
-     * Публикува отново физическия манифест за посочен реален хост
+     * Публикува отново физическите PWA файлове за посочен реален хост
      *
      * @param string $host
      *
@@ -737,37 +944,18 @@ class pwa_Settings extends core_Manager
 
         if (!$selectedDomainId) {
             core_Webroot::remove('pwa.webmanifest', $host);
+            core_Webroot::remove('serviceworker.js', $host);
             self::removeManifestVersionForHost($host);
+            if (cls::load('pwa_Plugin', true)) {
+                pwa_Plugin::removeServiceWorkerVersionForHost($host);
+            }
 
             return false;
         }
 
-        $manifest = self::getManifestContentsForDomain($selectedDomainId);
-        if ($manifest === false) {
-            return false;
-        }
+        $published = self::publishWebrootFilesForDomain($selectedDomainId);
 
-        // Регистрираме и при непроменено съдържание, защото cms_Domains
-        // може да е публикувал същия wrFiles манифест с MIME по разширение.
-        core_Webroot::register(
-            $manifest,
-            'Content-Type: application/manifest+json',
-            'pwa.webmanifest',
-            $selectedDomainId
-        );
-
-        // Хешираме действително публикуваното съдържание. При неуспешен
-        // запис не обявяваме версия, която браузърът не може да получи.
-        if (core_Webroot::isExists('pwa.webmanifest', $selectedDomainId)) {
-            self::setManifestVersion(
-                $selectedDomainId,
-                core_Webroot::getContents('pwa.webmanifest', $selectedDomainId)
-            );
-        } else {
-            self::removeManifestVersion($selectedDomainId);
-        }
-
-        return true;
+        return $published && !empty($published['success']);
     }
 
 
@@ -856,17 +1044,21 @@ class pwa_Settings extends core_Manager
 
 
     /**
-     * Връща потребителския манифест от архива със статични файлове
+     * Връща потребителските PWA файлове от архива със статични файлове
+     *
+     * Разрешени са само двата root файла. Архивът се прочита еднократно,
+     * независимо дали override има за единия или и за двата.
      *
      * @param int $domainId
      *
-     * @return null|string
+     * @return array
      */
-    protected static function getCustomWebrootManifest($domainId)
+    protected static function getCustomWebrootFiles($domainId)
     {
+        $result = array();
         $domainRec = cms_Domains::fetch($domainId);
         if (!$domainRec || empty($domainRec->wrFiles)) {
-            return null;
+            return $result;
         }
 
         $archiveInst = null;
@@ -874,30 +1066,44 @@ class pwa_Settings extends core_Manager
             $archiveInst = cls::get('archive_Adapter', array('fileHnd' => $domainRec->wrFiles));
             $entries = $archiveInst->getEntries();
             if (!is_array($entries)) {
-                return null;
+                return $result;
             }
 
+            $allowedFiles = array(
+                'pwa.webmanifest' => true,
+                'serviceworker.js' => true,
+            );
+            $maxSize = (int) archive_Setup::get('MAX_LEN');
             foreach ($entries as $entry) {
-                $path = trim(str_replace('\\', '/', $entry->getPath()));
-                if (strtolower($path) !== 'pwa.webmanifest') {
+                $path = strtolower(trim(str_replace('\\', '/', $entry->getPath())));
+                if (!isset($allowedFiles[$path])) {
                     continue;
                 }
 
                 $size = (int) $entry->getSize();
-                $maxSize = (int) archive_Setup::get('MAX_LEN');
                 if ($size < 0 || ($maxSize > 0 && $size > $maxSize)) {
-                    return null;
+                    continue;
                 }
 
                 $content = $entry->getContent();
-                if ($maxSize > 0 && strlen($content) > $maxSize) {
-                    return null;
+                if ($content === false || $content === '' || ($maxSize > 0 && strlen($content) > $maxSize)) {
+                    continue;
                 }
 
-                return ($content === false) ? null : $content;
+                if ($path === 'pwa.webmanifest') {
+                    json_decode($content);
+                    if (json_last_error() !== JSON_ERROR_NONE) {
+                        continue;
+                    }
+                }
+
+                $result[$path] = $content;
+                if (count($result) === count($allowedFiles)) {
+                    break;
+                }
             }
         } catch (Throwable $e) {
-            return null;
+            return $result;
         } finally {
             if ($archiveInst) {
                 try {
@@ -908,7 +1114,7 @@ class pwa_Settings extends core_Manager
             }
         }
 
-        return null;
+        return $result;
     }
 
 
@@ -932,6 +1138,33 @@ class pwa_Settings extends core_Manager
 
 
     /**
+     * Връща webroot домейна за конкретен cms_Domains запис
+     *
+     * За реалните домейни използваме директно стойността от записа, без
+     * текущия HTTP host. Само историческият запис `localhost` остава
+     * динамичен по дефиницията на cms_Domains::getReal().
+     *
+     * @param int $domainId
+     *
+     * @return string|false
+     */
+    protected static function getWebrootDomain($domainId)
+    {
+        $domain = cms_Domains::fetchField((int) $domainId, 'domain');
+        if (!$domain) {
+            return false;
+        }
+
+        $domain = strtolower(trim($domain));
+        if ($domain === 'localhost') {
+            $domain = strtolower(trim(cms_Domains::getReal($domain)));
+        }
+
+        return $domain;
+    }
+
+
+    /**
      * Връща нормализирания реален хост на домейна
      *
      * @param int $domainId
@@ -940,12 +1173,12 @@ class pwa_Settings extends core_Manager
      */
     protected static function getManifestHost($domainId)
     {
-        $domain = cms_Domains::fetchField((int) $domainId, 'domain');
+        $domain = self::getWebrootDomain($domainId);
         if (!$domain) {
             return 'domainId_' . (int) $domainId;
         }
 
-        return strtolower(trim(cms_Domains::getReal($domain)));
+        return $domain;
     }
 
 
