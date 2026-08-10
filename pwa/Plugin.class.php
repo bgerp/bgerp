@@ -143,8 +143,13 @@ class pwa_Plugin extends core_Plugin
         if ($canUse == 'yes') {
             $dId = cms_Domains::getCurrent('id', false);
             $swVersion = self::getServiceWorkerVersion($dId);
+            $manifestVersion = pwa_Settings::getManifestVersion($dId);
+            $manifestHref = '/pwa.webmanifest';
+            if ($manifestVersion !== '') {
+                $manifestHref .= '?v=' . rawurlencode($manifestVersion);
+            }
 
-            $invoker->appendOnce("\n<link  rel=\"manifest\" href=\"/pwa.webmanifest\" data-sw-date=\"{$swVersion}\">", 'HEAD');
+            $invoker->appendOnce("\n<link  rel=\"manifest\" href=\"{$manifestHref}\" data-sw-date=\"{$swVersion}\">", 'HEAD');
         }
         $invoker->push('pwa/js/swRegister.js', 'JS', true);
         jquery_Jquery::run($invoker, 'syncServiceWorker();', true);

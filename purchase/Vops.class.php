@@ -233,7 +233,7 @@ class purchase_Vops extends core_Manager
     protected static function on_AfterPrepareRetUrl($mvc, $res, $data)
     {
         // Ако има форма, и тя е събмитната и действието е 'запис'
-        if ($data->form->rec->id && $data->form->isSubmitted() && $data->form->cmd == 'save') {
+        if ($data->form->isSubmitted() && !empty($data->form->rec->id) && ($data->form->cmd ?? null) == 'save') {
             $data->retUrl = toUrl(array($mvc, 'print', $data->form->rec->id, 'Printing' => 'yes'));
         }
     }

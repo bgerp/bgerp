@@ -15,6 +15,8 @@
  */
 class callcenter_SentSMSIntf
 {
+    public $class;
+
     /**
      * Метод за изпращане на SMS' и
      *

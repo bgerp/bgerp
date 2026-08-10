@@ -17,6 +17,8 @@
  */
 class email_interfaces_ParseSourceDataIntf
 {
+    public $class;
+
 
 
     /**

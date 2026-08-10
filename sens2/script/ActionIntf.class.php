@@ -19,6 +19,8 @@
  */
 class sens2_script_ActionIntf
 {
+    public $class;
+
 
     public $oldClassName = 'sens2_ScriptActionIntf';
     

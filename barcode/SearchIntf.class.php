@@ -16,6 +16,8 @@
  */
 class barcode_SearchIntf
 {
+    public $class;
+
     /**
      * Търси по подадения баркод
      *

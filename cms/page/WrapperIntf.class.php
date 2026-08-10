@@ -16,4 +16,6 @@
  */
 class cms_page_WrapperIntf
 {
+    public $class;
+
 }

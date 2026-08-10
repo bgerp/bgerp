@@ -16,6 +16,8 @@
  */
 class docoffice_ConverterIntf
 {
+    public $class;
+
     /**
      * Конвертира office документи
      *

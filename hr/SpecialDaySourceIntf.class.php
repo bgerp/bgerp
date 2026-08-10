@@ -17,6 +17,8 @@
  */
 class hr_SpecialDaySourceIntf
 {
+    public $class;
+
     /**
      * Мотод, който взима специалните дни по графиците
      *
