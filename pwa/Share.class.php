@@ -644,12 +644,14 @@ class pwa_Share extends core_Mvc
 
         $expectedMismatch = isset($diagnostic->expectedCount) &&
             (int) $diagnostic->expectedCount !== (int) $diagnostic->normalizedCount;
+        $expectedLoss = isset($diagnostic->expectedCount) &&
+            (int) $diagnostic->expectedCount > (int) $diagnostic->normalizedCount;
         $savedMismatch = (int) $diagnostic->normalizedCount !== $savedCount;
         if ($expectedMismatch || $savedMismatch) {
             self::logWarning('PWA share upload count mismatch: ' . $summary);
         }
 
-        if ($expectedMismatch) {
+        if ($expectedLoss) {
             status_Messages::newStatus(
                 tr('Не всички споделени файлове достигнаха до PHP. Проверете настройката max_file_uploads.')
                     . ' (' . (int) $diagnostic->normalizedCount . '/' . (int) $diagnostic->expectedCount . ')',
