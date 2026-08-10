@@ -76,12 +76,21 @@ class pwa_Share extends core_Mvc
         if ($shareError = Request::get('shareError', 'identifier')) {
             $shareError = self::normalizeShareError($shareError);
             $shareDiag = self::normalizeShareDiag(Request::get('shareDiag', 'identifier'));
+            $shareWorkerVersion = self::normalizeShareWorkerVersion(Request::get('shareSw', 'varchar'));
             $errorMessages = self::getShareErrorMessages();
             $portalLink = ht::createLink('Към bgERP', array('Portal', 'Show'), null, 'class=button');
             $diagnostic = '';
-            if ($shareDiag && haveRole('debug')) {
-                $diagnosticText = "shareError={$shareError}\nshareDiag={$shareDiag}";
-                $diagnostic = '<div style="margin-top:12px"><textarea readonly rows="2" '
+            if (($shareDiag !== null || $shareWorkerVersion !== null) && haveRole('debug')) {
+                $diagnosticLines = array("shareError={$shareError}");
+                if ($shareDiag !== null) {
+                    $diagnosticLines[] = "shareDiag={$shareDiag}";
+                }
+                if ($shareWorkerVersion !== null) {
+                    $diagnosticLines[] = "shareSw={$shareWorkerVersion}";
+                }
+                $diagnosticText = implode("\n", $diagnosticLines);
+                $diagnostic = '<div style="margin-top:12px"><div>' . tr('Диагностика за копиране')
+                    . ':</div><textarea readonly rows="3" '
                     . 'style="width:100%;max-width:520px" onclick="this.select()" '
                     . 'aria-label="PWA share diagnostic">' . ht::escapeAttr($diagnosticText) . '</textarea></div>';
             }
@@ -426,11 +435,45 @@ class pwa_Share extends core_Mvc
             'php_direct_fields',
             'php_direct_empty_payload',
             'php_direct_rate_limit',
-            'php_internal_error'
+            'php_worker_marker',
+            'php_worker_site',
+            'php_worker_mode',
+            'php_worker_destination',
+            'php_worker_content_type',
+            'php_worker_origin',
+            'php_worker_fields',
+            'php_worker_empty_payload',
+            'php_worker_rate_limit',
+            'php_internal_error',
+            'php_error_without_diagnostic',
+            'php_loader_error_without_diagnostic',
+            'sw_form_data',
+            'sw_missing_share_token',
+            'sw_post_network',
+            'sw_post_http',
+            'sw_handle_failed',
+            'sw_loader_http',
+            'sw_loader_no_token',
+            'sw_loader_failed'
         );
 
         return is_string($diagnostic) && in_array($diagnostic, $allowed, true)
             ? $diagnostic
+            : null;
+    }
+
+
+    /**
+     * Допуска в debug диагностиката само безопасна SW версия
+     *
+     * @param string|null $version
+     *
+     * @return string|null
+     */
+    protected static function normalizeShareWorkerVersion($version)
+    {
+        return is_string($version) && preg_match('/^[a-zA-Z0-9._-]{1,64}$/D', $version)
+            ? $version
             : null;
     }
 
@@ -509,16 +552,30 @@ class pwa_Share extends core_Mvc
     protected static function validateAndConsumeShareToken()
     {
         $token = Request::get(self::SHARE_TOKEN_FIELD, 'varchar');
-        if (!$token) {
-            // Rolling-update fallback само за оригиналния POST от browser/OS
-            // share UI. Не допускаме same-origin background POST от стар SW:
-            // той може да върви паралелно с оригиналния POST и да го дублира.
-            self::validateDirectShareFallback();
+        if ($token === null || $token === '') {
+            // Подадена, но празна token стойност е невалидна. Fallback-ът
+            // е само за заявки, в които token поле изобщо липсва.
+            expect(!array_key_exists(self::SHARE_TOKEN_FIELD, $_POST) &&
+                !array_key_exists(self::SHARE_TOKEN_FIELD, $_GET), 'Невалиден PWA share token');
+
+            $isWorkerFallback = array_key_exists('HTTP_X_PWA_SHARE_WORKER', $_SERVER);
+            if ($isWorkerFallback) {
+                self::validateWorkerShareFallback();
+            } else {
+                // Rolling-update fallback само за оригиналния POST от
+                // browser/OS share UI. Background POST без точния worker
+                // marker остава забранен.
+                self::validateDirectShareFallback();
+            }
+
             if (core_Users::getCurrent() <= 0) {
                 try {
                     self::enforceShareTokenRateLimit();
                 } catch (Throwable $t) {
-                    throw new RuntimeException(self::SHARE_DIAG_EXCEPTION_PREFIX . 'php_direct_rate_limit');
+                    $rateDiagnostic = $isWorkerFallback
+                        ? 'php_worker_rate_limit'
+                        : 'php_direct_rate_limit';
+                    throw new RuntimeException(self::SHARE_DIAG_EXCEPTION_PREFIX . $rateDiagnostic);
                 }
             }
 
@@ -593,7 +650,8 @@ class pwa_Share extends core_Mvc
         }
 
         $contentType = trim($_SERVER['CONTENT_TYPE'] ?? ($_SERVER['HTTP_CONTENT_TYPE'] ?? ''));
-        $mediaType = strtolower(trim(strtok($contentType, ';')));
+        $contentTypeParts = explode(';', $contentType, 2);
+        $mediaType = strtolower(trim($contentTypeParts[0]));
         if ($mediaType !== 'multipart/form-data' ||
             !preg_match('/(?:^|;)\s*boundary\s*=\s*(?:"[^"]+"|[^;\s]+)/i', $contentType)) {
             self::throwShareDiagnostic('php_direct_content_type');
@@ -629,6 +687,98 @@ class pwa_Share extends core_Mvc
         if (!$haveText && !self::hasDirectSharedFile()) {
             self::throwShareDiagnostic('php_direct_empty_payload');
         }
+    }
+
+
+    /**
+     * Допуска tokenless POST от активния Service Worker само като
+     * browser-verified same-origin fetch. Това покрива proxy/redirect,
+     * който е премахнал token header-а от loader GET отговора.
+     */
+    protected static function validateWorkerShareFallback()
+    {
+        if (trim((string) ($_SERVER['HTTP_X_PWA_SHARE_WORKER'] ?? '')) !== '1') {
+            self::throwShareDiagnostic('php_worker_marker');
+        }
+
+        $fetchSite = strtolower(trim($_SERVER['HTTP_SEC_FETCH_SITE'] ?? ''));
+        if ($fetchSite !== 'same-origin') {
+            self::throwShareDiagnostic('php_worker_site');
+        }
+
+        $fetchMode = strtolower(trim($_SERVER['HTTP_SEC_FETCH_MODE'] ?? ''));
+        if ($fetchMode !== 'cors') {
+            self::throwShareDiagnostic('php_worker_mode');
+        }
+
+        $fetchDestination = strtolower(trim($_SERVER['HTTP_SEC_FETCH_DEST'] ?? ''));
+        if ($fetchDestination !== 'empty') {
+            self::throwShareDiagnostic('php_worker_destination');
+        }
+
+        $contentType = trim($_SERVER['CONTENT_TYPE'] ?? ($_SERVER['HTTP_CONTENT_TYPE'] ?? ''));
+        $contentTypeParts = explode(';', $contentType, 2);
+        $mediaType = strtolower(trim($contentTypeParts[0]));
+        if ($mediaType !== 'multipart/form-data' ||
+            !preg_match('/(?:^|;)\s*boundary\s*=\s*(?:"[^"]+"|[^;\s]+)/i', $contentType)) {
+            self::throwShareDiagnostic('php_worker_content_type');
+        }
+
+        // Same-origin FormData POST обикновено има Origin. Допускаме
+        // липсващ header за reverse proxy, но никога opaque "null" Origin.
+        $origin = trim($_SERVER['HTTP_ORIGIN'] ?? '');
+        if ($origin !== '' && !self::isExactRequestOrigin($origin)) {
+            self::throwShareDiagnostic('php_worker_origin');
+        }
+
+        $allowedPostFields = array('name' => true, 'description' => true, 'link' => true);
+        foreach (array_keys($_POST) as $field) {
+            if (!isset($allowedPostFields[$field]) || !is_scalar($_POST[$field])) {
+                self::throwShareDiagnostic('php_worker_fields');
+            }
+        }
+
+        foreach (array_keys($_FILES) as $field) {
+            if ($field !== 'ulfile' || !is_array($_FILES[$field])) {
+                self::throwShareDiagnostic('php_worker_fields');
+            }
+        }
+
+        $haveText = false;
+        foreach ($allowedPostFields as $field => $dummy) {
+            if (isset($_POST[$field]) && trim((string) $_POST[$field]) !== '') {
+                $haveText = true;
+
+                break;
+            }
+        }
+
+        if (!$haveText && !self::hasWorkerSharedFile()) {
+            self::throwShareDiagnostic('php_worker_empty_payload');
+        }
+    }
+
+
+    /**
+     * Има ли поне един реален файл в нормализираното worker поле
+     *
+     * @return bool
+     */
+    protected static function hasWorkerSharedFile()
+    {
+        if (empty($_FILES['ulfile']) || !array_key_exists('error', $_FILES['ulfile'])) {
+
+            return false;
+        }
+
+        foreach ((array) $_FILES['ulfile']['error'] as $uploadError) {
+            if ((int) $uploadError !== UPLOAD_ERR_NO_FILE) {
+
+                return true;
+            }
+        }
+
+        return false;
     }
 
 
