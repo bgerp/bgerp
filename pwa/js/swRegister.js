@@ -12,6 +12,7 @@
     var serviceWorkerScope = '/';
     var storageKey = 'data-sw-date';
     var ensureInFlight = null;
+    var installPromptEvent = null;
 
     function logError(message, error) {
         if (global.console && typeof global.console.error === 'function') {
@@ -53,6 +54,115 @@
 
     function getManifestElement() {
         return global.document.querySelector('link[rel="manifest"]');
+    }
+
+    function isInstalledPwa() {
+        if (global.navigator.standalone === true) {
+            return true;
+        }
+
+        try {
+            return typeof global.matchMedia === 'function' && global.matchMedia('(display-mode: standalone)').matches;
+        } catch (error) {
+            logError('Unable to inspect PWA display mode:', error);
+
+            return false;
+        }
+    }
+
+    function initializeInstallButton() {
+        if (typeof global.document.getElementById !== 'function') {
+            return;
+        }
+
+        var installButton = global.document.getElementById('pwa-install-button');
+        if (!installButton) {
+            // Не прихващаме beforeinstallprompt извън собствения профил, за
+            // да може браузърът да запази стандартния си install интерфейс.
+            return;
+        }
+
+        function hideInstallButton() {
+            installButton.style.display = 'none';
+            installButton.setAttribute('aria-hidden', 'true');
+        }
+
+        function showInstallButton() {
+            if (!installPromptEvent || isInstalledPwa()) {
+                hideInstallButton();
+
+                return;
+            }
+
+            installButton.style.display = '';
+            installButton.removeAttribute('aria-hidden');
+        }
+
+        hideInstallButton();
+
+        installButton.addEventListener('click', function (event) {
+            event.preventDefault();
+
+            var currentPrompt = installPromptEvent;
+            installPromptEvent = null;
+            hideInstallButton();
+
+            if (!currentPrompt || isInstalledPwa()) {
+                return;
+            }
+
+            try {
+                currentPrompt.prompt();
+                Promise.resolve(currentPrompt.userChoice).catch(function (error) {
+                    logError('Unable to read the PWA install choice:', error);
+                });
+            } catch (error) {
+                logError('Unable to show the PWA install prompt:', error);
+            }
+        });
+
+        global.addEventListener('beforeinstallprompt', function (event) {
+            if (isInstalledPwa()) {
+                hideInstallButton();
+
+                return;
+            }
+
+            event.preventDefault();
+            installPromptEvent = event;
+            showInstallButton();
+        });
+
+        global.addEventListener('appinstalled', function () {
+            installPromptEvent = null;
+            hideInstallButton();
+        });
+
+        if (typeof global.matchMedia === 'function') {
+            var displayMode = global.matchMedia('(display-mode: standalone)');
+            if (typeof displayMode.addEventListener === 'function') {
+                displayMode.addEventListener('change', function (event) {
+                    if (event.matches) {
+                        installPromptEvent = null;
+                        hideInstallButton();
+                    }
+                });
+            }
+        }
+    }
+
+    function initializeInstallButtonWhenReady() {
+        if (global.document.readyState !== 'loading') {
+            initializeInstallButton();
+
+            return;
+        }
+
+        var onDomReady = function () {
+            global.document.removeEventListener('DOMContentLoaded', onDomReady);
+            initializeInstallButton();
+        };
+        global.document.addEventListener('DOMContentLoaded', onDomReady);
     }
 
     function getDesiredWorker() {
@@ -232,4 +342,6 @@
             return null;
         });
     };
+
+    initializeInstallButtonWhenReady();
 })(window);

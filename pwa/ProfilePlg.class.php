@@ -23,6 +23,12 @@ class pwa_ProfilePlg extends core_Plugin
      */
     public static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
+        if (self::canInstallPwa($data)) {
+            // Бутонът се показва от swRegister.js само когато браузърът
+            // предостави beforeinstallprompt за текущото устройство.
+            $data->toolbar->addFnBtn('Инсталирай', '', 'class=pwa-install-button linkWithIcon, id=pwa-install-button, order=13, title=Инсталиране на приложението на това устройство, ef_icon=img/16/install.png, style=display:none, aria-hidden=true');
+        }
+
         if (self::getApplicationServerKey($data)) {
             $subscriptionRec = self::getServerSubscription();
             $buttonText = 'Включи известия';
@@ -45,6 +51,27 @@ class pwa_ProfilePlg extends core_Plugin
             // стандартния екран за настройване на известията.
             $data->toolbar->addBtn($buttonText, $buttonUrl, "class={$buttonClass} button linkWithIcon, id=push-subscription-button, order=14, title={$buttonTitle}, row=2, ef_icon=img/16/pwa.png, aria-busy=false");
         }
+    }
+
+
+    /**
+     * Проверява дали показаният профил може да предлага инсталиране на PWA
+     *
+     * @param stdClass $data
+     *
+     * @return bool
+     */
+    protected static function canInstallPwa($data)
+    {
+        $cu = core_Users::getCurrent();
+        if (!$cu || empty($data->rec->userId) || ($cu != $data->rec->userId)) {
+
+            return false;
+        }
+
+        $dId = cms_Domains::getCurrent('id', false);
+
+        return $dId && pwa_Settings::canUse($dId) == 'yes';
     }
 
 
