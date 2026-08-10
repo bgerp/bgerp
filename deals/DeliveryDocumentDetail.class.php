@@ -114,7 +114,7 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
                 }
             }
 
-            $LastPolicy = ($masterRec->isReverse == 'yes') ? 'ReverseLastPricePolicy' : 'LastPricePolicy';
+            $LastPolicy = (($masterRec->isReverse ?? 'no') == 'yes') ? 'ReverseLastPricePolicy' : 'LastPricePolicy';
             if (isset($mvc->{$LastPolicy})) {
                 $policyInfoLast = $mvc->{$LastPolicy}->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId ?? null, $rec->packQuantity ?? null, $masterRec->valior, $masterRec->currencyRate, $masterRec->chargeVat);
                 if (($policyInfoLast->price ?? 0) != 0) {
@@ -193,7 +193,7 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
                             $listId = (isset($dealInfo) && $dealInfo->get('priceListId')) ? $dealInfo->get('priceListId') : null;
 
                             // Ако има политика в документа и той не прави обратна транзакция, използваме нея, иначе продуктовия мениджър
-                            $policyClass = ($masterRec->isReverse == 'yes') ? ($mvc->ReversePolicy ?? null) : ($mvc->Policy ?? null);
+                            $policyClass = (($masterRec->isReverse ?? 'no') == 'yes') ? ($mvc->ReversePolicy ?? null) : ($mvc->Policy ?? null);
                             $Policy = $policyClass ?: cls::get('price_ListToCustomers');
                             $policyInfo = $Policy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId, $rec->quantity, $masterRec->valior, $masterRec->currencyRate, $masterRec->chargeVat, $listId);
                         }
