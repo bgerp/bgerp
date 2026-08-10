@@ -97,7 +97,7 @@ class pwa_Manifest extends core_Mvc
                     'text' => 'description',
                     'url' => 'link',
                     'files' => array(
-                        array('name' => 'file',
+                        array('name' => 'file[]',
                             'accept' => array('*/*')
                         ),
                     ),

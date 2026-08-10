@@ -53,7 +53,7 @@ class pwa_Settings extends core_Manager
      *
      * Да се увеличава при промяна на генератора или комплектните икони.
      */
-    const MANIFEST_ASSETS_VERSION = 2;
+    const MANIFEST_ASSETS_VERSION = 3;
 
 
     /**
@@ -289,7 +289,7 @@ class pwa_Settings extends core_Manager
                             'text' => 'description',
                             'url' => 'link',
                             'files' => array(
-                                array('name' => 'file',
+                                array('name' => 'file[]',
                                     'accept' => array('*/*')
                                 ),
                             ),

@@ -136,9 +136,10 @@ class pwa_Share extends core_Mvc
                 return self::getShareErrorRedirect($shareError, $shareDiag);
             }
 
-            if ($isDirectShareFallback) {
-                self::normalizeDirectShareFiles();
-            }
+            // Новият manifest подава `file[]`, което PHP представя като
+            // `$_FILES['file']`. Нормализираме го и при валиден token, за да
+            // работи и преходът с вече активен по-стар Service Worker.
+            self::normalizeDirectShareFiles();
 
             $bucketId = fileman_Buckets::fetchByName('pwa');
             if (!$bucketId) {
@@ -232,11 +233,23 @@ class pwa_Share extends core_Mvc
             if ($isDirectShareFallback && !$haveUploadedFiles && !$desc && !$link && $name) {
                 $desc = $name;
             }
+
+            // Пазим оригиналния споделен текст за fallback бележка, ако URL-ът
+            // не може да бъде свален безопасно след login.
+            $body = $desc . (($desc && $link) ? "\n\n" : '') . $link;
             
             $fhArrCnt = countR($fhArr);
             if ($fhArrCnt) {
                 $fStr = $fhArrCnt == 1 ? 'Файл' : 'Файлове';
-                status_Messages::newStatus("|*<div>|{$fStr}|*:</div>" . $res->getContent());
+                // При анонимно share-ване може да има login и безопасно URL
+                // сваляне преди финалния екран. Пазим списъка с всички
+                // качени файлове достатъчно дълго, за да бъде видим там.
+                status_Messages::newStatus(
+                    "|*<div>|{$fStr}|*:</div>" . $res->getContent(),
+                    'notice',
+                    null,
+                    300
+                );
 
                 if (core_Users::getCurrent() > 0) {
                     foreach ($fhArr as $fh) {
@@ -257,17 +270,30 @@ class pwa_Share extends core_Mvc
                     return self::getShareErrorRedirect(self::SHARE_ERROR_UPLOAD);
                 }
 
+                $key = null;
                 $remoteKey = null;
                 if ($link) {
                     try {
-                        $remoteKey = self::storeSharedRemoteUrl($link, $name, 'file');
+                        $remoteKey = self::storeSharedRemoteUrl($link, $name, 'file', $body);
                     } catch (Throwable $t) {
                         self::logWarning('Невалиден URL към споделени PWA файлове');
-                        status_Messages::newStatus(tr(self::getShareErrorMessages()[self::SHARE_ERROR_URL]), 'warning');
+                        try {
+                            $key = self::storeSharedUrlAsText($body, $name);
+                            self::showSharedUrlFallbackStatus();
+                        } catch (Throwable $fallbackError) {
+                            reportException($fallbackError);
+                            status_Messages::newStatus(tr(self::getShareErrorMessages()[self::SHARE_ERROR_URL]), 'warning');
+                        }
                     }
                 }
 
-                return new Redirect(array('pwa_Share', 'SaveTargetFiles', 'fileKey' => $fileKey, 'remoteKey' => $remoteKey));
+                return new Redirect(array(
+                    'pwa_Share',
+                    'SaveTargetFiles',
+                    'fileKey' => $fileKey,
+                    'key' => $key,
+                    'remoteKey' => $remoteKey
+                ));
             }
 
             if ($haveUploadedFiles) {
@@ -283,9 +309,17 @@ class pwa_Share extends core_Mvc
             // става след login в SaveTargetFiles, с DNS/IP/redirect проверки.
             if ($link) {
                 try {
-                    $remoteKey = self::storeSharedRemoteUrl($link, $name, 'file');
+                    $remoteKey = self::storeSharedRemoteUrl($link, $name, 'file', $body);
                 } catch (Throwable $t) {
-                    reportException($t);
+                    try {
+                        $key = self::storeSharedUrlAsText($body, $name);
+                        self::showSharedUrlFallbackStatus();
+
+                        return new Redirect(array('pwa_Share', 'SaveTargetFiles', 'key' => $key));
+                    } catch (Throwable $fallbackError) {
+                        reportException($t);
+                        reportException($fallbackError);
+                    }
 
                     return self::getShareErrorRedirect(self::SHARE_ERROR_URL);
                 }
@@ -295,7 +329,7 @@ class pwa_Share extends core_Mvc
 
             if ($desc && self::isRemoteShareUrl($desc)) {
                 try {
-                    $remoteKey = self::storeSharedRemoteUrl($desc, $name, 'html');
+                    $remoteKey = self::storeSharedRemoteUrl($desc, $name, 'html', $body);
                 } catch (Throwable $t) {
                     reportException($t);
 
@@ -304,8 +338,6 @@ class pwa_Share extends core_Mvc
 
                 return new Redirect(array('pwa_Share', 'SaveTargetFiles', 'remoteKey' => $remoteKey));
             }
-
-            $body = $desc . (($desc && $link) ? "\n\n" : '') . $link;
 
             if ($body) {
                 $name = $name ? $name : tr('Споделен текст');
@@ -738,10 +770,14 @@ class pwa_Share extends core_Mvc
             }
         }
 
-        foreach (array_keys($_FILES) as $field) {
-            if ($field !== 'ulfile' || !is_array($_FILES[$field])) {
+        $workerFileFields = array_keys($_FILES);
+        foreach ($workerFileFields as $field) {
+            if (!in_array($field, array('ulfile', 'file'), true) || !is_array($_FILES[$field])) {
                 self::throwShareDiagnostic('php_worker_fields');
             }
+        }
+        if (count($workerFileFields) > 1) {
+            self::throwShareDiagnostic('php_worker_fields');
         }
 
         $haveText = false;
@@ -753,7 +789,7 @@ class pwa_Share extends core_Mvc
             }
         }
 
-        if (!$haveText && !self::hasWorkerSharedFile()) {
+        if (!$haveText && !self::hasWorkerSharedFile() && !self::hasDirectSharedFile()) {
             self::throwShareDiagnostic('php_worker_empty_payload');
         }
     }
@@ -807,7 +843,8 @@ class pwa_Share extends core_Mvc
 
     /**
      * Превежда native manifest полето `file` към очакваното от fileman
-     * `ulfile[]`. Извиква се единствено след строгия direct fallback guard.
+     * `ulfile[]`. Извиква се след token/fallback проверката и пази прехода
+     * между стар и нов manifest/Service Worker.
      */
     protected static function normalizeDirectShareFiles()
     {
@@ -1562,19 +1599,25 @@ class pwa_Share extends core_Mvc
      * @param string $url
      * @param string $name
      * @param string $mode file|html
+     * @param string|null $fallbackBody Оригиналният текст за бележка при отказ
      *
      * @return string
      */
-    protected static function storeSharedRemoteUrl($url, $name, $mode)
+    protected static function storeSharedRemoteUrl($url, $name, $mode, $fallbackBody = null)
     {
         expect(self::isRemoteShareUrl($url), 'Невалиден URL за PWA споделяне');
         expect(in_array($mode, array('file', 'html'), true), 'Невалиден режим за PWA URL');
+
+        if (!is_string($fallbackBody) || !strlen($fallbackBody)) {
+            $fallbackBody = $url;
+        }
 
         $remoteKey = md5(str::getRand() . microtime(true) . $url);
         $remoteData = (object) array(
             'url' => $url,
             'name' => $name ? str::limitLen($name, 255) : tr('Споделен адрес'),
             'mode' => $mode,
+            'fallbackBody' => $fallbackBody,
             'brid' => log_Browsers::getBrid(),
             'userId' => (int) core_Users::getCurrent(),
             'domainId' => (int) cms_Domains::getCurrent('id', false)
@@ -1621,6 +1664,35 @@ class pwa_Share extends core_Mvc
         }
 
         return $remoteData;
+    }
+
+
+    /**
+     * Запазва оригиналния URL/текст като еднократни данни за бележка.
+     * Методът не прави мрежова заявка.
+     *
+     * @param string $body
+     * @param string $subject
+     *
+     * @return string
+     */
+    protected static function storeSharedUrlAsText($body, $subject = '')
+    {
+        $subject = $subject ? str::limitLen($subject, 255) : tr('Споделен адрес');
+
+        return self::storeSharedText($body, $subject);
+    }
+
+
+    /**
+     * Показва безопасно съобщение, без URL или exception подробности.
+     */
+    protected static function showSharedUrlFallbackStatus()
+    {
+        status_Messages::newStatus(
+            tr('Адресът не можа да бъде свален безопасно и е подготвен като текст за бележка.'),
+            'warning'
+        );
     }
 
 
@@ -1916,11 +1988,27 @@ class pwa_Share extends core_Mvc
                     } else {
                         self::logWarning('Неуспешно безопасно сваляне на споделен URL');
                     }
-                    if (!$fileKey) {
 
-                        return self::getShareErrorRedirect($error);
+                    $fallbackStored = false;
+                    try {
+                        $fallbackBody = isset($remoteData->fallbackBody) &&
+                            is_string($remoteData->fallbackBody) && strlen($remoteData->fallbackBody)
+                            ? $remoteData->fallbackBody
+                            : $remoteData->url;
+                        $key = self::storeSharedUrlAsText($fallbackBody, $remoteData->name ?? '');
+                        $fallbackStored = true;
+                        self::showSharedUrlFallbackStatus();
+                    } catch (Throwable $fallbackError) {
+                        reportException($fallbackError);
                     }
-                    status_Messages::newStatus(tr(self::getShareErrorMessages()[$error]), 'warning');
+
+                    if (!$fallbackStored) {
+                        if (!$fileKey) {
+
+                            return self::getShareErrorRedirect($error);
+                        }
+                        status_Messages::newStatus(tr(self::getShareErrorMessages()[$error]), 'warning');
+                    }
                 }
             }
         }
@@ -1931,7 +2019,8 @@ class pwa_Share extends core_Mvc
             }
         }
 
-        if (!$fArr) {
+        $hasTextKey = is_string($key) && preg_match('/^[a-f0-9]{32}$/D', $key);
+        if ($hasTextKey || !$fArr) {
             $defFolder = doc_Folders::getDefaultFolder(core_Users::getCurrent());
 
             return new Redirect(array('doc_Notes', 'add', 'folderId' => $defFolder, 'key' => $key));

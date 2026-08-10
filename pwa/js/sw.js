@@ -193,7 +193,10 @@ function handleShareTarget(event, shareRequest, shareToken) {
             data.delete(shareTokenField);
         }
 
-        var files = data.getAll('file');
+        // Новият manifest използва PHP array име (`file[]`), за да не
+        // изгуби файлове при директен POST без контролиращ worker. Старите
+        // и custom manifest-и може още да изпращат полето като `file`.
+        var files = data.getAll('file').concat(data.getAll('file[]'));
         var haveFile = false;
 
         files.forEach(function (file) {
@@ -202,6 +205,7 @@ function handleShareTarget(event, shareRequest, shareToken) {
         });
         if (haveFile) {
             data.delete('file');
+            data.delete('file[]');
         }
 
         if (!haveFile) {
