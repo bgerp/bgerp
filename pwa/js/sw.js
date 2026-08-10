@@ -184,11 +184,14 @@ function handleShareTarget(event, shareRequest, shareToken) {
     }).catch(function (error) {
         throw createShareTargetError('upload', 'Unable to read the shared payload.', 'sw_form_data');
     }).then(function (data) {
-        if (!shareToken) {
-            throw createShareTargetError('token', 'Missing PWA share token.', 'sw_missing_share_token');
+        if (shareToken) {
+            data.set(shareTokenField, shareToken);
+        } else {
+            // If a proxy/redirect stripped the loader response header, the
+            // server can still authenticate this as a strict same-origin
+            // worker fetch using Fetch Metadata and the worker marker below.
+            data.delete(shareTokenField);
         }
-
-        data.set(shareTokenField, shareToken);
 
         var files = data.getAll('file');
         var haveFile = false;
@@ -317,14 +320,6 @@ self.addEventListener('fetch', function (event) {
             }
 
             var shareToken = response.headers && response.headers.get(shareTokenHeader);
-            if (!shareToken) {
-                throw createShareTargetError(
-                    'token',
-                    'The share-target loader did not provide a PWA share token.',
-                    'sw_loader_no_token'
-                );
-            }
-
             return handleShareTarget(event, shareRequest, shareToken);
         }).catch(function (error) {
             return showShareTargetError(event, error, 'network', 'sw_loader_failed');
