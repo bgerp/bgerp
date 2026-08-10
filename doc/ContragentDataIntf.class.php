@@ -17,6 +17,8 @@
  */
 class doc_ContragentDataIntf
 {
+    public $class;
+
     /**
      * Връща данните на получателя
      * return object

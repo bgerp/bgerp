@@ -17,4 +17,6 @@
  */
 class support_IssueIntf
 {
+    public $class;
+
 }

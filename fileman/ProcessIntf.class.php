@@ -15,6 +15,8 @@
  */
 class fileman_ProcessIntf
 {
+    public $class;
+
     /**
      * Пуска обработка на файла
      *

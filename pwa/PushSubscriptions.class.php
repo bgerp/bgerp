@@ -19,6 +19,12 @@ class pwa_PushSubscriptions extends core_Manager
 
 
     /**
+     * Максимална дължина на browser PUSH endpoint-а
+     */
+    const ENDPOINT_MAX_LENGTH = 1024;
+
+
+    /**
      * Кой има права да се абонира в модела?
      */
     public $canSubscribe = 'user';
@@ -121,8 +127,9 @@ class pwa_PushSubscriptions extends core_Manager
         $this->FLD('authToken', 'varchar(128)', 'caption=Токен, input=none'); //24
         $this->FLD('domainId', 'key(mvc=cms_Domains, select=titleExt)', 'caption=Домейн, input=none');
         $this->FLD('contentEncoding', 'varchar', 'caption=Енкодинг, input=none');
-        $this->FLD('endpoint', 'Url', 'caption=Точка, input=none');
+        $this->FLD('endpoint', 'url(' . self::ENDPOINT_MAX_LENGTH . ')', 'caption=Точка, input=none');
         $this->FLD('data', 'blob(compress, serialize)', 'caption=Данни, input=none');
+        $this->FLD('subscriptionVersion', 'varchar(32)', 'caption=Версия на абонамента, input=none');
 
         $this->FLD('criticalWorking', $this->enumOptVal, 'caption=Известяване за критични новости->Работно време');
         $this->FLD('criticalNonWorking', $this->enumOptVal, 'caption=Известяване за критични новости->Неработно време');
@@ -174,6 +181,7 @@ class pwa_PushSubscriptions extends core_Manager
     public static function sendAlert($userId, $title, $text, $url = null, $tag = null, $icon = null, $image = null, $brid = null, $domainId = null, $sound = true, $vibration = null, $otherParamsArr = array())
     {
         setIfNot($otherParamsArr['ttl'], 3600);
+        setIfNot($otherParamsArr['badge'], null);
 
         if ($icon !== false) {
             if (core_Webroot::isExists('favicon.png')) {
@@ -237,6 +245,7 @@ class pwa_PushSubscriptions extends core_Manager
             $mailTo = 'localhost@localhost';
         }
 
+        $Subscriptions = cls::get('pwa_PushSubscriptions');
         while ($rec = $query->fetch()) {
             if (isset($rec->domainId)) {
                 $dRec = cms_Domains::fetch($rec->domainId);
@@ -246,6 +255,14 @@ class pwa_PushSubscriptions extends core_Manager
             }
 
             try {
+                if (!$dRec || empty($dRec->publicKey) || empty($dRec->privateKey)) {
+                    $reason = 'Липсват VAPID ключове за домейна на PUSH абонамента';
+                    $resArr[$rec->id] = (object) array('isSuccess' => false, 'brid' => $rec->brid, 'userId' => $rec->userId, 'reason' => $reason);
+                    self::logErr($reason, $rec->id, 7);
+
+                    continue;
+                }
+
                 $auth = array(
                     'VAPID' => array(
                         'subject' => "mailto:{$mailTo}",
@@ -253,55 +270,55 @@ class pwa_PushSubscriptions extends core_Manager
                         'privateKey' => $dRec->privateKey
                     ),
                 );
+
+                $webPush = new WebPush($auth);
+
+                $s = array('endpoint' => $rec->endpoint, 'publicKey' => $rec->publicKey,
+                    'authToken' => $rec->authToken, 'contentEncoding' => $rec->contentEncoding);
+
+                $subscription = Subscription::create($s);
+
+                $data = new stdClass();
+                $data->title = $title;
+                $data->text = $text;
+                $data->icon = $icon;
+                $data->image = $image;
+                $data->sound = $sound;
+                $data->vibration = $vibration;
+                $data->tag = $tag;
+                if ($otherParamsArr['badge']) {
+                    $data->badge = $otherParamsArr['badge'];
+                }
+
+                if (isset($url)) {
+                    if (is_array($url)) {
+                        setIfNot($url['fpn'], true); // From PUSH Notification
+                    }
+                    $data->url = toUrl($url);
+                }
+
+                $statusObj = $webPush->sendOneNotification($subscription, json_encode($data), array('TTL' => $otherParamsArr['ttl']));
+                $reason = $statusObj->getReason();
+
+                $statusData = (object) array('isSuccess' => $statusObj->isSuccess(), 'brid' => $rec->brid, 'userId' => $rec->userId, 'reason' => $reason);
+
+                $resArr[$rec->id] = $statusData;
+
+                if (!$statusData->isSuccess) {
+                    self::logDebug("Грешка при изпращане на PUSH известие - '{$reason}'", $rec->id, 7);
+
+                    if (method_exists($statusObj, 'isSubscriptionExpired') && $statusObj->isSubscriptionExpired()) {
+                        $Subscriptions->markSubscriptionStoppedIfCurrent($rec);
+                    }
+                } else {
+                    self::logDebug("Успешно изпратено PUSH известие - '{$data->text}'", $rec->id, 3);
+                }
             } catch (Throwable $t) {
                 reportException($t);
-                continue;
-            } catch (Error $e) {
-                reportException($e);
-                continue;
-            }
 
-            $webPush = new WebPush($auth);
-
-            $s = array('endpoint' => $rec->endpoint, 'publicKey' => $rec->publicKey,
-                'authToken' => $rec->authToken, 'contentEncoding' => $rec->contentEncoding);
-
-            $subscription = Subscription::create($s);
-
-            $data = new stdClass();
-            $data->title = $title;
-            $data->text = $text;
-            $data->icon = $icon;
-            $data->image = $image;
-            $data->sound = $sound;
-            $data->vibration = $vibration;
-            $data->tag = $tag;
-            if ($otherParamsArr['badge']) {
-                $data->badge = $otherParamsArr['badge'];
-            }
-
-            if (isset($url)) {
-                if (is_array($url)) {
-                    setIfNot($url['fpn'], true); // From PUSH Notification
-                }
-                $data->url = toUrl($url);
-            }
-
-            $statusObj = $webPush->sendOneNotification($subscription, json_encode($data), array('TTL' => $otherParamsArr['ttl']));
-            $reason = $statusObj->getReason();
-
-            $statusData = (object) array('isSuccess' => $statusObj->isSuccess(), 'brid' => $rec->brid, 'userId' => $rec->userId, 'reason' => $reason);
-
-            $resArr[$rec->id] =  $statusData;
-
-            if (!$statusData->isSuccess) {
-                self::logDebug("Грешка при изпращане на PUSH известие - '{$reason}'", $rec->id, 7);
-
-                $rec->state = 'stopped';
-
-                pwa_PushSubscriptions::save($rec, 'state');
-            } else {
-                self::logDebug("Успешно изпратено PUSH известие - '{$data->text}'", $rec->id, 3);
+                $reason = $t->getMessage();
+                $resArr[$rec->id] = (object) array('isSuccess' => false, 'brid' => $rec->brid, 'userId' => $rec->userId, 'reason' => $reason);
+                self::logErr("Грешка при изпращане на PUSH известие - '{$reason}'", $rec->id, 7);
             }
         }
 
@@ -320,17 +337,29 @@ class pwa_PushSubscriptions extends core_Manager
         $this->requireRightFor('stop');
 
         $id = Request::get('id', 'int');
-        expect($id && ($rec = $this->fetch($id)));
+        expect($id);
 
-        expect(core_Users::getCurrent() == $rec->userId);
+        $subscriptionLock = $this->obtainSubscriptionLock();
+        expect($subscriptionLock, 'Друг процес променя PUSH абонаментите. Опитайте отново.');
 
-        $brid = log_Browsers::getBrid();
+        try {
+            $fetchedRec = $this->fetch($id, '*', false);
+            $rec = $fetchedRec ? clone $fetchedRec : null;
+            expect($rec);
 
-        expect($brid && $rec->brid == $brid);
+            expect(core_Users::getCurrent() == $rec->userId);
 
-        $rec->state = 'closed';
+            $brid = log_Browsers::getBrid();
 
-        $this->save($rec, 'state');
+            expect($brid && $rec->brid == $brid);
+
+            $rec->state = 'closed';
+
+            $savedId = $this->save($rec, 'state,modifiedOn,modifiedBy');
+            expect($savedId !== false, 'Не може да се спре PUSH абонаментът');
+        } finally {
+            $this->releaseSubscriptionLock($subscriptionLock);
+        }
 
         return new Redirect(getRetUrl());
     }
@@ -343,131 +372,650 @@ class pwa_PushSubscriptions extends core_Manager
     {
         $this->requireRightFor('subscribe');
 
-        expect(Request::get('ajax_mode'));
+        if (!Request::get('ajax_mode')) {
+            self::logWarning('Опит за промяна на PUSH абонамент извън AJAX заявка');
 
+            return self::getAjaxToastResponse('Заявката за известия не може да бъде изпълнена. Обновете страницата и опитайте отново.');
+        }
+
+        $cu = core_Users::getCurrent();
         $brid = log_Browsers::getBrid();
+        if (!$cu || !$brid) {
+            self::logWarning('Липсва потребител или BRID при промяна на PUSH абонамент');
 
-        if (Request::get('haveSubscription')) {
-            $rec = $this->fetch(array("#brid = '[#1#]'", $brid));
-            if ($rec) {
-                expect($rec->userId == core_Users::getCurrent(), $rec->userId, core_Users::getCurrent(), $rec);
-                $statusObj = new stdClass();
-                $statusObj->func = 'redirect';
-                $statusObj->arg = array('url' => toUrl(array($this, 'edit', $rec->id, 'ret_url' => true)));
-
-                return array($statusObj);
-            }
+            return self::getAjaxToastResponse('Липсва информация за потребителя или устройството. Влезте отново в системата и опитайте пак.');
         }
 
         $action = Request::get('action');
-        expect($action == 'subscribe' || $action == 'unsubscribe', $action);
-
         $publicKey = Request::get('publicKey');
         $authToken = Request::get('authToken');
         $endpoint = Request::get('endpoint');
         $contentEncoding = Request::get('contentEncoding');
+        $haveSubscription = Request::get('haveSubscription');
+        $forceRenewSubscription = Request::get('renewSubscription');
+        $hasSubscriptionData = !empty($publicKey) && !empty($authToken) && !empty($endpoint);
 
-        expect($publicKey && $authToken, $publicKey, $authToken);
+        if ($endpoint !== null && strlen($endpoint) > self::ENDPOINT_MAX_LENGTH) {
+            self::logWarning('Получен е прекалено дълъг PUSH endpoint');
 
-        $cu = core_Users::getCurrent();
-
-        $statusData = array();
+            return self::getAjaxToastResponse('Адресът на PUSH абонамента е прекалено дълъг. Обновете браузъра и опитайте отново.');
+        }
 
         $retUrl = getRetUrl();
         if (empty($retUrl)) {
-            $retUrl = crm_Profiles::getUrl(core_Users::getCurrent());
+            $retUrl = crm_Profiles::getUrl($cu);
+        }
+
+        // Старите клиенти изпращат само haveSubscription. Синхронизираме
+        // наличния запис, но никога не продължаваме към невалиден action.
+        if ($haveSubscription && empty($action) && !$hasSubscriptionData) {
+            $rec = $this->fetch(array("#brid = '[#1#]'", $brid));
+            if (!$rec) {
+
+                return self::getAjaxToastResponse('Браузърът има абонамент, но липсват данни за него в системата. Изключете и включете известията отново.');
+            }
+
+            if (empty($rec->publicKey) || empty($rec->authToken) || empty($rec->endpoint)) {
+
+                return self::getAjaxToastResponse('Записът за известията е непълен. Изключете и включете известията отново.');
+            }
+
+            $domainId = cms_Domains::getCurrent('id', false);
+            if (!$domainId) {
+
+                return self::getAjaxToastResponse('Не може да се определи домейнът на приложението. Обновете страницата и опитайте отново.');
+            }
+
+            if ($rec->domainId != $domainId || $rec->state == 'stopped') {
+
+                return self::getAjaxToastResponse('Съществуващият абонамент е за друг домейн или вече е изтекъл. Изключете и включете известията отново.');
+            }
+
+            $legacyEndpoint = $rec->endpoint;
+            $legacyPublicKey = $rec->publicKey;
+            $legacyAuthToken = $rec->authToken;
+            $subscriptionLock = $this->obtainSubscriptionLock();
+            if (!$subscriptionLock) {
+
+                return self::getAjaxToastResponse('Друга заявка настройва същия абонамент. Изчакайте няколко секунди и опитайте отново.');
+            }
+
+            try {
+                $rec = $this->fetch((int) $rec->id, '*', false);
+                if (!$rec || $rec->brid != $brid || $rec->domainId != $domainId || $rec->state == 'stopped' ||
+                    $rec->endpoint != $legacyEndpoint || $rec->publicKey != $legacyPublicKey || $rec->authToken != $legacyAuthToken) {
+
+                    return self::getAjaxToastResponse('Абонаментът е променен от друга заявка. Обновете страницата и опитайте отново.');
+                }
+
+                $ownerChanged = $rec->userId != $cu;
+                $mustSendWelcome = $ownerChanged || $rec->state == 'closed';
+
+                $this->closeMatchingSubscriptions($legacyEndpoint, $legacyPublicKey, $legacyAuthToken);
+
+                // Четем наново и променяме clone, за да не може save()
+                // оптимизаторът да сравнява със същия вече мутиран
+                // lastFetchedRec (особено при id=1).
+                $closedRec = $this->fetch((int) $rec->id, '*', false);
+                if (!$closedRec) {
+                    throw new core_exception_Expect('Липсва PUSH абонаментът след синхронизирането');
+                }
+                $rec = clone $closedRec;
+                if ($ownerChanged) {
+                    $this->setDefaultSubscriptionPreferences($rec);
+                }
+
+                $rec->userId = $cu;
+                $rec->brid = $brid;
+                $rec->domainId = $domainId;
+                $rec->state = 'active';
+                $rec->subscriptionVersion = $this->getNewSubscriptionVersion();
+                $rec->data = (object) array('authToken' => $rec->authToken, 'publicKey' => $rec->publicKey,
+                    'endpoint' => $rec->endpoint, 'contentEncoding' => $rec->contentEncoding);
+
+                $subscriptionFields = 'userId,brid,authToken,publicKey,domainId,contentEncoding,endpoint,data,state,subscriptionVersion,modifiedOn,modifiedBy';
+                $savedId = $ownerChanged ? $this->save($rec) : $this->save($rec, $subscriptionFields);
+                if ($savedId === false) {
+                    throw new core_exception_Expect('Не може да се синхронизира PUSH абонаментът');
+                }
+
+                if ($mustSendWelcome) {
+                    try {
+                        $this->scheduleWelcomeNotification($rec);
+                    } catch (Throwable $t) {
+                        reportException($t);
+                        self::logErr('Грешка при планиране на приветстващо PUSH известие', $rec->id, 7);
+                    }
+                }
+
+                return self::getAjaxRedirectResponse($this->getPostSubscribeRedirectUrl($rec, Request::get('redirectUrl'), $retUrl));
+            } catch (Throwable $t) {
+                reportException($t);
+                self::logErr('Грешка при синхронизиране на съществуващ PUSH абонамент', $rec->id ?? null, 7);
+
+                return self::getAjaxToastResponse('Грешка при синхронизиране на известията. Обновете страницата и опитайте отново.');
+            } finally {
+                $this->releaseSubscriptionLock($subscriptionLock);
+            }
+        }
+
+        if ($haveSubscription && empty($action) && $hasSubscriptionData) {
+            $action = 'subscribe';
         }
 
         if ($action == 'unsubscribe') {
-            $query = $this->getQuery();
-            $query->where(array("#publicKey = '[#1#]' AND #authToken = '[#2#]'", $publicKey, $authToken));
-            $query->orWhere(array("#brid = '[#1#]'", $brid));
-            while ($rec = $query->fetch()) {
-                if ($rec->userId == $cu) {
+            $subscriptionLock = $this->obtainSubscriptionLock();
+            if (!$subscriptionLock) {
+
+                return self::getAjaxToastResponse('Друга заявка настройва известията. Изчакайте няколко секунди и опитайте отново.');
+            }
+
+            try {
+                $query = $this->getQuery();
+                if ($publicKey && $authToken) {
+                    $query->where(array("#userId = '[#1#]' AND (#brid = '[#2#]' OR (#publicKey = '[#3#]' AND #authToken = '[#4#]'))", $cu, $brid, $publicKey, $authToken));
+                } else {
+                    $query->where(array("#userId = '[#1#]' AND #brid = '[#2#]'", $cu, $brid));
+                }
+
+                while ($rec = $query->fetch()) {
+                    if ($rec->state == 'closed') {
+
+                        continue;
+                    }
+
+                    // Пазим оригиналния lastFetchedRec за коректното сравнение
+                    // в save(); при id=1 PHP 7.4 иначе може да приеме мутиралия
+                    // object за кеширания запис и да пропусне state.
+                    $rec = clone $rec;
                     $rec->state = 'closed';
-                    $this->save($rec, 'state');
+                    $savedId = $this->save($rec, 'state,modifiedOn,modifiedBy');
+                    if ($savedId === false) {
+                        throw new core_exception_Expect('Не може да се изключи PUSH абонаментът');
+                    }
+                }
+
+                status_Messages::newStatus('Премахване на Push абонамент за получаване на известия');
+
+                $unsubscribeRedirectUrl = Request::get('redirectUrl');
+                if ($unsubscribeRedirectUrl && $unsubscribeRedirectUrl != 'none') {
+                    $parsedRedirectUrl = parseLocalUrl($unsubscribeRedirectUrl);
+                    if ($parsedRedirectUrl) {
+                        $retUrl = $parsedRedirectUrl;
+                    }
+                }
+
+                return self::getAjaxRedirectResponse($retUrl);
+            } catch (Throwable $t) {
+                reportException($t);
+                self::logErr('Грешка при премахване на PUSH абонамент', null, 7);
+
+                return self::getAjaxToastResponse('Грешка при изключване на известията. Обновете страницата и опитайте отново.');
+            } finally {
+                $this->releaseSubscriptionLock($subscriptionLock);
+            }
+        }
+
+        if ($action != 'subscribe') {
+            self::logWarning('Невалидно действие за PUSH абонамент');
+
+            return self::getAjaxToastResponse('Невалидна заявка за известия. Обновете страницата и опитайте отново.');
+        }
+
+        if (!$hasSubscriptionData) {
+
+            return self::getAjaxToastResponse('Браузърът не предостави всички данни за абонамента. Проверете разрешенията за известия и опитайте отново.');
+        }
+
+        $domainId = cms_Domains::getCurrent('id', false);
+        if (!$domainId) {
+
+            return self::getAjaxToastResponse('Не може да се определи домейнът на приложението. Обновете страницата и опитайте отново.');
+        }
+
+        $subscriptionLock = $this->obtainSubscriptionLock();
+        if (!$subscriptionLock) {
+
+            return self::getAjaxToastResponse('Друга заявка настройва същия абонамент. Изчакайте няколко секунди и опитайте отново.');
+        }
+
+        $rec = null;
+        try {
+            $bridRec = $this->fetch(array("#brid = '[#1#]'", $brid), '*', false);
+            $subscriptionRec = $this->fetch(array("#endpoint = '[#1#]' AND #publicKey = '[#2#]' AND #authToken = '[#3#]'", $endpoint, $publicKey, $authToken), '*', false);
+            $rec = $bridRec ? $bridRec : $subscriptionRec;
+
+            $isNew = !$rec;
+            if ($isNew) {
+                $rec = new stdClass();
+                $this->setDefaultSubscriptionPreferences($rec);
+            }
+
+            $ownerChanged = !$isNew && $rec->userId != $cu;
+            $sameOwnerAndDomain = !$isNew && !$ownerChanged && $rec->domainId == $domainId;
+            $sameStoppedSubscription = $sameOwnerAndDomain && $rec->state == 'stopped' &&
+                $rec->endpoint == $endpoint && $rec->publicKey == $publicKey && $rec->authToken == $authToken;
+            if ($sameStoppedSubscription && !$forceRenewSubscription) {
+
+                return self::getAjaxToastResponse(
+                    'Абонаментът е изтекъл и трябва да бъде създаден отново. Натиснете „Поднови известията“.',
+                    'warning',
+                    array('pwaRenewSubscription' => 1)
+                );
+            }
+
+            $mustSendWelcome = $isNew || $ownerChanged || $rec->state == 'closed' || $rec->state == 'stopped';
+
+            if (!$isNew && ($rec->endpoint != $endpoint || $rec->publicKey != $publicKey || $rec->authToken != $authToken)) {
+                // Затваряме и стария endpoint на избрания BRID преди да го
+                // презапишем. При неуспешен финален save fail-safe резултатът
+                // е "closed", а не останал активен стар/чужд endpoint.
+                if (!empty($rec->endpoint) && !empty($rec->publicKey) && !empty($rec->authToken)) {
+                    $this->closeMatchingSubscriptions($rec->endpoint, $rec->publicKey, $rec->authToken);
+                } else {
+                    $this->closeSubscriptionById($rec->id);
                 }
             }
 
-            status_Messages::newStatus('Премахване на Push абонамент за получаване на известия');
+            $this->closeMatchingSubscriptions($endpoint, $publicKey, $authToken);
 
-            $statusObj = new stdClass();
-            $statusObj->func = 'redirect';
-            $statusObj->arg = array('url' => toUrl($retUrl));
-            return array($statusObj);
-        } else {
-            $oRec = $this->fetch(array("#brid = '[#1#]'", $brid));
-
-            $rec = new stdClass();
-
-            if ($oRec) {
-                $rec->id = $oRec->id;
+            if (!$isNew) {
+                // Вземаме действителното DB състояние и мутираме clone, а не
+                // lastFetchedRec на MVC.
+                $closedRec = $this->fetch((int) $rec->id, '*', false);
+                if (!$closedRec) {
+                    throw new core_exception_Expect('Липсва PUSH абонаментът след затваряне на дубликатите');
+                }
+                $rec = clone $closedRec;
+                if ($ownerChanged) {
+                    $this->setDefaultSubscriptionPreferences($rec);
+                }
             }
 
             $rec->userId = $cu;
             $rec->brid = $brid;
             $rec->authToken = $authToken;
             $rec->publicKey = $publicKey;
-            $rec->domainId = cms_Domains::getCurrent('id', false);;
-            $rec->contentEncoding = $contentEncoding;
+            $rec->domainId = $domainId;
+            $rec->contentEncoding = $contentEncoding ? $contentEncoding : 'aesgcm';
             $rec->endpoint = $endpoint;
-            $rec->data = (object) array('authToken' => $authToken, 'publicKey' => $publicKey, 'endpoint' => $endpoint, 'contentEncoding' => $contentEncoding);
+            $rec->data = (object) array('authToken' => $authToken, 'publicKey' => $publicKey,
+                'endpoint' => $endpoint, 'contentEncoding' => $rec->contentEncoding);
             $rec->state = 'active';
+            $rec->subscriptionVersion = $this->getNewSubscriptionVersion();
 
-            $this->save($rec, NULL, 'REPLACE');
+            $subscriptionFields = 'userId,brid,authToken,publicKey,domainId,contentEncoding,endpoint,data,state,subscriptionVersion,modifiedOn,modifiedBy';
+            $savedId = ($isNew || $ownerChanged) ? $this->save($rec) : $this->save($rec, $subscriptionFields);
+            if ($savedId === false) {
+                throw new core_exception_Expect('Не може да се запише PUSH абонаментът');
+            }
 
-            // При подновяване показваме известие само
-            if (!empty($rec->id)) {
-                if (!$oRec || ($oRec->state == 'closed')) {
-                    // При успешно абониране, показваме PUSH известие
-                    $msgTitle = "Абониране за PUSH известия в " . core_Setup::get('EF_APP_TITLE', true);
-                    $msg = 'Добавен е Push абонамент за получване на известия в "' . core_Setup::get('EF_APP_TITLE', true) . '"';
+            if (empty($rec->id)) {
+                $rec->id = $savedId;
+            }
 
-                    $isSendArr = $this->sendAlert($rec->userId, tr($msgTitle),tr($msg),
-                        array('pwa_PushSubscriptions', 'edit', $rec->id, 'ret_url' => array('Portal', 'Show')), null, null, null, $rec->brid);
+            if (empty($rec->id)) {
+                throw new core_exception_Expect('Не може да се запише PUSH абонаментът');
+            }
 
-                    foreach ($isSendArr as $iVal) {
-                        if (!$iVal->isSuccess) {
-                            status_Messages::newStatus('Добавен е Push абонамент за получване на известия');
-
-                            break;
-                        }
-                    }
+            if ($mustSendWelcome) {
+                try {
+                    $this->scheduleWelcomeNotification($rec);
+                } catch (Throwable $t) {
+                    reportException($t);
+                    self::logErr('Грешка при планиране на приветстващо PUSH известие', $rec->id, 7);
                 }
+            }
 
-                $statusObj = new stdClass();
-                $statusObj->func = 'redirect';
-                $redirectUrl = Request::get('redirectUrl');
-                if (!$redirectUrl || $redirectUrl == 'none') {
-                    $redirectUrl = array($this, 'edit', $rec->id, 'ret_url' => true);
-                } else {
-                    $redirectUrl = parseLocalUrl($redirectUrl);
-                }
+            $redirectUrl = $this->getPostSubscribeRedirectUrl($rec, Request::get('redirectUrl'), $retUrl);
 
-                $redirectUrl = toUrl($redirectUrl);
+            return self::getAjaxRedirectResponse($redirectUrl);
+        } catch (Throwable $t) {
+            reportException($t);
+            self::logErr('Грешка при записване на PUSH абонамент', isset($rec->id) ? $rec->id : null, 7);
 
-                $statusObj->arg = array('url' => $redirectUrl);
+            return self::getAjaxToastResponse('Грешка при добавяне на абонамента за известия. Обновете страницата и опитайте отново.');
+        } finally {
+            $this->releaseSubscriptionLock($subscriptionLock);
+        }
+    }
 
-                return array($statusObj);
+
+    /**
+     * Връща AJAX команда за показване на съобщение
+     *
+     * @param string $text
+     * @param string $type
+     * @param array  $extraArgs
+     *
+     * @return array
+     */
+    protected static function getAjaxToastResponse($text, $type = 'warning', $extraArgs = array())
+    {
+        $statusObj = new stdClass();
+        $statusObj->func = 'showToast';
+        $statusObj->arg = array_merge(
+            array('text' => tr($text), 'type' => $type, 'isSticky' => 1, 'timeOut' => 700, 'stayTime' => 15000),
+            (array) $extraArgs
+        );
+
+        return array($statusObj);
+    }
+
+
+    /**
+     * Връща AJAX команда за пренасочване
+     *
+     * @param mixed $url
+     *
+     * @return array
+     */
+    protected static function getAjaxRedirectResponse($url)
+    {
+        $statusObj = new stdClass();
+        $statusObj->func = 'redirect';
+        $statusObj->arg = array('url' => toUrl($url));
+
+        return array($statusObj);
+    }
+
+
+    /**
+     * Определя достъпно пренасочване след абониране
+     *
+     * @param stdClass  $rec
+     * @param string    $requestedRedirectUrl
+     * @param array     $retUrl
+     *
+     * @return array
+     */
+    protected function getPostSubscribeRedirectUrl($rec, $requestedRedirectUrl = null, $retUrl = null)
+    {
+        if ($requestedRedirectUrl && $requestedRedirectUrl != 'none') {
+            $requestedRedirect = parseLocalUrl($requestedRedirectUrl);
+            if ($requestedRedirect && $this->canUsePostSubscribeRedirect($requestedRedirect, $rec)) {
+
+                return $requestedRedirect;
             }
         }
 
-        $statusData['type'] = 'notice';
-        $statusData['isSticky'] = 0;
-        $statusData['timeOut'] = 700;
-        $statusData['stayTime'] = 15000;
+        if ($this->haveRightFor('edit', $rec)) {
 
-        if (!isset($statusData['text'])) {
-            $statusData['text'] = 'Грешка при добавяне на Push абонамент за получаване на известия';
-            $statusData['type'] = 'warning';
-            $statusData['isSticky'] = 1;
+            return array($this, 'edit', $rec->id, 'ret_url' => true);
         }
 
-        $statusObj = new stdClass();
-        $statusObj->func = 'showToast';
-        $statusObj->arg = $statusData;
+        if ($retUrl && $this->canUsePostSubscribeRedirect($retUrl, $rec)) {
 
-        return array($statusObj);
+            return $retUrl;
+        }
+
+        return array('Portal', 'Show');
+    }
+
+
+    /**
+     * Проверява дали post-subscribe URL няма да отвори недостъпна edit форма
+     *
+     * @param array    $url
+     * @param stdClass $rec
+     *
+     * @return bool
+     */
+    protected function canUsePostSubscribeRedirect($url, $rec)
+    {
+        $controller = $url['Ctr'] ?? ($url[0] ?? null);
+        $action = $url['Act'] ?? ($url[1] ?? null);
+        if (is_object($controller)) {
+            $controller = get_class($controller);
+        }
+
+        if (strtolower((string) $controller) == strtolower(get_class($this)) && strtolower((string) $action) == 'edit') {
+
+            return $this->haveRightFor('edit', $rec);
+        }
+
+        return true;
+    }
+
+
+    /**
+     * Заключва конкурентните промени на PUSH subscription записите
+     *
+     * @return string|null Име на придобития framework lock
+     */
+    protected function obtainSubscriptionLock()
+    {
+        // Един общ framework lock покрива едновременно уникалния BRID и
+        // endpoint инварианта, включително заявки с различен BRID за един
+        // endpoint. Критичната секция съдържа само framework fetch/save.
+        $lockName = 'pwaPushSubscriptions';
+
+        try {
+            if (core_Locks::obtain($lockName, 30, 5, 2)) {
+
+                return $lockName;
+            }
+        } catch (Throwable $t) {
+            reportException($t);
+            self::logErr('Грешка при заключване на PUSH абонамент', null, 7);
+        }
+
+        return null;
+    }
+
+
+    /**
+     * Освобождава framework lock-а на subscription операцията
+     *
+     * @param string|null $lockName
+     */
+    protected function releaseSubscriptionLock($lockName)
+    {
+        if (!$lockName) {
+
+            return;
+        }
+
+        try {
+            core_Locks::release($lockName);
+        } catch (Throwable $t) {
+            reportException($t);
+            self::logErr('Грешка при освобождаване на заключването на PUSH абонамент', null, 7);
+        }
+    }
+
+
+    /**
+     * Затваря всички записи за един browser endpoint
+     *
+     * Всеки запис минава през save(), за да се приложат типовете, plugin-ите,
+     * audit полетата и физическите имена от модела. Извикващият код държи общия
+     * subscription lock и не активира нов запис при грешка в затварянето.
+     *
+     * @param string $endpoint
+     * @param string $publicKey
+     * @param string $authToken
+     */
+    protected function closeMatchingSubscriptions($endpoint, $publicKey, $authToken)
+    {
+        $query = $this->getQuery();
+        $query->where(array(
+            "#endpoint = '[#1#]' AND #publicKey = '[#2#]' AND #authToken = '[#3#]' AND #state != 'closed'",
+            $endpoint,
+            $publicKey,
+            $authToken
+        ));
+
+        while ($dbRec = $query->fetch()) {
+            // Query::fetch() поставя същия обект в lastFetchedRec. Работим
+            // върху clone, за да не пропусне save() промяната при id=1.
+            $rec = clone $dbRec;
+            $rec->state = 'closed';
+            $savedId = $this->save($rec, 'state,modifiedOn,modifiedBy');
+            if ($savedId === false) {
+                throw new core_exception_Expect('Не може да се затворят старите PUSH абонаменти');
+            }
+        }
+    }
+
+
+    /**
+     * Затваря конкретен непълен стар запис преди безопасното му обновяване
+     *
+     * @param int $id
+     */
+    protected function closeSubscriptionById($id)
+    {
+        $dbRec = $this->fetch(array("#id = '[#1#]' AND #state != 'closed'", (int) $id), '*', false);
+        if (!$dbRec) {
+
+            return;
+        }
+
+        $rec = clone $dbRec;
+        $rec->state = 'closed';
+        $savedId = $this->save($rec, 'state,modifiedOn,modifiedBy');
+        if ($savedId === false) {
+            throw new core_exception_Expect('Не може да се затвори старият PUSH абонамент');
+        }
+    }
+
+
+    /**
+     * Маркира endpoint като изтекъл само ако записът не е бил подновен,
+     * докато WebPush заявката е чакала отговор от външния доставчик
+     *
+     * @param stdClass $rec
+     */
+    protected function markSubscriptionStoppedIfCurrent($rec)
+    {
+        $subscriptionLock = $this->obtainSubscriptionLock();
+        if (!$subscriptionLock) {
+            self::logWarning('Изтекъл PUSH абонамент не е спрян, защото друга заявка го променя', $rec->id ?? null);
+
+            return false;
+        }
+
+        try {
+            $query = $this->getQuery();
+            $query->where(array(
+                "#id = '[#1#]' AND #state = 'active' AND #endpoint = '[#2#]' AND #publicKey = '[#3#]' AND #authToken = '[#4#]'",
+                (int) $rec->id,
+                $rec->endpoint,
+                $rec->publicKey,
+                $rec->authToken
+            ));
+            if (!empty($rec->subscriptionVersion)) {
+                $query->where(array("#subscriptionVersion = '[#1#]'", $rec->subscriptionVersion));
+            } else {
+                // Съвместимост със записите отпреди версията. При следващо
+                // активиране те винаги получават ненулева стойност.
+                $query->where("(#subscriptionVersion IS NULL OR #subscriptionVersion = '')");
+            }
+
+            $dbRec = $query->fetch();
+            if (!$dbRec) {
+
+                return false;
+            }
+
+            $saveRec = clone $dbRec;
+            $saveRec->state = 'stopped';
+            $savedId = $this->save($saveRec, 'state,modifiedOn,modifiedBy');
+            if ($savedId === false) {
+                throw new core_exception_Expect('Не може да се промени състоянието на изтеклия PUSH абонамент');
+            }
+
+            return true;
+        } finally {
+            $this->releaseSubscriptionLock($subscriptionLock);
+        }
+    }
+
+
+    /**
+     * Връща нова версия за всяко (повторно) активиране на абонамент.
+     *
+     * Така закъснял отговор от push доставчика за по-стара заявка не може
+     * да спре междувременно подновен абонамент със същия endpoint и ключове.
+     *
+     * @return string
+     */
+    protected function getNewSubscriptionVersion()
+    {
+        return md5(str::getRand() . uniqid('', true) . microtime(true));
+    }
+
+
+    /**
+     * Задава началните настройки на абонамент за нов потребител
+     *
+     * @param stdClass $rec
+     */
+    protected function setDefaultSubscriptionPreferences($rec)
+    {
+        $timeFields = array('criticalWorking', 'criticalNonWorking', 'criticalNight',
+            'urgentWorking', 'urgentNonWorking', 'urgentNight',
+            'docWorking', 'docNonWorking', 'docNight',
+            'shareWorking', 'shareNonWorking', 'shareNight',
+            'allWorking', 'allNonWorking', 'allNight');
+
+        foreach ($timeFields as $field) {
+            $rec->{$field} = isset($this->defaultValues[$field]) ? $this->defaultValues[$field] : $this->neverValue;
+        }
+
+        $rec->groupNotify = $this->defaultValues['groupNotify'];
+        $rec->forceNotify = $this->defaultValues['forceNotify'];
+    }
+
+
+    /**
+     * Планира приветстващото известие извън AJAX заявката за абониране
+     *
+     * @param stdClass $rec
+     */
+    protected function scheduleWelcomeNotification($rec)
+    {
+        $appTitle = core_Setup::get('EF_APP_TITLE', true);
+        $data = array(
+            'subscriptionId' => (int) $rec->id,
+            'userId' => (int) $rec->userId,
+            'brid' => $rec->brid,
+            'title' => tr("Абониране за PUSH известия в {$appTitle}"),
+            'message' => tr("Добавен е Push абонамент за получване на известия в \"{$appTitle}\"")
+        );
+
+        $callId = core_CallOnTime::setOnce('pwa_PushSubscriptions', 'SendWelcomeNotification', $data, dt::addSecs(1));
+        if ($callId === false) {
+            throw new core_exception_Expect('Не може да се планира приветстващото PUSH известие');
+        }
+    }
+
+
+    /**
+     * Изпраща предварително планираното приветстващо PUSH известие
+     *
+     * @param array $data
+     */
+    public static function callback_SendWelcomeNotification($data)
+    {
+        if (!is_array($data) || empty($data['subscriptionId'])) {
+
+            return;
+        }
+
+        $rec = self::fetch((int) $data['subscriptionId']);
+        if (!$rec || $rec->state != 'active' || $rec->userId != ($data['userId'] ?? null) || $rec->brid != ($data['brid'] ?? null)) {
+
+            return;
+        }
+
+        $url = array('Portal', 'Show');
+        if (self::haveRightFor('edit', $rec, $rec->userId)) {
+            $url = array('pwa_PushSubscriptions', 'edit', $rec->id, 'ret_url' => array('Portal', 'Show'));
+        }
+
+        self::sendAlert($rec->userId, $data['title'], $data['message'], $url, null, null, null, $rec->brid);
     }
 
 
@@ -509,6 +1057,7 @@ class pwa_PushSubscriptions extends core_Manager
     public static function on_AfterRenderWrapping(core_Manager $mvc, &$res, &$tpl = null, $data = null)
     {
         $res->push('pwa/js/Notifications.js', 'JS');
+        $res->push('pwa/css/profile.css', 'CSS');
 
         $pwaSubscriptionUrl = toUrl(array('pwa_PushSubscriptions', 'Subscribe'), 'local');
         $pwaSubscriptionUrl = urlencode($pwaSubscriptionUrl);
@@ -902,13 +1451,23 @@ class pwa_PushSubscriptions extends core_Manager
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
-        if (($action == 'edit') || ($action == 'delete')) {
-            if ($rec) {
-                if ($rec->userId != $userId) {
-                    if (!haveRole('admin')) {
-                        $requiredRoles = 'no_one';
-                    }
+        if (($action == 'edit') && $rec) {
+            if ($rec->userId == $userId) {
+                // canEdit=powerUser е минималната роля и не се
+                // понижава до user за собствения запис.
+                if (!haveRole('powerUser', $userId)) {
+                    $requiredRoles = 'no_one';
                 }
+            } elseif (!haveRole('admin', $userId)) {
+                $requiredRoles = 'no_one';
+            }
+
+            return;
+        }
+
+        if (($action == 'delete') && $rec && ($rec->userId != $userId)) {
+            if (!haveRole('admin', $userId)) {
+                $requiredRoles = 'no_one';
             }
         }
     }

@@ -17,6 +17,8 @@
  */
 class acc_TransactionSourceIntf
 {
+    public $class;
+
     /**
      * Връща линк към документа с посоченото id
      */

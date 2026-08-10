@@ -15,4 +15,6 @@
  */
 class crm_ProfileIntf
 {
+    public $class;
+
 }

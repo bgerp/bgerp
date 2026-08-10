@@ -4271,6 +4271,9 @@ class cat_Products extends embed_Manager
      */
     public function getExportMasterFieldName($class)
     {
+        // Детайлите на рецептите се експортват от cat_Boms
+        if (cls::getClassName($class) == 'cat_BomDetails') return null;
+
         $productFldName = cls::get($class)->productFld ?? 'productId';
 
         return $productFldName;

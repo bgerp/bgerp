@@ -17,6 +17,8 @@
  */
 class price_TotalDiscountDocumentIntf
 {
+    public $class;
+
 
 
     /**
