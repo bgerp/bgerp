@@ -14,7 +14,7 @@
  * което по-късно ще се мащабира Протоколът за разпад.
  *
  * За 'production' редовете има една колона с процент от себестойността - при ръчно
- * разпределяне се въвежда, иначе се смята на живо (@see cat_DisassemblyBoms::getPercents)
+ * разпределяне се въвежда, иначе се смята на живо (@see cat_plg_DisassemblyDocDetail)
  *
  * @category  bgerp
  * @package   cat
@@ -48,7 +48,7 @@ class cat_DisassemblyBomDetails extends doc_Detail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, plg_Created, doc_plg_DetailRevisions, cat_Wrapper, plg_Sorting, plg_SaveAndNew, cat_plg_ShowCodes, plg_AlignDecimals2, plg_PrevAndNext';
+    public $loadList = 'plg_RowTools2, plg_Created, doc_plg_DetailRevisions, cat_Wrapper, plg_Sorting, plg_SaveAndNew, cat_plg_ShowCodes, plg_AlignDecimals2, plg_PrevAndNext, cat_plg_DisassemblyDocDetail';
 
 
     /**
@@ -101,15 +101,11 @@ class cat_DisassemblyBomDetails extends doc_Detail
         $this->FNC('packQuantity', 'double(min=0)', 'caption=Количество,input=input,mandatory,smartCenter');
         $this->FLD('quantityInPack', 'double(smartRound)', 'input=none,notNull,value=1');
         $this->FLD('quantity', 'double', 'caption=Количество,input=none,smartCenter');
-        // Въвежда се само при ръчно разпределяне - иначе процентът се изчислява
-        // (@see on_AfterPrepareEditForm, @see cat_DisassemblyBoms::calcPercents)
-        $this->FLD('costPercent', 'percent(min=0,max=1,allowEmpty)', 'caption=% от себестойността,input=none,tdClass=accCell,hint=Каква част от себестойността на вложения артикул се пада на този ред');
         $this->FLD('notes', 'richtext(rows=3,bucket=Notes)', 'caption=Описание');
 
         $this->FNC('amount', 'double(decimals=2)', 'caption=Сума,input=none,tdClass=accCell');
 
-        // Уникалност по артикул няма - при редакция на активна рецепта старият
-        // ред се оттегля, а новият се записва със същия артикул
+        // Без уникалност по артикул - оттеглените ревизии повтарят артикула
         $this->setDbIndex('productId');
         $this->setDbIndex('bomId,type');
     }
@@ -138,11 +134,6 @@ class cat_DisassemblyBomDetails extends doc_Detail
         $data->defaultMeta = ($rec->type == 'input') ? 'canConvert,canStore' : 'canManifacture';
         $data->defaultNotHaveMeta = 'generic';
         $form->setFieldTypeParams('productId', array('notIn' => $data->masterRec->productId));
-
-        // Ръчен % се въвежда само при ръчно разпределяне
-        if ($rec->type == 'production' && $data->masterRec->allocationBy == 'manual') {
-            $form->setField('costPercent', 'input,mandatory');
-        }
     }
 
 
@@ -162,9 +153,8 @@ class cat_DisassemblyBomDetails extends doc_Detail
 
         if ($form->isSubmitted()) {
 
-            // Артикулът може да е само на един активен ред в рецептата. Проверката
-            // е тук, а не с уникален индекс, защото при редакция на активирана
-            // рецепта се плодят оттеглени редове със същия артикул
+            // Артикулът е само на един неоттеглен ред - оттам и проверката тук,
+            // вместо с уникален индекс
             $exQuery = static::getQuery();
             $exQuery->where(array("#bomId = [#1#] AND #type = '[#2#]' AND #productId = [#3#]", $rec->bomId, $rec->type, $rec->productId));
             $exQuery->where("#state != 'rejected'");
@@ -174,28 +164,6 @@ class cat_DisassemblyBomDetails extends doc_Detail
 
             if ($exQuery->fetch()) {
                 $form->setError('productId', 'Артикулът вече е добавен в рецептата|*!');
-            }
-
-            // По количество се разпределя само между производни мерки
-            $bomRec = cat_DisassemblyBoms::fetch($rec->bomId, 'allocationBy');
-            if ($rec->type == 'production' && $bomRec->allocationBy == 'quantity') {
-                $uomQuery = static::getQuery();
-                $uomQuery->where("#bomId = {$rec->bomId} AND #type = 'production'");
-                $uomQuery->where("#state != 'rejected'");
-                if (isset($rec->id)) {
-                    $uomQuery->where("#id != {$rec->id}");
-                }
-                $uomQuery->show('productId');
-                $exRecs = $uomQuery->fetchAll();
-
-                $productIds = arr::extractValuesFromArray($exRecs, 'productId');
-                $productIds[] = $rec->productId;
-
-                if (!cat_Products::areProductsInTheSameUom($productIds, $measureArr)) {
-                    $unitRec = cat_UoM::fetch(cat_Products::fetchField(key($exRecs), 'measureId'));
-                    $baseUnitId = $unitRec->baseUnitId ?? $unitRec->id;
-                    $form->setError('productId', "Артикулът трябва да е в мярка, производна на мярката на вече добавените произведени артикули|* <b>" . cat_UoM::getVerbal($baseUnitId, 'name'). "</b>!");
-                }
             }
 
             $productInfo = cat_Products::getProductInfo($rec->productId);
@@ -208,16 +176,11 @@ class cat_DisassemblyBomDetails extends doc_Detail
     /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
      *
-     * Основният артикул за влагане е в мастъра (@see cat_DisassemblyBoms).
-     * Моделът поддържа и допълнителни артикули за влагане ('input' редове),
-     * но добавянето им засега е забранено интерфейсно
+     * Добавянето на допълнителни артикули за влагане засега е забранено
      */
     public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = null, $userId = null)
     {
-        // Детайлът се променя докато рецептата е чернова или активирана. В
-        // чернова редакцията е на място, а в активирана старият ред се оттегля и
-        // се записва нов (@see doc_plg_DetailRevisions). Оттеглена, затворена или
-        // шаблонна рецепта не се пипа
+        // Само докато рецептата е чернова или активирана (@see doc_plg_DetailRevisions)
         if (in_array($action, array('add', 'edit', 'delete')) && isset($rec->bomId)) {
             if (!in_array(cat_DisassemblyBoms::fetchField($rec->bomId, 'state'), array('draft', 'active'))) {
                 $res = 'no_one';
@@ -242,16 +205,13 @@ class cat_DisassemblyBomDetails extends doc_Detail
         }
         deals_Helper::addNotesToProductRow($row->productId, $rec->notes);
 
-        // Вложимите редове са зелени като в технологичната рецепта, а произведените
-        // се отличават с 'state-active' - и двата класа са налични в стиловете.
-        // Оттеглените ревизии се открояват от doc_plg_DetailRevisions и не им се
-        // слага класът за активен ред, за да не се бият стиловете
+        // Вложимите са зелени като в технологичната рецепта, произведените - с
+        // 'state-active'. Оттеглените ги оцветява doc_plg_DetailRevisions
         if (($rec->state ?? null) != 'rejected') {
             $row->ROW_ATTR['class'] = ($rec->type == 'input') ? 'row-added' : 'state-active';
         }
 
-        // Сумата по избраната ценова политика - по нея се разпределя
-        // себестойността, когато има избрана политика
+        // Сумата по избраната ценова политика - по нея се разпределя себестойността
         static $masterCache = array();
         if (!array_key_exists($rec->bomId, $masterCache)) {
             $masterCache[$rec->bomId] = cat_DisassemblyBoms::fetch($rec->bomId);
@@ -277,55 +237,6 @@ class cat_DisassemblyBomDetails extends doc_Detail
     }
 
 
-    /**
-     * След подготовката на редовете
-     *
-     * Процентите зависят от всички произведени редове наведнъж, затова не се
-     * смятат в recToVerbal (@see cat_DisassemblyBoms)
-     */
-    protected static function on_AfterPrepareListRows($mvc, &$res, &$data)
-    {
-        $data->totalPercent = 0;
-        $data->percentWarning = null;
-        if (!countR($data->recs ?? null)) return;
-
-        // За цялата рецепта, не само за показаните редове (заради страницирането)
-        $bomIds = array();
-        foreach ($data->recs as $rec) {
-            if ($rec->type == 'production') {
-                $bomIds[$rec->bomId] = $rec->bomId;
-            }
-        }
-
-        $warningArr = array();
-        foreach ($bomIds as $bomId) {
-            $statuses = array();
-            $percentsArr = cat_DisassemblyBoms::getPercents($bomId, null, $statuses);
-            $allocationBy = cat_DisassemblyBoms::fetchField($bomId, 'allocationBy');
-
-            // Кои артикули остават без дял (@see renderDetail_)
-            if (isset($statuses['warning'])) {
-                $warningArr[$bomId] = tr($statuses['warning']);
-            }
-
-            foreach ($percentsArr as $id => $obj) {
-                if (!array_key_exists($id, $data->rows)) continue;
-
-                // Изчисленото застава на мястото на въведеното, освен при ръчно
-                $percentVerbal = cat_DisassemblyBoms::getPercentVerbal($obj->percent, $allocationBy, $statuses['error'] ?? null);
-                if (isset($percentVerbal)) {
-                    $data->rows[$id]->costPercent = $percentVerbal;
-                }
-
-                $data->totalPercent += $obj->percent ?? 0;
-            }
-        }
-
-        if (countR($warningArr)) {
-            $data->percentWarning = implode('<br>', $warningArr);
-        }
-    }
-
 
     /**
      * След подготовка на детайлите - разделяне на редовете по вид (за 2-те таблици)
@@ -336,8 +247,8 @@ class cat_DisassemblyBomDetails extends doc_Detail
         $count = 1;
         $Int = cls::get('type_Int');
 
-        // Пореден номер на ревизионна група (@see doc_plg_DetailRevisions), за да
-        // не се пропуска номерацията заради оттеглени редове от историята на реда
+        // Номер на ревизионна група (@see doc_plg_DetailRevisions), за да не се
+        // пропуска номерацията заради оттеглените редове
         $numByGroup = array();
 
         if (countR($data->rows)) {
@@ -386,8 +297,7 @@ class cat_DisassemblyBomDetails extends doc_Detail
         $data->listTableMvc = clone $this;
         $data->listTableMvc->FNC('tools', 'int', 'tdClass=rowNumColumn');
 
-        // Мини-таблица с допълнителните артикули за влагане - засега винаги
-        // празна, защото добавянето им е забранено интерфейсно
+        // Мини-таблица с допълнителните артикули за влагане - засега винаги празна
         if (countR($data->inputArr)) {
             $iData = clone $data;
             $iData->listTableMvc = clone $data->listTableMvc;
@@ -418,8 +328,7 @@ class cat_DisassemblyBomDetails extends doc_Detail
 
         $this->invoke('BeforeRenderListTable', array(&$tpl, &$pData));
 
-        // Празните колони се махат ръчно - таблицата се рендира директно през
-        // core_TableView, а не през renderListTable, който го прави сам
+        // Празните колони се махат ръчно - рендира се директно през core_TableView
         $pData->listFields = core_TableView::filterEmptyColumns($pData->rows, $pData->listFields, arr::make($this->hideListFieldsIfEmpty, true));
 
         $productionTable = cls::get('core_TableView', array('mvc' => $pData->listTableMvc));
@@ -427,13 +336,7 @@ class cat_DisassemblyBomDetails extends doc_Detail
         $productionTableTpl = $productionTable->get($pData->rows, $pData->listFields);
         $columns = countR($pData->listFields);
 
-        $totalPercentVerbal = core_Type::getByName('percent')->toVerbal($data->totalPercent);
-        if($data->totalPercent > 1){
-            $totalPercentVerbal = ht::styleIfNegative($totalPercentVerbal, -1);
-        } elseif($data->totalPercent == 1) {
-            $totalPercentVerbal = "<span style='color:green'>{$totalPercentVerbal}</span>";
-        }
-        $productionTableTpl->append(tr("|*<tr style='background-color:#eee'><td colspan='{$columns}' style='text-align:right;'>|Общо|*: <b>{$totalPercentVerbal}</b></td></tr>"), 'ROW_AFTER');
+        cat_plg_DisassemblyDocDetail::appendTotalRow($productionTableTpl, $data->totalPercent, $columns);
 
         // Предупреждението се слага най-горе, над името на артикула за разпад
         if (!empty($data->percentWarning)) {
@@ -446,8 +349,7 @@ class cat_DisassemblyBomDetails extends doc_Detail
             $tpl->append(ht::createBtn('Произвеждане', array($this, 'add', 'bomId' => $data->masterId, 'type' => 'production', 'ret_url' => true), null, null, array('style' => 'margin-top:5px;margin-bottom:15px;', 'ef_icon' => 'img/16/door_in.png', 'title' => 'Добавяне на произведен артикул')), 'PRODUCED_PRODUCTS_TABLE');
         }
 
-        // Групово изтриване - само на произведените редове. Тулбарът на
-        // core_Detail не се рендира тук, затова бутонът се слага ръчно
+        // Групово изтриване само на произведените - тулбарът на core_Detail не е тук
         if ($this->haveRightFor('selectrowstodelete', (object) array('bomId' => $data->masterId, '_filterFld' => 'type', '_filterFldVal' => 'production'))) {
             $tpl->append(ht::createBtn('Изтриване', array($this, 'selectRowsToDelete', 'bomId' => $data->masterId, '_filterFld' => 'type', '_filterFldVal' => 'production', 'ret_url' => true), null, null, array('style' => 'margin-top:5px;margin-bottom:15px;', 'ef_icon' => 'img/16/delete.png', 'title' => 'Форма за избор на редове за изтриване', 'class' => 'selectDeleteRowsBtn')), 'PRODUCED_PRODUCTS_TABLE');
         }

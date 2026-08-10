@@ -77,14 +77,12 @@ class planning_transaction_DisassemblyNote extends acc_DocumentTransactionSource
             'reason' => 'Влагане на артикула за разпад',
         );
 
-        // Симулираме стойността, която стратегията на склада ще изчисли за
-        // вложения артикул, за да определим режийните преди самото контиране.
+        // Прогнозната стойност на вложения артикул - по нея се смятат режийните
         if (isset($rec->expenses)) {
             $inputAmount = cat_Products::getWacAmountInStore($inputRec->quantity, $inputRec->productId, $rec->valior, $inputRec->storeId);
             $expensesAmount = round($inputAmount * $rec->expenses, 2);
 
-            // При неположителна прогнозна стойност режийните са 0, както при
-            // директния протокол за производство.
+            // Както при директния протокол за производство
             if ($expensesAmount <= 0) {
                 $expensesAmount = 0;
             }
@@ -97,12 +95,14 @@ class planning_transaction_DisassemblyNote extends acc_DocumentTransactionSource
             );
         }
 
-        // Разпределянето на себестойността е по процент на ред, а не по количество -
-        // процентите се смятат към ВАЛЬОРА, за да даде едно пре-контиране след месец
-        // същия резултат (@see planning_DisassemblyNote::getPercents)
+        // По процент на ред, към ВАЛЬОРА - за да даде реконтирането същия резултат
         $statuses = array();
-        $percentsArr = planning_DisassemblyNote::getPercents($rec, $rec->valior, $statuses);
-        expect(!isset($statuses['error']), $statuses['error'] ?? null);
+        $percentsArr = cat_plg_DisassemblyDoc::getPercents($this->class, $rec, $rec->valior, $statuses);
+        $isSaving = Mode::is('saveTransaction') || Mode::is('recontoTransaction');
+        if ($isSaving) {
+            $errorMsg = planning_DisassemblyNote::getPercentsError($rec);
+            acc_journal_RejectRedirect::expect(!isset($errorMsg), $errorMsg);
+        }
 
         $allocatedInputQuantity = 0;
         $lastIndex = countR($productionRecs) - 1;
@@ -110,6 +110,17 @@ class planning_transaction_DisassemblyNote extends acc_DocumentTransactionSource
 
         foreach ($productionRecs as $index => $dRec) {
             $percent = $percentsArr[$dRec->id]->percent ?? 0;
+
+            // Снимка на процента, с който се контира - пише се и при реконтиране.
+            // Не заопашва updateMaster, иначе самото контиране би реконтирало
+            // документа веднага след себе си (@see core_Detail::save_)
+            if ($isSaving) {
+                $dRec->contoPercent = $percent;
+                $dRec->_skipDetailRevision = true;
+                Mode::push("stopMasterUpdate{$rec->id}", true);
+                planning_DisassemblyNoteDetails::save($dRec, 'contoPercent');
+                Mode::pop("stopMasterUpdate{$rec->id}");
+            }
 
             // Последният ред обира остатъка, за да няма разлика от закръгляне.
             $inputQuantityPart = ($index == $lastIndex)
