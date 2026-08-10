@@ -361,7 +361,7 @@ class findeals_AdvanceReports extends core_Master
         
         $rec = &$data->rec;
         if (empty($data->noTotal) && isset($this->_total)) {
-            $data->summary = deals_Helper::prepareSummary($this->_total, $rec->valior, $rec->currencyRate, $rec->currencyId, $rec->chargeVat, false, $rec->tplLang);
+            $data->summary = deals_Helper::prepareSummary($this->_total, $rec->valior, $rec->currencyRate, $rec->currencyId, $rec->chargeVat, false, $rec->tplLang ?? 'bg');
             $data->row = (object) ((array) $data->row + (array) $data->summary);
         }
     }
