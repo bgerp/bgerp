@@ -45,6 +45,7 @@ class pwa_Setup extends core_ProtoSetup
         'pwa_Settings',
         'migrate::updateSettings2509',
         'migrate::updateState2516',
+        'migrate::renewTruncatedEndpoints2608',
     );
 
 
@@ -115,11 +116,13 @@ class pwa_Setup extends core_ProtoSetup
         while ($dRec = $dQuery->fetch()) {
             core_Webroot::remove('serviceWorker.js', $dRec->id);
             core_Webroot::remove('pwa.webmanifest', $dRec->id);
+            pwa_Plugin::removeServiceWorkerVersion($dRec->id);
         }
 
-        $sw = getFileContent('pwa/js/sw.js');
+        $defaultSw = getFileContent('pwa/js/sw.js');
 
         foreach ($dArr as $domainId) {
+            $sw = $defaultSw;
             $manifest = pwa_Settings::getPWAManifest($domainId);
 
             $dRec = cms_Domains::fetch($domainId);
@@ -172,6 +175,18 @@ class pwa_Setup extends core_ProtoSetup
                 core_Webroot::register($sw, 'Content-Type: text/javascript', 'serviceworker.js', $domainId);
 
                 $html .= '<li>Регистриране на PWA за ' . cms_Domains::fetchField($domainId, 'domain') . '</li>';
+            }
+
+            // Версията се обновява и при непроменен файл. Хешираме реално
+            // записаното съдържание, за да не публикуваме нова версия при
+            // рядък частичен/неуспешен запис на webroot файла.
+            if (core_Webroot::isExists('serviceworker.js', $domainId)) {
+                pwa_Plugin::setServiceWorkerVersion(
+                    $domainId,
+                    core_Webroot::getContents('serviceworker.js', $domainId)
+                );
+            } else {
+                pwa_Plugin::removeServiceWorkerVersion($domainId);
             }
         }
 
@@ -379,6 +394,33 @@ class pwa_Setup extends core_ProtoSetup
         while ($pRec = $pQuery->fetch()) {
             $pRec->state = 'active';
             pwa_PushSubscriptions::save($pRec, 'state');
+        }
+    }
+
+
+    /**
+     * Спира активните записи с endpoint, отрязан от старото varchar(255)
+     *
+     * setupMvc() вече е разширил колоната до 1024. Оригиналният край на
+     * старите стойности обаче не може да бъде възстановен надеждно, затова
+     * браузърът трябва да създаде и запише отново целия абонамент.
+     */
+    function renewTruncatedEndpoints2608()
+    {
+        $Subscriptions = cls::get('pwa_PushSubscriptions');
+        $query = $Subscriptions->getQuery();
+        $query->where("#state = 'active'");
+
+        while ($dbRec = $query->fetch()) {
+            if (strlen($dbRec->endpoint ?? '') < 255) {
+
+                continue;
+            }
+
+            $rec = clone $dbRec;
+            $rec->state = 'stopped';
+            $savedId = $Subscriptions->save($rec, 'state,modifiedOn,modifiedBy');
+            expect($savedId !== false, 'Не може да се маркира отрязаният PUSH endpoint за подновяване');
         }
     }
 }
