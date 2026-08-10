@@ -31,7 +31,7 @@ class pwa_Setup extends core_ProtoSetup
     /**
      * Версия на пакета
      */
-    public $version = '0.4';
+    public $version = '0.5';
 
 
     public $info = 'bgERP progressive web application';
