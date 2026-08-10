@@ -17,6 +17,8 @@
  */
 class doc_TplScriptIntf
 {
+    public $class;
+
     /**
      * Може ли да се добавя към шаблон за текущия клас
      *

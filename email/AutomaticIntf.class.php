@@ -17,6 +17,8 @@
  */
 class email_AutomaticIntf
 {
+    public $class;
+
     
     
     /**

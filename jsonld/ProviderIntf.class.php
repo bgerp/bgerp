@@ -9,6 +9,8 @@
  */
 class jsonld_ProviderIntf
 {
+    public $class;
+
     /**
      * Връща JSON-LD възлите за подадените данни
      *
