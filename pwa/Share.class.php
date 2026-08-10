@@ -16,6 +16,11 @@ class pwa_Share extends core_Mvc
     /** Header, с който loader-ът предава еднократния token на Service Worker-а */
     const SHARE_TOKEN_HEADER = 'X-PWA-Share-Token';
 
+    /** Безопасни диагностични headers от контролиращия Service Worker */
+    const SHARE_FILE_COUNT_SERVER_KEY = 'HTTP_X_PWA_SHARE_FILE_COUNT';
+    const SHARE_FILE_FIELD_SERVER_KEY = 'HTTP_X_PWA_SHARE_FILE_FIELD';
+    const SHARE_WORKER_VERSION_SERVER_KEY = 'HTTP_X_PWA_SHARE_WORKER_VERSION';
+
     /** Поле в трансформирания multipart POST */
     const SHARE_TOKEN_FIELD = 'pwaShareToken';
 
@@ -139,7 +144,9 @@ class pwa_Share extends core_Mvc
             // Новият manifest подава `file[]`, което PHP представя като
             // `$_FILES['file']`. Нормализираме го и при валиден token, за да
             // работи и преходът с вече активен по-стар Service Worker.
+            $uploadDiagnostic = self::getShareUploadDiagnostic();
             self::normalizeDirectShareFiles();
+            $uploadDiagnostic->normalizedCount = self::countSharedFileEntries($_FILES['ulfile'] ?? array());
 
             $bucketId = fileman_Buckets::fetchByName('pwa');
             if (!$bucketId) {
@@ -239,6 +246,7 @@ class pwa_Share extends core_Mvc
             $body = $desc . (($desc && $link) ? "\n\n" : '') . $link;
             
             $fhArrCnt = countR($fhArr);
+            $uploadDiagnosticSummary = self::reportShareUploadDiagnostic($uploadDiagnostic, $fhArrCnt);
             if ($fhArrCnt) {
                 $fStr = $fhArrCnt == 1 ? 'Файл' : 'Файлове';
                 // При анонимно share-ване може да има login и безопасно URL
@@ -261,7 +269,8 @@ class pwa_Share extends core_Mvc
                     $fileKey = self::storeSharedFiles(
                         $fhArr,
                         $anonymousQuota ?? null,
-                        $anonymousOwnedFiles ?? array()
+                        $anonymousOwnedFiles ?? array(),
+                        $uploadDiagnosticSummary
                     );
                 } catch (Throwable $t) {
                     self::releaseAnonymousUploadSlot($anonymousQuota ?? null);
@@ -533,6 +542,160 @@ class pwa_Share extends core_Mvc
         }
 
         return $failed ? self::SHARE_ERROR_UPLOAD : null;
+    }
+
+
+    /**
+     * Събира само безопасни броячи за пътя browser -> SW -> PHP.
+     * Не включва имена, token-и, BRID или съдържание.
+     *
+     * @return stdClass
+     */
+    protected static function getShareUploadDiagnostic()
+    {
+        $isWorker = trim((string) ($_SERVER['HTTP_X_PWA_SHARE_WORKER'] ?? '')) === '1';
+        $expectedCount = null;
+        if ($isWorker) {
+            $rawCount = trim((string) ($_SERVER[self::SHARE_FILE_COUNT_SERVER_KEY] ?? ''));
+            if (preg_match('/^(?:0|[1-9][0-9]{0,3})$/D', $rawCount)) {
+                $expectedCount = (int) $rawCount;
+            }
+        }
+
+        $fileField = trim((string) ($_SERVER[self::SHARE_FILE_FIELD_SERVER_KEY] ?? ''));
+        if (!$isWorker || !in_array($fileField, array('file', 'file-array', 'both', 'none'), true)) {
+            if (isset($_FILES['file'])) {
+                $fileField = is_array($_FILES['file']['name'] ?? null) ? 'file-array' : 'file';
+            } elseif (isset($_FILES['ulfile'])) {
+                $fileField = 'ulfile';
+            } else {
+                $fileField = 'none';
+            }
+        }
+
+        $workerVersion = $isWorker
+            ? self::normalizeShareWorkerVersion($_SERVER[self::SHARE_WORKER_VERSION_SERVER_KEY] ?? null)
+            : null;
+
+        return (object) array(
+            'source' => $isWorker ? 'worker' : 'direct',
+            'field' => $fileField,
+            'workerVersion' => $workerVersion ?: 'none',
+            'expectedCount' => $expectedCount,
+            'nativeCount' => self::countSharedFileEntries($_FILES['file'] ?? array()),
+            'workerCount' => self::countSharedFileEntries($_FILES['ulfile'] ?? array()),
+            'normalizedCount' => 0,
+            'maxFileUploads' => max(0, (int) ini_get('max_file_uploads'))
+        );
+    }
+
+
+    /**
+     * Брой реално представени файлови записи в стандартен $_FILES елемент.
+     *
+     * @param array $files
+     *
+     * @return int
+     */
+    protected static function countSharedFileEntries($files)
+    {
+        if (!is_array($files) || !array_key_exists('error', $files)) {
+
+            return 0;
+        }
+
+        $count = 0;
+        foreach ((array) $files['error'] as $uploadError) {
+            if ((int) $uploadError !== UPLOAD_ERR_NO_FILE) {
+                $count++;
+            }
+        }
+
+        return $count;
+    }
+
+
+    /**
+     * Показва броячите на debug потребител и предупреждава при реална загуба.
+     *
+     * @param stdClass $diagnostic
+     * @param int      $savedCount
+     *
+     * @return string|null
+     */
+    protected static function reportShareUploadDiagnostic($diagnostic, $savedCount)
+    {
+        if (!is_object($diagnostic)) {
+
+            return null;
+        }
+
+        $savedCount = max(0, (int) $savedCount);
+        $expectedText = isset($diagnostic->expectedCount) ? (string) $diagnostic->expectedCount : 'unknown';
+        $summary = 'source=' . $diagnostic->source
+            . '; field=' . $diagnostic->field
+            . '; sw=' . $diagnostic->workerVersion
+            . '; expected=' . $expectedText
+            . '; native=' . (int) $diagnostic->nativeCount
+            . '; worker=' . (int) $diagnostic->workerCount
+            . '; normalized=' . (int) $diagnostic->normalizedCount
+            . '; saved=' . $savedCount
+            . '; max_file_uploads=' . (int) $diagnostic->maxFileUploads;
+
+        $expectedMismatch = isset($diagnostic->expectedCount) &&
+            (int) $diagnostic->expectedCount !== (int) $diagnostic->normalizedCount;
+        $savedMismatch = (int) $diagnostic->normalizedCount !== $savedCount;
+        if ($expectedMismatch || $savedMismatch) {
+            self::logWarning('PWA share upload count mismatch: ' . $summary);
+        }
+
+        if ($expectedMismatch) {
+            status_Messages::newStatus(
+                tr('Не всички споделени файлове достигнаха до PHP. Проверете настройката max_file_uploads.')
+                    . ' (' . (int) $diagnostic->normalizedCount . '/' . (int) $diagnostic->expectedCount . ')',
+                'warning',
+                null,
+                300
+            );
+        } elseif ($savedMismatch) {
+            status_Messages::newStatus(
+                tr('Не всички приети файлове бяха записани.')
+                    . ' (' . $savedCount . '/' . (int) $diagnostic->normalizedCount . ')',
+                'warning',
+                null,
+                300
+            );
+        }
+
+        $hasFileSignal = isset($diagnostic->expectedCount) && (int) $diagnostic->expectedCount > 0;
+        $hasFileSignal = $hasFileSignal || (int) $diagnostic->nativeCount > 0 ||
+            (int) $diagnostic->workerCount > 0 || (int) $diagnostic->normalizedCount > 0 || $savedCount > 0;
+        if ($hasFileSignal && haveRole('debug')) {
+            self::showShareUploadDebugStatus($summary);
+        }
+
+        return $hasFileSignal ? $summary : null;
+    }
+
+
+    /**
+     * Показва копируемите безопасни броячи само на debug потребител.
+     *
+     * @param string $summary
+     */
+    protected static function showShareUploadDebugStatus($summary)
+    {
+        if (!haveRole('debug') || !is_string($summary) || strlen($summary) > 500 ||
+            !preg_match('/^[a-zA-Z0-9=; ._-]+$/D', $summary)) {
+
+            return;
+        }
+
+        $debugStatus = '<div>' . tr('PWA upload диагностика') . ':</div>'
+            . '<textarea readonly rows="2" style="width:100%;max-width:620px" '
+            . 'onclick="this.select()" aria-label="PWA upload diagnostic">'
+            . ht::escapeAttr($summary) . '</textarea>';
+        status_Messages::newStatus($debugStatus, 'notice', null, 300);
     }
 
 
@@ -1313,10 +1476,16 @@ class pwa_Share extends core_Mvc
      * @param array             $fhArr
      * @param stdClass|null     $anonymousQuota
      * @param array             $anonymousOwnedFiles
+     * @param string|null       $uploadDiagnostic
      *
      * @return string
      */
-    protected static function storeSharedFiles($fhArr, $anonymousQuota = null, $anonymousOwnedFiles = array())
+    protected static function storeSharedFiles(
+        $fhArr,
+        $anonymousQuota = null,
+        $anonymousOwnedFiles = array(),
+        $uploadDiagnostic = null
+    )
     {
         $anonymousQuotaKey = is_object($anonymousQuota) ? ($anonymousQuota->key ?? null) : $anonymousQuota;
         $anonymousQuotaId = is_object($anonymousQuota) ? ($anonymousQuota->id ?? null) : null;
@@ -1329,7 +1498,8 @@ class pwa_Share extends core_Mvc
             'domainId' => (int) cms_Domains::getCurrent('id', false),
             'anonymousQuotaKey' => $anonymousQuotaKey,
             'anonymousQuotaId' => $anonymousQuotaId,
-            'anonymousQuotaIpKey' => $anonymousQuotaIpKey
+            'anonymousQuotaIpKey' => $anonymousQuotaIpKey,
+            'uploadDiagnostic' => is_string($uploadDiagnostic) ? $uploadDiagnostic : null
         );
 
         if ($anonymousQuotaKey) {
@@ -1920,6 +2090,9 @@ class pwa_Share extends core_Mvc
         }
 
         self::releaseAnonymousUploadSlot($shareData);
+        if (empty($shareData->userId) && !empty($shareData->uploadDiagnostic)) {
+            self::showShareUploadDebugStatus($shareData->uploadDiagnostic);
+        }
 
         return $fArr;
     }

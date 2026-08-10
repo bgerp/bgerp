@@ -5,6 +5,9 @@ var shareTokenField = 'pwaShareToken';
 var shareErrorCodes = ['token', 'quota', 'size', 'upload', 'network', 'url'];
 var shareDiagnosticParam = 'shareDiag';
 var shareWorkerVersionParam = 'shareSw';
+var shareFileCountHeader = 'X-PWA-Share-File-Count';
+var shareFileFieldHeader = 'X-PWA-Share-File-Field';
+var shareWorkerVersionHeader = 'X-PWA-Share-Worker-Version';
 
 self.addEventListener('install', function (event) {
     event.waitUntil(
@@ -196,7 +199,17 @@ function handleShareTarget(event, shareRequest, shareToken) {
         // Новият manifest използва PHP array име (`file[]`), за да не
         // изгуби файлове при директен POST без контролиращ worker. Старите
         // и custom manifest-и може още да изпращат полето като `file`.
-        var files = data.getAll('file').concat(data.getAll('file[]'));
+        var legacyFiles = data.getAll('file');
+        var arrayFiles = data.getAll('file[]');
+        var files = legacyFiles.concat(arrayFiles);
+        var fileField = 'none';
+        if (legacyFiles.length && arrayFiles.length) {
+            fileField = 'both';
+        } else if (arrayFiles.length) {
+            fileField = 'file-array';
+        } else if (legacyFiles.length) {
+            fileField = 'file';
+        }
         var haveFile = false;
 
         files.forEach(function (file) {
@@ -221,11 +234,21 @@ function handleShareTarget(event, shareRequest, shareToken) {
 
         // This is the only POST that processes the shared payload. The original
         // navigation is answered with a GET loader response below.
+        var workerHeaders = {
+            'X-PWA-Share-Worker': '1'
+        };
+        workerHeaders[shareFileCountHeader] = String(files.length);
+        workerHeaders[shareFileFieldHeader] = fileField;
+        var workerVersion = getShareWorkerVersion();
+        if (workerVersion) {
+            workerHeaders[shareWorkerVersionHeader] = workerVersion;
+        }
+
         return fetch('/pwa_Share/Target', {
             method: 'POST',
             body: data,
             credentials: 'same-origin',
-            headers: {'X-PWA-Share-Worker': '1'}
+            headers: workerHeaders
         }).catch(function (error) {
             throw createShareTargetError('network', 'Share-target POST failed.', 'sw_post_network');
         });
