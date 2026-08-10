@@ -28,6 +28,12 @@ defIfNot('PWA_MAILTO', '');
  */
 class pwa_Setup extends core_ProtoSetup
 {
+    /**
+     * Версия на пакета
+     */
+    public $version = '0.2';
+
+
     public $info = 'bgERP progressive web application';
 
 
@@ -99,15 +105,22 @@ class pwa_Setup extends core_ProtoSetup
         // @deprecated
         $existDArr = array();
         $dArr = type_Keylist::toArray($this->get('DOMAINS'));
-        foreach ($dArr as $domainId) {
+        foreach ($dArr as $key => $domainId) {
             $dRec = cms_Domains::fetch($domainId);
             if ($dRec) {
                 $domainName = $dRec->domain;
                 $existDArr[$domainName] = $domainName;
+            } else {
+                // В старата настройка може да е останал вече изтрит домейн.
+                unset($dArr[$key]);
             }
         }
         foreach (pwa_Settings::getDomains() as $dId => $name) {
             $existDArr[$name] = $name;
+            // Активните настройки се нареждат след deprecated списъка и в
+            // реда на pwa_Settings.id. При езикови записи за общ host така
+            // крайният manifest е същият като при последваща регенерация.
+            unset($dArr[$dId]);
             $dArr[$dId] = $dId;
         }
 
@@ -120,83 +133,23 @@ class pwa_Setup extends core_ProtoSetup
             pwa_Settings::removeManifestVersion($dRec->id);
         }
 
-        $defaultSw = getFileContent('pwa/js/sw.js');
-
         foreach ($dArr as $domainId) {
-            $sw = $defaultSw;
-            $manifest = pwa_Settings::getPWAManifest($domainId);
-
             $dRec = cms_Domains::fetch($domainId);
-            if ($dRec->wrFiles) {
-                try {
-                    $inst = cls::get('archive_Adapter', array('fileHnd' => $dRec->wrFiles));
-
-                    $entries = $inst->getEntries();
-
-                    if(is_array($entries) && countR($entries)) {
-                        foreach($entries as $i => $e) {
-                            if(preg_match("/[a-z0-9\\-\\_\\.]+/i", $e->path)) {
-                                if ((trim(strtolower($e->path)) === 'serviceworker.js') || (trim(strtolower($e->path)) === 'pwa.webmanifest')) {
-                                    $fh = $inst->getFile($i);
-                                    $fiContent = fileman_Files::getContent($fh);
-                                    if ((trim(strtolower($e->path)) === 'serviceworker.js')) {
-                                        $sw = $fiContent;
-                                    } else {
-                                        $manifest = $fiContent;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                } catch (Archive_7z_Exception $e) {
-                    wp($e);
-                }
+            if (!$dRec) {
+                continue;
             }
 
-            if (core_Webroot::isExists('pwa.webmanifest', $domainId)) {
-                $pwaPrevContent = core_Webroot::getContents('pwa.webmanifest', $domainId);
-            } else {
-                $pwaPrevContent = '';
-            }
-            if ($pwaPrevContent != $manifest) {
-                $html .= '<li>Генериране на манифест на PWA за ' . cms_Domains::fetchField($domainId, 'domain') . '</li>';
-            }
-            // Записваме и при еднакво съдържание, за да поправим MIME header,
-            // ако cms_Domains е публикувал файла директно от wrFiles.
-            core_Webroot::register($manifest, 'Content-Type: application/manifest+json', 'pwa.webmanifest', $domainId);
-
-            if (core_Webroot::isExists('pwa.webmanifest', $domainId)) {
-                pwa_Settings::setManifestVersion(
-                    $domainId,
-                    core_Webroot::getContents('pwa.webmanifest', $domainId)
-                );
-            } else {
-                pwa_Settings::removeManifestVersion($domainId);
+            $published = pwa_Settings::publishWebrootFilesForDomain($domainId);
+            if (!$published || empty($published['success'])) {
+                $html .= '<li class="red">Не могат да се публикуват PWA файловете за ' . $dRec->domain . '</li>';
+                continue;
             }
 
-            if (core_Webroot::isExists('serviceworker.js', $domainId)) {
-                $swPrevContent = core_Webroot::getContents('serviceworker.js', $domainId);
-            } else {
-                $swPrevContent = '';
+            if ($published['manifestChanged']) {
+                $html .= '<li>Генериране на манифест на PWA за ' . $dRec->domain . '</li>';
             }
-
-            if ($swPrevContent != $sw) {
-                core_Webroot::remove('serviceworker.js', $domainId);
-                core_Webroot::register($sw, 'Content-Type: text/javascript', 'serviceworker.js', $domainId);
-
-                $html .= '<li>Регистриране на PWA за ' . cms_Domains::fetchField($domainId, 'domain') . '</li>';
-            }
-
-            // Версията се обновява и при непроменен файл. Хешираме реално
-            // записаното съдържание, за да не публикуваме нова версия при
-            // рядък частичен/неуспешен запис на webroot файла.
-            if (core_Webroot::isExists('serviceworker.js', $domainId)) {
-                pwa_Plugin::setServiceWorkerVersion(
-                    $domainId,
-                    core_Webroot::getContents('serviceworker.js', $domainId)
-                );
-            } else {
-                pwa_Plugin::removeServiceWorkerVersion($domainId);
+            if ($published['serviceWorkerChanged']) {
+                $html .= '<li>Регистриране на PWA за ' . $dRec->domain . '</li>';
             }
         }
 
