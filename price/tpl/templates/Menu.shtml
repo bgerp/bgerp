@@ -39,6 +39,9 @@
         .priceListHolder {
             column-count: 2;
         }
+        .currencySignNextToAmount {
+            color: #888 !important;
+        }
         @media handheld, only screen and (max-width: 800px) {
             .priceListHolder {
                 column-count: 1;
