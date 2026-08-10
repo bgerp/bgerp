@@ -26,12 +26,12 @@ class pwa_SafeUrl
     const MAX_BYTES = 104857600;
     const MAX_DISCARDED_BODY_BYTES = 1048576;
     const MAX_URL_LENGTH = 2048;
-    const MAX_REDIRECTS = 3;
+    const MAX_REDIRECTS = 5;
     const MAX_HEADER_BYTES = 65536;
     const CONNECT_TIMEOUT_SECONDS = 5;
-    const TOTAL_TIMEOUT_SECONDS = 30;
-    const LOW_SPEED_LIMIT = 1024;
-    const LOW_SPEED_SECONDS = 10;
+    const TOTAL_TIMEOUT_SECONDS = 120;
+    const LOW_SPEED_LIMIT = 32768;
+    const LOW_SPEED_SECONDS = 20;
 
 
     /**
