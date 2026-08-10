@@ -47,6 +47,9 @@ class pwa_Share extends core_Mvc
     const SHARE_ERROR_NETWORK = 'network';
     const SHARE_ERROR_URL = 'url';
 
+    /** Prefix за вътрешно предаване само на allowlisted диагностичен код */
+    const SHARE_DIAG_EXCEPTION_PREFIX = 'PWA_SHARE_DIAG:';
+
     /** Временни файлове и маркер за вече прието споделяне */
     const SHARE_FILES_CACHE_TYPE = 'pwa_ShareFiles';
     const SHARE_FILES_KEEP_MINUTES = 35;
@@ -72,10 +75,19 @@ class pwa_Share extends core_Mvc
 
         if ($shareError = Request::get('shareError', 'identifier')) {
             $shareError = self::normalizeShareError($shareError);
+            $shareDiag = self::normalizeShareDiag(Request::get('shareDiag', 'identifier'));
             $errorMessages = self::getShareErrorMessages();
             $portalLink = ht::createLink('Към bgERP', array('Portal', 'Show'), null, 'class=button');
+            $diagnostic = '';
+            if ($shareDiag && haveRole('debug')) {
+                $diagnosticText = "shareError={$shareError}\nshareDiag={$shareDiag}";
+                $diagnostic = '<div style="margin-top:12px"><textarea readonly rows="2" '
+                    . 'style="width:100%;max-width:520px" onclick="this.select()" '
+                    . 'aria-label="PWA share diagnostic">' . ht::escapeAttr($diagnosticText) . '</textarea></div>';
+            }
 
-            return new ET('<div class="formError">' . tr($errorMessages[$shareError]) . '</div><div style="margin-top:20px">' . $portalLink . '</div>');
+            return new ET('<div class="formError">' . tr($errorMessages[$shareError]) . '</div>'
+                . $diagnostic . '<div style="margin-top:20px">' . $portalLink . '</div>');
         }
         
         $tpl = new ET('<div class="loader"></div><input type="file" name="ulfile[]" multiple style="display:none"><input type="text" name="link" style="display:none">');
@@ -105,11 +117,18 @@ class pwa_Share extends core_Mvc
             }
 
             try {
-                self::validateAndConsumeShareToken();
+                $isDirectShareFallback = !self::validateAndConsumeShareToken();
             } catch (Throwable $t) {
-                self::logShareTokenValidationFailure($t);
+                $shareDiag = self::logShareTokenValidationFailure($t);
+                $shareError = ($shareDiag === 'php_direct_rate_limit')
+                    ? self::SHARE_ERROR_QUOTA
+                    : self::SHARE_ERROR_TOKEN;
 
-                return self::getShareErrorRedirect(self::SHARE_ERROR_TOKEN);
+                return self::getShareErrorRedirect($shareError, $shareDiag);
+            }
+
+            if ($isDirectShareFallback) {
+                self::normalizeDirectShareFiles();
             }
 
             $bucketId = fileman_Buckets::fetchByName('pwa');
@@ -197,6 +216,12 @@ class pwa_Share extends core_Mvc
                         core_Locks::release($uploadLockId);
                     }
                 }
+            }
+
+            // Някои native share източници подават само title. При
+            // директния browser-verified fallback го пазим като текст.
+            if ($isDirectShareFallback && !$haveUploadedFiles && !$desc && !$link && $name) {
+                $desc = $name;
             }
             
             $fhArrCnt = countR($fhArr);
@@ -359,11 +384,54 @@ class pwa_Share extends core_Mvc
      *
      * @param string $error
      *
+     * @param string|null $diagnostic
+     *
      * @return Redirect
      */
-    protected static function getShareErrorRedirect($error)
+    protected static function getShareErrorRedirect($error, $diagnostic = null)
     {
-        return new Redirect(array('pwa_Share', 'Target', 'shareError' => self::normalizeShareError($error)));
+        $url = array('pwa_Share', 'Target', 'shareError' => self::normalizeShareError($error));
+        if ($diagnostic = self::normalizeShareDiag($diagnostic)) {
+            $url['shareDiag'] = $diagnostic;
+        }
+
+        return new Redirect($url);
+    }
+
+
+    /**
+     * Нормализира диагностичния код до безопасен затворен списък
+     *
+     * @param string|null $diagnostic
+     *
+     * @return string|null
+     */
+    protected static function normalizeShareDiag($diagnostic)
+    {
+        $allowed = array(
+            'php_missing_token',
+            'php_invalid_token_format',
+            'php_token_lock_busy',
+            'php_expired_or_replayed',
+            'php_upload_started_too_late',
+            'php_browser_mismatch',
+            'php_domain_mismatch',
+            'php_user_mismatch',
+            'php_direct_worker_request',
+            'php_direct_site',
+            'php_direct_mode',
+            'php_direct_destination',
+            'php_direct_content_type',
+            'php_direct_origin',
+            'php_direct_fields',
+            'php_direct_empty_payload',
+            'php_direct_rate_limit',
+            'php_internal_error'
+        );
+
+        return is_string($diagnostic) && in_array($diagnostic, $allowed, true)
+            ? $diagnostic
+            : null;
     }
 
 
@@ -442,10 +510,17 @@ class pwa_Share extends core_Mvc
     {
         $token = Request::get(self::SHARE_TOKEN_FIELD, 'varchar');
         if (!$token) {
-            // Migration path за вече инсталиран custom/стар worker: допускаме
-            // само логнат потребител и same-origin navigation/fetch. Новият
-            // worker и всички анонимни upload-и задължително използват token.
-            expect(self::canUseLegacyAuthenticatedSharePost(), 'Липсващ PWA share token');
+            // Rolling-update fallback само за оригиналния POST от browser/OS
+            // share UI. Не допускаме same-origin background POST от стар SW:
+            // той може да върви паралелно с оригиналния POST и да го дублира.
+            self::validateDirectShareFallback();
+            if (core_Users::getCurrent() <= 0) {
+                try {
+                    self::enforceShareTokenRateLimit();
+                } catch (Throwable $t) {
+                    throw new RuntimeException(self::SHARE_DIAG_EXCEPTION_PREFIX . 'php_direct_rate_limit');
+                }
+            }
 
             return false;
         }
@@ -493,11 +568,167 @@ class pwa_Share extends core_Mvc
 
 
     /**
+     * Допуска tokenless POST само когато е директна browser/OS навигация
+     * по manifest share_target, а не fetch от Service Worker или сайт.
+     */
+    protected static function validateDirectShareFallback()
+    {
+        if (array_key_exists('HTTP_X_PWA_SHARE_WORKER', $_SERVER)) {
+            self::throwShareDiagnostic('php_direct_worker_request');
+        }
+
+        $fetchSite = strtolower(trim($_SERVER['HTTP_SEC_FETCH_SITE'] ?? ''));
+        if ($fetchSite !== 'none') {
+            self::throwShareDiagnostic('php_direct_site');
+        }
+
+        $fetchMode = strtolower(trim($_SERVER['HTTP_SEC_FETCH_MODE'] ?? ''));
+        if ($fetchMode !== 'navigate') {
+            self::throwShareDiagnostic('php_direct_mode');
+        }
+
+        $fetchDestination = strtolower(trim($_SERVER['HTTP_SEC_FETCH_DEST'] ?? ''));
+        if ($fetchDestination !== 'document') {
+            self::throwShareDiagnostic('php_direct_destination');
+        }
+
+        $contentType = trim($_SERVER['CONTENT_TYPE'] ?? ($_SERVER['HTTP_CONTENT_TYPE'] ?? ''));
+        $mediaType = strtolower(trim(strtok($contentType, ';')));
+        if ($mediaType !== 'multipart/form-data' ||
+            !preg_match('/(?:^|;)\s*boundary\s*=\s*(?:"[^"]+"|[^;\s]+)/i', $contentType)) {
+            self::throwShareDiagnostic('php_direct_content_type');
+        }
+
+        $origin = trim($_SERVER['HTTP_ORIGIN'] ?? '');
+        if ($origin !== '' && strtolower($origin) !== 'null' && !self::isExactRequestOrigin($origin)) {
+            self::throwShareDiagnostic('php_direct_origin');
+        }
+
+        $allowedPostFields = array('name' => true, 'description' => true, 'link' => true);
+        foreach (array_keys($_POST) as $field) {
+            if (!isset($allowedPostFields[$field]) || !is_scalar($_POST[$field])) {
+                self::throwShareDiagnostic('php_direct_fields');
+            }
+        }
+
+        foreach (array_keys($_FILES) as $field) {
+            if ($field !== 'file' || !is_array($_FILES[$field])) {
+                self::throwShareDiagnostic('php_direct_fields');
+            }
+        }
+
+        $haveText = false;
+        foreach ($allowedPostFields as $field => $dummy) {
+            if (isset($_POST[$field]) && trim((string) $_POST[$field]) !== '') {
+                $haveText = true;
+
+                break;
+            }
+        }
+
+        if (!$haveText && !self::hasDirectSharedFile()) {
+            self::throwShareDiagnostic('php_direct_empty_payload');
+        }
+    }
+
+
+    /**
+     * Има ли поне един реално подаден файл в native share полето
+     *
+     * @return bool
+     */
+    protected static function hasDirectSharedFile()
+    {
+        if (empty($_FILES['file']) || !array_key_exists('error', $_FILES['file'])) {
+
+            return false;
+        }
+
+        foreach ((array) $_FILES['file']['error'] as $uploadError) {
+            if ((int) $uploadError !== UPLOAD_ERR_NO_FILE) {
+
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+
+    /**
+     * Превежда native manifest полето `file` към очакваното от fileman
+     * `ulfile[]`. Извиква се единствено след строгия direct fallback guard.
+     */
+    protected static function normalizeDirectShareFiles()
+    {
+        if (empty($_FILES['file']) || isset($_FILES['ulfile'])) {
+
+            return;
+        }
+
+        $file = $_FILES['file'];
+        if (!is_array($file)) {
+
+            return;
+        }
+
+        $normalized = array();
+        foreach (array('name', 'full_path', 'type', 'tmp_name', 'error', 'size') as $field) {
+            if (!array_key_exists($field, $file)) {
+                continue;
+            }
+
+            $normalized[$field] = is_array($file[$field]) ? $file[$field] : array($file[$field]);
+        }
+
+        if (!array_key_exists('error', $normalized)) {
+
+            return;
+        }
+
+        $_FILES['ulfile'] = $normalized;
+        unset($_FILES['file']);
+    }
+
+
+    /**
+     * Хвърля exception, съдържащ само allowlisted диагностичен код
+     *
+     * @param string $diagnostic
+     */
+    protected static function throwShareDiagnostic($diagnostic)
+    {
+        $diagnostic = self::normalizeShareDiag($diagnostic);
+        if (!$diagnostic) {
+            $diagnostic = 'php_internal_error';
+        }
+
+        throw new RuntimeException(self::SHARE_DIAG_EXCEPTION_PREFIX . $diagnostic);
+    }
+
+
+    /**
      * Логва само безопасен код за причината, без token и binding данни
      *
      * @param Throwable $exception
      */
     protected static function logShareTokenValidationFailure($exception)
+    {
+        $reason = self::getShareTokenValidationReason($exception);
+        self::logWarning('PWA share token validation failed: ' . $reason);
+
+        return $reason;
+    }
+
+
+    /**
+     * Извлича само безопасен reason code от exception-а
+     *
+     * @param Throwable $exception
+     *
+     * @return string
+     */
+    protected static function getShareTokenValidationReason($exception)
     {
         $details = array($exception->getMessage());
         if (method_exists($exception, 'getDebug')) {
@@ -508,44 +739,37 @@ class pwa_Share extends core_Mvc
         }
 
         $reasonMap = array(
-            'Липсващ PWA share token' => 'missing_token',
-            'Невалиден PWA share token' => 'invalid_token_format',
-            'Зает PWA share token' => 'token_lock_busy',
-            'Изтекъл или вече използван PWA share token' => 'expired_or_replayed',
-            'PWA share token-ът е изтекъл преди началото на upload-а' => 'upload_started_too_late',
-            'PWA share token-ът е от друго устройство' => 'browser_mismatch',
-            'PWA share token-ът е от друг домейн' => 'domain_mismatch',
-            'PWA share token-ът е от друг потребител' => 'user_mismatch'
+            'Липсващ PWA share token' => 'php_missing_token',
+            'Невалиден PWA share token' => 'php_invalid_token_format',
+            'Зает PWA share token' => 'php_token_lock_busy',
+            'Изтекъл или вече използван PWA share token' => 'php_expired_or_replayed',
+            'PWA share token-ът е изтекъл преди началото на upload-а' => 'php_upload_started_too_late',
+            'PWA share token-ът е от друго устройство' => 'php_browser_mismatch',
+            'PWA share token-ът е от друг домейн' => 'php_domain_mismatch',
+            'PWA share token-ът е от друг потребител' => 'php_user_mismatch'
         );
 
-        $reason = 'internal_error';
+        $reason = 'php_internal_error';
         foreach ($details as $detail) {
-            if (is_string($detail) && isset($reasonMap[$detail])) {
+            if (!is_string($detail)) {
+                continue;
+            }
+
+            if (strpos($detail, self::SHARE_DIAG_EXCEPTION_PREFIX) === 0) {
+                $diagnostic = substr($detail, strlen(self::SHARE_DIAG_EXCEPTION_PREFIX));
+                $reason = self::normalizeShareDiag($diagnostic) ?: 'php_internal_error';
+
+                break;
+            }
+
+            if (isset($reasonMap[$detail])) {
                 $reason = $reasonMap[$detail];
 
                 break;
             }
         }
 
-        self::logWarning('PWA share token validation failed: ' . $reason);
-    }
-
-
-    /**
-     * Временна съвместимост за custom worker-и без token contract
-     *
-     * @return bool
-     */
-    protected static function canUseLegacyAuthenticatedSharePost()
-    {
-        if (core_Users::getCurrent() <= 0) {
-
-            return false;
-        }
-
-        // При legacy POST не допускаме top-level cross-site/"none" заявка.
-        // Трябва да има browser Fetch Metadata за same-origin или точен Origin.
-        return self::hasAllowedShareRequestOrigin(false);
+        return $reason;
     }
 
 
