@@ -235,67 +235,67 @@ class pwa_Settings extends core_Manager
             try {
                 $iconInfoArr = self::prepareManifestIcons($rec, $domainId, $webrootDomain);
 
-            $shortcuts = array();
-            $me = cls::get(get_called_class());
-            for ($i = 1; $i <= $me->shortcutCnt; $i++) {
-                if (!trim($rec->{"sc{$i}Name"})) {
+                $shortcuts = array();
+                $me = cls::get(get_called_class());
+                for ($i = 1; $i <= $me->shortcutCnt; $i++) {
+                    if (!trim($rec->{"sc{$i}Name"})) {
 
-                    continue;
+                        continue;
+                    }
+
+                    $shortcut = array(
+                        'name' => tr($rec->{"sc{$i}Name"}),
+                        'short_name' => tr($rec->{"sc{$i}ShortName"}),
+                        'description' => tr($rec->{"sc{$i}Description"}),
+                        'url' => $rec->{"sc{$i}Url"},
+                    );
+
+                    $shortcutIcon = self::getShortcutIconInfo($rec->{"sc{$i}Icon"});
+                    if ($shortcutIcon) {
+                        $shortcut['icons'] = array((object) $shortcutIcon);
+                    }
+
+                    $shortcuts[] = (object) $shortcut;
                 }
 
-                $shortcut = array(
-                    'name' => tr($rec->{"sc{$i}Name"}),
-                    'short_name' => tr($rec->{"sc{$i}ShortName"}),
-                    'description' => tr($rec->{"sc{$i}Description"}),
-                    'url' => $rec->{"sc{$i}Url"},
-                );
-
-                $shortcutIcon = self::getShortcutIconInfo($rec->{"sc{$i}Icon"});
-                if ($shortcutIcon) {
-                    $shortcut['icons'] = array((object) $shortcutIcon);
+                $startUrl = trim((string) $rec->startUrl);
+                if ($startUrl === '') {
+                    $startUrl = '/?isPwa=yes';
                 }
 
-                $shortcuts[] = (object) $shortcut;
-            }
+                $scope = trim((string) $rec->scope);
+                if ($scope === '') {
+                    $scope = '/';
+                }
 
-            $startUrl = trim((string) $rec->startUrl);
-            if ($startUrl === '') {
-                $startUrl = '/?isPwa=yes';
-            }
-
-            $scope = trim((string) $rec->scope);
-            if ($scope === '') {
-                $scope = '/';
-            }
-
-            $json = array(
-                'short_name' => tr($rec->shortName),
-                'name' => tr($rec->name),
-                'description' => tr($rec->description),
-                'display' => $rec->display,
-                'background_color' => $rec->backgroundColor,
-                'theme_color' => $rec->themeColor,
-                'start_url' => $startUrl,
-                'shortcuts' => $shortcuts,
-                'id' => $startUrl,
-                'scope' => $scope,
-                'icons' => $iconInfoArr,
-                'share_target' => array(
-                    'action' => '/pwa_Share/Target',
-                    'method' => 'POST',
-                    'enctype' => 'multipart/form-data',
-                    'params' => array(
-                        'title' => 'name',
-                        'text' => 'description',
-                        'url' => 'link',
-                        'files' => array(
-                            array('name' => 'file',
-                                'accept' => array('*/*')
+                $json = array(
+                    'short_name' => tr($rec->shortName),
+                    'name' => tr($rec->name),
+                    'description' => tr($rec->description),
+                    'display' => $rec->display,
+                    'background_color' => $rec->backgroundColor,
+                    'theme_color' => $rec->themeColor,
+                    'start_url' => $startUrl,
+                    'shortcuts' => $shortcuts,
+                    'id' => $startUrl,
+                    'scope' => $scope,
+                    'icons' => $iconInfoArr,
+                    'share_target' => array(
+                        'action' => '/pwa_Share/Target',
+                        'method' => 'POST',
+                        'enctype' => 'multipart/form-data',
+                        'params' => array(
+                            'title' => 'name',
+                            'text' => 'description',
+                            'url' => 'link',
+                            'files' => array(
+                                array('name' => 'file',
+                                    'accept' => array('*/*')
+                                ),
                             ),
                         ),
-                    )
-                ),
-            );
+                    ),
+                );
 
                 core_Cache::set(
                     self::MANIFEST_CACHE_TYPE,
