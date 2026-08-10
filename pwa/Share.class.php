@@ -19,8 +19,8 @@ class pwa_Share extends core_Mvc
     /** Поле в трансформирания multipart POST */
     const SHARE_TOKEN_FIELD = 'pwaShareToken';
 
-    /** Тип на временния cache запис */
-    const SHARE_TOKEN_CACHE_TYPE = 'pwaShareToken';
+    /** Namespace за краткоживеещия persistent token запис */
+    const SHARE_TOKEN_PERMANENT_NAMESPACE = 'pwaShareToken';
 
     /** Token може да започне POST до 2 минути, но се пази за бавен upload */
     const SHARE_TOKEN_START_MINUTES = 2;
@@ -107,6 +107,7 @@ class pwa_Share extends core_Mvc
             try {
                 self::validateAndConsumeShareToken();
             } catch (Throwable $t) {
+                self::logShareTokenValidationFailure($t);
 
                 return self::getShareErrorRedirect(self::SHARE_ERROR_TOKEN);
             }
@@ -425,7 +426,8 @@ class pwa_Share extends core_Mvc
             'issuedOn' => time()
         );
 
-        core_Cache::set(self::SHARE_TOKEN_CACHE_TYPE, $token, $data, self::SHARE_TOKEN_KEEP_MINUTES);
+        expect(core_Permanent::set(self::getShareTokenPermanentKey($token), $data, self::SHARE_TOKEN_KEEP_MINUTES),
+            'Неуспешно запазване на PWA share token');
         header(self::SHARE_TOKEN_HEADER . ': ' . $token);
         header('Cache-Control: no-store, no-cache, must-revalidate');
 
@@ -450,12 +452,13 @@ class pwa_Share extends core_Mvc
 
         expect(is_string($token) && preg_match('/^[a-f0-9]{48}$/D', $token), 'Невалиден PWA share token');
 
-        $lockId = self::SHARE_TOKEN_CACHE_TYPE . '|' . $token;
+        $tokenKey = self::getShareTokenPermanentKey($token);
+        $lockId = $tokenKey;
         expect(core_Locks::obtain($lockId, 5, 1, 1), 'Зает PWA share token');
 
         try {
-            $data = core_Cache::get(self::SHARE_TOKEN_CACHE_TYPE, $token);
-            core_Cache::remove(self::SHARE_TOKEN_CACHE_TYPE, $token);
+            $data = core_Permanent::get($tokenKey);
+            core_Permanent::remove($tokenKey);
         } finally {
             core_Locks::release($lockId);
         }
@@ -471,6 +474,60 @@ class pwa_Share extends core_Mvc
         }
 
         return true;
+    }
+
+
+    /**
+     * Връща namespaced ключ за persistent token записа
+     *
+     * @param string $token
+     *
+     * @return string
+     */
+    protected static function getShareTokenPermanentKey($token)
+    {
+        // core_Permanent скъсява дългите ключове, като запазва началото им.
+        // Token-ът е пръв, за да не намаляваме излишно entropy-то на ключа.
+        return $token . '|' . self::SHARE_TOKEN_PERMANENT_NAMESPACE;
+    }
+
+
+    /**
+     * Логва само безопасен код за причината, без token и binding данни
+     *
+     * @param Throwable $exception
+     */
+    protected static function logShareTokenValidationFailure($exception)
+    {
+        $details = array($exception->getMessage());
+        if (method_exists($exception, 'getDebug')) {
+            $debug = $exception->getDebug();
+            if (is_array($debug)) {
+                $details = array_merge($details, $debug);
+            }
+        }
+
+        $reasonMap = array(
+            'Липсващ PWA share token' => 'missing_token',
+            'Невалиден PWA share token' => 'invalid_token_format',
+            'Зает PWA share token' => 'token_lock_busy',
+            'Изтекъл или вече използван PWA share token' => 'expired_or_replayed',
+            'PWA share token-ът е изтекъл преди началото на upload-а' => 'upload_started_too_late',
+            'PWA share token-ът е от друго устройство' => 'browser_mismatch',
+            'PWA share token-ът е от друг домейн' => 'domain_mismatch',
+            'PWA share token-ът е от друг потребител' => 'user_mismatch'
+        );
+
+        $reason = 'internal_error';
+        foreach ($details as $detail) {
+            if (is_string($detail) && isset($reasonMap[$detail])) {
+                $reason = $reasonMap[$detail];
+
+                break;
+            }
+        }
+
+        self::logWarning('PWA share token validation failed: ' . $reason);
     }
 
 

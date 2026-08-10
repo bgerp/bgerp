@@ -205,11 +205,18 @@ function isAllowedShareTargetRequest(request) {
     }
 
     if (fetchSite) {
-        if (fetchSite !== 'none' && fetchSite !== 'same-origin') {
-            return false;
+        if (fetchSite === 'none') {
+            // Web Share Target is opened by browser/OS UI and has no web
+            // initiator. Chromium can therefore expose its opaque Origin as
+            // the literal "null" while Sec-Fetch-Site remains "none".
+            return !origin || origin === 'null' || origin === self.location.origin;
         }
 
-        return !origin || origin === self.location.origin;
+        if (fetchSite === 'same-origin') {
+            return !origin || origin === self.location.origin;
+        }
+
+        return false;
     }
 
     // Стар браузър без Fetch Metadata се допуска само с точен Origin.
