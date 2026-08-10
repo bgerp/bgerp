@@ -8,16 +8,15 @@
  * - 'input'      - допълнителни артикули за влагане. Основният артикул за разпад
  *                  стои в мастъра (@see cat_DisassemblyBoms), а добавянето на
  *                  допълнителни засега е забранено интерфейсно
- *                  (@see on_AfterGetRequiredRoles)
  * - 'production' - произведените от разпада артикули (могат да са няколко)
  *
  * Полето `quantity` е базовото количество на реда (в основна мярка), спрямо
  * което по-късно ще се мащабира Протоколът за разпад.
  *
- * За 'production' редовете се показват два процента от себестойността на
- * вложения артикул - изчисленият за реда (`autoPercent`, смята се на живо върху
- * всички редове наведнъж) и ръчно зададеният (`costPercent`). Кой важи и дали се
- * получава 100% решава единствено @see cat_DisassemblyBoms::getPercents
+ * За 'production' редовете има една колона с процент от себестойността на
+ * вложения артикул. При ръчно разпределяне в нея се въвежда `costPercent`, а при
+ * останалите начини тя показва процента, изчислен на живо върху всички редове
+ * наведнъж (@see cat_DisassemblyBoms::getPercents)
  *
  * @category  bgerp
  * @package   cat
@@ -75,7 +74,7 @@ class cat_DisassemblyBomDetails extends doc_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=№,productId=Артикул,packagingId,packQuantity=К-во,autoPercent=% (сб-ст)->Авт.,costPercent=% (сб-ст)->Ръчно,amount=Сума';
+    public $listFields = 'tools=№,productId=Артикул,packagingId,packQuantity=К-во,costPercent=% (сб-ст),amount=Сума';
 
 
     /**
@@ -104,15 +103,15 @@ class cat_DisassemblyBomDetails extends doc_Detail
         $this->FNC('packQuantity', 'double(min=0)', 'caption=Количество,input=input,mandatory,smartCenter');
         $this->FLD('quantityInPack', 'double(smartRound)', 'input=none,notNull,value=1');
         $this->FLD('quantity', 'double', 'caption=Количество,input=none,smartCenter');
-        $this->FLD('costPercent', 'percent(min=0,max=1,allowEmpty)', 'caption=% сб-ст,hint=Каква част от себестойноста на вложимия артикул е. Заковава се и се вади от 100%, а остатъкът се разпределя между останалите редове. Не важи, ако за реда има цена по избраната ценова политика');
+        // Въвежда се само при ръчно разпределяне - иначе процентът се изчислява
+        // (@see on_AfterPrepareEditForm, @see cat_DisassemblyBoms::calcPercents)
+        $this->FLD('costPercent', 'percent(min=0,max=1,allowEmpty)', 'caption=% от себестойността,input=none,tdClass=accCell,hint=Каква част от себестойността на вложения артикул се пада на този ред');
         $this->FLD('notes', 'richtext(rows=3,bucket=Notes)', 'caption=Описание');
 
-        $this->FNC('autoPercent', 'percent(decimals=2)', 'caption=Авт. % от сб-ста,input=none,tdClass=accCell');
         $this->FNC('amount', 'double(decimals=2)', 'caption=Сума,input=none,tdClass=accCell');
 
         // Уникалност по артикул няма - при редакция на активна рецепта старият
         // ред се оттегля, а новият се записва със същия артикул
-        // (@see doc_plg_DetailRevisions)
         $this->setDbIndex('productId');
         $this->setDbIndex('bomId,type');
     }
@@ -142,9 +141,11 @@ class cat_DisassemblyBomDetails extends doc_Detail
         $data->defaultNotHaveMeta = 'generic';
         $form->setFieldTypeParams('productId', array('notIn' => $data->masterRec->productId));
 
-        // % от себестойността има смисъл само за произведените артикули
-        if ($rec->type != 'production') {
-            $form->setField('costPercent', 'input=none');
+        // Ръчен % се въвежда само за произведените артикули и само когато
+        // рецептата разпределя себестойността ръчно - при другите начини
+        // процентът се изчислява и въведеното няма как да важи
+        if ($rec->type == 'production' && $data->masterRec->allocationBy == 'manual') {
+            $form->setField('costPercent', 'input,mandatory');
         }
     }
 
@@ -170,13 +171,37 @@ class cat_DisassemblyBomDetails extends doc_Detail
             // рецепта се плодят оттеглени редове със същия артикул
             $exQuery = static::getQuery();
             $exQuery->where(array("#bomId = [#1#] AND #type = '[#2#]' AND #productId = [#3#]", $rec->bomId, $rec->type, $rec->productId));
-            $exQuery->where("#state != 'rejected' OR #state IS NULL");
+            $exQuery->where("#state != 'rejected'");
             if (isset($rec->id)) {
                 $exQuery->where("#id != {$rec->id}");
             }
 
             if ($exQuery->fetch()) {
                 $form->setError('productId', 'Артикулът вече е добавен в рецептата|*!');
+            }
+
+            // При разпределяне по количество мерките на произведените артикули
+            // трябва да са производни една на друга - иначе количествата им не
+            // могат да се сравняват (@see cat_DisassemblyBoms::calcPercents)
+            $bomRec = cat_DisassemblyBoms::fetch($rec->bomId, 'allocationBy');
+            if ($rec->type == 'production' && $bomRec->allocationBy == 'quantity') {
+                $uomQuery = static::getQuery();
+                $uomQuery->where("#bomId = {$rec->bomId} AND #type = 'production'");
+                $uomQuery->where("#state != 'rejected'");
+                if (isset($rec->id)) {
+                    $uomQuery->where("#id != {$rec->id}");
+                }
+                $uomQuery->show('productId');
+                $exRecs = $uomQuery->fetchAll();
+
+                $productIds = arr::extractValuesFromArray($exRecs, 'productId');
+                $productIds[] = $rec->productId;
+
+                if (!cat_Products::areProductsInTheSameUom($productIds, $measureArr)) {
+                    $unitRec = cat_UoM::fetch(cat_Products::fetchField(key($exRecs), 'measureId'));
+                    $baseUnitId = $unitRec->baseUnitId ?? $unitRec->id;
+                    $form->setError('productId', "Артикулът трябва да е в мярка, производна на мярката на вече добавените произведени артикули|* <b>" . cat_UoM::getVerbal($baseUnitId, 'name'). "</b>!");
+                }
             }
 
             $productInfo = cat_Products::getProductInfo($rec->productId);
@@ -239,18 +264,14 @@ class cat_DisassemblyBomDetails extends doc_Detail
         }
         $bomRec = $masterCache[$rec->bomId];
 
-        // Без политика и с еднакви мерки разпределението е по количества и цени
-        // изобщо не трябват - тогава сумата не се пълни и колоната отпада
-        // (@see $hideListFieldsIfEmpty). При различни мерки обаче се показва
-        // червено '???', за да е ясно защо процентите не могат да се изчислят
-        $priceIsIrrelevant = is_object($bomRec) && empty($bomRec->priceListId) && $bomRec->allProductsAreInTheSameUomId == 'yes';
-
-        if ($rec->type == 'production' && is_object($bomRec) && !$priceIsIrrelevant) {
+        // Сумата има смисъл само когато по нея се разпределя себестойността - при
+        // другите начини цените са без значение и колоната изобщо не се показва
+        if ($rec->type == 'production' && is_object($bomRec) && $bomRec->allocationBy == 'price' && $rec->state != 'rejected') {
             $errorHint = null;
             $row->amount = static::getAmountVerbal($bomRec->priceListId, $rec->productId, $rec->quantity, null, $errorHint);
 
             // Бърз линк за нова цена има смисъл само при избрана политика
-            if (!empty($bomRec->priceListId) && price_ListRules::haveRightFor('add', (object) array('productId' => $rec->productId, 'listId' => $bomRec->priceListId)) && $bomRec->state == 'draft') {
+            if (!empty($bomRec->priceListId) && price_ListRules::haveRightFor('add', (object) array('productId' => $rec->productId, 'listId' => $bomRec->priceListId))) {
                 $addPriceUrl = array('price_ListRules', 'add', 'type' => 'value', 'listId' => $bomRec->priceListId, 'productId' => $rec->productId, 'priority' => 1, 'ret_url' => true);
                 if(empty($errorHint)){
                     core_RowToolbar::createIfNotExists($row->_rowTools);
@@ -266,11 +287,11 @@ class cat_DisassemblyBomDetails extends doc_Detail
     /**
      * Сумата на реда във вербален вид - в синьо, а при липсваща цена червено '???'
      *
-     * @param int|null      $priceListId
+     * @param int           $priceListId
      * @param int           $productId
      * @param float         $quantity
      * @param datetime|null $date - към коя дата е цената (null - към сега)
-     * @param null|string $errorHint - грешка, защо няма цена
+     * @param null|string   $errorHint - грешка, защо няма цена
      *
      * @return string
      */
@@ -278,7 +299,7 @@ class cat_DisassemblyBomDetails extends doc_Detail
     {
         $amount = cat_DisassemblyBoms::getAmount($priceListId, $productId, $quantity, $date);
         if (!isset($amount)) {
-            $errorHint = empty($priceListId) ? 'Не е избрана ценова политика за разпад' : 'Артикулът няма цена по избраната ценова политика за разпад|*!';
+            $errorHint = 'Артикулът няма цена по избраната ценова политика|*! |За него се пада 0% от себестойността|*!';
 
             return ht::createHint("<span class='red'>???</span>", $errorHint, 'warning', false);
         }
@@ -299,7 +320,7 @@ class cat_DisassemblyBomDetails extends doc_Detail
     protected static function on_AfterPrepareListRows($mvc, &$res, &$data)
     {
         $data->totalPercent = 0;
-        $data->autoWarning = null;
+        $data->percentWarning = null;
         if (!countR($data->recs ?? null)) return;
 
         // Процентите се вземат за цялата рецепта, а не само за показаните редове -
@@ -316,9 +337,10 @@ class cat_DisassemblyBomDetails extends doc_Detail
         foreach ($bomIds as $bomId) {
             $statuses = array();
             $percentsArr = cat_DisassemblyBoms::getPercents($bomId, null, $statuses);
+            $allocationBy = cat_DisassemblyBoms::fetchField($bomId, 'allocationBy');
 
-            // Кои артикули не се разпределят по избраната политика - показва се
-            // над таблицата (@see renderDetail_)
+            // Кои артикули остават без дял от себестойността - показва се над
+            // таблицата (@see renderDetail_)
             if (isset($statuses['warning'])) {
                 $warningArr[$bomId] = tr($statuses['warning']);
             }
@@ -326,22 +348,17 @@ class cat_DisassemblyBomDetails extends doc_Detail
             foreach ($percentsArr as $id => $obj) {
                 if (!array_key_exists($id, $data->rows)) continue;
 
-                if (isset($obj->autoPercent)) {
+                if (!isset($obj->percent)) {
 
-                    // Изчисленият бие ръчния - той се приглушава за сведение
-                    $percentVerbal = $Percent->toVerbal($obj->autoPercent);
-                    $hint = ($obj->source == 'price') ? 'Изчислен по цената на реда по избраната ценова политика' : 'Изчислен пропорционално на количеството на реда';
-                    $data->rows[$id]->autoPercent = ht::createHint("<span style='color:blue'>{$percentVerbal}</span>", $hint, 'notice', false);
+                    // Разпределението не е излязло - причината идва от изчислението
+                    $data->rows[$id]->costPercent = ht::createHint("<span class='red'>n/a</span>", $statuses['error'] ?? 'Процентът не може да се определи', 'warning', false);
+                } elseif ($allocationBy != 'manual') {
 
-                    if (isset($obj->costPercent)) {
-                        $data->rows[$id]->costPercent = ht::createHint("<span class='quiet'>{$data->rows[$id]->costPercent}</span>", 'Не важи - за реда е изчислен автоматичен процент', 'notice', false);
-                    }
-                } elseif ($obj->source == 'manual') {
-                    $data->rows[$id]->autoPercent = ht::createHint("<span class='quiet'>n/a</span>", 'Няма как да се изчисли - за реда важи ръчният процент', 'notice', false);
-                } else {
-
-                    // Редът няма нито изчислен, нито ръчен процент
-                    $data->rows[$id]->autoPercent = ht::createHint("<span class='red'>n/a</span>", $statuses['error'] ?? 'Процентът не може да се изчисли', 'warning', false);
+                    // Изчисленото на живо застава на мястото на въведеното - при
+                    // тези начини потребителят не въвежда нищо
+                    $percentVerbal = $Percent->toVerbal($obj->percent);
+                    $hint = ($allocationBy == 'price') ? 'Изчислен по стойността на реда по избраната ценова политика' : 'Изчислен пропорционално на количеството на реда';
+                    $data->rows[$id]->costPercent = ht::createHint("<span style='color:blue'>{$percentVerbal}</span>", $hint, 'notice', false);
                 }
 
                 $data->totalPercent += $obj->percent ?? 0;
@@ -349,7 +366,7 @@ class cat_DisassemblyBomDetails extends doc_Detail
         }
 
         if (countR($warningArr)) {
-            $data->autoWarning = implode('<br>', $warningArr);
+            $data->percentWarning = implode('<br>', $warningArr);
         }
     }
 
@@ -430,6 +447,13 @@ class cat_DisassemblyBomDetails extends doc_Detail
 
         // Таблица с произведените артикули
         $commonListFields = arr::make($data->listFields, true);
+
+        // Сумата по политиката се показва само когато по нея се разпределя
+        // себестойността - при другите начини цените са без значение
+        if (cat_DisassemblyBoms::fetchField($data->masterId, 'allocationBy') != 'price') {
+            unset($commonListFields['amount']);
+        }
+
         $pData = clone $data;
         $pData->listTableMvc = clone $data->listTableMvc;
         $pData->listFields = $commonListFields;
@@ -457,8 +481,8 @@ class cat_DisassemblyBomDetails extends doc_Detail
         $productionTableTpl->append(tr("|*<tr style='background-color:#eee'><td colspan='{$columns}' style='text-align:right;'>|Общо|*: <b>{$totalPercentVerbal}</b></td></tr>"), 'ROW_AFTER');
 
         // Предупреждението се слага най-горе, над името на артикула за разпад
-        if (!empty($data->autoWarning)) {
-            $tpl->append("<div class='richtext-message richtext-warning'>{$data->autoWarning}</div>", 'percentWarning');
+        if (!empty($data->percentWarning)) {
+            $tpl->append("<div class='richtext-message richtext-warning'>{$data->percentWarning}</div>", 'percentWarning');
         }
 
         $tpl->append($productionTableTpl, 'PRODUCED_PRODUCTS_TABLE');

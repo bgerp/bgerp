@@ -8,8 +8,8 @@
  * артикула (складируеми и нескладируеми)
  *
  * Себестойността на вложения артикул се разпределя между произведените по процент
- * на ред. За реда важи най-високото ниво, за което има данни - цена по избраната
- * политика, ръчно зададен процент, количество (@see calcAutoPercents).
+ * на ред. Начинът на разпределяне е явен избор в самата рецепта - по ценова
+ * политика, ръчно или по количество (@see $allocationBy, @see calcPercents).
  *
  * Процентите не се записват - смятат се на живо по актуалните цени, за да ги
  * ползва после и Протоколът за разпад.
@@ -110,7 +110,6 @@ class cat_DisassemblyBoms extends core_Master
 
     /**
      * Дали да се показват последно видяните документи при избора на шаблонен
-     *
      * @see doc_plg_Prototype
      */
     public $showInPrototypesLastVisited = true;
@@ -214,6 +213,12 @@ class cat_DisassemblyBoms extends core_Master
 
 
     /**
+     * Може ли да се редактират активирани документи
+     */
+    public $canEditActivated = true;
+
+
+    /**
      * Описание на модела
      */
     public function description()
@@ -224,7 +229,10 @@ class cat_DisassemblyBoms extends core_Master
         $this->FLD('expenses', 'percent(min=0)', 'caption=Реж. разходи,changeable');
         $this->FLD('detailOrderBy', 'enum(auto=Автоматично,creation=Ред на създаване,code=Код,reff=Ваш №)', 'caption=Влагане (на артикула за разпад)->Подреждане по,notNull,value=auto');
 
-        $this->FLD('priceListId', 'key(mvc=price_Lists,select=title,allowEmpty)', 'caption=Ценова политика за разпад->Избор');
+        // Начинът на разпределяне е един за цялата рецепта - трите варианта се
+        // изключват взаимно (@see calcPercents)
+        $this->FLD('allocationBy', 'enum(price=По ценова политика,manual=Ръчно (%),quantity=По количество)', 'caption=Разпределяне на себестойността->Начин,notNull,value=price,mandatory,silent,maxRadio=0,removeAndRefreshForm=priceListId');
+        $this->FLD('priceListId', 'key(mvc=price_Lists,select=title,allowEmpty)', 'caption=Разпределяне на себестойността->Ценова политика,input=hidden');
         $this->FLD('state', 'enum(draft=Чернова,active=Активирана,rejected=Оттеглена,closed=Затворена,template=Шаблон)', 'caption=Статус,input=none');
         $this->FLD('notes', 'richtext(rows=4,bucket=Notes)', 'caption=Допълнително->Забележки');
         $this->FLD('allProductsAreInTheSameUomId', 'enum(yes=Да,no=Не)', 'caption=Произведените артикули са в еднаква мярка,input=none,notNull,value=yes');
@@ -253,6 +261,79 @@ class cat_DisassemblyBoms extends core_Master
 
         $listOptions = price_Lists::getAccessibleOptions(null, null, true);
         $form->setOptions('priceListId', array('' => '') + $listOptions);
+
+        // Политиката се пита само когато точно по нея се разпределя себестойността
+        $form->setDefault('allocationBy', 'price');
+
+        // Начинът се чете от заявката, а не от записа - при редакция (Cmd != refresh)
+        // prepareEditForm_ налива записа от базата ПОСЛЕ четенето на силентните полета
+        // и връща стария начин (@see core_Manager::prepareEditForm_)
+        $allocationBy = Request::get('allocationBy', 'varchar') ?: $rec->allocationBy;
+        if ($allocationBy == 'price') {
+            $form->setField('priceListId', 'input');
+        } else {
+            $form->setField('priceListId', 'input=hidden');
+        }
+    }
+
+
+    /**
+     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
+     */
+    protected static function on_AfterInputEditForm(core_Mvc $mvc, core_Form $form)
+    {
+        $rec = &$form->rec;
+
+        if($form->isSubmitted()){
+            if($rec->allocationBy == 'price' && empty($rec->priceListId)){
+                $form->setError('allocationBy,priceListId', 'При разпределяне по сб-ст, трябва да е посочена ценова политика|*!');
+            }
+
+            // Какво става с вече въведеното в редовете при смяна на начина
+            if(isset($rec->id)){
+                $exRec = $mvc->fetch($rec->id, '*', false);
+
+                if($rec->allocationBy == 'quantity' && $exRec->allocationBy != 'quantity' && $exRec->allProductsAreInTheSameUomId == 'no'){
+
+                    // Количествата на редовете не са сравними - по тях няма как да се разпределя
+                    $form->setError('allocationBy', 'Себестойността не може да се разпредели по количество|*, |защото произведените артикули не са в производни една на друга мерки|*!');
+                } elseif($exRec->allocationBy == 'manual' && $rec->allocationBy != 'manual' && cat_DisassemblyBomDetails::count("#bomId = {$rec->id} AND #type = 'production' AND #state != 'rejected' AND #costPercent IS NOT NULL")){
+
+                    // Излизане от ръчното разпределяне - въведените проценти повече
+                    // няма как да важат, затова се изчистват (@see on_AfterSave)
+                    $rec->_resetCostPercents = true;
+                    $form->setWarning('allocationBy', 'Ръчно зададените проценти на редовете ще бъдат занулени|*, |защото вече ще се изчисляват автоматично|*!');
+                }
+            }
+        }
+    }
+
+
+    /**
+     * Извиква се след успешен запис в модела
+     *
+     * @param core_Mvc $mvc
+     * @param int      $id  първичния ключ на направения запис
+     * @param stdClass $rec всички полета, които току-що са били записани
+     */
+    protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
+    {
+        if(empty($rec->_resetCostPercents)) return;
+
+        // Обещаното на формата зануляване (@see on_AfterInputEditForm). Редовете се
+        // ъпдейтват на място - зануляването не е редакция на реда и не бива да плоди
+        // версии в "Промени" (@see doc_plg_DetailRevisions). Вече оттеглените редове
+        // не се пипат, за да остане видимо какво е било
+        $Details = cls::get('cat_DisassemblyBomDetails');
+        $dQuery = $Details->getQuery();
+        $dQuery->where("#bomId = {$rec->id} AND #type = 'production' AND #state != 'rejected' AND #costPercent IS NOT NULL");
+        while($dRec = $dQuery->fetch()){
+            $dRec->costPercent = null;
+            $dRec->_skipDetailRevision = true;
+            $Details->save($dRec, 'costPercent');
+        }
+
+        doc_DocumentCache::cacheInvalidation($rec->containerId ?? $mvc->fetchField($rec->id, 'containerId'));
     }
 
 
@@ -345,181 +426,189 @@ class cat_DisassemblyBoms extends core_Master
     /**
      * Изчислява какъв % от себестойността се пада на всеки от подадените редове
      *
-     * За реда важи най-високото ниво, за което има данни - нивата се смесват
-     * свободно:
-     * 1. Цената по избраната политика - бие ръчния процент на същия ред;
-     * 2. Ръчно зададеният процент - абсолютен е, затова се "заковава" и се вади
-     *    от 100%;
-     * 3. Количеството в основна мярка - за редовете без нищо от горните.
+     * Начинът на разпределяне е един за цялата рецепта - трите варианта се
+     * изключват взаимно и не се смесват:
+     * - 'price'    - пропорционално на стойността на реда (к-во х цена по избраната
+     *                ценова политика). Ред без цена по нея получава 0%, но това не
+     *                минава мълчаливо - излиза предупреждение;
+     * - 'manual'   - ръчно зададеният процент на реда, както е въведен. Сборът им
+     *                трябва да е точно 100%;
+     * - 'quantity' - пропорционално на количеството в основна мярка. Изисква всички
+     *                редове да са в производни една на друга мерки.
      *
-     * Изчисленото по цени и по количества е относително (важи само в рамките на
-     * своята група), затова остатъкът след ръчните отива или към едните, или към
-     * другите. Има ли и от двата вида - връща се грешка, но изчислимите редове
-     * пак получават процент, за да се вижда в детайла докъде се е стигнало.
+     * Количеството и мярката на вложения артикул не участват в сметката - той дава
+     * само себестойността, която се разпределя.
      *
-     * Еднаква мярка се изисква само от редовете, които реално се разпределят по
-     * количество. Вложеният артикул не участва във формулата.
-     *
-     * @param array         $productsArr - обекти с productId, quantity и евентуално
-     *                                     costPercent; productId може да се повтаря
-     * @param int|null      $priceListId  - ид на ценова политика
+     * @param array         $productsArr  - обекти с productId, quantity и costPercent
+     *                                      (последният само при 'manual'); productId
+     *                                      може да се повтаря
+     * @param string        $allocationBy - 'price', 'manual' или 'quantity'
+     * @param int|null      $priceListId  - ид на ценова политика (само при 'price')
      * @param datetime|null $date         - към коя дата са цените (null - към сега)
      * @param array         $statuses     - ['error'] - защо разпределението не е
      *                                      годно (само той спира активирането);
-     *                                      ['warning'] - кои редове не се разпределят
-     *                                      по избраната политика
+     *                                      ['warning'] - за сведение
      *
-     * @return array $productsArr - същите обекти с попълнени autoPercent (изчисленият
-     *                              за реда), percent (важащият) и source ('price',
-     *                              'manual', 'quantity' или null)
+     * @return array $productsArr - същите обекти с попълнени percent (важащият
+     *                              процент) и amount (стойността на реда по
+     *                              политиката, само при 'price')
      */
-    public static function calcAutoPercents($productsArr, $priceListId, $date = null, &$statuses = array())
+    public static function calcPercents($productsArr, $allocationBy, $priceListId = null, $date = null, &$statuses = array())
     {
-        core_Debug::startTimer('DISASSEMBLY_CALC_AUTO_PERCENTS');
+        core_Debug::startTimer('DISASSEMBLY_CALC_PERCENTS');
 
         $statuses = array();
         foreach ($productsArr as $obj) {
-            $obj->autoPercent = $obj->percent = $obj->source = null;
+            $obj->percent = $obj->amount = null;
         }
 
-        if (!countR($productsArr)) {
-            core_Debug::stopTimer('DISASSEMBLY_CALC_AUTO_PERCENTS');
-
-            return $productsArr;
-        }
-
-        // Ниво 1 - стойността на реда по избраната политика (к-во х цена по нея)
-        $amountArr = $missingArr = array();
-        if (!empty($priceListId)) {
-            foreach ($productsArr as $k => $obj) {
-                $amount = static::getAmount($priceListId, $obj->productId, $obj->quantity, $date);
-
-                // Липсва цена - изреждат се всички виновници, а не само първият
-                if (!isset($amount)) {
-                    $missingArr[$obj->productId] = cat_Products::getTitleById($obj->productId);
-                    continue;
-                }
-
-                $amountArr[$k] = $amount;
-            }
-
-            // Нулева обща стойност не носи информация - все едно няма цени
-            if (array_sum($amountArr) <= 0) {
-                $amountArr = array();
-            }
-        }
-
-        // Ниво 2 - ръчните проценти на редовете, за които няма цена. Те са
-        // абсолютни и се вадят от 100%, а остатъкът остава за изчислимите
-        $fixedSum = 0;
-        $restArr = array();
-        foreach ($productsArr as $k => $obj) {
-            if (isset($amountArr[$k])) continue;
-
-            if (isset($obj->costPercent)) {
-                $fixedSum += $obj->costPercent;
+        if (countR($productsArr)) {
+            if ($allocationBy == 'price') {
+                static::calcPercentsByPrice($productsArr, $priceListId, $date, $statuses);
+            } elseif ($allocationBy == 'manual') {
+                static::calcPercentsManually($productsArr, $statuses);
             } else {
-                $restArr[$k] = $obj;
+                static::calcPercentsByQuantity($productsArr, $statuses);
             }
-        }
 
-        // Ниво 1 и ниво 3 са относителни - едновременно не могат да се ползват
-        if (countR($amountArr) && countR($restArr)) {
-            $restTitles = array();
-            foreach ($restArr as $obj) {
-                $restTitles[$obj->productId] = cat_Products::getTitleById($obj->productId);
-            }
-            $statuses['error'] = 'Няма как да се разпредели себестойността на артикул|*: <b>' . implode(', ', $restTitles) . '</b> - |нямат нито цена по избраната ценова политика, нито ръчно зададен процент|*!';
-        }
-
-        $remaining = 1 - $fixedSum;
-        if ($remaining < -0.0001) {
-            $percentVerbal = core_Type::getByName('percent')->toVerbal($fixedSum);
-            $statuses['error'] = "Сумата на ръчно зададените проценти надхвърля 100%|*, |а е|*: {$percentVerbal}";
-
-            core_Debug::stopTimer('DISASSEMBLY_CALC_AUTO_PERCENTS');
-
-            return $productsArr;
-        }
-
-        if (countR($amountArr) || countR($restArr)) {
-
-            // Ръчните са изяли всичко - за останалите редове не остава дял
-            if ($remaining <= 0.0001) {
-                $statuses['error'] = 'Ръчно зададените проценти изчерпват 100%|*, |а има артикули без зададен процент|*!';
-            } elseif (countR($amountArr)) {
-
-                // Остатъкът се дели между редовете с цена, пропорционално на стойността
-                $totalAmount = array_sum($amountArr);
-                foreach ($amountArr as $k => $amount) {
-                    $productsArr[$k]->autoPercent = $remaining * ($amount / $totalAmount);
-                    $productsArr[$k]->source = 'price';
-                }
-            } else {
-
-                // Остатъкът се дели между редовете без никакви данни, пропорционално
-                // на количеството. Еднаква мярка се иска само от тях, а не от всички
-                $restProductIds = array();
-                foreach ($restArr as $obj) {
-                    $restProductIds[$obj->productId] = $obj->productId;
+            // Каквото и да е разпределението, сборът е точно 100% - при 'price' и
+            // 'quantity' това е по конструкция, при 'manual' зависи от потребителя
+            if (!isset($statuses['error'])) {
+                $sum = 0;
+                foreach ($productsArr as $obj) {
+                    $sum += $obj->percent ?? 0;
                 }
 
-                $measureArr = array();
-                if (!cat_Products::areProductsInTheSameUom($restProductIds, $measureArr)) {
-                    $statuses['error'] = 'В различни мерки са артикулите, които се разпределят по количество|*: <b>' . implode(', ', array_map('cat_Products::getTitleById', $restProductIds)) . '</b>';
-                } else {
-                    $quantityArr = array();
-                    foreach ($restArr as $k => $obj) {
-                        $quantityArr[$k] = cat_UoM::convertToBaseUnit($obj->quantity, $measureArr[$obj->productId]);
-                    }
-
-                    $totalQuantity = array_sum($quantityArr);
-                    if ($totalQuantity <= 0) {
-                        $statuses['error'] = 'Количествата на артикулите, които се разпределят по количество, са нулеви|*!';
-                    } else {
-                        foreach ($quantityArr as $k => $quantity) {
-                            $productsArr[$k]->autoPercent = $remaining * ($quantity / $totalQuantity);
-                            $productsArr[$k]->source = 'quantity';
-                        }
-                    }
+                if (abs($sum - 1) > 0.0001) {
+                    $percentVerbal = core_Type::getByName('percent')->toVerbal($sum);
+                    $statuses['error'] = "Сумата на процентите от себестойността трябва да е 100%|*, |а е|*: {$percentVerbal}";
                 }
             }
-        } elseif (abs($fixedSum - 1) > 0.0001) {
-
-            // Всичко се крепи на ръчните проценти - те трябва да покриват 100%
-            $percentVerbal = core_Type::getByName('percent')->toVerbal($fixedSum);
-            $statuses['error'] = "Сумата на процентите от себестойността трябва да е 100%|*, |а е|*: {$percentVerbal}";
         }
 
-        // Важащият процент - ръчният важи само там, където изчислен няма
-        foreach ($productsArr as $obj) {
-            if (isset($obj->autoPercent)) {
-                $obj->percent = $obj->autoPercent;
-            } elseif (isset($obj->costPercent)) {
-                $obj->percent = $obj->costPercent;
-                $obj->source = 'manual';
-            }
-        }
-
-        // Част от редовете се разпределят по друга логика, а не по избраната
-        // политика - за неразпределимите говори грешката
-        if (countR($missingArr)) {
-            $redistributedArr = array();
-            foreach ($productsArr as $obj) {
-                if (isset($missingArr[$obj->productId]) && in_array($obj->source, array('manual', 'quantity'))) {
-                    $redistributedArr[$obj->productId] = $missingArr[$obj->productId];
-                }
-            }
-
-            if (countR($redistributedArr)) {
-                $listTitle = price_Lists::getTitleById($priceListId);
-                $statuses['warning'] = 'Избрана е ценова политика|* "' . $listTitle . '", |но в нея липсва цена за артикул|*: <b>' . implode(', ', $redistributedArr) . '</b>. |Себестойността за тях се разпределя по ръчно зададения процент или пропорционално на количеството|*!';
-            }
-        }
-
-        core_Debug::stopTimer('DISASSEMBLY_CALC_AUTO_PERCENTS');
+        core_Debug::stopTimer('DISASSEMBLY_CALC_PERCENTS');
 
         return $productsArr;
+    }
+
+
+    /**
+     * Разпределяне пропорционално на стойността на реда по избраната ценова
+     * политика (@see calcPercents)
+     *
+     * @param array         $productsArr
+     * @param int|null      $priceListId
+     * @param datetime|null $date
+     * @param array         $statuses
+     *
+     * @return void
+     */
+    private static function calcPercentsByPrice($productsArr, $priceListId, $date, &$statuses)
+    {
+        if (empty($priceListId)) {
+            $statuses['error'] = 'Не е избрана ценова политика за разпределяне на себестойността|*!';
+
+            return;
+        }
+
+        $totalAmount = 0;
+        $missingArr = array();
+        foreach ($productsArr as $obj) {
+            $obj->amount = static::getAmount($priceListId, $obj->productId, $obj->quantity, $date);
+
+            // Липсва цена - изреждат се всички виновници, а не само първият
+            if (!isset($obj->amount)) {
+                $missingArr[$obj->productId] = cat_Products::getTitleById($obj->productId);
+                continue;
+            }
+
+            $totalAmount += $obj->amount;
+        }
+
+        $listTitle = price_Lists::getTitleById($priceListId);
+        if ($totalAmount <= 0) {
+            $statuses['error'] = 'Себестойността не може да се разпредели|*, |защото по ценова политика|* "' . $listTitle . '" |произведените артикули са без цена или на нулева стойност|*!';
+
+            return;
+        }
+
+        // Редът без цена няма дял - вместо да се пропусне, изрично получава 0%
+        foreach ($productsArr as $obj) {
+            $obj->percent = ($obj->amount ?? 0) / $totalAmount;
+        }
+
+        if (countR($missingArr)) {
+            $statuses['warning'] = 'По ценова политика|* "' . $listTitle . '" |липсва цена за артикул|*: <b>' . implode(', ', $missingArr) . '</b>. |За тях се пада 0% от себестойността|*!';
+        }
+    }
+
+
+    /**
+     * Разпределяне по ръчно зададените проценти - важат както са въведени, затова
+     * всеки ред трябва да има процент (@see calcPercents)
+     *
+     * @param array $productsArr
+     * @param array $statuses
+     *
+     * @return void
+     */
+    private static function calcPercentsManually($productsArr, &$statuses)
+    {
+        $missingArr = array();
+        foreach ($productsArr as $obj) {
+            if (!isset($obj->costPercent)) {
+                $missingArr[$obj->productId] = cat_Products::getTitleById($obj->productId);
+                continue;
+            }
+
+            $obj->percent = $obj->costPercent;
+        }
+
+        if (countR($missingArr)) {
+            $statuses['error'] = 'Няма ръчно зададен процент от себестойността за артикул|*: <b>' . implode(', ', $missingArr) . '</b>';
+        }
+    }
+
+
+    /**
+     * Разпределяне пропорционално на количеството в основна мярка - количествата
+     * са сравними само ако мерките са производни една на друга (@see calcPercents)
+     *
+     * @param array $productsArr
+     * @param array $statuses
+     *
+     * @return void
+     */
+    private static function calcPercentsByQuantity($productsArr, &$statuses)
+    {
+        $productIds = array();
+        foreach ($productsArr as $obj) {
+            $productIds[$obj->productId] = $obj->productId;
+        }
+
+        $measureArr = array();
+        if (!cat_Products::areProductsInTheSameUom($productIds, $measureArr)) {
+            $statuses['error'] = 'Количествата не могат да се сравняват|*, |защото произведените артикули не са в производни една на друга мерки|*: <b>' . implode(', ', array_map('cat_Products::getTitleById', $productIds)) . '</b>';
+
+            return;
+        }
+
+        $totalQuantity = 0;
+        foreach ($productsArr as $obj) {
+            $obj->_baseQuantity = cat_UoM::convertToBaseUnit($obj->quantity, $measureArr[$obj->productId]);
+            $totalQuantity += $obj->_baseQuantity;
+        }
+
+        if ($totalQuantity <= 0) {
+            $statuses['error'] = 'Количествата на произведените артикули са нулеви|*!';
+
+            return;
+        }
+
+        foreach ($productsArr as $obj) {
+            $obj->percent = $obj->_baseQuantity / $totalQuantity;
+            unset($obj->_baseQuantity);
+        }
     }
 
 
@@ -528,14 +617,14 @@ class cat_DisassemblyBoms extends core_Master
      * от произведените редове на рецептата
      *
      * Ползва се и от активирането, и от показването на детайла, а по-нататък и от
-     * Протокола за разпад, за да не се разминат (@see calcAutoPercents)
+     * Протокола за разпад, за да не се разминат (@see calcPercents)
      *
      * @param int           $bomId
      * @param datetime|null $date     - към коя дата са цените (null - към сега)
-     * @param array         $statuses - ['error'] и ['warning'] (@see calcAutoPercents)
+     * @param array         $statuses - ['error'] и ['warning'] (@see calcPercents)
      *
      * @return array - обекти, ключирани по ид на ред от детайла, с полета productId,
-     *                 quantity, costPercent, autoPercent, percent и source
+     *                 quantity, costPercent, percent и amount
      */
     public static function getPercents($bomId, $date = null, &$statuses = array())
     {
@@ -548,7 +637,7 @@ class cat_DisassemblyBoms extends core_Master
         // пропуска в режим "Ревизии", а сметката не бива да зависи от това
         $dQuery = cat_DisassemblyBomDetails::getQuery();
         $dQuery->where("#bomId = {$rec->id} AND #type = 'production'");
-        $dQuery->where("#state != 'rejected' OR #state IS NULL");
+        $dQuery->where("#state != 'rejected'");
         $dQuery->show('productId,quantity,costPercent');
 
         $res = array();
@@ -560,9 +649,8 @@ class cat_DisassemblyBoms extends core_Master
             $res[$dRec->id] = (object) array('productId' => $dRec->productId,
                                              'quantity' => $dRec->quantity,
                                              'costPercent' => $costPercent,
-                                             'autoPercent' => null,
                                              'percent' => null,
-                                             'source' => null);
+                                             'amount' => null);
         }
 
         if (!countR($res)) {
@@ -573,7 +661,7 @@ class cat_DisassemblyBoms extends core_Master
         }
 
         // Разпределянето е на едно място - и решава кой процент важи за всеки ред
-        static::calcAutoPercents($res, $rec->priceListId, $date, $statuses);
+        static::calcPercents($res, $rec->allocationBy, $rec->priceListId, $date, $statuses);
 
         core_Debug::stopTimer('DISASSEMBLY_GET_PERCENTS');
 
@@ -596,12 +684,12 @@ class cat_DisassemblyBoms extends core_Master
         $rec->lastUpdatedDetailOn = dt::now();
         $rec->lastUpdatedDetailBy = core_Users::getCurrent();
 
-        // Всички ли ПРОИЗВЕДЕНИ артикули са в еднаква мярка помежду си - мярката
-        // на вложения артикул няма значение, защото не участва в сметката.
-        // Оттеглените ревизии се изключват изрично (@see getPercents)
+        // Информативно - всички ли ПРОИЗВЕДЕНИ артикули са в еднаква мярка помежду
+        // си. Мярката на вложения артикул няма значение, защото не участва в
+        // сметката. Оттеглените ревизии се изключват изрично (@see getPercents)
         $dQuery = cat_DisassemblyBomDetails::getQuery();
         $dQuery->where("#bomId = {$rec->id} AND #type = 'production'");
-        $dQuery->where("#state != 'rejected' OR #state IS NULL");
+        $dQuery->where("#state != 'rejected'");
         $dQuery->show('productId');
         $productIds = arr::extractValuesFromArray($dQuery->fetchAll(), 'productId');
 
@@ -694,7 +782,8 @@ class cat_DisassemblyBoms extends core_Master
         $resArr['quantity'] = array('name' => tr('Разпад'), 'val' => tr("|*<table class='docHeaderVal'>
                 <tr><td style='font-weight:normal'>|За|*:</td><td>[#quantity#]</td></tr>
                 <!--ET_BEGIN expenses--><tr><td style='font-weight:normal'>|Режийни разходи|*:</td><td>[#expenses#]</td></tr><!--ET_END expenses-->
-                <!--ET_BEGIN priceListId--><tr><td style='font-weight:normal'>|Политика за разпад|*:</td><td>[#priceListId#]</td></tr><!--ET_END priceListId-->
+                <tr><td style='font-weight:normal'>|Разпределяне на сб-ст|*:</td><td>[#allocationBy#]</td></tr>
+                <!--ET_BEGIN priceListId--><tr><td style='font-weight:normal'>|Ценова политика|*:</td><td>[#priceListId#]</td></tr><!--ET_END priceListId-->
                 <!--ET_BEGIN clonedFromId--><tr><td style='font-weight:normal'>|Клонирано от|*:</td><td>[#clonedFromId#]</td></tr><!--ET_END clonedFromId-->
         </table>"));
 
@@ -741,10 +830,12 @@ class cat_DisassemblyBoms extends core_Master
         if (isset($fields['-single'])) {
             $row->title = empty($rec->title) ? null : $mvc->getVerbal($rec, 'title');
 
-            if(!empty($rec->priceListId)){
+            // Извън режима "по ценова политика" записаната политика е бездейна -
+            // не се пита на формата и няма какво да казва в антетката
+            if ($rec->allocationBy == 'price' && !empty($rec->priceListId)) {
                 $row->priceListId = price_Lists::getHyperlink($rec->priceListId, true);
             } else {
-                $row->priceListId = "<span class='red'>n/a</span>";
+                unset($row->priceListId);
             }
         } else {
             $row->title = $mvc->getHyperlink($rec, true);

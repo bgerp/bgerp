@@ -350,7 +350,7 @@ class planning_GenericMapper extends core_Manager
             // Оттеглените ревизии на реда не участват - артикулът може вече да
             // не е в рецептата
             if ($section['details']->getField('state', false)) {
-                $query->where("#state != 'rejected' OR #state IS NULL");
+                $query->where("#state != 'rejected'");
             }
 
             $query->groupBy('bomId');
