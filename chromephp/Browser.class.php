@@ -76,7 +76,13 @@ class chromephp_Browser
         $html = $wrapperTpl->getContent(null, 'CONTENT', true);
 
         $browserFactory = new BrowserFactory(self::getBinPath() ?: null);
-        $browserFactory->addOptions(['ignoreCertificateErrors' => true, 'enableImages' => true]);
+        $browserFactory->addOptions([
+            'ignoreCertificateErrors' => true,
+            'enableImages' => true,
+            // Разрешава WebSocket връзката на chrome-php към Chrome DevTools.
+            // По-новите версии на Chrome иначе могат да върнат 403 при handshake-а.
+            'customFlags' => ['--remote-allow-origins=*'],
+        ]);
 
         try {
             $browser = $browserFactory->createBrowser();
