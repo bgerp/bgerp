@@ -547,7 +547,7 @@ class rack_Movements extends rack_MovementAbstract
         $form->FNC('liveCounter', 'double', 'silent,input=hidden');
 
         $defZones = Request::get('defaultZones', 'varchar');
-        if ($rec->fromIncomingDocument == 'yes') {
+        if (($rec->fromIncomingDocument ?? null) == 'yes') {
             $form->setReadOnly('productId');
         }
 

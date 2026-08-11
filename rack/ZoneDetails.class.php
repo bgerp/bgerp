@@ -129,7 +129,7 @@ class rack_ZoneDetails extends core_Detail
     protected static function on_BeforeRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         if (is_object($rec)) {
-            $packRec = $mvc->cachePacks["{$rec->productId}|{$rec->packagingId}"];
+            $packRec = $mvc->cachePacks["{$rec->productId}|{$rec->packagingId}"] ?? null;
             $rec->quantityInPack = (is_object($packRec)) ? $packRec->quantity : 1;
             $rec->movementQuantity = $rec->movementQuantity / $rec->quantityInPack;
             $rec->documentQuantity = $rec->documentQuantity / $rec->quantityInPack;
@@ -820,7 +820,7 @@ class rack_ZoneDetails extends core_Detail
         Mode::push('text', 'plain');
         $batch = $Def->toVerbal($rec->batch);
         Mode::pop('text');
-        $batchCaption = str_replace(',', ' ', $batch);
+        $batchCaption = str_replace(',', ' ', $batch ?? '');
         $key = md5($rec->batch);
 
         // Добавяне на партидата от изходния ред
@@ -848,7 +848,7 @@ class rack_ZoneDetails extends core_Detail
 
             Mode::push('text', 'plain');
             $batchCaption = $Def->toVerbal($exBatch);
-            $batchCaption = str_replace(',', ' ', $batchCaption);
+            $batchCaption = str_replace(',', ' ', $batchCaption ?? '');
             Mode::pop('text');
 
             $form->FLD($key, "double(min=0)", "caption=Други партиди в склада->{$batchCaption}");

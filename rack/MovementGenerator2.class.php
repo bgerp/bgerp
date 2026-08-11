@@ -71,20 +71,20 @@ class rack_MovementGenerator2 extends core_Manager
             $qArr = json_decode($rec->zones);
             $packArr = json_decode($rec->packagings);
             foreach ($pArr->pallet as $i => $key) {
-                if ($pArr->quantity[$i]) {
+                if (!empty($pArr->quantity[$i])) {
                     $qVerbal = core_Type::getByName('double')->fromVerbal($pArr->quantity[$i]);
-                    $p[] = (object) array('position' => $key, 'quantity' => $qVerbal, 'createdOn' => $pArr->createdOn[$i]);
+                    $p[] = (object) array('position' => $key, 'quantity' => $qVerbal, 'createdOn' => $pArr->createdOn[$i] ?? null);
                 }
             }
             foreach ($qArr->zone as $i => $key) {
-                if ($qArr->quantity[$i]) {
+                if (!empty($qArr->quantity[$i])) {
                     $qVerbal = core_Type::getByName('double')->fromVerbal($qArr->quantity[$i]);
                     $q[$key] = $qVerbal;
                 }
             }
  
             foreach ($packArr->packagingId as $i => $key) {
-                if ($packArr->quantity[$i]) {
+                if (!empty($packArr->quantity[$i])) {
                     $packs[] = (object) array('packagingId' => $key, 'quantity' => $packArr->quantity[$i]);
                 }
             }
@@ -686,7 +686,7 @@ class rack_MovementGenerator2 extends core_Manager
         if (!$quantityPerPallet) {
             $cnt = array();
             foreach ($pallets as $i => $iRec) {
-                $cnt[$iRec->quantity]++;
+                $cnt[$iRec->quantity] = ($cnt[$iRec->quantity] ?? 0) + 1;
             }
 
             arsort($cnt);

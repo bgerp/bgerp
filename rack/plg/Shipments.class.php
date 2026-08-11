@@ -42,7 +42,7 @@ class rack_plg_Shipments extends core_Plugin
         $form = &$data->form;
         
         if(isset($form->rec->id)){
-            $cid = $form->rec->containerId;
+            $cid = $form->rec->containerId ?? null;
             if (!$cid) {
                 $cid = $mvc->fetchField($form->rec->id, 'containerId');
             }
@@ -546,7 +546,7 @@ class rack_plg_Shipments extends core_Plugin
             $row->productId = cat_Products::getVerbal($pRec, 'name');
             $row->batch = null;
             if($Def = batch_Defs::getBatchDef($moveRec->productId)){
-                $row->batch = strlen($moveRec->batch) ? $Def->toVerbal($moveRec->batch) : tr('Без партида');
+                $row->batch = strlen($moveRec->batch ?? '') ? $Def->toVerbal($moveRec->batch) : tr('Без партида');
             }
 
             // В една колонка ще се показват всички позиции от, които ще се взимат
