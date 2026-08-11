@@ -333,11 +333,17 @@ abstract class store_DocumentMaster extends core_Master
         deals_Helper::fillRecs($this, $recs, $rec);
         
         // ДДС-т е отделно amountDeal  е сумата без ддс + ддс-то, иначе самата сума си е с включено ддс
-        $amount = ($rec->chargeVat == 'separate') ? $this->_total->amount + $this->_total->vat : $this->_total->amount;
-        $amount -= $this->_total->discount;
-        $rec->amountDelivered = $amount * $rec->currencyRate;
-        $rec->amountDeliveredVat = $this->_total->vat * $rec->currencyRate;
-        $rec->amountDiscount = $this->_total->discount * $rec->currencyRate;
+        if (isset($this->_total)) {
+            $amount = ($rec->chargeVat == 'separate') ? $this->_total->amount + $this->_total->vat : $this->_total->amount;
+            $amount -= $this->_total->discount;
+            $rec->amountDelivered = $amount * $rec->currencyRate;
+            $rec->amountDeliveredVat = $this->_total->vat * $rec->currencyRate;
+            $rec->amountDiscount = $this->_total->discount * $rec->currencyRate;
+        } else {
+            $rec->amountDelivered = 0;
+            $rec->amountDeliveredVat = 0;
+            $rec->amountDiscount = 0;
+        }
         
         return $this->save($rec);
     }
