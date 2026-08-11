@@ -130,6 +130,10 @@ class cat_DisassemblyBomDetails extends doc_Detail
         $form = &$data->form;
         $rec = &$form->rec;
 
+        if(isset($rec->id)){
+            $form->setReadOnly('productId');
+        }
+
         $data->singleTitle = ($rec->type == 'input') ? 'допълнителен артикул за влагане' : 'произведен артикул';
         $data->defaultMeta = ($rec->type == 'input') ? 'canConvert,canStore' : 'canManifacture';
         $data->defaultNotHaveMeta = 'generic';
