@@ -227,7 +227,7 @@ class core_TableView extends core_BaseClass
                     $class = '';
 
                     if (is_object($this->mvc->fields[$place]->type ?? null)) {
-                        $tdClass = $class = $this->mvc->fields[$place]->type->getTdClass();
+                        $tdClass = $class = $this->mvc->fields[$place]->type->getTdClass() ?? '';
                         if (!empty($this->mvc->fields[$place]->smartCenter)) {
                             $tdClass = '';
                         }
