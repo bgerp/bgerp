@@ -165,7 +165,7 @@ class plg_Chart extends core_Plugin
                 }
                 
                 if ($col == 0) {
-                    if ($rows[$value]) {
+                    if (!empty($rows[$value])) {
                         continue;
                     }
                     $rows[$value] = true;
@@ -173,7 +173,7 @@ class plg_Chart extends core_Plugin
                     // Ако имаме серии, то ако стойността на полето, определящо сериите
                     // е различна от стойността на ключът за сериите на текущата колонка
                     // пропускаме да добавим данните
-                    if ($sField = $data->chartSeriesField) {
+                    if ($sField = ($data->chartSeriesField ?? null)) {
                         if ($rec->{$sField} != $colRec->seriesKey) {
                             continue;
                         }
@@ -224,9 +224,9 @@ class plg_Chart extends core_Plugin
         if ($chartType = Request::get('Chart')) {
             $chartId = 0;
             
-            if (countR($data->charts)) {
+            if (countR($data->charts ?? array())) {
                 $table = new ET();
-                $chartField = $data->chartField;
+                $chartField = $data->chartField ?? null;
                 
                 foreach ($data->charts as $chartCaption) {
                     $chartName = 'Chart' . $chartId++;
