@@ -1144,7 +1144,7 @@ class rack_Movements extends rack_MovementAbstract
         // По-хубаво заглавие на формата
         $rec = $data->form->rec;
         
-        switch ($rec->movementType) {
+        switch ($rec->movementType ?? null) {
             case 'floor2rack':
                 $title = core_Detail::getEditTitle('store_Stores', $rec->storeId, 'нов палет', $rec->id ?? null, tr('в'));
                 break;
