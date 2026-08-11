@@ -139,8 +139,9 @@ class sales_interface_TakeFromOurOffice extends core_BaseClass
     {
         $res = array();
         $officeName = $deliveryFrom = null;
-        if($deliveryData['ourLocationId']){
-            $locationRec = crm_Locations::fetch($deliveryData['ourLocationId']);
+        $ourLocationId = $deliveryData['ourLocationId'] ?? null;
+        $locationRec = $ourLocationId ? crm_Locations::fetch($ourLocationId) : null;
+        if(!empty($locationRec)){
             $officeName = !empty($locationRec->eshopName) ? $locationRec->eshopName : $locationRec->title;
             $officeName .= ((Mode::is('text', 'plain')) ? ", " : "<br>") . crm_Locations::getAddress($locationRec, false, false,false);
 
@@ -159,17 +160,19 @@ class sales_interface_TakeFromOurOffice extends core_BaseClass
                     return $a <=> $b;
                 });
 
-                $tomorrow = (clone $now)->modify('+1 day')->format('Y-m-d');
-                $currentHour = (int)$now->format('H');
-                $nextDate = $dates[0];
+                if (countR($dates)) {
+                    $tomorrow = (clone $now)->modify('+1 day')->format('Y-m-d');
+                    $currentHour = (int)$now->format('H');
+                    $nextDate = $dates[0];
 
-                // ако е утре и сме след 16:00 → взимаме следващата
-                if ($nextDate->format('Y-m-d') === $tomorrow && $currentHour >= 16) {
-                    $nextDate = $dates[1] ?? $nextDate->modify('+7 days');
+                    // ако е утре и сме след 16:00 → взимаме следващата
+                    if ($nextDate->format('Y-m-d') === $tomorrow && $currentHour >= 16) {
+                        $nextDate = $dates[1] ?? $nextDate->modify('+7 days');
+                    }
+
+                    $nextVisit = $nextDate->format('Y-m-d');
+                    $deliveryFrom = dt::mysql2verbal($nextVisit, 'd.m.Y');
                 }
-
-                $nextVisit = $nextDate->format('Y-m-d');
-                $deliveryFrom = dt::mysql2verbal($nextVisit, 'd.m.Y');
             }
         } else {
             if(!Mode::is('text', 'plain')){
@@ -229,7 +232,7 @@ class sales_interface_TakeFromOurOffice extends core_BaseClass
      */
     public function onUpdateCartMaster(&$cartRec)
     {
-        if($cartRec->deliveryData['ourLocationId']){
+        if(!empty($cartRec->deliveryData['ourLocationId'])){
             $cartRec->freeDelivery = 'yes';
         }
     }
