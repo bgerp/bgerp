@@ -204,7 +204,7 @@ class rack_ZoneDetails extends core_Detail
 
             $row->ROW_ATTR['class'] = 'row-added';
             core_Debug::startTimer("GET_MOVEMENTS_PREPARE_INLINE_MOVEMENTS");
-            $movementsHtml = self::getInlineMovements($rec, $data->masterData->rec, $data->filter);
+            $movementsHtml = self::getInlineMovements($rec, $data->masterData->rec, $data->filter ?? null);
             core_Debug::stopTimer("GET_MOVEMENTS_PREPARE_INLINE_MOVEMENTS");
             if(!empty($movementsHtml)){
                 $row->movementsHtml = $movementsHtml;
