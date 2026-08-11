@@ -347,12 +347,14 @@ class cat_DisassemblyBomDetails extends doc_Detail
             $tpl->append("<div class='richtext-message richtext-warning'>{$data->percentWarning}</div>", 'percentWarning');
         }
 
-        cat_plg_DisassemblyDocDetail::appendAllocateBtn($tpl, $this->Master, $data->masterId, 'PRODUCED_PRODUCTS_TABLE');
         $tpl->append($productionTableTpl, 'PRODUCED_PRODUCTS_TABLE');
 
         if (!Mode::isReadOnly() && $this->haveRightFor('add', (object) array('bomId' => $data->masterId, 'type' => 'production'))) {
             $tpl->append(ht::createBtn('Произвеждане', array($this, 'add', 'bomId' => $data->masterId, 'type' => 'production', 'ret_url' => true), null, null, array('style' => 'margin-top:5px;margin-bottom:15px;', 'ef_icon' => 'img/16/door_in.png', 'title' => 'Добавяне на произведен артикул')), 'PRODUCED_PRODUCTS_TABLE');
         }
+
+        // При бутоните под таблицата, както е и в Протокола за разпад
+        cat_plg_DisassemblyDocDetail::appendAllocateBtn($tpl, $this->Master, $data->masterId, 'PRODUCED_PRODUCTS_TABLE', 'margin-top:5px;margin-bottom:15px;');
 
         // Групово изтриване само на произведените - тулбарът на core_Detail не е тук
         if ($this->haveRightFor('selectrowstodelete', (object) array('bomId' => $data->masterId, '_filterFld' => 'type', '_filterFldVal' => 'production'))) {

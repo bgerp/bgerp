@@ -2589,6 +2589,29 @@ div.alphabet.twoRows {
   top: -2px; }
 
 /*
+ * Балонче за вид/режим на документ - зеленикаво по подразбиране, червеникаво за
+ * разпад. Слага се само от cat_Boms::renderBadge()
+ */
+.type-badge {
+  display: inline-block;
+  -moz-border-radius: 9px;
+  -webkit-border-radius: 9px;
+  -ms-border-radius: 9px;
+  border-radius: 9px;
+  border-radius: 9px;
+  padding: 1px 7px;
+  border: 1px solid #81c784;
+  background: #e8f5e9;
+  color: #1b5e20;
+  font-size: 0.9em;
+  white-space: nowrap; }
+
+.type-badge-red {
+  border-color: #e57373;
+  background: #fdecea;
+  color: #b71c1c; }
+
+/*
  * Стилове за елемента 'RichEdit'
  */
 div.richEdit div.richedit-toolbar {
