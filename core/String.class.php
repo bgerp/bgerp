@@ -1041,7 +1041,8 @@ class core_String
      */
     public static function unichr($u)
     {
-        return mb_convert_encoding('&#' . intval($u) . ';', 'UTF-8', 'HTML-ENTITIES');
+        // Запазваме старото numeric-entity поведение без deprecated `HTML-ENTITIES`
+        return mb_decode_numericentity('&#' . intval($u) . ';', array(0, 0x10FFFF, 0, 0xFFFFFF), 'UTF-8');
     }
     
     

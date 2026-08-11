@@ -18,6 +18,20 @@
 class core_tests_String extends unit_Class
 {
     /**
+     * Конвертира Unicode номер към UTF-8 символ
+     */
+    public static function test_Unichr()
+    {
+        ut::expectEqual(core_String::unichr(0), "\0");
+        ut::expectEqual(core_String::unichr(65), 'A');
+        ut::expectEqual(core_String::unichr(9731), "\xE2\x98\x83");
+        ut::expectEqual(core_String::unichr(0x10FFFF), "\xF4\x8F\xBF\xBF");
+        ut::expectEqual(core_String::unichr(-1), '&#-1;');
+        ut::expectEqual(core_String::unichr(0x110000), '&#1114112;');
+    }
+
+
+    /**
      * Конвертира всички европейски азбуки,
      * включително и кирилицата, но без гръцката към латиница
      *

@@ -450,7 +450,7 @@ class log_System extends core_Manager
                 $detStr .= '...';
             }
             
-            if ($errTypeArr[$errType]) {
+            if (!empty($errTypeArr[$errType])) {
                 if ($errTypeArr[$errType] != $detStr) {
                     $more = true;
                 }
@@ -477,7 +477,7 @@ class log_System extends core_Manager
                 
                 $urlArr = array($this, 'list', 'type' => $rec->type);
                 
-                if ($errTypeArr[$errType]) {
+                if (!empty($errTypeArr[$errType])) {
                     $msg .= ' - "' . $errTypeArr[$errType] . '"';
                 }
                 
@@ -570,13 +570,14 @@ class log_System extends core_Manager
             $rec = new stdClass();
             $rec->className = get_called_class();
             $rec->detail = $nErrStr;
-            if (isset($errArr['time'])) {
-                $rec->createdOn = $errArr['time'];
+            $errTime = $errArr['time'] ?? null;
+            if ($errTime) {
+                $rec->createdOn = $errTime;
             }
             $rec->type = $errType;
             
-            if ($rec->createdOn) {
-                $oRec = self::fetch(array("#className = '[#1#]' AND #detail = '[#2#]' AND #type = '[#3#]' AND #createdOn = '[#4#]'", $rec->className, $rec->detail, $rec->type, $rec->createdOn));
+            if ($errTime) {
+                $oRec = self::fetch(array("#className = '[#1#]' AND #detail = '[#2#]' AND #type = '[#3#]' AND #createdOn = '[#4#]'", $rec->className, $rec->detail, $rec->type, $errTime));
             } else {
                 $oRec = self::fetch(array("#className = '[#1#]' AND #detail = '[#2#]' AND #type = '[#3#]'", $rec->className, $rec->detail, $rec->type));
             }
@@ -588,7 +589,7 @@ class log_System extends core_Manager
             
             // Да не се добавят стари записи, които ще се изтрият веднага по крон
             $before = dt::subtractSecs($lifeDays * 86400);
-            if ($errArr['time'] && $before > $errArr['time']) {
+            if ($errTime && $before > $errTime) {
                 continue;
             }
             
