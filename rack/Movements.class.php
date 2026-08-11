@@ -687,7 +687,7 @@ class rack_Movements extends rack_MovementAbstract
                 $documents = keylist::toArray($rec->documents ?? null);
                 if (countR($documents) == 1 || isset($rec->containerId)) {
                     $fromDocumentId = $rec->containerId ?? key($documents);
-                    $createdByNowQuantity = rack_Movements::getQuantitiesByContainerId($rec->storeId, $rec->productId, $rec->batch, $fromDocumentId);
+                    $createdByNowQuantity = rack_Movements::getQuantitiesByContainerId($rec->storeId, $rec->productId, $rec->batch ?? null, $fromDocumentId);
                     $createdByNowQuantity = $createdByNowQuantity ?? 0;
                     $createdByNowQuantity = $createdByNowQuantity / $rec->quantityInPack;
                     $createdByNowQuantityVerbal = core_Type::getByName('int')->toVerbal($createdByNowQuantity);
@@ -707,7 +707,7 @@ class rack_Movements extends rack_MovementAbstract
                 $counterKey = "saveAndNewPalletMovement_" . core_Users::getCurrent() . "_{$rec->productId}";
                 $availableQuantity = Mode::get($counterKey);
                 if (!isset($availableQuantity)) {
-                    $availableQuantity = rack_Pallets::getAvailableQuantity($rec->palletId, $rec->productId, $rec->storeId, $rec->batch);
+                    $availableQuantity = rack_Pallets::getAvailableQuantity($rec->palletId, $rec->productId, $rec->storeId, $rec->batch ?? null);
                     $availableQuantity = round($availableQuantity, $round);
                 }
                 $form->setDefault('liveCounter', $availableQuantity);
