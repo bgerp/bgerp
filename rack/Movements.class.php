@@ -1192,7 +1192,7 @@ class rack_Movements extends rack_MovementAbstract
         }
        
         $id = Request::get('id', 'int');
-        expect($id);
+        expect($id, $id, $action, getCurrentUrl(), Request::$vars);
 
         $resObj = new stdClass();
         $resObj->func = 'enableBtn';
