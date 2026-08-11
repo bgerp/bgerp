@@ -684,7 +684,7 @@ class rack_Movements extends rack_MovementAbstract
             if ($rec->fromIncomingDocument == 'yes') {
 
                 // Показване колко има заскладено от документа досега
-                $documents = keylist::toArray($rec->documents);
+                $documents = keylist::toArray($rec->documents ?? null);
                 if (countR($documents) == 1 || isset($rec->containerId)) {
                     $fromDocumentId = $rec->containerId ?? key($documents);
                     $createdByNowQuantity = rack_Movements::getQuantitiesByContainerId($rec->storeId, $rec->productId, $rec->batch, $fromDocumentId);
