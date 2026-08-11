@@ -228,7 +228,7 @@ class core_BaseClass
             }
             
             foreach ($this->_listenerCache[$method] as $subject) {
-                if (is_array($subject)) {
+                if (is_array($subject) && isset($subject['class'])) {
                     $RM = new ReflectionMethod($subject['class'], $method);
                     if (!$RM->isPublic()) {
                         $RM->setAccessible(true);
