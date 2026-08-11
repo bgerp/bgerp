@@ -1291,7 +1291,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         }
 
         if(haveRole('debug') && $rec->state != 'rejected'){
-            $data->toolbar->addBtn('Зареди очакваното', array($mvc, 'fillNote', $rec->id, 'ret_url' => true), null, 'ef_icon = img/16/bug.png,title=Зареди очакваните количества,row=2');
+            $data->toolbar->addBtn('Очаквано', array($mvc, 'fillNote', $rec->id, 'ret_url' => true), null, 'ef_icon = img/16/bug.png,title=Зареди очакваните количества,row=2');
         }
 
         if (planning_ReturnNotes::haveRightFor('add', (object) array('originId' => $rec->containerId, 'threadId' => $rec->threadId))) {

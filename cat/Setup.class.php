@@ -226,6 +226,8 @@ class cat_Setup extends core_ProtoSetup
         'cat_Params',
         'cat_Boms',
         'cat_BomDetails',
+        'cat_DisassemblyBoms',
+        'cat_DisassemblyBomDetails',
         'cat_ProductTplCache',
         'cat_Listings',
         'cat_ListingDetails',

@@ -42,7 +42,7 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, plg_Created, doc_plg_DetailRevisions, planning_Wrapper, plg_Sorting, plg_SaveAndNew, cat_plg_LogPackUsage, plg_PrevAndNext, plg_AlignDecimals2, cat_plg_ShowCodes';
+    public $loadList = 'plg_RowTools2, plg_Created, doc_plg_DetailRevisions, planning_Wrapper, plg_Sorting, plg_SaveAndNew, cat_plg_LogPackUsage, plg_PrevAndNext, plg_AlignDecimals2, cat_plg_ShowCodes, cat_plg_DisassemblyDocDetail';
 
 
     /**
@@ -72,7 +72,22 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=№,productId=Артикул,packagingId,packQuantity=К-во,storeId=Склад';
+    public $listFields = 'tools=№,productId=Артикул,packagingId,packQuantity=К-во->|*<small>|Въведено|*</small>,quantityFromBom=К-во->|*<small>|Рецепта|*</small>,costPercent=% (сб-ст),storeId=Склад';
+
+
+    /**
+     * Кои полета от листовия изглед да се скриват ако няма записи в тях
+     */
+    public $hideListFieldsIfEmpty = 'quantityFromBom';
+
+
+    /**
+     * Полета, които при клониране да не се пренасят. Списъкът на
+     * deals_ManifactureDetail се преповтаря, защото свойството се препокрива.
+     * Процентът от себестойността важи за конкретното разпределяне - в клонинга
+     * се задава наново (в рецептата за разпад той се пренася, там е част от нея)
+     */
+    public $fieldsNotToClone = 'createdBy,createdOn,requestedQuantity,contoPercent,costPercent';
 
 
     /**
@@ -96,6 +111,14 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
         $this->FLD('type', 'enum(input=Влагане,production=Произвеждане)', 'caption=Действие,silent,input=hidden');
         $this->FLD('isMainInput', 'enum(no=Не,yes=Да)', 'caption=Основен артикул за влагане,input=none,notNull,value=no');
         parent::setDetailFields($this);
+
+        // Снимка от рецептата, само за сравнение (@see planning_DisassemblyNote::transferBomDetails)
+        $this->FLD('quantityFromBom', 'double', 'caption=От рецепта,input=none,tdClass=noteBomCol aright');
+        $this->FLD('percentFromBom', 'percent(decimals=2)', 'caption=% от рецепта,input=none,tdClass=noteBomCol aright');
+
+        // Снимка на процента, с който документът е контиран - само информативно
+        $this->FLD('contoPercent', 'percent(decimals=2)', 'caption=Контиран %,input=none,column=none');
+
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty,mandatory)', 'caption=Склад,input=none,tdClass=custom-field nowrap', array('thAttr' => array('style' => 'width:160px')));
         $this->setField('packagingId', "tdClass=small-field");
         $this->setDbIndex('productId');
@@ -117,6 +140,8 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
 
         if (empty($rec->id)) {
             $form->setFieldType('packQuantity', 'double(Min=0)');
+        } else {
+            $form->setReadOnly('productId');
         }
 
         $jobRec = planning_DisassemblyNote::getJobRec($rec->noteId);
@@ -187,6 +212,12 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
+        // В опаковки, за да е сравнимо с въведеното; рекът се дели заради plg_AlignDecimals2
+        if (!empty($rec->quantityFromBom) && !empty($rec->quantityInPack)) {
+            $rec->quantityFromBom /= $rec->quantityInPack;
+            $row->quantityFromBom = $mvc->getFieldType('quantityFromBom')->fromVerbal($rec->quantityFromBom);
+        }
+
         if (isset($rec->storeId)) {
             $row->storeId = store_Stores::getHyperlink($rec->storeId, true);
         } else {
@@ -240,6 +271,41 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
 
 
     /**
+     * След подготовката на редовете - процентите зависят от всички произведени
+     * редове наведнъж, затова не се смятат в recToVerbal
+     */
+    protected static function on_AfterPrepareListRows($mvc, &$res, &$data)
+    {
+        if (!countR($data->recs ?? null)) return;
+
+        // Живите проценти ги е сметнал плъгинът - тук е само специфичното за протокола
+        foreach ($data->recs as $id => $rec) {
+            if ($rec->type != 'production' || !array_key_exists($id, $data->rows)) continue;
+
+            // Контираният ред показва процента от журнала, а не живо изчисления
+            $percent = $data->percentsArr[$id]->percent ?? null;
+            if (isset($rec->contoPercent)) {
+                $data->rows[$id]->costPercent = $mvc->getVerbal($rec, 'contoPercent');
+
+                // Сборът отдолу е на показаното, не на живо изчисленото
+                $data->totalPercent += $rec->contoPercent - ($percent ?? 0);
+            }
+
+            if (isset($rec->percentFromBom)) {
+                $percentFromBom = $mvc->getFieldType('percentFromBom')->toVerbal($rec->percentFromBom);
+                $data->rows[$id]->costPercent = ht::createHint($data->rows[$id]->costPercent, "По рецепта|*: {$percentFromBom}", 'notice', false);
+            }
+
+            // Живото се разминава с контираното - журналът ще настигне при реконтирането
+            if (isset($rec->contoPercent) && isset($percent) && abs($rec->contoPercent - $percent) > 0.0001) {
+                $percentVerbal = $mvc->getFieldType('contoPercent')->toVerbal($percent);
+                $data->rows[$id]->costPercent = ht::createHint($data->rows[$id]->costPercent, "При реконтиране ще стане|*: {$percentVerbal}", 'warning', false);
+            }
+        }
+    }
+
+
+    /**
      * След подготовка на детайлите - разделяне на редовете по вид (за 2-те таблици)
      */
     protected static function on_AfterPrepareDetail($mvc, $res, $data)
@@ -248,9 +314,8 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
         $countInput = $countProduction = 1;
         $Int = cls::get('type_Int');
 
-        // Пази вече раздадения пореден номер на всяка ревизионна група (@see
-        // doc_plg_DetailRevisions), за да не се пропуска номерацията заради
-        // оттеглени редове от историята на един и същ логически ред
+        // Номер на всяка ревизионна група (@see doc_plg_DetailRevisions), за да не
+        // се пропуска номерацията заради оттеглените редове на същия логически ред
         $inputNumByGroup = $productionNumByGroup = array();
 
         if (countR($data->rows)) {
@@ -261,15 +326,13 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
                     $row->tools = new ET('[#TOOLS#]');
                 }
 
-                // Иконка по вид на реда - артикулите за влагане/разпад имат
-                // отделна иконка от произведените/върнатите артикули
+                // Иконка по вид на реда
                 $icon = ($rec->type == 'input')
                     ? "<span class='green' style='font-weight:bold;' title='" . tr('Влагане') . "'>⇩</span>"
                     : "<span class='red' style='font-weight:bold;' title='" . tr('Връщане') . "'>⇧</span>";
 
-                // Основният вложен артикул се показва отделно, в собствена таблица
-                // над таблицата с произведените артикули (@see renderDetail_/MAIN_INPUT_PRODUCT_TABLE),
-                // а не в таблицата с (други) артикули за влагане
+                // Основният вложен артикул е в собствена таблица над произведените
+                // (@see renderDetail_/MAIN_INPUT_PRODUCT_TABLE)
                 if ($rec->type == 'input' && $rec->isMainInput == 'yes') {
                     $row->tools->append("{$icon} " . $Int->toVerbal(1), 'TOOLS');
                     $data->mainInputArr[$id] = $row;
@@ -313,8 +376,14 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
             unset($data->listFields['tools']);
         }
 
-        // Запазваме еднакъв набор и ред на колоните във всички таблици.
+        // Върху всички редове, за да са еднакви знаците и в трите таблици
+        plg_AlignDecimals2::alignDecimals($this, $data->recs, $data->rows);
+
+        // Трите таблици са с еднакви колони - JS-ът го изисква (@see
+        // planning/js/DisassemblyNoteTables.js). Празните се махат ръчно, защото
+        // се рендира директно през core_TableView
         $commonListFields = arr::make($data->listFields, true);
+        $commonListFields = core_TableView::filterEmptyColumns($data->rows, $commonListFields, arr::make($this->hideListFieldsIfEmpty, true));
 
         // Общи CSS класове на колоните - еднаксви и за трите таблици
         $data->listTableMvc = clone $this;
@@ -322,9 +391,10 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
         $data->listTableMvc->appendFieldClass('packQuantity', 'tdClass', 'productionQuantityColumn');
         $data->listTableMvc->FNC('tools', 'int', 'tdClass=rowNumColumn');
 
-        // Мини-таблица с ОСНОВНИЯ артикул за разпад - показва се отделно, над
-        // таблицата с произведените артикули (виж MAIN_INPUT_PRODUCT_TABLE в
-        // шаблона), не заедно с (евентуални) други артикули за влагане
+        // Колоната с инструментите я слага plg_RowTools2 само в таблица с редове
+        $rowToolsFld = null;
+
+        // Мини-таблица с ОСНОВНИЯ артикул за разпад - отделно, над произведените
         if (countR($data->mainInputArr)) {
             $data->listFields['productId'] = 'Артикули за разпад|* ';
             $mData = clone $data;
@@ -335,6 +405,7 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
             $mData->recs = array_intersect_key($mData->recs, $mData->rows);
 
             $this->invoke('BeforeRenderListTable', array(&$tpl, &$mData));
+            $rowToolsFld = $mData->listFields['_rowTools'] ?? $rowToolsFld;
             $mData->listTableMvc->appendFieldClass('code', 'tdClass', 'productionCodeColumn');
             $mData->listTableMvc->appendFieldClass('code', 'tdClass', 'rightCol');
             $mData->listFields['storeId'] = 'От склад';
@@ -356,6 +427,7 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
             $iData->recs = array_intersect_key($iData->recs, $iData->rows);
 
             $this->invoke('BeforeRenderListTable', array(&$tpl, &$iData));
+            $rowToolsFld = $iData->listFields['_rowTools'] ?? $rowToolsFld;
             $iData->listTableMvc->appendFieldClass('code', 'tdClass', 'productionCodeColumn rightCol');
             $iData->listFields['storeId'] = 'От склад';
 
@@ -382,16 +454,34 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
         $this->invoke('BeforeRenderListTable', array(&$tpl, &$pData));
         $pData->listTableMvc->appendFieldClass('code', 'tdClass', 'productionCodeColumn rightCol');
 
+        // Празната таблица я няма - слага се празна, за да са с еднакъв брой колони
+        if (isset($rowToolsFld) && !isset($pData->listFields['_rowTools'])) {
+            $pData->listFields = arr::combine(array('_rowTools' => $rowToolsFld), $pData->listFields);
+        }
+
         $productionTable = cls::get('core_TableView', array('mvc' => $pData->listTableMvc));
         $productionTable->tableClass = 'listTable disassemblyNoteTable';
         $detailsProduction = $productionTable->get($pData->rows, $pData->listFields);
+
+        // Сборът - зелен при точно 100%, червен при над 100%
+        cat_plg_DisassemblyDocDetail::appendTotalRow($detailsProduction, $data->totalPercent, countR($pData->listFields));
+
+        // Кои артикули остават без дял - само преди контиране, после процентите
+        // са снимка от журнала
+        $masterState = $data->masterData->rec->state ?? null;
+        if (!empty($data->percentWarning) && in_array($masterState, array('draft', 'pending'))) {
+            $tpl->append("<div class='richtext-message richtext-warning disassemblyPercentWarning'>{$data->percentWarning}</div>", 'percentWarning');
+        }
+
         $tpl->append($detailsProduction, 'PRODUCED_PRODUCTS_TABLE');
 
         if ($this->haveRightFor('add', (object) array('noteId' => $data->masterId, 'type' => 'production'))) {
             if(!Mode::isReadOnly()){
-                $tpl->append(ht::createBtn('Произведен артикул', array($this, 'add', 'noteId' => $data->masterId, 'type' => 'production', 'ret_url' => true), null, null, array('style' => 'margin-top:5px;margin-bottom:15px;', 'ef_icon' => 'img/16/door_in.png', 'title' => 'Добавяне на произведен артикул')), 'PRODUCED_PRODUCTS_TABLE');
+                $tpl->append(ht::createBtn('Произвеждане', array($this, 'add', 'noteId' => $data->masterId, 'type' => 'production', 'ret_url' => true), null, null, array('style' => 'margin-top:5px;margin-bottom:15px;', 'ef_icon' => 'img/16/door_in.png', 'title' => 'Добавяне на произведен артикул')), 'PRODUCED_PRODUCTS_TABLE');
             }
         }
+
+        cat_plg_DisassemblyDocDetail::appendAllocateBtn($tpl, $this->Master, $data->masterId, 'PRODUCED_PRODUCTS_TABLE', 'margin-top:5px;margin-bottom:15px;');
 
         $tpl->push('planning/js/DisassemblyNoteTables.js', 'JS');
         jquery_Jquery::run($tpl, 'syncDisassemblyNoteTables();');

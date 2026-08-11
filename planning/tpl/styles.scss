@@ -43,3 +43,10 @@
 .document .listTable.manifactureDetailsTable th {
 	white-space: normal;
 }
+
+// Предупреждението за артикулите без дял от себестойността да не опира в
+// таблиците над и под него (.richtext-message е с нулев вертикален марджин)
+.richtext-message.disassemblyPercentWarning {
+	margin-top: 10px;
+	margin-bottom: 10px;
+}

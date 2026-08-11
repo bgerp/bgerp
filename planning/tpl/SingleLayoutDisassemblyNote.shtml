@@ -37,6 +37,7 @@
                                 </tbody>
                             </table>
                             <div class="lines"></div>
+                            [#percentWarning#]
                             <div class="details">
                                 <!--ET_BEGIN MAIN_INPUT_PRODUCT_TABLE-->
                                 <div>[#MAIN_INPUT_PRODUCT_TABLE#]</div>
@@ -63,6 +64,24 @@
                                                 </tr>
                                             </table>
                                             <!--ET_END expenses-->
+                                            <table class='shipment-table' style='width:100%;'>
+                                                <tr>
+                                                    <td class='quiet nowrap aright' style='width:1%;'>|Разпределяне на сб-ст|*:</td>
+                                                    <td>[#allocationBy#]</td>
+                                                </tr>
+                                                <!--ET_BEGIN priceListId-->
+                                                <tr>
+                                                    <td class='quiet nowrap aright'>|Ценова политика|*:</td>
+                                                    <td>[#priceListId#]</td>
+                                                </tr>
+                                                <!--ET_END priceListId-->
+                                                <!--ET_BEGIN bomId-->
+                                                <tr>
+                                                    <td class='quiet nowrap aright'>|По рецепта|*:</td>
+                                                    <td>[#bomId#]</td>
+                                                </tr>
+                                                <!--ET_END bomId-->
+                                            </table>
                                             <!--ET_BEGIN note-->
                                             |Забележки|*:<br>
                                             [#note#]
