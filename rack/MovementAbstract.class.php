@@ -288,7 +288,7 @@ abstract class rack_MovementAbstract extends core_Manager
             $zoneArr = type_Table::toArray($rec->zones);
             if (countR($zoneArr)) {
                 foreach ($zoneArr as &$obj) {
-                    $quantityInZones += $obj->quantity;
+                    $quantityInZones += $obj->quantity ?? 0;
                 }
             }
         }

@@ -182,7 +182,7 @@ class rack_Movements extends rack_MovementAbstract
             
             if (!empty($rec->packQuantity)) {
                 $warning = null;
-                if (!deals_Helper::checkQuantity($rec->packagingId, $rec->packQuantity, $warning, 'uom')) {
+                if (!deals_Helper::checkQuantity($rec->packagingId ?? null, $rec->packQuantity, $warning, 'uom')) {
                     $form->setWarning('packQuantity', $warning);
                 }
             }
@@ -194,7 +194,7 @@ class rack_Movements extends rack_MovementAbstract
                 
                 // Симулиране дали транзакцията е валидна
                 $clone = clone $rec;
-                $clone->packQuantity = isset($rec->packQuantity) ? $rec->packQuantity : $rec->defaultPackQuantity;
+                $clone->packQuantity = isset($rec->packQuantity) ? $rec->packQuantity : ($rec->defaultPackQuantity ?? null);
                 
                 $clone->quantity = $clone->quantityInPack * $clone->packQuantity;
                 $transaction = $mvc->getTransaction($clone);
@@ -220,7 +220,7 @@ class rack_Movements extends rack_MovementAbstract
                 }
 
                 if (!$form->gotErrors()) {
-                    $rec->packQuantity = isset($rec->packQuantity) ? $rec->packQuantity : $rec->defaultPackQuantity;
+                    $rec->packQuantity = isset($rec->packQuantity) ? $rec->packQuantity : ($rec->defaultPackQuantity ?? null);
                     $rec->quantity = $rec->quantityInPack * $rec->packQuantity;
                     $rec->_isEdited = true;
 
@@ -229,7 +229,7 @@ class rack_Movements extends rack_MovementAbstract
                     }
                     
                     if(!empty($rec->containerId)){
-                        $rec->documents = keylist::addKey($rec->documents, $rec->containerId);
+                        $rec->documents = keylist::addKey($rec->documents ?? null, $rec->containerId);
                     }
 
                     $counterKey = "saveAndNewPalletMovement_" . core_Users::getCurrent() . "_{$rec->productId}";
@@ -338,7 +338,7 @@ class rack_Movements extends rack_MovementAbstract
                 }
                 
                 $documents = (countR($documents)) ? keylist::fromArray($documents) : null;
-                $rec->documents = keylist::merge($rec->documents, $documents);
+                $rec->documents = keylist::merge($rec->documents ?? null, $documents);
                 $rec->workerId = core_Users::getCurrent();
             }
         }
@@ -365,7 +365,7 @@ class rack_Movements extends rack_MovementAbstract
         // Ако се създава запис в чернова със зони, в зоните се създава празен запис
         $zonesQuantityArr = static::getZoneArr($rec);
         if($rec->state == 'pending' && ($rec->_canceled ?? false) !== true){
-            $batch = $rec->batch;
+            $batch = $rec->batch ?? null;
             if(empty($batch) && isset($rec->palletId)){
                 $palletBatch = rack_Pallets::fetchField($rec->palletId, 'batch');
                 if(!empty($palletBatch)){
