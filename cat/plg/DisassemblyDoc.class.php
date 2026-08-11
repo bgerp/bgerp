@@ -342,8 +342,7 @@ class cat_plg_DisassemblyDoc extends core_Plugin
     {
         if (!isset($row->allocationBy)) return;
 
-        $style = 'display:inline-block;padding:1px 7px;border-radius:9px;border:1px solid #81c784;background:#e8f5e9;color:#1b5e20;font-size:0.9em;white-space:nowrap;';
-        $row->allocationBy = "<span style='{$style}'>{$row->allocationBy}</span>";
+        $row->allocationBy = cat_Boms::renderBadge($row->allocationBy);
     }
 
 

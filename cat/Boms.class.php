@@ -996,11 +996,26 @@ class cat_Boms extends core_Master
         $Mvc = (is_object($mvc) || is_string($mvc)) ? cls::get($mvc) : null;
         $isDisassembly = ($Mvc instanceof cat_DisassemblyBoms) || (($rec->type ?? null) == 'disassembly');
 
-        $color = $isDisassembly ? '#b71c1c' : '#1b5e20';
-        $bgColor = $isDisassembly ? '#fdecea' : '#e8f5e9';
-        $borderColor = $isDisassembly ? '#e57373' : '#81c784';
+        return static::renderBadge($typeVerbal, $isDisassembly);
+    }
 
-        return "<span style='display:inline-block;padding:1px 7px;border-radius:9px;border:1px solid {$borderColor};background:{$bgColor};color:{$color};font-size:0.9em;white-space:nowrap;'>{$typeVerbal}</span>";
+
+    /**
+     * Балонче с текст - зеленикаво или червеникаво. Единственото място, което
+     * слага класовете му (@see .type-badge в css/common.scss)
+     *
+     * @param string|null $text
+     * @param bool        $isRed
+     *
+     * @return string|null
+     */
+    public static function renderBadge($text, $isRed = false)
+    {
+        if (empty($text)) return $text;
+
+        $class = $isRed ? 'type-badge type-badge-red' : 'type-badge';
+
+        return "<span class='{$class}'>{$text}</span>";
     }
 
 
