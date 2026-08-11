@@ -1177,7 +1177,7 @@ class core_String
      */
     public static function removeWhiteSpace($string, $replace = '')
     {
-        return preg_replace('/\s+/', $replace, $string);
+        return preg_replace('/\s+/', $replace, $string ?? '');
     }
 
 
