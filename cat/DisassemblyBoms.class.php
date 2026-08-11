@@ -52,7 +52,13 @@ class cat_DisassemblyBoms extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, cat_Wrapper, doc_DocumentPlg, doc_plg_MasterRevision, plg_Printing, doc_plg_Close, doc_plg_Prototype, acc_plg_DocumentSummary, doc_ActivatePlg, doc_plg_SingleActiveDoc, plg_Clone, cat_plg_AddSearchKeywords, plg_Search, plg_Sorting, change_Plugin, cat_plg_DisassemblyDoc';
+    public $loadList = 'plg_RowTools2, cat_Wrapper, doc_DocumentPlg, doc_plg_MasterRevision, plg_Printing, doc_plg_Close, doc_plg_Prototype, acc_plg_DocumentSummary, doc_ActivatePlg, doc_plg_SingleActiveDoc, plg_Clone, cat_plg_AddSearchKeywords, plg_Search, plg_Sorting, change_Plugin, cat_plg_DisassemblyDoc, cond_plg_DefaultValues';
+
+
+    /**
+     * Стратегии за дефолт стойностти
+     */
+    public static $defaultStrategies = array('allocationBy' => 'lastDocUser|lastDoc');
 
 
     /**

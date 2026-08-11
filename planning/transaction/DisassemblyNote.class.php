@@ -105,8 +105,15 @@ class planning_transaction_DisassemblyNote extends acc_DocumentTransactionSource
         }
 
         $allocatedInputQuantity = 0;
-        $lastIndex = countR($productionRecs) - 1;
         $inputUomRec = cat_UoM::fetch($inputRec->packagingId, 'round,roundSignificant');
+
+        // Остатъкът от закръглянето обира последният ред с дял, а не нулевият
+        $lastIndex = countR($productionRecs) - 1;
+        foreach ($productionRecs as $index => $dRec) {
+            if (!empty($percentsArr[$dRec->id]->percent)) {
+                $lastIndex = $index;
+            }
+        }
 
         foreach ($productionRecs as $index => $dRec) {
             $percent = $percentsArr[$dRec->id]->percent ?? 0;
@@ -122,7 +129,6 @@ class planning_transaction_DisassemblyNote extends acc_DocumentTransactionSource
                 Mode::pop("stopMasterUpdate{$rec->id}");
             }
 
-            // Последният ред обира остатъка, за да няма разлика от закръгляне.
             $inputQuantityPart = ($index == $lastIndex)
                 ? $inputRec->quantity - $allocatedInputQuantity
                 : core_Math::roundNumber($inputRec->quantity * $percent, $inputUomRec->round, $inputUomRec->roundSignificant);

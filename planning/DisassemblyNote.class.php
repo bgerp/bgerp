@@ -43,7 +43,13 @@ class planning_DisassemblyNote extends planning_ProductionDocument
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2, store_plg_StoreFilter, doc_SharablePlg, deals_plg_SaveValiorOnActivation, planning_Wrapper, acc_plg_DocumentSummary, acc_plg_Contable,
-                    doc_DocumentPlg, doc_plg_MasterRevision, plg_Printing, plg_Clone, bgerp_plg_Blank, deals_plg_SetTermDate, plg_Sorting, cat_plg_AddSearchKeywords, plg_Search, store_plg_StockPlanning, cat_plg_DisassemblyDoc';
+                    doc_DocumentPlg, doc_plg_MasterRevision, plg_Printing, plg_Clone, bgerp_plg_Blank, deals_plg_SetTermDate, plg_Sorting, cat_plg_AddSearchKeywords, plg_Search, store_plg_StockPlanning, cat_plg_DisassemblyDoc, cond_plg_DefaultValues';
+
+
+    /**
+     * Стратегии за дефолт стойностти
+     */
+    public static $defaultStrategies = array('allocationBy' => 'lastDocUser|lastDoc');
 
 
     /**
@@ -326,7 +332,7 @@ class planning_DisassemblyNote extends planning_ProductionDocument
 
     /**
      * Пренася произведените артикули от рецептата, мащабирани спрямо вложеното
-     * количество. Редовете на 0% не се пренасят (@see getErrorWhenTryingToConto)
+     * количество. Редовете на 0% също се пренасят - заприхождават се на нулева стойност
      *
      * @param stdClass $rec           - записът на протокола
      * @param stdClass $bomRec        - записът на рецептата
@@ -344,16 +350,11 @@ class planning_DisassemblyNote extends planning_ProductionDocument
         $statuses = array();
         $percentsArr = cat_plg_DisassemblyDoc::getPercents(cls::get('cat_DisassemblyBoms'), $bomRec->id, $rec->valior, $statuses);
 
-        $noPercentArr = $noQuantityArr = array();
+        $noQuantityArr = array();
         foreach ($percentsArr as $bomDetailId => $obj) {
-            if (empty($obj->percent)) {
-                $noPercentArr[$obj->productId] = cat_Products::getTitleById($obj->productId);
-                continue;
-            }
-
             $bomDetailRec = cat_DisassemblyBomDetails::fetch($bomDetailId, 'productId,packagingId,quantityInPack,quantity');
 
-            // Закръгля се по мярката; нулевият ред не се пренася - би спрял контирането
+            // Закръгля се по мярката; ред без количество няма какво да заприходи
             $quantity = $bomDetailRec->quantity * $ratio;
             $round = cat_UoM::fetchField(cat_Products::fetchField($bomDetailRec->productId, 'measureId'), 'round');
             if (isset($round)) {
@@ -387,8 +388,8 @@ class planning_DisassemblyNote extends planning_ProductionDocument
         }
 
         // Пропуснатото не бива да остава незабелязано
-        if (countR($noPercentArr)) {
-            core_Statuses::newStatus('От рецептата не са прехвърлени артикули без дял от себестойността|*: <b>' . implode(', ', $noPercentArr) . '</b>', 'warning');
+        if (isset($statuses['error'])) {
+            core_Statuses::newStatus('Процентите от рецептата не са прехвърлени|*: |' . $statuses['error'], 'warning');
         }
 
         if (countR($noQuantityArr)) {
@@ -461,28 +462,11 @@ class planning_DisassemblyNote extends planning_ProductionDocument
     {
         $rec = static::fetchRec($rec);
 
-        // По процентите се определят количествата в кредита на 61103
+        // Ред на 0% не пречи - заприхождава се на нулева стойност
         $statuses = array();
-        $percentsArr = cat_plg_DisassemblyDoc::getPercents(cls::get(get_called_class()), $rec, $rec->valior, $statuses);
-        if (isset($statuses['error'])) {
+        cat_plg_DisassemblyDoc::getPercents(cls::get(get_called_class()), $rec, $rec->valior, $statuses);
 
-            return $statuses['error'];
-        }
-
-        // Ред на 0% би заприходил артикула на нулева стойност
-        $zeroArr = array();
-        foreach ($percentsArr as $obj) {
-            if (empty($obj->percent)) {
-                $zeroArr[$obj->productId] = cat_Products::getTitleById($obj->productId);
-            }
-        }
-
-        if (countR($zeroArr)) {
-
-            return 'Нулев процент от себестойността се пада на артикул|*: <b>' . implode(', ', $zeroArr) . '</b>. |Премахнете ги от протокола или им осигурете дял|*!';
-        }
-
-        return null;
+        return $statuses['error'] ?? null;
     }
 
 
@@ -605,15 +589,19 @@ class planning_DisassemblyNote extends planning_ProductionDocument
         // При активиране/оттегляне
         if ($rec->state == 'active' && (!empty($rec->_updateMaster) || !empty($rec->_recontoAfterEdit))) {
 
+            $success = false;
             try {
                 $success = acc_Journal::reconto($rec->containerId);
-                if($success){
-                    $lockKey = "doc_Threads_Update_Item_{$rec->threadId}_" . core_Users::getCurrent();
-                    core_Locks::release($lockKey);
-                    core_Statuses::newStatus("Протоколът е реконтиран|*!");
-                }
             } catch (core_exception_Expect $e) {
                 reportException($e);
+            }
+
+            // И при провалено реконтиране - иначе следващият запис виси на ключа
+            $lockKey = "doc_Threads_Update_Item_{$rec->threadId}_" . core_Users::getCurrent();
+            core_Locks::release($lockKey);
+
+            if($success){
+                core_Statuses::newStatus("Протоколът е реконтиран|*!");
             }
         }
 
@@ -630,7 +618,7 @@ class planning_DisassemblyNote extends planning_ProductionDocument
     {
         $rec = $data->rec;
         if (haveRole('debug') && $rec->state != 'rejected' && $mvc->haveRightFor('edit', $rec)) {
-            $data->toolbar->addBtn('Зареди очакваното', array($mvc, 'reloadfrombom', $rec->id, 'ret_url' => true), null, 'ef_icon=img/16/bug.png,title=Зареждане наново на произведените артикули от активната рецепта за разпад,row=2,warning=Произведените артикули ще бъдат заменени с тези от активната рецепта за разпад|*!');
+            $data->toolbar->addBtn('Очаквано', array($mvc, 'reloadfrombom', $rec->id, 'ret_url' => true), null, 'ef_icon=img/16/bug.png,title=Зареждане наново на произведените артикули от активната рецепта за разпад,row=2,warning=Произведените артикули ще бъдат заменени с тези от активната рецепта за разпад|*!');
         }
     }
 

@@ -343,6 +343,7 @@ class cat_DisassemblyBomDetails extends doc_Detail
             $tpl->append("<div class='richtext-message richtext-warning'>{$data->percentWarning}</div>", 'percentWarning');
         }
 
+        cat_plg_DisassemblyDocDetail::appendAllocateBtn($tpl, $this->Master, $data->masterId, 'PRODUCED_PRODUCTS_TABLE');
         $tpl->append($productionTableTpl, 'PRODUCED_PRODUCTS_TABLE');
 
         if (!Mode::isReadOnly() && $this->haveRightFor('add', (object) array('bomId' => $data->masterId, 'type' => 'production'))) {

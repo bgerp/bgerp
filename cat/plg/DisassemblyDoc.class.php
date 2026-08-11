@@ -47,6 +47,7 @@ class cat_plg_DisassemblyDoc extends core_Plugin
         $listOptions = price_Lists::getAccessibleOptions();
         $form->setOptions('priceListId', array('' => '') + $listOptions);
 
+        // Стратегиите са след плъгина в $loadList, значи вече са минали (@see cond_plg_DefaultValues)
         $form->setDefault('allocationBy', 'price');
         static::setPriceListField($form);
     }
@@ -170,6 +171,179 @@ class cat_plg_DisassemblyDoc extends core_Plugin
         if ($containerId = ($rec->containerId ?? $mvc->fetchField($rec->id, 'containerId'))) {
             doc_DocumentCache::cacheInvalidation($containerId);
         }
+    }
+
+
+    /**
+     * Изравняване има смисъл само в ръчния режим - иначе процентите се изчисляват.
+     * Където редовете се редактират, там и се изравняват
+     */
+    public static function on_AfterGetRequiredRoles(core_Mvc $mvc, &$res, $action, $rec = null, $userId = null)
+    {
+        if ($action == 'allocatemanualpercents') {
+            $res = $mvc->getRequiredRoles('edit', $rec, $userId);
+            if(isset($rec)){
+                if(($rec->allocationBy ?? null) != 'manual'){
+                    $res = 'no_one';
+                }
+            }
+        }
+
+    }
+
+
+    /**
+     * Прихваща екшъна за изравняване - плъгинът не може да добави act_ метод
+     */
+    public static function on_BeforeAction(core_Mvc $mvc, &$res, $action)
+    {
+        if ($action != 'allocatemanualpercents') return;
+
+        expect($id = Request::get('id', 'int'));
+        expect($rec = $mvc->fetchRec($id));
+        $mvc->requireRightFor('allocatemanualpercents', $rec);
+
+        if ($count = static::reallocateManualPercents($mvc, $rec)) {
+            $mvc->logWrite('Изравняване на ръчните проценти', $rec->id);
+            $msg = "|Процентите са изравнени до 100%|* (|променени редове|*: {$count})";
+        } else {
+            $msg = '|Процентите вече правят 100%|*!';
+        }
+
+        followRetUrl(array($mvc, 'single', $rec->id), $msg);
+    }
+
+
+    /**
+     * Преизчислява ръчните проценти до точно 100%, запазвайки съотношението помежду им
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $rec        - записът на мастъра
+     * @param int|null $fixedRowId - ред, който държи процента си; останалите делят остатъка
+     *
+     * @return int - брой реално променени редове
+     */
+    private static function reallocateManualPercents(core_Mvc $mvc, $rec, $fixedRowId = null)
+    {
+        $dQuery = static::getRowQuery($mvc, $rec->id);
+        $dQuery->orderBy('id', 'ASC');
+
+        $dRecs = $dQuery->fetchAll();
+
+        // Каква част остава за преразпределяне след заключения ред
+        $target = 1;
+        if (isset($fixedRowId, $dRecs[$fixedRowId])) {
+            $target = max(1 - $dRecs[$fixedRowId]->costPercent, 0);
+            unset($dRecs[$fixedRowId]);
+        }
+
+        $count = countR($dRecs);
+        if (!$count) return 0;
+
+        $sum = 0;
+        $emptyArr = array();
+        foreach ($dRecs as $dRec) {
+            if (isset($dRec->costPercent)) {
+                $sum += $dRec->costPercent;
+            } else {
+                $emptyArr[$dRec->id] = $dRec->id;
+            }
+        }
+
+        // Празните делят помежду си остатъка до 100%, преди общото мащабиране -
+        // пропорционално на количествата, а ако мерките не са сравними, поравно
+        if (countR($emptyArr)) {
+            $remainder = max($target - $sum, 0);
+
+            $qArr = array();
+            foreach ($emptyArr as $dId) {
+                $qArr[$dId] = (object) array('productId' => $dRecs[$dId]->productId, 'quantity' => $dRecs[$dId]->quantity);
+            }
+
+            $qStatuses = array();
+            cat_DisassemblyBoms::calcPercents($qArr, 'quantity', null, null, $qStatuses);
+
+            foreach ($emptyArr as $dId) {
+                $part = $qArr[$dId]->percent ?? (1 / countR($emptyArr));
+                $dRecs[$dId]->costPercent = $remainder * $part;
+            }
+
+            $sum += $remainder;
+        }
+
+        // Нулевият сбор няма съотношение за пазене - тогава всички са наравно
+        $newArr = array();
+        foreach ($dRecs as $dRec) {
+            $newArr[$dRec->id] = round(($sum > 0) ? ($dRec->costPercent * $target / $sum) : ($target / $count), 4);
+        }
+
+        // Разликата от закръглянето отива на последния ред с дял
+        $lastId = null;
+        $roundedSum = 0;
+        foreach ($newArr as $dId => $percent) {
+            $roundedSum += $percent;
+            if (!empty($percent)) {
+                $lastId = $dId;
+            }
+        }
+
+        if (isset($lastId)) {
+            $newArr[$lastId] = round($newArr[$lastId] + $target - $roundedSum, 4);
+        }
+
+        // Не е редакция на конкретен ред - без версии
+        $updated = 0;
+        $Detail = cls::get($mvc->disassemblyDetailClass);
+        foreach ($newArr as $dId => $percent) {
+            if (isset($dRecs[$dId]->costPercent) && abs($dRecs[$dId]->costPercent - $percent) < 0.00001) continue;
+
+            $dRecs[$dId]->costPercent = $percent;
+            $dRecs[$dId]->_skipDetailRevision = true;
+            $Detail->save($dRecs[$dId], 'costPercent');
+            $updated++;
+        }
+
+        return $updated;
+    }
+
+
+    /**
+     * Останалите редове поемат остатъка до 100% след редакция на един от тях
+     *
+     * Задействаният документ трябва да е валиден на всяка стъпка - реконтирането
+     * иска сборът да е 100%, а в чернова процентите се коригират на ръка
+     *
+     * @param core_Mvc $mvc
+     * @param int      $masterId
+     * @param int      $rowId - редактираният ред
+     *
+     * @return void
+     */
+    public static function rebalanceOtherRows(core_Mvc $mvc, $masterId, $rowId)
+    {
+        $rec = $mvc->fetchRec($masterId);
+        if ($rec->allocationBy != 'manual' || $rec->state == 'draft') return;
+
+        // Записите по другите редове не бива да задействат реконтиране всеки поотделно
+        Mode::push("stopMasterUpdate{$masterId}", true);
+        $count = static::reallocateManualPercents($mvc, $rec, $rowId);
+        Mode::pop("stopMasterUpdate{$masterId}");
+
+        if ($count) {
+            core_Statuses::newStatus("|Процентите на останалите редове са преизчислени|*: {$count}");
+        }
+    }
+
+
+    /**
+     * След преобразуване на записа във вербални стойности
+     */
+    public static function on_AfterRecToVerbal(core_Mvc $mvc, &$row, $rec, $fields = array())
+    {
+        if (!isset($row->allocationBy)) return;
+
+        $style = 'display:inline-block;padding:1px 7px;border-radius:9px;border:1px solid #81c784;background:#e8f5e9;color:#1b5e20;font-size:0.9em;white-space:nowrap;';
+        $row->allocationBy = "<span style='{$style}'>{$row->allocationBy}</span>";
     }
 
 

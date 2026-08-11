@@ -50,14 +50,20 @@ class cat_plg_DisassemblyDocDetail extends core_Plugin
         $masterId = $rec->{$mvc->masterKey};
         $allocationBy = $mvc->Master->fetchField($masterId, 'allocationBy');
 
-        // Непопълненият става остатъкът до 100%, за да не се смята наум
-        if ($allocationBy == 'manual' && !isset($rec->costPercent)) {
-            $remainder = round(1 - cat_plg_DisassemblyDoc::sumRowsPercent($mvc->Master, $masterId, $rec->id ?? null), 4);
-            if ($remainder < 0) {
-                $form->setError('costPercent', 'Ръчно зададените проценти на другите редове вече надхвърлят 100%|*!');
-            } else {
-                $rec->costPercent = $remainder;
+        if ($allocationBy == 'manual') {
+
+            // Непопълненият става остатъкът до 100%, за да не се смята наум
+            if (!isset($rec->costPercent)) {
+                $remainder = round(1 - cat_plg_DisassemblyDoc::sumRowsPercent($mvc->Master, $masterId, $rec->id ?? null), 4);
+                if ($remainder < 0) {
+                    $form->setError('costPercent', 'Ръчно зададените проценти на другите редове вече надхвърлят 100%|*!');
+                } else {
+                    $rec->costPercent = $remainder;
+                }
             }
+
+            // Само промяна от потребител води до преизчисляване (@see on_AfterSave)
+            $rec->_rebalanceOtherRows = true;
         }
 
         if ($allocationBy != 'quantity') return;
@@ -67,6 +73,19 @@ class cat_plg_DisassemblyDocDetail extends core_Plugin
         if (!cat_plg_DisassemblyDoc::areRowsInTheSameUom($mvc->Master, $masterId, $rec->id ?? null, $rec->productId, $baseUomId)) {
             $form->setError('productId', 'Артикулът трябва да е в мярка, производна на мярката на вече добавените произведени артикули|* <b>' . cat_UoM::getVerbal($baseUomId, 'name') . '</b>!');
         }
+    }
+
+
+    /**
+     * След запис на ред - извиква се преди обновяването на мастъра, тоест преди
+     * реконтирането (@see core_Detail::save_)
+     */
+    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec, $fields = null)
+    {
+        if (empty($rec->_rebalanceOtherRows)) return;
+        unset($rec->_rebalanceOtherRows);
+
+        cat_plg_DisassemblyDoc::rebalanceOtherRows($mvc->Master, $rec->{$mvc->masterKey}, $id);
     }
 
 
@@ -130,6 +149,30 @@ class cat_plg_DisassemblyDocDetail extends core_Plugin
     private static function isAllocatedRow(core_Mvc $mvc, $rec)
     {
         return ($rec->type ?? null) == 'production';
+    }
+
+
+    /**
+     * Бутон за изравняване на ръчните проценти до 100%
+     *
+     * @param core_ET  $tpl
+     * @param core_Mvc $masterMvc
+     * @param int      $masterId
+     * @param string   $block
+     * @param string   $style
+     *
+     * @return void
+     */
+    public static function appendAllocateBtn($tpl, core_Mvc $masterMvc, $masterId, $block, $style = 'margin-bottom:5px;')
+    {
+        if (Mode::isReadOnly() || Mode::is('printing')) return;
+
+        $masterRec = $masterMvc->fetchRec($masterId);
+        if (!$masterMvc->haveRightFor('allocatemanualpercents', $masterRec)) return;
+
+        $btn = ht::createBtn('Изравняване', array($masterMvc, 'allocateManualPercents', $masterId, 'ret_url' => true), 'Ръчно въведените проценти ще бъдат преизчислени, за да правят точно 100%|*!', null, array('style' => $style, 'ef_icon' => 'img/16/calculator.png', 'title' => 'Изравняване на процентите от себестойността до 100%'));
+
+        $tpl->append($btn, $block);
     }
 
 
