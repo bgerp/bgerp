@@ -715,7 +715,7 @@ class planning_Tasks extends core_Master
                     $labelProductId = ($rec->isFinal == 'yes') ? $origin->fetchField('productId') : $rec->productId;
                     $quantityInPackDefault = static::getDefaultQuantityInLabelPackagingId($labelProductId, $rec->measureId, $rec->labelPackagingId, $rec->id);
                     $expectedLabelQuantityInPack = $quantityInPackDefault;
-                    $quantityInPackDefault = "<span style='color:blue'>" . core_Type::getByName('double(smartRound)')->toVerbal($quantityInPackDefault) . "</span>";
+                    $quantityInPackDefault = "<span class='blueText'>" . core_Type::getByName('double(smartRound)')->toVerbal($quantityInPackDefault) . "</span>";
                     $quantityInPackHint = ($rec->isFinal == 'yes') ? 'Средно от въведения прогрес или от опаковката/мярката на артикула' : 'От опаковката/мярката на артикула';
                     $quantityInPackDefault = ht::createHint($quantityInPackDefault, $quantityInPackHint);
                     $row->labelQuantityInPack = $quantityInPackDefault;
@@ -799,7 +799,7 @@ class planning_Tasks extends core_Master
                 }
                 $row->simultaneity = core_Type::getByName('int')->toVerbal($assetSimultaneity);
                 if ($hintSimultaneity) {
-                    $row->simultaneity = ht::createHint("<span style='color:blue'>{$row->simultaneity}</span>", 'Зададено е в оборудването');
+                    $row->simultaneity = ht::createHint("<span class='blueText'>{$row->simultaneity}</span>", 'Зададено е в оборудването');
                 }
 
                 if (isset($rec->prevAssetId)) {
@@ -3619,7 +3619,7 @@ class planning_Tasks extends core_Master
                             $row->{"param_{$paramId}"} .= " {$pSuffix}";
                         }
                         if ($live) {
-                            $row->{"param_{$paramId}"} = "<span style='color:blue'>{$row->{"param_{$paramId}"}}</span>";
+                            $row->{"param_{$paramId}"} = "<span class='blueText'>{$row->{"param_{$paramId}"}}</span>";
                         }
                     }
                 }
@@ -5340,7 +5340,7 @@ class planning_Tasks extends core_Master
         $res['notice'] = !empty($rec->deviationNettoNotice) ? $rec->deviationNettoNotice : $centerRec->deviationNettoNotice;
         if($verbal && isset($res['notice'])){
             $res['notice'] = core_Type::getByName('percent(smartRound)')->toVerbal($res['notice']);
-            $res['notice'] = !empty($rec->deviationNettoNotice) ?  $res['notice'] : "<span style='color:blue'>{$res['notice']}</span>";
+            $res['notice'] = !empty($rec->deviationNettoNotice) ?  $res['notice'] : "<span class='blueText'>{$res['notice']}</span>";
             $noticeHint = !empty($rec->deviationNettoNotice) ? 'Информация' : 'Информация (от центъра на дейност)';
             $res['notice'] = ht::createHint($res['notice'], $noticeHint, 'img/16/green-info.png', false);
         }
@@ -5348,7 +5348,7 @@ class planning_Tasks extends core_Master
         $res['critical'] = !empty($rec->deviationNettoCritical) ? $rec->deviationNettoCritical : $centerRec->deviationNettoCritical;
         if($verbal && isset($res['critical'])){
             $res['critical'] = core_Type::getByName('percent(smartRound)')->toVerbal($res['critical']);
-            $res['critical'] = !empty($rec->deviationNettoCritical) ?  $res['critical'] : "<span style='color:blue'>{$res['critical']}</span>";
+            $res['critical'] = !empty($rec->deviationNettoCritical) ?  $res['critical'] : "<span class='blueText'>{$res['critical']}</span>";
             $criticalHint = !empty($rec->deviationNettoNotice) ? 'Критично' : 'Критично (от центъра на дейност)';
             $res['critical'] = ht::createHint($res['critical'], $criticalHint, 'img/16/red-warning.png', false);
         }
@@ -5356,7 +5356,7 @@ class planning_Tasks extends core_Master
         $res['warning'] = !empty($rec->deviationNettoWarning) ? $rec->deviationNettoWarning : (($centerRec->deviationNettoWarning) ? $centerRec->deviationNettoWarning : planning_Setup::get('TASK_NET_WEIGHT_WARNING'));
         if($verbal && isset($res['warning'])){
             $res['warning'] = core_Type::getByName('percent(smartRound)')->toVerbal($res['warning']);
-            $res['warning'] = !empty($rec->deviationNettoWarning) ?  $res['warning'] : "<span style='color:blue'>{$res['warning']}</span>";
+            $res['warning'] = !empty($rec->deviationNettoWarning) ?  $res['warning'] : "<span class='blueText'>{$res['warning']}</span>";
             $warningHint = !empty($rec->deviationNettoWarning) ?  'Предупреждение' : (($centerRec->deviationNettoWarning) ? 'Предупреждение (от центъра на дейност)' : 'Предупреждение (от настройката по подразбиране)');
             $res['warning'] = ht::createHint($res['warning'], $warningHint, 'warning', false);
         }

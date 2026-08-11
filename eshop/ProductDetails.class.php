@@ -258,7 +258,7 @@ class eshop_ProductDetails extends core_Detail
             
             $row->title = static::getPublicProductTitle($rec->eshopProductId, $rec->productId);
             if(empty($rec->title)){
-                $row->title = ht::createHint("<span style='color:blue'>{$row->title}</span>", 'Заглавието е динамично определено');
+                $row->title = ht::createHint("<span class='blueText'>{$row->title}</span>", 'Заглавието е динамично определено');
             }
             
             $pState = cat_Products::fetchField($rec->productId, 'state');

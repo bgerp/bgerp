@@ -58,7 +58,7 @@ class unit_Tests extends core_Manager
             Debug::startTimer('unit_Tests');
             
             foreach ($tests as $class => $testClass) {
-                $this->testLog[] = "<h3>Тестване на <b style='color:blue;'>{$class}</b></h3><ul>";
+                $this->testLog[] = "<h3>Тестване на <b class='blueText'>{$class}</b></h3><ul>";
                 
                 $reflector = new ReflectionClass($testClass);
                 $testClass = cls::get($testClass);
@@ -102,7 +102,7 @@ class unit_Tests extends core_Manager
         }
         
         foreach ($skipped as $testClass => $packName) {
-            $this->testLog[] = "<h3>Пропуснат тест <b style='color:blue;'>{$testClass}</b></h3><ul><li>Пакетът <b>{$packName}</b> не е инсталиран</li></ul>";
+            $this->testLog[] = "<h3>Пропуснат тест <b class='blueText'>{$testClass}</b></h3><ul><li>Пакетът <b>{$packName}</b> не е инсталиран</li></ul>";
         }
         
         $res = implode("\n", $this->testLog);

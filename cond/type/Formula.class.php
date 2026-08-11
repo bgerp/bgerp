@@ -297,7 +297,7 @@ class cond_type_Formula extends cond_type_Text
                 }
 
                 if(core_Users::isPowerUser()){
-                    $calced = "<span style='color:blue'>{$calced}</span>";
+                    $calced = "<span class='blueText'>{$calced}</span>";
                     $verbal = ht::createHint($calced, "Формула|*: {$exprDisplay}", 'notice', false);
                 }
             }

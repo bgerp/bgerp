@@ -373,7 +373,7 @@ class cat_DisassemblyBoms extends core_Master
         $amountVerbal = core_Type::getByName('double(decimals=2)')->toVerbal($amount);
         $amountVerbal = currency_Currencies::decorate($amountVerbal, null, true);
 
-        return "<span style='color:blue'>{$amountVerbal}</span>";
+        return "<span class='blueText'>{$amountVerbal}</span>";
     }
 
 
@@ -398,7 +398,7 @@ class cat_DisassemblyBoms extends core_Master
         $percentVerbal = core_Type::getByName('percent(decimals=2)')->toVerbal($percent);
         $hint = ($allocationBy == 'price') ? 'Изчислен по стойността на реда по избраната ценова политика' : 'Изчислен пропорционално на количеството на реда';
 
-        return ht::createHint("<span style='color:blue'>{$percentVerbal}</span>", $hint, 'notice', false);
+        return ht::createHint("<span class='blueText'>{$percentVerbal}</span>", $hint, 'notice', false);
     }
 
 

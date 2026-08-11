@@ -224,7 +224,7 @@ class pos_Reports extends core_Master
         
         if (isset($fields['-single'])) {
             $valiorToBe = $mvc->getFieldType('valior')->toVerbal(dt::today());
-            $row->valior = (isset($rec->valior)) ? $row->valior : ((Mode::is('printing') || Mode::is('text', 'xhtml') || !in_array($rec->state, array('draft', 'pending'))) ? $valiorToBe : ht::createHint("<span style='color:blue'>{$valiorToBe}</span>", 'Вальорът ще бъде записан при контиране|*!'));
+            $row->valior = (isset($rec->valior)) ? $row->valior : ((Mode::is('printing') || Mode::is('text', 'xhtml') || !in_array($rec->state, array('draft', 'pending'))) ? $valiorToBe : ht::createHint("<span class='blueText'>{$valiorToBe}</span>", 'Вальорът ще бъде записан при контиране|*!'));
 
             $pointRec = pos_Points::fetch($rec->pointId);
             $row->caseId = cash_Cases::getHyperLink($pointRec->caseId, true);

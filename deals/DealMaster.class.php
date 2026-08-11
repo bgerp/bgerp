@@ -1571,7 +1571,7 @@ abstract class deals_DealMaster extends deals_DealBase
                 if (isset($deliveryTermTime)) {
                     $row->deliveryTermTime = cls::get('type_Time')->toVerbal($deliveryTermTime);
                     if(!Mode::isReadOnly()){
-                        $row->deliveryTermTime = "<span style='color:blue'>{$row->deliveryTermTime}</span>";
+                        $row->deliveryTermTime = "<span class='blueText'>{$row->deliveryTermTime}</span>";
                         $row->deliveryTermTime = ht::createHint($deliveryTermTime, 'Времето за доставка се изчислява динамично възоснова мястото за доставка, артикулите в договора и нужното време за подготовка|*!');
                     }
                 }

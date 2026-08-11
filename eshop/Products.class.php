@@ -415,7 +415,7 @@ class eshop_Products extends core_Master
             if($rec->howToSelectMainImage == 'auto'){
                 $howToSelectMainImage = eshop_Setup::get('PRODUCT_IMG_LOGIC');
                 $row->howToSelectMainImage = $mvc->getFieldType('howToSelectMainImage')->toVerbal($howToSelectMainImage);
-                $row->howToSelectMainImage = ht::createHint("<i style='color:blue'>{$row->howToSelectMainImage}</i>", 'Автоматично от настройките на пакета', 'notice', false);
+                $row->howToSelectMainImage = ht::createHint("<i class='blueText'>{$row->howToSelectMainImage}</i>", 'Автоматично от настройките на пакета', 'notice', false);
             }
         }
         

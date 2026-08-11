@@ -163,7 +163,7 @@ class price_ListBasicDiscounts extends core_Detail
             $row->listId = price_Lists::getHyperlink($rec->listId, true);
             $row->currencyId = $listRec->currency;
             if(empty($rec->amountTo)){
-                $row->amountTo = "<i style='color:blue'>" . tr('Без лимит') . "</i class>";
+                $row->amountTo = "<i class='blueText'>" . tr('Без лимит') . "</i class>";
             }
         }
     }

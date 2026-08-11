@@ -303,7 +303,7 @@ class cat_Groups extends core_Master
                 if ($overheadCostArr = $mvc->getDefaultOverheadCostFromParent($rec)) {
                     if (!empty($overheadCostArr['overheadCost'])) {
                         $row->defaultOverheadCostsPercent = $mvc->getFieldType('defaultOverheadCostsPercent')->toVerbal($overheadCostArr['overheadCost']);
-                        $row->defaultOverheadCostsPercent = "<span style='color:blue'>{$row->defaultOverheadCostsPercent}</span>";
+                        $row->defaultOverheadCostsPercent = "<span class='blueText'>{$row->defaultOverheadCostsPercent}</span>";
                         $hint = "Наследено от|*: " . $mvc->getVerbal($overheadCostArr['groupId'], 'name');
                         $row->defaultOverheadCostsPercent = ht::createHint($row->defaultOverheadCostsPercent, $hint, 'notice', false);
                     }

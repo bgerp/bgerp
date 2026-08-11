@@ -116,7 +116,7 @@
                 <td class='sum-th'><b>|Планирано начало|*</b></td>
                 <td class='sum-th'><b>|Планиран край|*</b></td>
                 <td class='sum-th'><b>|Продължит-ст|* [#recalcBtn#]</b></td>
-                <td class='sum-th'>[#productCaption#]: <b>[#productId#]</b> <!--ET_BEGIN saoOrder--><b>[<span style="color:blue">[#saoOrder#]</span>/<span style="color:green">[#taskCount#]</span>]</b><!--ET_END saoOrder--></td>
+                <td class='sum-th'>[#productCaption#]: <b>[#productId#]</b> <!--ET_BEGIN saoOrder--><b>[<span class="blueText">[#saoOrder#]</span>/<span style="color:green">[#taskCount#]</span>]</b><!--ET_END saoOrder--></td>
             </tr>
             <tr>
                 <td>[#expectedTimeStart#]</td>

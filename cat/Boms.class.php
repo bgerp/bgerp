@@ -587,7 +587,7 @@ class cat_Boms extends core_Master
         if (empty($rec->showInProduct)) {
             $showInProduct = cat_Setup::get('SHOW_BOM_IN_PRODUCT');
             $row->showInProduct = $mvc->getFieldType('showInProduct')->toVerbal($showInProduct);
-            $row->showInProduct = "<span style='color:blue'>{$row->showInProduct}</span>";
+            $row->showInProduct = "<span class='blueText'>{$row->showInProduct}</span>";
             $row->showInProduct = ht::createHint($row->showInProduct, 'По подразбиране', 'notice', false);
         }
         
@@ -627,9 +627,9 @@ class cat_Boms extends core_Master
                     if (!empty($defaultOverheadCost)) {
                         $overheadCost = $defaultOverheadCost['overheadCost'];
                         $defaultOverheadCostVerbal = $mvc->getFieldType('expenses')->toVerbal($defaultOverheadCost['overheadCost']);
-                        $row->expenses = ht::createHint("<span style='color:blue'>{$defaultOverheadCostVerbal}</span>", "Автоматично|* {$defaultOverheadCost['hint']}", 'notice', false);
+                        $row->expenses = ht::createHint("<span class='blueText'>{$defaultOverheadCostVerbal}</span>", "Автоматично|* {$defaultOverheadCost['hint']}", 'notice', false);
                     } else {
-                        $row->expenses = ht::createHint("<span style='color:blue'>n/a</span>", "Не може да се определи автоматично|*!");
+                        $row->expenses = ht::createHint("<span class='blueText'>n/a</span>", "Не може да се определи автоматично|*!");
                     }
                 }
 
@@ -669,14 +669,14 @@ class cat_Boms extends core_Master
                 if ($rec->isComplete == 'auto') {
                     $autoValue = cat_Setup::get('DEFAULT_BOM_IS_COMPLETE');
                     $row->isComplete = $mvc->getFieldType('isComplete')->toVerbal($autoValue);
-                    $row->isComplete = "<span style='color:blue'>{$row->isComplete}</span>";
+                    $row->isComplete = "<span class='blueText'>{$row->isComplete}</span>";
                     $row->isComplete = ht::createHint($row->isComplete, 'Стойността е автоматично определена', 'notice', false);
                 }
 
                 if ($rec->transferNotes == 'auto') {
                     $autoValue = planning_Setup::get('BOM_TRANSFER_NOTES');
                     $row->transferNotes = $mvc->getFieldType('transferNotes')->toVerbal($autoValue);
-                    $row->transferNotes = "<span style='color:blue'>{$row->transferNotes}</span>";
+                    $row->transferNotes = "<span class='blueText'>{$row->transferNotes}</span>";
                     $row->transferNotes = ht::createHint($row->transferNotes, 'Стойността е автоматично определена', 'notice', false);
                 }
 

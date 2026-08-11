@@ -659,7 +659,7 @@ class sales_Invoices extends deals_InvoiceMaster
 
             $displayRange = str::removeWhiteSpace(cond_Ranges::displayRange($rec->numlimit ?? null));
             if(empty($rec->number)){
-                $row->number = "<span style='color:blue;'>{$displayRange}</span>";
+                $row->number = "<span class='blueText'>{$displayRange}</span>";
                 $row->number = ht::createHint($row->number, 'При активиране номерът ще бъде в този диапазон', 'notice', false);
             } else {
                 if(haveRole('debug')){

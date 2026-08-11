@@ -1398,7 +1398,7 @@ class sales_Sales extends deals_DealMaster
             if(empty($rec->courierApi)){
                 if($courierApi = cond_DeliveryTerms::getCourierApi($rec->deliveryTermId)){
                     $courierApiVerbal = $mvc->getFieldType('courierApi')->toVerbal($courierApi);
-                    $row->courierApi = ht::createHint("<span style='color:blue'>{$courierApiVerbal}</span>", 'От условието на доставка', 'notice', false);
+                    $row->courierApi = ht::createHint("<span class='blueText'>{$courierApiVerbal}</span>", 'От условието на доставка', 'notice', false);
                 }
             }
 

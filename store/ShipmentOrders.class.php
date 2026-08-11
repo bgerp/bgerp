@@ -333,7 +333,7 @@ class store_ShipmentOrders extends store_DocumentMaster
                     $condition = store_Stores::getDocumentConditionFor($rec->storeId, $mvc, $rec->tplLang);
                     if (!empty($condition)) {
                         if (!Mode::isReadOnly()) {
-                            $condition = "<span style='color:blue'>{$condition}</span>";
+                            $condition = "<span class='blueText'>{$condition}</span>";
                         }
                         $condition = ht::createHint($condition, 'Ще бъде записано при активиране');
                         $conditions = array($condition);

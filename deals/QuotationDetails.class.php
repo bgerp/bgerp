@@ -448,7 +448,7 @@ class deals_QuotationDetails extends doc_Detail
             }
 
             if (($rec->livePrice ?? null) === true) {
-                $row->packPrice = "<span style='color:blue'>{$row->packPrice}</span>";
+                $row->packPrice = "<span class='blueText'>{$row->packPrice}</span>";
                 $row->packPrice = ht::createHint($row->packPrice, 'Цената е динамично изчислена. Ще бъде записана при активиране', 'notice', false);
             }
 
@@ -840,10 +840,10 @@ class deals_QuotationDetails extends doc_Detail
             if (is_object($onlyNotOptionalRec)) {
                 if ($onlyNotOptionalRec->livePrice === true) {
 
-                    $data->summary->value = "<span style='color:blue'>{$data->summary->value}</span>";
+                    $data->summary->value = "<span class='blueText'>{$data->summary->value}</span>";
                     $data->summary->value = ht::createHint($data->summary->value, 'Сумата е динамично изчислена. Ще бъде записана при активиране', 'notice', false, 'width=14px,height=14px');
 
-                    $data->summary->total = "<span style='color:blue'>{$data->summary->total}</span>";
+                    $data->summary->total = "<span class='blueText'>{$data->summary->total}</span>";
                     $data->summary->total = ht::createHint($data->summary->total, 'Сумата е динамично изчислена. Ще бъде записана при активиране', 'notice', false, 'width=14px,height=14px');
                 }
             }
