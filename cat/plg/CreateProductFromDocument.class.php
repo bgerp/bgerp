@@ -489,7 +489,10 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
                     }
 
                     if (!$dRec->autoPrice && $action != 'cloneRecInDocument' && isset($dRec->price)) {
-                        $vat = cat_Products::getVat($productId, $masterRec->valior, $vatExceptionId);
+
+                        // Офертите нямат 'valior', а 'date'
+                        $valior = $masterRec->valior ?? ($masterRec->date ?? null);
+                        $vat = cat_Products::getVat($productId, $valior, $vatExceptionId);
                         if ($masterRec->chargeVat == 'yes') {
                             $dRec->price = $dRec->price / (1 + $vat);
                         }
