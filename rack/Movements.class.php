@@ -1170,6 +1170,7 @@ class rack_Movements extends rack_MovementAbstract
     {
         $ajaxMode = Request::get('ajax_mode');
         $action = Request::get('type', 'varchar');
+        $additional = Request::get('additional', 'varchar');
         $type = 'notice';
 
         $cu = core_Users::getCurrent();
