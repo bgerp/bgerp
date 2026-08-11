@@ -382,6 +382,10 @@ class planning_DisassemblyNote extends planning_ProductionDocument
                 $dRec->storeId = $rec->storeId;
             }
 
+            // Автоматично генерираната партида се записва само на "редактиран" ред
+            // (@see batch_plg_DocumentMovementDetail::on_AfterCreate/on_AfterSave)
+            $dRec->isEdited = true;
+
             // Наливането не е редакция на ред - без версии (@see doc_plg_DetailRevisions)
             $dRec->_skipDetailRevision = true;
             planning_DisassemblyNoteDetails::save($dRec);
