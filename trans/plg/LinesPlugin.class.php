@@ -617,7 +617,7 @@ class trans_plg_LinesPlugin extends core_Plugin
                 }
 
                 if (Mode::is('printing') || Mode::is('text', 'xhtml')) {
-                    if($dateObj['displayExternal'] !== true && $showTransInfo == 'hide'){
+                    if(!($dateObj['displayExternal'] ?? false) && $showTransInfo == 'hide'){
                         unset($row->{$dateFld});
                     }
                 }
