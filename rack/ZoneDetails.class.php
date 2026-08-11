@@ -1037,6 +1037,7 @@ class rack_ZoneDetails extends core_Detail
                                  'batch' => $batch,
                                  'workerId' => $workerId,
                                  'quantity' => 0,
+                                 'position' => rack_PositionType::FLOOR,
                                  'positionTo' => rack_PositionType::FLOOR,
         );
 
