@@ -69,39 +69,96 @@ class doc_AssignPlg extends core_Plugin
         
         // Към възложените потребители, добавяме споделените в ричтекста
         if ($form->isSubmitted()) {
-            $assignedUsersArrAll = array();
-            
-            foreach ((array) $mvc->fields as $name => $field) {
-                if ($field->type instanceof type_Richtext) {
-                    if (($field->type->params['nickToLink'] ?? null) == 'no') {
-                        continue;
-                    }
-                    
-                    $usersArr = rtac_Plugin::getNicksArr($rec->$name);
-                    if (empty($usersArr)) {
-                        continue;
-                    }
-                    
-                    $assignedUsersArrAll = array_merge($assignedUsersArrAll, $usersArr);
-                }
-            }
-            
+            $assignedUsersArrAll = self::getRichtextNicksArr($mvc, $rec);
+
             if (!empty($assignedUsersArrAll)) {
+                $oRec = null;
+                $oldAssignedArr = $oldNicksArr = $removedUsersArr = array();
+
+                // При редактиране - старите възложени, никовете, споменати преди редакцията,
+                // и премахнатите в момента от възложените
+                if (!empty($rec->id)) {
+                    $oRec = $mvc->fetch($rec->id, '*', false);
+                    if (is_object($oRec)) {
+                        $oldAssignedArr = type_Keylist::toArray($oRec->assign);
+                        $oldNicksArr = self::getRichtextNicksArr($mvc, $oRec);
+                        $removedUsersArr = array_diff($oldAssignedArr, type_Keylist::toArray($rec->assign));
+                    }
+                }
+
+                $toShareArr = array();
                 foreach ((array) $assignedUsersArrAll as $nick) {
                     $nick = strtolower($nick);
                     $id = core_Users::fetchField(array("LOWER(#nick) = '[#1#]'", $nick), 'id');
-                    
+
                     // Партнюрите да не са споделение
                     if (core_Users::haveRole('partner', $id)) {
                         continue;
                     }
-                    
+
+                    // Ако потребителя е премахнат в момента от възложените или е бил споменат и преди
+                    // редакцията, без да е бил възложен - значи веднъж вече е премахнат нарочно.
+                    // Не се добавя отново, а само се споделя документа с него
+                    if (isset($removedUsersArr[$id]) || (isset($oldNicksArr[$nick]) && !isset($oldAssignedArr[$id]))) {
+                        $toShareArr[$id] = $id;
+
+                        continue;
+                    }
+
                     $rec->assign = type_Keylist::addKey($rec->assign, $id);
+                }
+
+                // Премахнатите от възложените, ги мърджваме към споделените, ако има такова поле
+                if (!empty($toShareArr)) {
+                    foreach (array('sharedUsers') as $sName) {
+                        if (!$mvc->getField($sName, false)) {
+                            continue;
+                        }
+
+                        // Ако полето не е било във формата, взимаме стойността от записа в базата
+                        $sharedUsers = $rec->$sName ?? null;
+                        if (!isset($rec->$sName) && is_object($oRec)) {
+                            $sharedUsers = $oRec->$sName ?? null;
+                        }
+
+                        $rec->$sName = type_Keylist::merge($sharedUsers, type_Keylist::fromArray($toShareArr));
+                    }
                 }
             }
         }
     }
-    
+
+
+    /**
+     * Връща никовете на потребителите, споменати в ричтекст полетата на записа
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $rec
+     *
+     * @return array - масив с никове в долен регистър
+     */
+    protected static function getRichtextNicksArr($mvc, $rec)
+    {
+        $nicksArrAll = array();
+
+        foreach ((array) $mvc->fields as $name => $field) {
+            if ($field->type instanceof type_Richtext) {
+                if (($field->type->params['nickToLink'] ?? null) == 'no') {
+                    continue;
+                }
+
+                $usersArr = rtac_Plugin::getNicksArr($rec->$name ?? null);
+                if (empty($usersArr)) {
+                    continue;
+                }
+
+                $nicksArrAll = array_merge($nicksArrAll, $usersArr);
+            }
+        }
+
+        return $nicksArrAll;
+    }
+
     
     /**
      * Прихваща извикването на AfterInputChanges в change_Plugin
