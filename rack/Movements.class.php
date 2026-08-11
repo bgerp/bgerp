@@ -1191,7 +1191,12 @@ class rack_Movements extends rack_MovementAbstract
             $this->requireRightFor($action);
         }
        
-        $id = Request::get('id', 'int');
+        // Ид-то се подава като собствен параметър, а не като позиционно 'id',
+        // защото при forward от core_Ajax 'id' може да е разкодирано втори път
+        $id = Request::get('moveId', 'int');
+        if (empty($id)) {
+            $id = Request::get('id', 'int');
+        }
         expect($id, $id, $action, getCurrentUrl(), Request::$vars);
 
         $resObj = new stdClass();
@@ -1517,7 +1522,11 @@ class rack_Movements extends rack_MovementAbstract
             $this->requireRightFor('done');
         }
         
-        $id = Request::get('id', 'int');
+        // Виж бележката в act_Toggle() защо ид-то не се взима от 'id'
+        $id = Request::get('moveId', 'int');
+        if (empty($id)) {
+            $id = Request::get('id', 'int');
+        }
         expect($rec = $this->fetch($id));
 
         $resObj = new stdClass();
@@ -2146,7 +2155,7 @@ class rack_Movements extends rack_MovementAbstract
         $additional = Request::get('additional', 'varchar');
 
         if ($mvc->haveRightFor('load', $rec)) {
-            $loadUrl = array($mvc, 'toggle', $rec->id, 'type' => 'load', 'additional' => $additional, 'ret_url' => true);
+            $loadUrl = array($mvc, 'toggle', 'moveId' => $rec->id, 'type' => 'load', 'additional' => $additional, 'ret_url' => true);
 
             if(isset($fields['-inline']) && !isset($fields['-inline-single'])){
                 unset($loadUrl['ret_url']);
@@ -2159,7 +2168,7 @@ class rack_Movements extends rack_MovementAbstract
         }
 
         if ($mvc->haveRightFor('unload', $rec)) {
-            $unloadUrl = array($mvc, 'toggle', $rec->id, 'type' => 'unload', 'additional' => $additional, 'ret_url' => true);
+            $unloadUrl = array($mvc, 'toggle', 'moveId' => $rec->id, 'type' => 'unload', 'additional' => $additional, 'ret_url' => true);
             $row->_rowTools->addLink('Отказване', $unloadUrl, 'ef_icon=img/16/checked.png,title=Отказване на движението');
         }
 
@@ -2169,7 +2178,7 @@ class rack_Movements extends rack_MovementAbstract
         $doneWarning = $isDifferentWarning  ? 'Сигурни ли сте, че искате да приключите движение от друг потребител|*?' : null;
 
         if ($mvc->haveRightFor('start', $rec)) {
-            $startUrl = array($mvc, 'toggle', $rec->id, 'type' => 'start', 'additional' => $additional, 'ret_url' => true);
+            $startUrl = array($mvc, 'toggle', 'moveId' => $rec->id, 'type' => 'start', 'additional' => $additional, 'ret_url' => true);
             $row->_rowTools->addLink('Започване', $startUrl, array('warning' => $startWarning, 'id' => "start{$rec->id}", 'ef_icon' => 'img/16/control_play.png', 'title' => 'Започване на движението'));
 
             if(isset($fields['-inline']) && !isset($fields['-inline-single'])){
@@ -2183,7 +2192,7 @@ class rack_Movements extends rack_MovementAbstract
         }
 
         if ($mvc->haveRightFor('done', $rec)) {
-            $doneUrl = array($mvc, 'done', $rec->id, 'additional' => $additional, 'ret_url' => true);
+            $doneUrl = array($mvc, 'done', 'moveId' => $rec->id, 'additional' => $additional, 'ret_url' => true);
             if(isset($rec->_currentZoneId)){
                 $doneUrl['currentZoneId'] = $rec->_currentZoneId;
             }
@@ -2200,7 +2209,7 @@ class rack_Movements extends rack_MovementAbstract
         }
 
         if ($mvc->haveRightFor('reject', $rec)) {
-            $row->_rowTools->addLink('Връщане', array($mvc, 'toggle', $rec->id, 'type' => 'reject', 'ret_url' => true), array('warning' => $returnWarning, 'id' => "return{$rec->id}", 'ef_icon' => 'img/16/red-back.png', 'title' => 'Връщане на движението'));
+            $row->_rowTools->addLink('Връщане', array($mvc, 'toggle', 'moveId' => $rec->id, 'type' => 'reject', 'ret_url' => true), array('warning' => $returnWarning, 'id' => "return{$rec->id}", 'ef_icon' => 'img/16/red-back.png', 'title' => 'Връщане на движението'));
         }
 
         if(rack_Logs::haveRightFor('list')){
