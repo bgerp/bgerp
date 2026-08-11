@@ -282,7 +282,9 @@ class core_Cls
      */
     public static function isSingleton($class)
     {
-        return is_callable(array($class, '_Singleton'));
+        // `_Singleton` е само marker и не се извиква. От PHP 8 нестатичен
+        // метод не е callable чрез име на клас, затова проверяваме наличието му.
+        return method_exists($class, '_Singleton');
     }
     
     
