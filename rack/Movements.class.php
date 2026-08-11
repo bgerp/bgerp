@@ -2138,6 +2138,7 @@ class rack_Movements extends rack_MovementAbstract
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         core_RowToolbar::createIfNotExists($row->_rowTools);
+        $row->rightColBtns = '';
         $additional = Request::get('additional', 'varchar');
 
         if ($mvc->haveRightFor('load', $rec)) {
@@ -2204,7 +2205,7 @@ class rack_Movements extends rack_MovementAbstract
 
         if($rec->state == 'closed' && rack_Movements::haveRightFor('add')){
             $zonesArr = @json_decode($rec->zones, true);
-            if(is_array($zonesArr)){
+            if(is_array($zonesArr) && is_array($zonesArr['quantity'] ?? null)){
                 array_walk($zonesArr['quantity'], function(&$a) {$a *= -1;});
                 $ZoneType = core_Type::getByName('table(columns=zone|quantity,captions=Зона|Количество)');
                 $zonesDefault = $ZoneType->fromVerbal($zonesArr);
