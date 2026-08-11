@@ -23,7 +23,7 @@ class cat_plg_DisassemblyDocDetail extends core_Plugin
      */
     public static function on_AfterDescription(core_Mvc $mvc)
     {
-        $mvc->FLD('costPercent', 'percent(min=0,max=1,allowEmpty)', 'caption=% от себестойността,input=none,tdClass=accCell,after=quantity,hint=Каква част от себестойността на вложения артикул се пада на този ред');
+        $mvc->FLD('costPercent', 'percent(min=0,max=1,allowEmpty)', 'caption=Oт сб-ст,input=none,tdClass=accCell,after=quantity,hint=Каква част от себестойността на вложения артикул се пада на този ред,unit=%');
     }
 
 
