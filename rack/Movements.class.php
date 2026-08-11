@@ -615,7 +615,8 @@ class rack_Movements extends rack_MovementAbstract
                 // За да е консистентно и за type params / зони
                 $rec->packagingId = $preferredPackId;
             }
-            
+            $rec->packagingId = $rec->packagingId ?? null;
+
             // Дали реално сме сменили опаковката спрямо тази от URL/записа?
             $changedPackaging = ($originalPackagingId && $preferredPackId && $originalPackagingId != $preferredPackId);
             
@@ -681,6 +682,7 @@ class rack_Movements extends rack_MovementAbstract
             $form->setOptions('palletId', array('' => tr('Под||Floor')) + $pallets);
 
             // Ако е от входящ документ
+            $availableQuantity = null;
             if ($rec->fromIncomingDocument == 'yes') {
 
                 // Показване колко има заскладено от документа досега
@@ -699,7 +701,7 @@ class rack_Movements extends rack_MovementAbstract
                     $form->info = "<div class='formCustomInfo'>" . tr("Създадени движения от документа за сега|*: <b>{$packName}</b>") . "</div>";
 
                     // Приспадане на създаденото досега от документа
-                    $availableQuantity = $rec->maxPackQuantity * $rec->quantityInPack;
+                    $availableQuantity = ($rec->maxPackQuantity ?? 0) * $rec->quantityInPack;
                     $availableQuantity -= $createdByNowQuantity;
                     $availableQuantity = round($availableQuantity, $round);
                 }
@@ -707,7 +709,7 @@ class rack_Movements extends rack_MovementAbstract
                 $counterKey = "saveAndNewPalletMovement_" . core_Users::getCurrent() . "_{$rec->productId}";
                 $availableQuantity = Mode::get($counterKey);
                 if (!isset($availableQuantity)) {
-                    $availableQuantity = rack_Pallets::getAvailableQuantity($rec->palletId, $rec->productId, $rec->storeId, $rec->batch ?? null);
+                    $availableQuantity = rack_Pallets::getAvailableQuantity($rec->palletId ?? null, $rec->productId, $rec->storeId, $rec->batch ?? null);
                     $availableQuantity = round($availableQuantity, $round);
                 }
                 $form->setDefault('liveCounter', $availableQuantity);
@@ -784,7 +786,7 @@ class rack_Movements extends rack_MovementAbstract
         $lQuery = self::getQuery();
         $lQuery->where('#createdBy = ' . core_Users::getCurrent());
         $lQuery->orderBy('id', 'DESC');
-        if ($lastState = $lQuery->fetch()->state) {
+        if ($lastState = ($lQuery->fetch()->state ?? null)) {
             $form->setDefault('state', $lastState);
         }
 
