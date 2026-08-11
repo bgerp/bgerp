@@ -26,7 +26,7 @@ class cat_GeneralProductDriver extends cat_ProductDriver
     {
         $fieldset->FLD('infoInt', 'richtext(rows=4, bucket=Notes)', 'caption=Описание международно||International description->Подробно||In detail,autohide');
         if (!$fieldset->getField('photo', false)) {
-            $fieldset->FLD('photo', 'fileman_FileType(bucket=pictures)', 'caption=Изображение');
+            $fieldset->FLD('photo', 'fileman_FileType(bucket=pictures,focus=none)', 'caption=Изображение');
         } else {
             $fieldset->setField('photo', 'input');
         }

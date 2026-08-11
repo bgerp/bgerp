@@ -357,7 +357,7 @@ class cat_Products extends embed_Manager
         $this->FLD('nameEn', 'varchar(autocomplete=off)', 'caption=Международно,width=100%,after=name, oldFieldName=nameInt,remember');
         $this->FLD('info', 'richtext(rows=4, bucket=Notes, passage)', 'caption=Описание');
         $this->FLD('measureId', 'key(mvc=cat_UoM, select=name,allowEmpty)', 'caption=Мярка,mandatory,remember,silent,notSorting,smartCenter');
-        $this->FLD('photo', 'fileman_FileType(bucket=pictures)', 'caption=Илюстрация,input=none');
+        $this->FLD('photo', 'fileman_FileType(bucket=pictures,focus=none)', 'caption=Илюстрация,input=none');
         $this->FLD('groups', 'keylist(mvc=cat_Groups, select=name, makeLinks)', 'caption=Групи,maxColumns=2,remember');
         $this->FLD('isPublic', 'enum(no=Частен,yes=Публичен)', 'input=none');
         $this->FNC('quantity', 'double(decimals=2)', 'input=none,caption=Наличност,smartCenter');
