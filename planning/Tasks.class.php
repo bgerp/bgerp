@@ -2257,7 +2257,7 @@ class planning_Tasks extends core_Master
         if (($data->masterMvc ?? null) instanceof planning_AssetResources) {
             $tpl->append("Производствени операции (заявки, активни, събудени, спрени)", 'title');
             if(planning_Tasks::haveRightFor('list')){
-                $filterLink = ht::createLink('', array('planning_Tasks', 'list', 'assetId' => $data->masterId), false, 'ef_icon=img/16/funnel.png,title=Филтър по център на дейност и оборудване');
+                $filterLink = ht::createLink('', array('planning_Tasks', 'list', 'assetId' => $data->masterId, 'state' => 'activeAndPending'), false, 'ef_icon=img/16/funnel.png,title=Филтър по център на дейност и оборудване');
                 $tpl->append($filterLink, 'title');
             }
             $tpl->append($contentTpl, 'content');

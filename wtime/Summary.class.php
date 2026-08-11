@@ -253,7 +253,7 @@ class wtime_Summary extends core_Manager
         core_Debug::startTimer('CAL_ON_SITE_TIME');
         wtime_OnSiteEntries::calcOnSiteTime($calcFromTime, $personId);
         core_Debug::stopTimer('CAL_ON_SITE_TIME');
-        core_Debug::log("GET CAL_ON_SITE_TIME " . round(core_Debug::$timers["CAL_ON_SITE_TIME"]->workingTime, 6));
+        core_Debug::log("GET CAL_ON_SITE_TIME " . round(core_Debug::$timers["CAL_ON_SITE_TIME"]->workingTime ?? 0, 6));
 
         $entriesArr = wtime_OnSiteEntries::getPersonEntries($calcFromTime, $personId, 'in');
         core_App::setTimeLimit(countR($entriesArr) * 0.2, false, 150);
@@ -440,11 +440,11 @@ class wtime_Summary extends core_Manager
             }
         }
 
-        core_Debug::log("GET SCHEDULES " . round(core_Debug::$timers["SCHEDULES"]->workingTime, 6));
-        core_Debug::log("GET CALC_ONLINE_TIME " . round(core_Debug::$timers["CALC_ONLINE_TIME"]->workingTime, 6));
-        core_Debug::log("GET USER_LOGS " . round(core_Debug::$timers["USER_LOGS"]->workingTime, 6));
-        core_Debug::log("GET ON_SITE " . round(core_Debug::$timers["ON_SITE"]->workingTime, 6));
-        core_Debug::log("GET ON_SITE_OFF_SCHEDULE " . round(core_Debug::$timers["ON_SITE_OFF_SCHEDULE"]->workingTime, 6));
+        core_Debug::log("GET SCHEDULES " . round(core_Debug::$timers["SCHEDULES"]->workingTime ?? 0, 6));
+        core_Debug::log("GET CALC_ONLINE_TIME " . round(core_Debug::$timers["CALC_ONLINE_TIME"]->workingTime ?? 0, 6));
+        core_Debug::log("GET USER_LOGS " . round(core_Debug::$timers["USER_LOGS"]->workingTime ?? 0, 6));
+        core_Debug::log("GET ON_SITE " . round(core_Debug::$timers["ON_SITE"]->workingTime ?? 0, 6));
+        core_Debug::log("GET ON_SITE_OFF_SCHEDULE " . round(core_Debug::$timers["ON_SITE_OFF_SCHEDULE"]->workingTime ?? 0, 6));
 
         $exQuery = self::getQuery();
         $exQuery->where("#date >= '{$from}'");

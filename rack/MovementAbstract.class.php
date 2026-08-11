@@ -105,7 +105,7 @@ abstract class rack_MovementAbstract extends core_Manager
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         $makeLinks = !(!empty($fields['-inline']) && !isset($fields['-inline-single']));
-        if (!empty($rec->note)) {
+        if (!empty($rec->note) && isset($row->note)) {
             $row->note = "<div style='font-size:0.8em;'>{$row->note}</div>";
         }
 
@@ -225,7 +225,7 @@ abstract class rack_MovementAbstract extends core_Manager
                     $num = $zoneRec->zone;
                     $zoneTitle = ht::createHint($zoneRec->zone, 'Зоната вече не съществува', 'warning');
                 }
-                $zoneQuantities[$zoneRec->zone] = (object)array('quantity' => round($zoneRec->quantity * $rec->quantityInPack, 6), 'position' => $zoneTitle, 'class' => $class, 'num' => $num);
+                $zoneQuantities[$zoneRec->zone] = (object)array('quantity' => round(($zoneRec->quantity ?? 0) * $rec->quantityInPack, 6), 'position' => $zoneTitle, 'class' => $class, 'num' => $num);
             }
 
             arr::sortObjects($zoneQuantities, 'num', 'ASC');
@@ -288,7 +288,7 @@ abstract class rack_MovementAbstract extends core_Manager
             $zoneArr = type_Table::toArray($rec->zones);
             if (countR($zoneArr)) {
                 foreach ($zoneArr as &$obj) {
-                    $quantityInZones += $obj->quantity;
+                    $quantityInZones += $obj->quantity ?? 0;
                 }
             }
         }

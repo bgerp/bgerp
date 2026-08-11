@@ -233,16 +233,13 @@ class deals_QuotationDetails extends doc_Detail
         }
 
         if ($form->isSubmitted()) {
-            // Изчисленията по-долу изискват избран артикул. Полето е mandatory
-            // и формата сама ще покаже грешката при липсваща стойност.
-            if (empty($rec->productId)) {
-
-                return;
-            }
-
+            // Артикулът може още да не е създаден - при създаване на нов артикул от
+            // документа (@see cat_plg_CreateProductFromDocument) 'productId' се попълва
+            // чак след записа. Затова зависимите от него извиквания са пазени поотделно,
+            // а изчисляването на цената трябва да се направи и без избран артикул.
             if (!isset($form->rec->packQuantity)) {
                 $form->rec->defQuantity = true;
-                $form->setDefault('packQuantity', ($rec->_moq ?? null) ? $rec->_moq : deals_Helper::getDefaultPackQuantity($rec->productId, $rec->packagingId ?? null));
+                $form->setDefault('packQuantity', ($rec->_moq ?? null) ? $rec->_moq : deals_Helper::getDefaultPackQuantity($rec->productId ?? null, $rec->packagingId ?? null));
                 if (empty($rec->packQuantity)) {
                     if($rec->optional == 'yes'){
                         $form->setDefault('packQuantity', 1);
@@ -261,7 +258,9 @@ class deals_QuotationDetails extends doc_Detail
             $rec->quantity = $rec->packQuantity * $rec->quantityInPack;
 
             // Проверка дали к-то е под МКП
-            deals_Helper::isQuantityBellowMoq($form, $rec->productId, $rec->quantity, $rec->quantityInPack);
+            if (isset($rec->productId)) {
+                deals_Helper::isQuantityBellowMoq($form, $rec->productId, $rec->quantity, $rec->quantityInPack);
+            }
             $price = null;
             if (!isset($rec->packPrice)) {
                 $rec->price = null;

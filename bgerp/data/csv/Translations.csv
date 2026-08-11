@@ -2277,8 +2277,10 @@ en,всички,all
 en,входящ документ,Incoming Document
 en,входящ имейл,incoming email
 en,г,g
+en,г/м2,g/m2
 en,год.,years
 en,години,years
+en,гр,g
 en,група файлове,File List
 en,дата,date
 en,дебит,debit
@@ -2327,6 +2329,7 @@ en,квадратен сантиметър,square centimeter
 en,кг,kg
 en,кг/м3,kg/m3
 en,келвин,kelvin
+en,киловар,kilovar
 en,киловатчас,kilowatt-hour
 en,килограм на кубичен метър,kilogram per cubic meter
 en,килограм,kilogram
@@ -2467,6 +2470,7 @@ en,хиляди бройки,thousand pieces
 en,цените са в,prices are in
 en,ценоразпис,Price list
 en,циркулярни кон_6939,circulars contacts
+en,ч,h
 en,час,hour
 en,часа,hours
 en,чрез,via
@@ -3345,4 +3349,6 @@ en,Връщане на аванс от Доставчик,Refund of advance from
 en,Прихващане на вземания,Offsetting of receivables
 en,Прихващане на задължение,Offsetting of liability
 en,Не може да се о_824b3,Cannot determine the cost price because no materials are specified
-
+en,Меню за,Menu for
+en,Меню,Menu
+en,на Кантината,at the canteen

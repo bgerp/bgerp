@@ -488,17 +488,21 @@ class cond_plg_DefaultValues extends core_Plugin
                     if (cls::load($fRec->coverClass, true) && ($inst = cls::get($fRec->coverClass)) && $inst->haveRightFor('edit', $fRec->coverId)) {
                         $changedRecArr = array();
                         $fContrData = $inst->fetch($fRec->coverId);
-                        
+                        if (!is_object($fContrData)) {
+
+                            return;
+                        }
+
                         foreach ($updateFields as $cName => $name) {
-                            if (!trim($rec->{$name})) {
+                            if (!trim($rec->{$name} ?? '')) {
                                 continue;
                             }
-                            
+
                             if (empty($inst->fields[$cName])) {
                                 continue;
                             }
-                            
-                            if ((isset($rec->{$name})) && (trim($rec->{$name}) != trim($fContrData->{$cName}))) {
+
+                            if ((isset($rec->{$name})) && (trim($rec->{$name}) != trim($fContrData->{$cName} ?? ''))) {
                                 $changedRecArr[$cName] = $rec->{$name};
                             }
                         }

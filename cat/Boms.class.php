@@ -2399,11 +2399,11 @@ class cat_Boms extends core_Master
         // Артикулът и мярката се вербализират с пълните си имена, а не със съкратените от детайла
         $csvFields->FLD('position', 'varchar', 'caption=Позиция');
         $csvFields->FLD('type', 'enum(input=Влаг.,pop=Отп.,stage=Етап,subProduct=Субпр.)', 'caption=Действие');
-        $csvFields->FLD('resourceId', 'key(mvc=cat_Products,select=name)', 'caption=Материал');
+        $csvFields->FLD('resourceId', 'varchar', 'caption=Артикул');
         $csvFields->FLD('packagingId', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка');
         $csvFields->FLD('propQuantity', 'text', 'caption=Формула');
-        $csvFields->FLD('paramId', 'key(mvc=cat_Params,select=typeExt)', 'caption=Параметър');
         $csvFields->FLD('description', 'text', 'caption=Забележка');
+        $csvFields->FLD('paramId', 'key(mvc=cat_Params,select=typeExt)', 'caption=Параметър');
 
         // Забележката е richtext - обръща се в чист текст, за да е годна за CSV
         $descriptionType = $Detail->getFieldType('description');
@@ -2414,7 +2414,8 @@ class cat_Boms extends core_Master
             $rec = new stdClass();
             $rec->position = implode('.', $Detail->getProductPath($dRec, true));
             $rec->type = $dRec->type;
-            $rec->resourceId = $dRec->resourceId;
+            $code = cat_Products::fetchField($dRec->resourceId, 'code');
+            $rec->resourceId = !empty($code) ? $code : "Art{$dRec->resourceId}";
             $rec->packagingId = $dRec->packagingId;
             $rec->propQuantity = $dRec->propQuantity;
             $rec->paramId = $dRec->paramId;

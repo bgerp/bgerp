@@ -105,7 +105,8 @@ class rack_reports_DurationPallets extends frame2_driver_TableData
         
         $q = rack_OccupancyOfRacks::getQuery();
         $storeIdArr = arr::extractValuesFromArray($q->fetchAll(), 'storeId');
-        
+
+        $storeSuggestions = array();
         foreach ($storeIdArr as $v){
             $storeSuggestions[$v] = store_Stores::getTitleById($v);
         }

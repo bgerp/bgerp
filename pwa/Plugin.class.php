@@ -109,7 +109,25 @@ class pwa_Plugin extends core_Plugin
      */
     public static function removeServiceWorkerVersion($domainId)
     {
-        $handler = self::getServiceWorkerVersionHandler($domainId);
+        $domain = cms_Domains::fetchField((int) $domainId, 'domain');
+        if ($domain) {
+            $domain = cms_Domains::getReal($domain);
+        } else {
+            $domain = 'domainId_' . (int) $domainId;
+        }
+
+        self::removeServiceWorkerVersionForHost($domain);
+    }
+
+
+    /**
+     * Премахва запазената версия за реален хост
+     *
+     * @param string $host
+     */
+    public static function removeServiceWorkerVersionForHost($host)
+    {
+        $handler = md5(strtolower(trim(cms_Domains::getReal($host))));
         core_Cache::remove(self::SERVICE_WORKER_VERSION_CACHE_TYPE, $handler);
         unset(self::$serviceWorkerVersions[$handler]);
     }
@@ -138,20 +156,50 @@ class pwa_Plugin extends core_Plugin
     public function on_Output(&$invoker)
     {
         $canUse = pwa_Settings::canUse();
+        // При изключена PWA поддръжка syncServiceWorker() премахва старата
+        // браузърна регистрация. При активна поддръжка го пускаме само ако
+        // и двата server-side файла действително са налични.
+        $runServiceWorkerSync = ($canUse != 'yes');
 
         // Ако е активирана опцията за мобилно приложение - манифестираме го
         if ($canUse == 'yes') {
             $dId = cms_Domains::getCurrent('id', false);
-            $swVersion = self::getServiceWorkerVersion($dId);
-            $manifestVersion = pwa_Settings::getManifestVersion($dId);
-            $manifestHref = '/pwa.webmanifest';
-            if ($manifestVersion !== '') {
-                $manifestHref .= '?v=' . rawurlencode($manifestVersion);
+
+            $webrootReady = core_Webroot::isExists('pwa.webmanifest', $dId)
+                && core_Webroot::isExists('serviceworker.js', $dId);
+
+            // Webroot файловете са runtime данни и не се пренасят само с
+            // deployment на кода. При липса възстановяваме и двата от
+            // активната настройка; здравият случай остава само read-only
+            // проверка, а не запис на всеки хит.
+            if (!$webrootReady) {
+                try {
+                    if (method_exists('pwa_Settings', 'ensureWebrootFilesForDomain')) {
+                        pwa_Settings::ensureWebrootFilesForDomain($dId);
+                    }
+                } catch (Throwable $e) {
+                    reportException($e);
+                }
+
+                $webrootReady = core_Webroot::isExists('pwa.webmanifest', $dId)
+                    && core_Webroot::isExists('serviceworker.js', $dId);
             }
 
-            $invoker->appendOnce("\n<link  rel=\"manifest\" href=\"{$manifestHref}\" data-sw-date=\"{$swVersion}\">", 'HEAD');
+            if ($webrootReady) {
+                $swVersion = self::getServiceWorkerVersion($dId);
+                $manifestVersion = pwa_Settings::getManifestVersion($dId);
+                $manifestHref = '/pwa.webmanifest';
+                if ($manifestVersion !== '') {
+                    $manifestHref .= '?v=' . rawurlencode($manifestVersion);
+                }
+
+                $invoker->appendOnce("\n<link  rel=\"manifest\" href=\"{$manifestHref}\" data-sw-date=\"{$swVersion}\">", 'HEAD');
+                $runServiceWorkerSync = true;
+            }
         }
         $invoker->push('pwa/js/swRegister.js', 'JS', true);
-        jquery_Jquery::run($invoker, 'syncServiceWorker();', true);
+        if ($runServiceWorkerSync) {
+            jquery_Jquery::run($invoker, 'syncServiceWorker();', true);
+        }
     }
 }

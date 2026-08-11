@@ -197,7 +197,7 @@ class rack_Logs extends core_Manager
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-        $row->ROW_ATTR['class'] = static::$actionClasses[$rec->action];
+        $row->ROW_ATTR['class'] = static::$actionClasses[$rec->action] ?? '';
         $row->productId = cat_Products::getHyperlink($rec->productId, true);
     }
 }

@@ -1,9 +1,5 @@
 body{
     background-color:#fff;
-    position: relative;
-    min-height: 100vh;
-    margin: 0;
-    padding-bottom: 38px; /* Височина на футъра */
 }
 
 html, body {
@@ -14,7 +10,7 @@ html, body {
 
 .externalPage {
     min-height: 100vh;
-    position: relative; /* За да работи абсолютното позициониране на футъра правилно */
+    position: relative;
     display: flex;
     flex-direction: column;
     box-sizing: border-box;
@@ -58,11 +54,8 @@ html, body {
 
 }
 #cmsBottom {
-    position: absolute;
-    bottom: 0;
-    left: 0;
+    position: relative;
     width: 100%;
-    height: 38px; /* Фиксирана височина */
     background: #333;
     color: white;
     text-align: center;
@@ -71,10 +64,7 @@ html, body {
 #maincontent {
     background-color:white;
     padding-top: 0 !important;
-}
-
-.wide #maincontent {
-    padding-bottom: 80px !important
+    flex: 1 0 auto;
 }
 
 #cmsNavigation .nav_item a {
@@ -136,16 +126,8 @@ html, body {
     z-index: 100;
     padding: 0;
 }
-.wide .beforeFooterNewsbar {
-    position: absolute;
-    bottom: 40px;
-}
 .additionalFooter {
     box-sizing: border-box;
-}
- .wide .afterFooterNewsbar {
-    position: absolute;
-    bottom: -40px;
 }
 
  .narrow .footer-links {
@@ -242,9 +224,6 @@ header img {
     width: 100%;
     height: auto;
 }
-.foorterAdd {
-    top: -4px !important;
-}
 .narrow header {
     min-height: 90px;
 }
@@ -272,12 +251,7 @@ header img {
     padding: 7px 7px 7px 2px;
 }
 
-.externalPage:has(.additionalFooter) {
-    padding-bottom: 50px;
-}
 .narrow .additionalFooter {
-    position: absolute;
-    bottom: 38px;
     width: 100%;
 }
 
@@ -321,10 +295,6 @@ header img {
         box-sizing: border-box;
         padding-left: 1%;
         padding-right: 1%;
-    }
-    .foorterAdd {
-        top: -5px !important;
-        position: relative;
     }
     .soc-following {
         padding-top: 2px;

@@ -3,6 +3,11 @@
 var shareTokenHeader = 'X-PWA-Share-Token';
 var shareTokenField = 'pwaShareToken';
 var shareErrorCodes = ['token', 'quota', 'size', 'upload', 'network', 'url'];
+var shareDiagnosticParam = 'shareDiag';
+var shareWorkerVersionParam = 'shareSw';
+var shareFileCountHeader = 'X-PWA-Share-File-Count';
+var shareFileFieldHeader = 'X-PWA-Share-File-Field';
+var shareWorkerVersionHeader = 'X-PWA-Share-Worker-Version';
 
 self.addEventListener('install', function (event) {
     event.waitUntil(
@@ -112,24 +117,64 @@ function getShareErrorCode(url, fallbackCode) {
     return shareErrorCodes.indexOf(fallbackCode) !== -1 ? fallbackCode : 'network';
 }
 
-function getShareErrorUrl(errorCode) {
-    return '/pwa_Share/Target?shareError=' + getShareErrorCode(null, errorCode);
+function getShareDiagnosticCode(url, fallbackCode) {
+    var diagnosticCode = null;
+
+    if (url) {
+        try {
+            diagnosticCode = new URL(url, self.location.origin).searchParams.get(shareDiagnosticParam);
+        } catch (error) {
+            diagnosticCode = null;
+        }
+    }
+
+    diagnosticCode = diagnosticCode || fallbackCode || '';
+
+    return /^(php|sw)_[a-z0-9_]{1,48}$/.test(diagnosticCode) ? diagnosticCode : '';
 }
 
-function createShareTargetError(errorCode, message) {
+function getShareWorkerVersion() {
+    try {
+        var version = new URL(self.location.href).searchParams.get('v') || '';
+
+        return /^[a-zA-Z0-9._-]{1,64}$/.test(version) ? version : '';
+    } catch (error) {
+        return '';
+    }
+}
+
+function getShareErrorUrl(errorCode, diagnosticCode) {
+    var url = '/pwa_Share/Target?shareError=' + encodeURIComponent(getShareErrorCode(null, errorCode));
+    diagnosticCode = getShareDiagnosticCode(null, diagnosticCode);
+    if (diagnosticCode) {
+        url += '&' + shareDiagnosticParam + '=' + encodeURIComponent(diagnosticCode);
+    }
+
+    var workerVersion = getShareWorkerVersion();
+    if (workerVersion) {
+        url += '&' + shareWorkerVersionParam + '=' + encodeURIComponent(workerVersion);
+    }
+
+    return url;
+}
+
+function createShareTargetError(errorCode, message, diagnosticCode) {
     var error = new Error(message);
     error.shareErrorCode = getShareErrorCode(null, errorCode);
+    error.shareDiagnosticCode = getShareDiagnosticCode(null, diagnosticCode);
 
     return error;
 }
 
-function showShareTargetError(event, error, fallbackCode) {
+function showShareTargetError(event, error, fallbackCode, fallbackDiagnosticCode) {
     console.error('PWA share-target processing failed:', error);
 
     var errorCode = error && error.shareErrorCode;
     errorCode = getShareErrorCode(null, errorCode || fallbackCode);
+    var diagnosticCode = error && error.shareDiagnosticCode;
+    diagnosticCode = getShareDiagnosticCode(null, diagnosticCode || fallbackDiagnosticCode);
 
-    return redirectShareTargetClient(event, getShareErrorUrl(errorCode)).catch(function (navigationError) {
+    return redirectShareTargetClient(event, getShareErrorUrl(errorCode, diagnosticCode)).catch(function (navigationError) {
         console.error('Unable to show the share-target error page:', navigationError);
 
         return null;
@@ -139,14 +184,32 @@ function showShareTargetError(event, error, fallbackCode) {
 function handleShareTarget(event, shareRequest, shareToken) {
     return Promise.resolve().then(function () {
         return shareRequest.formData();
+    }).catch(function (error) {
+        throw createShareTargetError('upload', 'Unable to read the shared payload.', 'sw_form_data');
     }).then(function (data) {
-        if (!shareToken) {
-            throw createShareTargetError('token', 'Missing PWA share token.');
+        if (shareToken) {
+            data.set(shareTokenField, shareToken);
+        } else {
+            // If a proxy/redirect stripped the loader response header, the
+            // server can still authenticate this as a strict same-origin
+            // worker fetch using Fetch Metadata and the worker marker below.
+            data.delete(shareTokenField);
         }
 
-        data.set(shareTokenField, shareToken);
-
-        var files = data.getAll('file');
+        // Новият manifest използва PHP array име (`file[]`), за да не
+        // изгуби файлове при директен POST без контролиращ worker. Старите
+        // и custom manifest-и може още да изпращат полето като `file`.
+        var legacyFiles = data.getAll('file');
+        var arrayFiles = data.getAll('file[]');
+        var files = legacyFiles.concat(arrayFiles);
+        var fileField = 'none';
+        if (legacyFiles.length && arrayFiles.length) {
+            fileField = 'both';
+        } else if (arrayFiles.length) {
+            fileField = 'file-array';
+        } else if (legacyFiles.length) {
+            fileField = 'file';
+        }
         var haveFile = false;
 
         files.forEach(function (file) {
@@ -155,6 +218,7 @@ function handleShareTarget(event, shareRequest, shareToken) {
         });
         if (haveFile) {
             data.delete('file');
+            data.delete('file[]');
         }
 
         if (!haveFile) {
@@ -170,25 +234,44 @@ function handleShareTarget(event, shareRequest, shareToken) {
 
         // This is the only POST that processes the shared payload. The original
         // navigation is answered with a GET loader response below.
+        var workerHeaders = {
+            'X-PWA-Share-Worker': '1'
+        };
+        workerHeaders[shareFileCountHeader] = String(files.length);
+        workerHeaders[shareFileFieldHeader] = fileField;
+        var workerVersion = getShareWorkerVersion();
+        if (workerVersion) {
+            workerHeaders[shareWorkerVersionHeader] = workerVersion;
+        }
+
         return fetch('/pwa_Share/Target', {
             method: 'POST',
             body: data,
             credentials: 'same-origin',
-            headers: {'X-PWA-Share-Worker': '1'}
+            headers: workerHeaders
+        }).catch(function (error) {
+            throw createShareTargetError('network', 'Share-target POST failed.', 'sw_post_network');
         });
     }).then(function (response) {
         var serverErrorCode = getShareErrorCode(response.url, null);
         if (response.url && new URL(response.url, self.location.origin).searchParams.get('shareError')) {
-            return redirectShareTargetClient(event, getShareErrorUrl(serverErrorCode));
+            return redirectShareTargetClient(event, getShareErrorUrl(
+                serverErrorCode,
+                getShareDiagnosticCode(response.url, 'php_error_without_diagnostic')
+            ));
         }
 
         if (!response.ok) {
-            throw createShareTargetError('upload', 'Share-target upload failed with HTTP status ' + response.status + '.');
+            throw createShareTargetError(
+                'upload',
+                'Share-target upload failed with HTTP status ' + response.status + '.',
+                'sw_post_http'
+            );
         }
 
         return redirectShareTargetClient(event, response.url);
     }).catch(function (error) {
-        return showShareTargetError(event, error, 'network');
+        return showShareTargetError(event, error, 'network', 'sw_handle_failed');
     });
 }
 
@@ -205,11 +288,18 @@ function isAllowedShareTargetRequest(request) {
     }
 
     if (fetchSite) {
-        if (fetchSite !== 'none' && fetchSite !== 'same-origin') {
-            return false;
+        if (fetchSite === 'none') {
+            // Web Share Target is opened by browser/OS UI and has no web
+            // initiator. Chromium can therefore expose its opaque Origin as
+            // the literal "null" while Sec-Fetch-Site remains "none".
+            return !origin || origin === 'null' || origin === self.location.origin;
         }
 
-        return !origin || origin === self.location.origin;
+        if (fetchSite === 'same-origin') {
+            return !origin || origin === self.location.origin;
+        }
+
+        return false;
     }
 
     // Стар браузър без Fetch Metadata се допуска само с точен Origin.
@@ -242,21 +332,24 @@ self.addEventListener('fetch', function (event) {
         loaderResponse.then(function (response) {
             var loaderErrorCode = getShareErrorCode(response.url, null);
             if (response.url && new URL(response.url, self.location.origin).searchParams.get('shareError')) {
-                return redirectShareTargetClient(event, getShareErrorUrl(loaderErrorCode));
+                return redirectShareTargetClient(event, getShareErrorUrl(
+                    loaderErrorCode,
+                    getShareDiagnosticCode(response.url, 'php_loader_error_without_diagnostic')
+                ));
             }
 
             if (!response.ok) {
-                throw createShareTargetError('network', 'Unable to render the share-target loader (HTTP ' + response.status + ').');
+                throw createShareTargetError(
+                    'network',
+                    'Unable to render the share-target loader (HTTP ' + response.status + ').',
+                    'sw_loader_http'
+                );
             }
 
             var shareToken = response.headers && response.headers.get(shareTokenHeader);
-            if (!shareToken) {
-                throw createShareTargetError('token', 'The share-target loader did not provide a PWA share token.');
-            }
-
             return handleShareTarget(event, shareRequest, shareToken);
         }).catch(function (error) {
-            return showShareTargetError(event, error, 'network');
+            return showShareTargetError(event, error, 'network', 'sw_loader_failed');
         })
     );
 });

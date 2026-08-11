@@ -206,7 +206,12 @@ class core_BaseClass
                 if (method_exists($className, $method)) {
                     $RM = new ReflectionMethod($className, $method);
                     if ($className == $RM->class) {
-                        $this->_listenerCache[$method][] = $first ? $this : $className;
+                        if ($first || $RM->isStatic()) {
+                            $this->_listenerCache[$method][] = $first ? $this : $className;
+                        } else {
+                            // PHP 8 не допуска нестатичен метод като callback чрез име на клас
+                            $this->_listenerCache[$method][] = array('class' => $className);
+                        }
                     }
                 }
                 $first = false;
@@ -223,7 +228,17 @@ class core_BaseClass
             }
             
             foreach ($this->_listenerCache[$method] as $subject) {
-                if (call_user_func_array(array($subject, $method), $args1) === false) {
+                if (is_array($subject)) {
+                    $RM = new ReflectionMethod($subject['class'], $method);
+                    if (!$RM->isPublic()) {
+                        $RM->setAccessible(true);
+                    }
+                    $status = $RM->invokeArgs($this, $args1);
+                } else {
+                    $status = call_user_func_array(array($subject, $method), $args1);
+                }
+
+                if ($status === false) {
                     
                     return false;
                 }

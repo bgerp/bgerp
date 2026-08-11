@@ -300,7 +300,7 @@ class core_Form extends core_FieldSet
                 
                 // Вдигаме грешка, ако стойността от Request
                 // не може да се конвертира към вътрешния тип
-                if (strlen($type->error)) {
+                if (!empty($type->error)) {
                     $result = array('error' => $type->error);
                     
                     $this->setErrorFromResult($result, $field, $name);
@@ -461,7 +461,7 @@ class core_Form extends core_FieldSet
                 
                 // Вдигаме грешка, ако стойността от Request
                 // не може да се конвертира към вътрешния тип
-                if (strlen($type->error)) {
+                if (!empty($type->error)) {
                     $result = array('error' => $type->error);
                     
                     $this->setErrorFromResult($result, $field, $name);

@@ -23,6 +23,6 @@ class type_RichHtml extends type_Html
      */
     public function toVerbal_($value)
     {
-        return hclean_Purifier::clean($value, 'UTF-8');
+        return hclean_Purifier::clean($value ?? '', 'UTF-8');
     }
 }
