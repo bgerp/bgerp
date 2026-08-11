@@ -271,15 +271,27 @@ class log_System extends core_Manager
         
         $search = trim($fRec->search ?? '');
         if ($search) {
+            $classesArr = $searchArr = array();
 
-            $search = trim(mb_strtolower($fRec->search));
-
-            $or = false;
-            if(preg_match("/[a-z][a-z0-9]*_[a-z0-9_]+/i", $search) && ($cls = cls::getClassName($search, true))) {
-                $query->where(array("#className = '[#1#]'", $cls));
-                $or = true;
+            // Отделяме имената на класовете от останалия текст за търсене
+            foreach (preg_split('/\s+/', $search, -1, PREG_SPLIT_NO_EMPTY) as $sPart) {
+                if ($cls = self::getClassNameFromStr($sPart)) {
+                    $classesArr[$cls] = $cls;
+                } else {
+                    $searchArr[] = $sPart;
+                }
             }
-            $query->where(array("#detail LIKE '%[#1#]%'", $search), $or);
+
+            if (countR($classesArr)) {
+                $query->orWhereArr('className', $classesArr);
+
+                $search = trim(implode(' ', $searchArr));
+            }
+
+            // Останалият текст се търси по стандартния начин
+            if ($search !== '') {
+                $query->where(array("#detail LIKE '%[#1#]%'", mb_strtolower($search)));
+            }
         }
         
         // Филтрираме по тип
@@ -289,8 +301,39 @@ class log_System extends core_Manager
         
         $query->orderBy('#createdOn,#id', 'DESC');
     }
-    
-    
+
+
+    /**
+     * Помощна функция, която връща името на класа, ако подаденият стринг е име на клас
+     *
+     * @param string $str
+     *
+     * @return string|FALSE
+     */
+    protected static function getClassNameFromStr($str)
+    {
+        // Имената на класовете са само от латински букви, цифри и долна черта
+        if (!preg_match('/^[a-z][a-z0-9]*_[a-z0-9_]+$/i', $str)) {
+
+            return false;
+        }
+
+        // Проверява се и подаденият стринг, а не само този с малки букви, защото
+        // cls::getClassName() прави главна само първата буква след долната черта
+        // и не може да възстанови име като acs_ConsumptionLog
+        foreach (array($str, mb_strtolower($str)) as $sStr) {
+            $cls = cls::getClassName($sStr, true);
+
+            if ($cls && cls::load($cls, true)) {
+
+                return $cls;
+            }
+        }
+
+        return false;
+    }
+
+
     /**
      * Извиква се след конвертирането на реда ($rec) към вербални стойности ($row)
      */
