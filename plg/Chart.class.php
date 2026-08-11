@@ -36,7 +36,7 @@ class plg_Chart extends core_Plugin
         
         $colRec = new stdClass();
         $colRec->type = 'string';
-        $colRec->title = $data->listFields[$xField->name];
+        $colRec->title = $data->listFields[$xField->name] ?? $xField->name;
         $colRec->name = $xField->name;
         
         $data->chartColumns[0] = $colRec;
@@ -66,7 +66,8 @@ class plg_Chart extends core_Plugin
             $sName = $data->chartSeriesField = $sField->name;
             
             // Правим масив с различните серии
-            foreach ($data->recs as $id => $rec) {
+            $sVal = array();
+            foreach (($data->recs ?? array()) as $id => $rec) {
                 $sVal[$rec->{$sName}] = $data->rows[$id]->{$sName};
             }
             
@@ -86,7 +87,7 @@ class plg_Chart extends core_Plugin
                 $colRec = new stdClass();
                 $colRec->type = 'number';
                 expect(($yField->type instanceof type_Int) || ($yField->type instanceof type_Double));
-                $colRec->title = $data->listFields[$yField->name];
+                $colRec->title = $data->listFields[$yField->name] ?? $yField->name;
                 $colRec->name = $yField->name;
                 $data->chartColumns[] = $colRec;
             }
@@ -95,7 +96,7 @@ class plg_Chart extends core_Plugin
         // Намираме полетата, дефинирани като разграничаващи различните графики
         $diffFieldArr = $mvc->selectFields("#chart == 'diff'");
         
-        if (countR($diffFieldArr) && countR($data->rows)) {
+        if (countR($diffFieldArr) && countR($data->rows ?? array())) {
             expect(countR($diffFieldArr) == 1);
             
             $diffField = current($diffFieldArr);
@@ -148,7 +149,7 @@ class plg_Chart extends core_Plugin
         
         // Добавяме данните
         
-        foreach (arr::make($data->recs) as $id => $rec) {
+        foreach (arr::make($data->recs ?? array()) as $id => $rec) {
             foreach ($data->chartColumns as $col => $colRec) {
                 if ($chartField) {
                     if ($data->rows[$id]->{$chartField} != $chartCaption) {
@@ -161,7 +162,7 @@ class plg_Chart extends core_Plugin
                 if ($colRec->type == 'number') {
                     $value = (float) $rec->{$field};
                 } else {
-                    $value = "'" . strip_tags($data->rows[$id]->{$field}) . "'";
+                    $value = "'" . strip_tags($data->rows[$id]->{$field} ?? '') . "'";
                 }
                 
                 if ($col == 0) {
@@ -182,7 +183,7 @@ class plg_Chart extends core_Plugin
                 
                 $row = countR($rows) - 1;
                 
-                if ($usedCols[$col]) {
+                if (!empty($usedCols[$col])) {
                     $colNumb = $usedCols[$col]->colNumb;
                 } else {
                     $colNumb = countR($usedCols);
