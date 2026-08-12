@@ -1176,7 +1176,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                 $documentsCache[$recPrime->containerId] = doc_Containers::getDocument($recPrime->containerId);
             }
             $Doc = $documentsCache[$recPrime->containerId];
-            $poscontragentClassId = $poscontragentId = null;
+            $poscontragentClassId = $poscontragentId = $posContragentFolder = null;
             if ($Doc->isInstanceOf('pos_Reports')) {
 
                 $poscontragentClassId = $recPrime->contragentClassId;
