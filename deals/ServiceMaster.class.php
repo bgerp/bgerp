@@ -310,8 +310,16 @@ abstract class deals_ServiceMaster extends core_Master
     {
         if (isset($fields['-list'])) {
             if ($rec->amountDeliveredVat || $rec->amountDelivered) {
-                $row->amountDeliveredVat = "<span class='cCode' style='float:left'>{$rec->currencyId}</span> &nbsp;{$row->amountDeliveredVat}";
-                $row->amountDelivered = "<span class='cCode' style='float:left'>{$rec->currencyId}</span> &nbsp;{$row->amountDelivered}";
+
+                // Наследниците показват в списъка само едната от двете суми,
+                // затова се украсява само вербализираната
+                if (isset($row->amountDeliveredVat)) {
+                    $row->amountDeliveredVat = "<span class='cCode' style='float:left'>{$rec->currencyId}</span> &nbsp;{$row->amountDeliveredVat}";
+                }
+
+                if (isset($row->amountDelivered)) {
+                    $row->amountDelivered = "<span class='cCode' style='float:left'>{$rec->currencyId}</span> &nbsp;{$row->amountDelivered}";
+                }
             } else {
                 $row->amountDeliveredVat = "<span class='quiet'>0.00</span>";
             }
