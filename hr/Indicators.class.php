@@ -403,7 +403,9 @@ class hr_Indicators extends core_Manager
         // към края му, както прави и самият acc_Periods
         $baseCurrencyCode = !empty($pRec->baseCurrencyId) ? currency_Currencies::getCodeById($pRec->baseCurrencyId) : acc_Periods::getBaseCurrencyCode($pRec->end ?? null);
         foreach ($ecArr as $personId => $ecRec) {
-            $sum = array();
+
+            // Тръгва се от нулевите стойности, за да се натрупва върху тях
+            $sum = $zeroInd;
             
             if (isset($ecRec->positionId)) {
                 $posRec = $positions[$ecRec->positionId];
