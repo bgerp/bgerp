@@ -148,10 +148,10 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
         $sQuery->EXT('code', 'cat_Products', 'externalName=code,externalKey=productId');
 
         //Филтър по групи артикули
-        plg_ExpandInput::applyExtendedInputSearch('cat_Products', $sQuery, $rec->groups, 'productId');
+        plg_ExpandInput::applyExtendedInputSearch('cat_Products', $sQuery, $rec->groups ?? null, 'productId');
 
 
-        if ($rec->stores) {
+        if (!empty($rec->stores)) {
             $storesArr = keylist::toArray($rec->stores);
             $sQuery->in('storeId', $storesArr);
             $storesRecsArr = $sQuery->fetchAll();
@@ -163,25 +163,28 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
 
         foreach ($storesRecsArr as $sRec) {
 
-            $pRec = (cat_Products::fetch($sRec->productId));
+            $pRec = cat_Products::fetch($sRec->productId);
+            if (!$pRec) {
+                continue;
+            }
 
-            if (!$sRec->measureId) {
-                $measureId = cat_Products::fetch($sRec->productId)->measureId;
+            if (empty($sRec->measureId)) {
+                $measureId = $pRec->measureId;
             } else {
                 $measureId = $sRec->measureId;
             }
 
             $id = $sRec->productId;
 
-            $Quantities = store_Products::getQuantities($sRec->productId, $storesArr, $rec->date);
+            $Quantities = store_Products::getQuantities($sRec->productId, $storesArr, $rec->date ?? null);
 
             $quantity = $Quantities->quantity;
             $reserved = $Quantities->reserved;
             $expected = $Quantities->expected;
             $free = $Quantities->free;
 
-            $documentsReserved = store_StockPlanning::getRecs($sRec->productId, $storesArr, $rec->date, 'reserved');
-            $documentsExpected = store_StockPlanning::getRecs($sRec->productId, $storesArr, $rec->date, 'expected');
+            $documentsReserved = store_StockPlanning::getRecs($sRec->productId, $storesArr, $rec->date ?? null, 'reserved');
+            $documentsExpected = store_StockPlanning::getRecs($sRec->productId, $storesArr, $rec->date ?? null, 'expected');
 
             $code = ($pRec->code) ?: 'Art' . $pRec->productId;
 
@@ -204,7 +207,7 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
 
         if (!empty($recs)) {
 
-            arr::sortObjects($recs, 'code', $rec->order, 'stri');
+            arr::sortObjects($recs, 'code', $rec->order ?? 'desc', 'stri');
         }
 
         return $recs;
@@ -234,10 +237,6 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
             $fld->FLD('reserved', 'double(decimals=2)', 'caption=Количество->Запазено,smartCenter');
             $fld->FLD('expected', 'double(decimals=2)', 'caption=Количество->Очаквано,smartCenter');
             $fld->FLD('free', 'double(decimals=2)', 'caption=Количество->Разполагаемо,smartCenter');
-
-            if (core_Users::haveRole('debug')) {
-                $fld->FLD('delrow', 'text', 'caption=Пулт,smartCenter');
-            }
 
         } else {
             $fld->FLD('code', 'varchar', 'caption=Код');
@@ -280,9 +279,9 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
 
         $row = new stdClass();
 
-        $pRec = (cat_Products::fetch($dRec->productId));
+        $pRec = cat_Products::fetch($dRec->productId);
 
-        $row->code = (!empty($pRec->code)) ? $pRec->code : "Art{$pRec->id}";
+        $row->code = (!empty($pRec->code)) ? $pRec->code : "Art{$dRec->productId}";
 
         $row->productId = cat_Products::getLinkToSingle_($dRec->productId, true);
 
@@ -296,10 +295,10 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
         $row->reserved = $Double->toVerbal($dRec->reserved);
         $row->reserved = ht::styleIfNegative($row->reserved, $dRec->reserved);
 
-        $date = ($rec->date) ? $rec->date : dt::today();
+        $date = !empty($rec->date) ? $rec->date : dt::today();
         $title = 'От кои документи е сформирано количеството';
 
-        $tooltipUrl = toUrl(array('store_Products', 'ShowReservedDocs', 'productId' => $dRec->productId, 'stores' => $rec->stores, 'replaceField' => "reserved{$dRec->productId}", 'field' => 'reserved', 'date' => $date), 'local');
+        $tooltipUrl = toUrl(array('store_Products', 'ShowReservedDocs', 'productId' => $dRec->productId, 'stores' => $rec->stores ?? null, 'replaceField' => "reserved{$dRec->productId}", 'field' => 'reserved', 'date' => $date), 'local');
         $arrowImg = ht::createElement('img', array('height' => 16, 'width' => 16, 'src' => sbf('img/32/info-gray.png', '')));
         $arrow = ht::createElement('span', array('class' => 'anchor-arrow tooltip-arrow-link', 'data-url' => $tooltipUrl, 'title' => $title), $arrowImg, true);
         $arrow = "<span class='additionalInfo-holder'><span class='additionalInfo' id='reserved{$dRec->productId}'></span>{$arrow}</span>";
@@ -311,7 +310,7 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
         $row->expected = $Double->toVerbal($dRec->expected);
         $row->expected = ht::styleIfNegative($row->expected, $dRec->expected);
 
-        $tooltipUrl = toUrl(array('store_Products', 'ShowReservedDocs', 'productId' => $dRec->productId, 'stores' => $rec->stores, 'replaceField' => "expected{$dRec->productId}", 'field' => 'expected', 'date' => $date), 'local');
+        $tooltipUrl = toUrl(array('store_Products', 'ShowReservedDocs', 'productId' => $dRec->productId, 'stores' => $rec->stores ?? null, 'replaceField' => "expected{$dRec->productId}", 'field' => 'expected', 'date' => $date), 'local');
         $arrowImg = ht::createElement('img', array('height' => 16, 'width' => 16, 'src' => sbf('img/32/info-gray.png', '')));
         $arrow = ht::createElement('span', array('class' => 'anchor-arrow tooltip-arrow-link', 'data-url' => $tooltipUrl, 'title' => $title), $arrowImg, true);
         $arrow = "<span class='additionalInfo-holder'><span class='additionalInfo' id='expected{$dRec->productId}'></span>{$arrow}</span>";
@@ -323,9 +322,6 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
         $row->free = $Double->toVerbal($dRec->free);
         $row->free = ht::styleIfNegative($row->free, $dRec->free);
 
-
-        $row->delrow = '';
-        $row->delrow = ($row->delrow ?? '') . ht::createLink('', array('store_reports_JobsHorizons', 'editminmax', 'productId' => $dRec->productId, 'code' => $dRec->code, 'recId' => $rec->id, 'ret_url' => true), null, "ef_icon=img/16/edit.png");
 
         if (!empty($dRec->store)) {
             $row->store = store_Stores::getHyperlink($dRec->store);
