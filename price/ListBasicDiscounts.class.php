@@ -296,10 +296,11 @@ class price_ListBasicDiscounts extends core_Detail
             $vatExceptionId = cond_VatExceptions::getFromThreadId($masterRec->threadId);
         }
 
-        // Еднократно извличане на ддс-та на артикула за посочената дата
+        // Еднократно извличане на ддс-та на артикула за посочената дата.
+        // Количката няма вальор - при празна дата 'getVats' смята с днешната
         $vats = array();
         if($basicDiscountListRec->vat == 'yes'){
-            $vats = cat_products_VatGroups::getVats(arr::extractValuesFromArray($detailsAll, 'productId'), $masterRec->valior, $vatExceptionId);
+            $vats = cat_products_VatGroups::getVats(arr::extractValuesFromArray($detailsAll, 'productId'), $masterRec->valior ?? null, $vatExceptionId);
         }
 
         foreach ($groupIds as $groupId){
