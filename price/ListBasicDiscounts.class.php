@@ -152,6 +152,19 @@ class price_ListBasicDiscounts extends core_Detail
 
 
     /**
+     * Извиква се след конвертирането на реда ($rec) към вербални стойности ($row)
+     */
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    {
+        // Групата сочи към филтрираните по нея артикули
+        if (!empty($rec->groupId) && cat_Products::haveRightFor('list') && !Mode::isReadOnly()) {
+            $groupTitle = $row->groupId;
+            $row->groupId = ht::createLink($groupTitle, array('cat_Products', 'list', 'groupId' => $rec->groupId), false, "title=Филтриране на артикули по група|* '{$groupTitle}'");
+        }
+    }
+
+
+    /**
      * Преди рендиране на таблицата
      */
     protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
