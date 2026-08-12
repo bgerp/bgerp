@@ -870,9 +870,11 @@ class hr_Indicators extends core_Manager
         $res = $v;
         // Имали формула за индикатора
         if($useCache){
-            $formula = hr_IndicatorFormulas::$cachedFormulas[$indicatorId];
+
+            // В кеша влизат само индикаторите, за които има зададена формула
+            $formula = hr_IndicatorFormulas::$cachedFormulas[$indicatorId] ?? null;
         } else {
-            $formula = hr_IndicatorFormulas::fetchField("#indicatorId = {$indicatorId}", 'formula');
+            $formula = hr_IndicatorFormulas::fetchField("#indicatorNameId = {$indicatorId}", 'formula');
         }
 
         if(empty($formula)) return $v;
