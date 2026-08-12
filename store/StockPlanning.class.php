@@ -176,7 +176,7 @@ class store_StockPlanning extends core_Manager
         $threadId = null;
         if(cls::haveInterface('doc_DocumentIntf', $Class)){
             $sourceRec = $Class->fetch($id, 'threadId');
-            $threadId = $sourceRec->threadId;
+            $threadId = $sourceRec->threadId ?? null;
         }
 
         // Ако очакваното време е в миналото - да се подмени със сега + посоченото време в константа
@@ -201,6 +201,11 @@ class store_StockPlanning extends core_Manager
     public static function updateByDocument($classId, $objectId)
     {
         $Class = cls::get($classId);
+        $object = $objectId;
+        $objectId = is_object($objectId) ? ($objectId->id ?? null) : $objectId;
+        if (empty($objectId)) {
+            return;
+        }
 
         // Какви са наличните записи на документа
         $exQuery =  static::getQuery();
@@ -208,7 +213,7 @@ class store_StockPlanning extends core_Manager
         $exRecs = $exQuery->fetchAll();
 
         // Какви ще са новите планирани количества
-        $plannedStocks = $Class->getPlannedStocks($objectId);
+        $plannedStocks = $Class->getPlannedStocks($object);
         static::addStaticValuesToStockArr($plannedStocks, $Class, $objectId);
 
         // Синхронизиране на старите със новите записи
@@ -333,7 +338,7 @@ class store_StockPlanning extends core_Manager
     public static function getPlannedQuantities($date, $productIds = null, $stores = null)
     {
         // Ако датата е без час, ще се приеме, че е за докрая на дена
-        if(strlen($date) == 10){
+        if(isset($date) && strlen($date) == 10){
             $date = "{$date} 23:59:59";
         }
 
@@ -345,7 +350,10 @@ class store_StockPlanning extends core_Manager
         $query->EXT('generic', 'cat_Products', "externalName=generic,externalKey=productId");
         $query->XPR('totalOut', 'double', "SUM(COALESCE(#quantityOut, 0))");
         $query->XPR('totalIn', 'double', "SUM(COALESCE(#quantityIn, 0))");
-        $query->where("#date <= '{$date}' AND #generic = 'no'");
+        $query->where("#generic = 'no'");
+        if (!empty($date)) {
+            $query->where("#date <= '{$date}'");
+        }
         $query->groupBy('productId,storeId');
         $query->show('productId,totalOut,totalIn,storeId');
 
@@ -601,11 +609,14 @@ class store_StockPlanning extends core_Manager
      */
     public static function getRecs($productId, $stores, $toDate, $field = null)
     {
-        $end = (strlen($toDate) == 10) ? "{$toDate} 23:59:59" : $toDate;
-        $end = (empty($end)) ? '0000-00-00' : $end;
+        $end = (isset($toDate) && strlen($toDate) == 10) ? "{$toDate} 23:59:59" : $toDate;
         $query = static::getQuery();
-        $query->where("#productId = {$productId} AND #date <= '{$end}'");
-        if(isset($stores)){
+        $query->where("#productId = {$productId}");
+        if (!empty($end)) {
+            $query->where("#date <= '{$end}'");
+        }
+        $stores = isset($stores) ? arr::make($stores, true) : null;
+        if(countR($stores)){
             $query->in('storeId', $stores);
         }
 
@@ -676,4 +687,3 @@ class store_StockPlanning extends core_Manager
         }
     }
 }
-
