@@ -2039,7 +2039,8 @@ class eshop_Products extends core_Master
                     }
                 }
                 
-                if (is_array($r[$epId])) {
+                // Ключът се създава по-горе само ако е намерен поне един близък е-артикул
+                if (is_array($r[$epId] ?? null)) {
                     arsort($r[$epId]);
                     
                     // Оставят се първите $maxNearProducts е-артикула
