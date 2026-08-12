@@ -287,6 +287,11 @@ class price_ListBasicDiscounts extends core_Detail
         if($Master instanceof eshop_Carts){
             $settings = cms_Domains::getSettings($masterRec->domainId);
             $vatExceptionId = $settings->vatExceptionId ?? null;
+        } elseif($Master instanceof pos_Receipts){
+
+            // ПОС бележката не е в нишка - изключението е от настройките на точката
+            $settings = pos_Points::getSettings($masterRec->pointId);
+            $vatExceptionId = $settings->vatExceptionId ?? null;
         } else {
             $vatExceptionId = cond_VatExceptions::getFromThreadId($masterRec->threadId);
         }
