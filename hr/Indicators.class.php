@@ -297,8 +297,9 @@ class hr_Indicators extends core_Manager
                     // Запомняме за кой период е документа
                     $periods[$periodRec->id] = $periodRec;
 
-                    // Оттеглените източници ги записваме само за почистване
-                    if ($rec->isRejected === true) {
+                    // Оттеглените източници ги записваме само за почистване.
+                    // Полето е опционално - източници без оттегляне не го връщат
+                    if (($rec->isRejected ?? false) === true) {
                         continue;
                     }
                     
