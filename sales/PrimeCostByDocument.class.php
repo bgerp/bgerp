@@ -1263,7 +1263,8 @@ class sales_PrimeCostByDocument extends core_Manager
             Mode::pop('calcCompareBomPrice');
         }
 
-        $resObj = (object)array('bellowPrimeCost' => (round($price, 4) < round($primeCost, 4)), 'primeCost' => $primeCost);
+        $bellowPrimeCost = isset($price, $primeCost) && round($price, 4) < round($primeCost, 4);
+        $resObj = (object)array('bellowPrimeCost' => $bellowPrimeCost, 'primeCost' => $primeCost);
         if($firstDocState == 'closed') {
             $resObj->isCache = true;
             core_Permanent::set("bCost|{$threadId}|{$Mvc->getClassId()}|{$recId}", $resObj, core_Permanent::FOREVER_VALUE);
