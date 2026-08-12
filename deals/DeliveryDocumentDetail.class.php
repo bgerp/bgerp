@@ -172,7 +172,7 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 
                     // Ако продукта има цена от пораждащия документ, взимаме нея, ако не я изчисляваме наново
                     $origin = $mvc->Master->getOrigin($masterRec);
-                    if ($origin->haveInterface('bgerp_DealAggregatorIntf')) {
+                    if (isset($rec->productId) && $origin->haveInterface('bgerp_DealAggregatorIntf')) {
                         $dealInfo = $origin->getAggregateDealInfo();
                         $products = $dealInfo->get('products');
 
