@@ -251,12 +251,15 @@ class hr_Indicators extends core_Manager
         foreach ($docArr as $class) {
             $sMvc = cls::get($class);
 
+            // Източникът може да не е наследник на core_Mvc и да няма '$className'
+            $sClassName = cls::getClassName($sMvc);
+
             try{
                 // Взимаме връщания масив от интерфейсния метод
-                core_Debug::startTimer("{$sMvc->className}_CALC_INDICATORS");
+                core_Debug::startTimer("{$sClassName}_CALC_INDICATORS");
                 $data = $sMvc->getIndicatorValues($timeline);
-                core_Debug::stopTimer("{$sMvc->className}_CALC_INDICATORS");
-                
+                core_Debug::stopTimer("{$sClassName}_CALC_INDICATORS");
+
             } catch(core_exception_Expect $e){
                 // Ако грешката е сетната при ръчно обновяване от дебъг потребител - да се визуализира
                 if(Mode::is('manualRecalc') && haveRole('debug')){
@@ -264,7 +267,7 @@ class hr_Indicators extends core_Manager
                 }
 
                 reportException($e);
-                hr_Indicators::logWarning("Грешка при подготвяне на индикаторите за: {$sMvc->className}");
+                hr_Indicators::logWarning("Грешка при подготвяне на индикаторите за: {$sClassName}");
                 
                 continue;
             }
