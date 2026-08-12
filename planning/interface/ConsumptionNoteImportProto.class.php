@@ -88,7 +88,7 @@ abstract class planning_interface_ConsumptionNoteImportProto extends planning_in
      */
     public function doImport(core_Manager $mvc, $rec)
     {
-        if (!is_array($rec->importRecs)) return;
+        if (!is_array($rec->importRecs ?? null)) return;
 
         foreach ($rec->importRecs as $rec) {
             $fields = array();
