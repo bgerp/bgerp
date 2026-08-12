@@ -585,6 +585,10 @@ class planning_DisassemblyNote extends planning_ProductionDocument
             core_Locks::release($lockKey);
 
             if($success){
+                if(!empty($rec->_recontoAfterEdit)){
+                    $mvc->logWrite('Реконтиране след промяна', $rec->id);
+                }
+
                 core_Statuses::newStatus("Протоколът е реконтиран|*!");
             }
         }
