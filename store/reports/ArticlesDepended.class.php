@@ -106,11 +106,11 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
     protected static function on_AfterInputEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$form)
     {
         if ($form->isSubmitted()) {
-            if ($form->rec->minCost < 0) {
+            if (($form->rec->minCost ?? 0) < 0) {
                 $form->setError('minCost', 'Наличността трябва да е положително число.');
             }
 
-            if ($form->rec->period < $form->rec->soonPeriod) {
+            if (($form->rec->period ?? 0) < ($form->rec->soonPeriod ?? 0)) {
                 $form->setError('period,soonPeriod', 'Краткият период не може да бъде по-голям от общия период на справката');
             }
         }
@@ -192,7 +192,7 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
             if (!$selfPrice) {
 
                 //При избран склад влизат само тъези от избрания слкад
-                $markNotPrice = ($rec->storeId && ($rec->storeId == $pRec->storeId)) ? 1 : null;
+                $markNotPrice = (!empty($rec->storeId) && ($rec->storeId == $pRec->storeId)) ? 1 : null;
 
 
                 if ((!is_null($markNotPrice)) && (!in_array($pRec->productId, $notSelfPrice))) {
@@ -200,8 +200,8 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
                 }
                 continue;
             }
-            $minCost = $rec->minCost ? $rec->minCost : 0;
-            $pQuantity = store_Products::getQuantities($pRec->productId, $rec->storeId, dt::today())->quantity;
+            $minCost = $rec->minCost ?? 0;
+            $pQuantity = store_Products::getQuantities($pRec->productId, $rec->storeId ?? null, dt::today())->quantity ?? 0;
             $amount = $pQuantity * $selfPrice;
             $code = $pRec->code ? $pRec->code : 'Art' . $pRec->productId;
 
@@ -239,11 +239,16 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
         $journalProdArr = array();
         while ($jRec = $query->fetch()) {
             if ($jRec->creditItem2) {
-                $productId = acc_Items::fetch($jRec->creditItem2)->objectId;
-                $storeId = acc_Items::fetch($jRec->creditItem1)->objectId;
+                $productItem = acc_Items::fetch($jRec->creditItem2);
+                $storeItem = acc_Items::fetch($jRec->creditItem1);
+                if (!$productItem || !$storeItem) {
+                    continue;
+                }
+                $productId = $productItem->objectId;
+                $storeId = $storeItem->objectId;
 
                 //Филтър по склад
-                if ($rec->storeId && ($storeId != $rec->storeId)) {
+                if (!empty($rec->storeId) && ($storeId != $rec->storeId)) {
                     continue;
                 }
 
@@ -256,16 +261,15 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
 
             $id = $prod->productId;
 
-            $reversibility = $prod->pQuantity ? $journalProdArr[$prod->productId] / $prod->pQuantity : 0;
+            $totalCreditQuantity = $journalProdArr[$prod->productId] ?? 0;
+            $reversibility = $prod->pQuantity ? $totalCreditQuantity / $prod->pQuantity : 0;
 
-            if ($reversibility > $rec->reversibility) {
+            if ($reversibility > ($rec->reversibility ?? 0)) {
                 continue;
             }
 
             $storeQuantity = $prod->pQuantity;
             $storeAmount = $prod->amount;
-            $totalCreditQuantity = $journalProdArr[$prod->productId];
-
             // Запис в масива
             if (!array_key_exists($id, $recs)) {
                 $recs[$id] = (object)array(
@@ -284,11 +288,10 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
 
         //Подредба на резултатите
         if (!is_null($recs)) {
-            $typeOrder = ($rec->orderBy == 'name' || $rec->orderBy == 'code') ? 'stri' : 'native';
+            $orderBy = $rec->orderBy ?? 'name';
+            $typeOrder = ($orderBy == 'name' || $orderBy == 'code') ? 'stri' : 'native';
 
-            $order = in_array($rec->orderBy, array('reversibility', 'name', 'code')) ? 'ASC' : 'DESC';
-
-            $orderBy = $rec->orderBy;
+            $order = in_array($orderBy, array('reversibility', 'name', 'code')) ? 'ASC' : 'DESC';
 
             arr::sortObjects($recs, $orderBy, $order, $typeOrder);
         }
@@ -359,7 +362,8 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
             $row->productId = cat_Products::getLinkToSingle_($dRec->productId, 'name');
         }
 
-        $row->measure = cat_UoM::fetchField(cat_Products::fetch($dRec->productId)->measureId, 'shortName');
+        $measureId = cat_Products::fetchField($dRec->productId, 'measureId');
+        $row->measure = cat_UoM::fetchField($measureId, 'shortName');
 
 
         if (isset($dRec->storeId)) {
@@ -447,6 +451,7 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
 
         $marker = 0;
         if (isset($data->rec->groups)) {
+            $groupVerb = '';
             foreach (type_Keylist::toArray($data->rec->groups) as $group) {
                 $marker++;
 
@@ -489,17 +494,22 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
      */
     private static function removeSoonDeliveredProds($rec, $prodArr)
     {
+        if (!countR($prodArr)) {
+            return $prodArr;
+        }
+
         //Проверка за доставени количества през периода soonPeriod
         $query = purchase_PurchasesData::getQuery();
 
-        $from = dt::addSecs(-($rec->soonPeriod), dt::now());
+        $from = dt::addSecs(-($rec->soonPeriod ?? 0), dt::now());
         $query->where(array("#valior>= '[#1#]' AND #valior <= '[#2#]'", $from, dt::now()));
         $query->in('isFromInventory', array('no', 'false'));
 
         //Артикули, които имат наличности над минималната $extractProdArr
-        $extractProdArr = arr::extractValuesFromArray($prodArr, 'productId');
+        $extractProdArr = array_keys($prodArr);
         $query->in('productId', $extractProdArr);
 
+        $detClassesId = array();
         foreach (array('purchase_PurchasesDetails', 'store_ReceiptDetails', 'acc_ArticleDetails') as $val) {
             $detClassesId[] = core_Classes::getId($val);
         }
@@ -510,16 +520,23 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
         while ($prod = $query->fetch()) {
 
             //Артикули които имат доставка през част от периода на стойност заложената част от скл. наличност
+            if (!isset($prodArr[$prod->productId])) {
+                continue;
+            }
             $deliveredProdInPeriod[$prod->productId] = ($deliveredProdInPeriod[$prod->productId] ?? 0) + $prod->quantity * $prodArr[$prod->productId]->selfPrice;
 
         }
 
         foreach ($deliveredProdInPeriod as $key => $val) {
 
-            if ($val > $prodArr[$key]->amount * $rec->soonQuantity) {
+            if ($val > $prodArr[$key]->amount * ($rec->soonQuantity ?? 0)) {
                 unset($prodArr[$key]);
-                unset($extractProdArr[$key]);
+                unset($extractProdArr[array_search($key, $extractProdArr)]);
             }
+        }
+
+        if (!countR($prodArr)) {
+            return $prodArr;
         }
 
         //Произведени артикули
@@ -533,12 +550,15 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
 
         $planningProdsInPeriod = array();
         while ($planningProd = $planningQuery->fetch()) {
+            if (!isset($prodArr[$planningProd->productId])) {
+                continue;
+            }
             $planningProdsInPeriod[$planningProd->productId] = ($planningProdsInPeriod[$planningProd->productId] ?? 0) + $planningProd->quantity * $prodArr[$planningProd->productId]->selfPrice;
         }
 
         foreach ($planningProdsInPeriod as $key => $val) {
 
-            if ($val > $prodArr[$key]->amount * $rec->soonQuantity) {
+            if ($val > $prodArr[$key]->amount * ($rec->soonQuantity ?? 0)) {
 
                 unset($prodArr[$key]);
 
