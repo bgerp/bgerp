@@ -163,6 +163,9 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
 
         $pQuery->where("#state != 'rejected'");
         $pQuery->where('#quantity > 0');
+        if (!empty($rec->storeId)) {
+            $pQuery->where("#storeId = {$rec->storeId}");
+        }
 
         $pQuery->EXT('code', 'cat_Products', 'externalName=code,externalKey=productId');
         $pQuery->EXT('groups', 'cat_Products', 'externalName=groups,externalKey=productId');
@@ -192,7 +195,7 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
             if (!$selfPrice) {
 
                 //При избран склад влизат само тъези от избрания слкад
-                $markNotPrice = (!empty($rec->storeId) && ($rec->storeId == $pRec->storeId)) ? 1 : null;
+                $markNotPrice = (empty($rec->storeId) || $rec->storeId == $pRec->storeId) ? 1 : null;
 
 
                 if ((!is_null($markNotPrice)) && (!in_array($pRec->productId, $notSelfPrice))) {
@@ -531,13 +534,17 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
 
             if ($val > $prodArr[$key]->amount * ($rec->soonQuantity ?? 0)) {
                 unset($prodArr[$key]);
-                unset($extractProdArr[array_search($key, $extractProdArr)]);
+                $extractKey = array_search($key, $extractProdArr, true);
+                if ($extractKey !== false) {
+                    unset($extractProdArr[$extractKey]);
+                }
             }
         }
 
         if (!countR($prodArr)) {
             return $prodArr;
         }
+        $extractProdArr = array_values($extractProdArr);
 
         //Произведени артикули
         $planningQuery = planning_DirectProductionNote::getQuery();
