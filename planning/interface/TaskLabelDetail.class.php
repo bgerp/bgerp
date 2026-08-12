@@ -48,7 +48,9 @@ class planning_interface_TaskLabelDetail extends planning_interface_TaskLabel
         $query->orderBy('id', 'DESC');
         $query->show('id');
 
-        return $query->fetch()->id;
+        $templateRec = $query->fetch();
+
+        return $templateRec->id ?? null;
     }
     
     
@@ -66,12 +68,16 @@ class planning_interface_TaskLabelDetail extends planning_interface_TaskLabel
         $templateTpl = label_Templates::addCssToTemplate($templateId);
 
         // Взимат се данните за бърз етикет
-        $allLabelData = $this->getLabelData($id, 1, false, null, $series);
+        $allLabelData = $this->getLabelData($id, 1, false, null, 'label');
 
         $placeArr = label_Templates::getPlaceholders($templateTpl);
 
         foreach ($allLabelData as $allKey => $labelData) {
             foreach ($labelData as $lKey => $lVal) {
+                if (!isset($placeArr[$lKey])) {
+                    continue;
+                }
+
                 $place = $placeArr[$lKey];
                 $newVal = label_TemplateFormats::getVerbalTemplate($templateId, $place, $lVal);
                 $allLabelData[$allKey][$lKey] = strlen($newVal) ? $newVal : $allLabelData[$allKey][$lKey];
