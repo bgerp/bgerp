@@ -144,10 +144,13 @@ class planning_interface_TaskLabelDetail extends planning_interface_TaskLabel
 
         $quantity = $rec->quantity;
         if(planning_ProductionTaskProducts::isProduct4Task($taskRec->id, $rec->productId)){
-            $quantity /= $taskRec->quantityInPack;
+            $quantity /= ($taskRec->quantityInPack ?: 1);
+            $measureId = $taskRec->measureId;
+        } else {
+            $measureId = $rowInfo->packagingId ?? cat_Products::fetchField($rec->productId, 'measureId');
         }
 
-        $quantity = $quantity . " " . cat_UoM::getShortName($rowInfo->measureId);
+        $quantity = $quantity . " " . cat_UoM::getShortName($measureId);
         Mode::push('text', 'plain');
         $weight = (!empty($rec->weight)) ? core_Type::getByName('cat_type_Weight(smartRound=no)')->toVerbal($rec->weight) : null;
         $nettWeight = (!empty($rec->netWeight)) ? core_Type::getByName('cat_type_Weight(smartRound=no)')->toVerbal($rec->netWeight) : null;
