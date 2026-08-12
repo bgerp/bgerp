@@ -271,26 +271,26 @@ class log_System extends core_Manager
         
         $search = trim($fRec->search ?? '');
         if ($search) {
-            $classesArr = $searchArr = array();
+            $classCondArr = array();
 
-            // Отделяме имената на класовете от останалия текст за търсене
+            // Всяка от думите, разделени с интервал, се търси самостоятелно
             foreach (preg_split('/\s+/', $search, -1, PREG_SPLIT_NO_EMPTY) as $sPart) {
+                $likeCond = array("#detail LIKE '%[#1#]%'", mb_strtolower($sPart));
+
+                // Ако думата е име на клас, освен в текста, се търси и по класа на записа
                 if ($cls = self::getClassNameFromStr($sPart)) {
-                    $classesArr[$cls] = $cls;
+                    $classCondArr[] = $likeCond;
+                    $classCondArr[] = array("#className = '[#1#]'", $cls);
                 } else {
-                    $searchArr[] = $sPart;
+                    $query->where($likeCond);
                 }
             }
 
-            if (countR($classesArr)) {
-                $query->orWhereArr('className', $classesArr);
-
-                $search = trim(implode(' ', $searchArr));
-            }
-
-            // Останалият текст се търси по стандартния начин
-            if ($search !== '') {
-                $query->where(array("#detail LIKE '%[#1#]%'", mb_strtolower($search)));
+            // Условията за всички класове се обединяват с 'OR' в едно общо условие
+            $or = false;
+            foreach ($classCondArr as $cond) {
+                $query->where($cond, $or);
+                $or = true;
             }
         }
         
