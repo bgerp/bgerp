@@ -305,7 +305,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         $form->setDefault('storeId', $storeId);
         $form->setOptions('productId', $productOptions);
         $form->setDefault('productId', key($productOptions));
-        $originPackId = $originRec->packagingId;
+        $originPackId = $originRec->{$defaultOriginPackField};
 
         if (core_Packs::isInstalled('batch') && isset($rec->productId)) {
             $BatchDef = batch_Defs::getBatchDef($rec->productId);
