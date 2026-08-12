@@ -56,17 +56,9 @@
                                 <tbody>
                                     <tr>
                                         <td class="topCell first vtop" style='width:50%;'>
-                                            <!--ET_BEGIN expenses-->
-                                            <table class='shipment-table' style='width:100%;'>
+                                            <table class='shipment-table'>
                                                 <tr>
-                                                    <td class='quiet nowrap aright' style='width:1%;'>|Реж. разходи|*:</td>
-                                                    <td>[#expenses#]</td>
-                                                </tr>
-                                            </table>
-                                            <!--ET_END expenses-->
-                                            <table class='shipment-table' style='width:100%;'>
-                                                <tr>
-                                                    <td class='quiet nowrap aright' style='width:1%;'>|Разпределяне на сб-ст|*:</td>
+                                                    <td class='quiet nowrap aright'>|Разпределяне|*:</td>
                                                     <td>[#allocationBy#]</td>
                                                 </tr>
                                                 <!--ET_BEGIN priceListId-->
@@ -81,9 +73,16 @@
                                                     <td>[#bomId#]</td>
                                                 </tr>
                                                 <!--ET_END bomId-->
+                                                <!--ET_BEGIN expenses-->
+                                                <tr>
+                                                    <td class='quiet nowrap aright'>|Реж. разходи|*:</td>
+                                                    <td>[#expenses#]</td>
+                                                </tr>
+                                                <!--ET_END expenses-->
                                             </table>
                                             <!--ET_BEGIN note-->
-                                            |Забележки|*:<br>
+                                            <hr>
+                                            <div class='quiet'>|Забележки|*:</div>
                                             [#note#]
                                             <!--ET_END note-->
                                         </td>

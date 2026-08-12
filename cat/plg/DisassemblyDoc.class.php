@@ -205,9 +205,9 @@ class cat_plg_DisassemblyDoc extends core_Plugin
 
         if ($count = static::reallocateManualPercents($mvc, $rec)) {
             $mvc->logWrite('Изравняване на ръчните проценти', $rec->id);
-            $msg = "|Процентите са изравнени до 100%|* (|променени редове|*: {$count})";
+            $msg = "|Процентите са изравнени до|* 100%|* (|променени редове|*: {$count})";
         } else {
-            $msg = '|Процентите вече правят 100%|*!';
+            $msg = '|Процентите вече правят|* 100%|*!';
         }
 
         followRetUrl(array($mvc, 'single', $rec->id), $msg);
