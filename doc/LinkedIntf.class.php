@@ -16,6 +16,8 @@
  */
 class doc_LinkedIntf
 {
+    public $class;
+
     /**
      * Връща дейности, които са за дадения документ
      *

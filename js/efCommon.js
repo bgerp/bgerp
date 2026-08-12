@@ -3905,7 +3905,11 @@ function efae() {
     efae.prototype.waitPeriodicAjaxCall = 0;
 
     // Заключване на изпълнението на AJAX заявките - нулираме
-    localStorage.setItem('lockEfaeAjaxCalls', 0);
+    try {
+        localStorage.setItem('lockEfaeAjaxCalls', 0);
+    } catch (err) {
+        getEO().log('Не може да се инициализира заключването за AJAX заявките: ' + err);
+    }
 }
 
 
@@ -4001,6 +4005,7 @@ efae.prototype.getObjectKeysCnt = function (subscribedObj) {
  * @param object subscribedObj - Обект с URL-то, което трябва да се вика
  * @param object otherData - Обект с допълнителни параметри, които ще се пратят по POST
  * @param boolean async - Дали да се стартира асинхронно. По подразбиране не true
+ * @return jqXHR|undefined - Заявката, когато е стартирана
  */
 efae.prototype.process = function (subscribedObj, otherData, async) {
     // Ако няма URL, което трябва да се извика, връщаме
@@ -4012,8 +4017,13 @@ efae.prototype.process = function (subscribedObj, otherData, async) {
         return;
     }
 
-    // Заключваме изпълнението на AJAX заявките за определено време
-    localStorage.setItem('lockEfaeAjaxCalls', 30);
+    // Заключваме изпълнението на AJAX заявките за определено време. Забранено
+    // хранилище не трябва да спира самата AJAX заявка.
+    try {
+        localStorage.setItem('lockEfaeAjaxCalls', 30);
+    } catch (err) {
+        getEO().log('Не може да се запише заключването за AJAX заявките: ' + err);
+    }
 
     // Ако не е подададена стойност
     if (typeof async == 'undefined') {
@@ -4087,7 +4097,7 @@ efae.prototype.process = function (subscribedObj, otherData, async) {
         this.isWaitingResponse = true;
 
         // Извикваме по AJAX URL-то и подаваме необходимите данни и очакваме резултата в JSON формат
-        $.ajax({
+        return $.ajax({
             async: async,
             type: "POST",
             url: efaeUrl,
@@ -4214,7 +4224,11 @@ efae.prototype.process = function (subscribedObj, otherData, async) {
             }, timeOut);
         }).always(function (res) {
             // Отключваме изпълнението на AJAX заявките
-            localStorage.setItem('lockEfaeAjaxCalls', 0);
+            try {
+                localStorage.setItem('lockEfaeAjaxCalls', 0);
+            } catch (err) {
+                getEO().log('Не може да се премахне заключването за AJAX заявките: ' + err);
+            }
 
             // След приключване на процеса сваляме флага
             getEfae().isWaitingResponse = false;

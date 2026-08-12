@@ -17,4 +17,6 @@
  */
 class marketing_InquiryEmbedderIntf
 {
+    public $class;
+
 }

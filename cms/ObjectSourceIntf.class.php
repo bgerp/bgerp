@@ -17,6 +17,8 @@
  */
 class cms_ObjectSourceIntf
 {
+    public $class;
+
     /**
      * Подготвя данните за публикуването на обекта
      */

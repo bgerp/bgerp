@@ -256,8 +256,15 @@ class doc_Notes extends core_Master
      */
     protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
-        if ($key = Request::get('key')) {
-            $kVal = core_Cache::get('pwa_Share', $key);
+        if (core_Packs::isInstalled('pwa') && ($key = Request::get('key', 'varchar'))) {
+            $fetchDest = strtolower(trim($_SERVER['HTTP_SEC_FETCH_DEST'] ?? ''));
+            $isBackgroundShareFetch = !empty($_SERVER['HTTP_X_PWA_SHARE_WORKER']) ||
+                ($fetchDest && $fetchDest != 'document');
+
+            // pwa_Share валидира устройството/домейна/потребителя и прави
+            // read+remove атомарно. Background fetch-ът на worker-а не
+            // консумира еднократните данни преди видимата навигация.
+            $kVal = pwa_Share::consumeSharedText($key, $isBackgroundShareFetch);
 
             if (!empty($kVal['body'])) {
                 $data->form->setDefault('body', $kVal['body']);

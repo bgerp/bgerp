@@ -422,7 +422,7 @@ class purchase_Invoices extends deals_InvoiceMaster
 
         if(!empty($rec->number)){
             $number = $mvc->getVerbal($rec, 'number');
-            $rec->searchKeywords .= ' ' . plg_Search::normalizeText($number) . " " . plg_Search::normalizeText($rec->number);
+            $rec->searchKeywords = ($rec->searchKeywords ?? '') . ' ' . plg_Search::normalizeText($number) . " " . plg_Search::normalizeText($rec->number);
         }
     }
     

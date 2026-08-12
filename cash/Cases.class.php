@@ -439,19 +439,29 @@ class cash_Cases extends core_Master
         $rQuery->EXT('pointId', 'pos_Receipts', 'externalName=pointId,externalKey=receiptId');
         $rQuery->EXT('state', 'pos_Receipts', 'externalName=state,externalKey=receiptId');
         $rQuery->EXT('rCreatedOn', 'pos_Receipts', 'externalName=createdOn,externalKey=receiptId');
+        $rQuery->EXT('rChange', 'pos_Receipts', 'externalName=change,externalKey=receiptId');
         $rQuery->where("#state = 'waiting' AND #action = 'payment|-1'");
         $rQuery->in("pointId", $points);
 
         $today = dt::today();
-        $posData = array();
+        $posData = $changeDeductedIn = array();
         while($rRec = $rQuery->fetch()) {
             $currencyId = acc_Periods::getBaseCurrencyId($rRec->rCreatedOn);
             $currencyCode = acc_Periods::getBaseCurrencyCode($rRec->rCreatedOn);
             if(!array_key_exists($currencyId, $posData)){
                 $posData[$currencyId] = (object)array('quantity' => 0, 'amount' => 0);
             }
-            $posData[$currencyId]->quantity += $rRec->amount;
-            $posData[$currencyId]->amount += currency_CurrencyRates::convertAmount($rRec->amount, $today, $currencyCode);
+
+            // В плащането в брой е въведената от клиента сума, затова се приспада рестото - веднъж
+            // на бележка, както е и при контирането (@see pos_ReceiptDetails::fetchReportData)
+            $amount = $rRec->amount;
+            if(!empty($rRec->rChange) && !array_key_exists($rRec->receiptId, $changeDeductedIn)){
+                $amount -= $rRec->rChange;
+                $changeDeductedIn[$rRec->receiptId] = true;
+            }
+
+            $posData[$currencyId]->quantity += $amount;
+            $posData[$currencyId]->amount += currency_CurrencyRates::convertAmount($amount, $today, $currencyCode);
         }
         $rec->posData = countR($posData) ? $posData : null;
         $rec->blAmountInWaitingReceipts = countR($posData) ? arr::sumValuesArray($posData, 'amount') : 0;

@@ -440,8 +440,8 @@ abstract class deals_InvoiceMaster extends core_Master
         $baseCurrencyCode = acc_Periods::getBaseCurrencyCode($form->rec->date);
         $unsetArr = array('id', 'number', 'date', 'containerId', 'additionalInfo', 'dealValue', 'vatAmount', 'state', 'discountAmount', 'createdOn', 'createdBy', 'modifiedOn', 'modifiedBy', 'vatDate', 'dpAmount', 'dpOperation', 'sourceContainerId', 'dueDate', 'type', 'originId', 'changeAmount', 'activatedOn', 'activatedBy', 'journalDate', 'dcReason', 'fileHnd', 'responsible', 'numlimit', 'username', 'issuerId', 'dpReason');
 
-        $invArr['currencyId'] = isset($form->rec->id) ? $form->rec->currencyId : $invArr['currencyId'];
-        $displayCurrencyId = $form->rec->currencyId;
+        $invArr['currencyId'] = isset($form->rec->id) ? ($form->rec->currencyId ?? $invArr['currencyId']) : $invArr['currencyId'];
+        $displayCurrencyId = $invArr['currencyId'];
         if($displayCurrencyId == 'BGN' && $displayCurrencyId != $baseCurrencyCode){
             $displayCurrencyId = $baseCurrencyCode;
         }

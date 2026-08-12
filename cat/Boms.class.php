@@ -19,7 +19,7 @@ class cat_Boms extends core_Master
     /**
      * Какви интерфейси поддържа този мениджър
      */
-    public $interfaces = 'doc_DocumentIntf';
+    public $interfaces = 'doc_DocumentIntf, export_DetailExportCsvIntf';
     
     
     /**
@@ -2384,5 +2384,85 @@ class cat_Boms extends core_Master
         if (countR($errors)) {
             core_Statuses::newStatus("Материалът не може да бъде подменен|*: " . implode(',', $errors) . "!", 'warning');
         }
+    }
+
+
+    /**
+     * Кое поле на детайла сочи към мастъра, при експорт в CSV
+     *
+     * @see export_DetailExportCsvIntf
+     *
+     * @param string $class - клас на детайла
+     *
+     * @return string|NULL
+     */
+    public function getExportMasterFieldName($class)
+    {
+        return (cls::getClassName($class) == 'cat_BomDetails') ? 'bomId' : null;
+    }
+
+
+    /**
+     * Кои полета от детайла да се експортират
+     *
+     * @see export_DetailExportCsvIntf
+     *
+     * @return array
+     */
+    public function getExportFieldsNameFromMaster()
+    {
+        return array('position', 'type', 'resourceId', 'packagingId', 'propQuantity', 'paramId', 'description');
+    }
+
+
+    /**
+     * Записите на детайлите за експорт в CSV
+     *
+     * @see export_DetailExportCsvIntf
+     *
+     * @param core_Master   $masterMvc
+     * @param stdClass      $mRec
+     * @param core_FieldSet $csvFields
+     * @param int           $activatedBy
+     *
+     * @return array
+     */
+    public function getRecsForExportInDetails($masterMvc, $mRec, &$csvFields, $activatedBy)
+    {
+        // Обработват се само рецептите, останалите документи се експортват от cat_Products
+        if (!($masterMvc instanceof cat_Boms)) return array();
+        expect($mRec);
+
+        $Detail = cls::get('cat_BomDetails');
+
+        // Артикулът и мярката се вербализират с пълните си имена, а не със съкратените от детайла
+        $csvFields->FLD('position', 'varchar', 'caption=Позиция');
+        $csvFields->FLD('type', 'enum(input=Влаг.,pop=Отп.,stage=Етап,subProduct=Субпр.)', 'caption=Действие');
+        $csvFields->FLD('resourceId', 'varchar', 'caption=Артикул');
+        $csvFields->FLD('packagingId', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка');
+        $csvFields->FLD('propQuantity', 'text', 'caption=Формула');
+        $csvFields->FLD('description', 'text', 'caption=Забележка');
+        $csvFields->FLD('paramId', 'key(mvc=cat_Params,select=typeExt)', 'caption=Параметър');
+
+        // Забележката е richtext - обръща се в чист текст, за да е годна за CSV
+        $descriptionType = $Detail->getFieldType('description');
+        Mode::push('text', 'plain');
+        $recs = array();
+        $bomRecs = cat_BomDetails::getOrderedBomDetails($mRec->id);
+        foreach ($bomRecs as $dRec) {
+            $rec = new stdClass();
+            $rec->position = implode('.', $Detail->getProductPath($dRec, true));
+            $rec->type = $dRec->type;
+            $code = cat_Products::fetchField($dRec->resourceId, 'code');
+            $rec->resourceId = !empty($code) ? $code : "Art{$dRec->resourceId}";
+            $rec->packagingId = $dRec->packagingId;
+            $rec->propQuantity = $dRec->propQuantity;
+            $rec->paramId = $dRec->paramId;
+            $rec->description = !empty($dRec->description) ? $descriptionType->toVerbal($dRec->description) : null;
+            $recs[$dRec->id] = $rec;
+        }
+        Mode::pop('text');
+
+        return $recs;
     }
 }

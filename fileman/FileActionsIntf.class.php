@@ -16,6 +16,8 @@
  */
 class fileman_FileActionsIntf
 {
+    public $class;
+
     /**
      * Интерфейсен метод на fileman_FileActionsIntf
      *

@@ -16,6 +16,8 @@
  */
 class forum_ThemeIntf
 {
+    public $class;
+
     /**
      * Връща изгледа на дъските
      *

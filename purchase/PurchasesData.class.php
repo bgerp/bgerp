@@ -220,7 +220,6 @@ class purchase_PurchasesData extends core_Manager
     {
         expect(haveRole('debug'));
 
-
         $form = cls::get('core_Form');
         $form->title = 'Преизчисляване на записи';
         $form->FLD('from', 'date', 'caption=От дата,mandatory');
@@ -246,24 +245,34 @@ class purchase_PurchasesData extends core_Manager
                 $form->rec->to . ' 23:59:59'
             ));
 
-            $query->where("#isFromInventory = 'false'");
+            // Инвентаризациите не се пипат, но старите записи с празно поле са обикновени покупки
+            $query->where("(#isFromInventory IS NULL OR #isFromInventory != 'true')");
 
             $purRecs = arr::extractValuesFromArray($query->fetchAll(), 'containerId');
 
             // Изтриване на записите от този период
             $this->delete(array(
-                "#valior >= '[#1#]' AND #valior <= '[#2#]' AND #isFromInventory = 'false'",
+                "#valior >= '[#1#]' AND #valior <= '[#2#]' AND (#isFromInventory IS NULL OR #isFromInventory != 'true')",
                 $form->rec->from . ' 00:00:00',
                 $form->rec->to . ' 23:59:59'
             ));
 
+
+            core_App::setTimeLimit(countR($purRecs) * 0.6, false, 900);
             foreach ($purRecs as $v) {
 
                 $pRec = doc_Containers::fetch($v);
+                if (empty($pRec)) continue;
 
                 $mvc = cls::get($pRec->docClass);
 
-                $docRec = $mvc->className::fetch($pRec->docId);
+                $docRec = $mvc->fetch($pRec->docId);
+                if (empty($docRec)) continue;
+
+                // Същата проверка както при контирането (@see purchase_plg_ExtractPurchasesData::on_AfterSaveJournalTransaction),
+                // за да не се възстановяват редове, каквито нормалният поток не създава
+                $isReverse = $docRec->isReverse ?? null;
+                if (($mvc instanceof store_Receipts && $isReverse == 'yes') || ($mvc instanceof store_ShipmentOrders && $isReverse != 'yes')) continue;
 
                 purchase_plg_ExtractPurchasesData::add($mvc, $docRec);
 
@@ -283,12 +292,157 @@ class purchase_PurchasesData extends core_Manager
     }
 
     /**
+     * Дебъг екшън - коригира сумите по зададен курс
+     *
+     * Всеки ред от таблицата е по една UPDATE заявка върху `price`, `amount` и
+     * `expenses`. Ползва се за оправяне на записи, останали в стара валута -
+     * по подразбиране всичко до 06.01.2026 се дели веднъж на курса
+     */
+    public function act_Debug()
+    {
+        requireRole('debug');
+
+        $form = cls::get('core_Form');
+        $form->title = 'Коригиране на сумите по курс';
+        $form->FLD('rules', 'table(columns=from|to|maxId|rate|times|action,captions=От вальор|До вальор|До ид (без него)|Курс|Пъти|Действие,widths=8em|8em|8em|7em|4em|7em,mandatory=rate|action,action_opt=умножи|раздели)', 'caption=Заявки,input,mandatory');
+        $form->FLD('dryRun', 'enum(yes=Да,no=Не)', 'caption=Само показване на заявките,input,maxRadio=2,notNull');
+
+        // По подразбиране - всички записи до 06.01.2026 се делят веднъж на курса
+        $form->setDefault('rules', json_encode(array('from' => array(''),
+                                                     'to' => array('06.01.2026'),
+                                                     'maxId' => array('28715'),
+                                                     'rate' => array('1.95583'),
+                                                     'times' => array('1'),
+                                                     'action' => array('умножи'))));
+        $form->setDefault('dryRun', 'yes');
+        $form->input();
+
+        if ($form->isSubmitted()) {
+            $queryArr = $this->getCorrectionQueries($form);
+
+            if (!$form->gotErrors()) {
+                if ($form->rec->dryRun == 'yes') {
+                    $form->info = "<div class='formCustomInfo'><pre style='white-space:pre-wrap'>" . type_Varchar::escape(implode(";\n\n", $queryArr)) . ';</pre></div>';
+                } else {
+                    $countArr = array();
+                    foreach ($queryArr as $query) {
+                        $this->db->query($query, false, $this->doReplication);
+                        $countArr[] = $this->db->affectedRows();
+                        $this->logWrite('Дебъг корекция по курс: ' . $query);
+                    }
+
+                    // Кешираните записи се инвалидират, за да не се работи със старите суми
+                    $this->_cachedRecords = array();
+                    core_Statuses::newStatus('Обновени записи|*: ' . implode(', ', $countArr));
+
+                    followRetUrl();
+                }
+            }
+        }
+
+        $form->toolbar->addSbBtn('Изпълни', 'save', 'ef_icon = img/16/tick-circle-frame.png, title = Изпълняване на заявките');
+        $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
+
+        $res = $this->renderWrapping($form->renderHtml());
+        core_Form::preventDoubleSubmission($res, $form);
+
+        return $res;
+    }
+
+
+    /**
+     * Сглобява UPDATE заявките от редовете на формата (@see act_Debug)
+     *
+     * @param core_Form $form
+     *
+     * @return array - заявките, ключирани по номер на ред
+     */
+    private function getCorrectionQueries($form)
+    {
+        $rulesArr = json_decode($form->rec->rules, true);
+        if (!is_array($rulesArr) || !countR($rulesArr['rate'] ?? array())) {
+            $form->setError('rules', 'Не е зададена нито една заявка|*!');
+
+            return array();
+        }
+
+        $Date = core_Type::getByName('date');
+        $valiorCol = str::phpToMysqlName('valior');
+        $fieldsArr = array('price', 'amount', 'expenses');
+
+        $res = array();
+        foreach ($rulesArr['rate'] as $i => $rate) {
+            $rate = trim($rate);
+            $times = (int) trim($rulesArr['times'][$i] ?? 1) ?: 1;
+            if (!is_numeric($rate) || $rate <= 0) {
+                $form->setError('rules', "Ред |*" . ($i + 1) . ': |курсът трябва да е положително число|*!');
+
+                continue;
+            }
+
+            // Курсът се прилага толкова пъти, колкото е сгрешен
+            $factor = pow($rate, $times);
+            $sign = ($rulesArr['action'][$i] == 'раздели') ? '/' : '*';
+
+            $setArr = array();
+            foreach ($fieldsArr as $field) {
+                $colName = str::phpToMysqlName($field);
+                $setArr[] = "{$colName} = {$colName} {$sign} {$factor}";
+            }
+
+            // Празните колони не участват в условието
+            $whereArr = array();
+            $hasInvalidDate = false;
+            foreach (array('from' => '>=', 'to' => '<=') as $key => $operator) {
+                $value = trim($rulesArr[$key][$i] ?? '');
+                if ($value === '') continue;
+
+                $date = $Date->fromVerbal($value);
+                if (empty($date)) {
+                    $form->setError('rules', "Ред |*" . ($i + 1) . ': |невалидна дата|*!');
+                    $hasInvalidDate = true;
+
+                    continue;
+                }
+
+                $whereArr[] = "{$valiorCol} {$operator} '{$date}'";
+            }
+
+            if ($hasInvalidDate) continue;
+
+            $maxId = trim($rulesArr['maxId'][$i] ?? '');
+            if ($maxId !== '') {
+                if (!type_Int::isInt($maxId)) {
+                    $form->setError('rules', "Ред |*" . ($i + 1) . ': |ид-то трябва да е цяло число|*!');
+
+                    continue;
+                }
+
+                $whereArr[] = 'id < ' . (int) $maxId;
+            }
+
+            // Ред без условие би обновил цялата таблица
+            if (!countR($whereArr)) {
+                $form->setError('rules', "Ред |*" . ($i + 1) . ': |няма нито едно условие|*!');
+
+                continue;
+            }
+
+            $res[$i] = "UPDATE {$this->dbTableName} SET " . implode(', ', $setArr) . ' WHERE ' . implode(' AND ', $whereArr);
+        }
+
+        return $res;
+    }
+
+
+    /**
      * Извиква се след подготовката на toolbar-а за табличния изглед
      */
     protected static function on_AfterPrepareListToolbar($mvc, &$data)
     {
         if (haveRole('debug')) {
             $data->toolbar->addBtn('Преизчисли', array($mvc, 'Recalc', 'ret_url' => true), null, 'ef_icon = img/16/arrow_refresh.png,title=Преизчисляване на записи,target=_blank');
+            $data->toolbar->addBtn('Дебъг', array($mvc, 'Debug', 'ret_url' => true), null, 'ef_icon = img/16/bug.png,title=Коригиране на сумите по курс');
         }
     }
 

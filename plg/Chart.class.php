@@ -220,6 +220,7 @@ class plg_Chart extends core_Plugin
      */
     public static function on_BeforeRenderListTable($mvc, &$table, $data)
     {
+        $me = cls::get(get_called_class());
         if ($chartType = Request::get('Chart')) {
             $chartId = 0;
             
@@ -229,13 +230,13 @@ class plg_Chart extends core_Plugin
                 
                 foreach ($data->charts as $chartCaption) {
                     $chartName = 'Chart' . $chartId++;
-                    $table->append($mvc->getChart($data, $chartName, $chartType, $chartCaption, $chartField));
+                    $table->append($me->getChart($data, $chartName, $chartType, $chartCaption, $chartField));
                 }
             } else {
                 $chartName = 'Chart' . $chartId;
                 $chartCaption = '';
                 
-                $table = $mvc->getChart($data, $chartName, $chartType, $chartCaption);
+                $table = $me->getChart($data, $chartName, $chartType, $chartCaption);
             }
             
             return false;

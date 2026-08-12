@@ -90,7 +90,7 @@ class findeals_transaction_AdvanceReport extends acc_DocumentTransactionSource
         }
         
         // Отчитаме ддс-то
-        if ($this->class->_total) {
+        if (!empty($this->class->_total->vat)) {
             $vat = $this->class->_total->vat;
             $vatAmount = $this->class->_total->vat * $rec->currencyRate;
             $creditArr['quantity'] = $vat;
