@@ -64,7 +64,7 @@ class cat_DisassemblyBoms extends core_Master
     /**
      * Полетата, които могат да се променят с change_Plugin
      */
-    public $changableFields = 'title,expenses,detailOrderBy,notes';
+    public $changableFields = 'title,quantity,expenses,detailOrderBy,notes';
 
 
     /**
@@ -216,12 +216,6 @@ class cat_DisassemblyBoms extends core_Master
      * Поле за подредбата на детайла (@see cat_plg_ShowCodes)
      */
     public $detailOrderByField = 'detailOrderBy';
-
-
-    /**
-     * Може ли да се редактират активирани документи
-     */
-    public $canEditActivated = true;
 
 
     /**

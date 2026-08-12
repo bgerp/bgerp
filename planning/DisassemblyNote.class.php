@@ -42,7 +42,7 @@ class planning_DisassemblyNote extends planning_ProductionDocument
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, store_plg_StoreFilter, doc_SharablePlg, deals_plg_SaveValiorOnActivation, planning_Wrapper, acc_plg_DocumentSummary, acc_plg_Contable,
+    public $loadList = 'plg_RowTools2, store_plg_StoreFilter, change_Plugin, doc_SharablePlg, deals_plg_SaveValiorOnActivation, planning_Wrapper, acc_plg_DocumentSummary, acc_plg_Contable,
                     doc_DocumentPlg, doc_plg_MasterRevision, plg_Printing, plg_Clone, bgerp_plg_Blank, deals_plg_SetTermDate, plg_Sorting, cat_plg_AddSearchKeywords, plg_Search, store_plg_StockPlanning, cat_plg_DisassemblyDoc, cond_plg_DefaultValues';
 
 
@@ -55,7 +55,7 @@ class planning_DisassemblyNote extends planning_ProductionDocument
     /**
      * Полетата, които могат да се променят с change_Plugin
      */
-    public $changableFields = 'detailOrderBy,note';
+    public $changableFields = 'valior,expenses,detailOrderBy,deadline,note';
 
 
     /**
@@ -195,19 +195,13 @@ class planning_DisassemblyNote extends planning_ProductionDocument
 
 
     /**
-     * Може ли да се редактират активирани документи
-     */
-    public $canEditActivated = true;
-
-
-    /**
      * Цените за разпределянето са към вальора (@see cat_plg_DisassemblyDoc)
      */
     public $disassemblyDateField = 'valior';
 
 
     /**
-     * Кои роли се изискват да може да се редактира, когато е активиран
+     * Кои роли може да пипат редовете на контиран протокол (@see deals_ManifactureDetail)
      */
     public $requiredRolesToEditWhenActive = 'ceo,planningMaster';
 
@@ -282,13 +276,6 @@ class planning_DisassemblyNote extends planning_ProductionDocument
             }
         }
 
-        if ($action == 'edit' && isset($rec)) {
-            if($rec->state == 'active'){
-                if(!haveRole($mvc->requiredRolesToEditWhenActive, $userId)){
-                    $requiredRoles = 'no_one';
-                }
-            }
-        }
     }
 
 
@@ -571,13 +558,6 @@ class planning_DisassemblyNote extends planning_ProductionDocument
             }
         }
 
-        // В активен протокол не се пипат - по тях са разнесени сумите в журнала
-        if (isset($rec->id) && $rec->state == 'active' && $data->action != 'clone') {
-            $form->setReadOnly('allocationBy');
-            if($rec->allocationBy == 'price'){
-                $form->setReadOnly('priceListId');
-            }
-        }
     }
 
 
@@ -680,15 +660,17 @@ class planning_DisassemblyNote extends planning_ProductionDocument
             if(isset($rec->id) && empty($form->_cloneForm)){
                 if($rec->state == 'active'){
                     $exRec = $mvc->fetch($rec->id, '*', false);
+
+                    // Мастър полетата, които влизат в журнала
                     if($rec->valior != $exRec->valior || $rec->expenses != $exRec->expenses || $rec->allocationBy != $exRec->allocationBy || $rec->priceListId != $exRec->priceListId){
 
                         // По подадения запис. Ако изчисленото става ръчно, е същото
                         $errorMsg = empty($rec->_fillCostPercents) ? $mvc->getErrorWhenTryingToConto($rec, 'reconto') : null;
                         if($errorMsg){
-                            $form->setError('allocationBy,priceListId,valior', $errorMsg);
+                            $form->setError('valior,expenses', $errorMsg);
                         } else {
                             $rec->_recontoAfterEdit = true;
-                            $form->setWarning('valior,expenses,allocationBy,priceListId', "Документа ще бъде реконтиран след запис, поради променени данни!");
+                            $form->setWarning('valior,expenses', "Документа ще бъде реконтиран след запис, поради променени данни!");
                         }
                     }
                 }
