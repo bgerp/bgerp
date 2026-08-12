@@ -84,10 +84,9 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
     /**
      * Полета, които при клониране да не се пренасят. Списъкът на
      * deals_ManifactureDetail се преповтаря, защото свойството се препокрива.
-     * Процентът от себестойността важи за конкретното разпределяне - в клонинга
-     * се задава наново (в рецептата за разпад той се пренася, там е част от нея)
+     * За `costPercent` решава режимът (@see on_BeforeSaveClonedDetail)
      */
-    public $fieldsNotToClone = 'createdBy,createdOn,requestedQuantity,contoPercent,costPercent';
+    public $fieldsNotToClone = 'createdBy,createdOn,requestedQuantity,contoPercent';
 
 
     /**
@@ -166,6 +165,18 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
                     $form->setDefault('storeId', $data->masterRec->storeId);
                 }
             }
+        }
+    }
+
+
+    /**
+     * Ръчно въведените проценти се пренасят при клониране - при другите режими
+     * се изчисляват наново и записаното няма стойност
+     */
+    protected static function on_BeforeSaveClonedDetail($mvc, &$rec, $oldRec)
+    {
+        if (isset($rec->costPercent) && $mvc->Master->fetchField($rec->{$mvc->masterKey}, 'allocationBy') != 'manual') {
+            $rec->costPercent = null;
         }
     }
 

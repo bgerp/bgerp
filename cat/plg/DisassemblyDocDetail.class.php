@@ -170,6 +170,22 @@ class cat_plg_DisassemblyDocDetail extends core_Plugin
         $masterRec = $masterMvc->fetchRec($masterId);
         if (!$masterMvc->haveRightFor('allocatemanualpercents', $masterRec)) return;
 
+        // Няма какво да изравнява - ред без процент чака да поеме остатъка
+        $sum = 0;
+        $hasEmpty = false;
+        $dQuery = cat_plg_DisassemblyDoc::getRowQuery($masterMvc, $masterId);
+        $dQuery->show('costPercent');
+        while ($dRec = $dQuery->fetch()) {
+            if (!isset($dRec->costPercent)) {
+                $hasEmpty = true;
+                break;
+            }
+
+            $sum += $dRec->costPercent;
+        }
+
+        if (!$hasEmpty && abs($sum - 1) < 0.0001) return;
+
         $btn = ht::createBtn('Изравняване', array($masterMvc, 'allocateManualPercents', $masterId, 'ret_url' => true), 'Ръчно въведените проценти ще бъдат преизчислени, за да правят точно 100%|*!', null, array('style' => $style, 'ef_icon' => 'img/16/calculator.png', 'title' => 'Изравняване на процентите от себестойността до 100%'));
 
         $tpl->append($btn, $block);
