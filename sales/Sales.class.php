@@ -1914,7 +1914,7 @@ class sales_Sales extends deals_DealMaster
         if (is_array($recs)) {
             foreach ($recs as &$rec) {
                 foreach (array('Deal', 'Paid', 'Delivered', 'Invoiced') as $amnt) {
-                    if (round($rec->{"amount{$amnt}"}, 2) != 0) {
+                    if (round($rec->{"amount{$amnt}"} ?? 0, 2) != 0) {
                         $rec->currencyRate = ($rec->currencyRate) ? $rec->currencyRate : 1;
                         $rec->{"amount{$amnt}"} = round($rec->{"amount{$amnt}"} / $rec->currencyRate, 2);
                     } else {
