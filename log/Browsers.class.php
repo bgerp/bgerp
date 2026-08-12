@@ -1214,7 +1214,7 @@ class log_Browsers extends core_Master
             }
 
             // Ако има логване - да не се изтрива
-            if (strlen($rec->brid) && core_LoginLog::fetch(array("#brid = '[#1#]'", $rec->brid))) {
+            if (strlen($rec->brid ?? '') && core_LoginLog::fetch(array("#brid = '[#1#]'", $rec->brid))) {
 
                 continue;
             }
