@@ -68,7 +68,7 @@ class cond_VatExceptions extends core_Manager
      */
     public function description()
     {
-        $this->FLD('title', 'varchar', 'caption=Изключение');
+        $this->FLD('title', 'varchar', 'caption=Изключение,mandatory');
         $this->FLD('lastUsedOn', 'datetime(format=smartTime)', 'caption=Последно,input=none,column=none');
         $this->FLD('validFrom', 'date', 'caption=Валидно от');
         $this->FLD('validTo', 'date', 'caption=Валидно до');
