@@ -126,11 +126,12 @@ class price_Cache extends core_Manager
         
         $form->input('listId, productId', 'silent');
         
-        if ($form->rec->listId) {
+        // Полетата ги няма в записа, докато филтърът не е подаден
+        if (!empty($form->rec->listId)) {
             $data->query->where(array("#listId = '{$form->rec->listId}'"));
         }
-        
-        if ($form->rec->productId) {
+
+        if (!empty($form->rec->productId)) {
             $data->query->where(array("#productId = '{$form->rec->productId}'"));
         }
     }
