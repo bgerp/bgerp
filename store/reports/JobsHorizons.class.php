@@ -623,6 +623,7 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
      */
     public static function act_GroupFilter()
     {
+        return new Redirect(getRetUrl());
 
         expect($recId = Request::get('recId', 'int'));
 
@@ -693,6 +694,7 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
      */
     public static function act_ArtFilter()
     {
+        return new Redirect(getRetUrl());
 
         expect($recId = Request::get('recId', 'int'));
 
@@ -744,6 +746,7 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
      */
     public static function act_ExportFilter()
     {
+        return new Redirect(getRetUrl());
 
         expect($recId = Request::get('recId', 'int'));
 
