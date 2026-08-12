@@ -152,8 +152,9 @@ abstract class deals_DealMaster extends deals_DealBase
     {
         $rec = $this->fetchRec($rec);
 
-        // Ако имаме доставено или платено
-        $amountBl = round($rec->amountBl, 4);
+        // Ако имаме доставено или платено. Салдото може да е празно - при
+        // сделка без движения се приема за нула (@see долу толеранса)
+        $amountBl = round($rec->amountBl ?? 0, 4);
         $today = dt::today();
         $todayTimestamp = strtotime($today);
         $overdueToleranceAmount = deals_Setup::get('OVERDUE_TOLERANCE_AMOUNT');
