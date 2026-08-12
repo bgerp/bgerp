@@ -437,7 +437,8 @@ class hr_Indicators extends core_Manager
                 $prlRec->periodId = $pRec->id;
             }
             
-            if ($replaceFormula && $ecRec->positionId) {
+            // Лицата без намерен договор са голи обекти, без длъжност
+            if ($replaceFormula && !empty($ecRec->positionId)) {
                 $prlRec->formula = $positions[$ecRec->positionId]->formula;
             }
             
