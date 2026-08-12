@@ -398,7 +398,9 @@ class hr_Indicators extends core_Manager
         }
 
         // За всеки един договор, се опитваме да намерим формулата за заплащането от позицията.
-        $baseCurrencyCode = currency_Currencies::getCodeById($pRec->baseCurrencyId);
+        // Валутата на периода е 'allowEmpty' - при празна се взима подразбиращата се
+        // към края му, както прави и самият acc_Periods
+        $baseCurrencyCode = !empty($pRec->baseCurrencyId) ? currency_Currencies::getCodeById($pRec->baseCurrencyId) : acc_Periods::getBaseCurrencyCode($pRec->end ?? null);
         foreach ($ecArr as $personId => $ecRec) {
             $sum = array();
             
