@@ -91,7 +91,7 @@ class price_interface_AverageCostPricePolicyImpl extends price_interface_BaseCos
         foreach ($affectedTargetedProducts as $productId) {
             
             // Всички покупки на търсения артикул
-            $accObject = $accCosts[$productId];
+            $accObject = $accCosts[$productId] ?? (object) array('quantity' => 0);
             $foundIn = array_key_exists($productId, $groupedArr) ? $groupedArr[$productId] : array();
             
             $useFirstPurchase = true;
