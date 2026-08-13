@@ -20,6 +20,13 @@ defIfNot('DOUBLEWORD_OCR_MODEL', 'allenai/olmOCR-2-7B-1025-FP8');
 
 
 /**
+ * Повторения при временна API грешка
+ */
+defIfNot('DOUBLEWORD_API_RETRIES', 1);
+defIfNot('DOUBLEWORD_PATH_API_RETRIES', 0);
+
+
+/**
  * Път до pdftoppm за преобразуване на PDF страници в изображения
  */
 defIfNot('DOUBLEWORD_PDFTOPPM_PATH', 'pdftoppm');
@@ -54,7 +61,7 @@ class doubleword_Setup extends core_ProtoSetup
     /**
      * Версия на пакета
      */
-    public $version = '0.1';
+    public $version = '0.5';
 
 
     /**
@@ -96,6 +103,8 @@ class doubleword_Setup extends core_ProtoSetup
         'DOUBLEWORD_API_KEY' => array('password', 'caption=API ключ, mandatory'),
         'DOUBLEWORD_API_URL' => array('Url', 'caption=API URL за OCR->URL,mandatory'),
         'DOUBLEWORD_OCR_MODEL' => array('varchar(128)', 'caption=OCR модел,mandatory'),
+        'DOUBLEWORD_API_RETRIES' => array('int(min=0,max=3)', 'caption=API заявки->Повторения при временна грешка,mandatory'),
+        'DOUBLEWORD_PATH_API_RETRIES' => array('int(min=0,max=3)', 'caption=API заявки->Повторения за временен файл,mandatory'),
         'DOUBLEWORD_PDFTOPPM_PATH' => array('varchar(255)', 'caption=Път до pdftoppm->Път'),
         'DOUBLEWORD_MAX_PDF_PAGES' => array('int(min=1,max=20)', 'caption=PDF документи->Максимален брой страници'),
         'DOUBLEWORD_PDF_RENDER_TIMEOUT' => array('int(min=30,max=1800)', 'caption=PDF документи->Максимално време за преобразуване, unit=сек.'),
