@@ -6170,7 +6170,7 @@ class planning_Tasks extends core_Master
     {
         expect(Request::get('isReorder'));
         expect($assetId = Request::get('assetId', 'varchar'));
-        $this->requireRightFor('list');
+        $this->requireRightFor('savereordertasks', (object) array('assetId' => (int)$assetId));
         $otherEditorsHtml = $this->getEditWatchHtml($assetId);
 
         $resObj = new stdClass();
