@@ -890,7 +890,7 @@ abstract class deals_DealMaster extends deals_DealBase
             $data->listSummary->mvc->FNC('amountDeliveredCalc', 'varchar', "caption=Доставено ({$caption}),input=none,summary=amount");
             $data->listSummary->mvc->FNC('amountPaidCalc', 'varchar', "caption=Платено ({$caption}),input=none,summary=amount");
             $data->listSummary->mvc->FNC('amountInvoicedCalc', 'varchar', "caption=Фактурирано ({$caption}),input=none,summary=amount");
-            $data->listSummary->mvc->FNC('amountBlCalc', 'varchar', "caption=Крайно салдо,input=none,summary=amount");
+            $data->listSummary->mvc->FNC('amountBlCalc', 'varchar', "caption=Крайно салдо ({$caption}),input=none,summary=amount");
         }
     }
 
