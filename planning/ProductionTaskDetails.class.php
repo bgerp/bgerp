@@ -504,11 +504,12 @@ class planning_ProductionTaskDetails extends doc_Detail
 
         // Ако е въведено тегло, показват се и теглата, както и разминаването спрямо очакваното нето
         if (isset($lastRec->weight)) {
-            $WeightType = core_Type::getByName('cat_type_Weight(smartRound=no)');
-            $kgVerbal = cat_UoM::getShortName(cat_UoM::fetchBySysId('kg')->id);
 
-            $infoArr[] = tr('Бруто') . " (<b>{$WeightType->toVerbal($lastRec->weight)}</b> {$kgVerbal})";
-            $netWeightVerbal = isset($lastRec->netWeight) ? "<b>{$WeightType->toVerbal($lastRec->netWeight)}</b> {$kgVerbal}" : "<span class='quiet'>n/a</span>";
+            // Мярката е част от вербалната стойност на типа
+            $WeightType = core_Type::getByName('cat_type_Weight(smartRound=no)');
+
+            $infoArr[] = tr('Бруто') . " (<b>{$WeightType->toVerbal($lastRec->weight)}</b>)";
+            $netWeightVerbal = isset($lastRec->netWeight) ? "<b>{$WeightType->toVerbal($lastRec->netWeight)}</b>" : "<span class='quiet'>n/a</span>";
             $infoArr[] = tr('Нето') . " ({$netWeightVerbal})";
 
             // Ако може да се определи очакваното нето, показва се и разминаването спрямо него
@@ -518,7 +519,7 @@ class planning_ProductionTaskDetails extends doc_Detail
                 $deviationVerbal = "<b>{$deviationVerbal}</b>";
                 if (isset($deviationRec->iconHint)) {
                     $expectedVerbal = $WeightType->toVerbal($deviationRec->expectedNetWeight);
-                    $hintMsg = "|спрямо очакваното|* ({$expectedVerbal} {$kgVerbal}) |нето|*!";
+                    $hintMsg = "|спрямо очакваното|* ({$expectedVerbal}) |нето|*!";
                     $deviationVerbal = ht::createHint($deviationVerbal, $hintMsg, $deviationRec->iconHint, false);
                 }
                 $infoArr[] = tr('Разминаване') . " ({$deviationVerbal})";
