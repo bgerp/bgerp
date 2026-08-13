@@ -128,13 +128,13 @@ class planning_Tasks extends core_Master
     /**
      * Кой може да записва преподредените задачи?
      */
-    public $canSavereordertasks = 'ceo, taskSee';
+    public $canSavereordertasks = 'ceo, planning';
 
 
     /**
      * Кой може да записва персоналните ширини на колоните при подреждане?
      */
-    public $canSavereordercolumnwidths = 'ceo, taskSee';
+    public $canSavereordercolumnwidths = 'ceo, planning';
 
 
     /**
@@ -2399,7 +2399,8 @@ class planning_Tasks extends core_Master
                 $orderByField = 'orderByAssetIdCalc';
 
                 $cUrl = getCurrentUrl();
-                if(!Mode::get('isReorder')){
+                if (!Mode::get('isReorder') &&
+                    $mvc->haveRightFor('savereordertasks', (object) array('assetId' => $filter->assetId))) {
                     $cUrl['isFinalSelect'] = 'all';
                     $cUrl['state'] = 'manualOrder';
                     $cUrl['selectPeriod'] = 'gr0';
@@ -2541,7 +2542,12 @@ class planning_Tasks extends core_Master
     protected static function on_BeforeAction(core_Manager $mvc, &$res, $action)
     {
         if (in_array(strtolower($action), array('list', 'default'))) {
-            Mode::set('isReorder', Request::get('reorder', 'int'));
+            $reorderAssetId = Request::get('assetId', 'int');
+            $isReorder = Request::get('reorder', 'int') && !empty($reorderAssetId);
+            if ($isReorder) {
+                $isReorder = $mvc->haveRightFor('savereordertasks', (object) array('assetId' => $reorderAssetId));
+            }
+            Mode::set('isReorder', $isReorder);
 
             if(Mode::is('isReorder')){
                 Mode::set('wrapper', 'page_Empty');
@@ -3507,18 +3513,19 @@ class planning_Tasks extends core_Master
 
         $haveDiffMeasure = countR($measuresArr) > 1 || isset($data->masterMvc);
         $haveDiffProductIds = countR($productIds) > 1;
-        $requiredPackageLinks = Mode::is('isReorder')
-            ? planning_TaskConstraints::getSameResourceJobPackageLinks($data->recs, $data->listFilter->rec->assetId)
+        $reorderAssetId = Mode::is('isReorder') ? (int)($data->listFilter->rec->assetId ?? 0) : 0;
+        $requiredPackageLinks = $reorderAssetId
+            ? planning_TaskConstraints::getSameResourceJobPackageLinks($data->recs, $reorderAssetId)
             : array();
-        $manualPackageLinks = Mode::is('isReorder')
+        $manualPackageLinks = $reorderAssetId
             ? planning_TaskConstraints::mergeRequiredPackageLinks(
                 $requiredPackageLinks,
-                planning_TaskManualOrderPerAssets::getPackageLinks($data->listFilter->rec->assetId)
+                planning_TaskManualOrderPerAssets::getPackageLinks($reorderAssetId)
             )
             : array();
-        $manualAnchorLinks = Mode::is('isReorder')
+        $manualAnchorLinks = $reorderAssetId
             ? planning_TaskManualOrderPerAssets::getAnchorLinks(
-                $data->listFilter->rec->assetId,
+                $reorderAssetId,
                 null,
                 $manualPackageLinks
             )
@@ -4180,19 +4187,18 @@ class planning_Tasks extends core_Master
     private static function getIdleChangesReport($before, $after, $changes)
     {
         $result = array();
-        $timeType = core_Type::getByName('time');
         foreach (array('increased' => 1, 'decreased' => -1) as $type => $direction) {
             foreach ((array)($changes[$type] ?? array()) as $assetId => $difference) {
                 $beforeSeconds = max(0, (int)($before[$assetId] ?? 0));
                 $afterSeconds = max(0, (int)($after[$assetId] ?? 0));
                 $signedDifference = $direction * (int)$difference;
-                $verbalDifference = $timeType->toVerbal(abs($signedDifference));
+                $verbalDifference = static::getPlanningReportTimeVerbal(abs($signedDifference));
 
                 $result[] = array(
                     'assetId' => (int)$assetId,
                     'assetTitle' => planning_AssetResources::getTitleById($assetId),
-                    'before' => $timeType->toVerbal($beforeSeconds),
-                    'after' => $timeType->toVerbal($afterSeconds),
+                    'before' => static::getPlanningReportTimeVerbal($beforeSeconds),
+                    'after' => static::getPlanningReportTimeVerbal($afterSeconds),
                     'change' => ($signedDifference > 0 ? '+' : '−') . $verbalDifference,
                     'changeSeconds' => $signedDifference,
                 );
@@ -4211,16 +4217,27 @@ class planning_Tasks extends core_Master
         $increasedSeconds = array_sum((array)($changes['increased'] ?? array()));
         $decreasedSeconds = array_sum((array)($changes['decreased'] ?? array()));
         $netSeconds = $increasedSeconds - $decreasedSeconds;
-        $timeType = core_Type::getByName('time');
 
         return array(
-            'increased' => $timeType->toVerbal($increasedSeconds),
+            'increased' => static::getPlanningReportTimeVerbal($increasedSeconds),
             'increasedSeconds' => $increasedSeconds,
-            'decreased' => $timeType->toVerbal($decreasedSeconds),
+            'decreased' => static::getPlanningReportTimeVerbal($decreasedSeconds),
             'decreasedSeconds' => $decreasedSeconds,
-            'net' => ($netSeconds > 0 ? '+' : ($netSeconds < 0 ? '−' : '')) . $timeType->toVerbal(abs($netSeconds)),
+            'net' => ($netSeconds > 0 ? '+' : ($netSeconds < 0 ? '−' : '')) . static::getPlanningReportTimeVerbal(abs($netSeconds)),
             'netSeconds' => $netSeconds,
         );
+    }
+
+
+    /**
+     * Форматира прогнозна продължителност за отчетите на подреждането без секунди.
+     */
+    private static function getPlanningReportTimeVerbal($seconds)
+    {
+        $roundedSeconds = (int)round(max(0, (int)$seconds) / 60) * 60;
+        if (!$roundedSeconds) return '0 мин.';
+
+        return core_Type::getByName('time')->toVerbal($roundedSeconds);
     }
 
 
@@ -4837,7 +4854,6 @@ class planning_Tasks extends core_Master
      */
     private static function getOptimizationMetricsReport($before, $after)
     {
-        $timeType = core_Type::getByName('time');
         $reportedAfter = $after;
         $hasNewMissingJobCompletions = (int)($after['missingJobCompletions'] ?? 0)
             > (int)($before['missingJobCompletions'] ?? 0);
@@ -4879,13 +4895,13 @@ class planning_Tasks extends core_Master
         }
 
         return array(
-            'before' => $timeType->toVerbal($before['makespanSeconds']),
-            'after' => $timeType->toVerbal($reportedAfter['makespanSeconds']),
-            'change' => ($difference > 0 ? '+' : ($difference < 0 ? '−' : '')) . $timeType->toVerbal(abs($difference)),
+            'before' => static::getPlanningReportTimeVerbal($before['makespanSeconds']),
+            'after' => static::getPlanningReportTimeVerbal($reportedAfter['makespanSeconds']),
+            'change' => ($difference > 0 ? '+' : ($difference < 0 ? '−' : '')) . static::getPlanningReportTimeVerbal(abs($difference)),
             'changeSeconds' => $difference,
-            'targetBefore' => $timeType->toVerbal((int)($before['targetMakespanSeconds'] ?? 0)),
-            'targetAfter' => $timeType->toVerbal((int)($reportedAfter['targetMakespanSeconds'] ?? 0)),
-            'targetChange' => ($targetDifference > 0 ? '+' : ($targetDifference < 0 ? '−' : '')) . $timeType->toVerbal(abs($targetDifference)),
+            'targetBefore' => static::getPlanningReportTimeVerbal((int)($before['targetMakespanSeconds'] ?? 0)),
+            'targetAfter' => static::getPlanningReportTimeVerbal((int)($reportedAfter['targetMakespanSeconds'] ?? 0)),
+            'targetChange' => ($targetDifference > 0 ? '+' : ($targetDifference < 0 ? '−' : '')) . static::getPlanningReportTimeVerbal(abs($targetDifference)),
             'targetChangeSeconds' => $targetDifference,
             'targetAssetTitle' => $targetAssetId ? planning_AssetResources::getTitleById($targetAssetId) : '',
             'targetEnd' => !empty($after['targetMakespanEnd']) ? dt::mysql2verbal($after['targetMakespanEnd'], 'd.m.Y H:i') : '',
@@ -4899,12 +4915,12 @@ class planning_Tasks extends core_Master
             'missingJobCompletionsChange' => $missingJobCompletionsDifference,
             'lateJobsBefore' => (int)($before['lateJobs'] ?? 0),
             'lateJobsAfter' => (int)($reportedAfter['lateJobs'] ?? 0),
-            'tardinessBefore' => $timeType->toVerbal((int)($before['tardinessSeconds'] ?? 0)),
-            'tardinessAfter' => $timeType->toVerbal((int)($reportedAfter['tardinessSeconds'] ?? 0)),
-            'tardinessChange' => ($tardinessDifference > 0 ? '+' : ($tardinessDifference < 0 ? '−' : '')) . $timeType->toVerbal(abs($tardinessDifference)),
+            'tardinessBefore' => static::getPlanningReportTimeVerbal((int)($before['tardinessSeconds'] ?? 0)),
+            'tardinessAfter' => static::getPlanningReportTimeVerbal((int)($reportedAfter['tardinessSeconds'] ?? 0)),
+            'tardinessChange' => ($tardinessDifference > 0 ? '+' : ($tardinessDifference < 0 ? '−' : '')) . static::getPlanningReportTimeVerbal(abs($tardinessDifference)),
             'tardinessChangeSeconds' => $tardinessDifference,
-            'idleBefore' => $timeType->toVerbal((int)($before['idleSeconds'] ?? 0)),
-            'idleAfter' => $timeType->toVerbal((int)($after['idleSeconds'] ?? 0)),
+            'idleBefore' => static::getPlanningReportTimeVerbal((int)($before['idleSeconds'] ?? 0)),
+            'idleAfter' => static::getPlanningReportTimeVerbal((int)($after['idleSeconds'] ?? 0)),
             'idleChangeSeconds' => (int)($after['idleSeconds'] ?? 0) - (int)($before['idleSeconds'] ?? 0),
         );
     }
