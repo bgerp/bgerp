@@ -236,6 +236,15 @@ class core_Form extends core_FieldSet
                 }
             }
             
+            // Запазваме вече зададената mandatory парола при служебния вход
+            // "без промяна". Без стара стойност mandatory проверката остава.
+            if (($field->mandatory ?? null) && $field->type instanceof type_Password &&
+                empty($field->type->params['show']) && empty($field->type->params['allowEmpty']) &&
+                $value === type_Password::EF_PASS_NO_CHANGE && property_exists($this->rec, $name) &&
+                is_scalar($this->rec->{$name}) && (string) $this->rec->{$name} !== '') {
+                continue;
+            }
+
             if ($value === '' && ($field->mandatory ?? null) && $this->cmd != 'refresh') {
                 $captions = str_replace('» |@', '', $captions);
                 $this->setError($name, 'Непопълнено задължително поле' .
