@@ -2292,7 +2292,7 @@ class planning_Tasks extends core_Master
      */
     protected static function restorePersistentListFilter()
     {
-        if (Mode::is('isReorder') || Request::get('reorder', 'int')) {
+        if (Mode::is('isReorder')) {
             return;
         }
 
@@ -2401,6 +2401,7 @@ class planning_Tasks extends core_Master
                 $cUrl = getCurrentUrl();
                 if (!Mode::get('isReorder') &&
                     $mvc->haveRightFor('savereordertasks', (object) array('assetId' => $filter->assetId))) {
+                    $cUrl['assetId'] = $filter->assetId;
                     $cUrl['isFinalSelect'] = 'all';
                     $cUrl['state'] = 'manualOrder';
                     $cUrl['selectPeriod'] = 'gr0';
