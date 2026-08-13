@@ -451,6 +451,81 @@ class planning_ProductionTaskDetails extends doc_Detail
         } elseif ($rec->type != 'scrap') {
             $form->setField('weight', 'input=none');
         }
+
+        // Показване на теглата на последно добавения прогрес от същия артикул и тип
+        if ($lastProgressInfo = static::getLastProgressInfo($rec, $masterRec)) {
+            $form->info = new core_ET($form->info . $lastProgressInfo);
+        }
+    }
+
+
+    /**
+     * Информация за теглата на последно добавения прогрес от същия артикул и тип
+     *
+     * @param stdClass $rec       - запис от формата
+     * @param stdClass $masterRec - запис на ПО-то
+     *
+     * @return string|null        - информацията, или null ако няма с какво да се сравнява
+     */
+    private static function getLastProgressInfo($rec, $masterRec)
+    {
+        if (empty($rec->productId) || empty($rec->type)) return null;
+
+        // Кой е последния активен прогрес със същия артикул и тип
+        $query = static::getQuery();
+        $query->where("#taskId = {$rec->taskId} AND #productId = {$rec->productId} AND #type = '{$rec->type}'");
+        $query->where("#state != 'rejected'");
+        if (isset($rec->id)) {
+            $query->where("#id != {$rec->id}");
+        }
+        $query->orderBy('id', 'DESC');
+        $query->limit(1);
+        $lastRec = $query->fetch();
+        if (empty($lastRec)) return null;
+
+        // Количеството в мярката, в която е въведено
+        $isProduct4Task = planning_ProductionTaskProducts::isProduct4Task($lastRec->taskId, $lastRec->productId);
+        if ($isProduct4Task) {
+            $quantity = $lastRec->quantity / $masterRec->quantityInPack;
+            $measureId = $masterRec->measureId;
+        } else {
+            $quantity = $lastRec->quantity;
+            $info = planning_ProductionTaskProducts::getInfo($lastRec->taskId, $lastRec->productId, $lastRec->type, $lastRec->fixedAsset ?? null);
+            $measureId = $info->packagingId ?? $info->measureId ?? cat_Products::fetchField($lastRec->productId, 'measureId');
+        }
+
+        $measureVerbal = cat_UoM::getShortName($measureId);
+        if ($measureId && cat_UoM::fetchField($measureId, 'type') != 'uom') {
+            $measureVerbal = str::getPlural($quantity, $measureVerbal, true);
+        }
+
+        $quantityVerbal = core_Type::getByName('double(smartRound)')->toVerbal($quantity);
+        $infoArr = array(tr('К-во') . " (<b>{$quantityVerbal}</b> {$measureVerbal})");
+
+        // Ако е въведено тегло, показват се и теглата, както и разминаването спрямо очакваното нето
+        if (isset($lastRec->weight)) {
+            $WeightType = core_Type::getByName('cat_type_Weight(smartRound=no)');
+            $kgVerbal = cat_UoM::getShortName(cat_UoM::fetchBySysId('kg')->id);
+
+            $infoArr[] = tr('Бруто') . " (<b>{$WeightType->toVerbal($lastRec->weight)}</b> {$kgVerbal})";
+            $netWeightVerbal = isset($lastRec->netWeight) ? "<b>{$WeightType->toVerbal($lastRec->netWeight)}</b> {$kgVerbal}" : "<span class='quiet'>n/a</span>";
+            $infoArr[] = tr('Нето') . " ({$netWeightVerbal})";
+
+            // Ако може да се определи очакваното нето, показва се и разминаването спрямо него
+            $deviationRec = static::getNetWeightDeviation($lastRec, $masterRec);
+            if (isset($deviationRec->expectedNetWeight)) {
+                $deviationVerbal = core_Type::getByName('percent(decimals=2)')->toVerbal($deviationRec->deviation);
+                $deviationVerbal = "<b>{$deviationVerbal}</b>";
+                if (isset($deviationRec->iconHint)) {
+                    $expectedVerbal = $WeightType->toVerbal($deviationRec->expectedNetWeight);
+                    $hintMsg = "|спрямо очакваното|* ({$expectedVerbal} {$kgVerbal}) |нето|*!";
+                    $deviationVerbal = ht::createHint($deviationVerbal, $hintMsg, $deviationRec->iconHint, false);
+                }
+                $infoArr[] = tr('Разминаване') . " ({$deviationVerbal})";
+            }
+        }
+
+        return "<div class='richtext-info-no-image'>" . tr('Последно добавено') . ': ' . implode(', ', $infoArr) . '</div>';
     }
 
 
@@ -1203,6 +1278,116 @@ class planning_ProductionTaskDetails extends doc_Detail
 
 
     /**
+     * Изчислява очакваното нето тегло на реда от прогреса и разминаването спрямо реалното
+     *
+     * @param stdClass $rec            - запис на прогреса
+     * @param stdClass|null $masterRec - записа на ПО-то, ако е null се извлича автоматично
+     * @param stdClass|null $centerRec - записа на центъра на дейност, ако е null се извлича автоматично
+     *
+     * @return stdClass $res
+     *         ->expectedNetWeight     - очакваното нето тегло, null ако не може да се определи
+     *         ->deviation             - разминаването спрямо очакваното нето, null ако няма очаквано
+     *         ->iconHint              - икона според праговете за разминаване, null ако е в нормите
+     *         ->debugInfo             - помощна информация за дебъгване
+     */
+    public static function getNetWeightDeviation($rec, $masterRec = null, $centerRec = null)
+    {
+        $res = (object)array('expectedNetWeight' => null, 'deviation' => null, 'iconHint' => null, 'debugInfo' => null);
+        if (!isset($rec->netWeight)) return $res;
+
+        $masterRec = is_object($masterRec) ? $masterRec : planning_Tasks::fetch($rec->taskId);
+        $centerRec = is_object($centerRec) ? $centerRec : planning_Centers::fetch("#folderId = {$masterRec->folderId}");
+        $info = planning_ProductionTaskProducts::getInfo($rec->taskId, $rec->productId, $rec->type, $rec->fixedAsset ?? null);
+
+        // Ако няма и има избран параметър за ед. тегло
+        $convertAgain = true;
+        $expectedSingleNetWeight = !empty($info->netWeight) ? $info->netWeight : null;
+
+        // Ако няма ръчно въведено единично нето
+        if(!isset($expectedSingleNetWeight)){
+            if(isset($centerRec->paramExpectedNetWeight)){
+                $jobProductId = planning_Jobs::fetchField("#containerId = {$masterRec->originId}", 'productId');
+
+                // Ако е субпродукт нето теглото ще се взема от параметъра му
+                if($rec->type == 'production' && ($rec->productId != $jobProductId && $rec->productId != $masterRec->productId)){
+                    $expectedSingleNetWeight = cat_Products::getParams($rec->productId, $centerRec->paramExpectedNetWeight);
+                } else {
+
+                    // Ако е за крайния артикул или този от ПО се взима от ПО/Заданието/артикула
+                    $expectedSingleNetWeight = static::getParamValue($rec->taskId, $centerRec->paramExpectedNetWeight, $jobProductId, $masterRec->productId);
+                }
+
+                // Ако параметъра е формула, се прави опит за изчислението ѝ
+                if(cat_Params::haveDriver($centerRec->paramExpectedNetWeight, 'cond_type_Formula')){
+                    Mode::push('text', 'plain');
+                    $expectedSingleNetWeight = cat_Params::toVerbal($centerRec->paramExpectedNetWeight, planning_Tasks::getClassId(), $rec->taskId, $expectedSingleNetWeight);
+                    Mode::pop('text');
+                    if ($expectedSingleNetWeight === cat_BomDetails::CALC_ERROR) {
+                        $expectedSingleNetWeight = null;
+                    }
+                }
+
+                if(isset($centerRec->paramExpectedNetMeasureId) && is_numeric($expectedSingleNetWeight)){
+                    $kgMeasureId = cat_UoM::fetchBySysId('kg')->id;
+                    $expectedSingleNetWeight = cat_UoM::convertValue($expectedSingleNetWeight, $centerRec->paramExpectedNetMeasureId, $kgMeasureId);
+                    if($rec->type == 'production'){
+                        $expectedSingleNetWeight = $expectedSingleNetWeight / $masterRec->quantityInPack;
+                    }
+                }
+            }
+
+            $defaultExpectedSingleWeight = cat_Products::convertToUom($rec->productId, 'kg');
+
+            if(empty($expectedSingleNetWeight)){
+                $expectedSingleNetWeight = $defaultExpectedSingleWeight;
+                if($rec->type == 'production'){
+                    $expectedSingleNetWeight = $expectedSingleNetWeight * $masterRec->quantityInPack;
+                    $convertAgain = false;
+                }
+            }
+        }
+
+        $weightQuantity = $rec->quantity;
+        $qInPack = 1;
+        if($rec->type == 'production'){
+            $qInPack = $masterRec->quantityInPack;
+            $isProduct4Tasks = planning_ProductionTaskProducts::isProduct4Task($rec->taskId, $rec->productId);
+            if(!$isProduct4Tasks){
+                $convertAgain = true;
+                $qInPack = planning_ProductionTaskProducts::fetchField("#taskId = {$rec->taskId} AND #productId = {$rec->productId}", 'quantityInPack');
+            }
+
+            if($convertAgain){
+                $weightQuantity = $rec->quantity * $qInPack;
+            }
+        }
+
+        // Ако артикула няма нето тегло, няма спрямо какво да се сравнява
+        if(!is_numeric($expectedSingleNetWeight)) return $res;
+
+        $res->expectedNetWeight = $weightQuantity * $expectedSingleNetWeight;
+        $res->deviation = !empty($res->expectedNetWeight) ? round(($rec->netWeight - $res->expectedNetWeight) / $res->expectedNetWeight, 4) : 1;
+        $res->debugInfo = "NW:{$expectedSingleNetWeight}-CQ:{$weightQuantity}-InPack:{$qInPack}-Q:{$rec->quantity}";
+
+        // Според праговете за разминаване се определя и статуса му
+        $eFields = planning_Tasks::getExpectedDeviations($masterRec);
+        $deviationNotice = $eFields['notice'] ?? null;
+        $deviationWarning = $eFields['warning'] ?? null;
+        $deviationCritical = $eFields['critical'] ?? null;
+
+        if(!empty($deviationCritical) && abs($res->deviation) > $deviationCritical){
+            $res->iconHint = 'img/16/red-warning.png';
+        } elseif(abs($res->deviation) > $deviationWarning){
+            $res->iconHint = 'warning';
+        } elseif(!empty($deviationNotice) && abs($res->deviation) > $deviationNotice){
+            $res->iconHint = 'img/16/green-info.png';
+        }
+
+        return $res;
+    }
+
+
+    /**
      * Преди рендиране на таблицата
      */
     protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
@@ -1264,10 +1449,6 @@ class planning_ProductionTaskDetails extends doc_Detail
                 $row->jobId = doc_Containers::getDocument($masterRec->originId)->getLink(0);
             }
 
-            $eFields = planning_Tasks::getExpectedDeviations($masterRec);
-            $deviationNotice = $eFields['notice'] ?? null;
-            $deviationWarning = $eFields['warning'] ?? null;
-            $deviationCritical = $eFields['critical'] ?? null;
             $row->quantity = "<b>{$row->quantity}</b> {$row->measureId}";
 
             if($id == $lastRecId){
@@ -1291,93 +1472,20 @@ class planning_ProductionTaskDetails extends doc_Detail
 
                 // Има ли нето тегло
                 if(isset($rec->netWeight) && $rec->state != 'rejected'){
-                    $info = planning_ProductionTaskProducts::getInfo($rec->taskId, $rec->productId, $rec->type, $rec->fixedAsset ?? null);
-
-                    // Ако няма и има избран параметър за ед. тегло
-                    $convertAgain = true;
-                    $expectedSingleNetWeight = !empty($info->netWeight) ? $info->netWeight : null;
-
-                    // Ако няма ръчно въведено единично нето
-                    if(!isset($expectedSingleNetWeight)){
-                        if(isset($centerRec->paramExpectedNetWeight)){
-                            $jobProductId = planning_Jobs::fetchField("#containerId = {$masterRec->originId}", 'productId');
-
-                            // Ако е субпродукт нето теглото ще се взема от параметъра му
-                            if($rec->type == 'production' && ($rec->productId != $jobProductId && $rec->productId != $masterRec->productId)){
-                                $expectedSingleNetWeight = cat_Products::getParams($rec->productId, $centerRec->paramExpectedNetWeight);
-                            } else {
-
-                                // Ако е за крайния артикул или този от ПО се взима от ПО/Заданието/артикула
-                                $expectedSingleNetWeight = static::getParamValue($rec->taskId, $centerRec->paramExpectedNetWeight, $jobProductId, $masterRec->productId);
-                            }
-
-                            // Ако параметъра е формула, се прави опит за изчислението ѝ
-                            if(cat_Params::haveDriver($centerRec->paramExpectedNetWeight, 'cond_type_Formula')){
-                                Mode::push('text', 'plain');
-                                $expectedSingleNetWeight = cat_Params::toVerbal($centerRec->paramExpectedNetWeight, planning_Tasks::getClassId(), $rec->taskId, $expectedSingleNetWeight);
-                                Mode::pop('text');
-                                if ($expectedSingleNetWeight === cat_BomDetails::CALC_ERROR) {
-                                    $expectedSingleNetWeight = null;
-                                }
-                            }
-
-                            if(isset($centerRec->paramExpectedNetMeasureId) && is_numeric($expectedSingleNetWeight)){
-                                $kgMeasureId = cat_UoM::fetchBySysId('kg')->id;
-                                $expectedSingleNetWeight = cat_UoM::convertValue($expectedSingleNetWeight, $centerRec->paramExpectedNetMeasureId, $kgMeasureId);
-                                if($rec->type == 'production'){
-                                    $expectedSingleNetWeight = $expectedSingleNetWeight / $masterRec->quantityInPack;
-                                }
-                            }
-                        }
-
-                        $defaultExpectedSingleWeight = cat_Products::convertToUom($rec->productId, 'kg');
-
-                        if(empty($expectedSingleNetWeight)){
-                            $expectedSingleNetWeight = $defaultExpectedSingleWeight;
-                            if($rec->type == 'production'){
-                                $expectedSingleNetWeight = $expectedSingleNetWeight * $masterRec->quantityInPack;
-                                $convertAgain = false;
-                            }
-                        }
-                    }
-
-                    $weightQuantity = $rec->quantity;
-                    $qInPack = 1;
-                    if($rec->type == 'production'){
-                        $qInPack = $masterRec->quantityInPack;
-                        $isProduct4Tasks = planning_ProductionTaskProducts::isProduct4Task($rec->taskId, $rec->productId);
-                        if(!$isProduct4Tasks){
-                            $convertAgain = true;
-                            $qInPack = planning_ProductionTaskProducts::fetchField("#taskId = {$rec->taskId} AND #productId = {$rec->productId}", 'quantityInPack');
-                        }
-
-                        if($convertAgain){
-                            $weightQuantity = $rec->quantity * $qInPack;
-                        }
-                    }
+                    $deviationRec = static::getNetWeightDeviation($rec, $masterRec, $centerRec);
 
                     // Ако артикула има нето тегло
-                    if(is_numeric($expectedSingleNetWeight)){
-                        $expectedNetWeight = $weightQuantity * $expectedSingleNetWeight;
-                        $deviation = !empty($expectedNetWeight) ? round(($rec->netWeight - $expectedNetWeight) / $expectedNetWeight, 4) : 1;
+                    if(isset($deviationRec->expectedNetWeight)){
 
                         // Показване на хинт ако има разминаване
-                        $iconHint = null;
-                        if(!empty($deviationCritical) && abs($deviation) > $deviationCritical){
-                            $iconHint = 'img/16/red-warning.png';
-                        } elseif(abs($deviation) > $deviationWarning){
-                            $iconHint = 'warning';
-                        } elseif(!empty($deviationNotice) && abs($deviation) > $deviationNotice){
-                            $iconHint = 'img/16/green-info.png';
-                        }
-
-                        if(isset($iconHint)){
-                            $deviationVerbal = core_Type::getByName('percent(decimals=2)')->toVerbal($deviation);
+                        if(isset($deviationRec->iconHint)){
+                            $iconHint = $deviationRec->iconHint;
+                            $deviationVerbal = core_Type::getByName('percent(decimals=2)')->toVerbal($deviationRec->deviation);
                             $hintMsg = ($iconHint == 'notice') ? '' : (($iconHint == 'img/16/red-warning.png' ? ' (критично!!)' : ($iconHint == 'warning' ? ' (значително!)' : null)));
-                            $expectedNetWeightVerbal = core_Type::getByName('cat_type_Weight(smartRound=no)')->toVerbal($expectedNetWeight);
+                            $expectedNetWeightVerbal = core_Type::getByName('cat_type_Weight(smartRound=no)')->toVerbal($deviationRec->expectedNetWeight);
                             $msg = "|*{$deviationVerbal} |разминаване|*{$hintMsg}&lt;br&gt;|спрямо очакваното|* ({$expectedNetWeightVerbal}) |нето|*!";
                             if(haveRole('debug')){
-                                $msg .= "&lt;br&gt;&lt;br&gt;debug info:&lt;br&gt;NW:{$expectedSingleNetWeight}-CQ:{$weightQuantity}-InPack:{$qInPack}-Q:{$rec->quantity}";
+                                $msg .= "&lt;br&gt;&lt;br&gt;debug info:&lt;br&gt;{$deviationRec->debugInfo}";
                             }
                             $row->netWeight = ht::createHint($row->netWeight, $msg, $iconHint, false);
                         }
