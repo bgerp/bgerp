@@ -39,7 +39,9 @@ defIfNot('DOUBLEWORD_REQUEST_TIMEOUT', 3600);
 /**
  * Класът обслужване, с който се пращат заявките
  *
- * 'flex' е евтиният ред на доставчика и при натоварване чака - празно поле не изпраща нищо
+ * 'flex' е редът за свободен капацитет - при натоварване заявката чака на опашка, но
+ * измерено е единственият, който този акаунт има право да ползва. Стойността 'none' не
+ * изпраща полето изобщо и заявката тръгва по real-time маршрута, за който трябва достъп
  */
 defIfNot('DOUBLEWORD_SERVICE_TIER', 'flex');
 
@@ -136,7 +138,7 @@ class doubleword_Setup extends core_ProtoSetup
         'DOUBLEWORD_OCR_MODEL' => array('varchar(128)', 'caption=OCR модел,mandatory'),
         'DOUBLEWORD_TABLE_FORMAT' => array('enum(html=HTML - официалният промпт на olmOCR,markdown=Markdown таблици,text=Текст с табулации)', 'caption=OCR промпт->Таблици,mandatory'),
         'DOUBLEWORD_REQUEST_TIMEOUT' => array('int(min=30,max=7200)', 'caption=API заявки->Максимално време за заявка,unit=сек.,mandatory'),
-        'DOUBLEWORD_SERVICE_TIER' => array('varchar(32)', 'caption=API заявки->Клас обслужване'),
+        'DOUBLEWORD_SERVICE_TIER' => array('enum(flex=flex, auto=auto, default=default, priority=priority, none=Без - real-time)', 'caption=API заявки->Клас обслужване,mandatory,hint=При Без полето не се изпраща и заявката тръгва по real-time маршрута'),
         'DOUBLEWORD_API_RETRIES' => array('int(min=0,max=3)', 'caption=API заявки->Повторения при временна грешка,mandatory'),
         'DOUBLEWORD_PATH_API_RETRIES' => array('int(min=0,max=3)', 'caption=API заявки->Повторения за временен файл,mandatory'),
         'DOUBLEWORD_PDFTOPPM_PATH' => array('varchar(255)', 'caption=Път до pdftoppm->Път'),

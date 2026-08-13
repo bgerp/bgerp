@@ -637,6 +637,7 @@ class doubleword_Converter extends core_Manager
         return true;
     }
 
+
     /**
      * Преобразува PDF в страници и ги подава към OCR
      *
@@ -844,7 +845,10 @@ class doubleword_Converter extends core_Manager
         $batchTime = $batches * $apiAttempts * ($requestTimeout + self::RETRY_DELAY);
         $renderTimeout = max(30, min(3600, (int) doubleword_Setup::get('PDF_RENDER_TIMEOUT')));
 
-        return max(1800, ($batchTime * self::MAX_ROUNDS) + $renderTimeout + 600);
+        // Запасът е щедър нарочно - callback-ът идва чак след като скриптът изчака
+        // опашката на доставчика, а изтекла ключалка би пуснала втора обработка на
+        // същия файл, докато първата още работи
+        return max(3600, ($batchTime * self::MAX_ROUNDS) + $renderTimeout + 1800);
     }
 
 
@@ -1334,7 +1338,9 @@ class doubleword_Converter extends core_Manager
             ),
         );
 
-        if (strlen($serviceTier)) {
+        // 'none' е изричният избор полето да не се изпраща - празна стойност не стига дотук,
+        // защото конфигът пада към константата по подразбиране
+        if (strlen($serviceTier) && $serviceTier != 'none') {
             $payload['service_tier'] = $serviceTier;
         }
 
