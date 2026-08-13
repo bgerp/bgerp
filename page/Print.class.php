@@ -35,7 +35,7 @@ class page_Print extends page_Html
         $this->push('css/internalTheme.css', 'CSS');
 
         if (Mode::get('runPrinting') !== false) {
-            jquery_Jquery::run($this, 'window.print();');
+            jquery_Jquery::run($this, '$(window).on("load", function(){ setTimeout(function(){ window.print(); }, 200); });');
         }
 
         $this->append('
