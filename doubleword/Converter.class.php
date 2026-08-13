@@ -565,6 +565,10 @@ class doubleword_Converter extends core_Manager
     {
         core_App::flushAndClose(false);
 
+        // Хедърите вече са изпратени и сесията е затворена - без това всеки следващ запис
+        // в сесията гърми в core_DbSess::readDb(). Същото прави и core_Cron
+        core_Session::$mute = true;
+
         $params = (isset($script->params) && is_array($script->params)) ? $script->params : array();
 
         try {
@@ -589,7 +593,33 @@ class doubleword_Converter extends core_Manager
             static::releaseLocks($params);
         }
 
+        static::finishCallback($script);
+
         return true;
+    }
+
+
+    /**
+     * Приключва callback заявката, без да се стига до рендиране на страница
+     *
+     * Отговорът е изпратен още при flushAndClose - ако заявката продължи по обичайния път,
+     * page_Html се опитва да праща хедъри към затворена връзка. Затова сами почистваме
+     * след fconv (както прави fconv_Processes::runCallbackFunc) и излизаме.
+     *
+     * @param fconv_Script $script
+     */
+    protected static function finishCallback($script)
+    {
+        try {
+            if (!empty($script->tempDir) && core_Os::deleteDir($script->tempDir)) {
+                fconv_Processes::delete(array("#processId = '[#1#]'", $script->id));
+            }
+        } catch (Throwable $e) {
+            reportException($e);
+        }
+
+        core_SystemLock::remove();
+        core_App::shutdown(false);
     }
 
 
@@ -1491,7 +1521,7 @@ class doubleword_Converter extends core_Manager
             CURLOPT_SSL_VERIFYHOST => 2,
             CURLOPT_SSL_VERIFYPEER => true,
             CURLOPT_ENCODING => '',
-            CURLOPT_USERAGENT => 'bgERP Doubleword OCR/0.5',
+            CURLOPT_USERAGENT => 'bgERP Doubleword OCR/0.6',
         ));
 
         return $curl;
@@ -1762,6 +1792,12 @@ class doubleword_Converter extends core_Manager
             $text = static::decodeHtmlEntities($text);
         }
 
+        // Ако моделът е върнал markdown таблици, в текста те стават таб-разделени редове -
+        // табът с текста слепва редовете, разделени с `|`
+        if (!$asMarkdown) {
+            $text = static::markdownRowsToText($text);
+        }
+
         $text = preg_replace('/[ \t]+$/m', '', $text);
         $text = preg_replace('/\n{3,}/', "\n\n", $text);
 
@@ -1770,6 +1806,38 @@ class doubleword_Converter extends core_Manager
         $text = str_replace(self::ROW_MARK, '', $text);
 
         return trim(static::formatNotes($text, $asMarkdown));
+    }
+
+
+    /**
+     * Превръща markdown таблични редове в таб-разделени
+     *
+     * @param string $text
+     *
+     * @return string
+     */
+    protected static function markdownRowsToText($text)
+    {
+        if (strpos($text, '|') === false) {
+
+            return $text;
+        }
+
+        // Разделителният ред на markdown таблица няма какво да каже в текста
+        $text = preg_replace('/^[ \t]*\|[ \t:|-]*\|[ \t]*$\n?/m', '', $text);
+
+        return preg_replace_callback(
+            '/^[ \t]*\|(.+)\|[ \t]*$/m',
+            function ($match) {
+                $cells = preg_split('/(?<!\\\\)\|/', $match[1]);
+                foreach ($cells as $key => $cell) {
+                    $cells[$key] = trim(str_replace('\|', '|', $cell));
+                }
+
+                return implode("\t", $cells);
+            },
+            $text
+        );
     }
 
 
@@ -2074,11 +2142,40 @@ class doubleword_Converter extends core_Manager
     {
         return 'Attached is one page of a document that you must process. '
             . 'Just return the plain text representation of this document as if you were reading it naturally. '
-            . 'Convert equations to LaTeX and tables to HTML. '
+            . static::getTablePrompt()
             . 'If there are any figures or charts, label them with the following markdown syntax '
             . '![Alt text describing the contents of the figure](page_startx_starty_width_height.png). '
             . 'Return your output as markdown, with a front matter section on top specifying values for the '
             . 'primary_language, is_rotation_valid, rotation_correction, is_table, and is_diagram parameters.';
+    }
+
+
+    /**
+     * Изречението от промпта, което определя вида на таблиците
+     *
+     * Само 'html' е официалният текст, с който моделът е трениран - другите два са за
+     * сравнение и може да върнат по-нестабилен резултат.
+     *
+     * @return string
+     */
+    protected static function getTablePrompt()
+    {
+        $format = (string) doubleword_Setup::get('TABLE_FORMAT');
+
+        if ($format == 'markdown') {
+
+            return 'Convert equations to LaTeX and tables to markdown tables, '
+                . 'with one row per line and the cells separated by the | character. '
+                . 'Do not use HTML. ';
+        }
+
+        if ($format == 'text') {
+
+            return 'Convert equations to LaTeX and tables to plain text, with one row per line '
+                . 'and the cells of each row separated by a tab character. Do not use HTML. ';
+        }
+
+        return 'Convert equations to LaTeX and tables to HTML. ';
     }
 
 

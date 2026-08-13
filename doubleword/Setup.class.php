@@ -20,6 +20,14 @@ defIfNot('DOUBLEWORD_OCR_MODEL', 'allenai/olmOCR-2-7B-1025-FP8');
 
 
 /**
+ * Как моделът да връща таблиците
+ *
+ * 'html' е официалният промпт на olmOCR - моделът е трениран с него
+ */
+defIfNot('DOUBLEWORD_TABLE_FORMAT', 'html');
+
+
+/**
  * Повторения при временна API грешка
  */
 defIfNot('DOUBLEWORD_API_RETRIES', 1);
@@ -61,7 +69,7 @@ class doubleword_Setup extends core_ProtoSetup
     /**
      * Версия на пакета
      */
-    public $version = '0.5';
+    public $version = '0.6';
 
 
     /**
@@ -103,6 +111,7 @@ class doubleword_Setup extends core_ProtoSetup
         'DOUBLEWORD_API_KEY' => array('password', 'caption=API ключ, mandatory'),
         'DOUBLEWORD_API_URL' => array('Url', 'caption=API URL за OCR->URL,mandatory'),
         'DOUBLEWORD_OCR_MODEL' => array('varchar(128)', 'caption=OCR модел,mandatory'),
+        'DOUBLEWORD_TABLE_FORMAT' => array('enum(html=HTML - официалният промпт на olmOCR,markdown=Markdown таблици,text=Текст с табулации)', 'caption=OCR промпт->Таблици,mandatory'),
         'DOUBLEWORD_API_RETRIES' => array('int(min=0,max=3)', 'caption=API заявки->Повторения при временна грешка,mandatory'),
         'DOUBLEWORD_PATH_API_RETRIES' => array('int(min=0,max=3)', 'caption=API заявки->Повторения за временен файл,mandatory'),
         'DOUBLEWORD_PDFTOPPM_PATH' => array('varchar(255)', 'caption=Път до pdftoppm->Път'),
