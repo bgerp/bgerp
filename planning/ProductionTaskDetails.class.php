@@ -1868,6 +1868,11 @@ class planning_ProductionTaskDetails extends doc_Detail
         $rec = &$data->form->rec;
         $titleArr = array('production' => 'прогрес', 'input' => 'влагане', 'waste' => 'отпадък', 'scrap' => 'брак');
         $data->singleTitle = $titleArr[$rec->type ?? null] ?? 'прогрес';
+
+        // Титлата на таба в браузъра, за да се различават отворените операции
+        if (isset($rec->taskId)) {
+            $data->pageTitle = '#' . planning_Tasks::getHandle($rec->taskId) . ' - ' . tr($data->singleTitle);
+        }
     }
 
 
