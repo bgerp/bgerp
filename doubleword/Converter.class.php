@@ -44,7 +44,14 @@ class doubleword_Converter extends core_Manager
     const MAX_RESPONSE_RETRIES = 1;
     const MAX_ROTATION_RETRIES = 2;
     const RETRY_BASE_DELAY = 10000000;
-    const INITIAL_COMPLETION_TOKENS = 8000;
+    /**
+     * Лимит на отговора за първата заявка
+     *
+     * При null лимитът е този на доставчика - страницата се иска наведнъж, с максимума.
+     * Ако тук се зададе число, при отрязан отговор се прави още един опит без лимит.
+     */
+    const INITIAL_COMPLETION_TOKENS = null;
+    const MIN_COMPLETION_TOKENS = 8000;
 
 
     /**
@@ -1144,10 +1151,19 @@ class doubleword_Converter extends core_Manager
                                 $body,
                                 $curlInfo
                             );
-                            if ($state['responseAttempt'] >= self::MAX_RESPONSE_RETRIES) {
+                            // Повторение има смисъл само ако можем да вдигнем лимита или
+                            // отговорът е бил невалиден - при вече вдигнат лимит моделът
+                            // просто пак ще опре в максимума на доставчика
+                            $canRetry = $state['responseAttempt'] < self::MAX_RESPONSE_RETRIES;
+                            if ($canRetry && $responseRetryReason === 'length' &&
+                                $state['maxCompletionTokens'] === null) {
+                                $canRetry = false;
+                            }
+
+                            if (!$canRetry) {
                                 $partial = static::getPartialOcrText($partialContent);
                                 expect(strlen($partial),
-                                    "Doubleword.ai не върна валиден отговор след повторение за страница {$pageNo}" .
+                                    "Doubleword.ai не върна валиден отговор за страница {$pageNo}" .
                                     $responseDiagnostics);
                                 $res[$pageNo] = $partial . "\n\n" .
                                     static::getPartialPageNote($pageNo, $responseRetryReason);
@@ -1497,7 +1513,7 @@ class doubleword_Converter extends core_Manager
             ),
         );
         if ($maxCompletionTokens !== null) {
-            $payload['max_tokens'] = max(self::INITIAL_COMPLETION_TOKENS, (int) $maxCompletionTokens);
+            $payload['max_tokens'] = max(self::MIN_COMPLETION_TOKENS, (int) $maxCompletionTokens);
         }
 
         $json = json_encode($payload, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
@@ -1649,7 +1665,7 @@ class doubleword_Converter extends core_Manager
             'finish_reason' => $finishReason,
             'completion_tokens' => $completionTokens,
             'prompt_tokens' => $promptTokens,
-            'requested_max_tokens' => $curlInfo['requested_max_tokens'] ?? self::INITIAL_COMPLETION_TOKENS,
+            'requested_max_tokens' => $curlInfo['requested_max_tokens'] ?? 'provider_default',
             'response_id' => is_object($decoded) ? ($decoded->id ?? null) : null,
             'model' => is_object($decoded) ? ($decoded->model ?? null) : null,
             'service_tier' => is_object($decoded) ? ($decoded->service_tier ?? null) : null,
