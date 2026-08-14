@@ -545,8 +545,8 @@ class core_Setup extends core_ProtoSetup
         $rec->description = 'Почистване на обектите с изтекъл срок';
         $rec->controller = 'core_Cache';
         $rec->action = 'DeleteExpiredData';
-        $rec->period = 24 * 60;
-        $rec->offset = rand(60, 180); // от 1h до 3h
+        $rec->period = 3 * 60;
+        $rec->offset = mt_rand(0, 59);
         $rec->isRandOffset = true;
         $rec->delay = 0;
         $rec->timeLimit = 200;
