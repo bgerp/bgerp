@@ -451,6 +451,10 @@ class pwa_PushSubscriptions extends core_Manager
                 $ownerChanged = $rec->userId != $cu;
                 $mustSendWelcome = $ownerChanged || $rec->state == 'closed';
 
+                // Натиснат бутон "Известия" при вече активен абонамент - потребителят
+                // иска настройките си, а не ново абониране
+                $wasActiveSubscription = !$ownerChanged && $rec->state == 'active';
+
                 $this->closeMatchingSubscriptions($legacyEndpoint, $legacyPublicKey, $legacyAuthToken);
 
                 // Четем наново и променяме clone, за да не може save()
@@ -488,7 +492,7 @@ class pwa_PushSubscriptions extends core_Manager
                     }
                 }
 
-                return self::getAjaxRedirectResponse($this->getPostSubscribeRedirectUrl($rec, Request::get('redirectUrl'), $retUrl));
+                return self::getAjaxRedirectResponse($this->getPostSubscribeRedirectUrl($rec, Request::get('redirectUrl'), $retUrl, $wasActiveSubscription));
             } catch (Throwable $t) {
                 reportException($t);
                 self::logErr('Грешка при синхронизиране на съществуващ PUSH абонамент', $rec->id ?? null, 7);
@@ -593,6 +597,11 @@ class pwa_PushSubscriptions extends core_Manager
 
             $ownerChanged = !$isNew && $rec->userId != $cu;
             $sameOwnerAndDomain = !$isNew && !$ownerChanged && $rec->domainId == $domainId;
+
+            // Натиснат бутон "Известия" при вече активен абонамент - потребителят
+            // иска настройките си, а не ново абониране
+            $wasActiveSubscription = $sameOwnerAndDomain && $rec->state == 'active';
+
             $sameStoppedSubscription = $sameOwnerAndDomain && $rec->state == 'stopped' &&
                 $rec->endpoint == $endpoint && $rec->publicKey == $publicKey && $rec->authToken == $authToken;
             if ($sameStoppedSubscription && !$forceRenewSubscription) {
@@ -667,7 +676,7 @@ class pwa_PushSubscriptions extends core_Manager
                 }
             }
 
-            $redirectUrl = $this->getPostSubscribeRedirectUrl($rec, Request::get('redirectUrl'), $retUrl);
+            $redirectUrl = $this->getPostSubscribeRedirectUrl($rec, Request::get('redirectUrl'), $retUrl, $wasActiveSubscription);
 
             return self::getAjaxRedirectResponse($redirectUrl);
         } catch (Throwable $t) {
@@ -726,10 +735,11 @@ class pwa_PushSubscriptions extends core_Manager
      * @param stdClass  $rec
      * @param string    $requestedRedirectUrl
      * @param array     $retUrl
+     * @param bool      $isSettingsRequest - бутонът е натиснат при активен абонамент
      *
      * @return array
      */
-    protected function getPostSubscribeRedirectUrl($rec, $requestedRedirectUrl = null, $retUrl = null)
+    protected function getPostSubscribeRedirectUrl($rec, $requestedRedirectUrl = null, $retUrl = null, $isSettingsRequest = false)
     {
         if ($requestedRedirectUrl && $requestedRedirectUrl != 'none') {
             $requestedRedirect = parseLocalUrl($requestedRedirectUrl);
@@ -739,7 +749,7 @@ class pwa_PushSubscriptions extends core_Manager
             }
         }
 
-        if ($this->mustOpenSubscriptionSettings($rec)) {
+        if ($this->mustOpenSubscriptionSettings($rec, $isSettingsRequest)) {
 
             return array($this, 'edit', $rec->id, 'ret_url' => true);
         }
@@ -756,19 +766,26 @@ class pwa_PushSubscriptions extends core_Manager
     /**
      * Проверява дали след абониране да се отвори формата с настройките
      *
-     * Формата се отваря само ако потребителят още не е минавал през нея на
-     * това устройство. Ако настройките не са дефолтните, значи вече са
-     * правени и също няма нужда да се показва.
+     * При натиснат бутон "Известия" на вече абонирано устройство формата се
+     * отваря винаги - това е изричното желание на потребителя. Автоматично
+     * след ново абониране се отваря само ако още не е минавал през нея и
+     * настройките са дефолтните.
      *
      * @param stdClass $rec
+     * @param bool     $isSettingsRequest
      *
      * @return bool
      */
-    protected function mustOpenSubscriptionSettings($rec)
+    protected function mustOpenSubscriptionSettings($rec, $isSettingsRequest = false)
     {
         if (!$this->haveRightFor('edit', $rec)) {
 
             return false;
+        }
+
+        if ($isSettingsRequest) {
+
+            return true;
         }
 
         if (pwa_SubscribePlg::isPromptRemembered('settings', $rec->brid, $rec->userId, $rec->domainId)) {
