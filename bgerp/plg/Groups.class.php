@@ -45,9 +45,9 @@ class bgerp_plg_Groups extends core_Plugin
             $form->input(null, 'silent');
             $rec = $form->rec;
             
-            expect($rec->id || $rec->Selected, $rec);
-            
-            $selArr = arr::make($rec->Selected);
+            expect(!empty($rec->id) || !empty($rec->Selected), $rec);
+
+            $selArr = arr::make($rec->Selected ?? null);
             
             setIfNot($groupField, $mvc->groupField, $mvc->expandInputFieldName, 'groupList');
             
@@ -69,14 +69,14 @@ class bgerp_plg_Groups extends core_Plugin
                 $gArr = keylist::toArray($groups);
                 
                 foreach ($gArr as $g) {
-                    if ($allGroups[$g]) {
-                        $canDelGroups[$g]++;
+                    if (!empty($allGroups[$g])) {
+                        $canDelGroups[$g] = ($canDelGroups[$g] ?? 0) + 1;
                     }
                 }
-                
+
                 foreach ($allGroups as $g => $caption) {
-                    if (!$gArr[$g]) {
-                        $canAddGroups[$g]++;
+                    if (empty($gArr[$g])) {
+                        $canAddGroups[$g] = ($canAddGroups[$g] ?? 0) + 1;
                     }
                 }
             }
@@ -104,7 +104,7 @@ class bgerp_plg_Groups extends core_Plugin
             if ($selArrCnt == 1) {
                 $id = $selArr[$selOneKey];
                 $groups = $mvc->fetchField($id, $groupField);
-                $form->title = 'Промяна в групите на |*<i style="color:#ffffaa">' .  $mvc->getTitleById($selArr[0]) . '</i>';
+                $form->title = 'Промяна в групите на |*<i style="color:#ffffaa">' .  $mvc->getTitleById($id) . '</i>';
                 $form->FNC('groups', $mvc->getFieldType($groupField), 'caption=Групи,input');
                 $form->setDefault('groups', $groups);
             } else {
@@ -161,8 +161,8 @@ class bgerp_plg_Groups extends core_Plugin
                 } else {
                     foreach ($selArr as $id) {
                         $exGroups = $groups = $mvc->fetchField($id, $groupField);
-                        $groups = keylist::merge($groups, arr::make($rec->addGroups, true));
-                        $groups = keylist::diff($groups, arr::make($rec->delGroups, true));
+                        $groups = keylist::merge($groups, arr::make($rec->addGroups ?? null, true));
+                        $groups = keylist::diff($groups, arr::make($rec->delGroups ?? null, true));
                         $obj = new stdClass();
                         $obj->id = $id;
                         $obj->{$groupField} = $groups;
