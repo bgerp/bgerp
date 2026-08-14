@@ -156,7 +156,7 @@ class acc_ValueCorrections extends core_Master
                 $row->valior = ht::createHint('', 'Не може да се определи, защото има артикули с експедиции в различни сч. периоди', 'error');
             } else {
                 $row->valior = $mvc->getFieldType('valior')->toVerbal($valior);
-                $row->valior = ht::createHint("<span style='color:blue'>{$row->valior}</span>", 'Вальорът е изчислен на база най-голямата дата на експедиция от общия сч. период на избраните артикули. След активиране ще бъде записан|*!');
+                $row->valior = ht::createHint("<span class='blueText'>{$row->valior}</span>", 'Вальорът е изчислен на база най-голямата дата на експедиция от общия сч. период на избраните артикули. След активиране ще бъде записан|*!');
             }
         }
 

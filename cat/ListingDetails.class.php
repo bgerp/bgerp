@@ -277,7 +277,7 @@ class cat_ListingDetails extends doc_Detail
 
                         $rec->price *= $quantityInPack;
                         $row->price = $mvc->getFieldType('price')->toVerbal($rec->price);
-                        $row->price = "<span style='color:blue'>{$row->price}</span>";
+                        $row->price = "<span class='blueText'>{$row->price}</span>";
                         $row->price = ht::createHint($row->price, $hint2, 'notice', false);
                     }
                 }

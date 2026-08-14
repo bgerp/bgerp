@@ -680,6 +680,10 @@ class cad2_PdfCanvas extends cad2_Canvas
      */
     public function toAbs(&$x, &$y, $absolute)
     {
+        // Както в SVG реализацията, липсваща координата се приема за 0
+        $x = (float) ($x ?? 0);
+        $y = (float) ($y ?? 0);
+
         if (!$absolute) {
             $x += $this->cX;
             $y += $this->cY;

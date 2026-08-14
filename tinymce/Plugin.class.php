@@ -44,12 +44,12 @@ class tinymce_Plugin extends core_Plugin
         }
         
         $tinyPlugins = '';
-        if ($invoker->params['tinyPlugins']) {
+        if (!empty($invoker->params['tinyPlugins'])) {
             $tinyPlugins = $invoker->params['tinyPlugins'];
         }
         
         $tinyToolbars = '';
-        if ($invoker->params['tinyToolbars']) {
+        if (!empty($invoker->params['tinyToolbars'])) {
             $tinyToolbars = $invoker->params['tinyToolbars'] . ' | ';
             
             if (!$tinyPlugins) {
@@ -58,11 +58,11 @@ class tinymce_Plugin extends core_Plugin
         }
         
         $fs = '';
-        if ($invoker->params['tinyFullScreen']) {
+        if (!empty($invoker->params['tinyFullScreen'])) {
             $fs = "setup: function(editor) {editor.on('init', function(e) {editor.execCommand('mceFullScreen');});},";
         }
         
-        if ($invoker->params['tinySaveCallback']) {
+        if (!empty($invoker->params['tinySaveCallback'])) {
             $fs .= "save_onsavecallback: function(editor){
                     
                     var content = editor.getContent();

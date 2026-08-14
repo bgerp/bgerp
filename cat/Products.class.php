@@ -357,7 +357,7 @@ class cat_Products extends embed_Manager
         $this->FLD('nameEn', 'varchar(autocomplete=off)', 'caption=Международно,width=100%,after=name, oldFieldName=nameInt,remember');
         $this->FLD('info', 'richtext(rows=4, bucket=Notes, passage)', 'caption=Описание');
         $this->FLD('measureId', 'key(mvc=cat_UoM, select=name,allowEmpty)', 'caption=Мярка,mandatory,remember,silent,notSorting,smartCenter');
-        $this->FLD('photo', 'fileman_FileType(bucket=pictures)', 'caption=Илюстрация,input=none');
+        $this->FLD('photo', 'fileman_FileType(bucket=pictures,focus=none)', 'caption=Илюстрация,input=none');
         $this->FLD('groups', 'keylist(mvc=cat_Groups, select=name, makeLinks)', 'caption=Групи,maxColumns=2,remember');
         $this->FLD('isPublic', 'enum(no=Частен,yes=Публичен)', 'input=none');
         $this->FNC('quantity', 'double(decimals=2)', 'input=none,caption=Наличност,smartCenter');
@@ -2340,6 +2340,46 @@ class cat_Products extends embed_Manager
         }
 
         return $secondMeasureId;
+    }
+
+
+    /**
+     * Всички ли подадени артикули са в еднаква (или производна) мярка - напр. при
+     * основна мярка килограм минават кг/тон/грам, но не и брой
+     *
+     * @param array $productIds - ид-та на артикули (повторенията са без значение)
+     * @param array $measureArr - мерките на артикулите: productId => measureId
+     *
+     * @return bool
+     */
+    public static function areProductsInTheSameUom($productIds, &$measureArr = array())
+    {
+        $productIds = arr::make($productIds, true);
+        if (!countR($productIds)) return true;
+
+        // Извличане на мерките на артикула
+        $pQuery = static::getQuery();
+        $pQuery->in('id', $productIds);
+        $pQuery->show('measureId');
+        while ($pRec = $pQuery->fetch()) {
+            $measureArr[$pRec->id] = $pRec->measureId;
+        }
+
+        $sameTypeMeasures = null;
+        foreach ($productIds as $productId) {
+            $measureId = $measureArr[$productId] ?? null;
+            if (empty($measureId)) return false;
+
+            // Дали са всичките в една мярка
+            if (!isset($sameTypeMeasures)) {
+                $sameTypeMeasures = cat_UoM::getSameTypeMeasures($measureId);
+            } elseif (!array_key_exists($measureId, $sameTypeMeasures)) {
+
+                return false;
+            }
+        }
+
+        return true;
     }
 
 

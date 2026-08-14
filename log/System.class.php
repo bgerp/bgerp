@@ -271,15 +271,27 @@ class log_System extends core_Manager
         
         $search = trim($fRec->search ?? '');
         if ($search) {
+            $classCondArr = array();
 
-            $search = trim(mb_strtolower($fRec->search));
+            // Всяка от думите, разделени с интервал, се търси самостоятелно
+            foreach (preg_split('/\s+/', $search, -1, PREG_SPLIT_NO_EMPTY) as $sPart) {
+                $likeCond = array("#detail LIKE '%[#1#]%'", mb_strtolower($sPart));
 
+                // Ако думата е име на клас, освен в текста, се търси и по класа на записа
+                if ($cls = self::getClassNameFromStr($sPart)) {
+                    $classCondArr[] = $likeCond;
+                    $classCondArr[] = array("#className = '[#1#]'", $cls);
+                } else {
+                    $query->where($likeCond);
+                }
+            }
+
+            // Условията за всички класове се обединяват с 'OR' в едно общо условие
             $or = false;
-            if(preg_match("/[a-z][a-z0-9]*_[a-z0-9_]+/i", $search) && ($cls = cls::getClassName($search, true))) {
-                $query->where(array("#className = '[#1#]'", $cls));
+            foreach ($classCondArr as $cond) {
+                $query->where($cond, $or);
                 $or = true;
             }
-            $query->where(array("#detail LIKE '%[#1#]%'", $search), $or);
         }
         
         // Филтрираме по тип
@@ -289,8 +301,39 @@ class log_System extends core_Manager
         
         $query->orderBy('#createdOn,#id', 'DESC');
     }
-    
-    
+
+
+    /**
+     * Помощна функция, която връща името на класа, ако подаденият стринг е име на клас
+     *
+     * @param string $str
+     *
+     * @return string|FALSE
+     */
+    protected static function getClassNameFromStr($str)
+    {
+        // Имената на класовете са само от латински букви, цифри и долна черта
+        if (!preg_match('/^[a-z][a-z0-9]*_[a-z0-9_]+$/i', $str)) {
+
+            return false;
+        }
+
+        // Проверява се и подаденият стринг, а не само този с малки букви, защото
+        // cls::getClassName() прави главна само първата буква след долната черта
+        // и не може да възстанови име като acs_ConsumptionLog
+        foreach (array($str, mb_strtolower($str)) as $sStr) {
+            $cls = cls::getClassName($sStr, true);
+
+            if ($cls && cls::load($cls, true)) {
+
+                return $cls;
+            }
+        }
+
+        return false;
+    }
+
+
     /**
      * Извиква се след конвертирането на реда ($rec) към вербални стойности ($row)
      */
@@ -407,7 +450,7 @@ class log_System extends core_Manager
                 $detStr .= '...';
             }
             
-            if ($errTypeArr[$errType]) {
+            if (!empty($errTypeArr[$errType])) {
                 if ($errTypeArr[$errType] != $detStr) {
                     $more = true;
                 }
@@ -434,7 +477,7 @@ class log_System extends core_Manager
                 
                 $urlArr = array($this, 'list', 'type' => $rec->type);
                 
-                if ($errTypeArr[$errType]) {
+                if (!empty($errTypeArr[$errType])) {
                     $msg .= ' - "' . $errTypeArr[$errType] . '"';
                 }
                 
@@ -527,13 +570,14 @@ class log_System extends core_Manager
             $rec = new stdClass();
             $rec->className = get_called_class();
             $rec->detail = $nErrStr;
-            if (isset($errArr['time'])) {
-                $rec->createdOn = $errArr['time'];
+            $errTime = $errArr['time'] ?? null;
+            if ($errTime) {
+                $rec->createdOn = $errTime;
             }
             $rec->type = $errType;
             
-            if ($rec->createdOn) {
-                $oRec = self::fetch(array("#className = '[#1#]' AND #detail = '[#2#]' AND #type = '[#3#]' AND #createdOn = '[#4#]'", $rec->className, $rec->detail, $rec->type, $rec->createdOn));
+            if ($errTime) {
+                $oRec = self::fetch(array("#className = '[#1#]' AND #detail = '[#2#]' AND #type = '[#3#]' AND #createdOn = '[#4#]'", $rec->className, $rec->detail, $rec->type, $errTime));
             } else {
                 $oRec = self::fetch(array("#className = '[#1#]' AND #detail = '[#2#]' AND #type = '[#3#]'", $rec->className, $rec->detail, $rec->type));
             }
@@ -545,7 +589,7 @@ class log_System extends core_Manager
             
             // Да не се добавят стари записи, които ще се изтрият веднага по крон
             $before = dt::subtractSecs($lifeDays * 86400);
-            if ($errArr['time'] && $before > $errArr['time']) {
+            if ($errTime && $before > $errTime) {
                 continue;
             }
             

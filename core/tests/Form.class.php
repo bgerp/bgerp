@@ -116,6 +116,44 @@ class core_tests_Form extends unit_Class
 
 
     /**
+     * Служебната стойност запазва вече зададена mandatory парола
+     */
+    public static function test_MandatoryPasswordNoChangeOnEdit(core_Form $Form)
+    {
+        $editForm = clone $Form;
+        $editForm->fields = array();
+        $editForm->rec = (object) array('password' => 'old-secret');
+        $editForm->FLD('password', 'password', 'caption=Парола,mandatory');
+        $editForm->fields['password']->type->params['checkPassAfterLogin'] = false;
+
+        $requestName = 'coreTestsFormPasswordNoChange';
+        $hadRequestMethod = array_key_exists('REQUEST_METHOD', $_SERVER);
+        $oldRequestMethod = $_SERVER['REQUEST_METHOD'] ?? null;
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        Request::push(array(
+            'Cmd' => array('save' => 1),
+            'password' => type_Password::EF_PASS_NO_CHANGE,
+        ), $requestName);
+        Mode::push('haveErrInAct', Mode::get('haveErrInAct'));
+
+        try {
+            $editForm->input();
+        } finally {
+            Mode::pop('haveErrInAct');
+            Request::pop($requestName);
+            if ($hadRequestMethod) {
+                $_SERVER['REQUEST_METHOD'] = $oldRequestMethod;
+            } else {
+                unset($_SERVER['REQUEST_METHOD']);
+            }
+        }
+
+        ut::expectEqual($editForm->gotErrors('password'), false);
+        ut::expectEqual($editForm->rec->password, 'old-secret');
+    }
+
+
+    /**
      * Създава минимално поле за проверка на общия рендер на формите
      */
     private static function getField($name, $caption)

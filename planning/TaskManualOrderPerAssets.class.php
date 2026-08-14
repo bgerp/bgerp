@@ -388,6 +388,9 @@ class planning_TaskManualOrderPerAssets extends core_Master
      */
     public static function getPackageLinks($assetId, $manualOrder = null)
     {
+        $assetId = (int)$assetId;
+        if (!$assetId) return array();
+
         $rec = static::fetch("#assetId = {$assetId}", 'data,packageLinks');
         if (!is_object($rec)) {
             return array();
@@ -405,6 +408,9 @@ class planning_TaskManualOrderPerAssets extends core_Master
      */
     public static function getAnchorLinks($assetId, $manualOrder = null, $packageLinks = null)
     {
+        $assetId = (int)$assetId;
+        if (!$assetId) return array();
+
         $rec = static::fetch("#assetId = {$assetId}", 'data,packageLinks,anchorLinks');
         if (!is_object($rec)) return array();
 

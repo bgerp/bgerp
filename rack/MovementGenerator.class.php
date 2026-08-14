@@ -57,13 +57,13 @@ class rack_MovementGenerator extends core_Manager
             $qArr = json_decode($rec->zones);
 
             foreach ($pArr->pallet as $i => $key) {
-                if ($pArr->quantity[$i]) {
+                if (!empty($pArr->quantity[$i])) {
                     $p[$key] = core_Type::getByName('double')->fromVerbal($pArr->quantity[$i]);
                 }
             }
 
             foreach ($qArr->zone as $i => $key) {
-                if ($qArr->quantity[$i]) {
+                if (!empty($qArr->quantity[$i])) {
                     $q[$key] = core_Type::getByName('double')->fromVerbal($qArr->quantity[$i]);
                 }
             }
@@ -416,7 +416,7 @@ class rack_MovementGenerator extends core_Manager
             foreach ($arr as $k => $qK) {
                 if (strpos($m, '|'. $k . '|') === false) {
                     $qnt = $mK + $qK;
-                    if (!$combi[$qnt]) {
+                    if (empty($combi[$qnt])) {
                         $combi[$qnt] = $m  . $k. '|';
                     }
                 }
@@ -437,7 +437,7 @@ class rack_MovementGenerator extends core_Manager
         if (!$quantityPerPallet) {
             $cnt = array();
             foreach ($pallets as $i => $iP) {
-                $cnt[$iP]++;
+                $cnt[$iP] = ($cnt[$iP] ?? 0) + 1;
             }
             
             arsort($cnt);

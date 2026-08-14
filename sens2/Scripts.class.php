@@ -265,11 +265,11 @@ class sens2_Scripts extends core_Master
             $inds = sens2_Indicators::getContex($scriptId);
             
             foreach ($inds as $name => $value) {
-                $opts[$scriptId][$name] = "<span style='color:blue;'>{$name}</span>";
+                $opts[$scriptId][$name] = "<span class='blueText'>{$name}</span>";
             }
             $vars = sens2_script_DefinedVars::getContex($scriptId);
             foreach ($vars as $name => $value) {
-                $opts[$scriptId][$name] = "<span style='color:blue;'>{$name}</span>";
+                $opts[$scriptId][$name] = "<span class='blueText'>{$name}</span>";
             }
         }
         

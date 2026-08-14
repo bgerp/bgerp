@@ -152,8 +152,9 @@ abstract class deals_DealMaster extends deals_DealBase
     {
         $rec = $this->fetchRec($rec);
 
-        // Ако имаме доставено или платено
-        $amountBl = round($rec->amountBl, 4);
+        // Ако имаме доставено или платено. Салдото може да е празно - при
+        // сделка без движения се приема за нула (@see долу толеранса)
+        $amountBl = round($rec->amountBl ?? 0, 4);
         $today = dt::today();
         $todayTimestamp = strtotime($today);
         $overdueToleranceAmount = deals_Setup::get('OVERDUE_TOLERANCE_AMOUNT');
@@ -889,7 +890,7 @@ abstract class deals_DealMaster extends deals_DealBase
             $data->listSummary->mvc->FNC('amountDeliveredCalc', 'varchar', "caption=Доставено ({$caption}),input=none,summary=amount");
             $data->listSummary->mvc->FNC('amountPaidCalc', 'varchar', "caption=Платено ({$caption}),input=none,summary=amount");
             $data->listSummary->mvc->FNC('amountInvoicedCalc', 'varchar', "caption=Фактурирано ({$caption}),input=none,summary=amount");
-            $data->listSummary->mvc->FNC('amountBlCalc', 'varchar', "caption=Крайно салдо,input=none,summary=amount");
+            $data->listSummary->mvc->FNC('amountBlCalc', 'varchar', "caption=Крайно салдо ({$caption}),input=none,summary=amount");
         }
     }
 
@@ -1571,7 +1572,7 @@ abstract class deals_DealMaster extends deals_DealBase
                 if (isset($deliveryTermTime)) {
                     $row->deliveryTermTime = cls::get('type_Time')->toVerbal($deliveryTermTime);
                     if(!Mode::isReadOnly()){
-                        $row->deliveryTermTime = "<span style='color:blue'>{$row->deliveryTermTime}</span>";
+                        $row->deliveryTermTime = "<span class='blueText'>{$row->deliveryTermTime}</span>";
                         $row->deliveryTermTime = ht::createHint($deliveryTermTime, 'Времето за доставка се изчислява динамично възоснова мястото за доставка, артикулите в договора и нужното време за подготовка|*!');
                     }
                 }

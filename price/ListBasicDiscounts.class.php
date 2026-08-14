@@ -152,6 +152,19 @@ class price_ListBasicDiscounts extends core_Detail
 
 
     /**
+     * Извиква се след конвертирането на реда ($rec) към вербални стойности ($row)
+     */
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    {
+        // Групата сочи към филтрираните по нея артикули
+        if (!empty($rec->groupId) && cat_Products::haveRightFor('list') && !Mode::isReadOnly()) {
+            $groupTitle = $row->groupId;
+            $row->groupId = ht::createLink($groupTitle, array('cat_Products', 'list', 'groupId' => $rec->groupId), false, "title=Филтриране на артикули по група|* '{$groupTitle}'");
+        }
+    }
+
+
+    /**
      * Преди рендиране на таблицата
      */
     protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
@@ -163,7 +176,7 @@ class price_ListBasicDiscounts extends core_Detail
             $row->listId = price_Lists::getHyperlink($rec->listId, true);
             $row->currencyId = $listRec->currency;
             if(empty($rec->amountTo)){
-                $row->amountTo = "<i style='color:blue'>" . tr('Без лимит') . "</i class>";
+                $row->amountTo = "<i class='blueText'>" . tr('Без лимит') . "</i class>";
             }
         }
     }
@@ -287,14 +300,20 @@ class price_ListBasicDiscounts extends core_Detail
         if($Master instanceof eshop_Carts){
             $settings = cms_Domains::getSettings($masterRec->domainId);
             $vatExceptionId = $settings->vatExceptionId ?? null;
+        } elseif($Master instanceof pos_Receipts){
+
+            // ПОС бележката не е в нишка - изключението е от настройките на точката
+            $settings = pos_Points::getSettings($masterRec->pointId);
+            $vatExceptionId = $settings->vatExceptionId ?? null;
         } else {
             $vatExceptionId = cond_VatExceptions::getFromThreadId($masterRec->threadId);
         }
 
-        // Еднократно извличане на ддс-та на артикула за посочената дата
+        // Еднократно извличане на ддс-та на артикула за посочената дата.
+        // Количката няма вальор - при празна дата 'getVats' смята с днешната
         $vats = array();
         if($basicDiscountListRec->vat == 'yes'){
-            $vats = cat_products_VatGroups::getVats(arr::extractValuesFromArray($detailsAll, 'productId'), $masterRec->valior, $vatExceptionId);
+            $vats = cat_products_VatGroups::getVats(arr::extractValuesFromArray($detailsAll, 'productId'), $masterRec->valior ?? null, $vatExceptionId);
         }
 
         foreach ($groupIds as $groupId){

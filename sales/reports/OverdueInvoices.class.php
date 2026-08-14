@@ -556,7 +556,8 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
 
         $row->currencyId = $dRec->currencyId;
 
-        $invoiceValue = ($dRec->invoiceValue ?? 0) + ($dRec->invoiceVAT ?? 0);
+        //$invoiceValue = ($dRec->invoiceValue ?? 0) + ($dRec->invoiceVAT ?? 0);
+        $invoiceValue = ($dRec->invoiceValue ?? 0);
 
         $row->invoiceValue = core_Type::getByName('double(decimals=2)')->toVerbal($invoiceValue);
 

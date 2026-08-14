@@ -1407,7 +1407,7 @@ class pos_Terminal extends peripheral_Terminal
 
             if(countR($subArr)){
                 $stringInputSearch = strtoupper($stringInput);
-                array_walk($subArr, function(&$a) use ($stringInputSearch) {$a = str_replace($stringInputSearch, "<span style='color:blue'>{$stringInputSearch}</span>", $a);});
+                array_walk($subArr, function(&$a) use ($stringInputSearch) {$a = str_replace($stringInputSearch, "<span class='blueText'>{$stringInputSearch}</span>", $a);});
 
                 $subTitle = implode('; ', $subArr);
                 $subTitle = "<div style='font-size:0.7em'>{$subTitle}</div>";

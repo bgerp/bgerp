@@ -138,10 +138,16 @@ class deals_InvoicesToDocuments extends core_Manager
 
             // Ако е избрана таблица със фактури
             if(!empty($fRec->invoices)){
-                $iData =  @json_decode($fRec->invoices, true);
+                $iData = json_decode($fRec->invoices, true);
+                $iData = is_array($iData) ? $iData : array();
+                $iData['amount'] = is_array($iData['amount'] ?? null) ? $iData['amount'] : array();
+                $iData['containerId'] = is_array($iData['containerId'] ?? null) ? $iData['containerId'] : array();
+                $Double = core_Type::getByName('double');
                 foreach ($iData['amount'] as &$a){
-                    $a = round(core_Type::getByName('double')->fromVerbal($a), 2);
+                    $amount = $Double->fromVerbal($a);
+                    $a = isset($amount) ? round($amount, 2) : null;
                 }
+                unset($a);
 
                 $remainingAmount = $paymentData->amount - array_sum(array_filter($iData['amount']));
                 foreach ($iData['containerId'] as $k => $v){
@@ -490,7 +496,10 @@ class deals_InvoicesToDocuments extends core_Manager
 
         $res = $containers = $error = $errorFields = array();
 
-        foreach ($tableData['containerId'] as $key => $containerId) {
+        $containerIds = is_array($tableData['containerId'] ?? null) ? $tableData['containerId'] : array();
+        $amounts = is_array($tableData['amount'] ?? null) ? $tableData['amount'] : array();
+
+        foreach ($containerIds as $key => $containerId) {
             if (array_key_exists($containerId, $containers)) {
                 $error[] = 'Повтарящ се документ';
                 $errorFields['containerId'][$key] = 'Повтарящ се документ';
@@ -499,8 +508,8 @@ class deals_InvoicesToDocuments extends core_Manager
             }
         }
 
-        foreach ($tableData['amount'] as $key => $amount) {
-            if (!empty($amount) && empty($tableData['containerId'][$key])) {
+        foreach ($amounts as $key => $amount) {
+            if (!empty($amount) && empty($containerIds[$key])) {
                 $error[] = 'Зададенa сума без посочен документ';
                 $errorFields['amount'][$key] = 'Зададенa сума без посочен документ';
             }

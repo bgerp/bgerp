@@ -1,0 +1,20 @@
+[#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
+
+[#percentWarning#]
+<h3 style='margin-top:15px;margin-bottom:15px;'>[#productId#]</h3>
+<!--ET_BEGIN title-->
+<h4 style='margin-top:0px;margin-bottom:10px;color:green'>[#title#]</h4>
+<!--ET_END title-->
+    <div class="scrolling-holder" style='margin:10px 0'>
+        <!--ET_BEGIN INPUT_PRODUCT_TABLE-->
+        <div>[#INPUT_PRODUCT_TABLE#]</div>
+        <!--ET_END INPUT_PRODUCT_TABLE-->
+        <!--ET_BEGIN PRODUCED_PRODUCTS_TABLE-->
+        <div>[#PRODUCED_PRODUCTS_TABLE#]</div>
+        <!--ET_END PRODUCED_PRODUCTS_TABLE-->
+    </div>
+    <!--ET_BEGIN notes-->
+        <div class='quiet'>|Забележки|*:</div>
+        <div>[#notes#]</div>
+    <!--ET_END notes-->
+[#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]

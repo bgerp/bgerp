@@ -157,7 +157,7 @@ class cat_products_Params extends doc_Detail
                     $row->paramValue .= ' ' . tr($suffix);
                 }
             } else {
-                $row->paramValue = "<span style='color:blue;'>n/a</span>";
+                $row->paramValue = "<span class='blueText'>n/a</span>";
             }
             if(!empty($rec->type)){
                 $row->paramValue = ht::createHint($row->paramValue, "$row->type", 'notice', false);

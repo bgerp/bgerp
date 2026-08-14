@@ -1206,14 +1206,15 @@ class log_Browsers extends core_Master
 
         while ($rec = $query->fetch()) {
 
-            // Ако има история - да не се изтрива
-            if (strlen($rec->brid) && vislog_History::fetch(array("#brid = '[#1#]'", $rec->brid))) {
+            // Ако има история - да не се изтрива. Заявката нарочно хваща и
+            // записите с празен брид, затова се пази от null
+            if (strlen($rec->brid ?? '') && vislog_History::fetch(array("#brid = '[#1#]'", $rec->brid))) {
 
                 continue;
             }
 
             // Ако има логване - да не се изтрива
-            if (strlen($rec->brid) && core_LoginLog::fetch(array("#brid = '[#1#]'", $rec->brid))) {
+            if (strlen($rec->brid ?? '') && core_LoginLog::fetch(array("#brid = '[#1#]'", $rec->brid))) {
 
                 continue;
             }

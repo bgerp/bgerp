@@ -119,9 +119,9 @@ class fileman_webdrv_Csv extends fileman_webdrv_Code
                 } elseif ($format && in_array($format, array('unsigned', 'int', 'money', 'percent', 'number'))) {
                     $rows[$i] .= "<td align='right' nowrap>" . $col . '</td>';
                 } elseif ($format == 'emails') {
-                    $rows[$i] .= "<td style='color:blue'>" . $emls->toVerbal($col) . '</td>';
+                    $rows[$i] .= "<td class='blueText'>" . $emls->toVerbal($col) . '</td>';
                 } elseif ($format == 'email') {
-                    $rows[$i] .= "<td style='color:blue'>" . $eml->toVerbal($col) . '</td>';
+                    $rows[$i] .= "<td class='blueText'>" . $eml->toVerbal($col) . '</td>';
                 } else {
                     $rows[$i] .= "<td clsss='mightOverflow'>" . $col . '</td>';
                 }

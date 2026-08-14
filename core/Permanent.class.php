@@ -216,7 +216,7 @@ class core_Permanent extends core_Manager
     public function cron_DeleteExpiredPermData()
     {
         $deletedRecs = $this->delete("#lifetime != '" . self::FOREVER_VALUE . "' AND #lifetime < " . time());
-        $msg = "Лог: <b style='color:blue;'>{$deletedRecs}</b> постоянни записа с изтекъл срок бяха изтрити";
+        $msg = "Лог: <b class='blueText'>{$deletedRecs}</b> постоянни записа с изтекъл срок бяха изтрити";
         
         return $msg;
     }

@@ -1383,7 +1383,7 @@ abstract class deals_QuotationMaster extends core_Master
         deals_Helper::fillRecs($Detail, $dRecs, $rec, $Detail->map);
 
         foreach ($dRecs as $dRec) {
-            $index = "{$dRec->productId}|{$dRec->optional}|{$dRec->packagingId}|" .md5($dRec->notes);
+            $index = "{$dRec->productId}|{$dRec->optional}|{$dRec->packagingId}|" . md5((string) $dRec->notes);
 
             if (!array_key_exists($index, $products)) {
                 $title = cat_Products::getTitleById($dRec->productId);

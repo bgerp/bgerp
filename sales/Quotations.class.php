@@ -401,7 +401,7 @@ class sales_Quotations extends deals_QuotationMaster
                 $deliveryTermTime = $mvc->calcDeliveryTime($rec);
                 if (isset($deliveryTermTime)) {
                     $deliveryTermTime = cls::get('type_Time')->toVerbal($deliveryTermTime);
-                    $deliveryTermTime = "<span style='color:blue'>{$deliveryTermTime}</span>";
+                    $deliveryTermTime = "<span class='blueText'>{$deliveryTermTime}</span>";
                     $row->deliveryTermTime = ht::createHint($deliveryTermTime, 'Времето за доставка се изчислява динамично възоснова мястото за доставка, артикулите в договора и нужното време за подготовка|*!');
                 }
             }

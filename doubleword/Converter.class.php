@@ -28,20 +28,37 @@ class doubleword_Converter extends core_Manager
 
 
     /**
-     * Време за свързване и изпълнение на една API заявка
+     * Време за свързване към API-то
+     *
+     * Времето за самата заявка е в настройката DOUBLEWORD_REQUEST_TIMEOUT, а за временен
+     * файл се ползва по-малкото от нея и PATH_REQUEST_TIMEOUT - там се чака синхронно
      */
-    const CONNECT_TIMEOUT = 20;
-    const REQUEST_TIMEOUT = 600;
+    const CONNECT_TIMEOUT = 30;
     const PATH_REQUEST_TIMEOUT = 600;
 
 
     /**
      * Повторения при временна API грешка и при корекция на ротацията
+     *
+     * Временните мрежови грешки се повтарят от самия curl (--retry), а още един кръг
+     * заявки се пуска само ако моделът поиска завъртане или върне невалиден отговор
      */
-    const MAX_API_RETRIES = 0;
-    const MAX_PATH_API_RETRIES = 0;
+    const MAX_CONFIGURED_API_RETRIES = 3;
+    const MAX_RESPONSE_RETRIES = 1;
     const MAX_ROTATION_RETRIES = 2;
-    const RETRY_BASE_DELAY = 500000;
+    const MAX_ROUNDS = 3;
+    const RETRY_DELAY = 5;
+
+
+    /**
+     * Лимит на отговора за първата заявка
+     *
+     * Ограничава времето на генериране - без него моделът стига до собствения си таван и
+     * една страница може да виси минути. Ако отговорът се отреже, следващият кръг за тази
+     * страница тръгва без лимит. При null лимит не се задава изобщо.
+     */
+    const INITIAL_COMPLETION_TOKENS = 8000;
+    const MIN_COMPLETION_TOKENS = 1000;
 
 
     /**
@@ -58,9 +75,33 @@ class doubleword_Converter extends core_Manager
 
 
     /**
+     * HTML таговете, които моделът може да върне в markdown отговора си
+     */
+    const HTML_TAGS = 'a|b|i|u|s|em|strong|span|font|small|big|sup|sub|code|pre|img|hr|br|' .
+        'table|thead|tbody|tfoot|tr|th|td|caption|colgroup|col|ul|ol|li|dl|dt|dd|p|div|' .
+        'h1|h2|h3|h4|h5|h6|blockquote|section|article|header|footer|figure|figcaption';
+
+
+    /**
+     * Служебен знак, с който временно се маркират редовете на таблица
+     */
+    const ROW_MARK = "\x01";
+
+
+    /**
      * Интерфейсни методи
      */
-    public $interfaces = 'fileman_OCRIntf, fileman_FileActionsIntf';
+    public $interfaces = 'fileman_OCRIntf, fileman_MarkdownIntf, fileman_FileActionsIntf';
+
+
+    /**
+     * Типовете индекси, които се записват от една обработка
+     *
+     * Моделът връща markdown с HTML таблици - той се пази както е в markdown индекса,
+     * а в текстовия индекс влиза изчистеното текстово представяне.
+     */
+    public static $indexType = 'textOcr';
+    public static $markdownIndexType = 'markdown';
 
 
     /**
@@ -83,15 +124,33 @@ class doubleword_Converter extends core_Manager
 
 
     /**
-     * Пътят до програмата за преобразуване на PDF страници
+     * Пътят до програмите, които скриптовете използват
      */
-    public array $fconvProgramPaths = array('pdftoppm' => 'doubleword_Setup::DOUBLEWORD_PDFTOPPM_PATH');
+    public array $fconvProgramPaths = array(
+        'pdftoppm' => 'doubleword_Setup::DOUBLEWORD_PDFTOPPM_PATH',
+        'curl' => 'doubleword_Setup::DOUBLEWORD_CURL_PATH',
+    );
 
 
     /**
      * Команда за преобразуване на PDF страници до препоръчания от модела размер
      */
     public $fconvLineExec = 'timeout --signal=TERM --kill-after=10s [#PDF_TIMEOUT#] [#PDFTOPPM#] -png -f [#FIRST_PAGE#] -l [#LAST_PAGE#] -r 150 -scale-to 1288 [#INPUTF#] [#OUTPUT_DIR#]/page 2> [#ERROR_FILE#] && touch [#SUCCESS_FILE#]';
+
+
+    /**
+     * Заявката за една страница
+     *
+     * Адресът, ключът и таймаутите стоят във файла с настройки на curl, за да не влизат
+     * в текста на скрипта - fconv_Script::run() го записва в системния лог
+     */
+    public $curlLineExec = '[#CURL#] --config [#CURL_CONFIG#] --data-binary [#PAYLOAD#] --output [#OUT#] --write-out [#WRITE_OUT#] > [#META#] 2> [#ERR#] &';
+
+
+    /**
+     * Изчакване на пуснатите заявки от групата
+     */
+    public $waitLineExec = 'wait';
 
 
     /**
@@ -111,7 +170,7 @@ class doubleword_Converter extends core_Manager
             $btnParams['title'] = 'Разпознаване на текст с Doubleword.ai olmOCR-2-7B';
 
             $procTextOcr = fileman_Indexes::isProcessStarted(array(
-                'type' => 'textOcr',
+                'type' => static::$indexType,
                 'dataId' => $fRec->dataId,
             ));
             if ($procTextOcr) {
@@ -183,11 +242,56 @@ class doubleword_Converter extends core_Manager
      */
     public function getTextByOcr($fRec)
     {
+        return static::startProcess($fRec, false);
+    }
+
+
+    /**
+     * Извлича съдържанието на файла в markdown
+     *
+     * Ползва същата OCR обработка - суровият отговор на модела (markdown с HTML таблици)
+     * се записва в 'markdown' индекса, а изчистеният текст - в текстовия.
+     *
+     * @param stdClass|string $fRec
+     *
+     * @return string|null
+     *
+     * @see fileman_MarkdownIntf
+     */
+    public function getMarkdown($fRec)
+    {
+        if (is_object($fRec)) {
+            $started = fileman_Indexes::isProcessStarted(array(
+                'type' => static::$markdownIndexType,
+                'dataId' => $fRec->dataId,
+            ));
+
+            // Има вече извлечено съдържание или тече обработка, която ще го запише
+            if ($started) {
+
+                return null;
+            }
+        }
+
+        return static::startProcess($fRec, true);
+    }
+
+
+    /**
+     * Стартира обработката за текстовия и за markdown индекса
+     *
+     * @param stdClass|string $fRec
+     * @param bool            $forMarkdown Дали е извикана през fileman_MarkdownIntf
+     *
+     * @return string|null
+     */
+    protected static function startProcess($fRec, $forMarkdown = false)
+    {
         $isFileRec = is_object($fRec);
         $params = array(
             'callBack' => get_called_class() . '::afterGetTextByDoubleword',
             'createdBy' => core_Users::getCurrent('id'),
-            'type' => 'textOcr',
+            'type' => static::$indexType,
             'isPath' => !$isFileRec,
             'asynch' => $isFileRec,
         );
@@ -215,7 +319,14 @@ class doubleword_Converter extends core_Manager
         }
 
         $params['lockId'] = fileman_webdrv_Generic::getLockId($params['type'], $lId);
+        $params['lockIds'] = array($params['lockId']);
         if (core_Locks::isLocked($params['lockId'])) {
+            if ($forMarkdown) {
+
+                // Текущата OCR обработка ще запише и markdown съдържанието
+                return null;
+            }
+
             if ($isFileRec) {
                 status_Messages::newStatus('|В момента се прави тази OCR обработка');
 
@@ -238,38 +349,67 @@ class doubleword_Converter extends core_Manager
             return null;
         }
 
+        // Markdown индексът се пълни от същата обработка, затова се заключва и той. Ако друга
+        // програма вече го прави, само не го пипаме - OCR обработката продължава нормално
+        $markdownLockId = fileman_webdrv_Generic::getLockId(static::$markdownIndexType, $lId);
+        if (core_Locks::obtain($markdownLockId, $lockDuration, 0, 0, false)) {
+            $params['markdownType'] = static::$markdownIndexType;
+            $params['lockIds'][] = $markdownLockId;
+        } elseif ($forMarkdown) {
+            static::releaseLocks($params);
+
+            return null;
+        }
+
         if ($isFileRec) {
             fileman_Data::logWrite('OCR обработка на файл с Doubleword.ai', $fRec->dataId);
             fileman_Files::logWrite('OCR обработка на файл с Doubleword.ai', $fRec->id);
 
             try {
-                $Script = cls::get('fconv_Script');
-                $Script->stopRemote = true;
-                $Script->params = $params;
-                $Script->callBack($params['callBack']);
-                if ($Script->run(true, $lockDuration) === false) {
-                    expect(false, 'Асинхронната OCR обработка не може да бъде стартирана');
-                }
+                // Страниците се подготвят тук, а заявките ги изпълнява скриптът
+                $params = static::prepareParams($file, $params);
+                $dataUris = static::getPageDataUris($file, $params);
+                static::startRound($dataUris, $params, true);
             } catch (Throwable $e) {
                 static::registerError($params, static::getExceptionMessage($e));
-                core_Locks::release($params['lockId']);
+                static::releaseLocks($params);
 
                 throw $e;
             }
 
-            status_Messages::newStatus('|Стартирано е извличането на текст с OCR', 'success');
+            if (!$forMarkdown) {
+                status_Messages::newStatus('|Стартирано е извличането на текст с OCR', 'success');
+            }
 
             return null;
         }
 
         try {
-            return static::getText($file, $params);
+            $res = static::extract($file, $params);
+
+            return $forMarkdown ? $res['markdown'] : $res['text'];
         } catch (Throwable $e) {
             static::registerError($params, static::getExceptionMessage($e));
 
             throw $e;
         } finally {
-            core_Locks::release($params['lockId']);
+            static::releaseLocks($params);
+        }
+    }
+
+
+    /**
+     * Освобождава всички ключалки на обработката
+     *
+     * @param array $params
+     */
+    protected static function releaseLocks($params)
+    {
+        $lockIds = !empty($params['lockIds']) ? (array) $params['lockIds'] :
+            (!empty($params['lockId']) ? array($params['lockId']) : array());
+
+        foreach ($lockIds as $lockId) {
+            core_Locks::release($lockId);
         }
     }
 
@@ -284,48 +424,179 @@ class doubleword_Converter extends core_Manager
      */
     public static function getText($fileHnd, $params = array())
     {
-        setIfNot($params['isPath'], is_file($fileHnd));
-        core_App::setTimeLimit(static::getProcessTimeLimit(!empty($params['isPath']), $fileHnd));
+        $res = static::extract($fileHnd, $params);
 
-        if ($params['isPath']) {
-            expect(is_file($fileHnd) && is_readable($fileHnd), 'Файлът за OCR не е достъпен');
-            expect(static::canExtract($fileHnd), 'Файловият формат не се поддържа за OCR');
-            $name = basename($fileHnd);
-        } else {
-            $fRec = fileman_Files::fetchByFh($fileHnd);
-            expect($fRec, 'Файлът за OCR не може да бъде намерен');
-            expect(static::canExtract($fRec), 'Файловият формат не се поддържа за OCR');
-            $name = $fRec->name;
-        }
-
-        $requestTimeout = !empty($params['isPath']) ? self::PATH_REQUEST_TIMEOUT : self::REQUEST_TIMEOUT;
-        $maxApiRetries = !empty($params['isPath']) ? self::MAX_PATH_API_RETRIES : self::MAX_API_RETRIES;
-
-        $dataUris = static::getPageDataUris($fileHnd, $params);
-        $parts = array();
-        foreach (array_chunk($dataUris, self::MAX_PARALLEL_REQUESTS, true) as $chunk) {
-            $parts += static::requestDataUris($chunk, $requestTimeout, $maxApiRetries);
-        }
-
-        ksort($parts, SORT_NUMERIC);
-        $res = implode("\n\n", $parts);
-
-        $res = trim((string) $res);
-        expect(strlen($res), 'Doubleword.ai не върна разпознат текст');
-
-        if (!empty($params['dataId'])) {
-            $params['content'] = $res;
-            $savedId = fileman_Indexes::saveContent($params);
-            expect($savedId, 'Разпознатият текст не може да бъде записан');
-            fileman_Data::logInfo('Завършена OCR обработка с Doubleword.ai (' . strlen($res) . ' байта)', $params['dataId']);
-        }
-
-        return $res;
+        return $res['text'];
     }
 
 
     /**
-     * Изпълнява асинхронната OCR обработка след стартиране от fconv
+     * Разпознава файла и връща съдържанието му в двата вида
+     *
+     * Страница, която не може да бъде разпозната, не прекратява обработката -
+     * на нейно място в текста застава бележка за грешката.
+     *
+     * @param string $fileHnd
+     * @param array  $params
+     *
+     * @return array с ключове 'markdown' (суровият отговор) и 'text' (изчистен текст)
+     */
+    protected static function extract($fileHnd, $params = array())
+    {
+        setIfNot($params['isPath'], is_file($fileHnd));
+        core_App::setTimeLimit(static::getProcessTimeLimit(!empty($params['isPath']), $fileHnd));
+
+        $params = static::prepareParams($fileHnd, $params);
+        $dataUris = static::getPageDataUris($fileHnd, $params);
+
+        // Синхронно - всеки кръг изчаква скрипта си и веднага се обработва
+        while (true) {
+            $Script = static::startRound($dataUris, $params, false);
+            $dataUris = static::collectRound($Script, $params);
+            static::cleanScript($Script);
+            if (!count($dataUris)) {
+                break;
+            }
+        }
+
+        return static::finishExtraction($params);
+    }
+
+
+    /**
+     * Допълва параметрите със състоянието, което се пренася между кръговете
+     *
+     * @param string $fileHnd
+     * @param array  $params
+     *
+     * @return array
+     */
+    protected static function prepareParams($fileHnd, $params)
+    {
+        if (!empty($params['isPath'])) {
+            expect(is_file($fileHnd) && is_readable($fileHnd), 'Файлът за OCR не е достъпен');
+            expect(static::canExtract($fileHnd), 'Файловият формат не се поддържа за OCR');
+        } else {
+            $fRec = fileman_Files::fetchByFh($fileHnd);
+            expect($fRec, 'Файлът за OCR не може да бъде намерен');
+            expect(static::canExtract($fRec), 'Файловият формат не се поддържа за OCR');
+        }
+
+        setIfNot($params['startedOn'], microtime(true));
+        setIfNot($params['round'], 0);
+        setIfNot($params['texts'], array());
+        setIfNot($params['errors'], array());
+        setIfNot($params['partials'], array());
+        setIfNot($params['rotations'], array());
+        setIfNot($params['responseTries'], array());
+        setIfNot($params['uncapped'], array());
+
+        return $params;
+    }
+
+
+    /**
+     * Сглобява резултата от всички кръгове и го записва в индексите
+     *
+     * Страница, която не може да бъде разпозната, не прекратява обработката -
+     * на нейно място в текста застава бележка за грешката.
+     *
+     * @param array $params
+     *
+     * @return array с ключове 'markdown' (за markdown индекса) и 'text' (изчистен текст)
+     */
+    protected static function finishExtraction($params)
+    {
+        $dataId = !empty($params['dataId']) ? (int) $params['dataId'] : null;
+        $allPages = (array) $params['allPages'];
+        $parts = (array) $params['texts'];
+        $pageErrors = (array) $params['errors'];
+        $partialPages = (array) $params['partials'];
+
+        ksort($parts, SORT_NUMERIC);
+
+        $pageTexts = array();
+        $failedPages = array();
+        foreach ($allPages as $pageNo) {
+            if (array_key_exists($pageNo, $parts)) {
+                $pageTexts[$pageNo] = (string) $parts[$pageNo];
+
+                continue;
+            }
+
+            $failedPages[] = $pageNo;
+            $pageTexts[$pageNo] = static::getPageErrorNote(
+                $pageNo,
+                isset($pageErrors[$pageNo]) ? $pageErrors[$pageNo] : ''
+            );
+        }
+
+        $assembled = trim(implode("\n\n", $pageTexts));
+        $markdown = static::toMarkdown($assembled);
+        $res = static::toPlainText($assembled);
+
+        expect(count($parts), 'Doubleword.ai не разпозна нито една от ' . count($allPages) .
+            ' страници' . (count($pageErrors) ?
+                ': ' . static::getPageErrorSummary(reset($pageErrors)) : ''));
+        expect(strlen($res), 'Doubleword.ai не върна разпознат текст');
+
+        if (count($failedPages)) {
+            static::logPageWarning(
+                $dataId,
+                'страници ' . implode(', ', $failedPages) . ' от общо ' . count($allPages) .
+                ' не са разпознати - записан е текстът от останалите ' . count($parts)
+            );
+        }
+
+        if ($dataId) {
+            static::saveMarkdownContent($params, $markdown);
+
+            $params['content'] = $res;
+            $savedId = fileman_Indexes::saveContent($params);
+            expect($savedId, 'Разпознатият текст не може да бъде записан');
+            $duration = round(microtime(true) - $params['startedOn'], 3);
+            fileman_Data::logInfo(
+                'Завършена OCR обработка с Doubleword.ai (' . strlen($res) .
+                ' байта, ' . count($parts) . ' от ' . count($allPages) . ' страници' .
+                (count($partialPages) ? ', частично: ' . implode(', ', $partialPages) : '') .
+                ", {$duration} сек.)",
+                $dataId
+            );
+        }
+
+        return array('markdown' => $markdown, 'text' => $res);
+    }
+
+
+    /**
+     * Записва суровия отговор на модела в markdown индекса
+     *
+     * @param array  $params
+     * @param string $content
+     */
+    protected static function saveMarkdownContent($params, $content)
+    {
+        if (empty($params['markdownType']) || empty($params['dataId'])) {
+
+            return;
+        }
+
+        $params['type'] = $params['markdownType'];
+        $params['content'] = $content;
+        if (!fileman_Indexes::saveContent($params)) {
+            fileman_Data::logWarning(
+                'Doubleword OCR: съдържанието в markdown не може да бъде записано',
+                (int) $params['dataId']
+            );
+        }
+    }
+
+
+    /**
+     * Обработва отговорите от завършил кръг заявки
+     *
+     * Тежката работа е свършена от скрипта - тук само се четат готовите отговори и
+     * или се пуска още един кръг, или резултатът се записва в индексите.
      *
      * @param fconv_Script $script
      *
@@ -333,33 +604,35 @@ class doubleword_Converter extends core_Manager
      */
     public function afterGetTextByDoubleword($script)
     {
-        core_App::flushAndClose(false);
-
         $params = (isset($script->params) && is_array($script->params)) ? $script->params : array();
 
         try {
-            try {
-                expect(!empty($params['fileHnd']), 'Липсва файл за асинхронната OCR обработка');
-                static::getText($params['fileHnd'], $params);
-            } catch (Throwable $e) {
-                static::registerError($params, static::getExceptionMessage($e));
+            $pending = static::collectRound($script, $params);
+
+            // Моделът е поискал завъртане или е върнал невалиден отговор - още един кръг
+            if (count($pending)) {
+                static::startRound($pending, $params, true);
+
+                return true;
             }
 
-            if (!empty($params['dataId'])) {
-                try {
-                    fileman_Data::resetProcess((int) $params['dataId']);
-                } catch (Throwable $e) {
-                    fileman_Data::logWarning(
-                        'Doubleword OCR: обработката на файла не може да бъде нулирана',
-                        (int) $params['dataId']
-                    );
-                }
-            }
-        } finally {
-            if (!empty($params['lockId'])) {
-                core_Locks::release($params['lockId']);
+            static::finishExtraction($params);
+        } catch (Throwable $e) {
+            static::registerError($params, static::getExceptionMessage($e));
+        }
+
+        if (!empty($params['dataId'])) {
+            try {
+                fileman_Data::resetProcess((int) $params['dataId']);
+            } catch (Throwable $e) {
+                fileman_Data::logWarning(
+                    'Doubleword OCR: обработката на файла не може да бъде нулирана',
+                    (int) $params['dataId']
+                );
             }
         }
+
+        static::releaseLocks($params);
 
         return true;
     }
@@ -375,6 +648,7 @@ class doubleword_Converter extends core_Manager
      */
     protected static function getDataUrisFromPdf($fileHnd, $params, $onlyPage = null)
     {
+        $renderStartedOn = microtime(true);
         $maxPages = static::getMaxPdfPages(!empty($params['isPath']));
         if ($onlyPage !== null) {
             $onlyPage = (int) $onlyPage;
@@ -393,7 +667,7 @@ class doubleword_Converter extends core_Manager
         $Script->setProgram('pdftoppm', doubleword_Setup::get('PDFTOPPM_PATH'));
         $Script->setProgramPath(get_called_class(), 'fconvProgramPaths');
         $Script->setParam('PDFTOPPM', doubleword_Setup::get('PDFTOPPM_PATH'), true);
-        $pdfTimeout = max(30, min(1800, (int) doubleword_Setup::get('PDF_RENDER_TIMEOUT')));
+        $pdfTimeout = max(30, min(3600, (int) doubleword_Setup::get('PDF_RENDER_TIMEOUT')));
         $Script->setParam('PDF_TIMEOUT', $pdfTimeout, true);
         $Script->setParam('FIRST_PAGE', $firstPage, true);
         $Script->setParam('LAST_PAGE', $lastPage, true);
@@ -425,6 +699,15 @@ class doubleword_Converter extends core_Manager
             } else {
                 expect(count($pagePaths) <= $maxPages,
                     "PDF файлът надвишава разрешените {$maxPages} страници за Doubleword OCR");
+            }
+
+            if (!empty($params['dataId'])) {
+                $duration = round(microtime(true) - $renderStartedOn, 3);
+                fileman_Data::logInfo(
+                    'Doubleword OCR: PDF файлът е преобразуван в ' . count($pagePaths) .
+                    " страници за {$duration} сек.",
+                    (int) $params['dataId']
+                );
             }
 
             $dataUris = array();
@@ -504,6 +787,37 @@ class doubleword_Converter extends core_Manager
 
 
     /**
+     * Максималното време за една заявка към модела
+     *
+     * @param bool $isPath
+     *
+     * @return int
+     */
+    protected static function getRequestTimeout($isPath = false)
+    {
+        $timeout = max(30, min(7200, (int) doubleword_Setup::get('REQUEST_TIMEOUT')));
+
+        return $isPath ? min($timeout, self::PATH_REQUEST_TIMEOUT) : $timeout;
+    }
+
+
+    /**
+     * Връща броя повторения при временна API грешка
+     *
+     * @param bool $isPath
+     *
+     * @return int
+     */
+    protected static function getMaxApiRetries($isPath = false)
+    {
+        $configName = $isPath ? 'PATH_API_RETRIES' : 'API_RETRIES';
+        $retries = (int) doubleword_Setup::get($configName);
+
+        return max(0, min(self::MAX_CONFIGURED_API_RETRIES, $retries));
+    }
+
+
+    /**
      * Максимално време за процеса и неговия lock
      *
      * @param bool        $isPath
@@ -526,16 +840,15 @@ class doubleword_Converter extends core_Manager
             }
         }
         $batches = (int) ceil($pages / self::MAX_PARALLEL_REQUESTS);
-        $requestTimeout = $isPath ? self::PATH_REQUEST_TIMEOUT : self::REQUEST_TIMEOUT;
-        $apiRetries = $isPath ? self::MAX_PATH_API_RETRIES : self::MAX_API_RETRIES;
-        $apiAttempts = $apiRetries + 1;
-        $rotationAttempts = self::MAX_ROTATION_RETRIES + 1;
-        $renderTimeout = max(30, min(1800, (int) doubleword_Setup::get('PDF_RENDER_TIMEOUT')));
+        $requestTimeout = static::getRequestTimeout($isPath);
+        $apiAttempts = static::getMaxApiRetries($isPath) + 1;
+        $batchTime = $batches * $apiAttempts * ($requestTimeout + self::RETRY_DELAY);
+        $renderTimeout = max(30, min(3600, (int) doubleword_Setup::get('PDF_RENDER_TIMEOUT')));
 
-        return max(
-            1800,
-            ($batches * $requestTimeout * $apiAttempts * $rotationAttempts) + $renderTimeout + 300
-        );
+        // Запасът е щедър нарочно - callback-ът идва чак след като скриптът изчака
+        // опашката на доставчика, а изтекла ключалка би пуснала втора обработка на
+        // същия файл, докато първата още работи
+        return max(3600, ($batchTime * self::MAX_ROUNDS) + $renderTimeout + 1800);
     }
 
 
@@ -704,161 +1017,312 @@ class doubleword_Converter extends core_Manager
 
 
     /**
-     * Изпраща една група страници едновременно към Doubleword.ai
+     * Подготвя и пуска един кръг заявки към Doubleword.ai
      *
-     * @param array $dataUris
-     * @param int   $requestTimeout
-     * @param int   $maxApiRetries
-     * @param int   $apiAttempt
-     * @param int   $rotationAttempt
+     * Заявките се изпълняват от скрипта с curl - PHP само подготвя телата им и после
+     * прочита готовите отговори, без да чака мрежата.
      *
-     * @return array
+     * @param array $dataUris Страниците за този кръг
+     * @param array $params
+     * @param bool  $asynch
+     *
+     * @return fconv_Script
      */
-    protected static function requestDataUris(
-        $dataUris,
-        $requestTimeout = self::REQUEST_TIMEOUT,
-        $maxApiRetries = self::MAX_API_RETRIES,
-        $apiAttempt = 0,
-        $rotationAttempt = 0
-    )
+    protected static function startRound($dataUris, &$params, $asynch)
     {
-        expect(function_exists('curl_multi_init'), 'PHP разширението cURL не е инсталирано');
+        expect(count($dataUris), 'Няма страници за разпознаване');
 
-        $multi = curl_multi_init();
-        expect($multi, 'Не може да бъде стартирана връзка към Doubleword.ai');
+        $Script = cls::get('fconv_Script');
+        $Script->stopRemote = true;
+        $Script->setProgram('curl', doubleword_Setup::get('CURL_PATH'));
+        $Script->setProgramPath(get_called_class(), 'fconvProgramPaths');
+        $Script->setCheckProgramsArr('curl');
 
-        $handles = array();
-        $res = array();
-        $retryUris = array();
-        $rotationUris = array();
-        try {
-            foreach ($dataUris as $pageNo => $dataUri) {
-                $handle = static::createCurlHandle($dataUri, $requestTimeout);
-                $handles[$pageNo] = $handle;
-                curl_multi_add_handle($multi, $handle);
+        core_Os::requireDir($Script->tempDir);
+        $dir = rtrim($Script->tempDir, '/') . '/';
+
+        $configPath = $dir . 'curl.conf';
+        expect(file_put_contents($configPath, static::getCurlConfig($params)) !== false,
+            'Настройките за заявките не могат да бъдат записани');
+        @chmod($configPath, 0600);
+
+        $Script->setParam('CURL', doubleword_Setup::get('CURL_PATH'));
+        $Script->setParam('CURL_CONFIG', $configPath);
+        $Script->setParam('WRITE_OUT', '%{http_code} %{time_total}');
+
+        $pages = array();
+        foreach (array_chunk($dataUris, self::MAX_PARALLEL_REQUESTS, true) as $chunk) {
+            foreach ($chunk as $pageNo => $dataUri) {
+                // Страница, чийто отговор вече е бил отрязан, се иска без лимит
+                $withLimit = empty($params['uncapped'][$pageNo]);
+                $payloadPath = $dir . 'payload-' . $pageNo . '.json';
+                expect(file_put_contents($payloadPath, static::getRequestPayload($dataUri, $withLimit)) !== false,
+                    "Заявката за страница {$pageNo} не може да бъде записана");
+
+                $Script->setParam('PAYLOAD', '@' . $payloadPath);
+                $Script->setParam('OUT', $dir . 'out-' . $pageNo . '.json');
+                $Script->setParam('META', $dir . 'meta-' . $pageNo . '.txt');
+                $Script->setParam('ERR', $dir . 'err-' . $pageNo . '.txt');
+                $Script->lineExec(get_called_class() . '::curlLineExec', array(), false);
+                $pages[] = $pageNo;
             }
 
-            do {
-                $multiStatus = curl_multi_exec($multi, $active);
-                if ($active && $multiStatus == CURLM_OK) {
-                    $ready = curl_multi_select($multi, 1.0);
-                    if ($ready === -1) {
-                        usleep(100000);
-                    }
-                }
-            } while ($active && $multiStatus == CURLM_OK);
+            // Групата се изчаква, преди да тръгне следващата
+            $Script->lineExec(get_called_class() . '::waitLineExec', array(), false);
+        }
 
-            expect($multiStatus == CURLM_OK, 'Грешка при изпълнение на заявките към Doubleword.ai');
+        $params['pages'] = $pages;
+        setIfNot($params['allPages'], $pages);
+        $timeLimit = static::getProcessTimeLimit(!empty($params['isPath']));
 
-            foreach ($handles as $pageNo => $handle) {
-                $body = curl_multi_getcontent($handle);
-                $httpCode = (int) curl_getinfo($handle, CURLINFO_HTTP_CODE);
-                $curlError = curl_error($handle);
+        if ($asynch) {
+            $Script->callBack($params['callBack']);
+        }
 
-                if (static::isRetryableApiFailure($httpCode, $curlError) &&
-                    ($apiAttempt < $maxApiRetries)) {
-                    $retryUris[$pageNo] = $dataUris[$pageNo];
-                    continue;
-                }
+        $Script->params = $params;
+        if ($Script->run($asynch, $timeLimit) === false) {
+            expect(false, 'Заявките към Doubleword.ai не могат да бъдат стартирани');
+        }
 
+        if (!empty($params['dataId'])) {
+            fileman_Data::logInfo(
+                'Doubleword OCR: стартиран кръг ' . ($params['round'] + 1) . ' за страници ' .
+                implode(', ', $pages),
+                (int) $params['dataId']
+            );
+        }
+
+        return $Script;
+    }
+
+
+    /**
+     * Прочита отговорите от завършилия кръг
+     *
+     * @param fconv_Script $script
+     * @param array        $params
+     *
+     * @return array Страниците, които се нуждаят от още един кръг, с изображенията им
+     */
+    protected static function collectRound($script, &$params)
+    {
+        $dataId = !empty($params['dataId']) ? (int) $params['dataId'] : null;
+        $dir = rtrim($script->tempDir, '/') . '/';
+        $round = (int) $params['round'];
+        $isLastRound = ($round + 1) >= self::MAX_ROUNDS;
+        $pending = array();
+        $done = array();
+
+        foreach ((array) $params['pages'] as $pageNo) {
+            $body = (string) @file_get_contents($dir . 'out-' . $pageNo . '.json');
+            $meta = trim((string) @file_get_contents($dir . 'meta-' . $pageNo . '.txt'));
+            $stdErr = trim((string) @file_get_contents($dir . 'err-' . $pageNo . '.txt'));
+
+            $metaArr = preg_split('/\s+/', $meta, -1, PREG_SPLIT_NO_EMPTY);
+            $httpCode = (int) ($metaArr[0] ?? 0);
+            $curlInfo = array(
+                'total_time' => isset($metaArr[1]) ? (float) $metaArr[1] : null,
+                'round' => $round + 1,
+                'max_rounds' => self::MAX_ROUNDS,
+                'requested_max_tokens' => (self::INITIAL_COMPLETION_TOKENS === null ||
+                    !empty($params['uncapped'][$pageNo])) ?
+                    'provider_default' : self::INITIAL_COMPLETION_TOKENS,
+            );
+
+            // Без HTTP код заявката изобщо не е стигнала до отговор
+            $curlError = $httpCode ? '' : ($stdErr ? $stdErr : 'заявката не върна отговор');
+
+            try {
                 $rotationCorrection = null;
+                $responseRetryReason = null;
+                $partialContent = null;
                 $content = static::decodeApiResponse(
                     $body,
                     $httpCode,
                     $curlError,
                     $pageNo,
-                    $rotationCorrection
+                    $rotationCorrection,
+                    $curlInfo,
+                    $responseRetryReason,
+                    $partialContent
                 );
 
+                if ($responseRetryReason !== null) {
+                    $diagnostics = static::getApiResponseDiagnostics(
+                        json_decode($body),
+                        $responseRetryReason === 'missing' ? null : $responseRetryReason,
+                        $httpCode,
+                        $body,
+                        $curlInfo
+                    );
+
+                    // Отрязаният отговор има смисъл да се повтори само ако лимитът може да
+                    // отпадне - иначе моделът пак ще опре в същото
+                    $canLiftLimit = ($responseRetryReason === 'length') &&
+                        (self::INITIAL_COMPLETION_TOKENS !== null) && empty($params['uncapped'][$pageNo]);
+                    $canRetry = !$isLastRound &&
+                        ($canLiftLimit || $responseRetryReason !== 'length') &&
+                        ((int) ($params['responseTries'][$pageNo] ?? 0) < self::MAX_RESPONSE_RETRIES);
+
+                    if ($canRetry) {
+                        $params['responseTries'][$pageNo] = (int) ($params['responseTries'][$pageNo] ?? 0) + 1;
+                        if ($canLiftLimit) {
+                            $params['uncapped'][$pageNo] = true;
+                        }
+                        $pending[$pageNo] = static::getRoundImage($dir, $pageNo);
+                        static::logApiRetry($dataId, "незавършен API отговор за страница {$pageNo}", $diagnostics);
+
+                        continue;
+                    }
+
+                    $partial = static::getPartialOcrText($partialContent);
+                    expect(strlen($partial),
+                        "Doubleword.ai не върна валиден отговор за страница {$pageNo}" . $diagnostics);
+
+                    $params['texts'][$pageNo] = $partial . "\n\n" .
+                        static::getPartialPageNote($pageNo, $responseRetryReason);
+                    $params['partials'][$pageNo] = $pageNo;
+                    $done[] = $pageNo;
+                    static::logPageWarning(
+                        $dataId,
+                        "страница {$pageNo} е разпозната частично (" . strlen($partial) . ' байта)' . $diagnostics
+                    );
+
+                    continue;
+                }
+
                 if ($rotationCorrection !== null) {
-                    expect($rotationAttempt < self::MAX_ROTATION_RETRIES,
+                    $tries = (int) ($params['rotations'][$pageNo] ?? 0);
+                    expect(!$isLastRound && $tries < self::MAX_ROTATION_RETRIES,
                         "Doubleword.ai не успя да определи ориентацията на страница {$pageNo}");
-                    $rotationUris[$pageNo] = static::rotateDataUri(
-                        $dataUris[$pageNo],
+
+                    $params['rotations'][$pageNo] = $tries + 1;
+                    $pending[$pageNo] = static::rotateDataUri(
+                        static::getRoundImage($dir, $pageNo),
                         $rotationCorrection
                     );
-                } else {
-                    $res[$pageNo] = $content;
+                    static::logApiRetry(
+                        $dataId,
+                        "корекция на ориентацията с {$rotationCorrection}° за страница {$pageNo}"
+                    );
+
+                    continue;
                 }
+
+                $params['texts'][$pageNo] = $content;
+                $done[] = $pageNo;
+            } catch (Throwable $e) {
+                static::registerPageError($params['errors'], $pageNo, static::getExceptionMessage($e), $dataId);
             }
-        } finally {
-            foreach ($handles as $handle) {
-                curl_multi_remove_handle($multi, $handle);
-                curl_close($handle);
-            }
-            curl_multi_close($multi);
         }
 
-        if (!empty($retryUris)) {
-            $delay = self::RETRY_BASE_DELAY * (1 << $apiAttempt);
-            usleep($delay);
-            $res = array_replace(
-                $res,
-                static::requestDataUris(
-                    $retryUris,
-                    $requestTimeout,
-                    $maxApiRetries,
-                    $apiAttempt + 1,
-                    $rotationAttempt
-                )
+        if ($dataId) {
+            $finished = array_diff((array) $params['pages'], array_keys($pending));
+            fileman_Data::logInfo(
+                'Doubleword OCR: кръг ' . ($round + 1) . ' приключи' .
+                static::getPagesOutcome($finished, $params['texts'], $params['partials']) .
+                (count($pending) ? '; за следващ кръг: ' . implode(', ', array_keys($pending)) : ''),
+                $dataId
             );
         }
 
-        if (!empty($rotationUris)) {
-            $res = array_replace(
-                $res,
-                static::requestDataUris(
-                    $rotationUris,
-                    $requestTimeout,
-                    $maxApiRetries,
-                    0,
-                    $rotationAttempt + 1
-                )
-            );
-        }
+        $params['round'] = $round + 1;
 
-        ksort($res, SORT_NUMERIC);
-
-        return $res;
+        return $pending;
     }
 
 
     /**
-     * Дали заявката може безопасно да се повтори след кратко изчакване
+     * Връща изображението на страницата от заявката на приключилия кръг
      *
-     * @param int    $httpCode
-     * @param string $curlError
+     * @param string $dir
+     * @param int    $pageNo
      *
-     * @return bool
+     * @return string
      */
-    protected static function isRetryableApiFailure($httpCode, $curlError)
+    protected static function getRoundImage($dir, $pageNo)
     {
-        if (strlen((string) $curlError)) {
+        $payload = json_decode((string) @file_get_contents($dir . 'payload-' . $pageNo . '.json'));
+        $parts = $payload->messages[0]->content ?? array();
+        foreach ((array) $parts as $part) {
+            if (isset($part->image_url->url)) {
 
-            return true;
+                return $part->image_url->url;
+            }
         }
 
-        return in_array((int) $httpCode, array(408, 425, 429, 500, 502, 503, 504), true);
+        expect(false, "Изображението на страница {$pageNo} не може да бъде намерено");
     }
 
 
     /**
-     * Подготвя cURL заявка за една страница
+     * Настройките на curl за заявките
      *
-     * @param string $dataUri
-     * @param int    $requestTimeout
+     * Държат се във файл, за да не влизат в текста на скрипта - той се записва в лога
      *
-     * @return resource|CurlHandle
+     * @param array $params
+     *
+     * @return string
      */
-    protected static function createCurlHandle($dataUri, $requestTimeout = self::REQUEST_TIMEOUT)
+    protected static function getCurlConfig($params)
     {
         $apiKey = trim((string) doubleword_Setup::get('API_KEY'));
         expect(strlen($apiKey), 'Не е зададен API ключ за Doubleword.ai');
 
+        $url = trim((string) doubleword_Setup::get('API_URL'));
+        expect(strlen($url), 'Не е зададен API адрес за Doubleword.ai');
+
+        $timeout = static::getRequestTimeout(!empty($params['isPath']));
+        $retries = static::getMaxApiRetries(!empty($params['isPath']));
+
+        $lines = array(
+            'url = ' . static::quoteCurlValue($url),
+            'header = ' . static::quoteCurlValue('Authorization: Bearer ' . $apiKey),
+            'header = ' . static::quoteCurlValue('Content-Type: application/json'),
+            'header = ' . static::quoteCurlValue('Accept: application/json'),
+            'user-agent = ' . static::quoteCurlValue('bgERP Doubleword OCR/0.7'),
+            'connect-timeout = ' . self::CONNECT_TIMEOUT,
+            'max-time = ' . (int) $timeout,
+            'compressed',
+            'silent',
+            'show-error',
+        );
+
+        if ($retries) {
+            $lines[] = 'retry = ' . (int) $retries;
+            $lines[] = 'retry-delay = ' . self::RETRY_DELAY;
+            $lines[] = 'retry-connrefused';
+        }
+
+        return implode("\n", $lines) . "\n";
+    }
+
+
+    /**
+     * Екранира стойност за файла с настройки на curl
+     *
+     * @param string $value
+     *
+     * @return string
+     */
+    protected static function quoteCurlValue($value)
+    {
+        return '"' . str_replace(array('\\', '"'), array('\\\\', '\\"'), (string) $value) . '"';
+    }
+
+
+    /**
+     * Тялото на заявката за една страница
+     *
+     * @param string $dataUri
+     *
+     * @return string
+     */
+    protected static function getRequestPayload($dataUri, $withLimit = true)
+    {
+        $serviceTier = trim((string) doubleword_Setup::get('SERVICE_TIER'));
         $payload = array(
             'model' => doubleword_Setup::get('OCR_MODEL'),
-            'service_tier' => 'flex',
-            'max_tokens' => 8000,
             'temperature' => 0.1,
             'messages' => array(
                 array(
@@ -874,31 +1338,212 @@ class doubleword_Converter extends core_Manager
             ),
         );
 
+        // 'none' е изричният избор полето да не се изпраща - празна стойност не стига дотук,
+        // защото конфигът пада към константата по подразбиране
+        if (strlen($serviceTier) && $serviceTier != 'none') {
+            $payload['service_tier'] = $serviceTier;
+        }
+
+        if ($withLimit && self::INITIAL_COMPLETION_TOKENS !== null) {
+            $payload['max_tokens'] = max(self::MIN_COMPLETION_TOKENS, (int) self::INITIAL_COMPLETION_TOKENS);
+        }
+
         $json = json_encode($payload, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
         expect(is_string($json), 'Не може да бъде създадена JSON заявка към Doubleword.ai');
 
-        $curl = curl_init(doubleword_Setup::get('API_URL'));
-        expect($curl, 'Не може да бъде стартирана връзка към Doubleword.ai');
+        return $json;
+    }
 
-        curl_setopt_array($curl, array(
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_POST => true,
-            CURLOPT_POSTFIELDS => $json,
-            CURLOPT_HTTPHEADER => array(
-                'Authorization: Bearer ' . $apiKey,
-                'Content-Type: application/json',
-                'Accept: application/json',
-            ),
-            CURLOPT_CONNECTTIMEOUT => self::CONNECT_TIMEOUT,
-            CURLOPT_TIMEOUT => max(30, (int) $requestTimeout),
-            CURLOPT_NOSIGNAL => true,
-            CURLOPT_SSL_VERIFYHOST => 2,
-            CURLOPT_SSL_VERIFYPEER => true,
-            CURLOPT_ENCODING => '',
-            CURLOPT_USERAGENT => 'bgERP Doubleword OCR/0.1',
-        ));
 
-        return $curl;
+    /**
+     * Изтрива временните файлове на приключил скрипт
+     *
+     * @param fconv_Script $script
+     */
+    protected static function cleanScript($script)
+    {
+        if (!empty($script->tempDir) && core_Os::deleteDir($script->tempDir)) {
+            fconv_Processes::delete(array("#processId = '[#1#]'", $script->id));
+        }
+    }
+
+
+    /**
+     * Записва безопасна диагностика при повторение на API заявка
+     *
+     * @param int|null $dataId
+     * @param string   $reason
+     * @param string   $diagnostics
+     */
+    protected static function logApiRetry($dataId, $reason, $diagnostics = '')
+    {
+        $message = static::limitError('Doubleword OCR: повторение след ' . $reason . $diagnostics);
+        if ($dataId) {
+            fileman_Data::logNotice($message, (int) $dataId);
+        } else {
+            static::logNotice($message);
+        }
+    }
+
+
+    /**
+     * Отбелязва страница, която не може да бъде разпозната
+     *
+     * Първата грешка за страницата е меродавна - тя описва причината най-точно.
+     *
+     * @param array    $pageErrors
+     * @param int      $pageNo
+     * @param string   $message
+     * @param int|null $dataId
+     */
+    protected static function registerPageError(&$pageErrors, $pageNo, $message, $dataId = null)
+    {
+        if (isset($pageErrors[$pageNo])) {
+
+            return;
+        }
+
+        $message = static::limitError($message);
+        $pageErrors[$pageNo] = $message;
+        static::logPageWarning($dataId, "страница {$pageNo} не е разпозната: " . $message);
+    }
+
+
+    /**
+     * Записва предупреждение за частично разпознат документ
+     *
+     * @param int|null $dataId
+     * @param string   $message
+     */
+    protected static function logPageWarning($dataId, $message)
+    {
+        $message = static::limitError('Doubleword OCR: ' . $message);
+        if ($dataId) {
+            fileman_Data::logWarning($message, (int) $dataId);
+        } else {
+            static::logWarning($message);
+        }
+    }
+
+
+    /**
+     * Връща обобщение кои страници от групата са разпознати и кои не
+     *
+     * @param array $pageNumbers
+     * @param array $texts
+     * @param array $partials
+     *
+     * @return string
+     */
+    protected static function getPagesOutcome($pageNumbers, $texts, $partials = array())
+    {
+        $done = array();
+        $partial = array();
+        $failed = array();
+        foreach ($pageNumbers as $pageNo) {
+            if (!array_key_exists($pageNo, $texts)) {
+                $failed[] = $pageNo;
+            } elseif (isset($partials[$pageNo])) {
+                $partial[] = $pageNo;
+            } else {
+                $done[] = $pageNo;
+            }
+        }
+
+        $res = ' (разпознати: ' . (count($done) ? implode(', ', $done) : 'няма');
+        if (count($partial)) {
+            $res .= '; частично: ' . implode(', ', $partial);
+        }
+        if (count($failed)) {
+            $res .= '; с грешка: ' . implode(', ', $failed);
+        }
+
+        return $res . ')';
+    }
+
+
+    /**
+     * Извлича текста от незавършен API отговор
+     *
+     * Ако отговорът е прекъснат още в служебния YAML блок, няма какво да се спаси.
+     *
+     * @param string|null $content
+     *
+     * @return string
+     */
+    protected static function getPartialOcrText($content)
+    {
+        if (!is_string($content) || !strlen(trim($content))) {
+
+            return '';
+        }
+
+        $metadata = array();
+        $text = static::stripFrontMatter($content, $metadata);
+        if (!count($metadata) && preg_match('/\A\s*---[ \t]*\R/u', $text)) {
+
+            return '';
+        }
+
+        return trim($text);
+    }
+
+
+    /**
+     * Бележката, която отбелязва край на непълно разпозната страница
+     *
+     * @param int    $pageNo
+     * @param string $reason
+     *
+     * @return string
+     */
+    protected static function getPartialPageNote($pageNo, $reason)
+    {
+        $cause = $reason === 'length' ?
+            'отговорът на модела е достигнал лимита си' :
+            'отговорът на модела не е завършен';
+
+        return "[Doubleword OCR: текстът на страница {$pageNo} е непълен - {$cause}]";
+    }
+
+
+    /**
+     * Бележката, която застава в текста на мястото на неразпозната страница
+     *
+     * @param int    $pageNo
+     * @param string $message
+     *
+     * @return string
+     */
+    protected static function getPageErrorNote($pageNo, $message)
+    {
+        $note = "Doubleword OCR: грешка при разпознаването на страница {$pageNo}";
+        $message = static::getPageErrorSummary($message);
+        if (strlen($message)) {
+            $note .= ': ' . $message;
+        }
+
+        return '[' . $note . ']';
+    }
+
+
+    /**
+     * Скъсява съобщение за грешка без техническата диагностика
+     *
+     * @param string $message
+     *
+     * @return string
+     */
+    protected static function getPageErrorSummary($message)
+    {
+        $message = static::limitError($message);
+        $message = preg_replace(
+            '/(?:\s*\([a-z_]+=[^()]*(?:,\s*[a-z_]+=[^()]*)*\))+\s*$/ui',
+            '',
+            $message
+        );
+
+        return mb_substr(trim((string) $message), 0, 200);
     }
 
 
@@ -910,35 +1555,62 @@ class doubleword_Converter extends core_Manager
      * @param string $curlError
      * @param int    $pageNo
      * @param int|null $rotationCorrection
+     * @param array  $curlInfo
+     * @param string|null $responseRetryReason
+     * @param string|null $partialContent Текстът от незавършен отговор
      *
-     * @return string
+     * @return string|null
      */
-    protected static function decodeApiResponse($body, $httpCode, $curlError, $pageNo, &$rotationCorrection = null)
+    protected static function decodeApiResponse(
+        $body,
+        $httpCode,
+        $curlError,
+        $pageNo,
+        &$rotationCorrection = null,
+        $curlInfo = array(),
+        &$responseRetryReason = null,
+        &$partialContent = null
+    )
     {
         $rotationCorrection = null;
-        expect(!$curlError, "Doubleword.ai: грешка при страница {$pageNo}: " . static::limitError($curlError));
+        $responseRetryReason = null;
+        $partialContent = null;
+        $transportDiagnostics = static::getTransportDiagnostics($httpCode, $body, $curlInfo);
+        expect(!strlen((string) $curlError),
+            "Doubleword.ai: грешка при страница {$pageNo}: " . static::limitError($curlError) .
+            $transportDiagnostics);
 
         $decoded = json_decode((string) $body);
         if ($httpCode < 200 || $httpCode >= 300) {
             $message = static::getApiError($decoded);
-            expect(false, "Doubleword.ai HTTP {$httpCode} при страница {$pageNo}: {$message}");
+            expect(false, "Doubleword.ai HTTP {$httpCode} при страница {$pageNo}: {$message}" .
+                $transportDiagnostics);
         }
 
         expect(json_last_error() == JSON_ERROR_NONE && is_object($decoded),
-            "Doubleword.ai върна невалиден JSON за страница {$pageNo}");
+            "Doubleword.ai върна невалиден JSON за страница {$pageNo}" . $transportDiagnostics);
 
         if (!empty($decoded->error)) {
-            expect(false, "Doubleword.ai при страница {$pageNo}: " . static::getApiError($decoded));
+            expect(false, "Doubleword.ai при страница {$pageNo}: " . static::getApiError($decoded) .
+                $transportDiagnostics);
         }
 
-        expect(!empty($decoded->choices[0]->message),
-            "Doubleword.ai върна неочакван отговор за страница {$pageNo}");
+        $choices = $decoded->choices ?? null;
+        $choice = (is_array($choices) && isset($choices[0]) && is_object($choices[0])) ? $choices[0] : null;
+        $finishReason = is_object($choice) ? ($choice->finish_reason ?? null) : null;
+        $message = is_object($choice) ? ($choice->message ?? null) : null;
+        expect(is_object($message),
+            "Doubleword.ai върна неочакван отговор за страница {$pageNo}" .
+            static::getApiResponseDiagnostics($decoded, $finishReason, $httpCode, $body, $curlInfo));
 
-        $finishReason = $decoded->choices[0]->finish_reason ?? null;
-        expect($finishReason === 'stop',
-            "Doubleword.ai върна незавършен отговор за страница {$pageNo}");
-
-        $content = $decoded->choices[0]->message->content;
+        $responseDiagnostics = static::getApiResponseDiagnostics(
+            $decoded,
+            $finishReason,
+            $httpCode,
+            $body,
+            $curlInfo
+        );
+        $content = $message->content ?? null;
         if (is_array($content)) {
             $text = '';
             foreach ($content as $part) {
@@ -949,10 +1621,348 @@ class doubleword_Converter extends core_Manager
             $content = $text;
         }
 
+        if ($finishReason !== 'stop') {
+            if ($finishReason === 'length' || $finishReason === null) {
+                $responseRetryReason = $finishReason === null ? 'missing' : $finishReason;
+                $partialContent = is_string($content) ? $content : null;
+
+                return null;
+            }
+            if ($finishReason === 'content_filter') {
+                $error = "Doubleword.ai прекрати отговора от content filter при страница {$pageNo}";
+            } else {
+                $error = "Doubleword.ai върна незавършен отговор за страница {$pageNo}";
+            }
+            expect(false, $error . $responseDiagnostics);
+        }
+
         expect(is_string($content) && strlen(trim($content)),
-            "Doubleword.ai не върна текст за страница {$pageNo}");
+            "Doubleword.ai не върна текст за страница {$pageNo}" . $responseDiagnostics);
 
         return static::parseOcrContent($content, $pageNo, $rotationCorrection);
+    }
+
+
+    /**
+     * Връща безопасна диагностика за завършил API отговор
+     *
+     * Не включва OCR текста, входното изображение или API ключа.
+     *
+     * @param mixed  $decoded
+     * @param mixed  $finishReason
+     * @param int    $httpCode
+     * @param string $body
+     * @param array  $curlInfo
+     *
+     * @return string
+     */
+    protected static function getApiResponseDiagnostics($decoded, $finishReason, $httpCode, $body, $curlInfo)
+    {
+        $usage = is_object($decoded) ? ($decoded->usage ?? null) : null;
+        $completionTokens = is_object($usage) ?
+            ($usage->completion_tokens ?? $usage->output_tokens ?? null) : null;
+        $promptTokens = is_object($usage) ?
+            ($usage->prompt_tokens ?? $usage->input_tokens ?? null) : null;
+
+        $diagnostics = array(
+            'finish_reason' => $finishReason,
+            'completion_tokens' => $completionTokens,
+            'prompt_tokens' => $promptTokens,
+            'requested_max_tokens' => $curlInfo['requested_max_tokens'] ?? 'provider_default',
+            'response_id' => is_object($decoded) ? ($decoded->id ?? null) : null,
+            'model' => is_object($decoded) ? ($decoded->model ?? null) : null,
+            'service_tier' => is_object($decoded) ? ($decoded->service_tier ?? null) : null,
+        );
+
+        return static::formatDiagnostics($diagnostics) .
+            static::getTransportDiagnostics($httpCode, $body, $curlInfo);
+    }
+
+
+    /**
+     * Връща безопасна диагностика за HTTP заявката
+     *
+     * @param int    $httpCode
+     * @param string $body
+     * @param array  $curlInfo
+     *
+     * @return string
+     */
+    protected static function getTransportDiagnostics($httpCode, $body, $curlInfo)
+    {
+        $curlInfo = is_array($curlInfo) ? $curlInfo : array();
+        $totalTime = $curlInfo['total_time'] ?? null;
+        if (is_numeric($totalTime)) {
+            $totalTime = round((float) $totalTime, 3);
+        } else {
+            $totalTime = null;
+        }
+
+        return static::formatDiagnostics(array(
+            'http' => (int) $httpCode,
+            'response_bytes' => strlen((string) $body),
+            'total_time_sec' => $totalTime,
+            'round' => $curlInfo['round'] ?? null,
+            'max_rounds' => $curlInfo['max_rounds'] ?? null,
+        ));
+    }
+
+
+    /**
+     * Форматира диагностични стойности без чувствителни данни
+     *
+     * @param array $diagnostics
+     *
+     * @return string
+     */
+    protected static function formatDiagnostics($diagnostics)
+    {
+        $parts = array();
+        foreach ((array) $diagnostics as $name => $value) {
+            if ($value === null) {
+                $value = 'null';
+            } elseif (is_bool($value)) {
+                $value = $value ? 'true' : 'false';
+            } elseif (is_scalar($value)) {
+                $value = preg_replace('/\s+/u', ' ', strip_tags((string) $value));
+                $value = mb_substr(trim((string) $value), 0, 120);
+                if (!strlen($value)) {
+                    $value = "''";
+                }
+            } else {
+                $value = gettype($value);
+            }
+            $parts[] = $name . '=' . $value;
+        }
+
+        return count($parts) ? ' (' . implode(', ', $parts) . ')' : '';
+    }
+
+
+    /**
+     * Превръща отговора на модела в чист текст за текстовия индекс
+     *
+     * Клетките се разделят с табулация, а не с `|`, защото табът с текста чисти
+     * съдържанието с израз, в който `|` е сред "белите" символи - при `| a | b |`
+     * границите на редовете се слепват в един ред (виж fileman_webdrv_Generic::act_Text).
+     * Табулациите остават непокътнати и са конвенцията за текст от таблични файлове
+     * (виж str::tabsToMarkdownTable).
+     *
+     * @param string $content
+     *
+     * @return string
+     */
+    protected static function toPlainText($content)
+    {
+        return static::convertResponse($content, false);
+    }
+
+
+    /**
+     * Превръща отговора на модела в markdown за markdown индекса
+     *
+     * @param string $content
+     *
+     * @return string
+     */
+    protected static function toMarkdown($content)
+    {
+        return static::convertResponse($content, true);
+    }
+
+
+    /**
+     * Преобразува отговора на модела в един от двата вида съдържание
+     *
+     * По официалния промпт olmOCR връща markdown, в който таблиците са HTML. Тук те стават
+     * markdown редове `| a | b |` или таб-разделени редове, а останалият HTML отпада -
+     * таговете не се рендират никъде и само замърсяват търсенето.
+     *
+     * @param string $content
+     * @param bool   $asMarkdown
+     *
+     * @return string
+     */
+    protected static function convertResponse($content, $asMarkdown)
+    {
+        $text = str_replace(self::ROW_MARK, '', (string) $content);
+
+        if (preg_match('/<\/?(?:' . self::HTML_TAGS . ')\b[^>]*>/i', $text)) {
+            $text = preg_replace_callback(
+                '/<tr\b[^>]*>(.*?)(?:<\/tr\s*>|(?=<tr\b)|(?=<\/?table\b)|\z)/is',
+                function ($match) use ($asMarkdown) {
+
+                    return "\n" . self::ROW_MARK . static::htmlRowToText($match[1], $asMarkdown) . "\n";
+                },
+                $text
+            );
+
+            $text = preg_replace('/<br\s*\/?>/i', "\n", $text);
+            $text = preg_replace('/<li\b[^>]*>/i', "\n- ", $text);
+            $text = preg_replace(
+                '/<\/?(?:p|div|h[1-6]|hr|ul|ol|table|thead|tbody|tfoot|caption|blockquote|pre|' .
+                'section|article|header|footer|figure)\b[^>]*>/i',
+                "\n",
+                $text
+            );
+            $text = static::stripHtmlTags($text);
+            $text = static::decodeHtmlEntities($text);
+        }
+
+        // Ако моделът е върнал markdown таблици, в текста те стават таб-разделени редове -
+        // табът с текста слепва редовете, разделени с `|`
+        if (!$asMarkdown) {
+            $text = static::markdownRowsToText($text);
+        }
+
+        $text = preg_replace('/[ \t]+$/m', '', $text);
+        $text = preg_replace('/\n{3,}/', "\n\n", $text);
+
+        // Редовете на една таблица остават слепени, за да се чете като таблица
+        $text = preg_replace('/' . self::ROW_MARK . '([^\n]*)\n+(?=' . self::ROW_MARK . ')/u', "$1\n", $text);
+        $text = str_replace(self::ROW_MARK, '', $text);
+
+        return trim(static::formatNotes($text, $asMarkdown));
+    }
+
+
+    /**
+     * Превръща markdown таблични редове в таб-разделени
+     *
+     * @param string $text
+     *
+     * @return string
+     */
+    protected static function markdownRowsToText($text)
+    {
+        if (strpos($text, '|') === false) {
+
+            return $text;
+        }
+
+        // Разделителният ред на markdown таблица няма какво да каже в текста
+        $text = preg_replace('/^[ \t]*\|[ \t:|-]*\|[ \t]*$\n?/m', '', $text);
+
+        return preg_replace_callback(
+            '/^[ \t]*\|(.+)\|[ \t]*$/m',
+            function ($match) {
+                $cells = preg_split('/(?<!\\\\)\|/', $match[1]);
+                foreach ($cells as $key => $cell) {
+                    $cells[$key] = trim(str_replace('\|', '|', $cell));
+                }
+
+                return implode("\t", $cells);
+            },
+            $text
+        );
+    }
+
+
+    /**
+     * Отделя бележките за проблемни страници, за да личат в текста
+     *
+     * @param string $text
+     * @param bool   $asMarkdown Дали бележката да е удебелена
+     *
+     * @return string
+     */
+    protected static function formatNotes($text, $asMarkdown = false)
+    {
+        $text = preg_replace_callback(
+            '/\n*^[ \t]*(\[Doubleword OCR: [^\n]*\])[ \t]*$\n*/mu',
+            function ($match) use ($asMarkdown) {
+                $note = $asMarkdown ? '**' . $match[1] . '**' : $match[1];
+
+                return "\n\n\n" . $note . "\n\n\n";
+            },
+            $text
+        );
+
+        // При две поредни бележки разстоянието се удвоява
+        return preg_replace('/\n{4,}/', "\n\n\n", $text);
+    }
+
+
+    /**
+     * Превръща един ред от HTML таблица в текстов ред
+     *
+     * @param string $row
+     * @param bool   $asMarkdown
+     *
+     * @return string
+     */
+    protected static function htmlRowToText($row, $asMarkdown = false)
+    {
+        $cells = array();
+        $pattern = '/<t[hd]\b[^>]*>(.*?)(?:<\/t[hd]\s*>|(?=<t[hd]\b)|(?=<\/tr\b)|\z)/is';
+        if (preg_match_all($pattern, $row, $matches)) {
+            foreach ($matches[1] as $cell) {
+                $cells[] = static::htmlCellToText($cell, $asMarkdown);
+            }
+        }
+
+        // Ред без клетки - остава като обикновен текст
+        if (!count($cells)) {
+
+            return static::htmlCellToText($row, $asMarkdown);
+        }
+
+        if (!$asMarkdown) {
+
+            return implode("\t", $cells);
+        }
+
+        return '| ' . implode(' | ', $cells) . ' |';
+    }
+
+
+    /**
+     * Превръща една клетка в текст на един ред
+     *
+     * @param string $cell
+     * @param bool   $asMarkdown
+     *
+     * @return string
+     */
+    protected static function htmlCellToText($cell, $asMarkdown = false)
+    {
+        $cell = preg_replace('/<br\s*\/?>/i', ' ', $cell);
+        $cell = static::stripHtmlTags($cell);
+        $cell = static::decodeHtmlEntities($cell);
+        if ($asMarkdown) {
+            $cell = str_replace('|', '\|', $cell);
+        }
+        $cell = preg_replace('/\s+/u', ' ', $cell);
+
+        return trim($cell);
+    }
+
+
+    /**
+     * Премахва HTML таговете, без да закача текст като 'a < b'
+     *
+     * @param string $text
+     *
+     * @return string
+     */
+    protected static function stripHtmlTags($text)
+    {
+        return preg_replace('/<\/?(?:' . self::HTML_TAGS . ')\b[^>]*>/i', '', (string) $text);
+    }
+
+
+    /**
+     * Декодира HTML същностите и нормализира твърдите интервали
+     *
+     * @param string $text
+     *
+     * @return string
+     */
+    protected static function decodeHtmlEntities($text)
+    {
+        $text = html_entity_decode((string) $text, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+
+        return str_replace("\xC2\xA0", ' ', $text);
     }
 
 
@@ -1122,8 +2132,18 @@ class doubleword_Converter extends core_Manager
 
         if (!empty($params['dataId'])) {
             fileman_Data::logErr('Doubleword OCR: ' . $message, $params['dataId']);
-            fileman_Indexes::createError($params);
-            fileman_Indexes::createErrorLog($params['dataId'], $params['type']);
+
+            // Грешката се отбелязва за всеки индекс, който тази обработка е поела
+            $types = array($params['type']);
+            if (!empty($params['markdownType'])) {
+                $types[] = $params['markdownType'];
+            }
+
+            foreach ($types as $type) {
+                $params['type'] = $type;
+                fileman_Indexes::createError($params);
+                fileman_Indexes::createErrorLog($params['dataId'], $type);
+            }
         } else {
             static::logErr('Doubleword OCR: ' . $message);
         }
@@ -1139,11 +2159,40 @@ class doubleword_Converter extends core_Manager
     {
         return 'Attached is one page of a document that you must process. '
             . 'Just return the plain text representation of this document as if you were reading it naturally. '
-            . 'Convert equations to LaTeX and tables to HTML. '
+            . static::getTablePrompt()
             . 'If there are any figures or charts, label them with the following markdown syntax '
             . '![Alt text describing the contents of the figure](page_startx_starty_width_height.png). '
             . 'Return your output as markdown, with a front matter section on top specifying values for the '
             . 'primary_language, is_rotation_valid, rotation_correction, is_table, and is_diagram parameters.';
+    }
+
+
+    /**
+     * Изречението от промпта, което определя вида на таблиците
+     *
+     * Само 'html' е официалният текст, с който моделът е трениран - другите два са за
+     * сравнение и може да върнат по-нестабилен резултат.
+     *
+     * @return string
+     */
+    protected static function getTablePrompt()
+    {
+        $format = (string) doubleword_Setup::get('TABLE_FORMAT');
+
+        if ($format == 'markdown') {
+
+            return 'Convert equations to LaTeX and tables to markdown tables, '
+                . 'with one row per line and the cells separated by the | character. '
+                . 'Do not use HTML. ';
+        }
+
+        if ($format == 'text') {
+
+            return 'Convert equations to LaTeX and tables to plain text, with one row per line '
+                . 'and the cells of each row separated by a tab character. Do not use HTML. ';
+        }
+
+        return 'Convert equations to LaTeX and tables to HTML. ';
     }
 
 

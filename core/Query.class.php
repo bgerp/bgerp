@@ -565,10 +565,10 @@ class core_Query extends core_FieldSet
             
             if (is_int($f)) {
                 $order->field = $d;
-                $order->direction = $direction;
+                $order->direction = $direction ?? '';
             } else {
                 $order->field = $f;
-                $order->direction = $d;
+                $order->direction = $d ?? '';
             }
             
             $order->priority = -$priority + countR($this->orderBy) / 100;

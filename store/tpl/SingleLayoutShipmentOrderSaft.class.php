@@ -60,7 +60,7 @@ class store_tpl_SingleLayoutShipmentOrderSaft extends doc_TplScript
                 if(isset($paramVerbal) && $paramVerbal != ''){
                     if(!Mode::isReadOnly()){
                         if($data->masterData->rec->state == 'draft'){
-                            $paramVerbal = "<span style='color:blue'>{$paramVerbal}</span>";
+                            $paramVerbal = "<span class='blueText'>{$paramVerbal}</span>";
                             $paramVerbal = ht::createHint($paramVerbal, 'Текущата стойност ще се запише към момента на активиране|*!');
                         }
                     }

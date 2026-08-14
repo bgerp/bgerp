@@ -415,7 +415,7 @@ class eshop_Products extends core_Master
             if($rec->howToSelectMainImage == 'auto'){
                 $howToSelectMainImage = eshop_Setup::get('PRODUCT_IMG_LOGIC');
                 $row->howToSelectMainImage = $mvc->getFieldType('howToSelectMainImage')->toVerbal($howToSelectMainImage);
-                $row->howToSelectMainImage = ht::createHint("<i style='color:blue'>{$row->howToSelectMainImage}</i>", 'Автоматично от настройките на пакета', 'notice', false);
+                $row->howToSelectMainImage = ht::createHint("<i class='blueText'>{$row->howToSelectMainImage}</i>", 'Автоматично от настройките на пакета', 'notice', false);
             }
         }
         
@@ -2039,7 +2039,8 @@ class eshop_Products extends core_Master
                     }
                 }
                 
-                if (is_array($r[$epId])) {
+                // Ключът се създава по-горе само ако е намерен поне един близък е-артикул
+                if (is_array($r[$epId] ?? null)) {
                     arsort($r[$epId]);
                     
                     // Оставят се първите $maxNearProducts е-артикула

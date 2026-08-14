@@ -34,6 +34,7 @@ class planning_interface_ImportFromConsignmentProtocol extends planning_interfac
     {
         $rec = &$form->rec;
         $rec->detailsDef = array();
+        $rec->_details = array();
         $masterRec = $mvc->Master->fetch($rec->{$mvc->masterKey});
         $firstDocument = doc_Threads::getFirstDocument($masterRec->threadId);
         if($firstDocument->isInstanceOf('planning_Tasks')){

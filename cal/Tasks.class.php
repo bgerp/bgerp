@@ -498,7 +498,7 @@ class cal_Tasks extends embed_Manager
             // и той има посочени етапи
             if(!empty($unsortedFolderSteps) || isset($rec->stepId)) {
                 $unsortedFolderSteps = empty($unsortedFolderSteps) ? array() : $unsortedFolderSteps;
-                $availableStepOptions = doc_UnsortedFolderSteps::getOptionArr($unsortedFolderSteps, $rec->stepId);
+                $availableStepOptions = doc_UnsortedFolderSteps::getOptionArr($unsortedFolderSteps, $rec->stepId ?? null);
                 if($Driver = $mvc->getDriver($rec)) {
                     $Driver->invoke('AfterGetEditFormStepOptions', array($mvc, &$availableStepOptions, &$data));
                 }

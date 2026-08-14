@@ -798,7 +798,7 @@ class blast_Letters extends core_Master
         $date = dt::mysql2verbal($rec->createdOn);
         
         // Добавяме във формата информация, за да знаем за кое писмо става дума
-        $form->info = new ET('[#1#]', tr("|*<b>|Писмо|*<i style='color:blue'>: {$subject} / {$date}</i></b>"));
+        $form->info = new ET('[#1#]', tr("|*<b>|Писмо|*<i class='blueText'>: {$subject} / {$date}</i></b>"));
         
         // Опциите за създаване на тялот
         $options = new stdClass();

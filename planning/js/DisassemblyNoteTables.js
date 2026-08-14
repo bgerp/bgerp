@@ -142,8 +142,9 @@ function syncDisassemblyNoteTableGroup(tables)
                 cell.css({
                     'box-sizing': 'border-box',
                     'max-width': maxColumnWidth + 'px',
-                    'overflow': 'hidden',
-                    'white-space': 'nowrap'
+                    'overflow': className == 'productionCodeColumn' ? 'visible' : 'hidden',
+                    'white-space': className == 'productionCodeColumn' ? 'normal' : 'nowrap',
+                    'overflow-wrap': className == 'productionCodeColumn' ? 'anywhere' : ''
                 });
                 var columnIndex = cell.parent().children('td').index(cell);
                 if (!processedColumns[columnIndex]) {

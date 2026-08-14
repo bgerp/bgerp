@@ -624,6 +624,18 @@ class pos_ReceiptDetails extends core_Detail
                 }
             }
 
+            // Ако няма артикул с точно такъв код/баркод, се проверява дали не е баркод с променливо тегло
+            if(!empty($rec->ean) && empty($rec->productId)){
+                if(!cat_Products::getByCode($rec->ean)){
+                    if($weightRec = cat_Setup::getWeightBarcodeProduct($rec->ean)){
+                        expect(empty($weightRec->error), $weightRec->error);
+                        $rec->productId = $weightRec->productId;
+                        $rec->value = $weightRec->measureId;
+                        $rec->quantity = $weightRec->quantity;
+                    }
+                }
+            }
+
             $sign = isset($receiptRec->revertId) ? -1 : 1;
             $rec->quantity *= $sign;
 
@@ -672,12 +684,12 @@ class pos_ReceiptDetails extends core_Detail
             }
 
             expect(!empty($rec->productId), 'Няма такъв продукт в системата|*!', $rec);
-            expect(empty($rec->notSellable), 'Артикулът е спрян от продажба|*!');
+            expect(empty($rec->notSellable), "Артикулът е спрян от продажба|* #Art{$rec->productId}!");
 
             // Ако няма цена
             if (!$rec->price) {
                 $now = dt::mysql2verbal(dt::now(), 'd.m.Y H:i');
-                expect(false,  "Артикулът няма цена към|* <b>{$now}</b>");
+                expect(false,  "|*#Art{$rec->productId} |няма цена към|* <b>{$now}</b>!");
             }
 
             $originProductRec = null;

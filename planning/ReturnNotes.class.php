@@ -306,7 +306,7 @@ class planning_ReturnNotes extends deals_ManifactureMaster
         }
 
         if(empty($rec->storeId)){
-            $row->storeId = ht::createHint("<i style='color:blue'>" . tr('Не е посочен') . "</i>", 'В протокола могат да се избират само услуги|*!');
+            $row->storeId = ht::createHint("<i class='blueText'>" . tr('Не е посочен') . "</i>", 'В протокола могат да се избират само услуги|*!');
         }
     }
 

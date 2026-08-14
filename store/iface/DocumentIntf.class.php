@@ -27,10 +27,12 @@ class store_iface_DocumentIntf
      *
      * @param mixed $rec     - ид или запис
      * @param boolean $cache - дали да се използват кеширани данни
-     * @return array $res    - масив с резултат
+     * @return array $res    - масив с резултат. Всеки елемент съдържа задължително:
+     *                       caption, type, input, readOnlyIfActive и displayExternal;
+     *                       autoCalcFieldName и placeholder са опционални
      */
     public function getShipmentDateFields($rec = null, $cache = false)
     {
-        return $this->class->getShipmentDateFields($rec);
+        return $this->class->getShipmentDateFields($rec, $cache);
     }
 }

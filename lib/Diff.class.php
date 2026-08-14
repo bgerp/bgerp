@@ -226,7 +226,7 @@ class lib_Diff
     {
         $ptr = '/(<[^>]*>|[\\s]+|[' . self::PUNCTUATION . ']+|[^\\s' . self::PUNCTUATION . '\\<]+)/';
         
-        preg_match_all($ptr, $html, $matches);
+        preg_match_all($ptr, (string) $html, $matches);
         
         return $matches[0];
     }

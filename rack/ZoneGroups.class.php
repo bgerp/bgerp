@@ -85,7 +85,7 @@ class rack_ZoneGroups extends core_Manager
     protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
         $form = &$data->form;
-        if($form->rec->createdBy == core_Users::SYSTEM_USER){
+        if(($form->rec->createdBy ?? null) == core_Users::SYSTEM_USER){
             $form->setReadOnly('name');
         }
     }

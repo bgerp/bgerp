@@ -739,7 +739,7 @@ class pwa_PushSubscriptions extends core_Manager
             }
         }
 
-        if ($this->haveRightFor('edit', $rec)) {
+        if ($this->mustOpenSubscriptionSettings($rec)) {
 
             return array($this, 'edit', $rec->id, 'ret_url' => true);
         }
@@ -750,6 +750,61 @@ class pwa_PushSubscriptions extends core_Manager
         }
 
         return array('Portal', 'Show');
+    }
+
+
+    /**
+     * Проверява дали след абониране да се отвори формата с настройките
+     *
+     * Формата се отваря само ако потребителят още не е минавал през нея на
+     * това устройство. Ако настройките не са дефолтните, значи вече са
+     * правени и също няма нужда да се показва.
+     *
+     * @param stdClass $rec
+     *
+     * @return bool
+     */
+    protected function mustOpenSubscriptionSettings($rec)
+    {
+        if (!$this->haveRightFor('edit', $rec)) {
+
+            return false;
+        }
+
+        if (pwa_SubscribePlg::isPromptRemembered('settings', $rec->brid, $rec->userId, $rec->domainId)) {
+
+            return false;
+        }
+
+        return $this->haveDefaultSubscriptionPreferences($rec);
+    }
+
+
+    /**
+     * Проверява дали абонаментът е още с дефолтните настройки за известяване
+     *
+     * @param stdClass $rec
+     *
+     * @return bool
+     */
+    protected function haveDefaultSubscriptionPreferences($rec)
+    {
+        foreach ($this->getSubscriptionPreferenceFields() as $field) {
+            $value = isset($rec->{$field}) ? $rec->{$field} : null;
+
+            // Незададеното поле работи с дефолтната си стойност
+            if (!isset($value) || ($value === '')) {
+
+                continue;
+            }
+
+            if ((string) $value !== (string) $this->getSubscriptionPreferenceDefault($field)) {
+
+                return false;
+            }
+        }
+
+        return true;
     }
 
 
@@ -948,24 +1003,44 @@ class pwa_PushSubscriptions extends core_Manager
 
 
     /**
+     * Връща полетата с настройките за известяване на абонамента
+     *
+     * @return array
+     */
+    protected function getSubscriptionPreferenceFields()
+    {
+        return array('criticalWorking', 'criticalNonWorking', 'criticalNight',
+            'urgentWorking', 'urgentNonWorking', 'urgentNight',
+            'docWorking', 'docNonWorking', 'docNight',
+            'shareWorking', 'shareNonWorking', 'shareNight',
+            'allWorking', 'allNonWorking', 'allNight',
+            'groupNotify', 'forceNotify');
+    }
+
+
+    /**
+     * Връща стойността по подразбиране на поле с настройка за известяване
+     *
+     * @param string $field
+     *
+     * @return string
+     */
+    protected function getSubscriptionPreferenceDefault($field)
+    {
+        return isset($this->defaultValues[$field]) ? $this->defaultValues[$field] : $this->neverValue;
+    }
+
+
+    /**
      * Задава началните настройки на абонамент за нов потребител
      *
      * @param stdClass $rec
      */
     protected function setDefaultSubscriptionPreferences($rec)
     {
-        $timeFields = array('criticalWorking', 'criticalNonWorking', 'criticalNight',
-            'urgentWorking', 'urgentNonWorking', 'urgentNight',
-            'docWorking', 'docNonWorking', 'docNight',
-            'shareWorking', 'shareNonWorking', 'shareNight',
-            'allWorking', 'allNonWorking', 'allNight');
-
-        foreach ($timeFields as $field) {
-            $rec->{$field} = isset($this->defaultValues[$field]) ? $this->defaultValues[$field] : $this->neverValue;
+        foreach ($this->getSubscriptionPreferenceFields() as $field) {
+            $rec->{$field} = $this->getSubscriptionPreferenceDefault($field);
         }
-
-        $rec->groupNotify = $this->defaultValues['groupNotify'];
-        $rec->forceNotify = $this->defaultValues['forceNotify'];
     }
 
 
@@ -1030,6 +1105,40 @@ class pwa_PushSubscriptions extends core_Manager
         foreach ($mvc->defaultValues as $fName => $fVal) {
             $data->form->setDefault($fName, $fVal);
         }
+
+        $mvc->rememberSubscriptionSettingsVisit(isset($data->form->rec->id) ? $data->form->rec->id : null);
+    }
+
+
+    /**
+     * Отбелязва, че потребителят е минал през екрана с настройките на устройството
+     *
+     * След това екранът не се отваря автоматично при следващо абониране -
+     * независимо дали настройките са били записани или само разгледани.
+     *
+     * @param int|null $id
+     */
+    protected function rememberSubscriptionSettingsVisit($id)
+    {
+        if (empty($id)) {
+
+            return;
+        }
+
+        $cu = core_Users::getCurrent();
+        if (!$cu) {
+
+            return;
+        }
+
+        // Записът се чете наново - полетата за устройството не идват от формата
+        $rec = $this->fetch((int) $id);
+        if (!$rec || ($rec->userId != $cu) || empty($rec->brid)) {
+
+            return;
+        }
+
+        pwa_SubscribePlg::rememberPrompt('settings', 'visited', $rec->brid, $rec->userId, $rec->domainId);
     }
 
 

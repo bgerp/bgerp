@@ -189,7 +189,7 @@ class cash_NonCashPaymentDetails extends core_Manager
 
             // Показване как е платено
             if (!empty($rec->param) && !Mode::isReadOnly()) {
-                $paramString = ($rec->param == 'card') ? "<span style='color:blue;'>" . tr('потв.') . "</span>" : "<span style='color:red;'>" . tr('ръчно') . "</span>";
+                $paramString = ($rec->param == 'card') ? "<span class='blueText'>" . tr('потв.') . "</span>" : "<span style='color:red;'>" . tr('ръчно') . "</span>";
                 $row->paymentId .= " ({$paramString})";
             }
         }

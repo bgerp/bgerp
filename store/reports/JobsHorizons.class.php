@@ -148,10 +148,10 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
         $sQuery->EXT('code', 'cat_Products', 'externalName=code,externalKey=productId');
 
         //Филтър по групи артикули
-        plg_ExpandInput::applyExtendedInputSearch('cat_Products', $sQuery, $rec->groups, 'productId');
+        plg_ExpandInput::applyExtendedInputSearch('cat_Products', $sQuery, $rec->groups ?? null, 'productId');
 
 
-        if ($rec->stores) {
+        if (!empty($rec->stores)) {
             $storesArr = keylist::toArray($rec->stores);
             $sQuery->in('storeId', $storesArr);
             $storesRecsArr = $sQuery->fetchAll();
@@ -163,25 +163,28 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
 
         foreach ($storesRecsArr as $sRec) {
 
-            $pRec = (cat_Products::fetch($sRec->productId));
+            $pRec = cat_Products::fetch($sRec->productId);
+            if (!$pRec) {
+                continue;
+            }
 
-            if (!$sRec->measureId) {
-                $measureId = cat_Products::fetch($sRec->productId)->measureId;
+            if (empty($sRec->measureId)) {
+                $measureId = $pRec->measureId;
             } else {
                 $measureId = $sRec->measureId;
             }
 
             $id = $sRec->productId;
 
-            $Quantities = store_Products::getQuantities($sRec->productId, $storesArr, $rec->date);
+            $Quantities = store_Products::getQuantities($sRec->productId, $storesArr, $rec->date ?? null);
 
             $quantity = $Quantities->quantity;
             $reserved = $Quantities->reserved;
             $expected = $Quantities->expected;
             $free = $Quantities->free;
 
-            $documentsReserved = store_StockPlanning::getRecs($sRec->productId, $storesArr, $rec->date, 'reserved');
-            $documentsExpected = store_StockPlanning::getRecs($sRec->productId, $storesArr, $rec->date, 'expected');
+            $documentsReserved = store_StockPlanning::getRecs($sRec->productId, $storesArr, $rec->date ?? null, 'reserved');
+            $documentsExpected = store_StockPlanning::getRecs($sRec->productId, $storesArr, $rec->date ?? null, 'expected');
 
             $code = ($pRec->code) ?: 'Art' . $pRec->productId;
 
@@ -204,7 +207,7 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
 
         if (!empty($recs)) {
 
-            arr::sortObjects($recs, 'code', $rec->order, 'stri');
+            arr::sortObjects($recs, 'code', $rec->order ?? 'desc', 'stri');
         }
 
         return $recs;
@@ -234,10 +237,6 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
             $fld->FLD('reserved', 'double(decimals=2)', 'caption=Количество->Запазено,smartCenter');
             $fld->FLD('expected', 'double(decimals=2)', 'caption=Количество->Очаквано,smartCenter');
             $fld->FLD('free', 'double(decimals=2)', 'caption=Количество->Разполагаемо,smartCenter');
-
-            if (core_Users::haveRole('debug')) {
-                $fld->FLD('delrow', 'text', 'caption=Пулт,smartCenter');
-            }
 
         } else {
             $fld->FLD('code', 'varchar', 'caption=Код');
@@ -280,9 +279,9 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
 
         $row = new stdClass();
 
-        $pRec = (cat_Products::fetch($dRec->productId));
+        $pRec = cat_Products::fetch($dRec->productId);
 
-        $row->code = (!empty($pRec->code)) ? $pRec->code : "Art{$pRec->id}";
+        $row->code = (!empty($pRec->code)) ? $pRec->code : "Art{$dRec->productId}";
 
         $row->productId = cat_Products::getLinkToSingle_($dRec->productId, true);
 
@@ -296,10 +295,10 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
         $row->reserved = $Double->toVerbal($dRec->reserved);
         $row->reserved = ht::styleIfNegative($row->reserved, $dRec->reserved);
 
-        $date = ($rec->date) ? $rec->date : dt::today();
+        $date = !empty($rec->date) ? $rec->date : dt::today();
         $title = 'От кои документи е сформирано количеството';
 
-        $tooltipUrl = toUrl(array('store_Products', 'ShowReservedDocs', 'productId' => $dRec->productId, 'stores' => $rec->stores, 'replaceField' => "reserved{$dRec->productId}", 'field' => 'reserved', 'date' => $date), 'local');
+        $tooltipUrl = toUrl(array('store_Products', 'ShowReservedDocs', 'productId' => $dRec->productId, 'stores' => $rec->stores ?? null, 'replaceField' => "reserved{$dRec->productId}", 'field' => 'reserved', 'date' => $date), 'local');
         $arrowImg = ht::createElement('img', array('height' => 16, 'width' => 16, 'src' => sbf('img/32/info-gray.png', '')));
         $arrow = ht::createElement('span', array('class' => 'anchor-arrow tooltip-arrow-link', 'data-url' => $tooltipUrl, 'title' => $title), $arrowImg, true);
         $arrow = "<span class='additionalInfo-holder'><span class='additionalInfo' id='reserved{$dRec->productId}'></span>{$arrow}</span>";
@@ -311,7 +310,7 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
         $row->expected = $Double->toVerbal($dRec->expected);
         $row->expected = ht::styleIfNegative($row->expected, $dRec->expected);
 
-        $tooltipUrl = toUrl(array('store_Products', 'ShowReservedDocs', 'productId' => $dRec->productId, 'stores' => $rec->stores, 'replaceField' => "expected{$dRec->productId}", 'field' => 'expected', 'date' => $date), 'local');
+        $tooltipUrl = toUrl(array('store_Products', 'ShowReservedDocs', 'productId' => $dRec->productId, 'stores' => $rec->stores ?? null, 'replaceField' => "expected{$dRec->productId}", 'field' => 'expected', 'date' => $date), 'local');
         $arrowImg = ht::createElement('img', array('height' => 16, 'width' => 16, 'src' => sbf('img/32/info-gray.png', '')));
         $arrow = ht::createElement('span', array('class' => 'anchor-arrow tooltip-arrow-link', 'data-url' => $tooltipUrl, 'title' => $title), $arrowImg, true);
         $arrow = "<span class='additionalInfo-holder'><span class='additionalInfo' id='expected{$dRec->productId}'></span>{$arrow}</span>";
@@ -323,9 +322,6 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
         $row->free = $Double->toVerbal($dRec->free);
         $row->free = ht::styleIfNegative($row->free, $dRec->free);
 
-
-        $row->delrow = '';
-        $row->delrow = ($row->delrow ?? '') . ht::createLink('', array('store_reports_JobsHorizons', 'editminmax', 'productId' => $dRec->productId, 'code' => $dRec->code, 'recId' => $rec->id, 'ret_url' => true), null, "ef_icon=img/16/edit.png");
 
         if (!empty($dRec->store)) {
             $row->store = store_Stores::getHyperlink($dRec->store);
@@ -402,7 +398,7 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
             $fieldTpl->append('<b>' . 'Всички' . '</b>', 'stores');
         }
 
-        $data->rec->ariculsData = countR($data->rec->data->recs);
+        $data->rec->ariculsData = countR($data->rec->data->recs ?? array());
 
         if (isset($data->rec->ariculsData)) {
             $fieldTpl->append('<b>' . $data->rec->ariculsData . '</b>', 'ariculsData');
@@ -419,28 +415,6 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
             $fieldTpl->append('<b>' . 'Налично към ' . $dateVerb . '</b>', 'typeOfQuantity');
 
         }
-
-        //Филтър по група
-        $grFilter = $data->rec->grFilter ?? null;
-
-        if ($grFilter) {
-            $grFilterName = cat_Groups::fetch($grFilter)->name;
-        } else {
-            $grFilterName = 'Не е избрана';
-        }
-        $fieldTpl->append('<b>' . "$grFilterName" . '</b>', 'grFilter');
-
-        $grUrl = array('store_reports_ProductAvailableQuantity1', 'groupfilter', 'recId' => $data->rec->id, 'ret_url' => true);
-        $artUrl = array('store_reports_ProductAvailableQuantity1', 'artfilter', 'recId' => $data->rec->id, 'ret_url' => true);
-        $exportUrl = array('store_reports_ProductAvailableQuantity1', 'exportfilter', 'recId' => $data->rec->id, 'ret_url' => true);
-
-        $toolbar = cls::get('core_Toolbar');
-
-        $toolbar->addBtn('Избери група', toUrl($grUrl));
-        $toolbar->addBtn('Избери артикул', toUrl($artUrl));
-        $toolbar->addBtn('Филтър за експорт', toUrl($exportUrl));
-
-        $fieldTpl->append('<b>' . $toolbar->renderHtml() . '</b>', 'button');
 
         $tpl->append($fieldTpl, 'DRIVER_FIELDS');
     }
@@ -464,31 +438,36 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
         if (is_array($recsToExport)) {
             foreach ($recsToExport as $dRec) {
 
-                foreach ($dRec->documentsReserved as $docReserved) {
+                foreach ($dRec->documentsReserved ?? array() as $docReserved) {
 
                     $dCloneRec = clone $dRec;
 
                     $DocumentRez = cls::get($docReserved->sourceClassId);
                     $docClassName = $DocumentRez->className;
                     $docRec = $docClassName::fetch($docReserved->sourceId);
+                    if (!$docRec) {
+                        continue;
+                    }
                     $dCloneRec->date = $docReserved->date;
 
                     $dCloneRec->document = $DocumentRez->abbr . $docReserved->sourceId;
 
                     //Определяме note
-                    if($docClassName === 'planning_Jobs'){
-                        if($docRec->saleId){
-                            $note = sales_Sales::fetch($docRec->saleId)->reff;
+                    $note = null;
+                    if ($docClassName === 'planning_Jobs') {
+                        if (!empty($docRec->saleId)) {
+                            $saleRec = sales_Sales::fetch($docRec->saleId);
+                            $note = $saleRec->reff ?? null;
                         }else{
-                            $note = $docRec->notes;
+                            $note = $docRec->notes ?? null;
                         }
                     }else{
-                        $firstDocument = doc_Threads::getFirstDocument($docRec->threadId);
+                        $firstDocument = !empty($docRec->threadId) ? doc_Threads::getFirstDocument($docRec->threadId) : null;
 
                         if($firstDocument && $firstDocument->isInstanceOf('sales_Sales')){
-                            $note = $firstDocument->fetch()->reff;
+                            $note = $firstDocument->fetch()->reff ?? null;
                         }else{
-                            $note = $docRec->note;
+                            $note = $docRec->note ?? null;
                         }
                     }
 
@@ -506,7 +485,7 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
 
                 }
 
-                foreach ($dRec->documentsExpected as $docExpected) {
+                foreach ($dRec->documentsExpected ?? array() as $docExpected) {
 
                     $dCloneRec = clone $dRec;
 
@@ -515,24 +494,29 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
                     $docClassName = $Document->className;
 
                     $docRec = $docClassName::fetch($docExpected->sourceId);
+                    if (!$docRec) {
+                        continue;
+                    }
 
                     $dCloneRec->date = $docExpected->date;
 
                     $dCloneRec->document = $Document->abbr . $docExpected->sourceId;
 
                     //Определяме note
-                    if($docClassName === 'planning_Jobs'){
-                        if($docRec->saleId){
-                            $note = sales_Sales::fetch($docRec->saleId)->reff;
+                    $note = null;
+                    if ($docClassName === 'planning_Jobs') {
+                        if (!empty($docRec->saleId)) {
+                            $saleRec = sales_Sales::fetch($docRec->saleId);
+                            $note = $saleRec->reff ?? null;
                         }else{
-                            $note = $docRec->notes;
+                            $note = $docRec->notes ?? null;
                         }
                     }else{
-                        $firstDocument = doc_Threads::getFirstDocument($docRec->threadId);
+                        $firstDocument = !empty($docRec->threadId) ? doc_Threads::getFirstDocument($docRec->threadId) : null;
                         if($firstDocument && $firstDocument->isInstanceOf('sales_Sales')){
-                            $note = $firstDocument->fetch()->reff;
+                            $note = $firstDocument->fetch()->reff ?? null;
                         }else{
-                            $note = $docRec->note;
+                            $note = $docRec->note ?? null;
                         }
                     }
 
@@ -542,7 +526,7 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
 
                     $dCloneRec->store = $docExpected->storeId;
 
-                    unset ($dCloneRec->documentsExpected, $dCloneRec->documentsExpected);
+                    unset($dCloneRec->documentsReserved, $dCloneRec->documentsExpected);
 
                     $recs[] = $this->getExportRec($rec, $dCloneRec, $ExportClass);
 
@@ -571,27 +555,28 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
         $Double = cls::get('type_Double');
         $Double->params['decimals'] = 2;
 
-        $pRec = (cat_Products::fetch($dRec->productId));
+        $pRec = cat_Products::fetch($dRec->productId);
 
-            $res->productId = $pRec->name;
-            $res->code = (!empty($pRec->code)) ? $pRec->code : "Art{$pRec->id}";
+            $res->productId = $pRec->name ?? null;
+            $res->code = (!empty($pRec->code)) ? $pRec->code : "Art{$dRec->productId}";
             $res->quantity = $dRec->quantity;
             $res->free =$dRec->free;
             $res->expected = $dRec->expected;
             $res->reserved = $dRec->reserved;
 
-        if ($dRec->measure) {
+        if (!empty($dRec->measure)) {
             $res->measure = cat_UoM::fetchField($dRec->measure, 'shortName');
         }
 
-        $res->date = $Date->toVerbal($dRec->date);
-        $res->note = $dRec->note;
+        $res->date = $Date->toVerbal($dRec->date ?? null);
+        $res->note = $dRec->note ?? null;
 
-        $res->docExpectedQuantyti = $dRec->docExpectedQuantyti;
-        $res->docReservedQuantyti = $dRec->docReservedQuantyti;
+        $res->docExpectedQuantyti = $dRec->docExpectedQuantyti ?? null;
+        $res->docReservedQuantyti = $dRec->docReservedQuantyti ?? null;
 
         if (!empty($dRec->store)) {
-            $res->store = store_Stores::fetch($dRec->store)->name;
+            $storeRec = store_Stores::fetch($dRec->store);
+            $res->store = $storeRec->name ?? null;
         } else {
             $res->store = 'Без';
         }
@@ -607,7 +592,7 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
      */
     public function getNewFieldsToCheckOnRefresh($rec)
     {
-        return ($rec->limits == 'yes') ? 'productId,conditionQuantity' : 'productId,quantity';
+        return 'productId,quantity';
     }
 
     /**
@@ -629,92 +614,7 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
      */
     public function act_EditMinMax()
     {
-
-        expect($recId = Request::get('recId', 'int'));
-        expect($productId = Request::get('productId', 'int'));
-        expect($code = Request::get('code'));
-
-        $rec = frame2_Reports::fetch($recId);
-
-        $details = $rec->artLimits;
-
-        $minVal = $details[$productId]['minQuantity'];
-        $maxVal = $details[$productId]['maxQuantity'];
-        $orderMeasure = $details[$productId]['orderMeasure'];
-        $minOrder = $details[$productId]['minOrder'];
-
-        $keyVal = $productId;
-
-        $form = cls::get('core_Form');
-
-        $form->title = "Редактиране на  |* ' " . ' ' . cat_Products::getHyperlink($productId) . "' ||*";
-
-        $volOldMin = $minVal;
-        $volOldMax = $maxVal;
-        $orderMeasureOld = $orderMeasure;
-        $minOrderOld = $minOrder;
-
-        $form->FLD('volNewMin', 'double', 'caption=Въведи min,input,silent');
-
-        $form->FLD('volNewMax', 'double', 'caption=Въведи max,input,silent');
-
-        $form->FLD('orderMeasureNew', 'key(mvc=cat_UoM,select=name)', 'caption=Опаковка за поръчка,input,silent');
-
-        $form->FLD('minOrderNew', 'double', 'caption=Минимална поръчка,input,silent');;
-        $form->setDefault('volNewMax', $volOldMax);
-        $form->setDefault('volNewMin', $volOldMin);
-        $form->setDefault('orderMeasureNew', $orderMeasureOld);
-        $form->setDefault('minOrderNew', $minOrderOld);
-
-        $mRec = $form->input();
-
-        $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png');
-
-        $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png');
-
-        //Пакетажите на артикула
-        $prodPackArr = arr::extractValuesFromArray(cat_Products::getProductInfo($productId)->packagings, 'packagingId');
-
-        $q = cat_UoM::getQuery();
-        $q->where("#type = 'packaging'");
-        $q->in('id', $prodPackArr);
-
-        while ($qRec = $q->fetch()) {
-            $options[$qRec->id] = $qRec->name;
-        }
-
-        if (empty($prodPackArr) || empty($options)) {
-            $options = array();
-            $options[cat_Products::fetch($productId)->measureId] = cat_UoM::fetch(cat_Products::fetch($productId)->measureId)->name;
-        }
-
-        $form->setOptions('orderMeasureNew', $options);
-
-        if ($form->rec->volNewMax < $form->rec->volNewMin) {
-
-            $form->setError('volNewMin, volNewMax', ' Максималното количество не може да бъде по-малко от минималното ');
-        }
-
-
-        if ($form->isSubmitted()) {
-
-            $details[$productId]['minQuantity'] = $mRec->volNewMin;
-            $details[$productId]['maxQuantity'] = $mRec->volNewMax;
-            $details[$productId]['orderMeasure'] = $mRec->orderMeasureNew;
-            $details[$productId]['minOrder'] = $mRec->minOrderNew;
-
-            $rec->artLimits = $details;
-
-            frame2_Reports::save($rec);
-
-            frame2_Reports::refresh($rec);
-
-            return new Redirect(getRetUrl());
-        }
-
-        return $form->renderHtml();
-
-
+        return new Redirect(getRetUrl());
     }
 
     /**
@@ -723,6 +623,7 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
      */
     public static function act_GroupFilter()
     {
+        return new Redirect(getRetUrl());
 
         expect($recId = Request::get('recId', 'int'));
 
@@ -793,6 +694,7 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
      */
     public static function act_ArtFilter()
     {
+        return new Redirect(getRetUrl());
 
         expect($recId = Request::get('recId', 'int'));
 
@@ -844,6 +746,7 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
      */
     public static function act_ExportFilter()
     {
+        return new Redirect(getRetUrl());
 
         expect($recId = Request::get('recId', 'int'));
 

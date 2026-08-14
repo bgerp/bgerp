@@ -132,7 +132,7 @@ td {
   .packageDragHandle.packageDragHandleDisabled {
     color: #eeeeee;
     background: #888888;
-    cursor: not-allowed; }
+    cursor: false; }
 
 tr.manualPackageRow .packageDragHandle {
   display: flex;
@@ -142,7 +142,7 @@ tr.manualPackageRow .packageDragHandle {
   tr.manualPackageRow .packageDragHandle.packageDragHandleDisabled {
     color: #eeeeee;
     background: repeating-linear-gradient(135deg, var(--package-color) 0, var(--package-color) 4px, var(--package-color-dark) 4px, var(--package-color-dark) 8px);
-    cursor: not-allowed; }
+    cursor: false; }
 
 .packageDragHandle.packageNumberHandle {
   font-size: 10px;
@@ -448,13 +448,11 @@ td.dependantProgress {
   background-color: #d5ffc3 !important; }
 
 .reorderTableHeader .hidden {
-    display: none !important;
-}
+  display: none !important; }
 
 #dragTable tbody tr.optimized-highlight > td {
-    border-top-color: rgba(28, 122, 170, 0.45) !important;
-    border-bottom-color: rgba(28, 122, 170, 0.45) !important;
-}
+  border-top-color: rgba(28, 122, 170, 0.45) !important;
+  border-bottom-color: rgba(28, 122, 170, 0.45) !important; }
 
 #optimizationIdleReport {
   position: fixed;
@@ -467,9 +465,9 @@ td.dependantProgress {
   box-sizing: border-box;
   overflow-x: hidden;
   overflow-y: auto;
-  color: #222;
-  background: #fff;
-  border: 1px solid #aaa;
+  color: #222222;
+  background: white;
+  border: 1px solid #aaaaaa;
   border-left: 6px solid #2f855a;
   border-radius: 5px;
   box-shadow: 0 5px 22px rgba(0, 0, 0, 0.32);
@@ -490,7 +488,7 @@ td.dependantProgress {
   align-items: center;
   justify-content: space-between;
   padding: 9px 12px;
-  color: #fff;
+  color: white;
   background: #386f54;
   font-size: 15px; }
   .hasNetIdleIncrease .optimizationIdleReportHeader {
@@ -503,8 +501,8 @@ td.dependantProgress {
   height: 26px;
   margin-left: 12px;
   padding: 0;
-  color: #fff;
-  background: transparent;
+  color: white;
+  background: rgba(0, 0, 0, 0);
   border: 1px solid rgba(255, 255, 255, 0.65);
   border-radius: 50%;
   font-size: 20px;
@@ -540,9 +538,9 @@ td.dependantProgress {
   font-size: 12px; }
 
 .optimizationIdleReportHint {
-  color: #444;
-  background: #f5f5f5;
-  border-bottom: 1px solid #ddd; }
+  color: #444444;
+  background: whitesmoke;
+  border-bottom: 1px solid #dddddd; }
 
 .optimizationIdleSummary {
   display: flex;
@@ -551,8 +549,8 @@ td.dependantProgress {
   font-weight: 600; }
 
 .optimizationGlobalMetrics {
-  background: #fff;
-  border-bottom: 1px solid #ddd; }
+  background: white;
+  border-bottom: 1px solid #dddddd; }
 
 .optimizationPlanMetric {
   display: grid;
@@ -576,7 +574,7 @@ td.dependantProgress {
 
 .optimizationPlanMetricDetail {
   grid-column: 1 / -1;
-  color: #666;
+  color: #666666;
   font-weight: 400; }
 
 .optimizationMetricImproved {
@@ -586,7 +584,7 @@ td.dependantProgress {
   color: #a83220; }
 
 .optimizationMetricUnchanged {
-  color: #555; }
+  color: #555555; }
 
 .idleIncreaseCount,
 .idleIncreased .optimizationIdleDifference {
@@ -601,7 +599,7 @@ td.dependantProgress {
   color: #a83220; }
 
 .idleNetUnchanged {
-  color: #555; }
+  color: #555555; }
 
 .optimizationIdleTableHolder {
   max-height: calc(100vh - 280px);
@@ -614,12 +612,12 @@ td.dependantProgress {
   #optimizationIdleReport .optimizationIdleTable td {
     position: static !important;
     padding: 6px 8px !important;
-    border: 1px solid #ddd !important;
+    border: 1px solid #dddddd !important;
     font-size: 13px !important;
     text-align: right;
     vertical-align: top; }
   #optimizationIdleReport .optimizationIdleTable th {
-    color: #333;
+    color: #333333;
     background: #e9ecef !important;
     font-weight: 600 !important; }
   #optimizationIdleReport .optimizationIdleTable th:first-child,
@@ -640,29 +638,29 @@ td.dependantProgress {
   justify-content: flex-end;
   gap: 8px;
   padding: 10px 12px;
-  background: #f5f5f5;
-  border-top: 1px solid #ddd; }
+  background: whitesmoke;
+  border-top: 1px solid #dddddd; }
 
 .optimizationIdleReportCancel {
   padding: 6px 18px;
-  color: #333;
-  background: #fff;
-  border: 1px solid #999;
+  color: #333333;
+  background: white;
+  border: 1px solid #999999;
   border-radius: 3px;
   font-weight: 600;
   cursor: pointer; }
   .optimizationIdleReportCancel:hover {
-    background: #eee; }
+    background: #eeeeee; }
 
 .optimizationIdleReportConfirm {
   padding: 6px 18px;
-  color: #fff;
+  color: white;
   background: #386f54;
   border: 1px solid #2d5d46;
   border-radius: 3px;
   font-weight: 600;
   cursor: pointer; }
-.optimizationIdleReportConfirm:hover {
+  .optimizationIdleReportConfirm:hover {
     background: #2f6048; }
 
 @media (max-width: 780px) {
@@ -671,3 +669,4 @@ td.dependantProgress {
 
   .optimizationPlanMetricDetail {
     grid-column: auto; } }
+

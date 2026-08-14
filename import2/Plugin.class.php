@@ -140,7 +140,7 @@ class import2_Plugin extends core_Plugin
             
             $masterId = null;
             if ($masterKey = ($mvc->masterKey ?? null)) {
-                $masterId = $rec->{$masterKey};
+                $masterId = $rec->{$masterKey} ?? null;
             }
             
             $opt = self::getDriverOptions($mvc, $masterId, $userId);

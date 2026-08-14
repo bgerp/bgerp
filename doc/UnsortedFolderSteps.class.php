@@ -319,7 +319,7 @@ class doc_UnsortedFolderSteps extends core_Master
             if(doc_UnsortedFolderSteps::haveRightFor('single', $stepId)){
                 $row->stepId = ht::createLink($row->stepId, doc_UnsortedFolderSteps::getSingleUrlArray($stepId));
             }
-            $countTasks = countR($taskArr[$stepId]);
+            $countTasks = countR($taskArr[$stepId] ?? array());
 
             // Бутон за създаване на нова задача
             $addTaskBtn = '';
