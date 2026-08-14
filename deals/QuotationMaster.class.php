@@ -456,7 +456,7 @@ abstract class deals_QuotationMaster extends core_Master
     {
         // Ако има реф да се показва към името му
         $reff = $mvc->getVerbal($id, 'reff');
-        if (strlen($reff) != 0) {
+        if (strlen((string) $reff) != 0) {
             $docName .= "({$reff})";
         }
     }
