@@ -92,7 +92,7 @@ class core_Html
     public static function escapeAttr($attrContent)
     {
         //$content = str_replace(array('&', "\""), array('&amp;', "&quot;"), $attrContent);
-        $content = htmlspecialchars($attrContent, ENT_QUOTES, null);
+        $content = htmlspecialchars((string) $attrContent, ENT_QUOTES, null);
         $content = str_replace(array("\r\n", "\n\r", "\n"), array('&#13;&#10;', '&#10;&#13;', '&#10;'), $content);
         
         return $content;
@@ -212,7 +212,7 @@ class core_Html
      */
     public static function groupOptions($options, $div = '»')
     {
-        $lastGroup = null;
+        $lastGroup = '';
         if (countR($options) > 1) {
             $groups = $newOptions = array();
             
@@ -224,13 +224,13 @@ class core_Html
                         $defaultGroup = trim($opt->title);
                         continue;
                     }
-                    $title = $opt->title;
+                    $title = $opt->title ?? '';
                 } else {
                     $title = $opt;
                 }
-                
+
                 // Ако в името на класа има '->' то приемаме, че стринга преди знака е името на групата
-                list($group, $caption) = array_pad(explode($div, $title, 2), 2, null);
+                list($group, $caption) = array_pad(explode($div, (string) $title, 2), 2, null);
 
                 if (!$caption) {
                     $caption = $group;
@@ -336,7 +336,7 @@ class core_Html
                 
                 // Хак за добавяне на плейс-холдер
                 if (!empty($selAttr['placeholder']) &&
-                    strlen($attr['value']) == 0 && !trim($title)) {
+                    strlen((string) $attr['value']) == 0 && !trim((string) $title)) {
                     $title = $selAttr['placeholder'];
                     $attr['style'] = ($attr['style'] ?? '') . 'color:#777;';
                 }
@@ -674,7 +674,7 @@ class core_Html
                 if ($l) {
                     list($titles, $c) = array_pad(explode('=', $l, 2), 2, null);
                     $titles = trim($titles);
-                    $c = str::utf2ascii(trim($c));
+                    $c = str::utf2ascii(trim($c ?? ''));
                     if (strlen($titles) > 1 && strlen($c) == 1) {
                         $titlesArr = explode(',', $titles);
                         foreach ($titlesArr as $t) {
@@ -1408,9 +1408,16 @@ class core_Html
     public static function fixObject(&$object)
     {
         if ($object instanceof __PHP_Incomplete_Class) {
-            $class = $class ?? null;
-            $strlen = $class ? strlen($class) : '';
-            return ($object = unserialize(preg_replace('/^O:\d+:"[^"]++"/', 'O:' . $strlen . ':"' . $class . '"', serialize($object))));
+
+            // Името на оригиналния клас се пази в служебно поле на непълния обект
+            $vars = (array) $object;
+            $class = $vars['__PHP_Incomplete_Class_Name'] ?? null;
+
+            // Възстановяваме обекта, само ако класът вече е зареден
+            if (!empty($class) && class_exists($class)) {
+
+                return ($object = unserialize(preg_replace('/^O:\d+:"[^"]++"/', 'O:' . strlen($class) . ':"' . $class . '"', serialize($object))));
+            }
         }
         
         return $object;
