@@ -1,0 +1,10 @@
+<!--ET_BEGIN contragentVatInfo-->
+[#contragentVatInfo#]
+<hr style="margin: 3px 0 1px;">
+<!--ET_BEGIN contragentVatNo-->
+<div><small>|ЗДДС №|*:</small> <span class="bigData notBold" style="padding-left:5px;">[#contragentVatNo#]</span></div>
+<!--ET_END contragentVatNo-->
+<!--ET_BEGIN uicNo-->
+<div><small>[#contragentUicCaption#]:</small> <span class="bigData notBold" style="padding-left:5px;">[#uicNo#]</span></div>
+<!--ET_END uicNo-->
+<!--ET_END contragentVatInfo-->

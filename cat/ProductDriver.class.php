@@ -1060,7 +1060,7 @@ abstract class cat_ProductDriver extends core_BaseClass
      */
     public static function getDefaultProductionData()
     {
-        return array_fill_keys(array(
+        $res =  array_fill_keys(array(
             'name', 'centerId', 'storeIn', 'inputStores', 'fixedAssets', 'employees',
             'norm', 'normPackagingId', 'labelPackagingId', 'labelQuantityInPack',
             'labelType', 'labelTemplate', 'planningParams', 'actions', 'isFinal',
@@ -1068,6 +1068,9 @@ abstract class cat_ProductDriver extends core_BaseClass
             'calcWeightMode', 'fastProgressBtn', 'mandatoryDocuments', 'description',
             'supportSystemFolderId', 'offsetAfter'
         ), null);
+        $res['planningParams'] = array();
+
+        return $res;
     }
 
 

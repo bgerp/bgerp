@@ -18,6 +18,8 @@
  */
 class bgerp_ImportIntf
 {
+    public $class;
+
     /**
      * Импортиране на csv-файл в даден мениджър
      *

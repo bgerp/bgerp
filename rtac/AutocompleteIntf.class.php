@@ -15,6 +15,8 @@
  */
 class rtac_AutocompleteIntf
 {
+    public $class;
+
     /**
      * Добавя необходимите неща за да работи плъгина
      *

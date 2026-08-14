@@ -193,8 +193,9 @@ class price_reports_Menu extends price_reports_PriceListProto
         }
 
         $weightVerbal = cat_Products::getParams($dRec->productId, 'weight', true);
+
         if (!empty($weightVerbal)) {
-            $suffix = cat_Params::fetch("#sysId = 'weight'")->suffix;
+            $suffix = tr(cat_Params::fetch("#sysId = 'weight'")->suffix);
             $row->weight = "{$weightVerbal} {$suffix}";
         }
 

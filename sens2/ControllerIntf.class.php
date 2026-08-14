@@ -17,6 +17,8 @@
  */
 class sens2_ControllerIntf
 {
+    public $class;
+
     public $oldClassName = 'sens2_DriverIntf';
     
     

@@ -17,6 +17,8 @@
  */
 class bgerp_XmppIntf
 {
+    public $class;
+
     /**
      * Изпраща текстово съобщение
      */

@@ -17,6 +17,8 @@
  */
 class tracking_TrackerIntf
 {
+    public $class;
+
     /**
      *  Информация за свободни тракери
      *

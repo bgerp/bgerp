@@ -9,6 +9,10 @@ function cashActions() {
         let amount = parseFloat(element.attr("data-amount")).toFixed(2);
         console.log("SEND " + amount);
         $(".fullScreenCardPayment").css("display", "block");
+        // Централно (efCommon.js): бутоните на модала стартират визуално неактивни
+        // и след 10 сек класът disabledBtn се маха, за да личи, че вече може да се
+        // натискат при проблем. Кликът работи през цялото време.
+        armCardPaymentModalButtons();
 
         sessionStorage.setItem('pressed', element.attr('id'));
         let deviceUrl = element.attr("data-deviceUrl");

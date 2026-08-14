@@ -17,6 +17,8 @@
  */
 class doc_PrototypeSourceIntf
 {
+    public $class;
+
     /**
      * Дали документа може да бъде направен на шаблон
      *

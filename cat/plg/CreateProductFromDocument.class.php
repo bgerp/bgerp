@@ -435,8 +435,12 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
                         $dRec->packagingId = $pRec->measureId;
                         $dRec->quantityInPack = 1;
                     }
-                    
-                    if (empty($rec->packQuantity) || ($rec->defQuantity ?? false) === true) {
+
+                    // При нов артикул стандартната обработка на детайла не може да
+                    // изчисли количеството, защото productId още не съществува.
+                    if (isset($dRec->packQuantity) && isset($dRec->quantityInPack)) {
+                        $dRec->quantity = $dRec->packQuantity * $dRec->quantityInPack;
+                    } elseif (empty($rec->packQuantity) || ($rec->defQuantity ?? false) === true) {
                         $dRec->quantity = deals_Helper::getDefaultPackQuantity($productId, $pRec->measureId);
                     }
                     
@@ -485,7 +489,10 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
                     }
 
                     if (!$dRec->autoPrice && $action != 'cloneRecInDocument' && isset($dRec->price)) {
-                        $vat = cat_Products::getVat($productId, $masterRec->valior, $vatExceptionId);
+
+                        // Офертите нямат 'valior', а 'date'
+                        $valior = $masterRec->valior ?? ($masterRec->date ?? null);
+                        $vat = cat_Products::getVat($productId, $valior, $vatExceptionId);
                         if ($masterRec->chargeVat == 'yes') {
                             $dRec->price = $dRec->price / (1 + $vat);
                         }

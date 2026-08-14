@@ -318,9 +318,9 @@ class transsrv_ProductDrv extends cat_ProductDriver
     public static function on_AfterRecToVerbal(cat_ProductDriver $Driver, embed_Manager $Embedder, $row, $rec, $fields = array())
     {
         $CountryType = core_Type::getByName('key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg)');
-        $row->fromCountry = $CountryType->toVerbal($rec->fromCountry);
-        $row->toCountry = $CountryType->toVerbal($rec->toCountry);
-        $row->transUnit = type_Varchar::escape(transliterate(tr($rec->transUnit)));
+        $row->fromCountry = $CountryType->toVerbal($rec->fromCountry ?? null);
+        $row->toCountry = $CountryType->toVerbal($rec->toCountry ?? null);
+        $row->transUnit = type_Varchar::escape(transliterate(tr($rec->transUnit ?? '')));
     }
 
 

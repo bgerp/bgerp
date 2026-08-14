@@ -1744,7 +1744,7 @@ class doc_Linked extends core_Manager
             
             $linkUrl = array('fileman_Files', 'single', $valId);
             
-            if (!trim($comment)) {
+            if (!trim((string) $comment)) {
                 $comment = tr('Файл');
             }
         } else {

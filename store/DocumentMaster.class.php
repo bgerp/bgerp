@@ -1367,7 +1367,9 @@ abstract class store_DocumentMaster extends core_Master
     public function getDefaultLinkedComment($id, $comment)
     {
         $rec = $this->fetchRec($id);
-        
+
+        $comment = (string) $comment;
+
         $storeName = $rec->storeId ? store_Stores::getTitleById($rec->storeId) : '';
         $pattern = preg_quote($storeName, '/');
        

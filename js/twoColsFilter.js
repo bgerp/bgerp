@@ -185,8 +185,18 @@ function setTwoColsFilterWidth() {
                 alignTwoColsFilterButtons(filter);
             });
         });
-        $(document).on('change.twoColsFilter', 'select.twoColsFilterCompactSelect',
-            scheduleTwoColsFilterWidthUpdate);
+        $(document).on('change.twoColsFilter',
+            '.twoColsFilter .listFilter select, ' +
+            '.twoColsFilter .listFilter input[type=radio], ' +
+            '.twoColsFilter .listFilter input[type=checkbox]', function () {
+                var $rows = $(this).closest('.twoColsFilter')
+                    .find('.vFormField > tbody > tr');
+
+                // Условните полета участват веднага и повторно след стандартната
+                // анимация за показване/скриване на редовете.
+                scheduleTwoColsFilterWidthUpdate();
+                $rows.promise().done(scheduleTwoColsFilterWidthUpdate);
+            });
     }
 
     $filters.each(function () {
@@ -260,10 +270,13 @@ function setTwoColsFilterWidth() {
 
         function getCopySize($copy) {
             var captionWidth = Math.ceil($copy.find('.formFieldCaption').first().outerWidth());
+            var radioSafety = $copy.find('input[type=radio]').length ? 2 : 0;
 
             return {
                 caption: captionWidth,
-                total: Math.ceil($copy.outerWidth())
+                // Минималният резерв компенсира субпикселното закръгляване само
+                // в колона с реално изобразена радио-група.
+                total: Math.ceil($copy.outerWidth()) + radioSafety
             };
         }
 
@@ -348,4 +361,8 @@ function setTwoColsFilterWidth() {
     });
 
     updateTwoColsFilterModes();
+
+    // Показваме филтъра и списъка едва след прилагането на окончателния изглед.
+    // Така при първоначално зареждане не се вижда междинният едноколонен кадър.
+    $filters.addClass('twoColsFilterReady');
 }

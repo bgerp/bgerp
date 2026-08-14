@@ -221,12 +221,12 @@ class gs1_TypeEan extends type_Varchar
      */
     public function isValid($value)
     {
-        if(substr($value, 0, 1) == '#'){
-            return array();
-        }
         if (!trim($value ?? '')) {
 
             return array('value' => '');
+        }
+        if(substr($value, 0, 1) == '#'){
+            return array();
         }
         if (countR($this->autoRange)) {
             if ($value == self::AUTO_GENERETE_STRING) {
@@ -237,7 +237,7 @@ class gs1_TypeEan extends type_Varchar
         
         $res = new stdClass();
         if (preg_match('/[^0-9]/', $value)) {
-            $res->error .= 'Полето приема само цифри.';
+            $res->error = 'Полето приема само цифри.';
         } else {
             $code = strlen($value);
             if (!empty($this->params['gln'])) {

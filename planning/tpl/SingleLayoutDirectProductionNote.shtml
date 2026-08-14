@@ -60,6 +60,9 @@
     .production-note-swap-cols .production-note-image-holder {
         margin-top: 0;
     }
+    .product-cell td {
+        padding: 2px !important;
+    }
 </style>
 <table style='width:100%;'>
     <tbody>
@@ -112,7 +115,15 @@
                                     <td class="cell production-note-product-cell">
                                         <table class='no-border'>
                                             <tr>
-                                                <td class="production-note-product-cell">[#addBatchBtn#] <b style="font-size: 1.1em">[#productId#]</b> [#batch#]</td>
+                                                <td class="product-cell" colspan='2'><b style="font-size: 1.1em">[#productId#]</b></td>
+                                            </tr>
+                                            <tr>
+                                                <!--ET_BEGIN addBatchBtn-->
+                                                <td class="product-cell" style='vertical-align:top;width:1%'>[#addBatchBtn#]</td>
+                                                <!--ET_END addBatchBtn-->
+                                                <!--ET_BEGIN batch-->
+                                                <td class="product-cell" style='vertical-align:top;'>[#batch#]</td>
+                                                <!--ET_END batch-->
                                             </tr>
                                         </table>
                                     </td>

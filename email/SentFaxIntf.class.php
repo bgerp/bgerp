@@ -16,6 +16,8 @@
  */
 class email_SentFaxIntf
 {
+    public $class;
+
     /**
      * Метод за изпращане на факсове
      */

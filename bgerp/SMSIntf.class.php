@@ -17,6 +17,8 @@
  */
 class bgerp_SMSIntf
 {
+    public $class;
+
     /**
      * Изпраща текстово съобщение
      */

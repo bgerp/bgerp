@@ -262,14 +262,16 @@ class findeals_AdvanceReports extends core_Master
         $recs = $query->fetchAll();
         
         deals_Helper::fillRecs($this, $recs, $rec);
-        
+
+        $total = $this->_total ?? (object) array('amount' => 0, 'vat' => 0, 'discount' => 0);
+
         // ДДС-т е отделно amountDeal  е сумата без ддс + ддс-то, иначе самата сума си е с включено ддс
-        $amount = ($rec->chargeVat == 'separate') ? $this->_total->amount + $this->_total->vat : $this->_total->amount;
-        $amount -= $this->_total->discount;
+        $amount = ($rec->chargeVat == 'separate') ? $total->amount + $total->vat : $total->amount;
+        $amount -= $total->discount;
         
         $rec->amount = $amount * $rec->currencyRate;
-        $rec->amountVat = $this->_total->vat * $rec->currencyRate;
-        $rec->amountDiscount = $this->_total->discount * $rec->currencyRate;
+        $rec->amountVat = $total->vat * $rec->currencyRate;
+        $rec->amountDiscount = $total->discount * $rec->currencyRate;
         
         return $this->save($rec);
     }
@@ -358,8 +360,8 @@ class findeals_AdvanceReports extends core_Master
         parent::prepareSingle_($data);
         
         $rec = &$data->rec;
-        if (empty($data->noTotal)) {
-            $data->summary = deals_Helper::prepareSummary($this->_total, $rec->valior, $rec->currencyRate, $rec->currencyId, $rec->chargeVat, false, $rec->tplLang);
+        if (empty($data->noTotal) && isset($this->_total)) {
+            $data->summary = deals_Helper::prepareSummary($this->_total, $rec->valior, $rec->currencyRate, $rec->currencyId, $rec->chargeVat, false, $rec->tplLang ?? 'bg');
             $data->row = (object) ((array) $data->row + (array) $data->summary);
         }
     }
@@ -500,6 +502,6 @@ class findeals_AdvanceReports extends core_Master
     public static function on_AfterRenderSingleLayout($mvc, &$tpl, &$data)
     {
         // Динамично рендиране на ДДС информацията
-        deals_Helper::renderVatDataLayout($tpl, $mvc, $mvc->_total->vats, $data->row);
+        deals_Helper::renderVatDataLayout($tpl, $mvc, $mvc->_total->vats ?? null, $data->row);
     }
 }
