@@ -15,15 +15,16 @@
 class pwa_SubscribePlg extends core_Plugin
 {
     /**
-     * След колко минути отново може да се покаже автоматичният екран
+     * Автоматичните екрани за абониране и за настройките се показват само
+     * веднъж на устройство - независимо дали е избрано записване или отказ
      */
-    const PROMPT_SNOOZE_MINUTES = 10080;
+    const PROMPT_ONCE_MINUTES = 1000000;
 
 
     /**
-     * Колко време да не се показва екранът след изричен отказ
+     * След колко минути отново да се предложи подновяване на изтекъл абонамент
      */
-    const PROMPT_DECLINED_MINUTES = 10080;
+    const PROMPT_RECOVERY_MINUTES = 10080;
 
 
     /**
@@ -36,19 +37,35 @@ class pwa_SubscribePlg extends core_Plugin
 
 
     /**
+     * Връща колко минути да се помни показването на съответния екран
+     *
+     * Само предложението за подновяване на изтекъл абонамент се повтаря -
+     * абонаментът може да изтече отново след време.
+     *
+     * @param string $type
+     *
+     * @return int
+     */
+    protected static function getPromptLifetime($type)
+    {
+        return ($type == 'recovery') ? self::PROMPT_RECOVERY_MINUTES : self::PROMPT_ONCE_MINUTES;
+    }
+
+
+    /**
      * Запомня резултата от показването на екрана
      */
-    protected static function rememberPrompt($type, $value, $lifetime, $brid, $userId, $domainId)
+    public static function rememberPrompt($type, $value, $brid, $userId, $domainId)
     {
         $key = self::getPromptKey($type, $brid, $userId, $domainId);
-        core_Permanent::set($key, $value, $lifetime);
+        core_Permanent::set($key, $value, self::getPromptLifetime($type));
     }
 
 
     /**
      * Проверява дали екранът е показван скоро
      */
-    protected static function isPromptRemembered($type, $brid, $userId, $domainId)
+    public static function isPromptRemembered($type, $brid, $userId, $domainId)
     {
         $key = self::getPromptKey($type, $brid, $userId, $domainId);
         if (core_Permanent::get($key)) {
@@ -57,6 +74,33 @@ class pwa_SubscribePlg extends core_Plugin
         }
 
         return false;
+    }
+
+
+    /**
+     * Проверява дали да се редиректва към екрана за абониране след логване
+     *
+     * @param string   $brid
+     * @param int      $userId
+     * @param int|null $domainId
+     *
+     * @return bool
+     */
+    protected static function mustShowOnboarding($brid, $userId, $domainId)
+    {
+        if (self::isPromptRemembered('onboarding', $brid, $userId, $domainId)) {
+
+            return false;
+        }
+
+        // Устройство, което вече има абонамент, е минало през екрана
+        if (pwa_PushSubscriptions::fetch(array("#brid = '[#1#]' AND #userId = '[#2#]' AND #domainId = '[#3#]'", $brid, $userId, $domainId))) {
+            self::rememberPrompt('onboarding', 'subscribed', $brid, $userId, $domainId);
+
+            return false;
+        }
+
+        return true;
     }
 
 
@@ -100,6 +144,12 @@ class pwa_SubscribePlg extends core_Plugin
             $isForced = (bool) Request::get('forceSubscribe');
             Mode::setPermanent('pwaSubscribe', false);
 
+            // Онбординг екранът се запомня веднага - устройството е минало
+            // през него, независимо какво ще избере потребителят после
+            if (!$isForced) {
+                self::rememberPrompt('onboarding', 'shown', $brid, $cu, $dId);
+            }
+
             $pRec = pwa_PushSubscriptions::fetch(array("#brid = '[#1#]' AND #userId = '[#2#]' AND #domainId = '[#3#]'", $brid, $cu, $dId));
             if ($pRec && $pRec->state == 'active') {
                 $rArr = $defRedirect;
@@ -112,8 +162,11 @@ class pwa_SubscribePlg extends core_Plugin
                 return false;
             }
 
-            $promptType = $isForced ? 'recovery' : 'onboarding';
-            self::rememberPrompt($promptType, 'shown', self::PROMPT_SNOOZE_MINUTES, $brid, $cu, $dId);
+            // Предложението за подновяване се запомня само когато наистина се
+            // показва - при неизтекъл абонамент дотук не се стига
+            if ($isForced) {
+                self::rememberPrompt('recovery', 'shown', $brid, $cu, $dId);
+            }
 
             $form = cls::get('core_Form');
 
@@ -147,7 +200,7 @@ class pwa_SubscribePlg extends core_Plugin
                                     Ако искате може да се абонирате по-късно от бутона "Известяване" в профила си.');
 
                     if ($form->rec->force == 'yes') {
-                        self::rememberPrompt('onboarding', 'declined', self::PROMPT_DECLINED_MINUTES, $brid, $cu, $dId);
+                        self::rememberPrompt('onboarding', 'declined', $brid, $cu, $dId);
                         $res = new Redirect($defRedirect);
 
                         return false;
@@ -235,7 +288,7 @@ class pwa_SubscribePlg extends core_Plugin
             $dId = cms_Domains::getCurrent('id', false);
             Mode::setPermanent('pwaSubscribe', false);
 
-            if (!self::isPromptRemembered('onboarding', $brid, $cu, $dId)) {
+            if (self::mustShowOnboarding($brid, $cu, $dId)) {
                 $res = new Redirect(array($mvc, 'pwaSubscribe'));
 
                 return false;
@@ -247,22 +300,24 @@ class pwa_SubscribePlg extends core_Plugin
             $brid = log_Browsers::getBrid();
             $cu = core_Users::getCurrent();
             $dId = cms_Domains::getCurrent('id', false);
-            $rec = null;
-            if ($cu) {
-                $rec = pwa_PushSubscriptions::fetch(array("#brid = '[#1#]' AND #userId = '[#2#]' AND #domainId = '[#3#]'", $brid, $cu, $dId));
+
+            if (!$cu) {
+                // Кой е потребителят се разбира чак след логването - решението
+                // дали да се показва екранът се взима тогава
+                Mode::setPermanent('pwaSubscribe', true);
+
+                return;
             }
 
+            $rec = pwa_PushSubscriptions::fetch(array("#brid = '[#1#]' AND #userId = '[#2#]' AND #domainId = '[#3#]'", $brid, $cu, $dId));
+
             if (!$rec) {
-                if (!$cu) {
-                    Mode::setPermanent('pwaSubscribe', true);
-                } elseif (!self::isPromptRemembered('onboarding', $brid, $cu, $dId)) {
+                if (self::mustShowOnboarding($brid, $cu, $dId)) {
                     $res = new Redirect(array($mvc, 'pwaSubscribe'));
 
                     return false;
                 }
-            }
-
-            if ($cu && $rec && !Request::get('ajax_mode')) {
+            } elseif (!Request::get('ajax_mode')) {
                 // Ако е спрян абонамента, дава възможност за ново абониране
                 if ($rec->state == 'stopped' && !self::isPromptRemembered('recovery', $brid, $cu, $dId)) {
                     $res = new Redirect(array($mvc, 'pwaSubscribe', 'forceSubscribe' => 'yes', 'ret_url' => true));

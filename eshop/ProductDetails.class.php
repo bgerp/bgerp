@@ -999,8 +999,13 @@ class eshop_ProductDetails extends core_Detail
     public function getInquiryData($id)
     {
         $rec = $this->fetchRec($id);
+        expect410($rec, $id);
+
         $productRec = cat_Products::fetch($rec->productId, 'innerClass,measureId');
+        expect410($productRec, $rec);
+
         $eProductRec = eshop_Products::fetch($rec->eshopProductId);
+        expect410($eProductRec, $rec);
         $moq = !empty($rec->moq) ? $rec->moq : cat_Products::getMoq($rec->productId);
         
         $res = array('title' => static::getPublicProductTitle($rec->eshopProductId, $rec->productId),

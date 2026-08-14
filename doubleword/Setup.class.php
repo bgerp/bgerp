@@ -28,9 +28,28 @@ defIfNot('DOUBLEWORD_TABLE_FORMAT', 'html');
 
 
 /**
+ * Максимално време за една заявка към модела
+ *
+ * Нарочно е голямо - при service_tier=flex заявката стои на опашка за свободен капацитет
+ * и измерено чака до 20 минути. Който има real-time достъп, може да го намали
+ */
+defIfNot('DOUBLEWORD_REQUEST_TIMEOUT', 3600);
+
+
+/**
+ * Класът обслужване, с който се пращат заявките
+ *
+ * 'flex' е редът за свободен капацитет - при натоварване заявката чака на опашка, но
+ * измерено е единственият, който този акаунт има право да ползва. Стойността 'none' не
+ * изпраща полето изобщо и заявката тръгва по real-time маршрута, за който трябва достъп
+ */
+defIfNot('DOUBLEWORD_SERVICE_TIER', 'flex');
+
+
+/**
  * Повторения при временна API грешка
  */
-defIfNot('DOUBLEWORD_API_RETRIES', 1);
+defIfNot('DOUBLEWORD_API_RETRIES', 0);
 defIfNot('DOUBLEWORD_PATH_API_RETRIES', 0);
 
 
@@ -38,6 +57,12 @@ defIfNot('DOUBLEWORD_PATH_API_RETRIES', 0);
  * Път до pdftoppm за преобразуване на PDF страници в изображения
  */
 defIfNot('DOUBLEWORD_PDFTOPPM_PATH', 'pdftoppm');
+
+
+/**
+ * Път до curl - със него скриптът изпраща заявките към модела
+ */
+defIfNot('DOUBLEWORD_CURL_PATH', 'curl');
 
 
 /**
@@ -49,7 +74,7 @@ defIfNot('DOUBLEWORD_MAX_PDF_PAGES', 20);
 /**
  * Максимално време за локалното преобразуване на един PDF
  */
-defIfNot('DOUBLEWORD_PDF_RENDER_TIMEOUT', 300);
+defIfNot('DOUBLEWORD_PDF_RENDER_TIMEOUT', 600);
 
 
 /**
@@ -69,7 +94,7 @@ class doubleword_Setup extends core_ProtoSetup
     /**
      * Версия на пакета
      */
-    public $version = '0.6';
+    public $version = '0.7';
 
 
     /**
@@ -112,11 +137,14 @@ class doubleword_Setup extends core_ProtoSetup
         'DOUBLEWORD_API_URL' => array('Url', 'caption=API URL за OCR->URL,mandatory'),
         'DOUBLEWORD_OCR_MODEL' => array('varchar(128)', 'caption=OCR модел,mandatory'),
         'DOUBLEWORD_TABLE_FORMAT' => array('enum(html=HTML - официалният промпт на olmOCR,markdown=Markdown таблици,text=Текст с табулации)', 'caption=OCR промпт->Таблици,mandatory'),
+        'DOUBLEWORD_REQUEST_TIMEOUT' => array('int(min=30,max=7200)', 'caption=API заявки->Максимално време за заявка,unit=сек.,mandatory'),
+        'DOUBLEWORD_SERVICE_TIER' => array('enum(flex=flex, auto=auto, default=default, priority=priority, none=Без - real-time)', 'caption=API заявки->Клас обслужване,mandatory,hint=При Без полето не се изпраща и заявката тръгва по real-time маршрута'),
         'DOUBLEWORD_API_RETRIES' => array('int(min=0,max=3)', 'caption=API заявки->Повторения при временна грешка,mandatory'),
         'DOUBLEWORD_PATH_API_RETRIES' => array('int(min=0,max=3)', 'caption=API заявки->Повторения за временен файл,mandatory'),
         'DOUBLEWORD_PDFTOPPM_PATH' => array('varchar(255)', 'caption=Път до pdftoppm->Път'),
+        'DOUBLEWORD_CURL_PATH' => array('varchar(255)', 'caption=Път до curl->Път'),
         'DOUBLEWORD_MAX_PDF_PAGES' => array('int(min=1,max=20)', 'caption=PDF документи->Максимален брой страници'),
-        'DOUBLEWORD_PDF_RENDER_TIMEOUT' => array('int(min=30,max=1800)', 'caption=PDF документи->Максимално време за преобразуване, unit=сек.'),
+        'DOUBLEWORD_PDF_RENDER_TIMEOUT' => array('int(min=30,max=3600)', 'caption=PDF документи->Максимално време за преобразуване, unit=сек.'),
     );
 
 
@@ -175,18 +203,21 @@ class doubleword_Setup extends core_ProtoSetup
             return 'Doubleword PDF OCR изисква Linux/Unix среда с GNU timeout и pdftoppm.';
         }
 
-        $pdftoppm = trim((string) self::get('PDFTOPPM_PATH'));
-        $found = false;
-        if (strpos($pdftoppm, '/') !== false || strpos($pdftoppm, '\\') !== false) {
-            $found = is_file($pdftoppm) && is_executable($pdftoppm);
-        } elseif ($pdftoppm !== '') {
-            $res = @exec('which ' . escapeshellarg($pdftoppm), $output, $code);
-            $found = ($res && $code == 0);
-        }
+        foreach (array('PDFTOPPM_PATH', 'CURL_PATH') as $confName) {
+            $program = trim((string) self::get($confName));
+            $found = false;
+            if (strpos($program, '/') !== false || strpos($program, '\\') !== false) {
+                $found = is_file($program) && is_executable($program);
+            } elseif ($program !== '') {
+                $output = array();
+                $res = @exec('which ' . escapeshellarg($program), $output, $code);
+                $found = ($res && $code == 0);
+            }
 
-        if (!$found) {
+            if (!$found) {
 
-            return 'Програмата ' . type_Varchar::escape($pdftoppm) . ' не е инсталирана.';
+                return 'Програмата ' . type_Varchar::escape($program) . ' не е инсталирана.';
+            }
         }
 
         $timeout = @exec('which timeout', $timeoutOutput, $timeoutCode);

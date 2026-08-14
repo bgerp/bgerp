@@ -467,7 +467,7 @@ class type_UserList extends type_Keylist
             foreach ($suggestions as $keySugg => $suggestion) {
                 
                 // Ако не е група
-                if (!$suggestion->group) {
+                if (!is_object($suggestion) || empty($suggestion->group)) {
                     
                     // Добавяме в масива
                     $retTypeArr[$keySugg] = $keySugg;
@@ -482,7 +482,7 @@ class type_UserList extends type_Keylist
             foreach ($typeArr as $t) {
                 
                 // Ако има предложение с този тип
-                if ($suggestions[$t]) {
+                if (!empty($suggestions[$t])) {
                     
                     // Добавяме масива
                     $retTypeArr[$t] = $t;

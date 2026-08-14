@@ -529,8 +529,12 @@ class cat_Groups extends core_Master
         $groupArr = countR($groupArr) ? $groupArr : null;
 
         // Преброяване колко артикули са във всяка група
-        $pQuery = cat_Products::getQuery();
-        $gCntArr = $pQuery->countKeylist('groups', $groupArr);
+        if (bgerp_Setup::get('USE_FULLTEXT_GROUP_SEARCH') == 'yes') {
+            $gCntArr = self::countProductsInGroups($groupArr);
+        } else {
+            $pQuery = cat_Products::getQuery();
+            $gCntArr = $pQuery->countKeylist('groups', $groupArr);
+        }
 
         // Ще се обновява броя артикули в група, само ако има промяна
         $updateGroups = array();
@@ -553,6 +557,42 @@ class cat_Groups extends core_Master
         if (countR($updateGroups)) {
             cls::get('cat_Groups')->saveArray($updateGroups, 'id,productCnt');
         }
+    }
+
+
+    /**
+     * Преброява артикулите във всяка от групите през пълнотекстовия индекс.
+     * По-бързо е от броенето с LOCATE, което минава през всички редове на таблицата
+     *
+     * @see plg_ExpandInput
+     *
+     * @param array|NULL $groupArr - ид-та на конкретни групи, null за всички
+     *
+     * @return array                - масив $groupId => брой артикули
+     *
+     * @author Ivelin Dimov <ivelin_pdimov@abv.bg>
+     */
+    private static function countProductsInGroups($groupArr)
+    {
+        // Ако не са подадени конкретни групи, броят се всички
+        if (!countR($groupArr)) {
+            $groupArr = array();
+            $gQuery = cat_Groups::getQuery();
+            $gQuery->show('id');
+            while ($gRec = $gQuery->fetch()) {
+                $groupArr[$gRec->id] = $gRec->id;
+            }
+        }
+
+        // За всяка група се брои с отделна заявка, използваща индекса
+        $res = array();
+        foreach ($groupArr as $groupId) {
+            $pQuery = cat_Products::getQuery();
+            plg_ExpandInput::applyExtendedInputSearch('cat_Products', $pQuery, $groupId);
+            $res[$groupId] = $pQuery->count();
+        }
+
+        return $res;
     }
 
 

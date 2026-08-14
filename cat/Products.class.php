@@ -553,8 +553,15 @@ class cat_Products extends embed_Manager
             
             $form->setDefault('name', $sourceRec->title);
             if (empty($rec->id)) {
+
+                // Копират се само полетата, които източникът наистина има
+                $sourceDriverRec = is_array($sourceRec->driverRec ?? null) ? $sourceRec->driverRec : array();
                 foreach ($fields as $name => $fld) {
-                    $form->rec->{$name} = $sourceRec->driverRec[$name];
+                    if (!array_key_exists($name, $sourceDriverRec)) {
+                        continue;
+                    }
+
+                    $form->rec->{$name} = $sourceDriverRec[$name];
                 }
             }
         }
