@@ -282,21 +282,21 @@ class core_Cache extends core_Manager
      */
     public function cron_DeleteExpiredData($all = false)
     {
-        // И в двата случая условието е непразен низ. Празно условие би довело до
-        // DELETE без WHERE, т.е. до изтриване на цялата таблица
-        // (@see core_Query::getWhereAndHaving()). core_Mvc::delete() пази
-        // допълнително с expect($cond !== null)
+        $query = $this->getQuery();
+        
         if ($all) {
-            $cond = '1 = 1';
+            $query->where('1 = 1');
         } else {
-            $cond = '#lifetime < ' . time();
+            $query->where('#lifetime < ' . time());
         }
-
-        // Едно групово изтриване вместо заявка на запис. Ключовете на изтритите
-        // редове се извличат предварително (@see $fetchFieldsBeforeDelete), за да
-        // може on_AfterDelete() да изчисти и APCu копията им
-        $deletedRecs = $this->delete($cond);
-
+        
+        $deletedRecs = 0;
+        
+        while ($rec = $query->fetch()) {
+            $this->deleteData($rec->key, true);
+            $deletedRecs += $this->delete($rec->id);
+        }
+        
         if ($all) {
             $msg = "Лог: Всички <b class='blueText'>{$deletedRecs}</b> кеширани записа бяха изтрити";
         } else {
