@@ -127,6 +127,8 @@ class type_Key2 extends type_Int
     public function getOptions($limit = null, $search = '', $ids = null, $includeHiddens = false)
     {
         $sLen = mb_strlen($search);
+        $handler = null;
+
         // Ако не се търси по нищо, показваме резултата от предишното търсене
         if ($this->params['savePrevSearch'] == 'yes') {
             $params = $this->params;
@@ -183,7 +185,7 @@ class type_Key2 extends type_Int
         $resArr = call_user_func($this->params['selectSourceArr'], $this->params, $limit, $search, $ids, $includeHiddens);
 
         // При търсене, записваме резултата в кеша
-        if ($this->params['savePrevSearch'] == 'yes') {
+        if (!empty($handler)) {
             if ($sLen > 1 && $limit != 1) {
                 if ($resArr) {
                     core_Cache::set('key2getOptions', $handler, $resArr, 10, array($this->params['mvc']));
@@ -393,7 +395,7 @@ class type_Key2 extends type_Int
                     $titleClass = null;
                     $class = null;
                     if (is_object($title)) {
-                        $isGroup = $title->group ? true : false;
+                        $isGroup = !empty($title->group);
 
                         if (isset($title->attr['class'])) {
                             $titleClass = $title->attr['class'];
@@ -422,7 +424,7 @@ class type_Key2 extends type_Int
                         }
 
                         if (isset($titleClass)) {
-                            if (!$obj->gElement) {
+                            if (empty($obj->gElement)) {
                                 $obj->gElement = new stdClass();
                                 $obj->gElement->className = $titleClass;
                             } else {
