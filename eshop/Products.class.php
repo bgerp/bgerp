@@ -518,7 +518,8 @@ class eshop_Products extends core_Master
     public function getInquiryData($id)
     {
         $rec = $this->fetchRec($id);
-        
+        expect410($rec, $id);
+
         $res = array('title' => $rec->name,
             'drvId' => $rec->coDriver,
             'lg' => cms_Content::getLang(),
