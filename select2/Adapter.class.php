@@ -241,12 +241,12 @@ class select2_Adapter
             
             if (is_object($title)) {
                 $sVal->text = $title->title;
-                
+
                 $sVal->gElement = new stdClass();
-                
-                $sVal->gElement->className = $title->attr['class'];
-                
-                if ($title->group) {
+
+                $sVal->gElement->className = $title->attr['class'] ?? '';
+
+                if (!empty($title->group)) {
                     $sVal->gElement->className .= ($sVal->gElement->className) ? ' ' : '';
                     $sVal->gElement->className .= 'group';
                     $sVal->group = true;
@@ -257,7 +257,7 @@ class select2_Adapter
                     $isGroup = true;
                 }
                 
-                if ($title->attr) {
+                if (!empty($title->attr)) {
                     $sVal->attr = $title->attr;
                 }
             } else {
