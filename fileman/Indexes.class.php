@@ -163,16 +163,6 @@ class fileman_Indexes extends core_Manager
             // Комбиниране всички открити табове
             $data->tabs = arr::combine($data->tabs, $drv->getTabs($data->fRec));
         }
-
-        // Допълнителни табове от регистрирани доставчици. Доставчикът описва
-        // само заглавие, URL и подредба; общият fileman renderer изгражда HTML-а.
-        $tabProviders = core_Classes::getOptionsByInterface('fileman_FileTabsIntf');
-        foreach ($tabProviders as $className) {
-            $providerTabs = $className::getTabsForFile($data->fRec);
-            if (is_array($providerTabs)) {
-                $data->tabs = arr::combine($data->tabs, $providerTabs);
-            }
-        }
     }
     
     
@@ -243,16 +233,7 @@ class fileman_Indexes extends core_Manager
                 $tabs->TAB($name, $rec->title, $urlArr);
                 
                 // Вземаме съдържанеито на тялот
-                if (isset($rec->html)) {
-                    $body = $rec->html;
-                } elseif (!empty($rec->url)) {
-                    $tabUrl = toUrl($rec->url);
-                    $arrows = fileman_webdrv_Generic::getArrows($data->fRec);
-                    $body = "<div class='webdrvTabBody'><div class='webdrvFieldset'>"
-                        . $arrows['prevLink'] . $arrows['nextLink']
-                        . "<iframe src='{$tabUrl}' frameBorder='0' ALLOWTRANSPARENCY='true' class='webdrvIframe'> </iframe>"
-                        . '</div></div>';
-                }
+                $body = $rec->html;
             } else {
                 
                 // Създаваме таб
