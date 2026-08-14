@@ -576,6 +576,7 @@ class pos_ReceiptDetails extends core_Detail
         try{
             expect(empty($receiptRec->paid), 'Не може да се добави артикул, ако има направено плащане|*!');
             $increment = false;
+            $isWeightBarcode = false;
 
             // Запис на продукта
             $rec = (object)array('receiptId' => $receiptId, 'action' => 'sale|code');
@@ -624,15 +625,20 @@ class pos_ReceiptDetails extends core_Detail
                 }
             }
 
-            // Ако няма артикул с точно такъв код/баркод, се проверява дали не е баркод с променливо тегло
-            if(!empty($rec->ean) && empty($rec->productId)){
-                if(!cat_Products::getByCode($rec->ean)){
-                    if($weightRec = cat_Setup::getWeightBarcodeProduct($rec->ean)){
-                        expect(empty($weightRec->error), $weightRec->error);
-                        $rec->productId = $weightRec->productId;
-                        $rec->value = $weightRec->measureId;
-                        $rec->quantity = $weightRec->quantity;
-                    }
+            // Ако стрингът отговаря на някоя от маските за тегловни баркодове, артикулът се търси само
+            // по кода от баркода - не се проверява нито за артикул с целия баркод, нито за карта/ваучер
+            if(core_Packs::isInstalled('wbarcode') && !empty($rec->ean) && empty($rec->productId)){
+                if($parsedRec = wbarcode_Helper::parse($rec->ean)){
+                    $weightRec = wbarcode_Helper::getProduct($rec->ean);
+                    expect(is_object($weightRec), "Няма артикул с код|* {$parsedRec->productCode} |от тегловния баркод|*!");
+                    expect(empty($weightRec->error), $weightRec->error);
+
+                    // Баркодът е пряк път за артикул + тегло, а въведеното до тук количество остава
+                    // множител на теглото от етикета: при "2*<баркод>" се продава двойното тегло
+                    $isWeightBarcode = true;
+                    $rec->productId = $weightRec->productId;
+                    $rec->value = $weightRec->measureId;
+                    $rec->quantity = $weightRec->quantity * $rec->quantity;
                 }
             }
 
@@ -640,9 +646,13 @@ class pos_ReceiptDetails extends core_Detail
             $rec->quantity *= $sign;
 
             expect(!empty($rec->productId) || !empty($rec->ean), 'Не е избран артикул|*!');
-            if ($packId = Request::get('packId', 'int')) {
-                expect(cat_UoM::fetchField($packId), "Невалидна опаковка|*!");
-                $rec->value = $packId;
+
+            // При тегловен баркод мярката идва от него и избраната опаковка не я презаписва
+            if (empty($isWeightBarcode)) {
+                if ($packId = Request::get('packId', 'int')) {
+                    expect(cat_UoM::fetchField($packId), "Невалидна опаковка|*!");
+                    $rec->value = $packId;
+                }
             }
 
             // Намираме нужната информация за продукта
