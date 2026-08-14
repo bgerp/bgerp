@@ -49,7 +49,7 @@ class bgerp_plg_Groups extends core_Plugin
 
             $selArr = arr::make($rec->Selected ?? null);
             
-            setIfNot($groupField, $mvc->groupField, $mvc->expandInputFieldName, 'groupList');
+            $groupField = $mvc->groupField ?? $mvc->expandInputFieldName ?? 'groupList';
             
             $groupFieldType = $mvc->getFieldType($groupField);
             
@@ -63,8 +63,9 @@ class bgerp_plg_Groups extends core_Plugin
                 
                 if (!is_numeric($ind) || !$mvc->haveRightFor('grouping', $obj)) {
                     unset($selArr[$i]);
+                    continue;
                 }
-                
+
                 $groups = $mvc->fetchField($ind, $groupField);
                 $gArr = keylist::toArray($groups);
                 
