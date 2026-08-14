@@ -721,7 +721,11 @@ class html2text_Converter
         
         foreach ($ruleArr as $rule) {
             $rule = strtolower(str::removeWhiteSpace($rule));
-            list($name, $value) = explode(':', $rule);
+            if (empty($rule)) {
+                continue;
+            }
+
+            list($name, $value) = array_pad(explode(':', $rule, 2), 2, null);
             
             if ($name == 'color') {
                 $text = '[color=' . self::getColor($value) . ']' . $text . '[/color]';
