@@ -275,7 +275,7 @@ class newsbar_Plugin extends core_Plugin
         static $resArr = array();
         $hash = md5(serialize($nRec) . '|' . $class);
         
-        if (!$resArr[$hash]) {
+        if (empty($resArr[$hash])) {
             $convertText = cls::get('type_Richtext');
             
             $html = newsbar_News::generateHTML($nRec);
