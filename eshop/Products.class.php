@@ -2206,7 +2206,8 @@ class eshop_Products extends core_Master
             if (array_key_exists($dRec->threadId, $onlineSaleThreads)) {
                 
                 // Кой е-артикул съответства на този артикул и домейнат
-                $eshopProducts = $details[$dRec->productId][$onlineSaleThreads[$dRec->threadId]];
+                $domainId = $onlineSaleThreads[$dRec->threadId];
+                $eshopProducts = $details[$dRec->productId][$domainId] ?? array();
                
                 // Ако има такъв
                 if (countR($eshopProducts)) {
@@ -2217,7 +2218,7 @@ class eshop_Products extends core_Master
                     foreach ($eshopProducts as $eshopProductId) {
                         
                         // Добавя се с по-голяма тежест, спрямо разстоянието от вальора до сега
-                        sales_ProductRatings::addRatingToObject($res, $eshopProductId, $classId, $productClassId, $eshopProductId, $onlineSaleThreads[$dRec->threadId], $rating);
+                        sales_ProductRatings::addRatingToObject($res, $eshopProductId, $classId, $productClassId, $eshopProductId, $domainId, $rating);
                     }
                 }
             }
