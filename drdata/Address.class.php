@@ -54,6 +54,7 @@ class drdata_Address extends core_MVC
      */
     public static function lineToWords($line)
     {
+        $res = array();
         $line = str_replace(array('|', ',', '-', '/', '\\'), array(' ', ' ', ' ', ' ', ' '), $line);
         $line = str_replace(array(',', '(', ')'), array(', ', ' (', ') '), $line);
         
@@ -80,7 +81,7 @@ class drdata_Address extends core_MVC
         
         if (is_array($matches[1])) {
             foreach ($matches[1] as $id => $tel) {
-                if (!$negativeList[$tel]) {
+                if (empty($negativeList[$tel])) {
                     $res[$id] = $tel;
                 }
             }
@@ -133,7 +134,8 @@ class drdata_Address extends core_MVC
             
             foreach ($res as $telInfo) {
                 if ($telInfo->area && $telInfo->area != 'Unknown') {
-                    $ret[$tel] .= ($ret[$id] ? ', ' : '') . '+' . $telInfo->countryCode . ' ' . $telInfo->areaCode . ' ' . trim($telInfo->number);
+                    $prefix = isset($ret[$tel]) ? ', ' : '';
+                    $ret[$tel] = ($ret[$tel] ?? '') . $prefix . '+' . $telInfo->countryCode . ' ' . $telInfo->areaCode . ' ' . trim($telInfo->number);
                 }
             }
         }
@@ -151,6 +153,7 @@ class drdata_Address extends core_MVC
      */
     public static function extractContact1($text, $assumed = array(), $avoid = array())
     {
+        $res = array();
         $cData = new stdClass();
         cls::get(get_called_class())->invoke('ParseAddress', array($cData, $text, $assumed));
 
@@ -272,6 +275,8 @@ class drdata_Address extends core_MVC
      */
     public static function rateCompany(&$obj)
     {
+        $obj->companyRate = $obj->companyRate ?? 0;
+
         if (empty(self::$companyTypes)) {
             self::$companyTypes = ' ' . getFileContent('drdata/data/companyTypes.txt');
         }
@@ -280,10 +285,12 @@ class drdata_Address extends core_MVC
             self::$companyWords = ' ' . getFileContent('drdata/data/companyWords.txt');
         }
         
-        if (!is_array($obj->_wordsLower)) {
+        if (!is_array($obj->_wordsLower) || !countR($obj->_wordsLower)) {
             
             return;
         }
+
+        $cnt = 0;
         
         foreach ($obj->_wordsLower as $w) {
             if (strpos(self::$companyTypes, "|{$w}|")) {
@@ -318,6 +325,8 @@ class drdata_Address extends core_MVC
      */
     public static function ratePerson($obj)
     {
+        $obj->personRate = $obj->personRate ?? 0;
+
         if (empty(self::$givenNames)) {
             self::$givenNames = ' ' . getFileContent('drdata/data/givenNames.txt');
         }
@@ -326,7 +335,7 @@ class drdata_Address extends core_MVC
             self::$titles = ' ' . getFileContent('drdata/data/titles.txt');
         }
         
-        if (!is_array($obj->_wordsLower)) {
+        if (!is_array($obj->_wordsLower) || !countR($obj->_wordsLower)) {
             
             return;
         }
@@ -336,8 +345,6 @@ class drdata_Address extends core_MVC
             if (strpos(self::$givenNames, "|{$w}|")) {
                 $cnt += 3;
             } elseif (strpos(self::$titles, "|{$w}|")) {
-                $cnt += 2;
-            } elseif (strpos($titles, "|{$w}|")) {
                 $cnt += 2;
             } elseif (preg_match('/[a-zA-Z]{2,15}(ov|ova|ev|eva)$/', $w)) {
                 $cnt += 2;
@@ -362,14 +369,18 @@ class drdata_Address extends core_MVC
      */
     public static function rateRegards($obj)
     {
+        $obj->regardsRate = $obj->regardsRate ?? 0;
+
         if (empty(self::$regards)) {
             self::$regards = ' ' . getFileContent('drdata/data/regards.txt');
         }
         
-        if (!is_array($obj->_wordsLower)) {
+        if (!is_array($obj->_wordsLower) || !countR($obj->_wordsLower)) {
             
             return;
         }
+
+        $cnt = 0;
         
         foreach ($obj->_wordsLower as $w) {
             if (strpos(self::$regards, "|{$w}|")) {
@@ -429,8 +440,8 @@ class drdata_Address extends core_MVC
             $query = drdata_Countries::getQuery();
             $cData = new stdClass();
             while ($rec = $query->fetch("#type = 'Independent State'")) {
-                $cData->domains[trim($rec->domain, '.')] = $rec->id;
-                $lgArr = explode(',', $rec->languages);
+                $cData->domains[trim((string) $rec->domain, '.')] = $rec->id;
+                $lgArr = explode(',', (string) $rec->languages);
                 foreach ($lgArr as $lg) {
                     $cData->languages[$lg][] = $rec->id;
                 }
@@ -810,8 +821,9 @@ class drdata_Address extends core_MVC
         // Отделяме блоковете с данни
         $blocks = array();
         $i = 1;
+        $empty = 0;
         foreach ($res as $l) {
-            if (!is_array($blocks[$i])) {
+            if (!is_array($blocks[$i] ?? null)) {
                 $blocks[$i] = array();
             }
             
@@ -827,9 +839,9 @@ class drdata_Address extends core_MVC
                 }
                 $empty = 0;
                 foreach ($data as $item) {
-                    if (is_array($blocks[$i][$item[0]]) && countR($blocks[$i][$item[0]])) {
+                    if (is_array($blocks[$i][$item[0]] ?? null) && countR($blocks[$i][$item[0]])) {
                         //tel, fax, mob - по-голямото е по-добре
-                        if ($item[0] == 'tel' || $item[0] == 'tel' || $item[0] == 'tel') {
+                        if ($item[0] == 'tel' || $item[0] == 'fax' || $item[0] == 'mob') {
                             foreach ($blocks[$i][$item[0]] as $id => $exValue) {
                                 if (strpos($exValue, $item[1]) !== false) {
                                     unset($item[1]);
@@ -861,17 +873,17 @@ class drdata_Address extends core_MVC
                     if ($item[0] == 'company' || $item[0] == 'name') {
                         $maxKey = 'max-' . $item[0];
                         
-                        if ($blocks[$i][$maxKey] < $item[2]) {
+                        if (($blocks[$i][$maxKey] ?? 0) < $item[2]) {
                             // $blocks[$i][$item[0]] = array();
                             $blocks[$i][$maxKey] = $item[2];
                         }
                         
-                        if ($blocks[$i][$maxKey] > $item[2]) {
+                        if (($blocks[$i][$maxKey] ?? 0) > $item[2]) {
                             unset($item[1]);
                         }
                     }
                     
-                    if ($item[1]) {
+                    if ($item[1] ?? null) {
                         $blocks[$i][$item[0]][] = $item[1];
                     }
                 }
@@ -893,10 +905,12 @@ class drdata_Address extends core_MVC
         );
 
         // Avoid
+        $maxTotal = -1;
+        $maxBlock = array();
         foreach ($blocks as $id => $b) {
             $total = 0;
             foreach ($points as $name => $score) {
-                if (is_array($b[$name]) && countR($b[$name])) {
+                if (is_array($b[$name] ?? null) && countR($b[$name])) {
                     $total += $score;
                 }
             }
@@ -909,38 +923,38 @@ class drdata_Address extends core_MVC
         
         $res = new stdClass();
         
-        if (is_array($maxBlock) && countR($maxBlock)) {
-            if (is_array($maxBlock['company']) && countR($maxBlock['company'])) {
+        if (countR($maxBlock)) {
+            if (is_array($maxBlock['company'] ?? null) && countR($maxBlock['company'])) {
                 $res->company = trim($maxBlock['company'][0], "*;,-#$<> \t\n\r");
             }
-            if (is_array($maxBlock['tel']) && countR($maxBlock['tel'])) {
+            if (is_array($maxBlock['tel'] ?? null) && countR($maxBlock['tel'])) {
                 $res->tel = implode(', ', $maxBlock['tel']);
             }
-            if (is_array($maxBlock['fax']) && countR($maxBlock['fax'])) {
+            if (is_array($maxBlock['fax'] ?? null) && countR($maxBlock['fax'])) {
                 $res->fax = implode(', ', $maxBlock['fax']);
             }
-            if (is_array($maxBlock['email']) && countR($maxBlock['email'])) {
+            if (is_array($maxBlock['email'] ?? null) && countR($maxBlock['email'])) {
                 $res->email = implode(', ', $maxBlock['email']);
             }
-            if (is_array($maxBlock['address']) && countR($maxBlock['address'])) {
+            if (is_array($maxBlock['address'] ?? null) && countR($maxBlock['address'])) {
                 $res->address = $maxBlock['address'][0];
             }
-            if (is_array($maxBlock['country']) && countR($maxBlock['country'])) {
+            if (is_array($maxBlock['country'] ?? null) && countR($maxBlock['country'])) {
                 $res->country = $maxBlock['country'][0];
             }
-            if (is_array($maxBlock['pCode']) && countR($maxBlock['pCode'])) {
+            if (is_array($maxBlock['pCode'] ?? null) && countR($maxBlock['pCode'])) {
                 $res->pCode = $maxBlock['pCode'][0];
             }
-            if (is_array($maxBlock['place']) && countR($maxBlock['place'])) {
+            if (is_array($maxBlock['place'] ?? null) && countR($maxBlock['place'])) {
                 $res->place = $maxBlock['place'][0];
             }
-            if (is_array($maxBlock['web']) && countR($maxBlock['web'])) {
+            if (is_array($maxBlock['web'] ?? null) && countR($maxBlock['web'])) {
                 $res->web = $maxBlock['web'][0];
             }
-            if (is_array($maxBlock['name']) && countR($maxBlock['name'])) {
+            if (is_array($maxBlock['name'] ?? null) && countR($maxBlock['name'])) {
                 $res->person = trim($maxBlock['name'][0], "*;,-#$<> \t\n\r");
             }
-            if (is_array($maxBlock['mob']) && countR($maxBlock['mob'])) {
+            if (is_array($maxBlock['mob'] ?? null) && countR($maxBlock['mob'])) {
                 $res->mob = implode(', ', $maxBlock['mob']);
             }
         }
@@ -999,10 +1013,11 @@ class drdata_Address extends core_MVC
         foreach ($arr as $obj) {
             $res .= "\n<tr>";
             foreach ($headers as $h) {
-                if (is_array($obj->{$h})) {
-                    $obj->{$h} = implode(', ', $obj->{$h});
+                $value = $obj->{$h} ?? null;
+                if (is_array($value)) {
+                    $value = implode(', ', $value);
                 }
-                $res .= '<td>' . ($obj->{$h} ?  $obj->{$h} : '&nbsp;') . '</td>';
+                $res .= '<td>' . ($value ? $value : '&nbsp;') . '</td>';
             }
             $res .= '</tr>';
         }
