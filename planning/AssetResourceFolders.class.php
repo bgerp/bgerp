@@ -206,9 +206,11 @@ class planning_AssetResourceFolders extends core_Manager
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-        $row->folderId = doc_Folders::getVerbalLinks($rec->folderId, true, true);
-        
-        if ($rec->users) {
+        if (isset($rec->folderId)) {
+            $row->folderId = doc_Folders::getVerbalLinks($rec->folderId, true, true);
+        }
+
+        if (!empty($rec->users)) {
             $row->users = $mvc->fields['users']->type->toVerbal($rec->users);
             
             $usersArr = type_UserList::toArray($rec->users);
