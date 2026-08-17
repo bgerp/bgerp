@@ -375,10 +375,11 @@ class cond_PaymentMethods extends embed_Manager
         if ($restAmount <= 0) return false;
         
         // Ако няма крайна дата на плащане, не е просрочена
-        if (!$payment['deadlineForBalancePayment']) return false;
+        $deadlineForBalancePayment = $payment['deadlineForBalancePayment'] ?? null;
+        if (!$deadlineForBalancePayment) return false;
 
         $overdueAddDays = deals_Setup::get('ADD_DAYS_TO_DUE_DATE_FOR_OVERDUE');
-        $calcedDueDate = dt::addDays($overdueAddDays, $payment['deadlineForBalancePayment'], false);
+        $calcedDueDate = dt::addDays($overdueAddDays, $deadlineForBalancePayment, false);
 
         if(strtotime($today) > strtotime($calcedDueDate)){
             $dueDate = $calcedDueDate;
