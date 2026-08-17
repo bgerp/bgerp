@@ -211,6 +211,7 @@ class tracking_Setup extends core_ProtoSetup
     private function Start()
     {
         $conf = core_Packs::getConfig('tracking');
+        $pid = false;
         
         if (!self::isStarted()) {
             $cmd = 'php ' . realpath(dirname(__FILE__)) . '/sockListener.php'
@@ -235,6 +236,7 @@ class tracking_Setup extends core_ProtoSetup
     private static function Stop()
     {
         $pid = core_Packs::getConfigKey('tracking', 'PID');
+        $res = false;
         
         if (!empty($pid)) {
             $res = posix_kill($pid, 9);
@@ -261,10 +263,11 @@ class tracking_Setup extends core_ProtoSetup
         }
         
         // Парсираме резултата от ps -fp <PID> команда и взимаме командната линия на процеса
-        @exec('ps -fp ' . $pid, $output);
+        $output = array();
+        @exec('ps -fp ' . (int) $pid, $output, $exitCode);
         
         // Ако командата се съдържа в резултата от ps значи процеса е нашия
-        if (strpos($output[1], $cmd) !== false) {
+        if ($exitCode === 0 && !empty($cmd) && strpos(implode("\n", $output), $cmd) !== false) {
             
             return (true);
         }
