@@ -266,7 +266,8 @@ class trans_TransportUnits extends core_Manager
                 $pQuery->show('quantity');
 
                 // Намира се последното произведено нестандартно к-во
-                $lastProducedPackQuantity = $pQuery->fetch()->quantity;
+                $lastProducedRec = $pQuery->fetch();
+                $lastProducedPackQuantity = is_object($lastProducedRec) ? $lastProducedRec->quantity : null;
                 if(!empty($lastProducedPackQuantity)){
 
                     // Ако има такова и то е над стандартното се закръгля нагоре иначе надоло
