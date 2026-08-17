@@ -447,7 +447,7 @@ class cms_Articles extends core_Master
             
             if ($l->selected) {
                 $flagSelected = true;
-            } elseif ($l->url) {
+            } elseif ($l->url ?? null) {
                 if (!$flagSelected) {
                     $navData->prev = $l;
                 }

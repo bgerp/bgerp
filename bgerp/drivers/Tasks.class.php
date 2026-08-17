@@ -85,7 +85,7 @@ class bgerp_drivers_Tasks extends core_BaseClass
         // Създаваме заявката
         $resData->data->query = cal_Tasks::getQuery();
         
-        if ($dRec->taskPriority) {
+        if ($dRec->taskPriority ?? null) {
             expect($this->priorityMap[$dRec->taskPriority]);
             $priorityArr = explode('|', $this->priorityMap[$dRec->taskPriority]);
             $resData->data->query->orWhereArr('priority', $priorityArr);

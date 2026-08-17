@@ -168,7 +168,7 @@ class newsbar_Plugin extends core_Plugin
             }
             $menusArr = type_Keylist::toArray($nRec->menu);
             
-            if (!$menusArr[$cMenuId]) {
+            if (empty($menusArr[$cMenuId])) {
                 continue;
             }
             
