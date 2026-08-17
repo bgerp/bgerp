@@ -480,7 +480,12 @@ class distro_Repositories extends core_Master
             return array();
         }
         
-        list($path, $file, $act, $date) = explode('" "', $line);
+        $lineParts = explode('" "', $line, 4);
+        if (countR($lineParts) != 4) {
+            return array();
+        }
+
+        list($path, $file, $act, $date) = $lineParts;
         
         $path = str_replace($rec->path, '', $path);
         $path = trim($path, '/');
@@ -491,7 +496,9 @@ class distro_Repositories extends core_Master
         $resArr['date'] = $date;
         $resArr['name'] = $file;
         
-        list($actName, $isDir) = explode(',', $act);
+        $actParts = explode(',', $act, 2);
+        $actName = $actParts[0];
+        $isDir = $actParts[1] ?? null;
         
         $resArr['isDir'] = ($isDir == 'ISDIR') ? true : false;
         
