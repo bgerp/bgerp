@@ -22,6 +22,12 @@ class findeals_transaction_CloseDeal extends deals_ClosedDealTransaction
      * @var findeals_ClosedDeals
      */
     public $class;
+
+
+    /**
+     * Вальор на сделката
+     */
+    private $valior;
     
     
     /**
