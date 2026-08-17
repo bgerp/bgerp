@@ -940,7 +940,7 @@ class acc_CostAllocations extends core_Manager
             $dRec = cls::get($eRec->detailClassId)->fetch($eRec->detailRecId);
             $amount = $dRec->amount;
             
-            $sign = ($dRec->isReverse == 'yes') ? -1 : 1;
+            $sign = (($dRec->isReverse ?? 'no') == 'yes') ? -1 : 1;
             $personId = crm_Profiles::fetchField("#userId = '{$persons['dealerId']}'", 'personId');
             $key = "{$personId}|{$Document->getClassId()}|{$Document->that}|{$saleRec->valior}|{$expenseIndicatorId}";
             
