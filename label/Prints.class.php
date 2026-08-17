@@ -866,7 +866,7 @@ class label_Prints extends core_Master
             $data->listFilter->input('classId,objectId', 'silent');
 
             // Ако не е избран потребител по подразбиране
-            if (!empty($data->listFilter->rec->author)) {
+            if (empty($data->listFilter->rec->author)) {
 
                 // Да е текущия
                 $data->listFilter->rec->author = '|' . core_Users::getCurrent() . '|';
@@ -880,9 +880,9 @@ class label_Prints extends core_Master
         if ($filter = $data->listFilter->rec) {
 
             // Ако се търси по всички
-            if (!$isSourceFixed && strpos($filter->author, '|-1|') === false) {
+            if (!$isSourceFixed && strpos((string) ($filter->author ?? ''), '|-1|') === false) {
                 // Масив с потребителите
-                $usersArr = type_Keylist::toArray($filter->author);
+                $usersArr = type_Keylist::toArray($filter->author ?? null);
 
                 $data->query->orWhereArr('createdBy', $usersArr);
                 $data->query->orWhereArr('modifiedBy', $usersArr, true);
