@@ -298,9 +298,17 @@ class bgfisc_plg_Sales extends core_Plugin
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         if (in_array($action, array('reject', 'restore', 'correction', 'revert')) && isset($rec)) {
-            
+
             // Ако има отпечатана бележка, сделката не може да се оттегля/възстановява
             if (bgfisc_PrintedReceipts::getQrCode($mvc, $rec->id)) {
+                $requiredRoles = 'no_one';
+            }
+        }
+
+        // Ако по УНП-то на сделката вече има издаден фискален бон, към нея не може да се обединяват
+        // нови договори, защото те подменят детайлите ѝ и бона повече няма да отговаря на документа
+        if ($action == 'closewith' && isset($rec)) {
+            if (bgfisc_PrintedReceipts::haveReceiptsByUrn($mvc, $rec->id)) {
                 $requiredRoles = 'no_one';
             }
         }

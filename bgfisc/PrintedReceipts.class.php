@@ -97,8 +97,33 @@ class bgfisc_PrintedReceipts extends core_Manager
         
         return $qrCode;
     }
-    
-    
+
+
+    /**
+     * Има ли издавани фискални бонове към УНП-то на обекта
+     *
+     * Хваща както бона по самия документ, така и тези по касовите документи в нишката му,
+     * защото те ползват УНП-то на първия документ в нишката
+     *
+     * @param mixed $class    - клас на обекта
+     * @param int   $objectId - ид на обекта
+     *
+     * @return bool
+     */
+    public static function haveReceiptsByUrn($class, $objectId)
+    {
+        $urnRec = bgfisc_Register::getRec($class, $objectId);
+        if (!is_object($urnRec)) {
+
+            return false;
+        }
+
+        $exId = self::fetchField("#urnId = {$urnRec->id}", 'id');
+
+        return !empty($exId);
+    }
+
+
     /**
      * Добавя ключови думи за пълнотекстово търсене
      */
