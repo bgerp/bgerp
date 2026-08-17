@@ -164,7 +164,11 @@ class Barcode {
     // GD barcode renderer
     private static function digitToGDRenderer($gd, $color, $xi, $yi, $angle, $mw, $mh, $digit){
         $fn = function($points) use ($gd, $color) {
-            imagefilledpolygon($gd, $points, 4, $color);
+            if (PHP_VERSION_ID >= 80100) {
+                imagefilledpolygon($gd, $points, $color);
+            } else {
+                imagefilledpolygon($gd, $points, 4, $color);
+            }
         };
         return self::digitToRenderer($fn, $xi, $yi, $angle, $mw, $mh, $digit);
     }
