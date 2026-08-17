@@ -336,7 +336,7 @@ class remote_BgerpDriver extends core_Mvc
         
         remote_Authorizations::logInfo('Потвърдена ауторизация', $rec->id);
         
-        echo md5($rec->data->lKey . $rec->lKeyCC);
+        echo md5($rec->data->lKey . $rec->data->lKeyCC);
         
         die;
     }
@@ -362,17 +362,16 @@ class remote_BgerpDriver extends core_Mvc
 
             // Ако потребителят не е активен - също не правим нищо
             $uRec = core_Users::fetch($rec->userId);
-            if($uRec->state != 'active') continue;
+            if (!is_object($uRec) || $uRec->state != 'active') continue;
             
-            if ($rec->data->lKeyCC && $rec->data->rId) {
+            if (is_object($rec->data ?? null) && !empty($rec->data->lKeyCC) && !empty($rec->data->rId)) {
                 $nCnt = self::sendQuestion($rec, __CLASS__, 'getNotifications', array('priority' => true));
-                
+                $nMsg = null;
+
                 if (is_array($nCnt)) {
-                    $priority = $nCnt['priority'];
-                    $nCnt = $nCnt['cnt'];
-                    if (isset($nCnt['msg'])) {
-                        $nMsg = $nCnt['msg'];
-                    }
+                    $priority = $nCnt['priority'] ?? 'normal';
+                    $nMsg = $nCnt['msg'] ?? null;
+                    $nCnt = $nCnt['cnt'] ?? null;
                 } else {
                     $priority = 'normal';
                 }

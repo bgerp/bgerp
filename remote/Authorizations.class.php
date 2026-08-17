@@ -339,7 +339,7 @@ class remote_Authorizations extends embed_Manager
 
         foreach ($newClassesArr as $classId => $className) {
 
-            $haveRemote = $remoteNoDriversArr[$classId] ? false : true;
+            $haveRemote = !array_key_exists($classId, $remoteNoDriversArr);
 
             if ($haveRemote) {
                 $userSenders = array();
