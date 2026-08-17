@@ -414,9 +414,17 @@ class distro_Files extends core_Detail
         
         foreach ($reposArr as $repoId) {
             $linesArr = distro_Repositories::parseLines($repoId);
-            
+
+            foreach ($linesArr as $lArr) {
+                if (!empty($lArr['lineHash'])) {
+                    $repoFirstHash[$repoId] = $lArr['lineHash'];
+                    break;
+                }
+            }
+
+            // При празен или невалиден журнал запазваме последния обработен hash
             if (!isset($repoFirstHash[$repoId])) {
-                $repoFirstHash[$repoId] = $linesArr[0]['lineHash'];
+                continue;
             }
             
             $repoActArr = array();
@@ -454,7 +462,7 @@ class distro_Files extends core_Detail
                 if ($lArr['act'] == 'create' || $lArr['act'] == 'edit') {
                     
                     // Ако вече е бил изтрит, няма смисъл да се добавя
-                    if ($repoActArr[$groupId]['delete'][$lArr['name']]) {
+                    if (!empty($repoActArr[$groupId]['delete'][$lArr['name']])) {
                         continue;
                     }
                 }
@@ -463,7 +471,7 @@ class distro_Files extends core_Detail
             }
             
             foreach ($repoActArr as $groupId => $actArr) {
-                foreach ((array) $actArr['create'] as $name => $date) {
+                foreach (($actArr['create'] ?? array()) as $name => $date) {
                     $addRes = $this->addFileToDB($groupId, $name, $repoId, $date);
                     
                     if (!isset($addRes)) {
@@ -473,7 +481,7 @@ class distro_Files extends core_Detail
                     $resArr['create'][$addRes] = $addRes;
                 }
                 
-                foreach ((array) $actArr['edit'] as $name => $date) {
+                foreach (($actArr['edit'] ?? array()) as $name => $date) {
                     $fRec = $this->getRecForFile($groupId, $name, $repoId);
                     
                     if ($fRec === false) {
@@ -503,7 +511,7 @@ class distro_Files extends core_Detail
                     $resArr['edit'][$fRec->id] = $fRec->id;
                 }
                 
-                foreach ((array) $actArr['delete'] as $name => $date) {
+                foreach (($actArr['delete'] ?? array()) as $name => $date) {
                     $fRec = $this->getRecForFile($groupId, $name, $repoId);
                     
                     if ($fRec === false) {
