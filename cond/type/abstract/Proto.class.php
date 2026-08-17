@@ -167,7 +167,9 @@ abstract class cond_type_abstract_Proto extends core_BaseClass
             $options = explode(PHP_EOL, trim($text));
             
             foreach ($options as $val) {
-                list($k, $v) = explode('=', $val);
+                $parts = explode('=', $val, 2);
+                $k = $parts[0];
+                $v = $parts[1] ?? null;
                 if (!isset($v)) {
                     $v = $k;
                 }

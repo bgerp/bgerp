@@ -133,7 +133,7 @@ class docarch_plg_Archiving extends core_Plugin
         $possibleDate = array('date','valior','closedOn','activatedOn','createdOn');
         
         foreach ($possibleDate as $val) {
-            if (!is_null($rec-> {$val})) {
+            if (isset($rec->{$val})) {
                 $docDate = $rec->{$val};
                 
                 return $docDate;
