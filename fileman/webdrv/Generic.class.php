@@ -251,9 +251,21 @@ class fileman_webdrv_Generic extends core_Manager
     {
         $rArr = fileman_Indexes::getInfoContentByFh($fileHnd, $type);
         
-        if ($checkExist === true && $rArr === false) {
-            
-            return false;
+        if ($checkExist === true) {
+            $fRec = fileman_Files::fetchByFh($fileHnd);
+            $dataId = $fRec->dataId ?? null;
+            $lockId = $dataId ? static::getLockId($type, $dataId) : null;
+
+            // Докато извличането тече табът трябва да е видим, независимо от стария резултат
+            if ($lockId && core_Locks::isLocked($lockId)) {
+
+                return true;
+            }
+
+            if ($rArr === false) {
+
+                return false;
+            }
         }
         
         if (is_array($rArr) && empty($rArr)) {
