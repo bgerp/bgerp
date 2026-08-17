@@ -471,11 +471,12 @@ class sales_DeliveryData extends core_Manager
                 $explain .= "<li>--- e нестандартен";
 
                 // Сумира се всичко произведено и планирано по задания за артикула по сделката, които са приключени
-                $closedJobRec = $closedJobArr[$pId];
-                $activeJobId = $activeJobArr[$pId];
+                $closedJobRec = $closedJobArr[$pId] ?? null;
+                $closedJobCount = $closedJobRec->totalCount ?? 0;
+                $activeJobId = $activeJobArr[$pId] ?? null;
 
                 // Ако има приключени задания и няма други активни, се приема че е готово
-                if ($closedJobRec->totalCount && !$activeJobId) {
+                if ($closedJobCount && !$activeJobId) {
                     $explain .= "<li>------ има приключени, но няма активни задания";
 
                     $q = $closedJobRec->totalQuantity;
@@ -498,7 +499,7 @@ class sales_DeliveryData extends core_Manager
                         }
                     }
                 } else {
-                    $explain .= "<li>------ приключени задания '{$closedJobRec->totalCount}', активно '{$activeJobId}'";
+                    $explain .= "<li>------ приключени задания '{$closedJobCount}', активно '{$activeJobId}'";
                 }
             } else {
                 $explain .= "<li>------ e стандартен";
