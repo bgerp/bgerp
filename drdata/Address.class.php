@@ -446,32 +446,33 @@ class drdata_Address extends core_MVC
         $res = array();
         
         // Ако писмото не е на английски - търсим суверенните държави, които говорят този език и разпределяме 100% върху тях
-        if ($assumed['lg'] != 'en' && $assumed['lg']) {
-            $cbLang = $cData->languages[$assumed['lg']];
+        $assumedLg = $assumed['lg'] ?? null;
+        if ($assumedLg != 'en' && $assumedLg) {
+            $cbLang = $cData->languages[$assumedLg] ?? array();
             if (is_array($cbLang)) {
                 foreach ($cbLang as $cId) {
-                    if ($cData->isEU[$cId]) {
-                        $res[$cId] += 30;
+                    if (!empty($cData->isEU[$cId])) {
+                        $res[$cId] = ($res[$cId] ?? 0) + 30;
                     } else {
-                        $res[$cId] += 50;
+                        $res[$cId] = ($res[$cId] ?? 0) + 50;
                     }
                 }
             }
         }
         
         // Ако IP-то не е US - даваме 50% на държавата, от която е ИП-то
-        if ($assumed['country']) {
+        if ($assumed['country'] ?? null) {
             $ipCountryRec = drdata_Countries::fetch($assumed['country']);
             if ($ipCountryRec->letterCode2 != 'US') {
-                $res[$assumed['country']] += 50;
+                $res[$assumed['country']] = ($res[$assumed['country']] ?? 0) + 50;
             }
         }
         
         // Ако имейлът е с национален TLD - даваме 50 точки на държавата от където е
-        if ($assumed['email']) {
+        if ($assumed['email'] ?? null) {
             $tld = fileman_Files::getExt($assumed['email']);
-            if ($cId = $cData->domains[$tld]) {
-                $res[$cId] += 50;
+            if ($cId = ($cData->domains[$tld] ?? null)) {
+                $res[$cId] = ($res[$cId] ?? 0) + 50;
             }
         }
         
@@ -481,7 +482,7 @@ class drdata_Address extends core_MVC
                 continue;
             }
             if (stripos($text, $name) !== false) {
-                $res[$cid] += 20;
+                $res[$cid] = ($res[$cid] ?? 0) + 20;
             }
         }
         
@@ -491,7 +492,7 @@ class drdata_Address extends core_MVC
                 continue;
             }
             if (stripos($text, "+ {$code}") !== false || stripos($text, "+{$code}") !== false || stripos($text, "00{$code}") !== false) {
-                $res[$cid] += 10;
+                $res[$cid] = ($res[$cid] ?? 0) + 10;
             }
         }
         
