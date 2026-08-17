@@ -202,8 +202,8 @@ class sens2_Controllers extends core_Master
     public static function getActivePorts($controllerId, $type = 'all')
     {
         static $ap = array();
-        
-        if (!$ap[$controllerId . '_' . $type]) {
+
+        if (empty($ap[$controllerId . '_' . $type])) {
             $ap[$controllerId . '_' . $type] = array();
             $rec = self::fetch($controllerId);
             $drv = self::getDriver($controllerId);
