@@ -83,6 +83,12 @@ class cat_DisassemblyBomDetails extends doc_Detail
 
 
     /**
+     * Поле с артикула - за подредбата на бутоните напред/назад (@see cat_plg_ShowCodes)
+     */
+    public $productFieldName = 'productId';
+
+
+    /**
      * Активен таб
      */
     public $currentTab = 'Рецепти->Разпад';

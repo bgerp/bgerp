@@ -12,6 +12,7 @@
  * @category  bgerp
  * @package   doc
  *
+ * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2026 Experta OOD
  * @license   GPL 3
  *
@@ -247,6 +248,35 @@ class doc_plg_DetailRevisions extends core_Plugin
         }
 
         $query->where($cond);
+    }
+
+
+    /**
+     * Подредба по логическия ред, а не по id - редакцията е нов запис с ново id
+     */
+    public static function on_AfterPrepareDetailQuery($mvc, &$res, $data)
+    {
+        // С най-нисък приоритет, за да води сортирането от стрелките (@see plg_Sorting)
+        static::orderByRevisionGroup($data->query, -1);
+    }
+
+
+    /**
+     * Подредба по ревизионна група - активният ред пред оттеглените си версии
+     *
+     * @param core_Query $query
+     * @param int        $priority
+     *
+     * @return void
+     */
+    public static function orderByRevisionGroup($query, $priority = 0)
+    {
+        $query->XPR('revisionGroupId', 'int', 'IF(#revisionRootId > 0, #revisionRootId, #id)');
+        $query->XPR('revisionIsRejected', 'int', "IF(#state = 'rejected', 1, 0)");
+
+        $query->orderBy('#revisionGroupId', 'ASC', $priority);
+        $query->orderBy('#revisionIsRejected', 'ASC', $priority);
+        $query->orderBy('#id', 'ASC', $priority);
     }
 
 
