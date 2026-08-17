@@ -1248,6 +1248,10 @@ class acc_Journal extends core_Master
                 $iRecs[$iRec->objectId] = $iRec;
             }
 
+            if (!countR($ids)) {
+                continue;
+            }
+
             $query = $Class->getQuery();
             $query->in('id', $ids);
             if($type == 'closed'){
@@ -1257,6 +1261,10 @@ class acc_Journal extends core_Master
             }
 
             while($rec = $query->fetch()){
+                if (!isset($iRecs[$rec->id])) {
+                    continue;
+                }
+
                 $blockTpl = new core_ET("<tr><td style='min-width:100px;'>[#handle#]</td><td style='min-width:50px;'>[#item#]</td><td style='min-width:50px;'>[#state#]</td></tr>");
 
                 $handleLink = $Class->getLink($rec->id, 0);
