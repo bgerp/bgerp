@@ -186,7 +186,7 @@ class drdata_Address extends core_MVC
         
         
         // Зареждане на масивите
-        static $regards, $companyTypes, $companyWords, $givenNames, $addresses, $titles, $regards, $noStart;
+        static $regards, $companyTypes, $companyWords, $givenNames, $addresses, $titles, $noStart;
         
         
         if (empty($givenNames)) {
@@ -552,7 +552,7 @@ class drdata_Address extends core_MVC
             $regards = ' ' . str::utf2ascii(getFileContent('drdata/data/regards.txt'));
         }
         
-        $expected = array();
+        $expected = array('country' => 0, 'name' => 0, 'company' => 0, 'address' => 0);
         
         $noStart = '/(obyava|de|joboffer|to|from|subject|price|sent|size|quantity|material|tsena|type=mx|date|till|fran|amne|skickat|.+wrote|' .
                     "data|printing|print|description|re|do|cc|delivery|de|qty|handles|objet|age|file|envoye|mail\.bg|sendt|fra|til|emne|type|back|face|ref)/ui";
@@ -566,13 +566,13 @@ class drdata_Address extends core_MVC
         $res = array();
         
         foreach ($lines as $id => $l) {
-            $aL = preg_replace("/[ \t]+/", ' ', $aL);
             $aL = trim(str::utf2ascii($l), ' *');
+            $aL = preg_replace("/[ \t]+/", ' ', $aL);
             $lN = strtolower($aL);
             $res[$id] = new drdata_AddrRec($avoid);
             $res[$id]->distance = (strlen($aL) + 20) / 20;
             
-            if ($l[0] == '>') {
+            if (($l[0] ?? null) == '>') {
                 $res[$id]->distance *= 2;
                 continue;
             }
@@ -601,6 +601,7 @@ class drdata_Address extends core_MVC
             $res[$id]->add('web', $webArr = core_Url::extractWebAddress($lN));
             
             $j = 0;
+            $from = $to = array();
             
             $i = $companyCnt = $nameCnt = $addressCnt = $regardsCnt = 0;
             
