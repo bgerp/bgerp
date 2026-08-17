@@ -246,7 +246,7 @@ class deals_InvoicesToDocuments extends core_Manager
                 }
 
 
-                $summed = arr::sumValuesArray($invArr, 'amount');
+                $summed = arr::sumValuesArray($invArr, 'amount') ?? 0;
                 if(isset($paymentData->amount)){
                     if($summed < 0){
                         $form->setError('invoices,fromContainerId,invoicesList', "Общата сума не може да е отрицателна");
