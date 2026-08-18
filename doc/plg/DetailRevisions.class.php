@@ -162,18 +162,26 @@ class doc_plg_DetailRevisions extends core_Plugin
         $bRecs = $bQuery->fetchAll();
 
         if (countR($bRecs)) {
+
+            // Ако друг плъгин вече е разпределил партиди на новия ред, старите само се архивират
+            $alreadyAllocated = batch_BatchesInDocuments::count("#detailClassId = {$invoker->getClassId()} AND #detailRecId = {$rec->id}");
+
             $clones = array();
             foreach ($bRecs as $bRec) {
-                $clone = clone $bRec;
-                unset($clone->id);
-                $clone->detailRecId = $rec->id;
-                $clone->isHistoric = 'no';
-                $clones[] = $clone;
+                if (empty($alreadyAllocated)) {
+                    $clone = clone $bRec;
+                    unset($clone->id);
+                    $clone->detailRecId = $rec->id;
+                    $clone->isHistoric = 'no';
+                    $clones[] = $clone;
+                }
 
                 $bRec->isHistoric = 'yes';
             }
             batch_BatchesInDocuments::saveArray($bRecs);
-            batch_BatchesInDocuments::saveArray($clones);
+            if (countR($clones)) {
+                batch_BatchesInDocuments::saveArray($clones);
+            }
         }
     }
 
