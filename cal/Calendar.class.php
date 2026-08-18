@@ -910,10 +910,11 @@ class cal_Calendar extends core_Master
     	    $res->title = 'Неделя';
     	
     	} else {
-    	    
+
     	    $res->isHoliday = FALSE;
+    	    $res->specialDay = '';
     	}
-    	
+
     	return $res;
     }
     

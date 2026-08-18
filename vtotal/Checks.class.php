@@ -371,7 +371,7 @@ class vtotal_Checks extends core_Master
                 
                 // Изтриваме временната директория за съхранение на архива.
                 $archivInst->deleteTempPath();
-            } elseif (!$dangerExtensionsArr[mb_strtolower($extension)]) {
+            } elseif (empty($dangerExtensionsArr[mb_strtolower($extension)])) {
                 $cRec = $this->fetch("#filemanDataId = {$rec->dataId}");
                 
                 if ($cRec) {
