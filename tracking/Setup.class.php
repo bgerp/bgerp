@@ -149,9 +149,11 @@ class tracking_Setup extends core_ProtoSetup
      */
     public function install()
     {
+        $html = '';
+
         //Данни за работата на cron
         $conf = core_Packs::getConfig('tracking');
-        
+
         // Наглася Cron да стартира приемача на данни
         $rec = new stdClass();
         $rec->systemId = 'trackingWatchDog';
