@@ -401,13 +401,6 @@ class store_Stores extends core_Master
     
     /**
      * Връща разбираемо за човека заглавие, отговарящо на записа
-     *
-     * @param stdClass|int $rec
-     * @param bool         $escaped
-     *
-     * @return string
-     *
-     * @author Ivelin Dimov <ivelin_pdimov@abv.bg>
      */
     public static function getRecTitle($rec, $escaped = true)
     {
