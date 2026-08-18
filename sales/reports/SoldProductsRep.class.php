@@ -2647,17 +2647,18 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         }
         $marker = 0;
         if (isset($data->rec->group)) {
+            $groups = type_Keylist::toArray($data->rec->group);
 
-            foreach (type_Keylist::toArray($data->rec->group) as $group) {
+            foreach ($groups as $group) {
                 $marker++;
 
                 $groupVerb .= (cat_Groups::fetch($group)->name);
 
-                if ((countR(type_Keylist::toArray($data->rec->$group))) - $marker != 0) {
+                if ((countR($groups) - $marker) != 0) {
                     $groupVerb .= ', ';
                 }
             }
-            $fieldTpl->append('<b>' . $data->row->group . '</b>', 'group');
+            $fieldTpl->append('<b>' . $groupVerb . '</b>', 'group');
         }
 
         $marker = 0;

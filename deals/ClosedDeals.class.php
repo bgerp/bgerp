@@ -591,6 +591,15 @@ abstract class deals_ClosedDeals extends core_Master
                 }
             }
         }
+
+        // Ако по обединяващата сделка вече има издаден фискален бон, обединението не може да се разпада
+        if ($action == 'reject' && isset($rec)) {
+            if(!empty($rec->closeWith) && core_Packs::isInstalled('bgfisc')){
+                if(bgfisc_PrintedReceipts::haveReceiptsByUrn($rec->docClassId, $rec->closeWith)){
+                    $res = 'no_one';
+                }
+            }
+        }
     }
     
     

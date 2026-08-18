@@ -113,7 +113,7 @@ class type_Set extends core_Type
             foreach ($this->suggestions as $key => $v) {
                 
                 // Ако имаме група, правим ред и пишем името на групата
-                if (is_object($v) && $v->group) {
+                if (is_object($v) && !empty($v->group)) {
                     if ($trOpen) {
                         while ($i > 0) {
                             $html .= "\n    <td></td>";

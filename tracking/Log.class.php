@@ -213,6 +213,7 @@ class tracking_Log extends core_Master
         $conf = core_Packs::getConfig('tracking');
         
         $date = dt::addDays(-$conf->DAYS_TO_KEEP);
+        $info = null;
         
         if ($numRows = self::delete("#createdOn < '{$date}'")) {
             $this->logWrite('Изтрити изтекли записи за тракери');

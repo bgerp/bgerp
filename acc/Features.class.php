@@ -97,6 +97,18 @@ class acc_Features extends core_Manager
      * Масив в който се записват перата, които имат променени свойства по времето на хита
      */
     private $updatedFeaturesOnItem = array();
+
+
+    /**
+     * По колко пера наведнъж се синхронизират
+     */
+    const SYNC_CHUNK_SIZE = 500;
+
+
+    /**
+     * Кеш на съществуващите свойства на перата: [itemId] => array(featureTitleId => rec)
+     */
+    private static $existingFeaturesCache = array();
     
     
     /**
@@ -106,7 +118,7 @@ class acc_Features extends core_Manager
     {
         $this->FLD('itemId', 'key(mvc=acc_Items, select=titleLink)', 'caption=Перо,mandatory');
         $this->FLD('featureTitleId', 'key(mvc=acc_FeatureTitles, select=title)', 'caption=СвойствоИд,input=none,column=none,mandatory');
-        $this->FNC('feature', 'varchar(80, ci)', 'caption=Свойство,mandatory');
+        $this->FNC('feature', 'varchar(80, ci)', 'caption=Свойство,mandatory,dependFromFields=featureTitleId');
         $this->FLD('value', 'varchar(80)', 'caption=Стойност,mandatory');
         
         $this->setDbUnique('itemId,featureTitleId');
@@ -193,45 +205,49 @@ class acc_Features extends core_Manager
         }
         
         $updated = array();
-        $now = dt::now();
-        
+
         // За всяко свойство
         if (countR($features)) {
-            $fields = array();
-            
+
+            // Съществуващите свойства на перото се извличат наведнъж, вместо по едно на свойство
+            $existingArr = self::getExistingFeatures($itemId);
+
             foreach ($features as $feat => $value) {
-                
+
                 // Ако няма стойност пропускаме
                 if (empty($value) || empty($feat)) {
                     continue;
                 }
-                
+
                 $value = str_replace('&nbsp;', ' ', $value);
                 $update = true;
-                
+
                 $featId = acc_FeatureTitles::fetchIdByTitle($feat);
-                
+
                 // Подготвяме записа за добавяне/обновяване
-                $rec = (object) array('itemId' => $itemId, 'featureTitleId' => $featId, 'value' => $value, 'state' => 'active', 'lastUpdated' => $now);
-                
-                // Ако не е уникален, значи ъпдейтваме свойство
-                $exRec = null;
-                if (!$self->isUnique($rec, $fields, $exRec)) {
+                $rec = (object) array('itemId' => $itemId, 'featureTitleId' => $featId, 'value' => $value, 'state' => 'active');
+
+                // Ако вече има такова свойство, значи го ъпдейтваме
+                $exRec = $existingArr[$featId] ?? null;
+                if (isset($exRec)) {
                     $rec->id = $exRec->id;
-                    
+
                     // Ако има такъв запис и той е със същата стойност не обновяваме
                     if (($value == $exRec->value) && ($exRec->state == $rec->state)) {
                         $update = false;
                         $self->updatedFeaturesOnItem[$itemId] = true;
                     }
                 }
-                
+
                 // Обновяване при нужда
                 if ($update) {
                     $mode = !empty($rec->id) ? null : 'REPLACE';
                     $self->save($rec, null, $mode);
+
+                    // Кешът се поддържа актуален, за да е верен при повторна синхронизация в същия хит
+                    self::$existingFeaturesCache[$itemId][$featId] = clone $rec;
                 }
-                
+
                 // Запомняме всички обновени свойства
                 $updated[] = $rec->id;
             }
@@ -250,18 +266,19 @@ class acc_Features extends core_Manager
      */
     private function closeStates($itemId, $updated = array())
     {
-        $query = $this->getQuery();
-        $query->where("#itemId = {$itemId}");
-        
-        if (countR($updated)) {
-            $query->notIn('id', $updated);
-        }
-        
-        $query->show('id,state');
-        
-        while ($rec = $query->fetch("#state != 'closed'")) {
+        $updatedArr = arr::make($updated, true);
+
+        foreach (self::getExistingFeatures($itemId) as $rec) {
+            if ($rec->state == 'closed') {
+                continue;
+            }
+
+            if (isset($updatedArr[$rec->id])) {
+                continue;
+            }
+
             $rec->state = 'closed';
-            $this->save($rec);
+            $this->save($rec, 'state');
             $this->updatedFeaturesOnItem[$itemId] = true;
         }
     }
@@ -407,13 +424,14 @@ class acc_Features extends core_Manager
     private function syncAllItems()
     {
         $items = array();
-        core_Debug::$isLogging = false;
+        //core_Debug::$isLogging = false;
         
         // Свойствата на кои пера са записани в таблицата
         $query = $this->getQuery();
         $query->show('itemId');
         $query->groupBy('itemId');
         $query->where("#state != 'closed'");
+
         while ($rec = $query->fetch()) {
             if(!empty($rec->itemId)){
                 $items[$rec->itemId] = $rec->itemId;
@@ -424,23 +442,160 @@ class acc_Features extends core_Manager
         
         $count = countR($items);
         core_App::setTimeLimit($count * 0.7, false,600);
-        
+
         // Ако има пера
         if ($count) {
-            foreach ($items as $itemId) {
-                
-                // За всяко перо синхронизираме свойствата му
-                try{
-                    self::syncItem($itemId);
-                } catch(core_exception_Expect $e){
-                    reportException($e);
+
+            // Обработват се на порции, за да не се подува кеша на записите в паметта
+            foreach (array_chunk($items, self::SYNC_CHUNK_SIZE) as $chunkArr) {
+                $classIdsArr = self::cacheItemRecs($chunkArr);
+                self::cacheExistingFeatures($chunkArr);
+
+                foreach ($chunkArr as $itemId) {
+
+                    // За всяко перо синхронизираме свойствата му
+                    try{
+                        self::syncItem($itemId);
+                    } catch(core_exception_Expect $e){
+                        reportException($e);
+                    }
                 }
+
+                self::flushCachedRecs($classIdsArr);
             }
         }
-        
-        core_Debug::$isLogging = true;
+
+        //core_Debug::$isLogging = true;
     }
-    
+
+
+    /**
+     * Връща съществуващите в момента свойства на перото, групирани по ид на свойство
+     *
+     * @param int $itemId - ид на перо
+     *
+     * @return array      - масив от записи, ключиран по featureTitleId
+     *
+     * @author Ivelin Dimov <ivelin_pdimov@abv.bg>
+     */
+    private static function getExistingFeatures($itemId)
+    {
+        if (!array_key_exists($itemId, self::$existingFeaturesCache)) {
+            self::cacheExistingFeatures(array($itemId));
+        }
+
+        return self::$existingFeaturesCache[$itemId];
+    }
+
+
+    /**
+     * Зарежда с една заявка съществуващите свойства на посочените пера, за да не се прави
+     * отделна заявка за всяко свойство на всяко перо
+     *
+     * @param array $itemsArr - ид-та на пера
+     *
+     * @return void
+     *
+     * @author Ivelin Dimov <ivelin_pdimov@abv.bg>
+     */
+    private static function cacheExistingFeatures($itemsArr)
+    {
+        if (!countR($itemsArr)) {
+
+            return;
+        }
+
+        // Перата без свойства също се маркират, за да не се търсят повторно
+        foreach ($itemsArr as $itemId) {
+            self::$existingFeaturesCache[$itemId] = array();
+        }
+
+        $query = static::getQuery();
+        $query->in('itemId', $itemsArr);
+
+        // Само нужните колони - така не се смята и калкулируемото поле 'feature'
+        $query->show('id,itemId,featureTitleId,value,state');
+
+        while ($rec = $query->fetch()) {
+            self::$existingFeaturesCache[$rec->itemId][$rec->featureTitleId] = $rec;
+        }
+    }
+
+
+    /**
+     * Зарежда наведнъж перата и изходните им обекти в кеша на моделите, за да не се
+     * извличат един по един при синхронизацията
+     *
+     * @see core_Query::fetchAndCache()
+     *
+     * @param array $itemsArr - ид-та на пера
+     *
+     * @return array          - ид-та на класовете, чиито записи са кеширани
+     *
+     * @author Ivelin Dimov <ivelin_pdimov@abv.bg>
+     */
+    private static function cacheItemRecs($itemsArr)
+    {
+        $objectsByClassArr = array();
+
+        // Перата се извличат с една заявка
+        $itemQuery = acc_Items::getQuery();
+        $itemQuery->in('id', $itemsArr);
+        while ($iRec = $itemQuery->fetchAndCache()) {
+            if (!empty($iRec->classId) && !empty($iRec->objectId)) {
+                $objectsByClassArr[$iRec->classId][$iRec->objectId] = $iRec->objectId;
+            }
+        }
+
+        // Кешира се и липсата на перо (има свойства на изтрити пера), за да не се търси после по едно
+        $Items = cls::get('acc_Items');
+        if (!is_array($Items->_cachedRecords)) {
+            $Items->_cachedRecords = array();
+        }
+
+        foreach ($itemsArr as $itemId) {
+            if (!isset($Items->_cachedRecords[$itemId . '|*'])) {
+                $Items->_cachedRecords[$itemId . '|*'] = false;
+            }
+        }
+
+        // За всеки клас изходните обекти също се извличат с една заявка
+        foreach ($objectsByClassArr as $classId => $objectIdsArr) {
+            if (!cls::load($classId, true)) continue;
+
+            $Class = cls::get($classId);
+            $oQuery = $Class->getQuery();
+            $oQuery->in('id', $objectIdsArr);
+            while ($oQuery->fetchAndCache()) {
+                // Самото извличане пълни кеша на модела
+            }
+        }
+
+        return array_keys($objectsByClassArr);
+    }
+
+
+    /**
+     * Изчиства кеша на записите на перата и на посочените класове
+     *
+     * @param array $classIdsArr - ид-та на класове
+     *
+     * @return void
+     *
+     * @author Ivelin Dimov <ivelin_pdimov@abv.bg>
+     */
+    private static function flushCachedRecs($classIdsArr)
+    {
+        self::$existingFeaturesCache = array();
+        cls::get('acc_Items')->_cachedRecords = array();
+
+        foreach ($classIdsArr as $classId) {
+            if (!cls::load($classId, true)) continue;
+
+            cls::get($classId)->_cachedRecords = array();
+        }
+    }
+
     
     /**
      * Синхронизиране на таблицата със свойствата

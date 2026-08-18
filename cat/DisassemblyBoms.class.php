@@ -104,14 +104,15 @@ class cat_DisassemblyBoms extends core_Master
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'title,lastUpdatedDetailOn,lastUpdatedDetailBy';
+    public $fieldsNotToClone = 'title,lastUpdatedDetailOn,lastUpdatedDetailBy,prototypeId';
 
 
     /**
-     * Кои полета да не бъдат презаписвани от шаблона - артикулът идва от URL-то
-     * и не бива да се взима от образеца (@see doc_plg_Prototype)
+     * Кои полета да не бъдат презаписвани от шаблона - артикулът идва от URL-то,
+     * а клонирането на образеца не е клониране и на новата рецепта
+     * (@see doc_plg_Prototype)
      */
-    public $fieldsNotToCopyFromTemplate = 'productId';
+    public $fieldsNotToCopyFromTemplate = 'productId,clonedFromId';
 
 
     /**
@@ -227,7 +228,8 @@ class cat_DisassemblyBoms extends core_Master
         $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул,input,silent,mandatory,input=hidden');
         $this->FLD('quantity', 'double(smartRound,Min=0)', 'caption=За,silent,mandatory');
         $this->FLD('expenses', 'percent(min=0)', 'caption=Реж. разходи,changeable');
-        $this->FLD('detailOrderBy', 'enum(auto=Автоматично,creation=Ред на създаване,code=Код,reff=Ваш №)', 'caption=Влагане (на артикула за разпад)->Подреждане по,notNull,value=auto');
+        // Без „Ваш №“ - рецептата няма контрагент, а оттам и ценови лист
+        $this->FLD('detailOrderBy', 'enum(auto=Автоматично,creation=Ред на създаване,code=Код)', 'caption=Влагане (на артикула за разпад)->Подреждане по,notNull,value=auto');
 
         $this->FLD('state', 'enum(draft=Чернова,active=Активирана,rejected=Оттеглена,closed=Затворена,template=Шаблон)', 'caption=Статус,input=none');
         $this->FLD('notes', 'richtext(rows=4,bucket=Notes)', 'caption=Допълнително->Забележки');
@@ -675,6 +677,7 @@ class cat_DisassemblyBoms extends core_Master
                 <!--ET_BEGIN expenses--><tr><td style='font-weight:normal'>|Режийни разходи|*:</td><td>[#expenses#]</td></tr><!--ET_END expenses-->
                 <tr><td style='font-weight:normal'>|Разпределяне на сб-ст|*:</td><td>[#allocationBy#]</td></tr>
                 <!--ET_BEGIN priceListId--><tr><td style='font-weight:normal'>|Ценова политика|*:</td><td>[#priceListId#]</td></tr><!--ET_END priceListId-->
+                <!--ET_BEGIN prototypeId--><tr><td style='font-weight:normal'>|Базирано на|*:</td><td>[#prototypeId#]</td></tr><!--ET_END prototypeId-->
                 <!--ET_BEGIN clonedFromId--><tr><td style='font-weight:normal'>|Клонирано от|*:</td><td>[#clonedFromId#]</td></tr><!--ET_END clonedFromId-->
         </table>"));
 
@@ -728,6 +731,12 @@ class cat_DisassemblyBoms extends core_Master
             }
         } else {
             $row->title = $mvc->getHyperlink($rec, true);
+        }
+
+        // Създаденото от шаблон сочи към шаблона, а не към източника на неговото
+        // клониране (@see cat_Boms)
+        if (isset($rec->prototypeId)) {
+            $row->prototypeId = $mvc->getLink($rec->prototypeId, 0);
         }
 
         if (isset($rec->clonedFromId)) {

@@ -214,7 +214,8 @@ class planning_DisassemblyNote extends planning_ProductionDocument
         // Преди setDocumentFields(), за да излезе storeId веднага след тях
         $this->FLD('inputStoreId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Влагане (на артикула за разпад)->ОТ склад,input,silent,placeholder=Незавършено производство,mandatory');
         $this->FLD('expenses', 'percent(min=0)', 'caption=Влагане (на артикула за разпад)->Реж. разходи');
-        $this->FLD('detailOrderBy', 'enum(auto=Автоматично,creation=Ред на създаване,code=Код,reff=Ваш №)', 'caption=Влагане (на артикула за разпад)->Подреждане по,notNull,value=auto');
+        // Без „Ваш №“ - протоколът няма контрагент, а оттам и ценови лист
+        $this->FLD('detailOrderBy', 'enum(auto=Автоматично,creation=Ред на създаване,code=Код)', 'caption=Влагане (на артикула за разпад)->Подреждане по,notNull,value=auto');
 
         $this->FLD('bomId', 'key(mvc=cat_DisassemblyBoms,select=title)', 'caption=Рецепта за разпад,input=none');
 

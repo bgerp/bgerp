@@ -2403,8 +2403,8 @@ class doc_DocumentPlg extends core_Plugin
             if (!$folderId) {
                 $folderId = doc_Threads::fetchField($rec->threadId, 'folderId');
             }
-            
-            if (($mvc->canAddToFolder($folderId) !== false) && ($mvc->onlyFirstInThread ?? null) !== false) {
+
+            if (($mvc->canAddToFolder($folderId) !== false) && doc_Folders::haveRightToFolder($folderId) && ($mvc->onlyFirstInThread ?? null) !== false) {
                 $form->toolbar->addSbBtn('Нова нишка', 'save_new_thread', 'id=btnNewThread,order=9.99985', 'ef_icon = img/16/save_and_new.png');
             }
         }
@@ -2496,7 +2496,7 @@ class doc_DocumentPlg extends core_Plugin
             }
         }
         if ($form->isSubmitted()) {
-            if ($form->cmd == 'save_new_thread' && !empty($rec->threadId)) {
+            if ($form->cmd == 'save_new_thread' && !empty($rec->threadId) && doc_Folders::haveRightToFolder($rec->folderId)) {
                 unset($rec->threadId);
             }
             

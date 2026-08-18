@@ -644,22 +644,26 @@ class html2text_Converter
         $link = $matches[2];
         $display = $matches[4];
         
-        $linkArr = explode(':', $link, 2);
-        $schema = strtolower(trim($linkArr[0]));
-        $path = strtolower(trim($linkArr[1], "\t\n\r/"));
-        
+        $alert = '';
+
+        list($schema, $path) = array_pad(explode(':', $link, 2), 2, null);
+        $schema = strtolower(trim($schema));
+        $path = strtolower(trim($path ?? '', "\t\n\r/"));
+
+        $dUrls = array();
         preg_match(type_Richtext::URL_PATTERN, strip_tags($display), $dUrls);
-        
-        if (is_array($dUrls) && $dU = $dUrls[0]) {
+
+        if (!empty($dUrls[0])) {
+            $dU = $dUrls[0];
             if (stripos($dU, 'www.') === 0) {
                 $dU = 'http://' . $dU;
             }
-            
+
             if (core_Url::getDomain($dU) != core_Url::getDomain($link)) {
                 $alert = ' [em=alert]';
             }
         }
-        
+
         switch ($schema) {
             case 'http':
             case 'https':
@@ -686,8 +690,7 @@ class html2text_Converter
                 } else {
                     $additional = '';
                 }
-                
-                // no break
+                break;
             default:
             $additional = '';
             break;
@@ -721,7 +724,11 @@ class html2text_Converter
         
         foreach ($ruleArr as $rule) {
             $rule = strtolower(str::removeWhiteSpace($rule));
-            list($name, $value) = explode(':', $rule);
+            if (empty($rule)) {
+                continue;
+            }
+
+            list($name, $value) = array_pad(explode(':', $rule, 2), 2, null);
             
             if ($name == 'color') {
                 $text = '[color=' . self::getColor($value) . ']' . $text . '[/color]';
@@ -783,7 +790,7 @@ class html2text_Converter
     /**
      * пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ
      */
-    public function ucwords($stri)
+    public function ucwords($text)
     {
         return mb_convert_case($text, MB_CASE_TITLE);
     }

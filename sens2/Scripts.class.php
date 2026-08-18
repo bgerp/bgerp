@@ -243,10 +243,10 @@ class sens2_Scripts extends core_Master
         }
         
         // Конвертираме булевите стойности, към числа
-        if ($value === false) {
-            $value = 0;
-        } elseif ($value === true) {
-            $value = 1;
+        if ($res === false) {
+            $res = 0;
+        } elseif ($res === true) {
+            $res = 1;
         }
         
         return $res;

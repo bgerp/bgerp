@@ -308,21 +308,22 @@ class cat_plg_DisassemblyDoc extends core_Plugin
 
 
     /**
-     * Останалите редове поемат остатъка до 100% след редакция на един от тях
+     * Останалите редове поемат остатъка до 100% след редакция или изтриване на ред
      *
      * Задействаният документ трябва да е валиден на всяка стъпка - реконтирането
      * иска сборът да е 100%, а в чернова процентите се коригират на ръка
      *
      * @param core_Mvc $mvc
      * @param int      $masterId
-     * @param int      $rowId - редактираният ред
+     * @param int|null $rowId - редактираният ред, или null при премахнат ред
      *
      * @return void
      */
-    public static function rebalanceOtherRows(core_Mvc $mvc, $masterId, $rowId)
+    public static function rebalanceOtherRows(core_Mvc $mvc, $masterId, $rowId = null)
     {
-        $rec = $mvc->fetchRec($masterId);
-        if ($rec->allocationBy != 'manual' || $rec->state == 'draft') return;
+        // Мастърът може да е изтрит заедно с редовете си
+        $rec = $mvc->fetch($masterId);
+        if (empty($rec) || $rec->allocationBy != 'manual' || $rec->state == 'draft') return;
 
         // Записите по другите редове не бива да задействат реконтиране всеки поотделно
         Mode::push("stopMasterUpdate{$masterId}", true);

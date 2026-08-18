@@ -227,6 +227,9 @@ class doubleword_Converter extends core_Manager
             $retUrl = array('fileman_Files', 'single', $fRec->fileHnd);
         }
 
+        $retUrl['currentTab'] = 'text';
+        $retUrl['#'] = 'fileDetail';
+
         return new Redirect($retUrl);
     }
 

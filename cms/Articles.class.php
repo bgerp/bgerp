@@ -447,7 +447,7 @@ class cms_Articles extends core_Master
             
             if ($l->selected) {
                 $flagSelected = true;
-            } elseif ($l->url) {
+            } elseif ($l->url ?? null) {
                 if (!$flagSelected) {
                     $navData->prev = $l;
                 }
@@ -501,7 +501,7 @@ class cms_Articles extends core_Master
                 }
 
                 $navTpl->append("<div class='nav_item {$noRootClass} level{$l->level} {$selected}'>");
-                if ($l->url) {
+                if ($l->url ?? null) {
                     $navTpl->append(ht::createLink($l->title, $l->url, null, $aAttr));
                 } else {
                     $navTpl->append('<span>' . $l->title .'</span>');

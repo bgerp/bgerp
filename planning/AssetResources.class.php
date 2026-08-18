@@ -308,7 +308,9 @@ class planning_AssetResources extends core_Master
                 if(!empty($rec->assetUsers)){
                     $assetFolderErrors[] = '|Не е избран център на дейност, но са избрани отговорници|*!';
                 }
+            } else {
 
+                // Материалните ресурси може да са само в един център на дейност (но и в система за поддръжка)
                 $resourceType = planning_AssetGroups::fetchField($rec->groupId, 'type');
                 if($resourceType == 'material'){
                     $selectedCenterCounts = countR(keylist::toArray($rec->assetFolders));
@@ -316,12 +318,13 @@ class planning_AssetResources extends core_Master
                         $assetFolderErrors[] = '|Материалните ресурси НЕ МОЖЕ да са споделени в повече от един център|*!';
                     }
                 }
-
-               if(countR($assetFolderErrors)){
-                   $form->setError('assetFolders', implode('<br>', $assetFolderErrors));
-               }
             }
-            
+
+            if(countR($assetFolderErrors)){
+                $form->setError('assetFolders', implode('<br>', $assetFolderErrors));
+            }
+
+
             if (empty($rec->systemFolderId) && !empty($rec->systemUsers)) {
                 $form->setError('systemFolderId', 'Не е избрана система за поддръжка, но са избрани отговорници|*!');
             }
@@ -1236,6 +1239,10 @@ class planning_AssetResources extends core_Master
      */
     public static function canAssetBeAddedToFolder($assetId, $folderId)
     {
+        // Ограничението е само за папки на центрове на дейност, в система/проект може да се добавя свободно
+        $Cover = doc_Folders::getCover($folderId);
+        if (!$Cover->isInstanceOf('planning_Centers')) return true;
+
         $resourceType = planning_AssetGroups::fetchField(planning_AssetResources::fetchField($assetId, 'groupId'), 'type');
         if ($resourceType == 'material') {
             $assetClassId = planning_AssetResources::getClassId();

@@ -677,6 +677,9 @@ class core_String
     {
         $flagHtml = false;
         $pointer = 0;
+        $lastLen = false;
+        $lastTag = '';
+        $out = (string) $out;
         setIfNot($deviders, array(' ', ',', '"', '\'', ';', '[', ']', '.', '<', '>', "\n", "\r", "\t", ':', '?', '!', '-', '(', ')', '“', '„', '…', '&', '_', '/', '=', '+', '*'));
         
         $res = array();
@@ -717,6 +720,14 @@ class core_String
             }
             
             $out .= $c;
+        }
+
+        if (!$flagHtml && $lastLen !== false && $lastLen < strlen($out)) {
+            $res[] = substr($out, $lastLen);
+
+            if ($callback) {
+                call_user_func_array($callback, array(&$out, $lastLen, $lastTag));
+            }
         }
         
         return $res;

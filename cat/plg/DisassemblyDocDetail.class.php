@@ -82,6 +82,14 @@ class cat_plg_DisassemblyDocDetail extends core_Plugin
      */
     public static function on_AfterSave(core_Mvc $mvc, &$id, $rec, $fields = null)
     {
+        // Изтриването на ред е оттегляне, докато мастърът пази ревизии - останалите
+        // поемат освободения процент (@see doc_plg_DetailRevisions)
+        if (self::isAllocatedRow($mvc, $rec) && ($rec->state ?? null) == 'rejected' && ($rec->rejectedReason ?? null) == 'deleted') {
+            cat_plg_DisassemblyDoc::rebalanceOtherRows($mvc->Master, $rec->{$mvc->masterKey});
+
+            return;
+        }
+
         if (empty($rec->_rebalanceOtherRows)) return;
         unset($rec->_rebalanceOtherRows);
 

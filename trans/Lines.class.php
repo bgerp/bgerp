@@ -527,12 +527,12 @@ class trans_Lines extends core_Master
             }
         }
 
-        $row->destinations = $row->countries ?? null;
+        $row->destinations = $row->countries ?? (!empty($rec->countries) ? $mvc->getVerbal($rec, 'countries') : null);
         $countries = keylist::toArray($rec->countries);
         if(countR($countries) == 1){
             $onlyCountryId = key($countries);
             if($onlyCountryId == drdata_Countries::getIdByName('Bulgaria') && !empty($rec->places)){
-                $row->destinations = $row->places;
+                $row->destinations = $row->places ?? $mvc->getVerbal($rec, 'places');
             }
         }
 

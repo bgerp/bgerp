@@ -83,6 +83,12 @@ class cat_DisassemblyBomDetails extends doc_Detail
 
 
     /**
+     * Поле с артикула - за подредбата на бутоните напред/назад (@see cat_plg_ShowCodes)
+     */
+    public $productFieldName = 'productId';
+
+
+    /**
      * Активен таб
      */
     public $currentTab = 'Рецепти->Разпад';
@@ -98,7 +104,7 @@ class cat_DisassemblyBomDetails extends doc_Detail
 
         $this->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,maxSuggestions=100,forceAjax,titleFld=name,forceOpen)', 'class=w100,tdClass=productCell leftCol wrap,caption=Артикул,mandatory,silent,removeAndRefreshForm=packagingId|packQuantity');
         $this->FLD('packagingId', 'key(mvc=cat_UoM,select=shortName,select2MinItems=0)', 'caption=Мярка,tdClass=small-field nowrap,smartCenter,mandatory,input=hidden,silent');
-        $this->FNC('packQuantity', 'double(min=0)', 'caption=Количество,input=input,mandatory,smartCenter');
+        $this->FNC('packQuantity', 'double(Min=0)','caption=Количество,input=input,mandatory,smartCenter');
         $this->FLD('quantityInPack', 'double(smartRound)', 'input=none,notNull,value=1');
         $this->FLD('quantity', 'double', 'caption=Количество,input=none,smartCenter');
         $this->FLD('notes', 'richtext(rows=3,bucket=Notes)', 'caption=Описание');
@@ -193,6 +199,12 @@ class cat_DisassemblyBomDetails extends doc_Detail
 
         if ($action == 'add' && isset($rec->type) && $rec->type == 'input') {
             $res = 'no_one';
+        }
+
+        if($action == 'delete' && isset($rec)){
+            if(cat_DisassemblyBomDetails::count("#bomId={$rec->bomId} AND #type = 'production'") == 1){
+                $res = 'no_one';
+            }
         }
     }
 
@@ -357,8 +369,10 @@ class cat_DisassemblyBomDetails extends doc_Detail
         cat_plg_DisassemblyDocDetail::appendAllocateBtn($tpl, $this->Master, $data->masterId, 'PRODUCED_PRODUCTS_TABLE', 'margin-top:5px;margin-bottom:15px;');
 
         // Групово изтриване само на произведените - тулбарът на core_Detail не е тук
-        if ($this->haveRightFor('selectrowstodelete', (object) array('bomId' => $data->masterId, '_filterFld' => 'type', '_filterFldVal' => 'production'))) {
-            $tpl->append(ht::createBtn('Изтриване', array($this, 'selectRowsToDelete', 'bomId' => $data->masterId, '_filterFld' => 'type', '_filterFldVal' => 'production', 'ret_url' => true), null, null, array('style' => 'margin-top:5px;margin-bottom:15px;', 'ef_icon' => 'img/16/delete.png', 'title' => 'Форма за избор на редове за изтриване', 'class' => 'selectDeleteRowsBtn')), 'PRODUCED_PRODUCTS_TABLE');
+        if(!Mode::isReadOnly()){
+            if ($this->haveRightFor('selectrowstodelete', (object) array('bomId' => $data->masterId, '_filterFld' => 'type', '_filterFldVal' => 'production'))) {
+                $tpl->append(ht::createBtn('Изтриване', array($this, 'selectRowsToDelete', 'bomId' => $data->masterId, '_filterFld' => 'type', '_filterFldVal' => 'production', 'ret_url' => true), null, null, array('style' => 'margin-top:5px;margin-bottom:15px;', 'ef_icon' => 'img/16/delete.png', 'title' => 'Форма за избор на редове за изтриване', 'class' => 'selectDeleteRowsBtn')), 'PRODUCED_PRODUCTS_TABLE');
+            }
         }
 
         return $tpl;

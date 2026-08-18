@@ -163,30 +163,6 @@ defIfNot('CAT_USE_BOM_PRICE_OF_NON_STANDART_GP', 'yes');
 
 
 /**
- * Префикс за вътрешните тегловни баркодове
- */
-defIfNot('CAT_WEIGHT_BARCODE_PREFIX', 'no');
-
-
-/**
- * Брой позиции за кода на артикула в тегловния баркод
- */
-defIfNot('CAT_WEIGHT_BARCODE_CODE_DIGITS', 4);
-
-
-/**
- * Брой позиции за теглото (в грамове) в тегловния баркод
- */
-defIfNot('CAT_WEIGHT_BARCODE_WEIGHT_DIGITS', 6);
-
-
-/**
- * Как да се търси артикулът по кода от тегловния баркод
- */
-defIfNot('CAT_WEIGHT_BARCODE_CODE_MODE', 'smart');
-
-
-/**
  * class cat_Setup
  *
  * Инсталиране/Деинсталиране на
@@ -210,13 +186,6 @@ class cat_Setup extends core_ProtoSetup
     public $version = '0.1';
 
 
-    /**
-     * Брой позиции за контролното число в тегловните баркодове.
-     * При EAN-13 и EAN-8 контролното число е винаги едно, затова не е настройваемо
-     */
-    const WEIGHT_BARCODE_CHECKSUM_DIGITS = 1;
-    
-    
     /**
      * Мениджър - входна точка в пакета
      */
@@ -332,10 +301,6 @@ class cat_Setup extends core_ProtoSetup
         'CAT_LAST_PACK_USAGES' => array('int(Min=1)', array('caption' => 'Колко назад да се броят използванията на продуктовите опаковки->Месеци')),
         'CAT_EXPORTABLE_FIELDS' => array('keylist(mvc=cat_Params, select=typeExt)', array('caption' => 'Полета|*&nbsp; |коието мога да се експортират->Избор')),
         'CAT_USE_BOM_PRICE_OF_NON_STANDART_GP' => array('enum(yes=Да,no=Не)', array('caption' => 'Проверките за цената/Сб-ста на нестандартните универсални артикули да се търси от рецепта->Избор')),
-        'CAT_WEIGHT_BARCODE_PREFIX' => array('enum(no=Изключено,27=27,28=28,29=29)', array('caption' => 'Тегловни баркодове EAN-13->Префикс', 'maxRadio' => 1)),
-        'CAT_WEIGHT_BARCODE_CODE_DIGITS' => array('int(min=1,max=13)', array('caption' => 'Тегловни баркодове EAN-13->Код на артикула (P)', 'unit' => 'брой позиции')),
-        'CAT_WEIGHT_BARCODE_WEIGHT_DIGITS' => array('int(min=1,max=13)', array('caption' => 'Тегловни баркодове EAN-13->Тегло в грамове (W)', 'unit' => 'брой позиции')),
-        'CAT_WEIGHT_BARCODE_CODE_MODE' => array('enum(smart=Умно - с и без водещите нули,exact=Точно - както е в баркода,trimmed=Без водещите нули)', array('caption' => 'Тегловни баркодове EAN-13->Търсене по кода', 'maxRadio' => 1)),
     );
 
 
@@ -425,231 +390,9 @@ class cat_Setup extends core_ProtoSetup
             $packSuggestions = cat_UoM::getPackagingOptions();
             $configForm->setSuggestions('CAT_PACKAGINGS_NOT_TO_USE_FOR_VOLUME_CALC', $packSuggestions);
         }
-
-        // Показване на маската, която се получава от текущите настройки
-        $prefix = static::get('WEIGHT_BARCODE_PREFIX');
-        if(!empty($prefix) && $prefix != 'no'){
-            $mask = $prefix . str_repeat('P', static::get('WEIGHT_BARCODE_CODE_DIGITS')) . str_repeat('W', static::get('WEIGHT_BARCODE_WEIGHT_DIGITS')) . str_repeat('C', self::WEIGHT_BARCODE_CHECKSUM_DIGITS);
-            $fields = array('CAT_WEIGHT_BARCODE_PREFIX', 'CAT_WEIGHT_BARCODE_CODE_DIGITS', 'CAT_WEIGHT_BARCODE_WEIGHT_DIGITS', 'CAT_WEIGHT_BARCODE_CODE_MODE');
-
-            // Маската се добавя като подгрупа на всички полета - иначе те се разкъсват на отделни групи
-            $group = explode('->', $configForm->getFieldParam($fields[0], 'caption'));
-            $group = "{$group[0]}|*->|Маска|*: <b>{$mask}</b>";
-
-            foreach ($fields as $name){
-                $caption = explode('->', $configForm->getFieldParam($name, 'caption'));
-                $configForm->setField($name, array('caption' => $group . '->' . end($caption)));
-            }
-        }
     }
 
 
-    /**
-     * Проверка на въведеното във формата за настройките
-     *
-     * @param core_Form $configForm
-     * @return void
-     */
-    public function inputConfigDescriptionForm(&$configForm)
-    {
-        if(!$configForm->isSubmitted()) return;
-
-        $rec = $configForm->rec;
-
-        // Без префикс разпознаването на тегловни баркодове е изключено
-        if(empty($rec->CAT_WEIGHT_BARCODE_PREFIX) || $rec->CAT_WEIGHT_BARCODE_PREFIX == 'no') return;
-
-        $length = strlen($rec->CAT_WEIGHT_BARCODE_PREFIX) + $rec->CAT_WEIGHT_BARCODE_CODE_DIGITS + $rec->CAT_WEIGHT_BARCODE_WEIGHT_DIGITS + self::WEIGHT_BARCODE_CHECKSUM_DIGITS;
-        if($length != 13 && $length != 8){
-            $configForm->setError('CAT_WEIGHT_BARCODE_PREFIX,CAT_WEIGHT_BARCODE_CODE_DIGITS,CAT_WEIGHT_BARCODE_WEIGHT_DIGITS', "Заедно с контролното число дължината на баркода става|* {$length} |позиции, а трябва да е|* 13 |(EAN-13) или|* 8 |(EAN-8)");
-        }
-    }
-
-
-    /**
-     * Разбива сканиран баркод, ако той отговаря на структурата на тегловните баркодове
-     *
-     * @param string $barcode - сканираният баркод
-     *
-     * @return stdClass|false $res - извлечената информация или FALSE, ако баркодът не е тегловен
-     *
-     *               ->barcode       - самият баркод
-     *               ->productCode   - кодът на артикула, както е в баркода (с водещите нули)
-     *               ->weight        - теглото в килограми
-     *               ->weightInGrams - теглото в грамове
-     *               ->isValidEan    - вярно ли е контролното число
-     */
-    public static function parseWeightBarcode(string $barcode)
-    {
-        if (!strlen($barcode) || preg_match('/[^0-9]/', $barcode)) return false;
-
-        $prefix = static::get('WEIGHT_BARCODE_PREFIX');
-        if (empty($prefix) || $prefix == 'no') return false;
-
-        $codeDigits = (int) static::get('WEIGHT_BARCODE_CODE_DIGITS');
-        $weightDigits = (int) static::get('WEIGHT_BARCODE_WEIGHT_DIGITS');
-        if ($codeDigits < 1 || $weightDigits < 1) return false;
-
-        $codeStart = strlen($prefix);
-        $weightStart = $codeStart + $codeDigits;
-        $length = $weightStart + $weightDigits + self::WEIGHT_BARCODE_CHECKSUM_DIGITS;
-
-        if (strlen($barcode) != $length) return false;
-        if (strpos($barcode, $prefix) !== 0) return false;
-
-        $res = new stdClass();
-        $res->barcode = $barcode;
-        $res->productCode = substr($barcode, $codeStart, $codeDigits);
-        $res->weightInGrams = (int) substr($barcode, $weightStart, $weightDigits);
-        $res->weight = round($res->weightInGrams / 1000, 3);
-
-        // Контролното число се проверява, но не е причина баркодът да се отхвърли,
-        // защото някои везни печатат етикети с невалидна контролна сума
-        $res->isValidEan = ($length == 13 || $length == 8) ? cls::get('gs1_TypeEan')->isValidEan($barcode, $length) : false;
-
-        return $res;
-    }
-
-
-    /**
-     * Артикулът и теглото от сканиран тегловен баркод
-     *
-     * @param string $barcode  - сканираният баркод
-     * @param string $codeMode - как да се тълкуват водещите нули в кода на артикула;
-     *                           ако не е зададен, се взима от настройките на пакета:
-     *
-     *               'exact'   - кодът се търси точно както е записан в баркода
-     *               'trimmed' - водещите нули се махат и остатъкът се приема за код
-     *               'smart'   - пробва се първо с целия код, после се маха по една водеща нула,
-     *                           докато не останат; ако и тогава няма артикул - не се намира
-     *
-     *                           Ако няколко кандидата дадат артикул, предимство има първият активен,
-     *                           а не първият намерен - иначе по-краткият код може да улучи затворен артикул
-     *
-     * @return stdClass|false $res - FALSE, ако настройката е изключена, баркодът не отговаря на
-     *                               маската или няма артикул с този код
-     *
-     *               ->productId   - ид на намерения артикул
-     *               ->productCode - кодът, по който е намерен артикулът (може да е с махнати водещи нули)
-     *               ->measureId   - мярката, в която е количеството: основната мярка на артикула, ако
-     *                               тя е производна на килограма, иначе втора мярка производна на
-     *                               килограма; NULL, ако артикулът няма такава
-     *               ->quantity    - теглото, преизчислено в тази мярка; NULL, ако мярка няма
-     *               ->weight      - теглото от баркода, в килограми
-     *               ->error       - съобщение, ако артикулът е намерен, но няма тегловна мярка
-     */
-    public static function getWeightBarcodeProduct(string $barcode, ?string $codeMode = null)
-    {
-        if (!$parsed = static::parseWeightBarcode($barcode)) return false;
-
-        if (!isset($codeMode)) {
-            $codeMode = static::get('WEIGHT_BARCODE_CODE_MODE');
-        }
-
-        $code = $parsed->productCode;
-        switch ($codeMode) {
-            case 'exact':
-                $codesToTry = array($code);
-                break;
-            case 'trimmed':
-                $codesToTry = array(ltrim($code, '0'));
-                break;
-            default:
-                $codesToTry = array($code);
-                while (substr($code, 0, 1) === '0') {
-                    $code = substr($code, 1);
-                    $codesToTry[] = $code;
-                }
-                break;
-        }
-
-        $found = $fallback = null;
-        foreach ($codesToTry as $codeToTry) {
-
-            // Празен код не се търси - cat_Products::getByCode() очаква непразна стойност и иначе гърми
-            if (empty($codeToTry)) continue;
-            if (!$productRec = cat_Products::getByCode($codeToTry)) continue;
-
-            // Активният артикул има предимство: при махане на водещите нули по-краткият код
-            // може да улучи затворен артикул, а активният да е чак при следващия кандидат
-            if (cat_Products::fetchField($productRec->productId, 'state') == 'active') {
-                $found = array($productRec->productId, $codeToTry);
-                break;
-            }
-
-            // Първият неактивен артикул се пази - ако никой кандидат не е активен, се връща той
-            if (!isset($fallback)) {
-                $fallback = array($productRec->productId, $codeToTry);
-            }
-        }
-
-        $found = isset($found) ? $found : $fallback;
-        if (!isset($found)) return false;
-
-        $res = new stdClass();
-        list($res->productId, $res->productCode) = $found;
-        $res->weight = $parsed->weight;
-        $res->measureId = static::getWeightMeasureId($res->productId);
-        $res->quantity = null;
-        $res->error = null;
-
-        if (empty($res->measureId)) {
-            $res->error = "Намереният артикул|* #Art{$res->productId} |по код|* {$res->productCode} |няма мярка в килограми или производна на нея|*!";
-        } else {
-            $res->quantity = cat_UoM::convertValue($res->weight, cat_UoM::fetchBySysId('kg')->id, $res->measureId);
-        }
-
-        return $res;
-    }
-
-
-    /**
-     * В коя мярка на артикула може да се запише тегло
-     *
-     * Първо се гледа основната мярка - ако тя е килограм или производна на него, тя се ползва.
-     * Иначе се търси втора мярка (от опаковките), която е производна на килограма.
-     *
-     * @param int $productId - ид на артикул
-     *
-     * @return int|null - ид на мярката или NULL, ако артикулът няма тегловна мярка
-     */
-    private static function getWeightMeasureId($productId)
-    {
-        // Ако основната мярка на артикула е тегловна - тя се ползва
-        $measureId = cat_Products::fetchField($productId, 'measureId');
-        if (isset($measureId) && cat_UoM::isWeightMeasure($measureId)) {
-
-            return $measureId;
-        }
-
-        // Всички мерки, производни на килограма
-        $kgRec = cat_UoM::fetchBySysId('kg');
-        if (!is_object($kgRec)) return null;
-
-        $massMeasures = cat_UoM::getSameTypeMeasures($kgRec->id);
-        unset($massMeasures['']);
-        if (!countR($massMeasures)) return null;
-
-        // Търси се втора мярка, производна на килограма
-        $query = cat_products_Packagings::getQuery();
-        $query->EXT('type', 'cat_UoM', 'externalName=type,externalKey=packagingId');
-        $query->where("#productId = {$productId} AND #type = 'uom' AND #state != 'closed'");
-        $query->in('packagingId', array_keys($massMeasures));
-        $query->orderBy('id', 'ASC');
-        $query->show('packagingId,isSecondMeasure');
-
-        $res = null;
-        while ($packRec = $query->fetch()) {
-
-            // Изрично посочената втора мярка има предимство, иначе се взима първата поред
-            if ($packRec->isSecondMeasure == 'yes') return $packRec->packagingId;
-            if (!isset($res)) {
-                $res = $packRec->packagingId;
-            }
-        }
-
-        return $res;
-    }
 
 
     /**

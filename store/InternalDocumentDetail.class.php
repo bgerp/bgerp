@@ -241,6 +241,14 @@ abstract class store_InternalDocumentDetail extends doc_Detail
         }
         $unsetAmounts = true;
 
+        // Ако мастъра има шаблон на друг език, редовете се подготвят на него
+        $tplLang = null;
+        if (!empty($data->masterData->rec->tplLang)) {
+            $tplLang = $data->masterData->rec->tplLang;
+            core_Lg::push($tplLang);
+        }
+        $lang = core_Lg::getCurrent();
+
         foreach ($data->rows as $i => &$row) {
             $rec = &$data->recs[$i];
             if(!empty($data->showCodeColumn)){
@@ -250,7 +258,7 @@ abstract class store_InternalDocumentDetail extends doc_Detail
                     $row->productId = ht::createLinkRef($row->productId, $singleProductUrl);
                 }
             } else {
-                $row->productId = cat_Products::getAutoProductDesc($rec->productId, null, 'short', 'internal');
+                $row->productId = cat_Products::getAutoProductDesc($rec->productId, null, 'short', 'internal', $lang);
             }
             deals_Helper::addNotesToProductRow($row->productId, $rec->notes);
             
@@ -260,7 +268,11 @@ abstract class store_InternalDocumentDetail extends doc_Detail
                 $unsetAmounts = false;
             }
         }
-        
+
+        if (!empty($tplLang)) {
+            core_Lg::pop();
+        }
+
         if ($unsetAmounts === true) {
             unset($data->listFields['packPrice']);
             unset($data->listFields['amount']);

@@ -470,7 +470,7 @@ class cms_Domains extends core_Embedder
             
             if (countR($langsInCountry)) {
                 foreach ($langsInCountry as $lg) {
-                    $langArr[$lg]++;
+                    $langArr[$lg] = ($langArr[$lg] ?? 0) + 1;
                 }
             }
         }

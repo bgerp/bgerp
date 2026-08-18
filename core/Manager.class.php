@@ -1538,14 +1538,14 @@ class core_Manager extends core_Mvc
                             $select->append('</optgroup>');
                         }
                         $element = 'optgroup';
-                        $attr = $title->attr;
+                        $attr = $title->attr ?? array();
                         $attr['label'] = $title->title;
                         $option = ht::createElement($element, $attr);
                         $select->append($option);
                         $openGroup = true;
                         continue;
                     }
-                    $attr = $title->attr;
+                    $attr = $title->attr ?? array();
                     $title = $title->title;
                 }
                 $attr['value'] = $id;

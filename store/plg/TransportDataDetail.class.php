@@ -239,7 +239,7 @@ class store_plg_TransportDataDetail extends core_Plugin
             }
 
             if(isset($unitId) && isset($uQuantity)){
-                $units[$unitId] += $uQuantity;
+                $units[$unitId] = ($units[$unitId] ?? 0) + $uQuantity;
             }
 
             if ($force === true && empty($rec->transUnitId) && !empty($unitId)) {

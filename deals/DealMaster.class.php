@@ -2264,6 +2264,9 @@ abstract class deals_DealMaster extends deals_DealBase
      */
     public static function on_AfterPrepareSingle($mvc, &$res, &$data)
     {
+        // Заданията са само за екран - не и при печат/експорт
+        if (Mode::is('printing') || Mode::is('text', 'xhtml')) return;
+
         if (haveRole('ceo,planning,sales,purchase,store,job')) {
             $dealTab = Request::get('dealTab');
             if (empty($dealTab) || $dealTab == 'Statistic') {

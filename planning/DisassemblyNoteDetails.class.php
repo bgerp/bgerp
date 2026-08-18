@@ -82,6 +82,12 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
 
 
     /**
+     * Поле с артикула - за подредбата на бутоните напред/назад (@see cat_plg_ShowCodes)
+     */
+    public $productFieldName = 'productId';
+
+
+    /**
      * Полета, които при клониране да не се пренасят. Списъкът на
      * deals_ManifactureDetail се преповтаря, защото свойството се препокрива.
      * За `costPercent` решава режимът (@see on_BeforeSaveClonedDetail)

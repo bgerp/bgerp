@@ -95,6 +95,8 @@ class forum_Categories extends core_Manager
      */
     public static function prepareCategories(&$data)
     {
+        $data->categories = array();
+
         // Взимаме Заявката към Категориите
         $query = static::getQuery();
         
@@ -102,7 +104,7 @@ class forum_Categories extends core_Manager
         $query->orderBy('#order');
         
         // Ако е сетнато $data->category, то връщаме само тази категория
-        if ($data->category) {
+        if ($data->category ?? null) {
             $query->where($data->category);
         } else {
             $domainId = cms_Domains::getPublicDomain('id');
@@ -118,6 +120,8 @@ class forum_Categories extends core_Manager
             $url = array('forum_Boards', 'Forum', 'cat' => $cat->id);
             $cat->title = ht::createLink($cat->title, $url);
             $cat->boards = new stdClass();
+            $cat->boards->recs = array();
+            $cat->boards->rows = array();
             $data->categories[] = $cat;
         }
     }
