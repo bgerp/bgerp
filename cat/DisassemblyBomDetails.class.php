@@ -202,7 +202,7 @@ class cat_DisassemblyBomDetails extends doc_Detail
         }
 
         if($action == 'delete' && isset($rec)){
-            if(cat_DisassemblyBomDetails::count("#bomId={$rec->bomId}") == 1){
+            if(cat_DisassemblyBomDetails::count("#bomId={$rec->bomId} AND #type = 'production'") == 1){
                 $res = 'no_one';
             }
         }
