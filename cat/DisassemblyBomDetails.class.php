@@ -104,7 +104,7 @@ class cat_DisassemblyBomDetails extends doc_Detail
 
         $this->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,maxSuggestions=100,forceAjax,titleFld=name,forceOpen)', 'class=w100,tdClass=productCell leftCol wrap,caption=Артикул,mandatory,silent,removeAndRefreshForm=packagingId|packQuantity');
         $this->FLD('packagingId', 'key(mvc=cat_UoM,select=shortName,select2MinItems=0)', 'caption=Мярка,tdClass=small-field nowrap,smartCenter,mandatory,input=hidden,silent');
-        $this->FNC('packQuantity', 'double(min=0)', 'caption=Количество,input=input,mandatory,smartCenter');
+        $this->FNC('packQuantity', 'double(Min=0)','caption=Количество 2,input=input,mandatory,smartCenter');
         $this->FLD('quantityInPack', 'double(smartRound)', 'input=none,notNull,value=1');
         $this->FLD('quantity', 'double', 'caption=Количество,input=none,smartCenter');
         $this->FLD('notes', 'richtext(rows=3,bucket=Notes)', 'caption=Описание');
