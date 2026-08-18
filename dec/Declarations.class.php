@@ -315,7 +315,8 @@ class dec_Declarations extends core_Master
         }
 
         if (countR($declarators) > 0) {
-            $data->form->setSuggestions('declaratorName', $declarators);
+            // Празната опция се слага най-отпред, за да не разделя визуално предложенията от 'recently'
+            $data->form->setSuggestions('declaratorName', array('' => '') + $declarators);
             $data->form->setDefault('declaratorName', key($declarators));
         }
 
