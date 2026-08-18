@@ -200,6 +200,12 @@ class cat_DisassemblyBomDetails extends doc_Detail
         if ($action == 'add' && isset($rec->type) && $rec->type == 'input') {
             $res = 'no_one';
         }
+
+        if($action == 'delete' && isset($rec)){
+            if(cat_DisassemblyBomDetails::count("#bomId={$rec->bomId}") == 1){
+                $res = 'no_one';
+            }
+        }
     }
 
 
