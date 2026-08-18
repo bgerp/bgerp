@@ -142,10 +142,11 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
         $data->singleTitle = ($rec->type == 'input') ? 'артикул за разпад' : 'произведен артикул';
         $data->defaultMeta = ($rec->type == 'input') ? 'canConvert,canStore' : 'canManifacture';
         $data->defaultNotHaveMeta = 'generic';
-
-        if (empty($rec->id)) {
+        if($rec->type == 'input'){
             $form->setFieldType('packQuantity', 'double(Min=0)');
-        } else {
+        }
+
+        if (!empty($rec->id)) {
             $form->setReadOnly('productId');
         }
 
