@@ -2155,7 +2155,10 @@ class planning_Jobs extends core_Master
         }
 
         $productRec = cat_Products::fetch($rec->productId, 'canStore,canConvert');
-        $quantityToProduce = round($rec->quantity - $rec->quantityProduced, 4);
+
+        // При разпад изпълненото е разпадналото се к-во (@see planning_Jobs::updateDisassembledQuantity)
+        $quantityDone = ($rec->type == 'disassembly') ? $rec->quantityDisassembled : $rec->quantityProduced;
+        $quantityToProduce = round($rec->quantity - $quantityDone, 4);
 
         // В кои нишки има документи отнасящи се за заданието
         $threadsArr = static::getJobLinkedThreads($rec);
@@ -2182,7 +2185,12 @@ class planning_Jobs extends core_Master
             $productsIn[$sRec->productId] = ($productsIn[$sRec->productId] ?? 0) + $sRec->quantityIn;
             $products[$sRec->productId] = ($products[$sRec->productId] ?? 0) + $sRec->quantityOut;
         }
-        $quantityToProduce -= $productsIn[$rec->productId] ?? 0;
+        // При производство артикулът на заданието влиза в склада, а при разпад - излиза от него
+        if ($rec->type == 'disassembly') {
+            $quantityToProduce -= $products[$rec->productId] ?? 0;
+        } else {
+            $quantityToProduce -= $productsIn[$rec->productId] ?? 0;
+        }
 
         if($quantityToProduce > 0){
             $genericProductId = null;
