@@ -99,7 +99,7 @@ class sens2_script_ActionNotify
         }
  
         // Проверяваме дали семафора позволява да се изпрати нотификацията
-        if(!sens2_Semaphores::check($rec->id, crc32($rec->message), $rec->onlyDifferent, $rec->minNotifyTime, $rec->repeat)) {
+        if(!sens2_Semaphores::check($rec->id, crc32($rec->message), $rec->onlyDifferent ?? null, $rec->minNotifyTime ?? null, $rec->repeat ?? null)) {
 
             return 'active';
         }
