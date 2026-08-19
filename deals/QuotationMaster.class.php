@@ -533,7 +533,7 @@ abstract class deals_QuotationMaster extends core_Master
 
             if(!Mode::isReadOnly() && !Mode::is('text', 'plain')){
                 $folderCover = doc_Folders::getCover($rec->folderId);
-                if($folderCover->that != $rec->contragentId || $folderCover->getClassId() != $rec->contragentClassId){
+                if(!empty($row->company) && ($folderCover->that != $rec->contragentId || $folderCover->getClassId() != $rec->contragentClassId)){
                     $row->company = "<span class ='red'>{$row->company}</span>";
                     $row->company = ht::createHint($row->company, 'Контрагента в офертата, се различава от този в папката', 'error', false);
                 }
@@ -650,13 +650,13 @@ abstract class deals_QuotationMaster extends core_Master
                 $deliveryAdress .= cond_DeliveryTerms::addDeliveryTermLocation($rec->deliveryTermId, $rec->contragentClassId, $rec->contragentId, null, $placeId, $rec->deliveryData, doc_Containers::getDocument($rec->containerId));
             }
 
-            if(isset($rec->deliveryTermId) && !Mode::isReadOnly() && !Mode::is('text', 'plain')){
+            if(isset($rec->deliveryTermId) && !empty($row->deliveryTermId) && !Mode::isReadOnly() && !Mode::is('text', 'plain')){
                 $row->deliveryTermId = ht::createLink($row->deliveryTermId, cond_DeliveryTerms::getSingleUrlArray($rec->deliveryTermId));
             }
 
             if (!empty($deliveryAdress)) {
                 if(isset($rec->deliveryTermId)){
-                    $row->deliveryTermId = "{$row->deliveryTermId}, {$deliveryAdress}";
+                    $row->deliveryTermId = !empty($row->deliveryTermId) ? "{$row->deliveryTermId}, {$deliveryAdress}" : $deliveryAdress;
                 } else {
                     $row->deliveryPlaceId = $deliveryAdress;
                 }
