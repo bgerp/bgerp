@@ -157,6 +157,9 @@ class acc_ActiveShortBalance
                     }
 
                     $b = &$balance[$index];
+                    
+                    // Записите, дошли от предходния баланс, са само с началните салда (@see getBalanceBefore)
+                    $b += array('debitQuantity' => 0, 'debitAmount' => 0, 'creditQuantity' => 0, 'creditAmount' => 0, 'blQuantity' => 0, 'blAmount' => 0);
 
                     if (!isset($sysIds[$accId])) {
                         $sysIds[$accId] = acc_Accounts::fetchField($accId, 'systemId');
