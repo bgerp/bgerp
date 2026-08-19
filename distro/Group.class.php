@@ -571,16 +571,16 @@ class distro_Group extends core_Master
                 } else {
                     $msg = '';
                     
-                    if ($res['addToDB']) {
+                    if (!empty($res['addToDB'])) {
                         $msg .= '|Добавени файлове от хранилището|*: ' . $res['addToDB'];
                     }
                     
-                    if ($res['delFromDb']) {
+                    if (!empty($res['delFromDb'])) {
                         $msg .= $msg ? '<br>' : $msg;
                         $msg .= '|Изтрити файлове от хранилището|*: ' . $res['delFromDb'];
                     }
                     
-                    if ($res['absorbFromDb']) {
+                    if (!empty($res['absorbFromDb'])) {
                         $msg .= $msg ? '<br>' : $msg;
                         $msg .= '|Свалени файлове в хранилището|*: ' . $res['absorbFromDb'];
                     }
