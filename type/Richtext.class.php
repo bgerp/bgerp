@@ -1632,7 +1632,8 @@ class type_Richtext extends type_Blob
         
         $haveLastPart = false;
         
-        if ($lastPart[0] == '?') {
+        // Празно урл - няма какво да се парсира
+        if (strpos((string) $lastPart, '?') === 0) {
             $haveLastPart = true;
             $lastPart = ltrim($lastPart, '?');
             $lastPart = str_replace('&amp;', '&', $lastPart);
@@ -1671,9 +1672,10 @@ class type_Richtext extends type_Blob
         }
         
         // Декодира защитеното id
-        if (($id = $params['id']) && ($ctr = $params['Ctr'])) {
-            $id = core_Request::unprotectId($id, $ctr);
-            $params['id'] = $id;
+        $id = $params['id'] ?? null;
+        $ctr = $params['Ctr'] ?? null;
+        if (!empty($id) && !empty($ctr)) {
+            $params['id'] = core_Request::unprotectId($id, $ctr);
         }
         
         return $params;

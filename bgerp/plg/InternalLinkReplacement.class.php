@@ -37,8 +37,8 @@ class bgerp_plg_InternalLinkReplacement extends core_Plugin
         }
         
         // Всички параметри
-        $ctr = strtolower($params['Ctr']);
-        $act = strtolower($params['Act']);
+        $ctr = strtolower((string) ($params['Ctr'] ?? ''));
+        $act = strtolower((string) ($params['Act'] ?? ''));
         $threadId = $params['threadId'] ?? null;
         
         if (($act == 'list' || $act == 'default') && $ctr == 'colab_threads') {
