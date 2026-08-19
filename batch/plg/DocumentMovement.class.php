@@ -90,7 +90,7 @@ class batch_plg_DocumentMovement extends core_Plugin
 
                 $dRec->detMvcId = (empty($dRec->detMvcId)) ? $Detail->getClassId() : $dRec->detMvcId;
                 $defRec = batch_Defs::fetch("#productId = {$dRec->{$Detail->productFld}}");
-                if(empty($defRec)) continue;
+                if(empty($defRec) || empty($defRec->templateId)) continue;
 
                 if($Detail instanceof store_InternalDocumentDetail){
                     $dRec->quantity = $dRec->quantityInPack * $dRec->packQuantity;
