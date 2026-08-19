@@ -631,7 +631,7 @@ class cal_Tasks extends embed_Manager
             }
         }
         
-        $progressStr = $row->progress;
+        $progressStr = $row->progress ?? '';
         if (($rec->state == 'waiting') || ($rec->state == 'pending') || ($rec->state == 'wakeup')) {
             $progressStr = "[{$progressStr}]";
         }
@@ -828,9 +828,9 @@ class cal_Tasks extends embed_Manager
                 $row->title = ht::createLink($title, self::getSingleUrlArray($rec->id), null, array('ef_icon' => $me->getIcon($rec->id)));
                 
                 if ($row->title instanceof core_ET) {
-                    $row->title->append($row->subTitleDiv);
+                    $row->title->append($row->subTitleDiv ?? '');
                 } else {
-                    $row->title .= $row->subTitleDiv;
+                    $row->title .= $row->subTitleDiv ?? '';
                 }
                 
                 if ($rec->savedState) {
@@ -945,7 +945,8 @@ class cal_Tasks extends embed_Manager
                 $intersectedRanges = array();
                 $query = static::getQuery();
                 $supportTypeClassId = support_TaskType::getClassId();
-                $query->where("#driverClass != '{$supportTypeClassId}' AND #id != '{$rec->id}' AND #assetResourceId = {$rec->assetResourceId} AND #state IN ('active', 'wakeup', 'stopped', 'pending')");
+                $recId = $rec->id ?? 0;
+                $query->where("#driverClass != '{$supportTypeClassId}' AND #id != '{$recId}' AND #assetResourceId = {$rec->assetResourceId} AND #state IN ('active', 'wakeup', 'stopped', 'pending')");
                 while($cRec = $query->fetch()) {
                     $mvc->calculateExpectationTime($cRec);
                     if(($cRec->expectationTimeStart <= $rec->expectationTimeEnd AND $cRec->expectationTimeEnd >= $rec->expectationTimeStart)) {
@@ -1066,7 +1067,7 @@ class cal_Tasks extends embed_Manager
             $btnRow = 2;
             if(isset($data->rec->assetResourceId)) {
                 $assetRec = planning_AssetResources::fetch($data->rec->assetResourceId);
-                $assetType = planning_AssetGroups::fetchField($assetRec->groupId, 'type');
+                $assetType = !empty($assetRec) ? planning_AssetGroups::fetchField($assetRec->groupId, 'type') : null;
                 if($assetType == 'material') {
                     $btnRow = 1;
                 }
@@ -1168,25 +1169,25 @@ class cal_Tasks extends embed_Manager
             if ($cRec->type == 'task') {
                 $urlArr = parseLocalUrl($cRec->url, false);
                 
-                if (!cls::load($urlArr['Ctr'], true)) {
+                if (empty($urlArr['Ctr']) || !cls::load($urlArr['Ctr'], true)) {
                     
                     continue;
                 }
                 
-        if (!empty($rec->id) && ($rec->id == $urlArr['id'])) {
+                if (!empty($rec->id) && ($rec->id == ($urlArr['id'] ?? null))) {
                     
                     continue;
                 }
                 
                 $cInst = cls::get($urlArr['Ctr']);
-                if (!$cInst->haveRightFor($urlArr['Act'], $urlArr['id'])) {
+                if (!$cInst->haveRightFor($urlArr['Act'] ?? null, $urlArr['id'] ?? null)) {
                     
                     continue;
                 }
                 
-                if ($urlArr['id']) {
+                if (!empty($urlArr['id'])) {
                     $tRec = $cInst->fetch($urlArr['id']);
-                    if (!$tRec->timeStart && !$tRec->timeDuration) {
+                    if (empty($tRec) || (!$tRec->timeStart && !$tRec->timeDuration)) {
                         
                         continue;
                     }
@@ -1228,8 +1229,8 @@ class cal_Tasks extends embed_Manager
         }
 
         if (!empty($rec->__isReplicate)) {
-            if ($rec->state == 'closed' || $rec->state == 'stopped') {
-                if (($rec->brState != 'draft') && ($rec->brState != 'rejected') && $rec->brState) {
+            if (($rec->state ?? null) == 'closed' || ($rec->state ?? null) == 'stopped') {
+                if (!empty($rec->brState) && ($rec->brState != 'draft') && ($rec->brState != 'rejected')) {
                     $rec->state = $rec->brState;
                 }
                 
@@ -1246,16 +1247,21 @@ class cal_Tasks extends embed_Manager
             if (!empty($rec->assetResourceId)) {
                 $pRec = planning_AssetResources::fetch($rec->assetResourceId, 'code, name');
                 if ($pRec) {
-                    $rec->title .= ' ' . $pRec->code . ' ' . $pRec->name;
+                    $rec->title = ($rec->title ?? '') . ' ' . $pRec->code . ' ' . $pRec->name;
                 }
             }
         }
 
         if (!empty($rec->id)) {
             $oldRec = $mvc->fetch($rec->id);
+            if (empty($oldRec)) {
+                
+                return;
+            }
 
             $checkActivate = false;
-            if ($rec->state != 'rejected' && $rec->state != 'draft' && $oldRec->state != 'rejected' && $oldRec->state != 'draft') {
+            $recState = $rec->state ?? null;
+            if ($recState != 'rejected' && $recState != 'draft' && $oldRec->state != 'rejected' && $oldRec->state != 'draft') {
                 if (isset($rec->assign)) {
                     // Активираме само ако е ДОБАВЕНО ново лице, а не при премахване.
                     // (assign е keylist - може да е имало няколко и да е махнат само един)
@@ -1267,8 +1273,8 @@ class cal_Tasks extends embed_Manager
             }
 
             // Ако отговаря на условията да се активира, вместо да е заявка
-            if (($oldRec->state == 'waiting' && $rec->state == 'waiting') ||
-                ($oldRec->state == 'active' && $rec->state == 'active') ||
+            if (($oldRec->state == 'waiting' && $recState == 'waiting') ||
+                ($oldRec->state == 'active' && $recState == 'active') ||
                 $checkActivate === true) {
                 $canActivate = $mvc->canActivateTask($rec);
 
@@ -1460,9 +1466,9 @@ class cal_Tasks extends embed_Manager
         // проверяваме дали може да стане задачата в активно състояние
         $canActivate = self::canActivateTask($rec);
         
-        $sharedUsersArr = keylist::toArray($rec->sharedUsers);
+        $sharedUsersArr = keylist::toArray($rec->sharedUsers ?? null);
         
-        if ($rec->assign) {
+        if (!empty($rec->assign)) {
             $sharedUsersArr += type_Keylist::toArray($rec->assign);
         }
 
@@ -3083,9 +3089,9 @@ class cal_Tasks extends embed_Manager
     public static function canActivateTask($rec)
     {
         // Без отговорник да не може да се активират
-        $sharedUsersArr = keylist::toArray($rec->sharedUsers);
+        $sharedUsersArr = keylist::toArray($rec->sharedUsers ?? null);
         
-        if ($rec->assign) {
+        if (!empty($rec->assign)) {
             $sharedUsersArr += type_Keylist::toArray($rec->assign);
         }
         
@@ -3137,7 +3143,7 @@ class cal_Tasks extends embed_Manager
                 
                 // взимаме и началното време на текущата задача,
                 // ако има такова
-                $timeStart = $rec->timeStart;
+                $timeStart = $rec->timeStart ?? null;
                 
                 if ($timeStart != null) {
                     // прибавяме го към масива
@@ -3157,9 +3163,9 @@ class cal_Tasks extends embed_Manager
                 
                 // задачата не е зависима от други задачи
             }
-            $timeStart = $rec->timeStart;
-            $timeEnd = $rec->timeEnd;
-            $timeDuration = $rec->timeDuration;
+            $timeStart = $rec->timeStart ?? null;
+            $timeEnd = $rec->timeEnd ?? null;
+            $timeDuration = $rec->timeDuration ?? null;
             
             if ($timeStart != null) {
                 // времето за стартиране е времето оказано от потребителя
@@ -3172,7 +3178,7 @@ class cal_Tasks extends embed_Manager
             }
             
             return $calcTime;
-        } elseif (empty($rec->id) && $rec->timeStart) {
+        } elseif (empty($rec->id) && !empty($rec->timeStart)) {
             if (!empty($arrCond)) {
                 foreach ($arrCond as $cond) {
                     if ($cond->activationCond == 'onProgress') {
@@ -3188,7 +3194,7 @@ class cal_Tasks extends embed_Manager
                     
                     return $calcTime;
                 }
-                $timeStart = $rec->timeStart;
+                $timeStart = $rec->timeStart ?? null;
                 
                 if ($timeStart != null) {
                     // прибавяме го към масива
@@ -3202,9 +3208,9 @@ class cal_Tasks extends embed_Manager
                     }
                 }
             } else {
-                $calcTime = $rec->timeStart;
+                $calcTime = $rec->timeStart ?? null;
             }
-        } elseif (!$rec->timeStart && empty($rec->id)) {
+        } elseif (empty($rec->timeStart) && empty($rec->id)) {
             $calcTime = $now;
         }
         
@@ -3396,7 +3402,7 @@ class cal_Tasks extends embed_Manager
                 
                 // взимаме и началното време на текущата задача,
                 // ако има такова
-                $timeStartRec = $rec->timeStart;
+                $timeStartRec = $rec->timeStart ?? null;
                 
                 if (!$timeStartRec) {
                     // в противен случай го слагаме 0
@@ -3412,9 +3418,9 @@ class cal_Tasks extends embed_Manager
             
             // ако не е зависима от други взимаме нейните начало и край
             } else {
-                $timeStart = $rec->timeStart;
-                $timeEnd = $rec->timeEnd;
-                $timeDuration = $rec->timeDuration;
+                $timeStart = $rec->timeStart ?? null;
+                $timeEnd = $rec->timeEnd ?? null;
+                $timeDuration = $rec->timeDuration ?? null;
 
                 if ($timeDuration && !$timeEnd) {
                     $timeEnd = dt::timestamp2Mysql(dt::mysql2timestamp($timeStart) + $timeDuration);
@@ -3425,12 +3431,14 @@ class cal_Tasks extends embed_Manager
             
             // ако няма id, то имаме директно началото и края й
         } else {
-            $timeStart = $rec->timeStart;
-            $timeEnd = $rec->timeEnd;
+            $timeStart = $rec->timeStart ?? null;
+            $timeEnd = $rec->timeEnd ?? null;
         }
         
+        $recDuration = $rec->timeDuration ?? null;
+        
         // ако задачата няма начало и край
-        if ($timeStart == null && $timeEnd == null && $rec->timeDuration == null) {
+        if ($timeStart == null && $timeEnd == null && $recDuration == null) {
             $expStart = $now;
             $expEnd = $now;
         
@@ -3438,11 +3446,11 @@ class cal_Tasks extends embed_Manager
         // може да определим и края й
         } elseif ($timeStart && !$timeEnd) {
             $expStart = $timeStart;
-            $expEnd = dt::timestamp2Mysql(dt::mysql2timestamp($expStart) + $rec->timeDuration);
+            $expEnd = dt::timestamp2Mysql(dt::mysql2timestamp($expStart) + $recDuration);
         
         // ако задачата има край
         // можем да кажем кога е началото й
-        } elseif ($timeEnd && !$timeStart && !$rec->timeDuration) {
+        } elseif ($timeEnd && !$timeStart && !$recDuration) {
             $expEnd = $timeEnd;
         if (!empty($rec->id)) {
                 $expStart = $rec->modifiedOn;
@@ -3453,14 +3461,14 @@ class cal_Tasks extends embed_Manager
         } elseif ($timeStart && $timeEnd) {
             $expStart = $timeStart;
             $expEnd = $timeEnd;
-        } elseif (($rec->timeDuration && $timeStart) && !$timeEnd) {
+        } elseif (($recDuration && $timeStart) && !$timeEnd) {
             $expStart = $timeStart;
-            $expEnd = dt::timestamp2Mysql(dt::mysql2timestamp($expStart) + $rec->timeDuration);
-        } elseif ($rec->timeDuration && (!$timeStart && !$timeEnd)) {
+            $expEnd = dt::timestamp2Mysql(dt::mysql2timestamp($expStart) + $recDuration);
+        } elseif ($recDuration && (!$timeStart && !$timeEnd)) {
             $expStart = $now;
-            $expEnd = dt::timestamp2Mysql(dt::mysql2timestamp($expStart) + $rec->timeDuration);
-        } elseif (($rec->timeDuration && $timeEnd) && !$timeStart) {
-            $expStart = dt::timestamp2Mysql(dt::mysql2timestamp($timeEnd) - $rec->timeDuration);
+            $expEnd = dt::timestamp2Mysql(dt::mysql2timestamp($expStart) + $recDuration);
+        } elseif (($recDuration && $timeEnd) && !$timeStart) {
+            $expStart = dt::timestamp2Mysql(dt::mysql2timestamp($timeEnd) - $recDuration);
             $expEnd = $timeEnd;
         }
         
@@ -3520,7 +3528,7 @@ class cal_Tasks extends embed_Manager
         }
         
         // ако задачата е безкрайна
-        if (!$rec->timeStart) {
+        if (empty($rec->timeStart)) {
             $rec->timeCalc = $calcTimeStart;
             self::save($rec, 'timeCalc');
             
@@ -3589,7 +3597,7 @@ class cal_Tasks extends embed_Manager
     {
         if (!empty($rec->assetResourceId)) {
             $pRec = planning_AssetResources::fetch($rec->assetResourceId, 'code, name');
-            $sTxt = ' ' . plg_Search::normalizeText($pRec->code . ' ' . $pRec->name);
+            $sTxt = !empty($pRec) ? ' ' . plg_Search::normalizeText($pRec->code . ' ' . $pRec->name) : '';
         } else {
             $sTxt = ' ' . $mvc->withoutResStr;
         }
@@ -3615,7 +3623,7 @@ class cal_Tasks extends embed_Manager
     {
         $resArr = arr::make($resArr);
         
-        if ($row->progressBar || $row->progress) {
+        if (!empty($row->progressBar) || !empty($row->progress)) {
             $resArr['progressBar'] = array('name' => tr('Прогрес'), 'val' => '[#progressBar#] [#progress#]');
         }
         
@@ -3655,7 +3663,7 @@ class cal_Tasks extends embed_Manager
         }
         
         
-        if ($row->expectationTimeStart) {
+        if (!empty($row->expectationTimeStart)) {
             $resArr['expectationTimeStart'] = array('name' => tr('Очаквано начало'), 'val' => '[#expectationTimeStart#]');
         }
         
@@ -3663,7 +3671,7 @@ class cal_Tasks extends embed_Manager
             unset($resArr['expectationTimeStart']);
         }
         
-        if ($row->expectationTimeEnd) {
+        if (!empty($row->expectationTimeEnd)) {
             $resArr['expectationTimeEnd'] = array('name' => tr('Очакван край'), 'val' => '[#expectationTimeEnd#]');
         }
         
