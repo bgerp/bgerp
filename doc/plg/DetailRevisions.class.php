@@ -437,7 +437,11 @@ class doc_plg_DetailRevisions extends core_Plugin
                 $date = $mvc->getVerbal($rec, $onField);
                 $nick = !empty($rec->{$byField}) ? crm_Profiles::createLink($rec->{$byField}) : '';
 
-                if (!$isRejected && isset($activatedOn, $rec->createdOn) && $rec->createdOn >= $activatedOn) {
+                // Ред, добавен в ревизионно състояние (revisionRootId=0, @see linkToDeletedRow)
+                // или създаден след активирането. Условието е като на брояча в doc_plg_MasterRevision
+                $isAddedNow = isset($rec->revisionRootId) && empty($rec->revisionRootId) && empty($rec->revisionPrevId);
+
+                if (!$isRejected && ($isAddedNow || (isset($activatedOn, $rec->createdOn) && $rec->createdOn >= $activatedOn))) {
                     $newBadge = "<span style='display:inline-block;background:#2196F3;color:#fff;font-size:10px;font-weight:bold;padding:1px 6px;border-radius:3px;vertical-align:middle;margin-left:4px;line-height:15px;' title='" . tr('Добавен след като документа е бил контиран или е станал на заявка') . "'>" . tr('НОВ') . "</span>";
                     $date = new core_ET("{$newBadge} {$date}");
                 }

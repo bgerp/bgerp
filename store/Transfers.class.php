@@ -36,8 +36,8 @@ class store_Transfers extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, store_plg_StoreFilter, deals_plg_SaveValiorOnActivation, store_Wrapper, plg_Sorting, plg_Printing, store_plg_Request, acc_plg_Contable, acc_plg_DocumentSummary,
-                    doc_DocumentPlg, trans_plg_LinesPlugin, doc_plg_BusinessDoc,plg_Clone,deals_plg_EditClonedDetails,cat_plg_AddSearchKeywords, plg_Search, store_plg_StockPlanning,bgerp_plg_Export, change_Plugin';
+    public $loadList = 'plg_RowTools2, store_plg_StoreFilter, deals_plg_SaveValiorOnActivation, store_Wrapper, plg_Sorting, plg_Printing, acc_plg_Contable, acc_plg_DocumentSummary,
+                    doc_DocumentPlg, doc_plg_MasterRevision, trans_plg_LinesPlugin, doc_plg_BusinessDoc,plg_Clone,deals_plg_EditClonedDetails,cat_plg_AddSearchKeywords, plg_Search, store_plg_StockPlanning,bgerp_plg_Export, change_Plugin';
 
 
     /**
@@ -100,6 +100,18 @@ class store_Transfers extends core_Master
      * Кой може да го изтрие?
      */
     public $canConto = 'ceo,store';
+
+
+    /**
+     * Кой може да прехвърли заявката в етап "Натоварване"?
+     */
+    public $canPendingloading = 'ceo,store';
+
+
+    /**
+     * Кой може да прехвърли заявката в етап "Изпълнение"?
+     */
+    public $canPendingexecution = 'ceo,store';
 
 
     /**
@@ -191,7 +203,7 @@ class store_Transfers extends core_Master
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'valior,weight,volume,weightInput,volumeInput,deliveryTime,palletCount,storeReadiness';
+    public $fieldsNotToClone = 'valior,weight,volume,weightInput,volumeInput,deliveryTime,palletCount,storeReadiness,pendingStage,pendingOn';
 
 
     /**
@@ -265,6 +277,8 @@ class store_Transfers extends core_Master
         $this->FLD('detailOrderBy', 'enum(auto=Автоматично,creation=Ред на създаване,code=Код,reff=Ваш №)', 'caption=Артикули->Подреждане по,notNull,value=auto');
         $this->FLD('note', 'richtext(bucket=Notes,rows=3)', 'caption=Допълнително->Бележки');
         $this->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Оттеглен,stopped=Спряно, pending=Заявка)', 'caption=Състояние, input=none');
+        $this->FLD('pendingStage', 'enum(,loading=Натоварване,execution=Изпълнение)', 'caption=Заявка->Етап,input=none,column=none');
+        $this->FLD('pendingOn', 'datetime(format=smartTime)', 'caption=Заявка->Заявено на,input=none,column=none');
 
         $this->setDbIndex('fromStore');
         $this->setDbIndex('toStore');
@@ -287,6 +301,18 @@ class store_Transfers extends core_Master
             if (!$Detail->fetchField("#{$Detail->masterKey} = {$rec->id}")) {
                 $requiredRoles = 'no_one';
             }
+
+            // От заявка няма връщане в чернова
+            if (isset($rec->state) && $rec->state == 'pending') {
+                $requiredRoles = 'no_one';
+            }
+        }
+
+        if (($action == 'pendingloading' || $action == 'pendingexecution') && isset($rec)) {
+            $stage = ($action == 'pendingloading') ? 'loading' : 'execution';
+            if (!$mvc->canChangePendingStage($rec, $stage, $userId)) {
+                $requiredRoles = 'no_one';
+            }
         }
 
         // Ако ще се създава към документ да трябва да се създава само към ПОП за получени чужди артикули
@@ -302,6 +328,133 @@ class store_Transfers extends core_Master
                     $requiredRoles = 'no_one';
                 }
             }
+        }
+    }
+
+
+    /**
+     * Етапите на заявката като допълнителни опции на филтъра по състояние
+     */
+    protected static function on_AfterGetStateFilterOptions($mvc, &$stateOptions)
+    {
+        $stateOptions += array('loading' => 'Натоварено', 'execution' => 'Изпълнено');
+    }
+
+
+    /**
+     * Филтриране по етап на заявката
+     */
+    protected static function on_AfterPrepareListFilter($mvc, &$data)
+    {
+        $fState = $data->listFilter->rec->fState ?? null;
+        if ($fState == 'loading' || $fState == 'execution') {
+            $data->query->where("#state = 'pending' AND #pendingStage = '{$fState}'");
+        }
+    }
+
+
+    /**
+     * След като документът стане заявка - запомняме кога е станало
+     */
+    protected static function on_AfterSavePendingDocument($mvc, $rec)
+    {
+        if (empty($rec->pendingOn)) {
+            $rec->pendingOn = dt::now();
+            $mvc->save_($rec, 'pendingOn');
+        }
+    }
+
+
+    /**
+     * Може ли заявката да мине в посочения етап - от изпълнение назад не се връщаме
+     *
+     * @param stdClass $rec
+     * @param string   $stage  - loading|execution
+     * @param int|NULL $userId
+     *
+     * @return bool
+     */
+    public function canChangePendingStage($rec, $stage, $userId = null)
+    {
+        if (($rec->state ?? null) != 'pending') {
+
+            return false;
+        }
+
+        $current = $rec->pendingStage ?? null;
+        if ($current == $stage || $current == 'execution') {
+
+            return false;
+        }
+
+        // Натоварването е от изходящия склад, изпълнението - от входящия
+        $storeId = ($stage == 'loading') ? ($rec->fromStore ?? null) : ($rec->toStore ?? null);
+
+        return !empty($storeId) && bgerp_plg_FLB::canUse('store_Stores', $storeId, $userId, 'activate');
+    }
+
+
+    /**
+     * В коя колона на детайла се записва въведеното количество
+     *
+     * @param mixed $rec - ид или запис на трансфера
+     *
+     * @return string
+     */
+    public static function getQuantityFieldName($rec)
+    {
+        $rec = static::fetchRec($rec, 'state,pendingStage');
+
+        if ($rec->state == 'pending' && !empty($rec->pendingStage)) {
+
+            return ($rec->pendingStage == 'loading') ? 'loadedQuantity' : 'executedQuantity';
+        }
+
+        return 'requestedQuantity';
+    }
+
+
+    /**
+     * Екшън за преминаване на заявката в етап "Натоварване" или "Изпълнение"
+     */
+    public function act_ChangePendingStage()
+    {
+        $stage = Request::get('stage', 'varchar');
+        expect(in_array($stage, array('loading', 'execution')), $stage);
+        $this->requireRightFor("pending{$stage}");
+        expect($id = Request::get('id', 'int'));
+        expect($rec = $this->fetch($id));
+        $this->requireRightFor("pending{$stage}", $rec);
+
+        $rec->pendingStage = $stage;
+        $this->save($rec, 'pendingStage');
+        $this->touchRec($rec->id);
+        $this->logWrite(($stage == 'loading') ? 'Започва натоварване' : 'Започва изпълнение', $rec->id);
+
+        $res = getRetUrl();
+        if (empty($res)) {
+            $res = $this->getSingleUrlArray($rec->id);
+        }
+
+        return new Redirect($res);
+    }
+
+
+    /**
+     * След подготовка на тулбара на сингъла
+     */
+    protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
+    {
+        $stages = array('loading' => array('Натоварване', 'img/16/lorry_go.png'), 'execution' => array('Изпълнение', 'img/16/package.png'));
+
+        foreach ($stages as $stage => $params) {
+            if (!$mvc->haveRightFor("pending{$stage}", $data->rec)) {
+                continue;
+            }
+
+            list($caption, $icon) = $params;
+            $url = array($mvc, 'changePendingStage', $data->rec->id, 'stage' => $stage, 'ret_url' => true);
+            $data->toolbar->addBtn($caption, $url, "id=btnStage{$stage},warning=Наистина ли желаете документът да мине в|* \"{$caption}\"?,row=1", "ef_icon={$icon},title=Преминаване на заявката в|* \"{$caption}\"");
         }
     }
 
@@ -351,6 +504,14 @@ class store_Transfers extends core_Master
                 $row->createdOn = $mvc->getVerbal($rec, 'createdOn');
                 $row->title .= "<span class='fright'>" . $row->createdOn . ' ' . tr('от') . ' ' . $row->createdBy . '</span>';
             }
+        }
+
+        // Етапът има значение само докато документът е на заявка
+        if (empty($rec->pendingStage) || $rec->state != 'pending') {
+            unset($row->pendingStage);
+        } else {
+            $color = ($rec->pendingStage == 'loading') ? '#ef6c00' : '#2e7d32';
+            $row->pendingStage = "<span style='display:inline-block;background:{$color};color:#fff;font-weight:bold;padding:2px 12px;border-radius:10px;'>{$row->pendingStage}</span>";
         }
 
         if ($rec->state != 'pending') {
@@ -459,7 +620,7 @@ class store_Transfers extends core_Master
     {
         $res = array();
         $dQuery = store_TransfersDetails::getQuery();
-        $dQuery->EXT('state', 'store_Transfers', 'externalKey=transferId');
+        $dQuery->EXT('mState', 'store_Transfers', 'externalName=state,externalKey=transferId');
         $dQuery->where("#transferId = '{$id}'");
         while ($dRec = $dQuery->fetch()) {
             $cid = cat_Products::fetchField($dRec->newProductId, 'containerId');
