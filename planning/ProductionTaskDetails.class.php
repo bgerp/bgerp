@@ -1869,9 +1869,10 @@ class planning_ProductionTaskDetails extends doc_Detail
         $titleArr = array('production' => 'прогрес', 'input' => 'влагане', 'waste' => 'отпадък', 'scrap' => 'брак');
         $data->singleTitle = $titleArr[$rec->type ?? null] ?? 'прогрес';
 
-        // Титлата на таба в браузъра, за да се различават отворените операции
+        // Титлата на таба в браузъра - артикула от заданието и номера на операцията
         if (isset($rec->taskId)) {
-            $data->pageTitle = '#' . planning_Tasks::getHandle($rec->taskId) . ' - ' . tr($data->singleTitle);
+            $jobProductId = planning_Jobs::fetchField("#containerId = {$data->masterRec->originId}", 'productId');
+            $data->pageTitle = cat_Products::getTitleById($jobProductId, false) . ' - #' . planning_Tasks::getHandle($rec->taskId);
         }
     }
 
