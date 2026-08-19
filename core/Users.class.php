@@ -1146,7 +1146,7 @@ class core_Users extends core_Manager
     {
         $addRoles = '';
         $row->lastLoginTime = $mvc->getVerbal($rec, 'lastLoginTime');
-        $row->lastLoginIp = type_Ip::decorateIp($rec->lastLoginIp, $rec->lastLoginTime);
+        $row->lastLoginIp = type_Ip::decorateIp($rec->lastLoginIp ?? null, $rec->lastLoginTime ?? null);
         $row->nick = $mvc->getVerbal($rec, 'nick');
         $row->email = $mvc->getVerbal($rec, 'email');
         $row->names = $mvc->getVerbal($rec, 'names');
@@ -1166,8 +1166,8 @@ class core_Users extends core_Manager
         
         $row->last->append($row->lastLoginTime);
         
-        $rolesInputArr = keylist::toArray($rec->rolesInput);
-        $rolesArr = keylist::toArray($rec->roles);
+        $rolesInputArr = keylist::toArray($rec->rolesInput ?? null);
+        $rolesArr = keylist::toArray($rec->roles ?? null);
         
         foreach ($rolesArr as $roleId) {
             if (!isset($rolesInputArr[$roleId])) {
@@ -1179,7 +1179,7 @@ class core_Users extends core_Manager
             $row->rolesInput = ($row->rolesInput ?? '') . "<div style='color:#666;'>" . tr('индиректно') . ': ' . $addRoles . '</div>';
         }
         
-        $row->rolesInput = "<div style='max-width:400px;'>{$row->rolesInput}</div>";
+        $row->rolesInput = "<div style='max-width:400px;'>" . ($row->rolesInput ?? '') . '</div>';
     }
     
     
