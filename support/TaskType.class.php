@@ -849,9 +849,10 @@ class support_TaskType extends core_Mvc
             $productId = $Source->fetchField('productId');
 
             // От наличните етапи остават САМО онези, които са без посочен етап или са за този от операцията
+            $stepId = $rec->stepId ?? null;
             $sQuery = doc_UnsortedFolderSteps::getQuery();
             $sQuery->in('id', array_keys($res));
-            $sQuery->where("#productSteps IS NULL OR LOCATE('|{$productId}|', #productSteps) OR #id = '{$rec->stepId}'");
+            $sQuery->where("#productSteps IS NULL OR LOCATE('|{$productId}|', #productSteps) OR #id = '{$stepId}'");
             $sQuery->show('id,productSteps');
             $res = array_intersect_key($res, arr::extractValuesFromArray($sQuery->fetchAll(), 'id'));
         }
