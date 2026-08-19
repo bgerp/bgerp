@@ -35,10 +35,10 @@ class cms_GalleryTitlePlg extends core_Plugin
     public function on_AfterDescription(&$mvc)
     {
         // Записваме стойността в инстанцията
-        $mvc->galleryTitleFieldName = $mvc->galleryTitleFieldName ? $mvc->galleryTitleFieldName : 'title';
+        $mvc->galleryTitleFieldName = !empty($mvc->galleryTitleFieldName) ? $mvc->galleryTitleFieldName : 'title';
         
         // Ако няма такова поле
-        if (!$mvc->fields[$mvc->galleryTitleFieldName]) {
+        if (empty($mvc->fields[$mvc->galleryTitleFieldName])) {
             
             // Добавяне на полето
             $mvc->FLD($mvc->galleryTitleFieldName, 'varchar(' . CMS_GALLERY_TITLE_LEN . ')', 'caption=Заглавие, width=100%');
@@ -109,7 +109,7 @@ class cms_GalleryTitlePlg extends core_Plugin
             while ($fRec = ($mvc->fetch("#{$titleFieldName} = '{$recTitleNew}'"))) {
                 
                 // Ако редактираме текущия запис, да не се порменя
-                if ($fRec->id == $rec->id) {
+                if ($fRec->id == ($rec->id ?? null)) {
                     break;
                 }
                 

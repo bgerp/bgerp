@@ -276,7 +276,7 @@ class cms_Domains extends core_Embedder
         $serverName = $_SERVER['SERVER_NAME'] ?? '';
         $domain = strtolower(trim($serverName));
         
-        if (!$domainRec || (isset($lang) && $domainRec->lang != $lang) || ($domainRec->actualDomain != $domain)) {
+        if (!$domainRec || (isset($lang) && $domainRec->lang != $lang) || (($domainRec->actualDomain ?? null) != $domain)) {
             $domainRecs = self::findPublicDomainRecs();
             
             $cmsLangs = self::getCmsLangs($domainRecs);
@@ -360,6 +360,11 @@ class cms_Domains extends core_Embedder
     public static function setPublicDomain($id)
     {
         $rec = self::fetch($id);
+        
+        if (empty($rec)) {
+            
+            return;
+        }
 
         // Задаваме действителния домейн, на който е намерен този
         $rec->actualDomain = strtolower(trim($_SERVER['SERVER_NAME'] ?? ''));
@@ -623,6 +628,11 @@ class cms_Domains extends core_Embedder
     {
         if (empty($rec->domain) || empty($rec->lang)) {
             $rec = self::fetch($rec->id);
+            
+            if (empty($rec)) {
+                
+                return '';
+            }
         }
         
         $title = "{$rec->domain}, {$rec->lang}";
