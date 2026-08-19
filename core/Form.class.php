@@ -1409,6 +1409,11 @@ class core_Form extends core_FieldSet
      */
     public function renderHtml_($fields = null, $vars = null)
     {
+        $canBeInputForm =
+            strtolower($this->view) != 'horizontal' &&
+            strtolower($this->class ?? '') != 'simpleform' &&
+            !Mode::is('staticFormView');
+
         $this->formAttr['id'] = $this->formAttr['id'] ?? str::getRand();
         $this->smartSet('showFields', arr::make($fields, true));
         $this->smartSet('renderVars', arr::make($vars, true));
@@ -1429,6 +1434,14 @@ class core_Form extends core_FieldSet
         foreach ($views as $view) {
             $method = 'render' . $view;
             $tpl->append($this->$method(), "FORM_{$view}");
+        }
+
+        // Проверяваме действителния HTML, защото специален лейаут може да не
+        // използва FORM_ATTR и тогава браузърът приема формата за GET.
+        if ($canBeInputForm && preg_match('/<form\b[^>]*\bmethod\s*=\s*["\']?post\b/i', $tpl->content)) {
+            // Маркерът се пренася от ET само ако формата действително попадне
+            // в крайното съдържание на страницата.
+            $tpl->push(true, 'POST_INPUT_FORM_FAVICON');
         }
 
         jquery_Jquery::run($tpl, 'alignFormFilterButtons();');

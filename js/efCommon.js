@@ -4937,6 +4937,9 @@ function prepareFavIcon(iconPath) {
  */
 function setFavIcon(icon) {
     if (icon) {
+        // В страницата трябва да остава само една активна favicon връзка.
+        // Иначе различните браузъри могат да продължат да показват старата.
+        $('link[rel~="icon"]').remove();
         $('head').append(icon);
     }
 }
