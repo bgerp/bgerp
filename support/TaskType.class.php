@@ -292,7 +292,7 @@ class support_TaskType extends core_Mvc
                 if($SourceFolderCover->isInstanceOf('planning_Centers')){
                     $supportUsers = $SourceFolderCover->fetchField('supportUsers');
                     if(!empty($supportUsers)){
-                        $res = keylist::merge($supportUsers, $rec->assing);
+                        $res = keylist::merge($supportUsers, $rec->assign ?? null);
                     }
                 }
             }
