@@ -80,7 +80,7 @@ class store_TransfersDetails extends doc_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'newProductId, packagingId, packQuantity=К-во, requestedQuantity=Заяв., loadedQuantity=Натов., executedQuantity=Изпълн., weight=Тегло, volume=Обем, transUnitId = ЛЕ';
+    public $listFields = 'newProductId, packagingId, packQuantity=К-во, requestedQuantity=Заяв., loadedQuantity=Изпр., executedQuantity=Получ., weight=Тегло, volume=Обем, transUnitId = ЛЕ';
     
     
     /**
@@ -153,8 +153,8 @@ class store_TransfersDetails extends doc_Detail
 
         // К-та по етапи - в основна мярка, като #quantity (@see store_Transfers::getQuantityFieldName)
         $this->FLD('requestedQuantity', 'double', 'caption=Заявено,smartCenter,tdClass=stageCol');
-        $this->FLD('loadedQuantity', 'double', 'caption=Натоварено,smartCenter,tdClass=stageCol');
-        $this->FLD('executedQuantity', 'double', 'caption=Изпълнено,smartCenter,tdClass=stageCol');
+        $this->FLD('loadedQuantity', 'double', 'caption=Изпратено,smartCenter,tdClass=stageCol');
+        $this->FLD('executedQuantity', 'double', 'caption=Получено,smartCenter,tdClass=stageCol');
 
         $this->setDbIndex('newProductId');
     }

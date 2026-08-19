@@ -103,13 +103,13 @@ class store_Transfers extends core_Master
 
 
     /**
-     * Кой може да прехвърли заявката в етап "Натоварване"?
+     * Кой може да прехвърли заявката в етап "Изпращане"?
      */
     public $canPendingloading = 'ceo,store';
 
 
     /**
-     * Кой може да прехвърли заявката в етап "Изпълнение"?
+     * Кой може да прехвърли заявката в етап "Получаване"?
      */
     public $canPendingexecution = 'ceo,store';
 
@@ -221,7 +221,7 @@ class store_Transfers extends core_Master
     /**
      * Поле за филтриране по дата
      */
-    public $filterDateField = 'createdOn, modifiedOn, valior, readyOn, deliveryTime, shipmentOn, deliveryOn';
+    public $filterDateField = 'createdOn, modifiedOn, valior, pendingOn, readyOn, deliveryTime, shipmentOn, deliveryOn';
 
 
     /**
@@ -277,7 +277,7 @@ class store_Transfers extends core_Master
         $this->FLD('detailOrderBy', 'enum(auto=Автоматично,creation=Ред на създаване,code=Код,reff=Ваш №)', 'caption=Артикули->Подреждане по,notNull,value=auto');
         $this->FLD('note', 'richtext(bucket=Notes,rows=3)', 'caption=Допълнително->Бележки');
         $this->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Оттеглен,stopped=Спряно, pending=Заявка)', 'caption=Състояние, input=none');
-        $this->FLD('pendingStage', 'enum(,loading=Натоварване,execution=Изпълнение)', 'caption=Заявка->Етап,input=none,column=none');
+        $this->FLD('pendingStage', 'enum(,loading=Изпращане,execution=Получаване)', 'caption=Заявка->Етап,input=none,column=none');
         $this->FLD('pendingOn', 'datetime(format=smartTime)', 'caption=Заявка->Заявено на,input=none,column=none');
 
         $this->setDbIndex('fromStore');
@@ -337,7 +337,7 @@ class store_Transfers extends core_Master
      */
     protected static function on_AfterGetStateFilterOptions($mvc, &$stateOptions)
     {
-        $stateOptions += array('loading' => 'Натоварено', 'execution' => 'Изпълнено');
+        $stateOptions += array('loading' => 'Изпратено', 'execution' => 'Получено');
     }
 
 
@@ -374,20 +374,14 @@ class store_Transfers extends core_Master
      *
      * @return bool
      */
-    public function canChangePendingStage($rec, $stage, $userId = null)
+    protected function canChangePendingStage($rec, $stage, $userId = null)
     {
-        if (($rec->state ?? null) != 'pending') {
-
-            return false;
-        }
+        if (($rec->state ?? null) != 'pending') return false;
 
         $current = $rec->pendingStage ?? null;
-        if ($current == $stage || $current == 'execution') {
+        if ($current == $stage || $current == 'execution') return false;
 
-            return false;
-        }
-
-        // Натоварването е от изходящия склад, изпълнението - от входящия
+        // Изпращането е от изходящия склад, получаването - от входящия
         $storeId = ($stage == 'loading') ? ($rec->fromStore ?? null) : ($rec->toStore ?? null);
 
         return !empty($storeId) && bgerp_plg_FLB::canUse('store_Stores', $storeId, $userId, 'activate');
@@ -415,7 +409,7 @@ class store_Transfers extends core_Master
 
 
     /**
-     * Екшън за преминаване на заявката в етап "Натоварване" или "Изпълнение"
+     * Екшън за преминаване на заявката в етап "Изпращане" или "Получаване"
      */
     public function act_ChangePendingStage()
     {
@@ -428,8 +422,13 @@ class store_Transfers extends core_Master
 
         $rec->pendingStage = $stage;
         $this->save($rec, 'pendingStage');
+
+        if ($stage == 'execution') {
+            $this->fillExecutedQuantities($rec->id);
+        }
+
         $this->touchRec($rec->id);
-        $this->logWrite(($stage == 'loading') ? 'Започва натоварване' : 'Започва изпълнение', $rec->id);
+        $this->logWrite(($stage == 'loading') ? 'Започва изпращане' : 'Започва получаване', $rec->id);
 
         $res = getRetUrl();
         if (empty($res)) {
@@ -441,11 +440,33 @@ class store_Transfers extends core_Master
 
 
     /**
+     * При започване на получаването се очаква да се получи изпратеното - предварително
+     * се попълва текущото к-во, а получателят коригира само редовете с разлика
+     *
+     * @param int $id
+     *
+     * @return void
+     */
+    private function fillExecutedQuantities($id)
+    {
+        $Detail = cls::get($this->mainDetail);
+
+        // Директен запис, за да не се правят ревизии на редовете (@see doc_plg_DetailRevisions)
+        $dQuery = $Detail->getQuery();
+        $dQuery->where("#{$Detail->masterKey} = {$id}");
+        while ($dRec = $dQuery->fetch()) {
+            $dRec->executedQuantity = $dRec->quantity;
+            $Detail->save_($dRec, 'executedQuantity');
+        }
+    }
+
+
+    /**
      * След подготовка на тулбара на сингъла
      */
     protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
-        $stages = array('loading' => array('Натоварване', 'img/16/lorry_go.png'), 'execution' => array('Изпълнение', 'img/16/package.png'));
+        $stages = array('loading' => array('Изпращане', 'img/16/lorry_go.png'), 'execution' => array('Получаване', 'img/16/package.png'));
 
         foreach ($stages as $stage => $params) {
             if (!$mvc->haveRightFor("pending{$stage}", $data->rec)) {
