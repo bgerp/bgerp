@@ -152,7 +152,7 @@ class cms_Profiles extends core_Master
         $data->toolbar->removeBtn('btnPrint');
         
         // Подмяна на линка за смяна на паролата
-        $data->User->row->password = substr($data->User->row->password, 0, 7);
+        $data->User->row->password = substr((string) ($data->User->row->password ?? ''), 0, 7);
         $changePassUrl = array($this, 'ChangePassword', 'ret_url' => true);
         $data->User->row->password .= ' ' . ht::createLink('(' . tr('смяна') . ')', $changePassUrl, false, 'title=Смяна на парола');
     }
@@ -177,7 +177,7 @@ class cms_Profiles extends core_Master
                 // Записваме данните
                 if (core_Users::setPassword($form->rec->passNewHash)) {
                     // Правим запис в лога
-                    $this->Profile->logWrite('Промяна на парола', $form->rec->id);
+                    $this->Profile->logWrite('Промяна на парола', $form->rec->id ?? null);
                     
                     // Редиректваме към предварително установения адрес
                     return new Redirect(getRetUrl(), '|Паролата е сменена успешно');
