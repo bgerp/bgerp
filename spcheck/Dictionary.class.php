@@ -137,12 +137,12 @@ class spcheck_Dictionary extends core_Manager
         
         // Ако е подадена дума на кирилица, но езикът не е
         $cLgArr = array('bg' => 'bg', 'ru' => 'ru', 'mk' => 'mk', 'sr' => 'sr');
-        if ($isCLg && !$cLgArr[$lg]) {
+        if ($isCLg && empty($cLgArr[$lg])) {
             if (!i18n_Charset::is7Bit($word)) {
                 if (!isset($defNon7BitLg)) {
                     $langArr = arr::make(EF_LANGUAGES, true);
                     foreach ($cLgArr as $cLg) {
-                        if ($langArr[$cLg]) {
+                        if (!empty($langArr[$cLg])) {
                             $defNon7BitLg = $cLg;
                             break;
                         }
@@ -154,7 +154,7 @@ class spcheck_Dictionary extends core_Manager
             }
         }
         
-        if ($cLgArr[$lg] && i18n_Charset::is7Bit($word)) {
+        if (!empty($cLgArr[$lg]) && i18n_Charset::is7Bit($word)) {
             $lg = 'en';
         }
         
