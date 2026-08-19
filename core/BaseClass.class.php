@@ -258,6 +258,7 @@ class core_BaseClass
      */
     public function __call($method, $args)
     {
+        $flag = false;
         $argsHnd = array(&$res);
         $argsMtd = array();
         
