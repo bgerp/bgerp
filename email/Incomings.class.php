@@ -1420,6 +1420,10 @@ class email_Incomings extends core_Master
         $allEmailToArr = array();
         
         foreach ((array) $emailsArr as $emailArr) {
+            if (empty($emailArr['address'])) {
+                continue;
+            }
+            
             $email = trim($emailArr['address']);
             $email = strtolower($email);
             
@@ -1428,6 +1432,7 @@ class email_Incomings extends core_Master
         
         $closestEmail = email_Inboxes::getClosest($allEmailToArr, false, false);
         
+        $isString = false;
         if (is_string($body)) {
             $isString = true;
         }
@@ -1468,7 +1473,7 @@ class email_Incomings extends core_Master
                 continue;
             }
             
-            if (!self::checkEmailIsExist($emailArr['address'], $pEmailsFromName)) {
+            if (!self::checkEmailIsExist($emailArr['address'] ?? '', $pEmailsFromName)) {
                 
                 return false;
             }
@@ -1647,6 +1652,10 @@ class email_Incomings extends core_Master
         // Масив само с имейлите
         $allEmailToArr = array();
         foreach ((array) $emailsArr as $emailArr) {
+            if (empty($emailArr['address'])) {
+                continue;
+            }
+            
             $allEmailToArr[] = $emailArr['address'];
         }
         
@@ -1659,7 +1668,7 @@ class email_Incomings extends core_Master
         // Отбелязваме, кои имейли са външни
         if ($otherAllEmailToArr) {
             foreach ((array) $emailsArr as $key => $emailArr) {
-                if (!$emailArr['address']) {
+                if (empty($emailArr['address'])) {
                     continue;
                 }
                 

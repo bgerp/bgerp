@@ -1311,7 +1311,7 @@ class email_Mime extends core_BaseClass
         $res = '';
         if (countR($list)) {
             foreach ($list as $item) {
-                $address = $item['address'];
+                $address = $item['address'] ?? null;
                 
                 if ($address) {
                     if (!empty($item['isExternal'])) {
