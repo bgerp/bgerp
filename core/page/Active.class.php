@@ -28,6 +28,7 @@ class core_page_Active extends page_Html
     protected static $inputFormActions = array(
         'add',
         'edit',
+        'config',
         'manage',
         'save',
         'changefields',
