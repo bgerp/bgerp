@@ -279,8 +279,11 @@ class doc_plg_DetailRevisions extends core_Plugin
      */
     public static function orderByRevisionGroup($query, $priority = 0)
     {
-        $query->XPR('revisionGroupId', 'int', 'IF(#revisionRootId > 0, #revisionRootId, #id)');
-        $query->XPR('revisionIsRejected', 'int', "IF(#state = 'rejected', 1, 0)");
+        // Може да се извика няколко пъти за една заявка - XPR не приема дублирано име
+        if (!$query->getField('revisionGroupId', false)) {
+            $query->XPR('revisionGroupId', 'int', 'IF(#revisionRootId > 0, #revisionRootId, #id)');
+            $query->XPR('revisionIsRejected', 'int', "IF(#state = 'rejected', 1, 0)");
+        }
 
         $query->orderBy('#revisionGroupId', 'ASC', $priority);
         $query->orderBy('#revisionIsRejected', 'ASC', $priority);
