@@ -45,7 +45,7 @@ class cond_type_Text extends cond_type_abstract_Proto
      */
     protected static function on_AfterPrepareEditForm(cond_type_abstract_Proto $Driver, embed_Manager $Embedder, &$data)
     {
-        if($data->form->rec->richtext == 'yes'){
+        if(($data->form->rec->richtext ?? null) == 'yes'){
             $data->form->setField('parser', 'input=none');
         }
     }
@@ -69,7 +69,8 @@ class cond_type_Text extends cond_type_abstract_Proto
             $params['rows'] = $rec->rows;
         }
 
-        if($rec->richtext == 'yes'){
+        // Наследниците може да нямат това поле (@see cond_type_Formula)
+        if(($rec->richtext ?? null) == 'yes'){
             $params['bucket'] = 'Notes';
             $params['passage'] = 'passage';
             $Type = cls::get('type_Richtext', array('params' => $params));
@@ -94,7 +95,7 @@ class cond_type_Text extends cond_type_abstract_Proto
     public function toVerbal($rec, $domainClass, $domainId, $value)
     {
         if(Mode::is('dontVerbalizeText') || Mode::is('printLabel')) return $value;
-        if($rec->richtext == 'yes'){
+        if(($rec->richtext ?? null) == 'yes'){
             $Type = cls::get('type_RichText');
         } else {
             // Ако има посочен парсатор

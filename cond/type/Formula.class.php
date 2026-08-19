@@ -322,7 +322,8 @@ class cond_type_Formula extends cond_type_Text
     protected static function on_BeforeSave(cond_type_abstract_Proto $Driver, embed_Manager $Embedder, &$res, $rec)
     {
         if(isset($rec->id)){
-            $rec->_oldFormula = $Embedder->fetch($rec->id, '*', false)->formula;
+            $exRec = $Embedder->fetch($rec->id, '*', false);
+            $rec->_oldFormula = !empty($exRec) ? $exRec->formula : null;
         }
     }
 
@@ -339,7 +340,7 @@ class cond_type_Formula extends cond_type_Text
     protected static function on_AfterSave(cond_type_abstract_Proto $Driver, embed_Manager $Embedder, &$res, $rec)
     {
         if(isset($rec->_oldFormula)){
-            if(md5(str::removeWhiteSpace($rec->_oldFormula)) != md5(str::removeWhiteSpace($rec->formula))){
+            if(md5(str::removeWhiteSpace($rec->_oldFormula)) != md5(str::removeWhiteSpace($rec->formula ?? ''))){
                 cat_ParamFormulaVersions::log($rec->id, $rec->_oldFormula, $rec->formula);
             }
         }
