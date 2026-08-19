@@ -899,6 +899,8 @@ class core_String
      */
     public static function prepareMathExpr($expr, $contex = array())
     {  
+        $expr = ($expr === null || $expr === false) ? '' : (string) $expr;
+        
         // Ако има променливи, заместваме ги в израза
         if (countR($contex)) {
             uksort($contex, 'str::sortByLengthReverse');
@@ -947,23 +949,31 @@ class core_String
             $expr = self::prepareMathExpr($expr);
         }
        
-        if (strlen($expr)) {
-            set_error_handler(function ($errno, $errstr) {
-                throw new Exception("{$errno}: {$errstr}");
-            });
-            try {
-                eval('$result = ' . $expr . ';');
-            } catch (Exception $t) {
-                $error = $t->getMessage();
-                $result = null;
-                $success = false;
-            } catch (Throwable $t) {
-                $error = $t->getMessage();
-                $result = null;
-                $success = false;
-            }
-            restore_error_handler();
+        $result = null;
+        $expr = ($expr === false || $expr === null) ? '' : (string) $expr;
+        
+        // Ако изразът е невалиден или празен, няма какво да се смята
+        if (!strlen($expr)) {
+            $success = false;
+            
+            return $result;
         }
+        
+        set_error_handler(function ($errno, $errstr) {
+            throw new Exception("{$errno}: {$errstr}");
+        });
+        try {
+            eval('$result = ' . $expr . ';');
+        } catch (Exception $t) {
+            $error = $t->getMessage();
+            $result = null;
+            $success = false;
+        } catch (Throwable $t) {
+            $error = $t->getMessage();
+            $result = null;
+            $success = false;
+        }
+        restore_error_handler();
         
         return $result;
     }
