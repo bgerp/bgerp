@@ -232,7 +232,7 @@ class distro_Group extends core_Master
         if ($action == 'single') {
 
             // Ако нямаме права в нишката
-            if (!doc_Threads::haveRightFor('single', $rec->threadId, $userId)) {
+            if (!doc_Threads::haveRightFor('single', $rec->threadId ?? null, $userId)) {
 
                 // Никой да не може
                 $requiredRoles = 'no_one';
@@ -249,7 +249,7 @@ class distro_Group extends core_Master
                 $requiredRoles = 'no_one';
             }
             
-            if ($rec && (!$rec->repos || $rec->state == 'draft' || $rec->state == 'rejected')) {
+            if ($rec && (empty($rec->repos) || $rec->state == 'draft' || $rec->state == 'rejected')) {
                 $requiredRoles = 'no_one';
             }
         }
@@ -268,7 +268,7 @@ class distro_Group extends core_Master
         if (!empty($rec->id)) {
             $rRec = $mvc->fetch($rec->id);
             
-            if ($rRec->repos) {
+            if (!empty($rRec->repos)) {
                 $dRepoArr = $mvc->getDuplicateFileRepoId($rRec);
                 
                 if (!empty($dRepoArr)) {
@@ -289,7 +289,7 @@ class distro_Group extends core_Master
     public static function on_AfterActivation($mvc, &$rec)
     {
         // Ако са избрани хранилища
-        if ($rec->repos) {
+        if (!empty($rec->repos)) {
             
             // Масив с хранилищата
             $reposArr = type_Keylist::toArray($rec->repos);
@@ -337,7 +337,7 @@ class distro_Group extends core_Master
     protected function getDuplicateFileRepoId($rec)
     {
         $resArr = array();
-        if ($rec->repos) {
+        if (!empty($rec->repos)) {
             
             // Масив с хранилищата
             $reposArr = type_Keylist::toArray($rec->repos);
@@ -370,6 +370,7 @@ class distro_Group extends core_Master
     {
         $rec = self::fetchRec($rec);
         
+        $haveAbbr = false;
         $title = $rec->title;
         
         // Ако в заглавието има хендлър на документ, да се използва то
@@ -379,7 +380,7 @@ class distro_Group extends core_Master
             $abbr = strtoupper($matches['abbr'][$key]);
             $mId = $matches['id'][$key];
             
-            $clsName = $abbrArr[$abbr];
+            $clsName = $abbrArr[$abbr] ?? null;
             
             if ($clsName && cls::load($clsName, true) && $mId && is_numeric($mId)) {
                 $haveAbbr = true;
@@ -422,6 +423,11 @@ class distro_Group extends core_Master
         // Вземаме записа
         $rec = static::fetch($id);
         
+        if (empty($rec)) {
+            
+            return false;
+        }
+        
         // Ако състоянието не е актвино
         if ($rec->state != 'active') {
             
@@ -452,7 +458,7 @@ class distro_Group extends core_Master
         $rec = static::fetch($id);
         
         // Масив с хранилищатата
-        $reposArr = type_Keylist::toArray($rec->repos);
+        $reposArr = type_Keylist::toArray($rec->repos ?? null);
         
         // Обхождаме масива
         foreach ((array) $reposArr as $repoId) {
@@ -525,11 +531,11 @@ class distro_Group extends core_Master
         $fQuery->where(array("#groupId = '[#1#]'", $rec->id));
         
         while ($dfRec = $fQuery->fetch()) {
-            if (!trim($dfRec->sourceFh)) {
+            if (!strlen(trim((string) $dfRec->sourceFh))) {
                 continue;
             }
             
-            if ($resArr[$dfRec->sourceFh]) {
+            if (isset($resArr[$dfRec->sourceFh])) {
                 continue;
             }
             
@@ -610,23 +616,23 @@ class distro_Group extends core_Master
     {
         // Използваме заглавието на първия документ в нишката или на originId
         $rec = $data->form->rec;
-        if (empty($rec->id) && !$rec->title) {
+        if (empty($rec->id) && empty($rec->title)) {
             $cid = null;
             
             //Ако имаме originId
-            if ($rec->originId) {
+            if (!empty($rec->originId)) {
                 $cid = $rec->originId;
-            } elseif ($rec->threadId) {
+            } elseif (!empty($rec->threadId)) {
                 
                 // Ако добавяме коментар в нишката
-                $cid = doc_Threads::fetch($rec->threadId)->firstContainerId;
+                $tRec = doc_Threads::fetch($rec->threadId);
+                $cid = !empty($tRec) ? $tRec->firstContainerId : null;
             }
             
             if (isset($cid)) {
                 $oDoc = doc_Containers::getDocument($cid);
                 $oRow = $oDoc->getDocumentRow();
-                $title = $oRow->recTitle ? $oRow->recTitle : $oRow->title;
-                $rec->title = html_entity_decode($oRow->recTitle, ENT_COMPAT | ENT_HTML401, 'UTF-8');
+                $rec->title = html_entity_decode($oRow->recTitle ?? '', ENT_COMPAT | ENT_HTML401, 'UTF-8');
             }
         }
     }
