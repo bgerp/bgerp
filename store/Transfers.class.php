@@ -337,7 +337,7 @@ class store_Transfers extends core_Master
      */
     protected static function on_AfterGetStateFilterOptions($mvc, &$stateOptions)
     {
-        $stateOptions += array('loading' => 'Изпратено', 'execution' => 'Получено');
+        $stateOptions += array('loading' => 'Изпратено (Заявка)', 'execution' => 'Получено (Заявка)');
     }
 
 
