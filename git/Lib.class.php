@@ -428,7 +428,7 @@ class git_Lib
         $ref2 = escapeshellarg("origin/{$branch2}");
 
         if (!self::cmdExec("diff -w {$ref1} {$ref2}", $res, $repoPath)) {
-            $log[] = "[{$repoName}]: Неуспешно извличане на diff {$branch1} -> {$branch2}";
+            $log[] = "[{$repoName}]: Неуспешно извличане на diff {$branch1} -> {$branch2}: " . implode("\n", (array) $res);
 
             return false;
         }
