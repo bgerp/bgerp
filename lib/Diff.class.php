@@ -103,6 +103,9 @@ class lib_Diff
                     $res[$last - 2]->str .= $res[$last - 1]->str . $res[$last]->str;
                     $res[$last - 2]->del .= $res[$last - 1]->str . $res[$last]->del;
                     unset($res[$last], $res[$last - 1]);
+                    
+                    // Преиндексиране - иначе следващите добавяния получават по-голям ключ от броя
+                    $res = array_values($res);
                 }
             }
             
