@@ -441,7 +441,7 @@ class csv_Lib
                 } elseif ($type instanceof fileman_FileSize) {
                     $value = $type->toVerbal($fldValue);
                 } else {
-                    $value = $fldValue ?? null;
+                    $value = $fldValue;
                 }
                 Mode::pop('text-export');
                 Mode::pop('text');
