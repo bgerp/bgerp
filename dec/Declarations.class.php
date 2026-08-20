@@ -185,7 +185,7 @@ class dec_Declarations extends core_Master
     public static function on_AfterDescription(core_Master &$mvc)
     {
         // рефрешваме формата при избор на шаблон
-        //$mvc->setField('template', 'silent,removeAndRefreshForm=statements');
+        $mvc->setField('template', 'silent,removeAndRefreshForm=statements');
     }
 
 
