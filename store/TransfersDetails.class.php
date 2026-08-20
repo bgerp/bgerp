@@ -288,38 +288,6 @@ class store_TransfersDetails extends doc_Detail
             $deliveryDate = !empty($data->masterData->rec->deliveryTime) ? $data->masterData->rec->deliveryTime : $data->masterData->rec->valior;
             deals_Helper::getQuantityHint($row->packQuantity, $mvc, $rec->newProductId, $data->masterData->rec->fromStore, $rec->quantity, $data->masterData->rec->state, $deliveryDate);
         }
-
-        // Преномериране по ревизионни групи - plg_RowNumbering номерира преди групирането
-        $showIds = doc_plg_MasterRevision::getRequestedMasterIds($mvc->Master);
-        if (!in_array($data->masterId, $showIds)) {
-
-            return;
-        }
-
-        $activeGroups = doc_plg_DetailRevisions::groupsWithActiveRow($data->recs);
-        $numByGroup = array();
-        $number = 1;
-
-        foreach ($data->rows as $id => $row) {
-            if (!isset($data->recs[$id])) {
-                continue;
-            }
-
-            $rec = $data->recs[$id];
-            $groupId = $rec->revisionRootId ?: $rec->id;
-            if (!isset($numByGroup[$groupId])) {
-                $numByGroup[$groupId] = $number++;
-            }
-
-            if (($rec->state ?? null) == 'rejected') {
-                $row->RowNumb = '';
-                if (isset($activeGroups[$groupId])) {
-                    $row->newProductId = '';
-                }
-            } else {
-                $row->RowNumb = "<span class='detailNumbering'>{$numByGroup[$groupId]}</span>";
-            }
-        }
     }
     
     
