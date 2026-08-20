@@ -190,18 +190,6 @@ class store_TransfersDetails extends doc_Detail
     
     
     /**
-     * Извиква се след успешен запис в модела
-     */
-    protected static function on_AfterSave($mvc, &$id, $rec, $fieldsList = null)
-    {
-        // Подсигуряваме наличието на ключ към мастър записа
-        if (empty($rec->{$mvc->masterKey})) {
-            $rec->{$mvc->masterKey} = $mvc->fetchField($rec->id, $mvc->masterKey);
-        }
-    }
-    
-    
-    /**
      * В чернова етапите още не са започнали - показва се само текущото к-во
      */
     protected static function on_AfterPrepareListFields($mvc, &$res, &$data)
