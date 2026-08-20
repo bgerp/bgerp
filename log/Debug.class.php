@@ -501,7 +501,7 @@ class log_Debug extends core_Manager
         
         $form->input(null, true);
         
-        $form->setDefault('title', $_SERVER['HTTP_HOST']);
+        $form->setDefault('title', $_SERVER['HTTP_HOST'] ?? '');
         
         $form->input();
         
@@ -588,9 +588,9 @@ class log_Debug extends core_Manager
             
             // Вероятно не е json, a e сериализирано
             if (!$rArr) {
-                list(, , $content) = explode(' ', $content, 3);
-                
-                $rArr = unserialize($content);
+                $contentParts = explode(' ', $content, 3);
+                $serializedContent = $contentParts[2] ?? null;
+                $rArr = $serializedContent ? @unserialize($serializedContent) : null;
             }
             
             if ($rArr) {
@@ -618,6 +618,16 @@ class log_Debug extends core_Manager
         // Рендираме лога
         if (!empty($rArr)) {
             $rArr = (array) $rArr;
+            $rArr += array(
+                'header' => '',
+                'errType' => null,
+                'GET' => null,
+                'POST' => null,
+                '_debugCode' => null,
+                '_Ctr' => null,
+                '_Act' => null,
+                '_executionTime' => null,
+            );
             
             $rArr['update'] = false;
             
@@ -655,9 +665,11 @@ class log_Debug extends core_Manager
                     $rArr['header'] .= ' (' . number_format($rArr['_executionTime'], 2) . ' s)';
                 }
                 
-                if (!trim($rArr['header'])) {
+                if (!trim((string) $rArr['header'])) {
                     if ($rArr['GET']) {
-                        $rArr['header'] = $rArr['GET']->virtual_url;
+                        $rArr['header'] = is_object($rArr['GET'])
+                            ? ($rArr['GET']->virtual_url ?? '')
+                            : ($rArr['GET']['virtual_url'] ?? '');
                     }
                 }
                 
