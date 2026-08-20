@@ -44,23 +44,87 @@ function spr(sel, refresh, from, to) {
 
 
 /**
+ * Репортва JS грешка на сървъра (bgerp_A::wp)
+ *
+ * Безопасна е за викане от catch блок - никога не хвърля и нищо не връща.
+ * Ползва директно $.ajax, а не efae, за да не влиза в машинарията, която
+ * евентуално току-що е гръмнала.
+ *
+ * Праща по един репорт на уникална грешка - иначе грешка в цикъл, интервал
+ * или scroll хендлър праща заявка при всяко задействане.
+ *
+ * @param string errType - вид на грешката, напр. 'JS render error'
+ * @param mixed  err     - хванатото изключение или съобщение
+ * @param object data    - допълнителни данни за конкретното място (по избор)
+ */
+function reportErr(errType, err, data) {
+    try {
+
+        var type = errType || 'JS error';
+
+        // Само един репорт на вид грешка за хита - следващият от същия вид тръгва
+        // чак след презареждане на страницата. Страницата живее дълго заради efae,
+        // а повтаряща се грешка иначе залива сървъра.
+        // hasOwnProperty, за да не се хванем на наследено свойство ('constructor' и т.н.)
+        window.reportedErr = window.reportedErr || {};
+
+        if (window.reportedErr.hasOwnProperty(type)) return;
+
+        // `typeof $.ajax` хвърля ReferenceError, ако `$` изобщо липсва - това е
+        // напълно възможно при ранна грешка, преди jQuery да е зареден
+        if ((typeof $ == 'undefined') || (typeof $.ajax == 'undefined')) return;
+
+        var reportData = {
+            errType: type,
+            currUrl: window.location.href,
+            error: String(err).substring(0, 1000)
+        };
+
+        // Данните от конкретното място не могат да презапишат горните
+        for (var key in data) {
+            if (!data.hasOwnProperty(key) || (typeof reportData[key] != 'undefined')) continue;
+
+            var val = data[key];
+
+            // Липсващите стойности само шумят в репорта - `arg : (string) undefined`
+            if ((val === null) || (typeof val == 'undefined')) continue;
+
+            if (typeof val == 'object') {
+                try {
+                    val = JSON.stringify(val);
+                } catch (e) {
+                    val = '[не може да се сериализира]';
+                }
+            }
+
+            reportData[key] = String(val).substring(0, 1000);
+        }
+
+        window.reportedErr[type] = true;
+
+        $.ajax({
+            // wpAjaxUrl идва от page_Html::addJs(); резервният адрес е
+            // верен само при инсталация в корена на домейна
+            url: (typeof wpAjaxUrl != 'undefined') ? wpAjaxUrl : "/A/wp/",
+
+            // Диагностиката да не задейства глобалните ajaxStart/ajaxStop
+            // хендлъри - те пипат скрола при iframe.autoHeight
+            global: false,
+            data: reportData
+        })
+    } catch (e) {
+
+        // Репортът е само диагностика - не бива да вдига нова грешка
+    }
+}
+
+
+/**
  * Опитваме се да репортнем JS грешките
  */
 window.onerror = function (errorMsg, url, lineNumber, columnNum, errorObj) {
 
-    if (typeof $.ajax != 'undefined') {
-        $.ajax({
-            url: "/A/wp/",
-            data: {
-                errType: 'JS error',
-                currUrl: window.location.href,
-                error: errorMsg,
-                script: url,
-                line: lineNumber,
-                column: columnNum
-            }
-        })
-    }
+    reportErr('JS error', errorMsg, {script: url, line: lineNumber, column: columnNum});
 }
 
 function runOnLoad(functionName) {
@@ -2422,6 +2486,7 @@ function saveSelectedTextToSession(handle, onlyHandle) {
                     }
                 }
             } catch (err) {
+                reportErr('JS error', err, {func: 'getSelectionHandle'});
             }
 
             if (typeof handle2 != "undefined") {
@@ -2470,6 +2535,7 @@ function getSelText() {
         }
     } catch (err) {
         getEO().log('Грешка при извличане на текста');
+        reportErr('JS error', err, {func: 'getSelText'});
     }
 
     // Ако има функция за превръщане в стринг
@@ -2553,7 +2619,7 @@ function appendQuote(id, line, useParagraph) {
         // Вземаме текста
         text = sessionStorage.getItem('selText') || '';
 
-        text = text.replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}\u{FE0F}\u{20E3}\u{200D}]/gu, '');
+        text = text.replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}\u{FE0F}\u{20E3}\u{200D}\u{E0020}-\u{E007F}]/gu, '');
 
         if (text) {
 
@@ -3965,6 +4031,7 @@ efae.prototype.run = function () {
 
         // Ако възникне грешка
         getEO().log('Грешка при стартиране на процеса');
+        reportErr('JS error', err, {func: 'efae.periodicAjaxCall'});
     } finally {
         // Инстанция на класа
         var thisEfaeInst = this;
@@ -4145,6 +4212,10 @@ efae.prototype.process = function (subscribedObj, otherData, async) {
 
                     // Ако възникне грешка
                     getEO().log(err + 'Несъществуваща фунцкция: ' + func + ' с аргументи: ' + arg);
+
+                    // try/catch-ът не позволява на window.onerror да хване грешката,
+                    // затова я репортваме ръчно
+                    reportErr('JS render error', err, {func: func, arg: arg});
                 }
             }
 
