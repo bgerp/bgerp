@@ -106,22 +106,24 @@ class transsrv_ProductDrv extends cat_ProductDriver
     {
         $myCompany = crm_Companies::fetchOurCompany();
         
-        if (!$rec->fromCountry) {
+        if (empty($rec->fromCountry)) {
             $rec->fromCountry = $myCompany->country;
         }
         
-        if (!$rec->toCountry) {
+        if (empty($rec->toCountry)) {
             $rec->toCountry = $myCompany->country;
         }
         
-        $from2let = drdata_Countries::fetch($rec->fromCountry)->letterCode2;
-        $to2let = drdata_Countries::fetch($rec->toCountry)->letterCode2;
+        $fromRec = drdata_Countries::fetch($rec->fromCountry);
+        $toRec = drdata_Countries::fetch($rec->toCountry);
+        $from2let = !empty($fromRec) ? $fromRec->letterCode2 : '';
+        $to2let = !empty($toRec) ? $toRec->letterCode2 : '';
         
         $title = $from2let . '»' . $to2let;
         
-        if ($rec->unitQty && $rec->transUnit) {
+        if (!empty($rec->unitQty) && !empty($rec->transUnit)) {
             $title .= ', ' . $rec->unitQty . ' ' . type_Varchar::escape($rec->transUnit);
-        } elseif ($rec->transUnit) {
+        } elseif (!empty($rec->transUnit)) {
             $title .= ', ' . type_Varchar::escape($rec->transUnit);
         }
         
@@ -208,7 +210,8 @@ class transsrv_ProductDrv extends cat_ProductDriver
         $this->invoke('AfterTransportGetParams', array(&$params, $rec));
 
         if (!is_numeric($name)) {
-            $nameId = cat_Params::fetch(array("#sysId = '[#1#]'", $name))->id;
+            $paramRec = cat_Params::fetch(array("#sysId = '[#1#]'", $name));
+            $nameId = !empty($paramRec) ? $paramRec->id : null;
         } else {
             $nameId = $name;
         }
@@ -264,7 +267,7 @@ class transsrv_ProductDrv extends cat_ProductDriver
         $objectToHash = new stdClass();
         $fields = $Embedder->getDriverFields($this);
         foreach ($fields as $name => $caption) {
-            $objectToHash->{$name} = $rec->{$name};
+            $objectToHash->{$name} = $rec->{$name} ?? null;
         }
         
         $hash = md5(serialize($objectToHash));
@@ -341,7 +344,8 @@ class transsrv_ProductDrv extends cat_ProductDriver
         $fields = cat_Products::getDriverFields($this);
         $row = new stdClass();
         foreach ($fields as $name => $caption) {
-            $row->{$name} = $data->row->{$name};
+            // Празните полета нямат вербална стойност
+            $row->{$name} = $data->row->{$name} ?? null;
         }
         
         if (!Mode::isReadOnly()) {
@@ -430,7 +434,7 @@ class transsrv_ProductDrv extends cat_ProductDriver
             $ownCountryId = $ownCompanyData->countryId;
         }
 
-        $countryId = ($rec->toCountry == $ownCountryId) ? $rec->fromCountry : $rec->toCountry;
+        $countryId = (($rec->toCountry ?? null) == $ownCountryId) ? ($rec->fromCountry ?? null) : ($rec->toCountry ?? null);
         $countryName = drdata_Countries::getCountryName($countryId);
         $newGroupId = cat_Groups::forceGroup("Външни услуги » Транспорт » {$countryName}");
 
@@ -438,15 +442,15 @@ class transsrv_ProductDrv extends cat_ProductDriver
 
         // Ако е имало стара група и тя е различна да се премахне
         if(isset($exGroupId) && $newGroupId != $exGroupId){
-            $rec->groupsInput = keylist::removeKey($rec->groupsInput, $exGroupId);
-            $rec->groups = keylist::addKey($rec->groups, $exGroupId);
+            $rec->groupsInput = keylist::removeKey($rec->groupsInput ?? null, $exGroupId);
+            $rec->groups = keylist::addKey($rec->groups ?? null, $exGroupId);
         }
 
         // Ако новата група не присъства да се добавя
         $Products = cls::get('cat_Products');
-        if(!keylist::isIn($newGroupId, $rec->groupsInput)){
-            $rec->groupsInput = keylist::addKey($rec->groupsInput, $newGroupId);
-            $rec->groups = keylist::addKey($rec->groups, $newGroupId);
+        if(!keylist::isIn($newGroupId, $rec->groupsInput ?? null)){
+            $rec->groupsInput = keylist::addKey($rec->groupsInput ?? null, $newGroupId);
+            $rec->groups = keylist::addKey($rec->groups ?? null, $newGroupId);
 
             $expand36Name = cls::get('cat_Products')->getExpandFieldName36();
             Mode::push('dontUpdateKeywords', true);
