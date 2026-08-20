@@ -279,14 +279,15 @@ class change_History extends core_Manager
         $now = dt::now();
 
         try{
-            $row->objectId = cls::get($rec->classId)->getHyperlink($rec->objectId, true);
+            $row->objectId = cls::get($rec->classId ?? null)->getHyperlink($rec->objectId ?? null, true);
         } catch(core_exception_Expect $e){
 
         }
 
-        if($rec->state == 'rejected') {
+        // Методът се вика и с частични записи
+        if(($rec->state ?? null) == 'rejected') {
             $row->ROW_ATTR['class'] = "state-rejected";
-        } elseif($rec->validFrom > $now){
+        } elseif(($rec->validFrom ?? null) > $now){
             $row->ROW_ATTR['class'] = "state-draft";
         } else {
             $row->ROW_ATTR['class'] = "state-active";
