@@ -1788,8 +1788,12 @@ class sales_Sales extends deals_DealMaster
         $tCostQuery->where('#fee > 0');
         while ($tRec = $tCostQuery->fetch()) {
             $dRec = sales_SalesDetails::fetch($tRec->recId, 'productId,quantity');
+            if (!$dRec) {
+                continue;
+            }
+
             if (!array_key_exists($dRec->productId, $res)) {
-                $res[$dRec->productId] = new stdClass();
+                $res[$dRec->productId] = (object) array('fee' => 0, 'quantity' => 0);
             }
             
             $res[$dRec->productId]->fee += $tRec->fee;
