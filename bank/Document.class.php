@@ -603,14 +603,16 @@ abstract class bank_Document extends deals_PaymentDocument
             }
 
             // Вземаме данните за нашата фирма
-            $headerInfo = deals_Helper::getDocumentHeaderInfo($rec->containerId, $rec->contragentClassId, $rec->contragentId, $row->contragentName);
+            $headerInfo = deals_Helper::getDocumentHeaderInfo($rec->containerId, $rec->contragentClassId, $rec->contragentId, $row->contragentName ?? $rec->contragentName);
             foreach (array('MyCompany', 'MyAddress', 'contragentName', 'contragentAddress') as $fld) {
                 $row->{$fld} = $headerInfo[$fld];
             }
 
             if ($origin = $mvc->getOrigin($rec)) {
                 $options = $origin->allowedPaymentOperations;
-                $row->operationSysId = tr($options[$rec->operationSysId]['title']);
+                if (!empty($options[$rec->operationSysId]['title'])) {
+                    $row->operationSysId = tr($options[$rec->operationSysId]['title']);
+                }
             }
 
             if(isset($rec->contragentIban)){
