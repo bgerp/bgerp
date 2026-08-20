@@ -756,7 +756,10 @@ class support_TaskType extends core_Mvc
         $query->where("#assetResourceId = {$data->masterId}");
         $query->orderBy('createdOn=DESC,id=DESC');
         $data->Pager = cls::get('core_Pager', array('itemsPerPage' => $data->itemsPerPage ?? null));
-        $data->Pager->setPageVar($data->masterMvc->className, $data->masterId);
+        
+        // При показване в сингъла на сигнала няма мастер мениджър (@see on_AfterRenderSingle)
+        $masterClassName = isset($data->masterMvc) ? $data->masterMvc->className : 'planning_AssetResources';
+        $data->Pager->setPageVar($masterClassName, $data->masterId);
         if (!empty($data->_itemsPerPage)) {
             $data->Pager->itemsPerPage = $data->_itemsPerPage;
         }
