@@ -1465,13 +1465,13 @@ class core_Form extends core_FieldSet
         $res = new stdClass();
         $res->css = array_keys(array_flip($tpl->getArray('CSS')));
         foreach ($res->css as $key => $file) {
-            $res->css[$key] = sbf($file, '');
+            $res->css[$key] = page_Html::getFileForAppend($file, false);
         }
 
         $res->js = array_keys(array_flip($tpl->getArray('JS')));
         
         foreach ($res->js as $key => $file) {
-            $res->js[$key] = sbf($file, '');
+            $res->js[$key] = page_Html::getFileForAppend($file, false);
         }
         $ajaxPage = new ET("[#1#]<!--ET_BEGIN JQRUN-->\n<script type=\"text/javascript\">[#JQRUN#]\n[#ON_LOAD#]</script><!--ET_END JQRUN-->" .
         "<!--ET_BEGIN SCRIPTS-->\n<script type=\"text/javascript\">[#SCRIPTS#]\n</script><!--ET_END SCRIPTS-->", $tpl);
