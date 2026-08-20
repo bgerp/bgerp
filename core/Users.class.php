@@ -460,14 +460,23 @@ class core_Users extends core_Manager
             return false;
         }
 
+        if (empty($rec->id)) {
+            
+            return false;
+        }
+        
         static $isPowerUserArr = array();
         
         if (!isset($isPowerUserArr[$rec->id])) {
             $powerUserId = core_Roles::fetchByName('powerUser');
             
-            type_Keylist::isIn($powerUserId, $rec->roles);
+            // Ако е подаден частичен запис (напр. от форма), ролите се извличат от модела
+            $roles = $rec->roles ?? null;
+            if (!isset($roles)) {
+                $roles = self::fetchField($rec->id, 'roles');
+            }
             
-            $isPowerUserArr[$rec->id] = (boolean) type_Keylist::isIn($powerUserId, $rec->roles);
+            $isPowerUserArr[$rec->id] = (boolean) type_Keylist::isIn($powerUserId, $roles);
         }
         
         return $isPowerUserArr[$rec->id];
