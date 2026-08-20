@@ -2892,7 +2892,7 @@ class doclog_Documents extends core_Manager
             $form->input();
             $data->classFilter = $form;
 
-            $data->classId = $form->rec->{$fld};
+            $data->classId = $form->rec->{$fld} ?? null;
             if ($data->classId && !isset($data->classOptions[$data->classId])) {
                 $data->classId = null;
             }
