@@ -857,7 +857,7 @@ abstract class deals_DealDetail extends doc_Detail
             $caption .= ': | ' . cat_UoM::getShortName($lRec->packagingId);
             
             // Проверка дали вече не просъства в продажбата
-            $res = array_filter($recs, function (&$e) use ($lRec) {
+            $res = array_filter($recs, function ($e) use ($lRec) {
                 if ($e->productId == $lRec->productId && $e->packagingId == $lRec->packagingId && !isset($e->batch) && !isset($e->tolerance) && !isset($e->term)) {
                     
                     return true;
