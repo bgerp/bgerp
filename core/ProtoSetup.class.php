@@ -179,7 +179,10 @@ class core_ProtoSetup
         foreach (arr::make($this->roles) as $role) {
             $html .= core_Roles::addOnce($role);
         }
-        
+
+        // Ако някой от класовете зарежда плъгини без код, те се пропускат, но се репортват
+        $html .= core_Plugins::getMissingRes();
+
         return $html;
     }
     
@@ -237,14 +240,30 @@ class core_ProtoSetup
         if (is_array($this->plugins ?? null)) {
             $Plugins = cls::get('core_Plugins');
             foreach ($this->plugins as $plg) {
-                $htmlRes .= $Plugins->installPlugin(
-                                                $plg[0],
-                                                $plg[1],
-                                                $plg[2],
-                                                isset($plg[3]) ? $plg[3] : 'family',
-                                                isset($plg[4]) ? $plg[4] : 'active',
-                                                isset($plg[5]) ? $plg[5] : false
-                                            );
+
+                // Некоректно декларираният плъгин се пропуска, вместо да събори инсталацията
+                if (!is_array($plg) || !isset($plg[0], $plg[1], $plg[2])) {
+                    $htmlRes .= "<li class='debug-error'>Некоректна декларация на плъгин в " .
+                        cls::getClassName($this) . '</li>';
+
+                    continue;
+                }
+
+                // Проблем с един плъгин не трябва да спира инсталацията на целия пакет
+                try {
+                    $htmlRes .= $Plugins->installPlugin(
+                                                    $plg[0],
+                                                    $plg[1],
+                                                    $plg[2],
+                                                    isset($plg[3]) ? $plg[3] : 'family',
+                                                    isset($plg[4]) ? $plg[4] : 'active',
+                                                    isset($plg[5]) ? $plg[5] : false
+                                                );
+                } catch (Throwable $e) {
+                    reportException($e);
+                    $htmlRes .= "<li class='debug-error'>Плъгинът {$plg[1]} не беше закачен към {$plg[2]}: " .
+                        $e->getMessage() . '</li>';
+                }
             }
         }
         
@@ -265,10 +284,13 @@ class core_ProtoSetup
         
         // Нагласяване на Крон
         $htmlRes .= $this->setCron();
-        
+
         // Добавяне на елементи в Менюто
         $htmlRes .= $this->setMenuItems();
-        
+
+        // Плъгини без код, зареждани от класовете, инстанцирани по време на зареждането на данните
+        $htmlRes .= core_Plugins::getMissingRes();
+
         return $htmlRes;
     }
     
@@ -506,7 +528,14 @@ class core_ProtoSetup
         $res = '';
         
         foreach ($classes as $cls) {
-            $res .= core_Classes::add($cls);
+
+            // Проблем с един клас не трябва да спира инсталацията на целия пакет
+            try {
+                $res .= core_Classes::add($cls);
+            } catch (Throwable $e) {
+                reportException($e);
+                $res .= "<li class='debug-error'>Класът {$cls} не беше регистриран: {$e->getMessage()}</li>";
+            }
         }
         
         return $res;

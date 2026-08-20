@@ -142,10 +142,11 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
         $data->singleTitle = ($rec->type == 'input') ? 'артикул за разпад' : 'произведен артикул';
         $data->defaultMeta = ($rec->type == 'input') ? 'canConvert,canStore' : 'canManifacture';
         $data->defaultNotHaveMeta = 'generic';
-
-        if (empty($rec->id)) {
+        if($rec->type == 'input'){
             $form->setFieldType('packQuantity', 'double(Min=0)');
-        } else {
+        }
+
+        if (!empty($rec->id)) {
             $form->setReadOnly('productId');
         }
 
@@ -501,7 +502,7 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
         cat_plg_DisassemblyDocDetail::appendAllocateBtn($tpl, $this->Master, $data->masterId, 'PRODUCED_PRODUCTS_TABLE', 'margin-top:5px;margin-bottom:15px;');
 
         $tpl->push('planning/js/DisassemblyNoteTables.js', 'JS');
-        jquery_Jquery::run($tpl, 'syncDisassemblyNoteTables();');
+        jquery_Jquery::run($tpl, 'render_syncDisassemblyNoteTables();');
         jquery_Jquery::runAfterAjax($tpl, 'syncDisassemblyNoteTables');
 
         return $tpl;

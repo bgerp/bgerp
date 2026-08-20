@@ -446,10 +446,12 @@ class planning_GenericMapper extends core_Manager
     {
         if (($action == 'add' || $action == 'delete' || $action == 'edit') && isset($rec)) {
             
-            // Не може да добавяме запис ако не може към обекта, ако той е оттеглен или ако нямаме достъп до сингъла му
+            // Не може да добавяме запис ако не може към обекта или ако той е оттеглен.
+            // Достъпът до сингъла на артикула не се проверява - иначе не могат да се избират
+            // артикули от папки, до които потребителят няма достъп
             if(isset($rec->productId)){
                 $masterRec = cat_Products::fetch($rec->productId, 'state,canConvert,generic');
-                if ($masterRec->state != 'active' || !cat_Products::haveRightFor('single', $rec->productId)) {
+                if ($masterRec->state != 'active') {
                     $res = 'no_one';
                 } elseif($action != 'delete' && ($masterRec->canConvert != 'yes' || $masterRec->generic == 'yes')) {
                     $res = 'no_one';
@@ -458,7 +460,7 @@ class planning_GenericMapper extends core_Manager
             
             if(isset($rec->genericProductId)){
                 $masterRec = cat_Products::fetch($rec->genericProductId, 'state,canConvert,generic');
-                if ($masterRec->state != 'active' || !cat_Products::haveRightFor('single', $rec->genericProductId)) {
+                if ($masterRec->state != 'active') {
                     $res = 'no_one';
                 } elseif($masterRec->generic != 'yes') {
                     $res = 'no_one';

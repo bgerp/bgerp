@@ -166,7 +166,7 @@ class cms_Helper extends core_BaseClass
      */
     public static function getCurrentEshopPriceList($settings)
     {
-        $listId = $settings->listId;
+        $listId = $settings->listId ?? null;
         if ($lastActiveFolder = core_Mode::get('lastActiveContragentFolder')) {
             $Cover = doc_Folders::getCover($lastActiveFolder);
             $priceDateTime = null;

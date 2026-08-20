@@ -409,7 +409,7 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
                 if ($pRec) {
                     $obj->quantity = cls::get('type_Double')->fromVerbal($obj->quantity);
                     if (!$obj->quantity) {
-                        if(!$mvc->hasPlugin('store_plg_RequestDetail') && !($mvc instanceof store_InventoryNoteDetails)){
+                        if(!$mvc->hasPlugin('store_plg_RequestDetail') && !($mvc instanceof store_InventoryNoteDetails) && !($mvc instanceof store_TransfersDetails)){
                             $err[$i][] = $obj->code . ' |Невалидно количество|*';
                         }
                     } else {

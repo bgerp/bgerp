@@ -38,7 +38,8 @@ class cms_DomainPlg extends core_Plugin
         
         $form->input();
         
-        if ($form->isSubmitted() && $domainId = Request::get('domainId', 'int')) {
+        $domainId = Request::get('domainId', 'int');
+        if ($form->isSubmitted() && !empty($domainId)) {
             cms_Domains::selectCurrent($domainId);
         }
         
@@ -61,7 +62,8 @@ class cms_DomainPlg extends core_Plugin
     
     public static function on_AfterInputEditForm($mvc, $form)
     {
-        if ($form->isSubmitted() && $domainId = $form->rec->domainId) {
+        $domainId = $form->rec->domainId ?? null;
+        if ($form->isSubmitted() && !empty($domainId)) {
             cms_Domains::selectCurrent($domainId);
         }
     }

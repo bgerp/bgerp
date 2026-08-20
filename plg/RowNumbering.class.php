@@ -32,6 +32,13 @@ class plg_RowNumbering extends core_Plugin
      */
     public static function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
+        // Редактираният ред си пази мястото, а не отива най-отдолу с новото си ид
+        if ($mvc->hasPlugin('doc_plg_DetailRevisions')) {
+            doc_plg_DetailRevisions::orderByRevisionGroup($data->query);
+
+            return;
+        }
+
         $data->query->orderBy('id', 'ASC');
     }
     

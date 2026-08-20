@@ -533,7 +533,7 @@ abstract class deals_QuotationMaster extends core_Master
 
             if(!Mode::isReadOnly() && !Mode::is('text', 'plain')){
                 $folderCover = doc_Folders::getCover($rec->folderId);
-                if($folderCover->that != $rec->contragentId || $folderCover->getClassId() != $rec->contragentClassId){
+                if(!empty($row->company) && ($folderCover->that != $rec->contragentId || $folderCover->getClassId() != $rec->contragentClassId)){
                     $row->company = "<span class ='red'>{$row->company}</span>";
                     $row->company = ht::createHint($row->company, 'Контрагента в офертата, се различава от този в папката', 'error', false);
                 }
@@ -650,13 +650,13 @@ abstract class deals_QuotationMaster extends core_Master
                 $deliveryAdress .= cond_DeliveryTerms::addDeliveryTermLocation($rec->deliveryTermId, $rec->contragentClassId, $rec->contragentId, null, $placeId, $rec->deliveryData, doc_Containers::getDocument($rec->containerId));
             }
 
-            if(isset($rec->deliveryTermId) && !Mode::isReadOnly() && !Mode::is('text', 'plain')){
+            if(isset($rec->deliveryTermId) && !empty($row->deliveryTermId) && !Mode::isReadOnly() && !Mode::is('text', 'plain')){
                 $row->deliveryTermId = ht::createLink($row->deliveryTermId, cond_DeliveryTerms::getSingleUrlArray($rec->deliveryTermId));
             }
 
             if (!empty($deliveryAdress)) {
                 if(isset($rec->deliveryTermId)){
-                    $row->deliveryTermId = "{$row->deliveryTermId}, {$deliveryAdress}";
+                    $row->deliveryTermId = !empty($row->deliveryTermId) ? "{$row->deliveryTermId}, {$deliveryAdress}" : $deliveryAdress;
                 } else {
                     $row->deliveryPlaceId = $deliveryAdress;
                 }
@@ -815,7 +815,7 @@ abstract class deals_QuotationMaster extends core_Master
                         $value = isset($emails[0]) ? $emails[0] : null;
                     } elseif ($fld == 'tel') {
                         $tels = drdata_PhoneType::toArray($data->{$fld});
-                        if(is_object($tels[0])){
+                        if(isset($tels[0]) && is_object($tels[0])){
                             $value = '+' . $tels[0]->countryCode . $tels[0]->areaCode . $tels[0]->number;
                         } else {
                             $value = null;
@@ -1007,7 +1007,7 @@ abstract class deals_QuotationMaster extends core_Master
             'deliveryTime' => $rec->deliveryTime,
             'deliveryTermTime' => $rec->deliveryTermTime,
             'deliveryData' => $rec->deliveryData,
-            'deliveryCalcTransport' => $rec->deliveryCalcTransport,
+            'deliveryCalcTransport' => $rec->deliveryCalcTransport ?? null,
             'vatExceptionId' => $rec->vatExceptionId,
             'deliveryLocationId' => crm_Locations::fetchField(array("#title = '[#1#]' AND #contragentCls = '{$rec->contragentClassId}' AND #contragentId = '{$rec->contragentId}'", $rec->deliveryPlaceId), 'id'),
         );
@@ -1192,6 +1192,10 @@ abstract class deals_QuotationMaster extends core_Master
                         $this->logErr($errorMsg, $rec->id);
                     }
 
+                    if(empty($sId)){
+                        followRetUrl(null, $errorMsg, 'error');
+                    }
+
                     $saleRec = sales_Sales::fetchRec($sId);
                     foreach ($saveRecs as $dRec){
 
@@ -1218,10 +1222,6 @@ abstract class deals_QuotationMaster extends core_Master
                         }
                     }
 
-                    if(empty($sId)){
-                        followRetUrl(null, $errorMsg, 'error');
-                    }
-
                     // Редирект към сингъла на новосъздадената сделка
                     return new Redirect(array($DealClassName, 'single', $sId));
                 }
@@ -1242,15 +1242,15 @@ abstract class deals_QuotationMaster extends core_Master
      */
     protected static function on_AfterPrepareSingle($mvc, &$res, &$data)
     {
-        $dData = $data->{$mvc->mainDetail};
+        $dData = $data->{$mvc->mainDetail} ?? null;
         if (!empty($dData->summary)) {
             $data->row = (object) ((array)$data->row + (array)$dData->summary);
         }
 
-        if ($dData->countNotOptional && $dData->notOptionalHaveOneQuantity) {
+        if (!empty($dData->countNotOptional) && !empty($dData->notOptionalHaveOneQuantity) && !empty($dData->rows)) {
             core_Lg::push($data->rec->tplLang);
             $keys = array_keys($dData->rows);
-            $firstProductRow = $dData->rows[$keys[0]][0];
+            $firstProductRow = $dData->rows[$keys[0]][0] ?? null;
 
             if ($firstProductRow->tolerance ?? null) {
                 $data->row->others = ($data->row->others ?? '') . '<li>' . tr('Толеранс к-во') .": {$firstProductRow->tolerance}</li>";
@@ -1458,7 +1458,7 @@ abstract class deals_QuotationMaster extends core_Master
                 $DealClass->logWrite('Създаване от оферта', $sId);
             } catch(core_exception_Expect $e){
                 reportException($e);
-                $this->logErr($e->dump[0], $rec->id);
+                $this->logErr($e->dump[0] ?? $e->getMessage(), $rec->id);
                 followRetUrl(null, "Проблем при създаване на {$dealSingleTitle} от оферта", 'error');
             }
         }

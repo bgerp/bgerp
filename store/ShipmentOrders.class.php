@@ -739,7 +739,7 @@ class store_ShipmentOrders extends store_DocumentMaster
         $dQuery->where("#shipmentId = {$rec->id}");
         while ($dRec = $dQuery->fetch()) {
             if (!array_key_exists($dRec->productId, $details)) {
-                $details[$dRec->productId] = (object)array('productId' => $dRec->productId);
+                $details[$dRec->productId] = (object)array('productId' => $dRec->productId, 'quantity' => 0);
             }
             $details[$dRec->productId]->quantity += $dRec->quantity;
         }
@@ -751,7 +751,7 @@ class store_ShipmentOrders extends store_DocumentMaster
         $tQuery->EXT('quantity', 'sales_SalesDetails', 'externalKey=recId');
         while ($tRec = $tQuery->fetch()) {
             if (!array_key_exists($tRec->productId, $tRecs)) {
-                $tRecs[$tRec->productId] = (object)array('productId' => $tRec->productId);
+                $tRecs[$tRec->productId] = (object)array('productId' => $tRec->productId, 'fee' => 0, 'quantity' => 0);
             }
             $Doc = cls::get($tRec->docClassId);
             $valior = $Doc->fetchField($tRec->docId, $Doc->valiorFld);
@@ -764,7 +764,7 @@ class store_ShipmentOrders extends store_DocumentMaster
         foreach ($details as $dRec1) {
             if (array_key_exists($dRec1->productId, $tRecs)) {
                 $tRec = $tRecs[$dRec1->productId];
-                if ($tRec->fee > 0) {
+                if ($tRec->fee > 0 && !empty($tRec->quantity)) {
                     $singleFee = $tRec->fee / $tRec->quantity;
                     $hiddenTransport += $dRec1->quantity * $singleFee;
                 }

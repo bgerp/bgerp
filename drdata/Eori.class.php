@@ -236,7 +236,7 @@ class drdata_Eori extends core_Manager
      */
     public function checkStatus($eori)
     {
-        $info = null;
+        $res = $info = null;
         $rArr = array();
 
         // Ако синтаксиса не отговаря на EORI, статуса сигнализира за това
@@ -275,17 +275,16 @@ class drdata_Eori extends core_Manager
                 if (!$response) {
                     $res = self::statusInvalid;
                 } else {
-                    if (is_array($response) && $response[0]->valid) {
+                    if (is_array($response) && !empty($response[0]->valid)) {
                         $res = self::statusValid;
-                        if ($response[0]->companyDetails) {
-                            $info = $response[0]->companyDetails->address->postcode . ', ' . $response[0]->companyDetails->address->cityName . "\n" .
-                                $response[0]->companyDetails->address->streetAndNumber . "\n" .
-                                $response[0]->companyDetails->traderName;
+                        if (!empty($response[0]->companyDetails)) {
+                            $details = $response[0]->companyDetails;
+                            $rArr['name'] = $details->traderName ?? null;
+                            $rArr['street'] = $details->address->streetAndNumber ?? null;
+                            $rArr['postalCode'] = $details->address->postcode ?? null;
+                            $rArr['city'] = $details->address->cityName ?? null;
 
-                            $rArr['name'] = $response[0]->companyDetails->traderName;
-                            $rArr['street'] = $response[0]->companyDetails->address->streetAndNumber;
-                            $rArr['postalCode'] = $response[0]->companyDetails->address->postcode;
-                            $rArr['city'] = $response[0]->companyDetails->address->cityName;
+                            $info = $rArr['postalCode'] . ', ' . $rArr['city'] . "\n" . $rArr['street'] . "\n" . $rArr['name'];
                         }
                     } else {
                         $res = self::statusInvalid;
@@ -309,7 +308,7 @@ class drdata_Eori extends core_Manager
                     // Извикване на SOAP метода
                     $response = @$client->__soapCall("validateEORI", array($params));
 
-                    if ($response && $response->return->result->statusDescr == 'Valid') {
+                    if ($response && ($response->return->result->statusDescr ?? null) == 'Valid') {
                         $res = self::statusValid;
                     } else {
                         $res = self::statusInvalid;

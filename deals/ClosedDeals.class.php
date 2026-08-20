@@ -147,7 +147,7 @@ abstract class deals_ClosedDeals extends core_Master
                     wp($dealItem, $total, $closeDeal, $entries, $rec, $docs);
                     continue;
                 }
-                static::$getTransactionsByNow[$index] += 1;
+                static::$getTransactionsByNow[$index] = (static::$getTransactionsByNow[$index] ?? 0) + 1;
 
                 // Взимаме му редовете на транзакцията
                 $transactionSource = cls::getInterface('acc_TransactionSourceIntf', $doc->docType);

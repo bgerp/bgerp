@@ -450,7 +450,8 @@ class planning_Steps extends core_Extender
         if(isset($rec->wasteProductId)){
             $row->wasteProductId = cat_Products::getHyperlink($rec->wasteProductId, true);
             $wasteProductMeasureId = cat_Products::fetchField($rec->wasteProductId, 'measureId');
-            if(!empty($rec->wasteStart)){
+            // В листовия изглед полето не се вербализира
+            if(!empty($rec->wasteStart) && isset($row->wasteStart)){
                 $row->wasteStart .= " " . cat_UoM::getShortName($wasteProductMeasureId);
             }
         }

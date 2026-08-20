@@ -1236,7 +1236,7 @@ class core_Manager extends core_Mvc
             if ($this->useTwoColsListFilter($data)) {
                 $tpl->push('css/twoColsFilter.css', 'CSS');
                 $tpl->push('js/twoColsFilter.js', 'JS');
-                jquery_Jquery::run($tpl, 'setTwoColsFilterWidth();');
+                jquery_Jquery::run($tpl, 'render_setTwoColsFilterWidth();');
                 jquery_Jquery::runAfterAjax($tpl, 'setTwoColsFilterWidth');
             }
             

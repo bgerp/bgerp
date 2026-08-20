@@ -925,7 +925,7 @@ class planning_ProductionTaskProducts extends core_Detail
         while($rec = $query->fetch()){
             $key = "{$rec->productId}|{$rec->packagingId}";
             if(!array_key_exists($key, $res)){
-                $res[$key] = (object)array('packagingId' => $rec->packagingId, 'quantityInPack' => $rec->quantityInPack, 'productId' => $rec->productId, 'productLink' => cat_Products::getHyperlink($rec->productId), 'quantity' => 0);
+                $res[$key] = (object)array('packagingId' => $rec->packagingId, 'quantityInPack' => $rec->quantityInPack, 'productId' => $rec->productId, 'productLink' => cat_Products::getHyperlink($rec->productId), 'quantity' => 0, 'class' => '');
             }
             $res[$key]->quantity += $rec->totalQuantity;
         }

@@ -191,7 +191,7 @@ class tesseract_Setup extends core_ProtoSetup
         $tesseract = escapeshellcmd(self::get('PATH'));
         @exec($tesseract . ' --version', $resArr, $erroCode);
         
-        $tVerStr = $resArr[0];
+        $tVerStr = $resArr[0] ?? null;
         
         if (!$tVerStr) {
             
@@ -199,10 +199,10 @@ class tesseract_Setup extends core_ProtoSetup
         }
         
         $tVerStrArr = explode(' ', $tVerStr);
-        $tVerStrArr = explode('.', $tVerStrArr[1], 2);
+        $tVerStrArr = explode('.', $tVerStrArr[1] ?? '', 2);
         
         $versionArr['version'] = $tVerStrArr[0];
-        $versionArr['subVersion'] = $tVerStrArr[1];
+        $versionArr['subVersion'] = $tVerStrArr[1] ?? null;
         
         return $versionArr;
     }

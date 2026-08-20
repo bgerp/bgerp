@@ -144,8 +144,8 @@ class email_Mime extends core_BaseClass
             $toParser = new email_Rfc822Addr();
             $parseTo = array();
             $toParser->ParseAddressList($toHeader, $parseTo);
-            $toEmlArr = type_Email::extractEmails($parseTo[0]['address']);
-            $this->toEmail = $toEmlArr[0];
+            $toEmlArr = type_Email::extractEmails($parseTo[0]['address'] ?? '');
+            $this->toEmail = $toEmlArr[0] ?? null;
         }
         
         return $this->toEmail;
@@ -1277,10 +1277,14 @@ class email_Mime extends core_BaseClass
         foreach ((array) $parseToArr as $key => $dummy) {
             
             // Извличаме само имейлите
-            $emlArr = type_Email::extractEmails($parseToArr[$key]['address']);
+            $emlArr = type_Email::extractEmails($parseToArr[$key]['address'] ?? '');
             
             // Преобразуваме в стринг
             $implode = implode(', ', $emlArr);
+            
+            if (!strlen($implode)) {
+                continue;
+            }
             
             // Добавяме към полето
             $res .= ($res) ? ', '. $implode : $implode;
@@ -1311,7 +1315,7 @@ class email_Mime extends core_BaseClass
         $res = '';
         if (countR($list)) {
             foreach ($list as $item) {
-                $address = $item['address'];
+                $address = $item['address'] ?? null;
                 
                 if ($address) {
                     if (!empty($item['isExternal'])) {

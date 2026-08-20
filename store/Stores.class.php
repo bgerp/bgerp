@@ -259,6 +259,10 @@ class store_Stores extends core_Master
             if (store_InventoryNotes::haveRightFor('add', (object) array('folderId' => $rec->folderId))) {
                 $data->toolbar->addBtn('Инвентаризация', array('store_InventoryNotes', 'add', 'folderId' => $rec->folderId, 'ret_url' => true), 'ef_icon=img/16/inventory.png,title = Създаване на протокол за инвентаризация');
             }
+            
+            if (store_Transfers::haveRightFor('add', (object) array('folderId' => $rec->folderId))) {
+                $data->toolbar->addBtn('Трансфер', array('store_Transfers', 'add', 'folderId' => $rec->folderId, 'ret_url' => true), 'ef_icon=img/16/transfers.png,title=Създаване на нов междускладов трансфер');
+            }
         }
     }
     
@@ -401,13 +405,6 @@ class store_Stores extends core_Master
     
     /**
      * Връща разбираемо за човека заглавие, отговарящо на записа
-     *
-     * @param stdClass|int $rec
-     * @param bool         $escaped
-     *
-     * @return string
-     *
-     * @author Ivelin Dimov <ivelin_pdimov@abv.bg>
      */
     public static function getRecTitle($rec, $escaped = true)
     {

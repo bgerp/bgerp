@@ -848,49 +848,49 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
         if (isset($dRec->totalValue)) {
             $row->contragentId = '<b>' . 'ОБЩО' . '</b>';
 
-            $row->saleValue = '<b>' . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->totalValue) . '</b>';
-            $row->saleValue = ht::styleNumber($row->saleValue, $dRec->totalValue);
+            $row->saleValue = '<b>' . core_Type::getByName('double(decimals=2)')->toVerbal(($dRec->totalValue ?? 0)) . '</b>';
+            $row->saleValue = ht::styleNumber($row->saleValue, ($dRec->totalValue ?? 0));
 
-            $row->delta = '<b>' . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->totalDelta) . '</b>';
-            $row->delta = ht::styleNumber($row->delta, $dRec->totalDelta);
+            $row->delta = '<b>' . core_Type::getByName('double(decimals=2)')->toVerbal(($dRec->totalDelta ?? 0)) . '</b>';
+            $row->delta = ht::styleNumber($row->delta, ($dRec->totalDelta ?? 0));
 
-            $row->articles = '<b>' . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->totalUnicart) . '</b>';
-            $row->articles = ht::styleNumber($row->articles, $dRec->totalUnicart);
+            $row->articles = '<b>' . core_Type::getByName('double(decimals=2)')->toVerbal(($dRec->totalUnicart ?? 0)) . '</b>';
+            $row->articles = ht::styleNumber($row->articles, ($dRec->totalUnicart ?? 0));
 
-            $row->sales = '<b>' . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->totalSalesArr) . '</b>';
-            $row->sales = ht::styleNumber($row->sales, $dRec->totalSalesArr);
+            $row->sales = '<b>' . core_Type::getByName('double(decimals=2)')->toVerbal(($dRec->totalSalesArr ?? 0)) . '</b>';
+            $row->sales = ht::styleNumber($row->sales, ($dRec->totalSalesArr ?? 0));
 
             $row->groupList = '';
 
             if ($rec->compare != 'no') {
                 if (($rec->compare == 'previous') || ($rec->compare == 'month')) {
-                    $row->sellValueCompare = '<b>' . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->totalValuePrevious) . '</b>';
-                    $row->sellValueCompare = ht::styleNumber($row->sellValueCompare, $dRec->totalValuePrevious);
+                    $row->sellValueCompare = '<b>' . core_Type::getByName('double(decimals=2)')->toVerbal(($dRec->totalValuePrevious ?? 0)) . '</b>';
+                    $row->sellValueCompare = ht::styleNumber($row->sellValueCompare, ($dRec->totalValuePrevious ?? 0));
 
-                    $row->deltaCompare = '<b>' . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->totalDeltaPrevious) . '</b>';
-                    $row->deltaCompare = ht::styleNumber($row->deltaCompare, $dRec->totalDeltaPrevious);
+                    $row->deltaCompare = '<b>' . core_Type::getByName('double(decimals=2)')->toVerbal(($dRec->totalDeltaPrevious ?? 0)) . '</b>';
+                    $row->deltaCompare = ht::styleNumber($row->deltaCompare, ($dRec->totalDeltaPrevious ?? 0));
 
-                    $changeSales = $dRec->totalValue - $dRec->totalValuePrevious;
+                    $changeSales = ($dRec->totalValue ?? 0) - ($dRec->totalValuePrevious ?? 0);
                     $row->changeSales = '<b>' . core_Type::getByName('double(decimals=2)')->toVerbal($changeSales) . '</b>';
                     $row->changeSales = ht::styleNumber($row->changeSales, $changeSales);
 
-                    $changeDeltas = $dRec->totalDelta - $dRec->totalDeltaPrevious;
+                    $changeDeltas = ($dRec->totalDelta ?? 0) - ($dRec->totalDeltaPrevious ?? 0);
                     $row->changeDeltas = '<b>' . core_Type::getByName('double(decimals=2)')->toVerbal($changeDeltas) . '</b>';
                     $row->changeDeltas = ht::styleNumber($row->changeDeltas, $changeDeltas);
                 }
 
                 if ($rec->compare == 'year') {
-                    $row->sellValueCompare = '<b>' . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->totalValueLastYear) . '</b>';
-                    $row->sellValueCompare = ht::styleNumber($row->sellValueCompare, $dRec->totalValueLastYear);
+                    $row->sellValueCompare = '<b>' . core_Type::getByName('double(decimals=2)')->toVerbal(($dRec->totalValueLastYear ?? 0)) . '</b>';
+                    $row->sellValueCompare = ht::styleNumber($row->sellValueCompare, ($dRec->totalValueLastYear ?? 0));
 
-                    $row->deltaCompare = '<b>' . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->totalDeltaLastYear) . '</b>';
-                    $row->deltaCompare = ht::styleNumber($row->deltaCompare, $dRec->totalDeltaLastYear);
+                    $row->deltaCompare = '<b>' . core_Type::getByName('double(decimals=2)')->toVerbal(($dRec->totalDeltaLastYear ?? 0)) . '</b>';
+                    $row->deltaCompare = ht::styleNumber($row->deltaCompare, ($dRec->totalDeltaLastYear ?? 0));
 
-                    $changeSales = $dRec->totalValue - $dRec->totalValueLastYear;
+                    $changeSales = ($dRec->totalValue ?? 0) - ($dRec->totalValueLastYear ?? 0);
                     $row->changeSales = '<b>' . core_Type::getByName('double(decimals=2)')->toVerbal($changeSales) . '</b>';
                     $row->changeSales = ht::styleNumber($row->changeSales, $changeSales);
 
-                    $changeDeltas = $dRec->totalDelta - $dRec->totalDeltaLastYear;
+                    $changeDeltas = ($dRec->totalDelta ?? 0) - ($dRec->totalDeltaLastYear ?? 0);
                     $row->changeDeltas = '<b>' . core_Type::getByName('double(decimals=2)')->toVerbal($changeDeltas) . '</b>';
                     $row->changeDeltas = ht::styleNumber($row->changeDeltas, $changeDeltas);
                 }
@@ -913,61 +913,61 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
             $row->{$fld} = ht::styleNumber($row->{$fld}, $dRec->{$fld});
         }
 
-        $row->articles = core_Type::getByName('int')->toVerbal($dRec->unicart);
+        $row->articles = core_Type::getByName('int')->toVerbal(($dRec->unicart ?? 0));
 
-        $row->sales = core_Type::getByName('int')->toVerbal($dRec->salesArr);
+        $row->sales = core_Type::getByName('int')->toVerbal(($dRec->salesArr ?? 0));
 
         if ($rec->compare != 'no') {
             if (($rec->compare == 'previous') || ($rec->compare == 'month')) {
-                $row->sellValueCompare = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->sellValuePrevious);
-                $row->sellValueCompare = ht::styleNumber($row->sellValueCompare, $dRec->sellValuePrevious);
+                $row->sellValueCompare = core_Type::getByName('double(decimals=2)')->toVerbal(($dRec->sellValuePrevious ?? 0));
+                $row->sellValueCompare = ht::styleNumber($row->sellValueCompare, ($dRec->sellValuePrevious ?? 0));
 
-                $row->unicartCompare = core_Type::getByName('int')->toVerbal($dRec->unicartPrevious);
-                $row->salesCompareCount = core_Type::getByName('int')->toVerbal($dRec->salesArrPrevious);
+                $row->unicartCompare = core_Type::getByName('int')->toVerbal(($dRec->unicartPrevious ?? 0));
+                $row->salesCompareCount = core_Type::getByName('int')->toVerbal(($dRec->salesArrPrevious ?? 0));
 
-                $row->deltaCompare = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->deltaPrevious);
-                $row->deltaCompare = ht::styleNumber($row->deltaCompare, $dRec->deltaPrevious);
+                $row->deltaCompare = core_Type::getByName('double(decimals=2)')->toVerbal(($dRec->deltaPrevious ?? 0));
+                $row->deltaCompare = ht::styleNumber($row->deltaCompare, ($dRec->deltaPrevious ?? 0));
 
-                $changeSales = $dRec->saleValue - $dRec->sellValuePrevious;
+                $changeSales = $dRec->saleValue - ($dRec->sellValuePrevious ?? 0);
                 $row->changeSales = core_Type::getByName('double(decimals=2)')->toVerbal($changeSales);
                 $row->changeSales = ht::styleNumber($row->changeSales, $changeSales);
 
-                $changeDeltas = $dRec->delta - $dRec->deltaPrevious;
+                $changeDeltas = $dRec->delta - ($dRec->deltaPrevious ?? 0);
                 $row->changeDeltas = core_Type::getByName('double(decimals=2)')->toVerbal($changeDeltas);
                 $row->changeDeltas = ht::styleNumber($row->changeDeltas, $changeDeltas);
 
-                $changeArticles = $dRec->unicart - $dRec->unicartPrevious;
+                $changeArticles = ($dRec->unicart ?? 0) - ($dRec->unicartPrevious ?? 0);
                 $row->changeArticles = core_Type::getByName('int')->toVerbal($changeArticles);
                 $row->changeArticles = ht::styleNumber($row->changeArticles, $changeArticles);
 
-                $changeSalesCount = $dRec->salesArr - $dRec->salesArrPrevious;
+                $changeSalesCount = ($dRec->salesArr ?? 0) - ($dRec->salesArrPrevious ?? 0);
                 $row->changeSalesCount = core_Type::getByName('int')->toVerbal($changeSalesCount);
                 $row->changeSalesCount = ht::styleNumber($row->changeSalesCount, $changeSalesCount);
             }
 
             if ($rec->compare == 'year') {
-                $row->sellValueCompare = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->sellValueLastYear);
-                $row->sellValueCompare = ht::styleNumber($row->sellValueCompare, $dRec->sellValueLastYear);
+                $row->sellValueCompare = core_Type::getByName('double(decimals=2)')->toVerbal(($dRec->sellValueLastYear ?? 0));
+                $row->sellValueCompare = ht::styleNumber($row->sellValueCompare, ($dRec->sellValueLastYear ?? 0));
 
-                $row->unicartCompare = core_Type::getByName('int')->toVerbal($dRec->unicartLast);
-                $row->salesCompareCount = core_Type::getByName('int')->toVerbal($dRec->salesArrLast);
+                $row->unicartCompare = core_Type::getByName('int')->toVerbal(($dRec->unicartLast ?? 0));
+                $row->salesCompareCount = core_Type::getByName('int')->toVerbal(($dRec->salesArrLast ?? 0));
 
-                $row->deltaCompare = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->deltaLastYear);
-                $row->deltaCompare = ht::styleNumber($row->deltaCompare, $dRec->deltaLastYear);
+                $row->deltaCompare = core_Type::getByName('double(decimals=2)')->toVerbal(($dRec->deltaLastYear ?? 0));
+                $row->deltaCompare = ht::styleNumber($row->deltaCompare, ($dRec->deltaLastYear ?? 0));
 
-                $changeSales = $dRec->saleValue - $dRec->sellValueLastYear;
+                $changeSales = $dRec->saleValue - ($dRec->sellValueLastYear ?? 0);
                 $row->changeSales = core_Type::getByName('double(decimals=2)')->toVerbal($changeSales);
                 $row->changeSales = ht::styleNumber($row->changeSales, $changeSales);
 
-                $changeDeltas = $dRec->delta - $dRec->deltaLastYear;
+                $changeDeltas = $dRec->delta - ($dRec->deltaLastYear ?? 0);
                 $row->changeDeltas = core_Type::getByName('double(decimals=2)')->toVerbal($changeDeltas);
                 $row->changeDeltas = ht::styleNumber($row->changeDeltas, $changeDeltas);
 
-                $changeArticles = $dRec->unicart - $dRec->unicartLast;
+                $changeArticles = ($dRec->unicart ?? 0) - ($dRec->unicartLast ?? 0);
                 $row->changeArticles = core_Type::getByName('int')->toVerbal($changeArticles);
                 $row->changeArticles = ht::styleNumber($row->changeArticles, $changeArticles);
 
-                $changeSalesCount = $dRec->salesArr - $dRec->salesArrLast;
+                $changeSalesCount = ($dRec->salesArr ?? 0) - ($dRec->salesArrLast ?? 0);
                 $row->changeSalesCount = core_Type::getByName('int')->toVerbal($changeSalesCount);
                 $row->changeSalesCount = ht::styleNumber($row->changeSalesCount, $changeSalesCount);
             }

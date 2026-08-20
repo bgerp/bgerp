@@ -2086,8 +2086,9 @@ function markElementsForRefresh() {
 
 /**
  * Подравнява бутоните във вертикалните филтри с елементите за попълване.
+ * Името е с префикс render_, за да може да се вика и през efae (runAfterAjax).
  */
-function alignFormFilterButtons() {
+function render_alignFormFilterButtons() {
     $('.form-filter-btn').each(function () {
         var $buttonHolder = $(this);
         var $caption = $buttonHolder.closest('form').find('.formFieldCaption:visible').first();
@@ -2550,9 +2551,9 @@ function appendQuote(id, line, useParagraph) {
     if ((!quoteText) && (selTime > now)) {
 
         // Вземаме текста
-        text = sessionStorage.getItem('selText');
+        text = sessionStorage.getItem('selText') || '';
 
-        text = text.replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}]/gu, '');
+        text = text.replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}\u{FE0F}\u{20E3}\u{200D}]/gu, '');
 
         if (text) {
 
@@ -3382,9 +3383,11 @@ function smartCenter() {
         $("span.maxwidth[data-col='" + key + "']").css('width', smartCenterWidth[key]);
     }
 
-    $("span.maxwidth:not('.notcentered')").css('display', "block");
-    $("span.maxwidth:not('.notcentered')").css('margin', "0 auto");
-    $("span.maxwidth:not('.notcentered')").css('text-align', "right");
+    $("span.maxwidth:not(.notcentered)").css({
+        'display': "block",
+        'margin': "0 auto",
+        'text-align': "right"
+    });
 }
 
 
@@ -4937,6 +4940,9 @@ function prepareFavIcon(iconPath) {
  */
 function setFavIcon(icon) {
     if (icon) {
+        // В страницата трябва да остава само една активна favicon връзка.
+        // Иначе различните браузъри могат да продължат да показват старата.
+        $('link[rel~="icon"]').remove();
         $('head').append(icon);
     }
 }
@@ -6377,7 +6383,7 @@ function detailDeleteRowsAct() {
 /**
  * Групово маркиране на чекбоксове при натиснат шрифт
  */
-function markSelectedChecboxes() {
+function render_markSelectedChecboxes() {
     var checkboxIdName = null;
     var checkboxIdNameTime = null;
     var isChecked = null;
@@ -7390,7 +7396,7 @@ const bgLog = (() => {
     };
 })();
 
-runOnLoad(markSelectedChecboxes);
+runOnLoad(render_markSelectedChecboxes);
 runOnLoad(maxSelectWidth);
 runOnLoad(onBeforeUnload);
 runOnLoad(reloadOnPageShow);

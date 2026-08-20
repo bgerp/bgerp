@@ -88,7 +88,7 @@ class remote_BgerpDriver extends core_Mvc
      */
     public function on_AfterRecToVerbal($driver, $mvc, $row, $rec)
     {
-        if (!$rec->data->lKeyCC) {
+        if (empty($rec->data->lKeyCC)) {
             if ($rec->userId == core_Users::getCurrent()) {
                 $authOutArr = array($driver, 'AuthOut', $rec->id);
             } else {
@@ -103,7 +103,7 @@ class remote_BgerpDriver extends core_Mvc
             
             $row->auth = ht::createLink('Получена', null, null, 'ef_icon=img/16/checked-green.png');
         }
-        if ($rec->data->rKeyCC) {
+        if (!empty($rec->data->rKeyCC)) {
             $row->auth .= '&nbsp;' . ht::createLink('Дадена', null, null, 'ef_icon=img/16/checked-orange.png');
         }
         
@@ -119,7 +119,7 @@ class remote_BgerpDriver extends core_Mvc
     public static function on_AfterGetRequiredRoles($driver, $mvc, &$res, $action, $rec = null, $userId = null)
     {
         if ($action == 'edit' && is_object($rec)) {
-            if ($rec->data->lKeyCC) {
+            if (!empty($rec->data->lKeyCC)) {
                 $res = 'no_one';
             }
         }
@@ -240,7 +240,7 @@ class remote_BgerpDriver extends core_Mvc
         $cu = core_Users::getCurrent();
         $rec = remote_Authorizations::fetch(array("#userId = [#1#] AND #url = '[#2#]'", $cu, $params['url']));
         
-        if ($rec->data->rKey && $rec->data->rKeyCC) {
+        if (!empty($rec) && !empty($rec->data->rKey) && !empty($rec->data->rKeyCC)) {
             $nick = type_Varchar::escape($params['nick']);
             $url = type_Varchar::escape($params['url']);
             
@@ -290,7 +290,7 @@ class remote_BgerpDriver extends core_Mvc
             $confirm = file_get_contents($url, false, stream_context_create($options));
             
             
-            if ($confirm == md5($rec->data->rKey . $rec->rKeyCC)) {
+            if ($confirm == md5($rec->data->rKey . ($rec->rKeyCC ?? null))) {
                 $rec->data->rConfirmed = $confirm;
                 remote_Authorizations::save($rec);
             }

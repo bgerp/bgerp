@@ -2176,16 +2176,16 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
      */
     private static function getGroups($dRec, $verbal = true, $rec = null)
     {
-        if ($rec->typeOfGroups == 'art') {
-            $typeGroup = 'group';
-        } elseif (($rec->typeOfGroups == 'category') || ($rec->typeOfGroups == 'no')) {
-            $typeGroup = 'category';
-        }
+        $typeGroup = ($rec->typeOfGroups == 'art') ? 'group' : 'category';
+
+        // При групирано показване редовете нямат сумите за групата (@see prepareRecs)
+        $groupVal = $dRec->groupValues ?? 0;
+        $groupDeltas = $dRec->groupDeltas ?? 0;
+        $groupQuantity = $dRec->groupQuantity ?? 0;
+        $price = !empty($groupQuantity) ? $groupVal / $groupQuantity : 0;
 
         if ($verbal === true) {
-            if (is_numeric($dRec->$typeGroup)) {
-                $groupVal = $dRec->groupValues;
-                $groupDeltas = $dRec->groupDeltas;
+            if (is_numeric($dRec->$typeGroup ?? null)) {
                 $grouping = ($rec->seeDelta == 'yes') ? ', делта: ' . core_Type::getByName('double(decimals=2)')->toVerbal($groupDeltas) : '';
 
                 if ($rec->typeOfGroups == 'art') {
@@ -2195,20 +2195,13 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                 }
 
                 $groupName = $groupClass::getVerbal($dRec->$typeGroup, 'name');
-                if ($dRec->groupQuantity != 0) {
-                    $price = $dRec->groupValues / $dRec->groupQuantity;
-                } else {
-                    $price = 0;
-                }
 
-
-                $group = $groupName . "<span class= 'fright'><span class= ''>" . 'Общо за групата (количество:' . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->groupQuantity) . ' ; ' . 'стойност: ' . core_Type::getByName('double(decimals=2)')->toVerbal($groupVal) . ' ; ' . 'ср. цена: ' . core_Type::getByName('double(decimals=2)')->toVerbal($price) . $grouping . ' )' . '</span>';
+                $group = $groupName . "<span class= 'fright'><span class= ''>" . 'Общо за групата (количество:' . core_Type::getByName('double(decimals=2)')->toVerbal($groupQuantity) . ' ; ' . 'стойност: ' . core_Type::getByName('double(decimals=2)')->toVerbal($groupVal) . ' ; ' . 'ср. цена: ' . core_Type::getByName('double(decimals=2)')->toVerbal($price) . $grouping . ' )' . '</span>';
             } else {
-                $price = $dRec->groupValues / $dRec->groupQuantity;
-                $group = $dRec->group . "<span class= 'fright'>" . 'Общо за групата (количество:' . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->groupQuantity) . ' ; ' . 'стойност: ' . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->groupValues) . ' ; ' . 'ср. цена: ' . core_Type::getByName('double(decimals=2)')->toVerbal($price) . ', делта: ' . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->groupDeltas) . ' )' . '</span>';
+                $group = ($dRec->group ?? null) . "<span class= 'fright'>" . 'Общо за групата (количество:' . core_Type::getByName('double(decimals=2)')->toVerbal($groupQuantity) . ' ; ' . 'стойност: ' . core_Type::getByName('double(decimals=2)')->toVerbal($groupVal) . ' ; ' . 'ср. цена: ' . core_Type::getByName('double(decimals=2)')->toVerbal($price) . ', делта: ' . core_Type::getByName('double(decimals=2)')->toVerbal($groupDeltas) . ' )' . '</span>';
             }
         } else {
-            if (!is_numeric($dRec->group)) {
+            if (!is_numeric($dRec->group ?? null)) {
                 $group = 'Без група';
             } else {
                 $group = cat_Groups::getVerbal($dRec->group, 'name');

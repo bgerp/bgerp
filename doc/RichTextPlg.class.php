@@ -219,7 +219,8 @@ class doc_RichTextPlg extends core_Plugin
 
         $cHtmlArr = explode("\n", $cHtml, 2);
 
-        if (!$cHtmlArr[1]) {
+        // Ако в остатъка няма нов ред - няма къде да се скрие текста
+        if (empty($cHtmlArr[1])) {
 
             return $html;
         }
@@ -422,7 +423,7 @@ class doc_RichTextPlg extends core_Plugin
         }
 
         // Подаваме името на файла на документа, ако иска да го промени
-        $doc->invoke('AfterGetDocNameInRichtext', array(&$docName, $match['id']));
+        $doc->invoke('AfterGetDocNameInRichtext', array(&$docName, $docId));
 
         $mvc = $doc->instance;
         $docRec = $doc->rec();
@@ -564,7 +565,13 @@ class doc_RichTextPlg extends core_Plugin
         }
 
         // Регулярен израз за определяне на всички думи, които могат да са линкове към наши документи
+        $matches = array();
         preg_match(self::$identPattern, $fileName, $matches);
+        
+        if (empty($matches['abbr'])) {
+            
+            return ;
+        }
 
         // Преобразуваме абревиатурата от намерения стринг в главни букви
         $abbr = strtoupper($matches['abbr']);
@@ -573,11 +580,12 @@ class doc_RichTextPlg extends core_Plugin
         $abbrArr = doc_Containers::getAbbr();
 
         // Името на класа
-        $className = $abbrArr[$abbr];
+        $className = $abbrArr[$abbr] ?? null;
 
         //id' то на класа
-        $id = $matches['id'];
+        $id = $matches['id'] ?? null;
 
+        $rec = null;
         $handleInfo = array();
 
         // Вземаме записа от модела
@@ -589,7 +597,7 @@ class doc_RichTextPlg extends core_Plugin
             // id' то на класа
             $handleInfo['id'] = $id;
 
-            $handleInfo['endDs'] = $matches['endDs'];
+            $handleInfo['endDs'] = $matches['endDs'] ?? null;
 
             $rec = $className::fetchByHandle($handleInfo);
         }
@@ -635,6 +643,10 @@ class doc_RichTextPlg extends core_Plugin
         $class = cls::get($fileInfo['className']);
 
         $rec = $class->fetchByHandle($fileInfo);
+        if (empty($rec)) {
+            
+            return ;
+        }
 
         // Вземаме записа от контейнера на съответния документ
         $cRec = $class->getContainer($rec->id);
@@ -665,10 +677,10 @@ class doc_RichTextPlg extends core_Plugin
                 $dRow = $class->getDocumentRow($fileInfo['id']);
 
                 // Добавяме автора
-                $author = $dRow->author;
+                $author = $dRow->author ?? '';
 
                 // Добавяме имейла, ако има такъв
-                $authorEmail = $dRow->authorEmail;
+                $authorEmail = $dRow->authorEmail ?? null;
 
                 if ($authorEmail) {
                     $emailInst = cls::get('type_Email');
@@ -762,7 +774,7 @@ class doc_RichTextPlg extends core_Plugin
         if (doc_Containers::haveRightFor('adddoc')) {
 
             // id
-            $id = $attr['id'];
+            $id = $attr['id'] ?? null;
 
             // Име на функцията и на прозореца
             $windowName = $callbackName = 'placeDoc_' . $id;

@@ -2668,10 +2668,13 @@ class cat_Products extends embed_Manager
         arr::placeInAssocArray($data->listFields, 'packId=Мярка', 'blQuantity');
         $data->reportTableMvc->FLD('packId', 'varchar', 'tdClass=small-field');
         
+        // Мярката се подготвя само ако е имало записи (@see on_AfterPrepareAccReportRecs)
+        $packName = $data->packName ?? null;
+        
         foreach ($rows as &$arrs) {
-            if (countR($arrs['rows'])) {
+            if (countR($arrs['rows'] ?? null)) {
                 foreach ($arrs['rows'] as &$row) {
-                    $row->packId = $data->packName;
+                    $row->packId = $packName;
                 }
             }
         }

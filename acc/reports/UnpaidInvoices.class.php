@@ -118,7 +118,7 @@ class acc_reports_UnpaidInvoices extends frame2_driver_TableData
         }
         
         //Масив с затварящи документи по обединени договори //
-        $salesUN = array();
+        $salesUN = $threadsId = array();
         
         while ($sale = $salesQuery->fetch()) {
             foreach ((keylist::toArray($sale->closedDocuments)) as $v) {
@@ -234,7 +234,7 @@ class acc_reports_UnpaidInvoices extends frame2_driver_TableData
             $pQuery->where("#folderId = {$rec->contragent}");
         }
         
-        $purchasesUN = array();
+        $purchasesUN = $pThreadsId = array();
         
         while ($purchase = $purchasesQuery->fetch()) {
             foreach ((keylist::toArray($purchase->closedDocuments)) as $v) {

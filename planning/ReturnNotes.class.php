@@ -332,6 +332,10 @@ class planning_ReturnNotes extends deals_ManifactureMaster
     public static function canAddDocumentToOriginAsLink_($rec)
     {
         if(isset($rec->originId)){
+            
+            // При нов документ нишката още не е определена - той ще се рутира в тази на оридижина
+            if(empty($rec->threadId)) return false;
+            
             // Ако е към оридижин и той е в друга нишка - да се добави като свързан документ
             $origin = doc_Containers::getDocument($rec->originId);
             $originThreadId = $origin->fetchField('threadId');

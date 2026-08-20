@@ -118,6 +118,11 @@ class cms_GalleryRichTextPlg extends core_Plugin
         
         $groupRec = cms_GalleryGroups::fetch($imgRec->groupId);
         
+        if (empty($groupRec)) {
+            
+            return $match[0];
+        }
+        
         $tArr = array($groupRec->tWidth ? $groupRec->tWidth : 128, $groupRec->tHeight ? $groupRec->tHeight : 128);
         $mArr = array($groupRec->width ? $groupRec->width : 600, $groupRec->height ? $groupRec->width : 600);
         
@@ -125,7 +130,7 @@ class cms_GalleryRichTextPlg extends core_Plugin
         
         $attr = array();
         
-        if ($groupRec->style) {
+        if (!empty($groupRec->style)) {
             $attr['style'] = $groupRec->style;
         }
         
@@ -138,8 +143,8 @@ class cms_GalleryRichTextPlg extends core_Plugin
         
         $res = $Fancybox->getImage($imgRec->src, $tArr, $mArr, $imgRec->title, $attr);
         
-        if ($groupRec->position && $groupRec->position != 'none') {
-            $tpl = ($groupRec->tpl) ? $groupRec->tpl : "<div class='clear-{$groupRec->position}'>[#1#]</div>";
+        if (!empty($groupRec->position) && $groupRec->position != 'none') {
+            $tpl = !empty($groupRec->tpl) ? $groupRec->tpl : "<div class='clear-{$groupRec->position}'>[#1#]</div>";
             $res = new ET($tpl, $res);
         }
         
@@ -207,7 +212,7 @@ class cms_GalleryRichTextPlg extends core_Plugin
         if (cms_GalleryGroups::fetch('1=1') && cms_GalleryImages::haveRightFor('add')) {
             
             // id
-            $id = $attr['id'];
+            $id = $attr['id'] ?? null;
             
             // Име на функцията и на прозореца
             $windowName = $callbackName = 'placeImg_' . $id;

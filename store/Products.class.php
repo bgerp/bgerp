@@ -299,7 +299,7 @@ class store_Products extends core_Detail
             $data->listFilter->layout = new ET(tr('|*' . getFileContent('acc/plg/tpl/FilterForm.shtml')));
             $data->listFilter->setDefault('filters', 'withStock');
             $data->listFilter->showFields = implode(',', $showFieldsArr);
-            unset($data->listFilter->view);
+            $data->listFilter->view = 'vertical';
 
             $sKey = "stockSettingFilter" . core_Users::getCurrent();
             if ($lastHorizon = core_Permanent::get($sKey)) {

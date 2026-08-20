@@ -118,7 +118,15 @@ class core_BaseClass
         }
         
         $class = cls::getClassName($class);
-        
+
+        // Ако липсва кода на плъгина/класа, той не се зарежда. Само го запомняме,
+        // за да бъде репортван при инсталацията на пакета
+        if (!cls::load($class, true)) {
+            core_Plugins::addMissing($class, $this);
+
+            return;
+        }
+
         // Ако е подклас на core_Mvc, записваме го като член на този клас
         if (!isset($this->{$name}) && cls::isSubclass($class, 'core_Mvc')) {
             $this->{$name} = &cls::get($class);
@@ -258,6 +266,7 @@ class core_BaseClass
      */
     public function __call($method, $args)
     {
+        $flag = false;
         $argsHnd = array(&$res);
         $argsMtd = array();
         

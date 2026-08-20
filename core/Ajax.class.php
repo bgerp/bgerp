@@ -29,7 +29,7 @@ class core_Ajax extends core_Mvc
         // Ако не сме в DEBUG режим
         if (!isDebug()) {
             // Очаквае заявката да е по AJAX - да има такъв хедър
-            if (strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) != 'xmlhttprequest') {
+            if (strtolower($_SERVER['HTTP_X_REQUESTED_WITH'] ?? '') != 'xmlhttprequest') {
                 self::logNotice('Стартиране на core_Ajax::get() извън AJAX' . core_Type::mixedToString(Request::$vars) . '. IP: ' . core_Users::getRealIpAddr() . ' BRID: ' . log_Browsers::getBrid());
                 expect(false);
             }

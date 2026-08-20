@@ -380,6 +380,10 @@ class doclog_Documents extends core_Manager
         $rows = array();
         
         foreach ($recs as $rec) {
+            if (!is_array($rec->data->{$action} ?? null)) {
+                continue;
+            }
+            
             krsort($rec->data->{$action});
         }
         
@@ -444,7 +448,7 @@ class doclog_Documents extends core_Manager
         
         // Обхождаме записите
         foreach ($recs as $rec) {
-            if (!$rec->data->{$action}) {
+            if (empty($rec->data->{$action})) {
                 continue;
             }
             
@@ -876,7 +880,7 @@ class doclog_Documents extends core_Manager
             $row->returnedAndReceived = $row->receivedOn;
             
             // Ако има връщане
-            if ($row->returnedOn) {
+            if (!empty($row->returnedOn)) {
                 $returnedStr = '';
                 
                 // Ако има отворено
@@ -889,7 +893,7 @@ class doclog_Documents extends core_Manager
                 $returnedStr .= tr('Върнато') . ": {$row->returnedOn}";
                 
                 // Ip от което е върнато
-                if ($rec->data->returnedIp) {
+                if (!empty($rec->data->returnedIp)) {
                     $returnedStr .= ' ' . type_Ip::decorateIp($rec->data->returnedIp, $rec->data->returnedOn, true);
                 }
                 
@@ -897,17 +901,17 @@ class doclog_Documents extends core_Manager
             }
             
             // Имейлите До
-            $row->emails = $row->toEmail;
+            $row->emails = $row->toEmail ?? '';
             
             // Ако има копие
-            if ($row->cc) {
+            if (!empty($row->cc)) {
                 
                 // Добавяме към имейлите
                 $row->emails .= '<br />' . tr('Кп') . ": {$row->cc}";
             }
             
             // Добавяме имейла от който е изпратен
-            if ($row->fromEmail && $rec->data->sendedBy) {
+            if (!empty($row->fromEmail) && !empty($rec->data->sendedBy)) {
                 $row->emails = $row->fromEmail . ' -> ' . $row->emails;
             }
             
@@ -915,7 +919,7 @@ class doclog_Documents extends core_Manager
             if (!empty($row->faxTo)) {
                 
                 // Ако има имейл
-                if ($row->emails) {
+                if (!empty($row->emails)) {
                     
                     // Добавяме нов ред
                     $row->emails .= '<br />';
@@ -1164,7 +1168,7 @@ class doclog_Documents extends core_Manager
         foreach ($recs as $rec) {
             
             // Ако няма зададени действия прескачаме
-            if (countR($rec->data->{$action}) == 0) {
+            if (countR($rec->data->{$action} ?? null) == 0) {
                 continue;
             }
             
@@ -1172,7 +1176,7 @@ class doclog_Documents extends core_Manager
             foreach ($rec->data->{$action} as $changeData) {
                 
                 // Ако няма docId или docClass прескачаме
-                if (!$changeData['docId'] || !$changeData['docClass']) {
+                if (empty($changeData['docId']) || empty($changeData['docClass'])) {
                     continue;
                 }
                 
@@ -2570,7 +2574,7 @@ class doclog_Documents extends core_Manager
     {
         switch ($rec->action) {
             case static::ACTION_SEND:
-                $row = (object) array('toEmail' => $rec->data->to);
+                $row = (object) array('toEmail' => $rec->data->to ?? null);
                 $row = static::recToVerbal($row, array_keys(get_object_vars($row)));
                 
                 return tr('Имейл до|* ') . $row->toEmail . ' / ' . static::getVerbal($rec, 'createdOn');
@@ -2639,7 +2643,7 @@ class doclog_Documents extends core_Manager
         
         if (!empty($firstOpen)) {
             $html .= ' ' . type_Ip::decorateIp($firstOpen['ip'], $firstOpen['on'], true);
-            $cnt = countR($rec->data->{$openActionName});
+            $cnt = countR($rec->data->{$openActionName} ?? null);
             if ($cnt) {
                 $html .= ht::createLink(
                     $cnt,
@@ -2892,7 +2896,7 @@ class doclog_Documents extends core_Manager
             $form->input();
             $data->classFilter = $form;
 
-            $data->classId = $form->rec->{$fld};
+            $data->classId = $form->rec->{$fld} ?? null;
             if ($data->classId && !isset($data->classOptions[$data->classId])) {
                 $data->classId = null;
             }
@@ -3040,7 +3044,7 @@ class doclog_Documents extends core_Manager
      */
     private static function removeUsed($rec, $inClass)
     {
-        if (countR($rec->data->{static::ACTION_USED})) {
+        if (countR($rec->data->{static::ACTION_USED} ?? null)) {
             foreach ($rec->data->{static::ACTION_USED} as $i => $lRec) {
                 $clone = clone $lRec;
                 $cloneComp = clone($inClass);

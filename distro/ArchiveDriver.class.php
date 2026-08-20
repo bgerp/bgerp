@@ -95,7 +95,7 @@ class distro_ArchiveDriver extends core_Mvc
     public function getActionStr($rec)
     {
         $fRec = distro_Files::fetch($rec->fileId);
-        if ($fRec->sourceFh) {
+        if (empty($fRec) || !empty($fRec->sourceFh)) {
             
             return '';
         }
@@ -120,8 +120,13 @@ class distro_ArchiveDriver extends core_Mvc
     public function afterProcessFinish($rec)
     {
         // Обновяваме всички файлове със същия хеш, да имат същия sourceFh
-        if ($rec->fileId) {
+        if (!empty($rec->fileId)) {
             $fRec = distro_Files::fetch((int) $rec->fileId);
+            
+            if (empty($fRec)) {
+                
+                return;
+            }
             
             $fQuery = distro_Files::getQuery();
             $fQuery->where(array("#md5 = '[#1#]'", $fRec->md5));
@@ -177,7 +182,7 @@ class distro_ArchiveDriver extends core_Mvc
         
         expect($fRec);
         
-        if ($fRec->sourceFh) {
+        if (!empty($fRec->sourceFh)) {
             
             return false;
         }

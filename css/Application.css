@@ -6374,6 +6374,18 @@ only screen and (max-width: 760px) {
 .newCol {
   background-color: #eeeeee; }
 
+/*
+ * к-та по етапи в детайл на документ (заявено/натоварено/изпълнено)
+ */
+.stageCol {
+  background-color: #f6f6f6; }
+
+/*
+ * к-то, което реално се движи по документа
+ */
+.mainQuantityCol {
+  background-color: #fff8e1; }
+
 td.rack-hl {
   background-color: red; }
 

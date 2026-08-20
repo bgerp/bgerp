@@ -2,7 +2,7 @@
  * Изравнява колоните в отделните таблици на протокола за разпад.
  * Тесните колони вземат максималната нужна ширина, а артикулът — остатъка.
  */
-function syncDisassemblyNoteTables()
+function render_syncDisassemblyNoteTables()
 {
     var groups = [];
 
@@ -236,4 +236,4 @@ function containerWidth(table)
     return table.parent().innerWidth() || table.closest('.details').innerWidth();
 }
 
-$(window).off('resize.disassemblyNoteTables').on('resize.disassemblyNoteTables', syncDisassemblyNoteTables);
+$(window).off('resize.disassemblyNoteTables').on('resize.disassemblyNoteTables', render_syncDisassemblyNoteTables);

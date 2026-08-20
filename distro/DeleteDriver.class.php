@@ -87,7 +87,7 @@ class distro_DeleteDriver extends core_Mvc
      */
     public function getActionStr($rec)
     {
-        if (!$rec->repoId) {
+        if (empty($rec->repoId)) {
             
             return '';
         }
@@ -113,6 +113,11 @@ class distro_DeleteDriver extends core_Mvc
     public function afterProcessFinish($rec)
     {
         $fRec = distro_Files::fetch($rec->fileId);
+        
+        if (empty($fRec)) {
+            
+            return;
+        }
         
         $rec->delSourceFh = $fRec->sourceFh;
         $rec->delFileName = $fRec->name;
@@ -160,16 +165,16 @@ class distro_DeleteDriver extends core_Mvc
      */
     public static function on_AfterRecToVerbal($mvc, $embeder, &$row, $rec)
     {
-        if ($rec->delFileName) {
+        if (!empty($rec->delFileName)) {
             $fileName = '"' . type_Varchar::escape($rec->delFileName) . '"';
             
-            if (trim($rec->delSourceFh)) {
-                $fileName = fileman::getLinkToSingle($rec->delSourceFh, false, array(), $rec->name);
+            if (strlen(trim((string) $rec->delSourceFh))) {
+                $fileName = fileman::getLinkToSingle($rec->delSourceFh, false, array(), $rec->delFileName);
             }
             
             $row->Info = tr($mvc->title) . ' ' . tr('на') . ' ' . $fileName;
             
-            if ($rec->repoId) {
+            if (!empty($rec->repoId)) {
                 $row->Info .= ' ' . tr('от') . ' ' . distro_Repositories::getLinkToSingle($rec->repoId, 'name');
             }
         }
