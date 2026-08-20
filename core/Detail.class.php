@@ -273,7 +273,7 @@ class core_Detail extends core_Manager
             $form->fields[$masterKey]->input = 'hidden';
         }
         
-        expect($data->masterId = $data->form->rec->{$masterKey}, $data->form->rec);
+        expect($data->masterId = $data->form->rec->{$masterKey} ?? null, $data->form->rec);
         expect($data->masterRec = $data->masterMvc->fetch($data->masterId), $data);
         
         return $data;
