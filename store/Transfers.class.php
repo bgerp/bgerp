@@ -428,7 +428,7 @@ class store_Transfers extends core_Master
         }
 
         $this->touchRec($rec->id);
-        $this->logWrite(($stage == 'loading') ? 'Започва изпращане' : 'Започва получаване', $rec->id);
+        $this->logWrite(($stage == 'loading') ? 'Изпращане' : 'Получаване', $rec->id);
 
         $res = getRetUrl();
         if (empty($res)) {
