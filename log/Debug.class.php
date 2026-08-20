@@ -706,10 +706,28 @@ class log_Debug extends core_Manager
         require_once(EF_APP_PATH . '/core/ET.class.php');
         require_once(EF_APP_PATH . '/core/Sbf.class.php');
         require_once(EF_APP_PATH . '/core/Html.class.php');
+
+        $state = (array) $state;
+        $state += array(
+            '_debugTime' => array(),
+            '_executionTime' => null,
+            '_cookie' => null,
+            '_timers' => array(),
+            '_breakFile' => null,
+            '_breakLine' => null,
+            '_debugFileName' => null,
+            'httpStatusCode' => 500,
+            'httpStatusMsg' => 'Internal Server Error',
+            'background' => '#d22',
+            'errTitle' => '',
+            'errType' => null,
+            'header' => '',
+            'headerCls' => null,
+        );
         
         $data = array();
         
-        $data['tabContent'] = $data['tabNav'] = '';
+        $data['errTitle'] = $data['tabContent'] = $data['tabNav'] = '';
         
         // Дъмп
         if (!empty($state['dump'])) {
@@ -749,7 +767,7 @@ class log_Debug extends core_Manager
         $data['httpStatusMsg'] = $state['httpStatusMsg'];
         $data['background'] = $state['background'];
         
-        if (isset($state['errTitle']) && $state['errTitle'][0] == '@') {
+        if (isset($state['errTitle'][0]) && $state['errTitle'][0] == '@') {
             $state['errTitle'] = substr($state['errTitle'], 1);
         }
         
