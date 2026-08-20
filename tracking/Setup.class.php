@@ -286,6 +286,8 @@ class tracking_Setup extends core_ProtoSetup
      */
     public function deinstall()
     {
+        $res = '';
+
         // Спираме процеса
         if (true === self::Stop()) {
             $res .= "<li class='debug-new'>Успешно спрян процес.</li>";
