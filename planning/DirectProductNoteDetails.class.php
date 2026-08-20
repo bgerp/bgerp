@@ -434,7 +434,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     {
         $tpl = new ET('');
         $tpl->push('planning/js/DisassemblyNoteTables.js', 'JS');
-        jquery_Jquery::run($tpl, 'syncDisassemblyNoteTables();');
+        jquery_Jquery::run($tpl, 'render_syncDisassemblyNoteTables();');
         jquery_Jquery::runAfterAjax($tpl, 'syncDisassemblyNoteTables');
 
         if (Mode::is('printing')) {

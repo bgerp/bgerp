@@ -35,7 +35,7 @@ function scheduleTwoColsFilterWidthUpdate() {
 
     var refresh = function () {
         twoColsFilterMeasureFrame = null;
-        setTwoColsFilterWidth();
+        render_setTwoColsFilterWidth();
         // Select2 възстановява размера на полето за търсене в края на своето
         // събитие. Връщаме компактния размер след него, без ново измерване.
         window.setTimeout(resizeTwoColsFilterCompactSelects, 0);
@@ -157,7 +157,7 @@ function updateTwoColsFilterModes() {
 /**
  * Измерва филтъра след рендиране и запазва размерите за ресайз.
  */
-function setTwoColsFilterWidth() {
+function render_setTwoColsFilterWidth() {
     var $filters = $('.wide .twoColsFilter');
     if (!$filters.length) {
         return;

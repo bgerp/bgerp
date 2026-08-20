@@ -502,7 +502,7 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
         cat_plg_DisassemblyDocDetail::appendAllocateBtn($tpl, $this->Master, $data->masterId, 'PRODUCED_PRODUCTS_TABLE', 'margin-top:5px;margin-bottom:15px;');
 
         $tpl->push('planning/js/DisassemblyNoteTables.js', 'JS');
-        jquery_Jquery::run($tpl, 'syncDisassemblyNoteTables();');
+        jquery_Jquery::run($tpl, 'render_syncDisassemblyNoteTables();');
         jquery_Jquery::runAfterAjax($tpl, 'syncDisassemblyNoteTables');
 
         return $tpl;

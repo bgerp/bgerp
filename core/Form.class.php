@@ -600,7 +600,7 @@ class core_Form extends core_FieldSet
                 jquery_Jquery::run($this->layout, 'setFormElementsWidth();');
                 jquery_Jquery::runAfterAjax($this->layout, 'setFormElementsWidth');
                 jquery_Jquery::runAfterAjax($this->layout, 'markSelectedChecboxes');
-                jquery_Jquery::run($this->layout, 'markSelectedChecboxes();');
+                jquery_Jquery::run($this->layout, 'render_markSelectedChecboxes();');
                 jquery_Jquery::run($this->layout, 'markElementsForRefresh();');
                 jquery_Jquery::run($this->layout, '$(window).resize(function(){setFormElementsWidth();});');
             }
@@ -1444,7 +1444,7 @@ class core_Form extends core_FieldSet
             $tpl->push(true, 'POST_INPUT_FORM_FAVICON');
         }
 
-        jquery_Jquery::run($tpl, 'alignFormFilterButtons();');
+        jquery_Jquery::run($tpl, 'render_alignFormFilterButtons();');
         jquery_Jquery::runAfterAjax($tpl, 'alignFormFilterButtons');
         
         if ($this->cmd == 'refresh' && Request::get('ajax_mode')) {
