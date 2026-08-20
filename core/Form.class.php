@@ -561,7 +561,7 @@ class core_Form extends core_FieldSet
         ht::setUniqId($this->formAttr);
         
         if (empty($this->layout)) {
-            if ($this->view == 'horizontal') {
+            if (($this->view ?? null) == 'horizontal') {
                 $this->layout = new ET(
                     "<form <!--ET_BEGIN CLASS-->class = '[#CLASS#]'<!--ET_END CLASS--> [#FORM_ATTR#] " .
                     "<!--ET_BEGIN ON_SUBMIT-->onSubmit=\"[#ON_SUBMIT#]\"<!--ET_END ON_SUBMIT-->>\n" .
@@ -1410,7 +1410,7 @@ class core_Form extends core_FieldSet
     public function renderHtml_($fields = null, $vars = null)
     {
         $canBeInputForm =
-            strtolower($this->view) != 'horizontal' &&
+            strtolower($this->view ?? '') != 'horizontal' &&
             strtolower($this->class ?? '') != 'simpleform' &&
             !Mode::is('staticFormView');
 
