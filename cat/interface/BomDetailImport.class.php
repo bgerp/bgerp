@@ -72,7 +72,7 @@ class cat_interface_BomDetailImport extends core_Manager
         $fields['type'] = array('caption' => 'Действие');
         $fields['productId'] = array('caption' => 'Артикул', 'mandatory' => 'mandatory');
         $fields['packagingId'] = array('caption' => 'Мярка');
-        $fields['propQuantity'] = array('caption' => 'Формула');
+        $fields['propQuantity'] = array('caption' => 'Количество');
         $fields['paramId'] = array('caption' => 'Параметър');
         $fields['description'] = array('caption' => 'Забележка');
 

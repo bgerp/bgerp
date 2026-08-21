@@ -2416,7 +2416,7 @@ class cat_Boms extends core_Master
         $csvFields->FLD('type', 'enum(input=Влаг.,pop=Отп.,stage=Етап,subProduct=Субпр.)', 'caption=Действие');
         $csvFields->FLD('resourceId', 'varchar', 'caption=Артикул');
         $csvFields->FLD('packagingId', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка');
-        $csvFields->FLD('propQuantity', 'text', 'caption=Формула');
+        $csvFields->FLD('propQuantity', 'text', 'caption=Количество');
         $csvFields->FLD('description', 'text', 'caption=Забележка');
         $csvFields->FLD('paramId', 'key(mvc=cat_Params,select=typeExt)', 'caption=Параметър');
 
