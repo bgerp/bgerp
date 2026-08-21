@@ -103,7 +103,11 @@ class export_Xls extends core_Mvc
             $inst = cls::get($csvClsId);
             
             $nForm = cls::get('core_Form');
-            
+
+            // Междинното csv отива в таблица, а не при потребител, затова числата
+            // се пишат с точка и без разделител на хилядите - иначе таблицата ги чете като текст
+            $nForm->rec = (object) array('decPoint' => '.', 'thousandsSep' => '');
+
             $oId = is_object($objId) ? ($objId->id ?? null) : $objId;
             
             if ($inst->canUseExport($clsId, $oId)) {

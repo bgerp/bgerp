@@ -415,7 +415,7 @@ class eshop_Products extends core_Master
             if($rec->howToSelectMainImage == 'auto'){
                 $howToSelectMainImage = eshop_Setup::get('PRODUCT_IMG_LOGIC');
                 $row->howToSelectMainImage = $mvc->getFieldType('howToSelectMainImage')->toVerbal($howToSelectMainImage);
-                $row->howToSelectMainImage = ht::createHint("<i style='color:blue'>{$row->howToSelectMainImage}</i>", 'Автоматично от настройките на пакета', 'notice', false);
+                $row->howToSelectMainImage = ht::createHint("<i class='blueText'>{$row->howToSelectMainImage}</i>", 'Автоматично от настройките на пакета', 'notice', false);
             }
         }
         
@@ -518,7 +518,8 @@ class eshop_Products extends core_Master
     public function getInquiryData($id)
     {
         $rec = $this->fetchRec($id);
-        
+        expect410($rec, $id);
+
         $res = array('title' => $rec->name,
             'drvId' => $rec->coDriver,
             'lg' => cms_Content::getLang(),
@@ -2039,7 +2040,8 @@ class eshop_Products extends core_Master
                     }
                 }
                 
-                if (is_array($r[$epId])) {
+                // Ключът се създава по-горе само ако е намерен поне един близък е-артикул
+                if (is_array($r[$epId] ?? null)) {
                     arsort($r[$epId]);
                     
                     // Оставят се първите $maxNearProducts е-артикула
@@ -2204,7 +2206,8 @@ class eshop_Products extends core_Master
             if (array_key_exists($dRec->threadId, $onlineSaleThreads)) {
                 
                 // Кой е-артикул съответства на този артикул и домейнат
-                $eshopProducts = $details[$dRec->productId][$onlineSaleThreads[$dRec->threadId]];
+                $domainId = $onlineSaleThreads[$dRec->threadId];
+                $eshopProducts = $details[$dRec->productId][$domainId] ?? array();
                
                 // Ако има такъв
                 if (countR($eshopProducts)) {
@@ -2215,7 +2218,7 @@ class eshop_Products extends core_Master
                     foreach ($eshopProducts as $eshopProductId) {
                         
                         // Добавя се с по-голяма тежест, спрямо разстоянието от вальора до сега
-                        sales_ProductRatings::addRatingToObject($res, $eshopProductId, $classId, $productClassId, $eshopProductId, $onlineSaleThreads[$dRec->threadId], $rating);
+                        sales_ProductRatings::addRatingToObject($res, $eshopProductId, $classId, $productClassId, $eshopProductId, $domainId, $rating);
                     }
                 }
             }

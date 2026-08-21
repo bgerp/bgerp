@@ -434,7 +434,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     {
         $tpl = new ET('');
         $tpl->push('planning/js/DisassemblyNoteTables.js', 'JS');
-        jquery_Jquery::run($tpl, 'syncDisassemblyNoteTables();');
+        jquery_Jquery::run($tpl, 'render_syncDisassemblyNoteTables();');
         jquery_Jquery::runAfterAjax($tpl, 'syncDisassemblyNoteTables');
 
         if (Mode::is('printing')) {
@@ -485,7 +485,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
             unset($iData->listFields['_rowTools']);
         }
         if (isset($iData->listFields['code']) && !isset($fieldset->fields['code'])) {
-            $fieldset->FNC('code', 'varchar', 'tdClass=small-field morePadding nowrap directProductionCodeColumn');
+            $fieldset->FNC('code', 'varchar', 'tdClass=small-field morePadding wrapText directProductionCodeColumn');
         }
         $fieldset->appendFieldClass('code', 'tdClass', 'rightCol');
         plg_AlignDecimals2::alignDecimals($this, $iData->recs, $iData->rows);

@@ -103,6 +103,8 @@ class hr_Payroll extends core_Manager
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
+        $row->data = $row->data ?? '';
+
         if (!empty($rec->indicators) && is_array($rec->indicators)) {
             foreach ($rec->indicators as $name => $value) {
                 $row->data .= ($row->data ? ', ' : '') . $name . '=' . '<strong>' . $value . '</strong>';
@@ -111,18 +113,22 @@ class hr_Payroll extends core_Manager
         }
         
         if (!empty($rec->formula)) {
-            $row->data .= '<div>' . $mvc->getVerbal($rec, 'formula') . '</div';
+            $row->data .= '<div>' . $mvc->getVerbal($rec, 'formula') . '</div>';
         }
         
         if (!empty($rec->status)) {
             $row->data .= "<div>{$rec->status}</div>";
         }
 
-        $periodCurrency = currency_Currencies::getCodeById(acc_Periods::fetchField($rec->periodId, 'baseCurrencyId'));
-        $row->personId = crm_Persons::getHyperlink($rec->personId, true);
+        if (isset($row->personId, $rec->personId)) {
+            $row->personId = crm_Persons::getHyperlink($rec->personId, true);
+        }
 
-        $row->salary = currency_Currencies::decorate($row->salary, $periodCurrency, true);
-        $row->salary = ht::styleNumber($row->salary, $rec->salary);
+        if (isset($row->salary, $rec->salary)) {
+            $periodCurrency = currency_Currencies::getCodeById(acc_Periods::fetchField($rec->periodId, 'baseCurrencyId'));
+            $row->salary = currency_Currencies::decorate($row->salary, $periodCurrency, true);
+            $row->salary = ht::styleNumber($row->salary, $rec->salary);
+        }
     }
 
 

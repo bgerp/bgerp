@@ -110,7 +110,7 @@ class store_iface_ShipmentWithBomPriceTplHandler extends doc_TplScript
                     }
 
                     if($cachedRec->_isLive){
-                        $row->_amountBom = "<span style='color:blue'>{$row->_amountBom}</span>";
+                        $row->_amountBom = "<span class='blueText'>{$row->_amountBom}</span>";
                         $hint .= 'Ще се запише при активиране|*!';
                     }
 

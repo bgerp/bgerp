@@ -499,7 +499,7 @@ class trans_plg_LinesPlugin extends core_Plugin
             } else {
                 $row->{$mvc->totalWeightFieldName} = $mvc->getFieldType($mvc->totalWeightFieldName)->toVerbal($rec->{$mvc->totalWeightFieldName});
                 if($weightIsLive && !Mode::isReadOnly()){
-                    $row->{$mvc->totalWeightFieldName} = "<span style='color:blue'>{$row->{$mvc->totalWeightFieldName}}</span>";
+                    $row->{$mvc->totalWeightFieldName} = "<span class='blueText'>{$row->{$mvc->totalWeightFieldName}}</span>";
                 }
                 if(isset($rec->calcedWeight) && $rec->weightInput){
                     $hintWeight .= "|*. |Сумарно от редовете|*: " . $mvc->getFieldType($mvc->totalWeightFieldName)->toVerbal($rec->calcedWeight);
@@ -522,7 +522,7 @@ class trans_plg_LinesPlugin extends core_Plugin
             } else {
                 $row->{$mvc->totalNetWeightFieldName} = $mvc->getFieldType($mvc->totalNetWeightFieldName)->toVerbal($rec->{$mvc->totalNetWeightFieldName});
                 if($netWeightIsLive && !Mode::isReadOnly()){
-                    $row->{$mvc->totalNetWeightFieldName} = "<span style='color:blue'>{$row->{$mvc->totalNetWeightFieldName}}</span>";
+                    $row->{$mvc->totalNetWeightFieldName} = "<span class='blueText'>{$row->{$mvc->totalNetWeightFieldName}}</span>";
                 }
                 if(isset($rec->calcedNetWeight) && $rec->netWeightInput){
                     $hintNetWeight .= "|*. |Сумарно от редовете|*: " . $mvc->getFieldType($mvc->totalNetWeightFieldName)->toVerbal($rec->calcedNetWeight);
@@ -541,7 +541,7 @@ class trans_plg_LinesPlugin extends core_Plugin
             } else {
                 $row->{$mvc->totalTareWeightFieldName} = $mvc->getFieldType($mvc->totalTareWeightFieldName)->toVerbal($rec->{$mvc->totalTareWeightFieldName});
                 if($tareWeightIsLive && !Mode::isReadOnly()){
-                    $row->{$mvc->totalTareWeightFieldName} = "<span style='color:blue'>{$row->{$mvc->totalTareWeightFieldName}}</span>";
+                    $row->{$mvc->totalTareWeightFieldName} = "<span class='blueText'>{$row->{$mvc->totalTareWeightFieldName}}</span>";
                 }
                 if(isset($rec->calcedTareWeight)&& $rec->tareWeightInput){
                     $hintTareWeight .= "|*. |Сумарно от редовете|*: " . $mvc->getFieldType($mvc->totalTareWeightFieldName)->toVerbal($rec->calcedTareWeight);
@@ -569,7 +569,7 @@ class trans_plg_LinesPlugin extends core_Plugin
             } else {
                 $row->{$mvc->totalVolumeFieldName} = $mvc->getFieldType($mvc->totalVolumeFieldName)->toVerbal($rec->{$mvc->totalVolumeFieldName});
                 if($volumeIsLive && !Mode::isReadOnly()){
-                    $row->{$mvc->totalVolumeFieldName} = "<span style='color:blue'>{$row->{$mvc->totalVolumeFieldName}}</span>";
+                    $row->{$mvc->totalVolumeFieldName} = "<span class='blueText'>{$row->{$mvc->totalVolumeFieldName}}</span>";
                 }
                 $row->{$mvc->totalVolumeFieldName} = ht::createHint($row->{$mvc->totalVolumeFieldName}, $hintVolume, 'noicon', false);
 
@@ -595,7 +595,7 @@ class trans_plg_LinesPlugin extends core_Plugin
                     $row->logisticInfo = trans_Helper::displayTransUnits($units);
                     $row->logisticInfo = ht::createHint($row->logisticInfo, $hint, $hintType, false);
                     if(empty($rec->transUnitsInput) && empty($rec->transUnits) && !Mode::isReadOnly()){
-                        $row->logisticInfo = "<span style='color:blue'>{$row->logisticInfo}</span>";
+                        $row->logisticInfo = "<span class='blueText'>{$row->logisticInfo}</span>";
                     }
                 }
             }
@@ -610,14 +610,14 @@ class trans_plg_LinesPlugin extends core_Plugin
                 if(!empty($dateObj['placeholder']) && empty($rec->{$dateFld})){
                     $row->{$dateFld} = $mvc->getFieldType($dateFld)->toVerbal($dateObj['placeholder']);
                     if(!Mode::isReadOnly()){
-                        $row->{$dateFld} = "<span style='color:blue;'>{$row->{$dateFld}}</span>";
+                        $row->{$dateFld} = "<span class='blueText'>{$row->{$dateFld}}</span>";
                         $row->{$dateFld} = ht::createHint($row->{$dateFld}, 'Изчислено е автоматично|*!');
                     }
                     $value = $dateObj['placeholder'];
                 }
 
                 if (Mode::is('printing') || Mode::is('text', 'xhtml')) {
-                    if($dateObj['displayExternal'] !== true && $showTransInfo == 'hide'){
+                    if(!($dateObj['displayExternal'] ?? false) && $showTransInfo == 'hide'){
                         unset($row->{$dateFld});
                     }
                 }

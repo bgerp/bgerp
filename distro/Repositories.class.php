@@ -216,7 +216,7 @@ class distro_Repositories extends core_Master
         $callBackUrl = toUrl(array(get_called_class(), 'createDir', $rec->id), true);
         $sshObj->exec($exec, $output, $errors, $callBackUrl);
         
-        if ($eTrim = trim($errors)) {
+        if (strlen(trim((string) $errors))) {
             self::logErr($errors, $rec->id);
         }
         
@@ -250,7 +250,7 @@ class distro_Repositories extends core_Master
         
         $sshObj->exec($exec, $output);
         
-        $output = trim($output);
+        $output = trim((string) $output);
         
         if ($output && $output == 'exist') {
             
@@ -332,6 +332,11 @@ class distro_Repositories extends core_Master
         // Вземаем записа
         $rec = static::fetch($id);
         
+        if (empty($rec)) {
+            
+            return;
+        }
+        
         // Ако не е бил активиран
         if ($rec->state != 'active') {
             
@@ -396,7 +401,8 @@ class distro_Repositories extends core_Master
             $link = $file;
         }
         
-        if (!($url = trim($rec->url))) {
+        $url = trim((string) ($rec->url ?? ''));
+        if (!strlen($url)) {
             
             return $link;
         }
@@ -480,7 +486,12 @@ class distro_Repositories extends core_Master
             return array();
         }
         
-        list($path, $file, $act, $date) = explode('" "', $line);
+        $lineParts = explode('" "', $line, 4);
+        if (countR($lineParts) != 4) {
+            return array();
+        }
+
+        list($path, $file, $act, $date) = $lineParts;
         
         $path = str_replace($rec->path, '', $path);
         $path = trim($path, '/');
@@ -491,7 +502,9 @@ class distro_Repositories extends core_Master
         $resArr['date'] = $date;
         $resArr['name'] = $file;
         
-        list($actName, $isDir) = explode(',', $act);
+        $actParts = explode(',', $act, 2);
+        $actName = $actParts[0];
+        $isDir = $actParts[1] ?? null;
         
         $resArr['isDir'] = ($isDir == 'ISDIR') ? true : false;
         
@@ -537,7 +550,7 @@ class distro_Repositories extends core_Master
         
         $sshObj->exec($cmd, $resLines);
         
-        $resLines = trim($resLines);
+        $resLines = trim((string) $resLines);
         
         $linesArr = explode("\n", $resLines);
         
@@ -564,11 +577,14 @@ class distro_Repositories extends core_Master
         
         static $repoConnectArr = array();
         
+        if (empty($rec)) {
+            self::logWarning('Хранилището е било изтрито');
+            
+            return false;
+        }
+        
         if (!isset($repoConnectArr[$rec->id])) {
-            if (!$rec) {
-                $repoConnectArr[$rec->id] = false;
-                self::logWarning('Хранилището е било изтрито');
-            } elseif ($rec->state == 'rejected') {
+            if ($rec->state == 'rejected') {
                 $repoConnectArr[$rec->id] = false;
                 self::logWarning('Хранилището е било оттеглено', $rec->id);
             }
@@ -701,7 +717,7 @@ class distro_Repositories extends core_Master
      */
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
-        if ($data->form->rec->id) {
+        if (!empty($data->form->rec->id)) {
             $data->form->setReadOnly('hostId');
             $data->form->setReadOnly('path');
         }
@@ -728,7 +744,7 @@ class distro_Repositories extends core_Master
         if ($form->isSubmitted()) {
             $hostConfig = false;
             
-            if ($form->rec->hostId) {
+            if (!empty($form->rec->hostId)) {
                 try {
                     $hostConfig = ssh_Hosts::fetchConfig($form->rec->hostId);
                 } catch (core_exception_Expect $e) {

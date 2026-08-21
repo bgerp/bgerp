@@ -682,7 +682,7 @@ class sales_TransportValues extends core_Manager
         $Driver = cond_DeliveryTerms::getTransportCalculator($deliveryTermId);
         if (empty($Driver)) {
             if(array_key_exists('transport', $properties)){
-                return "|Не може да се изчисли транспорт|*";
+                return "|Не може да се изчисли транспорт|*!";
             } else {
                 
                 return false;

@@ -53,6 +53,64 @@ class chromephp_Setup extends core_ProtoSetup
 
 
     /**
+     * Ограничава избора на бинарник само до реално открити на системата
+     * Chrome/Chromium изпълними файлове - предпазва от въвеждане на
+     * произволна команда в полето
+     *
+     * @param core_Form $configForm
+     * @return void
+     */
+    public function manageConfigDescriptionForm(&$configForm)
+    {
+        if (!$configForm->getField('CHROMEPHP_BIN_PATH', false)) {
+
+            return;
+        }
+
+        $options = $this->getAvailableBinPaths();
+        if (countR($options)) {
+            $configForm->setOptions('CHROMEPHP_BIN_PATH', $options);
+            $configForm->setField('CHROMEPHP_BIN_PATH', 'mandatory');
+        } else {
+            $configForm->setReadOnly('CHROMEPHP_BIN_PATH');
+            $configForm->info = "<div class='red'>" . tr('Не е намерен инсталиран Chrome/Chromium бинарник. Инсталирайте пакета отново, за да бъде изтеглен автоматично|*.') . '</div>';
+        }
+    }
+
+
+    /**
+     * Търси реално налични на системата Chrome/Chromium изпълними файлове -
+     * текущо зададения (ако е валиден), системно инсталираните и
+     * автоматично изтегления chrome-headless-shell
+     *
+     * @return array $path => $path
+     */
+    private function getAvailableBinPaths()
+    {
+        $paths = array();
+
+        $current = trim((string) chromephp_Setup::get('BIN_PATH'));
+        if (strlen($current) && is_executable($current)) {
+            $paths[$current] = $current;
+        }
+
+        foreach (array('chrome', 'google-chrome', 'google-chrome-stable', 'chromium', 'chromium-browser') as $bin) {
+            $found = trim((string) shell_exec("command -v {$bin} 2>/dev/null"));
+            if (strlen($found) && is_executable($found)) {
+                $paths[$found] = $found;
+            }
+        }
+
+        $vendorBin = rtrim(EF_VENDOR_PATH, '/') . '/chrome/chrome-headless-shell-linux64/chrome-headless-shell';
+        if (is_executable($vendorBin)) {
+            $paths[$vendorBin] = $vendorBin;
+        }
+
+        return $paths;
+    }
+
+
+    /**
      * Инсталиране на пакета
      */
     public function install()

@@ -362,7 +362,7 @@ class csv_Lib
             }
             $rCsvArr = array();
             foreach ($listFields as $name => $caption) {
-                if ($fieldSet->fields[$name]) {
+                if (!empty($fieldSet->fields[$name])) {
                     $type = $fieldSet->fields[$name]->type;
                 } else {
                     $type = new stdClass();
@@ -371,14 +371,17 @@ class csv_Lib
                 // Зануляване на стойноста преди всяка итерация
                 $value = null;
                 
+                // Записът може да няма такова поле
+                $fldValue = $rec->{$name} ?? null;
+                
                 Mode::push('text', 'plain');
                 Mode::push('text-export', 'csv');
                 if (($type instanceof type_Key) || ($type instanceof type_Key2)) {
-                    $value = $type->toVerbal($rec->{$name});
+                    $value = $type->toVerbal($fldValue);
                 } elseif ($type instanceof type_Keylist) {
-                    $value = $type->toVerbal($rec->{$name});
+                    $value = $type->toVerbal($fldValue);
                 } elseif ($type instanceof type_Set) {
-                    $value = $type->toVerbal($rec->{$name});
+                    $value = $type->toVerbal($fldValue);
                 } elseif ($type instanceof type_Double) {
                     if (isset($params['decPoint'])) {
                         $type->params['decPoint'] = $params['decPoint'];
@@ -398,9 +401,9 @@ class csv_Lib
                         setIfNot($type->params['decimals'], $decimals);
                     }
                     
-                    $value = $type->toVerbal($rec->{$name});
+                    $value = $type->toVerbal($fldValue);
                 } elseif ($type instanceof type_Datetime) {
-                    if ($rec->{$name}) {
+                    if ($fldValue) {
                         if (isset($params['datetimeFormat'])) {
                             $datetimeFormatF = $params['datetimeFormat'];
                         } elseif (isset($type->params['format'])) {
@@ -409,11 +412,11 @@ class csv_Lib
                             $datetimeFormatF = $datetimeFormat;
                         }
                         
-                        $value = dt::mysql2verbal($rec->{$name}, $datetimeFormatF);
+                        $value = dt::mysql2verbal($fldValue, $datetimeFormatF);
                         $value = strip_tags($value);
                     }
                 } elseif ($type instanceof type_Date) {
-                    if ($rec->{$name}) {
+                    if ($fldValue) {
                         if (isset($params['dateFormat'])) {
                             $dateFormatF = $params['dateFormat'];
                         } elseif (isset($type->params['format'])) {
@@ -422,23 +425,23 @@ class csv_Lib
                             $dateFormatF = $dateFormat;
                         }
                         
-                        $value = dt::mysql2verbal($rec->{$name}, $dateFormatF);
+                        $value = dt::mysql2verbal($fldValue, $dateFormatF);
                         $value = strip_tags($value);
                     }
                 } elseif ($type instanceof type_Richtext && !empty($params['text'])) {
                     Mode::push('text', $params['text']);
-                    $value = $type->toVerbal($rec->{$name});
+                    $value = $type->toVerbal($fldValue);
                     Mode::pop('text');
                 } elseif ($type instanceof fileman_FileType) {
-                    if (trim($rec->{$name} ?? '')) {
-                        $value = toUrl(array('F', 'D', $rec->{$name}), 'absolute');
+                    if (strlen(trim((string) $fldValue))) {
+                        $value = toUrl(array('F', 'D', $fldValue), 'absolute');
                     }
                 } elseif ($type instanceof type_Enum) {
-                    $value = $type->toVerbal($rec->{$name});
+                    $value = $type->toVerbal($fldValue);
                 } elseif ($type instanceof fileman_FileSize) {
-                    $value = $type->toVerbal($rec->{$name});
+                    $value = $type->toVerbal($fldValue);
                 } else {
-                    $value = $rec->{$name} ?? null;
+                    $value = $fldValue;
                 }
                 Mode::pop('text-export');
                 Mode::pop('text');

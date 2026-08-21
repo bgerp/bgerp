@@ -88,7 +88,7 @@ class remote_BgerpDriver extends core_Mvc
      */
     public function on_AfterRecToVerbal($driver, $mvc, $row, $rec)
     {
-        if (!$rec->data->lKeyCC) {
+        if (empty($rec->data->lKeyCC)) {
             if ($rec->userId == core_Users::getCurrent()) {
                 $authOutArr = array($driver, 'AuthOut', $rec->id);
             } else {
@@ -103,7 +103,7 @@ class remote_BgerpDriver extends core_Mvc
             
             $row->auth = ht::createLink('Получена', null, null, 'ef_icon=img/16/checked-green.png');
         }
-        if ($rec->data->rKeyCC) {
+        if (!empty($rec->data->rKeyCC)) {
             $row->auth .= '&nbsp;' . ht::createLink('Дадена', null, null, 'ef_icon=img/16/checked-orange.png');
         }
         
@@ -119,7 +119,7 @@ class remote_BgerpDriver extends core_Mvc
     public static function on_AfterGetRequiredRoles($driver, $mvc, &$res, $action, $rec = null, $userId = null)
     {
         if ($action == 'edit' && is_object($rec)) {
-            if ($rec->data->lKeyCC) {
+            if (!empty($rec->data->lKeyCC)) {
                 $res = 'no_one';
             }
         }
@@ -240,7 +240,7 @@ class remote_BgerpDriver extends core_Mvc
         $cu = core_Users::getCurrent();
         $rec = remote_Authorizations::fetch(array("#userId = [#1#] AND #url = '[#2#]'", $cu, $params['url']));
         
-        if ($rec->data->rKey && $rec->data->rKeyCC) {
+        if (!empty($rec) && !empty($rec->data->rKey) && !empty($rec->data->rKeyCC)) {
             $nick = type_Varchar::escape($params['nick']);
             $url = type_Varchar::escape($params['url']);
             
@@ -290,7 +290,7 @@ class remote_BgerpDriver extends core_Mvc
             $confirm = file_get_contents($url, false, stream_context_create($options));
             
             
-            if ($confirm == md5($rec->data->rKey . $rec->rKeyCC)) {
+            if ($confirm == md5($rec->data->rKey . ($rec->rKeyCC ?? null))) {
                 $rec->data->rConfirmed = $confirm;
                 remote_Authorizations::save($rec);
             }
@@ -336,7 +336,7 @@ class remote_BgerpDriver extends core_Mvc
         
         remote_Authorizations::logInfo('Потвърдена ауторизация', $rec->id);
         
-        echo md5($rec->data->lKey . $rec->lKeyCC);
+        echo md5($rec->data->lKey . $rec->data->lKeyCC);
         
         die;
     }
@@ -362,17 +362,16 @@ class remote_BgerpDriver extends core_Mvc
 
             // Ако потребителят не е активен - също не правим нищо
             $uRec = core_Users::fetch($rec->userId);
-            if($uRec->state != 'active') continue;
+            if (!is_object($uRec) || $uRec->state != 'active') continue;
             
-            if ($rec->data->lKeyCC && $rec->data->rId) {
+            if (is_object($rec->data ?? null) && !empty($rec->data->lKeyCC) && !empty($rec->data->rId)) {
                 $nCnt = self::sendQuestion($rec, __CLASS__, 'getNotifications', array('priority' => true));
-                
+                $nMsg = null;
+
                 if (is_array($nCnt)) {
-                    $priority = $nCnt['priority'];
-                    $nCnt = $nCnt['cnt'];
-                    if (isset($nCnt['msg'])) {
-                        $nMsg = $nCnt['msg'];
-                    }
+                    $priority = $nCnt['priority'] ?? 'normal';
+                    $nMsg = $nCnt['msg'] ?? null;
+                    $nCnt = $nCnt['cnt'] ?? null;
                 } else {
                     $priority = 'normal';
                 }

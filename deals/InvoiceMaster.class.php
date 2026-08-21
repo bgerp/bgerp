@@ -1532,7 +1532,7 @@ abstract class deals_InvoiceMaster extends core_Master
 
                         if (($rec->state ?? null) == 'draft') {
                             if(!Mode::isReadOnly()){
-                                $row->vatReason = "<span style='color:blue'>{$vatReason}</span>";
+                                $row->vatReason = "<span class='blueText'>{$vatReason}</span>";
                             }
                             $row->vatReason = ht::createHint($row->vatReason, 'Основанието е определено автоматично. Ще бъде записано при активиране|*!', 'notice', false);
                         }
@@ -1620,7 +1620,7 @@ abstract class deals_InvoiceMaster extends core_Master
                         if($plan['eventBalancePayment'] == 'invEndOfMonth'){
                             $rec->dueDate = $plan['deadlineForBalancePayment'];
                             $row->dueDate = $mvc->getFieldType('dueDate')->toVerbal($rec->dueDate);
-                            $row->dueDate = ht::createHint("<span style='color:blue'>{$row->dueDate}</span>", "Според избрания метод на плащане. Ще бъде записан при контиране");
+                            $row->dueDate = ht::createHint("<span class='blueText'>{$row->dueDate}</span>", "Според избрания метод на плащане. Ще бъде записан при контиране");
                         }
                     }
 
@@ -1632,7 +1632,7 @@ abstract class deals_InvoiceMaster extends core_Master
                             $row->dueDate = $mvc->getFieldType('dueDate')->toVerbal($dueDate);
                             if (empty($rec->dueTime)) {
                                 $time = cls::get('type_Time')->toVerbal($defTime);
-                                $row->dueDate = ht::createHint("<span style='color:blue'>{$row->dueDate}</span>", "Според срока за плащане по подразбиране|*: {$time}. Ще бъде записан при контиране", 'notice', false);
+                                $row->dueDate = ht::createHint("<span class='blueText'>{$row->dueDate}</span>", "Според срока за плащане по подразбиране|*: {$time}. Ще бъде записан при контиране", 'notice', false);
                             }
                         }
                     }
@@ -1697,7 +1697,7 @@ abstract class deals_InvoiceMaster extends core_Master
                             if (!empty($condition)) {
                                 if (!Mode::isReadOnly()) {
                                     $condition = core_Type::getByName('richtext')->toVerbal($condition);
-                                    $condition = "<span style='color:blue'>{$condition}</span>";
+                                    $condition = "<span class='blueText'>{$condition}</span>";
                                 }
                                 $condition = ht::createHint($condition, 'Ще бъде записано при активиране');
                                 $conditions = array($condition);

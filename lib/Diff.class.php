@@ -103,6 +103,9 @@ class lib_Diff
                     $res[$last - 2]->str .= $res[$last - 1]->str . $res[$last]->str;
                     $res[$last - 2]->del .= $res[$last - 1]->str . $res[$last]->del;
                     unset($res[$last], $res[$last - 1]);
+                    
+                    // Преиндексиране - иначе следващите добавяния получават по-голям ключ от броя
+                    $res = array_values($res);
                 }
             }
             
@@ -226,7 +229,7 @@ class lib_Diff
     {
         $ptr = '/(<[^>]*>|[\\s]+|[' . self::PUNCTUATION . ']+|[^\\s' . self::PUNCTUATION . '\\<]+)/';
         
-        preg_match_all($ptr, $html, $matches);
+        preg_match_all($ptr, (string) $html, $matches);
         
         return $matches[0];
     }

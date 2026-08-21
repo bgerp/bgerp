@@ -184,8 +184,8 @@ class cat_Setup extends core_ProtoSetup
      * Версията на пакета
      */
     public $version = '0.1';
-    
-    
+
+
     /**
      * Мениджър - входна точка в пакета
      */
@@ -226,6 +226,8 @@ class cat_Setup extends core_ProtoSetup
         'cat_Params',
         'cat_Boms',
         'cat_BomDetails',
+        'cat_DisassemblyBoms',
+        'cat_DisassemblyBomDetails',
         'cat_ProductTplCache',
         'cat_Listings',
         'cat_ListingDetails',
@@ -389,6 +391,8 @@ class cat_Setup extends core_ProtoSetup
             $configForm->setSuggestions('CAT_PACKAGINGS_NOT_TO_USE_FOR_VOLUME_CALC', $packSuggestions);
         }
     }
+
+
 
 
     /**

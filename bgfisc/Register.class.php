@@ -450,7 +450,7 @@ class bgfisc_Register extends core_Manager
 
         if($serial == bgfisc_Register::WITHOUT_REG_NUM){
 
-            return "<i style='color:blue;'>" . tr('Без') . "</i>";
+            return "<i class='blueText'>" . tr('Без') . "</i>";
         } else {
             $fuRec = peripheral_Devices::getDevice('peripheral_FiscPrinterIntf', false, array('serialNumber' => $serial));
             if (!empty($fuRec)) {

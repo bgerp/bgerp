@@ -940,9 +940,10 @@ class acc_CostAllocations extends core_Manager
             $dRec = cls::get($eRec->detailClassId)->fetch($eRec->detailRecId);
             $amount = $dRec->amount;
             
-            $sign = ($dRec->isReverse == 'yes') ? -1 : 1;
+            $sign = (($dRec->isReverse ?? 'no') == 'yes') ? -1 : 1;
             $personId = crm_Profiles::fetchField("#userId = '{$persons['dealerId']}'", 'personId');
             $key = "{$personId}|{$Document->getClassId()}|{$Document->that}|{$saleRec->valior}|{$expenseIndicatorId}";
+            $isRejected = ($Document->fetchField('state') == 'rejected');
             
             // Ако няма данни, добавят се
             if (!array_key_exists($key, $result)) {
@@ -952,7 +953,7 @@ class acc_CostAllocations extends core_Manager
                     'docClass' => $Document->getClassId(),
                     'indicatorId' => $expenseIndicatorId,
                     'value' => round($sign * $amount, 4),
-                    'isRejected' => $dRec->state == 'rejected',);
+                    'isRejected' => $isRejected,);
             } else {
                 
                 // Ако има вече се сумират

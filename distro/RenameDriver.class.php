@@ -89,12 +89,12 @@ class distro_RenameDriver extends core_Mvc
      */
     public function getActionStr($rec)
     {
-        if (!$rec->repoId) {
+        if (empty($rec->repoId)) {
             
             return '';
         }
         
-        if (!$rec->RenameFile) {
+        if (empty($rec->RenameFile)) {
             
             return 'mv --help';
         }
@@ -124,6 +124,11 @@ class distro_RenameDriver extends core_Mvc
     {
         $fRec = distro_Files::fetch($rec->fileId);
         
+        if (empty($fRec)) {
+            
+            return;
+        }
+        
         if ($fRec->name != $rec->newFileName) {
             $fRec->name = $rec->newFileName;
         }
@@ -132,6 +137,7 @@ class distro_RenameDriver extends core_Mvc
             $fRec->info = $rec->newFileInfo;
         }
         
+        $sudoUser = null;
         if ($rec->createdBy > 0) {
             $sudoUser = core_Users::sudo($rec->createdBy);
         }
@@ -177,7 +183,12 @@ class distro_RenameDriver extends core_Mvc
      */
     public static function on_AfterPrepareEditForm($mvc, $embeder, &$data)
     {
-        $fRec = distro_Files::fetch((int) $data->form->rec->fileId);
+        $fRec = distro_Files::fetch((int) ($data->form->rec->fileId ?? null));
+        if (empty($fRec)) {
+            
+            return;
+        }
+        
         $data->form->setDefault('newFileName', $fRec->name);
         $data->form->setDefault('newFileInfo', $fRec->info);
     }
@@ -193,7 +204,12 @@ class distro_RenameDriver extends core_Mvc
     public static function on_AfterInputEditForm($mvc, $embeder, &$form)
     {
         if ($form->isSubmitted()) {
-            $fRec = distro_Files::fetch((int) $form->rec->fileId);
+            $fRec = distro_Files::fetch((int) ($form->rec->fileId ?? null));
+            
+            if (empty($fRec)) {
+                
+                return;
+            }
             
             $haveChange = false;
             
@@ -201,7 +217,7 @@ class distro_RenameDriver extends core_Mvc
             if ($fRec->name != $form->rec->newFileName) {
                 $form->rec->oldFileName = $fRec->name;
                 
-                if ($form->rec->fileId && $form->rec->repoId) {
+                if (!empty($form->rec->fileId) && !empty($form->rec->repoId)) {
                     $sshObj = distro_Repositories::connectToRepo($form->rec->repoId);
                     
                     if ($sshObj) {
@@ -212,7 +228,7 @@ class distro_RenameDriver extends core_Mvc
                         
                         $sshObj->exec("if [ -f {$filePath} ]; then echo 'EXIST'; fi", $res);
                         
-                        if (trim($res) == 'EXIST') {
+                        if (trim((string) $res) == 'EXIST') {
                             $form->setError('newFileName', 'Файлът със същото име съществува в хранилището');
                         }
                     }
@@ -250,13 +266,13 @@ class distro_RenameDriver extends core_Mvc
         
         $fileName = $embeder->getFileName($rec);
         
-        if ($rec->oldFileName && $rec->newFileName != $rec->oldFileName) {
+        if (!empty($rec->oldFileName) && $rec->newFileName != $rec->oldFileName) {
             $fileName .= ' (' . tr('старо име') . ' "' . type_Varchar::escape($rec->oldFileName) . '"' . ')';
         }
         
         $row->Info = tr($mvc->title) . ' ' . tr('на') . ' ' . $fileName;
         
-        if ($rec->repoId) {
+        if (!empty($rec->repoId)) {
             $row->Info .= ' ' . tr('в') . ' ' . distro_Repositories::getLinkToSingle($rec->repoId, 'name');
         }
     }

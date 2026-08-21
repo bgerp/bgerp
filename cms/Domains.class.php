@@ -212,6 +212,9 @@ class cms_Domains extends core_Embedder
         
         // Икона за сайта
         $this->FLD('favicon', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Статични файлове->Икона за сайта');
+
+        // Зарежда се изрично само когато трябва да се определи иконата на таба.
+        $this->FLD('editFavicon', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Статични файлове->Икона за редактиране,dbAutoselectExcluded');
         
         // Други
         $this->FLD('wrFiles', 'fileman_FileType(bucket=cmsFiles)', 'caption=Статични файлове->Други(zip)');
@@ -276,7 +279,7 @@ class cms_Domains extends core_Embedder
         $serverName = $_SERVER['SERVER_NAME'] ?? '';
         $domain = strtolower(trim($serverName));
         
-        if (!$domainRec || (isset($lang) && $domainRec->lang != $lang) || ($domainRec->actualDomain != $domain)) {
+        if (!$domainRec || (isset($lang) && $domainRec->lang != $lang) || (($domainRec->actualDomain ?? null) != $domain)) {
             $domainRecs = self::findPublicDomainRecs();
             
             $cmsLangs = self::getCmsLangs($domainRecs);
@@ -360,6 +363,11 @@ class cms_Domains extends core_Embedder
     public static function setPublicDomain($id)
     {
         $rec = self::fetch($id);
+        
+        if (empty($rec)) {
+            
+            return;
+        }
 
         // Задаваме действителния домейн, на който е намерен този
         $rec->actualDomain = strtolower(trim($_SERVER['SERVER_NAME'] ?? ''));
@@ -470,7 +478,7 @@ class cms_Domains extends core_Embedder
             
             if (countR($langsInCountry)) {
                 foreach ($langsInCountry as $lg) {
-                    $langArr[$lg]++;
+                    $langArr[$lg] = ($langArr[$lg] ?? 0) + 1;
                 }
             }
         }
@@ -511,6 +519,64 @@ class cms_Domains extends core_Embedder
         }
         
         return $driver;
+    }
+
+
+    /**
+     * Връща URL на иконата за страници с форма за въвеждане
+     */
+    public static function getEditFaviconUrl()
+    {
+        $domainId = self::getPublicDomain('id');
+        if ($domainId) {
+            $cacheType = get_called_class();
+            $cacheKey = "editFavicon|{$domainId}";
+            $cached = core_Cache::get($cacheType, $cacheKey, 1440);
+
+            if ($cached === false) {
+                $editFavicon = self::fetchEditFavicon($domainId, $isAvailable);
+
+                // Не кешираме резултат от все още неинициализирана БД. След
+                // инициализацията следващата заявка трябва веднага да опита пак.
+                if ($isAvailable) {
+                    $cached = array('hasEditFavicon' => (bool) $editFavicon);
+                    core_Cache::set($cacheType, $cacheKey, $cached, 1440);
+                }
+            }
+
+            if (is_array($cached) && !empty($cached['hasEditFavicon'])) {
+                return getBoot(true, true, true) . '/favicon-edit.ico';
+            }
+        }
+
+        return sbf('img/favicon-edit.ico', '', true);
+    }
+
+
+    /**
+     * Зарежда редакционната икона само при нужда
+     *
+     * @param int  $domainId
+     * @param bool $isAvailable Дали полето вече съществува в БД
+     *
+     * @return string|null
+     */
+    protected static function fetchEditFavicon($domainId, &$isAvailable = null)
+    {
+        $isAvailable = true;
+        try {
+            $domainRec = self::fetch((int) $domainId, 'editFavicon', false);
+        } catch (core_exception_Db $e) {
+            if (!$e->isNotInitializedDB()) {
+                throw $e;
+            }
+
+            $isAvailable = false;
+
+            return null;
+        }
+
+        return $domainRec->editFavicon ?? null;
     }
     
     
@@ -573,6 +639,18 @@ class cms_Domains extends core_Embedder
             $langOpt[$lRec->code] = $lRec->languageName;
         }
         $data->form->setOptions('lang', $langOpt);
+
+        // Полето е изключено от автоматичните SELECT-и и се зарежда отделно.
+        $domainId = $data->form->rec->id ?? self::getPublicDomain('id');
+        if ($domainId) {
+            $editFavicon = self::fetchEditFavicon($domainId, $isAvailable);
+            if (!empty($data->form->rec->id)) {
+                $data->form->rec->editFavicon = $editFavicon;
+            }
+            if (!$isAvailable) {
+                $data->form->setField('editFavicon', 'input=none');
+            }
+        }
     }
     
     
@@ -623,6 +701,11 @@ class cms_Domains extends core_Embedder
     {
         if (empty($rec->domain) || empty($rec->lang)) {
             $rec = self::fetch($rec->id);
+            
+            if (empty($rec)) {
+                
+                return '';
+            }
         }
         
         $title = "{$rec->domain}, {$rec->lang}";
@@ -651,7 +734,7 @@ class cms_Domains extends core_Embedder
      */
     public static function on_AfterSave(core_Mvc $mvc, &$id, $rec, $fields = null, $mode = null)
     {
-        // Инвалидираме сесийния кеш
+        // Инвалидираме сесийния кеш за текущия домейн
         Mode::setPermanent(self::CMS_CURRENT_DOMAIN_REC, null);
         
         if (isset($rec->toRemove) && is_array($rec->toRemove) && countR($rec->toRemove)) {
@@ -740,6 +823,14 @@ class cms_Domains extends core_Embedder
             }
         }
 
+        // Икона за формите за въвеждане. При липса се използва вградената
+        // икона директно от статичните ресурси на системата.
+        if (!empty($rec->editFavicon)) {
+            $editIconContent = fileman_Files::getContent($rec->editFavicon);
+            core_Webroot::register($editIconContent, '', 'favicon-edit.ico', $id);
+            $rec->toRemove['favicon-edit.ico'] = 'favicon-edit.ico';
+        }
+
         if ($iconContent || $fiContent) {
             if (defined('EF_INDEX_PATH')) {
                 // Иконата
@@ -757,6 +848,9 @@ class cms_Domains extends core_Embedder
         if ($rec->domain != 'localhost') {
             Mode::pop('BGERP_CURRENT_DOMAIN');
         }
+
+        // Общият кеш се използва от всички потребителски сесии.
+        core_Cache::remove(get_called_class(), "editFavicon|{$id}");
     }
     
     

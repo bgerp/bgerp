@@ -124,6 +124,9 @@ class abbyyocr_Converter extends core_Manager
             // URL' то където ще редиректваме
             $retUrl = array('fileman_Files', 'single', $fRec->fileHnd ?? null);
         }
+
+        $retUrl['currentTab'] = 'text';
+        $retUrl['#'] = 'fileDetail';
         
         if (($dataId = $fRec->dataId ?? null) && ($dRec = fileman_Data::fetch((int) $dataId))) {
             fileman_Data::resetProcess($dRec);

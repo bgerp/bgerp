@@ -173,7 +173,7 @@ class doc_AssignPlg extends core_Plugin
         $rec = $mvc->fetch($oldRec->id ?? null, '*', false);
         
         // Ако няма промяне, връщаме
-        if (($oldRec->assign == $newRec->assign)) {
+        if (($oldRec->assign ?? null) == ($newRec->assign ?? null)) {
             
             return ;
         }
@@ -183,9 +183,9 @@ class doc_AssignPlg extends core_Plugin
         // URL' то което ще се премахва или показва от нотификациите
         $keyUrl = array('doc_Containers', 'list', 'threadId' => $rec->threadId);
         
-        $oldAssignedArr = type_Keylist::toArray($oldRec->assign);
+        $oldAssignedArr = type_Keylist::toArray($oldRec->assign ?? null);
         
-        $newAssignedArr = type_Keylist::toArray($newRec->assign);
+        $newAssignedArr = type_Keylist::toArray($newRec->assign ?? null);
         
         $removedUsersArr = array_diff($oldAssignedArr, $newAssignedArr);
         if (!empty($removedUsersArr)) {
@@ -278,7 +278,7 @@ class doc_AssignPlg extends core_Plugin
      */
     public static function on_BeforeSave($mvc, &$id, $rec, $saveFields = null)
     {
-        if ($rec->assign) {
+        if (!empty($rec->assign)) {
             if (!isset($rec->assignedOn) && !isset($rec->assignedBy)) {
                 $update = false;
                 $oRec = null;
@@ -306,11 +306,11 @@ class doc_AssignPlg extends core_Plugin
      */
     public function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
-        if ($rec->assignedBy) {
+        if (!empty($rec->assignedBy)) {
             $row->assignedBy = crm_Profiles::createLink($rec->assignedBy);
         }
         
-        if ($rec->assign) {
+        if (!empty($rec->assign)) {
             $row->assign = '';
             foreach (type_Keylist::toArray($rec->assign) as $aId) {
                 $row->assign .= $row->assign ? ', ' : '';
@@ -318,8 +318,8 @@ class doc_AssignPlg extends core_Plugin
             }
         }
         
-        if (!empty($rec->assignedDate)) {
-            $row->assignedDate = dt::mysql2verbal($rec->assignedDate, 'd-m-Y');
+        if (!empty($rec->assignedOn)) {
+            $row->assignedOn = dt::mysql2verbal($rec->assignedOn, 'd-m-Y');
         }
     }
     
@@ -332,7 +332,7 @@ class doc_AssignPlg extends core_Plugin
         $assignedRec = $mvc->fetch($id, 'assign', false);
         
         $assignedUsersArr = array();
-        if ($assignedRec->assign) {
+        if (!empty($assignedRec->assign)) {
             $assignedUsersArr = type_Keylist::toArray($assignedRec->assign);
         }
         
@@ -427,20 +427,24 @@ class doc_AssignPlg extends core_Plugin
             // Собственика на папката и споделените да са най-отгоре
             if ($folderId = Request::get('folderId')) {
                 $fRec = doc_Folders::fetch($folderId);
-                
-                $interestedUsersArr = array();
-                
-                if ($fRec->shared) {
-                    $interestedUsersArr += type_Keylist::toArray($fRec->shared);
-                }
-                
-                $interestedUsersArr[$fRec->inCharge] = $fRec->inCharge;
-                
-                foreach ($interestedUsersArr as $uId) {
-                    $uNames = $resArr[$uId];
-                    if (isset($uNames)) {
-                        unset($resArr[$uId]);
-                        $resArr = array($uId => $uNames) + $resArr;
+
+                if ($fRec) {
+                    $interestedUsersArr = array();
+
+                    if (!empty($fRec->shared)) {
+                        $interestedUsersArr += type_Keylist::toArray($fRec->shared);
+                    }
+
+                    if (!empty($fRec->inCharge)) {
+                        $interestedUsersArr[$fRec->inCharge] = $fRec->inCharge;
+                    }
+
+                    foreach ($interestedUsersArr as $uId) {
+                        $uNames = $resArr[$uId] ?? null;
+                        if (isset($uNames)) {
+                            unset($resArr[$uId]);
+                            $resArr = array($uId => $uNames) + $resArr;
+                        }
                     }
                 }
             }
@@ -451,7 +455,7 @@ class doc_AssignPlg extends core_Plugin
         // Текущият потребител да е най-отгоре
         if (!empty($resArr)) {
             $cu = core_Users::getCurrent();
-            $cuNames = $resArr[$cu];
+            $cuNames = $resArr[$cu] ?? null;
             if (isset($cuNames)) {
                 unset($resArr[$cu]);
                 $resArr = array($cu => $cuNames) + $resArr;
@@ -490,9 +494,9 @@ class doc_AssignPlg extends core_Plugin
      */
     public static function on_AfterGetDefaultAssignUsers($mvc, &$res, $rec)
     {
-        $folderId = $rec->folderId;
+        $folderId = $rec->folderId ?? null;
         
-        if (!$folderId && $rec->threadId) {
+        if (!$folderId && !empty($rec->threadId)) {
             $folderId = doc_Threads::fetchField($rec->threadId, 'folderId');
         }
         
@@ -530,7 +534,7 @@ class doc_AssignPlg extends core_Plugin
                     asort($assignArr);
                     $aStr = type_Keylist::fromArray($assignArr);
                     
-                    $aArr[$aStr]++;
+                    $aArr[$aStr] = ($aArr[$aStr] ?? 0) + 1;
                 }
                 
                 if (countR($aArr) == 1) {

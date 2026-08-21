@@ -112,6 +112,9 @@ class mistral_Converter extends core_Manager
             // URL' то където ще редиректваме
             $retUrl = array('fileman_Files', 'single', $fRec->fileHnd);
         }
+
+        $retUrl['currentTab'] = 'text';
+        $retUrl['#'] = 'fileDetail';
         
         if ($fRec->dataId && ($dRec = fileman_Data::fetch((int) $fRec->dataId))) {
             fileman_Data::resetProcess($dRec);

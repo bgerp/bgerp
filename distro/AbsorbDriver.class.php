@@ -97,7 +97,7 @@ class distro_AbsorbDriver extends core_Mvc
     public function getActionStr($rec)
     {
         $fRec = distro_Files::fetch($rec->fileId);
-        if (!$fRec->sourceFh || !$rec->repoId) {
+        if (empty($fRec) || empty($fRec->sourceFh) || empty($rec->repoId)) {
             
             return '';
         }
@@ -107,14 +107,14 @@ class distro_AbsorbDriver extends core_Mvc
         
         $FileInst = cls::get('distro_Files');
         
-        $destFilePath = $FileInst->getUniqFileName($rec->fileId, $rec->sourceRepoId);
+        $destFilePath = $FileInst->getUniqFileName($rec->fileId, $rec->repoId);
         $destFilePathE = escapeshellarg($destFilePath);
         
-        if ($rec->fileId) {
+        if (!empty($rec->fileId)) {
             $fRec = distro_Files::fetch($rec->fileId);
             $nName = pathinfo($destFilePath, PATHINFO_BASENAME);
             
-            if (($nName) && $nName != $fRec->name) {
+            if (!empty($nName) && !empty($fRec) && $nName != $fRec->name) {
                 $fRec->name = $nName;
                 distro_Files::save($fRec, 'name');
             }

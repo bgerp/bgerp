@@ -376,7 +376,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
                         $invoiceInfoVerbal = cat_Products::getParams($rec->productId, $mvc->productInvoiceInfoParamName, true);
                         if(!empty($invoiceInfoVerbal)){
                             if(!Mode::isReadOnly()){
-                                $invoiceInfoVerbal = "<span style='color:blue'>{$invoiceInfoVerbal}</span>";
+                                $invoiceInfoVerbal = "<span class='blueText'>{$invoiceInfoVerbal}</span>";
                                 $invoiceInfoVerbal = ht::createHint($invoiceInfoVerbal, 'Стойността ще се добави в забележката при контиране|*!');
                             }
                             if ($row1->productId instanceof core_ET) {

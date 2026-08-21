@@ -251,12 +251,15 @@ class hr_Indicators extends core_Manager
         foreach ($docArr as $class) {
             $sMvc = cls::get($class);
 
+            // Източникът може да не е наследник на core_Mvc и да няма '$className'
+            $sClassName = cls::getClassName($sMvc);
+
             try{
                 // Взимаме връщания масив от интерфейсния метод
-                core_Debug::startTimer("{$sMvc->className}_CALC_INDICATORS");
+                core_Debug::startTimer("{$sClassName}_CALC_INDICATORS");
                 $data = $sMvc->getIndicatorValues($timeline);
-                core_Debug::stopTimer("{$sMvc->className}_CALC_INDICATORS");
-                
+                core_Debug::stopTimer("{$sClassName}_CALC_INDICATORS");
+
             } catch(core_exception_Expect $e){
                 // Ако грешката е сетната при ръчно обновяване от дебъг потребител - да се визуализира
                 if(Mode::is('manualRecalc') && haveRole('debug')){
@@ -264,7 +267,7 @@ class hr_Indicators extends core_Manager
                 }
 
                 reportException($e);
-                hr_Indicators::logWarning("Грешка при подготвяне на индикаторите за: {$sMvc->className}");
+                hr_Indicators::logWarning("Грешка при подготвяне на индикаторите за: {$sClassName}");
                 
                 continue;
             }
@@ -294,8 +297,9 @@ class hr_Indicators extends core_Manager
                     // Запомняме за кой период е документа
                     $periods[$periodRec->id] = $periodRec;
 
-                    // Оттеглените източници ги записваме само за почистване
-                    if ($rec->isRejected === true) {
+                    // Оттеглените източници ги записваме само за почистване.
+                    // Полето е опционално - източници без оттегляне не го връщат
+                    if (($rec->isRejected ?? false) === true) {
                         continue;
                     }
                     
@@ -395,9 +399,13 @@ class hr_Indicators extends core_Manager
         }
 
         // За всеки един договор, се опитваме да намерим формулата за заплащането от позицията.
-        $baseCurrencyCode = currency_Currencies::getCodeById($pRec->baseCurrencyId);
+        // Валутата на периода е 'allowEmpty' - при празна се взима подразбиращата се
+        // към края му, както прави и самият acc_Periods
+        $baseCurrencyCode = !empty($pRec->baseCurrencyId) ? currency_Currencies::getCodeById($pRec->baseCurrencyId) : acc_Periods::getBaseCurrencyCode($pRec->end ?? null);
         foreach ($ecArr as $personId => $ecRec) {
-            $sum = array();
+
+            // Тръгва се от нулевите стойности, за да се натрупва върху тях
+            $sum = $zeroInd;
             
             if (isset($ecRec->positionId)) {
                 $posRec = $positions[$ecRec->positionId];
@@ -429,7 +437,8 @@ class hr_Indicators extends core_Manager
                 $prlRec->periodId = $pRec->id;
             }
             
-            if ($replaceFormula && $ecRec->positionId) {
+            // Лицата без намерен договор са голи обекти, без длъжност
+            if ($replaceFormula && !empty($ecRec->positionId)) {
                 $prlRec->formula = $positions[$ecRec->positionId]->formula;
             }
             
@@ -867,9 +876,11 @@ class hr_Indicators extends core_Manager
         $res = $v;
         // Имали формула за индикатора
         if($useCache){
-            $formula = hr_IndicatorFormulas::$cachedFormulas[$indicatorId];
+
+            // В кеша влизат само индикаторите, за които има зададена формула
+            $formula = hr_IndicatorFormulas::$cachedFormulas[$indicatorId] ?? null;
         } else {
-            $formula = hr_IndicatorFormulas::fetchField("#indicatorId = {$indicatorId}", 'formula');
+            $formula = hr_IndicatorFormulas::fetchField("#indicatorNameId = {$indicatorId}", 'formula');
         }
 
         if(empty($formula)) return $v;

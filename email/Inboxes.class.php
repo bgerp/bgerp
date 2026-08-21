@@ -634,6 +634,11 @@ class email_Inboxes extends core_Master
                 $domain = $emailParts[1] ?? '';
                 
                 $domain = strtolower($domain);
+
+                if (empty($emailL) || empty($domain) || empty($ourEmailsArr[$domain])) {
+                    $checkedEmailsArr[$email] = $email;
+                    continue;
+                }
                 
                 $p = 0;
                 

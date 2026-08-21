@@ -298,9 +298,9 @@ class core_Cache extends core_Manager
         }
         
         if ($all) {
-            $msg = "Лог: Всички <b style='color:blue;'>{$deletedRecs}</b> кеширани записа бяха изтрити";
+            $msg = "Лог: Всички <b class='blueText'>{$deletedRecs}</b> кеширани записа бяха изтрити";
         } else {
-            $msg = "Лог: <b style='color:blue;'>{$deletedRecs}</b> записа с изтекъл срок бяха изтрити";
+            $msg = "Лог: <b class='blueText'>{$deletedRecs}</b> записа с изтекъл срок бяха изтрити";
         }
         
         return $msg;

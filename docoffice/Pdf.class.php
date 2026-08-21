@@ -29,6 +29,8 @@ class docoffice_Pdf
      */
     public static function convertPdfToTxt($fileHnd, $params = array())
     {
+        $params += array('fileInfoId' => null, 'isPath' => false, 'asynch' => false);
+
         // Инстанция на класа
         $Script = cls::get('fconv_Script');
         
@@ -87,6 +89,8 @@ class docoffice_Pdf
      */
     public static function convertPdfToJpg($fileHnd, $params = array())
     {
+        $params += array('fileInfoId' => null, 'asynch' => false);
+
         // Инстанция на класа
         $Script = cls::get('fconv_Script');
         

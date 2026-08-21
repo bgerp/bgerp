@@ -2034,7 +2034,7 @@ function renderOptimizationIdleReport(changes, totals, metrics, stats, hasNetIdl
         metric.append($('<span>', {class: 'optimizationPlanMetricLabel'}).text(title));
         metric.append($('<span>', {class: 'optimizationPlanMetricValue'}).text((before || '—') + ' → ' + (after || '—')));
         metric.append($('<strong>', {class: 'optimizationPlanMetricChange ' + metricClass})
-            .text('Промяна: ' + (change || '0 сек.')));
+            .text('Промяна: ' + (change || '0 мин.')));
         if (detail) metric.append($('<small>', {class: 'optimizationPlanMetricDetail'}).text(detail));
 
         return metric;
@@ -2101,13 +2101,13 @@ function renderOptimizationIdleReport(changes, totals, metrics, stats, hasNetIdl
         let decreasedCount = changes.filter((change) => Number(change.changeSeconds) < 0).length;
         let summary = $('<div>', {class: 'optimizationIdleSummary'});
         summary.append($('<span>', {class: 'idleIncreaseCount'})
-            .text('Увеличени: ' + increasedCount + ' машини — общо ' + (totals.increased || '0 сек.')));
+            .text('Увеличени: ' + increasedCount + ' машини — общо ' + (totals.increased || '0 мин.')));
         summary.append($('<span>', {class: 'idleDecreaseCount'})
-            .text('Намалени: ' + decreasedCount + ' машини — общо ' + (totals.decreased || '0 сек.')));
+            .text('Намалени: ' + decreasedCount + ' машини — общо ' + (totals.decreased || '0 мин.')));
         let netSeconds = Number(totals.netSeconds) || 0;
         let netClass = netSeconds > 0 ? 'idleNetIncrease' : (netSeconds < 0 ? 'idleNetDecrease' : 'idleNetUnchanged');
         summary.append($('<span>', {class: netClass})
-            .text('Нетна промяна: ' + (totals.net || '0 сек.')));
+            .text('Нетна промяна на престоите: ' + (totals.net || '0 мин.')));
         report.append(summary);
 
         let table = $('<table>', {class: 'optimizationIdleTable'});
@@ -2121,8 +2121,8 @@ function renderOptimizationIdleReport(changes, totals, metrics, stats, hasNetIdl
             let directionClass = Number(change.changeSeconds) > 0 ? 'idleIncreased' : 'idleDecreased';
             body.append($('<tr>', {class: directionClass})
                 .append($('<td>', {class: 'optimizationIdleAsset'}).text(change.assetTitle || ''))
-                .append($('<td>').text(change.before || '0 сек.'))
-                .append($('<td>').text(change.after || '0 сек.'))
+                .append($('<td>').text(change.before || '0 мин.'))
+                .append($('<td>').text(change.after || '0 мин.'))
                 .append($('<td>', {class: 'optimizationIdleDifference'}).text(change.change || '')));
         });
         table.append(body);

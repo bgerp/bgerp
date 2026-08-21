@@ -134,7 +134,7 @@ abstract class price_reports_PriceListProto extends frame2_driver_TableData
         $pRecs = $pQuery->fetchAll();
 
         // Предварително зареждане в хита на ддс-то и групите на артикулите за по-лесно ползване
-        cat_products_VatGroups::getVats(array_keys($pRecs), $date, $rec->vatExceptionId);
+        cat_products_VatGroups::getVats(array_keys($pRecs), $date, $rec->vatExceptionId ?? null);
         price_ListRules::preloadGroups($pRecs);
 
         return (object) array(
@@ -161,7 +161,7 @@ abstract class price_reports_PriceListProto extends frame2_driver_TableData
             'code' => (!empty($productRec->code)) ? $productRec->code : "Art{$productRec->id}",
             'measureId' => $productRec->measureId,
             'isPublic' => $productRec->isPublic,
-            'vat' => cat_Products::getVat($productRec->id, $date, $rec->vatExceptionId),
+            'vat' => cat_Products::getVat($productRec->id, $date, $rec->vatExceptionId ?? null),
             'packs' => array(),
             'groups' => $productRec->groups,
             'type' => null);

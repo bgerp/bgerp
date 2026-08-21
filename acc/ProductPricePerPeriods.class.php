@@ -514,7 +514,8 @@ class acc_ProductPricePerPeriods extends core_Manager
         $bQuery = acc_Balances::getQuery();
         $bQuery->orderBy('fromDate', 'ASC');
         $bQuery->where("#lastCalculate >= '{$from}'");
-        $invalidateAfterDate = $bQuery->fetch()->fromDate;
+        $balanceRec = $bQuery->fetch();
+        $invalidateAfterDate = is_object($balanceRec) ? $balanceRec->fromDate : null;
 
         core_Debug::log("INVALIDATE AFTER {$invalidateAfterDate}");
         if($invalidateAfterDate){

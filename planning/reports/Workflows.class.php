@@ -301,7 +301,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
                 }
 
                 $quantity = $tRec->quantity;
-                $weight = round($tRec->weight, 3);
+                $weight = round($tRec->weight ?? 0, 3);
                 $crapQuantity = 0;
 
                 //Количеството се преизчилсява според мерките за производство
@@ -348,9 +348,9 @@ class planning_reports_Workflows extends frame2_driver_TableData
                 //Ако е брак
                 if ($tRec->type == 'scrap') {
                     // $crapQuantity = round(($tRec->quantity / $quantityInPack), 3);
-                    $crapQuantity = round(($tRec->quantity), 3);
-                    $quantity = round(($tRec->quantity * (-1)), 3);
-                    $weight = round($tRec->weight * (-1), 3);
+                    $crapQuantity = round($tRec->quantity ?? 0, 3);
+                    $quantity = round(($tRec->quantity ?? 0) * (-1), 3);
+                    $weight = round(($tRec->weight ?? 0) * (-1), 3);
                     $labelQuantity = 0;
                     $indTimeSum = $indTimeSum * (-1);
                 }
@@ -531,7 +531,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
 
             foreach ($recs as $key => $val) {
 
-                $k = trim($val->employees, '|');
+                $k = trim($val->employees ?? '', '|');
                 $indTimeSumArr[$k] = ($indTimeSumArr[$k] ?? 0) + $val->indTimeSum / 60;
 
             }

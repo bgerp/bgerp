@@ -398,10 +398,21 @@ class purchase_Invoices extends deals_InvoiceMaster
             return true;
         }
         
+        $id = $rec->id ?? null;
+        
         // Проверяваме дали за този контрагент има друга фактура със същия номер, която не е оттеглена
         foreach (array('contragentVatNo', 'uicNo') as $fld) {
             if (!empty($rec->{$fld})) {
-                if ($invRec = $this->fetchField("#{$fld}='{$rec->{$fld}}' AND #number='{$rec->number}' AND #id != '{$rec->id}' AND #state != 'rejected'")) {
+                $where = array("#{$fld} = '[#1#]' AND #number = '[#2#]' AND #state != 'rejected'", $rec->{$fld}, $rec->number);
+                
+                // При нов запис няма какво да се изключва
+                if (!empty($id)) {
+                    $where[0] .= " AND #id != '[#3#]'";
+                    $where[] = $id;
+                }
+                
+                $invRec = $this->fetchField($where);
+                if (!empty($invRec)) {
                     $foundInvoiceId = $invRec;
                     
                     return false;

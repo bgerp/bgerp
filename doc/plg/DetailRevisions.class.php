@@ -12,6 +12,7 @@
  * @category  bgerp
  * @package   doc
  *
+ * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2026 Experta OOD
  * @license   GPL 3
  *
@@ -161,18 +162,26 @@ class doc_plg_DetailRevisions extends core_Plugin
         $bRecs = $bQuery->fetchAll();
 
         if (countR($bRecs)) {
+
+            // Ако друг плъгин вече е разпределил партиди на новия ред, старите само се архивират
+            $alreadyAllocated = batch_BatchesInDocuments::count("#detailClassId = {$invoker->getClassId()} AND #detailRecId = {$rec->id}");
+
             $clones = array();
             foreach ($bRecs as $bRec) {
-                $clone = clone $bRec;
-                unset($clone->id);
-                $clone->detailRecId = $rec->id;
-                $clone->isHistoric = 'no';
-                $clones[] = $clone;
+                if (empty($alreadyAllocated)) {
+                    $clone = clone $bRec;
+                    unset($clone->id);
+                    $clone->detailRecId = $rec->id;
+                    $clone->isHistoric = 'no';
+                    $clones[] = $clone;
+                }
 
                 $bRec->isHistoric = 'yes';
             }
             batch_BatchesInDocuments::saveArray($bRecs);
-            batch_BatchesInDocuments::saveArray($clones);
+            if (countR($clones)) {
+                batch_BatchesInDocuments::saveArray($clones);
+            }
         }
     }
 
@@ -251,6 +260,38 @@ class doc_plg_DetailRevisions extends core_Plugin
 
 
     /**
+     * Подредба по логическия ред, а не по id - редакцията е нов запис с ново id
+     */
+    public static function on_AfterPrepareDetailQuery($mvc, &$res, $data)
+    {
+        // С най-нисък приоритет, за да води сортирането от стрелките (@see plg_Sorting)
+        static::orderByRevisionGroup($data->query, -1);
+    }
+
+
+    /**
+     * Подредба по ревизионна група - активният ред пред оттеглените си версии
+     *
+     * @param core_Query $query
+     * @param int        $priority
+     *
+     * @return void
+     */
+    public static function orderByRevisionGroup($query, $priority = 0)
+    {
+        // Може да се извика няколко пъти за една заявка - XPR не приема дублирано име
+        if (!$query->getField('revisionGroupId', false)) {
+            $query->XPR('revisionGroupId', 'int', 'IF(#revisionRootId > 0, #revisionRootId, #id)');
+            $query->XPR('revisionIsRejected', 'int', "IF(#state = 'rejected', 1, 0)");
+        }
+
+        $query->orderBy('#revisionGroupId', 'ASC', $priority);
+        $query->orderBy('#revisionIsRejected', 'ASC', $priority);
+        $query->orderBy('#id', 'ASC', $priority);
+    }
+
+
+    /**
      * Скрит филтър, който запазва режима за ревизии при действията на детайла
      */
     public static function on_AfterPrepareListFilter($mvc, &$data)
@@ -318,10 +359,14 @@ class doc_plg_DetailRevisions extends core_Plugin
 
         $activeGroups = self::groupsWithActiveRow($data->recs);
 
+        // При някои детайли артикулът не е в #productId (@see store_TransfersDetails)
+        $productFld = $mvc->productFld ?? $mvc->productFieldName ?? 'productId';
+
         foreach ($data->rows as $id => $row) {
             $rec = $data->recs[$id];
             if ((($rec->state ?? null) == 'rejected') && isset($activeGroups[$rec->revisionRootId ?: $rec->id])) {
-                $row->code = $row->reff = $row->tools = $row->productId = '';
+                $row->code = $row->reff = $row->tools = '';
+                $row->{$productFld} = '';
             }
         }
     }
@@ -380,12 +425,9 @@ class doc_plg_DetailRevisions extends core_Plugin
             return;
         }
 
-        $activatedOn = null;
+        $since = null;
         if ($showRevisions) {
-            $activatedOn = $data->masterData->rec->activatedOn ?? null;
-            if (!isset($activatedOn)) {
-                $activatedOn = $mvc->Master->fetchField($data->masterId, 'activatedOn');
-            }
+            $since = doc_plg_MasterRevision::getRevisionsSince($mvc->Master, $data->masterId);
         }
         $masterState = $data->masterData->rec->state ?? null;
         $useRevisionEdit = in_array($masterState, arr::make($mvc->detailRevisionsStates, true));
@@ -399,7 +441,12 @@ class doc_plg_DetailRevisions extends core_Plugin
                 $date = $mvc->getVerbal($rec, $onField);
                 $nick = !empty($rec->{$byField}) ? crm_Profiles::createLink($rec->{$byField}) : '';
 
-                if (!$isRejected && isset($activatedOn, $rec->createdOn) && $rec->createdOn >= $activatedOn) {
+                // Ред, добавен в ревизионно състояние (revisionRootId=0, @see linkToDeletedRow)
+                // или създаден след активирането/заявяването. Условието е като на брояча
+                // в doc_plg_MasterRevision (@see getRevisionsSince)
+                $isAddedNow = isset($rec->revisionRootId) && empty($rec->revisionRootId) && empty($rec->revisionPrevId);
+
+                if (!$isRejected && ($isAddedNow || (isset($since, $rec->createdOn) && $rec->createdOn >= $since))) {
                     $newBadge = "<span style='display:inline-block;background:#2196F3;color:#fff;font-size:10px;font-weight:bold;padding:1px 6px;border-radius:3px;vertical-align:middle;margin-left:4px;line-height:15px;' title='" . tr('Добавен след като документа е бил контиран или е станал на заявка') . "'>" . tr('НОВ') . "</span>";
                     $date = new core_ET("{$newBadge} {$date}");
                 }

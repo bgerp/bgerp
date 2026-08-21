@@ -242,7 +242,7 @@ class log_Ips extends core_Manager
             $countryName = 'Unknown Country';
         }
         
-        $country = ht::createLink($country, $country != '⒫' ? 'http://bgwhois.com/?query=' . $ip : null, null, array('target' => '_blank', 'class' => 'vislog-country', 'title' => $countryName));
+        $country = ht::createLink($country, $country != '⒫' ? 'https://bgwhois.com/?query=' . $ip : null, null, array('target' => '_blank', 'class' => 'vislog-country', 'title' => $countryName));
         
         // $count
         $count = '';

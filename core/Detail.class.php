@@ -273,7 +273,7 @@ class core_Detail extends core_Manager
             $form->fields[$masterKey]->input = 'hidden';
         }
         
-        expect($data->masterId = $data->form->rec->{$masterKey}, $data->form->rec);
+        expect($data->masterId = $data->form->rec->{$masterKey} ?? null, $data->form->rec);
         expect($data->masterRec = $data->masterMvc->fetch($data->masterId), $data);
         
         return $data;
@@ -601,7 +601,13 @@ class core_Detail extends core_Manager
     {
         expect($masterId = Request::get($this->masterKey, 'int'));
         $this->requireRightFor('selectrowstodelete', (object)array($this->masterKey => $masterId));
-        $deleteAllUrl = toUrl(array($this, 'selectrowstodelete', "{$this->masterKey}" => $masterId));
+
+        $filterFld = Request::get('_filterFld', 'varchar');
+        $filterNot = Request::get('_filterFldNot', 'varchar');
+        $filterFldVal = Request::get('_filterFldVal', 'varchar');
+
+        // Филтърът се пази и в урл-то за изтриване, за да важи и при самото изтриване
+        $deleteAllUrl = toUrl(array($this, 'selectrowstodelete', "{$this->masterKey}" => $masterId, '_filterFld' => $filterFld, '_filterFldVal' => $filterFldVal, '_filterFldNot' => $filterNot));
 
         $form = cls::get('core_Form');
         $form->title = 'Изтриване на редове от|* <b>' . cls::get($this->Master)->getFormTitleLink($masterId) . '</b>';
@@ -609,11 +615,58 @@ class core_Detail extends core_Manager
         $form->FLD('selected', 'varchar', 'caption=Избрани', 'silent,input=hidden');
         $form->input('selected', 'silent');
 
+        // Ако има събмитнати редове за изтриване - да се изтрият
+        if(!empty($form->rec->selected)){
+            $idArr = array();
+            foreach (explode('|', $form->rec->selected) as $selId){
+                if(is_numeric($selId)){
+                    $idArr[$selId] = $selId;
+                } else {
+                    wp($form->rec->selected, $form->rec);
+                }
+            }
+
+            if(countR($idArr)){
+                $deleteQuery = $this->getQuery();
+                $deleteQuery->where("#{$this->masterKey} = {$masterId}");
+                $deleteQuery->in('id', $idArr);
+
+                // Филтърът се прилага и при изтриването, за да не се трият редове извън него
+                if(!empty($filterFld)){
+                    $sign = ($filterNot) ? '!=' : '=';
+                    $deleteQuery->where("#{$filterFld} {$sign} '{$filterFldVal}'");
+                }
+
+                $deletedCount = 0;
+                $skippedArr = array();
+                Mode::push("selectRowsOnDelete_{$this->className}", true);
+                while ($dRec = $deleteQuery->fetch()){
+
+                    // Редовете се трият един по един, защото правата за изтриване на всеки от тях
+                    // може да зависят от останалите. Ролите се питат без кеша на `haveRightFor`,
+                    // защото той пази резултата от преди изтриването на предходните редове
+                    if(!haveRole($this->getRequiredRoles('delete', $dRec))){
+                        $skippedArr[$dRec->id] = $dRec->id;
+                        continue;
+                    }
+
+                    $deletedCount += $this->delete($dRec->id);
+                }
+                Mode::pop("selectRowsOnDelete_{$this->className}");
+
+                if(countR($skippedArr)){
+                    core_Statuses::newStatus('Не могат да бъдат изтрити редовете с ид|*: ' . implode(', ', $skippedArr), 'warning');
+                }
+
+                if(!empty($deletedCount)){
+                    $this->Master->logWrite('Изтриване на избрани редове', $masterId);
+                    redirect($this->Master->getSingleUrlArray($masterId), false, "|Успешно са изтрити|* <b>{$deletedCount}</b> |реда|*!");
+                }
+            }
+        }
+
         $query = $this->getQuery();
         $query->where("#{$this->masterKey} = {$masterId}");
-        $filterFld = Request::get('_filterFld', 'varchar');
-        $filterNot = Request::get('_filterFldNot', 'varchar');
-        $filterFldVal = Request::get('_filterFldVal', 'varchar');
 
         if(!empty($filterFld)){
             $sign = ($filterNot) ? '!=' : '=';
@@ -651,28 +704,6 @@ class core_Detail extends core_Manager
 
         $form->info->append($docTableTpl);
         $form->input();
-
-        // Ако има събмитнати редове за изтриване - да се изтрият
-        if(!empty($form->rec->selected)){
-            $selectedArr = explode('|', $form->rec->selected);
-            if(countR($selectedArr)){
-                $idArr = array();
-                foreach ($selectedArr as $selId){
-                    if(is_numeric($selId)){
-                        $idArr[$selId] = $selId;
-                    } else {
-                        wp($selectedArr, $form->rec);
-                    }
-                }
-                $str = implode(',', $idArr);
-
-                Mode::push("selectRowsOnDelete_{$this->className}", true);
-                static::delete("#{$this->masterKey} = {$masterId} AND #id IN ({$str})");
-                Mode::pop("selectRowsOnDelete_{$this->className}");
-                $this->Master->logWrite('Изтриване на избрани редове', $masterId);
-                redirect($this->Master->getSingleUrlArray($masterId), 'Успешно са изтрити избраните редове|*!');
-            }
-        }
 
         $form->toolbar->addFnBtn('Изтриване', '', array('class' => 'deleteAllCheckedRows', 'ef_icon' => 'img/16/deletered.png', 'data-url' => $deleteAllUrl, 'data-errorMsg' => tr('Моля изберете редове за изтриване|*!')));
         $form->toolbar->addBtn('Назад', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Назад към заданието');

@@ -258,7 +258,7 @@ class eshop_ProductDetails extends core_Detail
             
             $row->title = static::getPublicProductTitle($rec->eshopProductId, $rec->productId);
             if(empty($rec->title)){
-                $row->title = ht::createHint("<span style='color:blue'>{$row->title}</span>", 'Заглавието е динамично определено');
+                $row->title = ht::createHint("<span class='blueText'>{$row->title}</span>", 'Заглавието е динамично определено');
             }
             
             $pState = cat_Products::fetchField($rec->productId, 'state');
@@ -999,8 +999,13 @@ class eshop_ProductDetails extends core_Detail
     public function getInquiryData($id)
     {
         $rec = $this->fetchRec($id);
+        expect410($rec, $id);
+
         $productRec = cat_Products::fetch($rec->productId, 'innerClass,measureId');
+        expect410($productRec, $rec);
+
         $eProductRec = eshop_Products::fetch($rec->eshopProductId);
+        expect410($eProductRec, $rec);
         $moq = !empty($rec->moq) ? $rec->moq : cat_Products::getMoq($rec->productId);
         
         $res = array('title' => static::getPublicProductTitle($rec->eshopProductId, $rec->productId),

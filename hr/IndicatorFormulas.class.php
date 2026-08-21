@@ -68,7 +68,7 @@ class hr_IndicatorFormulas extends core_Manager
     /**
      * Кеширани формули
      */
-    public static $cachedFormulas = false;
+    public static $cachedFormulas = array();
 
 
     /**

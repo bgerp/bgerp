@@ -246,7 +246,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
             if ($dRec->readiness == 0) {
                 $row->readiness = "<span class='quiet'>{$row->readiness}<span>";
             } elseif ($dRec->readiness >= 0.8) {
-                $row->readiness = "<span style='color:blue'>{$row->readiness}<span>";
+                $row->readiness = "<span class='blueText'>{$row->readiness}<span>";
             } else {
                 $row->readiness = "<span style='color:green'>{$row->readiness}<span>";
             }

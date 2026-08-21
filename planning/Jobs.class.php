@@ -260,7 +260,7 @@ class planning_Jobs extends core_Master
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'dueDate,quantityProduced,quantityDisassembled,history,oldJobId,secondMeasureQuantity,productViewCacheDate,salesBomIdOnActivation,instantBomIdOnActivation,productionBomIdOnActivation';
+    public $fieldsNotToClone = 'dueDate,quantityProduced,quantityDisassembled,history,oldJobId,secondMeasureQuantity,productViewCacheDate,salesBomIdOnActivation,instantBomIdOnActivation,productionBomIdOnActivation,disassemblyBomIdOnActivation';
 
 
     /**
@@ -347,6 +347,7 @@ class planning_Jobs extends core_Master
         $this->FLD('salesBomIdOnActivation', 'key(mvc=cat_Boms,select=title)', 'caption=Търговска рецепта при активиране,input=none');
         $this->FLD('instantBomIdOnActivation', 'key(mvc=cat_Boms,select=title)', 'caption=Моментна рецепта при активиране,input=none');
         $this->FLD('productionBomIdOnActivation', 'key(mvc=cat_Boms,select=title)', 'caption=Работна рецепта при активиране,input=none');
+        $this->FLD('disassemblyBomIdOnActivation', 'key(mvc=cat_DisassemblyBoms,select=title)', 'caption=Рецепта за разпад при активиране,input=none');
 
         $this->setDbIndex('state');
         $this->setDbIndex('productId');
@@ -375,7 +376,6 @@ class planning_Jobs extends core_Master
         $data->singleTitle = (($rec->type ?? null) == 'disassembly') ? tr('Задание за разпад') : tr('Задание за производство');
 
         if (($rec->type ?? null) == 'disassembly') {
-            $form->setField('productId', "unit=|*(|за РАЗПАД|*)");
             $form->setField('storeId', 'caption=Влагане от');
             $form->setField('inputStores', 'caption=Произвеждане в');
         }
@@ -881,10 +881,15 @@ class planning_Jobs extends core_Master
         $rec = &$data->rec;
         $issueBtnRow = $rec->state == 'closed' ? 1 : 2;
         $data->toolbar->setBtnAttr("issueBtn{$rec->containerId}", 'row', $issueBtnRow);
-        if (cat_Boms::haveRightFor('add', (object) array('productId' => $rec->productId, 'type' => 'production', 'originId' => $rec->containerId))) {
+        if ($rec->type == 'manifacture' && cat_Boms::haveRightFor('add', (object) array('productId' => $rec->productId, 'type' => 'production', 'originId' => $rec->containerId))) {
             $data->toolbar->addBtn('Рецепта', array('cat_Boms', 'add', 'productId' => $rec->productId, 'originId' => $rec->containerId, 'quantityForPrice' => $rec->quantity, 'ret_url' => true, 'type' => 'production'), 'ef_icon = img/16/add.png,title=Създаване на нова работна рецепта,row=2');
         }
-        
+
+        // Бутон за добавяне на рецепта за разпад
+        if ($rec->type == 'disassembly' && cat_DisassemblyBoms::haveRightFor('add', (object) array('productId' => $rec->productId, 'originId' => $rec->containerId))) {
+            $data->toolbar->addBtn('Рецепта (разпад)', array('cat_DisassemblyBoms', 'add', 'productId' => $rec->productId, 'originId' => $rec->containerId, 'ret_url' => true), 'ef_icon = img/16/add.png,title=Създаване на нова рецепта за разпад,row=2');
+        }
+
         // Бутон за добавяне на документ за производство
         if (planning_DirectProductionNote::haveRightFor('add', (object) array('originId' => $rec->containerId))) {
             $pUrl = array('planning_DirectProductionNote', 'add', 'originId' => $rec->containerId, 'ret_url' => true);
@@ -1056,8 +1061,10 @@ class planning_Jobs extends core_Master
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         $row->title = (!empty($fields['-single'])) ? $mvc->getRecTitle($rec) : $mvc->getLink($rec->id);
+        // Балонче за вида на заданието - със стила на рецептите (@see cat_Boms)
+        $row->type = cat_Boms::renderTypeBadge($row->type ?? null, $mvc, $rec);
+
         if ($rec->type == 'disassembly') {
-            $row->type = "<span style='display:inline-block;padding:1px 8px;border-radius:3px;background:#b71c1c;color:#fff;font-weight:bold;letter-spacing:0.08em;'>{$row->type}</span>";
             unset($row->allowSecondMeasure);
 
             // За Разпад "Заскладено" показва quantityDisassembled, не quantityProduced
@@ -1158,11 +1165,16 @@ class planning_Jobs extends core_Master
             }
         }
         
-        if (cat_Boms::haveRightFor('add', (object) array('productId' => $rec->productId, 'type' => 'production', 'originId' => $rec->containerId))) {
+        if ($rec->type == 'manifacture' && cat_Boms::haveRightFor('add', (object) array('productId' => $rec->productId, 'type' => 'production', 'originId' => $rec->containerId))) {
             core_RowToolbar::createIfNotExists($row->_rowTools);
             $row->_rowTools->addLink('Работна рецепта', array('cat_Boms', 'add', 'productId' => $rec->productId, 'originId' => $rec->containerId, 'quantityForPrice' => $rec->quantity, 'ret_url' => true, 'type' => 'production'), "ef_icon=img/16/article.png,title=Създаване на нова работна рецепта");
         }
-        
+
+        if ($rec->type == 'disassembly' && cat_DisassemblyBoms::haveRightFor('add', (object) array('productId' => $rec->productId, 'originId' => $rec->containerId))) {
+            core_RowToolbar::createIfNotExists($row->_rowTools);
+            $row->_rowTools->addLink('Рецепта за разпад', array('cat_DisassemblyBoms', 'add', 'productId' => $rec->productId, 'originId' => $rec->containerId, 'ret_url' => true), "ef_icon=img/16/article_decay.png,title=Създаване на нова рецепта за разпад");
+        }
+
         if (isset($fields['-list'])) {
             $row->productId = (!empty($fields['__isDetail'])) ? cat_Products::getLink($rec->productId, 0) : cat_Products::getHyperlink($rec->productId, true);
             if ($rec->quantityNotStored > 0) {
@@ -1251,13 +1263,25 @@ class planning_Jobs extends core_Master
                 $row->oldJobCaption = ($rec->productId != $oldJobProductId) ? tr('Подобно задание') : tr('Предходно задание');
             }
 
-            foreach (array('sBomId' => array('salesBomIdOnActivation', 'sales'), 'iBomId' => array('instantBomIdOnActivation', 'instant'), 'pBomId' =>  array('productionBomIdOnActivation', 'production')) as $bomFld => $activationBomArr) {
-                $lastActiveBom = cat_Products::getLastActiveBom($rec->productId, $activationBomArr[1]);
+            // Всеки вид задание показва само своите рецепти (@see #Tsk9167)
+            if ($rec->type == 'disassembly') {
+                $lastActiveBom = cat_DisassemblyBoms::getLastActiveBom($rec->productId);
                 if ($bomId = ($lastActiveBom->id ?? null)) {
-                    $row->{$bomFld} = cat_Boms::getLink($bomId, 0);
-                    if(isset($rec->{$activationBomArr[0]}) && $bomId != $rec->{$activationBomArr[0]}){
-                        $oldBomHandle = cat_Boms::getHandle($rec->{$activationBomArr[0]});
-                        $row->{$bomFld} = ht::createHint($row->{$bomFld}, "Рецептата при активиране е била|*: #{$oldBomHandle}", 'warning');
+                    $row->dBomId = cat_DisassemblyBoms::getLink($bomId, 0);
+                    if(isset($rec->disassemblyBomIdOnActivation) && $bomId != $rec->disassemblyBomIdOnActivation){
+                        $oldBomHandle = cat_DisassemblyBoms::getHandle($rec->disassemblyBomIdOnActivation);
+                        $row->dBomId = ht::createHint($row->dBomId, "Рецептата при активиране е била|*: #{$oldBomHandle}", 'warning');
+                    }
+                }
+            } else {
+                foreach (array('sBomId' => array('salesBomIdOnActivation', 'sales'), 'iBomId' => array('instantBomIdOnActivation', 'instant'), 'pBomId' =>  array('productionBomIdOnActivation', 'production')) as $bomFld => $activationBomArr) {
+                    $lastActiveBom = cat_Products::getLastActiveBom($rec->productId, $activationBomArr[1]);
+                    if ($bomId = ($lastActiveBom->id ?? null)) {
+                        $row->{$bomFld} = cat_Boms::getLink($bomId, 0);
+                        if(isset($rec->{$activationBomArr[0]}) && $bomId != $rec->{$activationBomArr[0]}){
+                            $oldBomHandle = cat_Boms::getHandle($rec->{$activationBomArr[0]});
+                            $row->{$bomFld} = ht::createHint($row->{$bomFld}, "Рецептата при активиране е била|*: #{$oldBomHandle}", 'warning');
+                        }
                     }
                 }
             }
@@ -1496,16 +1520,24 @@ class planning_Jobs extends core_Master
             }
         }
 
-        // Кеширане на актуалните рецепти към момента на активиране
-        foreach (array('salesBomIdOnActivation' => 'sales', 'instantBomIdOnActivation' => 'instant', 'productionBomIdOnActivation' => 'production') as $bomFld => $bomType){
-            $bomRec = cat_Products::getLastActiveBom($rec->productId, $bomType);
+        // Кеширане на актуалните рецепти към момента на активиране - всеки вид
+        // задание кешира само своите (@see #Tsk9167)
+        if ($rec->type == 'disassembly') {
+            $bomRec = cat_DisassemblyBoms::getLastActiveBom($rec->productId);
             if ($bId = ($bomRec->id ?? null)) {
-                $rec->{$bomFld} = $bId;
+                $rec->disassemblyBomIdOnActivation = $bId;
+            }
+        } else {
+            foreach (array('salesBomIdOnActivation' => 'sales', 'instantBomIdOnActivation' => 'instant', 'productionBomIdOnActivation' => 'production') as $bomFld => $bomType){
+                $bomRec = cat_Products::getLastActiveBom($rec->productId, $bomType);
+                if ($bId = ($bomRec->id ?? null)) {
+                    $rec->{$bomFld} = $bId;
+                }
             }
         }
 
         $rec->productViewCacheDate = dt::now();
-        $mvc->save_($rec, 'productViewCacheDate,salesBomIdOnActivation,instantBomIdOnActivation,productionBomIdOnActivation');
+        $mvc->save_($rec, 'productViewCacheDate,salesBomIdOnActivation,instantBomIdOnActivation,productionBomIdOnActivation,disassemblyBomIdOnActivation');
     }
     
     
@@ -2123,7 +2155,10 @@ class planning_Jobs extends core_Master
         }
 
         $productRec = cat_Products::fetch($rec->productId, 'canStore,canConvert');
-        $quantityToProduce = round($rec->quantity - $rec->quantityProduced, 4);
+
+        // При разпад изпълненото е разпадналото се к-во (@see planning_Jobs::updateDisassembledQuantity)
+        $quantityDone = ($rec->type == 'disassembly') ? $rec->quantityDisassembled : $rec->quantityProduced;
+        $quantityToProduce = round($rec->quantity - $quantityDone, 4);
 
         // В кои нишки има документи отнасящи се за заданието
         $threadsArr = static::getJobLinkedThreads($rec);
@@ -2150,7 +2185,12 @@ class planning_Jobs extends core_Master
             $productsIn[$sRec->productId] = ($productsIn[$sRec->productId] ?? 0) + $sRec->quantityIn;
             $products[$sRec->productId] = ($products[$sRec->productId] ?? 0) + $sRec->quantityOut;
         }
-        $quantityToProduce -= $productsIn[$rec->productId] ?? 0;
+        // При производство артикулът на заданието влиза в склада, а при разпад - излиза от него
+        if ($rec->type == 'disassembly') {
+            $quantityToProduce -= $products[$rec->productId] ?? 0;
+        } else {
+            $quantityToProduce -= $productsIn[$rec->productId] ?? 0;
+        }
 
         if($quantityToProduce > 0){
             $genericProductId = null;

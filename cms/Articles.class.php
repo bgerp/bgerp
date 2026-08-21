@@ -182,10 +182,13 @@ class cms_Articles extends core_Master
      */
     public static function on_AfterPrepareEditForm($mvc, $data)
     {
-        if ($id = ($data->form->rec->id ?? null)) {
+        $id = $data->form->rec->id ?? null;
+        if (!empty($id)) {
             $rec = self::fetch($id);
-            $cRec = cms_Content::fetch($rec->menuId);
-            cms_Domains::selectCurrent($cRec->domainId);
+            $cRec = !empty($rec) ? cms_Content::fetch($rec->menuId) : null;
+            if (!empty($cRec)) {
+                cms_Domains::selectCurrent($cRec->domainId);
+            }
         }
 
         $domainId = cms_Domains::getPublicDomain('id');
@@ -198,7 +201,7 @@ class cms_Articles extends core_Master
      */
     public function on_AfterRecToVerbal($mvc, $row, $rec, $fields = array())
     {
-        if (trim($rec->body) && ($fields['-list'] ?? null) && $mvc->haveRightFor('show', $rec)) {
+        if (trim((string) $rec->body) && ($fields['-list'] ?? null) && $mvc->haveRightFor('show', $rec)) {
             $row->title = ht::createLink($row->title, toUrl(self::getUrl($rec)), null, 
                 array('ef_icon' => 'img/16/monitor.png', 'title' => isset($rec->seoTitle) ? $rec->seoTitle : null));
         }
@@ -276,7 +279,7 @@ class cms_Articles extends core_Master
         }
         
         if ($rec) {
-            $rec->body = trim($rec->body);
+            $rec->body = trim((string) $rec->body);
             
             $menuId = $rec->menuId;
             
@@ -301,7 +304,7 @@ class cms_Articles extends core_Master
         }
 
         // Подготвяме SEO елементите
-        cms_Content::prepareSeo($rec, array('seoDescription' => $rec->body, 'seoTitle' => $rec->title));
+        cms_Content::prepareSeo($rec, array('seoDescription' => $rec->body ?? null, 'seoTitle' => $rec->title ?? null));
         
         if ($navData->cnt + Mode::is('screenMode', 'wide') > 1) {
             $content->append($this->renderNavigation($navData), 'NAVIGATION');
@@ -400,7 +403,7 @@ class cms_Articles extends core_Master
             
             $title = self::getVerbal($rec1, 'title');
             
-            if (!$rec && $rec1->body) {
+            if (!$rec && !empty($rec1->body)) {
                 
                 // Това е първата срещната статия
                 $id = $rec1->id;
@@ -413,6 +416,7 @@ class cms_Articles extends core_Master
             }
             
             $l = new stdClass();
+            $l->level = 1;
 
             $l->selected = (is_object($rec) && isset($rec->id) && $rec->id == $rec1->id);
             
@@ -424,7 +428,7 @@ class cms_Articles extends core_Master
                 $l->level = 1;
             }
             
-            if (trim($rec1->body)) {
+            if (trim((string) $rec1->body)) {
                 $l->url = self::getUrl($rec1);
             }
             
@@ -447,7 +451,7 @@ class cms_Articles extends core_Master
             
             if ($l->selected) {
                 $flagSelected = true;
-            } elseif ($l->url) {
+            } elseif ($l->url ?? null) {
                 if (!$flagSelected) {
                     $navData->prev = $l;
                 }
@@ -465,7 +469,7 @@ class cms_Articles extends core_Master
             plg_Search::highlight($content, $q, 'searchContent');
         }
         
-        $navData->menuId = $rec->menuId;
+        $navData->menuId = $rec->menuId ?? null;
         
         if (self::haveRightFor('add')) {
             $navData->addLink = ht::createLink(tr('+ добави страница'), array('cms_Articles', 'Add', 'menuId' => $menuId,
@@ -487,7 +491,7 @@ class cms_Articles extends core_Master
         $noRootClass = ($data->hasRootNavigation ?? null) ? '' : 'noRoot';
         $currentPage = '';
 
-        if(is_array($data->links)){
+        if (is_array($data->links ?? null)) {
             foreach ($data->links as $l) {
                 $selected = ($l->selected ?? null) ? 'sel_page' : '';
                 if (!empty($l->closed)) {
@@ -501,7 +505,7 @@ class cms_Articles extends core_Master
                 }
 
                 $navTpl->append("<div class='nav_item {$noRootClass} level{$l->level} {$selected}'>");
-                if ($l->url) {
+                if ($l->url ?? null) {
                     $navTpl->append(ht::createLink($l->title, $l->url, null, $aAttr));
                 } else {
                     $navTpl->append('<span>' . $l->title .'</span>');
@@ -600,14 +604,16 @@ class cms_Articles extends core_Master
     {
         expect($rec->menuId, $rec);
         
-        $domainId = cms_Content::fetch($rec->menuId)->domainId;
-        $lang = cms_Domains::fetch($domainId)->lang;
+        $cRec = cms_Content::fetch($rec->menuId);
+        $domainId = !empty($cRec) ? $cRec->domainId : null;
+        $dRec = !empty($domainId) ? cms_Domains::fetch($domainId) : null;
+        $lang = !empty($dRec) ? $dRec->lang : null;
         
         if ($lang == 'bg' || $lang == 'en') {
             $lang = ucfirst($lang);
-            $res = array($lang, $rec->vid ? urlencode($rec->vid) : $rec->id, 'PU' => (haveRole('powerUser') && !$canonical) ? 1 : null);
+            $res = array($lang, !empty($rec->vid) ? urlencode($rec->vid) : $rec->id, 'PU' => (haveRole('powerUser') && !$canonical) ? 1 : null);
         } else {
-            $res = array('A', 'a', $rec->vid ? urlencode($rec->vid) : $rec->id, 'PU' => (haveRole('powerUser') && !$canonical) ? 1 : null);
+            $res = array('A', 'a', !empty($rec->vid) ? urlencode($rec->vid) : $rec->id, 'PU' => (haveRole('powerUser') && !$canonical) ? 1 : null);
         }
         
         return $res;
@@ -632,10 +638,13 @@ class cms_Articles extends core_Master
                 $id = $vid;
             }
             
-            if ($id) {
-                $rec = self::fetch($id);
-                $domainId = cms_Content::fetch($rec->menuId)->domainId;
-                if ($domainId && ($lg = cms_Domains::fetch($domainId)->lang)) {
+            $rec = !empty($id) ? self::fetch($id) : null;
+            if (!empty($rec)) {
+                $cRec = cms_Content::fetch($rec->menuId);
+                $domainId = !empty($cRec) ? $cRec->domainId : null;
+                $dRec = !empty($domainId) ? cms_Domains::fetch($domainId) : null;
+                $lg = !empty($dRec) ? $dRec->lang : null;
+                if (!empty($lg)) {
                     $ctr = ucfirst($lg);
                     if (cls::load($ctr, true)) {
                         $url['Ctr'] = $ctr;
@@ -804,7 +813,7 @@ class cms_Articles extends core_Master
     
     protected static function on_AfterPrepareListToolbar($mvc, $res, $data)
     {
-        $data->toolbar->addBtn('Конкатениране', array($mvc, 'ShowAll', 'menuId' => $data->listFilter->rec->menuId), 'ef_icon=img/16/concatenate.png');
+        $data->toolbar->addBtn('Конкатениране', array($mvc, 'ShowAll', 'menuId' => $data->listFilter->rec->menuId ?? null), 'ef_icon=img/16/concatenate.png');
         
         if ($mvc->haveRightFor('add')) {
             $data->toolbar->addBtn(
@@ -812,7 +821,7 @@ class cms_Articles extends core_Master
                 array(
                     $mvc,
                     'add',
-                    'menuId' => $data->listFilter->rec->menuId,
+                    'menuId' => $data->listFilter->rec->menuId ?? null,
                 ),
                 'id=btnAdd',
                 'ef_icon = img/16/star_2.png,title=Създаване на нов запис'
@@ -832,7 +841,7 @@ class cms_Articles extends core_Master
         $selected = '';
         $form->input(null, 'silent');
         
-        if ($form->rec->menuId) {
+        if (!empty($form->rec->menuId)) {
             $query = self::getQuery();
             $query->where("#menuId = {$form->rec->menuId} AND #state = 'active'");
             $suggestions = array();
@@ -888,8 +897,13 @@ class cms_Articles extends core_Master
      */
     protected static function on_BeforeSave($mvc, &$res, $rec, $fields = null, $mode = null)
     {
-        if (!empty($rec->id) && $rec->level) {
+        if (!empty($rec->id) && !empty($rec->level)) {
             $exRec = self::fetch($rec->id);
+            
+            if (empty($exRec)) {
+                
+                return;
+            }
             
             $exRec->level = self::trim3zeros($exRec->level);
             $level = self::trim3zeros($rec->level);
@@ -1010,7 +1024,7 @@ class cms_Articles extends core_Master
         $res = array();
         
         while ($rec = $query->fetch()) {
-            if (!trim($rec->body)) {
+            if (!trim((string) $rec->body)) {
                 continue;
             }
             $resObj = new stdClass();

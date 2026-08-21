@@ -486,7 +486,7 @@ class rack_Pallets extends core_Manager
                     
                     $pos = "{$rRec->num}-{$rInd}-{$cInd}";
 
-                    if ($used[$pos] || $unusable[$pos] || ($reserved[$pos] && $reserved[$pos] != $pRec->productId) || $movedTo[$pos]) {
+                    if (!empty($used[$pos]) || !empty($unusable[$pos]) || (!empty($reserved[$pos]) && $reserved[$pos] != $pRec->productId) || !empty($movedTo[$pos])) {
                         continue;
                     }
 
@@ -497,12 +497,12 @@ class rack_Pallets extends core_Manager
                     $posRg = "{$rRec->num}-{$rInd}-" . ($cInd + 1);
 
                     // Ако продукта се съдържа в стелажа
-                    if($haveInRack[$rRec->num]) {
+                    if(!empty($haveInRack[$rRec->num])) {
                         $score += 0.2;
                     }
                     
                     // Ако имаме резервирана позиция за този продукт
-                    if($reserved[$pos] == $pRec->productId) {
+                    if(($reserved[$pos] ?? null) == $pRec->productId) {
                         $score += 13;
                     }
                     
@@ -519,20 +519,20 @@ class rack_Pallets extends core_Manager
                     $score += 1 - (ord($rInd) - ord('A'))/10;
 
                     // Ако горния или долния са от този продукт
-                    if($used[$posUp]->productId == $pRec->productId) {
+                    if(($used[$posUp]->productId ?? null) == $pRec->productId) {
                         $score += 3;
                     }
                     
-                    if($used[$posDw]->productId == $pRec->productId) {
+                    if(($used[$posDw]->productId ?? null) == $pRec->productId) {
                         $score += 9;
                     }
                     
                     // Ако левия или десния са от този продукт или близки на него
-                    if($weight = $nearProds[$used[$posRg]->productId]) {
+                    if($weight = ($nearProds[$used[$posRg]->productId ?? null] ?? null)) {
                         $score += $weight;
                     }
                     
-                    if($weight = $nearProds[$used[$posLf]->productId]) {
+                    if($weight = ($nearProds[$used[$posLf]->productId ?? null] ?? null)) {
                         $score += 1.2 * $weight;
                     }
 
@@ -1251,7 +1251,7 @@ class rack_Pallets extends core_Manager
             return $resArr;
         }
         
-        $str = trim($str);
+        $str = trim($str ?? '');
         
         $prodAndPack = cat_Products::getByCode($str);
         

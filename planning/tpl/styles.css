@@ -33,3 +33,7 @@
 .document .listTable.manifactureDetailsTable th {
   white-space: normal; }
 
+.richtext-message.disassemblyPercentWarning {
+  margin-top: 10px;
+  margin-bottom: 10px; }
+

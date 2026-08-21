@@ -23,7 +23,7 @@ class type_Html extends type_Text
      */
     public function toVerbal_($value)
     {
-        $value = preg_replace("/^\\s*<p>\\s*(.+)\\s*<\\/p>\\s*$/i", '$1', $value);
+        $value = preg_replace("/^\\s*<p>\\s*(.+)\\s*<\\/p>\\s*$/i", '$1', $value ?? '');
 
         return $value ;
     }

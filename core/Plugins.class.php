@@ -50,6 +50,61 @@ class core_Plugins extends core_Manager
 
 
     /**
+     * Плъгини/класове без код, декларирани в `loadList` - име на клас => масив с липсващите
+     */
+    protected static $missingPlugins = array();
+
+
+    /**
+     * Запомня, че липсва кода на плъгин/клас, зареждан от друг клас
+     *
+     * @param string $class    - плъгинът/класът, чийто код липсва
+     * @param mixed  $forClass - класът, който го зарежда
+     */
+    public static function addMissing($class, $forClass)
+    {
+        self::$missingPlugins[cls::getClassName($forClass)][$class] = $class;
+    }
+
+
+    /**
+     * Връща (и изчиства) плъгините/класовете без код, зареждани от други класове
+     *
+     * @param bool $clear
+     *
+     * @return array име на клас => масив с имената на липсващите плъгини/класове
+     */
+    public static function getMissing($clear = true)
+    {
+        $res = self::$missingPlugins;
+
+        if ($clear) {
+            self::$missingPlugins = array();
+        }
+
+        return $res;
+    }
+
+
+    /**
+     * Репорт за плъгините/класовете без код, зареждани от други класове
+     *
+     * @return string
+     */
+    public static function getMissingRes()
+    {
+        $res = '';
+
+        foreach (self::getMissing() as $forClass => $missingArr) {
+            $res .= "<li class='debug-error'>Класът {$forClass} зарежда плъгини/класове, за които липсва код: " .
+                implode(', ', $missingArr) . '</li>';
+        }
+
+        return $res;
+    }
+
+
+    /**
      * Описание на модела
      */
     public function description()

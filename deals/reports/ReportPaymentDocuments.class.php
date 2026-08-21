@@ -255,8 +255,9 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
                     'folderId' => $cRec->folderId,
                     'createdOn' => $cRec->createdOn,
                     'createdBy' => $cRec->createdBy,
+                    // Банковите документи нямат 'peroCase', но записът е с обща структура
                     'ownAccount' => $cRec->ownAccount,
-                    'peroCase' => $cRec->peroCase,
+                    'peroCase' => $cRec->peroCase ?? null,
                     'contragentName' => $cRec->contragentName,
                 ];
             }
@@ -301,7 +302,8 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
                     'folderId' => $cRec->folderId,
                     'createdOn' => $cRec->createdOn,
                     'createdBy' => $cRec->createdBy,
-                    'ownAccount' => $cRec->ownAccount,
+                    // Касовите документи нямат 'ownAccount', но записът е с обща структура
+                    'ownAccount' => $cRec->ownAccount ?? null,
                     'peroCase' => $cRec->peroCase,
                     'contragentName' => $cRec->contragentName,
                 ];

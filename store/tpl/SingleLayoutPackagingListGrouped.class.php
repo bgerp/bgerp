@@ -105,7 +105,7 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
             }
         } else {
             if(!$isReadOnly && $res != self::EMPTY_TARIFF_NUMBER){
-                $res = "<span style='color:blue'>{$res}</span>";
+                $res = "<span class='blueText'>{$res}</span>";
                 $res = ht::createHint($res, "Изчислено от редовете с този МТК", 'noicon');
             }
         }
@@ -213,7 +213,7 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
                     $typeOfPacking = $typeOfPackingDefault;
                     $typeOfPackingVerbal = core_Type::getByName('varchar')->toVerbal($typeOfPacking);
                     if(!Mode::isReadOnly()){
-                        $typeOfPackingVerbal = "<span style='color:blue'>{$typeOfPackingVerbal}</span>";
+                        $typeOfPackingVerbal = "<span class='blueText'>{$typeOfPackingVerbal}</span>";
                         $typeOfPackingVerbal = ht::createHint($typeOfPackingVerbal, 'Дефолтна настройка за системата', 'noicon');
                     }
                 }
@@ -250,7 +250,7 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
                 }
             } else {
                 if(!$isReadOnly && !empty($transUnitsVerbal)){
-                    $transUnitsVerbal = "<span style='color:blue;font-weight:bold'>{$transUnitsVerbal}</span>";
+                    $transUnitsVerbal = "<span class='blueText' style='font-weight:bold'>{$transUnitsVerbal}</span>";
                     $transUnitsVerbal = ht::createHint($transUnitsVerbal, "Изчислено от редовете с този МТК", 'noicon');
                 }
             }

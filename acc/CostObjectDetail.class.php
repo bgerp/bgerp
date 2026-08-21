@@ -181,7 +181,7 @@ class acc_CostObjectDetail extends core_Manager
                     }
 
                     $row->progress = cal_Tasks::getVerbal($documentRec, 'progress');
-                    $infoTpl->append("<span style='color:blue'>{$row->progress}</span> ");
+                    $infoTpl->append("<span class='blueText'>{$row->progress}</span> ");
                 } else {
                     $documentRec = cls::get($classId)->fetch($tRec->id, 'state');
                 }

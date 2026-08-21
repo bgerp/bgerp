@@ -360,6 +360,7 @@ class rack_Products extends store_Products
         }
 
         // Ако складовете са повече от един да се показва филтър
+        $form = null;
         if($count > 1){
             $storeOptions = array();
             foreach ($storesWithRacks as $storeId){
@@ -501,7 +502,9 @@ class rack_Products extends store_Products
         });
 
         $url = getCurrentUrl();
-        $url["storeId{$data->masterId}"] = $form->rec->{"storeId{$data->masterId}"};
+        if(isset($form->rec->{"storeId{$data->masterId}"})){
+            $url["storeId{$data->masterId}"] = $form->rec->{"storeId{$data->masterId}"};
+        }
 
         // Подготвяме страницирането
         $pager = cls::get('core_Pager', array('itemsPerPage' => 20, 'url' => toUrl($url)));

@@ -358,7 +358,7 @@ class cms_Content extends core_Manager
     public static function getContentUrl($rec, $absolute = false)
     {
         $rec = self::fetchRec($rec);
-        if ($rec->source && cls::load($rec->source, true) && cls::haveInterface('cms_SourceIntf', $rec->source)) {
+        if (!empty($rec->source) && cls::load($rec->source, true) && cls::haveInterface('cms_SourceIntf', $rec->source)) {
             $source = cls::get($rec->source);
             $url = $source->getUrlByMenuId($rec->id);
         } else {
@@ -430,7 +430,7 @@ class cms_Content extends core_Manager
      */
     public function on_AfterRecToVerbal($mvc, $row, $rec)
     {
-        if ($rec->source) {
+        if (!empty($rec->source)) {
             if (cls::load($rec->source, true) && cls::haveInterface('cms_SourceIntf', $rec->source)) {
                 $Source = cls::getInterface('cms_SourceIntf', $rec->source);
                 $workUrl = $Source->getWorkshopUrl($rec->id);
@@ -821,7 +821,7 @@ class cms_Content extends core_Manager
 
         if ($menuId) {
             $rec = self::fetch($menuId);
-            $domainId = $rec->domainId;
+            $domainId = !empty($rec) ? $rec->domainId : null;
         } else {
             $domainId = cms_Domains::getPublicDomain('id');
         }
@@ -831,7 +831,7 @@ class cms_Content extends core_Manager
         $html = '';
 
         $recs = $query->fetchAll();
-        if(isset($rec)){
+        if(!empty($rec)){
             $recs = array($rec->id => $rec) + $recs;
         }
 
@@ -855,7 +855,7 @@ class cms_Content extends core_Manager
                         }
                     }
 
-                    $html .= "<h2><strong style='color:green'>" . type_Varchar::escape($rec->title ? $rec->title : $rec->menu) . $domainName . '</strong></h2>';
+                    $html .= "<h2><strong style='color:green'>" . type_Varchar::escape(!empty($rec->title) ? $rec->title : $rec->menu) . $domainName . '</strong></h2>';
                     $itemsInTable = $itemsInUl = '';
 
                     foreach ($res as $o) {

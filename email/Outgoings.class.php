@@ -1839,7 +1839,7 @@ class email_Outgoings extends core_Master
                     
                     $ccEmailsArr = array();
                     foreach ((array) $parseCCEmail as $eml) {
-                        if (!trim($eml['address'])) {
+                        if (empty($eml['address']) || !strlen(trim($eml['address']))) {
                             continue;
                         }
                         
@@ -1873,7 +1873,7 @@ class email_Outgoings extends core_Master
                     
                     $toEmailsArr = array();
                     foreach ((array) $parseToEmail as $eml) {
-                        if (!trim($eml['address'])) {
+                        if (empty($eml['address']) || !strlen(trim($eml['address']))) {
                             continue;
                         }
                         

@@ -128,13 +128,13 @@ class planning_Tasks extends core_Master
     /**
      * Кой може да записва преподредените задачи?
      */
-    public $canSavereordertasks = 'ceo, taskSee';
+    public $canSavereordertasks = 'ceo, planning';
 
 
     /**
      * Кой може да записва персоналните ширини на колоните при подреждане?
      */
-    public $canSavereordercolumnwidths = 'ceo, taskSee';
+    public $canSavereordercolumnwidths = 'ceo, planning';
 
 
     /**
@@ -715,7 +715,7 @@ class planning_Tasks extends core_Master
                     $labelProductId = ($rec->isFinal == 'yes') ? $origin->fetchField('productId') : $rec->productId;
                     $quantityInPackDefault = static::getDefaultQuantityInLabelPackagingId($labelProductId, $rec->measureId, $rec->labelPackagingId, $rec->id);
                     $expectedLabelQuantityInPack = $quantityInPackDefault;
-                    $quantityInPackDefault = "<span style='color:blue'>" . core_Type::getByName('double(smartRound)')->toVerbal($quantityInPackDefault) . "</span>";
+                    $quantityInPackDefault = "<span class='blueText'>" . core_Type::getByName('double(smartRound)')->toVerbal($quantityInPackDefault) . "</span>";
                     $quantityInPackHint = ($rec->isFinal == 'yes') ? 'Средно от въведения прогрес или от опаковката/мярката на артикула' : 'От опаковката/мярката на артикула';
                     $quantityInPackDefault = ht::createHint($quantityInPackDefault, $quantityInPackHint);
                     $row->labelQuantityInPack = $quantityInPackDefault;
@@ -799,7 +799,7 @@ class planning_Tasks extends core_Master
                 }
                 $row->simultaneity = core_Type::getByName('int')->toVerbal($assetSimultaneity);
                 if ($hintSimultaneity) {
-                    $row->simultaneity = ht::createHint("<span style='color:blue'>{$row->simultaneity}</span>", 'Зададено е в оборудването');
+                    $row->simultaneity = ht::createHint("<span class='blueText'>{$row->simultaneity}</span>", 'Зададено е в оборудването');
                 }
 
                 if (isset($rec->prevAssetId)) {
@@ -2159,7 +2159,7 @@ class planning_Tasks extends core_Master
             }
             $countNotes = countR($notes);
             if ($countNotes) {
-                $row->info .= "<div style='padding-bottom:2px;' class='taskInJobListRow pnotes{$rec->id}'>" . implode(' | ', $notes) . "</div>";
+                $row->title->append("<div style='padding-bottom:2px;' class='taskInJobListRow pnotes{$rec->id}'>" . implode(' | ', $notes) . "</div>");
                 if(!Mode::isReadOnly()){
                     $row->producedQuantity = "{$row->producedQuantity}&nbsp;<a id= 'btn{$rec->id}' href=\"javascript:toggleDisplayByClass('btn{$rec->id}','pnotes{$rec->id}')\"  style=\"background-image:url(" . sbf('img/16/toggle1.png', "'") . ');" class=" plus-icon more-btn", title="' . tr('Показване на протоколи за производство') . "\"</a>";
                 }
@@ -2257,7 +2257,7 @@ class planning_Tasks extends core_Master
         if (($data->masterMvc ?? null) instanceof planning_AssetResources) {
             $tpl->append("Производствени операции (заявки, активни, събудени, спрени)", 'title');
             if(planning_Tasks::haveRightFor('list')){
-                $filterLink = ht::createLink('', array('planning_Tasks', 'list', 'assetId' => $data->masterId), false, 'ef_icon=img/16/funnel.png,title=Филтър по център на дейност и оборудване');
+                $filterLink = ht::createLink('', array('planning_Tasks', 'list', 'assetId' => $data->masterId, 'state' => 'activeAndPending'), false, 'ef_icon=img/16/funnel.png,title=Филтър по център на дейност и оборудване');
                 $tpl->append($filterLink, 'title');
             }
             $tpl->append($contentTpl, 'content');
@@ -2292,7 +2292,7 @@ class planning_Tasks extends core_Master
      */
     protected static function restorePersistentListFilter()
     {
-        if (Mode::is('isReorder') || Request::get('reorder', 'int')) {
+        if (Mode::is('isReorder')) {
             return;
         }
 
@@ -2399,7 +2399,9 @@ class planning_Tasks extends core_Master
                 $orderByField = 'orderByAssetIdCalc';
 
                 $cUrl = getCurrentUrl();
-                if(!Mode::get('isReorder')){
+                if (!Mode::get('isReorder') &&
+                    $mvc->haveRightFor('savereordertasks', (object) array('assetId' => $filter->assetId))) {
+                    $cUrl['assetId'] = $filter->assetId;
                     $cUrl['isFinalSelect'] = 'all';
                     $cUrl['state'] = 'manualOrder';
                     $cUrl['selectPeriod'] = 'gr0';
@@ -2541,7 +2543,12 @@ class planning_Tasks extends core_Master
     protected static function on_BeforeAction(core_Manager $mvc, &$res, $action)
     {
         if (in_array(strtolower($action), array('list', 'default'))) {
-            Mode::set('isReorder', Request::get('reorder', 'int'));
+            $reorderAssetId = Request::get('assetId', 'int');
+            $isReorder = Request::get('reorder', 'int') && !empty($reorderAssetId);
+            if ($isReorder) {
+                $isReorder = $mvc->haveRightFor('savereordertasks', (object) array('assetId' => $reorderAssetId));
+            }
+            Mode::set('isReorder', $isReorder);
 
             if(Mode::is('isReorder')){
                 Mode::set('wrapper', 'page_Empty');
@@ -3507,18 +3514,19 @@ class planning_Tasks extends core_Master
 
         $haveDiffMeasure = countR($measuresArr) > 1 || isset($data->masterMvc);
         $haveDiffProductIds = countR($productIds) > 1;
-        $requiredPackageLinks = Mode::is('isReorder')
-            ? planning_TaskConstraints::getSameResourceJobPackageLinks($data->recs, $data->listFilter->rec->assetId)
+        $reorderAssetId = Mode::is('isReorder') ? (int)($data->listFilter->rec->assetId ?? 0) : 0;
+        $requiredPackageLinks = $reorderAssetId
+            ? planning_TaskConstraints::getSameResourceJobPackageLinks($data->recs, $reorderAssetId)
             : array();
-        $manualPackageLinks = Mode::is('isReorder')
+        $manualPackageLinks = $reorderAssetId
             ? planning_TaskConstraints::mergeRequiredPackageLinks(
                 $requiredPackageLinks,
-                planning_TaskManualOrderPerAssets::getPackageLinks($data->listFilter->rec->assetId)
+                planning_TaskManualOrderPerAssets::getPackageLinks($reorderAssetId)
             )
             : array();
-        $manualAnchorLinks = Mode::is('isReorder')
+        $manualAnchorLinks = $reorderAssetId
             ? planning_TaskManualOrderPerAssets::getAnchorLinks(
-                $data->listFilter->rec->assetId,
+                $reorderAssetId,
                 null,
                 $manualPackageLinks
             )
@@ -3619,7 +3627,7 @@ class planning_Tasks extends core_Master
                             $row->{"param_{$paramId}"} .= " {$pSuffix}";
                         }
                         if ($live) {
-                            $row->{"param_{$paramId}"} = "<span style='color:blue'>{$row->{"param_{$paramId}"}}</span>";
+                            $row->{"param_{$paramId}"} = "<span class='blueText'>{$row->{"param_{$paramId}"}}</span>";
                         }
                     }
                 }
@@ -4180,19 +4188,18 @@ class planning_Tasks extends core_Master
     private static function getIdleChangesReport($before, $after, $changes)
     {
         $result = array();
-        $timeType = core_Type::getByName('time');
         foreach (array('increased' => 1, 'decreased' => -1) as $type => $direction) {
             foreach ((array)($changes[$type] ?? array()) as $assetId => $difference) {
                 $beforeSeconds = max(0, (int)($before[$assetId] ?? 0));
                 $afterSeconds = max(0, (int)($after[$assetId] ?? 0));
                 $signedDifference = $direction * (int)$difference;
-                $verbalDifference = $timeType->toVerbal(abs($signedDifference));
+                $verbalDifference = static::getPlanningReportTimeVerbal(abs($signedDifference));
 
                 $result[] = array(
                     'assetId' => (int)$assetId,
                     'assetTitle' => planning_AssetResources::getTitleById($assetId),
-                    'before' => $timeType->toVerbal($beforeSeconds),
-                    'after' => $timeType->toVerbal($afterSeconds),
+                    'before' => static::getPlanningReportTimeVerbal($beforeSeconds),
+                    'after' => static::getPlanningReportTimeVerbal($afterSeconds),
                     'change' => ($signedDifference > 0 ? '+' : '−') . $verbalDifference,
                     'changeSeconds' => $signedDifference,
                 );
@@ -4211,16 +4218,27 @@ class planning_Tasks extends core_Master
         $increasedSeconds = array_sum((array)($changes['increased'] ?? array()));
         $decreasedSeconds = array_sum((array)($changes['decreased'] ?? array()));
         $netSeconds = $increasedSeconds - $decreasedSeconds;
-        $timeType = core_Type::getByName('time');
 
         return array(
-            'increased' => $timeType->toVerbal($increasedSeconds),
+            'increased' => static::getPlanningReportTimeVerbal($increasedSeconds),
             'increasedSeconds' => $increasedSeconds,
-            'decreased' => $timeType->toVerbal($decreasedSeconds),
+            'decreased' => static::getPlanningReportTimeVerbal($decreasedSeconds),
             'decreasedSeconds' => $decreasedSeconds,
-            'net' => ($netSeconds > 0 ? '+' : ($netSeconds < 0 ? '−' : '')) . $timeType->toVerbal(abs($netSeconds)),
+            'net' => ($netSeconds > 0 ? '+' : ($netSeconds < 0 ? '−' : '')) . static::getPlanningReportTimeVerbal(abs($netSeconds)),
             'netSeconds' => $netSeconds,
         );
+    }
+
+
+    /**
+     * Форматира прогнозна продължителност за отчетите на подреждането без секунди.
+     */
+    private static function getPlanningReportTimeVerbal($seconds)
+    {
+        $roundedSeconds = (int)round(max(0, (int)$seconds) / 60) * 60;
+        if (!$roundedSeconds) return '0 мин.';
+
+        return core_Type::getByName('time')->toVerbal($roundedSeconds);
     }
 
 
@@ -4837,7 +4855,6 @@ class planning_Tasks extends core_Master
      */
     private static function getOptimizationMetricsReport($before, $after)
     {
-        $timeType = core_Type::getByName('time');
         $reportedAfter = $after;
         $hasNewMissingJobCompletions = (int)($after['missingJobCompletions'] ?? 0)
             > (int)($before['missingJobCompletions'] ?? 0);
@@ -4879,13 +4896,13 @@ class planning_Tasks extends core_Master
         }
 
         return array(
-            'before' => $timeType->toVerbal($before['makespanSeconds']),
-            'after' => $timeType->toVerbal($reportedAfter['makespanSeconds']),
-            'change' => ($difference > 0 ? '+' : ($difference < 0 ? '−' : '')) . $timeType->toVerbal(abs($difference)),
+            'before' => static::getPlanningReportTimeVerbal($before['makespanSeconds']),
+            'after' => static::getPlanningReportTimeVerbal($reportedAfter['makespanSeconds']),
+            'change' => ($difference > 0 ? '+' : ($difference < 0 ? '−' : '')) . static::getPlanningReportTimeVerbal(abs($difference)),
             'changeSeconds' => $difference,
-            'targetBefore' => $timeType->toVerbal((int)($before['targetMakespanSeconds'] ?? 0)),
-            'targetAfter' => $timeType->toVerbal((int)($reportedAfter['targetMakespanSeconds'] ?? 0)),
-            'targetChange' => ($targetDifference > 0 ? '+' : ($targetDifference < 0 ? '−' : '')) . $timeType->toVerbal(abs($targetDifference)),
+            'targetBefore' => static::getPlanningReportTimeVerbal((int)($before['targetMakespanSeconds'] ?? 0)),
+            'targetAfter' => static::getPlanningReportTimeVerbal((int)($reportedAfter['targetMakespanSeconds'] ?? 0)),
+            'targetChange' => ($targetDifference > 0 ? '+' : ($targetDifference < 0 ? '−' : '')) . static::getPlanningReportTimeVerbal(abs($targetDifference)),
             'targetChangeSeconds' => $targetDifference,
             'targetAssetTitle' => $targetAssetId ? planning_AssetResources::getTitleById($targetAssetId) : '',
             'targetEnd' => !empty($after['targetMakespanEnd']) ? dt::mysql2verbal($after['targetMakespanEnd'], 'd.m.Y H:i') : '',
@@ -4899,12 +4916,12 @@ class planning_Tasks extends core_Master
             'missingJobCompletionsChange' => $missingJobCompletionsDifference,
             'lateJobsBefore' => (int)($before['lateJobs'] ?? 0),
             'lateJobsAfter' => (int)($reportedAfter['lateJobs'] ?? 0),
-            'tardinessBefore' => $timeType->toVerbal((int)($before['tardinessSeconds'] ?? 0)),
-            'tardinessAfter' => $timeType->toVerbal((int)($reportedAfter['tardinessSeconds'] ?? 0)),
-            'tardinessChange' => ($tardinessDifference > 0 ? '+' : ($tardinessDifference < 0 ? '−' : '')) . $timeType->toVerbal(abs($tardinessDifference)),
+            'tardinessBefore' => static::getPlanningReportTimeVerbal((int)($before['tardinessSeconds'] ?? 0)),
+            'tardinessAfter' => static::getPlanningReportTimeVerbal((int)($reportedAfter['tardinessSeconds'] ?? 0)),
+            'tardinessChange' => ($tardinessDifference > 0 ? '+' : ($tardinessDifference < 0 ? '−' : '')) . static::getPlanningReportTimeVerbal(abs($tardinessDifference)),
             'tardinessChangeSeconds' => $tardinessDifference,
-            'idleBefore' => $timeType->toVerbal((int)($before['idleSeconds'] ?? 0)),
-            'idleAfter' => $timeType->toVerbal((int)($after['idleSeconds'] ?? 0)),
+            'idleBefore' => static::getPlanningReportTimeVerbal((int)($before['idleSeconds'] ?? 0)),
+            'idleAfter' => static::getPlanningReportTimeVerbal((int)($after['idleSeconds'] ?? 0)),
             'idleChangeSeconds' => (int)($after['idleSeconds'] ?? 0) - (int)($before['idleSeconds'] ?? 0),
         );
     }
@@ -5340,7 +5357,7 @@ class planning_Tasks extends core_Master
         $res['notice'] = !empty($rec->deviationNettoNotice) ? $rec->deviationNettoNotice : $centerRec->deviationNettoNotice;
         if($verbal && isset($res['notice'])){
             $res['notice'] = core_Type::getByName('percent(smartRound)')->toVerbal($res['notice']);
-            $res['notice'] = !empty($rec->deviationNettoNotice) ?  $res['notice'] : "<span style='color:blue'>{$res['notice']}</span>";
+            $res['notice'] = !empty($rec->deviationNettoNotice) ?  $res['notice'] : "<span class='blueText'>{$res['notice']}</span>";
             $noticeHint = !empty($rec->deviationNettoNotice) ? 'Информация' : 'Информация (от центъра на дейност)';
             $res['notice'] = ht::createHint($res['notice'], $noticeHint, 'img/16/green-info.png', false);
         }
@@ -5348,7 +5365,7 @@ class planning_Tasks extends core_Master
         $res['critical'] = !empty($rec->deviationNettoCritical) ? $rec->deviationNettoCritical : $centerRec->deviationNettoCritical;
         if($verbal && isset($res['critical'])){
             $res['critical'] = core_Type::getByName('percent(smartRound)')->toVerbal($res['critical']);
-            $res['critical'] = !empty($rec->deviationNettoCritical) ?  $res['critical'] : "<span style='color:blue'>{$res['critical']}</span>";
+            $res['critical'] = !empty($rec->deviationNettoCritical) ?  $res['critical'] : "<span class='blueText'>{$res['critical']}</span>";
             $criticalHint = !empty($rec->deviationNettoNotice) ? 'Критично' : 'Критично (от центъра на дейност)';
             $res['critical'] = ht::createHint($res['critical'], $criticalHint, 'img/16/red-warning.png', false);
         }
@@ -5356,7 +5373,7 @@ class planning_Tasks extends core_Master
         $res['warning'] = !empty($rec->deviationNettoWarning) ? $rec->deviationNettoWarning : (($centerRec->deviationNettoWarning) ? $centerRec->deviationNettoWarning : planning_Setup::get('TASK_NET_WEIGHT_WARNING'));
         if($verbal && isset($res['warning'])){
             $res['warning'] = core_Type::getByName('percent(smartRound)')->toVerbal($res['warning']);
-            $res['warning'] = !empty($rec->deviationNettoWarning) ?  $res['warning'] : "<span style='color:blue'>{$res['warning']}</span>";
+            $res['warning'] = !empty($rec->deviationNettoWarning) ?  $res['warning'] : "<span class='blueText'>{$res['warning']}</span>";
             $warningHint = !empty($rec->deviationNettoWarning) ?  'Предупреждение' : (($centerRec->deviationNettoWarning) ? 'Предупреждение (от центъра на дейност)' : 'Предупреждение (от настройката по подразбиране)');
             $res['warning'] = ht::createHint($res['warning'], $warningHint, 'warning', false);
         }
@@ -6154,7 +6171,7 @@ class planning_Tasks extends core_Master
     {
         expect(Request::get('isReorder'));
         expect($assetId = Request::get('assetId', 'varchar'));
-        $this->requireRightFor('list');
+        $this->requireRightFor('savereordertasks', (object) array('assetId' => (int)$assetId));
         $otherEditorsHtml = $this->getEditWatchHtml($assetId);
 
         $resObj = new stdClass();

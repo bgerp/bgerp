@@ -38,7 +38,7 @@ class cms_ObjectsInRichtextPlg extends core_Plugin
      */
     public function catchObjects($match)
     {
-        $vid = $match[2];
+        $vid = $match[2] ?? '';
         
         $res = cms_Objects::getObjectByTag($vid);
         

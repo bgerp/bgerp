@@ -159,7 +159,7 @@ class rack_RackDetails extends core_Detail
         if ($form->isSubmitted()) {
             $rec = $form->rec;
             
-            if ($rec->nextRow || $rec->nextCol) {
+            if (($rec->nextRow ?? null) || ($rec->nextCol ?? null)) {
                 if (empty($rec->nextRow)) {
                     $rec->nextRow = $rec->row;
                 }

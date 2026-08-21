@@ -412,7 +412,7 @@ abstract class deals_DealBase extends core_Master
                     $err[] = $this->getLink($d1, 0);
                 }
 
-                if($dealItemRec->state == 'closed' || $exClosedDoc){
+                if((!empty($dealItemRec) && $dealItemRec->state == 'closed') || $exClosedDoc){
                     $closedDeals[] = $this->getLink($dealRec->id, 0);
                 }
                 $warning["{$dealRec->currencyRate}"] = $dealRec->currencyRate;
@@ -436,7 +436,7 @@ abstract class deals_DealBase extends core_Master
             $countryWarningMsg = array();
             $logisticData = $this->getLogisticData($rec->id);
             if(countR($dealCountries)){
-                $toCountryId = drdata_Countries::getIdByName($logisticData['toCountry']);
+                $toCountryId = drdata_Countries::getIdByName($logisticData['toCountry'] ?? null);
                 if(isset($toCountryId)){
                     $dealList = array();
                     $diffCountries = array_diff_key($dealCountries, array($toCountryId => $toCountryId));
@@ -503,7 +503,7 @@ abstract class deals_DealBase extends core_Master
                     cls::get('acc_Items')->flushTouched();
                 }
 
-                if($formRec->_recalRate){
+                if(!empty($formRec->_recalRate)){
                     $notifiedItems2 = array();
                     $recalcRates = $deals + array($rec->id => $rec);
                     foreach ($recalcRates as $recalcDealId){

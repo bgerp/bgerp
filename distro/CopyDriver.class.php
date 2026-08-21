@@ -110,7 +110,7 @@ class distro_CopyDriver extends core_Mvc
      */
     public function getActionStr($rec)
     {
-        if (!$rec->repoId) {
+        if (empty($rec->repoId)) {
             $rec->repoId = $rec->sourceRepoId;
         }
         
@@ -129,16 +129,16 @@ class distro_CopyDriver extends core_Mvc
         
         $destFilePath = escapeshellarg($destFilePath);
         
-        $hostParams = distro_Repositories::getHostParams($rec->sourceRepoId);
+        $hostParams = (array) distro_Repositories::getHostParams($rec->sourceRepoId);
         
-        $host = $hostParams['ip'];
-        $port = $hostParams['port'];
-        $user = $hostParams['user'];
-        $pass = $hostParams['pass'];
+        $host = $hostParams['ip'] ?? null;
+        $port = $hostParams['port'] ?? null;
+        $user = $hostParams['user'] ?? null;
+        $pass = $hostParams['pass'] ?? null;
         
         $copyExec = '';
         
-        if (!$fRec->repoId) {
+        if (empty($fRec->repoId)) {
             $copyExec .= "wget -q --no-check-certificate -O {$destFilePath} {$srcFilePath}";
         } else {
             if ($this->useSSHPass) {
@@ -175,6 +175,11 @@ class distro_CopyDriver extends core_Mvc
     {
         $fRec = distro_Files::fetch($rec->fileId);
         
+        if (empty($fRec)) {
+            
+            return;
+        }
+        
         $nRec = new stdClass();
         $nRec->groupId = $fRec->groupId;
         $nRec->sourceFh = $fRec->sourceFh;
@@ -184,6 +189,7 @@ class distro_CopyDriver extends core_Mvc
         $nRec->name = $rec->newFileName;
         $nRec->createdBy = $rec->createdBy;
         
+        $sudoUser = null;
         if ($rec->createdBy > 0) {
             $sudoUser = core_Users::sudo($rec->createdBy);
         }
@@ -234,7 +240,7 @@ class distro_CopyDriver extends core_Mvc
         
         $fRec = distro_Files::fetch($rec->fileId);
         
-        $rArr = distro_Files::getRepoWithFile($rec->groupId, $fRec->md5, null, true);
+        $rArr = distro_Files::getRepoWithFile($rec->groupId, $fRec->md5 ?? null, null, true);
         
         // Премахваме, хранилищата, които съдържат сътоветния файл
         foreach ($rArr as $rRec) {
@@ -274,7 +280,7 @@ class distro_CopyDriver extends core_Mvc
      */
     public static function on_AfterRecToVerbal($mvc, $embeder, &$row, $rec)
     {
-        if ($rec->sourceRepoId) {
+        if (!empty($rec->sourceRepoId)) {
             $fileName = $embeder->getFileName($rec);
             $row->Info = tr($mvc->title) . ' ' . tr('на') . ' ' . $fileName;
             
@@ -284,7 +290,7 @@ class distro_CopyDriver extends core_Mvc
             
             $row->Info .= ' ' . tr('в') . ' ' . distro_Repositories::getLinkToSingle($rec->sourceRepoId, 'name');
             
-            if ($rec->newFileId && $rec->newFileName && ($rec->newFileName != $rec->fileName)) {
+            if (!empty($rec->newFileId) && !empty($rec->newFileName) && ($rec->newFileName != $rec->fileName)) {
                 $newName = type_Varchar::escape($rec->newFileName);
                 
                 $row->Info .= ' ' . tr('с нов име') . " \"{$newName}\"";

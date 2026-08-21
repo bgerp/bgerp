@@ -138,6 +138,9 @@ class forum_Postings extends core_Detail
      */
     public function prepareBoardThemes_($data)
     {
+        $data->themeRecs = array();
+        $data->themeRows = array();
+
         // Избираме темите, които са начало на нова нишка от дъската
         $query = $this->getQuery();
         $query->where("#boardId = {$data->rec->id} AND #themeId IS NULL");
@@ -203,12 +206,12 @@ class forum_Postings extends core_Detail
                 $themeTpl->placeObject($row);
                 
                 // Добавяме иконката взависимост дали темата е заключена/отключена
-                ($row->locked == 'заключена') ? $icon = $lockedIcon : $icon = $openIcon;
+                $icon = (($row->locked ?? null) == 'заключена') ? $lockedIcon : $openIcon;
                 $themeTpl->replace($icon, 'ICON');
                 
                 // Адреса на темата, която ще отваря темата
                 $pagerUrl = toUrl(array('forum_Postings', 'Theme', $row->id), 'relative');
-                if ($row->pager) {
+                if ($row->pager ?? null) {
                      
                      // Рендираме пейджъра на темата до заглавието и
                     $themeTpl->replace($row->pager->getHtml($pagerUrl), 'THEME_PAGER');
@@ -297,6 +300,7 @@ class forum_Postings extends core_Detail
      */
     public function prepareTheme_($data)
     {
+        $data->thread = array();
         $query = $this->getQuery();
         $fields = $this->selectFields('');
         $fields['-theme'] = true;
@@ -449,6 +453,8 @@ class forum_Postings extends core_Detail
      */
     public function prepareNew($data)
     {
+        $data->row = $this->Master->recToVerbal($data->rec, 'title');
+
         // Подготвяме форма за започване на нова тема
         $form = $this->getForm();
         $form->setHidden('boardId', $data->rec->id);
@@ -522,6 +528,7 @@ class forum_Postings extends core_Detail
      */
     public function prepareTopic($data)
     {
+        $data->postings = array();
         $fields = $this->selectFields('');
         $fields['-topic'] = true;
         $data->row = $this->recToVerbal($data->rec, $fields);
@@ -705,7 +712,7 @@ class forum_Postings extends core_Detail
         $data->form->toolbar->addSbBtn('Премести', array($this, 'move', 'themeId' => $data->rec->id), 'ef_icon = img/16/move.png');
         $data->form->toolbar->addBtn('Отказ', array($this, 'Topic', $data->rec->id), 'ef_icon = img/16/close-red.png');
         
-        $data->navigation = $this->Master->prepareNavigation($data->board->categoryId, $data->rec->boardId, $data->rec->id);
+        $data->navigation = $this->Master->prepareNavigation($data->board->category, $data->rec->boardId, $data->rec->id);
     }
     
     
@@ -785,6 +792,8 @@ class forum_Postings extends core_Detail
      */
     public function prepareSearch($data)
     {
+        $data->recs = array();
+        $data->rows = array();
         $fields = $this->selectFields('');
         $fields['-browse'] = true;
         
@@ -810,7 +819,7 @@ class forum_Postings extends core_Detail
                     
                     // Намираме от коя тема е коментара
                     $themeRec = $this->fetch($rec->themeId);
-                    if (is_array($data->recs) && array_key_exists($themeRec->id, $data->recs)) {
+                    if (array_key_exists($themeRec->id, $data->recs)) {
                         
                         // Ако темата на коментара е вече в масива, продължаваме на следващата
                         // итерация, така коментара не се добавя в резултатите, защото неговата
@@ -850,7 +859,7 @@ class forum_Postings extends core_Detail
         if (countR($data->rows)) {
             foreach ($data->rows as $row) {
                 $themeTpl = clone $tableTpl;
-                $row->ICON = ($row->locked == 'заключена') ? $lockedIcon : $openIcon;
+                $row->ICON = (($row->locked ?? null) == 'заключена') ? $lockedIcon : $openIcon;
                 $themeTpl->placeObject($row);
                 $themeTpl->removeBlocks();
                 $themeTpl->removePlaces();

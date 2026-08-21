@@ -36,7 +36,7 @@ abstract class planning_interface_ImportDriver extends import2_AbstractDriver
      */
     public function doImport(core_Manager $mvc, $rec)
     {
-        if (!is_array($rec->importRecs)) {
+        if (!is_array($rec->importRecs ?? null)) {
             
             return;
         }

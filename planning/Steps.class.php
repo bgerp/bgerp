@@ -450,7 +450,8 @@ class planning_Steps extends core_Extender
         if(isset($rec->wasteProductId)){
             $row->wasteProductId = cat_Products::getHyperlink($rec->wasteProductId, true);
             $wasteProductMeasureId = cat_Products::fetchField($rec->wasteProductId, 'measureId');
-            if(!empty($rec->wasteStart)){
+            // В листовия изглед полето не се вербализира
+            if(!empty($rec->wasteStart) && isset($row->wasteStart)){
                 $row->wasteStart .= " " . cat_UoM::getShortName($wasteProductMeasureId);
             }
         }
@@ -484,7 +485,7 @@ class planning_Steps extends core_Extender
             if(empty($rec->labelQuantityInPack) && isset($rec->labelPackagingId)){
                 $packRec = cat_products_Packagings::getPack($rec->objectId, $rec->labelPackagingId);
                 $quantityInPackDefault = is_object($packRec) ? $packRec->quantity : 1;
-                $quantityInPackDefault = "<span style='color:blue'>" . core_Type::getByName('double(smartRound)')->toVerbal($quantityInPackDefault) . "</span>";
+                $quantityInPackDefault = "<span class='blueText'>" . core_Type::getByName('double(smartRound)')->toVerbal($quantityInPackDefault) . "</span>";
                 $quantityInPackDefault = ht::createHint($quantityInPackDefault, 'От опаковката/мярката на артикула');
                 $row->labelQuantityInPack = $quantityInPackDefault;
             }

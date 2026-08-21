@@ -37,6 +37,7 @@
                                 </tbody>
                             </table>
                             <div class="lines"></div>
+                            [#percentWarning#]
                             <div class="details">
                                 <!--ET_BEGIN MAIN_INPUT_PRODUCT_TABLE-->
                                 <div>[#MAIN_INPUT_PRODUCT_TABLE#]</div>
@@ -55,16 +56,33 @@
                                 <tbody>
                                     <tr>
                                         <td class="topCell first vtop" style='width:50%;'>
-                                            <!--ET_BEGIN expenses-->
-                                            <table class='shipment-table' style='width:100%;'>
+                                            <table class='shipment-table'>
                                                 <tr>
-                                                    <td class='quiet nowrap aright' style='width:1%;'>|Реж. разходи|*:</td>
+                                                    <td class='quiet nowrap aright'>|Разпределяне|*:</td>
+                                                    <td>[#allocationBy#]</td>
+                                                </tr>
+                                                <!--ET_BEGIN priceListId-->
+                                                <tr>
+                                                    <td class='quiet nowrap aright'>|Ценова политика|*:</td>
+                                                    <td>[#priceListId#]</td>
+                                                </tr>
+                                                <!--ET_END priceListId-->
+                                                <!--ET_BEGIN bomId-->
+                                                <tr>
+                                                    <td class='quiet nowrap aright'>|По рецепта|*:</td>
+                                                    <td>[#bomId#]</td>
+                                                </tr>
+                                                <!--ET_END bomId-->
+                                                <!--ET_BEGIN expenses-->
+                                                <tr>
+                                                    <td class='quiet nowrap aright'>|Реж. разходи|*:</td>
                                                     <td>[#expenses#]</td>
                                                 </tr>
+                                                <!--ET_END expenses-->
                                             </table>
-                                            <!--ET_END expenses-->
                                             <!--ET_BEGIN note-->
-                                            |Забележки|*:<br>
+                                            <hr>
+                                            <div class='quiet'>|Забележки|*:</div>
                                             [#note#]
                                             <!--ET_END note-->
                                         </td>

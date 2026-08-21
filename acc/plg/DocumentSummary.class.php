@@ -371,6 +371,9 @@ class acc_plg_DocumentSummary extends core_Plugin
                     if(isset($stateOptions['draft']) && isset($stateOptions['pending'])){
                         $stateOptions += array('draftAndPending' => 'Чернова+Заявка');
                     }
+                    // Документът може да добави свои опции - филтрира ги сам в on_AfterPrepareListFilter
+                    $mvc->invoke('AfterGetStateFilterOptions', array(&$stateOptions));
+
                     $stateOptionsString = arr::fromArray($stateOptions);
                     $data->listFilter->FNC('fState', "enum({$stateOptionsString})", 'caption=Състояние,input,silent');
                     $data->listFilter->showFields .= ',fState';
@@ -395,7 +398,7 @@ class acc_plg_DocumentSummary extends core_Plugin
             if(!empty($filter->fState)){
                 if($filter->fState == 'draftAndPending'){
                     $data->query->in('state', array('draft', 'pending'));
-                } elseif($filter->fState != 'all'){
+                } elseif($filter->fState != 'all' && isset($mvc->getFieldType('state')->options[$filter->fState])){
                     $data->query->where("#state = '{$filter->fState}'");
                 }
             }

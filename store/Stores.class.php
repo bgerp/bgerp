@@ -37,7 +37,7 @@ class store_Stores extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, plg_Created, acc_plg_Registry, bgerp_plg_FLB, store_Wrapper, plg_Current, plg_Rejected, doc_FolderPlg, plg_State, plg_Modified, doc_plg_Close, deals_plg_AdditionalConditions, plg_EditSections';
+    public $loadList = 'plg_RowTools2, plg_Created, acc_plg_Registry, bgerp_plg_FLB, store_Wrapper, plg_Current, plg_Rejected, doc_FolderPlg, plg_State, plg_Modified, doc_plg_Close, deals_plg_AdditionalConditions, plg_EditSections, core_UserTranslatePlg';
 
 
     /**
@@ -215,7 +215,7 @@ class store_Stores extends core_Master
      */
     public function description()
     {
-        $this->FLD('name', 'varchar(128)', 'caption=Наименование,mandatory,remember=info');
+        $this->FLD('name', 'varchar(128)', 'caption=Наименование,mandatory,remember=info,translate=user|tr|transliterate');
         $this->FLD('comment', 'varchar(256)', 'caption=Коментар');
         $this->FLD('displayStockMeasure', 'enum(productMeasureId=От артикула,basePack=Избраната за "основна")', 'caption=Мярка,notNull,value=productMeasureId', "unit= (|за показване на наличностите|*)");
         $this->FLD('preparationBeforeShipment', 'time(suggestions=1 ден|2 дена|3 дена|1 седмица)', 'caption=Подготовка преди експедиция->Време');
@@ -258,6 +258,10 @@ class store_Stores extends core_Master
         if ($rec->state != 'rejected') {
             if (store_InventoryNotes::haveRightFor('add', (object) array('folderId' => $rec->folderId))) {
                 $data->toolbar->addBtn('Инвентаризация', array('store_InventoryNotes', 'add', 'folderId' => $rec->folderId, 'ret_url' => true), 'ef_icon=img/16/inventory.png,title = Създаване на протокол за инвентаризация');
+            }
+            
+            if (store_Transfers::haveRightFor('add', (object) array('folderId' => $rec->folderId))) {
+                $data->toolbar->addBtn('Трансфер', array('store_Transfers', 'add', 'folderId' => $rec->folderId, 'ret_url' => true), 'ef_icon=img/16/transfers.png,title=Създаване на нов междускладов трансфер');
             }
         }
     }
@@ -399,6 +403,24 @@ class store_Stores extends core_Master
     }
     
     
+    /**
+     * Връща разбираемо за човека заглавие, отговарящо на записа
+     */
+    public static function getRecTitle($rec, $escaped = true)
+    {
+        $me = cls::get(get_called_class());
+        $rec = $me->fetchRec($rec);
+
+        // При ескейпване се взима преведеното име, за да се показва то в документите на чужд език
+        if ($escaped) {
+
+            return $me->getVerbal(clone $rec, 'name');
+        }
+
+        return $rec->name;
+    }
+
+
     /**
      * Кои документи да се показват като бързи бутони в папката на корицата
      *

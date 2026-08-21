@@ -324,39 +324,39 @@ class planning_Centers extends core_Master
 
         if($rec->mandatoryOperatorsInTasks == 'auto'){
             $row->mandatoryOperatorsInTasks = $mvc->getFieldType('mandatoryOperatorsInTasks')->toVerbal(planning_Setup::get('TASK_PROGRESS_OPERATOR'));
-            $row->mandatoryOperatorsInTasks = ht::createHint("<span style='color:blue'>{$row->mandatoryOperatorsInTasks}</span>", 'По подразбиране', 'notice', false);
+            $row->mandatoryOperatorsInTasks = ht::createHint("<span class='blueText'>{$row->mandatoryOperatorsInTasks}</span>", 'По подразбиране', 'notice', false);
         }
 
         if($rec->autoCreateTaskState == 'auto'){
             $row->autoCreateTaskState = $mvc->getFieldType('autoCreateTaskState')->toVerbal(planning_Setup::get('AUTO_CREATE_TASK_STATE'));
-            $row->autoCreateTaskState = ht::createHint("<span style='color:blue'>{$row->autoCreateTaskState}</span>", 'По подразбиране', 'notice', false);
+            $row->autoCreateTaskState = ht::createHint("<span class='blueText'>{$row->autoCreateTaskState}</span>", 'По подразбиране', 'notice', false);
         }
 
         if($rec->autoAddConvertableInTask == 'auto'){
             $row->autoAddConvertableInTask = $mvc->getFieldType('autoAddConvertableInTask')->toVerbal(planning_Setup::get('AUTO_ADD_CONVERTABLE_TO_TASK'));
-            $row->autoAddConvertableInTask = ht::createHint("<span style='color:blue'>{$row->autoAddConvertableInTask}</span>", 'По подразбиране', 'notice', false);
+            $row->autoAddConvertableInTask = ht::createHint("<span class='blueText'>{$row->autoAddConvertableInTask}</span>", 'По подразбиране', 'notice', false);
         }
 
         if($rec->showPreviousJobField == 'auto'){
             $row->showPreviousJobField = $mvc->getFieldType('showPreviousJobField')->toVerbal(planning_Setup::get('SHOW_PREVIOUS_JOB_FIELD_IN_TASK'));
-            $row->showPreviousJobField = ht::createHint("<span style='color:blue'>{$row->showPreviousJobField}</span>", 'По подразбиране', 'notice', false);
+            $row->showPreviousJobField = ht::createHint("<span class='blueText'>{$row->showPreviousJobField}</span>", 'По подразбиране', 'notice', false);
         }
 
         if($rec->showSerialWarningOnDuplication == 'auto'){
             $row->showSerialWarningOnDuplication = $mvc->getFieldType('showSerialWarningOnDuplication')->toVerbal(planning_Setup::get('WARNING_DUPLICATE_TASK_PROGRESS_SERIALS'));
-            $row->showSerialWarningOnDuplication = ht::createHint("<span style='color:blue'>{$row->showSerialWarningOnDuplication}</span>", 'По подразбиране', 'notice', false);
+            $row->showSerialWarningOnDuplication = ht::createHint("<span class='blueText'>{$row->showSerialWarningOnDuplication}</span>", 'По подразбиране', 'notice', false);
         }
 
         if($rec->allowDuplicateSerialProgress == 'auto'){
             $row->allowDuplicateSerialProgress = $mvc->getFieldType('allowDuplicateSerialProgress')->toVerbal(planning_Setup::get('ALLOW_SERIAL_IN_DIFF_TASKS'));
-            $row->allowDuplicateSerialProgress = ht::createHint("<span style='color:blue'>{$row->allowDuplicateSerialProgress}</span>", 'По подразбиране', 'notice', false);
+            $row->allowDuplicateSerialProgress = ht::createHint("<span class='blueText'>{$row->allowDuplicateSerialProgress}</span>", 'По подразбиране', 'notice', false);
         }
 
-        $row->deviationNettoWarning = isset($rec->deviationNettoWarning) ? $row->deviationNettoWarning : ht::createHint("<span style='color:blue'>{$mvc->getFieldType('deviationNettoWarning')->toVerbal(planning_Setup::get('TASK_NET_WEIGHT_WARNING'))}</span>", 'Автоматично', 'notice', false);
+        $row->deviationNettoWarning = isset($rec->deviationNettoWarning) ? $row->deviationNettoWarning : ht::createHint("<span class='blueText'>{$mvc->getFieldType('deviationNettoWarning')->toVerbal(planning_Setup::get('TASK_NET_WEIGHT_WARNING'))}</span>", 'Автоматично', 'notice', false);
 
         if(empty($rec->showMaxPreviousTasksInATask)){
             $row->showMaxPreviousTasksInATask = $mvc->getFieldType('showMaxPreviousTasksInATask')->toVerbal(planning_Setup::get('SHOW_PREVIOUS_TASK_BLOCKS'));
-            $row->showMaxPreviousTasksInATask = ht::createHint("<span style='color:blue'>{$row->showMaxPreviousTasksInATask}</span>", 'По подразбиране', 'notice', false);
+            $row->showMaxPreviousTasksInATask = ht::createHint("<span class='blueText'>{$row->showMaxPreviousTasksInATask}</span>", 'По подразбиране', 'notice', false);
         }
 
         if(isset($rec->useTareFromParamId) && isset($row->useTareFromParamMeasureId)){

@@ -32,6 +32,13 @@ class plg_RowNumbering extends core_Plugin
      */
     public static function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
+        // Редактираният ред си пази мястото, а не отива най-отдолу с новото си ид
+        if ($mvc->hasPlugin('doc_plg_DetailRevisions')) {
+            doc_plg_DetailRevisions::orderByRevisionGroup($data->query);
+
+            return;
+        }
+
         $data->query->orderBy('id', 'ASC');
     }
     
@@ -92,5 +99,58 @@ class plg_RowNumbering extends core_Plugin
     public static function on_BeforeRenderListTable($mvc, &$res, &$data)
     {
         $data->listTableMvc->FLD('RowNumb', 'int', 'tdClass=rowNumColumn');
+
+        static::renumberRevisionGroups($mvc, $data);
+    }
+
+
+    /**
+     * В режим „Промени“ номерата са по ревизионни групи - оттеглените версии на един ред
+     * нямат номер, а активният им наследник пази номера на групата. Иначе номерирането
+     * по-горе брои и оттеглените, защото те се добавят към заявката след него
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $data
+     *
+     * @return void
+     */
+    private static function renumberRevisionGroups($mvc, $data)
+    {
+        if (!($mvc instanceof core_Detail) || !$mvc->hasPlugin('doc_plg_DetailRevisions')) {
+
+            return;
+        }
+
+        if (!countR($data->rows ?? null)) {
+
+            return;
+        }
+
+        $showIds = doc_plg_MasterRevision::getRequestedMasterIds($mvc->Master);
+        if (!in_array($data->masterId ?? null, $showIds)) {
+
+            return;
+        }
+
+        $numByGroup = array();
+        $number = 1;
+
+        foreach ($data->rows as $id => $row) {
+            if (!isset($data->recs[$id])) {
+                continue;
+            }
+
+            $rec = $data->recs[$id];
+            $groupId = $rec->revisionRootId ?: $rec->id;
+            if (!isset($numByGroup[$groupId])) {
+                $numByGroup[$groupId] = $number++;
+            }
+
+            if (($rec->state ?? null) == 'rejected') {
+                $row->RowNumb = '';
+            } else {
+                $row->RowNumb = "<span class='detailNumbering'>{$numByGroup[$groupId]}</span>";
+            }
+        }
     }
 }

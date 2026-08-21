@@ -125,7 +125,7 @@ class doc_plg_CanSelectSteps extends core_Plugin
         $threadFilter->setOptions('stepId', array('' => '') + $stepOptions);
 
         // Ако търсим по група
-        if ($stepId = $threadFilter->rec->stepId) {
+        if ($stepId = $threadFilter->rec->stepId ?? null) {
             $threadQuery->EXT('docClass', 'doc_Containers', 'externalName=docClass,externalKey=firstContainerId');
 
             // Ако има филтър по етап остават само тези нишки в които има задача за този етап

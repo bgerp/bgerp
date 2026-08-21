@@ -60,7 +60,7 @@ class planning_interface_ImportFromPreviousTasks extends planning_interface_Cons
             while($pRec = $pNoteQuery->fetch()){
                 $notesAll[$pRec->id] = $pRec->id;
                 if(!array_key_exists($pRec->productId, $producedProducts)){
-                    $producedProducts[$pRec->productId] = array('batches' => array(), 'productId' => $pRec->productId, 'packagingId' => $pRec->pMeasureId, 'quantityInPack' => 1, 'isProduced' => true);
+                    $producedProducts[$pRec->productId] = array('batches' => array(), 'productId' => $pRec->productId, 'packagingId' => $pRec->pMeasureId, 'quantityInPack' => 1, 'totalQuantity' => 0, 'isProduced' => true);
                 }
                 $producedProducts[$pRec->productId]['totalQuantity'] += $pRec->quantity;
             }
@@ -95,7 +95,7 @@ class planning_interface_ImportFromPreviousTasks extends planning_interface_Cons
 
             while($cRec = $cQuery->fetch()){
                 if(!array_key_exists($cRec->productId, $producedProducts)){
-                    $producedProducts[$cRec->productId] = array('batches' => array(), 'productId' => $cRec->productId, 'packagingId' => $cRec->pMeasureId, 'quantityInPack' => 1, 'totalQuantity' => 0);
+                    $producedProducts[$cRec->productId] = array('batches' => array(), 'productId' => $cRec->productId, 'packagingId' => $cRec->pMeasureId, 'quantityInPack' => 1, 'totalQuantity' => 0, 'isProduced' => false);
                 }
                 $producedProducts[$cRec->productId]['totalQuantity'] += $cRec->quantity;
 
@@ -172,7 +172,7 @@ class planning_interface_ImportFromPreviousTasks extends planning_interface_Cons
             $pData['batch'] = null;
             $rec->_details[$key] = $pData;
 
-            if($pData['isProduced']){
+            if(!empty($pData['isProduced'])){
                 $res = store_Products::getQuantities($pData['productId'], $masterRec->storeId, $masterRec->valior);
                 $defaultNoBatchQuantity = min($res->free, core_Math::roundNumber($totalQuantity));
                 if($defaultNoBatchQuantity > 0){

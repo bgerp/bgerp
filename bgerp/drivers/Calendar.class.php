@@ -175,8 +175,8 @@ class bgerp_drivers_Calendar extends core_BaseClass
             $pArr['tPerPage'] = $dRec->fTasksPerPage ? $dRec->fTasksPerPage : 5;
             $pArr['fTasksDays'] = $dRec->fTasksDays ? $dRec->fTasksDays : core_DateTime::SECONDS_IN_MONTH;
             $pArr['hideClosedTasks'] = isset($dRec->hideClosedTasks) ? $dRec->hideClosedTasks : 86400;
-            $pArr['taskPriority'] = $dRec->taskPriority;
-            $pArr['remPriority'] = $dRec->remPriority;
+            $pArr['taskPriority'] = $dRec->taskPriority ?? null;
+            $pArr['remPriority'] = $dRec->remPriority ?? null;
 
             $pArr['_userId'] = $userId;
             $today = dt::now(false);
