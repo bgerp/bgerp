@@ -305,6 +305,12 @@ class store_TransfersDetails extends doc_Detail
         if (!empty($rec->transferId)) {
             $fieldName = store_Transfers::getQuantityFieldName($rec->transferId);
             $form->setField('packQuantity', array('unit' => $mvc->getField($fieldName)->caption));
+
+            // В етап на заявката фокусът е на к-то, а не на първото празно поле
+            $mRec = store_Transfers::fetch($rec->transferId, 'state,pendingStage');
+            if (!empty($mRec) && $mRec->state == 'pending' && !empty($mRec->pendingStage)) {
+                $form->setField('packQuantity', 'focus');
+            }
         }
 
         if(empty($rec->newProductId)){
