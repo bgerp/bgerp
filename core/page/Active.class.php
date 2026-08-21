@@ -64,14 +64,18 @@ class core_page_Active extends page_Html
         $this->push('js/efCommon.js', 'JS');
 
         $faviconUrl = getBoot(true, true, true) . '/favicon.ico';
+        $addEditIndicator = false;
         $action = strtolower(Request::get('Act') ?? '');
         if (Mode::is('renderedInputForm') || in_array($action, self::$inputFormActions, true)) {
-            $faviconUrl = sbf('img/favicon-edit.ico', '', true);
+            $addEditIndicator = true;
             if (cls::load('cms_Domains', true)) {
-                $faviconUrl = cms_Domains::getEditFaviconUrl();
+                $faviconUrl = cms_Domains::getEditFaviconUrl($addEditIndicator);
             }
         }
 
         $this->appendOnce("\n<link rel=\"shortcut icon\" href=\"" . ht::escapeAttr($faviconUrl) . '" type="image/x-icon">', 'HEAD');
+        if ($addEditIndicator) {
+            jquery_Jquery::run($this, 'setEditFavIcon(' . json_encode($faviconUrl) . ');');
+        }
     }
 }
