@@ -181,8 +181,9 @@ class docarch_Volumes extends core_Master
                 $form->setReadOnly('number');
             }
         } else {
-            if ($form->cmd == 'refresh' && $rec->archive) {
-                $typesArr = arr::make(docarch_Archives::fetch($rec->archive)->volType, true);
+            if ($form->cmd == 'refresh' && !empty($rec->archive)) {
+                $archiveRec = docarch_Archives::fetch($rec->archive, 'volType');
+                $typesArr = arr::make($archiveRec->volType ?? null, true);
                 $types = '';
                 foreach ($typesArr as $key => $v) {
                     $volName = self::getVolumeTypeName($v);
@@ -212,13 +213,13 @@ class docarch_Volumes extends core_Master
         if ($form->isSubmitted()) {
             $type = $form->rec->type;
             
-            if (is_null($form->rec->archive)) {
+            if (!isset($form->rec->archive)) {
                 $form->rec->archive = 0;
             }
             
             $archive = $form->rec->archive;
             
-            if (is_null($form->rec->number)) {
+            if (!isset($form->rec->number)) {
                 $form->rec->number = $mvc->getNextNumber($archive, $type);
             }
         }
@@ -344,7 +345,7 @@ class docarch_Volumes extends core_Master
      */
     public static function on_BeforeSave(core_Mvc $mvc, &$id, $rec, &$fields = null, $mode = null)
     {
-        if (!is_null($rec->archive)) {
+        if (isset($rec->archive)) {
             if (($rec->type == docarch_Archives::minDefType($rec->archive)) || $rec->archive == 0) {
                 $rec->isForDocuments = 'yes';
             }
@@ -473,7 +474,7 @@ class docarch_Volumes extends core_Master
             $latestDocumentDate = self::getlatestDocumentDate($rec);
             
             //Ако има зададена продължителност
-            if (!is_null($storageTime)) {
+            if (!is_null($storageTime) && !empty($latestDocumentDate)) {
                 $endDate = dt::addSecs($storageTime, $latestDocumentDate);
                 
                 // И крайната дата е минала, деактивираме лимита и продължаваме напред
@@ -503,9 +504,14 @@ class docarch_Volumes extends core_Master
                     
                     if (is_null($storageTime)) {
                         $requiredRoles = 'no_one' ;
+                        continue;
                     }
                     
                     $latestDocumentDate = self::getlatestDocumentDate($volumeRec);
+                    if (empty($latestDocumentDate)) {
+                        $requiredRoles = 'no_one';
+                        continue;
+                    }
                     $endDate = dt::addSecs($storageTime, $latestDocumentDate);
                     if ($endDate < $now) {
                         $checkStorageArr[$volumeRec->id] = true;
@@ -558,7 +564,8 @@ class docarch_Volumes extends core_Master
         $cond .= "#type = '{$type}'";
         $query->where($cond);
         $query->XPR('maxVolNumber', 'int', 'MAX(#number)');
-        $number = $query->fetch()->maxVolNumber;
+        $numberRec = $query->fetch();
+        $number = $numberRec->maxVolNumber ?? 0;
         ++$number;
         
         return $number;
@@ -570,7 +577,8 @@ class docarch_Volumes extends core_Master
      */
     public static function getRecTitle($rec, $escaped = true)
     {
-        $arch = ($rec->archive == 0) ? 'Сборен' : docarch_Archives::fetch($rec->archive)->name;
+        $archiveRec = !empty($rec->archive) ? docarch_Archives::fetch($rec->archive, 'name') : null;
+        $arch = ($rec->archive == 0) ? 'Сборен' : ($archiveRec->name ?? '');
         
         $title = self::getVolumeTypeName($rec->type);
         
@@ -678,6 +686,7 @@ class docarch_Volumes extends core_Master
      */
     public static function getlatestDocumentDate($rec)
     {
+        $latestDocumentDate = null;
         $vQuery = docarch_Movements::getQuery();
         
         $vQuery->where("#toVolumeId = {$rec->id} AND #type = 'archiving'");
@@ -727,6 +736,9 @@ class docarch_Volumes extends core_Master
             }
             
             $latestDocumentDate = self::getlatestDocumentDate($volumeRec);
+            if (empty($latestDocumentDate)) {
+                continue;
+            }
             $endDate = dt::addSecs($storageTime, $latestDocumentDate);
             
             if ($endDate < $now) {

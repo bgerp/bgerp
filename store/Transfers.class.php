@@ -422,13 +422,8 @@ class store_Transfers extends core_Master
 
         $rec->pendingStage = $stage;
         $this->save($rec, 'pendingStage');
-
-        if ($stage == 'execution') {
-            $this->fillExecutedQuantities($rec->id);
-        }
-
         $this->touchRec($rec->id);
-        $this->logWrite(($stage == 'loading') ? 'Започва изпращане' : 'Започва получаване', $rec->id);
+        $this->logWrite(($stage == 'loading') ? 'Изпращане' : 'Получаване', $rec->id);
 
         $res = getRetUrl();
         if (empty($res)) {
@@ -436,28 +431,6 @@ class store_Transfers extends core_Master
         }
 
         return new Redirect($res);
-    }
-
-
-    /**
-     * При започване на получаването се очаква да се получи изпратеното - предварително
-     * се попълва текущото к-во, а получателят коригира само редовете с разлика
-     *
-     * @param int $id
-     *
-     * @return void
-     */
-    private function fillExecutedQuantities($id)
-    {
-        $Detail = cls::get($this->mainDetail);
-
-        // Директен запис, за да не се правят ревизии на редовете (@see doc_plg_DetailRevisions)
-        $dQuery = $Detail->getQuery();
-        $dQuery->where("#{$Detail->masterKey} = {$id}");
-        while ($dRec = $dQuery->fetch()) {
-            $dRec->executedQuantity = $dRec->quantity;
-            $Detail->save_($dRec, 'executedQuantity');
-        }
     }
 
 

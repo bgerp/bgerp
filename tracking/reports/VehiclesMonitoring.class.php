@@ -140,7 +140,7 @@ class tracking_reports_VehiclesMonitoring extends frame2_driver_TableData
         $query-> orderBy('fixTime');
         
         
-        if ($rec->vehicle) {
+        if (!empty($rec->vehicle)) {
             $vehicleArr = keylist::toArray($rec->vehicle);
             
             $query->in('vehicleId', $vehicleArr);
@@ -157,6 +157,9 @@ class tracking_reports_VehiclesMonitoring extends frame2_driver_TableData
             $parseData['latitude'] = tracking_Log::DMSToDD($parseData['latitude']);
             $parseData['longitude'] = tracking_Log::DMSToDD($parseData['longitude']);
             $vehicleData = tracking_Vehicles::fetch($point->vehicleId);
+            if (!$vehicleData) {
+                continue;
+            }
             $time = dt::mysql2verbal($point->fixTime, $mask = 'd.m.y H:i:s');
             
             
@@ -176,7 +179,7 @@ class tracking_reports_VehiclesMonitoring extends frame2_driver_TableData
                 'speed' => $parseData['speed'],
                 'heading' => $parseData['heading'],
                 'time' => $point->fixTime,
-                'personId' => $vehicleData->personId,
+                'personId' => $vehicleData->personId ?? null,
                 'trackerId' => $vehicleData->trackerId,
                 'createdOn' => $point->createdOn,
             

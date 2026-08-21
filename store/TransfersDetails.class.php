@@ -146,7 +146,7 @@ class store_TransfersDetails extends doc_Detail
     {
         $this->FLD('transferId', 'key(mvc=store_Transfers)', 'column=none,notNull,silent,hidden,mandatory');
         $this->FLD('newProductId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,hasProperties=canStore,hasnotProperties=generic,maxSuggestions=100,forceAjax,titleFld=name,forceOpen)', 'class=w100,caption=Артикул,mandatory,silent,refreshForm,tdClass=productCell leftCol wrap');
-        $this->FLD('packagingId', 'key(mvc=cat_UoM, select=name)', 'caption=Мярка,mandatory,smartCenter,input=hidden,tdClass=small-field nowrap');
+        $this->FLD('packagingId', 'key(mvc=cat_UoM, select=shortName, select2MinItems=0)', 'caption=Мярка,mandatory,smartCenter,input=hidden,tdClass=small-field nowrap');
         $this->FLD('quantity', 'double', 'caption=Количество,input=none');
         $this->FLD('quantityInPack', 'double(decimals=2)', 'input=none,column=none');
         $this->FNC('packQuantity', 'double(min=0)', 'caption=Количество,input,mandatory,tdClass=mainQuantityCol');
@@ -165,7 +165,7 @@ class store_TransfersDetails extends doc_Detail
      */
     protected static function on_BeforeSave($mvc, &$id, $rec, $fields = null, $mode = null)
     {
-        if (!empty($rec->_skipDetailRevision) || !empty($fields) || !isset($rec->quantity)) {
+        if (!empty($rec->_skipDetailRevision) || !empty($rec->_stageQuantityNotChanged) || !empty($fields) || !isset($rec->quantity)) {
 
             return;
         }
@@ -186,18 +186,6 @@ class store_TransfersDetails extends doc_Detail
         }
         
         $rec->packQuantity = $rec->quantity / $rec->quantityInPack;
-    }
-    
-    
-    /**
-     * Извиква се след успешен запис в модела
-     */
-    protected static function on_AfterSave($mvc, &$id, $rec, $fieldsList = null)
-    {
-        // Подсигуряваме наличието на ключ към мастър записа
-        if (empty($rec->{$mvc->masterKey})) {
-            $rec->{$mvc->masterKey} = $mvc->fetchField($rec->id, $mvc->masterKey);
-        }
     }
     
     
@@ -300,38 +288,6 @@ class store_TransfersDetails extends doc_Detail
             $deliveryDate = !empty($data->masterData->rec->deliveryTime) ? $data->masterData->rec->deliveryTime : $data->masterData->rec->valior;
             deals_Helper::getQuantityHint($row->packQuantity, $mvc, $rec->newProductId, $data->masterData->rec->fromStore, $rec->quantity, $data->masterData->rec->state, $deliveryDate);
         }
-
-        // Преномериране по ревизионни групи - plg_RowNumbering номерира преди групирането
-        $showIds = doc_plg_MasterRevision::getRequestedMasterIds($mvc->Master);
-        if (!in_array($data->masterId, $showIds)) {
-
-            return;
-        }
-
-        $activeGroups = doc_plg_DetailRevisions::groupsWithActiveRow($data->recs);
-        $numByGroup = array();
-        $number = 1;
-
-        foreach ($data->rows as $id => $row) {
-            if (!isset($data->recs[$id])) {
-                continue;
-            }
-
-            $rec = $data->recs[$id];
-            $groupId = $rec->revisionRootId ?: $rec->id;
-            if (!isset($numByGroup[$groupId])) {
-                $numByGroup[$groupId] = $number++;
-            }
-
-            if (($rec->state ?? null) == 'rejected') {
-                $row->RowNumb = '';
-                if (isset($activeGroups[$groupId])) {
-                    $row->newProductId = '';
-                }
-            } else {
-                $row->RowNumb = "<span class='detailNumbering'>{$numByGroup[$groupId]}</span>";
-            }
-        }
     }
     
     
@@ -349,6 +305,19 @@ class store_TransfersDetails extends doc_Detail
         if (!empty($rec->transferId)) {
             $fieldName = store_Transfers::getQuantityFieldName($rec->transferId);
             $form->setField('packQuantity', array('unit' => $mvc->getField($fieldName)->caption));
+
+            // В етап на заявката фокусът е на к-то, а не на първото празно поле
+            if (!empty($data->masterRec) && $data->masterRec->state == 'pending' && !empty($data->masterRec->pendingStage)) {
+                $form->setField('packQuantity', 'focus');
+            }
+        }
+
+        // Логистичната секция се свива, ако е празна - за детайлите режимът на
+        // plg_PrevAndNext е винаги включен и store_plg_TransportDataDetail не слага autohide
+        foreach (array('weight', 'netWeight', 'tareWeight', 'volume', 'transUnitId', 'transUnitQuantity') as $fld) {
+            if ($form->getField($fld, false)) {
+                $form->setField($fld, 'autohide');
+            }
         }
 
         if(empty($rec->newProductId)){
@@ -398,7 +367,61 @@ class store_TransfersDetails extends doc_Detail
             $rec->quantityInPack = !empty($pInfo->packagings[$rec->packagingId]) ? $pInfo->packagings[$rec->packagingId]->quantity : 1;
             
             $rec->quantity = $rec->packQuantity * $rec->quantityInPack;
+
+            // В етап на заявката непроменено к-во не се записва в колоната на етапа,
+            // а ако и нищо друго в реда не е променено - не се прави и нова ревизия
+            if (!empty($rec->id)) {
+                $mRec = store_Transfers::fetch($rec->transferId, 'state,pendingStage');
+                $oldRec = $mvc->fetch($rec->id);
+
+                if (!empty($oldRec) && !empty($mRec) && $mRec->state == 'pending' && !empty($mRec->pendingStage)) {
+                    if (round($rec->quantity, 5) == round($oldRec->quantity, 5)) {
+                        $rec->_stageQuantityNotChanged = true;
+
+                        if (!static::isRowChangedOutsideQuantity($mvc, $form, $rec, $oldRec)) {
+                            $rec->_skipDetailRevision = true;
+                        }
+                    }
+                }
+            }
         }
+    }
+
+
+    /**
+     * Променено ли е нещо в реда, извън количеството - сравняват се полетата от формата
+     *
+     * @param core_Mvc  $mvc
+     * @param core_Form $form
+     * @param stdClass  $rec    - записът от формата
+     * @param stdClass  $oldRec - записът от преди редакцията
+     *
+     * @return bool
+     */
+    private static function isRowChangedOutsideQuantity($mvc, $form, $rec, $oldRec)
+    {
+        $skipFields = arr::make('packQuantity,quantity,quantityInPack,requestedQuantity,loadedQuantity,executedQuantity', true);
+
+        foreach ($form->selectFields("#input != 'none'") as $name => $fld) {
+            if (isset($skipFields[$name]) || empty($mvc->fields[$name])) {
+                continue;
+            }
+
+            $newValue = $rec->{$name} ?? null;
+            $oldValue = $oldRec->{$name} ?? null;
+
+            if ($mvc->getFieldType($name) instanceof type_Double) {
+                if (round((float) $newValue, 5) != round((float) $oldValue, 5)) {
+
+                    return true;
+                }
+            } elseif ((string) $newValue !== (string) $oldValue) {
+
+                return true;
+            }
+        }
+
+        return false;
     }
     
     
@@ -413,9 +436,16 @@ class store_TransfersDetails extends doc_Detail
     private static function getStageInfo($mvc, $masterId)
     {
         $fieldName = store_Transfers::getQuantityFieldName($masterId);
-        $colors = array('loadedQuantity' => '#ef6c00', 'executedQuantity' => '#2e7d32', 'requestedQuantity' => '#546e7a');
+        $colors = array('loadedQuantity' => '#ef6c00', 'executedQuantity' => '#2e7d32');
         $caption = tr($mvc->getField($fieldName)->caption);
-        $badge = "<span style='display:inline-block;background:{$colors[$fieldName]};color:#fff;font-weight:bold;padding:1px 10px;border-radius:8px;'>{$caption}</span>";
+        $style = 'display:inline-block;font-weight:bold;padding:1px 10px;border-radius:8px;';
+
+        // Извън етапите к-то влиза в „Заявено“ - значката е в цвета на състоянието „чакащо“
+        if (isset($colors[$fieldName])) {
+            $badge = "<span style='{$style}background:{$colors[$fieldName]};color:#fff;'>{$caption}</span>";
+        } else {
+            $badge = "<span class='state-pending' style='{$style}'>{$caption}</span>";
+        }
 
         return "<div class='formCustomInfo'>" . tr("|Количеството ще се запише в|* {$badge}") . '</div>';
     }

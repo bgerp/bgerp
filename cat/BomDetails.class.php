@@ -313,13 +313,13 @@ class cat_BomDetails extends doc_Detail
                 $Driver = cat_Products::getDriver($rec->resourceId);
                 $productionData = $Driver->getProductionData($rec->resourceId);
                 $canStore = cat_Products::fetchField($rec->resourceId, 'canStore');
+                $productMeasureId = cat_Products::fetchField($rec->resourceId, 'measureId');
                 if($canStore == 'yes'){
                     // Показване на полетата за етикетиране
                     $form->setField('storeIn', 'input');
                     $form->setField('inputStores', 'input');
                     $form->setField('labelPackagingId', 'input');
 
-                    $productMeasureId = cat_Products::fetchField($rec->resourceId, 'measureId');
                     $packs = planning_Tasks::getAllowedLabelPackagingOptions($productMeasureId, $rec->resourceId, $rec->labelPackagingId ?? null);
                     $form->setOptions("labelPackagingId", $packs);
                 }

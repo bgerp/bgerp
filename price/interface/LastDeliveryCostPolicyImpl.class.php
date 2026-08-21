@@ -92,6 +92,9 @@ class price_interface_LastDeliveryCostPolicyImpl extends price_interface_BaseCos
                         
                         // Намираме записите от журнала
                         $jRec = acc_Journal::fetchByDoc('acc_ValueCorrections', $aRec->id);
+                        if (!$jRec) {
+                            continue;
+                        }
                         $dQuery = acc_JournalDetails::getQuery();
                         $dQuery->where("#journalId = {$jRec->id}");
                         $expensesEntries = $dQuery->fetchAll();
@@ -109,10 +112,14 @@ class price_interface_LastDeliveryCostPolicyImpl extends price_interface_BaseCos
                     
                     // Добавяне и на разпределените разходи, ако има
                     foreach ($purchaseProducts[$purRec->requestId] as $o1) {
-                        $itemId = acc_Items::fetchItem('cat_Products', $o1->productId)->id;
-                        $amount = acc_Balances::getBlAmounts($entries, '321', 'debit', '60201', array(null, $itemId, null), array(), $purRec->valior)->amount;
+                        $itemRec = acc_Items::fetchItem('cat_Products', $o1->productId);
+                        if (!$itemRec) {
+                            continue;
+                        }
+                        $amountRec = acc_Balances::getBlAmounts($entries, '321', 'debit', '60201', array(null, $itemRec->id, null), array(), $purRec->valior);
+                        $amount = $amountRec->amount ?? 0;
                         $val = (empty($o1->quantity)) ? 0 : ($amount / $o1->quantity);
-                        $o1->price += $val;
+                        $o1->price = ($o1->price ?? 0) + $val;
                     }
                 }
                 
@@ -120,6 +127,9 @@ class price_interface_LastDeliveryCostPolicyImpl extends price_interface_BaseCos
                 $shippedProducts = $purchaseProducts[$purRec->requestId];
                 
                 // Взимаме цената на продукта по тази сделка
+                if (!isset($shippedProducts[$purRec->productId]->price)) {
+                    continue;
+                }
                 $price = $shippedProducts[$purRec->productId]->price;
                 $price = deals_Helper::getSmartBaseCurrency($price, $purRec->valior);
 
@@ -153,7 +163,7 @@ class price_interface_LastDeliveryCostPolicyImpl extends price_interface_BaseCos
     {
         // Добавяне на аванс към датата да се обхванат по отрано записите
         $cronRec = core_Cron::getRecForSystemId("Update primecosts");
-        $cronPeriod = $cronRec->period * 60;
+        $cronPeriod = ($cronRec->period ?? 0) * 60;
         $datetime = dt::addSecs(-1 * $cronPeriod, $datetime);
 
         // Афектираните артикули са тези с дебит в склада
