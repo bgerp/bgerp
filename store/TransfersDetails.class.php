@@ -436,9 +436,16 @@ class store_TransfersDetails extends doc_Detail
     private static function getStageInfo($mvc, $masterId)
     {
         $fieldName = store_Transfers::getQuantityFieldName($masterId);
-        $colors = array('loadedQuantity' => '#ef6c00', 'executedQuantity' => '#2e7d32', 'requestedQuantity' => '#546e7a');
+        $colors = array('loadedQuantity' => '#ef6c00', 'executedQuantity' => '#2e7d32');
         $caption = tr($mvc->getField($fieldName)->caption);
-        $badge = "<span style='display:inline-block;background:{$colors[$fieldName]};color:#fff;font-weight:bold;padding:1px 10px;border-radius:8px;'>{$caption}</span>";
+        $style = 'display:inline-block;font-weight:bold;padding:1px 10px;border-radius:8px;';
+
+        // Извън етапите к-то влиза в „Заявено“ - значката е в цвета на състоянието „чакащо“
+        if (isset($colors[$fieldName])) {
+            $badge = "<span style='{$style}background:{$colors[$fieldName]};color:#fff;'>{$caption}</span>";
+        } else {
+            $badge = "<span class='state-pending' style='{$style}'>{$caption}</span>";
+        }
 
         return "<div class='formCustomInfo'>" . tr("|Количеството ще се запише в|* {$badge}") . '</div>';
     }
