@@ -165,7 +165,7 @@ class store_TransfersDetails extends doc_Detail
      */
     protected static function on_BeforeSave($mvc, &$id, $rec, $fields = null, $mode = null)
     {
-        if (!empty($rec->_skipDetailRevision) || !empty($fields) || !isset($rec->quantity)) {
+        if (!empty($rec->_skipDetailRevision) || !empty($rec->_stageQuantityNotChanged) || !empty($fields) || !isset($rec->quantity)) {
 
             return;
         }
@@ -354,7 +354,61 @@ class store_TransfersDetails extends doc_Detail
             $rec->quantityInPack = !empty($pInfo->packagings[$rec->packagingId]) ? $pInfo->packagings[$rec->packagingId]->quantity : 1;
             
             $rec->quantity = $rec->packQuantity * $rec->quantityInPack;
+
+            // В етап на заявката непроменено к-во не се записва в колоната на етапа,
+            // а ако и нищо друго в реда не е променено - не се прави и нова ревизия
+            if (!empty($rec->id)) {
+                $mRec = store_Transfers::fetch($rec->transferId, 'state,pendingStage');
+                $oldRec = $mvc->fetch($rec->id);
+
+                if (!empty($oldRec) && !empty($mRec) && $mRec->state == 'pending' && !empty($mRec->pendingStage)) {
+                    if (round($rec->quantity, 5) == round($oldRec->quantity, 5)) {
+                        $rec->_stageQuantityNotChanged = true;
+
+                        if (!static::isRowChangedOutsideQuantity($mvc, $form, $rec, $oldRec)) {
+                            $rec->_skipDetailRevision = true;
+                        }
+                    }
+                }
+            }
         }
+    }
+
+
+    /**
+     * Променено ли е нещо в реда, извън количеството - сравняват се полетата от формата
+     *
+     * @param core_Mvc  $mvc
+     * @param core_Form $form
+     * @param stdClass  $rec    - записът от формата
+     * @param stdClass  $oldRec - записът от преди редакцията
+     *
+     * @return bool
+     */
+    private static function isRowChangedOutsideQuantity($mvc, $form, $rec, $oldRec)
+    {
+        $skipFields = arr::make('packQuantity,quantity,quantityInPack,requestedQuantity,loadedQuantity,executedQuantity', true);
+
+        foreach ($form->selectFields("#input != 'none'") as $name => $fld) {
+            if (isset($skipFields[$name]) || empty($mvc->fields[$name])) {
+                continue;
+            }
+
+            $newValue = $rec->{$name} ?? null;
+            $oldValue = $oldRec->{$name} ?? null;
+
+            if ($mvc->getFieldType($name) instanceof type_Double) {
+                if (round((float) $newValue, 5) != round((float) $oldValue, 5)) {
+
+                    return true;
+                }
+            } elseif ((string) $newValue !== (string) $oldValue) {
+
+                return true;
+            }
+        }
+
+        return false;
     }
     
     
