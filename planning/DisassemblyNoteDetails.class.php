@@ -521,6 +521,21 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
             $storeInfo = deals_Helper::checkProductQuantityInStore($rec->productId, $rec->packagingId ?? null, $rec->packQuantity ?? null, $rec->storeId, $deliveryDate);
             $form->info = $storeInfo->formInfo;
         }
+
+        if ($form->isSubmitted()) {
+
+            // При влагане к-то не може да е нула, нито закръглено
+            $warning = null;
+            if ($rec->type == 'input') {
+                if (empty($rec->packQuantity)) {
+                    $form->setError('packQuantity', 'Количеството за влагане не може да е нула|*!');
+                } elseif (!deals_Helper::checkQuantity($rec->packagingId, $rec->packQuantity, $warning)) {
+                    $form->setError('packQuantity', $warning);
+                }
+            } elseif (!deals_Helper::checkQuantity($rec->packagingId, $rec->packQuantity, $warning)) {
+                $form->setWarning('packQuantity', $warning);
+            }
+        }
     }
 
 

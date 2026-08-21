@@ -176,6 +176,18 @@ class cat_DisassemblyBomDetails extends doc_Detail
                 $form->setError('productId', 'Артикулът вече е добавен в рецептата|*!');
             }
 
+            // При влагане к-то не може да е нула, нито закръглено
+            $warning = null;
+            if ($rec->type == 'input') {
+                if (empty($rec->packQuantity)) {
+                    $form->setError('packQuantity', 'Количеството за влагане не може да е нула|*!');
+                } elseif (!deals_Helper::checkQuantity($rec->packagingId, $rec->packQuantity, $warning)) {
+                    $form->setError('packQuantity', $warning);
+                }
+            } elseif (!deals_Helper::checkQuantity($rec->packagingId, $rec->packQuantity, $warning)) {
+                $form->setWarning('packQuantity', $warning);
+            }
+
             $productInfo = cat_Products::getProductInfo($rec->productId);
             $rec->quantityInPack = isset($productInfo->packagings[$rec->packagingId]) ? $productInfo->packagings[$rec->packagingId]->quantity : 1;
             $rec->quantity = $rec->packQuantity * $rec->quantityInPack;
