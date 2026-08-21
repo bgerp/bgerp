@@ -307,9 +307,16 @@ class store_TransfersDetails extends doc_Detail
             $form->setField('packQuantity', array('unit' => $mvc->getField($fieldName)->caption));
 
             // В етап на заявката фокусът е на к-то, а не на първото празно поле
-            $mRec = store_Transfers::fetch($rec->transferId, 'state,pendingStage');
-            if (!empty($mRec) && $mRec->state == 'pending' && !empty($mRec->pendingStage)) {
+            if (!empty($data->masterRec) && $data->masterRec->state == 'pending' && !empty($data->masterRec->pendingStage)) {
                 $form->setField('packQuantity', 'focus');
+            }
+        }
+
+        // Логистичната секция се свива, ако е празна - за детайлите режимът на
+        // plg_PrevAndNext е винаги включен и store_plg_TransportDataDetail не слага autohide
+        foreach (array('weight', 'netWeight', 'tareWeight', 'volume', 'transUnitId', 'transUnitQuantity') as $fld) {
+            if ($form->getField($fld, false)) {
+                $form->setField($fld, 'autohide');
             }
         }
 
