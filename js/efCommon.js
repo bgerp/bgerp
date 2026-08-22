@@ -5006,6 +5006,61 @@ function prepareFavIcon(iconPath) {
 
 
 /**
+ * Добавя червен индикатор върху текущата икона за формите за въвеждане
+ * @param iconPath - пътят до основната икона
+ */
+function setEditFavIcon(iconPath) {
+    if (!iconPath) return;
+
+    var cacheName = 'bgerpEditFavicon';
+    var source = iconPath + '|record-dot-v2';
+
+    try {
+        var cached = JSON.parse(localStorage.getItem(cacheName));
+        if (cached && cached.source === source && /^data:image\/png;base64,/.test(cached.icon)) {
+            setFavIcon(prepareFavIcon(cached.icon));
+            return;
+        }
+    } catch (e) {
+        // При забранен localStorage иконата се генерира отново за страницата.
+    }
+
+    var image = new Image();
+    image.onload = function () {
+        try {
+            var size = 64;
+            var canvas = document.createElement('canvas');
+            var context = canvas.getContext('2d');
+            canvas.width = size;
+            canvas.height = size;
+            context.drawImage(image, 0, 0, size, size);
+
+            // Белият кант отделя яркочервената точка от произволен фон.
+            context.beginPath();
+            context.arc(47, 47, 16, 0, 2 * Math.PI);
+            context.fillStyle = '#ffffff';
+            context.fill();
+            context.beginPath();
+            context.arc(47, 47, 13, 0, 2 * Math.PI);
+            context.fillStyle = '#ff0000';
+            context.fill();
+
+            var icon = canvas.toDataURL('image/png');
+            try {
+                localStorage.setItem(cacheName, JSON.stringify({source: source, icon: icon}));
+            } catch (e) {
+                // Кешът е оптимизация и не е необходим за показването.
+            }
+            setFavIcon(prepareFavIcon(icon));
+        } catch (e) {
+            // При проблем оставяме непроменена основната икона.
+        }
+    };
+    image.src = iconPath;
+}
+
+
+/**
  * задава фав икона
  * @param icon - иконата, която ще задаваме
  */

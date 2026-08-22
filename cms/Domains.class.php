@@ -524,32 +524,80 @@ class cms_Domains extends core_Embedder
 
     /**
      * Връща URL на иконата за страници с форма за въвеждане
+     *
+     * @param bool $addIndicator Дали върху върнатата икона да се добави индикатор
+     *
+     * @return string
      */
-    public static function getEditFaviconUrl()
+    public static function getEditFaviconUrl(&$addIndicator = null)
     {
+        $addIndicator = true;
         $domainId = self::getPublicDomain('id');
         if ($domainId) {
             $cacheType = get_called_class();
-            $cacheKey = "editFavicon|{$domainId}";
+            $cacheKey = "inputFavicon|{$domainId}";
             $cached = core_Cache::get($cacheType, $cacheKey, 1440);
 
             if ($cached === false) {
-                $editFavicon = self::fetchEditFavicon($domainId, $isAvailable);
+                $faviconData = self::fetchInputFavicons($domainId, $isAvailable);
+                $cached = array(
+                    'favicon' => $faviconData->favicon ?? null,
+                    'editFavicon' => $faviconData->editFavicon ?? null,
+                );
 
                 // Не кешираме резултат от все още неинициализирана БД. След
                 // инициализацията следващата заявка трябва веднага да опита пак.
                 if ($isAvailable) {
-                    $cached = array('hasEditFavicon' => (bool) $editFavicon);
                     core_Cache::set($cacheType, $cacheKey, $cached, 1440);
                 }
             }
 
-            if (is_array($cached) && !empty($cached['hasEditFavicon'])) {
-                return getBoot(true, true, true) . '/favicon-edit.ico';
+            if (!empty($cached['editFavicon'])) {
+                $addIndicator = false;
+
+                return getBoot(true, true, true) . '/favicon-edit.ico?v=' . substr(md5($cached['editFavicon']), 0, 12);
+            }
+
+            if (!empty($cached['favicon'])) {
+                return getBoot(true, true, true) . '/favicon.ico?v=' . substr(md5($cached['favicon']), 0, 12);
             }
         }
 
-        return sbf('img/favicon-edit.ico', '', true);
+        return sbf('img/favicon.ico', '', true);
+    }
+
+
+    /**
+     * Зарежда основната и персоналната редакционна икона само при нужда
+     *
+     * @param int  $domainId
+     * @param bool $isAvailable Дали полето за редакционна икона съществува в БД
+     *
+     * @return stdClass
+     */
+    protected static function fetchInputFavicons($domainId, &$isAvailable = null)
+    {
+        $isAvailable = true;
+        try {
+            $domainRec = self::fetch((int) $domainId, 'favicon,editFavicon', false);
+        } catch (core_exception_Db $e) {
+            if (!$e->isNotInitializedDB()) {
+                throw $e;
+            }
+
+            $isAvailable = false;
+            try {
+                $domainRec = self::fetch((int) $domainId, 'favicon', false);
+            } catch (core_exception_Db $fallbackException) {
+                if (!$fallbackException->isNotInitializedDB()) {
+                    throw $fallbackException;
+                }
+
+                $domainRec = null;
+            }
+        }
+
+        return $domainRec ?: new stdClass();
     }
 
 
@@ -563,18 +611,7 @@ class cms_Domains extends core_Embedder
      */
     protected static function fetchEditFavicon($domainId, &$isAvailable = null)
     {
-        $isAvailable = true;
-        try {
-            $domainRec = self::fetch((int) $domainId, 'editFavicon', false);
-        } catch (core_exception_Db $e) {
-            if (!$e->isNotInitializedDB()) {
-                throw $e;
-            }
-
-            $isAvailable = false;
-
-            return null;
-        }
+        $domainRec = self::fetchInputFavicons($domainId, $isAvailable);
 
         return $domainRec->editFavicon ?? null;
     }
@@ -823,11 +860,11 @@ class cms_Domains extends core_Embedder
             }
         }
 
-        // Икона за формите за въвеждане. При липса се използва вградената
-        // икона директно от статичните ресурси на системата.
+        // Персонална икона за формите за въвеждане. При липса браузърът
+        // добавя индикатор върху основната икона на домейна.
         if (!empty($rec->editFavicon)) {
             $editIconContent = fileman_Files::getContent($rec->editFavicon);
-            core_Webroot::register($editIconContent, '', 'favicon-edit.ico', $id);
+            core_Webroot::register($editIconContent, 'Cache-Control: public, max-age=31536000, immutable', 'favicon-edit.ico', $id);
             $rec->toRemove['favicon-edit.ico'] = 'favicon-edit.ico';
         }
 
@@ -850,7 +887,7 @@ class cms_Domains extends core_Embedder
         }
 
         // Общият кеш се използва от всички потребителски сесии.
-        core_Cache::remove(get_called_class(), "editFavicon|{$id}");
+        core_Cache::remove(get_called_class(), "inputFavicon|{$id}");
     }
     
     
