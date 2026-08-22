@@ -503,6 +503,9 @@ tr.row-added {
 tr.row-removed {
   background-color: #cce3fe; }
 
+tr.row-subProduct {
+  background-color: #fff3d6; }
+
   .wide .user-profile .listTopContainer {
     min-width: 0; }
 

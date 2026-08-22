@@ -202,7 +202,7 @@ class acc_ReportDetails extends core_Manager
                         }
                     }
                     
-                    if(is_array($res[$accountId]['rows'])){
+                    if(!empty($res[$accountId]['rows'])){
                         arr::sortObjects($res[$accountId]['rows'], 'sortField', 'asc', 'natural');
                     }
                     
@@ -398,8 +398,8 @@ class acc_ReportDetails extends core_Manager
             
             // За всички записи групирани по сметки
             foreach ($data->balanceRows as $accId => $arr) {
-                $rows = $arr['rows'];
-                $total = $arr['total'];
+                $rows = $arr['rows'] ?? array();
+                $total = $arr['total'] ?? null;
                 
                 // Името на сметката и нейните групи
                 $accNum = acc_Balances::getAccountLink($accId);
