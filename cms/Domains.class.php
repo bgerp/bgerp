@@ -535,7 +535,7 @@ class cms_Domains extends core_Embedder
         $domainId = self::getPublicDomain('id');
         if ($domainId) {
             $cacheType = get_called_class();
-            $cacheKey = "inputFavicon|{$domainId}";
+            $cacheKey = "faviconSources|{$domainId}";
             $cached = core_Cache::get($cacheType, $cacheKey, 1440);
 
             if ($cached === false) {
@@ -543,6 +543,7 @@ class cms_Domains extends core_Embedder
                 $cached = array(
                     'favicon' => $faviconData->favicon ?? null,
                     'editFavicon' => $faviconData->editFavicon ?? null,
+                    'wrFiles' => $faviconData->wrFiles ?? null,
                 );
 
                 // Не кешираме резултат от все още неинициализирана БД. След
@@ -558,17 +559,23 @@ class cms_Domains extends core_Embedder
                 return getBoot(true, true, true) . '/favicon-edit.ico?v=' . substr(md5($cached['editFavicon']), 0, 12);
             }
 
+            // Същият приоритет като при публикуването на стандартната икона:
+            // „Икона за сайта“, след това „Други (zip)“.
             if (!empty($cached['favicon'])) {
                 return getBoot(true, true, true) . '/favicon.ico?v=' . substr(md5($cached['favicon']), 0, 12);
             }
+
+            if (!empty($cached['wrFiles'])) {
+                return getBoot(true, true, true) . '/favicon.ico?v=' . substr(md5($cached['wrFiles']), 0, 12);
+            }
         }
 
-        return sbf('img/favicon.ico', '', true);
+        return getBoot(true, true, true) . '/favicon.ico';
     }
 
 
     /**
-     * Зарежда основната и персоналната редакционна икона само при нужда
+     * Зарежда източниците за основната и персоналната редакционна икона
      *
      * @param int  $domainId
      * @param bool $isAvailable Дали полето за редакционна икона съществува в БД
@@ -579,7 +586,7 @@ class cms_Domains extends core_Embedder
     {
         $isAvailable = true;
         try {
-            $domainRec = self::fetch((int) $domainId, 'favicon,editFavicon', false);
+            $domainRec = self::fetch((int) $domainId, 'favicon,editFavicon,wrFiles', false);
         } catch (core_exception_Db $e) {
             if (!$e->isNotInitializedDB()) {
                 throw $e;
@@ -587,7 +594,7 @@ class cms_Domains extends core_Embedder
 
             $isAvailable = false;
             try {
-                $domainRec = self::fetch((int) $domainId, 'favicon', false);
+                $domainRec = self::fetch((int) $domainId, 'favicon,wrFiles', false);
             } catch (core_exception_Db $fallbackException) {
                 if (!$fallbackException->isNotInitializedDB()) {
                     throw $fallbackException;
@@ -887,7 +894,7 @@ class cms_Domains extends core_Embedder
         }
 
         // Общият кеш се използва от всички потребителски сесии.
-        core_Cache::remove(get_called_class(), "inputFavicon|{$id}");
+        core_Cache::remove(get_called_class(), "faviconSources|{$id}");
     }
     
     
