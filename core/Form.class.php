@@ -917,6 +917,13 @@ class core_Form extends core_FieldSet
                 // фокусираме на него
                 if (empty($firstError)) {
                     if (!empty($field->focus)) {
+                        // 'focus=force' - полето поема фокуса и на мобилно устройство.
+                        // Ползва се за полета, в които се сканира с хардуерен скенер и
+                        // без фокус в тях сканирането не попада никъде.
+                        if ($field->focus === 'force') {
+                            $attr['data-focus'] = 'forceFocus';
+                        }
+                        
                         ht::setUniqId($attr);
                         $idForFocus = $attr['id'];
                     } elseif (empty($field->type->params['isReadOnly']) && (countR($field->type->options ?? null) != 1) && empty($idFirstFocus) &&
@@ -1002,7 +1009,11 @@ class core_Form extends core_FieldSet
                 $fieldsLayout->append('</div>');
             } else {
                 if (!empty($idForFocus)) {
-                    jquery_Jquery::run($fieldsLayout, "focusOnce('#{$idForFocus}');", true);
+                    // При AJAX рефреш на формата фокусът се форсира. Иначе полето
+                    // с 'focus' остава нефокусирано, защото старата форма е заместена
+                    // и фокусът пада върху BODY (не може да се сканира без клик).
+                    $force = ($this->cmd == 'refresh' && Request::get('ajax_mode')) ? ', true' : '';
+                    jquery_Jquery::run($fieldsLayout, "focusOnce('#{$idForFocus}'{$force});", true);
                 } elseif (!empty($idFirstFocus)) {
                     jquery_Jquery::run($fieldsLayout, "focusOnce('#{$idFirstFocus}');", true);
                 }
