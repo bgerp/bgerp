@@ -362,10 +362,6 @@ class planning_ProductionTaskDetails extends doc_Detail
                 $form->setField('serial', 'caption=Допълнително->Производ. №,formOrder=6,placeholder=Автоматично генериране');
                 unset($form->fields['serial']->focus);
             } elseif ($rec->type == 'input') {
-                
-                // Ако има произведени серийни номера в предходните операции - предлагат се за избор,
-                // но полето остава видимо и когато няма такива
-                $form->setField('serial', 'input=input');
                 $availableSerialsToInput = static::getAvailableSerialsToInput($rec->productId, $rec->taskId);
                 if(countR($availableSerialsToInput)){
                     $serialOptions = array_combine(array_keys($availableSerialsToInput), array_keys($availableSerialsToInput));
@@ -601,10 +597,8 @@ class planning_ProductionTaskDetails extends doc_Detail
                                 }
                             } else {
                                 $availableSerialsToInput = static::getAvailableSerialsToInput($rec->productId, $rec->taskId);
-                                $serialInfo = $availableSerialsToInput[$rec->serial] ?? null;
-                                if(isset($serialInfo['quantity'])){
-                                    $form->setDefault('quantity', $serialInfo['quantity']);
-                                }
+                                $serialInfo = $availableSerialsToInput[$rec->serial];
+                                $form->setDefault('quantity', $serialInfo['quantity']);
                             }
                         }
                     } else {
@@ -988,8 +982,6 @@ class planning_ProductionTaskDetails extends doc_Detail
         $query->in("taskId", $previousTaskIds);
         $query->where("#productId = {$productId} AND #type IN ('production', 'scrap') AND #state != 'rejected'");
         while($rec = $query->fetch()){
-            if(empty($rec->serial)) continue;
-            
             if(!array_key_exists($rec->serial, $res)){
                 $res[$rec->serial] = array('serial' => $rec->serial, 'productId' => $rec->productId, 'batch' => $rec->batch ?? null, 'type' => 'existing', 'quantity' => 0);
             }
