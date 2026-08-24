@@ -2968,6 +2968,17 @@ function replaceFormData(frm, data) {
     // Памет за заредените вече файлове
     if (typeof refreshForm.loadedFiles == 'undefined') {
         refreshForm.loadedFiles = [];
+
+        // Файловете от първоначалното зареждане на страницата също са вече
+        // налични. Ако jQuery се зареди повторно при AJAX refresh, се губят
+        // всички регистрирани $.fn разширения (isInViewport, contextMenu и др.).
+        $('script[src], link[href]').each(function () {
+            var file = $(this).attr('src') || $(this).attr('href');
+
+            if (file && refreshForm.loadedFiles.indexOf(file) < 0) {
+                refreshForm.loadedFiles.push(file);
+            }
+        });
     }
     var params = frm.serializeArray();
 
