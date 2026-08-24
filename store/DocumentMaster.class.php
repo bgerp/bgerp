@@ -699,7 +699,7 @@ abstract class store_DocumentMaster extends core_Master
                         if($recFld == 'features'){
                             $addressData[$recPlaceholder] = $rec->{$recFld};
                         } else {
-                            $addressData[$recPlaceholder] = $row->{$recFld};
+                            $addressData[$recPlaceholder] = $row->{$recFld} ?? $mvc->getVerbal($rec, $recFld);
                         }
                     }
                 }
