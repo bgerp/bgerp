@@ -1224,6 +1224,10 @@ function js2php(obj, path, new_path) {
  * Подготвя контекстното меню
  */
 function prepareContextMenu() {
+    // The context-menu plugin may not be loaded yet (for example after an
+    // AJAX refresh). Do not abort the remaining document-ready callbacks.
+    if (typeof $.fn.contextMenu !== 'function') return;
+
     jQuery.each($('.more-btn'), function (i, val) {
         if ($(this).hasClass('nojs')) return;
 
