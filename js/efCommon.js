@@ -1,5 +1,9 @@
 var shortURL;
-var hitState = {};
+// Ако файлът се зареди повторно (напр. по AJAX), кешът да не се нулира -
+// иначе getHitState() почва да връща 'refresh' и авто-фокусът спира да работи.
+var hitState = window.hitState || {};
+// Дали в момента формата се възстановява от сесията (при връщане назад)
+var isRestoringFormData = false;
 var self = this;
 
 function spr(sel, refresh, from, to) {
@@ -2959,20 +2963,20 @@ function clearSelect(select2, cssClass) {
 
 
 /**
- * Помощна функция за заместване на формата
+ * Връща (и при нужда инициализира) паметта за вече заредените JS/CSS файлове
  *
- * @param object
- * @param object
+ * Файловете от първоначалното зареждане на страницата също са вече налични.
+ * Ако jQuery се зареди повторно при AJAX refresh, се губят всички регистрирани
+ * $.fn разширения (isInViewport, contextMenu и др.), а повторното изпълнение на
+ * efCommon.js нулира глобалните променливи (напр. hitState).
+ *
+ * @return array
  */
-function replaceFormData(frm, data) {
-    // Памет за заредените вече файлове
+function getLoadedFiles() {
     if (typeof refreshForm.loadedFiles == 'undefined') {
         refreshForm.loadedFiles = [];
 
-        // Файловете от първоначалното зареждане на страницата също са вече
-        // налични. Ако jQuery се зареди повторно при AJAX refresh, се губят
-        // всички регистрирани $.fn разширения (isInViewport, contextMenu и др.).
-        $('script[src], link[href]').each(function () {
+        $('script[src], link[rel~="stylesheet"][href]').each(function () {
             var file = $(this).attr('src') || $(this).attr('href');
 
             if (file && refreshForm.loadedFiles.indexOf(file) < 0) {
@@ -2980,6 +2984,21 @@ function replaceFormData(frm, data) {
             }
         });
     }
+
+    return refreshForm.loadedFiles;
+}
+
+
+/**
+ * Помощна функция за заместване на формата
+ *
+ * @param object
+ * @param object
+ */
+function replaceFormData(frm, data) {
+    // Памет за заредените вече файлове
+    getLoadedFiles();
+
     var params = frm.serializeArray();
 
     // Затваря всики select2 елементи
@@ -4678,10 +4697,7 @@ function render_html(data) {
 
     // Зареждаме JS файловете
     if (dJs) {
-        if (typeof refreshForm.loadedFiles == 'undefined') {
-            refreshForm.loadedFiles = [];
-        }
-        loadFiles(data.js, refreshForm.loadedFiles);
+        loadFiles(data.js, getLoadedFiles());
     }
 
     scrollLongListTable();
@@ -5977,7 +5993,15 @@ Experta.prototype.reloadFormData = function () {
 
     if (!formObj[bodyId].formId) return;
 
+    // При връщане назад формата се възстановява от сесията. Съхраненият HTML е
+    // от AJAX рефреш и съдържа форсиран фокус - тук той не трябва да се прилага.
+    isRestoringFormData = true;
+
     replaceFormData($('#' + formObj[bodyId].formId), formObj[bodyId].data);
+
+    setTimeout(function () {
+        isRestoringFormData = false;
+    }, 0);
 }
 
 
@@ -6457,15 +6481,36 @@ $.fn.isInViewport = function () {
 
 /**
  * Фокусира еднократно върху посоченото id пи зададения rand
+ *
+ * @param string id    - селектор на елемента
+ * @param bool   force - при AJAX рефреш сървърът изрично иска полето да поеме
+ *                       фокуса, затова не се гледа състоянието на страницата
  */
-function focusOnce(id) {
+function focusOnce(id, force) {
 
-    if($('body').hasClass('narrow') && isRealMobile() && $(id).data('focus') !== 'forceFocus') return;
+    var elem = $(id);
+
+    if (!elem.length) return;
+
+    // data-focus="forceFocus" идва от поле, декларирано с 'focus=force'. В него се
+    // сканира с хардуерен скенер и без фокус сканираното не попада никъде, затова
+    // фокусираме и на мобилно устройство, където иначе не пипаме фокуса.
+    var isForced = force || elem.data('focus') === 'forceFocus';
+
+    if($('body').hasClass('narrow') && isRealMobile() && !isForced) return;
+
+    if (isForced) {
+        if (!isRestoringFormData) {
+            elem.focus();
+        }
+
+        return;
+    }
 
     var state = getHitState();
 
-    if (state && (state == 'firstTime') && $(id).isInViewport && $(id).isInViewport()) {
-        $(id).focus();
+    if (state && (state == 'firstTime') && elem.isInViewport && elem.isInViewport()) {
+        elem.focus();
     }
 }
 
