@@ -4996,7 +4996,7 @@ function prepareFavIcon(iconPath) {
     if ((!iconPath) || (typeof iconPath == 'undefined')) return false;
 
     var icon = document.createElement('link');
-    icon.type = 'image/x-icon';
+    icon.type = /^data:image\/png[;,]/i.test(iconPath) ? 'image/png' : 'image/x-icon';
     icon.rel = 'shortcut icon';
     icon.href = iconPath;
 
@@ -5017,7 +5017,7 @@ function setEditFavIcon(iconPath) {
     try {
         var cached = JSON.parse(localStorage.getItem(cacheName));
         if (cached && cached.source === source && /^data:image\/png;base64,/.test(cached.icon)) {
-            setFavIcon(prepareFavIcon(cached.icon));
+            applyEditFavIcon(cached.icon);
             return;
         }
     } catch (e) {
@@ -5050,12 +5050,29 @@ function setEditFavIcon(iconPath) {
             } catch (e) {
                 // Кешът е оптимизация и не е необходим за показването.
             }
-            setFavIcon(prepareFavIcon(icon));
+            applyEditFavIcon(icon);
         } catch (e) {
             // При проблем оставяме непроменена основната икона.
         }
     };
     image.src = iconPath;
+}
+
+
+/**
+ * Поставя редакционната икона и я потвърждава след зареждането на ресурсите
+ * @param iconPath - пътят до генерираната икона
+ */
+function applyEditFavIcon(iconPath) {
+    setFavIcon(prepareFavIcon(iconPath));
+
+    // Firefox може да приложи първоначалната favicon след document.ready.
+    // Поставяме генерираната икона още веднъж, след като ресурсите са заредени.
+    if (document.readyState !== 'complete') {
+        window.addEventListener('load', function () {
+            setFavIcon(prepareFavIcon(iconPath));
+        });
+    }
 }
 
 
