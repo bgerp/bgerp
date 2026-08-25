@@ -427,12 +427,13 @@ class callcenter_Talks extends core_Master
         bgerp_Notifications::clear($url);
         
         // Добавяме номерата от които са пренасочени обажданията
+        // Групиращите редове от plg_GroupByDate се прескачат, защото нямат тези полета
         foreach ((array) $data->rows as $row) {
-            if ($row->RedirectFrom) {
+            if (!empty($row->RedirectFrom)) {
                 $row->internalNum = $row->RedirectFrom . ' » ' . $row->internalNum;
             }
             
-            if ($row->RedirectTo) {
+            if (!empty($row->RedirectTo)) {
                 $row->internalNum = $row->internalNum . ' » ' . $row->RedirectTo;
             }
         }
