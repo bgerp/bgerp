@@ -376,6 +376,11 @@ class planning_DirectProductionNote extends planning_ProductionDocument
             }
             $form->setDefault('expenses', $defaultOverheadCost);
 
+            $notesBomRec = cat_Products::getLastActiveBom($rec->productId, 'production,instant,sales');
+            if (empty($rec->id) && $notesBomRec) {
+                $form->setDefault('note', cat_Boms::getRecipeNotesForDocument($notesBomRec, 'production'));
+            }
+
             // Ако има избрана опаковка
             if(isset($rec->packagingId)){
 
@@ -1168,6 +1173,13 @@ class planning_DirectProductionNote extends planning_ProductionDocument
      */
     protected static function on_BeforeSave($mvc, &$id, $rec, $fields = null, $mode = null)
     {
+        if (empty($rec->id) && isset($rec->productId)) {
+            if ($bomRec = cat_Products::getLastActiveBom($rec->productId, 'production,instant,sales')) {
+                $transferredNotes = cat_Boms::getRecipeNotesForDocument($bomRec, 'production');
+                $rec->note = cat_Boms::appendTransferredNotes($rec->note ?? null, $transferredNotes);
+            }
+        }
+
         if(isset($rec->id)){
             // Какво е било старото количество
             $rec->_exQuantity = $mvc->fetchField($rec->id, 'quantity', false);
