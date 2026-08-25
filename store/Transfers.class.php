@@ -203,7 +203,7 @@ class store_Transfers extends core_Master
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'valior,weight,volume,weightInput,volumeInput,deliveryTime,palletCount,storeReadiness,pendingStage,pendingOn';
+    public $fieldsNotToClone = 'valior,weight,volume,weightInput,volumeInput,deliveryTime,storeReadiness,pendingStage,pendingOn';
 
 
     /**

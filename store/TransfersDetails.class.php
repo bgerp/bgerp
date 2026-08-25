@@ -108,12 +108,6 @@ class store_TransfersDetails extends doc_Detail
     
     
     /**
-     * Поле за главния склад в мастъра
-     */
-    public $masterStoreFld = 'fromStore';
-    
-    
-    /**
      * Да се показва ли кода като в отделна колона
      */
     public $showCodeColumn = true;
@@ -330,7 +324,7 @@ class store_TransfersDetails extends doc_Detail
     
     
     /**
-     * След преобразуване на записа в четим за хора вид.
+     * Преди рендиране на таблицата
      */
     protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
     {
