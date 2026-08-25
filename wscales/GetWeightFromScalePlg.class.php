@@ -50,24 +50,14 @@ class wscales_GetWeightFromScalePlg extends core_Plugin
      */
     private static function insertJsIfNeeded(&$res, $mvc, $formName = null)
     {
-        if ($mvc->scaleWeightFieldName) {
-            $aDivecesArr = peripheral_Devices::getDevices('wscales_intf_Scales');
-            if (!empty($aDivecesArr)) {
-                $lRec = reset($aDivecesArr);
-                setIfNot($formName, $mvc->className . '-EditForm');
-                
-                jquery_Jquery::enable($res);
-                $interface = core_Cls::getInterface('wscales_intf_Scales', $lRec->driverClass);
-                
-                $lRec->_weight = $mvc->scaleWeightFieldName;
-                $lRec->_liveWeight = $mvc->scaleLiveWeightFieldName;
-                $lRec->_formIdName = '#' . $formName;
-                
-                $js = $interface->getJs($lRec);
-                
-                $res->appendOnce($js, 'SCRIPTS');
-            }
+        if (empty($mvc->scaleWeightFieldName)) {
+
+            return;
         }
+
+        setIfNot($formName, $mvc->className . '-EditForm');
+
+        wscales_Helper::appendJs($res, $mvc->scaleWeightFieldName, $mvc->scaleLiveWeightFieldName, $formName);
     }
     
     
@@ -95,19 +85,18 @@ class wscales_GetWeightFromScalePlg extends core_Plugin
      */
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
-        if ($mvc->scaleWeightFieldName) {
-            if ($data->form->fields[$mvc->scaleWeightFieldName]) {
-                $aDivecesArr = peripheral_Devices::getDevices('wscales_intf_Scales');
-                if (!empty($aDivecesArr)) {
-                    $lRec = reset($aDivecesArr);
-                    if ($lRec->hostName != 'localhost') {
-                        header('Access-Control-Allow-Origin: *');
-                        header('Vary: Origin');
-                    }
-                }
-            } else {
-                $mvc->scaleWeightFieldName = null;
-            }
+        if (empty($mvc->scaleWeightFieldName)) {
+
+            return;
         }
+
+        // Без поле за тегло във формата няма къде да се пише прочетеното от везната
+        if (empty($data->form->getField($mvc->scaleWeightFieldName, false))) {
+            $mvc->scaleWeightFieldName = null;
+
+            return;
+        }
+
+        wscales_Helper::allowCrossOrigin();
     }
 }
