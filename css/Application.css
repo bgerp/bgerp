@@ -1088,6 +1088,12 @@ div.acc-detail {
     border-radius: 5px;
     font-size: 15px;
     color: black; }
+    .additionalInfo-holder .additionalInfo.viewport-positioned {
+      position: fixed;
+      right: auto;
+      bottom: auto;
+      box-sizing: border-box;
+      overscroll-behavior: contain; }
     .additionalInfo-holder .additionalInfo.bottom {
       bottom: auto;
       top: 0;
@@ -8424,4 +8430,3 @@ td.td-clamp[data-overflow="true"][data-expanded="true"] .clamp-ellipsis::after {
 .block_title .folder-handle:hover {
   background: white;
   color: #555555; }
-

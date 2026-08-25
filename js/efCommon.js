@@ -170,12 +170,70 @@ function showTooltip() {
     }
     // Ако има тултипи
     var element;
+    var tooltipAnchor;
+    var tooltipResizeObserver;
+    var tooltipScrollParents;
 
     var cachedArr = new Array();
 
+    function closeTooltip() {
+        if (typeof element != 'undefined') {
+            $(element).hide().removeClass('viewport-positioned bottom left right');
+        }
+        if (tooltipResizeObserver) {
+            tooltipResizeObserver.disconnect();
+            tooltipResizeObserver = null;
+        }
+        if (tooltipScrollParents) {
+            tooltipScrollParents.off('scroll.additionalInfoTooltip');
+            tooltipScrollParents = null;
+        }
+        tooltipAnchor = null;
+    }
+
+    function positionTooltip() {
+        if (!element || !tooltipAnchor || !$(element).is(':visible')) {
+            return;
+        }
+
+        var margin = 10;
+        var gap = 6;
+        var viewportWidth = document.documentElement.clientWidth;
+        var viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+        var anchorRect = tooltipAnchor.getBoundingClientRect();
+        var tooltip = $(element);
+
+        tooltip.css({
+            'max-width': Math.max(0, viewportWidth - 2 * margin),
+            'max-height': Math.max(0, viewportHeight - 2 * margin),
+            'overflow': 'auto'
+        });
+
+        var tooltipRect = tooltip.get(0).getBoundingClientRect();
+        var spaceAbove = anchorRect.top - margin - gap;
+        var spaceBelow = viewportHeight - anchorRect.bottom - margin - gap;
+        var top;
+
+        if (tooltipRect.height <= spaceBelow || spaceBelow >= spaceAbove) {
+            top = anchorRect.bottom + gap;
+        } else {
+            top = anchorRect.top - tooltipRect.height - gap;
+        }
+
+        top = Math.max(margin, Math.min(top, viewportHeight - tooltipRect.height - margin));
+
+        var left = anchorRect.left;
+        if (left + tooltipRect.width > viewportWidth - margin) {
+            left = anchorRect.right - tooltipRect.width;
+        }
+        left = Math.max(margin, Math.min(left, viewportWidth - tooltipRect.width - margin));
+
+        tooltip.css({top: Math.round(top), left: Math.round(left)});
+    }
+
     $('body').on('click', function (e) {
-        var target = $(e.target).parent();
-        if ($(target).is(".tooltip-arrow-link")) {
+        var target = $(e.target).closest('.tooltip-arrow-link');
+        if (target.length) {
             var url = $(target).attr("data-url");
             if (!url) {
                 return;
@@ -198,56 +256,31 @@ function showTooltip() {
             }
 
             // затваряме предишния тултип, ако има такъв
-            if (typeof element != 'undefined') {
-                $(element).hide();
-            }
+            closeTooltip();
 
 
             // намираме този, който ще покажем сега
             element = $(target).parent().find('.additionalInfo');
+            tooltipAnchor = target.get(0);
+            tooltipScrollParents = $(element).parents();
+            tooltipScrollParents.on('scroll.additionalInfoTooltip', positionTooltip);
+            $(element).removeClass('bottom left right').addClass('viewport-positioned').css('display', 'block');
+            positionTooltip();
 
-            // Ако тултипа е в скролиращ елемент и няма достатъчно място нагоре, го показваме надолу от срелката, за да не се отреже
-            if ($(element).closest('.overflow-scroll').length) {
-                $(element).css('overflow-y', 'auto');
-                var holderOffset = $(element).closest('.overflow-scroll').offset().top;
-                var parentOffset = $(element).parent().offset().top;
-                var absPos = $(element).parent().get(0).getBoundingClientRect();
-                if (parentOffset - 500 < holderOffset || absPos.top < 500) {
-                    $(element).addClass('bottom');
-                    $(element).css('max-height', parseInt(window.innerHeight - absPos.bottom - 10));
-                } else {
-                    $(element).css('max-height', Math.min(parseInt(parentOffset - holderOffset - 25), 600));
-                }
+            // AJAX съдържанието може да промени размера след първоначалното показване.
+            if (window.ResizeObserver) {
+                tooltipResizeObserver = new ResizeObserver(positionTooltip);
+                tooltipResizeObserver.observe($(element).get(0));
+            } else {
+                setTimeout(positionTooltip, 100);
             }
-
-            var tOffset = $(element).closest('table').offset();
-            var iconLeftOffset = $(element).parent().offset().left;
-            if (typeof tOffset != 'undefined') {
-                iconLeftOffset = $(element).parent().offset().left - tOffset.left;
-            }
-
-            var tWidth = $(element).closest('table').width()
-            var iconRightOffset = iconLeftOffset;
-            if (typeof tWidth != 'undefined') {
-                iconRightOffset = tWidth - iconLeftOffset;
-            }
-
-            // ако е при скролиране и отляво от иконката има повече място отколкото вдясно, показваме попъпа напред
-            if ($(element).closest('.scrolling-holder').length && iconLeftOffset > iconRightOffset) {
-                $(element).addClass('left');
-            }
-            if ($(element).parent().offset().left < 200) {
-                $(element).addClass('right');
-            }
-
-            $(element).css('display', 'block');
         } else {
             // при кликане в бодито затвавяме отворения тултип, ако има такъв
-            if (typeof element != 'undefined') {
-                $(element).hide();
-            }
+            closeTooltip();
         }
     });
+
+    $(window).off('.additionalInfoTooltip').on('resize.additionalInfoTooltip scroll.additionalInfoTooltip', positionTooltip);
 
     $('.tooltip-arrow-link').each(function () {
         if ($(this).attr("data-useHover")) {
@@ -255,7 +288,7 @@ function showTooltip() {
             $(this).hover(function () {
                 $(this).children().click();
             }, function () {
-                $(element).hide();
+                closeTooltip();
             });
         }
     });
