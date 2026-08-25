@@ -341,7 +341,7 @@ class bgerp_Portal extends embed_Manager
                     
                     $inst = cls::getInterface($mvc->driverInterface, $clsId);
                     
-                    $maxCnt = $inst->class->maxCnt;
+                    $maxCnt = $inst->class->maxCnt ?? null;
                     
                     if (isset($maxCnt)) {
                         if (isset($dArr[$clsId]) && ($maxCnt >= $dArr[$clsId])) {
@@ -781,7 +781,7 @@ class bgerp_Portal extends embed_Manager
         
         $data->listFilter->input();
         
-        if ($data->listFilter->rec->userOrRole) {
+        if (!empty($data->listFilter->rec->userOrRole)) {
             $data->query->where(array("#userOrRole = '[#1#]'", $data->listFilter->rec->userOrRole));
             if ($data->listFilter->rec->userOrRole > 0) {
                 $uRoles = core_Users::fetchField(array("#id = '[#1#]'", $data->listFilter->rec->userOrRole), 'roles');
