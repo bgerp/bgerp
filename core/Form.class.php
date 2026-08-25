@@ -1109,6 +1109,7 @@ class core_Form extends core_FieldSet
 
             $plusUrl = sbf('img/16/toggle1.png', '');
             $plusImg = ht::createElement('img', array('src' => $plusUrl, 'class' => 'btns-icon plus'));
+            $otherGroupCaption = tr('Други');
             foreach ($fields as $name => $field) {
                 if (!empty($field->rowStyle)) {
                     $rowStyle = ' style="' . $field->rowStyle . '"';
@@ -1193,7 +1194,7 @@ class core_Form extends core_FieldSet
 
                 if (Mode::is('screenMode', 'narrow')) {
                     if ($emptyRow) {
-                        $tpl->append("\n<tr><td><div class='formGroup'>&nbsp;</div></td></tr>", 'FIELDS');
+                        $tpl->append("\n<tr><td><div class='formGroup'>{$otherGroupCaption}</div></td></tr>", 'FIELDS');
                     }
                     
                     if ($headerRow) {
@@ -1205,7 +1206,7 @@ class core_Form extends core_FieldSet
                     $fld = new ET("\n<tr class='filed-{$name}{$toggable}{$fsRow}'{$rowStyle}><td class='formCell[#{$field->name}_INLINETO_CLASS#] wideNowrap'  style='padding-top:5px;'><small>{$caption}{$unit}</small><br>[#{$field->name}#]</td></tr>");
                 } else {
                     if ($emptyRow) {
-                        $tpl->append(new ET("\n<tr class='{$fsRow}'><td colspan=2><div class='formGroup'>&nbsp;</div></td></tr>"), 'FIELDS');
+                        $tpl->append(new ET("\n<tr class='{$fsRow}'><td colspan=2><div class='formGroup'>{$otherGroupCaption}</div></td></tr>"), 'FIELDS');
                     }
                     
                     if ($headerRow) {

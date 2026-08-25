@@ -42,6 +42,40 @@ class core_tests_Form extends unit_Class
 
 
     /**
+     * Негрупираните полета след именувана секция получават автоматичен кепшън
+     */
+    public static function test_DefaultCaptionForUngroupedFields(core_Form $Form)
+    {
+        $fields = array(
+            'first' => self::getField('first', 'First section->First'),
+            'otherFirst' => self::getField('otherFirst', 'Other first'),
+            'otherSecond' => self::getField('otherSecond', 'Other second'),
+            'last' => self::getField('last', 'Last section->Last'),
+        );
+
+        Mode::push('screenMode', 'wide');
+        try {
+            $wideHtml = $Form->renderFieldsLayout($fields, array())->getContent();
+        } finally {
+            Mode::pop('screenMode');
+        }
+
+        Mode::push('screenMode', 'narrow');
+        try {
+            $narrowHtml = $Form->renderFieldsLayout($fields, array())->getContent();
+        } finally {
+            Mode::pop('screenMode');
+        }
+
+        $otherCaption = "<div class='formGroup'>" . tr('Други') . '</div>';
+        ut::expectEqual(substr_count($wideHtml, $otherCaption), 1);
+        ut::expectEqual(substr_count($narrowHtml, $otherCaption), 1);
+        ut::expectEqual(strpos($wideHtml, "<div class='formGroup'>&nbsp;</div>") === false, true);
+        ut::expectEqual(strpos($narrowHtml, "<div class='formGroup'>&nbsp;</div>") === false, true);
+    }
+
+
+    /**
      * Проверява allowEmpty радиогрупа в стандартна add/edit форма
      */
     public static function test_AllowEmptyRadioInStandardForm(core_Form $Form)
