@@ -733,18 +733,27 @@ class bgerp_Portal extends embed_Manager
     {
         if ($rec) {
             $cRec = clone $rec;
-            if (!isset($cRec->createdBy) && ($cRec->id)) {
+            if (!isset($cRec->createdBy) && !empty($cRec->id)) {
                 $cRec = $mvc->fetch($cRec->id);
             }
             
-            if (($userId != $cRec->createdBy) && !haveRole('admin', $userId)) {
+            // Ако записа е изтрит междувременно
+            if (!is_object($cRec)) {
+                
+                return;
+            }
+            
+            // При нов запис още няма създател
+            $createdBy = $cRec->createdBy ?? null;
+            
+            if (($userId != $createdBy) && !haveRole('admin', $userId)) {
                 
                 if (($action == 'edit') || ($action == 'delete')) {
                     $requiredRoles = 'no_one';
                 }
                 
-                if (($action == 'single') && ($cRec->createdBy != $userId)) {
-                    if (($cRec->userOrRole > 0) && $cRec->createdBy > 0) {
+                if (($action == 'single') && ($createdBy != $userId)) {
+                    if ((($cRec->userOrRole ?? null) > 0) && $createdBy > 0) {
                         $requiredRoles = 'no_one';
                     }
                 }
@@ -755,7 +764,7 @@ class bgerp_Portal extends embed_Manager
             }
             
             // Ако имат "баща", да не може да се изтрие
-            if ($action == 'delete') {
+            if ($action == 'delete' && !empty($cRec->id)) {
                 if ($mvc->fetch(array("#clonedFromId = '[#1#]'", $cRec->id))) {
                     $requiredRoles = 'no_one';
                 }
