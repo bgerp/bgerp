@@ -117,6 +117,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
         $this->FLD('type', 'enum(input=Влагане,pop=Отпадък,allocated=Разходи,subProduct=Субпродукт)', 'caption=Действие,silent,input=hidden');
         parent::setDetailFields($this);
         $this->setField('quantity', 'caption=Количества');
+        $this->setField('packagingId', 'notSorting');
         $this->FLD('quantityFromBom', 'double', 'caption=От рецепта,input=none,tdClass=noteBomCol aright');
         $this->FLD('quantityExpected', 'double', 'caption=Реално вложено,input=none,tdClass=noteExpectedCol aright');
 
