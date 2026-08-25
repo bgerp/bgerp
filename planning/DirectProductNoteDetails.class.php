@@ -126,9 +126,9 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
         $packQuantityClasses['aright'] = 'aright';
         $this->fields['packQuantity']->tdClass = implode(' ', $packQuantityClasses);
 
-        $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Изписване,input=none,tdClass=custom-field nowrap,placeholder=Незавършено производство,silent,removeAndRefreshForm');
+        $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Изписване,input=none,tdClass=custom-field storeName nowrap,placeholder=Незавършено производство,silent,removeAndRefreshForm');
         $this->FLD('isOutsourced', 'enum(no=Не,yes=Да)', 'caption=Ишлеме|*?,input=hidden,maxRadio=2,notNull,value=no');
-        $this->FLD('fromAccId', 'customKey(mvc=acc_Accounts,key=systemId,select=systemId)', 'caption=Изписване,input=none,tdClass=small-field nowrap,placeholder=Незавършено производство');
+        $this->FLD('fromAccId', 'customKey(mvc=acc_Accounts,key=systemId,select=systemId)', 'caption=Изписване,input=none,tdClass=storeName small-field nowrap,placeholder=Незавършено производство');
         $this->FLD('expenseItemId', 'acc_type_Item(select=titleNum,lists=600)', 'input=none,after=expenses,caption=Разходен обект');
 
         $this->setDbIndex('productId');
@@ -461,7 +461,6 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
         if (!isset($fieldset->fields['_rowTools'])) {
             $fieldset->FNC('_rowTools', 'varchar', 'tdClass=rowtools-column');
         }
-        $fieldset->appendFieldClass('productId', 'tdClass', 'disassemblyProductColumn');
         $fieldset->appendFieldClass('tools', 'tdClass', 'productionToolsColumn');
         $fieldset->appendFieldClass('tools', 'tdClass', 'rightCol');
         $fieldset->appendFieldClass('packQuantity', 'tdClass', 'directProductionQuantityColumn');
@@ -486,7 +485,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
             unset($iData->listFields['_rowTools']);
         }
         if (isset($iData->listFields['code']) && !isset($fieldset->fields['code'])) {
-            $fieldset->FNC('code', 'varchar', 'tdClass=small-field morePadding wrapText directProductionCodeColumn');
+            $fieldset->FNC('code', 'varchar', 'tdClass= morePadding wrapText directProductionCodeColumn');
         }
         $fieldset->appendFieldClass('code', 'tdClass', 'rightCol');
         plg_AlignDecimals2::alignDecimals($this, $iData->recs, $iData->rows);

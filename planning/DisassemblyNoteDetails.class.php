@@ -124,7 +124,7 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
         // Снимка на процента, с който документът е контиран - само информативно
         $this->FLD('contoPercent', 'percent(decimals=2)', 'caption=Контиран %,input=none,column=none');
 
-        $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty,mandatory)', 'caption=Склад,input=none,tdClass=custom-field nowrap', array('thAttr' => array('style' => 'width:160px')));
+        $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty,mandatory)', 'caption=Склад,input=none,tdClass=custom-field storeName nowrap', array('thAttr' => array('style' => 'width:160px')));
         $this->setField('packagingId', "tdClass=small-field,notSorting");
         $this->setDbIndex('productId');
         $this->setDbIndex('noteId,type');
@@ -405,7 +405,6 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
 
         // Общи CSS класове на колоните - еднаксви и за трите таблици
         $data->listTableMvc = clone $this;
-        $data->listTableMvc->appendFieldClass('productId', 'tdClass', 'disassemblyProductColumn');
         $data->listTableMvc->appendFieldClass('packQuantity', 'tdClass', 'productionQuantityColumn');
         $data->listTableMvc->FNC('tools', 'int', 'tdClass=rowNumColumn');
 
