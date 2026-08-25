@@ -32,12 +32,18 @@ class cat_BomDetails extends doc_Detail
      * Име на поле от модела, външен ключ към мастър записа
      */
     public $masterKey = 'bomId';
+
+
+    /**
+     * Интерфейс на драйверите за импортиране
+     */
+    public $importInterface = 'cat_interface_BomDetailImportIntf';
     
     
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_Modified, plg_RowTools2, cat_plg_LogPackUsage, cat_Wrapper, plg_SaveAndNew, planning_plg_ReplaceProducts, bgerp_plg_Import, plg_PrevAndNext';
+    public $loadList = 'plg_Created, plg_Modified, plg_RowTools2, cat_plg_LogPackUsage, cat_Wrapper, plg_SaveAndNew, planning_plg_ReplaceProducts, import2_Plugin, plg_PrevAndNext';
     
     
     /**
