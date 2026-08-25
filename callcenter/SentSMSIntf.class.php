@@ -63,6 +63,6 @@ class callcenter_SentSMSIntf
      */
     public function getStatus($uid)
     {
-        return $this->class->getStatus();
+        return $this->class->getStatus($uid);
     }
 }

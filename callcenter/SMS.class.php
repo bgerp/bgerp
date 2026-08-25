@@ -214,9 +214,9 @@ class callcenter_SMS extends core_Master
         }
         
         // Вземаме статуса
-        $rec->status = $sendStatusArr['sendStatus'];
+        $rec->status = $sendStatusArr['sendStatus'] ?? null;
         
-        if ($sendStatusArr['uid']) {
+        if (!empty($sendStatusArr['uid'])) {
             
             // Вземаме уникалния номер
             $rec->uid = $sendStatusArr['uid'];
@@ -224,7 +224,7 @@ class callcenter_SMS extends core_Master
         
         // Вземаме последния запис за номера
         $extRecArr = callcenter_Numbers::getRecForNum($mobileNum);
-        if ($extRecArr[0]) {
+        if (!empty($extRecArr[0])) {
             
             // Вземаме класа и id' то на контрагента
             $rec->mobileNumData = $extRecArr[0]->id;
@@ -234,7 +234,7 @@ class callcenter_SMS extends core_Master
         $rec->sender = $sender;
         $rec->service = $service;
         $rec->encoding = $encoding;
-        $rec->serviceMsg = $sendStatusArr['msg'];
+        $rec->serviceMsg = $sendStatusArr['msg'] ?? null;
         
         // Записваме
         $savedId = self::save($rec);
@@ -303,7 +303,7 @@ class callcenter_SMS extends core_Master
         $params = $serviceInst->getParams();
         
         // Ако не може да се изпраща SMS
-        if ($params['utf8'] != 'yes') {
+        if (($params['utf8'] ?? null) != 'yes') {
             
             // Ако не в 7 битов формат
             if (!i18n_Charset::is7Bit($message)) {
@@ -315,7 +315,7 @@ class callcenter_SMS extends core_Master
         }
         
         // Ако е зададен максималната дължина
-        if ($params['maxStrLen']) {
+        if (!empty($params['maxStrLen'])) {
             
             // Вземаме дължината на текста
             $textLen = mb_strlen($message);
@@ -459,7 +459,7 @@ class callcenter_SMS extends core_Master
         }
 
         $sArr = array('received' => 'Получен', 'sended' => 'Изпратен', 'receiveError' => 'Грешка при получаване', 'sendError' => 'Грешка при изпращане', 'pending' => 'Чакащо');
-        if (!$sArr[$status]) {
+        if (empty($sArr[$status])) {
             wp('Грешен статус при получаване на разписка за изпращане на SMS: ' . $status, $rec, $sArr, $service, $uid);
         }
 
@@ -539,14 +539,14 @@ class callcenter_SMS extends core_Master
             $phoneArr = drdata_PhoneType::toArray($rec->mobileNum);
             
             // Ако няма номер
-            if (!$phoneArr[0]) {
+            if (empty($phoneArr[0])) {
                 
                 // Сетваме грешка
                 $form->setError('mobileNum', 'Невалиден номер');
             } else {
                 
                 // Ако номера не е мобилен
-                if (!$phoneArr[0]->mobile) {
+                if (empty($phoneArr[0]->mobile)) {
                     
                     // Сетваме предупреждение
                     $form->setWarning('mobileNum', 'Невалиден GSM номер');
@@ -590,7 +590,7 @@ class callcenter_SMS extends core_Master
                 }
                 
                 // Ако е зададен максималната дължина
-                if ($params['maxStrLen']) {
+                if (!empty($params['maxStrLen'])) {
                     
                     // Вземаме дължината на текста
                     $textLen = mb_strlen($rec->text);
@@ -607,10 +607,10 @@ class callcenter_SMS extends core_Master
                 $sender = trim($rec->sender);
                 
                 // Ако са зададени позволени изпращачи
-                if ($params['allowedUserNames'] && $sender) {
+                if (!empty($params['allowedUserNames']) && $sender) {
                     
                     // Ако не е в масива
-                    if (!$params['allowedUserNames'][$sender]) {
+                    if (empty($params['allowedUserNames'][$sender])) {
                         
                         // Стринг с позволените
                         $allowedUsers = implode(', ', $params['allowedUserNames']);
@@ -711,7 +711,7 @@ class callcenter_SMS extends core_Master
             
             // Ако не сме в сингъла
             // Добавяме данните към номера
-            if (!$fields['-single']) {
+            if (empty($fields['-single'])) {
                 
                 // Дива за разстояние
                 $div = "<div style='margin-top:5px;'>";
@@ -1047,7 +1047,7 @@ class callcenter_SMS extends core_Master
                 }
                 
                 // Защитата, за да не се праща няколко пъти
-                if ($sendArr[$mobileNum]) {
+                if (!empty($sendArr[$mobileNum])) {
                     continue;
                 }
                 
