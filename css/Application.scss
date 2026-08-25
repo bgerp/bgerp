@@ -7283,6 +7283,11 @@ div.location.public {
 	background-color:#eee
 }
 
+/* повече от предходния етап - недостигът е с .red, а синьото вече значи „изчислено“ */
+.stageOver {
+	color: #b26a00;
+}
+
 /* к-та по етапи в детайл на документ (заявено/натоварено/изпълнено) */
 .stageCol {
 	background-color: #f6f6f6;
