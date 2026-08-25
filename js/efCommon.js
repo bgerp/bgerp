@@ -6491,6 +6491,18 @@ function focusOnce(id, force) {
 
     if (!elem.length) return;
 
+    var pendingTwoColsFilter = elem.closest('.wide .twoColsFilter:not(.twoColsFilterReady)');
+
+    if (pendingTwoColsFilter.length) {
+        // Двуколонният филтър е скрит до приключване на измерването и браузърът
+        // не може да фокусира полето. Повтаряме същата заявка веднага след това.
+        pendingTwoColsFilter.one('twoColsFilterReady.focusOnce', function () {
+            focusOnce(id, force);
+        });
+
+        return;
+    }
+
     // data-focus="forceFocus" идва от поле, декларирано с 'focus=force'. В него се
     // сканира с хардуерен скенер и без фокус сканираното не попада никъде, затова
     // фокусираме и на мобилно устройство, където иначе не пипаме фокуса.

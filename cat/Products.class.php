@@ -3774,6 +3774,7 @@ class cat_Products extends embed_Manager
         
         // Кои детайли от нея ще показваме като компоненти
         $details = cat_BomDetails::getOrderedBomDetails($rec->id);
+        $showDescriptions = ($documentType != 'job') || cat_Boms::shouldTransferNotes($rec, 'transferNotes', 'job');
         $qQuantity = $componentQuantity;
         
         if (is_array($details)) {
@@ -3821,7 +3822,7 @@ class cat_Products extends embed_Manager
                     }
                 }
                 
-                if ($dRec->description) {
+                if ($showDescriptions && $dRec->description) {
                     $obj->description = $row->description;
                     $obj->leveld = $obj->level;
                 }
