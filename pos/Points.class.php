@@ -134,6 +134,8 @@ class pos_Points extends core_Master
     {
         $this->FLD('name', 'varchar(32)', 'caption=Наименование, mandatory');
         $this->FLD('caseId', 'key(mvc=cash_Cases, select=name)', 'caption=Каса, mandatory');
+        $this->FLD('storeId', 'key(mvc=store_Stores, select=name)', 'caption=Основен склад, mandatory');
+        $this->FLD('otherStores', 'keylist(mvc=store_Stores, select=name)', 'caption=Допълнителни складове');
         $this->FLD('policyId', 'key(mvc=price_Lists, select=title)', 'caption=Настройки->Политика, mandatory');
         $this->FLD('discountPolicyId', 'key(mvc=price_Lists, select=title, allowEmpty)', 'caption=Настройки->Политика за отстъпки');
         $this->FLD('chargeVat', 'enum(yes=С начисляване,no=Без начисляване)', 'caption=Настройки->Режим на ДДС,notNull,value=yes');
@@ -157,8 +159,6 @@ class pos_Points extends core_Master
         $this->FLD('maxSearchContragentStart', 'int(min=1)', 'caption=Максимален брой резултати в "Избор"->(Клиенти) Първоначално');
         $this->FLD('maxSearchContragent', 'int(min=1)', 'caption=Максимален брой резултати в "Избор"->(Клиенти) При търсене');
         $this->FLD('searchDelayTerminal', 'int(min=500)', 'caption=Настройки в терминала->Търсене след,unit=милисекунди');
-        $this->FLD('storeId', 'key(mvc=store_Stores, select=name)', 'caption=Складове->Основен, mandatory');
-        $this->FLD('otherStores', 'keylist(mvc=store_Stores, select=name)', 'caption=Складове->Допълнителни');
     }
 
 
