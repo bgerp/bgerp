@@ -364,5 +364,7 @@ function render_setTwoColsFilterWidth() {
 
     // Показваме филтъра и списъка едва след прилагането на окончателния изглед.
     // Така при първоначално зареждане не се вижда междинният едноколонен кадър.
+    var $pendingFilters = $filters.not('.twoColsFilterReady');
     $filters.addClass('twoColsFilterReady');
+    $pendingFilters.trigger('twoColsFilterReady');
 }

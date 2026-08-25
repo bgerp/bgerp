@@ -260,7 +260,7 @@ class planning_Jobs extends core_Master
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'dueDate,quantityProduced,quantityDisassembled,history,oldJobId,secondMeasureQuantity,productViewCacheDate,salesBomIdOnActivation,instantBomIdOnActivation,productionBomIdOnActivation,disassemblyBomIdOnActivation';
+    public $fieldsNotToClone = 'dueDate,quantityProduced,quantityDisassembled,history,oldJobId,secondMeasureQuantity,productViewCacheDate,salesBomIdOnActivation,instantBomIdOnActivation,productionBomIdOnActivation,disassemblyBomIdOnActivation,bomComponentsOnActivation';
 
 
     /**
@@ -348,6 +348,7 @@ class planning_Jobs extends core_Master
         $this->FLD('instantBomIdOnActivation', 'key(mvc=cat_Boms,select=title)', 'caption=Моментна рецепта при активиране,input=none');
         $this->FLD('productionBomIdOnActivation', 'key(mvc=cat_Boms,select=title)', 'caption=Работна рецепта при активиране,input=none');
         $this->FLD('disassemblyBomIdOnActivation', 'key(mvc=cat_DisassemblyBoms,select=title)', 'caption=Рецепта за разпад при активиране,input=none');
+        $this->FLD('bomComponentsOnActivation', 'blob(serialize,compress)', 'caption=Рецепта при активиране->Показани редове,input=none');
 
         $this->setDbIndex('state');
         $this->setDbIndex('productId');
@@ -529,12 +530,24 @@ class planning_Jobs extends core_Master
                 }
             }
 
+            $defaultNotes = null;
+
             // Ако е избрано предишно задание зареждат се данните от него
             if (isset($rec->oldJobId)) {
                 $oRec = self::fetch($rec->oldJobId, 'notes,department,packagingId,storeId');
-                $form->setDefault('notes', $oRec->notes ?? null);
+                $defaultNotes = $oRec->notes ?? null;
                 $form->setDefault('packagingId', $oRec->packagingId ?? null);
                 $form->setDefault('storeId', $oRec->storeId ?? null);
+            }
+
+            // Добавяне на забележките от рецептата
+            if (empty($rec->id) && ($bomRec = cat_Products::getLastActiveBom($productId, 'production,instant,sales'))) {
+                $transferredNotes = cat_Boms::getRecipeNotesForDocument($bomRec, 'job');
+                $defaultNotes = cat_Boms::appendTransferredNotes($defaultNotes, $transferredNotes);
+            }
+
+            if (isset($defaultNotes)) {
+                $form->setDefault('notes', $defaultNotes);
             }
 
             $form->setDefault('packagingId', key($packs));
@@ -1004,6 +1017,14 @@ class planning_Jobs extends core_Master
      */
     protected static function on_BeforeSave($mvc, &$id, $rec, $fields = null, $mode = null)
     {
+        // Пренасяне на забележките от рецептата при създаване
+        if (empty($rec->id) && ($rec->type ?? 'manifacture') == 'manifacture' && isset($rec->productId)) {
+            if ($bomRec = cat_Products::getLastActiveBom($rec->productId, 'production,instant,sales')) {
+                $transferredNotes = cat_Boms::getRecipeNotesForDocument($bomRec, 'job');
+                $rec->notes = cat_Boms::appendTransferredNotes($rec->notes ?? null, $transferredNotes);
+            }
+        }
+
         list($sourceClass) = self::getSourceInfo($rec);
 
         // Ако заданието е към сделка и е избран департамент, да се рутира към него
@@ -1520,15 +1541,35 @@ class planning_Jobs extends core_Master
             }
         }
 
-        // Кеширане на актуалните рецепти към момента на активиране - всеки вид
-        // задание кешира само своите (@see #Tsk9167)
+        $rec->productViewCacheDate = dt::now();
+        if (!isset($rec->bomComponentsOnActivation)) {
+            static::updateBomSnapshot($rec);
+        }
+
+        $mvc->save_($rec, 'productViewCacheDate,salesBomIdOnActivation,instantBomIdOnActivation,productionBomIdOnActivation,disassemblyBomIdOnActivation,bomComponentsOnActivation');
+    }
+
+
+    /**
+     * Обновява рецептите и отпечатъка на показаните в Заданието редове
+     *
+     * @param stdClass $rec
+     */
+    private static function updateBomSnapshot(&$rec)
+    {
+        $bomFields = array('salesBomIdOnActivation', 'instantBomIdOnActivation', 'productionBomIdOnActivation', 'disassemblyBomIdOnActivation');
+        foreach ($bomFields as $bomFld) {
+            $rec->{$bomFld} = null;
+        }
+
+        // Всеки вид задание пази само своите рецепти (@see #Tsk9167)
         if ($rec->type == 'disassembly') {
             $bomRec = cat_DisassemblyBoms::getLastActiveBom($rec->productId);
             if ($bId = ($bomRec->id ?? null)) {
                 $rec->disassemblyBomIdOnActivation = $bId;
             }
         } else {
-            foreach (array('salesBomIdOnActivation' => 'sales', 'instantBomIdOnActivation' => 'instant', 'productionBomIdOnActivation' => 'production') as $bomFld => $bomType){
+            foreach (array('salesBomIdOnActivation' => 'sales', 'instantBomIdOnActivation' => 'instant', 'productionBomIdOnActivation' => 'production') as $bomFld => $bomType) {
                 $bomRec = cat_Products::getLastActiveBom($rec->productId, $bomType);
                 if ($bId = ($bomRec->id ?? null)) {
                     $rec->{$bomFld} = $bId;
@@ -1536,8 +1577,8 @@ class planning_Jobs extends core_Master
             }
         }
 
-        $rec->productViewCacheDate = dt::now();
-        $mvc->save_($rec, 'productViewCacheDate,salesBomIdOnActivation,instantBomIdOnActivation,productionBomIdOnActivation,disassemblyBomIdOnActivation');
+        $rec->bomComponentsOnActivation = array();
+        cat_Products::prepareComponents($rec->productId, $rec->bomComponentsOnActivation, 'job', $rec->quantity);
     }
     
     
@@ -1570,8 +1611,12 @@ class planning_Jobs extends core_Master
 
         $row->history = array_reverse($row->history, true);
         $data->packagingData = static::getJobProductPackagingData($rec);
-        $data->components = array();
-        cat_Products::prepareComponents($rec->productId, $data->components, 'job', $rec->quantity);
+        if ($rec->state != 'draft' && isset($rec->bomComponentsOnActivation)) {
+            $data->components = $rec->bomComponentsOnActivation;
+        } else {
+            $data->components = array();
+            cat_Products::prepareComponents($rec->productId, $data->components, 'job', $rec->quantity);
+        }
 
         if(isset($rec->oldJobId)) {
             $oldJobRec = $mvc->fetch($rec->oldJobId);
@@ -1634,7 +1679,8 @@ class planning_Jobs extends core_Master
         $updateFields = array('history');
         if(($rec->_updateProductParams ?? 'no') == 'yes'){
             $rec->productViewCacheDate = dt::now();
-            $updateFields[] = 'productViewCacheDate';
+            static::updateBomSnapshot($rec);
+            $updateFields = array_merge($updateFields, array('productViewCacheDate', 'salesBomIdOnActivation', 'instantBomIdOnActivation', 'productionBomIdOnActivation', 'disassemblyBomIdOnActivation', 'bomComponentsOnActivation'));
         }
 
         // Записваме в историята действието

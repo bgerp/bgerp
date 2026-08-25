@@ -587,6 +587,9 @@ class store_Transfers extends core_Master
         expect($rec = $this->fetch($id));
         $title = $this->getRecTitle($rec);
         $subTitle = '<b>' . store_Stores::getTitleById($rec->fromStore) . '</b> » <b>' . store_Stores::getTitleById($rec->toStore) . '</b>';
+        if($rec->state == 'pending'){
+            $subTitle .= " [" . $this->getVerbal($rec, 'pendingStage') . "]";
+        }
 
         $row = (object)array(
             'title' => $title,

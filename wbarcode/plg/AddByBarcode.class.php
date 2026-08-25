@@ -49,6 +49,12 @@ class wbarcode_plg_AddByBarcode extends core_Plugin
 
 
     /**
+     * Променлива в сесията с последно сканирания баркод
+     */
+    const CODE_VAR = 'wbarcodeLastCode';
+
+
+    /**
      * Извиква се след описанието на модела
      */
     public static function on_AfterDescription(core_Mvc $mvc)
@@ -142,6 +148,7 @@ class wbarcode_plg_AddByBarcode extends core_Plugin
 
         $tpl = $mvc->renderWrapping($form->renderHtml());
         core_Form::preventDoubleSubmission($tpl, $form);
+        static::appendScaleJs($mvc, $tpl, $form);
         jquery_Jquery::run($tpl, "$('#wbarcodeInput').focus();");
 
         return false;
@@ -269,6 +276,9 @@ class wbarcode_plg_AddByBarcode extends core_Plugin
 
         $mvc->Master->logWrite('Въвеждане на тегловен код', $masterId);
 
+        // Баркодът не се пази в реда, затова се помни в сесията за инфото на следващата форма
+        Mode::setPermanent(self::CODE_VAR, $barcode);
+
         $existingId = isset($existingRec) ? $existingRec->id : null;
         $url = array($mvc, $action,
             $mvc->masterKey => $masterId,
@@ -302,6 +312,40 @@ class wbarcode_plg_AddByBarcode extends core_Plugin
     private static function getWeightFld($mvc)
     {
         return $mvc->scaleWeightFieldName ?? 'weight';
+    }
+
+
+    /**
+     * Полето, в което везната държи живото тегло
+     *
+     * @param core_Detail $mvc
+     *
+     * @return string
+     */
+    private static function getLiveWeightFld($mvc)
+    {
+        return $mvc->scaleLiveWeightFieldName ?? 'liveWeight';
+    }
+
+
+    /**
+     * Добавя четенето от електронна везна към формата за сканиране, ако има такава
+     *
+     * @param core_Detail $mvc
+     * @param core_ET     $tpl
+     * @param core_Form   $form
+     *
+     * @return void
+     */
+    private static function appendScaleJs($mvc, &$tpl, $form)
+    {
+        // Мека зависимост - без пакета за везни се работи само с теглото от баркода
+        if (!core_Packs::isInstalled('wscales')) {
+
+            return;
+        }
+
+        wscales_Helper::appendJs($tpl, static::getWeightFld($mvc), static::getLiveWeightFld($mvc), $form->formAttr['id']);
     }
 
 
@@ -417,7 +461,10 @@ class wbarcode_plg_AddByBarcode extends core_Plugin
         $quantity = core_Type::getByName('double(smartRound)')->toVerbal($rec->{$mvc->wbarcodeQuantityFld});
         $measure = cat_UoM::getShortName($rec->{$mvc->wbarcodePackagingFld});
 
-        return "<div class='formCustomInfo'>" . tr('|Последно сканирано|*:') . " {$code} {$name} &rarr; <b>{$quantity}</b> {$measure}</div>";
+        $barcode = core_Type::escape(Mode::get(self::CODE_VAR));
+        $barcode = !empty($barcode) ? "<b>{$barcode}</b> &rarr; " : '';
+
+        return "<div class='formCustomInfo'>" . tr('|Последно|*:') . " {$barcode}{$code} {$name} &rarr; <b>{$quantity}</b> {$measure}</div>";
     }
 
 

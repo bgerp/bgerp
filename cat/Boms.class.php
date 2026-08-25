@@ -37,7 +37,7 @@ class cat_Boms extends core_Master
     /**
      * Полетата, които могат да се променят с change_Plugin
      */
-    public $changableFields = 'title,showInProduct,expenses,isComplete,transferNotes';
+    public $changableFields = 'title,showInProduct,expenses,isComplete,transferNotes,transferBomNotes';
     
     
     /**
@@ -248,7 +248,9 @@ class cat_Boms extends core_Master
 
         $this->FLD('expenses', 'percent(min=0)', 'caption=Общи режийни,changeable,placeholder=Автоматично');
         $this->FLD('isComplete', 'enum(auto=Автоматично,yes=Без допълване (рецептата е Пълна),no=Допълване до "Себестойност" (рецептата е Непълна))', 'caption=Себестойност,notNull,value=auto,mandatory,width=100%');
-        $this->FLD('transferNotes', 'enum(auto=Автоматично,yes=Да,no=Не)', 'caption=Пренасяне забележките на артикулите от рецептата в Протокола за производство->Избор,notNull,value=auto');
+        $transferCaption = 'Пренасяне от Рецептата в Заданието и Протокола за производство';
+        $this->FLD('transferNotes', 'enum(auto=Автоматично,job=в Заданието,production=в Протокола за производство,yes=в Заданието и Протокола,no=Не се пренасят)', "caption={$transferCaption}->Описанията на артикулите,notNull,value=auto,maxRadio=5");
+        $this->FLD('transferBomNotes', 'enum(auto=Автоматично,job=в Заданието,production=в Протокола за производство,yes=в Заданието и Протокола,no=Не се пренася)', "caption={$transferCaption}->Забележките от рецептата,notNull,value=auto,maxRadio=5");
         $this->FLD('state', 'enum(draft=Чернова, active=Активиран, rejected=Оттеглен, closed=Затворен,template=Шаблон)', 'caption=Статус, input=none');
         $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'input=hidden,silent');
         $this->FLD('showInProduct', 'enum(,auto=Автоматично,product=В артикула,job=В заданието,yes=Навсякъде,no=Никъде)', 'caption=Показване в артикула,changeable');
@@ -296,6 +298,66 @@ class cat_Boms extends core_Master
         }
         
         return $res;
+    }
+
+
+    /**
+     * Дали съответната информация от рецептата се пренася в дадения документ
+     *
+     * @param mixed  $id          - ид или запис на рецепта
+     * @param string $field       - transferNotes|transferBomNotes
+     * @param string $destination - job|production
+     *
+     * @return bool
+     */
+    public static function shouldTransferNotes($id, $field, $destination)
+    {
+        $rec = static::fetchRec($id);
+        $configKey = ($field == 'transferBomNotes') ? 'BOM_TRANSFER_RECIPE_NOTES' : 'BOM_TRANSFER_NOTES';
+        $value = (($rec->{$field} ?? 'auto') == 'auto') ? planning_Setup::get($configKey) : $rec->{$field};
+
+        if (in_array($value, array('yes', 'both'))) {
+            $value = 'both';
+        }
+
+        return $value == 'both' || $value == $destination;
+    }
+
+
+    /**
+     * Връща забележките от рецептата, ако са избрани за дадения документ
+     *
+     * @param mixed  $id          - ид или запис на рецепта
+     * @param string $destination - job|production
+     *
+     * @return string|null
+     */
+    public static function getRecipeNotesForDocument($id, $destination)
+    {
+        $rec = static::fetchRec($id);
+        if (!static::shouldTransferNotes($rec, 'transferBomNotes', $destination) || empty($rec->notes)) return null;
+
+        return "От рецептата: {$rec->notes}";
+    }
+
+
+    /**
+     * Добавя пренесените забележки, ако вече не се съдържат в текста
+     *
+     * @param string|null $notes
+     * @param string|null $transferredNotes
+     *
+     * @return string|null
+     */
+    public static function appendTransferredNotes($notes, $transferredNotes)
+    {
+        if (empty($transferredNotes)) return $notes;
+
+        $normalizedNotes = str_replace(array("\r\n", "\r"), "\n", (string) $notes);
+        $normalizedTransferredNotes = str_replace(array("\r\n", "\r"), "\n", $transferredNotes);
+        if (strpos($normalizedNotes, $normalizedTransferredNotes) !== false) return $notes;
+
+        return !empty($notes) ? "{$notes}\n\n{$transferredNotes}" : $transferredNotes;
     }
     
     
@@ -673,11 +735,13 @@ class cat_Boms extends core_Master
                     $row->isComplete = ht::createHint($row->isComplete, 'Стойността е автоматично определена', 'notice', false);
                 }
 
-                if ($rec->transferNotes == 'auto') {
-                    $autoValue = planning_Setup::get('BOM_TRANSFER_NOTES');
-                    $row->transferNotes = $mvc->getFieldType('transferNotes')->toVerbal($autoValue);
-                    $row->transferNotes = "<span class='blueText'>{$row->transferNotes}</span>";
-                    $row->transferNotes = ht::createHint($row->transferNotes, 'Стойността е автоматично определена', 'notice', false);
+                foreach (array('transferNotes' => 'BOM_TRANSFER_NOTES', 'transferBomNotes' => 'BOM_TRANSFER_RECIPE_NOTES') as $field => $configKey) {
+                    if (($rec->{$field} ?? 'auto') == 'auto') {
+                        $autoValue = planning_Setup::get($configKey);
+                        $row->{$field} = $mvc->getFieldType($field)->toVerbal($autoValue);
+                        $row->{$field} = "<span class='blueText'>{$row->{$field}}</span>";
+                        $row->{$field} = ht::createHint($row->{$field}, 'Стойността е автоматично определена', 'notice', false);
+                    }
                 }
 
                 if(isset($rec->regeneratedFromId)){
@@ -1639,8 +1703,7 @@ class cat_Boms extends core_Master
         // Ако изчисляваме цената на рецептата по себестойност, ще кешираме изчислените цени на редовете
         $canCalcPrimeCost = true;
 
-        $transferNotes = $rec->transferNotes == 'auto' ? planning_Setup::get('BOM_TRANSFER_NOTES') : $rec->transferNotes;
-        $transferNotes = $transferNotes == 'yes';
+        $transferNotes = static::shouldTransferNotes($rec, 'transferNotes', 'production');
 
         // За всеки от тях
         if (is_array($details)) {
@@ -2215,7 +2278,8 @@ class cat_Boms extends core_Master
                 <tr><td style='font-weight:normal'>|Себестойност|*:</td><td>[#primeCost#]</td></tr>
                 <!--ET_BEGIN primeCostWithOverheadCost--><tr><td style='font-weight:normal'>|С реж. разходи|*:</td><td>[#primeCostWithOverheadCost#]</td></tr><!--ET_END primeCostWithOverheadCost-->
                 <!--ET_BEGIN expenses--><tr><td style='font-weight:normal'>|Режийни разходи|*:</td><td>[#expenses#]</td></tr><!--ET_END expenses-->
-                <!--ET_BEGIN transferNotes--><tr><td style='font-weight:normal'>|Пренасяне на забележки в ПП|*:</td><td>[#transferNotes#]</td></tr><!--ET_END transferNotes-->
+                <!--ET_BEGIN transferNotes--><tr><td style='font-weight:normal'>|Описания на артикулите|*:</td><td>[#transferNotes#]</td></tr><!--ET_END transferNotes-->
+                <!--ET_BEGIN transferBomNotes--><tr><td style='font-weight:normal'>|Забележки от рецептата|*:</td><td>[#transferBomNotes#]</td></tr><!--ET_END transferBomNotes-->
                 <tr><td style='font-weight:normal' colspan='2'><b>[#isComplete#]</b></td></tr>
                 </table>"));
 

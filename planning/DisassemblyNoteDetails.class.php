@@ -125,7 +125,7 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
         $this->FLD('contoPercent', 'percent(decimals=2)', 'caption=Контиран %,input=none,column=none');
 
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty,mandatory)', 'caption=Склад,input=none,tdClass=custom-field nowrap', array('thAttr' => array('style' => 'width:160px')));
-        $this->setField('packagingId', "tdClass=small-field");
+        $this->setField('packagingId', "tdClass=small-field,notSorting");
         $this->setDbIndex('productId');
         $this->setDbIndex('noteId,type');
     }
