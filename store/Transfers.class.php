@@ -808,16 +808,16 @@ class store_Transfers extends core_Master
     public function getTransportLineInfo_($rec, $lineId)
     {
         $rec = static::fetchRec($rec);
-        $row = $this->recToVerbal($rec);
         $res = array('baseAmount' => null, 'amount' => null, 'amountVerbal' => null, 'currencyId' => null, 'notes' => $rec->lineNotes, 'deliveryOn' => $rec->deliveryOn);
 
         $res['stores'] = array($rec->fromStore, $rec->toStore);
-        $res['address'] = $row->toAdress;
+        $res['address'] = null;
         $res['storeMovement'] = 'out';
         $res['cases'] = array();
 
         if($toStoreLocationId = store_Stores::fetchField($rec->toStore, 'locationId')){
             $toStoreLocation = crm_Locations::fetch($toStoreLocationId);
+            $res['address'] = crm_Locations::getAddress($toStoreLocation);
             $res['locationId'] = $toStoreLocation->id;
             $res['addressInfo'] = $toStoreLocation->comment;
             $res['countryId'] = $toStoreLocation->countryId;
