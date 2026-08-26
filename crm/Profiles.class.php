@@ -707,9 +707,10 @@ class crm_Profiles extends core_Master
                 $msg = '';
                 
                 // Записваме данните
-                if ($form->rec->passNewHash && core_Users::setPassword($form->rec->passNewHash)) {
+                $passNewHash = $form->rec->passNewHash ?? null;
+                if ($passNewHash && core_Users::setPassword($passNewHash)) {
                     // Правим запис в лога
-                    self::logWrite('Смяна на парола', $form->rec->id);
+                    self::logWrite('Смяна на парола', $form->rec->id ?? null);
 
 //             		if (EF_USSERS_EMAIL_AS_NICK) {
 //             		    $userId = core_Users::fetchField(array("#email = '[#1#]'", $form->rec->email));
@@ -728,7 +729,7 @@ class crm_Profiles extends core_Master
         }
         
         // Кои полета да се показват
-        $form->showFields = (($form->fields['nick']) ? 'nick' : 'email') . ',passEx,passNew,passRe';
+        $form->showFields = (isset($form->fields['nick']) ? 'nick' : 'email') . ',passEx,passNew,passRe';
         
         // Получаваме изгледа на формата
         $tpl = $form->renderHtml();
@@ -801,15 +802,15 @@ class crm_Profiles extends core_Master
         
         $rec = $form->rec;
         
-        if (core_Users::fetchField(core_Users::getCurrent(), 'ps5Enc') != $rec->passExHash) {
+        if (core_Users::fetchField(core_Users::getCurrent(), 'ps5Enc') != ($rec->passExHash ?? null)) {
             $form->setError('passEx', 'Грешна стара парола');
         }
         
-        if ($rec->isLenOK == - 1) {
+        if (($rec->isLenOK ?? null) == -1) {
             $form->setError('passNew', 'Паролата трябва да е минимум |* ' . EF_USERS_PASS_MIN_LEN . ' |символа');
-        } elseif ($rec->passNew != $rec->passRe) {
+        } elseif (($rec->passNew ?? null) != ($rec->passRe ?? null)) {
             $form->setError('passNew,passRe', 'Двете пароли не съвпадат');
-        } elseif (!$rec->passNewHash) {
+        } elseif (empty($rec->passNewHash)) {
             $form->setError('passNew,passRe', 'Моля, въведете (и повторете) новата парола');
         }
     }
