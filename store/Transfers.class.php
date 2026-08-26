@@ -203,7 +203,7 @@ class store_Transfers extends core_Master
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'valior,weight,volume,weightInput,volumeInput,deliveryTime,palletCount,storeReadiness,pendingStage,pendingOn';
+    public $fieldsNotToClone = 'valior,weight,volume,weightInput,volumeInput,deliveryTime,storeReadiness,pendingStage,pendingOn';
 
 
     /**
@@ -422,6 +422,7 @@ class store_Transfers extends core_Master
 
         $rec->pendingStage = $stage;
         $this->save($rec, 'pendingStage');
+        $this->fillStageQuantities($rec->id, $stage);
         $this->touchRec($rec->id);
         $this->logWrite(($stage == 'loading') ? 'Изпращане' : 'Получаване', $rec->id);
 
@@ -431,6 +432,46 @@ class store_Transfers extends core_Master
         }
 
         return new Redirect($res);
+    }
+
+
+    /**
+     * При започване на етап к-тата от предходния се пренасят в новия
+     *
+     * @param int    $id
+     * @param string $stage - loading|execution
+     *
+     * @return void
+     */
+    private function fillStageQuantities($id, $stage)
+    {
+        $Detail = cls::get($this->mainDetail);
+        $fieldName = ($stage == 'loading') ? 'loadedQuantity' : 'executedQuantity';
+
+        $dQuery = $Detail->getQuery();
+        $dQuery->where("#{$Detail->masterKey} = {$id}");
+        $dQuery->where("#state != 'rejected'");
+
+        while ($dRec = $dQuery->fetch()) {
+
+            // При получаване се тръгва от изпратеното, а ако липсва - от заявеното
+            if ($stage == 'loading') {
+                $quantity = $dRec->requestedQuantity;
+            } elseif (isset($dRec->loadedQuantity)) {
+                $quantity = $dRec->loadedQuantity;
+            } else {
+                $quantity = $dRec->requestedQuantity;
+            }
+
+            if (!isset($quantity)) {
+
+                continue;
+            }
+
+            // Директен запис, за да не се правят ревизии на редовете (@see doc_plg_DetailRevisions)
+            $dRec->{$fieldName} = $quantity;
+            $Detail->save_($dRec, $fieldName);
+        }
     }
 
 
@@ -808,16 +849,16 @@ class store_Transfers extends core_Master
     public function getTransportLineInfo_($rec, $lineId)
     {
         $rec = static::fetchRec($rec);
-        $row = $this->recToVerbal($rec);
         $res = array('baseAmount' => null, 'amount' => null, 'amountVerbal' => null, 'currencyId' => null, 'notes' => $rec->lineNotes, 'deliveryOn' => $rec->deliveryOn);
 
         $res['stores'] = array($rec->fromStore, $rec->toStore);
-        $res['address'] = $row->toAdress;
+        $res['address'] = null;
         $res['storeMovement'] = 'out';
         $res['cases'] = array();
 
         if($toStoreLocationId = store_Stores::fetchField($rec->toStore, 'locationId')){
             $toStoreLocation = crm_Locations::fetch($toStoreLocationId);
+            $res['address'] = crm_Locations::getAddress($toStoreLocation);
             $res['locationId'] = $toStoreLocation->id;
             $res['addressInfo'] = $toStoreLocation->comment;
             $res['countryId'] = $toStoreLocation->countryId;

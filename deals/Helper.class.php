@@ -989,7 +989,6 @@ abstract class deals_Helper
         }
         
         if (!empty($hint)) {
-            $html = ht::createHint($html, $hint, 'warning', false, null, "class={$class}");
 
             //  Показване на хоризонта при нужда
             $url = array('store_Products', 'list', 'storeId' => $storeId, 'productId' => $productId);
@@ -998,10 +997,12 @@ abstract class deals_Helper
                 $url['horizon'] = $diff;
             }
 
-            // Линк към наличното в склада ако има права
+            // Линкът е преди хинта, за да е иконката на хинта най-отпред, а стрелката - до к-то
             if ($makeLink === true && store_Stores::haveRightFor('select', $storeId) && store_Products::haveRightFor('list') && !Mode::isReadOnly()) {
-                $html = ht::createLinkRef($html, $url);
+                $html = ht::createLinkRef($html, $url, false, array('arrowFront' => true));
             }
+
+            $html = ht::createHint($html, $hint, 'warning', false, null, "class={$class}");
         }
 
         if($pRec->isPublic == 'no') {

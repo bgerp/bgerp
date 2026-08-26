@@ -11,24 +11,18 @@
  *
  * @since     v 0.1
  */
-class cat_interface_BomDetailImport extends core_Manager
+class cat_interface_BomDetailImport extends import2_AbstractDriver
 {
     /**
      * Интерфейси, поддържани от този мениджър
      */
-    public $interfaces = 'bgerp_ImportIntf';
+    public $interfaces = 'cat_interface_BomDetailImportIntf';
 
 
     /**
      * Заглавие
      */
     public $title = 'Импорт детайл на технологична рецепта';
-
-
-    /**
-     * Да се показва ли опцията при дублиране
-     */
-    public $hideImportOnExistOption = true;
 
 
     /**
@@ -47,11 +41,175 @@ class cat_interface_BomDetailImport extends core_Manager
 
 
     /**
-     * Инициализиране драйвъра
+     * Добавя специфичните полета във формата за импорт
+     *
+     * @param core_Manager  $mvc
+     * @param core_FieldSet $form
+     *
+     * @return void
      */
-    public function init($params = array())
+    public function addImportFields($mvc, core_FieldSet $form)
     {
-        $this->mvc = ($params ?? [])['mvc'] ?? null;
+        $fields = $this->getFields($form->rec->{$mvc->masterKey});
+        $form->_bomImportFields = $fields;
+
+        $form->FLD('csvData', 'text(1000000)', 'width=100%,caption=Данни');
+        $form->FLD('csvFile', 'fileman_FileType(bucket=bnav_importCsv)', 'width=100%,caption=CSV файл');
+
+        $clipboardVals = import2_Clipboard::getVals();
+        if (countR(import2_Clipboard::getOptions($clipboardVals))) {
+            $refreshFields = array('csvData', 'csvFile', 'delimiter', 'enclosure', 'firstRow');
+            foreach ($fields as $name => $field) {
+                if (empty($field['notColumn'])) {
+                    $refreshFields[] = "col{$name}";
+                }
+            }
+
+            $form->FLD('fromClipboard', 'varchar', 'width=100%,caption=От клипборда,silent,removeAndRefreshForm=' . implode('|', $refreshFields));
+        }
+
+        $form->FLD('delimiter', 'varchar(1,size=5)', 'width=100%,caption=Настройки->Разделител,maxRadio=5,placeholder=Автоматично');
+        $form->FLD('enclosure', 'varchar(1,size=3)', 'width=100%,caption=Настройки->Ограждане,placeholder=Автоматично');
+        $form->FLD('firstRow', 'enum(,data=Данни,columnNames=Имена на колони)', 'width=100%,caption=Настройки->Първи ред,placeholder=Автоматично');
+
+        foreach ($fields as $name => $field) {
+            $fieldName = "col{$name}";
+            $caption = $field['caption'] ?? $name;
+
+            if (!empty($field['notColumn'])) {
+                $type = $field['type'] ?? 'varchar';
+                $form->FLD($fieldName, $type, "caption={$caption}");
+                if (isset($field['options'])) {
+                    $options = !empty($field['allowEmpty']) ? array('' => '') + $field['options'] : $field['options'];
+                    $form->setOptions($fieldName, $options);
+                } elseif (isset($field['suggestions'])) {
+                    $form->setSuggestions($fieldName, $field['suggestions']);
+                }
+                if (array_key_exists('default', $field)) {
+                    $form->setDefault($fieldName, $field['default']);
+                }
+
+                continue;
+            }
+
+            $mandatory = !empty($field['mandatory']) ? ',mandatory' : '';
+            $form->FLD($fieldName, 'varchar', "caption=Съответствие в данните->{$caption}{$mandatory}");
+        }
+    }
+
+
+    /**
+     * Подготвя формата за импорт
+     *
+     * @param core_Manager  $mvc
+     * @param core_FieldSet $form
+     *
+     * @return void
+     */
+    public function prepareImportForm($mvc, core_FieldSet $form)
+    {
+        $form->info = tr('Въведете данни, качете CSV файл или изберете документ от клипборда');
+
+        $clipboardVals = import2_Clipboard::getVals();
+        if (isset($form->fields['fromClipboard'])) {
+            $form->setOptions('fromClipboard', array('' => '') + import2_Clipboard::getOptions($clipboardVals));
+        }
+
+        $fromClipboard = !empty($form->rec->fromClipboard);
+        if ($fromClipboard) {
+            foreach (array('delimiter', 'enclosure', 'firstRow') as $name) {
+                $form->setField($name, 'input=none');
+            }
+        } else {
+            $form->setSuggestions('delimiter', array('' => '', ',' => ',', ';' => ';', ':' => ':', '|' => '|', '\\t' => 'Таб'));
+            $form->setSuggestions('enclosure', array('' => '', '"' => '"', "'" => "'"));
+            $form->setDefault('delimiter', ',');
+            $form->setDefault('enclosure', '"');
+        }
+
+        $clipboardColumns = $fromClipboard ? import2_Clipboard::getColumns($form->rec->fromClipboard, $clipboardVals) : array();
+        $csvColumns = array(-1 => '') + array_combine(range(1, 20), range(1, 20));
+        $defaultCsvColumns = array('position' => 1, 'type' => 2, 'productId' => 3, 'packagingId' => 4, 'propQuantity' => 5, 'description' => 6, 'paramId' => 7);
+        $columnNo = 1;
+
+        foreach ($form->_bomImportFields as $name => $field) {
+            if (!empty($field['notColumn'])) {
+
+                continue;
+            }
+
+            $fieldName = "col{$name}";
+            if ($fromClipboard) {
+                $form->setOptions($fieldName, array('' => '') + $clipboardColumns['options']);
+                $matchedColumn = import2_Clipboard::findMatchingColumn($name, $field['caption'] ?? $name, $clipboardColumns);
+                if (isset($matchedColumn)) {
+                    $form->setDefault($fieldName, $matchedColumn);
+                }
+            } else {
+                $form->setSuggestions($fieldName, $csvColumns);
+                $form->setField($fieldName, 'unit=колона');
+                $form->setDefault($fieldName, $defaultCsvColumns[$name] ?? $columnNo);
+            }
+            $columnNo++;
+        }
+
+        $form->_clipboardColumnMap = $clipboardColumns['map'] ?? array();
+    }
+
+
+    /**
+     * Проверява входа и подготвя данните за импорт
+     *
+     * @param core_Manager  $mvc
+     * @param core_FieldSet $form
+     *
+     * @return void
+     */
+    public function checkImportForm($mvc, core_FieldSet $form)
+    {
+        $rec = &$form->rec;
+        $sourceFields = 'csvData,csvFile' . (isset($form->fields['fromClipboard']) ? ',fromClipboard' : '');
+        $sourceCnt = (int) !empty($rec->csvData) + (int) !empty($rec->csvFile) + (int) !empty($rec->fromClipboard);
+
+        if (!$sourceCnt) {
+            $form->setError($sourceFields, 'Трябва да е попълнено поне едно от полетата');
+        } elseif ($sourceCnt > 1) {
+            $form->setError($sourceFields, 'Трябва да е попълнено само едно от полетата');
+        }
+
+        if (!$form->gotErrors()) {
+            $rec->importRows = $this->getImportRows($rec);
+            if (!countR($rec->importRows)) {
+                $form->setError($sourceFields, 'Не са открити данни за импорт');
+            }
+        }
+
+        if (!$form->gotErrors()) {
+            $rec->importFields = $this->getImportFieldMap($form, $form->_bomImportFields);
+        }
+    }
+
+
+    /**
+     * Изпълнява импорта
+     *
+     * @param core_Manager $mvc
+     * @param stdClass     $rec
+     *
+     * @return string
+     */
+    public function doImport(core_Manager $mvc, $rec)
+    {
+        core_App::setTimeLimit(countR($rec->importRows) / 10 + 10);
+        ini_set('memory_limit', '2048M');
+        core_Debug::$isLogging = false;
+
+        Mode::push('importing', 'true');
+        $msg = $this->import($rec->importRows, $rec->importFields, $rec->{$mvc->masterKey});
+        Mode::pop('importing');
+        $mvc->_haveImportedRecs = true;
+
+        return $msg;
     }
 
 
@@ -60,11 +218,11 @@ class cat_interface_BomDetailImport extends core_Manager
      * в мениджъра-дестинация
      * Не връща полетата които са hidden, input=none,enum,key и keylist
      */
-    public function getFields()
+    public function getFields($bomId = null)
     {
         $fields = array();
 
-        $bomId = Request::get('bomId', 'int');
+        $bomId = $bomId ?? Request::get('bomId', 'int');
         expect($this->bomRec = cat_Boms::fetch($bomId));
 
         // Полетата са като в експорта на рецептата
@@ -94,20 +252,20 @@ class cat_interface_BomDetailImport extends core_Manager
      * без баща, после тези с един баща и т.н. Позициите се преномерират плътно във
      * всяко ниво, така че дупките и разбърканите номера от csv-то се изчистват
      *
-     * @param array $rows   - масив с обработени csv данни, получен от Експерта в bgerp_Import
+     * @param array $rows   - масив с обработените CSV или clipboard данни
      * @param array $fields - масив с съответстията на колоните от csv-то и
      *                      полетата от модела array[{поле_от_модела}] = {колона_от_csv}
      *
      * @return string $html - съобщение с резултата
      */
-    public function import($rows, $fields)
+    public function import($rows, $fields, $bomId = null)
     {
         $added = $skipped = 0;
         core_Debug::startTimer('import');
-        $bomId = Request::get('bomId');
+        $bomId = $bomId ?? Request::get('bomId', 'int');
         $bomRec = cat_Boms::fetch($bomId);
 
-        $oFields = $this->getFields();
+        $oFields = $this->getFields($bomId);
         $Details = cls::get('cat_BomDetails');
 
         // Ако е указано, наличните редове се изтриват, за да остане само импортираното
@@ -284,7 +442,9 @@ class cat_interface_BomDetailImport extends core_Manager
                 // Ако няма мярка, използва се основната на артикула
                 $rec->packagingId = $productRec->packagingId;
                 if (!empty($values->packagingId)) {
-                    $uomRec = cat_UoM::fetchBySinonim($values->packagingId);
+                    // В клипборда key полетата са във вътрешен вид (id),
+                    // а в CSV мярката е текстово име/синоним
+                    $uomRec = type_Int::isInt($values->packagingId) ? cat_UoM::fetch($values->packagingId) : cat_UoM::fetchBySinonim($values->packagingId);
                     if (!is_object($uomRec)) {
                         $errors[] = 'Неразпозната мярка';
                     } else {
@@ -544,6 +704,12 @@ class cat_interface_BomDetailImport extends core_Manager
         $name = trim($name);
         if ($name === '') return null;
 
+        // От клипборда key полето идва директно като id
+        if (type_Int::isInt($name) && ($id = cat_Params::fetchField($name, 'id'))) {
+
+            return $id;
+        }
+
         if ($id = cat_Params::fetchField(array("#name = '[#1#]'", $name), 'id')) {
 
             return $id;
@@ -587,10 +753,59 @@ class cat_interface_BomDetailImport extends core_Manager
 
 
     /**
-     * Драйвъра може да се показва към всички мениджъри
+     * Извлича редовете от избрания източник
      */
-    public function isApplicable($className)
+    private function getImportRows($rec)
     {
-        return $className == 'cat_BomDetails';
+        if (!empty($rec->fromClipboard)) {
+            return import2_Clipboard::getRows($rec->fromClipboard);
+        }
+
+        $data = !empty($rec->csvFile) ? bgerp_plg_Import::getFileContent($rec->csvFile) : $rec->csvData;
+        $delimiter = ($rec->delimiter == '\\t') ? "\t" : $rec->delimiter;
+
+        return csv_Lib::getCsvRows($data, $delimiter, $rec->enclosure, $rec->firstRow);
+    }
+
+    /**
+     * Връща съответствията между полетата за импорт и колоните
+     */
+    private function getImportFieldMap($form, $fields)
+    {
+        $result = array();
+        $fromClipboard = !empty($form->rec->fromClipboard);
+
+        foreach ($fields as $name => $field) {
+            $value = $form->rec->{"col{$name}"} ?? null;
+            if (!empty($field['notColumn'])) {
+                $result[$name] = $value;
+            } elseif ($fromClipboard) {
+                $result[$name] = $form->_clipboardColumnMap[$value] ?? -1;
+            } else {
+                $result[$name] = isset($value) && strlen($value) ? $value : -1;
+            }
+        }
+
+        return $result;
+    }
+
+
+    /**
+     * Може ли драйверът да бъде избран
+     *
+     * @param core_Manager $mvc
+     * @param int|null     $masterId
+     * @param int|null     $userId
+     *
+     * @return bool
+     */
+    public function canSelectDriver(core_Manager $mvc, $masterId = null, $userId = null)
+    {
+        if (!($mvc instanceof cat_BomDetails)) {
+
+            return false;
+        }
+
+        return !isset($masterId) || (bool) cat_Boms::fetchField($masterId, 'id');
     }
 }

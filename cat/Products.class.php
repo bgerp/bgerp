@@ -3735,6 +3735,22 @@ class cat_Products extends embed_Manager
     
     
     /**
+     * Връща коефициента за изчисляване на формулите на компонентите
+     *
+     * @param float $componentQuantity
+     * @param float $bomQuantity
+     *
+     * @return float
+     */
+    public static function getComponentQuantityScale($componentQuantity, $bomQuantity)
+    {
+        $bomQuantity = !empty($bomQuantity) ? $bomQuantity : 1;
+
+        return $componentQuantity / $bomQuantity;
+    }
+
+
+    /**
      * Подготвя обект от компонентите на даден артикул
      *
      * @param int    $productId
@@ -3776,6 +3792,7 @@ class cat_Products extends embed_Manager
         $details = cat_BomDetails::getOrderedBomDetails($rec->id);
         $showDescriptions = ($documentType != 'job') || cat_Boms::shouldTransferNotes($rec, 'transferNotes', 'job');
         $qQuantity = $componentQuantity;
+        $formulaScale = static::getComponentQuantityScale($qQuantity, $rec->quantity);
         
         if (is_array($details)) {
             $fields = cls::get('cat_BomDetails')->selectFields();
@@ -3783,7 +3800,7 @@ class cat_Products extends embed_Manager
             
             foreach ($details as $dRec) {
                 if (!isset($dRec->parentId)) {
-                    $dRec->params['$T'] = $qQuantity;
+                    $dRec->params['$T'] = $formulaScale;
                 }
                 
                 $obj = new stdClass();

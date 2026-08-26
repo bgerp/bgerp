@@ -117,7 +117,7 @@ class callcenter_ListOperationsPlg extends core_Plugin
         $areaCode = $numberObj->areaCode;
         $number = $numberObj->number;
         
-        if ($areaCode == '87' || $areaCode == '88' | $areaCode == '89') {
+        if ($areaCode == '87' || $areaCode == '88' || $areaCode == '89') {
             $areaCode .= $number[0];
             $number = substr($number, 1);
         }

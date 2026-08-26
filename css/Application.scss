@@ -1224,6 +1224,13 @@ div.acc-detail {
 	   border-radius: 5px;
 	   font-size: 15px;
 		color: #000;
+		&.viewport-positioned {
+		    position: fixed;
+		    right: auto;
+		    bottom: auto;
+		    box-sizing: border-box;
+		    overscroll-behavior: contain;
+		}
         &.bottom{
             bottom: auto;
             top: 0;
@@ -2377,7 +2384,7 @@ float: right;
 span, a{
     margin-bottom: 0;
 }
-.additionalInfo {
+    .additionalInfo {
     left: auto;
     right: -4px;
     &.right {
@@ -7274,6 +7281,11 @@ div.location.public {
 
 .newCol{
 	background-color:#eee
+}
+
+/* повече от предходния етап - недостигът е с .red, а синьото вече значи „изчислено“ */
+.stageOver {
+	color: #b26a00;
 }
 
 /* к-та по етапи в детайл на документ (заявено/натоварено/изпълнено) */

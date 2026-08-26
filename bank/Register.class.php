@@ -161,7 +161,8 @@ class bank_Register extends core_Manager
             $color = '#008';
         }
 
-        if ($folderId = $rec->matches['folderId']) {
+        if (!empty($rec->matches['folderId'])) {
+            $folderId = $rec->matches['folderId'];
             $params = array();
             $params['folderId'] = $folderId;
 
@@ -176,7 +177,8 @@ class bank_Register extends core_Manager
             $row->info = $folder;
         }
 
-        if (is_array($rec->matches['rows'])) {
+        if (!empty($rec->matches['rows']) && is_array($rec->matches['rows'])) {
+            $t = '';
             foreach ($rec->matches['rows'] as $r) {
                 $t .= "\n<tr>";
                 $parts = array('head', 'prof', 'inv', 'bdoc');
@@ -185,7 +187,7 @@ class bank_Register extends core_Manager
                     // Проформите
                     $t .= '<td>';
                     $first = true;
-                    if (is_array($r->{$part})) {
+                    if (isset($r->{$part}) && is_array($r->{$part})) {
                         foreach ($r->{$part} as $p) {
                             $link = ht::createLink(
                                 $p->documentMvc->abbr . $p->number,
@@ -226,10 +228,10 @@ class bank_Register extends core_Manager
                 $t .= '</tr>';
             }
 
-            $row->info .= "<table style='font-size:0.8em' class='listTable'>" . $t . '</table>';
+            $row->info = ($row->info ?? '') . "<table style='font-size:0.8em' class='listTable'>" . $t . '</table>';
         }
 
-        $row->ROW_ATTR['style'] .= "color:{$color};";
+        $row->ROW_ATTR['style'] = ($row->ROW_ATTR['style'] ?? '') . "color:{$color};";
     }
 
 
@@ -250,7 +252,7 @@ class bank_Register extends core_Manager
             do {
                 $rec->transactionId = md5("{$rec->valior}|{$rec->type}|{$rec->amount}|{$rec->contragentIban}|{$rec->ownAccountId}|{$ind}");
                 $ind++;
-            } while ($usedIds[$rec->transactionId]);
+            } while (!empty($usedIds[$rec->transactionId]));
 
             $usedIds[$rec->transactionId] = true;
 
@@ -277,6 +279,7 @@ class bank_Register extends core_Manager
         $folders = self::getFolders();
 
         $query = self::getQuery();
+        $cnt = 0;
 
         $timeLine = dt::addSecs(-1 * 24 * 60 * 60);
 
@@ -289,6 +292,7 @@ class bank_Register extends core_Manager
 
         while ($rec = $query->fetch()) {
             $cnt++;
+            $contragent = null;
 
             // Вадим номерата от основанието
             $matches = array();
@@ -332,7 +336,8 @@ class bank_Register extends core_Manager
             if (empty($rec->matches['folderId']) && ($contragent = $rec->contragentName)) {
                 $contragent = trim(strtolower(self::transliterate(str_replace('.', '', $contragent))));
 
-                if ($folderId = $folders[$contragent]) {
+                if (!empty($folders[$contragent])) {
+                    $folderId = $folders[$contragent];
                     $rec->matches['folderId'] = $folderId;
                 } else {
                     if ($folderId = self::findFolder($contragent, $folders)) {
@@ -354,7 +359,7 @@ class bank_Register extends core_Manager
                 }
 
                 // Ако валутата на документа не съвпада с тази на трансакцията - прескачаме
-                if ($d->currencyId != $rec->currencyId && $d->currencyId2 != $rec->currencyId) {
+                if ($d->currencyId != $rec->currencyId && ($d->currencyId2 ?? null) != $rec->currencyId) {
                     continue;
                 }
 
@@ -363,7 +368,7 @@ class bank_Register extends core_Manager
                 // Номер на документа
                 if (strlen($d->number) && stripos($rec->reason, $d->number) !== false) {
                     $p += max(0, 1 - 2.8 / strlen($d->number));
-                    if ($numbers[$d->number]) {
+                    if (!empty($numbers[$d->number])) {
                         $p += max(0, 1 - 1.3 / strlen($d->number));
                     }
                 }
@@ -377,7 +382,7 @@ class bank_Register extends core_Manager
                 }
 
                 // Дата на докуемнта
-                if ($d->date) {
+                if (!empty($d->date)) {
                     $delta = abs(dt::secsBetween($d->date, $rec->valior));
 
                     if ($delta <= 24 * 60 * 60) {
@@ -404,10 +409,10 @@ class bank_Register extends core_Manager
             }
 
             // Ако имаме документи, но нямаме папка, опитваме се да я определим от най-вероятните документи
-            if (empty($rec->matches['folderId']) && is_array($rec->matches['docs'])) {
+            if (empty($rec->matches['folderId']) && !empty($rec->matches['docs']) && is_array($rec->matches['docs'])) {
                 $foldersTmp = array();
                 foreach ($rec->matches['docs'] as $d) {
-                    $foldersTmp[$d->folderId] += $d->p;
+                    $foldersTmp[$d->folderId] = ($foldersTmp[$d->folderId] ?? 0) + $d->p;
                 }
 
                 list($rec->matches['folderId']) = array_keys($foldersTmp, max($foldersTmp));
@@ -421,7 +426,7 @@ class bank_Register extends core_Manager
                 }
             }
 
-            if (is_array($rec->matches['docs'])) {
+            if (!empty($rec->matches['docs']) && is_array($rec->matches['docs'])) {
                 foreach ($rec->matches['docs'] as $d) {
                     if (!isset($rec->matches['rows'][$d->threadId])) {
                         $rec->matches['rows'][$d->threadId] = new stdClass();
@@ -450,9 +455,7 @@ class bank_Register extends core_Manager
             }
 
 
-            if (is_array($rec->matches['rows']) || $rec->matches['folderId'] || true) {
-                self::save($rec);
-            }
+            self::save($rec);
         }
 
         return $cnt;
@@ -543,7 +546,7 @@ class bank_Register extends core_Manager
 
         while ($rec = $query->fetch()) {
             $title = self::transliterate(str_replace('.', '', $rec->name));
-            if (!$res[$title] && !$cachedFolders[$title]) {
+            if (empty($res[$title]) && empty($cachedFolders[$title])) {
                 $res[$title] = $rec->folderId;
             }
         }
@@ -735,12 +738,12 @@ class bank_Register extends core_Manager
      */
     public static function getCurrencyRate($rec)
     {
-        if ($rec->currencyRate) {
+        if (!empty($rec->currencyRate)) {
 
             return $rec->currencyRate;
         }
 
-        if ($rec->currencyId) {
+        if (!empty($rec->currencyId)) {
             $rate = currency_CurrencyRates::getRate($rec->createdOn, $rec->currencyId, null);
 
             if ($rate) {
@@ -769,6 +772,8 @@ class bank_Register extends core_Manager
         list($longPart) = self::findLongString($parts);
 
         $id = null;
+        $bestRate = 0;
+        $bestId = null;
 
         foreach ($folders as $title => $id) {
             if (strpos($title, $longPart) !== false) {

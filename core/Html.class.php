@@ -1016,34 +1016,57 @@ class core_Html
     
     
     /**
-     * Създава хипервръзка със стрелка в скоби след подаден $title
+     * Създава хипервръзка със стрелка в скоби след подаден $title.
+     * С атрибут 'arrowFront' стрелката е пред заглавието и огледално обърната
      */
     public static function createLinkRef($title, $url = false, $warning = false, $attr = array())
     {
+        // Нормализация, за да работят флаговете и при подадени атрибути като стринг
+        $attr = arr::make($attr, true);
+
+        // Флагът не е html атрибут - маха се, за да не влезе в тага на линка
+        $arrowFront = false;
+        if (!empty($attr['arrowFront'])) {
+            $arrowFront = true;
+            unset($attr['arrowFront']);
+        }
+
         // Ако има зададена иконка в линка, слагаме я преди заглавието
         $link = null;
-        if (is_array($attr) && isset($attr['ef_icon'])) {
+        if (isset($attr['ef_icon'])) {
             $icon = ht::createElement('img', array('src' => sbf($attr['ef_icon'], ''), 'class' => 'linkRefIcon'));
             $title = "{$icon} <span class = 'linkRefText'>{$title}</span>";
             unset($attr['ef_icon']);
         }
-        
+
         if ($url !== false && (is_string($url) || (is_array($url) && countR($url)))) {
-            $imgSrc = $attr['ef_icon'] ?? 'img/16/anchor-image.png';
+
+            // Отпред стрелката е без рамка и се мащабира с шрифта, за да е на реда на текста
+            $default = ($arrowFront === true) ? 'img/16/anchor-arrow.svg' : 'img/16/anchor-image.png';
+            $imgSrc = $attr['ef_icon'] ?? $default;
             $arrowImg = ht::createElement('img', array('src' => sbf($imgSrc, '')));
-            $link = self::createLink("<span class='anchor-arrow'>{$arrowImg}</span>", $url, $warning, $attr);
+            $arrowClass = ($arrowFront === true) ? 'anchor-arrow front' : 'anchor-arrow';
+            $arrow = "<span class='{$arrowClass}'>{$arrowImg}</span>";
+
+            $link = self::createLink($arrow, $url, $warning, $attr);
         }
 
         if(!empty($link)){
             if($title instanceof core_ET){
-                $res = new core_ET("[#title#]&nbsp;[#link#]");
+                $layout = ($arrowFront === true) ? "[#link#]&nbsp;[#title#]" : "[#title#]&nbsp;[#link#]";
+                $res = new core_ET($layout);
                 $res->append($title, 'title');
                 $res->append($link, 'link');
 
                 return $res;
-            } else {
-                return "{$title}&nbsp;{$link}";
             }
+
+            if ($arrowFront === true) {
+
+                return "{$link}&nbsp;{$title}";
+            }
+
+            return "{$title}&nbsp;{$link}";
         }
 
         return $title;
