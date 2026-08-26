@@ -157,7 +157,7 @@ class frame2_Reports extends embed_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id,title=Наименование,lastRefreshed=Обновяване->Последно,nextUpdate=Обновяване->Следващо,updateDays=Обновяване->Дни,updateTime=Обновяване->Час,folderId,modifiedOn,modifiedBy';
+    public $listFields = 'id,title=Наименование,lastRefreshed=Обновяване->Последно,lastRefreshDuration=Обновяване->Време (сек.),nextUpdate=Обновяване->Следващо,updateDays=Обновяване->Дни,updateTime=Обновяване->Час,folderId,modifiedOn,modifiedBy';
     
 
     /**
