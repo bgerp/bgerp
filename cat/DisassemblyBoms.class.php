@@ -261,6 +261,25 @@ class cat_DisassemblyBoms extends core_Master
 
 
     /**
+     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
+     */
+    protected static function on_AfterInputEditForm(core_Mvc $mvc, core_Form $form)
+    {
+        $rec = &$form->rec;
+
+        if ($form->isSubmitted()) {
+
+            // К-то за разпад е в основната мярка на артикула - закръглено не се допуска
+            $error = null;
+            $measureId = cat_Products::fetchField($rec->productId, 'measureId');
+            if (!deals_Helper::checkQuantity($measureId, $rec->quantity, $error)) {
+                $form->setError('quantity', $error);
+            }
+        }
+    }
+
+
+    /**
      * Подготовка на бутоните на формата за добавяне/редактиране
      */
     protected static function on_AfterPrepareEditToolbar($mvc, &$res, $data)
