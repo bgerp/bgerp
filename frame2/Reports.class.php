@@ -229,6 +229,12 @@ class frame2_Reports extends embed_Manager
 
 
     /**
+     * Максимално време за заключване на ръчното обновяване от един потребител
+     */
+    const MANUAL_REFRESH_LOCK_DURATION = 120;
+
+
+    /**
      * Минимален ранг на потребителите за редактиране на чужди справки
      */
     public $minRangForEditForeignDoc = 'executive';
@@ -599,10 +605,21 @@ class frame2_Reports extends embed_Manager
         expect($id = Request::get('id', 'int'));
         expect($rec = $this->fetch($id));
         $this->requireRightFor('refresh', $rec);
-        
-        self::refresh($rec);
-        frame2_ReportVersions::unSelectVersion($rec->id);
-        $this->logWrite('Ръчно обновяване на справката', $rec->id);
+
+        $lockId = 'frame2ManualRefresh' . core_Users::getCurrent();
+        // Изчакване до 10 секунди с повторен опит всяка секунда
+        if (!core_Locks::obtain($lockId, self::MANUAL_REFRESH_LOCK_DURATION, 10, 10)) {
+
+            return followRetUrl(null, 'Вече сте стартирали ръчно обновяване на справка. Изчакайте да завърши.', 'warning');
+        }
+
+        try {
+            self::refresh($rec);
+            frame2_ReportVersions::unSelectVersion($rec->id);
+            $this->logWrite('Ръчно обновяване на справката', $rec->id);
+        } finally {
+            core_Locks::release($lockId);
+        }
         
         return followRetUrl();
     }
