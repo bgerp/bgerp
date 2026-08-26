@@ -271,6 +271,9 @@ class expert_Dataset extends core_BaseClass
             // До PHP 8 делението на нула връщаше false с E_WARNING.
             // Запазваме старото поведение за съществуващите експертни правила.
             $res = false;
+        } catch (Error $e) {
+            // Показваме кой израз е проблемен (напр. липсващ '$' пред променлива)
+            expect(false, $code, $e->getMessage());
         }
         
         return $res;
