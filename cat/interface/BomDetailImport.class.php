@@ -56,8 +56,8 @@ class cat_interface_BomDetailImport extends import2_AbstractDriver
         $form->FLD('csvData', 'text(1000000)', 'width=100%,caption=Данни');
         $form->FLD('csvFile', 'fileman_FileType(bucket=bnav_importCsv)', 'width=100%,caption=CSV файл');
 
-        $clipboardVals = export_Clipboard::getVals();
-        if (countR($this->getClipboardOptions($clipboardVals))) {
+        $clipboardVals = import2_Clipboard::getVals();
+        if (countR(import2_Clipboard::getOptions($clipboardVals))) {
             $refreshFields = array('csvData', 'csvFile', 'delimiter', 'enclosure', 'firstRow');
             foreach ($fields as $name => $field) {
                 if (empty($field['notColumn'])) {
@@ -110,9 +110,9 @@ class cat_interface_BomDetailImport extends import2_AbstractDriver
     {
         $form->info = tr('Въведете данни, качете CSV файл или изберете документ от клипборда');
 
-        $clipboardVals = export_Clipboard::getVals();
+        $clipboardVals = import2_Clipboard::getVals();
         if (isset($form->fields['fromClipboard'])) {
-            $form->setOptions('fromClipboard', array('' => '') + $this->getClipboardOptions($clipboardVals));
+            $form->setOptions('fromClipboard', array('' => '') + import2_Clipboard::getOptions($clipboardVals));
         }
 
         $fromClipboard = !empty($form->rec->fromClipboard);
@@ -127,7 +127,7 @@ class cat_interface_BomDetailImport extends import2_AbstractDriver
             $form->setDefault('enclosure', '"');
         }
 
-        $clipboardColumns = $fromClipboard ? $this->getClipboardColumns($form->rec->fromClipboard, $clipboardVals) : array();
+        $clipboardColumns = $fromClipboard ? import2_Clipboard::getColumns($form->rec->fromClipboard, $clipboardVals) : array();
         $csvColumns = array(-1 => '') + array_combine(range(1, 20), range(1, 20));
         $defaultCsvColumns = array('position' => 1, 'type' => 2, 'productId' => 3, 'packagingId' => 4, 'propQuantity' => 5, 'description' => 6, 'paramId' => 7);
         $columnNo = 1;
@@ -141,7 +141,7 @@ class cat_interface_BomDetailImport extends import2_AbstractDriver
             $fieldName = "col{$name}";
             if ($fromClipboard) {
                 $form->setOptions($fieldName, array('' => '') + $clipboardColumns['options']);
-                $matchedColumn = $this->findMatchingColumn($name, $field['caption'] ?? $name, $clipboardColumns);
+                $matchedColumn = import2_Clipboard::findMatchingColumn($name, $field['caption'] ?? $name, $clipboardColumns);
                 if (isset($matchedColumn)) {
                     $form->setDefault($fieldName, $matchedColumn);
                 }
@@ -753,92 +753,12 @@ class cat_interface_BomDetailImport extends import2_AbstractDriver
 
 
     /**
-     * Връща документите, запазени в клипборда
-     */
-    private function getClipboardOptions($clipboardVals)
-    {
-        $options = array();
-        foreach ((array) $clipboardVals as $classId => $objects) {
-            if (!cls::load($classId, true)) {
-
-                continue;
-            }
-
-            $Class = cls::get($classId);
-            foreach ((array) $objects as $objectId => $data) {
-                $documentRow = $Class->getDocumentRow($objectId);
-                $options["{$classId}_{$objectId}"] = !empty($documentRow->recTitle) ? $documentRow->recTitle : $documentRow->title;
-            }
-        }
-
-        return $options;
-    }
-
-
-    /**
-     * Връща колоните на избрания запис от клипборда
-     */
-    private function getClipboardColumns($source, $clipboardVals)
-    {
-        $result = array('options' => array(), 'map' => array(), 'names' => array());
-        list($classId, $objectId) = explode('_', $source, 2);
-        $data = $clipboardVals[$classId][$objectId] ?? null;
-        if (!$data || !countR($data->recs ?? array())) {
-
-            return $result;
-        }
-
-        $firstRec = reset($data->recs);
-        foreach ((array) $firstRec as $name => $value) {
-            $caption = $data->fields->fields[$name]->caption ?? $name;
-            $result['options'][$caption] = $caption;
-            $result['map'][$caption] = $name;
-            $result['names'][$caption] = $name;
-        }
-
-        return $result;
-    }
-
-
-    /**
-     * Намира най-подходящата колона от клипборда
-     */
-    private function findMatchingColumn($name, $caption, $columns)
-    {
-        $caption = mb_strtolower(trim($caption));
-        $name = mb_strtolower(trim($name));
-
-        foreach ($columns['names'] as $columnCaption => $columnName) {
-            $columnCaptionLower = mb_strtolower(trim($columnCaption));
-            $columnNameLower = mb_strtolower(trim($columnName));
-            if ($columnCaptionLower == $caption || $columnNameLower == $name) {
-
-                return $columnCaption;
-            }
-        }
-
-        foreach ($columns['names'] as $columnCaption => $columnName) {
-            $columnCaptionLower = mb_strtolower(trim($columnCaption));
-            if (strpos($caption, $columnCaptionLower) !== false || strpos($columnCaptionLower, $caption) !== false) {
-
-                return $columnCaption;
-            }
-        }
-
-        return null;
-    }
-
-
-    /**
      * Извлича редовете от избрания източник
      */
     private function getImportRows($rec)
     {
         if (!empty($rec->fromClipboard)) {
-            list($classId, $objectId) = explode('_', $rec->fromClipboard, 2);
-            $clipboardVals = export_Clipboard::getVals();
-
-            return (array) ($clipboardVals[$classId][$objectId]->recs ?? array());
+            return import2_Clipboard::getRows($rec->fromClipboard);
         }
 
         $data = !empty($rec->csvFile) ? bgerp_plg_Import::getFileContent($rec->csvFile) : $rec->csvData;
