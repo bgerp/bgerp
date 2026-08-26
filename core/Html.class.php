@@ -1021,16 +1021,19 @@ class core_Html
      */
     public static function createLinkRef($title, $url = false, $warning = false, $attr = array())
     {
+        // Нормализация, за да работят флаговете и при подадени атрибути като стринг
+        $attr = arr::make($attr, true);
+
         // Флагът не е html атрибут - маха се, за да не влезе в тага на линка
         $arrowFront = false;
-        if (is_array($attr) && !empty($attr['arrowFront'])) {
+        if (!empty($attr['arrowFront'])) {
             $arrowFront = true;
             unset($attr['arrowFront']);
         }
 
         // Ако има зададена иконка в линка, слагаме я преди заглавието
         $link = null;
-        if (is_array($attr) && isset($attr['ef_icon'])) {
+        if (isset($attr['ef_icon'])) {
             $icon = ht::createElement('img', array('src' => sbf($attr['ef_icon'], ''), 'class' => 'linkRefIcon'));
             $title = "{$icon} <span class = 'linkRefText'>{$title}</span>";
             unset($attr['ef_icon']);

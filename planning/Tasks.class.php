@@ -2175,7 +2175,7 @@ class planning_Tasks extends core_Master
                     $linkArr = array($this, 'single', $rec->id, 'Sid' => $rec->containerId);
                 }
                 $costsCount = core_Type::getByName('int')->toVerbal($costsCount);
-                $row->costsCount = ht::createLinkRef($costsCount, $linkArr, false, 'title=Показване на разходите към документа');
+                $row->costsCount = ht::createLinkRef($costsCount, $linkArr, false, 'arrowFront,title=Показване на разходите към документа');
             }
 
             // Показване на ПВ към операцията, групирани по тяхното състояние
