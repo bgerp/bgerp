@@ -26,6 +26,12 @@ class price_interface_AverageCostStorePricePolicyImpl extends price_interface_Ba
     
     
     /**
+     * Дали политиката важи само за складируеми артикули
+     */
+    protected $forStorableOnly = true;
+    
+    
+    /**
      * Как се казва политиката
      *
      * @param bool $verbal - вербалното име или системното

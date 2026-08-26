@@ -279,8 +279,8 @@ class price_Updates extends core_Manager
             } elseif ($rec->type == 'product') {
                 $pRec = cat_Products::fetch($rec->objectId);
                 
-                // Ако добавяме правило за артикул трябва да е активен,публичен,складируем и купуваем или производим
-                if ($pRec->state != 'active' || $pRec->canStore != 'yes' || $pRec->isPublic != 'yes' || !($pRec->canBuy == 'yes' || $pRec->canManifacture == 'yes')) {
+                // Ако добавяме правило за артикул трябва да е активен, публичен и купуваем или производим
+                if ($pRec->state != 'active' || $pRec->isPublic != 'yes' || !($pRec->canBuy == 'yes' || $pRec->canManifacture == 'yes')) {
                     $requiredRoles = 'no_one';
                 }
             } elseif($rec->type == 'group'){
@@ -338,7 +338,7 @@ class price_Updates extends core_Manager
             // Ако е правило за група, обновява се само на артикулите от нея, отговарящи на условията
             $pQuery = cat_Products::getQuery();
             plg_ExpandInput::applyExtendedInputSearch('cat_Products', $pQuery, $rec->objectId);
-            $pQuery->where("#state = 'active' AND #isPublic = 'yes' AND #canStore = 'yes' AND (#canBuy = 'yes' OR #canManifacture = 'yes')");
+            $pQuery->where("#state = 'active' AND #isPublic = 'yes' AND (#canBuy = 'yes' OR #canManifacture = 'yes')");
             $pQuery->show('id');
             while ($pRec = $pQuery->fetch()) {
 
@@ -350,7 +350,7 @@ class price_Updates extends core_Manager
             // Ако е категория, всички артикули в папката на категорията
             $folderId = cat_Categories::fetchField($rec->objectId, 'folderId');
             $pQuery = cat_Products::getQuery();
-            $pQuery->where("#state = 'active' AND #isPublic = 'yes' AND #canStore = 'yes' AND (#canBuy = 'yes' OR #canManifacture = 'yes')");
+            $pQuery->where("#state = 'active' AND #isPublic = 'yes' AND (#canBuy = 'yes' OR #canManifacture = 'yes')");
             $pQuery->where("#folderId = {$folderId}");
             $pQuery->show('id,groups');
             
@@ -400,10 +400,10 @@ class price_Updates extends core_Manager
         // За всеки артикул
         $res = array();
         foreach ($products as $productId) {
-            $pRec = cat_Products::fetch($productId, 'state,canStore,isPublic,canBuy,canManifacture');
+            $pRec = cat_Products::fetch($productId, 'state,isPublic,canBuy,canManifacture');
 
-            // Обновяване на себестойностите само ако артикула е складируем, публичен, активен, купуваем или производим
-            if ($pRec->state != 'active' || $pRec->canStore != 'yes' || $pRec->isPublic != 'yes' || !($pRec->canBuy == 'yes' || $pRec->canManifacture == 'yes')) {
+            // Обновяване на себестойностите само ако артикула е публичен, активен, купуваем или производим
+            if ($pRec->state != 'active' || $pRec->isPublic != 'yes' || !($pRec->canBuy == 'yes' || $pRec->canManifacture == 'yes')) {
                 continue;
             }
             
@@ -509,6 +509,12 @@ class price_Updates extends core_Manager
         $sources = array($sourceClass1, $sourceClass2, $sourceClass3);
         foreach ($sources as $source) {
             if (isset($source)) {
+
+                // Ако политиката не е приложима за артикула, минава се към следващата
+                if (!cls::load($source, true)) continue;
+                $Interface = cls::getInterface('price_CostPolicyIntf', $source);
+                if (!$Interface->isApplicableForProduct($productId)) continue;
+
                 $price = price_ProductCosts::getPrice($productId, $source);
                 if (isset($price)) {
                     

@@ -154,7 +154,7 @@ class cat_products_PriceDetails extends core_Manager
         
         // Само за публичните показваме правилото за обновяване
         if ($data->masterData->rec->isPublic == 'yes') {
-            if($data->masterData->rec->canStore == 'yes' && ($data->masterData->rec->canBuy == 'yes' || $data->masterData->rec->canManifacture == 'yes')){
+            if($data->masterData->rec->canBuy == 'yes' || $data->masterData->rec->canManifacture == 'yes'){
 
                 // Ако има правило за обновяване към конкретния артикул
                 $data->updateData = clone $data;

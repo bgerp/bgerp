@@ -51,12 +51,11 @@ class price_interface_LastQuotationFromSupplier extends price_interface_BaseCost
         // Участват артикулите в активирани или оттеглени активни покупки, след посочената дата
         $pQuery = purchase_QuotationDetails::getQuery();
         $pQuery->EXT('isPublic', 'cat_Products', 'externalName=isPublic,externalKey=productId');
-        $pQuery->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
         $pQuery->EXT('activatedOn', 'purchase_Quotations', 'externalName=activatedOn,externalKey=quotationId');
         $pQuery->EXT('documentModifiedOn', 'purchase_Quotations', 'externalName=modifiedOn,externalKey=quotationId');
         $pQuery->EXT('state', 'purchase_Quotations', 'externalName=state,externalKey=quotationId');
         $pQuery->where("((#state = 'active' || #state = 'closed') AND #activatedOn >= '{$datetime}') OR (#state = 'rejected' AND #activatedOn IS NOT NULL AND #documentModifiedOn >= '{$datetime}')");
-        $pQuery->where("#canStore = 'yes' AND #isPublic = 'yes'");
+        $pQuery->where("#isPublic = 'yes'");
         $pQuery->show('productId');
         $affected = arr::extractValuesFromArray($pQuery->fetchAll(), 'productId');
 
