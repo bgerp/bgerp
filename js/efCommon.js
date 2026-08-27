@@ -128,6 +128,15 @@ function reportErr(errType, err, data) {
  */
 window.onerror = function (errorMsg, url, lineNumber, columnNum, errorObj) {
 
+    // Браузърът скрива детайлите за грешки във външни скриптове без CORS
+    // като `Script error.` с празен URL и позиция 0:0. Такъв репорт не може
+    // да се диагностицира и не трябва да измества следваща реална JS грешка.
+    var opaqueScriptError = errorMsg === 'Script error.' &&
+        !url && (!lineNumber || lineNumber == 0) &&
+        (!columnNum || columnNum == 0) && !errorObj;
+
+    if (opaqueScriptError) return false;
+
     reportErr('JS error', errorMsg, {script: url, line: lineNumber, column: columnNum});
 }
 
