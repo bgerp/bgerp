@@ -418,7 +418,7 @@ class hr_EmployeeContracts extends core_Master
         $rec = $form->rec;
         
         // След като се записали/активирали формата
-        if ($rec->typeId) {
+        if (!empty($rec->typeId)) {
             
             // Вземаме шаблона на труговия договор
             $tpl = hr_ContractTypes::fetchField($rec->typeId, 'script');
@@ -434,10 +434,11 @@ class hr_EmployeeContracts extends core_Master
             $sysArrayCnt = countR($sysArray);
             
             // От всички полета на модела
+            $formField = array();
             foreach ($rec as $name => $value) {
                 $formField[$name] = $name;
                 
-                for ($i = 0; $i <= $sysArrayCnt; $i++) {
+                for ($i = 0; $i < $sysArrayCnt; $i++) {
                     // махаме тези от помощния масив
                     unset($formField[$sysArray[$i]]);
                 }
@@ -448,6 +449,10 @@ class hr_EmployeeContracts extends core_Master
 
             $positionRec = isset($rec->positionId) ? hr_Positions::fetch($rec->positionId) : null;
             foreach ($mandatoryFields as $field) {
+                if (!isset($form->fields[$field])) {
+                    continue;
+                }
+
                 // Ако имаме непопълнено поле от гореполучения масив
                 if (!isset($rec->{$field}) && !isset($positionRec->{$field})) {
                     // Предупреждамае потребителя
@@ -457,7 +462,7 @@ class hr_EmployeeContracts extends core_Master
         }
         
         if ($form->isSubmitted()) {
-            if ($rec->numId) {
+            if (!empty($rec->numId)) {
                 if (!$mvc->isNumberInRange($rec->numId)) {
                     $form->setError('numId', "Номер '{$rec->numId}' е извън позволения интервал");
                 }
@@ -473,8 +478,8 @@ class hr_EmployeeContracts extends core_Master
     {
         $position = self::fetchField($id, 'positionId');
         
-        if ($rec->state == 'active') {
-            if (!$rec->personId) {
+        if (isset($rec->state) && $rec->state == 'active') {
+            if (empty($rec->personId)) {
                 $rec->personId = self::fetch($rec->id)->personId;
             }
             
@@ -559,10 +564,10 @@ class hr_EmployeeContracts extends core_Master
      */
     public static function on_BeforeSave($mvc, $id, $rec)
     {
-        if ($rec->state == 'draft') {
-            if (empty($rec->numId) && $rec->numId == null) {
+        if (isset($rec->state) && $rec->state == 'draft') {
+            if (empty($rec->numId)) {
                 $rec->numId = self::getNexNumber();
-                $rec->searchKeywords .= ' ' . plg_Search::normalizeText($rec->numId);
+                $rec->searchKeywords = ($rec->searchKeywords ?? '') . ' ' . plg_Search::normalizeText($rec->numId);
             }
         }
     }
