@@ -1181,7 +1181,7 @@ class email_Mime extends core_BaseClass
     {
         $p = $this->parts[$partIndex];
         
-        setIfNot($fileName, $p->filename, $p->name);
+        $fileName = $p->filename ?? $p->name ?? null;
         
         // Ако липсва файл, името му е производно на хеша на съдържанието му
         if (!$fileName) {
@@ -1192,7 +1192,7 @@ class email_Mime extends core_BaseClass
         // Ако липсва файлово разширение се опитваме да го определим от 'Content-Type'
         if (!fileman_Files::getExt($fileName)) {
             $ctParts = $this->extractHeader($partIndex, 'Content-Type');
-            $mimeT = strtolower($ctParts[0]);
+            $mimeT = strtolower($ctParts[0] ?? '');
             $fileName = fileman_mimes::addCorrectFileExt($fileName, $mimeT);
         }
         
