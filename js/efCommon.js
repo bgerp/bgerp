@@ -6609,7 +6609,15 @@ function detailDeleteRowsAct() {
     });
 
     $(document.body).on('click', ".deleteAllCheckedRows", function (e) {
-        var url = $(this).attr("data-url");
+        var btn = $(this);
+
+        // Бутонът не е събмит, затова защитата срещу двоен събмит не важи за него
+        if (btn.data('deleteRowsStarted')) {
+
+            return;
+        }
+
+        var url = btn.attr("data-url");
         var chkArray = [];
 
         // Look for all checkboxes that have a specific class and was checked
@@ -6619,9 +6627,11 @@ function detailDeleteRowsAct() {
         });
 
         if (!chkArray.length) {
-            alert($(this).attr("data-errorMsg"));
+            alert(btn.attr("data-errorMsg"));
         } else {
             var selected = chkArray.join('|');
+            btn.data('deleteRowsStarted', true);
+            btn.attr("disabled", "disabled");
             window.location = url + "&selected=" + selected;
         }
     });
