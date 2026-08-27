@@ -275,7 +275,7 @@ class cat_Products extends embed_Manager
     /**
      * Стратегии за дефолт стойностти
      */
-    public static $defaultStrategies = array('groups' => 'lastDocUser');
+    public static $defaultStrategies = array('groupsInput' => 'lastDocUser');
     
     
     /**
