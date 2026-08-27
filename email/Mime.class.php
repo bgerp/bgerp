@@ -1040,7 +1040,7 @@ class email_Mime extends core_BaseClass
             }
             
             for ($i = 0; $i < $cntParts; $i++) {
-                if ($data[$i]) {
+                if (!empty($data[$i])) {
                     $this->parseAll(ltrim($data[$i], $nl), $index . '.' . $i);
                 }
             }
