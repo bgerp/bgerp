@@ -3130,7 +3130,7 @@ class crm_Persons extends core_Master
         $emplGroupId = crm_Groups::getIdFromSysId('employees');
 
         $query = self::getQuery();
-        $query->like('groupList', "|{$emplGroupId}|");
+        plg_ExpandInput::applyExtendedInputSearch('crm_Persons', $query, $emplGroupId);
         if (isset($state)) {
             $query->where("#state = '{$state}'");
         }
