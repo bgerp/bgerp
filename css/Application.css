@@ -6401,6 +6401,12 @@ only screen and (max-width: 760px) {
 .mainQuantityCol {
   background-color: #fff8e1; }
 
+/*
+ * при ред с нулево к-во се пази сивия фон на реда
+ */
+tr.zeroQuantityRow .mainQuantityCol {
+  background-color: rgba(0, 0, 0, 0); }
+
 td.rack-hl {
   background-color: red; }
 

@@ -7298,6 +7298,11 @@ div.location.public {
 	background-color: #fff8e1;
 }
 
+/* при ред с нулево к-во се пази сивия фон на реда */
+tr.zeroQuantityRow .mainQuantityCol {
+	background-color: transparent;
+}
+
 td.rack-hl {
 	background-color:red;
 }

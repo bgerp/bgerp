@@ -314,6 +314,7 @@ class store_TransfersDetails extends doc_Detail
                 
                 if (empty($rec->quantity) && !Mode::isReadOnly()) {
                     $row->ROW_ATTR['style'] = ' background-color:#f1f1f1;color:#777';
+                    $row->ROW_ATTR['class'] = (!empty($row->ROW_ATTR['class']) ? $row->ROW_ATTR['class'] : '') . ' zeroQuantityRow';
                 }
                 
                 // Показваме подробната информация за опаковката при нужда
