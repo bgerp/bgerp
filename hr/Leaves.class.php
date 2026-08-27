@@ -325,7 +325,7 @@ class hr_Leaves extends core_Master
             }
         }
 
-        $emoji =  self::$emojiList[$emojiType] ? self::$emojiList[$emojiType] : '';
+        $emoji = isset(self::$emojiList[$emojiType]) ? self::$emojiList[$emojiType] : '';
         if ($class) {
             $emoji = "<span class='{$class}'>{$emoji}</span>";
         }

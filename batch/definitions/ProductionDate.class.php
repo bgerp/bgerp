@@ -39,8 +39,8 @@ class batch_definitions_ProductionDate extends batch_definitions_Date
     {
         $Class = cls::get($documentClass);
         expect($dRec = $Class->fetchRec($id));
-        
-        if ($Class instanceof planning_DirectProductionNote) {
+       
+        if (($Class instanceof planning_DirectProductionNote) || ($Class instanceof planning_DisassemblyNote)) {
             setIfNot($date, $dRec->{$Class->valiorFld}, dt::today());
             $date = dt::mysql2verbal($date, $this->rec->format);
             

@@ -1768,13 +1768,9 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
         // Търсят се папките както на фирми, така и на лица в избраните CRM групи.
         foreach (array('crm_Companies', 'crm_Persons') as $clsName) {
             $q = $clsName::getQuery();
-
-            $q->LikeKeylist('groupList', $rec->crmGroup);
-
+            plg_ExpandInput::applyExtendedInputSearch($clsName, $q, $rec->crmGroup);
             $q->where('#folderId IS NOT NULL');
-
             $q->show('folderId');
-
             $foldersInGroups = array_merge($foldersInGroups, arr::extractValuesFromArray($q->fetchAll(), 'folderId'));
         }
 

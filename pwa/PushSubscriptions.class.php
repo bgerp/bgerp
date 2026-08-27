@@ -1288,6 +1288,10 @@ class pwa_PushSubscriptions extends core_Manager
                 continue;
             }
 
+            if (!isset($userNotifyCnt[$nRec->userId])) {
+                $userNotifyCnt[$nRec->userId] = 0;
+            }
+
             // Максимум по 5 известия на потребител
             if ($userNotifyCnt[$nRec->userId] >= $maxNotificationsPerUser) {
                 continue;

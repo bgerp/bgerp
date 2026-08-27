@@ -125,7 +125,7 @@ class cvc_Adapter
             $resArr['wbItems'] = $res->wb_items;
             $resArr['pickupDate'] = $res->pickup_date;
             $resArr['deliveryDate'] = $res->delivery_date;
-            if ($res->pdf) {
+            if (!empty($res->pdf)) {
                 $resArr['pdfOrig'] = $res->pdf;
                 $resArr['pdf'] = self::getFileFromServer($res->pdf);
             }
@@ -159,8 +159,6 @@ class cvc_Adapter
      */
     public static function cancelWb($wbId)
     {
-        setIfNot($params['postFields'], true);
-
         $res = self::makeCall('cancel_wb', array('postFields' => array('wb' => $wbId)));
 
         if (!$res) {
@@ -763,7 +761,7 @@ class cvc_Adapter
     {
         $url = self::prepareUrl($url);
 
-        if (!$paramsArr['postFields']) {
+        if (empty($paramsArr['postFields'])) {
             $getParams = '';
             foreach ((array) $paramsArr as $fName => $fVal) {
                 $getParams .= $getParams ? '&' : '';
@@ -776,14 +774,14 @@ class cvc_Adapter
 
         $curl = self::prepareCurl($url);
 
-        if (!$paramsArr['postFields']) {
+        if (empty($paramsArr['postFields'])) {
             curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'GET');
         }
 
-        if ($paramsArr['postFields']) {
+        if (!empty($paramsArr['postFields'])) {
             curl_setopt($curl, CURLOPT_POST, 1);
             $pField = $paramsArr['postFields'];
-            if ($paramsArr['jsonEncode'] !== false) {
+            if (($paramsArr['jsonEncode'] ?? null) !== false) {
                 $pField = json_encode($pField);
             }
 
@@ -870,11 +868,12 @@ class cvc_Adapter
             return false;
         }
 
-        if (is_object($response) && !$response->success) {
-            self::logErr("Грешка в сървъра: {$response->error}");
+        if (is_object($response) && empty($response->success)) {
+            $errMsg = $response->error ?? '';
+            self::logErr("Грешка в сървъра: {$errMsg}");
 
             if (haveRole('debug')) {
-                core_Statuses::newStatus("Грешка в сървъра: {$response->error}", 'error');
+                core_Statuses::newStatus("Грешка в сървъра: {$errMsg}", 'error');
             }
 
             return false;

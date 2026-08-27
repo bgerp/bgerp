@@ -614,6 +614,7 @@ class doc_Containers extends core_Manager
             $hidden = (boolean) (doc_HiddenContainers::isHidden($rec->id));
             
             $row->ROW_ATTR['id'] = $document->getDocumentRowId();
+            $row->ROW_ATTR['data-document-handle'] = $document->getHandle();
             
             if (!$hidden) {
                 $row->document = doc_DocumentCache::getCache($rec, $document);

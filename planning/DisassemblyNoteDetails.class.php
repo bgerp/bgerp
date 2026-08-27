@@ -124,8 +124,8 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
         // Снимка на процента, с който документът е контиран - само информативно
         $this->FLD('contoPercent', 'percent(decimals=2)', 'caption=Контиран %,input=none,column=none');
 
-        $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty,mandatory)', 'caption=Склад,input=none,tdClass=custom-field nowrap', array('thAttr' => array('style' => 'width:160px')));
-        $this->setField('packagingId', "tdClass=small-field");
+        $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty,mandatory)', 'caption=Склад,input=none,tdClass=custom-field storeName nowrap', array('thAttr' => array('style' => 'width:160px')));
+        $this->setField('packagingId', "tdClass=small-field,notSorting");
         $this->setDbIndex('productId');
         $this->setDbIndex('noteId,type');
     }
@@ -405,7 +405,6 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
 
         // Общи CSS класове на колоните - еднаксви и за трите таблици
         $data->listTableMvc = clone $this;
-        $data->listTableMvc->appendFieldClass('productId', 'tdClass', 'disassemblyProductColumn');
         $data->listTableMvc->appendFieldClass('packQuantity', 'tdClass', 'productionQuantityColumn');
         $data->listTableMvc->FNC('tools', 'int', 'tdClass=rowNumColumn');
 
@@ -520,6 +519,21 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
             $deliveryDate = (!empty($masterRec->deadline)) ? $masterRec->deadline : $masterRec->valior;
             $storeInfo = deals_Helper::checkProductQuantityInStore($rec->productId, $rec->packagingId ?? null, $rec->packQuantity ?? null, $rec->storeId, $deliveryDate);
             $form->info = $storeInfo->formInfo;
+        }
+
+        if ($form->isSubmitted()) {
+
+            // При влагане к-то не може да е нула, нито закръглено
+            $warning = null;
+            if ($rec->type == 'input') {
+                if (empty($rec->packQuantity)) {
+                    $form->setError('packQuantity', 'Количеството за влагане не може да е нула|*!');
+                } elseif (!deals_Helper::checkQuantity($rec->packagingId, $rec->packQuantity, $warning)) {
+                    $form->setError('packQuantity', $warning);
+                }
+            } elseif (!deals_Helper::checkQuantity($rec->packagingId, $rec->packQuantity, $warning)) {
+                $form->setWarning('packQuantity', $warning);
+            }
         }
     }
 

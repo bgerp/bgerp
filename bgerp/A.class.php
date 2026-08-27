@@ -80,7 +80,14 @@ class bgerp_A extends core_Mvc
      */
     public function act_wp()
     {
-        wp(Request::$vars);
+        // Видът на грешката отделно - иначе всички JS репорти изглеждат еднакво
+        $errType = Request::get('errType');
+
+        if (isset($errType)) {
+            wp('JS грешка', $errType, Request::$vars);
+        } else {
+            wp('JS грешка', Request::$vars);
+        }
         
         return array();
     }

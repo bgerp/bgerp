@@ -234,6 +234,10 @@ class crm_Groups extends core_Master
         foreach ($gCntArr as $gId => $cCnt) {
             $gRec = crm_Groups::fetch($gId);
             if (isset($gRec->parentId)) {
+                if (!isset($gCntArr[$gRec->parentId])) {
+                    $gCntArr[$gRec->parentId] = 0;
+                }
+                
                 $gCntArr[$gRec->parentId] -= $cCnt;
             }
         }
@@ -281,7 +285,7 @@ class crm_Groups extends core_Master
         $data->query->orderBy('#name');
         
         // Филтриране по потребител/и
-        if (!$data->listFilter->rec->users) {
+        if (empty($data->listFilter->rec->users)) {
             $data->listFilter->rec->users = '|' . core_Users::getCurrent() . '|';
         }
         
@@ -320,7 +324,7 @@ class crm_Groups extends core_Master
                         if (haveRole('manager', $userId)) {
                             $subordinates = core_Users::getSubordinates($userId);
                             
-                            if (!$subordinates[$rec->createdBy]) {
+                            if (empty($subordinates[$rec->createdBy])) {
                                 $requiredRoles = 'no_one';
                             }
                         } else {
@@ -796,7 +800,9 @@ class crm_Groups extends core_Master
     {
         $resArr = array();
         
-        list($id, $p) = explode('_', $id);
+        $idArr = explode('_', $id);
+        $id = $idArr[0];
+        $p = $idArr[1] ?? null;
         
         // Вземаме всички полета
         $fieldsArr = (array) $this->getFieldsFor($p);
@@ -862,7 +868,7 @@ class crm_Groups extends core_Master
             $title = $rec->name;
         }
         
-        if ($groupChoiceArr[$fullId]) {
+        if (!empty($groupChoiceArr[$fullId])) {
             $title .= ': ' . $groupChoiceArr[$fullId];
         }
         
@@ -999,7 +1005,9 @@ class crm_Groups extends core_Master
      */
     public function getPersonalizationSrcLink($id)
     {
-        list($id, $p) = explode('_', $id);
+        $idArr = explode('_', $id);
+        $id = $idArr[0];
+        $p = $idArr[1] ?? null;
         
         if ($p == self::$pCompanies) {
             $url = array('crm_Companies', 'groupId' => $id);

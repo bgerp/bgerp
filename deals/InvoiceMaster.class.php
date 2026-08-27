@@ -796,7 +796,7 @@ abstract class deals_InvoiceMaster extends core_Master
         $rec = &$data->rec;
         
         $myCompany = crm_Companies::fetchOwnCompany();
-        if ($rec->contragentCountryId != $myCompany->countryId) {
+        if ($rec->contragentCountryId != $myCompany->countryId && !empty($data->row->place)) {
             $data->row->place = str::utf2ascii($data->row->place);
         }
     }

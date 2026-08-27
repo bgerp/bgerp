@@ -503,6 +503,9 @@ tr.row-added {
 tr.row-removed {
   background-color: #cce3fe; }
 
+tr.row-subProduct {
+  background-color: #fff3d6; }
+
   .wide .user-profile .listTopContainer {
     min-width: 0; }
 
@@ -1085,6 +1088,12 @@ div.acc-detail {
     border-radius: 5px;
     font-size: 15px;
     color: black; }
+    .additionalInfo-holder .additionalInfo.viewport-positioned {
+      position: fixed;
+      right: auto;
+      bottom: auto;
+      box-sizing: border-box;
+      overscroll-behavior: contain; }
     .additionalInfo-holder .additionalInfo.bottom {
       bottom: auto;
       top: 0;
@@ -6375,6 +6384,12 @@ only screen and (max-width: 760px) {
   background-color: #eeeeee; }
 
 /*
+ * повече от предходния етап - недостигът е с .red, а синьото вече значи „изчислено“
+ */
+.stageOver {
+  color: #b26a00; }
+
+/*
  * к-та по етапи в детайл на документ (заявено/натоварено/изпълнено)
  */
 .stageCol {
@@ -6385,6 +6400,12 @@ only screen and (max-width: 760px) {
  */
 .mainQuantityCol {
   background-color: #fff8e1; }
+
+/*
+ * при ред с нулево к-во се пази сивия фон на реда
+ */
+tr.zeroQuantityRow .mainQuantityCol {
+  background-color: rgba(0, 0, 0, 0); }
 
 td.rack-hl {
   background-color: red; }

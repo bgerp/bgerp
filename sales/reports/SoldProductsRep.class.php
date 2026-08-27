@@ -1095,7 +1095,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                 if ($rec->typeOfGroups == 'nogrp') {
                     self::applyNotInGroupsFilter($query, $checkFieldName, $rec->$filterGroupsType);
                 } elseif ($filterGroupsType == 'group') {
-                    $query->likeKeylist($checkFieldName, $rec->$filterGroupsType);
+                    plg_ExpandInput::applyExtendedInputSearch('cat_Products', $query, $rec->$filterGroupsType, 'productId');
                 } else {
                     $filterGroupsArr = keylist::toArray($rec->$filterGroupsType);
                     $query->in($checkFieldName, $filterGroupsArr);
@@ -2945,7 +2945,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         foreach (array('crm_Companies', 'crm_Persons') as $clsName) {
             $q = $clsName::getQuery();
 
-            $q->LikeKeylist('groupList', $rec->crmGroup);
+            plg_ExpandInput::applyExtendedInputSearch($clsName, $q, $rec->crmGroup);
 
             $q->where('#folderId IS NOT NULL');
 

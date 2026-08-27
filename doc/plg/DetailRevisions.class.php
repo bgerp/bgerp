@@ -359,10 +359,14 @@ class doc_plg_DetailRevisions extends core_Plugin
 
         $activeGroups = self::groupsWithActiveRow($data->recs);
 
+        // При някои детайли артикулът не е в #productId (@see store_TransfersDetails)
+        $productFld = $mvc->productFld ?? $mvc->productFieldName ?? 'productId';
+
         foreach ($data->rows as $id => $row) {
             $rec = $data->recs[$id];
             if ((($rec->state ?? null) == 'rejected') && isset($activeGroups[$rec->revisionRootId ?: $rec->id])) {
-                $row->code = $row->reff = $row->tools = $row->productId = '';
+                $row->code = $row->reff = $row->tools = '';
+                $row->{$productFld} = '';
             }
         }
     }
@@ -421,12 +425,9 @@ class doc_plg_DetailRevisions extends core_Plugin
             return;
         }
 
-        $activatedOn = null;
+        $since = null;
         if ($showRevisions) {
-            $activatedOn = $data->masterData->rec->activatedOn ?? null;
-            if (!isset($activatedOn)) {
-                $activatedOn = $mvc->Master->fetchField($data->masterId, 'activatedOn');
-            }
+            $since = doc_plg_MasterRevision::getRevisionsSince($mvc->Master, $data->masterId);
         }
         $masterState = $data->masterData->rec->state ?? null;
         $useRevisionEdit = in_array($masterState, arr::make($mvc->detailRevisionsStates, true));
@@ -441,10 +442,11 @@ class doc_plg_DetailRevisions extends core_Plugin
                 $nick = !empty($rec->{$byField}) ? crm_Profiles::createLink($rec->{$byField}) : '';
 
                 // Ред, добавен в ревизионно състояние (revisionRootId=0, @see linkToDeletedRow)
-                // или създаден след активирането. Условието е като на брояча в doc_plg_MasterRevision
+                // или създаден след активирането/заявяването. Условието е като на брояча
+                // в doc_plg_MasterRevision (@see getRevisionsSince)
                 $isAddedNow = isset($rec->revisionRootId) && empty($rec->revisionRootId) && empty($rec->revisionPrevId);
 
-                if (!$isRejected && ($isAddedNow || (isset($activatedOn, $rec->createdOn) && $rec->createdOn >= $activatedOn))) {
+                if (!$isRejected && ($isAddedNow || (isset($since, $rec->createdOn) && $rec->createdOn >= $since))) {
                     $newBadge = "<span style='display:inline-block;background:#2196F3;color:#fff;font-size:10px;font-weight:bold;padding:1px 6px;border-radius:3px;vertical-align:middle;margin-left:4px;line-height:15px;' title='" . tr('Добавен след като документа е бил контиран или е станал на заявка') . "'>" . tr('НОВ') . "</span>";
                     $date = new core_ET("{$newBadge} {$date}");
                 }

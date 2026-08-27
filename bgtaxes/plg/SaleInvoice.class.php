@@ -44,7 +44,7 @@ class bgtaxes_plg_SaleInvoice extends core_Plugin
                     $paramCache[$dRec->productId] = cat_Products::getParams($dRec->productId);
                 }
 
-                $excise = isset($dRec->exciseTax) ? $dRec->exciseTax : $paramCache[$dRec->productId][$exciseId];
+                $excise = isset($dRec->exciseTax) ? $dRec->exciseTax : ($paramCache[$dRec->productId][$exciseId] ?? null);
                 $isExciseLive = true;
 
                 if($isForBg){

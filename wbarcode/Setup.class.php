@@ -65,6 +65,22 @@ class wbarcode_Setup extends core_ProtoSetup
 
 
     /**
+     * Инсталиране на пакета
+     */
+    public function install()
+    {
+        $html = parent::install();
+        $Plugins = cls::get('core_Plugins');
+
+        if (core_Packs::isInstalled('store')) {
+            $html .= $Plugins->installPlugin('Добавяне по тегловен баркод в междускладовите трансфери', 'wbarcode_plg_AddByBarcode', 'store_TransfersDetails', 'private');
+        }
+
+        return $html;
+    }
+
+
+    /**
      * Проверяваме дали всичко е сетнато, за да работи пакета
      *
      * @return NULL|string

@@ -557,7 +557,7 @@ class email_Mime extends core_BaseClass
     public function saveFiles_()
     {
         foreach ($this->files as $id => &$fRec) {
-            if (!$fRec->fmId) {
+            if (empty($fRec->fmId)) {
                 $fRec->fmId = $this->addFileToFileman($fRec->data, $fRec->name);
             }
         }

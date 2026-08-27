@@ -723,7 +723,7 @@ class dec_Declarations extends core_Master
         $options = array();
         $groupId = crm_Groups::fetchField("#sysId = 'managers'", 'id');
         $personQuery = crm_Persons::getQuery();
-        $personQuery->where("#groupList LIKE '%|{$groupId}|%'");
+        plg_ExpandInput::applyExtendedInputSearch('crm_Persons', $personQuery, $groupId);
 
         while ($personRec = $personQuery->fetch()) {
             $managerName = crm_Persons::getVerbal($personRec, 'name');

@@ -239,8 +239,9 @@ class core_CallOnTime extends core_Manager
             }
 
             // При бавно обновяване на някой процес, да не се изпълнява повторно от друг процес
+            // Записът може и вече да е изтрит от паралелен процес
             $bRec = $this->fetch($rec->id, '*', false);
-            if ($bRec->state == 'pending') {
+            if (empty($bRec) || $bRec->state == 'pending') {
 
                 continue;
             }

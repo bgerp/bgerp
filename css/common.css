@@ -1863,7 +1863,8 @@ input:focus[type=button] {
     font-weight: bold !important;
     color: black !important;
     background: none !important;
-    border: none !important; }
+    border: none !important;
+    margin: 0 !important; }
 
 .wide #main-container .formTable .formElement {
   min-width: 32em; }
@@ -3238,7 +3239,19 @@ div.statuses-message h2 {
   width: 16px;
   height: 16px;
   display: inline-block;
-  margin: -2px 5px 0; }
+  margin: -2px 5px 0;
+    /*
+   * стрелка пред заглавието - svg, затова се мащабира с шрифта без да се размива
+   */ }
+  .anchor-arrow.front {
+    width: 0.85em;
+    height: 0.85em;
+    margin: 0 2px 0 0;
+    vertical-align: -0.08em; }
+    .anchor-arrow.front img {
+      width: 100%;
+      height: 100%;
+      display: block; }
 
 /*
  * цветове

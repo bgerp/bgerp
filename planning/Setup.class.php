@@ -278,9 +278,15 @@ defIfNot('PLANNING_PRODUCT_IMAGE_IN_PRODUCTION_NOTE_PRINTING', 'no');
 
 
 /**
- * Пренасяне забележките на артикулите от рецептата в Протокола за производство->По подразбиране
+ * Пренасяне на описанията на артикулите от рецептата
  */
 defIfNot('PLANNING_BOM_TRANSFER_NOTES', 'no');
+
+
+/**
+ * Пренасяне на забележките от рецептата
+ */
+defIfNot('PLANNING_BOM_TRANSFER_RECIPE_NOTES', 'no');
 
 
 
@@ -378,7 +384,8 @@ class planning_Setup extends core_ProtoSetup
         'PLANNING_AUTO_ADD_CONVERTABLE_TO_TASK' => array('enum(no=Изключено,yes=Включено)', array('caption' => 'Автоматично добавяне на артикули от Протокол за влагане (на Заявка) в ПО->Избор')),
         'PLANNING_PRODUCT_IMAGE_IN_PRODUCTION_NOTE_PRINTING' => array('enum(no=Изключено,yes=Включено)', array('caption' => 'При печат на ПП да се показва изображението на артикула->Избор')),
         'PLANNING_TASK_FAST_PROGRESS_BTN' => array('enum(no=Изключено,yes=Включено)', array('caption' => 'Добавяне на бърз прогрес за оставащото в листа на ПО->Избор')),
-        'PLANNING_BOM_TRANSFER_NOTES' => array('enum(yes=Да,no=Не)', 'caption=Пренасяне забележките на артикулите от рецептата в Протокола за производство->По подразбиране'),
+        'PLANNING_BOM_TRANSFER_NOTES' => array('enum(job=в Заданието,production=в Протокола за производство,yes=в Заданието и Протокола,no=Не се пренасят)', 'caption=Пренасяне от Рецептата в Заданието и Протокола за производство->Описанията на артикулите'),
+        'PLANNING_BOM_TRANSFER_RECIPE_NOTES' => array('enum(job=в Заданието,production=в Протокола за производство,yes=в Заданието и Протокола,no=Не се пренася)', 'caption=Пренасяне от Рецептата в Заданието и Протокола за производство->Забележката от рецептата'),
     );
 
 

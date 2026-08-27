@@ -129,7 +129,7 @@ class planning_Steps extends core_Extender
         $this->FLD('wasteStart', 'double(min=0,smartRound)', 'caption=Отпадък в производствена операция->Начален');
         $this->FLD('wastePercent', 'percent(min=0)', 'caption=Отпадък в производствена операция->Допустим');
 
-
+        $this->setDbIndex('centerId');
         $this->setDbIndex('state');
     }
     
@@ -649,6 +649,7 @@ class planning_Steps extends core_Extender
         $driverClassId = planning_interface_StepProductDriver::getClassId();
         $pQuery = cat_Products::getQuery();
         $pQuery->where("#innerClass = {$driverClassId}");
+        $isFinalArr = null;
         if (is_array($onlyIds)) {
             if (!countR($onlyIds)) {
 
@@ -665,11 +666,16 @@ class planning_Steps extends core_Extender
                 $sQuery = planning_Steps::getQuery();
                 $Cover = doc_Folders::getCover($params['centerFolderId']);
                 $sQuery->where("#centerId = {$Cover->that} AND #state != 'closed' AND #state != 'rejected' AND #classId = {$productClassId}");
-                $sQuery->show('objectId');
-                $in = arr::extractValuesFromArray($sQuery->fetchAll(), 'objectId');
+                $sQuery->show('objectId,isFinal');
 
-                if(countR($in)){
-                    $pQuery->in('id', $in);
+                // Видът на етапите се извлича наведнъж, за да не се пита за всеки артикул поотделно
+                $isFinalArr = array();
+                foreach ($sQuery->fetchAll() as $sRec){
+                    $isFinalArr[$sRec->objectId] = $sRec->isFinal;
+                }
+
+                if(countR($isFinalArr)){
+                    $pQuery->in('id', array_keys($isFinalArr));
                 } else {
                     $pQuery->where("1=2");
                 }
@@ -677,10 +683,25 @@ class planning_Steps extends core_Extender
         }
 
         cat_Products::addSearchQueryToKey2SelectArr($pQuery, $q, $limit);
+        $pRecs = $pQuery->fetchAll();
+
+        // Ако видът на етапите още не е извлечен, взима се с една заявка за намерените артикули
+        if(!isset($isFinalArr)){
+            $isFinalArr = array();
+            if(countR($pRecs)){
+                $sQuery = planning_Steps::getQuery();
+                $sQuery->where("#classId = {$productClassId}");
+                $sQuery->in('objectId', array_keys($pRecs));
+                $sQuery->show('objectId,isFinal');
+                foreach ($sQuery->fetchAll() as $sRec){
+                    $isFinalArr[$sRec->objectId] = $sRec->isFinal;
+                }
+            }
+        }
+
         $res = $finalSteps = $nonFinalSteps = array();
-        while ($pRec = $pQuery->fetch()) {
-            $isFinal = planning_Steps::fetchField("#objectId = {$pRec->id} AND #classId = {$productClassId}", 'isFinal');
-            if($isFinal == 'yes'){
+        foreach ($pRecs as $pRec){
+            if(isset($isFinalArr[$pRec->id]) && $isFinalArr[$pRec->id] == 'yes'){
                 $finalSteps[$pRec->id] = cat_Products::getRecTitle($pRec, false);
             } else {
                 $nonFinalSteps[$pRec->id] = cat_Products::getRecTitle($pRec, false);

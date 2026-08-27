@@ -203,7 +203,7 @@ class store_Transfers extends core_Master
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'valior,weight,volume,weightInput,volumeInput,deliveryTime,palletCount,storeReadiness,pendingStage,pendingOn';
+    public $fieldsNotToClone = 'valior,weight,volume,weightInput,volumeInput,deliveryTime,storeReadiness,pendingStage,pendingOn';
 
 
     /**
@@ -422,13 +422,9 @@ class store_Transfers extends core_Master
 
         $rec->pendingStage = $stage;
         $this->save($rec, 'pendingStage');
-
-        if ($stage == 'execution') {
-            $this->fillExecutedQuantities($rec->id);
-        }
-
+        $this->fillStageQuantities($rec->id, $stage);
         $this->touchRec($rec->id);
-        $this->logWrite(($stage == 'loading') ? 'Започва изпращане' : 'Започва получаване', $rec->id);
+        $this->logWrite(($stage == 'loading') ? 'Изпращане' : 'Получаване', $rec->id);
 
         $res = getRetUrl();
         if (empty($res)) {
@@ -440,23 +436,41 @@ class store_Transfers extends core_Master
 
 
     /**
-     * При започване на получаването се очаква да се получи изпратеното - предварително
-     * се попълва текущото к-во, а получателят коригира само редовете с разлика
+     * При започване на етап к-тата от предходния се пренасят в новия
      *
-     * @param int $id
+     * @param int    $id
+     * @param string $stage - loading|execution
      *
      * @return void
      */
-    private function fillExecutedQuantities($id)
+    private function fillStageQuantities($id, $stage)
     {
         $Detail = cls::get($this->mainDetail);
+        $fieldName = ($stage == 'loading') ? 'loadedQuantity' : 'executedQuantity';
 
-        // Директен запис, за да не се правят ревизии на редовете (@see doc_plg_DetailRevisions)
         $dQuery = $Detail->getQuery();
         $dQuery->where("#{$Detail->masterKey} = {$id}");
+        $dQuery->where("#state != 'rejected'");
+
         while ($dRec = $dQuery->fetch()) {
-            $dRec->executedQuantity = $dRec->quantity;
-            $Detail->save_($dRec, 'executedQuantity');
+
+            // При получаване се тръгва от изпратеното, а ако липсва - от заявеното
+            if ($stage == 'loading') {
+                $quantity = $dRec->requestedQuantity;
+            } elseif (isset($dRec->loadedQuantity)) {
+                $quantity = $dRec->loadedQuantity;
+            } else {
+                $quantity = $dRec->requestedQuantity;
+            }
+
+            if (!isset($quantity)) {
+
+                continue;
+            }
+
+            // Директен запис, за да не се правят ревизии на редовете (@see doc_plg_DetailRevisions)
+            $dRec->{$fieldName} = $quantity;
+            $Detail->save_($dRec, $fieldName);
         }
     }
 
@@ -614,6 +628,9 @@ class store_Transfers extends core_Master
         expect($rec = $this->fetch($id));
         $title = $this->getRecTitle($rec);
         $subTitle = '<b>' . store_Stores::getTitleById($rec->fromStore) . '</b> » <b>' . store_Stores::getTitleById($rec->toStore) . '</b>';
+        if($rec->state == 'pending'){
+            $subTitle .= " [" . $this->getVerbal($rec, 'pendingStage') . "]";
+        }
 
         $row = (object)array(
             'title' => $title,
@@ -832,16 +849,16 @@ class store_Transfers extends core_Master
     public function getTransportLineInfo_($rec, $lineId)
     {
         $rec = static::fetchRec($rec);
-        $row = $this->recToVerbal($rec);
         $res = array('baseAmount' => null, 'amount' => null, 'amountVerbal' => null, 'currencyId' => null, 'notes' => $rec->lineNotes, 'deliveryOn' => $rec->deliveryOn);
 
         $res['stores'] = array($rec->fromStore, $rec->toStore);
-        $res['address'] = $row->toAdress;
+        $res['address'] = null;
         $res['storeMovement'] = 'out';
         $res['cases'] = array();
 
         if($toStoreLocationId = store_Stores::fetchField($rec->toStore, 'locationId')){
             $toStoreLocation = crm_Locations::fetch($toStoreLocationId);
+            $res['address'] = crm_Locations::getAddress($toStoreLocation);
             $res['locationId'] = $toStoreLocation->id;
             $res['addressInfo'] = $toStoreLocation->comment;
             $res['countryId'] = $toStoreLocation->countryId;

@@ -61,25 +61,27 @@ class label_plg_Print extends core_Plugin
 
             if(($mvc instanceof core_Master && isset($fields['-single'])) || (!($mvc instanceof core_Master))){
 
-                // Ако вече има разпечатан етикет, той заема видимото място, а не бутонът за печат
+                // Ако има разпечатани етикети, видим е бутонът към тях, а новият печат остава в менюто
                 $lastPrintArr = self::getLastPrintBtnParams($mvc, $rec);
                 $showPrintBtn = ($alwaysShow && !countR($lastPrintArr)) ? 'alwaysShow' : null;
-                $showLastPrintBtn = ($alwaysShow) ? 'alwaysShow' : null;
+                $showLastPrintBtn = $alwaysShow ? 'alwaysShow' : null;
 
                 $btnsArr = self::getLabelBtnParams($mvc, $rec);
-                foreach ($btnsArr as $btnArr){
+                foreach ($btnsArr as $series => $btnArr){
                     if (!empty($btnArr['url'])) {
                         core_RowToolbar::createIfNotExists($row->_rowTools);
                         $btnArr['attr'] = arr::make($btnArr['attr']);
+                        $btnArr['attr']['id'] = "printLabel_{$series}";
                         $btnArr['attr']['style'] = 'position: relative; top: -2px;';
                         $row->_rowTools->addLink($btnArr['caption'], $btnArr['url'], $btnArr['attr'], $showPrintBtn);
                     }
                 }
 
                 // Линк към последния разпечатан етикет, ако има такъв
-                foreach ($lastPrintArr as $btnArr){
+                foreach ($lastPrintArr as $key => $btnArr){
                     core_RowToolbar::createIfNotExists($row->_rowTools);
                     $btnArr['attr'] = arr::make($btnArr['attr']);
+                    $btnArr['attr']['id'] = "viewPrintedLabels_{$key}";
                     $btnArr['attr']['style'] = 'position: relative; top: -2px;';
                     $row->_rowTools->addLink($btnArr['caption'], $btnArr['url'], $btnArr['attr'], $showLastPrintBtn);
                 }
@@ -386,15 +388,18 @@ class label_plg_Print extends core_Plugin
     public static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
         $btnsArr = self::getLabelBtnParams($mvc, $data->rec);
-        foreach ($btnsArr as $btnArr){
+        foreach ($btnsArr as $series => $btnArr){
             if (!empty($btnArr['url'])) {
+                $btnArr['attr'] = arr::make($btnArr['attr']);
+                $btnArr['attr']['id'] = "printLabel_{$series}";
                 $data->toolbar->addBtn($btnArr['caption'], $btnArr['url'], null, $btnArr['attr']);
             }
         }
 
         // Бутон към последния разпечатан етикет, ако има такъв - сред скритите бутони
-        foreach (self::getLastPrintBtnParams($mvc, $data->rec) as $btnArr){
+        foreach (self::getLastPrintBtnParams($mvc, $data->rec) as $key => $btnArr){
             $btnArr['attr'] = arr::make($btnArr['attr']);
+            $btnArr['attr']['id'] = "viewPrintedLabels_{$key}";
             $btnArr['attr']['row'] = 2;
             $data->toolbar->addBtn($btnArr['caption'], $btnArr['url'], null, $btnArr['attr']);
         }

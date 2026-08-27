@@ -187,10 +187,9 @@ class callcenter_AdditionalNumbersPlg extends core_Plugin
         if (isset($fields['-single']) && haveRole('debug') && Request::get('showDebug')) {
             $numStrArr = array();
             foreach (array('mobile', 'tel', 'fax') as $fName) {
-                $val = ${$fName};
-                $fName = $fRecName = 'additional' . ucfirst($fName);
+                $fName = 'additional' . ucfirst($fName);
                 
-                if ($rec->{$fName}) {
+                if (!empty($rec->{$fName})) {
                     $numStrArr[] = $mvc->recToVerbal($rec, $fName)->{$fName};
                 }
             }

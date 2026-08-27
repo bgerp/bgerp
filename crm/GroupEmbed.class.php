@@ -62,7 +62,7 @@ class crm_GroupEmbed extends core_BaseClass
 
         // Извличане на визитките
         $cQuery = crm_Companies::getQuery();
-        $cQuery->where("#groupList LIKE '%|{$rec->crmGroup}|%'");
+        plg_ExpandInput::applyExtendedInputSearch('crm_Companies', $cQuery, $rec->crmGroup);
         while($cRec = $cQuery->fetch()) {
             $contragents[$cRec->id] = crm_Companies::recToVerbal($cRec);
             $contragents[$cRec->id]->name = crm_Companies::getVerbal($cRec, 'name');

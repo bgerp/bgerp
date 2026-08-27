@@ -32,12 +32,18 @@ class cat_BomDetails extends doc_Detail
      * Име на поле от модела, външен ключ към мастър записа
      */
     public $masterKey = 'bomId';
+
+
+    /**
+     * Интерфейс на драйверите за импортиране
+     */
+    public $importInterface = 'cat_interface_BomDetailImportIntf';
     
     
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_Modified, plg_RowTools2, cat_plg_LogPackUsage, cat_Wrapper, plg_SaveAndNew, planning_plg_ReplaceProducts, bgerp_plg_Import, plg_PrevAndNext';
+    public $loadList = 'plg_Created, plg_Modified, plg_RowTools2, cat_plg_LogPackUsage, cat_Wrapper, plg_SaveAndNew, planning_plg_ReplaceProducts, import2_Plugin, plg_PrevAndNext';
     
     
     /**
@@ -313,13 +319,13 @@ class cat_BomDetails extends doc_Detail
                 $Driver = cat_Products::getDriver($rec->resourceId);
                 $productionData = $Driver->getProductionData($rec->resourceId);
                 $canStore = cat_Products::fetchField($rec->resourceId, 'canStore');
+                $productMeasureId = cat_Products::fetchField($rec->resourceId, 'measureId');
                 if($canStore == 'yes'){
                     // Показване на полетата за етикетиране
                     $form->setField('storeIn', 'input');
                     $form->setField('inputStores', 'input');
                     $form->setField('labelPackagingId', 'input');
 
-                    $productMeasureId = cat_Products::fetchField($rec->resourceId, 'measureId');
                     $packs = planning_Tasks::getAllowedLabelPackagingOptions($productMeasureId, $rec->resourceId, $rec->labelPackagingId ?? null);
                     $form->setOptions("labelPackagingId", $packs);
                 }

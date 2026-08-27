@@ -1289,7 +1289,8 @@ class cat_Products extends embed_Manager
             $sQuery->show('productId');
             $productWithAssets = arr::extractValuesFromArray($sQuery->fetchAll(), 'productId');
             $replacementsGroupId = cat_Groups::fetchField("#sysId = 'replacements'");
-            $wherePartNine = "#canStore = 'yes' AND #canConvert = 'yes' AND LOCATE('|{$replacementsGroupId}|', #groups)";
+            $wherePartNine = "#canStore = 'yes' AND #canConvert = 'yes'";
+            plg_ExpandInput::applyExtendedInputSearch('cat_Products', $query, $replacementsGroupId, $productIdFld);
             if(countR($productWithAssets)) {
                 $productWithAssetsStr = implode(',', $productWithAssets);
                 $wherePartNine .= " AND #id NOT IN ($productWithAssetsStr)";
@@ -3735,6 +3736,22 @@ class cat_Products extends embed_Manager
     
     
     /**
+     * Връща коефициента за изчисляване на формулите на компонентите
+     *
+     * @param float $componentQuantity
+     * @param float $bomQuantity
+     *
+     * @return float
+     */
+    public static function getComponentQuantityScale($componentQuantity, $bomQuantity)
+    {
+        $bomQuantity = !empty($bomQuantity) ? $bomQuantity : 1;
+
+        return $componentQuantity / $bomQuantity;
+    }
+
+
+    /**
      * Подготвя обект от компонентите на даден артикул
      *
      * @param int    $productId
@@ -3774,7 +3791,9 @@ class cat_Products extends embed_Manager
         
         // Кои детайли от нея ще показваме като компоненти
         $details = cat_BomDetails::getOrderedBomDetails($rec->id);
+        $showDescriptions = ($documentType != 'job') || cat_Boms::shouldTransferNotes($rec, 'transferNotes', 'job');
         $qQuantity = $componentQuantity;
+        $formulaScale = static::getComponentQuantityScale($qQuantity, $rec->quantity);
         
         if (is_array($details)) {
             $fields = cls::get('cat_BomDetails')->selectFields();
@@ -3782,7 +3801,7 @@ class cat_Products extends embed_Manager
             
             foreach ($details as $dRec) {
                 if (!isset($dRec->parentId)) {
-                    $dRec->params['$T'] = $qQuantity;
+                    $dRec->params['$T'] = $formulaScale;
                 }
                 
                 $obj = new stdClass();
@@ -3821,7 +3840,7 @@ class cat_Products extends embed_Manager
                     }
                 }
                 
-                if ($dRec->description) {
+                if ($showDescriptions && $dRec->description) {
                     $obj->description = $row->description;
                     $obj->leveld = $obj->level;
                 }

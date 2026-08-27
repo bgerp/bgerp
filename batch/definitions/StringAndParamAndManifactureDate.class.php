@@ -63,8 +63,8 @@ class batch_definitions_StringAndParamAndManifactureDate extends batch_definitio
         // Ако ще се генерира автоматична стойност
         if ($this->rec->autoValue == 'yes') {
 
-            // Ще се генерира само ако е протокол за производство
-            if($documentClass instanceof planning_DirectProductionNote){
+            // Ще се генерира само ако е протокол за производство и разпад
+            if (($documentClass instanceof planning_DirectProductionNote) || ($documentClass instanceof planning_DisassemblyNote)) {
                 $paramName = cat_Products::getParams($this->rec->productId, $this->rec->paramId);
                 $date = dt::mysql2verbal($date, $this->rec->format);
 

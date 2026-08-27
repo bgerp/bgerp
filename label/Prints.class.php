@@ -831,6 +831,18 @@ class label_Prints extends core_Master
         // По подразбиране да се показват черновите записи най-отпред
         $data->query->orderBy('createdOn', 'DESC');
 
+        // Ако източникът идва защитен от урл-то, се показват само етикетите от него, без филтър
+        $protectedSource = $mvc->getProtectedSource();
+        if (countR($protectedSource)) {
+            $data->query->where(array("#classId = '[#1#]' AND #objectId = '[#2#]'", $protectedSource['classId'], $protectedSource['objectId']));
+            $data->listFilter->hide = true;
+
+            // Рефрешът се спира, защото защитените параметри не се пренасят при вътрешната заявка
+            $data->stopListRefresh = true;
+
+            return;
+        }
+
         $data->listFilter->setField('mediaId', 'allowEmpty,placeholderType=all');
         $data->listFilter->setField('templateId', 'placeholderType=all');
         unset($data->listFilter->fields['mediaId']->notNull);
@@ -840,37 +852,22 @@ class label_Prints extends core_Master
 
         $data->listFilter->class = 'simpleForm';
 
-        // Ако източникът идва защитен от урл-то, филтърът по него е фиксиран
-        $protectedSource = $mvc->getProtectedSource();
-        $isSourceFixed = (bool)countR($protectedSource);
+        // Източникът се избира от потребителя
+        $data->listFilter->FNC('author', 'users(rolesForAll=labelMaster|ceo|admin|seeLabelAllGlobal, rolesForTeams=label|ceo|admin|seeLabelAll)', 'caption=От, refreshForm');
+        $data->listFilter->setField('classId', 'caption=Източник->Клас, input, placeholderType=all, silent');
+        $data->listFilter->setFieldTypeParams('classId', array('allowEmpty' => 'allowEmpty'));
+        $data->listFilter->setField('objectId', 'caption=Източник->Обект, input, silent');
 
-        if ($isSourceFixed) {
-            $data->query->where(array("#classId = '[#1#]' AND #objectId = '[#2#]'", $protectedSource['classId'], $protectedSource['objectId']));
+        $data->listFilter->showFields = 'author, search, templateId, mediaId, classId, objectId';
 
-            // Защитеният параметър се пренася, за да не се губи достъпа при филтриране
-            $data->listFilter->setField('classId', 'input=none');
-            $data->listFilter->setField('objectId', 'input=none');
-            $data->listFilter->setHidden('Protected', Request::get('Protected'));
-            $data->listFilter->showFields = 'search, templateId, mediaId';
-        } else {
+        $data->listFilter->input('author', true);
+        $data->listFilter->input('classId,objectId', 'silent');
 
-            // Иначе потребителя може сам да си избере източника
-            $data->listFilter->FNC('author', 'users(rolesForAll=labelMaster|ceo|admin|seeLabelAllGlobal, rolesForTeams=label|ceo|admin|seeLabelAll)', 'caption=От, refreshForm');
-            $data->listFilter->setField('classId', 'caption=Източник->Клас, input, placeholderType=all, silent');
-            $data->listFilter->setFieldTypeParams('classId', array('allowEmpty' => 'allowEmpty'));
-            $data->listFilter->setField('objectId', 'caption=Източник->Обект, input, silent');
+        // Ако не е избран потребител по подразбиране
+        if (empty($data->listFilter->rec->author)) {
 
-            $data->listFilter->showFields = 'author, search, templateId, mediaId, classId, objectId';
-
-            $data->listFilter->input('author', true);
-            $data->listFilter->input('classId,objectId', 'silent');
-
-            // Ако не е избран потребител по подразбиране
-            if (empty($data->listFilter->rec->author)) {
-
-                // Да е текущия
-                $data->listFilter->rec->author = '|' . core_Users::getCurrent() . '|';
-            }
+            // Да е текущия
+            $data->listFilter->rec->author = '|' . core_Users::getCurrent() . '|';
         }
 
         //Добавяме бутон "Филтрирай"
@@ -880,7 +877,7 @@ class label_Prints extends core_Master
         if ($filter = $data->listFilter->rec) {
 
             // Ако се търси по всички
-            if (!$isSourceFixed && strpos((string) ($filter->author ?? ''), '|-1|') === false) {
+            if (strpos((string) ($filter->author ?? ''), '|-1|') === false) {
                 // Масив с потребителите
                 $usersArr = type_Keylist::toArray($filter->author ?? null);
 
@@ -897,14 +894,12 @@ class label_Prints extends core_Master
             }
 
             // Филтър по избрания източник
-            if (!$isSourceFixed) {
-                if (!empty($filter->classId)) {
-                    $data->query->where(array("#classId = '[#1#]'", $filter->classId));
-                }
+            if (!empty($filter->classId)) {
+                $data->query->where(array("#classId = '[#1#]'", $filter->classId));
+            }
 
-                if (!empty($filter->objectId)) {
-                    $data->query->where(array("#objectId = '[#1#]'", $filter->objectId));
-                }
+            if (!empty($filter->objectId)) {
+                $data->query->where(array("#objectId = '[#1#]'", $filter->objectId));
             }
         }
     }
