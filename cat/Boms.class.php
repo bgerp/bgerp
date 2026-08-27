@@ -249,8 +249,8 @@ class cat_Boms extends core_Master
         $this->FLD('expenses', 'percent(min=0)', 'caption=Общи режийни,changeable,placeholder=Автоматично');
         $this->FLD('isComplete', 'enum(auto=Автоматично,yes=Без допълване (рецептата е Пълна),no=Допълване до "Себестойност" (рецептата е Непълна))', 'caption=Себестойност,notNull,value=auto,mandatory,width=100%');
         $transferCaption = 'Пренасяне от Рецептата в Заданието и Протокола за производство';
-        $this->FLD('transferNotes', 'enum(auto=Автоматично,job=в Заданието,production=в Протокола за производство,yes=в Заданието и Протокола,no=Не се пренасят)', "caption={$transferCaption}->Описанията на артикулите,notNull,value=auto,maxRadio=5");
-        $this->FLD('transferBomNotes', 'enum(auto=Автоматично,job=в Заданието,production=в Протокола за производство,yes=в Заданието и Протокола,no=Не се пренася)', "caption={$transferCaption}->Забележките от рецептата,notNull,value=auto,maxRadio=5");
+        $this->FLD('transferNotes', 'enum(auto=Автоматично,job=в Заданието,production=в Протокола за производство,yes=в Заданието и Протокола,no=Не се пренасят)', "caption={$transferCaption}->Описанията на артикулите,notNull,value=auto,maxRadio=5,autohide=any");
+        $this->FLD('transferBomNotes', 'enum(auto=Автоматично,job=в Заданието,production=в Протокола за производство,yes=в Заданието и Протокола,no=Не се пренася)', "caption={$transferCaption}->Забележките от рецептата,notNull,value=auto,maxRadio=5,autohide=any");
         $this->FLD('state', 'enum(draft=Чернова, active=Активиран, rejected=Оттеглен, closed=Затворен,template=Шаблон)', 'caption=Статус, input=none');
         $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'input=hidden,silent');
         $this->FLD('showInProduct', 'enum(,auto=Автоматично,product=В артикула,job=В заданието,yes=Навсякъде,no=Никъде)', 'caption=Показване в артикула,changeable');
@@ -358,6 +358,75 @@ class cat_Boms extends core_Master
         if (strpos($normalizedNotes, $normalizedTransferredNotes) !== false) return $notes;
 
         return !empty($notes) ? "{$notes}\n\n{$transferredNotes}" : $transferredNotes;
+    }
+
+
+    /**
+     * Показва настройките за пренасяне от рецептата в информационен балон
+     */
+    public function act_ShowTransferInfo()
+    {
+        expect(Request::get('ajax_mode'));
+        $this->requireRightFor('single');
+        expect($id = Request::get('id', 'int'));
+        expect($rec = $this->fetchRec($id));
+        $this->requireRightFor('single', $rec);
+
+        $row = new stdClass();
+        foreach (array('transferNotes' => 'BOM_TRANSFER_NOTES', 'transferBomNotes' => 'BOM_TRANSFER_RECIPE_NOTES') as $field => $configKey) {
+            $row->{$field} = static::getTransferSettingVerbal($this, $rec, $field, $configKey);
+        }
+
+        $tpl = new core_ET(tr("|*<table>
+            <tr><td class='aright' style='font-weight:normal'>|Описания на артикулите|*:</td><td>[#transferNotes#]</td></tr>
+            <tr><td class='aright' style='font-weight:normal'>|Забележки от рецептата|*:</td><td>[#transferBomNotes#]</td></tr>
+        </table>"));
+        $tpl->placeObject($row);
+
+        $resObj = new stdClass();
+        $resObj->func = 'html';
+        $resObj->arg = array('id' => static::getTransferInfoElementId($id), 'html' => $tpl->getContent(), 'replace' => true);
+
+        $hintObj = new stdClass();
+        $hintObj->func = 'makeTooltipFromTitle';
+
+        return array($resObj, $hintObj);
+    }
+
+
+    /**
+     * Връща вербалната стойност на настройка за пренасяне от рецептата
+     */
+    private static function getTransferSettingVerbal($mvc, $rec, $field, $configKey)
+    {
+        $value = static::getTransferSettingValue($rec, $field, $configKey);
+        $verbal = $mvc->getFieldType($field)->toVerbal($value);
+        if (($rec->{$field} ?? 'auto') != 'auto') return $verbal;
+
+        $verbal = "<span class='blueText'>{$verbal}</span>";
+
+        return ht::createHint($verbal, 'Стойността е автоматично определена', 'notice', false);
+    }
+
+
+    /**
+     * Връща ефективната стойност на настройка за пренасяне от рецептата
+     */
+    private static function getTransferSettingValue($rec, $field, $configKey)
+    {
+        $value = $rec->{$field} ?? 'auto';
+        $value = ($value == 'auto') ? planning_Setup::get($configKey) : $value;
+
+        return ($value == 'both') ? 'yes' : $value;
+    }
+
+
+    /**
+     * Връща id на контейнера за информационния балон
+     */
+    private static function getTransferInfoElementId($id)
+    {
+        return "bomTransferInfo{$id}";
     }
     
     
@@ -735,12 +804,26 @@ class cat_Boms extends core_Master
                     $row->isComplete = ht::createHint($row->isComplete, 'Стойността е автоматично определена', 'notice', false);
                 }
 
+                $transferValues = array();
                 foreach (array('transferNotes' => 'BOM_TRANSFER_NOTES', 'transferBomNotes' => 'BOM_TRANSFER_RECIPE_NOTES') as $field => $configKey) {
-                    if (($rec->{$field} ?? 'auto') == 'auto') {
-                        $autoValue = planning_Setup::get($configKey);
-                        $row->{$field} = $mvc->getFieldType($field)->toVerbal($autoValue);
-                        $row->{$field} = "<span class='blueText'>{$row->{$field}}</span>";
-                        $row->{$field} = ht::createHint($row->{$field}, 'Стойността е автоматично определена', 'notice', false);
+                    $transferValues[$field] = static::getTransferSettingValue($rec, $field, $configKey);
+                    $row->{$field} = static::getTransferSettingVerbal($mvc, $rec, $field, $configKey);
+                }
+
+                if (!Mode::is('printing') && !Mode::is('pdf') && !Mode::is('text', 'xhtml') && !Mode::is('text', 'plain')) {
+                    $elementId = static::getTransferInfoElementId($rec->id);
+                    $tooltipUrl = toUrl(array($mvc, 'ShowTransferInfo', $rec->id), 'local');
+                    $arrow = ht::createHint('', 'Настройки за пренасяне от рецептата__BR__(клик за преглед)', 'notice', false, array('data-useCache' => 1), array('class' => 'tooltip-arrow-link', 'data-url' => $tooltipUrl, 'style' => 'cursor:pointer;margin-left:2px;margin-right:4px'));
+                    $arrow = str_replace('__BR__', '&lt;br&gt;', $arrow->getContent());
+                    $row->transferInfo = "<span class='additionalInfo-holder'><span class='additionalInfo' id='{$elementId}'></span>{$arrow}</span>";
+
+                    if (countR(array_unique($transferValues)) == 1) {
+                        $commonValue = reset($transferValues);
+                        $commonVerbal = $mvc->getFieldType('transferNotes')->toVerbal($commonValue);
+                        if (($rec->transferNotes ?? 'auto') == 'auto' && ($rec->transferBomNotes ?? 'auto') == 'auto') {
+                            $commonVerbal = "<span class='blueText'>{$commonVerbal}</span>";
+                        }
+                        $row->transferInfo .= $commonVerbal;
                     }
                 }
 
@@ -2278,13 +2361,12 @@ class cat_Boms extends core_Master
                 <tr><td style='font-weight:normal'>|Себестойност|*:</td><td>[#primeCost#]</td></tr>
                 <!--ET_BEGIN primeCostWithOverheadCost--><tr><td style='font-weight:normal'>|С реж. разходи|*:</td><td>[#primeCostWithOverheadCost#]</td></tr><!--ET_END primeCostWithOverheadCost-->
                 <!--ET_BEGIN expenses--><tr><td style='font-weight:normal'>|Режийни разходи|*:</td><td>[#expenses#]</td></tr><!--ET_END expenses-->
-                <!--ET_BEGIN transferNotes--><tr><td style='font-weight:normal'>|Описания на артикулите|*:</td><td>[#transferNotes#]</td></tr><!--ET_END transferNotes-->
-                <!--ET_BEGIN transferBomNotes--><tr><td style='font-weight:normal'>|Забележки от рецептата|*:</td><td>[#transferBomNotes#]</td></tr><!--ET_END transferBomNotes-->
                 <tr><td style='font-weight:normal' colspan='2'><b>[#isComplete#]</b></td></tr>
                 </table>"));
 
         $resArr['info'] = array('name' => tr('Информация'), 'val' => tr("|*<table class='docHeaderVal'>
                 <!--ET_BEGIN showInProduct--><tr><td style='font-weight:normal'>|Показване в артикула|*:</td><td>[#showInProduct#]</td></tr><!--ET_END showInProduct-->
+                <!--ET_BEGIN transferInfo--><tr><td style='font-weight:normal'>|Пренасяне от рецептата|*:</td><td>[#transferInfo#]</td></tr><!--ET_END transferInfo-->
                 <tr><td style='font-weight:normal'>|Модифициранe|*:</td><td>[#modifiedOn#]</b> |от|* [#modifiedBy#]</td></tr>
                 <!--ET_BEGIN lastUpdatedDetailOn--><tr><td style='font-weight:normal'>|Промяна на детайл|*:</td><td>[#lastUpdatedDetailOn#]</td></tr><!--ET_END lastUpdatedDetailOn-->
                 <!--ET_BEGIN prototypeId--><tr><td style='font-weight:normal'>|Базирано на|*:</td><td>[#prototypeId#]</td></tr><!--ET_END prototypeId-->
