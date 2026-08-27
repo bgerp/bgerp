@@ -489,7 +489,7 @@ class spcheck_Dictionary extends core_Manager
             foreach ($textArr as $str) {
                 $str = trim($str);
                 
-                if (!$str || $checkStr[$str]) {
+                if (empty($str) || !empty($checkStr[$str])) {
                     continue;
                 }
                 
