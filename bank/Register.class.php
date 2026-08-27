@@ -131,6 +131,10 @@ class bank_Register extends core_Manager
 
         $ownBankAcc = bank_OwnAccounts::getTitleById($ownBankAccId);
 
+        if ($currencyCode = self::getCurrencyCodeByAccount($ownBankAccId)) {
+            $ownBankAcc .= ' ' . $currencyCode;
+        }
+
         $res = "<h3>{$valior}, {$ownBankAcc}</h3>";
 
         return $res;
@@ -151,6 +155,13 @@ class bank_Register extends core_Manager
         }
         if (!empty($rec->reason)) {
             $row->contragentName .= ($row->contragentName ? '<br>' : '') . '<small>' . $mvc->getVerbal($rec, 'reason') . '<small>';
+        }
+
+        // Валутата на трансакцията е тази на нашата сметка
+        $transCurrencyCode = self::getCurrencyCodeByAccount($rec->ownAccountId);
+
+        if (!empty($transCurrencyCode)) {
+            $row->amount .= ' <small>' . $transCurrencyCode . '</small>';
         }
 
         $row->amount .= '<br><small>' . mb_strtolower($mvc->getVerbal($rec, 'type')) . '</small>';
@@ -193,10 +204,10 @@ class bank_Register extends core_Manager
                                 $p->documentMvc->abbr . $p->number,
                                 array($p->documentMvc, 'Single', $p->documentId, 'ret_url' => true),
                                 null,
-                                array('title' => $p->documentMvc->singleTitle .' / ' . $p->amount)
+                                array('title' => $p->documentMvc->singleTitle . ' · ' . self::getAmountHint($p, $transCurrencyCode))
                             ) ;
                             $t .= $first ? '' : '<br>';
-                            $t .= $link->getContent();
+                            $t .= $link->getContent() . self::getMatchBadge($p);
                             $first = false;
                         }
                     }
@@ -258,10 +269,10 @@ class bank_Register extends core_Manager
                         $Doc->abbr . $d->documentId,
                         array($Doc, 'Single', $d->documentId, 'ret_url' => true),
                         null,
-                        array('title' => $Doc->singleTitle . ' / ' . $d->amount)
+                        array('title' => $Doc->singleTitle . ' · ' . self::getAmountHint($d, $transCurrencyCode))
                     );
 
-                    $row->info .= "<li><div style='display:inline-block;padding:3px;border-radius:3px;' class='{$state}'>" . $link->getContent() . '</div></li>';
+                    $row->info .= "<li><div style='display:inline-block;padding:3px;border-radius:3px;' class='{$state}'>" . $link->getContent() . '</div>' . self::getMatchBadge($d) . '</li>';
                 }
 
                 $row->info .= "</ul>\n";
@@ -269,6 +280,120 @@ class bank_Register extends core_Manager
         }
 
         $row->ROW_ATTR['style'] = ($row->ROW_ATTR['style'] ?? '') . "color:{$color};";
+    }
+
+
+    /**
+     * Кода на валутата на нашата сметка - мемоизирано, защото се вика на всеки ред от листа
+     *
+     * @param int $ownAccountId
+     *
+     * @return string|null
+     */
+    public static function getCurrencyCodeByAccount($ownAccountId)
+    {
+        static $cache = array();
+
+        if (empty($ownAccountId)) {
+
+            return null;
+        }
+
+        if (!array_key_exists($ownAccountId, $cache)) {
+            $currencyId = self::getCurrencyByAccount($ownAccountId);
+            $cache[$ownAccountId] = $currencyId ? currency_Currencies::getCodeById($currencyId) : null;
+        }
+
+        return $cache[$ownAccountId];
+    }
+
+
+    /**
+     * Подсказка за сумата на документа - в неговата валута и, при разлика, в тази на трансакцията
+     *
+     * @param stdClass    $d                 - документ от `matches`
+     * @param string|null $transCurrencyCode - валутата на трансакцията
+     *
+     * @return string
+     */
+    public static function getAmountHint($d, $transCurrencyCode)
+    {
+        $code = $d->currencyCode ?? null;
+        $res = number_format((float) ($d->amount ?? 0), 2, '.', '');
+
+        if (!empty($code)) {
+            $res .= ' ' . $code;
+
+            if (!empty($transCurrencyCode) && $code != $transCurrencyCode && isset($d->amountInTransCurrency)) {
+                $res .= ' (≈ ' . number_format((float) $d->amountInTransCurrency, 2, '.', '') . ' ' . $transCurrencyCode . ')';
+            }
+        }
+
+        return $res;
+    }
+
+
+    /**
+     * Бадж с оценката на съвпадението - сам разпознава кой алгоритъм я е записал
+     *
+     * Двете скали са различни и нарочно се показват различно: разнасянето по сделки и фактури
+     * трупа сурови точки (сборът може да мине 2.0, прагът е 0.5), а разнасянето по чакащи
+     * документи мери три величини в диапазон 0-1.
+     *
+     * @param stdClass $d - документ от `matches`
+     *
+     * @return string
+     */
+    public static function getMatchBadge($d)
+    {
+        $captions = array('number' => 'номер', 'amount' => 'сума', 'date' => 'дата', 'folder' => 'папка');
+
+        // Разнасяне по сделки и фактури - сурови точки с разбивка
+        if (isset($d->p) && !empty($d->pParts) && is_array($d->pParts)) {
+            $hint = array();
+            foreach ($d->pParts as $key => $value) {
+                $hint[] = tr($captions[$key] ?? $key) . ' ' . ($value > 0 ? '+' : '') . number_format((float) $value, 2, '.', '');
+            }
+
+            $caption = number_format((float) $d->p, 2, '.', '') . ' ' . tr('т.');
+            $level = ($d->p >= 1) ? 'good' : (($d->p >= 0.7) ? 'mid' : 'weak');
+
+            return self::renderBadge($caption, implode(' · ', $hint), $level);
+        }
+
+        // Разнасяне по чакащи банкови документи - трите метрики и кое правило е сработило
+        if (isset($d->p) && isset($d->rule)) {
+            $hint = tr('име') . ' ' . number_format((float) ($d->sameName ?? 0), 2, '.', '') .
+                ' · ' . tr('сума') . ' ' . number_format((float) ($d->sameSum ?? 0), 2, '.', '') .
+                ' · ' . tr('основание') . ' ' . number_format((float) ($d->hasReason ?? 0), 2, '.', '') .
+                ' (' . tr(($d->rule == 'reason') ? 'по основание и сума' : 'по име и сума') . ')';
+
+            $caption = round($d->p * 100) . '%';
+            $level = ($d->p >= 0.9) ? 'good' : (($d->p >= 0.7) ? 'mid' : 'weak');
+
+            return self::renderBadge($caption, $hint, $level);
+        }
+
+        return '';
+    }
+
+
+    /**
+     * Рендира бадж с оценка
+     *
+     * @param string $caption - какво пише в баджа
+     * @param string $hint    - разбивката, показва се като подсказка
+     * @param string $level   - good|mid|weak
+     *
+     * @return string
+     */
+    private static function renderBadge($caption, $hint, $level)
+    {
+        $colors = array('good' => '#2a7d4f', 'mid' => '#b8860b', 'weak' => '#888');
+        $color = $colors[$level] ?? $colors['weak'];
+        $hint = str_replace(array('"', '<', '>'), '', $hint);
+
+        return " <span style='background:{$color};color:#fff;padding:0 4px;border-radius:3px;font-size:0.85em;white-space:nowrap' title=\"{$hint}\">{$caption}</span>";
     }
 
 
@@ -310,8 +435,11 @@ class bank_Register extends core_Manager
     /**
      * Намира съответствията на документи и папки и ги записва в полето `matches`
      */
-    public static function findMatches($ids = null)
+    public static function findMatches($ids = null, $options = null)
     {
+        // Праг за приемане на съответствие - сбор от точки
+        $dealsMin = is_numeric($options->dealsMin ?? null) ? $options->dealsMin : 0.5;
+
         list($documents, $folderIds) = self::getDocuments();
         $folders = self::getFolders();
 
@@ -350,8 +478,7 @@ class bank_Register extends core_Manager
             $ourAcc = bank_OwnAccounts::fetch($rec->ownAccountId);
 
             // Валутата на трансакцията е тази на нашата сметка - импортът отхвърля извлеченията в друга валута
-            $transCurrencyId = self::getCurrencyByAccount($rec->ownAccountId);
-            $transCurrencyCode = $transCurrencyId ? currency_Currencies::getCodeById($transCurrencyId) : null;
+            $transCurrencyCode = self::getCurrencyCodeByAccount($rec->ownAccountId);
             $rates = array();
 
             // Намираме папката на контрагента по ИБАН-а
@@ -424,13 +551,17 @@ class bank_Register extends core_Manager
                 }
 
                 $p = 0;
+                $pParts = array();
 
                 // Номер на документа
                 if (strlen($d->number) && stripos($rec->reason, $d->number) !== false) {
-                    $p += max(0, 1 - 2.8 / strlen($d->number));
+                    $pNumber = max(0, 1 - 2.8 / strlen($d->number));
                     if (!empty($numbers[$d->number])) {
-                        $p += max(0, 1 - 1.3 / strlen($d->number));
+                        $pNumber += max(0, 1 - 1.3 / strlen($d->number));
                     }
+
+                    $p += $pNumber;
+                    $pParts['number'] = $pNumber;
                 }
 
                 // Сумата на документа
@@ -438,8 +569,10 @@ class bank_Register extends core_Manager
                 $delta = $maxAmount ? abs($docAmount - $rec->amount) / $maxAmount : 1;
                 if ($delta < 0.001) {
                     $p += 0.31;
+                    $pParts['amount'] = 0.31;
                 } elseif ($delta < 0.03) {
                     $p += 0.11;
+                    $pParts['amount'] = 0.11;
                 }
 
                 // Дата на докуемнта
@@ -448,8 +581,10 @@ class bank_Register extends core_Manager
 
                     if ($delta <= 24 * 60 * 60) {
                         $p += 0.32;
+                        $pParts['date'] = 0.32;
                     } elseif ($delta < 3 * 24 * 60 * 60) {
                         $p += 0.12;
+                        $pParts['date'] = 0.12;
                     }
                 }
 
@@ -458,14 +593,21 @@ class bank_Register extends core_Manager
                     list($folderName) = array_keys($folders, $d->folderId);
                     if (self::phraseDistance($folderName, $contragent) > 0.85) {
                         $p += 0.1;
+                        $pParts['folder'] = 0.1;
                     } else {
                         $p -= 0.2;
+                        $pParts['folder'] = -0.2;
                     }
                 }
 
-                if ($p >= 0.5) {
-                    $d->p = $p;
-                    $rec->matches['docs'][] = $d;
+                if ($p >= $dealsMin) {
+                    // Копие, защото масивът с документи е общ за всички трансакции
+                    $match = clone $d;
+                    $match->p = $p;
+                    $match->pParts = $pParts;
+                    $match->amountInTransCurrency = $docAmount;
+
+                    $rec->matches['docs'][] = $match;
                 }
             }
 
@@ -516,7 +658,11 @@ class bank_Register extends core_Manager
             }
 
 
-            self::save($rec);
+            if (self::isDryRun($options)) {
+                self::collectDryRun($options, $rec, array('folderId', 'bAcc', 'docs', 'rows'));
+            } else {
+                self::save($rec);
+            }
         }
 
         return $cnt;
@@ -542,6 +688,9 @@ class bank_Register extends core_Manager
         }
 
         $crossCurrency = (($options->crossCurrency ?? 'yes') != 'no');
+
+        // Праг за приемане на съответствие по име
+        $pendingMin = is_numeric($options->pendingMin ?? null) ? $options->pendingMin : 0.45;
 
         $where = "DATE(#valior) = '{$date}'";
         if (($options->onlyWaiting ?? 'yes') != 'no') {
@@ -649,16 +798,34 @@ class bank_Register extends core_Manager
                         $hasReason = self::sameNumb($reffs, $d->reffs);
 
                         // или името и сумата съвпадат, или основанието и сумата
-                        if ($sameName >= 0.45 && $sameSum >= 0.9) {
-                            $rec->matches['all'][$folderId][] = $d;
+                        if ($sameName >= $pendingMin && $sameSum >= 0.9) {
+                            $rule = 'name';
                         } elseif ($hasReason >= 0.9 && $sameSum >= 0.9) {
-                            $rec->matches['all'][$folderId][] = $d;
+                            $rule = 'reason';
+                        } else {
+                            continue;
                         }
+
+                        // Копие, защото масивът с документи е общ за всички трансакции
+                        $match = clone $d;
+                        $match->rule = $rule;
+                        $match->sameName = round($sameName, 2);
+                        $match->sameSum = round($sameSum, 2);
+                        $match->hasReason = round($hasReason, 2);
+
+                        // Оценката е по-слабото от двойката, задействала правилото
+                        $match->p = round(min($sameSum, ($rule == 'reason') ? $hasReason : $sameName), 2);
+
+                        $rec->matches['all'][$folderId][] = $match;
                     }
                 }
             }
 
-            self::save($rec, 'matches');
+            if (self::isDryRun($options)) {
+                self::collectDryRun($options, $rec, array('all'));
+            } else {
+                self::save($rec, 'matches');
+            }
 
             $res++;
         }
@@ -696,6 +863,8 @@ class bank_Register extends core_Manager
                     $o->amount = round($rec->amountDeal, 2);
                     $o->currencyId = $rec->dealCurrencyId;
                 }
+
+                $o->currencyCode = currency_Currencies::getCodeById($o->currencyId);
                 $o->folderId = $rec->folderId;
                 $o->threadId = $rec->threadId;
                 $o->documentMvc = $mvcName;
@@ -1167,6 +1336,12 @@ class bank_Register extends core_Manager
             $docs['T' . $rec->threadId] = $o;
         }
 
+        // Без нишки няма къде да търсим фактури и проформи, а `#threadId IN ()` е невалиден SQL
+        if (!countR($threads)) {
+
+            return array($docs, $folders);
+        }
+
         $threadIds = implode(',', $threads);
 
         $query = sales_Invoices::getQuery();
@@ -1353,17 +1528,21 @@ class bank_Register extends core_Manager
             tr('Чакащи банкови документи') . '</b> - ' .
             tr('търси във вече въведените приходни и разходни банкови документи, които чакат активиране') . '.</div>';
 
-        $form->FLD('method', 'enum(both=И двата,deals=Сделки и фактури,pending=Чакащи банкови документи)', 'caption=Алгоритъм->Избор,maxRadio=3,mandatory,silent,removeAndRefreshForm=crossCurrency');
+        $form->FLD('method', 'enum(both=И двата,deals=Сделки и фактури,pending=Чакащи банкови документи)', 'caption=Алгоритъм->Избор,maxRadio=3,mandatory,silent,removeAndRefreshForm=crossCurrency|dealsMin|pendingMin');
         $form->FLD('period', 'enum(day=Ден (по вальор),range=Период (по вальор),last24=Последните 24 часа (по въвеждане))', 'caption=Обхват->Период,maxRadio=3,mandatory,silent,removeAndRefreshForm=fromDate|toDate');
         $form->FLD('fromDate', 'date', 'caption=Обхват->Дата,silent');
         $form->FLD('toDate', 'date', 'caption=Обхват->До,silent');
         $form->FLD('onlyWaiting', 'enum(yes=Само чакащите,no=Всички)', 'caption=Обхват->Състояние,maxRadio=2,mandatory');
         $form->FLD('crossCurrency', 'enum(yes=Да,no=Не)', 'caption=Чакащи документи->Различни валути,maxRadio=2,mandatory');
+        $form->FLD('dealsMin', 'double(min=0,max=3,decimals=2)', 'caption=Прагове->Сделки и фактури,mandatory,hint=Минимален сбор точки за приемане на съответствие');
+        $form->FLD('pendingMin', 'double(min=0,max=1,decimals=2)', 'caption=Прагове->Чакащи документи,mandatory,hint=Минимално съвпадение на името за приемане на съответствие');
 
         $form->setDefault('method', 'both');
         $form->setDefault('period', 'day');
         $form->setDefault('onlyWaiting', 'yes');
         $form->setDefault('crossCurrency', 'yes');
+        $form->setDefault('dealsMin', 0.5);
+        $form->setDefault('pendingMin', 0.45);
         $form->setDefault('fromDate', Request::get('d', 'date') ?: dt::today());
 
         // Полетата за обхват зависят от избрания период, а валутите - от избрания алгоритъм
@@ -1382,9 +1561,14 @@ class bank_Register extends core_Manager
 
         if (($form->rec->method ?? 'both') == 'deals') {
             $form->setField('crossCurrency', 'input=none');
+            $form->setField('pendingMin', 'input=none');
+        } elseif (($form->rec->method ?? 'both') == 'pending') {
+            $form->setField('dealsMin', 'input=none');
         }
 
         $form->input();
+
+        $preview = '';
 
         if ($form->isSubmitted()) {
             $rec = $form->rec;
@@ -1396,41 +1580,61 @@ class bank_Register extends core_Manager
             if (!$form->gotErrors()) {
                 core_App::setTimeLimit(300);
 
+                // Пробното пускане само показва какво би се получило, без да пипа данните
+                $rec->dryRun = ($form->cmd == 'preview') ? 'yes' : 'no';
+
                 $res = self::matchByOptions($rec);
 
-                $this->logWrite('Разнасяне на банкови трансакции');
+                if ($rec->dryRun == 'yes') {
+                    $this->logInfo('Пробно разнасяне на банкови трансакции');
+                    $preview = $this->renderDryRun($res->recs);
+                } else {
+                    $this->logWrite('Разнасяне на банкови трансакции');
 
-                followRetUrl(array($this), "|Разнесени по сделки и фактури|*: {$res->deals}; |по чакащи банкови документи|*: {$res->pending}");
+                    followRetUrl(array($this), "|Разнесени по сделки и фактури|*: {$res->deals}; |по чакащи банкови документи|*: {$res->pending}");
+                }
             }
         }
 
-        $form->toolbar->addSbBtn('Разнасяне', 'save', 'ef_icon=img/16/briefcase.png, title=Намиране на съответствия');
+        $form->toolbar->addSbBtn('Разнасяне', 'save', 'ef_icon=img/16/briefcase.png, title=Намиране и записване на съответствията');
+        $form->toolbar->addSbBtn('Пробно', 'preview', 'ef_icon=img/16/find.png, title=Показва какво би се разнесло, без да записва');
         $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon=img/16/close-red.png, title=Прекратяване на действията');
 
-        return $this->renderWrapping($form->renderHtml());
+        $tpl = $form->renderHtml();
+
+        if (!empty($preview)) {
+            $tpl->append($preview);
+        }
+
+        return $this->renderWrapping($tpl);
     }
 
 
     /**
      * Изпълнява избраните от формата алгоритми за разнасяне
      *
-     * @param stdClass $options - method, period, fromDate, toDate, onlyWaiting, crossCurrency
+     * @param stdClass $options - method, period, fromDate, toDate, onlyWaiting, crossCurrency,
+     *                           dealsMin, pendingMin, dryRun
      *
-     * @return stdClass - deals, pending
+     * @return stdClass - deals, pending, recs (намереното при пробно пускане)
      */
     public static function matchByOptions($options)
     {
-        $res = (object) array('deals' => 0, 'pending' => 0);
+        // Клонираме, за да не пишем резултата в записа на формата
+        $options = clone $options;
+        $options->result = array();
+
+        $res = (object) array('deals' => 0, 'pending' => 0, 'recs' => array());
 
         $method = $options->method ?? 'both';
 
         // Разнасяне по сделките и техните фактури, проформи и платежни документи
         if ($method == 'both' || $method == 'deals') {
             if (($options->period ?? null) == 'last24') {
-                $res->deals = self::findMatches();
+                $res->deals = self::findMatches(null, $options);
             } else {
                 $ids = self::getRecIdsInPeriod($options);
-                $res->deals = countR($ids) ? self::findMatches($ids) : 0;
+                $res->deals = countR($ids) ? self::findMatches($ids, $options) : 0;
             }
         }
 
@@ -1441,7 +1645,105 @@ class bank_Register extends core_Manager
             }
         }
 
+        $res->recs = $options->result;
+
         return $res;
+    }
+
+
+    /**
+     * Пробно ли е пускането - тогава нищо не се записва
+     *
+     * @param stdClass|null $options
+     *
+     * @return bool
+     */
+    private static function isDryRun($options)
+    {
+        return !empty($options->dryRun) && $options->dryRun != 'no';
+    }
+
+
+    /**
+     * Събира намереното при пробно пускане, вместо да го записва
+     *
+     * Всеки алгоритъм пише в свои ключове на `matches`, затова се пренасят само те - иначе
+     * вторият алгоритъм би върнал в резултата остатъци от предишно, вече записано разнасяне.
+     *
+     * @param stdClass $options - опциите на разнасянето, в тях е и резултатът
+     * @param stdClass $rec     - записът с намерените съответствия
+     * @param array    $keys    - кои ключове на `matches` идват от този алгоритъм
+     *
+     * @return void
+     */
+    private static function collectDryRun($options, $rec, $keys)
+    {
+        if (!isset($options->result[$rec->id])) {
+            $copy = clone $rec;
+            $copy->matches = array();
+            $options->result[$rec->id] = $copy;
+        }
+
+        foreach ($keys as $key) {
+            if (isset($rec->matches[$key])) {
+                $options->result[$rec->id]->matches[$key] = $rec->matches[$key];
+            } else {
+                unset($options->result[$rec->id]->matches[$key]);
+            }
+        }
+    }
+
+
+    /**
+     * Рендира какво би се разнесло при пробно пускане
+     *
+     * @param array $recs
+     *
+     * @return string
+     */
+    private function renderDryRun($recs)
+    {
+        $maxRows = 200;
+        $count = countR($recs);
+        $withMatches = $shown = 0;
+        $rows = '';
+
+        foreach ($recs as $rec) {
+            $hasMatch = !empty($rec->matches['docs']) || !empty($rec->matches['all']) || !empty($rec->matches['folderId']);
+            if ($hasMatch) {
+                $withMatches++;
+            }
+
+            if ($shown >= $maxRows) {
+                continue;
+            }
+            $shown++;
+
+            $row = $this->recToVerbal($rec);
+            $info = !empty($row->info) ? $row->info : '<i>' . tr('няма съвпадение') . '</i>';
+            $account = bank_OwnAccounts::getTitleById($rec->ownAccountId);
+
+            $rows .= '<tr><td>' . ($row->valior ?? '') . "<br><small>{$account}</small></td>" .
+                "<td style='text-align:right'>" . ($row->amount ?? '') . '</td>' .
+                '<td>' . ($row->contragentName ?? '') . '</td>' .
+                "<td>{$info}</td></tr>";
+        }
+
+        $head = '<h3>' . tr('Пробно пускане') . '</h3><p>' . tr('Прегледани') . ": {$count}, " .
+            tr('с предложения') . ": {$withMatches}. <b>" . tr('Нищо не е записано') . '.</b></p>';
+
+        if ($count > $shown) {
+            $head .= '<p><i>' . tr('Показани са само първите') . " {$shown} " . tr('записа') . '.</i></p>';
+        }
+
+        if (!$shown) {
+
+            return "<div style='margin:10px'>{$head}</div>";
+        }
+
+        return "<div style='margin:10px'>{$head}<table class='listTable' style='font-size:0.9em'>" .
+            '<tr><th>' . tr('Вальор') . '</th><th>' . tr('Сума') . '</th><th>' . tr('Контрагент') .
+            '</th><th>' . tr('Осчетоводяване') . "</th></tr>{$rows}</table></div>";
     }
 
 
