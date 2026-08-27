@@ -338,9 +338,6 @@ class hr_EmployeeContracts extends core_Master
         if ((!$rec->salaryBase || !$rec->forYearsOfService || !$rec->compensations) &&
             (!$rec->annualLeave || !$rec->notice || !$rec->probation)) {
 
-            // Професията
-            $row->positionsId = $positionRow->professionId;
-
             $positionSalaryBase = currency_CurrencyRates::convertAmount($positionRec->salaryBase, null, null, $rec->currencyId);
             $row->salaryBase = core_Type::getByName('double(decimals=2)')->toVerbal($positionSalaryBase);
             
@@ -363,8 +360,8 @@ class hr_EmployeeContracts extends core_Master
             $row->probation = $positionRow->probation;
         }
         
-        // Професията
-        $row->positionsId = $positionRow->professionId;
+        // Длъжността
+        $row->positionsId = $positionRow->name;
         
         // Период на изплащане на възнаграждението
         $row->frequensity = $positionRow->frequensity;
