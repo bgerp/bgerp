@@ -631,7 +631,7 @@ class hr_EmployeeContracts extends core_Master
         $options = array();
         $groupId = crm_Groups::fetchField("#sysId = 'managers'", 'id');
         $personQuery = crm_Persons::getQuery();
-        $personQuery->where("#groupList LIKE '%|{$groupId}|%'");
+        plg_ExpandInput::applyExtendedInputSearch('crm_Persons', $personQuery, $groupId);
         
         while ($personRec = $personQuery->fetch()) {
             $options[$personRec->id] = crm_Persons::getVerbal($personRec, 'name');

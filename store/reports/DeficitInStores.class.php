@@ -174,7 +174,7 @@ class store_reports_DeficitInStores extends frame2_driver_TableData
                     $details += array('code' => array(), 'name' => array(), 'minQuantity' => array(), 'maxQuantity' => array());
                     $grDetails = array('code' => array(), 'name' => array(), 'minQuantity' => array(), 'maxQuantity' => array());
                     
-                    $rQuery->where("#groups Like'%|{$rec->groupId}|%'");
+                    plg_ExpandInput::applyExtendedInputSearch('cat_Products', $rQuery, $rec->groupId);
                     
                     while ($grProduct = $rQuery->fetch()) {
                         $grDetails['code'][] = $grProduct->code;

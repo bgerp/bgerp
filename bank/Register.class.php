@@ -806,4 +806,14 @@ class bank_Register extends core_Manager
 
         $data->query->orderBy('#valior=DESC,ownAccountId,id');
     }
+
+
+    public function act_Match()
+    {
+        requireRole('admin,ceo,bank');
+
+        $res = self::findMatches();
+
+        return new Redirect(array('bank_register'), "Обработени {$res} записа");
+    }
 }

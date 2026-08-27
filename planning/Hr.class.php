@@ -420,10 +420,9 @@ class planning_Hr extends core_Master
             $objectIds = arr::extractValuesFromArray($fQuery->fetchAll(), 'objectId');
 
             $query = static::getQuery();
-            $query->EXT('groupList', 'crm_Persons', 'externalName=groupList,externalKey=personId');
             $query->EXT('state', 'crm_Persons', 'externalName=state,externalKey=personId');
             $query->EXT('name', 'crm_Persons', 'externalName=name,externalKey=personId');
-            $query->like('groupList', "|{$employeeGroupId}|");
+            plg_ExpandInput::applyExtendedInputSearch('crm_Persons', $query, $employeeGroupId, 'personId');
             $query->where("#state != 'rejected' && #state != 'closed'");
 
             $query->show('personId,code');

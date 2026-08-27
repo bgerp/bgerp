@@ -1289,7 +1289,8 @@ class cat_Products extends embed_Manager
             $sQuery->show('productId');
             $productWithAssets = arr::extractValuesFromArray($sQuery->fetchAll(), 'productId');
             $replacementsGroupId = cat_Groups::fetchField("#sysId = 'replacements'");
-            $wherePartNine = "#canStore = 'yes' AND #canConvert = 'yes' AND LOCATE('|{$replacementsGroupId}|', #groups)";
+            $wherePartNine = "#canStore = 'yes' AND #canConvert = 'yes'";
+            plg_ExpandInput::applyExtendedInputSearch('cat_Products', $query, $replacementsGroupId, $productIdFld);
             if(countR($productWithAssets)) {
                 $productWithAssetsStr = implode(',', $productWithAssets);
                 $wherePartNine .= " AND #id NOT IN ($productWithAssetsStr)";

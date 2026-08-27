@@ -1426,15 +1426,26 @@ class frame2_Reports extends embed_Manager
     protected static function on_AfterPrepareListFilter($mvc, &$res, $data)
     {
         $data->listFilter->FLD('user', 'user(rolesForAll=ceo, rolesForTeams=manager|officer, roles=executive, allowEmpty)', 'caption=Потребител,placeholderType=all');
+        $data->listFilter->FNC('dateFrom', 'date', 'input,caption=От');
+        $data->listFilter->FNC('dateTo', 'date', 'input,caption=До');
         $data->listFilter->setField('driverClass', 'placeholderType=all');
-        $data->listFilter->showFields = 'search, driverClass, user';
-        $data->listFilter->view = 'horizontal';
+        $data->listFilter->showFields = 'search, driverClass, user, dateFrom, dateTo';
+        $data->listFilter->class = 'simpleForm';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
         
         $data->listFilter->input();
         $rec = $data->listFilter->rec;
         if ($rec->driverClass ?? null) {
             $data->query->where(array("#driverClass = '[#1#]'", $rec->driverClass));
+        }
+
+        // Филтър по време на последното обновяване
+        if (!empty($rec->dateFrom)) {
+            $data->query->where(array("#lastRefreshed >= '[#1#] 00:00:00'", $rec->dateFrom));
+        }
+
+        if (!empty($rec->dateTo)) {
+            $data->query->where(array("#lastRefreshed <= '[#1#] 23:59:59'", $rec->dateTo));
         }
 
         if ($rec->user ?? null) {

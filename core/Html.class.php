@@ -837,7 +837,7 @@ class core_Html
         self::addAccessKey($attr, $title);
 
         if (is_array($cmd) && !isset($attr['name'])) {
-            wp('За CMD се подава масив: ', $cmd);
+//            wp('За CMD се подава масив: ', $cmd);
             $cmd = $cmd[1] ?? $cmd[0] ?? '';
         }
 
