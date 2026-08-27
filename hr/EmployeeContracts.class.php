@@ -176,7 +176,7 @@ class hr_EmployeeContracts extends core_Master
         
         
         // Служител
-        $this->FLD('personId', 'key(mvc=crm_Persons,select=name,group=employees)', 'caption=Служител->Имена, mandatory');
+        $this->FLD('personId', 'key2(mvc=crm_Persons,select=name,group=employees)', 'caption=Служител->Имена, mandatory');
         $this->FLD('education', 'varchar', 'caption=Служител->Образование');
         $this->FLD('specialty', 'varchar', 'caption=Служител->Специалност');
         $this->FLD('diplomId', 'varchar', 'caption=Служител->Диплома №');
@@ -605,7 +605,7 @@ class hr_EmployeeContracts extends core_Master
             $form->setError(
                 'dateId',
                     'Не може да се запише трудов договор с дата по-малка от последния активен трудов договор (' .
-                    dt::mysql2verbal($getNewestContractRec->date, 'd.m.y') .
+                    dt::mysql2verbal($newDate, 'd.m.y') .
                     ')'
             );
         }
@@ -623,7 +623,7 @@ class hr_EmployeeContracts extends core_Master
         $query->limit(1);
         $lastRec = $query->fetch();
         
-        return $lastRec->dateId;
+        return !empty($lastRec) ? $lastRec->dateId : null;
     }
     
     
