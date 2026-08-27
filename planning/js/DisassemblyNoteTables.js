@@ -80,6 +80,14 @@ function syncDisassemblyNoteTableGroup(tables)
                     var widthPerColumn = Math.ceil(measureDisassemblyCell(header) / colspan);
                     var headerText = $.trim(header.text());
 
+                    // При празна таблица единственият td е съобщението с colspan.
+                    // Тогава намираме колоната на артикула от нейното заглавие.
+                    var isProductHeader = header.hasClass('productCell')
+                        || /(артикул|субпродукт|отпадъ)/i.test(headerText);
+                    if (productColumn === undefined && colspan == 1 && isProductHeader) {
+                        productColumn = logicalColumn;
+                    }
+
                     if (colspan == 1 && wrappedColumns[logicalColumn]) {
                         header.css({
                             'white-space': 'normal',
