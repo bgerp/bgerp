@@ -191,7 +191,7 @@ class newsbar_Plugin extends core_Plugin
             return ;
         }
         
-        if (!$data->rec->id) {
+        if (empty($data->rec->id)) {
             
             return ;
         }
@@ -204,7 +204,7 @@ class newsbar_Plugin extends core_Plugin
             }
             $eshopGroupsArr = type_Keylist::toArray($nRec->eshopGroups);
             
-            if (!$eshopGroupsArr[$data->rec->id]) {
+            if (empty($eshopGroupsArr[$data->rec->id])) {
                 continue;
             }
             
@@ -235,7 +235,7 @@ class newsbar_Plugin extends core_Plugin
             }
             $eshopGroupsArr = type_Keylist::toArray($nRec->eshopProducts);
             
-            if (!$eshopGroupsArr[$data->rec->id]) {
+            if (empty($eshopGroupsArr[$data->rec->id])) {
                 continue;
             }
             
