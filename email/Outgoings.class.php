@@ -1792,7 +1792,7 @@ class email_Outgoings extends core_Master
             
             core_Lg::pop();
             
-            $recEmailsArr = type_Emails::toArray($rec->email);
+            $recEmailsArr = type_Emails::toArray($rec->email ?? null);
 
             // Ако не отговаряме на конкретен имейл, премахваме нашите имейли
             if (!$emailTo) {
