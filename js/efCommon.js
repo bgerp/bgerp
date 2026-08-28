@@ -2203,7 +2203,7 @@ function markElementsForRefresh() {
  * Името е с префикс render_, за да може да се вика и през efae (runAfterAjax).
  */
 function render_alignFormFilterButtons() {
-    $('.form-filter-btn').each(function () {
+    $('.form-filter-btn, .listFilter .formToolbar').each(function () {
         var $buttonHolder = $(this);
         var $caption = $buttonHolder.closest('form').find('.formFieldCaption:visible').first();
 
