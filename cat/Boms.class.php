@@ -359,56 +359,6 @@ class cat_Boms extends core_Master
 
         return !empty($notes) ? "{$notes}\n\n{$transferredNotes}" : $transferredNotes;
     }
-
-
-    /**
-     * Показва настройките за пренасяне от рецептата в информационен балон
-     */
-    public function act_ShowTransferInfo()
-    {
-        expect(Request::get('ajax_mode'));
-        $this->requireRightFor('single');
-        expect($id = Request::get('id', 'int'));
-        expect($rec = $this->fetchRec($id));
-        $this->requireRightFor('single', $rec);
-
-        $row = new stdClass();
-        foreach (array('transferNotes' => 'BOM_TRANSFER_NOTES', 'transferBomNotes' => 'BOM_TRANSFER_RECIPE_NOTES') as $field => $configKey) {
-            $row->{$field} = static::getTransferSettingVerbal($this, $rec, $field, $configKey);
-        }
-
-        $tpl = new core_ET(tr("|*<table>
-            <tr><td class='aright' style='font-weight:normal'>|Описания на артикулите|*:</td><td>[#transferNotes#]</td></tr>
-            <tr><td class='aright' style='font-weight:normal'>|Забележки от рецептата|*:</td><td>[#transferBomNotes#]</td></tr>
-        </table>"));
-        $tpl->placeObject($row);
-
-        $resObj = new stdClass();
-        $resObj->func = 'html';
-        $resObj->arg = array('id' => static::getTransferInfoElementId($id), 'html' => $tpl->getContent(), 'replace' => true);
-
-        $hintObj = new stdClass();
-        $hintObj->func = 'makeTooltipFromTitle';
-
-        return array($resObj, $hintObj);
-    }
-
-
-    /**
-     * Връща вербалната стойност на настройка за пренасяне от рецептата
-     */
-    private static function getTransferSettingVerbal($mvc, $rec, $field, $configKey)
-    {
-        $value = static::getTransferSettingValue($rec, $field, $configKey);
-        $verbal = $mvc->getFieldType($field)->toVerbal($value);
-        if (($rec->{$field} ?? 'auto') != 'auto') return $verbal;
-
-        $verbal = "<span class='blueText'>{$verbal}</span>";
-
-        return ht::createHint($verbal, 'Стойността е автоматично определена', 'notice', false);
-    }
-
-
     /**
      * Връща ефективната стойност на настройка за пренасяне от рецептата
      */
@@ -418,15 +368,6 @@ class cat_Boms extends core_Master
         $value = ($value == 'auto') ? planning_Setup::get($configKey) : $value;
 
         return ($value == 'both') ? 'yes' : $value;
-    }
-
-
-    /**
-     * Връща id на контейнера за информационния балон
-     */
-    private static function getTransferInfoElementId($id)
-    {
-        return "bomTransferInfo{$id}";
     }
     
     
@@ -804,18 +745,24 @@ class cat_Boms extends core_Master
                     $row->isComplete = ht::createHint($row->isComplete, 'Стойността е автоматично определена', 'notice', false);
                 }
 
-                $transferValues = array();
+                $transferValues = $transferHint = array();
                 foreach (array('transferNotes' => 'BOM_TRANSFER_NOTES', 'transferBomNotes' => 'BOM_TRANSFER_RECIPE_NOTES') as $field => $configKey) {
                     $transferValues[$field] = static::getTransferSettingValue($rec, $field, $configKey);
-                    $row->{$field} = static::getTransferSettingVerbal($mvc, $rec, $field, $configKey);
+                    $transferHint[$field] = "<b>{$mvc->getFieldType($field)->toVerbal($transferValues[$field])}</b>";
+                    if (($rec->{$field} ?? 'auto') == 'auto') {
+                        $transferHint[$field] = "<span class='blueText'>{$transferHint[$field]} <span style='font-weight:normal'>(" . tr('автом.') . ')</span></span>';
+                    }
                 }
 
                 if (!Mode::is('printing') && !Mode::is('pdf') && !Mode::is('text', 'xhtml') && !Mode::is('text', 'plain')) {
-                    $elementId = static::getTransferInfoElementId($rec->id);
-                    $tooltipUrl = toUrl(array($mvc, 'ShowTransferInfo', $rec->id), 'local');
-                    $arrow = ht::createHint('', 'Настройки за пренасяне от рецептата__BR__(клик за преглед)', 'notice', false, array('data-useCache' => 1), array('class' => 'tooltip-arrow-link', 'data-url' => $tooltipUrl, 'style' => 'cursor:pointer;margin-left:2px;margin-right:4px'));
-                    $arrow = str_replace('__BR__', '&lt;br&gt;', $arrow->getContent());
-                    $row->transferInfo = "<span class='additionalInfo-holder'><span class='additionalInfo' id='{$elementId}'></span>{$arrow}</span>";
+                    $hint = new core_ET(tr("|*<table>
+                        <tr><td class='aright' style='font-weight:normal'>|Описания на артикулите|*:</td><td>[#transferNotes#]</td></tr>
+                        <tr><td class='aright' style='font-weight:normal'>|Забележки от рецептата|*:</td><td>[#transferBomNotes#]</td></tr>
+                    </table>"));
+                    $hint->placeArray($transferHint);
+                    $icon = ht::createElement('img', array('src' => sbf('img/32/info-gray.png', '')));
+                    $icon = ht::createElement('span', array('class' => 'frontTooltip', 'style' => 'position:relative;top:2px'), $icon, true);
+                    $row->transferInfo = "<span class='additionalInfo-holder bomTransferInfo' style='margin-left:2px;margin-right:4px'><span class='additionalInfo left'>{$hint}</span>{$icon}</span>";
 
                     if (countR(array_unique($transferValues)) == 1) {
                         $commonValue = reset($transferValues);
