@@ -756,8 +756,8 @@ class cat_Boms extends core_Master
 
                 if (!Mode::is('printing') && !Mode::is('pdf') && !Mode::is('text', 'xhtml') && !Mode::is('text', 'plain')) {
                     $hint = new core_ET(tr("|*<table>
-                        <tr><td class='aright' style='font-weight:normal'>|Описания на артикулите|*:</td><td>[#transferNotes#]</td></tr>
-                        <tr><td class='aright' style='font-weight:normal'>|Забележки от рецептата|*:</td><td>[#transferBomNotes#]</td></tr>
+                        <tr><td class='aright' style='font-weight:normal'>|Описанията на артикулите|*:</td><td>[#transferNotes#]</td></tr>
+                        <tr><td class='aright' style='font-weight:normal'>|Забележката от рецептата|*:</td><td>[#transferBomNotes#]</td></tr>
                     </table>"));
                     $hint->placeArray($transferHint);
                     $icon = ht::createElement('img', array('src' => sbf('img/32/info-gray.png', '')));
