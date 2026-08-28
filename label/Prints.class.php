@@ -854,9 +854,9 @@ class label_Prints extends core_Master
 
         // Източникът се избира от потребителя
         $data->listFilter->FNC('author', 'users(rolesForAll=labelMaster|ceo|admin|seeLabelAllGlobal, rolesForTeams=label|ceo|admin|seeLabelAll)', 'caption=От, refreshForm');
-        $data->listFilter->setField('classId', 'caption=Източник->Клас, input, placeholderType=all, silent');
+        $data->listFilter->setField('classId', 'caption=Клас, input, placeholderType=all, silent');
         $data->listFilter->setFieldTypeParams('classId', array('allowEmpty' => 'allowEmpty'));
-        $data->listFilter->setField('objectId', 'caption=Източник->Обект, input, silent');
+        $data->listFilter->setField('objectId', 'caption=Обект, input, silent');
 
         $data->listFilter->showFields = 'author, search, templateId, mediaId, classId, objectId';
 
