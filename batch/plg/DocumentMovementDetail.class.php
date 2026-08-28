@@ -73,10 +73,12 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
             if ($BatchClass) {
                 $valiorFld = isset($mvc->Master) ? $mvc->Master->valiorFld : $mvc->valiorFld;
                 if ($BatchClass->isDocumentDateDependent() && isset($valiorFld)) {
-                    $form->setField($valiorFld, 'removeAndRefreshForm=batch');
-                    $requestValior = Request::get($valiorFld, 'date');
-                    if (isset($requestValior)) {
-                        $rec->{$valiorFld} = $requestValior;
+                    if($form->getField($valiorFld, false)){
+                        $form->setField($valiorFld, 'removeAndRefreshForm=batch');
+                        $requestValior = Request::get($valiorFld, 'date');
+                        if (isset($requestValior)) {
+                            $rec->{$valiorFld} = $requestValior;
+                        }
                     }
                 }
 
