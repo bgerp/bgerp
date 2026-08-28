@@ -1863,8 +1863,7 @@ input:focus[type=button] {
     font-weight: bold !important;
     color: black !important;
     background: none !important;
-    border: none !important;
-    margin: 0 !important; }
+    border: none !important; }
 
 .wide #main-container .formTable .formElement {
   min-width: 32em; }
