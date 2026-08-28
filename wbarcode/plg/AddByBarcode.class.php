@@ -19,6 +19,10 @@
  *      $wbarcodeTypeFld      - поле за тип на реда, ако детайлът има такова; когато е зададено,
  *                              формата за сканиране показва и избор на тип
  *
+ * Ако детайлът дефинира getWbarcodeScanStage_($masterId) и той върне етап на мастъра, формата
+ * за сканиране показва и избор дали к-то да се заменя, или да се натрупва. Автоматично първото
+ * сканиране на реда в етапа заменя, а следващите натрупват.
+ *
  * @category  bgerp
  * @package   wbarcode
  *
@@ -49,9 +53,37 @@ class wbarcode_plg_AddByBarcode extends core_Plugin
 
 
     /**
-     * Променлива в сесията с последно сканирания баркод
+     * Променлива в сесията с последното сканиране - баркод, к-во и режим
      */
     const CODE_VAR = 'wbarcodeLastCode';
+
+
+    /**
+     * Променлива в сесията с редовете, сканирани в текущия етап
+     */
+    const SCANNED_VAR = 'wbarcodeScanned';
+
+
+    /**
+     * Полето във формата за сканиране с режима на количеството
+     */
+    const MODE_FLD = 'wbarcodeMode';
+
+
+    /**
+     * Етапът, в който е мастърът - по подразбиране детайлът не е на етапи
+     *
+     * Мениджърът-домакин дефинира getWbarcodeScanStage_($masterId), ако има етапи
+     *
+     * @param core_Detail $mvc
+     * @param string|null $res
+     * @param int         $masterId
+     *
+     * @return void
+     */
+    public static function on_AfterGetWbarcodeScanStage($mvc, &$res, $masterId)
+    {
+    }
 
 
     /**
@@ -121,6 +153,11 @@ class wbarcode_plg_AddByBarcode extends core_Plugin
         // Името на полето и id-то на формата са като очакваните от wscales, за да може после
         // теглото да дойде и от везна - връзката с реална везна още не е проверявана
         $form->FNC(static::getWeightFld($mvc), 'double(min=0)', 'caption=Тегло,input,unit=кг,hint=Замества теглото от баркода');
+
+        // В етап на заявката к-то може и да се натрупва, вместо да заменя досегашното
+        if (!empty($mvc->getWbarcodeScanStage($masterId))) {
+            $form->FNC(self::MODE_FLD, 'enum(auto=Автоматично,replace=Замяна,add=Натрупване)', 'maxRadio=0,caption=Повторно сканиране,input,silent,value=auto,hint=Как се записва к-то при артикул, който вече е в документа');
+        }
         $form->formAttr['id'] = $mvc->className . '-EditForm';
 
         $form->input(null, 'silent');
@@ -135,7 +172,7 @@ class wbarcode_plg_AddByBarcode extends core_Plugin
         }
 
         $form->title = 'Добавяне по баркод в|*' . ' <b>' . $mvc->Master->getFormTitleLink($masterId) . '</b>';
-        $form->info = static::getLastRowInfo($mvc, $masterId);
+        $form->info = static::getScanInfo($mvc, $masterId);
         $form->toolbar->addSbBtn('Напред', 'save', 'id=save,ef_icon=img/16/move.png', 'title=Разчитане на баркода и записване на реда');
         $form->toolbar->addBtn('Отказ', $retUrl, 'id=cancel,ef_icon=img/16/close-red.png', 'title=Прекратяване на действията');
 
@@ -250,8 +287,21 @@ class wbarcode_plg_AddByBarcode extends core_Plugin
         $typeFld = $mvc->wbarcodeTypeFld ?? null;
         $type = !empty($typeFld) ? $form->rec->{$typeFld} : null;
 
-        // Артикулът вече е в документа - количеството на първия му ред се заменя с новото
+        // Артикулът вече е в документа - количеството на първия му ред се заменя или се натрупва
         $existingRec = static::fetchExistingRec($mvc, $masterId, $productRec->productId, $productRec->measureId, $type);
+
+        $mode = static::getQuantityMode($mvc, $form, $masterId, $existingRec);
+        $scannedQuantity = $quantity;
+
+        if ($mode == 'add') {
+            $oldQuantity = $existingRec->{$mvc->wbarcodeQuantityFld} ?? null;
+            if (isset($oldQuantity)) {
+                $quantity += $oldQuantity;
+                if (isset($round)) {
+                    $quantity = round($quantity, $round);
+                }
+            }
+        }
 
         // Правата се проверяват пак, защото при детайл с тип те зависят от избрания тип
         $action = isset($existingRec) ? 'edit' : 'add';
@@ -270,6 +320,9 @@ class wbarcode_plg_AddByBarcode extends core_Plugin
         if (!empty($typeFld)) {
             $backUrl[$typeFld] = $type;
         }
+        if (!empty($form->rec->{self::MODE_FLD})) {
+            $backUrl[self::MODE_FLD] = $form->rec->{self::MODE_FLD};
+        }
         if ($retUrl = getRetUrl()) {
             $backUrl['ret_url'] = $retUrl;
         }
@@ -277,7 +330,7 @@ class wbarcode_plg_AddByBarcode extends core_Plugin
         $mvc->Master->logWrite('Въвеждане на тегловен код', $masterId);
 
         // Баркодът не се пази в реда, затова се помни в сесията за инфото на следващата форма
-        Mode::setPermanent(self::CODE_VAR, $barcode);
+        Mode::setPermanent(self::CODE_VAR, array('code' => $barcode, 'quantity' => $scannedQuantity, 'mode' => $mode));
 
         $existingId = isset($existingRec) ? $existingRec->id : null;
         $url = array($mvc, $action,
@@ -297,6 +350,158 @@ class wbarcode_plg_AddByBarcode extends core_Plugin
         }
 
         redirect($url);
+    }
+
+
+    /**
+     * Заменя ли се к-то на съществуващия ред, или се натрупва
+     *
+     * @param core_Detail   $mvc
+     * @param core_Form     $form
+     * @param int           $masterId
+     * @param stdClass|null $existingRec
+     *
+     * @return string - replace|add
+     */
+    private static function getQuantityMode($mvc, $form, $masterId, $existingRec)
+    {
+        if (empty($existingRec)) {
+
+            return 'replace';
+        }
+
+        // Без етапи се работи както преди - винаги замяна
+        if (empty($mvc->getWbarcodeScanStage($masterId))) {
+
+            return 'replace';
+        }
+
+        $mode = $form->rec->{self::MODE_FLD} ?? 'auto';
+        if ($mode != 'auto') {
+
+            return $mode;
+        }
+
+        // Първото сканиране на реда в етапа заменя пренесеното к-то, следващите го натрупват
+        $scanned = static::getScannedIds($mvc, $masterId);
+
+        return isset($scanned[$existingRec->id]) ? 'add' : 'replace';
+    }
+
+
+    /**
+     * Ключ на сесийната памет със сканираните редове - при смяна на етапа тя се занулява
+     *
+     * @param core_Detail $mvc
+     * @param int         $masterId
+     *
+     * @return string
+     */
+    private static function getScanKey($mvc, $masterId)
+    {
+        $stage = $mvc->getWbarcodeScanStage($masterId);
+
+        return "{$mvc->className}|{$masterId}|{$stage}";
+    }
+
+
+    /**
+     * Ид-та на редовете, вече сканирани в текущия етап
+     *
+     * @param core_Detail $mvc
+     * @param int         $masterId
+     *
+     * @return array
+     */
+    private static function getScannedIds($mvc, $masterId)
+    {
+        $scanned = Mode::get(self::SCANNED_VAR);
+        if (!is_array($scanned) || ($scanned['key'] ?? null) !== static::getScanKey($mvc, $masterId)) {
+
+            return array();
+        }
+
+        return $scanned['ids'];
+    }
+
+
+    /**
+     * Отбелязва реда като сканиран в текущия етап
+     *
+     * @param core_Detail $mvc
+     * @param int         $id
+     *
+     * @return void
+     */
+    private static function markScanned($mvc, $id)
+    {
+        $rec = $mvc->fetch($id, "id,{$mvc->masterKey}");
+        if (empty($rec)) {
+
+            return;
+        }
+
+        $masterId = $rec->{$mvc->masterKey};
+        $ids = static::getScannedIds($mvc, $masterId);
+        $ids[$id] = $id;
+
+        Mode::setPermanent(self::SCANNED_VAR, array('key' => static::getScanKey($mvc, $masterId), 'ids' => $ids));
+    }
+
+
+    /**
+     * Общото к-во на сканираните досега редове, по мерки
+     *
+     * @param core_Detail $mvc
+     * @param int         $masterId
+     *
+     * @return string|null
+     */
+    private static function getScannedTotal($mvc, $masterId)
+    {
+        $ids = static::getScannedIds($mvc, $masterId);
+
+        // При един сканиран ред общото е к-то, което вече се показва
+        if (countR($ids) < 2) {
+
+            return null;
+        }
+
+        $query = $mvc->getQuery();
+        $query->where("#{$mvc->masterKey} = {$masterId}");
+        $query->in('id', $ids);
+        if ($mvc->getField('state', false)) {
+            $query->where("#state != 'rejected'");
+        }
+
+        $sum = array();
+        while ($rec = $query->fetch()) {
+            if (!isset($rec->{$mvc->wbarcodeQuantityFld})) {
+
+                continue;
+            }
+
+            $quantity = $rec->{$mvc->wbarcodeQuantityFld};
+            $measureId = $rec->{$mvc->wbarcodePackagingFld};
+            if (!isset($sum[$measureId])) {
+                $sum[$measureId] = 0;
+            }
+            $sum[$measureId] += $quantity;
+        }
+
+        if (empty($sum)) {
+
+            return null;
+        }
+
+        // Мерките не се събират една с друга, а се изреждат
+        $Double = core_Type::getByName('double(smartRound)');
+        $parts = array();
+        foreach ($sum as $measureId => $quantity) {
+            $parts[] = '<b>' . $Double->toVerbal($quantity) . '</b> ' . cat_UoM::getShortName($measureId);
+        }
+
+        return tr('|Общо сканирано|*:') . ' ' . implode(', ', $parts) . ' (' . countR($ids) . ' ' . tr('реда') . ')';
     }
 
 
@@ -458,13 +663,49 @@ class wbarcode_plg_AddByBarcode extends core_Plugin
         $code = ht::createLink('[' . cat_Products::getVerbal($productRec, 'code') . ']', cat_Products::getSingleUrlArray($productId));
         $name = cat_Products::getVerbal($productId, 'name');
 
-        $quantity = core_Type::getByName('double(smartRound)')->toVerbal($rec->{$mvc->wbarcodeQuantityFld});
+        $Double = core_Type::getByName('double(smartRound)');
+        $quantity = $Double->toVerbal($rec->{$mvc->wbarcodeQuantityFld});
         $measure = cat_UoM::getShortName($rec->{$mvc->wbarcodePackagingFld});
 
-        $barcode = core_Type::escape(Mode::get(self::CODE_VAR));
-        $barcode = !empty($barcode) ? "<b>{$barcode}</b> &rarr; " : '';
+        $last = Mode::get(self::CODE_VAR);
+        if (!is_array($last)) {
+            $last = array();
+        }
+        $barcode = !empty($last['code']) ? '<b>' . core_Type::escape($last['code']) . '</b> &rarr; ' : '';
 
-        return "<div class='formCustomInfo'>" . tr('|Последно|*:') . " {$barcode}{$code} {$name} &rarr; <b>{$quantity}</b> {$measure}</div>";
+        // При натрупване се показва и сканираното к-во, за да е ясно от какво е станало общото
+        $added = '';
+        if (!empty($last['mode']) && $last['mode'] == 'add' && !empty($last['quantity'])) {
+            $added = '<b>+' . $Double->toVerbal($last['quantity']) . "</b> {$measure} &rarr; " . tr('общо') . ' ';
+        }
+
+        return "<div>" . tr('|Последно|*:') . " {$barcode}{$code} {$name} &rarr; {$added}<b>{$quantity}</b> {$measure}</div>";
+    }
+
+
+    /**
+     * Инфото на формата за сканиране - последният ред и общото сканирано к-во
+     *
+     * @param core_Detail $mvc
+     * @param int         $masterId
+     *
+     * @return string|null
+     */
+    private static function getScanInfo($mvc, $masterId)
+    {
+        $info = static::getLastRowInfo($mvc, $masterId);
+
+        $total = static::getScannedTotal($mvc, $masterId);
+        if (!empty($total)) {
+            $info .= "<div>{$total}</div>";
+        }
+
+        if (empty($info)) {
+
+            return null;
+        }
+
+        return "<div class='formCustomInfo'>{$info}</div>";
     }
 
 
@@ -533,6 +774,7 @@ class wbarcode_plg_AddByBarcode extends core_Plugin
             return;
         }
 
+        static::markScanned($mvc, $id);
         $data->retUrl[self::LAST_PARAM] = $id;
     }
 }
