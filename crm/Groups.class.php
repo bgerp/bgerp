@@ -1077,7 +1077,11 @@ class crm_Groups extends core_Master
         $blastClass->requireRightFor('add');
         
         $groupChoiceArr = $this->getGroupsChoice($id, false);
-        expect($groupChoiceArr);
+        
+        // Групата може да е останала без контакти, след като е бил показан бутона
+        if (empty($groupChoiceArr)) {
+            followRetUrl(array($this, 'single', $id), 'Групата няма контакти за циркулярен имейл|*!', 'error');
+        }
         
         Request::setProtected(array('perSrcObjectId', 'perSrcClassId'));
         

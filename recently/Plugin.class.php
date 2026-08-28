@@ -42,7 +42,7 @@ class recently_Plugin extends core_Plugin
             }
 
             if ($mustReport === true) {
-                wp('Липсва префикс ', $form, $inputFields);
+//                wp('Липсва префикс ', $form, $inputFields);
             }
         }
     }

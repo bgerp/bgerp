@@ -275,17 +275,17 @@ class cat_interface_BomDetailImport extends import2_AbstractDriver
         }
 
         // 1. Всеки ред се разчита и валидира сам за себе си
-        $parsedArr = $byPosition = array();
+        $parsedArr = $byPosition = $duplicated = array();
         $rowNo = 0;
         foreach ($rows as $row) {
             $rowNo++;
             $parsed = $this->parseRow($row, $fields, $oFields, $bomRec);
             $parsed->rowNo = $rowNo;
 
-            // Не може две от позициите в csv-то да съвпадат
+            // Кои позиции в csv-то се повтарят
             if (isset($parsed->position)) {
                 if (array_key_exists($parsed->position, $byPosition)) {
-                    $parsed->errors[] = 'Дублирана позиция';
+                    $duplicated[$parsed->position] = true;
                 } else {
                     $byPosition[$parsed->position] = $rowNo;
                 }
@@ -294,10 +294,13 @@ class cat_interface_BomDetailImport extends import2_AbstractDriver
             $parsedArr[$rowNo] = $parsed;
         }
 
-        // 2. Проверка на бащите и подреждане на редовете по нива
-        $this->prepareHierarchy($parsedArr, $byPosition, $bomRec->id);
+        // 2. Повтарящите се позиции пречат само ако някой ред стъпва на тях
+        $this->resolveDuplicatedPositions($parsedArr, $duplicated);
 
-        // 3. Записване ниво по ниво, като позициите се преномерират в рамките на всяко ниво
+        // 3. Проверка на бащите и подреждане на редовете по нива
+        $this->prepareHierarchy($parsedArr, $byPosition);
+
+        // 4. Записване ниво по ниво, като позициите се преномерират в рамките на всяко ниво
         $errorCsv = array();
         $positionMap = $positionCounters = array();
         foreach ($parsedArr as $parsed) {
@@ -493,16 +496,51 @@ class cat_interface_BomDetailImport extends import2_AbstractDriver
 
 
     /**
+     * Обработва повтарящите се позиции в csv-то. Позицията служи само за връзка към бащата,
+     * а накрая редовете се преномерират - затова повторението е грешка само ако някой ред
+     * стъпва на нея и не може да се разбере кой точно е бащата
+     *
+     * @param array $parsedArr  - разчетените редове, обработват се на място
+     * @param array $duplicated - повтарящите се позиции
+     *
+     * @return void
+     */
+    private function resolveDuplicatedPositions(&$parsedArr, $duplicated)
+    {
+        if (!countR($duplicated)) return;
+
+        // Кои от повтарящите се позиции са баща на друг ред
+        $usedAsParent = array();
+        foreach ($parsedArr as $parsed) {
+            if (isset($parsed->parentPosition) && array_key_exists($parsed->parentPosition, $duplicated)) {
+                $usedAsParent[$parsed->parentPosition] = true;
+            }
+        }
+
+        foreach ($parsedArr as $parsed) {
+            if (!isset($parsed->position) || !array_key_exists($parsed->position, $duplicated)) continue;
+
+            if (array_key_exists($parsed->position, $usedAsParent)) {
+                $parsed->errors[] = 'Дублирана позиция';
+            } else {
+
+                // Позицията не е нужна на никого - редът се номерира автоматично
+                $parsed->position = null;
+            }
+        }
+    }
+
+
+    /**
      * Проверява бащите на редовете и ги подрежда по нива - първо тези без баща,
      * после тези с един баща и т.н.
      *
      * @param array $parsedArr  - разчетените редове, подреждат се на място
      * @param array $byPosition - позиция от csv-то към номера на реда
-     * @param int   $bomId      - рецептата, в която се импортира
      *
      * @return void
      */
-    private function prepareHierarchy(&$parsedArr, $byPosition, $bomId)
+    private function prepareHierarchy(&$parsedArr, $byPosition)
     {
         // Редовете се проверяват от най-плитките към най-дълбоките, за да се знае
         // дали бащата е валиден, преди да се проверява детето
@@ -511,7 +549,6 @@ class cat_interface_BomDetailImport extends import2_AbstractDriver
             return $this->compareParsed($a, $b);
         });
 
-        $seen = array();
         foreach ($parsedArr as $parsed) {
             $parentParsed = null;
 
@@ -531,45 +568,11 @@ class cat_interface_BomDetailImport extends import2_AbstractDriver
 
             if (countR($parsed->errors)) continue;
 
-            // Един и същ артикул не се импортира втори път в нивото
-            $levelKey = (isset($parsed->parentPosition) ? $parsed->parentPosition : 'root') . '|' . $parsed->rec->resourceId . '|' . $parsed->rec->paramId;
-            if (array_key_exists($levelKey, $seen)) {
-                $parsed->errors[] = 'Артикулът се повтаря в нивото';
-
-                continue;
-            }
-            $seen[$levelKey] = true;
-
-            // Нито се дублира с ред, който рецептата вече има на това ниво
-            if (!isset($parsed->parentPosition) && $this->isInBom($bomId, $parsed->rec)) {
-                $parsed->errors[] = 'Артикулът вече е в рецептата на това ниво';
-
-                continue;
-            }
-
             // Етапът си има подред в csv-то, значи детайлите му не идват от рецептата му
             if (isset($parentParsed)) {
                 $parentParsed->hasChildren = true;
             }
         }
-    }
-
-
-    /**
-     * Рецептата има ли вече такъв ред на това ниво
-     *
-     * @param int      $bomId
-     * @param stdClass $rec - разчетения ред
-     *
-     * @return bool
-     */
-    private function isInBom($bomId, $rec)
-    {
-        $query = cat_BomDetails::getQuery();
-        $query->where("#bomId = {$bomId} AND #resourceId = {$rec->resourceId} AND #parentId IS NULL");
-        $query->where(isset($rec->paramId) ? "#paramId = {$rec->paramId}" : '#paramId IS NULL');
-
-        return (bool) $query->count();
     }
 
 

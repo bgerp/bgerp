@@ -288,9 +288,16 @@ class expert_Dataset extends core_BaseClass
         // Записваме променливите от $rec
         if (is_object($rec) || is_array($rec)) {
             foreach ((array) $rec as $name => $value) {
-                if ($value !== null && is_scalar($value)) {
-                    $this->setVar($name, $value, 1, 'INPUT');
+                if ($value === null || !is_scalar($value)) {
+                    continue;
                 }
+
+                // Празният вход е "няма отговор" - не блокира правилото за променливата, ако има такова
+                if ($value === '' && isset($this->rules[$name])) {
+                    continue;
+                }
+
+                $this->setVar($name, $value, 1, 'INPUT');
             }
         }
         

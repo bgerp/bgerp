@@ -155,6 +155,27 @@ class store_TransfersDetails extends doc_Detail
 
 
     /**
+     * В кой етап на заявката е мастърът - за сканирането по тегловен баркод
+     *
+     * @param int $masterId
+     *
+     * @return string|null - loading|execution|NULL
+     *
+     * @see wbarcode_plg_AddByBarcode
+     */
+    public function getWbarcodeScanStage_($masterId)
+    {
+        $masterRec = store_Transfers::fetchRec($masterId, 'state,pendingStage');
+        if (empty($masterRec) || $masterRec->state != 'pending' || empty($masterRec->pendingStage)) {
+
+            return null;
+        }
+
+        return $masterRec->pendingStage;
+    }
+
+
+    /**
      * Въведеното к-во се записва и в колоната на текущия етап на мастъра
      */
     protected static function on_BeforeSave($mvc, &$id, $rec, $fields = null, $mode = null)
@@ -314,6 +335,7 @@ class store_TransfersDetails extends doc_Detail
                 
                 if (empty($rec->quantity) && !Mode::isReadOnly()) {
                     $row->ROW_ATTR['style'] = ' background-color:#f1f1f1;color:#777';
+                    $row->ROW_ATTR['class'] = (!empty($row->ROW_ATTR['class']) ? $row->ROW_ATTR['class'] : '') . ' zeroQuantityRow';
                 }
                 
                 // Показваме подробната информация за опаковката при нужда
