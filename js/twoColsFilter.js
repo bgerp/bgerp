@@ -110,7 +110,7 @@ function resizeTwoColsFilterCompactSelects() {
  */
 function alignTwoColsFilterButtons(filter) {
     var $filter = $(filter);
-    var $buttonHolder = $filter.find('.form-filter-btn').first();
+    var $buttonHolder = $filter.find('.form-filter-btn, .listFilter .formToolbar').first();
     var $caption = $filter.find('.formFieldCaption:visible').first();
 
     if (!$buttonHolder.length) {
