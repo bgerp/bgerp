@@ -202,7 +202,10 @@ class rack_Movements extends rack_MovementAbstract
                
                 if($rec->state == 'pending' && $rec->fromIncomingDocument == 'yes'){
                   
-                    $transaction->warningFields = array_merge($transaction->errorFields, $transaction->warningFields);
+                    // Полетата може да са както масив, така и стринг с изброени полета
+                    $errorFields = arr::make($transaction->errorFields);
+                    $warningFields = arr::make($transaction->warningFields);
+                    $transaction->warningFields = implode(',', array_merge($errorFields, $warningFields));
                     if (!empty($transaction->errors)) {
                         $transaction->warnings[] = $transaction->errors;
                     }

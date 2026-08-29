@@ -1587,14 +1587,8 @@ class blast_ListDetails extends doc_Detail
 
                 $prodArrRes[$groupIds] = array();
 
-                $catGroupsWhere = '';
-
-                foreach ($groupIdsArr as $gId) {
-                    $catGroupsWhere .= ($catGroupsWhere ? ' OR ' : '') . "LOCATE('|{$gId}|', #groups)";
-                }
-
                 $prodQuery = cat_Products::getQuery();
-                $prodQuery->where($catGroupsWhere);
+                plg_ExpandInput::applyExtendedInputSearch('cat_Products', $prodQuery, $groupIdsArr);
                 $prodQuery->where("#state != 'rejected'");
                 $prodQuery->where("#originId IS NOT NULL");
 

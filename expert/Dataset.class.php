@@ -271,6 +271,9 @@ class expert_Dataset extends core_BaseClass
             // До PHP 8 делението на нула връщаше false с E_WARNING.
             // Запазваме старото поведение за съществуващите експертни правила.
             $res = false;
+        } catch (Error $e) {
+            // Показваме кой израз е проблемен (напр. липсващ '$' пред променлива)
+            expect(false, $code, $e->getMessage());
         }
         
         return $res;
@@ -285,9 +288,16 @@ class expert_Dataset extends core_BaseClass
         // Записваме променливите от $rec
         if (is_object($rec) || is_array($rec)) {
             foreach ((array) $rec as $name => $value) {
-                if ($value !== null && is_scalar($value)) {
-                    $this->setVar($name, $value, 1, 'INPUT');
+                if ($value === null || !is_scalar($value)) {
+                    continue;
                 }
+
+                // Празният вход е "няма отговор" - не блокира правилото за променливата, ако има такова
+                if ($value === '' && isset($this->rules[$name])) {
+                    continue;
+                }
+
+                $this->setVar($name, $value, 1, 'INPUT');
             }
         }
         

@@ -216,7 +216,12 @@ abstract class deals_InvoiceDetail extends doc_Detail
                 $this->save($det);
 
                 if($chargeVat == 'yes'){
-                    $iAmount += isset($det->discount) ? ($det->amount * (1 - $det->discount)) : $det->amount;
+
+                    // Сумата е изчислимо поле - не се попълва при записа
+                    $this->invoke('CalcAmount', array($det));
+                    if(isset($det->amount)){
+                        $iAmount += isset($det->discount) ? ($det->amount * (1 - $det->discount)) : $det->amount;
+                    }
                 }
             }
         }
@@ -236,7 +241,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
                 $tRec->documentClassId = $this->Master->getClassId();
                 $tRec->documentId = $invoiceRec->id;
                 unset($tRec->id);
-                if($chargeVat == 'yes'){
+                if($chargeVat == 'yes' && !empty($totalDiscountSum)){
                     $tRec->amount = $expectedDiscount * ($tRec->amount / $totalDiscountSum);
                 }
                 price_DiscountsPerDocuments::save($tRec);

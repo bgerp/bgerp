@@ -26,6 +26,30 @@ abstract class price_interface_BaseCostPolicy extends core_BaseClass
     
     
     /**
+     * Дали политиката важи само за складируеми артикули
+     */
+    protected $forStorableOnly = false;
+    
+    
+    /**
+     * Дали политиката е приложима за артикула
+     *
+     * @param int $productId
+     *
+     * @return bool
+     */
+    public function isApplicableForProduct($productId)
+    {
+        if (empty($this->forStorableOnly)) {
+            
+            return true;
+        }
+        
+        return cat_Products::fetchField($productId, 'canStore') == 'yes';
+    }
+    
+    
+    /**
      * Изчислява себестойностите на засегнатите артикули
      *
      * @param array $affectedProducts
@@ -249,8 +273,8 @@ abstract class price_interface_BaseCostPolicy extends core_BaseClass
      */
     public function getAffectedProducts($datetime)
     {
-        // Всички артикули с движения във всички складове
-        $affected = $this->getAffectedProductWithMovement($datetime, 'all');
+        // Всички артикули с движения, за политиките само за складируеми - само тези от склада
+        $affected = $this->getAffectedProductWithMovement($datetime, 'all', array(), array(), $this->forStorableOnly);
        
         return $affected;
     }

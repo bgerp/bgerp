@@ -122,7 +122,7 @@ class store_iface_ShipmentWithBomPriceTplHandler extends doc_TplScript
                     // Линк към рецептата, ако има такава
                     $singleUrl = cat_Boms::getSingleUrlArray($cachedRec->bomId);
                     if(countR($singleUrl)){
-                        $row->_amountBom = ht::createLinkRef($row->_amountBom, $singleUrl);
+                        $row->_amountBom = ht::createLinkRef($row->_amountBom, $singleUrl, false, 'arrowFront');
                     }
                 }
             }

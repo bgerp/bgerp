@@ -1377,7 +1377,7 @@ class email_Outgoings extends core_Master
                         $className = $fileInfo['className'];
                         $hRec = $className::fetchByHandle($fileInfo);
 
-                        if (($form->rec->theadId && (($form->rec->theadId != $hRec->threadId))) ||
+                        if (($form->rec->threadId && (($form->rec->threadId != $hRec->threadId))) ||
                             ($form->rec->folderId && (($form->rec->folderId != $hRec->folderId)))) {
                             $quotOtherArr[$hnd] = $hnd;
                         }
@@ -1792,7 +1792,7 @@ class email_Outgoings extends core_Master
             
             core_Lg::pop();
             
-            $recEmailsArr = type_Emails::toArray($rec->email);
+            $recEmailsArr = type_Emails::toArray($rec->email ?? null);
 
             // Ако не отговаряме на конкретен имейл, премахваме нашите имейли
             if (!$emailTo) {

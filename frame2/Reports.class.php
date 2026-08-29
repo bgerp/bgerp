@@ -157,7 +157,7 @@ class frame2_Reports extends embed_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id,title=Наименование,lastRefreshed=Обновяване->Последно,nextUpdate=Обновяване->Следващо,updateDays=Обновяване->Дни,updateTime=Обновяване->Час,folderId,modifiedOn,modifiedBy';
+    public $listFields = 'id,title=Наименование,lastRefreshed=Обновяване->Последно,lastRefreshDuration=Обновяване->Време (сек.),nextUpdate=Обновяване->Следващо,updateDays=Обновяване->Дни,updateTime=Обновяване->Час,folderId,modifiedOn,modifiedBy';
     
 
     /**
@@ -226,6 +226,12 @@ class frame2_Reports extends embed_Manager
      * Константа, че е имало грешка при подготовка на данните
      */
     const DATA_ERROR_STATE = 'ERROR';
+
+
+    /**
+     * Максимално време за заключване на ръчното обновяване от един потребител
+     */
+    const MANUAL_REFRESH_LOCK_DURATION = 120;
 
 
     /**
@@ -599,10 +605,21 @@ class frame2_Reports extends embed_Manager
         expect($id = Request::get('id', 'int'));
         expect($rec = $this->fetch($id));
         $this->requireRightFor('refresh', $rec);
-        
-        self::refresh($rec);
-        frame2_ReportVersions::unSelectVersion($rec->id);
-        $this->logWrite('Ръчно обновяване на справката', $rec->id);
+
+        $lockId = 'frame2ManualRefresh' . core_Users::getCurrent();
+        // Изчакване до 10 секунди с повторен опит всяка секунда
+        if (!core_Locks::obtain($lockId, self::MANUAL_REFRESH_LOCK_DURATION, 10, 10)) {
+
+            return followRetUrl(null, 'Вече сте стартирали ръчно обновяване на справка. Изчакайте да завърши.', 'warning');
+        }
+
+        try {
+            self::refresh($rec);
+            frame2_ReportVersions::unSelectVersion($rec->id);
+            $this->logWrite('Ръчно обновяване на справката', $rec->id);
+        } finally {
+            core_Locks::release($lockId);
+        }
         
         return followRetUrl();
     }
@@ -1409,15 +1426,26 @@ class frame2_Reports extends embed_Manager
     protected static function on_AfterPrepareListFilter($mvc, &$res, $data)
     {
         $data->listFilter->FLD('user', 'user(rolesForAll=ceo, rolesForTeams=manager|officer, roles=executive, allowEmpty)', 'caption=Потребител,placeholderType=all');
+        $data->listFilter->FNC('dateFrom', 'date', 'input,caption=От');
+        $data->listFilter->FNC('dateTo', 'date', 'input,caption=До');
         $data->listFilter->setField('driverClass', 'placeholderType=all');
-        $data->listFilter->showFields = 'search, driverClass, user';
-        $data->listFilter->view = 'horizontal';
+        $data->listFilter->showFields = 'search, driverClass, user, dateFrom, dateTo';
+        $data->listFilter->class = 'simpleForm';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
         
         $data->listFilter->input();
         $rec = $data->listFilter->rec;
         if ($rec->driverClass ?? null) {
             $data->query->where(array("#driverClass = '[#1#]'", $rec->driverClass));
+        }
+
+        // Филтър по време на последното обновяване
+        if (!empty($rec->dateFrom)) {
+            $data->query->where(array("#lastRefreshed >= '[#1#] 00:00:00'", $rec->dateFrom));
+        }
+
+        if (!empty($rec->dateTo)) {
+            $data->query->where(array("#lastRefreshed <= '[#1#] 23:59:59'", $rec->dateTo));
         }
 
         if ($rec->user ?? null) {

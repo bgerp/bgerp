@@ -405,7 +405,7 @@ class callcenter_Talks extends core_Master
             return $recArr;
         }
         
-        list($recArr['uniqId']) = explode('|', $recArr['uniqId']);
+        list($recArr['uniqId']) = explode('|', $recArr['uniqId'] ?? '');
         
         return $recArr;
     }
@@ -427,12 +427,13 @@ class callcenter_Talks extends core_Master
         bgerp_Notifications::clear($url);
         
         // Добавяме номерата от които са пренасочени обажданията
+        // Групиращите редове от plg_GroupByDate се прескачат, защото нямат тези полета
         foreach ((array) $data->rows as $row) {
-            if ($row->RedirectFrom) {
+            if (!empty($row->RedirectFrom)) {
                 $row->internalNum = $row->RedirectFrom . ' » ' . $row->internalNum;
             }
             
-            if ($row->RedirectTo) {
+            if (!empty($row->RedirectTo)) {
                 $row->internalNum = $row->internalNum . ' » ' . $row->RedirectTo;
             }
         }
@@ -459,12 +460,14 @@ class callcenter_Talks extends core_Master
             
             // Ако номера на позвъняващия отговаря
             if ($rec->externalNum == $numStr) {
-                if ($rec->externalData != $nRecArr[0]->id) {
+                $externalData = isset($nRecArr[0]) ? $nRecArr[0]->id : null;
+                
+                if ($rec->externalData != $externalData) {
                     $mustSave = true;
                 }
                 
                 // Променяме данните
-                $rec->externalData = $nRecArr[0]->id;
+                $rec->externalData = $externalData;
             }
             
             // Ако номера на търсения отговаря
@@ -1808,6 +1811,9 @@ class callcenter_Talks extends core_Master
                 }
                 
                 // Увеличваме брояча за номера в масива
+                if (!isset($CallerArr[$callerName])) {
+                    $CallerArr[$callerName] = 0;
+                }
                 $CallerArr[$callerName]++;
             }
             
@@ -2210,7 +2216,7 @@ class callcenter_Talks extends core_Master
                         if (!$userId) {
                             $requiredRoles = 'no_one';
                         } else {
-                            if (!$uArr[$userId]) {
+                            if (empty($uArr[$userId])) {
                                 $userIsCeo = haveRole('ceo', $userId);
                                 
                                 foreach ($uArr as $uId) {

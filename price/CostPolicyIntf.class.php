@@ -39,6 +39,19 @@ class price_CostPolicyIntf
     
     
     /**
+     * Дали политиката е приложима за артикула
+     *
+     * @param int $productId
+     *
+     * @return bool
+     */
+    public function isApplicableForProduct($productId)
+    {
+        return $this->class->isApplicableForProduct($productId);
+    }
+    
+    
+    /**
      * Изчислява себестойностите на засегнатите артикули
      *
      * @param array $affectedTargetedProducts

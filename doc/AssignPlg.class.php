@@ -319,7 +319,7 @@ class doc_AssignPlg extends core_Plugin
         }
         
         if (!empty($rec->assignedOn)) {
-            $row->assignedOn = dt::mysql2verbal($rec->assignedOn, 'd-m-Y');
+            $row->assignedOn = $mvc->getFieldType('assignedOn')->toVerbal($rec->assignedOn);
         }
     }
     

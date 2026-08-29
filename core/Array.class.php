@@ -767,11 +767,11 @@ class core_Array
             return false;
         }
 
-        $allowedLen = $allowed ?? bgerp_Setup::get('VERTICAL_FORM_DEFAULT_MAX_RADIO_LENGTH');
+        $allowedLen = $allowedLen ?? bgerp_Setup::get('VERTICAL_FORM_DEFAULT_MAX_RADIO_LENGTH');
 
         $count = $totalLen = 0;
         array_walk($options, function ($v) use (&$count, &$totalLen){
-            $str = is_object($v) ? $v->title : $v;
+            $str = is_object($v) ? (($v instanceof core_ET) ? $v->getContent() : ($v->title ?? '')) : $v;
 
             if(!empty($str)){
                 $count++;

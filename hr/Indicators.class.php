@@ -408,7 +408,7 @@ class hr_Indicators extends core_Manager
             $sum = $zeroInd;
             
             if (isset($ecRec->positionId)) {
-                $posRec = $positions[$ecRec->positionId];
+                $posRec = $positions[$ecRec->positionId] ?? null;
                 $salaryBase = 0;
                 if (!empty($ecRec->salaryBase)) {
                     $salaryBase = currency_CurrencyRates::convertAmount($ecRec->salaryBase, null, $ecRec->currencyId, $baseCurrencyCode);
@@ -425,7 +425,13 @@ class hr_Indicators extends core_Manager
             $query->where("#personId = {$personId}");
             $query->where("#date >= '{$pRec->start}' AND #date <= '{$pRec->end}'");
             while ($rec = $query->fetch()) {
-                $indicator = $names[$rec->sourceClass][$rec->indicatorId];
+                $indicator = $names[$rec->sourceClass][$rec->indicatorId] ?? null;
+
+                // Индикаторите, за които вече няма име, се пропускат
+                if (empty($indicator)) {
+                    continue;
+                }
+
                 $sum[$indicator] += $rec->value;
             }
             
@@ -438,7 +444,7 @@ class hr_Indicators extends core_Manager
             }
             
             // Лицата без намерен договор са голи обекти, без длъжност
-            if ($replaceFormula && !empty($ecRec->positionId)) {
+            if ($replaceFormula && isset($positions[$ecRec->positionId])) {
                 $prlRec->formula = $positions[$ecRec->positionId]->formula;
             }
             

@@ -26,12 +26,19 @@ function syncDisassemblyNoteTableGroup(tables)
             return;
         }
 
-        var productCell = tables.find('td.disassemblyProductColumn').first();
+        var productCell = tables.find('td.productCell').first();
         var productColumn;
         var columnCount = 0;
         var widths = [];
         var totalWidth = 0;
         var exactHeaderWidths = {};
+        var wrappedColumns = {};
+        var fixedColumns = {};
+
+        if (productCell.length) {
+            productColumn = productCell.parent().children('td').index(productCell);
+            columnCount = productCell.parent().children('td').length;
+        }
 
         tables.children('colgroup.disassemblyColumnWidths').remove();
         tables.css({'table-layout': 'auto', 'width': 'auto'});
@@ -41,6 +48,16 @@ function syncDisassemblyNoteTableGroup(tables)
             'overflow': '',
             'text-overflow': '',
             'white-space': ''
+        });
+        tables.find('td.storeName').each(function () {
+            var cell = $(this);
+            var columnIndex = cell.parent().children('td').index(cell);
+            wrappedColumns[columnIndex] = 250;
+            cell.css({
+                'max-width': '250px',
+                'white-space': 'normal',
+                'overflow-wrap': 'anywhere'
+            });
         });
 
         // Измерваме и заглавията, като отчитаме реалната им позиция при
@@ -63,12 +80,30 @@ function syncDisassemblyNoteTableGroup(tables)
                     var widthPerColumn = Math.ceil(measureDisassemblyCell(header) / colspan);
                     var headerText = $.trim(header.text());
 
-                    if (colspan == 1 && /^(Въведено|Рецепта|Очаквано)$/i.test(headerText)) {
-                        exactHeaderWidths[logicalColumn] = Math.max(exactHeaderWidths[logicalColumn] || 0, widthPerColumn);
+                    // При празна таблица единственият td е съобщението с colspan.
+                    // Тогава намираме колоната на артикула от нейното заглавие.
+                    var isProductHeader = header.hasClass('productCell')
+                        || /(артикул|субпродукт|отпадъ)/i.test(headerText);
+                    if (productColumn === undefined && colspan == 1 && isProductHeader) {
+                        productColumn = logicalColumn;
                     }
 
-                    if (productColumn === undefined && /артикул|материал|субпродукт|отпадък/i.test(header.text())) {
-                        productColumn = logicalColumn;
+                    if (colspan == 1 && wrappedColumns[logicalColumn]) {
+                        header.css({
+                            'white-space': 'normal',
+                            'overflow-wrap': 'anywhere'
+                        });
+                    }
+
+                    if (colspan == 1 && logicalColumn == productColumn) {
+                        header.css({
+                            'white-space': 'normal',
+                            'overflow-wrap': 'anywhere'
+                        });
+                    }
+
+                    if (colspan == 1 && /^(Въведено|Рецепта|Очаквано)$/i.test(headerText)) {
+                        exactHeaderWidths[logicalColumn] = Math.max(exactHeaderWidths[logicalColumn] || 0, widthPerColumn);
                     }
 
                     for (var rowOffset = 0; rowOffset < rowspan; rowOffset++) {
@@ -89,23 +124,9 @@ function syncDisassemblyNoteTableGroup(tables)
             });
         });
 
-        var headerWidths = widths.slice(0);
-
-        if (productCell.length) {
-            productColumn = productCell.parent().children('td').index(productCell);
-            columnCount = Math.max(columnCount, productCell.parent().children('td').length);
-        }
-
         if (productColumn === undefined || !columnCount) {
             return;
         }
-
-        tables.find('th').filter(function () {
-            return /артикул|материал|субпродукт|отпадък/i.test($(this).text());
-        }).css({
-            'white-space': 'normal',
-            'overflow-wrap': 'anywhere'
-        });
 
         for (var column = 0; column < columnCount; column++) {
             var maxWidth = widths[column] || 44;
@@ -123,6 +144,10 @@ function syncDisassemblyNoteTableGroup(tables)
             widths[column] = exactHeaderWidths[column]
                 ? Math.ceil(Math.max(exactHeaderWidths[column], maxDataWidth))
                 : Math.max(44, Math.ceil(maxWidth));
+
+            if (wrappedColumns[column]) {
+                widths[column] = Math.min(widths[column], wrappedColumns[column]);
+            }
             totalWidth += widths[column];
         }
 
@@ -131,7 +156,7 @@ function syncDisassemblyNoteTableGroup(tables)
         totalWidth += widths[productColumn];
 
         var compactColumns = {
-            productionToolsColumn: 42,
+            productionToolsColumn: 30,
             productionCodeColumn: 60
         };
 
@@ -150,11 +175,8 @@ function syncDisassemblyNoteTableGroup(tables)
                 if (!processedColumns[columnIndex]) {
                     processedColumns[columnIndex] = true;
                     totalWidth -= widths[columnIndex];
-                    var headerMinWidth = headerWidths[columnIndex] || 44;
-                    widths[columnIndex] = Math.max(
-                        headerMinWidth,
-                        Math.min(widths[columnIndex], maxColumnWidth)
-                    );
+                    widths[columnIndex] = Math.min(widths[columnIndex], maxColumnWidth) ;
+                    fixedColumns[columnIndex] = true;
                     totalWidth += widths[columnIndex];
                 }
             });
@@ -162,7 +184,8 @@ function syncDisassemblyNoteTableGroup(tables)
 
         // Скритите бутони от plg_RowTools2 не трябва да разширяват колоната №.
         totalWidth -= widths[0];
-        widths[0] = Math.min(widths[0], 42);
+        widths[0] = Math.min(widths[0], 30);
+        fixedColumns[0] = true;
         totalWidth += widths[0];
 
         var availableWidth = Math.floor(containerWidth(tables.first()));
@@ -172,11 +195,26 @@ function syncDisassemblyNoteTableGroup(tables)
             totalWidth = otherColumnsWidth + widths[productColumn];
 
             if (totalWidth > availableWidth) {
-                var ratio = (availableWidth - widths[productColumn]) / otherColumnsWidth;
+                var fixedWidth = 0;
+                var resizableWidth = 0;
+                for (var i = 0; i < columnCount; i++) {
+                    if (i != productColumn) {
+                        if (fixedColumns[i]) {
+                            fixedWidth += widths[i];
+                        } else {
+                            resizableWidth += widths[i];
+                        }
+                    }
+                }
+                var ratio = resizableWidth
+                    ? (availableWidth - widths[productColumn] - fixedWidth) / resizableWidth
+                    : 1;
                 totalWidth = widths[productColumn];
                 for (var i = 0; i < columnCount; i++) {
                     if (i != productColumn) {
-                        widths[i] = Math.max(35, Math.floor(widths[i] * ratio));
+                        if (!fixedColumns[i]) {
+                            widths[i] = Math.max(35, Math.floor(widths[i] * ratio));
+                        }
                         totalWidth += widths[i];
                     }
                 }

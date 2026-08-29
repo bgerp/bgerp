@@ -3130,7 +3130,7 @@ class crm_Persons extends core_Master
         $emplGroupId = crm_Groups::getIdFromSysId('employees');
 
         $query = self::getQuery();
-        $query->like('groupList', "|{$emplGroupId}|");
+        plg_ExpandInput::applyExtendedInputSearch('crm_Persons', $query, $emplGroupId);
         if (isset($state)) {
             $query->where("#state = '{$state}'");
         }
@@ -3465,14 +3465,7 @@ class crm_Persons extends core_Master
             $q->where("#state !='rejected'");
         }
 
-        $ors = array();
-
-        foreach ($groupIds as $gId) {
-            $gId = (int)$gId;
-            $ors[] = "LOCATE('|{$gId}|', CONCAT('|', #groupList, '|'))";
-        }
-
-        $q->where('(' . implode(' OR ', $ors) . ')');
+        plg_ExpandInput::applyExtendedInputSearch('crm_Persons', $q, $groupIds);
 
         $personIds = array();
         while ($p = $q->fetch()) {

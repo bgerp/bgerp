@@ -108,12 +108,6 @@ class store_TransfersDetails extends doc_Detail
     
     
     /**
-     * Поле за главния склад в мастъра
-     */
-    public $masterStoreFld = 'fromStore';
-    
-    
-    /**
      * Да се показва ли кода като в отделна колона
      */
     public $showCodeColumn = true;
@@ -157,6 +151,27 @@ class store_TransfersDetails extends doc_Detail
         $this->FLD('executedQuantity', 'double', 'caption=Получено,smartCenter,tdClass=stageCol');
 
         $this->setDbIndex('newProductId');
+    }
+
+
+    /**
+     * В кой етап на заявката е мастърът - за сканирането по тегловен баркод
+     *
+     * @param int $masterId
+     *
+     * @return string|null - loading|execution|NULL
+     *
+     * @see wbarcode_plg_AddByBarcode
+     */
+    public function getWbarcodeScanStage_($masterId)
+    {
+        $masterRec = store_Transfers::fetchRec($masterId, 'state,pendingStage');
+        if (empty($masterRec) || $masterRec->state != 'pending' || empty($masterRec->pendingStage)) {
+
+            return null;
+        }
+
+        return $masterRec->pendingStage;
     }
 
 
@@ -228,6 +243,63 @@ class store_TransfersDetails extends doc_Detail
 
 
     /**
+     * Оцветява к-то на етапа, ако се разминава с предходния - маркира се само колоната,
+     * в която е възникнало отклонението, а „Заявено“ е базата и не се оцветява
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $row
+     * @param stdClass $rec
+     *
+     * @return void
+     */
+    private static function markStageDiff($mvc, &$row, $rec)
+    {
+        // „Изпратено“ се мери спрямо заявеното, а „Получено“ - спрямо изпратеното,
+        // а ако то липсва - спрямо заявеното (@see store_Transfers::fillStageQuantities)
+        $compareArr = array('loadedQuantity' => array('requestedQuantity'),
+                            'executedQuantity' => array('loadedQuantity', 'requestedQuantity'));
+
+        foreach ($compareArr as $fieldName => $baseFields) {
+            if (!isset($rec->{$fieldName}) || empty($row->{$fieldName})) {
+
+                continue;
+            }
+
+            // Кой е предходният етап с попълнено к-во
+            $baseField = null;
+            foreach ($baseFields as $field) {
+                if (isset($rec->{$field})) {
+                    $baseField = $field;
+                    break;
+                }
+            }
+
+            if (empty($baseField)) {
+
+                continue;
+            }
+
+            $diff = round($rec->{$fieldName} - $rec->{$baseField}, 5);
+            if (empty($diff)) {
+
+                continue;
+            }
+
+            $quantity = core_Type::getByName('double(smartRound)')->toVerbal(abs($diff));
+            if (isset($rec->packagingId)) {
+                $quantity .= ' ' . cat_UoM::getShortName($rec->packagingId);
+            }
+
+            $caption = ($baseField == 'requestedQuantity') ? 'заявеното' : 'изпратеното';
+            $hint = ($diff < 0) ? "С|* {$quantity} |по-малко от {$caption}" : "С|* {$quantity} |повече от {$caption}";
+            $class = ($diff < 0) ? 'red' : 'stageOver';
+
+            $row->{$fieldName} = ht::createHint("<span class='{$class}'>{$row->{$fieldName}}</span>", $hint, 'noicon', false);
+        }
+    }
+
+
+    /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
@@ -263,6 +335,7 @@ class store_TransfersDetails extends doc_Detail
                 
                 if (empty($rec->quantity) && !Mode::isReadOnly()) {
                     $row->ROW_ATTR['style'] = ' background-color:#f1f1f1;color:#777';
+                    $row->ROW_ATTR['class'] = (!empty($row->ROW_ATTR['class']) ? $row->ROW_ATTR['class'] : '') . ' zeroQuantityRow';
                 }
                 
                 // Показваме подробната информация за опаковката при нужда
@@ -273,7 +346,7 @@ class store_TransfersDetails extends doc_Detail
     
     
     /**
-     * След преобразуване на записа в четим за хора вид.
+     * Преди рендиране на таблицата
      */
     protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
     {
@@ -287,6 +360,10 @@ class store_TransfersDetails extends doc_Detail
 
             $deliveryDate = !empty($data->masterData->rec->deliveryTime) ? $data->masterData->rec->deliveryTime : $data->masterData->rec->valior;
             deals_Helper::getQuantityHint($row->packQuantity, $mvc, $rec->newProductId, $data->masterData->rec->fromStore, $rec->quantity, $data->masterData->rec->state, $deliveryDate);
+
+            // Тук, а не в recToVerbal - plg_AlignDecimals2 подравнява по десетичния знак
+            // в същия хук, но прескача стойностите, които вече съдържат таг
+            static::markStageDiff($mvc, $row, $rec);
         }
     }
     
@@ -336,7 +413,7 @@ class store_TransfersDetails extends doc_Detail
     {
         $rec = &$form->rec;
         
-        if ($rec->newProductId ?? null) {
+        if (!empty($rec->newProductId)) {
             $masterRec = store_Transfers::fetch($rec->transferId, 'fromStore,deliveryTime,valior');
             $deliveryDate = !empty($masterRec->deliveryTime) ? $masterRec->deliveryTime : $masterRec->valior;
             $storeInfo = deals_Helper::checkProductQuantityInStore($rec->newProductId, $rec->packagingId ?? null, $rec->packQuantity ?? null, $masterRec->fromStore, $deliveryDate);
@@ -448,23 +525,6 @@ class store_TransfersDetails extends doc_Detail
         }
 
         return "<div class='formCustomInfo'>" . tr("|Количеството ще се запише в|* {$badge}") . '</div>';
-    }
-
-
-    /**
-     * След подготовка на лист тулбара
-     */
-    protected static function on_AfterPrepareListToolbar($mvc, $data)
-    {
-        if (!empty($data->toolbar->buttons['btnAdd'])) {
-            unset($data->toolbar->buttons['btnAdd']);
-            $products = cat_Products::getByProperty('canStore', null, 1);
-            $error = null;
-            if (!countR($products)) {
-                $error = 'error=Няма складируеми артикули, ';
-            }
-            $data->toolbar->addBtn('Артикул', array($mvc, 'add', $mvc->masterKey => $data->masterId, 'ret_url' => true), "id=btnAdd,{$error} order=10,title=Добавяне на артикул",'ef_icon = img/16/shopping.png');
-        }
     }
     
     

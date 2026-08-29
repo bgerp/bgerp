@@ -98,6 +98,8 @@ class plg_ExportCsv extends core_Plugin
                 redirect(array($mvc), false, '|Броят на заявените записи за експорт надвишава максимално разрешения|* - ' . $conf->EF_MAX_EXPORT_CNT, 'error');
             }
             
+            $csv = '';
+            
             /* за всеки ред */
             if (countR($data->recs)) {
                 $mvc->invoke('BeforeExportCsv', array($data->recs));
@@ -108,12 +110,12 @@ class plg_ExportCsv extends core_Plugin
                     
                     /* за всяка колона */
                     foreach ($data->listFields as $field => $caption) {
-                        $type = $mvc->fields[$field]->type;
+                        $type = isset($mvc->fields[$field]) ? $mvc->fields[$field]->type : null;
                         
                         if (($type instanceof type_Key) || ($type instanceof type_Key2)) {
                             $value = $mvc->getVerbal($rec, $field);
                         } else {
-                            $value = $rec->{$field};
+                            $value = $rec->{$field} ?? '';
                         }
                         
                         // escape

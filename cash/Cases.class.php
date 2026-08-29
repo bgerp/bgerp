@@ -406,7 +406,9 @@ class cash_Cases extends core_Master
 
         $query = self::getQuery();
         while($rec = $query->fetch()){
+            // Ако касата няма салдо в баланса, се занулява и кешираната наличност
             $rec->blData = null;
+            $rec->blAmount = 0;
             if(array_key_exists($rec->id, $arr)){
                 $rec->blAmount = arr::sumValuesArray($arr[$rec->id]->currencies, 'amount');
                 $rec->blData = $arr[$rec->id]->currencies;
