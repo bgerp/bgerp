@@ -36,7 +36,7 @@ class sync_Persons extends sync_Helper
         
         $groups = sync_Setup::get('CRM_GROUPS');
         if ($groups) {
-            plg_ExpandInput::applyExtendedInputSearch('crm_Persons', $query, $groups);
+            $query->likeKeylist('groupList', $groups);
         }
         
         while ($rec = $query->fetch()) {

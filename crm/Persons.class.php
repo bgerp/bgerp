@@ -3221,8 +3221,8 @@ class crm_Persons extends core_Master
             $query->where("#id = {$onlyIds}");
         }
 
-        if (!empty($params['groups'])) {
-            plg_ExpandInput::applyExtendedInputSearch('crm_Persons', $query, $params['groups']);
+        if (isset($params['groups'])) {
+            $query->likekeylist('groupList', $params['groups']);
         }
 
         $titleFld = $params['titleFld'];

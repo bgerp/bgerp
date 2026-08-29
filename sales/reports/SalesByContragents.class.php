@@ -238,6 +238,8 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
 
         $query = sales_PrimeCostByDocument::getQuery();
 
+        $query->EXT('groupMat', 'cat_Products', 'externalName=groups,externalKey=productId');
+
         $query->EXT('code', 'cat_Products', 'externalName=code,externalKey=productId');
 
         $query->where("#state != 'rejected'");
@@ -288,8 +290,8 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
             }
         }
 
-        if (!empty($rec->group)) {
-            plg_ExpandInput::applyExtendedInputSearch('cat_Products', $query, $rec->group, 'productId');
+        if (isset($rec->group)) {
+            $query->likeKeylist('groupMat', $rec->group);
         }
 
         if ($rec->articleType != 'all') {

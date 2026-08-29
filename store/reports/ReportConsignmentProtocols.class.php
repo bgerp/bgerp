@@ -193,14 +193,14 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
             // фирми, които са включени в избраните групи
             $crmComp = crm_Companies::getQuery();
             $crmComp->in('state', $stateArr, true);
-            plg_ExpandInput::applyExtendedInputSearch('crm_Companies', $crmComp, $rec->crmGroup);
+            $crmComp->likeKeylist('groupList', $rec->crmGroup);
             $crmComp->where("#folderId IS NOT NULL");
             $contragentsInGroups = arr::extractValuesFromArray($crmComp->fetchAll(), 'folderId');
 
             // лица, които са включени в избраните групи
             $crmPers = crm_Persons::getQuery();
             $crmPers->in('state', $stateArr, true);
-            plg_ExpandInput::applyExtendedInputSearch('crm_Persons', $crmPers, $rec->crmGroup);
+            $crmPers->likeKeylist('groupList', $rec->crmGroup);
             $crmPers->where("#folderId IS NOT NULL");
 
             // общо контрагенти в избраните групи

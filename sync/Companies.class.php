@@ -71,7 +71,7 @@ class sync_Companies extends sync_Helper
         core_Users::forceSystemUser();
         
         $cQuery = crm_Companies::getQuery();
-        plg_ExpandInput::applyExtendedInputSearch('crm_Companies', $cQuery, $groupKeys);
+        $cQuery->likeKeylist('groupList', $groupKeys);
         
         while ($rec = $cQuery->fetch()) {
             sync_Map::exportRec('crm_Companies', $rec->id, $res, $this);

@@ -730,19 +730,17 @@ class blast_Letters extends core_Master
                 if ($rec->group == 'company') {
                     
                     // Извличаме записите за фирмата
-                    $gClass = 'crm_Companies';
                     $gQuery = crm_Companies::getQuery();
                 } else {
                     
                     // Ако е лице
                     
                     // Извличаме записите за лицето
-                    $gClass = 'crm_Persons';
                     $gQuery = crm_Persons::getQuery();
                 }
                 
                 // Всички, които са от тази група и не са оттеглени
-                plg_ExpandInput::applyExtendedInputSearch($gClass, $gQuery, $coverArr);
+                $gQuery->likeKeylist('groupList', $coverArr);
                 $gQuery->where("#state != 'rejected'");
                 
                 // Обхождаме откритите резултати
@@ -840,19 +838,17 @@ class blast_Letters extends core_Master
             if ($rec->group == 'company') {
                 
                 // Вземаме записите за фирмата
-                $gClass = 'crm_Companies';
                 $gQuery = crm_Companies::getQuery();
             } else {
                 
                 // Ако е лице
                 
                 // Вземаме записите за лицето
-                $gClass = 'crm_Persons';
                 $gQuery = crm_Persons::getQuery();
             }
             
             // Вземаме всички заиси от групата, които не са оттеглени
-            plg_ExpandInput::applyExtendedInputSearch($gClass, $gQuery, $coverArr);
+            $gQuery->likeKeylist('groupList', $coverArr);
             $gQuery->where("#state != 'rejected'");
             
             // Обхождаме получените резултати
