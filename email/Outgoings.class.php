@@ -1747,8 +1747,8 @@ class email_Outgoings extends core_Master
             
             // Данните на адресата
             $contragentData = self::prepareContragentData($rec, $isForwarding);
-            if ($contragentData && $pContragentData && $pContragentData->person) {
-                $contragentData->person = $contragentData->person ? $contragentData->person : $pContragentData->person;
+            if ($contragentData && !empty($pContragentData->person)) {
+                $contragentData->person = ($contragentData->person ?? null) ?: $pContragentData->person;
             }
             self::setContragentDataToRec($contragentData, $rec);
 
@@ -2160,15 +2160,15 @@ class email_Outgoings extends core_Master
                 if (!empty($rec->originId)) {
                     $oDoc = doc_Containers::getDocument($rec->originId);
 
-                    if (isset($oContragentData) && ($oDoc->useOriginContragentData === true)) {
+                    if (isset($oContragentData) && !empty($oDoc->useOriginContragentData)) {
                         $contragentData = $oContragentData;
                     }
 
                     // Ако трябва да е се използва първия имейл от списъка
-                    if ($oDoc->forceFirstEmail === true) {
+                    if (!empty($oDoc->forceFirstEmail)) {
                         if (!empty($contrData->email)) {
                             $eArr = type_Emails::toArray($contrData->email);
-                            if ($eArr[0]) {
+                            if (!empty($eArr[0])) {
                                 $contragentData->groupEmails = ($contragentData->groupEmails ?? null) ? ($contragentData->email ?? '') . ', ' . $contragentData->groupEmails : ($contragentData->email ?? null);
                                 $contragentData->email = $eArr[0];
                             }
