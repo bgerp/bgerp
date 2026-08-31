@@ -312,7 +312,7 @@ class acc_transaction_ClosePeriod extends acc_DocumentTransactionSource
                         $creditArr = $arr1;
                     }
                     
-                    $incomeRes[$rec->ent1Id][$rec->ent2Id] += $rec->blAmount;
+                    $incomeRes[$rec->ent1Id][$rec->ent2Id] = ($incomeRes[$rec->ent1Id][$rec->ent2Id] ?? 0) + $rec->blAmount;
                     $total += abs($rec->blAmount);
                     
                     switch ($accIds[$rec->accountId]) {
@@ -331,7 +331,7 @@ class acc_transaction_ClosePeriod extends acc_DocumentTransactionSource
                 } else {
                     
                     // Ако имаме крайно салдо по 700, само го добавяме към натрупването
-                    $incomeRes[$rec->ent1Id][$rec->ent2Id] += $rec->blAmount;
+                    $incomeRes[$rec->ent1Id][$rec->ent2Id] = ($incomeRes[$rec->ent1Id][$rec->ent2Id] ?? 0) + $rec->blAmount;
                 }
             }
         }
@@ -356,12 +356,12 @@ class acc_transaction_ClosePeriod extends acc_DocumentTransactionSource
                 $debitArr = $arr2;
                 $creditArr = $arr1;
                 $reason = 'Извънредни приходи - надплатени';
-                $incomeRes[$bRec1->ent1Id][$bRec1->ent2Id] -= abs($bRec1->blAmount);
+                $incomeRes[$bRec1->ent1Id][$bRec1->ent2Id] = ($incomeRes[$bRec1->ent1Id][$bRec1->ent2Id] ?? 0) - abs($bRec1->blAmount);
             } else {
                 $debitArr = $arr1;
                 $creditArr = $arr2;
                 $reason = 'Извънредни разходи - недоплатени';
-                $incomeRes[$bRec1->ent1Id][$bRec1->ent2Id] += abs($bRec1->blAmount);
+                $incomeRes[$bRec1->ent1Id][$bRec1->ent2Id] = ($incomeRes[$bRec1->ent1Id][$bRec1->ent2Id] ?? 0) + abs($bRec1->blAmount);
             }
             
             $entries[] = array('amount' => abs($bRec1->blAmount), 'debit' => $debitArr, 'credit' => $creditArr, 'reason' => $reason);
@@ -717,7 +717,7 @@ class acc_transaction_ClosePeriod extends acc_DocumentTransactionSource
                 $saleRec = sales_Sales::fetch($saleId, 'contragentId,contragentClassId');
                 $contragentItemId = acc_Items::fetchItem($saleRec->contragentClassId, $saleRec->contragentId)->id;
                 
-                $incomeRes[$contragentItemId][$dRec->ent1Id] += $dRec->blAmount;
+                $incomeRes[$contragentItemId][$dRec->ent1Id] = ($incomeRes[$contragentItemId][$dRec->ent1Id] ?? 0) + $dRec->blAmount;
                 
                 if ($dRec->blQuantity > 0) {
                     $entry = array('amount' => $dRec->blAmount,
