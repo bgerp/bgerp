@@ -182,7 +182,7 @@ class callcenter_Talks extends core_Master
         if ($externalNumArr) {
             
             // Ако е мобилен, класа също да е мобилен
-            $externalClass = ($externalNumArr[0]->mobile) ? 'mobile' : 'telephone';
+            $externalClass = ($externalNumArr[0]->mobile ?? false) ? 'mobile' : 'telephone';
             
             // Добавяме стил за телефони
             $row->externalNum = "<div class='{$externalClass} crm-icon'>" . $row->externalNum . '</div>';
@@ -2350,7 +2350,7 @@ class callcenter_Talks extends core_Master
             
             if (!isset($type)) {
                 // Ако е мобилен номер, полето ще сочи към мобилен
-                $personNumField = ($numArr[0]->mobile) ? 'mobile' : 'tel';
+                $personNumField = ($numArr[0]->mobile ?? false) ? 'mobile' : 'tel';
             }
             $rowTools->addLink('Ново лице', array('crm_Persons', 'add', $personNumField => $num, 'ret_url' => true), 'ef_icon=img/16/vcard-add.png, title=Създай нова фирма от номера');
             
