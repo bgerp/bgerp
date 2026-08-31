@@ -135,6 +135,13 @@ class expert_Dataset extends core_BaseClass
     private function setVar($var, $value, $trust = 0.6, $log = '')
     {
         if (!strpos($var, '[]')) {
+
+            // Празният стринг се пази като NULL - в PHP 8 аритметиката с '' е фатална,
+            // а NULL се държи като празната стойност в PHP 7
+            if ($value === '') {
+                $value = null;
+            }
+
             $this->vars[$var] = $value;
             $this->trusts[$var] = $trust;
         } else {
