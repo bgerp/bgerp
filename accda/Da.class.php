@@ -501,22 +501,23 @@ class accda_Da extends core_Master
         $row = &$data->row;
         $rec = $data->rec;
         $row->createdByName = core_Users::getVerbal($rec->createdBy, 'names');
+        $row->locationAddress = $row->locationAddress ?? '';
         
-        if ($data->rec->location) {
+        if (!empty($data->rec->location)) {
             $locationRec = crm_Locations::fetch($rec->location);
             
-            if ($locationRec->address || $locationRec->place || $locationRec->countryId) {
+            if ($locationRec && (!empty($locationRec->address) || !empty($locationRec->place) || !empty($locationRec->countryId))) {
                 $locationRow = crm_Locations::recToVerbal($locationRec);
                 
-                if ($locationRow->address) {
+                if (!empty($locationRow->address)) {
                     $row->locationAddress .= ", {$locationRow->address}";
                 }
                 
-                if ($locationRow->place) {
+                if (!empty($locationRow->place)) {
                     $row->locationAddress .= ", {$locationRow->place}";
                 }
                 
-                if ($locationRow->countryId) {
+                if (!empty($locationRow->countryId)) {
                     $row->locationAddress .= ", {$locationRow->countryId}";
                 }
             }
