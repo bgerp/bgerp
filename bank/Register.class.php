@@ -125,7 +125,7 @@ class bank_Register extends core_Manager
      */
     public function renderGroupName($data, $groupId, $groupVerbal)
     {
-        list($valior, $ownBankAccId) = explode('|', $groupId);
+        list($valior, $ownBankAccId) = array_pad(explode('|', $groupId, 2), 2, null);
 
         $valior = dt::mysql2verbal($valior, 'd/m/Y');
 
