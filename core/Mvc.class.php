@@ -407,7 +407,7 @@ class core_Mvc extends core_FieldSet
         
         if ($query == '') {
             
-            return $rec->id;
+            return $rec->id ?? null;
         }
         
         $mode = str_replace(' ', '_', strtolower($mode ?? ''));
