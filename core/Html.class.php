@@ -73,6 +73,9 @@ class core_Html
                 $element = "<{$name}{$attrStr}>";
             } else {
                 if (in_array(strtolower($name), array('textarea', 'option'))) {
+                    if (is_array($body) || (is_object($body) && !method_exists($body, '__toString'))) {
+                        $body = print_r($body, true);
+                    }
                     $body = str_replace(array('&', '<', '>'), array('&amp;', '&lt;', '&gt;'), $body ?? '');
                 }
                 $element = "<{$name}{$attrStr}>{$body}</{$name}>";
