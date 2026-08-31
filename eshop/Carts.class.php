@@ -753,9 +753,21 @@ class eshop_Carts extends core_Master
         $this->requireRightFor('finalize');
         expect($id = Request::get('id', 'int'));
 
-        expect($rec = self::fetch($id));
+        // Заключване преди извличането на записа, за да не се създадат няколко продажби при повторно финализиране
+        if (!core_Locks::obtain("finalize_{$id}", 120, 20, 15)) {
+            $lockMsg = 'Поръчката се обработва|*!';
+            if (countR($retUrl)) {
+
+                return new Redirect($retUrl, $lockMsg, 'warning');
+            }
+
+            return new Redirect(array('eshop_Carts', 'view', $id), $lockMsg, 'warning');
+        }
+
+        // Записът се извлича без кеш, чак след като заключването е взето
+        expect($rec = self::fetch($id, '*', false));
         $msg = '|Благодарим за поръчката|*!';
-        if ($rec->state == 'active') {
+        if ($rec->state == 'active' || isset($rec->saleId)) {
             if(countR($retUrl)){
                 
                 return new Redirect($retUrl, 'Има вече такава поръчка');
@@ -783,7 +795,6 @@ class eshop_Carts extends core_Master
         
         Mode::set('currentExternalTab', 'eshop_Carts');
 
-        core_Locks::obtain("finalize_{$id}", 15, 20, 15);
         try{
             $saleRec = self::forceSale($rec);
         } catch(core_exception_Expect $e){
@@ -1043,6 +1054,11 @@ class eshop_Carts extends core_Master
         }
         
         if (empty($saleId)) return false;
+
+        // Количката веднага се връзва към чернова на продажбата, за да не се създаде втора при нов опит за финализиране
+        $rec->saleId = $saleId;
+        self::save($rec, 'saleId');
+
         sales_Sales::logWrite('Създаване от онлайн поръчка', $saleId, 360, $cu);
         if (!empty($routerExplanation)) {
             sales_Sales::logDebug($routerExplanation, $saleId, 7);
@@ -2868,15 +2884,26 @@ class eshop_Carts extends core_Master
      */
     public function receivePayment($objId, $reason, $payer, $amount, $currencyCode, $accountId = null, $linkedContainerId = null)
     {
-        $rec = self::fetch($objId);
+        $cartId = self::fetchField($objId, 'id');
+
+        // Заключване, за да не се създаде втора продажба при повторно известие от разплащателния оператор
+        if (!core_Locks::obtain("finalize_{$cartId}", 120, 20, 15)) {
+            self::logWarning('Пристигнало плащане при заключена количка', $cartId);
+
+            return;
+        }
+
+        $rec = self::fetch($objId, '*', false);
         $rec->paidOnline = 'yes';
         self::save($rec, 'paidOnline');
         
+        $saleRec = null;
         try {
             $saleRec = self::forceSale($rec);
         } catch (core_exception_Expect $e) {
             reportException($e);
         }
+        core_Locks::release("finalize_{$cartId}");
         
         if (!is_object($saleRec)) {
             
