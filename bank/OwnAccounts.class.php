@@ -254,7 +254,7 @@ class bank_OwnAccounts extends core_Master
     protected static function on_AfterRecToVerbal(&$mvc, &$row, &$rec, $fields = array())
     {
         $stateClass = ($rec->state == 'rejected') ? ' state-rejected' : (($rec->state == 'closed' ? ' state-closed': ' state-active'));
-        $row->STATE_CLASS .= $stateClass;
+        $row->STATE_CLASS = ($row->STATE_CLASS ?? '') . $stateClass;
         if($mvc->getCurrent('id', false) != $rec->id){
             $row->ROW_ATTR['class'] = $stateClass;
         }

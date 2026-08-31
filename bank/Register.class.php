@@ -151,20 +151,20 @@ class bank_Register extends core_Manager
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         if (!empty($rec->contragentIban)) {
-            $row->contragentName .= ($row->contragentName ? '<br>' : '') . $mvc->getVerbal($rec, 'contragentIban');
+            $row->contragentName = ($row->contragentName ?? '') . (!empty($row->contragentName) ? '<br>' : '') . $mvc->getVerbal($rec, 'contragentIban');
         }
         if (!empty($rec->reason)) {
-            $row->contragentName .= ($row->contragentName ? '<br>' : '') . '<small>' . $mvc->getVerbal($rec, 'reason') . '<small>';
+            $row->contragentName = ($row->contragentName ?? '') . (!empty($row->contragentName) ? '<br>' : '') . '<small>' . $mvc->getVerbal($rec, 'reason') . '<small>';
         }
 
         // Валутата на трансакцията е тази на нашата сметка
         $transCurrencyCode = self::getCurrencyCodeByAccount($rec->ownAccountId);
 
         if (!empty($transCurrencyCode)) {
-            $row->amount .= ' <small>' . $transCurrencyCode . '</small>';
+            $row->amount = ($row->amount ?? '') . ' <small>' . $transCurrencyCode . '</small>';
         }
 
-        $row->amount .= '<br><small>' . mb_strtolower($mvc->getVerbal($rec, 'type')) . '</small>';
+        $row->amount = ($row->amount ?? '') . '<br><small>' . mb_strtolower($mvc->getVerbal($rec, 'type')) . '</small>';
 
         if ($rec->type == 'outgoing') {
             $color = '#800';
