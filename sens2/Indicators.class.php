@@ -196,7 +196,7 @@ class sens2_Indicators extends core_Detail
             $ap = sens2_Controllers::getActivePorts($rec->controllerId);
             $opt = array();
             foreach ($ap as $port => $pRec) {
-                if (!self::fetch(array("#controllerId = {$rec->controllerId} AND #port = '[#1#]'", $port)) || $port == $rec->port) {
+                if (!self::fetch(array("#controllerId = {$rec->controllerId} AND #port = '[#1#]'", $port)) || $port == ($rec->port ?? null)) {
                     $opt[$port] = $pRec->caption;
                 }
             }

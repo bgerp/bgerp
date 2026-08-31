@@ -58,11 +58,13 @@ class sens2_MockupDrv extends sens2_ProtoDriver
     
     public function readInputs($inputs, $config, &$persistentState)
     {
-        if ($inputs['Temp1']) {
+        $res = array();
+
+        if (!empty($inputs['Temp1'])) {
             $res['Temp1'] = 5;
         }
         
-        if ($inputs['Memory']) {
+        if (!empty($inputs['Memory'])) {
             $res['Memory'] = memory_get_usage(true);
         }
         
