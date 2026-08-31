@@ -76,6 +76,12 @@ class bgerp_Notifications extends core_Manager
      * Брой записи на страница
      */
     public $listItemsPerPage = 100;
+
+
+    /**
+     * Полета, които се извличат преди изтриване на записите
+     */
+    public $fetchFieldsBeforeDelete = 'userId';
     
     
     /**
@@ -1578,7 +1584,7 @@ class bgerp_Notifications extends core_Manager
             if($cnt === false) {
                 $query = self::getQuery();
                 $cnt = $query->count("#userId = {$userId} AND #state = 'active' AND #hidden = 'no'");
-                core_Cache::set('OpenNtfCnt', $userId, $cnt, 600);
+                core_Cache::set('OpenNtfCnt', $userId, $cnt, 10);
             }
         } else {
             $cnt = 0;
@@ -2050,6 +2056,20 @@ class bgerp_Notifications extends core_Manager
     }
     
     
+    /**
+     * Извиква се след изтриване на записи
+     *
+     * @author Ivelin Dimov <ivelin_pdimov@abv.bg>
+     */
+    protected static function on_AfterDelete($mvc, &$res, $query)
+    {
+        // Премахва кеша за броя на нотификациите на засегнатите потребители
+        foreach ((array) $query->getDeletedRecs() as $dRec) {
+            core_Cache::remove('OpenNtfCnt', $dRec->userId);
+        }
+    }
+
+
     /**
      * Извиква се преди вкарване на запис в таблицата на модела
      */
