@@ -1030,7 +1030,7 @@ class callcenter_SMS extends core_Master
                 
                 $mobileNum = '';
                 foreach ($parsedTel as $t) {
-                    if (!$t->mobile) {
+                    if (!($t->mobile ?? false)) {
                         continue;
                     }
                     
