@@ -542,7 +542,7 @@ class store_Transfers extends core_Master
         }
 
         // Етапът има значение само докато документът е на заявка
-        if (empty($rec->pendingStage) || $rec->state != 'pending') {
+        if (empty($rec->pendingStage) || $rec->state != 'pending' || !isset($row->pendingStage)) {
             unset($row->pendingStage);
         } else {
             $color = ($rec->pendingStage == 'loading') ? '#ef6c00' : '#2e7d32';
