@@ -486,7 +486,7 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
         $detailsProduction = $productionTable->get($pData->rows, $pData->listFields);
 
         // Сборът - зелен при точно 100%, червен при над 100%
-        cat_plg_DisassemblyDocDetail::appendTotalRow($detailsProduction, $data->totalPercent, countR($pData->listFields));
+        cat_plg_DisassemblyDocDetail::appendTotalRow($detailsProduction, $pData);
 
         // Кои артикули остават без дял - само преди контиране, после процентите
         // са снимка от журнала

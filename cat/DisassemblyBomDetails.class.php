@@ -362,9 +362,8 @@ class cat_DisassemblyBomDetails extends doc_Detail
         $productionTable = cls::get('core_TableView', array('mvc' => $pData->listTableMvc));
         $productionTable->tableClass = 'listTable disassemblyBomTable';
         $productionTableTpl = $productionTable->get($pData->rows, $pData->listFields);
-        $columns = countR($pData->listFields);
 
-        cat_plg_DisassemblyDocDetail::appendTotalRow($productionTableTpl, $data->totalPercent, $columns);
+        cat_plg_DisassemblyDocDetail::appendTotalRow($productionTableTpl, $pData);
 
         // Предупреждението се слага най-горе, над името на артикула за разпад
         if (!empty($data->percentWarning)) {
