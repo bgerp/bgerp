@@ -310,8 +310,11 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
             if (isset($rec->contoPercent)) {
                 $data->rows[$id]->costPercent = $mvc->getVerbal($rec, 'contoPercent');
 
-                // Сборът отдолу е на показаното, не на живо изчисленото
-                $data->totalPercent += $rec->contoPercent - ($percent ?? 0);
+                // Сборът отдолу е на показаното, не на живо изчисленото. Оттегленият
+                // ред показва каквото е било, но не влиза в сбора
+                if (($rec->state ?? null) != 'rejected') {
+                    $data->totalPercent += $rec->contoPercent - ($percent ?? 0);
+                }
             }
 
             if (isset($rec->percentFromBom)) {
