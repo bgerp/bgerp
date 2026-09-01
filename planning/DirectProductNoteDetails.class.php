@@ -340,6 +340,24 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
                 $row->productId->append("<br><small><span class='quiet'>" . tr('Раз. обект') . "</span>: {$itemLink}</small>");
             }
         }
+
+        if (empty($data->_isEditQuantities)) return;
+
+        $firstDoc = doc_Threads::getFirstDocument($data->masterData->rec->threadId);
+        $isTaskNote = $firstDoc->isInstanceOf('planning_Tasks');
+        $counters = array();
+        $Int = cls::get('type_Int');
+        foreach ($data->recs as $id => $rec) {
+            if ($isTaskNote && !in_array($rec->type, array('input', 'allocated'))) {
+                unset($data->recs[$id], $data->rows[$id]);
+
+                continue;
+            }
+
+            $group = in_array($rec->type, array('input', 'allocated')) ? 'input' : $rec->type;
+            $counters[$group] = ($counters[$group] ?? 0) + 1;
+            $data->rows[$id]->tools = $Int->toVerbal($counters[$group]);
+        }
     }
     
     
@@ -381,37 +399,6 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
         }
     }
 
-
-    /**
-     * Специфична подготовка на редовете за бързо редактиране на количествата
-     *
-     * @param core_Mvc $mvc
-     * @param array    $recs
-     * @param array    $rows
-     * @param array    $listFields
-     * @param stdClass $masterRec
-     *
-     * @return void
-     */
-    protected static function on_AfterPrepareEditQuantitiesRows($mvc, &$recs, &$rows, &$listFields, $masterRec)
-    {
-        $firstDoc = doc_Threads::getFirstDocument($masterRec->threadId);
-        $isTaskNote = $firstDoc->isInstanceOf('planning_Tasks');
-
-        $counters = array();
-        $Int = cls::get('type_Int');
-        foreach ($recs as $id => $rec) {
-            if ($isTaskNote && !in_array($rec->type, array('input', 'allocated'))) {
-                unset($recs[$id], $rows[$id]);
-
-                continue;
-            }
-
-            $group = in_array($rec->type, array('input', 'allocated')) ? 'input' : $rec->type;
-            $counters[$group] = ($counters[$group] ?? 0) + 1;
-            $rows[$id]->tools = $Int->toVerbal($counters[$group]);
-        }
-    }
 
     /**
      * Помощна ф-я за модифициране на записите

@@ -328,6 +328,20 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
                 $data->rows[$id]->costPercent = ht::createHint($data->rows[$id]->costPercent, "При реконтиране ще стане|*: {$percentVerbal}", 'warning', false);
             }
         }
+
+        if (empty($data->_isEditQuantities)) return;
+
+        $counters = $numbers = array();
+        $Int = cls::get('type_Int');
+        foreach ($data->recs as $id => $rec) {
+            $group = ($rec->type == 'input' && $rec->isMainInput == 'yes') ? 'mainInput' : $rec->type;
+            $revisionKey = $rec->revisionRootId ?: $rec->id;
+            if (!isset($numbers[$group][$revisionKey])) {
+                $counters[$group] = ($counters[$group] ?? 0) + 1;
+                $numbers[$group][$revisionKey] = $counters[$group];
+            }
+            $data->rows[$id]->tools = $Int->toVerbal($numbers[$group][$revisionKey]);
+        }
     }
 
 
@@ -383,33 +397,6 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
 
                 $row->tools->append("{$icon} {$num}", 'TOOLS');
             }
-        }
-    }
-
-
-    /**
-     * Добавя номерата на редовете във формата за редактиране на количества
-     *
-     * @param core_Mvc $mvc
-     * @param array    $recs
-     * @param array    $rows
-     * @param array    $listFields
-     * @param stdClass $masterRec
-     *
-     * @return void
-     */
-    protected static function on_AfterPrepareEditQuantitiesRows($mvc, &$recs, &$rows, &$listFields, $masterRec)
-    {
-        $counters = $numbers = array();
-        $Int = cls::get('type_Int');
-        foreach ($recs as $id => $rec) {
-            $group = ($rec->type == 'input' && $rec->isMainInput == 'yes') ? 'mainInput' : $rec->type;
-            $revisionKey = $rec->revisionRootId ?: $rec->id;
-            if (!isset($numbers[$group][$revisionKey])) {
-                $counters[$group] = ($counters[$group] ?? 0) + 1;
-                $numbers[$group][$revisionKey] = $counters[$group];
-            }
-            $rows[$id]->tools = $Int->toVerbal($numbers[$group][$revisionKey]);
         }
     }
 
