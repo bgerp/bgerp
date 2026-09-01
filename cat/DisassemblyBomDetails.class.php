@@ -233,10 +233,10 @@ class cat_DisassemblyBomDetails extends doc_Detail
         }
         deals_Helper::addNotesToProductRow($row->productId, $rec->notes);
 
-        // Вложимите са зелени като в технологичната рецепта, произведените - с
-        // 'state-active'. Оттеглените ги оцветява doc_plg_DetailRevisions
+        // Вложимите са зелени, произвежданите - жълти, като в технологичната рецепта.
+        // Оттеглените ги оцветява doc_plg_DetailRevisions
         if (($rec->state ?? null) != 'rejected') {
-            $row->ROW_ATTR['class'] = ($rec->type == 'input') ? 'row-added' : 'state-active';
+            $row->ROW_ATTR['class'] = ($rec->type == 'input') ? 'row-added' : 'row-subProduct';
         }
 
         // Сумата по избраната ценова политика - по нея се разпределя себестойността

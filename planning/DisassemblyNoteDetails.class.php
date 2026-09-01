@@ -244,6 +244,11 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
                 $row->storeId = "<span class='red'>n/a</span>";
             }
         }
+
+        // Оцветяване като в рецептата за разпад. Оттеглените ги оцветява doc_plg_DetailRevisions
+        if (($rec->state ?? null) != 'rejected') {
+            $row->ROW_ATTR['class'] = ($rec->type == 'input') ? 'row-added' : 'row-subProduct';
+        }
     }
 
 
@@ -344,10 +349,10 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
                     $row->tools = new ET('[#TOOLS#]');
                 }
 
-                // Иконка по вид на реда
+                // Иконка по вид на реда - за разпад излиза (наляво), произведеното влиза (надясно)
                 $icon = ($rec->type == 'input')
-                    ? "<span class='green' style='font-weight:bold;' title='" . tr('Влагане') . "'>⇩</span>"
-                    : "<span class='red' style='font-weight:bold;' title='" . tr('Връщане') . "'>⇧</span>";
+                    ? "<span class='red' style='font-weight:bold;' title='" . tr('За разпад') . "'>⇦</span>"
+                    : "<span class='green' style='font-weight:bold;' title='" . tr('Произведено') . "'>⇨</span>";
 
                 // Основният вложен артикул е в собствена таблица над произведените
                 // (@see renderDetail_/MAIN_INPUT_PRODUCT_TABLE)
