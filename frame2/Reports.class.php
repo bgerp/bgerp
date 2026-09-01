@@ -1034,7 +1034,7 @@ class frame2_Reports extends embed_Manager
         if ($rec->state == 'closed') {
             $nextUpdates = self::getNextRefreshDates($rec);
             if (countR($nextUpdates)) {
-                $updateHeaderName = ht::createHint($updateHeaderName, 'Справката няма да се актуализира докато е затворена', 'warning', true, 'height=12px;width=12px');
+                $updateHeaderName = ht::createHint($updateHeaderName, 'Справката няма да се актуализира докато е затворена', 'warning', true, array('iconAttr' => 'height=12px;width=12px'));
                 if(!Mode::is('printing')){
                     $lastRefreshedHeaderName = "<span class='closedFrameUpdateTimeTitle'>{$lastRefreshedHeaderName}</span>";
                     $row->lastRefreshed = "<span class='closedFrameUpdateTime'>{$row->lastRefreshed}</span>";

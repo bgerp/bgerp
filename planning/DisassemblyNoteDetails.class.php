@@ -534,6 +534,14 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
 
         cat_plg_DisassemblyDocDetail::appendAllocateBtn($tpl, $this->Master, $data->masterId, 'PRODUCED_PRODUCTS_TABLE', 'margin-top:5px;margin-bottom:15px;');
 
+        // Групово изтриване само на произведените - тулбарът на core_Detail не се рендира тук
+        if (!Mode::isReadOnly()) {
+            $deleteProductionRec = (object) array('noteId' => $data->masterId, '_filterFld' => 'type', '_filterFldVal' => 'production');
+            if ($this->haveRightFor('selectrowstodelete', $deleteProductionRec)) {
+                $tpl->append(ht::createBtn('Изтриване', array($this, 'selectRowsToDelete', 'noteId' => $data->masterId, '_filterFld' => 'type', '_filterFldVal' => 'production', 'ret_url' => true), null, null, array('style' => 'margin-top:5px;margin-bottom:15px;', 'ef_icon' => 'img/16/delete.png', 'title' => 'Форма за групово изтриване на произведените артикули', 'class' => 'selectDeleteRowsBtn')), 'PRODUCED_PRODUCTS_TABLE');
+            }
+        }
+
         $tpl->push('planning/js/DisassemblyNoteTables.js', 'JS');
         jquery_Jquery::run($tpl, 'render_syncDisassemblyNoteTables();');
         jquery_Jquery::runAfterAjax($tpl, 'syncDisassemblyNoteTables');

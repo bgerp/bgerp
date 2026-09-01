@@ -666,7 +666,7 @@ class store_Products extends core_Detail
 
             $dateMin = !empty($rec->dateMin) ? $rec->dateMin : dt::today();
             $date = dt::mysql2verbal($dateMin, 'd.m.Y');
-            $row->freeQuantityMin = ht::createHint($row->freeQuantityMin ?? '', $date,'img/16/calendar_1.png', true, 'height=12px,width=12px');
+            $row->freeQuantityMin = ht::createHint($row->freeQuantityMin ?? '', $date,'img/16/calendar_1.png', true, array('iconAttr' => 'height=12px,width=12px'));
 
             // Ако се показва колонка за последно инвентаризиране - да се покаже последния документ
             if(is_array($data->inventoryRecs ?? null)){

@@ -1173,25 +1173,30 @@ class core_Html
      * @param string $hint        - текст на хинта
      * @param string $type        - тип на хинта
      * @param bool   $appendToEnd - дали хинта да се добави в края на стринга
-     * @param array  $iconAttr    - атрибути на иконката
+     * @param array  $hintAttr    - атрибути на балончето, плюс настройките на хинта:
+     *                             o bool         isHtml   - хинтът е HTML и се показва в балонче, вместо в 'title'
+     *                             o array|string iconAttr - атрибути на иконката
      * @param array  $elementArr  - атрибути на елемента
-     * @param bool   $isHtml      - хинтът е HTML и се показва в балонче, вместо в 'title'
-     * @param array  $hintAttr    - атрибути на балончето, само при $isHtml
      *
      * @return core_ET $elementTpl  - шаблон с хинта
      */
-    public static function createHint($body, $hint, $type = 'notice', $appendToEnd = true, $iconAttr = array(), $elementArr = array(), $isHtml = false, $hintAttr = array())
+    public static function createHint($body, $hint, $type = 'notice', $appendToEnd = true, $hintAttr = array(), $elementArr = array())
     {
         if (empty($hint) || Mode::is('printing') || Mode::is('text', 'xhtml') || Mode::is('pdf')) {
             
             return new core_ET($body);
         }
-        
-        if (!empty($isHtml)) {
+
+        // Настройките се изваждат - остатъкът са атрибутите на балончето
+        $hintAttr = arr::make($hintAttr, true);
+        $isHtml = !empty($hintAttr['isHtml']);
+        $iconAttr = $hintAttr['iconAttr'] ?? array();
+        unset($hintAttr['isHtml'], $hintAttr['iconAttr']);
+
+        if ($isHtml) {
             // При HTML хинт съдържанието се запазва и отива в балончето
             $hint = ($hint instanceof core_ET) ? $hint->getContent() : tr($hint);
             
-            $hintAttr = arr::make($hintAttr, true);
             $hintClass = !empty($hintAttr['class']) ? " {$hintAttr['class']}" : '';
             $hintAttr['class'] = "additionalInfo{$hintClass}";
             $hintSpan = ht::createElement('span', $hintAttr);
@@ -1200,7 +1205,7 @@ class core_Html
         }
 
         if ($type == 'noicon') {
-            if (!empty($isHtml)) {
+            if ($isHtml) {
                 $element = "<span class='additionalInfo-holder hoverHint'>{$hintSpan}[#hint#]</span><span class='textHint'>[#body#]</span></span>";
             } else {
                 $element = "<span class='textHint' title='[#hint#]' rel='tooltip'>[#body#]</span>";
@@ -1214,7 +1219,7 @@ class core_Html
             $iconAttr['src'] = sbf($iconAttr['src'], '');
             $iconHtml = ht::createElement('img', $iconAttr);
             
-            if (!empty($isHtml)) {
+            if ($isHtml) {
                 $iconClass = ($appendToEnd === true) ? 'endTooltip' : 'frontTooltip';
                 $holder = "<span class='additionalInfo-holder hoverHint'>{$hintSpan}[#hint#]</span><span class='{$iconClass}' style='position: relative; top: 2px;'>[#icon#]</span></span>";
                 $element = ($appendToEnd === true) ? "[#body#] {$holder}" : "{$holder} [#body#]";
@@ -1235,7 +1240,7 @@ class core_Html
             $elementTpl->append('</span>');
         }
         
-        if (empty($isHtml)) {
+        if (!$isHtml) {
             $hint = str_replace("'", '"', $hint);
         }
         

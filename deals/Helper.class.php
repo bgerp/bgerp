@@ -613,7 +613,7 @@ abstract class deals_Helper
         
         $quantityInPack = ($quantityInPack == 1) ? '' : core_Type::getByName('double(smartRound)')->toVerbal($quantityInPack) . ' ';
         if ($hint === true) {
-            $quantityInPack = ht::createHint($quantityInPack, 'Има отклонение спрямо очакваното', 'warning', true, 'width=12px,height=12px');
+            $quantityInPack = ht::createHint($quantityInPack, 'Има отклонение спрямо очакваното', 'warning', true, array('iconAttr' => 'width=12px,height=12px'));
         }
         
         $tpl = new core_ET("<span class='nowrap'>&nbsp;<small class='quiet'>[#quantityInPack#] [#shortUomName#]</small></span>");
@@ -883,7 +883,7 @@ abstract class deals_Helper
         if($mvc->manifactureProductsOnShipment ?? null) {
             $lastInstantBom = cat_Products::getLastActiveBom($productId, 'instant');
             if(is_object($lastInstantBom)) {
-                $html = ht::createHint($html, "Артикулът е с моментна рецепта и ще бъде произведен при изписване от склада|*!", 'img/16/cog.png', false, null, "class=doc-positive-quantity");
+                $html = ht::createHint($html, "Артикулът е с моментна рецепта и ще бъде произведен при изписване от склада|*!", 'img/16/cog.png', false, array(), "class=doc-positive-quantity");
                 return;
             }
         }
@@ -1002,12 +1002,12 @@ abstract class deals_Helper
                 $html = ht::createLinkRef($html, $url, false, array('arrowFront' => true));
             }
 
-            $html = ht::createHint($html, $hint, 'warning', false, null, "class={$class}");
+            $html = ht::createHint($html, $hint, 'warning', false, array(), "class={$class}");
         }
 
         if($pRec->isPublic == 'no') {
             if($futureQuantity > 0) {
-                $html = ht::createHint($html, "Наличността в склада е по-голяма|*: {$inStockVerbal} {$measureName}", 'notice', false, null, "class=doc-positive-quantity");
+                $html = ht::createHint($html, "Наличността в склада е по-голяма|*: {$inStockVerbal} {$measureName}", 'notice', false, array(), "class=doc-positive-quantity");
             }
         }
     }
