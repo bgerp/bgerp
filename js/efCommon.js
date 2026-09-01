@@ -172,8 +172,10 @@ function fadeImages(el, transition, delay) {
 
 /**
  * Позиционира балонче спрямо viewport-а, за да не се реже от скролиращ контейнер
+ *
+ * preferAbove - балончето да е над анкера, както е при обикновения хинт
  */
-function positionAdditionalInfo(element, anchor) {
+function positionAdditionalInfo(element, anchor, preferAbove) {
     if (!element || !anchor || !$(element).is(':visible')) {
         return;
     }
@@ -199,7 +201,13 @@ function positionAdditionalInfo(element, anchor) {
     var spaceBelow = viewportHeight - anchorRect.bottom - margin - gap;
     var top;
 
-    if (tooltipRect.height <= spaceBelow || spaceBelow >= spaceAbove) {
+    if (preferAbove) {
+        if (tooltipRect.height <= spaceAbove || spaceAbove >= spaceBelow) {
+            top = anchorRect.top - tooltipRect.height - gap;
+        } else {
+            top = anchorRect.bottom + gap;
+        }
+    } else if (tooltipRect.height <= spaceBelow || spaceBelow >= spaceAbove) {
         top = anchorRect.bottom + gap;
     } else {
         top = anchorRect.top - tooltipRect.height - gap;
@@ -226,7 +234,7 @@ function hoverTooltip() {
     var hoveredScrollParents;
 
     function repositionHovered() {
-        positionAdditionalInfo(hovered, hoveredAnchor);
+        positionAdditionalInfo(hovered, hoveredAnchor, true);
     }
 
     function resetHovered(element) {
