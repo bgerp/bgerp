@@ -373,7 +373,7 @@ class cat_DisassemblyBomDetails extends doc_Detail
         $tpl->append($productionTableTpl, 'PRODUCED_PRODUCTS_TABLE');
 
         if (!Mode::isReadOnly() && $this->haveRightFor('add', (object) array('bomId' => $data->masterId, 'type' => 'production'))) {
-            $tpl->append(ht::createBtn('Произвеждане', array($this, 'add', 'bomId' => $data->masterId, 'type' => 'production', 'ret_url' => true), null, null, array('style' => 'margin-top:5px;margin-bottom:15px;', 'ef_icon' => 'img/16/door_in.png', 'title' => 'Добавяне на произведен артикул')), 'PRODUCED_PRODUCTS_TABLE');
+            $tpl->append(ht::createBtn('Артикул', array($this, 'add', 'bomId' => $data->masterId, 'type' => 'production', 'ret_url' => true), null, null, array('style' => 'margin-top:5px;margin-bottom:15px;', 'ef_icon' => 'img/16/door_in.png', 'title' => 'Добавяне на произведен артикул')), 'PRODUCED_PRODUCTS_TABLE');
         }
 
         // При бутоните под таблицата, както е и в Протокола за разпад

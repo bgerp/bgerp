@@ -445,11 +445,11 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
 
         // Мини-таблица с ОСНОВНИЯ артикул за разпад - отделно, над произведените
         if (countR($data->mainInputArr)) {
-            $data->listFields['productId'] = 'Артикули за разпад|* ';
+            $data->listFields['productId'] = 'Разпад|* ';
             $mData = clone $data;
             $mData->listTableMvc = clone $data->listTableMvc;
             $mData->listFields = $commonListFields;
-            $mData->listFields['productId'] = 'Артикули за разпад|* ';
+            $mData->listFields['productId'] = 'Разпад|* ';
             $mData->rows = $data->mainInputArr;
             $mData->recs = array_intersect_key($mData->recs, $mData->rows);
 
@@ -467,11 +467,11 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
 
         // Таблица с (други) артикули за разпад (влагане) - само ако има такива
         if (countR($data->inputArr)) {
-            $data->listFields['productId'] = 'Артикули за разпад|* ';
+            $data->listFields['productId'] = 'Разпад|* ';
             $iData = clone $data;
             $iData->listTableMvc = clone $data->listTableMvc;
             $iData->listFields = $commonListFields;
-            $iData->listFields['productId'] = 'Артикули за разпад|* ';
+            $iData->listFields['productId'] = 'Разпад|* ';
             $iData->rows = $data->inputArr;
             $iData->recs = array_intersect_key($iData->recs, $iData->rows);
 
@@ -487,7 +487,7 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
         }
 
         if ($this->haveRightFor('add', (object) array('noteId' => $data->masterId, 'type' => 'input'))) {
-            $tpl->append(ht::createBtn('Артикули за разпад', array($this, 'add', 'noteId' => $data->masterId, 'type' => 'input', 'ret_url' => true), null, null, array('style' => 'margin-top:5px;margin-bottom:15px;', 'ef_icon' => 'img/16/wooden-box.png', 'title' => 'Добавяне на артикула за разпад')), 'INPUT_PRODUCTS_TABLE');
+            $tpl->append(ht::createBtn('Разпад', array($this, 'add', 'noteId' => $data->masterId, 'type' => 'input', 'ret_url' => true), null, null, array('style' => 'margin-top:5px;margin-bottom:15px;', 'ef_icon' => 'img/16/wooden-box.png', 'title' => 'Добавяне на артикула за разпад')), 'INPUT_PRODUCTS_TABLE');
         }
 
         $editInputRec = (object) array('noteId' => $data->masterId, '_filterFld' => 'type', '_filterFldVal' => 'input');
@@ -532,7 +532,7 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
 
         if ($this->haveRightFor('add', (object) array('noteId' => $data->masterId, 'type' => 'production'))) {
             if(!Mode::isReadOnly()){
-                $tpl->append(ht::createBtn('Произвеждане', array($this, 'add', 'noteId' => $data->masterId, 'type' => 'production', 'ret_url' => true), null, null, array('style' => 'margin-top:5px;margin-bottom:15px;', 'ef_icon' => 'img/16/door_in.png', 'title' => 'Добавяне на произведен артикул')), 'PRODUCED_PRODUCTS_TABLE');
+                $tpl->append(ht::createBtn('Артикул', array($this, 'add', 'noteId' => $data->masterId, 'type' => 'production', 'ret_url' => true), null, null, array('style' => 'margin-top:5px;margin-bottom:15px;', 'ef_icon' => 'img/16/door_in.png', 'title' => 'Добавяне на произведен артикул')), 'PRODUCED_PRODUCTS_TABLE');
             }
         }
 
