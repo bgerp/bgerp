@@ -259,7 +259,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
             }
 
             if ($form->isSubmitted()) {
-                if (!empty($rec->_isStorable) && empty($rec->storeId) && $rec->type != 'pop') {
+                if (empty($form->_editDetailQuantities) && !empty($rec->_isStorable) && empty($rec->storeId) && $rec->type != 'pop') {
                     if(!planning_ConsumptionNotes::existActivatedInThread($noteRec->threadId, $rec->productId)){
                         $form->setWarning('storeId', "В Заданието(и операциите към него) няма контиран Протокол за влагане с посочения артикул, а е избрано влагане от Незавършено производство! Ако няма предварително (общо) влагане - изберете склад за изписване на материала!");
                     }
@@ -291,20 +291,23 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
                 if(!empty($rec->storeId)){
                     $rec->fromAccId = null;
                 }
-
-                if (isset($rec->id) && core_Packs::isInstalled('batch') && $mvc->getBatchMovementDocument($rec) == 'in') {
-                    $bQuery = batch_BatchesInDocuments::getQuery();
-                    $bQuery->XPR('totalQuantity', 'double', 'SUM(#quantity)');
-                    $bQuery->where("#detailClassId = {$mvc->getClassId()} AND #detailRecId = {$rec->id}");
-                    $batchRec = $bQuery->fetch();
-                    $productInfo = cat_Products::getProductInfo($rec->productId);
-                    $quantityInPack = !empty($productInfo->packagings[$rec->packagingId]) ? $productInfo->packagings[$rec->packagingId]->quantity : 1;
-                    $newQuantity = $rec->packQuantity * $quantityInPack;
-                    if (round($batchRec->totalQuantity ?? 0, 5) > round($newQuantity, 5)) {
-                        $form->setError('packQuantity', 'Новото количество е по-малко от вече разпределеното по партиди');
-                    }
-                }
             }
+        }
+    }
+
+
+    /**
+     * Премахва празната колона за инструменти във формата за групово изтриване
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $data
+     *
+     * @return void
+     */
+    protected static function on_AfterPrepareListFields($mvc, &$data)
+    {
+        if (Mode::is('selectRows2Delete')) {
+            unset($data->listFields['tools']);
         }
     }
     
@@ -395,10 +398,18 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
         $firstDoc = doc_Threads::getFirstDocument($masterRec->threadId);
         $isTaskNote = $firstDoc->isInstanceOf('planning_Tasks');
 
+        $counters = array();
+        $Int = cls::get('type_Int');
         foreach ($recs as $id => $rec) {
             if ($isTaskNote && !in_array($rec->type, array('input', 'allocated'))) {
                 unset($recs[$id], $rows[$id]);
+
+                continue;
             }
+
+            $group = in_array($rec->type, array('input', 'allocated')) ? 'input' : $rec->type;
+            $counters[$group] = ($counters[$group] ?? 0) + 1;
+            $rows[$id]->tools = $Int->toVerbal($counters[$group]);
         }
     }
 
@@ -555,7 +566,8 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
 
         $editInputRec = (object)array('noteId' => $data->masterId, '_filterFld' => 'type', '_filterFldVals' => 'input,allocated');
         if($this->haveRightFor('editquantities', $editInputRec)){
-            $tpl->append(ht::createBtn('Количества', array($this, 'editquantities', 'noteId' => $data->masterId, '_filterFld' => 'type', '_filterFldVals' => 'input,allocated', 'ret_url' => true), null, null, array('style' => 'margin-top:5px;margin-bottom:15px;', 'ef_icon' => 'img/16/edit.png', 'title' => tr('Бързо редактиране на количествата на вложените артикули и разходите'))), 'INPUTED_PRODUCTS_TABLE');
+            $filter = array('_filterFld' => 'type', '_filterFldVals' => 'input,allocated');
+            deals_plg_EditDetailQuantities::appendBtn($tpl, $this, $data->masterId, 'INPUTED_PRODUCTS_TABLE', $filter, tr('Бързо редактиране на количествата на вложените артикули и разходите'));
         }
 
         if($this->haveRightFor('selectrowstodelete', (object)array("noteId" => $data->masterId, '_filterFld' => 'type', '_filterFldVal' => 'input'))){
@@ -618,7 +630,8 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
                 $editQuantityRec = (object)array('noteId' => $data->masterId, '_filterFld' => 'type', '_filterFldVal' => $type);
                 if($this->haveRightFor('editquantities', $editQuantityRec)){
                     $editQuantityTitle = tr('Бързо редактиране на количествата на') . ' ' . mb_strtolower(tr($btnTitle));
-                    $tpl->append(ht::createBtn('Количества', array($this, 'editquantities', 'noteId' => $data->masterId, '_filterFld' => 'type', '_filterFldVal' => $type, 'ret_url' => true), null, null, array('style' => 'margin-top:5px;margin-bottom:15px;', 'ef_icon' => 'img/16/edit.png', 'title' => $editQuantityTitle)), $placeholder);
+                    $filter = array('_filterFld' => 'type', '_filterFldVal' => $type);
+                    deals_plg_EditDetailQuantities::appendBtn($tpl, $this, $data->masterId, $placeholder, $filter, $editQuantityTitle);
                 }
 
                 if($this->haveRightFor('selectrowstodelete', (object)array("noteId" => $data->masterId, '_filterFld' => 'type', '_filterFldVal' => $type))){

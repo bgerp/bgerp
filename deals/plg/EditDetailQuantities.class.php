@@ -16,6 +16,12 @@
 class deals_plg_EditDetailQuantities extends core_Plugin
 {
     /**
+     * Служебна колона за полета за редакция
+     */
+    const EDIT_QUANTITY_COLUMN = '_editPackQuantity';
+
+
+    /**
      * Задава настройките по подразбиране след описанието на модела
      *
      * @param core_Mvc $mvc
@@ -82,8 +88,65 @@ class deals_plg_EditDetailQuantities extends core_Plugin
         $rightRec = (object) array($mvc->masterKey => $data->masterId);
         if (!$mvc->haveRightFor('editquantities', $rightRec)) return;
 
-        $data->toolbar->addBtn('Количества', array($mvc, 'editquantities', $mvc->masterKey => $data->masterId, 'ret_url' => true),
+        $data->toolbar->addBtn('Количества', static::getActionUrl($mvc, $data->masterId),
             'order=490,ef_icon=img/16/edit.png,title=Бързо редактиране на количествата');
+    }
+
+
+    /**
+     * Връща URL към формата за редактиране на количества
+     *
+     * @param core_Detail $mvc
+     * @param int         $masterId
+     * @param array       $filter
+     *
+     * @return array
+     */
+    public static function getActionUrl($mvc, $masterId, $filter = array())
+    {
+        return array($mvc, 'editquantities', $mvc->masterKey => $masterId) + $filter + array('ret_url' => true);
+    }
+
+
+    /**
+     * Създава стандартен бутон за редактиране на количества
+     *
+     * @param core_Detail $mvc
+     * @param int         $masterId
+     * @param array       $filter
+     * @param string|null $title
+     * @param array       $attr
+     *
+     * @return core_ET
+     */
+    public static function createBtn($mvc, $masterId, $filter = array(), $title = null, $attr = array())
+    {
+        $defaultAttr = array(
+            'style' => 'margin-top:5px;margin-bottom:15px;',
+            'ef_icon' => 'img/16/edit.png',
+            'title' => $title ?? tr('Бързо редактиране на количествата'),
+        );
+
+        return ht::createBtn('Количества', static::getActionUrl($mvc, $masterId, $filter), null, null, $attr + $defaultAttr);
+    }
+
+
+    /**
+     * Добавя стандартния бутон в блок от шаблона
+     *
+     * @param core_ET     $tpl
+     * @param core_Detail $mvc
+     * @param int         $masterId
+     * @param string      $block
+     * @param array       $filter
+     * @param string|null $title
+     * @param array       $attr
+     *
+     * @return void
+     */
+    public static function appendBtn($tpl, $mvc, $masterId, $block, $filter = array(), $title = null, $attr = array())
+    {
+        $tpl->append(static::createBtn($mvc, $masterId, $filter, $title, $attr), $block);
     }
 
 
@@ -112,6 +175,9 @@ class deals_plg_EditDetailQuantities extends core_Plugin
         }
 
         $form = static::prepareQuantityForm($mvc, $data, $masterRec);
+        if (!countR($data->fieldNames)) {
+            followRetUrl($mvc->Master->getSingleUrlArray($masterId), 'Документът няма редове, които могат да се редактират', 'warning');
+        }
         $form->input();
 
         if ($form->isSubmitted()) {
@@ -120,7 +186,7 @@ class deals_plg_EditDetailQuantities extends core_Plugin
                 $form->setError(implode(',', $data->fieldNames), 'Документът вече не може да се редактира');
             } else {
                 $currentRecs = static::getDetailQuery($mvc, $masterId, $filter)->fetchAll();
-                $toSave = static::getValidatedChanges($mvc, $form, $data->recs, $data->fieldNames, $currentRecs, $currentMasterRec);
+                $toSave = static::getValidatedChanges($mvc, $form, $data->fieldNames, $currentRecs, $currentMasterRec);
                 if (!$form->gotErrors()) {
                     static::saveChanges($mvc, $toSave, $masterId);
                 }
@@ -159,13 +225,19 @@ class deals_plg_EditDetailQuantities extends core_Plugin
         $recs = $data->recs;
         $rows = $data->rows;
         $listFields = $data->listFields;
-        foreach ($recs as $dId => $dRec) {
-            if (!$mvc->haveRightFor('edit', $dRec)) {
-                unset($recs[$dId], $rows[$dId]);
+        unset($listFields['_rowTools']);
+        $quantityListFields = array();
+        foreach ($listFields as $name => $caption) {
+            if ($name == $mvc->packQuantityFld) {
+                $quantityListFields[static::EDIT_QUANTITY_COLUMN] = 'Количество';
+            } else {
+                $quantityListFields[$name] = $caption;
             }
         }
-
-        $listFields[$mvc->packQuantityFld] = 'Количество';
+        if (!isset($quantityListFields[static::EDIT_QUANTITY_COLUMN])) {
+            $quantityListFields[static::EDIT_QUANTITY_COLUMN] = 'Количество';
+        }
+        $listFields = $quantityListFields;
         $mvc->invoke('AfterPrepareEditQuantitiesRows', array(&$recs, &$rows, &$listFields, $masterRec));
 
         $data->recs = $recs;
@@ -193,20 +265,45 @@ class deals_plg_EditDetailQuantities extends core_Plugin
 
         $fieldNames = array();
         foreach ($data->recs as $dId => $dRec) {
+            if (!$mvc->haveRightFor('edit', $dRec)) {
+                $quantity = $data->rows[$dId]->{$mvc->packQuantityFld};
+                $data->rows[$dId]->{static::EDIT_QUANTITY_COLUMN} = is_object($quantity) ? clone $quantity : $quantity;
+
+                continue;
+            }
+
             $fieldName = "newPackQuantity{$dId}";
+            $detailForm = static::prepareDetailEditForm($mvc, $dRec, $masterRec);
+            $quantityField = clone $detailForm->getField($mvc->packQuantityFld);
+            if (in_array($quantityField->input ?? null, array('none', 'hidden'))) {
+                $quantity = $data->rows[$dId]->{$mvc->packQuantityFld};
+                $data->rows[$dId]->{static::EDIT_QUANTITY_COLUMN} = is_object($quantity) ? clone $quantity : $quantity;
+
+                continue;
+            }
+
             $fieldNames[$dId] = $fieldName;
-            $quantityType = clone $mvc->getFieldType($mvc->packQuantityFld);
-            $form->FLD($fieldName, $quantityType, 'caption=Количество,input,mandatory,class=w25');
-            $mvc->invoke('Calc' . $mvc->packQuantityFld, array(&$dRec));
-            $form->setDefault($fieldName, $dRec->{$mvc->packQuantityFld});
+            $quantityField->type = clone $quantityField->type;
+            $quantityField->name = $fieldName;
+            $quantityField->caption = 'Количество';
+            $fieldClasses = arr::make($quantityField->class ?? null, true);
+            $fieldClasses['w25'] = 'w25';
+            $quantityField->class = implode(' ', $fieldClasses);
+            $form->fields[$fieldName] = $quantityField;
+            $form->setDefault($fieldName, $detailForm->rec->{$mvc->packQuantityFld});
         }
 
         $data->fieldNames = $fieldNames;
         $data->listTableMvc = clone $mvc;
+        $quantityColumnField = clone $mvc->getField($mvc->packQuantityFld);
+        $quantityColumnField->type = clone $quantityColumnField->type;
+        $quantityColumnField->name = static::EDIT_QUANTITY_COLUMN;
+        $data->listTableMvc->fields[static::EDIT_QUANTITY_COLUMN] = $quantityColumnField;
         $data->hideListFieldsIfEmpty = arr::make($mvc->hideListFieldsIfEmpty ?? null, true);
-        foreach ($data->rows as $dId => $row) {
+        foreach ($fieldNames as $dId => $fieldName) {
+            $row = $data->rows[$dId];
             unset($row->_rowTools);
-            $row->{$mvc->packQuantityFld} = new core_ET(core_ET::toPlace($fieldNames[$dId]));
+            $row->{static::EDIT_QUANTITY_COLUMN} = new core_ET(core_ET::toPlace($fieldName));
         }
         $form->fieldsLayout = $mvc->renderListTable($data);
 
@@ -219,18 +316,16 @@ class deals_plg_EditDetailQuantities extends core_Plugin
      *
      * @param core_Detail $mvc
      * @param core_Form   $form
-     * @param array       $displayedRecs
      * @param array       $fieldNames
      * @param array       $currentRecs
      * @param stdClass    $masterRec
      *
      * @return array
      */
-    private static function getValidatedChanges($mvc, $form, $displayedRecs, $fieldNames, $currentRecs, $masterRec)
+    private static function getValidatedChanges($mvc, $form, $fieldNames, $currentRecs, $masterRec)
     {
         $toSave = array();
-        foreach ($displayedRecs as $dId => $unusedRec) {
-            $fieldName = $fieldNames[$dId];
+        foreach ($fieldNames as $dId => $fieldName) {
             $dRec = $currentRecs[$dId] ?? null;
             if (!$dRec || !$mvc->haveRightFor('edit', $dRec)) {
                 $form->setError($fieldName, 'Редът вече не може да се редактира');
@@ -239,10 +334,10 @@ class deals_plg_EditDetailQuantities extends core_Plugin
             }
 
             $newPackQuantity = $form->rec->{$fieldName};
-            $mvc->invoke('Calc' . $mvc->packQuantityFld, array(&$dRec));
             if ($dRec->{$mvc->packQuantityFld} == $newPackQuantity) continue;
 
-            $detailForm = static::prepareDetailForm($mvc, $dRec, $newPackQuantity, $masterRec, $form->ignore ?? null);
+            $detailForm = static::prepareDetailEditForm($mvc, $dRec, $masterRec);
+            static::validateDetailForm($mvc, $detailForm, $newPackQuantity, $form->ignore ?? null);
             static::copyFormErrors($detailForm, $form, $fieldName);
             if (!$detailForm->gotErrors()) {
                 $toSave[$dId] = $detailForm->rec;
@@ -272,7 +367,7 @@ class deals_plg_EditDetailQuantities extends core_Plugin
             expect($mvc->save($saveRec) !== false, 'Неуспешен запис на количество', $dId);
         }
 
-        $mvc->Master->logWrite('Бърза промяна на количества: ' . countR($toSave) . ' реда', $masterId);
+        $mvc->Master->logWrite('Бърза промяна на количества', $masterId);
         followRetUrl($mvc->Master->getSingleUrlArray($masterId), 'Количествата са променени успешно');
     }
 
@@ -346,28 +441,22 @@ class deals_plg_EditDetailQuantities extends core_Plugin
 
 
     /**
-     * Подготвя промяната през стандартната форма и валидация на детайла
+     * Подготвя стандартната edit форма за един ред
      *
      * @param core_Detail $mvc
      * @param stdClass    $rec
-     * @param float       $newPackQuantity
      * @param stdClass    $masterRec
-     * @param bool|null   $ignoreWarnings
      *
      * @return core_Form
      */
-    private static function prepareDetailForm($mvc, $rec, $newPackQuantity, $masterRec, $ignoreWarnings = null)
+    private static function prepareDetailEditForm($mvc, $rec, $masterRec)
     {
         $detailForm = $mvc->getForm();
         $detailForm->rec = clone $rec;
-
-        foreach (array_keys($mvc->selectFields("#kind == 'FNC'")) as $name) {
-            $mvc->invoke('Calc' . $name, array(&$detailForm->rec));
-        }
-        $detailForm->rec->{$mvc->packQuantityFld} = $newPackQuantity;
+        $detailForm->_editDetailQuantities = true;
 
         $editData = (object) array(
-            'action' => 'editquantities',
+            'action' => 'manage',
             'form' => $detailForm,
             'masterMvc' => $mvc->Master,
             'masterKey' => $mvc->masterKey,
@@ -377,14 +466,29 @@ class deals_plg_EditDetailQuantities extends core_Plugin
         // Подаваме и резултата, и данните, както го прави prepareEditForm() wrapper-ът
         $mvc->invoke('AfterPrepareEditForm', array(&$editData, &$editData));
 
+        return $detailForm;
+    }
+
+
+    /**
+     * Валидира новото количество през стандартните input handlers на детайла
+     *
+     * @param core_Detail $mvc
+     * @param core_Form   $detailForm
+     * @param float       $newPackQuantity
+     * @param bool|null   $ignoreWarnings
+     *
+     * @return void
+     */
+    private static function validateDetailForm($mvc, $detailForm, $newPackQuantity, $ignoreWarnings = null)
+    {
+        $detailForm->rec->{$mvc->packQuantityFld} = $newPackQuantity;
         $detailForm->ignore = $ignoreWarnings;
         $detailForm->validate(null, false, (array) $detailForm->rec);
         // Както в core_Manager::validate(), за да се изпълнят стандартните input handlers
         $detailForm->cmd = 'validate';
         $detailForm->method = $_SERVER['REQUEST_METHOD'];
         $mvc->invoke('AfterInputEditForm', array($detailForm));
-
-        return $detailForm;
     }
 
 
