@@ -2760,7 +2760,7 @@ class planning_Tasks extends core_Master
                 }
 
                 $dRow = planning_ProductionTaskDetails::recToVerbal($dRec);
-                $res->comment = tr('Артикул') . ': ' . $dRow->productId . ' ' . tr('Количество') . ': ' . $dRow->quantity . $dRow->shortUoM;
+                $res->comment = tr('Артикул') . ': ' . $dRow->productId . ' ' . tr('Количество') . ': ' . $dRow->quantity;
                 if ($tRec->progress) {
                     $progress = $this->getVerbal($tRec, 'progress');
                     $res->title .= ' (' . $progress . ')';
