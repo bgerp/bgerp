@@ -77,58 +77,60 @@ class sens2_ServMon extends sens2_ProtoDriver
      */
     public function readInputs($inputs, $config, &$persistentState)
     {
-        if ($inputs['freeRam']) {
+        $res = array();
+
+        if (!empty($inputs['freeRam'])) {
             $os = cls::get('core_Os');
             $res['freeRam'] = $os->getMemoryUsage();
         }
         
-        if ($inputs['freeDir1']) {
-            $res['freeDir1'] = $this->getFreeDiskSpace($config->dir1);
+        if (!empty($inputs['freeDir1'])) {
+            $res['freeDir1'] = $this->getFreeDiskSpace($config->dir1 ?? null);
         }
         
-        if ($inputs['freeDir2']) {
-            $res['freeDir2'] = $this->getFreeDiskSpace($config->dir2);
+        if (!empty($inputs['freeDir2'])) {
+            $res['freeDir2'] = $this->getFreeDiskSpace($config->dir2 ?? null);
         }
         
-        if ($inputs['mysqlCnt']) {
+        if (!empty($inputs['mysqlCnt'])) {
             $res['mysqlCnt'] = $this->countMysqlConnections();
         }
         
         // Проверка на броя процеси
-        if ($inputs['proc1cnt']) {
+        if (!empty($inputs['proc1cnt'])) {
             $os = cls::get('core_Os');
-            $res['proc1cnt'] = $os->countProc($config->proc1);
+            $res['proc1cnt'] = $os->countProc($config->proc1 ?? null);
         }
         
-        if ($inputs['proc2cnt']) {
+        if (!empty($inputs['proc2cnt'])) {
             $os = cls::get('core_Os');
-            $res['proc2cnt'] = $os->countProc($config->proc2);
+            $res['proc2cnt'] = $os->countProc($config->proc2 ?? null);
         }
         
-        if ($inputs['proc3cnt']) {
+        if (!empty($inputs['proc3cnt'])) {
             $os = cls::get('core_Os');
-            $res['proc3cnt'] = $os->countProc($config->proc3);
+            $res['proc3cnt'] = $os->countProc($config->proc3 ?? null);
         }
         
         
         // Проверка на връзката към отдалечени сървъри
-        if ($inputs['conn1']) {
-            $res['conn1'] = $this->checkConnection($config->conn1);
+        if (!empty($inputs['conn1'])) {
+            $res['conn1'] = $this->checkConnection($config->conn1 ?? null);
         }
         
-        if ($inputs['conn2']) {
-            $res['conn2'] = $this->checkConnection($config->conn2);
+        if (!empty($inputs['conn2'])) {
+            $res['conn2'] = $this->checkConnection($config->conn2 ?? null);
         }
         
-        if ($inputs['conn3']) {
-            $res['conn3'] = $this->checkConnection($config->conn3);
+        if (!empty($inputs['conn3'])) {
+            $res['conn3'] = $this->checkConnection($config->conn3 ?? null);
         }
         
         // Проверка натовареността на процесора
         $res['cpuLoad'] = self::getServerLoad();
 
-        if ($inputs['IPDomain']) {
-            $res['IPDomain'] = self::getSPF($config->IPDomain);
+        if (!empty($inputs['IPDomain'])) {
+            $res['IPDomain'] = self::getSPF($config->IPDomain ?? null);
         }
 
         return $res;
@@ -140,8 +142,12 @@ class sens2_ServMon extends sens2_ProtoDriver
      */
     public static function getSPF($IPDomain)
     {
+        if (!strlen((string) $IPDomain)) {
+            return 0;
+        }
+
         if (core_Packs::isInstalled('spflib')) {
-            list($ip, $domain) = explode('_', $IPDomain);
+            list($ip, $domain) = array_pad(explode('_', $IPDomain, 2), 2, '');
             $res = spflib_Checker::check($ip, $domain)->getCode();
         } else {
             $res = 'spflib not installed.';
@@ -178,9 +184,7 @@ class sens2_ServMon extends sens2_ProtoDriver
         
         $sysLoad = sys_getloadavg();
         
-        if ($inputs['cpuLoad']) {
-            $load = $sysLoad[0];
-        }
+        $load = $sysLoad[0] ?? 0;
         
         return (int) $load;
     }
@@ -191,7 +195,11 @@ class sens2_ServMon extends sens2_ProtoDriver
      */
     public function checkConnection($url)
     {
-        list($domain, $port) = explode(':', $url);
+        list($domain, $port) = array_pad(explode(':', (string) $url, 2), 2, 80);
+
+        if (!strlen($domain)) {
+            return 0;
+        }
         
         if (!$port) {
             $port = '80';
@@ -221,7 +229,7 @@ class sens2_ServMon extends sens2_ProtoDriver
      */
     public function getFreeDiskSpace($path)
     {
-        if (file_exists($path)) {
+        if (strlen((string) $path) && file_exists($path)) {
             $res = disk_free_space($path);
         } else {
             $res = "Не съществуваща директория {$path}";

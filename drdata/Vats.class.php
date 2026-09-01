@@ -295,6 +295,16 @@ class drdata_Vats extends core_Manager
 
 			$params = array('countryCode' => $countryCode, 'vatNumber' => $vatNumber);
 			$result = @$client->checkVat($params);
+		} catch (SoapFault $f) {
+
+			// Очакваните откази на VIES не са грешка в кода - логват се като предупреждение
+			if (self::isTemporaryViesFault($f)) {
+				$this->logWarning('VIES недостъпен: ' . $f->getMessage());
+			} else {
+				reportException($f);
+			}
+
+			$result = (object) array('valid' => null, 'name' => null, 'address' => null);
 		} catch (Exception $e) {
 			reportException($e);
 			$result = (object) array('valid' => null, 'name' => null, 'address' => null);
@@ -323,6 +333,31 @@ class drdata_Vats extends core_Manager
 		}
 
 		return array($res, $info, $result->name, $result->address);
+	}
+
+
+	/**
+	 * Дали SOAP грешката е временен отказ на VIES, а не проблем в кода
+	 *
+	 * @param SoapFault $f
+	 *
+	 * @return bool
+	 */
+	protected static function isTemporaryViesFault($f)
+	{
+		$temporary = array('MS_MAX_CONCURRENT_REQ', 'GLOBAL_MAX_CONCURRENT_REQ', 'MS_UNAVAILABLE',
+			'SERVICE_UNAVAILABLE', 'TIMEOUT', 'IP_BLOCKED', 'VAT_BLOCKED');
+
+		$code = isset($f->faultstring) ? $f->faultstring : $f->getMessage();
+
+		foreach ($temporary as $fault) {
+			if (stripos($code, $fault) !== false) {
+
+				return true;
+			}
+		}
+
+		return false;
 	}
     
     

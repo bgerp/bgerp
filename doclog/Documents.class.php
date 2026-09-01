@@ -1767,6 +1767,7 @@ class doclog_Documents extends core_Manager
             
             // Вземаме от парент записа id то на изпращача
             $fParent = $parent;
+            $sendedAction = null;
             
             // Ако е изпратен
             if ($fParent->action == static::ACTION_SEND) {
@@ -1780,8 +1781,10 @@ class doclog_Documents extends core_Manager
                     $sendedAction = $fParent;
                 }
             }
-            if ($fParent->data->sendedBy > 0) {
-                $sendedBy = $fParent->data->sendedBy;
+            $fParentData = $fParent->data ?? new stdClass();
+            $dataSendedBy = $fParentData->sendedBy ?? null;
+            if ($dataSendedBy > 0) {
+                $sendedBy = $dataSendedBy;
             }
             
             if (!isset($sendedBy)) {
@@ -1804,8 +1807,8 @@ class doclog_Documents extends core_Manager
             
             $isSystemCanSingle = false;
             
-            if ((!$sendedBy || $sendedBy == -1) && $fParent->data->sendedBy == -1) {
-                if ($fParent->data->isSystemCanSingle) {
+            if ((!$sendedBy || $sendedBy == -1) && $dataSendedBy == -1) {
+                if ($fParentData->isSystemCanSingle ?? false) {
                     $sendedBy = -1;
                     
                     $isSystemCanSingle = true;
@@ -1815,7 +1818,7 @@ class doclog_Documents extends core_Manager
             
             Mode::push('saveObjectsToCid', $fParent->containerId);
             
-            $linkedDocs = $midDoc->getLinkedDocuments($sendedBy, $fParent->data);
+            $linkedDocs = $midDoc->getLinkedDocuments($sendedBy, $fParentData);
             
             Mode::pop('saveObjectsToCid');
             

@@ -302,7 +302,7 @@ class callcenter_Numbers extends core_Manager
                             $fType = 'fax';
                         } else {
                             // Ако е мобилине
-                            if ($numberDetObj->mobile) {
+                            if ($numberDetObj->mobile ?? false) {
                                 $fType = 'mobile';
                             } else {
                                 $fType = 'tel';

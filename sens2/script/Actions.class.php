@@ -140,7 +140,8 @@ class sens2_script_Actions extends core_Detail
             $query = $mvc->getQuery();
             $query->orderBy('#order', 'DESC');
             $query->limit(1);
-            $maxOrder = (int) $query->fetch("#scriptId = {$form->rec->scriptId}")->order;
+            $maxOrderRec = $query->fetch("#scriptId = {$form->rec->scriptId}");
+            $maxOrder = (int) ($maxOrderRec->order ?? 0);
             $form->setDefault('order', round(($maxOrder + 1) / 10) * 10 + 10);
         }
         if ($form->isSubmitted() && !empty($form->rec->action)) {
@@ -189,7 +190,7 @@ class sens2_script_Actions extends core_Detail
         }
 
         if(Request::get('order') == $rec->order) {
-            $row->ROW_ATTR['style'] .= 'background-color:yellow !important;';
+            $row->ROW_ATTR['style'] = ($row->ROW_ATTR['style'] ?? '') . 'background-color:yellow !important;';
         }
     }
     
