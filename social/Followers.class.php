@@ -123,10 +123,10 @@ class social_Followers extends core_Master
             $theme = Mode::get("theme");
             if($theme && $theme == 'singlepage') {
                 // Създаваме линка на бутона
-                $link = ht::createLink("<i class='bx bxl-{$name}'></i>" . $socialNetwork->followersCnt, $url, null, array('class' =>  $name , 'target' => '_blank', 'rel' => 'nofollow', 'title' => '|*' . $socialNetwork->title));
+                $link = ht::createLink("<i class='bx bxl-{$name}'></i>", $url, null, array('class' =>  $name , 'target' => '_blank', 'rel' => 'nofollow', 'title' => '|*' . $socialNetwork->title));
             } else {
                 // Създаваме линка на бутона
-                $link = ht::createLink("{$img}" . $socialNetwork->followersCnt, $url, null, array('class' => 'soc-following noSelect ' . $name , 'target' => '_blank', 'rel' => 'nofollow', 'title' => '|*' . $socialNetwork->title));
+                $link = ht::createLink("{$img}", $url, null, array('class' => 'soc-following noSelect ' . $name , 'target' => '_blank', 'rel' => 'nofollow', 'title' => '|*' . $socialNetwork->title));
             }
 
             // Добавямего към шаблона
