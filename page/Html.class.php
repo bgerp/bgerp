@@ -168,6 +168,7 @@ class page_Html extends core_ET
         jquery_Jquery::run($tpl, 'editCopiedTextBeforePaste();');
         jquery_Jquery::run($tpl, 'smartCenter();');
         jquery_Jquery::run($tpl, 'showTooltip();');
+        jquery_Jquery::run($tpl, 'hoverTooltip();');
         jquery_Jquery::run($tpl, 'makeTooltipFromTitle();');
 
         $logAjaxDebugUrl = toUrl(array('log_System', 'JsLog'), 'local');

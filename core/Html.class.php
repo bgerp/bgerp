@@ -73,6 +73,9 @@ class core_Html
                 $element = "<{$name}{$attrStr}>";
             } else {
                 if (in_array(strtolower($name), array('textarea', 'option'))) {
+                    if (is_array($body) || (is_object($body) && !method_exists($body, '__toString'))) {
+                        $body = print_r($body, true);
+                    }
                     $body = str_replace(array('&', '<', '>'), array('&amp;', '&lt;', '&gt;'), $body ?? '');
                 }
                 $element = "<{$name}{$attrStr}>{$body}</{$name}>";
@@ -1172,20 +1175,36 @@ class core_Html
      * @param bool   $appendToEnd - дали хинта да се добави в края на стринга
      * @param array  $iconAttr    - атрибути на иконката
      * @param array  $elementArr  - атрибути на елемента
+     * @param bool   $isHtml      - хинтът е HTML и се показва в балонче, вместо в 'title'
+     * @param array  $hintAttr    - атрибути на балончето, само при $isHtml
      *
      * @return core_ET $elementTpl  - шаблон с хинта
      */
-    public static function createHint($body, $hint, $type = 'notice', $appendToEnd = true, $iconAttr = array(), $elementArr = array())
+    public static function createHint($body, $hint, $type = 'notice', $appendToEnd = true, $iconAttr = array(), $elementArr = array(), $isHtml = false, $hintAttr = array())
     {
         if (empty($hint) || Mode::is('printing') || Mode::is('text', 'xhtml') || Mode::is('pdf')) {
             
             return new core_ET($body);
         }
         
-        $hint = strip_tags(tr($hint));
+        if (!empty($isHtml)) {
+            // При HTML хинт съдържанието се запазва и отива в балончето
+            $hint = ($hint instanceof core_ET) ? $hint->getContent() : tr($hint);
+            
+            $hintAttr = arr::make($hintAttr, true);
+            $hintClass = !empty($hintAttr['class']) ? " {$hintAttr['class']}" : '';
+            $hintAttr['class'] = "additionalInfo{$hintClass}";
+            $hintSpan = ht::createElement('span', $hintAttr);
+        } else {
+            $hint = strip_tags(tr($hint));
+        }
 
         if ($type == 'noicon') {
-            $element = "<span class='textHint' title='[#hint#]' rel='tooltip'>[#body#]</span>";
+            if (!empty($isHtml)) {
+                $element = "<span class='additionalInfo-holder hoverHint'>{$hintSpan}[#hint#]</span><span class='textHint'>[#body#]</span></span>";
+            } else {
+                $element = "<span class='textHint' title='[#hint#]' rel='tooltip'>[#body#]</span>";
+            }
         } else {
             $iconAttr = arr::make($iconAttr, true);
             if (!array_key_exists('src', $iconAttr)) {
@@ -1195,7 +1214,11 @@ class core_Html
             $iconAttr['src'] = sbf($iconAttr['src'], '');
             $iconHtml = ht::createElement('img', $iconAttr);
             
-            if ($appendToEnd === true) {
+            if (!empty($isHtml)) {
+                $iconClass = ($appendToEnd === true) ? 'endTooltip' : 'frontTooltip';
+                $holder = "<span class='additionalInfo-holder hoverHint'>{$hintSpan}[#hint#]</span><span class='{$iconClass}' style='position: relative; top: 2px;'>[#icon#]</span></span>";
+                $element = ($appendToEnd === true) ? "[#body#] {$holder}" : "{$holder} [#body#]";
+            } elseif ($appendToEnd === true) {
                 $element = "[#body#] <span class='endTooltip' style='position: relative; top: 2px;' title='[#hint#]' rel='tooltip'>[#icon#]</span>";
             } else {
                 $element = "<span class='frontTooltip' style='position: relative; top: 2px;' title='[#hint#]' rel='tooltip'>[#icon#]</span> [#body#]";
@@ -1212,7 +1235,10 @@ class core_Html
             $elementTpl->append('</span>');
         }
         
-        $hint = str_replace("'", '"', $hint);
+        if (empty($isHtml)) {
+            $hint = str_replace("'", '"', $hint);
+        }
+        
         $elementTpl->append($body, 'body');
         $elementTpl->append($hint, 'hint');
         if(!empty($iconHtml)){

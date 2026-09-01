@@ -132,7 +132,9 @@ function syncDisassemblyNoteTableGroup(tables)
             var maxWidth = widths[column] || 44;
             var maxDataWidth = 0;
             tables.each(function () {
-                $(this).find('tbody tr').each(function () {
+
+                // Редът "Общо" е със слети клетки - не отговаря на колоните
+                $(this).find('tbody tr').not('.disassemblyTotalRow').each(function () {
                     var cell = $(this).children('td').eq(column);
                     if (cell.length && (parseInt(cell.attr('colspan'), 10) || 1) == 1) {
                         var measuredWidth = measureDisassemblyCell(cell);

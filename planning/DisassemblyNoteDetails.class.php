@@ -42,7 +42,7 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, plg_Created, doc_plg_DetailRevisions, planning_Wrapper, plg_Sorting, plg_SaveAndNew, cat_plg_LogPackUsage, plg_PrevAndNext, plg_AlignDecimals2, cat_plg_ShowCodes, cat_plg_DisassemblyDocDetail';
+    public $loadList = 'plg_RowTools2, plg_Created, doc_plg_DetailRevisions, planning_Wrapper, plg_Sorting, plg_SaveAndNew, cat_plg_LogPackUsage, plg_PrevAndNext, plg_AlignDecimals2, cat_plg_ShowCodes, cat_plg_DisassemblyDocDetail, deals_plg_EditDetailQuantities';
 
 
     /**
@@ -244,6 +244,11 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
                 $row->storeId = "<span class='red'>n/a</span>";
             }
         }
+
+        // Оцветяване като в рецептата за разпад. Оттеглените ги оцветява doc_plg_DetailRevisions
+        if (($rec->state ?? null) != 'rejected') {
+            $row->ROW_ATTR['class'] = ($rec->type == 'input') ? 'row-added' : 'row-subProduct';
+        }
     }
 
 
@@ -344,10 +349,10 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
                     $row->tools = new ET('[#TOOLS#]');
                 }
 
-                // Иконка по вид на реда
+                // Иконка по вид на реда - за разпад излиза (наляво), произведеното влиза (надясно)
                 $icon = ($rec->type == 'input')
-                    ? "<span class='green' style='font-weight:bold;' title='" . tr('Влагане') . "'>⇩</span>"
-                    : "<span class='red' style='font-weight:bold;' title='" . tr('Връщане') . "'>⇧</span>";
+                    ? "<span class='red' style='font-weight:bold;' title='" . tr('За разпад') . "'>⇦</span>"
+                    : "<span class='green' style='font-weight:bold;' title='" . tr('Произведено') . "'>⇨</span>";
 
                 // Основният вложен артикул е в собствена таблица над произведените
                 // (@see renderDetail_/MAIN_INPUT_PRODUCT_TABLE)
@@ -375,6 +380,33 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
 
                 $row->tools->append("{$icon} {$num}", 'TOOLS');
             }
+        }
+    }
+
+
+    /**
+     * Добавя номерата на редовете във формата за редактиране на количества
+     *
+     * @param core_Mvc $mvc
+     * @param array    $recs
+     * @param array    $rows
+     * @param array    $listFields
+     * @param stdClass $masterRec
+     *
+     * @return void
+     */
+    protected static function on_AfterPrepareEditQuantitiesRows($mvc, &$recs, &$rows, &$listFields, $masterRec)
+    {
+        $counters = $numbers = array();
+        $Int = cls::get('type_Int');
+        foreach ($recs as $id => $rec) {
+            $group = ($rec->type == 'input' && $rec->isMainInput == 'yes') ? 'mainInput' : $rec->type;
+            $revisionKey = $rec->revisionRootId ?: $rec->id;
+            if (!isset($numbers[$group][$revisionKey])) {
+                $counters[$group] = ($counters[$group] ?? 0) + 1;
+                $numbers[$group][$revisionKey] = $counters[$group];
+            }
+            $rows[$id]->tools = $Int->toVerbal($numbers[$group][$revisionKey]);
         }
     }
 
@@ -458,6 +490,12 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
             $tpl->append(ht::createBtn('Артикули за разпад', array($this, 'add', 'noteId' => $data->masterId, 'type' => 'input', 'ret_url' => true), null, null, array('style' => 'margin-top:5px;margin-bottom:15px;', 'ef_icon' => 'img/16/wooden-box.png', 'title' => 'Добавяне на артикула за разпад')), 'INPUT_PRODUCTS_TABLE');
         }
 
+        $editInputRec = (object) array('noteId' => $data->masterId, '_filterFld' => 'type', '_filterFldVal' => 'input');
+        if ($this->haveRightFor('editquantities', $editInputRec)) {
+            $filter = array('_filterFld' => 'type', '_filterFldVal' => 'input');
+            deals_plg_EditDetailQuantities::appendBtn($tpl, $this, $data->masterId, 'INPUT_PRODUCTS_TABLE', $filter, 'Бързо редактиране на количествата на артикулите за разпад');
+        }
+
         // Таблица с произведените от разпада артикули
         $data->listFields['productId'] = 'Произведени артикули|* ';
         $pData = clone $data;
@@ -481,7 +519,7 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
         $detailsProduction = $productionTable->get($pData->rows, $pData->listFields);
 
         // Сборът - зелен при точно 100%, червен при над 100%
-        cat_plg_DisassemblyDocDetail::appendTotalRow($detailsProduction, $data->totalPercent, countR($pData->listFields));
+        cat_plg_DisassemblyDocDetail::appendTotalRow($detailsProduction, $pData);
 
         // Кои артикули остават без дял - само преди контиране, после процентите
         // са снимка от журнала
@@ -496,6 +534,12 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
             if(!Mode::isReadOnly()){
                 $tpl->append(ht::createBtn('Произвеждане', array($this, 'add', 'noteId' => $data->masterId, 'type' => 'production', 'ret_url' => true), null, null, array('style' => 'margin-top:5px;margin-bottom:15px;', 'ef_icon' => 'img/16/door_in.png', 'title' => 'Добавяне на произведен артикул')), 'PRODUCED_PRODUCTS_TABLE');
             }
+        }
+
+        $editProductionRec = (object) array('noteId' => $data->masterId, '_filterFld' => 'type', '_filterFldVal' => 'production');
+        if ($this->haveRightFor('editquantities', $editProductionRec)) {
+            $filter = array('_filterFld' => 'type', '_filterFldVal' => 'production');
+            deals_plg_EditDetailQuantities::appendBtn($tpl, $this, $data->masterId, 'PRODUCED_PRODUCTS_TABLE', $filter, 'Бързо редактиране на количествата на произведените артикули');
         }
 
         cat_plg_DisassemblyDocDetail::appendAllocateBtn($tpl, $this->Master, $data->masterId, 'PRODUCED_PRODUCTS_TABLE', 'margin-top:5px;margin-bottom:15px;');

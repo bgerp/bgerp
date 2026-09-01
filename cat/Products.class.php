@@ -3676,7 +3676,7 @@ class cat_Products extends embed_Manager
             if ($obj->quantity == cat_BomDetails::CALC_ERROR) {
                 $obj->quantity = "<span class='red'>???</span>";
             } else {
-                $obj->divideBy = ($obj->divideBy) ? $obj->divideBy : 1;
+                $obj->divideBy = !empty($obj->divideBy) ? $obj->divideBy : 1;
                 $quantity = $obj->quantity / $obj->divideBy;
                 $obj->quantity = $Double->toVerbal($quantity);
             }
@@ -3687,16 +3687,16 @@ class cat_Products extends embed_Manager
                 $obj->title = ht::createLinkRef($obj->title, $singleUrl);
             }
             
-            $obj->divideBy = ($obj->divideBy) ? $obj->divideBy : 1;
+            $obj->divideBy = !empty($obj->divideBy) ? $obj->divideBy : 1;
             
             $arr = array('componentTitle' => $obj->title,
-                'componentDescription' => $obj->description,
+                'componentDescription' => $obj->description ?? null,
                 'titleClass' => $obj->titleClass,
                 'componentCode' => $obj->code,
-                'componentStage' => $obj->stageName,
+                'componentStage' => $obj->stageName ?? null,
                 'componentQuantity' => $obj->quantity,
                 'level' => $obj->level,
-                'leveld' => $obj->leveld,
+                'leveld' => $obj->leveld ?? null,
                 'componentMeasureId' => $obj->measureId);
             
             $bTpl->placeArray($arr);

@@ -117,7 +117,7 @@ class newsbar_News extends core_Master
         
         $rec = $data->listFilter->rec;
         
-        if ($rec->domainId) {
+        if (!empty($rec->domainId)) {
             $data->query->where(array("#domainId = '[#1#]'", $rec->domainId));
         }
         
@@ -208,7 +208,7 @@ class newsbar_News extends core_Master
     public function on_AfterPrepareRetUrl($mvc, $res, $data)
     {
         // Ако е субмитната формата
-        if ($data->form && $data->form->isSubmitted()) {
+        if (!empty($data->form) && $data->form->isSubmitted()) {
             
             // Променяма да сочи към list'a
             $data->retUrl = toUrl(array($mvc, 'list'));
@@ -236,17 +236,17 @@ class newsbar_News extends core_Master
         }
         
         if ($form->isSubmitted()) {
-            if (!$form->rec->news && !$form->rec->newsHtml) {
+            if (empty($form->rec->news) && empty($form->rec->newsHtml)) {
                 $form->setError('news, newsHtml', 'Трябва да има попълнен текст за новина');
             }
         }
         
         if ($form->isSubmitted()) {
-            if (!$form->rec->news && !$form->rec->newsHtml) {
+            if (empty($form->rec->news) && empty($form->rec->newsHtml)) {
                 $form->setError('news, newsHtml', 'Трябва да има попълнен текст за новина');
             }
             
-            if ($form->rec->repeat) {
+            if (!empty($form->rec->repeat)) {
                 
                 // изчисляваме повторенията на новината
                 switch ($form->rec->repeat) {
@@ -293,14 +293,14 @@ class newsbar_News extends core_Master
             $form->setDefault('domainId', cms_Domains::getCurrent());
         }
         
-        if (!$form->rec->padding) {
+        if (empty($form->rec->padding)) {
             $form->setDefault('padding', 10);
         }
         
         $progressArr = array('' => '');
         
         for ($i = 0; $i <= 100; $i += 10) {
-            if ($rec->transparency > ($i / 100)) {
+            if (($rec->transparency ?? 0) > ($i / 100)) {
                 continue;
             }
             $p = $i . ' %';
@@ -308,11 +308,11 @@ class newsbar_News extends core_Master
         }
         $form->setSuggestions('transparency', $progressArr);
         
-        if (!$rec->color) {
+        if (empty($rec->color)) {
             $form->setDefault('color', '#000000');
         }
         
-        if (!$rec->transparency) {
+        if (empty($rec->transparency)) {
             $form->setDefault('transparency', 0.5);
         }
 
@@ -321,7 +321,7 @@ class newsbar_News extends core_Master
         // Спрямо избрания домейн, показваме менютата
         $cQuery = cms_Content::getQuery();
         $cQuery->where("#state = 'active'");
-        if ($data->form->rec->domainId) {
+        if (!empty($data->form->rec->domainId)) {
             $cQuery->where(array("#domainId = '[#1#]'", $data->form->rec->domainId));
             $cQuery->likeKeylist('sharedDomains', $data->form->rec->domainId, true);
         }
@@ -335,7 +335,7 @@ class newsbar_News extends core_Master
         // Спрямо избрания домейн, показваме продуктите
         $pQuery = eshop_Products::getQuery();
         $pQuery->where("#state = 'active'");
-        if ($data->form->rec->domainId) {
+        if (!empty($data->form->rec->domainId)) {
             $pQuery->where(array("#domainId = '[#1#]'", $data->form->rec->domainId));
         }
         $pQuery->show('id, name');
@@ -348,20 +348,20 @@ class newsbar_News extends core_Master
         // Показваме статиите до преди 2 год и текущата, която се редактира
         $aQuery = cms_Articles::getQuery();
         $aQuery->where("#state = 'active'");
-        if ($data->form->rec->articles) {
+        if (!empty($data->form->rec->articles)) {
             $aQuery->orWhere(array("#id = '[#1#]'", $data->form->rec->articles));
         }
 
         $before = dt::addDays(-2 * 365);
         $aQuery->where(array("#modifiedOn >= '[#1#]'", $before));
-        if ($data->form->rec->articles) {
+        if (!empty($data->form->rec->articles)) {
             $aQuery->orWhere(array("#id = '[#1#]'", $data->form->rec->articles));
         }
 
         if ($cArr) {
             $aQuery->in('menuId', array_keys($cArr));
         }
-        if ($data->form->rec->articles) {
+        if (!empty($data->form->rec->articles)) {
             $aQuery->orWhere(array("#id = '[#1#]'", $data->form->rec->articles));
         }
         $aQuery->orderBy('modifiedOn', 'DESC');

@@ -566,7 +566,7 @@ class core_Manager extends core_Mvc
         $id = null;
         
         if ($rec) {
-            $id = $rec->id;
+            $id = $rec->id ?? null;
         }
         if ($type == 'write') {
             $this->logWrite($msg, $id);

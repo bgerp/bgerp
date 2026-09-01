@@ -365,12 +365,18 @@ class email_Salutations extends core_Manager
     {
         // Шаблона за намиране на обръщение в текст
         $pattern = self::getSalutationsPattern();
+
+        if (!$pattern) {
+            return '';
+        }
         
         // Намираме обръщенито
-        preg_match($pattern, $text, $matche);
+        if (!preg_match($pattern, (string) $text, $matche)) {
+            return '';
+        }
         
         // Тримваме и връщаме текста
-        return trim($matche['allText']);
+        return trim($matche['allText'] ?? '');
     }
     
     

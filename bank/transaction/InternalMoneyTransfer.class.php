@@ -41,7 +41,8 @@ class bank_transaction_InternalMoneyTransfer extends acc_DocumentTransactionSour
 
         $cCode = currency_Currencies::getCodeById($rec->currencyId);
         $amount = currency_CurrencyRates::convertAmount($rec->amount, $rec->valior, $cCode);
-        $debitArr = ($rec->debitCase) ? array('cash_Cases', $rec->debitCase) : array('bank_OwnAccounts', $rec->debitBank);
+        $debitCase = $rec->debitCase ?? null;
+        $debitArr = $debitCase ? array('cash_Cases', $debitCase) : array('bank_OwnAccounts', $rec->debitBank ?? null);
         $entries = array();
         $entries[] = array('amount' => $amount, 'debit' => array($rec->debitAccId, $debitArr, array('currency_Currencies', $rec->currencyId),
                                         'quantity' => $rec->amount),

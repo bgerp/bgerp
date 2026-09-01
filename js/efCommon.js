@@ -171,6 +171,98 @@ function fadeImages(el, transition, delay) {
 
 
 /**
+ * Позиционира балонче спрямо viewport-а, за да не се реже от скролиращ контейнер
+ */
+function positionAdditionalInfo(element, anchor) {
+    if (!element || !anchor || !$(element).is(':visible')) {
+        return;
+    }
+
+    var margin = 10;
+    var gap = 6;
+    var viewportWidth = document.documentElement.clientWidth;
+    var viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+    var anchorRect = anchor.getBoundingClientRect();
+    var tooltip = $(element);
+
+    // 'right' и 'bottom' се неутрализират, за да не разтягат балончето при подравняващ клас
+    tooltip.css({
+        'right': 'auto',
+        'bottom': 'auto',
+        'max-width': Math.max(0, viewportWidth - 2 * margin),
+        'max-height': Math.max(0, viewportHeight - 2 * margin),
+        'overflow': 'auto'
+    });
+
+    var tooltipRect = tooltip.get(0).getBoundingClientRect();
+    var spaceAbove = anchorRect.top - margin - gap;
+    var spaceBelow = viewportHeight - anchorRect.bottom - margin - gap;
+    var top;
+
+    if (tooltipRect.height <= spaceBelow || spaceBelow >= spaceAbove) {
+        top = anchorRect.bottom + gap;
+    } else {
+        top = anchorRect.top - tooltipRect.height - gap;
+    }
+
+    top = Math.max(margin, Math.min(top, viewportHeight - tooltipRect.height - margin));
+
+    var left = anchorRect.left;
+    if (left + tooltipRect.width > viewportWidth - margin) {
+        left = anchorRect.right - tooltipRect.width;
+    }
+    left = Math.max(margin, Math.min(left, viewportWidth - tooltipRect.width - margin));
+
+    tooltip.css({top: Math.round(top), left: Math.round(left)});
+}
+
+
+/**
+ * Показва при hover балончетата на ht::createHint, извън скролиращия контейнер
+ */
+function hoverTooltip() {
+    var hovered;
+    var hoveredAnchor;
+    var hoveredScrollParents;
+
+    function repositionHovered() {
+        positionAdditionalInfo(hovered, hoveredAnchor);
+    }
+
+    function resetHovered(element) {
+        $(element).removeClass('viewport-positioned').css({top: '', left: '', right: '', bottom: '', 'max-width': '', 'max-height': '', overflow: ''});
+        if (hoveredScrollParents) {
+            hoveredScrollParents.off('scroll.hoverHintTooltip');
+            hoveredScrollParents = null;
+        }
+        hovered = null;
+        hoveredAnchor = null;
+    }
+
+    $('body').on('mouseenter', '.additionalInfo-holder.hoverHint', function () {
+        var element = $(this).children('.additionalInfo').get(0);
+        if (!element) {
+            return;
+        }
+
+        hovered = element;
+        hoveredAnchor = this;
+        hoveredScrollParents = $(this).parents();
+        hoveredScrollParents.on('scroll.hoverHintTooltip', repositionHovered);
+
+        $(element).addClass('viewport-positioned').css({top: 0, left: 0});
+        repositionHovered();
+    });
+
+    $('body').on('mouseleave', '.additionalInfo-holder.hoverHint', function () {
+        resetHovered($(this).children('.additionalInfo'));
+    });
+
+    $(window).off('.hoverHintTooltip').on('resize.hoverHintTooltip scroll.hoverHintTooltip', repositionHovered);
+}
+
+
+/**
  *  Показва тултип с данни идващи от ajax
  */
 function showTooltip() {
@@ -201,43 +293,7 @@ function showTooltip() {
     }
 
     function positionTooltip() {
-        if (!element || !tooltipAnchor || !$(element).is(':visible')) {
-            return;
-        }
-
-        var margin = 10;
-        var gap = 6;
-        var viewportWidth = document.documentElement.clientWidth;
-        var viewportHeight = window.innerHeight || document.documentElement.clientHeight;
-        var anchorRect = tooltipAnchor.getBoundingClientRect();
-        var tooltip = $(element);
-
-        tooltip.css({
-            'max-width': Math.max(0, viewportWidth - 2 * margin),
-            'max-height': Math.max(0, viewportHeight - 2 * margin),
-            'overflow': 'auto'
-        });
-
-        var tooltipRect = tooltip.get(0).getBoundingClientRect();
-        var spaceAbove = anchorRect.top - margin - gap;
-        var spaceBelow = viewportHeight - anchorRect.bottom - margin - gap;
-        var top;
-
-        if (tooltipRect.height <= spaceBelow || spaceBelow >= spaceAbove) {
-            top = anchorRect.bottom + gap;
-        } else {
-            top = anchorRect.top - tooltipRect.height - gap;
-        }
-
-        top = Math.max(margin, Math.min(top, viewportHeight - tooltipRect.height - margin));
-
-        var left = anchorRect.left;
-        if (left + tooltipRect.width > viewportWidth - margin) {
-            left = anchorRect.right - tooltipRect.width;
-        }
-        left = Math.max(margin, Math.min(left, viewportWidth - tooltipRect.width - margin));
-
-        tooltip.css({top: Math.round(top), left: Math.round(left)});
+        positionAdditionalInfo(element, tooltipAnchor);
     }
 
     $('body').on('click', function (e) {
@@ -2203,7 +2259,7 @@ function markElementsForRefresh() {
  * Името е с префикс render_, за да може да се вика и през efae (runAfterAjax).
  */
 function render_alignFormFilterButtons() {
-    $('.form-filter-btn, .listFilter .formToolbar').each(function () {
+    $('.form-filter-btn, .listFilter form.simpleForm .formToolbar').each(function () {
         var $buttonHolder = $(this);
         var $caption = $buttonHolder.closest('form').find('.formFieldCaption:visible').first();
 

@@ -1210,8 +1210,13 @@ div.acc-detail {
 .additionalInfo-holder{
 	display: inline-block;
 	position: relative;
-	&.bomTransferInfo:hover .additionalInfo{
-		display: block;
+	&.hoverHint{
+		.additionalInfo{
+			white-space: nowrap;
+		}
+		&:hover .additionalInfo{
+			display: block;
+		}
 	}
 	.additionalInfo{
 	   box-shadow: 1px 1px 2px rgba(0, 0, 0, 0.4);

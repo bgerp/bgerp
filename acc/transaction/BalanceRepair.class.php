@@ -50,7 +50,7 @@ class acc_transaction_BalanceRepair extends acc_DocumentTransactionSource
         
         $this->balanceRec = acc_Balances::fetch($rec->balanceId);
         $pRec = acc_Periods::fetch($this->balanceRec->periodId);
-        $this->date = acc_Periods::forceYearItem($rec->valior);
+        $this->date = acc_Periods::forceYearItem($pRec->end);
         
         $result = (object) array(
             'reason' => 'Счетоводна разлика №' . ($rec->id ?? ''),
@@ -207,17 +207,19 @@ class acc_transaction_BalanceRepair extends acc_DocumentTransactionSource
 
                     foreach (array('ent1Id', 'ent2Id', 'ent3Id') as $ent) {
                         if (!empty($bRec->{$ent})) {
+                            $itemRec = $itemsArr['items'][$bRec->{$ent}] ?? null;
 
                             // Ако има поне едно затворено, и то е затворено преди края на периода
-                            if ($itemsArr['items'][$bRec->{$ent}]->state == 'closed') {
+                            if (($itemRec->state ?? null) == 'closed') {
                                 $jQuery = acc_JournalDetails::getQuery();
                                 acc_JournalDetails::filterQuery($jQuery, null, $now, $bRec->accountNum, $bRec->{$ent});
                                 $jQuery->XPR('maxValior', 'date', 'MAX(#valior)');
                                 $jQuery->limit(1);
                                 $jQuery->show('maxValior');
-                                $maxValior = $jQuery->fetch()->maxValior;
+                                $maxValiorRec = $jQuery->fetch();
+                                $maxValior = $maxValiorRec->maxValior ?? null;
 
-                                if($maxValior <= $periodRec->end){
+                                if($maxValior && $maxValior <= $periodRec->end){
                                     $continue = false;
                                     break;
                                 }
@@ -234,8 +236,8 @@ class acc_transaction_BalanceRepair extends acc_DocumentTransactionSource
 
             $ourSideArr = array($accRec->systemId, $bRec->ent1Id, $bRec->ent2Id, $bRec->ent3Id);
 
-            $entry = array('amount' => abs($blAmount));
-            $total += abs($blAmount);
+            $entry = array('amount' => abs($blAmount ?? 0));
+            $total += $entry['amount'];
             
             if (!is_null($blQuantity)) {
                 $ourSideArr['quantity'] = abs($blQuantity);

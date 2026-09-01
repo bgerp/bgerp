@@ -394,15 +394,19 @@ class doclog_Documents extends core_Manager
             
             // Записите
             $row = (object) array(
-                'time' => $forwardRec['on'],
-                'from' => $forwardRec['from'],
+                'time' => $forwardRec['on'] ?? null,
+                'from' => $forwardRec['from'] ?? null,
             );
             
             // Записите във вербален вид
             $row = static::recToVerbal($row, array_keys(get_object_vars($row)));
             
             // Вземаме документите
-            $doc = doc_Containers::getDocument($forwardRec['containerId']);
+            $forwardContainerId = $forwardRec['containerId'] ?? null;
+            if (!$forwardContainerId) {
+                continue;
+            }
+            $doc = doc_Containers::getDocument($forwardContainerId);
             
             // Ако имаме права за сингъл на документ
             if ($doc->haveRightFor('single')) {
@@ -705,7 +709,7 @@ class doclog_Documents extends core_Manager
             
             foreach ($rec->data->{$action} as $ip => $act) {
                 $act['ParentRec'] = $rec;
-                $nRecsArr[$act['on'] . ' '. $i++] = $act;
+                $nRecsArr[($act['on'] ?? '') . ' '. $i++] = $act;
             }
         }
         
@@ -749,9 +753,9 @@ class doclog_Documents extends core_Manager
             
             // Данните, които ще се визуализрат
             $row = (object) array(
-                'time' => $o['on'],
-                'ip' => $o['ip'],
-                'openAction' => static::formatViewReason($o['ParentRec'])
+                'time' => $o['on'] ?? null,
+                'ip' => $o['ip'] ?? null,
+                'openAction' => isset($o['ParentRec']) ? static::formatViewReason($o['ParentRec']) : null,
             );
             
             // Данните във вербален вид
@@ -867,7 +871,7 @@ class doclog_Documents extends core_Manager
                 
                 // Добавяме факса и услугата
                 $row->faxTo = $rec->data->faxTo;
-                $row->service = $rec->data->service;
+                $row->service = $rec->data->service ?? null;
             }
             
             // Записите във вербален вид
@@ -894,7 +898,7 @@ class doclog_Documents extends core_Manager
                 
                 // Ip от което е върнато
                 if (!empty($rec->data->returnedIp)) {
-                    $returnedStr .= ' ' . type_Ip::decorateIp($rec->data->returnedIp, $rec->data->returnedOn, true);
+                    $returnedStr .= ' ' . type_Ip::decorateIp($rec->data->returnedIp, $rec->data->returnedOn ?? null, true);
                 }
                 
                 $row->returnedAndReceived .= $returnedStr;
@@ -1050,10 +1054,10 @@ class doclog_Documents extends core_Manager
         
         $nArr = array();
         foreach ($recs as $key => $rec) {
-            foreach ($rec->data->{$action} as $fh => $rArr) {
-                foreach ($rArr as $dArr) {
+            foreach ((array) ($rec->data->{$action} ?? array()) as $fh => $rArr) {
+                foreach ((array) $rArr as $dArr) {
                     $dArr['fileHnd'] = $fh;
-                    $nArr[$dArr['seenOnTime'] . ' ' . $i++] = $dArr;
+                    $nArr[($dArr['seenOnTime'] ?? '') . ' ' . $i++] = $dArr;
                 }
             }
         }
@@ -1067,16 +1071,16 @@ class doclog_Documents extends core_Manager
         foreach ($dataRecsArr as $downData) {
             // СЪздаваме обект със запсиите
             $nRec = (object) array(
-                'time' => $downData['seenOnTime'],
-                'from' => $downData['seenFrom'],
-                'ip' => $downData['ip'],
+                'time' => $downData['seenOnTime'] ?? null,
+                'from' => $downData['seenFrom'] ?? null,
+                'ip' => $downData['ip'] ?? null,
             );
             
             // Вземаме вербалните стойности
             $row = static::recToVerbal($nRec, array_keys(get_object_vars($nRec)));
             
             // Превръщаме манипулатора, в линк за сваляне
-            $row->fileHnd = fileman_Files::getLink($downData['fileHnd']);
+            $row->fileHnd = isset($downData['fileHnd']) ? fileman_Files::getLink($downData['fileHnd']) : null;
             
             // Ако потребител от системата е свалил файла, показваме името му, в противен случай IP' то
             $row->ip = $row->from ? $row->from : $row->ip;
@@ -1566,6 +1570,9 @@ class doclog_Documents extends core_Manager
         }
         
         foreach ($recsArr as $recObj) {
+            if (!$recObj) {
+                continue;
+            }
             if (isset($recObj->data->seenFromIp)) {
                 $viewIpArr[$recObj->data->seenFromIp] = $recObj->data->seenFromIp;
             }
@@ -1611,6 +1618,9 @@ class doclog_Documents extends core_Manager
         $toEmails = '';
         
         foreach ($resArr as $recObj) {
+            if (!$recObj) {
+                continue;
+            }
             if (!isset($recObj->data->to)) {
                 continue ;
             }
@@ -2316,7 +2326,10 @@ class doclog_Documents extends core_Manager
             if ($rec->action == $change) {
                 
                 // Обхождаме всички промени
-                foreach ((array) $rec->data->{$change} as $changeDataArr) {
+                foreach ((array) ($rec->data->{$change} ?? array()) as $changeDataArr) {
+                    if (empty($changeDataArr['docClass']) || empty($changeDataArr['docId'])) {
+                        continue;
+                    }
                     
                     // За да не обикаляме едни и същи данни повече от един път
                     $checkedChangesStr = $changeDataArr['docClass'] . '_' . $changeDataArr['docId'];
@@ -2635,8 +2648,8 @@ class doclog_Documents extends core_Manager
         
         $_r = $rec->receivedOn ?? null;
         
-        if (!empty($firstOpen) && (empty($date) || $firstOpen['on'] < $date)) {
-            $rec->receivedOn = $firstOpen['on'];
+        if (isset($firstOpen['on']) && (empty($date) || $firstOpen['on'] < $date)) {
+            $rec->receivedOn = $firstOpen['on'] ?? $date;
         } else {
             $rec->receivedOn = $date;
         }
@@ -2644,8 +2657,8 @@ class doclog_Documents extends core_Manager
         $html .= static::getVerbal($rec, 'receivedOn');
         $linkArr = static::getLinkToSingle($rec->containerId, static::ACTION_OPEN);
         
-        if (!empty($firstOpen)) {
-            $html .= ' ' . type_Ip::decorateIp($firstOpen['ip'], $firstOpen['on'], true);
+        if (!empty($firstOpen) && isset($firstOpen['on'])) {
+            $html .= ' ' . type_Ip::decorateIp($firstOpen['ip'] ?? null, $firstOpen['on'], true);
             $cnt = countR($rec->data->{$openActionName} ?? null);
             if ($cnt) {
                 $html .= ht::createLink(
@@ -2687,8 +2700,8 @@ class doclog_Documents extends core_Manager
         
         $urlArr = type_Richtext::parseInternalUrl($rest);
         
-        $cid = $urlArr['id'];
-        $mid = $urlArr['m'];
+        $cid = $urlArr['id'] ?? null;
+        $mid = $urlArr['m'] ?? null;
         
         if (!$cid || !$mid) {
             
@@ -2831,14 +2844,14 @@ class doclog_Documents extends core_Manager
                 if ($emailCc) {
                     
                     // Проверяваме to и cc дали съвпадат
-                    if (($rec->data->cc == $emailCc) && ($rec->data->to == $emailTo)) {
+                    if ((($rec->data->cc ?? null) == $emailCc) && (($rec->data->to ?? null) == $emailTo)) {
                         
                         return true;
                     }
                 } else {
                     
                     // Ако няма CC, проверяваме само to
-                    if ($rec->data->to == $emailTo) {
+                    if (($rec->data->to ?? null) == $emailTo) {
                         
                         return true;
                     }

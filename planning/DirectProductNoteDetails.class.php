@@ -39,10 +39,8 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, plg_SaveAndNew,deals_plg_ImportDealDetailProduct, plg_Created, planning_Wrapper, plg_Sorting, 
+    public $loadList = 'plg_RowTools2, plg_SaveAndNew,deals_plg_ImportDealDetailProduct, deals_plg_EditDetailQuantities, plg_Created, planning_Wrapper, plg_Sorting,
                         planning_plg_ReplaceProducts, cat_plg_LogPackUsage, plg_PrevAndNext,cat_plg_ShowCodes';
-    
-    
     /**
      * Кой има право да променя?
      */
@@ -261,7 +259,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
             }
 
             if ($form->isSubmitted()) {
-                if (!empty($rec->_isStorable) && empty($rec->storeId) && $rec->type != 'pop') {
+                if (empty($form->_editDetailQuantities) && !empty($rec->_isStorable) && empty($rec->storeId) && $rec->type != 'pop') {
                     if(!planning_ConsumptionNotes::existActivatedInThread($noteRec->threadId, $rec->productId)){
                         $form->setWarning('storeId', "В Заданието(и операциите към него) няма контиран Протокол за влагане с посочения артикул, а е избрано влагане от Незавършено производство! Ако няма предварително (общо) влагане - изберете склад за изписване на материала!");
                     }
@@ -294,6 +292,22 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
                     $rec->fromAccId = null;
                 }
             }
+        }
+    }
+
+
+    /**
+     * Премахва празната колона за инструменти във формата за групово изтриване
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $data
+     *
+     * @return void
+     */
+    protected static function on_AfterPrepareListFields($mvc, &$data)
+    {
+        if (Mode::is('selectRows2Delete')) {
+            unset($data->listFields['tools']);
         }
     }
     
@@ -367,6 +381,37 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
         }
     }
 
+
+    /**
+     * Специфична подготовка на редовете за бързо редактиране на количествата
+     *
+     * @param core_Mvc $mvc
+     * @param array    $recs
+     * @param array    $rows
+     * @param array    $listFields
+     * @param stdClass $masterRec
+     *
+     * @return void
+     */
+    protected static function on_AfterPrepareEditQuantitiesRows($mvc, &$recs, &$rows, &$listFields, $masterRec)
+    {
+        $firstDoc = doc_Threads::getFirstDocument($masterRec->threadId);
+        $isTaskNote = $firstDoc->isInstanceOf('planning_Tasks');
+
+        $counters = array();
+        $Int = cls::get('type_Int');
+        foreach ($recs as $id => $rec) {
+            if ($isTaskNote && !in_array($rec->type, array('input', 'allocated'))) {
+                unset($recs[$id], $rows[$id]);
+
+                continue;
+            }
+
+            $group = in_array($rec->type, array('input', 'allocated')) ? 'input' : $rec->type;
+            $counters[$group] = ($counters[$group] ?? 0) + 1;
+            $rows[$id]->tools = $Int->toVerbal($counters[$group]);
+        }
+    }
 
     /**
      * Помощна ф-я за модифициране на записите
@@ -519,6 +564,12 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
             $tpl->append(ht::createBtn('Разходи', array($this, 'add', 'noteId' => $data->masterId, 'type' => 'allocated', 'ret_url' => true), null, null, array('style' => 'margin-top:5px;margin-bottom:15px;', 'ef_icon' => 'img/16/money.png', 'title' => 'Влагане на отнесен разход')), 'INPUTED_PRODUCTS_TABLE');
         }
 
+        $editInputRec = (object)array('noteId' => $data->masterId, '_filterFld' => 'type', '_filterFldVals' => 'input,allocated');
+        if($this->haveRightFor('editquantities', $editInputRec)){
+            $filter = array('_filterFld' => 'type', '_filterFldVals' => 'input,allocated');
+            deals_plg_EditDetailQuantities::appendBtn($tpl, $this, $data->masterId, 'INPUTED_PRODUCTS_TABLE', $filter, tr('Бързо редактиране на количествата на вложените артикули и разходите'));
+        }
+
         if($this->haveRightFor('selectrowstodelete', (object)array("noteId" => $data->masterId, '_filterFld' => 'type', '_filterFldVal' => 'input'))){
             $tpl->append(ht::createBtn('Изтриване', array($this, 'selectRowsToDelete', "noteId" => $data->masterId, '_filterFld' => 'type', '_filterFldVal' => 'input', 'ret_url' => true), null, null, array('style' => 'margin-top:5px;margin-bottom:15px;', 'ef_icon' => 'img/16/delete.png', 'title' => 'Форма за избор на редове за изтриване', 'class' => 'selectDeleteRowsBtn')), 'INPUTED_PRODUCTS_TABLE');
         }
@@ -574,6 +625,13 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
                 if ($this->haveRightFor('add', (object) array('noteId' => $data->masterId, 'type' => 'pop'))) {
                     $icon = ($type == 'pop') ? 'recycle.png' : 'door_in.png';
                     $tpl->append(ht::createBtn($btnTitle, array($this, 'add', 'noteId' => $data->masterId, 'type' => $type, 'ret_url' => true), null, null, array('style' => 'margin-top:5px;;margin-bottom:10px;', 'ef_icon' => "img/16/{$icon}", 'title' => "Добавяне на нов " . mb_strtolower($btnTitle))), $placeholder);
+                }
+
+                $editQuantityRec = (object)array('noteId' => $data->masterId, '_filterFld' => 'type', '_filterFldVal' => $type);
+                if($this->haveRightFor('editquantities', $editQuantityRec)){
+                    $editQuantityTitle = tr('Бързо редактиране на количествата на') . ' ' . mb_strtolower(tr($btnTitle));
+                    $filter = array('_filterFld' => 'type', '_filterFldVal' => $type);
+                    deals_plg_EditDetailQuantities::appendBtn($tpl, $this, $data->masterId, $placeholder, $filter, $editQuantityTitle);
                 }
 
                 if($this->haveRightFor('selectrowstodelete', (object)array("noteId" => $data->masterId, '_filterFld' => 'type', '_filterFldVal' => $type))){
