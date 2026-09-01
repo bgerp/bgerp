@@ -159,19 +159,21 @@ function syncDisassemblyNoteTableGroup(tables)
 
         var compactColumns = {
             productionToolsColumn: 30,
-            productionCodeColumn: 60
+            productionCodeColumn: 80,
+            directProductionCodeColumn: 80
         };
 
         $.each(compactColumns, function (className, maxColumnWidth) {
             var processedColumns = {};
+            var isCodeColumn = className == 'productionCodeColumn' || className == 'directProductionCodeColumn';
             tables.find('td.' + className).each(function () {
                 var cell = $(this);
                 cell.css({
                     'box-sizing': 'border-box',
                     'max-width': maxColumnWidth + 'px',
-                    'overflow': className == 'productionCodeColumn' ? 'visible' : 'hidden',
-                    'white-space': className == 'productionCodeColumn' ? 'normal' : 'nowrap',
-                    'overflow-wrap': className == 'productionCodeColumn' ? 'anywhere' : ''
+                    'overflow': isCodeColumn ? 'visible' : 'hidden',
+                    'white-space': isCodeColumn ? 'normal' : 'nowrap',
+                    'overflow-wrap': isCodeColumn ? 'anywhere' : ''
                 });
                 var columnIndex = cell.parent().children('td').index(cell);
                 if (!processedColumns[columnIndex]) {
