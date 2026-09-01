@@ -337,7 +337,7 @@ class cat_Boms extends core_Master
         $rec = static::fetchRec($id);
         if (!static::shouldTransferNotes($rec, 'transferBomNotes', $destination) || empty($rec->notes)) return null;
 
-        return "От рецептата:\n{$rec->notes}";
+        return "[i]От рецептата:[/i]\n{$rec->notes}";
     }
 
 
