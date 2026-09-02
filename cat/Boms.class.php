@@ -337,7 +337,7 @@ class cat_Boms extends core_Master
         $rec = static::fetchRec($id);
         if (!static::shouldTransferNotes($rec, 'transferBomNotes', $destination) || empty($rec->notes)) return null;
 
-        return "От рецептата: {$rec->notes}";
+        return "[i]От рецептата:[/i]\n{$rec->notes}";
     }
 
 
@@ -772,7 +772,7 @@ class cat_Boms extends core_Master
                     }
 
                     $holderAttr = array('style' => 'margin-left:2px;margin-right:4px');
-                    $row->transferInfo = ht::createHint($commonVerbal, $hint, 'notice', false, array(), $holderAttr, true, array('class' => 'left'));
+                    $row->transferInfo = ht::createHint($commonVerbal, $hint, 'notice', false, array('isHtml' => true, 'class' => 'left'), $holderAttr);
                 }
 
                 if(isset($rec->regeneratedFromId)){

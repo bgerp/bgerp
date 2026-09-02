@@ -171,19 +171,19 @@ class deals_plg_EditDetailQuantities extends core_Plugin
         expect($masterRec = $mvc->Master->fetch($masterId));
         $data = static::prepareRowsData($mvc, $masterRec, $filter);
         if (!countR($data->recs)) {
-            followRetUrl($mvc->Master->getSingleUrlArray($masterId), 'Документът няма редове, които могат да се редактират', 'warning');
+            followRetUrl($mvc->Master->getSingleUrlArray($masterId), 'Документът няма редове, които могат да се редактират!', 'warning');
         }
 
         $form = static::prepareQuantityForm($mvc, $data, $masterRec);
         if (!countR($data->fieldNames)) {
-            followRetUrl($mvc->Master->getSingleUrlArray($masterId), 'Документът няма редове, които могат да се редактират', 'warning');
+            followRetUrl($mvc->Master->getSingleUrlArray($masterId), 'Документът няма редове, които могат да се редактират!', 'warning');
         }
         $form->input();
 
         if ($form->isSubmitted()) {
             $currentMasterRec = $mvc->Master->fetch($masterId);
             if (!$currentMasterRec || !$mvc->haveRightFor('editquantities', $rightRec)) {
-                $form->setError(implode(',', $data->fieldNames), 'Документът вече не може да се редактира');
+                $form->setError(implode(',', $data->fieldNames), 'Документът вече не може да се редактира!');
             } else {
                 $currentRecs = static::getDetailQuery($mvc, $masterId, $filter)->fetchAll();
                 $toSave = static::getValidatedChanges($mvc, $form, $data->fieldNames, $currentRecs, $currentMasterRec);
@@ -217,17 +217,15 @@ class deals_plg_EditDetailQuantities extends core_Plugin
             'query' => static::getDetailQuery($mvc, $masterRec->id, $filter),
             'recs' => array(),
             'rows' => array(),
+            '_isEditQuantities' => true,
         );
         $mvc->prepareListFields($data);
         $mvc->prepareListRecs($data);
         $mvc->prepareListRows($data);
 
-        $recs = $data->recs;
-        $rows = $data->rows;
-        $listFields = $data->listFields;
-        unset($listFields['_rowTools']);
+        unset($data->listFields['_rowTools']);
         $quantityListFields = array();
-        foreach ($listFields as $name => $caption) {
+        foreach ($data->listFields as $name => $caption) {
             if ($name == $mvc->packQuantityFld) {
                 $quantityListFields[static::EDIT_QUANTITY_COLUMN] = 'Количество';
             } else {
@@ -237,12 +235,7 @@ class deals_plg_EditDetailQuantities extends core_Plugin
         if (!isset($quantityListFields[static::EDIT_QUANTITY_COLUMN])) {
             $quantityListFields[static::EDIT_QUANTITY_COLUMN] = 'Количество';
         }
-        $listFields = $quantityListFields;
-        $mvc->invoke('AfterPrepareEditQuantitiesRows', array(&$recs, &$rows, &$listFields, $masterRec));
-
-        $data->recs = $recs;
-        $data->rows = $rows;
-        $data->listFields = $listFields;
+        $data->listFields = $quantityListFields;
 
         return $data;
     }
@@ -328,7 +321,7 @@ class deals_plg_EditDetailQuantities extends core_Plugin
         foreach ($fieldNames as $dId => $fieldName) {
             $dRec = $currentRecs[$dId] ?? null;
             if (!$dRec || !$mvc->haveRightFor('edit', $dRec)) {
-                $form->setError($fieldName, 'Редът вече не може да се редактира');
+                $form->setError($fieldName, 'Редът вече не може да се редактира!');
 
                 continue;
             }
@@ -345,7 +338,7 @@ class deals_plg_EditDetailQuantities extends core_Plugin
         }
 
         if (!$form->gotErrors() && !countR($toSave)) {
-            $form->setError(reset($fieldNames), 'Няма въведени нови количества');
+            $form->setError(reset($fieldNames), 'Няма въведени нови количества!');
         }
 
         return $toSave;
@@ -368,7 +361,7 @@ class deals_plg_EditDetailQuantities extends core_Plugin
         }
 
         $mvc->Master->logWrite('Бърза промяна на количества', $masterId);
-        followRetUrl($mvc->Master->getSingleUrlArray($masterId), 'Количествата са променени успешно');
+        followRetUrl($mvc->Master->getSingleUrlArray($masterId), 'Количествата са променени успешно!');
     }
 
 

@@ -1028,14 +1028,6 @@ class planning_Jobs extends core_Master
      */
     protected static function on_BeforeSave($mvc, &$id, $rec, $fields = null, $mode = null)
     {
-        // Пренасяне на забележките от рецептата при създаване
-        if (empty($rec->id) && ($rec->type ?? 'manifacture') == 'manifacture' && isset($rec->productId)) {
-            if ($bomRec = cat_Products::getLastActiveBom($rec->productId, 'production,instant,sales')) {
-                $transferredNotes = cat_Boms::getRecipeNotesForDocument($bomRec, 'job');
-                $rec->notes = cat_Boms::appendTransferredNotes($rec->notes ?? null, $transferredNotes);
-            }
-        }
-
         list($sourceClass) = self::getSourceInfo($rec);
 
         // Ако заданието е към сделка и е избран департамент, да се рутира към него

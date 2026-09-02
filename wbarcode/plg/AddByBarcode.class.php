@@ -9,7 +9,10 @@
  * Закача се към детайл на документ. В тулбара му се добавя бутон "Баркод", който отваря форма
  * за сканиране. След всеки сканиран баркод редът се записва през стандартната форма за добавяне
  * на детайла и потребителят се връща обратно на формата за сканиране. Ако артикулът вече е в
- * документа, вместо нов ред се редактира първият му ред и количеството му се заменя с новото.
+ * документа със сканираната мярка, вместо нов ред се редактира неговият и сканираното к-во се
+ * натрупва към досегашното. Ако е в документа само с друга мярка, се добавя нов ред. При няколко
+ * реда със сканираната мярка к-то влиза в първия, а ако те са с различни партиди - потребителят
+ * избира в коя партида да влезе.
  *
  * Кои полета се попълват от баркода се взима от пропъртита на мениджъра-домакин:
  *
@@ -19,9 +22,8 @@
  *      $wbarcodeTypeFld      - поле за тип на реда, ако детайлът има такова; когато е зададено,
  *                              формата за сканиране показва и избор на тип
  *
- * Ако детайлът дефинира getWbarcodeScanStage_($masterId) и той върне етап на мастъра, формата
- * за сканиране показва и избор дали к-то да се заменя, или да се натрупва. Автоматично първото
- * сканиране на реда в етапа заменя, а следващите натрупват.
+ * Ако детайлът дефинира getWbarcodeScanStage_($masterId) и той върне етап на мастъра,
+ * сканираното до момента се брои поотделно за всеки етап.
  *
  * @category  bgerp
  * @package   wbarcode
@@ -65,9 +67,9 @@ class wbarcode_plg_AddByBarcode extends core_Plugin
 
 
     /**
-     * Полето във формата за сканиране с режима на количеството
+     * Полето във формата за сканиране с избора на партида
      */
-    const MODE_FLD = 'wbarcodeMode';
+    const BATCH_FLD = 'wbarcodeBatch';
 
 
     /**
@@ -83,6 +85,25 @@ class wbarcode_plg_AddByBarcode extends core_Plugin
      */
     public static function on_AfterGetWbarcodeScanStage($mvc, &$res, $masterId)
     {
+    }
+
+
+    /**
+     * К-то на реда, към което се натрупва сканираното - по подразбиране това на самия ред
+     *
+     * Мениджърът-домакин дефинира getWbarcodeRowQuantity_($rec), ако натрупва към друго к-во
+     *
+     * @param core_Detail $mvc
+     * @param float|null  $res
+     * @param stdClass    $rec
+     *
+     * @return void
+     */
+    public static function on_AfterGetWbarcodeRowQuantity($mvc, &$res, $rec)
+    {
+        if (!isset($res)) {
+            $res = $rec->{$mvc->wbarcodeQuantityFld} ?? null;
+        }
     }
 
 
@@ -154,10 +175,9 @@ class wbarcode_plg_AddByBarcode extends core_Plugin
         // теглото да дойде и от везна - връзката с реална везна още не е проверявана
         $form->FNC(static::getWeightFld($mvc), 'double(min=0)', 'caption=Тегло,input,unit=кг,hint=Замества теглото от баркода');
 
-        // В етап на заявката к-то може и да се натрупва, вместо да заменя досегашното
-        if (!empty($mvc->getWbarcodeScanStage($masterId))) {
-            $form->FNC(self::MODE_FLD, 'enum(auto=Автоматично,replace=Замяна,add=Натрупване)', 'maxRadio=0,caption=Повторно сканиране,input,silent,value=auto,hint=Как се записва к-то при артикул, който вече е в документа');
-        }
+        // Показва се само когато артикулът е на няколко реда с различни партиди
+        $form->FNC(self::BATCH_FLD, 'varchar(128)', 'caption=Партида,input=none,maxRadio=0');
+
         $form->formAttr['id'] = $mvc->className . '-EditForm';
 
         $form->input(null, 'silent');
@@ -287,19 +307,20 @@ class wbarcode_plg_AddByBarcode extends core_Plugin
         $typeFld = $mvc->wbarcodeTypeFld ?? null;
         $type = !empty($typeFld) ? $form->rec->{$typeFld} : null;
 
-        // Артикулът вече е в документа - количеството на първия му ред се заменя или се натрупва
-        $existingRec = static::fetchExistingRec($mvc, $masterId, $productRec->productId, $productRec->measureId, $type);
+        // Артикулът вече е в документа - к-то се натрупва към реда му
+        $existingRec = static::fetchExistingRec($mvc, $form, $masterId, $productRec->productId, $productRec->measureId, $type);
+        if ($form->gotErrors()) {
 
-        $mode = static::getQuantityMode($mvc, $form, $masterId, $existingRec);
+            return;
+        }
+
         $scannedQuantity = $quantity;
+        $oldQuantity = isset($existingRec) ? $mvc->getWbarcodeRowQuantity($existingRec) : null;
 
-        if ($mode == 'add') {
-            $oldQuantity = $existingRec->{$mvc->wbarcodeQuantityFld} ?? null;
-            if (isset($oldQuantity)) {
-                $quantity += $oldQuantity;
-                if (isset($round)) {
-                    $quantity = round($quantity, $round);
-                }
+        if (!empty($oldQuantity)) {
+            $quantity += $oldQuantity;
+            if (isset($round)) {
+                $quantity = round($quantity, $round);
             }
         }
 
@@ -320,9 +341,6 @@ class wbarcode_plg_AddByBarcode extends core_Plugin
         if (!empty($typeFld)) {
             $backUrl[$typeFld] = $type;
         }
-        if (!empty($form->rec->{self::MODE_FLD})) {
-            $backUrl[self::MODE_FLD] = $form->rec->{self::MODE_FLD};
-        }
         if ($retUrl = getRetUrl()) {
             $backUrl['ret_url'] = $retUrl;
         }
@@ -330,7 +348,7 @@ class wbarcode_plg_AddByBarcode extends core_Plugin
         $mvc->Master->logWrite('Въвеждане на тегловен код', $masterId);
 
         // Баркодът не се пази в реда, затова се помни в сесията за инфото на следващата форма
-        Mode::setPermanent(self::CODE_VAR, array('code' => $barcode, 'quantity' => $scannedQuantity, 'mode' => $mode));
+        Mode::setPermanent(self::CODE_VAR, array('code' => $barcode, 'quantity' => $scannedQuantity, 'added' => !empty($oldQuantity)));
 
         $existingId = isset($existingRec) ? $existingRec->id : null;
         $url = array($mvc, $action,
@@ -350,42 +368,6 @@ class wbarcode_plg_AddByBarcode extends core_Plugin
         }
 
         redirect($url);
-    }
-
-
-    /**
-     * Заменя ли се к-то на съществуващия ред, или се натрупва
-     *
-     * @param core_Detail   $mvc
-     * @param core_Form     $form
-     * @param int           $masterId
-     * @param stdClass|null $existingRec
-     *
-     * @return string - replace|add
-     */
-    private static function getQuantityMode($mvc, $form, $masterId, $existingRec)
-    {
-        if (empty($existingRec)) {
-
-            return 'replace';
-        }
-
-        // Без етапи се работи както преди - винаги замяна
-        if (empty($mvc->getWbarcodeScanStage($masterId))) {
-
-            return 'replace';
-        }
-
-        $mode = $form->rec->{self::MODE_FLD} ?? 'auto';
-        if ($mode != 'auto') {
-
-            return $mode;
-        }
-
-        // Първото сканиране на реда в етапа заменя пренесеното к-то, следващите го натрупват
-        $scanned = static::getScannedIds($mvc, $masterId);
-
-        return isset($scanned[$existingRec->id]) ? 'add' : 'replace';
     }
 
 
@@ -587,12 +569,12 @@ class wbarcode_plg_AddByBarcode extends core_Plugin
      *
      * @return stdClass|null
      */
-    private static function fetchExistingRec($mvc, $masterId, $productId, $measureId, $type)
+    private static function fetchExistingRec($mvc, $form, $masterId, $productId, $measureId, $type)
     {
         $query = $mvc->getQuery();
         $query->where("#{$mvc->masterKey} = {$masterId} AND #{$mvc->wbarcodeProductFld} = {$productId}");
 
-        // Мярката също участва, за да не се събират количества в различни мерни единици
+        // Мярката също участва - сканираните килограми не влизат в ред с друга опаковка
         $query->where("#{$mvc->wbarcodePackagingFld} = {$measureId}");
 
         if ($typeFld = ($mvc->wbarcodeTypeFld ?? null)) {
@@ -605,11 +587,118 @@ class wbarcode_plg_AddByBarcode extends core_Plugin
         }
 
         $query->orderBy('id', 'ASC');
-        $query->limit(1);
+        $recs = $query->fetchAll();
 
-        $rec = $query->fetch();
+        if (!countR($recs)) {
 
-        return is_object($rec) ? $rec : null;
+            return null;
+        }
+
+        if (countR($recs) == 1) {
+
+            return reset($recs);
+        }
+
+        return static::pickRecByBatch($mvc, $form, $recs, $productId);
+    }
+
+
+    /**
+     * Кой от редовете със същия артикул и мярка да поеме к-то
+     *
+     * По подразбиране е първият, но ако редовете са с различни партиди, потребителят
+     * избира партидата - тогава на формата се показва грешка и полето за избор
+     *
+     * @param core_Detail $mvc
+     * @param core_Form   $form
+     * @param array       $recs - редовете, подредени по ид
+     * @param int         $productId
+     *
+     * @return stdClass|NULL
+     */
+    private static function pickRecByBatch($mvc, $form, $recs, $productId)
+    {
+        $batchesByRec = static::getBatchesByRec($mvc, $recs);
+
+        // Всяка партида сочи първия ред, в който е разписана
+        $recByBatch = $options = array();
+        foreach ($recs as $rec) {
+            foreach ($batchesByRec[$rec->id] ?? array() as $batch) {
+                if (!isset($recByBatch[$batch])) {
+                    $recByBatch[$batch] = $rec->id;
+                    $options[$batch] = static::getBatchVerbal($productId, $batch);
+                }
+            }
+        }
+
+        // Без партиди или с една обща партида няма какво да се избира
+        if (countR($options) < 2) {
+
+            return reset($recs);
+        }
+
+        $form->setField(self::BATCH_FLD, 'input');
+        $form->setOptions(self::BATCH_FLD, array('' => '') + $options);
+        $form->input(self::BATCH_FLD);
+
+        $batch = $form->rec->{self::BATCH_FLD} ?? null;
+        if (empty($batch) || !isset($recByBatch[$batch])) {
+            $form->setError(self::BATCH_FLD, 'Артикулът е на няколко реда с различни партиди - изберете в коя да влезе количеството|*!');
+
+            return null;
+        }
+
+        return $recs[$recByBatch[$batch]];
+    }
+
+
+    /**
+     * Разписаните партиди на всеки от редовете
+     *
+     * @param core_Detail $mvc
+     * @param array       $recs
+     *
+     * @return array - ид на ред => партидите му
+     */
+    private static function getBatchesByRec($mvc, $recs)
+    {
+        $res = array();
+        if (!core_Packs::isInstalled('batch')) {
+
+            return $res;
+        }
+
+        $query = batch_BatchesInDocuments::getQuery();
+        $query->where("#detailClassId = {$mvc->getClassId()}");
+        $query->in('detailRecId', array_keys($recs));
+        $query->show('detailRecId,batch');
+
+        while ($bRec = $query->fetch()) {
+            if (empty($bRec->batch)) {
+
+                continue;
+            }
+
+            $res[$bRec->detailRecId][$bRec->batch] = $bRec->batch;
+        }
+
+        return $res;
+    }
+
+
+    /**
+     * Партидата, както се изписва според дефиницията ѝ
+     *
+     * @param int    $productId
+     * @param string $batch
+     *
+     * @return string
+     */
+    private static function getBatchVerbal($productId, $batch)
+    {
+        $BatchClass = batch_Defs::getBatchDef($productId);
+
+        return is_object($BatchClass) ? strip_tags($BatchClass->toVerbal($batch)) : $batch;
     }
 
 
@@ -675,7 +764,7 @@ class wbarcode_plg_AddByBarcode extends core_Plugin
 
         // При натрупване се показва и сканираното к-во, за да е ясно от какво е станало общото
         $added = '';
-        if (!empty($last['mode']) && $last['mode'] == 'add' && !empty($last['quantity'])) {
+        if (!empty($last['added']) && !empty($last['quantity'])) {
             $added = '<b>+' . $Double->toVerbal($last['quantity']) . "</b> {$measure} &rarr; " . tr('общо') . ' ';
         }
 

@@ -767,11 +767,11 @@ class bgerp_drivers_Calendar extends core_BaseClass
                 
                 $uniqId = 'uniq-' . $orderDate . '-' . $type;
                 
-                $url = toUrl(array('bgerp_drivers_Calendar', 'getHolidayInfo', 'date' => $orderDate, 'type' => $type, 'uniqId' => $uniqId), 'local');
+                $url = array('bgerp_drivers_Calendar', 'getHolidayInfo', 'date' => $orderDate, 'type' => $type, 'uniqId' => $uniqId);
                 
-                $eventImg = ht::createElement('img', array('src' => sbf("img/16/{$type}.png", '')));
-                $event = ht::createElement('span', array('class' => 'tooltip-arrow-link', 'data-url' => $url), $eventImg, true);
-                $event = "<span class='additionalInfo-holder'><span class='additionalInfo' id='{$uniqId}'></span>{$event}</span>";
+                // Ид-то на балончето се подава от екшъна, затова не се добавя в урл-то
+                $hintAttr = array('url' => $url, 'urlIdParam' => null, 'id' => $uniqId, 'arrowClass' => null, 'iconAttr' => array('src' => "img/16/{$type}.png"));
+                $event = ht::createHint('', null, 'notice', false, $hintAttr)->getContent();
 
                 if (!isset($rArrNow[$orderDate]['events'])) {
                     $rArrNow[$orderDate]['events'] = '';

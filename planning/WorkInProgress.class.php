@@ -338,7 +338,7 @@ class planning_WorkInProgress extends core_Manager
                 $measureName = cat_UoM::getShortName(cat_Products::fetchField($productId, 'measureId'));
 
                 $hint = "Недостатъчна наличност в незавършеното производство|*: {$inStockVerbal} |{$measureName}|*! |Контирането на документа ще доведе до отрицателна наличност|*!";
-                $row->{$hintFld} = ht::createHint($row->{$hintFld}, $hint, 'warning', false, null, "class=doc-negative-quantity");
+                $row->{$hintFld} = ht::createHint($row->{$hintFld}, $hint, 'warning', false, array(), "class=doc-negative-quantity");
             }
         }
     }
