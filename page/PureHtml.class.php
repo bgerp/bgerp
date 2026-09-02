@@ -103,11 +103,12 @@ class page_PureHtml extends core_ET
         }
 
         if (is_array($files->js)) {
+
+            // Само във външната част скриптовете се зареждат отложено
+            $attr = ($this instanceof cms_page_External) ? 'defer' : '';
+
             foreach ($files->js as $file) {
                 $file = $this->getFileForAppend($file, $absolute);
-                if($this instanceof cms_page_External) {
-                    $attr = "defer";
-                }
                 $files->invoker->appendOnce("\n<script {$attr} type=\"text/javascript\" src=\"{$file}\"></script>", 'HEAD', true);
             }
         }
@@ -125,6 +126,7 @@ class page_PureHtml extends core_ET
      */
     public static function getFileForAppend($filePath, $absolute = null)
     {
+        $filePath = (string) $filePath;
         if (preg_match('#^[^/]*//#', $filePath)) {
 
             return $filePath;
