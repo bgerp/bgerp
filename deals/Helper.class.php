@@ -956,7 +956,7 @@ abstract class deals_Helper
                         if($stRec->quantity >= $quantity) {
                             $hint = "Наличността в склада е достатъчна за изпълнение / контиране на документа, но разполагаемата наличност е недостатъчна за изпълнението на всички чакащи документи!";
                         } else {
-                            $hint = "Недостатъчна наличност|*(1): {$inStockVerbal} |{$measureName}|*! |Контирането на документа ще доведе до отрицателна наличност|* |{$showStoreInMsg}|*!";
+                            $hint = "Недостатъчна наличност|*(1): {$inStockVerbal} |{$measureName}|*!<br>|Контирането на документа ще доведе до отрицателна наличност|* |{$showStoreInMsg}|*!";
                         }
                     }
                 }
@@ -968,9 +968,9 @@ abstract class deals_Helper
         if(!$firstCheck){
             if ($futureQuantity < 0 && $freeQuantity < 0) {
                 if($showNegativeWarning){
-                    $hint = "Недостатъчна наличност|*(2): {$inStockVerbal} |{$measureName}|*! |Контирането на документа ще доведе до отрицателна наличност|* |{$showStoreInMsg}|*!";
+                    $hint = "Недостатъчна наличност|*(2): {$inStockVerbal} |{$measureName}|*!<br>|Контирането на документа ще доведе до отрицателна наличност|* |{$showStoreInMsg}|*!";
                     if(haveRole('debug')) {
-                        $hint .= " (debug) количество: {$quantity}, бъдещо: {$futureQuantity}, разполагаемо {$freeQuantity} (текущо разп. {$freeQuantityOriginal}), налично {$stRec->quantity}";
+                        $hint .= "<br>(debug) количество: {$quantity}, бъдещо: {$futureQuantity}, разполагаемо {$freeQuantity} (текущо разп. {$freeQuantityOriginal}), налично {$stRec->quantity}";
                     }
                     $class = 'doc-negative-quantity';
                     $makeLink = false;
@@ -978,12 +978,12 @@ abstract class deals_Helper
             } elseif ($futureQuantity < 0 && $freeQuantity >= 0) {
                 if($showNegativeWarning) {
                     $freeQuantityOriginalVerbal = $Double->toVerbal($freeQuantityOriginal);
-                    $hint = "Недостатъчна наличност|*: {$inStockVerbal} |{$measureName}|*! |Контирането на документа ще доведе до отрицателна наличност|* |{$showStoreInMsg}|*! |Очаква се доставка - разполагаема наличност|*: {$freeQuantityOriginalVerbal} |{$measureName}|*";
+                    $hint = "Недостатъчна наличност|*: {$inStockVerbal} |{$measureName}|*!<br>|Контирането на документа ще доведе до отрицателна наличност|* |{$showStoreInMsg}|*!<br>|Очаква се доставка - разполагаема наличност|*: {$freeQuantityOriginalVerbal} |{$measureName}|*";
                 }
             } elseif ($futureQuantity >= 0 && $freeQuantity < 0) {
                 if($showNegativeWarning) {
                     $freeQuantityOriginalVerbal = $Double->toVerbal($freeQuantityOriginal);
-                    $hint = "Разполагаема наличност|*: {$freeQuantityOriginalVerbal} |{$measureName}|* |Наличното количество|*: {$inStockVerbal} |{$measureName}|* |е резервирано|*.";
+                    $hint = "Разполагаема наличност|*: {$freeQuantityOriginalVerbal} |{$measureName}|*<br>|Наличното количество|*: {$inStockVerbal} |{$measureName}|* |е резервирано|*.";
                 }
             }
         }
@@ -997,12 +997,16 @@ abstract class deals_Helper
                 $url['horizon'] = $diff;
             }
 
-            // Линкът е преди хинта, за да е иконката на хинта най-отпред, а стрелката - до к-то
+            // Съобщението се превежда тук, за да остане линкът след него непокътнат
+            $hint = new core_ET(tr($hint));
+
+            // Линкът към наличностите е в самия хинт
             if ($makeLink === true && store_Stores::haveRightFor('select', $storeId) && store_Products::haveRightFor('list') && !Mode::isReadOnly()) {
-                $html = ht::createLinkRef($html, $url, false, array('arrowFront' => true));
+                $link = ht::createLink(tr('Наличности в склада'), $url, false, 'ef_icon=img/16/package.png');
+                $hint->append('<br>' . $link->getContent());
             }
 
-            $html = ht::createHint($html, $hint, 'warning', false, array(), "class={$class}");
+            $html = ht::createHint($html, $hint, 'warning', false, array('isHtml' => true), "class={$class}");
         }
 
         if($pRec->isPublic == 'no') {
