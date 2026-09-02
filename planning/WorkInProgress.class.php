@@ -334,7 +334,7 @@ class planning_WorkInProgress extends core_Manager
             $productId = $rec->{$productFldName};
             $inStockQuantity = $inStock[$productId] ?? 0;
             if(round($inStockQuantity - $totalQuantities[$productId], 1) < 0){
-                $inStockVerbal = core_Type::getByName('double(smartRound)')->toVerbal($inStockQuantity);
+                $inStockVerbal = ht::styleNumber(core_Type::getByName('double(smartRound)')->toVerbal($inStockQuantity), $inStockQuantity);
                 $measureName = cat_UoM::getShortName(cat_Products::fetchField($productId, 'measureId'));
 
                 $hint = "Недостатъчна наличност в незавършеното производство|*: {$inStockVerbal} |{$measureName}|*!<br>|Контирането на документа ще доведе до отрицателна наличност|*!";

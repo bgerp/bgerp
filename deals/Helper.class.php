@@ -936,6 +936,7 @@ abstract class deals_Helper
         $futureQuantity = $stRec->quantity - $quantity;
         $measureName = cat_UoM::getShortName(cat_Products::fetchField($productId, 'measureId'));
         $inStockVerbal = $Double->toVerbal($stRec->quantity);
+        $inStockStyled = ht::styleNumber($inStockVerbal, $stRec->quantity);
         $class = 'doc-warning-quantity';
         $showNegativeWarning = $makeLink = true;
 
@@ -950,13 +951,13 @@ abstract class deals_Helper
                 if($showNegativeWarning){
                     if(isset($date) && $date != dt::today()){
                         $minDateVerbal = dt::mysql2verbal($minQuantityDate, 'd.m.Y');
-                        $freeQuantityMinVerbal = core_Type::getByName('double(smartRound)')->toVerbal($freeQuantityMin);
+                        $freeQuantityMinVerbal = ht::styleNumber(core_Type::getByName('double(smartRound)')->toVerbal($freeQuantityMin), $freeQuantityMin);
                         $hint = "Разполагаемо минимално налично към|* {$minDateVerbal}: {$freeQuantityMinVerbal} |{$measureName}|*";
                     } else {
                         if($stRec->quantity >= $quantity) {
                             $hint = "Наличността в склада е достатъчна за изпълнение / контиране на документа, но разполагаемата наличност е недостатъчна за изпълнението на всички чакащи документи!";
                         } else {
-                            $hint = "Недостатъчна наличност|*(1): {$inStockVerbal} |{$measureName}|*!<br>|Контирането на документа ще доведе до отрицателна наличност|* |{$showStoreInMsg}|*!";
+                            $hint = "Недостатъчна наличност|*(1): {$inStockStyled} |{$measureName}|*!<br>|Контирането на документа ще доведе до отрицателна наличност|* |{$showStoreInMsg}|*!";
                         }
                     }
                 }
@@ -968,7 +969,7 @@ abstract class deals_Helper
         if(!$firstCheck){
             if ($futureQuantity < 0 && $freeQuantity < 0) {
                 if($showNegativeWarning){
-                    $hint = "Недостатъчна наличност|*(2): {$inStockVerbal} |{$measureName}|*!<br>|Контирането на документа ще доведе до отрицателна наличност|* |{$showStoreInMsg}|*!";
+                    $hint = "Недостатъчна наличност|*(2): {$inStockStyled} |{$measureName}|*!<br>|Контирането на документа ще доведе до отрицателна наличност|* |{$showStoreInMsg}|*!";
                     if(haveRole('debug')) {
                         $hint .= "<br>(debug) количество: {$quantity}, бъдещо: {$futureQuantity}, разполагаемо {$freeQuantity} (текущо разп. {$freeQuantityOriginal}), налично {$stRec->quantity}";
                     }
@@ -977,13 +978,13 @@ abstract class deals_Helper
                 }
             } elseif ($futureQuantity < 0 && $freeQuantity >= 0) {
                 if($showNegativeWarning) {
-                    $freeQuantityOriginalVerbal = $Double->toVerbal($freeQuantityOriginal);
-                    $hint = "Недостатъчна наличност|*: {$inStockVerbal} |{$measureName}|*!<br>|Контирането на документа ще доведе до отрицателна наличност|* |{$showStoreInMsg}|*!<br>|Очаква се доставка - разполагаема наличност|*: {$freeQuantityOriginalVerbal} |{$measureName}|*";
+                    $freeQuantityOriginalVerbal = ht::styleNumber($Double->toVerbal($freeQuantityOriginal), $freeQuantityOriginal);
+                    $hint = "Недостатъчна наличност|*: {$inStockStyled} |{$measureName}|*!<br>|Контирането на документа ще доведе до отрицателна наличност|* |{$showStoreInMsg}|*!<br>|Очаква се доставка - разполагаема наличност|*: {$freeQuantityOriginalVerbal} |{$measureName}|*";
                 }
             } elseif ($futureQuantity >= 0 && $freeQuantity < 0) {
                 if($showNegativeWarning) {
-                    $freeQuantityOriginalVerbal = $Double->toVerbal($freeQuantityOriginal);
-                    $hint = "Разполагаема наличност|*: {$freeQuantityOriginalVerbal} |{$measureName}|*<br>|Наличното количество|*: {$inStockVerbal} |{$measureName}|* |е резервирано|*.";
+                    $freeQuantityOriginalVerbal = ht::styleNumber($Double->toVerbal($freeQuantityOriginal), $freeQuantityOriginal);
+                    $hint = "Разполагаема наличност|*: {$freeQuantityOriginalVerbal} |{$measureName}|*<br>|Наличното количество|*: {$inStockStyled} |{$measureName}|* |е резервирано|*.";
                 }
             }
         }
