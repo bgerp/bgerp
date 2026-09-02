@@ -47,7 +47,7 @@ class refactor_Formater extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools,plg_Sorting,plg_Sorting,plg_Search, refactor_Wrapper';
+    public $loadList = 'plg_RowTools2,plg_Sorting,plg_Sorting,plg_Search, refactor_Wrapper';
     
     
     /**
@@ -232,7 +232,7 @@ class refactor_Formater extends core_Manager
         }
         
         // Показваме статистика за обработените файлове
-        $html .= "<li><strong>Общо: {$linesCnt} линии в {$filesCnt} файла, променени ${update} файла, пропуснати ${skip}</strong></li>";
+        $html .= "<li><strong>Общо: {$linesCnt} линии в {$filesCnt} файла, променени {$update} файла, пропуснати {$skip}</strong></li>";
         
         $toolbar = cls::get('core_Toolbar');
         $toolbar->addBtn('Проверка - променени', array($this, 'process', 'scope' => 'changed', 'dry' => 'yes'));

@@ -180,12 +180,16 @@ class tcost_Zones extends core_Detail
         $rec = &$form->rec;
         
         $query = self::getQuery();
-        $query->where("#zoneId = {$rec->zoneId} AND #id != '{$rec->id}'");
+        $query->where(array("#zoneId = '[#1#]'", $rec->zoneId));
+        if (!empty($rec->id)) {
+            $query->where(array("#id != '[#1#]'", $rec->id));
+        }
         $query->orderBy('id', 'DESC');
         $query->show('countryId');
         
-        $countryId = $query->fetch()->countryId;
-        if(empty($countryId)){
+        $lastRec = $query->fetch();
+        $countryId = $lastRec ? $lastRec->countryId : null;
+        if (empty($countryId)) {
             $countryId = crm_Companies::fetchOurCompany()->country;
         }
         $form->setDefault('countryId', $countryId);
@@ -210,7 +214,10 @@ class tcost_Zones extends core_Detail
             // Не може пощенския код да присъства за една и съща държава в различни зони към едно условие на доставка
             $query = self::getQuery();
             $query->in('zoneId', $zonesWithSameDeliveryCode);
-            $query->where("#countryId = {$rec->countryId} AND #pCode = '{$rec->pCode}' AND #id!= '{$rec->id}'");
+            $query->where(array("#countryId = '[#1#]' AND #pCode = '[#2#]'", $rec->countryId, $rec->pCode));
+            if (!empty($rec->id)) {
+                $query->where(array("#id != '[#1#]'", $rec->id));
+            }
             $query->limit(1);
             
             // Ако има вече такъв код, сетва се грешка

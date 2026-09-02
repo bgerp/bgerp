@@ -350,12 +350,12 @@ class log_Data extends core_Manager
             $names = core_Users::fetchField($dRec->objectId, 'names');
             $names = core_Users::prepareUserNames($names);
 
-            if (!$bridArr[$dRec->bridStr]) {
+            if (!($bridArr[$dRec->bridStr] ?? null)) {
                 $template = "{$nick} <span class='autocomplete-name'>{$names} ({$dRec->bridStr})</span>";
                 $bridArr[$dRec->bridStr] = array('val' => $dRec->bridStr, 'template' => $template, 'search' => $dRec->bridStr . ' ' . $nick . ' ' . $names);
             }
 
-            if (!$ipArr[$dRec->ipStr]) {
+            if (!($ipArr[$dRec->ipStr] ?? null)) {
                 $template = "{$nick} <span class='autocomplete-name'>{$names} ({$dRec->ipStr})</span>";
                 $ipArr[$dRec->ipStr] = array('val' => $dRec->ipStr, 'template' => $template, 'search' => $dRec->ipStr . ' ' . $nick . ' ' . $names);
             }
@@ -572,7 +572,7 @@ class log_Data extends core_Manager
             $row->classCrc = $typeClass->toVerbal($className);
         }
         
-        if (empty($fieldsArr) || $fieldsArr['text']) {
+        if (empty($fieldsArr) || !empty($fieldsArr['text'])) {
             $row->text = self::prepareText($action, $className, $rec->objectId);
         }
         
@@ -670,8 +670,8 @@ class log_Data extends core_Manager
         $data->listFilter->FNC('ip', 'varchar(32)', 'caption=IP адрес');
         $data->listFilter->FNC('from', 'datetime', 'caption=От');
         $data->listFilter->FNC('to', 'datetime', 'caption=До');
-        $data->listFilter->FNC('class', 'varchar', 'caption=Клас,removeAndRefreshForm=object, allowEmpty, silent');
-        $data->listFilter->FNC('object', 'varchar', 'caption=Обект,autoFilter, allowEmpty, silent');
+        $data->listFilter->FNC('class', 'varchar', 'caption=Клас,placeholderType=all,removeAndRefreshForm=object, allowEmpty, silent');
+        $data->listFilter->FNC('object', 'varchar', 'caption=Обект,placeholderType=all,autoFilter, allowEmpty, silent');
         
         $def = setIfNot($def, Request::get('users'), 'all_users');
         $default = $data->listFilter->getField('users')->type->fitInDomain($def);
@@ -764,15 +764,17 @@ class log_Data extends core_Manager
         }
         
         // Филтрираме по време
-        if (($rec->from ?? null) || ($rec->to ?? null)) {
+        $from = $rec->from ?? null;
+        $to = $rec->to ?? null;
+        if ($from || $to) {
             $dateRange = array();
 
-            if ($rec->from ?? null) {
-                $dateRange[0] = $rec->from;
+            if ($from) {
+                $dateRange[0] = $from;
             }
 
-            if ($rec->to ?? null) {
-                $dateRange[1] = $rec->to;
+            if ($to) {
+                $dateRange[1] = $to;
             }
             
             if (countR($dateRange) == 2) {
@@ -801,7 +803,7 @@ class log_Data extends core_Manager
         $cQuery = clone $query;
         
         // Ако не е въведена дата, ограничаваме времето - това е само за показване на класовете
-        if ((!$rec->from && !$rec->to) || (!is_null(Request::get('class')))) {
+        if ((!$from && !$to) || (!is_null(Request::get('class')))) {
             $beforeT = dt::mysql2timestamp(dt::now(false));
             $cQuery->where(array("#time >= '[#1#]'", $beforeT));
         }

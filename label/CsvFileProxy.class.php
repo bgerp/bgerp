@@ -218,6 +218,9 @@ class label_CsvFileProxy extends label_ProtoSequencerImpl
         }
 
         $fileRec = fileman_Files::fetchRec($id);
+        if (!$fileRec) {
+            return array();
+        }
         $ext = fileman_Files::getExt($fileRec->name);
 
         $rows = $columnNames = array();
@@ -234,11 +237,11 @@ class label_CsvFileProxy extends label_ProtoSequencerImpl
 
         $arr = array();
         for ($i = 0; $i <= $cnt - 1; $i++) {
-            $rowArr = $rows[$i];
+            $rowArr = $rows[$i] ?? null;
             $res = array();
             if(is_array($rowArr)){
                 foreach ($rowArr as $index => $value){
-                    $caption = $columnNames[$index];
+                    $caption = $columnNames[$index] ?? $index;
                     $placeholder = self::getPlaceholderName($caption);
                     $res[$placeholder] = $value;
                 }

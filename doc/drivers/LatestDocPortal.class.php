@@ -31,8 +31,8 @@ class doc_drivers_LatestDocPortal extends core_BaseClass
     public function addFields(core_Fieldset &$fieldset)
     {
         $fieldset->FLD('tCnt', 'int(min=1, max=25)', 'caption=Брой нишки, mandatory');
-        $fieldset->FLD('docClassId', 'classes(interface=doc_DocumentIntf, select=title, allowEmpty)', 'caption=Първи документ в нишката->Вид');
-        $fieldset->FLD('tags', 'keylist(mvc=tags_Tags, select=name, allowEmpty)', 'caption=Маркери в документите->Маркер');
+        $fieldset->FLD('docClassId', 'classes(interface=doc_DocumentIntf, select=title, allowEmpty)', 'caption=Първи документ в нишката->Вид,placeholderType=all');
+        $fieldset->FLD('tags', 'keylist(mvc=tags_Tags, select=name, allowEmpty)', 'caption=Маркери в документите->Маркер,placeholderType=all');
     }
     
     
@@ -163,7 +163,7 @@ class doc_drivers_LatestDocPortal extends core_BaseClass
                         continue;
                     }
 
-                    if ($resArr[$cRec->folderId][$cRec->threadId . '|' . $cRec->id]) {
+                    if (isset($resArr[$cRec->folderId][$cRec->threadId . '|' . $cRec->id])) {
 
                         continue;
                     }
@@ -229,7 +229,7 @@ class doc_drivers_LatestDocPortal extends core_BaseClass
                     $rQuery->orderBy('last', 'DESC');
                     $rQuery->show('last');
                     $rRec = $rQuery->fetch();
-                    $last = $rRec->last;
+                    $last = $rRec ? $rRec->last : null;
                     
                     $cloneQ = clone $cQuery;
                     
@@ -263,6 +263,10 @@ class doc_drivers_LatestDocPortal extends core_BaseClass
                         $lRec = $cloneQ->fetch();
                     } else {
                         $tUnsighted = 'tUnsighted';
+                    }
+
+                    if (!$lRec) {
+                        continue;
                     }
                     
                     try {
@@ -416,8 +420,6 @@ class doc_drivers_LatestDocPortal extends core_BaseClass
             $cArr[] = $tRec->last;
             $cArr[] = $tRec->firstContainerId;
         }
-        
-        $tArr = type_Keylist::toArray($dRec->threads);
         
         return md5(implode('|', $cArr));
     }

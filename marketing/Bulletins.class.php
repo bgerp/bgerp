@@ -631,7 +631,7 @@ class marketing_Bulletins extends core_Master
      */
     protected function on_CalcScriptTag($mvc, $rec)
     {
-        if (!$rec->domain || !$rec->id) {
+        if (!$rec->domain || empty($rec->id)) {
             
             return ;
         }
@@ -995,7 +995,7 @@ class marketing_Bulletins extends core_Master
     protected static function on_AfterUpdateDetail(core_Master $mvc, $id, core_Manager $detailMvc)
     {
         $query = $detailMvc->getQuery();
-        $query->where("#bulletinId = ${id}");
+        $query->where("#bulletinId = {$id}");
         $cnt = $query->count();
         $query->orderBy('createdOn', 'DESC');
         $lastRec = $query->fetch();
@@ -1233,7 +1233,7 @@ class marketing_Bulletins extends core_Master
     {
         $query = marketing_BulletinSubscribers::getQuery();
         
-        $query->where("#bulletinId = ${id}");
+        $query->where("#bulletinId = {$id}");
         
         if ($limit) {
             $query->limit($limit);

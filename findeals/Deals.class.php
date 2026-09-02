@@ -335,7 +335,7 @@ class findeals_Deals extends deals_DealBase
             expect(in_array($newFields['baseAmountType'], array('debit', 'credit')));
         }
         
-        if (isset($fields['baseAccountSysId']) || $fields['baseAmount'] || $fields['baseAmountType']) {
+        if (isset($fields['baseAccountSysId']) || isset($fields['baseAmount']) || isset($fields['baseAmountType'])) {
             expect(isset($fields['baseAccountSysId'], $fields['baseAmount'], $fields['baseAmountType']));
         }
 
@@ -670,6 +670,8 @@ class findeals_Deals extends deals_DealBase
                 $index = $jRec->docType . '|' . $jRec->docId;
                 if (empty($recs[$index])) {
                     $recs[$index] = $jRec;
+                    $recs[$index]->debitA = 0;
+                    $recs[$index]->creditA = 0;
                 }
                 $r = &$recs[$index];
                 $jRec->amount = deals_Helper::getSmartBaseCurrency($jRec->amount, $jRec->valior, $rec->valior);
@@ -801,7 +803,7 @@ class findeals_Deals extends deals_DealBase
         
         $tpl->append($table->get($data->history, $fields), 'HISTORY');
         
-        if ($data->pager) {
+        if (!empty($data->pager)) {
             $tpl->replace($data->pager->getHtml(), 'PAGER');
         }
     }

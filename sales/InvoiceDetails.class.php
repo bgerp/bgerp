@@ -137,7 +137,7 @@ class sales_InvoiceDetails extends deals_InvoiceDetail
         $containerId = sales_Invoices::fetchField($rec->invoiceId, 'threadId');
 
         // Ако е инсталиран пакета за партиди
-        if (core_Packs::isInstalled('batch') && $rec->_importBatches != 'no') {
+        if (core_Packs::isInstalled('batch') && ($rec->_importBatches ?? null) != 'no') {
             if(!empty($rec->_batches)){
                 $batches = $rec->_batches;
             } else {

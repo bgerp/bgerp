@@ -158,6 +158,18 @@ class thumb_Img
 
 
     /**
+     * Коефициент на скалиране
+     */
+    protected $ratio;
+
+
+    /**
+     * Завъртане на скалираното изображение
+     */
+    protected $rotation;
+
+
+    /**
      * @var string Пътят във файловата система, където да бъде записано изображението
      */
     protected $thumbPath;
@@ -961,8 +973,8 @@ class thumb_Img
      */
     public static function canUseWebP()
     {
-        if(thumb_Setup::get('WEBP') == 'yes') {
-            if (strpos($_SERVER['HTTP_ACCEPT'], 'image/webp') !== false && !Mode::is('text', 'xhtml')) {
+        if (thumb_Setup::get('WEBP') == 'yes' && function_exists('imagewebp')) {
+            if (strpos($_SERVER['HTTP_ACCEPT'] ?? '', 'image/webp') !== false && !Mode::is('text', 'xhtml')) {
 
                 return true;
             }

@@ -172,7 +172,7 @@ class trans_Cmrs extends trans_abstract_ShipmentDocument
     protected static function on_AfterRead($mvc, $rec)
     {
         // Разпъване на компресираните полета
-        if (is_array($rec->goodsData)) {
+        if (!empty($rec->goodsData) && is_array($rec->goodsData)) {
             foreach ($rec->goodsData as $field => $value) {
                 $rec->{$field} = $value;
             }
@@ -448,7 +448,7 @@ class trans_Cmrs extends trans_abstract_ShipmentDocument
         if (isset($fields['-single'])) {
             
             // Вербализиранре на компресираните полета
-            if (is_array($rec->goodsData)) {
+            if (!empty($rec->goodsData) && is_array($rec->goodsData)) {
                 foreach ($rec->goodsData as $field => $value) {
                     if (isset($value)) {
                         $row->{$field} = core_Type::getByName('varchar')->toVerbal($value);
@@ -562,8 +562,8 @@ class trans_Cmrs extends trans_abstract_ShipmentDocument
         $head = array(1 => 'Copy for sender', 2 => 'Copy for consignee', 3 => 'Copy for carrier', 4 => 'Copy for second carrier', 5 => 'Copy for sender');
         $colorClass = array(1 => 'cmr-red', 2 => 'cmr-blue', 3 => 'cmr-green');
         $copyTpl->append($copyNum, 'copyNum');
-        $copyTpl->append($head[$copyNum], 'copyTitle');
-        $copyTpl->append($colorClass[$copyNum], 'colorClass');
+        $copyTpl->append($head[$copyNum] ?? '', 'copyTitle');
+        $copyTpl->append($colorClass[$copyNum] ?? '', 'colorClass');
     }
 
 

@@ -630,7 +630,7 @@ class doc_Linked extends core_Manager
         
         $act = trim($form->rec->act ?? '');
         
-        if ($act && !doc_Linked::$actArr[$act]) {
+        if ($act && empty(doc_Linked::$actArr[$act])) {
             // Подготвяме формата от интерфейсните методи
             foreach ($intfArr as $intfCls) {
                 if ($type == 'doc') {
@@ -649,7 +649,7 @@ class doc_Linked extends core_Manager
         
         $res = null;
         
-        if ($act && !doc_Linked::$actArr[$act]) {
+        if ($act && empty(doc_Linked::$actArr[$act])) {
             // Субмитваме формата от интерфейсни методи
             foreach ($intfArr as $intfCls) {
                 if ($type == 'doc') {
@@ -666,7 +666,7 @@ class doc_Linked extends core_Manager
         
         // Ако формата е субмитната
         if ($form->isSubmitted()) {
-            if (!$act || doc_Linked::$actArr[$act]) {
+            if (!$act || !empty(doc_Linked::$actArr[$act])) {
                 $res = $this->onSubmitFormForAct($form, $act, $type, $originFId);
             }
         }
@@ -1119,9 +1119,9 @@ class doc_Linked extends core_Manager
             $ids = implode(',', $onlyIds);
             expect(preg_match("/^[0-9\,]+$/", $ids), $ids, $onlyIds);
             
-            $cQuery->where("#id IN (${ids})");
+            $cQuery->where("#id IN ({$ids})");
         } elseif (ctype_digit("{$onlyIds}")) {
-            $cQuery->where("#id = ${onlyIds}");
+            $cQuery->where("#id = {$onlyIds}");
         }
         
         if ($q) {
@@ -1288,9 +1288,9 @@ class doc_Linked extends core_Manager
             $ids = implode(',', $onlyIds);
             expect(preg_match("/^[0-9\,]+$/", $ids), $ids, $onlyIds);
             
-            $query->where("#id IN (${ids})");
+            $query->where("#id IN ({$ids})");
         } elseif (ctype_digit("{$onlyIds}")) {
-            $query->where("#id = ${onlyIds}");
+            $query->where("#id = {$onlyIds}");
         }
         
         $titleFld = $params['titleFld'];
@@ -1512,9 +1512,9 @@ class doc_Linked extends core_Manager
             $ids = implode(',', $onlyIds);
             expect(preg_match("/^[0-9\,]+$/", $ids), $ids, $onlyIds);
             
-            $query->where("#id IN (${ids})");
+            $query->where("#id IN ({$ids})");
         } elseif (ctype_digit("{$onlyIds}")) {
-            $query->where("#id = ${onlyIds}");
+            $query->where("#id = {$onlyIds}");
         }
         
         $show = 'id, firstDocClass, firstDocId';
@@ -1744,7 +1744,7 @@ class doc_Linked extends core_Manager
             
             $linkUrl = array('fileman_Files', 'single', $valId);
             
-            if (!trim($comment)) {
+            if (!trim((string) $comment)) {
                 $comment = tr('Файл');
             }
         } else {

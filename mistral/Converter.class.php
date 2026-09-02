@@ -65,14 +65,14 @@ class mistral_Converter extends core_Manager
             // Ако вече е извлечена текстовата част
             $procTextOcr = fileman_Indexes::isProcessStarted(array('type' => 'textOcr', 'dataId' => $fRec->dataId));
             if ($procTextOcr) {
-                $btnParams['warning'] = 'Файлът е преминал през разпознаване на текст';
+                $btnParams['warning'] = 'Mistral: Файлът е преминал през разпознаване на текст';
             } elseif (!self::haveTextForOcr($fRec)) {
                 $btnParams['warning'] = 'Няма текст за разпознаване';
             }
 
             $arr = array();
             $arr['mistral']['url'] = array(get_called_class(), 'getTextByOcr', $fRec->fileHnd, 'ret_url' => true);
-            $arr['mistral']['title'] = 'OCR';
+            $arr['mistral']['title'] = 'Mistral OCR';
             $arr['mistral']['icon'] = 'img/16/mistral.png';
             $arr['mistral']['btnParams'] = $btnParams;
         }
@@ -112,6 +112,9 @@ class mistral_Converter extends core_Manager
             // URL' то където ще редиректваме
             $retUrl = array('fileman_Files', 'single', $fRec->fileHnd);
         }
+
+        $retUrl['currentTab'] = 'text';
+        $retUrl['#'] = 'fileDetail';
         
         if ($fRec->dataId && ($dRec = fileman_Data::fetch((int) $fRec->dataId))) {
             fileman_Data::resetProcess($dRec);

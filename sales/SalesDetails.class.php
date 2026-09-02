@@ -237,7 +237,7 @@ class sales_SalesDetails extends deals_DealDetail
                        $comparedWithPrimeCostObj->primeCost /= $masterRec->currencyRate;
                        $primeCostVerbal = core_Type::getByName('double(smartRound,minDecimals=2)')->toVerbal($comparedWithPrimeCostObj->primeCost * $rec->quantityInPack);
                        $warning = "{$warning}|*: {$primeCostVerbal} {$masterRec->currencyId} |без ДДС|*";
-                       if($comparedWithPrimeCostObj->isCache){
+                        if (!empty($comparedWithPrimeCostObj->isCache)) {
                            $warning .= " (|Кеш|*)";
                        }
                    }
@@ -354,7 +354,7 @@ class sales_SalesDetails extends deals_DealDetail
 
         // Синхронизиране на сумата на транспорта
         if (($rec->syncFee ?? null) === true) {
-            sales_TransportValues::sync($mvc->Master, $rec->{$mvc->masterKey}, $rec->id, $rec->fee, $rec->deliveryTimeFromFee, $rec->_transportExplained);
+            sales_TransportValues::sync($mvc->Master, $rec->{$mvc->masterKey}, $rec->id, $rec->fee, $rec->deliveryTimeFromFee, ($rec->_transportExplained ?? null));
         }
     }
     

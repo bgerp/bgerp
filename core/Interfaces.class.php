@@ -19,7 +19,7 @@ class core_Interfaces extends core_Manager
     /**
      * Плъгини и класове за начално зареждане
      */
-    public $loadList = 'plg_Created, plg_SystemWrapper, plg_RowTools,plg_Sorting';
+    public $loadList = 'plg_Created, plg_SystemWrapper, plg_RowTools2,plg_Sorting';
     
     
     /**
@@ -47,6 +47,12 @@ class core_Interfaces extends core_Manager
 
 
     /**
+     * Имена на интерфейсите, за които липсва код - име => име
+     */
+    protected static $missingInterfaces = array();
+
+
+    /**
      * Описание на модела
      */
     public function description()
@@ -65,9 +71,21 @@ class core_Interfaces extends core_Manager
     
     /**
      * Добавя интерфейса в този регистър
+     *
+     * @param string $interface
+     *
+     * @return int|null - ид на интерфейса или NULL, ако липсва кода му
      */
     public static function add($interface)
     {
+        // Ако липсва кода на интерфейса, той не може да бъде регистриран.
+        // Само го запомняме, за да бъде репортван при инсталацията на пакета
+        if (!cls::load($interface, true)) {
+            self::$missingInterfaces[$interface] = $interface;
+
+            return null;
+        }
+
         $rec = new stdClass();
         
         $rec->name = $interface;
@@ -96,14 +114,43 @@ class core_Interfaces extends core_Manager
     
     /**
      * Връща id-то на посочения интерфейс
+     *
+     * @param string $name
+     * @param bool   $silent - ако липсва кода на интерфейса, да не се предизвиква грешка
+     *
+     * @return int|null
      */
-    public static function fetchByName($name)
+    public static function fetchByName($name, $silent = false)
     {
         $id = self::add($name);
-        
+
+        if (!$id && $silent) {
+
+            return null;
+        }
+
         expect($id, 'Липсващ интерфейс', $name);
-        
+
         return $id;
+    }
+
+
+    /**
+     * Връща (и изчиства) имената на интерфейсите, за които липсва код
+     *
+     * @param bool $clear
+     *
+     * @return array име на интерфейс => име на интерфейс
+     */
+    public static function getMissing($clear = true)
+    {
+        $res = self::$missingInterfaces;
+
+        if ($clear) {
+            self::$missingInterfaces = array();
+        }
+
+        return $res;
     }
     
     
@@ -131,8 +178,14 @@ class core_Interfaces extends core_Manager
         if (countR($list)) {
             // Вземаме инстанция на core_Interfaces
             foreach ($list as $intf => $impl) {
+
+                // Интерфейсите, за които липсва код, се пропускат - те се репортват при инсталация
+                if (!$intfId = self::fetchByName($intf, true)) {
+                    continue;
+                }
+
                 // Добавяме id в списъка
-                $result[self::fetchByName($intf)] = true;
+                $result[$intfId] = true;
             }
         }
         

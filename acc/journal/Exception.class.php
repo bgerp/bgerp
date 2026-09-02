@@ -13,7 +13,7 @@ class acc_journal_Exception extends core_exception_Expect
     public static function expect($condition, $message, $options = array())
     {
         if (!(boolean) $condition) {
-            throw new acc_journal_Exception($message, $options);
+            throw new acc_journal_Exception($message, 'Изключение', $options);
         }
     }
 }

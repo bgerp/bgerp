@@ -62,21 +62,21 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
         $fieldset->FLD(
             'accountId',
             'keylist(mvc=bank_OwnAccounts,select=title,allowEmpty)',
-            'caption=Банкова сметка,placeholder=Всички,after=title'
+            'caption=Банкова сметка,placeholderType=all,after=title'
         );
 
         // Избор на каси (ако има право потребителят)
         $fieldset->FLD(
             'caseId',
             'keylist(mvc=cash_Cases,select=name,allowEmpty)',
-            'caption=Каса,placeholder=Всички,after=accountId'
+            'caption=Каса,placeholderType=all,after=accountId'
         );
 
         // Филтър по тип на документите: приходи, разходи или всички
         $fieldset->FLD(
             'documentType',
             'enum(all=Всички,income=Приходни документи,expense=Разходни документи,oneRD=Всички с поне един разходен,onePD=Всички с поне един приходен)',
-            'caption=Документи,placeholder=Всички,after=caseId'
+            'caption=Документи,placeholderType=all,after=caseId'
         );
 
         // Хоризонт (краен срок за плащане, до който да влизат документите)
@@ -122,7 +122,7 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
         $form->setSuggestions('caseId', array('' => '') + $cases);
 
         // Задаваме дефолтните стойности само при създаване на нова справка
-        if (!$form->rec->id) {
+        if (empty($form->rec->id)) {
             $form->setDefault('documentType', 'all');
             $form->setDefault('sortDirection', 'desc');
             $form->setDefault('groupBy', 'yes');
@@ -206,7 +206,7 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
         $docClasses = $caseRecs = $bankRecs = $recs = array();
 
         // ЗАДАВАМЕ ГРУПИРАНЕТО СПОРЕД ИЗБОРА ОТ ФОРМАТА
-        if ($rec->groupBy == 'yes') {
+        if (($rec->groupBy ?? null) == 'yes') {
             $this->groupByField = 'contragentName';
         }
 
@@ -255,8 +255,9 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
                     'folderId' => $cRec->folderId,
                     'createdOn' => $cRec->createdOn,
                     'createdBy' => $cRec->createdBy,
+                    // Банковите документи нямат 'peroCase', но записът е с обща структура
                     'ownAccount' => $cRec->ownAccount,
-                    'peroCase' => $cRec->peroCase,
+                    'peroCase' => $cRec->peroCase ?? null,
                     'contragentName' => $cRec->contragentName,
                 ];
             }
@@ -301,7 +302,8 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
                     'folderId' => $cRec->folderId,
                     'createdOn' => $cRec->createdOn,
                     'createdBy' => $cRec->createdBy,
-                    'ownAccount' => $cRec->ownAccount,
+                    // Касовите документи нямат 'ownAccount', но записът е с обща структура
+                    'ownAccount' => $cRec->ownAccount ?? null,
                     'peroCase' => $cRec->peroCase,
                     'contragentName' => $cRec->contragentName,
                 ];
@@ -390,9 +392,10 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
         // Линк към документа
         $DoocClass = cls::get($dRec->className);
         $row->documentId = $DoocClass->getLink($dRec->documentId, 0);
+        $contragentName = $dRec->contragentName ?? doc_Folders::getTitleById($dRec->folderId ?? null);
 
         // Групиращ ред (ако сме в групиране)
-        if ($rec->groupBy == 'yes') {
+        if (($rec->groupBy ?? null) == 'yes') {
             $sums = array();
             foreach ($dRec->totalSumContr as $cur => $val) {
                 $absVal = abs($val);
@@ -405,9 +408,9 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
 
                 $sums[] = "<span class='fright'>{$styledVal} <span class='cCode'>{$cur}</span></span>";
             }
-            $row->contragentName = $dRec->contragentName . implode('', $sums);
+            $row->contragentName = $contragentName . implode('', $sums);
         } else {
-            $row->contragentName = $dRec->contragentName;
+            $row->contragentName = $contragentName;
         }
 
         // Форматиране на amountDeal с цвят според типа на документа

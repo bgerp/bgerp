@@ -48,8 +48,8 @@ class dec_Declarations extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'sales_Wrapper, doc_plg_TplManager, bgerp_plg_Blank, recently_Plugin, doc_ActivatePlg, plg_Printing, cond_plg_DefaultValues, 
-    				 plg_RowTools2, doc_DocumentIntf, doc_DocumentPlg, doc_EmailCreatePlg';
+    public $loadList = 'sales_Wrapper, doc_plg_TplManager, bgerp_plg_Blank, recently_Plugin, doc_ActivatePlg, plg_Printing, plg_Clone,
+                        cond_plg_DefaultValues, plg_RowTools2, doc_DocumentIntf, doc_DocumentPlg, doc_EmailCreatePlg';
     
     
     /**
@@ -74,6 +74,12 @@ class dec_Declarations extends core_Master
      * Кой може да пише?
      */
     public $canWrite = 'ceo,dec';
+    
+    
+    /**
+     * Кой има право да клонира?
+     */
+    public $canClonerec = 'ceo,dec';
     
     
     /**
@@ -193,12 +199,12 @@ class dec_Declarations extends core_Master
     {
         $form = &$data->form;
     
-        // Масива, който ще връщаме
-        static $placesArr = array();
+        // Запазените стойности за динамичните полета
+        $placesArr = is_array($form->rec->formatParams ?? null) ? $form->rec->formatParams : array();
 
         // Проверяваме имаме ли зареден шаблон
         $statementOptions = array();
-        if($data->form->rec->template) {
+        if (!empty($form->rec->template)) {
             // кой е езика на шаблона
             $lang = doc_TplManager::fetch($form->rec->template)->lang;
 
@@ -213,9 +219,10 @@ class dec_Declarations extends core_Master
             $tpl = doc_TplManager::getTemplate($data->form->rec->template); 
             // взимаме всичките плейсхолдери на шаблона
             $allPlaceholders = label_Templates::getPlaceholders($tpl->content);
-       
+         
             // обхождаме плейсхолдерите
-            if(is_array($allPlaceholders)) {
+            if (is_array($allPlaceholders)) {
+                $placeholderFields = array();
                 foreach ($allPlaceholders as $pA) {
                     // Правим имената на плейсхолдерите с главна буква,
                     // за да нямаме дублиране с FLD
@@ -226,10 +233,17 @@ class dec_Declarations extends core_Master
                  
                     // Правим функционални (виртуални) полета
                     $form->FNC("{$p}", 'varchar(255)', "caption=Други настройки->{$p1},input=input, silent,recently,autohide");
-                    $form->input();
-                    $placesArr[$p] = $form->rec->{$p};
+                    $form->rec->{$p} = $form->rec->{$p} ?? ($placesArr[$p] ?? null);
+                    $placeholderFields[$p] = $p;
                 }
-            } 
+
+                if (countR($placeholderFields)) {
+                    $form->input(implode(',', $placeholderFields));
+                    foreach ($placeholderFields as $p) {
+                        $placesArr[$p] = $form->rec->{$p} ?? null;
+                    }
+                }
+            }
         }
    
         // Записваме blob полето
@@ -246,7 +260,7 @@ class dec_Declarations extends core_Master
         }
                 
         // Записваме оригиналното ид, ако имаме такова
-        if ($form->rec->originId) {
+        if (!empty($form->rec->originId)) {
             $form->setDefault('doc', $data->form->rec->originId);
 
             // и е към документ
@@ -284,21 +298,30 @@ class dec_Declarations extends core_Master
 
             if(countR($locationOptions)){
                 $form->setOptions('locationId', $locationOptions);
-                $form->setDefault('locationId', $rec->deliveryPlaceId);
+                $form->setDefault('locationId', $rec->deliveryPlaceId ?? null);
             } else {
                 $form->setReadOnly('locationId');
             }
         }
 
-        // слагаме Управители
-        $managers = $mvc->getManagers();
-        if (countR($managers) > 0) {
-            $data->form->setSuggestions('declaratorName', $managers);
-            $data->form->setDefault('declaratorName', key($managers));
+        // Текущия потребител + управителите се слагат като предложения за подпис
+        $declarators = $mvc->getManagers();
+        $cu = core_Users::getCurrent();
+        if(!array_key_exists($cu, $declarators)) {
+            $cuPersonRec = crm_Profiles::getProfile($cu);
+            if(!empty($cuPersonRec)){
+                $declarators[$cuPersonRec->name] = $cuPersonRec->name;
+            }
+        }
+
+        if (countR($declarators) > 0) {
+            // Празната опция се слага най-отпред, за да не разделя визуално предложенията от 'recently'
+            $data->form->setSuggestions('declaratorName', array('' => '') + $declarators);
+            $data->form->setDefault('declaratorName', key($declarators));
         }
 
         // ако не е указана дата взимаме днешната
-        if (!$data->form->rec->date) {
+        if (empty($form->rec->date)) {
             $data->form->setDefault('date', dt::now(false));
         }
     }
@@ -390,7 +413,7 @@ class dec_Declarations extends core_Master
         }
 
         // вземаме избраните продукти
-        if ($rec->productId) {
+        if ($rec->productId) { 
             $products = arr::make($rec->productId);
 
             $batches = $classProduct =  array();
@@ -398,26 +421,57 @@ class dec_Declarations extends core_Master
             $Origin = doc_Containers::getDocument($rec->originId);
             $Interface = core_Cls::getInterface('dec_SourceIntf', $Origin->getInstance());
             $sourceProducts = $Interface->getProducts4Declaration($Origin->fetch());
-            foreach ($products as $productId){
-                if(!empty($sourceProducts[$productId]->batches)){
+            
+            $accProd = array();
+            
+            $config = core_Packs::getConfig('dec'); 
+     
+            if (!empty($config->_data['DEC_PARAM_PROD'])) { 
+                $accProdParamId = cat_Params::force('accProd', 'accProd', 'varchar', null, '');
+                $accProdParamId = $config->_data['DEC_PARAM_PROD'];
+            }
+           
+            
+            foreach ($products as $productId) {
+                
+                if (!empty($sourceProducts[$productId]->batches)) {
                     $batches[$productId] = $sourceProducts[$productId]->batches;
                 }
+                
+                if (!empty($accProdParamId)) {
+                    $params = cat_Products::getParams($productId, null, true);
+                    
+                    if (!empty($params[$accProdParamId])) {
+                        $accProd[$productId] = $params[$accProdParamId];
+                    }
+                }
             }
-
+            
             foreach ($products as $product) {
                 $classProduct[$product] = explode('|', $product);
+                
             }
 
             $row->products = '<ol>';
+            
             foreach ($classProduct as $iProduct => $name) {
+                
                 $pId = (isset($name[1])) ? $name[1] : $name[0];
                 $productName = cat_Products::getTitleById($pId);
-                if (($batches[$pId])) {
-                    $row->products .= '<li>'.$productName . ' - '. $batches[$pId] .'</li>';
-                } else {
-                    $row->products .= '<li>'.$productName.'</li>';
+                
+                $text = $productName;
+                
+                if (!empty($accProd[$pId])) {
+                    $text .= ' [' . $accProd[$pId] . ']';
                 }
+                
+                if (!empty($batches[$pId])) {
+                    $text .= ' - ' . $batches[$pId];
+                }
+                
+                $row->products .= "<li>{$text}</li>";
             }
+            
             $row->products .= '</ol>';
         }
 
@@ -456,7 +510,7 @@ class dec_Declarations extends core_Master
             $row->contragentAddress = transliterate(tr($row->contragentAddress));
 
             $uicContragent = drdata_Vats::getUicByVatNo($recOrigin->contragentVatNo); 
-            if ($uic != $recOrigin->contragentVatNo) {
+            if ($uicContragent != $recOrigin->contragentVatNo) {
                 $row->contragentCompanyVatNo = $Varchar->toVerbal($recOrigin->contragentVatNo);
             }
             
@@ -494,13 +548,30 @@ class dec_Declarations extends core_Master
       
         // Ако имаме въведени стойности във FNC полетата
         // ще ги покажем в шаблона
-        if(is_array($rec->formatParams)) {
-            foreach ($rec->formatParams as $placeholder => $value) { 
-                if(strlen($value) !== 0) {
-                    if(strpos($placeholder, "_") == 0) {
+        if (!empty($rec->formatParams) && is_array($rec->formatParams)) {
+            
+            // Ако шаблонът използва NUMBER_DATE, не показваме отделно
+            // documentTitle, id и date
+            if (array_key_exists('_NUMBER_DATE', $rec->formatParams)) {
+                $row->NUMBER_DATE = "{$row->documentTitle} №{$rec->id} / {$row->date}";
+                
+                unset($row->documentTitle);
+                unset($row->id);
+                unset($row->date);
+            }
+            
+            foreach ($rec->formatParams as $placeholder => $value) {
+                if (strlen((string)$value) !== 0) {
+                    
+                    if (strpos($placeholder, "_") == 0) {
                         $placeholder = substr($placeholder, 1);
                     }
-                   
+                    
+                    // NUMBER_DATE вече е обработен по-горе
+                    if ($placeholder == 'NUMBER_DATE') {
+                        continue;
+                    }
+                    
                     $row->$placeholder = $Varchar->toVerbal($value);
                 }
             }
@@ -655,10 +726,11 @@ class dec_Declarations extends core_Master
         $options = array();
         $groupId = crm_Groups::fetchField("#sysId = 'managers'", 'id');
         $personQuery = crm_Persons::getQuery();
-        $personQuery->where("#groupList LIKE '%|{$groupId}|%'");
+        plg_ExpandInput::applyExtendedInputSearch('crm_Persons', $personQuery, $groupId);
 
         while ($personRec = $personQuery->fetch()) {
-            $options[crm_Persons::getVerbal($personRec, 'name')] = crm_Persons::getVerbal($personRec, 'name');
+            $managerName = crm_Persons::getVerbal($personRec, 'name');
+            $options[$managerName] = $managerName;
         }
 
         return $options;

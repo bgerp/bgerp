@@ -110,7 +110,7 @@ class cat_products_Params extends doc_Detail
     {
         $this->FLD('classId', 'class', 'input=hidden,silent');
         $this->FLD('productId', 'int', 'input=hidden,silent,tdClass=leftCol wrapText');
-        $this->FLD('paramId', 'key(mvc=cat_Params,select=typeExt,forceOpen,maxRadio=1)', 'input,caption=Параметър,mandatory,silent');
+        $this->FLD('paramId', 'key(mvc=cat_Params,select=typeExt,forceOpen)', 'input,caption=Параметър,mandatory,silent');
         $this->FLD('paramValue', 'text', 'input=none,caption=Стойност');
         $this->FLD('type', 'enum(mandatory=Задължителен,optional=Незадължителен,readOnly=Само за четене)', 'input=none,caption=Тип');
 
@@ -157,7 +157,7 @@ class cat_products_Params extends doc_Detail
                     $row->paramValue .= ' ' . tr($suffix);
                 }
             } else {
-                $row->paramValue = "<span style='color:blue;'>n/a</span>";
+                $row->paramValue = "<span class='blueText'>n/a</span>";
             }
             if(!empty($rec->type)){
                 $row->paramValue = ht::createHint($row->paramValue, "$row->type", 'notice', false);
@@ -202,12 +202,12 @@ class cat_products_Params extends doc_Detail
 
         if (empty($rec->id)) {
             $form->setField('paramId', array('removeAndRefreshForm' => 'paramValue|paramValue[lP]|paramValue[rP]'));
-            $options = self::getRemainingOptions($rec->classId, $rec->productId, $rec->id);
+            $options = self::getRemainingOptions($rec->classId, $rec->productId, $rec->id ?? null);
             
             if (!countR($options)) {
                 $warningMsg = 'Няма параметри за добавяне';
                 if($rec->classId == cat_BomDetails::getClassId()){
-                    $warningMsg = 'Няма повече планиращи параметри';
+                    $warningMsg = 'Няма повече планиращи параметри|*!';
                 }
 
                 followRetUrl(null, $warningMsg, 'warning');
@@ -226,14 +226,14 @@ class cat_products_Params extends doc_Detail
         
         if (!empty($rec->paramId)) {
             $pRec = cat_Params::fetch($rec->paramId);
-            if ($Type = cat_Params::getTypeInstance($rec->paramId, $rec->classId, $rec->productId, $rec->paramValue)) {
+            if ($Type = cat_Params::getTypeInstance($rec->paramId, $rec->classId, $rec->productId, $rec->paramValue ?? null)) {
                 $form->setField('paramValue', 'input');
                 $form->setFieldType('paramValue', $Type);
                 if($Type instanceof type_Key2 || $Type instanceof type_Key){
                     $form->setField('paramValue', 'class=w100');
                 }
             
-                $defaultValue = cat_Params::getDefaultValue($rec->paramId, $rec->classId, $rec->productId, $rec->paramValue);
+                $defaultValue = cat_Params::getDefaultValue($rec->paramId, $rec->classId, $rec->productId, $rec->paramValue ?? null);
                 $form->setDefault('paramValue', $defaultValue);
                 if($pRec->valueType == 'readonly' && isset($rec->id)){
                     if(isset($defaultValue)){
@@ -290,7 +290,7 @@ class cat_products_Params extends doc_Detail
                 }
             }
 
-            if($rec->type == 'readOnly' && !strlen($rec->paramValue)){
+            if (($rec->type ?? null) == 'readOnly' && !strlen($rec->paramValue ?? '')) {
                 $form->setError('type,paramValue', 'При опция "Само за четене" не може стойноста да е празна');
             }
         }
@@ -440,7 +440,7 @@ class cat_products_Params extends doc_Detail
         $tpl->replace(get_called_class(), 'DetailName');
         
         if (($data->noChange ?? null) !== true) {
-            $tpl->append($data->changeBtn, 'addParamBtn');
+            $tpl->append($data->changeBtn ?? null, 'addParamBtn');
         }
         
         $tpl->removeBlocks();
@@ -463,7 +463,7 @@ class cat_products_Params extends doc_Detail
         $query->orderBy('group,orderEx,id', 'ASC');
 
         // Ако подготвяме за външен документ, да се показват само параметрите за външни документи
-        if ($data->documentType == 'public' || $data->documentType == 'invoice') {
+        if (in_array($data->documentType ?? null, array('public', 'invoice'), true)) {
             $query->EXT('showInPublicDocuments', 'cat_Params', 'externalName=showInPublicDocuments,externalKey=paramId');
             $query->where("#showInPublicDocuments = 'yes'");
         }
@@ -749,10 +749,12 @@ class cat_products_Params extends doc_Detail
                 $pRec->paramValue = cat_Params::getReplacementValueOnClone($pRec->paramId, $classId, $objectId, $pRec->paramValue);
                 $paramValues[$pRec->paramId] = $pRec->paramValue;
             }
+
         } else {
             $paramValues = cat_Products::getParams($productId);
             $params = array_combine(array_keys($paramValues), array_keys($paramValues));
         }
+
 
         $stepParams = $prevRecValues = array();
         if(isset($planningStepProductId)){
@@ -760,6 +762,8 @@ class cat_products_Params extends doc_Detail
                 $pData = $StepDriver->getProductionData($planningStepProductId);
                 if(is_array($pData['planningParams'])){
                     $params = $pData['planningParams'];
+                } else {
+                    $params = array();
                 }
                 if(empty($objectId)){
                     $stepParams = cat_Products::getParams($planningStepProductId);
@@ -948,6 +952,7 @@ class cat_products_Params extends doc_Detail
         $data->listFilter->view = 'horizontal';
         $data->listFilter->showFields = 'paramId';
         $data->listFilter->setFieldTypeParams('paramId', array('allowEmpty' => 'allowEmpty'));
+        $data->listFilter->setField('paramId', 'placeholderType=all');
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         $data->listFilter->input();
         if($filter = $data->listFilter->rec){
@@ -959,5 +964,3 @@ class cat_products_Params extends doc_Detail
         $data->query->orderBy('id', 'DESC');
     }
 }
-
-

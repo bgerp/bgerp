@@ -26,7 +26,7 @@ class bgerp_L extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'bgerp_Wrapper, plg_RowTools, plg_Printing, plg_Created';
+    public $loadList = 'bgerp_Wrapper, plg_RowTools2, plg_Printing, plg_Created';
     
     
     /**
@@ -76,7 +76,7 @@ class bgerp_L extends core_Manager
         // Трябва да имаме референтен 'mid'.
         // Чрез него се извлича 'id', 'tid' и 'cid' на референтния запис
         expect($refMid);
-        $refRec = static::fetchField("#mid = '{$refMid}'");
+        expect($refRec = static::fetchField("#mid = '{$refMid}'"));
         $tid = $refRec->tid;
         $cid = $refRec->cid;
         $refId = $refRec->id;
@@ -104,52 +104,67 @@ class bgerp_L extends core_Manager
             $options = (array) $action->data;
             
             // Ако има изпратено от
-            if (($action->data->sendedBy > 0) && (!$options['__userId'] || $options['__userId'] <= 0)) {
-                $options['__userId'] = $action->data->sendedBy;
+            $sendedBy = $action->data->sendedBy ?? null;
+            $optionsUserId = $options['__userId'] ?? null;
+            if (($sendedBy > 0) && (!$optionsUserId || $optionsUserId <= 0)) {
+                $options['__userId'] = $sendedBy;
             }
             
             // Ако е принтиран
             // TODO ще се оправи
             if ($action->action == doclog_Documents::ACTION_PRINT) {
-                $options['__toListId'] = $action->data->toListId;
+                $options['__toListId'] = $action->data->toListId ?? null;
                 
-                if ($action->createdBy > 0 && !$options['__userId']) {
+                if (($action->createdBy ?? null) > 0 && empty($options['__userId'])) {
                     $options['__userId'] = $action->createdBy;
                 }
             }
             
             // Ако е изпратен
             if ($action->action == doclog_Documents::ACTION_SEND) {
-                if ($action && $action->data->to) {
+                if (!empty($action->data->to)) {
                     $eArr = type_Emails::toArray($action->data->to);
-                    log_Browsers::setVars(array('email' => $eArr[0]), false, false);
+                    if (isset($eArr[0])) {
+                        log_Browsers::setVars(array('email' => $eArr[0]), false, false);
+                    }
                 }
                 
-                $activatedBy = $action->createdBy;
+                $activatedBy = $action->createdBy ?? null;
                 
                 // Активатора и последния модифицирал на изпратения документ
                 if (!$activatedBy || $activatedBy <= 0) {
                     $doc = doc_Containers::getDocument($cId);
                     if ($doc) {
                         $rec = $doc->fetch();
-                        $activatedBy = $rec->activatedBy;
+                        $activatedBy = $rec->activatedBy ?? null;
                     }
                 }
                 
                 // Активатора и последния модифицирал на изпратения документ
                 if (!$activatedBy || $activatedBy <= 0) {
-                    $sendContainerRec = doc_Containers::fetch($action->containerId);
-                    $activatedBy = $sendContainerRec->activatedBy;
+                    $sendContainerRec = doc_Containers::fetch($action->containerId ?? null);
+                    $activatedBy = $sendContainerRec->activatedBy ?? null;
                 }
                 
                 // Ако няма потребител или е системата - за бласт
-                if (!$options['__userId'] || $options['__userId'] <= 0) {
+                $optionsUserId = $options['__userId'] ?? null;
+                if (!$optionsUserId || $optionsUserId <= 0) {
                     if ($activatedBy > 0) {
                         $options['__userId'] = $activatedBy;
                     }
                 }
             }
         }
+
+        $options += array(
+            'lg' => null,
+            'sendedBy' => null,
+            'isSystemCanSingle' => false,
+            'to' => null,
+            'cc' => null,
+            '__userId' => null,
+            '__toListId' => null,
+        );
         
         return $options;
     }
@@ -160,6 +175,8 @@ class bgerp_L extends core_Manager
      */
     public function act_S()
     {
+        $doc = null;
+        $sudo = false;
         try {
             //Вземаме номера на контейнера
             expect($cid = Request::get('id', 'int'));
@@ -168,13 +185,13 @@ class bgerp_L extends core_Manager
             expect($doc = doc_Containers::getDocument($cid));
             
             // Вземаме записа за документа
-            $rec = $doc->fetch();
+            expect($rec = $doc->fetch());
             
             // Очакваме да не е оттеглен документ
             expect($rec->state != 'rejected', 'Липсващ документ');
             
             if ($rec->state == 'draft') {
-                expect($doc->canEmailDraft, 'Липсващ документ');
+                expect($doc->canEmailDraft ?? false, 'Липсващ документ');
             }
             
             //
@@ -189,7 +206,7 @@ class bgerp_L extends core_Manager
             vislog_History::add('Разглеждане на имейла');
             
             // Ако потребителя има права до треда на документа, то той му се показва
-            if ($rec && $rec->threadId) {
+            if ($rec && !empty($rec->threadId)) {
                 if ($doc->getInstance()->haveRightFor('single', $rec) || doc_Threads::haveRightFor('single', $rec->threadId)) {
                     
                     return new Redirect(array($doc->getInstance(), 'single', $rec->id));
@@ -200,7 +217,7 @@ class bgerp_L extends core_Manager
             
             // Пушваме езика, на който се е рендирал документа
             if (!haveRole('user')) {
-                if ($options['lg']) {
+                if (!empty($options['lg'])) {
                     core_Lg::set($options['lg']);
                 }
             }
@@ -209,7 +226,7 @@ class bgerp_L extends core_Manager
             
             $isSystemCanSingle = false;
             
-            if (($options['sendedBy'] == -1) && $options['isSystemCanSingle']) {
+            if (($options['sendedBy'] == -1) && !empty($options['isSystemCanSingle'])) {
                 $isSystemCanSingle = true;
                 Mode::set('isSystemCanSingle', true);
             }
@@ -243,10 +260,10 @@ class bgerp_L extends core_Manager
             }
 
             // Ако има потребител с такъв имейл и не е логнат, показваме линк за логване
-            if ((($options['to'] || $options['cc']) && !haveRole('user')) || $showLoginButton) {
+            if (((!empty($options['to']) || !empty($options['cc'])) && !haveRole('user')) || $showLoginButton) {
                 if (!$showLoginButton) {
-                    $emailsStr = $options['to'];
-                    if ($options['cc']) {
+                    $emailsStr = $options['to'] ?? '';
+                    if (!empty($options['cc'])) {
                         $emailsStr .= ', ' . $options['cc'];
                     }
                     $emailsStr = strtolower($emailsStr);
@@ -279,7 +296,7 @@ class bgerp_L extends core_Manager
             $userId = $options['__userId'];
 
             $dLog = doclog_Documents::getAction();
-            if ($dLog->createdBy > 0) {
+            if (($dLog->createdBy ?? null) > 0) {
                 $userId = $dLog->createdBy;
             }
 
@@ -351,6 +368,7 @@ class bgerp_L extends core_Manager
      */
     public function act_T()
     {
+        $doc = null;
         try {
             expect(email_Setup::get('SHOW_THREAD_IN_EXTERNAL') == 'yes');
             
@@ -361,13 +379,13 @@ class bgerp_L extends core_Manager
             expect($doc = doc_Containers::getDocument($cid));
             
             // Вземаме записа за документа
-            $rec = $doc->fetch();
+            expect($rec = $doc->fetch());
             
             // Очакваме да не е оттеглен документ
             expect($rec->state != 'rejected', 'Липсващ документ');
             
             if ($rec->state == 'draft') {
-                expect($doc->canEmailDraft, 'Липсващ документ');
+                expect($doc->canEmailDraft ?? false, 'Липсващ документ');
             }
             
             // Вземаме манипулатора на записа от този модел (bgerp_L)
@@ -378,7 +396,7 @@ class bgerp_L extends core_Manager
             vislog_History::add('Разглеждане на нишка от имейли');
             
             // Ако потребителя има права до треда на документа, то той му се показва
-            if ($rec && $rec->threadId) {
+            if ($rec && !empty($rec->threadId)) {
                 if ($doc->getInstance()->haveRightFor('single', $rec) || doc_Threads::haveRightFor('single', $rec->threadId)) {
                     
                     return new Redirect(array($doc->getInstance(), 'single', $rec->id));
@@ -389,7 +407,7 @@ class bgerp_L extends core_Manager
             
             // Пушваме езика, на който се е рендирал документа
             if (!haveRole('user')) {
-                if ($options['lg']) {
+                if (!empty($options['lg'])) {
                     core_Lg::set($options['lg']);
                 }
             }
@@ -403,9 +421,9 @@ class bgerp_L extends core_Manager
             
             Mode::set('noBlank', true);
             
-            $mRec = doclog_Documents::fetchByMid($mid);
-            $mRecToArr = type_Emails::toArray(strtolower($mRec->data->to));
-            $mRecCcArr = type_Emails::toArray(strtolower($mRec->data->cc));
+            expect($mRec = doclog_Documents::fetchByMid($mid));
+            $mRecToArr = type_Emails::toArray(strtolower($mRec->data->to ?? ''));
+            $mRecCcArr = type_Emails::toArray(strtolower($mRec->data->cc ?? ''));
             
             $mRecToArr = arr::make($mRecToArr, true);
             $mRecCcArr = arr::make($mRecCcArr, true);
@@ -427,20 +445,21 @@ class bgerp_L extends core_Manager
                 }
                 
                 $options = array();
-                if ($dRec->_mid) {
+                $detailMid = $dRec->_mid ?? null;
+                if ($detailMid) {
                     // Маркираме документа като отворен
-                    doclog_Documents::opened($containerId, $dRec->_mid);
-                    $options = $this->getDocOptions($containerId, $dRec->_mid);
+                    doclog_Documents::opened($containerId, $detailMid);
+                    $options = $this->getDocOptions($containerId, $detailMid);
                 }
-                $options['rec'] = $dDoc->fetch();
+                expect($options['rec'] = $dDoc->fetch());
                 
                 // Подготвяме данните за имейла от изпращането
-                if ($dRec->_mid) {
-                    $cRecVal = doclog_Documents::fetchByMid($dRec->_mid);
+                if ($detailMid) {
+                    $cRecVal = doclog_Documents::fetchByMid($detailMid);
                     
                     if ($cRecVal) {
-                        $cRecToArr = type_Emails::toArray(strtolower($cRecVal->data->to));
-                        $cRecCcArr = type_Emails::toArray(strtolower($cRecVal->data->cc));
+                        $cRecToArr = type_Emails::toArray(strtolower($cRecVal->data->to ?? ''));
+                        $cRecCcArr = type_Emails::toArray(strtolower($cRecVal->data->cc ?? ''));
                         
                         $options['rec']->ExternalThreadViewDate = dt::mysql2verbal($cRecVal->createdOn);
                         
@@ -452,13 +471,13 @@ class bgerp_L extends core_Manager
                             $options['rec']->ExternalThreadViewCc = type_Emails::fromArray($cRecCcArr);
                         }
                         
-                        $fromEmail = email_Inboxes::fetchField($cRecVal->data->from, 'email');
+                        $fromEmail = email_Inboxes::fetchField($cRecVal->data->from ?? null, 'email');
                         $options['rec']->ExternalThreadViewFrom = $fromEmail;
                         
-                        if ($options['rec']->createdBy > 0) {
+                        if (($options['rec']->createdBy ?? null) > 0) {
                             $avatar = avatar_Plugin::getImg($options['rec']->createdBy, $fromEmail);
                         } else {
-                            $avatar = avatar_Plugin::getImg($cRecVal->data->sendedBy, $fromEmail);
+                            $avatar = avatar_Plugin::getImg($cRecVal->data->sendedBy ?? null, $fromEmail);
                         }
                         $options['rec']->ExternalThreadViewAvatar = $avatar;
                     }
@@ -468,12 +487,13 @@ class bgerp_L extends core_Manager
                 
                 $isSystemCanSingle = false;
                 
-                if (($dRec->__options['sendedBy'] == -1) && $dRec->__options['isSystemCanSingle']) {
+                $detailOptions = (array) ($dRec->__options ?? array());
+                if (($detailOptions['sendedBy'] ?? null) == -1 && !empty($detailOptions['isSystemCanSingle'])) {
                     $isSystemCanSingle = true;
                     Mode::set('isSystemCanSingle', true);
                 }
                 
-                if (!$dRec->_mid) {
+                if (!$detailMid) {
                     Mode::push('action', NULL);
                 }
                 
@@ -482,7 +502,7 @@ class bgerp_L extends core_Manager
                 // Рендираме документа
                 $html .= "<div class='{$className}' id='{$hnd}'>" . $dDoc->getDocumentBody('xhtml', (object) $options) . '</div>';
                 
-                if (!$dRec->_mid) {
+                if (!$detailMid) {
                     Mode::pop('action');
                 }
                 
@@ -493,7 +513,7 @@ class bgerp_L extends core_Manager
                 
                 Mode::pop('saveObjectsToCid');
                 
-                if ($dRec->_mid) {
+                if ($detailMid) {
                     doclog_Documents::flushActions();
                 }
             }
@@ -546,8 +566,8 @@ class bgerp_L extends core_Manager
         }
         
         // Имейлите от документа източник
-        $midEmailsStr = $mRec->data->to;
-        if ($mRec->data->cc) {
+        $midEmailsStr = $mRec->data->to ?? '';
+        if (!empty($mRec->data->cc)) {
             $midEmailsStr .= ', ' . $mRec->data->cc;
         }
         $midEmailsStr = strtolower($midEmailsStr);
@@ -570,7 +590,7 @@ class bgerp_L extends core_Manager
         // Вземаме записа за документа
         $dRec = $doc->fetch();
         
-        if (!$dRec || !$dRec->threadId) {
+        if (!$dRec || empty($dRec->threadId)) {
             
             return $resArr;
         }
@@ -600,17 +620,20 @@ class bgerp_L extends core_Manager
             $emailArr = array();
             if ($cRec->docClass == $inClsId) {
                 $inRec = email_Incomings::fetch($cRec->docId);
+                if (!$inRec) continue;
                 
                 email_Incomings::calcAllToAndCc($inRec);
                 
-                $allEmailsArr = array_merge($inRec->AllTo, $inRec->AllCc);
+                $allEmailsArr = array_merge((array) ($inRec->AllTo ?? array()), (array) ($inRec->AllCc ?? array()));
                 foreach ($allEmailsArr as $allTo) {
-                    $email = $allTo['address'];
+                    $email = $allTo['address'] ?? null;
+                    if (!$email) continue;
+
                     $email = trim($email);
                     $email = strtolower($email);
                     $emailArr[$email] = $email;
                 }
-                if ($inRec->fromEml) {
+                if (!empty($inRec->fromEml)) {
                     $fromEml = trim($inRec->fromEml);
                     $fromEml = strtolower($fromEml);
                     $emailArr[$fromEml] = $fromEml;
@@ -619,16 +642,16 @@ class bgerp_L extends core_Manager
                 $sLogArr = doclog_Documents::fetchByCid($cRec->id, doclog_Documents::ACTION_SEND);
                 
                 $emailsStr = '';
-                foreach ($sLogArr as $sLog) {
-                    if (!$cRec->_mid) {
-                        $cRec->_mid = $sLog->mid;
+                foreach ((array) $sLogArr as $sLog) {
+                    if (empty($cRec->_mid)) {
+                        $cRec->_mid = $sLog->mid ?? null;
                     }
                     
                     $emailsStr .= ($emailsStr) ? ', ' : '';
                     
-                    $emailsStr .= $sLog->data->to;
+                    $emailsStr .= $sLog->data->to ?? '';
                     
-                    if ($sLog->data->cc) {
+                    if (!empty($sLog->data->cc)) {
                         $emailsStr .= ', ' . $sLog->data->cc;
                     }
                 }
@@ -643,7 +666,7 @@ class bgerp_L extends core_Manager
             }
             
             foreach ($midEmailsArr as $email) {
-                if (!$emailArr[$email]) {
+                if (empty($emailArr[$email])) {
                     $continue = true;
                     
                     break;
@@ -674,6 +697,7 @@ class bgerp_L extends core_Manager
      */
     public function act_Pdf()
     {
+        $doc = null;
         try {
             expect(doc_PdfCreator::canConvert());
             
@@ -684,7 +708,7 @@ class bgerp_L extends core_Manager
             
             expect($doc = doc_Containers::getDocument($cId));
             
-            $rec = $doc->fetch();
+            expect($rec = $doc->fetch());
             
             // Очакваме да не е оттеглен документ
             expect($rec->state != 'rejected', 'Липсващ документ');
@@ -750,9 +774,11 @@ class bgerp_L extends core_Manager
             doclog_Documents::received($mid, null, $ip);
             $action = doclog_Documents::getActionRecForMid($mid, doclog_Documents::ACTION_SEND);
             
-            if ($action && $action->data->to) {
+            if (!empty($action->data->to)) {
                 $eArr = type_Emails::toArray($action->data->to);
-                log_Browsers::setVars(array('email' => $eArr[0]), false, false);
+                if (isset($eArr[0])) {
+                    log_Browsers::setVars(array('email' => $eArr[0]), false, false);
+                }
             }
         }
         

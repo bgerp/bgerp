@@ -115,7 +115,7 @@ class docarch_Volumes extends core_Master
         $this->FNC('title', 'varchar', 'caption=Име');
         
         //Определя в кой архив се съхранява конкретния том
-        $this->FLD('archive', 'key(mvc=docarch_Archives,allowEmpty)', 'caption=В архив,placeholder=Всички,refreshForm,silent');
+        $this->FLD('archive', 'key(mvc=docarch_Archives,allowEmpty)', 'caption=В архив,placeholderType=all,refreshForm,silent');
         
         //В какъв тип контейнер/том от избрания архив се съхранява документа
         $this->FLD('type', 'varchar(folder=Папка,box=Кутия, case=Кашон, pallet=Палет, warehouse=Склад)', 'caption=Тип,mandatory');
@@ -168,7 +168,7 @@ class docarch_Volumes extends core_Master
         $currentUser = core_Users::getCurrent();
         $form->setDefault('inCharge', "{$currentUser}");
         
-        if ($rec->id) {
+        if (!empty($rec->id)) {
             $rec->_isCreated = true;
             
             $mQuery = docarch_Movements::getQuery();
@@ -181,8 +181,9 @@ class docarch_Volumes extends core_Master
                 $form->setReadOnly('number');
             }
         } else {
-            if ($form->cmd == 'refresh' && $rec->archive) {
-                $typesArr = arr::make(docarch_Archives::fetch($rec->archive)->volType, true);
+            if ($form->cmd == 'refresh' && !empty($rec->archive)) {
+                $archiveRec = docarch_Archives::fetch($rec->archive, 'volType');
+                $typesArr = arr::make($archiveRec->volType ?? null, true);
                 $types = '';
                 foreach ($typesArr as $key => $v) {
                     $volName = self::getVolumeTypeName($v);
@@ -212,13 +213,13 @@ class docarch_Volumes extends core_Master
         if ($form->isSubmitted()) {
             $type = $form->rec->type;
             
-            if (is_null($form->rec->archive)) {
+            if (!isset($form->rec->archive)) {
                 $form->rec->archive = 0;
             }
             
             $archive = $form->rec->archive;
             
-            if (is_null($form->rec->number)) {
+            if (!isset($form->rec->number)) {
                 $form->rec->number = $mvc->getNextNumber($archive, $type);
             }
         }
@@ -242,7 +243,7 @@ class docarch_Volumes extends core_Master
         }
         
         $row->includedVolumes = '';
-        if (is_array($rec->includedVolumes)) {
+        if (!empty($rec->includedVolumes) && is_array($rec->includedVolumes)) {
             foreach ($rec->includedVolumes as $val) {
                 $row->includedVolumes .= docarch_Volumes::getHyperlink($val).'</br>';
             }
@@ -321,13 +322,13 @@ class docarch_Volumes extends core_Master
         //Включване на том в по-голям
         $possibleVolArr = self::getVolumePossibleForInclude($rec);
         
-        if ($rec->id && is_null($rec->includeIn) && $rec->state != 'closed' && $rec->type != 'warehouse' && !is_null($possibleVolArr)) {
+        if (!empty($rec->id) && is_null($rec->includeIn) && $rec->state != 'closed' && $rec->type != 'warehouse' && !is_null($possibleVolArr)) {
             $data->toolbar->addBtn('Включване', array('docarch_Movements','Include',$rec->id,'ret_url' => true));
         }
         
         //Изключване на том от по-голям
         
-        if ($rec->id && !is_null($rec->includeIn) && $rec->state != 'closed') {
+        if (!empty($rec->id) && !is_null($rec->includeIn) && $rec->state != 'closed') {
             $data->toolbar->addBtn('Изключване', array('docarch_Movements','Exclude',$rec->id,'ret_url' => true));
         }
     }
@@ -344,7 +345,7 @@ class docarch_Volumes extends core_Master
      */
     public static function on_BeforeSave(core_Mvc $mvc, &$id, $rec, &$fields = null, $mode = null)
     {
-        if (!is_null($rec->archive)) {
+        if (isset($rec->archive)) {
             if (($rec->type == docarch_Archives::minDefType($rec->archive)) || $rec->archive == 0) {
                 $rec->isForDocuments = 'yes';
             }
@@ -364,7 +365,7 @@ class docarch_Volumes extends core_Master
      */
     protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
-        if ($rec->_isCreated !== true) {
+        if (($rec->_isCreated ?? false) !== true) {
             
             // Прави запис в модела на движенията
             $className = get_class();
@@ -447,7 +448,7 @@ class docarch_Volumes extends core_Master
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         //Тома  може да бъде изтрит ако е празен
-        if ($rec->id && $action == 'delete') {
+        if (!empty($rec->id) && $action == 'delete') {
             if (!is_null($rec->docCnt)) {
                 if (($rec->docCnt != 0)) {
                     $requiredRoles = 'no_one' ;
@@ -461,7 +462,7 @@ class docarch_Volumes extends core_Master
         }
         
         //Reject = Унищожаване
-        if ($rec->id && $action == 'reject') {
+        if (!empty($rec->id) && $action == 'reject') {
             $storageTimeMarker = true;
             
             $now = dt::now();
@@ -473,7 +474,7 @@ class docarch_Volumes extends core_Master
             $latestDocumentDate = self::getlatestDocumentDate($rec);
             
             //Ако има зададена продължителност
-            if (!is_null($storageTime)) {
+            if (!is_null($storageTime) && !empty($latestDocumentDate)) {
                 $endDate = dt::addSecs($storageTime, $latestDocumentDate);
                 
                 // И крайната дата е минала, деактивираме лимита и продължаваме напред
@@ -503,9 +504,14 @@ class docarch_Volumes extends core_Master
                     
                     if (is_null($storageTime)) {
                         $requiredRoles = 'no_one' ;
+                        continue;
                     }
                     
                     $latestDocumentDate = self::getlatestDocumentDate($volumeRec);
+                    if (empty($latestDocumentDate)) {
+                        $requiredRoles = 'no_one';
+                        continue;
+                    }
                     $endDate = dt::addSecs($storageTime, $latestDocumentDate);
                     if ($endDate < $now) {
                         $checkStorageArr[$volumeRec->id] = true;
@@ -520,13 +526,13 @@ class docarch_Volumes extends core_Master
             }
         }
         
-        if ($rec->id && $action == 'edit') {
+        if (!empty($rec->id) && $action == 'edit') {
             if (($rec->state == 'closed')) {
                 $requiredRoles = 'no_one' ;
             }
         }
         
-        if ($rec->id && (
+        if (!empty($rec->id) && (
             $action == 'delete' ||
                          $action == 'reject' ||
                          $action == 'edit' ||
@@ -558,7 +564,8 @@ class docarch_Volumes extends core_Master
         $cond .= "#type = '{$type}'";
         $query->where($cond);
         $query->XPR('maxVolNumber', 'int', 'MAX(#number)');
-        $number = $query->fetch()->maxVolNumber;
+        $numberRec = $query->fetch();
+        $number = $numberRec->maxVolNumber ?? 0;
         ++$number;
         
         return $number;
@@ -570,7 +577,8 @@ class docarch_Volumes extends core_Master
      */
     public static function getRecTitle($rec, $escaped = true)
     {
-        $arch = ($rec->archive == 0) ? 'Сборен' : docarch_Archives::fetch($rec->archive)->name;
+        $archiveRec = !empty($rec->archive) ? docarch_Archives::fetch($rec->archive, 'name') : null;
+        $arch = ($rec->archive == 0) ? 'Сборен' : ($archiveRec->name ?? '');
         
         $title = self::getVolumeTypeName($rec->type);
         
@@ -678,6 +686,7 @@ class docarch_Volumes extends core_Master
      */
     public static function getlatestDocumentDate($rec)
     {
+        $latestDocumentDate = null;
         $vQuery = docarch_Movements::getQuery();
         
         $vQuery->where("#toVolumeId = {$rec->id} AND #type = 'archiving'");
@@ -727,6 +736,9 @@ class docarch_Volumes extends core_Master
             }
             
             $latestDocumentDate = self::getlatestDocumentDate($volumeRec);
+            if (empty($latestDocumentDate)) {
+                continue;
+            }
             $endDate = dt::addSecs($storageTime, $latestDocumentDate);
             
             if ($endDate < $now) {

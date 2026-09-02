@@ -284,13 +284,14 @@ class acc_ProductPricePerPeriods extends core_Manager
         $type = Request::get('type', 'enum(stores,production,costs)');
         $data->listFilter->input(null, 'silent');
 
-        $data->listFilter->FLD('balanceId', 'varchar', 'caption=Баланс');
+        $data->listFilter->FLD('balanceId', 'varchar', 'caption=Баланс,placeholderType=all');
         $data->listFilter->FLD('toDate', 'date', 'caption=Към дата');
         $balanceOptions = array('' => '') + acc_Balances::getSelectOptions('DESC', $skipClosed = false);
         $data->listFilter->setOptions('balanceId', $balanceOptions);
         $productListNum = acc_Lists::fetchBySystemId('catProducts')->num;
 
         $data->listFilter->setFieldTypeParams('productItemId', array('lists' => $productListNum));
+        $data->listFilter->setField('productItemId', 'placeholderType=all');
         if($type == 'production'){
             unset($data->listFields['otherItemId']);
             $mvc->currentTab = 'Цени от баланса->Незавършено производство';
@@ -300,6 +301,7 @@ class acc_ProductPricePerPeriods extends core_Manager
         if($type == 'stores'){
             $storeListNum = acc_Lists::fetchBySystemId('stores')->num;
             $data->listFilter->setFieldTypeParams('otherItemId', array('lists' => $storeListNum));
+            $data->listFilter->setField('otherItemId', 'placeholderType=all');
             $data->listFilter->showFields = 'balanceId,otherItemId,productItemId,toDate';
         } else {
             $data->listFilter->showFields = 'balanceId,productItemId,toDate';
@@ -445,7 +447,8 @@ class acc_ProductPricePerPeriods extends core_Manager
         $date = $date ?? '0000-00-00';
 
         foreach (array('stores' => 'type,otherItemId,productItemId,date', 'production' => 'type,productItemId,date', 'costs' => 'type,otherItemId,productItemId,date') as $type => $keyFields){
-            core_Debug::startTimer("CALC_{$type}");
+            $timerName = "CALC_{$type}";
+            core_Debug::startTimer($timerName);
             $pricesToDate = static::getPricesToDate($toDate, null, null, $type, false);
 
             $prevArr = array();
@@ -477,8 +480,8 @@ class acc_ProductPricePerPeriods extends core_Manager
                 static::delete("#id IN ({$deleteIds})");
             }
 
-            core_Debug::stopTimer("CALC_{$type}");
-            $time = round(core_Debug::$timers["RENDER_ROWS"]->workingTime, 6);
+            core_Debug::stopTimer($timerName);
+            $time = round(core_Debug::$timers[$timerName]->workingTime ?? 0, 6);
 
             static::logDebug("FROM_{$type} TIMER: {$time} '{$date}' TO '{$toDate}'-RES(I{$iCount}:U{$uCount}:D{$dCount})");
         }
@@ -511,7 +514,8 @@ class acc_ProductPricePerPeriods extends core_Manager
         $bQuery = acc_Balances::getQuery();
         $bQuery->orderBy('fromDate', 'ASC');
         $bQuery->where("#lastCalculate >= '{$from}'");
-        $invalidateAfterDate = $bQuery->fetch()->fromDate;
+        $balanceRec = $bQuery->fetch();
+        $invalidateAfterDate = is_object($balanceRec) ? $balanceRec->fromDate : null;
 
         core_Debug::log("INVALIDATE AFTER {$invalidateAfterDate}");
         if($invalidateAfterDate){

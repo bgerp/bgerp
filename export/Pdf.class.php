@@ -74,6 +74,7 @@ class export_Pdf extends core_Mvc
     {
         $clsInst = cls::get($clsId);
         $cRec = $clsInst->fetchRec($objId);
+        expect($cRec);
         
         $opt = new stdClass();
         $opt->rec = $cRec;
@@ -82,7 +83,7 @@ class export_Pdf extends core_Mvc
         }
 
         $flush = false;
-        if (!$cRec->__mid) {
+        if (empty($cRec->__mid)) {
             $opt->rec->__mid = doclog_Documents::saveAction(
                             array(
                                     'action' => doclog_Documents::ACTION_PDF,
@@ -114,7 +115,7 @@ class export_Pdf extends core_Mvc
 
         $form->toolbar->addBtn('Сваляне', array('fileman_Download', 'download', 'fh' => $fileHnd, 'forceDownload' => true), 'ef_icon = fileman/icons/16/pdf.png, title=Сваляне на документа');
         
-        $form->info .= '<b>' . tr('Файл|*: ') . '</b>' . fileman::getLink($fileHnd);
+        $form->info = ($form->info ?? '') . '<b>' . tr('Файл|*: ') . '</b>' . fileman::getLink($fileHnd);
         
         $clsInst->logWrite('Генериране на PDF', $objId);
         

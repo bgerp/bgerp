@@ -109,7 +109,7 @@ class pos_reports_QuicklyOutOfStockProducts extends frame2_driver_TableData
         $fieldset->FLD('end', 'hour', 'caption=Времена на засичане->Край,after=mark,single=none');
 
         $fieldset->FLD('catGroup', 'key2(mvc=cat_Groups,select=name,allowEmpty)', 'placeholder=Всички групи,caption=Филтри->Група Артикули,input,silent,after=end,remember,autoFilter,single=none');
-        $fieldset->FLD('pos', 'keylist(mvc=pos_Points,select=name,allowEmpty)', 'caption=Филтри->ПОС терминали,placeholder=Всички,after=catGroup,single=none');
+        $fieldset->FLD('pos', 'keylist(mvc=pos_Points,select=name,allowEmpty)', 'caption=Филтри->ПОС терминали,placeholderType=all,after=catGroup,single=none');
 
         //Групиране на резултата
         $fieldset->FLD('groupBy', 'enum(date=Дата,productId=Артикул)', 'notNull,caption=Групиране->Групиране по,after=pos,single=none');
@@ -289,8 +289,8 @@ class pos_reports_QuicklyOutOfStockProducts extends frame2_driver_TableData
             }
         }
         foreach ($recs as $key => $val) {
-            $totalProdQuantity[$val->productId] += $val->quantity;
-            $totalProdAmount[$val->productId] += round($val->amount, 2);
+            $totalProdQuantity[$val->productId] = ($totalProdQuantity[$val->productId] ?? 0) + $val->quantity;
+            $totalProdAmount[$val->productId] = ($totalProdAmount[$val->productId] ?? 0) + round($val->amount, 2);
         }
 
         foreach ($recs as $key => $val) {
@@ -497,4 +497,3 @@ class pos_reports_QuicklyOutOfStockProducts extends frame2_driver_TableData
     }
 
 }
-

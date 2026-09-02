@@ -80,7 +80,21 @@ class core_Debug
      * Дали се рапортуват грешки на отдалечен компютър
      */
     public static $isErrorReporting = true;
-    
+
+
+    /**
+     * Максимално време в секунди за изпращане на рапорт до отдалечения сървър.
+     * Ограничава цялата операция - вкл. резолването на името и свързването
+     */
+    const REMOTE_ERROR_REPORT_TIMEOUT = 5;
+
+
+    /**
+     * Ако отдалеченият сървър не е отговорил, спираме рапортуването до края на хита.
+     * Иначе всяка следваща грешка в същия хит го бави с още толкова време
+     */
+    protected static $isRemoteReportingBroken = false;
+
     
     /**
      * Кеш - дали се намираме в DEBUG режим
@@ -971,8 +985,7 @@ class core_Debug
         }
         
         // Логваме на отдалечен сървър
-        if (defined('EF_REMOTE_ERROR_REPORT_URL') && self::$isErrorReporting) {
-            $url = EF_REMOTE_ERROR_REPORT_URL;
+        if (defined('EF_REMOTE_ERROR_REPORT_URL') && self::$isErrorReporting && !self::$isRemoteReportingBroken) {
             $data = array('data' => gzcompress($debugPage),
                 'domain' => $_SERVER['SERVER_NAME'],
                 'errCtr' => $ctr,
@@ -981,14 +994,67 @@ class core_Debug
                 'title' => ltrim($state['errTitle'], '@'),
             );
             
+            self::sendRemoteErrorReport(EF_REMOTE_ERROR_REPORT_URL, $data);
+        }
+    }
+
+
+    /**
+     * Изпраща рапорта за грешката на отдалечения сървър
+     *
+     * Гарантира се, че цялата операция няма да отнеме повече от REMOTE_ERROR_REPORT_TIMEOUT
+     * секунди и че при недостъпен сървър няма да се генерира PHP грешка. Ако сървърът не е
+     * отговорил, следващите рапорти в същия хит се пропускат
+     *
+     * @param string $url
+     * @param array  $data
+     *
+     * @return bool - дали рапортът е изпратен успешно
+     */
+    protected static function sendRemoteErrorReport($url, $data)
+    {
+        $timeout = self::REMOTE_ERROR_REPORT_TIMEOUT;
+        $content = http_build_query($data);
+
+        if (function_exists('curl_init')) {
+            $ch = curl_init($url);
+
+            curl_setopt_array($ch, array(
+                CURLOPT_POST => true,
+                CURLOPT_POSTFIELDS => $content,
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_HTTPHEADER => array('Content-Type: application/x-www-form-urlencoded', 'Expect:'),
+
+                // Общо време за цялата операция - вкл. резолването на името,
+                // свързването и четенето на отговора
+                CURLOPT_TIMEOUT => $timeout,
+                CURLOPT_CONNECTTIMEOUT => $timeout,
+
+                // Таймаутите да не се реализират чрез сигнали
+                CURLOPT_NOSIGNAL => true,
+
+                // Без пренасочвания - всяко от тях е нова заявка с нов таймаут
+                CURLOPT_FOLLOWLOCATION => false,
+
+                // Не дава грешки при selfsigned сертификат
+                CURLOPT_SSL_VERIFYPEER => false,
+                CURLOPT_SSL_VERIFYHOST => 0,
+            ));
+
+            $result = @curl_exec($ch);
+            curl_close($ch);
+        } else {
             // use key 'http' even if you send the request to https://...
             $options = array(
                 'http' => array(
-                    'header' => "Content-type: application/x-www-form-urlencoded\r\n",
+                    'header' => "Content-type: application/x-www-form-urlencoded\r\nConnection: close\r\n",
                     'method' => 'POST',
-                    'content' => http_build_query($data),
-                    'timeout' => 5,
+                    'content' => $content,
+                    'timeout' => $timeout,
                     'ignore_errors' => true,
+
+                    // Без пренасочвания - всяко от тях е нова заявка с нов таймаут
+                    'max_redirects' => 1,
                 ),
                 'ssl' => array(
                     'verify_peer' => false,
@@ -996,9 +1062,16 @@ class core_Debug
                     'allow_self_signed' => true,
                 ),
             );
-            $context = stream_context_create($options);
-            $result = file_get_contents($url, false, $context);
+
+            // Подтискаме грешката - иначе тя влиза в обработчика на грешките и
+            // измества страницата на оригиналната грешка
+            $result = @file_get_contents($url, false, stream_context_create($options));
         }
+
+        // При проблем спираме опитите до края на хита
+        self::$isRemoteReportingBroken = ($result === false);
+
+        return $result !== false;
     }
     
     

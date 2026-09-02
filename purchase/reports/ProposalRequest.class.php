@@ -404,6 +404,7 @@ class planning_reports_ProposalRequest extends frame2_driver_TableData
         
         
         $marker = 0;
+        $groupVerb = '';
         if (isset($data->rec->groups)) {
             foreach (type_Keylist::toArray($data->rec->groups) as $group) {
                 $marker++;
@@ -421,6 +422,7 @@ class planning_reports_ProposalRequest extends frame2_driver_TableData
         }
         
         $marker = 0;
+        $jobVerb = '';
         if (isset($data->rec->jobses)) {
             foreach (type_Keylist::toArray($data->rec->jobses) as $job) {
                 $marker++;
@@ -493,7 +495,7 @@ class planning_reports_ProposalRequest extends frame2_driver_TableData
         while ($prod = $query->fetch()) {
             
             //Артикули които имат доставка през част от периода на стойност заложената част от скл. наличност
-            $deliveredProdInPeriod[$prod->productId] += $prod->quantity * $prodArr[$prod->productId]->selfPrice;
+            $deliveredProdInPeriod[$prod->productId] = ($deliveredProdInPeriod[$prod->productId] ?? 0) + $prod->quantity * $prodArr[$prod->productId]->selfPrice;
         }
         
         foreach ($deliveredProdInPeriod as $key => $val) {
@@ -514,7 +516,7 @@ class planning_reports_ProposalRequest extends frame2_driver_TableData
         
         $planningProdsInPeriod = array();
         while ($planningProd = $planningQuery->fetch()) {
-            $planningProdsInPeriod[$planningProd->productId] += $planningProd->quantity * $prodArr[$planningProd->productId]->selfPrice;
+            $planningProdsInPeriod[$planningProd->productId] = ($planningProdsInPeriod[$planningProd->productId] ?? 0) + $planningProd->quantity * $prodArr[$planningProd->productId]->selfPrice;
         }
         
         foreach ($planningProdsInPeriod as $key => $val) {

@@ -117,11 +117,17 @@ abstract class deals_ServiceMaster extends core_Master
         deals_Helper::fillRecs($this, $recs, $rec);
         
         // ДДС-т е отделно amountDeal  е сумата без ддс + ддс-то, иначе самата сума си е с включено ддс
-        $amount = ($rec->chargeVat == 'separate') ? $this->_total->amount + $this->_total->vat : $this->_total->amount;
-        $amount -= $this->_total->discount;
-        $rec->amountDelivered = $amount * $rec->currencyRate;
-        $rec->amountDeliveredVat = $this->_total->vat * $rec->currencyRate;
-        $rec->amountDiscount = $this->_total->discount * $rec->currencyRate;
+        if (isset($this->_total)) {
+            $amount = ($rec->chargeVat == 'separate') ? $this->_total->amount + $this->_total->vat : $this->_total->amount;
+            $amount -= $this->_total->discount;
+            $rec->amountDelivered = $amount * $rec->currencyRate;
+            $rec->amountDeliveredVat = $this->_total->vat * $rec->currencyRate;
+            $rec->amountDiscount = $this->_total->discount * $rec->currencyRate;
+        } else {
+            $rec->amountDelivered = 0;
+            $rec->amountDeliveredVat = 0;
+            $rec->amountDiscount = 0;
+        }
         
         return $this->save($rec);
     }
@@ -146,11 +152,11 @@ abstract class deals_ServiceMaster extends core_Master
             }
         }
 
-        if ($rec->_isCreated !== true) {
+        if (($rec->_isCreated ?? null) !== true) {
             
             return;
         }
-        if ($rec->_isClone === true) {
+        if (($rec->_isClone ?? null) === true) {
             
             return;
         }
@@ -181,8 +187,8 @@ abstract class deals_ServiceMaster extends core_Master
                     $toShip = $product->quantity;
                 }
                 
-                $price = ($product->price) ? $product->price : $normalizedProducts[$index]->price;
-                $discount = ($product->discount) ? $product->discount : $normalizedProducts[$index]->discount;
+                $price = ($product->price) ? $product->price : ($normalizedProducts[$index]->price ?? null);
+                $discount = ($product->discount) ? $product->discount : ($normalizedProducts[$index]->discount ?? null);
                 
                 // Пропускат се експедираните и складируемите артикули
                 if (isset($info->meta['canStore']) || ($toShip <= 0)) {
@@ -256,7 +262,7 @@ abstract class deals_ServiceMaster extends core_Master
         parent::prepareSingle_($data);
         
         $rec = &$data->rec;
-        if (empty($data->noTotal)) {
+        if (empty($data->noTotal) && isset($this->_total)) {
             $data->summary = deals_Helper::prepareSummary($this->_total, $rec->valior, $rec->currencyRate, $rec->currencyId, $rec->chargeVat, false, $rec->tplLang);
             $data->row = (object) ((array) $data->row + (array) $data->summary);
         }
@@ -304,8 +310,16 @@ abstract class deals_ServiceMaster extends core_Master
     {
         if (isset($fields['-list'])) {
             if ($rec->amountDeliveredVat || $rec->amountDelivered) {
-                $row->amountDeliveredVat = "<span class='cCode' style='float:left'>{$rec->currencyId}</span> &nbsp;{$row->amountDeliveredVat}";
-                $row->amountDelivered = "<span class='cCode' style='float:left'>{$rec->currencyId}</span> &nbsp;{$row->amountDelivered}";
+
+                // Наследниците показват в списъка само едната от двете суми,
+                // затова се украсява само вербализираната
+                if (isset($row->amountDeliveredVat)) {
+                    $row->amountDeliveredVat = "<span class='cCode' style='float:left'>{$rec->currencyId}</span> &nbsp;{$row->amountDeliveredVat}";
+                }
+
+                if (isset($row->amountDelivered)) {
+                    $row->amountDelivered = "<span class='cCode' style='float:left'>{$rec->currencyId}</span> &nbsp;{$row->amountDelivered}";
+                }
             } else {
                 $row->amountDeliveredVat = "<span class='quiet'>0.00</span>";
             }
@@ -334,7 +348,7 @@ abstract class deals_ServiceMaster extends core_Master
                 }
             }
             
-            if (!empty($rec->delivered)) {
+            if (!empty($rec->delivered) && isset($row->delivered)) {
                 $row->delivered = core_Lg::transliterate($row->delivered);
             }
             
@@ -507,7 +521,7 @@ abstract class deals_ServiceMaster extends core_Master
         $rec = is_object($id) ? $id : $this->fetchRec($id, '*', false);
         $amount = round($rec->amountDelivered / $rec->currencyRate, 2);
 
-        return (object)array('amount' => $amount, 'currencyId' => currency_Currencies::getIdByCode($rec->currencyId), 'operationSysId' => $rec->operationSysId, 'isReverse' => ($rec->isReverse == 'yes'), 'cashDiscount' => null);
+        return (object)array('amount' => $amount, 'currencyId' => currency_Currencies::getIdByCode($rec->currencyId), 'operationSysId' => ($rec->operationSysId ?? null), 'isReverse' => ($rec->isReverse == 'yes'), 'cashDiscount' => null);
     }
 
     /**
@@ -569,7 +583,6 @@ abstract class deals_ServiceMaster extends core_Master
     public static function on_AfterRenderSingleLayout($mvc, &$tpl, &$data)
     {
         // Динамично рендиране на ДДС информацията
-        deals_Helper::renderVatDataLayout($tpl, $mvc, $mvc->_total->vats, $data->row);
+        deals_Helper::renderVatDataLayout($tpl, $mvc, $mvc->_total->vats ?? null, $data->row);
     }
 }
-

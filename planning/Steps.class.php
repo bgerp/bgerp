@@ -129,7 +129,7 @@ class planning_Steps extends core_Extender
         $this->FLD('wasteStart', 'double(min=0,smartRound)', 'caption=Отпадък в производствена операция->Начален');
         $this->FLD('wastePercent', 'percent(min=0)', 'caption=Отпадък в производствена операция->Допустим');
 
-
+        $this->setDbIndex('centerId');
         $this->setDbIndex('state');
     }
     
@@ -164,7 +164,7 @@ class planning_Steps extends core_Extender
         $form->setFieldTypeParams("{$mvc->className}_wasteProductId", array('hasProperties' => 'canStore,canConvert', 'groups' => $wasteSysId));
 
         // Добавяне на избор само на Параметрите за производствени операции
-        $paramSuggestions = cat_Params::getTaskParamOptions($rec->{"{$mvc->className}_planningParams"});
+        $paramSuggestions = cat_Params::getTaskParamOptions($rec->{"{$mvc->className}_planningParams"} ?? null);
         $form->setSuggestions("{$mvc->className}_planningParams", $paramSuggestions);
 
         $mandatoryClassOptions = static::getMandatoryClassOptions();
@@ -185,11 +185,11 @@ class planning_Steps extends core_Extender
         // Добавяне на достъпните ресурси от центъра
         if(isset($rec->{"{$mvc->className}_centerId"})){
             $centerRec = planning_Centers::fetch($rec->{"{$mvc->className}_centerId"}, 'folderId,showPreviousJobField');
-            $actionOptions = planning_AssetResourcesNorms::getAllNormOptions($rec->{"{$mvc->className}_centerId"}, $rec->{"{$mvc->className}_planningActions"});
+            $actionOptions = planning_AssetResourcesNorms::getAllNormOptions($rec->{"{$mvc->className}_centerId"}, $rec->{"{$mvc->className}_planningActions"} ?? null);
 
             $form->setSuggestions("{$mvc->className}_planningActions", $actionOptions);
-            $form->setSuggestions("{$mvc->className}_employees", planning_Hr::getByFolderId($centerRec->folderId, $rec->{"{$mvc->className}_employees"}));
-            $form->setSuggestions("{$mvc->className}_fixedAssets", planning_AssetResources::getByFolderId($centerRec->folderId, $rec->{"{$mvc->className}_fixedAssets"}, 'planning_Tasks',true));
+            $form->setSuggestions("{$mvc->className}_employees", planning_Hr::getByFolderId($centerRec->folderId, $rec->{"{$mvc->className}_employees"} ?? null));
+            $form->setSuggestions("{$mvc->className}_fixedAssets", planning_AssetResources::getByFolderId($centerRec->folderId, $rec->{"{$mvc->className}_fixedAssets"} ?? null, 'planning_Tasks',true));
             $form->setDefault("{$mvc->className}_showPreviousJobField", $centerRec->showPreviousJobField);
         }
 
@@ -197,7 +197,7 @@ class planning_Steps extends core_Extender
             $form->setFieldTypeParams("{$mvc->className}_norm", array('measureId' => $rec->measureId));
         }
 
-        if($rec->{"{$mvc->className}_canStore"} != 'yes'){
+        if(($rec->{"{$mvc->className}_canStore"} ?? null) != 'yes'){
             $form->setField("{$mvc->className}_storeIn", 'input=none');
         } else {
 
@@ -205,12 +205,12 @@ class planning_Steps extends core_Extender
             $form->setField("{$mvc->className}_labelPackagingId", 'input');
 
             // Ако артикула е съществуващ само наличните опаковки са достъпни
-            $labelPacks = planning_Tasks::getAllowedLabelPackagingOptions($rec->measureId, $rec->id, $rec->{"{$mvc->className}_labelPackagingId"});
+            $labelPacks = planning_Tasks::getAllowedLabelPackagingOptions($rec->measureId ?? null, $rec->id ?? null, $rec->{"{$mvc->className}_labelPackagingId"} ?? null);
             $form->setOptions("{$mvc->className}_labelPackagingId", $labelPacks);
 
             // Ако има избрана опаковка за етикиране
             if(!empty($rec->{"{$mvc->className}_labelPackagingId"})){
-                $templateOptions = planning_Tasks::getAllAvailableLabelTemplates($rec->{"{$mvc->className}_labelTemplate"});
+                $templateOptions = planning_Tasks::getAllAvailableLabelTemplates($rec->{"{$mvc->className}_labelTemplate"} ?? null);
                 $form->setOptions("{$mvc->className}_labelTemplate", $templateOptions);
 
                 $form->setField("{$mvc->className}_labelQuantityInPack", 'input');
@@ -222,7 +222,7 @@ class planning_Steps extends core_Extender
                 if(isset($rec->id)){
                     $packRec = cat_products_Packagings::getPack($rec->id, $rec->{"{$mvc->className}_labelPackagingId"});
                     $quantityInPack = is_object($packRec) ? $packRec->quantity : 1;
-                    if($data->action == 'clone'){
+                    if(($data->action ?? null) == 'clone'){
                         $form->setDefault("{$mvc->className}_labelQuantityInPack", $quantityInPack);
                     } else {
                         $form->setField("{$mvc->className}_labelQuantityInPack", "placeholder={$quantityInPack}");
@@ -450,12 +450,14 @@ class planning_Steps extends core_Extender
         if(isset($rec->wasteProductId)){
             $row->wasteProductId = cat_Products::getHyperlink($rec->wasteProductId, true);
             $wasteProductMeasureId = cat_Products::fetchField($rec->wasteProductId, 'measureId');
-            if(!empty($rec->wasteStart)){
+            // В листовия изглед полето не се вербализира
+            if(!empty($rec->wasteStart) && isset($row->wasteStart)){
                 $row->wasteStart .= " " . cat_UoM::getShortName($wasteProductMeasureId);
             }
         }
 
         if($Extended = $mvc->getExtended($rec)){
+            $row->planningActions = $row->planningActions ?? '';
             if(empty($rec->planningActions)){
                 $row->planningActions = "<i class='quiet'>n/a</i>";
             }
@@ -483,7 +485,7 @@ class planning_Steps extends core_Extender
             if(empty($rec->labelQuantityInPack) && isset($rec->labelPackagingId)){
                 $packRec = cat_products_Packagings::getPack($rec->objectId, $rec->labelPackagingId);
                 $quantityInPackDefault = is_object($packRec) ? $packRec->quantity : 1;
-                $quantityInPackDefault = "<span style='color:blue'>" . core_Type::getByName('double(smartRound)')->toVerbal($quantityInPackDefault) . "</span>";
+                $quantityInPackDefault = "<span class='blueText'>" . core_Type::getByName('double(smartRound)')->toVerbal($quantityInPackDefault) . "</span>";
                 $quantityInPackDefault = ht::createHint($quantityInPackDefault, 'От опаковката/мярката на артикула');
                 $row->labelQuantityInPack = $quantityInPackDefault;
             }
@@ -523,8 +525,9 @@ class planning_Steps extends core_Extender
     protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
         $data->listFilter->FLD('finalType', 'enum(all=Всички,no=Междинен етап,yes=Финален етап)');
-        $data->listFilter->FLD('assetId', 'key(mvc=planning_AssetResources,select=name,allowEmpty)', 'caption=Оборудване');
+        $data->listFilter->FLD('assetId', 'key(mvc=planning_AssetResources,select=name,allowEmpty)', 'caption=Оборудване,placeholderType=all');
         $data->listFilter->setFieldType('centerId', 'key(mvc=planning_Centers,select=name,allowEmpty)');
+        $data->listFilter->setField('centerId', 'placeholderType=all');
         $data->listFilter->setOptions('assetId', planning_AssetResources::getByFolderId());
         $data->listFilter->setDefault('finalType', 'all');
         $data->listFilter->showFields = 'search,centerId,assetId,finalType';
@@ -646,6 +649,7 @@ class planning_Steps extends core_Extender
         $driverClassId = planning_interface_StepProductDriver::getClassId();
         $pQuery = cat_Products::getQuery();
         $pQuery->where("#innerClass = {$driverClassId}");
+        $isFinalArr = null;
         if (is_array($onlyIds)) {
             if (!countR($onlyIds)) {
 
@@ -654,7 +658,7 @@ class planning_Steps extends core_Extender
             $ids = implode(',', $onlyIds);
             $pQuery->where("#id IN ({$ids})");
         } elseif (ctype_digit("{$onlyIds}")) {
-            $pQuery->where("#id = ${onlyIds}");
+            $pQuery->where("#id = {$onlyIds}");
         } else {
             $pQuery->where("#state != 'closed' AND #state != 'rejected'");
 
@@ -662,11 +666,16 @@ class planning_Steps extends core_Extender
                 $sQuery = planning_Steps::getQuery();
                 $Cover = doc_Folders::getCover($params['centerFolderId']);
                 $sQuery->where("#centerId = {$Cover->that} AND #state != 'closed' AND #state != 'rejected' AND #classId = {$productClassId}");
-                $sQuery->show('objectId');
-                $in = arr::extractValuesFromArray($sQuery->fetchAll(), 'objectId');
+                $sQuery->show('objectId,isFinal');
 
-                if(countR($in)){
-                    $pQuery->in('id', $in);
+                // Видът на етапите се извлича наведнъж, за да не се пита за всеки артикул поотделно
+                $isFinalArr = array();
+                foreach ($sQuery->fetchAll() as $sRec){
+                    $isFinalArr[$sRec->objectId] = $sRec->isFinal;
+                }
+
+                if(countR($isFinalArr)){
+                    $pQuery->in('id', array_keys($isFinalArr));
                 } else {
                     $pQuery->where("1=2");
                 }
@@ -674,10 +683,25 @@ class planning_Steps extends core_Extender
         }
 
         cat_Products::addSearchQueryToKey2SelectArr($pQuery, $q, $limit);
+        $pRecs = $pQuery->fetchAll();
+
+        // Ако видът на етапите още не е извлечен, взима се с една заявка за намерените артикули
+        if(!isset($isFinalArr)){
+            $isFinalArr = array();
+            if(countR($pRecs)){
+                $sQuery = planning_Steps::getQuery();
+                $sQuery->where("#classId = {$productClassId}");
+                $sQuery->in('objectId', array_keys($pRecs));
+                $sQuery->show('objectId,isFinal');
+                foreach ($sQuery->fetchAll() as $sRec){
+                    $isFinalArr[$sRec->objectId] = $sRec->isFinal;
+                }
+            }
+        }
+
         $res = $finalSteps = $nonFinalSteps = array();
-        while ($pRec = $pQuery->fetch()) {
-            $isFinal = planning_Steps::fetchField("#objectId = {$pRec->id} AND #classId = {$productClassId}", 'isFinal');
-            if($isFinal == 'yes'){
+        foreach ($pRecs as $pRec){
+            if(isset($isFinalArr[$pRec->id]) && $isFinalArr[$pRec->id] == 'yes'){
                 $finalSteps[$pRec->id] = cat_Products::getRecTitle($pRec, false);
             } else {
                 $nonFinalSteps[$pRec->id] = cat_Products::getRecTitle($pRec, false);

@@ -150,7 +150,7 @@ class tcost_FeeZones extends core_Master
         
         // Забрана за смяна на условие на доставка, ако има детайли
         if(isset($form->rec->id)){
-            if($data->action != 'clone' && (tcost_Fees::fetchField("#feeId = {$form->rec->id}") || tcost_Zones::fetchField("#zoneId = {$form->rec->id}"))){
+            if(($data->action ?? null) != 'clone' && (tcost_Fees::fetchField("#feeId = {$form->rec->id}") || tcost_Zones::fetchField("#zoneId = {$form->rec->id}"))){
                 $form->setReadOnly('deliveryTermId');
             }
         }
@@ -247,12 +247,14 @@ class tcost_FeeZones extends core_Master
         $zoneRec = tcost_Zones::getZoneIdAndDeliveryTerm($deliveryTermId, $toCountry, $toPostalCode);
         $fee = tcost_Fees::calcFee($zoneRec, $totalVolumicWeight, $singleWeight);
 
-        $zoneId = $fee[2];
-        $deliveryTime = ($fee[3]) ? $fee[3] : null;
-        
+        $zoneId = null;
+        $deliveryTime = null;
+
         // Ако цената може да бъде изчислена се връща
-        if (!($fee < 0)) {
-            $fee = (isset($fee[1])) ? $fee[1] : 0;
+        if (is_array($fee)) {
+            $zoneId = $fee[2] ?? null;
+            $deliveryTime = $fee[3] ?? null;
+            $fee = $fee[1] ?? 0;
         }
         
         $explain = null;
@@ -344,7 +346,7 @@ class tcost_FeeZones extends core_Master
                 $zoneRec = tcost_Zones::getZoneIdAndDeliveryTerm($rec->deliveryTermId, $rec->countryId, $rec->pCode);
                 $result = tcost_Fees::calcFee($zoneRec, $rec->totalWeight, $rec->singleWeight);
                 if ($result < 0) {
-                    $form->setError('deliveryTermId,countryId,pCode', "Не може да се изчисли сума за транспорт (${result})");
+                    $form->setError('deliveryTermId,countryId,pCode', "Не може да се изчисли сума за транспорт ({$result})");
                 } else {
                     $taxes = self::getTaxesByZone($result[2], $rec->singleWeight, $rec->totalWeight);
                     $finalFee = $taxes['tax'] + $taxes['addPerKg'] + $result[1];
@@ -552,6 +554,7 @@ class tcost_FeeZones extends core_Master
      */
     protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
+        $data->listFilter->setField('deliveryTermId', 'placeholderType=all');
         $data->listFilter->showFields = 'deliveryTermId';
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');

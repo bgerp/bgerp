@@ -93,23 +93,23 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
 
         // Филтриране по групи артикули
         $fieldset->FLD('groups', 'keylist(mvc=cat_Groups,select=name)',
-            'caption=Групи артикули,after=type,placeholder=Всички,silent,single=none');
+            'caption=Групи артикули,after=type,placeholderType=all,silent,single=none');
 
         // Филтър по дилъри (потребители с определени роли)
         $fieldset->FLD('dealers', 'users(rolesForAll=ceo|repAllGlobal, rolesForTeams=ceo|manager|repAll|repAllGlobal)',
-            'caption=Дилър,single=none,after=groups');
+            'caption=Дилър,placeholderType=all,single=none,after=groups');
 
         // Филтър по работници
         $fieldset->FLD('employees', 'keylist(mvc=crm_Persons,select=name,group=employees,allowEmpty=true)',
-            'caption=Работници,placeholder=Всички,after=dealers');
+            'caption=Работници,placeholderType=all,after=dealers');
 
         // Филтър по машини (активи)
         $fieldset->FLD('assetResources', 'keylist(mvc=planning_AssetResources,select=name)',
-            'caption=Машини,placeholder=Всички,after=employees,single=none');
+            'caption=Машини,placeholderType=all,after=employees,single=none');
 
         // Филтър по центрове
         $fieldset->FLD('centre', 'keylist(mvc=planning_Centers,select=name)',
-            'caption=Центрове,placeholder=Всички,after=assetResources,single=none');
+            'caption=Центрове,placeholderType=all,after=assetResources,single=none');
 
         // Сортиране по показател (напр. по брак или отпадък)
         $fieldset->FLD('orderBy', 'enum(jobId=Задание, taskId=Операция, scrappedWeight=Брак, wasteWeight=Отпадък)',
@@ -155,7 +155,7 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
 
         $details = array();
 
-        if ($rec->pasive == 'no') {
+        if (($rec->pasive ?? 'yes') == 'no') {
             $groupsQuery = cat_Groups::getQuery();
 
             while ($gRec = $groupsQuery->fetch()) {
@@ -174,7 +174,7 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
             if (isset($form->rec->from, $form->rec->to) && ($form->rec->from > $form->rec->to)) {
                 $form->setError('from,to', 'Началната дата на периода не може да бъде по-голяма от крайната.');
             }
-            if (is_null($form->rec->groups) && $form->rec->groupBy == 'articleGroup') {
+            if (is_null($form->rec->groups ?? null) && ($form->rec->groupBy ?? 'no') == 'articleGroup') {
                 $form->setError('groups', 'Когато групирането е по групи, трябва да има избрана поне една група');
             }
 
@@ -196,7 +196,7 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
 
         $form->setDefault('type', 'task');
 
-        if ($rec->pasive == 'no') {
+        if (($rec->pasive ?? 'yes') == 'no') {
             $form->setField('GrFill', 'input');
         }
 
@@ -204,14 +204,17 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
         $form->setDefault('from', '1970-01-01');
         $form->setDefault('to', dt::today() . '23:59:59');
 
-        if ($rec->type == 'job') {
+        $from = $rec->from ?? '1970-01-01';
+        $to = $rec->to ?? dt::today();
+
+        if (($rec->type ?? 'task') == 'job') {
             $form->setField('employees', 'input=none');
             $form->setField('assetResources', 'input=none');
             $form->setField('centre', 'input=none');
             $form->setOptions('orderBy', array('jobId' => 'Задание', 'scrappedWeight' => 'Брак', 'wasteWeight' => 'Отпадък'));
             $form->setField('orderBy', 'jobId');
         }
-        if ($rec->type == 'task') {
+        if (($rec->type ?? 'task') == 'task') {
             $form->setField('groups', 'input=none');
             $form->setField('dealers', 'input=none');
             $form->setOptions('orderBy', array('taskId' => 'Операция', 'scrappedWeight' => 'Брак', 'wasteWeight' => 'Отпадък'));
@@ -225,7 +228,7 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
 
         $jQuery = planning_Tasks::getQuery();
         $jQuery->in('state', $stateArr);
-        $jQuery->where(array("#activatedOn >= '[#1#]' AND #activatedOn <= '[#2#]'", $rec->from, $rec->to . '23:59:59'));
+        $jQuery->where(array("#activatedOn >= '[#1#]' AND #activatedOn <= '[#2#]'", $from, $to . ' 23:59:59'));
         $jQuery->show('employees,assetId');
 
         while ($jRec = $jQuery->fetch()) {
@@ -258,8 +261,21 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
     {
 
         $recs = $jobsArr = array();
+        $rec->from = $rec->from ?? '1970-01-01';
+        $rec->to = $rec->to ?? dt::today();
+        $rec->type = $rec->type ?? 'task';
+        $rec->groups = $rec->groups ?? null;
+        $rec->dealers = $rec->dealers ?? null;
+        $rec->employees = $rec->employees ?? null;
+        $rec->assetResources = $rec->assetResources ?? null;
+        $rec->centre = $rec->centre ?? null;
+        $rec->orderBy = $rec->orderBy ?? (($rec->type == 'job') ? 'jobId' : 'taskId');
+        $rec->order = $rec->order ?? 'asc';
+        $rec->groupBy = $rec->groupBy ?? 'no';
+        $rec->pasive = $rec->pasive ?? 'yes';
+        $rec->GrFill = $rec->GrFill ?? null;
         //СПЕЦИАЛЕН СЛУЧАЙ
-        if (($rec->pasive == 'no')) {
+        if (($rec->pasive ?? 'yes') == 'no') {
             $recs = $this->prepareRecsFromGrFill($rec);
             $this->summaryListFields = '' ;
 
@@ -268,7 +284,7 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
 
 
         // ЗАДАВАМЕ ГРУПИРАНЕТО СПОРЕД ИЗБОРА ОТ ФОРМАТА
-        if ($rec->groupBy == 'article') {
+        if (($rec->groupBy ?? 'no') == 'article') {
             $this->groupByField = 'jobArt';
         }
 
@@ -307,7 +323,7 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
         $taskQuery->in('state', $stateArr);
 
         //Ако справката е по задание, филтрираме тези които са в нишките на заданията от периода
-        if ($rec->type == 'job') {
+        if (($rec->type ?? 'task') == 'job') {
             $taskQuery->in('originId', array_keys($jobsArr));
         } else {
 
@@ -328,17 +344,21 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
 
             //Филтър по център на дейност
             if ($rec->centre) {
-
+                $centFoldersArr = array();
                 foreach (keylist::toArray($rec->centre) as $cent) {
-                    $centFoldersArr[planning_Centers::fetch($cent)->folderId] = planning_Centers::fetch($cent)->folderId;
+                    $centerRec = planning_Centers::fetch($cent);
+                    if ($centerRec && !empty($centerRec->folderId)) {
+                        $centFoldersArr[$centerRec->folderId] = $centerRec->folderId;
+                    }
                 }
-                $taskQuery->in('folderId', $centFoldersArr);
+                if (!empty($centFoldersArr)) {
+                    $taskQuery->in('folderId', $centFoldersArr);
+                }
             }
         }
 
-        if ($taskQuery->count() > 0) {
-            $tasksArr = arr::extractValuesFromArray($taskQuery->fetchAll(), 'id');
-        }
+        $taskRecords = $taskQuery->fetchAll();
+        $tasksArr = arr::extractValuesFromArray($taskRecords, 'id');
 
         $taskDetRecArr = $taskRec = array();
         $taskDetQuery = planning_ProductionTaskDetails::getQuery();
@@ -351,44 +371,46 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
             $taskDetRecArr[] = $taskDetRec;
         }
 
-        $wasteQuantity = null;
-
-        while ($taskRec = $taskQuery->fetch()) {
+        foreach ($taskRecords as $taskRec) {
 
             $tasksArr[$taskRec->id] = $taskRec->id;
 
-            if (!is_null($jobsArr[$taskRec->originId])) {
+            if (!is_null($jobsArr[$taskRec->originId] ?? null)) {
                 $originJobRec = $jobsArr[$taskRec->originId];
             } else {
                 $JOB = doc_Containers::getDocument($taskRec->originId);
-                $originJobRec = planning_Jobs::fetch($JOB->that);
+                $originJobRec = $JOB ? planning_Jobs::fetch($JOB->that) : null;
+            }
+            if (!$originJobRec) {
+                continue;
             }
 
             $prodWeigth = cat_Products::convertToUoM($originJobRec->productId, 'kg');
 
             // Намиране на отпадъка
-            if (!$wasteQuantity) {
-                $totalWastePercent = null;
-                if ($rec->type == 'job') {
-                    $waste = planning_ProductionTaskProducts::getTotalWasteArr($originJobRec->threadId, $totalWastePercent);
-                } else {
-                    $waste = planning_ProductionTaskProducts::getTotalWasteArr($taskRec->threadId, $totalWastePercent);
-                }
+            $totalWastePercent = null;
+            if ($rec->type == 'job') {
+                $waste = planning_ProductionTaskProducts::getTotalWasteArr($originJobRec->threadId, $totalWastePercent);
+            } else {
+                $waste = planning_ProductionTaskProducts::getTotalWasteArr($taskRec->threadId, $totalWastePercent);
             }
 
+            $waste = is_array($waste) ? $waste : array();
+            $wasteWeight = 0;
+            $wasteProdWeigth = null;
             $wasteWeightNullMark = null;     //Ако има поне един отпадък без тегло да се отбележи в изгледа с ? след цифрата
 
             foreach ($waste as $v) {
 
-                if ($v->quantity) {
+                if (!empty($v->quantity)) {
 
                     if (self::isWeightMeasure($v->packagingId) === false) {
 
                         $wasteProdWeigth = cat_Products::convertToUoM($v->productId, 'kg');
 
                         if (!is_null($wasteProdWeigth)) {
-                            if ($rec->type == 'job') {
-                                $wasteWeight += $v->quantity * $v->quantityInPack * $wasteProdWeigth;
+                            if (($rec->type ?? 'task') == 'job') {
+                                $wasteWeight += $v->quantity * ($v->quantityInPack ?? 1) * $wasteProdWeigth;
                             } else {
                                 $wasteWeight += $v->quantity * $wasteProdWeigth;
                             }
@@ -400,8 +422,8 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
 
                     } else {
                         $wasteProdWeigth = cat_Products::convertToUoM($v->productId, 'kg');
-                        if ($rec->type == 'job') {
-                            $wasteWeight += $v->quantity * $v->quantityInPack * $wasteProdWeigth;
+                        if (($rec->type ?? 'task') == 'job') {
+                            $wasteWeight += $v->quantity * ($v->quantityInPack ?? 1) * $wasteProdWeigth;
                         } else {
                             $wasteWeight += $v->quantity * $wasteProdWeigth;
                         }
@@ -425,10 +447,10 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
             $productGroups = null;
 
             if ($rec->type == 'job' && $rec->groupBy == 'articleGroup' && !is_null($rec->groups)) {
-                $productRec = cat_Products::fetch($jobsArr[$taskRec->originId]->productId);
+                $productRec = cat_Products::fetch($originJobRec->productId);
 
                 // Преобразуваме двете keylist полета в масиви
-                $productGroupsArr = keylist::toArray($productRec->groups);
+                $productGroupsArr = keylist::toArray($productRec->groups ?? null);
                 $filterGroupsArr = keylist::toArray($rec->groups);
 
                 // Сечение на двата масива
@@ -444,7 +466,7 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
 
 
             if ($rec->type == 'job') {
-                $id = $jobsArr[$taskRec->originId]->id;
+                $id = $originJobRec->id;
 
             } else {
                 $id = $taskRec->id;
@@ -456,16 +478,16 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
             if (!array_key_exists($id, $recs)) {
                 $recs[$id] = (object)array(
 
-                    'jobId' => $jobsArr[$taskRec->originId]->id,                                             //Id на заданието
-                    'jobArt' => $jobsArr[$taskRec->originId]->productId,                                     // Продукта по заданието
+                    'jobId' => $originJobRec->id,                                                           //Id на заданието
+                    'jobArt' => $originJobRec->productId,                                                    // Продукта по заданието
                     'taskId' => $taskRec->id,                                                                //Id на операцията
                     'jobArtGroups' => $productGroups,
                     'scrappedWeight' => $scrappedWeight,                                                     // количество брак
                     'wasteWeight' => $wasteWeight,
                     'prodWeight' => $prodWeigth,
                     'wasteProdWeigth' => $wasteProdWeigth,
-                    'assetResources' => $taskRec->assetId,
-                    'employees' => $taskRec->employees,
+                    'assetResources' => $taskRec->assetId ?? null,
+                    'employees' => $taskRec->employees ?? null,
                     'wasteWeightNullMark' => $wasteWeightNullMark,
 
                 );
@@ -473,16 +495,16 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
                 if ($rec->type == 'job') {
                     $obj = &$recs[$id];
                     $obj->scrappedWeight += $scrappedWeight;
+                    $obj->wasteWeight += $wasteWeight;
                 }
             }
-            $wasteWeight = 0;
         }
 
         // Създаваме празен масив, в който ще събираме агрегираните резултати по групи
         $tempArr = array();
 
 // Проверяваме дали сме в режим на групиране по артикули групи
-        if ($rec->groupBy == 'articleGroup' && !is_null($rec->groups)) {
+        if (($rec->groupBy ?? 'no') == 'articleGroup' && !is_null($rec->groups)) {
 
             // Преобразуваме keylist-а със зададените групи в масив за по-лесна обработка
             $groupsArr = keylist::toArray($rec->groups);
@@ -516,7 +538,7 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
                                 'scrappedWeight' => 0,
                                 'wasteWeight' => 0,
                                 'prodWeight' => $rval->prodWeight,
-                                'wasteWeightNullMark' => $rval->wasteWeightNullMark,
+                                'wasteWeightNullMark' => $rval->wasteWeightNullMark ?? false,
                             );
                         }
 
@@ -534,14 +556,14 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
             // Подменяме оригиналния масив с агрегирания
             $recs = $tempArr;
             // подменяме групирането да е по група артикули
-            if ($rec->groupBy == 'articleGroup') {
+            if (($rec->groupBy ?? 'no') == 'articleGroup') {
 
                 $this->summaryListFields = 'scrappedWeight,wasteWeight';
             }
         }
 
 
-        if (!empty(($recs) && $rec->groupBy != 'articleGroup')) {
+        if (!empty($recs) && $rec->groupBy != 'articleGroup') {
             arr::sortObjects($recs, $rec->orderBy, $rec->order);
         }
 
@@ -564,7 +586,7 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
         if ($export === false) {
 
             // СПЕЦИАЛЕН СЛУЧАЙ
-            if (($rec->pasive == 'no')) {
+            if (($rec->pasive ?? 'yes') == 'no') {
 
                 $fld->FLD('group', 'varchar', 'caption=Група артикули');
                 $fld->FLD('weight', 'double(decimals=2)', 'caption=Произведено количество [кг]');
@@ -575,20 +597,20 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
             }
 
 
-            if ($rec->groupBy == 'articleGroup') {
+            if (($rec->groupBy ?? 'no') == 'articleGroup') {
                 // Когато групираме по групи артикули:
                 $fld->FLD('group', 'varchar', 'caption=Група артикули');
                 //  $fld->FLD('scrappedWeight', 'double(decimals=2)', 'caption=Брак');
                 //  $fld->FLD('wasteWeight', 'double(decimals=2)', 'caption=Отпадък');
             }
-            // if ($rec->groupBy == 'no') {
+            // if (($rec->groupBy ?? 'no') == 'no') {
             // Всички останали случаи (досегашното поведение)
-            if ($rec->type == 'job') {
+            if (($rec->type ?? 'task') == 'job') {
                 $fld->FLD('jobId', 'varchar', 'caption=Задание');
-                if ($rec->groupBy == 'article') {
+                if (($rec->groupBy ?? 'no') == 'article') {
                     $fld->FLD('jobArt', 'varchar', 'caption=Артикул');
                 }
-                if ($rec->groupBy == 'articleGroup') {
+                if (($rec->groupBy ?? 'no') == 'articleGroup') {
                     //  $fld->FLD('group', 'varchar', 'caption=Група артикули');
                 }
             } else {
@@ -625,7 +647,7 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
 
         // СПЕЦИАЛЕН СЛУЧАЙ
         // if (!is_null($rec->GrFill)) {
-        if (($rec->pasive == 'no')) {
+        if (($rec->pasive ?? 'yes') == 'no') {
 
             $row->group = ($dRec->group);
             $row->weight = $Double->toVerbal($dRec->weight);
@@ -637,7 +659,7 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
 
 
         // Когато сме в групиране по групи артикули
-        if ($rec->groupBy == 'articleGroup') {
+        if (($rec->groupBy ?? 'no') == 'articleGroup') {
 
             // Хиперлинк на групата
             $row->group = cat_Groups::getHyperlink($dRec->group);
@@ -671,7 +693,7 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
             $employeesArr = keylist::toArray($dRec->employees);
             $row->employees = '';
             foreach ($employeesArr as $personId) {
-                $row->employees .= crm_Persons::getTitleById($personId) . "<br>";
+                $row->employees = ($row->employees ?? '') . crm_Persons::getTitleById($personId) . "<br>";
             }
         }
 
@@ -680,16 +702,16 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
 
         if (isset($dRec->wasteProdWeigth)) {
             $row->wasteWeight = $Double->toVerbal($dRec->wasteWeight);
-            if ($dRec->wasteWeightNullMark === true) {
-                $row->wasteWeight .= "<span class='red'>?</span>";
+            if (($dRec->wasteWeightNullMark ?? false) === true) {
+                $row->wasteWeight = ($row->wasteWeight ?? '') . "<span class='red'>?</span>";
             }
         } else {
             $row->wasteWeight = '?';
         }
 
         // Мярка (винаги "кг" в твоя случай)
-        $kgMeasureId = cat_UoM::getQuery()->fetch("#name = 'килограм'")->id;
-        $row->measure = cat_UoM::getShortName($kgMeasureId);
+        $kgMeasure = cat_UoM::getQuery()->fetch("#name = 'килограм'");
+        $row->measure = $kgMeasure ? cat_UoM::getShortName($kgMeasure->id) : null;
 
         return $row;
     }
@@ -744,8 +766,8 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
         if (isset($data->rec->to)) {
             $fieldTpl->append('<b>' . $Date->toVerbal($data->rec->to) . '</b>', 'to');
         }
-        if ( $data->rec->type == 'yes') {
-            if ($data->rec->type == 'job') {
+        if (($data->rec->pasive ?? 'yes') == 'yes') {
+            if (($data->rec->type ?? 'task') == 'job') {
                 if (isset($data->rec->dealers)) {
                     $fieldTpl->append('<b>' . $Users->toVerbal($data->rec->dealers) . '</b>', 'dealers');
 
@@ -821,7 +843,9 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
     {
         $Enum = cls::get('type_Enum', array('options' => array('prod' => 'произв.', 'consum' => 'вл.')));
 
-        $res->type = $Enum->toVerbal($dRec->consumedType);
+        if (isset($dRec->consumedType)) {
+            $res->type = $Enum->toVerbal($dRec->consumedType);
+        }
     }
 
     /**
@@ -833,7 +857,11 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
     public static function isWeightMeasure($mesureId)
     {
 
-        $kgMeasures = cat_UoM::getSameTypeMeasures(cat_UoM::fetchBySysId('kg')->id);
+        $kgMeasure = cat_UoM::fetchBySysId('kg');
+        if (!$kgMeasure) {
+            return false;
+        }
+        $kgMeasures = cat_UoM::getSameTypeMeasures($kgMeasure->id);
         if (in_array($mesureId, array_keys($kgMeasures))) {
             return true;
         }
@@ -866,16 +894,16 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
         $recs = array();
 
         // Преобразуваме JSON форматираното поле в масив
-        $grFillData = (array)json_decode($rec->GrFill, true);
+        $grFillData = (array)json_decode($rec->GrFill ?? '', true);
         if (empty($grFillData)) {
             return $recs;
         }
         // Обхождаме всяка група по индекс
-        foreach ($grFillData['grp'] as $i => $groupName) {
+        foreach (($grFillData['grp'] ?? array()) as $i => $groupName) {
             // Тегло, брак и отпадък от съответната колона
-            $weight = (float)$grFillData['wght'][$i];
-            $scrapped = (float)$grFillData['scrpWeight'][$i];
-            $waste = (float)$grFillData['wstWeight'][$i];
+            $weight = (float)($grFillData['wght'][$i] ?? 0);
+            $scrapped = (float)($grFillData['scrpWeight'][$i] ?? 0);
+            $waste = (float)($grFillData['wstWeight'][$i] ?? 0);
 
             // Пропускаме празни редове (всичко 0)
             if ($weight == 0 && $scrapped == 0 && $waste == 0) {

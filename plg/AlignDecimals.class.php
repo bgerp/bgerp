@@ -72,7 +72,7 @@ class plg_AlignDecimals extends core_Plugin
                 unset($type->params['smartRound']);
                 
                 foreach ($recs as $i => $rec) {
-                    $rows[$i]->{$name} = str_replace(strip_tags($rows[$i]->{$name} ?? ''), $type->toVerbal($rec->{$name} ?? null), $rows[$i]->{$name} ?? '');
+                    $rows[$i]->{$name} = str_replace(strip_tags($rows[$i]->{$name} ?? ''), $type->toVerbal($rec->{$name} ?? null) ?? '', $rows[$i]->{$name} ?? '');
                 }
             }
         }

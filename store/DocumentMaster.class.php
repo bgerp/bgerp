@@ -130,7 +130,7 @@ abstract class store_DocumentMaster extends core_Master
         $mvc->FLD('amountDiscount', 'double(decimals=2)', 'input=none');
         $mvc->FLD('contragentClassId', 'class(interface=crm_ContragentAccRegIntf)', 'input=hidden,caption=Клиент');
         $mvc->FLD('contragentId', 'int', 'input=hidden');
-        $mvc->FLD('locationId', 'key(mvc=crm_Locations, select=title,allowEmpty,maxRadio2=0)', 'caption=Обект до,silent');
+        $mvc->FLD('locationId', 'key(mvc=crm_Locations, select=title,allowEmpty)', 'caption=Обект до,silent');
         $mvc->FLD('deliveryTime', 'datetime');
         $mvc->FLD('lineId', 'key(mvc=trans_Lines,select=title,allowEmpty)', 'caption=Транспорт');
         $mvc->FLD('weight', 'cat_type_Weight', 'input=none,caption=Тегло');
@@ -166,7 +166,7 @@ abstract class store_DocumentMaster extends core_Master
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         if (!deals_Helper::canSelectObjectInDocument($action, $rec, 'store_Stores', 'storeId')) {
-            if(($action == 'reject' && $rec->state == 'pending') || ($action == 'restore' && $rec->brState == 'pending')) return;
+            if(($action == 'reject' && ($rec->state ?? null) == 'pending') || ($action == 'restore' && ($rec->brState ?? null) == 'pending')) return;
             $requiredRoles = 'no_one';
         }
     }
@@ -196,7 +196,7 @@ abstract class store_DocumentMaster extends core_Master
         
         // Поле за избор на локация - само локациите на контрагента по продажбата
         $form->setOptions('locationId', array('' => '') + crm_Locations::getContragentOptions($rec->contragentClassId, $rec->contragentId));
-        expect($origin = ($form->rec->originId) ? doc_Containers::getDocument($form->rec->originId) : doc_Threads::getFirstDocument($form->rec->threadId));
+        expect($origin = (!empty($form->rec->originId)) ? doc_Containers::getDocument($form->rec->originId) : doc_Threads::getFirstDocument($form->rec->threadId));
         expect($origin->haveInterface('bgerp_DealAggregatorIntf'));
         $dealInfo = $origin->getAggregateDealInfo();
         $form->dealInfo = $dealInfo;
@@ -333,11 +333,17 @@ abstract class store_DocumentMaster extends core_Master
         deals_Helper::fillRecs($this, $recs, $rec);
         
         // ДДС-т е отделно amountDeal  е сумата без ддс + ддс-то, иначе самата сума си е с включено ддс
-        $amount = ($rec->chargeVat == 'separate') ? $this->_total->amount + $this->_total->vat : $this->_total->amount;
-        $amount -= $this->_total->discount;
-        $rec->amountDelivered = $amount * $rec->currencyRate;
-        $rec->amountDeliveredVat = $this->_total->vat * $rec->currencyRate;
-        $rec->amountDiscount = $this->_total->discount * $rec->currencyRate;
+        if (isset($this->_total)) {
+            $amount = ($rec->chargeVat == 'separate') ? $this->_total->amount + $this->_total->vat : $this->_total->amount;
+            $amount -= $this->_total->discount;
+            $rec->amountDelivered = $amount * $rec->currencyRate;
+            $rec->amountDeliveredVat = $this->_total->vat * $rec->currencyRate;
+            $rec->amountDiscount = $this->_total->discount * $rec->currencyRate;
+        } else {
+            $rec->amountDelivered = 0;
+            $rec->amountDeliveredVat = 0;
+            $rec->amountDiscount = 0;
+        }
         
         return $this->save($rec);
     }
@@ -370,7 +376,7 @@ abstract class store_DocumentMaster extends core_Master
                     $details = $dQuery->fetchAll();
 
                     $invDetail::modifyDcDetails($details, $invRec, $invDetail);
-                    $withChangedQuantityDetails = array_filter($details, function($a) {return $a->changedQuantity === true;});
+                    $withChangedQuantityDetails = array_filter($details, function($a) {return ($a->changedQuantity ?? null) === true;});
 
                     $Detail = cls::get($mvc->mainDetail);
                     foreach ($withChangedQuantityDetails as $invDetailRec){
@@ -431,7 +437,8 @@ abstract class store_DocumentMaster extends core_Master
                             $bQuery->where($mWhere);
                             $bQuery->show('productId,quantity,batch');
                             while($bRec = $bQuery->fetch()){
-                                $byNowShippedBatches[$bRec->productId][$bRec->batch] += $bRec->quantity;
+                                $byNowShippedBatches[$bRec->productId][$bRec->batch] =
+                                    ($byNowShippedBatches[$bRec->productId][$bRec->batch] ?? 0) + $bRec->quantity;
                             }
                         }
 
@@ -486,7 +493,7 @@ abstract class store_DocumentMaster extends core_Master
                         $p1->quantity = min($agreedQuantity, $inStock);
 
                         // Оставяне само на наличните партиди
-                        if(is_array($p1->batches) && core_Packs::isInstalled('batch')){
+                        if(is_array($p1->batches ?? null) && core_Packs::isInstalled('batch')){
                             $productBatchQuantitiesInStore = batch_Items::getBatchQuantitiesInStore($p1->productId,$rec->storeId, $rec->valior);
                             foreach ($p1->batches as $b => $q){
                                 $batchQuantityInStore = !empty($productBatchQuantitiesInStore[$b]) ? $productBatchQuantitiesInStore[$b] : 0;
@@ -517,14 +524,14 @@ abstract class store_DocumentMaster extends core_Master
                     
                     if (isset($normalizedProducts[$index])) {
                         $toShip = $normalizedProducts[$index]->quantity;
-                        $batches = $normalizedProducts[$index]->batches;
+                        $batches = $normalizedProducts[$index]->batches ?? null;
                     } else {
                         $toShip = $product->quantity;
-                        $batches = $product->batches;
+                        $batches = $product->batches ?? null;
                     }
                     
-                    $price = (isset($product->price)) ? $product->price : $normalizedProducts[$index]->price;
-                    $discount = ($product->discount) ? $product->discount : $normalizedProducts[$index]->discount;
+                    $price = (isset($product->price)) ? $product->price : ($normalizedProducts[$index]->price ?? null);
+                    $discount = !empty($product->discount) ? $product->discount : ($normalizedProducts[$index]->discount ?? null);
 
                     // Пропускат се експедираните продукти
                     if ($toShip <= 0) continue;
@@ -540,7 +547,7 @@ abstract class store_DocumentMaster extends core_Master
                         $shipProduct->price = $shipProduct->price / $aggregatedDealInfo->get('rate') * $rec->currencyRate;
                     }
                     $shipProduct->discount = $discount;
-                    $shipProduct->notes = $product->notes;
+                    $shipProduct->notes = $product->notes ?? null;
                     $shipProduct->quantityInPack = $product->quantityInPack;
 
                     if (core_Packs::isInstalled('batch') && $copyBatches === true) {
@@ -553,7 +560,7 @@ abstract class store_DocumentMaster extends core_Master
 
                     // Копира партидата ако артикулите идат 1 към 1 от договора
                     if (core_Packs::isInstalled('batch') && $copyBatches === true) {
-                        if (is_array($shipProduct->batches)) {
+                        if (is_array($shipProduct->batches ?? null)) {
 
                             // Ако има генерирана нова партида и има без партида оставено от договора - ще се зададе за остатъка
                             if(!empty($shipProduct->batch)){
@@ -692,7 +699,7 @@ abstract class store_DocumentMaster extends core_Master
                         if($recFld == 'features'){
                             $addressData[$recPlaceholder] = $rec->{$recFld};
                         } else {
-                            $addressData[$recPlaceholder] = $row->{$recFld};
+                            $addressData[$recPlaceholder] = $row->{$recFld} ?? $mvc->getVerbal($rec, $recFld);
                         }
                     }
                 }
@@ -701,7 +708,7 @@ abstract class store_DocumentMaster extends core_Master
             // Скриваме "Особености" на локацията ПРИ ПЕЧАТ И ИЗПРАЩАНЕ
             // ВИНАГИ когато ЕН е включено в Транспортна линия и в нея "Изпълнител" НЕ Е "Моята фирма"
             if (Mode::is('text', 'xhtml') || Mode::is('printing')) {
-                if($rec->{$mvc->lineFieldName}){
+                if($rec->{$mvc->lineFieldName} ?? null){
                     $forwarderId = trans_Lines::fetchField($rec->{$mvc->lineFieldName}, 'forwarderId');
                     if(isset($forwarderId) && $forwarderId != crm_Setup::BGERP_OWN_COMPANY_ID){
                         unset($addressData['features']);
@@ -899,7 +906,7 @@ abstract class store_DocumentMaster extends core_Master
         }
 
         // Ако оригиналния документ е закачен към ТЛ, закача се и този
-        if((empty($rec->id) || $rec->_replaceReverseContainerId) && isset($rec->reverseContainerId)){
+        if((empty($rec->id) || !empty($rec->_replaceReverseContainerId)) && isset($rec->reverseContainerId)){
             $Doc = doc_Containers::getDocument($rec->reverseContainerId);
 
             if(isset($Doc->lineFieldName)){
@@ -1012,7 +1019,7 @@ abstract class store_DocumentMaster extends core_Master
         if(!Mode::is('calcOnlyDeliveryPart')){
             $res["{$ownPart}Company"] = $ownCompany->name;
             $toPersonId = ($rec->activatedBy) ? $rec->activatedBy : $rec->createdBy;
-            $res["{$ownPart}Person"] = ($res["{$ownPart}Person"]) ? $res["{$ownPart}Person"] : core_Users::fetchField($toPersonId, 'names');
+            $res["{$ownPart}Person"] = !empty($res["{$ownPart}Person"]) ? $res["{$ownPart}Person"] : core_Users::fetchField($toPersonId, 'names');
 
             if($res["{$ownPart}Person"]){
                 $personId = crm_Profiles::getPersonByUser($toPersonId);
@@ -1060,17 +1067,17 @@ abstract class store_DocumentMaster extends core_Master
                 if($firstDocument->haveInterface('trans_LogisticDataIntf')){
                     if(!$firstDocument->fetchField('deliveryLocationId')){
                         $firstDocumentLogisticData = $firstDocument->getLogisticData();
-                        $res["{$contrPart}Country"] = $firstDocumentLogisticData["{$contrPart}Country"];
-                        $res["{$contrPart}PCode"] = $firstDocumentLogisticData["{$contrPart}PCode"];
-                        $res["{$contrPart}Place"] = $firstDocumentLogisticData["{$contrPart}Place"];
-                        $res["{$contrPart}Address"] = $firstDocumentLogisticData["{$contrPart}Address"];
-                        $res['instructions'] = $firstDocumentLogisticData['instructions'];
-                        $res["{$contrPart}Company"] = $firstDocumentLogisticData["{$contrPart}Company"];
-                        $res["{$contrPart}Person"] = $firstDocumentLogisticData["{$contrPart}Person"];
-                        $res["{$contrPart}PersonPhones"] = $firstDocumentLogisticData["{$contrPart}PersonPhones"];
-                        $res["{$contrPart}LocationId"] = $firstDocumentLogisticData["{$contrPart}LocationId"];
-                        $res["{$contrPart}AddressInfo"] = $firstDocumentLogisticData["{$contrPart}AddressInfo"];
-                        $res["{$contrPart}AddressFeatures"] = $firstDocumentLogisticData["{$contrPart}AddressFeatures"];
+                        $res["{$contrPart}Country"] = $firstDocumentLogisticData["{$contrPart}Country"] ?? null;
+                        $res["{$contrPart}PCode"] = $firstDocumentLogisticData["{$contrPart}PCode"] ?? null;
+                        $res["{$contrPart}Place"] = $firstDocumentLogisticData["{$contrPart}Place"] ?? null;
+                        $res["{$contrPart}Address"] = $firstDocumentLogisticData["{$contrPart}Address"] ?? null;
+                        $res['instructions'] = $firstDocumentLogisticData['instructions'] ?? null;
+                        $res["{$contrPart}Company"] = $firstDocumentLogisticData["{$contrPart}Company"] ?? null;
+                        $res["{$contrPart}Person"] = $firstDocumentLogisticData["{$contrPart}Person"] ?? null;
+                        $res["{$contrPart}PersonPhones"] = $firstDocumentLogisticData["{$contrPart}PersonPhones"] ?? null;
+                        $res["{$contrPart}LocationId"] = $firstDocumentLogisticData["{$contrPart}LocationId"] ?? null;
+                        $res["{$contrPart}AddressInfo"] = $firstDocumentLogisticData["{$contrPart}AddressInfo"] ?? null;
+                        $res["{$contrPart}AddressFeatures"] = $firstDocumentLogisticData["{$contrPart}AddressFeatures"] ?? null;
                     }
                 }
             }
@@ -1172,7 +1179,7 @@ abstract class store_DocumentMaster extends core_Master
     public function getTransportLineInfo_($rec, $lineId)
     {
         $rec = static::fetchRec($rec);
-        $res = array('baseAmount' => null, 'amount' => null, 'currencyId' => null, 'notes' => $rec->lineNotes, 'deliveryOn' => $rec->deliveryOn);
+        $res = array('baseAmount' => null, 'amount' => null, 'currencyId' => null, 'notes' => $rec->lineNotes ?? null, 'deliveryOn' => $rec->deliveryOn ?? null);
         $res['stores'] = array($rec->storeId);
         $res['storeMovement'] = ($this instanceof store_Receipts) ? (($rec->isReverse == 'yes') ? 'out' : 'in') : (($rec->isReverse == 'yes') ? 'in' : 'out');
         $res['cases'] = array();
@@ -1187,7 +1194,7 @@ abstract class store_DocumentMaster extends core_Master
         $logisticData = $this->getLogisticData($rec);
 
         $countryId = drdata_Countries::getIdByName($logisticData["{$part}Country"]);
-        $res['countryId'] .= $countryId;
+        $res['countryId'] = $countryId;
 
         if($logisticData['fromCountry'] != $logisticData['toCountry']){
             $this->pushTemplateLg($rec->template);
@@ -1208,7 +1215,7 @@ abstract class store_DocumentMaster extends core_Master
         }
 
         if(!empty($logisticData["{$part}LocationId"])){
-            $res['locationId'] .= $logisticData["{$part}LocationId"];
+            $res['locationId'] = $logisticData["{$part}LocationId"];
         }
 
         if(!empty($logisticData["{$part}Place"])){
@@ -1243,7 +1250,7 @@ abstract class store_DocumentMaster extends core_Master
         }
         $res['valior'] = $rec->valior ?? dt::today();
 
-        return $res;
+        return trans_Helper::normalizeTransportLineInfo($res);
     }
     
     
@@ -1265,7 +1272,7 @@ abstract class store_DocumentMaster extends core_Master
      *
      * @return mixed $id/FALSE     - ид на запис или FALSE
      */
-    public static function addRow($id, $productId, $packQuantity, $price = null, $packagingId = null, $discount = null, $tolerance = null, $term = null, $notes = null, $batch)
+    public static function addRow($id, $productId, $packQuantity, $price = null, $packagingId = null, $discount = null, $tolerance = null, $term = null, $notes = null, $batch = null)
     {
         $me = cls::get(get_called_class());
         $Detail = cls::get($me->mainDetail);
@@ -1303,7 +1310,7 @@ abstract class store_DocumentMaster extends core_Master
             $packagingId = $productInfo->productRec->measureId;
         }
         
-        $quantityInPack = ($productInfo->packagings[$packagingId]) ? $productInfo->packagings[$packagingId]->quantity : 1;
+        $quantityInPack = isset($productInfo->packagings[$packagingId]) ? $productInfo->packagings[$packagingId]->quantity : 1;
         
         // Ако няма цена, опитваме се да я намерим от съответната ценова политика
         if (empty($price)) {
@@ -1366,7 +1373,9 @@ abstract class store_DocumentMaster extends core_Master
     public function getDefaultLinkedComment($id, $comment)
     {
         $rec = $this->fetchRec($id);
-        
+
+        $comment = (string) $comment;
+
         $storeName = $rec->storeId ? store_Stores::getTitleById($rec->storeId) : '';
         $pattern = preg_quote($storeName, '/');
        
@@ -1434,7 +1443,7 @@ abstract class store_DocumentMaster extends core_Master
     public function getDetailsToCloneAndChange_($rec)
     {
         $Detail = cls::get($this->mainDetail);
-        $id = $rec->clonedFromId;
+        $id = $rec->clonedFromId ?? null;
 
         // Ако е създаден като обратен документ взима детайлите от него
         if (isset($rec->reverseContainerId) && empty($rec->id)) {

@@ -71,6 +71,8 @@ abstract class deals_QuotationMaster extends core_Master
         'tel' => 'clientData',
         'fax' => 'clientData',
         'contragentCountryId' => 'clientData',
+        'contragentVatNo' => 'clientData',
+        'uicNo' => 'clientData',
         'template' => 'lastDocUser|lastDoc|defMethod',
     );
 
@@ -155,10 +157,12 @@ abstract class deals_QuotationMaster extends core_Master
         $mvc->FLD('email', 'varchar', 'caption=Имейл, changable, class=contactData,after=person');
         $mvc->FLD('tel', 'drdata_PhoneType(type=tel)', 'caption=Тел., changable, class=contactData,after=email');
         $mvc->FLD('fax', 'drdata_PhoneType(type=fax)', 'caption=Факс, changable, class=contactData,after=tel');
-        $mvc->FLD('contragentCountryId', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Получател->Държава,mandatory,contactData,contragentDataField=countryId,input=hidden');
-        $mvc->FLD('pCode', 'varchar', 'caption=Получател->П. код, changable, class=contactData,input=hidden');
-        $mvc->FLD('place', 'varchar', 'caption=Получател->Град/с, changable, class=contactData,input=hidden');
-        $mvc->FLD('address', 'varchar', 'caption=Получател->Адрес, changable, class=contactData,input=hidden');
+        $mvc->FLD('contragentCountryId', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Получател->Държава,mandatory,contactData,contragentDataField=countryId');
+        $mvc->FLD('contragentVatNo', 'drdata_VatType', 'caption=Получател->VAT №, changable, class=contactData,contragentDataField=vatNo');
+        $mvc->FLD('uicNo', 'drdata_type_Uic(26)', 'caption=Получател->Национален №, changable, class=contactData,contragentDataField=uicId');
+        $mvc->FLD('pCode', 'varchar', 'caption=Получател->П. код, changable, class=contactData');
+        $mvc->FLD('place', 'varchar', 'caption=Получател->Град/с, changable, class=contactData');
+        $mvc->FLD('address', 'varchar', 'caption=Получател->Адрес, changable, class=contactData');
 
         $mvc->FLD('validFor', 'time(uom=days,suggestions=10 дни|15 дни|30 дни|45 дни|60 дни|90 дни)', 'caption=Допълнително->Валидност,mandatory');
         $mvc->FLD('detailOrderBy', 'enum(auto=Ред на създаване,code=Код)', 'caption=Допълнително->Подреждане по,notNull,value=auto');
@@ -216,6 +220,24 @@ abstract class deals_QuotationMaster extends core_Master
 
 
     /**
+     * Изпълнява се преди преобразуването към вербални стойности на полетата на записа
+     *
+     * Националният номер на лице е ЕГН, а на фирма - ЕИК, чиято валидност зависи
+     * от държавата на контрагента (@see deals_InvoiceMaster)
+     */
+    protected static function on_BeforeRecToVerbal($mvc, &$row, $rec)
+    {
+        if (!is_object($rec) || empty($rec->contragentClassId)) return;
+
+        if ($rec->contragentClassId == crm_Persons::getClassId()) {
+            $mvc->setFieldType('uicNo', 'bglocal_EgnType(onlyString)');
+        } elseif (!empty($rec->contragentCountryId)) {
+            $mvc->setFieldType('uicNo', "drdata_type_Uic(countryId={$rec->contragentCountryId})");
+        }
+    }
+
+
+    /**
      * Преди показване на форма за добавяне/промяна.
      */
     protected static function on_AfterPrepareEditForm($mvc, &$data)
@@ -226,6 +248,15 @@ abstract class deals_QuotationMaster extends core_Master
 
         if(!$mvc->isOwnCompanyVatRegistered($rec) || $Cover->isInstanceOf('crm_Persons')) {
             $form->setReadOnly('chargeVat');
+        }
+
+        // Националният номер на лице е ЕГН, а на фирма - ЕИК, чиято валидност
+        // зависи от държавата (@see deals_InvoiceMaster)
+        if (($rec->contragentClassId ?? null) == crm_Persons::getClassId()) {
+            $form->setField('uicNo', 'caption=Получател->ЕГН');
+            $form->setFieldType('uicNo', 'bglocal_EgnType');
+        } elseif (!empty($rec->contragentCountryId)) {
+            $form->setFieldType('uicNo', "drdata_type_Uic(countryId={$rec->contragentCountryId})");
         }
 
         $form->input('deliveryTermId');
@@ -425,7 +456,7 @@ abstract class deals_QuotationMaster extends core_Master
     {
         // Ако има реф да се показва към името му
         $reff = $mvc->getVerbal($id, 'reff');
-        if (strlen($reff) != 0) {
+        if (strlen((string) $reff) != 0) {
             $docName .= "({$reff})";
         }
     }
@@ -502,7 +533,7 @@ abstract class deals_QuotationMaster extends core_Master
 
             if(!Mode::isReadOnly() && !Mode::is('text', 'plain')){
                 $folderCover = doc_Folders::getCover($rec->folderId);
-                if($folderCover->that != $rec->contragentId || $folderCover->getClassId() != $rec->contragentClassId){
+                if(!empty($row->company) && ($folderCover->that != $rec->contragentId || $folderCover->getClassId() != $rec->contragentClassId)){
                     $row->company = "<span class ='red'>{$row->company}</span>";
                     $row->company = ht::createHint($row->company, 'Контрагента в офертата, се различава от този в папката', 'error', false);
                 }
@@ -532,11 +563,15 @@ abstract class deals_QuotationMaster extends core_Master
 
             $fld = (($rec->tplLang ?? null) == 'bg') ? 'commonNameBg' : 'commonName';
             $row->mycompanyCountryId = drdata_Countries::getVerbal($ownCompanyData->countryId, $fld);
-            $row->contragentCountryId = drdata_Countries::getVerbal($cData->countryId, $fld);
+            $row->contragentCountryId = drdata_Countries::getVerbal($rec->contragentCountryId ?? $cData->countryId, $fld);
 
+            // Адресните данни се показват както са записани в офертата, защото
+            // потребителят може да ги е коригирал за конкретния документ. Само
+            // ако липсват в записа, се пада на визитката
             foreach (array('pCode', 'place', 'address') as $fld) {
-                if ($cData->{$fld}) {
-                    $row->{"contragent{$fld}"} = $Varchar->toVerbal($cData->{$fld});
+                $contragentValue = !empty($rec->{$fld}) ? $rec->{$fld} : $cData->{$fld};
+                if ($contragentValue) {
+                    $row->{"contragent{$fld}"} = $Varchar->toVerbal($contragentValue);
                 }
 
                 if ($ownCompanyData->{$fld}) {
@@ -545,12 +580,43 @@ abstract class deals_QuotationMaster extends core_Master
                 }
             }
 
+            // Националният номер на фирма и на лице се казва различно
+            $isPerson = $contragent->getInstance() instanceof crm_Persons;
+            if (!empty($rec->uicNo)) {
+                $row->contragentUicCaption = $isPerson ? tr('|ЕГН|*') : tr('ЕИК||TAX ID');
+            }
+
+            // Имената на 'Моята фирма' и на контрагента са линкове към визитките
+            // им, но не и в разпечатка/текстов вид (@see deals_Helper)
+            $makeLink = (!Mode::is('pdf') && !Mode::is('text', 'xhtml') && !Mode::is('text', 'plain'));
+            if ($makeLink === true) {
+                $row->MyCompany = ht::createLink($row->MyCompany, crm_Companies::getSingleUrlArray($ownCompanyData->companyId))->getContent();
+
+                // При контрагент лице името му е в 'person', а в 'company' стои
+                // фирмата, в която работи - тя сочи другаде и не се линква
+                $nameFld = $isPerson ? 'person' : 'company';
+                if (!empty($row->{$nameFld})) {
+                    $row->{$nameFld} = ht::createLink($row->{$nameFld}, $contragent->getInstance()->getSingleUrlArray($rec->contragentId))->getContent();
+                }
+            }
+
+            // ДДС и националният номер на 'Моята фирма' - ДДС номерът се показва
+            // само ако се различава от националния (@see deals_Helper)
+            $myUic = $ownCompanyData->uicId ?? drdata_Vats::getUicByVatNo($ownCompanyData->vatNo);
+            if (!empty($ownCompanyData->vatNo) && $myUic != $ownCompanyData->vatNo) {
+                $row->MyCompanyVatNo = core_Type::getByName('drdata_VatType')->toVerbal($ownCompanyData->vatNo);
+            }
+
+            if (!empty($myUic)) {
+                $row->uicId = $myUic;
+            }
 
             if (($rec->currencyRate ?? null) == 1) {
                 unset($row->currencyRate);
             }
 
             $isPlain = Mode::is('text', 'plain');
+            $row->others = $row->others ?? '';
             if (!empty($rec->others)) {
                 $others = explode('<br>', $row->others);
                 $row->others = '';
@@ -563,7 +629,7 @@ abstract class deals_QuotationMaster extends core_Master
                 if ($Driver = cond_DeliveryTerms::getTransportCalculator($rec->deliveryTermId)) {
                     $deliveryDataArr = $Driver->getVerbalDeliveryData($rec->deliveryTermId, $rec->deliveryData, get_called_class());
                     foreach ($deliveryDataArr as $delObj){
-                        $row->deliveryBlock .= "<li>{$delObj->caption}: {$delObj->value}</li>";
+                        $row->deliveryBlock = ($row->deliveryBlock ?? '') . "<li>{$delObj->caption}: {$delObj->value}</li>";
                     }
                 }
             }
@@ -584,13 +650,13 @@ abstract class deals_QuotationMaster extends core_Master
                 $deliveryAdress .= cond_DeliveryTerms::addDeliveryTermLocation($rec->deliveryTermId, $rec->contragentClassId, $rec->contragentId, null, $placeId, $rec->deliveryData, doc_Containers::getDocument($rec->containerId));
             }
 
-            if(isset($rec->deliveryTermId) && !Mode::isReadOnly() && !Mode::is('text', 'plain')){
+            if(isset($rec->deliveryTermId) && !empty($row->deliveryTermId) && !Mode::isReadOnly() && !Mode::is('text', 'plain')){
                 $row->deliveryTermId = ht::createLink($row->deliveryTermId, cond_DeliveryTerms::getSingleUrlArray($rec->deliveryTermId));
             }
 
             if (!empty($deliveryAdress)) {
                 if(isset($rec->deliveryTermId)){
-                    $row->deliveryTermId = "{$row->deliveryTermId}, {$deliveryAdress}";
+                    $row->deliveryTermId = !empty($row->deliveryTermId) ? "{$row->deliveryTermId}, {$deliveryAdress}" : $deliveryAdress;
                 } else {
                     $row->deliveryPlaceId = $deliveryAdress;
                 }
@@ -749,7 +815,7 @@ abstract class deals_QuotationMaster extends core_Master
                         $value = isset($emails[0]) ? $emails[0] : null;
                     } elseif ($fld == 'tel') {
                         $tels = drdata_PhoneType::toArray($data->{$fld});
-                        if(is_object($tels[0])){
+                        if(isset($tels[0]) && is_object($tels[0])){
                             $value = '+' . $tels[0]->countryCode . $tels[0]->areaCode . $tels[0]->number;
                         } else {
                             $value = null;
@@ -764,6 +830,11 @@ abstract class deals_QuotationMaster extends core_Master
         // Държавата
         $newRec->contragentCountryId = (isset($fields['countryId'])) ? $fields['countryId'] : $data->countryId;
         expect(drdata_Countries::fetch($newRec->contragentCountryId), 'Невалидна държава');
+
+        // ДДС и националният номер - извън горния цикъл, защото имената на
+        // полетата не съвпадат с тези в данните на контрагента
+        $newRec->contragentVatNo = (isset($fields['vatNo'])) ? $fields['vatNo'] : $data->vatNo;
+        $newRec->uicNo = (isset($fields['uicId'])) ? $fields['uicId'] : $data->uicId;
         $newRec->template = static::getDefaultTemplate($newRec);
 
         if(!empty($fields['others'])){
@@ -936,7 +1007,7 @@ abstract class deals_QuotationMaster extends core_Master
             'deliveryTime' => $rec->deliveryTime,
             'deliveryTermTime' => $rec->deliveryTermTime,
             'deliveryData' => $rec->deliveryData,
-            'deliveryCalcTransport' => $rec->deliveryCalcTransport,
+            'deliveryCalcTransport' => $rec->deliveryCalcTransport ?? null,
             'vatExceptionId' => $rec->vatExceptionId,
             'deliveryLocationId' => crm_Locations::fetchField(array("#title = '[#1#]' AND #contragentCls = '{$rec->contragentClassId}' AND #contragentId = '{$rec->contragentId}'", $rec->deliveryPlaceId), 'id'),
         );
@@ -1121,6 +1192,10 @@ abstract class deals_QuotationMaster extends core_Master
                         $this->logErr($errorMsg, $rec->id);
                     }
 
+                    if(empty($sId)){
+                        followRetUrl(null, $errorMsg, 'error');
+                    }
+
                     $saleRec = sales_Sales::fetchRec($sId);
                     foreach ($saveRecs as $dRec){
 
@@ -1147,10 +1222,6 @@ abstract class deals_QuotationMaster extends core_Master
                         }
                     }
 
-                    if(empty($sId)){
-                        followRetUrl(null, $errorMsg, 'error');
-                    }
-
                     // Редирект към сингъла на новосъздадената сделка
                     return new Redirect(array($DealClassName, 'single', $sId));
                 }
@@ -1171,26 +1242,26 @@ abstract class deals_QuotationMaster extends core_Master
      */
     protected static function on_AfterPrepareSingle($mvc, &$res, &$data)
     {
-        $dData = $data->{$mvc->mainDetail};
+        $dData = $data->{$mvc->mainDetail} ?? null;
         if (!empty($dData->summary)) {
             $data->row = (object) ((array)$data->row + (array)$dData->summary);
         }
 
-        if ($dData->countNotOptional && $dData->notOptionalHaveOneQuantity) {
+        if (!empty($dData->countNotOptional) && !empty($dData->notOptionalHaveOneQuantity) && !empty($dData->rows)) {
             core_Lg::push($data->rec->tplLang);
             $keys = array_keys($dData->rows);
-            $firstProductRow = $dData->rows[$keys[0]][0];
+            $firstProductRow = $dData->rows[$keys[0]][0] ?? null;
 
-            if ($firstProductRow->tolerance) {
-                $data->row->others .= '<li>' . tr('Толеранс к-во') .": {$firstProductRow->tolerance}</li>";
+            if ($firstProductRow->tolerance ?? null) {
+                $data->row->others = ($data->row->others ?? '') . '<li>' . tr('Толеранс к-во') .": {$firstProductRow->tolerance}</li>";
             }
 
             if (isset($firstProductRow->term)) {
-                $data->row->others .= '<li>' . tr('Срок за д-ка') .": {$firstProductRow->term}</li>";
+                $data->row->others = ($data->row->others ?? '') . '<li>' . tr('Срок за д-ка') .": {$firstProductRow->term}</li>";
             }
 
             if (isset($firstProductRow->weight)) {
-                $data->row->others .= '<li>' . tr('Транспортно тегло') .": {$firstProductRow->weight}</li>";
+                $data->row->others = ($data->row->others ?? '') . '<li>' . tr('Транспортно тегло') .": {$firstProductRow->weight}</li>";
             }
             core_Lg::pop();
         }
@@ -1309,10 +1380,10 @@ abstract class deals_QuotationMaster extends core_Master
         $query->orderBy('optional=ASC,id=ASC');
         $dRecs = $query->fetchAll();
 
-        deals_Helper::fillRecs($Detail, $dRecs, $rec);
+        deals_Helper::fillRecs($Detail, $dRecs, $rec, $Detail->map);
 
         foreach ($dRecs as $dRec) {
-            $index = "{$dRec->productId}|{$dRec->optional}|{$dRec->packagingId}|" .md5($dRec->notes);
+            $index = "{$dRec->productId}|{$dRec->optional}|{$dRec->packagingId}|" . md5((string) $dRec->notes);
 
             if (!array_key_exists($index, $products)) {
                 $title = cat_Products::getTitleById($dRec->productId);
@@ -1387,7 +1458,7 @@ abstract class deals_QuotationMaster extends core_Master
                 $DealClass->logWrite('Създаване от оферта', $sId);
             } catch(core_exception_Expect $e){
                 reportException($e);
-                $this->logErr($e->dump[0], $rec->id);
+                $this->logErr($e->dump[0] ?? $e->getMessage(), $rec->id);
                 followRetUrl(null, "Проблем при създаване на {$dealSingleTitle} от оферта", 'error');
             }
         }

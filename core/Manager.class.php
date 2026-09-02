@@ -150,8 +150,17 @@ class core_Manager extends core_Mvc
      * Дали в листовия изглед да се показват заглавията на колоните на таблицата
      */
     public $listTableHideHeaders = false;
-    
-    
+
+
+    /**
+     * Допълнителен(ни) CSS клас(ове), добавяни към 'listTopContainer' в
+     * renderListLayout_()/renderDetailLayout_() - за да може конкретен
+     * мениджър/детайл да променя оформлението на този див без да
+     * override-ва целия рендер.
+     */
+    public $listTopContainerHtmlClass;
+
+
     /****************************************************************************************
      *                                                                                      *
      *       ПРЕДЕФИНИРАНИ ДЕЙСТВИЯ (ЕКШЪНИ) НА МЕНИДЖЪРА                                   *
@@ -557,7 +566,7 @@ class core_Manager extends core_Mvc
         $id = null;
         
         if ($rec) {
-            $id = $rec->id;
+            $id = $rec->id ?? null;
         }
         if ($type == 'write') {
             $this->logWrite($msg, $id);
@@ -694,52 +703,93 @@ class core_Manager extends core_Mvc
         // без опции или с налични само една
         if(isset($data->listFilter)){
             core_Debug::startTimer('HIDE_EMPTY_OPTIONS');
-            $showFields = arr::make($data->listFilter->showFields, true);
+            $showFields = arr::make($data->listFilter->showFields ?? null, true);
 
             foreach ($showFields as $name) {
+                core_Debug::startTimer("HIDE_EMPTY_OPTIONS_{$name}");
                 $Type = $data->listFilter->getField($name);
-                $options = array();
 
-                if (in_array($Type->input ?? null, array('hidden', 'none')) || ($Type->alwaysShowInListFilter ?? null)) continue;
+                if (in_array($Type->input ?? null, array('hidden', 'none')) || ($Type->alwaysShowInListFilter ?? null)) {
+                    core_Debug::stopTimer("HIDE_EMPTY_OPTIONS_{$name}");
+                    continue;
+                }
 
-                try {
-                    // Обхождат се всички полета от тип енум/кей/кейлист/сет и се намират наличните за избор опции
-                    $skip = true;
-                    if ($Type->type instanceof type_Enum || $Type->type instanceof type_Key) {
-                        if (method_exists($Type->type, 'prepareOptions')) {
-                            $options = $Type->type->prepareOptions();
-                        } else {
-                            $options = $Type->type->options;
-                        }
+                // Как ще се показва полето се кешира за час, защото за да се определи, трябва да се
+                // подготвят опциите му. В манипулатора влизат и параметрите на типа, текущия потребител
+                // и езика, защото опциите на някои полета се ограничават спрямо тях
+                $typeParams = array();
+                foreach ((array) $Type->type->params as $pName => $pValue) {
+                    $typeParams[$pName] = is_object($pValue) ? get_class($pValue) : $pValue;
+                }
+                $cacheHandler = md5($mvc->className . '|' . $name . '|' . get_class($Type->type) . '|' . serialize($typeParams) . '|' . core_Users::getCurrent() . '|' . core_Lg::getCurrent());
 
-                        $skip = isset($Type->type->params['allowEmpty']) && isset($options['']);
-                    } elseif ($Type->type instanceof type_Keylist) {
-                        $options = $Type->type->getSuggestions();
-                        $skip = false;
-                    } elseif ($Type->type instanceof type_Set) {
-                        $options = $Type->type->suggestions;
-                        $skip = false;
+                // Кешът зависи от самия модел, но и от модела, от който идват опциите на полето
+                // (key/keylist сочат към чужд модел) - иначе промяна в него нямаше да се усети
+                $depends = array($mvc);
+                $optionsMvc = $Type->type->params['mvc'] ?? null;
+                if (!empty($optionsMvc) && (is_object($optionsMvc) || cls::load($optionsMvc, true))) {
+                    $OptionsMvc = cls::get($optionsMvc);
+                    if (($OptionsMvc instanceof core_Mvc) && $OptionsMvc->className != $mvc->className) {
+                        $depends[] = $OptionsMvc;
                     }
-                } catch (Exception $t) {
-                    wp('Грешка при подготовка на опциите за филтъра', $Type, $showFields, $name, $mvc);
-                } catch (Error $t) {
-                    wp('Грешка при подготовка на опциите за филтъра', $Type, $showFields, $name, $mvc);
-                } catch (Throwable $t) {
-                    wp('Грешка при подготовка на опциите за филтъра', $Type, $showFields, $name, $mvc);
                 }
 
-                if ($skip) continue;
-                unset($options[''], $options[' ']);
+                $input = core_Cache::get('listFilterOpt', $cacheHandler, 600, $depends);
 
-                // Ако има само една опция или няма - няма да се показва полето във филтъра
-                $count = countR($options);
-                if ($count == 1) {
-                    unset($showFields[$name]);
-                    $data->listFilter->setField($name, 'input=hidden');
-                } elseif ($count == 0) {
-                    unset($showFields[$name]);
-                    $data->listFilter->setField($name, 'input=none');
+                if ($input === false) {
+                    $options = array();
+                    $hasError = false;
+
+                    try {
+                        // Обхождат се всички полета от тип енум/кей/кейлист/сет и се намират наличните за избор опции
+                        $skip = true;
+                        if ($Type->type instanceof type_Enum || $Type->type instanceof type_Key) {
+                            if (method_exists($Type->type, 'prepareOptions')) {
+                                $options = $Type->type->prepareOptions();
+                            } else {
+                                $options = $Type->type->options;
+                            }
+
+                            $skip = isset($Type->type->params['allowEmpty']) && isset($options['']);
+                        } elseif ($Type->type instanceof type_Keylist) {
+                            $options = $Type->type->getSuggestions();
+                            $skip = false;
+                        } elseif ($Type->type instanceof type_Set) {
+                            $options = $Type->type->suggestions;
+                            $skip = false;
+                        }
+                    } catch (Exception $t) {
+                        $hasError = true;
+                        wp('Грешка при подготовка на опциите за филтъра', $Type, $showFields, $name, $mvc);
+                    } catch (Error $t) {
+                        $hasError = true;
+                        wp('Грешка при подготовка на опциите за филтъра', $Type, $showFields, $name, $mvc);
+                    } catch (Throwable $t) {
+                        $hasError = true;
+                        wp('Грешка при подготовка на опциите за филтъра', $Type, $showFields, $name, $mvc);
+                    }
+
+                    if ($skip) {
+                        $input = 'show';
+                    } else {
+                        unset($options[''], $options[' ']);
+
+                        // Ако има само една опция или няма - няма да се показва полето във филтъра
+                        $count = countR($options);
+                        $input = ($count == 1) ? 'hidden' : (($count == 0) ? 'none' : 'show');
+                    }
+
+                    // При грешка резултатът не се кешира, за да се опита пак на следващия хит
+                    if (!$hasError) {
+                        core_Cache::set('listFilterOpt', $cacheHandler, $input, 600, $depends);
+                    }
                 }
+
+                if ($input != 'show') {
+                    unset($showFields[$name]);
+                    $data->listFilter->setField($name, "input={$input}");
+                }
+                core_Debug::stopTimer("HIDE_EMPTY_OPTIONS_{$name}");
             }
 
             $data->listFilter->showFields = implode(',', $showFields);
@@ -869,7 +919,7 @@ class core_Manager extends core_Mvc
         
         if (isset($data->recs) && !empty($data->recs)) {
             foreach ($data->recs as $id => $rec) {
-                $data->rows[$id] = $this->recToVerbal($rec, arr::combine($data->listFields, '-list'));
+                $data->rows[$id] = $this->recToVerbal($rec, arr::combine($data->listFields ?? array(), '-list'));
             }
         }
         
@@ -1006,6 +1056,7 @@ class core_Manager extends core_Mvc
         
         // Попълваме формата-филтър
         $tpl->append($this->renderListFilter($data), 'ListFilter');
+        $tpl->replace($this->getAutoListTopContainerClass($data), 'LIST_TOP_CONTAINER_AUTO_CLASS');
         
         // Попълваме обобщената информация
         $tpl->append($this->renderListSummary($data), 'ListSummary');
@@ -1034,12 +1085,18 @@ class core_Manager extends core_Mvc
     public function renderListLayout_($data)
     {
         $className = cls::getClassName($this);
-        
+
+        setPartIfNot($data, 'listTopContainerHtmlClass', $this->listTopContainerHtmlClass);
+        $listTopContainerClass = 'listTopContainer clearfix21';
+        if (!empty($data->listTopContainerHtmlClass)) {
+            $listTopContainerClass .= ' ' . $data->listTopContainerHtmlClass;
+        }
+
         // Шаблон за листовия изглед
         $listLayout = new ET("
             <div class='clearfix21 listBlock {$className}'>
                 [#ListTitle#]
-                <div class='listTopContainer clearfix21'>
+                <div class='{$listTopContainerClass}[#LIST_TOP_CONTAINER_AUTO_CLASS#]'>
                     [#ListFilter#]
                     [#ListSummary#]
                 </div>
@@ -1062,6 +1119,60 @@ class core_Manager extends core_Mvc
         jquery_Jquery::run( $listLayout, 'toggleListFilter();', true);
 
         return $listLayout;
+    }
+
+
+    /**
+     * Връща автоматичния CSS клас за стандартен вертикален филтър с повече от 5 видими полета
+     *
+     * @param stdClass $data
+     */
+    protected function getAutoListTopContainerClass($data)
+    {
+        $listFilter = $data->listFilter ?? null;
+
+        if (!is_object($listFilter) || ($listFilter->hide ?? null) === true ||
+            ($listFilter->view ?? 'vertical') != 'vertical' ||
+            !empty($listFilter->fieldsLayout)) {
+
+            return '';
+        }
+
+        $showFields = arr::make($listFilter->showFields ?? null, true);
+        if (countR($showFields) <= 5) {
+
+            return '';
+        }
+
+        $fields = $listFilter->selectFields("#input != 'hidden' && #input != 'none'", $showFields);
+
+        foreach ($fields as $name => $field) {
+            if (!empty($field->displayInToolbar)) {
+                unset($fields[$name]);
+            }
+        }
+
+        return countR($fields) > 5 ? ' twoColsFilter' : '';
+    }
+
+
+    /**
+     * Проверява дали листовият филтър използва адаптивния двуколонен изглед
+     *
+     * @param stdClass $data
+     *
+     * @return bool
+     */
+    protected function useTwoColsListFilter($data)
+    {
+        if ($this->getAutoListTopContainerClass($data)) {
+
+            return true;
+        }
+
+        $classes = ' ' . trim($data->listTopContainerHtmlClass ?? $this->listTopContainerHtmlClass ?? '') . ' ';
+
+        return strpos($classes, ' twoColsFilter ') !== false;
     }
     
     
@@ -1122,6 +1233,12 @@ class core_Manager extends core_Mvc
 
             $tpl = new ET("<div class='listFilter'>[#1#]</div>", $listFilter->renderHtml(null, $listFilter->rec));
             core_Form::preventDoubleSubmission($tpl, $listFilter);
+            if ($this->useTwoColsListFilter($data)) {
+                $tpl->push('css/twoColsFilter.css', 'CSS');
+                $tpl->push('js/twoColsFilter.js', 'JS');
+                jquery_Jquery::run($tpl, 'render_setTwoColsFilterWidth();');
+                jquery_Jquery::runAfterAjax($tpl, 'setTwoColsFilterWidth');
+            }
             
             return $tpl;
         }
@@ -1279,6 +1396,9 @@ class core_Manager extends core_Mvc
 
         if ($duration > 0 && $userId > 0 && !isset(self::$cacheRights[$userId])) {
             self::$cacheRights[$userId] = core_Cache::get('RightsForObject', $userId);
+            if (!is_array(self::$cacheRights[$userId])) {
+                self::$cacheRights[$userId] = array();
+            }
         }
 
         $key = crc32("{$className}|{$action}") . "|" . (is_scalar($id) ? $id : serialize($id)) . "|" . crc32(serialize($rec));
@@ -1418,14 +1538,14 @@ class core_Manager extends core_Mvc
                             $select->append('</optgroup>');
                         }
                         $element = 'optgroup';
-                        $attr = $title->attr;
+                        $attr = $title->attr ?? array();
                         $attr['label'] = $title->title;
                         $option = ht::createElement($element, $attr);
                         $select->append($option);
                         $openGroup = true;
                         continue;
                     }
-                    $attr = $title->attr;
+                    $attr = $title->attr ?? array();
                     $title = $title->title;
                 }
                 $attr['value'] = $id;

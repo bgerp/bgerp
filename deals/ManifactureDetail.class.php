@@ -58,6 +58,18 @@ abstract class deals_ManifactureDetail extends doc_Detail
 
 
     /**
+     * В кои състояния на мастъра може да се редактира детайла
+     */
+    protected $allowedInMasterStates = array('draft');
+
+
+    /**
+     * Общ клас за таблиците в производствените документи
+     */
+    public $detailsTableClass = 'listTable manifactureDetailsTable';
+
+
+    /**
      * След описанието на модела
      */
     public static function on_AfterDescription(&$mvc)
@@ -78,7 +90,7 @@ abstract class deals_ManifactureDetail extends doc_Detail
     {
         $mvc->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,maxSuggestions=100,forceAjax,titleFld=name,forceOpen)', 'class=w100,caption=Артикул,mandatory', 'tdClass=productCell leftCol wrap,silent,removeAndRefreshForm=quantity|measureId|packagingId|packQuantity|isOutsourced');
         $mvc->FLD('packagingId', 'key(mvc=cat_UoM, select=shortName, select2MinItems=0)', 'caption=Мярка', 'tdClass=small-field nowrap,smartCenter,mandatory,input=hidden,silent');
-        $mvc->FNC('packQuantity', 'double(min=0)', 'caption=Количество,input=input,mandatory,smartCenter');
+        $mvc->FNC('packQuantity', 'double(min=0,smartRound)', 'caption=Количество,input=input,mandatory,smartCenter');
         $mvc->FLD('quantityInPack', 'double(smartRound)', 'input=none,notNull,value=1');
         
         $mvc->FLD('quantity', 'double', 'caption=Количество,input=none,smartCenter');
@@ -87,8 +99,8 @@ abstract class deals_ManifactureDetail extends doc_Detail
 
         $mvc->setDbIndex('productId,packagingId');
     }
-    
-    
+
+
     /**
      * Подготовка на филтър формата
      */
@@ -138,7 +150,7 @@ abstract class deals_ManifactureDetail extends doc_Detail
         }
         $form->setFieldTypeParams('productId', $params);
         
-        if (isset($form->rec->id) && $data->action != 'replaceproduct') {
+        if (isset($form->rec->id) && ($data->action ?? null) != 'replaceproduct') {
             $data->form->setReadOnly('productId');
         }
     }
@@ -156,7 +168,7 @@ abstract class deals_ManifactureDetail extends doc_Detail
             $form->setDefault('measureId', $measureId);
             
             if(empty($form->_replaceProduct)){
-                $packs = cat_Products::getPacks($rec->productId, $rec->packagingId);
+                $packs = cat_Products::getPacks($rec->productId, $rec->packagingId ?? null);
 
                 // Ако е само една разрешената мярка да се зареди тя
                 if(isset($rec->_onlyAllowedPackId)){
@@ -186,8 +198,15 @@ abstract class deals_ManifactureDetail extends doc_Detail
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         if (($action == 'edit' || $action == 'delete' || $action == 'add') && isset($rec)) {
-            if ($mvc->Master->fetchField($rec->{$mvc->masterKey}, 'state') != 'draft') {
+            $allowedInMasterStates = arr::make($mvc->allowedInMasterStates, true);
+            $masterState = $mvc->Master->fetchField($rec->{$mvc->masterKey}, 'state');
+
+            if (!in_array($masterState, $allowedInMasterStates)) {
                 $requiredRoles = 'no_one';
+            } elseif($masterState == 'active' && !empty($mvc->Master->requiredRolesToEditWhenActive)){
+                if(!haveRole($mvc->Master->requiredRolesToEditWhenActive, $userId)){
+                    $requiredRoles = 'no_one';
+                }
             }
         }
         
@@ -208,6 +227,7 @@ abstract class deals_ManifactureDetail extends doc_Detail
         if (!empty($data->toolbar->buttons['btnAdd']) && isset($mvc->defaultMeta)) {
             unset($data->toolbar->buttons['btnAdd']);
             $products = cat_Products::getByProperty($mvc->defaultMeta, null, 1);
+            $error = '';
             
             if (!countR($products)) {
                 $error = 'error=Няма артикули, ';

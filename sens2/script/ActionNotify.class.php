@@ -86,7 +86,7 @@ class sens2_script_ActionNotify
     public function run($rec)
     {
         // Ако има условие и то не е изпълнено - не правим нищо
-        if (trim($rec->cond)) {
+        if (trim($rec->cond ?? '')) {
             $cond = sens2_Scripts::calcExpr($rec->cond, $rec->scriptId);
             if ($cond === sens2_Scripts::CALC_ERROR) {
                 
@@ -99,7 +99,7 @@ class sens2_script_ActionNotify
         }
  
         // Проверяваме дали семафора позволява да се изпрати нотификацията
-        if(!sens2_Semaphores::check($rec->id, crc32($rec->message), $rec->onlyDifferent, $rec->minNotifyTime, $rec->repeat)) {
+        if(!sens2_Semaphores::check($rec->id, crc32($rec->message), $rec->onlyDifferent ?? null, $rec->minNotifyTime ?? null, $rec->repeat ?? null)) {
 
             return 'active';
         }

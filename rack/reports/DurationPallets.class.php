@@ -85,7 +85,7 @@ class rack_reports_DurationPallets extends frame2_driver_TableData
         $fieldset->FLD('from', 'date', 'caption=От,after=title,single=none');
         $fieldset->FLD('to', 'date', 'caption=До,after=from,single=none');
         
-        $fieldset->FLD('storeId', 'keylist(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,placeholder=Всички,after=to,single=none');
+        $fieldset->FLD('storeId', 'keylist(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,placeholderType=all,after=to,single=none');
         
        
     }
@@ -105,7 +105,8 @@ class rack_reports_DurationPallets extends frame2_driver_TableData
         
         $q = rack_OccupancyOfRacks::getQuery();
         $storeIdArr = arr::extractValuesFromArray($q->fetchAll(), 'storeId');
-        
+
+        $storeSuggestions = array();
         foreach ($storeIdArr as $v){
             $storeSuggestions[$v] = store_Stores::getTitleById($v);
         }
@@ -274,6 +275,7 @@ class rack_reports_DurationPallets extends frame2_driver_TableData
         
         
         $marker = 0;
+        $storeVerb = '';
         if (isset($data->rec->storeId)) {
             foreach (type_Keylist::toArray($data->rec->storeId) as $storeId) {
                 $marker++;

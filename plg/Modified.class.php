@@ -48,14 +48,18 @@ class plg_Modified extends core_Plugin
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
-        if ($rec->modifiedBy == -1) {
-            $row->modifiedBy = core_Setup::get('SYSTEM_NICK');
-        } elseif ($rec->modifiedBy == 0) {
-            $row->modifiedBy = '@anonym';
-        } else {
-            $row->modifiedBy = core_Users::getVerbal($rec->modifiedBy, 'nick');
+        if (property_exists($rec, 'modifiedBy')) {
+            if ($rec->modifiedBy == -1) {
+                $row->modifiedBy = core_Setup::get('SYSTEM_NICK');
+            } elseif ($rec->modifiedBy == 0) {
+                $row->modifiedBy = '@anonym';
+            } else {
+                $row->modifiedBy = core_Users::getVerbal($rec->modifiedBy, 'nick');
+            }
         }
-        $row->modifiedDate = dt::mysql2verbal($rec->modifiedOn, 'd-m-Y');
+        if (property_exists($rec, 'modifiedOn')) {
+            $row->modifiedDate = dt::mysql2verbal($rec->modifiedOn, 'd-m-Y');
+        }
     }
     
     
@@ -81,7 +85,7 @@ class plg_Modified extends core_Plugin
         }
         
         if ($modRecs) {
-            $res .= "<li style='color:green'>Обновено времето за модифициране на ${modRecs} запис(а)</li>";
+            $res .= "<li style='color:green'>Обновено времето за модифициране на {$modRecs} запис(а)</li>";
         }
     }
 }

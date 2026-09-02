@@ -129,7 +129,7 @@ class rack_ZoneDetails extends core_Detail
     protected static function on_BeforeRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         if (is_object($rec)) {
-            $packRec = $mvc->cachePacks["{$rec->productId}|{$rec->packagingId}"];
+            $packRec = $mvc->cachePacks["{$rec->productId}|{$rec->packagingId}"] ?? null;
             $rec->quantityInPack = (is_object($packRec)) ? $packRec->quantity : 1;
             $rec->movementQuantity = $rec->movementQuantity / $rec->quantityInPack;
             $rec->documentQuantity = $rec->documentQuantity / $rec->quantityInPack;
@@ -204,7 +204,7 @@ class rack_ZoneDetails extends core_Detail
 
             $row->ROW_ATTR['class'] = 'row-added';
             core_Debug::startTimer("GET_MOVEMENTS_PREPARE_INLINE_MOVEMENTS");
-            $movementsHtml = self::getInlineMovements($rec, $data->masterData->rec, $data->filter);
+            $movementsHtml = self::getInlineMovements($rec, $data->masterData->rec, $data->filter ?? null);
             core_Debug::stopTimer("GET_MOVEMENTS_PREPARE_INLINE_MOVEMENTS");
             if(!empty($movementsHtml)){
                 $row->movementsHtml = $movementsHtml;
@@ -638,7 +638,7 @@ class rack_ZoneDetails extends core_Detail
         }
 
         $rec->_movements = $data->recs;
-		if (countR($rec->_movements)) {
+		if (countR($rec->_movements ?? null)) {
 			$allocated += $rec->_movements;
 		}
 
@@ -681,9 +681,22 @@ class rack_ZoneDetails extends core_Detail
                 $availableQty = rack_Pallets::fetchField($mRec->palletId, 'quantity');
                 if (!empty($availableQty) && abs($mRec->quantity - $availableQty) < 0.0001) {
                     if (!empty($rRow->movement)) {
+                        $positionInfo = rack_Pallets::getPositionQuantityInfo($mRec->position, $mRec->storeId, $mRec->productId);
+                        $positionRows = array();
+                        foreach ($positionInfo->rows as $palletRec) {
+                            $batch = !empty($palletRec->batch) ? ", партида={$palletRec->batch}" : '';
+                            $positionRows[] = "#{$palletRec->id}=" . round($palletRec->quantity, 5) . $batch;
+                        }
+                        $positionRows = countR($positionRows) ? implode(', ', $positionRows) : 'няма';
+                        $diagnosticTitle = "Цялото налично количество на позицията! Диагностика: движение #{$mRec->id}; състояние={$mRec->state}; количество на движението="
+                            . round($mRec->quantity, 5)
+                            . "; свързан палет #{$mRec->palletId}=" . round($availableQty, 5)
+                            . "; общо на позицията=" . round($positionInfo->totalQuantity, 5)
+                            . "; активни записи={$positionRows}";
+                        $diagnosticTitle = ht::escapeAttr($diagnosticTitle);
                         $rRow->movement = preg_replace(
                             '/\(([^)]+)\)(?=.*»)/u',
-                            '( <span style="background:#c0c0c0; border-radius:6px; padding:1px 6px; font-weight:bold; color:#000;" title="Цялото налично количество на позицията!">$1</span> )',
+                            '( <span style="background:#c0c0c0; border-radius:6px; padding:1px 6px; font-weight:bold; color:#000;" title="' . $diagnosticTitle . '">$1</span> )',
                             $rRow->movement,
                             1 // само първото срещане
                         );
@@ -807,7 +820,7 @@ class rack_ZoneDetails extends core_Detail
         Mode::push('text', 'plain');
         $batch = $Def->toVerbal($rec->batch);
         Mode::pop('text');
-        $batchCaption = str_replace(',', ' ', $batch);
+        $batchCaption = str_replace(',', ' ', $batch ?? '');
         $key = md5($rec->batch);
 
         // Добавяне на партидата от изходния ред
@@ -835,7 +848,7 @@ class rack_ZoneDetails extends core_Detail
 
             Mode::push('text', 'plain');
             $batchCaption = $Def->toVerbal($exBatch);
-            $batchCaption = str_replace(',', ' ', $batchCaption);
+            $batchCaption = str_replace(',', ' ', $batchCaption ?? '');
             Mode::pop('text');
 
             $form->FLD($key, "double(min=0)", "caption=Други партиди в склада->{$batchCaption}");
@@ -1024,6 +1037,7 @@ class rack_ZoneDetails extends core_Detail
                                  'batch' => $batch,
                                  'workerId' => $workerId,
                                  'quantity' => 0,
+                                 'position' => rack_PositionType::FLOOR,
                                  'positionTo' => rack_PositionType::FLOOR,
         );
 

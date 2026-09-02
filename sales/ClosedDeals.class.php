@@ -37,7 +37,7 @@ class sales_ClosedDeals extends deals_ClosedDeals
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'sales_Wrapper, acc_plg_Contable, plg_RowTools, plg_Sorting,doc_DocumentPlg, doc_plg_HidePrices, plg_Search';
+    public $loadList = 'sales_Wrapper, acc_plg_Contable, plg_RowTools2, plg_Sorting,doc_DocumentPlg, doc_plg_HidePrices, plg_Search';
     
     
     /**
@@ -180,7 +180,7 @@ class sales_ClosedDeals extends deals_ClosedDeals
      */
     public static function isSaleDiffAllowed($saleRec)
     {
-        $diff = round($saleRec->amountBl, 2);
+        $diff = round($saleRec->amountBl ?? 0, 2);
         $conf = core_Packs::getConfig('acc');
         $res = ($diff >= -1 * $conf->ACC_MONEY_TOLERANCE && $diff <= $conf->ACC_MONEY_TOLERANCE);
         

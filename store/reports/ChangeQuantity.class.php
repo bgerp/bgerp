@@ -5,11 +5,11 @@
  * Драйвер на отчет за Промяна по разполагаемо количество
  *
  *
- * @category  extrapack
+ * @category  bgerp
  * @package   store
  *
  * @author    Gabriela Petrova <gab4eto@gmail.com>
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2026 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -32,6 +32,14 @@ class store_reports_ChangeQuantity extends frame2_driver_TableData
     
     
     /**
+     * Кои полета от листовия изглед да може да се сортират
+     *
+     * @var string
+     */
+    protected $sortableListFields = 'kod,productId,measure,quantity,reservedQuantity,freeQuantity,changeQuantity';
+    
+    
+    /**
      * Кеш на предишните версии
      */
     private static $versionData = array();
@@ -44,8 +52,8 @@ class store_reports_ChangeQuantity extends frame2_driver_TableData
      */
     public function addFields(core_Fieldset &$fieldset)
     {
-        $fieldset->FLD('group', 'keylist(mvc=cat_Groups,select=name)', 'caption=Група,after=title,single=none');
-        $fieldset->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,after=group');
+        $fieldset->FLD('group', 'keylist(mvc=cat_Groups,select=name)', 'caption=Група,placeholderType=all,after=title,single=none');
+        $fieldset->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,placeholderType=all,after=group,single=none');
     }
     
     
@@ -61,8 +69,7 @@ class store_reports_ChangeQuantity extends frame2_driver_TableData
         $form = $data->form;
         $rec = $form->rec;
         
-        
-        if ($rec->id) {
+        if (!empty($rec->id)) {
             $form->setReadOnly('storeId');
         }
     }
@@ -79,73 +86,89 @@ class store_reports_ChangeQuantity extends frame2_driver_TableData
     protected function prepareRecs($rec, &$data = null)
     {
         $recs = array();
-        $products = array();
+        $rec->id = $rec->id ?? 0;
+        $rec->group = $rec->group ?? null;
+        $rec->storeId = $rec->storeId ?? null;
         
-        // Обръщаме се към трудовите договори
+        // Наличностите на артикулите по складове, с данните им от артикулната карта
         $query = store_Products::getQuery();
-        $query->EXT('groupMat', 'cat_Products', 'externalName=groups,externalKey=productId');
-        $query->where('#storeId IS NOT NULL');
+        $query->EXT('groups', 'cat_Products', 'externalName=groups,externalKey=productId');
+        $query->EXT('productCode', 'cat_Products', 'externalName=code,externalKey=productId');
+        $query->EXT('measureId', 'cat_Products', 'externalName=measureId,externalKey=productId');
+        
+        // Филтрирането по склад е в заявката
+        if (isset($rec->storeId)) {
+            $query->where("#storeId = {$rec->storeId}");
+        } else {
+            $query->where('#storeId IS NOT NULL');
+        }
         
         if (isset($rec->group)) {
-            $query->likeKeylist('groupMat', $rec->group);
+            plg_ExpandInput::applyExtendedInputSearch('cat_Products', $query, $rec->group, 'productId');
         }
+        
+        $query->show('id,productId,quantity,reservedQuantity,expectedQuantity,groups,productCode,measureId');
         
         if (!isset(self::$versionData[$rec->id])) {
             self::$versionData[$rec->id] = $this->getVersionBeforeData($rec);
         }
+        
+        // Разполагаемите количества от предишната версия, индексирани по артикул
+        $oldFreeQuantities = array();
         $oldData = self::$versionData[$rec->id];
+        if (is_array($oldData)) {
+            foreach ($oldData as $oData) {
+                if (empty($oData->productId)) {
+                    continue;
+                }
+                $oldFreeQuantities[$oData->productId] = $oData->freeQuantity ?? 0;
+            }
+        }
         
-        $num = 1;
-        
-        // за всеки един индикатор
-        while ($recMaterial = $query->fetch()) { 
-            if (!is_null($rec->storeId) && ($rec->storeId != $recMaterial->storeId)) {
+        // Сумиране на количествата на артикула от всички складове
+        while ($recMaterial = $query->fetch()) {
+            $id = $recMaterial->productId ?? null;
+            if (!$id) {
                 continue;
             }
             
-            $id = $recMaterial->productId;
-            
-            if ($recMaterial->reservedQuantity == null) {
-                $recMaterial->reservedQuantity = 0;
-            }
+            $recMaterial->quantity = $recMaterial->quantity ?? 0;
+            $recMaterial->reservedQuantity = $recMaterial->reservedQuantity ?? 0;
+            $recMaterial->expectedQuantity = $recMaterial->expectedQuantity ?? 0;
             
             // добавяме в масива събитието
             if (!array_key_exists($id, $recs)) {
                 $recs[$id] =
                     (object) array(
                         
-                        'kod' => cat_Products::fetchField($recMaterial->productId, 'code'),
-                        'measure' => cat_Products::getProductInfo($recMaterial->productId)->productRec->measureId,
-                        'productId' => $recMaterial->productId,
+                        'kod' => (!empty($recMaterial->productCode)) ? $recMaterial->productCode : "Art{$id}",
+                        'measure' => $recMaterial->measureId,
+                        'productId' => $id,
                         'quantity' => $recMaterial->quantity,
-                        'group' => cat_Products::fetchField($recMaterial->productId, 'groups'),
+                        'group' => $recMaterial->groups,
                         'reservedQuantity' => $recMaterial->reservedQuantity,
                         'changeQuantity' => '',
-                        'expectedQuantity' => $recMaterial->expectedQuantityTotal
+                        'expectedQuantity' => $recMaterial->expectedQuantity
                     );
             } else {
                 $obj = &$recs[$id];
                 $obj->quantity += $recMaterial->quantity;
-                $obj->expectedQuantity += $recMaterial->expectedQuantityTotal;
+                $obj->expectedQuantity += $recMaterial->expectedQuantity;
                 $obj->reservedQuantity += $recMaterial->reservedQuantity;
             }
         }
         
-        foreach ($recs as $idProd => $products) { 
+        foreach ($recs as $idProd => $productRec) {
+            $productRec->freeQuantity = $productRec->quantity - $productRec->reservedQuantity + $productRec->expectedQuantity;
             
-            $products->freeQuantity = $products->quantity - $products->reservedQuantity;
-            if (is_array($oldData) && countR($oldData)) {
-                foreach ($oldData as $oData) {
-                    if ($oData->productId == $idProd) {
-                        $products->changeQuantity = $products->freeQuantity - $oData->freeQuantity;
-                    }
-                }
+            // Промяната спрямо предишната версия, ако артикула е бил и в нея
+            if (array_key_exists($idProd, $oldFreeQuantities)) {
+                $productRec->changeQuantity = $productRec->freeQuantity - $oldFreeQuantities[$idProd];
             }
         }
         
         usort($recs, function ($a, $b) {
-            
-            return ($a->changeQuantity > $b->changeQuantity) ? 1 : -1;
+            return ($a->changeQuantity ?? 0) <=> ($b->changeQuantity ?? 0);
         });
         
         return $recs;
@@ -188,12 +211,14 @@ class store_reports_ChangeQuantity extends frame2_driver_TableData
     {
         $row = new stdClass();
         $row->kod = (!empty($dRec->kod)) ? core_Type::getByName('varchar')->toVerbal($dRec->kod) : "Art{$dRec->productId}";
-        $row->productId = cat_Products::getShortHyperlink($dRec->productId);
+        $singleUrl = cat_Products::getSingleUrlArray($dRec->productId);
+        $row->productId = ht::createLinkRef(cat_Products::getVerbal($dRec->productId, 'name'), $singleUrl);
         $row->measure = cat_UoM::getShortName($dRec->measure);
         
         foreach (array('quantity', 'reservedQuantity', 'expectedQuantity', 'freeQuantity', 'changeQuantity') as $fld) {
-            $row->{$fld} = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->{$fld});
-            $row->{$fld} = ht::styleNumber($row->{$fld}, $dRec->{$fld});
+            $value = $dRec->{$fld} ?? 0;
+            $row->{$fld} = core_Type::getByName('double(decimals=2)')->toVerbal($value);
+            $row->{$fld} = ht::styleNumber($row->{$fld}, $value);
         }
         
         return $row;
@@ -229,16 +254,20 @@ class store_reports_ChangeQuantity extends frame2_driver_TableData
         if (!empty($rec->group)) {
             $row->group = implode(' ', cat_Groups::getLinks($rec->group));
         }
+        
+        if (!empty($rec->storeId)) {
+            $row->storeId = store_Stores::getHyperlink($rec->storeId, true);
+        }
     }
     
     
     /**
      * След рендиране на единичния изглед
      *
-     * @param cat_ProductDriver $Driver
-     * @param embed_Manager     $Embedder
-     * @param core_ET           $tpl
-     * @param stdClass          $data
+     * @param frame2_driver_Proto $Driver
+     * @param embed_Manager       $Embedder
+     * @param core_ET             $tpl
+     * @param stdClass            $data
      */
     protected static function on_AfterRenderSingle(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$tpl, $data)
     {
@@ -246,11 +275,16 @@ class store_reports_ChangeQuantity extends frame2_driver_TableData
 								<fieldset class='detail-info'><legend class='groupTitle'><small><b>|Филтър|*</b></small></legend>
                                     <div class='small'>
                                         <!--ET_BEGIN group--><div>|Групи|*: [#group#]</div><!--ET_END group-->
+                                        <!--ET_BEGIN storeId--><div>|Склад|*: [#storeId#]</div><!--ET_END storeId-->
                                     </div>
                                 </fieldset><!--ET_END BLOCK-->"));
         
         if (isset($data->rec->group)) {
             $fieldTpl->append($data->row->group, 'group');
+        }
+        
+        if (isset($data->rec->storeId)) {
+            $fieldTpl->append($data->row->storeId, 'storeId');
         }
         
         $tpl->append($fieldTpl, 'DRIVER_FIELDS');
@@ -274,13 +308,18 @@ class store_reports_ChangeQuantity extends frame2_driver_TableData
             $query->where("#reportId = {$rec->id}");
             $query->orderBy('id', 'DESC');
             $query->show('versionBefore');
-            
-            $versionBeforeId = $query->fetch()->versionBefore;
+
+            $versionRec = $query->fetch();
+            $versionBeforeId = $versionRec->versionBefore ?? null;
         } else {
             $versionBeforeId = frame2_ReportVersions::fetchField($selectedVersionId, 'versionBefore');
         }
-        
-        $versionBeforeData = (isset($versionBeforeId)) ? frame2_ReportVersions::fetchField($versionBeforeId, 'oldRec')->data->recs : array();
+
+        $versionBeforeData = array();
+        if (isset($versionBeforeId)) {
+            $oldRec = frame2_ReportVersions::fetchField($versionBeforeId, 'oldRec');
+            $versionBeforeData = is_array($oldRec->data->recs ?? null) ? $oldRec->data->recs : array();
+        }
         
         return $versionBeforeData;
     }

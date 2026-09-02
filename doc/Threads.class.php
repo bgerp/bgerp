@@ -389,7 +389,7 @@ class doc_Threads extends core_Manager
                     
                     // Ако не може да се определи първия документ в нишката, изтриваме нишката
                     if (!$firstCid) {
-                        if ($rec->id) {
+                        if (!empty($rec->id)) {
                             self::delete($rec->id);
                             $resArr['del_cnt']++;
                             
@@ -567,7 +567,11 @@ class doc_Threads extends core_Manager
                 } catch (ErrorException $e) {
                     continue;
                 }
-                
+
+                if (!$cRec) {
+                    continue;
+                }
+
                 // Само, ако първият контейнер е видим за партньори, тогава проверяваме за броят на видимите контейнери
                 if ($cRec->visibleForPartners == 'yes' && $cRec->state != 'draft' && $cRec->state != 'rejected' && empty(self::$updateQueue[$rec->id])) {
                     // Ако се различава броя на документите, видими за партньори
@@ -794,7 +798,7 @@ class doc_Threads extends core_Manager
             'allowEmpty,caption=Подредба,input,silent,autoFilter'
         );
         $data->listFilter->setField('folderId', 'input=hidden,silent');
-        $data->listFilter->FNC('documentClassId', 'class(interface=doc_DocumentIntf,select=title,allowEmpty)', 'caption=Вид документ,input,recently,autoFilter');
+        $data->listFilter->FNC('documentClassId', 'class(interface=doc_DocumentIntf,select=title,allowEmpty)', 'caption=Вид документ,placeholderType=all,input,recently,autoFilter');
         
         if (!isset($data->listFilter->fields['Rejected'])) {
             $data->listFilter->FNC('Rejected', 'varchar', 'input=hidden,silent');
@@ -1139,12 +1143,13 @@ class doc_Threads extends core_Manager
         } catch (core_Exception_Expect $expect) {
             $row->hnd = ($row->hnd ?? '') . (($rec->handle ?? null) ? substr($rec->handle, 0, strlen($rec->handle) - 3) : '???');
             $row->title = '?????????????';
+            $cRec = null;
             if ($rec->firstContainerId) {
                 $cRec = doc_Containers::fetch($rec->firstContainerId);
             }
             $row->author = crm_Profiles::createLink($rec->createdBy);
             
-            if ($cRec->docClass) {
+            if (is_object($cRec) && !empty($cRec->docClass)) {
                 if ($classRec = core_Classes::fetch($cRec->docClass)) {
                     $row->title = $classRec->title;
                 }
@@ -1175,6 +1180,8 @@ class doc_Threads extends core_Manager
      */
     public function exp_Move($exp)
     {
+        $selArr = array();
+
         if ($selected = Request::get('Selected')) {
             $selArr = arr::make($selected);
             Request::push(array('threadId' => $selArr[0]));
@@ -1507,7 +1514,7 @@ class doc_Threads extends core_Manager
         if (cls::haveInterface('doc_ContragentDataIntf', $class)) {
             $cData = $class->getContragentData($fRec->coverId);
             
-            if ($cData->email) {
+            if ($cData->email ?? null) {
                 $altFolderId = email_Router::getEmailFolder($cData->email);
             }
         }
@@ -2117,7 +2124,7 @@ class doc_Threads extends core_Manager
      */
     public static function on_AfterSave($mvc, &$id, $rec)
     {
-        if ($rec->folderId) {
+        if (!empty($rec->folderId)) {
             $Folders = cls::get('doc_Folders');
             if (Mode::is('isMigrate')) {
                 $Folders->preventNotification[$rec->folderId] = $rec->folderId;
@@ -2483,6 +2490,11 @@ class doc_Threads extends core_Manager
      */
     public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = null, $userId = null)
     {
+        if (!is_object($rec)) {
+
+            return;
+        }
+
         if ($action == 'open') {
             if ($rec->state == 'closed') {
                 $res = $mvc->getRequiredRoles('single', $rec, $userId);
@@ -3095,7 +3107,7 @@ class doc_Threads extends core_Manager
         // За да може да промени трябва да има достъп до сингъла на нишката
         // Да променя собствените си настройки или да е admin|ceo
         
-        list(, $id) = explode('::', $key);
+        list(, $id) = explode('::', $key) + [null, null];
         
         $currUser = core_Users::getCurrent();
         
@@ -3138,7 +3150,7 @@ class doc_Threads extends core_Manager
         $this->currentTab = 'Теми';
         
         // Вземаме id на папката от ключа
-        list(, $threadId) = explode('::', $form->rec->_key);
+        list(, $threadId) = explode('::', $form->rec->_key) + [null, null];
         
         // Определяме заглавито
         $rec = $this->fetch($threadId);
@@ -3453,9 +3465,9 @@ class doc_Threads extends core_Manager
             $ids = implode(',', $onlyIds);
             expect(preg_match("/^[0-9\,]+$/", $ids), $ids, $onlyIds);
             
-            $query->where("#id IN (${ids})");
+            $query->where("#id IN ({$ids})");
         } elseif (ctype_digit("{$onlyIds}")) {
-            $query->where("#id = ${onlyIds}");
+            $query->where("#id = {$onlyIds}");
         }
         
         if (trim($q)) {

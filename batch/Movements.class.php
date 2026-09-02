@@ -157,7 +157,7 @@ class batch_Movements extends core_Detail
         $data->listFilter->FLD('searchType', 'enum(full=Точно съвпадение,notFull=Частично съвпадение)', 'caption=Търсене,silent');
         batch_Items::setStoreFilter($data->listFilter);
 
-        $data->listFilter->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,hasProperties=canStore,hasnotProperties=generic,maxSuggestions=100,forceAjax)', 'caption=Артикул');
+        $data->listFilter->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,hasProperties=canStore,hasnotProperties=generic,maxSuggestions=100,forceAjax)', 'caption=Артикул,placeholderType=all');
         $data->listFilter->FLD('document', 'varchar(128)', 'silent,caption=Документ,placeholder=Хендлър');
         $data->listFilter->FNC('action', 'enum(all=Всички,in=Влиза, out=Излиза, stay=Стои)', 'caption=Операция,input');
         $data->listFilter->FLD('from', 'date', 'caption=От,silent');
@@ -208,7 +208,7 @@ class batch_Movements extends core_Detail
             }
             
             if (!empty($fRec->batch)) {
-                if($fRec->searchType == 'full'){
+                if(($fRec->searchType ?? 'full') == 'full'){
                     $data->query->where(array("#batch = '[#1#]'", $fRec->batch));
                 } else {
                     $data->query->where(array("#batch LIKE '%[#1#]%'", $fRec->batch));
@@ -264,6 +264,7 @@ class batch_Movements extends core_Detail
         $jQuery->orderBy('id', 'ASC');
         $docRec = $doc->fetch();
         $totalMovements = array();
+        $result = true;
 
         // За всяка
         while ($jRec = $jQuery->fetch()) {
@@ -277,8 +278,6 @@ class batch_Movements extends core_Detail
             
             // Записва се движението и
             foreach ($batches as $key => $b) {
-                $result = true;
-
                 $itemId = batch_Items::forceItem($jRec->productId, $key, $jRec->storeId);
                 if (empty($jRec->date)) {
                     $jRec->date = $doc->fetchField($doc->valiorFld);
@@ -292,6 +291,7 @@ class batch_Movements extends core_Detail
                                           'docType' => $doc->getClassId(),
                                           'docId' => $doc->that,
                                           'date' => $jRec->date,
+                                          'quantity' => 0,
                     );
                     $totalMovements[$key] = $mRec;
                 }
@@ -361,7 +361,7 @@ class batch_Movements extends core_Detail
                 $titles[] = "<b style='color:green'>" . cat_Products::getTitleById($fRec->productId) . '</b>';
             }
             
-            if ($fRec->batch) {
+            if (!empty($fRec->batch)) {
                 $titles[] = "<b style='color:green'>" . cls::get('type_Varchar')->toVerbal(str_replace('|', '/', $fRec->batch)) . '</b>';
             }
             
@@ -441,7 +441,7 @@ class batch_Movements extends core_Detail
         $summaryQuery->show('productId,operation,quantity');
         while($sumRec = $summaryQuery->fetch()){
             $sign = ($sumRec->operation == 'in') ? 1 : (($sumRec->operation == 'out') ? -1 : 0);
-            $total[$sumRec->productId] += $sign * $sumRec->quantity;
+            $total[$sumRec->productId] = ($total[$sumRec->productId] ?? 0) + $sign * $sumRec->quantity;
         }
 
         // Ако се показват повече от 1 нищо не се прави

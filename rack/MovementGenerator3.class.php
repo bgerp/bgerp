@@ -44,20 +44,20 @@ class rack_MovementGenerator3 extends core_Manager
             $packArr = json_decode($rec->packagings);
 
             foreach ($pArr->pallet as $i => $key) {
-                if ($pArr->quantity[$i]) {
+                if (!empty($pArr->quantity[$i])) {
                     $qVerbal = core_Type::getByName('double')->fromVerbal($pArr->quantity[$i]);
                     $po = (object) ['position' => $key, 'quantity' => $qVerbal, 'createdOn' => $pArr->createdOn[$i] ?? null];
                     $p[] = $po;
                 }
             }
             foreach ($qArr->zone as $i => $key) {
-                if ($qArr->quantity[$i]) {
+                if (!empty($qArr->quantity[$i])) {
                     $qVerbal = core_Type::getByName('double')->fromVerbal($qArr->quantity[$i]);
                     $q[$key] = $qVerbal;
                 }
             }
             foreach ($packArr->packagingId as $i => $key) {
-                if ($packArr->quantity[$i]) $packs[] = (object)['packagingId' => $key, 'quantity' => $packArr->quantity[$i]];
+                if (!empty($packArr->quantity[$i])) $packs[] = (object)['packagingId' => $key, 'quantity' => $packArr->quantity[$i]];
             }
 
             $storeId = Mode::get('pickupStoreId') ?: store_Stores::getCurrent();

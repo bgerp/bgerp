@@ -132,11 +132,12 @@ class sens2_Scripts extends core_Master
      */
     public function on_AfterInputEditForm($mvc, $form)
     {
-        if (!$form->rec->order) {
+        if (empty($form->rec->order)) {
             $query = $mvc->getQuery();
             $query->orderBy('#order', 'DESC');
             $query->limit(1);
-            $maxOrder = (int) $query->fetch()->order;
+            $maxOrderRec = $query->fetch();
+            $maxOrder = (int) ($maxOrderRec->order ?? 0);
             $form->setDefault('order', round(($maxOrder + 1) / 10) * 10 + 10);
         }
     }
@@ -242,10 +243,10 @@ class sens2_Scripts extends core_Master
         }
         
         // Конвертираме булевите стойности, към числа
-        if ($value === false) {
-            $value = 0;
-        } elseif ($value === true) {
-            $value = 1;
+        if ($res === false) {
+            $res = 0;
+        } elseif ($res === true) {
+            $res = 1;
         }
         
         return $res;
@@ -264,11 +265,11 @@ class sens2_Scripts extends core_Master
             $inds = sens2_Indicators::getContex($scriptId);
             
             foreach ($inds as $name => $value) {
-                $opts[$scriptId][$name] = "<span style='color:blue;'>{$name}</span>";
+                $opts[$scriptId][$name] = "<span class='blueText'>{$name}</span>";
             }
             $vars = sens2_script_DefinedVars::getContex($scriptId);
             foreach ($vars as $name => $value) {
-                $opts[$scriptId][$name] = "<span style='color:blue;'>{$name}</span>";
+                $opts[$scriptId][$name] = "<span class='blueText'>{$name}</span>";
             }
         }
         

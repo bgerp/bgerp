@@ -214,7 +214,7 @@ class acc_CostAllocations extends core_Manager
         $rec = $data->form->rec;
         if (isset($rec->containerId)) {
             $origin = doc_Containers::getDocument($rec->containerId);
-            $data->form->title = core_Detail::getEditTitle($origin->getClassId(), $origin->that, $mvc->singleTitle, $rec->id);
+            $data->form->title = core_Detail::getEditTitle($origin->getClassId(), $origin->that, $mvc->singleTitle, $rec->id ?? null);
         }
     }
     
@@ -258,7 +258,7 @@ class acc_CostAllocations extends core_Manager
     {
         $form = &$data->form;
         $rec = $data->form->rec;
-        $rec->_oldExpenceItemId = $rec->expenseItemId;
+        $rec->_oldExpenceItemId = $rec->expenseItemId ?? null;
         
         // Какво к-во се очаква да се разпредели
         $maxQuantity = cls::get($rec->detailClassId)->getMaxQuantity($rec->detailRecId);
@@ -272,7 +272,7 @@ class acc_CostAllocations extends core_Manager
         $form->info .= tr("|Общо к-во|* <b>{$maxQuantityVerbal}</b> {$shortUom}<br>");
         
         // Колко има още за разпределяне
-        $allocatedQuantity = self::getAllocatedInDocument($rec->detailClassId, $rec->detailRecId, $rec->id);
+        $allocatedQuantity = self::getAllocatedInDocument($rec->detailClassId, $rec->detailRecId, $rec->id ?? null);
         $toAllocate = round($maxQuantity - $allocatedQuantity, 6);
         $form->setDefault('quantity', $toAllocate);
         
@@ -304,7 +304,7 @@ class acc_CostAllocations extends core_Manager
                     $form->setDefault('allocationBy', 'no');
                 }
 
-                if($rec->allocationBy == 'auto'){
+                if(($rec->allocationBy ?? null) == 'auto'){
                     $form->setField('allocationFilter', 'input');
                     $form->setDefault('allocationFilter', 'all');
                 }
@@ -346,12 +346,10 @@ class acc_CostAllocations extends core_Manager
                 $documentItemRec = acc_Items::fetchItem($mvc, $id);
             }
 
-            if(isset($documentItemRec)){
-                if($documentItemRec->id == $expenseItemId){
-                    $error = "Ако с документа се разпределя разход върху същия документ, то не може да е върху всички артикули|*!";
+            if ($documentItemRec && $documentItemRec->id == $expenseItemId) {
+                $error = "Ако с документа се разпределя разход върху същия документ, то не може да е върху всички артикули|*!";
 
-                    return false;
-                }
+                return false;
             }
         }
 
@@ -369,6 +367,7 @@ class acc_CostAllocations extends core_Manager
     {
         $rec = &$form->rec;
         $Detail = cls::get($rec->detailClassId);
+        $allocationFilter = $rec->allocationFilter ?? null;
 
         if (isset($rec->expenseItemId)) {
             $itemClassId = acc_Items::fetchField($rec->expenseItemId, 'classId');
@@ -381,15 +380,16 @@ class acc_CostAllocations extends core_Manager
                 }
             }
         }
+        $allProducts = $form->allProducts ?? array();
         
         if ($form->isSubmitted()) {
             $expenseItemError = null;
-            if(!static::checkSelectedExpenseItem($rec->expenseItemId, $rec->allocationFilter, $rec->detailClassId, $rec->detailRecId,$expenseItemError)){
+            if(!static::checkSelectedExpenseItem($rec->expenseItemId, $allocationFilter, $rec->detailClassId, $rec->detailRecId, $expenseItemError)){
                 $form->setError('expenseItemId', $expenseItemError);
             }
 
             // Колко ще бъде разпределено след записа
-            $allocatedQuantity = self::getAllocatedInDocument($rec->detailClassId, $rec->detailRecId, $rec->id);
+            $allocatedQuantity = self::getAllocatedInDocument($rec->detailClassId, $rec->detailRecId, $rec->id ?? null);
             $allocatedQuantity += $rec->quantity;
             $uomId = key(cat_Products::getPacks($rec->productId));
             
@@ -423,7 +423,7 @@ class acc_CostAllocations extends core_Manager
                 // Проверка на избраните артикули
                 if (isset($rec->allocationBy)) {
                     if(!in_array($rec->allocationBy, array('no', 'auto'))){
-                        if (!countR($form->allProducts)) {
+                        if (!countR($allProducts)) {
                             $form->setError('allocationBy', 'В избраната сделка няма експедирани/заскладени артикули');
                         }
                     }
@@ -433,10 +433,10 @@ class acc_CostAllocations extends core_Manager
                             $errorField = 'allocateBy,chosenProducts';
                             $itemRec = acc_Items::fetch($rec->expenseItemId, 'classId,objectId');
                             $origin = new core_ObjectReference($itemRec->classId, $itemRec->objectId);
-                            $rec->productsData = $origin->getCorrectableProducts($Detail->Master, $rec->allocationFilter);
+                            $rec->productsData = $origin->getCorrectableProducts($Detail->Master, $allocationFilter);
                         } else {
                             $errorField = 'allocateBy';
-                            $rec->productsData = array_intersect_key($form->allProducts, type_Set::toArray($rec->chosenProducts));
+                            $rec->productsData = array_intersect_key($allProducts, type_Set::toArray($rec->chosenProducts ?? null));
                         }
 
                         $copyArr = $rec->productsData;
@@ -488,7 +488,7 @@ class acc_CostAllocations extends core_Manager
                 $singleUrl['Sid'] = $Register->fetchField('containerId');
                 $eItem = ht::createLink($eItem, $singleUrl);
                 if ($iRec->state == 'closed') {
-                    $eItem = ht::createHint($eItem, 'Перото е затворено', 'warning', false, array('height' => 14, 'width' => 14))->getContent();
+                    $eItem = ht::createHint($eItem, 'Перото е затворено', 'warning', false, array('iconAttr' => array('height' => 14, 'width' => 14)))->getContent();
                     $eItem = "<span class='state-closed' style='padding:3px'>{$eItem}</span>";
                 }
             }
@@ -500,7 +500,7 @@ class acc_CostAllocations extends core_Manager
         
         $row->expenseItemId = "<b class='quiet'>" . tr('Разход за') . "</b>: {$eItem}";
         if (isset($hint)) {
-            $row->expenseItemId = ht::createHint($row->expenseItemId, $hint, 'warning', false, array('height' => 14, 'width' => 14))->getContent();
+            $row->expenseItemId = ht::createHint($row->expenseItemId, $hint, 'warning', false, array('iconAttr' => array('height' => 14, 'width' => 14)))->getContent();
             $row->expenseItemId = "<span style='opacity: 0.7;'>{$row->expenseItemId}</span>";
         }
         
@@ -730,7 +730,7 @@ class acc_CostAllocations extends core_Manager
             // За всеки запис
             for ($i = 0; $i <= countR($dRecs) - 1; $i++) {
                 $dRec = $dRecs[$i];
-                $nextRec = $dRecs[$i + 1];
+                $nextRec = $dRecs[$i + 1] ?? null;
                 
                 // Подготвят се данните за разпределяне
                 $r = (object) array('productId' => $productId);
@@ -843,7 +843,7 @@ class acc_CostAllocations extends core_Manager
             // Ако артикула е ДМА се отнася като разход към себе си
             $obj->expenseItemId = array('cat_Products', $productId);
             $obj->reason = 'Приети ДА';
-        } elseif ($pInfo->meta['canConvert']) {
+        } elseif (isset($pInfo->meta['canConvert'])) {
             
             // Ако артикула е вложим, отива към 'неразпределени'
             $obj->expenseItemId = self::getUnallocatedItemId();
@@ -940,9 +940,10 @@ class acc_CostAllocations extends core_Manager
             $dRec = cls::get($eRec->detailClassId)->fetch($eRec->detailRecId);
             $amount = $dRec->amount;
             
-            $sign = ($dRec->isReverse == 'yes') ? -1 : 1;
+            $sign = (($dRec->isReverse ?? 'no') == 'yes') ? -1 : 1;
             $personId = crm_Profiles::fetchField("#userId = '{$persons['dealerId']}'", 'personId');
             $key = "{$personId}|{$Document->getClassId()}|{$Document->that}|{$saleRec->valior}|{$expenseIndicatorId}";
+            $isRejected = ($Document->fetchField('state') == 'rejected');
             
             // Ако няма данни, добавят се
             if (!array_key_exists($key, $result)) {
@@ -952,7 +953,7 @@ class acc_CostAllocations extends core_Manager
                     'docClass' => $Document->getClassId(),
                     'indicatorId' => $expenseIndicatorId,
                     'value' => round($sign * $amount, 4),
-                    'isRejected' => $dRec->state == 'rejected',);
+                    'isRejected' => $isRejected,);
             } else {
                 
                 // Ако има вече се сумират
@@ -1030,6 +1031,7 @@ class acc_CostAllocations extends core_Manager
     protected static function on_AfterPrepareListFilter($mvc, &$res, $data)
     {
         $data->listFilter->FLD('documentId', 'varchar', 'caption=Хендлър, silent');
+        $data->listFilter->setField('expenseItemId', 'placeholderType=all');
         $data->listFilter->showFields = 'documentId,expenseItemId,allocationBy';
         $data->listFilter->setFieldType('allocationBy', 'enum(all=Разпределяне,auto=Автоматично (по стойност),no=Няма,value=По стойност,quantity=По количество,weight=По тегло,volume=По обем)');
         $data->listFilter->view = 'horizontal';

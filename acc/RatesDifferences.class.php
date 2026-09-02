@@ -241,7 +241,7 @@ class acc_RatesDifferences extends core_Master
             $row->total = ht::createHint($row->total, "Преди|*: {$oldTotalVerbal} {$row->baseCurrencyCode}", $icon, false);
         }
 
-        if(is_array($rec->data)){
+        if (!empty($rec->data) && is_array($rec->data)) {
             if(countR($rec->data)){
                 $displayData = array();
                 foreach ($rec->data as $containerId => $amountCorrected){
@@ -378,7 +378,7 @@ class acc_RatesDifferences extends core_Master
      */
     protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
-        $data->listFilter->FLD('currencyCode', 'customKey(mvc=currency_Currencies,key=code,select=code,allowEmpty)', 'placeholder=Всички,caption=Валута');
+        $data->listFilter->FLD('currencyCode', 'customKey(mvc=currency_Currencies,key=code,select=code,allowEmpty)', 'placeholderType=all,caption=Валута');
         $data->listFilter->FLD('dealState', 'enum(all=Всички сделки,active=Активни сделки,closed=Затворени сделки)', 'caption=Сделки');
         $data->listFilter->showFields .= ',currencyCode,dealState';
         $data->listFilter->setDefault('dealState', 'active');

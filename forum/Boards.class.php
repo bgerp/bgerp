@@ -314,7 +314,7 @@ class forum_Boards extends core_Master
     public function renderNavigation($data)
     {
         $navigation = '';
-        if ($data->navigation) {
+        if ($data->navigation ?? null) {
             foreach ($data->navigation as $nav) {
                 $navigation .= $nav . '&nbsp;»&nbsp;';
             }
@@ -343,7 +343,7 @@ class forum_Boards extends core_Master
      */
     public function renderSearchForm_(&$data)
     {
-        if ($data->searchForm) {
+        if (!empty($data->searchForm)) {
             
             return $data->searchForm->renderHtml();
         }
@@ -397,7 +397,7 @@ class forum_Boards extends core_Master
                 // За всяка категория ние поставяме името и преди  списъка с нейните дъски
                 $catTpl = clone($categoryTpl);
                 $catTpl->replace($category->title, 'cat');
-                if ($category->boards->rows) {
+                if ($category->boards->rows ?? null) {
                     
                     // За всички дъски от категорията ние ги поставяме под нея в шаблона
                     foreach ($category->boards->rows as $row) {
@@ -416,11 +416,11 @@ class forum_Boards extends core_Master
             }
         }
         
-        if ($data->listUrl) {
+        if ($data->listUrl ?? null) {
             $tpl->append(ht::createBtn('Работилница', $data->listUrl, null, null, array('class' => 'forumbtn workshop')), 'TOOLBAR');
         }
         
-        if ($data->searchUrl && countR($data->categories)) {
+        if (($data->searchUrl ?? null) && countR($data->categories ?? null)) {
             $tpl->append(ht::createBtn('Търсене', $data->searchUrl, null, null, array('class' => 'forumbtn find')), 'TOOLBAR');
         }
         
@@ -489,11 +489,11 @@ class forum_Boards extends core_Master
         // Рендираме всички теми от дъската
         $tpl = $this->forum_Postings->renderBoardThemes($data, $tpl);
         
-        if ($data->submitUrl) {
+        if ($data->submitUrl ?? null) {
             $tpl->append(ht::createBtn('Нова Тема', $data->submitUrl, null, null, array('class' => 'forumbtn posting')), 'TOOLBAR');
         }
         
-        if ($data->singleUrl) {
+        if ($data->singleUrl ?? null) {
             $tpl->append(ht::createBtn('Работилница', $data->singleUrl, null, null, array('class' => 'forumbtn workshop')), 'TOOLBAR');
         }
         
@@ -552,6 +552,10 @@ class forum_Boards extends core_Master
      */
     public static function haveRightToObject($rec, $userId = null)
     {
+        if (!is_object($rec)) {
+            return false;
+        }
+
         if (!$userId) {
             $userId = core_Users::getCurrent();
         }
@@ -569,7 +573,7 @@ class forum_Boards extends core_Master
         }
         
         // Ако дъската е споделена с текущия потребител, той има достъп
-        if (strpos($rec->shared, '|' . $userId . '|') !== false) {
+        if (strpos((string) ($rec->shared ?? ''), '|' . $userId . '|') !== false) {
             
             return true;
         }
@@ -726,5 +730,17 @@ class forum_Boards extends core_Master
         $url = array('forum_Boards', 'list');
         
         return $url;
+    }
+
+
+    /**
+     * Връща елементите за футър менюто, генерирани от този източник
+     *
+     * @param stdClass $menuRec
+     * @return array
+     */
+    public function getFooterMenuItems($menuRec)
+    {
+        return array();
     }
 }

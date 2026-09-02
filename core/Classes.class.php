@@ -20,7 +20,7 @@ class core_Classes extends core_Manager
     /**
      * Списък за начално
      */
-    public $loadList = 'plg_Created, plg_SystemWrapper, plg_State2, plg_RowTools, plg_Search,plg_Sorting';
+    public $loadList = 'plg_Created, plg_SystemWrapper, plg_State2, plg_RowTools2, plg_Search,plg_Sorting';
     
     
     /**
@@ -99,7 +99,7 @@ class core_Classes extends core_Manager
     {
         $data->query->orderBy('name');
         
-        $data->listFilter->FLD('interface', 'key(mvc=core_Interfaces,select=name, allowEmpty)', 'placeholder=Интерфейс');
+        $data->listFilter->FLD('interface', 'key(mvc=core_Interfaces,select=name, allowEmpty)', 'caption=Интерфейс,placeholderType=all');
         $data->listFilter->showFields = 'search,interface';
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
@@ -136,7 +136,17 @@ class core_Classes extends core_Manager
         
         $rec = new stdClass();
         
+        // Изчистваме натрупаното от други места, за да отговаря списъкът само на този клас
+        core_Interfaces::getMissing();
+
         $rec->interfaces = core_Interfaces::getKeylist($class);
+
+        // Ако класът декларира интерфейси, за които липсва код, те се пропускат, но се репортват
+        $missingRes = '';
+        if ($missingArr = core_Interfaces::getMissing()) {
+            $missingRes = "<li class='debug-error'>Класът " . cls::getClassName($class) .
+                ' декларира интерфейси, за които липсва код: ' . implode(', ', $missingArr) . '</li>';
+        }
 
         $rec->state = 'active';
 
@@ -151,7 +161,7 @@ class core_Classes extends core_Manager
                 core_Classes::save($rec);
             }
             
-            return "<li class='debug-info'>Класът {$name} не поддържа никакви интерфейси</li>";
+            return $missingRes . "<li class='debug-info'>Класът {$name} не поддържа никакви интерфейси</li>";
         }
         
         // Вземаме инстанция на core_Classes
@@ -170,9 +180,9 @@ class core_Classes extends core_Manager
         $Classes->save($rec);
         
         if (!$id) {
-            $res = "<li class='debug-new'>Класът {$rec->name} е добавен към мениджъра на класове</li>";
+            $res = $missingRes . "<li class='debug-new'>Класът {$rec->name} е добавен към мениджъра на класове</li>";
         } else {
-            $res = "<li class='debug-notice'>Информацията за класа {$rec->name} бе обновена в мениджъра на класове</li>";
+            $res = $missingRes . "<li class='debug-notice'>Информацията за класа {$rec->name} бе обновена в мениджъра на класове</li>";
         }
         
         return $res;
@@ -310,7 +320,7 @@ class core_Classes extends core_Manager
                 self::loadClasses();
             }
             
-            $classId = self::$classes[$className];
+            $classId = self::$classes[$className] ?? null;
         }
         
         expect($silent || $classId, $class);
@@ -331,7 +341,7 @@ class core_Classes extends core_Manager
             self::loadClasses();
         }
         
-        $className = self::$classes[$classId];
+        $className = self::$classes[$classId] ?? null;
         
         return $className;
     }

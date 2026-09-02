@@ -135,7 +135,7 @@ class bgerp_Portal extends embed_Manager
      */
     public static function on_CalcOriginIdCalc($mvc, &$rec)
     {
-        if ($rec->clonedFromId) {
+        if ($rec->clonedFromId ?? null) {
             $rec->originIdCalc = $rec->clonedFromId;
         } else {
             $rec->originIdCalc = $rec->id;
@@ -321,7 +321,7 @@ class bgerp_Portal extends embed_Manager
      */
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
-        if ($data->action != 'clone' && !$data->form->rec->id) {
+        if (($data->action ?? null) != 'clone' && empty($data->form->rec->id)) {
             $optArr = $data->form->fields[$mvc->driverClassField]->type->prepareOptions();
             
             $recsArr = $mvc->getRecsForUser(null, false);
@@ -329,7 +329,8 @@ class bgerp_Portal extends embed_Manager
             $dArr = array();
             
             foreach ($recsArr as $r) {
-                $dArr[$r->{$mvc->driverClassField}]++;
+                $clsKey = $r->{$mvc->driverClassField};
+                $dArr[$clsKey] = ($dArr[$clsKey] ?? 0) + 1;
             }
             
             if (!empty($dArr)) {
@@ -340,7 +341,7 @@ class bgerp_Portal extends embed_Manager
                     
                     $inst = cls::getInterface($mvc->driverInterface, $clsId);
                     
-                    $maxCnt = $inst->class->maxCnt;
+                    $maxCnt = $inst->class->maxCnt ?? null;
                     
                     if (isset($maxCnt)) {
                         if (isset($dArr[$clsId]) && ($maxCnt >= $dArr[$clsId])) {
@@ -683,6 +684,7 @@ class bgerp_Portal extends embed_Manager
             // За originId приемаме най-стария родител
             $nRec = clone $rec;
             $oIdCalc = $nRec->originIdCalc;
+            $mCnt = 0;
             while (true) {
                 if (!$nRec->originIdCalc) break;
                 
@@ -731,18 +733,27 @@ class bgerp_Portal extends embed_Manager
     {
         if ($rec) {
             $cRec = clone $rec;
-            if (!isset($cRec->createdBy) && ($cRec->id)) {
+            if (!isset($cRec->createdBy) && !empty($cRec->id)) {
                 $cRec = $mvc->fetch($cRec->id);
             }
             
-            if (($userId != $cRec->createdBy) && !haveRole('admin', $userId)) {
+            // Ако записа е изтрит междувременно
+            if (!is_object($cRec)) {
+                
+                return;
+            }
+            
+            // При нов запис още няма създател
+            $createdBy = $cRec->createdBy ?? null;
+            
+            if (($userId != $createdBy) && !haveRole('admin', $userId)) {
                 
                 if (($action == 'edit') || ($action == 'delete')) {
                     $requiredRoles = 'no_one';
                 }
                 
-                if (($action == 'single') && ($cRec->createdBy != $userId)) {
-                    if (($cRec->userOrRole > 0) && $cRec->createdBy > 0) {
+                if (($action == 'single') && ($createdBy != $userId)) {
+                    if ((($cRec->userOrRole ?? null) > 0) && $createdBy > 0) {
                         $requiredRoles = 'no_one';
                     }
                 }
@@ -753,7 +764,7 @@ class bgerp_Portal extends embed_Manager
             }
             
             // Ако имат "баща", да не може да се изтрие
-            if ($action == 'delete') {
+            if ($action == 'delete' && !empty($cRec->id)) {
                 if ($mvc->fetch(array("#clonedFromId = '[#1#]'", $cRec->id))) {
                     $requiredRoles = 'no_one';
                 }
@@ -779,7 +790,7 @@ class bgerp_Portal extends embed_Manager
         
         $data->listFilter->input();
         
-        if ($data->listFilter->rec->userOrRole) {
+        if (!empty($data->listFilter->rec->userOrRole)) {
             $data->query->where(array("#userOrRole = '[#1#]'", $data->listFilter->rec->userOrRole));
             if ($data->listFilter->rec->userOrRole > 0) {
                 $uRoles = core_Users::fetchField(array("#id = '[#1#]'", $data->listFilter->rec->userOrRole), 'roles');

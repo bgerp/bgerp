@@ -148,7 +148,7 @@ class planning_AssetSparePartsDetail extends core_Detail
      */
     public function renderDetail_($data)
     {
-        if($data->hide) return new core_ET("");
+        if (!empty($data->hide)) return new core_ET("");
 
         $tpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
         $title = tr('Резервни части');
@@ -164,7 +164,7 @@ class planning_AssetSparePartsDetail extends core_Detail
 
         $details = $table->get($data->rows, $data->listFields);
         $tpl->append($details, 'content');
-        if ($data->pager) {
+        if (!empty($data->pager)) {
             $tpl->append($data->pager->getHtml(), 'content');
         }
 
@@ -219,7 +219,7 @@ class planning_AssetSparePartsDetail extends core_Detail
                 }
             }
 
-            $rec->resultDiff = $rec->quantityAll - $rec->reservedQuantityt + $rec->expectedQuantity;
+            $rec->resultDiff = $rec->quantityAll - $rec->reservedQuantity + $rec->expectedQuantity;
         }
     }
 
@@ -234,16 +234,16 @@ class planning_AssetSparePartsDetail extends core_Detail
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         foreach (array('quantity', 'quantityAll', 'reservedQuantity', 'expectedQuantity', 'resultDiff') as $fld){
-            $row->{$fld} = core_Type::getByName('double')->toVerbal($rec->{$fld});
+            $row->{$fld} = core_Type::getByName('double')->toVerbal($rec->{$fld} ?? null);
         }
         $row->productId = cat_Products::getHyperlink($rec->productId, true);
         $row->storeId = store_Stores::getHyperlink($rec->storeId, true);
         $row->assetId = planning_AssetResources::getHyperlink($rec->assetId, true);
-        $row->ROW_ATTR['class'] .= ' state-' . cat_Products::fetchField($rec->productId, 'state');
+        $row->ROW_ATTR['class'] = ($row->ROW_ATTR['class'] ?? '') . ' state-' . cat_Products::fetchField($rec->productId, 'state');
 
         if ($mvc->haveRightFor('fastconvert', $rec)) {
             $url = array($mvc, 'fastconvert', 'id' => $rec->id, 'ret_url' => true);
-            $alwaysShow = (!$fields['-singleProduct']);
+            $alwaysShow = empty($fields['-singleProduct']);
             core_RowToolbar::createIfNotExists($row->_rowTools);
             $row->_rowTools->addLink('Влагане', $url, array('ef_icon' => 'img/16/produce_in.png', 'title' => 'Добавяне в протокол за влагане към активен сигнал', 'alwaysShow' => $alwaysShow));
         }
@@ -276,18 +276,21 @@ class planning_AssetSparePartsDetail extends core_Detail
         foreach ($rows as $id => $row) {
             $rec = $data->recs[$id];
             foreach (array('quantity', 'quantityAll', 'reservedQuantity', 'expectedQuantity', 'resultDiff') as $fld){
-                $row->{$fld} = ht::styleNumber($row->{$fld}, $rec->{$fld});
+                $row->{$fld} = ht::styleNumber($row->{$fld} ?? null, $rec->{$fld} ?? null);
             }
 
-            $pQuery = rack_Pallets::getQuery();
-            $pQuery->where("#storeId = {$rec->storeId} AND #productId = {$rec->productId}");
-            $pQuery->show('position');
-            $pQuery->orderBy('position', 'ASC');
-            $firstPalletPosition = $pQuery->fetch()->position;
-            if(!empty($firstPalletPosition)){
-                $row->pallet = core_Type::getByName('varchar')->toVerbal($firstPalletPosition);
-                if(rack_Pallets::haveRightFor('forceopen', (object)array('storeId' => $rec->storeId))){
-                    $row->pallet = ht::createLink($row->pallet, array('rack_Pallets', 'forceopen', 'storeId' => $rec->storeId, 'productId' => $rec->productId, 'position' => $firstPalletPosition));
+            if(core_Packs::isInstalled('rack')){
+                $pQuery = rack_Pallets::getQuery();
+                $pQuery->where("#storeId = {$rec->storeId} AND #productId = {$rec->productId}");
+                $pQuery->show('position');
+                $pQuery->orderBy('position', 'ASC');
+                $palletRec = $pQuery->fetch();
+                $firstPalletPosition = $palletRec->position ?? null;
+                if(!empty($firstPalletPosition)){
+                    $row->pallet = core_Type::getByName('varchar')->toVerbal($firstPalletPosition);
+                    if(rack_Pallets::haveRightFor('forceopen', (object)array('storeId' => $rec->storeId))){
+                        $row->pallet = ht::createLink($row->pallet, array('rack_Pallets', 'forceopen', 'storeId' => $rec->storeId, 'productId' => $rec->productId, 'position' => $firstPalletPosition));
+                    }
                 }
             }
         }
@@ -304,6 +307,8 @@ class planning_AssetSparePartsDetail extends core_Detail
     {
         if($data->masterMvc ?? null) return;
 
+        $data->listFilter->setField('assetId', 'placeholderType=all');
+        $data->listFilter->setField('productId', 'placeholderType=all');
         $data->listFilter->showFields = 'assetId,productId';
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');

@@ -65,7 +65,7 @@ class callcenter_Numbers extends core_Manager
     /**
      * Кои полета да се извличат при изтриване
      */
-    public $fetchFieldsBeforeDelete = 'id,number';
+    public $fetchFieldsBeforeDelete = 'id,number,type';
     
     
     /**
@@ -126,6 +126,8 @@ class callcenter_Numbers extends core_Manager
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
+        $card = '';
+        
         // Ако има клас
         if ($rec->classId) {
             
@@ -210,7 +212,7 @@ class callcenter_Numbers extends core_Manager
         $numRec = callcenter_Numbers::fetch($id);
         
         // Ако няма клас или id на контрагент
-        if (!$numRec->classId || !$numRec->contragentId) {
+        if (empty($numRec->classId) || empty($numRec->contragentId)) {
 
             return $name;
         }
@@ -300,7 +302,7 @@ class callcenter_Numbers extends core_Manager
                             $fType = 'fax';
                         } else {
                             // Ако е мобилине
-                            if ($numberDetObj->mobile) {
+                            if ($numberDetObj->mobile ?? false) {
                                 $fType = 'mobile';
                             } else {
                                 $fType = 'tel';
@@ -417,6 +419,7 @@ class callcenter_Numbers extends core_Manager
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         
         $data->listFilter->fields['type']->type->options += array('' => '');
+        $data->listFilter->setField('type', 'placeholderType=all');
         
         // Показваме само това поле. Иначе и другите полета
         // на модела ще се появят
@@ -461,7 +464,10 @@ class callcenter_Numbers extends core_Manager
                 
                 // Вземаме записа
                 $rec = $mvc->fetch($id);
-                
+                if (empty($rec)) {
+                    continue;
+                }
+
                 // Ако е вътрешен
                 if ($rec->type == 'internal') {
                     
@@ -583,7 +589,7 @@ class callcenter_Numbers extends core_Manager
         $form->setField('classId', 'input=none');
         
         // Ако добавяме нов
-        if ($form->rec->id) {
+        if (!empty($form->rec->id)) {
             // Да е избран потребителя, който редактираме
             $userId = crm_Profiles::fetchField($form->rec->contragentId, 'userId');
             $form->setDefault('userId', $userId);
@@ -631,7 +637,7 @@ class callcenter_Numbers extends core_Manager
             $rec->contragentId = $profileId;
             
             // Ако създаваме нов
-            if (!$form->rec->id) {
+            if (empty($form->rec->id)) {
                 
                 // Типа да е вътрешен
                 $rec->type = 'internal';
@@ -848,10 +854,10 @@ class callcenter_Numbers extends core_Manager
             $pRecArr = (array) $Person->updateNumbers($pRec);
             
             // Броя на записаните номера
-            $savedNums += $pRecArr['saved'];
+            $savedNums += $pRecArr['saved'] ?? 0;
             
             // Броя на изтритите номера
-            $delNums += $pRecArr['deleted'];
+            $delNums += $pRecArr['deleted'] ?? 0;
         }
         
         $this->logDebug('Край на обновяването на номерата за лицата');
@@ -869,10 +875,10 @@ class callcenter_Numbers extends core_Manager
             $cRecArr = (array) $Company->updateNumbers($cRec);
             
             // Броя на записаните номера
-            $savedNums += $cRecArr['saved'];
+            $savedNums += $cRecArr['saved'] ?? 0;
             
             // Броя на изтритите номера
-            $delNums += $cRecArr['deleted'];
+            $delNums += $cRecArr['deleted'] ?? 0;
         }
         
         $this->logDebug('Край на обновяването на номерата за фирмите');

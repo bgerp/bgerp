@@ -63,7 +63,7 @@ class planning_reports_PlanningImpl extends frame_BaseDriver
     public function addEmbeddedFields(core_FieldSet &$form)
     {
         $form->FLD('time', 'time(suggestions=на момента|1 седмица|2 седмица|3 седмица|4 седмиц|)', 'caption=Хоризонт');
-        $form->FLD('store', 'key(mvc=store_Stores, select=name, allowEmpty)', 'caption=Склад');
+        $form->FLD('store', 'key(mvc=store_Stores, select=name, allowEmpty)', 'caption=Склад,placeholderType=all');
         
         $this->invoke('AfterAddEmbeddedFields', array($form));
     }
@@ -195,10 +195,11 @@ class planning_reports_PlanningImpl extends frame_BaseDriver
                     if (isset($storeId)) {
                         $store = store_Products::fetchField("#productId = {$index} AND #storeId = {$storeId}", 'quantity');
                     } else {
+                        $store = array();
                         $storeQuery = store_Products::getQuery();
                         $storeQuery->where("#productId = {$index}");
                         while ($storeRec = $storeQuery->fetch()) {
-                            $store[$storeRec->productId] += $storeRec->quantity;
+                            $store[$storeRec->productId] = ($store[$storeRec->productId] ?? 0) + $storeRec->quantity;
                         }
                     }
                     
@@ -246,11 +247,12 @@ class planning_reports_PlanningImpl extends frame_BaseDriver
                 if (isset($data->rec->store)) {
                     $storeJob = store_Products::fetchField("#productId = {$recJobs->productId}  AND #storeId = {$data->rec->store}", 'quantity');
                 } else {
+                    $storeJob = array();
                     $storeJobQuery = store_Products::getQuery();
                     $storeJobQuery->where("#productId = {$recJobs->productId}");
                     
                     while ($storeJobRec = $storeJobQuery->fetch()) {
-                        $storeJob[$storeJobRec->productId] += $storeJobRec->quantity;
+                        $storeJob[$storeJobRec->productId] = ($storeJob[$storeJobRec->productId] ?? 0) + $storeJobRec->quantity;
                     }
                 }
                 
@@ -430,7 +432,7 @@ class planning_reports_PlanningImpl extends frame_BaseDriver
         
         $tpl->append($table->get($data->rows, $data->listFields), 'CONTENT');
         
-        if ($data->pager) {
+        if (!empty($data->pager)) {
             $tpl->append($data->pager->getHtml(), 'PAGER');
         }
         
@@ -473,8 +475,8 @@ class planning_reports_PlanningImpl extends frame_BaseDriver
         $row->dateSale = $Date->toVerbal($rec->dateSale);
         
         for ($i = 0; $i <= countR($rec->sales) - 1; $i++) {
-            $row->sales .= '#'.sales_Sales::getHandle($rec->sales[$i]) .',';
-            $row->salesCsv .= sales_Sales::getShortHyperlink($rec->sales[$i]) .',';
+            $row->sales = ($row->sales ?? '') . '#'.sales_Sales::getHandle($rec->sales[$i]) .',';
+            $row->salesCsv = ($row->salesCsv ?? '') . sales_Sales::getShortHyperlink($rec->sales[$i]) .',';
         }
         $row->sales = $RichtextType->toVerbal(substr($row->sales, 0, -1));
         
@@ -484,8 +486,8 @@ class planning_reports_PlanningImpl extends frame_BaseDriver
         $row->date = $Date->toVerbal($rec->date);
         
         for ($j = 0; $j <= countR($rec->jobs) - 1; $j++) {
-            $row->jobs .= '#'.planning_Jobs::getHandle($rec->jobs[$j]) .',';
-            $row->jobsCsv .= planning_Jobs::getShortHyperlink($rec->jobs[$j]) .',';
+            $row->jobs = ($row->jobs ?? '') . '#'.planning_Jobs::getHandle($rec->jobs[$j]) .',';
+            $row->jobsCsv = ($row->jobsCsv ?? '') . planning_Jobs::getShortHyperlink($rec->jobs[$j]) .',';
         }
         $row->jobs = $RichtextType->toVerbal(substr($row->jobs, 0, -1));
         

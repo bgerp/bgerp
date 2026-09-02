@@ -117,7 +117,7 @@ class purchase_Vops extends core_Manager
         // По-хубаво заглавие на формата
         $rec = $data->form->rec;
         if (isset($rec->invoiceId)) {
-            $data->form->title = core_Detail::getEditTitle('purchase_Invoices', $rec->invoiceId, 'протокол за ВОП', $rec->id);
+            $data->form->title = core_Detail::getEditTitle('purchase_Invoices', $rec->invoiceId, 'протокол за ВОП', $rec->id ?? null);
         }
     }
     
@@ -233,7 +233,7 @@ class purchase_Vops extends core_Manager
     protected static function on_AfterPrepareRetUrl($mvc, $res, $data)
     {
         // Ако има форма, и тя е събмитната и действието е 'запис'
-        if ($data->form->rec->id && $data->form->isSubmitted() && $data->form->cmd == 'save') {
+        if ($data->form->isSubmitted() && !empty($data->form->rec->id) && ($data->form->cmd ?? null) == 'save') {
             $data->retUrl = toUrl(array($mvc, 'print', $data->form->rec->id, 'Printing' => 'yes'));
         }
     }

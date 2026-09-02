@@ -99,6 +99,10 @@ class bgfisc_reports_CanceledSales extends frame2_driver_TableData
     protected function prepareRecs($rec, &$data = null)
     {
         $recs = array();
+        $rec->from = $rec->from ?? null;
+        $rec->to = $rec->to ?? null;
+        $rec->dealers = $rec->dealers ?? null;
+        $dealers = keylist::toArray($rec->dealers);
         
         $sQuery = bgfisc_Register::getQuery();
         
@@ -116,6 +120,7 @@ class bgfisc_reports_CanceledSales extends frame2_driver_TableData
         //Анулирани продажби
         foreach (array('pos_Receipts','sales_Sales','sales_Services') as $cls) {
             $canceledSales = array();
+            $classId = $cls::getClassId();
             
             $cancelRecQuery = $cls::getQuery();
             
@@ -134,6 +139,9 @@ class bgfisc_reports_CanceledSales extends frame2_driver_TableData
             
             foreach ($regRecArr as $regRec) {
                 
+                if (($regRec->classId ?? null) != $classId) {
+                    continue;
+                }
                 
                 //Ако продажбата НЕ Е АНУЛИРАНА НЕ влиза в отчета
                 if (!in_array($regRec->objectId, $canceledSales)) {
@@ -152,6 +160,15 @@ class bgfisc_reports_CanceledSales extends frame2_driver_TableData
                 
                 
                 $canceledRec = $className::fetch("#id = {$regRec->objectId}");
+                if (!$canceledRec || empty($RegClass->mainDetail)) {
+                    continue;
+                }
+                if (!empty($dealers) && !in_array(-1, $dealers)) {
+                    $dealerId = $canceledRec->dealerId ?? $canceledRec->createdBy ?? null;
+                    if (!in_array($dealerId, $dealers)) {
+                        continue;
+                    }
+                }
                 
                 $detCls = $RegClass->mainDetail;
                 
@@ -165,41 +182,47 @@ class bgfisc_reports_CanceledSales extends frame2_driver_TableData
                 
                 while ($detail = $canceledDet->fetch()) {
                     
-                    if ($detail->action && strpos($detail->action, 'sale') === false) {
+                    if (!empty($detail->action) && strpos($detail->action, 'sale') === false) {
+                        continue;
+                    }
+
+                    $productId = $detail->productId ?? null;
+                    if (!$productId) {
                         continue;
                     }
                     
                     //Ключ за $recs
-                    $id = $regRec->number.'|'.$detail->productId; 
+                    $id = $regRec->number.'|'.$productId;
                     
                     //Код на стоката/услугата
-                    if (!is_null(cat_Products::fetchField($detail->productId, 'code'))) {
-                        $productCode = cat_Products::fetchField($detail->productId, 'code');
+                    if (!is_null(cat_Products::fetchField($productId, 'code'))) {
+                        $productCode = cat_Products::fetchField($productId, 'code');
                     } else {
-                        $productCode = 'Art'.$detail->productId;
+                        $productCode = 'Art'.$productId;
                     }
                     
                     //Наименование на стоката/услугата
-                    $name = cat_Products::fetchField($detail->productId, 'name');
+                    $name = cat_Products::fetchField($productId, 'name');
                     
                     //количество
-                    $quantity = $detail->quantity;
+                    $quantity = $detail->quantity ?? 0;
                     
                     //Единична цена
-                    $price = $detail->price;
+                    $price = $detail->price ?? 0;
                     
                     //Отстъпка
-                    $discount = $detail->amount * $detail->discount;
+                    $detailAmount = $detail->amount ?? 0;
+                    $discount = $detailAmount * ($detail->discount ?? 0);
                     
                     //ДДС ставка
-                    $vatRate = cat_Products::getVat($detail->productId)*100;
+                    $vatRate = (cat_Products::getVat($productId) ?? 0) * 100;
                     
                     
                     //ДДС - сума
-                    $vatSum = ($detail->amount - $discount) * ($vatRate/100);
+                    $vatSum = ($detailAmount - $discount) * ($vatRate/100);
                     
                     //Обща сума
-                    $amountSum = ($detail->amount - $discount) + $vatSum;
+                    $amountSum = ($detailAmount - $discount) + $vatSum;
                     
                     //Дата на анулиране на продажбата
                     $revertDate = dt::mysql2verbal($canceledRec->modifiedOn, 'd.m.Y');
@@ -214,7 +237,8 @@ class bgfisc_reports_CanceledSales extends frame2_driver_TableData
                     $openTime = dt::mysql2verbal($regRec->createdOn, 'H:i:s');
                     
                     //Код на оператор, регистрирал плащането
-                    $userId = $canceledRec->createdBy;
+                    $userId = $regRec->userId ?? $canceledRec->createdBy ?? null;
+                    $cashRegNum = $regRec->cashRegNum ?? null;
                     
                     
                     // добавяме в масива
@@ -408,6 +432,7 @@ class bgfisc_reports_CanceledSales extends frame2_driver_TableData
     protected static function on_AfterRenderSingle(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$tpl, $data)
     {
         $Date = cls::get('type_Date');
+        $dealersVerb = '';
         
         $fieldTpl = new core_ET(tr("|*<!--ET_BEGIN BLOCK-->[#BLOCK#]
                                 <fieldset class='detail-info'><legend class='groupTitle'><small><b>|Филтър|*</b></small></legend>
@@ -427,8 +452,9 @@ class bgfisc_reports_CanceledSales extends frame2_driver_TableData
             $fieldTpl->append('<b>' . $Date->toVerbal($data->rec->to) . '</b>', 'to');
         }
         
-        if ((isset($data->rec->dealers)) && ((min(array_keys(keylist::toArray($data->rec->dealers))) >= 1))) {
-            foreach (type_Keylist::toArray($data->rec->dealers) as $dealer) {
+        $dealers = keylist::toArray($data->rec->dealers ?? null);
+        if (!empty($dealers) && min(array_keys($dealers)) >= 1) {
+            foreach ($dealers as $dealer) {
                 $dealersVerb .= (core_Users::getTitleById($dealer) . ', ');
             }
             

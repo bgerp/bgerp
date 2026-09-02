@@ -293,7 +293,7 @@ class cash_Cases extends core_Master
      */
     public static function prepareCaseFilter(&$data, $fields = array(), $operationFieldName = null)
     {
-        $data->listFilter->FNC('case', 'key(mvc=cash_Cases,select=name,allowEmpty)', 'caption=Каса,width=10em,silent');
+        $data->listFilter->FNC('case', 'key(mvc=cash_Cases,select=name,allowEmpty)', 'caption=Каса,placeholderType=all,width=10em,silent');
         $data->listFilter->showFields .= (!empty($data->listFilter->showFields) ? ',' : '') . 'case';
         $data->listFilter->setDefault('case', static::getCurrent('id', false));
 
@@ -406,7 +406,9 @@ class cash_Cases extends core_Master
 
         $query = self::getQuery();
         while($rec = $query->fetch()){
+            // Ако касата няма салдо в баланса, се занулява и кешираната наличност
             $rec->blData = null;
+            $rec->blAmount = 0;
             if(array_key_exists($rec->id, $arr)){
                 $rec->blAmount = arr::sumValuesArray($arr[$rec->id]->currencies, 'amount');
                 $rec->blData = $arr[$rec->id]->currencies;
@@ -439,19 +441,29 @@ class cash_Cases extends core_Master
         $rQuery->EXT('pointId', 'pos_Receipts', 'externalName=pointId,externalKey=receiptId');
         $rQuery->EXT('state', 'pos_Receipts', 'externalName=state,externalKey=receiptId');
         $rQuery->EXT('rCreatedOn', 'pos_Receipts', 'externalName=createdOn,externalKey=receiptId');
+        $rQuery->EXT('rChange', 'pos_Receipts', 'externalName=change,externalKey=receiptId');
         $rQuery->where("#state = 'waiting' AND #action = 'payment|-1'");
         $rQuery->in("pointId", $points);
 
         $today = dt::today();
-        $posData = array();
+        $posData = $changeDeductedIn = array();
         while($rRec = $rQuery->fetch()) {
             $currencyId = acc_Periods::getBaseCurrencyId($rRec->rCreatedOn);
             $currencyCode = acc_Periods::getBaseCurrencyCode($rRec->rCreatedOn);
             if(!array_key_exists($currencyId, $posData)){
                 $posData[$currencyId] = (object)array('quantity' => 0, 'amount' => 0);
             }
-            $posData[$currencyId]->quantity += $rRec->amount;
-            $posData[$currencyId]->amount += currency_CurrencyRates::convertAmount($rRec->amount, $today, $currencyCode);
+
+            // В плащането в брой е въведената от клиента сума, затова се приспада рестото - веднъж
+            // на бележка, както е и при контирането (@see pos_ReceiptDetails::fetchReportData)
+            $amount = $rRec->amount;
+            if(!empty($rRec->rChange) && !array_key_exists($rRec->receiptId, $changeDeductedIn)){
+                $amount -= $rRec->rChange;
+                $changeDeductedIn[$rRec->receiptId] = true;
+            }
+
+            $posData[$currencyId]->quantity += $amount;
+            $posData[$currencyId]->amount += currency_CurrencyRates::convertAmount($amount, $today, $currencyCode);
         }
         $rec->posData = countR($posData) ? $posData : null;
         $rec->blAmountInWaitingReceipts = countR($posData) ? arr::sumValuesArray($posData, 'amount') : 0;

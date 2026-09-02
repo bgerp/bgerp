@@ -49,7 +49,9 @@ class sales_plg_TariffCodeInDetail extends core_Plugin
         // Ако няма акциз се записва
         if (empty($rec->tariffCode)) {
             $tariffCodeId = cat_Params::fetchIdBySysId('customsTariffNumber');
-            if (!empty($tariffCodeId)) {
+
+            // Параметърът може да е дефиниран, но артикулът да няма стойност по него
+            if (!empty($tariffCodeId) && isset($params[$tariffCodeId])) {
                 $rec->tariffCode = $params[$tariffCodeId];
                 $res = true;
             }

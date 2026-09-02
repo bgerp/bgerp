@@ -34,6 +34,12 @@ class purchase_transaction_CloseDeal extends deals_ClosedDealTransaction
      * Дата
      */
     private $date;
+
+
+    /**
+     * Вальор на сделката
+     */
+    private $valior;
     
     
     /**
@@ -70,13 +76,13 @@ class purchase_transaction_CloseDeal extends deals_ClosedDealTransaction
 
         // Създаване на обекта за транзакция
         $result = (object) array(
-            'reason' => $rec->notes,
+            'reason' => $rec->notes ?? null,
             'valior' => $valior,
             'totalAmount' => 0,
             'entries' => array()
         );
         
-        if ($rec->closeWith) {
+        if (!empty($rec->closeWith)) {
             if ($dealItem) {
                 $closeDealItem = array('purchase_Purchases', $rec->closeWith);
                 $closeEntries = $this->class->getTransferEntries($dealItem, $result->totalAmount, $closeDealItem, $rec);

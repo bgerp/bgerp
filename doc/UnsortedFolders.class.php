@@ -259,7 +259,7 @@ class doc_UnsortedFolders extends core_Master
         $form = &$data->form;
         $rec = &$form->rec;
 
-        if($data->action == 'clone'){
+        if(($data->action ?? null) == 'clone'){
             $form->FNC('newStartDate', 'datetime', 'mandatory,caption=Клониране на задачи->Ново начало,input,before=taskCloneState');
             $form->FNC('taskCloneState', 'enum(draft=Чернова,active=Активно)', 'mandatory,caption=Клониране на задачи->Състояние,input,before=receiveEmail,unit=след клониране');
             $form->FNC('cloneFolderSettings', 'enum(yes=Да,no=Не)', 'mandatory,caption=Клониране на настройките на папката->Избор,input,after=taskCloneState');
@@ -388,7 +388,7 @@ class doc_UnsortedFolders extends core_Master
     public function on_AfterPrepareRetUrl($mvc, $res, $data)
     {
         // Ако е субмитната формата
-        if ($data->form && $data->form->isSubmitted()) {
+        if (!empty($data->form) && $data->form->isSubmitted()) {
             
             // Променяма да сочи към single'a
             $data->retUrl = toUrl(array($mvc, 'single', $data->form->rec->id));
@@ -433,7 +433,9 @@ class doc_UnsortedFolders extends core_Master
         $tpl->replace('state-'.$data->state, 'STATE_CLASS_GANTT');
         $tpl->replace("<img alt='' src='{$icon}'>", 'SingleIconGantt');
         $tpl->replace($data->name, 'nameGantt');
-        $tpl->append($data->listFilter, 'FILTER');
+        if (!empty($data->listFilter)) {
+            $tpl->append($data->listFilter, 'FILTER');
+        }
         $tpl->replace($chart, 'Gantt');
         
         
@@ -458,9 +460,9 @@ class doc_UnsortedFolders extends core_Master
         
         $form->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         
-        $recForm = $form->input('order', 'silent');
+        $form->input('order', 'silent');
         
-        if (!$form->rec->order) {
+        if (empty($form->rec->order)) {
             $form->setDefault('order', 'start');
         }
         
@@ -537,7 +539,7 @@ class doc_UnsortedFolders extends core_Master
                                 'duration' => $timeDuration,
                                 'startTime' => dt::mysql2timestamp($timeStart))),
                         
-                        'color' => self::$colors[$recTask->id % 50],
+                        'color' => self::$colors[$recTask->id % countR(self::$colors)],
                         'hint' => $recTask->title,
                         'url' => $flagUrl,
                         'progress' => $recTask->progress
@@ -558,7 +560,7 @@ class doc_UnsortedFolders extends core_Master
         
         $cntResTask = countR($resTask);
         
-        for ($i = 0; $i <= ($cntResTask); $i++) {
+        for ($i = 0; $i < $cntResTask; $i++) {
             // Проверка дали ще има URL
             if ($resTask[$i]['url'] == 'yes') {
                 // Слагаме линк
@@ -698,7 +700,7 @@ class doc_UnsortedFolders extends core_Master
         // само в случайте когато имаме 'година'=>'месец'
         // искаме да добавим още един параметър, който
         // ще ни указва, кога е 1 ден от новия месец в милисекунди
-        if ($params['mainHeaderCaption'] == 'година' && $params['subHeaderCaption'] = 'седмица') {
+        if (($params['mainHeaderCaption'] ?? null) == 'година' && ($params['subHeaderCaption'] ?? null) == 'седмица') {
             
             // от първия пълен месец намерен от началото на ганта
             // до края на ганта
@@ -771,7 +773,7 @@ class doc_UnsortedFolders extends core_Master
         
         
         $viewAccess = true;
-        if ($params['restrictViewAccess'] == 'yes') {
+        if (($params['restrictViewAccess'] ?? null) == 'yes') {
             $viewAccess = false;
         }
         
@@ -782,7 +784,7 @@ class doc_UnsortedFolders extends core_Master
             $query->where("#state != 'rejected' AND #state != 'closed'");
         }
         
-        if ($params['where']) {
+        if (!empty($params['where'])) {
             $query->where($params['where']);
         }
         
@@ -795,18 +797,18 @@ class doc_UnsortedFolders extends core_Master
             $ids = implode(',', $onlyIds);
             expect(preg_match("/^[0-9\,]+$/", $ids), $ids, $onlyIds);
             
-            $query->where("#id IN (${ids})");
+            $query->where("#id IN ({$ids})");
         } elseif (ctype_digit("{$onlyIds}")) {
-            $query->where("#id = ${onlyIds}");
+            $query->where("#id = {$onlyIds}");
         }
         
-        if ($threadId = $params['moveThread']) {
+        if ($threadId = ($params['moveThread'] ?? null)) {
             $tRec = doc_Threads::fetch($threadId);
             expect($doc = doc_Containers::getDocument($tRec->firstContainerId));
             $doc->getInstance()->restrictQueryOnlyFolderForDocuments($query);
         }
         
-        $titleFld = $params['titleFld'];
+        $titleFld = $params['titleFld'] ?? 'name';
         $query->XPR('searchFieldXpr', 'text', "LOWER(CONCAT(' ', #{$titleFld}))");
         
         if ($q) {
@@ -924,7 +926,7 @@ class doc_UnsortedFolders extends core_Master
         if ($id) {
             $rec = self::fetchRec($id);
             
-            if ($rec->contragentFolderId) {
+            if (!empty($rec->contragentFolderId)) {
                 $contragentData = doc_Folders::getContragentData($rec->contragentFolderId);
             }
         }
@@ -990,7 +992,7 @@ class doc_UnsortedFolders extends core_Master
      */
     public function canCloneFolderSettings_($rec)
     {
-        return $rec->cloneFolderSettings == 'yes';
+        return ($rec->cloneFolderSettings ?? null) == 'yes';
     }
 
     /**
@@ -1006,7 +1008,7 @@ class doc_UnsortedFolders extends core_Master
     {
         $rec = $this->fetchRec($rec);
 
-        return arr::make($rec->resourceType, true);
+        return arr::make($rec->resourceType ?? null, true);
     }
 
 
@@ -1023,7 +1025,7 @@ class doc_UnsortedFolders extends core_Master
                 // При опит за отмаркирване на ресурсите да се спира - ако има вече избрани ресурси
                 if(isset($rec->folderId)) {
                     $assetErrorMsgArr = array();
-                    $resourceTypes = type_Set::toArray($rec->resourceType);
+                    $resourceTypes = type_Set::toArray($rec->resourceType ?? null);
 
                     if(empty($resourceTypes['assets'])) {
                         $assetClassId = planning_AssetResources::getClassId();

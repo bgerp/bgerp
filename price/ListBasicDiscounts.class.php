@@ -134,7 +134,7 @@ class price_ListBasicDiscounts extends core_Detail
             if(!$form->gotErrors()){
                 $query = static::getQuery();
                 $query->XPR('amountToCalc', 'int', "COALESCE(#amountTo, 999999999999)");
-                $query->where("#id != '{$rec->id}' AND #listId = {$rec->listId} AND #groupId = {$rec->groupId}");
+                $query->where("#id != '" . ($rec->id ?? 0) . "' AND #listId = {$rec->listId} AND #groupId = {$rec->groupId}");
                 $query->where("'{$from}' < #amountToCalc && '{$to}' > #amountFrom");
 
                 if($query->count()){
@@ -152,6 +152,19 @@ class price_ListBasicDiscounts extends core_Detail
 
 
     /**
+     * Извиква се след конвертирането на реда ($rec) към вербални стойности ($row)
+     */
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    {
+        // Групата сочи към филтрираните по нея артикули
+        if (!empty($rec->groupId) && cat_Products::haveRightFor('list') && !Mode::isReadOnly()) {
+            $groupTitle = $row->groupId;
+            $row->groupId = ht::createLink($groupTitle, array('cat_Products', 'list', 'groupId' => $rec->groupId), false, "title=Филтриране на артикули по група|* '{$groupTitle}'");
+        }
+    }
+
+
+    /**
      * Преди рендиране на таблицата
      */
     protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
@@ -163,7 +176,7 @@ class price_ListBasicDiscounts extends core_Detail
             $row->listId = price_Lists::getHyperlink($rec->listId, true);
             $row->currencyId = $listRec->currency;
             if(empty($rec->amountTo)){
-                $row->amountTo = "<i style='color:blue'>" . tr('Без лимит') . "</i class>";
+                $row->amountTo = "<i class='blueText'>" . tr('Без лимит') . "</i class>";
             }
         }
     }
@@ -208,7 +221,7 @@ class price_ListBasicDiscounts extends core_Detail
      */
     public function renderDetail_($data)
     {
-        if($data->hide) return new core_ET("");
+        if (!empty($data->hide)) return new core_ET("");
 
         // Ако не се иска да се показва детайла - да се скрива
         $vatUnit = ($data->masterData->rec->vat == 'yes') ? tr('с ДДС') : tr('без ДДС');
@@ -286,22 +299,29 @@ class price_ListBasicDiscounts extends core_Detail
         $detailsByGroups = array();
         if($Master instanceof eshop_Carts){
             $settings = cms_Domains::getSettings($masterRec->domainId);
-            $vatExceptionId = $settings->vatExceptionId;
+            $vatExceptionId = $settings->vatExceptionId ?? null;
+        } elseif($Master instanceof pos_Receipts){
+
+            // ПОС бележката не е в нишка - изключението е от настройките на точката
+            $settings = pos_Points::getSettings($masterRec->pointId);
+            $vatExceptionId = $settings->vatExceptionId ?? null;
         } else {
             $vatExceptionId = cond_VatExceptions::getFromThreadId($masterRec->threadId);
         }
 
-        // Еднократно извличане на ддс-та на артикула за посочената дата
+        // Еднократно извличане на ддс-та на артикула за посочената дата.
+        // Количката няма вальор - при празна дата 'getVats' смята с днешната
         $vats = array();
         if($basicDiscountListRec->vat == 'yes'){
-            $vats = cat_products_VatGroups::getVats(arr::extractValuesFromArray($detailsAll, 'productId'), $masterRec->valior, $vatExceptionId);
+            $vats = cat_products_VatGroups::getVats(arr::extractValuesFromArray($detailsAll, 'productId'), $masterRec->valior ?? null, $vatExceptionId);
         }
 
         foreach ($groupIds as $groupId){
+            $detailsByGroups[$groupId] = array('amount' => 0, 'autoDiscount' => 0);
+
             // Добавят се и данните за раздадените отстъпки от текущата продажба
             foreach ($detailsAll as $detailRec){
                 if(keylist::isIn($groupId, $detailRec->groups)){
-                    $detailsByGroups[$groupId]['autoDiscount'] += 0;
                     if($Detail instanceof sales_SalesDetails){
                         $amount = isset($detailRec->discount) ? ($detailRec->amount * (1 - $detailRec->discount)) : $detailRec->amount;
                         if(array_key_exists($detailRec->productId, $vats)){
@@ -324,6 +344,7 @@ class price_ListBasicDiscounts extends core_Detail
         $res['CURRENT_SALE'] = $detailsByGroups;
         $finalSums = $salesByNow;
         array_walk($detailsByGroups, function($valArr, $key) use (&$finalSums) {
+            $finalSums[$key] = $finalSums[$key] ?? array('amount' => 0, 'autoDiscount' => 0);
             $finalSums[$key]['amount'] += $valArr['amount'];
             $finalSums[$key]['autoDiscount'] += $valArr['autoDiscount'];
 
@@ -343,7 +364,7 @@ class price_ListBasicDiscounts extends core_Detail
             $filteredRecs = array_filter($dRecs, function($a) use ($groupId) {return $a->groupId == $groupId;});
             foreach ($filteredRecs as $fRec){
                 $valToCheck = round($finalSums[$groupId]['amount'], 2);
-                $convertedAmount = currency_CurrencyRates::convertAmount($valToCheck, null, null, $fRec->currencyId);
+                $convertedAmount = currency_CurrencyRates::convertAmount($valToCheck, null, null, $basicDiscountListRec->currency);
                 if($convertedAmount >= $fRec->amountFrom && (($convertedAmount <= $fRec->amountTo) || !isset($fRec->amountTo))){
                     $foundDiscountRec = $fRec;
                     break;
@@ -358,7 +379,7 @@ class price_ListBasicDiscounts extends core_Detail
                 $valToCheck = round($finalSums[$groupId]['amount'], 2);
 
                 // Смята се процента на автоматична отстъпка
-                $totalWithoutDiscountInListCurrency = currency_CurrencyRates::convertAmount($valToCheck, null, null, $basicDiscountListRec->currencyId);
+                $totalWithoutDiscountInListCurrency = currency_CurrencyRates::convertAmount($valToCheck, null, null, $basicDiscountListRec->currency);
                 $calcDiscountInListCurrency = 0;
                 $totalWithoutDiscountInListCurrency -= $foundDiscountRec->amountFrom;
 
@@ -375,7 +396,7 @@ class price_ListBasicDiscounts extends core_Detail
                 if($calcDiscountInListCurrency <= 0) continue;
 
                 // Изчислява се процента спрямо сумата на групата от текущата продажба
-                $totalOld = currency_CurrencyRates::convertAmount($res['CURRENT_SALE'][$groupId]['amount'], null, null, $basicDiscountListRec->currencyId);
+                $totalOld = currency_CurrencyRates::convertAmount($res['CURRENT_SALE'][$groupId]['amount'], null, null, $basicDiscountListRec->currency);
                 $calcedPercent =  round(($calcDiscountInListCurrency / $totalOld), 4);
                 $calcedPercent = min($calcedPercent, 1);
 
@@ -454,6 +475,8 @@ class price_ListBasicDiscounts extends core_Detail
         // Сумира се сумата без оригинална отстъпка и сумата на автоматичните отстъпки от тях
         $sumByGroups = array();
         foreach ($groupIds as $groupId){
+            $sumByGroups[$groupId] = array('amount' => 0, 'autoDiscount' => 0);
+
             foreach ($saleRecs as $sRec1){
                 if(keylist::isIn($groupId, $sRec1->groups)){
                     $amount =  $sRec1->sellCostWithOriginalDiscount * $sRec1->quantity;
@@ -497,6 +520,8 @@ class price_ListBasicDiscounts extends core_Detail
         $receiptRecs = $pQuery->fetchAll();
 
         foreach ($groupIds as $groupId1){
+            $sumByGroups[$groupId1] = $sumByGroups[$groupId1] ?? array('amount' => 0, 'autoDiscount' => 0);
+
             foreach ($receiptRecs as $receiptRec){
                 if(keylist::isIn($groupId1, $receiptRec->groups)){
                     $amount = isset($receiptRec->inputDiscount) ? ($receiptRec->amount * (1 - $receiptRec->inputDiscount)) : $receiptRec->amount;
@@ -523,12 +548,19 @@ class price_ListBasicDiscounts extends core_Detail
     {
         if(isset($rec->id)){
             $exRec = $mvc->fetch($rec->id, '*', false);
-            $checkExFields = md5("{$exRec->groupId}|{$exRec->amountFrom}|{$exRec->amountTo}|{$exRec->discountPercent}|{$exRec->discountAmount}");
-            $checkCurrentFields = md5("{$rec->groupId}|{$rec->amountFrom}|{$rec->amountTo}|{$rec->discountPercent}|{$rec->discountAmount}");
-            if($checkExFields != $checkCurrentFields){
-                $mvc->invalidateListsOnShutdown[$rec->listId] = $rec->listId;
+            if ($exRec) {
+                $currentRec = clone $exRec;
+                foreach (get_object_vars($rec) as $field => $value) {
+                    $currentRec->{$field} = $value;
+                }
+
+                $checkExFields = md5("{$exRec->groupId}|{$exRec->amountFrom}|{$exRec->amountTo}|{$exRec->discountPercent}|{$exRec->discountAmount}");
+                $checkCurrentFields = md5("{$currentRec->groupId}|{$currentRec->amountFrom}|{$currentRec->amountTo}|{$currentRec->discountPercent}|{$currentRec->discountAmount}");
+                if($checkExFields != $checkCurrentFields){
+                    $mvc->invalidateListsOnShutdown[$currentRec->listId] = $currentRec->listId;
+                }
             }
-        } else {
+        } elseif (isset($rec->listId)) {
             $mvc->invalidateListsOnShutdown[$rec->listId] = $rec->listId;
         }
     }

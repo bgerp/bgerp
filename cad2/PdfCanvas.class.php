@@ -9,8 +9,18 @@ class cad2_PdfCanvas extends cad2_Canvas
     /**
      * Текуща точка
      */
-    public $cX;
-    public $cY;
+    public $cX = 0;
+    public $cY = 0;
+
+    /**
+     * Индекс на текущия път
+     */
+    public $currentPath = null;
+
+    /**
+     * PDF инстанция
+     */
+    public $pdf = null;
     
     public $pageStyle = array();
     
@@ -31,6 +41,12 @@ class cad2_PdfCanvas extends cad2_Canvas
      */
     public $width;
     public $height;
+
+    // Граници на съдържанието
+    public $minX = 0;
+    public $maxX = 0;
+    public $minY = 0;
+    public $maxY = 0;
     
     // Падинги на страницата
     public $paddingTop;
@@ -124,7 +140,7 @@ class cad2_PdfCanvas extends cad2_Canvas
     {
         expect(in_array($name, $this->alowedAttributes), $name);
         
-        return $this->attr[$name];
+        return $this->attr[$name] ?? null;
     }
     
     
@@ -414,7 +430,6 @@ class cad2_PdfCanvas extends cad2_Canvas
         }
         
         $res = $this->pdf->getPDFData();
-        $this->pdf->endPage();
         
         return $res;
     }
@@ -427,28 +442,34 @@ class cad2_PdfCanvas extends cad2_Canvas
     {
         $this->pdf->StartTransform();
         $this->pdf->Rotate(0, 0, 0);
+
+        $strokeWidth = $e->attr['stroke-width'] ?? null;
+        $strokeLinecap = $e->attr['stroke-linecap'] ?? null;
+        $strokeDasharray = $e->attr['stroke-dasharray'] ?? null;
+        $stroke = $e->attr['stroke'] ?? null;
+        $pathFill = $e->attr['fill'] ?? null;
         
         $this->pdf->SetLineStyle(array(
-            'width' => $e->attr['stroke-width'],
-            'cap' => $e->attr['stroke-linecap'],
+            'width' => $strokeWidth,
+            'cap' => $strokeLinecap,
             'join' => 'bevel',
-            'dash' => $e->attr['stroke-dasharray'],
-            'color' => self::hexToCmyk($e->attr['stroke'], array(0, 0, 0, 100))));
+            'dash' => $strokeDasharray,
+            'color' => self::hexToCmyk($stroke, array(0, 0, 0, 100))));
         
         
         $fillColor = null;
         
         $fill = 'S';
         
-        if ($e->attr['fill'] != 'transparent' && $e->attr['fill'] != 'none') {
+        if ($pathFill != 'transparent' && $pathFill != 'none') {
             $fill = 'FD';
             
-            if (isset($e->attr['fill'])) {
-                $fillColor = self::hexToCmyk($e->attr['fill']);
+            if ($pathFill !== null) {
+                $fillColor = self::hexToCmyk($pathFill);
             }
         }
         
-        if ($e->attr['fill'] == 'transparent' || $e->attr['fill'] == 'none') {
+        if ($pathFill == 'transparent' || $pathFill == 'none') {
             $fillOpacity = 0;
         } elseif (isset($e->attr['fill-opacity'])) {
             $fillOpacity = (float) $e->attr['fill-opacity'];
@@ -456,7 +477,7 @@ class cad2_PdfCanvas extends cad2_Canvas
             $fillOpacity = 1;
         }
         
-        if ($e->attr['stroke'] == 'transparent' || $e->attr['stroke'] == 'none') {
+        if ($stroke == 'transparent' || $stroke == 'none') {
             $strokeOpacity = 0;
         } elseif (isset($e->attr['stroke-opacity'])) {
             $strokeOpacity = (float) $e->attr['stroke-opacity'];
@@ -466,6 +487,8 @@ class cad2_PdfCanvas extends cad2_Canvas
         
         $this->pdf->SetAlpha($strokeOpacity, 'Normal', $fillOpacity);
         
+        $start = false;
+        $startX = $startY = null;
         foreach ($e->data as &$d) {
             $d[1] += $this->addX;
             $d[2] += $this->addY;
@@ -483,7 +506,7 @@ class cad2_PdfCanvas extends cad2_Canvas
             }
         }
         
-        if ($e->close) {
+        if (!empty($e->close)) {
             if ($fill == 'FD') {
                 $fill = 'fd';
             }
@@ -523,7 +546,7 @@ class cad2_PdfCanvas extends cad2_Canvas
     public function doOpenTransform($e)
     {
         $this->pdf->StartTransform();
-        if (is_array($e->attr['_transform'])) {
+        if (is_array($e->attr['_transform'] ?? null)) {
             foreach ($e->attr['_transform'] as $tArr) {
                 switch ($tArr[0]) {
                     case 'scale':
@@ -580,6 +603,9 @@ class cad2_PdfCanvas extends cad2_Canvas
     public function doText($e)
     {
         $attr = $e->attr;
+        $fontSize = $attr['font-size'] ?? 0;
+        $fontFamily = $attr['font-family'] ?? '';
+        $fontWeight = $attr['font-weight'] ?? null;
         
         $e->rotation = -$e->rotation;
         
@@ -595,32 +621,32 @@ class cad2_PdfCanvas extends cad2_Canvas
             $this->pdf->Rotate($e->rotation, $e->x + $this->addX, $e->y + $this->addY);
         }
         
-        $size = $attr['font-size'] / 3.75;
+        $size = $fontSize / 3.75;
         
         
         $e->y -= 0.35 * $size;
         
-        list($font, ) = explode(',', $attr['font-family']);
+        list($font, ) = explode(',', $fontFamily);
         
         $font = trim('dejavusans');
         
         $style = '';
-        if ($attr['font-weight'] == 'bold') {
+        if ($fontWeight == 'bold') {
             $style = 'B';
         }
-        if ($attr['font-weight'] == 'italic') {
+        if ($fontWeight == 'italic') {
             $style = 'I';
         }
         
-        $this->pdf->SetFont($font, $style, $attr['font-size'] / 3.5, '', false);
+        $this->pdf->SetFont($font, $style, $fontSize / 3.5, '', false);
         
-        $opacity = $attr['text-opacity'];
+        $opacity = $attr['text-opacity'] ?? null;
         if (!$opacity) {
             $opacity = 1;
         }
         $this->pdf->SetAlpha($opacity);
         
-        if ($color = self::hexToCmyk($attr['text-color'], array(0, 0, 0, 100))) {
+        if ($color = self::hexToCmyk($attr['text-color'] ?? null, array(0, 0, 0, 100))) {
             $this->pdf->SetTextColorArray($color);
         }
         
@@ -654,6 +680,10 @@ class cad2_PdfCanvas extends cad2_Canvas
      */
     public function toAbs(&$x, &$y, $absolute)
     {
+        // Както в SVG реализацията, липсваща координата се приема за 0
+        $x = (float) ($x ?? 0);
+        $y = (float) ($y ?? 0);
+
         if (!$absolute) {
             $x += $this->cX;
             $y += $this->cY;
@@ -695,7 +725,7 @@ class cad2_PdfCanvas extends cad2_Canvas
         
         $res = array($cyan / 2.55, $magenta / 2.55, $yellow / 2.55, $black / 2.55);
         
-        if ($name = $this->colorNames[$hexColor]) {
+        if ($name = $this->colorNames[$hexColor] ?? null) {
             $res[4] = $name;
         }
         

@@ -47,6 +47,14 @@ class core_Html
                     // са вътрешни и поради това не ги показваме в елемента
                     if (is_string($atr) && isset($atr[0]) && $atr[0] == '#') continue;
 
+                    if (is_array($content)) {
+                        $flatContent = array();
+                        array_walk_recursive($content, function ($c) use (&$flatContent) {
+                            $flatContent[] = $c;
+                        });
+                        $content = implode(' ', $flatContent);
+                    }
+
                     if (is_string($content)) {
                         /**
                          * Необходимо ли е да се ескейпва символи различни от двойни кавички
@@ -65,7 +73,10 @@ class core_Html
                 $element = "<{$name}{$attrStr}>";
             } else {
                 if (in_array(strtolower($name), array('textarea', 'option'))) {
-                    $body = str_replace(array('&', '<', '>'), array('&amp;', '&lt;', '&gt;'), $body);
+                    if (is_array($body) || (is_object($body) && !method_exists($body, '__toString'))) {
+                        $body = print_r($body, true);
+                    }
+                    $body = str_replace(array('&', '<', '>'), array('&amp;', '&lt;', '&gt;'), $body ?? '');
                 }
                 $element = "<{$name}{$attrStr}>{$body}</{$name}>";
             }
@@ -84,7 +95,7 @@ class core_Html
     public static function escapeAttr($attrContent)
     {
         //$content = str_replace(array('&', "\""), array('&amp;', "&quot;"), $attrContent);
-        $content = htmlspecialchars($attrContent, ENT_QUOTES, null);
+        $content = htmlspecialchars((string) $attrContent, ENT_QUOTES, null);
         $content = str_replace(array("\r\n", "\n\r", "\n"), array('&#13;&#10;', '&#10;&#13;', '&#10;'), $content);
         
         return $content;
@@ -204,7 +215,7 @@ class core_Html
      */
     public static function groupOptions($options, $div = '»')
     {
-        $lastGroup = null;
+        $lastGroup = '';
         if (countR($options) > 1) {
             $groups = $newOptions = array();
             
@@ -216,13 +227,13 @@ class core_Html
                         $defaultGroup = trim($opt->title);
                         continue;
                     }
-                    $title = $opt->title;
+                    $title = $opt->title ?? '';
                 } else {
                     $title = $opt;
                 }
-                
+
                 // Ако в името на класа има '->' то приемаме, че стринга преди знака е името на групата
-                list($group, $caption) = array_pad(explode($div, $title, 2), 2, null);
+                list($group, $caption) = array_pad(explode($div, (string) $title, 2), 2, null);
 
                 if (!$caption) {
                     $caption = $group;
@@ -328,7 +339,7 @@ class core_Html
                 
                 // Хак за добавяне на плейс-холдер
                 if (!empty($selAttr['placeholder']) &&
-                    strlen($attr['value']) == 0 && !trim($title)) {
+                    strlen((string) $attr['value']) == 0 && !trim((string) $title)) {
                     $title = $selAttr['placeholder'];
                     $attr['style'] = ($attr['style'] ?? '') . 'color:#777;';
                 }
@@ -385,6 +396,15 @@ class core_Html
     ) {
         $maxRadio = $maxRadio ?? 0;
         $maxColumns = $maxColumns ?? 4;
+
+        $hasEmptyOption = is_array($options) && array_key_exists('', $options);
+        $emptyOptionIsDisabled = $hasEmptyOption && is_object($options['']) &&
+            is_array($options['']->attr ?? null) && !empty($options['']->attr['disabled']);
+        $allowEmpty = !empty($attr['_isAllowEmpty']) || ($hasEmptyOption && !$emptyOptionIsDisabled);
+        if ($allowEmpty && !$hasEmptyOption) {
+            $options = array('' => '') + $options;
+            $hasEmptyOption = true;
+        }
 
         $optionsCnt = self::countOptions($options);
         
@@ -450,10 +470,32 @@ class core_Html
                 $keyListClass = ' shrinked';
             }
 
-            // Ако има празна опция, да може да се изчиства и да не се показва тази опция
-            if (isset($options['']) && !isset($attr['_isAllowEmpty'])) {
+            // Празната allowEmpty опция остава видима и получава еднозначен надпис
+            if ($allowEmpty && $hasEmptyOption) {
+                $emptyOption = $options[''];
+                if ($emptyOption instanceof core_ET) {
+                    $emptyTitle = trim($emptyOption->getContent());
+                } elseif (is_object($emptyOption)) {
+                    $emptyTitle = trim($emptyOption->title ?? '');
+                } else {
+                    $emptyTitle = trim((string) $emptyOption);
+                }
+
+                if (!strlen($emptyTitle)) {
+                    $emptyTitle = trim($attr['placeholder'] ?? '');
+                    $emptyTitle = strlen($emptyTitle) ? $emptyTitle : tr('Без избор');
+
+                    if (is_object($emptyOption) && !($emptyOption instanceof core_ET)) {
+                        $emptyOption = clone $emptyOption;
+                        $emptyOption->title = $emptyTitle;
+                        $options[''] = $emptyOption;
+                    } else {
+                        $options[''] = $emptyTitle;
+                    }
+                }
+            } elseif ($hasEmptyOption) {
+                // Служебният placeholder на задължително поле не е позволен избор
                 unset($options['']);
-                $attr['_isAllowEmpty'] = true;
             }
 
             // Когато броя на опциите са по-малко
@@ -499,6 +541,12 @@ class core_Html
                         ? (($opt instanceof core_ET) ? type_Varchar::escape($opt->getContent()) : ($opt->title ?? ''))
                         : $opt;
                     $attrLabel = (is_object($opt) && is_array($opt->attr ?? null)) ? $opt->attr : array();
+                    if ($id === '' && $allowEmpty) {
+                        $labelStyle = trim($attrLabel['style'] ?? '');
+                        if (!preg_match('/(?:^|;)\s*color\s*:\s*#777\s*(?:;|$)/i', $labelStyle)) {
+                            $attrLabel['style'] = rtrim($labelStyle, ';') . (strlen($labelStyle) ? ';' : '') . 'color:#777;';
+                        }
+                    }
                     $radioAttr = array('type' => 'radio', 'name' => $name, 'value' => $id);
                     
                     self::setUniqId($radioAttr);
@@ -533,7 +581,7 @@ class core_Html
             // Добавка (временна) за да не се свиват радио бутоните от w25 - w75
             $attr['style'] = ($attr['style'] ?? '') . ';width:100%;';
 
-            if(isset($attr['_isAllowEmpty'])){
+            if($allowEmpty){
                 $attr['class'] = ($attr['class'] ?? '') . ' allowEmptyRadioHolder';
                 unset($attr['_isAllowEmpty']);
             } else {
@@ -629,7 +677,7 @@ class core_Html
                 if ($l) {
                     list($titles, $c) = array_pad(explode('=', $l, 2), 2, null);
                     $titles = trim($titles);
-                    $c = str::utf2ascii(trim($c));
+                    $c = str::utf2ascii(trim($c ?? ''));
                     if (strlen($titles) > 1 && strlen($c) == 1) {
                         $titlesArr = explode(',', $titles);
                         foreach ($titlesArr as $t) {
@@ -792,7 +840,7 @@ class core_Html
         self::addAccessKey($attr, $title);
 
         if (is_array($cmd) && !isset($attr['name'])) {
-            wp('За CMD се подава масив: ', $cmd);
+//            wp('За CMD се подава масив: ', $cmd);
             $cmd = $cmd[1] ?? $cmd[0] ?? '';
         }
 
@@ -862,7 +910,8 @@ class core_Html
             $attr['style'] = ($attr['style'] ?? '') . 'color:#772200;';
         }
         
-        $attr['class'] .= ($attr['class'] ? ' ' : '') . 'button';
+        $class = $attr['class'] ?? '';
+        $attr['class'] = $class . ($class ? ' ' : '') . 'button';
         
         // Добавяме икона на бутона, ако има
         if (!Mode::is('screenMode', 'narrow')) {
@@ -905,7 +954,7 @@ class core_Html
                     $url = toUrl($url);
                 } catch (core_exception_Expect $e) {
                     $url = null;
-                    $attr['style'] .= ' border:dotted 1px red;';
+                    $attr['style'] = ($attr['style'] ?? '') . ' border:dotted 1px red;';
                 }
             } else {
                 $url = '';
@@ -914,7 +963,7 @@ class core_Html
         
         if ($url) {
             if (($warning || ($attr['rel'] ?? null) == 'nofollow') && ((!Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('pdf') && !Mode::is('text', 'plain')))) {
-                $attr['onclick'] .= " document.location='{$url}'";
+                $attr['onclick'] = ($attr['onclick'] ?? '') . " document.location='{$url}'";
                 $attr['href'] = 'javascript:void(0)';
             } else {
                 $attr['href'] = $url;
@@ -970,34 +1019,57 @@ class core_Html
     
     
     /**
-     * Създава хипервръзка със стрелка в скоби след подаден $title
+     * Създава хипервръзка със стрелка в скоби след подаден $title.
+     * С атрибут 'arrowFront' стрелката е пред заглавието и огледално обърната
      */
     public static function createLinkRef($title, $url = false, $warning = false, $attr = array())
     {
+        // Нормализация, за да работят флаговете и при подадени атрибути като стринг
+        $attr = arr::make($attr, true);
+
+        // Флагът не е html атрибут - маха се, за да не влезе в тага на линка
+        $arrowFront = false;
+        if (!empty($attr['arrowFront'])) {
+            $arrowFront = true;
+            unset($attr['arrowFront']);
+        }
+
         // Ако има зададена иконка в линка, слагаме я преди заглавието
         $link = null;
-        if (is_array($attr) && isset($attr['ef_icon'])) {
+        if (isset($attr['ef_icon'])) {
             $icon = ht::createElement('img', array('src' => sbf($attr['ef_icon'], ''), 'class' => 'linkRefIcon'));
             $title = "{$icon} <span class = 'linkRefText'>{$title}</span>";
             unset($attr['ef_icon']);
         }
-        
+
         if ($url !== false && (is_string($url) || (is_array($url) && countR($url)))) {
-            $imgSrc = $attr['ef_icon'] ?? 'img/16/anchor-image.png';
+
+            // Отпред стрелката е без рамка и се мащабира с шрифта, за да е на реда на текста
+            $default = ($arrowFront === true) ? 'img/16/anchor-arrow.svg' : 'img/16/anchor-image.png';
+            $imgSrc = $attr['ef_icon'] ?? $default;
             $arrowImg = ht::createElement('img', array('src' => sbf($imgSrc, '')));
-            $link = self::createLink("<span class='anchor-arrow'>{$arrowImg}</span>", $url, $warning, $attr);
+            $arrowClass = ($arrowFront === true) ? 'anchor-arrow front' : 'anchor-arrow';
+            $arrow = "<span class='{$arrowClass}'>{$arrowImg}</span>";
+
+            $link = self::createLink($arrow, $url, $warning, $attr);
         }
 
         if(!empty($link)){
             if($title instanceof core_ET){
-                $res = new core_ET("[#title#]&nbsp;[#link#]");
+                $layout = ($arrowFront === true) ? "[#link#]&nbsp;[#title#]" : "[#title#]&nbsp;[#link#]";
+                $res = new core_ET($layout);
                 $res->append($title, 'title');
                 $res->append($link, 'link');
 
                 return $res;
-            } else {
-                return "{$title}&nbsp;{$link}";
             }
+
+            if ($arrowFront === true) {
+
+                return "{$link}&nbsp;{$title}";
+            }
+
+            return "{$title}&nbsp;{$link}";
         }
 
         return $title;
@@ -1027,7 +1099,7 @@ class core_Html
             $name = 'sm';
             $attr['onChange'] = 'openUrl(this.options[this.selectedIndex].value, event)';
             $attr['onfocus'] = 'this.selectedIndex = -1;';
-            $attr['class'] = ($attr['class'] ? $attr['class'] . ' ' : '') . 'button';
+            $attr['class'] = (!empty($attr['class']) ? $attr['class'] . ' ' : '') . 'button';
             $attr['id'] = $name;
             $selectMenu = self::createSelect($name, $options, $selected, $attr);
             
@@ -1101,35 +1173,97 @@ class core_Html
      * @param string $hint        - текст на хинта
      * @param string $type        - тип на хинта
      * @param bool   $appendToEnd - дали хинта да се добави в края на стринга
-     * @param array  $iconAttr    - атрибути на иконката
+     * @param array  $hintAttr    - атрибути на балончето, плюс настройките на хинта:
+     *                             o bool         isHtml      - хинтът е HTML и се показва в балонче, вместо в 'title'
+     *                             o array|string iconAttr    - атрибути на иконката
+     *                             o array|string url         - адрес, от който съдържанието на балончето се дърпа по ajax
+     *                             o string       urlIdParam  - параметър в урл-то с ид-то на балончето, по подразбиране 'replaceField'; null - да не се добавя
+     *                             o bool         useHover    - ajax балончето да се показва и при посочване, не само при клик
+     *                             o bool         useCache    - ajax заявката да се прави само първия път
+     *                             o string       holderClass - допълнителен клас на обвивката
+     *                             o string       arrowClass  - клас на стрелката, по подразбиране 'anchor-arrow'
      * @param array  $elementArr  - атрибути на елемента
      *
      * @return core_ET $elementTpl  - шаблон с хинта
      */
-    public static function createHint($body, $hint, $type = 'notice', $appendToEnd = true, $iconAttr = array(), $elementArr = array())
+    public static function createHint($body, $hint, $type = 'notice', $appendToEnd = true, $hintAttr = array(), $elementArr = array())
     {
-        if (empty($hint) || Mode::is('printing') || Mode::is('text', 'xhtml') || Mode::is('pdf')) {
+        // Настройките се изваждат - остатъкът са атрибутите на балончето
+        $hintAttr = arr::make($hintAttr, true);
+        $isHtml = !empty($hintAttr['isHtml']);
+        $iconAttr = $hintAttr['iconAttr'] ?? array();
+        $url = $hintAttr['url'] ?? null;
+        $urlIdParam = array_key_exists('urlIdParam', $hintAttr) ? $hintAttr['urlIdParam'] : 'replaceField';
+        $useHover = !empty($hintAttr['useHover']);
+        $useCache = !empty($hintAttr['useCache']);
+        $holderClass = $hintAttr['holderClass'] ?? null;
+        $arrowClass = array_key_exists('arrowClass', $hintAttr) ? $hintAttr['arrowClass'] : 'anchor-arrow';
+        unset($hintAttr['isHtml'], $hintAttr['iconAttr'], $hintAttr['url'], $hintAttr['urlIdParam'], $hintAttr['useHover'], $hintAttr['useCache'], $hintAttr['holderClass'], $hintAttr['arrowClass']);
+
+        // При ajax хинт балончето е празно, затова се допуска и без текст
+        if ((empty($hint) && empty($url)) || Mode::is('printing') || Mode::is('text', 'xhtml') || Mode::is('pdf')) {
             
             return new core_ET($body);
         }
-        
-        $hint = strip_tags(tr($hint));
 
-        if ($type == 'noicon') {
-            $element = "<span class='textHint' title='[#hint#]' rel='tooltip'>[#body#]</span>";
-        } else {
-            $iconAttr = arr::make($iconAttr, true);
-            if (!array_key_exists('src', $iconAttr)) {
-                $iconPath = ($type == 'notice') ? 'img/32/info-gray.png' : (($type == 'warning') ? 'img/32/dialog_warning.png' : (($type == 'error') ? 'img/32/dialog_error.png' : $type));
-                $iconAttr['src'] = $iconPath;
-            }
-            $iconAttr['src'] = sbf($iconAttr['src'], '');
-            $iconHtml = ht::createElement('img', $iconAttr);
+        if (!empty($url)) {
             
-            if ($appendToEnd === true) {
-                $element = "[#body#] <span class='endTooltip' style='position: relative; top: 2px;' title='[#hint#]' rel='tooltip'>[#icon#]</span>";
+            return static::createAjaxHint($body, $hint, $type, $appendToEnd, $hintAttr, $elementArr, $iconAttr, $url, $urlIdParam, $useHover, $useCache, $holderClass, $arrowClass);
+        }
+
+        // При инсталиран пакет `floatingui` хинтът се показва в общия слой на страницата
+        $useFloatingUi = core_Packs::isInstalled('floatingui');
+
+        if ($isHtml) {
+            // При HTML хинт съдържанието се запазва и отива в балончето
+            $hint = ($hint instanceof core_ET) ? $hint->getContent() : tr($hint);
+        } else {
+            $hint = strip_tags(tr($hint));
+
+            // Текстът се вгражда като HTML в слоя, затова ентитетата от вербалното
+            // представяне (`5&nbsp;424`) се декодират и се ескейпва наново
+            if ($useFloatingUi) {
+                $hint = core_Type::escape(html_entity_decode($hint, ENT_QUOTES, 'UTF-8'));
+            }
+        }
+
+        if ($useFloatingUi) {
+            // Съдържанието пътува в `data-hint` - виж floatingui/js/Hints.js
+            $hint = ht::escapeAttr($hint);
+
+            if ($type == 'noicon') {
+                $element = "<span class='textHint fuiHint' data-hint=\"[#hint#]\">[#body#]</span>";
             } else {
-                $element = "<span class='frontTooltip' style='position: relative; top: 2px;' title='[#hint#]' rel='tooltip'>[#icon#]</span> [#body#]";
+                $iconHtml = static::getHintIcon($type, $iconAttr);
+                $iconClass = ($appendToEnd === true) ? 'endTooltip' : 'frontTooltip';
+                $trigger = "<span class='{$iconClass} fuiHint' style='position: relative; top: 2px;' data-hint=\"[#hint#]\">[#icon#]</span>";
+                $element = ($appendToEnd === true) ? "[#body#] {$trigger}" : "{$trigger} [#body#]";
+            }
+        } else {
+            if ($isHtml) {
+                $hintClass = !empty($hintAttr['class']) ? " {$hintAttr['class']}" : '';
+                $hintAttr['class'] = "additionalInfo{$hintClass}";
+                $hintSpan = ht::createElement('span', $hintAttr);
+            }
+
+            if ($type == 'noicon') {
+                if ($isHtml) {
+                    $element = "<span class='additionalInfo-holder hoverHint'>{$hintSpan}[#hint#]</span><span class='textHint'>[#body#]</span></span>";
+                } else {
+                    $element = "<span class='textHint' title='[#hint#]' rel='tooltip'>[#body#]</span>";
+                }
+            } else {
+                $iconHtml = static::getHintIcon($type, $iconAttr);
+                
+                if ($isHtml) {
+                    $iconClass = ($appendToEnd === true) ? 'endTooltip' : 'frontTooltip';
+                    $holder = "<span class='additionalInfo-holder hoverHint'>{$hintSpan}[#hint#]</span><span class='{$iconClass}' style='position: relative; top: 2px;'>[#icon#]</span></span>";
+                    $element = ($appendToEnd === true) ? "[#body#] {$holder}" : "{$holder} [#body#]";
+                } elseif ($appendToEnd === true) {
+                    $element = "[#body#] <span class='endTooltip' style='position: relative; top: 2px;' title='[#hint#]' rel='tooltip'>[#icon#]</span>";
+                } else {
+                    $element = "<span class='frontTooltip' style='position: relative; top: 2px;' title='[#hint#]' rel='tooltip'>[#icon#]</span> [#body#]";
+                }
             }
         }
         
@@ -1143,13 +1277,117 @@ class core_Html
             $elementTpl->append('</span>');
         }
         
-        $hint = str_replace("'", '"', $hint);
+        if (!$isHtml && !$useFloatingUi) {
+            $hint = str_replace("'", '"', $hint);
+        }
+        
         $elementTpl->append($body, 'body');
         $elementTpl->append($hint, 'hint');
         if(!empty($iconHtml)){
             $elementTpl->append($iconHtml, 'icon');
         }
 
+        return $elementTpl;
+    }
+    
+    
+    /**
+     * Подготвя иконката на хинта според типа му
+     *
+     * @param string       $type     - тип на хинта или път до иконка
+     * @param array|string $iconAttr - атрибути на иконката
+     *
+     * @return string - html на иконката
+     */
+    private static function getHintIcon($type, $iconAttr)
+    {
+        $iconAttr = arr::make($iconAttr, true);
+        if (!array_key_exists('src', $iconAttr)) {
+            $iconPath = ($type == 'notice') ? 'img/32/info-gray.png' : (($type == 'warning') ? 'img/32/dialog_warning.png' : (($type == 'error') ? 'img/32/dialog_error.png' : $type));
+            $iconAttr['src'] = $iconPath;
+        }
+        $iconAttr['src'] = sbf($iconAttr['src'], '');
+        
+        return ht::createElement('img', $iconAttr);
+    }
+    
+    
+    /**
+     * Създава хинт, чието балонче се попълва по ajax от подадения адрес
+     *
+     * @see ht::createHint()
+     *
+     * @param mixed        $body        - тяло
+     * @param string       $hint        - подсказка на иконката
+     * @param string       $type        - тип на хинта
+     * @param bool         $appendToEnd - дали иконката да е в края на стринга
+     * @param array        $hintAttr    - атрибути на балончето
+     * @param array        $elementArr  - атрибути на елемента
+     * @param array|string $iconAttr    - атрибути на иконката
+     * @param array|string $url         - адрес, от който се дърпа съдържанието на балончето
+     * @param string       $urlIdParam  - параметър в урл-то с ид-то на балончето
+     * @param bool         $useHover    - показване и при посочване, не само при клик
+     * @param bool         $useCache    - заявката да се прави само първия път
+     * @param string|null  $holderClass - допълнителен клас на обвивката
+     * @param string|null  $arrowClass  - клас на стрелката
+     *
+     * @return core_ET - шаблон с хинта
+     */
+    private static function createAjaxHint($body, $hint, $type, $appendToEnd, $hintAttr, $elementArr, $iconAttr, $url, $urlIdParam, $useHover, $useCache, $holderClass, $arrowClass)
+    {
+        // Ид-то на балончето отива и в урл-то, за да знае екшъна какво да замести
+        static $count = 0;
+        $count++;
+        $id = !empty($hintAttr['id']) ? $hintAttr['id'] : "hint{$count}" . rand(1, 10000);
+        $hintAttr['id'] = $id;
+        $hintClass = !empty($hintAttr['class']) ? " {$hintAttr['class']}" : '';
+        $hintAttr['class'] = "additionalInfo{$hintClass}";
+        
+        if (is_array($url)) {
+            if (!empty($urlIdParam)) {
+                $url[$urlIdParam] = $id;
+            }
+            $url = toUrl($url, 'local');
+        }
+        
+        $arrowClass = !empty($arrowClass) ? "{$arrowClass} " : '';
+        $linkAttr = array('class' => "{$arrowClass}tooltip-arrow-link", 'data-url' => $url);
+        if (!empty($hint)) {
+            $linkAttr['title'] = $hint;
+        }
+        
+        if ($useHover) {
+            $linkAttr['data-useHover'] = '1';
+        }
+        
+        if ($useCache) {
+            $linkAttr['data-useCache'] = '1';
+        }
+        
+        $iconHtml = static::getHintIcon($type, $iconAttr);
+        $linkHtml = ht::createElement('span', $linkAttr, $iconHtml, true);
+        
+        $holderClass = !empty($holderClass) ? " {$holderClass}" : '';
+        $hintSpan = ht::createElement('span', $hintAttr);
+        $holder = "<span class='additionalInfo-holder{$holderClass}'>{$hintSpan}</span>[#icon#]</span>";
+        
+        // Без разделител, ако няма тяло
+        $space = ($body === '' || $body === null) ? '' : ' ';
+        $element = ($appendToEnd === true) ? "[#body#]{$space}{$holder}" : "{$holder}{$space}[#body#]";
+        
+        $elementTpl = new core_ET($element);
+        
+        // Ако има атрибути за целия елемент, задават се в span
+        $elementArr = arr::make($elementArr, true);
+        if (countR($elementArr)) {
+            $span = ht::createElement('span', $elementArr);
+            $elementTpl->prepend($span);
+            $elementTpl->append('</span>');
+        }
+        
+        $elementTpl->append($body, 'body');
+        $elementTpl->append($linkHtml, 'icon');
+        
         return $elementTpl;
     }
     
@@ -1362,9 +1600,16 @@ class core_Html
     public static function fixObject(&$object)
     {
         if ($object instanceof __PHP_Incomplete_Class) {
-            $class = $class ?? null;
-            $strlen = $class ? strlen($class) : '';
-            return ($object = unserialize(preg_replace('/^O:\d+:"[^"]++"/', 'O:' . $strlen . ':"' . $class . '"', serialize($object))));
+
+            // Името на оригиналния клас се пази в служебно поле на непълния обект
+            $vars = (array) $object;
+            $class = $vars['__PHP_Incomplete_Class_Name'] ?? null;
+
+            // Възстановяваме обекта, само ако класът вече е зареден
+            if (!empty($class) && class_exists($class)) {
+
+                return ($object = unserialize(preg_replace('/^O:\d+:"[^"]++"/', 'O:' . strlen($class) . ':"' . $class . '"', serialize($object))));
+            }
         }
         
         return $object;
@@ -1495,14 +1740,28 @@ class core_Html
             $attr['title'] = tr($attr['title']);
         }
         
-        // Вкарваме предупреждението
+        // Вкарваме предупреждението - стилизиран модал вместо нативен confirm() - виж
+        // efConfirmClick()/efConfirm() в js/efCommon.js. efConfirmClick() е асинхронен, затова при
+        // потвърждение "преиграва" клика (element.click()) - на втория пасаж флагът
+        // element.__efConfirmed вече е сложен, минава директно (виж кода на efConfirmClick()).
+        // $attr['warningHigh'] е алтернатива на $warning - носи си самия текст, но със
+        // severity=warning (по-тревожен, оранжев вид) вместо стандартния notice. Ако е зададен,
+        // той има предимство пред $warning.
+        $severity = 'notice';
+        if (!empty($attr['warningHigh'])) {
+            $warning = $attr['warningHigh'];
+            $severity = 'warning';
+        }
+        unset($attr['warningHigh']);
+
         if ($warning) {
             if (!isset($attr['onclick'])) {
                 $attr['onclick'] = '';
             }
-            $attr['onclick'] .= " if (!confirm('" . str_replace("'", "\'", tr($warning)) . "')) { $(event.target).blur(); event.stopPropagation(); return false; }";
+            $escaped = addcslashes(tr($warning), "'\\\n\r");
+            $attr['onclick'] .= " if (!efConfirmClick(event, this, '{$escaped}', '{$severity}')) { return false; }";
         }
-        
+
         return $attr;
     }
     

@@ -222,14 +222,15 @@ class core_Crypt extends core_BaseClass
             // Фикс - за да са еднакви в 32 и 64 битови ОС-та
             $crc32 = sprintf('%u', $crc32);
         }
-        
-        $div = chr($crc32 % 256);
-        $crc32 = $crc32 / 256;
-        $div .= chr($crc32 % 256);
-        $crc32 = $crc32 / 256;
-        $div .= chr($crc32 % 256);
-        $crc32 = $crc32 / 256;
-        $div .= chr($crc32 % 256);
+
+        // Работим целочислено, за да не губим точност при последователното
+        // деление и да запазим същото little-endian представяне на CRC32.
+        $crc32 = (int) $crc32;
+        $div = '';
+        for ($i = 0; $i < 4; $i++) {
+            $div .= chr($crc32 & 0xff);
+            $crc32 >>= 8;
+        }
         
         return $div;
     }

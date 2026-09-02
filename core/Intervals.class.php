@@ -113,7 +113,7 @@ class core_Intervals
             }
 
             // Ако началото на интервала е по-голямо от параметъра $end то спираме цикъла
-            if (isset($end) && $end > $int[0] || $duration == 0) {
+            if ((isset($end) && $int[0] > $end) || $duration == 0) {
                 $first = $i;
                 break;
             }

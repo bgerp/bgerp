@@ -38,7 +38,7 @@ class sales_transaction_Invoice extends acc_DocumentTransactionSource
         $cloneRec = clone $rec;
 
         $result = (object) array(
-            'reason' => "Фактура №{$rec->id}", // основанието за ордера
+            'reason' => 'Фактура №' . ($rec->id ?? ''), // основанието за ордера
             'valior' => !empty($rec->date) ? $rec->date : dt::today(),   // датата на ордера
             'entries' => array(),
         );
@@ -75,7 +75,7 @@ class sales_transaction_Invoice extends acc_DocumentTransactionSource
             // Проверяват се всички артитули имат ли го зададен
             foreach ($dRecs as $dRec) {
                 if($rec->type != 'invoice'){
-                    if ($dRec->changedQuantity !== true && $dRec->changedPrice !== true) continue;
+                    if (($dRec->changedQuantity ?? null) !== true && ($dRec->changedPrice ?? null) !== true) continue;
                 }
 
                 $productArr[$dRec->productId] = $dRec->productId;

@@ -95,7 +95,7 @@ class bgerp_drivers_Recently extends core_BaseClass
             $data->listFilter->showFields = $Recently->searchInputField;
             bgerp_Portal::prepareSearchForm($Recently, $data->listFilter);
             
-            $Recently->listItemsPerPage = $dRec->perPage ? $dRec->perPage : 15;
+            $Recently->listItemsPerPage = !empty($dRec->perPage) ? $dRec->perPage : 15;
             
             // Подготвяме навигацията по страници
             $Recently->prepareListPager($data);
@@ -173,17 +173,19 @@ class bgerp_drivers_Recently extends core_BaseClass
         ");
         
         // Попълваме титлата
-        $tpl->append($data->title, 'PortalTitle');
+        $tpl->append($data->title ?? '', 'PortalTitle');
         
-        if ($data->listFilter) {
+        if (!empty($data->listFilter)) {
             $tpl->append($data->listFilter->renderHtml(), 'ListFilter');
         }
         
         // Попълваме долния страньор
         $tpl->append($Recently->renderListPager($data), 'PortalPagerBottom');
         
-        // Попълваме таблицата с редовете
+        // Попълваме таблицата с редовете без инструменти за отделните редове
+        Mode::push('hideToolbar', true);
         $tpl->append($Recently->renderListTable($data), 'PortalTable');
+        Mode::pop('hideToolbar');
         
         return $tpl;
     }

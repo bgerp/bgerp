@@ -189,7 +189,7 @@ class cash_NonCashPaymentDetails extends core_Manager
 
             // Показване как е платено
             if (!empty($rec->param) && !Mode::isReadOnly()) {
-                $paramString = ($rec->param == 'card') ? "<span style='color:blue;'>" . tr('потв.') . "</span>" : "<span style='color:red;'>" . tr('ръчно') . "</span>";
+                $paramString = ($rec->param == 'card') ? "<span class='blueText'>" . tr('потв.') . "</span>" : "<span style='color:red;'>" . tr('ръчно') . "</span>";
                 $row->paymentId .= " ({$paramString})";
             }
         }
@@ -365,7 +365,8 @@ class cash_NonCashPaymentDetails extends core_Manager
     protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
         $data->listFilter->setField('objectId', 'input,silent');
-        $data->listFilter->setField('classId', 'input,silent');
+        $data->listFilter->setField('classId', 'input,silent,placeholderType=all');
+        $data->listFilter->setField('paymentId', 'placeholderType=all');
         $data->listFilter->setFieldTypeParams('classId', 'allowEmpty');
 
         $data->listFilter->showFields = 'classId,objectId,paymentId';

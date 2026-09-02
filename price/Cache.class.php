@@ -118,17 +118,20 @@ class price_Cache extends core_Manager
         
         // Показваме само това поле. Иначе и другите полета
         // на модела ще се появят
+        $form->setField('listId', 'placeholderType=all');
+        $form->setField('productId', 'placeholderType=all');
         $form->showFields = 'listId, productId';
         
         $form->fields['productId']->mandatory = false;
         
         $form->input('listId, productId', 'silent');
         
-        if ($form->rec->listId) {
+        // Полетата ги няма в записа, докато филтърът не е подаден
+        if (!empty($form->rec->listId)) {
             $data->query->where(array("#listId = '{$form->rec->listId}'"));
         }
-        
-        if ($form->rec->productId) {
+
+        if (!empty($form->rec->productId)) {
             $data->query->where(array("#productId = '{$form->rec->productId}'"));
         }
     }

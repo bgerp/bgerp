@@ -89,7 +89,7 @@ class log_Browsers extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_SystemWrapper, log_Wrapper, plg_Created, plg_GroupByDate, plg_RowTools';
+    public $loadList = 'plg_SystemWrapper, log_Wrapper, plg_Created, plg_GroupByDate, plg_RowTools2';
     
     
     /**
@@ -825,7 +825,7 @@ class log_Browsers extends core_Master
     public static function detectBot($userAgent = null)
     {
         if (!$userAgent) {
-            $userAgent = $_SERVER['HTTP_USER_AGENT'];
+            $userAgent = $_SERVER['HTTP_USER_AGENT'] ?? '';
         }
         
         $bots = 'GoogleBot|msnbot|Bingbot|Teoma|80legs|xenon|baidu|Charlotte|DotBot|Sosospider|Rambler|Yahoo|' .
@@ -872,7 +872,7 @@ class log_Browsers extends core_Master
      */
     public static function getUserAgent()
     {
-        $userAgent = $_SERVER['HTTP_USER_AGENT'];
+        $userAgent = $_SERVER['HTTP_USER_AGENT'] ?? '';
 
         return $userAgent;
     }
@@ -883,7 +883,7 @@ class log_Browsers extends core_Master
      */
     public static function getAcceptLangs()
     {
-        $acceptLangs = $_SERVER['HTTP_ACCEPT_LANGUAGE'];
+        $acceptLangs = $_SERVER['HTTP_ACCEPT_LANGUAGE'] ?? '';
         
         return $acceptLangs;
     }
@@ -1206,14 +1206,15 @@ class log_Browsers extends core_Master
 
         while ($rec = $query->fetch()) {
 
-            // Ако има история - да не се изтрива
-            if (strlen($rec->brid) && vislog_History::fetch(array("#brid = '[#1#]'", $rec->brid))) {
+            // Ако има история - да не се изтрива. Заявката нарочно хваща и
+            // записите с празен брид, затова се пази от null
+            if (strlen($rec->brid ?? '') && vislog_History::fetch(array("#brid = '[#1#]'", $rec->brid))) {
 
                 continue;
             }
 
             // Ако има логване - да не се изтрива
-            if (strlen($rec->brid) && core_LoginLog::fetch(array("#brid = '[#1#]'", $rec->brid))) {
+            if (strlen($rec->brid ?? '') && core_LoginLog::fetch(array("#brid = '[#1#]'", $rec->brid))) {
 
                 continue;
             }

@@ -167,7 +167,9 @@ abstract class cond_type_abstract_Proto extends core_BaseClass
             $options = explode(PHP_EOL, trim($text));
             
             foreach ($options as $val) {
-                list($k, $v) = explode('=', $val);
+                $parts = explode('=', $val, 2);
+                $k = $parts[0];
+                $v = $parts[1] ?? null;
                 if (!isset($v)) {
                     $v = $k;
                 }
@@ -225,7 +227,7 @@ abstract class cond_type_abstract_Proto extends core_BaseClass
      * @param mixed $domainId - ид на домейна
      * @return string
      */
-    public function getReplacementValueOnClone($rec, $domainClass = null, $domainId = null, $value)
+    public function getReplacementValueOnClone($rec, $domainClass = null, $domainId = null, $value = null)
     {
         return $value;
     }

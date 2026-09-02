@@ -115,7 +115,7 @@ class bank_SpendingDocuments extends bank_Document
         $form->setDefault('contragentClassId', $contragentClassId);
         
         expect($origin = $mvc->getOrigin($form->rec), $form->rec);
-        $accountOptions = $mvc->getOwnAccountOptions($form->rec->ownAccount);
+        $accountOptions = $mvc->getOwnAccountOptions($form->rec->ownAccount ?? null);
         $mvc->invoke('AfterGetOwnAccountOptions', array($form, &$accountOptions));
         $form->setOptions('ownAccount', $accountOptions);
 
@@ -131,7 +131,7 @@ class bank_SpendingDocuments extends bank_Document
         }
         
         $cData = cls::get($contragentClassId)->getContragentData($contragentId);
-        $form->setReadOnly('contragentName', ($cData->person) ? $cData->person : $cData->company);
+        $form->setReadOnly('contragentName', (!empty($cData->person)) ? $cData->person : $cData->company);
 
         $form->setField('ownAccount', 'caption=От->Сметка,after=reason');
         $form->setField('currencyId', 'caption=От->Валута,after=ownAccount');
@@ -233,7 +233,7 @@ class bank_SpendingDocuments extends bank_Document
             $valior = $rec->valior ?? dt::today();
             if($valior > $rec->earlyPaymentUntil){
                 $row->earlyPaymentClass = 'quiet';
-                $row->earlyPaymentInfo .= " (" . tr('изтекло') . ")";
+                $row->earlyPaymentInfo = ($row->earlyPaymentInfo ?? '') . " (" . tr('изтекло') . ")";
             } else {
                 $row->earlyPaymentClass = 'earlyPaymentDiscountActive';
 
@@ -308,7 +308,7 @@ class bank_SpendingDocuments extends bank_Document
      */
     protected static function on_BeforeSave($mvc, &$id, $rec, $fields = null, $mode = null)
     {
-        if($rec->earlyPaymentUntil == '0000-00-00'){
+        if(($rec->earlyPaymentUntil ?? null) == '0000-00-00'){
             $oldRec = isset($rec->id) ? self::fetch($rec->id, '*', false) : null;
             wp('ГРЕШЕН СРОК', $rec, $oldRec);
             $rec->earlyPaymentUntil = null;

@@ -30,7 +30,7 @@ class colab_plg_CreateDocument extends core_Plugin
     {
         if ($res !== false) {
             $cu = core_Users::getCurrent();
-            if ($rec->createdBy != $cu && !core_Users::haveRole('powerUser')) {
+            if (($rec->createdBy ?? null) != $cu && !core_Users::haveRole('powerUser')) {
                 $res = false;
             }
         }
@@ -55,12 +55,12 @@ class colab_plg_CreateDocument extends core_Plugin
                 
                 if (isset($rec)) {
                     if ($action == 'edit') {
-                        if ($rec->createdBy != $userId) {
+                        if (($rec->createdBy ?? null) != $userId) {
                             $addContractor = false;
                         }
                     } elseif ($action == 'add') {
                         $sharedFolders = colab_Folders::getSharedFolders($userId);
-                        if (!$rec->folderId || !in_array($rec->folderId, $sharedFolders)) {
+                        if (empty($rec->folderId) || !in_array($rec->folderId, $sharedFolders)) {
                             $addContractor = false;
                         }
                     }
@@ -74,7 +74,8 @@ class colab_plg_CreateDocument extends core_Plugin
                 
                 // Ако не са зададени специфични роли за външни потребители се взима по дефолт партньор
                 $externalRoles = isset($mvc->canWriteExternal) ? $mvc->canWriteExternal : 'partner';
-                $mvc->{$property} .= ",{$externalRoles}";
+                $currentRoles = $mvc->{$property} ?? '';
+                $mvc->{$property} = trim("{$currentRoles},{$externalRoles}", ',');
             }
         }
     }
@@ -127,7 +128,7 @@ class colab_plg_CreateDocument extends core_Plugin
      */
     public static function on_AfterGetThreadState($mvc, &$res, $id)
     {
-        $rec = $mvc->fetch($id);
+        expect($rec = $mvc->fetch($id));
         
         if (core_Users::haveRole('partner', $rec->createdBy)) {
             $res = 'opened';

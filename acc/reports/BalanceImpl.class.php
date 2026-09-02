@@ -79,7 +79,7 @@ class acc_reports_BalanceImpl extends frame_BaseDriver
         if ($form->rec->accountId) {
             $form->setField('action', 'input');
             
-            if ($form->rec->id) {
+            if (!empty($form->rec->id)) {
                 if (frame_Reports::fetchField($form->rec->id, 'filter')->accountId != $form->rec->accountId) {
                     unset($form->rec->grouping1, $form->rec->grouping2, $form->rec->grouping3, $form->rec->feat1, $form->rec->feat2, $form->rec->feat3);
                     Request::push(array('grouping1' => null, 'grouping2' => null, 'grouping3' => null, 'feat1' => null, 'feat2' => null, 'feat3' => null, 'orderField' => null, 'orderBy' => null));
@@ -321,7 +321,7 @@ class acc_reports_BalanceImpl extends frame_BaseDriver
             $tpl->append($beforeRow, 'ROW_BEFORE');
         }
         
-        if ($data->pager) {
+        if (!empty($data->pager)) {
             $tpl->append($data->pager->getHtml(), 'PAGER_BOTTOM');
             $tpl->append($data->pager->getHtml(), 'PAGER_TOP');
         }
@@ -479,7 +479,7 @@ class acc_reports_BalanceImpl extends frame_BaseDriver
             $arrMark = keylist::toArray($rec->mark);
             foreach ($arrMark as $mark) {
                 if (countR($arrMark) > 1) {
-                    $row->mark .= cat_Groups::fetchField($mark, 'name') . ', ';
+                    $row->mark = ($row->mark ?? '') . cat_Groups::fetchField($mark, 'name') . ', ';
                 } else {
                     $row->mark = cat_Groups::fetchField($mark, 'name');
                 }

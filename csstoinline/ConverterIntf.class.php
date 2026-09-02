@@ -16,6 +16,8 @@
  */
 class csstoinline_ConverterIntf
 {
+    public $class;
+
     /**
      * Вкарва външния CSS, като inline стил
      *

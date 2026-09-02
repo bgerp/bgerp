@@ -151,7 +151,7 @@ class cms_VerbalIdPlg extends core_Plugin
             $fArr = arr::make($fields, true);
 
             // Ако полето не участва - не правим нищо
-            if (!$fArr[$fieldName]) {
+            if (empty($fArr[$fieldName])) {
 
                 return;
             }
@@ -169,14 +169,14 @@ class cms_VerbalIdPlg extends core_Plugin
         }
 
         if (!strlen($recVid)) {
-            $recVid = $mvc->className . '_' . $mvc->fieldName;
+            $recVid = $mvc->className . '_' . ($mvc->fieldName ?? null);
         }
 
         expect(strlen($recVid), $recVid);
 
         $cond = "#{$this->fieldName} LIKE '[#1#]'";
 
-        if ($rec->id) {
+        if (!empty($rec->id)) {
             $cond .= " AND #id != {$rec->id}";
         }
 
@@ -223,20 +223,21 @@ class cms_VerbalIdPlg extends core_Plugin
 
             if (!($synArr = core_Cache::get('SEO-SYN', $cKey))) {
                 $syn = json_decode($syn);
+                $synArr = array();
                 $i = 0;
-                while ($syn->s1[$i]) {
+                while (!empty($syn->s1[$i])) {
                     $synArr[$i] = array();
                     $synArr[$i][] = plg_Search::normalizeText($syn->s1[$i]);
-                    if ($syn->s2[$i]) {
+                    if (!empty($syn->s2[$i])) {
                         $synArr[$i][] = plg_Search::normalizeText($syn->s2[$i]);
                     }
-                    if ($syn->s3[$i]) {
+                    if (!empty($syn->s3[$i])) {
                         $synArr[$i][] = plg_Search::normalizeText($syn->s3[$i]);
                     }
-                    if ($syn->s4[$i]) {
+                    if (!empty($syn->s4[$i])) {
                         $synArr[$i][] = plg_Search::normalizeText($syn->s4[$i]);
                     }
-                    if ($syn->s5[$i]) {
+                    if (!empty($syn->s5[$i])) {
                         $synArr[$i][] = plg_Search::normalizeText($syn->s5[$i]);
                     }
                     $i++;
@@ -250,7 +251,7 @@ class cms_VerbalIdPlg extends core_Plugin
                 $searchKeywords = plg_Search::getKeywords($mvc, $rec);
             }
 
-            if ($searchKeywords && countR($synArr)) {
+            if ($searchKeywords && countR($synArr ?? null)) {
                 foreach ($synArr as $group) {
                     foreach ($group as $word) {
                         if (strpos($searchKeywords, $word) !== false) {

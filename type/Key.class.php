@@ -92,7 +92,7 @@ class type_Key extends type_Int
                 
                 if (isset($this->params['makeLink'])) {
                     if (method_exists($mvc, 'getSingleUrlArray')) {
-                        $v = ht::createLink($v, $mvc->getSingleUrlArray($rec->id), false, "ef_icon={$mvc->singleIcon}");
+                        $v = ht::createLink($v, $mvc->getSingleUrlArray($rec->id), false, "ef_icon={$mvc->getSingleIcon($rec->id)}");
                     }
                 }
                 
@@ -182,7 +182,7 @@ class type_Key extends type_Int
         $rec = $this->fetchVal($value);
         
         if (!$rec) {
-            if (($this->params['allowEmpty']) && ($oValue == ' ')) {
+            if (($this->params['allowEmpty'] ?? null) && ($oValue == ' ')) {
                 
                 return $value;
             }
@@ -653,11 +653,11 @@ class type_Key extends type_Int
 
             $maxRadio = $this->params['maxRadio'] ?? null;
             if (empty(($attr['_isRefresh']))) {
-                if (!strlen($maxRadio ?? '') && $maxRadio !== 0 && $maxRadio !== '0' && !$this->params['isHorizontal']) {
+                if (!strlen($maxRadio ?? '') && $maxRadio !== 0 && $maxRadio !== '0' && empty($this->params['isHorizontal'])) {
                     if(arr::isOptionsTotalLenBellowAllowed($options)){
                         $maxRadio = 4;
                         $this->params['select2MinItems'] = 10000;
-                        $this->params['columns'] =  ($optionsCnt > 3) ?  4 : 3;
+                        $this->params['columns'] = (countR($options) > 3) ? 4 : 3;
                     }
                 }
             }
@@ -669,7 +669,7 @@ class type_Key extends type_Int
                     $this->params['autocomplete'] = 'off';
                 }
                 
-                if ($this->params['autocomplete']) {
+                if (!empty($this->params['autocomplete'])) {
                     $attr['autocomplete'] = $this->params['autocomplete'];
                 }
                 
@@ -698,7 +698,7 @@ class type_Key extends type_Int
                 
                 // Ако е id определяме стойността която ще се показва, като вербализираме
                 // Иначе - запазваме предходния вариянт. Работил ли е някога?
-                $setVal = self::getOptionTitle($selOptCache[$value]['title']);
+                $setVal = self::getOptionTitle($selOptCache[$value]['title'] ?? '');
                 
                 if (!$setVal && is_numeric($value)) {
                     $setVal = $this->toVerbal($value);
@@ -708,7 +708,7 @@ class type_Key extends type_Int
                 unset($selOpt[$setVal]);
                 $selOpt = array($setVal => $setVal) + $selOpt;
                 
-                if ($selOpt['']) {
+                if (!empty($selOpt[''])) {
                     $selOpt = array('' => $selOpt['']) + $selOpt;
                 }
                 
@@ -730,15 +730,6 @@ class type_Key extends type_Int
 
                     $tpl = new ET("<span class='{$cssClass}'>[#1#] [#2#]</div>", $msg, $title);
                 } else {
-                    // ако ще се рендират опциите като радио-бутони маха се празната опция
-                    if(isset($maxRadio) && $optionsCnt <= $maxRadio){
-                        if(!empty($this->params['allowEmpty'])){
-                            if(isset($options['']) && (empty($options['']) || (is_object($options['']) && empty(trim($options['']->title)))) && countR($options) >= 2){
-                                unset($options['']);
-                            }
-                        }
-                    }
-
                     // Ако полето е задължително и имаме само една не-празна опция - тя да е по подразбиране
                     if ((!empty($this->params['mandatory'])) && $optionsCnt == 2 && empty($value) && $options[key($options)] === '') {
                         list($o1, $o2) = array_keys($options);
@@ -811,13 +802,13 @@ class type_Key extends type_Int
                 $element = 'option';
                 
                 if (is_object($title)) {
-                    if ($title->group) {
+                    if ($title->group ?? null) {
                         if ($openGroup) {
                             // затваряме групата
                             $select->append('</optgroup>');
                         }
                         $element = 'optgroup';
-                        $attr = $title->attr;
+                        $attr = $title->attr ?? array();
                         $attr['label'] = $title->title;
                         $newGroup = ht::createElement($element, $attr);
                         continue;
@@ -827,7 +818,7 @@ class type_Key extends type_Int
                         $newGroup = null;
                         $openGroup = true;
                     }
-                    $attr = $title->attr;
+                    $attr = $title->attr ?? array();
                     $title = $title->title;
                 } else {
                     if ($newGroup) {
@@ -881,9 +872,9 @@ class type_Key extends type_Int
         // Проверяваме дали мениджъра има поле sysId или systemId
         $groupQuery = $GroupManager->getQuery();
         
-        if ($sysIdField = $GroupManager->fields['sysId']) {
+        if ($sysIdField = ($GroupManager->fields['sysId'] ?? null)) {
             $sysIdField = 'sysId';
-        } elseif ($GroupManager->fields['systemId']) {
+        } elseif ($GroupManager->fields['systemId'] ?? null) {
             $sysIdField = 'systemId';
         }
         

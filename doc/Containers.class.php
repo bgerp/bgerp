@@ -22,7 +22,7 @@ class doc_Containers extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_Modified,plg_RowTools,doc_Wrapper,plg_State, doc_ThreadRefreshPlg';
+    public $loadList = 'plg_Created, plg_Modified, doc_Wrapper, plg_State, doc_ThreadRefreshPlg';
     
     
     /**
@@ -614,6 +614,7 @@ class doc_Containers extends core_Manager
             $hidden = (boolean) (doc_HiddenContainers::isHidden($rec->id));
             
             $row->ROW_ATTR['id'] = $document->getDocumentRowId();
+            $row->ROW_ATTR['data-document-handle'] = $document->getHandle();
             
             if (!$hidden) {
                 $row->document = doc_DocumentCache::getCache($rec, $document);
@@ -631,7 +632,7 @@ class doc_Containers extends core_Manager
                     Mode::pop('saveObjectsToCid');
                     $row->ROW_ATTR['onMouseUp'] = "saveSelectedTextToSession('" . $document->getHandle() . "', 'onlyHandle');";
                     
-                    $data->row->DocumentSettings = new ET($data->row->DocumentSettings ?? null);
+                    $data->row->DocumentSettings = new ET($data->row->DocumentSettings ?? '');
                     
                     // Добавяме линк за скриване на документа
                     if (doc_HiddenContainers::isHidden($rec->id) === false) {
@@ -1338,9 +1339,11 @@ class doc_Containers extends core_Manager
             
             // Други добавки от съответния потребител
             $currUserOther = '';
+
+            $currUserDocsCnt = $authorArr[$currUserId] ?? 0;
             
             // Ако текущия потребител е добавил повече от един документ
-            if ($authorArr[$currUserId] > 1) {
+            if ($currUserDocsCnt > 1) {
                 
                 // В зависимост от текста определяме началния текст
                 if ($action != 'добави') {
@@ -1350,9 +1353,9 @@ class doc_Containers extends core_Manager
                 }
                 
                 // В зависимост от броя документи, определяме текста
-                if ($authorArr[$currUserId] == 2) {
+                if ($currUserDocsCnt == 2) {
                     $currUserOther .= ' друг документ';
-                } elseif ($authorArr[$currUserId] > 2) {
+                } elseif ($currUserDocsCnt > 2) {
                     $currUserOther .= ' други документи';
                 }
                 
@@ -1805,6 +1808,8 @@ class doc_Containers extends core_Manager
      */
     public static function getNewDocMenu($rec)
     {
+        expect(!empty($rec->threadId) || !empty($rec->folderId), 'Очаква threadId или folderId', $rec);
+
         // Определяме заглавието на нишката или папката
         if (!empty($rec->threadId)) {
             $thRec = doc_Threads::fetch($rec->threadId);
@@ -1827,7 +1832,17 @@ class doc_Containers extends core_Manager
                     continue;
                 }
 
-                if ($mvc->haveRightFor('add', $rec)) {
+                // По подразбиране - 1 бутон на класа (@see doc_DocumentPlg::on_AfterGetNewBtnVariants).
+                // Класове като planning_Jobs дефинират собствен getNewBtnVariants(),
+                // за да покажат няколко бутона (напр. по вид на заданието) вместо 1
+                foreach ($mvc->getNewBtnVariants($rec) as $variant) {
+                    $variantRec = clone $rec;
+                    foreach ((array) ($variant['params'] ?? array()) as $k => $v) {
+                        $variantRec->{$k} = $v;
+                    }
+
+                    if (!$mvc->haveRightFor('add', $variantRec)) continue;
+
                     if($mvc->newBtnGroup ?? null){
                         list($order, $group) = explode('|', $mvc->newBtnGroup);
                     } else {
@@ -1837,17 +1852,18 @@ class doc_Containers extends core_Manager
                     }
 
                     $ind = $order * 10000 + $i++;
-                    $docArrSort[$ind] = array($group, $mvc->singleTitle, $class);
+                    $docArrSort[$ind] = array($group, $variant['title'], $class, $variant['params'] ?? array(), $variant['icon'] ?? $mvc->singleIcon);
                 }
             }
-            
+
             // Сортиране
             ksort($docArrSort);
-            
+
             // Групиране
             $btns = array();
             foreach ($docArrSort as $id => $arr) {
-                $btns[$arr[0]][$arr[1]] = $arr[2];
+                expect(!isset($btns[$arr[0]][$arr[1]]), 'Вече има бутон със същото име в групата', $arr[0], $arr[1], $arr[2]);
+                $btns[$arr[0]][$arr[1]] = array('class' => $arr[2], 'params' => $arr[3], 'icon' => $arr[4]);
             }
             
             // Генериране на изгледа
@@ -1872,20 +1888,15 @@ class doc_Containers extends core_Manager
                 
                 $tpl->append("<li class='btns-title {$active} '><img class='btns-icon plus' src=". sbf('img/16/toggle1.png') ."><img class='btns-icon minus' src=". sbf('img/16/toggle2.png') .">&nbsp;{$group}</li>");
                 $tpl->append("<li class='dimension'>");
-                foreach ($bArr as $class) {
-                    $mvc = cls::get($class);
-                    
+                foreach ($bArr as $title => $info) {
+                    $url = array($info['class'], 'add',
+                        'threadId' => $rec->threadId ?? null, 'folderId' => $rec->folderId ?? null, 'ret_url' => true);
+                    foreach ($info['params'] as $k => $v) {
+                        $url[$k] = $v;
+                    }
+
                     $tpl->append(new ET("<div class='btn-group'>[#1#]</div>", ht::createBtn(
-                        
-                        $mvc->singleTitle,
-                        array($class, 'add',
-                            'threadId' => $rec->threadId, 'folderId' => $rec->folderId, 'ret_url' => true),
-                            null,
-                        
-                        null,
-                        
-                        "ef_icon={$mvc->singleIcon},style=width:100%;text-align:left;"
-                    
+                        $title, $url, null, null, "ef_icon={$info['icon']},style=width:100%;text-align:left;"
                     )));
                 }
                 
@@ -1932,7 +1943,7 @@ class doc_Containers extends core_Manager
             $abbrArr = [];
             $docClasses = core_Classes::getOptionsByInterface('doc_DocumentIntf');
             
-            //Обикаляме всички записи, които имплементират doc_DocumentInrf
+            //Обикаляме всички записи, които имплементират doc_DocumentIntf
             foreach ($docClasses as $id => $className) {
                 
                 //Създаваме инстанция на класа в масив
@@ -2026,7 +2037,7 @@ class doc_Containers extends core_Manager
             // Очакваме да имаме права за съответния екшън
             expect($rec && ($ctrInst->haveRightFor('single', $rec) || $ctrInst->haveRightFor('viewpsingle', $rec)));
             
-            if ($rec->containerId) {
+            if (!empty($rec->containerId)) {
                 $urlArr = array('L', 'S', $rec->containerId);
             }
         } catch (core_exception_Expect $e) {
@@ -2056,7 +2067,7 @@ class doc_Containers extends core_Manager
         
         // Ако мода е xhtml
         if (Mode::is('text', 'xhtml')) {
-            $res = new ET("<span class='linkWithIcon' style=\"" . ht::getIconStyle($ctrInst->singleIcon) . '"> [#1#] </span>', $title);
+            $res = new ET("<span class='linkWithIcon' style=\"" . ht::getIconStyle($ctrInst->getSingleIcon($params['id'])) . '"> [#1#] </span>', $title);
         } elseif (Mode::is('text', 'plain')) {
             
             // Ескейпваме плейсхолдърите и връщаме титлата
@@ -2065,7 +2076,7 @@ class doc_Containers extends core_Manager
             
             //Атрибути на линка
             $attr = array();
-            $attr['ef_icon'] = $ctrInst->singleIcon;
+            $attr['ef_icon'] = $ctrInst->getSingleIcon($params['id']);
             $attr['target'] = '_blank';
             
             //Създаваме линк
@@ -2127,14 +2138,14 @@ class doc_Containers extends core_Manager
         
         $query->limit(500);
         
-        $resArr = array();
-        
+        $resArr = array('folderId' => 0, 'threadId' => 0, 'docClass' => 0, 'docId' => 0, 'del_cnt' => 0, 'updateVisibleForPartners' => 0, 'updateContainers' => 0);
+
         while ($rec = $query->fetch()) {
             $isDel = false;
             try {
                 $docId = false;
                 $mustUpdate = true;
-                
+
                 // Ако няма id на папката
                 if (!isset($rec->folderId)) {
                     
@@ -2674,7 +2685,7 @@ class doc_Containers extends core_Manager
                     $rec->docId = $docId;
                     self::save($rec, 'docId');
                 } else {
-                    if ($rec->id) {
+                    if (!empty($rec->id)) {
                         
                         // Ако не може да се намери съответен документ, изтриваме го
                         if (self::delete($rec->id)) {

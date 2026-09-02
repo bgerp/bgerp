@@ -301,7 +301,7 @@ abstract class bank_Document extends deals_PaymentDocument
             $fields['contragentName'] = core_Type::getByName('varchar')->fromVerbal($fields['contragentName']);
         } else {
             $cData = cls::get($rec->contragentClassId)->getContragentData($rec->contragentId);
-            $fields['contragentName'] = ($cData->person) ? $cData->person : $cData->company;
+            $fields['contragentName'] = (!empty($cData->person)) ? $cData->person : $cData->company;
         }
         $rec->contragentName = $fields['contragentName'];
 
@@ -393,8 +393,8 @@ abstract class bank_Document extends deals_PaymentDocument
                 $form->setWarning('operationSysId', $warning);
             }
 
-            if (!cond_PaymentMethods::hasDownpayment($dealInfo->paymentMethodId)) {
-                if (stripos($rec->operationSysId, 'advance')) {
+            if (property_exists($dealInfo, 'paymentMethodId') && !cond_PaymentMethods::hasDownpayment($dealInfo->get('paymentMethodId'))) {
+                if (stripos((string) ($rec->operationSysId ?? ''), 'advance') !== false) {
                     $form->setWarning('operationSysId', 'По сделката не се очаква авансово плащане');
                 }
             }
@@ -603,14 +603,16 @@ abstract class bank_Document extends deals_PaymentDocument
             }
 
             // Вземаме данните за нашата фирма
-            $headerInfo = deals_Helper::getDocumentHeaderInfo($rec->containerId, $rec->contragentClassId, $rec->contragentId, $row->contragentName);
+            $headerInfo = deals_Helper::getDocumentHeaderInfo($rec->containerId, $rec->contragentClassId, $rec->contragentId, $row->contragentName ?? $rec->contragentName);
             foreach (array('MyCompany', 'MyAddress', 'contragentName', 'contragentAddress') as $fld) {
                 $row->{$fld} = $headerInfo[$fld];
             }
 
             if ($origin = $mvc->getOrigin($rec)) {
                 $options = $origin->allowedPaymentOperations;
-                $row->operationSysId = tr($options[$rec->operationSysId]['title']);
+                if (!empty($options[$rec->operationSysId]['title'])) {
+                    $row->operationSysId = tr($options[$rec->operationSysId]['title']);
+                }
             }
 
             if(isset($rec->contragentIban)){

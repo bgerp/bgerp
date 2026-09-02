@@ -201,8 +201,10 @@ class bgerp_drivers_Notifications extends core_BaseClass
         // Попълваме долния страньор
         $tpl->append($Notifications->renderListPager($data), 'PortalPagerBottom');
         
-        // Попълваме таблицата с редовете
+        // Попълваме таблицата с редовете без инструменти за отделните редове
+        Mode::push('hideToolbar', true);
         $tpl->append($Notifications->renderListTable($data), 'PortalTable');
+        Mode::pop('hideToolbar');
         jquery_Jquery::runAfterAjax($tpl, 'getContextMenuFromAjax');
         
         return $tpl;
@@ -282,7 +284,7 @@ class bgerp_drivers_Notifications extends core_BaseClass
         
         // Намираме времето на последния запис
         $query = bgerp_Notifications::getQuery();
-        $query->where("#userId = ${userId}");
+        $query->where("#userId = {$userId}");
         $query->limit(1);
         
         $cQuery = clone $query;

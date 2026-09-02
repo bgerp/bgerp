@@ -333,7 +333,7 @@ class store_ShipmentOrders extends store_DocumentMaster
                     $condition = store_Stores::getDocumentConditionFor($rec->storeId, $mvc, $rec->tplLang);
                     if (!empty($condition)) {
                         if (!Mode::isReadOnly()) {
-                            $condition = "<span style='color:blue'>{$condition}</span>";
+                            $condition = "<span class='blueText'>{$condition}</span>";
                         }
                         $condition = ht::createHint($condition, 'Ще бъде записано при активиране');
                         $conditions = array($condition);
@@ -552,7 +552,7 @@ class store_ShipmentOrders extends store_DocumentMaster
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         if (($action == 'asclient') && $rec) {
-            if (!trim($rec->company) && !trim($rec->person) && !$rec->country) {
+            if (!trim((string) ($rec->company ?? '')) && !trim((string) ($rec->person ?? '')) && !($rec->country ?? null)) {
                 $requiredRoles = 'no_one';
             }
         }
@@ -739,7 +739,7 @@ class store_ShipmentOrders extends store_DocumentMaster
         $dQuery->where("#shipmentId = {$rec->id}");
         while ($dRec = $dQuery->fetch()) {
             if (!array_key_exists($dRec->productId, $details)) {
-                $details[$dRec->productId] = (object)array('productId' => $dRec->productId);
+                $details[$dRec->productId] = (object)array('productId' => $dRec->productId, 'quantity' => 0);
             }
             $details[$dRec->productId]->quantity += $dRec->quantity;
         }
@@ -751,7 +751,7 @@ class store_ShipmentOrders extends store_DocumentMaster
         $tQuery->EXT('quantity', 'sales_SalesDetails', 'externalKey=recId');
         while ($tRec = $tQuery->fetch()) {
             if (!array_key_exists($tRec->productId, $tRecs)) {
-                $tRecs[$tRec->productId] = (object)array('productId' => $tRec->productId);
+                $tRecs[$tRec->productId] = (object)array('productId' => $tRec->productId, 'fee' => 0, 'quantity' => 0);
             }
             $Doc = cls::get($tRec->docClassId);
             $valior = $Doc->fetchField($tRec->docId, $Doc->valiorFld);
@@ -764,7 +764,7 @@ class store_ShipmentOrders extends store_DocumentMaster
         foreach ($details as $dRec1) {
             if (array_key_exists($dRec1->productId, $tRecs)) {
                 $tRec = $tRecs[$dRec1->productId];
-                if ($tRec->fee > 0) {
+                if ($tRec->fee > 0 && !empty($tRec->quantity)) {
                     $singleFee = $tRec->fee / $tRec->quantity;
                     $hiddenTransport += $dRec1->quantity * $singleFee;
                 }
@@ -875,9 +875,9 @@ class store_ShipmentOrders extends store_DocumentMaster
 
         if (isset($rec)) {
             $res['deliveryTime']['placeholder'] = ($cache && !empty($rec->deliveryTimeCalc)) ? $rec->deliveryTimeCalc : $this->getDefaultLoadingDate($rec, $rec->deliveryOn, $rec->deliveryTime);
-            $loadingOn = !empty($rec->deliveryTime) ? $rec->deliveryTime : $rec->deliveryTimeCalc;
+            $loadingOn = !empty($rec->deliveryTime) ? $rec->deliveryTime : ($rec->deliveryTimeCalc ?? null);
             $res['readyOn']['placeholder'] = ($cache && !empty($rec->readyOnCalc)) ? $rec->readyOnCalc : $this->getEarliestDateAllProductsAreAvailableInStore($rec);
-            $res['shipmentOn']['placeholder'] = ($cache && !empty($rec->shipmentOnCalc)) ? $rec->shipmentOnCalc : trans_Helper::calcShippedOnDate($rec->valior, $rec->lineId, $rec->activatedOn, $loadingOn);
+            $res['shipmentOn']['placeholder'] = ($cache && !empty($rec->shipmentOnCalc)) ? $rec->shipmentOnCalc : trans_Helper::calcShippedOnDate($rec->valior ?? null, $rec->lineId ?? null, $rec->activatedOn ?? null, $loadingOn);
             $res['deliveryOn']['placeholder'] = ($cache && !empty($rec->deliveryOnCalc)) ? $rec->deliveryOnCalc : trans_Helper::calcDeliveryOnDate($rec->threadId, $rec->valior);
         }
 

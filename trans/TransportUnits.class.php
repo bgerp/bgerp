@@ -212,7 +212,7 @@ class trans_TransportUnits extends core_Manager
                 $res = null;
 
                 // и има опаковки на които количеството е кратно
-                if(is_array($calcQuantity[0])){
+                if(is_array($calcQuantity[0] ?? null)){
                     if(array_key_exists($packagingId, $calcQuantity[0])){
 
                         // С приоритет е опаковката от документа
@@ -266,7 +266,8 @@ class trans_TransportUnits extends core_Manager
                 $pQuery->show('quantity');
 
                 // Намира се последното произведено нестандартно к-во
-                $lastProducedPackQuantity = $pQuery->fetch()->quantity;
+                $lastProducedRec = $pQuery->fetch();
+                $lastProducedPackQuantity = is_object($lastProducedRec) ? $lastProducedRec->quantity : null;
                 if(!empty($lastProducedPackQuantity)){
 
                     // Ако има такова и то е над стандартното се закръгля нагоре иначе надоло

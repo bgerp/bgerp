@@ -36,7 +36,7 @@ class core_page_InternalModern extends core_page_Active
         $this->push('css/new-design.css', 'CSS');
         
         // Добавяне на стил само за дефоултния андроидски браузър
-        $browserInfo = Mode::get('getUserAgent');
+        $browserInfo = (string) Mode::get('getUserAgent');
         if (strPos($browserInfo, 'Mozilla/5.0') !== false && strPos($browserInfo, 'Android') !== false &&
         strPos($browserInfo, 'AppleWebKit') !== false && strPos($browserInfo, 'Chrome') === false) {
             $this->append('
@@ -287,7 +287,7 @@ class core_page_InternalModern extends core_page_Active
         
         $active = bgerp_Menu::getActiveItem($menuObj);
         
-        $activeParts = explode(':', $active);
+        $activeParts = explode(':', (string) $active);
         $aMainMenu = $activeParts[0] ?? '';
         $aSubMenu = $activeParts[1] ?? '';
         

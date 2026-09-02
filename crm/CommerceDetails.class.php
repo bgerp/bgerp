@@ -48,7 +48,7 @@ class crm_CommerceDetails extends core_Manager
         $data->Cards->prepareCards($data->cardData);
 
         // Ако е инсталиран пакета за ваучери и визитката е на лице
-        if($data->masterMvc instanceof crm_Persons){
+        if(($data->masterMvc ?? null) instanceof crm_Persons){
             if(core_Packs::isInstalled('voucher')){
                 $data->Vouchers = cls::get('voucher_Cards');
                 $data->voucherData = clone $data;

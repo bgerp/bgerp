@@ -71,7 +71,9 @@ class doc_plg_HidePrices extends core_Plugin
 
         // Ако има изброените роли, може да вижда цените
         $mvc = cls::get($mvc);
-        if(($mvc instanceof deals_PaymentDocument) || ($mvc instanceof crm_Persons)){
+        if(($mvc instanceof deals_PaymentDocument) || ($mvc instanceof crm_Persons) ||
+            ($mvc instanceof cash_InternalMoneyTransfer) || ($mvc instanceof bank_InternalMoneyTransfer) ||
+            ($mvc instanceof cash_ExchangeDocument) || ($mvc instanceof bank_ExchangeDocument) || ($mvc instanceof deals_OpenDeals)){
             if(haveRole('ceo,seePrice')) return true;
         } elseif(($mvc instanceof sales_Quotations) || ($mvc instanceof eshop_Carts)){
             if(haveRole('ceo,seePriceSale')) return true;
@@ -255,14 +257,143 @@ class doc_plg_HidePrices extends core_Plugin
 
             return;
         }
-        
+
         $form = &$data->form;
         $priceFields = arr::make($mvc->priceFields ?? null);
-        
+
         foreach ($priceFields as $fld){
             if($form->getField($fld, false)){
                 $form->setField($fld, 'input=none');
             }
+        }
+
+        // Помним опаковка/цена преди потребителския input - нужно е при
+        // добавяне/клониране на нов ред (без id), за да познаем дали опаковката
+        // е сменена спрямо предварително попълнената стойност, и да можем да
+        // пренесем старата единична цена (@see on_AfterInputEditForm)
+        if (!empty($mvc->packagingFld)) {
+            $rec = $form->rec;
+            $form->_hidePricesOldSnapshot = (object) array(
+                'packaging' => $rec->{$mvc->packagingFld} ?? null,
+                'unitPrice' => self::getOldUnitPrice($mvc, $rec),
+                'discount' => $rec->discount ?? null,
+            );
+        }
+    }
+
+
+    /**
+     * Единичната (packaging-invariant) цена на реда, изчислена само от
+     * РЕАЛНИ (персистирани) полета - никога от FNC, защото обикновен fetch()
+     * не смята FNC полета (нямат истинска колона в базата). При различните
+     * наследници на doc_Detail тя идва от различно поле:
+     * - deals_DealDetail/deals_DeliveryDocumentDetail/deals_InvoiceDetail:
+     *   'price' е реално FLD поле (вече е единична цена)
+     * - store_InternalDocumentDetail (ConsignmentProtocolDetailsSend/Received):
+     *   няма отделно 'price'; 'packPrice' е реално FLD (цена за ОПАКОВКА),
+     *   значи единичната цена е packPrice/quantityInPack
+     */
+    private static function getOldUnitPrice($mvc, $rec)
+    {
+        if (self::isRealField($mvc, 'price') && isset($rec->price)) {
+
+            return $rec->price;
+        }
+
+        if (self::isRealField($mvc, 'packPrice') && !empty($rec->quantityInPack) && isset($rec->packPrice)) {
+
+            return $rec->packPrice / $rec->quantityInPack;
+        }
+
+        return null;
+    }
+
+
+    /**
+     * Дали посоченото поле е реално (персистирано - FLD/EXT/XPR), а не FNC
+     */
+    private static function isRealField($mvc, $field)
+    {
+        return isset($mvc->fields[$field]) && ($mvc->fields[$field]->kind ?? null) != 'FNC';
+    }
+
+
+    /**
+     * След въвеждане на формата обработва скритите ценови полета, които зависят
+     * от променена опаковка (потребителят няма право да ги вижда/попълва ръчно).
+     * Слага '_hidePricesOldUnitPrice' на $rec (packaging-invariant единична
+     * цена от преди промяната, @see getOldUnitPrice) и маха 'packPrice' и
+     * другите засегнати полета - конкретният детайл (@see deals_DealDetail,
+     * deals_DeliveryDocumentDetail, deals_InvoiceDetail,
+     * store_InternalDocumentDetail) ползва тази стойност директно вместо да
+     * търси нова цена от ценовата политика, която може да върне съвсем друга
+     * цена от ръчно въведената преди потребителя без права да смени опаковката,
+     * а и може изобщо да няма намерена цена, което би блокирало записа с
+     * грешка върху скрито поле.
+     */
+    public static function on_AfterInputEditForm($mvc, &$form)
+    {
+        if (!$form->isSubmitted() || empty($mvc->packagingFld)) {
+            return;
+        }
+
+        $rec = &$form->rec;
+
+        $packagingFld = $mvc->packagingFld;
+        if (!$form->getField($packagingFld, false)) {
+            return;
+        }
+
+        if (self::canSeePriceFields($mvc, null)) {
+            return;
+        }
+
+        if (isset($mvc->Master, $mvc->masterKey) && !empty($rec->{$mvc->masterKey})) {
+            $masterRec = $mvc->Master->fetch($rec->{$mvc->masterKey});
+            if (self::canSeePriceFields($mvc->Master, $masterRec)) {
+                return;
+            }
+        }
+
+        // Старата опаковка/цена - от БД при промяна на съществуващ ред, или тези
+        // от преди потребителския input при добавяне/клониране на нов ред
+        if (!empty($rec->id)) {
+            $oldRec = $mvc->fetch($rec->id);
+            $oldPackaging = $oldRec->{$packagingFld} ?? null;
+            $oldUnitPrice = self::getOldUnitPrice($mvc, $oldRec);
+            $oldDiscount = $oldRec->discount ?? null;
+        } else {
+            $snapshot = $form->_hidePricesOldSnapshot ?? null;
+            $oldPackaging = $snapshot->packaging ?? null;
+            $oldUnitPrice = $snapshot->unitPrice ?? null;
+            $oldDiscount = $snapshot->discount ?? null;
+        }
+
+        $newPackaging = $rec->{$packagingFld} ?? null;
+        if ($oldPackaging == $newPackaging) {
+            return;
+        }
+
+        // Packaging-invariant единичната цена - пренасяме я директно, за да я
+        // ползва конкретният детайл вместо ценова политика
+        if (isset($oldUnitPrice)) {
+            $rec->_hidePricesOldUnitPrice = $oldUnitPrice;
+        }
+
+        $removeAndRefresh = $form->getFieldParam($packagingFld, 'removeAndRefreshForm');
+        $refreshFields = arr::make(str_replace('|', ',', $removeAndRefresh ?? ''), true);
+        $priceFields = arr::make($mvc->priceFields ?? null, true);
+        $fieldsToUnset = array_intersect_key($refreshFields, $priceFields);
+
+        foreach ($fieldsToUnset as $field => $dummy) {
+            unset($rec->{$field});
+        }
+
+        // При пренасяне на старата единична цена се запазва и отстъпката от
+        // същия ред. Иначе специалният клон не стига до ценовата политика и
+        // изчистената от removeAndRefreshForm отстъпка би се загубила.
+        if (array_key_exists('discount', $fieldsToUnset) && isset($oldDiscount)) {
+            $rec->discount = $oldDiscount;
         }
     }
 

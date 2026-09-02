@@ -188,7 +188,7 @@ class frame_Reports extends core_Embedder
     public static function on_BeforeSave($mvc, &$id, $rec, $fields = null, $mode = null)
     {
         // При чернова винаги подготвяме вътрешното състояние
-        if ($rec->state == 'draft' && $rec->id) {
+        if ($rec->state == 'draft' && !empty($rec->id)) {
             if (!$rec->data) {
                 $Driver = frame_Reports::getDriver($rec);
                 $rec->data = $Driver->prepareInnerState();
@@ -330,6 +330,7 @@ class frame_Reports extends core_Embedder
     public static function getRecTitle($rec, $escaped = true)
     {
         $me = cls::get(get_called_class());
+        $title = $me->singleTitle;
         
         try {
             $Driver = $me->getDriver($rec);
@@ -396,7 +397,7 @@ class frame_Reports extends core_Embedder
         expect($rec = $this->fetch($id));
         
         // Проверка за права
-        $this->requireRightFor('changestate', $data->rec);
+        $this->requireRightFor('changestate', $rec);
         
         // Променяме състоянието на документа
         $this->activate($rec);

@@ -103,10 +103,13 @@ class fileman_type_Files extends type_Keylist
         foreach ($fhArr as $id) {
             $fh = fileman_Files::fetchField($id, 'fileHnd');
             if (isset($fh)) {
-                if ($this->params['showButton']) {
+                if (!empty($this->params['showButton'])) {
                     $fh = fileman_Files::fetchField($id, 'fileHnd');
                     if (isset($fh)) {
                         $fRec = fileman::fetchByFh($fh);
+                        if (!$fRec) {
+                            continue;
+                        }
                         $ext = fileman_Files::getExt($fRec->name);
                         $icon = "fileman/icons/16/{$ext}.png";
                         if (!is_file(getFullPath($icon))) {
@@ -129,7 +132,7 @@ class fileman_type_Files extends type_Keylist
             return '';
         }
         
-        $align = $this->params['align'] ? $this->params['align'] : 'horizontal';
+        $align = !empty($this->params['align']) ? $this->params['align'] : 'horizontal';
         $align = 'align_' . $align;
         $res = "<span class='{$align}' style='padding-bottom:5px'>" . $res . '</span>';
         
@@ -156,9 +159,10 @@ class fileman_type_Files extends type_Keylist
         
         $attrInp = $attr;
         $attrInp['id'] = $name . '_files_name_id';
-        $align = $this->params['align'] ? $this->params['align'] : 'horizontal';
-        $attrInp['class'] .= $attr['class'] . ' input_align_' . $align;
+        $align = !empty($this->params['align']) ? $this->params['align'] : 'horizontal';
+        $attrInp['class'] = ($attr['class'] ?? '') . ' input_align_' . $align;
         
+        $html = '';
         $valueFhArr = array();
         if(is_array($value)) {
             $value = self::fromArray($value, false);
@@ -171,6 +175,7 @@ class fileman_type_Files extends type_Keylist
             
             foreach ($valueArr as $vId) {
                 $fRec = fileman_Files::fetch($vId);
+                if (!$fRec) continue;
                 
                 $valueFhArr[$fRec->fileHnd] = $fRec->fileHnd;
                 
@@ -185,7 +190,7 @@ class fileman_type_Files extends type_Keylist
         
         $tpl->append("<input name='{$name}' value='{$valueStr}' id='{$name}_id' type='hidden'>");
         
-        $bucket = $this->params['bucket'];
+        $bucket = $this->params['bucket'] ?? null;
         
         $bucketId = fileman_Buckets::fetchByName($bucket);
         
@@ -267,21 +272,25 @@ class fileman_type_Files extends type_Keylist
     {
         $res = parent::isValid($value);
         
-        if ($this->params['allowedExtensions'] && $value) {
+        if (($this->params['allowedExtensions'] ?? null) && $value) {
             $vArr = $this->toArray($value);
-            
+
             setIfNot($res, array());
-            
+
             $eArr = explode('|', strtolower($this->params['allowedExtensions']));
-            
+
             foreach ($vArr as $vId) {
                 $fRec = fileman::fetch($vId);
-                
+
+                if (!$fRec) {
+                    continue;
+                }
+
                 $eArr = arr::make($eArr, true);
-                
+
                 $ext = fileman::getExt(strtolower($fRec->name));
-                
-                if (!$eArr[$ext]) {
+
+                if (!($eArr[$ext] ?? null)) {
                     $res['error'] = "Разширението на файла не е в допустимите|*: " . implode(', ', $eArr);
                     
                     if ($res['error']) {

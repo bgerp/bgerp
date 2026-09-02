@@ -159,7 +159,7 @@ class bank_Accounts extends core_Master
     protected static function on_AfterPrepareEditTitle($mvc, &$res, &$data)
     {
         $rec = $data->form->rec;
-        $data->form->title = core_Detail::getEditTitle($rec->contragentCls, $rec->contragentId, $mvc->singleTitle, $rec->id, 'на');
+        $data->form->title = core_Detail::getEditTitle($rec->contragentCls, $rec->contragentId, $mvc->singleTitle, $rec->id ?? null, 'на');
     }
     
     
@@ -194,7 +194,7 @@ class bank_Accounts extends core_Master
     {
         $rec = $form->rec;
         $contragentRec = cls::get($rec->contragentCls)->fetch($rec->contragentId);
-        if (!$rec->id) {
+        if (empty($rec->id)) {
             // По подразбиране, валутата е тази, която е в обръщение в страната на контрагента
             if ($contragentRec->country) {
                 $countryRec = drdata_Countries::fetch($contragentRec->country);
@@ -534,6 +534,7 @@ class bank_Accounts extends core_Master
         $data->listFilter->setField('contragentCls', 'input=none');
         $data->listFilter->setField('contragentId', 'input=none');
         $data->listFilter->setFieldTypeParams('currencyId', array('allowEmpty' => 'allowEmpty'));
+        $data->listFilter->setField('currencyId', 'placeholderType=all');
         $data->listFilter->showFields = 'search,currencyId';
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');

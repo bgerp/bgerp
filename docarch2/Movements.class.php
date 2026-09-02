@@ -104,7 +104,7 @@ class docarch2_Movements extends core_Master
         $form->setOptions('type', $types);
 
         //Архивиране на документ
-        if (($rec->objectId && !$rec->id)) {
+        if (($rec->objectId && empty($rec->id))) {
 
             $currentUser = core_Users::getCurrent();
 
@@ -312,7 +312,7 @@ class docarch2_Movements extends core_Master
 
         $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
 
-        $data->listFilter->FNC('filterVolumeId', 'key(mvc=docarch_Volumes,allowEmpty, select=title)', 'caption=Входящ том,placeholder=Входящ том');
+        $data->listFilter->FNC('filterVolumeId', 'key(mvc=docarch_Volumes,allowEmpty, select=title)', 'caption=Входящ том,placeholderType=all');
 
         $data->listFilter->showFields = 'filterVolumeId';
 
@@ -847,7 +847,7 @@ bp($options);
 
         $mQuery->where('#objectId IS NOT NULL');
 
-        $mQuery->where("#objectId = ${containerId}");
+        $mQuery->where("#objectId = {$containerId}");
 
         $mQuery->orderBy('createdOn', 'ASC');
 

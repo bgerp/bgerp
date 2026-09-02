@@ -347,7 +347,7 @@ abstract class embed_Manager extends core_Master
                     }
                     break;
                 case 'aftergetrequiredroles':
-                    if (is_object($args[2])) {
+                    if (is_object($args[2] ?? null)) {
                         $driverClass = $args[2]->{$this->driverClassField} ?? null;
                     }
                     break;
@@ -467,7 +467,7 @@ abstract class embed_Manager extends core_Master
             $query = static::getQuery();
         }
         $classId = core_Classes::getId($driverClass);
-        $query->where("#{$query->mvc->driverClassField} = ${classId}");
+        $query->where("#{$query->mvc->driverClassField} = {$classId}");
         
         return $query;
     }

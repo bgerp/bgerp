@@ -154,11 +154,8 @@ class type_Enum extends core_Type
         }
 
         if($countOptions <= $maxRadio){
-            if(isset($arr[''])){
+            if(array_key_exists('', $arr)){
                 $attr['_isAllowEmpty'] = true;
-                if(countR($arr) >= 2){
-                    unset($arr['']);
-                }
             }
         }
         $tpl = ht::createSmartSelect($arr, $name, $value, $attr, $maxRadio, $this->params['maxColumns'] ?? null, $this->params['columns'] ?? null);

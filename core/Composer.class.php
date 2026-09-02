@@ -119,7 +119,7 @@ class core_Composer extends core_Mvc
                     putenv('COMPOSER_HOME=' . $vPath . '/.composer');
                     exec($cmd, $output, $returnvar);
                     if ($returnvar != 0) {
-                        self::$error = "Грешка (${cmd}):" . implode('; ', $output);
+                        self::$error = "Грешка ({$cmd}):" . implode('; ', $output);
 
                         return false;
                     }
@@ -224,19 +224,21 @@ class core_Composer extends core_Mvc
     public static function isInstalled($pack, $version = null)
     {
         if(!countR(self::$packs)) {
-            self::$packs =  core_Cache::get('COMPOSER', 'INSTALLED-PACKS');
+            self::$packs = core_Cache::get('COMPOSER', 'INSTALLED-PACKS');
         }
         
-        if(!countR(self::$packs)) {
+        if(!countR(self::$packs)) { // В случая когато връща false
             
             $lines = self::run('show');
             
             if ($lines === false) {
-                
+
                 return false;
             }
 
-            foreach($lines as $l) { 
+            self::$packs = array();
+
+            foreach($lines as $l) {
                 $matches = array();
                 preg_match_all("/^([a-z0-9\.\/\_\-]+)[ ]+([v0-9\.]+)/", $l, $matches);
  
@@ -253,9 +255,8 @@ class core_Composer extends core_Mvc
         
         if(isset(self::$packs[$pack])) {
             $res = true;
-            
-            if(strlen($version) && !version_compare(trim(self::$packs[$pack]), ltrim($version, 'v'), '>=')) {
-                
+            if ($version !== null && $version !== '' && !version_compare(trim(self::$packs[$pack]), ltrim($version, 'v'), '>=')) {
+
                 $res = false;
             }
         }
@@ -298,7 +299,7 @@ class core_Composer extends core_Mvc
         
         if ($result != 0) {
             
-            return "Грешка (${cmd}):" . implode('; ', $lines);
+            return "Грешка ({$cmd}):" . implode('; ', $lines);
         }
     }
     

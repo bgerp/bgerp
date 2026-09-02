@@ -44,7 +44,7 @@ class bgfisc_reports_SalesPayments extends frame2_driver_TableData
         $fieldset->FLD('from', 'date', 'caption=От,after=compare,single=none');
         $fieldset->FLD('to', 'date', 'caption=До,after=from,single=none');
         
-        $fieldset->FLD('operator', 'key(mvc=core_Users,select=names,allowEmpty)', 'caption=Оператор,after=to,placeholder=Всички,single=none');
+        $fieldset->FLD('operator', 'key(mvc=core_Users,select=names,allowEmpty)', 'caption=Оператор,after=to,placeholderType=all,single=none');
     }
     
     
@@ -93,6 +93,9 @@ class bgfisc_reports_SalesPayments extends frame2_driver_TableData
     protected function prepareRecs($rec, &$data = null)
     {
         $recs = array();
+        $rec->from = $rec->from ?? null;
+        $rec->to = $rec->to ?? null;
+        $rec->operator = $rec->operator ?? null;
         
         $sQuery = bgfisc_Register::getQuery();
         
@@ -128,6 +131,8 @@ class bgfisc_reports_SalesPayments extends frame2_driver_TableData
                 $dueAmount = $paidAmount = 0;
                 
                 $posRec = $className::fetch($regRec->objectId);
+                if (!is_object($posRec)) continue;
+                $paymentDate = $userId = $paymentType = null;
                 
                 //Ако по продажбата има сторниране
                 $prntQuery = bgfisc_PrintedReceipts::getQuery();
@@ -160,10 +165,12 @@ class bgfisc_reports_SalesPayments extends frame2_driver_TableData
                 if (!empty($prntRcptRevArr)) {
                     foreach ($prntRcptRevArr as $val) {
                         $prntRcptRev = bgfisc_PrintedReceipts::fetch($val);
+                        if (!is_object($prntRcptRev)) continue;
                         $objectClassName = cls::get($prntRcptRev->classId)->className;
                         $revRec = $objectClassName::fetch($prntRcptRev->objectId);
-                        
-                        $stornoAmount += $revRec->paid;                                               //Сторнирана стойност
+                        if (is_object($revRec)) {
+                            $stornoAmount += $revRec->paid ?? 0;                                     //Сторнирана стойност
+                        }
                     }
                 }
                 
@@ -194,9 +201,9 @@ class bgfisc_reports_SalesPayments extends frame2_driver_TableData
                     $paidAmount = $posRec->paid + $stornoAmount;
                     
                     //Вид плащане
-                    list($pay, $payType) = explode('|', trim($posDet->action));
-                    
-                    $paymentType = $payType != -1 ? cond_Payments::fetch($payType)->title : 'В брой';
+                    list($pay, $payType) = array_pad(explode('|', trim($posDet->action)), 2, null);
+
+                    $paymentType = $payType != -1 ? (cond_Payments::fetch($payType)->title ?? null) : 'В брой';
                 }
                 
                 // добавяме в масива
@@ -227,6 +234,7 @@ class bgfisc_reports_SalesPayments extends frame2_driver_TableData
                 $paymentDateArr = array();
                 
                 $saleRec = $className::fetch($regRec->objectId);
+                if (!is_object($saleRec)) continue;
                 
                 //Дата на откриване на продажбата
                 $saleOpenDate = dt::mysql2verbal($saleRec->createdOn, 'd.m.Y');
@@ -260,23 +268,28 @@ class bgfisc_reports_SalesPayments extends frame2_driver_TableData
                 if (!empty($prntRcptRevArr)) {
                     foreach ($prntRcptRevArr as $val) {
                         $prntRcptRev = bgfisc_PrintedReceipts::fetch($val);
-                        $objectClassName = cls::get($prntRcptRev->classId)->className;
-                        
+                        if (!is_object($prntRcptRev)) continue;
+                        $objectClassName = cls::get($prntRcptRev->classId ?? null)->className;
+
                         //РКО към който е издаден ФБ
-                        $rcoRec = $objectClassName::fetch($prntRcptRev->objectId);
-                        
+                        $rcoRec = $objectClassName::fetch($prntRcptRev->objectId ?? null);
+                        if (!is_object($rcoRec) || empty($rcoRec->fromContainerId)) continue;
+
                         //Документа към който е издаден РКО (СклРаз примерно)
-                        $revDocClassId = doc_Containers::fetch($rcoRec->fromContainerId)->docClass;
+                        $revContainerRec = doc_Containers::fetch($rcoRec->fromContainerId);
+                        if (!is_object($revContainerRec)) continue;
+                        $revDocClassId = $revContainerRec->docClass ?? null;
+                        if (!$revDocClassId) continue;
                         $revDocClassName = cls::get($revDocClassId)->className;
-                        $revDocId = doc_Containers::fetch($rcoRec->fromContainerId)->docId;
+                        $revDocId = $revContainerRec->docId ?? null;
                         $revDocRec = $revDocClassName::fetch($revDocId);
-                        
+
                         //ПКО-то към който е издаден РКО на тази бележка
-                        $pcoDoc = doc_Containers:: getDocument($rcoRec->originId);
-                        $pcoKey = core_Classes::getId($pcoDoc->className).'|'.$pcoDoc->that.'|'.$prntRcptRev->id;
-                        
+                        $pcoDoc = doc_Containers:: getDocument($rcoRec->originId ?? null);
+                        $pcoKey = core_Classes::getId($pcoDoc->className).'|'.$pcoDoc->that.'|'.($prntRcptRev->id ?? null);
+
                         //Сторнирани стойности по ПКО и сторно бележка
-                        $stornoAmountArr[$pcoKey] += $rcoRec->amountDeal;
+                        $stornoAmountArr[$pcoKey] = ($stornoAmountArr[$pcoKey] ?? 0) + ($rcoRec->amountDeal ?? 0);
                     }
                 }
                 
@@ -292,6 +305,7 @@ class bgfisc_reports_SalesPayments extends frame2_driver_TableData
                 
                 foreach ($prntRcptArr as $val) {
                     $prntRcpt = bgfisc_PrintedReceipts::fetch($val);
+                    if (!is_object($prntRcpt)) continue;
                     $clsName = core_Classes::getName($prntRcpt->classId);
                     
                     $stornoAmount = 0;
@@ -316,7 +330,7 @@ class bgfisc_reports_SalesPayments extends frame2_driver_TableData
                         
                         $userId1 = str_pad(substr($userId, -4), 4, '0', STR_PAD_LEFT);
                         if ($saleRec->paymentMethodId) {
-                            $paymentType = cond_PaymentMethods::fetch($saleRec->paymentMethodId)->type;
+                            $paymentType = cond_PaymentMethods::fetch($saleRec->paymentMethodId)->type ?? null;
                         } else {
                             $paymentType = '';
                         }
@@ -337,8 +351,6 @@ class bgfisc_reports_SalesPayments extends frame2_driver_TableData
                         }
                         
                         if (!empty($amountPaidArr)) {
-                            $aaa = 10;
-                            
                             $amountPaidArr[-1] = (object) array(
                                 'amount' => $amountPaid - $nonPaidSum,
                                 'payType' => -1,
@@ -353,7 +365,7 @@ class bgfisc_reports_SalesPayments extends frame2_driver_TableData
                         foreach ($amountPaidArr as $key => $val) {
                             $id .= '|'.$key;
                             $amountPaid = $val -> amount;
-                            $paymentType = ($val->payType != -1) ? cond_Payments::fetch($val->payType)->title : 'В брой';
+                            $paymentType = ($val->payType != -1) ? (cond_Payments::fetch($val->payType)->title ?? null) : 'В брой';
                             
                             
                             // добавяме в масива
@@ -508,6 +520,7 @@ class bgfisc_reports_SalesPayments extends frame2_driver_TableData
      */
     protected static function on_AfterRenderSingle(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$tpl, $data)
     {
+        $dealersVerb = '';
         $Date = cls::get('type_Date');
         
         $fieldTpl = new core_ET(tr("|*<!--ET_BEGIN BLOCK-->[#BLOCK#]
@@ -528,8 +541,9 @@ class bgfisc_reports_SalesPayments extends frame2_driver_TableData
             $fieldTpl->append('<b>' . $Date->toVerbal($data->rec->to) . '</b>', 'to');
         }
         
-        if ((isset($data->rec->dealers)) && ((min(array_keys(keylist::toArray($data->rec->dealers))) >= 1))) {
-            foreach (type_Keylist::toArray($data->rec->dealers) as $dealer) {
+        $dealers = keylist::toArray($data->rec->dealers ?? null);
+        if (!empty($dealers) && min(array_keys($dealers)) >= 1) {
+            foreach ($dealers as $dealer) {
                 $dealersVerb .= (core_Users::getTitleById($dealer) . ', ');
             }
             

@@ -63,7 +63,7 @@ class planning_reports_PurchaseImpl extends frame_BaseDriver
     public function addEmbeddedFields(core_FieldSet &$form)
     {
         $form->FLD('time', 'time(suggestions=на момента|1 седмица|2 седмица|3 седмица|4 седмиц|)', 'caption=Хоризонт');
-        $form->FLD('store', 'key(mvc=store_Stores, select=name, allowEmpty)', 'caption=Склад');
+        $form->FLD('store', 'key(mvc=store_Stores, select=name, allowEmpty)', 'caption=Склад,placeholderType=all');
         
         $this->invoke('AfterAddEmbeddedFields', array($form));
     }
@@ -129,14 +129,14 @@ class planning_reports_PurchaseImpl extends frame_BaseDriver
             
             $id = $rec->id;
             
-            if (sales_SalesDetails::fetch("#saleId = ${id}") !== false) {
+            if (sales_SalesDetails::fetch("#saleId = {$id}") !== false) {
                 $p = sales_SalesDetails::fetch("#saleId = {$rec->id}");
                 $productId = $p->productId;
                 
                 $productInfo = cat_Products::getProductInfo($productId);
                 
                 if ($productInfo->meta['canBuy'] == true && $productInfo->meta['canStore'] == true) {
-                    $products[] = sales_SalesDetails::fetch("#saleId = ${id} AND #productId = ${productId}");
+                    $products[] = sales_SalesDetails::fetch("#saleId = {$id} AND #productId = {$productId}");
                     $dates[$productId][$id] = $date;
                 } else {
                     continue;
@@ -186,10 +186,11 @@ class planning_reports_PurchaseImpl extends frame_BaseDriver
                     if (isset($storeId)) {
                         $store = store_Products::fetchField("#productId = {$index} AND #storeId = {$storeId}", 'quantity');
                     } else {
+                        $store = array();
                         $storeQuery = store_Products::getQuery();
                         $storeQuery->where("#productId = {$index}");
                         while ($storeRec = $storeQuery->fetch()) {
-                            $store[$storeRec->productId] += $storeRec->quantity;
+                            $store[$storeRec->productId] = ($store[$storeRec->productId] ?? 0) + $storeRec->quantity;
                         }
                     }
                     
@@ -347,7 +348,7 @@ class planning_reports_PurchaseImpl extends frame_BaseDriver
         
         $tpl->append($table->get($data->rows, $data->listFields), 'CONTENT');
         
-        if ($data->pager) {
+        if (!empty($data->pager)) {
             $tpl->append($data->pager->getHtml(), 'PAGER');
         }
         
@@ -398,7 +399,7 @@ class planning_reports_PurchaseImpl extends frame_BaseDriver
         $row->dateSale = $Date->toVerbal($rec->dateSale);
         
         for ($i = 0; $i <= countR($rec->sales) - 1; $i++) {
-            $row->sales .= '#'.sales_Sales::getHandle($rec->sales[$i]) .',';
+            $row->sales = ($row->sales ?? '') . '#'.sales_Sales::getHandle($rec->sales[$i]) .',';
         }
         $row->sales = $RichtextType->toVerbal(substr($row->sales, 0, -1));
         

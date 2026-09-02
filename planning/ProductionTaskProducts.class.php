@@ -167,7 +167,7 @@ class planning_ProductionTaskProducts extends core_Detail
         }
         
         if (isset($rec->productId)) {
-            $packs = cat_Products::getPacks($rec->productId, $rec->packagingId);
+            $packs = cat_Products::getPacks($rec->productId, $rec->packagingId ?? null);
             $form->setOptions('packagingId', $packs);
             $form->setDefault('packagingId', key($packs));
             
@@ -219,7 +219,7 @@ class planning_ProductionTaskProducts extends core_Detail
             $form->setField('plannedQuantity', array('unit' => $unit));
             
             if(isset($rec->id)){
-                if($data->action != 'replaceproduct'){
+                if(($data->action ?? null) != 'replaceproduct'){
                     $form->setReadOnly('productId');
                     if(planning_ProductionTaskDetails::fetchField("#taskId = {$masterRec->id} AND #productId = {$rec->productId} AND #type = '{$rec->type}'")){
                         $form->setReadOnly('packagingId');
@@ -359,7 +359,7 @@ class planning_ProductionTaskProducts extends core_Detail
                 if ($action == 'add') {
                     $requiredRoles = $mvc->getRequiredRoles('addtoactive', $rec);
                 }
-            } elseif($tRec->state == 'closed' && $rec->type == 'production'){
+            } elseif($tRec->state == 'closed' && ($rec->type ?? null) == 'production'){
                 $howLong = dt::addSecs(planning_Setup::get('TASK_PRODUCTION_PROGRESS_ALLOWED_AFTER_CLOSURE'), $tRec->timeClosed);
                 if(dt::now() >= $howLong){
                     $requiredRoles = 'no_one';
@@ -525,10 +525,13 @@ class planning_ProductionTaskProducts extends core_Detail
      *
      * @return stdClass|false
      *                  o productId       - ид на артикула
+     *                  o measureId       - основна мярка на артикула
      *                  o packagingId     - ид на опаковката
      *                  o quantityInPack  - к-во в опаковката
      *                  o plannedQuantity - планирано к-во
      *                  o totalQuantity   - изпълнено к-во
+     *                  o producedQuantity - произведено к-во
+     *                  o scrappedQuantity - бракувано к-во
      *                  o indTime         - норма
      *                  o limit           - лимит, ако има
      */
@@ -539,7 +542,7 @@ class planning_ProductionTaskProducts extends core_Detail
         if($type == 'scrap') return static::getInfo($taskId, $productId, 'production', $assetId);
 
         // Ако артикула е същия като от операцията, връща се оттам
-        $taskRec = planning_Tasks::fetchRec($taskId, 'totalQuantity,assetId,productId,indTime,labelPackagingId,plannedQuantity,measureId,quantityInPack,isFinal,originId,producedQuantity');
+        $taskRec = planning_Tasks::fetchRec($taskId, 'totalQuantity,assetId,productId,indTime,labelPackagingId,plannedQuantity,measureId,quantityInPack,isFinal,originId,producedQuantity,scrappedQuantity');
         if($type == 'production'){
 
             // Ако ПО е финална и артикула за производство е този от заданието - взимат се неговите данни
@@ -549,26 +552,60 @@ class planning_ProductionTaskProducts extends core_Detail
             }
 
             if ($compareTaskProductId == $productId) {
-                if(empty($taskRec->labelPackagingId)){
-                    $taskRec->packagingId = $taskRec->measureId;
-                }
+                $taskRec->packagingId = $taskRec->measureId;
 
-                return $taskRec;
+                return static::normalizeInfo($taskRec, $productId);
             }
         }
 
         // Ако има запис в артикули за него, връща се оттам
         $query = self::getQuery();
         $query->where("#taskId = {$taskRec->id} AND #productId = {$productId} AND #type = '{$type}'");
-        $query->show('productId,indTime,packagingId,plannedQuantity,totalQuantity,limit,netWeight,tareWeight');
-        if ($rec = $query->fetch()) return $rec;
+        $query->show('productId,indTime,packagingId,quantityInPack,plannedQuantity,totalQuantity,limit,netWeight,tareWeight');
+        if ($rec = $query->fetch()) return static::normalizeInfo($rec, $productId);
 
         if (isset($assetId)) {
             $normRec = planning_AssetResources::getNormRec($assetId, $productId);
-            if(!empty($normRec)) return $normRec;
+            if(!empty($normRec)) return static::normalizeInfo($normRec, $productId);
         }
         
         return false;
+    }
+
+
+    /**
+     * Допълва информацията за артикул в операция до общия договор на getInfo().
+     *
+     * @param stdClass $rec
+     * @param int      $productId
+     *
+     * @return stdClass
+     */
+    private static function normalizeInfo($rec, $productId)
+    {
+        $measureId = $rec->measureId ?? cat_Products::fetchField($productId, 'measureId');
+        $defaults = array(
+            'productId' => $productId,
+            'measureId' => $measureId,
+            'packagingId' => $measureId,
+            'quantityInPack' => 1,
+            'plannedQuantity' => 0,
+            'totalQuantity' => 0,
+            'producedQuantity' => 0,
+            'scrappedQuantity' => 0,
+            'indTime' => null,
+            'limit' => null,
+            'netWeight' => null,
+            'tareWeight' => null,
+        );
+
+        foreach ($defaults as $name => $value) {
+            if (!isset($rec->{$name})) {
+                $rec->{$name} = $value;
+            }
+        }
+
+        return $rec;
     }
     
     
@@ -578,7 +615,7 @@ class planning_ProductionTaskProducts extends core_Detail
     protected static function on_AfterCreate($mvc, $rec)
     {
         if (!empty($rec->inputedQuantity)) {
-            $dRec = (object) array('taskId' => $rec->taskId, 'productId' => $rec->productId, 'type' => $rec->type, 'quantity' => $rec->inputedQuantity, 'employees' => $rec->employees, 'norm' => $rec->norm);
+            $dRec = (object) array('taskId' => $rec->taskId, 'productId' => $rec->productId, 'type' => $rec->type, 'quantity' => $rec->inputedQuantity, 'employees' => $rec->employees, 'norm' => $rec->norm ?? null);
             planning_ProductionTaskDetails::save($dRec);
         }
     }
@@ -888,7 +925,7 @@ class planning_ProductionTaskProducts extends core_Detail
         while($rec = $query->fetch()){
             $key = "{$rec->productId}|{$rec->packagingId}";
             if(!array_key_exists($key, $res)){
-                $res[$key] = (object)array('packagingId' => $rec->packagingId, 'quantityInPack' => $rec->quantityInPack, 'productId' => $rec->productId, 'productLink' => cat_Products::getHyperlink($rec->productId), 'quantity' => 0);
+                $res[$key] = (object)array('packagingId' => $rec->packagingId, 'quantityInPack' => $rec->quantityInPack, 'productId' => $rec->productId, 'productLink' => cat_Products::getHyperlink($rec->productId), 'quantity' => 0, 'class' => '');
             }
             $res[$key]->quantity += $rec->totalQuantity;
         }

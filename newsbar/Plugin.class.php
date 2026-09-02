@@ -41,7 +41,7 @@ class newsbar_Plugin extends core_Plugin
         
         // Ако е зададено да се показва във външната част
         foreach ($newsArr as $nRec) {
-            if (!$nRec->eshopProducts && !$nRec->eshopGroups && !$nRec->menu && !$nRec->articles && !$nRec->headerAndFooter) {
+            if (empty($nRec->eshopProducts) && empty($nRec->eshopGroups) && empty($nRec->menu) && empty($nRec->articles) && empty($nRec->headerAndFooter)) {
                 self::addNewsToShow($nRec);
             }
         }
@@ -131,12 +131,12 @@ class newsbar_Plugin extends core_Plugin
         $newsArr = newsbar_News::getAllNews();
         
         foreach ($newsArr as $nRec) {
-            if (!$nRec->articles) {
+            if (empty($nRec->articles)) {
                 continue;
             }
             $articlesArr = type_Keylist::toArray($nRec->articles);
             
-            if (!$articlesArr[$rec->id]) {
+            if (empty($articlesArr[$rec->id])) {
                 continue;
             }
             
@@ -163,12 +163,12 @@ class newsbar_Plugin extends core_Plugin
         $newsArr = newsbar_News::getAllNews();
         
         foreach ($newsArr as $nRec) {
-            if (!$nRec->menu) {
+            if (empty($nRec->menu)) {
                 continue;
             }
             $menusArr = type_Keylist::toArray($nRec->menu);
             
-            if (!$menusArr[$cMenuId]) {
+            if (empty($menusArr[$cMenuId])) {
                 continue;
             }
             
@@ -191,7 +191,7 @@ class newsbar_Plugin extends core_Plugin
             return ;
         }
         
-        if (!$data->rec->id) {
+        if (empty($data->rec->id)) {
             
             return ;
         }
@@ -199,12 +199,12 @@ class newsbar_Plugin extends core_Plugin
         $newsArr = newsbar_News::getAllNews();
         
         foreach ($newsArr as $nRec) {
-            if (!$nRec->eshopGroups) {
+            if (empty($nRec->eshopGroups)) {
                 continue;
             }
             $eshopGroupsArr = type_Keylist::toArray($nRec->eshopGroups);
             
-            if (!$eshopGroupsArr[$data->rec->id]) {
+            if (empty($eshopGroupsArr[$data->rec->id])) {
                 continue;
             }
             
@@ -226,16 +226,20 @@ class newsbar_Plugin extends core_Plugin
             
             return ;
         }
+
+        if (empty($data->rec->id)) {
+            return ;
+        }
         
         $newsArr = newsbar_News::getAllNews();
         
         foreach ($newsArr as $nRec) {
-            if (!$nRec->eshopProducts) {
+            if (empty($nRec->eshopProducts)) {
                 continue;
             }
             $eshopGroupsArr = type_Keylist::toArray($nRec->eshopProducts);
             
-            if (!$eshopGroupsArr[$data->rec->id]) {
+            if (empty($eshopGroupsArr[$data->rec->id])) {
                 continue;
             }
             
@@ -275,7 +279,7 @@ class newsbar_Plugin extends core_Plugin
         static $resArr = array();
         $hash = md5(serialize($nRec) . '|' . $class);
         
-        if (!$resArr[$hash]) {
+        if (empty($resArr[$hash])) {
             $convertText = cls::get('type_Richtext');
             
             $html = newsbar_News::generateHTML($nRec);

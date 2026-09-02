@@ -39,47 +39,60 @@ class cash_transaction_InternalMoneyTransfer extends acc_DocumentTransactionSour
     {
         // Извличаме записа
         expect($rec = $this->class->fetchRec($id));
-        
-        $debitArr = ($rec->debitCase) ? array('cash_Cases', $rec->debitCase) : array('bank_OwnAccounts', $rec->debitBank);
-        $item2Arr = ($rec->paymentDebitId) ? array('cond_Payments', $rec->paymentDebitId) : array('currency_Currencies', $rec->currencyId);
 
-        $creditArr = array($rec->creditAccId, array('cash_Cases', $rec->creditCase), array('currency_Currencies', $rec->currencyId), 'quantity' => $rec->amount);
-        $currencyCode = currency_Currencies::getCodeById($rec->currencyId);
         $rec->amount = $rec->amount ?? 0;
+        $currencyId = $rec->currencyId ?? null;
+        $debitCase = $rec->debitCase ?? null;
+        $debitBank = $rec->debitBank ?? null;
+        $paymentDebitId = $rec->paymentDebitId ?? null;
+        $creditCase = $rec->creditCase ?? null;
+        $operationSysId = $rec->operationSysId ?? null;
+        $creditAccId = $rec->creditAccId ?? null;
+        $debitAccId = $rec->debitAccId ?? null;
+
+        $debitArr = $debitCase ? array('cash_Cases', $debitCase) : array('bank_OwnAccounts', $debitBank);
+        $item2Arr = $paymentDebitId ? array('cond_Payments', $paymentDebitId) : array('currency_Currencies', $currencyId);
+
+        $creditArr = array($creditAccId, array('cash_Cases', $creditCase), array('currency_Currencies', $currencyId), 'quantity' => $rec->amount);
+        $currencyCode = currency_Currencies::getCodeById($currencyId);
         $reason = cash_InternalMoneyTransfer::getVerbal($rec, 'operationSysId');
         $rec->valior = empty($rec->valior) ? dt::today() : $rec->valior;
         $entries = array();
-        if (in_array($rec->operationSysId, array('nonecash2bank', 'nonecash2case', 'noncash2noncash'))) {
-            $creditArr = array($rec->creditAccId, array('cash_Cases', $rec->creditCase),
-                                                  array('cond_Payments', $rec->paymentId),
+        if (in_array($operationSysId, array('nonecash2bank', 'nonecash2case', 'noncash2noncash'))) {
+            $paymentId = $rec->paymentId ?? null;
+            expect($paymentId);
+            $creditArr = array($creditAccId, array('cash_Cases', $creditCase),
+                                                  array('cond_Payments', $paymentId),
                                                   'quantity' => $rec->amount);
 
-            if($rec->operationSysId == 'nonecash2case'){
+            if ($operationSysId == 'nonecash2case') {
                 $creditArr['quantity'] = round(currency_CurrencyRates::convertAmount($rec->amount, $rec->valior, $currencyCode), 2);
             }
 
-            $baseCurrencyEquivalent = round(cond_Payments::toBaseCurrency($rec->paymentId, $rec->amount, $rec->valior), 2);
-            $entries[] = array('amount' => $baseCurrencyEquivalent,
-                'debit' => array($rec->debitAccId, $debitArr, $item2Arr, 'quantity' => $rec->amount),
-                'credit' => array('481', array('currency_Currencies', $rec->currencyId), 'quantity' => $baseCurrencyEquivalent), 'reason' => $reason);
-
-            $entries[] = array('debit' => array('481', array('currency_Currencies', $rec->currencyId), 'quantity' => $baseCurrencyEquivalent),
+            $baseCurrencyEquivalent = round(cond_Payments::toBaseCurrency($paymentId, $rec->amount, $rec->valior), 2);
+            // Първо е редът за източника на средствата, след него - за получателя
+            $entries[] = array('debit' => array('481', array('currency_Currencies', $currencyId), 'quantity' => $baseCurrencyEquivalent),
                               'credit' => $creditArr, 'reason' => $reason);
+
+            $entries[] = array('amount' => $baseCurrencyEquivalent,
+                'debit' => array($debitAccId, $debitArr, $item2Arr, 'quantity' => $rec->amount),
+                'credit' => array('481', array('currency_Currencies', $currencyId), 'quantity' => $baseCurrencyEquivalent), 'reason' => $reason);
 
         } else {
             // Кредитирането на сметката за разликите сумата е винаци тази на валутата към централния курс
             $debitAmount = currency_CurrencyRates::convertAmount($rec->amount, $rec->valior, $currencyCode);
-            $entries[] = array('amount' => $debitAmount,
-                               'debit' => array($rec->debitAccId, $debitArr, $item2Arr, 'quantity' => $rec->amount),
-                               'credit' => array('481', array('currency_Currencies', $rec->currencyId), 'quantity' => $rec->amount), 'reason' => $reason);
-
-            $entries[] = array('debit' => array('481', array('currency_Currencies', $rec->currencyId), 'quantity' => $rec->amount),
+            // Първо е редът за източника на средствата, след него - за получателя
+            $entries[] = array('debit' => array('481', array('currency_Currencies', $currencyId), 'quantity' => $rec->amount),
                                'credit' => $creditArr, 'reason' => $reason);
+
+            $entries[] = array('amount' => $debitAmount,
+                               'debit' => array($debitAccId, $debitArr, $item2Arr, 'quantity' => $rec->amount),
+                               'credit' => array('481', array('currency_Currencies', $currencyId), 'quantity' => $rec->amount), 'reason' => $reason);
         }
 
         // Подготвяме информацията която ще записваме в Журнала
         $result = (object) array(
-            'reason' => $rec->reason,   // основанието за ордера
+            'reason' => $rec->reason ?? null,   // основанието за ордера
             'valior' => $rec->valior,   // датата на ордера
             'entries' => $entries);
         

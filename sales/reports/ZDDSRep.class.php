@@ -104,7 +104,7 @@ class sales_reports_ZDDSRep extends frame2_driver_TableData
         // Обикаляме по Приемателни
         $this->prepareQuery($query, $data, $period, 'purchase_Services', 'purchase_ServicesDetails', 'shipmentId');
         
-        if (is_array($data->recs)) {
+        if (is_array($data->recs ?? null)) {
             foreach ($data->recs as $pRec) {
                 $quantity = 0;
                 $amount = 0;
@@ -352,14 +352,14 @@ class sales_reports_ZDDSRep extends frame2_driver_TableData
             $exp = "(#state = 'active' OR #state = 'closed')";
         }
         
-        $query->where("(#${fld} >= '{$period->start}' AND #${fld} <= '{$period->end}') AND ${exp}");
+        $query->where("(#{$fld} >= '{$period->start}' AND #{$fld} <= '{$period->end}') AND {$exp}");
         
         $recs = array();
         $recsDet = array();
         
         while ($rec = $query->fetch()) {
             $detQuery = $detailClass::getQuery();
-            $detQuery->where("#${masterKey} = '{$rec->id}'");
+            $detQuery->where("#{$masterKey} = '{$rec->id}'");
             
             while ($recDet = $detQuery->fetch()) {
                 $this->addRecs($data, $rec, $recDet, $masterClass);

@@ -17,6 +17,8 @@
  */
 class tracking_TrackerIntf
 {
+    public $class;
+
     /**
      *  Информация за свободни тракери
      *
@@ -53,6 +55,6 @@ class tracking_TrackerIntf
      */
     public function occupyTracker($trackerId)
     {
-        return $this->class->occupyTracker($inputs, $config, $persistentState);
+        return $this->class->occupyTracker($trackerId);
     }
 }

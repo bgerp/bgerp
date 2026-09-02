@@ -171,7 +171,7 @@ class acc_BalanceDetails extends core_Detail
                     list($part1, $part2, $part3) = explode('->', $data->listFields[$fld]) + [null, null, null];
                     $data->listFields[$fld] = "{$part1}->{$part2}->{$part3}|* <small>({$baseCurrencyCode})</small>";
                 } else {
-                    list($part1, $part2) = explode('->', $data->listFields[$fld]);
+                    list($part1, $part2) = explode('->', $data->listFields[$fld]) + [null, null];
                     $data->listFields[$fld] = "{$part1}->{$part2}|* <small>({$baseCurrencyCode})</small>";
                 }
             }
@@ -188,6 +188,15 @@ class acc_BalanceDetails extends core_Detail
             $by = null;
             if ($data->groupingForm->isSubmitted()) {
                 $by = (array) $data->groupingForm->rec;
+                $by += [
+                    'grouping1' => null,
+                    'grouping2' => null,
+                    'grouping3' => null,
+                    'feat1' => null,
+                    'feat2' => null,
+                    'feat3' => null,
+                    'sortBy' => null,
+                ];
                 
                 self::modifyListFields($data->listFields, $data->groupingForm->cmd, $by['grouping1'], $by['grouping2'], $by['grouping3'], $by['feat1'], $by['feat2'], $by['feat3']);
                 
@@ -204,11 +213,11 @@ class acc_BalanceDetails extends core_Detail
             if (is_array($by) && ($sortBy = $by['sortBy'])) {
                 if(strpos($sortBy, 'NotNull') !== false){
                     $sortBy = str_replace('NotNull', '', $sortBy);
-                    $data->recs = array_filter($data->recs, function($a) use($sortBy) {return abs(round($a->{$sortBy}, 2)) > 0;});
+                    $data->recs = array_filter($data->recs, function($a) use($sortBy) {return abs(round($a->{$sortBy} ?? 0, 2)) > 0;});
                 } elseif($sortBy == 'closeToZero'){
                     $sortBy = 'blAmount';
                     $data->recs = array_filter($data->recs, function($a) {
-                        return !(abs($a->blQuantity) > 0.001 or abs($a->blAmount) > 0.05);
+                        return !(abs($a->blQuantity ?? 0) > 0.001 or abs($a->blAmount ?? 0) > 0.05);
                     });
                 }
                 arr::sortObjects($data->recs, $sortBy, 'desc');
@@ -245,7 +254,7 @@ class acc_BalanceDetails extends core_Detail
             foreach (array('base', 'debit', 'credit', 'bl') as $fieldPart) {
                 $haveSame = true;
                 foreach ($data->recs as $id => $r) {
-                    if(round($r->{"{$fieldPart}Quantity"}, 2) != round($r->{"{$fieldPart}Amount"}, 2)){
+                    if(round($r->{"{$fieldPart}Quantity"} ?? 0, 2) != round($r->{"{$fieldPart}Amount"} ?? 0, 2)){
                         $haveSame = false;
                         break;
                     }
@@ -297,7 +306,7 @@ class acc_BalanceDetails extends core_Detail
                 if (isset($rec->{"grouping{$i}"})) {
                     $sortField .= $rec->{"grouping{$i}"};
                 } else {
-                    $sortField .= $usedItems[$rec->{"ent{$i}Id"}];
+                    $sortField .= $usedItems[$rec->{"ent{$i}Id"}] ?? '';
                 }
             }
             
@@ -562,7 +571,7 @@ class acc_BalanceDetails extends core_Detail
         
         $groupedRecs = $groupedIdx = array();
         foreach ($recs as $rec1) {
-            $r = &$groupedIdx[strip_tags($rec1->grouping1)][strip_tags($rec1->grouping2)][strip_tags($rec1->grouping3)];
+            $r = &$groupedIdx[strip_tags($rec1->grouping1 ?? '')][strip_tags($rec1->grouping2 ?? '')][strip_tags($rec1->grouping3 ?? '')];
             
             if (!isset($r)) {
                 $r = new stdClass();
@@ -820,7 +829,7 @@ class acc_BalanceDetails extends core_Detail
         $form->FNC('accId', 'int', 'silent,input=hidden');
         $form->input('accId', true);
         foreach ($listRecs as $i => $listRec) {
-            $this->setGroupingForField($i, $listRec, $form, $items[$i]);
+            $this->setGroupingForField($i, $listRec, $form, $items[$i] ?? array());
         }
         $form->FLD('sortBy', 'enum(,baseAmount=Начално салдо,debitAmount=Дебитен оборот,creditAmount=Кредитен оборот,blAmount=Крайно салдо,baseAmountNotNull=Начално салдо (Различно от 0),debitAmountNotNull=Дебитен оборот (Различно от 0),creditAmountNotNull=Кредитен оборот (Различно от 0),blAmountNotNull=Крайно салдо (Различно от 0),closeToZero=Крайни салда (Близки до 0))', 'caption=Подредба,input');
         $form->showFields .= 'sortBy,';
@@ -830,7 +839,7 @@ class acc_BalanceDetails extends core_Detail
         
         if ($form->isSubmitted()) {
             foreach (range(1, 3) as $i) {
-                if ($form->rec->{"grouping{$i}"} && $form->rec->{"feat{$i}"}) {
+                if (!empty($form->rec->{"grouping{$i}"}) && !empty($form->rec->{"feat{$i}"})) {
                     $form->setError("grouping{$i},feat{$i}", 'Не може да са избрани едновременно перо и свойтво за една позиция');
                 }
             }
@@ -872,8 +881,8 @@ class acc_BalanceDetails extends core_Detail
         
         $listName = acc_Lists::getVerbal($listRec, 'name');
         $form->fieldsLayout->replace($listName, "caption{$i}");
-        $form->FNC("grouping{$i}", 'key(mvc=acc_Items,allowEmpty,select=title,maxRadio=0)', "silent,caption={$listName},width=330px,input,class=balance-grouping");
-        $form->FNC("feat{$i}", 'varchar', "silent,maxRadio=0,caption={$listName}->Свойства,width=330px,input,class=balance-feat");
+        $form->FNC("grouping{$i}", 'key(mvc=acc_Items,allowEmpty,select=title)', "maxRadio=0,silent,caption={$listName},width=330px,input,class=balance-grouping");
+        $form->FNC("feat{$i}", 'varchar', "maxRadio=0,silent,caption={$listName}->Свойства,width=330px,input,class=balance-feat");
         if (countR($options)) {
             $form->setOptions("grouping{$i}", $options);
         } else {
@@ -914,7 +923,7 @@ class acc_BalanceDetails extends core_Detail
                 }
             }
         } else {
-            $row->ROW_ATTR['class'] = ($row->ROW_ATTR['class'] ?? '') . ' level-' . strlen($rec->accountNum);
+            $row->ROW_ATTR['class'] = ($row->ROW_ATTR['class'] ?? '') . ' level-' . strlen($rec->accountNum ?? '');
             $row->accountId = acc_Balances::getAccountLink($rec->accountId, $masterRec, false, true);
         }
     }
@@ -944,14 +953,20 @@ class acc_BalanceDetails extends core_Detail
                         foreach ($l2 as $ent3 => $rec) {
                             $rec['balanceId'] = $balanceId;
 
+                            foreach (['baseQuantity', 'baseAmount', 'debitQuantity', 'debitAmount', 'creditQuantity', 'creditAmount', 'blQuantity', 'blAmount'] as $fld) {
+                                if (!array_key_exists($fld, $rec)) {
+                                    $rec[$fld] = null;
+                                }
+                            }
+
                             foreach (['blAmount', 'baseAmount'] as $fld) {
-                                if (!is_null($rec[$fld])) {
+                                if (!is_null($rec[$fld] ?? null)) {
                                     $rec[$fld] = round($rec[$fld], 8);
                                 }
                             }
 
                             foreach (['blQuantity', 'baseQuantity'] as $fld) {
-                                if (!is_null($rec[$fld]) && round($rec[$fld], 8) == 0) {
+                                if (!is_null($rec[$fld] ?? null) && round($rec[$fld], 8) == 0) {
                                     $rec[$fld] = round($rec[$fld], 8);
                                 }
                             }
@@ -992,7 +1007,7 @@ class acc_BalanceDetails extends core_Detail
         $query = self::getQuery();
         while ($rec = $query->fetch("#balanceId = {$balanceId}")) {
             $key    = $rec->accountId . '|' . $rec->ent1Id . '|' . $rec->ent2Id . '|' . $rec->ent3Id;
-            $newRec = $toSave[$key];
+            $newRec = $toSave[$key] ?? null;
             if (isset($newRec)) {
                 if ($newRec->blAmount       != $rec->blAmount       || $newRec->baseAmount     != $rec->baseAmount     ||
                     $newRec->blQuantity     != $rec->blQuantity     || $newRec->baseQuantity   != $rec->baseQuantity   ||
@@ -1102,10 +1117,14 @@ class acc_BalanceDetails extends core_Detail
             }
 
             $b = &$this->balance[$accId][$ent1Id][$ent2Id][$ent3Id];
-            $b['accountId'] = $accId;
-            $b['ent1Id']    = $ent1Id;
-            $b['ent2Id']    = $ent2Id;
-            $b['ent3Id']    = $ent3Id;
+            $b['accountId']    = $accId;
+            $b['ent1Id']       = $ent1Id;
+            $b['ent2Id']       = $ent2Id;
+            $b['ent3Id']       = $ent3Id;
+            $b['baseQuantity'] = $b['baseQuantity'] ?? 0;
+            $b['baseAmount']   = $b['baseAmount'] ?? 0;
+            $b['blQuantity']   = $b['blQuantity'] ?? 0;
+            $b['blAmount']     = $b['blAmount'] ?? 0;
 
             if ($isMiddleBalance) {
                 $debitAmount  = $rec->debitAmount;
@@ -1292,7 +1311,7 @@ class acc_BalanceDetails extends core_Detail
                 }
                 
                 // Ако изчислената сума е различна от записаната в журнала
-                if (trim($rec->{$priceField}) != trim($price)) {
+                if (trim($rec->{$priceField} ?? '') != trim($price)) {
                     
                     // Ако няма сума на записа
                     if (!isset($rec->amount)) {

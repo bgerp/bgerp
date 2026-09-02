@@ -3336,7 +3336,7 @@ class FP extends FP_Core {
    * * ZZZZ - 4 symbols [A-Z, a-z, 0-9] for code of the operator, 
    * * YYYYYYY - 7 symbols [0-9] for next number of the receipt
    */
-  public function , OpenInvoiceWithFreeCustomerData($OperNum,$OperPass,$OptionInvoicePrintType,$Recipient,$Buyer,$VATNumber,$UIC,$Address,$OptionUICType,$UniqueReceiptNumber=NULL) {
+  public function OpenInvoiceWithFreeCustomerData($OperNum,$OperPass,$OptionInvoicePrintType,$Recipient,$Buyer,$VATNumber,$UIC,$Address,$OptionUICType,$UniqueReceiptNumber=NULL) {
     $this->execute(", OpenInvoiceWithFreeCustomerData", "OperNum", $OperNum, "OperPass", $OperPass, "OptionInvoicePrintType", $OptionInvoicePrintType, "Recipient", $Recipient, "Buyer", $Buyer, "VATNumber", $VATNumber, "UIC", $UIC, "Address", $Address, "OptionUICType", $OptionUICType, "UniqueReceiptNumber", $UniqueReceiptNumber);
   }
   
@@ -3909,6 +3909,4 @@ class FP extends FP_Core {
   }
   
   }
-
 }
-?>

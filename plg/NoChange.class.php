@@ -28,7 +28,7 @@ class plg_NoChange extends core_Plugin
         $form = $data->form;
         $rec = $form->rec;
         
-        if ($rec->id && !$mvc->haveRightFor('delete', $rec)) {
+        if (!empty($rec->id) && !$mvc->haveRightFor('delete', $rec)) {
             $fields = $mvc->selectFields('#noChange');
             
             foreach ($fields as $name => $field) {

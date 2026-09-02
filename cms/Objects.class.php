@@ -105,33 +105,33 @@ class cms_Objects extends core_Master
         Request::setProtected('sourceClass,type,sourceId');
         $rec = $data->form->rec;
         
-        $source = cls::getInterface('cms_ObjectSourceIntf', $rec->sourceClass);
+        $source = cls::getInterface('cms_ObjectSourceIntf', $rec->sourceClass ?? null);
         
         $objData = new stdClass();
-        $objData->cmsObjectId = $rec->sourceId;
-        $objData->cmsType = $rec->type;
+        $objData->cmsObjectId = $rec->sourceId ?? null;
+        $objData->cmsType = $rec->type ?? null;
         
-        if (!$rec->tpl) {
+        if (empty($rec->tpl)) {
             $source->prepareCmsObject($objData);
             
             $rec->tpl = $source->getDefaultCmsTpl($objData)->content;
         }
         
-        if (!$rec->id) {
+        if (empty($rec->id)) {
             $query = self::getQuery();
             
             $query->where("#sourceClass = {$rec->sourceClass} AND #sourceId = {$rec->sourceId} AND #type = '{$rec->type}'");
             
             while ($exRec = $query->fetch()) {
-                if (!$data->form->info) {
+                if (empty($data->form->info)) {
                     $data->form->info = "<div style='background-color:#ffff99;border:solid 1px #ffcc66;padding:10px;margin-bottom:15px;'>Съществуващи публикации:<ul>";
                 }
                 
                 $data->form->info .= '<li>' . ht::createLink($exRec->tag, array($mvc, 'single', $exRec->id)) .  ' [obj=' . $exRec->tag . ']</li>';
             }
             
-            if (!$data->form->info) {
-                $data->form->info .= '</div>';
+            if (!empty($data->form->info)) {
+                $data->form->info .= '</ul></div>';
             }
         }
     }
@@ -182,7 +182,7 @@ class cms_Objects extends core_Master
         
         $rec = self::fetch(array("#tag = '[#1#]'", $tag));
         
-        if (!$rec || $used[$tag]) {
+        if (!$rec || !empty($used[$tag])) {
             
             return "[obj={$tag}]";
         }

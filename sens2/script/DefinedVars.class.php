@@ -22,7 +22,7 @@ class sens2_script_DefinedVars extends core_Detail
     /**
      * Необходими плъгини
      */
-    public $loadList = 'plg_Created, plg_Modified,plg_RowTools, sens2_Wrapper, plg_Search';
+    public $loadList = 'plg_Created, plg_Modified,plg_RowTools2, sens2_Wrapper, plg_Search';
     
     
     /**
@@ -140,7 +140,7 @@ class sens2_script_DefinedVars extends core_Detail
     {
         $rec = $form->rec;
 
-        if($rec->scope == 'local' && $mvc->fetch(array("#name = '[#1#]' AND #scope = 'global'", $rec->name))) {
+        if (($rec->scope ?? null) == 'local' && $mvc->fetch(array("#name = '[#1#]' AND #scope = 'global'", $rec->name))) {
             $form->setWarning('name', 'Има и глобална променлива със същото име');
         }
     }
@@ -157,7 +157,7 @@ class sens2_script_DefinedVars extends core_Detail
      */
     public function on_AfterRecToVerbal($mvc, $row, $rec)
     {
-        if ($rec->scope == 'global') {
+        if (($rec->scope ?? null) == 'global') {
             $cnt = self::count(array("#name = '[#1#]' AND #scope = 'global'", $rec->name));
             $row->scope .= " ({$cnt})";
         }
@@ -209,7 +209,7 @@ class sens2_script_DefinedVars extends core_Detail
         
         $query = "UPDATE `{$table}` SET `value` = {$value}, `modified_on` = '{$now}' WHERE `name` = '{$var}' AND `value` <> {$value} AND";
         
-        if ($rec->scope == 'global') {
+        if (($rec->scope ?? null) == 'global') {
             $query .= " `scope` = 'global'";
         } else {
             $query .= " `script_id` = {$scriptId}";
@@ -232,7 +232,7 @@ class sens2_script_DefinedVars extends core_Detail
      */
     public function on_BeforeSave($mvc, &$id, $rec, $fields = null)
     {
-        if (!$rec->id && $rec->scope == 'global' && isset($rec->name)) {
+        if (empty($rec->id) && ($rec->scope ?? null) == 'global' && isset($rec->name)) {
             $exRec = self::fetch(array("#name = '[#1#]' AND #scope = 'global'", $rec->name));
             if ($exRec) {
                 $rec->value = $exRec->value;

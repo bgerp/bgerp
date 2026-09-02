@@ -536,7 +536,7 @@ class core_Setup extends core_ProtoSetup
         // Изтриване на старите файлове от sbf директорията
         $delCnt = core_Os::deleteOldFiles(EF_SBF_PATH, 2 * 30 * 24 * 60 * 60, "#^_[a-z0-9\-\/_]+#i");
         if ($delCnt) {
-            $html .= "<li class=\"green\">Изтрити са ${delCnt} файла в " . EF_SBF_PATH . '/</li>';
+            $html .= "<li class=\"green\">Изтрити са {$delCnt} файла в " . EF_SBF_PATH . '/</li>';
         }
         
         // Нагласяване на Крон да почиства кеша
@@ -545,8 +545,8 @@ class core_Setup extends core_ProtoSetup
         $rec->description = 'Почистване на обектите с изтекъл срок';
         $rec->controller = 'core_Cache';
         $rec->action = 'DeleteExpiredData';
-        $rec->period = 24 * 60;
-        $rec->offset = rand(60, 180); // от 1h до 3h
+        $rec->period = 3 * 60;
+        $rec->offset = mt_rand(0, 59);
         $rec->isRandOffset = true;
         $rec->delay = 0;
         $rec->timeLimit = 200;

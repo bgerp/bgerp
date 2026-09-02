@@ -49,15 +49,65 @@ class batch_definitions_StringExpiryDate extends batch_definitions_Varchar
      *
      * @return array
      */
-    protected function getBatchTypeParams()
+    protected function getBatchTypeParams($class = null, $objectId = null)
     {
-        return array(
+        $params = array(
             'productId'   => $this->rec->productId,
             'format'      => $this->rec->format,
             'defaultTime' => $this->rec->time,
             'delimiter'   => $this->rec->delimiter,
-            'sizeOfBatch' => $this->rec->sizeOfBatch,
         );
+
+        if (isset($this->rec->sizeOfBatch)) {
+            $params['sizeOfBatch'] = $this->rec->sizeOfBatch;
+        }
+
+        $startDate = $this->getDocumentDate($class, $objectId);
+        if (isset($startDate)) {
+            $params['startDate'] = $startDate;
+        }
+
+        return $params;
+    }
+
+
+    /**
+     * Връща датата на документа, от която да се изчисли срокът на годност
+     *
+     * @param mixed $class
+     * @param mixed $objectId
+     * @return datetime|null
+     */
+    protected function getDocumentDate($class, $objectId)
+    {
+        if (!isset($class) || !isset($objectId)) return null;
+
+        $Class = cls::get($class);
+        $rec = $Class->fetchRec($objectId);
+        if (!$rec) return null;
+
+        if ($Class instanceof core_Detail) {
+            $Master = cls::get($Class->Master);
+            $masterId = $rec->{$Class->masterKey} ?? null;
+            if (!isset($masterId) || empty($Master->valiorFld)) return null;
+
+            return $Master->fetchField($masterId, $Master->valiorFld);
+        }
+
+        if (empty($Class->valiorFld)) return null;
+
+        return $rec->{$Class->valiorFld} ?? null;
+    }
+
+
+    /**
+     * Зависи ли типът на партидата от датата на документа
+     *
+     * @return bool
+     */
+    public function isDocumentDateDependent()
+    {
+        return true;
     }
 
     /**
@@ -69,7 +119,7 @@ class batch_definitions_StringExpiryDate extends batch_definitions_Varchar
      */
     public function getBatchClassType($class = null, $objectId = null)
     {
-        $params = $this->getBatchTypeParams();
+        $params = $this->getBatchTypeParams($class, $objectId);
         
         $paramStr = array();
         foreach ($params as $k => $v) {
@@ -104,7 +154,13 @@ class batch_definitions_StringExpiryDate extends batch_definitions_Varchar
             return false;
         }
 
-        list($string, $date) = explode($delimiter, $value, 2);
+        $parts = explode($delimiter, $value);
+        $featureKeys = array_keys($this->featureOrder);
+        $stringIndex = array_search('s', $featureKeys);
+        $dateIndex = array_search('d', $featureKeys);
+
+        $string = ($stringIndex !== false && isset($parts[$stringIndex])) ? $parts[$stringIndex] : '';
+        $date = ($dateIndex !== false && isset($parts[$dateIndex])) ? $parts[$dateIndex] : '';
         if (isset($this->rec->sizeOfBatch)) {
             if (mb_strlen($string) > $this->rec->sizeOfBatch) {
                 $msg = "|*{$string} |е над допустимата дължина от|* <b>{$this->rec->sizeOfBatch}</b>";
@@ -207,7 +263,7 @@ class batch_definitions_StringExpiryDate extends batch_definitions_Varchar
 
         // Обхождаме динамично структурата, дефинирана в класа
         foreach ($features as $index => $featureName) {
-            $partValue = isset($parts[$index]) ? $parts[$index] : '';
+            $partValue = $parts[$index] ?? '';
 
             if ($featureName == 'Срок на годност') {
                 $partValue = dt::getMysqlFromMask($partValue, $this->rec->format);
@@ -249,8 +305,8 @@ class batch_definitions_StringExpiryDate extends batch_definitions_Varchar
             $aParts = explode('|', $a);
             $bParts = explode('|', $b);
             
-            $aDate = isset($aParts[$dateIndex]) ? $aParts[$dateIndex] : '';
-            $bDate = isset($bParts[$dateIndex]) ? $bParts[$dateIndex] : '';
+            $aDate = $aParts[$dateIndex] ?? '';
+            $bDate = $bParts[$dateIndex] ?? '';
             
             $aTime = strtotime(dt::getMysqlFromMask($aDate, $this->rec->format));
             $bTime = strtotime(dt::getMysqlFromMask($bDate, $this->rec->format));

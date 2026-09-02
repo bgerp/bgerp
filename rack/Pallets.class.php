@@ -321,7 +321,7 @@ class rack_Pallets extends core_Manager
             $form->setField('newPackagingId', 'input');
             $form->setField('newPackQuantity', 'input');
 
-            $packs = cat_Products::getPacks($rec->newProductId, $rec->newPackagingId);
+            $packs = cat_Products::getPacks($rec->newProductId, $rec->newPackagingId ?? null);
             $form->setOptions('newPackagingId', $packs);
             $form->setDefault('newPackagingId', cat_Products::fetchField($rec->newProductId, 'measureId'));
 
@@ -486,7 +486,7 @@ class rack_Pallets extends core_Manager
                     
                     $pos = "{$rRec->num}-{$rInd}-{$cInd}";
 
-                    if ($used[$pos] || $unusable[$pos] || ($reserved[$pos] && $reserved[$pos] != $pRec->productId) || $movedTo[$pos]) {
+                    if (!empty($used[$pos]) || !empty($unusable[$pos]) || (!empty($reserved[$pos]) && $reserved[$pos] != $pRec->productId) || !empty($movedTo[$pos])) {
                         continue;
                     }
 
@@ -497,12 +497,12 @@ class rack_Pallets extends core_Manager
                     $posRg = "{$rRec->num}-{$rInd}-" . ($cInd + 1);
 
                     // Ако продукта се съдържа в стелажа
-                    if($haveInRack[$rRec->num]) {
+                    if(!empty($haveInRack[$rRec->num])) {
                         $score += 0.2;
                     }
                     
                     // Ако имаме резервирана позиция за този продукт
-                    if($reserved[$pos] == $pRec->productId) {
+                    if(($reserved[$pos] ?? null) == $pRec->productId) {
                         $score += 13;
                     }
                     
@@ -519,20 +519,20 @@ class rack_Pallets extends core_Manager
                     $score += 1 - (ord($rInd) - ord('A'))/10;
 
                     // Ако горния или долния са от този продукт
-                    if($used[$posUp]->productId == $pRec->productId) {
+                    if(($used[$posUp]->productId ?? null) == $pRec->productId) {
                         $score += 3;
                     }
                     
-                    if($used[$posDw]->productId == $pRec->productId) {
+                    if(($used[$posDw]->productId ?? null) == $pRec->productId) {
                         $score += 9;
                     }
                     
                     // Ако левия или десния са от този продукт или близки на него
-                    if($weight = $nearProds[$used[$posRg]->productId]) {
+                    if($weight = ($nearProds[$used[$posRg]->productId ?? null] ?? null)) {
                         $score += $weight;
                     }
                     
-                    if($weight = $nearProds[$used[$posLf]->productId]) {
+                    if($weight = ($nearProds[$used[$posLf]->productId ?? null] ?? null)) {
                         $score += 1.2 * $weight;
                     }
 
@@ -654,9 +654,11 @@ class rack_Pallets extends core_Manager
         $rackOptions = rack_Racks::getOptionsByStoreId($storeId);
         Mode::pop('text', 'plain');
         $data->listFilter->setOptions('rackId', array('' => '') + $rackOptions);
+        $data->listFilter->setField('rackId', 'placeholderType=all');
 
         $data->listFilter->setFieldType('productId', 'key2(mvc=cat_Products,select=name,allowEmpty,selectSourceArr=rack_Products::getStorableProducts)');
-        $data->listFilter->FLD('stateFilter', 'enum(,active=Активни,closed=Затворено)', 'caption=Всички,silent');
+        $data->listFilter->setField('productId', 'placeholderType=all');
+        $data->listFilter->FLD('stateFilter', 'enum(,active=Активни,closed=Затворено)', 'caption=Състояние,placeholderType=all,silent');
         $data->listFilter->setDefault('stateFilter', 'active');
         
         $data->listFilter->showFields = 'productId,search,rackId,stateFilter';
@@ -664,7 +666,8 @@ class rack_Pallets extends core_Manager
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         
         $rec = $data->listFilter->input();
-        if (!$rec->productId) {
+        $order = false;
+        if (empty($rec->productId)) {
             $rec->productId = Request::get('productId', 'int');
             $data->listFilter->setDefault('productId', $rec->productId);
         }
@@ -1155,6 +1158,48 @@ class rack_Pallets extends core_Manager
 
         return is_object($rec) ? (object) array('id' => $rec->id, 'productId' => $rec->productId, 'batch' => $rec->batch, 'quantity' => $rec->quantity, 'state' => $rec->state) : null;
     }
+
+
+    /**
+     * Обобщава активните палетни записи за артикул на конкретна позиция
+     *
+     * @param string      $position
+     * @param int         $storeId
+     * @param int         $productId
+     * @param string|null $batch
+     *
+     * @return stdClass
+     */
+    public static function getPositionQuantityInfo($position, $storeId, $productId, $batch = null)
+    {
+        $res = (object) array('totalQuantity' => 0, 'rows' => array());
+        if (empty($position) || $position == rack_PositionType::FLOOR || empty($storeId) || empty($productId)) {
+
+            return $res;
+        }
+
+        $query = static::getQuery();
+        $query->where(array("#position = '[#1#]' AND #storeId = {$storeId} AND #productId = {$productId} AND #state != 'closed'", $position));
+        if (!is_null($batch)) {
+            $query->XPR('batchCalc', 'varchar', "COALESCE(#batch, '')");
+            $query->where(array("#batchCalc = '[#1#]'", $batch));
+        }
+        $query->show('id,quantity,batch,state');
+
+        while ($rec = $query->fetch()) {
+            $res->totalQuantity += (float) $rec->quantity;
+            $res->rows[$rec->id] = (object) array(
+                'id' => $rec->id,
+                'quantity' => (float) $rec->quantity,
+                'batch' => $rec->batch,
+                'state' => $rec->state,
+            );
+        }
+
+        $res->totalQuantity = round($res->totalQuantity, 5);
+
+        return $res;
+    }
     
     
     /**
@@ -1206,7 +1251,7 @@ class rack_Pallets extends core_Manager
             return $resArr;
         }
         
-        $str = trim($str);
+        $str = trim($str ?? '');
         
         $prodAndPack = cat_Products::getByCode($str);
         
@@ -1288,9 +1333,7 @@ class rack_Pallets extends core_Manager
             $addPalletUrl['containerId'] = $containerId;
         }
 
-        $icon = ($containerId && ($doc = doc_Containers::getDocument($containerId)) && $doc->isInstanceOf('planning_DirectProductionNote')) ? 'img/16/edit-icon.png' : 'img/16/pallet1.png';
-
-        return  ht::createLink('', $addPalletUrl, false, 'ef_icon=' . $icon . ',class=smallIcon,title=Палетиране на артикул');
+        return  ht::createLink('', $addPalletUrl, false, 'ef_icon=' . 'img/16/pallet1.png' . ',class=smallIcon,title=Палетиране на артикул');
     }
 
 

@@ -100,7 +100,7 @@ class drdata_type_Uic extends type_Varchar
      *
      * @return bool - валиден ли е националния номер
      */
-    private static function checkUicId($uicNo, $countryId = null, &$msg, &$isError)
+    private static function checkUicId($uicNo, $countryId, &$msg, &$isError)
     {
         $msg = null;
         $bgId = drdata_Countries::fetchField("#commonName = 'Bulgaria'", 'id');

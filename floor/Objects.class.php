@@ -129,7 +129,7 @@ class floor_Objects extends core_Detail {
         $form = $data->form;
         $rec = $form->rec;
  
-        if($rec->id) {
+        if (!empty($rec->id)) {
             $form->toolbar->addSbBtn('Дубликат', 'duplicate', 'id=duplicate,order=10.0002,ef_icon=img/16/duplicate.png');
             if($form->isSubmitted()) {
                  if($form->cmd == 'duplicate') { 

@@ -17,4 +17,6 @@
  */
 class doc_FolderIntf
 {
+    public $class;
+
 }

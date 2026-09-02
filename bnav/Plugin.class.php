@@ -32,7 +32,7 @@ class bnav_Plugin extends core_Plugin
         // Добавяне на необходимите полета
         $mvc->FLD('bnavCode', 'varchar(150)', 'caption=Код БН,remember=info,width=15em,mandatory');
         
-        if ($mvc->fields['eanCode']) {
+        if (isset($mvc->fields['eanCode'])) {
             
             // Полето се слага след баркода на продукта
             $mvc->fields = array_slice($mvc->fields, 0, 4, true) +

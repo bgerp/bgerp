@@ -147,7 +147,7 @@ abstract class deals_ClosedDeals extends core_Master
                     wp($dealItem, $total, $closeDeal, $entries, $rec, $docs);
                     continue;
                 }
-                static::$getTransactionsByNow[$index] += 1;
+                static::$getTransactionsByNow[$index] = (static::$getTransactionsByNow[$index] ?? 0) + 1;
 
                 // Взимаме му редовете на транзакцията
                 $transactionSource = cls::getInterface('acc_TransactionSourceIntf', $doc->docType);
@@ -260,7 +260,7 @@ abstract class deals_ClosedDeals extends core_Master
         }
         $form->setFieldType('valiorStrategy', "enum(" . arr::fromArray($strategyOptions). ")");
 
-        if($rec->valiorStrategy == 'manual'){
+        if(($rec->valiorStrategy ?? null) == 'manual'){
             $form->setField('valior', 'input');
         }
     }
@@ -289,7 +289,7 @@ abstract class deals_ClosedDeals extends core_Master
     {
         $rec = &$form->rec;
 
-        if($rec->valiorStrategy == 'manual'){
+        if(($rec->valiorStrategy ?? null) == 'manual'){
             $form->setField('valior', 'input,caption=Дата');
         }
 
@@ -305,17 +305,17 @@ abstract class deals_ClosedDeals extends core_Master
         $skipClasses = array(acc_RatesDifferences::getClassId());
         $biggestValior = $mvc->getBiggestValiorInDeal($rec, $skipClasses);
 
-        $displayValior = $rec->valior ? $rec->valior : ($rec->valiorStrategy == 'createdOn' ? $rec->createdOn : $biggestValior);
+        $displayValior = !empty($rec->valior) ? $rec->valior : (($rec->valiorStrategy ?? null) == 'createdOn' ? $rec->createdOn : $biggestValior);
         if (round($liveAmount, 2) > 0) {
             $incomeAmount = $liveAmount;
-            $form->info = tr('Извънреден приход|*: <b style="color:blue">') . $Double->toVerbal($incomeAmount) . "</b> " . acc_Periods::getBaseCurrencyCode($displayValior);
+            $form->info = tr('Извънреден приход|*: <b class="blueText">') . $Double->toVerbal($incomeAmount) . "</b> " . acc_Periods::getBaseCurrencyCode($displayValior);
         } elseif (round($liveAmount, 2) < 0) {
             $costAmount = abs($liveAmount);
-            $form->info = tr('Извънреден разход|*: <b style="color:blue">') . $Double->toVerbal($costAmount) . "</b> " . acc_Periods::getBaseCurrencyCode($displayValior);
+            $form->info = tr('Извънреден разход|*: <b class="blueText">') . $Double->toVerbal($costAmount) . "</b> " . acc_Periods::getBaseCurrencyCode($displayValior);
         }
 
         if($form->isSubmitted()){
-            if($rec->valiorStrategy == 'manual'){
+            if(($rec->valiorStrategy ?? null) == 'manual'){
                 if(empty($rec->valior)){
                     $form->setError('valior', 'Трябва да е посочена конкретна дата');
                 } else {
@@ -448,8 +448,10 @@ abstract class deals_ClosedDeals extends core_Master
                         $closeSaleIds += keylist::toArray($firstRec->closedDocuments);
                     }
 
-                    // Приключване на активните задания при нужда
-                    if($closedCount = planning_Jobs::closeActiveJobs($completeJobTolerance, null, $closeSaleIds, planning_Setup::get('JOB_AUTO_COMPLETION_DELAY'), 'Приключване след приключване на сделка')){
+                    // Приключване на активните задания при нужда - през вярното поле
+                    // ('saleId' или 'purchaseId'), защото тук се обработват и продажби, и покупки
+                    $jobSourceField = $DocClass->jobSourceField ?? 'saleId';
+                    if($closedCount = planning_Jobs::closeActiveJobs($completeJobTolerance, null, $closeSaleIds, planning_Setup::get('JOB_AUTO_COMPLETION_DELAY'), 'Приключване след приключване на сделка', $jobSourceField)){
                         core_Statuses::newStatus("Затворени активни/събудени задания: {$closedCount}");
                     }
                 }
@@ -528,7 +530,7 @@ abstract class deals_ClosedDeals extends core_Master
         if (!isset($rec->valior)) {
             $rec->valior = $me->getValiorDate($rec);
             $row->valior = $me->getFieldType('valior')->toVerbal($rec->valior);
-            $row->valior = "<span style='color:blue'>{$row->valior}</span>";
+            $row->valior = "<span class='blueText'>{$row->valior}</span>";
         }
         $row->currencyId = acc_Periods::getBaseCurrencyCode($rec->valior);
 
@@ -585,6 +587,15 @@ abstract class deals_ClosedDeals extends core_Master
                 $Doc = cls::get($rec->docClassId);
                 $closedWithDocumentState = $Doc->fetchField($rec->closeWith, 'state');
                 if($closedWithDocumentState != 'active'){
+                    $res = 'no_one';
+                }
+            }
+        }
+
+        // Ако по обединяващата сделка вече има издаден фискален бон, обединението не може да се разпада
+        if ($action == 'reject' && isset($rec)) {
+            if(!empty($rec->closeWith) && core_Packs::isInstalled('bgfisc')){
+                if(bgfisc_PrintedReceipts::haveReceiptsByUrn($rec->docClassId, $rec->closeWith)){
                     $res = 'no_one';
                 }
             }
@@ -795,9 +806,9 @@ abstract class deals_ClosedDeals extends core_Master
     public function getValiorDate($rec)
     {
         // При ръчен вальор е с приоритет
-        if($rec->valiorStrategy == 'manual' && !empty($rec->valior)) {
+        if(($rec->valiorStrategy ?? null) == 'manual' && !empty($rec->valior)) {
             $date = $rec->valior;
-        } elseif($rec->valiorStrategy == 'createdOn'){
+        } elseif(($rec->valiorStrategy ?? null) == 'createdOn'){
             $date = $rec->createdOn;
         } else {
             $skipClasses = array(acc_RatesDifferences::getClassId());

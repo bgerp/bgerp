@@ -51,12 +51,17 @@ class acc_ReportDetails extends core_Manager
             return;
         }
 
-        $data->TabCaption = 'Счетоводство';
-        
         $balanceRec = acc_Balances::getLastBalance();
         $data->balanceRec = $balanceRec;
-        
+
         // Ако няма баланс или записи в баланса, не показваме таба
+        if (empty($balanceRec)) {
+            $data->renderReports = false;
+
+            return;
+        }
+
+        $data->TabCaption = 'Счетоводство';
         $data->renderReports = true;
         
         $tabParam = 'Tab';
@@ -70,7 +75,7 @@ class acc_ReportDetails extends core_Manager
         $prepareTab = Request::get($tabParam);
         $data->prepareTab = false;
 
-        if ((!$prepareTab && !($data->masterMvc instanceof cat_Products)) || $prepareTab == 'AccReports') {
+        if ((!$prepareTab && !(($data->masterMvc ?? null) instanceof cat_Products)) || $prepareTab == 'AccReports') {
             $data->prepareTab = true;
         }
 
@@ -189,8 +194,9 @@ class acc_ReportDetails extends core_Manager
                                 $iRec = acc_Items::fetch($dRec->{"ent{$dealPos}Id"});
 
                                 // И е затворена в различен от текущия период не се показва
-                                if($iRec->state == 'closed'){
-                                    $closedOnPeriodId = acc_Periods::fetchByDate($iRec->closedOn)->id;
+                                if(!empty($iRec) && $iRec->state == 'closed'){
+                                    $closedOnPeriodRec = acc_Periods::fetchByDate($iRec->closedOn);
+                                    $closedOnPeriodId = empty($closedOnPeriodRec) ? null : $closedOnPeriodRec->id;
                                     if($closedOnPeriodId != $data->lastBalance->periodId)   continue;
                                 }
                             }
@@ -202,7 +208,7 @@ class acc_ReportDetails extends core_Manager
                         }
                     }
                     
-                    if(is_array($res[$accountId]['rows'])){
+                    if(!empty($res[$accountId]['rows'])){
                         arr::sortObjects($res[$accountId]['rows'], 'sortField', 'asc', 'natural');
                     }
                     
@@ -210,9 +216,9 @@ class acc_ReportDetails extends core_Manager
                 } else {
                     $objPos = acc_Lists::getPosition($accSysId, $groupBy);
                     if(empty($objPos)){
-                        if($data->masterMvc instanceof crm_Companies){
+                        if(($data->masterMvc ?? null) instanceof crm_Companies){
                             $objPos = acc_Lists::getPosition($accSysId, 'crm_CompanyAccRegIntf');
-                        } elseif($data->masterMvc instanceof crm_Persons){
+                        } elseif(($data->masterMvc ?? null) instanceof crm_Persons){
                             $objPos = acc_Lists::getPosition($accSysId, 'crm_PersonAccRegIntf');
                         }
                     }
@@ -301,7 +307,10 @@ class acc_ReportDetails extends core_Manager
                
                // Ако перото не е групиращото, ще се показва в справката
                $itemRec = acc_Items::fetch($entry);
-              
+               if (empty($itemRec)) {
+                   continue;
+               }
+
                $row["ent{$pos}Id"] = acc_Items::getVerbal($itemRec, 'titleLink');
                $row["ent{$pos}Id"] = "<span class='feather-title'>{$row["ent{$pos}Id"]}</span>";
                $row['sortField'] .= $itemRec->num . " ";
@@ -398,8 +407,8 @@ class acc_ReportDetails extends core_Manager
             
             // За всички записи групирани по сметки
             foreach ($data->balanceRows as $accId => $arr) {
-                $rows = $arr['rows'];
-                $total = $arr['total'];
+                $rows = $arr['rows'] ?? array();
+                $total = $arr['total'] ?? null;
                 
                 // Името на сметката и нейните групи
                 $accNum = acc_Balances::getAccountLink($accId);

@@ -124,7 +124,7 @@ class doc_plg_Prototype extends core_Plugin
             // Махат се определени полета от всичките
             $unsetFields = arr::make(self::$unsetFields, true);
             $fieldsNotToClone = arr::make($mvc->fieldsNotToClone, true);
-            $fieldsNotToCopyFromTemplate = arr::make($mvc->fieldsNotToCopyFromTemplate, true);
+            $fieldsNotToCopyFromTemplate = arr::make($mvc->fieldsNotToCopyFromTemplate ?? null, true);
             $unsetFields = $unsetFields + $fieldsNotToClone + $fieldsNotToCopyFromTemplate;
             $fields = array_diff_key($fields, $unsetFields);
 
@@ -151,7 +151,7 @@ class doc_plg_Prototype extends core_Plugin
                     // Данните му се зареждат
                     if (countR($fields)) {
                         foreach ($fields as $field) {
-                            $value = ($isCoreEmbedder === false) ? $protoRec->{$field} : $protoRec->{$mvc->innerFormField}->{$field};
+                            $value = ($isCoreEmbedder === false) ? ($protoRec->{$field} ?? null) : ($protoRec->{$mvc->innerFormField}->{$field} ?? null);
                             $form->rec->{$field} = $value;
                         }
                     }
@@ -166,17 +166,19 @@ class doc_plg_Prototype extends core_Plugin
      */
     public static function on_AfterGetPrototypes($mvc, &$res, $rec)
     {
-        if(!isset($res)){
+        if (!isset($res)) {
+            $folderId = $rec->folderId ?? null;
+
             if ($mvc instanceof embed_Manager) {
                 if (isset($rec->{$mvc->driverClassField})) {
-                    $res = doc_Prototypes::getPrototypes($mvc, $rec->{$mvc->driverClassField}, $rec->folderId);
+                    $res = doc_Prototypes::getPrototypes($mvc, $rec->{$mvc->driverClassField}, $folderId);
                 }
             } elseif ($mvc instanceof core_Embedder) {
                 if (isset($rec->{$mvc->innerClassField})) {
-                    $res = doc_Prototypes::getPrototypes($mvc, $rec->{$mvc->innerClassField}, $rec->folderId);
+                    $res = doc_Prototypes::getPrototypes($mvc, $rec->{$mvc->innerClassField}, $folderId);
                 }
             } else {
-                $res = doc_Prototypes::getPrototypes($mvc, null, $rec->folderId);
+                $res = doc_Prototypes::getPrototypes($mvc, null, $folderId);
             }
         }
     }
@@ -208,7 +210,7 @@ class doc_plg_Prototype extends core_Plugin
      */
     public static function on_AfterCreate($mvc, $rec)
     {
-        if (isset($rec->{$mvc->protoFieldName}) && ($rec->_isClone !== true)) {
+        if (isset($rec->{$mvc->protoFieldName}) && (($rec->_isClone ?? false) !== true)) {
             
             // След създаване на документ с избран прототип, клонират се детайлите му
             $Details = $mvc->getDetailsToClone($rec);

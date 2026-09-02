@@ -220,6 +220,7 @@ class email_Outgoings extends core_Master
         $this->FLD('waiting', 'time', 'input=none, caption=Изчакване');
         $this->FLD('lastSendedOn', 'datetime(format=smartTime)', 'input=none, caption=Изпратено->на');
         $this->FLD('lastSendedBy', 'key(mvc=core_Users)', 'caption=Изпратено->От, notNull, input=none');
+        $this->FLD('autoReplyRuleId', 'key(mvc=email_AutomaticResponse)', 'caption=Автоматичен отговор->Правило,input=none');
         $this->FLD('forward', 'enum(,no=Не, yes=Да)', 'caption=Препращане, input=hidden, allowEmpty');
         
         //Данни за адресата
@@ -235,6 +236,7 @@ class email_Outgoings extends core_Master
         $this->FLD('address', 'varchar', 'caption=Адресат->Адрес,class=contactData,changable');
         
         $this->setDbIndex('createdOn');
+        $this->setDbIndex('lastSendedOn,autoReplyRuleId');
     }
     
     
@@ -858,11 +860,14 @@ class email_Outgoings extends core_Master
                 // Масив, с информация за документа
                 $documentInfoArr = doc_RichTextPlg::getFileInfo($name);
                 
-                if (!$documentInfoArr['className']) {
+                if (empty($documentInfoArr['className'])) {
                     continue;
                 }
                 
                 $rec = $documentInfoArr['className']::fetchByHandle($documentInfoArr);
+                if (!$rec) {
+                    continue;
+                }
                 
                 // Вземаме прикачените файлове от линковете към други документи в имейла
                 $filesArr += (array) $documentInfoArr['className']::getAttachments($rec->id);
@@ -999,7 +1004,7 @@ class email_Outgoings extends core_Master
         } else {
             
             // Ако има кутия за изпращане и конфигурацията и е в допустимите, използваме нея
-            if ($emailOptions[$defaultSentBox]) {
+            if (!empty($emailOptions[$defaultSentBox])) {
                 $boxId = $defaultSentBox;
             } elseif (!is_numeric($defaultSentBox)) {
                 
@@ -1111,14 +1116,14 @@ class email_Outgoings extends core_Master
                         foreach ($noReplayEmailsArr as $noReplayEmail) {
                             
                             // Ако имейла е в До
-                            if ($emailsToArr[$noReplayEmail]) {
+                            if (!empty($emailsToArr[$noReplayEmail])) {
                                 
                                 // Добавяме в масива
                                 $toWarningArr[$noReplayEmail] = $noReplayEmail;
                             }
                             
                             // Ако имейла е в CC
-                            if ($emailsCcArr[$noReplayEmail]) {
+                            if (!empty($emailsCcArr[$noReplayEmail])) {
                                 
                                 // Добавяме в масива
                                 $ccWarningArr[$noReplayEmail] = $noReplayEmail;
@@ -1153,7 +1158,7 @@ class email_Outgoings extends core_Master
                 $docsSizesArr = $mvc->getDocumentsSizes($checkedDocs);
                 
                 // Прикачените файлове
-                $attachmentsArr = type_Set::toArray($rec->attachmentsSet);
+                $attachmentsArr = type_Set::toArray($rec->attachmentsSet ?? '');
                 $filesSizesArr = $mvc->getFilesSizes($attachmentsArr);
                 
                 // Проверяваме дали размерът им е над допсутимият
@@ -1374,7 +1379,7 @@ class email_Outgoings extends core_Master
                         $className = $fileInfo['className'];
                         $hRec = $className::fetchByHandle($fileInfo);
 
-                        if (($form->rec->theadId && (($form->rec->theadId != $hRec->threadId))) ||
+                        if (($form->rec->threadId && (($form->rec->threadId != $hRec->threadId))) ||
                             ($form->rec->folderId && (($form->rec->folderId != $hRec->folderId)))) {
                             $quotOtherArr[$hnd] = $hnd;
                         }
@@ -1465,7 +1470,7 @@ class email_Outgoings extends core_Master
         }
         
         // Ако има id
-        if ($rec->id) {
+        if (!empty($rec->id)) {
             
             // Вземаме целия запис
             $nRec = $mvc->fetch($rec->id);
@@ -1635,13 +1640,13 @@ class email_Outgoings extends core_Master
 
         // Ако се препраща
         $isForwarding = (boolean) Request::get('forward');
-        $isCloning = (boolean) ($data->action == 'clone');
+        $isCloning = (boolean) (($data->action ?? null) == 'clone');
         $isEditing = (boolean) ($rec->id ?? null);
         
         $faxTo = Request::get('faxto');
         $emailTo = Request::get('emailto');
-        
-        $emailTo = str_replace(email_ToLinkPlg::AT_ESCAPE, '@', $emailTo);
+
+        $emailTo = str_replace(email_ToLinkPlg::AT_ESCAPE, '@', (string) $emailTo);
         $emailTo = str_replace('mailto:', '', $emailTo);
 
         $orderVal = 10.000091;
@@ -1744,8 +1749,8 @@ class email_Outgoings extends core_Master
             
             // Данните на адресата
             $contragentData = self::prepareContragentData($rec, $isForwarding);
-            if ($contragentData && $pContragentData && $pContragentData->person) {
-                $contragentData->person = $contragentData->person ? $contragentData->person : $pContragentData->person;
+            if ($contragentData && !empty($pContragentData->person)) {
+                $contragentData->person = ($contragentData->person ?? null) ?: $pContragentData->person;
             }
             self::setContragentDataToRec($contragentData, $rec);
 
@@ -1789,7 +1794,7 @@ class email_Outgoings extends core_Master
             
             core_Lg::pop();
             
-            $recEmailsArr = type_Emails::toArray($rec->email);
+            $recEmailsArr = type_Emails::toArray($rec->email ?? null);
 
             // Ако не отговаряме на конкретен имейл, премахваме нашите имейли
             if (!$emailTo) {
@@ -1803,7 +1808,7 @@ class email_Outgoings extends core_Master
             if ($contragentData->replyToEmail ?? null) {
                 $removeFromGroup = $recEmailsArr;
             } else {
-                if ($recEmailsArr && $recEmailsArr[0]) {
+                if (!empty($recEmailsArr[0])) {
                     $removeFromGroup = array($recEmailsArr[0]);
                     $recEmailsArr = $removeFromGroup;
                 } else {
@@ -1836,7 +1841,7 @@ class email_Outgoings extends core_Master
                     
                     $ccEmailsArr = array();
                     foreach ((array) $parseCCEmail as $eml) {
-                        if (!trim($eml['address'])) {
+                        if (empty($eml['address']) || !strlen(trim($eml['address']))) {
                             continue;
                         }
                         
@@ -1870,7 +1875,7 @@ class email_Outgoings extends core_Master
                     
                     $toEmailsArr = array();
                     foreach ((array) $parseToEmail as $eml) {
-                        if (!trim($eml['address'])) {
+                        if (empty($eml['address']) || !strlen(trim($eml['address']))) {
                             continue;
                         }
                         
@@ -2157,15 +2162,15 @@ class email_Outgoings extends core_Master
                 if (!empty($rec->originId)) {
                     $oDoc = doc_Containers::getDocument($rec->originId);
 
-                    if (isset($oContragentData) && ($oDoc->useOriginContragentData === true)) {
+                    if (isset($oContragentData) && !empty($oDoc->useOriginContragentData)) {
                         $contragentData = $oContragentData;
                     }
 
                     // Ако трябва да е се използва първия имейл от списъка
-                    if ($oDoc->forceFirstEmail === true) {
+                    if (!empty($oDoc->forceFirstEmail)) {
                         if (!empty($contrData->email)) {
                             $eArr = type_Emails::toArray($contrData->email);
-                            if ($eArr[0]) {
+                            if (!empty($eArr[0])) {
                                 $contragentData->groupEmails = ($contragentData->groupEmails ?? null) ? ($contragentData->email ?? '') . ', ' . $contragentData->groupEmails : ($contragentData->email ?? null);
                                 $contragentData->email = $eArr[0];
                             }
@@ -2173,7 +2178,7 @@ class email_Outgoings extends core_Master
                     }
                     
                     $oRec = $oDoc->fetch();
-                    $fromEml = is_object($oRec) ? ($oRec->fromEml ?? null) : null;
+                    $fromEml = is_object($oRec) ? ($oRec->fromEml ?? '') : '';
                     $fromEml = trim($fromEml);
                     $fromEml = mb_strtolower($fromEml);
 
@@ -2321,6 +2326,8 @@ class email_Outgoings extends core_Master
      */
     protected function prepareSalutation($salutation, $name)
     {
+        $name = (string) $name;
+
         // Ако е към друг имейл, трябва да има съвпадение с хедърите
         if ($salutation && trim($name)) {
             if (mb_stripos($salutation, $name) === false) {
@@ -2463,10 +2470,12 @@ class email_Outgoings extends core_Master
         
         // Профила на текущият потребител
         $personRec = crm_Profiles::getProfile($userId);
-        
-        // Ако потребителя няма фирма
-        if (!($companyId = $personRec->buzCompanyId)) {
-            
+
+        // Фирмата на потребителя, ако има профил и зададена фирма
+        $companyId = $personRec->buzCompanyId ?? null;
+
+        // Ако потребителят няма фирма
+        if (!$companyId) {
             // Вземаме фирмата по подразбиране
             $companyId = crm_Setup::BGERP_OWN_COMPANY_ID;
         }
@@ -2477,109 +2486,116 @@ class email_Outgoings extends core_Master
         $footerData = array();
         
         // Името на компанията
-        $footerData['company'] = crm_Companies::getVerbal($companyRec, 'name');
-        
+        $footerData['company'] = $companyRec ? crm_Companies::getVerbal($companyRec, 'name') : '';
+
         // Името на потребителя
-        $footerData['name'] = transliterate($personRec->name);
-        
+        $footerData['name'] = transliterate((string) ($personRec->name ?? ''));
+
         // Телефон
-        $footerData['tel'] = ($personRec->buzTel) ? ($personRec->buzTel) : $companyRec->tel;
-        
+        $footerData['tel'] = !empty($personRec->buzTel) ? $personRec->buzTel : ($companyRec->tel ?? '');
+
         // Мобилен
-        $footerData['mobile'] = $personRec->mobile;
-        
+        $footerData['mobile'] = $personRec->mobile ?? '';
+
         // Факс
-        $footerData['fax'] = ($personRec->buzFax) ? ($personRec->buzFax) : $companyRec->fax;
-        
+        $footerData['fax'] = !empty($personRec->buzFax) ? $personRec->buzFax : ($companyRec->fax ?? '');
+
         // Имейл
-        $footerData['email'] = ($personRec->buzEmail) ? ($personRec->buzEmail) : $companyRec->email;
-        
+        $footerData['email'] = !empty($personRec->buzEmail) ? $personRec->buzEmail : ($companyRec->email ?? '');
+
         // Длъжност
-        $footerData['position'] = tr($personRec->buzPosition);
-        
+        $footerData['position'] = tr((string) ($personRec->buzPosition ?? ''));
+
         // Ако няма въведен адрес на бизнеса на потребителя
-        if ($personRec->buzAddress) {
-            
+        if (!empty($personRec->buzAddress)) {
             // Адреса
-            $footerData['street'] = transliterate(tr($personRec->buzAddress));
+            $footerData['street'] = transliterate(tr((string) $personRec->buzAddress));
         } else {
             // Определяме адреса от фирмата
-            $footerData['pCode'] = transliterate($companyRec->pCode);
-            $footerData['city'] = transliterate(tr($companyRec->place));
-            $footerData['street'] = transliterate(tr($companyRec->address));
-            
+            $footerData['pCode'] = transliterate((string) ($companyRec->pCode ?? ''));
+
+            $footerData['city'] = transliterate(tr((string) ($companyRec->place ?? '')));
+
+            $footerData['street'] = transliterate(tr((string) ($companyRec->address ?? '')));
+
             $footerData['pCodeAndCity'] = '';
-            if ($footerData['pCode']) {
+            if (!empty($footerData['pCode'])) {
                 $footerData['pCodeAndCity'] = $footerData['pCode'] . ' ';
             }
 
             $footerData['pCodeAndCity'] .= ' ' . $footerData['city'];
             
             $getCountry = false;
+            $companyCountryId = $companyRec->country ?? null;
 
             // Ако няма държава на контрагента
             if (!$contragentCountryId) {
                 
                 // Езиците в съответната държава
-                $companyCountryLang = drdata_Countries::fetchField($companyRec->country, 'languages');
+                $companyCountryLang = $companyCountryId ? drdata_Countries::fetchField($companyCountryId, 'languages') : null;
+
                 $companyCountryLangArr = arr::make($companyCountryLang, true);
-                
+
                 // Вземаме езика
                 $lg = core_Lg::getCurrent();
-                
+
                 // Ако текущия език не е на държавата
-                if (!($companyCountryLangArr[$lg] ?? null)) {
+                if (empty($companyCountryLangArr[$lg])) {
                     $getCountry = true;
                 }
-            } elseif ($companyRec->country != $contragentCountryId) {
-                
+            } elseif ($companyCountryId != $contragentCountryId) {
                 // Ако контрагента не е от държавата на фирмата
                 
                 $getCountry = true;
             }
             
             // Ако ще се добавя държавата
-            if ($getCountry) {
+            if ($getCountry && $companyRec) {
                 $footerData['country'] = crm_Companies::getVerbal($companyRec, 'country');
             }
         }
         
         // Страницата
-        $footerData['website'] = $companyRec->website;
-        
+        $footerData['website'] = $companyRec->website ?? '';
+
         // Зареждаме шаблона
-        $tpl = new ET(core_Packs::getConfigValue($conf, 'EMAIL_OUTGOING_FOOTER_TEXT'));
-        
+        $footerText = core_Packs::getConfigValue($conf, 'EMAIL_OUTGOING_FOOTER_TEXT');
+
+        $tpl = new ET((string) $footerText);
+
         // Променливи, нужни за определяне дали в реда е бил заместен плейсхолдер
         $tplClone = clone $tpl;
-        $tplWithPlaceholders = $tplClone->getContent(null, 'CONTENT', false, false);
+
+        $tplWithPlaceholders = (string) $tplClone->getContent(null, 'CONTENT', false, false
+        );
+
         $tplWithPlaceholdersArr = explode("\n", $tplWithPlaceholders);
-        $tplWithoutPlaceholders = $tplClone->getContent();
+
+        $tplWithoutPlaceholders = (string) $tplClone->getContent();
         $tplWithoutPlaceholdersArr = explode("\n", $tplWithoutPlaceholders);
-        
+
         // Заместваме плейсхолдерите
         $tpl->placeArray($footerData);
-        
-        $content = $tpl->getContent();
-        
+
+        $content = (string) $tpl->getContent();
+
         // Премахва празните редове, в които няма никаква стойност
         // Премахва и редовете, в които е имало плейсхолдер, но не е бил заместен
         $contentArr = explode("\n", $content);
         $nContent = '';
 
-        foreach ((array) $contentArr as $key => $line) {
-            
+        foreach ($contentArr as $key => $line) {
             // Ако е празен ред
             if (!$line) {
                 continue;
             }
             
             // Ако е имало плейсхолдер, който е заместен и има друг стринг в реда, премхаваме целия ред
-            if (($tplWithPlaceholdersArr[$key] != $line) && ($tplWithoutPlaceholdersArr[$key] == $line)) {
+            if ((($tplWithPlaceholdersArr[$key] ?? null) != $line) && (($tplWithoutPlaceholdersArr[$key] ?? null) == $line)) {
                 continue;
             }
-            
-            $nContent .= ($nContent) ? "\n" . $line : $line;
+
+            $nContent .= $nContent ? "\n" . $line : $line;
         }
         
         return $nContent;
@@ -2701,8 +2717,10 @@ class email_Outgoings extends core_Master
         
         $data->lg = email_Outgoings::getLanguage($data->rec->originId, $data->rec->threadId, $data->rec->folderId, $data->rec->body);
 
-        if (!Mode::is('text', 'xhtml') && $data->rec->waiting && ($data->rec->state == 'waiting' || $data->rec->state == 'active' || $data->rec->state == 'pending')) {
-            $notifyDate = dt::addSecs($data->rec->waiting, $data->rec->lastSendedOn);
+        $waiting = $data->rec->waiting ?? null;
+
+        if (!Mode::is('text', 'xhtml') && $waiting && ($data->rec->state == 'waiting' || $data->rec->state == 'active' || $data->rec->state == 'pending')) {
+            $notifyDate = dt::addSecs($waiting, $data->rec->lastSendedOn);
             if ($notifyDate > dt::now()) {
                 $data->row->notifyDate = dt::mysql2verbal($notifyDate, 'smartTime');
                 $notifyUserId = $data->rec->lastSendedBy ? $data->rec->lastSendedBy : $data->rec->modifiedBy;
@@ -2862,19 +2880,25 @@ class email_Outgoings extends core_Master
                 
                 if (!empty($badIpArr)) {
                     $row->IpErrorString = tr('Писмото е видяно от потребител в рискова зона|* - ');
-                    $countryName = '';
+
+                    $cCodeCntArr = array();
                     foreach ($badIpArr as $ip => $countryCode) {
-                        $row->IpErrorString .= ($countryName) ? ', ' : '';
-                        $countryName = drdata_Countries::getCountryName($countryCode, core_Lg::getCurrent());
-                        $row->IpErrorString .= $countryName;
+                        $cCodeCntArr[$countryCode] = ($cCodeCntArr[$countryCode] ?? 0) + 1;
                     }
-                    
+
+                    $countryStrArr = array();
+                    foreach ($cCodeCntArr as $countryCode => $cnt) {
+                        $countryName = drdata_Countries::getCountryName($countryCode, core_Lg::getCurrent());
+                        $countryStrArr[] = ($cnt > 1) ? "{$countryName} ({$cnt})" : $countryName;
+                    }
+
+                    $row->IpErrorString .= implode(', ', $countryStrArr);
+
                     $row->IpErrorString = email_Incomings::addErrToEmailStr($row->IpErrorString, '', 'error');
                 }
             }
         }
-        
-        if ($rec->activatedOn) {
+        if (!empty($rec->activatedOn)) {
             $row->createdDate = dt::mysql2verbal($rec->activatedOn, 'd.m.Y');
         }
     }
@@ -3127,7 +3151,7 @@ class email_Outgoings extends core_Master
         
         if ($lRecsArr) {
             foreach ($lRecsArr as $lRec) {
-                if (!$lRec->data->to) {
+                if (empty($lRec->data->to)) {
                     continue;
                 }
                 
@@ -3835,10 +3859,12 @@ class email_Outgoings extends core_Master
         $allArr = array();
 
         while ($r = $q->fetch()) {
+            $oRec = null;
             try {
-                $hash = $r->containerId . '|' . $r->data->to . '|' . $r->data->cc;
+                $logData = $r->data ?? new stdClass();
+                $hash = $r->containerId . '|' . ($logData->to ?? '') . '|' . ($logData->cc ?? '');
                 $hash = md5($hash);
-                if ($allArr[$hash]) {
+                if (!empty($allArr[$hash])) {
                     continue;
                 }
                 $allArr[$hash] = true;
@@ -3847,9 +3873,9 @@ class email_Outgoings extends core_Master
                 $lg = email_Outgoings::getLanguage($oRec->originId, $oRec->threadId, $oRec->folderId, $oRec->body);
                 $options = new stdClass();
 
-                $options->emailsTo = $r->data->to;
-                $options->emailCc = $r->data->cc;
-                $options->boxFrom = $r->data->from;
+                $options->emailsTo = $logData->to ?? '';
+                $options->emailCc = $logData->cc ?? '';
+                $options->boxFrom = $logData->from ?? null;
                 $options->encoding = 'utf-8';
 
                 core_Users::sudo($oRec->createdBy);
@@ -3860,10 +3886,10 @@ class email_Outgoings extends core_Master
 
                 $succ++;
             } catch (Exception $e) {
-                email_Outgoings::logDebug('Грешка при изпращане на имейл CID=' . $r->containerId, $oRec->id );
+                email_Outgoings::logDebug('Грешка при изпращане на имейл CID=' . $r->containerId, $oRec->id ?? null);
                 $err++;
             } catch (Error $e) {
-                email_Outgoings::logDebug('Грешка при изпращане на имейл CID=' . $r->containerId, $oRec->id );
+                email_Outgoings::logDebug('Грешка при изпращане на имейл CID=' . $r->containerId, $oRec->id ?? null);
                 $err++;
             }
         }

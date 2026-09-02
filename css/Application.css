@@ -503,6 +503,9 @@ tr.row-added {
 tr.row-removed {
   background-color: #cce3fe; }
 
+tr.row-subProduct {
+  background-color: #fff3d6; }
+
   .wide .user-profile .listTopContainer {
     min-width: 0; }
 
@@ -1071,6 +1074,10 @@ div.acc-detail {
 .additionalInfo-holder {
   display: inline-block;
   position: relative; }
+    .additionalInfo-holder.hoverHint .additionalInfo {
+      white-space: nowrap; }
+    .additionalInfo-holder.hoverHint:hover .additionalInfo {
+      display: block; }
   .additionalInfo-holder .additionalInfo {
     box-shadow: 1px 1px 2px rgba(0, 0, 0, 0.4);
     border: 1px solid #cccccc;
@@ -1084,7 +1091,23 @@ div.acc-detail {
     width: auto;
     border-radius: 5px;
     font-size: 15px;
-    color: black; }
+    color: black;
+        /*
+     * Балончето стои в елемента, към който е закачено - текстовите стилове на бащата се нулират
+     */
+    font-weight: normal;
+    font-style: normal;
+    line-height: 1.35;
+    text-align: left;
+    text-transform: none;
+    text-shadow: none;
+    letter-spacing: normal; }
+    .additionalInfo-holder .additionalInfo.viewport-positioned {
+      position: fixed;
+      right: auto;
+      bottom: auto;
+      box-sizing: border-box;
+      overscroll-behavior: contain; }
     .additionalInfo-holder .additionalInfo.bottom {
       bottom: auto;
       top: 0;
@@ -2614,6 +2637,9 @@ form select.w50 + .select2 {
 .wrapText {
   white-space: normal !important; }
 
+th:has(.wrapText) {
+  white-space: normal !important; }
+
 .shipment-table tr td {
   padding: 1px 3px !important; }
 
@@ -3614,17 +3640,11 @@ span.sharing-history-title {
   position: absolute;
   padding-bottom: 4px;
   right: 5px;
-  top: 4px; }
+  bottom: 2px; }
 
 .narrow .foorterAdd {
   float: right;
   margin-top: 4px; }
-
-.wide .socialBtns {
-  position: absolute;
-  left: 1px;
-  top: 1px;
-  height: 30px; }
 
 #all {
   border: solid 1px #777777;
@@ -5608,16 +5628,25 @@ div.location.public {
 .acc_JournalDetails {
   margin-top: 10px; }
 
-.details .portal .formToolbar #filter {
+.details .formToolbar #filter {
   background-color: #e5e5e5;
-  padding: 6px 4px !important;
-  width: 26px;
   background-position: center; }
-  .details .portal .formToolbar #filter:hover {
+  .details .formToolbar #filter:hover {
     background-color: #cccccc; }
 
-.document .details .portal .formToolbar #filter {
-  padding: 5px 4px 4px !important; }
+.details .log  .formToolbar #filter {
+  width: 26px;
+  background-position: center;
+  padding: 6px 4px !important; }
+
+.docStatistic form .horizontal {
+  border: 1px solid #eeeeee;
+  padding: 5px 10px 3px;
+  border-top: none;
+  border-bottom: none; }
+  .docStatistic form .horizontal .formFields,
+  .docStatistic form .horizontal .formToolbar {
+    margin-bottom: 0; }
 
 /*
  * шаблон за журнал
@@ -6368,6 +6397,24 @@ only screen and (max-width: 760px) {
 .newCol {
   background-color: #eeeeee; }
 
+/*
+ * к-та по етапи в детайл на документ (заявено/изпратено/получено)
+ */
+.stageCol {
+  background-color: #f6f6f6; }
+
+/*
+ * к-то, което реално се движи по документа
+ */
+.mainQuantityCol {
+  background-color: #fff8e1; }
+
+/*
+ * при ред с нулево к-во се пази сивия фон на реда
+ */
+tr.zeroQuantityRow .mainQuantityCol {
+  background-color: rgba(0, 0, 0, 0); }
+
 td.rack-hl {
   background-color: red; }
 
@@ -6549,8 +6596,12 @@ body.narrow {
     .cmr-blue td.border-top {
       border-top: 1px solid #0082c8; }
 
-.row-subProduct {
-  background-color: #ece2ff; }
+.rejected {
+  background-color: #f2d8d8;
+  color: #3d1414 !important; }
+  .rejected i,
+  .rejected span {
+    color: #3d1414 !important; }
 
 @media handheld,
 only screen and (min-width: 1240px) {

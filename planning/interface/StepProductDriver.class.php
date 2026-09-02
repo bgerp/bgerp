@@ -95,7 +95,7 @@ class planning_interface_StepProductDriver extends cat_GeneralProductDriver
     {
         if(empty($rec->id) && $Embedder instanceof cat_Products){
             $groupId = cat_Groups::fetchField("#sysId = 'prefabrications'");
-            $rec->groupsInput = keylist::addKey($rec->groupsInput, $groupId);
+            $rec->groupsInput = keylist::addKey($rec->groupsInput ?? null, $groupId);
             $rec->groups = keylist::fromArray($Embedder->expandInput(type_Keylist::toArray($rec->groupsInput)));
         }
     }
@@ -107,11 +107,11 @@ class planning_interface_StepProductDriver extends cat_GeneralProductDriver
     public static function on_AfterPrepareRetUrl($Driver, embed_Manager &$Embedder, $res, $data)
     {
         // Ако се иска директно контиране редирект към екшъна за контиране
-        if (isset($data->form) && $data->form->isSubmitted() && $data->form->rec->id) {
+        if (isset($data->form) && $data->form->isSubmitted() && !empty($data->form->rec->id)) {
             $retUrl = getRetUrl();
 
             // Ако се създава от рецепта: да редиректне към нея с вече готовото ид
-            if($retUrl['Ctr'] == 'cat_BomDetails' && $retUrl['type'] == 'stage'){
+            if (($retUrl['Ctr'] ?? null) == 'cat_BomDetails' && ($retUrl['type'] ?? null) == 'stage') {
                 if(cat_Products::haveDriver($data->form->rec->id, 'planning_interface_StepProductDriver')){
                     if($Driver = cat_Products::getDriver($data->form->rec->id)){
                         if ($Driver->canSelectDriver()) {
@@ -160,18 +160,31 @@ class planning_interface_StepProductDriver extends cat_GeneralProductDriver
     public function getProductionData($productId)
     {
         $rec = planning_Steps::getRec('cat_Products', $productId);
-        $productRec = cat_Products::fetch($productId, 'measureId,info');
+        $productRec = cat_Products::fetch($productId, 'name,measureId,info');
 
-        $res = array('name' => $rec->name, 'centerId' => $rec->centerId, 'storeIn' => $rec->storeIn, 'inputStores' => $rec->inputStores, 'wasteProductId' => $rec->wasteProductId, 'wasteStart' => $rec->wasteStart, 'wastePercent' => $rec->wastePercent, 'mandatoryDocuments' => $rec->mandatoryDocuments, 'offsetAfter' => $rec->offsetAfter);
-        if(!empty($productRec->info)){
-            $res['description'] = $productRec->info;
-        }
+        // Възможно е при стари или непълни данни артикулът да е с драйвер за
+        // производствен етап, но все още да няма запис в екстендъра planning_Steps.
+        $rec = is_object($rec) ? $rec : new stdClass();
+        $productRec = is_object($productRec) ? $productRec : new stdClass();
+
+        $res = array_replace(parent::getProductionData($productId), array(
+            'name' => $rec->name ?? ($productRec->name ?? null),
+            'centerId' => $rec->centerId ?? null,
+            'storeIn' => $rec->storeIn ?? null,
+            'inputStores' => $rec->inputStores ?? null,
+            'isFinal' => $rec->isFinal ?? null,
+            'wasteProductId' => $rec->wasteProductId ?? null,
+            'wasteStart' => $rec->wasteStart ?? null,
+            'wastePercent' => $rec->wastePercent ?? null,
+            'mandatoryDocuments' => $rec->mandatoryDocuments ?? null,
+            'description' => $productRec->info ?? null,
+            'offsetAfter' => $rec->offsetAfter ?? null,
+        ));
         if(!empty($rec->norm)){
             $res['norm'] = $rec->norm;
-            $res['normPackagingId'] = $productRec->measureId;
+            $res['normPackagingId'] = $productRec->measureId ?? null;
         }
 
-        $res['fixedAssets'] = null;
         if(!empty($rec->fixedAssets)){
 
             // От свързаните оборудвания остават само активните
@@ -185,31 +198,36 @@ class planning_interface_StepProductDriver extends cat_GeneralProductDriver
 
         $res['employees'] = !empty($rec->employees) ? keylist::toArray($rec->employees) : null;
         $res['planningParams'] = !empty($rec->planningParams) ? keylist::toArray($rec->planningParams) : array();
-        $res['actions'] = !empty($rec->planningActions) ? keylist::toArray($rec->planningActions) : array();
-        $res['calcWeightMode'] = ($rec->calcWeightMode == 'auto') ? planning_Setup::get('TASK_WEIGHT_MODE') : $rec->calcWeightMode;
-        $res['fastProgressBtn'] = ($rec->fastProgressBtn == 'auto') ? planning_Setup::get('TASK_FAST_PROGRESS_BTN') : $rec->fastProgressBtn;
-
-        $res['supportSystemFolderId'] = $rec->supportSystemFolderId ?? planning_Centers::fetchField($rec->centerId, 'supportSystemFolderId');
-
-        if($rec->showPreviousJobField == 'auto'){
-            $centerShowPreviousJobField = planning_Centers::fetchField($rec->centerId, 'showPreviousJobField');
-            if($centerShowPreviousJobField == 'auto'){
-                $res['showPreviousJobField'] = (planning_Setup::get('SHOW_PREVIOUS_JOB_FIELD_IN_TASK') == 'yes');
-            } else {
-                $res['showPreviousJobField'] = ($centerShowPreviousJobField == 'yes');
-            }
-        } else {
-            $res['showPreviousJobField'] = ($rec->showPreviousJobField == 'yes');
+        $res['actions'] = !empty($rec->planningActions) ? keylist::toArray($rec->planningActions) : null;
+        if (isset($rec->calcWeightMode)) {
+            $res['calcWeightMode'] = ($rec->calcWeightMode == 'auto') ? planning_Setup::get('TASK_WEIGHT_MODE') : $rec->calcWeightMode;
+        }
+        if (isset($rec->fastProgressBtn)) {
+            $res['fastProgressBtn'] = ($rec->fastProgressBtn == 'auto') ? planning_Setup::get('TASK_FAST_PROGRESS_BTN') : $rec->fastProgressBtn;
         }
 
-        $res['isFinal'] = $rec->isFinal;
-        if($rec->canStore == 'yes'){
-            $res['labelPackagingId'] = $rec->labelPackagingId;
-            if($rec->labelTransferQuantityInPack != 'no'){
-                $res['labelQuantityInPack'] = $rec->labelQuantityInPack;
+        $res['supportSystemFolderId'] = $rec->supportSystemFolderId ?? (!empty($rec->centerId) ? planning_Centers::fetchField($rec->centerId, 'supportSystemFolderId') : null);
+
+        if (isset($rec->showPreviousJobField)) {
+            if ($rec->showPreviousJobField == 'auto') {
+                $centerShowPreviousJobField = !empty($rec->centerId) ? planning_Centers::fetchField($rec->centerId, 'showPreviousJobField') : 'auto';
+                if($centerShowPreviousJobField == 'auto'){
+                    $res['showPreviousJobField'] = (planning_Setup::get('SHOW_PREVIOUS_JOB_FIELD_IN_TASK') == 'yes');
+                } else {
+                    $res['showPreviousJobField'] = ($centerShowPreviousJobField == 'yes');
+                }
+            } else {
+                $res['showPreviousJobField'] = ($rec->showPreviousJobField == 'yes');
             }
-            $res['labelType'] = $rec->labelType;
-            $res['labelTemplate'] = $rec->labelTemplate;
+        }
+
+        if (($rec->canStore ?? null) == 'yes') {
+            $res['labelPackagingId'] = $rec->labelPackagingId ?? null;
+            if (($rec->labelTransferQuantityInPack ?? 'yes') != 'no') {
+                $res['labelQuantityInPack'] = $rec->labelQuantityInPack ?? null;
+            }
+            $res['labelType'] = $rec->labelType ?? null;
+            $res['labelTemplate'] = $rec->labelTemplate ?? null;
         }
 
         return $res;
@@ -253,7 +271,7 @@ class planning_interface_StepProductDriver extends cat_GeneralProductDriver
 
         $tpl->placeObject($data->row);
 
-        if ($data->noChange !== true || countR($data->params)) {
+        if (($data->noChange ?? null) !== true || countR($data->params ?? array())) {
             $paramTpl = cat_products_Params::renderParams($data);
             $tpl->append($paramTpl, 'PARAMS');
         }
@@ -341,7 +359,7 @@ class planning_interface_StepProductDriver extends cat_GeneralProductDriver
     public function getDefaultMetas($rec = null)
     {
         $meta = parent::getDefaultMetas($rec);
-        if($rec->planning_Steps_canStore == 'no'){
+        if(($rec->planning_Steps_canStore ?? null) == 'no'){
             unset($meta['canStore']);
         }
 

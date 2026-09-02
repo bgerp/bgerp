@@ -44,7 +44,7 @@ class bgtaxes_plg_SaleInvoice extends core_Plugin
                     $paramCache[$dRec->productId] = cat_Products::getParams($dRec->productId);
                 }
 
-                $excise = isset($dRec->exciseTax) ? $dRec->exciseTax : $paramCache[$dRec->productId][$exciseId];
+                $excise = isset($dRec->exciseTax) ? $dRec->exciseTax : ($paramCache[$dRec->productId][$exciseId] ?? null);
                 $isExciseLive = true;
 
                 if($isForBg){
@@ -73,7 +73,7 @@ class bgtaxes_plg_SaleInvoice extends core_Plugin
             $row->exciseCurrencyCode = $baseCurrencyCode;
             $row->totalExciseAmount = core_Type::getByName('double(decimals=2)')->toVerbal($exciseAmount);
             if($isExciseLive){
-                $row->totalExciseAmount = ht::createHint("<span style='color:blue'>{$row->totalExciseAmount}</span>", 'Общата сума на акциза, ще се запише при активиране|*!', 'notice', false);
+                $row->totalExciseAmount = ht::createHint("<span class='blueText'>{$row->totalExciseAmount}</span>", 'Общата сума на акциза, ще се запише при активиране|*!', 'notice', false);
             }
         }
 
@@ -82,7 +82,7 @@ class bgtaxes_plg_SaleInvoice extends core_Plugin
             $row->productTaxCurrencyCode = $baseCurrencyCode;
             $row->totalProductTax = core_Type::getByName('double(decimals=2)')->toVerbal($productTaxAmount);
             if($isProductTaxLive){
-                $row->totalProductTax = ht::createHint("<span style='color:blue'>{$row->totalProductTax}</span>", 'Събраната екотакса, ще се запише при активиране|*!', 'notice', false);
+                $row->totalProductTax = ht::createHint("<span class='blueText'>{$row->totalProductTax}</span>", 'Събраната екотакса, ще се запише при активиране|*!', 'notice', false);
             }
         }
     }

@@ -50,25 +50,25 @@ class rack_MovementGenerator extends core_Manager
         
         $rec = $form->input();
         
-        $invArr = $payArr = array();
+        $p = $q = $mArr = array();
         
         if ($form->isSubmitted()) {
             $pArr = json_decode($rec->pallets);
             $qArr = json_decode($rec->zones);
 
             foreach ($pArr->pallet as $i => $key) {
-                if ($pArr->quantity[$i]) {
+                if (!empty($pArr->quantity[$i])) {
                     $p[$key] = core_Type::getByName('double')->fromVerbal($pArr->quantity[$i]);
                 }
             }
 
             foreach ($qArr->zone as $i => $key) {
-                if ($qArr->quantity[$i]) {
+                if (!empty($qArr->quantity[$i])) {
                     $q[$key] = core_Type::getByName('double')->fromVerbal($qArr->quantity[$i]);
                 }
             }
 
-            $mArr = self::mainP2Q($p, $q, null, $rec->smallZonesPriority);
+            $mArr = self::mainP2Q($p, $q, null, $rec->smallZonesPriority ?? false);
         }
         
         $form->title = 'Генериране на движения по палети';
@@ -125,6 +125,7 @@ class rack_MovementGenerator extends core_Manager
         }
         
         $moves = array();
+        $i = 0;
         
         do {
             $fullPallets = self::getFullPallets($p, $quantityPerPallet);
@@ -290,7 +291,7 @@ class rack_MovementGenerator extends core_Manager
  
         // Вкарваме точните съответсвия на комбинации
         foreach ($pCombi as $pQ => $pK) {
-            if ($zK = $zCombi["{$pQ}"]) {  
+            if ($zK = ($zCombi["{$pQ}"] ?? null)) {
                 $moves = self::moveGen($p, $z, $pK, $zK);
                 break;
             }
@@ -365,6 +366,8 @@ class rack_MovementGenerator extends core_Manager
     private static function moveGen(&$p, &$z, $pK, $zK)
     {
         $moves = array();
+        $pQ = 0;
+        $pI = null;
         
         $pK = explode('|', trim($pK, '|'));
         $zK = explode('|', trim($zK, '|'));
@@ -399,7 +402,7 @@ class rack_MovementGenerator extends core_Manager
             }
         }
         
-        if ($pQ > 0) {
+        if ($pQ > 0 && isset($pI)) {
             $moves["ret=>{$pI}"] = $pQ;
         }
         
@@ -416,7 +419,7 @@ class rack_MovementGenerator extends core_Manager
             foreach ($arr as $k => $qK) {
                 if (strpos($m, '|'. $k . '|') === false) {
                     $qnt = $mK + $qK;
-                    if (!$combi[$qnt]) {
+                    if (empty($combi[$qnt])) {
                         $combi[$qnt] = $m  . $k. '|';
                     }
                 }
@@ -434,10 +437,14 @@ class rack_MovementGenerator extends core_Manager
      */
     public static function getFullPallets($pallets, &$quantityPerPallet = null)
     {
+        if (!countR($pallets)) {
+            return array();
+        }
+
         if (!$quantityPerPallet) {
             $cnt = array();
             foreach ($pallets as $i => $iP) {
-                $cnt[$iP]++;
+                $cnt[$iP] = ($cnt[$iP] ?? 0) + 1;
             }
             
             arsort($cnt);

@@ -52,9 +52,9 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
         $fieldset->FLD('checkDate', 'date', 'caption=Към дата,after=title,single=none');
         $fieldset->FLD('additional', 'table(columns=limit1|limit2,captions=Праг 1|Праг 2,widths=3em|3em,btnOff,unit=дни просрочие)', 'caption=Периоди||Additional,autohide,advanced,after=checkDate,single=none');
         $fieldset->FLD('typeGrupping', 'enum(contragent=Контрагент,overduePeriod=Период на просрочие)', 'caption=Групиране,maxRadio=2,columns=2,after=additional');
-        $fieldset->FLD('dealer', 'user(rolesForAll=sales|ceo,allowEmpty,roles=ceo|sales)', 'caption=Филтри->Търговец,placeholder=Всички,single=none,after=typeGrupping,input');
-        $fieldset->FLD('contragent', 'keylist(mvc=doc_Folders,select=title,allowEmpty)', 'caption=Филтри->Контрагент,placeholder=Всички,single=none,after=dealer');
-        $fieldset->FLD('countryGroup', 'key(mvc=drdata_CountryGroups,select=name,allowEmpty)', 'caption=Филтри->Група държави,single=none,placeholder=Всички,after=contragent'
+        $fieldset->FLD('dealer', 'user(rolesForAll=sales|ceo,allowEmpty,roles=ceo|sales)', 'caption=Филтри->Търговец,placeholderType=all,single=none,after=typeGrupping,input');
+        $fieldset->FLD('contragent', 'keylist(mvc=doc_Folders,select=title,allowEmpty)', 'caption=Филтри->Контрагент,placeholderType=all,single=none,after=dealer');
+        $fieldset->FLD('countryGroup', 'key(mvc=drdata_CountryGroups,select=name,allowEmpty)', 'caption=Филтри->Група държави,single=none,placeholderType=all,after=contragent'
         );
 
         //Праг за минимална просрочена сума за показване
@@ -88,6 +88,8 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
 
         $form->setDefault('typeGrupping', 'contragent');
         $form->setDefault('minSumForEmail', 0.05);
+
+        $suggestions = array();
 
         $salesQuery = sales_Sales::getQuery();
 
@@ -138,15 +140,27 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
     {
         core_App::setTimeLimit(100);
 
-        if (!$rec->checkDate) {
+        if (empty($rec->checkDate)) {
             $checkDate = dt::now();
         } else {
             $checkDate = $rec->checkDate . ' 23:59:59';
         }
 
-        $this->groupByField = $rec->typeGrupping;
+        $this->groupByField = $rec->typeGrupping ?? 'contragent';
         $recs = array();
-        $isRec = array();
+
+        // Старите записи на справката може да нямат попълнени периоди.
+        // При липсващ/невалиден JSON използваме стандартните граници.
+        $limit1 = 30;
+        $limit2 = 60;
+        $limits = json_decode($rec->additional ?? '');
+        if (is_object($limits)) {
+            $limit1 = (int) ($limits->limit1[0] ?? $limit1);
+            $limit2 = (int) ($limits->limit2[0] ?? $limit2);
+        }
+        if ($limit1 > $limit2) {
+            list($limit1, $limit2) = array($limit2, $limit1);
+        }
 
         // Масив със записи от изходящи фактури
         $sRecs = array();
@@ -192,7 +206,7 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
 
                         $Invoice = doc_Containers::getDocument($inv);
 
-                        if ($Invoice->className != 'sales_Invoices') {
+                        if (!$Invoice || $Invoice->className != 'sales_Invoices') {
                             continue;
                         }
 
@@ -201,53 +215,61 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
                                    contragentId,contragentClassId, contragentCountryId'
                         );
 
-                        $contragentClassName = core_Classes::fetch($iRec->contragentClassId)->name;
+                        if (!$iRec) {
+                            continue;
+                        }
+
+                        $contragentClassName = core_Classes::fetchField($iRec->contragentClassId, 'name');
+                        if (!$contragentClassName) {
+                            continue;
+                        }
 
                         $contragentRec = $contragentClassName::fetch($iRec->contragentId);
+
+                        if (!$contragentRec || empty($contragentRec->folderId)) {
+                            continue;
+                        }
 
                         $contragentFolderId = $contragentRec->folderId;
 
                         //Филтър по контрагент
-                        if ($rec->contragent && (!in_array($contragentFolderId, keylist::toArray($rec->contragent)))) continue;
+                        if (!empty($rec->contragent) && (!in_array($contragentFolderId, keylist::toArray($rec->contragent)))) continue;
 
                         //Филтър по дилър
-                        if ($rec->dealer && ($rec->dealer != $fDocRec->dealerId)) continue;
+                        if (!empty($rec->dealer) && ($rec->dealer != ($fDocRec->dealerId ?? null))) continue;
 
                         //Филтър по група държави
-                        if ($rec->countryGroup) {
-                            $countriesList = drdata_CountryGroups::fetch($rec->countryGroup)->countries;
+                        if (!empty($rec->countryGroup)) {
+                            $countriesList = drdata_CountryGroups::fetchField($rec->countryGroup, 'countries');
 
-                            if (!keylist::isIn($iRec->contragentCountryId, $countriesList)) {
+                            if (!$countriesList || !keylist::isIn($iRec->contragentCountryId, $countriesList)) {
                                 continue;
                             }
                         }
 
                         //Превалутиране на сумите
 
-                        $paydocsAmountBaseCurr = $paydocs->amount * $iRec->rate;
-                        $paydocspayOutBaseCurr = $paydocs->payout * $iRec->rate;
+                        $amount = (float) ($paydocs->amount ?? 0);
+                        $payout = (float) ($paydocs->payout ?? 0);
+                        $rate = (float) ($iRec->rate ?? 1);
+                        $payDate = $paydocs->date ?? $iRec->date;
+                        $paydocsAmountBaseCurr = $amount * $rate;
+                        $paydocspayOutBaseCurr = $payout * $rate;
 
                       //  $paydocs->payout = deals_Helper::getSmartBaseCurrency($paydocs->payout, $paydocs->date, $rec->checkDate);
                       //  $paydocs->amount = deals_Helper::getSmartBaseCurrency( $paydocs->amount, $paydocs->date, $rec->checkDate);
 
-                        $paydocspayOutBaseCurr = deals_Helper::getSmartBaseCurrency($paydocspayOutBaseCurr, $paydocs->date, $rec->checkDate);
-                        $paydocsAmountBaseCurr = deals_Helper::getSmartBaseCurrency( $paydocsAmountBaseCurr, $paydocs->date, $rec->checkDate);
+                        $paydocspayOutBaseCurr = deals_Helper::getSmartBaseCurrency($paydocspayOutBaseCurr, $payDate, $rec->checkDate ?? null);
+                        $paydocsAmountBaseCurr = deals_Helper::getSmartBaseCurrency($paydocsAmountBaseCurr, $payDate, $rec->checkDate ?? null);
 
-                        $invoiceCurrentSumm = 0;
-
-                        if (($paydocs->payout >= $paydocs->amount - 0.01) &&
-                            ($paydocs->payout <= $paydocs->amount + 0.01)) {
+                        if (($payout >= $amount - 0.01) && ($payout <= $amount + 0.01)) {
                             continue;
                         }
 
 
 
                         $overdueColor = '';
-                        $limits = json_decode($rec->additional);
-                        list($limit1) = $limits->limit1;
-                        list($limit2) = $limits->limit2;
-
-                        if ($iRec->dueDate && ($paydocs->amount - $paydocs->payout) > $rec->minOverdueLevel &&
+                        if ($iRec->dueDate && ($amount - $payout) > ($rec->minOverdueLevel ?? 0) &&
                             $iRec->dueDate < $checkDate) {
                             $overdueDays = dt::daysBetween($checkDate, $iRec->dueDate);
 
@@ -266,7 +288,7 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
                                 $overColor = 'red';
                             }
 
-                            $invoiceCurrentSummArr[$contragentFolderId] += $paydocsAmountBaseCurr - $paydocspayOutBaseCurr; //Обща сума за контрагента в основна валута
+                            $invoiceCurrentSummArr[$contragentFolderId] = ($invoiceCurrentSummArr[$contragentFolderId] ?? 0) + $paydocsAmountBaseCurr - $paydocspayOutBaseCurr; //Обща сума за контрагента в основна валута
 
                         } else {
                             continue;
@@ -293,12 +315,12 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
                                 'invoiceContainerId' => $iRec->containerId,
                                 'currencyId' => $iRec->currencyId,
                                 'rate' => $iRec->rate,
-                                'invoiceValue' => $paydocs->amount,
-                                'invoiceVAT' => $iRec->vatAmount,
-                                'invoicePayout' => $paydocs->payout,
-                                'invoiceCurrentSumm' => $paydocs->amount - $paydocs->payout,
+                                'invoiceValue' => $amount,
+                                'invoiceVAT' => $iRec->vatAmount ?? 0,
+                                'invoicePayout' => $payout,
+                                'invoiceCurrentSumm' => $amount - $payout,
                                 'invoiceCurrentSummArr' => $invoiceCurrentSummArr,
-                                'payDocuments' => $paydocs->used
+                                'payDocuments' => $paydocs->used ?? array()
                             );
                         }
                     }
@@ -316,7 +338,8 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
 
         $recs = $sRecs;
 
-        if (is_array($invoiceCurrentSummArr)) {
+        $rTemp = array();
+        if (!empty($invoiceCurrentSummArr)) {
             arsort($invoiceCurrentSummArr);
 
             foreach ($invoiceCurrentSummArr as $k => $v) {
@@ -357,7 +380,7 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
             $fld->FLD('invoiceDate', 'varchar', 'caption=Дата');
             $fld->FLD('dueDate', 'varchar', 'caption=Краен срок');
             $fld->FLD('overdueDays', 'varchar', 'caption=Дни,smartCenter');
-            if (!is_null($rec->additional)) {
+            if (!empty($rec->additional)) {
                 $fld->FLD('overduePeriod', 'varchar', 'caption=Дни,smartCenter');
             }
             $fld->FLD('currencyId', 'varchar', 'caption=Валута,tdClass=centered');
@@ -371,7 +394,7 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
             $fld->FLD('contragent', 'varchar', 'caption=Контрагент');
             $fld->FLD('dueDate', 'date', 'caption=Краен срок,smartCenter');
             $fld->FLD('overdueDays', 'varchar', 'caption=Дни');
-            if (!is_null($rec->additional)) {
+            if (!empty($rec->additional)) {
                 $fld->FLD('overduePeriod', 'varchar', 'caption=Дни,smartCenter');
             }
             $fld->FLD('currencyId', 'varchar', 'caption=Валута,tdClass=centered');
@@ -395,7 +418,7 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
      */
     private static function getPaidAmount($dRec, $verbal = true)
     {
-        $paidAmount = $dRec->invoicePayout;
+        $paidAmount = $dRec->invoicePayout ?? 0;
 
         return $paidAmount;
     }
@@ -411,37 +434,32 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
      */
     private static function getPaidDates($dRec, $verbal = true)
     {
-        if (is_array($dRec->payDocuments)) {
+        $paidDatesList = array();
+        if (is_array($dRec->payDocuments ?? null)) {
             foreach ($dRec->payDocuments as $onePayDoc) {
-                if (!is_null($onePayDoc->containerId)) {
+                if (!empty($onePayDoc->containerId)) {
                     $Document = doc_Containers::getDocument($onePayDoc->containerId);
                 } else {
                     continue;
                 }
+                if (!$Document) {
+                    continue;
+                }
                 $payDocClass = $Document->className;
 
-                $paidDatesList .= ',' . $payDocClass::fetch($Document->that)->valior;
-            }
-        }
-        if ($verbal === true) {
-            $amountsValiors = explode(',', trim($paidDatesList, ','));
-
-            foreach ($amountsValiors as $v) {
-                $paidDate = dt::mysql2verbal($v, $mask = 'd.m.y');
-
-                $paidDates .= "{$paidDate}" . '<br>';
-            }
-        } else {
-            $amountsValiors = explode(',', trim($paidDatesList, ','));
-
-            foreach ($amountsValiors as $v) {
-                $paidDate = dt::mysql2verbal($v, $mask = 'd.m.y');
-
-                $paidDates .= "{$paidDate}" . "\n\r";
+                $valior = $payDocClass::fetchField($Document->that, 'valior');
+                if ($valior) {
+                    $paidDatesList[] = $valior;
+                }
             }
         }
 
-        return $paidDates;
+        $paidDates = array();
+        foreach ($paidDatesList as $v) {
+            $paidDates[] = dt::mysql2verbal($v, 'd.m.y');
+        }
+
+        return implode($verbal ? '<br>' : "\n", $paidDates);
     }
 
 
@@ -453,16 +471,16 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
      *
      * @return mixed $dueDate
      */
-    private static function getDueDate($dRec, $verbal = true, $rec)
+    private static function getDueDate($dRec, $verbal = true, $rec = null)
     {
         if ($verbal === true) {
-            if ($dRec->dueDate) {
-                $dueDate = dt::mysql2verbal($dRec->dueDate, $mask = 'd.m.Y');
+            if (!empty($dRec->dueDate)) {
+                $dueDate = dt::mysql2verbal($dRec->dueDate, 'd.m.Y');
             } else {
                 $dueDate = '';
             }
         } else {
-            if ($dRec->dueDate) {
+            if (!empty($dRec->dueDate)) {
                 $dueDate = $dRec->dueDate;
             } else {
                 $dueDate = '';
@@ -492,7 +510,7 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
 
         $euroZoneDate = acc_Setup::getEurozoneDate();
 
-        $invoiceNo = str_pad($dRec->invoiceNo, 10, '0', STR_PAD_LEFT);
+        $invoiceNo = str_pad($dRec->invoiceNo ?? '', 10, '0', STR_PAD_LEFT);
 
         $row->invoiceNo = ht::createLink(
 
@@ -514,14 +532,14 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
         if ($dRec->contragent) {
             $className = core_Classes::fetchField($dRec->contragentClassId, 'name');
 
-            if ($rec->data->groupByField == 'contragent') {
+            if (($rec->data->groupByField ?? null) == 'contragent') {
                 $row->overduePeriod = "<span style=\"color:{$dRec->overColor}\">" . $dRec->overduePeriod . '</span>';
-                if ($rec->checkDate < $euroZoneDate) {
+                if (($rec->checkDate ?? dt::today()) < $euroZoneDate) {
 
-                    $invoiceCurrentSumm = $dRec->invoiceCurrentSummArr[$dRec->contragent] / 1.95583;
+                    $invoiceCurrentSumm = ($dRec->invoiceCurrentSummArr[$dRec->contragent] ?? 0) / 1.95583;
 
                 }else{
-                    $invoiceCurrentSumm = $dRec->invoiceCurrentSummArr[$dRec->contragent];
+                    $invoiceCurrentSumm = $dRec->invoiceCurrentSummArr[$dRec->contragent] ?? 0;
                 }
 
                 $row->contragent = doc_Folders::getTitleById($dRec->contragent) .
@@ -538,12 +556,13 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
 
         $row->currencyId = $dRec->currencyId;
 
-        $invoiceValue = $dRec->invoiceValue + $dRec->invoiceVat;
+        //$invoiceValue = ($dRec->invoiceValue ?? 0) + ($dRec->invoiceVAT ?? 0);
+        $invoiceValue = ($dRec->invoiceValue ?? 0);
 
         $row->invoiceValue = core_Type::getByName('double(decimals=2)')->toVerbal($invoiceValue);
 
-        if ($dRec->invoiceCurrentSumm > 0) {
-            if ($dRec->invoiceCurrentSumm > $dRec->invoiceValue) {
+        if (($dRec->invoiceCurrentSumm ?? 0) > 0) {
+            if ($dRec->invoiceCurrentSumm > ($dRec->invoiceValue ?? 0)) {
                 $row->invoiceCurrentSumm = "<span class= 'red'>" . core_Type::getByName('double(decimals=2)')->toVerbal(
                         $dRec->invoiceCurrentSumm
 
@@ -578,11 +597,13 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
      */
     protected static function on_AfterRenderSingle(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$tpl, $data)
     {
-        if (!$data->rec->checkDate) {
+        if (empty($data->rec->checkDate)) {
             $checkDate = dt::now();
         } else {
             $checkDate = $data->rec->checkDate;
         }
+
+        $contragents = $exludedContragents = $unsentEmails = '';
 
         $Date = cls::get('type_Date');
         $fieldTpl = new core_ET(
@@ -607,11 +628,8 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
         );
 
         $euroZoneDate = acc_Setup::getEurozoneDate();
-        $baseCurrency = acc_Periods::getBaseCurrencyCode($data->rec->checkDate);
-
-
         //Показва контрагента
-        if (isset($data->rec->contragent)) {
+        if (!empty($data->rec->contragent)) {
             foreach (keylist::toArray($data->rec->contragent) as $v) {
                 $contragents .= doc_Folders::fetchField($v, 'title') . ', ';
             }
@@ -621,15 +639,16 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
         }
 
         //Показва търговеца
-        if (isset($data->rec->dealer)) {
+        if (!empty($data->rec->dealer)) {
             $fieldTpl->append(core_Users::fetchField($data->rec->dealer, 'names'), 'dealer');
         } else {
             $fieldTpl->append('Всички', 'dealer');
         }
 
         //Показва групата държави
-        if (isset($data->rec->countryGroup)) {
-            $fieldTpl->append(drdata_CountryGroups::fetch($data->rec->countryGroup)->name, 'countryGroup');
+        if (!empty($data->rec->countryGroup)) {
+            $countryGroupName = drdata_CountryGroups::fetchField($data->rec->countryGroup, 'name');
+            $fieldTpl->append($countryGroupName ?: 'Всички', 'countryGroup');
         } else {
             $fieldTpl->append('Всички', 'countryGroup');
         }
@@ -637,16 +656,16 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
 
         $fieldTpl->append($Date->toVerbal($checkDate), 'checkDate');
 
-        if ($data->rec->checkDate < $euroZoneDate) {
+        if ($checkDate < $euroZoneDate) {
 
-            $salesTotalOverDue = $data->rec->salesTotalOverDue / 1.95583;
-            $salesTotalPayout = $data->rec->salesTotalPayout / 1.95583;
-            $salesCurrentSum = $data->rec->salesCurrentSum / 1.95583;
+            $salesTotalOverDue = ($data->rec->salesTotalOverDue ?? 0) / 1.95583;
+            $salesTotalPayout = ($data->rec->salesTotalPayout ?? 0) / 1.95583;
+            $salesCurrentSum = ($data->rec->salesCurrentSum ?? 0) / 1.95583;
 
         }else{
-            $salesTotalOverDue = $data->rec->salesTotalOverDue;
-            $salesTotalPayout = $data->rec->salesTotalPayout;
-            $salesCurrentSum = $data->rec->salesCurrentSum;
+            $salesTotalOverDue = $data->rec->salesTotalOverDue ?? 0;
+            $salesTotalPayout = $data->rec->salesTotalPayout ?? 0;
+            $salesCurrentSum = $data->rec->salesCurrentSum ?? 0;
         }
 
 
@@ -665,8 +684,9 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
             $fieldTpl->append(core_Type::getByName('double(decimals=2)')->toVerbal($salesCurrentSum) . " €", 'salesCurrentSum');
         }
 
-        $exportUrl = array('sales_reports_OverdueInvoices', 'excludCompanies', 'recId' => $data->rec->id, 'ret_url' => true);
-        if (dt::secsBetween(dt::now(), $data->rec->lastRefreshed) > 3600) {
+        $exportUrl = array('sales_reports_OverdueInvoices', 'excludCompanies', 'recId' => $data->rec->id ?? null, 'ret_url' => true);
+        $lastRefreshed = $data->rec->lastRefreshed ?? $checkDate;
+        if (dt::secsBetween(dt::now(), $lastRefreshed) > 3600) {
             $worning = "warning='Справката е обновена преди повече от 1 час. Да продължи ли без обновяване?'";
         } else {
             $worning = null;
@@ -678,7 +698,7 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
         if (blast_Emails::haveRightFor('add')) {
 
             //Изключените контрагенти от имейла
-            if (isset($data->rec->excludedFromEmail)) {
+            if (!empty($data->rec->excludedFromEmail)) {
                 foreach (keylist::toArray($data->rec->excludedFromEmail) as $v) {
                     $exludedContragents .= doc_Folders::fetchField($v, 'title') . ', ';
                 }
@@ -688,7 +708,7 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
             }
 
             //Неизпратени имейли
-            if (isset($data->rec->unsentEmails)) {
+            if (!empty($data->rec->unsentEmails)) {
                 foreach (keylist::toArray($data->rec->unsentEmails) as $v) {
                     $unsentEmails .= doc_Folders::fetchField($v, 'title') . ', ';
                 }
@@ -697,7 +717,7 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
                 $fieldTpl->append('Няма', 'unsentEmails');
             }
 
-            if (isset($data->rec->blastId)) {
+            if (!empty($data->rec->blastId)) {
                 $link = blast_Emails::getHyperlink($data->rec->blastId);
                 $fieldTpl->append(trim($link, ', '), 'blastId');
             }
@@ -728,17 +748,17 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
 
         $res->dueDate = self::getDueDate($dRec, false, $rec);
 
-        if ($dRec->invoiceCurrentSumm < 0) {
+        if (($dRec->invoiceCurrentSumm ?? 0) < 0) {
             $invoiceOverSumm = -1 * $dRec->invoiceCurrentSumm;
             $res->invoiceCurrentSumm = '';
             $res->invoiceOverSumm = ($invoiceOverSumm);
         }
 
-        if ($dRec->dueDate && $dRec->invoiceCurrentSumm > 0 && $dRec->dueDate < $rec->checkDate) {
+        if (!empty($dRec->dueDate) && ($dRec->invoiceCurrentSumm ?? 0) > 0 && $dRec->dueDate < ($rec->checkDate ?? dt::today())) {
             $res->dueDateStatus = 'Просрочен';
         }
 
-        $invoiceNo = str_pad($dRec->invoiceNo, 10, '0', STR_PAD_LEFT);
+        $invoiceNo = str_pad($dRec->invoiceNo ?? '', 10, '0', STR_PAD_LEFT);
 
         $res->invoiceNo = $invoiceNo;
 
@@ -755,6 +775,7 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
         expect($recId = Request::get('recId', 'int'));
 
         $rec = frame2_Reports::fetch($recId);
+        expect($rec);
 
         $listForEmail = self::createListForEmail($rec);
 
@@ -775,9 +796,11 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
 
         foreach ($rec->listForEmail as $key => $val) {
 
-            $companyName = doc_Folders::fetch($val['folder'])->title;
+            $companyName = doc_Folders::fetchField($val['folder'] ?? null, 'title');
 
-            $cSuggestionsArr[$val['folder']] = $companyName;
+            if ($companyName) {
+                $cSuggestionsArr[$val['folder']] = $companyName;
+            }
 
         }
 
@@ -787,8 +810,8 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
         $form->setSuggestions('companyFilter', $cSuggestionsArr);
         $form->setDefault('minSumForEmail', 0.05);
 
-        $form->rec->companyFilter = $rec->excludedFromEmail;
-        $form->rec->minSumForEmail = $rec->minSumForEmail;
+        $form->rec->companyFilter = $rec->excludedFromEmail ?? null;
+        $form->rec->minSumForEmail = $rec->minSumForEmail ?? 0.05;
 
         $mRec = $form->input();
 
@@ -801,7 +824,7 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
             foreach ($rec->listForEmail as $key => $val) {
 
 
-                if (in_array($val['folder'], keylist::toArray($form->rec->companyFilter))) {
+                if (in_array($val['folder'] ?? null, keylist::toArray($form->rec->companyFilter ?? null))) {
 
                     $rec->listForEmail[$key]['excludе'] = 'yes';
 
@@ -835,44 +858,49 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
             return $listForEmail;
         }
         //Добавяне в blob полето
-        if ($rec->listForEmail) {
+        if (!empty($rec->listForEmail) && is_array($rec->listForEmail)) {
             $oldListForEmail = $rec->listForEmail;
         } else {
             $oldListForEmail = array();
         }
 
 
-        if (!$rec->countryGroup) {
+        if (empty($rec->countryGroup)) {
             $emailLanguage = 'bg';
         } else {
-            $emailLanguage = (drdata_CountryGroups::fetch($rec->countryGroup)->name == 'България') ? 'bg' : 'en';
+            $emailLanguage = (drdata_CountryGroups::fetchField($rec->countryGroup, 'name') == 'България') ? 'bg' : 'en';
         }
 
 
         foreach ($rec->data->recs as $dRec) {
 
-            $contragentClassName = core_Classes::fetch($dRec->contragentClassId)->name;
+            $contragentClassName = core_Classes::fetchField($dRec->contragentClassId ?? null, 'name');
+            if (!$contragentClassName) {
+                continue;
+            }
 
-            $contragentRec = $contragentClassName::fetch($dRec->contragentId);
+            $contragentRec = $contragentClassName::fetch($dRec->contragentId ?? null);
+            if (!$contragentRec) {
+                continue;
+            }
 
-            $countryName = drdata_Countries::fetch($contragentRec->country)->commonName;
+            $countryName = drdata_Countries::fetchField($contragentRec->country ?? null, 'commonName');
 
-            foreach (explode(',', $contragentRec->email) as $email) {
+            foreach (explode(',', $contragentRec->email ?? '') as $email) {
+                $email = trim($email);
 
                 //Ако има контрагенти без имейл ги изключва и ги записва в полето $rec->unsentEmails
                 if ($email == '') {
-                    $unsentEmails[$contragentRec->folderId] = $contragentRec->folderId;
+                    if (!empty($contragentRec->folderId)) {
+                        $unsentEmails[$contragentRec->folderId] = $contragentRec->folderId;
+                    }
                     continue;
                 }
 
                 $inv = '#' . sales_Invoices::getHandle($dRec->invoiceId);
 
-                if (!empty($oldListForEmail) && array_key_exists('exclude', $oldListForEmail)) {
-
-                    $excludе = $oldListForEmail[$email]['exclude'];
-                } else {
-                    $excludе = 'no';
-                }
+                $oldEntry = $oldListForEmail[$email] ?? array();
+                $excludе = $oldEntry['excludе'] ?? ($oldEntry['exclude'] ?? 'no');
 
                 if (!in_array($email, array_keys($listForEmail))) {
 
@@ -880,10 +908,10 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
                         'company' => $contragentRec->name,
                         'folder' => $contragentRec->folderId,
                         'country' => $countryName,
-                        'date' => dt::mysql2verbal($rec->lastRefreshed, 'd.m.Y'),
+                        'date' => dt::mysql2verbal($rec->lastRefreshed ?? dt::now(), 'd.m.Y'),
                         'docs' => $inv,
-                        'sum' => $dRec->invoiceCurrentSummArr[$dRec->contragent],
-                        'currency' => $dRec->currencyId,
+                        'sum' => $dRec->invoiceCurrentSummArr[$dRec->contragent] ?? 0,
+                        'currency' => $dRec->currencyId ?? null,
                         'excludе' => $excludе,
                     );
 
@@ -908,20 +936,21 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
         expect($recId = Request::get('recId', 'int'));
 
         $rec = frame2_Reports::fetch($recId);
+        expect($rec);
 
         $listForSend = array();
 
-        foreach ($rec->listForEmail as $key => $val) {
+        foreach (($rec->listForEmail ?? array()) as $key => $val) {
 
-            if (($val['excludе'] == 'yes') || ($val['sum'] <= $rec->minSumForEmail)) continue;
+            if (($val['excludе'] ?? ($val['exclude'] ?? 'no')) == 'yes' || ($val['sum'] ?? 0) <= ($rec->minSumForEmail ?? 0.05)) continue;
 
-            $listForSend[$key] = array('email' => $val['email'],
-                'company' => $val['company'],
-                'country' => $val['country'],
-                'date' => $val['date'],
-                'docs' => $val['docs'],
-                'sum' => round($val['sum'], 2),
-                'currency' => $val['currency'],
+            $listForSend[$key] = array('email' => $val['email'] ?? $key,
+                'company' => $val['company'] ?? '',
+                'country' => $val['country'] ?? '',
+                'date' => $val['date'] ?? '',
+                'docs' => $val['docs'] ?? '',
+                'sum' => round($val['sum'] ?? 0, 2),
+                'currency' => $val['currency'] ?? '',
             );
         }
 
@@ -929,16 +958,17 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
             return new Redirect(array('frame2_Reports', 'single', $rec->id), 'Липсват контрагенти, на които да се изпратят имейли', 'warning');
         }
 
-        if (!$rec->countryGroup) {
+        if (empty($rec->countryGroup)) {
             $emailLanguage = 'bg';
         } else {
-            $emailLanguage = (drdata_CountryGroups::fetch($rec->countryGroup)->name == 'България') ? 'bg' : 'en';
+            $emailLanguage = (drdata_CountryGroups::fetchField($rec->countryGroup, 'name') == 'България') ? 'bg' : 'en';
         }
 
 
-        $handle = doc_Containers::getDocument($rec->containerId)->getHandle();
+        $reportDocument = doc_Containers::getDocument($rec->containerId ?? null);
+        $handle = $reportDocument ? $reportDocument->getHandle() : '';
 
-        $listArr = array('title' => 'Справка' . ' ' . $rec->title . ' ' . $handle,
+        $listArr = array('title' => 'Справка' . ' ' . ($rec->title ?? '') . ' ' . $handle,
             'ifExist' => 'truncateAndUpdate',
             'keyField' => 'email',
             'fieldsArr' => array('company' => 'Име', 'country' => 'Държава', 'docs' => 'Документи', 'sum' => 'Стойност', 'currency' => 'Валута', 'date' => 'Дата'),
@@ -968,17 +998,18 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
 
         $res = blast_Emails::createListAndEmail($listArr, $blastArr);
 
-        expect($res['blastId']);
+        $blastId = $res['blastId'] ?? null;
+        expect($blastId);
 
-        $rec->blastId = $res['blastId'];
-        if (countR($rec->unsentEmails)) {
+        $rec->blastId = $blastId;
+        if (countR($rec->unsentEmails ?? array())) {
             status_Messages::newStatus('На ' . countR($rec->unsentEmails) . ' контрагента няма да бъдат изпратени имейли. Виж :' . frame2_Reports::getLinkToSingle($rec->id), 'warning');
         }
 
         frame2_Reports::save($rec, 'blastId');
 
-        if (blast_Emails::haveRightFor('single', $res['blastId'])) {
-            return new Redirect(array('blast_Emails', 'single', $res['blastId']));
+        if (blast_Emails::haveRightFor('single', $blastId)) {
+            return new Redirect(array('blast_Emails', 'single', $blastId));
         }
     }
 

@@ -153,7 +153,7 @@ class tags_LinkedTags extends core_Mvc
         
         static $preparedArr = array();
         
-        if ($preparedArr[$key]) {
+        if (!empty($preparedArr[$key])) {
             
             return ;
         }

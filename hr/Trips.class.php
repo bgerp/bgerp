@@ -228,7 +228,7 @@ class hr_Trips extends core_Master
      */
     public static function on_AfterPrepareListFilter($mvc, $data)
     {
-        $data->listFilter->FLD('employeeId', 'key(mvc=crm_Persons,select=name,allowEmpty,,group=employees)', 'caption=Служител,silent,before=selectPeriod');
+        $data->listFilter->FLD('employeeId', 'key(mvc=crm_Persons,select=name,allowEmpty,,group=employees)', 'caption=Служител,placeholderType=all,silent,before=selectPeriod');
         $data->listFilter->showFields = $data->listFilter->showFields . ',employeeId';
         $data->listFilter->input('employeeId', 'silent');
         
@@ -280,12 +280,15 @@ class hr_Trips extends core_Master
         $rec = $form->rec;
 
         $employees = crm_Persons::getEmployeesOptions(false, null, false, 'active');
-        unset($employees[$rec->personId]);
+        if (isset($rec->personId)) {
+            unset($employees[$rec->personId]);
+        }
         $form->setSuggestions('alternatePersons', $employees);
-        $folderClass = doc_Folders::fetchCoverClassName($rec->folderId);
+        $folderId = $rec->folderId ?? null;
+        $folderClass = isset($folderId) ? doc_Folders::fetchCoverClassName($folderId) : null;
         
-        if ($rec->folderId && $folderClass == 'crm_Persons') {
-            $form->setDefault('personId', doc_Folders::fetchCoverId($rec->folderId));
+        if (isset($folderId) && $folderClass == 'crm_Persons') {
+            $form->setDefault('personId', doc_Folders::fetchCoverId($folderId));
             $form->setReadonly('personId');
             
             if (!haveRole('ceo,hrTrips')) {
@@ -293,7 +296,7 @@ class hr_Trips extends core_Master
             }
         }
 
-        if($data->action != 'changefields'){
+        if(($data->action ?? null) != 'changefields'){
             foreach (array('amountRoad', 'amountDaily', 'amountHouse', 'currencyId') as $fld){
                 $form->setField($fld, "autohide");
             }

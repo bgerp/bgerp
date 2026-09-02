@@ -202,16 +202,16 @@ class incoming_Documents extends core_Master
      */
     public static function getRecTitle($rec, $escaped = true)
     {
-        $title = incoming_Types::fetch($rec->typeId)->name . ' ';
+        $title = incoming_Types::fetchField($rec->typeId ?? null, 'name') . ' ';
         
-        if (strlen($rec->number)) {
+        if (strlen($rec->number ?? '')) {
             $title .= '№' . $rec->number;
-            if (strlen($rec->date)) {
+            if (strlen($rec->date ?? '')) {
                 $title .= ' / ';
             }
         }
         
-        if (strlen($rec->date)) {
+        if (strlen($rec->date ?? '')) {
             $title .= self::getVerbal($rec, 'date');
         }
         
@@ -246,7 +246,7 @@ class incoming_Documents extends core_Master
         
         
         // Ако създаваме документа от файл
-        if (($fileHnd) && (!$data->form->rec->id)) {
+        if (($fileHnd) && empty($data->form->rec->id)) {
             
             // Ескейпваме файл хендлъра
             $fileHnd = $mvc->db->escape($fileHnd);
@@ -270,13 +270,13 @@ class incoming_Documents extends core_Master
     public function on_AfterInputEditForm($mvc, $form)
     {
         // Ако формата е изпратена
-        if (($form->isSubmitted()) && (!$form->rec->id)) {
+        if (($form->isSubmitted()) && empty($form->rec->id)) {
             
             // id от fileman_Data
-            $dataId = fileman_Files::fetchByFh($form->rec->fileHnd, 'dataId');
+            $dataId = fileman_Files::fetchByFh($form->rec->fileHnd ?? null, 'dataId');
             
             // Проверяваме да няма създаден документ за съответния запис
-            if ($dRec = static::fetch("#dataId = '{$dataId}'")) {
+            if ($dataId && ($dRec = static::fetch("#dataId = '{$dataId}'"))) {
                 
                 // Съобщение за грешка
                 $error = '|Има създаден документ за файла|*';
@@ -307,8 +307,9 @@ class incoming_Documents extends core_Master
     public function on_BeforeSave(&$invoker, &$id, &$rec)
     {
         // id от fileman_Data
-        $dataId = fileman_Files::fetchByFh($rec->fileHnd, 'dataId');
-        $rec->dataId = $dataId;
+        if (isset($rec->fileHnd)) {
+            $rec->dataId = fileman_Files::fetchByFh($rec->fileHnd, 'dataId');
+        }
     }
     
     
@@ -325,12 +326,18 @@ class incoming_Documents extends core_Master
         if (!is_object($rec)) {
             $rec = static::fetch($rec);
         }
+        if (!$rec || empty($rec->fileHnd)) {
+            return array();
+        }
         
         // Маниппулатора на файла
         $fh = $rec->fileHnd;
         
         // Вземаме записа на файла
         $fRec = fileman_Files::fetchByFh($fh);
+        if (!$fRec) {
+            return array();
+        }
         
         // Масив с манипулатора и името на файла
         $file = array();
@@ -412,7 +419,7 @@ class incoming_Documents extends core_Master
         
         $ext = fileman_Files::getExt($fileName);
         
-        if (($minLen = $typeToLen[$ext]) && ($minLen <= $fileLen)) {
+        if (($minLen = ($typeToLen[$ext] ?? null)) && ($minLen <= $fileLen)) {
             
             return true;
         }
@@ -433,12 +440,12 @@ class incoming_Documents extends core_Master
      */
     public static function getActionsForFile($fRec)
     {
+        $arr = array();
         if (self::canKeepDoc($fRec->name, $fRec->fileLen)) {
             if(self::haveRightFor('add')){
                 $dfRec = doc_files::fetch("#fileHnd = '{$fRec->fileHnd}'");
 
                 // Създаваме масива за създаване на визитка
-                $arr = array();
                 $inst = cls::get('incoming_Documents');
                 $arr['incoming']['url'] = array($inst->className, 'add', 'fh' => $fRec->fileHnd, 'ret_url' => true);
                 if ($dfRec) {

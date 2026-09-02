@@ -59,13 +59,24 @@ class store_plg_RequestDetail extends core_Plugin
         $showRequested = false;
         
         foreach ($data->rows as $id => &$row) {
+            // Групиращите редове нямат съответстващ запис в recs
+            if (!isset($data->recs[$id])) {
+                continue;
+            }
+
             $rec = $data->recs[$id];
-            $requested = $rec->{$mvc->requestQuantityFieldName};
+            $requested = $rec->{$mvc->requestQuantityFieldName} ?? null;
             
             if (isset($requested)) {
-                if ($requested != $rec->{$mvc->packQuantityFld}) {
-                    if ($requested <= $rec->{$mvc->packQuantityFld}) {
-                        $row->{$mvc->requestQuantityFieldName} = "<span class='red'>{$row->{$mvc->requestQuantityFieldName}}</span>";
+                $packQuantity = $rec->{$mvc->packQuantityFld} ?? null;
+                if (!isset($packQuantity)) {
+                    continue;
+                }
+
+                if ($requested != $packQuantity) {
+                    if ($requested <= $packQuantity) {
+                        $requestedVerbal = $row->{$mvc->requestQuantityFieldName} ?? '';
+                        $row->{$mvc->requestQuantityFieldName} = "<span class='red'>{$requestedVerbal}</span>";
                     }
                     $showRequested = true;
                 } else {
@@ -90,7 +101,7 @@ class store_plg_RequestDetail extends core_Plugin
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-        if (isset($rec->{$mvc->requestQuantityFieldName})) {
+        if (isset($rec->{$mvc->requestQuantityFieldName}) && !empty($rec->{$mvc->quantityInPackName})) {
             $rec->{$mvc->requestQuantityFieldName} /= $rec->{$mvc->quantityInPackName};
             $row->{$mvc->requestQuantityFieldName} = $mvc->getFieldType($mvc->requestQuantityFieldName)->toVerbal($rec->{$mvc->requestQuantityFieldName});
         }

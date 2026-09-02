@@ -129,13 +129,13 @@ class rack_RackDetails extends core_Detail
         $form->setReadOnly('row');
         $form->setReadOnly('col');
         
-        if (!$rec->id) {
+        if (empty($rec->id)) {
             if ($exRec = self::fetch(array("#rackId = [#1#] AND #row = '[#2#]' AND #col = [#3#]", $rec->rackId, $rec->row, $rec->col))) {
                 $rec = $exRec;
             }
         }
 
-        if (in_array($rec->status, array('reservedSoft', 'reserved'))) {
+        if (in_array($rec->status ?? null, array('reservedSoft', 'reserved'))) {
             $form->setField('productId', 'input=input');
         }
         
@@ -159,7 +159,7 @@ class rack_RackDetails extends core_Detail
         if ($form->isSubmitted()) {
             $rec = $form->rec;
             
-            if ($rec->nextRow || $rec->nextCol) {
+            if (($rec->nextRow ?? null) || ($rec->nextCol ?? null)) {
                 if (empty($rec->nextRow)) {
                     $rec->nextRow = $rec->row;
                 }
@@ -240,7 +240,7 @@ class rack_RackDetails extends core_Detail
      */
     public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
-        if (is_array($rec->_toSave) && countR($rec->_toSave)) {
+        if (is_array($rec->_toSave ?? null) && countR($rec->_toSave)) {
             foreach ($rec->_toSave as $r) {
                 $r->id = self::fetch("#col = {$r->col} AND #row = '{$r->row}' AND #rackId = {$r->rackId}")->id;
                 

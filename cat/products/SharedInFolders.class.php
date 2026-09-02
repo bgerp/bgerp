@@ -44,7 +44,7 @@ class cat_products_SharedInFolders extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'cat_Wrapper, plg_RowTools, plg_SaveAndNew';
+    public $loadList = 'cat_Wrapper, plg_RowTools2, plg_SaveAndNew';
     
     
     /**
@@ -250,7 +250,7 @@ class cat_products_SharedInFolders extends core_Manager
      */
     public function renderShared($data)
     {
-        if ($data->hide == true) {
+        if (($data->hide ?? null) == true) {
             
             return;
         }
@@ -277,6 +277,8 @@ class cat_products_SharedInFolders extends core_Manager
         
         if (is_array($data->rows)) {
             foreach ($data->rows as $row) {
+                core_RowToolbar::createIfNotExists($row->_rowTools);
+                $row->tools = $row->_rowTools->renderHtml();
                 $dTpl = new core_ET("<div>[#folderId#] <span class='custom-rowtools'>[#tools#]</span></div>");
                 $dTpl->placeObject($row);
                 $dTpl->removeBlocks();

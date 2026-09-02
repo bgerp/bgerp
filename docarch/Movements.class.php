@@ -117,7 +117,7 @@ class docarch_Movements extends core_Master
         $form->setOptions('type', $types);
         
         //Архивиране на документ
-        if (($rec->documentId && !$rec->id)) {
+        if (!empty($rec->documentId) && empty($rec->id)) {
             $arcivesArr = array();
             $archArr = array();
             
@@ -177,13 +177,15 @@ class docarch_Movements extends core_Master
             $volQuery->where("#isForDocuments = 'yes' AND #state = 'active' AND #inCharge = '{$currentUser}'");
             
             while ($vRec = $volQuery->fetch()) {
-                $classArrId = explode('|', trim(docarch_Archives::fetch($vRec->archive)->documents, '|'));
+                $archiveRec = !empty($vRec->archive) ? docarch_Archives::fetch($vRec->archive, 'documents,name') : null;
+                $archiveDocuments = $archiveRec->documents ?? null;
+                $classArrId = explode('|', trim((string) $archiveDocuments, '|'));
                 
-                if ((!is_null(docarch_Archives::fetch($vRec->archive)->documents)) && (!in_array($documentClassId, $classArrId))) {
+                if (!is_null($archiveDocuments) && !in_array($documentClassId, $classArrId)) {
                     continue;
                 }
                 
-                $arch = ($vRec->archive == 0) ? 'Сборен' : docarch_Archives::fetch($vRec->archive)->name;
+                $arch = ($vRec->archive == 0) ? 'Сборен' : ($archiveRec->name ?? '');
                 
                 $volName = docarch_Volumes::getVolumeTypeName($vRec->type);
                 
@@ -204,7 +206,7 @@ class docarch_Movements extends core_Master
             $form->setDefault('userID', "{$currentUser}");
         }
         
-        if (($rec->documentId && $rec->id)) {
+        if (!empty($rec->documentId) && !empty($rec->id)) {
         }
     }
     
@@ -220,7 +222,12 @@ class docarch_Movements extends core_Master
     protected static function on_AfterInputEditForm($mvc, &$form)
     {
         if ($form->isSubmitted()) {
-            $form->rec->position = docarch_Volumes::fetch($form->rec->toVolumeId)->title;
+            $volumeRec = docarch_Volumes::fetch($form->rec->toVolumeId);
+            if ($volumeRec) {
+                $form->rec->position = $volumeRec->title;
+            } else {
+                $form->setError('toVolumeId', 'Невалиден том');
+            }
         }
     }
     
@@ -245,8 +252,9 @@ class docarch_Movements extends core_Master
         
         
         if (in_array($rec->type, $incrementMoves)) {
-            if (!is_null($rec->toVolumeId)) {
-                $volRec = docarch_Volumes::fetch($rec->toVolumeId);
+            $volRec = !empty($rec->toVolumeId) ? docarch_Volumes::fetch($rec->toVolumeId) : null;
+            if (!$volRec) {
+                return;
             }
             
             $volRec->_isCreated = true;
@@ -265,8 +273,9 @@ class docarch_Movements extends core_Master
         }
         
         if (in_array($rec->type, $decrementMoves)) {
-            if (!is_null($rec->toVolumeId)) {
-                $volRec = docarch_Volumes::fetch($rec->toVolumeId);
+            $volRec = !empty($rec->toVolumeId) ? docarch_Volumes::fetch($rec->toVolumeId) : null;
+            if (!$volRec) {
+                return;
             }
             
             $volRec->_isCreated = true;
@@ -289,8 +298,8 @@ class docarch_Movements extends core_Master
     {
         $data->toolbar->removeBtn('btnAdd');
         
-        if ($data->filterCheck) {
-            $documentContainerId = ($data->listFilter->rec->document);
+        if (!empty($data->filterCheck)) {
+            $documentContainerId = $data->listFilter->rec->document ?? null;
             
             $Document = doc_Containers::getDocument($documentContainerId);
             $documentName = $Document->singleTitle.'-'.$Document->getHandle();
@@ -333,7 +342,7 @@ class docarch_Movements extends core_Master
         
         $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
         
-        $data->listFilter->FNC('toVolume', 'key(mvc=docarch_Volumes,allowEmpty, select=title)', 'caption=Входящ том,placeholder=Входящ том');
+        $data->listFilter->FNC('toVolume', 'key(mvc=docarch_Volumes,allowEmpty, select=title)', 'caption=Входящ том,placeholderType=all');
         
         $data->listFilter->showFields = 'toVolume';
         
@@ -343,13 +352,16 @@ class docarch_Movements extends core_Master
         
         $data->listFilter->input(null, true);
         
-        if ($data->listFilter->isSubmitted() || $data->listFilter->rec->document) {
-            if ($data->listFilter->rec->toVolume) {
-                $data->query->where(array("#toVolumeId = '[#1#]'", $data->listFilter->rec->toVolume));
+        $filterRec = $data->listFilter->rec;
+        $documentId = $filterRec->document ?? null;
+        $toVolumeId = $filterRec->toVolume ?? null;
+        if ($data->listFilter->isSubmitted() || $documentId) {
+            if ($toVolumeId) {
+                $data->query->where(array("#toVolumeId = '[#1#]'", $toVolumeId));
             }
             
-            if ($data->listFilter->rec->document) {
-                $data->query->where(array("#documentId = '[#1#]'", $data->listFilter->rec->document));
+            if ($documentId) {
+                $data->query->where(array("#documentId = '[#1#]'", $documentId));
                 
                 $data->filterCheck = true;
             }
@@ -385,13 +397,13 @@ class docarch_Movements extends core_Master
         
         //Ако движението е "Включване"
         if ($rec->type == 'include') {
-            list($position, $volumes) = explode('»', $rec->position);
+            list($position, $volumes) = array_pad(explode('»', $rec->position, 2), 2, '');
             
-            list($downVol, $upVol) = explode('|', $volumes);
+            list($downVol, $upVol) = array_pad(explode('|', $volumes, 2), 2, '');
             
-            list($downVolId, $downVolTitle) = explode('*', $downVol);
+            list($downVolId, $downVolTitle) = array_pad(explode('*', $downVol, 2), 2, '');
             
-            list($upVolId, $upVolTitle) = explode('*', $upVol);
+            list($upVolId, $upVolTitle) = array_pad(explode('*', $upVol, 2), 2, '');
             
             if (docarch_Volumes::fetch($downVolId) === false) {
                 $row->documentId .= $downVolTitle.'(Изтрит)'.' » ';
@@ -446,11 +458,11 @@ class docarch_Movements extends core_Master
         
         //Ако движението е "Изключване"
         if ($rec->type == 'exclude') {
-            list($downVol, $upVol) = explode('|', $rec->position);
+            list($downVol, $upVol) = array_pad(explode('|', $rec->position, 2), 2, '');
             
-            list($downVolId, $downVolTitle) = explode('*', $downVol);
+            list($downVolId, $downVolTitle) = array_pad(explode('*', $downVol, 2), 2, '');
             
-            list($upVolId, $upVolTitle) = explode('*', $upVol);
+            list($upVolId, $upVolTitle) = array_pad(explode('*', $upVol, 2), 2, '');
             
             if (docarch_Volumes::fetch($downVolId) === false) {
                 $row->documentId .= $downVolTitle.'(Изтрит)'.' » ';
@@ -469,7 +481,7 @@ class docarch_Movements extends core_Master
         
         //Ако движението е "Създаване"
         if ($rec->type == 'creating') {
-            list($id, $className, $title) = explode('|', $rec->position);
+            list($id, $className, $title) = array_pad(explode('|', $rec->position, 3), 3, '');
             
             expect($className, $id);
             
@@ -484,7 +496,7 @@ class docarch_Movements extends core_Master
         
         //Ако движението е "Редактиране"
         if ($rec->type == 'edit') {
-            list($id, $className, $title) = explode('|', $rec->position);
+            list($id, $className, $title) = array_pad(explode('|', $rec->position, 3), 3, '');
             
             expect($className, $id);
             
@@ -540,6 +552,7 @@ class docarch_Movements extends core_Master
             $count = cls::get('type_Int')->toVerbal($archCnt);
             $actionVerbal = tr('архиви');
             $Document = doc_Containers::getDocument($containerId);
+            $linkArr = null;
             
             if ($Document->haveRightFor('single')) {
                 $linkArr = array('docarch_Movements', 'document' => $containerId, 'ret_url' => true);
@@ -605,7 +618,9 @@ class docarch_Movements extends core_Master
         $form->input();
         
         if ($form->isSubmitted()) {
-            $form->rec->position = docarch_Volumes::fetch($form->rec->toVolumeId)->title;
+            $volumeRec = docarch_Volumes::fetch($form->rec->toVolumeId);
+            expect($volumeRec, $form->rec->toVolumeId);
+            $form->rec->position = $volumeRec->title;
             
             $this->save($form->rec);
             
@@ -682,7 +697,9 @@ class docarch_Movements extends core_Master
             docarch_Volumes::save($includeRec);
             
             $upVolId = $mRec->fromVolumeId;
-            $upVolTitle = $upVolTitle = docarch_Volumes::fetch($upVolId)-> title;
+            $upVolRec = docarch_Volumes::fetch($upVolId);
+            expect($upVolRec, $upVolId);
+            $upVolTitle = $upVolRec->title;
             
             
             $mRec->position .= '»'.$thisVolId.'*'.$thisVolRec->title.'|'.$upVolId.'*'.$upVolTitle;
@@ -712,9 +729,12 @@ class docarch_Movements extends core_Master
         $thisVolId = Request::get('id');
         
         $thisVolRec = docarch_Volumes::fetch($thisVolId);
+        expect($thisVolRec, $thisVolId);
         
-        $upVolId = docarch_Volumes::fetch($thisVolRec->includeIn)-> id;
-        $upVolTitle = docarch_Volumes::fetch($thisVolRec->includeIn)-> title;
+        $upVolRec = docarch_Volumes::fetch($thisVolRec->includeIn);
+        expect($upVolRec, $thisVolRec->includeIn);
+        $upVolId = $upVolRec->id;
+        $upVolTitle = $upVolRec->title;
         
         $ExcludeRec->includeIn = null;
         
@@ -747,6 +767,7 @@ class docarch_Movements extends core_Master
      */
     public static function getMoveName($type)
     {
+        $typeName = $type;
         switch ($type) {
             
             case 'creating':$typeName = 'Създаване'; break;
@@ -787,7 +808,7 @@ class docarch_Movements extends core_Master
         
         $mQuery->where('#documentId IS NOT NULL');
         
-        $mQuery->where("#documentId = ${containerId}");
+        $mQuery->where("#documentId = {$containerId}");
         
         $mQuery->orderBy('createdOn', 'ASC');
         
@@ -798,7 +819,12 @@ class docarch_Movements extends core_Master
         }
         
         while ($movie = $mQuery->fetch()) {
-            if (!is_null($arch) && $arch != docarch_Volumes::fetch($movie->toVolumeId)->archive) {
+            $volumeRec = docarch_Volumes::fetch($movie->toVolumeId);
+            if (!$volumeRec) {
+                continue;
+            }
+
+            if (!is_null($arch) && $arch != $volumeRec->archive) {
                 continue;
             }
             
@@ -806,7 +832,7 @@ class docarch_Movements extends core_Master
                 expect(in_array($movie->type, array('archiving','taking')));
                 
                 if (!is_null($movie->toVolumeId)) {
-                    $archive = docarch_Volumes::fetch($movie->toVolumeId)->archive;
+                    $archive = $volumeRec->archive;
                 }
                 
                 $counter = $movie->type == 'archiving' ? 1 : -1;

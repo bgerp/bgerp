@@ -33,7 +33,7 @@ class plg_AutoFilter extends core_Plugin
         
         $autoFields = $mvc->selectFields('autoFilter');
         
-        if (!$rec->id) {
+        if (empty($rec->id)) {
             foreach ($autoFields as $name => $field) {
                 $modeName = 'lastAutoFielter_' . $name;
                 if (!$rec->{$name} && ($lastValue = Mode::get($modeName))) {

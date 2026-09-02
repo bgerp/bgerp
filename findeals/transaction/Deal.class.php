@@ -37,7 +37,7 @@ class findeals_transaction_Deal extends acc_DocumentTransactionSource
         $rec->currencyRate = $rec->currencyRate ?? currency_CurrencyRates::getRate($rec->valior, $rec->currencyId, null);
 
         $result = (object) array(
-            'reason' => "{$title} №{$rec->id}",
+            'reason' => "{$title} №" . ($rec->id ?? ''),
             'valior' => $rec->valior,
             'entries' => array(),
         );

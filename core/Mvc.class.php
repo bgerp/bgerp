@@ -407,7 +407,7 @@ class core_Mvc extends core_FieldSet
         
         if ($query == '') {
             
-            return $rec->id;
+            return $rec->id ?? null;
         }
         
         $mode = str_replace(' ', '_', strtolower($mode ?? ''));
@@ -505,7 +505,7 @@ class core_Mvc extends core_FieldSet
             if ($fld->kind == 'FLD' && (!countR($fields) || !empty($fields[$name]))) {
                 $fieldsArr[$name] = $fld;
                 $mysqlName = str::phpToMysqlName($name);
-                $insertFields .= "`${mysqlName}`,";
+                $insertFields .= "`{$mysqlName}`,";
                 $updateFields .= "`{$mysqlName}`=VALUES(`{$mysqlName}`),";
             }
         }
@@ -687,7 +687,7 @@ class core_Mvc extends core_FieldSet
             $query->where("#id IN ({$ids})");
         } elseif (ctype_digit("{$onlyIds}")) {
             $query->where("#id = {$onlyIds}");
-        } elseif (preg_match("/^[0-9\,]+$/", $onlyIds)) {
+        } elseif (preg_match("/^[0-9\,]+$/", (string) $onlyIds)) {
             $query->where("#id IN ({$onlyIds})");
         }
         

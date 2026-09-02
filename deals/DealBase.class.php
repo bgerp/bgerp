@@ -403,16 +403,19 @@ abstract class deals_DealBase extends core_Master
                 $exClosedDoc = $CloseDoc->fetch("#threadId = {$dealRec->threadId} AND #state = 'active'");
                 $dealRec->valior < acc_Setup::getEurozoneDate() ? $beforeEu++ : $afterEu++;
 
-                $logisticData = $this->getLogisticData($d1);
-                if(isset($logisticData['toCountry'])){
-                    $toCountryId = drdata_Countries::getIdByName($logisticData['toCountry']);
-                    $dealCountries[$toCountryId][] = $d1;
+                // Държава на доставка има само при документите с логистични данни
+                if($this->haveInterface('trans_LogisticDataIntf')){
+                    $logisticData = $this->getLogisticData($d1);
+                    if(isset($logisticData['toCountry'])){
+                        $toCountryId = drdata_Countries::getIdByName($logisticData['toCountry']);
+                        $dealCountries[$toCountryId][] = $d1;
+                    }
                 }
                 if (acc_plg_Contable::haveDocumentInThreadWithStates($dealRec->threadId, 'pending,draft')) {
                     $err[] = $this->getLink($d1, 0);
                 }
 
-                if($dealItemRec->state == 'closed' || $exClosedDoc){
+                if((!empty($dealItemRec) && $dealItemRec->state == 'closed') || $exClosedDoc){
                     $closedDeals[] = $this->getLink($dealRec->id, 0);
                 }
                 $warning["{$dealRec->currencyRate}"] = $dealRec->currencyRate;
@@ -434,9 +437,9 @@ abstract class deals_DealBase extends core_Master
             }
 
             $countryWarningMsg = array();
-            $logisticData = $this->getLogisticData($rec->id);
             if(countR($dealCountries)){
-                $toCountryId = drdata_Countries::getIdByName($logisticData['toCountry']);
+                $logisticData = $this->getLogisticData($rec->id);
+                $toCountryId = drdata_Countries::getIdByName($logisticData['toCountry'] ?? null);
                 if(isset($toCountryId)){
                     $dealList = array();
                     $diffCountries = array_diff_key($dealCountries, array($toCountryId => $toCountryId));
@@ -503,7 +506,7 @@ abstract class deals_DealBase extends core_Master
                     cls::get('acc_Items')->flushTouched();
                 }
 
-                if($formRec->_recalRate){
+                if(!empty($formRec->_recalRate)){
                     $notifiedItems2 = array();
                     $recalcRates = $deals + array($rec->id => $rec);
                     foreach ($recalcRates as $recalcDealId){

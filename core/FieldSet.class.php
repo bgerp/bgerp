@@ -118,9 +118,8 @@ class core_FieldSet extends core_BaseClass
             }
         }
         
+        expect(isset($mvc->fields[$params['externalName']]), $params['externalName'], $mvc->fields, $mvc->className);
         $fieldType = $mvc->fields[$params['externalName']]->type;
-        
-        expect(isset($fieldType), $params['externalName'], $mvc->fields, $mvc->className);
         
         $this->setField($name, arr::combine(array(
             'kind' => 'EXT',
@@ -196,7 +195,7 @@ class core_FieldSet extends core_BaseClass
             $mustOrder = isset($params['mustOrder']) ? $params['mustOrder'] : null;
             
             if ($newField && isset($this->fields[$name])) {
-                if ($params['forceField']) {
+                if (!empty($params['forceField'])) {
                     
                     return;
                 }
@@ -264,20 +263,20 @@ class core_FieldSet extends core_BaseClass
             
             if ((isset($params['before']) && (countR($params['before'])) || (isset($params['after']) && countR($params['after']))) && $mustOrder) {
                 $newFields = array();
-                $isSet = false;
                 foreach ($this->fields as $exName => $exFld) {
                     if (isset($params['before']) && is_array($params['before']) && in_array($exName, $params['before'])) {
-                        $isSet = true;
+                        // unset() преди преприсвояване, за да се премести и когато $name
+                        // вече е бил добавен по-рано в $newFields (PHP не мести ключ,
+                        // който вече съществува в масива, само при преприсвояване)
+                        unset($newFields[$name]);
                         $newFields[$name] = &$this->fields[$name];
                     }
-                    
-                    if (!$isSet || ($exName != $name)) {
-                        $newFields[$exName] = &$this->fields[$exName];
-                    }
-                    
+
+                    $newFields[$exName] = &$this->fields[$exName];
+
                     if (isset($params['after']) && is_array($params['after']) && in_array($exName, $params['after'])) {
+                        unset($newFields[$name]);
                         $newFields[$name] = &$this->fields[$name];
-                        $isSet = true;
                     }
                 }
                 $this->fields = $newFields;
@@ -594,7 +593,7 @@ class core_FieldSet extends core_BaseClass
         ));
         
         foreach ($fArr as $name => $caption) {
-            if (!$where || @eval("return ${cond};")) {
+            if (!$where || @eval("return {$cond};")) {
                 $res[$name] = $this->fields[$name];
             }
         }
@@ -670,11 +669,37 @@ class core_FieldSet extends core_BaseClass
     public function setFieldAttr($name, $arr)
     {
         $arr = arr::make($arr, true);
-        
+
         $this->setField($name, array('attr' => $arr));
     }
-    
-    
+
+
+    /**
+     * Добавя CSS клас към параметър на поле ('tdClass', 'class' и др.), без да
+     * презаписва вече зададените класове. Ако полето липсва - прави нищо.
+     *
+     * Преди промяната клонира field-обекта, за да не мутира състояние, споделено
+     * с други инстанции/клонинги на MVC-то (напр. singleton мениджъри, клонирани
+     * само за нуждите на едно рендиране).
+     *
+     * @param string $name      - име на полето
+     * @param string $field     - параметър на полето, върху който се добавя класът ('tdClass', 'class' и др.)
+     * @param string $className - CSS клас, който да се добави
+     */
+    public function appendFieldClass($name, $field, $className)
+    {
+        $fld = $this->getField($name, false);
+        if (!$fld) {
+            return;
+        }
+
+        $this->fields[$name] = clone $fld;
+        $classes = arr::make($this->fields[$name]->{$field} ?? '', true);
+        $classes[$className] = $className;
+        $this->fields[$name]->{$field} = implode(' ', $classes);
+    }
+
+
     /**
      * Задава/Подменя тип на полето
      *

@@ -342,7 +342,7 @@ class blogm_Articles extends core_Master
         $data->listFilter->title = 'Търсене';
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
-        $data->listFilter->FNC('category', 'key(mvc=blogm_Categories,select=title,allowEmpty)', 'placeholder=Категория,silent,autoFilter');
+        $data->listFilter->FNC('category', 'key(mvc=blogm_Categories,select=title,allowEmpty)', 'caption=Категория,placeholderType=all,silent,autoFilter');
         
         $data->listFilter->showFields = 'search,category';
         
@@ -366,7 +366,7 @@ class blogm_Articles extends core_Master
         }
         
         // Ако метода е 'browse' показваме само активните статии
-        if ($data->action == 'browse') {
+        if (($data->action ?? null) == 'browse') {
             
             // Показваме само статиите които са активни
             $data->query->where("#state = 'active'");
@@ -1136,6 +1136,36 @@ class blogm_Articles extends core_Master
     }
     
     
+    /**
+     * Връща елементите за футър менюто
+     *
+     * @param stdClass $menuRec
+     * @return array
+     */
+    public function getFooterMenuItems($menuRec)
+    {
+        $items = array();
+        $query = blogm_Categories::getQuery();
+        $query->where("#domainId = {$menuRec->domainId}");
+        $query->where("#menuId = {$menuRec->id} OR LOCATE('|{$menuRec->id}|', #sharedMenus)");
+        $query->where('#saoLevel <= 1');
+        $query->orderBy('#saoLevel', 'ASC');
+        $query->orderBy('#saoOrder', 'ASC');
+        $query->orderBy('#id', 'ASC');
+
+        while ($rec = $query->fetch()) {
+            $items[] = (object) array(
+                'id' => $rec->id,
+                'parentId' => 0,
+                'title' => blogm_Categories::getVerbal($rec, 'title'),
+                'url' => array('blogm_Articles', 'Browse', 'cMenuId' => $menuRec->id, 'category' => $rec->id),
+            );
+        }
+
+        return $items;
+    }
+
+
     /**
      * Връща URL към вътрешната част (работилницата), отговарящо на посочената точка в менюто
      */

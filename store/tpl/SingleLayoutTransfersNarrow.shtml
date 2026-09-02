@@ -15,6 +15,13 @@
                   </span>
                </div>
 
+               <!--ET_BEGIN pendingStage-->
+               <div style='margin: 5px 0;'>[#pendingStage#]</div>
+               <!--ET_END pendingStage-->
+               <!--ET_BEGIN pendingOn-->
+               <div class='quiet small'>|Заявено|*: [#pendingOn#]</div>
+               <!--ET_END pendingOn-->
+
                <!--ET_BEGIN MISC_BLOCK-->
                [#MISC_BLOCK#]
                <table class="document-block no-border">

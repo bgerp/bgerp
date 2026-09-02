@@ -35,7 +35,7 @@ class type_Classes extends type_Keylist
      */
     public function getSuggestions()
     {
-        $this->suggestions = self::getOptionsByInterfaceAndParent($this->params['interface'], $this->params['select'], $this->params['parent'], $this->option);
+        $this->suggestions = self::getOptionsByInterfaceAndParent($this->params['interface'] ?? null, $this->params['select'] ?? 'name', $this->params['parent'] ?? null, $this->option ?? null);
         
         return $this->suggestions;
     }
@@ -46,7 +46,7 @@ class type_Classes extends type_Keylist
      */
     public function prepareSuggestions($ids = null)
     {
-        $this->suggestions = self::getOptionsByInterfaceAndParent($this->params['interface'], $this->params['select'], $this->params['parent'], $this->option);
+        $this->suggestions = self::getOptionsByInterfaceAndParent($this->params['interface'] ?? null, $this->params['select'] ?? 'name', $this->params['parent'] ?? null, $this->option ?? null);
         
         return $this->suggestions;
     }
@@ -58,7 +58,7 @@ class type_Classes extends type_Keylist
     public function renderInput_($name, $value = '', &$attr = array())
     {
         if (!$value) {
-            $value = $attr['value'];
+            $value = $attr['value'] ?? '';
         }
         
         if (!keylist::isKeylist($value)) {
@@ -110,9 +110,7 @@ class type_Classes extends type_Keylist
         
         $error = false;
         
-        $options = self::getOptionsByInterfaceAndParent($this->params['interface'], $this->params['select'], $this->params['parent'], $this->option);
-        
-        $classNameOptions = core_Classes::getOptionsByInterface($interface, 'name');
+        $options = self::getOptionsByInterfaceAndParent($this->params['interface'] ?? null, $this->params['select'] ?? 'name', $this->params['parent'] ?? null, $this->option ?? null);
         
         $value = parent::fromVerbal($value);
         
@@ -206,11 +204,13 @@ class type_Classes extends type_Keylist
             if($parent && !cls::isSubclass($id, $parent)) continue;
             
             if (!$flagRaw) {
-                list($group, $name) = explode('»', $title);
+                $titleParts = explode('»', $title, 2);
+                $group = $titleParts[0];
+                $name = $titleParts[1] ?? null;
                 if ($name) {
                     $haveGroupName = true;
                 }
-                $name = trim($name);
+                $name = trim($name ?? '');
                 $group = trim($group);
                 
                 $name = $name ? $name : $group;

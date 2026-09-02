@@ -242,6 +242,18 @@ defIfNot('PLANNING_MANUAL_ORDER_IN_ASSET', 'no');
 
 
 /**
+ * Минимално сходство на планиращите параметри за автоматично групиране
+ */
+defIfNot('PLANNING_TASK_PARAM_GROUP_SIMILARITY', 0.75);
+
+
+/**
+ * Максимална разлика между падежите за автоматично групиране по планиращи параметри->Дни
+ */
+defIfNot('PLANNING_TASK_PARAM_GROUP_DAYS', 7);
+
+
+/**
  * Колко индивидуални бутони за субпродукти да се показват в ПО->Брой
  */
 defIfNot('PLANNING_TASK_SUB_PRODUCT_MIN_BUTTONS', '5');
@@ -266,9 +278,15 @@ defIfNot('PLANNING_PRODUCT_IMAGE_IN_PRODUCTION_NOTE_PRINTING', 'no');
 
 
 /**
- * Пренасяне забележките на артикулите от рецептата в Протокола за производство->По подразбиране
+ * Пренасяне на описанията на артикулите от рецептата
  */
 defIfNot('PLANNING_BOM_TRANSFER_NOTES', 'no');
+
+
+/**
+ * Пренасяне на забележките от рецептата
+ */
+defIfNot('PLANNING_BOM_TRANSFER_RECIPE_NOTES', 'no');
 
 
 
@@ -359,12 +377,15 @@ class planning_Setup extends core_ProtoSetup
         'PLANNING_MIN_TIME_FOR_GAP' => array('time', 'caption=Минимално време между ПО на една машина приемащо се за дупка->Време'),
         'PLANNING_PRODUCTION_DELETE_SYSTEM_DETAILS' => array('enum(yes=Да,no=Не)', array('caption' => 'Изтриване на редове от ПП с очаквано количество по рецепта/за влагане->Избор')),
         'PLANNING_MANUAL_ORDER_IN_ASSET' => array('enum(yes=Да,no=Не)', array('caption' => 'САМО ръчно подреждане на операциите на оборудването->Избор')),
+        'PLANNING_TASK_PARAM_GROUP_SIMILARITY' => array('percent(Min=0,Max=1,decimals=0)', array('caption' => 'Автоматично групиране по планиращи параметри->Минимално съвпадение')),
+        'PLANNING_TASK_PARAM_GROUP_DAYS' => array('int(Min=1)', 'caption=Автоматично групиране по планиращи параметри->Период,unit=дни'),
         'PLANNING_TASK_SUB_PRODUCT_MIN_BUTTONS' => array('int(Min=0)', array('caption' => 'Колко индивидуални бутони за субпродукти да се показват в ПО->Брой')),
         'PLANNING_ALLOW_STORE_DOCS_IN_JOB' => array('time', array('caption' => 'До кога след приключване на заданието да се контират протоколи за влагане и връщане->Време')),
         'PLANNING_AUTO_ADD_CONVERTABLE_TO_TASK' => array('enum(no=Изключено,yes=Включено)', array('caption' => 'Автоматично добавяне на артикули от Протокол за влагане (на Заявка) в ПО->Избор')),
         'PLANNING_PRODUCT_IMAGE_IN_PRODUCTION_NOTE_PRINTING' => array('enum(no=Изключено,yes=Включено)', array('caption' => 'При печат на ПП да се показва изображението на артикула->Избор')),
         'PLANNING_TASK_FAST_PROGRESS_BTN' => array('enum(no=Изключено,yes=Включено)', array('caption' => 'Добавяне на бърз прогрес за оставащото в листа на ПО->Избор')),
-        'PLANNING_BOM_TRANSFER_NOTES' => array('enum(yes=Да,no=Не)', 'caption=Пренасяне забележките на артикулите от рецептата в Протокола за производство->По подразбиране'),
+        'PLANNING_BOM_TRANSFER_NOTES' => array('enum(job=в Заданието,production=в Протокола за производство,yes=в Заданието и Протокола,no=Не се пренасят)', 'caption=Пренасяне от Рецептата в Заданието и Протокола за производство->Описанията на артикулите'),
+        'PLANNING_BOM_TRANSFER_RECIPE_NOTES' => array('enum(job=в Заданието,production=в Протокола за производство,yes=в Заданието и Протокола,no=Не се пренася)', 'caption=Пренасяне от Рецептата в Заданието и Протокола за производство->Забележката от рецептата'),
     );
 
 
@@ -402,7 +423,7 @@ class planning_Setup extends core_ProtoSetup
             'controller' => 'planning_AssetResources',
             'action' => 'RecalcTaskTimes',
             'period' => 5,
-            'timeLimit' => 60,
+            'timeLimit' => 600,
         ),
 
         array(
@@ -438,6 +459,8 @@ class planning_Setup extends core_ProtoSetup
         'planning_DirectProductNoteDetails',
         'planning_ReturnNotes',
         'planning_ReturnNoteDetails',
+        'planning_DisassemblyNote',
+        'planning_DisassemblyNoteDetails',
         'planning_Tasks',
         'planning_AssetResources',
         'planning_AssetResourceFolders',
@@ -468,6 +491,7 @@ class planning_Setup extends core_ProtoSetup
     public $roles = array(
         array('jobSee'),
         array('job', 'jobSee'),
+        array('jobDisassembly', 'jobSee'),
         array('taskSee'),
         array('taskWorker', 'taskSee'),
         array('taskPostProduction', 'taskWorker'),

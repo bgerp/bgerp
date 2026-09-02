@@ -371,7 +371,7 @@ class vtotal_Checks extends core_Master
                 
                 // Изтриваме временната директория за съхранение на архива.
                 $archivInst->deleteTempPath();
-            } elseif (!$dangerExtensionsArr[mb_strtolower($extension)]) {
+            } elseif (empty($dangerExtensionsArr[mb_strtolower($extension)])) {
                 $cRec = $this->fetch("#filemanDataId = {$rec->dataId}");
                 
                 if ($cRec) {
@@ -385,7 +385,7 @@ class vtotal_Checks extends core_Master
                     
                     while ($fRec = $fQuery->fetch()) {
                         $extensionFRec = pathinfo($fRec->name, PATHINFO_EXTENSION);
-                        if (!isset($fRec->dangerRate) && !$dangerExtensionsArr[mb_strtolower($extensionFRec)]) {
+                        if (!isset($fRec->dangerRate) && empty($dangerExtensionsArr[mb_strtolower($extensionFRec)])) {
                             $fRec->dangerRate = 0;
                             fileman_Files::save($fRec, 'dangerRate');
                         }

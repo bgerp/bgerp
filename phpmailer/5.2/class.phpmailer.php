@@ -1794,7 +1794,7 @@ class PHPMailer
             $encoded = str_replace('='.$this->LE, "\n", trim($encoded));
         }
 
-        $encoded = preg_replace('/^(.*)$/m', ' =?'.$this->CharSet."?${encoding}?\\1?=", $encoded);
+        $encoded = preg_replace('/^(.*)$/m', ' =?'.$this->CharSet."?{$encoding}?\\1?=", $encoded);
         $encoded = trim(str_replace("\n", $this->LE, $encoded));
 
         return $encoded;
@@ -2591,7 +2591,7 @@ class PHPMailer
     $DKIMcanonicalization = 'relaxed/simple'; // Canonicalization of header/body
     $DKIMquery = 'dns/txt'; // Query method
     $DKIMtime = time() ; // Signature Timestamp = seconds since 00:00:00 - Jan 1, 1970 (UTC time zone)
-    $subject_header = "Subject: ${subject}";
+    $subject_header = "Subject: {$subject}";
         $headers = explode($this->LE, $headers_line);
         foreach ($headers as $header) {
             if (strpos($header, 'From:') === 0) {
@@ -2611,9 +2611,9 @@ class PHPMailer
                 "\tt=" . $DKIMtime . '; c=' . $DKIMcanonicalization . ";\r\n".
                 "\th=From:To:Subject;\r\n".
                 "\td=" . $this->DKIM_domain . ';' . $ident . "\r\n".
-                "\tz=${from}\r\n".
-                "\t|${to}\r\n".
-                "\t|${subject};\r\n".
+                "\tz={$from}\r\n".
+                "\t|{$to}\r\n".
+                "\t|{$subject};\r\n".
                 "\tbh=" . $DKIMb64 . ";\r\n".
                 "\tb=";
         $toSign = $this->DKIM_HeaderC($from_header . "\r\n" . $to_header . "\r\n" . $subject_header . "\r\n" . $dkimhdrs);

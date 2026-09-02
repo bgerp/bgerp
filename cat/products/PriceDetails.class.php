@@ -154,7 +154,7 @@ class cat_products_PriceDetails extends core_Manager
         
         // Само за публичните показваме правилото за обновяване
         if ($data->masterData->rec->isPublic == 'yes') {
-            if($data->masterData->rec->canStore == 'yes' && ($data->masterData->rec->canBuy == 'yes' || $data->masterData->rec->canManifacture == 'yes')){
+            if($data->masterData->rec->canBuy == 'yes' || $data->masterData->rec->canManifacture == 'yes'){
 
                 // Ако има правило за обновяване към конкретния артикул
                 $data->updateData = clone $data;
@@ -190,7 +190,7 @@ class cat_products_PriceDetails extends core_Manager
                 
                 $verbPrice = core_Type::getByName('double(smartRound,minDecimals=2)')->toVerbal($primeCost);
                 if($primeCostIsFromTemplate === true && isset($verbPrice)){
-                    $verbPrice = ht::createHint($verbPrice, 'Себестойността е зададена за шаблонния артикул|*!', 'notice', false, 'height=14px,width=14px', 'style=color:blue');
+                    $verbPrice = ht::createHint($verbPrice, 'Себестойността е зададена за шаблонния артикул|*!', 'notice', false, array('iconAttr' => 'height=14px,width=14px'), 'style=color:blue');
                 }
                 
                 $priceRow = (is_null($primeCost)) ? $verbPrice : '<b>' . $verbPrice . "</b>";
@@ -250,7 +250,7 @@ class cat_products_PriceDetails extends core_Manager
             // Ако каталожната цена е от прототипа, показва се тази информация
             $verbPrice = core_Type::getByName('double(smartRound,minDecimals=2)')->toVerbal($catalogCost);
             if($catalogCostIsFromTemplate === true && isset($catalogCost)){
-                $verbPrice = ht::createHint($verbPrice, 'Цената по каталог е зададена за шаблонния артикул|*!', 'notice', false, 'height=14px,width=14px', 'style=color:blue');
+                $verbPrice = ht::createHint($verbPrice, 'Цената по каталог е зададена за шаблонния артикул|*!', 'notice', false, array('iconAttr' => 'height=14px,width=14px'), 'style=color:blue');
             }
 
             $buttons = '';

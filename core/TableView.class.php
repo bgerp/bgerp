@@ -227,7 +227,7 @@ class core_TableView extends core_BaseClass
                     $class = '';
 
                     if (is_object($this->mvc->fields[$place]->type ?? null)) {
-                        $tdClass = $class = $this->mvc->fields[$place]->type->getTdClass();
+                        $tdClass = $class = $this->mvc->fields[$place]->type->getTdClass() ?? '';
                         if (!empty($this->mvc->fields[$place]->smartCenter)) {
                             $tdClass = '';
                         }
@@ -277,6 +277,7 @@ class core_TableView extends core_BaseClass
                                 $header[$i][$last]->colspan = 1;
                             }
                             $header[$i][$last]->colspan = 1 + $header[$i][$last]->colspan;
+                            $headerIdx = $last;
                         } else {
                             if (!isset($header[$i][$last + 1])) {
                                 $header[$i][$last + 1] = new stdClass();
@@ -284,10 +285,12 @@ class core_TableView extends core_BaseClass
                             $header[$i][$last + 1]->name = $name;
                             $header[$i][$last + 1]->rowspan = $rowspan;
                             $header[$i][$last + 1]->tdClass = $tdClass;
+                            $headerIdx = $last + 1;
                         }
 
-                        if(!empty($this->mvc->fields[$place]->thAttr)){
-                            $header[$i][$last + 1]->thAttr = $this->mvc->fields[$place]->thAttr;
+                        // Атрибутите са за реалната колона, а не за общите групирани заглавия
+                        if ($i == countR($colHeaders) - 1 && !empty($this->mvc->fields[$place]->thAttr)) {
+                            $header[$i][$headerIdx]->thAttr = $this->mvc->fields[$place]->thAttr;
                         }
                     }
                     

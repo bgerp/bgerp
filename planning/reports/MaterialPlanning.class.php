@@ -103,7 +103,7 @@ class planning_reports_MaterialPlanning extends frame2_driver_TableData
     {
         if ($form->isSubmitted()) {
 
-            if ($form->rec->type == 'bySales'){
+            if (($form->rec->type ?? 'byWeeks') == 'bySales'){
                 $form->rec->period = 'all';
             }
         }
@@ -124,14 +124,15 @@ class planning_reports_MaterialPlanning extends frame2_driver_TableData
         
         $form->setDefault('weeks', 8);
         $form->setDefault('period', 'byWeeks');
+        $form->setDefault('type', 'byWeeks');
 
 
-        if ($rec->type == 'bySales'){
+        if (($rec->type ?? null) == 'bySales'){
             $form->setField('weeks', 'input=hidden');
             $form->setField('period', 'input=hidden');
             $form->setField('slalesDog', 'mandatory');
         }
-        if ($rec->type == 'byWeeks'){
+        if (($rec->type ?? null) == 'byWeeks'){
 
             $form->setField('slalesDog', 'input=hidden');
 
@@ -141,6 +142,7 @@ class planning_reports_MaterialPlanning extends frame2_driver_TableData
         $salesQuery = sales_Sales::getQuery();
         $salesQuery->where("#state = 'active'");
 
+        $suggestions = array();
         while ($salesDog = $salesQuery->fetch()) {
 
                 $suggestions[$salesDog->id] =$salesDog->id;
@@ -165,6 +167,11 @@ class planning_reports_MaterialPlanning extends frame2_driver_TableData
     {
         $recs = $totalQuantity = array();
         $today = dt::today();
+        $rec->type = $rec->type ?? 'byWeeks';
+        $rec->weeks = max(1, (int)($rec->weeks ?? 8));
+        $rec->groups = $rec->groups ?? null;
+        $rec->period = $rec->period ?? 'byWeeks';
+        $rec->slalesDog = $rec->slalesDog ?? null;
 
         if ($rec->type == 'byWeeks') {
 
@@ -212,6 +219,17 @@ class planning_reports_MaterialPlanning extends frame2_driver_TableData
         foreach ($jobsRecsArr as $jobsRec) {
             $materialsArr = array();
 
+            $jobsRec->quantity = $jobsRec->quantity ?? 0;
+            $jobsRec->quantityProduced = $jobsRec->quantityProduced ?? 0;
+            $jobsRec->productId = $jobsRec->productId ?? null;
+            $jobsRec->dueDate = $jobsRec->dueDate ?? null;
+            $jobsRec->week = $jobsRec->week ?? null;
+            $jobsRec->id = $jobsRec->id ?? null;
+            $jobsRec->saleId = $jobsRec->saleId ?? null;
+            if (!$jobsRec->productId) {
+                continue;
+            }
+
             $quantityRemaining = $jobsRec->quantity - $jobsRec->quantityProduced;
 
             $materialsArr = cat_Products::getMaterialsForProduction($jobsRec->productId, (double)$quantityRemaining);
@@ -220,7 +238,12 @@ class planning_reports_MaterialPlanning extends frame2_driver_TableData
 
             if (!empty($materialsArr)) {
                 foreach ($materialsArr as $val) {
-                    $matRec = cat_Products::fetch($val['productId']);
+                    $materialId = $val['productId'] ?? null;
+                    $materialQuantity = $val['quantity'] ?? 0;
+                    $matRec = $materialId ? cat_Products::fetch($materialId) : null;
+                    if (!$matRec) {
+                        continue;
+                    }
 
                     //Филтрира само складируеми материали
                     if ($matRec->canStore == 'no') {
@@ -235,7 +258,7 @@ class planning_reports_MaterialPlanning extends frame2_driver_TableData
                         }
                     }
 
-                        $week = ($jobsRec->week) ? $jobsRec->week : date('W', strtotime($jobsRec->dueDate)) . '-' . date('Y', strtotime($jobsRec->dueDate));
+                        $week = $jobsRec->week ?: date('W', strtotime($jobsRec->dueDate ?: $today)) . '-' . date('Y', strtotime($jobsRec->dueDate ?: $today));
 
                         //Ако падежа е изткъл, заданието се отнася към нулева седмица
                         if ($jobsRec->dueDate && $jobsRec->dueDate < $today) {
@@ -244,9 +267,9 @@ class planning_reports_MaterialPlanning extends frame2_driver_TableData
 
                     $doc = ($jobsRec->id) ? 'planning_Jobs' . '|' . $jobsRec->id : 'sales_Sales' . '|' . $jobsRec->saleId;
 
-                    $recsKey = ($rec->type == 'byWeeks') ? $week . ' | ' . $val['productId'] : $val['productId'];
+                    $recsKey = ($rec->type == 'byWeeks') ? $week . ' | ' . $materialId : $materialId;
 
-                    $totalmaterialQuantiry += $val['quantity'];
+                    $totalmaterialQuantiry += $materialQuantity;
 
                     // Запис в масива
                     if (!array_key_exists($recsKey, $recs)) {
@@ -257,30 +280,32 @@ class planning_reports_MaterialPlanning extends frame2_driver_TableData
                             'jobProductId' => $jobsRec->productId,                                           //Id на артикула
                             'quantityRemaining' => $quantityRemaining,                                       // Оставащо количество
 
-                            'materialId' => $val['productId'],
-                            'materialQuantiry' => $val['quantity'],
+                            'materialId' => $materialId,
+                            'materialQuantiry' => $materialQuantity,
 
                         );
                     } else {
                         $obj = &$recs[$recsKey];
 
                         $obj->quantityRemaining += $quantityRemaining;
-                        $obj->materialQuantiry += $val['quantity'];
+                        $obj->materialQuantiry += $materialQuantity;
                         array_push($obj->originDoc, $doc);
                     }
 
 
-                    if (!array_key_exists($val['productId'], $totalQuantity)) {
-                        $totalQuantity[$val['productId']] = (object)array(
+                    if (!array_key_exists($materialId, $totalQuantity)) {
+                        $totalQuantity[$materialId] = (object)array(
 
-                            'materialId' => $val['productId'],
-                            'materialQuantiry' => $val['quantity'],
+                            'week' => null,
+                            'originDoc' => array(),
+                            'materialId' => $materialId,
+                            'materialQuantiry' => $materialQuantity,
 
                         );
                     } else {
-                        $obj = &$totalQuantity[$val['productId']];
+                        $obj = &$totalQuantity[$materialId];
 
-                        $obj->materialQuantiry += $val['quantity'];
+                        $obj->materialQuantiry += $materialQuantity;
                     }
                 }
             }
@@ -308,7 +333,12 @@ class planning_reports_MaterialPlanning extends frame2_driver_TableData
                 if (!empty($materialsArr)) {
                     foreach ($materialsArr as $val) {
 
-                        $matRec = cat_Products::fetch($val['productId']);
+                        $materialId = $val['productId'] ?? null;
+                        $materialQuantity = $val['quantity'] ?? 0;
+                        $matRec = $materialId ? cat_Products::fetch($materialId) : null;
+                        if (!$matRec) {
+                            continue;
+                        }
 
                         //Филтрира само складируеми материали
                         if ($matRec->canStore == 'no') {
@@ -325,7 +355,7 @@ class planning_reports_MaterialPlanning extends frame2_driver_TableData
 
                         $doc ='sales_Sales' . '|' . $pRec->saleId;
 
-                        $recsKey = $val['productId'];
+                        $recsKey = $materialId;
 
                         // Запис в масива
                         if (!array_key_exists($recsKey, $recs)) {
@@ -334,14 +364,14 @@ class planning_reports_MaterialPlanning extends frame2_driver_TableData
                                 'originDoc' => array($doc),
                                 'jobProductId' => $pRec->productId,                                           //Id на артикула
 
-                                'materialId' => $val['productId'],
-                                'materialQuantiry' => $val['quantity'],
+                                'materialId' => $materialId,
+                                'materialQuantiry' => $materialQuantity,
 
                             );
                         } else {
                             $obj = &$recs[$recsKey];
 
-                            $obj->materialQuantiry += $val['quantity'];
+                            $obj->materialQuantiry += $materialQuantity;
                             array_push($obj->originDoc, $doc);
                         }
 
@@ -368,7 +398,7 @@ class planning_reports_MaterialPlanning extends frame2_driver_TableData
     {
         $fld = cls::get('core_FieldSet');
         if ($export === false) {
-            if ($rec->period == 'byweek') {
+            if (($rec->period ?? 'byWeeks') == 'byWeeks') {
                 $fld->FLD('materialId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул');
                 $fld->FLD('docs', 'varchar', 'smartCenter,caption=@Задания');
 
@@ -409,7 +439,8 @@ class planning_reports_MaterialPlanning extends frame2_driver_TableData
         
         $row = new stdClass();
         
-        $week = $dRec->week != '0-0'?$dRec->week : '0-0 (изтекъл падеж)';
+        $dRecWeek = $dRec->week ?? null;
+        $week = $dRecWeek != '0-0' ? $dRecWeek : '0-0 (изтекъл падеж)';
         
         $row->week = 'Седмица: '.$week;
         
@@ -425,6 +456,9 @@ class planning_reports_MaterialPlanning extends frame2_driver_TableData
                 
                 list($docClassName, $doc) = explode('|', $originDoc);
                 $docRec = $docClassName::fetch($doc);
+                if (!$docRec || empty($docRec->containerId)) {
+                    continue;
+                }
                 
                 $docContainer = $docRec->containerId;
                 
@@ -433,14 +467,15 @@ class planning_reports_MaterialPlanning extends frame2_driver_TableData
                 
                 $singleUrl = $Document->getUrlWithAccess($Document->getInstance(), $originDoc);
                 
-                $row->docs .= ht::createLink("#{$handle}", $singleUrl);
+                $row->docs = ($row->docs ?? '') . ht::createLink("#{$handle}", $singleUrl);
                 
                 if ((countR(($dRec->originDoc)) - $marker) != 0) {
-                    $row->docs .= ', ';
+                    $row->docs = ($row->docs ?? '') . ', ';
                 }
             }
         }
-        $row->measure = cat_UoM::fetchField(cat_Products::fetch($dRec->materialId)->measureId, 'shortName');
+        $productRec = isset($dRec->materialId) ? cat_Products::fetch($dRec->materialId) : null;
+        $row->measure = $productRec ? cat_UoM::fetchField($productRec->measureId, 'shortName') : null;
         
         
         if (isset($dRec->materialQuantiry)) {
@@ -490,6 +525,7 @@ class planning_reports_MaterialPlanning extends frame2_driver_TableData
         
         
         $marker = 0;
+        $groupVerb = '';
         if (isset($data->rec->groups)) {
             foreach (type_Keylist::toArray($data->rec->groups) as $group) {
                 $marker++;
@@ -522,7 +558,10 @@ class planning_reports_MaterialPlanning extends frame2_driver_TableData
     protected static function on_AfterGetExportRec(frame2_driver_Proto $Driver, &$res, $rec, $dRec, $ExportClass)
     {
 
-        $prodRec = cat_Products::fetch($dRec->materialId);
+        $prodRec = cat_Products::fetch($dRec->materialId ?? null);
+        if (!$prodRec) {
+            return;
+        }
         $code = ($prodRec->code) ? : 'Арт'.$prodRec->id;
 
         $res->code = $code;
@@ -559,7 +598,8 @@ class planning_reports_MaterialPlanning extends frame2_driver_TableData
         $sQuery->show('saleId,productId,quantityInPack,quantity,deliveryTime,deliveryTermTime,valior');
         
         
-        $salesIdArr = arr::extractValuesFromArray($sQuery->fetchAll(), 'saleId');
+        $salesDetails = $sQuery->fetchAll();
+        $salesIdArr = arr::extractValuesFromArray($salesDetails, 'saleId');
         
         //Задания за производство към договорите за този период $jobsArr
         $jobsQuery = planning_Jobs::getQuery();
@@ -571,7 +611,7 @@ class planning_reports_MaterialPlanning extends frame2_driver_TableData
         while ($jobRec = $jobsQuery->fetch()) {
             $key = $jobRec->saleId.'|'.$jobRec->productId;
             
-            $quantity = $jobRec->quantity * $jobRec->quantityInPack;
+            $quantity = ($jobRec->quantity ?? 0) * ($jobRec->quantityInPack ?? 1);
             
             
             if (!array_key_exists($key, $jobsArr)) {
@@ -591,12 +631,12 @@ class planning_reports_MaterialPlanning extends frame2_driver_TableData
         //Договорените количества от активните договори минус заявените количества
         //за производство в задания към тези договори
         $vJobsArr = array();
-        while ($sDetRec = $sQuery->fetch()) {
-            $deliveryDay = $sDetRec->deliveryTime;
+        foreach ($salesDetails as $sDetRec) {
+            $deliveryDay = $sDetRec->deliveryTime ?? null;
             
             //Ако е зададен срок за доставка проверяваме крайната дата дали е в периода
-            if (!$sDetRec->deliveryTime) {
-                if ($sDetRec->deliveryTermTime) {
+            if (!$deliveryDay) {
+                if (!empty($sDetRec->deliveryTermTime) && !empty($sDetRec->valior)) {
                     $newDeliveryDay = dt::addSecs($sDetRec->deliveryTermTime, $sDetRec->valior);
                     if ($newDeliveryDay > $endDay) {
                         continue;
@@ -608,8 +648,8 @@ class planning_reports_MaterialPlanning extends frame2_driver_TableData
             }
             
             $vKey = $sDetRec->saleId.'|'.$sDetRec->productId;
-            
-            $quantity = $sDetRec->quantity * $sDetRec->quantityInPack - $jobsArr[$vKey]->quantity;
+            $assignedQuantity = $jobsArr[$vKey]->quantity ?? 0;
+            $quantity = ($sDetRec->quantity ?? 0) * ($sDetRec->quantityInPack ?? 1) - $assignedQuantity;
             
             //Ако няма недопроизведено количество, не се създава виртуално задание
             if ($quantity <= 0) {
@@ -628,7 +668,8 @@ class planning_reports_MaterialPlanning extends frame2_driver_TableData
                     'productId' => $sDetRec->productId,
                     'quantity' => $quantity,
                     'saleId' => $sDetRec->saleId,
-                    
+                    'quantityProduced' => 0,
+                    'dueDate' => $deliveryDay,
                     'week' => $week
                 );
             } else {

@@ -267,7 +267,7 @@ class hr_Leaves extends core_Master
      */
     public static function on_AfterPrepareListFilter($mvc, $data)
     {
-        $data->listFilter->FLD('employeeId', 'key(mvc=crm_Persons,select=name,allowEmpty,group=employees)', 'caption=Служител,silent,before=paid');
+        $data->listFilter->FLD('employeeId', 'key(mvc=crm_Persons,select=name,allowEmpty,group=employees)', 'caption=Служител,placeholderType=all,silent,before=paid');
         $data->listFilter->showFields = $data->listFilter->showFields . ',employeeId';
         $data->listFilter->input('employeeId', 'silent');
         
@@ -325,7 +325,7 @@ class hr_Leaves extends core_Master
             }
         }
 
-        $emoji =  self::$emojiList[$emojiType] ? self::$emojiList[$emojiType] : '';
+        $emoji = isset(self::$emojiList[$emojiType]) ? self::$emojiList[$emojiType] : '';
         if ($class) {
             $emoji = "<span class='{$class}'>{$emoji}</span>";
         }
@@ -385,10 +385,11 @@ class hr_Leaves extends core_Master
             redirect(array('crm_Persons', 'list'), false, '|Липсва избор за служители|*');
         }
         
-        $folderClass = doc_Folders::fetchCoverClassName($rec->folderId);
+        $folderId = $rec->folderId ?? null;
+        $folderClass = isset($folderId) ? doc_Folders::fetchCoverClassName($folderId) : null;
         
-        if ($rec->folderId && $folderClass == 'crm_Persons') {
-            $form->setDefault('personId', doc_Folders::fetchCoverId($rec->folderId));
+        if (isset($folderId) && $folderClass == 'crm_Persons') {
+            $form->setDefault('personId', doc_Folders::fetchCoverId($folderId));
             $form->setReadonly('personId');
             
             if (!haveRole('ceo,hrLeaves')) {

@@ -98,7 +98,8 @@ class export_Csv extends core_Mvc
                     continue;
                 }
                 
-                if (!($inst->class instanceof $dInst->fields[$mFieldName]->type->params['mvc'])) {
+                $masterMvc = $dInst->fields[$mFieldName]->type->params['mvc'] ?? null;
+                if (!$masterMvc || !($inst->class instanceof $masterMvc)) {
                     continue;
                 }
                 
@@ -147,6 +148,7 @@ class export_Csv extends core_Mvc
     {
         $clsInst = cls::get($clsId);
         $cRec = $clsInst->fetchRec($objId);
+        expect($cRec);
         
         $action = array(
                 'action' => doclog_Documents::ACTION_EXPORT,
@@ -160,27 +162,27 @@ class export_Csv extends core_Mvc
         
         $lg = '';
         $isPushed = false;
-        if ($cRec->template) {
+        if (!empty($cRec->template)) {
             $lg = $clsInst->pushTemplateLg($cRec->template);
         }
         
         $userId = core_Users::getCurrent();
         
         if ($userId < 1) {
-            $userId = $cRec->activatedBy;
+            $userId = $cRec->activatedBy ?? null;
         }
         
         if ($userId < 1) {
-            $userId = $cRec->createdBy;
+            $userId = $cRec->createdBy ?? null;
         }
         
-        if (($userId < 1) && ($cRec->containerId)) {
+        if (($userId < 1) && !empty($cRec->containerId)) {
             $sContainerRec = doc_Containers::fetch($cRec->containerId);
-            $userId = $sContainerRec->activatedBy;
+            $userId = $sContainerRec->activatedBy ?? null;
             if ($userId < 1) {
-                if ($sContainerRec->modifiedBy >= 0) {
+                if (($sContainerRec->modifiedBy ?? -1) >= 0) {
                     $userId = $sContainerRec->modifiedBy;
-                } elseif ($sContainerRec->createdBy >= 0) {
+                } elseif (($sContainerRec->createdBy ?? -1) >= 0) {
                     $userId = $sContainerRec->createdBy;
                 }
             }
@@ -235,9 +237,9 @@ class export_Csv extends core_Mvc
         if ($fileHnd) {
             $form->toolbar->addBtn('Сваляне', array('fileman_Download', 'download', 'fh' => $fileHnd, 'forceDownload' => true), 'ef_icon = fileman/icons/16/csv.png, title=Сваляне на документа');
             
-            $form->info .= '<b>' . tr('Файл|*: ') . '</b>' . fileman::getLink($fileHnd);
+            $form->info = ($form->info ?? '') . '<b>' . tr('Файл|*: ') . '</b>' . fileman::getLink($fileHnd);
         } else {
-            $form->info .= "<div class='formNotice'>" . tr('Няма данни за експорт|*.') . '</div>';
+            $form->info = ($form->info ?? '') . "<div class='formNotice'>" . tr('Няма данни за експорт|*.') . '</div>';
         }
         
         $clsInst->logWrite('Генериране на CSV', $objId);

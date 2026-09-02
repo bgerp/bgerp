@@ -42,6 +42,7 @@ class type_Keylist2 extends type_Keylist
         }
 
         $sLen = mb_strlen($search);
+        $handler = null;
 
         if ($this->params['savePrevSearch'] == 'yes') {
             $params = $this->params;
@@ -96,7 +97,7 @@ class type_Keylist2 extends type_Keylist
 
         $resArr = call_user_func($this->params['selectSourceArr'], $this->params, $limit, $search, $ids, $includeHiddens);
 
-        if ($this->params['savePrevSearch'] == 'yes') {
+        if (!empty($handler)) {
             if ($sLen > 1 && $limit != 1) {
                 if ($resArr) {
                     core_Cache::set('keylist2getOptions', $handler, $resArr, 10, array($this->params['mvc']));
@@ -181,7 +182,7 @@ class type_Keylist2 extends type_Keylist
         $tpl = ht::createSelect($name . '[]', $options, null, $attr);
 
         if (core_Packs::isInstalled('select2') && !Mode::is('javascript', 'no')) {
-            $matchOnlyStartsWith = ($this->params['find'] ?? null) == 'everywhere' ? false : true;
+            $matchOnlyStartsWith = !(($this->params['find'] ?? null) == 'everywhere');
 
             $ajaxUrl = '';
             $handler = $this->getHandler();
@@ -271,7 +272,7 @@ class type_Keylist2 extends type_Keylist
                     $titleClass = null;
 
                     if (is_object($title)) {
-                        $isGroup = $title->group ? true : false;
+                        $isGroup = !empty($title->group);
                         if (isset($title->attr['class'])) {
                             $titleClass = $title->attr['class'];
                         }

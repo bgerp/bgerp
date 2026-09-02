@@ -221,12 +221,12 @@ class gs1_TypeEan extends type_Varchar
      */
     public function isValid($value)
     {
+        if (!trim($value ?? '')) {
+
+            return array('value' => '');
+        }
         if(substr($value, 0, 1) == '#'){
             return array();
-        }
-        if (!trim($value)) {
-            
-            return array('value' => '');
         }
         if (countR($this->autoRange)) {
             if ($value == self::AUTO_GENERETE_STRING) {
@@ -237,10 +237,10 @@ class gs1_TypeEan extends type_Varchar
         
         $res = new stdClass();
         if (preg_match('/[^0-9]/', $value)) {
-            $res->error .= 'Полето приема само цифри.';
+            $res->error = 'Полето приема само цифри.';
         } else {
             $code = strlen($value);
-            if ($this->params['gln']) {
+            if (!empty($this->params['gln'])) {
                 $code = 13;
             }
             
@@ -248,7 +248,7 @@ class gs1_TypeEan extends type_Varchar
             switch ($code) {
                 case 13:
                     if (!$this->isValidEan($value)) {
-                        (!$this->params['gln']) ? $type = 'EAN13' : $type = 'или непълен (13 цифрен) GLN';
+                        (empty($this->params['gln'])) ? $type = 'EAN13' : $type = 'или непълен (13 цифрен) GLN';
                         $res->error = "Невалиден {$type} номер.";
                     }
                     break;

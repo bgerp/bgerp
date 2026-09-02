@@ -116,7 +116,7 @@ class doc_Comments extends embed_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'doc_Wrapper, doc_SharablePlg, doc_DocumentPlg, plg_RowTools, 
+    public $loadList = 'doc_Wrapper, doc_SharablePlg, doc_DocumentPlg, plg_RowTools2, 
         plg_Printing, doc_ActivatePlg, bgerp_plg_Blank, change_Plugin, plg_Clone';
     
     
@@ -240,7 +240,7 @@ class doc_Comments extends embed_Manager
         if (empty($data->form->rec->id) && empty($data->form->rec->clonedFromId)) {
             $detId = Request::get('detId', 'int');
             
-            $originId = $data->form->rec->originId;
+            $originId = $data->form->rec->originId ?? null;
             
             if ($originId) {
                 $doc = doc_Containers::getDocument($originId);
@@ -275,11 +275,12 @@ class doc_Comments extends embed_Manager
     public function on_AfterGetDefaultData($mvc, &$res, $rec, $otherParams = array())
     {
         $res = arr::make($res);
+        $cid = null;
         
         //Ако имаме originId
-        if ($rec->originId) {
+        if (!empty($rec->originId)) {
             $cid = $rec->originId;
-        } elseif ($rec->threadId) {
+        } elseif (!empty($rec->threadId)) {
             // Ако добавяме коментар в нишката
             $cid = doc_Threads::fetchField($rec->threadId, 'firstContainerId');
         }

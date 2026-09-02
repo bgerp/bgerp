@@ -193,11 +193,11 @@ class log_Debug extends core_Manager
         }
         
         $data->listFilter->FNC('user', 'varchar', 'caption=Потребител, input, silent,class=debugField');
-        $data->listFilter->FNC('execTime', 'enum(,fast=< 1 сек.,slow=< 5 сек.,verySlow=< 20 сек., overTime=> 20 сек.)', 'caption=Изпълнение, input, silent,class=debugField');
-        $data->listFilter->FNC('execSize', 'enum(,small=< 100K, big=< 300K, veryBig=> 300K, veryBig5=> 500K)', 'caption=Размер, input, silent,class=debugField');
+        $data->listFilter->FNC('execTime', 'enum(,fast=< 1 сек.,slow=< 5 сек.,verySlow=< 20 сек., overTime=> 20 сек.)', 'caption=Изпълнение,placeholderType=all, input, silent,class=debugField');
+        $data->listFilter->FNC('execSize', 'enum(,small=< 100K, big=< 300K, veryBig=> 300K, veryBig5=> 500K)', 'caption=Размер,placeholderType=all, input, silent,class=debugField');
         $data->listFilter->FNC('execTimeFrom', 'varchar', 'caption=Време->От, input, silent, suggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00,class=debugField');
         $data->listFilter->FNC('execTimeTo', 'varchar', 'caption=Време->До, input, silent, suggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00,class=debugField');
-        $data->listFilter->FNC('status', 'enum(,2xx=Успешен, 8xx=Успешен по AJAX, 000=Неприключен, 150=Наблюдение, 404=Липсваща страница, 500|505|510|0=Икзлючение, 501|520=Грешка, 503=Прекъсване, 550=Грешка в БД)', 'caption=Статус, input, silent,class=debugField');
+        $data->listFilter->FNC('status', 'enum(,2xx=Успешен, 8xx=Успешен по AJAX, 000=Неприключен, 150=Наблюдение, 404=Липсваща страница, 500|505|510|0=Икзлючение, 501|520=Грешка, 503=Прекъсване, 550=Грешка в БД)', 'caption=Статус,placeholderType=all, input, silent,class=debugField');
         $data->listFilter->FNC('debugFile', 'varchar', 'caption=Файл, input=hidden, silent');
         
         $data->listFilter->showFields = 'user, debugFile, execTime, execSize, execTimeFrom, execTimeTo, status';
@@ -501,7 +501,7 @@ class log_Debug extends core_Manager
         
         $form->input(null, true);
         
-        $form->setDefault('title', $_SERVER['HTTP_HOST']);
+        $form->setDefault('title', $_SERVER['HTTP_HOST'] ?? '');
         
         $form->input();
         
@@ -588,9 +588,9 @@ class log_Debug extends core_Manager
             
             // Вероятно не е json, a e сериализирано
             if (!$rArr) {
-                list(, , $content) = explode(' ', $content, 3);
-                
-                $rArr = unserialize($content);
+                $contentParts = explode(' ', $content, 3);
+                $serializedContent = $contentParts[2] ?? null;
+                $rArr = $serializedContent ? @unserialize($serializedContent) : null;
             }
             
             if ($rArr) {
@@ -618,6 +618,16 @@ class log_Debug extends core_Manager
         // Рендираме лога
         if (!empty($rArr)) {
             $rArr = (array) $rArr;
+            $rArr += array(
+                'header' => '',
+                'errType' => null,
+                'GET' => null,
+                'POST' => null,
+                '_debugCode' => null,
+                '_Ctr' => null,
+                '_Act' => null,
+                '_executionTime' => null,
+            );
             
             $rArr['update'] = false;
             
@@ -655,9 +665,11 @@ class log_Debug extends core_Manager
                     $rArr['header'] .= ' (' . number_format($rArr['_executionTime'], 2) . ' s)';
                 }
                 
-                if (!trim($rArr['header'])) {
+                if (!trim((string) $rArr['header'])) {
                     if ($rArr['GET']) {
-                        $rArr['header'] = $rArr['GET']->virtual_url;
+                        $rArr['header'] = is_object($rArr['GET'])
+                            ? ($rArr['GET']->virtual_url ?? '')
+                            : ($rArr['GET']['virtual_url'] ?? '');
                     }
                 }
                 
@@ -694,10 +706,28 @@ class log_Debug extends core_Manager
         require_once(EF_APP_PATH . '/core/ET.class.php');
         require_once(EF_APP_PATH . '/core/Sbf.class.php');
         require_once(EF_APP_PATH . '/core/Html.class.php');
+
+        $state = (array) $state;
+        $state += array(
+            '_debugTime' => array(),
+            '_executionTime' => null,
+            '_cookie' => null,
+            '_timers' => array(),
+            '_breakFile' => null,
+            '_breakLine' => null,
+            '_debugFileName' => null,
+            'httpStatusCode' => 500,
+            'httpStatusMsg' => 'Internal Server Error',
+            'background' => '#d22',
+            'errTitle' => '',
+            'errType' => null,
+            'header' => '',
+            'headerCls' => null,
+        );
         
         $data = array();
         
-        $data['tabContent'] = $data['tabNav'] = '';
+        $data['errTitle'] = $data['tabContent'] = $data['tabNav'] = '';
         
         // Дъмп
         if (!empty($state['dump'])) {
@@ -737,7 +767,7 @@ class log_Debug extends core_Manager
         $data['httpStatusMsg'] = $state['httpStatusMsg'];
         $data['background'] = $state['background'];
         
-        if (isset($state['errTitle']) && $state['errTitle'][0] == '@') {
+        if (isset($state['errTitle'][0]) && $state['errTitle'][0] == '@') {
             $state['errTitle'] = substr($state['errTitle'], 1);
         }
         
@@ -1376,15 +1406,7 @@ class log_Debug extends core_Manager
         foreach ($fArr as $fName => $cDate) {
             list($v) = explode('_', $fName, 2);
             
-            $delOn = $delTimeMapArr[$v];
-            
-            if (!$delOn) {
-                $delOn = $delTimeMapArr[$v[0]];
-            }
-            
-            if (!$delOn) {
-                $delOn = $delTimeMapArr['def'];
-            }
+            $delOn = $delTimeMapArr[$v] ?? $delTimeMapArr[substr($v, 0, 1)] ?? $delTimeMapArr['def'];
             
             list($cDate) = explode('|', $cDate, 2);
             

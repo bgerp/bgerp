@@ -104,8 +104,8 @@ abstract class rack_MovementAbstract extends core_Manager
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-        $makeLinks = !($fields['-inline'] && !isset($fields['-inline-single']));
-        if (!empty($rec->note)) {
+        $makeLinks = !(!empty($fields['-inline']) && !isset($fields['-inline-single']));
+        if (!empty($rec->note) && isset($row->note)) {
             $row->note = "<div style='font-size:0.8em;'>{$row->note}</div>";
         }
 
@@ -136,13 +136,13 @@ abstract class rack_MovementAbstract extends core_Manager
             $userIdVerbal = crm_Profiles::createLink($rec->canceledBy);
 
             if(isset($fields['-inline'])){
-                $row->movement = ht::createHint($row->movement, "|*{$userIdVerbal} |върна движение|* №{$rec->id} |на|* {$dateVerbal}", null,true, array('src' => 'img/16/cart_go_back.png', 'style'=> 'background-color:rgba(173, 62, 42, 0.8);padding:4px;border-radius:2px;display: inline-block;', 'height' => 18, 'width' => 18));
+                $row->movement = ht::createHint($row->movement, "|*{$userIdVerbal} |върна движение|* №{$rec->id} |на|* {$dateVerbal}", null, true, array('iconAttr' => array('src' => 'img/16/cart_go_back.png', 'style'=> 'background-color:rgba(173, 62, 42, 0.8);padding:4px;border-radius:2px;display: inline-block;', 'height' => 18, 'width' => 18)));
             } else {
-                $row->productId = ht::createHint($row->productId, "|*{$userIdVerbal} |върна движение|* №{$rec->id} |на|* {$dateVerbal}",  null,true, array('src' => 'img/16/cart_go_back.png', 'style'=> 'background-color:rgba(173, 62, 42, 0.8);padding:4px;border-radius:2px;display: inline-block;', 'height' => 18, 'width' => 18));
+                $row->productId = ht::createHint($row->productId, "|*{$userIdVerbal} |върна движение|* №{$rec->id} |на|* {$dateVerbal}",  null, true, array('iconAttr' => array('src' => 'img/16/cart_go_back.png', 'style'=> 'background-color:rgba(173, 62, 42, 0.8);padding:4px;border-radius:2px;display: inline-block;', 'height' => 18, 'width' => 18)));
             }
         }
 
-        if(!$fields['-inline'] && !$fields['-inline-single']){
+        if(empty($fields['-inline']) && empty($fields['-inline-single'])){
             if($Def = batch_Defs::getBatchDef($rec->productId)){
                 if(!empty($rec->batch)){
                     $row->batch = $Def->toVerbal($rec->batch);
@@ -188,7 +188,7 @@ abstract class rack_MovementAbstract extends core_Manager
 
         $class = '';
         if ($palletId = cat_UoM::fetchBySinonim('pallet')->id) {
-            if(is_array($rec->packagings)){
+            if (!empty($rec->packagings) && is_array($rec->packagings)) {
                 $palletRecs = array_filter($rec->packagings, function($a) use ($palletId){
                     return $a['packagingId'] == $palletId;
                 });
@@ -225,7 +225,7 @@ abstract class rack_MovementAbstract extends core_Manager
                     $num = $zoneRec->zone;
                     $zoneTitle = ht::createHint($zoneRec->zone, 'Зоната вече не съществува', 'warning');
                 }
-                $zoneQuantities[$zoneRec->zone] = (object)array('quantity' => round($zoneRec->quantity * $rec->quantityInPack, 6), 'position' => $zoneTitle, 'class' => $class, 'num' => $num);
+                $zoneQuantities[$zoneRec->zone] = (object)array('quantity' => round(($zoneRec->quantity ?? 0) * $rec->quantityInPack, 6), 'position' => $zoneTitle, 'class' => $class, 'num' => $num);
             }
 
             arr::sortObjects($zoneQuantities, 'num', 'ASC');
@@ -243,7 +243,7 @@ abstract class rack_MovementAbstract extends core_Manager
         foreach ($quantities as $k => $a){
             if(empty($a->quantity) && $k == 'from') continue;
 
-            if(is_array($rec->packagings)){
+            if (!empty($rec->packagings) && is_array($rec->packagings)) {
                 $convertedQuantity = static::getSmartPackagings($rec->productId, $rec->packagings, $a->quantity, $rec->packagingId);
                 if(isset($convertedQuantity)){
                     $movementArr[$k] = "{$a->position} (<span {$a->class}>{$convertedQuantity}</span>)";
@@ -288,7 +288,7 @@ abstract class rack_MovementAbstract extends core_Manager
             $zoneArr = type_Table::toArray($rec->zones);
             if (countR($zoneArr)) {
                 foreach ($zoneArr as &$obj) {
-                    $quantityInZones += $obj->quantity;
+                    $quantityInZones += $obj->quantity ?? 0;
                 }
             }
         }
@@ -310,11 +310,11 @@ abstract class rack_MovementAbstract extends core_Manager
 
         $data->listFilter->setField('fromIncomingDocument', 'input=none');
         $data->listFilter->setFieldTypeParams('storeId', array('allowEmpty' => 'allowEmpty'));
-        $data->listFilter->setField('storeId', 'autoFilter');
+        $data->listFilter->setField('storeId', 'placeholderType=all,autoFilter');
         $data->listFilter->FLD('from', 'date', 'caption=От');
         $data->listFilter->FLD('to', 'date', 'caption=До');
         $data->listFilter->FNC('filterUser', 'enum(workerId=Товарач,createdBy=Създадено от)', 'caption=Филтър по,after=to,input');
-        $data->listFilter->FNC('userId', 'user(roles=ceo|rack, rolesForTeams=officer|manager|ceo|storeAll, rolesForAll=ceo|storeAllGlobal,allowEmpty)', 'caption=Потребител,after=filterUser,input');
+        $data->listFilter->FNC('userId', 'user(roles=ceo|rack, rolesForTeams=officer|manager|ceo|storeAll, rolesForAll=ceo|storeAllGlobal,allowEmpty)', 'caption=Потребител,placeholderType=all,after=filterUser,input');
 
         $data->listFilter->FNC('documentHnd', 'varchar', 'placeholder=Документ,caption=Документ,input,silent,recently');
         $data->listFilter->FLD('state1', 'enum(all=Всички,pending=Чакащи,waiting=Запазени,active=Активни,closed=Приключени)', 'caption=Състояние');
@@ -332,7 +332,7 @@ abstract class rack_MovementAbstract extends core_Manager
                 $data->title = "{$mvc->title} |*<b style='color:green'>" . store_Stores::getHyperlink($filterRec->storeId, true) . "</b>";
             }
 
-            if (in_array($filterRec->state1, array('active', 'closed', 'pending', 'waiting'))) {
+            if (in_array($filterRec->state1 ?? null, array('active', 'closed', 'pending', 'waiting'))) {
                 $data->query->where("#state = '{$filterRec->state1}'");
             }
 
@@ -427,7 +427,7 @@ abstract class rack_MovementAbstract extends core_Manager
     protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
     {
         $data->listTableMvc->FLD('movement', 'varchar', 'tdClass=movement-description');
-        if(!$data->inlineMovement){
+        if(empty($data->inlineMovement)){
             $data->listTableMvc->FLD('leftColBtns', 'varchar', 'tdClass=centered');
             $data->listTableMvc->FLD('rightColBtns', 'varchar', 'tdClass=centered');
             $data->listTableMvc->setField('workerId', 'tdClass=centered');
@@ -472,7 +472,7 @@ abstract class rack_MovementAbstract extends core_Manager
         }
 
         // Подобрено сортиране
-        uasort($packs, function (&$a, &$b)  {
+        uasort($packs, function ($a, $b)  {
             if ($a['quantity'] == $b['quantity']) { return $a['id'] > $b['id'] ? 1 : -1;}
 
             return ($a['quantity'] > $b['quantity']) ? -1 : 1;

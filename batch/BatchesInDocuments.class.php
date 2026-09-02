@@ -49,7 +49,7 @@ class batch_BatchesInDocuments extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id,date,containerId=Документ,productId=Артикул,packagingId=Опаковка,quantityInPack=К-во в опаковка,quantity=Количество,batch=Партида,operation=Операция,storeId=Склад,isInstant';
+    public $listFields = 'id,date,containerId=Документ,productId=Артикул,packagingId=Опаковка,quantityInPack=К-во в опаковка,quantity=Количество,batch=Партида,operation=Операция,storeId=Склад,isInstant,isHistoric';
 
 
     /**
@@ -81,11 +81,41 @@ class batch_BatchesInDocuments extends core_Manager
         $this->FLD('operation', 'enum(in=Влиза, out=Излиза, stay=Стои)', 'mandatory,caption=Операция');
         $this->FLD('storeId', 'key(mvc=store_Stores)', 'caption=Склад');
         $this->FLD('isInstant', 'enum(no=Не,yes=Да)', 'caption=Моментно?,notNull,value=no');
+        $this->FLD('isHistoric', 'enum(no=Не,yes=Да)', 'caption=Историческо,notNull,value=no,input=none,column=none,forceField');
 
         $this->setDbIndex('batch');
         $this->setDbIndex('productId,batch');
         $this->setDbIndex('detailRecId,detailClassId,productId,storeId');
         $this->setDbIndex('containerId');
+    }
+
+
+    /**
+     * Изключва историческите записи (isHistoric=yes) от всяка заявка по подразбиране.
+     * Режимът 'showHistoricBatches' вдига филтъра — използва се при рендиране на
+     * партидите на оттеглени редове в детайли с doc_plg_DetailRevisions.
+     */
+    public static function on_AfterGetQuery($mvc, &$query)
+    {
+        if (!Mode::is('showHistoricBatches')) {
+            $query->where("#isHistoric != 'yes' OR #isHistoric IS NULL");
+        }
+    }
+
+
+    /**
+     * В списъчния изглед показваме и историческите записи, за да могат да се
+     * разглеждат и филтрират. В останалите заявки те остават скрити.
+     */
+    public function act_List()
+    {
+        Mode::push('showHistoricBatches', true);
+        try {
+
+            return parent::act_List();
+        } finally {
+            Mode::pop('showHistoricBatches');
+        }
     }
 
 
@@ -192,18 +222,30 @@ class batch_BatchesInDocuments extends core_Manager
             return;
         }
 
-        $showBatchLink = core_Packs::isInstalled('rack') && $rInfo->operation['in'] && ($Class->hasPlugin('rack_plg_IncomingShipmentDetails') || $Class instanceof planning_DirectProductionNote) && $rInfo->state != 'rejected';
-        $palletStoreId = $rInfo->operation['in'] ?? $storeId;
+        $inStoreId = $rInfo->operation['in'] ?? null;
+        $outStoreId = $rInfo->operation['out'] ?? null;
+        $showBatchLink = core_Packs::isInstalled('rack') && $inStoreId && ($Class->hasPlugin('rack_plg_IncomingShipmentDetails') || $Class instanceof planning_DirectProductionNote) && $rInfo->state != 'rejected';
+        $palletStoreId = $inStoreId ?? $storeId;
         $palletStoreId = $palletStoreId == batch_Items::WORK_IN_PROGRESS_ID ? null : $palletStoreId;
 
         $bRecs = array();
-        $query = self::getQuery();
-        $query->where("#detailClassId = {$detailClassId} AND #detailRecId = {$detailRecId}");
-        $query->orderBy('id', 'ASC');
-        while($bRec = $query->fetch()) {
-            $key = "{$bRec->detailRecId}|{$bRec->detailRecId}|{$bRec->batch}";
-            if(!array_key_exists($key, $bRecs)) {
-                $bRecs[$key] = $bRec;
+        $showHistoric = $Class->hasPlugin('doc_plg_DetailRevisions') || $Class->hasPlugin('doc_plg_MasterRevision');
+        if ($showHistoric) {
+            Mode::push('showHistoricBatches', true);
+        }
+        try {
+            $query = self::getQuery();
+            $query->where("#detailClassId = {$detailClassId} AND #detailRecId = {$detailRecId}");
+            $query->orderBy('id', 'ASC');
+            while($bRec = $query->fetch()) {
+                $key = "{$bRec->detailRecId}|{$bRec->detailRecId}|{$bRec->batch}";
+                if(!array_key_exists($key, $bRecs)) {
+                    $bRecs[$key] = $bRec;
+                }
+            }
+        } finally {
+            if ($showHistoric) {
+                Mode::pop('showHistoricBatches');
             }
         }
 
@@ -244,7 +286,7 @@ class batch_BatchesInDocuments extends core_Manager
             if (countR($batch1) == 1 && (!($batchDef instanceof batch_definitions_Serial))) {
 
                 $quantity = core_Type::getByName('double(smartRound)')->toVerbal($q);
-                if ($rInfo->operation['out'] && in_array($rInfo->state, array('draft', 'pending'))) {
+                if ($outStoreId && in_array($rInfo->state, array('draft', 'pending'))) {
                     $batchQuantityInStore = batch_Items::getQuantity($rec->productId, $rec->batch, $storeId);
                     if ($rec->quantity > $batchQuantityInStore) {
                         $batchQuantityInStoreVerbal = core_Type::getByName('double(smartRound)')->toVerbal($batchQuantityInStore / $quantityInPack);
@@ -271,7 +313,7 @@ class batch_BatchesInDocuments extends core_Manager
 
                 if(in_array($rInfo->state, array('draft', 'pending'))){
 
-                    if ($rInfo->operation['out']) {
+                    if ($outStoreId) {
                         $batchQuantityInStore = batch_Items::getQuantity($rec->productId, $rec->batch, $storeId);
                         $batchQuantityInStoreVerbal = core_Type::getByName('double(smartRound)')->toVerbal($batchQuantityInStore / $quantityInPack);
 
@@ -280,7 +322,7 @@ class batch_BatchesInDocuments extends core_Manager
                         }
                     }
 
-                    if ($rInfo->operation['in'] && empty($rInfo->operation['out'])) {
+                    if ($inStoreId && !$outStoreId) {
                         $batchQuantityInAllStores = batch_Items::getBatchQuantitiesInStore($rec->productId, null, null, null, array(), false, $rec->batch);
                         $batchQuantityInStoreVerbal = core_Type::getByName('double(smartRound)')->toVerbal($batchQuantityInAllStores[$rec->batch] / $quantityInPack);
 
@@ -443,7 +485,9 @@ class batch_BatchesInDocuments extends core_Manager
         $recInfo = $Detail->getRowInfo($detailRecId);
         $recInfo->detailClassId = $detailClassId;
         $recInfo->detailRecId = $detailRecId;
-        $storeId = $recInfo->operation[key($recInfo->operation)];
+        $operations = is_array($recInfo->operation ?? null) ? $recInfo->operation : array();
+        expect(countR($operations), $recInfo);
+        $storeId = reset($operations);
         $Def = batch_Defs::getBatchDef($recInfo->productId);
         $detailRec = $Detail->fetch($detailRecId);
 
@@ -535,6 +579,7 @@ class batch_BatchesInDocuments extends core_Manager
             $bOptions = $Detail->getAllowedInBatches($detailRecId);
         }
 
+        $tableRec = $exTableRec = array();
         if ($Def instanceof batch_definitions_Serial) {
 
             // Ако е сериен номер добавя се и бутон за маркиране/отмаркиране на всички чекбоксове
@@ -578,7 +623,6 @@ class batch_BatchesInDocuments extends core_Manager
         } else {
             Mode::push('htmlEntity', 'none');
             $i = $j = 0;
-            $tableRec = $exTableRec = array();
             $batchesCount = countR($batches);
             foreach ($batches as $batch => $quantityInStore) {
                 Mode::push('text', 'plain');
@@ -598,7 +642,7 @@ class batch_BatchesInDocuments extends core_Manager
             }
             Mode::pop('htmlEntity');
             $displayBatches = batch_Setup::get('COUNT_IN_EDIT_WINDOW');
-            $displayBatches = max($displayBatches, countR($exTableRec['batch']));
+            $displayBatches = max($displayBatches, countR($exTableRec['batch'] ?? array()));
             // Ако всички партиди са над разрешените показваме първите N
             if ($batchesCount > $displayBatches) {
                 $finalTableRec = $tableRec;
@@ -630,7 +674,7 @@ class batch_BatchesInDocuments extends core_Manager
         $hideTable = (($Def instanceof batch_definitions_Serial) && !empty($btnoff)) || (!empty($btnoff) && !countR($suggestions) && !($Def instanceof batch_definitions_Serial));
         $batchReadOnly = ($Def instanceof batch_definitions_Serial) ? '' : ',batch_ro=readonly';
         if ($hideTable === false) {
-            $form->FLD('newArray', "table({$btnoff},columns={$columns},batch_class=batchNameTd{$batchReadOnly},captions={$captions},{$noCaptions},validate=batch_BatchesInDocuments::validateNewBatches)", "caption=Партиди{$middleCaption}{$caption},placeholder={$Def->placeholder}");
+            $form->FLD('newArray', "table({$btnoff},columns={$columns},batch_class=batchNameTd{$batchReadOnly},captions={$captions},{$noCaptions},validate=batch_BatchesInDocuments::validateNewBatches)", "caption=Партиди{$middleCaption}{$caption},placeholder={$Def->fieldPlaceholder}");
 
             if (is_array($bOptions)) {
                 $bOptions = array_combine(array_values($bOptions), array_values($bOptions));
@@ -641,7 +685,8 @@ class batch_BatchesInDocuments extends core_Manager
             $BatchType = $Def->getBatchClassType($Detail, $detailRecId);
             if ($BatchType instanceof type_Enum) {
                 $bOptions = $BatchType->options;
-                $suggestions = array_combine(array_values($bOptions), array_values($bOptions)) + $suggestions;
+                $suggestionOptions = is_array($suggestions) ? $suggestions : array();
+                $suggestions = array_combine(array_values($bOptions), array_values($bOptions)) + $suggestionOptions;
             }
 
             if($haveMoreThenDisplayedBatches && !$Detail->canReceiveNewBatch($detailRec)){
@@ -664,12 +709,21 @@ class batch_BatchesInDocuments extends core_Manager
         $saveBatches = array();
 
         $selArr = Mode::get("{$this->className}_{$Detail->className}_prevAndNext");
-        if(!empty($selArr)){
+        if (!empty($selArr)) {
+            $selArr = array_values($selArr);
             $currentPosition = array_search($detailRecId, $selArr);
-            $pos = $currentPosition + 1;
-            $prevAndNextIndicator = $pos . '/' . countR($selArr);
-            $form->prev = $selArr[$currentPosition - 1];
-            $form->next = $selArr[$currentPosition + 1];
+            if ($currentPosition !== false) {
+                $pos = $currentPosition + 1;
+                $prevAndNextIndicator = $pos . '/' . countR($selArr);
+                if (isset($selArr[$currentPosition - 1])) {
+                    $form->prev = $selArr[$currentPosition - 1];
+                }
+                if (isset($selArr[$currentPosition + 1])) {
+                    $form->next = $selArr[$currentPosition + 1];
+                }
+            } else {
+                $selArr = array();
+            }
         }
 
         // След събмит
@@ -759,34 +813,79 @@ class batch_BatchesInDocuments extends core_Manager
                     $logMsg = 'Ръчно преразпределяне на партидите';
                 }
 
-                // Ъпдейт/добавяне на записите, които трябва
-                if (countR($saveBatches)) {
-                    self::saveBatches($detailClassId, $detailRecId, $saveBatches);
-                }
-
-                // Изтриване
-                if (countR($delete)) {
-                    foreach ($delete as $b) {
-                        $b = $Def->normalize($b);
-                        self::delete(array("#detailClassId = {$recInfo->detailClassId} AND #detailRecId = {$recInfo->detailRecId} AND #productId = {$recInfo->productId} AND #batch = '[#1#]'", $b));
-                    }
-                }
-
+                $detailQuantityChanged = false;
                 if ($form->cmd == 'updateQuantity' && !empty($total)) {
                     $logMsg = 'Ръчна промяна на партидите и задаване на ново общо количество на детайл';
                     if ($Detail instanceof store_InternalDocumentDetail) {
-                        $dRec->packQuantity = $total / $recInfo->quantityInPack;
+                        $newQuantity = $total / $recInfo->quantityInPack;
+                        $detailQuantityChanged = abs($dRec->packQuantity - $newQuantity) > 0.000000001;
+                        $dRec->packQuantity = $newQuantity;
                     } else {
-                        $dRec->quantity = $total * $recInfo->quantityInPack;
+                        $newQuantity = $total * $recInfo->quantityInPack;
+                        $detailQuantityChanged = abs($dRec->quantity - $newQuantity) > 0.000000001;
+                        $dRec->quantity = $newQuantity;
                     }
                 }
 
-                // Предизвиква се обновяване на документа
+                // Определяме крайното разпределение, защото $saveBatches съдържа
+                // само добавените/променените записи, а непроменените остават в БД.
+                $finalBatches = is_array($foundBatches) ? $foundBatches : array();
+                foreach ($saveBatches as $batch => $quantity) {
+                    $finalBatches[$batch] = $quantity;
+                }
+                foreach ($delete as $batch) {
+                    unset($finalBatches[$Def->normalize($batch)]);
+                }
+
+                $oldBatches = is_array($foundBatches) ? $foundBatches : array();
+                ksort($oldBatches);
+                ksort($finalBatches);
+                $batchesChanged = array_keys($oldBatches) !== array_keys($finalBatches);
+                if (!$batchesChanged) {
+                    foreach ($oldBatches as $batch => $quantity) {
+                        if (abs($quantity - $finalBatches[$batch]) > 0.000000001) {
+                            $batchesChanged = true;
+                            break;
+                        }
+                    }
+                }
+
+                // Ревизия се създава само при реална промяна. Това включва и
+                // updateQuantity, понеже новото количество идва от сбора на
+                // разпределението. on_AfterSave запазва старите партиди като
+                // исторически и клонира разпределението към новия активен ред.
+                $createRevision = ($batchesChanged || $detailQuantityChanged)
+                    && $Detail->hasPlugin('doc_plg_DetailRevisions');
+
+                if (!$createRevision) {
+                    $dRec->_skipDetailRevision = true;
+                }
+
+                // Предизвиква се обновяване на документа (евентуално с ревизия).
+                // Важно: save-ът е преди работата с партидите, защото при ревизия
+                // on_AfterSave клонира старите batch записи към новия ред и
+                // след това saveBatches пише новото разпределение върху него.
                 cls::get($detailClassId)->save($dRec);
                 if ($Detail instanceof core_Detail) {
                     $Detail->Master->logWrite($logMsg, $dRec->{$Detail->masterKey});
                 } else {
                     $Detail->logWrite($logMsg, $dRec->id);
+                }
+
+                // При ревизия $dRec->id е новия ред; в останалите случаи е същия
+                $activeDetailRecId = $dRec->id ?: $detailRecId;
+
+                // Ъпдейт/добавяне на записите, които трябва
+                if (countR($saveBatches)) {
+                    self::saveBatches($detailClassId, $activeDetailRecId, $saveBatches);
+                }
+
+                // Изтриване на batch записи, вече извън разпределението
+                if (countR($delete)) {
+                    foreach ($delete as $b) {
+                        $b = $Def->normalize($b);
+                        self::delete(array("#detailClassId = {$recInfo->detailClassId} AND #detailRecId = {$activeDetailRecId} AND #productId = {$recInfo->productId} AND #batch = '[#1#]'", $b));
+                    }
                 }
 
                 // Ако има избрани за обхождане редирект към тях
@@ -820,6 +919,13 @@ class batch_BatchesInDocuments extends core_Manager
         if (!($Detail instanceof planning_Jobs)) {
             $form->toolbar->addSbBtn('Това е к-то', 'updateQuantity', 'id=updateQuantity,ef_icon = img/16/disk.png,title = Обновяване на количеството');
             $form->toolbar->setBtnOrder('updateQuantity', 30);
+        }
+
+        if (doc_Containers::getDocument($recInfo->containerId)->rec('state') == 'active') {
+            $form->toolbar->setWarning('btnSave', 'Документът е вече контиран, при запис ще бъде реконтиран|*!');
+            if ($form->toolbar->haveButton('updateQuantity')) {
+                $form->toolbar->setWarning('updateQuantity', 'Документът е вече контиран, при запис ще бъде реконтиран|*!');
+            }
         }
 
         $operation = key($recInfo->operation);
@@ -890,26 +996,29 @@ class batch_BatchesInDocuments extends core_Manager
         $res = array();
         $Def = $Type->params['batchDefinition'];
         $tableData = (array) $tableData;
-        $isSerial = $Def instanceof batch_definitions_Serial;
-        
-        $error = $errorFields = array();
-        $batches = $tableData['batch'];
         if (empty($tableData)) {
-            
+
             return;
         }
+
+        $isSerial = $Def instanceof batch_definitions_Serial;
+
+        $error = $errorFields = array();
+        $batches = is_array($tableData['batch'] ?? null) ? $tableData['batch'] : array();
+        $quantities = is_array($tableData['quantity'] ?? null) ? $tableData['quantity'] : array();
 
         $bArray = array();
         foreach ($batches as $key => $batch) {
             if (!empty($batch)) {
                 if ($isSerial) {
-                    if (empty($tableData['quantity'][$key])) {
-                        $tableData['quantity'][$key] = 1;
+                    if (empty($quantities[$key])) {
+                        $quantities[$key] = 1;
                     }
                 }
                 $msg = null;
-                if (!$Def->isValid($batch, $tableData['quantity'][$key], $msg)) {
-                    if($tableData['quantity'][$key] != 0){
+                $quantity = $quantities[$key] ?? null;
+                if (!$Def->isValid($batch, $quantity, $msg)) {
+                    if($quantity != 0){
                         $error[] = "{$batch} :|* {$msg}";
                         $errorFields['batch'][$key] = "{$batch} :|* {$msg}";
                     }
@@ -924,10 +1033,10 @@ class batch_BatchesInDocuments extends core_Manager
             }
         }
         
-        if (is_array($tableData['quantity'])) {
-            foreach ($tableData['quantity'] as $key => $quantity) {
+        if (countR($quantities)) {
+            foreach ($quantities as $key => $quantity) {
                 if (!empty($quantity)) {
-                    if (empty($tableData['batch'][$key])) {
+                    if (empty($batches[$key])) {
                         $error[] = 'Попълнено количество без да има партида';
                         $errorFields['quantity'][$key] = 'Попълнено количество без да има партида';
                         $errorFields['batch'][$key] = 'Попълнено количество без да има партида';
@@ -1044,12 +1153,15 @@ class batch_BatchesInDocuments extends core_Manager
      */
     protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
-        $data->listFilter->view = 'horizontal';
+        $data->listFilter->class = 'simpleForm';
         $data->listFilter->FLD('document', 'varchar(128)', 'silent,caption=Документ,placeholder=Хендлър');
-        $data->listFilter->setField('productId', 'input');
+        $data->listFilter->FNC('historicFilter', 'enum(all=Всички,no=Актуални,yes=Исторически)', 'caption=Вид,input,silent');
+        $data->listFilter->setField('productId', 'input,placeholderType=all');
+        $data->listFilter->setField('detailClassId', 'placeholderType=all');
         $data->listFilter->setField('batch', 'input');
+        $data->listFilter->setDefault('historicFilter', 'no');
         $data->listFilter->input(null, 'silent');
-        $data->listFilter->showFields = 'productId,batch,document,detailClassId';
+        $data->listFilter->showFields = 'productId,batch,document,detailClassId,historicFilter';
 
         $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
         $data->listFilter->input();
@@ -1072,6 +1184,14 @@ class batch_BatchesInDocuments extends core_Manager
                 $data->query->where("#productId = {$fRec->productId}");
             }
 
+            if (isset($fRec->historicFilter) && $fRec->historicFilter != 'all') {
+                if ($fRec->historicFilter == 'no') {
+                    $data->query->where("#isHistoric = 'no' OR #isHistoric IS NULL");
+                } else {
+                    $data->query->where("#isHistoric = 'yes'");
+                }
+            }
+
             if (!empty($fRec->batch)) {
                 $data->query->where(array("#batch = '[#1#]'", $fRec->batch));
             }
@@ -1089,7 +1209,12 @@ class batch_BatchesInDocuments extends core_Manager
      */
     public static function displayBatchesForInvoice($productId, $batches)
     {
-        $batches = explode(',', $batches);
+        if (!is_string($batches) && !is_numeric($batches)) {
+
+            return;
+        }
+
+        $batches = explode(',', (string) $batches);
         if (!countR($batches)) {
             
             return;
@@ -1201,7 +1326,7 @@ class batch_BatchesInDocuments extends core_Manager
         foreach ($toSave as $saveRec){
             $saveRec->_clonedWithBatches = true;
             $Detail::save($saveRec);
-            if(is_array($saveRec->_batches) && core_Packs::isInstalled('batch')){
+            if(isset($saveRec->_batches) && is_array($saveRec->_batches) && core_Packs::isInstalled('batch')){
                 batch_BatchesInDocuments::saveBatches($Detail, $saveRec->id, $saveRec->_batches);
             }
         }

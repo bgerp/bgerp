@@ -16,6 +16,12 @@
 class support_TaskType extends core_Mvc
 {
     public $interfaces = 'cal_TaskTypeIntf';
+
+
+    /**
+     * Мениджърът, в който е вграден драйверът
+     */
+    public $Embedder = null;
     
     
     public $title = 'Сигнал';
@@ -97,7 +103,7 @@ class support_TaskType extends core_Mvc
 
         $systemId = Request::get('systemId', 'int');
         if (!$systemId) {
-            $systemId = $form->rec->systemId;
+            $systemId = $form->rec->systemId ?? null;
         }
 
         expect($systemId);
@@ -171,12 +177,15 @@ class support_TaskType extends core_Mvc
      */
     public function prepareDocumentRow($rec, $row)
     {
-        if (!$row->authorId) {
-            if (trim($rec->name)) {
-                $row->author = type_Varchar::escape(trim($rec->name));
+        if (empty($row->authorId)) {
+            $name = trim((string) ($rec->name ?? ''));
+            $email = trim((string) ($rec->email ?? ''));
+            
+            if (strlen($name)) {
+                $row->author = type_Varchar::escape($name);
                 
-                if (trim($rec->email)) {
-                    $row->authorEmail = type_Varchar::escape(trim($rec->email));
+                if (strlen($email)) {
+                    $row->authorEmail = type_Varchar::escape($email);
                 }
             }
         }
@@ -286,11 +295,11 @@ class support_TaskType extends core_Mvc
                 if($SourceFolderCover->isInstanceOf('planning_Centers')){
                     $supportUsers = $SourceFolderCover->fetchField('supportUsers');
                     if(!empty($supportUsers)){
-                        $res = keylist::merge($supportUsers, $rec->assing);
+                        $res = keylist::merge($supportUsers, $rec->assign ?? null);
                     }
                 }
             }
-        } else {
+        } elseif (!empty($rec->folderId)) {
 
             // Ако няма източник и няма етап се взимат всички отговорници от ЦД където е избрана системата
             $cQuery = planning_Centers::getQuery();
@@ -315,7 +324,7 @@ class support_TaskType extends core_Mvc
     {
         $rec = &$form->rec;
         if($form->isSubmitted()){
-            if(empty($rec->assetResourceId) && empty($rec->stepId) && $rec->_assetsAllowed){
+            if(empty($rec->assetResourceId) && empty($rec->stepId) && !empty($rec->_assetsAllowed)){
                 $form->setWarning('assetResourceId', 'За по-бърза обработка на сигнала, моля изберете "Ресурс"!');
             }
         }
@@ -341,7 +350,7 @@ class support_TaskType extends core_Mvc
         $form->setField('parentId', 'changable=no');
         $systemId = Request::get('systemId', 'key(mvc=support_Systems, select=name)');
         
-        if (!$systemId && $rec->folderId) {
+        if (!$systemId && !empty($rec->folderId)) {
             $coverClassRec = doc_Folders::fetch($rec->folderId);
             if ($coverClassRec->coverClass && (cls::get($coverClassRec->coverClass) instanceof support_Systems)) {
                 $systemId = $coverClassRec->coverId;
@@ -372,7 +381,7 @@ class support_TaskType extends core_Mvc
                 
                 $allowedTypesArr = support_Systems::getAllowedFieldsArr($allSystemsArr);
                 
-                if ($rec->typeId) {
+                if (!empty($rec->typeId)) {
                     $allowedTypesArr[$rec->typeId] = $rec->typeId;
                 }
                 
@@ -389,16 +398,16 @@ class support_TaskType extends core_Mvc
             $form->setOptions('typeId', $typesArr);
 
             // Типа по подразбиране
-            if (!$rec->id) {
+            if (empty($rec->id)) {
                 $sysRec = support_Systems::fetch($systemId);
                 $defTypeId = $sysRec->defaultType;
-                if ($defTypeId && $typesArr[$defTypeId]) {
+                if (!empty($defTypeId) && !empty($typesArr[$defTypeId])) {
                     $form->setDefault('typeId', $defTypeId);
                 }
             }
         }
         
-        if (empty($foldersArr)) {
+        if (empty($foldersArr) && !empty($rec->folderId)) {
             $foldersArr[$rec->folderId] = $rec->folderId;
         }
         
@@ -435,7 +444,9 @@ class support_TaskType extends core_Mvc
             $rec->_assetsAllowed = false;
         }
 
-        if (($srcId = $rec->srcId) && ($srcClass = $rec->srcClass)) {
+        $srcId = $rec->srcId ?? null;
+        $srcClass = $rec->srcClass ?? null;
+        if (!empty($srcId) && !empty($srcClass)) {
             if (cls::haveInterface('support_IssueCreateIntf', $srcClass)) {
                 $srcInst = cls::getInterface('support_IssueCreateIntf', $srcClass);
                 $defaults = (array) $srcInst->getDefaultIssueRec($srcId);
@@ -448,7 +459,7 @@ class support_TaskType extends core_Mvc
         $form->setField('timeEnd', 'autohide');
 
         if(isset($rec->assetResourceId)){
-            $issueOptions = planning_AssetGroupIssueTemplates::getAvailableIssues($rec->assetResourceId, $rec->issueTemplateId);
+            $issueOptions = planning_AssetGroupIssueTemplates::getAvailableIssues($rec->assetResourceId, $rec->issueTemplateId ?? null);
             if(countR($issueOptions)){
                 $form->setField('issueTemplateId', 'input');
                 $form->setOptions('issueTemplateId', $issueOptions);
@@ -486,25 +497,31 @@ class support_TaskType extends core_Mvc
     public static function on_BeforeSave($Driver, $mvc, &$id, $rec)
     {
         if (!haveRole('powerUser') && !core_Users::isSystemUser()) {
-            if (!$rec->ip) {
+            if (empty($rec->ip)) {
                 $rec->ip = core_Users::getRealIpAddr();
             }
             
-            if (!$rec->brid) {
+            if (empty($rec->brid)) {
                 $rec->brid = log_Browsers::getBrid();
             }
         }
         
-        if (!trim($rec->title)) {
-            if ($rec->typeId) {
-                $rec->title = support_IssueTypes::fetchField($rec->typeId, 'type');
+        // Ако няма заглавие - генерира се от типа и ресурса
+        if (!strlen(trim((string) ($rec->title ?? '')))) {
+            $title = '';
+            if (!empty($rec->typeId)) {
+                $title = support_IssueTypes::fetchField($rec->typeId, 'type');
             }
             
-            if ($rec->assetResourceId) {
+            if (!empty($rec->assetResourceId)) {
                 $pRec = planning_AssetResources::fetch($rec->assetResourceId, 'code, name');
                 if ($pRec) {
-                    $rec->title .= ' ' . $pRec->code . ' ' . $pRec->name;
+                    $title .= ' ' . $pRec->code . ' ' . $pRec->name;
                 }
+            }
+            
+            if (strlen($title)) {
+                $rec->title = $title;
             }
         }
     }
@@ -521,10 +538,10 @@ class support_TaskType extends core_Mvc
     public static function on_AfterSave($Driver, $mvc, &$id, $rec)
     {
         if (core_Users::getCurrent() < 1) {
-            log_Browsers::setVars(array('name' => $rec->name, 'email' => $rec->email));
+            log_Browsers::setVars(array('name' => $rec->name ?? null, 'email' => $rec->email ?? null));
         }
         
-        if ($rec->srcId && $rec->srcClass && cls::haveInterface('support_IssueCreateIntf', $rec->srcClass)) {
+        if (!empty($rec->srcId) && !empty($rec->srcClass) && cls::haveInterface('support_IssueCreateIntf', $rec->srcClass)) {
             $srcInst = cls::getInterface('support_IssueCreateIntf', $rec->srcClass);
             $srcInst->afterCreateIssue($rec->srcId, $rec);
         }
@@ -532,8 +549,10 @@ class support_TaskType extends core_Mvc
         // Промяна кога е последно използван готовия сигнал
         if(isset($rec->issueTemplateId)){
             $iRec = planning_AssetGroupIssueTemplates::fetch($rec->issueTemplateId);
-            $iRec->lastUsedOn = dt::now();
-            planning_AssetGroupIssueTemplates::save($iRec, 'lastUsedOn');
+            if (!empty($iRec)) {
+                $iRec->lastUsedOn = dt::now();
+                planning_AssetGroupIssueTemplates::save($iRec, 'lastUsedOn');
+            }
         }
     }
     
@@ -549,26 +568,26 @@ class support_TaskType extends core_Mvc
      */
     public static function on_AfterGetFieldForLetterHead($Driver, $mvc, &$resArr, $rec, $row)
     {
-        if ($row->systemId) {
+        if ($row->systemId ?? null) {
             $resArr['systemId'] = array('name' => tr('Система'), 'val' => '[#systemId#]');
         }
 
-        if ($row->typeId) {
+        if ($row->typeId ?? null) {
             $resArr['typeId'] = array('name' => tr('Тип'), 'val' => '[#typeId#]');
         }
         
-        if ($row->name) {
+        if ($row->name ?? null) {
             $resArr['name'] = array('name' => tr('Име'), 'val' => '[#name#]');
         }
         
-        if ($row->email) {
+        if ($row->email ?? null) {
             $resArr['email'] = array('name' => tr('Имейл'), 'val' => '[#email#]');
         }
         
-        if (trim($rec->url)) {
+        if (trim((string) $rec->url)) {
             
             // Когато стойността е празна, трябва да върнем NULL
-            $url = trim($rec->url);
+            $url = trim((string) $rec->url);
             
             $attr = array();
             $attr['target'] = '_blank';
@@ -587,22 +606,24 @@ class support_TaskType extends core_Mvc
             $resArr['url'] = array('name' => tr('URL'), 'val' => $url);
         }
         
-        if ($row->ip) {
+        if ($row->ip ?? null) {
             $resArr['ip'] = array('name' => tr('IP'), 'val' => '[#ip#]');
         }
         
-        if (trim($rec->brid) && trim($row->brid)) {
-            $bridLink = log_Browsers::getLink(trim($rec->brid));
+        $recBrid = trim((string) ($rec->brid ?? ''));
+        $rowBrid = trim((string) ($row->brid ?? ''));
+        if ($recBrid && $rowBrid) {
+            $bridLink = log_Browsers::getLink($recBrid);
             if ($bridLink) {
                 $resArr['brid'] = array('name' => tr('BRID'), 'val' => $bridLink);
             }
         }
         
-        if ($row->file) {
+        if ($row->file ?? null) {
             $resArr['file'] = array('name' => tr('Файл'), 'val' => '[#file#]');
         }
         
-        if ($resArr['ident']['name']) {
+        if (!empty($resArr['ident']['name'])) {
             $resArr['ident']['name'] = tr($Driver->title);
         }
     }
@@ -642,13 +663,13 @@ class support_TaskType extends core_Mvc
      */
     public function on_AfterGetSearchKeywords($Driver, $mvc, &$res, $rec)
     {
-        $sTxt = $rec->name . ' ' . $rec->email . ' ' . $rec->ip . ' ' . $rec->url;
+        $sTxt = ($rec->name ?? '') . ' ' . ($rec->email ?? '') . ' ' . ($rec->ip ?? '') . ' ' . ($rec->url ?? '');
         
-        if ($rec->typeId) {
+        if (!empty($rec->typeId)) {
             $sTxt .= ' ' . support_IssueTypes::fetchField($rec->typeId, 'type');
         }
         
-        if ($rec->systemId) {
+        if (!empty($rec->systemId)) {
             $sTxt .= ' ' . support_Systems::fetchField($rec->systemId, 'name');
         }
         
@@ -699,7 +720,7 @@ class support_TaskType extends core_Mvc
         $form->fields['folderId']->type->params['coverInterface'] = 'support_IssueIntf';
         $optArr = $form->fields['folderId']->type->getOptions();
         if (!empty($optArr)) {
-            if (!$optArr[$form->rec->folderId]) {
+            if (empty($optArr[$form->rec->folderId ?? null])) {
                 unset($form->rec->folderId);
                 $form->setDefault('folderId', key($optArr));
             }
@@ -724,19 +745,22 @@ class support_TaskType extends core_Mvc
         $me = cls::get(get_called_class());
         $query = $Tasks->getQuery();
         $query->where("#driverClass = {$me->getClassId()}");
-        if ($data->_statesArr) {
+        if (!empty($data->_statesArr)) {
             $query->orWhereArr('state', $data->_statesArr);
         } else {
             $query->where("#state != 'rejected'");
         }
-        if ($data->_ignoreId) {
+        if (!empty($data->_ignoreId)) {
             $query->where("#id != {$data->_ignoreId}");
         }
         $query->where("#assetResourceId = {$data->masterId}");
         $query->orderBy('createdOn=DESC,id=DESC');
-        $data->Pager = cls::get('core_Pager', array('itemsPerPage' => $data->itemsPerPage));
-        $data->Pager->setPageVar($data->masterMvc->className, $data->masterId);
-        if ($data->_itemsPerPage) {
+        $data->Pager = cls::get('core_Pager', array('itemsPerPage' => $data->itemsPerPage ?? null));
+        
+        // При показване в сингъла на сигнала няма мастер мениджър (@see on_AfterRenderSingle)
+        $masterClassName = isset($data->masterMvc) ? $data->masterMvc->className : 'planning_AssetResources';
+        $data->Pager->setPageVar($masterClassName, $data->masterId);
+        if (!empty($data->_itemsPerPage)) {
             $data->Pager->itemsPerPage = $data->_itemsPerPage;
         }
         $data->Pager->setLimit($query);
@@ -841,9 +865,10 @@ class support_TaskType extends core_Mvc
             $productId = $Source->fetchField('productId');
 
             // От наличните етапи остават САМО онези, които са без посочен етап или са за този от операцията
+            $stepId = $rec->stepId ?? null;
             $sQuery = doc_UnsortedFolderSteps::getQuery();
             $sQuery->in('id', array_keys($res));
-            $sQuery->where("#productSteps IS NULL OR LOCATE('|{$productId}|', #productSteps) OR #id = '{$rec->stepId}'");
+            $sQuery->where("#productSteps IS NULL OR LOCATE('|{$productId}|', #productSteps) OR #id = '{$stepId}'");
             $sQuery->show('id,productSteps');
             $res = array_intersect_key($res, arr::extractValuesFromArray($sQuery->fetchAll(), 'id'));
         }

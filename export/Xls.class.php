@@ -103,8 +103,12 @@ class export_Xls extends core_Mvc
             $inst = cls::get($csvClsId);
             
             $nForm = cls::get('core_Form');
-            
-            $oId = (is_object($objId)) ? $objId->id : $objId;
+
+            // Междинното csv отива в таблица, а не при потребител, затова числата
+            // се пишат с точка и без разделител на хилядите - иначе таблицата ги чете като текст
+            $nForm->rec = (object) array('decPoint' => '.', 'thousandsSep' => '');
+
+            $oId = is_object($objId) ? ($objId->id ?? null) : $objId;
             
             if ($inst->canUseExport($clsId, $oId)) {
                 $fileHnd = $inst->makeExport($nForm, $clsId, $objId);
@@ -129,13 +133,13 @@ class export_Xls extends core_Mvc
         if ($nFileHnd) {
             $form->toolbar->addBtn('Сваляне', array('fileman_Download', 'download', 'fh' => $nFileHnd, 'forceDownload' => true), 'ef_icon = fileman/icons/16/xls.png, title=Сваляне на документа');
             
-            $form->info .= '<b>' . tr('Файл|*: ') . '</b>' . fileman::getLink($nFileHnd);
+            $form->info = ($form->info ?? '') . '<b>' . tr('Файл|*: ') . '</b>' . fileman::getLink($nFileHnd);
             $clsInst = cls::get($clsId);
             $clsInst->logWrite('Генериране на XLS', $objId);
             
             return $nFileHnd;
         }
-        $form->info .= "<div class='formNotice'>" . tr('Грешка при експорт|*.') . '</div>';
+        $form->info = ($form->info ?? '') . "<div class='formNotice'>" . tr('Грешка при експорт|*.') . '</div>';
     }
     
     
@@ -158,7 +162,9 @@ class export_Xls extends core_Mvc
         $error = fileman_Indexes::haveErrors($script->outFilePath, $params);
         
         // Отключваме предишния процес
-        core_Locks::release($params['lockId']);
+        if (!empty($params['lockId'])) {
+            core_Locks::release($params['lockId']);
+        }
         
         // Да не се изтрива директорията, след като качим файла
         return false;

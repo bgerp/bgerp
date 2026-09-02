@@ -562,7 +562,8 @@ class plg_Search extends core_Plugin
     public static function normalizeText($str, $ignoreParamsArr = array())
     {
         $ignoreParamsArr = arr::make($ignoreParamsArr);
-        
+        $str = $str ?? '';
+
         if (strlen($str) > 32000) {
             static $maxLen;
             
@@ -852,7 +853,7 @@ class plg_Search extends core_Plugin
                     }
 
                     // Обновяваме и ключовите думи в контейнерите, дори и да няма промяна в модела
-                    if ($rec->containerId && cls::haveInterface('doc_DocumentIntf', $clsInst)) {
+                    if (cls::haveInterface('doc_DocumentIntf', $clsInst) && !empty($rec->containerId)) {
                         $cRec = $Containers->fetch($rec->containerId);
 
                         if ($cRec && ($cRec->docClass == $clsInst->getClassId())) {
@@ -943,14 +944,15 @@ class plg_Search extends core_Plugin
         if ($fRec) {
             $rec->searchKeywords = $mvc->getSearchKeywords($fRec);
         }
-        $rec->searchKeywords = self::purifyKeywods($rec->searchKeywords);
+        $rec->searchKeywords = self::purifyKeywods($rec->searchKeywords ?? null);
 
         if ($mvc->hasPlugin('plg_Search')){
             $mvc->save_($rec, 'searchKeywords');
         }
 
-        if ($rec->containerId){
-            doc_Containers::update_($rec->containerId);
+        $containerId = $rec->containerId ?? ($fRec->containerId ?? null);
+        if (!empty($containerId)) {
+            doc_Containers::update_($containerId);
         }
     }
 }

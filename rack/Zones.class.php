@@ -266,7 +266,7 @@ class rack_Zones extends core_Master
         }
 
         if($isTerminal) {
-            $row->ROW_ATTR['class'] = $row->ROW_ATTR['class'] . " rack-zone-head";
+            $row->ROW_ATTR['class'] = ($row->ROW_ATTR['class'] ?? '') . " rack-zone-head";
         }
 
         if (isset($rec->containerId)) {
@@ -717,14 +717,15 @@ class rack_Zones extends core_Master
     {
         $form = &$data->form;
         $rec = $form->rec;
-        $form->setDefault('storeId', store_Stores::getCurrent('id', $rec ? $rec->storeId : null));
+        $storeId = store_Stores::getCurrent('id', $rec->storeId ?? null);
+        $form->setDefault('storeId', $storeId);
 
         // Ако има работен запис към зоната не може да се сменя склада
         if (isset($rec->containerId)) {
             $form->setReadOnly('storeId');
         }
 
-        $form->setDefault('num', $mvc->getNextNumber($rec->storeId));
+        $form->setDefault('num', $mvc->getNextNumber($rec->storeId ?? $storeId));
     }
 
 
@@ -733,7 +734,7 @@ class rack_Zones extends core_Master
      */
     protected static function on_AfterRenderListTable($mvc, &$tpl, &$data)
     {
-        if($data->isTerminal) {
+        if(!empty($data->isTerminal)) {
             $tpl->push('rack/css/style.css', 'CSS');
             $tpl->push('rack/js/ZoneScripts.js', 'JS');
             jquery_Jquery::run($tpl, 'zoneActions();');
@@ -746,7 +747,7 @@ class rack_Zones extends core_Master
      */
     protected static function on_AfterRenderSingle($mvc, &$tpl, $data)
     {
-        if($data->isTerminal) {
+        if(!empty($data->isTerminal)) {
             $tpl->push('rack/css/style.css', 'CSS');
         }
     }
@@ -759,7 +760,8 @@ class rack_Zones extends core_Master
     {
         // По-хубаво заглавие на формата
         $rec = $data->form->rec;
-        $data->form->title = core_Detail::getEditTitle('store_Stores', $rec->storeId, 'зона', $rec->id, tr('в склад'));
+        $storeId = $rec->storeId ?? store_Stores::getCurrent('id', false);
+        $data->form->title = core_Detail::getEditTitle('store_Stores', $storeId, 'зона', $rec->id ?? null, tr('в склад'));
     }
 
 
@@ -787,12 +789,12 @@ class rack_Zones extends core_Master
         $data->query->orderBy('num', 'asc');
 
         // Добавяне на филтър по артикулите
-        $data->listFilter->FLD('productId', "key2(mvc=cat_Products,storeId={$storeId},select=name,allowEmpty,selectSource=rack_Zones::getProductsInZones)", 'caption=Артикул,autoFilter,silent');
+        $data->listFilter->FLD('productId', "key2(mvc=cat_Products,storeId={$storeId},select=name,allowEmpty,selectSource=rack_Zones::getProductsInZones)", 'caption=Артикул,placeholderType=all,autoFilter,silent');
         $data->listFilter->FNC('terminal', "int", 'caption=Артикул,silent,input=hidden');
         if($data->isTerminal) {
             $data->listFilter->FLD('additional', 'enum(onlyMine=Моите,pendingAndMine=Свободни+Мои,pending=Свободни,yes=С движения,all=Всички)', 'autoFilter,silent');
         }
-        $data->listFilter->FLD('grouping', "varchar", 'caption=Всички,autoFilter,silent');
+        $data->listFilter->FLD('grouping', "varchar", 'caption=Групиране,placeholderType=all,autoFilter,silent');
         $groupingOptions = array('' => '', 'no' => tr('Без групиране'), 'free' => tr('Свободни'), 'notfree' => tr('С документи'));
 
         // Добавяне на групите, както и самостоятелните зони
@@ -905,9 +907,9 @@ class rack_Zones extends core_Master
             $ids = implode(',', $onlyIds);
             expect(preg_match("/^[0-9\,]+$/", $ids), $ids, $onlyIds);
 
-            $dQuery->where("#productId IN (${ids})");
+            $dQuery->where("#productId IN ({$ids})");
         } elseif (ctype_digit("{$onlyIds}")) {
-            $dQuery->where("#productId = ${onlyIds}");
+            $dQuery->where("#productId = {$onlyIds}");
         }
 
         if ($q) {
@@ -974,9 +976,9 @@ class rack_Zones extends core_Master
         }
         $form->setOptions('zoneId', array('' => '') + $zoneOptions);
         if($form->cmd != 'refresh'){
-            $form->setDefault('zoneId', $zoneRec->id);
+            $form->setDefault('zoneId', $zoneRec->id ?? null);
             $form->setDefault('zoneId', key($zoneOptions));
-            $form->setDefault('defaultUserId', $zoneRec->defaultUserId);
+            $form->setDefault('defaultUserId', $zoneRec->defaultUserId ?? null);
         }
         $form->input();
 
@@ -1004,7 +1006,7 @@ class rack_Zones extends core_Master
                 $msg = null;
 
                 // Ако е сменена зоната, документа се премахва от старата и се регенерират движенията за нея и групата
-                if ($zoneRec->id != $fRec->zoneId && isset($zoneRec->id)) {
+                if (isset($zoneRec->id) && $zoneRec->id != $fRec->zoneId) {
                     static::updateZone($zoneRec->id, $containerId, true);
                 }
 
@@ -1024,7 +1026,7 @@ class rack_Zones extends core_Master
                         $msg = 'Дефолтния работник е променен успешно|*!';
                     }
 
-                    if(haveRole('ceo,rackSee') && store_Stores::haveRightFor('select', $zoneRec->storeId)){
+                    if(haveRole('ceo,rackSee') && store_Stores::haveRightFor('select', $storeId)){
 
                         $redirectUrl = self::getUrlArr($fRec->zoneId);
                         if(isset($fRec->defaultUserId)){
@@ -1443,7 +1445,7 @@ class rack_Zones extends core_Master
      */
     protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
     {
-        if($data->isTerminal){
+        if(!empty($data->isTerminal)){
             $data->listTableMvc->commonRowClass = 'zonesCommonRow zoneLighter';
             unset($data->listFields['isUsed']);
 
@@ -1972,7 +1974,7 @@ class rack_Zones extends core_Master
             }
 
             // тук вече използваме изчисленото $needed, а не повтаряме формулата
-            $res->products[$key]->zones[$dRec->zoneId] += $needed;
+            $res->products[$key]->zones[$dRec->zoneId] = ($res->products[$key]->zones[$dRec->zoneId] ?? 0) + $needed;
         }
 
         return $res;
@@ -2018,7 +2020,7 @@ class rack_Zones extends core_Master
         $mQuery->limit(1);
         $rec = $mQuery->fetch();
 
-        $res = md5("{$rec->storeId}|{$rec->modifiedOn}|{$rec->id}");
+        $res = $rec ? md5("{$rec->storeId}|{$rec->modifiedOn}|{$rec->id}") : md5("{$storeId}|");
 
     }
 
@@ -2107,7 +2109,7 @@ class rack_Zones extends core_Master
             $res->replace($zoneTitle, 'element');
             $zoneTitle = $res->getContent();
             if(isset($hint)){
-                $zoneTitle = ht::createHint($zoneTitle, $hint, 'notice', true,'style=background-color:#fff !important;margin-left:3px;border-radius:8px;');
+                $zoneTitle = ht::createHint($zoneTitle, $hint, 'notice', true, array('iconAttr' => 'style=background-color:#fff !important;margin-left:3px;border-radius:8px;'));
             }
         }
 
@@ -2127,7 +2129,7 @@ class rack_Zones extends core_Master
      */
     protected function on_AfterPrepareRetUrl($mvc, $data)
     {
-        if($data->action == 'manage' && $data->form->cmd != 'save_n_new'){
+        if(($data->action ?? null) == 'manage' && $data->form->cmd != 'save_n_new'){
             $data->retUrl = array('rack_Zones', 'list');
         }
     }

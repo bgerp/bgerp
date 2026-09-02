@@ -15,6 +15,8 @@
  */
 class callcenter_SentSMSIntf
 {
+    public $class;
+
     /**
      * Метод за изпращане на SMS' и
      *
@@ -61,6 +63,6 @@ class callcenter_SentSMSIntf
      */
     public function getStatus($uid)
     {
-        return $this->class->getStatus();
+        return $this->class->getStatus($uid);
     }
 }

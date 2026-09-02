@@ -153,7 +153,7 @@ class cat_ListingDetails extends doc_Detail
         
         // Ако е избран артикул, показва се и опаковката му
         if (isset($rec->productId)) {
-            $packs = cat_Products::getPacks($rec->productId, $rec->packagingId);
+            $packs = cat_Products::getPacks($rec->productId, $rec->packagingId ?? null);
             $form->setField('packagingId', 'input');
             $form->setOptions('packagingId', $packs);
             $form->setDefault('packagingId', key($packs));
@@ -277,7 +277,7 @@ class cat_ListingDetails extends doc_Detail
 
                         $rec->price *= $quantityInPack;
                         $row->price = $mvc->getFieldType('price')->toVerbal($rec->price);
-                        $row->price = "<span style='color:blue'>{$row->price}</span>";
+                        $row->price = "<span class='blueText'>{$row->price}</span>";
                         $row->price = ht::createHint($row->price, $hint2, 'notice', false);
                     }
                 }
@@ -293,7 +293,8 @@ class cat_ListingDetails extends doc_Detail
             }
             
             $exPack = cat_products_Packagings::getPack($rec->productId, $rec->packagingId);
-            deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, ($exPack->quantity) ? $exPack->quantity : 1);
+            $quantityInPack = (is_object($exPack) && $exPack->quantity) ? $exPack->quantity : 1;
+            deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $quantityInPack);
             if($deactivatedPack){
                 $row->packagingId = ht::createHint($row->packagingId, 'Опаковката/мярката е деактивирана в момента|*!', 'warning', false);
             }
@@ -315,7 +316,7 @@ class cat_ListingDetails extends doc_Detail
         $all = cat_Listings::getAll($listId);
         
         // Оставят се само тези записи, в които се среща кода
-        $res = array_filter($all, function (&$e) use ($reff) {
+        $res = array_filter($all, function ($e) use ($reff) {
             if ($e->reff == $reff) {
                 
                 return true;
@@ -325,7 +326,7 @@ class cat_ListingDetails extends doc_Detail
         });
         
         // Ако има първи елемент, взима се той
-        $firstFound = $res[key($res)];
+        $firstFound = countR($res) ? reset($res) : null;
         $reff = (is_object($firstFound)) ? (object) array('productId' => $firstFound->productId, 'packagingId' => $firstFound->packagingId, 'price' => $firstFound->price) : null;
         
         return $reff;

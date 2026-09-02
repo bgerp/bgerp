@@ -64,7 +64,7 @@ class sales_reports_OffersSentWithoutReply extends frame2_driver_TableData
         $fieldset->FLD('periodStart', 'time(suggestions=|1 ден|3 дена|1 седмица|1 месец)', 'caption=Период->Старт, after=title,mandatory,single=none,removeAndRefreshForm');
         $fieldset->FLD('periodEnd', 'time(suggestions=1 седмица|2 седмици|3 седмици|1 месец|3 месеца)', 'caption=Период->Край, after=periodStart,mandatory,single=none,removeAndRefreshForm');
 
-        $fieldset->FLD('dealers', 'users(rolesForAll=ceo|repAllGlobal, rolesForTeams=ceo|manager|repAll|repAllGlobal)', 'caption=Търговци->Търговци,placeholder=Всички,single=none,mandatory,after=periodEnd');
+        $fieldset->FLD('dealers', 'users(rolesForAll=ceo|repAllGlobal, rolesForTeams=ceo|manager|repAll|repAllGlobal)', 'caption=Търговци->Търговци,placeholderType=all,single=none,mandatory,after=periodEnd');
     }
 
 
@@ -115,6 +115,10 @@ class sales_reports_OffersSentWithoutReply extends frame2_driver_TableData
     {
 
         $recs = $foldersArr = $incomingMailsArr = $outgoingMailsArr = array();
+        $foldersforChek = array();
+        $rec->periodStart = $rec->periodStart ?? 3 * 24 * 60 * 60;
+        $rec->periodEnd = $rec->periodEnd ?? 3 * 7 * 24 * 60 * 60;
+        $rec->dealers = $rec->dealers ?? null;
 
         $periodStart = dt::addSecs(-$rec->periodStart, dt::today(), false);
         $periodEnd = dt::addSecs(-$rec->periodEnd, $periodStart, false);
@@ -123,10 +127,13 @@ class sales_reports_OffersSentWithoutReply extends frame2_driver_TableData
         $fQuery = doc_Folders::getQuery();
         $fQuery->in('state', array('rejected', 'draft'), true);
 
-        $fQuery->in('inCharge',type_UserList::toArray($rec->dealers));
+        $dealers = type_UserList::toArray($rec->dealers);
+        if (!empty($dealers)) {
+            $fQuery->in('inCharge', $dealers);
+        }
 
         while ($fRec = $fQuery->fetch()){
-            if(!in_array($fRec->inCharge,array_keys($foldersArr))){
+            if(!isset($foldersArr[$fRec->inCharge])){
                 $foldersArr[$fRec->inCharge] = array($fRec->id);
                 $foldersforChek[$fRec->id] = $fRec->id;
             }else{
@@ -135,6 +142,10 @@ class sales_reports_OffersSentWithoutReply extends frame2_driver_TableData
                 $foldersforChek[$fRec->id] = $fRec->id;
             }
 
+        }
+
+        if (empty($foldersforChek)) {
+            return $recs;
         }
 
        // $foldersforChek = arr::extractValuesFromArray($fQuery->fetchAll(),'id');
@@ -151,7 +162,7 @@ class sales_reports_OffersSentWithoutReply extends frame2_driver_TableData
         while ($emOutRec = $mOutQuery->fetch()) {
 
             //$outgoingMailsArr последния изходящ имейл във всяка папка
-            if(!in_array($emOutRec->folderId,array_keys($outgoingMailsArr))){
+            if(!isset($outgoingMailsArr[$emOutRec->folderId])){
                 $outgoingMailsArr[$emOutRec->folderId] = $emOutRec;
             }else{
 
@@ -170,7 +181,7 @@ class sales_reports_OffersSentWithoutReply extends frame2_driver_TableData
 
                 if(in_array($email->folderId,$fId)){
 
-                    if (!preg_match('/#Q\d+/', $email->body))continue;
+                    if (!preg_match('/#Q\d+/', $email->body ?? ''))continue;
 
                     $key = $dil.'|'.$email->folderId;
                     $lastOutEmails[$key] = $email;
@@ -190,7 +201,7 @@ class sales_reports_OffersSentWithoutReply extends frame2_driver_TableData
         while ($mInRec = $mInQuery->fetch()) {
 
             //$incomingMailsArr последния входящ имейл във всяка папка
-            if(!in_array($mInRec->folderId,array_keys($incomingMailsArr))){
+            if(!isset($incomingMailsArr[$mInRec->folderId])){
                 $incomingMailsArr[$mInRec->folderId] = $mInRec;
             }else{
 
@@ -285,6 +296,10 @@ class sales_reports_OffersSentWithoutReply extends frame2_driver_TableData
 
         $row = new stdClass();
 
+        if (!isset($dRec->outMail)) {
+            return $row;
+        }
+
         $row->folderId = doc_Folders::getHyperlink($dRec->folderId);
 
         $row->dealer = crm_Profiles::createLink($dRec->dealer);
@@ -323,6 +338,7 @@ class sales_reports_OffersSentWithoutReply extends frame2_driver_TableData
     protected static function on_AfterRenderSingle(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$tpl, $data)
     {
         $Date = cls::get('type_Date');
+        $dealersVerb = '';
 
         $fieldTpl = new core_ET(tr("|*<!--ET_BEGIN BLOCK-->[#BLOCK#]
 								<fieldset class='detail-info'><legend class='groupTitle'><small><b>|Филтър|*</b></small></legend>
@@ -334,8 +350,10 @@ class sales_reports_OffersSentWithoutReply extends frame2_driver_TableData
                                 </fieldset><!--ET_END BLOCK-->"));
 
 
-        $periodStart = dt::addSecs(-$data->rec->periodStart, dt::today(), false);
-        $periodEnd = dt::addSecs(-$data->rec->periodEnd, $periodStart, false);
+        $periodStartSecs = $data->rec->periodStart ?? 3 * 24 * 60 * 60;
+        $periodEndSecs = $data->rec->periodEnd ?? 3 * 7 * 24 * 60 * 60;
+        $periodStart = dt::addSecs(-$periodStartSecs, dt::today(), false);
+        $periodEnd = dt::addSecs(-$periodEndSecs, $periodStart, false);
 
         if (isset($data->rec->periodStart)) {
             $fieldTpl->append('<b>' . $Date->toVerbal($periodStart). '</b>', 'periodStart');
@@ -345,8 +363,9 @@ class sales_reports_OffersSentWithoutReply extends frame2_driver_TableData
             $fieldTpl->append('<b>' . $Date->toVerbal($periodEnd) . '</b>', 'periodEnd');
         }
 
-        if ((isset($data->rec->dealers)) && ((min(array_keys(keylist::toArray($data->rec->dealers))) >= 1))) {
-            foreach (type_Keylist::toArray($data->rec->dealers) as $dealer) {
+        $dealers = keylist::toArray($data->rec->dealers ?? null);
+        if (!empty($dealers) && min(array_keys($dealers)) >= 1) {
+            foreach ($dealers as $dealer) {
                 $dealersVerb .= (core_Users::getTitleById($dealer) . ', ');
             }
 
@@ -370,11 +389,12 @@ class sales_reports_OffersSentWithoutReply extends frame2_driver_TableData
     protected static function on_AfterGetExportRec(frame2_driver_Proto $Driver, &$res, $rec, $dRec, $ExportClass)
     {
 
-        $res->folderId = doc_Folders::fetch($dRec->folderId)->title;
+        $folderRec = doc_Folders::fetch($dRec->folderId ?? null);
+        $res->folderId = $folderRec->title ?? null;
 
-        $res->outEmail = ($dRec->outMail)->subject;
+        $res->outEmail = $dRec->outMail->subject ?? null;
 
-        $res->outEmailDatate = ($dRec->outMail)->createdOn;
+        $res->outEmailDatate = $dRec->outMail->createdOn ?? null;
 
     }
 

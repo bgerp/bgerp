@@ -56,22 +56,22 @@ class sens2_DomainMon extends sens2_ProtoDriver
     {
         $res = array();
         
-        if ($inputs['reachable']) {
+        if (!empty($inputs['reachable'])) {
             $res['reachable'] = $this->getReachable($config->domain);
-            if(strlen($config->altDomain)) {
+            if (!empty($config->altDomain)) {
                 $res['reachable'] = min($res['reachable'], $this->getReachable($config->altDomain));
             }
         }
         
-        if ($inputs['certValidity']) {
+        if (!empty($inputs['certValidity'])) {
             $res['certValidity'] = $this->getCertValidity($config->domain);
-            if(strlen($config->altDomain)) {
+            if (!empty($config->altDomain)) {
                 $res['certValidity'] = min($res['certValidity'], $this->getCertValidity($config->altDomain));
             }
         }
         
-        if ($inputs['loadTime']) {
-            $res['loadTime'] = $this->getLoadTime($config->domain, $config->altDomain, $config->title);
+        if (!empty($inputs['loadTime'])) {
+            $res['loadTime'] = $this->getLoadTime($config->domain, $config->altDomain ?? null, $config->title ?? '');
         }
         
         return $res;
@@ -110,8 +110,11 @@ class sens2_DomainMon extends sens2_ProtoDriver
             }
             
             $cont = stream_context_get_params($r);
-            $certinfo = openssl_x509_parse($cont["options"]["ssl"]["peer_certificate"]);
-            $success = true;
+            $certificate = $cont['options']['ssl']['peer_certificate'] ?? null;
+            $certinfo = $certificate ? openssl_x509_parse($certificate) : false;
+            if (!$certinfo || !isset($certinfo['validTo_time_t'])) {
+                return 0;
+            }
             $validity = $certinfo['validTo_time_t'] - time();
         } catch(Exception $e) {
             

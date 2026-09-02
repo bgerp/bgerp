@@ -76,26 +76,62 @@ class acc_FeatureTitles extends core_Manager
     
     
     /**
+     * Кеш в рамките на хита: заглавие на свойство -> ид
+     */
+    private static $titleToIdMap;
+
+
+    /**
      * Описание на модела
      */
     public function description()
     {
         $this->FLD('title', 'varchar(128)', 'caption=Черта');
     }
-    
-    
+
+
     /**
      * Връща id на посочения признак. Ако го няма - създава го.
      */
     public static function fetchIdByTitle($title)
     {
+        if (!isset(self::$titleToIdMap)) {
+            self::fetchTitleToIdMap();
+        }
+
+        // Заглавието е с двоична колация, така че сравнението в масива е като това в SQL
+        if (isset(self::$titleToIdMap[$title])) {
+
+            return self::$titleToIdMap[$title];
+        }
+
         $id = acc_FeatureTitles::fetchField(array("#title = '[#1#]'", $title), 'id');
         if (!isset($id)) {
             $ftRec = (object) array('title' => $title);
             acc_FeatureTitles::save($ftRec);
             $id = $ftRec->id;
         }
-        
+
+        self::$titleToIdMap[$title] = $id;
+
         return $id;
+    }
+
+
+    /**
+     * Извлича масив с индекс заглавие на свойство и стойност - неговото ид
+     *
+     * @author Ivelin Dimov <ivelin_pdimov@abv.bg>
+     */
+    private static function fetchTitleToIdMap()
+    {
+        self::$titleToIdMap = array();
+
+        $query = self::getQuery();
+        $query->show('id,title');
+
+        while ($rec = $query->fetch()) {
+            self::$titleToIdMap[$rec->title] = $rec->id;
+        }
     }
 }

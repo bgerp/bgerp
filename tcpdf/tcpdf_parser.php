@@ -531,10 +531,10 @@ class TCPDF_PARSER {
 				if ($char == '(') {
 					$open_bracket = 1;
 					while ($open_bracket > 0) {
-						if (!isset($this->pdfdata{$strpos})) {
+						if (!isset($this->pdfdata[$strpos])) {
 							break;
 						}
-						$ch = $this->pdfdata{$strpos};
+						$ch = $this->pdfdata[$strpos];
 						switch ($ch) {
 							case '\\': { // REVERSE SOLIDUS (5Ch) (Backslash)
 								// skip next character
@@ -578,7 +578,7 @@ class TCPDF_PARSER {
 			}
 			case '<':   // \x3C LESS-THAN SIGN
 			case '>': { // \x3E GREATER-THAN SIGN
-				if (isset($this->pdfdata{($offset + 1)}) AND ($this->pdfdata{($offset + 1)} == $char)) {
+				if (isset($this->pdfdata[($offset + 1)]) AND ($this->pdfdata[($offset + 1)] == $char)) {
 					// dictionary object
 					$objtype = $char.$char;
 					$offset += 2;
@@ -677,8 +677,8 @@ class TCPDF_PARSER {
 	protected function getIndirectObject($obj_ref, $offset=0, $decoding=true) {
 		$obj = explode('_', $obj_ref);
 		if (($obj === false) OR (count($obj) != 2)) {
-			$this->Error('Invalid object reference: '.$obj);
-			return;
+			$this->Error('Invalid object reference: '.$obj_ref);
+			return array('null', 'null', $offset);
 		}
 		$objref = $obj[0].' '.$obj[1].' obj';
 		// ignore leading zeros

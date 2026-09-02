@@ -65,6 +65,12 @@ class deals_QuotationDetails extends doc_Detail
 
 
     /**
+     * Помощен масив за мапиране на полета изпозлвани в deals_Helper
+     */
+    public $map = array('valior' => 'date');
+
+
+    /**
      * Полета, които ще се показват в листов изглед
      */
     public $listFields = 'productId, packagingId, quantityInPack, packQuantity=К-во, packPrice, discount=Отст., tolerance, term, weight,optional, amount, discAmount,quantity';
@@ -139,10 +145,11 @@ class deals_QuotationDetails extends doc_Detail
 
         if (!empty($rec->packPrice)) {
             if (strtolower(Request::get('Act')) != 'createproduct') {
-                $valior = !empty($masterRec->valior) ? $masterRec->valior : dt::today();
+                $valior = !empty($masterRec->date) ? $masterRec->date : dt::today();
                 $vat = cat_Products::getVat($rec->productId, $valior, $vatExceptionId);
             } else {
-                $vat = acc_Periods::fetchByDate($masterRec->valior)->vatRate;
+                $periodRec = acc_Periods::fetchByDate($masterRec->date);
+                $vat = $periodRec->vatRate ?? null;
             }
 
             $rec->packPrice = deals_Helper::getDisplayPrice($rec->packPrice, $vat, $masterRec->currencyRate, $masterRec->chargeVat);
@@ -150,7 +157,7 @@ class deals_QuotationDetails extends doc_Detail
 
         $form->fields['packPrice']->unit = '|*' . $masterRec->currencyId . ', ' .(($masterRec->chargeVat == 'yes') ? '|с ДДС|*' : '|без ДДС|*');
 
-        if ($form->rec->price && $masterRec->currencyRate) {
+        if (($form->rec->price ?? null) && $masterRec->currencyRate) {
             if ($masterRec->chargeVat == 'yes') {
                 ($rec->vatPercent) ? $vat = $rec->vatPercent : $vat = cat_Products::getVat($rec->productId, $masterRec->date, $vatExceptionId);
                 $rec->price = $rec->price * (1 + $vat);
@@ -174,8 +181,8 @@ class deals_QuotationDetails extends doc_Detail
         }
 
         // Показваме документа, който е бил източник на мастъра
-        if ($masterRec->originId || $rec->originId) {
-            $oDocId = $rec->originId;
+        if ($masterRec->originId || ($rec->originId ?? null)) {
+            $oDocId = $rec->originId ?? null;
 
             if (!$oDocId) {
                 $oDocId = $masterRec->originId;
@@ -217,18 +224,22 @@ class deals_QuotationDetails extends doc_Detail
         $vat = 0;
 
         if(isset($rec->productId)) {
-            $vat = cat_Products::getVat($rec->productId, $masterRec->valior, $vatExceptionId);
+            $vat = cat_Products::getVat($rec->productId, $masterRec->date, $vatExceptionId);
             $rec->vatPercent = $vat;
-            $packs = cat_Products::getPacks($rec->productId, $rec->packagingId);
+            $packs = cat_Products::getPacks($rec->productId, $rec->packagingId ?? null);
             $form->setOptions('packagingId', $packs);
             $form->setDefault('packagingId', key($packs));
             $form->setField('packagingId', 'input');
         }
 
         if ($form->isSubmitted()) {
+            // Артикулът може още да не е създаден - при създаване на нов артикул от
+            // документа (@see cat_plg_CreateProductFromDocument) 'productId' се попълва
+            // чак след записа. Затова зависимите от него извиквания са пазени поотделно,
+            // а изчисляването на цената трябва да се направи и без избран артикул.
             if (!isset($form->rec->packQuantity)) {
                 $form->rec->defQuantity = true;
-                $form->setDefault('packQuantity', $rec->_moq ? $rec->_moq : deals_Helper::getDefaultPackQuantity($rec->productId, $rec->packagingId));
+                $form->setDefault('packQuantity', ($rec->_moq ?? null) ? $rec->_moq : deals_Helper::getDefaultPackQuantity($rec->productId ?? null, $rec->packagingId ?? null));
                 if (empty($rec->packQuantity)) {
                     if($rec->optional == 'yes'){
                         $form->setDefault('packQuantity', 1);
@@ -242,12 +253,14 @@ class deals_QuotationDetails extends doc_Detail
             $rec->quantityInPack = 1;
             if(isset($rec->productId)){
                 $productInfo = cat_Products::getProductInfo($rec->productId);
-                $rec->quantityInPack = ($productInfo->packagings[$rec->packagingId]) ? $productInfo->packagings[$rec->packagingId]->quantity : 1;
+                $rec->quantityInPack = (!empty($productInfo->packagings[$rec->packagingId])) ? $productInfo->packagings[$rec->packagingId]->quantity : 1;
             }
             $rec->quantity = $rec->packQuantity * $rec->quantityInPack;
 
             // Проверка дали к-то е под МКП
-            deals_Helper::isQuantityBellowMoq($form, $rec->productId, $rec->quantity, $rec->quantityInPack);
+            if (isset($rec->productId)) {
+                deals_Helper::isQuantityBellowMoq($form, $rec->productId, $rec->quantity, $rec->quantityInPack);
+            }
             $price = null;
             if (!isset($rec->packPrice)) {
                 $rec->price = null;
@@ -272,7 +285,7 @@ class deals_QuotationDetails extends doc_Detail
             }
 
             // При редакция, ако е променена опаковката слагаме предупреждение
-            if ($rec->id) {
+            if (!empty($rec->id)) {
                 $oldRec = $mvc->fetch($rec->id);
                 if ($oldRec && $rec->packagingId != $oldRec->packagingId && !empty($rec->packPrice) && round($rec->packPrice, 4) == round($oldRec->packPrice, 4)) {
                     $form->setWarning('packPrice,packagingId', 'Опаковката е променена без да е променена цената|*.<br />|Сигурни ли сте, че зададената цена отговаря на  новата опаковка|*?');
@@ -332,10 +345,10 @@ class deals_QuotationDetails extends doc_Detail
     /**
      * Проверява дали има вариация на продукт
      */
-    protected function checkUnique($recs, $productId, $id, $isOptional = 'no', $notes)
+    protected function checkUnique($recs, $productId, $id, $isOptional, $notes)
     {
         $other = array_values(array_filter($recs, function ($val) use ($productId, $id, $isOptional, $notes) {
-            if ($val->optional == $isOptional && $val->productId == $productId && $val->id != $id && md5($notes) == md5($val->notes)) {
+            if ($val->optional == $isOptional && $val->productId == $productId && $val->id != $id && md5((string) $notes) == md5((string) $val->notes)) {
 
                 return $val;
             }
@@ -416,23 +429,26 @@ class deals_QuotationDetails extends doc_Detail
         $masterRec = $data->masterData->rec;
         $countryId = $data->cData->countryId;
 
+        // Дали цените са заличени за текущия потребител от doc_plg_HidePrices - тогава не показваме и еквивалента в другата валута
+        $pricesHidden = !doc_plg_HidePrices::canSeePriceFields($data->masterMvc, $masterRec) && $data->dontHidePrices !== true;
+
         // Групираме записите за по-лесно показване
         foreach ($data->rows as $i => $row) {
             $rec = $data->recs[$i];
 
             if($data->masterMvc->showDualPrices($masterRec->folderId)){
-                $row->packPrice = deals_Helper::displayDualAmount($row->packPrice, $rec->packPrice, $masterRec->activatedOn, $masterRec->currencyId, $countryId);
+                $row->packPrice = deals_Helper::displayDualAmount($row->packPrice, $rec->packPrice, $masterRec->activatedOn, $masterRec->currencyId, $countryId, "<br />", false, $pricesHidden);
                 if($masterRec->chargeVat == 'separate' && !empty($row->vatPackPrice)){
-                    $row->vatPackPrice = deals_Helper::displayDualAmount($row->vatPackPrice, $rec->vatPackPrice, $masterRec->activatedOn, $masterRec->currencyId, $countryId);
+                    $row->vatPackPrice = deals_Helper::displayDualAmount($row->vatPackPrice, $rec->vatPackPrice, $masterRec->activatedOn, $masterRec->currencyId, $countryId, "<br />", false, $pricesHidden);
                 }
             }
 
             if($data->masterMvc->showDualPrices($masterRec->folderId)){
-                $row->amount = deals_Helper::displayDualAmount($row->amount, $rec->amount, $masterRec->activatedOn, $masterRec->currencyId, $countryId);
+                $row->amount = deals_Helper::displayDualAmount($row->amount, $rec->amount, $masterRec->activatedOn, $masterRec->currencyId, $countryId, "<br />", false, $pricesHidden);
             }
 
             if (($rec->livePrice ?? null) === true) {
-                $row->packPrice = "<span style='color:blue'>{$row->packPrice}</span>";
+                $row->packPrice = "<span class='blueText'>{$row->packPrice}</span>";
                 $row->packPrice = ht::createHint($row->packPrice, 'Цената е динамично изчислена. Ще бъде записана при активиране', 'notice', false);
             }
 
@@ -446,7 +462,7 @@ class deals_QuotationDetails extends doc_Detail
 
             // Създава се специален индекс на записа productId|optional, така
             // резултатите са разделени по продукти и дали са опционални или не
-            $pId = $pId . "|{$optional}|" . md5($rec->notes);
+            $pId = $pId . "|{$optional}|" . md5((string) $rec->notes);
 
             $newRows[$pId][] = $row;
         }
@@ -509,14 +525,15 @@ class deals_QuotationDetails extends doc_Detail
         $query = $me->getQuery();
         $query->EXT('contragentClassId', $Master, 'externalName=contragentClassId,externalKey=quotationId');
         $query->EXT('contragentId', $Master, 'externalName=contragentId,externalKey=quotationId');
-        $query->EXT('state', $Master, 'externalName=state,externalKey=quotationId');
+        $query->EXT('mState', $Master, 'externalName=state,externalKey=quotationId');
         $query->EXT('date', $Master, 'externalName=date,externalKey=quotationId');
         $query->EXT('validFor', $Master, 'externalName=validFor,externalKey=quotationId');
+        $query->EXT('threadId', $Master, 'externalName=threadId,externalKey=quotationId');
         $query->XPR('expireOn', 'datetime', 'CAST(DATE_ADD(#date, INTERVAL #validFor SECOND) AS DATE)');
 
         // Филтрираме офертите за да намерим на каква цена последно сме оферирали артикула за посоченото количество
         $query->where("#contragentClassId = {$customerClass} AND #contragentId = {$customerId}");
-        $query->where("#state = 'active'");
+        $query->where("#mState = 'active'");
         $query->where("(#expireOn IS NULL AND #date >= '{$dateFilter}') OR (#expireOn IS NOT NULL AND #expireOn >= '{$dateFilter}')");
         $query->limit(1);
 
@@ -530,9 +547,10 @@ class deals_QuotationDetails extends doc_Detail
         $rec1 = $query->fetch();
         $rec = is_object($rec1) ? $rec1 : $cloneQuery->fetch();
 
-        $res = (object)array('price' => null);
+        $res = (object)array('price' => null, 'discount' => null);
         if ($rec) {
             $res->price = $rec->price;
+            $res->threadId = $rec->threadId;
             if($me instanceof sales_QuotationsDetails){
                 $fee = sales_TransportValues::get('sales_Quotations', $rec->quotationId, $rec->id);
                 if (is_object($fee) && $fee->fee > 0) {
@@ -757,7 +775,7 @@ class deals_QuotationDetails extends doc_Detail
         $data->countOptional = countR($optional);
 
         // Подготовка за показване на задължителнтие продукти
-        deals_Helper::fillRecs($mvc, $notOptional, $masterRec);
+        deals_Helper::fillRecs($mvc, $notOptional, $masterRec, $mvc->map);
 
         $notDefinedAmount = false;
         $onlyNotOptionalRec = null;
@@ -787,8 +805,10 @@ class deals_QuotationDetails extends doc_Detail
             if(countR($mvc->_total->vats) == 1){
                 $onlyVatPercent = key($mvc->_total->vats);
                 $percentVal = str_replace('.', '', $onlyVatPercent);
-                $data->summary->onlyVat = $data->summary->{"vat{$percentVal}"};
-                unset($data->summary->{"vat{$percentVal}"});
+                if (isset($data->summary->{"vat{$percentVal}"})) {
+                    $data->summary->onlyVat = $data->summary->{"vat{$percentVal}"};
+                    unset($data->summary->{"vat{$percentVal}"});
+                }
             }
 
             // Обработваме сумарните данни
@@ -820,20 +840,20 @@ class deals_QuotationDetails extends doc_Detail
             if (is_object($onlyNotOptionalRec)) {
                 if ($onlyNotOptionalRec->livePrice === true) {
 
-                    $data->summary->value = "<span style='color:blue'>{$data->summary->value}</span>";
-                    $data->summary->value = ht::createHint($data->summary->value, 'Сумата е динамично изчислена. Ще бъде записана при активиране', 'notice', false, 'width=14px,height=14px');
+                    $data->summary->value = "<span class='blueText'>{$data->summary->value}</span>";
+                    $data->summary->value = ht::createHint($data->summary->value, 'Сумата е динамично изчислена. Ще бъде записана при активиране', 'notice', false, array('iconAttr' => 'width=14px,height=14px'));
 
-                    $data->summary->total = "<span style='color:blue'>{$data->summary->total}</span>";
-                    $data->summary->total = ht::createHint($data->summary->total, 'Сумата е динамично изчислена. Ще бъде записана при активиране', 'notice', false, 'width=14px,height=14px');
+                    $data->summary->total = "<span class='blueText'>{$data->summary->total}</span>";
+                    $data->summary->total = ht::createHint($data->summary->total, 'Сумата е динамично изчислена. Ще бъде записана при активиране', 'notice', false, array('iconAttr' => 'width=14px,height=14px'));
                 }
             }
         }
-        if(is_object($mvc->_total)){
+        if(isset($mvc->_total) && is_object($mvc->_total)){
             $data->_total = clone $mvc->_total;
         }
 
         // Подготовка за показване на опционалните продукти
-        deals_Helper::fillRecs($mvc, $optional, $masterRec);
+        deals_Helper::fillRecs($mvc, $optional, $masterRec, $mvc->map);
         $recs = $notOptional + $optional;
 
         // Изчисляване на цената с отстъпка
@@ -962,7 +982,7 @@ class deals_QuotationDetails extends doc_Detail
             }
 
             if ($masterRec->chargeVat != 'separate') {
-                $summary->vatAmount = tr($summary->vatAmount);
+                $summary->vatAmount = tr($summary->vatAmount ?? null);
             }
 
             $dTpl->placeObject($summary, 'SUMMARY');

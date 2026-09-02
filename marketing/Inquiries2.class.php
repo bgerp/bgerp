@@ -302,7 +302,7 @@ class marketing_Inquiries2 extends embed_Manager
     private function expandEditForm(&$data)
     {
         $cu = core_Users::getCurrent('id', false);
-        $hide = (isset($cu) && core_Users::haveRole('partner', $cu)) ? true : false;
+        $hide = isset($cu) && core_Users::haveRole('partner', $cu);
         
         $form = &$data->form;
         $form->setField('innerClass', 'remember,removeAndRefreshForm=proto|measureId|meta');
@@ -313,7 +313,7 @@ class marketing_Inquiries2 extends embed_Manager
 
         // Ако има избран прототип, зареждаме му данните в река
         $Driver = $this->getDriver($form->rec);
-        if (isset($form->rec->proto) && $data->action != 'clone') {
+        if (isset($form->rec->proto) && ($data->action ?? null) != 'clone') {
             if ($pRec = cat_Products::fetch($form->rec->proto)) {
                 
                 if (is_array($pRec->driverRec)) {
@@ -325,8 +325,8 @@ class marketing_Inquiries2 extends embed_Manager
         }
         
         if ($Driver){
-            $Driver->addInquiryFields($data->form->rec->proto, $data->form);
-            if(is_array($form->rec->additionalData)){
+            $Driver->addInquiryFields($data->form->rec->proto ?? null, $data->form);
+            if(is_array($form->rec->additionalData ?? null)){
                 foreach ($form->rec->additionalData as $aFld => $aValue){
                     if($form->getField($aFld, false)){
                         $form->setDefault($aFld, $aValue);
@@ -336,9 +336,9 @@ class marketing_Inquiries2 extends embed_Manager
         }
         
         $caption = 'Количества|*';
+        $uom = '';
         if (isset($data->Driver) || isset($form->rec->innerClass)) {
-            $uom = '';
-            $uomId = $form->rec->measureId;
+            $uomId = $form->rec->measureId ?? null;
             if (isset($uomId) && ($uomId != cat_UoM::fetchBySysId('pcs')->id || $form->rec->quantityCount > 0)) {
                 $uom = cat_UoM::getShortName($uomId);
             }
@@ -432,10 +432,11 @@ class marketing_Inquiries2 extends embed_Manager
     {
         $form = &$data->form;
         $cu = core_Users::getCurrent();
+        $innerClass = $form->rec->innerClass ?? null;
 
-        if ($form->rec->innerClass) {
+        if ($innerClass) {
 
-            $form->setFieldType('proto', "key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,driverId={$form->rec->innerClass},maxSuggestions=100,forceAjax)");
+            $form->setFieldType('proto', "key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,driverId={$innerClass},maxSuggestions=100,forceAjax)");
             if(haveRole('partner')){
                 $form->setFieldTypeParams('proto', 'onlyTemplates');
             } else {
@@ -449,13 +450,13 @@ class marketing_Inquiries2 extends embed_Manager
             }
         }
 
-        if (cls::load($form->rec->innerClass, true)) {
-            if ($Driver = cls::get($form->rec->innerClass)) {
+        if (cls::load($innerClass, true)) {
+            if ($Driver = cls::get($innerClass)) {
                 if ($moq = $Driver->getMoq()) {
                     $form->rec->moq = $moq;
                 }
                 
-                if ($form->rec->quantityCount === null && ($inqQuantity = $Driver->getInquiryQuantities()) !== null) {
+                if (($form->rec->quantityCount ?? null) === null && ($inqQuantity = $Driver->getInquiryQuantities()) !== null) {
                     $form->rec->quantityCount = $inqQuantity;
                 }
             }
@@ -560,8 +561,9 @@ class marketing_Inquiries2 extends embed_Manager
         
         $cntQuantities = 0;
         foreach (range(1, 3) as $i) {
-            if ($rec->{"quantity{$i}"}) {
-                $row->{"quantity{$i}"} .= " {$shortName}";
+            $quantityField = "quantity{$i}";
+            if (!empty($rec->{$quantityField})) {
+                $row->{$quantityField} = ($row->{$quantityField} ?? '') . " {$shortName}";
                 $cntQuantities++;
             }
         }
@@ -579,7 +581,7 @@ class marketing_Inquiries2 extends embed_Manager
         }
         
         $row->innerClass = core_Classes::translateClassName($row->innerClass);
-        if(strpos($row->title, '||') !== false){
+        if(strpos($row->title ?? '', '||') !== false){
             $row->title = tr($row->title);
         }
     }
@@ -1163,7 +1165,21 @@ class marketing_Inquiries2 extends embed_Manager
                 // Винаги се рутира към правилната папка
                 $domainId = cms_Domains::getPublicDomain()->id;
                 $routerExplanation = null;
-                $rec->folderId = marketing_InquiryRouter::route($rec->company, $rec->personNames, $rec->email, $rec->tel, $rec->country, $rec->pCode, $rec->place, $rec->address, $rec->brid, $rec->vatId, $rec->uicId, $routerExplanation, $domainId);
+                $rec->folderId = marketing_InquiryRouter::route(
+                    $rec->company ?? null,
+                    $rec->personNames ?? null,
+                    $rec->email ?? null,
+                    $rec->tel ?? null,
+                    $rec->country ?? null,
+                    $rec->pCode ?? null,
+                    $rec->place ?? null,
+                    $rec->address ?? null,
+                    $rec->brid ?? null,
+                    $rec->vatId ?? null,
+                    $rec->uicId ?? null,
+                    $routerExplanation,
+                    $domainId
+                );
                 
                 // Запис и редирект
                 if ($this->haveRightFor('new')) {
@@ -1175,15 +1191,16 @@ class marketing_Inquiries2 extends embed_Manager
                         $fieldNamesArr = array_keys($contactFields);
                         $userData = array();
                         foreach ((array) $fieldNamesArr as $fName) {
-                            if (!trim($form->rec->{$fName})) {
+                            $value = $form->rec->{$fName} ?? null;
+                            if (!trim((string) $value)) {
                                 continue;
                             }
-                            $userData[$fName] = $form->rec->{$fName};
+                            $userData[$fName] = $value;
                         }
                         log_Browsers::setVars($userData);
                     }
 
-                    if(!$sourceData['possibleSpam']){
+                    if (empty($sourceData['possibleSpam'])) {
                         $id = $this->save($rec);
                         doc_Threads::doUpdateThread($rec->threadId);
                         $this->logWrite('Създаване от е-артикул', $id);
@@ -1260,7 +1277,7 @@ class marketing_Inquiries2 extends embed_Manager
                 $params = array();
                 $driverFields = marketing_Inquiries2::getDriverFields($Driver);
                 foreach (array_keys($driverFields) as $driverFld){
-                    $params[$driverFld] = $rec->{$driverFld};
+                    $params[$driverFld] = $rec->{$driverFld} ?? null;
                 }
                 if(isset($rec->moq)){
                     $params['manualMoq'] = $rec->moq;
@@ -1271,6 +1288,7 @@ class marketing_Inquiries2 extends embed_Manager
                     $rec->moq = $moqAfterTheParamsAreKnown;
                 }
             }
+            $rec->moq = $rec->moq ?? null;
             $moqVerbal = core_Type::getByName('double(smartRound)')->toVerbal($rec->moq);
             
             // Ако няма въведени количества
@@ -1290,7 +1308,7 @@ class marketing_Inquiries2 extends embed_Manager
             
             // Проверка на въведените количества
             foreach (range(1, 3) as $i) {
-                $quantity = $rec->{"quantity{$i}"};
+                $quantity = $rec->{"quantity{$i}"} ?? null;
                 if (empty($quantity)) {
                     continue;
                 }
@@ -1490,7 +1508,7 @@ class marketing_Inquiries2 extends embed_Manager
     protected static function on_BeforeSave($mvc, &$id, $rec, $fields = null, $mode = null)
     {
         // Допълваме данните само при създаване
-        if ($rec->id) {
+        if (!empty($rec->id)) {
             
             return;
         }
@@ -1521,11 +1539,11 @@ class marketing_Inquiries2 extends embed_Manager
         }
         
         // Добавяне на полетата от запитването в блоб
-        $inquiryDriverFields = array_keys($mvc->getInquiryFields($rec->proto, $Driver));
+        $inquiryDriverFields = array_keys($mvc->getInquiryFields($rec->proto ?? null, $Driver));
         if(is_array($inquiryDriverFields)){
             $additionalData = array();
             foreach ($inquiryDriverFields as $name) {
-                $additionalData[$name] = $rec->{$name};
+                $additionalData[$name] = $rec->{$name} ?? null;
                 unset($rec->{$name});
             }
             

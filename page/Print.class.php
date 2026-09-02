@@ -9,6 +9,7 @@
  * @package   page
  *
  * @author    Milen Georgiev <milen@download.bg>
+ * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
  *
@@ -35,7 +36,42 @@ class page_Print extends page_Html
         $this->push('css/internalTheme.css', 'CSS');
 
         if (Mode::get('runPrinting') !== false) {
-            jquery_Jquery::run($this, 'window.print();');
+            
+            // Печатът се стартира и при възстановяване от кеша на браузъра (bfcache),
+            // за да излиза диалогът при всяко показване на страницата
+            $printJs = '
+                var bgerpPrintStarted = false;
+                
+                function bgerpRunPrinting()
+                {
+                    if (bgerpPrintStarted) {
+                        return;
+                    }
+                    
+                    bgerpPrintStarted = true;
+                    
+                    setTimeout(function(){
+                        window.print();
+                        bgerpPrintStarted = false;
+                    }, 200);
+                }
+                
+                if (document.readyState === "complete") {
+                    bgerpRunPrinting();
+                } else {
+                    $(window).on("load", function(){
+                        bgerpRunPrinting();
+                    });
+                }
+                
+                $(window).on("pageshow", function(e){
+                    if (e.originalEvent && e.originalEvent.persisted) {
+                        bgerpRunPrinting();
+                    }
+                });
+            ';
+            
+            jquery_Jquery::run($this, $printJs);
         }
 
         $this->append('

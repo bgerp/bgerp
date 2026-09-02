@@ -91,7 +91,7 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
 
         $fieldset->FLD('date', 'date', 'caption=Избор,placeholder=Днес,after=period,input=none,silent,single=none');
 
-        $fieldset->FLD('storeId', 'keylist(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,placeholder=Всички,single=none,after=date');
+        $fieldset->FLD('storeId', 'keylist(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,placeholderType=all,single=none,after=date');
 
         $fieldset->FLD('groups', 'keylist(mvc=cat_Groups,select=name,allowEmpty)', 'caption=Група продукти,placeholder=Избери група,after=storeId,mandatory,silent,single=none');
 
@@ -144,11 +144,11 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
 
         $form->setDefault('orderLimit', 80);
 
-        if ($rec->arhGroups) {
+        if (!empty($rec->arhGroups)) {
             $rec->groups = $rec->arhGroups;
         }
 
-        if ($rec->limits == 'no') {
+        if (($rec->limits ?? null) == 'no') {
 
             unset($rec->orderBy);
             unset($rec->groupsChecked);
@@ -156,15 +156,15 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
             $form->setField('orderLimit', 'input=hidden');
         }
 
-        if ($rec->typeOfQuantity == 'free' || $rec->typeOfQuantity == 'diff') {
+        if (($rec->typeOfQuantity ?? null) == 'free' || ($rec->typeOfQuantity ?? null) == 'diff') {
 
             $form->setField('typeOfPeriod', 'input');
 
-            if ($rec->typeOfPeriod == 'toDate') {
+            if (($rec->typeOfPeriod ?? null) == 'toDate') {
 
                 $form->setField('date', 'input');
             }
-            if ($rec->typeOfPeriod == 'period') {
+            if (($rec->typeOfPeriod ?? null) == 'period') {
 
                 $form->setField('period', 'input');
             }
@@ -172,7 +172,7 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
 
         }
 
-        if ($rec->filters == 'condQuantity') {
+        if (($rec->filters ?? null) == 'condQuantity') {
             $form->setField('condFilter', 'input');
         }
 
@@ -280,7 +280,7 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
 
             if ($recProduct->storeId && $productId) {
                 $stKey = $productId . '|' . $recProduct->storeId;
-                $storesQuatity[$stKey] += $quantity;
+                $storesQuatity[$stKey] = ($storesQuatity[$stKey] ?? 0) + $quantity;
             }
 
             if ($obj = &$recs[$productId]) {
@@ -478,14 +478,14 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
             $row->quantity = ($row->quantity ?? '') . '<table class="no-border full-width"><tr><th style="font-size: 1.05em; border-bottom: 1px solid #ccc !important;">Общо: </th><th style="font-size: 1em;border-bottom: 1px solid #ccc  !important;;">' .$quantityStr . '</th></tr>';
 
             foreach ($dRec->storesQuatity as $val) {
-                $row->quantity .= "<tr>";
+                $row->quantity = ($row->quantity ?? '') . "<tr>";
                 list($storeId, $stQuantity) = explode('|', $val);
 
                 $quantityStr = ht::styleIfNegative($Double->toVerbal($stQuantity), $stQuantity) ;
-                $row->quantity .= "<td>" . store_Stores::getTitleById($storeId) . ":</td><td style='width: 100px'>" .$quantityStr. "</td>";
-                $row->quantity .= "</tr>";
+                $row->quantity = ($row->quantity ?? '') . "<td>" . store_Stores::getTitleById($storeId) . ":</td><td style='width: 100px'>" .$quantityStr. "</td>";
+                $row->quantity = ($row->quantity ?? '') . "</tr>";
             }
-            $row->quantity .= '</table>';
+            $row->quantity = ($row->quantity ?? '') . '</table>';
         }
 
         if (isset($dRec->measure)) {
@@ -527,8 +527,8 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
             $row->conditionQuantity = "<span style='color: $dRec->conditionColor'>$conditionQuantity</span>";
         }
         $row->delrow = '';
-        //$row->delrow .= ht::createLink('', array('store_reports_ProductAvailableQuantity1', 'delRow', 'productId' => $dRec->productId, 'code' => $dRec->code, 'recId' => $rec->id, 'ret_url' => true), null, "ef_icon=img/16/delete.png");
-        $row->delrow .= ht::createLink('', array('store_reports_ProductAvailableQuantity1', 'editminmax', 'productId' => $dRec->productId, 'code' => $dRec->code, 'recId' => $rec->id, 'ret_url' => true), null, "ef_icon=img/16/edit.png");
+        //$row->delrow = ($row->delrow ?? '') . ht::createLink('', array('store_reports_ProductAvailableQuantity1', 'delRow', 'productId' => $dRec->productId, 'code' => $dRec->code, 'recId' => $rec->id, 'ret_url' => true), null, "ef_icon=img/16/delete.png");
+        $row->delrow = ($row->delrow ?? '') . ht::createLink('', array('store_reports_ProductAvailableQuantity1', 'editminmax', 'productId' => $dRec->productId, 'code' => $dRec->code, 'recId' => $rec->id, 'ret_url' => true), null, "ef_icon=img/16/edit.png");
 
 
         return $row;
@@ -876,7 +876,7 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
 
         }
 
-        $form->FLD('groupFilter', 'key(mvc=cat_Groups,allowEmpty, select=name)', 'caption=Покажи група,placeholder=Изчисти филтъра,silent');
+        $form->FLD('groupFilter', 'key(mvc=cat_Groups,allowEmpty, select=name)', 'caption=Покажи група,placeholderType=all,silent');
 
         $form->setOptions('groupFilter', $groupsSuggestionsArr);
 

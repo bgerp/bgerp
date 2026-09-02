@@ -83,7 +83,7 @@ class type_Datetime extends type_Date
             }
         }
 
-        if (strlen($time) && strpos($this->params['defaultTime'], $time) === 0 && $this->params['defaultTime'] == '00:00:00') {
+        if (strlen($time ?? '') && strpos($this->params['defaultTime'], $time) === 0 && $this->params['defaultTime'] == '00:00:00') {
             $time = '';
         }
 
@@ -111,7 +111,7 @@ class type_Datetime extends type_Date
 
         unset($attr['id']);
         
-        if (strlen($time) == 5 || strlen($time) == 0) {
+        if (strlen($time ?? '') == 5 || strlen($time ?? '') == 0) {
             $sugArr = explode('|', '06:00|07:00|08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00|19:00|20:00|21:00|22:00');
             $sugArr[] = $time;
             sort($sugArr);
@@ -123,7 +123,7 @@ class type_Datetime extends type_Date
                 $ts = array('' => '') + arr::make(str_replace('|', ',', $ts), true);
             }
             $attr['style'] .= ';max-width:4em;';
-        } elseif (strlen($time) == 8) {
+        } elseif (strlen($time ?? '') == 8) {
             $sugArr = explode('|', '08:00:00|09:00:00|10:00:00|11:00:00|12:00:00|13:00:00|14:00:00|15:00:00|16:00:00|17:00:00|18:00:00');
             $sugArr[] = $time;
             sort($sugArr);
@@ -170,13 +170,13 @@ class type_Datetime extends type_Date
             $value = $valueIn;
         }
         
-        if (!trim($value['d']) && trim($value['t'])) {
+        if (!trim($value['d'] ?? '') && trim($value['t'] ?? '')) {
             $value['d'] = date('d-m-Y');
         }
+
+        $time = trim($value['t'] ?? '');
         
-        $time = trim($value['t']);
-        
-        if(isset($this->params['requireTime']) && !$this->_isRefreshed){
+        if(isset($this->params['requireTime']) && empty($this->_isRefreshed)){
             if(!empty($value['d']) && empty($value['t'])){
                 $this->error = 'Посочването на време е задължително';
                 
@@ -184,7 +184,7 @@ class type_Datetime extends type_Date
             }
         }
         
-        if (!strlen($time) && strlen($value['d'])) {
+        if (!strlen($time) && strlen($value['d'] ?? '')) {
             $time = $this->params['defaultTime'];
         }
         

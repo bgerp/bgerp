@@ -43,7 +43,7 @@ class iban_Type extends type_Varchar
     {
         self::loadCode();
         
-        $value = trim($value);
+        $value = trim($value ?? '');
         
         $res = new stdClass();
         
@@ -78,7 +78,7 @@ class iban_Type extends type_Varchar
         
         $validIban = $self->isValid($iban);
         
-        expect(!$validIban['error']);
+        expect(empty($validIban['error']));
         
         $country = iban_get_country_part($iban);
         
@@ -97,7 +97,7 @@ class iban_Type extends type_Varchar
         
         $validIban = $self->isValid($iban);
         
-        expect(!$validIban['error']);
+        expect(empty($validIban['error']));
         
         $bank = iban_get_bank_part($iban);
         
@@ -116,7 +116,7 @@ class iban_Type extends type_Varchar
         
         $validIban = $self->isValid($iban);
         
-        expect(!$validIban['error']);
+        expect(empty($validIban['error']));
         
         $parts = iban_get_parts($iban);
         

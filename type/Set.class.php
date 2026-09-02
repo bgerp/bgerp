@@ -106,14 +106,14 @@ class type_Set extends core_Type
         $trOpen = true;
         
         if (countR($this->suggestions)) {
-            if (countR($this->suggestions) == 1 && $value === null && $this->params['mandatory'] && empty($displayHtml)) {
+            if (countR($this->suggestions) == 1 && $value === null && !empty($this->params['mandatory']) && empty($displayHtml)) {
                 $key = key($this->suggestions);
                 $values[$key] = $key;
             }
             foreach ($this->suggestions as $key => $v) {
                 
                 // Ако имаме група, правим ред и пишем името на групата
-                if (is_object($v) && $v->group) {
+                if (is_object($v) && !empty($v->group)) {
                     if ($trOpen) {
                         while ($i > 0) {
                             $html .= "\n    <td></td>";

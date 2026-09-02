@@ -69,7 +69,7 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
         foreach ($data->rows as $id => &$row){
             $rec = $data->recs[$id];
 
-            $tariffNumber = $rec->tariffCode;
+            $tariffNumber = $rec->tariffCode ?? null;
             if(empty($tariffNumber) && $getLiveTariffCode){
                 $tariffNumber = cat_Products::getParams($rec->productId, 'customsTariffNumber', true);
                 $tariffNumber = !empty($tariffNumber) ? $tariffNumber : self::EMPTY_TARIFF_NUMBER;
@@ -105,7 +105,7 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
             }
         } else {
             if(!$isReadOnly && $res != self::EMPTY_TARIFF_NUMBER){
-                $res = "<span style='color:blue'>{$res}</span>";
+                $res = "<span class='blueText'>{$res}</span>";
                 $res = ht::createHint($res, "Изчислено от редовете с този МТК", 'noicon');
             }
         }
@@ -141,7 +141,7 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
         foreach ($data->rows as $id => $row) {
             $rec1 = $data->recs[$id];
             if(!array_key_exists($rec1->tariffNumber, $data->tariffCodes)){
-                $data->tariffCodes[$rec1->tariffNumber] = (object)array('code' => $rec1->tariffNumber, 'weight' => null, 'netWeight' => null, 'transUnits' => array());
+                $data->tariffCodes[$rec1->tariffNumber] = (object)array('code' => $rec1->tariffNumber, 'weight' => 0, 'netWeight' => 0, 'amount' => 0, 'transUnits' => array());
             }
 
             $transUnitId = $transUnitQuantity = null;
@@ -156,14 +156,15 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
             }
 
             if(!empty($transUnitQuantity)){
-                $data->tariffCodes[$rec1->tariffNumber]->transUnits[$transUnitId] += $transUnitQuantity;
+                $data->tariffCodes[$rec1->tariffNumber]->transUnits[$transUnitId] =
+                    ($data->tariffCodes[$rec1->tariffNumber]->transUnits[$transUnitId] ?? 0) + $transUnitQuantity;
             }
 
-            $netWeight = $detail->getNetWeight($rec1->productId, $rec1->packagingId, $rec1->quantity, $rec1->netWeight);
-            $weight = $detail->getWeight($rec1->productId, $rec1->packagingId, $rec1->quantity, $rec1->weight);
+            $netWeight = $detail->getNetWeight($rec1->productId, $rec1->packagingId, $rec1->quantity, $rec1->netWeight ?? null);
+            $weight = $detail->getWeight($rec1->productId, $rec1->packagingId, $rec1->quantity, $rec1->weight ?? null);
 
             if($totalInPackListWithTariffCodeVal == 'yes'){
-                $amountR = $rec1->amount * (1 - $rec1->discount);
+                $amountR = $rec1->amount * (1 - ($rec1->discount ?? 0));
                 if($masterRec->chargeVat == 'separate'){
                     $vat = cat_Products::getVat($rec1->productId, $masterRec->valior, $vatType);
                     $amountR += $amountR * $vat;
@@ -177,7 +178,7 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
         }
 
         // Подредба по МТК, като без МТК ще е най-накрая
-        $emptyArr = $data->tariffCodes[static::EMPTY_TARIFF_NUMBER];
+        $emptyArr = $data->tariffCodes[static::EMPTY_TARIFF_NUMBER] ?? null;
         unset($data->tariffCodes[static::EMPTY_TARIFF_NUMBER]);
         ksort($data->tariffCodes, SORT_STRING);
         if(is_object($emptyArr)){
@@ -192,6 +193,18 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
         $unsetWeightCol = $unsetNetWeightCol = $unsetTareWeightCol = false;
         foreach ($data->tariffCodes as $tariffNumber => $tariffObject) {
             $tariffCodeRec = store_ShipmentOrderTariffCodeSummary::getRec($masterRec->id, $tariffNumber);
+            if (!$tariffCodeRec) {
+                $tariffCodeRec = (object)array(
+                    'typeOfPacking' => null,
+                    'weight' => null,
+                    'netWeight' => null,
+                    'tareWeight' => null,
+                    'amount' => null,
+                    'displayTariffCode' => null,
+                    'displayDescription' => null,
+                    'transUnits' => null,
+                );
+            }
             $typeOfPacking = $tariffCodeRec->typeOfPacking;
             $typeOfPackingVerbal = null;
             if(empty($typeOfPacking)){
@@ -200,7 +213,7 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
                     $typeOfPacking = $typeOfPackingDefault;
                     $typeOfPackingVerbal = core_Type::getByName('varchar')->toVerbal($typeOfPacking);
                     if(!Mode::isReadOnly()){
-                        $typeOfPackingVerbal = "<span style='color:blue'>{$typeOfPackingVerbal}</span>";
+                        $typeOfPackingVerbal = "<span class='blueText'>{$typeOfPackingVerbal}</span>";
                         $typeOfPackingVerbal = ht::createHint($typeOfPackingVerbal, 'Дефолтна настройка за системата', 'noicon');
                     }
                 }
@@ -237,7 +250,7 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
                 }
             } else {
                 if(!$isReadOnly && !empty($transUnitsVerbal)){
-                    $transUnitsVerbal = "<span style='color:blue;font-weight:bold'>{$transUnitsVerbal}</span>";
+                    $transUnitsVerbal = "<span class='blueText' style='font-weight:bold'>{$transUnitsVerbal}</span>";
                     $transUnitsVerbal = ht::createHint($transUnitsVerbal, "Изчислено от редовете с този МТК", 'noicon');
                 }
             }
@@ -334,7 +347,7 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
      */
     public function afterRenderListTable(core_Mvc $detail, &$tpl, &$data)
     {
-        if(Mode::isReadOnly() || !is_array($data->tariffCodes)) return;
+        if(Mode::isReadOnly() || !is_array($data->tariffCodes ?? null)) return;
 
         $transUnitsByTariffCodes = array();
         $weightByTariffCodes = $netWeightByTariffCodes = $tareWeightByTariffCodes = 0;
@@ -374,7 +387,7 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
             }
         }
 
-        $checkTransUnits = !empty($data->masterData->rec->transUnitsInput) ? $data->masterData->rec->transUnitsInput : $data->masterData->rec->transUnitsCalced;
+        $checkTransUnits = !empty($data->masterData->rec->transUnitsInput) ? $data->masterData->rec->transUnitsInput : ($data->masterData->rec->transUnitsCalced ?? null);
         if(!empty($checkTransUnits) && !empty($transUnitsByTariffCodes)){
             $transUnitsByTariffCodesVerbal = trans_Helper::displayTransUnits($transUnitsByTariffCodes);
             $checkTransUnitsVerbal = trans_Helper::displayTransUnits($checkTransUnits);

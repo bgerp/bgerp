@@ -27,6 +27,12 @@ class doc_Log extends core_Manager
 
 
     /**
+     * Брой документи на страница в диалоговия прозорец
+     */
+    public $dialogItemsPerPage = 8;
+
+
+    /**
      * Екшън за добавяне на документ от диалогов прозорец
      */
     public function act_AddDocDialog()
@@ -66,7 +72,8 @@ class doc_Log extends core_Manager
     public function prepareAddDocDialogPager(&$data)
     {
         // Ако е сетнат
-        if ($perPage = $data->PerPage) {
+        $perPage = $data->PerPage ?? null;
+        if ($perPage) {
 
             // Трябва да е между 0-100
             if ($perPage > 100) {
@@ -87,7 +94,7 @@ class doc_Log extends core_Manager
         if ($perPage) {
 
             // Ако все още не е сетнат
-            if (!$data->dialogPager) {
+            if (empty($data->dialogPager)) {
 
                 // Сетваме пейджъра
                 $data->dialogPager = & cls::get('core_Pager', array('pageVar' => 'P_' . get_called_class()));
@@ -119,7 +126,7 @@ class doc_Log extends core_Manager
         foreach ($threadsArr as $threadId => $dummy) {
 
             // Добавяме към документите
-            $docIdsArr += (array) $docThreadIdsArr[$threadId];
+            $docIdsArr += (array) ($docThreadIdsArr[$threadId] ?? null);
         }
 
         // Задаваме броя на документите
@@ -170,7 +177,7 @@ class doc_Log extends core_Manager
                 $handleArr = doc_RichTextPlg::parseHandle($handle);
 
                 // Ако има само нули, да не се показва
-                $hndId = trim($handleArr['id'], '0');
+                $hndId = trim((string) ($handleArr['id'] ?? ''), '0');
                 if (!strlen($hndId)) {
                     $c--;
                     continue;
@@ -186,7 +193,7 @@ class doc_Log extends core_Manager
                 $resArr[$docId]['ROW_ATTR']['id'] = $attrId['id'];
 
                 // Заглавие на документа
-                $resArr[$docId]['title'] = str::limitLen($docRow->title, 55);
+                $resArr[$docId]['title'] = str::limitLen($docRow->title ?? '', 55);
 
                 // Данни за създаването на документа
                 $resArr[$docId]['createdOn'] = doc_Containers::getVerbal($docRec, 'createdOn');
@@ -266,6 +273,12 @@ class doc_Log extends core_Manager
 
                 // Вземаме записа на папката
                 $folderRec = doc_Folders::fetch($folderId);
+                
+                if (empty($folderRec) || empty($folderRec->coverClass)) {
+                    $c--;
+                    
+                    continue;
+                }
 
                 // Манипулатор на папката (аналогично на документа се префиксва с #;
                 // ако doc_Folders::getHandle вече връща с #, махни конкатенацията)
@@ -344,7 +357,7 @@ class doc_Log extends core_Manager
         $inst = cls::get('core_TableView');
 
         // Полета в таблицата
-        $caption = $data->action == 'addFolderDialog' ? 'Папка' : 'Документ';
+        $caption = ($data->action ?? null) == 'addFolderDialog' ? 'Папка' : 'Документ';
         $tableCaptionArr = array('document' => $caption, 'created' => 'Създадено');
 
         // Вземаме таблицата с попълнени данни
@@ -354,7 +367,7 @@ class doc_Log extends core_Manager
         $tpl->append($tableTpl, 'tableContent');
 
         // Добавяме заглавието
-        $title = $data->action == 'addFolderDialog' ? 'Избор на папка' : $this->title;
+        $title = ($data->action ?? null) == 'addFolderDialog' ? 'Избор на папка' : $this->title;
         $tpl->append(tr($title), 'title');
 
         // Заместваме страницирането
@@ -376,8 +389,10 @@ class doc_Log extends core_Manager
      */
     public function renderDialogAddDocPager($data)
     {
+        $res = null;
+        
         // Ако има странициране
-        if ($data->dialogPager) {
+        if (!empty($data->dialogPager)) {
 
             // Рендираме
             $res = $data->dialogPager->getHtml();

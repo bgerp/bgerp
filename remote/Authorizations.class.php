@@ -192,7 +192,7 @@ class remote_Authorizations extends embed_Manager
         
         // Създаваме заявката
         $data->query = $mvc->getQuery();
-        $data->query->where("#userId = ${userId}");
+        $data->query->where("#userId = {$userId}");
         
         // Подготвяме полетата за показване
         $data->listFields = arr::make('url=Услуга,auth=Оторизация,state=Състояние');
@@ -254,7 +254,7 @@ class remote_Authorizations extends embed_Manager
 
         // Ако има такива с даден достъп, добавят се към опциите
         while ($rec = $query->fetch()){
-            if(is_object($rec->data) && $rec->data->lKeyCC) {
+            if(is_object($rec->data) && !empty($rec->data->lKeyCC)) {
                 $options[$rec->id] = type_Varchar::escape($rec->url);
             }
         }
@@ -281,7 +281,7 @@ class remote_Authorizations extends embed_Manager
             $query = self::getQuery();
             
             while ($rec = $query->fetch(array("#url LIKE '%[#1#]%' AND #userId = {$userId}", $url))) {
-                if (is_object($rec->data) && $rec->data->lKeyCC) {
+                if (is_object($rec->data) && !empty($rec->data->lKeyCC)) {
                     
                     return $rec->id;
                 }
@@ -339,7 +339,7 @@ class remote_Authorizations extends embed_Manager
 
         foreach ($newClassesArr as $classId => $className) {
 
-            $haveRemote = $remoteNoDriversArr[$classId] ? false : true;
+            $haveRemote = !array_key_exists($classId, $remoteNoDriversArr);
 
             if ($haveRemote) {
                 $userSenders = array();

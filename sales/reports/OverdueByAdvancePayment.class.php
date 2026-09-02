@@ -193,17 +193,18 @@ class sales_reports_OverdueByAdvancePayment extends frame2_driver_TableData
             
             $firstDocument = doc_Threads::getFirstDocument($inDocs->threadId);
             
-            if ((substr($inDocs->operationSysId, - 7) != 'Advance')) {
-                if (($firstDocument->fetch()->amountDelivered)) {
+            // Първият документ в нишката може да не е продажба
+            if ((substr((string) $inDocs->operationSysId, - 7) != 'Advance')) {
+                if (!empty($firstDocument->fetch()->amountDelivered)) {
                     continue;
                 }
             }
             
-            $dealerId = $firstDocument->fetch()->dealerId;
+            $dealerId = $firstDocument->fetch()->dealerId ?? null;
             
             if (! $dealerId) {
                 $fRec = doc_Folders::fetch($firstDocument->fetch()->folderId);
-                $dealerId = $fRec->inCharge;
+                $dealerId = !empty($fRec) ? $fRec->inCharge : null;
             }
             
             if (! $inDocs->termDate) {
@@ -363,7 +364,7 @@ class sales_reports_OverdueByAdvancePayment extends frame2_driver_TableData
         }
         
         if (isset($dRec->condition)) {
-            $row->condition = "<span style='color: ${conditionColor}'>{$dRec->condition}</span>";
+            $row->condition = "<span style='color: {$conditionColor}'>{$dRec->condition}</span>";
         }
         
         if (isset($dRec->dealer)) {

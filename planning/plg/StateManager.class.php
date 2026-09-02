@@ -382,7 +382,7 @@ class planning_plg_StateManager extends core_Plugin
 
         if($action == 'close' && isset($rec->threadId)){
             $threadRec = doc_Threads::fetch($rec->threadId, 'state,id');
-            if($threadRec->state == 'opened'){
+            if ($threadRec && $threadRec->state == 'opened') {
                 $threadRec->state = 'closed';
                 cls::get('doc_Threads')->save($threadRec, 'state');
             }
@@ -419,9 +419,10 @@ class planning_plg_StateManager extends core_Plugin
             $fKey = doc_Folders::getSettingsKey($rec->folderId);
             $stateChangeNotifications = core_Settings::fetchUsers($fKey, 'stateChange');
             foreach ((array) $stateChangeNotifications as $userId => $stateChange) {
-                if ($stateChange['stateChange'] == 'no') {
+                $stateChange = is_array($stateChange) ? ($stateChange['stateChange'] ?? null) : null;
+                if ($stateChange == 'no') {
                     unset($notifyArr[$userId]);
-                } elseif ($stateChange['stateChange'] == 'yes') {
+                } elseif ($stateChange == 'yes') {
                     // Може да е абониран, но да няма права
                     if ($mvc->haveRightFor('single', $rec, $userId)) {
                         $notifyArr[$userId] = $userId;
@@ -439,16 +440,13 @@ class planning_plg_StateManager extends core_Plugin
             Mode::pop('getNotificationRecTitle');
 
             $removeOldNotify = false;
-            if ($mvc->removeOldNotifyStatesArr) {
-                $mvc->removeOldNotifyStatesArr = arr::make($mvc->removeOldNotifyStatesArr, true);
-                
-                if ($mvc->removeOldNotifyStatesArr[$action]) {
-                    $removeOldNotify = true;
-                }
+            $removeOldNotifyStatesArr = arr::make($mvc->removeOldNotifyStatesArr ?? array(), true);
+            if (!empty($removeOldNotifyStatesArr[$action])) {
+                $removeOldNotify = true;
             }
             
             $notifyToThread = true;
-            if ($mvc->notifyToThread === false) {
+            if (($mvc->notifyToThread ?? true) === false) {
                 $notifyToThread = false;
             }
             
@@ -537,7 +535,7 @@ class planning_plg_StateManager extends core_Plugin
             
             $dateChanged = ($rec->state == 'closed') ? $rec->timeClosed : $rec->modifiedOn;
             $dateChanged = $dateChanged ?? $rec->modifiedOn;
-            $row->state .= $tpl->placeArray(array('user' => $row->modifiedBy, 'date' => dt::mysql2Verbal($dateChanged)));
+            $row->state = ($row->state ?? '') . $tpl->placeArray(array('user' => $row->modifiedBy, 'date' => dt::mysql2Verbal($dateChanged)));
         }
     }
     

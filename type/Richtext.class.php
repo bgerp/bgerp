@@ -142,7 +142,7 @@ class type_Richtext extends type_Blob
         $size = $this->params['size'] ?? $this->params[0] ?? null;
         if ($size > 0) {
             $attr['onblur'] .= "colorByLen(this, {$size}, true); if(this.value.length > {$size}) alert('" .
-                 tr('Въведената стойност е дълга') . " ' + this.value.length + ' " . tr('символа, което е над допустимите') . " ${size} " . tr('символа') . "');";
+                 tr('Въведената стойност е дълга') . " ' + this.value.length + ' " . tr('символа, което е над допустимите') . " {$size} " . tr('символа') . "');";
             $attr['onkeyup'] .= "colorByLen(this, {$size});";
         }
         
@@ -289,8 +289,8 @@ class type_Richtext extends type_Blob
         
         if (countR($this->_htmlBoard)) {
             foreach ($this->_htmlBoard as $place => $cnt) {
-                $replaceFrom[] = core_ET::escape("[#${place}#]");
-                $replaceTo[] = "[#${place}#]";
+                $replaceFrom[] = core_ET::escape("[#{$place}#]");
+                $replaceTo[] = "[#{$place}#]";
             }
             
             // Възстановяваме началното състояние
@@ -712,7 +712,7 @@ class type_Richtext extends type_Blob
      */
     public static function stripTags($html)
     {
-        $res = str_ireplace(array('<br', '<div', '<p', '<table'), array("\n<br", "\n<div", "\n<p", "\n<table"), $html);
+        $res = str_ireplace(array('<br', '<div', '<p', '<table'), array("\n<br", "\n<div", "\n<p", "\n<table"), (string) $html);
         $res = strip_tags($res);
         
         return $res;
@@ -1632,7 +1632,8 @@ class type_Richtext extends type_Blob
         
         $haveLastPart = false;
         
-        if ($lastPart[0] == '?') {
+        // Празно урл - няма какво да се парсира
+        if (strpos((string) $lastPart, '?') === 0) {
             $haveLastPart = true;
             $lastPart = ltrim($lastPart, '?');
             $lastPart = str_replace('&amp;', '&', $lastPart);
@@ -1671,9 +1672,10 @@ class type_Richtext extends type_Blob
         }
         
         // Декодира защитеното id
-        if (($id = $params['id']) && ($ctr = $params['Ctr'])) {
-            $id = core_Request::unprotectId($id, $ctr);
-            $params['id'] = $id;
+        $id = $params['id'] ?? null;
+        $ctr = $params['Ctr'] ?? null;
+        if (!empty($id) && !empty($ctr)) {
+            $params['id'] = core_Request::unprotectId($id, $ctr);
         }
         
         return $params;

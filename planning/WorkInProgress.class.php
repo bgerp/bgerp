@@ -185,7 +185,7 @@ class planning_WorkInProgress extends core_Manager
         $data->title = "Незавършено производство към|*: <b style='color:green;'>" . dt::mysql2verbal(dt::now(), 'd.m.Y H:i') . "</b>";
         arr::placeInAssocArray($data->listFields, array('history' => ' '), 'code');
         $data->listFilter->FNC('filters', "bgerp_type_CustomFilter(classes=planning_WorkInProgress)", 'caption=Филтри,input,silent,remember,autoFilter');
-        $data->listFilter->FNC('groupId', 'key2(mvc=cat_Groups,select=name,allowEmpty)', 'placeholder=Група,caption=Група,input,silent,remember,autoFilter');
+        $data->listFilter->FNC('groupId', 'key2(mvc=cat_Groups,select=name,allowEmpty)', 'placeholderType=all,caption=Група,input,silent,remember,autoFilter');
         $data->listFilter->FNC('search', 'varchar', 'placeholder=Търсене,caption=Търсене,input,silent,recently');
 
         // Подготвяме в заявката да може да се търси по полета от друга таблица
@@ -199,6 +199,7 @@ class planning_WorkInProgress extends core_Manager
         $data->query->EXT('pState', 'cat_Products', 'externalName=state,externalKey=productId');
 
         $data->listFilter->layout = new ET(tr('|*' . getFileContent('acc/plg/tpl/FilterForm.shtml')));
+        $data->listFilter->setField('productId', 'placeholderType=all');
         $data->listFilter->setDefault('filters', 'activeProducts');
         $data->listFilter->showFields = 'search,productId,filters,groupId';
         $data->listFilter->input();
@@ -322,17 +323,22 @@ class planning_WorkInProgress extends core_Manager
     public static function applyQuantityHintIfNegative(&$rows, $recs, $productFldName = 'productId', $quantityFld = 'quantity', $hintFld = 'packQuantity')
     {
         $totalQuantities = array();
-        array_walk($recs, function (&$a) use (&$totalQuantities, $productFldName, $quantityFld) {$totalQuantities[$a->{$productFldName}] += $a->{$quantityFld};});
-        $inStock = planning_WorkInProgress::getQuantities(arr::extractValuesFromArray($recs, 'productId'));
+        array_walk($recs, function (&$a) use (&$totalQuantities, $productFldName, $quantityFld) {
+            $productId = $a->{$productFldName};
+            $totalQuantities[$productId] = ($totalQuantities[$productId] ?? 0) + $a->{$quantityFld};
+        });
+        $inStock = planning_WorkInProgress::getQuantities(arr::extractValuesFromArray($recs, $productFldName));
 
         foreach ($recs as $i => &$rec) {
             $row = $rows[$i];
-            if(round($inStock[$rec->{$productFldName}] - $totalQuantities[$rec->{$productFldName}], 1) < 0){
-                $inStockVerbal = core_Type::getByName('double(smartRound)')->toVerbal($inStock[$rec->{$productFldName}]);
-                $measureName = cat_UoM::getShortName(cat_Products::fetchField($rec->{$productFldName}, 'measureId'));
+            $productId = $rec->{$productFldName};
+            $inStockQuantity = $inStock[$productId] ?? 0;
+            if(round($inStockQuantity - $totalQuantities[$productId], 1) < 0){
+                $inStockVerbal = ht::styleNumber(core_Type::getByName('double(smartRound)')->toVerbal($inStockQuantity), $inStockQuantity);
+                $measureName = cat_UoM::getShortName(cat_Products::fetchField($productId, 'measureId'));
 
-                $hint = "Недостатъчна наличност в незавършеното производство|*: {$inStockVerbal} |{$measureName}|*! |Контирането на документа ще доведе до отрицателна наличност|*!";
-                $row->{$hintFld} = ht::createHint($row->{$hintFld}, $hint, 'warning', false, null, "class=doc-negative-quantity");
+                $hint = "Недостатъчна наличност в незавършеното производство|*: {$inStockVerbal} |{$measureName}|*!<br>|Контирането на документа ще доведе до отрицателна наличност|*!";
+                $row->{$hintFld} = ht::createHint($row->{$hintFld}, $hint, 'warning', false, array('isHtml' => true), "class=doc-negative-quantity");
             }
         }
     }

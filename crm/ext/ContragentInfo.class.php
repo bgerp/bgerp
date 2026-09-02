@@ -365,11 +365,11 @@ class crm_ext_ContragentInfo extends core_manager
             $newRecs = array();
             while ($cRec = $cQuery->fetch()) {
                 $r = self::prepareNewRec($classId, $cRec->id, array('createdOn' => $now));
-                $total = is_array($dealData['sales'][$cRec->id]['total']) ? $dealData['sales'][$cRec->id]['total'] : array();
-                $overDues = is_array($dealData['sales'][$cRec->id]['overdue']) ? $dealData['sales'][$cRec->id]['overdue'] : array();
-                $active = is_array($dealData['sales'][$cRec->id]['active']) ? $dealData['sales'][$cRec->id]['active'] : array();
-                $purchasesTotal = is_array($dealData['purchases'][$cRec->id]['total']) ? $dealData['purchases'][$cRec->id]['total'] : array();
-                $purchasesActive = is_array($dealData['purchases'][$cRec->id]['active']) ? $dealData['purchases'][$cRec->id]['active'] : array();
+                $total = $dealData['sales'][$cRec->id]['total'] ?? array();
+                $overDues = $dealData['sales'][$cRec->id]['overdue'] ?? array();
+                $active = $dealData['sales'][$cRec->id]['active'] ?? array();
+                $purchasesTotal = $dealData['purchases'][$cRec->id]['total'] ?? array();
+                $purchasesActive = $dealData['purchases'][$cRec->id]['active'] ?? array();
 
                 $r->haveOverdueSales = 'no';
                 $r->overdueSalesCount = $r->overdueSalesAmount = $r->overdueSalesThreshold = $r->overdueSalesThresholdParam =  null;
@@ -478,23 +478,23 @@ class crm_ext_ContragentInfo extends core_manager
             while ($sRec = $dQuery->fetch()) {
                 $amountInCurrentBaseCurrency = deals_Helper::getSmartBaseCurrency($sRec->amountDeal, $sRec->valior, $today);
 
-                $res[$key][$sRec->contragentId]['total']['count'] += 1;
-                $res[$key][$sRec->contragentId]['total']['amount'] += $amountInCurrentBaseCurrency;
+                $res[$key][$sRec->contragentId]['total']['count'] = ($res[$key][$sRec->contragentId]['total']['count'] ?? 0) + 1;
+                $res[$key][$sRec->contragentId]['total']['amount'] = ($res[$key][$sRec->contragentId]['total']['amount'] ?? 0) + $amountInCurrentBaseCurrency;
 
                 if($sRec->state == 'active'){
-                    $res[$key][$sRec->contragentId]['active']['count'] += 1;
-                    $res[$key][$sRec->contragentId]['active']['amount'] += $amountInCurrentBaseCurrency;
+                    $res[$key][$sRec->contragentId]['active']['count'] = ($res[$key][$sRec->contragentId]['active']['count'] ?? 0) + 1;
+                    $res[$key][$sRec->contragentId]['active']['amount'] = ($res[$key][$sRec->contragentId]['active']['amount'] ?? 0) + $amountInCurrentBaseCurrency;
                     if($key == 'sales'){
 
                         // Ако са продажби ще се смятат отделно активните и просрочените
                         if($sRec->paymentState == 'overdue'){
                             $amountInCurrentBaseCurrency = deals_Helper::getSmartBaseCurrency($sRec->overdueAmount, $sRec->valior, $today);
-                            $res[$key][$sRec->contragentId]['overdue']['count'] += 1;
-                            $res[$key][$sRec->contragentId]['overdue']['amount'] += $amountInCurrentBaseCurrency;
+                            $res[$key][$sRec->contragentId]['overdue']['count'] = ($res[$key][$sRec->contragentId]['overdue']['count'] ?? 0) + 1;
+                            $res[$key][$sRec->contragentId]['overdue']['amount'] = ($res[$key][$sRec->contragentId]['overdue']['amount'] ?? 0) + $amountInCurrentBaseCurrency;
 
                             // Колко леводни е просрочието
                             $amountInCurrentBaseCurrency = deals_Helper::getSmartBaseCurrency($sRec->overdueAmountPerDays, $sRec->valior, $today);
-                            $res[$key][$sRec->contragentId]['overdue']['threshold'] += $amountInCurrentBaseCurrency;
+                            $res[$key][$sRec->contragentId]['overdue']['threshold'] = ($res[$key][$sRec->contragentId]['overdue']['threshold'] ?? 0) + $amountInCurrentBaseCurrency;
                             if(!array_key_exists($sRec->contragentId, $paramCache)){
                                 $paramCache[$sRec->contragentId] = cond_Parameters::getParameter($sRec->contragentClassId, $sRec->contragentId, 'saleOverdueAmount');
                             }
@@ -544,7 +544,7 @@ class crm_ext_ContragentInfo extends core_manager
      */
     protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
-        $data->listFilter->FLD('folder', 'key2(mvc=doc_Folders,select=title,allowEmpty,coverInterface=crm_ContragentAccRegIntf)', 'caption=Контрагент');
+        $data->listFilter->FLD('folder', 'key2(mvc=doc_Folders,select=title,allowEmpty,coverInterface=crm_ContragentAccRegIntf)', 'caption=Контрагент,placeholderType=all');
         $data->listFilter->FLD('type', 'enum(all=Всички,overdue=Просрочия,empty=Празни,withoutActive=Без активни,havePurchase=С покупки,haveSales=С продажби)', 'caption=Вид');
 
         $data->listFilter->showFields = 'folder,type';

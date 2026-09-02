@@ -43,7 +43,7 @@ class acc_JournalDetails extends core_Detail
     /**
      * Кои полета да се извличат при изтриване
      */
-    public $fetchFieldsBeforeDelete = 'debitItem1,debitItem2,debitItem3,creditItem1,creditItem2,creditItem3';
+    public $fetchFieldsBeforeDelete = 'journalId,debitItem1,debitItem2,debitItem3,creditItem1,creditItem2,creditItem3';
     
     
     /**
@@ -339,7 +339,8 @@ class acc_JournalDetails extends core_Detail
         $row->creditAccId = acc_Balances::getAccountLink($rec->creditAccId, $balanceValior);
         
         if (!empty($rec->reasonCode)) {
-            $row->reasonCode = "<div style='color:#444;font-size:0.9em;margin-left:10px'>{$row->reasonCode}</div>";
+            $reasonCodeVerbal = $row->reasonCode ?? $mvc->getVerbal($rec, 'reasonCode');
+            $row->reasonCode = "<div style='color:#444;font-size:0.9em;margin-left:10px'>{$reasonCodeVerbal}</div>";
         }
     }
     

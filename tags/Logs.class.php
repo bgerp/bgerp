@@ -420,6 +420,7 @@ class tags_Logs extends core_Manager
 
         $tagsArr = tags_Tags::getTagsOptions();
         $data->listFilter->setOptions('tagId', $tagsArr['all']);
+        $data->listFilter->setField('tagId', 'placeholderType=all');
 
         $data->listFilter->input(null, 'silent');
 

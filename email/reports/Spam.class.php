@@ -29,7 +29,7 @@ class email_reports_Spam extends frame2_driver_TableData
      */
     public function addFields(core_Fieldset &$fieldset)
     {
-        $fieldset->FLD('folders', 'keylist(mvc=doc_Folders,select=title)', 'caption=Папки, after=title');
+        $fieldset->FLD('folders', 'keylist(mvc=doc_Folders,select=title)', 'caption=Папки,placeholderType=all, after=title');
         $fieldset->FLD('spamFrom', 'double(min=-1000, max=1000, decimals=1, smartRound)', 'caption=СПАМ рейтинг->От, mandatory, after=folders');
         $fieldset->FLD('spamTo', 'double(min=-1000, max=1000, decimals=1, smartRound)', 'caption=СПАМ рейтинг->До, mandatory, after=spamFrom');
         $fieldset->FLD('period', 'time(suggestions=1 седмица|2 седмици|1 месец)', 'caption=Период, mandatory, after=spamTo');
@@ -46,7 +46,7 @@ class email_reports_Spam extends frame2_driver_TableData
     protected static function on_AfterPrepareEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$data)
     {
         $emailsLimit = 10000;
-        if ($data->form->rec->id) {
+        if (!empty($data->form->rec->id)) {
             $emailsLimit = 0;
         }
         
@@ -191,10 +191,9 @@ class email_reports_Spam extends frame2_driver_TableData
             $resArr[$eRec->id]->folderId = $eRec->folderId;
             $resArr[$eRec->id]->spamScore = $eRec->spamScore;
             $resArr[$eRec->id]->id = $eRec->id;
-            if ($eRec->state == 'rejected') {
-                $resArr[$eRec->id]->state = $eRec->state;
-                $resArr[$eRec->id]->modifiedBy = $eRec->modifiedBy;
-            } else {
+            $resArr[$eRec->id]->state = $eRec->state;
+            $resArr[$eRec->id]->modifiedBy = $eRec->modifiedBy;
+            if ($eRec->state != 'rejected') {
                 $resArr[$eRec->id]->brState = $eRec->brState;
             }
         }
@@ -269,7 +268,7 @@ class email_reports_Spam extends frame2_driver_TableData
             $attr['ef_icon'] = 'img/16/restore.png';
             $attr['title'] = 'Възстановяване на имейла';
             
-            $row->subject .= '<div class="small"> (' . tr('оттеглено от') . ' ' . crm_Profiles::createLink($dRec->modifiedBy) . ')</div>';
+            $row->subject = ($row->subject ?? '') . '<div class="small"> (' . tr('оттеглено от') . ' ' . crm_Profiles::createLink($dRec->modifiedBy) . ')</div>';
             
             $act = 'Възстановяване';
         } else {
@@ -278,7 +277,7 @@ class email_reports_Spam extends frame2_driver_TableData
             $attr['title'] = 'Оттегляне на имейла';
             
             if ($dRec->brState == 'rejected') {
-                $row->subject .= '<div class="small"> (' . tr('възстановено от') . ' ' . crm_Profiles::createLink($dRec->modifiedBy) . ')</div>';
+                $row->subject = ($row->subject ?? '') . '<div class="small"> (' . tr('възстановено от') . ' ' . crm_Profiles::createLink($dRec->modifiedBy) . ')</div>';
             }
             
             $act = 'Оттегляне';
@@ -313,7 +312,7 @@ class email_reports_Spam extends frame2_driver_TableData
         
         list($emailId, $repId, $cUserId) = explode('|', $data);
         
-        expect($emailId && $repId && cUserId);
+        expect($emailId && $repId && $cUserId);
         
         $eRec = email_Incomings::fetch($emailId);
         expect($eRec);

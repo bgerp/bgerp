@@ -29,7 +29,7 @@ class type_Hour extends type_Varchar
             $h = str_pad($h, 2, '0', STR_PAD_LEFT) . ":00";
             $hourOptions[$h] = $h;
         }
-        $attr['style'] .= ';max-width:4em;';
+        $attr['style'] = ($attr['style'] ?? '') . ';max-width:4em;';
 
         $inputHour = ht::createCombo($name, $value, $attr, $hourOptions);
 
@@ -42,7 +42,7 @@ class type_Hour extends type_Varchar
      */
     public function fromVerbal($value)
     {
-        $value = trim($value);
+        $value = trim($value ?? '');
         if($value){
             if(!preg_match("/^(?:2[0-3]|[01][0-9]):[0-5][0-9]$/", $value)){
                 $this->error = 'Невалиден формат за час';

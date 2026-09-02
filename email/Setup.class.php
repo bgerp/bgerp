@@ -72,6 +72,20 @@ defIfNot('EMAIL_RESENDING_TIME', '43200');
 
 
 /**
+ * Максимален брой автоматични отговори към един имейл за зададения период
+ */
+defIfNot('EMAIL_AUTOMATIC_RESPONSE_MAX_COUNT', 3);
+
+
+/**
+ * Период за ограничаване на автоматичните отговори към един имейл
+ *
+ * По подразбиране 24 часа
+ */
+defIfNot('EMAIL_AUTOMATIC_RESPONSE_PERIOD', 86400);
+
+
+/**
  * Максимална дължина на текстовата част на входящите имейли
  */
 defIfNot('EMAIL_MAX_TEXT_LEN', '1000000');
@@ -260,9 +274,9 @@ defIfNot('EMAIL_CLOSEST_EMAIL_PERCENT', 80);
 
 
 /**
- * Повторна проверка за валидност на имейли след - 1 седмица
+ * Повторна проверка за валидност на имейли след - 3 дена
  */
-defIfNot('EMAIL_RECHECK_EMAILS_AFTER', 604800);
+defIfNot('EMAIL_RECHECK_EMAILS_AFTER', 259200);
 
 
 /**
@@ -316,7 +330,7 @@ class email_Setup extends core_ProtoSetup
     /**
      * Версия на пакета
      */
-    public $version = '0.1';
+    public $version = '0.2';
     
     
     /**
@@ -410,7 +424,7 @@ class email_Setup extends core_ProtoSetup
         
         // След колко време (в секунди) след първото изпращане към един имейл да се взема в предвид, че е изпратено преди (Повторно изпращане)
         'EMAIL_RESENDING_TIME' => array('time(suggestions=1 часа|2 часа|3 часа|5 часа|7 часа|10 часа|12 часа)', 'caption=Време от първото изпращане на имейл|*&comma;| след което се маркира "Преизпращане"->Време'),
-        
+
         // Максимален брой символи в текстовата част на входящите имейли
         'EMAIL_MAX_TEXT_LEN' => array('int', 'caption=Максимален брой символи в текстовата част на входящите имейли->Символи'),
         
@@ -654,7 +668,7 @@ class email_Setup extends core_ProtoSetup
         $logoArr['BGERP_COMPANY_LOGO_EN'] = core_Settings::fetchUsers(crm_Profiles::getSettingsKey(), 'BGERP_COMPANY_LOGO_EN');
         foreach ($logoArr as $lKey => $logoLgArr) {
             foreach ((array) $logoLgArr as $lArr) {
-                if (!$lArr[$lKey]) {
+                if (empty($lArr[$lKey])) {
                     continue;
                 }
 

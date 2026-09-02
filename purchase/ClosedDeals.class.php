@@ -37,7 +37,7 @@ class purchase_ClosedDeals extends deals_ClosedDeals
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'purchase_Wrapper, acc_plg_Contable, plg_RowTools, plg_Sorting,
+    public $loadList = 'purchase_Wrapper, acc_plg_Contable, plg_RowTools2, plg_Sorting,
                     doc_DocumentPlg, doc_plg_HidePrices, plg_Search';
     
     
@@ -143,7 +143,8 @@ class purchase_ClosedDeals extends deals_ClosedDeals
         
         if ($rec->closeWith) {
             $dealState = purchase_Purchases::fetchField($rec->closeWith, 'state');
-            $row->closeWith = ht::createLink($row->closeWith, array('purchase_Purchases', 'single', $rec->closeWith));
+            $closeWith = $row->closeWith ?? $mvc->getVerbal($rec, 'closeWith');
+            $row->closeWith = ht::createLink($closeWith, array('purchase_Purchases', 'single', $rec->closeWith));
             $row->closeWith = "<span class= 'state-{$dealState} document-handler'>{$row->closeWith}</span>";
         }
     }
@@ -154,7 +155,7 @@ class purchase_ClosedDeals extends deals_ClosedDeals
      */
     public static function isPurchaseDiffAllowed($purchaseRec)
     {
-        $diff = round($purchaseRec->amountBl, 2);
+        $diff = round((float) ($purchaseRec->amountBl ?? 0), 2);
         $conf = core_Packs::getConfig('acc');
         $res = ($diff >= -1 * $conf->ACC_MONEY_TOLERANCE && $diff <= $conf->ACC_MONEY_TOLERANCE);
         

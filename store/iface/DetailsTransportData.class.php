@@ -29,8 +29,10 @@ class store_iface_DetailsTransportData
      * @param bool     $force
      *
      * @return stdClass $res
-     *                  - weight    - теглото на реда
-     *                  - volume    - теглото на реда
+     *                  - weight     - бруто тегло
+     *                  - volume     - обем
+     *                  - netWeight  - нето тегло
+     *                  - tareWeight - тегло на тарата
      *                  - transUnits - транспортните единици
      */
     public function getTransportInfo($masterId, $force = false)

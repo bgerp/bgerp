@@ -17,6 +17,8 @@
  */
 class backup_StorageIntf
 {
+    public $class;
+
     /**
      * Връща ключ под който ще се запишат данните
      *

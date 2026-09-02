@@ -94,16 +94,16 @@ class cms_FancyTheme extends core_ProtoInner
 
         $menu = $this->getMenu();
 
-        if($this->innerForm->menuPosition == 'above'){
+        if(($this->innerForm->menuPosition ?? null) == 'above'){
             $tpl->replace($menu, 'TOP_PAGE');
-        } else if($this->innerForm->menuPosition == 'below'){
+        } else if(($this->innerForm->menuPosition ?? null) == 'below'){
             $tpl->replace($menu, 'MENU');
         }
         // Добавяме заглавния текст
-        $title = $this->innerForm->title;
+        $title = $this->innerForm->title ?? null;
 
         $style = '';
-        if ($this->innerForm->titleColor) {
+        if (!empty($this->innerForm->titleColor)) {
             $style = " style='color:{$this->innerForm->titleColor};'";
         }
 
@@ -112,19 +112,19 @@ class cms_FancyTheme extends core_ProtoInner
             $tpl->replace($title, 'CORE_APP_NAME');
         }
 
-        $subtitle = $this->innerForm->subtitle;
+        $subtitle = $this->innerForm->subtitle ?? null;
         if ($subtitle) {
             $subtitle = "<span{$style}>" . $subtitle . '</span>';
             $tpl->replace($subtitle, 'CORE_APP_SUBTITLE');
         }
 
-        if ($this->innerForm->headerColor) {
+        if (!empty($this->innerForm->headerColor)) {
             $css .= "\n    header {background-color:{$this->innerForm->headerColor} !important;}";
         } else {
             $css .= "\n    header {background-color:#C7EAFC !important;}";
         }
 
-        if ($this->innerForm->baseColor) {
+        if (!empty($this->innerForm->baseColor)) {
             $baseColor = ltrim($this->innerForm->baseColor, '#');
         } else {
             $baseColor = '334';
@@ -134,17 +134,17 @@ class cms_FancyTheme extends core_ProtoInner
 
         if (phpcolor_Adapter::checkColor($baseColor, 'dark')) {
             $mixColor = '#aaa';
-            $css .= "\n    #cmsBottom a, #cmsBottom a:hover, #cmsMenu a {color:#fff !important; text-shadow: 0px 0px 2px #000}";
+            $css .= "\n    #cmsBottom p, #cmsBottom a, #cmsBottom a:hover, #cmsMenu a {color:#fff !important; text-shadow: 0px 0px 2px #000}";
             $css .= "\n    .vertical .formTitle, .vertical .formGroup, .vertical .formMiddleCaption, .vertical form[method=post] input[type=submit], form[method=post] .formTable input[type=submit] {color:#fff !important;}";
         } else {
             $mixColor = '#666';
 
             // стилове за тъмен цвят
-            $css .= "\n     #cmsBottom a, #cmsBottom a:hover, #cmsMenu a {color:#000 !important; text-shadow: none}";
+            $css .= "\n     #cmsBottom p, #cmsBottom a, #cmsBottom a:hover, #cmsMenu a {color:#000 !important; text-shadow: none}";
             $css .= "\n    .vertical .formTitle, .vertical .formGroup, .vertical .formMiddleCaption, .vertical form[method=post] input[type=submit], form[method=post] .formTable input[type=submit] {color:#000 !important;}";
         }
 
-        if ($this->innerForm->activeColor) {
+        if (!empty($this->innerForm->activeColor)) {
             $activeColor = ltrim($this->innerForm->activeColor, '#');
         } else {
             $colorObj = new color_Object($baseColor);
@@ -279,7 +279,7 @@ class cms_FancyTheme extends core_ProtoInner
         if (!Mode::is('screenMode', 'narrow')) {
             for ($i = 1; $i <= 8; $i++) {
                 $imgName = 'wImg' . $i;
-                if ($this->innerForm->{$imgName}) {
+                if (!empty($this->innerForm->{$imgName})) {
                     $imgs[$i] = $this->innerForm->{$imgName};
                 }
             }
@@ -300,8 +300,8 @@ class cms_FancyTheme extends core_ProtoInner
                 }
                 $banner .= '</div>';
                 $banner = new ET($banner);
-                $fadeTransition = $this->innerForm->fadeTransition ? $this->innerForm->fadeTransition : 1500;
-                $fadeDelay = $this->innerForm->fadeDelay ? $this->innerForm->fadeDelay : 5000;
+                $fadeTransition = !empty($this->innerForm->fadeTransition) ? $this->innerForm->fadeTransition : 1500;
+                $fadeDelay = !empty($this->innerForm->fadeDelay) ? $this->innerForm->fadeDelay : 5000;
 
                 if(countR($imgs) > 1){
                     $banner->append('.fadein { position:relative; display:block;} .fadein img {position:relative; left:0; top:0;}', 'STYLES');
@@ -327,7 +327,7 @@ class cms_FancyTheme extends core_ProtoInner
 
             $img = $imgs[rand(1, countR($imgs))];
 
-            if ($img) {
+            if (!empty($img)) {
                 if (!Mode::is('screenMode', 'narrow')) {
                     $img = new thumb_Img(array($img, 1400, 220, 'fileman', 'isAbsolute' => true, 'mode' => 'large-no-change'));
                 } else {
@@ -362,7 +362,7 @@ class cms_FancyTheme extends core_ProtoInner
      */
     public static function on_BeforeSave($mvc, &$innerStateField, &$innerFormField, $rec, $fields = null, $mode = null)
     {
-        if (!trim($innerFormField->title) && !$rec->id && core_Users::isSystemUser()) {
+        if (!trim($innerFormField->title) && empty($rec->id) && core_Users::isSystemUser()) {
             if (!$innerFormField) {
                 $innerFormField = new stdClass();
             }
@@ -380,7 +380,7 @@ class cms_FancyTheme extends core_ProtoInner
      */
     public function prepareEmbeddedForm(core_Form &$form)
     {
-        if (!$form->rec->id) {
+        if (empty($form->rec->id)) {
             $form->setDefault('title', core_Setup::get('EF_APP_TITLE', true));
         }
     }

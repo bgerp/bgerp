@@ -103,7 +103,7 @@ class location_Type extends type_Varchar
         $tpl->prepend("<div class='location-input'>");
         $tpl->append('</div>');
         
-        if (!$stopGeolocation && $this->params['geolocation']) {
+        if (!$stopGeolocation && ($this->params['geolocation'] ?? null)) {
             jquery_Jquery::run($tpl, "getEO().setPosition('{$attr['id']}');");
         }
         
@@ -113,7 +113,7 @@ class location_Type extends type_Varchar
     
     public function toVerbal_($value)
     {
-        $coords = explode(',', $value);
+        $coords = explode(',', (string) $value);
         
         static $n;
         
@@ -125,12 +125,13 @@ class location_Type extends type_Varchar
         
         $id = 'map' . $n;
         
-        setIfNot($width, $this->params['width'], 400);
-        setIfNot($height, $this->params['height'], 400);
+        setIfNot($width, $this->params['width'] ?? null, 400);
+        setIfNot($height, $this->params['height'] ?? null, 400);
         
         $conf = core_Packs::getConfig('google');
         $apiKey = $conf->GOOGLE_API_KEY;
-        
+
+        $keyString = '';
         if (isset($apiKey) && $apiKey != '') {
             $keyString = "key={$apiKey}&";
         }

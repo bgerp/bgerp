@@ -29,7 +29,7 @@ class bgfisc_plg_CashRegister extends core_Plugin
      */
     public static function on_AfterDescription(core_Mvc $mvc)
     {
-        $mvc->FLD('cashRegNum', 'varchar(nullIfEmpty,maxRadio=1)', 'caption=Фискално устройство->Избор,after=name');
+        $mvc->FLD('cashRegNum', 'varchar(nullIfEmpty)', 'caption=Фискално устройство->Избор,after=name');
     }
     
     
@@ -57,7 +57,9 @@ class bgfisc_plg_CashRegister extends core_Plugin
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-        $row->cashRegNum = bgfisc_Register::getFuLinkBySerial($rec->cashRegNum, false);
+        if (isset($rec->cashRegNum)) {
+            $row->cashRegNum = bgfisc_Register::getFuLinkBySerial($rec->cashRegNum, false);
+        }
     }
     
     
@@ -68,7 +70,7 @@ class bgfisc_plg_CashRegister extends core_Plugin
     {
         $block = $tpl->getBlock('CAPTION_VALUE');
         $block->replace(tr('ФУ'), 'CAPTION');
-        $block->replace($data->row->cashRegNum, 'CAPTION_VALUE');
+        $block->replace($data->row->cashRegNum ?? '', 'CAPTION_VALUE');
         $block->removeBlocksAndPlaces();
         $tpl->append($block, 'INFO_BLOCK');
     }

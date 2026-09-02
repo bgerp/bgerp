@@ -83,7 +83,7 @@ class borsa_Bids extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'borsa_Wrapper, plg_state, plg_Created, plg_RowTools2, plg_Rejected, plg_Modified, plg_Sorting';
+    public $loadList = 'borsa_Wrapper, plg_State, plg_Created, plg_RowTools2, plg_Rejected, plg_Modified, plg_Sorting';
     
     
     /**
@@ -128,6 +128,8 @@ class borsa_Bids extends core_Manager
         
         
         $data->listFilter->setFieldTypeParams('companyId', array('allowEmpty' => 'allowEmpty'));
+        $data->listFilter->setField('companyId', 'placeholderType=all');
+        $data->listFilter->setField('lotId', 'placeholderType=all');
         
         $data->listFilter->showFields = 'lotId, companyId';
         
@@ -146,7 +148,7 @@ class borsa_Bids extends core_Manager
             $lQuery->show('id');
             $aRec = $lQuery->fetchAll();
             foreach ($optArr as $oId => $oName) {
-                if (!$aRec[$oId]) {
+                if (!isset($aRec[$oId])) {
                     unset($optArr[$oId]);
                 }
             }
@@ -157,11 +159,11 @@ class borsa_Bids extends core_Manager
         
         $data->listFilter->input('lotId, companyId');
         
-        if ($data->listFilter->rec->lotId) {
+        if (!empty($data->listFilter->rec->lotId)) {
             $data->query->where(array("#lotId = '[#1#]'", $data->listFilter->rec->lotId));
         }
         
-        if ($data->listFilter->rec->companyId) {
+        if (!empty($data->listFilter->rec->companyId)) {
             $data->query->where(array("#companyId = '[#1#]'", $data->listFilter->rec->companyId));
         }
         
@@ -182,11 +184,13 @@ class borsa_Bids extends core_Manager
      */
     public static function on_AfterSave(core_Mvc $mvc, &$id, $rec, &$fields = null, $mode = null)
     {
-        $qArr = $mvc->getQuantity($rec->lotId, $rec->periodId);
-        $qArr['qBooked'] = $qArr['qBooked'] ? $qArr['qBooked'] : 0;
-        $qArr['qConfirmed'] = $qArr['qConfirmed'] ? $qArr['qConfirmed'] : 0;
-        
         $pRec = borsa_Periods::fetch($rec->periodId);
+        if (empty($pRec)) {
+            
+            return;
+        }
+        
+        $qArr = $mvc->getQuantity($rec->lotId, $rec->periodId);
         
         $pRec->qBooked = $qArr['qBooked'];
         $pRec->qConfirmed = $qArr['qConfirmed'];
@@ -209,7 +213,7 @@ class borsa_Bids extends core_Manager
         $query->where(array("#periodId = '[#1#]'", $periodId));
         $query->where("#state != 'rejected'");
         
-        $resArr = array();
+        $resArr = array('qBooked' => 0, 'qConfirmed' => 0);
         while ($rec = $query->fetch()) {
             if ($rec->state == 'draft') {
                 $resArr['qBooked'] += $rec->quantity;
@@ -231,32 +235,36 @@ class borsa_Bids extends core_Manager
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
-        $row->ip = type_Ip::decorateIp($rec->ip, $rec->createdOn, true);
+        if (!empty($rec->ip)) {
+            $row->ip = type_Ip::decorateIp($rec->ip, $rec->createdOn, true);
+        }
         
-        $row->brid = log_Browsers::getLink($rec->brid);
+        if (!empty($rec->brid)) {
+            $row->brid = log_Browsers::getLink($rec->brid);
+        }
         
-        if ($rec->lotId) {
+        if (!empty($rec->lotId)) {
             $pId = borsa_Lots::fetchField($rec->lotId, 'productId');
             if ($pId && cat_Products::haveRightFor('single', $pId)) {
                 $row->lotId = cat_Products::getLinkToSingle($pId, 'name');
             }
         }
         
-        if ($rec->saleId) {
+        if (!empty($rec->saleId)) {
             if (sales_Sales::haveRightFor('single', $rec->saleId)) {
                 $row->saleId = sales_Sales::getLinkToSingle($rec->saleId);
             }
         }
         
-        if ($rec->companyId) {
+        if (!empty($rec->companyId)) {
             $cId = borsa_Companies::fetchField($rec->companyId, 'companyId');
-            if (crm_Companies::haveRightFor('single', $cId)) {
+            if ($cId && crm_Companies::haveRightFor('single', $cId)) {
                 $row->companyId = crm_Companies::getLinkToSingle($cId, 'name');
             }
         }
         
-        if ($rec->quantity) {
-            if ($rec->lotId) {
+        if (!empty($rec->quantity)) {
+            if (!empty($rec->lotId)) {
                 $pId = borsa_Lots::fetchField($rec->lotId, 'productId');
                 $mId = cat_Products::fetchField($pId, 'measureId');
                 
@@ -287,9 +295,9 @@ class borsa_Bids extends core_Manager
                 core_RowToolbar::createIfNotExists($row->_rowTools);
                 
                 $cRec = borsa_Companies::fetch($rec->companyId);
-                $folderId = crm_Companies::forceCoverAndFolder($cRec->companyId);
+                $folderId = !empty($cRec->companyId) ? crm_Companies::forceCoverAndFolder($cRec->companyId) : null;
                 
-                if (sales_Sales::haveRightFor('add', (object)array('folderId' => $folderId))) {
+                if ($folderId && sales_Sales::haveRightFor('add', (object)array('folderId' => $folderId))) {
                     $row->_rowTools->addLink('Продажба', array('sales_Sales', 'add', 'folderId' => $folderId, 'ret_url' => true), array('ef_icon' => 'img/16/cart_go.png', 'title' => 'Създаване на продажба'));
                 }
             }
@@ -375,7 +383,7 @@ class borsa_Bids extends core_Manager
             
             if ($sRec && $rec->companyId) {
                 $cRec = borsa_Companies::fetch($rec->companyId);
-                $folderId = crm_Companies::forceCoverAndFolder($cRec->companyId);
+                $folderId = !empty($cRec->companyId) ? crm_Companies::forceCoverAndFolder($cRec->companyId) : null;
                 if ($folderId != $sRec->folderId) {
                     $form->setWarning('saleIdInt', 'Продажбата не е към този контрагент');
                 }
@@ -383,7 +391,7 @@ class borsa_Bids extends core_Manager
             
             $pRec = borsa_Periods::fetch($rec->periodId);
             
-            $qFree = $pRec->qAvailable - $pRec->qConfirmed;
+            $qFree = !empty($pRec) ? ($pRec->qAvailable - $pRec->qConfirmed) : 0;
             
             if ($form->rec->quantity > $qFree) {
                 $form->setWarning('quantity', 'Надвишавате свободното допустимо количество с|* ' . ($form->rec->quantity - $qFree) . $sName);
@@ -442,7 +450,7 @@ class borsa_Bids extends core_Manager
     {
         $form = $data->form;
         $rec = $form->rec;
-        if ($rec->id) {
+        if (!empty($rec->id)) {
             $form->setReadOnly('periodId');
             $form->setReadOnly('lotId');
             $form->setReadOnly('companyId');
@@ -452,12 +460,12 @@ class borsa_Bids extends core_Manager
                 $form->setDefault('lotId', key($optArr));
             }
             
-            if ($rec->lotId) {
+            if (!empty($rec->lotId)) {
                 $pArr = cls::get('borsa_Lots')->getPeriods($rec->lotId);
                 $optArr = $form->fields['periodId']->type->prepareOptions();
                 $resOptArr = array();
                 foreach ($pArr as $pId => $pRec) {
-                    $resOptArr[$pId] = $optArr[$pId] ? $optArr[$pId] : $pId;
+                    $resOptArr[$pId] = !empty($optArr[$pId]) ? $optArr[$pId] : $pId;
                 }
                 $form->setOptions('periodId', $resOptArr);
                 
@@ -465,13 +473,13 @@ class borsa_Bids extends core_Manager
                     $form->setDefault('periodId', key($resOptArr));
                 }
                 
-                if ($rec->periodId) {
+                if (!empty($rec->periodId) && isset($pArr[$rec->periodId]['price'])) {
                     $form->setDefault('price', $pArr[$rec->periodId]['price']);
                 }
             }
         }
         
-        if ($rec->lotId) {
+        if (!empty($rec->lotId)) {
             $pId = borsa_Lots::fetchField($rec->lotId, 'productId');
             if ($pId) {
                 $mId = cat_Products::fetchField($pId, 'measureId');

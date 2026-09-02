@@ -121,6 +121,8 @@ class email_AutomaticResponse extends core_Master
         $this->FLD('content', 'richtext(rows=4)', 'caption=Шаблон за получени имейли->Съдържание');
         $this->FLD('titleOfMessage', 'varchar(128)', 'caption=Автоматични отговори->Заглавие, mandatory');
         $this->FLD('text', 'richtext(rows=4)', 'caption=Автоматични отговори->Съдържание, mandatory');
+        $this->FLD('maxResponseCount', 'int(min=1,max=100)', 'caption=Ограничение към един имейл->Максимален брой, mandatory');
+        $this->FLD('responsePeriod', 'time(min=60,suggestions=1 час|6 часа|12 часа|24 часа|2 дни|1 седмица)', 'caption=Ограничение към един имейл->Период, mandatory');
         $this->FLD('state', 'enum(active=Активен, rejected=Деактивиран)', 'caption=Автоматични отговори->Състояние');
         $this->FLD('inboxEmail', 'key(mvc=email_inboxes,select=email)', 'caption=Автоматични отговори->Имейл, mandatory');
         if(core_Packs::isInstalled('ai')){
@@ -168,19 +170,19 @@ class email_AutomaticResponse extends core_Master
         $form = &$data->form;
         $rec = $form->rec;
 
+        $form->setDefault('maxResponseCount', EMAIL_AUTOMATIC_RESPONSE_MAX_COUNT);
+        $form->setDefault('responsePeriod', EMAIL_AUTOMATIC_RESPONSE_PERIOD);
+
         if(core_Packs::isInstalled('ai')){
             $form->setField('aiInstructions', 'input');
             $form->setField('aiInstructions', 'after=text');        
         }
         
         //избиране имейл от който да се изпрати отговора
-        $queryEmails = email_Inboxes::getQuery();
-        $queryEmails->where("#inCharge = $rec->userId");
-        $queryEmails->where("#state = 'active'");
-
-        $emails = array();
-        while($emailRec = $queryEmails->fetch()){
-            $emails[$emailRec->id] = $emailRec->email;
+        try {
+            $emails = email_Inboxes::getFromEmailOptions(false, $rec->userId ?? null, false);
+        } catch (core_exception_Expect $e) {
+            $emails = array();
         }
         $form->setOptions('inboxEmail', $emails);
 
@@ -206,21 +208,24 @@ class email_AutomaticResponse extends core_Master
     public function on_AfterPrepareRetUrl($mvc, $data)
     {
          // Ако е субмитната формата
-        if ($data->form && $data->form->isSubmitted()) {
+        if (isset($data->form) && $data->form->isSubmitted()) {
 
             // Променяма да сочи към single-a
             $profile = crm_Profiles::fetch("#userId = {$data->form->rec->userId}");
-            $data->retUrl = array('crm_Profiles', 'single', $profile->id);        
+            if ($profile) {
+                $data->retUrl = array('crm_Profiles', 'single', $profile->id);
+            }
         }
 
         //да може след изтриване да се връща в профила
-        if($data->cmd == 'delete'){
+        if(($data->cmd ?? null) == 'delete'){
             if($id = Request::get('id', 'int')){
                 $rec = $mvc->fetch($id);
-                $profile = crm_Profiles::fetch("#userId = {$rec->userId}");
-                $data->retUrl =  array('crm_Profiles', 'single', $profile->id);
+                if ($rec && ($profile = crm_Profiles::fetch("#userId = {$rec->userId}"))) {
+                    $data->retUrl = array('crm_Profiles', 'single', $profile->id);
+                }
             }
-        }   
+        }
     }
 
 
@@ -362,10 +367,9 @@ class email_AutomaticResponse extends core_Master
     public function matchesRule($mail, $rule){
         
         $query = doc_Folders::getQuery();
+        $query->where(array("#inCharge = [#1#]", $rule->userId));
 
-        if(empty($rule->folders)){
-            $query->where("#inCharge = {$rule->userId}");
-        } else{
+        if(!empty($rule->folders)){
             $query->in("id", keylist::toArray($rule->folders));
         }
         $recs = $query->fetchAll();
@@ -401,6 +405,61 @@ class email_AutomaticResponse extends core_Master
     */
     public function createEmail($mail, $rule){
 
+        $recipient = drdata_Emails::normalize($mail->fromEml);
+        $lockKey = 'automaticResponse|' . $recipient;
+
+        if (!core_Locks::obtain($lockKey, 600, 1, 1)) {
+            return false;
+        }
+
+        try {
+            if ($this->isResponseLimitReached($recipient, $rule)) {
+                return false;
+            }
+
+            return $this->sendAutomaticResponse($mail, $rule);
+        } finally {
+            core_Locks::release($lockKey);
+        }
+    }
+
+
+    /**
+     * Проверява дали е достигнат лимитът за автоматични отговори към получателя.
+     *
+     * За стари правила без записани стойности се използват системните стойности по подразбиране.
+     * Броят се само успешно изпратените автоматични отговори, независимо кое
+     * правило ги е създало. Така припокриващи се правила не могат да заобиколят лимита.
+     *
+     * @param string   $recipient
+     * @param stdClass $rule
+     *
+     * @return bool
+     */
+    protected function isResponseLimitReached($recipient, $rule)
+    {
+        $maxCount = !empty($rule->maxResponseCount) ? $rule->maxResponseCount : EMAIL_AUTOMATIC_RESPONSE_MAX_COUNT;
+        $period = !empty($rule->responsePeriod) ? $rule->responsePeriod : EMAIL_AUTOMATIC_RESPONSE_PERIOD;
+        $from = dt::addSecs(-1 * $period, dt::now());
+
+        $query = email_Outgoings::getQuery();
+        $query->where(array("#autoReplyRuleId IS NOT NULL AND #email = '[#1#]' AND #lastSendedOn >= '[#2#]'", $recipient, $from));
+
+        return $query->count() >= $maxCount;
+    }
+
+
+    /**
+     * Създава и изпраща автоматичния отговор.
+     *
+     * @param stdClass $mail
+     * @param stdClass $rule
+     *
+     * @return bool|null
+     */
+    protected function sendAutomaticResponse($mail, $rule)
+    {
+
         $Email = cls::get('email_Outgoings');
             
         // Подготовка на имейла
@@ -412,6 +471,7 @@ class email_AutomaticResponse extends core_Master
                                     'state' => 'active',
                                     'email' => $mail->fromEml, 
                                     'recipient' => $mail->fromEml,
+                                    'autoReplyRuleId' => $rule->id,
                                     'aiInstructions' => $rule->aiInstructions);
         
         $aiNotValid = false;
@@ -487,5 +547,7 @@ class email_AutomaticResponse extends core_Master
         $userId = $rule->userId;
         $urlArr = array('email_Outgoings', 'single', $emailRec->id);
         bgerp_Notifications::add($msg, $urlArr, $userId, 'normal');
+
+        return true;
     }
 }

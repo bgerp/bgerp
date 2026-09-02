@@ -110,7 +110,7 @@ class store_iface_ShipmentWithBomPriceTplHandler extends doc_TplScript
                     }
 
                     if($cachedRec->_isLive){
-                        $row->_amountBom = "<span style='color:blue'>{$row->_amountBom}</span>";
+                        $row->_amountBom = "<span class='blueText'>{$row->_amountBom}</span>";
                         $hint .= 'Ще се запише при активиране|*!';
                     }
 
@@ -122,7 +122,7 @@ class store_iface_ShipmentWithBomPriceTplHandler extends doc_TplScript
                     // Линк към рецептата, ако има такава
                     $singleUrl = cat_Boms::getSingleUrlArray($cachedRec->bomId);
                     if(countR($singleUrl)){
-                        $row->_amountBom = ht::createLinkRef($row->_amountBom, $singleUrl);
+                        $row->_amountBom = ht::createLinkRef($row->_amountBom, $singleUrl, false, 'arrowFront');
                     }
                 }
             }

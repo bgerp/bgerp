@@ -66,7 +66,7 @@ class store_transaction_Receipt extends acc_DocumentTransactionSource
         }
         
         $origin = $this->class->getOrigin($rec);
-        $packRecs = store_DocumentPackagingDetail::getRecs($this->class, $rec->id);
+        $packRecs = !empty($rec->id) ? store_DocumentPackagingDetail::getRecs($this->class, $rec->id) : array();
         
         // Всяка СР трябва да има поне един детайл
         if (countR($rec->details) > 0 || countR($packRecs) > 0) {
@@ -85,7 +85,7 @@ class store_transaction_Receipt extends acc_DocumentTransactionSource
         $rec->valior = empty($rec->valior) ? dt::today() : $rec->valior;
         
         $transaction = (object) array(
-            'reason' => 'Складова разписка №' . $rec->id,
+            'reason' => 'Складова разписка №' . ($rec->id ?? ''),
             'valior' => $rec->valior,
             'entries' => $entries,
         );
@@ -190,7 +190,7 @@ class store_transaction_Receipt extends acc_DocumentTransactionSource
 
             if($canStore != 'yes'){
                 // Към кои разходни обекти ще се разпределят разходите
-                unset($detailRec->discount);
+                $detailRec->discount = null;
                 $splitRecs = acc_CostAllocations::getRecsByExpenses($dClass, $detailRec->id, $detailRec->productId, $detailRec->quantity, $amount, $detailRec->discount);
 
                 foreach ($splitRecs as $dRec1) {

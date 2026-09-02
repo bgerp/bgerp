@@ -151,11 +151,40 @@ class tremol_FiscPrinterDriverWeb extends tremol_FiscPrinterDriverParent
     {
         // Шаблона за JS
         $js = getTplFromFile('/tremol/js/fiscPrintTpl.shtml');
-        
+
         $this->addTplFile($js, $pRec->driverVersion);
-        
+
+        // Всички следващи параметри са документирано опционални (виж докблока по-горе) -
+        // подсигуряваме ги да съществуват в $params, за да не гърми undefined-key/deprecation
+        // при директните им четения по-долу (?? не пипа вече зададена стойност)
+        // ВАЖНО: стойността по подразбиране трябва да е null, а не '' или false, защото
+        // setIfNot() презаписва само неinset-нати (null) стойности - иначе стойностите,
+        // които се допълват по-долу (напр. от QR_CODE_DATA), остават празни
+        $params['SERIAL_KEEP_PORT_OPEN'] = $params['SERIAL_KEEP_PORT_OPEN'] ?? null;
+        $params['IS_DETAILED'] = $params['IS_DETAILED'] ?? null;
+        $params['IS_PRINT_VAT'] = $params['IS_PRINT_VAT'] ?? null;
+        $params['IS_STORNO'] = $params['IS_STORNO'] ?? null;
+        $params['IS_CREDIT_NOTE'] = $params['IS_CREDIT_NOTE'] ?? null;
+        $params['IS_INVOICE'] = $params['IS_INVOICE'] ?? null;
+        $params['RCP_NUM'] = $params['RCP_NUM'] ?? null;
+        $params['QR_CODE_DATA'] = $params['QR_CODE_DATA'] ?? null;
+        $params['RELATED_TO_RCP_NUM'] = $params['RELATED_TO_RCP_NUM'] ?? null;
+        $params['RELATED_TO_RCP_DATE_TIME'] = $params['RELATED_TO_RCP_DATE_TIME'] ?? null;
+        $params['RELATED_TO_INV_DATE_TIME'] = $params['RELATED_TO_INV_DATE_TIME'] ?? null;
+        $params['FM_NUM'] = $params['FM_NUM'] ?? null;
+        $params['RECIPIENT'] = $params['RECIPIENT'] ?? null;
+        $params['BUYER'] = $params['BUYER'] ?? null;
+        $params['VAT_NUMBER'] = $params['VAT_NUMBER'] ?? null;
+        $params['UIC'] = $params['UIC'] ?? null;
+        $params['ADDRESS'] = $params['ADDRESS'] ?? null;
+        $params['UIC_TYPE_STR'] = $params['UIC_TYPE_STR'] ?? null;
+        $params['RELATED_TO_INV_NUM'] = $params['RELATED_TO_INV_NUM'] ?? null;
+        $params['SERIAL_NUMBER'] = $params['SERIAL_NUMBER'] ?? null;
+        $params['payments'] = $params['payments'] ?? null;
+        $params['products'] = $params['products'] ?? array();
+
         $this->connectToPrinter($js, $pRec, $params['SERIAL_KEEP_PORT_OPEN']);
-        
+
         // Задаваме параметрите за отваряне на ФБ
         setIfNot($params['OPER_NUM'], 1);
         if (!isset($params['OPER_PASS'])) {
@@ -205,7 +234,7 @@ class tremol_FiscPrinterDriverWeb extends tremol_FiscPrinterDriverParent
             
             // Опитваме се да попълним няко от задължителните параметри
             if ($params['QR_CODE_DATA']) {
-                list($fmNum, $toRcpNum, $toRcpDate, $toRcpTime) = explode('*', $params['QR_CODE_DATA']);
+                list($fmNum, $toRcpNum, $toRcpDate, $toRcpTime) = array_pad(explode('*', $params['QR_CODE_DATA']), 4, null);
                 
                 setIfNot($params['FM_NUM'], $fmNum);
                 setIfNot($params['RELATED_TO_RCP_NUM'], (int) $toRcpNum);
@@ -218,14 +247,14 @@ class tremol_FiscPrinterDriverWeb extends tremol_FiscPrinterDriverParent
             }
             
             if ($params['IS_STORNO']) {
-                expect($params['RELATED_TO_RCP_NUM'] && $params['RELATED_TO_RCP_DATE_TIME'] && $params['FM_NUM']);
-                expect(dt::verbal2mysql($params['RELATED_TO_RCP_DATE_TIME']));
+                expect($params['RELATED_TO_RCP_NUM'] && $params['RELATED_TO_RCP_DATE_TIME'] && $params['FM_NUM'], $params);
+                expect(dt::verbal2mysql($params['RELATED_TO_RCP_DATE_TIME']), $params);
                 
                 $js->removeBlock('OPEN_CREDIT_NOTE_1');
                 $js->removeBlock('OPEN_CREDIT_NOTE_2');
             } else if ($params['IS_CREDIT_NOTE']) {
-                expect($params['RELATED_TO_RCP_NUM'] && $params['RELATED_TO_INV_DATE_TIME'] && $params['FM_NUM']);
-                expect(dt::verbal2mysql($params['RELATED_TO_INV_DATE_TIME']));
+                expect($params['RELATED_TO_RCP_NUM'] && $params['RELATED_TO_INV_DATE_TIME'] && $params['FM_NUM'], $params);
+                expect(dt::verbal2mysql($params['RELATED_TO_INV_DATE_TIME']), $params);
                 
                 $js->removeBlock('OPEN_STORNO_RECEIPT_1');
                 $js->removeBlock('OPEN_STORNO_RECEIPT_2');
@@ -338,7 +367,7 @@ class tremol_FiscPrinterDriverWeb extends tremol_FiscPrinterDriverParent
             setIfNot($params['SERIAL_NUMBER'], $pRec->serialNumber);
             
             if (!$params['SERIAL_NUMBER']) {
-                list($params['SERIAL_NUMBER']) = explode('-', $params['RCP_NUM'], 2);
+                list($params['SERIAL_NUMBER']) = explode('-', (string) $params['RCP_NUM'], 2);
             }
             
             expect($params['SERIAL_NUMBER'] && (strlen($params['SERIAL_NUMBER']) == 8), $pRec, $params);
@@ -900,7 +929,7 @@ class tremol_FiscPrinterDriverWeb extends tremol_FiscPrinterDriverParent
         
         $res = array();
         
-        if ($pRec->otherData['operPass'] != $operPass) {
+        if (($pRec->otherData['operPass'] ?? null) != $operPass) {
             $pRec->otherData['operPass'] = $operPass;
             
             peripheral_Devices::save($pRec, 'otherData');
@@ -937,7 +966,7 @@ class tremol_FiscPrinterDriverWeb extends tremol_FiscPrinterDriverParent
         
         $dPaymArr = json_decode($defPaym, true);
         
-        if ($dPaymArr['defPaymArr']) {
+        if (!empty($dPaymArr['defPaymArr'])) {
             $pRec->otherData['defPaymArr'] = $dPaymArr['defPaymArr'];
             $pRec->otherData['exRate'] = $dPaymArr['exRate'];
             

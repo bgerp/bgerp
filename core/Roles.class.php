@@ -127,7 +127,7 @@ class core_Roles extends core_Manager
         
         if (!$exRec) {
             $res = "<li class=\"debug-new\">Създаване на роля <b>{$role}</b></li>";
-        } elseif ($rec->id) {
+        } elseif (!empty($rec->id)) {
             if ($rec->inheritInput == $exRec->inheritInput) {
                 $res = "<li class=\"debug-info\">Без промяна на роля <b>{$role}</b></li>";
             } else {
@@ -548,6 +548,7 @@ class core_Roles extends core_Manager
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
         $data->listFilter->fields['type']->type->options = array('' => '') + $data->listFilter->fields['type']->type->options;
+        $data->listFilter->setField('type', 'placeholderType=all');
         
         $data->listFilter->input('search, type');
         

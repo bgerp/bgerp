@@ -15,6 +15,8 @@
  */
 class doc_ChartAdapterIntf
 {
+    public $class;
+
     /**
      * Подготвя диаграмата
      *

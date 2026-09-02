@@ -505,12 +505,12 @@ class crm_Companies extends core_Master
         if (is_array($data->recs)) {
             $cnt = array();
             foreach ($data->recs as $rec) {
-                $key = str::utf2ascii(trim($rec->name));
+                $key = str::utf2ascii(trim((string) $rec->name));
                 $cnt[$key] = ($cnt[$key] ?? 0) + 1;
             }
             foreach ($data->recs as $rec) {
-                if ($cnt[str::utf2ascii(trim($rec->name))] >= 2) {
-                    if ($data->rows[$rec->id]->folderName) {
+                if ($cnt[str::utf2ascii(trim((string) $rec->name))] >= 2) {
+                    if (!empty($data->rows[$rec->id]->folderName)) {
                         $data->rows[$rec->id]->nameList .= $data->rows[$rec->id]->folderName;
                     } else {
                         $data->rows[$rec->id]->nameList .= $data->rows[$rec->id]->titleNumber;
@@ -802,7 +802,7 @@ class crm_Companies extends core_Master
         }
         
         while ($similarRec = $nQuery->fetch()) {
-            if ($rec->id && ($similarRec->id == $rec->id)) {
+            if (!empty($rec->id) && ($similarRec->id == $rec->id)) {
                 continue;
             }
             
@@ -817,7 +817,7 @@ class crm_Companies extends core_Master
             $vQuery->where(array("#vatId LIKE '%[#1#]%'", $vatNumb));
             
             while ($similarRec = $vQuery->fetch()) {
-                if ($rec->id && ($similarRec->id == $rec->id)) {
+                if (!empty($rec->id) && ($similarRec->id == $rec->id)) {
                     continue;
                 }
                 
@@ -837,7 +837,7 @@ class crm_Companies extends core_Master
                         $fRec = doc_Folders::fetch($folderId);
                         
                         if ($fRec->coverClass == core_Classes::getId('crm_Companies')) {
-                            if ($rec->id && ($fRec->coverId == $rec->id)) {
+                            if (!empty($rec->id) && ($fRec->coverId == $rec->id)) {
                                 continue;
                             }
                             
@@ -1022,7 +1022,7 @@ class crm_Companies extends core_Master
         }
 
         if ($rec->folderName ?? null) {
-            $row->folderName = "<div style='color:blue;'>" . $mvc->getVerbal($rec, 'folderName') . '</div>';
+            $row->folderName = "<div class='blueText'>" . $mvc->getVerbal($rec, 'folderName') . '</div>';
         }
         
         $row->titleNumber = "<div class='number-block' style='display:inline'>№{$rec->id}</div>";
@@ -1357,9 +1357,9 @@ class crm_Companies extends core_Master
             $ids = implode(',', $onlyIds);
             expect(preg_match("/^[0-9\,]+$/", $ids), $ids, $onlyIds);
             
-            $query->where("#id IN (${ids})");
+            $query->where("#id IN ({$ids})");
         } elseif (ctype_digit("{$onlyIds}")) {
-            $query->where("#id = ${onlyIds}");
+            $query->where("#id = {$onlyIds}");
         }
         
         $titleFld = $params['titleFld'];
@@ -1456,7 +1456,7 @@ class crm_Companies extends core_Master
             // Визитката е оттеглена - изтриваме всички правила за рутиране, свързани с нея
             email_Router::removeRules('company', $rec->id);
         } else {
-            if ($rec->email) {
+            if (!empty($rec->email)) {
                 static::createRoutingRules($rec->email, $rec->id);
             }
         }
@@ -2000,16 +2000,16 @@ class crm_Companies extends core_Master
             $requiredRoles = 'no_one';
         }
         
-        if ($action == 'edit' && isset($rec)) {
-            if ($rec->id == crm_Setup::BGERP_OWN_COMPANY_ID) {
+        if ($action == 'edit' && is_object($rec)) {
+            if (($rec->id ?? null) == crm_Setup::BGERP_OWN_COMPANY_ID) {
                 if (!haveRole('ceo,admin')) {
                     $requiredRoles = 'no_one';
                 }
             }
         }
-        
-        if ($action == 'close' && isset($rec)) {
-            if ($rec->id == crm_Setup::BGERP_OWN_COMPANY_ID) {
+
+        if ($action == 'close' && is_object($rec)) {
+            if (($rec->id ?? null) == crm_Setup::BGERP_OWN_COMPANY_ID) {
                 $requiredRoles = 'no_one';
             }
         }
@@ -2478,7 +2478,7 @@ class crm_Companies extends core_Master
 
         // Проверка дали има дублиращи се записи
         $query = $mvc->getQuery();
-        if ($name = trim($rec->name)) {
+        if ($name = trim((string) $rec->name)) {
             $query->where(array("#name = '[#1#]'", $name));
         }
         

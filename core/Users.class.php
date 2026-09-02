@@ -125,7 +125,7 @@ class core_Users extends core_Manager
     /**
      * Плъгини и MVC класове за предварително зареждане
      */
-    public $loadList = 'plg_Created,plg_Modified,plg_State,plg_SystemWrapper,core_Roles,plg_RowTools2,plg_CryptStore,plg_Search,plg_Rejected,plg_UserReg,core_UserTranslatePlg';
+    public $loadList = 'plg_Created,plg_Modified,plg_State,plg_SystemWrapper,core_Roles,plg_RowTools2,plg_CryptStore,plg_Search,plg_Rejected,plg_UserReg';
     
     
     /**
@@ -460,14 +460,23 @@ class core_Users extends core_Manager
             return false;
         }
 
+        if (empty($rec->id)) {
+            
+            return false;
+        }
+        
         static $isPowerUserArr = array();
         
         if (!isset($isPowerUserArr[$rec->id])) {
             $powerUserId = core_Roles::fetchByName('powerUser');
             
-            type_Keylist::isIn($powerUserId, $rec->roles);
+            // Ако е подаден частичен запис (напр. от форма), ролите се извличат от модела
+            $roles = $rec->roles ?? null;
+            if (!isset($roles)) {
+                $roles = self::fetchField($rec->id, 'roles');
+            }
             
-            $isPowerUserArr[$rec->id] = (boolean) type_Keylist::isIn($powerUserId, $rec->roles);
+            $isPowerUserArr[$rec->id] = (boolean) type_Keylist::isIn($powerUserId, $roles);
         }
         
         return $isPowerUserArr[$rec->id];
@@ -561,7 +570,7 @@ class core_Users extends core_Manager
         $data->listFilter->FNC(
             'role',
             'key(mvc=core_Roles,select=role,allowEmpty)',
-            'placeholder=Роля,caption=Роля,input,silent,autoFilter'
+            'placeholderType=all,caption=Роля,input,silent,autoFilter'
         );
         
         
@@ -1146,7 +1155,7 @@ class core_Users extends core_Manager
     {
         $addRoles = '';
         $row->lastLoginTime = $mvc->getVerbal($rec, 'lastLoginTime');
-        $row->lastLoginIp = type_Ip::decorateIp($rec->lastLoginIp, $rec->lastLoginTime);
+        $row->lastLoginIp = type_Ip::decorateIp($rec->lastLoginIp ?? null, $rec->lastLoginTime ?? null);
         $row->nick = $mvc->getVerbal($rec, 'nick');
         $row->email = $mvc->getVerbal($rec, 'email');
         $row->names = $mvc->getVerbal($rec, 'names');
@@ -1166,8 +1175,8 @@ class core_Users extends core_Manager
         
         $row->last->append($row->lastLoginTime);
         
-        $rolesInputArr = keylist::toArray($rec->rolesInput);
-        $rolesArr = keylist::toArray($rec->roles);
+        $rolesInputArr = keylist::toArray($rec->rolesInput ?? null);
+        $rolesArr = keylist::toArray($rec->roles ?? null);
         
         foreach ($rolesArr as $roleId) {
             if (!isset($rolesInputArr[$roleId])) {
@@ -1179,7 +1188,7 @@ class core_Users extends core_Manager
             $row->rolesInput = ($row->rolesInput ?? '') . "<div style='color:#666;'>" . tr('индиректно') . ': ' . $addRoles . '</div>';
         }
         
-        $row->rolesInput = "<div style='max-width:400px;'>{$row->rolesInput}</div>";
+        $row->rolesInput = "<div style='max-width:400px;'>" . ($row->rolesInput ?? '') . '</div>';
     }
     
     
@@ -1225,7 +1234,7 @@ class core_Users extends core_Manager
         }
         
         if (!$fields || in_array('roles', $fields = arr::make($fields)) || in_array('state', $fields = arr::make($fields))) {
-            if ($rec->id) {
+            if (!empty($rec->id)) {
                 expect($oRec = $mvc->fetch($rec->id));
 
                 if (!$fields || in_array('state', $fields = arr::make($fields))) {
@@ -1249,7 +1258,7 @@ class core_Users extends core_Manager
             }
         }
         
-        if ($rec->id) {
+        if (!empty($rec->id)) {
             // Ако е сменен ника
             if (!empty($mvc->changeNick)) {
                 core_LoginLog::add('change_nick', $rec->id);
@@ -2434,7 +2443,7 @@ class core_Users extends core_Manager
         $Roles = cls::get('core_Roles');
         $adminId = $Roles->fetchByName('admin');
         
-        $id = self::fetchField("#roles LIKE '%|${adminId}|%' AND #state != 'rejected'", 'id');
+        $id = self::fetchField("#roles LIKE '%|{$adminId}|%' AND #state != 'rejected'", 'id');
         
         return $id;
     }
@@ -2623,7 +2632,7 @@ class core_Users extends core_Manager
         $html = $this->renderWrapping($form->renderHtml());
         
         if ($cnt = countR($res)) {
-            $html .= "<h2 style='margin-left:15px'>Мигрирани са ${cnt} папки</h2>";
+            $html .= "<h2 style='margin-left:15px'>Мигрирани са {$cnt} папки</h2>";
             $html .= '<ul><li>' . implode('</li><li>', $res) . '</li></ul>';
         } elseif ($form->isSubmitted()) {
             $html .= "<h2 style='margin-left:15px'>Няма мигрирани папки</h2>";
@@ -2689,9 +2698,9 @@ class core_Users extends core_Manager
             $ids = implode(',', $onlyIds);
             expect(preg_match("/^[0-9\,]+$/", $ids), $ids, $onlyIds);
             
-            $query->where("#id IN (${ids})");
+            $query->where("#id IN ({$ids})");
         } elseif (ctype_digit("{$onlyIds}")) {
-            $query->where("#id = ${onlyIds}");
+            $query->where("#id = {$onlyIds}");
         }
         
         if (!empty($params['rolesArr'])) {

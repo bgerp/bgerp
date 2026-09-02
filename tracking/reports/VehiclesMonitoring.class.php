@@ -77,7 +77,7 @@ class tracking_reports_VehiclesMonitoring extends frame2_driver_TableData
      */
     public function addFields(core_Fieldset &$fieldset)
     {
-        $fieldset->FLD('vehicle', 'keylist(mvc=tracking_Vehicles,select=number,)', 'caption=Превозно средство,after=title');
+        $fieldset->FLD('vehicle', 'keylist(mvc=tracking_Vehicles,select=number,)', 'caption=Превозно средство,placeholderType=all,after=title');
         $fieldset->FLD('from', 'date', 'caption=От,after=compare,single=none,mandatory');
         $fieldset->FLD('to', 'date', 'caption=До,after=from,single=none,mandatory');
     }
@@ -140,7 +140,7 @@ class tracking_reports_VehiclesMonitoring extends frame2_driver_TableData
         $query-> orderBy('fixTime');
         
         
-        if ($rec->vehicle) {
+        if (!empty($rec->vehicle)) {
             $vehicleArr = keylist::toArray($rec->vehicle);
             
             $query->in('vehicleId', $vehicleArr);
@@ -157,10 +157,13 @@ class tracking_reports_VehiclesMonitoring extends frame2_driver_TableData
             $parseData['latitude'] = tracking_Log::DMSToDD($parseData['latitude']);
             $parseData['longitude'] = tracking_Log::DMSToDD($parseData['longitude']);
             $vehicleData = tracking_Vehicles::fetch($point->vehicleId);
+            if (!$vehicleData) {
+                continue;
+            }
             $time = dt::mysql2verbal($point->fixTime, $mask = 'd.m.y H:i:s');
             
             
-            $coords[$point->vehicleId][] = array($parseData['latitude'],$parseData['longitude'],'info' => "{$vehicleData->number} » ${time}");
+            $coords[$point->vehicleId][] = array($parseData['latitude'],$parseData['longitude'],'info' => "{$vehicleData->number} » {$time}");
             
             $values[$point->vehicleId] = array(
                 'coords' => $coords[$point->vehicleId],
@@ -176,7 +179,7 @@ class tracking_reports_VehiclesMonitoring extends frame2_driver_TableData
                 'speed' => $parseData['speed'],
                 'heading' => $parseData['heading'],
                 'time' => $point->fixTime,
-                'personId' => $vehicleData->personId,
+                'personId' => $vehicleData->personId ?? null,
                 'trackerId' => $vehicleData->trackerId,
                 'createdOn' => $point->createdOn,
             

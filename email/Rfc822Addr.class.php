@@ -821,7 +821,7 @@ class email_Rfc822Addr
                 
                 return(0);
             }
-            $local_part = trim($local_part);
+            $local_part = trim((string) $local_part);
         }
         
         if ($a >= $l
@@ -1098,7 +1098,7 @@ class email_Rfc822Addr
                 
                 return(1);
             }
-            $addresses[] = $address;
+            $addresses[] = $address + array('address' => '', 'name' => '');
         }
         $mailbox_group = $addresses;
         $p = $g;
@@ -1268,7 +1268,8 @@ class email_Rfc822Addr
             
             return($this->SetPositionedError('it was not specified a valid address', $p));
         }
-        $addresses[] = $address;
+        // Групите и адресатите само с име нямат ключ 'address'
+        $addresses[] = $address + array('address' => '', 'name' => '');
         
         while ($p < $l) {
             if (strcmp($v[$p], ',')
@@ -1287,7 +1288,7 @@ class email_Rfc822Addr
                 
                 return($this->SetPositionedError('it was not specified a valid address after comma', $p));
             }
-            $addresses[] = $address;
+            $addresses[] = $address + array('address' => '', 'name' => '');
         }
         
         return(1);

@@ -39,6 +39,9 @@
         .priceListHolder {
             column-count: 2;
         }
+        .currencySignNextToAmount {
+            color: #888 !important;
+        }
         @media handheld, only screen and (max-width: 800px) {
             .priceListHolder {
                 column-count: 1;
@@ -53,14 +56,12 @@
             <div>|Политика|*</span>: <b>[#policyId#]</b></div>
             <!--ET_BEGIN variationId--><div>|Вариация|*</span>: <b>[#variationId#]</b></div><!--ET_END variationId-->
             <div>|Цени към|*</span>: <b>[#date#]</b></div>
-            <!--ET_BEGIN period--><div>|Изменени за|*: [#period#] (|от|* [#periodDate#])</div><!--ET_END period-->
             <div>|Групи|*: [#productGroups#]</div>
             <!--ET_BEGIN notInGroups--><div>|С изключение на|*: [#notInGroups#]</div><!--ET_END notInGroups-->
-            <div>|Опаковки|*: [#packagings#]</div>
         </div>
     </fieldset>
     <!--ET_END MASTER_BLOCK-->
-    <h2 style="padding: 10px 5px; background: #fff; margin-top: 5px;line-height: 120%; box-shadow: 0 2px 5px rgba(0,0,0,0.3); text-align: center">Меню за [#currentDate#]</h2>
+    <h2 style="padding: 10px 5px; background: #fff; margin-top: 5px;line-height: 120%; box-shadow: 0 2px 5px rgba(0,0,0,0.3); text-align: center">|Меню за|* [#currentDate#]</h2>
     <div class=' [#templateCssClass#]'>
     <!--ET_BEGIN DETAIL_BLOCK-->
     <div class="elementHolder priceListHolder [#templateCssClass#]">

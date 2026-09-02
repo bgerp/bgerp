@@ -220,13 +220,13 @@ class bglocal_Address extends core_MVC
      */
     public static function canonizePlace($place)
     {
-        $place = trim($place);
+        $place = trim($place ?? '');
         
         $placeL = strtolower(STR::utf2ascii($place));
         $placeL = trim(preg_replace('/[^a-zа-я]+/u', ' ', $placeL));
         $placeL = str_replace('gr ', '', $placeL);
         
-        return self::$places[$placeL] ? self::$places[$placeL] : $place;
+        return !empty(self::$places[$placeL]) ? self::$places[$placeL] : $place;
     }
     
     
@@ -284,13 +284,13 @@ class bglocal_Address extends core_MVC
             
             if (countR($res)) {
                 foreach ($res as $key => $lines) {
-                    $html .= "<li> ${key} </li>";
+                    $html .= "<li> {$key} </li>";
                     $html .= '<ol>';
                     
                     arsort($lines);
                     
                     foreach ($lines as $l => $v) {
-                        $html .= "<li> ${l} </li>";
+                        $html .= "<li> {$l} </li>";
                     }
                     
                     $html .= '</ol>';
@@ -391,7 +391,7 @@ class bglocal_Address extends core_MVC
         if (countR($res['tel'])) {
             foreach ($res['tel'] as $l => $cnt) {
                 preg_match("/\b(t|p|phon|fon|tel|telefon|telephon|direct|switch)[^0-9\(\+]{0,3}([\d\- \(\)\.\+\/]{0,28}[\d|\)])/", strtolower(str::utf2ascii($l)), $m);
-                $tel = trim($m[2]);
+                $tel = trim($m[2] ?? '');
                 $res['tel'][$tel] = $res['tel'][$l];
                 
                 if ($l != $tel) {
@@ -403,7 +403,7 @@ class bglocal_Address extends core_MVC
         if (countR($res['fax'])) {
             foreach ($res['fax'] as $l => $cnt) {
                 preg_match("/\b(f|telefax|fax)[^0-9\(\+]{0,3}([\d\- \(\)\.\+\/]{8,28}[\d|\)])/", strtolower(str::utf2ascii($l)), $m);
-                $fax = trim($m[2]);
+                $fax = trim($m[2] ?? '');
                 $res['fax'][$fax] = $res['fax'][$l];
                 
                 if ($l != $fax) {
@@ -437,7 +437,7 @@ class bglocal_Address extends core_MVC
             $givenNames = getFileContent('bglocal/data/givenNames.txt');
         }
         
-        if (strpos(trim($line), '>') === 0) {
+        if (strpos(trim($line ?? ''), '>') === 0) {
             
             return;
         }
@@ -467,7 +467,7 @@ class bglocal_Address extends core_MVC
             $cnt = 0;
             
             foreach ($words as $w) {
-                if (strpos($companyTypes, "|${w}|") !== false) {
+                if (strpos($companyTypes, "|{$w}|") !== false) {
                     $cnt++;
                 }
                 
@@ -512,7 +512,7 @@ class bglocal_Address extends core_MVC
                 $cnt = 0;
                 
                 foreach ($words as $w) {
-                    if (strpos($givenNames, "|${w}|") !== false) {
+                    if (strpos($givenNames, "|{$w}|") !== false) {
                         $cnt++;
                     }
                 }
@@ -563,7 +563,7 @@ class bglocal_Address extends core_MVC
             $cnt = 0;
             
             foreach ($words as $w) {
-                if (strpos($companyWords, "|${w}|") !== false) {
+                if (strpos($companyWords, "|{$w}|") !== false) {
                     $cnt++;
                 }
             }

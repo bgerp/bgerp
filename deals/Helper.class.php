@@ -60,8 +60,8 @@ abstract class deals_Helper
         $precision = max(2, $minDigits - $p);
         
         // Изчисляваме закръглената цена
-        $price = round($price, $precision);
-        
+        $price = round((float) $price, $precision);
+
         return $price;
     }
     
@@ -134,7 +134,7 @@ abstract class deals_Helper
             }
 
             // Калкулира се цената с и без ддс и се показва една от тях взависимост трябвали да се показва ддс-то
-            $price = self::calcPrice($rec->{$map['priceFld']}, $vat, $masterRec->{$map['rateFld']});
+            $price = self::calcPrice($rec->{$map['priceFld']} ?? null, $vat, $masterRec->{$map['rateFld']});
             $rec->{$map['priceFld']} = ($hasVat) ? $price->withVat : $price->noVat;
             $noVatAmount = round($price->noVat * $rec->{$map['quantityFld']}, $vatDecimals);
             $discountVal = $rec->{$map['discount']};
@@ -167,7 +167,7 @@ abstract class deals_Helper
             }
             
             if ($discountVal) {
-                if (!(($masterRec->type ?? null) === 'dc_note' && $rec->changedQuantity !== true && $rec->changedPrice !== true)) {
+                if (!(($masterRec->type ?? null) === 'dc_note' && ($rec->changedQuantity ?? null) !== true && ($rec->changedPrice ?? null) !== true)) {
                     $discount += $rec->{$map['amountFld']} * $discountVal;
                 }
             }
@@ -178,7 +178,7 @@ abstract class deals_Helper
 
             // Ако документа е кредитно/дебитно известие сабираме само редовете с промяна
             if (($masterRec->type ?? null) === 'dc_note') {
-                if ($rec->changedQuantity === true || $rec->changedPrice === true) {
+                if (($rec->changedQuantity ?? null) === true || ($rec->changedPrice ?? null) === true) {
                     $amountRow += $rec->{$map['amountFld']};
                     $amount += $noVatAmount;
                     $amountVat += $vatRow;
@@ -213,7 +213,7 @@ abstract class deals_Helper
                 }
             }
 
-            if (!(($masterRec->type ?? null) === 'dc_note' && ($rec->changedQuantity !== true && $rec->changedPrice !== true))) {
+            if (!(($masterRec->type ?? null) === 'dc_note' && (($rec->changedQuantity ?? null) !== true && ($rec->changedPrice ?? null) !== true))) {
                 if (!array_key_exists($vat, $vats)) {
                     $vats[$vat] = (object) array('amount' => 0, 'sum' => 0);
                 }
@@ -613,7 +613,7 @@ abstract class deals_Helper
         
         $quantityInPack = ($quantityInPack == 1) ? '' : core_Type::getByName('double(smartRound)')->toVerbal($quantityInPack) . ' ';
         if ($hint === true) {
-            $quantityInPack = ht::createHint($quantityInPack, 'Има отклонение спрямо очакваното', 'warning', true, 'width=12px,height=12px');
+            $quantityInPack = ht::createHint($quantityInPack, 'Има отклонение спрямо очакваното', 'warning', true, array('iconAttr' => 'width=12px,height=12px'));
         }
         
         $tpl = new core_ET("<span class='nowrap'>&nbsp;<small class='quiet'>[#quantityInPack#] [#shortUomName#]</small></span>");
@@ -748,6 +748,7 @@ abstract class deals_Helper
                     if (is_array($arr)) {
                         foreach ($arr as $p) {
                             $index = $p->productId;
+                            $discount = $p->discount ?? null;
                             
                             if (!empty($p->notes)) {
                                 $index .= '|' . serialize($p->notes) . '|';
@@ -777,8 +778,8 @@ abstract class deals_Helper
                             }
                             
                             $d = &$combined[$index];
-                            if ($p->discount != 1) {
-                                $d->discount = max($d->discount, $p->discount);
+                            if ($discount != 1) {
+                                $d->discount = max($d->discount, $discount);
                             }
                             
                             if (isset($p->fee) && $p->fee > 0) {
@@ -795,12 +796,12 @@ abstract class deals_Helper
 
                             $sign = ($parameter == 'arrays') ? 1 : -1;
                             $d->quantity += $sign * $p->quantity;
-                            $d->sumAmounts += $sign * ($p->quantity * $p->price * (1 - $p->discount));
+                            $d->sumAmounts += $sign * ($p->quantity * $p->price * (1 - $discount));
 
                             if(is_array($p->batches ?? null)){
                                 foreach ($p->batches as $batch => $batchQuantity){
                                     $d->batches[$batch] = ($d->batches[$batch] ?? 0) + $sign * $batchQuantity;
-                                    $d->batchesSums[$batch] = ($d->batchesSums[$batch] ?? 0) + $sign * ($batchQuantity * $p->price * (1 - $p->discount));
+                                    $d->batchesSums[$batch] = ($d->batchesSums[$batch] ?? 0) + $sign * ($batchQuantity * $p->price * (1 - $discount));
                                 }
                             }
 
@@ -882,7 +883,7 @@ abstract class deals_Helper
         if($mvc->manifactureProductsOnShipment ?? null) {
             $lastInstantBom = cat_Products::getLastActiveBom($productId, 'instant');
             if(is_object($lastInstantBom)) {
-                $html = ht::createHint($html, "Артикулът е с моментна рецепта и ще бъде произведен при изписване от склада|*!", 'img/16/cog.png', false, null, "class=doc-positive-quantity");
+                $html = ht::createHint($html, "Артикулът е с моментна рецепта и ще бъде произведен при изписване от склада|*!", 'img/16/cog.png', false, array(), "class=doc-positive-quantity");
                 return;
             }
         }
@@ -935,6 +936,7 @@ abstract class deals_Helper
         $futureQuantity = $stRec->quantity - $quantity;
         $measureName = cat_UoM::getShortName(cat_Products::fetchField($productId, 'measureId'));
         $inStockVerbal = $Double->toVerbal($stRec->quantity);
+        $inStockStyled = ht::styleNumber($inStockVerbal, $stRec->quantity);
         $class = 'doc-warning-quantity';
         $showNegativeWarning = $makeLink = true;
 
@@ -949,13 +951,13 @@ abstract class deals_Helper
                 if($showNegativeWarning){
                     if(isset($date) && $date != dt::today()){
                         $minDateVerbal = dt::mysql2verbal($minQuantityDate, 'd.m.Y');
-                        $freeQuantityMinVerbal = core_Type::getByName('double(smartRound)')->toVerbal($freeQuantityMin);
+                        $freeQuantityMinVerbal = ht::styleNumber(core_Type::getByName('double(smartRound)')->toVerbal($freeQuantityMin), $freeQuantityMin);
                         $hint = "Разполагаемо минимално налично към|* {$minDateVerbal}: {$freeQuantityMinVerbal} |{$measureName}|*";
                     } else {
                         if($stRec->quantity >= $quantity) {
                             $hint = "Наличността в склада е достатъчна за изпълнение / контиране на документа, но разполагаемата наличност е недостатъчна за изпълнението на всички чакащи документи!";
                         } else {
-                            $hint = "Недостатъчна наличност|*(1): {$inStockVerbal} |{$measureName}|*! |Контирането на документа ще доведе до отрицателна наличност|* |{$showStoreInMsg}|*!";
+                            $hint = "Недостатъчна наличност|*(1): {$inStockStyled} |{$measureName}|*!<br>|Контирането на документа ще доведе до отрицателна наличност|* |{$showStoreInMsg}|*!";
                         }
                     }
                 }
@@ -967,28 +969,27 @@ abstract class deals_Helper
         if(!$firstCheck){
             if ($futureQuantity < 0 && $freeQuantity < 0) {
                 if($showNegativeWarning){
-                    $hint = "Недостатъчна наличност|*(2): {$inStockVerbal} |{$measureName}|*! |Контирането на документа ще доведе до отрицателна наличност|* |{$showStoreInMsg}|*!";
+                    $hint = "Недостатъчна наличност|*(2): {$inStockStyled} |{$measureName}|*!<br>|Контирането на документа ще доведе до отрицателна наличност|* |{$showStoreInMsg}|*!";
                     if(haveRole('debug')) {
-                        $hint .= " (debug) количество: {$quantity}, бъдещо: {$futureQuantity}, разполагаемо {$freeQuantity} (текущо разп. {$freeQuantityOriginal}), налично {$stRec->quantity}";
+                        $hint .= "<br>(debug) количество: {$quantity}, бъдещо: {$futureQuantity}, разполагаемо {$freeQuantity} (текущо разп. {$freeQuantityOriginal}), налично {$stRec->quantity}";
                     }
                     $class = 'doc-negative-quantity';
                     $makeLink = false;
                 }
             } elseif ($futureQuantity < 0 && $freeQuantity >= 0) {
                 if($showNegativeWarning) {
-                    $freeQuantityOriginalVerbal = $Double->toVerbal($freeQuantityOriginal);
-                    $hint = "Недостатъчна наличност|*: {$inStockVerbal} |{$measureName}|*! |Контирането на документа ще доведе до отрицателна наличност|* |{$showStoreInMsg}|*! |Очаква се доставка - разполагаема наличност|*: {$freeQuantityOriginalVerbal} |{$measureName}|*";
+                    $freeQuantityOriginalVerbal = ht::styleNumber($Double->toVerbal($freeQuantityOriginal), $freeQuantityOriginal);
+                    $hint = "Недостатъчна наличност|*: {$inStockStyled} |{$measureName}|*!<br>|Контирането на документа ще доведе до отрицателна наличност|* |{$showStoreInMsg}|*!<br>|Очаква се доставка - разполагаема наличност|*: {$freeQuantityOriginalVerbal} |{$measureName}|*";
                 }
             } elseif ($futureQuantity >= 0 && $freeQuantity < 0) {
                 if($showNegativeWarning) {
-                    $freeQuantityOriginalVerbal = $Double->toVerbal($freeQuantityOriginal);
-                    $hint = "Разполагаема наличност|*: {$freeQuantityOriginalVerbal} |{$measureName}|* |Наличното количество|*: {$inStockVerbal} |{$measureName}|* |е резервирано|*.";
+                    $freeQuantityOriginalVerbal = ht::styleNumber($Double->toVerbal($freeQuantityOriginal), $freeQuantityOriginal);
+                    $hint = "Разполагаема наличност|*: {$freeQuantityOriginalVerbal} |{$measureName}|*<br>|Наличното количество|*: {$inStockStyled} |{$measureName}|* |е резервирано|*.";
                 }
             }
         }
         
         if (!empty($hint)) {
-            $html = ht::createHint($html, $hint, 'warning', false, null, "class={$class}");
 
             //  Показване на хоризонта при нужда
             $url = array('store_Products', 'list', 'storeId' => $storeId, 'productId' => $productId);
@@ -997,15 +998,21 @@ abstract class deals_Helper
                 $url['horizon'] = $diff;
             }
 
-            // Линк към наличното в склада ако има права
+            // Съобщението се превежда тук, за да остане линкът след него непокътнат
+            $hint = new core_ET(tr($hint));
+
+            // Линкът към наличностите е в самия хинт
             if ($makeLink === true && store_Stores::haveRightFor('select', $storeId) && store_Products::haveRightFor('list') && !Mode::isReadOnly()) {
-                $html = ht::createLinkRef($html, $url);
+                $link = ht::createLink(tr('Наличности в склада'), $url, false, 'ef_icon=img/16/package.png');
+                $hint->append('<br>' . $link->getContent());
             }
+
+            $html = ht::createHint($html, $hint, 'warning', false, array('isHtml' => true), "class={$class}");
         }
 
         if($pRec->isPublic == 'no') {
             if($futureQuantity > 0) {
-                $html = ht::createHint($html, "Наличността в склада е по-голяма|*: {$inStockVerbal} {$measureName}", 'notice', false, null, "class=doc-positive-quantity");
+                $html = ht::createHint($html, "Наличността в склада е по-голяма|*: {$inStockVerbal} {$measureName}", 'notice', false, array(), "class=doc-positive-quantity");
             }
         }
     }
@@ -1251,19 +1258,27 @@ abstract class deals_Helper
     public static function getContragentDataCompareString($cData1, $cData2)
     {
         $warningMsgArr = array();
-        $cName1 = ($cData1->personVerb) ? $cData1->personVerb : $cData1->companyVerb;
-        $cName2 = ($cData2->personVerb) ? $cData2->personVerb : $cData2->companyVerb;
+        $personVerb1 = $cData1->personVerb ?? null;
+        $personVerb2 = $cData2->personVerb ?? null;
+        $vatNo1 = $cData1->vatNo ?? null;
+        $vatNo2 = $cData2->vatNo ?? null;
+        $eori1 = $cData1->eori ?? null;
+        $eori2 = $cData2->eori ?? null;
+        $uicId1 = $cData1->uicId ?? null;
+        $uicId2 = $cData2->uicId ?? null;
+        $cName1 = $personVerb1 ?: ($cData1->companyVerb ?? null);
+        $cName2 = $personVerb2 ?: ($cData2->companyVerb ?? null);
         if ($cName1 != $cName2) {
             $warningMsgArr[] = tr('Име') . (!empty($cName2) ? " [{$cName2}]" : "");
         }
-        if ($cData1->vatNo != $cData2->vatNo) {
-            $warningMsgArr[] = tr('ДДС№') . (!empty($cData2->vatNo) ? " [{$cData2->vatNo}]" : "");
+        if ($vatNo1 != $vatNo2) {
+            $warningMsgArr[] = tr('ДДС№') . (!empty($vatNo2) ? " [{$vatNo2}]" : "");
         }
-        if ($cData1->eori != $cData2->eori) {
-            $warningMsgArr[] = tr('ЕОРИ') . " [{$cData2->eori}]";
+        if ($eori1 != $eori2) {
+            $warningMsgArr[] = tr('ЕОРИ') . " [{$eori2}]";
         }
-        if ($cData1->uicId != $cData2->uicId) {
-            $warningMsgArr[] = ($cData1->personVerb) ? tr('ЕГН') : (tr('Нац. №') . (!empty($cData2->uicId) ? " [{$cData2->uicId}]" : ''));
+        if ($uicId1 != $uicId2) {
+            $warningMsgArr[] = $personVerb1 ? tr('ЕГН') : (tr('Нац. №') . (!empty($uicId2) ? " [{$uicId2}]" : ''));
         }
 
         return $warningMsgArr;
@@ -1567,7 +1582,8 @@ abstract class deals_Helper
                 //$rec->displayRate = $newRate;
                 if ($rec->dpOperation == 'accrued' || isset($rec->changeAmount)) {
                     // Изчисляване на стойността на ддс-то
-                    $vat = acc_Periods::fetchByDate()->vatRate;
+                    $periodRec = acc_Periods::fetchByDate();
+                    $vat = $periodRec->vatRate ?? null;
                     if(isset($rec->dpVatGroupId)){
                         $vat = acc_VatGroups::fetchField($rec->dpVatGroupId, 'vat');
                     }
@@ -1644,7 +1660,7 @@ abstract class deals_Helper
     /**
      * Помощна ф-я за намиране на транспортното тегло/обем
      */
-    private static function getMeasureRow($productId, $packagingId, $quantity, $type, &$value = null, $masterState)
+    private static function getMeasureRow($productId, $packagingId, $quantity, $type, &$value, $masterState)
     {
         expect(in_array($type, array('volume', 'weight', 'netWeight', 'tareWeight')));
         $hint = $warning = false;
@@ -1694,7 +1710,7 @@ abstract class deals_Helper
         $valueRow = core_Type::getByName($valueType)->toVerbal($value);
         if(!Mode::isReadOnly() && $hint === true) {
             $hintType = ($type == 'weight') ? 'Транспортното тегло e прогнозно' : (($type == 'volume') ? 'Транспортният обем е прогнозен' : (($type == 'netWeight') ? 'Нето теглото е прогнозно' : 'Тарата е прогнозна'));
-            $valueRow = "<span style='color:blue'>{$valueRow}</span>";
+            $valueRow = "<span class='blueText'>{$valueRow}</span>";
             $valueRow = ht::createHint($valueRow, "{$hintType} на база количеството", 'notice', false);
         }
 
@@ -1750,7 +1766,7 @@ abstract class deals_Helper
             $bestArr = trans_TransportUnits::getBestUnit($productId, $quantity, $packagingId);
             if(isset($bestArr)){
                 $row = trans_TransportUnits::display($bestArr['unitId'], $bestArr['quantity']);
-                $row = "<span style='color:blue'>{$row}</span>";
+                $row = "<span class='blueText'>{$row}</span>";
 
                 return ht::createHint($row, 'Логистичните единици са изчислени динамично', 'notice', false);
 
@@ -2960,7 +2976,7 @@ abstract class deals_Helper
                 $hint = "За съставител ще се запише потребителя, контирал документа!";
             } else {
                 $hint = "Ще бъде записан след активиране";
-                $issuerName = "<span style='color:blue'>{$issuerName}</span>";
+                $issuerName = "<span class='blueText'>{$issuerName}</span>";
             }
 
             $issuerName = ht::createHint($issuerName, $hint);
@@ -3162,7 +3178,7 @@ abstract class deals_Helper
      *
      * @return stdClass|null
      */
-    public static function checkPriceWithContragentPrice($productId, $price, $discount, $quantity, $quantityInPack, $contragentClassId, $contragentId, $valior, $listId = null, $useQuotationPrice = true, $mvc, $threadId, $rate, $currencyId, $transportFeeRec = null)
+    public static function checkPriceWithContragentPrice($productId, $price, $discount, $quantity, $quantityInPack, $contragentClassId, $contragentId, $valior, $listId, $useQuotationPrice, $mvc, $threadId, $rate, $currencyId, $transportFeeRec = null)
     {
         static $useBomVal;
         $price = $price * (1 - $discount);
@@ -3519,7 +3535,8 @@ abstract class deals_Helper
                     $term = $productDeliveryTime;
 
                     // Ако има изчислена доставка и за нея има срок на доставка добавя се
-                    if ($deliveryTime = sales_TransportValues::get($masterMvc, $dRec->{$Detail->masterKey}, $dRec->id)->deliveryTime) {
+                    $transportValues = sales_TransportValues::get($masterMvc, $dRec->{$Detail->masterKey}, $dRec->id);
+                    if ($deliveryTime = ($transportValues->deliveryTime ?? null)) {
                         $term += $deliveryTime;
                     } elseif($defaultDeliveryTime){
 
@@ -3766,10 +3783,12 @@ abstract class deals_Helper
      * @param int $countryId      - за коя държава
      * @param string $divider     - разделител
      * @param string $alwaysDecorate - дали винаги да се декорира
+     * @param bool $hidden        - дали цената е заличена от doc_plg_HidePrices - тогава не смятаме и не показваме втора валута
      * @return mixed|string
      */
-    public static function displayDualAmount($amountRow, $amount, $date, $currencyId, $countryId, $divider = "<br />", $alwaysDecorate = false)
+    public static function displayDualAmount($amountRow, $amount, $date, $currencyId, $countryId, $divider = "<br />", $alwaysDecorate = false, $hidden = false)
     {
+        if($hidden) return $amountRow;
         if(!in_array($currencyId, array('BGN', 'EUR')))  return $amountRow;
         $date = isset($date) ? dt::verbal2mysql($date, false) : dt::today();
 
@@ -3832,7 +3851,7 @@ abstract class deals_Helper
         if($baseCurrencyCode == $valiorCurrencyCode) return $amount;
 
         // Ако сумата е 0, не се променя за да не стане гадно число
-        if(round($amount, 5) == 0) return $amount;
+        if(round((float) $amount, 5) == 0) return $amount;
 
         // Ако от левове ще става евро да се смята по централния курс
         if($baseCurrencyCode == 'EUR' && $valiorCurrencyCode == 'BGN') {

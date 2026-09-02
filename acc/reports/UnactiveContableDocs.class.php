@@ -58,9 +58,9 @@ class acc_reports_UnactiveContableDocs extends frame2_driver_TableData
         $fieldset->FLD('from', 'date(smartTime)', 'caption=От,after=title,single=none,mandatory');
         $fieldset->FLD('to', 'date(smartTime)', 'caption=До,after=from,single=none,mandatory');
         $fieldset->FLD('selectedOff', 'set(FALSE=)', 'caption=Изключи избраните,after=documentType');
-        $fieldset->FLD('documentType', 'keylist(mvc=core_Classes,select=title,allowEmpty)', 'caption=Документи,placeholder=Всички,single=none,after=to');
-        $fieldset->FLD('states', 'keylist(mvc=doc_Containers,allowEmpty)', 'caption=Състояние,placeholder=Всички,after=selectedOff,single=none');
-        $fieldset->FLD('dealerId', 'userList(rolesForAll=sales|ceo,allowEmpty,roles=ceo|sales)', 'caption=Търговец,after=states,single=none');
+        $fieldset->FLD('documentType', 'keylist(mvc=core_Classes,select=title,allowEmpty)', 'caption=Документи,placeholderType=all,single=none,after=to');
+        $fieldset->FLD('states', 'keylist(mvc=doc_Containers,allowEmpty)', 'caption=Състояние,placeholderType=all,after=selectedOff,single=none');
+        $fieldset->FLD('dealerId', 'userList(rolesForAll=sales|ceo,allowEmpty,roles=ceo|sales)', 'caption=Търговец,placeholderType=all,after=states,single=none');
     }
     
     
@@ -109,6 +109,12 @@ class acc_reports_UnactiveContableDocs extends frame2_driver_TableData
     {
         $recs = array();
         $counter = array();
+        $rec->from = $rec->from ?? date('Y-m-01');
+        $rec->to = $rec->to ?? dt::today();
+        $rec->states = $rec->states ?? null;
+        $rec->documentType = $rec->documentType ?? null;
+        $rec->selectedOff = $rec->selectedOff ?? null;
+        $rec->dealerId = $rec->dealerId ?? null;
         
         $contoClasses = core_Classes::getOptionsByInterface('acc_TransactionSourceIntf');
         
@@ -148,44 +154,55 @@ class acc_reports_UnactiveContableDocs extends frame2_driver_TableData
         
         while ($document = $query->fetch()) {
             $Document = doc_Containers::getDocument($document->id);
-            
-            $className = $Document->className;
-            $contDoc = $className::fetch($Document->that);
-            
-            $documentType = $className . '|' . $contDoc->state;
-            
-            $handle = $className::getHandle($Document->that);
-            
-            if ($contDoc->valior < $rec->from || $contDoc->valior > $rec->to) {
+            if (!$Document) {
                 continue;
             }
             
-            $counterKey = $className . $contDoc->state;
+            $className = $Document->className;
+            $contDoc = $className::fetch($Document->that);
+            if (!$contDoc) {
+                continue;
+            }
+
+            $state = $contDoc->state ?? $document->state ?? null;
+            $valior = $contDoc->valior ?? null;
+            if (!$state || !$valior) {
+                continue;
+            }
             
-            $counter[$counterKey] ++;
+            $documentType = $className . '|' . $state;
             
-            if (! array_key_exists($Document->that, $recs)) {
-                $recs[$Document->that] = (object) array(
+            $handle = $className::getHandle($Document->that);
+            
+            if ($valior < $rec->from || $valior > $rec->to) {
+                continue;
+            }
+            
+            $counterKey = $documentType;
+            
+            $counter[$counterKey] = ($counter[$counterKey] ?? 0) + 1;
+            
+            if (! array_key_exists($document->id, $recs)) {
+                $recs[$document->id] = (object) array(
                     
                     'documentType' => $documentType,
                     'counter' => '',
                     'documentFolder' => $document->folderId,
                     'containerId' => $document->id,
                     'documentId' => $Document->that,
-                    'valior' => $contDoc->valior,
+                    'valior' => $valior,
                     'dealerId' => $document->createdBy,
                     'handle' => $handle,
-                    'states' => $contDoc->state
+                    'states' => $state
                 );
             }
-            
-            $documentsArr[] = $contDoc;
         }
         
         if (countR($recs)) {
             arr::sortObjects($recs, 'documentType', 'asc', 'stri');
         }
         
+        $temp = array();
         foreach ($recs as $v) {
             $v->counter = $counter;
             $temp[] = $v;
@@ -210,7 +227,7 @@ class acc_reports_UnactiveContableDocs extends frame2_driver_TableData
             $fld->FLD('valior', 'date', 'caption=Дата,smartCenter');
             $fld->FLD('handle', 'varchar', 'caption=Документ,smartCenter');
             $fld->FLD('documentFolder', 'varchar', 'caption=Папка,smartCenter');
-            if (countR(type_Keylist::toArray($rec->dealerId)) > 1 || ! $rec->dealerId) {
+            if (countR(type_Keylist::toArray($rec->dealerId ?? null)) > 1 || empty($rec->dealerId)) {
                 $fld->FLD('dealerId', 'varchar', 'caption=Търговец,smartCenter');
             }
         }
@@ -236,20 +253,28 @@ class acc_reports_UnactiveContableDocs extends frame2_driver_TableData
         $Date = cls::get('type_Date');
         
         $row = new stdClass();
+        $thisCounter = 0;
         
         $Document = doc_Containers::getDocument($dRec->containerId);
+        if (!$Document) {
+            return $row;
+        }
         
-        list($className, $other) = explode('|', $dRec->documentType);
+        $documentTypeParts = explode('|', $dRec->documentType ?? '', 2);
+        if (count($documentTypeParts) != 2) {
+            return $row;
+        }
+        list($className, $other) = $documentTypeParts;
         
-        if (is_array($dRec->counter)) {
+        if (is_array($dRec->counter ?? null)) {
             foreach ($dRec->counter as $k => $v) {
-                if ($k == $className . $other) {
+                if ($k == $className . '|' . $other) {
                     $thisCounter = $v;
                 }
             }
         }
         
-        $typeOfDocument = $Document->title . '  »  ' . cls::get($className)->getFieldType('state')->toVerbal($other) . " ${thisCounter} " . 'бр.';
+        $typeOfDocument = $Document->title . '  »  ' . cls::get($className)->getFieldType('state')->toVerbal($other) . " {$thisCounter} " . 'бр.';
         
         $handle = $className::getHandle($dRec->documentId);
         
@@ -257,13 +282,13 @@ class acc_reports_UnactiveContableDocs extends frame2_driver_TableData
         
         $singleUrl = $Document->getUrlWithAccess($Document->getInstance(), $Document->that);
         
-        $row->documentType .= "<span class= 'large' >" . "{$typeOfDocument}" .'</span>';
+        $row->documentType = ($row->documentType ?? '') . "<span class= 'large' >" . "{$typeOfDocument}" .'</span>';
         
         $row->valior = $Date->toVerbal($dRec->valior);
         
         $row->states = '<span class= normal >' . cls::get($className)->getFieldType('state')->toVerbal($dRec->states) . '</span>';
         
-        $row->handle = "<span class= 'state-{$state} document-handler' >" . ht::createLink("#{$handle} </span>", $singleUrl, false, "ef_icon={$Document->singleIcon}") . '</span>';
+        $row->handle = "<span class= 'state-{$state} document-handler' >" . ht::createLink("#{$handle} </span>", $singleUrl, false, "ef_icon={$Document->getSingleIcon()}") . '</span>';
         
         $row->documentFolder = doc_Folders::getHyperlink($dRec->documentFolder);
         
@@ -284,6 +309,7 @@ class acc_reports_UnactiveContableDocs extends frame2_driver_TableData
     protected static function on_AfterRenderSingle(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$tpl, $data)
     {
         $Date = cls::get('type_Date');
+        $statesVerb = $dealersVerb = $dokumentsVerb = '';
         $fieldTpl = new core_ET(tr("|*<!--ET_BEGIN BLOCK-->[#BLOCK#]
 								<fieldset class='detail-info'><legend class='groupTitle'><small><b>|Филтър|*</b></small></legend>
                                     <div class='small'>
@@ -324,7 +350,7 @@ class acc_reports_UnactiveContableDocs extends frame2_driver_TableData
             foreach (type_Keylist::toArray($data->rec->documentType) as $documentsChecked) {
                 $dokumentsVerb .= (core_Classes::getTitleById($documentsChecked) . ', ');
             }
-            if (! $data->rec->selectedOff) {
+            if (empty($data->rec->selectedOff)) {
                 $fieldTpl->append(trim($dokumentsVerb, ',  '), 'documentType');
             } else {
                 $fieldTpl->append('<b>'.'Всички без: '.'</b>'.trim($dokumentsVerb, ',  '), 'documentType');

@@ -37,7 +37,7 @@ class plg_GroupByField extends core_Plugin
         
         $recs = &$data->recs;
         
-        $field = $data->groupByField ?? $mvc->groupByField;
+        $field = $data->groupByField ?? ($mvc->groupByField ?? null);
         
         // Ако не е зададено поле за групиране, не правим нищо
         if (!$field) {
@@ -51,12 +51,19 @@ class plg_GroupByField extends core_Plugin
         
         // Колко е броя на колоните
         $columns = countR($data->listFields);
+        $groupByFieldStyles = $data->groupByFieldStyles ?? '';
         
         $groups = array();
         
         // Изчличаме в масив всички уникални стойностти на полето
         foreach ($recs as $index => $rec1) {
-            $groups[$rec1->{$field}] = $data->rows[$index]->{$field};
+            $row = $data->rows[$index] ?? null;
+            if (!is_object($row)) continue;
+
+            // Полето може да е виртуално и да съществува само във вербалния ред
+            $groupId = $rec1->{$field} ?? ($row->{$field} ?? null);
+            $groupId = isset($groupId) ? $groupId : '';
+            $groups[$groupId] = $row->{$field} ?? $groupId;
         }
         
         $rows = array();
@@ -67,34 +74,34 @@ class plg_GroupByField extends core_Plugin
             $rowAttr = array();
             
             // Създаваме по един ред с името му, разпънат в цялата таблица
-            if (strstr($rowAttr['class'], 'group-by-field-row') === false) {
-                $rowAttr['class'] .= ' group-by-field-row';
-            }
+            $rowAttr['class'] = 'group-by-field-row';
             
             if(array_key_exists($field, $originalFields)){
                 $rows['|' . $groupId] = ht::createElement(
                     
                     'tr',
                     $rowAttr,
-                    new ET("<td style='padding-top:9px;padding-left:5px;{$data->groupByFieldStyles}' colspan='{$columns}'>" . $groupVerbal . '</td>')
+                    new ET("<td style='padding-top:9px;padding-left:5px;{$groupByFieldStyles}' colspan='{$columns}'>" . $groupVerbal . '</td>')
                     
                     );
             }
             
             // За всички записи
             foreach ($recs as $id => $rec) {
+                $row = $data->rows[$id] ?? null;
+                if (!is_object($row)) continue;
+                $recGroupId = $rec->{$field} ?? ($row->{$field} ?? null);
+                $recGroupId = isset($recGroupId) ? $recGroupId : '';
                 
                 // Ако стойността на полето им за групиране е същата като текущото
-                if ($rec->{$field} == $groupId) {
+                if ($recGroupId == $groupId) {
                     
                     // Скриваме това поле от записа, и поставяме реда под групиращото поле
-                    unset($data->rows[$id]->{$field});
-                    if (is_object($data->rows[$id])) {
-                        $rows[$id] = clone $data->rows[$id];
-                        
-                        // Веднъж групирано, премахваме записа от старите записи
-                        unset($data->rows[$id]);
-                    }
+                    unset($row->{$field});
+                    $rows[$id] = clone $row;
+
+                    // Веднъж групирано, премахваме записа от старите записи
+                    unset($data->rows[$id]);
                 }
             }
         }

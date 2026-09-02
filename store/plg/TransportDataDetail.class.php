@@ -109,7 +109,7 @@ class store_plg_TransportDataDetail extends core_Plugin
                 if($rec->tareWeight >= 0){
                     $row->tareWeight = core_Type::getByName('cat_type_Weight')->toVerbal($rec->tareWeight);
                     if(!Mode::isReadOnly()){
-                        $row->tareWeight = "<span style='color:blue'>{$row->tareWeight}</span>";
+                        $row->tareWeight = "<span class='blueText'>{$row->tareWeight}</span>";
                         $row->tareWeight = ht::createHint($row->tareWeight, 'Тарата е сметната на база брутото и нетото', 'notice', false);
                     }
                 }
@@ -239,7 +239,7 @@ class store_plg_TransportDataDetail extends core_Plugin
             }
 
             if(isset($unitId) && isset($uQuantity)){
-                $units[$unitId] += $uQuantity;
+                $units[$unitId] = ($units[$unitId] ?? 0) + $uQuantity;
             }
 
             if ($force === true && empty($rec->transUnitId) && !empty($unitId)) {

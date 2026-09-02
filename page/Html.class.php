@@ -72,7 +72,7 @@ class page_Html extends core_ET
                 font-family: '{$systemFont}';
                 src: url('{$woff2}') format('woff2'),
                     url('{$woff}') format('woff');
-                font-weight: ;
+                font-weight: normal;
                 font-style: normal;
                 font-display: swap;
             }
@@ -168,13 +168,19 @@ class page_Html extends core_ET
         jquery_Jquery::run($tpl, 'editCopiedTextBeforePaste();');
         jquery_Jquery::run($tpl, 'smartCenter();');
         jquery_Jquery::run($tpl, 'showTooltip();');
+        jquery_Jquery::run($tpl, 'hoverTooltip();');
         jquery_Jquery::run($tpl, 'makeTooltipFromTitle();');
 
         $logAjaxDebugUrl = toUrl(array('log_System', 'JsLog'), 'local');
         jquery_Jquery::run($tpl, "setLogDebugUrl('{$logAjaxDebugUrl}');", true);
 
+        // Локално URL - подава се на efae в масива със `subscribed`
         $url = json_encode(toUrl(array('bgerp_A', 'wp'), 'local'));
         $tpl->appendOnce("var wpUrl = {$url};", 'SCRIPTS');
+
+        // Реално URL - за директни AJAX заявки, които не минават през efae
+        $ajaxUrl = json_encode(toUrl(array('bgerp_A', 'wp')));
+        $tpl->appendOnce("var wpAjaxUrl = {$ajaxUrl};", 'SCRIPTS');
         
         return $tpl;
     }
@@ -251,7 +257,8 @@ class page_Html extends core_ET
                     $attr['src'] = $file;
                 } elseif (is_object($file)) {
                     $attr = (array) $file;
-                    if ($fallbackScript = $attr['fallbackScript']) {
+                    if (!empty($attr['fallbackScript'])) {
+                        $fallbackScript = $attr['fallbackScript'];
                         unset($attr['fallbackScript']);
                     }
                 }
@@ -261,7 +268,7 @@ class page_Html extends core_ET
                     $attr['defer'] = 'defer';
                 }
                 $files->invoker->appendOnce("\n" . ht::createElement('script', $attr, ''), 'HEAD', true);
-                if (!empty($fallback)) {
+                if (!empty($fallbackScript)) {
                     $files->invoker->appendOnce($fallbackScript, 'HEAD', true);
                 }
             }
@@ -280,7 +287,8 @@ class page_Html extends core_ET
      */
     public static function getFileForAppend($filePath, $absolute = null)
     {
-        if (preg_match('#^[^/]*//#', $filePath) || $filePath[0] == '/') {
+        $filePath = (string) $filePath;
+        if (preg_match('#^[^/]*//#', $filePath) || (isset($filePath[0]) && $filePath[0] == '/')) {
             
             return $filePath;
         }

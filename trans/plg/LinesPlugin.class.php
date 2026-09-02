@@ -138,7 +138,7 @@ class trans_plg_LinesPlugin extends core_Plugin
         expect($rec = $mvc->fetch($id));
         $mvc->requireRightFor('changeline', $rec);
 
-        $exLineId = $rec->lineId;
+        $exLineId = $rec->{$mvc->lineFieldName} ?? null;
         $form = cls::get('core_Form');
         $form->setAction(getCurrentUrl());
         $form->title = core_Detail::getEditTitle($mvc, $id, 'транспорт', $rec->id);
@@ -153,9 +153,9 @@ class trans_plg_LinesPlugin extends core_Plugin
             $lineDateFields = $mvc->getShipmentDateFields($rec);
             foreach ($lineDateFields as $dateField => $dateObj){
                 $form->FLD($dateField, $dateObj['type'], "caption=Времена->{$dateObj['caption']},forceField");
-                $form->setDefault($dateField, $rec->{$dateField});
+                $form->setDefault($dateField, $rec->{$dateField} ?? null);
                 if(!in_array($rec->state, array('draft', 'pending'))){
-                    if($dateObj['readOnlyIfActive']){
+                    if(!empty($dateObj['readOnlyIfActive'])){
                         $form->setReadOnly($dateField);
                     }
                 }
@@ -187,7 +187,7 @@ class trans_plg_LinesPlugin extends core_Plugin
         }
 
         $form->setDefault('lineFolderId', key($folderOptions));
-        $linesArr = trans_Lines::getSelectableLines($form->rec->lineFolderId);
+        $linesArr = trans_Lines::getSelectableLines($form->rec->lineFolderId ?? null);
         if(isset($rec->{$mvc->lineFieldName}) && !array_key_exists($rec->{$mvc->lineFieldName}, $linesArr)){
             $linesArr[$rec->{$mvc->lineFieldName}] = trans_Lines::getTitleById($rec->{$mvc->lineFieldName}, false);
         }
@@ -249,9 +249,9 @@ class trans_plg_LinesPlugin extends core_Plugin
                         $clone->{$f} = $v;
                     }
                     $lineDateFields = $mvc->getShipmentDateFields($clone);
-                    $deliveryOn = !empty($form->rec->deliveryTime) ? $form->rec->deliveryTime : $lineDateFields['deliveryTime']['placeholder'];
+                    $deliveryOn = !empty($form->rec->deliveryTime) ? $form->rec->deliveryTime : ($lineDateFields['deliveryTime']['placeholder'] ?? null);
 
-                    if($lineRec->start < $deliveryOn) {
+                    if(isset($deliveryOn) && $lineRec->start < $deliveryOn) {
                         $deliveryOn = dt::mysql2verbal($deliveryOn);
                         $form->setWarning('lineId', "Началото на линията е преди очакваната дата на товарене|*: {$deliveryOn}!");
                     }
@@ -268,13 +268,13 @@ class trans_plg_LinesPlugin extends core_Plugin
 
             if (!$form->gotErrors()) {
                 $rec->lineNotes = $formRec->lineNotes;
-                $rec->{$mvc->lineFieldName} = $formRec->lineId;
+                $rec->{$mvc->lineFieldName} = $formRec->lineId ?? null;
                 if(is_array($lineDateFields)){
                     foreach ($lineDateFields as $dateFld => $dateObj){
                         if(!in_array($rec->state, array('draft', 'pending'))) {
-                            if ($dateObj['readOnlyIfActive']) continue;
+                            if (!empty($dateObj['readOnlyIfActive'])) continue;
                         }
-                        $rec->{$dateFld} = $formRec->{$dateFld};
+                        $rec->{$dateFld} = $formRec->{$dateFld} ?? null;
                     }
                 }
 
@@ -305,11 +305,11 @@ class trans_plg_LinesPlugin extends core_Plugin
                 // Нотифициране на всички други потребители, редактирали транспорта преди
                 self::notifyTransportEditors($mvc, $rec);
 
-                if (!$rec->lineId) {
+                if (empty($rec->{$mvc->lineFieldName})) {
                     trans_LineDetails::delete("#containerId = {$rec->containerId}");
                 }
 
-                if ($exLineId && $exLineId != $rec->lineId) {
+                if ($exLineId && $exLineId != ($rec->{$mvc->lineFieldName} ?? null)) {
                     $mvc->updateLines[$exLineId] = $exLineId;
                 }
 
@@ -354,8 +354,9 @@ class trans_plg_LinesPlugin extends core_Plugin
 
         // Оставят се само потребителите различни от посочения, които са редактирали транспорта
         unset($editorsArr[$userId]);
-        if(isset($rec->{$mvc->storeFieldName})){
-            $notifyUsers = store_Stores::fetchField($rec->{$mvc->storeFieldName}, 'notifyUsers');
+        $storeFieldName = $mvc->storeFieldName ?? null;
+        if ($storeFieldName && isset($rec->{$storeFieldName})) {
+            $notifyUsers = store_Stores::fetchField($rec->{$storeFieldName}, 'notifyUsers');
             if(!empty($notifyUsers)){
                 $editorsArr += keylist::toArray($notifyUsers);
             }
@@ -498,7 +499,7 @@ class trans_plg_LinesPlugin extends core_Plugin
             } else {
                 $row->{$mvc->totalWeightFieldName} = $mvc->getFieldType($mvc->totalWeightFieldName)->toVerbal($rec->{$mvc->totalWeightFieldName});
                 if($weightIsLive && !Mode::isReadOnly()){
-                    $row->{$mvc->totalWeightFieldName} = "<span style='color:blue'>{$row->{$mvc->totalWeightFieldName}}</span>";
+                    $row->{$mvc->totalWeightFieldName} = "<span class='blueText'>{$row->{$mvc->totalWeightFieldName}}</span>";
                 }
                 if(isset($rec->calcedWeight) && $rec->weightInput){
                     $hintWeight .= "|*. |Сумарно от редовете|*: " . $mvc->getFieldType($mvc->totalWeightFieldName)->toVerbal($rec->calcedWeight);
@@ -521,7 +522,7 @@ class trans_plg_LinesPlugin extends core_Plugin
             } else {
                 $row->{$mvc->totalNetWeightFieldName} = $mvc->getFieldType($mvc->totalNetWeightFieldName)->toVerbal($rec->{$mvc->totalNetWeightFieldName});
                 if($netWeightIsLive && !Mode::isReadOnly()){
-                    $row->{$mvc->totalNetWeightFieldName} = "<span style='color:blue'>{$row->{$mvc->totalNetWeightFieldName}}</span>";
+                    $row->{$mvc->totalNetWeightFieldName} = "<span class='blueText'>{$row->{$mvc->totalNetWeightFieldName}}</span>";
                 }
                 if(isset($rec->calcedNetWeight) && $rec->netWeightInput){
                     $hintNetWeight .= "|*. |Сумарно от редовете|*: " . $mvc->getFieldType($mvc->totalNetWeightFieldName)->toVerbal($rec->calcedNetWeight);
@@ -540,7 +541,7 @@ class trans_plg_LinesPlugin extends core_Plugin
             } else {
                 $row->{$mvc->totalTareWeightFieldName} = $mvc->getFieldType($mvc->totalTareWeightFieldName)->toVerbal($rec->{$mvc->totalTareWeightFieldName});
                 if($tareWeightIsLive && !Mode::isReadOnly()){
-                    $row->{$mvc->totalTareWeightFieldName} = "<span style='color:blue'>{$row->{$mvc->totalTareWeightFieldName}}</span>";
+                    $row->{$mvc->totalTareWeightFieldName} = "<span class='blueText'>{$row->{$mvc->totalTareWeightFieldName}}</span>";
                 }
                 if(isset($rec->calcedTareWeight)&& $rec->tareWeightInput){
                     $hintTareWeight .= "|*. |Сумарно от редовете|*: " . $mvc->getFieldType($mvc->totalTareWeightFieldName)->toVerbal($rec->calcedTareWeight);
@@ -568,7 +569,7 @@ class trans_plg_LinesPlugin extends core_Plugin
             } else {
                 $row->{$mvc->totalVolumeFieldName} = $mvc->getFieldType($mvc->totalVolumeFieldName)->toVerbal($rec->{$mvc->totalVolumeFieldName});
                 if($volumeIsLive && !Mode::isReadOnly()){
-                    $row->{$mvc->totalVolumeFieldName} = "<span style='color:blue'>{$row->{$mvc->totalVolumeFieldName}}</span>";
+                    $row->{$mvc->totalVolumeFieldName} = "<span class='blueText'>{$row->{$mvc->totalVolumeFieldName}}</span>";
                 }
                 $row->{$mvc->totalVolumeFieldName} = ht::createHint($row->{$mvc->totalVolumeFieldName}, $hintVolume, 'noicon', false);
 
@@ -594,7 +595,7 @@ class trans_plg_LinesPlugin extends core_Plugin
                     $row->logisticInfo = trans_Helper::displayTransUnits($units);
                     $row->logisticInfo = ht::createHint($row->logisticInfo, $hint, $hintType, false);
                     if(empty($rec->transUnitsInput) && empty($rec->transUnits) && !Mode::isReadOnly()){
-                        $row->logisticInfo = "<span style='color:blue'>{$row->logisticInfo}</span>";
+                        $row->logisticInfo = "<span class='blueText'>{$row->logisticInfo}</span>";
                     }
                 }
             }
@@ -604,19 +605,19 @@ class trans_plg_LinesPlugin extends core_Plugin
 
             // За дефолтните дати
             foreach ($dateFields as $dateFld => $dateObj){
-                $value = $rec->{$dateFld};
+                $value = $rec->{$dateFld} ?? null;
 
                 if(!empty($dateObj['placeholder']) && empty($rec->{$dateFld})){
                     $row->{$dateFld} = $mvc->getFieldType($dateFld)->toVerbal($dateObj['placeholder']);
                     if(!Mode::isReadOnly()){
-                        $row->{$dateFld} = "<span style='color:blue;'>{$row->{$dateFld}}</span>";
+                        $row->{$dateFld} = "<span class='blueText'>{$row->{$dateFld}}</span>";
                         $row->{$dateFld} = ht::createHint($row->{$dateFld}, 'Изчислено е автоматично|*!');
                     }
                     $value = $dateObj['placeholder'];
                 }
 
                 if (Mode::is('printing') || Mode::is('text', 'xhtml')) {
-                    if($dateObj['displayExternal'] !== true && $showTransInfo == 'hide'){
+                    if(!($dateObj['displayExternal'] ?? false) && $showTransInfo == 'hide'){
                         unset($row->{$dateFld});
                     }
                 }
@@ -715,12 +716,12 @@ class trans_plg_LinesPlugin extends core_Plugin
 
         // Кеширане на изчислено тегло/обем/ле ако не са изчислени
         $updateFields = array();
-        if(empty($rec->{$mvc->totalVolumeFieldName})) {
+        if(empty($rec->{$mvc->totalWeightFieldName})) {
             $rec->{$mvc->totalWeightFieldName} = $measures->weight;
             $updateFields[] = $mvc->totalWeightFieldName;
         }
 
-        if(empty($rec->{$mvc->totalWeightFieldName})) {
+        if(empty($rec->{$mvc->totalVolumeFieldName})) {
             $rec->{$mvc->totalVolumeFieldName} = $measures->volume;
             $updateFields[] = $mvc->totalVolumeFieldName;
         }
@@ -730,6 +731,10 @@ class trans_plg_LinesPlugin extends core_Plugin
             $updateFields[] = $mvc->totalNetWeightFieldName;
         }
 
+        if(empty($rec->{$mvc->totalTareWeightFieldName})) {
+            $rec->{$mvc->totalTareWeightFieldName} = $measures->tareWeight;
+            $updateFields[] = $mvc->totalTareWeightFieldName;
+        }
 
         if(empty($rec->transUnits)) {
             $rec->transUnits = $measures->transUnits;
@@ -850,11 +855,11 @@ class trans_plg_LinesPlugin extends core_Plugin
             }
 
             if (empty($res['weight'])) {
-                $res['weight'] = ($rec->weightInput) ? $rec->weightInput : $transInfo->weight;
+                $res['weight'] = !empty($rec->weightInput) ? $rec->weightInput : $transInfo->weight;
             }
 
             if (empty($res['volume'])) {
-                $res['volume'] = ($rec->volumeInput) ? $rec->volumeInput : $transInfo->volume;
+                $res['volume'] = !empty($rec->volumeInput) ? $rec->volumeInput : $transInfo->volume;
             }
 
             if (empty($res['state'])) {
@@ -881,7 +886,7 @@ class trans_plg_LinesPlugin extends core_Plugin
         // За нескладовите документи
         if(!isset($rec->id) && !cls::haveInterface('store_iface_DocumentIntf', $mvc)){
 
-            $containerId = isset($rec->fromContainerId) ? $rec->fromContainerId : $rec->originId;
+            $containerId = $rec->fromContainerId ?? ($rec->originId ?? null);
             if(isset($containerId)){
 
                 try{
@@ -944,7 +949,7 @@ class trans_plg_LinesPlugin extends core_Plugin
     {
         $unsetFields = array($mvc->lineFieldName, $mvc->lineNoteFieldName);
         if(cls::haveInterface('store_iface_DocumentIntf', $mvc)){
-            $unsetFields = array_merge($unsetFields, array('weightInput', 'volumeInput', 'transUnits', 'transUnitsInput', $mvc->totalWeightFieldName, $mvc->totalVolumeFieldName, $mvc->totalNetWeightFieldName), array_keys($mvc->getShipmentDateFields()));
+            $unsetFields = array_merge($unsetFields, array('weightInput', 'netWeightInput', 'tareWeightInput', 'volumeInput', 'transUnits', 'transUnitsInput', $mvc->totalWeightFieldName, $mvc->totalVolumeFieldName, $mvc->totalNetWeightFieldName, $mvc->totalTareWeightFieldName), array_keys($mvc->getShipmentDateFields()));
         }
 
         foreach ($unsetFields as $fld){

@@ -94,6 +94,12 @@ class SassParser
   public $basepath;
 
   /**
+   * cache:
+   * @var boolean Enables parser cache handling when supported by the caller.
+   */
+  public $cache;
+
+  /**
    * debug_info:
    * @var boolean When true the line number and file where a selector is defined
    * is emitted into the compiled CSS in a format that can be understood by the

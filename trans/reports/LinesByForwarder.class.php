@@ -52,7 +52,7 @@
          $fieldset->FLD('from', 'date', 'caption=От,after=title,single=none,mandatory');
          $fieldset->FLD('to', 'date', 'caption=До,after=from,single=none,mandatory');
          
-         $fieldset->FLD('forwarderPersonId', 'keylist(mvc=crm_Persons,title=name,allowEmpty)', 'caption=Шофьор,placeholder=Всички,after=to,single=none');
+         $fieldset->FLD('forwarderPersonId', 'keylist(mvc=crm_Persons,title=name,allowEmpty)', 'caption=Шофьор,placeholderType=all,after=to,single=none');
     
          $fieldset->FLD('seeLines', 'set(yes = )', 'caption=Покажи линиите,after=forwarderPersonId,single=none');
          
@@ -75,8 +75,10 @@
          
          
          $suggestions = array();
-         foreach (keylist::toArray($rec->forwarderPersonId) as $val) {
-             $suggestions[$val] = crm_Persons::fetch($val)->name;
+         foreach (keylist::toArray($rec->forwarderPersonId ?? null) as $val) {
+             if ($personRec = crm_Persons::fetch($val)) {
+                 $suggestions[$val] = $personRec->name;
+             }
          }
          
         
@@ -84,7 +86,9 @@
          $fQuery = trans_Lines::getQuery();
          $fQuery->where('#forwarderPersonId IS NOT NULL');
          while ($forwarder = $fQuery->fetch()) {
-             $suggestions[$forwarder->forwarderPersonId] = crm_Persons::fetch($forwarder->forwarderPersonId)->name;
+             if ($personRec = crm_Persons::fetch($forwarder->forwarderPersonId)) {
+                 $suggestions[$forwarder->forwarderPersonId] = $personRec->name;
+             }
          }
          
          $form->setSuggestions('forwarderPersonId', $suggestions);
@@ -138,7 +142,7 @@
          $query->in('state',array('active','closed'));
          
          // Ако е посочена начална дата на период
-         if ($rec->from) {
+         if (!empty($rec->from)) {
              $query->where(array(
                  "#start >= '[#1#]'",
                  $rec->from . ' 00:00:00'
@@ -146,7 +150,7 @@
          }
          
          //Крайна дата / 'към дата'
-         if ($rec->to) {
+         if (!empty($rec->to)) {
              $query->where(array(
                  "#start <= '[#1#]'",
                  $rec->to . ' 23:59:59'
@@ -155,7 +159,7 @@
          
          
          //Филтър по служители
-         if ($rec->forwarderPersonId) {
+         if (!empty($rec->forwarderPersonId)) {
          
          $forwarderPersonIdArr = keylist::toArray($rec->forwarderPersonId);
          $query->in('forwarderPersonId', $forwarderPersonIdArr);
@@ -184,15 +188,15 @@
              $id = ($tRec -> forwarderPersonId) ?$tRec -> forwarderPersonId : 'Не е избран';
              
              $Document = doc_Containers::getDocument($tRec->containerId);
-             $transInfo = $Document->getTransportLineInfo($tRec->lineId);
+             $transInfo = (array) $Document->getTransportLineInfo($tRec->lineId);
 
              //Адокумента е експедиционен
              if (in_array($tRec->classId, $shipDocsArr)) {
                  $isShipmentDoc = 1;
 
-                 $weight = $transInfo['weight'];
+                 $weight = $transInfo['weight'] ?? 0;
                  
-                 if (is_array($transInfo['transportUnits'])) {
+                 if (is_array($transInfo['transportUnits'] ?? null)) {
                      $transportUnits = array_sum($transInfo['transportUnits']);
                  }
              }
@@ -202,7 +206,7 @@
                  $isPaymentDoc = 1;
                  
                  if (($tRec->classId == cash_Pko::getClassId())) {
-                     $cashAmount = $transInfo['baseAmount'];
+                     $cashAmount = $transInfo['baseAmount'] ?? 0;
                  }
              }
              
@@ -264,7 +268,7 @@
          $fld->FLD('numberOfPko', 'varchar', 'caption=ПКО->Брой,tdClass=centered');
          $fld->FLD('sumOfPko', 'double', 'caption=ПКО->сума');
          
-         if($rec->seeLines == 'yes'){
+         if(($rec->seeLines ?? null) == 'yes'){
             $fld->FLD('lines', 'varchar', 'caption=@Линии');
          }
         
@@ -302,9 +306,9 @@
          $row->lines = 'ТЛ №: ';
          foreach ($dRec->lineId as $val){
              $marker++;
-             $row->lines .= ht::createLink("#$val", toUrl(array('trans_Lines', 'single',$val)));
+             $row->lines = ($row->lines ?? '') . ht::createLink("#$val", toUrl(array('trans_Lines', 'single',$val)));
              if($marker < countR($dRec->lineId)){
-                 $row->lines .=', ';
+                 $row->lines =($row->lines ?? '') . ', ';
              }
          }
          

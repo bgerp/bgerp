@@ -222,7 +222,7 @@ class store_ConsignmentProtocols extends core_Master
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         if (!deals_Helper::canSelectObjectInDocument($action, $rec, 'store_Stores', 'storeId')) {
-            if(($action == 'reject' && $rec->state == 'pending') || ($action == 'restore' && $rec->brState == 'pending')) return;
+            if (isset($rec) && (($action == 'reject' && isset($rec->state) && $rec->state == 'pending') || ($action == 'restore' && isset($rec->brState) && $rec->brState == 'pending'))) return;
             $requiredRoles = 'no_one';
         }
         
@@ -245,7 +245,7 @@ class store_ConsignmentProtocols extends core_Master
                 if(!$Origin->isInstanceOf('store_ConsignmentProtocols')){
                     $requiredRoles = 'no_one';
                 } else {
-                    $originRec = $Origin->fetch('state,productType');
+                    $originRec = $Origin->fetch('id,state,productType,protocolType');
                     if($originRec->state != 'active'){
                         $requiredRoles = 'no_one';
                     }
@@ -635,10 +635,21 @@ class store_ConsignmentProtocols extends core_Master
         
         $nullVolume = ($count1 && is_null($res1->volume)) || ($count2 && is_null($res2->volume)) || (!$count1 && !$count2);
         $volume = ($nullVolume) ? null : $res1->volume + $res2->volume;
+
+        $nullNetWeight = ($count1 && is_null($res1->netWeight)) || ($count2 && is_null($res2->netWeight)) || (!$count1 && !$count2);
+        $netWeight = ($nullNetWeight) ? null : $res1->netWeight + $res2->netWeight;
+
+        $nullTareWeight = ($count1 && is_null($res1->tareWeight)) || ($count2 && is_null($res2->tareWeight)) || (!$count1 && !$count2);
+        $tareWeight = ($nullTareWeight) ? null : $res1->tareWeight + $res2->tareWeight;
         
         $units = trans_Helper::getCombinedTransUnits($res1->transUnits, $res2->transUnits);
         
-        return (object) array('weight' => $weight, 'volume' => $volume, 'transUnits' => $units);
+        return (object) array('weight' => $weight,
+            'volume' => $volume,
+            'netWeight' => $netWeight,
+            'tareWeight' => $tareWeight,
+            'transUnits' => $units,
+        );
     }
     
     
@@ -716,7 +727,7 @@ class store_ConsignmentProtocols extends core_Master
         $res['cases'] = array();
         $res['valior'] = $rec->valior ?? dt::today();
 
-        return $res;
+        return trans_Helper::normalizeTransportLineInfo($res);
     }
     
     
@@ -756,7 +767,7 @@ class store_ConsignmentProtocols extends core_Master
         if (isset($rec->contragentClassId, $rec->contragentId)) {
             $Crm = cls::get($rec->contragentClassId);
             $cRec = $Crm->getContragentData($rec->contragentId);
-            $contragent = str::limitLen($cRec->person ? $cRec->person : $cRec->company, 16);
+            $contragent = str::limitLen(($cRec->person ?? null) ?: ($cRec->company ?? null), 16);
         } else {
             $contragent = tr('Проблем при показването');
         }
@@ -838,11 +849,11 @@ class store_ConsignmentProtocols extends core_Master
                      'deliveryOn'   => array('caption' => 'Доставка', 'type' => 'datetime(requireTime)', 'readOnlyIfActive' => false, "input" => "input", 'autoCalcFieldName' => 'deliveryOnCalc', 'displayExternal' => true));
 
         if(isset($rec)){
-            $res['deliveryTime']['placeholder'] = store_Stores::calcLoadingDate($rec->storeId, $rec->deliveryOn);
-            $res['readyOn']['placeholder'] = ($cache) ? $rec->readyOnCalc : $this->getEarliestDateAllProductsAreAvailableInStore($rec);
+            $res['deliveryTime']['placeholder'] = ($cache && !empty($rec->deliveryTimeCalc)) ? $rec->deliveryTimeCalc : store_Stores::calcLoadingDate($rec->storeId, $rec->deliveryOn ?? null);
+            $res['readyOn']['placeholder'] = ($cache && !empty($rec->readyOnCalc)) ? $rec->readyOnCalc : $this->getEarliestDateAllProductsAreAvailableInStore($rec);
 
-            $loadingOn = !empty($rec->deliveryTime) ? $rec->deliveryTime : $rec->deliveryTimeCalc;
-            $res['shipmentOn']['placeholder'] = ($cache) ? $rec->shipmentOnCalc : trans_Helper::calcShippedOnDate($rec->valior, $rec->lineId, $rec->activatedOn, $rec->deliveryTime, $loadingOn);
+            $loadingOn = !empty($rec->deliveryTime) ? $rec->deliveryTime : ($rec->deliveryTimeCalc ?? null);
+            $res['shipmentOn']['placeholder'] = ($cache && !empty($rec->shipmentOnCalc)) ? $rec->shipmentOnCalc : trans_Helper::calcShippedOnDate($rec->valior ?? null, $rec->lineId ?? null, $rec->activatedOn ?? null, $loadingOn);
         }
 
         return $res;
@@ -921,7 +932,7 @@ class store_ConsignmentProtocols extends core_Master
         $Cover = doc_Folders::getCover($docRec->folderId);
         $consignmentParamValue = cond_Parameters::getParameter($Cover->getClassId(), $Cover->that, 'consignmentContragents');
         if($consignmentParamValue == 'yes') {
-            if(store_ConsignmentProtocols::haveRightFor('add', (object)array($docRec->threadId))) return true;
+            if(store_ConsignmentProtocols::haveRightFor('add', (object)array('threadId' => $docRec->threadId))) return true;
         }
 
         return false;
@@ -978,7 +989,7 @@ class store_ConsignmentProtocols extends core_Master
                 $byPacks = $byProductId = array();
                 array_walk($dRecs, function($a) use (&$byPacks, &$byProductId) {
                     $byPacks[$a->productId][$a->quantityInPack] = $a->packagingId;
-                    $byProductId[$a->productId] += $a->quantity;
+                    $byProductId[$a->productId] = ($byProductId[$a->productId] ?? 0) + $a->quantity;
                 });
 
 
@@ -994,7 +1005,7 @@ class store_ConsignmentProtocols extends core_Master
                     // Групират се оригиналните детайли
                     if(array_key_exists($dRec1->productId, $dRecsNew)) continue;
                     krsort($byPacks[$dRec1->productId]);
-                    $quantity = min($byProductId[$dRec1->productId], $expectedQuantities[$dRec1->productId]);
+                    $quantity = min($byProductId[$dRec1->productId], $expectedQuantities[$dRec1->productId] ?? 0);
 
                     // Ще се избере най-голямата опаковка в която може да се побере цяло количеството и ще се прехвърли
                     foreach ($byPacks[$dRec1->productId] as $qInPack => $packId){
@@ -1040,11 +1051,13 @@ class store_ConsignmentProtocols extends core_Master
 
                         // Оставят се само наличните партиди към сега
                         $batchesArr = array_keys($Def->makeArray($bRec->batch));
-                        $q = $bRec->quantity / countR($batchesArr);
+                        $batchesCount = countR($batchesArr);
+                        if (!$batchesCount) continue;
+                        $q = $bRec->quantity / $batchesCount;
                         foreach ($batchesArr as $b) {
-                            $max = min($quantities[$b], $q);
+                            $max = min($quantities[$b] ?? 0, $q);
                             if($max <= 0) continue;
-                            $batches[$b] = $q;
+                            $batches[$b] = $max;
                         }
                     }
 
@@ -1076,12 +1089,12 @@ class store_ConsignmentProtocols extends core_Master
         // Извличане на нишките на заданията към продажбата и на нишките на ПО-та към тях
         $jQuery = planning_Jobs::getQuery();
         $jQuery->where("#saleId = {$firstDocument->that} AND #state NOT IN ('draft', 'rejected')");
-        $jQuery->show('threadId');
+        $jQuery->show('threadId,containerId');
         $jobAll = $jQuery->fetchAll();
         if(!countR($jobAll)) return;
 
-        $threadIds = arr::extractValuesFromArray($jQuery->fetchAll(), 'threadId');
-        $containerIds = arr::extractValuesFromArray($jQuery->fetchAll(), 'containerId');
+        $threadIds = arr::extractValuesFromArray($jobAll, 'threadId');
+        $containerIds = arr::extractValuesFromArray($jobAll, 'containerId');
         if(!countR($threadIds)) return;
 
         $tQuery = planning_Tasks::getQuery();

@@ -91,7 +91,7 @@ class hr_reports_TimeToWorkWithTheSystem extends frame2_driver_TableData
         $fieldset->FLD('maxTimeWaiting', 'time(suggestions=|5 мин|10 мин|15 мин|20 мин)', 'caption=Макс. изчакване, after=inIp,mandatory,single=none');
 
         //Потребители
-         $fieldset->FLD('users', 'users(rolesForAll=ceo|repAllGlobal, rolesForTeams=ceo|manager|repAll|repAllGlobal)', 'caption=Потребител/Екип,single=none');
+         $fieldset->FLD('users', 'users(rolesForAll=ceo|repAllGlobal, rolesForTeams=ceo|manager|repAll|repAllGlobal)', 'caption=Потребител/Екип,placeholderType=all,single=none');
 
     }
 
@@ -142,7 +142,7 @@ class hr_reports_TimeToWorkWithTheSystem extends frame2_driver_TableData
 
         $form->setSuggestions('inIp', $suggestions);
 
-        if($suggestions[0] == 'не са посочени'){
+        if(($suggestions[0] ?? null) == 'не са посочени'){
             $form->setReadonly('inIp');
         }else{
             $form->setDefault('inIp', $suggestions);
@@ -181,7 +181,7 @@ class hr_reports_TimeToWorkWithTheSystem extends frame2_driver_TableData
                 sort($dateRange);
             }
 
-            if ($dateRange[0]) {
+            if (!empty($dateRange[0])) {
                 if (!strpos($dateRange[0], ' ')) {
                     $dateRange[0] .= ' 00:00:00';
                 }
@@ -189,7 +189,7 @@ class hr_reports_TimeToWorkWithTheSystem extends frame2_driver_TableData
                 $logDatQuery->where(array("#time >= '[#1#]'", $dateRange[0]));
             }
 
-            if ($dateRange[1]) {
+            if (!empty($dateRange[1])) {
                 if (!strpos($dateRange[1], ' ')) {
                     $dateRange[1] .= ' 23:59:59';
                 }
@@ -214,7 +214,7 @@ class hr_reports_TimeToWorkWithTheSystem extends frame2_driver_TableData
 
         while ($lRec = $logDatQuery->fetch()){
 
-            $oldIpType = $lastIpType[$lRec->userId];
+            $oldIpType = $lastIpType[$lRec->userId] ?? null;
 
             $minutesToAdd = $minute =0;
 
@@ -225,7 +225,7 @@ class hr_reports_TimeToWorkWithTheSystem extends frame2_driver_TableData
 
             $minute = (integer)($lRec->time / 60);
 
-            $minutesToAdd = $minute - $lastWorkTime[$lRec->userId][$ipType];
+            $minutesToAdd = $minute - ($lastWorkTime[$lRec->userId][$ipType] ?? 0);
 
             if($minutesToAdd <= 0)continue;
 
@@ -241,7 +241,7 @@ class hr_reports_TimeToWorkWithTheSystem extends frame2_driver_TableData
 
             //Ако $hash === $lastWorkHash[$lRec->userId][$ipType] приемаме че,
             // потрбителя прави рефреш на ресурса и не включваме  записа
-            if($hash === $lastWorkHash[$lRec->userId][$ipType]){
+            if($hash === ($lastWorkHash[$lRec->userId][$ipType] ?? null)){
                 continue;
             }
             $lastWorkHash[$lRec->userId][$ipType] = $hash;
@@ -252,8 +252,7 @@ class hr_reports_TimeToWorkWithTheSystem extends frame2_driver_TableData
                 $minutesToAdd = 1;
             }
 
-            $workingTime[$lRec->userId][$ipType] += $minutesToAdd;
-            $marker++;
+            $workingTime[$lRec->userId][$ipType] = ($workingTime[$lRec->userId][$ipType] ?? 0) + $minutesToAdd;
 
             $lastWorkTime[$lRec->userId][$ipType] = $minute;
 
@@ -268,9 +267,9 @@ class hr_reports_TimeToWorkWithTheSystem extends frame2_driver_TableData
             $recs[$key] = (object)array(
 
                 'userId' => $key,
-                'home' => $val['home'],
-                'office' => $val['office'],
-                'summ' => $val['office']+$val['home'],
+                'home' => $val['home'] ?? 0,
+                'office' => $val['office'] ?? 0,
+                'summ' => ($val['office'] ?? 0) + ($val['home'] ?? 0),
                 'userName' => $userName
 
             );
@@ -334,7 +333,7 @@ class hr_reports_TimeToWorkWithTheSystem extends frame2_driver_TableData
         $row = new stdClass();
 
         $row->userName = $dRec->userName;
-        $row->userName .= ' ['.crm_Profiles::createLink($dRec->userId).']';
+        $row->userName = ($row->userName ?? '') . ' ['.crm_Profiles::createLink($dRec->userId).']';
 
         $row->office = $Time->toVerbal($dRec->office*60);
         $row->home = $Time->toVerbal($dRec->home*60);

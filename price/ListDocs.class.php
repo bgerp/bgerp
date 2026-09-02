@@ -139,8 +139,8 @@ class price_ListDocs extends core_Master
         $this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Валута,input');
         $this->FLD('vat', 'enum(yes=с включено ДДС,no=без ДДС)', 'caption=ДДС');
         $this->FLD('title', 'varchar(155)', 'caption=Заглавие');
-        $this->FLD('productGroups', 'keylist(mvc=cat_Groups,select=name,makeLinks)', 'caption=Артикули->Групи,columns=2,placeholder=Всички');
-        $this->FLD('packagings', 'keylist(mvc=cat_UoM,select=name)', 'caption=Артикули->Опаковки,columns=3,placeholder=Всички');
+        $this->FLD('productGroups', 'keylist(mvc=cat_Groups,select=name,makeLinks)', 'caption=Артикули->Групи,columns=2,placeholderType=all');
+        $this->FLD('packagings', 'keylist(mvc=cat_UoM,select=name)', 'caption=Артикули->Опаковки,columns=3,placeholderType=all');
         $this->FLD('products', 'blob(serialize,compress)', 'caption=Данни,input=none');
         
         $this->FLD('round', 'int', 'caption=Закръгляне на цените->В мярка,after=template,autohide');
@@ -663,7 +663,7 @@ class price_ListDocs extends core_Master
             $tpl->replace("<tr><td colspan='6'> " . tr('Няма артикули') . '</td></tr>', 'GROUP');
         }
         
-        if ($data->pager) {
+        if (!empty($data->pager)) {
             $tpl->replace($data->pager->getHtml(), 'PAGER_TOP');
             $tpl->replace($data->pager->getHtml(), 'PAGER');
         }

@@ -68,6 +68,36 @@ class fconv_Script
      * @param string script - Текст на скрипта
      */
     public $script;
+
+
+    /**
+     * Път до изходния файл
+     */
+    public $outFilePath;
+
+
+    /**
+     * Име на входния файл
+     */
+    public $fName;
+
+
+    /**
+     * Идентификатор на информацията за файла
+     */
+    public $fileInfoId;
+
+
+    /**
+     * Път до директорията с резултата
+     */
+    public $outputPath;
+
+
+    /**
+     * Файлов манипулатор на входния файл
+     */
+    public $fh;
     
     
     /**

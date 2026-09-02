@@ -28,7 +28,7 @@ class doc_PdfCreator extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'doc_Wrapper, plg_Created, plg_RowTools';
+    public $loadList = 'doc_Wrapper, plg_Created, plg_RowTools2';
     
     
     /**

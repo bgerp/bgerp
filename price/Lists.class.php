@@ -224,8 +224,13 @@ class price_Lists extends core_Master
         if(isset($rec->id)){
             $exRec = $mvc->fetch($rec->id, '*', false);
             if ($exRec) {
+                $currentRec = clone $exRec;
+                foreach (get_object_vars($rec) as $field => $value) {
+                    $currentRec->{$field} = $value;
+                }
+
                 $checkExFields = md5("{$exRec->parent}|{$exRec->currency}|{$exRec->vat}|{$exRec->discountCompared}|{$exRec->discountComparedShowAbove}|{$exRec->defaultSurcharge}|{$exRec->defaultSurcharge}|{$exRec->minSurcharge}|{$exRec->maxSurcharge}");
-                $checkCurrentFields = md5("{$rec->parent}|{$rec->currency}|{$rec->vat}|{$rec->discountCompared}|{$rec->discountComparedShowAbove}|{$rec->defaultSurcharge}|{$rec->defaultSurcharge}|{$rec->minSurcharge}|{$rec->maxSurcharge}");
+                $checkCurrentFields = md5("{$currentRec->parent}|{$currentRec->currency}|{$currentRec->vat}|{$currentRec->discountCompared}|{$currentRec->discountComparedShowAbove}|{$currentRec->defaultSurcharge}|{$currentRec->defaultSurcharge}|{$currentRec->minSurcharge}|{$currentRec->maxSurcharge}");
                 if($checkExFields != $checkCurrentFields){
                     $rec->_invalidateCache = true;
                 }
@@ -382,7 +387,7 @@ class price_Lists extends core_Master
         if (empty($rec->id)) {
 
             // По дефолт слагаме за частните политики да наследяват дефолт политиката за контрагента, иначе 'Каталог'
-            $rec->parent = ($rec->cId && $rec->cClass) ? price_ListToCustomers::getListForCustomer($rec->cClass, $rec->cId) : cat_Setup::get('DEFAULT_PRICELIST');
+            $rec->parent = (isset($rec->cId, $rec->cClass)) ? price_ListToCustomers::getListForCustomer($rec->cClass, $rec->cId) : cat_Setup::get('DEFAULT_PRICELIST');
         } else {
             // Ако наследената политика, не присъства в опциите, задаваме я за да не се затрие
             if($rec->parent && !array_key_exists($rec->parent, $parentOptions)){
@@ -407,7 +412,7 @@ class price_Lists extends core_Master
         $form->setDefault('currency', acc_Periods::getBaseCurrencyCode());
         
         // За политиката себестойност, скриваме определени полета
-        if ($rec->id == price_ListRules::PRICE_LIST_COST) {
+        if (($rec->id ?? null) == price_ListRules::PRICE_LIST_COST) {
             foreach (array('parent', 'public', 'discountCompared', 'defaultSurcharge', 'minSurcharge', 'maxSurcharge') as $fld) {
                 $form->setField($fld, 'input=hidden');
             }
@@ -452,8 +457,8 @@ class price_Lists extends core_Master
     protected static function on_AfterPrepareEditTitle($mvc, &$res, &$data)
     {
         $rec = $data->form->rec;
-        if ($rec->cId && $rec->cClass) {
-            $data->form->title = core_Detail::getEditTitle($rec->cClass, $rec->cId, 'ценова политика', $rec->id, 'на');
+        if (!empty($rec->cId) && !empty($rec->cClass)) {
+            $data->form->title = core_Detail::getEditTitle($rec->cClass, $rec->cId, 'ценова политика', $rec->id ?? null, 'на');
         }
     }
     
@@ -518,11 +523,11 @@ class price_Lists extends core_Master
         if ($form->isSubmitted()) {
             $rec = &$form->rec;
             
-            if (($rec->id) && isset($rec->discountCompared) && $rec->discountCompared == $rec->id) {
+            if (!empty($rec->id) && isset($rec->discountCompared) && $rec->discountCompared == $rec->id) {
                 $form->setError('discountCompared', 'Не може да изберете същата политика');
             }
             
-            if ($rec->state == 'draft' || is_null($rec->state)) {
+            if (!isset($rec->state) || $rec->state == 'draft') {
                 $rec->state = 'active';
             }
         }
@@ -558,7 +563,7 @@ class price_Lists extends core_Master
                 $row->discountCompared = price_Lists::getHyperlink($rec->discountCompared, true);
             }
             
-            if ($rec->public == 'yes' && $rec->id != cat_Setup::get('DEFAULT_PRICELIST')) {
+            if (($rec->public ?? null) == 'yes' && $rec->id != cat_Setup::get('DEFAULT_PRICELIST')) {
                 $customerCount = price_ListToCustomers::count("#listId = {$rec->id} AND #state = 'active'");
                 $row->connectedClients = cls::get('type_Int')->toVerbal($customerCount);
                 if ($customerCount != 0) {
@@ -568,7 +573,7 @@ class price_Lists extends core_Master
                 }
             }
             
-            if ($rec->defaultSurcharge < 0) {
+            if (($rec->defaultSurcharge ?? null) < 0) {
                 $row->discountType = 'Отстъпка';
                 $rec->defaultSurcharge = abs($rec->defaultSurcharge);
                 $row->defaultSurcharge = $mvc->getFieldType('defaultSurcharge')->toVerbal($rec->defaultSurcharge);
@@ -580,7 +585,7 @@ class price_Lists extends core_Master
                 $row->defaultSurcharge = ht::createHint(tr('Няма'), 'Тази ценова политика няма надценка/отстъпка по подразбиране и затова само изрично посочените артикули и групи от артикули ще имат цени', 'warning');
             }
             
-            $row->currency = "<span class='cCode'>{$row->currency}</span>";
+            $row->currency = "<span class='cCode'>" . ($row->currency ?? '') . "</span>";
             
             if (empty($rec->significantDigits)) {
                 $significantDigits = price_Setup::get('SIGNIFICANT_DIGITS');
@@ -603,8 +608,11 @@ class price_Lists extends core_Master
             $varQuery->where("#variationId = {$rec->id}");
             while($vRec = $varQuery->fetch()){
                 $vRow = price_ListVariations::recToVerbal($vRec);
-                $hint = strip_tags("{$vRow->validFrom} - {$vRow->validUntil} ({$vRow->repeatInterval})");
-                $variationOfArr[] = ht::createHint($vRow->listId, $hint, 'notice', false)->getContent();
+                $validFrom = $vRow->validFrom ?? '';
+                $validUntil = $vRow->validUntil ?? '';
+                $repeatInterval = $vRow->repeatInterval ?? '';
+                $hint = strip_tags("{$validFrom} - {$validUntil} ({$repeatInterval})");
+                $variationOfArr[] = ht::createHint($vRow->listId ?? '', $hint, 'notice', false)->getContent();
             }
             $row->variationsOf = implode(',', $variationOfArr);
 
@@ -622,7 +630,7 @@ class price_Lists extends core_Master
     protected static function on_AfterPrepareRetUrl($mvc, $res, $data)
     {
         // Ако създаваме копие, редиректваме до създаденото копие
-        if (is_object($data->form) && $data->form->isSubmitted()) {
+        if (isset($data->form) && is_object($data->form) && $data->form->isSubmitted()) {
             $rec = $data->form->rec;
 
             $redirectToSingle = true;
@@ -667,13 +675,13 @@ class price_Lists extends core_Master
         }
 
         if($action == 'viewpsingle' && isset($rec)){
-            if($rec->visiblePricesByAnyone != 'yes'){
+            if(($rec->visiblePricesByAnyone ?? null) != 'yes'){
                 $requiredRoles = 'no_one';
             }
         }
 
         if ($action == 'add' && isset($rec->cClass, $rec->cId)) {
-            if (!cls::get($rec->cClass)->haveRightFor('single', $rec->id)) {
+            if (!cls::get($rec->cClass)->haveRightFor('single', $rec->cId)) {
                 $requiredRoles = 'no_one';
             }
         }
@@ -685,9 +693,9 @@ class price_Lists extends core_Master
         }
 
         if($action == 'changepublic' && isset($rec)){
-            if($rec->state == 'rejected'){
+            if(($rec->state ?? null) == 'rejected'){
                 $requiredRoles = 'no_one';
-            } elseif($rec->public == 'yes'){
+            } elseif(($rec->public ?? null) == 'yes'){
                 $customers = price_ListToCustomers::getCustomers($rec->id);
                 
                 // Ако ценовата политика е публична и е закачена на повече от 1 контрагент, не може да стане частна
@@ -814,8 +822,8 @@ class price_Lists extends core_Master
         $rec = $data->rec;
         
         if ($mvc->haveRightFor('changepublic', $rec)) {
-            $btnTitle = ($rec->public == 'yes') ? 'Частна' : 'Публична';
-            $btnWarning = ($rec->public == 'yes') ? 'Наистина ли желаете да направите политиката частна|*?' : 'Наистина ли желаете да направите политиката публична|*?';
+            $btnTitle = (($rec->public ?? null) == 'yes') ? 'Частна' : 'Публична';
+            $btnWarning = (($rec->public ?? null) == 'yes') ? 'Наистина ли желаете да направите политиката частна|*?' : 'Наистина ли желаете да направите политиката публична|*?';
             
             $data->toolbar->addBtn($btnTitle, array($mvc, 'changepublic', $rec->id, 'ret_url' => true), "ef_icon=img/16/arrow_refresh.png,title=Промяна на типа на политиката,warning={$btnWarning}");
         }
@@ -841,8 +849,8 @@ class price_Lists extends core_Master
             $clQuery = price_ListToCustomers::getQuery();
             $clQuery->where("#listId = {$rec->id}");
             $foundRec = $clQuery->fetch();
-            $rec->cClass = $foundRec->cClass;
-            $rec->cId = $foundRec->cId;
+            $rec->cClass = $foundRec->cClass ?? null;
+            $rec->cId = $foundRec->cId ?? null;
         }
         
         $this->save_($rec, 'public,cClass,cId');
@@ -944,7 +952,7 @@ class price_Lists extends core_Master
         } elseif($Master instanceof eshop_Carts) {
             $listId = eshop_Carts::getCartListId($masterRec);
         }  else {
-            $listId = $masterRec->policyId ? $masterRec->policyId : (pos_Receipts::isForDefaultContragent($clone) ? pos_Points::getSettings($clone->pointId)->policyId : price_ListToCustomers::getListForCustomer($clone->contragentClass, $clone->contragentObjectId));
+            $listId = !empty($masterRec->policyId) ? $masterRec->policyId : (pos_Receipts::isForDefaultContragent($clone) ? pos_Points::getSettings($clone->pointId)->policyId : price_ListToCustomers::getListForCustomer($clone->contragentClass, $clone->contragentObjectId));
         }
 
         // Обикаля се тази политика+бащите ѝ дали има поне една с общи отстъпки

@@ -132,7 +132,7 @@ class doc_plg_TplManager extends core_Plugin
     protected static function on_BeforeRecToVerbal($mvc, &$row, $rec)
     {
         if (is_object($rec)) {
-            if ($rec->id) {
+            if (!empty($rec->id)) {
                 
                 // Ако няма шаблон, за шаблон се приема първия такъв за модела
                 $rec->template = $mvc->getTemplate($rec);
@@ -252,8 +252,8 @@ class doc_plg_TplManager extends core_Plugin
      */
     public function on_BeforeGetDocumentBody($mvc, &$res, $id, $mode = 'html', $options = null)
     {
-        if ($options && $options->tplManagerId) {
-            if (!$options->rec && $id) {
+        if (!empty($options->tplManagerId)) {
+            if (empty($options->rec) && $id) {
                 $options->rec = $mvc->fetchRec($id);
                 $options->rec->template = $options->tplManagerId;
             }
@@ -291,8 +291,9 @@ class doc_plg_TplManager extends core_Plugin
                     Mode::set('tplManagerLg', $lg);
                     
                     // В зависимост от подредбата на плъгините, може и да има вече генериран екшън
-                    if ($data->__MID__) {
-                        $logRec = doclog_Documents::fetchByMid($data->__MID__);
+                    $mid = $data->__MID__ ?? null;
+                    $logRec = $mid ? doclog_Documents::fetchByMid($mid) : null;
+                    if ($logRec) {
                         if (!isset($logRec->data)) {
                             $logRec->data = new stdClass();
                         }
@@ -366,7 +367,7 @@ class doc_plg_TplManager extends core_Plugin
         
         // Добавяме бланките
         if (Request::get('asClient')) {
-            $qrString = $data->row->asClientQrCodeString ?? $data->row->inlineContragentName;
+            $qrString = $data->row->asClientQrCodeString ?? ($data->row->inlineContragentName ?? null);
 
             if ($qrString) {
                 $params = array(
@@ -396,7 +397,7 @@ class doc_plg_TplManager extends core_Plugin
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
-        if ($rec->tplLang) {
+        if (!empty($rec->tplLang)) {
             core_Lg::pop();
             
             // Заместваме вербалното състояние и име с тези според езика на текущата сесия

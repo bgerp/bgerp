@@ -31,12 +31,17 @@ class conversejs_Adapter extends core_Mvc
         $tpl->push('https://cdn.conversejs.org/dist/converse.min.js', 'JS');
         
         $cu = core_Users::getCurrent();
+        $rec = null;
         $aQuery = remote_Authorizations::getQuery();
-        while ($aRec = $aQuery->fetch("#userId = ${cu} AND #state = 'active'")) {
-            if ($aRec->xmppUser) {
-                $driver = remote_Authorizations::getDriver($aRec);
-                $rec = $driver->getXmppCredentials($aRec);
+        while ($aRec = $aQuery->fetch("#userId = {$cu} AND #state = 'active'")) {
+
+            // 'xmppUser' се добавя само от prosody_RemoteDriver - другите драйвери нямат такова поле
+            if (empty($aRec->xmppUser)) {
+                continue;
             }
+
+            $driver = remote_Authorizations::getDriver($aRec);
+            $rec = $driver->getXmppCredentials($aRec);
         }
         $url = conversejs_Setup::get('BOSH_SERVICE_URL');
         

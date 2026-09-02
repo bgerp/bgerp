@@ -1354,6 +1354,7 @@ en,Оценки,Ratings
 en,Очаквано начало,Estimated start
 en,Очакван край,Estimated end
 en,Очаквано,Expected
+en,Въведено,Entered
 en,Още...,More...
 en,П - почивка,R - rest
 en,П. код,Post code
@@ -1693,6 +1694,7 @@ en,Протокол за производство,Production note
 en,Протокол за влагане в производство,Consumption note
 en,Протоколи за в_19dc8,Production notes
 en,Протоколи за в_b4591,Protocols for return of manufacturing
+en,Протокол за връщане от производство,Protocols for return of manufacturing
 en,Протоколи за инвентаризация,Inventory notes
 en,Протокол за инвентаризация,Inventory note
 en,протокол за инвентаризация,inventory note
@@ -2086,6 +2088,9 @@ en,Търговец,Salesperson
 en,Търговия,Commerce
 en,Търговски маршрути,Trade routes
 en,Търговски,Trade
+en,Видове търговски условия,Types of trade conditions
+en,Търговски условия по държави,Trade conditions by country
+en,Търг. условия,Trade cond.
 en,Търсен,Searched
 en,Търсене на док_9b38e,Documents search
 en,Търсене на лица,Search persons
@@ -2272,8 +2277,10 @@ en,всички,all
 en,входящ документ,Incoming Document
 en,входящ имейл,incoming email
 en,г,g
+en,г/м2,g/m2
 en,год.,years
 en,години,years
+en,гр,g
 en,група файлове,File List
 en,дата,date
 en,дебит,debit
@@ -2322,6 +2329,7 @@ en,квадратен сантиметър,square centimeter
 en,кг,kg
 en,кг/м3,kg/m3
 en,келвин,kelvin
+en,киловар,kilovar
 en,киловатчас,kilowatt-hour
 en,килограм на кубичен метър,kilogram per cubic meter
 en,килограм,kilogram
@@ -2462,6 +2470,7 @@ en,хиляди бройки,thousand pieces
 en,цените са в,prices are in
 en,ценоразпис,Price list
 en,циркулярни кон_6939,circulars contacts
+en,ч,h
 en,час,hour
 en,часа,hours
 en,чрез,via
@@ -3119,6 +3128,27 @@ en,Произвеждане в,Manufacturing in
 en,Влагане от,Materials from
 en,От папката,From the folder
 en,Задание за производство,Production job
+en,Задание за производство/разпад,Production/Disassembly job
+en,Задание за разпад,Disassembly job
+en,Задания за производство,Production jobs
+en,Задания за разпад,Disassembly jobs
+en,Разпад,Disassembly
+en,разпад,disassembly
+en,Разпаднато,Disassembled
+en,Неразпаднато,Not disassembled
+en,Протокол за разпад,Disassembly note
+en,Протоколи за разпад,Disassembly notes
+en,Детайли на протокола за разпад,Disassembly note details
+en,артикул за разпад,item for disassembly
+en,произведен артикул,produced item
+en,Произведен артикул,Produced item
+en,Произведени артикули,Produced items
+en,Артикул за разпад,Item for disassembly
+en,Артикули за разпад,Items for disassembly
+en,Добавяне на артикула за разпад,Add new item for disassembly
+en,Добавяне на произведен артикул,Add new produced item
+en,Създаване на протокол за разпад,Create disassembly note
+en,Създаване на протокол за разпад от заданието,Create disassembly note from the job
 en,Втора мярка,Second measure
 en,Ед. тегло,Unit weight
 en,Очаквано още,Expected remaining
@@ -3262,6 +3292,7 @@ en,Субпродукт,By-product
 en,субпродукт,By-product
 en,Субпродукти,By-products
 en,в склад,in store
+en,В склад,In store
 en,Засклаждане на продукт,Product storage
 en,срок до,date to
 en,Етапи в производството,Production steps
@@ -3318,4 +3349,13 @@ en,Връщане на аванс от Доставчик,Refund of advance from
 en,Връщане на аванс от Доставчик,Refund of advance from Supplier
 en,Прихващане на вземания,Offsetting of receivables
 en,Прихващане на задължение,Offsetting of liability
-
+en,Не може да се о_824b3,Cannot determine the cost price because no materials are specified
+en,Меню за,Menu for
+en,Меню,Menu
+en,на Кантината,at the canteen
+en,Приемане,Receiving
+en,Предаване,Handing over
+en,Наш артикул,Our item
+en,Чужд артикул,Third-party item
+en,Амбалаж,Packaging
+en,Нов документ в,New document in

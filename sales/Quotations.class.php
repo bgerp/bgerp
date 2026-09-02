@@ -182,7 +182,7 @@ class sales_Quotations extends deals_QuotationMaster
     {
         parent::setQuotationFields($this);
         $this->FLD('expectedTransportCost', 'double', 'input=none,caption=Очакван транспорт');
-        $this->FLD('bankAccountId', 'key(mvc=bank_OwnAccounts,select=title,allowEmpty,maxRadio=0)', 'caption=Плащане->Банкова с-ка,after=paymentMethodId');
+        $this->FLD('bankAccountId', 'key(mvc=bank_OwnAccounts,select=title,allowEmpty)', 'caption=Плащане->Банкова с-ка,after=paymentMethodId');
 
         $this->FNC('row1', 'complexType(left=Количество,right=Цена)', 'caption=Детайли->Количество / Цена');
         $this->FNC('row2', 'complexType(left=Количество,right=Цена)', 'caption=Детайли->Количество / Цена');
@@ -217,7 +217,7 @@ class sales_Quotations extends deals_QuotationMaster
         }
         $form->setOptions('bankAccountId', $options);
 
-        if (isset($rec->originId) && $data->action != 'clone' && empty($form->rec->id)) {
+        if (isset($rec->originId) && ($data->action ?? null) != 'clone' && empty($form->rec->id)) {
             
             // Ако офертата има ориджин
             $origin = doc_Containers::getDocument($rec->originId);
@@ -227,9 +227,9 @@ class sales_Quotations extends deals_QuotationMaster
                 
                 if($Driver = $origin->getDriver()){
                     $quantitiesArr = $Driver->getQuantitiesForQuotation($origin->getInstance(), $origin->fetch());
-                    $form->setDefault('row1', $quantitiesArr[0]);
-                    $form->setDefault('row2', $quantitiesArr[1]);
-                    $form->setDefault('row3', $quantitiesArr[2]);
+                    $form->setDefault('row1', $quantitiesArr[0] ?? null);
+                    $form->setDefault('row2', $quantitiesArr[1] ?? null);
+                    $form->setDefault('row3', $quantitiesArr[2] ?? null);
                 }
             }
         }
@@ -303,8 +303,8 @@ class sales_Quotations extends deals_QuotationMaster
                 foreach (range(1, 3) as $i) {
                     
                     // Ако има дефолтно количество
-                    $quantity = $rec->{"quantity{$i}"};
-                    $price = $rec->{"price{$i}"};
+                    $quantity = $rec->{"quantity{$i}"} ?? null;
+                    $price = $rec->{"price{$i}"} ?? null;
                     if (!$quantity) {
                         continue;
                     }
@@ -364,7 +364,7 @@ class sales_Quotations extends deals_QuotationMaster
             $items = $mvc->getItems($rec->id, true, true);
             
             if (is_array($items)) {
-                $row->transportCurrencyId = $row->currencyId;
+                $row->transportCurrencyId = $row->currencyId ?? $mvc->getVerbal($rec, 'currencyId');
                 
                 $hiddenTransportCost = sales_TransportValues::calcInDocument($mvc, $rec->id);
                 $expectedTransportCost = $mvc->getExpectedTransportCost($rec);
@@ -401,7 +401,7 @@ class sales_Quotations extends deals_QuotationMaster
                 $deliveryTermTime = $mvc->calcDeliveryTime($rec);
                 if (isset($deliveryTermTime)) {
                     $deliveryTermTime = cls::get('type_Time')->toVerbal($deliveryTermTime);
-                    $deliveryTermTime = "<span style='color:blue'>{$deliveryTermTime}</span>";
+                    $deliveryTermTime = "<span class='blueText'>{$deliveryTermTime}</span>";
                     $row->deliveryTermTime = ht::createHint($deliveryTermTime, 'Времето за доставка се изчислява динамично възоснова мястото за доставка, артикулите в договора и нужното време за подготовка|*!');
                 }
             }
@@ -685,7 +685,7 @@ class sales_Quotations extends deals_QuotationMaster
 
                 if (!isset($dRec->term)) {
                     if ($term = cat_Products::getDeliveryTime($dRec->productId, $dRec->quantity)) {
-                        if ($deliveryTime = sales_TransportValues::get('sales_Quotations', $dRec->quotationId, $dRec->id)->deliveryTime) {
+                        if ($deliveryTime = sales_TransportValues::get('sales_Quotations', $dRec->quotationId, $dRec->id)->deliveryTime ?? null) {
                             $term += $deliveryTime;
                         }
                         $dRec->term = $term;

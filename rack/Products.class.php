@@ -208,7 +208,7 @@ class rack_Products extends store_Products
         $inIds = arr::extractValuesFromArray($query->fetchAll(), 'productId');
         
         // Подсигуряване че конкретните артикули, ще са винаги заредени в опциите
-        if(ctype_digit($onlyIds) && !array_key_exists($onlyIds, $inIds)){
+        if(ctype_digit((string) $onlyIds) && !array_key_exists($onlyIds, $inIds)){
             $inIds[$onlyIds] = $onlyIds;
         }
         
@@ -223,11 +223,11 @@ class rack_Products extends store_Products
             $ids = implode(',', $inIds);
             $ids = trim($ids, ',');
             expect(preg_match("/^[0-9\,]+$/", $ids), $ids, $inIds);
-            $pQuery->where("#id IN (${ids})");
+            $pQuery->where("#id IN ({$ids})");
         } elseif (ctype_digit("{$inIds}")) {
-            $pQuery->where("#id = ${onlyIds}");
+            $pQuery->where("#id = {$onlyIds}");
         } elseif (preg_match("/^[0-9\,]+$/", $inIds)) {
-            $pQuery->where("#id IN (${onlyIds})");
+            $pQuery->where("#id IN ({$onlyIds})");
         }
 
         cat_Products::addSearchQueryToKey2SelectArr($pQuery, $q, $limit);
@@ -360,6 +360,7 @@ class rack_Products extends store_Products
         }
 
         // Ако складовете са повече от един да се показва филтър
+        $form = null;
         if($count > 1){
             $storeOptions = array();
             foreach ($storesWithRacks as $storeId){
@@ -501,7 +502,9 @@ class rack_Products extends store_Products
         });
 
         $url = getCurrentUrl();
-        $url["storeId{$data->masterId}"] = $form->rec->{"storeId{$data->masterId}"};
+        if(isset($form->rec->{"storeId{$data->masterId}"})){
+            $url["storeId{$data->masterId}"] = $form->rec->{"storeId{$data->masterId}"};
+        }
 
         // Подготвяме страницирането
         $pager = cls::get('core_Pager', array('itemsPerPage' => 20, 'url' => toUrl($url)));
@@ -544,10 +547,7 @@ class rack_Products extends store_Products
                 if(!empty($rec->batch)){
                     $row->batch = $batchDef->toVerbal($rec->batch);
                     if (batch_Movements::haveRightFor('list')) {
-                        $link = array('batch_Movements', 'list', 'batch' => $rec->batch);
-                        if (isset($fields['-list'])) {
-                            $link += array('productId' => $rec->productId, 'storeId' => $rec->storeId);
-                        }
+                        $link = array('batch_Movements', 'list', 'batch' => $rec->batch, 'productId' => $data->masterId, 'storeId' => $rec->storeId);
                         $row->batch = ht::createLink($row->batch, $link);
                     }
                 } else {
@@ -572,7 +572,7 @@ class rack_Products extends store_Products
      */
     public function renderPallets_($data)
     {
-        if($data->hide) return new core_ET("");
+        if (!empty($data->hide)) return new core_ET("");
 
         $tpl = getTplFromFile('rack/tpl/PalletDetail.shtml');
         if(isset($data->form)){

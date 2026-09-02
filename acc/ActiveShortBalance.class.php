@@ -157,6 +157,9 @@ class acc_ActiveShortBalance
                     }
 
                     $b = &$balance[$index];
+                    
+                    // Записите, дошли от предходния баланс, са само с началните салда (@see getBalanceBefore)
+                    $b += array('debitQuantity' => 0, 'debitAmount' => 0, 'creditQuantity' => 0, 'creditAmount' => 0, 'blQuantity' => 0, 'blAmount' => 0);
 
                     if (!isset($sysIds[$accId])) {
                         $sysIds[$accId] = acc_Accounts::fetchField($accId, 'systemId');
@@ -598,8 +601,8 @@ class acc_ActiveShortBalance
         }
 
         $lastArr = end($history);
-        $blQuantity = (countR($history)) ? $lastArr['blQuantity'] : ($calcedBalance[$indexArr]['blQuantity'] ?? 0);
-        $blAmount = (countR($history)) ? $lastArr['blAmount'] : ($calcedBalance[$indexArr]['blAmount'] ?? 0);
+        $blQuantity = $lastArr['blQuantity'] ?? ($calcedBalance[$indexArr]['blQuantity'] ?? 0);
+        $blAmount = $lastArr['blAmount'] ?? ($calcedBalance[$indexArr]['blAmount'] ?? 0);
 
         $summary = array(
             'baseQuantity' => $calcedBalance[$indexArr]['baseQuantity'] ?? 0,

@@ -82,7 +82,7 @@ class core_String
      */
     public static function mbUcfirst($string)
     {
-        $string = trim($string);
+        $string = trim($string ?? '');
         $string = mb_strtoupper(mb_substr($string, 0, 1)) . mb_substr($string, 1);
         
         return $string;
@@ -363,6 +363,8 @@ class core_String
      */
     public static function convertToFixedKey($str, $length = 64, $md5Len = 32, $separator = '_', $byChars = false)
     {
+        $str = $str ?? '';
+
         // --- Символен режим (mb_*) ---
         if ($byChars) {
             if (mb_strlen($str, 'UTF-8') <= $length) {
@@ -675,6 +677,9 @@ class core_String
     {
         $flagHtml = false;
         $pointer = 0;
+        $lastLen = false;
+        $lastTag = '';
+        $out = (string) $out;
         setIfNot($deviders, array(' ', ',', '"', '\'', ';', '[', ']', '.', '<', '>', "\n", "\r", "\t", ':', '?', '!', '-', '(', ')', '“', '„', '…', '&', '_', '/', '=', '+', '*'));
         
         $res = array();
@@ -715,6 +720,14 @@ class core_String
             }
             
             $out .= $c;
+        }
+
+        if (!$flagHtml && $lastLen !== false && $lastLen < strlen($out)) {
+            $res[] = substr($out, $lastLen);
+
+            if ($callback) {
+                call_user_func_array($callback, array(&$out, $lastLen, $lastTag));
+            }
         }
         
         return $res;
@@ -886,6 +899,8 @@ class core_String
      */
     public static function prepareMathExpr($expr, $contex = array())
     {  
+        $expr = ($expr === null || $expr === false) ? '' : (string) $expr;
+        
         // Ако има променливи, заместваме ги в израза
         if (countR($contex)) {
             uksort($contex, 'str::sortByLengthReverse');
@@ -934,23 +949,31 @@ class core_String
             $expr = self::prepareMathExpr($expr);
         }
        
-        if (strlen($expr)) {
-            set_error_handler(function ($errno, $errstr) {
-                throw new Exception("{$errno}: {$errstr}");
-            });
-            try {
-                eval('$result = ' . $expr . ';');
-            } catch (Exception $t) {
-                $error = $t->getMessage();
-                $result = null;
-                $success = false;
-            } catch (Throwable $t) {
-                $error = $t->getMessage();
-                $result = null;
-                $success = false;
-            }
-            restore_error_handler();
+        $result = null;
+        $expr = ($expr === false || $expr === null) ? '' : (string) $expr;
+        
+        // Ако изразът е невалиден или празен, няма какво да се смята
+        if (!strlen($expr)) {
+            $success = false;
+            
+            return $result;
         }
+        
+        set_error_handler(function ($errno, $errstr) {
+            throw new Exception("{$errno}: {$errstr}");
+        });
+        try {
+            eval('$result = ' . $expr . ';');
+        } catch (Exception $t) {
+            $error = $t->getMessage();
+            $result = null;
+            $success = false;
+        } catch (Throwable $t) {
+            $error = $t->getMessage();
+            $result = null;
+            $success = false;
+        }
+        restore_error_handler();
         
         return $result;
     }
@@ -1039,7 +1062,8 @@ class core_String
      */
     public static function unichr($u)
     {
-        return mb_convert_encoding('&#' . intval($u) . ';', 'UTF-8', 'HTML-ENTITIES');
+        // Запазваме старото numeric-entity поведение без deprecated `HTML-ENTITIES`
+        return mb_decode_numericentity('&#' . intval($u) . ';', array(0, 0x10FFFF, 0, 0xFFFFFF), 'UTF-8');
     }
     
     
@@ -1175,7 +1199,7 @@ class core_String
      */
     public static function removeWhiteSpace($string, $replace = '')
     {
-        return preg_replace('/\s+/', $replace, $string);
+        return preg_replace('/\s+/', $replace, $string ?? '');
     }
 
 

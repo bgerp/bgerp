@@ -57,7 +57,7 @@ class planning_reports_MaterialsImpl extends frame_BaseDriver
     public function addEmbeddedFields(core_FieldSet &$form)
     {
         $form->FLD('time', 'time(suggestions=на момента|1 седмица|2 седмица|3 седмица|4 седмиц|)', 'caption=Хоризонт');
-        $form->FLD('store', 'key(mvc=store_Stores, select=name, allowEmpty)', 'caption=Склад');
+        $form->FLD('store', 'key(mvc=store_Stores, select=name, allowEmpty)', 'caption=Склад,placeholderType=all');
         
         $this->invoke('AfterAddEmbeddedFields', array($form));
     }
@@ -141,7 +141,7 @@ class planning_reports_MaterialsImpl extends frame_BaseDriver
         $mArr = array();
         foreach ($materials as $material) {
             foreach ($material as $product => $productRec) {
-                $mArr[$product] += $productRec['quantity'];
+                $mArr[$product] = ($mArr[$product] ?? 0) + $productRec['quantity'];
             }
         }
         
@@ -154,10 +154,11 @@ class planning_reports_MaterialsImpl extends frame_BaseDriver
                 if (isset($storeId)) {
                     $store = store_Products::fetchField("#productId = {$index} AND #storeId = {$storeId}", 'quantity');
                 } else {
+                    $store = array();
                     $storeQuery = store_Products::getQuery();
                     $storeQuery->where("#productId = {$index}");
                     while ($storeRec = $storeQuery->fetch()) {
-                        $store[$storeRec->productId] += $storeRec->quantity;
+                        $store[$storeRec->productId] = ($store[$storeRec->productId] ?? 0) + $storeRec->quantity;
                     }
                 }
                 
@@ -283,7 +284,7 @@ class planning_reports_MaterialsImpl extends frame_BaseDriver
         
         $tpl->append($table->get($data->rows, $data->listFields), 'CONTENT');
         
-        if ($data->pager) {
+        if (!empty($data->pager)) {
             $tpl->append($data->pager->getHtml(), 'PAGER');
         }
         

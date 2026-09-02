@@ -64,7 +64,7 @@ class type_Double extends core_Type
      */
     public function fromVerbal($value)
     {
-        $value = trim($value);
+        $value = trim($value ?? '');
         
         $allowOct = (boolean) (($this->params['allowOct'] ?? null) == 'allowOct');
         $allowHex = (boolean) (($this->params['allowHex'] ?? null) == 'allowHex');
@@ -109,7 +109,7 @@ class type_Double extends core_Type
         if (empty($value)) {
             $value = '0';
         }
-        $code = "\$val = ${value};";
+        $code = "\$val = {$value};";
         
         // Шаблон за намиране на повтарящи се знаци или изрази, които започват и/или завършват с тях
         $signP = '(\*|\/|\+|\-|\.|\,)';
@@ -158,7 +158,7 @@ class type_Double extends core_Type
     public function renderInput_($name, $value = '', &$attr = array())
     {
         // Ако числото е в научна нотация и полето не се рендира във форма с грешка да не се ревербализира
-        if(preg_match('/^\$?[+-]?\d+(\.\d+)?[Ee][+-]?\d+$/i', $value)){
+        if(preg_match('/^\$?[+-]?\d+(\.\d+)?[Ee][+-]?\d+$/i', (string) $value)){
             if(!$this->formWithErrors){
                 $value = rtrim(sprintf("%.9f", $value), "0");
             }
@@ -179,7 +179,7 @@ class type_Double extends core_Type
      */
     public function toVerbal($value)
     {
-        if (!strlen($value)) {
+        if ($value === null || !strlen($value)) {
             
             return;
         }

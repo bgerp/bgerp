@@ -24,6 +24,12 @@ class core_Query extends core_FieldSet
 
 
     /**
+     * Дали заявката е бавна
+     */
+    public $isSlowQuery = false;
+
+
+    /**
      *
      */
     protected $useExpr = false;
@@ -394,7 +400,7 @@ class core_Query extends core_FieldSet
                 // Добавя се леко изчакване за да не се заключва цялата таблица за дълго
                 usleep(rand(100000, 200000));
                 $clone = clone $this;
-                $clone->XPR('gCount', 'int', "SUM(LOCATE('|" . $id . "|', ${mysqlKeylistName}) > 0)");
+                $clone->XPR('gCount', 'int', "SUM(LOCATE('|" . $id . "|', {$mysqlKeylistName}) > 0)");
                 $clone->show('gCount');
                 $res[$id] = $clone->fetch()->gCount;
             }
@@ -404,7 +410,7 @@ class core_Query extends core_FieldSet
 
         // Иначе с една заявка
         foreach ($ids as $id) {
-            $this->XPR($keylistName . '_cnt_' . $id, 'int', "SUM(LOCATE('|" . $id . "|', ${mysqlKeylistName}) > 0)");
+            $this->XPR($keylistName . '_cnt_' . $id, 'int', "SUM(LOCATE('|" . $id . "|', {$mysqlKeylistName}) > 0)");
         }
         $rec = $this->fetch();
         foreach ($ids as $id) {
@@ -559,10 +565,10 @@ class core_Query extends core_FieldSet
             
             if (is_int($f)) {
                 $order->field = $d;
-                $order->direction = $direction;
+                $order->direction = $direction ?? '';
             } else {
                 $order->field = $f;
-                $order->direction = $d;
+                $order->direction = $d ?? '';
             }
             
             $order->priority = -$priority + countR($this->orderBy) / 100;
@@ -1365,14 +1371,14 @@ class core_Query extends core_FieldSet
     {
         //$key = Mode::getProcessKey();
         
-        $exp = $arr[0] ?? null;
+        $exp = $arr[0] ?? '';
 
         $a = $c = array();
         $cntArr = countR($arr);
         for ($i = 1; $i < $cntArr; $i++) {
             $a[] = "[#{$i}#]";
            // $b[] = "[#{$i}{$key}#]";
-            $c[] = $this->mvc->db->escape($arr[$i]);
+            $c[] = $this->mvc->db->escape($arr[$i] ?? null);
         }
         
         $exp = str_replace($a, $c, $exp);

@@ -199,7 +199,7 @@ class pos_Reports extends core_Master
     protected static function on_BeforeRecToVerbal($mvc, &$row, $rec, $fields)
     {
         // Ако няма записани детайли извличаме актуалните
-        if (!$rec->details) {
+        if (empty($rec->details)) {
             $mvc->extractData($rec);
         }
     }
@@ -213,7 +213,7 @@ class pos_Reports extends core_Master
         $row->title = $mvc->getLink($rec->id, 0);
         $row->pointId = pos_Points::getHyperLink($rec->pointId, true);
 
-        $dates = arr::extractValuesFromArray($rec->details['receipts'], 'createdOn');
+        $dates = arr::extractValuesFromArray($rec->details['receipts'] ?? array(), 'createdOn');
         if(countR($dates)){
             $fromDate = min($dates);
             $toDate = max($dates);
@@ -224,7 +224,7 @@ class pos_Reports extends core_Master
         
         if (isset($fields['-single'])) {
             $valiorToBe = $mvc->getFieldType('valior')->toVerbal(dt::today());
-            $row->valior = (isset($rec->valior)) ? $row->valior : ((Mode::is('printing') || Mode::is('text', 'xhtml') || !in_array($rec->state, array('draft', 'pending'))) ? $valiorToBe : ht::createHint("<span style='color:blue'>{$valiorToBe}</span>", 'Вальорът ще бъде записан при контиране|*!'));
+            $row->valior = (isset($rec->valior)) ? $row->valior : ((Mode::is('printing') || Mode::is('text', 'xhtml') || !in_array($rec->state, array('draft', 'pending'))) ? $valiorToBe : ht::createHint("<span class='blueText'>{$valiorToBe}</span>", 'Вальорът ще бъде записан при контиране|*!'));
 
             $pointRec = pos_Points::fetch($rec->pointId);
             $row->caseId = cash_Cases::getHyperLink($pointRec->caseId, true);
@@ -263,7 +263,7 @@ class pos_Reports extends core_Master
             }
 
             $query = $mvc->getReceiptQuery($rec);
-            $query->show('waitingOn');
+            $query->show('id,waitingOn,createdOn');
             if(!$query->count()){
                 $form->setError('valior','Няма чакащи (неприключени) бележки с избрания или по-малък вальор|*!');
             } else {
@@ -391,7 +391,7 @@ class pos_Reports extends core_Master
 
         // Сумиране по плащания на клиентите
         $data->statisticArr = array();
-        $receiptIds = arr::extractValuesFromArray($detail->receipts, 'id');
+        $receiptIds = arr::extractValuesFromArray($detail->receipts ?? array(), 'id');
         $rQuery = pos_ReceiptDetails::getQuery();
         $rQuery->EXT('createdReceiptBy', 'pos_Receipts', 'externalName=createdBy,externalKey=receiptId');
         $rQuery->EXT('waitingReceiptBy', 'pos_Receipts', 'externalName=waitingBy,externalKey=receiptId');
@@ -413,7 +413,8 @@ class pos_Reports extends core_Master
         $summedPayments = $change = array();
         $rDetails = $rQuery->fetchAll();
         foreach ($rDetails as $rRec1){
-            $key = "{$rRec1->receiptId}|{$rRec1->deviceId}|{$rRec1->action}";
+            $deviceId = $rRec1->deviceId ?? null;
+            $key = "{$rRec1->receiptId}|{$deviceId}|{$rRec1->action}";
             if(!array_key_exists($key, $summedPayments)){
                 $summedPayments[$key] = $rRec1;
             } else {
@@ -423,9 +424,9 @@ class pos_Reports extends core_Master
         }
 
         foreach ($summedPayments as &$rRec){
-            $action = explode('|', $rRec->action);
+            $action = array_pad(explode('|', $rRec->action, 2), 2, '-1');
             if($action[1] == -1 || $action[1] == $bgnPaymentId){
-                if($change[$rRec->receiptId]){
+                if(!empty($change[$rRec->receiptId])){
                     $changeAmount = $change[$rRec->receiptId];
                     if($action[1] == $bgnPaymentId){
                         $changeAmount =currency_CurrencyRates::convertAmount($changeAmount, $rRec->createdOn, null, 'BGN');
@@ -452,7 +453,7 @@ class pos_Reports extends core_Master
             }
 
             if($action[1] == $cardPaymentId){
-                if($rRec->deviceId){
+                if(!empty($rRec->deviceId)){
                     if (!array_key_exists("{$action[1]}|{$rRec->deviceId}", $data->statisticArr[$rRec->calcedUser]->payments)) {
                         $data->statisticArr[$rRec->calcedUser]->payments["{$action[1]}|{$rRec->deviceId}"] = (object)array('value' => $action[1], 'amount' => 0, 'deviceId' => $rRec->deviceId);
                     }
@@ -575,9 +576,18 @@ class pos_Reports extends core_Master
             $data = pos_ReceiptDetails::fetchReportData($rec->id);
 
             foreach ($data as $obj) {
-                $indexArr = array($obj->action, $obj->pack, $obj->contragentClassId, $obj->contragentId, $obj->value, $obj->param, $obj->storeId, $obj->userId);
+                $indexArr = array(
+                    $obj->action ?? null,
+                    $obj->pack ?? null,
+                    $obj->contragentClassId ?? null,
+                    $obj->contragentId ?? null,
+                    $obj->value ?? null,
+                    $obj->param ?? null,
+                    $obj->storeId ?? null,
+                    $obj->userId ?? null,
+                );
                 if(core_Packs::isInstalled('batch')){
-                    $indexArr[] = str_replace('|', '>', $obj->batch);
+                    $indexArr[] = str_replace('|', '>', $obj->batch ?? '');
                 }
                 
                 $index = implode('|', $indexArr);
@@ -600,7 +610,7 @@ class pos_Reports extends core_Master
      */
     protected static function on_BeforeSave(core_Manager $mvc, $res, $rec)
     {
-        if ($rec->state == 'active' && $rec->brState != 'closed') {
+        if (($rec->state ?? null) == 'active' && ($rec->brState ?? null) != 'closed') {
             
             // Ако няма записани детайли извличаме актуалните
             $mvc->extractData($rec);
@@ -637,7 +647,7 @@ class pos_Reports extends core_Master
         $id = is_object($rec) ? $rec->id : $rec;
         $rec = $this->fetch($id, '*', false);
        
-        if(countR($rec->details['receiptDetails'])){
+        if(countR($rec->details['receiptDetails'] ?? array())){
             $affectedProducts = array();
             array_walk($rec->details['receiptDetails'], function ($a) use (&$affectedProducts){if($a->action == 'sale') {$affectedProducts[$a->value] = $a->value;}});
             
@@ -687,7 +697,12 @@ class pos_Reports extends core_Master
         $rQuery->where("#pointId = {$rec->pointId} AND #state = 'draft' AND #total = 0");
         
         // Оттегляме само тези чернови чиято дата е преди тази на последната активна бележка
-        $lastReceiptDate = $rec->details['receipts'][countR($rec->details['receipts']) - 1]->createdOn;
+        $receipts = $rec->details['receipts'] ?? array();
+        if (!countR($receipts)) {
+            return;
+        }
+
+        $lastReceiptDate = $receipts[countR($receipts) - 1]->createdOn;
         $rQuery->where("#valior < '{$lastReceiptDate}'");
         
         $count = $rQuery->count();
@@ -713,7 +728,7 @@ class pos_Reports extends core_Master
             // Всяка бележка в репорта се "затваря"
             $count = 0;
             $Receipts = cls::get('pos_Receipts');
-            foreach ($rec->details['receipts'] as $receiptRec) {
+            foreach ($rec->details['receipts'] ?? array() as $receiptRec) {
                 $state = pos_Receipts::fetchField($receiptRec->id, 'state');
                 if ($state == $nextState) {
                     continue;
@@ -721,7 +736,7 @@ class pos_Reports extends core_Master
                 
                 $receiptRec->modifiedBy = core_Users::getCurrent();
                 $receiptRec->modifiedOn = dt::now();
-                $receiptRec->exState = $receiptRec->state;
+                $receiptRec->exState = $state;
                 $receiptRec->state = $nextState;
 
                 $Receipts->save($receiptRec, 'state,modifiedOn,modifiedBy,exState');
@@ -956,7 +971,7 @@ class pos_Reports extends core_Master
         $personIds = arr::extractValuesFromArray($pQuery->fetchAll(), 'personId');
         $personClassId = crm_Persons::getClassId();
 
-        if(is_array($rec->details['receiptDetails'])){
+        if(is_array($rec->details['receiptDetails'] ?? null)){
             foreach ($rec->details['receiptDetails'] as $dRec){
                 if($dRec->action != 'sale') continue;
                 
@@ -1038,7 +1053,7 @@ class pos_Reports extends core_Master
         // Опитваме се да намерим репорта в който е приключена бележката
         //@TODO не е много оптимално защото търсим в блоб поле...
         while ($rRec = $reportQuery->fetch()) {
-            $found = array_filter($rRec->details['receipts'], function ($e) use (&$receiptId) {
+            $found = array_filter($rRec->details['receipts'] ?? array(), function ($e) use (&$receiptId) {
 
                 return $e->id == $receiptId;
             });

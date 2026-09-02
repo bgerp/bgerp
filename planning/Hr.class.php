@@ -118,6 +118,12 @@ class planning_Hr extends core_Master
      */
     public function on_CalcCenters(core_Mvc $mvc, $rec)
     {
+        if (empty($rec->id)) {
+            $rec->centers = null;
+
+            return;
+        }
+
         $folderQuery = planning_AssetResourceFolders::getQuery();
         $folderQuery->where("#classId={$this->getClassId()} AND #objectId = {$rec->id}");
         $folderQuery->show('folderId');
@@ -167,7 +173,7 @@ class planning_Hr extends core_Master
      */
     protected static function on_BeforeSave(core_Manager $mvc, $res, $rec)
     {
-        if (empty($rec->code)) {
+        if (isset($rec->personId) && empty($rec->code)) {
             $rec->code = self::getDefaultCode($rec->personId);
         }
     }
@@ -180,7 +186,7 @@ class planning_Hr extends core_Master
     {
         $rec = $data->form->rec;
         if (isset($rec->personId)) {
-            $data->form->title = core_Detail::getEditTitle('crm_Persons', $rec->personId, 'служебната информация', $rec->id, $mvc->formTitlePreposition);
+            $data->form->title = core_Detail::getEditTitle('crm_Persons', $rec->personId, 'служебната информация', $rec->id ?? null, $mvc->formTitlePreposition);
         }
     }
     
@@ -206,11 +212,11 @@ class planning_Hr extends core_Master
         $rec = $form->rec;
         
         if ($form->isSubmitted()) {
-            $rec->code = strtoupper($rec->code);
+            $rec->code = strtoupper((string) ($rec->code ?? ''));
             
-            if ($personId = $mvc->fetchField(array("#code = '[#1#]' AND #personId != {$rec->personId}", $rec->code), 'personId')) {
+            if (isset($rec->personId) && $personId = $mvc->fetchField(array("#code = '[#1#]' AND #personId != {$rec->personId}", $rec->code), 'personId')) {
                 $personLink = crm_Persons::getHyperlink($personId, true);
-                $form->setError($personId, "Номерът е зает от|* {$personLink}");
+                $form->setError('code', "Номерът е зает от|* {$personLink}");
             }
         }
     }
@@ -230,12 +236,14 @@ class planning_Hr extends core_Master
             $row->ROW_ATTR['class'] = "state-{$personState}";
             $row->personId = crm_Persons::getHyperlink($rec->personId, true);
             
-            if (!crm_Persons::isInGroup($rec->personId, 'employees')) {
+            if (isset($row->code) && !crm_Persons::isInGroup($rec->personId, 'employees')) {
                 $row->code = ht::createHint($row->code, "Лицето вече не е в група 'Служители", 'warning', false);
             }
         }
         
-        $row->created = "{$row->createdOn} " . tr('от') . " {$row->createdBy}";
+        if (isset($row->createdOn, $row->createdBy)) {
+            $row->created = "{$row->createdOn} " . tr('от') . " {$row->createdBy}";
+        }
     }
     
     
@@ -276,11 +284,13 @@ class planning_Hr extends core_Master
         $tpl = getTplFromFile('crm/tpl/HrDetail.shtml');
         $tpl->append(tr('Служебен код') . ':', 'resTitle');
         
-        if($data->row->_rowTools instanceof core_RowToolbar){
-            $data->row->code_toolbar = $data->row->_rowTools->renderHtml();
-        }
+        if (isset($data->row)) {
+            if (isset($data->row->_rowTools) && $data->row->_rowTools instanceof core_RowToolbar) {
+                $data->row->code_toolbar = $data->row->_rowTools->renderHtml();
+            }
 
-        $tpl->placeObject($data->row);
+            $tpl->placeObject($data->row);
+        }
         
         if ($eRec = hr_EmployeeContracts::fetch("#personId = {$data->masterId} AND #state = 'active'")) {
             $tpl->append(hr_EmployeeContracts::getHyperlink($eRec->id, true), 'contract');
@@ -410,10 +420,9 @@ class planning_Hr extends core_Master
             $objectIds = arr::extractValuesFromArray($fQuery->fetchAll(), 'objectId');
 
             $query = static::getQuery();
-            $query->EXT('groupList', 'crm_Persons', 'externalName=groupList,externalKey=personId');
             $query->EXT('state', 'crm_Persons', 'externalName=state,externalKey=personId');
             $query->EXT('name', 'crm_Persons', 'externalName=name,externalKey=personId');
-            $query->like('groupList', "|{$employeeGroupId}|");
+            plg_ExpandInput::applyExtendedInputSearch('crm_Persons', $query, $employeeGroupId, 'personId');
             $query->where("#state != 'rejected' && #state != 'closed'");
 
             $query->show('personId,code');
@@ -449,7 +458,7 @@ class planning_Hr extends core_Master
      */
     protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
-        $data->listFilter->FLD('centerId', 'key(mvc=planning_Centers,select=name,allowEmpty)', 'caption=Център на дейност');
+        $data->listFilter->FLD('centerId', 'key(mvc=planning_Centers,select=name,allowEmpty)', 'caption=Център на дейност,placeholderType=all');
         $data->listFilter->FLD('order', 'enum(active=Активни,notActive=Неактивни)', 'caption=Показване');
         $data->listFilter->setDefault('order', 'active');
         $data->listFilter->showFields = 'search,centerId,order';
@@ -525,13 +534,15 @@ class planning_Hr extends core_Master
      */
     protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec, &$fields = null, $mode = null)
     {
+        if (!isset($rec->centers)) return;
+
         $syncFolders = keylist::toArray($rec->centers);
         if(countR($syncFolders)){
             $AssetFolders = cls::get('planning_AssetResourceFolders');
             
             // Досегашните записи
             $aQuery = $AssetFolders->getQuery();
-            $aQuery->where("#classId = {$mvc->getClassId()} AND #objectId = {$rec->id}");
+            $aQuery->where("#classId = {$mvc->getClassId()} AND #objectId = {$id}");
             $aQuery->show('folderId');
             $alreadyIn = array();
             while($aRec = $aQuery->fetch()){
@@ -540,7 +551,7 @@ class planning_Hr extends core_Master
            
             // Обновяват се
             foreach ($syncFolders as $folderId){
-                $dRec = (object) array('classId' => $mvc->getClassId(), 'objectId' => $rec->id, 'folderId' => $folderId);
+                $dRec = (object) array('classId' => $mvc->getClassId(), 'objectId' => $id, 'folderId' => $folderId);
                 $fields = $exRec = null;
                 if ($AssetFolders->isUnique($dRec, $fields, $exRec)) {
                     $AssetFolders->save($dRec);
@@ -551,8 +562,8 @@ class planning_Hr extends core_Master
             
             // Тези, които не са се обновили се изтриват
             if(countR($alreadyIn)){
-                foreach ($alreadyIn as $id){
-                    $AssetFolders->delete($id);
+                foreach ($alreadyIn as $assetFolderId){
+                    $AssetFolders->delete($assetFolderId);
                 }
             }
         }
@@ -570,7 +581,6 @@ class planning_Hr extends core_Master
      */
     public static function getPersonsCodesArr($arr, $withLinks = false, $codesAsKeys = false)
     {
-        $res = $tempKeys = $codes = array();
         $res = $tempKeys = $codes = array();
         $arr = (keylist::isKeylist($arr)) ? keylist::toArray($arr) : arr::make($arr, true);
         if (empty($arr)) return $res;
@@ -616,7 +626,7 @@ class planning_Hr extends core_Master
      */
     public static function parseStringToKeylist($string)
     {
-        $string = trim($string);
+        $string = trim((string) $string);
         if(empty($string)) return null;
         $string = trim($string, ',');
         $string = str::removeWhiteSpace($string, ',');
@@ -676,7 +686,7 @@ class planning_Hr extends core_Master
      */
     public static function getPersonIdByCode($code)
     {
-        $normalizedCode = strtoupper(trim($code));
+        $normalizedCode = strtoupper(trim((string) $code));
         $personId = planning_Hr::fetchField(array("#code='[#1#]'", $normalizedCode), 'personId');
 
         return (!empty($personId)) ? $personId : null;

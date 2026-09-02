@@ -106,7 +106,7 @@ class planning_AssetResourceFolders extends core_Manager
         $this->prepareListPager($data);
         
         // Името на променливата за страниране на детайл
-        if (is_object($data->pager)) {
+        if (!empty($data->pager)) {
             $data->pager->setPageVar($data->masterMvc->className, $data->masterId, $this->className);
             if (cls::existsMethod($data->masterMvc, 'getHandle')) {
                 $data->pager->addToUrl = array('#' => $data->masterMvc->getHandle($data->masterId));
@@ -119,7 +119,7 @@ class planning_AssetResourceFolders extends core_Manager
         // Подготвяме вербалните стойности за редовете
         $this->prepareListRows($data);
 
-        if($data->masterMvc instanceof planning_AssetResources){
+        if(($data->masterMvc ?? null) instanceof planning_AssetResources){
             foreach ($data->rows as $id => $row){
                 $rec = $data->recs[$id];
             }
@@ -206,9 +206,11 @@ class planning_AssetResourceFolders extends core_Manager
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-        $row->folderId = doc_Folders::getVerbalLinks($rec->folderId, true, true);
-        
-        if ($rec->users) {
+        if (isset($rec->folderId)) {
+            $row->folderId = doc_Folders::getVerbalLinks($rec->folderId, true, true);
+        }
+
+        if (!empty($rec->users)) {
             $row->users = $mvc->fields['users']->type->toVerbal($rec->users);
             
             $usersArr = type_UserList::toArray($rec->users);
@@ -277,7 +279,7 @@ class planning_AssetResourceFolders extends core_Manager
     {
         $rec = $data->form->rec;
         if ($rec->classId) {
-            $data->form->title = core_Detail::getEditTitle($rec->classId, $rec->objectId, $mvc->singleTitle, $rec->id, 'към');
+            $data->form->title = core_Detail::getEditTitle($rec->classId, $rec->objectId, $mvc->singleTitle, $rec->id ?? null, 'към');
         }
     }
 

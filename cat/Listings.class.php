@@ -179,7 +179,8 @@ class cat_Listings extends core_Master
 
         if ($Cover->haveInterface('crm_ContragentAccRegIntf')) {
             $form->setDefault('currencyId', $Cover->getDefaultCurrencyId());
-            $Class = $rec->type == 'canSell' ? 'sales_Sales' : 'purchase_Purchases';
+            $type = $rec->type ?? 'canSell';
+            $Class = $type == 'canSell' ? 'sales_Sales' : 'purchase_Purchases';
             $form->setDefault('vat', ($Cover->shouldChargeVat($Class)) ? 'yes' : 'no');
         }
 
@@ -229,7 +230,7 @@ class cat_Listings extends core_Master
         if (isset($rec->folderId)) {
             $Cover = doc_Folders::getCover($rec->folderId);
             $isPublic = ($Cover->haveInterface('crm_ContragentAccRegIntf')) ? 'no' : 'yes';
-            if($rec->isPublic != $isPublic){
+            if (($rec->isPublic ?? null) != $isPublic) {
                 $rec->isPublic = $isPublic;
                 $mvc->save_($rec, 'isPublic');
             }
@@ -268,7 +269,7 @@ class cat_Listings extends core_Master
 
             if (is_array($instock) && countR($instock)) {
                 $instock = implode(',', $instock);
-                $query->XPR('instock', 'int', "(CASE WHEN #productId IN (${instock}) THEN 0 ELSE 1 END)");
+                $query->XPR('instock', 'int', "(CASE WHEN #productId IN ({$instock}) THEN 0 ELSE 1 END)");
                 $query->orderBy('instock', 'ASC');
             }
 
@@ -332,7 +333,7 @@ class cat_Listings extends core_Master
             return false;
         });
 
-        $firstFound = $res[key($res)];
+        $firstFound = reset($res);
         $reff = (is_object($firstFound)) ? (($firstFound->reff != $firstFound->code) ? $firstFound->reff : null) : null;
         return $reff;
     }
@@ -590,7 +591,7 @@ class cat_Listings extends core_Master
             $ids = implode(',', $onlyIds);
             $pQuery->where("#id IN ({$ids})");
         } elseif (ctype_digit("{$onlyIds}")) {
-            $pQuery->where("#id = ${onlyIds}");
+            $pQuery->where("#id = {$onlyIds}");
         } else {
             $dQuery = cat_ListingDetails::getQuery();
             $dQuery->where("#listId = {$params['listId']}");

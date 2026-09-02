@@ -157,7 +157,7 @@ class frame2_Reports extends embed_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id,title=Наименование,lastRefreshed=Обновяване->Последно,nextUpdate=Обновяване->Следващо,updateDays=Обновяване->Дни,updateTime=Обновяване->Час,folderId,modifiedOn,modifiedBy';
+    public $listFields = 'id,title=Наименование,lastRefreshed=Обновяване->Последно,lastRefreshDuration=Обновяване->Време (сек.),nextUpdate=Обновяване->Следващо,updateDays=Обновяване->Дни,updateTime=Обновяване->Час,folderId,modifiedOn,modifiedBy';
     
 
     /**
@@ -226,6 +226,12 @@ class frame2_Reports extends embed_Manager
      * Константа, че е имало грешка при подготовка на данните
      */
     const DATA_ERROR_STATE = 'ERROR';
+
+
+    /**
+     * Максимално време за заключване на ръчното обновяване от един потребител
+     */
+    const MANUAL_REFRESH_LOCK_DURATION = 120;
 
 
     /**
@@ -301,15 +307,15 @@ class frame2_Reports extends embed_Manager
         $data = parent::prepareEditForm_($data);
         
         $rec = $data->form->rec;
-        if (isset($rec->id) && $rec->changeFields) {
+        if (isset($rec->id) && !empty($rec->changeFields)) {
             $cu = core_Users::getCurrent();
             // И потребителя не е създател на документа
             if ($rec->createdBy != $cu) {
                 $changeable = type_Set::toArray($rec->changeFields);
-                $fF = $this->filterDateFrom ? $this->filterDateFrom : 'from';
-                $fT = $this->filterDateTo ? $this->filterDateTo : 'to';
+                $fF = ($this->filterDateFrom ?? null) ?: 'from';
+                $fT = ($this->filterDateTo ?? null) ?: 'to';
                 
-                if (!$changeable[$fF] || !$changeable[$fT]) {
+                if (empty($changeable[$fF]) || empty($changeable[$fT])) {
                     $this->useFilterDateOnEdit = false;
                 }
             }
@@ -373,7 +379,7 @@ class frame2_Reports extends embed_Manager
                         $diff = array_diff_key($diff, $mustExist);
                         unset($diff[$mvc->driverClassField]);
                         
-                        if ($data->action == 'clone') {
+                        if (($data->action ?? null) == 'clone') {
                             unset($diff['sharedUsers'], $diff['notificationText'], $diff['updateDays'], $diff['updateTime'], $diff['maxKeepHistory']);
                         }
                         $diff = array_keys($diff);
@@ -415,7 +421,7 @@ class frame2_Reports extends embed_Manager
                     // Ако записа бива редактиран и няма променени полета от драйвера не се преизчислява
                     $fields = $mvc->getDriverFields($Driver);
                     foreach ($fields as $name => $caption) {
-                        if ($oldRec->{$name} !== $rec->{$name}) {
+                        if (($oldRec->{$name} ?? null) !== ($rec->{$name} ?? null)) {
                             $refresh = true;
                             break;
                         }
@@ -457,7 +463,7 @@ class frame2_Reports extends embed_Manager
                 }
             }
             
-            frame2_ReportVersions::unSelectVersion($rec->id);
+            frame2_ReportVersions::unSelectVersion($rec->id ?? null);
         }
     }
     
@@ -577,7 +583,7 @@ class frame2_Reports extends embed_Manager
                 $data->toolbar->addBtn("Версии|* ({$vCount})", $url, null, "ef_icon={$icon}, title=Показване на предишни версии,row=1");
             }
 
-            if(is_array($rec->log) && countR($rec->log)){
+            if(is_array($rec->log ?? null) && countR($rec->log)){
                 $url = array($mvc, 'single', $rec->id);
                 $icon = 'img/16/checked.png';
                 if (!Request::get('logId', 'int')) {
@@ -599,10 +605,21 @@ class frame2_Reports extends embed_Manager
         expect($id = Request::get('id', 'int'));
         expect($rec = $this->fetch($id));
         $this->requireRightFor('refresh', $rec);
-        
-        self::refresh($rec);
-        frame2_ReportVersions::unSelectVersion($rec->id);
-        $this->logWrite('Ръчно обновяване на справката', $rec->id);
+
+        $lockId = 'frame2ManualRefresh' . core_Users::getCurrent();
+        // Изчакване до 10 секунди с повторен опит всяка секунда
+        if (!core_Locks::obtain($lockId, self::MANUAL_REFRESH_LOCK_DURATION, 10, 10)) {
+
+            return followRetUrl(null, 'Вече сте стартирали ръчно обновяване на справка. Изчакайте да завърши.', 'warning');
+        }
+
+        try {
+            self::refresh($rec);
+            frame2_ReportVersions::unSelectVersion($rec->id);
+            $this->logWrite('Ръчно обновяване на справката', $rec->id);
+        } finally {
+            core_Locks::release($lockId);
+        }
         
         return followRetUrl();
     }
@@ -748,7 +765,7 @@ class frame2_Reports extends embed_Manager
                 $rec->lastRefreshDuration = round(core_Debug::$timers["PREPARE_DATA_TIMER_{$rec->id}"]->workingTime, 6);
 
                 // Ако има логове по време на изчислението да се записват
-                $log = is_array($rec->log) ? $rec->log : array();
+                $log = is_array($rec->log ?? null) ? $rec->log : array();
                 $currentLog = $Driver->getLog($rec);
 
                 if(countR($currentLog)) {
@@ -1017,7 +1034,7 @@ class frame2_Reports extends embed_Manager
         if ($rec->state == 'closed') {
             $nextUpdates = self::getNextRefreshDates($rec);
             if (countR($nextUpdates)) {
-                $updateHeaderName = ht::createHint($updateHeaderName, 'Справката няма да се актуализира докато е затворена', 'warning', true, 'height=12px;width=12px');
+                $updateHeaderName = ht::createHint($updateHeaderName, 'Справката няма да се актуализира докато е затворена', 'warning', true, array('iconAttr' => 'height=12px;width=12px'));
                 if(!Mode::is('printing')){
                     $lastRefreshedHeaderName = "<span class='closedFrameUpdateTimeTitle'>{$lastRefreshedHeaderName}</span>";
                     $row->lastRefreshed = "<span class='closedFrameUpdateTime'>{$row->lastRefreshed}</span>";
@@ -1408,15 +1425,27 @@ class frame2_Reports extends embed_Manager
      */
     protected static function on_AfterPrepareListFilter($mvc, &$res, $data)
     {
-        $data->listFilter->FLD('user', 'user(rolesForAll=ceo, rolesForTeams=manager|officer, roles=executive, allowEmpty)', 'caption=Потребител');
-        $data->listFilter->showFields = 'search, driverClass, user';
-        $data->listFilter->view = 'horizontal';
+        $data->listFilter->FLD('user', 'user(rolesForAll=ceo, rolesForTeams=manager|officer, roles=executive, allowEmpty)', 'caption=Потребител,placeholderType=all');
+        $data->listFilter->FNC('dateFrom', 'date', 'input,caption=От');
+        $data->listFilter->FNC('dateTo', 'date', 'input,caption=До');
+        $data->listFilter->setField('driverClass', 'placeholderType=all');
+        $data->listFilter->showFields = 'search, driverClass, user, dateFrom, dateTo';
+        $data->listFilter->class = 'simpleForm';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
         
         $data->listFilter->input();
         $rec = $data->listFilter->rec;
         if ($rec->driverClass ?? null) {
             $data->query->where(array("#driverClass = '[#1#]'", $rec->driverClass));
+        }
+
+        // Филтър по време на последното обновяване
+        if (!empty($rec->dateFrom)) {
+            $data->query->where(array("#lastRefreshed >= '[#1#] 00:00:00'", $rec->dateFrom));
+        }
+
+        if (!empty($rec->dateTo)) {
+            $data->query->where(array("#lastRefreshed <= '[#1#] 23:59:59'", $rec->dateTo));
         }
 
         if ($rec->user ?? null) {
@@ -1468,7 +1497,7 @@ class frame2_Reports extends embed_Manager
 
         // Ако ще се показва в лога да се подготвят данните
         if ($logId == $data->rec->id) {
-            if(is_array($rec->log) && count($rec->log)){
+            if(is_array($rec->log ?? null) && count($rec->log)){
                 arr::sortObjects($rec->log, 'time', 'DESC');
 
                 $data->logPager = cls::get('core_Pager', array('itemsPerPage' => 10));

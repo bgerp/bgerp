@@ -250,7 +250,7 @@ class cond_Texts extends core_Manager
     {
         $form = $data->listFilter;
         $form->FLD('author', 'users(roles=powerUser, rolesForTeams=powerUser, rolesForAll=powerUser)', 'caption=Автор, autoFilter');
-        $form->FLD('langWithAllSelect', 'enum(,bg,en)', 'caption=Език, placeholder=Всички');
+        $form->FLD('langWithAllSelect', 'enum(,bg,en)', 'caption=Език, placeholderType=all');
 
         Request::setProtected('groupName, callback');
         $group = Request::get('groupName');
@@ -336,7 +336,7 @@ class cond_Texts extends core_Manager
 
             $str = json_encode($placeBody);
             
-            $attr = array('onclick' => "if(window.opener.{$callback}(${str}) != true) self.close(); else self.focus();", 'class' => 'file-log-link');
+            $attr = array('onclick' => "if(window.opener.{$callback}({$str}) != true) self.close(); else self.focus();", 'class' => 'file-log-link');
 
             $title = ht::createLink($rec->title, '#', false, $attr);
             
@@ -372,16 +372,20 @@ class cond_Texts extends core_Manager
      */
     public static function replaceView($body, $rec)
     {
-        $res = $rec->body;
         $rec = self::fetchRec($rec);
-        if ($rec->view) {
+        if (!$rec) {
+            return $body;
+        }
+
+        $res = $rec->body ?? $body;
+        if (!empty($rec->view)) {
             $res = str_replace('{{CONTENT}}', $body, $rec->view);
 
             for ($i=1; $i<=3; $i++) {
                 $imgField = 'img' . $i;
                 $imgUrl = '';
                 $imgBase = '';
-                if ($rec->{$imgField}) {
+                if (!empty($rec->{$imgField})) {
                     $imgUrl = fileman_Download::getDownloadUrl($rec->{$imgField}, 1000000);
                     $imgBase = 'data:' . fileman::getType(fileman::fetchByFh($rec->{$imgField}, 'name')) . ';base64,' . base64_encode(fileman::extractStr($rec->{$imgField}));
                 }

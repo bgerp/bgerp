@@ -382,20 +382,20 @@ class label_Templates extends core_Master
      */
     protected static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
-        if (trim($rec->css)) {
+        if (trim($rec->css ?? '')) {
             // Вземаме шаблона с вкарания css
-            $row->template = static::templateWithInlineCSS($row->template, $rec->css);
+            $row->template = static::templateWithInlineCSS($row->template ?? '', $rec->css);
         }
         if(isset($rec->clonedFromId)){
             $row->clonedFromId = static::getHyperlink($rec->clonedFromId, true);
         }
 
-        if(isset($rec->classId)){
+        if (!empty($rec->classId)) {
             if(cls::load($rec->classId, true) && cls::haveInterface('label_SequenceIntf', $rec->classId)){
                 $series = cls::get($rec->classId)->getLabelSeries();
-                $row->series = $series[$rec->series];
+                $row->series = $series[$rec->series ?? null] ?? null;
             } else {
-                $row->classId = ht::createHint($row->classId, "Източникът не поддържа вече интерфейса|*: 'label_SequenceIntf'", 'error');
+                $row->classId = ht::createHint($row->classId ?? '', "Източникът не поддържа вече интерфейса|*: 'label_SequenceIntf'", 'error');
             }
         }
     }
@@ -419,7 +419,7 @@ class label_Templates extends core_Master
         $form->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         $sourceOptions = array('-1' => 'Без източник') + core_Classes::getOptionsByInterface('label_SequenceIntf', 'title');
         
-        $form->FNC('fClassId', 'varchar', 'caption=Източник');
+        $form->FNC('fClassId', 'varchar', 'caption=Източник,placeholderType=all');
         $form->setOptions('fClassId', array('' => '') + $sourceOptions);
         
         $q = $mvc->getQuery();
@@ -434,8 +434,8 @@ class label_Templates extends core_Master
         
         $form->showFields = 'search,fClassId,sizes';
         if (!core_Request::get('Rejected', 'int')) {
-            $form->FNC('fState', 'enum(, active=Използвани, closed=Затворени)', 'caption=Всички, allowEmpty,autoFilter');
-            $form->showFields .= ', fState';
+            $form->FNC('fState', 'enum(, active=Използвани, closed=Затворени)', 'caption=Състояние,placeholderType=all, allowEmpty,autoFilter');
+            $form->showFields = ($form->showFields ?? '') . ', fState';
             $form->setDefault('fState', 'active');
             
             // Инпутваме полетата
@@ -521,7 +521,7 @@ class label_Templates extends core_Master
         $sizesArr = array('' => '') + $sizesArr;
         $data->form->setSuggestions('sizes', $sizesArr);
 
-        if(isset($rec->classId)){
+        if (!empty($rec->classId)) {
             $series = cls::get($rec->classId)->getLabelSeries();
             $form->setOptions('series', $series);
             $form->setDefault('series', key($series));
@@ -631,12 +631,13 @@ class label_Templates extends core_Master
     {
         // Ако има запис
         if ($rec) {
+            $state = $rec->state ?? null;
             
             // Ако редактираме
             if ($action == 'edit') {
                 
                 // Ако е оттеглено
-                if ($rec->state == 'rejected') {
+                if ($state == 'rejected') {
                     
                     // Оттеглените да не могат да се редактират
                     $requiredRoles = 'no_one';
@@ -800,8 +801,8 @@ class label_Templates extends core_Master
                             $params = array('Width' => planning_Setup::get('TASK_LABEL_PREVIEW_WIDTH'), 'Height' => planning_Setup::get('TASK_LABEL_PREVIEW_HEIGHT'));
                         } elseif(strpos($placeholder, 'IMAGE_') !== false){
                             $split = explode('_', $placeholder);
-                            $width = $split[1];
-                            $height = $split[2] ? $split[2] : $split[1];
+                            $width = $split[1] ?? null;
+                            $height = !empty($split[2]) ? $split[2] : $width;
                             $type = 'image';
                             $params = array('Width' => $width, 'Height' => $height);
                         }

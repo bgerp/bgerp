@@ -116,7 +116,7 @@ class blast_Letters extends core_Master
     /**
      * Плъгините и враперите, които ще се използват
      */
-    public $loadList = 'blast_Wrapper, plg_State, plg_RowTools, doc_DocumentPlg, bgerp_plg_Blank, change_Plugin, plg_Printing, plg_Clone';
+    public $loadList = 'blast_Wrapper, plg_State, plg_RowTools2, doc_DocumentPlg, bgerp_plg_Blank, change_Plugin, plg_Printing, plg_Clone';
     
     
     /**
@@ -223,9 +223,10 @@ class blast_Letters extends core_Master
     public static function on_AfterPrepareEditForm($mvc, &$res, &$data)
     {
         $form = $data->form;
+        $isGroup = false;
         
         // Ако има папка
-        if ($form->rec->folderId) {
+        if (!empty($form->rec->folderId)) {
             
             // Корицата на папката
             $coverClassName = doc_Folders::fetchCoverClassName($form->rec->folderId);
@@ -278,7 +279,7 @@ class blast_Letters extends core_Master
                 redirect(array('blast_Lists', 'add'), false, '|Нямате добавен списък за циркулярни писма');
             }
             
-            if (!$form->rec->id) {
+            if (empty($form->rec->id)) {
                 
                 //Ако добавяме нов показваме всички списъци
                 $form->setOptions('listId', $files, $form->rec->id);
@@ -295,14 +296,14 @@ class blast_Letters extends core_Master
         $rec = $data->form->rec;
         
         // Ако създаваме нов
-        if (!$rec->id) {
+            if (empty($rec->id)) {
             
             //Слага state = draft по подразбиране при нов запис
             $form->setDefault('state', 'draft');
         }
         
         // Ако създваме
-        if ((!$rec->id) && ($data->action != 'clone')) {
+        if (empty($rec->id) && (($data->action ?? null) != 'clone')) {
             
             // Задваме стойности по подразбиране
             $rec->recipient = '[#company#]';
@@ -579,7 +580,7 @@ class blast_Letters extends core_Master
     public function closeLetter($id)
     {
         // Вземаме детайла на писмото което не е принтирано
-        $details = blast_LetterDetails::fetch("#letterId = '${id}' AND #printedDate IS NULL");
+        $details = blast_LetterDetails::fetch("#letterId = '{$id}' AND #printedDate IS NULL");
         
         //Ако няма нито един запис
         if ($details === false) {
@@ -686,6 +687,7 @@ class blast_Letters extends core_Master
             // Вземаме всички записи, които са добавени от предишното активиране в детайлите на писмото
             $queryLetterDetail = blast_LetterDetails::getQuery();
             $queryLetterDetail->where("#letterId = '{$rec->id}'");
+            $exist = '';
             
             while ($recLetterDetail = $queryLetterDetail->fetch()) {
                 
@@ -728,17 +730,19 @@ class blast_Letters extends core_Master
                 if ($rec->group == 'company') {
                     
                     // Извличаме записите за фирмата
+                    $gClass = 'crm_Companies';
                     $gQuery = crm_Companies::getQuery();
                 } else {
                     
                     // Ако е лице
                     
                     // Извличаме записите за лицето
+                    $gClass = 'crm_Persons';
                     $gQuery = crm_Persons::getQuery();
                 }
                 
                 // Всички, които са от тази група и не са оттеглени
-                $gQuery->likeKeylist('groupList', $coverArr);
+                plg_ExpandInput::applyExtendedInputSearch($gClass, $gQuery, $coverArr);
                 $gQuery->where("#state != 'rejected'");
                 
                 // Обхождаме откритите резултати
@@ -796,7 +800,7 @@ class blast_Letters extends core_Master
         $date = dt::mysql2verbal($rec->createdOn);
         
         // Добавяме във формата информация, за да знаем за кое писмо става дума
-        $form->info = new ET('[#1#]', tr("|*<b>|Писмо|*<i style='color:blue'>: {$subject} / {$date}</i></b>"));
+        $form->info = new ET('[#1#]', tr("|*<b>|Писмо|*<i class='blueText'>: {$subject} / {$date}</i></b>"));
         
         // Опциите за създаване на тялот
         $options = new stdClass();
@@ -836,17 +840,19 @@ class blast_Letters extends core_Master
             if ($rec->group == 'company') {
                 
                 // Вземаме записите за фирмата
+                $gClass = 'crm_Companies';
                 $gQuery = crm_Companies::getQuery();
             } else {
                 
                 // Ако е лице
                 
                 // Вземаме записите за лицето
+                $gClass = 'crm_Persons';
                 $gQuery = crm_Persons::getQuery();
             }
             
             // Вземаме всички заиси от групата, които не са оттеглени
-            $gQuery->likeKeylist('groupList', $coverArr);
+            plg_ExpandInput::applyExtendedInputSearch($gClass, $gQuery, $coverArr);
             $gQuery->where("#state != 'rejected'");
             
             // Обхождаме получените резултати
@@ -916,7 +922,7 @@ class blast_Letters extends core_Master
             
             // Вземаме детайлите, които не са печатани в съответното писмо
             $dQuery = blast_LetterDetails::getQuery();
-            $dQuery->where("#letterId = '${id}'");
+            $dQuery->where("#letterId = '{$id}'");
             $dQuery->where('#printedDate IS NULL');
             
             // Обикаляме резултатите
@@ -973,6 +979,8 @@ class blast_Letters extends core_Master
      */
     public function on_AfterInputEditForm($mvc, &$form)
     {
+        $isGroup = false;
+
         // Ако формата е изпраена успешно
         if ($form->isSubmitted()) {
             $rec = $form->rec;
@@ -981,7 +989,7 @@ class blast_Letters extends core_Master
             if (isset($rec->group)) {
                 
                 // Ако има папка
-                if ($rec->folderId) {
+                if (!empty($rec->folderId)) {
                     
                     // Сетваме, че е група
                     $isGroup = true;
@@ -1031,7 +1039,8 @@ class blast_Letters extends core_Master
             if (!$isGroup) {
                 
                 // id' то на листа, от който се вземат данните на потребителя
-                if (!$listId = $form->rec->listId) {
+                $listId = $form->rec->listId ?? null;
+                if (!$listId && isset($form->rec->id)) {
                     
                     // Вземаме от записа
                     $listId = $mvc->fetchField($form->rec->id, 'listId');
@@ -1041,7 +1050,7 @@ class blast_Letters extends core_Master
                 $listsRecAllFields = blast_Lists::fetchField($listId, 'allFields');
                 
                 //Вземаме всички имена на полетата на данните, които ще се заместват
-                preg_match_all('/(^)([^=]+)/m', $listsRecAllFields, $allFieldsArr);
+                preg_match_all('/(^)([^=]+)/m', $listsRecAllFields ?? '', $allFieldsArr);
                 
                 // Вземаме плейсхолдерите
                 $onlyAllFieldsArr = $allFieldsArr[2];
@@ -1052,17 +1061,19 @@ class blast_Letters extends core_Master
             }
             
             // Вземаме Относно и Съобщение
-            $bodyAndSubject = $recArr['body'] . ' ' . $recArr['subject'];
+            $bodyAndSubject = ($recArr['body'] ?? '') . ' ' . ($recArr['subject'] ?? '');
             
             // Масив с данни от плейсхолдера
             $nRecArr = array();
-            $nRecArr['recipient'] = $recArr['recipient'];
-            $nRecArr['attn'] = $recArr['attn'];
-            $nRecArr['country'] = $recArr['country'];
-            $nRecArr['pcode'] = $recArr['pcode'];
-            $nRecArr['place'] = $recArr['place'];
-            $nRecArr['address'] = $recArr['address'];
-            $nRecArr['position'] = $recArr['position'];
+            $nRecArr['recipient'] = $recArr['recipient'] ?? '';
+            $nRecArr['attn'] = $recArr['attn'] ?? '';
+            $nRecArr['country'] = $recArr['country'] ?? '';
+            $nRecArr['pcode'] = $recArr['pcode'] ?? '';
+            $nRecArr['place'] = $recArr['place'] ?? '';
+            $nRecArr['address'] = $recArr['address'] ?? '';
+            $nRecArr['position'] = $recArr['position'] ?? '';
+
+            $allRecsWithPlaceHolders = '';
             
             // Обикаляме всички останали стойности в масива
             foreach ($nRecArr as $field) {
@@ -1102,6 +1113,7 @@ class blast_Letters extends core_Master
             $allPlaceHolder = array_unique($allPlaceHolder);
             
             $warningPlaceHolderArr = array();
+            $warning = $error = '';
             
             //Търсим всички полета, които сме въвели, но ги няма в полетата за заместване
             foreach ($allPlaceHolder as $placeHolder) {
@@ -1110,7 +1122,7 @@ class blast_Letters extends core_Master
                 $placeHolderL = strtolower($placeHolder);
                 
                 // Ако плейсхолдера го няма във листа
-                if (!$fieldsArr[$placeHolderL]) {
+                if (empty($fieldsArr[$placeHolderL])) {
                     
                     // Добавяме към съобщението за предупреждение
                     $warning .= ($warning) ? ", {$placeHolder}" : $placeHolder;
@@ -1133,7 +1145,7 @@ class blast_Letters extends core_Master
                 $placeHolderL = strtolower($placeHolder);
                 
                 // Ако плейсхолдера го няма във листа
-                if (!$fieldsArr[$placeHolderL]) {
+                if (empty($fieldsArr[$placeHolderL])) {
                     
                     // Добавяме към съобщението за грешка
                     $error .= ($error) ? ", {$placeHolder}" : $placeHolder;

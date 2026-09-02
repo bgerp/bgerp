@@ -82,7 +82,7 @@ class type_User extends type_Key
                     
                     $userIdKey = reset($userIdKey);
                     
-                    if (!$this->options[$userIdKey]) {
+                    if (empty($this->options[$userIdKey])) {
                         $this->options[$userIdKey] = new stdClass();
                     }
                     $this->options[$userIdKey]->title = core_Users::getCurrent($part);

@@ -44,12 +44,14 @@ class plg_PrevAndNext extends core_Plugin
         if (Mode::is($selKey)) {
             $Cmd = Request::get('Cmd');
             
-            if (isset($Cmd['save_n_prev'])) {
-                $data->retUrl = array($mvc, 'edit', 'id' => $data->buttons->prevId, 'PrevAndNext' => 'on', 'ret_url' => getRetUrl());
+            $prevId = $data->buttons->prevId ?? null;
+            $nextId = $data->buttons->nextId ?? null;
+            if (isset($Cmd['save_n_prev']) && $prevId) {
+                $data->retUrl = array($mvc, 'edit', 'id' => $prevId, 'PrevAndNext' => 'on', 'ret_url' => getRetUrl());
                 
                 return false;
-            } elseif (isset($Cmd['save_n_next'])) {
-                $data->retUrl = array($mvc, 'edit', 'id' => $data->buttons->nextId, 'PrevAndNext' => 'on', 'ret_url' => getRetUrl());
+            } elseif (isset($Cmd['save_n_next']) && $nextId) {
+                $data->retUrl = array($mvc, 'edit', 'id' => $nextId, 'PrevAndNext' => 'on', 'ret_url' => getRetUrl());
                 
                 return false;
             }
@@ -79,7 +81,8 @@ class plg_PrevAndNext extends core_Plugin
                 Mode::setPermanent($selKey, $selArr);
                 
                 // Зареждаме id-то на първия запис за редактиране
-                expect(ctype_digit($id = $selArr[0]));
+                $id = reset($selArr);
+                expect(ctype_digit((string) $id));
             } elseif (Request::get('PrevAndNext')) {
                 
                 // Изтриваме в сесията, ако има избрано множество записи
@@ -128,7 +131,7 @@ class plg_PrevAndNext extends core_Plugin
      */
     private static function getNeighbour($mvc, $rec, $dir)
     {
-        $id = $rec->id;
+        $id = $rec->id ?? null;
         if (!$id) {
             
             return;
@@ -145,7 +148,7 @@ class plg_PrevAndNext extends core_Plugin
                 return;
             }
             $selNeighbourId = $selId + $dir;
-            $res = $selArr[$selNeighbourId];
+            $res = $selArr[$selNeighbourId] ?? null;
         }
         
         return $res;
@@ -167,7 +170,8 @@ class plg_PrevAndNext extends core_Plugin
             $selArr = arr::make($sel);
             
             // Зареждаме id-то на първия запис за редактиране
-            expect(ctype_digit($id = $selArr[0]));
+            $id = reset($selArr);
+            expect(ctype_digit((string) $id));
             
             Request::push(array('id' => $id));
         }
@@ -187,10 +191,12 @@ class plg_PrevAndNext extends core_Plugin
         if(empty($res)){
             $selArr = array();
             $rec = $DetailMvc->fetch($detailId);
-            if ($DetailMvc->masterKey && ($masterId = $rec->{$DetailMvc->masterKey})) {
+            $masterKey = $DetailMvc->masterKey ?? null;
+            if ($rec && $masterKey && !empty($rec->{$masterKey})) {
+                $masterId = $rec->{$masterKey};
                 $query = $DetailMvc->getQuery();
                 $query->orderBy('id');
-                while ($dRec = $query->fetch("#{$DetailMvc->masterKey} = ${masterId}")) {
+                while ($dRec = $query->fetch("#{$masterKey} = {$masterId}")) {
                     if($DetailMvc->haveRightFor('edit', $dRec)) {
                         $selArr[] = $dRec->id;
                     }
@@ -215,8 +221,9 @@ class plg_PrevAndNext extends core_Plugin
         $Cmd = Request::get('Cmd');
         
         $selArr = array();
+        $id = Request::get('id', 'int');
         if (is_a($mvc, 'core_Detail')) {
-            if ($id = Request::get('id', 'int')) {
+            if ($id) {
                 $selArr = $mvc->getPrevAndNextDetailQuery($id);
             }
         }
@@ -233,17 +240,20 @@ class plg_PrevAndNext extends core_Plugin
 
             // Зареждаме id-то на първия запис за редактиране
             if (!$id) {
-                expect(ctype_digit($id = $selArr[0]), $selArr);
+                $id = reset($selArr);
+                expect(ctype_digit((string) $id), $selArr);
             }
             
-            if ($exRec = $mvc->fetch($id) && $data->form->cmd != 'refresh') {
+            $formCmd = $data->form->cmd ?? null;
+            $exRec = $mvc->fetch($id);
+            if ($exRec && $formCmd != 'refresh') {
                 $data->form->rec = (object) arr::fillMissingKeys($exRec, $data->form->rec);
             }
             
-            if($data->action == 'manage'){
+            if(($data->action ?? null) == 'manage'){
                 $mvc->requireRightFor('edit', $data->form->rec);
             }
-        } elseif (!($data->form->cmd == 'save_n_next' || $data->form->cmd == 'refresh' || $data->form->cmd == 'save_n_prev' || Request::get('PrevAndNext'))) {
+        } elseif (!(($data->form->cmd ?? null) == 'save_n_next' || ($data->form->cmd ?? null) == 'refresh' || ($data->form->cmd ?? null) == 'save_n_prev' || Request::get('PrevAndNext'))) {
 
             // Изтриваме в сесията, ако има избрано множество записи
             Mode::setPermanent($selKey, null);
@@ -253,8 +263,10 @@ class plg_PrevAndNext extends core_Plugin
         if ($selArr = Mode::get($selKey)) {
             $id = Request::get('id', 'int');
             
-            $pos = array_search($id, $selArr) + 1;
-            $data->prevAndNextIndicator = $pos . '/' . countR($selArr);
+            $pos = array_search($id, $selArr);
+            if ($pos !== false) {
+                $data->prevAndNextIndicator = ($pos + 1) . '/' . countR($selArr);
+            }
             
             $data->buttons = new stdClass();
             $data->buttons->prevId = self::getNeighbour($mvc, $data->form->rec, -1);
@@ -278,7 +290,7 @@ class plg_PrevAndNext extends core_Plugin
                     $data->form->toolbar->addSbBtn('»»»', 'save_n_next', 'class=btn-disabled noicon fright,disabled,order=30, title = Следващ');
                 }
                 
-                $data->form->toolbar->addFnBtn($data->prevAndNextIndicator, '', 'class=noicon fright,order=30');
+                $data->form->toolbar->addFnBtn($data->prevAndNextIndicator ?? '', '', 'class=noicon fright,order=30');
                 
                 if (isset($data->buttons->prevId)) {
                     $data->form->toolbar->addSbBtn('«««', 'save_n_prev', 'class=noicon fright,order=30, title = Предишен');

@@ -30,7 +30,7 @@ class planning_transaction_ProductionNote extends acc_DocumentTransactionSource
         expect($rec = $this->class->fetchRec($id));
         
         $result = (object) array(
-            'reason' => "Протокол от производство №{$rec->id}",
+            'reason' => 'Протокол от производство №' . ($rec->id ?? ''),
             'valior' => $rec->valior,
             'totalAmount' => null,
             'entries' => array()

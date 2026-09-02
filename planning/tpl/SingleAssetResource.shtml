@@ -2,7 +2,7 @@
     [#SingleToolbar#]
     <div class="info-table">
         <h3 style='padding: 5px; color:green;' class='[#STATE_CLASS#]'><b>[[#code#]] [#name#]</b></h3>
-        
+
         <fieldset class="detail-info">
             <legend class="groupTitle">|Общи данни|*</legend>
             <!--ET_BEGIN image-->
@@ -23,12 +23,6 @@
                     <td>[#groupId#]</td>
                 </tr>
                 <!--ET_END groupId-->
-                <tr>
-                    <td class="gray-title aright" style="padding-right: 5px;">
-                        |Използване в ПО|*:
-                    </td>
-                    <td>[#usedInTask#]</td>
-                </tr>
 
                 <!--ET_BEGIN protocols-->
                 <tr>
@@ -38,23 +32,7 @@
                     <td>[#protocols#]</td>
                 </tr>
                 <!--ET_END protocols-->
-                <!--ET_BEGIN planningParams-->
-                <tr>
-                    <td class="gray-title aright" style="padding-right: 5px;">
-                        |Планиращи параметри|*:
-                    </td>
-                    <td>[#planningParams#]</td>
-                </tr>
-                <!--ET_END planningParams-->
-                <!--ET_BEGIN simultaneity-->
-                <tr>
-                    <td class="gray-title aright" style="padding-right: 5px;">
-                        |Едновременност|*:
-                    </td>
-                    <td>[#simultaneity#]</td>
-                </tr>
-                <!--ET_END simultaneity-->
-				<!--ET_BEGIN scheduleId-->
+                <!--ET_BEGIN scheduleId-->
                 <tr>
                     <td class="gray-title aright" style="padding-right: 5px;">
                         |График|*:
@@ -62,43 +40,8 @@
                     <td>[#scheduleId#]</td>
                 </tr>
                 <!--ET_END scheduleId-->
-                <tr>
-                    <td class="gray-title aright" style="padding-right: 5px;">
-                        |Групиране на операциите|*:
-                    </td>
-                    <td>[#taskQuantization#]</td>
-                </tr>
-                <tr>
-                    <td class="gray-title aright" style="padding-right: 5px;">
-                        |Създаване|*:
-                    </td>
-                    <td>|на|* [#createdOn#] |от|* [#createdBy#]</td>
-                </tr>
-                <tr>
-                    <td class="gray-title aright" style="padding-right: 5px;">
-                        |Модифициране|*:
-                    </td>
-                    <td>|на|* [#modifiedOn#] |от|* [#modifiedBy#]</td>
-                </tr>
 
-                <!--ET_BEGIN lastRecalcTimes-->
-                <tr>
-                    <td class="gray-title aright" style="padding-right: 5px;">
-                        |Преизчислени времена|*:
-                    </td>
-                    <td>[#lastRecalcTimes#]</td>
-                </tr>
-                <!--ET_END lastRecalcTimes-->
-
-                <!--ET_BEGIN lastReorderedTasks-->
-                <tr>
-                    <td class="gray-title aright" style="padding-right: 5px;">
-                        |Пренаредени операции|*:
-                    </td>
-                    <td>[#lastReorderedTasks#]</td>
-                </tr>
-                <!--ET_END lastReorderedTasks-->
-                <!--ET_BEGIN systemFolderId-->
+               <!--ET_BEGIN systemFolderId-->
                 <tr>
                     <td class="gray-title aright" style="padding-right: 5px;">
                         |Поддръжка|*: |Система|*:
@@ -129,6 +72,67 @@
         </fieldset>
 
         <fieldset class="detail-info">
+            <legend class="groupTitle">|Производствени операции|*</legend>
+            <table>
+            <tr>
+                <td class="gray-title aright" style="padding-right: 5px;">
+                    |Използване в ПО|*:
+                </td>
+                <td>[#usedInTask#]</td>
+            </tr>
+            <!--ET_BEGIN simultaneity-->
+                <tr>
+                    <td class="gray-title aright" style="padding-right: 5px;">
+                        |Едновременност|*:
+                    </td>
+                    <td>[#simultaneity#]</td>
+                </tr>
+            <!--ET_END simultaneity-->
+            <!--ET_BEGIN planningParams-->
+                <tr>
+                    <td class="gray-title aright" style="padding-right: 5px;">
+                        |Планиращи параметри|*:
+                    </td>
+                    <td>[#planningParams#]</td>
+                </tr>
+            <!--ET_END planningParams-->
+            <!--ET_BEGIN planningParamSimilarity-->
+                <tr>
+                    <td class="gray-title aright" style="padding-right: 5px;">
+                        |Автом. групиране - съвпадение над |*:
+                    </td>
+                    <td>[#planningParamSimilarity#]</td>
+                </tr>
+            <!--ET_END planningParamSimilarity-->
+            <!--ET_BEGIN planningParamGroupDays-->
+                <tr>
+                    <td class="gray-title aright" style="padding-right: 5px;">
+                        |Автоматично групиране - период под|*:
+                    </td>
+                    <td>[#planningParamGroupDays#] |дни|*</td>
+                </tr>
+            <!--ET_END planningParamGroupDays-->
+            <!--ET_BEGIN lastRecalcTimes-->
+                <tr>
+                    <td class="gray-title aright" style="padding-right: 5px;">
+                        |Преизчислени времена|*:
+                    </td>
+                    <td>[#lastRecalcTimes#]</td>
+                </tr>
+            <!--ET_END lastRecalcTimes-->
+
+            <!--ET_BEGIN lastReorderedTasks-->
+                <tr>
+                    <td class="gray-title aright" style="padding-right: 5px;">
+                        |Пренаредени операции|*:
+                    </td>
+                    <td>[#lastReorderedTasks#]</td>
+                </tr>
+            <!--ET_END lastReorderedTasks-->
+            </table>
+        </fieldset>
+
+        <fieldset class="detail-info">
             [#PARAMS#]
         </fieldset>
         <!--ET_BEGIN sensors-->
@@ -153,6 +157,25 @@
             [#tracking#]
         </fieldset>
         <!--ET_END tracking-->
+
+        <fieldset class="detail-info">
+            <legend class="groupTitle">|Системни|*</legend>
+           <table>
+                <tr>
+                    <td class="gray-title aright" style="padding-right: 5px;">
+                        |Създаване|*:
+                    </td>
+                    <td>|на|* [#createdOn#] |от|* [#createdBy#]</td>
+                </tr>
+                <tr>
+                    <td class="gray-title aright" style="padding-right: 5px;">
+                        |Модифициране|*:
+                    </td>
+                    <td>|на|* [#modifiedOn#] |от|* [#modifiedBy#]</td>
+                </tr>
+            </table>
+        </fieldset>
+
         [#DETAILS#]
     </div>
 </div>

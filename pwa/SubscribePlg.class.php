@@ -15,6 +15,96 @@
 class pwa_SubscribePlg extends core_Plugin
 {
     /**
+     * Автоматичните екрани за абониране и за настройките се показват само
+     * веднъж на устройство - независимо дали е избрано записване или отказ
+     */
+    const PROMPT_ONCE_MINUTES = 1000000;
+
+
+    /**
+     * След колко минути отново да се предложи подновяване на изтекъл абонамент
+     */
+    const PROMPT_RECOVERY_MINUTES = 10080;
+
+
+    /**
+     * Връща ключа за запомняне на показването на екрана
+     */
+    protected static function getPromptKey($type, $brid, $userId, $domainId)
+    {
+        return 'pwa_prompt_' . $type . '_' . (int) $domainId . '_' . (int) $userId . '_' . $brid;
+    }
+
+
+    /**
+     * Връща колко минути да се помни показването на съответния екран
+     *
+     * Само предложението за подновяване на изтекъл абонамент се повтаря -
+     * абонаментът може да изтече отново след време.
+     *
+     * @param string $type
+     *
+     * @return int
+     */
+    protected static function getPromptLifetime($type)
+    {
+        return ($type == 'recovery') ? self::PROMPT_RECOVERY_MINUTES : self::PROMPT_ONCE_MINUTES;
+    }
+
+
+    /**
+     * Запомня резултата от показването на екрана
+     */
+    public static function rememberPrompt($type, $value, $brid, $userId, $domainId)
+    {
+        $key = self::getPromptKey($type, $brid, $userId, $domainId);
+        core_Permanent::set($key, $value, self::getPromptLifetime($type));
+    }
+
+
+    /**
+     * Проверява дали екранът е показван скоро
+     */
+    public static function isPromptRemembered($type, $brid, $userId, $domainId)
+    {
+        $key = self::getPromptKey($type, $brid, $userId, $domainId);
+        if (core_Permanent::get($key)) {
+
+            return true;
+        }
+
+        return false;
+    }
+
+
+    /**
+     * Проверява дали да се редиректва към екрана за абониране след логване
+     *
+     * @param string   $brid
+     * @param int      $userId
+     * @param int|null $domainId
+     *
+     * @return bool
+     */
+    protected static function mustShowOnboarding($brid, $userId, $domainId)
+    {
+        if (self::isPromptRemembered('onboarding', $brid, $userId, $domainId)) {
+
+            return false;
+        }
+
+        // Устройство, което вече има абонамент, е минало през екрана
+        if (pwa_PushSubscriptions::fetch(array("#brid = '[#1#]' AND #userId = '[#2#]' AND #domainId = '[#3#]'", $brid, $userId, $domainId))) {
+            self::rememberPrompt('onboarding', 'subscribed', $brid, $userId, $domainId);
+
+            return false;
+        }
+
+        return true;
+    }
+
+
+    /**
      * Извиква се преди изпълняването на екшън
      */
     public static function on_BeforeAction($mvc, &$res, $action)
@@ -23,21 +113,23 @@ class pwa_SubscribePlg extends core_Plugin
         $key = null;
         if ((Request::get('isPwa') == 'yes') || ($action == 'pwasubscribe')) {
             $dId = cms_Domains::getCurrent('id', false);
+            $canUse = null;
             if ($dId) {
                 $dRec = cms_Domains::fetch($dId);
-                $key = $dRec->publicKey;
-
-                if (!$key) {
-
-                    return ;
+                $key = $dRec ? $dRec->publicKey : null;
+                if ($key) {
+                    $canUse = pwa_Settings::canUse($dId);
                 }
             }
 
-            $canUse = pwa_Settings::canUse();
+            if (!$dId || !$key || $canUse != 'yes') {
+                if ($action == 'pwasubscribe') {
+                    $res = new Redirect(array('Portal', 'Show'));
 
-            if ($canUse != 'yes') {
+                    return false;
+                }
 
-                return ;
+                return;
             }
         }
 
@@ -48,20 +140,32 @@ class pwa_SubscribePlg extends core_Plugin
             pwa_PushSubscriptions::requireRightFor('subscribe');
 
             $brid = log_Browsers::getBrid();
-            core_Permanent::set('pwa_firstLogin_' . $brid, dt::mysql2timestamp(dt::now()), 1000000);
+            $cu = core_Users::getCurrent();
+            $isForced = (bool) Request::get('forceSubscribe');
             Mode::setPermanent('pwaSubscribe', false);
 
-            if ($pRec = pwa_PushSubscriptions::fetch(array("#brid = '[#1#]' AND #state = 'active'", $brid))) {
+            // Онбординг екранът се запомня веднага - устройството е минало
+            // през него, независимо какво ще избере потребителят после
+            if (!$isForced) {
+                self::rememberPrompt('onboarding', 'shown', $brid, $cu, $dId);
+            }
+
+            $pRec = pwa_PushSubscriptions::fetch(array("#brid = '[#1#]' AND #userId = '[#2#]' AND #domainId = '[#3#]'", $brid, $cu, $dId));
+            if ($pRec && $pRec->state == 'active') {
                 $rArr = $defRedirect;
-                if ($cu = core_Users::getCurrent()) {
-                    if ($cu == $pRec->userId) {
-                        $rArr = array('pwa_PushSubscriptions', 'edit', $pRec->id, 'ret_url' => $defRedirect);
-                    }
+                if (pwa_PushSubscriptions::haveRightFor('edit', $pRec)) {
+                    $rArr = array('pwa_PushSubscriptions', 'edit', $pRec->id, 'ret_url' => $defRedirect);
                 }
 
                 $res = new Redirect($rArr, 'Това приложение има активен абонамент за известия.');
 
                 return false;
+            }
+
+            // Предложението за подновяване се запомня само когато наистина се
+            // показва - при неизтекъл абонамент дотук не се стига
+            if ($isForced) {
+                self::rememberPrompt('recovery', 'shown', $brid, $cu, $dId);
             }
 
             $form = cls::get('core_Form');
@@ -82,18 +186,21 @@ class pwa_SubscribePlg extends core_Plugin
 
             $form->input(null, true);
 
-            if ($form->rec->subscribe) {
+            if ($isForced) {
+                $form->setField('subscribe', 'input=none');
+            } elseif (!empty($form->rec->subscribe)) {
                 $form->setField('subscribe', 'input=hidden');
             }
 
-            $appendJS = false;
+            $appendJS = $isForced;
 
-            if ($form->isSubmitted()) {
+            if (!$isForced && $form->isSubmitted()) {
                 if ($form->rec->subscribe == 'no') {
                     $form->info = tr('Пропускате да се абонирате за известия от системата на това устройство.|<br>|*
                                     Ако искате може да се абонирате по-късно от бутона "Известяване" в профила си.');
 
                     if ($form->rec->force == 'yes') {
+                        self::rememberPrompt('onboarding', 'declined', $brid, $cu, $dId);
                         $res = new Redirect($defRedirect);
 
                         return false;
@@ -107,45 +214,66 @@ class pwa_SubscribePlg extends core_Plugin
                 }
             }
 
-            $form->toolbar->addSbBtn('Продължи', 'default', 'id=filter', 'ef_icon = img/16/move.png');
-
             if ($appendJS) {
-                $form->info = tr('Трябва да позволите получаването на известия от изкачащия прозорец или от настройките на браузъра си.');
+                $btnTitle = $isForced ? 'Поднови известията' : 'Разреши известията';
+                $btnHint = $isForced ? 'Подновяване на абонамента за известия' : 'Разрешаване на известията за това устройство';
+                $form->toolbar->addFnBtn($btnTitle, '', "id=push-subscription-button, class=pwa-push-default button linkWithIcon, title={$btnHint}, ef_icon=img/16/pwa.png");
+
+                if ($isForced && $pRec) {
+                    // Това е стандартна сървърна навигация. Отделният id не
+                    // позволява JS unsubscribe handler-ът да стартира второ,
+                    // конкурентно отписване преди навигацията.
+                    $form->toolbar->addBtn('Не желая известия', array('pwa_PushSubscriptions', 'stop', $pRec->id, 'ret_url' => $defRedirect), 'id=pwa-recovery-decline-button, ef_icon=img/16/deletered.png');
+                }
+
+                $form->info = $isForced
+                    ? tr('Абонаментът за известия на това устройство вече не работи. Натиснете "Поднови известията", за да бъде създаден отново.')
+                    : tr('Натиснете "Разреши известията" и потвърдете системния въпрос на браузъра или устройството.');
+            } else {
+                $form->toolbar->addSbBtn('Продължи', 'default', 'id=filter', 'ef_icon = img/16/move.png');
             }
 
             $tpl = $form->renderHtml();
 
-            if (Request::get('forceSubscribe')) {
-                $appendJS = true;
+            $notificationDeniedText = tr('Известията са блокирани за това приложение. Разрешете ги от настройките на браузъра или операционната система и опитайте отново.');
+            if ($isForced) {
                 $retUrl = getRetUrl();
                 if (!empty($retUrl)) {
-                    unset($retUrl['isPwa']);
+                    if (is_array($retUrl)) {
+                        unset($retUrl['isPwa']);
+                    }
                     $redirectUrl = toUrl($retUrl, 'local');
-                    $subscribeUrl = ht::createLink('oтписване',
-                        array('pwa_PushSubscriptions', 'stop', pwa_PushSubscriptions::fetchField(array("#brid = '[#1#]'", $brid)), 'ret_url' => toUrl($retUrl, 'local')), null,
-                    'ef_icon=img/16/deletered.png');
                     $infoLink = ht::createLink('информация', 'https://bgerp.com/Bg/PWA-prilozhenie#Instalirane-na-prilozhenieto-ot-potrebitelite', null, 'target=_blank, ef_icon=img/16/bgerp.png');
-                    $deniedText = tr("<div>|Грешка при подновяване на абонамента за нотификации.|*</div><div>|Може да се отпишете от |*{$subscribeUrl}</div><div>|Или да активирате в настройките на браузъра|* - {$infoLink}</div>");
+                    $notificationDeniedText = tr("<div>|Известията са забранени за това приложение или браузър.|*</div><div>|Разрешете ги от настройките на браузъра/устройството|* - {$infoLink}</div>");
 
-                    $tpl->appendOnce("const redirectUrl = '{$redirectUrl}';", 'SCRIPTS');
-                    $tpl->appendOnce("const deniedText = '{$deniedText}';", 'SCRIPTS');
+                    $tpl->appendOnce('const redirectUrl = ' . self::encodeJsValue($redirectUrl) . ';', 'SCRIPTS');
                 }
             }
 
             if ($appendJS) {
-                $tpl->appendOnce("const applicationServerKey = '{$key}';", 'SCRIPTS');
+                $tpl->appendOnce('const pushButtonVals = ' . self::encodeJsValue(self::getPushButtonValues()) . ';', 'SCRIPTS');
+                $tpl->appendOnce('const deniedText = ' . self::encodeJsValue($notificationDeniedText) . ';', 'SCRIPTS');
+                $tpl->appendOnce('const applicationServerKey = ' . self::encodeJsValue($key) . ';', 'SCRIPTS');
                 $pwaSubscriptionUrl = toUrl(array('pwa_PushSubscriptions', 'Subscribe'), 'local');
                 $pwaSubscriptionUrl = urlencode($pwaSubscriptionUrl);
 
-                $tpl->appendOnce("const pwaSubscriptionUrl = '{$pwaSubscriptionUrl}';", 'SCRIPTS');
-                $tpl->appendOnce("const forceSubscribe = 'yes';", 'SCRIPTS');
+                $tpl->appendOnce('const pwaSubscriptionUrl = ' . self::encodeJsValue($pwaSubscriptionUrl) . ';', 'SCRIPTS');
+                $serverSubscriptionState = $pRec ? $pRec->state : 'missing';
+                $tpl->appendOnce('const pwaServerSubscriptionState = ' . self::encodeJsValue($serverSubscriptionState) . ';', 'SCRIPTS');
+                $serverSubscriptionFingerprint = self::getSubscriptionFingerprint($pRec);
+                $tpl->appendOnce('const pwaServerSubscriptionFingerprint = ' . self::encodeJsValue($serverSubscriptionFingerprint) . ';', 'SCRIPTS');
 
-                if ($form->rec->subscribe == 'yesWorking') {
+                if (($form->rec->subscribe ?? null) == 'yesWorking') {
                     $redirectUrl = toUrl($defRedirect, 'local');
-                    $tpl->appendOnce("const redirectUrl = '{$redirectUrl}';", 'SCRIPTS');
+                    $tpl->appendOnce('const redirectUrl = ' . self::encodeJsValue($redirectUrl) . ';', 'SCRIPTS');
+                }
+
+                if ($isForced) {
+                    $tpl->appendOnce("const forceRenewSubscription = 'yes';", 'SCRIPTS');
                 }
 
                 $tpl->push('pwa/js/Notifications.js', 'JS');
+                $tpl->push('pwa/css/profile.css', 'CSS');
             }
 
             $res =  $mvc->renderWrapping($tpl);
@@ -155,41 +283,98 @@ class pwa_SubscribePlg extends core_Plugin
 
         // Ако сме се логнали след първо влизане от PWA и нямаме абонамент
         if (Mode::get('pwaSubscribe') && core_Users::getCurrent()) {
+            $brid = log_Browsers::getBrid();
+            $cu = core_Users::getCurrent();
+            $dId = cms_Domains::getCurrent('id', false);
+            Mode::setPermanent('pwaSubscribe', false);
 
-            $res = new Redirect(array($mvc, 'pwaSubscribe'));
+            if (self::mustShowOnboarding($brid, $cu, $dId)) {
+                $res = new Redirect(array($mvc, 'pwaSubscribe'));
 
-            return false;
+                return false;
+            }
         }
 
         // Ако няма абонамет и е първо логване, препраща към екшъна за бързо абониране
         if (Request::get('isPwa') == 'yes') {
             $brid = log_Browsers::getBrid();
-            $rec = pwa_PushSubscriptions::fetch(array("#brid = '[#1#]'", $brid));
+            $cu = core_Users::getCurrent();
+            $dId = cms_Domains::getCurrent('id', false);
 
-            if (!$rec) {
-                if (!core_Permanent::get('pwa_firstLogin_' . $brid)) {
-                    if (!core_Users::getCurrent()) {
-                        Mode::setPermanent('pwaSubscribe', true);
-                    } else {
+            if (!$cu) {
+                // Кой е потребителят се разбира чак след логването - решението
+                // дали да се показва екранът се взима тогава
+                Mode::setPermanent('pwaSubscribe', true);
 
-                        $res = new Redirect(array($mvc, 'pwaSubscribe'));
-
-                        return false;
-                    }
-                }
-            } else {
-                core_Permanent::set('pwa_firstLogin_' . $brid, dt::mysql2timestamp(dt::now()), 1000000);
+                return;
             }
 
-            if (!Request::get('ajax_mode')) {
+            $rec = pwa_PushSubscriptions::fetch(array("#brid = '[#1#]' AND #userId = '[#2#]' AND #domainId = '[#3#]'", $brid, $cu, $dId));
+
+            if (!$rec) {
+                if (self::mustShowOnboarding($brid, $cu, $dId)) {
+                    $res = new Redirect(array($mvc, 'pwaSubscribe'));
+
+                    return false;
+                }
+            } elseif (!Request::get('ajax_mode')) {
                 // Ако е спрян абонамента, дава възможност за ново абониране
-                $pState = pwa_PushSubscriptions::fetchField(array("#brid = '[#1#]'", $brid), 'state');
-                if ($pState == 'stopped') {
+                if ($rec->state == 'stopped' && !self::isPromptRemembered('recovery', $brid, $cu, $dId)) {
                     $res = new Redirect(array($mvc, 'pwaSubscribe', 'forceSubscribe' => 'yes', 'ret_url' => true));
 
                     return false;
                 }
             }
         }
+    }
+
+
+    /**
+     * Кодира стойност за безопасно вграждане в JavaScript
+     *
+     * @param mixed $value
+     *
+     * @return string
+     */
+    protected static function encodeJsValue($value)
+    {
+        return json_encode($value, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT);
+    }
+
+
+    /**
+     * Връща безопасен отпечатък на данните за абонамента
+     *
+     * @param stdClass|null $rec
+     *
+     * @return string|null
+     */
+    public static function getSubscriptionFingerprint($rec)
+    {
+        if (!$rec || !isset($rec->endpoint, $rec->publicKey, $rec->authToken)) {
+
+            return null;
+        }
+
+        return hash('sha256', $rec->endpoint . "\0" . $rec->publicKey . "\0" . $rec->authToken);
+    }
+
+
+    /**
+     * Връща преведените текстове за състоянията на PUSH бутона
+     *
+     * @return stdClass
+     */
+    public static function getPushButtonValues()
+    {
+        $values = new stdClass();
+        $values->enabled = (object) array('btnText' => tr('Известия'), 'btnTitle' => tr('Редактиране на настройките за известията на това устройство'));
+        $values->disabled = (object) array('btnText' => tr('Включи известия'), 'btnTitle' => tr('Включване на известията на това устройство'));
+        $values->renew = (object) array('btnText' => tr('Поднови известията'), 'btnTitle' => tr('Създаване на нов абонамент за известия на това устройство'));
+        $values->computing = (object) array('btnText' => tr('Настройване…'), 'btnTitle' => tr('Проверява се абонаментът за известия'));
+        $values->incompatible = (object) array('btnText' => tr('Неподдържани известия'), 'btnTitle' => tr('Браузърът или устройството не поддържа PUSH известия'));
+        $values->denied = (object) array('btnText' => tr('Известия: блокирани'), 'btnTitle' => tr('Разрешете известията от настройките на браузъра или операционната система'));
+
+        return $values;
     }
 }

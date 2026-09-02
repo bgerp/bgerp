@@ -136,7 +136,7 @@ class core_ET extends core_BaseClass
      */
     public function toBeginMark($blockName)
     {
-        return "<!--ET_BEGIN ${blockName}-->";
+        return "<!--ET_BEGIN {$blockName}-->";
     }
     
     
@@ -145,7 +145,7 @@ class core_ET extends core_BaseClass
      */
     public function toEndMark($blockName)
     {
-        return "<!--ET_END ${blockName}-->";
+        return "<!--ET_END {$blockName}-->";
     }
     
     
@@ -584,14 +584,19 @@ class core_ET extends core_BaseClass
         //DEBUG::stopTimer("SUB1");
         
         //DEBUG::startTimer("SUB2");
-        $str = $this->processContent($content);
-        
+        $str = $this->processContent($content) ?? '';
+        if (is_array($str)) {
+            $str = implode('', $str);
+        }
+
         //DEBUG::stopTimer("SUB2");
         
         // DEBUG::startTimer("SUB3");
         $place = $this->preparePlace($placeHolder);
         
         // DEBUG::stopTimer("SUB3");
+
+        $this->content = $this->content ?? '';
         
         if (strpos($this->content, $place) !== false) {
             if ($once) {

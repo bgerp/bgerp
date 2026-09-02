@@ -50,19 +50,19 @@ class sales_transaction_CloseDeal extends deals_ClosedDealTransaction
         $dealItem = acc_Items::fetchItem('sales_Sales', $firstDoc->that);
         $valior = $this->class->getValiorDate($rec);
         if (acc_Journal::throwErrorsIfFoundWhenTryingToPost()) {
-            acc_journal_RejectRedirect::expect(!acc_plg_Contable::haveDocumentInThreadWithStates($rec->threadId, 'pending,draft', $rec->containerId), tr("Към продажбата има документ в състояние заявка и/или чернова"));
+            acc_journal_RejectRedirect::expect(!acc_plg_Contable::haveDocumentInThreadWithStates($rec->threadId, 'pending,draft', $rec->containerId), tr("Към продажбата има документ в състояние заявка и/или чернова|*!"));
             $rec->valior = $valior;
         }
 
         // Създаване на обекта за транзакция
         $result = (object) array(
-            'reason' => $rec->notes,
+            'reason' => $rec->notes ?? null,
             'valior' => $valior,
             'totalAmount' => 0,
             'entries' => array()
         );
         
-        if ($rec->closeWith) {
+        if (!empty($rec->closeWith)) {
             if ($dealItem) {
                 $closeDeal = array('sales_Sales', $rec->closeWith);
                 $closeEntries = $this->class->getTransferEntries($dealItem, $result->totalAmount, $closeDeal, $rec);

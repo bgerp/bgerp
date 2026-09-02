@@ -168,7 +168,7 @@ class acc_BalanceHistory extends core_Manager
             
             // Ако сме на единствената страница или последната, показваме началното салдо
             if ($data->pager->page == $data->pager->pagesCount || $data->pager->pagesCount == 0) {
-                if(is_array($data->zeroRec)){
+                if(is_array($data->zeroRec ?? null)){
                     $data->recs[] = $data->zeroRec;
                 }
             }
@@ -179,7 +179,7 @@ class acc_BalanceHistory extends core_Manager
             }
             
             $combined = array();
-            if(is_array($data->zeroRec)){
+            if(is_array($data->zeroRec ?? null)){
                 $combined += array('zero' => $data->zeroRec);
             }
             $combined += $data->allRecs;
@@ -195,7 +195,7 @@ class acc_BalanceHistory extends core_Manager
         }
         
         $combined1 = array();
-        if(is_array($data->zeroRec)){
+        if(is_array($data->zeroRec ?? null)){
             $combined1 += array('zero' => $data->zeroRec);
         }
         $combined1 += $data->allRecs;
@@ -257,7 +257,7 @@ class acc_BalanceHistory extends core_Manager
         $bQuery->where("#fromDate >= '{$from}' && #toDate <= '{$to}'");
         $bQuery->orderBy('id', 'ASC');
         
-        if ($balanceId = $bQuery->fetch()->id) {
+        if ($balanceId = $bQuery->fetch()->id ?? null) {
             
             return acc_Balances::fetch($balanceId);
         }
@@ -325,7 +325,7 @@ class acc_BalanceHistory extends core_Manager
         
         self::addPeriodFields($filter);
         $filter->FNC('accNum', 'int', 'input=hidden');
-        $filter->FNC('type', 'class(interface=acc_TransactionSourceIntf,select=title,allowEmpty)', 'input,caption=Документ');
+        $filter->FNC('type', 'class(interface=acc_TransactionSourceIntf,select=title,allowEmpty)', 'input,caption=Документ,placeholderType=all');
         $filter->FNC('isGrouped', 'enum(yes=Да,no=Не)', 'input,caption=Групиране');
         $filter->showFields = 'selectPeriod,toDate,fromDate,type,isGrouped';
         $data->accountInfo = acc_Accounts::getAccountInfo($data->rec->accountId);
@@ -345,7 +345,7 @@ class acc_BalanceHistory extends core_Manager
         foreach (array(3, 2, 1) as $i) {
             if (isset($data->accountInfo->groups[$i]) && is_object($data->accountInfo->groups[$i])) {
                 $listRec = $data->accountInfo->groups[$i]->rec;
-                $filter->FNC("ent{$i}Id", "acc_type_Item(lists={$listRec->num},select=titleLink,showAll,allowEmpty)", "input,class=w75,caption={$listRec->name}");
+                $filter->FNC("ent{$i}Id", "acc_type_Item(lists={$listRec->num},select=titleLink,showAll,allowEmpty)", "input,class=w75,caption={$listRec->name},placeholderType=all");
                 $filter->showFields = "ent{$i}Id,{$filter->showFields}";
             } else {
                 $filter->FNC("ent{$i}Id", 'int', 'input=hidden');
@@ -453,10 +453,10 @@ class acc_BalanceHistory extends core_Manager
             foreach ($data->recs as $dKey => $dArr){
                 if($dArr['docType'] == $data->type){
                     $filteredRecs[$dKey] = $dArr;
-                    $debitQuantity += $dArr['debitQuantity'];
-                    $debitAmount += $dArr['debitAmount'];
-                    $creditQuantity += $dArr['creditQuantity'];
-                    $creditAmount += $dArr['creditAmount'];
+                    $debitQuantity += $dArr['debitQuantity'] ?? 0;
+                    $debitAmount += $dArr['debitAmount'] ?? 0;
+                    $creditQuantity += $dArr['creditQuantity'] ?? 0;
+                    $creditAmount += $dArr['creditAmount'] ?? 0;
                 }
             }
             $data->recs = $filteredRecs;
@@ -534,8 +534,8 @@ class acc_BalanceHistory extends core_Manager
         // Ако има отрицателна сума показва се в червено
         foreach (array('debitAmount', 'debitQuantity', 'creditAmount', 'creditQuantity', 'blQuantity', 'blAmount') as $fld) {
             $Type = strpos($fld, 'Amount') !== false ? $DoubleAmount : $DoubleQuantity;
-            $arr[$fld] = $Type->toVerbal($rec[$fld]);
-            $arr[$fld] = ht::styleIfNegative($arr[$fld], $rec[$fld]);
+            $arr[$fld] = $Type->toVerbal($rec[$fld] ?? 0);
+            $arr[$fld] = ht::styleIfNegative($arr[$fld], $rec[$fld] ?? 0);
         }
 
         try {
@@ -550,7 +550,7 @@ class acc_BalanceHistory extends core_Manager
             }
         }
         
-        if ($rec['ROW_ATTR']) {
+        if ($rec['ROW_ATTR'] ?? null) {
             $arr['ROW_ATTR'] = $rec['ROW_ATTR'];
         }
 
@@ -586,7 +586,11 @@ class acc_BalanceHistory extends core_Manager
 
             foreach ($recs as $k => $rec) {
                 if(is_numeric($k)){
-                    $data->rec->maxBlQuantity = max($rec['blQuantity'], $data->rec->maxBlQuantity);
+                    if(!isset($data->rec->maxBlQuantity)){
+                        $data->rec->maxBlQuantity = $rec['blQuantity'];
+                    } else {
+                        $data->rec->maxBlQuantity = max($rec['blQuantity'], $data->rec->maxBlQuantity);
+                    }
                     if(!isset($data->rec->minBlQuantity)){
                         $data->rec->minBlQuantity = $rec['blQuantity'];
                     } else {
@@ -601,7 +605,7 @@ class acc_BalanceHistory extends core_Manager
                     
                     // Ако има запис и текущия е с по ново ид, заместваме съществуващия,
                     // така имаме последните записи за всяка дата
-                    if ($rec['id'] > $tmpArray[$rec['valior']]['id']) {
+                    if (($rec['id'] ?? null) > ($tmpArray[$rec['valior']]['id'] ?? null)) {
                         $tmpArray[$rec['valior']] = $rec;
                     }
                 }
@@ -669,7 +673,7 @@ class acc_BalanceHistory extends core_Manager
             $tpl->replace($data->layoutClass, 'singleClass');
         }
         
-        if ($data->toolbar) {
+        if ($data->toolbar ?? null) {
             $tpl->append($data->toolbar->renderHtml(), 'HystoryToolbar');
         } else {
             $tpl->replace($data->row->fromDate, 'fromDate');
@@ -734,7 +738,7 @@ class acc_BalanceHistory extends core_Manager
         
         if (!Mode::is('printing')) {
             // Рендиране на пейджъра
-            if ($data->pager) {
+            if (!empty($data->pager)) {
                 $tpl->append($data->pager->getHtml(), 'PAGER');
             }
         }

@@ -79,7 +79,7 @@ class cat_reports_BomsRep extends frame_BaseDriver
     public function addEmbeddedFields(core_FieldSet &$form)
     {
         $form->FLD('saleId', 'keylist(mvc=sales_Sales, select=id)', 'caption=Договор за продажба');
-        $form->FLD('groupId', 'keylist(mvc=cat_Groups,select=name)', 'caption=Група');
+        $form->FLD('groupId', 'keylist(mvc=cat_Groups,select=name)', 'caption=Група,placeholderType=all');
     }
     
     
@@ -200,7 +200,7 @@ class cat_reports_BomsRep extends frame_BaseDriver
         
         
         $i = 1;
-        if (is_array($data->recs)) {
+        if (is_array($data->recs ?? null)) {
             foreach ($data->recs as $idRec => $rec) {
                 $mArr[$idRec] = cat_Products::getMaterialsForProduction($rec->article, $rec->articleCnt, null, true);
                 
@@ -223,10 +223,10 @@ class cat_reports_BomsRep extends frame_BaseDriver
             }
         }
         
-        if (is_array($data->recs)) {
+        if (is_array($data->recs ?? null)) {
             foreach ($data->recs as $i => $r) {
                 if (isset($fRec->groupId)) {
-                    if (is_array($r->materials) && countR($r->materials) != 0) {
+                    if (is_array($r->materials ?? null) && countR($r->materials) != 0) {
                         $materialsArr = implode(',', $r->materials);
                         
                         $queryProduct = cat_Products::getQuery();
@@ -243,7 +243,7 @@ class cat_reports_BomsRep extends frame_BaseDriver
             }
         }
         
-        if (is_array($data->recs) && isset($fRec->groupId)) {
+        if (is_array($data->recs ?? null) && isset($fRec->groupId)) {
             foreach ($data->recs as $rI => $rC) {
                 foreach ($rC->materials as $mat) {
                     $groups = cat_Products::fetchField($mat, 'groups');
@@ -314,7 +314,7 @@ class cat_reports_BomsRep extends frame_BaseDriver
         $row->article = cat_Products::getShortHyperlink($rec->article);
         $row->articleCnt = $Double->toVerbal($rec->articleCnt);
         
-        if (is_array($rec->params)) {
+        if (is_array($rec->params ?? null)) {
             unset($rec->params['$T']);
             
             foreach ($rec->params as $name => $val) {
@@ -340,21 +340,21 @@ class cat_reports_BomsRep extends frame_BaseDriver
             }
         }
         
-        if (is_array($rec->materials)) {
+        if (is_array($rec->materials ?? null)) {
             foreach ($rec->materials as $material) {
-                $row->materials .= cat_Products::getShortHyperlink($material) . '<br/>';
+                $row->materials = ($row->materials ?? '') . cat_Products::getShortHyperlink($material) . '<br/>';
             }
         }
         
-        if (is_array($rec->mParams)) {
+        if (is_array($rec->mParams ?? null)) {
             foreach ($rec->mParams as $mParams) {
-                $row->mParams .= cat_UoM::getShortName($mParams). '<br/>';
+                $row->mParams = ($row->mParams ?? '') . cat_UoM::getShortName($mParams). '<br/>';
             }
         }
         
-        if (is_array($rec->mCnt)) {
+        if (is_array($rec->mCnt ?? null)) {
             foreach ($rec->mCnt as $mCnt) {
-                $row->mCnt .= $Double->toVerbal($mCnt) . '<br/>';
+                $row->mCnt = ($row->mCnt ?? '') . $Double->toVerbal($mCnt) . '<br/>';
             }
         }
         
@@ -428,7 +428,7 @@ class cat_reports_BomsRep extends frame_BaseDriver
         $f->FLD('mCnt', 'int', 'tdClass=accItemClass,smartCenter');
         $table = cls::get('core_TableView', array('mvc' => $f));
         $tpl->append($table->get($data->rows, $data->listFields), 'CONTENT');
-        if ($data->pager) {
+        if (!empty($data->pager)) {
             $tpl->append($data->pager->getHtml(), 'PAGER');
         }
         $embedderTpl->append($tpl, 'data');
@@ -498,13 +498,13 @@ class cat_reports_BomsRep extends frame_BaseDriver
             $dataRec[$id]->params = self::getVerbal($rec)->params;
             $dataRec[$id]->params = str_replace('<br/>', ';', $dataRec[$id]->params);
             
-            if (is_array($rec->mCnt)) {
+            if (is_array($rec->mCnt ?? null)) {
                 foreach ($rec->mCnt as $pId => $cnt) {
                     $dataRec[$id]->mCnt = cls::get('type_Int')->toVerbal($cnt);
                 }
             }
             
-            if (is_array($rec->materials)) {
+            if (is_array($rec->materials ?? null)) {
                 foreach ($rec->materials as $mId => $material) {
                     $dataRec[$id]->materials = $material;
                 }

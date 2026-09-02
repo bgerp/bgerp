@@ -146,13 +146,15 @@ class label_Labels extends core_Master
     public static function updatePrintCnt($id, $printedCnt)
     {
         $rec = self::fetch($id);
-        $rec->id = $rec->id;
+        if (!$rec) {
+            return false;
+        }
         
         if ($rec->state == 'draft') {
             $rec->state = 'active';
         }
         
-        $rec->printedCnt += $printedCnt;
+        $rec->printedCnt = ($rec->printedCnt ?? 0) + $printedCnt;
         
         self::save($rec, 'printedCnt, state');
     }
@@ -170,10 +172,11 @@ class label_Labels extends core_Master
         $rec = &$form->rec;
         
         // Вземаме данните от предишния запис
-        $readOnlyArr = $dataArr = $rec->params;
+        $readOnlyArr = $dataArr = $rec->params ?? array();
+        $templateId = $rec->templateId ?? null;
         
         // Ако формата не е субмитната и не я редактираме
-        if (!$rec->id) {
+        if (empty($rec->id)) {
             // id на шаблона
             $templateId = Request::get('templateId', 'int');
             $lang = label_Templates::fetchField($templateId, 'lang');
@@ -212,7 +215,7 @@ class label_Labels extends core_Master
             }
         } else {
             // Полетата, които идват от обекта, да не могат да се редактират
-            if ($rec->classId && $rec->objId) {
+            if (!empty($rec->classId) && !empty($rec->objId)) {
                 $clsInst = cls::getInterface('label_SequenceIntf', $rec->classId);
                 $readOnlyArr = $clsInst->getReadOnlyPlaceholders($rec->objId);
             }
@@ -222,7 +225,7 @@ class label_Labels extends core_Master
         if (!$templateId) {
             
             // Вземаме от записа
-            $templateId = $rec->templateId;
+            $templateId = $rec->templateId ?? null;
             
             // Очакваме вече да има
             expect($templateId);
@@ -240,8 +243,8 @@ class label_Labels extends core_Master
             $rec->{$fieldName} = $value;
             
             // Стойностите, които идват от интерфейса не се очаква да ги попълва потребителя
-            if ($rec->objId && $rec->classId) {
-                if ($form->fields[$fieldName] && isset($readOnlyArr[$oFieldName])) {
+            if (!empty($rec->objId) && !empty($rec->classId)) {
+                if (!empty($form->fields[$fieldName]) && isset($readOnlyArr[$oFieldName])) {
                     $form->setField($fieldName, 'input=none');
                 }
             }
@@ -254,7 +257,7 @@ class label_Labels extends core_Master
      */
     protected static function on_AfterPrepareEditTitle($mvc, &$res, &$data)
     {
-        $data->form->title = core_Detail::getEditTitle('label_Templates', $data->form->rec->templateId, $mvc->singleTitle, $data->form->rec->id);
+        $data->form->title = core_Detail::getEditTitle('label_Templates', $data->form->rec->templateId, $mvc->singleTitle, $data->form->rec->id ?? null);
     }
     
     
@@ -272,18 +275,16 @@ class label_Labels extends core_Master
         
         // Ако формата е субмитната
         if ($form->isSubmitted()) {
-            
-            // Вземаме типа
-            $type = $form->rec->type;
+            $oldDataArr = array();
             
             // Ако редактираме записа
-            if ($form->rec->id) {
+            if (!empty($form->rec->id)) {
                 
                 // Вземаме записа
                 $rec = $mvc->fetch($form->rec->id);
                 
                 // Вземаме старите стойности
-                $oldDataArr = $rec->params;
+                $oldDataArr = $rec->params ?? array();
             }
             
             // Форма за функционалните полета
@@ -298,14 +299,15 @@ class label_Labels extends core_Master
             foreach ((array) $fncForm->fields as $fieldName => $dummy) {
                 
                 // Ако има масив за старите данни и новта стойност е NULL
-                if ($oldDataArr && ($form->rec->$fieldName === null)) {
+                $fieldValue = $form->rec->{$fieldName} ?? null;
+                if ($oldDataArr && $fieldValue === null) {
                     
                     // Използваме старата стойност
-                    $dataArr[$fieldName] = $oldDataArr[$fieldName];
+                    $dataArr[$fieldName] = $oldDataArr[$fieldName] ?? null;
                 } else {
                     
                     // Добавяме данните от формата
-                    $dataArr[$fieldName] = $form->rec->$fieldName;
+                    $dataArr[$fieldName] = $fieldValue;
                 }
             }
             
@@ -344,7 +346,7 @@ class label_Labels extends core_Master
     protected static function on_AfterPrepareListToolbar($mvc, &$res, $data)
     {
         // Документа не може да се създава  в нова нишка, ако е възоснова на друг
-        if (!empty($data->toolbar->buttons['btnAdd'])) {
+        if ($data->toolbar->haveButton('btnAdd')) {
             $data->toolbar->removeBtn('btnAdd');
             $data->toolbar->addBtn('Нов запис', array($mvc, 'selectTemplate'), 'ef_icon=img/16/star_2.png,title=Добавяне на нов етикет');
         }
@@ -568,17 +570,18 @@ class label_Labels extends core_Master
         if (!$rec) {
             $rec = static::fetch($data->Label->id);
         }
+        $recId = $rec->id ?? null;
         
         // Ако не е сетната бройката
         setPartIfNot($data, 'cnt', 1);
         setPartIfNot($data, 'copyCnt', 1);
         
-        if (!$data->allCnt) {
+        if (empty($data->allCnt)) {
             $data->allCnt = $data->cnt * $data->copyCnt;
         }
         
         // Ако няма стойност
-        if (!$data->row) {
+        if (empty($data->row)) {
             
             // Създаваме обект
             $data->row = new stdClass();
@@ -591,41 +594,41 @@ class label_Labels extends core_Master
         $placesArr = label_Templates::getPlaceholders($data->row->Template);
         
         // Параметрите
-        $params = $rec->params;
+        $params = (array) ($rec->params ?? array());
         
         // Плейсхолдери за брой отпечатване и текущ етикет
         $printCntField = label_TemplateFormats::getPlaceholderFieldName('Общо_етикети');
         $currPrintCntField = label_TemplateFormats::getPlaceholderFieldName('Текущ_етикет');
         $currPageCntField = label_TemplateFormats::getPlaceholderFieldName('Страница');
 
-        $itemsPerPage = $itemsPerPage ?? $data->pageLayout->itemsPerPage ?? 1;
+        $itemsPerPage = $data->pageLayout->itemsPerPage ?? 1;
         
         // Ако не е зададена стойност за брой отпечатвания
         $params[$printCntField] = $params[$printCntField] ?? $data->printCnt ?? $data->cnt ?? 1;
         
         // Ако не е зададена стойност за текущия отпечатван етикет
         $updatePrintCnt = false;
-        if (!$params[$currPrintCntField]) {
+        if (empty($params[$currPrintCntField])) {
             $updatePrintCnt = true;
             $params[$currPrintCntField] = 0;
         }
         
         // Ако не е зададена стойност за текущата страница
         $updatePageCnt = false;
-        if (!$params[$currPageCntField]) {
+        if (empty($params[$currPageCntField])) {
             $updatePageCnt = true;
             $params[$currPageCntField] = 0;
         }
         
         $rowId = 0;
         $perPageCnt = 0;
-        $lDataNo = ($data->rec && $data->rec->begin) ? $data->rec->begin : 0;
+        $lDataNo = !empty($data->rec->begin) ? $data->rec->begin : 0;
         
         // Докато достигнем броя на принтиранията
         for ($i = 0; $i < $data->cnt; $i++) {
             
             // Вземаме стойностите на плейсхолдерите от обекта
-            if ($rec->objId && $rec->classId) {
+            if (!empty($rec->objId) && !empty($rec->classId)) {
                 $intfInst = cls::getInterface('label_SequenceIntf', $rec->classId);
                 
                 $lang = label_Templates::fetchField($rec->templateId, 'lang');
@@ -672,7 +675,7 @@ class label_Labels extends core_Master
                 $fPlace = label_TemplateFormats::getPlaceholderFieldName($place);
                 
                 // Вземаме вербалната стойност
-                $data->rows[$rowId][$place] = label_TemplateFormats::getVerbalTemplate($rec->templateId, $place, $params[$fPlace], $rec->id, $data->updateTempData);
+                $data->rows[$rowId][$place] = label_TemplateFormats::getVerbalTemplate($rec->templateId, $place, $params[$fPlace] ?? null, $recId, $data->updateTempData);
             }
             
             $newCurrPage = false;
@@ -685,7 +688,7 @@ class label_Labels extends core_Master
                 // При копиятата, ако сме минали на нова страница, да се увеличи брояча за всички следващи копия
                 if (($updatePageCnt) && ($perPageCnt % $itemsPerPage == 0)) {
                     $params[$currPageCntField]++;
-                    $newCurrPage = label_TemplateFormats::getVerbalTemplate($rec->templateId, $currPageCntField, $params[$currPageCntField], $rec->id, $data->updateTempData);
+                    $newCurrPage = label_TemplateFormats::getVerbalTemplate($rec->templateId, $currPageCntField, $params[$currPageCntField], $recId, $data->updateTempData);
                 }
                 
                 if ($newCurrPage) {
@@ -785,7 +788,7 @@ class label_Labels extends core_Master
     protected static function on_AfterPrepareRetUrl($mvc, &$res, &$data)
     {
         // Ако е субмитната формата и сме натиснали бутона "Запис и нов"
-        if ($data->form && $data->form->isSubmitted() && $data->form->cmd == 'save') {
+        if (!empty($data->form) && $data->form->isSubmitted() && $data->form->cmd == 'save') {
             
             // Променяма да сочи към single'a
             $data->retUrl = toUrl(array($mvc, 'single', $data->form->rec->id));
@@ -806,12 +809,13 @@ class label_Labels extends core_Master
     {
         // Ако има запис
         if ($rec) {
+            $state = $rec->state ?? null;
             
             // Ако ще добавяме нов
             if ($action == 'add') {
                 
                 // Вземаме записите
-                $templateRec = label_Templates::fetch($rec->templateId);
+                $templateRec = label_Templates::fetch($rec->templateId ?? null);
                 
                 // Вземаме правата за създаване на етикет
                 $requiredRoles = label_Templates::getRequiredRoles('createlabel', $templateRec);
@@ -821,11 +825,11 @@ class label_Labels extends core_Master
             if ($action == 'edit') {
                 
                 // Ако е оттеглено
-                if ($rec->state == 'rejected') {
+                if ($state == 'rejected') {
                     
                     // Оттеглените да не могат да се редактират
                     $requiredRoles = 'no_one';
-                } elseif ($rec->state != 'draft') {
+                } elseif ($state != 'draft') {
                     
                     // Потреибители, които имат роля за masterLabel могат да редактират
                     $requiredRoles = $mvc->getRequiredRoles('Masterlabel');
@@ -840,7 +844,7 @@ class label_Labels extends core_Master
             }
             
             if ($action == 'uselabel') {
-                if ($rec->state == 'rejected') {
+                if ($state == 'rejected') {
                     $requiredRoles = 'no_one';
                 }
             }
@@ -865,7 +869,7 @@ class label_Labels extends core_Master
         // Добавяме бутон
         $form->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         
-        $form->FNC('fState', 'enum(, draft=Чернови, active=Отпечатани)', 'caption=Състояние, allowEmpty,autoFilter');
+        $form->FNC('fState', 'enum(, draft=Чернови, active=Отпечатани)', 'caption=Състояние,placeholderType=all, allowEmpty,autoFilter');
         
         // Показваме само това поле. Иначе и другите полета
         // на модела ще се появят
@@ -880,7 +884,7 @@ class label_Labels extends core_Master
         // Подреждаме по дата на модифициране
         $data->query->orderBy('#modifiedOn=DESC');
         
-        if ($state = $data->listFilter->rec->fState) {
+        if ($state = ($data->listFilter->rec->fState ?? null)) {
             $data->query->where(array("#state = '[#1#]'", $state));
         }
     }
@@ -895,8 +899,8 @@ class label_Labels extends core_Master
      */
     protected static function on_AfterSave($mvc, &$id, $rec)
     {
-        if (!$rec->templateId) {
-            expect($rec->id);
+        if (empty($rec->templateId)) {
+            expect($rec->id ?? null);
             $rec = $mvc->fetch($rec->id);
         }
         

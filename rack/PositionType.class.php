@@ -40,7 +40,7 @@ class rack_PositionType extends type_Varchar
      */
     public function fromVerbal($value)
     {
-        if (!trim($value)) {
+        if (!trim($value ?? '')) {
             
             return;
         }
@@ -76,13 +76,7 @@ class rack_PositionType extends type_Varchar
             return false;
         }
         
-        $res = strtoupper(((int) $matches[1]) . '-' . strtoupper($matches[2]) . '-' . ((int) $matches[3]));
-
-        if($matches[3]) {
-            $res .= strtolower($matches[5]);
-        }
-
-        return $res;
+        return strtoupper(((int) $matches[1]) . '-' . strtoupper($matches[2]) . '-' . ((int) $matches[3]));
     }
     
     
@@ -95,12 +89,12 @@ class rack_PositionType extends type_Varchar
             $value = tr('Под');
         }
         
-        if (!strpos($value, '-') || Mode::is('printing') || Mode::is('text', 'plain') || Mode::is('text', 'printing')) {
+        if ($value === null || !strpos($value, '-') || Mode::is('printing') || Mode::is('text', 'plain') || Mode::is('text', 'printing')) {
             
             return $value;
         }
         
-        list($n, $r, $c) = rack_PositionType::toArray($value);
+        list($n, $r, $c) = rack_PositionType::toArray($value) ?: array(null, null, null);
         
         $storeId = store_Stores::getCurrent();
         $error = null;

@@ -51,7 +51,7 @@ class sales_reports_SalesPriceImpl extends frame_BaseDriver
     {
         $form->FLD('from', 'date(allowEmpty)', 'caption=От,input,mandatory');
         $form->FLD('to', 'date(allowEmpty)', 'caption=До,input,mandatory');
-        $form->FLD('dealer', 'user(rolesForAll=sales|ceo,allowEmpty,roles=ceo|sales)', 'caption=Търговец,input');
+        $form->FLD('dealer', 'user(rolesForAll=sales|ceo,allowEmpty,roles=ceo|sales)', 'caption=Търговец,placeholderType=all,input');
         
         $form->FLD('orderState', 'set(active=Активно,draft=Чакащо,closed=Приключено,rejected=Оттеглено)', 'caption=Състояние,formOrder=110000,maxColumns=2');
         $form->FLD('orderBy', 'enum(,ASC=Възходящ,DESC=Низходящ)', 'caption=Подредба->Тип,formOrder=110001');
@@ -388,7 +388,7 @@ class sales_reports_SalesPriceImpl extends frame_BaseDriver
         $table = cls::get('core_TableView', array('mvc' => $f));
         $tpl->append($table->get($data->rows, $data->listFields), 'CONTENT');
         
-        if ($data->pager) {
+        if (!empty($data->pager)) {
             $tpl->append($data->pager->getHtml(), 'PAGER');
         }
         

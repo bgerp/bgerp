@@ -119,7 +119,7 @@ class price_interface_LastAccCostPolicyImpl extends price_interface_BaseCostPoli
         foreach ($dRecs as $dRec) {
             $itemId = $dRec->{"ent2Id"};
             if (!array_key_exists($itemId, $tmpArr)) {
-                $tmpArr[$itemId] = new stdClass();
+                $tmpArr[$itemId] = (object) array('quantity' => 0, 'amount' => 0);
             }
 
             if(isset($dRec->blQuantity)){
@@ -150,7 +150,6 @@ class price_interface_LastAccCostPolicyImpl extends price_interface_BaseCostPoli
             }
 
             // средно аритметично
-            $tmpArr = array();
             foreach ($productsInOtherBalances as $pKey => $pGrouped) {
                 if (array_key_exists($pKey, $tmpArr)) continue;
                 $tmpArr[$pKey] = (object)array('amount' => array_sum($pGrouped), 'quantity' => countR($pGrouped));
@@ -160,6 +159,8 @@ class price_interface_LastAccCostPolicyImpl extends price_interface_BaseCostPoli
         // Намиране на цената
         $productMap = array_flip($productMap);
         foreach ($tmpArr as $index => $r) {
+            if (!array_key_exists($index, $productMap)) continue;
+
             $pId = $productMap[$index];
             $amount = (!$r->quantity) ? 0 : round($r->amount / $r->quantity, 5);
 

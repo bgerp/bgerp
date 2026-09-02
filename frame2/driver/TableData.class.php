@@ -227,8 +227,14 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
     {
         $tpl = new core_ET('[#TABS#][#PAGER_TOP#][#TABLE_BEFORE#][#TABLE#][#TABLE_AFTER#][#PAGER_BOTTOM#]');
         
-        $data = (is_object($rec->data)) ? $rec->data : new stdClass();
+        $data = (is_object($rec->data ?? null)) ? $rec->data : new stdClass();
         setIfNot($data->chartTabCaption, $this->chartTabCaption);
+        $data->recs = is_array($data->recs ?? null) ? $data->recs : array();
+        $data->groupByField = $data->groupByField ?? $this->groupByField;
+        $data->subGroupFieldOrder = $data->subGroupFieldOrder ?? $this->subGroupFieldOrder;
+        $data->groupedFieldOnNewRow = $data->groupedFieldOnNewRow ?? $this->groupedFieldOnNewRow;
+        $data->summaryListFields = $data->summaryListFields ?? $this->summaryListFields;
+        $data->summaryRowCaption = $data->summaryRowCaption ?? $this->summaryRowCaption;
         $data->listFields = $this->getListFields($rec);
         $data->rows = array();
         
@@ -308,6 +314,10 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
             
             return;
         }
+
+        foreach ($fieldsToSumArr as $fld) {
+            $summaryRow->{$fld} = 0;
+        }
         
         // Ако има полета за сумиране
         array_walk($data->recs, function ($a) use (&$summaryRow, $fieldsToSumArr){
@@ -371,7 +381,7 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
         // Подготовка на пейджъра
         $itemsPerPage = null;
         if (!(Mode::is('text', 'xhtml') || Mode::is('printing') || Mode::is('text', 'plain') || Mode::is('pdf') || isset($customTpl))) {
-            setIfNot($itemsPerPage, $rec->listItemsPerPage, $this->listItemsPerPage);
+            setIfNot($itemsPerPage, $rec->listItemsPerPage ?? null, $this->listItemsPerPage);
             $data->Pager = cls::get('core_Pager', array('itemsPerPage' => $itemsPerPage));
             $data->Pager->setPageVar('frame2_Reports', $rec->id);
         }
@@ -490,7 +500,7 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
      * 
      * @return array $newRecs
      */
-    private function orderByGroupField($recs, $groupField, $sortFld = null, $sortDirection = null,$subGroupFieldOrder)
+    private function orderByGroupField($recs, $groupField, $sortFld = null, $sortDirection = null, $subGroupFieldOrder = null)
     {
         $newRecs = array();
 
@@ -560,7 +570,8 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
         
         $groups = array();
         foreach ($rows as $index => $row) {
-            $groups[$recs[$index]->{$field}] = $row->{$field};
+            $groupId = $recs[$index]->{$field} ?? null;
+            $groups[$groupId] = $row->{$field} ?? '';
         }
         
         $newRows = $rowAttr = array();
@@ -583,7 +594,7 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
             // За всички записи
             foreach ($rows as $index => $row1) {
                 $r = $recs[$index];
-                if ($r->{$field} == $groupId) {
+                if (($r->{$field} ?? null) == $groupId) {
                     if ($data->groupedFieldOnNewRow === true || ($data->groupedFieldOnNewRow === false && $firstRow !== true)) {
                         unset($rows[$index]->{$field});
                     }
@@ -944,7 +955,10 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
         $tpl = $this->getReportLayoutTpl($rec);
         if(!($tpl instanceof core_ET)) return null;
 
-        $tpl->placeObject($data->row);
+        if (isset($data->row)) {
+            $tpl->placeObject($data->row);
+        }
+
         foreach ($data->rows as $row){
             if($row instanceof core_ET){
                 try{

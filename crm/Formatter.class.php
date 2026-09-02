@@ -25,7 +25,7 @@ class crm_Formatter extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_RowTools, crm_Wrapper, plg_State2,
+    public $loadList = 'plg_Created, plg_RowTools2, crm_Wrapper, plg_State2,
     				 plg_Rejected, plg_Search, plg_Translate';
     
     

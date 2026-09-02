@@ -56,7 +56,7 @@ class batch_definitions_StringManufacturerDate extends batch_definitions_StringE
         }
 
         // Вземаме базовите параметри и само ги разширяваме/заменяме
-        $params = parent::getBatchTypeParams();
+        $params = parent::getBatchTypeParams($class, $objectId);
         $params['folderId'] = $folderId;
 
         $paramStr = array();

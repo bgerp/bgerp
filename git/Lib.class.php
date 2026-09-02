@@ -146,10 +146,12 @@ class git_Lib
         $command = 'log -1 --abbrev-commit';
         
         if (self::cmdExec($command, $out, $repoPath)) {
-            $res = new stdClass();
+            $res = (object) array('commit' => null, 'date' => null, 'author' => null);
             
             foreach ($out as $line) {
-                list($h, $value) = explode(' ', $line, 2);
+                $parts = explode(' ', $line, 2);
+                $h = $parts[0];
+                $value = $parts[1] ?? null;
                 if ($h == 'commit' && !$res->commit) {
                     $res->commit = $value;
                 }
@@ -409,24 +411,34 @@ class git_Lib
     /**
      * Връща unified diff-а между два бранча (origin/branch1 -> origin/branch2)
      *
-     * Сравнява локалните remote-tracking бранчове, БЕЗ да прави fetch.
+     * Сравнява локалните remote-tracking бранчове.
      *
      * @param string  $repoPath - път до git репозитори
      * @param array() $log      - масив с логове
      * @param string  $branch1  - име на бранч източник
      * @param string  $branch2  - име на бранч приемник
+     * @param bool    $fetch    - да се обновят ли remote-tracking рефовете преди сравнението
      *
      * @return string|false - текстът на diff-а или FALSE при грешка
      */
-    public static function diff($repoPath, &$log, $branch1, $branch2)
+    public static function diff($repoPath, &$log, $branch1, $branch2, $fetch = true)
     {
         $repoName = basename($repoPath);
 
         $ref1 = escapeshellarg("origin/{$branch1}");
         $ref2 = escapeshellarg("origin/{$branch2}");
 
+        // Обновяваме само refs/remotes/origin/* - не се пипат работната директория и локалните бранчове
+        if ($fetch) {
+            $fetchCmd = 'fetch origin ' . escapeshellarg($branch1) . ' ' . escapeshellarg($branch2);
+
+            if (!self::cmdExec($fetchCmd, $fRes, $repoPath)) {
+                $log[] = "[{$repoName}]: ВНИМАНИЕ - неуспешен fetch, показаните разлики може да са остарели: " . implode("\n", (array) $fRes);
+            }
+        }
+
         if (!self::cmdExec("diff -w {$ref1} {$ref2}", $res, $repoPath)) {
-            $log[] = "[{$repoName}]: Неуспешно извличане на diff {$branch1} -> {$branch2}";
+            $log[] = "[{$repoName}]: Неуспешно извличане на diff {$branch1} -> {$branch2}: " . implode("\n", (array) $res);
 
             return false;
         }

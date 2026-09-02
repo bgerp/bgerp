@@ -85,11 +85,11 @@ class planning_reports_WasteAndScrapByTasks extends frame2_driver_TableData
         $fieldset->FLD('from', 'date', 'caption=От,after=title,single=none,mandatory');
         $fieldset->FLD('to', 'date', 'caption=До,after=from,single=none,mandatory');
 
-        $fieldset->FLD('employees', 'keylist(mvc=crm_Persons,select=name,group=employees,allowEmpty=true)', 'caption=Работници,placeholder=Всички,after=to');
+        $fieldset->FLD('employees', 'keylist(mvc=crm_Persons,select=name,group=employees,allowEmpty=true)', 'caption=Работници,placeholderType=all,after=to');
 
-        $fieldset->FLD('assetResources', 'keylist(mvc=planning_AssetResources,select=name)', 'caption=Машини,placeholder=Всички,after=employees,single=none');
+        $fieldset->FLD('assetResources', 'keylist(mvc=planning_AssetResources,select=name)', 'caption=Машини,placeholderType=all,after=employees,single=none');
 
-        $fieldset->FLD('centre', 'keylist(mvc=planning_Centers,select=name)', 'caption=Центрове,after=assetResources,single=none');
+        $fieldset->FLD('centre', 'keylist(mvc=planning_Centers,select=name)', 'caption=Центрове,placeholderType=all,after=assetResources,single=none');
 
     }
 
@@ -196,6 +196,7 @@ class planning_reports_WasteAndScrapByTasks extends frame2_driver_TableData
         }
 
         $wasteQuantity = null;
+        $wasteWeight = 0;
 
         while ($taskRec = $taskQuery->fetch()) {
 
@@ -319,7 +320,7 @@ class planning_reports_WasteAndScrapByTasks extends frame2_driver_TableData
         if (isset($dRec->wasteProdWeigth)) {
             $row->wasteWeight = $Double->toVerbal($dRec->wasteWeight);
             if ($dRec->wasteWeightNullMark === true) {
-                $row->wasteWeight .= "<span class='red'>?</span>";
+                $row->wasteWeight = ($row->wasteWeight ?? '') . "<span class='red'>?</span>";
             }
         } else {
             $row->wasteWeight = '?';
@@ -340,8 +341,8 @@ class planning_reports_WasteAndScrapByTasks extends frame2_driver_TableData
             $row->employees = '';
             foreach (keylist::toArray($dRec->employees) as $val) {
 
-                //$row->employees .= crm_Persons::getTitleById(($val)) . ' - ' . planning_Hr::getCodeLink($val) . ',' . "</br>";
-                $row->employees .= crm_Persons::getTitleById(($val)) . "</br>";
+                //$row->employees = ($row->employees ?? '') . crm_Persons::getTitleById(($val)) . ' - ' . planning_Hr::getCodeLink($val) . ',' . "</br>";
+                $row->employees = ($row->employees ?? '') . crm_Persons::getTitleById(($val)) . "</br>";
             }
 
 

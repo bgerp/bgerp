@@ -230,7 +230,7 @@ class acc_plg_DocumentSummary extends core_Plugin
         $cKey = $mvc->className . '|' . core_Users::getCurrent();
         $userFields = array();
 
-        if(!$mvc->hidePeriodFilter){
+        if(empty($mvc->hidePeriodFilter)){
             $data->listFilter->FNC('from', 'date', 'width=6em,caption=От,silent');
             $data->listFilter->FNC('to', 'date', 'width=6em,caption=До,silent');
 
@@ -292,7 +292,7 @@ class acc_plg_DocumentSummary extends core_Plugin
             $mvc->invoke('afterGetDocumentSummaryListFields', array(&$data));
             $data->listFilter->FNC('users', "users(rolesForAll={$mvc->filterRolesForAll},rolesForTeams={$mvc->filterRolesForTeam}, showClosedGroups)", 'caption=Потребители,silent,autoFilter,remember');
             if(!empty($mvc->showFilterFolderField)){
-                $data->listFilter->FNC('folder', 'key2(mvc=doc_FoldersProxy, allowEmpty, selectSourceArr=doc_Folders::getSelectArr, forceProxy)', 'caption=Папка,silent,after=users');
+                $data->listFilter->FNC('folder', 'key2(mvc=doc_FoldersProxy, allowEmpty, selectSourceArr=doc_Folders::getSelectArr, forceProxy)', 'caption=Папка,placeholderType=all,silent,after=users');
                 $data->listFilter->showFields .= ',folder';
             }
             
@@ -343,7 +343,7 @@ class acc_plg_DocumentSummary extends core_Plugin
         if(!empty($mvc->currencyFld) && $mvc->getField($mvc->currencyFld, false)){
             $data->listFilter->mvc->toggableFieldsInVerticalListFilter = ($data->listFilter->mvc->toggableFieldsInVerticalListFilter ?? '') . ", {$mvc->currencyFld}";
             $data->listFilter->setFieldTypeParams($mvc->currencyFld, array('allowEmpty' => 'allowEmpty'));
-            $data->listFilter->setField($mvc->currencyFld, "caption=Валута,input,formOrder=1000");
+            $data->listFilter->setField($mvc->currencyFld, "caption=Валута,placeholderType=all,input,formOrder=1000");
             $data->listFilter->showFields .= ",{$mvc->currencyFld}";
         }
 
@@ -353,7 +353,7 @@ class acc_plg_DocumentSummary extends core_Plugin
             if(countR($templateOptions)){
                 $data->listFilter->mvc->toggableFieldsInVerticalListFilter = ($data->listFilter->mvc->toggableFieldsInVerticalListFilter ?? '') . ",template";
                 $data->listFilter->setOptions('template', array('' => '') + $templateOptions);
-                $data->listFilter->setField('template', "caption=Шаблон,formOrder=1002");
+                $data->listFilter->setField('template', "caption=Шаблон,placeholderType=all,formOrder=1002");
                 $data->listFilter->showFields .= ",template";
             }
         }
@@ -371,6 +371,9 @@ class acc_plg_DocumentSummary extends core_Plugin
                     if(isset($stateOptions['draft']) && isset($stateOptions['pending'])){
                         $stateOptions += array('draftAndPending' => 'Чернова+Заявка');
                     }
+                    // Документът може да добави свои опции - филтрира ги сам в on_AfterPrepareListFilter
+                    $mvc->invoke('AfterGetStateFilterOptions', array(&$stateOptions));
+
                     $stateOptionsString = arr::fromArray($stateOptions);
                     $data->listFilter->FNC('fState', "enum({$stateOptionsString})", 'caption=Състояние,input,silent');
                     $data->listFilter->showFields .= ',fState';
@@ -395,13 +398,13 @@ class acc_plg_DocumentSummary extends core_Plugin
             if(!empty($filter->fState)){
                 if($filter->fState == 'draftAndPending'){
                     $data->query->in('state', array('draft', 'pending'));
-                } elseif($filter->fState != 'all'){
+                } elseif($filter->fState != 'all' && isset($mvc->getFieldType('state')->options[$filter->fState])){
                     $data->query->where("#state = '{$filter->fState}'");
                 }
             }
 
             // Записваме в кеша последно избраните потребители
-            if ($data->listFilter->isSubmitted() && ($usedUsers = $filter->users)) {
+            if ($data->listFilter->isSubmitted() && ($usedUsers = ($filter->users ?? null))) {
                 if (($requestUsers = Request::get('users')) && !is_numeric(str_replace('_', '', $requestUsers))) {
                     $usedUsers = $requestUsers;
                 }

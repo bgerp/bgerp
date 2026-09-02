@@ -61,13 +61,13 @@ class csv_Lib
             $cRowCnt = countR($data);
             
             // Пропускаме празните линии
-            if (!$cRowCnt || ($cRowCnt == 1 && trim($data[0]) == '')) {
+            if (!$cRowCnt || ($cRowCnt == 1 && trim($data[0] ?? '') == '')) {
                 continue;
             }
-            
+
             // Пропускаме редовете със знака указан в $skip
             if (($data[0][0] ?? null) == $format['skip']) {
-                if (strtolower(trim($data[0], ' ' . $format['skip'])) == 'closeonce') {
+                if (strtolower(trim($data[0] ?? '', ' ' . $format['skip'])) == 'closeonce') {
                     $closeOnce = true;
                 }
                 
@@ -355,14 +355,14 @@ class csv_Lib
             // Ако задължително поле не е попълнено - пропускаме реда
             if (countR($mandatory)) {
                 foreach ($mandatory as $part) {
-                    if (strlen($rec->{$part}) == 0) {
+                    if (strlen($rec->{$part} ?? '') == 0) {
                         continue ;
                     }
                 }
             }
             $rCsvArr = array();
             foreach ($listFields as $name => $caption) {
-                if ($fieldSet->fields[$name]) {
+                if (!empty($fieldSet->fields[$name])) {
                     $type = $fieldSet->fields[$name]->type;
                 } else {
                     $type = new stdClass();
@@ -371,14 +371,17 @@ class csv_Lib
                 // Зануляване на стойноста преди всяка итерация
                 $value = null;
                 
+                // Записът може да няма такова поле
+                $fldValue = $rec->{$name} ?? null;
+                
                 Mode::push('text', 'plain');
                 Mode::push('text-export', 'csv');
                 if (($type instanceof type_Key) || ($type instanceof type_Key2)) {
-                    $value = $type->toVerbal($rec->{$name});
+                    $value = $type->toVerbal($fldValue);
                 } elseif ($type instanceof type_Keylist) {
-                    $value = $type->toVerbal($rec->{$name});
+                    $value = $type->toVerbal($fldValue);
                 } elseif ($type instanceof type_Set) {
-                    $value = $type->toVerbal($rec->{$name});
+                    $value = $type->toVerbal($fldValue);
                 } elseif ($type instanceof type_Double) {
                     if (isset($params['decPoint'])) {
                         $type->params['decPoint'] = $params['decPoint'];
@@ -398,9 +401,9 @@ class csv_Lib
                         setIfNot($type->params['decimals'], $decimals);
                     }
                     
-                    $value = $type->toVerbal($rec->{$name});
+                    $value = $type->toVerbal($fldValue);
                 } elseif ($type instanceof type_Datetime) {
-                    if ($rec->{$name}) {
+                    if ($fldValue) {
                         if (isset($params['datetimeFormat'])) {
                             $datetimeFormatF = $params['datetimeFormat'];
                         } elseif (isset($type->params['format'])) {
@@ -409,11 +412,11 @@ class csv_Lib
                             $datetimeFormatF = $datetimeFormat;
                         }
                         
-                        $value = dt::mysql2verbal($rec->{$name}, $datetimeFormatF);
+                        $value = dt::mysql2verbal($fldValue, $datetimeFormatF);
                         $value = strip_tags($value);
                     }
                 } elseif ($type instanceof type_Date) {
-                    if ($rec->{$name}) {
+                    if ($fldValue) {
                         if (isset($params['dateFormat'])) {
                             $dateFormatF = $params['dateFormat'];
                         } elseif (isset($type->params['format'])) {
@@ -422,23 +425,23 @@ class csv_Lib
                             $dateFormatF = $dateFormat;
                         }
                         
-                        $value = dt::mysql2verbal($rec->{$name}, $dateFormatF);
+                        $value = dt::mysql2verbal($fldValue, $dateFormatF);
                         $value = strip_tags($value);
                     }
                 } elseif ($type instanceof type_Richtext && !empty($params['text'])) {
                     Mode::push('text', $params['text']);
-                    $value = $type->toVerbal($rec->{$name});
+                    $value = $type->toVerbal($fldValue);
                     Mode::pop('text');
                 } elseif ($type instanceof fileman_FileType) {
-                    if (trim($rec->{$name})) {
-                        $value = toUrl(array('F', 'D', $rec->{$name}), 'absolute');
+                    if (strlen(trim((string) $fldValue))) {
+                        $value = toUrl(array('F', 'D', $fldValue), 'absolute');
                     }
                 } elseif ($type instanceof type_Enum) {
-                    $value = $type->toVerbal($rec->{$name});
+                    $value = $type->toVerbal($fldValue);
                 } elseif ($type instanceof fileman_FileSize) {
-                    $value = $type->toVerbal($rec->{$name});
+                    $value = $type->toVerbal($fldValue);
                 } else {
-                    $value = $rec->{$name};
+                    $value = $fldValue;
                 }
                 Mode::pop('text-export');
                 Mode::pop('text');
@@ -469,7 +472,7 @@ class csv_Lib
         $csvLine = null;
         foreach ($valsArr as $v) {
             if ($trim) {
-                $v = trim($v);
+                $v = trim($v ?? '');
             }
             $v = self::prepareCsvVal($v, $delimiter, $enclosure);
             $csvLine = (isset($csvLine)) ? $csvLine . $delimiter : '';
@@ -516,7 +519,7 @@ class csv_Lib
     {
         $rowsArr = self::getCsvRowsFromFile($csvData, array('delimiter' => $delimiter, 'enclosure' => $enclosure, 'firstRow' => $firstRow));
         
-        return $rowsArr['data'];
+        return $rowsArr['data'] ?? array();
     }
     
     
@@ -537,15 +540,15 @@ class csv_Lib
     {
         $rowsArr = self::getCsvRowsFromFile($csvData, array('delimiter' => $delimiter, 'enclosure' => $enclosure, 'firstRow' => 'columnNames'));
         
-        if ($checkErr && $rowsArr['error']) {
+        if ($checkErr && !empty($rowsArr['error'])) {
             
             return array();
         }
         
-        if ($rowsArr['firstRow']) {
+        if (!empty($rowsArr['firstRow'])) {
             $resArr = (array) $rowsArr['firstRow'];
         } else {
-            $resArr = $rowsArr['data'][0];
+            $resArr = $rowsArr['data'][0] ?? array();
         }
         
         if ($firstEmpty) {
@@ -554,11 +557,11 @@ class csv_Lib
 
         if ($caption) {
             $captionC = trim(mb_strtolower($caption));
-            $nameC = trim(mb_strtolower($name));
+            $nameC = trim(mb_strtolower((string) $name));
 
-            $cDataArr = $rowsArr['firstRow'] ? $rowsArr['firstRow'] : $rowsArr['data'][0];
+            $cDataArr = !empty($rowsArr['firstRow']) ? $rowsArr['firstRow'] : ($rowsArr['data'][0] ?? array());
             foreach ((array) $cDataArr as $id => $val) {
-                $valC = trim(mb_strtolower($val));
+                $valC = trim(mb_strtolower($val ?? ''));
 
                 if (!$valC) {
                     continue;
@@ -622,10 +625,10 @@ class csv_Lib
         while (($data = fgetcsv($handle, null, $params['delimiter'], $params['enclosure'], $params['escape'])) !== false) {
             
             // Пропускаме празните линии
-            if (!countR($data) || (countR($data) == 1 && trim($data[0]) == '')) {
+            if (!countR($data) || (countR($data) == 1 && trim($data[0] ?? '') == '')) {
                 continue;
             }
-            
+
             // Пропускаме редовете със знака указан в $skip
             if (($data[0][0] ?? null) == $params['skip']) {
                 continue;
@@ -662,11 +665,26 @@ class csv_Lib
     {
         $maxRows = 1000;
         $res = array();
-        foreach ($data as $row) {
-            foreach ($row as $i => $col) {
-                $col = trim($col);
+        foreach ((array) $data as $row) {
+            foreach ((array) $row as $i => $col) {
+                $col = trim((string) $col);
                 if (strlen($col) == 0) {
                     continue;
+                }
+
+                if (!isset($res[$i])) {
+                    $res[$i] = array(
+                        'unsigned' => true,
+                        'int' => true,
+                        'money' => true,
+                        'number' => true,
+                        'percent' => true,
+                        'code' => true,
+                        'email' => true,
+                        'emails' => true,
+                        'minLen' => null,
+                        'maxLen' => null,
+                    );
                 }
                 
                 // Положително цяло число
@@ -771,7 +789,7 @@ class csv_Lib
         
         // Махаме BOM, ако има
         $bom = pack('H*', 'EFBBBF');
-        $csv = preg_replace("/^${bom}/", '', $csv);
+        $csv = preg_replace("/^{$bom}/", '', $csv);
         
         // Правим новия ред - \n
         $nl = "\n";
@@ -783,14 +801,14 @@ class csv_Lib
         $csv = str_replace(chr(194).chr(160), '', $csv);
         
         // Определяне на формата
-        if (strlen($delimiter)) {
+        if (strlen((string) $delimiter)) {
             $delimiter = str_replace('tab', "\t", $delimiter);
             $dArr = array($delimiter);
         } else {
             $dArr = array('|', "\t", ',', ';', ' ', ':');
         }
         
-        if (strlen($enclosure)) {
+        if (strlen((string) $enclosure)) {
             $eArr = array($enclosure);
         } else {
             $eArr = array('"', '\'');
@@ -804,6 +822,7 @@ class csv_Lib
         $fp = fopen('php://memory', 'r+');
         fputs($fp, $csv);
         $best = null;
+        $parse = array();
         
         foreach ($dArr as $d) {
             foreach ($eArr as $e) {
@@ -821,7 +840,7 @@ class csv_Lib
                 while ((($data = fgetcsv($fp, null, $d, $e)) !== false) && ($lCnt <= $maxLinesCheck)) {
                      
                      // Пропускаме празните линии
-                    if (!is_array($data) || !countR($data) || (countR($data) == 1 && trim($data[0]) == '')) {
+                    if (!is_array($data) || !countR($data) || (countR($data) == 1 && trim($data[0] ?? '') == '')) {
                         continue;
                     }
                     
@@ -883,12 +902,12 @@ class csv_Lib
         
         $fr = 0;
         
-        if (is_array($parse[0])) {
+        if (is_array($parse[0] ?? null)) {
             foreach ($parse[0] as $i => $c0) {
-                $c1 = $parse[1][$i];
-                $c2 = $parse[2][$i];
+                $c1 = $parse[1][$i] ?? '';
+                $c2 = $parse[2][$i] ?? '';
                 
-                if (strlen(trim($c0)) == 0) {
+                if (strlen(trim($c0 ?? '')) == 0) {
                     $fr += -1;
                 } elseif (preg_match('/@/', $c0)) {
                     $fr += -1.5;
@@ -900,7 +919,7 @@ class csv_Lib
                     $fr += 0.75;
                 }
                 
-                if (strlen($c0)) {
+                if (strlen($c0 ?? '')) {
                     if ("{$c0}" === "{$c1}") {
                         $fr += -1;
                     } elseif ("{$c1}" === "{$c2}") {

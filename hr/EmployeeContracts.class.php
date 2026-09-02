@@ -176,7 +176,7 @@ class hr_EmployeeContracts extends core_Master
         
         
         // Служител
-        $this->FLD('personId', 'key(mvc=crm_Persons,select=name,group=employees)', 'caption=Служител->Имена, mandatory');
+        $this->FLD('personId', 'key2(mvc=crm_Persons,select=name,group=employees)', 'caption=Служител->Имена, mandatory');
         $this->FLD('education', 'varchar', 'caption=Служител->Образование');
         $this->FLD('specialty', 'varchar', 'caption=Служител->Специалност');
         $this->FLD('diplomId', 'varchar', 'caption=Служител->Диплома №');
@@ -237,11 +237,12 @@ class hr_EmployeeContracts extends core_Master
     {
         $form = &$data->form;
         $rec = &$data->form->rec;
-        $coverClass = doc_Folders::fetchCoverClassName($rec->folderId);
+        $folderId = $rec->folderId ?? null;
+        $coverClass = isset($folderId) ? doc_Folders::fetchCoverClassName($folderId) : null;
         
         //Полето Служител->Име не може да се променя
         if ('crm_Persons' == $coverClass) {
-            $form->setDefault('personId', doc_Folders::fetchCoverId($rec->folderId));
+            $form->setDefault('personId', doc_Folders::fetchCoverId($folderId));
             $form->setReadonly('personId');
         }
         
@@ -337,9 +338,6 @@ class hr_EmployeeContracts extends core_Master
         if ((!$rec->salaryBase || !$rec->forYearsOfService || !$rec->compensations) &&
             (!$rec->annualLeave || !$rec->notice || !$rec->probation)) {
 
-            // Професията
-            $row->positionsId = $positionRow->professionId;
-
             $positionSalaryBase = currency_CurrencyRates::convertAmount($positionRec->salaryBase, null, null, $rec->currencyId);
             $row->salaryBase = core_Type::getByName('double(decimals=2)')->toVerbal($positionSalaryBase);
             
@@ -362,8 +360,8 @@ class hr_EmployeeContracts extends core_Master
             $row->probation = $positionRow->probation;
         }
         
-        // Професията
-        $row->positionsId = $positionRow->professionId;
+        // Длъжността
+        $row->positionsId = $positionRow->name;
         
         // Период на изплащане на възнаграждението
         $row->frequensity = $positionRow->frequensity;
@@ -417,7 +415,7 @@ class hr_EmployeeContracts extends core_Master
         $rec = $form->rec;
         
         // След като се записали/активирали формата
-        if ($rec->typeId) {
+        if (!empty($rec->typeId)) {
             
             // Вземаме шаблона на труговия договор
             $tpl = hr_ContractTypes::fetchField($rec->typeId, 'script');
@@ -433,10 +431,11 @@ class hr_EmployeeContracts extends core_Master
             $sysArrayCnt = countR($sysArray);
             
             // От всички полета на модела
+            $formField = array();
             foreach ($rec as $name => $value) {
                 $formField[$name] = $name;
                 
-                for ($i = 0; $i <= $sysArrayCnt; $i++) {
+                for ($i = 0; $i < $sysArrayCnt; $i++) {
                     // махаме тези от помощния масив
                     unset($formField[$sysArray[$i]]);
                 }
@@ -447,6 +446,10 @@ class hr_EmployeeContracts extends core_Master
 
             $positionRec = isset($rec->positionId) ? hr_Positions::fetch($rec->positionId) : null;
             foreach ($mandatoryFields as $field) {
+                if (!isset($form->fields[$field])) {
+                    continue;
+                }
+
                 // Ако имаме непопълнено поле от гореполучения масив
                 if (!isset($rec->{$field}) && !isset($positionRec->{$field})) {
                     // Предупреждамае потребителя
@@ -456,7 +459,7 @@ class hr_EmployeeContracts extends core_Master
         }
         
         if ($form->isSubmitted()) {
-            if ($rec->numId) {
+            if (!empty($rec->numId)) {
                 if (!$mvc->isNumberInRange($rec->numId)) {
                     $form->setError('numId', "Номер '{$rec->numId}' е извън позволения интервал");
                 }
@@ -472,8 +475,8 @@ class hr_EmployeeContracts extends core_Master
     {
         $position = self::fetchField($id, 'positionId');
         
-        if ($rec->state == 'active') {
-            if (!$rec->personId) {
+        if (isset($rec->state) && $rec->state == 'active') {
+            if (empty($rec->personId)) {
                 $rec->personId = self::fetch($rec->id)->personId;
             }
             
@@ -558,10 +561,10 @@ class hr_EmployeeContracts extends core_Master
      */
     public static function on_BeforeSave($mvc, $id, $rec)
     {
-        if ($rec->state == 'draft') {
-            if (empty($rec->numId) && $rec->numId == null) {
+        if (isset($rec->state) && $rec->state == 'draft') {
+            if (empty($rec->numId)) {
                 $rec->numId = self::getNexNumber();
-                $rec->searchKeywords .= ' ' . plg_Search::normalizeText($rec->numId);
+                $rec->searchKeywords = ($rec->searchKeywords ?? '') . ' ' . plg_Search::normalizeText($rec->numId);
             }
         }
     }
@@ -599,7 +602,7 @@ class hr_EmployeeContracts extends core_Master
             $form->setError(
                 'dateId',
                     'Не може да се запише трудов договор с дата по-малка от последния активен трудов договор (' .
-                    dt::mysql2verbal($getNewestContractRec->date, 'd.m.y') .
+                    dt::mysql2verbal($newDate, 'd.m.y') .
                     ')'
             );
         }
@@ -617,7 +620,7 @@ class hr_EmployeeContracts extends core_Master
         $query->limit(1);
         $lastRec = $query->fetch();
         
-        return $lastRec->dateId;
+        return !empty($lastRec) ? $lastRec->dateId : null;
     }
     
     
@@ -630,7 +633,7 @@ class hr_EmployeeContracts extends core_Master
         $options = array();
         $groupId = crm_Groups::fetchField("#sysId = 'managers'", 'id');
         $personQuery = crm_Persons::getQuery();
-        $personQuery->where("#groupList LIKE '%|{$groupId}|%'");
+        plg_ExpandInput::applyExtendedInputSearch('crm_Persons', $personQuery, $groupId);
         
         while ($personRec = $personQuery->fetch()) {
             $options[$personRec->id] = crm_Persons::getVerbal($personRec, 'name');
@@ -885,8 +888,15 @@ class hr_EmployeeContracts extends core_Master
         $query->where("#state = 'active'");
     
         while ($rec = $query->fetch()) {
-            if (!is_object($persons[$rec->personId])) {
-                $persons[$rec->personId] = (object) array('stateInfo' => null, 'stateDateFrom' => null, 'stateDateTo' => null);
+            if (!isset($persons[$rec->personId]) || !is_object($persons[$rec->personId])) {
+                $persons[$rec->personId] = (object) array(
+                    'stateInfo' => null,
+                    'stateDateFrom' => null,
+                    'stateDateTo' => null,
+                    'stateAlternatePersons' => null,
+                    'stateAnswerSystem' => null,
+                    'stateEmoji' => null,
+                );
             }
             if ($rec->stateInfo == $persons[$rec->personId]->stateInfo &&
                 $rec->stateDateFrom == $persons[$rec->personId]->stateDateFrom &&

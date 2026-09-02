@@ -19,7 +19,7 @@ class modbus_Tester extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools,plg_Sorting,recently_Plugin';
+    public $loadList = 'plg_RowTools2,plg_Sorting,recently_Plugin';
     
     
     /**

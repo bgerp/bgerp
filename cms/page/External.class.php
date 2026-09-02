@@ -150,6 +150,122 @@ class cms_page_External extends core_page_Active
     
     
     /**
+     * Рендира менюто във футъра на публичната страница
+     *
+     * @return core_ET
+     */
+    public static function renderFooterMenu()
+    {
+        $conf = core_Packs::getConfig('cms');
+
+        if ($conf->CMS_FOOTER_MENU && $conf->CMS_FOOTER_MENU == 'no') {
+            return new ET('');
+        }
+
+        $maxItemsInColumn = max(1, (int) $conf->CMS_FOOTER_MAX_ELEMENTS_IN_COLUMN);
+
+        $domainId = cms_Domains::getPublicDomain('id');
+        if (!$domainId) {
+            return new ET('');
+        }
+
+        $menuQuery = cms_Content::getQuery();
+        $menuQuery->where("#state = 'active' AND #domainId = {$domainId}");
+        $menuQuery->orderBy('#order', 'ASC');
+
+        $html = '';
+        while ($menuRec = $menuQuery->fetch()) {
+            $menuHtml = self::getFooterMenuItems_($menuRec, $maxItemsInColumn);
+            if (!$menuHtml) {
+                continue;
+            }
+
+            $html .= $menuHtml;
+        }
+
+        return new ET($html);
+    }
+
+
+    /**
+     * Връща HTML за футъра за съответното меню и източник
+     *
+     * @param stdClass $menuRec
+     * @param int $maxItemsInColumn
+     * @return string
+     */
+    private static function getFooterMenuItems_($menuRec, $maxItemsInColumn)
+    {
+        $items = array();
+        $source = cls::getClassName($menuRec->source, true);
+
+        if ($source && cls::load($source, true) && cls::haveInterface('cms_SourceIntf', $source)) {
+            $Source = cls::getInterface('cms_SourceIntf', $source);
+            $items = $Source->getFooterMenuItems($menuRec);
+        }
+
+        if (!is_array($items) || !count($items)) {
+            $url = cms_Content::getContentUrl($menuRec);
+            if (!$url) {
+                $url = '#';
+            }
+
+            $items[] = (object) array(
+                'id' => $menuRec->id,
+                'parentId' => 0,
+                'title' => $menuRec->menu,
+                'url' => $url,
+            );
+        }
+
+        return self::renderFooterMenuColumns_($items, $maxItemsInColumn, $menuRec->menu);
+    }
+
+
+    /**
+     * Рендира елементите на футър менюто в колони
+     *
+     * @param array $items
+     * @param int $maxItemsInColumn
+     * @param string $menuTitle
+     * @return string
+     */
+    private static function renderFooterMenuColumns_($items, $maxItemsInColumn, $menuTitle)
+    {
+        if (!is_array($items) || !count($items)) {
+            return '';
+        }
+
+        $html = '';
+        $menuTitle = type_Varchar::escape($menuTitle);
+        foreach (array_chunk($items, $maxItemsInColumn) as $columnIndex => $columnItems) {
+            $class = 'footer-menu-column';
+            $titleClass = '';
+            $titleAttr = '';
+            if ($columnIndex) {
+                $class .= ' footer-menu-column-continuation';
+                $titleClass = " class='footer-menu-title-spacer'";
+                $titleAttr = " aria-hidden='true'";
+            }
+
+            $html .= "
+<div class='{$class}'>
+    <p{$titleClass}{$titleAttr}>{$menuTitle}</p>
+    <ul>";
+            foreach ($columnItems as $item) {
+                $html .= "
+        <li>" . ht::createLink($item->title, $item->url)->getContent() . "</li>";
+            }
+            $html .= "
+    </ul>
+</div>";
+        }
+
+        return $html;
+    }
+    
+    
+    /**
      * Прихваща изпращането към изхода, за да постави нотификации, ако има
      */
     public static function on_Output(&$invoker)

@@ -43,16 +43,16 @@ class expert_Dataset extends core_BaseClass
     public function addRule($name, $expr, $cond = null, $priority = null)
     {
         // Нормализация на параметрите
-        $name = trim($name);
-        $cond = trim($cond);
-        $expr = trim($expr);
+        $name = trim((string) $name);
+        $cond = trim((string) $cond);
+        $expr = trim((string) $expr);
         $name = ltrim($name, '$');
         
         // Избягване на дублирани правила
-        if (is_array($this->rules[$name])) {
+        if (isset($this->rules[$name]) && is_array($this->rules[$name])) {
             foreach ($this->rules[$name] as $id => $r) {
                 if ($r->name == $name && $r->expr == $expr && $r->cond == $cond) {
-                    if ($r->priority < $priority) {
+                    if (($r->priority ?? null) < $priority) {
                         unset($this->rules[$name][$id]);
                     } else {
                         // Не записваме това правило, защото има същото
@@ -64,18 +64,14 @@ class expert_Dataset extends core_BaseClass
         
         $id = substr(md5($name . $expr . $cond . $priority), 0, 8);
         
-        $rule = (object) array('name' => $name, 'expr' => $expr, 'cond' => $cond, 'state' => 'pending', 'order' => countR($this->rules[$name]) + 1);
-        
-        if ($priority) {
-            $rule->priority = $priority;
-        }
+        $rule = (object) array('name' => $name, 'expr' => $expr, 'cond' => $cond, 'state' => 'pending', 'order' => countR($this->rules[$name] ?? array()) + 1, 'priority' => $priority);
         
         $rule->exprVars = $this->extractVars($expr);
         
         $rule->condVars = $this->extractVars($cond);
         
         // Не може правило за дадена променлива да зависи от нея
-        expect(!$rule->condVars[$rule->name] && !$rule->exprVars[$rule->name]);
+        expect(empty($rule->condVars[$rule->name]) && empty($rule->exprVars[$rule->name]));
         
         
         if (isset($this->rules[$name][$id])) {
@@ -91,18 +87,21 @@ class expert_Dataset extends core_BaseClass
      */
     public function __invoke($name, $expr, $cond = null, $priority = null)
     {
-        static $files;
+        static $files = array();
         
         $stack = debug_backtrace();
+        $file = $stack[0]['file'] ?? null;
+        $lineNum = $stack[0]['line'] ?? null;
         
-        if (!$files[$stack[0]['file']]) {
-            $files[$stack[0]['file']] = explode("\n", file_get_Contents($stack[0]['file']));
+        if ($file && !isset($files[$file])) {
+            $files[$file] = explode("\n", file_get_contents($file));
         }
         
-        $line = trim($files[$stack[0]['file']][$stack[0]['line'] - 1]);
+        $line = ($file && $lineNum && isset($files[$file][$lineNum - 1])) ?
+            trim($files[$file][$lineNum - 1]) : '';
         
         if (strpos($line, ', "')) {
-            $this->log[] = "<br>Warning: Възможен проблем с двойни кавички в правилото <b>${line}</b>";
+            $this->log[] = "<br>Warning: Възможен проблем с двойни кавички в правилото <b>{$line}</b>";
         }
         
         $this->addRule($name, $expr, $cond, $priority);
@@ -136,6 +135,13 @@ class expert_Dataset extends core_BaseClass
     private function setVar($var, $value, $trust = 0.6, $log = '')
     {
         if (!strpos($var, '[]')) {
+
+            // Празният стринг се пази като NULL - в PHP 8 аритметиката с '' е фатална,
+            // а NULL се държи като празната стойност в PHP 7
+            if ($value === '') {
+                $value = null;
+            }
+
             $this->vars[$var] = $value;
             $this->trusts[$var] = $trust;
         } else {
@@ -266,7 +272,16 @@ class expert_Dataset extends core_BaseClass
             expect(false, $code);
         }
         
-        $res = eval($code);
+        try {
+            $res = eval($code);
+        } catch (DivisionByZeroError $e) {
+            // До PHP 8 делението на нула връщаше INF с E_WARNING, а не false.
+            // Запазваме старото поведение за съществуващите експертни правила.
+            $res = INF;
+        } catch (Error $e) {
+            // Показваме кой израз е проблемен (напр. липсващ '$' пред променлива)
+            expect(false, $code, $e->getMessage());
+        }
         
         return $res;
     }
@@ -280,9 +295,16 @@ class expert_Dataset extends core_BaseClass
         // Записваме променливите от $rec
         if (is_object($rec) || is_array($rec)) {
             foreach ((array) $rec as $name => $value) {
-                if ($value !== null && is_scalar($value)) {
-                    $this->setVar($name, $value, 1, 'INPUT');
+                if ($value === null || !is_scalar($value)) {
+                    continue;
                 }
+
+                // Празният вход е "няма отговор" - не блокира правилото за променливата, ако има такова
+                if ($value === '' && isset($this->rules[$name])) {
+                    continue;
+                }
+
+                $this->setVar($name, $value, 1, 'INPUT');
             }
         }
         

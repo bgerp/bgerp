@@ -281,6 +281,7 @@ class email_Inboxes extends core_Master
         
         unset($data->listFilter->fields['accountId']->mandatory);
         $data->listFilter->setParams('accountId', array('allowEmpty' => 'allowEmpty'));
+        $data->listFilter->setField('accountId', 'placeholderType=all');
         
         // В хоризонтален вид
         $form->view = 'horizontal';
@@ -633,6 +634,11 @@ class email_Inboxes extends core_Master
                 $domain = $emailParts[1] ?? '';
                 
                 $domain = strtolower($domain);
+
+                if (empty($emailL) || empty($domain) || empty($ourEmailsArr[$domain])) {
+                    $checkedEmailsArr[$email] = $email;
+                    continue;
+                }
                 
                 $p = 0;
                 
@@ -728,7 +734,7 @@ class email_Inboxes extends core_Master
             if ($domain == $corpAccRec->domain) {
                 $powerUsers = email_Inboxes::getPowerUsers();
                 
-                if ($userRec = $powerUsers[$user]) {
+                if ($userRec = ($powerUsers[$user] ?? null)) {
                     $rec = new stdClass();
                     $rec->email = $email;
                     $rec->accountId = $corpAccRec;

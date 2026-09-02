@@ -149,6 +149,9 @@ class store_Products extends core_Detail
         if (!countR($data->recs)) return;
         
         foreach ($data->rows as $id => &$row) {
+            if (!isset($data->recs[$id])) {
+                continue;
+            }
             $rec = &$data->recs[$id];
             $row->productId = cat_Products::getVerbal($rec->productId, 'name');
 
@@ -161,7 +164,7 @@ class store_Products extends core_Detail
             if(isset($data->masterMvc) && $data->masterMvc instanceof cat_Products){
                 $measureType = 'basePack';
             } else {
-                $measureType = $data->listFilter->rec->setting;
+                $measureType = $data->listFilter->rec->setting ?? null;
             }
 
             // Ако ще се показва в основна опаковка, показва се в нея и к-та се конвертират
@@ -181,20 +184,24 @@ class store_Products extends core_Detail
 
             // Линк към хронологията
             if (acc_BalanceDetails::haveRightFor('history')) {
-                $to = dt::today();
-                $from = dt::mysql2verbal($to, 'Y-m-1', null, false);
-                $histUrl = array('acc_BalanceHistory', 'History', 'fromDate' => $from, 'toDate' => $to, 'accNum' => 321);
-                $histUrl['ent1Id'] = acc_Items::fetchItem('store_Stores', $rec->storeId)->id;
-                $histUrl['ent2Id'] = acc_Items::fetchItem('cat_Products', $rec->productId)->id;
-                $histUrl['ent3Id'] = null;
-                $row->history = ht::createLink('', $histUrl, null, 'title=Хронологична справка,ef_icon=img/16/clock_history.png');
+                $storeItemRec = acc_Items::fetchItem('store_Stores', $rec->storeId);
+                $productItemRec = acc_Items::fetchItem('cat_Products', $rec->productId);
+                if ($storeItemRec && $productItemRec) {
+                    $to = dt::today();
+                    $from = dt::mysql2verbal($to, 'Y-m-1', null, false);
+                    $histUrl = array('acc_BalanceHistory', 'History', 'fromDate' => $from, 'toDate' => $to, 'accNum' => 321);
+                    $histUrl['ent1Id'] = $storeItemRec->id;
+                    $histUrl['ent2Id'] = $productItemRec->id;
+                    $histUrl['ent3Id'] = null;
+                    $row->history = ht::createLink('', $histUrl, null, 'title=Хронологична справка,ef_icon=img/16/clock_history.png');
+                }
             }
             
             $row->storeId = store_Stores::getHyperlink($rec->storeId, true);
-            $rec->freeQuantity = $rec->quantity - $rec->reservedQuantity + $rec->expectedQuantity;
+            $rec->freeQuantity = ($rec->quantity ?? 0) - ($rec->reservedQuantity ?? 0) + ($rec->expectedQuantity ?? 0);
             $row->freeQuantity = $mvc->getFieldType('freeQuantity')->toVerbal($rec->freeQuantity);
 
-            $rec->freeQuantityMin = $rec->quantity - $rec->reservedQuantityMin + $rec->expectedQuantityMin;
+            $rec->freeQuantityMin = ($rec->quantity ?? 0) - ($rec->reservedQuantityMin ?? 0) + ($rec->expectedQuantityMin ?? 0);
             $row->freeQuantityMin = $mvc->getFieldType('freeQuantityMin')->toVerbal($rec->freeQuantityMin);
             $row->measureId = cat_UoM::getTitleById($rec->measureId);
         }
@@ -212,7 +219,7 @@ class store_Products extends core_Detail
         if(($data->masterMvc ?? null) instanceof cat_Products){
             $data->query->EXT('storeName', 'store_Stores', 'externalName=name,externalKey=storeId');
             
-            if($data->masterData->rec->generic == 'yes'){
+            if(($data->masterData->rec->generic ?? null) == 'yes'){
                 $equivalent = planning_GenericMapper::getEquivalentProducts($data->masterId);
                 if(countR($equivalent) > 1){
                     $data->query->in('productId', array_keys($equivalent), false, true);
@@ -228,7 +235,7 @@ class store_Products extends core_Detail
 
         // Подготвяме формата
         $data->listFilter->FNC('filters', "bgerp_type_CustomFilter(classes=store_Products)", 'caption=Филтри,input,silent,remember,autoFilter');
-        $data->listFilter->FNC('groupId', 'key2(mvc=cat_Groups,select=name,allowEmpty)', 'placeholder=Група,caption=Група,input,silent,remember,autoFilter');
+        $data->listFilter->FNC('groupId', 'key2(mvc=cat_Groups,select=name,allowEmpty)', 'placeholderType=all,caption=Група,input,silent,remember,autoFilter');
         $data->listFilter->FNC('folder', 'key2(mvc=doc_Folders,select=title,allowEmpty,coverInterface=cat_ProductFolderCoverIntf)', 'input,caption=Папка');
         $data->listFilter->FNC('horizon', 'time(suggestions=1 ден|1 седмица|2 седмици|1 месец|3 месеца)', 'placeholder=Хоризонт,caption=Хоризонт,input,class=w30');
         $data->listFilter->FNC('search', 'varchar', 'placeholder=Търсене,caption=Търсене,input,silent,recently');
@@ -247,7 +254,7 @@ class store_Products extends core_Detail
 
         $stores = cls::get('store_Stores')->makeArray4Select('name', "#state != 'rejected'");
         $data->listFilter->setOptions('storeId', array('' => '') + $stores);
-        $data->listFilter->setField('storeId', 'autoFilter');
+        $data->listFilter->setField('storeId', 'autoFilter,placeholderType=all');
         
         if ($mvc->mandatoryStoreFilter === true) {
             $storeId = store_Stores::getCurrent();
@@ -280,7 +287,7 @@ class store_Products extends core_Detail
 
             $data->listFilter->showFields = implode(',', $showFieldsArr);
             if($data->masterMvc instanceof store_Stores){
-                $data->listFilter->setDefault('setting', $data->masterData->rec->displayStockMeasure);
+                $data->listFilter->setDefault('setting', $data->masterData->rec->displayStockMeasure ?? null);
             }
         } else {
             $data->listFilter->defOrder = false;
@@ -292,7 +299,7 @@ class store_Products extends core_Detail
             $data->listFilter->layout = new ET(tr('|*' . getFileContent('acc/plg/tpl/FilterForm.shtml')));
             $data->listFilter->setDefault('filters', 'withStock');
             $data->listFilter->showFields = implode(',', $showFieldsArr);
-            unset($data->listFilter->view);
+            $data->listFilter->view = 'vertical';
 
             $sKey = "stockSettingFilter" . core_Users::getCurrent();
             if ($lastHorizon = core_Permanent::get($sKey)) {
@@ -434,8 +441,8 @@ class store_Products extends core_Detail
 
         foreach ($data->recs as &$rec){
             if(isset($reserved[$rec->storeId][$rec->productId])){
-                $rec->reservedOut = $reserved[$rec->storeId][$rec->productId]->reserved;
-                $rec->expectedIn = $reserved[$rec->storeId][$rec->productId]->expected;
+                $rec->reservedOut = $reserved[$rec->storeId][$rec->productId]->reserved ?? 0;
+                $rec->expectedIn = $reserved[$rec->storeId][$rec->productId]->expected ?? 0;
                 $rec->resultDiff = $rec->quantity - $rec->reservedOut + $rec->expectedIn;
             } else {
                 $rec->resultDiff = $rec->quantity;
@@ -554,8 +561,8 @@ class store_Products extends core_Detail
         $quantity = isset($rec->quantityTotal) ? $rec->quantityTotal : 0;
         $res = (object)array('quantity' => $quantity);
         if(is_null($date) && is_object($rec)){
-            $res->reserved = $rec->reservedTotalMin;
-            $res->expected = $rec->expectedTotalMin;
+            $res->reserved = $rec->reservedTotalMin ?? 0;
+            $res->expected = $rec->expectedTotalMin ?? 0;
         } else {
             $res->reserved = 0;
             $res->expected = 0;
@@ -563,7 +570,10 @@ class store_Products extends core_Detail
             // Ако е посочена дата се взимат очакваното и запазеното към нея
             $planned = store_StockPlanning::getPlannedQuantities($date, $productId, $storesArr);
             foreach ($planned as $storeId => $storeArr){
-                array_walk($storeArr, function($o) use ($res){$res->reserved += $o->reserved; $res->expected += $o->expected;});
+                array_walk($storeArr, function($o) use ($res){
+                    $res->reserved += $o->reserved ?? 0;
+                    $res->expected += $o->expected ?? 0;
+                });
             }
         }
 
@@ -589,7 +599,7 @@ class store_Products extends core_Detail
         if (isset($data->masterMvc)) {
             if($data->masterMvc instanceof cat_Products){
                 arr::placeInAssocArray($data->listFields, array('storeId' => 'Склад|*'), null, 'code');
-                if($data->masterData->rec->generic == 'yes'){
+                if(($data->masterData->rec->generic ?? null) == 'yes'){
                     $data->listFields = array('code' => 'Код', 'productId' => 'Артикул') + $data->listFields;
                 } else {
                     unset($data->listFields['code']);
@@ -623,18 +633,19 @@ class store_Products extends core_Detail
 
         $today = dt::today();
         foreach ($data->rows as $id => &$row) {
+            if (!isset($data->recs[$id])) {
+                continue;
+            }
             $rec = $data->recs[$id];
             $title = 'От кои документи е сформирано количеството';
 
             foreach (array('reservedQuantity', 'expectedQuantity', 'reservedQuantityMin', 'expectedQuantityMin', 'reservedOut', 'expectedIn') as $type){
                 if (!empty($rec->{$type})) {
-                    $date = in_array($type, array('reservedQuantity', 'expectedQuantity')) ? $today : (in_array($type, array('reservedQuantityMin', 'expectedQuantityMin')) ? $rec->dateMin : $data->horizon);
+                    $date = in_array($type, array('reservedQuantity', 'expectedQuantity')) ? $today : (in_array($type, array('reservedQuantityMin', 'expectedQuantityMin')) ? ($rec->dateMin ?? $today) : ($data->horizon ?? $today));
 
-                    $tooltipUrl = toUrl(array('store_Products', 'ShowReservedDocs', 'productId' => $rec->productId, 'stores' => keylist::addKey('', $rec->storeId), 'replaceField' => "{$type}{$rec->id}", 'field' => $type, 'date' => $date), 'local');
-                    $arrowImg = ht::createElement('img', array('height' => 16, 'width' => 16, 'src' => sbf('img/32/info-gray.png', '')));
-                    $arrow = ht::createElement('span', array('class' => 'anchor-arrow tooltip-arrow-link', 'data-url' => $tooltipUrl, 'title' => $title), $arrowImg, true);
-                    $arrow = "<span class='additionalInfo-holder'><span class='additionalInfo' id='{$type}{$rec->id}'></span>{$arrow}</span>";
-                    $row->{$type} = $arrow . $row->{$type};
+                    $tooltipUrl = array('store_Products', 'ShowReservedDocs', 'productId' => $rec->productId, 'stores' => keylist::addKey('', $rec->storeId), 'field' => $type, 'date' => $date);
+                    $hintAttr = array('url' => $tooltipUrl, 'id' => "{$type}{$rec->id}", 'iconAttr' => array('height' => 16, 'width' => 16));
+                    $row->{$type} = ht::createHint($row->{$type} ?? '', $title, 'notice', false, $hintAttr);
                 }
             }
 
@@ -643,7 +654,8 @@ class store_Products extends core_Detail
             }
 
             if(!empty($rec->freeQuantityMin) && !isset($rec->reservedQuantityMin) && !isset($rec->expectedQuantityMin)){
-                $row->freeQuantityMin = "<span class='quiet'>{$row->freeQuantity}</span>";
+                $freeQuantityMin = $row->freeQuantityMin ?? '';
+                $row->freeQuantityMin = "<span class='quiet'>{$freeQuantityMin}</span>";
             }
 
             if(!empty($rec->resultDiff) && !isset($rec->reservedOut) && !isset($rec->expectedIn)){
@@ -652,12 +664,12 @@ class store_Products extends core_Detail
 
             $dateMin = !empty($rec->dateMin) ? $rec->dateMin : dt::today();
             $date = dt::mysql2verbal($dateMin, 'd.m.Y');
-            $row->freeQuantityMin = ht::createHint($row->freeQuantityMin, $date,'img/16/calendar_1.png', true, 'height=12px,width=12px');
+            $row->freeQuantityMin = ht::createHint($row->freeQuantityMin ?? '', $date,'img/16/calendar_1.png', true, array('iconAttr' => 'height=12px,width=12px'));
 
             // Ако се показва колонка за последно инвентаризиране - да се покаже последния документ
             if(is_array($data->inventoryRecs ?? null)){
                 $key = "{$rec->productId}|{$rec->storeId}";
-                if(is_array($data->inventoryRecs[$key])){
+                if (is_array($data->inventoryRecs[$key] ?? null) && countR($data->inventoryRecs[$key])) {
                     krsort($data->inventoryRecs[$key]);
                     $lastInvRec = $data->inventoryRecs[$key][key($data->inventoryRecs[$key])];
                     $lastInvVerbal = dt::mysql2verbal($lastInvRec->valior, 'd.m.y');
@@ -721,10 +733,10 @@ class store_Products extends core_Detail
                         $result[$key] = (object) array('storeId' => $o->storeId, 'productId' => $o->productId, 'state' => 'active');
                     }
 
-                    $result[$key]->{$object->fieldReserved} = ($o->reserved) ? $o->reserved : null;
-                    $result[$key]->{$object->fieldExpected} = ($o->expected) ? $o->expected : null;
+                    $result[$key]->{$object->fieldReserved} = !empty($o->reserved) ? $o->reserved : null;
+                    $result[$key]->{$object->fieldExpected} = !empty($o->expected) ? $o->expected : null;
                     if(isset($object->dateField)){
-                        $result[$key]->{$object->dateField} = ($o->date) ? $o->date : null;
+                        $result[$key]->{$object->dateField} = !empty($o->date) ? $o->date : null;
                     }
                 }
             }
@@ -737,15 +749,15 @@ class store_Products extends core_Detail
 
             // Намират се старите им записи
             $exRecs = array_filter($oldRecs, function($a) use ($newObj) { return $a->storeId == $newObj->storeId && $a->productId == $newObj->productId;});
-            if(is_array($exRecs)){
+            if (countR($exRecs)) {
                 $exRec = $exRecs[key($exRecs)];
-                $currentFreeQuantity = $exRec->quantity - $exRec->reservedQuantity + $exRec->expectedQuantity;
-                $newFreeQuantity = $exRec->quantity - $newObj->reservedQuantityMin + $newObj->expectedQuantityMin;
+                $currentFreeQuantity = ($exRec->quantity ?? 0) - ($exRec->reservedQuantity ?? 0) + ($exRec->expectedQuantity ?? 0);
+                $newFreeQuantity = ($exRec->quantity ?? 0) - ($newObj->reservedQuantityMin ?? 0) + ($newObj->expectedQuantityMin ?? 0);
 
                 // Ако текущото разполагаемо е по-малко или равно на намереното минимално разполагаемо, то текущото ще стане минимално !
                 if($currentFreeQuantity <= $newFreeQuantity){
-                    $newObj->reservedQuantityMin = $exRec->reservedQuantity;
-                    $newObj->expectedQuantityMin = $exRec->expectedQuantity;
+                    $newObj->reservedQuantityMin = $exRec->reservedQuantity ?? null;
+                    $newObj->expectedQuantityMin = $exRec->expectedQuantity ?? null;
                     $newObj->dateMin = $date;
                 }
             }
@@ -765,7 +777,7 @@ class store_Products extends core_Detail
         $this->saveArray($res['update'], 'id,reservedQuantity,expectedQuantity,reservedQuantityMin,expectedQuantityMin,dateMin,lastUpdated');
 
         // Намиране на тези записи, от старите които са имали резервирано к-во, но вече нямат
-        $unsetArr = array_filter($oldRecs, function (&$r) use ($reservedMax, $reserved, $now) {
+        $unsetArr = array_filter($oldRecs, function ($r) use ($reservedMax, $reserved, $now) {
             $unset = false;
 
             // Ако е имало запазено/очаквано за днеска, но вече няма ще се ънсетнат
@@ -825,7 +837,7 @@ class store_Products extends core_Detail
             $row = (object)array('date' => dt::mysql2verbal($dRec->date));
 
             $uom = cat_UoM::getShortName($dRec->measureId);
-            $quantity = setIfNot($dRec->quantityOut, $dRec->quantityIn);
+            $quantity = $dRec->quantityOut ?? $dRec->quantityIn ?? null;
             $quantityVerbal = core_Type::getByName('double(smartRound)')->toVerbal($quantity);
 
             // Ако източника е документ - показват се данните му
@@ -851,7 +863,7 @@ class store_Products extends core_Detail
             }
 
             // Подготвяне на реда с информация
-            $link = new core_ET("<div style='float:left;padding-bottom:2px;padding-top: 2px;'>[#link#]<!--ET_BEGIN date--> | [#date#]<!--ET_END date-->| [#createdBy#]</div>");
+            $link = new core_ET("<div style='padding-bottom:2px;padding-top: 2px;text-align: left'>[#link#]<!--ET_BEGIN date--> | [#date#]<!--ET_END date-->| [#createdBy#]</div>");
             $link->placeObject($row);
             $links .= $link->getContent();
         }
@@ -860,7 +872,7 @@ class store_Products extends core_Detail
         Request::setProtected('hash');
         $linkToFilter = ht::createLink(tr('Още|* ...'), array('store_StockPlanning', 'Browse', 'storeId' => $storeId, 'productId' => $productId, 'hash' => md5(store_StockPlanning::LIST_CACHE_STRING)))->getContent();
         Request::removeProtected('hash');
-        $links .= "<br><div style='float:left;padding-bottom:2px;padding-top: 2px;'>{$linkToFilter}</div>";
+        $links .= "<div style='padding-bottom:2px;padding-top: 2px;'>{$linkToFilter}</div>";
 
         $tpl = new core_ET($links);
 
@@ -908,7 +920,7 @@ class store_Products extends core_Detail
                 if(countR($dRecs)){
                     array_walk($dRecs, function($a) use (&$products, $Detail, &$totalValue, $isTransfer){
                         if(!array_key_exists($a->{$Detail->productFld}, $products)){
-                            $products[$a->{$Detail->productFld}] = new stdClass();
+                            $products[$a->{$Detail->productFld}] = (object) array('quantity' => 0, 'amount' => 0);
                         }
                         
                         $products[$a->{$Detail->productFld}]->quantity += $a->quantity;
@@ -925,14 +937,14 @@ class store_Products extends core_Detail
                     $storeQuery->show('productId,quantity');
                     $sRecs = $storeQuery->fetchAll();
                     array_walk($sRecs, function($a) use (&$quantities){
-                        $quantities[$a->productId] += $a->quantity;
+                        $quantities[$a->productId] = ($quantities[$a->productId] ?? 0) + $a->quantity;
                     });
                     
                     // Колко е готовноста
                     $missingAmount = 0;
                     foreach ($products as $productId => $object){
                         $singlePrice = (!empty(round($object->quantity, 4))) ? round($object->amount / $object->quantity, 6) : 0;
-                        $inStore = $quantities[$productId];
+                        $inStore = $quantities[$productId] ?? 0;
                         $inStore = (empty($inStore) || $inStore < 0) ? 0 : $inStore;
                         
                         // Каква е сумата на липсващото к-во. (За МСТ си е само количеството)
@@ -967,18 +979,18 @@ class store_Products extends core_Detail
      */
     public function prepareDetail_($data)
     {
-        if($data->masterMvc instanceof cat_Products){
+        if(($data->masterMvc ?? null) instanceof cat_Products){
             $data->masterKey = 'productId';
            
             $data->render = true;
-            $tabParam = $data->masterData->tabTopParam;
+            $tabParam = $data->masterData->tabTopParam ?? null;
             $prepareTab = Request::get($tabParam);
             
-            if($data->masterData->rec->canStore != 'yes' || !store_Products::haveRightFor('list') || $prepareTab != 'store_Products'){
+            if(($data->masterData->rec->canStore ?? null) != 'yes' || !store_Products::haveRightFor('list') || $prepareTab != 'store_Products'){
                 $data->render = false;
             }
             
-            if($data->masterData->rec->canStore != 'yes' || !store_Products::haveRightFor('list')){
+            if(($data->masterData->rec->canStore ?? null) != 'yes' || !store_Products::haveRightFor('list')){
                 
                 return;
             }
@@ -990,8 +1002,9 @@ class store_Products extends core_Detail
         parent::prepareDetail_($data);
 
         if(countR($data->recs)){
-            $totalField = ($data->masterData->rec->generic == 'yes') ? 'code' : 'storeId';
+            $totalField = (($data->masterData->rec->generic ?? null) == 'yes') ? 'code' : 'storeId';
             $data->rows['total'] = (object)array($totalField =>  tr('Сумарно'));
+            $data->rows['total']->ROW_ATTR = array();
             $data->rows['total']->ROW_ATTR['style'] = 'background-color:#eee;font-weight:bold;';
             $data->rows['total']->ROW_ATTR['class'] = 'totalRow';
             
@@ -1086,9 +1099,9 @@ class store_Products extends core_Detail
 
         // Връщане на нужните ни данни
         foreach($recs as $rec){
-            $arr = array('code' => $rec->code, 'measureSysId' => $measureSysIds[$rec->measureId], 'storeId' => $rec->storeId);
+            $arr = array('code' => $rec->code, 'measureSysId' => $measureSysIds[$rec->measureId] ?? null, 'storeId' => $rec->storeId);
             foreach (array('quantity', 'reservedQuantity', 'expectedQuantity', 'reservedQuantityMin', 'expectedQuantityMin', 'dateMin') as $fld){
-                $arr[$fld] = $rec->{$fld};
+                $arr[$fld] = $rec->{$fld} ?? null;
             }
             $res[] = $arr;
         }

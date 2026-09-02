@@ -28,15 +28,13 @@
             <p class='title-info'>
             [#contragentCountryId#]<br> <!--ET_BEGIN contragentpCode-->[#contragentpCode#] <!--ET_END contragentpCode-->[#contragentplace#]<br> [#contragentaddress#]
             </p>
+            [#/deals/tpl/QuotationContragentVatHeaderInfo.shtml#]
             <!--ET_BEGIN email-->
             <p class='title-info'>|Имейл|*: [#email#]</p>
             <!--ET_END email-->
             <!--ET_BEGIN tel-->
             <p class='title-info'>|Тел|*: [#tel#]</p>
             <!--ET_END tel-->
-            <!--ET_BEGIN fax-->
-            <p class='title-info'>|Факс|*: [#fax#]</p>
-            <!--ET_END fax-->
         </div>
         
         <!--ET_BEGIN TRANSPORT_BAR-->

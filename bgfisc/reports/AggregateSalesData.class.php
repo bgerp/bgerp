@@ -44,7 +44,7 @@ class bgfisc_reports_AggregateSalesData extends frame2_driver_TableData
         $fieldset->FLD('from', 'date', 'caption=От,after=compare,single=none');
         $fieldset->FLD('to', 'date', 'caption=До,after=from,single=none');
         
-        $fieldset->FLD('operator', 'key(mvc=core_Users,select=names,allowEmpty)', 'caption=Оператор,after=to,placeholder=Всички,single=none');
+        $fieldset->FLD('operator', 'key(mvc=core_Users,select=names,allowEmpty)', 'caption=Оператор,after=to,placeholderType=all,single=none');
     }
     
     
@@ -77,7 +77,7 @@ class bgfisc_reports_AggregateSalesData extends frame2_driver_TableData
          $suggestions = $suggestionsPos+$suggestionsSales;
         
          foreach ($suggestions as $val) {
-             $suggestions[$val] = core_Users::fetch("#id = ${val}")->names;
+             $suggestions[$val] = core_Users::fetch("#id = {$val}")->names ?? null;
          }
         
          asort($suggestions);
@@ -116,6 +116,9 @@ class bgfisc_reports_AggregateSalesData extends frame2_driver_TableData
     protected function prepareRecs($rec, &$data = null)
     {
         $recs = array();
+        $rec->from = $rec->from ?? null;
+        $rec->to = $rec->to ?? null;
+        $rec->operator = $rec->operator ?? null;
         
         $sQuery = bgfisc_Register::getQuery();
         
@@ -153,6 +156,7 @@ class bgfisc_reports_AggregateSalesData extends frame2_driver_TableData
             //Продажби от POS
             if ($RegClass instanceof pos_Receipts) {
                 $posRec = $className::fetch($regRec->objectId);
+                if (!is_object($posRec)) continue;
                 
                 //Филтър по състояние
                 if (!in_array($posRec->state, $stateArr)) {
@@ -177,8 +181,9 @@ class bgfisc_reports_AggregateSalesData extends frame2_driver_TableData
                 $saleOpenTime = dt::mysql2verbal($posRec->createdOn, 'H:i:s');
                 
                 //Код и наименование на търговски обект
+                $storeAddress = '';
                 if (!is_null($posRec->pointId)) {
-                    $storeId = pos_Points::fetch($posRec->pointId)->storeId;
+                    $storeId = pos_Points::fetch($posRec->pointId)->storeId ?? null;
                     
                     if ($storeLocationId = store_Stores::fetchField($storeId, 'locationId')) {
                         $storeAddress = crm_Locations::getAddress($storeLocationId);
@@ -187,7 +192,7 @@ class bgfisc_reports_AggregateSalesData extends frame2_driver_TableData
                 
                 //Код на работното място
                 $pointRec = pos_Points::fetch($posRec->pointId);
-                $workplace = cash_Cases::getTitleById($pointRec->caseId);
+                $workplace = cash_Cases::getTitleById($pointRec->caseId ?? null);
                 
                 $posDet = pos_ReceiptDetails::getQuery();
                 $posDet->where(array('#receiptId = [#1#]',$posRec->id));
@@ -233,6 +238,7 @@ class bgfisc_reports_AggregateSalesData extends frame2_driver_TableData
                 
                 //Клиент име
                 $contragentName = $posRec->contragentName;
+                $invoiceNumber = $invoiceDate = '';
                 
                 // добавяме в масива
                 if (!array_key_exists($id, $recs)) {
@@ -248,8 +254,8 @@ class bgfisc_reports_AggregateSalesData extends frame2_driver_TableData
                         'discount' => $discount,
                         'vat' => $vatSum,
                         'dueAmount' => $dueAmount,
-                        'invoiceNumber' => $invoice->number,
-                        'invoiceDate' => $invoice->date,
+                        'invoiceNumber' => $invoiceNumber,
+                        'invoiceDate' => $invoiceDate,
                         'saleCloseDate' => $saleCloseDate,
                         'saleCloseTime' => $saleCloseTime,
                         'contragentCode' => $contragentCode,
@@ -262,6 +268,7 @@ class bgfisc_reports_AggregateSalesData extends frame2_driver_TableData
             //Продажби по договор за продажба
             if ($RegClass instanceof sales_Sales) {
                 $saleRec = $className::fetch($regRec->objectId);
+                if (!is_object($saleRec)) continue;
                 
                 //Филтър по състояние
                 if (!in_array($saleRec->state, $stateArr)) {
@@ -269,7 +276,7 @@ class bgfisc_reports_AggregateSalesData extends frame2_driver_TableData
                 }
                 
                 //Филтър по оператор
-                if ($rec->operator && $rec->operator != $posRec->createdBy) {
+                if ($rec->operator && $rec->operator != $saleRec->createdBy) {
                     continue;
                 }
                 
@@ -304,24 +311,28 @@ class bgfisc_reports_AggregateSalesData extends frame2_driver_TableData
                     //Ако по продажбата има сторниране
                     list($thisUrn) = (explode('|', $id));
                     $prntQuery = bgfisc_PrintedReceipts::getQuery();
-                    $prntQuery->where("#type = 'reverted' AND #urnId = ${thisUrn}");
+                    $prntQuery->where("#type = 'reverted' AND #urnId = {$thisUrn}");
                     $stornoVat = $stornoAmount = 0;
                     if (!empty($prntQuery->fetchAll())) {
                         while ($prntRcptRev = $prntQuery->fetch()) {
                             $objectClassName = cls::get($prntRcptRev->classId)->className;
                             $rcoRec = $objectClassName::fetch($prntRcptRev->objectId);
-                            
-                            if (!is_null($rcoRec->fromContainerId)) {
+
+                            if (!is_object($rcoRec) || is_null($rcoRec->fromContainerId ?? null)) {
                                 continue;
                             }
-                            
-                            $revDocClassId = doc_Containers::fetch($rcoRec->fromContainerId)->docClass;
+
+                            $revContainerRec = doc_Containers::fetch($rcoRec->fromContainerId);
+                            if (!is_object($revContainerRec)) continue;
+                            $revDocClassId = $revContainerRec->docClass ?? null;
+                            if (!$revDocClassId) continue;
                             $revDocClassName = cls::get($revDocClassId)->className;
-                            $revDocId = doc_Containers::fetch($rcoRec->fromContainerId)->docId;
+                            $revDocId = $revContainerRec->docId ?? null;
                             $revDocRec = $revDocClassName::fetch($revDocId);
-                            
-                            $stornoVat += $revDocRec->amountDeliveredVat;
-                            $stornoAmount += $revDocRec->amountDelivered - $stornoVat;
+                            if (!is_object($revDocRec)) continue;
+
+                            $stornoVat += $revDocRec->amountDeliveredVat ?? 0;
+                            $stornoAmount += ($revDocRec->amountDelivered ?? 0) - $stornoVat;
                         }
                     }
                     
@@ -338,9 +349,9 @@ class bgfisc_reports_AggregateSalesData extends frame2_driver_TableData
                             $storeAddress = crm_Locations::getAddress($storeLocationId);
                         }
                     } else {
-                        $storeId = store_ShipmentOrders::fetch("#threadId = {$saleRec->threadId} AND #storeId IS NOT NULL")->storeId;
-                        
-                        if ((!is_null($storeId)) && $storeLocationId = store_Stores::fetch($storeId)->locationId) {
+                        $storeId = store_ShipmentOrders::fetch("#threadId = {$saleRec->threadId} AND #storeId IS NOT NULL")->storeId ?? null;
+
+                        if ((!is_null($storeId)) && $storeLocationId = (store_Stores::fetch($storeId)->locationId ?? null)) {
                             $storeAddress = crm_Locations::getAddress($storeLocationId);
                         }
                     }
@@ -528,7 +539,7 @@ class bgfisc_reports_AggregateSalesData extends frame2_driver_TableData
         }
         
         if (isset($dRec->invoiceNumber)) {
-            $row->invoiceNumber .= $Int->toVerbal($dRec->invoiceNumber);
+            $row->invoiceNumber = ($row->invoiceNumber ?? '') . $Int->toVerbal($dRec->invoiceNumber);
         }
         
         if (isset($dRec->invoiceDate)) {
@@ -599,7 +610,7 @@ class bgfisc_reports_AggregateSalesData extends frame2_driver_TableData
         }
         
         if (isset($data->rec->operator)) {
-            $fieldTpl->append('<b>' . core_Users::fetch($data->rec->operator)->names . '</b>', 'operator');
+            $fieldTpl->append('<b>' . (core_Users::fetch($data->rec->operator)->names ?? null) . '</b>', 'operator');
         } else {
             $fieldTpl->append('<b>' . 'Всички' . '</b>', 'operator');
         }

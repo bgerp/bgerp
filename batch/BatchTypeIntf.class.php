@@ -80,6 +80,17 @@ class batch_BatchTypeIntf extends embed_DriverIntf
     {
         return $this->class->getBatchClassType($class, $objectId);
     }
+
+
+    /**
+     * Зависи ли типът на партидата от датата на документа
+     *
+     * @return bool
+     */
+    public function isDocumentDateDependent()
+    {
+        return $this->class->isDocumentDateDependent();
+    }
     
     
     /**
@@ -280,4 +291,3 @@ class batch_BatchTypeIntf extends embed_DriverIntf
         return $this->class->canAutoAllocate($batches);
     }
 }
-

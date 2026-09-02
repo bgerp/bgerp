@@ -36,11 +36,18 @@ class plg_SaveAndNew extends core_Plugin
      */
     public static function on_AfterPrepareRetUrl($mvc, $data)
     {
-        if ($data->form->cmd == 'save_n_new') {
-            $data->retUrl = array($mvc, 'add', 'ret_url' => $data->retUrl);
+        if (!is_object($data->form ?? null)) {
+            return;
+        }
+
+        $form = $data->form;
+        $cmd = $form->cmd ?? null;
+
+        if ($cmd == 'save_n_new') {
+            $data->retUrl = array($mvc, 'add', 'ret_url' => $data->retUrl ?? null);
             
             // Добавяме стойностите на връщане към "тихите" полета
-            $fields = $data->form->selectFields("#silent == 'silent'");
+            $fields = $form->selectFields("#silent == 'silent'");
             
             if (countR($fields)) {
                 foreach ($fields as $name => $fld) {
@@ -51,7 +58,7 @@ class plg_SaveAndNew extends core_Plugin
             }
             
             // Записваме в сесията, полетата със запомняне
-            $fields = $data->form->selectFields("#remember || #name == 'id'");
+            $fields = $form->selectFields("#remember || #name == 'id'");
             
             
             // Правим статус за информация на потребителя
@@ -68,16 +75,17 @@ class plg_SaveAndNew extends core_Plugin
             if (countR($fields)) {
                 foreach ($fields as $name => $fld) {
                     $permanentName = cls::getClassName($mvc) . '_' . $name;
-                    Mode::setPermanent($permanentName, $data->form->rec->{$name});
+                    Mode::setPermanent($permanentName, $form->rec->{$name} ?? null);
                 }
             }
 
             Mode::setPermanent(cls::getClassName($mvc) . '_SAVE_AND_NEW', true);
-        } elseif ($data->cmd != 'delete' && $data->form->cmd != 'refresh') {
-            if (!$data->form->gotErrors()) {
-                $fields = $data->form->selectFields("#remember == 'info' || #name == 'id'");
+        } elseif (($data->cmd ?? null) != 'delete' && $cmd != 'refresh') {
+            if (!$form->gotErrors()) {
+                $fields = $form->selectFields("#remember == 'info' || #name == 'id'");
                 
                 $info = '';
+                $id = null;
                 
                 // Изваждаме от сесията и поставяме като дефолти, полетата със запомняне
                 if (countR($fields)) {
@@ -110,12 +118,12 @@ class plg_SaveAndNew extends core_Plugin
                 if ($info) {
                     $info = '<div style="padding:5px; background-color:#ffffcc; border:solid 1px #cc9;">' .
                     tr('Последно добавено') . ": <ul style='margin:5px;padding-left:10px;'>{$info}</ul></div>";
-                    $data->form->info .= $info;
+                    $form->info = ($form->info ?? '') . $info;
                 }
             }
             
             // Изтриваме от сесията, полетата със запомняне
-            $fields = $data->form->selectFields('#remember');
+            $fields = $form->selectFields('#remember');
 
             if (countR($fields)) {
                 foreach ($fields as $name => $fld) {
@@ -136,6 +144,10 @@ class plg_SaveAndNew extends core_Plugin
      */
     public static function on_AfterPrepareEditToolbar($mvc, &$res, $data)
     {
+        if (!is_object($data->form ?? null) || !is_object($data->form->rec ?? null)) {
+            return;
+        }
+
         // Ако след записа, трябва да изпратим новото id към друг екшън - не показваме бутона
         $retUrl = getRetUrl();
         if (is_array($retUrl) && in_array($mvc::getUrlPlaceholder('id'), $retUrl)) {
@@ -154,6 +166,10 @@ class plg_SaveAndNew extends core_Plugin
      */
     public static function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
+        if (!is_object($data->form ?? null) || !is_object($data->form->rec ?? null)) {
+            return;
+        }
+
         if (!empty($data->form->rec->id)) {
             
             return;
@@ -167,7 +183,7 @@ class plg_SaveAndNew extends core_Plugin
                 $permanentName = cls::getClassName($mvc) . '_' . $name;
                 
                 if (Mode::is($permanentName)) {
-                    if ($data->form->cmd !== 'refresh') {
+                    if (($data->form->cmd ?? null) !== 'refresh') {
                         $data->form->setDefault($name, Mode::get($permanentName));
                     }
                 }

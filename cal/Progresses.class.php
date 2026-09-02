@@ -62,12 +62,13 @@ class cal_Progresses extends core_Mvc
         
         $rec = $data->form->rec;
         
-        if ($originId = $rec->originId) {
+        $originId = $rec->originId ?? null;
+        if (!empty($originId)) {
             $doc = doc_Containers::getDocument($originId);
             $tRec = $doc->fetch();
             
             if (!haveRole('partner')) {
-                $shareUsersArr = type_Users::toArray($tRec->assign);
+                $shareUsersArr = type_Users::toArray($tRec->assign ?? null);
                 
                 if ($tRec->createdBy > 0) {
                     $shareUsersArr[$tRec->createdBy] = $tRec->createdBy;
@@ -81,12 +82,11 @@ class cal_Progresses extends core_Mvc
                 }
             }
             
-            if ($doc->instance instanceof embed_Manager) {
-                $TaskDriver = $doc->getDriver();
-                
+            $TaskDriver = ($doc->instance instanceof embed_Manager) ? $doc->getDriver() : null;
+            if ($TaskDriver) {
                 $progressArr = $TaskDriver->getProgressSuggestions($tRec);
                 
-                if ($tRec->progress) {
+                if (!empty($tRec->progress)) {
                     $pVal = $tRec->progress * 100;
                     Mode::push('text', 'plain');
                     $pVal = $doc->fields['progress']->type->toVerbal($tRec->progress);
@@ -152,7 +152,8 @@ class cal_Progresses extends core_Mvc
                     $query->where("#state != 'rejected'");
                     $query->XPR('workingTimeSum', 'int', 'sum(#workingTime)');
                     $query->show('workingTimeSum');
-                    $tRec->workingTime = (int) $query->fetch()->workingTimeSum;
+                    $workingTimeRec = $query->fetch();
+                    $tRec->workingTime = (int) ($workingTimeRec->workingTimeSum ?? 0);
                 }
                 
                 // Да се вземе времената на новите прогреси
@@ -163,7 +164,7 @@ class cal_Progresses extends core_Mvc
                 $query->show('driverRec');
                 
                 while ($dRec = $query->fetch()) {
-                    if (!$dRec->driverRec['workingTime']) {
+                    if (empty($dRec->driverRec['workingTime'])) {
                         continue;
                     }
                     
@@ -355,7 +356,7 @@ class cal_Progresses extends core_Mvc
             return 0;
         }
         
-        return $rec->driverRec['progress'];
+        return $rec->driverRec['progress'] ?? null;
     }
     
     
@@ -372,7 +373,7 @@ class cal_Progresses extends core_Mvc
         $row->singleTitle = tr('Прогрес');
         
         // Показване на типа на прогреса
-        if ($rec->originId) {
+        if (!empty($rec->originId)) {
             $doc = doc_Containers::getDocument($rec->originId);
             $tRec = $doc->fetch();
             
@@ -385,13 +386,13 @@ class cal_Progresses extends core_Mvc
             }
             
             Mode::push('text', 'plain');
-            $pVal = $doc->instance->fields['progress']->type->toVerbal($rec->progress);
+            $pVal = $doc->instance->fields['progress']->type->toVerbal($rec->progress ?? null);
             Mode::pop('text');
             
-            $pValStr = $progressArr[$pVal];
+            $pValStr = $progressArr[$pVal] ?? null;
             
             if ($pValStr && ($pValStr != $pVal)) {
-                $row->progress .= ' (' . $pValStr . ')';
+                $row->progress = ($row->progress ?? '') . ' (' . $pValStr . ')';
             }
         }
     }
@@ -414,7 +415,7 @@ class cal_Progresses extends core_Mvc
         $rec = $mvc->fetchRec($id);
         
         // Когато задачата е на 100% и няма друга задача и друг имейл - тогава затваря нишката
-        if ($rec->progress == 1) {
+        if (($rec->progress ?? null) == 1) {
             if (cal_Tasks::checkForCloseThread($rec->threadId, $rec->originId)) {
                 $res = 'closed';
             }
@@ -477,7 +478,7 @@ class cal_Progresses extends core_Mvc
         while($cRec = $commentQuery->fetch()){
             
             // Ако има отбелязано отработено време
-            $value = $cRec->driverRec['workingTime'];
+            $value = $cRec->driverRec['workingTime'] ?? null;
             if(empty($value)) continue;
             
             if(!array_key_exists($cRec->createdBy, $persons)){
@@ -537,7 +538,7 @@ class cal_Progresses extends core_Mvc
 
             $cRow = doc_Comments::recToVerbal($cRec);
 
-            $message = $cRow->body;
+            $message = $cRow->body ?? '';
             $message = strip_tags($message);
             $message = str::limitLen($message, 150);
             $data->rows[$cRec->id] = array('ROW_ATTR' => $rowAttr, 'links' => doc_Comments::getLinkToSingle($cRec->id, 'id'), 'progress' => ($cRow->progress ?? null), 'workingTime' => ($cRow->workingTime ?? null), 'createdOn' => ($cRow->createdOn ?? null), 'createdBy' => ($cRow->createdBy ?? null), 'message' => $message);

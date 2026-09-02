@@ -118,7 +118,7 @@ class store_iface_ImportShippedProducts extends import2_AbstractDriver
 
                 $Doc = doc_Containers::getDocument($rec->doc);
                 $handle = "#" . $Doc->getHandle();
-                if(strpos($masterRec->additionalInfo, $handle) !== false){
+                if(strpos((string) ($masterRec->additionalInfo ?? null), $handle) !== false){
                     $form->setWarning('doc', 'Документа вече е бил импортиран във фактурата. Наистина ли желаете да го добавите отново|*?');
                 }
             }
@@ -147,7 +147,7 @@ class store_iface_ImportShippedProducts extends import2_AbstractDriver
     private function getImportRecs(core_Manager $mvc, $rec)
     {
         $recs = array();
-        if (!is_array($rec->detailsDef)) {
+        if (!is_array($rec->detailsDef ?? null)) {
             
             return $recs;
         }

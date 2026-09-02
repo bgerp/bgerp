@@ -163,7 +163,35 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
         if (!isset($params['IS_ELECTRONIC'])) {
             $params['IS_ELECTRONIC'] = $pRec->isElectronic == 'yes' ? true : false;
         }
-        
+
+        // Всички следващи параметри са документирано опционални (виж докблока по-горе) -
+        // подсигуряваме ги да съществуват в $params, за да не гърми undefined-key/deprecation
+        // при директните им четения по-долу (?? не пипа вече зададена стойност)
+        // ВАЖНО: стойността по подразбиране трябва да е null, а не '' или false, защото
+        // setIfNot() презаписва само неinset-нати (null) стойности - иначе стойностите,
+        // които се допълват по-долу (напр. от QR_CODE_DATA), остават празни
+        $params['IS_DETAILED'] = $params['IS_DETAILED'] ?? null;
+        $params['IS_PRINT_VAT'] = $params['IS_PRINT_VAT'] ?? null;
+        $params['IS_STORNO'] = $params['IS_STORNO'] ?? null;
+        $params['IS_CREDIT_NOTE'] = $params['IS_CREDIT_NOTE'] ?? null;
+        $params['IS_INVOICE'] = $params['IS_INVOICE'] ?? null;
+        $params['RCP_NUM'] = $params['RCP_NUM'] ?? null;
+        $params['QR_CODE_DATA'] = $params['QR_CODE_DATA'] ?? null;
+        $params['RELATED_TO_RCP_NUM'] = $params['RELATED_TO_RCP_NUM'] ?? null;
+        $params['RELATED_TO_RCP_DATE_TIME'] = $params['RELATED_TO_RCP_DATE_TIME'] ?? null;
+        $params['RELATED_TO_INV_DATE_TIME'] = $params['RELATED_TO_INV_DATE_TIME'] ?? null;
+        $params['RELATED_TO_INV_NUM'] = $params['RELATED_TO_INV_NUM'] ?? null;
+        $params['FM_NUM'] = $params['FM_NUM'] ?? null;
+        $params['RECIPIENT'] = $params['RECIPIENT'] ?? null;
+        $params['BUYER'] = $params['BUYER'] ?? null;
+        $params['VAT_NUMBER'] = $params['VAT_NUMBER'] ?? null;
+        $params['UIC'] = $params['UIC'] ?? null;
+        $params['ADDRESS'] = $params['ADDRESS'] ?? null;
+        $params['UIC_TYPE_STR'] = $params['UIC_TYPE_STR'] ?? null;
+        $params['SERIAL_NUMBER'] = $params['SERIAL_NUMBER'] ?? null;
+        $params['payments'] = $params['payments'] ?? null;
+        $params['products'] = $params['products'] ?? array();
+
         // Задаваме параметрите за отваряне на ФБ
         setIfNot($params['OPER_NUM'], 1);
         
@@ -199,7 +227,7 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
             setIfNot($params['SERIAL_NUMBER'], $pRec->serialNumber);
             
             if (!$params['SERIAL_NUMBER']) {
-                list($params['SERIAL_NUMBER']) = explode('-', $params['RCP_NUM'], 2);
+                list($params['SERIAL_NUMBER']) = explode('-', (string) $params['RCP_NUM'], 2);
             }
             
             expect($params['SERIAL_NUMBER'] && (strlen($params['SERIAL_NUMBER']) == 8), $pRec, $params);
@@ -305,7 +333,7 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
             
             // Опитваме се да попълним няко от задължителните параметри
             if ($params['QR_CODE_DATA']) {
-                list($fmNum, $toRcpNum, $toRcpDate, $toRcpTime) = explode('*', $params['QR_CODE_DATA']);
+                list($fmNum, $toRcpNum, $toRcpDate, $toRcpTime) = array_pad(explode('*', $params['QR_CODE_DATA']), 4, null);
                 
                 setIfNot($params['FM_NUM'], $fmNum);
                 setIfNot($params['RELATED_TO_RCP_NUM'], (int) $toRcpNum);
@@ -329,8 +357,8 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
             }
             
             if ($params['IS_STORNO']) {
-                expect($params['RELATED_TO_RCP_NUM'] && $params['RELATED_TO_RCP_DATE_TIME'] && $params['FM_NUM']);
-                expect(dt::verbal2mysql($params['RELATED_TO_RCP_DATE_TIME']));
+                expect($params['RELATED_TO_RCP_NUM'] && $params['RELATED_TO_RCP_DATE_TIME'] && $params['FM_NUM'], $params);
+                expect(dt::verbal2mysql($params['RELATED_TO_RCP_DATE_TIME']), $params);
                 
                 if ($params['PRINT_TYPE_STR'] == 'postponed') {
                     $params['PRINT_TYPE'] = Tremol\OptionStornoRcpPrintType::Postponed_Printing;
@@ -400,7 +428,11 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
             setIfNot($pArr['VAT_CLASS'], 1);
             setIfNot($pArr['QTY'], 1);
             setIfNot($pArr['PLU_NAME'], '');
-            
+
+            // Опционални - подсигуряваме съществуването на ключа, без да променяме стойността
+            $pArr['DISC_ADD_P'] = $pArr['DISC_ADD_P'] ?? null;
+            $pArr['DISC_ADD_V'] = $pArr['DISC_ADD_V'] ?? null;
+
             expect(($pArr['VAT_CLASS'] >= 0) && ($pArr['VAT_CLASS'] <= 3));
             
             expect(is_numeric($pArr['PRICE']) && is_numeric($pArr['QTY']) && (is_numeric($pArr['DISC_ADD_P']) || !isset($pArr['DISC_ADD_P'])) && (is_numeric($pArr['DISC_ADD_V']) || !isset($pArr['DISC_ADD_V'])));
@@ -683,7 +715,7 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
             // Настройваме хедърите и футърите на ФУ
             if (Request::get('update')) {
                 // Променя серийния номер на ФУ, ако не е коректно
-                if ($sn) {
+                if (!empty($sn)) {
                     if ($sn != $data->rec->serialNumber) {
                         $data->rec->serialNumber = $sn;
                         
@@ -701,7 +733,7 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
                 }
                 
                 if (isset($oPass)) {
-                    if ($oPass != $data->rec->otherData['operPass']) {
+                    if ($oPass != ($data->rec->otherData['operPass'] ?? null)) {
                         $data->rec->otherData['operPass'] = $oPass;
                         
                         $Embedder->save($data->rec, 'otherData');
@@ -714,7 +746,7 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
                     $Driver->handleAndShowException($e);
                 }
                 
-                if ($dPaymArr['defPaymArr']) {
+                if (!empty($dPaymArr['defPaymArr'])) {
                     $data->rec->otherData['defPaymArr'] = $dPaymArr['defPaymArr'];
                     $data->rec->otherData['exRate'] = $dPaymArr['exRate'];
                     

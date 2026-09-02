@@ -123,7 +123,7 @@ class doc_UsedInDocs extends core_Manager
             return $rec->data;
         }
         
-        return $rec->data[$type];
+        return $rec->data[$type] ?? null;
     }
     
     
@@ -153,7 +153,7 @@ class doc_UsedInDocs extends core_Manager
                     
                     $rec = new stdClass();
                 } else {
-                    if (!$dataArr && $rec->id) {
+                    if (!$dataArr && !empty($rec->id)) {
                         $me->delete($rec->id);
                         
                         continue;

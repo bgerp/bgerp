@@ -93,7 +93,7 @@ class doc_View extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'doc_Wrapper, doc_SharablePlg, doc_DocumentPlg, plg_RowTools, 
+    public $loadList = 'doc_Wrapper, doc_SharablePlg, doc_DocumentPlg, plg_RowTools2, 
         plg_Printing, doc_ActivatePlg, bgerp_plg_Blank';
     
     
@@ -286,6 +286,7 @@ class doc_View extends core_Master
     {
         $rec = $data->form->rec;
         $form = $data->form;
+        $id = $form->rec->id ?? null;
 
         $tplArr = doc_TplManager::getTemplates($rec->clsId);
         
@@ -298,16 +299,16 @@ class doc_View extends core_Master
         }
 
         $oRec = $force = false;
-        if ($form->rec->id) {
-            $oRec = $mvc->fetch($form->rec->id);
+        if ($id) {
+            $oRec = $mvc->fetch($id);
 
             $data->form->input('tplId', true);
-            if ($oRec->tplId != $form->rec->tplId) {
+            if (is_object($oRec) && $oRec->tplId != $form->rec->tplId) {
                 $force = true;
             }
         }
 
-        if ($form->rec->id && !$force) {
+        if ($id && !$force) {
             $form->rec->docHtml = $form->rec->body;
         } else {
             $form->setDefault('tplId', key($tplArr));
@@ -315,7 +316,7 @@ class doc_View extends core_Master
             $form->rec->docHtml = $mvc->getDocumentContentFor($form->rec->clsId, $form->rec->dataId, $form->rec->tplId);
         }
 
-        if ($form->rec->docHtml && !$form->rec->id) {
+        if ($form->rec->docHtml && !$id) {
             // Добавяме клас, за да може формата да застане до привюто на документа/файла
             $className = '';
             if (Mode::is('screenMode', 'wide')) {
@@ -339,7 +340,7 @@ class doc_View extends core_Master
         }
 
         $btnName = 'Цял екран';
-        if (!$rec->id) {
+        if (!$id) {
             $data->form->setField('docHtml', 'input=hidden');
             $btnName = 'Редактиране';
         }
@@ -448,7 +449,7 @@ class doc_View extends core_Master
             if ($form->cmd == 'fullView') {
                 $form->rec->_toFullView = true;
 
-                if (!$form->rec->id) {
+                if (empty($form->rec->id)) {
                     status_Messages::newStatus('Документът е записан');
                 } else {
                     status_Messages::newStatus('Документът е обновен');

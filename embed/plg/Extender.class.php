@@ -80,7 +80,8 @@ class embed_plg_Extender extends core_Plugin
         foreach ($fieldArr as $k => $v){
             if(strpos($k, "{$Extender->className}_") !== false){
                 list(,$k1) = explode("{$Extender->className}_", $k);
-                if((isset($exRec->{$k1}) && is_null($v)) || (isset($v) && is_null($exRec->{$k1})) || $exRec->{$k1} != $v){
+                $exValue = $exRec->{$k1} ?? null;
+                if ($exValue != $v) {
                     $exRec->{$k1} = $v;
                     $update = true;
                 }
@@ -115,7 +116,7 @@ class embed_plg_Extender extends core_Plugin
             $extenderFields = array_keys($Extender->getExtenderFields());
             
             foreach ($extenderFields as $k){
-                $rec->{"{$Extender->className}_{$k}"} = $exRec->{$k};
+                $rec->{"{$Extender->className}_{$k}"} = $exRec->{$k} ?? null;
             }
         }
     }

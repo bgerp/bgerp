@@ -36,7 +36,7 @@ class cat_plg_AddSearchKeywords extends core_Plugin
         $productDetailArr = isset($mvc->addProductKeywordsFromDetails) ? arr::make($mvc->addProductKeywordsFromDetails, true) : arr::make($mvc->mainDetail, true);
 
         // Гледа се в детайла на класа (ако има, кои артикули се използват)
-        if ($rec->id) {
+        if (!empty($rec->id)) {
 
             if(countR($productDetailArr)){
                 foreach ($productDetailArr as $productDetail) {

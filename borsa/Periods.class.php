@@ -142,10 +142,15 @@ class borsa_Periods extends core_Manager
      */
     function on_CalcPrice($mvc, $rec)
     {
+        if (empty($rec->lotId)) {
+            
+            return;
+        }
+        
         $pArr = cls::get('borsa_Lots')->getChangePeriods($rec->lotId);
         foreach ($pArr as $pRec) {
             if (($pRec['bPeriod'] == $rec->from) && ($pRec['ePeriod'] == $rec->to)) {
-                if ($pRec['price']) {
+                if (!empty($pRec['price'])) {
                     $rec->price = $pRec['price'];
                 }
             }
@@ -169,16 +174,13 @@ class borsa_Periods extends core_Manager
         $data->query->orderBy('modifiedOn', 'DESC');
         
         $data->listFilter->setFieldTypeParams('lotId', array('allowEmpty' => 'allowEmpty'));
+        $data->listFilter->setField('lotId', 'placeholderType=all');
         
         $data->listFilter->showFields = 'lotId';
         
         $data->listFilter->input('lotId');
         
-        if ($data->listFilter->rec->lotId) {
-            $data->query->where(array("#lotId = '[#1#]'", $data->listFilter->rec->lotId));
-        }
-        
-        if ($data->listFilter->rec->lotId) {
+        if (!empty($data->listFilter->rec->lotId)) {
             $data->query->where(array("#lotId = '[#1#]'", $data->listFilter->rec->lotId));
         }
         
@@ -198,7 +200,7 @@ class borsa_Periods extends core_Manager
     {
         $form = $data->form;
         $rec = $form->rec;
-        if ($rec->id) {
+        if (!empty($rec->id)) {
             $form->setReadOnly('lotId');
             $form->setReadOnly('from');
             $form->setReadOnly('to');
@@ -209,7 +211,7 @@ class borsa_Periods extends core_Manager
             }
             
             $suggArr = array();
-            if ($rec->lotId) {
+            if (!empty($rec->lotId)) {
                 $pArr = cls::get('borsa_Lots')->getChangePeriods($rec->lotId);
                 foreach ($pArr as $pRec) {
                     if (!$mvc->getPeriodRec($rec->lotId, $pRec['bPeriod'], $pRec['ePeriod'])) {
@@ -242,14 +244,14 @@ class borsa_Periods extends core_Manager
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
-        if ($rec->lotId) {
+        if (!empty($rec->lotId)) {
             $pId = borsa_Lots::fetchField($rec->lotId, 'productId');
             if ($pId && cat_Products::haveRightFor('single', $pId)) {
                 $row->lotId = cat_Products::getLinkToSingle($pId, 'name');
             }
         }
         
-        if ($rec->blastId) {
+        if (!empty($rec->blastId)) {
             if (blast_Emails::haveRightFor('single', $rec->blastId)) {
                 $row->blastId = blast_Emails::getLinkToSingle($rec->blastId);
             }
@@ -267,9 +269,7 @@ class borsa_Periods extends core_Manager
      */
     static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
-        $rec = $data->rec;
-        
-        if($data->rec->blastId && blast_Emails::haveRightFor('single', blast_Emails::fetch($data->rec->blastId))) {
+        if(!empty($data->rec->blastId) && blast_Emails::haveRightFor('single', blast_Emails::fetch($data->rec->blastId))) {
             $data->toolbar->addBtn('Имейл', array('blast_Emails', 'single', $data->rec->blastId), 'ef_icon=img/16/emails.png,row=2');
         }
     }
@@ -296,7 +296,7 @@ class borsa_Periods extends core_Manager
                 }
                 
                 // Този период все още не е активен и го прескачаме
-                if (!$pArr[$rec->lotId][$rec->id]) {
+                if (empty($pArr[$rec->lotId][$rec->id])) {
                     continue;
                 }
                 
@@ -362,6 +362,7 @@ class borsa_Periods extends core_Manager
         
         $pQuery->show('lotId');
         
+        $lotIdArr = array();
         while ($pRec = $pQuery->fetch()) {
             $lotIdArr[$pRec->lotId] = $pRec->lotId;
         }
@@ -383,6 +384,11 @@ class borsa_Periods extends core_Manager
                 continue;
             }
             $compRec = crm_Companies::fetch($cRec->companyId);
+            if (empty($compRec)) {
+                
+                continue;
+            }
+            
             $folderId = $compRec->folderId;
             if (!$folderId) {
                 $folderId = crm_Companies::forceCoverAndFolder($compRec);
@@ -444,7 +450,7 @@ class borsa_Periods extends core_Manager
         
         $key = md5($lg . '|' . $id . '|' . $verbal);
         
-        if (!$resArr[$key]) {
+        if (!isset($resArr[$key])) {
             $rec = $this->fetchRec($id);
             $resArr[$key] = tr('Запитване за|* "') . borsa_Lots::fetchField($rec->lotId, 'productName') . '" - ' . $rec->periodFromTo;
         }
@@ -512,7 +518,7 @@ class borsa_Periods extends core_Manager
             }
             
             // Добавяме в масива
-            $resArr[$rec->id] = $this->getPersonalizationTitle($rec, false);
+            $resArr[$rec->id] = $this->getPersonalizationTitle($rec->id, false);
         }
         
         return $resArr;

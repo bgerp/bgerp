@@ -17,6 +17,8 @@
  */
 class cms_ObjectSourceIntf
 {
+    public $class;
+
     /**
      * Подготвя данните за публикуването на обекта
      */
@@ -31,7 +33,7 @@ class cms_ObjectSourceIntf
      */
     public function getDefaultCmsTpl($data)
     {
-        return $this->class->getDefaultCmsTpl($data, $tpl);
+        return $this->class->getDefaultCmsTpl($data);
     }
     
     

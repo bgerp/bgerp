@@ -100,7 +100,7 @@ class eshop_plg_ProductSync extends core_Plugin
         $rec = &$form->rec;
 
         // При клониране, ако артикула може да бъде добавен към ешоп се добавя поле за избор
-        if($data->action == 'clone' && eshop_Products::canProductBeAddedToEshop($rec->id)){
+        if(($data->action ?? null) == 'clone' && eshop_Products::canProductBeAddedToEshop($rec->id)){
             if(eshop_ProductDetails::fetchField("#productId = {$rec->id}")){
                 $form->FLD('cloneToEshop', 'enum(yes=Да,no=Не)', 'caption=Добавяне в Е-маг след клониране->Избор');
 
@@ -138,7 +138,7 @@ class eshop_plg_ProductSync extends core_Plugin
     public static function on_AfterSaveCloneRec($mvc, $rec, $nRec)
     {
         // Ако потребителя иска да клонира връзката към Е-маг
-        if($nRec->cloneToEshop == 'yes'){
+        if(($nRec->cloneToEshop ?? null) == 'yes'){
             $eDetails = cls::get('eshop_ProductDetails');
 
             $dQuery = $eDetails->getQuery();

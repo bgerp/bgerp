@@ -28,7 +28,7 @@ class crm_PersonsDetails extends core_Manager
     public function preparePersonsDetails_($data)
     {
         $data->TabCaption = 'Лични данни';
-        expect($data->masterMvc instanceof crm_Persons);
+        expect(($data->masterMvc ?? null) instanceof crm_Persons);
 
         $employeeId = crm_Groups::getIdFromSysId('employees');
         if (keylist::isIn($employeeId, $data->masterData->rec->groupList)) {

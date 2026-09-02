@@ -48,7 +48,9 @@ class planning_interface_TaskLabelDetail extends planning_interface_TaskLabel
         $query->orderBy('id', 'DESC');
         $query->show('id');
 
-        return $query->fetch()->id;
+        $templateRec = $query->fetch();
+
+        return $templateRec->id ?? null;
     }
     
     
@@ -66,12 +68,16 @@ class planning_interface_TaskLabelDetail extends planning_interface_TaskLabel
         $templateTpl = label_Templates::addCssToTemplate($templateId);
 
         // Взимат се данните за бърз етикет
-        $allLabelData = $this->getLabelData($id, 1, false, null, $series);
+        $allLabelData = $this->getLabelData($id, 1, false, null, 'label');
 
         $placeArr = label_Templates::getPlaceholders($templateTpl);
 
         foreach ($allLabelData as $allKey => $labelData) {
             foreach ($labelData as $lKey => $lVal) {
+                if (!isset($placeArr[$lKey])) {
+                    continue;
+                }
+
                 $place = $placeArr[$lKey];
                 $newVal = label_TemplateFormats::getVerbalTemplate($templateId, $place, $lVal);
                 $allLabelData[$allKey][$lKey] = strlen($newVal) ? $newVal : $allLabelData[$allKey][$lKey];
@@ -138,10 +144,13 @@ class planning_interface_TaskLabelDetail extends planning_interface_TaskLabel
 
         $quantity = $rec->quantity;
         if(planning_ProductionTaskProducts::isProduct4Task($taskRec->id, $rec->productId)){
-            $quantity /= $taskRec->quantityInPack;
+            $quantity /= ($taskRec->quantityInPack ?: 1);
+            $measureId = $taskRec->measureId;
+        } else {
+            $measureId = $rowInfo->packagingId ?? cat_Products::fetchField($rec->productId, 'measureId');
         }
 
-        $quantity = $quantity . " " . cat_UoM::getShortName($rowInfo->measureId);
+        $quantity = $quantity . " " . cat_UoM::getShortName($measureId);
         Mode::push('text', 'plain');
         $weight = (!empty($rec->weight)) ? core_Type::getByName('cat_type_Weight(smartRound=no)')->toVerbal($rec->weight) : null;
         $nettWeight = (!empty($rec->netWeight)) ? core_Type::getByName('cat_type_Weight(smartRound=no)')->toVerbal($rec->netWeight) : null;
@@ -156,12 +165,13 @@ class planning_interface_TaskLabelDetail extends planning_interface_TaskLabel
         }
 
         $singleUrl = toUrl(array('planning_Tasks', 'single', $rec->taskId), 'absolute');
-        $saleId = $clientName = null;
-        if(isset($jRec->saleId)){
-            $saleId = "#" . sales_Sales::getHandle($jRec->saleId);
-            $saleRec = sales_Sales::fetch($jRec->saleId, 'reff, contragentClassId,contragentId');
-            $reff = !empty($saleRec->reff) ? $saleRec->reff : null;
-            $clientName = cls::get($saleRec->contragentClassId)->getVerbal($saleRec->contragentId, 'name');
+        $dealId = $clientName = null;
+        list($sourceClass, $sourceId) = planning_Jobs::getSourceInfo($jRec);
+        if (isset($sourceClass)) {
+            $dealId = "#" . $sourceClass::getHandle($sourceId);
+            $sourceRec = $sourceClass::fetch($sourceId, 'reff,contragentClassId,contragentId');
+            $reff = !empty($sourceRec->reff) ? $sourceRec->reff : null;
+            $clientName = cls::get($sourceRec->contragentClassId)->getVerbal($sourceRec->contragentId, 'name');
         }
 
         $notes = !empty($rec->notes) ? core_Type::getByName('richtext')->toHtml($rec->notes) : null;
@@ -184,8 +194,8 @@ class planning_interface_TaskLabelDetail extends planning_interface_TaskLabel
                 $res['REFF'] = $reff;
             }
 
-            if(!empty($saleId)){
-                $res['SALE_ID'] = $saleId;
+            if(!empty($dealId)){
+                $res['SALE_ID'] = $dealId;
                 $res['CLIENT_NAME'] = $clientName;
             }
 

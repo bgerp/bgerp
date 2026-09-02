@@ -26,7 +26,7 @@ class cal_TaskConditions extends core_Detail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created,cal_Wrapper, plg_RowTools';
+    public $loadList = 'plg_Created,cal_Wrapper, plg_RowTools2';
     
     
     /**
@@ -278,7 +278,7 @@ class cal_TaskConditions extends core_Detail
     {
         $arr[$id] = $id;
         $query = self::getQuery();
-        while ($rec = $query->fetch("#{$field} = ${id}")) {
+        while ($rec = $query->fetch("#{$field} = {$id}")) {
             self::getInheritors($rec->id, $field, $arr);
         }
         

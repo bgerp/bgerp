@@ -168,9 +168,8 @@ class price_interface_LastActiveBomCostPolicy extends price_interface_BaseCostPo
             $bQuery = cat_Boms::getQuery();
             $bQuery->EXT('isPublic', 'cat_Products', 'externalName=isPublic,externalKey=productId');
             $bQuery->EXT('groups', 'cat_Products', 'externalName=groups,externalKey=productId');
-            $bQuery->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
             $bQuery->EXT('pFolderId', 'cat_Products', 'externalName=folderId,externalKey=productId');
-            $bQuery->where("#state = 'active' AND #isPublic = 'yes' AND #canStore = 'yes'");
+            $bQuery->where("#state = 'active' AND #isPublic = 'yes'");
             $bQuery->show('productId');
 
             // Рецептите към артикулите с конкретни правила

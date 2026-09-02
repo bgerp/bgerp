@@ -257,6 +257,7 @@ class deals_OpenDeals extends core_Manager
             $row->expectedPayment = $mvc->getFieldType('amountDeal')->toVerbal($expectedPayment);
             
             $toDeliver = ($rec->amountDeal - $rec->amountDelivered) / $docRec->currencyRate;
+            $row->toDeliver = $mvc->getFieldType('amountDeal')->toVerbal($toDeliver);
             
             if (empty($expectedPayment)) {
                 $row->expectedPayment = "<span class='quiet'>{$row->expectedPayment}</span>";

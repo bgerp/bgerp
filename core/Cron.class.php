@@ -42,7 +42,7 @@ class core_Cron extends core_Manager
     /**
      * Списък с плъгини, които се прикачат при конструиране на мениджъра
      */
-    public $loadList = 'plg_Created,plg_Modified,plg_SystemWrapper,plg_RowTools,plg_Sorting,plg_RefreshRows,plg_State2,plg_Search';
+    public $loadList = 'plg_Created,plg_Modified,plg_SystemWrapper,plg_RowTools2,plg_Sorting,plg_RefreshRows,plg_State2,plg_Search';
     
     
     /**
@@ -474,7 +474,10 @@ class core_Cron extends core_Manager
                 // Ако извикания метод е генерирал резултат, то го добавяме
                 // подходящо форматиран към лога
                 if ($content) {
-                    $content = "<p><i>${content}</i></p>";
+                    if (!is_scalar($content)) {
+                        $content = core_Type::mixedToString($content);
+                    }
+                    $content = "<p><i>{$content}</i></p>";
                     if (Request::get('forced')) {
                         echo $content;
                     }
@@ -528,7 +531,7 @@ class core_Cron extends core_Manager
      */
     public function unlockProcess($rec)
     {
-        if (!$rec || !$rec->id) {
+        if (!$rec || empty($rec->id)) {
             
             return ;
         }

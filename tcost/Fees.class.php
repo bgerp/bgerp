@@ -155,10 +155,10 @@ class tcost_Fees extends core_Detail
 
             // Проверка на избраната валута
             $oldRec = isset($rec->id) ? $mvc->fetch($rec->id, '', false) : null;
-            foreach (array('currencyId', 'secondCurrencyId', 'thirdCurrencyId') as $fld){
-                if(!empty($rec->{$fld}) && $rec->{$fld} != $oldRec->{$fld}){
+            foreach (array('currencyId', 'secondCurrencyId', 'thirdCurrencyId') as $fld) {
+                if (!empty($rec->{$fld}) && $rec->{$fld} != ($oldRec->{$fld} ?? null)) {
                     $currencyError = null;
-                    if(!currency_Currencies::checkCurrency($rec->{$fld}, null, $currencyError)){
+                    if (!currency_Currencies::checkCurrency($rec->{$fld}, null, $currencyError)) {
                         $form->setError($fld, $currencyError);
                     }
                 }
@@ -315,7 +315,7 @@ class tcost_Fees extends core_Detail
         $data->listFields['thirdPrice'] = 'Стойност|* |без ДДС|*->Трета сума';
         $data->listFields['total'] = "Стойност|* |без ДДС|*->Общо|* (<small>{$baseCurrencyCode}</small>)";
         
-        if (!countR($data->rows)) {
+        if (empty($data->rows)) {
             
             return;
         }
@@ -323,19 +323,23 @@ class tcost_Fees extends core_Detail
         
         // За всеки запис
         foreach ($data->rows as $id => &$row) {
+            if (!isset($data->recs[$id])) {
+                continue;
+            }
+
             $rec = &$data->recs[$id];
             
             // Зад сумите, се залепва валутата им
-            if ($row->priceHint) {
-                $row->price = "<span title='Не трябва да е повече от {$row->priceHint}'>" . $row->price . '</span>';
+            if (!empty($row->priceHint)) {
+                $row->price = "<span title='Не трябва да е повече от {$row->priceHint}'>" . ($row->price ?? '') . '</span>';
             }
-            $row->price .= " <span class='cCode'>{$rec->currencyId}</span>";
+            $row->price = ($row->price ?? '') . " <span class='cCode'>{$rec->currencyId}</span>";
             if (!empty($rec->secondPrice) && !empty($rec->secondCurrencyId)) {
-                $row->secondPrice .= " <span class='cCode'>{$rec->secondCurrencyId}</span>";
+                $row->secondPrice = ($row->secondPrice ?? '') . " <span class='cCode'>{$rec->secondCurrencyId}</span>";
             }
             
             if (!empty($rec->thirdPrice) && !empty($rec->thirdCurrencyId)) {
-                $row->thirdPrice .= " <span class='cCode'>{$rec->thirdCurrencyId}</span>";
+                $row->thirdPrice = ($row->thirdPrice ?? '') . " <span class='cCode'>{$rec->thirdCurrencyId}</span>";
             }
             
             // Ако общата сума е различна от първата сума, ще се показва общата сума

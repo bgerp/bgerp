@@ -141,8 +141,8 @@ class planning_ReturnNotes extends deals_ManifactureMaster
      * Икона на единичния изглед
      */
     public $singleIcon = 'img/16/produce_out.png';
-    
-    
+
+
     /**
      * Кой може да го прави документа чакащ/чернова?
      */
@@ -180,7 +180,7 @@ class planning_ReturnNotes extends deals_ManifactureMaster
     public function getDetailsToCloneAndChange_($rec)
     {
         $Detail = cls::get($this->mainDetail);
-        $id = $rec->clonedFromId;
+        $id = $rec->clonedFromId ?? null;
 
         $additionalWhereClause = '';
         if (isset($rec->originId) && empty($rec->id)) {
@@ -306,7 +306,7 @@ class planning_ReturnNotes extends deals_ManifactureMaster
         }
 
         if(empty($rec->storeId)){
-            $row->storeId = ht::createHint("<i style='color:blue'>" . tr('Не е посочен') . "</i>", 'В протокола могат да се избират само услуги|*!');
+            $row->storeId = ht::createHint("<i class='blueText'>" . tr('Не е посочен') . "</i>", 'В протокола могат да се избират само услуги|*!');
         }
     }
 
@@ -332,6 +332,10 @@ class planning_ReturnNotes extends deals_ManifactureMaster
     public static function canAddDocumentToOriginAsLink_($rec)
     {
         if(isset($rec->originId)){
+            
+            // При нов документ нишката още не е определена - той ще се рутира в тази на оридижина
+            if(empty($rec->threadId)) return false;
+            
             // Ако е към оридижин и той е в друга нишка - да се добави като свързан документ
             $origin = doc_Containers::getDocument($rec->originId);
             $originThreadId = $origin->fetchField('threadId');

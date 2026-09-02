@@ -134,9 +134,9 @@ class trans_IntraCommunitySupplyConfirmations extends trans_abstract_ShipmentDoc
             $addressArr['place'] = $pCode;
         }
         if(!empty($place)){
-            $addressArr['place'] .= (empty($addressArr['place']) ? '' : ' ') . transliterate(tr($place));
+            $addressArr['place'] = ($addressArr['place'] ?? '') . (empty($addressArr['place']) ? '' : ' ') . transliterate(tr($place));
         }
-        $addressArr['address'] = transliterate(tr($address));
+        $addressArr['address'] = transliterate(tr($address ?? ''));
 
         return implode(', ', $addressArr);
     }
@@ -153,9 +153,12 @@ class trans_IntraCommunitySupplyConfirmations extends trans_abstract_ShipmentDoc
     {
         $Contragent = cls::get($contragentClassId);
         $contragentRec = $Contragent->fetch($contragentId, 'pCode,place,address,country');
+        if (!$contragentRec) {
+            return '';
+        }
 
         core_Lg::push('en');
-        $address = $this->getInlineAddress($contragentRec->country, $contragentRec->pCode, $contragentRec->place, $contragentRec->address);
+        $address = $this->getInlineAddress($contragentRec->country ?? null, $contragentRec->pCode ?? null, $contragentRec->place ?? null, $contragentRec->address ?? null);
         core_Lg::pop();
 
         return $address;
@@ -178,14 +181,14 @@ class trans_IntraCommunitySupplyConfirmations extends trans_abstract_ShipmentDoc
             // Данните за контрагента
             core_Lg::push('en');
             $contragentData = cls::get($documentRec->contragentClassId)->getContragentData($documentRec->contragentId);
-            $contragentName = $contragentData->companyVerb;
+            $contragentName = ($contragentData->personVerb ?? null) ?: ($contragentData->companyVerb ?? null) ?: '';
             $contragentName = str_replace(array('&lt;', '&amp;'), array('<', '&'), $contragentName);
             $form->setDefault('contragentName', $contragentName);
             core_Lg::pop();
-            $form->setDefault('contragentVatNo', $contragentData->vatNo);
+            $form->setDefault('contragentVatNo', $contragentData->vatNo ?? null);
             $form->setDefault('contragentAddress', $mvc->getContragentAddress($documentRec->contragentClassId, $documentRec->contragentId));
 
-            $countryId = drdata_Countries::getIdByName($logisticData['toCountry']);
+            $countryId = drdata_Countries::getIdByName($logisticData['toCountry'] ?? null);
             $form->setDefault('deliveryCountryId', $countryId);
 
             $shipmentDocument = "{$Document->that} / {$Document->getVerbal('valior')}";
@@ -210,7 +213,7 @@ class trans_IntraCommunitySupplyConfirmations extends trans_abstract_ShipmentDoc
             // Ако има ЧМР взимам датата на доставка и транспротната фирма и МПС номера от там
             if($cmrRec = trans_Cmrs::fetch("#originId = {$rec->originId} AND #state = 'active'")){
 
-                $cmrDateField = ($cmrRec->establishedDate) ? 'establishedDate' : 'createdOn';
+                $cmrDateField = !empty($cmrRec->establishedDate) ? 'establishedDate' : 'createdOn';
                 Mode::push('text', 'plain');
                 $transportDocument = "{$cmrRec->cmrNumber} / " . trans_Cmrs::getVerbal($cmrRec, $cmrDateField);
                 Mode::pop('text');

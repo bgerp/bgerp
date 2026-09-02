@@ -147,7 +147,7 @@ class drdata_PhoneType extends type_Varchar
      */
     public function toVerbal_($telNumber)
     {
-        $telNumber = trim($telNumber);
+        $telNumber = trim($telNumber ?? '');
         
         if (!$telNumber) {
             

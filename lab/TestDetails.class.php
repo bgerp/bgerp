@@ -147,19 +147,24 @@ class lab_TestDetails extends core_Detail
         $form = $data->form;
         $rec = $form->rec;
         $type = $form->getFieldType('results');
+        $methodId = $rec->methodId ?? null;
+        $paramName = $rec->paramName ?? null;
+        $testId = $rec->testId ?? null;
         
-        if ($rec->methodId && lab_Methods::fetchField($rec->methodId, 'formula')) {
-            if (! $rec->formula) {
-                $rec->formula = lab_Methods::fetchField($rec->methodId, 'formula');
+        if ($methodId && ($methodFormula = lab_Methods::fetchField($methodId, 'formula'))) {
+            if (empty($rec->formula)) {
+                $rec->formula = $methodFormula;
             }
             
             $formula = $rec->formula;
             
-            if ($formula !== lab_Methods::fetchField($rec->methodId, 'formula')) {
+            if ($formula !== $methodFormula) {
                 $form->setWarning('methodId', 'Има промяна във формулата, която няма бъде отчетена.');
             }
             
             $matches = array();
+            $params = '';
+            $widths = '';
             
             preg_match_all('/\$[_a-z][a-z0-9_]*/i', $formula, $matches);
             
@@ -171,9 +176,6 @@ class lab_TestDetails extends core_Detail
                 $type->params['widths'] = trim($widths, '|');
             }
         }
-        $paramsIdSelectArr = array(
-            $data->form->rec->paramName => lab_Parameters::getTitleById($data->form->rec->paramName)
-        );
         
         // allMethodsArr
         $Methods = cls::get('lab_Methods');
@@ -181,8 +183,8 @@ class lab_TestDetails extends core_Detail
         
         $allMethodsArr = array();
         
-        if ($data->form->rec->paramName) {
-            while ($mRec = $queryAllMethods->fetch("#paramId = {$data->form->rec->paramName}")) {
+        if ($paramName) {
+            while ($mRec = $queryAllMethods->fetch("#paramId = {$paramName}")) {
                 $allMethodsArr[$mRec->id] = $mRec->name;
             }
         }
@@ -192,7 +194,7 @@ class lab_TestDetails extends core_Detail
         
         // $methodIdSelectArr
         foreach ($allMethodsArr as $k => $v) {
-            if (! $mvc->fetchField("#testId = {$data->form->rec->testId} AND #methodId = {$k}", 'id')) {
+            if ($testId && ! $mvc->fetchField("#testId = {$testId} AND #methodId = {$k}", 'id')) {
                 $methodIdSelectArr[$k] = $v;
             }
         }
@@ -200,15 +202,15 @@ class lab_TestDetails extends core_Detail
         // Ако сме в режим 'добави' избираме метод, който не е използван
         // за текущия тест. Ако сме в режим 'редактирай' полето за избор на метод е скрито.
         
-        if ($data->form->rec->id) {
+        if (!empty($rec->id)) {
             // Prepare array for methodId
             $data->form->setField('methodId', 'input=none');
         } else {
-            if (! $data->form->rec->paramName) {
+            if (!$paramName) {
                 $data->form->setField('methodId', 'input=none');
             }
             
-            if (empty($methodIdSelectArr) && !empty($data->form->rec->paramName)) {
+            if (empty($methodIdSelectArr) && $paramName) {
                 $data->form->setError('paramName', 'За този параметър няма регистрирани методи.');
                 $data->form->setField('methodId', 'input=none');
             } else {
@@ -224,11 +226,14 @@ class lab_TestDetails extends core_Detail
     public static function on_AfterPrepareEditTitle($mvc, &$res, &$data)
     {
         // Заглавие
-        $testHandler = lab_Tests::getHandle($data->masterId) . lab_Tests::fetchField($data->form->rec->testId, 'title');
+        $testId = $data->form->rec->testId ?? $data->masterId;
+        $testHandler = lab_Tests::getHandle($data->masterId) . lab_Tests::fetchField($testId, 'title');
         
-        if ($data->form->rec->id) {
+        if (!empty($data->form->rec->id)) {
+            $methodId = $data->form->rec->methodId ?? null;
+            $methodName = $data->allMethodsArr[$methodId] ?? lab_Methods::getTitleById($methodId);
             $data->form->title = 'Редактиране за тест|* "' . $testHandler . '",';
-            $data->form->title .= '|*<br/>|метод|* "' . $data->allMethodsArr[$data->form->rec->methodId] . '"';
+            $data->form->title .= '|*<br/>|метод|* "' . $methodName . '"';
         } else {
             $data->form->title = 'Добавяне на метод за тест|* "' . $testHandler . '"';
         }
@@ -517,7 +522,7 @@ class lab_TestDetails extends core_Detail
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         if ($action == 'edit' || $action == 'add') {
-            if (is_object($rec) && $rec->testId) {
+            if (is_object($rec) && !empty($rec->testId)) {
                 $state = lab_Tests::fetchField("#id = {$rec->testId}", 'state');
                 
                 if ($state != 'pending') {

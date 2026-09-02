@@ -121,7 +121,7 @@ class type_Emails extends type_Varchar
     {
         $oValue = $value;
 
-        $value = trim($value);
+        $value = trim($value ?? '');
         
         $value = type_Email::replaceEscaped($value);
 
@@ -153,7 +153,7 @@ class type_Emails extends type_Varchar
     public function isValid($value)
     {
         //Ако няма въведено нищо връщаме резултата
-        if (!trim($value)) {
+        if (!trim($value ?? '')) {
             
             return;
         }
@@ -185,7 +185,7 @@ class type_Emails extends type_Varchar
     public function toVerbal_($str)
     {
         //Тримваме полето
-        $str = trim($str);
+        $str = trim((string) $str);
         
         //Ескейпваме стринга
 //         $str = parent::escape($str);
@@ -220,7 +220,7 @@ class type_Emails extends type_Varchar
     public function renderInput_($name, $value = '', &$attr = array())
     {
         if (empty($this->params['showOriginal'])) {
-            if (strlen($value)) {
+            if (strlen($value ?? '')) {
                 //Вземаме всички имейли
                 $emailsArr = self::toArray($value, self::ALL);
 
@@ -249,8 +249,10 @@ class type_Emails extends type_Varchar
      */
     public static function toArray($str, $only = self::VALID)
     {
+        $str = (string) $str;
+
         //Масив с всички имейли
-        $emailsArr = preg_split(self::$pattern, $str, null, PREG_SPLIT_NO_EMPTY);
+        $emailsArr = preg_split(self::$pattern, $str, -1, PREG_SPLIT_NO_EMPTY);
         
         if ($only != self::ALL) {
             foreach ($emailsArr as $i => $email) {

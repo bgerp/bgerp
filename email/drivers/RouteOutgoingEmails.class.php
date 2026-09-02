@@ -48,11 +48,14 @@ class email_drivers_RouteOutgoingEmails extends email_drivers_OutgoingEmails
                 if (email_Incomings::haveRightFor('single', $eRec)) {
                     // Вземаме имейлите от копи и до
                     email_Incomings::calcAllToAndCc($eRec);
-                    $allEmailsArr = array_merge($eRec->AllTo, $eRec->AllCc);
+                    $allEmailsArr = array_merge((array) $eRec->AllTo, (array) $eRec->AllCc);
                     $emailArr = array();
                     foreach ($allEmailsArr as $allTo) {
-                        $email = $allTo['address'];
-                        $email = trim($email);
+                        if (empty($allTo['address'])) {
+                            continue;
+                        }
+                        
+                        $email = trim($allTo['address']);
                         $emailArr[$email] = $email;
                     }
 

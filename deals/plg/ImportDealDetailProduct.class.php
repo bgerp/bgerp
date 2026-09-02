@@ -34,6 +34,8 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
     {
         $mvc->declareInterface('deals_DealImportProductIntf');
         setPartIfNot($mvc, 'allowPriceImport', true);
+        setPartIfNot($mvc, 'allowImportReplacement', false);
+        setPartIfNot($mvc, 'combineImportRecs', false);
     }
     
     
@@ -66,8 +68,9 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
             
             self::prepareForm($form, $mvc);
 
+            $isFromClipboard = false;
             if (isset($form->rec->fromClipboard)) {
-                list($isFromClipboard) = explode('_', $form->rec->fromClipboard);
+                list($isFromClipboard) = import2_Clipboard::parseSourceKey($form->rec->fromClipboard);
             }
 
             $cacheRec = core_Cache::get($mvc->className, "importProducts_{$cu}_{$isFromClipboard}");
@@ -103,11 +106,8 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
                         // Обработваме данните
                         $rows = csv_Lib::getCsvRows($data, $delimiter, $rec->enclosure, $rec->firstRow);
                     } else {
-                        $clipboardValsArr = export_Clipboard::getVals();
-
-                        list($clipboardClass, $clipboardObjId) = explode('_', $rec->fromClipboard);
-
-                        $rows = (array) $clipboardValsArr[$clipboardClass][$clipboardObjId]->recs;
+                        list($clipboardClass, $clipboardObjId) = import2_Clipboard::parseSourceKey($rec->fromClipboard);
+                        $rows = import2_Clipboard::getRows($rec->fromClipboard);
 
                         $isFromClipboard = true;
                     }
@@ -406,7 +406,7 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
                 if ($pRec) {
                     $obj->quantity = cls::get('type_Double')->fromVerbal($obj->quantity);
                     if (!$obj->quantity) {
-                        if(!$mvc->hasPlugin('store_plg_RequestDetail') && !($mvc instanceof store_InventoryNoteDetails)){
+                        if(!$mvc->hasPlugin('store_plg_RequestDetail') && !($mvc instanceof store_InventoryNoteDetails) && !($mvc instanceof store_TransfersDetails)){
                             $err[$i][] = $obj->code . ' |Невалидно количество|*';
                         }
                     } else {
@@ -545,8 +545,9 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
     {
         $cu = core_Users::getCurrent();
 
+        $isFromClipboard = false;
         if (isset($rec->fromClipboard)) {
-            list($isFromClipboard) = explode('_', $rec->fromClipboard);
+            list($isFromClipboard) = import2_Clipboard::parseSourceKey($rec->fromClipboard);
         }
 
         $key = "importProducts_{$cu}_{$isFromClipboard}";
@@ -577,25 +578,10 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
         $form->FLD('csvData', 'text(1000000)', 'width=100%,caption=Данни');
         $form->FLD('csvFile', 'fileman_FileType(bucket=bnav_importCsv)', 'width=100%,caption=CSV файл');
 
-        $clipboardValsArr = export_Clipboard::getVals();
+        $clipboardValsArr = import2_Clipboard::getVals();
 
         if ($clipboardValsArr) {
-
-            $docArr = array();
-            foreach ($clipboardValsArr as $clsId => $clsObjArr) {
-                if (!cls::load($clsId, true)) {
-
-                    continue;
-                }
-
-                $clsInst = cls::get($clsId);
-                foreach ($clsObjArr as $objId => $recs) {
-                    $dRow = $clsInst->getDocumentRow($objId);
-                    $title = $dRow->recTitle ? $dRow->recTitle : $dRow->title;
-
-                    $docArr["{$clsId}_{$objId}"] = $title;
-                }
-            }
+            $docArr = import2_Clipboard::getOptions($clipboardValsArr);
 
             if (!empty($docArr)) {
                 $enum = cls::get('type_Enum');
@@ -616,7 +602,7 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
 
         $isFromClipboard = false;
 
-        if ($form->rec->fromClipboard) {
+        if ($form->rec->fromClipboard ?? null) {
             $isFromClipboard = true;
         }
 
@@ -667,43 +653,20 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
                 $form->setDefault($fld, $i + 1);
             }
         } else {
-            list($clsId, $objId) = explode('_', $form->rec->fromClipboard);
+            $clipboardColumns = import2_Clipboard::getColumns($form->rec->fromClipboard, $clipboardValsArr);
 
-            $fElemKey = key($clipboardValsArr[$clsId][$objId]->recs);
-            $fElemArr = $clipboardValsArr[$clsId][$objId]->recs[$fElemKey];
-
-            if ($fElemArr) {
-
-                $fArr = array('' => '');
-                $cMap = array();
-                foreach ((array)$fElemArr as $fName => $fVal) {
-                    if ($clipboardValsArr[$clsId][$objId]->fields->fields[$fName]->caption) {
-                        $caption = $clipboardValsArr[$clsId][$objId]->fields->fields[$fName]->caption;
-                        $fArr[$caption] = $caption;
-                        $cMap[$caption] = $fName;
-                    } else {
-                        $caption = $fName;
-                        $fArr[$fName] = $fName;
-                        $cMap[$fName] = $fName;
-                    }
-
-                    if (mb_stripos($form->fields['codecol']->caption, $caption) !== false) {
-                        $form->setDefault('codecol', $caption);
-                    }
-
-                    if (mb_stripos($form->fields['quantitycol']->caption, $caption) !== false) {
-                        $form->setDefault('quantitycol', $caption);
-                    }
-
-                    if (mb_stripos($form->fields['packcol']->caption, $caption) !== false) {
-                        $form->setDefault('packcol', $caption);
+            if (countR($clipboardColumns['options'])) {
+                foreach (array('codecol' => 'code', 'quantitycol' => 'quantity', 'packcol' => 'pack') as $fieldName => $name) {
+                    $matchedColumn = import2_Clipboard::findMatchingColumn($name, $form->fields[$fieldName]->caption, $clipboardColumns);
+                    if (isset($matchedColumn)) {
+                        $form->setDefault($fieldName, $matchedColumn);
                     }
                 }
 
-                $form->_cMap = $cMap;
+                $form->_cMap = $clipboardColumns['map'];
 
-                foreach ($fields as $i => $fld) {
-                    $form->setOptions($fld, $fArr);
+                foreach ($fields as $fld) {
+                    $form->setOptions($fld, array('' => '') + $clipboardColumns['options']);
                 }
             }
         }

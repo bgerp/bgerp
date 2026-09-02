@@ -56,7 +56,7 @@ class crm_Profiles extends core_Master
     /**
      * Плъгини и MVC класове, които се зареждат при инициализация
      */
-    public $loadList = 'plg_Created,crm_Wrapper,plg_RowTools, plg_Printing, plg_Search, plg_Rejected';
+    public $loadList = 'plg_Created,crm_Wrapper,plg_RowTools2, plg_Printing, plg_Search, plg_Rejected';
     
     
     /**
@@ -261,14 +261,16 @@ class crm_Profiles extends core_Master
      */
     public static function on_AfterPrepareSingle(crm_Profiles $mvc, $data)
     {
+        $data->HaveRightForLog = false;
+
         // Ако има personId
-        if ($data->rec->personId) {
+        if (!empty($data->rec->personId)) {
             
             // Създаваме обекта
             $data->Person = new stdClass();
             
             // Вземаме записите
-            $data->Person->rec = crm_Persons::fetch($data->rec->personId);
+            expect($data->Person->rec = crm_Persons::fetch($data->rec->personId));
             
             // Подготвяме сингъла
             crm_Persons::prepareSingle($data->Person);
@@ -321,20 +323,22 @@ class crm_Profiles extends core_Master
                 $sharedFolders = colab_Folders::getSharedFolders($data->rec->userId);
 
                 foreach ($sharedFolders as $folderId) {
-                    $fRow = doc_Folders::recToVerbal(doc_Folders::fetch($folderId));
-                    $data->ColabFolders->rowsArr[] = (object) (array('folderName' => $fRow->title . ' (' . $fRow->type . ')'));
+                    if ($folderRec = doc_Folders::fetch($folderId)) {
+                        $fRow = doc_Folders::recToVerbal($folderRec);
+                        $data->ColabFolders->rowsArr[] = (object) (array('folderName' => $fRow->title . ' (' . $fRow->type . ')'));
+                    }
                 }
             }
         }
         
         // Ако има userId
-        if ($data->rec->userId) {
+        if (!empty($data->rec->userId)) {
             
             // Създаваме обекта
             $data->User = new stdClass();
             
             // Вземаме записите
-            $data->User->rec = core_Users::fetch($data->rec->userId);
+            expect($data->User->rec = core_Users::fetch($data->rec->userId));
             
             // Вземаме вербалните стойности на записите
             $data->User->row = core_Users::recToVerbal($data->User->rec);
@@ -395,7 +399,7 @@ class crm_Profiles extends core_Master
                         $data->LoginLog->rowsArr[$key] = core_LoginLog::recToVerbal($logRec);
                         
                         // Ако има зададен клас
-                        if ($data->LoginLog->rowsArr[$key]->ROW_ATTR['class']) {
+                        if (!empty($data->LoginLog->rowsArr[$key]->ROW_ATTR['class'])) {
                             $data->LoginLog->rowsArr[$key]->logClass = $data->LoginLog->rowsArr[$key]->ROW_ATTR['class'];
                         } else {
                             $data->LoginLog->rowsArr[$key]->logClass = 'loginLog-' . $logRec->status;
@@ -433,8 +437,8 @@ class crm_Profiles extends core_Master
                 
                 $userLogAct = log_Data::getLogsForUser($data->rec->userId, 20);
                 
-                $data->ActionLog->rowsArr = $userLogAct['rows'];
-                $data->ActionLog->pager = $userLogAct['pager'];
+                $data->ActionLog->rowsArr = $userLogAct['rows'] ?? array();
+                $data->ActionLog->pager = $userLogAct['pager'] ?? null;
                 
                 // Ако има роля admin
                 if (log_Data::haveRightFor('list')) {
@@ -463,8 +467,8 @@ class crm_Profiles extends core_Master
                 $data->RoleLogs = new stdClass();
                 
                 $userLogAct = core_RoleLogs::getLogsForUser($data->rec->userId, 5);
-                $data->RoleLogs->rowsArr = $userLogAct['rows'];
-                $data->RoleLogs->pager = $userLogAct['pager'];
+                $data->RoleLogs->rowsArr = $userLogAct['rows'] ?? array();
+                $data->RoleLogs->pager = $userLogAct['pager'] ?? null;
                 
                 // Ако има роля admin
                 if (!empty($userLogAct['rows']) && core_RoleLogs::haveRightFor('list')) {
@@ -573,7 +577,9 @@ class crm_Profiles extends core_Master
                 }
                 
                 // Заместваме данните
-                $lTpl->append($data->LoginLog->row->loginLogLink, 'loginLogLink');
+                if (!empty($data->LoginLog->row->loginLogLink)) {
+                    $lTpl->append($data->LoginLog->row->loginLogLink, 'loginLogLink');
+                }
             } else {
                 $lTpl = new ET(tr('Няма данни'));
             }
@@ -587,12 +593,14 @@ class crm_Profiles extends core_Master
                 
                 foreach ((array) $data->ActionLog->rowsArr as $rows) {
                     $logBlockTpl->placeObject($rows);
-                    $logBlockTpl->replace($rows->ROW_ATTR['class'], 'logClass');
+                    $logBlockTpl->replace($rows->ROW_ATTR['class'] ?? '', 'logClass');
                     $logBlockTpl->append2Master();
                 }
                 
-                $lTpl->append($data->ActionLog->pager->getHtml(), 'pager');
-                $lTpl->append($data->ActionLog->actionLogLink, 'actionLogLink');
+                if (is_object($data->ActionLog->pager)) {
+                    $lTpl->append($data->ActionLog->pager->getHtml(), 'pager');
+                }
+                $lTpl->append($data->ActionLog->actionLogLink ?? '', 'actionLogLink');
             } else {
                 $lTpl = new ET(tr('Няма данни'));
             }
@@ -606,18 +614,20 @@ class crm_Profiles extends core_Master
                 
                 foreach ((array) $data->RoleLogs->rowsArr as $rows) {
                     $logBlockTpl->placeObject($rows);
-                    $logBlockTpl->replace($rows->ROW_ATTR['class'], 'logClass');
+                    $logBlockTpl->replace($rows->ROW_ATTR['class'] ?? '', 'logClass');
                     $logBlockTpl->append2Master();
                 }
                 
-                $lTpl->append($data->RoleLogs->pager->getHtml(), 'pager');
-                $lTpl->append($data->RoleLogs->actionLogLink, 'actionLogLink');
+                if (is_object($data->RoleLogs->pager)) {
+                    $lTpl->append($data->RoleLogs->pager->getHtml(), 'pager');
+                }
+                $lTpl->append($data->RoleLogs->actionLogLink ?? '', 'actionLogLink');
             } else {
                 $lTpl = new ET(tr('Няма данни'));
             }
         }
         
-        if (isset($data->tabs) && $data->HaveRightForLog) {
+        if (isset($data->tabs) && !empty($data->HaveRightForLog)) {
             if (empty($lTpl)) {
                 $lTpl = new ET(tr('Липсва информация'));
             }
@@ -647,7 +657,7 @@ class crm_Profiles extends core_Master
         list($yesterday, $hoursYesterday) = explode(' ', dt::addDays(-1));
         list($tomorrow, $hoursTomorrow) = explode(' ', dt::addDays(1));
 
-        $status = tr(static::$map[$type]) . ' ';
+        $status = tr(static::$map[$type] ?? $type) . ' ';
         
         if ($dateFrom == $dateTo && ($dateFrom == $yesterday || $dateFrom == $today || $dateFrom == $tomorrow)) {
             $status .= dt::mysql2verbal($from, 'smartDate');
@@ -697,9 +707,10 @@ class crm_Profiles extends core_Master
                 $msg = '';
                 
                 // Записваме данните
-                if ($form->rec->passNewHash && core_Users::setPassword($form->rec->passNewHash)) {
+                $passNewHash = $form->rec->passNewHash ?? null;
+                if ($passNewHash && core_Users::setPassword($passNewHash)) {
                     // Правим запис в лога
-                    self::logWrite('Смяна на парола', $form->rec->id);
+                    self::logWrite('Смяна на парола', $form->rec->id ?? null);
 
 //             		if (EF_USSERS_EMAIL_AS_NICK) {
 //             		    $userId = core_Users::fetchField(array("#email = '[#1#]'", $form->rec->email));
@@ -718,7 +729,7 @@ class crm_Profiles extends core_Master
         }
         
         // Кои полета да се показват
-        $form->showFields = (($form->fields['nick']) ? 'nick' : 'email') . ',passEx,passNew,passRe';
+        $form->showFields = (isset($form->fields['nick']) ? 'nick' : 'email') . ',passEx,passNew,passRe';
         
         // Получаваме изгледа на формата
         $tpl = $form->renderHtml();
@@ -791,15 +802,15 @@ class crm_Profiles extends core_Master
         
         $rec = $form->rec;
         
-        if (core_Users::fetchField(core_Users::getCurrent(), 'ps5Enc') != $rec->passExHash) {
+        if (core_Users::fetchField(core_Users::getCurrent(), 'ps5Enc') != ($rec->passExHash ?? null)) {
             $form->setError('passEx', 'Грешна стара парола');
         }
         
-        if ($rec->isLenOK == - 1) {
+        if (($rec->isLenOK ?? null) == -1) {
             $form->setError('passNew', 'Паролата трябва да е минимум |* ' . EF_USERS_PASS_MIN_LEN . ' |символа');
-        } elseif ($rec->passNew != $rec->passRe) {
+        } elseif (($rec->passNew ?? null) != ($rec->passRe ?? null)) {
             $form->setError('passNew,passRe', 'Двете пароли не съвпадат');
-        } elseif (!$rec->passNewHash) {
+        } elseif (empty($rec->passNewHash)) {
             $form->setError('passNew,passRe', 'Моля, въведете (и повторете) новата парола');
         }
     }
@@ -848,7 +859,7 @@ class crm_Profiles extends core_Master
         
         $opt = array();
         while ($uRec = $usersQuery->fetch("#state = 'active'")) {
-            if (!$used[$uRec->id]) {
+            if (empty($used[$uRec->id])) {
                 $opt[$uRec->id] = $uRec->nick;
                 
                 if (isset($limit) && !--$limit) {
@@ -1007,7 +1018,7 @@ class crm_Profiles extends core_Master
         }
         
         // Само, ако записа на потребителя има мобилен телефон
-        if (!empty($user->mobile) && ($person->mobile != $user->mobile)) {
+        if (!empty($user->mobile) && (($person->mobile ?? null) != $user->mobile)) {
             $person->mobile = $user->mobile;
             $mustSave = true;
         }
@@ -1184,7 +1195,7 @@ class crm_Profiles extends core_Master
             }
             
             if (!$title) {
-                $title = self::getUserTitle($userRec->nick);
+                $title = self::getUserTitle($userRec->nick ?? '');
             }
             
             $link = $title;
@@ -1199,9 +1210,9 @@ class crm_Profiles extends core_Master
             $attr['class'] .= ' profile';
 
             $e = '';
-            if ($profRec && $profRec->stateDateFrom) {
-                $attr['class'] .= ' ' . self::getAbsenceClass($profRec->stateDateFrom, $profRec->stateDateTo, (boolean) ($profRec->stateAnswerSystem != 'no'));
-                $e = hr_Leaves::getEmoji($profRec->stateEmoji, 'statusIcon', $profRec->stateDateFrom, $profRec->stateDateTo);
+            if ($profRec && !empty($profRec->stateDateFrom)) {
+                $attr['class'] .= ' ' . self::getAbsenceClass($profRec->stateDateFrom, $profRec->stateDateTo ?? null, (boolean) (($profRec->stateAnswerSystem ?? null) != 'no'));
+                $e = hr_Leaves::getEmoji($profRec->stateEmoji ?? null, 'statusIcon', $profRec->stateDateFrom, $profRec->stateDateTo ?? null);
             }
 
             $profileId = self::getProfileId($userId);
@@ -1217,7 +1228,7 @@ class crm_Profiles extends core_Master
                 
                 foreach (array('ceo', 'manager', 'officer', 'executive', 'partner', 'none') as $role) {
                     if ($role == 'none') {
-                        $attr['style'] .= ';color:#333;';
+                        $attr['style'] = ($attr['style'] ?? '') . ';color:#333;';
                         break;
                     }
                     if (core_Users::haveRole($role, $userId)) {
@@ -1231,7 +1242,7 @@ class crm_Profiles extends core_Master
                 }
                 
                 $before = null;
-                if ($userRec->lastActivityTime) {
+                if (!empty($userRec->lastActivityTime)) {
                     $before = time() - dt::mysql2timestamp($userRec->lastActivityTime);
                 }
                 
@@ -1245,12 +1256,12 @@ class crm_Profiles extends core_Master
                     $attr['class'] .= ' state-' . $userRec->state;
                 }
 
-                $attr['title'] = '|*' . $userRec->names;
+                $attr['title'] = '|*' . ($userRec->names ?? '');
                 
                 $link = ht::createLink($title . $e, $url, $warning, $attr);
             } else {
                 $attr['style'] = ($attr['style'] ?? '') . ';color:#999 !important;';
-                $link = ht::createLink($userRec->nick . $e, null, null, $attr);
+                $link = ht::createLink(($userRec->nick ?? '') . $e, null, null, $attr);
             }
             
             $cacheArr[$key] = $link;
@@ -1418,7 +1429,7 @@ class crm_Profiles extends core_Master
     {
         $rec = $data->listFilter->rec;
         
-        $data->listFilter->FNC('leave', 'enum(,missing=Отсъстващи,sickDay=Болничен,leaveDay=Отпуск,tripDay=Командировка,homeOffice=Работа от вкъщи)', 'width=6em,caption=Статус,silent,allowEmpty,autoFilter');
+        $data->listFilter->FNC('leave', 'enum(,missing=Отсъстващи,sickDay=Болничен,leaveDay=Отпуск,tripDay=Командировка,homeOffice=Работа от вкъщи)', 'width=6em,caption=Статус,placeholderType=all,silent,allowEmpty,autoFilter');
         
         $data->listFilter->view = 'horizontal';
         
@@ -1643,13 +1654,16 @@ class crm_Profiles extends core_Master
             foreach ((array) $clsInst->getConfigDescription() as $field => $arguments) {
                 
                 // Коя стойност да се използва за полето
-                $fieldVal = isset($settingsDefArr[$field]) ? $settingsDefArr[$field] : $packConf->$field;
+                $fieldVal = $settingsDefArr[$field] ?? $packConf->{$field} ?? null;
                 
                 // Типа на полета
-                $type = $arguments[0];
+                $type = $arguments[0] ?? null;
+                if (!$type) {
+                    continue;
+                }
                 
                 // Параметри на полето
-                $params = arr::combine($arguments[1], $arguments[2] ?? null);
+                $params = arr::combine($arguments[1] ?? array(), $arguments[2] ?? array());
                 
                 // Ако не е зададено, че може да се конфигурира или не може да се конфигурира за текущия потребител
                 if (empty($params['customizeBy']) || !haveRole(str_replace('|', ',', $params['customizeBy']), $currUserId)) {
@@ -1709,7 +1723,7 @@ class crm_Profiles extends core_Master
                 if ($isEnum) {
                     $fieldVal = 'default';
                 } elseif ($isKey) {
-                    if ($typeInst->params['allowEmpty']) {
+                    if (!empty($typeInst->params['allowEmpty'])) {
                         $fieldVal = '';
                     }
                 }
@@ -1745,7 +1759,7 @@ class crm_Profiles extends core_Master
         // Премахва стойностите по-подразбиране
         $defRecArr = (array) $form->__defaultRec;
         foreach ($defRecArr as $field => $val) {
-            if ($form->rec->$field == $val) {
+            if (($form->rec->{$field} ?? null) == $val) {
                 unset($form->rec->$field);
             }
         }

@@ -34,7 +34,7 @@ class type_Nick extends type_Varchar
      */
     public function fromVerbal($value)
     {
-        $value = parent::fromVerbal(trim($value));
+        $value = parent::fromVerbal(trim($value ?? ''));
         
         if ($value === '') {
             
@@ -57,6 +57,8 @@ class type_Nick extends type_Varchar
      */
     public static function normalize($nick)
     {
+        $nick = $nick ?? '';
+
         if (!strpos($nick, '@')) {
             $nick = trim(str_replace(array('  ', '. ', ' ', '__'), array(' ', '.', '_', '_'), $nick));
             $nick = str::toUpperAfter($nick);
@@ -119,7 +121,7 @@ class type_Nick extends type_Varchar
      */
     public static function convertValueToNick($value)
     {
-        $value = trim($value);
+        $value = trim($value ?? '');
         
         return $value;
         

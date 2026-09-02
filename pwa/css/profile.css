@@ -1,11 +1,15 @@
-.wide .pwa-push-default {
+/*
+ * Иконите на бутоните за известия са само за широкия изглед. В narrow
+ * ht::createFnBtn()/ht::createBtn() премахват ef_icon и бутоните остават
+ * без фон - състоянието се вижда само от надписа.
+ */
+.wide .pwa-push-default,
+.wide .pwa-push-disabled,
+.wide .pwa-push-renew {
     background-image: url('../../img/16/rowtools-btn-green-orange.png') !important;
 }
 
-.wide .pwa-push-denied {
-    background-image: url('../../img/16/rowtools-btn-grey.png') !important;
-}
-
+.wide .pwa-push-denied,
 .wide .pwa-push-incompatible {
     background-image: url('../../img/16/rowtools-btn-grey.png') !important;
 }
@@ -14,10 +18,14 @@
     background-image: url('../../img/16/wait.png') !important;
 }
 
-.wide .pwa-push-disabled {
+.wide .pwa-push-enabled {
+    background-image: url('../../img/16/rowtools-btn-gray-green.png') !important;
+}
+
+.wide .pwa-push-default-uns {
     background-image: url('../../img/16/rowtools-btn-grey-orange.png') !important;
 }
 
-.wide .pwa-push-enabled {
-    background-image: url('../../img/16/rowtools-btn-gray-green.png') !important;
+.pwa-push-computing {
+    cursor: wait;
 }

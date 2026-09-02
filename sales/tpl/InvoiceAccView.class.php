@@ -51,7 +51,7 @@ class sales_tpl_InvoiceAccView extends doc_TplScript
 
                 // Ако има стойност, украсява се да си личи, че е лайв
                 if(isset($displayValue) && $displayValue != ''){
-                    $displayValue = "<span style='color:blue'>{$displayValue}</span>";
+                    $displayValue = "<span class='blueText'>{$displayValue}</span>";
                     if($data->masterData->rec->state == 'draft'){
                         $displayValue = ht::createHint($displayValue, 'Текущата стойност ще се запише към момента на активиране|*!');
                     }

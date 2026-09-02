@@ -36,6 +36,15 @@ defIfNot('CMS_OGRAPH_IMAGE', '');
  */
 defIfNot('CMS_PAGE_WRAPPER', 'cms_page_External');
 
+/**
+ * Дали да се показва менюто във футъра
+ */
+defIfNot('CMS_FOOTER_MENU', 'no');
+
+/**
+ * Максимален брой линкове в една колона на менюто във футъра
+ */
+defIfNot('CMS_FOOTER_MAX_ELEMENTS_IN_COLUMN', 10);
 
 /**
  * Синоними за СЕО оптимизация
@@ -91,7 +100,11 @@ class cms_Setup extends core_ProtoSetup
     public $configDescription = array(
         
         'CMS_PAGE_WRAPPER' => array('class(interface=cms_page_WrapperIntf,select=title)', 'caption=Външен изглед->Страница'),
-        
+
+        'CMS_FOOTER_MENU' => array('enum(yes=Да, no=Не)', 'caption=Външен изглед->Меню във футъра'),
+
+        'CMS_FOOTER_MAX_ELEMENTS_IN_COLUMN' => array('int(min=1)', 'caption=Външен изглед->Максимален брой линкове в колона'),
+
         'CMS_BROWSER_CACHE_EXPIRES' => array('time', 'caption=Кеширане в браузъра->Време'),
         
         'CMS_COPY_DEFAULT_TEXT' => array('text(rows=1)', 'caption=Добавка при копиране->Текст,width=100%'),

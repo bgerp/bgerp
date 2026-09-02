@@ -93,7 +93,7 @@ class planning_interface_ImportFromLastBom extends planning_interface_ImportDriv
             $key = "{$dRec->productId}_{$dRec->packagingId}";
             $shortUom = cat_UoM::getShortName($dRec->packagingId);
 
-            $equivalentArr = planning_GenericMapper::getEquivalentProducts($dRec->productId, $dRec->genericProductId, false, true);
+            $equivalentArr = planning_GenericMapper::getEquivalentProducts($dRec->productId, $dRec->genericProductId ?? null, false, true);
             if(countR($equivalentArr) > 1){
                 unset($equivalentArr[$dRec->productId]);
                 $form->FLD("{$key}_replaceId", 'int', "input,caption={$dRec->caption}->Заместител");
@@ -128,7 +128,7 @@ class planning_interface_ImportFromLastBom extends planning_interface_ImportDriv
     private function getImportRecs(core_Manager $mvc, $rec)
     {
         $recs = array();
-        if (!is_array($rec->detailsDef)) return $recs;
+        if (!is_array($rec->detailsDef ?? null)) return $recs;
 
         foreach ($rec->detailsDef as $key => $dRec) {
 

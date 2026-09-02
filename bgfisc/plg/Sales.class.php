@@ -62,7 +62,7 @@ class bgfisc_plg_Sales extends core_Plugin
      */
     public static function on_BeforeSave(core_Mvc $mvc, &$id, $rec, &$fields = null, $mode = null)
     {
-        if(empty($rec->id) && ($rec->_onlineSale === true || isset($rec->originId))){
+        if(empty($rec->id) && (($rec->_onlineSale ?? false) === true || isset($rec->originId))){
             if(bgfisc_Register::doRequireFiscForConto($mvc, $rec)){
                 if(!bgfisc_Register::getFiscDevice($rec->caseId)){
                     throw new core_exception_Expect('Не може да се генерира УНП, защото не може да се определи ФУ', 'Несъответствие');
@@ -80,7 +80,7 @@ class bgfisc_plg_Sales extends core_Plugin
         $regRec = bgfisc_Register::createUrn($mvc, $rec->id, true);
         
         // Добавяне на УНП-то в ключовите думи
-        $rec->searchKeywords .= ' ' . plg_Search::normalizeText($regRec->urn);
+        $rec->searchKeywords = ($rec->searchKeywords ?? '') . ' ' . plg_Search::normalizeText($regRec->urn);
         
         $rec->searchKeywords = plg_Search::purifyKeywods($rec->searchKeywords);
         
@@ -95,7 +95,8 @@ class bgfisc_plg_Sales extends core_Plugin
     {
         // Думите за търсене са името на документа-основания
         if(isset($rec->id)){
-            if($urn = bgfisc_Register::getRec($mvc, $rec->id)->urn){
+            $registerRec = bgfisc_Register::getRec($mvc, $rec->id);
+            if($urn = $registerRec->urn ?? null){
                 $res .= ' ' . plg_Search::normalizeText($urn);
             }
         }
@@ -107,7 +108,9 @@ class bgfisc_plg_Sales extends core_Plugin
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-        if($urn = bgfisc_Register::getRec($mvc, $rec->id)->urn){
+        if (!isset($rec->id)) return;
+        $registerRec = bgfisc_Register::getRec($mvc, $rec->id);
+        if($urn = $registerRec->urn ?? null){
             $row->cashRegNum = bgfisc_Register::getUrlLink($urn);
         } else {
             if(core_Users::isPowerUser()){
@@ -295,9 +298,17 @@ class bgfisc_plg_Sales extends core_Plugin
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         if (in_array($action, array('reject', 'restore', 'correction', 'revert')) && isset($rec)) {
-            
+
             // Ако има отпечатана бележка, сделката не може да се оттегля/възстановява
             if (bgfisc_PrintedReceipts::getQrCode($mvc, $rec->id)) {
+                $requiredRoles = 'no_one';
+            }
+        }
+
+        // Ако по УНП-то на сделката вече има издаден фискален бон, към нея не може да се обединяват
+        // нови договори, защото те подменят детайлите ѝ и бона повече няма да отговаря на документа
+        if ($action == 'closewith' && isset($rec)) {
+            if (bgfisc_PrintedReceipts::haveReceiptsByUrn($mvc, $rec->id)) {
                 $requiredRoles = 'no_one';
             }
         }

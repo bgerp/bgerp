@@ -17,6 +17,8 @@
  */
 class email_SendOnTimeIntf
 {
+    public $class;
+
     /**
      * Връща тялото на имейла генериран от документа
      *

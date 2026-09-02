@@ -123,6 +123,16 @@ class expert_Expert extends core_FieldSet
      * Сработило е поне едно правило
      */
     public $ruleOn = false;
+
+
+    /**
+     * Текуща команда и помощни данни за изпълнението
+     */
+    public $Cmd = null;
+    public $kInd = 1;
+    public $reason = array();
+    public $titles = array();
+    public $layouts = array();
     
     
     /**
@@ -181,13 +191,13 @@ class expert_Expert extends core_FieldSet
             $this->Cmd = Request::get('Cmd');
             
             if (is_array($this->Cmd)) {
-                if ($this->Cmd['back']) {
+                if (!empty($this->Cmd['back'])) {
                     $this->Cmd = 'back';
-                } elseif ($this->Cmd['cancel']) {
+                } elseif (!empty($this->Cmd['cancel'])) {
                     $this->Cmd = 'cancel';
-                } elseif ($this->Cmd['next']) {
+                } elseif (!empty($this->Cmd['next'])) {
                     $this->Cmd = 'next';
-                } elseif ($this->Cmd['default']) {
+                } elseif (!empty($this->Cmd['default'])) {
                     $this->Cmd = 'next';
                 }
             }
@@ -241,7 +251,7 @@ class expert_Expert extends core_FieldSet
      */
     public function getRedirectMsgType()
     {
-        if (!$this->midRes->RedirectMsgType) {
+        if (empty($this->midRes->RedirectMsgType)) {
             
             return 'notice';
         }
@@ -255,17 +265,19 @@ class expert_Expert extends core_FieldSet
      */
     public function getTitle($kRec)
     {
-        if ($kRec->title) {
+        if (!empty($kRec->title)) {
             
             return $kRec->title;
         }
+
+        $element = $kRec->element ?? 'dialog';
         
-        if ($this->titles[$kRec->element]) {
+        if (!empty($this->titles[$element])) {
             
-            return $this->titles[$kRec->element];
+            return $this->titles[$element];
         }
         
-        return tr(mb_convert_case($kRec->element, MB_CASE_TITLE, 'UTF-8'));
+        return tr(mb_convert_case($element, MB_CASE_TITLE, 'UTF-8'));
     }
     
     
@@ -367,16 +379,16 @@ class expert_Expert extends core_FieldSet
         }
         
         if (is_object($state)) {
-            if (countR($state->vars)) {
+            if (countR($state->vars ?? array())) {
                 foreach ($state->vars as $name => $value) {
-                    $this->vals[$name] = $value[0];
-                    $this->setInStep[$name] = $value[1];
-                    $this->fromDialog[$name] = $value[2];
+                    $this->vals[$name] = $value[0] ?? null;
+                    $this->setInStep[$name] = $value[1] ?? null;
+                    $this->fromDialog[$name] = $value[2] ?? null;
                 }
             }
-            $this->currentStep = $state->currentStep;
-            $this->lastDialog = $state->lastDialog;
-            $this->dialogs = $state->dialogs;
+            $this->currentStep = $state->currentStep ?? 0;
+            $this->lastDialog = $state->lastDialog ?? '';
+            $this->dialogs = (array) ($state->dialogs ?? array());
         }
     }
     
@@ -511,7 +523,7 @@ class expert_Expert extends core_FieldSet
         if (!empty($params['expr']) && is_a($params['expr'], 'core_ET')) {
             $params['expr'] = '"' . str_replace('"', '\"', $params['expr']->getContent()) . '"';
         }
-        setIfNot($params['label'], $params['element'] . '_' . $this->kInd++);
+        setIfNot($params['label'], ($params['element'] ?? 'knowledge') . '_' . $this->kInd++);
         $label = $params['label'];
         
         $this->knowledge[$label] = new stdClass();
@@ -541,6 +553,7 @@ class expert_Expert extends core_FieldSet
     public function convertNames($names)
     {
         $names = arr::make($names, true);
+        $res = array();
         
         foreach ($names as $key => $val) {
             $this->trimPrefix($key);
@@ -608,7 +621,7 @@ class expert_Expert extends core_FieldSet
     {
         $this->trimPrefix($name);
         
-        return $this->vals[$name . '_OPTIONS_'];
+        return $this->vals[$name . '_OPTIONS_'] ?? array();
     }
     
     
@@ -630,7 +643,7 @@ class expert_Expert extends core_FieldSet
     {
         $this->trimPrefix($name);
         
-        return $this->vals[$name . '_SUGGESTIONS_'];
+        return $this->vals[$name . '_SUGGESTIONS_'] ?? array();
     }
     
     
@@ -661,8 +674,23 @@ class expert_Expert extends core_FieldSet
         $this->vals[$name] = $value;
         
         $this->setInStep[$name] = $this->currentStep;
+
+        if (is_array($value) || is_object($value)) {
+            $reasonValue = json_encode($value, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+            if ($reasonValue === false) {
+                $reasonValue = print_r($value, true);
+            }
+        } elseif (is_bool($value)) {
+            $reasonValue = $value ? 'true' : 'false';
+        } elseif ($value === null) {
+            $reasonValue = 'NULL';
+        } elseif (is_scalar($value)) {
+            $reasonValue = (string) $value;
+        } else {
+            $reasonValue = gettype($value);
+        }
         
-        $this->reason[] = "{$name}=  " . type_Varchar::escape($value) . ' [' . $this->currentStep . ']';
+        $this->reason[] = "{$name}=  " . type_Varchar::escape($reasonValue) . ' [' . $this->currentStep . ']';
     }
     
     
@@ -690,6 +718,7 @@ class expert_Expert extends core_FieldSet
     public function getRec($vars)
     {
         $arr = arr::make($vars);
+        $rec = new stdClass();
         
         foreach ($arr as $name) {
             $this->trimPrefix($name);
@@ -715,7 +744,7 @@ class expert_Expert extends core_FieldSet
             
             if (countR($this->reason)) {
                 foreach ($this->reason as $l) {
-                    $debug .= "<li> ${l}</li>";
+                    $debug .= "<li> {$l}</li>";
                 }
             }
             
@@ -725,17 +754,18 @@ class expert_Expert extends core_FieldSet
         if (Request::get('AjaxCmd')) {
             $res = new stdClass();
             
-            if ($this->midRes->alert) {
+            if (!empty($this->midRes->alert)) {
                 $res->alert = $this->midRes->alert;
             }
             
-            if ($this->midRes->RetUrl) {
+            if (!empty($this->midRes->RetUrl)) {
                 $res->redirect = toURL($this->midRes->RetUrl) ;
             } else {
-                $form = $this->midRes->form;
+                expect($form = ($this->midRes->form ?? null));
                 
                 $res->title = $form->renderTitle();
                 $res->title = $res->title->getContent();
+                $res->btn = new stdClass();
                 
                 if (countR($form->toolbar->buttons)) {
                     foreach ($form->toolbar->buttons as $btn) {
@@ -759,14 +789,16 @@ class expert_Expert extends core_FieldSet
                 );
                 
                 $res->msg = $form->renderHtml();
-                $res->msg->append($this->midRes->afterForm);
-                $res->msg->prepend($this->midRes->beforeForm);
+                $res->msg->append($this->midRes->afterForm ?? null);
+                $res->msg->prepend($this->midRes->beforeForm ?? null);
                 
                 $js = $res->msg->getArray('JS');
+                $used = array();
+                $res->scripts = array();
                 
                 if (!empty($js)) {
                     foreach ($js as $file) {
-                        if (!$used[$file]) {
+                        if (empty($used[$file])) {
                             $res->scripts[] = sbf($file, '', true);
                             $used[$file] = 1;
                         }
@@ -856,9 +888,13 @@ class expert_Expert extends core_FieldSet
         $goal = $this->convertNames($goal);
         
         if ($this->lastDialog) {
+            $kRec = $this->knowledge[$this->lastDialog] ?? null;
+            expect($kRec);
+            $element = $kRec->element ?? null;
+            expect($element);
             
             //След грешка не е възможно продължение напред
-            expect($kRec->element != 'error' || $this->cmd != 'next');
+            expect($element != 'error' || $this->Cmd != 'next');
             
             // Нова текуща стъпка
             
@@ -868,14 +904,9 @@ class expert_Expert extends core_FieldSet
             // в променливата $this->lastDialog е записано точно какъв е типа на диалога
             // Тук възможните команди са: cancel, next, back
             
-            $kRec = $this->knowledge[$this->lastDialog];
+            $this->dialogs[$this->currentStep] = $element;
             
-            $this->dialogs[$this->currentStep] = $kRec->element;
-            
-            // Трябва да имаме знание, което да отговаря на последния диалог
-            expect($kRec);
-            
-            if ($kRec->element == 'question') {
+            if ($element == 'question') {
                 $form = $this->getQuestionForm($kRec);
                 
                 $vals = $form->input();
@@ -892,7 +923,7 @@ class expert_Expert extends core_FieldSet
                     return 'DIALOG';
                 }
                 
-                $vars = arr::make($kRec->vars);
+                $vars = arr::make($kRec->vars ?? array());
                 
                 // Ако няма грешки, вкарваме получените променливи
                 if (!$form->gotErrors()) {
@@ -900,10 +931,11 @@ class expert_Expert extends core_FieldSet
                     $vals = arr::make($vals);
                     
                     foreach ($vars as $name) {
-                        $value = $vals[$name];
+                        $value = $vals[$name] ?? null;
+                        $field = $form->fields[$name] ?? null;
                         
-                        if ($value === null && $form->fields[$name]->notNull) {
-                            $value = $form->fields[$name]->value ? $form->fields[$name]->value : $form->fields[$name]->type->defVal();
+                        if ($value === null && !empty($field->notNull)) {
+                            $value = !empty($field->value) ? $field->value : $field->type->defVal();
                             if ($value === null) {
                                 $value = '';
                             }
@@ -926,7 +958,7 @@ class expert_Expert extends core_FieldSet
             if ($this->Cmd == 'back') {
                 $this->currentStep -= 2;
                 
-                while ($this->dialogs[$this->currentStep + 1] == 'warning') {
+                while (($this->dialogs[$this->currentStep + 1] ?? null) == 'warning') {
                     $this->currentStep--;
                 }
                 
@@ -955,8 +987,10 @@ class expert_Expert extends core_FieldSet
             // които са дефинирани като fromRequest, и в момента нямат
             // достоверни стойности
             foreach ($this->knowledge as $id => $kRec) {
-                if (($kRec->fromRequest ?? null) && (Request::get($kRec->name, $kRec->type) !== null)) {
-                    $this->setValue($kRec->name, Request::get($kRec->name, $kRec->type));
+                $name = $kRec->name ?? null;
+                $type = $kRec->type ?? null;
+                if (($kRec->fromRequest ?? null) && $name && (Request::get($name, $type) !== null)) {
+                    $this->setValue($name, Request::get($name, $type));
                 }
             }
         }
@@ -969,9 +1003,10 @@ class expert_Expert extends core_FieldSet
             $this->ruleOn = false;
             
             foreach ($this->knowledge as $id => $kRec) {
-                if (in_array($kRec->element, array('rule', 'error', 'warning', 'info', 'suggestions', 'options', 'assume')) && !$this->midRes) {
+                $element = $kRec->element ?? null;
+                if (in_array($element, array('rule', 'error', 'warning', 'info', 'suggestions', 'options', 'assume')) && !$this->midRes) {
                     // Опит да сработи правило, предупреждение или грешка
-                    $method = 'do' . $kRec->element;
+                    $method = 'do' . $element;
                     $this->{$method}($kRec);
                 }
             }
@@ -981,7 +1016,7 @@ class expert_Expert extends core_FieldSet
         // Проверяваме дали няма подходящ въпрос, който да зададем
         if (!$this->areTrusty($goal) && !$this->midRes) {
             foreach ($this->knowledge as $id => $kRec) {
-                if ($kRec->element == 'question') {
+                if (($kRec->element ?? null) == 'question') {
                     // Опит да сработи въпрос
                     $method = 'do' . $kRec->element;
                     $this->{$method}($kRec);
@@ -1017,14 +1052,17 @@ class expert_Expert extends core_FieldSet
      */
     public function doError($kRec)
     {
+        $label = $kRec->label ?? null;
+        $cond = $kRec->cond ?? true;
+
         // Ако това предупреждение вече е сработвало - нищо не правим
-        if ($this->isDialogUsed($kRec->label)) {
+        if ($label && $this->isDialogUsed($label)) {
             
             return;
         }
         
         // Достоверно ли е условието на това предупреждение?
-        if (!$this->calcExpr($kRec->cond, $res)) {
+        if (!$this->calcExpr($cond, $res)) {
             
             return;
         }
@@ -1036,10 +1074,10 @@ class expert_Expert extends core_FieldSet
         }
         
         // Указваме етикета на последния диалог
-        $this->lastDialog = $kRec->label;
+        $this->lastDialog = $label;
         
         // Вземаме информацията
-        $info = $this->getInfo($kRec->element, $kRec->msg, $kRec->layout);
+        $info = $this->getInfo($kRec->element ?? 'error', $kRec->msg ?? '', $kRec->layout ?? null);
         
         $form = clone($this->form);
         
@@ -1047,7 +1085,7 @@ class expert_Expert extends core_FieldSet
             $form->layout = $layout;
         }
         
-        $form->info = "<div class='formError'>${info}</info>";
+        $form->info = "<div class='formError'>{$info}</info>";
         
         $form->title = "|*<img width=32 height=32 alt='' align=absmiddle  src=" . sbf('img/32/error.png') . '> ' . $this->getTitle($kRec);
         $form->method = 'POST';
@@ -1067,14 +1105,17 @@ class expert_Expert extends core_FieldSet
      */
     public function doWarning($kRec)
     {
+        $label = $kRec->label ?? null;
+        $cond = $kRec->cond ?? true;
+
         // Ако това предупреждение вече е сработвало - нищо не правим
-        if ($this->isDialogUsed($kRec->label)) {
+        if ($label && $this->isDialogUsed($label)) {
             
             return;
         }
         
         // Достоверно ли е условието на това предупреждение?
-        if (!$this->calcExpr($kRec->cond, $res)) {
+        if (!$this->calcExpr($cond, $res)) {
             
             return;
         }
@@ -1086,10 +1127,10 @@ class expert_Expert extends core_FieldSet
         }
         
         // Указваме етикета на последния диалог
-        $this->lastDialog = $kRec->label;
+        $this->lastDialog = $label;
         
         // Вземаме информацията
-        $info = $this->getInfo($kRec->element, $kRec->msg, $kRec->layout);
+        $info = $this->getInfo($kRec->element ?? 'warning', $kRec->msg ?? '', $kRec->layout ?? null);
         
         $form = clone($this->form);
         
@@ -1118,14 +1159,17 @@ class expert_Expert extends core_FieldSet
      */
     public function doInfo($kRec)
     {
+        $label = $kRec->label ?? null;
+        $cond = $kRec->cond ?? true;
+
         // Ако това предупреждение вече е сработвало - нищо не правим
-        if ($this->isDialogUsed($kRec->label)) {
+        if ($label && $this->isDialogUsed($label)) {
             
             return;
         }
         
         // Достоверно ли е условието на това предупреждение?
-        if (!$this->calcExpr($kRec->cond, $res)) {
+        if (!$this->calcExpr($cond, $res)) {
             
             return;
         }
@@ -1137,10 +1181,10 @@ class expert_Expert extends core_FieldSet
         }
         
         // Указваме етикета на последния диалог
-        $this->lastDialog = $kRec->label;
+        $this->lastDialog = $label;
         
         // Вземаме информацията
-        $info = $this->getInfo($kRec->element, $kRec->msg, $kRec->layout);
+        $info = $this->getInfo($kRec->element ?? 'info', $kRec->msg ?? '', $kRec->layout ?? null);
         
         $form = clone($this->form);
         
@@ -1170,20 +1214,24 @@ class expert_Expert extends core_FieldSet
      */
     public function doQuestion($kRec)
     {
+        $label = $kRec->label ?? null;
+        $vars = $kRec->vars ?? array();
+        $cond = $kRec->cond ?? true;
+
         // Ако този въпрос вече е стаботвал - нищо не правим
-        if ($this->isDialogUsed($kRec->label)) {
+        if ($label && $this->isDialogUsed($label)) {
             
             return;
         }
         
         // Ако променливите на този въпрос са достоверни - нущо не правим
-        if ($this->areTrusty($kRec->vars)) {
+        if ($this->areTrusty($vars)) {
             
             return;
         }
         
         // Достоверно ли е условието на този въпрос?
-        if (!$this->calcExpr($kRec->cond, $res)) {
+        if (!$this->calcExpr($cond, $res)) {
             
             return;
         }
@@ -1195,7 +1243,7 @@ class expert_Expert extends core_FieldSet
         }
         
         // Указваме етикета на последния диалог
-        $this->lastDialog = $kRec->label;
+        $this->lastDialog = $label;
         
         // Междинният резултат е въпроса
         if (!$this->midRes) {
@@ -1210,14 +1258,19 @@ class expert_Expert extends core_FieldSet
      */
     public function doRule($kRec)
     {
+        $vars = $kRec->vars ?? null;
+        $cond = $kRec->cond ?? true;
+        $expr = $kRec->expr ?? null;
+        expect($vars);
+
         // Ако променливата на това правило е достоверна, то не се прилага
-        if ($this->isTrusty($kRec->vars)) {
+        if ($this->isTrusty($vars)) {
             
             return;
         }
         
         // Достоверно ли е условието на това правило?
-        if (!$this->calcExpr($kRec->cond, $res)) {
+        if (!$this->calcExpr($cond, $res)) {
             
             return;
         }
@@ -1229,16 +1282,16 @@ class expert_Expert extends core_FieldSet
         }
         
         // Достоверно ли е заключението/стойността на това правило?
-        if (!$this->calcExpr($kRec->expr, $res)) {
+        if (!$this->calcExpr($expr, $res)) {
             
             return;
         }
         
         // Задаваме стойността на променливата
-        $this->setValue($kRec->vars, $res);
+        $this->setValue($vars, $res);
         
         // Записваме логови съобщения за проследяване на експертизата
-        $logMsg = $kRec->vars . '=' . $res . ' (' . $kRec->expr . '), TRUE = ' . $kRec->cond;
+        $logMsg = $vars . '=' . $res . ' (' . $expr . '), TRUE = ' . $cond;
         Debug::log($logMsg);
         $this->log[] = $logMsg;
         
@@ -1252,8 +1305,13 @@ class expert_Expert extends core_FieldSet
      */
     public function doAssume($kRec)
     {
+        $vars = $kRec->vars ?? null;
+        $cond = $kRec->cond ?? true;
+        $expr = $kRec->expr ?? null;
+        expect($vars);
+
         // Променлива на предположението
-        $var = $kRec->vars . '_ASSUME_';
+        $var = $vars . '_ASSUME_';
         
         // Ако променливата представляваща опциите е достоверна, то не се прилага
         if ($this->isTrusty($var)) {
@@ -1262,7 +1320,7 @@ class expert_Expert extends core_FieldSet
         }
         
         // Достоверно ли е условието на тези опции?
-        if (!$this->calcExpr($kRec->cond, $res)) {
+        if (!$this->calcExpr($cond, $res)) {
             
             return;
         }
@@ -1274,7 +1332,7 @@ class expert_Expert extends core_FieldSet
         }
         
         // Достоверно ли е заключението/стойността на това предположение?
-        if (!$this->calcExpr($kRec->expr, $res)) {
+        if (!$this->calcExpr($expr, $res)) {
             
             return;
         }
@@ -1282,7 +1340,7 @@ class expert_Expert extends core_FieldSet
         // Задаваме стойността на променливата
         $this->setValue($var, $res);
         
-        $logMsg = $var . '=' . $res . ' (' . $kRec->expr . '), TRUE = ' . $kRec->cond;
+        $logMsg = $var . '=' . $res . ' (' . $expr . '), TRUE = ' . $cond;
         
         Debug::log($logMsg);
         
@@ -1306,8 +1364,13 @@ class expert_Expert extends core_FieldSet
      */
     public function doOptions($kRec, $suffix = '_OPTIONS_')
     {
+        $vars = $kRec->vars ?? null;
+        $cond = $kRec->cond ?? true;
+        $expr = $kRec->expr ?? null;
+        expect($vars);
+
         // Променлива на опциите
-        $var = $kRec->vars . $suffix;
+        $var = $vars . $suffix;
         
         // Ако променливата представляваща опциите е достоверна, то не се прилага
         if ($this->isTrusty($var)) {
@@ -1316,7 +1379,7 @@ class expert_Expert extends core_FieldSet
         }
         
         // Достоверно ли е условието на тези опции?
-        if (!$this->calcExpr($kRec->cond, $res)) {
+        if (!$this->calcExpr($cond, $res)) {
             
             return;
         }
@@ -1328,17 +1391,17 @@ class expert_Expert extends core_FieldSet
         }
         
         // Ако заключението е стринг, то той се третира като израз
-        if (is_string($kRec->expr)) {
+        if (is_string($expr)) {
             
             // Достоверно ли е заключението/стойността на тези опции?
-            if (!$this->calcExpr($kRec->expr, $res)) {
+            if (!$this->calcExpr($expr, $res)) {
                 
                 return;
             }
             
-            $opt = $kRec->expr;
-        } elseif (is_array($kRec->expr)) {
-            $res = $kRec->expr;
+            $opt = $expr;
+        } elseif (is_array($expr)) {
+            $res = $expr;
             
             $opt = 'Array';
         } else {
@@ -1350,7 +1413,7 @@ class expert_Expert extends core_FieldSet
         
         $this->setValue($var, $res);
         
-        $logMsg = $var . '=' . $opt . ' [' . countR($res) . '], TRUE = ' . $kRec->cond;
+        $logMsg = $var . '=' . $opt . ' [' . countR($res) . '], TRUE = ' . $cond;
         
         Debug::log($logMsg);
         
@@ -1377,7 +1440,7 @@ class expert_Expert extends core_FieldSet
         $form->info = $this->getInfo($kRec->element ?? null, $kRec->msg ?? null, $kRec->layout ?? null);
         
         // Задаваме полетата, които ще се показват и техните дефолти
-        foreach ($kRec->vars as $var) {
+        foreach ((array) ($kRec->vars ?? array()) as $var) {
             $form->showFields[$var] = $var;
             
             $fieldIsSet = false;
@@ -1398,8 +1461,9 @@ class expert_Expert extends core_FieldSet
                                 continue;
                             }
 
-                            unset($skRec->element);
-                            $sskRec = $this->calcExprAttr($skRec);
+                            $sskRec = clone $skRec;
+                            unset($sskRec->element);
+                            $sskRec = $this->calcExprAttr($sskRec);
                             $form->FNC($name, $sskRec->type ?? null, $sskRec);
 
                             if ($sskRec->value ?? null) {
@@ -1420,9 +1484,10 @@ class expert_Expert extends core_FieldSet
                         $this->trimPrefix($name);
                         
                         if ($name == $var) {
-                            unset($skRec->element);
-                            $sskRec = $this->calcExprAttr($skRec);
-                            $form->FNC($name, $skRec->type, $sskRec);
+                            $sskRec = clone $skRec;
+                            unset($sskRec->element);
+                            $sskRec = $this->calcExprAttr($sskRec);
+                            $form->FNC($name, $skRec->type ?? null, $sskRec);
 
                             if ($sskRec->value ?? null) {
                                 $form->setDefault($name, $sskRec->value);
@@ -1436,7 +1501,7 @@ class expert_Expert extends core_FieldSet
             
             // Опит да се вземе полето от MVC модела
             if (!$fieldIsSet) {
-                if ($this->mvc->fields[$var]) {
+                if (!empty($this->mvc->fields[$var])) {
                     $form->fields[$var] = clone($this->mvc->fields[$var]);
                     $fieldIsSet = true;
                 }
@@ -1481,7 +1546,7 @@ class expert_Expert extends core_FieldSet
         $rec = new stdClass();
         
         foreach ((array) $kRec as $key => $value) {
-            if (!in_array($key, array('expr', 'vars', 'name', 'cond')) && $value[0] == '=') {
+            if (!in_array($key, array('expr', 'vars', 'name', 'cond')) && is_string($value) && ($value[0] ?? null) == '=') {
                 $value = substr($value, 1);
                 $res = null;
                 
@@ -1508,7 +1573,7 @@ class expert_Expert extends core_FieldSet
             $msg = $msg->getContent();
         }
         
-        if ($msg[0] == '=') {
+        if (is_string($msg) && ($msg[0] ?? null) == '=') {
             $msg = substr($msg, 1);
             
             if (!$this->calcExpr($msg, $res)) {
@@ -1598,7 +1663,7 @@ class expert_Expert extends core_FieldSet
      */
     public function trimPrefix(&$name)
     {
-        if (!strlen($name)) {
+        if (!is_string($name) || !strlen($name)) {
             // Липсващо име на променлива
             error('Липсващо име на променлива', $name);
         }
@@ -1748,7 +1813,7 @@ class expert_Expert extends core_FieldSet
                         }
                         
                         if (!function_exists($userFuncName)) {
-                            $intFuncName = $this->functions[$userFuncName];
+                            $intFuncName = $this->functions[$userFuncName] ?? null;
                         } else {
                             $intFuncName = $userFuncName;
                         }
@@ -1832,6 +1897,7 @@ class expert_Expert extends core_FieldSet
     public static function getLink($title, $url, $attr = array())
     {
         $attr = arr::make($attr, true);
+        $data = new stdClass();
         $data->AjaxCmd = 'beggin';
         $data->Ajax = 'On';
         
@@ -1854,6 +1920,7 @@ class expert_Expert extends core_FieldSet
     public static function getButton($title, $url, $attr = array())
     {
         $attr = arr::make($attr, true);
+        $data = new stdClass();
         $data->AjaxCmd = 'beggin';
         $data->Ajax = 'On';
         

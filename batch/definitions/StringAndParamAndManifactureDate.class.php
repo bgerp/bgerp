@@ -25,7 +25,7 @@ class batch_definitions_StringAndParamAndManifactureDate extends batch_definitio
     public function addFields(core_Fieldset &$fieldset)
     {
         $fieldset->FLD('prefix', 'varchar(3)', 'caption=Префикс,mandatory');
-        $fieldset->FLD('paramId', 'key(mvc=cat_Params,select=typeExt,forceOpen,maxRadio=1,allowEmpty)', 'caption=Параметър,mandatory');
+        $fieldset->FLD('paramId', 'key(mvc=cat_Params,select=typeExt,forceOpen,allowEmpty)', 'caption=Параметър,mandatory');
         $fieldset->FLD('delimiter', 'enum(&#x20;=Интервал,.=Точка,&#44;=Запетая,&#47;=Наклонена,&#45;=Тире)', 'caption=Разделител');
         $fieldset->FLD('format', "enum(dmy=|*221199,dmY=|*22111999,m.Y=|*11.1999,d.m.Y=|*22.11.1999, d-m-Y=|*22-11-1999, d/m/Y=|*22/11/1999, m.d.Y=|*11.22.1999, m-d-Y=|*11-22-1999, m/d/Y=|*11/22/1999, d.m.y=|*22.11.99, d-m-y=|*22-11-99, d/m/y=|*22/11/99, m.d.y=|*11.22.99, m-d-y=|*11-22-99, m/d/y=|*11/22/99)'", 'caption=Маска');
         $fieldset->FLD('strategy', "enum(fifo=Най-старо производство,lifo=Най-ново производство)'", 'caption=Изписване');
@@ -63,8 +63,8 @@ class batch_definitions_StringAndParamAndManifactureDate extends batch_definitio
         // Ако ще се генерира автоматична стойност
         if ($this->rec->autoValue == 'yes') {
 
-            // Ще се генерира само ако е протокол за производство
-            if($documentClass instanceof planning_DirectProductionNote){
+            // Ще се генерира само ако е протокол за производство и разпад
+            if (($documentClass instanceof planning_DirectProductionNote) || ($documentClass instanceof planning_DisassemblyNote)) {
                 $paramName = cat_Products::getParams($this->rec->productId, $this->rec->paramId);
                 $date = dt::mysql2verbal($date, $this->rec->format);
 

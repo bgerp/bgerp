@@ -17,6 +17,12 @@
 class trans_Lines extends core_Master
 {
     /**
+     * Минимално сходство на заглавията за предупреждение за възможно дублиране
+     */
+    const DUPLICATE_TITLE_SIMILARITY = 0.75;
+
+
+    /**
      * Заглавие
      */
     public $title = 'Транспортни линии';
@@ -264,44 +270,62 @@ class trans_Lines extends core_Master
     {
         $data->listFilter->setFieldTypeParams('folder', array('containingDocumentIds' => trans_Lines::getClassId()));
         $data->listFilter->FLD('lineState', 'enum(pendingAndActive=Заявка+Активни,all=Всички,draft=Чернова,pending=Заявка,active=Активен,closed=Затворен)', 'caption=Състояние');
-        $data->listFilter->FLD('countryId', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Държава');
+        $data->listFilter->FLD('countryId', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Държава,placeholderType=all');
         $data->listFilter->FLD('groupByShippedOn', 'enum(no=Без,yes=По експедиране)', 'caption=Групиране,autoFilter,silent');
-        $data->listFilter->FLD('storesByLocation', 'varchar', 'caption=Складове,placeholder=Всички');
+        $data->listFilter->FLD('storesByLocation', 'varchar', 'caption=Складове,placeholderType=all');
         $data->listFilter->setDefault('groupByShippedOn', 'no');
 
-        // Опция за избор на складове по градове
-        $storesByLocations = $storeOptions = $locationOptions =  $storesByPCode = $storesByPCodeOptions = array();
+        // Опции за избор на складове по населено място и пощенски код
+        $storesByLocations = $storeOptions = $locationOptions = $storesByPCode = $storesByPCodeOptions = array();
+        $bulgariaId = drdata_Countries::getIdByName('Bulgaria');
         $sQuery = store_Stores::getQuery();
         $sQuery->where("#state NOT IN ('rejected', 'closed')");
 
         while($sRec = $sQuery->fetch()) {
             $storeOptions[keylist::addKey('-1', $sRec->id)] = store_Stores::getTitleById($sRec->id);
-            if(isset($sRec->locationId)){
-                $locationRec = crm_Locations::fetch($sRec->locationId);
-                if(!empty($locationRec->pCode)){
-                    $visiblePart = substr($locationRec->pCode, 0, 2) . "XX";
-                    $storesByPCode["Всички от ПК| {$visiblePart}"][$sRec->id] = $sRec->id;
+            if (empty($sRec->locationId) || !($locationRec = crm_Locations::fetch($sRec->locationId))) {
+                continue;
+            }
+
+            // Групирането по пощенски код е по първите две цифри на валиден български код
+            if ($locationRec->countryId == $bulgariaId && !empty($locationRec->pCode)) {
+                $pCode = preg_replace('/\D+/', '', $locationRec->pCode);
+                if (strlen($pCode) == 4) {
+                    $visiblePart = substr($pCode, 0, 2) . 'XX';
+                    $storesByPCode[$visiblePart][$sRec->id] = $sRec->id;
                 }
-                if(!empty($locationRec->place)){
-                    $storesByLocations[$locationRec->place][$sRec->id] = $sRec->id;
+            }
+
+            if (!empty($locationRec->place)) {
+                $place = bglocal_Address::canonizePlace($locationRec->place);
+                $placeKey = "{$locationRec->countryId}|" . mb_strtolower($place);
+                $placeTitle = $place;
+                if (!empty($locationRec->countryId) && $locationRec->countryId != $bulgariaId) {
+                    $countryName = drdata_Countries::getCountryName($locationRec->countryId);
+                    $placeTitle .= !empty($countryName) ? ", {$countryName}" : '';
                 }
+
+                $storesByLocations[$placeKey]['title'] = $placeTitle;
+                $storesByLocations[$placeKey]['storeIds'][$sRec->id] = $sRec->id;
             }
         }
 
+        ksort($storesByPCode, SORT_NATURAL);
         foreach ($storesByPCode as $key => $storeIds){
-            $storesByPCodeOptions["p|" . keylist::fromArray($storeIds)] = tr($key);
+            $storesByPCodeOptions["p|" . keylist::fromArray($storeIds)] = "ПК {$key}";
         }
-        foreach ($storesByLocations as $key => $storeIds){
-            $locationOptions["l|" . keylist::fromArray($storeIds)] = tr($key);
+        foreach ($storesByLocations as $location){
+            $locationOptions["l|" . keylist::fromArray($location['storeIds'])] = $location['title'];
         }
+        asort($locationOptions, SORT_NATURAL | SORT_FLAG_CASE);
 
         if(countR($storesByLocations) || countR($storesByPCodeOptions)){
             $storeOptions = array("s" => (object) array('title' => tr('Складове'), 'group' => true)) + $storeOptions;
             if(countR($locationOptions)){
-               // $storeOptions += array("p" => (object) array('title' => tr('В градове'), 'group' => true,)) + $locationOptions;
+                $storeOptions += array("p" => (object) array('title' => tr('Населени места'), 'group' => true)) + $locationOptions;
             }
             if(countR($storesByPCodeOptions)){
-               // $storeOptions += array("c" => (object) array('title' => tr('Пощенски код'), 'group' => true,)) + $storesByPCodeOptions;
+                $storeOptions += array("c" => (object) array('title' => tr('Пощенски кодове'), 'group' => true)) + $storesByPCodeOptions;
             }
         }
 
@@ -331,9 +355,11 @@ class trans_Lines extends core_Master
                 $data->query->where("LOCATE('|{$filterRec->countryId}|', #countries)");
             }
 
-            if (isset($filterRec->storesByLocation)) {
-                $storeIds = str_replace('p|', '', $filterRec->storesByLocation);
-                $storeIds = str_replace('l|', '', $storeIds);
+            if (!empty($filterRec->storesByLocation)) {
+                $storeIds = $filterRec->storesByLocation;
+                if (preg_match('/^[lp]\|(.+)$/', $storeIds, $matches)) {
+                    $storeIds = $matches[1];
+                }
                 $data->query->likeKeylist("stores", $storeIds);
             }
         }
@@ -361,8 +387,8 @@ class trans_Lines extends core_Master
 
         // Подмяна на бутона за принтиране с такъв да отчита натиснатия таб на детайла
         $printBtnId = plg_Printing::getPrintBtnId($mvc, $rec->id);
-        if ($data->toolbar->buttons[$printBtnId]) {
-            $data->toolbar->removeBtn[$printBtnId];
+        if ($data->toolbar->haveButton($printBtnId)) {
+            $data->toolbar->removeBtn($printBtnId);
             $url = array($mvc, 'single', $rec->id, 'Printing' => 'yes', 'Width' => 'yes', 'lineTab' => Request::get('lineTab'));
             $data->toolbar->addBtn('Печат', $url, 'target=_blank,row=2', "id={$printBtnId},target=_blank,row=2,ef_icon = img/16/printer.png,title=Печат на документа");
         }
@@ -416,6 +442,36 @@ class trans_Lines extends core_Master
             if ($rec->start < dt::today()) {
                 $form->setError('start', 'Не може да се създаде линия за предишен ден!');
             }
+
+            // Предупреждение за възможно дублиране на нова транспортна линия
+            if (empty($rec->id) && !empty($rec->start) && !empty($rec->title)) {
+                $date = substr($rec->start, 0, 10);
+                $normalizedTitle = strtolower(str::canonize($rec->title, ' '));
+
+                $query = $mvc->getQuery();
+                $query->where(array("#start >= '[#1#] 00:00:00' AND #start <= '[#1#] 23:59:59'", $date));
+                $query->where("#state != 'rejected'");
+                $query->show('id,title,start');
+
+                $similarLines = array();
+                while ($existingRec = $query->fetch()) {
+                    $existingTitle = strtolower(str::canonize($existingRec->title, ' '));
+                    similar_text($normalizedTitle, $existingTitle, $percent);
+
+                    if (($percent / 100) >= self::DUPLICATE_TITLE_SIMILARITY) {
+                        $handle = $mvc->getHandle($existingRec->id);
+                        $link = ht::createLink("#{$handle}", $mvc->getSingleUrlArray($existingRec->id));
+                        $similarLines[] = $link . ' (' . round($percent) . '%)';
+                    }
+                }
+
+                if (countR($similarLines)) {
+                    $form->setWarning(
+                        'title,start',
+                        'За същата дата вече има транспортни линии с подобно заглавие|*: ' . implode(', ', $similarLines)
+                    );
+                }
+            }
         }
     }
 
@@ -425,6 +481,8 @@ class trans_Lines extends core_Master
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
+        $transUnitsTotal = array();
+
         if (isset($fields['-single'])) {
             if (isset($rec->defaultCaseId)) {
                 $row->defaultCaseId = cash_Cases::getHyperlink($rec->defaultCaseId, true);
@@ -457,7 +515,6 @@ class trans_Lines extends core_Master
             }
 
             // Лайв изчисление на общите ЛЕ
-            $transUnitsTotal = array();
             $dQuery = trans_LineDetails::getQuery();
             $dQuery->where("#lineId = {$rec->id} AND #containerState != 'rejected' AND #status != 'removed'");
             while ($dRec = $dQuery->fetch()) {
@@ -466,22 +523,20 @@ class trans_Lines extends core_Master
                     $mvc->cacheLineInfo[$dRec->containerId] = $Document->getTransportLineInfo($rec->id);
                 }
                 $transportInfo = $mvc->cacheLineInfo[$dRec->containerId];
-                if (is_array($transportInfo['transportUnits'])) {
-                    trans_Helper::sumTransUnits($transUnitsTotal, $transportInfo['transportUnits']);
-                }
+                trans_Helper::sumTransUnits($transUnitsTotal, $transportInfo['transportUnits']);
             }
         }
 
-        $row->destinations = $row->countries ?? null;
+        $row->destinations = $row->countries ?? (!empty($rec->countries) ? $mvc->getVerbal($rec, 'countries') : null);
         $countries = keylist::toArray($rec->countries);
         if(countR($countries) == 1){
             $onlyCountryId = key($countries);
             if($onlyCountryId == drdata_Countries::getIdByName('Bulgaria') && !empty($rec->places)){
-                $row->destinations = $row->places;
+                $row->destinations = $row->places ?? $mvc->getVerbal($rec, 'places');
             }
         }
 
-        if(empty($rec->shipmentOn)){
+        if (empty($rec->shipmentOn) && isset($row->shipmentOnCalc)) {
             $row->shipmentOnCalc = ht::createHint($row->shipmentOnCalc, 'Използва се началото, защото няма конкретно въведена дата за експедиране|*!', 'notice', false);
         }
 
@@ -496,7 +551,7 @@ class trans_Lines extends core_Master
 
         $row->readiness = "{$row->countStoreDocuments} / {$row->countActiveDocuments} / {$row->countReadyDocuments}";
         if (!Mode::isReadOnly()) {
-            if ($rec->countStoreDocuments != ($rec->countActiveDocuments + $rec->countReadyDocuments)) {
+            if (($rec->countStoreDocuments ?? 0) != (($rec->countActiveDocuments ?? 0) + ($rec->countReadyDocuments ?? 0))) {
                 $row->readiness = "<span class='red'>{$row->readiness}</span>";
             }
         }
@@ -513,7 +568,7 @@ class trans_Lines extends core_Master
                 $row->cases = $mvc->getVerbal($rec, 'cases');
                 $row->handler .= "<div class='small'> " . tr('Каси') . ": {$row->cases}</div>";
             }
-            $transUnitsTotal = $rec->transUnitsTotal;
+            $transUnitsTotal = $rec->transUnitsTotal ?? array();
         }
 
         $row->transUnitsTotal = empty($transUnitsTotal) ? "<span class='quiet'>N/A</span>" : trans_Helper::displayTransUnits($transUnitsTotal, false, '<br>');
@@ -556,7 +611,7 @@ class trans_Lines extends core_Master
 
             // Сумиране на теглото от редовете
             if ($sumWeight === true) {
-                if ($transInfo['weight']) {
+                if (!empty($transInfo['weight'])) {
                     $weight += $transInfo['weight'];
                 } elseif ($isStoreDocument) {
                     unset($weight);
@@ -566,7 +621,7 @@ class trans_Lines extends core_Master
 
             // Сумиране на обема от редовете
             if ($sumVolume === true) {
-                if ($transInfo['volume']) {
+                if (!empty($transInfo['volume'])) {
                     $volume += $transInfo['volume'];
                 } elseif ($isStoreDocument) {
                     unset($volume);
@@ -706,9 +761,7 @@ class trans_Lines extends core_Master
                     }
                 }
 
-                if(is_array($lineInfo['transportUnits'])){
-                    trans_Helper::sumTransUnits($transUnitsTotal, $lineInfo['transportUnits']);
-                }
+                trans_Helper::sumTransUnits($transUnitsTotal, $lineInfo['transportUnits']);
             }
 
             $stores = array_merge($stores, $lineInfo['stores']);
@@ -802,7 +855,7 @@ class trans_Lines extends core_Master
      */
     protected static function on_BeforeSave($mvc, &$id, $rec, $fields = null, $mode = null)
     {
-        if ($rec->__isReplicate) {
+        if (!empty($rec->__isReplicate)) {
             $rec->countStoreDocuments = 0;
             $rec->countActiveDocuments = 0;
             $rec->countReadyDocuments = 0;
@@ -830,12 +883,14 @@ class trans_Lines extends core_Master
         $Document = doc_Containers::getDocument($docContainerId);
 
         $documentRec = $Document->fetch();
+        if (!$documentRec) return $res;
+
         $res['body'] = 'За: #' . $Document->getHandle() . "\n";
 
         $users = '';
-        $users = keylist::addKey($users, $documentRec->createdBy);
-        $users = keylist::addKey($users, $documentRec->modifiedBy);
-        $users = keylist::merge($users, $documentRec->sharedUsers);
+        $users = keylist::addKey($users, $documentRec->createdBy ?? null);
+        $users = keylist::addKey($users, $documentRec->modifiedBy ?? null);
+        $users = keylist::merge($users, $documentRec->sharedUsers ?? null);
         $res['sharedUsers'] = $users;
 
         return $res;
@@ -908,8 +963,8 @@ class trans_Lines extends core_Master
                     $this->logWrite('Автоматично приключване на активна линия', $rec->id);
                 }
             } else {
-                $start = $rec->start;
-                if (strpos($rec->start, ' 00:00:00')) {
+                $start = $rec->start ?? null;
+                if ($start && strpos($start, ' 00:00:00') !== false) {
                     $start = str_replace(' 00:00:00', ' 23:59:59', $rec->start);
                 }
 

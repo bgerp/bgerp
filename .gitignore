@@ -10,7 +10,9 @@ syntax: regexp
 /composer.lock
 /composer.phar
 /myself/
-.vscode/launch.json
+/.vscode/
 **/.env
 .codex
-.claude/worktrees/
+/.agents/
+/.claude/
+.mcp.json

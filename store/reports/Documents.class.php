@@ -64,8 +64,8 @@ class store_reports_Documents extends frame2_driver_TableData
     {
         $fieldset->FLD('typeOfWorker', 'enum(stWorker=Складов работник,logWorker=Логистик)', 'caption=Тип потребител,removeAndRefreshForm,silent,after=title');
 
-        $fieldset->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,placeholder=Всички,after=typeOfWorker');
-        $fieldset->FLD('documentType', 'class(select=title)', 'caption=Документи,placeholder=Всички,after=storeId');
+        $fieldset->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,placeholderType=all,after=typeOfWorker');
+        $fieldset->FLD('documentType', 'class(select=title)', 'caption=Документи,placeholderType=all,after=storeId');
         $fieldset->FLD('horizon', 'time', 'caption=Хоризонт,after=documentType');
     }
     
@@ -281,7 +281,7 @@ class store_reports_Documents extends frame2_driver_TableData
     {
         if ($mvc == 'store_Transfers') {
             $storeIds = implode(',', $storeIds);
-            $query->where("#fromStore IN (${storeIds}) OR #toStore IN (${storeIds})");
+            $query->where("#fromStore IN ({$storeIds}) OR #toStore IN ({$storeIds})");
         } else {
             $query->in('storeId', $storeIds);
         }
@@ -321,7 +321,7 @@ class store_reports_Documents extends frame2_driver_TableData
                 }
             }
 
-            $row->documentType = ht::createLink("#{$handle}", $singleUrl, false, "ef_icon={$Document->singleIcon}");
+            $row->documentType = ht::createLink("#{$handle}", $singleUrl, false, "ef_icon={$Document->getSingleIcon()}");
         }
         
         if (!Mode::isReadOnly()) {
@@ -353,11 +353,11 @@ class store_reports_Documents extends frame2_driver_TableData
         $row->created = "{$row->createdOn} " . tr('от') . " {$row->createdBy}";
         $row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($dRec->folderId))->title;
         
-        if (is_array($dRec->linked) && countR($dRec->linked)) {
+        if (is_array($dRec->linked ?? null) && countR($dRec->linked)) {
             $row->linked = self::getLinked($dRec);
         }
         
-        if (is_array($dRec->stores)) {
+        if (is_array($dRec->stores ?? null)) {
             $row->stores = self::getStores($dRec);
         }
         
@@ -417,11 +417,11 @@ class store_reports_Documents extends frame2_driver_TableData
     protected static function on_AfterGetExportRec(frame2_driver_Proto $Driver, &$res, $rec, $dRec, $ExportClass)
     {
         $res->documentType = '#' . doc_Containers::getDocument($dRec->containerId)->getHandle();
-        if (is_array($dRec->stores)) {
+        if (is_array($dRec->stores ?? null)) {
             $res->stores = self::getStores($dRec, false);
         }
         
-        if (is_array($dRec->linked)) {
+        if (is_array($dRec->linked ?? null)) {
             $res->linked = self::getLinked($dRec, false);
         }
     }

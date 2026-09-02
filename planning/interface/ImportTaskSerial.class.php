@@ -98,7 +98,7 @@ class planning_interface_ImportTaskSerial extends planning_interface_ImportDrive
     private function getImportRecs(core_Manager $mvc, $rec)
     {
         $recs = array();
-        if (!is_array($rec->serials)) {
+        if (!is_array($rec->serials ?? null)) {
             
             return $recs;
         }

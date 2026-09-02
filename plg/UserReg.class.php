@@ -330,11 +330,11 @@ class plg_UserReg extends core_Plugin
             if ($form->isSubmitted()) {
                 core_Users::calcUserForm($form);
                 
-                if ($pRec->isLenOK == -1) {
+                if (($pRec->isLenOK ?? null) == -1) {
                     $form->setError('passNew', 'Паролата трябва да е минимум |* ' . EF_USERS_PASS_MIN_LEN . ' |символа');
-                } elseif (!$pRec->passNewHash) {
+                } elseif (empty($pRec->passNewHash)) {
                     $form->setError('passNew,passRe', 'Моля, въведете (и повторете) паролата');
-                } elseif ($pRec->passNew != $pRec->passRe) {
+                } elseif (($pRec->passNew ?? null) != ($pRec->passRe ?? null)) {
                     $form->setError('passNew,passRe', 'Двете пароли не съвпадат');
                 }
                 

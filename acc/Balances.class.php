@@ -31,7 +31,7 @@ class acc_Balances extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, acc_Wrapper,Accounts=acc_Accounts,plg_Sorting, plg_Printing, bgerp_plg_Blank';
+    public $loadList = 'plg_RowTools2, acc_Wrapper,Accounts=acc_Accounts,plg_Sorting, plg_Printing, bgerp_plg_Blank';
 
 
     /**
@@ -450,7 +450,7 @@ class acc_Balances extends core_Master
         // Ако не е валиден го преизчисляваме, като всяка от
         // десетте минути след преизчисляването - пак го преизчисляваме
         if ($force !== true) {
-            $isValid = self::isValid($rec, $rec->lastCalculateChange != 'no' ? 10 : 1);
+            $isValid = self::isValid($rec, ($rec->lastCalculateChange ?? null) != 'no' ? 10 : 1);
         } else {
             $isValid = false;
         }
@@ -1123,8 +1123,8 @@ class acc_Balances extends core_Master
         if ($accountRec->id && strlen($num) >= 3) {
             if (acc_Balances::haveRightFor('read', $rec) && !Mode::isReadOnly()) {
                 
-                // Ако има номенклатури, правим линк към обобщението на сметката
-                if ($accountRec->groupId1 || $accountRec->groupId2 || $accountRec->groupId3) {
+                // Ако има номенклатури и вече е изчислен баланс, правим линк към обобщението на сметката
+                if (($accountRec->groupId1 || $accountRec->groupId2 || $accountRec->groupId3) && !empty($rec->id)) {
                     $balImg = ($showIcon) ? 'ef_icon=img/16/filter.png,title=Разбивка по пера на сметката' : null;
                     
                     $title = ht::createLink(

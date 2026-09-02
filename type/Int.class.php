@@ -83,7 +83,7 @@ class type_Int extends core_Type
             $this->error = 'Недопустими символи в число/израз';
             
             // Проверка за опити за хакване
-            core_HackDetector::check($value, $this->params['hackTolerance'] ?? null);
+            core_HackDetector::check($originalVal, $this->params['hackTolerance'] ?? null);
 
             return false;
         }
@@ -105,7 +105,7 @@ class type_Int extends core_Type
         if (empty($val)) {
             $val = '0';
         }
-        $code = "\$val = ${val};";
+        $code = "\$val = {$val};";
         
         // Шаблон за намиране на повтарящи се знаци или изрази, които започват и/или завършват с тях
         $signP = '(\*|\/|\+|\-|\.|\,)';

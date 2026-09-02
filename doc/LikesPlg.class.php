@@ -63,7 +63,7 @@ class doc_LikesPlg extends core_Plugin
                 if (($rec->state == 'draft') ||
                     ($rec->state == 'rejected') ||
                     !doc_Likes::isLiked($rec->containerId, $rec->threadId, $userId) ||
-                    !$mvc->haveRightFor('single', $rec->id)) {
+                    !$mvc->haveRightFor('single', $rec->id, $userId)) {
                     $requiredRoles = 'no_one';
                 }
             }
@@ -260,7 +260,7 @@ class doc_LikesPlg extends core_Plugin
             $sKey = doc_Folders::getSettingsKey($rec->folderId);
             $noNotifyArr = core_Settings::fetchUsers($sKey, 'newDoc', 'no');
             
-            if ($noNotifyArr[$userId]) {
+            if (!empty($noNotifyArr[$userId])) {
                 
                 return ;
             }
@@ -271,7 +271,7 @@ class doc_LikesPlg extends core_Plugin
             $sKey = doc_Threads::getSettingsKey($rec->threadId);
             $noNotifyArr = core_Settings::fetchUsers($sKey, 'notify', 'no');
             
-            if ($noNotifyArr[$userId]) {
+            if (!empty($noNotifyArr[$userId])) {
                 
                 return ;
             }
@@ -300,7 +300,7 @@ class doc_LikesPlg extends core_Plugin
     {
         $i = 0;
         $otherCnt = 0;
-        $notifyStr .= '';
+        $notifyStr = '';
         foreach ((array) $recArr as $rec) {
             $nick = core_Users::getNick($rec->createdBy);
             $nick = type_Nick::normalize($nick);
@@ -401,6 +401,8 @@ class doc_LikesPlg extends core_Plugin
         
         if (isset($fields['-single'])) {
             if (!Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('pdf')) {
+                $row->DocumentSettingsLeft = new ET($row->DocumentSettingsLeft ?? '');
+
                 if ($rec->state != 'draft' && $rec->state != 'rejected') {
                     $likesCnt = doc_Likes::getLikesCnt($rec->containerId, $rec->threadId);
                     
@@ -473,7 +475,6 @@ class doc_LikesPlg extends core_Plugin
                         $likesLink = '<span>' . $likesLink . '</span>';
                     }
                     
-                    $row->DocumentSettingsLeft = new ET($row->DocumentSettingsLeft ?? '');
                     $row->DocumentSettingsLeft->append($likesLink);
                 }
                 

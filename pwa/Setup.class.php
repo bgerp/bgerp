@@ -28,6 +28,12 @@ defIfNot('PWA_MAILTO', '');
  */
 class pwa_Setup extends core_ProtoSetup
 {
+    /**
+     * Версия на пакета
+     */
+    public $version = '0.6';
+
+
     public $info = 'bgERP progressive web application';
 
 
@@ -45,6 +51,7 @@ class pwa_Setup extends core_ProtoSetup
         'pwa_Settings',
         'migrate::updateSettings2509',
         'migrate::updateState2516',
+        'migrate::renewTruncatedEndpoints2608',
     );
 
 
@@ -98,15 +105,22 @@ class pwa_Setup extends core_ProtoSetup
         // @deprecated
         $existDArr = array();
         $dArr = type_Keylist::toArray($this->get('DOMAINS'));
-        foreach ($dArr as $domainId) {
+        foreach ($dArr as $key => $domainId) {
             $dRec = cms_Domains::fetch($domainId);
             if ($dRec) {
                 $domainName = $dRec->domain;
                 $existDArr[$domainName] = $domainName;
+            } else {
+                // В старата настройка може да е останал вече изтрит домейн.
+                unset($dArr[$key]);
             }
         }
         foreach (pwa_Settings::getDomains() as $dId => $name) {
             $existDArr[$name] = $name;
+            // Активните настройки се нареждат след deprecated списъка и в
+            // реда на pwa_Settings.id. При езикови записи за общ host така
+            // крайният manifest е същият като при последваща регенерация.
+            unset($dArr[$dId]);
             $dArr[$dId] = $dId;
         }
 
@@ -115,63 +129,27 @@ class pwa_Setup extends core_ProtoSetup
         while ($dRec = $dQuery->fetch()) {
             core_Webroot::remove('serviceWorker.js', $dRec->id);
             core_Webroot::remove('pwa.webmanifest', $dRec->id);
+            pwa_Plugin::removeServiceWorkerVersion($dRec->id);
+            pwa_Settings::removeManifestVersion($dRec->id);
         }
 
-        $sw = getFileContent('pwa/js/sw.js');
-
         foreach ($dArr as $domainId) {
-            $manifest = pwa_Settings::getPWAManifest($domainId);
-
             $dRec = cms_Domains::fetch($domainId);
-            if ($dRec->wrFiles) {
-                try {
-                    $inst = cls::get('archive_Adapter', array('fileHnd' => $dRec->wrFiles));
-
-                    $entries = $inst->getEntries();
-
-                    if(is_array($entries) && countR($entries)) {
-                        foreach($entries as $i => $e) {
-                            if(preg_match("/[a-z0-9\\-\\_\\.]+/i", $e->path)) {
-                                if ((trim(strtolower($e->path)) === 'serviceworker.js') || (trim(strtolower($e->path)) === 'pwa.webmanifest')) {
-                                    $fh = $inst->getFile($i);
-                                    $fiContent = fileman_Files::getContent($fh);
-                                    if ((trim(strtolower($e->path)) === 'serviceworker.js')) {
-                                        $sw = $fiContent;
-                                    } else {
-                                        $manifest = $fiContent;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                } catch (Archive_7z_Exception $e) {
-                    wp($e);
-                }
+            if (!$dRec) {
+                continue;
             }
 
-            if (core_Webroot::isExists('pwa.webmanifest', $domainId)) {
-                $pwaPrevContent = core_Webroot::getContents('pwa.webmanifest', $domainId);
-            } else {
-                $pwaPrevContent = '';
-            }
-            if ($pwaPrevContent != $manifest) {
-                core_Webroot::remove('pwa.webmanifest', $domainId);
-                core_Webroot::register($manifest, 'Content-Type: application/json', 'pwa.webmanifest', $domainId);
-
-                $html .= '<li>Генериране на манифест на PWA за ' . cms_Domains::fetchField($domainId, 'domain') . '</li>';
+            $published = pwa_Settings::publishWebrootFilesForDomain($domainId);
+            if (!$published || empty($published['success'])) {
+                $html .= '<li class="red">Не могат да се публикуват PWA файловете за ' . $dRec->domain . '</li>';
+                continue;
             }
 
-            if (core_Webroot::isExists('serviceworker.js', $domainId)) {
-                $swPrevContent = core_Webroot::getContents('serviceworker.js', $domainId);
-            } else {
-                $swPrevContent = '';
+            if (!empty($published['manifestChanged'])) {
+                $html .= '<li>Генериране на манифест на PWA за ' . $dRec->domain . '</li>';
             }
-
-            if ($swPrevContent != $sw) {
-                core_Webroot::remove('serviceworker.js', $domainId);
-                core_Webroot::register($sw, 'Content-Type: text/javascript', 'serviceworker.js', $domainId);
-
-                $html .= '<li>Регистриране на PWA за ' . cms_Domains::fetchField($domainId, 'domain') . '</li>';
+            if (!empty($published['serviceWorkerChanged'])) {
+                $html .= '<li>Регистриране на PWA за ' . $dRec->domain . '</li>';
             }
         }
 
@@ -211,7 +189,7 @@ class pwa_Setup extends core_ProtoSetup
             $dQuery = cms_Domains::getQuery();
             $existKeysDomainsArr = $notExistKeysDomainsArr =  array();
             while ($dRec = $dQuery->fetch()) {
-                if (trim($dRec->publicKey) && trim($dRec->privateKey)) {
+                if (trim((string) $dRec->publicKey) && trim((string) $dRec->privateKey)) {
                     $existKeysDomainsArr[$dRec->domain][$dRec->id] = $dRec;
                 } else {
                     $notExistKeysDomainsArr[$dRec->domain][$dRec->id] = $dRec;
@@ -219,7 +197,7 @@ class pwa_Setup extends core_ProtoSetup
             }
 
             foreach ($notExistKeysDomainsArr as $dName => $notDArr) {
-                if ($existKeysDomainsArr[$dName]) {
+                if (!empty($existKeysDomainsArr[$dName])) {
                     foreach ($notDArr as $nRec) {
                         $uRec = reset($existKeysDomainsArr[$dName]);
                         $nRec->publicKey = $uRec->publicKey;
@@ -278,34 +256,35 @@ class pwa_Setup extends core_ProtoSetup
         }
 
         fileman_Buckets::createBucket('pwaZip', 'Файлове за иконите в PWA', 'zip,7z', '100MB', 'powerUser', 'powerUser');
-        $nRec = new stdClass();
-
         $appTitle = core_Setup::get('EF_APP_TITLE', true);
         $text = 'интегрирана система за управление';
 
         foreach ($dArr as $dId) {
+            $nRec = new stdClass();
             $tPath = fileman::getTempPath();
 
             expect($tPath);
 
             $iconSizes = array(72, 96, 128, 144, 152, 192, 384, 512);
-            $iconInfoArr = array();
+            $iconsWritten = 0;
 
-            $imageUrl = $fName = null;
+            $sourceContent = $fName = null;
 
             if (core_Webroot::isExists('android-chrome-512x512.png', $dId)) {
-                $imageUrl = '/android-chrome-512x512.png';
                 $fName = 'android-chrome-512x512.png';
+                $sourceContent = core_Webroot::getContents($fName, $dId);
             } elseif (core_Webroot::isExists('favicon.png', $dId)) {
-                $imageUrl = '/favicon.png';
                 $fName = 'favicon.png';
+                $sourceContent = core_Webroot::getContents($fName, $dId);
             }
 
             foreach ($iconSizes as $size) {
-                if (isset($imageUrl)) {
-                    $aUrl = cms_Domains::getAbsoluteUrl($dId);
-                    $content = @file_get_contents(rtrim($aUrl, '/') . $imageUrl);
-                } else {
+                $content = false;
+                if (isset($sourceContent)) {
+                    $content = pwa_Settings::resizeRasterIcon($sourceContent, $size);
+                }
+
+                if ($content === false) {
                     $content = getFileContent("pwa/icons/icon-{$size}x{$size}.png");
                     $fName = 'pwa-icon.png';
                 }
@@ -315,10 +294,12 @@ class pwa_Setup extends core_ProtoSetup
                     continue;
                 }
 
-                $iconInfoArr = @file_put_contents($tPath . '/' . $size . 'x' . $size . '_' . $fName, $content);
+                if (@file_put_contents($tPath . '/' . $size . 'x' . $size . '_' . $fName, $content)) {
+                    $iconsWritten++;
+                }
             }
 
-            if (!empty($iconInfoArr)) {
+            if ($iconsWritten) {
                 $tPathDest = fileman::getTempPath();
                 archive_Adapter::compressFile($tPath . '/*', $tPathDest . '/pwa' . '.zip');
                 $nRec->icons = fileman::absorbStr(file_get_contents($tPathDest . '/pwa' . '.zip'), 'pwaZip', 'pwa' . '.zip');
@@ -357,7 +338,7 @@ class pwa_Setup extends core_ProtoSetup
                 $conf = core_Packs::getConfig('pwa');
                 $data = array();
 
-                if ($conf->_data['PWA_DOMAINS']) {
+                if (!empty($conf->_data['PWA_DOMAINS'])) {
                     $data['PWA_DOMAINS'] = null;
                     core_Packs::setConfig('pwa', $data);
                 }
@@ -379,6 +360,33 @@ class pwa_Setup extends core_ProtoSetup
         while ($pRec = $pQuery->fetch()) {
             $pRec->state = 'active';
             pwa_PushSubscriptions::save($pRec, 'state');
+        }
+    }
+
+
+    /**
+     * Спира активните записи с endpoint, отрязан от старото varchar(255)
+     *
+     * setupMvc() вече е разширил колоната до 1024. Оригиналният край на
+     * старите стойности обаче не може да бъде възстановен надеждно, затова
+     * браузърът трябва да създаде и запише отново целия абонамент.
+     */
+    function renewTruncatedEndpoints2608()
+    {
+        $Subscriptions = cls::get('pwa_PushSubscriptions');
+        $query = $Subscriptions->getQuery();
+        $query->where("#state = 'active'");
+
+        while ($dbRec = $query->fetch()) {
+            if (strlen($dbRec->endpoint ?? '') < 255) {
+
+                continue;
+            }
+
+            $rec = clone $dbRec;
+            $rec->state = 'stopped';
+            $savedId = $Subscriptions->save($rec, 'state,modifiedOn,modifiedBy');
+            expect($savedId !== false, 'Не може да се маркира отрязаният PUSH endpoint за подновяване');
         }
     }
 }

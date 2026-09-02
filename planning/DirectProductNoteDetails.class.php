@@ -17,6 +17,7 @@
  */
 class planning_DirectProductNoteDetails extends deals_ManifactureDetail
 {
+
     /**
      * Заглавие
      */
@@ -38,10 +39,8 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, plg_SaveAndNew,deals_plg_ImportDealDetailProduct, plg_Created, planning_Wrapper, plg_Sorting, 
+    public $loadList = 'plg_RowTools2, plg_SaveAndNew,deals_plg_ImportDealDetailProduct, deals_plg_EditDetailQuantities, plg_Created, planning_Wrapper, plg_Sorting,
                         planning_plg_ReplaceProducts, cat_plg_LogPackUsage, plg_PrevAndNext,cat_plg_ShowCodes';
-    
-    
     /**
      * Кой има право да променя?
      */
@@ -90,7 +89,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=№,productId=Материал, packagingId, packQuantity=К-во->Въведено,quantityFromBom=К-во->Рецепта,quantityExpected=К-во->Очаквано,storeId';
+    public $listFields = 'tools=№,productId=Материал, packagingId, packQuantity=К-во->|*<small>|Въведено|*</small>,quantityFromBom=К-во->Рецепта,quantityExpected=К-во->|*<small>|Очаквано|*</small>,storeId';
     
     
     /**
@@ -116,11 +115,18 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
         $this->FLD('type', 'enum(input=Влагане,pop=Отпадък,allocated=Разходи,subProduct=Субпродукт)', 'caption=Действие,silent,input=hidden');
         parent::setDetailFields($this);
         $this->setField('quantity', 'caption=Количества');
-        $this->FLD('quantityFromBom', 'double', 'caption=От рецепта,input=none,smartCenter,tdClass=noteBomCol');
-        $this->FLD('quantityExpected', 'double', 'caption=Реално вложено,input=none,smartCenter,tdClass=noteExpectedCol');
-        $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Изписване от,input=none,tdClass=custom-field nowrap,placeholder=Незавършено производство,silent,removeAndRefreshForm');
+        $this->setField('packagingId', 'notSorting');
+        $this->FLD('quantityFromBom', 'double', 'caption=От рецепта,input=none,tdClass=noteBomCol aright');
+        $this->FLD('quantityExpected', 'double', 'caption=Реално вложено,input=none,tdClass=noteExpectedCol aright');
+
+        unset($this->fields['packQuantity']->smartCenter);
+        $packQuantityClasses = arr::make($this->fields['packQuantity']->tdClass ?? '', true);
+        $packQuantityClasses['aright'] = 'aright';
+        $this->fields['packQuantity']->tdClass = implode(' ', $packQuantityClasses);
+
+        $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Изписване,input=none,tdClass=custom-field storeName nowrap,placeholder=Незавършено производство,silent,removeAndRefreshForm');
         $this->FLD('isOutsourced', 'enum(no=Не,yes=Да)', 'caption=Ишлеме|*?,input=hidden,maxRadio=2,notNull,value=no');
-        $this->FLD('fromAccId', 'customKey(mvc=acc_Accounts,key=systemId,select=systemId)', 'caption=Изписване от,input=none,tdClass=small-field nowrap,placeholder=Незавършено производство');
+        $this->FLD('fromAccId', 'customKey(mvc=acc_Accounts,key=systemId,select=systemId)', 'caption=Изписване,input=none,tdClass=storeName small-field nowrap,placeholder=Незавършено производство');
         $this->FLD('expenseItemId', 'acc_type_Item(select=titleNum,lists=600)', 'input=none,after=expenses,caption=Разходен обект');
 
         $this->setDbIndex('productId');
@@ -138,6 +144,8 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     {
         $form = &$data->form;
         $rec = &$form->rec;
+        $masterRec = &$data->masterRec;
+
         $data->singleTitle = ($rec->type == 'pop') ? 'отпадък' : (($rec->type == 'input') ? 'материал' : (($rec->type == 'subProduct') ? 'субпродукт' : 'отнесен разход'));
         $data->defaultMeta = ($rec->type == 'pop') ? 'canConvert,canStore' : (($rec->type == 'input') ? 'canConvert' : ($rec->type == 'subProduct' ? 'canManifacture,canStore' : null));
         if(empty($rec->id)){
@@ -147,7 +155,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
         $jobRec = planning_DirectProductionNote::getJobRec($rec->noteId);
         $productOptions = $expenseItemIdOptions = array();
         if($rec->type == 'allocated'){
-            $allocatedArr = planning_Jobs::getAllocatedServices($jobRec, $data->masterRec->valior);
+            $allocatedArr = planning_Jobs::getAllocatedServices($jobRec, $masterRec->valior);
             if(!countR($allocatedArr)){
                 $form->setError('productId', 'Няма все още отнесени разходи към производствени операции по заданието');
                 $form->setReadOnly('productId');
@@ -173,9 +181,9 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
             if ($prodRec->canStore == 'yes') {
                 $form->rec->_isStorable = true;
                 $form->setField('storeId', 'input');
-                if (empty($rec->id) && isset($data->masterRec->inputStoreId)) {
+                if (empty($rec->id) && isset($masterRec->inputStoreId)) {
                     $field = $rec->type == 'subProduct' ? 'storeId' : 'inputStoreId';
-                    $form->setDefault('storeId', $data->masterRec->{$field});
+                    $form->setDefault('storeId', $masterRec->{$field});
                 }
 
                 $Cover = doc_Folders::getCover($prodRec->folderId);
@@ -202,7 +210,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
 
                     $form->setDefault('fromAccId', '61102');
                     $form->setReadOnly('fromAccId');
-                } elseif($data->masterRec->inputServicesFrom == 'all'){
+                } elseif($masterRec->inputServicesFrom == 'all'){
                     if(empty($rec->id)){
                         $form->setDefault('fromAccId', '61102');
                     }
@@ -216,16 +224,16 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
         } elseif($rec->type == 'input'){
 
             // Ако ПП е в нишка на финална ПО и се произвежда друг артикул - то само този от заданието да може да се избира
-            $origin = doc_Threads::getFirstDocument($data->masterRec->threadId);
+            $origin = doc_Threads::getFirstDocument($masterRec->threadId);
             if($origin->isInstanceOf('planning_Tasks')){
                 $originRec = $origin->fetch('isFinal,productId');
-                if($originRec->isFinal == 'yes' && $data->masterRec->productId != $jobRec->productId){
+                if($originRec->isFinal == 'yes' && $masterRec->productId != $jobRec->productId){
                     $form->setFieldTypeParams('productId', array('onlyIn' => array($jobRec->productId)));
                 }
             }
         } elseif ($rec->type == 'subProduct') {
-            $form->setDefault('storeId', $data->masterRec->storeId);
-            $form->setField('storeId', 'caption=Засклаждане в,mandatory,placeholder=Изберете склад');
+            $form->setDefault('storeId', $masterRec->storeId);
+            $form->setField('storeId', 'caption=Засклаждане,mandatory,placeholder=Изберете склад');
         }
     }
     
@@ -251,7 +259,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
             }
 
             if ($form->isSubmitted()) {
-                if (!empty($rec->_isStorable) && empty($rec->storeId) && $rec->type != 'pop') {
+                if (empty($form->_editDetailQuantities) && !empty($rec->_isStorable) && empty($rec->storeId) && $rec->type != 'pop') {
                     if(!planning_ConsumptionNotes::existActivatedInThread($noteRec->threadId, $rec->productId)){
                         $form->setWarning('storeId', "В Заданието(и операциите към него) няма контиран Протокол за влагане с посочения артикул, а е избрано влагане от Незавършено производство! Ако няма предварително (общо) влагане - изберете склад за изписване на материала!");
                     }
@@ -286,6 +294,22 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
             }
         }
     }
+
+
+    /**
+     * Премахва празната колона за инструменти във формата за групово изтриване
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $data
+     *
+     * @return void
+     */
+    protected static function on_AfterPrepareListFields($mvc, &$data)
+    {
+        if (Mode::is('selectRows2Delete')) {
+            unset($data->listFields['tools']);
+        }
+    }
     
     
     /**
@@ -316,6 +340,24 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
                 $row->productId->append("<br><small><span class='quiet'>" . tr('Раз. обект') . "</span>: {$itemLink}</small>");
             }
         }
+
+        if (empty($data->_isEditQuantities)) return;
+
+        $firstDoc = doc_Threads::getFirstDocument($data->masterData->rec->threadId);
+        $isTaskNote = $firstDoc->isInstanceOf('planning_Tasks');
+        $counters = array();
+        $Int = cls::get('type_Int');
+        foreach ($data->recs as $id => $rec) {
+            if ($isTaskNote && !in_array($rec->type, array('input', 'allocated'))) {
+                unset($data->recs[$id], $data->rows[$id]);
+
+                continue;
+            }
+
+            $group = in_array($rec->type, array('input', 'allocated')) ? 'input' : $rec->type;
+            $counters[$group] = ($counters[$group] ?? 0) + 1;
+            $data->rows[$id]->tools = $Int->toVerbal($counters[$group]);
+        }
     }
     
     
@@ -333,7 +375,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
         if (countR($data->rows)) {
             foreach ($data->rows as $id => $row) {
                 $rec = $data->recs[$id];
-                if (!is_object($row->tools)) {
+                if (!is_object($row->tools ?? null)) {
                     $row->tools = new ET('[#TOOLS#]');
                 }
                 
@@ -364,13 +406,13 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     private function modifyRows($data)
     {
         if(!countR($data->rows)) return;
+        $masterRec = $data->masterData->rec;
 
-        $origin = doc_Containers::getDocument($data->masterData->rec->originId);
+        $origin = doc_Containers::getDocument($masterRec->originId);
         if($origin->isInstanceOf('planning_Tasks')){
             $origin = doc_Containers::getDocument($origin->fetchField('originId'));
         }
 
-        $masterRec = $data->masterData->rec;
         $workInProgressRecs = array();
         foreach ($data->rows as $id => &$row) {
             $rec = $data->recs[$id];
@@ -424,11 +466,17 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     public function renderDetail_($data)
     {
         $tpl = new ET('');
+        $tpl->push('planning/js/DisassemblyNoteTables.js', 'JS');
+        jquery_Jquery::run($tpl, 'render_syncDisassemblyNoteTables();');
+        jquery_Jquery::runAfterAjax($tpl, 'syncDisassemblyNoteTables');
 
         if (Mode::is('printing')) {
             unset($data->listFields['tools']);
         }
-        
+
+        $commonListFields = arr::make($data->listFields, true);
+        $showRowToolsColumn = !Mode::is('printing') && $data->masterData->rec->state != 'active';
+
         // Рендираме таблицата с вложените материали
         $data->listFields['productId'] = 'Вложени артикули|* ';
         $firstDoc = doc_Threads::getFirstDocument($data->masterData->rec->threadId);
@@ -439,17 +487,41 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
 
         $fieldset = clone $this;
         $fieldset->FNC('num', 'int');
+        if (!isset($fieldset->fields['tools'])) {
+            $fieldset->FNC('tools', 'int', 'tdClass=rowNumColumn');
+        }
+        if (!isset($fieldset->fields['_rowTools'])) {
+            $fieldset->FNC('_rowTools', 'varchar', 'tdClass=rowtools-column');
+        }
+        $fieldset->appendFieldClass('tools', 'tdClass', 'productionToolsColumn');
+        $fieldset->appendFieldClass('tools', 'tdClass', 'rightCol');
+        $fieldset->appendFieldClass('packQuantity', 'tdClass', 'directProductionQuantityColumn');
+        $fieldset->appendFieldClass('quantityFromBom', 'tdClass', 'directProductionQuantityColumn');
+        $fieldset->appendFieldClass('quantityExpected', 'tdClass', 'directProductionQuantityColumn');
         $table = cls::get('core_TableView', array('mvc' => $fieldset));
+        $table->tableClass = 'listTable disassemblyNoteTable';
         
         $iData = clone $data;
         $iData->listTableMvc = clone $this;
+        $iData->listFields = $commonListFields;
+        $iData->listFields['productId'] = 'Вложени артикули|* ';
         $iData->rows = $data->inputArr;
         $iData->recs = array_intersect_key($iData->recs, $iData->rows);
 
         $this->invoke('BeforeRenderListTable', array(&$tpl, &$iData));
+        if ($showRowToolsColumn) {
+            $rowToolsIcon = ht::createElement('img', array('src' => sbf('img/16/tools.png', '')));
+            $iData->listFields = arr::combine(array('_rowTools' => '|*' . $rowToolsIcon->getContent()), $iData->listFields);
+            arr::placeInAssocArray($iData->listFields, array('tools' => '№'), 'productId');
+        } else {
+            unset($iData->listFields['_rowTools']);
+        }
+        if (isset($iData->listFields['code']) && !isset($fieldset->fields['code'])) {
+            $fieldset->FNC('code', 'varchar', 'tdClass= morePadding wrapText directProductionCodeColumn');
+        }
+        $fieldset->appendFieldClass('code', 'tdClass', 'rightCol');
         plg_AlignDecimals2::alignDecimals($this, $iData->recs, $iData->rows);
         
-        $iData->listFields = core_TableView::filterEmptyColumns($iData->rows, $iData->listFields, $this->hideListFieldsIfEmpty);
         if(empty($iData->listFields['quantityFromBom']) && empty($iData->listFields['quantityExpected'])){
             $iData->listFields['packQuantity'] = 'К-во';
         }
@@ -479,6 +551,12 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
             $tpl->append(ht::createBtn('Разходи', array($this, 'add', 'noteId' => $data->masterId, 'type' => 'allocated', 'ret_url' => true), null, null, array('style' => 'margin-top:5px;margin-bottom:15px;', 'ef_icon' => 'img/16/money.png', 'title' => 'Влагане на отнесен разход')), 'INPUTED_PRODUCTS_TABLE');
         }
 
+        $editInputRec = (object)array('noteId' => $data->masterId, '_filterFld' => 'type', '_filterFldVals' => 'input,allocated');
+        if($this->haveRightFor('editquantities', $editInputRec)){
+            $filter = array('_filterFld' => 'type', '_filterFldVals' => 'input,allocated');
+            deals_plg_EditDetailQuantities::appendBtn($tpl, $this, $data->masterId, 'INPUTED_PRODUCTS_TABLE', $filter, tr('Бързо редактиране на количествата на вложените артикули и разходите'));
+        }
+
         if($this->haveRightFor('selectrowstodelete', (object)array("noteId" => $data->masterId, '_filterFld' => 'type', '_filterFldVal' => 'input'))){
             $tpl->append(ht::createBtn('Изтриване', array($this, 'selectRowsToDelete', "noteId" => $data->masterId, '_filterFld' => 'type', '_filterFldVal' => 'input', 'ret_url' => true), null, null, array('style' => 'margin-top:5px;margin-bottom:15px;', 'ef_icon' => 'img/16/delete.png', 'title' => 'Форма за избор на редове за изтриване', 'class' => 'selectDeleteRowsBtn')), 'INPUTED_PRODUCTS_TABLE');
         }
@@ -489,29 +567,39 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
         foreach (array('subProduct', 'pop') as $type){
             $arr = $data->{"{$type}Arr"};
             if (countR($arr) || $data->masterData->rec->state == 'draft') {
-                $data->listFields['productId'] = ($type == 'subProduct') ? 'Субпродукти' : "Отпадъци|* <small style='font-weight:normal'>( |остават в незавършеното производство|* )</small>";
+                $data->listFields['productId'] = ($type == 'subProduct') ? 'Субпродукти' : "Отпадъци|* <small class='wrapText' style='font-weight:normal'>( |остават в незавършеното производство|* )</small>";
                 if($type == 'pop'){
-                    unset($data->listFields['storeId']);
+                    $data->listFields['storeId'] = 'Остава в';
                 } else {
-                    $data->listFields['storeId'] = 'Засклаждане в';
+                    $data->listFields['storeId'] = 'Засклаждане';
                 }
 
                 $pData = clone $data;
                 $pData->listTableMvc = clone $this;
+                $pData->listFields = $commonListFields;
+                $pData->listFields['productId'] = $data->listFields['productId'];
+                $pData->listFields['storeId'] = $data->listFields['storeId'];
                 $pData->rows = $arr;
                 $pData->recs = array_intersect_key($pData->recs, $pData->rows);
 
+                $pData->sortableTable = false;
                 $this->invoke('BeforeRenderListTable', array(&$tpl, &$pData));
+                if ($showRowToolsColumn) {
+                    $rowToolsIcon = ht::createElement('img', array('src' => sbf('img/16/tools.png', '')));
+                    $pData->listFields = arr::combine(array('_rowTools' => '|*' . $rowToolsIcon->getContent()), $pData->listFields);
+                    arr::placeInAssocArray($pData->listFields, array('tools' => '№'), 'productId');
+                } else {
+                    unset($pData->listFields['_rowTools']);
+                }
                 plg_AlignDecimals2::alignDecimals($this, $pData->recs, $pData->rows);
-                $pData->listFields = core_TableView::filterEmptyColumns($pData->rows, $pData->listFields, $this->hideListFieldsIfEmpty);
                 $this->modifyRows($pData);
 
                 if(isset($pData->listFields['quantityFromBom'])){
-                    $pData->listFields['quantityFromBom'] = 'Количество->|*<small>|Рецепта|*</small>';
+                    $pData->listFields['quantityFromBom'] = 'К-во->|*<small>|Рецепта|*</small>';
                 }
 
                 if(empty($pData->listFields['quantityFromBom'])){
-                    $pData->listFields['packQuantity'] = 'Количество';
+                    $pData->listFields['packQuantity'] = 'К-во';
                 }
 
                 $popTable = $table->get($pData->rows, $pData->listFields);
@@ -524,6 +612,13 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
                 if ($this->haveRightFor('add', (object) array('noteId' => $data->masterId, 'type' => 'pop'))) {
                     $icon = ($type == 'pop') ? 'recycle.png' : 'door_in.png';
                     $tpl->append(ht::createBtn($btnTitle, array($this, 'add', 'noteId' => $data->masterId, 'type' => $type, 'ret_url' => true), null, null, array('style' => 'margin-top:5px;;margin-bottom:10px;', 'ef_icon' => "img/16/{$icon}", 'title' => "Добавяне на нов " . mb_strtolower($btnTitle))), $placeholder);
+                }
+
+                $editQuantityRec = (object)array('noteId' => $data->masterId, '_filterFld' => 'type', '_filterFldVal' => $type);
+                if($this->haveRightFor('editquantities', $editQuantityRec)){
+                    $editQuantityTitle = tr('Бързо редактиране на количествата на') . ' ' . mb_strtolower(tr($btnTitle));
+                    $filter = array('_filterFld' => 'type', '_filterFldVal' => $type);
+                    deals_plg_EditDetailQuantities::appendBtn($tpl, $this, $data->masterId, $placeholder, $filter, $editQuantityTitle);
                 }
 
                 if($this->haveRightFor('selectrowstodelete', (object)array("noteId" => $data->masterId, '_filterFld' => 'type', '_filterFldVal' => $type))){
@@ -585,16 +680,17 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
                 // Ако детайла е в ПП в нишка на финална операция
                 $jobRec = planning_DirectProductionNote::getJobRec($rec->noteId);
                 $masterRec = planning_DirectProductionNote::fetch($rec->noteId);
+                $type = $rec->type ?? null;
                 $origin = doc_Containers::getDocument($masterRec->originId);
                 if($origin->isInstanceOf('planning_Tasks')){
                     $originRec = $origin->fetch('isFinal,productId');
                     if($originRec->isFinal == 'no'){
                         $requiredRoles = 'no_one';
-                    } elseif($masterRec->productId != $jobRec->productId && $rec->type != 'input'){
+                    } elseif($masterRec->productId != $jobRec->productId && $type != 'input'){
                         $requiredRoles = 'no_one';
                     } elseif($action == 'import'){
                         $requiredRoles = 'no_one';
-                    } elseif($rec->type == 'input'){
+                    } elseif($type == 'input'){
                         $isConvertable = cat_Products::fetchField($jobRec->productId, 'canConvert');
                         if($isConvertable != 'yes'){
                             $requiredRoles = 'no_one';

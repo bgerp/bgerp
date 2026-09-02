@@ -128,7 +128,7 @@ class bnav_bnavExport_PurchaseInvoicesExport extends frame2_driver_TableData
         }
         
         //Крайна дата / 'към дата'
-        if ($rec->from) {
+        if ($rec->to) {
             $pQuery->where(array(
                 "#date <= '[#1#]'",
                 $rec->to . ' 23:59:59'
@@ -192,6 +192,13 @@ class bnav_bnavExport_PurchaseInvoicesExport extends frame2_driver_TableData
             $id = $dRec->id;
             
             $prodRec = cat_Products::fetch($dRec->productId);
+            if (empty($prodRec)) {
+                
+                continue;
+            }
+            
+            $group = '';
+            
             //Ако има регистрирана "ОСНОВНА ГРУПА", определяме група на артикула спрямо нея
             if(core_Packs::getConfig('bnav')->BASE_GROUP != ''){
 
@@ -200,7 +207,7 @@ class bnav_bnavExport_PurchaseInvoicesExport extends frame2_driver_TableData
 
                     $group = 'n.a.';
                 }else{
-                    expect(countR(array_intersect($gArr,$flGroups)) < 2, "Има регистрирани повече от една група на първо ниво след  ОСНОВНАТА за артикул $pRec->name");
+                    expect(countR(array_intersect($gArr,$flGroups)) < 2, "Има регистрирани повече от една група на първо ниво след  ОСНОВНАТА за артикул $prodRec->name");
                     $group = implode(',',array_intersect($gArr,$flGroups));
                 }
 
@@ -367,7 +374,7 @@ class bnav_bnavExport_PurchaseInvoicesExport extends frame2_driver_TableData
         $res->price = core_Type::getByName('double(decimals=6)')->toVerbal($dRec->price);
         $res->measure = $dRec->measure;
         $res->vat = $dRec->vat;
-        $row->paymentType = $dRec->invoice->paymentType;
-        $row->bankAccount = bank_Accounts::getTitleById($dRec->invoice->accountId);
+        $res->paymentType = $dRec->invoice->paymentType;
+        $res->bankAccount = bank_Accounts::getTitleById($dRec->invoice->accountId);
     }
 }

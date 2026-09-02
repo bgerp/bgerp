@@ -85,7 +85,7 @@ class bgerp_drivers_Tasks extends core_BaseClass
         // Създаваме заявката
         $resData->data->query = cal_Tasks::getQuery();
         
-        if ($dRec->taskPriority) {
+        if ($dRec->taskPriority ?? null) {
             expect($this->priorityMap[$dRec->taskPriority]);
             $priorityArr = explode('|', $this->priorityMap[$dRec->taskPriority]);
             $resData->data->query->orWhereArr('priority', $priorityArr);
@@ -94,7 +94,7 @@ class bgerp_drivers_Tasks extends core_BaseClass
         // Подготвяме полетата за показване
         $resData->data->listFields = 'groupDate,title,progress';
         
-        if ($this->isFromMe($dRec->from)) {
+        if ($this->isFromMe($dRec->from ?? null)) {
             $resData->data->query->where(array("#createdBy = '[#1#]'", $userId));
         } else {
             $resData->data->query->likeKeylist('assign', $userId);
@@ -128,7 +128,7 @@ class bgerp_drivers_Tasks extends core_BaseClass
         $resData->cacheKey = $this->getCacheKey($dRec, $userId);
         $resData->cacheType = $this->getCacheTypeName($userId);
         
-        $resData->dRecForm = $dRec->from;
+        $resData->dRecForm = $dRec->from ?? null;
         
         $resData->tpl = core_Cache::get($resData->cacheType, $resData->cacheKey);
         
@@ -312,7 +312,7 @@ class bgerp_drivers_Tasks extends core_BaseClass
      */
     public function getBlockTabName($dRec)
     {
-        if ($this->isFromMe($dRec->from)) {
+        if ($this->isFromMe($dRec->from ?? null)) {
             
             return tr('Задачи от мен');
         }
@@ -352,7 +352,7 @@ class bgerp_drivers_Tasks extends core_BaseClass
             $userId = core_Users::getCurrent();
         }
         
-        $isFromMe = $this->isFromMe($dRec->from);
+        $isFromMe = $this->isFromMe($dRec->from ?? null);
         
         $cArr = bgerp_Portal::getPortalCacheKey($dRec, $userId);
         $cArr[] = $dRec->showCal ?? null;

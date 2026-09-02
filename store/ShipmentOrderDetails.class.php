@@ -242,7 +242,7 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
                 $canStore = cat_Products::fetchField($rec->productId, 'canStore');
                 if ($canStore == 'yes') {
                     $deliveryDate = !empty($masterRec->deliveryTime) ? $masterRec->deliveryTime : $masterRec->valior;
-                    $storeInfo = deals_Helper::checkProductQuantityInStore($rec->productId, $rec->packagingId, $rec->packQuantity, $masterStore, $deliveryDate, $foundQuantity);
+                    $storeInfo = deals_Helper::checkProductQuantityInStore($rec->productId, $rec->packagingId ?? null, $rec->packQuantity ?? null, $masterStore, $deliveryDate, $foundQuantity);
                     $form->info = $storeInfo->formInfo;
                     if (!empty($foundQuantity) && $foundQuantity > 0) {
                         $form->setSuggestions('baseQuantity', array('' => '', "{$foundQuantity}" => $foundQuantity));
@@ -287,7 +287,7 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
                         $comparedWithPrimeCostObj->primeCost /= $masterRec->currencyRate;
                         $primeCostVerbal = core_Type::getByName('double(smartRound,minDecimals=2)')->toVerbal($comparedWithPrimeCostObj->primeCost * $rec->quantityInPack);
                         $warning = "{$warning}|*: {$primeCostVerbal} {$masterRec->currencyId} |без ДДС|*";
-                        if($comparedWithPrimeCostObj->isCache){
+                        if (!empty($comparedWithPrimeCostObj->isCache)) {
                             $warning .= " (|Кеш|*)";
                         }
                     }

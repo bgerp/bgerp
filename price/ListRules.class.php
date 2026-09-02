@@ -304,7 +304,7 @@ class price_ListRules extends core_Detail
         
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
-        $data->listFilter->FNC('product', "key2(mvc=cat_Products,select=name,showAllInListId={$data->masterId},selectSource=price_ListRules::getSellableProducts)", 'input,caption=Артикул,silent');
+        $data->listFilter->FNC('product', "key2(mvc=cat_Products,select=name,showAllInListId={$data->masterId},selectSource=price_ListRules::getSellableProducts)", 'input,caption=Артикул,placeholderType=all,silent');
         $data->listFilter->FNC('threadId', 'int', 'input=hidden,silent');
         $data->listFilter->setDefault('threadId', $data->masterData->rec->threadId);
         $data->listFilter->showFields = 'product';
@@ -393,7 +393,7 @@ class price_ListRules extends core_Detail
 
                     $price = self::getPrice($parent, $productId, $packagingId, $datetime, $validFrom, false, 1, 'no', $discountIncluded);
                     if (isset($price)) {
-                        if ($rec->calculation == 'reverse') {
+                        if (($rec->calculation ?? null) == 'reverse') {
                             $price = $price / (1 + $rec->discount);
                         } else {
                             $price = $price * (1 + $rec->discount);
@@ -543,7 +543,7 @@ class price_ListRules extends core_Detail
                 $form->setField('discount', 'caption=Отстъпка');
                 $form->setField('groupId,calculation,targetPrice', 'input=none');
                 $data->singleTitle = 'правило за продуктова цена';
-                if (!$rec->id) {
+                if (empty($rec->id)) {
                     $form->setDefault('currency', $masterRec->currency);
                     $form->setDefault('vat', $masterRec->vat);
                 } else {
@@ -588,18 +588,18 @@ class price_ListRules extends core_Detail
         if ($form->isSubmitted()) {
             $now = dt::verbal2mysql();
             
-            if (!$rec->validFrom) {
+            if (empty($rec->validFrom)) {
                 $rec->validFrom = $now;
                 Mode::setPermanent('PRICE_VALID_FROM', null);
             }
             
             // Проверка за грешки и изчисляване на отстъпката, ако е зададена само желаната цена
-            if ($rec->type == 'discount' || $rec->type == 'groupDiscount') {
+            if (in_array($rec->type ?? null, array('discount', 'groupDiscount'))) {
                 if (!isset($rec->discount) && !isset($rec->targetPrice)) {
                     $form->setError('discount,targetPrice', 'Трябва да се зададе стойност или за отстъка или за желана цена');
-                } elseif ($rec->discount && $rec->targetPrice) {
+                } elseif (!empty($rec->discount) && !empty($rec->targetPrice)) {
                     $form->setError('discount,targetPrice', 'Не може да се зададе стойност едновременно за отстъка и за желана цена');
-                } elseif ($rec->targetPrice) {
+                } elseif (!empty($rec->targetPrice)) {
                     $listRec = price_Lists::fetch($rec->listId);
                     expect($listRec->parent);
                     $parentPrice = self::getPrice($listRec->parent, $rec->productId, null, $rec->validFrom);
@@ -619,11 +619,11 @@ class price_ListRules extends core_Detail
                         // В каква валута е този ценоразпис?
                         $currency = $listRec->currency;
                         if (!$currency) {
-                            $currency = acc_Periods::getBaseCurrencyCode($listRec->validFrom);
+                            $currency = acc_Periods::getBaseCurrencyCode($rec->validFrom);
                         }
                         
                         // Конвертираме в базова валута
-                        $parentPrice = currency_CurrencyRates::convertAmount($parentPrice, $listRec->validFrom, $currency);
+                        $parentPrice = currency_CurrencyRates::convertAmount($parentPrice, $rec->validFrom, $currency);
                         $parentPrice = round($parentPrice, 10);
                         
                         if ($rec->calculation == 'reverse') {
@@ -635,11 +635,11 @@ class price_ListRules extends core_Detail
                 }
             }
             
-            if ($rec->validUntil && ($rec->validUntil <= $rec->validFrom)) {
+            if (!empty($rec->validUntil) && ($rec->validUntil <= $rec->validFrom)) {
                 $form->setError('validUntil', 'Правилото трябва да е в сила до по-късен момент от началото му');
             }
 
-            if($rec->currency == 'BGN' && $rec->validFrom >= acc_Setup::getEurozoneDate()) {
+            if (($rec->currency ?? null) == 'BGN' && $rec->validFrom >= acc_Setup::getEurozoneDate()) {
                 $form->setError('currency,validUntil', 'Не може да се задава правило в BGN с период на валидност след влизането в еврозоната|*!');
             }
 
@@ -648,7 +648,7 @@ class price_ListRules extends core_Detail
             }
             
             if (!$form->gotErrors()) {
-                Mode::setPermanent('PRICE_VALID_UNTIL', $rec->validUntil);
+                Mode::setPermanent('PRICE_VALID_UNTIL', $rec->validUntil ?? null);
             }
         }
     }
@@ -753,14 +753,16 @@ class price_ListRules extends core_Detail
         }
         
         // Ако цената има повече от 2 дробни цифри, показва се до 5-я знак, иначе до втория
-        $strlen = strlen(substr(strrchr($rec->price, '.'), 1));
+        $priceStr = (string) ($rec->price ?? '');
+        $decimalPart = strrchr($priceStr, '.');
+        $strlen = ($decimalPart === false) ? 0 : strlen(substr($decimalPart, 1));
         if ($strlen > 2) {
             $mvc->getFieldType('price')->params['decimals'] = 5;
         } else {
             $mvc->getFieldType('price')->params['decimals'] = 2;
         }
         
-        $price = $mvc->getFieldType('price')->toVerbal($rec->price);
+        $price = $mvc->getFieldType('price')->toVerbal($rec->price ?? null);
         
         // Област
         if (isset($rec->productId)) {
@@ -920,7 +922,7 @@ class price_ListRules extends core_Detail
                         $groups[$gRec->id] = cat_Groups::getVerbal($gRec, 'name');
                     }
                     foreach ($recs as $r1) {
-                        $r1->_title = $groups[$r1->groupId];
+                        $r1->_title = $groups[$r1->groupId] ?? '';
                     }
 
                     usort($recs, function ($a, $b) {
@@ -938,7 +940,7 @@ class price_ListRules extends core_Detail
                 if (!$pager->isOnPage())  continue;
 
                 $data->{"rows{$priority}"}[$rec->id] = $this->recToVerbal($rec, arr::combine($data->listFields, '-list'));
-                if (is_object($data->{"rows{$priority}"}[$rec->id]->_rowTools)) {
+                if (isset($data->{"rows{$priority}"}[$rec->id]->_rowTools) && is_object($data->{"rows{$priority}"}[$rec->id]->_rowTools)) {
                     $data->{"rows{$priority}"}[$rec->id]->_rowTools = $data->{"rows{$priority}"}[$rec->id]->_rowTools->renderHtml();
                 }
             }
@@ -1061,6 +1063,7 @@ class price_ListRules extends core_Detail
     public static function getSellableProducts($params, $limit = null, $q = '', $onlyIds = null, $includeHiddens = false)
     {
         $products = array();
+        $listId = $params['listId'] ?? null;
         $pQuery = cat_Products::getQuery();
         
         // Ако има зададен лист, ще се избират всички артикули в него (освен ако вече няма филтър)
@@ -1080,7 +1083,7 @@ class price_ListRules extends core_Detail
             $ids = implode(',', $onlyIds);
             $pQuery->where("#id IN ({$ids})");
         } elseif (ctype_digit("{$onlyIds}")) {
-            $pQuery->where("#id = ${onlyIds}");
+            $pQuery->where("#id = {$onlyIds}");
         } else {
             $pQuery->where("#state != 'closed' AND #state != 'rejected'");
             if (!isset($params['showTemplates'])) {
@@ -1090,14 +1093,12 @@ class price_ListRules extends core_Detail
                 $pQuery->where("#isPublic = 'yes'");
             }
 
-            if ($params['listId'] != price_ListRules::PRICE_LIST_COST) {
+            if ($listId != price_ListRules::PRICE_LIST_COST) {
                 $pQuery->where("#canSell = 'yes'");
             }
             
-            if (isset($params['listId'])) {
-                if ($params['listId'] == price_ListRules::PRICE_LIST_COST) {
-                    $pQuery->orWhere("#generic = 'yes'");
-                }
+            if ($listId == price_ListRules::PRICE_LIST_COST) {
+                $pQuery->orWhere("#generic = 'yes'");
             }
             
             // Ако има подадени групи се филтрира по тях

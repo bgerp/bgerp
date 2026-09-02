@@ -130,23 +130,33 @@ class cash_reports_NonCashPaymentReports extends frame2_driver_TableData
     protected function prepareRecs($rec, &$data = null)
     {
         $recs = array();
-        setIfNot($rec->to, dt::addDays(0, null, false));
+        $rec->from = $rec->from ?? '2020-02-01';
+        $rec->to = $rec->to ?? dt::addDays(0, null, false);
+        $rec->pkoCase = $rec->pkoCase ?? null;
+        $rec->see = $rec->see ?? 'notIn';
+        $rec->orderBy = $rec->orderBy ?? 'pkoId';
+
         $nonCashQuery = cash_NonCashPaymentDetails::getQuery();
         $pkoClassId = cash_Pko::getClassId();
         $nonCashQuery->where("#classId = {$pkoClassId}");
+        $nonCashRecs = $nonCashQuery->fetchAll();
         //Масив с id-та на ПКО-та по които има избрани безналични методи на плащане
-        $pkoWitnNonCashPaymentsArr = arr::extractValuesFromArray($nonCashQuery->fetchAll(), 'objectId');
+        $pkoWitnNonCashPaymentsArr = arr::extractValuesFromArray($nonCashRecs, 'objectId');
         
         
         $pkoNonCashAmount = array();
-        while ($nonRec = $nonCashQuery->fetch()) {
+        foreach ($nonCashRecs as $nonRec) {
+            if (empty($nonRec->objectId)) {
+                continue;
+            }
+
             if (! array_key_exists($nonRec->objectId, $pkoNonCashAmount)) {
-                $pkoNonCashAmount[$nonRec->objectId] = (object) array('nonCashPaymentAmount' => $nonRec->amount,
-                                                                        'nonCashPaymentId' => $nonRec->paymentId
+                $pkoNonCashAmount[$nonRec->objectId] = (object) array('nonCashPaymentAmount' => $nonRec->amount ?? 0,
+                                                                        'nonCashPaymentId' => $nonRec->paymentId ?? null
                                                                         );
                                                                         } else {
                                                                             $obj = & $pkoNonCashAmount[$nonRec->objectId];
-                                                                            $obj->nonCashPaymentAmount += $nonRec->amount;
+                                                                            $obj->nonCashPaymentAmount += $nonRec->amount ?? 0;
                                                                         }
         }
         
@@ -190,8 +200,14 @@ class cash_reports_NonCashPaymentReports extends frame2_driver_TableData
             $id = $pkoRec->id;
             $stateArr = array('active', 'closed');
             $pkoTransferedSumm = 0;
-            if (is_array($intenalMoneyTrArr[$pkoRec->containerId])){
-                foreach ($intenalMoneyTrArr[$pkoRec->containerId] as $val){
+            $internalMoneyTransfers = $intenalMoneyTrArr[$pkoRec->containerId] ?? array();
+            $nonCashPayment = $pkoNonCashAmount[$pkoRec->id] ?? null;
+            if (!$nonCashPayment) {
+                continue;
+            }
+
+            if (is_array($internalMoneyTransfers)){
+                foreach ($internalMoneyTransfers as $val){
                 
                     if(in_array($val->state, $stateArr)){
                         $pkoTransferedSumm += $val->amount;
@@ -199,9 +215,9 @@ class cash_reports_NonCashPaymentReports extends frame2_driver_TableData
                 }
             }
           
-           if ($rec->see == 'notIn' && $pkoNonCashAmount[$pkoRec->id]->nonCashPaymentAmount == $pkoTransferedSumm)continue;
+           if ($rec->see == 'notIn' && $nonCashPayment->nonCashPaymentAmount == $pkoTransferedSumm)continue;
            
-           $pkoInvoice = $pkoRec->fromContainerId;
+           $pkoInvoice = $pkoRec->fromContainerId ?? null;
            
            if(!$pkoInvoice){
                
@@ -225,17 +241,17 @@ class cash_reports_NonCashPaymentReports extends frame2_driver_TableData
                     'currencyId' => $pkoRec->currencyId,
                     'containerId' => $pkoRec->containerId,
                     
-                    'pkoAmount' => $pkoNonCashAmount[$pkoRec->id]->nonCashPaymentAmount,
+                    'pkoAmount' => $nonCashPayment->nonCashPaymentAmount,
                     'pkoTransferedSumm' => $pkoTransferedSumm,
-                    'pkoNonCashPaymentId' => $pkoNonCashAmount[$pkoRec->id]->nonCashPaymentId,
-                    'inTransferMoney' => $intenalMoneyTrArr[$pkoRec->containerId],
+                    'pkoNonCashPaymentId' => $nonCashPayment->nonCashPaymentId,
+                    'inTransferMoney' => $internalMoneyTransfers,
                 
                 );
             }
         }
         
         
-        if (! is_null($recs)) {
+        if (!empty($recs)) {
             arr::sortObjects($recs, $rec->orderBy, 'asc');
         }
         
@@ -298,6 +314,7 @@ class cash_reports_NonCashPaymentReports extends frame2_driver_TableData
         $Double->params['decimals'] = 2;
         
         $row = new stdClass();
+        $sum = 0;
         if (isset($dRec->contragentName)) {
             $row->contragentName = $dRec->contragentName;
         }
@@ -307,8 +324,8 @@ class cash_reports_NonCashPaymentReports extends frame2_driver_TableData
         }
         
         
-        if (is_array($dRec->inTransferMoney)) {
-            $sum = 0;
+        if (is_array($dRec->inTransferMoney ?? null)) {
+            $row->transfer = $row->amount = '';
             foreach ($dRec->inTransferMoney as $val) {
                 $state = $val->state;
                 
@@ -318,11 +335,11 @@ class cash_reports_NonCashPaymentReports extends frame2_driver_TableData
                 $color = $inAmount == 0 ? 'blue': 'black' ;
                 $sum += $inAmount;
                 if ($state == 'pending' || $state == 'draft') {
-                    $row->transfer .= "<div><span class= 'state-{$state} document-handler' >".ht::createLink("Cvt#$val->id", $url, false, array()).'</div>';
-                    $row->amount .= "<span style='color: {$color}'>".$Double->toVerbal($inAmount).'</br>';
+                    $row->transfer = ($row->transfer ?? '') . "<div><span class= 'state-{$state} document-handler' >".ht::createLink("Cvt#$val->id", $url, false, array()).'</div>';
+                    $row->amount = ($row->amount ?? '') . "<span style='color: {$color}'>".$Double->toVerbal($inAmount).'</br>';
                 } else {
-                    $row->transfer .= ht::createLink("Cvt#$val->id", $url, false, array()).'</br>';
-                    $row->amount .= "<span style='color: {$color}'>".$Double->toVerbal($inAmount).'</br>';
+                    $row->transfer = ($row->transfer ?? '') . ht::createLink("Cvt#$val->id", $url, false, array()).'</br>';
+                    $row->amount = ($row->amount ?? '') . "<span style='color: {$color}'>".$Double->toVerbal($inAmount).'</br>';
                 }
             }
         }
@@ -350,13 +367,13 @@ class cash_reports_NonCashPaymentReports extends frame2_driver_TableData
                 
                 $url['operationSysId'] = 'nonecash2bank';
                 $toolbar->addLink('Инкасиране(Банка)', $url, 'ef_icon = img/16/own-bank.png,title=Създаване на вътрешно касов трансфер  за инкасиране на безналично плащане по банка');
-                $row->pko .= ' - '.$toolbar->renderHtml(2);
+                $row->pko = ($row->pko ?? '') . ' - '.$toolbar->renderHtml(2);
             }
         }
         
         if (isset($dRec->invoice)) {
             
-            if(!is_array($dRec->invoice)){
+            if(!is_array($dRec->invoice ?? null)){
             
             $Invoice = doc_Containers::getDocument($dRec->invoice);
             
@@ -383,7 +400,7 @@ class cash_reports_NonCashPaymentReports extends frame2_driver_TableData
                     
                     $url = toUrl(array("sales_Invoices",'single', $Invoice->that));
                     
-                    $row->invoiceNum .=ht::createLink($handle, $url, false, array())."</br>";
+                    $row->invoiceNum =($row->invoiceNum ?? '') . ht::createLink($handle, $url, false, array())."</br>";
                     
                 }
             }
@@ -460,26 +477,28 @@ class cash_reports_NonCashPaymentReports extends frame2_driver_TableData
         $Date = cls::get('type_Date');
         $Double = cls::get('type_Double');
         $Double->params['decimals'] = 2;
+        $sum = 0;
         
         $res->pko = "Pko #$dRec->pkoId".' / '.$Date->toVerbal($dRec->pkoValior);
         $res->pkoAmount = $Double->toVerbal($dRec->pkoAmount);
        
         
-        if (is_array($dRec->inTransferMoney)) {
-            $sum = 0;$marker = 0;
+        if (is_array($dRec->inTransferMoney ?? null)) {
+            $marker = 0;
+            $res->transfer = $res->amount = '';
             foreach ($dRec->inTransferMoney as $val) {
                 $marker ++;
                 $inAmount = ($val->state == 'pending' || $val->state == 'draft') ? 0 : $val->amount;
                 
                 $sum += $inAmount;
                 
-                $res->transfer .= "Cvt#$val->id";
-                $res->amount .= $Double->toVerbal($inAmount);
+                $res->transfer = ($res->transfer ?? '') . "Cvt#$val->id";
+                $res->amount = ($res->amount ?? '') . $Double->toVerbal($inAmount);
                 
                 
                 if ((countR($dRec->inTransferMoney)) - $marker != 0) {
-                $res->transfer .= ' |';
-                $res->amount .= ' |';
+                $res->transfer = ($res->transfer ?? '') . ' |';
+                $res->amount = ($res->amount ?? '') . ' |';
                 }
                 
                 
@@ -490,10 +509,11 @@ class cash_reports_NonCashPaymentReports extends frame2_driver_TableData
         
        
             
-            if (is_array($dRec->invoice)){
+            if (is_array($dRec->invoice ?? null)){
+                $res->invoiceNum = '';
                 
                 if(!empty($dRec->invoice)){
-                    $res->invoiceNum .='За избор: ';
+                    $res->invoiceNum =($res->invoiceNum ?? '') . 'За избор: ';
                 }
                 $marker = 0;
                 foreach ($dRec->invoice as $val){ 
@@ -504,10 +524,10 @@ class cash_reports_NonCashPaymentReports extends frame2_driver_TableData
                     
                     $handle = "Inv#$invRec->number";
                     
-                    $res->invoiceNum .=$handle;
+                    $res->invoiceNum =($res->invoiceNum ?? '') . $handle;
                     
                     if ((countR($dRec->invoice)) - $marker != 0) {
-                        $res->invoiceNum .=" |";
+                        $res->invoiceNum =($res->invoiceNum ?? '') . " |";
                     }
                 }
                 

@@ -162,8 +162,8 @@ class bgfisc_Register extends core_Manager
         $query->useIndex('cash_reg_num_number');
         $query->limit(1);
         
-        $number = $query->fetch()->number;
-        $number = isset($number) ? str::increment($number) : $firstNum;
+        $lastRec = $query->fetch();
+        $number = $lastRec ? str::increment($lastRec->number) : $firstNum;
 
         return $number;
     }
@@ -196,16 +196,23 @@ class bgfisc_Register extends core_Manager
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-        $Class = cls::get($rec->classId);
-        $row->objectId = $Class->getHyperlink($rec->objectId, true);
-        
-        $receiptNum = bgfisc_PrintedReceipts::count("#urnId = {$rec->id}");
-        $row->receiptNums = core_Type::getByName('int')->toVerbal($receiptNum);
-        $row->urn = ht::createLink($row->urn, array('bgfisc_PrintedReceipts', 'list', 'search' => $rec->urn));
-        $row->cashRegNum = ht::createLink($row->cashRegNum, array('bgfisc_PrintedReceipts', 'list', 'search' => $rec->cashRegNum));
-        
-        $state = $Class->fetchField($rec->objectId, 'state');
-        $row->objectId = "<span class='state-{$state} document-handler'>{$row->objectId}</span>";
+        if (isset($rec->classId, $rec->objectId)) {
+            $Class = cls::get($rec->classId);
+            $row->objectId = $Class->getHyperlink($rec->objectId, true);
+            $state = $Class->fetchField($rec->objectId, 'state');
+            $row->objectId = "<span class='state-{$state} document-handler'>{$row->objectId}</span>";
+        }
+
+        if (isset($rec->id)) {
+            $receiptNum = bgfisc_PrintedReceipts::count("#urnId = {$rec->id}");
+            $row->receiptNums = core_Type::getByName('int')->toVerbal($receiptNum);
+        }
+        if (isset($row->urn, $rec->urn)) {
+            $row->urn = ht::createLink($row->urn, array('bgfisc_PrintedReceipts', 'list', 'search' => $rec->urn));
+        }
+        if (isset($row->cashRegNum, $rec->cashRegNum)) {
+            $row->cashRegNum = ht::createLink($row->cashRegNum, array('bgfisc_PrintedReceipts', 'list', 'search' => $rec->cashRegNum));
+        }
     }
     
     
@@ -221,6 +228,7 @@ class bgfisc_Register extends core_Manager
     {
         $Class = cls::get($class);
         $rec = $Class->fetchRec($objectId);
+        if (!is_object($rec)) return false;
         
         return self::fetch("#classId = {$Class->getClassId()} AND #objectId = '{$rec->id}'");
     }
@@ -269,7 +277,9 @@ class bgfisc_Register extends core_Manager
         if ($Class instanceof cash_Document) {
             
             // Форсира се УНП-то на продажбата му
-            $threadId = $Class->fetchRec($objectId, 'threadId')->threadId;
+            $objectRec = $Class->fetchRec($objectId, 'threadId');
+            expect(is_object($objectRec));
+            $threadId = $objectRec->threadId;
             expect($firstDoc = doc_Threads::getFirstDocument($threadId));
             
             // Това УНП ще се използва
@@ -334,6 +344,7 @@ class bgfisc_Register extends core_Manager
         $data->listFilter->showFields .= 'search,userId';
         $data->listFilter->view = 'horizontal';
         $data->listFilter->setFieldTypeParams('userId', array('allowEmpty' => 'allowEmpty'));
+        $data->listFilter->setField('userId', 'placeholderType=all');
         $data->listFilter->input();
         
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
@@ -365,9 +376,8 @@ class bgfisc_Register extends core_Manager
             $arr = explode('-', $urn); 
         }
         
-        $cashRegNum = strtolower($arr[0]);
-        $userHash = $arr[1];
-        $number = $arr[2];
+        list($cashRegNum, $userHash, $number) = array_pad($arr, 3, null);
+        $cashRegNum = strtolower($cashRegNum ?? '');
         
         // @todo временно 
         // @todo да се направи да работи със УНП на стара продажба
@@ -440,7 +450,7 @@ class bgfisc_Register extends core_Manager
 
         if($serial == bgfisc_Register::WITHOUT_REG_NUM){
 
-            return "<i style='color:blue;'>" . tr('Без') . "</i>";
+            return "<i class='blueText'>" . tr('Без') . "</i>";
         } else {
             $fuRec = peripheral_Devices::getDevice('peripheral_FiscPrinterIntf', false, array('serialNumber' => $serial));
             if (!empty($fuRec)) {
@@ -479,7 +489,7 @@ class bgfisc_Register extends core_Manager
     public static function doRequireFiscForConto($mvc, $rec)
     {
         $serialNum = null;
-        $caseId = ($mvc instanceof sales_Sales) ? $rec->caseId : (($rec->peroCase) ? $rec->peroCase : $mvc->getDefaultCase($rec));
+        $caseId = ($mvc instanceof sales_Sales) ? $rec->caseId : (($rec->peroCase ?? null) ? $rec->peroCase : $mvc->getDefaultCase($rec));
         bgfisc_Register::getFiscDevice($caseId, $serialNum);
 
         return $serialNum != bgfisc_Register::WITHOUT_REG_NUM;

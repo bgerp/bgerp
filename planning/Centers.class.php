@@ -166,6 +166,8 @@ class planning_Centers extends core_Master
                                  organization=Учреждение)', 'caption=Тип, mandatory,width=100%');
         $this->FLD('departmentId', 'key(mvc=hr_Departments,select=name)', 'caption=В състава на,silent');
         $this->FLD('planningParams', 'keylist(mvc=cat_Params,select=typeExt)', 'caption=Параметри за планиране->Списък');
+        $this->FLD('planningParamSimilarity', 'percent(Min=0,Max=1,decimals=0)', 'caption=Параметри за планиране->Автоматично групиране на операциите на база подобни планиращи параметри при->Съвпадение над,placeholder=Автоматично,unit=%');
+        $this->FLD('planningParamGroupDays', 'int(Min=1)', 'caption=Параметри за планиране->Автоматично групиране на операциите на база подобни планиращи параметри при->Период до,placeholder=Автоматично,unit=дни');
         $this->FLD('showTaskPlanningParams', 'enum(yes=Само те, yesAdd=Допълват останалите, no=Не)', 'caption=Параметрите от Етапа да са планиращи (при филтриране по Етап)->Избор,notNull,value=no');
         $this->FLD('nkid', 'key(mvc=bglocal_NKID, select=title,allowEmpty=true)', 'caption=Служители->НКИД, hint=Номер по НКИД');
         $this->FLD('employmentTotal', 'int', 'caption=Служители->Щат, input=none');
@@ -307,43 +309,54 @@ class planning_Centers extends core_Master
             $row->scheduleId = hr_Schedules::getHyperlink($rec->scheduleId, true);
         }
 
+        if (isset($fields['-single']) && !isset($rec->planningParamSimilarity)) {
+            $defaultSimilarity = planning_Setup::get('TASK_PARAM_GROUP_SIMILARITY');
+            $row->planningParamSimilarity = $mvc->getFieldType('planningParamSimilarity')->toVerbal($defaultSimilarity);
+            $row->planningParamSimilarity = ht::createHint("<span class='quiet'>{$row->planningParamSimilarity}</span>", 'Стойност по подразбиране от настройките на пакет „Планиране“', 'notice', false);
+        }
+        if (isset($fields['-single']) && !isset($rec->planningParamGroupDays)) {
+            $defaultDays = planning_Setup::get('TASK_PARAM_GROUP_DAYS');
+            $row->planningParamGroupDays = $mvc->getFieldType('planningParamGroupDays')->toVerbal($defaultDays);
+            $row->planningParamGroupDays = ht::createHint("<span class='quiet'>{$row->planningParamGroupDays}</span>", 'Стойност по подразбиране от настройките на пакет „Планиране“', 'notice', false);
+        }
+
         $row->hrGroupId = crm_Groups::getHyperlink(static::getEmployeesGroupId($rec));
 
         if($rec->mandatoryOperatorsInTasks == 'auto'){
             $row->mandatoryOperatorsInTasks = $mvc->getFieldType('mandatoryOperatorsInTasks')->toVerbal(planning_Setup::get('TASK_PROGRESS_OPERATOR'));
-            $row->mandatoryOperatorsInTasks = ht::createHint("<span style='color:blue'>{$row->mandatoryOperatorsInTasks}</span>", 'По подразбиране', 'notice', false);
+            $row->mandatoryOperatorsInTasks = ht::createHint("<span class='blueText'>{$row->mandatoryOperatorsInTasks}</span>", 'По подразбиране', 'notice', false);
         }
 
         if($rec->autoCreateTaskState == 'auto'){
             $row->autoCreateTaskState = $mvc->getFieldType('autoCreateTaskState')->toVerbal(planning_Setup::get('AUTO_CREATE_TASK_STATE'));
-            $row->autoCreateTaskState = ht::createHint("<span style='color:blue'>{$row->autoCreateTaskState}</span>", 'По подразбиране', 'notice', false);
+            $row->autoCreateTaskState = ht::createHint("<span class='blueText'>{$row->autoCreateTaskState}</span>", 'По подразбиране', 'notice', false);
         }
 
         if($rec->autoAddConvertableInTask == 'auto'){
             $row->autoAddConvertableInTask = $mvc->getFieldType('autoAddConvertableInTask')->toVerbal(planning_Setup::get('AUTO_ADD_CONVERTABLE_TO_TASK'));
-            $row->autoAddConvertableInTask = ht::createHint("<span style='color:blue'>{$row->autoAddConvertableInTask}</span>", 'По подразбиране', 'notice', false);
+            $row->autoAddConvertableInTask = ht::createHint("<span class='blueText'>{$row->autoAddConvertableInTask}</span>", 'По подразбиране', 'notice', false);
         }
 
         if($rec->showPreviousJobField == 'auto'){
             $row->showPreviousJobField = $mvc->getFieldType('showPreviousJobField')->toVerbal(planning_Setup::get('SHOW_PREVIOUS_JOB_FIELD_IN_TASK'));
-            $row->showPreviousJobField = ht::createHint("<span style='color:blue'>{$row->showPreviousJobField}</span>", 'По подразбиране', 'notice', false);
+            $row->showPreviousJobField = ht::createHint("<span class='blueText'>{$row->showPreviousJobField}</span>", 'По подразбиране', 'notice', false);
         }
 
         if($rec->showSerialWarningOnDuplication == 'auto'){
             $row->showSerialWarningOnDuplication = $mvc->getFieldType('showSerialWarningOnDuplication')->toVerbal(planning_Setup::get('WARNING_DUPLICATE_TASK_PROGRESS_SERIALS'));
-            $row->showSerialWarningOnDuplication = ht::createHint("<span style='color:blue'>{$row->showSerialWarningOnDuplication}</span>", 'По подразбиране', 'notice', false);
+            $row->showSerialWarningOnDuplication = ht::createHint("<span class='blueText'>{$row->showSerialWarningOnDuplication}</span>", 'По подразбиране', 'notice', false);
         }
 
         if($rec->allowDuplicateSerialProgress == 'auto'){
             $row->allowDuplicateSerialProgress = $mvc->getFieldType('allowDuplicateSerialProgress')->toVerbal(planning_Setup::get('ALLOW_SERIAL_IN_DIFF_TASKS'));
-            $row->allowDuplicateSerialProgress = ht::createHint("<span style='color:blue'>{$row->allowDuplicateSerialProgress}</span>", 'По подразбиране', 'notice', false);
+            $row->allowDuplicateSerialProgress = ht::createHint("<span class='blueText'>{$row->allowDuplicateSerialProgress}</span>", 'По подразбиране', 'notice', false);
         }
 
-        $row->deviationNettoWarning = isset($rec->deviationNettoWarning) ? $row->deviationNettoWarning : ht::createHint("<span style='color:blue'>{$mvc->getFieldType('deviationNettoWarning')->toVerbal(planning_Setup::get('TASK_NET_WEIGHT_WARNING'))}</span>", 'Автоматично', 'notice', false);
+        $row->deviationNettoWarning = isset($rec->deviationNettoWarning) ? $row->deviationNettoWarning : ht::createHint("<span class='blueText'>{$mvc->getFieldType('deviationNettoWarning')->toVerbal(planning_Setup::get('TASK_NET_WEIGHT_WARNING'))}</span>", 'Автоматично', 'notice', false);
 
         if(empty($rec->showMaxPreviousTasksInATask)){
             $row->showMaxPreviousTasksInATask = $mvc->getFieldType('showMaxPreviousTasksInATask')->toVerbal(planning_Setup::get('SHOW_PREVIOUS_TASK_BLOCKS'));
-            $row->showMaxPreviousTasksInATask = ht::createHint("<span style='color:blue'>{$row->showMaxPreviousTasksInATask}</span>", 'По подразбиране', 'notice', false);
+            $row->showMaxPreviousTasksInATask = ht::createHint("<span class='blueText'>{$row->showMaxPreviousTasksInATask}</span>", 'По подразбиране', 'notice', false);
         }
 
         if(isset($rec->useTareFromParamId) && isset($row->useTareFromParamMeasureId)){
@@ -517,7 +530,8 @@ class planning_Centers extends core_Master
     {
         // Искаме състоянието на оттеглените чернови да се казва 'Анулиран'
         if ($part == 'name') {
-            if ($rec->id == self::UNDEFINED_ACTIVITY_CENTER_ID) {
+            $recId = is_object($rec) ? ($rec->id ?? null) : $rec;
+            if ($recId == self::UNDEFINED_ACTIVITY_CENTER_ID) {
                 $num = planning_Setup::get('UNDEFINED_CENTER_DISPLAY_NAME');
             }
         }

@@ -48,7 +48,7 @@ class bgtaxes_plg_SaleInvoiceDetail extends core_Plugin
             // Показване на подсказка с текущия акциз
             $exciseId = cat_Params::fetchIdBySysId('exciseBgn');
             $params = cat_Products::getParams($rec->productId);
-            $form->setField('exciseTax', array('placeholder' => $params[$exciseId], 'unit' => $fieldUnit));
+            $form->setField('exciseTax', array('placeholder' => $params[$exciseId] ?? null, 'unit' => $fieldUnit));
 
             // Показване на подсказка с текущата продуктова такса
             if($data->masterRec->contragentCountryId == drdata_Countries::getIdByName('Bulgaria')){
@@ -81,7 +81,9 @@ class bgtaxes_plg_SaleInvoiceDetail extends core_Plugin
     {
         // Ако няма акциз се записва
         $exciseId = cat_Params::fetchIdBySysId('exciseBgn');
-        if(!isset($rec->exciseTax)){
+
+        // Параметърът може да е дефиниран, но артикулът да няма стойност по него
+        if(!isset($rec->exciseTax) && !empty($exciseId) && isset($params[$exciseId])){
             $rec->exciseTax = $params[$exciseId];
             $res = true;
         }

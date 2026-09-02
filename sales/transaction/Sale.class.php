@@ -151,7 +151,7 @@ class sales_transaction_Sale extends acc_DocumentTransactionSource
         }
 
         $transaction = (object) array(
-            'reason' => 'Продажба #' . $rec->id,
+            'reason' => 'Продажба #' . ($rec->id ?? ''),
             'valior' => $rec->valior,
             'entries' => $entries,
         );
@@ -467,7 +467,7 @@ class sales_transaction_Sale extends acc_DocumentTransactionSource
         // Извличаме тези, отнасящи се за експедиране
         $dInfo = acc_Balances::getBlAmounts($jRecs, $accs, 'credit');
         
-        if (!countR($dInfo->recs)) {
+        if (!countR($dInfo->recs ?? null)) {
             
             return $res;
         }
@@ -560,7 +560,10 @@ class sales_transaction_Sale extends acc_DocumentTransactionSource
     public static function getBlAmount($jRecs, $id)
     {
         $rec = sales_Sales::fetchRec($id);
+        if (!is_object($rec)) return 0;
+
         $itemRec = acc_Items::fetchItem('sales_Sales', $rec->id);
+        if (!is_object($itemRec)) return 0;
 
         $useCurrencyField = !in_array($rec->currencyId, array('EUR', 'BGN'));
         $paid = acc_Balances::getBlAmounts($jRecs, '411', null, null, array(null, $itemRec->id, null), array(), $rec->valior, $useCurrencyField)->amount;
@@ -577,7 +580,10 @@ class sales_transaction_Sale extends acc_DocumentTransactionSource
     public static function getDeliveryAmount($jRecs, $id)
     {
         $rec = sales_Sales::fetchRec($id);
+        if (!is_object($rec)) return 0;
+
         $itemRec = acc_Items::fetchItem('sales_Sales', $rec->id);
+        if (!is_object($itemRec)) return 0;
 
         $useCurrencyField = !in_array($rec->currencyId, array('EUR', 'BGN'));
         $delivered = acc_Balances::getBlAmounts($jRecs, '411', 'debit', null, array(null, $itemRec->id, null), array(), $rec->valior, $useCurrencyField)->amount;
@@ -609,12 +615,12 @@ class sales_transaction_Sale extends acc_DocumentTransactionSource
         $Class = cls::get($class);
         core_Debug::startTimer('FAST_PRODUCTION_ENTRIES');
         $entries = $bomDataCombined = array();
-        if(!is_array($rec->details)) return $entries;
+        if(!is_array($rec->details ?? null)) return $entries;
 
-        $storeId = $rec->{$storeField};
+        $storeId = $rec->{$storeField} ?? null;
         if($Class instanceof pos_Reports){
             $pointRec = pos_Points::fetch($rec->pointId);
-            $storeId = !empty($storeId) ? $storeId : $pointRec->storeId;
+            $storeId = !empty($storeId) ? $storeId : ($pointRec->storeId ?? null);
         }
 
         foreach ($rec->details as $dRec1){

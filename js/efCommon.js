@@ -1,5 +1,9 @@
 var shortURL;
-var hitState = {};
+// Ако файлът се зареди повторно (напр. по AJAX), кешът да не се нулира -
+// иначе getHitState() почва да връща 'refresh' и авто-фокусът спира да работи.
+var hitState = window.hitState || {};
+// Дали в момента формата се възстановява от сесията (при връщане назад)
+var isRestoringFormData = false;
 var self = this;
 
 function spr(sel, refresh, from, to) {
@@ -44,23 +48,96 @@ function spr(sel, refresh, from, to) {
 
 
 /**
+ * Репортва JS грешка на сървъра (bgerp_A::wp)
+ *
+ * Безопасна е за викане от catch блок - никога не хвърля и нищо не връща.
+ * Ползва директно $.ajax, а не efae, за да не влиза в машинарията, която
+ * евентуално току-що е гръмнала.
+ *
+ * Праща по един репорт на уникална грешка - иначе грешка в цикъл, интервал
+ * или scroll хендлър праща заявка при всяко задействане.
+ *
+ * @param string errType - вид на грешката, напр. 'JS render error'
+ * @param mixed  err     - хванатото изключение или съобщение
+ * @param object data    - допълнителни данни за конкретното място (по избор)
+ */
+function reportErr(errType, err, data) {
+    try {
+
+        var type = errType || 'JS error';
+
+        // Само един репорт на вид грешка за хита - следващият от същия вид тръгва
+        // чак след презареждане на страницата. Страницата живее дълго заради efae,
+        // а повтаряща се грешка иначе залива сървъра.
+        // hasOwnProperty, за да не се хванем на наследено свойство ('constructor' и т.н.)
+        window.reportedErr = window.reportedErr || {};
+
+        if (window.reportedErr.hasOwnProperty(type)) return;
+
+        // `typeof $.ajax` хвърля ReferenceError, ако `$` изобщо липсва - това е
+        // напълно възможно при ранна грешка, преди jQuery да е зареден
+        if ((typeof $ == 'undefined') || (typeof $.ajax == 'undefined')) return;
+
+        var reportData = {
+            errType: type,
+            currUrl: window.location.href,
+            error: String(err).substring(0, 1000)
+        };
+
+        // Данните от конкретното място не могат да презапишат горните
+        for (var key in data) {
+            if (!data.hasOwnProperty(key) || (typeof reportData[key] != 'undefined')) continue;
+
+            var val = data[key];
+
+            // Липсващите стойности само шумят в репорта - `arg : (string) undefined`
+            if ((val === null) || (typeof val == 'undefined')) continue;
+
+            if (typeof val == 'object') {
+                try {
+                    val = JSON.stringify(val);
+                } catch (e) {
+                    val = '[не може да се сериализира]';
+                }
+            }
+
+            reportData[key] = String(val).substring(0, 1000);
+        }
+
+        window.reportedErr[type] = true;
+
+        $.ajax({
+            // wpAjaxUrl идва от page_Html::addJs(); резервният адрес е
+            // верен само при инсталация в корена на домейна
+            url: (typeof wpAjaxUrl != 'undefined') ? wpAjaxUrl : "/A/wp/",
+
+            // Диагностиката да не задейства глобалните ajaxStart/ajaxStop
+            // хендлъри - те пипат скрола при iframe.autoHeight
+            global: false,
+            data: reportData
+        })
+    } catch (e) {
+
+        // Репортът е само диагностика - не бива да вдига нова грешка
+    }
+}
+
+
+/**
  * Опитваме се да репортнем JS грешките
  */
 window.onerror = function (errorMsg, url, lineNumber, columnNum, errorObj) {
 
-    if (typeof $.ajax != 'undefined') {
-        $.ajax({
-            url: "/A/wp/",
-            data: {
-                errType: 'JS error',
-                currUrl: window.location.href,
-                error: errorMsg,
-                script: url,
-                line: lineNumber,
-                column: columnNum
-            }
-        })
-    }
+    // Браузърът скрива детайлите за грешки във външни скриптове без CORS
+    // като `Script error.` с празен URL и позиция 0:0. Такъв репорт не може
+    // да се диагностицира и не трябва да измества следваща реална JS грешка.
+    var opaqueScriptError = errorMsg === 'Script error.' &&
+        !url && (!lineNumber || lineNumber == 0) &&
+        (!columnNum || columnNum == 0) && !errorObj;
+
+    if (opaqueScriptError) return false;
+
+    reportErr('JS error', errorMsg, {script: url, line: lineNumber, column: columnNum});
 }
 
 function runOnLoad(functionName) {
@@ -94,6 +171,106 @@ function fadeImages(el, transition, delay) {
 
 
 /**
+ * Позиционира балонче спрямо viewport-а, за да не се реже от скролиращ контейнер
+ *
+ * preferAbove - балончето да е над анкера, както е при обикновения хинт
+ */
+function positionAdditionalInfo(element, anchor, preferAbove) {
+    if (!element || !anchor || !$(element).is(':visible')) {
+        return;
+    }
+
+    var margin = 10;
+    var gap = 6;
+    var viewportWidth = document.documentElement.clientWidth;
+    var viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+    var anchorRect = anchor.getBoundingClientRect();
+    var tooltip = $(element);
+
+    // 'right' и 'bottom' се неутрализират, за да не разтягат балончето при подравняващ клас
+    tooltip.css({
+        'right': 'auto',
+        'bottom': 'auto',
+        'max-width': Math.max(0, viewportWidth - 2 * margin),
+        'max-height': Math.max(0, viewportHeight - 2 * margin),
+        'overflow': 'auto'
+    });
+
+    var tooltipRect = tooltip.get(0).getBoundingClientRect();
+    var spaceAbove = anchorRect.top - margin - gap;
+    var spaceBelow = viewportHeight - anchorRect.bottom - margin - gap;
+    var top;
+
+    if (preferAbove) {
+        if (tooltipRect.height <= spaceAbove || spaceAbove >= spaceBelow) {
+            top = anchorRect.top - tooltipRect.height - gap;
+        } else {
+            top = anchorRect.bottom + gap;
+        }
+    } else if (tooltipRect.height <= spaceBelow || spaceBelow >= spaceAbove) {
+        top = anchorRect.bottom + gap;
+    } else {
+        top = anchorRect.top - tooltipRect.height - gap;
+    }
+
+    top = Math.max(margin, Math.min(top, viewportHeight - tooltipRect.height - margin));
+
+    var left = anchorRect.left;
+    if (left + tooltipRect.width > viewportWidth - margin) {
+        left = anchorRect.right - tooltipRect.width;
+    }
+    left = Math.max(margin, Math.min(left, viewportWidth - tooltipRect.width - margin));
+
+    tooltip.css({top: Math.round(top), left: Math.round(left)});
+}
+
+
+/**
+ * Показва при hover балончетата на ht::createHint, извън скролиращия контейнер
+ */
+function hoverTooltip() {
+    var hovered;
+    var hoveredAnchor;
+    var hoveredScrollParents;
+
+    function repositionHovered() {
+        positionAdditionalInfo(hovered, hoveredAnchor, true);
+    }
+
+    function resetHovered(element) {
+        $(element).removeClass('viewport-positioned').css({top: '', left: '', right: '', bottom: '', 'max-width': '', 'max-height': '', overflow: ''});
+        if (hoveredScrollParents) {
+            hoveredScrollParents.off('scroll.hoverHintTooltip');
+            hoveredScrollParents = null;
+        }
+        hovered = null;
+        hoveredAnchor = null;
+    }
+
+    $('body').on('mouseenter', '.additionalInfo-holder.hoverHint', function () {
+        var element = $(this).children('.additionalInfo').get(0);
+        if (!element) {
+            return;
+        }
+
+        hovered = element;
+        hoveredAnchor = this;
+        hoveredScrollParents = $(this).parents();
+        hoveredScrollParents.on('scroll.hoverHintTooltip', repositionHovered);
+
+        $(element).addClass('viewport-positioned').css({top: 0, left: 0});
+        repositionHovered();
+    });
+
+    $('body').on('mouseleave', '.additionalInfo-holder.hoverHint', function () {
+        resetHovered($(this).children('.additionalInfo'));
+    });
+
+    $(window).off('.hoverHintTooltip').on('resize.hoverHintTooltip scroll.hoverHintTooltip', repositionHovered);
+}
+
+
+/**
  *  Показва тултип с данни идващи от ajax
  */
 function showTooltip() {
@@ -102,12 +279,34 @@ function showTooltip() {
     }
     // Ако има тултипи
     var element;
+    var tooltipAnchor;
+    var tooltipResizeObserver;
+    var tooltipScrollParents;
 
     var cachedArr = new Array();
 
+    function closeTooltip() {
+        if (typeof element != 'undefined') {
+            $(element).hide().removeClass('viewport-positioned bottom left right');
+        }
+        if (tooltipResizeObserver) {
+            tooltipResizeObserver.disconnect();
+            tooltipResizeObserver = null;
+        }
+        if (tooltipScrollParents) {
+            tooltipScrollParents.off('scroll.additionalInfoTooltip');
+            tooltipScrollParents = null;
+        }
+        tooltipAnchor = null;
+    }
+
+    function positionTooltip() {
+        positionAdditionalInfo(element, tooltipAnchor);
+    }
+
     $('body').on('click', function (e) {
-        var target = $(e.target).parent();
-        if ($(target).is(".tooltip-arrow-link")) {
+        var target = $(e.target).closest('.tooltip-arrow-link');
+        if (target.length) {
             var url = $(target).attr("data-url");
             if (!url) {
                 return;
@@ -130,56 +329,31 @@ function showTooltip() {
             }
 
             // затваряме предишния тултип, ако има такъв
-            if (typeof element != 'undefined') {
-                $(element).hide();
-            }
+            closeTooltip();
 
 
             // намираме този, който ще покажем сега
             element = $(target).parent().find('.additionalInfo');
+            tooltipAnchor = target.get(0);
+            tooltipScrollParents = $(element).parents();
+            tooltipScrollParents.on('scroll.additionalInfoTooltip', positionTooltip);
+            $(element).removeClass('bottom left right').addClass('viewport-positioned').css('display', 'block');
+            positionTooltip();
 
-            // Ако тултипа е в скролиращ елемент и няма достатъчно място нагоре, го показваме надолу от срелката, за да не се отреже
-            if ($(element).closest('.overflow-scroll').length) {
-                $(element).css('overflow-y', 'auto');
-                var holderOffset = $(element).closest('.overflow-scroll').offset().top;
-                var parentOffset = $(element).parent().offset().top;
-                var absPos = $(element).parent().get(0).getBoundingClientRect();
-                if (parentOffset - 500 < holderOffset || absPos.top < 500) {
-                    $(element).addClass('bottom');
-                    $(element).css('max-height', parseInt(window.innerHeight - absPos.bottom - 10));
-                } else {
-                    $(element).css('max-height', Math.min(parseInt(parentOffset - holderOffset - 25), 600));
-                }
+            // AJAX съдържанието може да промени размера след първоначалното показване.
+            if (window.ResizeObserver) {
+                tooltipResizeObserver = new ResizeObserver(positionTooltip);
+                tooltipResizeObserver.observe($(element).get(0));
+            } else {
+                setTimeout(positionTooltip, 100);
             }
-
-            var tOffset = $(element).closest('table').offset();
-            var iconLeftOffset = $(element).parent().offset().left;
-            if (typeof tOffset != 'undefined') {
-                iconLeftOffset = $(element).parent().offset().left - tOffset.left;
-            }
-
-            var tWidth = $(element).closest('table').width()
-            var iconRightOffset = iconLeftOffset;
-            if (typeof tWidth != 'undefined') {
-                iconRightOffset = tWidth - iconLeftOffset;
-            }
-
-            // ако е при скролиране и отляво от иконката има повече място отколкото вдясно, показваме попъпа напред
-            if ($(element).closest('.scrolling-holder').length && iconLeftOffset > iconRightOffset) {
-                $(element).addClass('left');
-            }
-            if ($(element).parent().offset().left < 200) {
-                $(element).addClass('right');
-            }
-
-            $(element).css('display', 'block');
         } else {
             // при кликане в бодито затвавяме отворения тултип, ако има такъв
-            if (typeof element != 'undefined') {
-                $(element).hide();
-            }
+            closeTooltip();
         }
     });
+
+    $(window).off('.additionalInfoTooltip').on('resize.additionalInfoTooltip scroll.additionalInfoTooltip', positionTooltip);
 
     $('.tooltip-arrow-link').each(function () {
         if ($(this).attr("data-useHover")) {
@@ -187,7 +361,7 @@ function showTooltip() {
             $(this).hover(function () {
                 $(this).children().click();
             }, function () {
-                $(element).hide();
+                closeTooltip();
             });
         }
     });
@@ -1160,6 +1334,10 @@ function js2php(obj, path, new_path) {
  * Подготвя контекстното меню
  */
 function prepareContextMenu() {
+    // The context-menu plugin may not be loaded yet (for example after an
+    // AJAX refresh). Do not abort the remaining document-ready callbacks.
+    if (typeof $.fn.contextMenu !== 'function') return;
+
     jQuery.each($('.more-btn'), function (i, val) {
         if ($(this).hasClass('nojs')) return;
 
@@ -2083,6 +2261,20 @@ function markElementsForRefresh() {
     });
 }
 
+
+/**
+ * Подравнява бутоните във вертикалните филтри с елементите за попълване.
+ * Името е с префикс render_, за да може да се вика и през efae (runAfterAjax).
+ */
+function render_alignFormFilterButtons() {
+    $('.form-filter-btn, .listFilter form.simpleForm .formToolbar').each(function () {
+        var $buttonHolder = $(this);
+        var $caption = $buttonHolder.closest('form').find('.formFieldCaption:visible').first();
+
+        $buttonHolder.css('margin-left', $('body').hasClass('narrow') || !$caption.length ? 0 : $caption.outerWidth() + 3);
+    });
+}
+
 /**
  * Задава ширина на елементите от форма в зависимост от ширината на прозореца/устройството
  */
@@ -2378,40 +2570,20 @@ function saveSelectedTextToSession(handle, onlyHandle) {
             try {
                 if (typeof window.getSelection != "undefined") {
                     var sel = window.getSelection();
+                    var anchorNode = sel && sel.rangeCount ? sel.anchorNode : null;
+                    var anchorElement = anchorNode && (anchorNode.nodeType == 1 ? anchorNode : anchorNode.parentNode);
 
-                    if (sel.rangeCount) {
-                        var c = 0;
-                        var parentNode = sel.anchorNode.parentNode;
-                        while (true) {
-                            if (c++ > 20) break;
+                    if (anchorElement) {
+                        var richtext = $(anchorElement).closest('.richtext');
+                        var documentRow = richtext.closest('tr[data-document-handle]');
 
-                            // От нивото на ричтекста, намираме div с id на документа
-                            if ($(parentNode).attr('class') == 'richtext') {
-
-                                var parentNode6 = parentNode.parentNode.parentNode.parentNode.parentNode.parentNode;
-                                var handle2 = $(parentNode6).attr('id');
-
-                                if (typeof handle2 == "undefined") {
-                                    var parentNode5 = parentNode.parentNode.parentNode.parentNode.parentNode;
-                                    handle2 = $(parentNode5).attr('id');
-                                }
-
-                                break;
-                            }
-
-                            parentNode = parentNode.parentNode;
+                        if (documentRow.length) {
+                            handle = documentRow.attr('data-document-handle');
                         }
-                    }
-
-                    if (typeof handle2 != "undefined") {
-                        handle = handle2;
                     }
                 }
             } catch (err) {
-            }
-
-            if (typeof handle2 != "undefined") {
-                handle = handle2;
+                reportErr('JS error', err, {func: 'getSelectionHandle'});
             }
 
             if ((typeof handle != "undefined") && (handle != "undefined")) {
@@ -2456,6 +2628,7 @@ function getSelText() {
         }
     } catch (err) {
         getEO().log('Грешка при извличане на текста');
+        reportErr('JS error', err, {func: 'getSelText'});
     }
 
     // Ако има функция за превръщане в стринг
@@ -2537,9 +2710,9 @@ function appendQuote(id, line, useParagraph) {
     if ((!quoteText) && (selTime > now)) {
 
         // Вземаме текста
-        text = sessionStorage.getItem('selText');
+        text = sessionStorage.getItem('selText') || '';
 
-        text = text.replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}]/gu, '');
+        text = text.replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}\u{FE0F}\u{20E3}\u{200D}\u{E0020}-\u{E007F}]/gu, '');
 
         if (text) {
 
@@ -2875,6 +3048,33 @@ function clearSelect(select2, cssClass) {
 
 
 /**
+ * Връща (и при нужда инициализира) паметта за вече заредените JS/CSS файлове
+ *
+ * Файловете от първоначалното зареждане на страницата също са вече налични.
+ * Ако jQuery се зареди повторно при AJAX refresh, се губят всички регистрирани
+ * $.fn разширения (isInViewport, contextMenu и др.), а повторното изпълнение на
+ * efCommon.js нулира глобалните променливи (напр. hitState).
+ *
+ * @return array
+ */
+function getLoadedFiles() {
+    if (typeof refreshForm.loadedFiles == 'undefined') {
+        refreshForm.loadedFiles = [];
+
+        $('script[src], link[rel~="stylesheet"][href]').each(function () {
+            var file = $(this).attr('src') || $(this).attr('href');
+
+            if (file && refreshForm.loadedFiles.indexOf(file) < 0) {
+                refreshForm.loadedFiles.push(file);
+            }
+        });
+    }
+
+    return refreshForm.loadedFiles;
+}
+
+
+/**
  * Помощна функция за заместване на формата
  *
  * @param object
@@ -2882,9 +3082,8 @@ function clearSelect(select2, cssClass) {
  */
 function replaceFormData(frm, data) {
     // Памет за заредените вече файлове
-    if (typeof refreshForm.loadedFiles == 'undefined') {
-        refreshForm.loadedFiles = [];
-    }
+    getLoadedFiles();
+
     var params = frm.serializeArray();
 
     // Затваря всики select2 елементи
@@ -2926,7 +3125,7 @@ function replaceFormData(frm, data) {
         }
     });
 
-    // Зареждаме JS файловете синхронно
+    // Зареждаме JS файловете последователно
     loadFiles(data.js, refreshForm.loadedFiles, frm, data.html);
 
     // Забраняваме отново кеширането при зареждане по ajax
@@ -2977,40 +3176,135 @@ function replaceFormData(frm, data) {
 
 
 /**
- * Зарежда подадените JS файлове синхронно
+ * Зарежда подадените JS файлове последователно
  *
  * @param jsFiles
  * @param loadedFiles
  * @param frm
  * @param html
+ *
+ * @return promise
  */
 function loadFiles(jsFiles, loadedFiles, frm, html) {
-    if (typeof jsFiles == 'undefined' || (jsFiles.length == 0)) {
+    var result = $.Deferred();
+    var files = jsFiles ? jsFiles.slice(0) : [];
+    var loadFailed = false;
+    var loadError;
+
+    loadedFiles = loadedFiles || getLoadedFiles();
+
+    if (typeof refreshForm.loadingFiles == 'undefined') {
+        refreshForm.loadingFiles = {};
+    }
+
+    function complete() {
+        if (loadFailed) {
+            result.reject(loadError);
+
+            return;
+        }
+
         if (typeof frm != 'undefined') {
             frm.replaceWith(html);
         }
 
-        return;
+        result.resolve();
     }
 
-    file = jsFiles.shift();
-
-    if (typeof file == 'undefined') {
-        if (typeof frm != 'undefined') {
-            frm.replaceWith(html);
+    function reportLoadError(file, xhr, textStatus, errorThrown) {
+        var msg = 'Не може да се зареди JS файл: ' + file;
+        if (xhr && xhr.status) {
+            msg += ' (HTTP ' + xhr.status + ')';
+        }
+        if (errorThrown) {
+            msg += ': ' + errorThrown;
         }
 
-        return;
+        var error = new Error(msg);
+
+        try {
+            getEO().log(msg);
+        } catch (logError) {
+            // Диагностиката не трябва да оставя опашката в изчакване
+        }
+
+        try {
+            reportErr('JS file load error', error, {
+                file: file,
+                httpStatus: xhr && xhr.status,
+                textStatus: textStatus
+            });
+        } catch (reportError) {
+            // Диагностиката не трябва да оставя опашката в изчакване
+        }
+
+        return error;
     }
 
-    if (loadedFiles.indexOf(file) < 0) {
-        $.getScript(file, function () {
-            loadFiles(jsFiles, loadedFiles, frm, html)
+    function next() {
+        if (!files.length) {
+            complete();
+
+            return;
+        }
+
+        var file = files.shift();
+        if (!file || loadedFiles.indexOf(file) >= 0) {
+            next();
+
+            return;
+        }
+
+        var key = 'js:' + file;
+        var filePromise = refreshForm.loadingFiles[key];
+
+        if (!filePromise) {
+            var fileResult = $.Deferred();
+            filePromise = fileResult.promise();
+            refreshForm.loadingFiles[key] = filePromise;
+
+            var fileRequest;
+
+            try {
+                // Да не блокира EFAE безкрайно при увиснала заявка за ресурс
+                fileRequest = $.ajax({
+                    url: file,
+                    dataType: 'script',
+                    timeout: 30000
+                });
+            } catch (err) {
+                delete refreshForm.loadingFiles[key];
+                fileResult.reject(reportLoadError(file, null, 'error', err));
+            }
+
+            if (fileRequest) {
+                fileRequest.done(function () {
+                    if (loadedFiles.indexOf(file) < 0) {
+                        loadedFiles.push(file);
+                    }
+
+                    delete refreshForm.loadingFiles[key];
+                    fileResult.resolve();
+                }).fail(function (xhr, textStatus, errorThrown) {
+                    delete refreshForm.loadingFiles[key];
+                    fileResult.reject(reportLoadError(file, xhr, textStatus, errorThrown));
+                });
+            }
+        }
+
+        filePromise.done(next).fail(function (error) {
+            if (!loadFailed) {
+                loadFailed = true;
+                loadError = error;
+            }
+
+            next();
         });
-        loadedFiles.push(file);
-    } else {
-        loadFiles(jsFiles, loadedFiles, frm, html);
     }
+
+    next();
+
+    return result.promise();
 }
 
 
@@ -3369,9 +3663,11 @@ function smartCenter() {
         $("span.maxwidth[data-col='" + key + "']").css('width', smartCenterWidth[key]);
     }
 
-    $("span.maxwidth:not('.notcentered')").css('display', "block");
-    $("span.maxwidth:not('.notcentered')").css('margin', "0 auto");
-    $("span.maxwidth:not('.notcentered')").css('text-align', "right");
+    $("span.maxwidth:not(.notcentered)").css({
+        'display': "block",
+        'margin': "0 auto",
+        'text-align': "right"
+    });
 }
 
 
@@ -3893,7 +4189,11 @@ function efae() {
     efae.prototype.waitPeriodicAjaxCall = 0;
 
     // Заключване на изпълнението на AJAX заявките - нулираме
-    localStorage.setItem('lockEfaeAjaxCalls', 0);
+    try {
+        localStorage.setItem('lockEfaeAjaxCalls', 0);
+    } catch (err) {
+        getEO().log('Не може да се инициализира заключването за AJAX заявките: ' + err);
+    }
 }
 
 
@@ -3945,6 +4245,7 @@ efae.prototype.run = function () {
 
         // Ако възникне грешка
         getEO().log('Грешка при стартиране на процеса');
+        reportErr('JS error', err, {func: 'efae.periodicAjaxCall'});
     } finally {
         // Инстанция на класа
         var thisEfaeInst = this;
@@ -3983,12 +4284,96 @@ efae.prototype.getObjectKeysCnt = function (subscribedObj) {
 
 
 /**
+ * Изпълнява последователно render командите от AJAX отговора
+ *
+ * @param array res
+ * @param efae efaeInst
+ *
+ * @return promise
+ */
+function processRenderQueue(res, efaeInst) {
+    var queue = $.Deferred();
+    var index = 0;
+    var queueFailed = false;
+    var queueError;
+
+    if (!res || typeof res.length == 'undefined') {
+        res = [];
+    }
+
+    function next() {
+        try {
+            processNext();
+        } catch (err) {
+            queue.reject(err);
+        }
+    }
+
+    function processNext() {
+        if (index >= res.length) {
+            if (queueFailed) {
+                queue.reject(queueError);
+            } else {
+                queue.resolve();
+            }
+
+            return;
+        }
+
+        var item = res[index++] || {};
+        var func = item.func;
+        var arg = item.arg;
+
+        if (!func) {
+            getEO().log('Не е подадена функция');
+            next();
+
+            return;
+        }
+
+        func = efaeInst.renderPrefix + func;
+
+        var renderResult;
+
+        try {
+            renderResult = window[func](arg);
+        } catch (err) {
+            getEO().log(err + 'Несъществуваща функция: ' + func + ' с аргументи: ' + arg);
+            reportErr('JS render error', err, {func: func, arg: arg});
+            next();
+
+            return;
+        }
+
+        if (renderResult && $.isFunction(renderResult.done) && $.isFunction(renderResult.fail)) {
+            renderResult.done(next);
+            renderResult.fail(function (error) {
+                if (!queueFailed) {
+                    queueError = error;
+                }
+                queueFailed = true;
+
+                next();
+            });
+        } else {
+            next();
+        }
+    }
+
+    next();
+
+    return queue.promise();
+}
+
+
+/**
  * Извиква URL, който стартира абонираните URL-та на които им е дошло времето да се стартират
  * и рендира функциите от резултата
  *
  * @param object subscribedObj - Обект с URL-то, което трябва да се вика
  * @param object otherData - Обект с допълнителни параметри, които ще се пратят по POST
  * @param boolean async - Дали да се стартира асинхронно. По подразбиране не true
+ * @return jqXHR|undefined - Заявката, когато е стартирана
  */
 efae.prototype.process = function (subscribedObj, otherData, async) {
     // Ако няма URL, което трябва да се извика, връщаме
@@ -4000,8 +4385,13 @@ efae.prototype.process = function (subscribedObj, otherData, async) {
         return;
     }
 
-    // Заключваме изпълнението на AJAX заявките за определено време
-    localStorage.setItem('lockEfaeAjaxCalls', 30);
+    // Заключваме изпълнението на AJAX заявките за определено време. Забранено
+    // хранилище не трябва да спира самата AJAX заявка.
+    try {
+        localStorage.setItem('lockEfaeAjaxCalls', 30);
+    } catch (err) {
+        getEO().log('Не може да се запише заключването за AJAX заявките: ' + err);
+    }
 
     // Ако не е подададена стойност
     if (typeof async == 'undefined') {
@@ -4072,56 +4462,77 @@ efae.prototype.process = function (subscribedObj, otherData, async) {
 
         // Преди да пратим заявката, вдигаме флага, че е пратена заявката, за да не се прати друга
         // докато не завърши текущата
+        if (typeof this.pendingProcesses == 'undefined') {
+            this.pendingProcesses = 0;
+        }
+        this.pendingProcesses++;
         this.isWaitingResponse = true;
 
-        // Извикваме по AJAX URL-то и подаваме необходимите данни и очакваме резултата в JSON формат
-        $.ajax({
-            async: async,
-            type: "POST",
-            url: efaeUrl,
-            data: dataObj,
-            dataType: 'json'
-        }).done(function (res) {
+        var renderPromise;
+        var processFinished = false;
+
+        function finishProcess() {
+            if (processFinished) return;
+
+            processFinished = true;
+
+            thisEfaeInst.pendingProcesses--;
+            if (thisEfaeInst.pendingProcesses > 0) return;
+
+            // Отключваме изпълнението на AJAX заявките
+            try {
+                localStorage.setItem('lockEfaeAjaxCalls', 0);
+            } catch (err) {
+                getEO().log('Не може да се премахне заключването за AJAX заявките: ' + err);
+            }
+
+            // След приключване на процеса сваляме флага
+            thisEfaeInst.isWaitingResponse = false;
+
+            // Ако е имало грешка и е оправенена, премахваме статуса
+            if (getEfae().AJAXHaveError && getEfae().AJAXErrorRepaired) {
+
+                if ($('.connection-error-status').length) {
+                    $('.connection-error-status').remove();
+                }
+                if ($('.connection-warning-status').length) {
+                    $('.connection-warning-status').remove();
+                }
+
+                if ($('.toast-type-error').length) {
+                    $('.toast-type-error').remove();
+                }
+                if ($('.toast-type-warning').length) {
+                    $('.toast-type-warning').remove();
+                }
+            }
+        }
+
+        var request;
+
+        try {
+            // Извикваме по AJAX URL-то и подаваме необходимите данни и очакваме резултата в JSON формат
+            request = $.ajax({
+                async: async,
+                type: "POST",
+                url: efaeUrl,
+                data: dataObj,
+                dataType: 'json'
+            });
+        } catch (err) {
+            finishProcess();
+
+            throw err;
+        }
+
+        return request.done(function (res) {
             // Ако са спрени заявките - нищо не правим
             if (thisEfaeInst.preventRequest > 0) {
                 thisEfaeInst.preventRequest--;
                 return;
             }
 
-            var n = res.length;
-
-            // Обхождаме всички получени данни
-            for (var i = 0; i < n; ++i) {
-
-                // Фунцкцията, която да се извика
-                func = res[i].func;
-
-                // Аргументи на функцията
-                arg = res[i].arg;
-
-                // Ако няма функция
-                if (!func) {
-
-                    // Изкарваме грешката в лога
-                    getEO().log('Не е подадена функция');
-
-                    continue;
-                }
-
-                // Името на функцията с префикаса
-                func = thisEfaeInst.renderPrefix + func;
-
-                try {
-
-                    // Извикваме функцията
-                    window[func](arg);
-                } catch (err) {
-
-                    // Ако възникне грешка
-                    getEO().log(err + 'Несъществуваща фунцкция: ' + func + ' с аргументи: ' + arg);
-                }
-            }
-
+            renderPromise = processRenderQueue(res, thisEfaeInst);
             if (getEfae().AJAXHaveError) {
                 getEfae().AJAXErrorRepaired = true;
             }
@@ -4200,29 +4611,11 @@ efae.prototype.process = function (subscribedObj, otherData, async) {
                     }
                 }
             }, timeOut);
-        }).always(function (res) {
-            // Отключваме изпълнението на AJAX заявките
-            localStorage.setItem('lockEfaeAjaxCalls', 0);
-
-            // След приключване на процеса сваляме флага
-            getEfae().isWaitingResponse = false;
-
-            // Ако е имало грешка и е оправенена, премахваме статуса
-            if (getEfae().AJAXHaveError && getEfae().AJAXErrorRepaired) {
-
-                if ($('.connection-error-status').length) {
-                    $('.connection-error-status').remove();
-                }
-                if ($('.connection-warning-status').length) {
-                    $('.connection-warning-status').remove();
-                }
-
-                if ($('.toast-type-error').length) {
-                    $('.toast-type-error').remove();
-                }
-                if ($('.toast-type-warning').length) {
-                    $('.toast-type-warning').remove();
-                }
+        }).always(function () {
+            if (renderPromise) {
+                renderPromise.always(finishProcess);
+            } else {
+                finishProcess();
             }
         });
     } else {
@@ -4433,6 +4826,27 @@ function render_showToast(data) {
 
 
 /**
+ * Активира визуално бутоните на модала за картово плащане след 10 секунди.
+ *
+ * Бутоните „Ръчно потвърждение" / „Назад" се рендират с клас disabledBtn (изглеждат
+ * неактивни). Кликът върху тях работи през цялото време — класът е само визуален.
+ * След 10 секунди го махаме, за да личи, че операторът вече може да ги ползва при
+ * проблем/липса на комуникация. Централно за всички POS драйвери (POS терминал и
+ * каса). Извиква се при всяко показване на модала, така че таймерът се рестартира.
+ */
+function armCardPaymentModalButtons() {
+    var $btns = $('.fullScreenCardPayment .confirmPayment, .fullScreenCardPayment .closePaymentModal');
+    $btns.addClass('disabledBtn');
+    if (window.cardPaymentModalBtnTimer) {
+        clearTimeout(window.cardPaymentModalBtnTimer);
+    }
+    window.cardPaymentModalBtnTimer = setTimeout(function () {
+        $btns.removeClass('disabledBtn');
+    }, 10000);
+}
+
+
+/**
  * Накара документа да флашне/светне
  * Може да се комбинира с efae
  *
@@ -4500,6 +4914,7 @@ function render_html(data) {
     var replace = data.replace;
     var dCss = data.css;
     var dJs = data.js;
+    var loadPromise;
 
     // Ако няма HTML, да не се изпуълнява
     if ((typeof html == 'undefined') || !html) return;
@@ -4541,13 +4956,12 @@ function render_html(data) {
 
     // Зареждаме JS файловете
     if (dJs) {
-        if (typeof refreshForm.loadedFiles == 'undefined') {
-            refreshForm.loadedFiles = [];
-        }
-        loadFiles(data.js, refreshForm.loadedFiles);
+        loadPromise = loadFiles(dJs, getLoadedFiles());
     }
 
     scrollLongListTable();
+
+    return loadPromise;
 }
 
 
@@ -4875,11 +5289,83 @@ function prepareFavIcon(iconPath) {
     if ((!iconPath) || (typeof iconPath == 'undefined')) return false;
 
     var icon = document.createElement('link');
-    icon.type = 'image/x-icon';
+    icon.type = /^data:image\/png[;,]/i.test(iconPath) ? 'image/png' : 'image/x-icon';
     icon.rel = 'shortcut icon';
     icon.href = iconPath;
 
     return icon;
+}
+
+
+/**
+ * Добавя червен индикатор върху текущата икона за формите за въвеждане
+ * @param iconPath - пътят до основната икона
+ */
+function setEditFavIcon(iconPath) {
+    if (!iconPath) return;
+
+    var cacheName = 'bgerpEditFavicon';
+    var source = iconPath + '|record-dot-v2';
+
+    try {
+        var cached = JSON.parse(localStorage.getItem(cacheName));
+        if (cached && cached.source === source && /^data:image\/png;base64,/.test(cached.icon)) {
+            applyEditFavIcon(cached.icon);
+            return;
+        }
+    } catch (e) {
+        // При забранен localStorage иконата се генерира отново за страницата.
+    }
+
+    var image = new Image();
+    image.onload = function () {
+        try {
+            var size = 64;
+            var canvas = document.createElement('canvas');
+            var context = canvas.getContext('2d');
+            canvas.width = size;
+            canvas.height = size;
+            context.drawImage(image, 0, 0, size, size);
+
+            // Белият кант отделя яркочервената точка от произволен фон.
+            context.beginPath();
+            context.arc(47, 47, 16, 0, 2 * Math.PI);
+            context.fillStyle = '#ffffff';
+            context.fill();
+            context.beginPath();
+            context.arc(47, 47, 13, 0, 2 * Math.PI);
+            context.fillStyle = '#ff0000';
+            context.fill();
+
+            var icon = canvas.toDataURL('image/png');
+            try {
+                localStorage.setItem(cacheName, JSON.stringify({source: source, icon: icon}));
+            } catch (e) {
+                // Кешът е оптимизация и не е необходим за показването.
+            }
+            applyEditFavIcon(icon);
+        } catch (e) {
+            // При проблем оставяме непроменена основната икона.
+        }
+    };
+    image.src = iconPath;
+}
+
+
+/**
+ * Поставя редакционната икона и я потвърждава след зареждането на ресурсите
+ * @param iconPath - пътят до генерираната икона
+ */
+function applyEditFavIcon(iconPath) {
+    setFavIcon(prepareFavIcon(iconPath));
+
+    // Firefox може да приложи първоначалната favicon след document.ready.
+    // Поставяме генерираната икона още веднъж, след като ресурсите са заредени.
+    if (document.readyState !== 'complete') {
+        window.addEventListener('load', function () {
+            setFavIcon(prepareFavIcon(iconPath));
+        });
+    }
 }
 
 
@@ -4889,6 +5375,9 @@ function prepareFavIcon(iconPath) {
  */
 function setFavIcon(icon) {
     if (icon) {
+        // В страницата трябва да остава само една активна favicon връзка.
+        // Иначе различните браузъри могат да продължат да показват старата.
+        $('link[rel~="icon"]').remove();
         $('head').append(icon);
     }
 }
@@ -5613,49 +6102,27 @@ Experta.prototype.saveBodyId = function () {
 
 
 /*
-    да може деселектира радио бутон, ако е allowEmpty
+    задава началната стойност на радио групите
  */
 function radioButtonActions() {
 
     setTimeout(function () {
-        let lastChecked = null;
-
-        //отбелязваме всички чекнати радио бутони
-        $('input[type="radio"]').each(function () {
-            $(this).data('wasChecked', $(this).prop('checked')); // Начално състояние
-            if ($(this).prop('checked')) {
-                lastChecked = $(this); //задаване на последния избран бутон
-            }
-        });
-
         // Маркирай първия бутон, ако не е allowEmpty и няма маркиран в групата
-        $('.notAllowEmptyRadioHolder input[type="radio"]:visible').each(function () {
-            const groupName = $(this).attr('name');
-            const radiosInGroup = $(`input[name="${groupName}"]`);
+        $('.notAllowEmptyRadioHolder').each(function () {
+            const radiosInGroup = $(this).find('input[type="radio"]:visible');
 
             if (!radiosInGroup.filter(':checked').length) {
                 const firstRadio = radiosInGroup.first();
                 firstRadio.prop('checked', true);
-                firstRadio.data('wasChecked', true);
             }
         });
 
-        $('.allowEmptyRadioHolder input[type="radio"]').click(function () {
-            let $this = $(this);
-
-            // Ако е чекнат, се размаркирва
-            if ($this.data('wasChecked')) {
-                $this.prop('checked', false);
-                $this.data('wasChecked', false);
-                lastChecked = null;
-            } else {
-                // Маркираме го чекнат и го записваме като последен
-                $this.data('wasChecked', true);
-                lastChecked = $this;
+        // При allowEmpty празната опция е видима и представя липсата на избрана стойност
+        $('.allowEmptyRadioHolder').each(function () {
+            const radiosInGroup = $(this).find('input[type="radio"]:visible');
+            if (!radiosInGroup.filter(':checked').length) {
+                radiosInGroup.filter('[value=""]').first().prop('checked', true);
             }
-
-            // Махаме всички останали радио бутони
-            $('.allowEmptyRadioHolder input[type="radio"]').not($this).data('wasChecked', false);
         });
     }, 100)
 }
@@ -5787,7 +6254,15 @@ Experta.prototype.reloadFormData = function () {
 
     if (!formObj[bodyId].formId) return;
 
+    // При връщане назад формата се възстановява от сесията. Съхраненият HTML е
+    // от AJAX рефреш и съдържа форсиран фокус - тук той не трябва да се прилага.
+    isRestoringFormData = true;
+
     replaceFormData($('#' + formObj[bodyId].formId), formObj[bodyId].data);
+
+    setTimeout(function () {
+        isRestoringFormData = false;
+    }, 0);
 }
 
 
@@ -6267,15 +6742,48 @@ $.fn.isInViewport = function () {
 
 /**
  * Фокусира еднократно върху посоченото id пи зададения rand
+ *
+ * @param string id    - селектор на елемента
+ * @param bool   force - при AJAX рефреш сървърът изрично иска полето да поеме
+ *                       фокуса, затова не се гледа състоянието на страницата
  */
-function focusOnce(id) {
+function focusOnce(id, force) {
 
-    if($('body').hasClass('narrow') && isRealMobile() && $(id).data('focus') !== 'forceFocus') return;
+    var elem = $(id);
+
+    if (!elem.length) return;
+
+    var pendingTwoColsFilter = elem.closest('.wide .twoColsFilter:not(.twoColsFilterReady)');
+
+    if (pendingTwoColsFilter.length) {
+        // Двуколонният филтър е скрит до приключване на измерването и браузърът
+        // не може да фокусира полето. Повтаряме същата заявка веднага след това.
+        pendingTwoColsFilter.one('twoColsFilterReady.focusOnce', function () {
+            focusOnce(id, force);
+        });
+
+        return;
+    }
+
+    // data-focus="forceFocus" идва от поле, декларирано с 'focus=force'. В него се
+    // сканира с хардуерен скенер и без фокус сканираното не попада никъде, затова
+    // фокусираме и на мобилно устройство, където иначе не пипаме фокуса.
+    var isForced = force || elem.data('focus') === 'forceFocus';
+
+    if($('body').hasClass('narrow') && isRealMobile() && !isForced) return;
+
+    if (isForced) {
+        if (!isRestoringFormData) {
+            elem.focus();
+        }
+
+        return;
+    }
 
     var state = getHitState();
 
-    if (state && (state == 'firstTime') && $(id).isInViewport && $(id).isInViewport()) {
-        $(id).focus();
+    if (state && (state == 'firstTime') && elem.isInViewport && elem.isInViewport()) {
+        elem.focus();
     }
 }
 
@@ -6329,7 +6837,15 @@ function detailDeleteRowsAct() {
     });
 
     $(document.body).on('click', ".deleteAllCheckedRows", function (e) {
-        var url = $(this).attr("data-url");
+        var btn = $(this);
+
+        // Бутонът не е събмит, затова защитата срещу двоен събмит не важи за него
+        if (btn.data('deleteRowsStarted')) {
+
+            return;
+        }
+
+        var url = btn.attr("data-url");
         var chkArray = [];
 
         // Look for all checkboxes that have a specific class and was checked
@@ -6339,9 +6855,11 @@ function detailDeleteRowsAct() {
         });
 
         if (!chkArray.length) {
-            alert($(this).attr("data-errorMsg"));
+            alert(btn.attr("data-errorMsg"));
         } else {
             var selected = chkArray.join('|');
+            btn.data('deleteRowsStarted', true);
+            btn.attr("disabled", "disabled");
             window.location = url + "&selected=" + selected;
         }
     });
@@ -6351,7 +6869,7 @@ function detailDeleteRowsAct() {
 /**
  * Групово маркиране на чекбоксове при натиснат шрифт
  */
-function markSelectedChecboxes() {
+function render_markSelectedChecboxes() {
     var checkboxIdName = null;
     var checkboxIdNameTime = null;
     var isChecked = null;
@@ -6498,7 +7016,7 @@ function checkVatAndTriger(name) {
  * Само структурни/стилизиращи тагове, никакви такива способни да заредят ресурс или да сложат
  * onclick/onerror и т.н. (a, img, script... не са позволени - изобщо не се копират).
  */
-var EF_CONFIRM_ALLOWED_TAGS = ['B', 'I', 'BR', 'SPAN', 'DIV', 'UL', 'LI', 'HR'];
+var EF_CONFIRM_ALLOWED_TAGS = ['B', 'I', 'BR', 'SPAN', 'DIV', 'UL', 'LI', 'HR', 'PRE'];
 var EF_CONFIRM_ALLOWED_ATTRS = ['class'];
 
 
@@ -6597,13 +7115,15 @@ var EF_CONFIRM_SEVERITY_TITLES = {
  * <span>/<div>, само с class атрибут. Всичко останало се показва като чист текст.
  *
  * @param {string} message  текст на съобщението (може да съдържа позволен HTML)
- * @param {object} [opts]   {title, okText, cancelText, severity, cssClass, okOnly}
+ * @param {object} [opts]   {title, okText, cancelText, severity, cssClass, okOnly, noIcon}
  *                          severity - notice|warning|error (по подразбиране notice), определя
  *                          цвета/иконата на модала - виж EF_CONFIRM_SEVERITY_ICONS по-горе.
  *                          cssClass - допълнителна класа, ако е нужна извън severity.
  *                          okOnly   - true = само бутон "ОК" (без Отказ) - за чисто информативни
  *                          съобщения (напр. блокираща грешка), не за истинско потвърждение - виж
  *                          efAlert() по-долу.
+ *                          noIcon   - true = без кръглата severity иконка (напр. чист преглед на
+ *                          съдържание) - виж efShowInfo() по-долу.
  */
 function efConfirm(message, opts) {
     opts = opts || {};
@@ -6617,8 +7137,10 @@ function efConfirm(message, opts) {
             modal.addClass(opts.cssClass);
         }
 
-        var icon = EF_CONFIRM_SEVERITY_ICONS[severity] || EF_CONFIRM_SEVERITY_ICONS.notice;
-        modal.append('<div class="ef-confirm-icon">' + icon + '</div>');
+        if (!opts.noIcon) {
+            var icon = EF_CONFIRM_SEVERITY_ICONS[severity] || EF_CONFIRM_SEVERITY_ICONS.notice;
+            modal.append('<div class="ef-confirm-icon">' + icon + '</div>');
+        }
 
         var title = (opts.title !== undefined) ? opts.title : (EF_CONFIRM_SEVERITY_TITLES[severity] ?? 'Внимание');
         if (title) {
@@ -6661,25 +7183,26 @@ function efConfirm(message, opts) {
 
 
 /**
- * Confirm за бутон за контиране: един-единствен стилизиран efConfirm() модал с целия (вече слят -
- * виж acc_plg_Contable::on_AfterGetContoWarning()) текст. Без нативен window.confirm(), без верижни
- * прозорци.
+ * Generic confirm за бутон/линк с warning=: един-единствен стилизиран efConfirm() модал вместо
+ * нативния window.confirm() (виж core_Html::prepareLinkAndBtnAttr() - централната точка, която
+ * превръща warning= в извикване на тази функция; и acc_plg_Contable::buildContoConfirmJs() - за
+ * бутона за контиране, с вече слят текст от няколко уорнинга). Без верижни прозорци.
  *
- * efConfirm() е асинхронен (чака клик в модала), затова при потвърждение кликът върху бутона се
- * "преиграва" (buttonEl.click()) - на втория пасаж флагът buttonEl.__efContoConfirmed е вече сложен,
- * пропуска се модала и се продължава по обичайния начин (навигация към href-а или bubble-ване към
- * делегиран click handler).
+ * efConfirm() е асинхронен (чака клик в модала), затова при потвърждение кликът върху елемента се
+ * "преиграва" (buttonEl.click()) - на втория пасаж флагът buttonEl.__efConfirmed е вече сложен,
+ * пропуска се модала и се продължава по обичайния начин (навигация към href-а, форма submit, или
+ * bubble-ване към делегиран click handler).
  *
  * @param {Event}  ev
  * @param {Element} buttonEl
- * @param {string} warning  - целия (слят) текст на уорнинга
+ * @param {string} warning  - текста на уорнинга
  * @param {string} [severity] - notice|warning|error (виж EF_CONFIRM_SEVERITY_ICONS), по подразбиране notice
  *
  * @return {boolean}
  */
-function contoConfirm(ev, buttonEl, warning, severity) {
-    if (buttonEl.__efContoConfirmed) {
-        buttonEl.__efContoConfirmed = false;
+function efConfirmClick(ev, buttonEl, warning, severity) {
+    if (buttonEl.__efConfirmed) {
+        buttonEl.__efConfirmed = false;
         return true;
     }
 
@@ -6690,7 +7213,7 @@ function contoConfirm(ev, buttonEl, warning, severity) {
 
     efConfirm(warning, {severity: severity}).then(function (ok) {
         if (ok) {
-            buttonEl.__efContoConfirmed = true;
+            buttonEl.__efConfirmed = true;
             buttonEl.click();
         } else {
             if (window.jQuery) { jQuery(buttonEl).blur(); }
@@ -6704,7 +7227,7 @@ function contoConfirm(ev, buttonEl, warning, severity) {
 /**
  * Чисто информативен модал (SEVERITY_ERROR, само бутон "ОК", без "Отказ") - generic заместител на
  * нативния alert() за бутони за грешка (виж core_Html::createErrBtn(),
- * acc_plg_Contable::buildContoAlertJs()). За разлика от contoConfirm() - НЕ преиграва клика след
+ * acc_plg_Contable::buildContoAlertJs()). За разлика от efConfirmClick() - НЕ преиграва клика след
  * затваряне, натискането на "ОК" просто затваря модала и нищо друго не се случва.
  *
  * @param {Event}  ev
@@ -6719,6 +7242,31 @@ function efAlert(ev, message) {
     }
 
     efConfirm(message, {severity: 'error', okOnly: true, okText: 'ОК'});
+
+    return false;
+}
+
+
+/**
+ * Чисто информативен модал (SEVERITY_NOTICE, само бутон "ОК") - за преглед на дълго
+ * съдържание при клик (напр. бютифициран JSON), вместо native title tooltip (без скрол/стил).
+ * За разлика от efAlert() е с notice стил (не error) и приема опционален cssClass за по-широк
+ * модал - виж .ef-confirm-wide в css/common.scss.
+ *
+ * @param {Event}  ev
+ * @param {string} message   - може да съдържа <pre> (виж EF_CONFIRM_ALLOWED_TAGS по-горе)
+ * @param {string} [cssClass]
+ * @param {boolean} [noIcon] - true = без severity иконката (виж opts.noIcon в efConfirm())
+ *
+ * @return {boolean} винаги false
+ */
+function efShowInfo(ev, message, cssClass, noIcon) {
+    if (ev) {
+        if (ev.stopPropagation) { ev.stopPropagation(); }
+        if (ev.preventDefault) { ev.preventDefault(); }
+    }
+
+    efConfirm(message, {severity: 'notice', okOnly: true, okText: 'ОК', cssClass: cssClass, noIcon: !!noIcon});
 
     return false;
 }
@@ -7334,7 +7882,7 @@ const bgLog = (() => {
     };
 })();
 
-runOnLoad(markSelectedChecboxes);
+runOnLoad(render_markSelectedChecboxes);
 runOnLoad(maxSelectWidth);
 runOnLoad(onBeforeUnload);
 runOnLoad(reloadOnPageShow);

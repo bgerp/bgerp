@@ -39,14 +39,14 @@ class batch_definitions_Document extends batch_definitions_Proto
     {
         $Class = cls::get($documentClass);
         expect($dRec = $Class->fetchRec($id));
-        
+
         $handle = mb_strtoupper($Class->getHandle($dRec->id));
         $date = isset($Class->valiorFld) ? $dRec->{$Class->valiorFld} : null;
         $date = (!empty($date)) ? $date : dt::today();
         $date = str_replace('-', '', $date);
         
         $res = "{$date}-{$handle}";
-        
+
         return $res;
     }
     

@@ -138,7 +138,10 @@ class store_reports_NonPublicItems extends frame2_driver_TableData
         $shQuery->in('state', array('pending', 'draft'));
 
 
-        $arr = keylist::toArray($rec->users);
+        $arr = keylist::toArray($rec->users ?? null);
+        if (!countR($arr)) {
+            return $recs;
+        }
 
         //Филтър по потребители
         $shQuery->where('#createdBy IN (' . implode(',', $arr) . ')');
@@ -161,27 +164,14 @@ class store_reports_NonPublicItems extends frame2_driver_TableData
 
         while ($shDetRec = $shDetQuery->fetch()) {
 
-            $color = '';
-
             //Количество от артикула в склада от ЕН
             if (!in_array($shDetRec->storeId, $activeStateArr)) continue;
             $storeQuantity = store_Products::getQuantities($shDetRec->productId, $shDetRec->storeId);
             $allStoriesQuantity = store_Products::getQuantities($shDetRec->productId);
 
             //Експедирано количество общо от всички опаковки
-            $shipmentQuantity = $shDetRec->quantityInPack * $shDetRec->packQuantity;
-
-            if (!$rec->data) {
-                $stopNot = false;
-            } else {
-                $stopNot = $rec->data->recs[$shDetRec->productId]->stopNot;
-
-            }
-
-            if (($shipmentQuantity < $storeQuantity->quantity) ||
-            (($shipmentQuantity >= $storeQuantity->quantity) && ($allStoriesQuantity->quantity > $shipmentQuantity))){
-                $color = 'red';
-            }
+            $shipmentQuantity = ($shDetRec->quantityInPack ?? 1) * ($shDetRec->packQuantity ?? 0);
+            $stopNot = $rec->data->recs[$shDetRec->productId]->stopNot ?? false;
 
             if (!array_key_exists($shDetRec->productId, $recs)) {
                 $recs[$shDetRec->productId] =
@@ -192,23 +182,35 @@ class store_reports_NonPublicItems extends frame2_driver_TableData
                         'productId' => $shDetRec->productId,
                         'storeId' => $shDetRec->storeId,
                         'shipmentQuantity' => $shipmentQuantity,
-                        'storeQuantity' => $storeQuantity->quantity,
-                        'allStoriesQuantity' => $allStoriesQuantity->quantity,
+                        'storeQuantity' => $storeQuantity->quantity ?? 0,
+                        'allStoriesQuantity' => $allStoriesQuantity->quantity ?? 0,
                         'measure' => cat_Products::fetchField($shDetRec->productId, 'measureId'),
                         'stopNot' => $stopNot,
-                        'color' => $color,
+                        'color' => '',
+                        '_stores' => array($shDetRec->storeId => true),
                     );
             } else {
                 $obj = &$recs[$shDetRec->productId];
-
-                $obj->quantity += $shDetRec->quantity;
+                $obj->shipmentQuantity += $shipmentQuantity;
+                if (!isset($obj->_stores[$shDetRec->storeId])) {
+                    $obj->storeQuantity += $storeQuantity->quantity ?? 0;
+                    $obj->_stores[$shDetRec->storeId] = true;
+                }
             }
 
         }
 
+        foreach ($recs as $productRec) {
+            if (($productRec->shipmentQuantity < $productRec->storeQuantity) ||
+                (($productRec->shipmentQuantity >= $productRec->storeQuantity) && ($productRec->allStoriesQuantity > $productRec->shipmentQuantity))) {
+                $productRec->color = 'red';
+            }
+            unset($productRec->_stores);
+        }
+
         // Проверява условията за изпращане нотификация и ако са изпълнени изпраща
         if (countR($recs)) {
-            self::sendNotificationOnThisReport($rec);
+            $this->sendNotificationOnThisReport($rec, $recs);
         }
 
         arr::sortObjects($recs, 'color', 'desc');
@@ -291,13 +293,10 @@ class store_reports_NonPublicItems extends frame2_driver_TableData
 
         }
 
-        if ($dRec->stopNot === true) {
-            $icon = "ef_icon=img/16/checkbox_yes.png";
-        }
-        if ($dRec->stopNot === false) {
-            $icon = "ef_icon=img/16/checkbox_no.png";
-        }
-        $row->stopNot .= ht::createLink('', array('store_reports_NonPublicItems', 'SetStop', 'productId' => $dRec->productId, 'recId' => $rec->id, 'ret_url' => true), null, $icon);
+        $icon = !empty($dRec->stopNot)
+            ? "ef_icon=img/16/checkbox_yes.png"
+            : "ef_icon=img/16/checkbox_no.png";
+        $row->stopNot = ($row->stopNot ?? '') . ht::createLink('', array('store_reports_NonPublicItems', 'SetStop', 'productId' => $dRec->productId, 'recId' => $rec->id, 'ret_url' => true), null, $icon);
 
         return $row;
     }
@@ -368,15 +367,15 @@ class store_reports_NonPublicItems extends frame2_driver_TableData
      *
      * @return void
      */
-    public function sendNotificationOnThisReport($rec)
+    public function sendNotificationOnThisReport($rec, $reportRecs = null)
     {
         $artArr = array();
         $cond = false;
-        $me = cls::get(get_called_class());
 
-        if (!$rec->data->recs) return;
+        $reportRecs = $reportRecs ?? ($rec->data->recs ?? array());
+        if (!countR($reportRecs)) return;
 
-        foreach ($rec->data->recs as $r) {
+        foreach ($reportRecs as $r) {
 
             if (($r->shipmentQuantity < $r->storeQuantity) && ($r->stopNot === false)) {
 
@@ -400,7 +399,7 @@ class store_reports_NonPublicItems extends frame2_driver_TableData
         if ($cond === false) return;
 
         // Нотифицират се избраните потребители
-        $userArr = keylist::toArray($rec->sharedUsers);
+        $userArr = keylist::toArray($rec->sharedUsers ?? null);
         $arts = '';
         $mark = 1;
         foreach ($artArr as $v){
@@ -465,9 +464,10 @@ class store_reports_NonPublicItems extends frame2_driver_TableData
         expect($recId = Request::get('recId', 'int'));
         expect($productId = Request::get('productId', 'int'));
 
-        $rec = frame2_Reports::fetch($recId);
+        expect($rec = frame2_Reports::fetch($recId));
+        expect(isset($rec->data->recs[$productId]));
 
-        $stopNot = $rec->data->recs[$productId]->stopNot;
+        $stopNot = $rec->data->recs[$productId]->stopNot ?? false;
 
         if ($stopNot === false) {
 

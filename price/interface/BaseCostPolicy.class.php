@@ -26,6 +26,30 @@ abstract class price_interface_BaseCostPolicy extends core_BaseClass
     
     
     /**
+     * Дали политиката важи само за складируеми артикули
+     */
+    protected $forStorableOnly = false;
+    
+    
+    /**
+     * Дали политиката е приложима за артикула
+     *
+     * @param int $productId
+     *
+     * @return bool
+     */
+    public function isApplicableForProduct($productId)
+    {
+        if (empty($this->forStorableOnly)) {
+            
+            return true;
+        }
+        
+        return cat_Products::fetchField($productId, 'canStore') == 'yes';
+    }
+    
+    
+    /**
      * Изчислява себестойностите на засегнатите артикули
      *
      * @param array $affectedProducts
@@ -60,17 +84,17 @@ abstract class price_interface_BaseCostPolicy extends core_BaseClass
     protected function getPurchasesWithProducts($productKeys, $withDelivery = false, $onlyActive = false)
     {
         $pQuery = purchase_PurchasesDetails::getQuery();
-        $pQuery->EXT('state', 'purchase_Purchases', 'externalName=state,externalKey=requestId');
+        $pQuery->EXT('mState', 'purchase_Purchases', 'externalName=state,externalKey=requestId');
         $pQuery->EXT('containerId', 'purchase_Purchases', 'externalName=containerId,externalKey=requestId');
         $pQuery->EXT('valior', 'purchase_Purchases', 'externalName=valior,externalKey=requestId');
         $pQuery->EXT('modifiedOn', 'purchase_Purchases', 'externalName=modifiedOn,externalKey=requestId');
         $pQuery->EXT('amountDelivered', 'purchase_Purchases', 'externalName=amountDelivered,externalKey=requestId');
-        
+
         // Всички активни
         if ($onlyActive === true) {
-            $pQuery->where("#state = 'active'");
+            $pQuery->where("#mState = 'active'");
         } else {
-            $pQuery->where("#state IN ('active', 'closed')");
+            $pQuery->where("#mState IN ('active', 'closed')");
         }
         
         if ($withDelivery === true) {
@@ -249,8 +273,8 @@ abstract class price_interface_BaseCostPolicy extends core_BaseClass
      */
     public function getAffectedProducts($datetime)
     {
-        // Всички артикули с движения във всички складове
-        $affected = $this->getAffectedProductWithMovement($datetime, 'all');
+        // Всички артикули с движения, за политиките само за складируеми - само тези от склада
+        $affected = $this->getAffectedProductWithMovement($datetime, 'all', array(), array(), $this->forStorableOnly);
        
         return $affected;
     }

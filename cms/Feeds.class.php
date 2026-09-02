@@ -125,10 +125,11 @@ class cms_Feeds extends core_Manager
                  
                  // Инстанцираме нова хранилка от тип RSS 2.0
                  $feed = new RSS2FeedWriter();
-                 $lang = cms_Domains::fetch($rec->domainId)->lang;
+                 $dRec = cms_Domains::fetch($rec->domainId);
+                 $lang = !empty($dRec) ? $dRec->lang : null;
                  $feed->setChannelElement('language', $lang);
                  $feed->setChannelElement('pubDate', date(DATE_RSS, time()));
-                 if ($rec->logo) {
+                 if (!empty($rec->logo)) {
                      $img = new thumb_Img(array($rec->logo, 120, 120, 'fileman', 'isAbsolute' => true));
                      
                      $feed->setImage($rec->title, toUrl(array($this, 'get', $rec->id), 'absolute'), $img->getUrl());
@@ -255,7 +256,7 @@ class cms_Feeds extends core_Manager
         // Поставяме иконка и заглавие
         $layout->append(tr('Нашите емисии'), 'HEADER');
         
-        if (countR($data->rows) > 0) {
+        if (countR($data->rows ?? array()) > 0) {
             foreach ($data->rows as $row) {
                 $feedTpl = $layout->getBlock('ROW');
                 $feedTpl->placeObject($row);
@@ -331,7 +332,7 @@ class cms_Feeds extends core_Manager
         
         $query = static::getQuery();
         $domainId = cms_Domains::getPublicDomain('id');
-        $feeds = $query->fetchAll("#domainId = '${domainId}'");
+        $feeds = $query->fetchAll("#domainId = '{$domainId}'");
         if (!countR($feeds)) {
             
             return;
@@ -369,13 +370,13 @@ class cms_Feeds extends core_Manager
         
         $form->setField('source', array('removeAndRefreshForm' => 'title|description|logo|maxItems|data'));
         
-        if ($form->rec->source) {
+        if (!empty($form->rec->source)) {
             $Source = cls::get($form->rec->source);
-            if ($Source->feedFilterField) {
+            if (!empty($Source->feedFilterField)) {
                 $sourceField = $Source->fields[$Source->feedFilterField];
                 $form->FNC($Source->feedFilterField, $sourceField->type, "input,fromSource,caption={$sourceField->caption},after=type");
                 
-                if ($form->rec->data) {
+                if (!empty($form->rec->data)) {
                     $form->setDefault($Source->feedFilterField, $form->rec->data);
                 }
             }

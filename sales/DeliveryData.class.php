@@ -114,11 +114,12 @@ class sales_DeliveryData extends core_Manager
         $Doc = doc_Containers::getDocument($containerId);
 
         $logisticData = $Doc->getLogisticData();
+        $toCountry = $logisticData['toCountry'] ?? null;
         $newRec = new stdClass();
-        $newRec->countryId = drdata_Countries::getIdByName($logisticData['toCountry']);
-        $newRec->place = $logisticData['toPlace'];
-        $newRec->pCode = $logisticData['toPCode'];
-        $newRec->address = $logisticData['toAddress'];
+        $newRec->countryId = $toCountry ? drdata_Countries::getIdByName($toCountry) : null;
+        $newRec->place = $logisticData['toPlace'] ?? null;
+        $newRec->pCode = $logisticData['toPCode'] ?? null;
+        $newRec->address = $logisticData['toAddress'] ?? null;
         $newRec->containerId = $containerId;
 
         return self::save($newRec, null, 'REPLACE');
@@ -171,7 +172,10 @@ class sales_DeliveryData extends core_Manager
             $logisticData = $Class->getLogisticData($rec);
             core_Debug::stopTimer('GET_LOGISTIC_DATA');
             Mode::pop('calcOnlyDeliveryPart');
-            $countryIds[$logisticData['toCountry']] = $countries[$logisticData['toCountry']];
+            $toCountry = $logisticData['toCountry'] ?? null;
+            if (!array_key_exists($toCountry, $countryIds)) {
+                $countryIds[$toCountry] = $countries[$toCountry] ?? ($toCountry ? drdata_Countries::getIdByName($toCountry) : null);
+            }
 
             $newRec = new stdClass();
 
@@ -186,10 +190,10 @@ class sales_DeliveryData extends core_Manager
                 core_Debug::stopTimer('GET_READY_EXP_PERCENTAGE');
             }
 
-            $newRec->countryId = $countryIds[$logisticData['toCountry']];
-            $newRec->place = $logisticData['toPlace'];
-            $newRec->pCode = $logisticData['toPCode'];
-            $newRec->address = $logisticData['toAddress'];
+            $newRec->countryId = $countryIds[$toCountry];
+            $newRec->place = $logisticData['toPlace'] ?? null;
+            $newRec->pCode = $logisticData['toPCode'] ?? null;
+            $newRec->address = $logisticData['toAddress'] ?? null;
             $newRec->containerId = $rec->containerId;
             $newRec->classId = $rec->_classId;
             $toSave[$rec->containerId] = $newRec;
@@ -201,14 +205,19 @@ class sales_DeliveryData extends core_Manager
         $exRecs = $eQuery->fetchAll();
         $sync = arr::syncArrays($toSave, $exRecs, 'containerId', 'countryId,place,pCode,address,readiness');
 
-        core_Debug::log("GET GET_LOGISTIC_DATA " . round(core_Debug::$timers["GET_LOGISTIC_DATA"]->workingTime, 6));
-        core_Debug::log("GET GET_READY_SALE_PERCENTAGE " . round(core_Debug::$timers["GET_READY_SALE_PERCENTAGE"]->workingTime, 6));
-        core_Debug::log("GET GET_READY_EXP_PERCENTAGE " . round(core_Debug::$timers["GET_READY_EXP_PERCENTAGE"]->workingTime, 6));
-        core_Debug::log("GET GET_DEAL_DATA " . round(core_Debug::$timers["GET_DEAL_DATA"]->workingTime, 6));
-
-        core_Debug::log("GET GET_JOB_DATA " . round(core_Debug::$timers["GET_JOB_DATA"]->workingTime, 6));
-        core_Debug::log("GET GET_SALE_DETAIL_DATA " . round(core_Debug::$timers["GET_SALE_DETAIL_DATA"]->workingTime, 6));
-        core_Debug::log("GET GET_SALE_ENTRIES " . round(core_Debug::$timers["GET_SALE_ENTRIES"]->workingTime, 6));
+        $timerNames = array(
+            'GET_LOGISTIC_DATA',
+            'GET_READY_SALE_PERCENTAGE',
+            'GET_READY_EXP_PERCENTAGE',
+            'GET_DEAL_DATA',
+            'GET_JOB_DATA',
+            'GET_SALE_DETAIL_DATA',
+            'GET_SALE_ENTRIES',
+        );
+        foreach ($timerNames as $timerName) {
+            $workingTime = core_Debug::$timers[$timerName]->workingTime ?? 0;
+            core_Debug::log("GET {$timerName} " . round($workingTime, 6));
+        }
 
         // Добавят се новите записи
         if(countR($sync['insert'])){
@@ -274,6 +283,10 @@ class sales_DeliveryData extends core_Manager
         }
 
         $res = array();
+        if (!isset(self::$cacheRecs['recs'][$containerId])) {
+            return $res;
+        }
+
         $thisLocationRec = self::$cacheRecs['recs'][$containerId];
         foreach (self::$cacheRecs['recs'] as $locationRec){
 
@@ -298,7 +311,7 @@ class sales_DeliveryData extends core_Manager
             }
 
             if($isSimilar){
-                $res[$locationRec->id] = (object)array('locationId' => $locationRec->id, 'readiness' => $locationRec->readiness, 'locationName' => $locationRec->locationName);
+                $res[$locationRec->id] = (object)array('locationId' => $locationRec->id, 'readiness' => $locationRec->readiness);
             }
         }
 
@@ -458,11 +471,12 @@ class sales_DeliveryData extends core_Manager
                 $explain .= "<li>--- e нестандартен";
 
                 // Сумира се всичко произведено и планирано по задания за артикула по сделката, които са приключени
-                $closedJobRec = $closedJobArr[$pId];
-                $activeJobId = $activeJobArr[$pId];
+                $closedJobRec = $closedJobArr[$pId] ?? null;
+                $closedJobCount = $closedJobRec->totalCount ?? 0;
+                $activeJobId = $activeJobArr[$pId] ?? null;
 
                 // Ако има приключени задания и няма други активни, се приема че е готово
-                if ($closedJobRec->totalCount && !$activeJobId) {
+                if ($closedJobCount && !$activeJobId) {
                     $explain .= "<li>------ има приключени, но няма активни задания";
 
                     $q = $closedJobRec->totalQuantity;
@@ -485,7 +499,7 @@ class sales_DeliveryData extends core_Manager
                         }
                     }
                 } else {
-                    $explain .= "<li>------ приключени задания '{$closedJobRec->totalCount}', активно '{$activeJobId}'";
+                    $explain .= "<li>------ приключени задания '{$closedJobCount}', активно '{$activeJobId}'";
                 }
             } else {
                 $explain .= "<li>------ e стандартен";

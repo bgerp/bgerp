@@ -21,7 +21,7 @@ class colab_plg_Document extends core_Plugin
     public static function on_AfterPrepareSingle($mvc, $res, $data)
     {
         // Ако е контрактор, маркираме документа като видян
-        if (core_Users::haveRole('partner') && !Mode::get('eshopFinalize') && !Mode::get('getLinkedObj')) {
+        if (core_Users::haveRole('partner') && !Mode::get('eshopFinalize') && !Mode::get('getLinkedObj') && !empty($data->rec->containerId)) {
             colab_DocumentLog::markAsViewed($data->rec->containerId);
         }
     }
@@ -35,9 +35,9 @@ class colab_plg_Document extends core_Plugin
         if (isset($fields['-single'])) {
             if (!Mode::is('text', 'xhtml') && !Mode::is('printing') && core_Users::isPowerUser() && colab_FolderToPartners::fetch("#folderId = '{$rec->folderId}'")) {
                 $isVisible = false;
-                if ($rec->containerId) {
+                if (!empty($rec->containerId)) {
                     $cRec = doc_Containers::fetch($rec->containerId);
-                    if ($cRec->visibleForPartners == 'yes') {
+                    if (($cRec->visibleForPartners ?? null) == 'yes') {
                         $isVisible = true;
                     }
                 } else {
@@ -52,7 +52,7 @@ class colab_plg_Document extends core_Plugin
                     
                     $link = colab_DocumentLog::renderViewedLink($rec->containerId);
                     
-                    $row->DocumentSettings = new ET($row->DocumentSettings);
+                    $row->DocumentSettings = new ET($row->DocumentSettings ?? '');
                     
                     $row->DocumentSettings->append($link);
                     
@@ -74,7 +74,7 @@ class colab_plg_Document extends core_Plugin
     {
         if (!isset($res) || (is_array($res) && empty($res))) {
             $rec = $mvc->fetchRec($id);
-            if ($rec->threadId && colab_Threads::haveRightFor('single', doc_Threads::fetch($rec->threadId))) {
+            if (!empty($rec->threadId) && ($threadRec = doc_Threads::fetch($rec->threadId)) && colab_Threads::haveRightFor('single', $threadRec)) {
                 $res = array($mvc, 'single', $rec->id, 'ret_url' => true);
             }
         }

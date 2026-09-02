@@ -91,6 +91,8 @@ class bgfisc_reports_MovementOfGoodsForAPeriod extends frame2_driver_TableData
     protected function prepareRecs($rec, &$data = null)
     {
         $recs = array();
+        $rec->from = $rec->from ?? null;
+        $rec->to = $rec->to ?? null;
         
         
         $Balance = new acc_ActiveShortBalance(array('from' => $rec->from, 'to' => $rec->to, 'accs' => '321', 'cacheBalance' => false, 'keepUnique' => true));
@@ -100,37 +102,40 @@ class bgfisc_reports_MovementOfGoodsForAPeriod extends frame2_driver_TableData
             $id = $item->ent2Id;
             
             $iRec = acc_Items::fetch($item->ent2Id);
-            
+            if (!$iRec) continue;
+
             //Код на продукта
-            list($productCode) = explode(' ', $iRec->num);
-            
+            list($productCode) = explode(' ', $iRec->num ?? '');
+
             //Име на продукта
             $productName = $iRec->title;
-            
-            
+
+            // Балансът връща само полетата, за които има начално салдо или оборот,
+            // затова липсващите се приемат за нула
+
             //Количество в началото на периода
-            $baseQuantity = $item->baseQuantity;
-            
+            $baseQuantity = $item->baseQuantity ?? 0;
+
             //Стойност в началото на периода
-            $baseAmount = $item->baseAmount;
-            
+            $baseAmount = $item->baseAmount ?? 0;
+
             //Дебит оборот количество
-            $debitQuantity = $item->debitQuantity;
-            
+            $debitQuantity = $item->debitQuantity ?? 0;
+
             //Дебит оборот стойност
-            $debitAmount = $item->debitAmount;
-            
+            $debitAmount = $item->debitAmount ?? 0;
+
             //Кредит оборот количество
-            $creditQuantity = $item->creditQuantity;
-            
+            $creditQuantity = $item->creditQuantity ?? 0;
+
             //Кредит оборот стойност
-            $creditAmount = $item->creditAmount;
-            
+            $creditAmount = $item->creditAmount ?? 0;
+
             //Количество в края на периода
-            $blQuantity = $item->blQuantity;
-            
+            $blQuantity = $item->blQuantity ?? 0;
+
             //Стойност в края на периода
-            $blAmount = $item->blAmount;
+            $blAmount = $item->blAmount ?? 0;
             
             // добавя в масива
             if (!array_key_exists($id, $recs)) {
@@ -296,6 +301,7 @@ class bgfisc_reports_MovementOfGoodsForAPeriod extends frame2_driver_TableData
      */
     protected static function on_AfterRenderSingle(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$tpl, $data)
     {
+        $dealersVerb = '';
         $Date = cls::get('type_Date');
         
         $fieldTpl = new core_ET(tr("|*<!--ET_BEGIN BLOCK-->[#BLOCK#]
@@ -316,8 +322,9 @@ class bgfisc_reports_MovementOfGoodsForAPeriod extends frame2_driver_TableData
             $fieldTpl->append('<b>' . $Date->toVerbal($data->rec->to) . '</b>', 'to');
         }
         
-        if ((isset($data->rec->dealers)) && ((min(array_keys(keylist::toArray($data->rec->dealers))) >= 1))) {
-            foreach (type_Keylist::toArray($data->rec->dealers) as $dealer) {
+        $dealers = keylist::toArray($data->rec->dealers ?? null);
+        if (!empty($dealers) && min(array_keys($dealers)) >= 1) {
+            foreach ($dealers as $dealer) {
                 $dealersVerb .= (core_Users::getTitleById($dealer) . ', ');
             }
             

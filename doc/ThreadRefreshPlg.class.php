@@ -49,7 +49,7 @@ class doc_ThreadRefreshPlg extends core_Plugin
             $url = array($mvc, 'ajaxThreadRefresh', 'refreshUrl' => $refreshUrlLocal, 'threadId' => Request::get('threadId', 'int'));
             
             // Ако не е зададено, рефрешът се извършва на всеки 60 секунди
-            $time = $mvc->refreshRowsTime ? $mvc->refreshRowsTime : 60000;
+            $time = $mvc->refreshRowsTime ?? 60000;
             
             // Името с което ще се добави в масива
             $name = $mvc->className . '_ThreadRefresh';
@@ -82,13 +82,19 @@ class doc_ThreadRefreshPlg extends core_Plugin
      */
     public static function on_AfterPrepareListRecs($mvc, &$res, $data)
     {
-        $hash = self::getDocumentStatesHash($data->recs);
-        $hashName = self::getStateHashName($data->threadId, $data->recs);
+        $recs = $data->recs ?? array();
+        $threadId = self::getThreadId($data->threadId ?? null, $recs);
+        if (!$threadId) {
+            return;
+        }
+
+        $hash = self::getDocumentStatesHash($recs);
+        $hashName = self::getStateHashName($threadId, $recs);
         
         core_Cache::set(get_called_class(), $hashName, $hash, 60);
         
         if (!Request::get('ajax_mode')) {
-            $threadLastSendName = self::getLastSendName($data->threadId);
+            $threadLastSendName = self::getLastSendName($threadId);
             core_Cache::set(get_called_class(), $threadLastSendName, dt::now(), 60);
         }
     }
@@ -133,10 +139,7 @@ class doc_ThreadRefreshPlg extends core_Plugin
      */
     protected static function getStateHashName($threadId, $recsArr)
     {
-        if (!$threadId && !empty($recsArr)) {
-            $recKey = key($recsArr);
-            $threadId = $recsArr[$recKey]->threadId;
-        }
+        $threadId = self::getThreadId($threadId, $recsArr);
         
         $hitTime = Request::get('hitTime');
         if (!$hitTime) {
@@ -149,6 +152,25 @@ class doc_ThreadRefreshPlg extends core_Plugin
         $hashName = 'ThreadStatesHash_' . $threadId . '_' . $hitTime . '_' . core_Users::getCurrent();
         
         return $hashName;
+    }
+
+
+    /**
+     * Извлича нишката от подадения контекст или от първия контейнер.
+     *
+     * @param int|null $threadId
+     * @param array    $recsArr
+     *
+     * @return int|null
+     */
+    protected static function getThreadId($threadId, $recsArr)
+    {
+        if (!$threadId && !empty($recsArr)) {
+            $rec = reset($recsArr);
+            $threadId = $rec->threadId ?? null;
+        }
+
+        return $threadId ?: null;
     }
     
     
@@ -170,7 +192,7 @@ class doc_ThreadRefreshPlg extends core_Plugin
         
         $states = '|';
         foreach ($recsArr as $rec) {
-            $states .= $rec->state . '|';
+            $states .= ($rec->state ?? '') . '|';
         }
         
         $hash = md5($states);
@@ -340,7 +362,7 @@ class doc_ThreadRefreshPlg extends core_Plugin
                 if ($cRec) {
                     $currUrl = getCurrentUrl();
                     $currUrl['#'] = $docId;
-                    $link = ht::createLink('#' . $docId, $currUrl, null, array('onclick' => "getEO().scrollTo('${docId}'); return false;"));
+                    $link = ht::createLink('#' . $docId, $currUrl, null, array('onclick' => "getEO().scrollTo('{$docId}'); return false;"));
                     
                     if ($cu == $cRec->modifiedBy) {
                         continue;

@@ -1,0 +1,88 @@
+.wide .twoColsFilter:not(.twoColsFilterReady),
+.wide .twoColsFilter:not(.twoColsFilterReady) ~ * {
+  visibility: hidden; }
+
+.wide .twoColsFilter {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  column-gap: 20px;
+  margin-bottom: 6px; }
+  .wide .twoColsFilter .listFilter {
+    flex: 0 1 var(--two-cols-filter-single-width, calc(400px + 6em + 1em));
+    min-width: 0;
+    margin-left: 0; }
+  .wide .twoColsFilter .summary-block {
+    flex: 0 0 auto;
+    max-width: var(--two-cols-filter-summary-max-width, calc(100% - 400px - 6em - 1em - 20px));
+    overflow-wrap: break-word;
+    overflow-wrap: anywhere;
+    margin-left: auto;
+    margin-right: auto;
+    transform: translateX(20px);
+    align-self: flex-start; }
+    .wide .twoColsFilter.twoColsFilterSummaryBelow .listFilter {
+      flex: 0 0 100%; }
+    .wide .twoColsFilter.twoColsFilterSummaryBelow .summary-block {
+      max-width: none;
+      margin: 6px auto 0 var(--two-cols-filter-caption-offset, 7em);
+      transform: none; }
+  .wide .twoColsFilter.twoColsFilterActive {
+    flex-wrap: nowrap;
+    contain: inline-size; }
+    .wide .twoColsFilter.twoColsFilterActive .listFilter {
+      flex: 0 0 var(--two-cols-filter-width, calc(800px + 12em + 3em));
+      min-width: var(--two-cols-filter-width, calc(800px + 12em + 3em)); }
+      .wide .twoColsFilter.twoColsFilterActive .listFilter .vFormField {
+        display: block;
+        width: var(--two-cols-filter-width, calc(800px + 12em + 3em));
+        max-width: none; }
+        .wide .twoColsFilter.twoColsFilterActive .listFilter .vFormField > tbody {
+          display: grid;
+          grid-template-columns: var(--two-cols-filter-left-width, calc(400px + 6em + 1em)) var(--two-cols-filter-right-width, calc(400px + 6em + 1em));
+          grid-template-rows: repeat(var(--two-cols-filter-row-count, 3), auto);
+          grid-auto-flow: column;
+          column-gap: 1em; }
+          .wide .twoColsFilter.twoColsFilterActive .listFilter .vFormField > tbody > tr {
+            display: table;
+            table-layout: fixed;
+            width: 100%;
+            break-inside: avoid; }
+          .wide .twoColsFilter.twoColsFilterActive .listFilter .vFormField > tbody > tr.toggable {
+            display: table !important; }
+        .wide .twoColsFilter.twoColsFilterActive .listFilter .vFormField .twoColsFilterLeftRow .formFieldCaption {
+          box-sizing: border-box;
+          width: var(--two-cols-filter-left-caption-width, 6em); }
+        .wide .twoColsFilter.twoColsFilterActive .listFilter .vFormField .twoColsFilterRightRow .formFieldCaption {
+          box-sizing: border-box;
+          width: var(--two-cols-filter-right-caption-width, 6em); }
+      .wide .twoColsFilter.twoColsFilterActive .listFilter .form-filter-btn {
+        margin-left: var(--two-cols-filter-left-caption-offset, 7em) !important; }
+      .wide .twoColsFilter.twoColsFilterActive .listFilter .toggleListFilterBtn {
+        display: none !important; }
+    .wide .twoColsFilter.twoColsFilterActive .summary-block {
+      max-width: none; }
+
+.wide .doc_Search .twoColsFilter.twoColsFilterActive {
+  contain: none; }
+
+.wide select.twoColsFilterCompactSelect + .select2-container {
+  width: max-content !important;
+  height: 26px;
+  min-width: 140px;
+  max-width: var(--two-cols-filter-field-width, 400px); }
+  .wide select.twoColsFilterCompactSelect + .select2-container .select2-selection--multiple {
+    height: 26px;
+    min-height: 26px !important;
+    overflow: hidden; }
+  .wide select.twoColsFilterCompactSelect + .select2-container .select2-selection__rendered {
+    display: flex !important;
+    flex-wrap: nowrap;
+    width: auto !important;
+    max-width: 100%;
+    white-space: nowrap; }
+  .wide select.twoColsFilterCompactSelect + .select2-container .select2-selection__choice,
+  .wide select.twoColsFilterCompactSelect + .select2-container .select2-search--inline {
+    float: none !important;
+    flex: 0 0 auto; }
+

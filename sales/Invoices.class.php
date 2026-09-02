@@ -313,7 +313,7 @@ class sales_Invoices extends deals_InvoiceMaster
         $form = &$data->form;
         $rec = &$form->rec;
 
-        if($data->action != 'changefields'){
+        if(($data->action ?? null) != 'changefields'){
             $form->setField('contragentCountryId', 'removeAndRefreshForm=additionalInfo');
         }
 
@@ -428,24 +428,25 @@ class sales_Invoices extends deals_InvoiceMaster
         }
 
         core_Lg::pop();
-        $invTextPrivate = cond_Parameters::getParameter($firstRec->contragentClassId, $firstRec->contragentId, 'invoiceText');
+        $selectInvoiceText = $rec->selectInvoiceText ?? null;
+        $invTextPrivate = (string)cond_Parameters::getParameter($firstRec->contragentClassId, $firstRec->contragentId, 'invoiceText');
         $invTextPublic = '';
         if(isset($rec->contragentCountryId)){
-            $invTextPublic = cond_Countries::getParameterByCountryId($rec->contragentCountryId, 'invoiceText');
+            $invTextPublic = (string)cond_Countries::getParameterByCountryId($rec->contragentCountryId, 'invoiceText');
         }
         if(!empty($invTextPrivate) && !empty($invTextPublic) && md5($invTextPrivate) != md5($invTextPublic)){
             $form->setField('selectInvoiceText', 'input');
         }
 
         // Ако има дефолтен текст за фактура добавяме и него
-        if(in_array($rec->selectInvoiceText, array('private', 'both'))){
-            if ($invTextPrivate = cond_Parameters::getParameter($firstRec->contragentClassId, $firstRec->contragentId, 'invoiceText')) {
+        if(in_array($selectInvoiceText, array('private', 'both'))){
+            if (!empty($invTextPrivate)) {
                 $defInfo .= "\n" . $invTextPrivate;
             }
         }
 
         // Ако има дефолтен текст за държавата и е различен, добавя се и той
-        if(in_array($rec->selectInvoiceText, array('public', 'both')) && isset($rec->contragentCountryId)) {
+        if(in_array($selectInvoiceText, array('public', 'both')) && isset($rec->contragentCountryId)) {
             if ($invTextPublic = cond_Countries::getParameterByCountryId($rec->contragentCountryId, 'invoiceText')) {
                 if(md5($invTextPrivate) != md5($invTextPublic)){
                     $defInfo .= "\n";
@@ -631,7 +632,9 @@ class sales_Invoices extends deals_InvoiceMaster
                     $row->bank = $Varchar->toVerbal($ownAcc->bank);
                     core_Lg::push($rec->tplLang);
                     $row->bank = transliterate(tr($row->bank));
-                    $row->place = transliterate($row->place);
+                    if (isset($row->place)) {
+                        $row->place = transliterate($row->place);
+                    }
                     core_Lg::pop();
                     $row->bic = $Varchar->toVerbal($ownAcc->bic);
 
@@ -654,13 +657,14 @@ class sales_Invoices extends deals_InvoiceMaster
                 unset($row->BANK_BLOCK_CLASS);
             }
 
-            $displayRange = str::removeWhiteSpace(cond_Ranges::displayRange($rec->numlimit));
+            $displayRange = str::removeWhiteSpace(cond_Ranges::displayRange($rec->numlimit ?? null));
             if(empty($rec->number)){
-                $row->number = "<span style='color:blue;'>{$displayRange}</span>";
+                $row->number = "<span class='blueText'>{$displayRange}</span>";
                 $row->number = ht::createHint($row->number, 'При активиране номерът ще бъде в този диапазон', 'notice', false);
             } else {
                 if(haveRole('debug')){
-                    $row->number = ht::createElement("span", array('title' => "|*ID: {$rec->id} / D: {$displayRange} [{$rec->numlimit}]"), $row->number);
+                    $number = $row->number ?? $mvc->getVerbal($rec, 'number');
+                    $row->number = ht::createElement("span", array('title' => "|*ID: " . ($rec->id ?? '') . " / D: {$displayRange} [" . ($rec->numlimit ?? '') . ']'), $number);
                 }
             }
         }
@@ -1011,7 +1015,8 @@ class sales_Invoices extends deals_InvoiceMaster
             $VatType = core_Type::getByName('drdata_VatType');
             $vatCheck = $VatType->isValid($rec->contragentVatNo);
 
-            return $vatCheck['warning'] ? array('text' => "Евентуален проблем при контиране на фактурата с полето|* ДДС №: |{$vatCheck['warning']}|*", 'severity' => acc_plg_Contable::SEVERITY_WARNING) : null;
+            // isValid връща NULL при празен ДДС № и масив без ключ 'warning' при валиден
+            return !empty($vatCheck['warning']) ? array('text' => "Евентуален проблем при контиране на фактурата с полето|* ДДС №: |{$vatCheck['warning']}|*", 'severity' => acc_plg_Contable::SEVERITY_WARNING) : null;
         }
 
         return null;

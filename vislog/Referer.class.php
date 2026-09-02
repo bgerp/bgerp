@@ -58,7 +58,7 @@ class vislog_Referer extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools,plg_Created,plg_Search,vislog_Wrapper';
+    public $loadList = 'plg_RowTools2,plg_Created,plg_Search,vislog_Wrapper';
    
     
     /**
@@ -138,6 +138,7 @@ class vislog_Referer extends core_Manager
         $data->listFilter->title = 'Търсене';
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+        $data->listFilter->setField('domainId', 'placeholderType=all');
         $data->listFilter->showFields = 'search,domainId';
 
         $data->listFilter->input($data->listFilter->showFields, 'silent');

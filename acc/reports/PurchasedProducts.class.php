@@ -96,7 +96,7 @@ class acc_reports_PurchasedProducts extends acc_reports_CorespondingImpl
         foreach (range(1, 3) as $i) {
             if (isset($accInfo->groups[$i]) && $accInfo->groups[$i]->rec->systemId == 'contractors') {
                 $gr = $accInfo->groups[$i];
-                $form->FLD("ent{$i}Id", "acc_type_Item(lists={$gr->rec->num}, allowEmpty, select=titleNum)", 'caption=Контрагенти->Име,input');
+                $form->FLD("ent{$i}Id", "acc_type_Item(lists={$gr->rec->num}, allowEmpty, select=titleNum)", 'caption=Контрагенти->Име,placeholderType=all,input');
             }
         }
         
@@ -309,7 +309,7 @@ class acc_reports_PurchasedProducts extends acc_reports_CorespondingImpl
             $tpl->append($afterRow, 'ROW_AFTER');
         }
         
-        if ($data->pager) {
+        if (!empty($data->pager)) {
             $tpl->append($data->pager->getHtml(), 'PAGER_BOTTOM');
             $tpl->append($data->pager->getHtml(), 'PAGER_TOP');
         }

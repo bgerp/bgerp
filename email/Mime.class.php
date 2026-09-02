@@ -144,8 +144,8 @@ class email_Mime extends core_BaseClass
             $toParser = new email_Rfc822Addr();
             $parseTo = array();
             $toParser->ParseAddressList($toHeader, $parseTo);
-            $toEmlArr = type_Email::extractEmails($parseTo[0]['address']);
-            $this->toEmail = $toEmlArr[0];
+            $toEmlArr = type_Email::extractEmails($parseTo[0]['address'] ?? '');
+            $this->toEmail = $toEmlArr[0] ?? null;
         }
         
         return $this->toEmail;
@@ -190,11 +190,11 @@ class email_Mime extends core_BaseClass
 
         $fromEmlStr = $fromName = '';
         foreach ((array)$parseFrom as $p) {
-            if (!$fromEmlStr && $p['address'] && type_Email::isValidEmail($p['address'])) {
+            if (!$fromEmlStr && !empty($p['address']) && type_Email::isValidEmail($p['address'])) {
                 $fromEmlStr .= $p['address'] . ',';
             }
 
-            $p['name'] = trim($p['name']);
+            $p['name'] = trim($p['name'] ?? '');
             $fromName .= $fromName ? ' ' : '';
             $fromName .= $p['name'] ? $p['name'] : '';
         }
@@ -472,6 +472,7 @@ class email_Mime extends core_BaseClass
      */
     public function getFiles()
     {
+        $list = '';
         foreach ($this->files as  $fRec) {
             $list .= ($list ? '' : '|') . $fRec->fmId . '|';
         }
@@ -556,7 +557,7 @@ class email_Mime extends core_BaseClass
     public function saveFiles_()
     {
         foreach ($this->files as $id => &$fRec) {
-            if (!$fRec->fmId) {
+            if (empty($fRec->fmId)) {
                 $fRec->fmId = $this->addFileToFileman($fRec->data, $fRec->name);
             }
         }
@@ -751,6 +752,7 @@ class email_Mime extends core_BaseClass
     public static function getHeadersFromArr($headersArr, $name, $headerIndex = 0, $decode = true, $charset = null)
     {
         $name = strtolower($name);
+        $res = null;
         
         if ($headerIndex == '*') {
             if (!empty($headersArr[$name]) && is_array($headersArr[$name])) {
@@ -1010,7 +1012,7 @@ class email_Mime extends core_BaseClass
             $cntParts = countR($data);
             
             if ($cntParts == 2) {
-                $this->errors[] = "Само едно  boundary в MULTIPART частта (${cntParts})";
+                $this->errors[] = "Само едно  boundary в MULTIPART частта ({$cntParts})";
                 
                 if (strlen($data[0]) > strlen($data[1])) {
                     unset($data[1]);
@@ -1020,7 +1022,7 @@ class email_Mime extends core_BaseClass
             }
             
             if ($cntParts == 1) {
-                $this->errors[] = "Няма нито едно boundary в MULTIPART частта (${cntParts})";
+                $this->errors[] = "Няма нито едно boundary в MULTIPART частта ({$cntParts})";
             }
             
             if ($cntParts >= 3) {
@@ -1038,7 +1040,7 @@ class email_Mime extends core_BaseClass
             }
             
             for ($i = 0; $i < $cntParts; $i++) {
-                if ($data[$i]) {
+                if (!empty($data[$i])) {
                     $this->parseAll(ltrim($data[$i], $nl), $index . '.' . $i);
                 }
             }
@@ -1179,7 +1181,7 @@ class email_Mime extends core_BaseClass
     {
         $p = $this->parts[$partIndex];
         
-        setIfNot($fileName, $p->filename, $p->name);
+        $fileName = $p->filename ?? $p->name ?? null;
         
         // Ако липсва файл, името му е производно на хеша на съдържанието му
         if (!$fileName) {
@@ -1190,7 +1192,7 @@ class email_Mime extends core_BaseClass
         // Ако липсва файлово разширение се опитваме да го определим от 'Content-Type'
         if (!fileman_Files::getExt($fileName)) {
             $ctParts = $this->extractHeader($partIndex, 'Content-Type');
-            $mimeT = strtolower($ctParts[0]);
+            $mimeT = strtolower($ctParts[0] ?? '');
             $fileName = fileman_mimes::addCorrectFileExt($fileName, $mimeT);
         }
         
@@ -1261,6 +1263,7 @@ class email_Mime extends core_BaseClass
      */
     public static function getAllEmailsFromStr($str, $uniq = false)
     {
+        $res = '';
         // Инстанция на класа
         $toParser = new email_Rfc822Addr();
         
@@ -1274,10 +1277,14 @@ class email_Mime extends core_BaseClass
         foreach ((array) $parseToArr as $key => $dummy) {
             
             // Извличаме само имейлите
-            $emlArr = type_Email::extractEmails($parseToArr[$key]['address']);
+            $emlArr = type_Email::extractEmails($parseToArr[$key]['address'] ?? '');
             
             // Преобразуваме в стринг
             $implode = implode(', ', $emlArr);
+            
+            if (!strlen($implode)) {
+                continue;
+            }
             
             // Добавяме към полето
             $res .= ($res) ? ', '. $implode : $implode;
@@ -1308,7 +1315,7 @@ class email_Mime extends core_BaseClass
         $res = '';
         if (countR($list)) {
             foreach ($list as $item) {
-                $address = $item['address'];
+                $address = $item['address'] ?? null;
                 
                 if ($address) {
                     if (!empty($item['isExternal'])) {

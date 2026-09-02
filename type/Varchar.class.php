@@ -44,7 +44,7 @@ class type_Varchar extends core_Type
         if ($size > 0) {
             $attr['onkeyup'] ??= '';
             $attr['onblur'] .= "colorByLen(this, {$size}, true); if(this.value.length > {$size}) alert('" .
-                 tr('Въведената стойност е дълга') . " ' + this.value.length + ' " . tr('символа, което е над допустимите') . " ${size} " . tr('символа') . "');";
+                 tr('Въведената стойност е дълга') . " ' + this.value.length + ' " . tr('символа, което е над допустимите') . " {$size} " . tr('символа') . "');";
             $attr['onkeyup'] .= "colorByLen(this, {$size});";
         }
         
@@ -95,7 +95,7 @@ class type_Varchar extends core_Type
             }
         }
  
-        if(strlen($value) > 4) {
+        if(strlen($value ?? '') > 4) {
             // Проверка за опити за хакване
             core_HackDetector::check($value, $this->params['hackTolerance'] ?? null);
         }
@@ -113,7 +113,7 @@ class type_Varchar extends core_Type
         $res = parent::toVerbal_($value);
         
         if (Mode::is('htmlEntity', 'none')) {
-            $res = html_entity_decode($res, ENT_QUOTES, 'UTF-8');
+            $res = html_entity_decode((string) $res, ENT_QUOTES, 'UTF-8');
         }
         
         return $res;

@@ -208,7 +208,10 @@ class acc_Periods extends core_Manager
         }
 
         if ($docId = acc_ClosePeriods::fetchField("#periodId = {$rec->id} AND #state = 'active'", 'id')) {
-            $row->close .= acc_ClosePeriods::getLink($docId, 0)->getContent();
+
+            // 'close' се попълва само в част от клоновете по-горе - без ?? тук
+            // PHP 8 вдига "Undefined property" при конкатенацията
+            $row->close = ($row->close ?? '') . acc_ClosePeriods::getLink($docId, 0)->getContent();
         }
     }
     
@@ -244,9 +247,11 @@ class acc_Periods extends core_Manager
         if($rec->state == 'active'){
             $query = static::getQuery();
             $query->where("#id != {$rec->id} AND #state = 'active' AND #end > '{$rec->end}'");
-            while($rec = $query->fetch()){
-                $rec->state = 'pending';
-                static::save($rec, 'state');
+
+            // Отделна променлива - иначе цикълът презаписва $rec на функцията
+            while($pRec = $query->fetch()){
+                $pRec->state = 'pending';
+                static::save($pRec, 'state');
             }
         }
     }
@@ -328,11 +333,11 @@ class acc_Periods extends core_Manager
         
         // Ако датата е точно началния период, създаваме го, ако липсва и го връщаме
         if ($end == $firstRec->end) {
-            if (!$firstRec->id) {
+            if (empty($firstRec->id)) {
                 $firstRec->vatRate = $conf->ACC_DEFAULT_VAT_RATE;
                 $firstRec->baseCurrencyId = currency_Currencies::getIdByCode(acc_Setup::getDefaultCurrencyCode($firstRec->end));
                 self::save($firstRec);
-                $firstRec = self::fetch($firstRec->id);  // За титлата
+                $firstRec = self::fetch($firstRec->id) ?: $firstRec;  // За титлата
                 $me->actLog .= "<li style='color:green;'>Създаден е начален период {$firstRec->title}</li>";
             }
             
@@ -358,19 +363,20 @@ class acc_Periods extends core_Manager
             $rec->state = 'pending';
         }
         
-        // Вземаме последните
-        $rec->vatRate = isset($rec->vatRate) ? $rec->vatRate : (isset($prevRec->vatRate) ? $prevRec->vatRate : ACC_DEFAULT_VAT_RATE);
+        // Вземаме последните. Стойността от конфигурацията е за предпочитане пред
+        // едноименната константа - недефинирана константа е фатална грешка в PHP 8
+        $rec->vatRate = isset($rec->vatRate) ? $rec->vatRate : (isset($prevRec->vatRate) ? $prevRec->vatRate : $conf->ACC_DEFAULT_VAT_RATE);
 
-        if ($prevRec->baseCurrencyId) {
+        if (!empty($prevRec->baseCurrencyId)) {
             $rec->baseCurrencyId = $prevRec->baseCurrencyId;
         } else {
-            $rec->baseCurrencyId = currency_Currencies::getIdByCode($curPerEnd);
+            $rec->baseCurrencyId = currency_Currencies::getIdByCode(acc_Setup::getDefaultCurrencyCode($rec->end));
         }
         
         self::save($rec);
-        
-        $rec = self::fetch($rec->id);
-        
+
+        $rec = self::fetch($rec->id) ?: $rec;
+
         $me->actLog .= "<li style='color:green;'>Създаден е период {$rec->title}</li>";
         
         return $rec;
@@ -384,21 +390,32 @@ class acc_Periods extends core_Manager
     {
         if (!($rec = self::fetch("#state = 'active'"))) {
             $me = cls::get('acc_Periods');
-            
+
             $query = self::getQuery();
             $query->where("#state != 'closed'");
             $query->orderBy('#end', 'ASC');
             $query->limit(1);
-            
+
             $rec = $query->fetch();
-            
+
+            // Ако всички периоди са приключени или таблицата е празна, създаваме текущия.
+            // Без тази проверка присвояването върху FALSE е фатална грешка в PHP 8
+            if (empty($rec)) {
+                $rec = $me->forcePeriod(dt::today());
+            }
+
+            if (empty($rec)) {
+
+                return false;
+            }
+
             $rec->state = 'active';
-            
+
             self::save($rec, 'state');
-            
+
             $me->actLog .= "<li style='color:green;'>Зададен е активен период {$rec->end}</li>";
         }
-        
+
         return $rec;
     }
     
@@ -548,13 +565,21 @@ class acc_Periods extends core_Manager
         }
         
         // Период може да се затваря само ако е изтекъл
-        if ($action == 'close' && is_object($rec) && $rec->id) {
+        if ($action == 'close' && is_object($rec) && !empty($rec->id)) {
             $rec = self::fetch($rec->id);
-            
+
+            // Записът може да е изтрит междувременно - тогава четенето на свойство
+            // върху FALSE вдига предупреждение в PHP 8
+            if (empty($rec)) {
+                $requiredRoles = 'no_one';
+
+                return;
+            }
+
             if ($rec->end >= $curPerEnd || $rec->state != 'active') {
                 $requiredRoles = 'no_one';
             }
-            
+
             // Никой не може да затваря невалиден баланс
             $balRec = acc_Balances::fetch("#periodId = {$rec->id}");
             if (!acc_Balances::isValid($balRec)) {
@@ -583,25 +608,27 @@ class acc_Periods extends core_Manager
         
         // Затваряме период
         $id = Request::get('id', 'int');
-        
-        $rec = $this->fetch("#id = '{$id}'");
-        
+
+        expect($rec = $this->fetch("#id = '{$id}'"), $id);
+
         // Очакваме, че затваряме активен период
         $this->requireRightFor('close', $rec);
-        
+
         // Новото състояние е 'Затворен';
         $rec->state = 'closed';
-        
+
         $this->save($rec);
-        
+
         $res = "|Затворен е период|* <span style=\"color:red;\">{$rec->title}</span>";
-        
+
         // Отваря следващия период. Създава го, ако не съществува
         $this->forcePeriod(dt::addDays(1, $rec->end));
-        
+
         $activeRec = $this->forceActive();
-        
-        $res .= "<br>|Активен е период|* <span style=\"color:red;\">{$activeRec->title}</span>";
+
+        if (!empty($activeRec)) {
+            $res .= "<br>|Активен е период|* <span style=\"color:red;\">{$activeRec->title}</span>";
+        }
         
         // Записваме, че потребителя е разглеждал този списък
         $this->logWrite('Затваряне на период', $id);
@@ -617,7 +644,14 @@ class acc_Periods extends core_Manager
     {
         $curPerEnd = static::getPeriodEnd();
         $activeRec = $this->forceActive();
-        
+
+        // Няма как да обновим състоянията без активен период
+        if (empty($activeRec)) {
+            $this->logWarning('Няма активен период - пропуснато обновяване на състоянията');
+
+            return;
+        }
+
         $query = $this->getQuery();
         $query->where("#end > '{$activeRec->end}' AND #end <= '{$curPerEnd}'");
         
@@ -737,8 +771,10 @@ class acc_Periods extends core_Manager
             case 'months':
                 
                 $dFrom = date('d', dt::mysql2timestamp($from));
-                $date1 = new DateTime(dt::addDays(1, $to));
-                $date2 = new DateTime($from);
+
+                // Кастването пази от "Passing null to parameter" в PHP 8.1+
+                $date1 = new DateTime((string) dt::addDays(1, $to));
+                $date2 = new DateTime((string) $from);
                 $interval = date_diff($date1, $date2);
                 $months = $interval->m;
                 $days = $interval->days;
@@ -864,7 +900,7 @@ class acc_Periods extends core_Manager
             // Кой е първия свободен период
             $pQuery = acc_Periods::getQuery();
             $pQuery->where("#state = 'active' OR #state = 'pending'");
-            $pQuery->where("#end > {$date}");
+            $pQuery->where("#end > '{$date}'");
             $pQuery->orderBy('end', 'ASC');
             $pQuery->limit(1);
 

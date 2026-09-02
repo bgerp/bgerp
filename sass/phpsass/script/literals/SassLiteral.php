@@ -38,11 +38,26 @@ abstract class SassLiteral
   public $value;
 
   /**
+   * @var SassContext context for the literal
+   */
+  public $context;
+
+  /**
+   * @var SassNode parent node for rendered literals
+   */
+  public $parent;
+
+  /**
+   * @var array child literals
+   */
+  public $children = array();
+
+  /**
    * class constructor
    * @param string $value value of the literal type
    * @return SassLiteral
    */
-  public function __construct($value = null, $context)
+  public function __construct($value, $context)
   {
     $this->value = $value;
     $this->context = $context;

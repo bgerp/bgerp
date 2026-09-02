@@ -64,7 +64,7 @@ class select2_PluginSelect extends core_Plugin
                     // Опитваме се да намерим коректната опция
                     $vFromOpt = null;
                     foreach ((array)$allowedListArr as $v) {
-                        if ($invoker->options[$v]) {
+                        if (!empty($invoker->options[$v])) {
                             $vFromOpt = $v;
                             
                             break;
@@ -78,7 +78,7 @@ class select2_PluginSelect extends core_Plugin
                     }
                 }
                 
-                if ($value) {
+                if ($value && isset($invoker->options[$value])) {
                     $valOptArr = array();
                     $valOptArr[$value] = is_array($invoker->options[$value]) ? $invoker->options[$value]['title'] : $invoker->options[$value];
                     if (isset($valOptArr[$value])) {

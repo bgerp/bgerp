@@ -254,13 +254,14 @@ class store_InventoryNoteSummary extends doc_Detail
     public static function renderDeltaCell($rec)
     {
         $rec = static::fetchRec($rec);
+        $delta = $rec->delta ?? null;
         $Double = cls::get('type_Double', array('params' => array('decimals' => 2)));
-        $deltaRow = $Double->toVerbal($rec->delta);
-        if ($rec->delta > 0) {
+        $deltaRow = $Double->toVerbal($delta);
+        if ($delta > 0) {
             $deltaRow = "+{$deltaRow}";
         }
         
-        $class = ($rec->delta < 0) ? 'red' : (($rec->delta > 0) ? 'green' : 'quiet');
+        $class = ($delta < 0) ? 'red' : (($delta > 0) ? 'green' : 'quiet');
         $deltaRow = "<span class='{$class}'>{$deltaRow}</span>";
         
         return new core_ET($deltaRow);
@@ -388,15 +389,15 @@ class store_InventoryNoteSummary extends doc_Detail
         }
 
         foreach ($data->rows as $id => &$row) {
-            $rec = &$data->recs[$id];
-            if($data->masterData->rec->state == 'active'){
+            $rec = $data->recs[$id] ?? null;
+            if(isset($rec) && $data->masterData->rec->state == 'active'){
                 if(empty($rec->quantity)){
                     $row->ROW_ATTR['class'] = ' state-closed';
                 }
             }
 
-            if($rec->quantityHasAddedValues == 'yes'){
-                if($rec->isBatch){
+            if(isset($rec) && ($rec->quantityHasAddedValues ?? null) == 'yes'){
+                if($rec->isBatch ?? false){
                     if(!isset($rec->quantity)){
                         $row->quantity = $row->blQuantity;
                         $row->quantity = "<span class='quiet small'>{$row->quantity}</span>";
@@ -404,7 +405,7 @@ class store_InventoryNoteSummary extends doc_Detail
                 }
             }
 
-            if(!$rec->isBatch){
+            if(isset($rec) && !($rec->isBatch ?? false)){
                 if (!Mode::isReadOnly()) {
                     $row->productId = cat_Products::getVerbal($rec->productId, 'name');
                     $row->productId = ht::createLinkRef($row->productId, cat_Products::getSingleUrlArray($rec->productId));
@@ -413,7 +414,8 @@ class store_InventoryNoteSummary extends doc_Detail
 
             if (isset($rec)) {
                 $row->delta = static::renderDeltaCell($rec);
-                $row->delta = "<div id='delta{$rec->id}'>{$row->delta}</div>";
+                $deltaId = $rec->id ?? $id;
+                $row->delta = "<div id='delta{$deltaId}'>{$row->delta}</div>";
             }
             
             if (isset($data->pager) && !$data->pager->isOnPage()) {
@@ -437,7 +439,7 @@ class store_InventoryNoteSummary extends doc_Detail
             }
 
             if (isset($rec)) {
-                if($rec->hasNoBatchRow !== true) {
+                if(($rec->hasNoBatchRow ?? false) !== true) {
                     // Добавяне на бутон за редакция на реда
                     if ($rec->productId && store_InventoryNoteDetails::haveRightFor('add', (object) array('noteId' => $rec->noteId, 'productId' => $rec->productId))) {
                         $url = array('store_InventoryNoteDetails', 'add', 'noteId' => $rec->noteId, 'productId' => $rec->productId, 'ret_url' => array('store_InventoryNotes', 'single', $rec->noteId, $pageVar => $pageVal));
@@ -445,7 +447,7 @@ class store_InventoryNoteSummary extends doc_Detail
                         // Ако се редактира сумарен ред. Маркира се в урл-то
                         if(isset($rec->quantity) || isset($rec->_batch)){
                             $url['packagingId'] = cat_Products::fetchField($rec->productId, 'measureId');
-                            $url['editQuantity'] = $rec->quantity;
+                            $url['editQuantity'] = $rec->quantity ?? null;
                             $url['editSummary'] = true;
                             if(isset($rec->_batch)){
                                 $url['editBatch'] = $rec->_batch;
@@ -456,15 +458,16 @@ class store_InventoryNoteSummary extends doc_Detail
                     }
                 }
 
-                if($rec->isBatch !== true){
+                if(($rec->isBatch ?? null) !== true){
                     $row->charge = static::renderCharge($rec);
 
                     // Рендиране на заявките, в които участва артикула
-                    if (countR($pendingDocuments[$rec->productId]) && !Mode::isReadOnly()) {
+                    $productPendingDocuments = $pendingDocuments[$rec->productId] ?? array();
+                    if (countR($productPendingDocuments) && !Mode::isReadOnly()) {
 
                         $btn = ht::createFnBtn('', null, null, array('class' => 'more-btn linkWithIcon warningContextMenu', 'title' => 'Документи, които са запазили количества от артикула'));
                         $bodyLayout = new ET("<div class='clearfix21 modal-toolbar'>[#LI#]</div>");
-                        foreach ($pendingDocuments[$rec->productId] as $link) {
+                        foreach ($productPendingDocuments as $link) {
                             $block = new core_ET("<div style='padding: 3px 5px 2px 0px;'>[#1#]</div>");
                             $block->replace($link, '1');
                             $block->removeBlocksAndPlaces();
@@ -481,8 +484,10 @@ class store_InventoryNoteSummary extends doc_Detail
                 }
             }
 
-            $row->quantity = ht::styleIfNegative($row->quantity, $rec->quantity);
-            $row->blQuantity = ht::styleIfNegative($row->blQuantity, $rec->blQuantity);
+            if (isset($rec)) {
+                $row->quantity = ht::styleIfNegative($row->quantity ?? null, $rec->quantity ?? null);
+                $row->blQuantity = ht::styleIfNegative($row->blQuantity ?? null, $rec->blQuantity ?? null);
+            }
         }
         
         plg_RowTools2::on_BeforeRenderListTable($mvc, $res, $data);
@@ -517,7 +522,7 @@ class store_InventoryNoteSummary extends doc_Detail
 
         $data->listFilter->input();
         if($filter = $data->listFilter->rec){
-            if($filter->filterBy == 'diff'){
+            if(($filter->filterBy ?? null) == 'diff'){
                 $data->query->where('#quantity IS NOT NULL');
             }
         }
@@ -558,8 +563,8 @@ class store_InventoryNoteSummary extends doc_Detail
         $productItemRec = acc_Items::fetchItem('cat_Products', $productId);
         $Balance = new acc_ActiveShortBalance(array('from' => $from, 'to' => $to, 'accs' => '321', 'cacheBalance' => false, 'item1' => $storeItemId, 'item2' => $productItemRec->id, 'keepUnique' => true));
         $bRecs = $Balance->getBalance('321');
-        $bRec = $bRecs[key($bRecs)];
-        $sRec->blQuantity = $bRec->blQuantity;
+        $bRec = is_array($bRecs) ? reset($bRecs) : false;
+        $sRec->blQuantity = $bRec->blQuantity ?? 0;
 
         // Ако няма запис, създаваме го
         return self::save($sRec);
@@ -668,7 +673,9 @@ class store_InventoryNoteSummary extends doc_Detail
         foreach ($data->recs as &$rec) {
             
             // Взимаме записа от кеша
-            $pRec = $tmpRecs[$rec->productId];
+            $pRec = $tmpRecs[$rec->productId] ?? null;
+            if (!$pRec) continue;
+
             cat_Products::setCodeIfEmpty($pRec);
 
             // Вербализираме и нормализираме кода, за да можем да подредим по него
@@ -770,7 +777,7 @@ class store_InventoryNoteSummary extends doc_Detail
             foreach ($desc as $dId => $dName){
                 
                 // Отделяме тези записи, които съдържат текущия маркер
-                $res = array_filter($recs, function (&$e) use ($dId, $dName, $groupFld) {
+                $res = array_filter($recs, function ($e) use ($dId, $dName, $groupFld) {
                     
                     if (keylist::isIn($dId, $e->{$groupFld})) {
                         $e->groupName = $dName;
@@ -799,7 +806,7 @@ class store_InventoryNoteSummary extends doc_Detail
                   $field = ($orderProductBy === 'code') ? $codeFld : $nameFld;
                   $result = strcasecmp($a->{$field}, $b->{$field});
              } else {
-                  $result = $a->groupName > $b->groupName;
+                  $result = $a->groupName <=> $b->groupName;
              }
                 
              return $result;
@@ -872,7 +879,7 @@ class store_InventoryNoteSummary extends doc_Detail
             if (is_array($data->rows)) {
                 foreach ($data->rows as $id => $sRow) {
                     $sRec = $data->recs[$id];
-                    if ($sRec->isBatch !== true) {
+                    if (($sRec->isBatch ?? null) !== true) {
                         $cache1[$id] = $sRec->productId;
                     }
                 }
@@ -927,7 +934,8 @@ class store_InventoryNoteSummary extends doc_Detail
         $query->XPR('sumQuantity', 'double', 'SUM(#quantity)');
         $query->show('sumQuantity,quantity');
 
-        $rec->quantity = $query->fetch()->sumQuantity;
+        $sumRec = $query->fetch();
+        $rec->quantity = $sumRec->sumQuantity ?? null;
         if(isset($rec->quantity)){
             $rec->quantity = round($rec->quantity, 4);
         } else {

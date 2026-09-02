@@ -186,7 +186,7 @@ class label_CounterItems extends core_Detail
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-        if ($rec->printId) {
+        if (!empty($rec->printId)) {
             if (label_Prints::haveRightFor('single', $rec->printId)) {
                 $row->printId = label_Prints::getLinkToSingle($rec->printId, 'title');
             }

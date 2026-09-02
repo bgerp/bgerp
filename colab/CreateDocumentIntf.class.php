@@ -17,4 +17,6 @@
  */
 class colab_CreateDocumentIntf
 {
+    public $class;
+
 }

@@ -66,7 +66,7 @@ class fileman_Indexes extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'fileman_Wrapper, plg_RowTools, plg_Created';
+    public $loadList = 'fileman_Wrapper, plg_RowTools2, plg_Created';
     
     
     public $interfaces = 'fileman_ProcessIntf';
@@ -130,7 +130,7 @@ class fileman_Indexes extends core_Manager
      */
     public static function prepare_(&$data, $fh)
     {
-        if (!haveRole('debug') && $data->rec) {
+        if (!haveRole('debug') && !empty($data->rec)) {
             if (fileman_Files::isDanger($data->rec, 0.00001)) {
 
                 return ;
@@ -139,6 +139,11 @@ class fileman_Indexes extends core_Manager
 
         // Записи за текущия файл
         $data->fRec = fileman_Files::fetchByFh($fh);
+        if (!$data->fRec) {
+            $data->tabs = array();
+
+            return;
+        }
         
         // Разширението на файла
         $ext = fileman_Files::getExt($data->fRec->name);
@@ -167,24 +172,27 @@ class fileman_Indexes extends core_Manager
     public static function render_($data)
     {
         // Масив с всички табове
-        $tabsArr = $data->tabs;
+        $tabsArr = $data->tabs ?? array();
         
-        if (! countR($data->tabs)) {
+        if (!countR($tabsArr)) {
             
             return false;
         }
         
-        setIfNot($data->fhName, 'id');
+        if (empty($data->fhName)) {
+            $data->fhName = 'id';
+        }
         
         // Подреждаме масивити според order
         $tabsArr = static::orderTabs($tabsArr);
+        $selectedTab = $data->currentTab ?? null;
         
         // Ако е избран някой таб
-        if (!empty($tabsArr[$data->currentTab])) {
+        if (!empty($tabsArr[$selectedTab])) {
 
             // Задаваме той да е текущия
-            $currentTab = $data->currentTab;
-        } elseif (!empty($tabsArr['__defaultTab']) && $tabsArr['__defaultTab']->name && !empty($tabsArr[$tabsArr['__defaultTab']->name])) {
+            $currentTab = $selectedTab;
+        } elseif (!empty($tabsArr['__defaultTab']->name) && !empty($tabsArr[$tabsArr['__defaultTab']->name])) {
             
             // Ако не е избран таб, избираме таба по подразбиране зададен от класа
             $currentTab = $tabsArr['__defaultTab']->name;
@@ -197,6 +205,7 @@ class fileman_Indexes extends core_Manager
         
         // Създаваме рендер на табове
         $tabs = cls::get('core_Tabs', array('htmlClass' => 'alphabet'));
+        $body = '';
         
         // Обикаляме всички табове
         foreach ($tabsArr as $name => $rec) {
@@ -211,7 +220,8 @@ class fileman_Indexes extends core_Manager
                 $urlArr['currentTab'] = $name;
                 $urlArr['#'] = 'fileDetail';
             } else {
-                $urlArr = array($data->fhName => $data->rec->fileHnd, 'currentTab' => $name, '#' => 'fileDetail');
+                $fileHnd = $data->rec->fileHnd ?? ($data->fRec->fileHnd ?? null);
+                $urlArr = array($data->fhName => $fileHnd, 'currentTab' => $name, '#' => 'fileDetail');
 
                 if (!empty($data->retUrl)) {
                     $urlArr['ret_url'] = $data->retUrl;
@@ -272,7 +282,7 @@ class fileman_Indexes extends core_Manager
                 // Вземаме уеб-драйверите за това файлово разширение
                 $res = self::getDriver($nExt, $fArr['name'], $pathArr);
                 
-                if ($res[0] && ($res[0]->className != 'fileman_webdrv_Generic')) {
+                if (!empty($res[0]) && ($res[0]->className != 'fileman_webdrv_Generic')) {
                     
                     return $res;
                 }
@@ -905,7 +915,7 @@ class fileman_Indexes extends core_Manager
         fileman_Data::save($dRec, 'searchKeywords');
         
         $break = false;
-        $bGet = $hGet = $vGet = false;
+        $bGet = $hGet = $vGet = $mGet = false;
 
         foreach ($fArr as $hnd => $fRec) {
             if (dt::now() >= $endOn) {
@@ -969,8 +979,31 @@ class fileman_Indexes extends core_Manager
                     }
                 }
             }
-            
-            if ($hGet && $bGet && $vGet) {
+
+            // Извличане на съдържанието в markdown - само за поддържаните файлове
+            if (!$mGet) {
+
+                // Игнорираме файловете от кофите, които не трябва да се индексират
+                $skipBucket = false;
+                if ($fRec->bucketId && ($ignoreExtArr = $ignoreBucketIdArr[$fRec->bucketId] ?? null)) {
+                    $skipBucket = !empty($ignoreExtArr['*']) || !empty($ignoreExtArr[$ext]);
+                }
+
+                if (!$skipBucket) {
+                    $drvInst = self::getDrvForMethod($ext, 'extractMarkdown', $fName);
+                    if ($drvInst) {
+                        try {
+                            usleep(500000);
+                            $drvInst->extractMarkdown($fRec);
+                            $mGet = true;
+                        } catch (ErrorException $e) {
+                            reportException($e);
+                        }
+                    }
+                }
+            }
+
+            if ($hGet && $bGet && $vGet && $mGet) {
                 break;
             }
         }
@@ -1050,8 +1083,34 @@ class fileman_Indexes extends core_Manager
 
         return $content;
     }
-    
-    
+
+
+    /**
+     * Връща извлеченото съдържание на файла в markdown
+     *
+     * @param string  $fh
+     * @param boolean $convertToUtf8
+     *
+     * @return FALSE|string
+     */
+    public static function getMarkdownForIndex($fh, $convertToUtf8 = true)
+    {
+        $content = fileman_Indexes::getInfoContentByFh($fh, 'markdown');
+
+        // При грешка в обработката, в индекса се записва обект
+        if ($content === false || !is_string($content)) {
+
+            return false;
+        }
+
+        if ($convertToUtf8) {
+            $content = i18n_Charset::convertToUtf8($content);
+        }
+
+        return $content;
+    }
+
+
     /**
      * След извличане на записите от базата данни
      *
@@ -1108,7 +1167,7 @@ class fileman_Indexes extends core_Manager
         $data->listFilter->view = 'horizontal';
         
         // Добавяме поле във формата за търсене
-        $data->listFilter->FNC('indexType', 'enum(,text=Текст)', 'caption=Тип, allowEmpty,autoFilter');
+        $data->listFilter->FNC('indexType', 'enum(,text=Текст)', 'caption=Тип,placeholderType=all, allowEmpty,autoFilter');
         
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         
@@ -1176,14 +1235,35 @@ class fileman_Indexes extends core_Manager
      * Връща текстовото представяне на файла (ако няма кеширано го форсира)
      *
      * @param string  $fileHnd
-     * @param boolean $asMarkdownIfPossible ако е true и файлът е табличен по разширение
-     *                (xls/xlsx/ods/csv и др. - вижте $tabularExtensions), таб-разделените
-     *                редове се преобразуват в markdown-подобни таблични редове - по-лесни
-     *                за коректно парсване от AI модел, отколкото суров таб-разделен текст
+     * @param boolean $asMarkdownIfPossible ако е true, с предимство се връща съдържанието в
+     *                markdown (от програмата в FILEMAN_MARKDOWN - напр. markitdown), защото
+     *                пази структурата на документа (заглавия, списъци, таблици) и се парсва
+     *                по-лесно от AI модел. Ако няма такова съдържание (програмата не е
+     *                настроена, файлът не се поддържа или извличането е празно), се минава
+     *                по текстовия индекс, като за табличните файлове (xls/xlsx/ods/csv и др. -
+     *                вижте $tabularExtensions) таб-разделените редове се преобразуват в
+     *                markdown-подобни таблични редове
      * @return string|null
      */
     public static function forceTextForIndex($fileHnd, $asMarkdownIfPossible = false)
     {
+        // Съдържанието в markdown е с предимство - то е с максимално запазена структура.
+        // При какъвто и да е проблем с markdown обработката (ненастроена/липсваща програма,
+        // неочаквано изключение от драйвер) падаме обратно към текстовата логика по-долу,
+        // вместо да чупим извикващия код.
+        if ($asMarkdownIfPossible) {
+            try {
+                $markdownContent = self::forceMarkdownForIndex($fileHnd);
+
+                if (!empty($markdownContent)) {
+
+                    return $markdownContent;
+                }
+            } catch (Throwable $e) {
+                reportException($e);
+            }
+        }
+
         $fileTxtContent = fileman_Indexes::getTextForIndex($fileHnd);
 
         // Ако все още не е извлечен текста, форсираме извличането му
@@ -1207,6 +1287,53 @@ class fileman_Indexes extends core_Manager
         }
 
         return $fileTxtContent;
+    }
+
+
+    /**
+     * Връща съдържанието на файла в markdown (ако няма кеширано, форсира извличането му)
+     *
+     * За разлика от `forceTextForIndex()` тук съдържанието е с максимално запазена структура
+     * (заглавия, списъци, таблици, връзки) - по-подходящо за подаване към AI модел
+     *
+     * @param string $fileHnd
+     * @param int    $waitSecs - до колко секунди да се изчака обработката, ако е стартирана
+     *
+     * @return string|NULL
+     */
+    public static function forceMarkdownForIndex($fileHnd, $waitSecs = 120)
+    {
+        $content = self::getMarkdownForIndex($fileHnd);
+
+        // Ако все още не е извлечено съдържанието, форсираме извличането му
+        if ($content === false) {
+            $fRec = fileman::fetchByFh($fileHnd);
+
+            if ($fRec && $fRec->dataId) {
+                fileman_webdrv_Generic::extractMarkdown($fRec);
+
+                // Изчакваме, докато приключи обработката
+                $lockId = fileman_webdrv_Generic::getLockId('markdown', $fRec->dataId);
+                $endOn = dt::addSecs($waitSecs);
+
+                while (core_Locks::isLocked($lockId)) {
+                    if (dt::now() >= $endOn) {
+                        break;
+                    }
+                    usleep(500000);
+                }
+
+                $content = self::getMarkdownForIndex($fileHnd);
+            }
+        }
+
+        // Ако няма извлечено или е извлечен празен стринг, няма да се върне нищо
+        if ($content === false || empty(trim($content))) {
+
+            return null;
+        }
+
+        return trim($content);
     }
 
 

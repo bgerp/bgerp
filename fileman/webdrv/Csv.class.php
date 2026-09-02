@@ -46,8 +46,8 @@ class fileman_webdrv_Csv extends fileman_webdrv_Code
 
         // Подготвяме стрелките
         $resArray = self::getArrows($fRec);
-        $prevLink = $resArray['prevLink'];
-        $nextLink = $resArray['nextLink'];
+        $prevLink = $resArray['prevLink'] ?? null;
+        $nextLink = $resArray['nextLink'] ?? null;
         
         // Таб за съдържанието
         $tabsArr['view'] = (object)
@@ -84,9 +84,12 @@ class fileman_webdrv_Csv extends fileman_webdrv_Code
         }
         
         $rows = array();
+        $data = is_array($res['data'] ?? null) ? $res['data'] : array();
         
-        if (isset($res['firstRow'])) {
+        if (is_array($res['firstRow'] ?? null)) {
+            $rows[-1] = '';
             foreach ($res['firstRow'] as $col) {
+                $col = (string) $col;
                 if (strpos($col, '<') !== false) {
                     $col = hclean_Purifier::clean($col, 'UTF-8');
                 }
@@ -94,27 +97,31 @@ class fileman_webdrv_Csv extends fileman_webdrv_Code
             }
         }
         
-        $formats = csv_Lib::getColumnTypes($res['data']);
+        $formats = (array) csv_Lib::getColumnTypes($data);
         
         $eml = cls::get('type_Email');
         $emls = cls::get('type_Emails');
+        $cnt = 0;
         
-        foreach ($res['data'] as $i => $r) {
+        foreach ($data as $i => $r) {
             if (!$cnt) {
                 $cnt = countR($r);
             }
+            $rows[$i] = '';
             foreach ($r as $j => $col) {
+                $col = (string) $col;
                 if (strpos($col, '<') !== false) {
                     $col = hclean_Purifier::clean($col, 'UTF-8');
                 }
-                if ($formats['fixed_'.$j]) {
+                $format = $formats[$j] ?? null;
+                if (!empty($formats['fixed_'.$j])) {
                     $rows[$i] .= "<td align='center'>" . $col . '</td>';
-                } elseif ($formats[$j] && in_array($formats[$j], array('unsigned', 'int', 'money', 'percent', 'number'))) {
+                } elseif ($format && in_array($format, array('unsigned', 'int', 'money', 'percent', 'number'))) {
                     $rows[$i] .= "<td align='right' nowrap>" . $col . '</td>';
-                } elseif ($formats[$j] && $formats[$j] == 'emails') {
-                    $rows[$i] .= "<td style='color:blue'>" . $emls->toVerbal($col) . '</td>';
-                } elseif ($formats[$j] && $formats[$j] == 'email') {
-                    $rows[$i] .= "<td style='color:blue'>" . $eml->toVerbal($col) . '</td>';
+                } elseif ($format == 'emails') {
+                    $rows[$i] .= "<td class='blueText'>" . $emls->toVerbal($col) . '</td>';
+                } elseif ($format == 'email') {
+                    $rows[$i] .= "<td class='blueText'>" . $eml->toVerbal($col) . '</td>';
                 } else {
                     $rows[$i] .= "<td clsss='mightOverflow'>" . $col . '</td>';
                 }
@@ -129,6 +136,7 @@ class fileman_webdrv_Csv extends fileman_webdrv_Code
             $maxWidth = 1600;
         }
         
+        $maxWidt = 120;
         if ($cnt > 0) {
             $maxWidt = round(max(120, $maxWidth / $cnt));
         }

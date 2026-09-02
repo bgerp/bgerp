@@ -19,6 +19,8 @@
  */
 class bgerp_DealAggregatorIntf
 {
+    public $class;
+
     /**
      * Генерира агрегираната бизнес информация за тази сделка
      *

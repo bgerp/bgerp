@@ -13,6 +13,7 @@
  *
  * @since     v 0.1
  */
+#[\AllowDynamicProperties]
 class bgerp_iface_DealProduct
 {
     /**
@@ -127,6 +128,14 @@ class bgerp_iface_DealProduct
     public $notes;
     
     
+    /**
+     * Разходно перо
+     *
+     * @var int
+     */
+    public $expenseItemId;
+
+
     /**
      * Запис за разходи
      */

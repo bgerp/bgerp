@@ -263,8 +263,14 @@ class cat_products_Packagings extends core_Detail
     protected static function on_BeforeSave($mvc, $id, $rec)
     {
         // Ако за този продукт има друга втора мярка, тя става не основна
-        if ($rec->isSecondMeasure == 'yes') {
-            if ($packRec = static::fetch("#productId = {$rec->productId} AND #isSecondMeasure = 'yes' AND #id != '{$rec->id}'")) {
+        if (($rec->isSecondMeasure ?? null) == 'yes') {
+            $query = static::getQuery();
+            $query->where(array("#productId = '[#1#]' AND #isSecondMeasure = 'yes'", $rec->productId));
+            if (!empty($id)) {
+                $query->where(array("#id != '[#1#]'", $id));
+            }
+
+            if ($packRec = $query->fetch()) {
                 $packRec->isSecondMeasure = 'no';
                 $mvc->save_($packRec, 'isSecondMeasure');
             }
@@ -520,7 +526,7 @@ class cat_products_Packagings extends core_Detail
     {
         $form = &$data->form;
         $rec = &$form->rec;
-        $options = self::getRemainingOptions($rec->productId, $rec->id);
+        $options = self::getRemainingOptions($rec->productId, $rec->id ?? null);
         $form->setOptions('packagingId', array('' => '') + $options);
 
         // Ако има дефолтни опаковки от драйвера
@@ -570,7 +576,8 @@ class cat_products_Packagings extends core_Detail
                 // Ако драйвера няма втора мярка, и това ще е първата различна мярка, тя по-дефолт ще е втора
                 if (!array_key_exists($rec->packagingId, $derivitiveMeasures)) {
                     $form->setField('isSecondMeasure', 'input');
-                    $alreadyHaveSecondMeasure = cat_products_Packagings::fetchField("#productId = {$rec->productId} AND #isSecondMeasure = 'yes' AND #id != '{$rec->id}'");
+                    $recId = $rec->id ?? 0;
+                    $alreadyHaveSecondMeasure = cat_products_Packagings::fetchField("#productId = {$rec->productId} AND #isSecondMeasure = 'yes' AND #id != '{$recId}'");
                     if ($alreadyHaveSecondMeasure) {
                         $form->setDefault('isSecondMeasure', 'no');
                     } else {
@@ -637,7 +644,7 @@ class cat_products_Packagings extends core_Detail
         }
 
         if (!empty($rec->tareWeight)) {
-            $row->weight .= "<span class='quiet'>" . tr('Тара') . ': </span>' . $row->tareWeight;
+            $row->weight = ($row->weight ?? '') . "<span class='quiet'>" . tr('Тара') . ': </span>' . $row->tareWeight;
         }
 
         if ($rec->isBase == 'yes') {
@@ -681,7 +688,11 @@ class cat_products_Packagings extends core_Detail
      */
     public function preparePackagings($data)
     {
-        $data->_masterRec = is_object($data->masterData->rec) ? $data->masterData->rec : $data->masterMvc->fetch($data->masterId);
+        if (isset($data->masterData->rec) && is_object($data->masterData->rec)) {
+            $data->_masterRec = $data->masterData->rec;
+        } else {
+            $data->_masterRec = $data->masterMvc->fetch($data->masterId);
+        }
 
         $data->recs = $data->rows = array();
         $fields = $this->selectFields();
@@ -720,7 +731,7 @@ class cat_products_Packagings extends core_Detail
         }
         $tpl = (isset($data->tpl)) ? $data->tpl : getTplFromFile('cat/tpl/PackagingDetail.shtml');
 
-        if ($data->addUrl && !Mode::isReadOnly()) {
+        if (!empty($data->addUrl) && !Mode::isReadOnly()) {
             $addBtn = ht::createLink('<img src=' . sbf('img/16/add.png') . " style='vertical-align: middle; margin-left:5px;'>", $data->addUrl, false, 'title=Добавяне на нова опаковка/мярка');
             $tpl->append($addBtn, 'TITLE');
         }
@@ -803,9 +814,9 @@ class cat_products_Packagings extends core_Detail
      */
     protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
-        cat_PackParams::sync($rec->packagingId, $rec->sizeWidth, $rec->sizeHeight, $rec->sizeDepth, $rec->tareWeight);
+        cat_PackParams::sync($rec->packagingId ?? null, $rec->sizeWidth ?? null, $rec->sizeHeight ?? null, $rec->sizeDepth ?? null, $rec->tareWeight ?? null);
 
-        if ($rec->state == 'closed' && $rec->isBase == 'yes') {
+        if (($rec->state ?? null) == 'closed' && ($rec->isBase ?? null) == 'yes') {
             $rec->isBase = 'no';
             $mvc->save_($rec, 'isBase');
         }
@@ -884,9 +895,6 @@ class cat_products_Packagings extends core_Detail
 
             return;
         }
-
-        $productIdFld = 'productId';
-        $packagingIdFld = 'packagingId';
 
         $pArr = array();
 
@@ -1158,8 +1166,9 @@ class cat_products_Packagings extends core_Detail
             $dArr = arr::make($mvc->details);
             foreach ($dArr as $detail) {
                 $Detail = cls::get($detail);
+                $productFld = $Detail->productFld ?? 'productId';
 
-                if (empty($Detail->fields['packagingId'])) {
+                if (empty($Detail->fields['packagingId']) || empty($Detail->fields[$productFld]) || empty($Detail->fields['quantityInPack'])) {
 
                     continue;
                 }
@@ -1169,23 +1178,26 @@ class cat_products_Packagings extends core_Detail
                 $dQuery->where(array("#{$masterKey} = '[#1#]'", $rec->id));
 
                 while ($dRec = $dQuery->fetch()) {
-                    if ($dRec->packagingId && $dRec->productId) {
-                        $quantity = self::fetchField(array("#productId = '[#1#]' AND #packagingId = '[#2#]'", $dRec->productId, $dRec->packagingId), 'quantity');
+                    $productId = $dRec->{$productFld} ?? null;
+                    if (($dRec->packagingId ?? null) && $productId && isset($dRec->quantityInPack)) {
+                        $quantity = self::fetchField(array("#productId = '[#1#]' AND #packagingId = '[#2#]'", $productId, $dRec->packagingId), 'quantity');
                         if (isset($quantity)) {
                             if ($quantity != $dRec->quantityInPack) {
-                                $notMatchArr[$dRec->productId] = $quantity;
+                                $notMatchArr[$productId] = $quantity;
                             }
                         }
                     }
                 }
             }
         } else {
-            if ($rec->packagingId && $rec->productId) {
-                $quantity = self::fetchField(array("#productId = '[#1#]' AND #packagingId = '[#2#]'", $rec->productId, $rec->packagingId), 'quantity');
+            $productFld = $mvc->productFld ?? 'productId';
+            $productId = $rec->{$productFld} ?? null;
+            if (($rec->packagingId ?? null) && $productId && isset($rec->quantityInPack)) {
+                $quantity = self::fetchField(array("#productId = '[#1#]' AND #packagingId = '[#2#]'", $productId, $rec->packagingId), 'quantity');
 
                 if (isset($quantity)) {
                     if ($quantity != $rec->quantityInPack) {
-                        $notMatchArr[$rec->productId] = $quantity;
+                        $notMatchArr[$productId] = $quantity;
                     }
                 }
             }
@@ -1343,7 +1355,8 @@ class cat_products_Packagings extends core_Detail
 
                     // Ако ще може да му се показва продажната цена
                     if (!($Doc->isInstanceOf('planning_ReturnNotes') || $Doc->isInstanceOf('planning_ConsumptionNotes') || $Doc->isInstanceOf('store_Transfers'))) {
-                        $Policy = ($isReverse == 'yes') ? (($Detail->ReversePolicy) ? $Detail->ReversePolicy : cls::get('price_ListToCustomers')) : (($Detail->Policy) ? $Detail->Policy : cls::get('price_ListToCustomers'));
+                        $policyClass = ($isReverse == 'yes') ? ($Detail->ReversePolicy ?? null) : ($Detail->Policy ?? null);
+                        $Policy = $policyClass ?: cls::get('price_ListToCustomers');
                         $docRec = $Doc->fetch('contragentClassId, contragentId, chargeVat, valior, currencyRate,currencyId');
 
                         $policyInfo = $Policy->getPriceInfo($docRec->contragentClassId, $docRec->contragentId, $productData->productId, $productData->packagingId, $quantityInPack, $docRec->valior, $docRec->currencyRate, $docRec->chargeVat);
@@ -1621,7 +1634,8 @@ class cat_products_Packagings extends core_Detail
     protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
         $data->listFilter->showFields = 'productId,packagingId';
-        $data->listFilter->setField('productId', 'input,title=Артикул');
+        $data->listFilter->setField('productId', 'input,title=Артикул,placeholderType=all');
+        $data->listFilter->setField('packagingId', 'placeholderType=all');
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
         $data->listFilter->input('productId,packagingId');

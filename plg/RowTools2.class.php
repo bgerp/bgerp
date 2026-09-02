@@ -36,15 +36,21 @@ class plg_RowTools2 extends core_Plugin
         if (!arr::haveSection($fields, '-list')) {
             return;
         }
+
+        $recObj = is_object($rec) ? $rec : $mvc->fetch($rec);
+        $recId = $recObj->id ?? (is_scalar($rec) ? $rec : null);
+        if (!isset($recId) || !is_scalar($recId)) {
+            return;
+        }
         
         core_RowToolbar::createIfNotExists($row->_rowTools);
         $ddTools = &$row->_rowTools;
         
         // Линк към сингъла
         if (method_exists($mvc, 'act_Single')) {
-            $singleUrl = $mvc->getSingleUrlArray($rec->id);
+            $singleUrl = $mvc->getSingleUrlArray($recId);
             
-            $singleIcon = $mvc->getIcon($rec->id);
+            $singleIcon = $mvc->getIcon($recId);
             
             if ($singleField = ($mvc->rowToolsSingleField ?? null)) {
                 $attr1['ef_icon'] = $singleIcon;
@@ -65,49 +71,49 @@ class plg_RowTools2 extends core_Plugin
         
         $singleTitle = $mvc->singleTitle;
         $singleTitle = tr($singleTitle);
-        $singleTitle = mb_strtolower($singleTitle);
+        $singleTitle = mb_strtolower($singleTitle ?? '');
         
         if (!empty($singleUrl)) {
-            $ddTools->addLink('Разглеждане', $singleUrl, "ef_icon={$singleIcon},title=Разглеждане на|* {$singleTitle},id=single{$rec->id}");
+            $ddTools->addLink('Разглеждане', $singleUrl, "ef_icon={$singleIcon},title=Разглеждане на|* {$singleTitle},id=single{$recId}");
         }
         
         $editUrl = $mvc->getEditUrl($rec);
         if (!empty($editUrl)) {
             $editUrl = $mvc->getEditUrl($rec);
-            $ddTools->addLink('Редактиране', $editUrl, "ef_icon=img/16/edit-icon.png,title=Редактиране на|* {$singleTitle},id=edt{$rec->id}");
+            $ddTools->addLink('Редактиране', $editUrl, "ef_icon=img/16/edit-icon.png,title=Редактиране на|* {$singleTitle},id=edt{$recId}");
         }
 
         $deleteUrl = $mvc->getDeleteUrl($rec);
         if (!empty($deleteUrl)) {
-            $ddTools->addLink('Изтриване', $deleteUrl, "ef_icon=img/16/delete.png,warning=Наистина ли желаете записът да бъде изтрит?,id=del{$rec->id},title=Изтриване на|* {$singleTitle}");
+            $ddTools->addLink('Изтриване', $deleteUrl, "ef_icon=img/16/delete.png,warning=Наистина ли желаете записът да бъде изтрит?,id=del{$recId},title=Изтриване на|* {$singleTitle}");
         } else {
             if (($mvc->fields['state']->type->options['rejected'] ?? null) && !($mvc instanceof core_Master)) {
-                if ($rec->state != 'rejected' && $mvc->haveRightFor('reject', $rec->id)) {
-                    $rejectUrl = array($mvc, 'reject', 'id' => $rec->id, 'ret_url' => $retUrl);
-                    $ddTools->addLink('Оттегляне', $rejectUrl, "ef_icon=img/16/reject.png,warning=Наистина ли желаете записът да бъде оттеглен?,id=rej{$rec->id},title=Оттегляне на|* {$singleTitle}");
-                } elseif ($rec->state == 'rejected' && $mvc->haveRightFor('restore', $rec->id)) {
-                    $restoreUrl = array($mvc, 'restore', 'id' => $rec->id, 'ret_url' => $retUrl);
-                    $ddTools->addLink('Възстановяване', $restoreUrl, "ef_icon=img/16/restore.png,warning=Наистина ли желаете записът да бъде възстановен?,id=res{$rec->id},title=Възстановяване на|* {$singleTitle}");
+                if (($recObj->state ?? null) != 'rejected' && $mvc->haveRightFor('reject', $recId)) {
+                    $rejectUrl = array($mvc, 'reject', 'id' => $recId, 'ret_url' => $retUrl);
+                    $ddTools->addLink('Оттегляне', $rejectUrl, "ef_icon=img/16/reject.png,warning=Наистина ли желаете записът да бъде оттеглен?,id=rej{$recId},title=Оттегляне на|* {$singleTitle}");
+                } elseif (($recObj->state ?? null) == 'rejected' && $mvc->haveRightFor('restore', $recId)) {
+                    $restoreUrl = array($mvc, 'restore', 'id' => $recId, 'ret_url' => $retUrl);
+                    $ddTools->addLink('Възстановяване', $restoreUrl, "ef_icon=img/16/restore.png,warning=Наистина ли желаете записът да бъде възстановен?,id=res{$recId},title=Възстановяване на|* {$singleTitle}");
                 }
             }
         }
         
         if ($mvc->hasPlugin('change_Plugin')) {
             if ($mvc->haveRightFor('changerec', $rec)) {
-                $changeUrl = $mvc->getChangeUrl($rec->id);
-                $ddTools->addLink('Промяна', $changeUrl, "ef_icon=img/16/edit.png,id=chn{$rec->id},title=Промяна на|* {$singleTitle}");
+                $changeUrl = $mvc->getChangeUrl($recId);
+                $ddTools->addLink('Промяна', $changeUrl, "ef_icon=img/16/edit.png,id=chn{$recId},title=Промяна на|* {$singleTitle}");
             }
         }
 
         if ($mvc->hasPlugin('plg_Clone')) {
             if ($mvc->haveRightFor('clonerec', $rec)) {
-                $cloneUrl = $mvc->getCloneUrl($rec->id);
-                $ddTools->addLink('Клониране', $cloneUrl, "ef_icon=img/16/clone.png,id=clone{$rec->id},title=Клониране на|* {$singleTitle}");
+                $cloneUrl = $mvc->getCloneUrl($recId);
+                $ddTools->addLink('Клониране', $cloneUrl, "ef_icon=img/16/clone.png,id=clone{$recId},title=Клониране на|* {$singleTitle}");
             }
         }
         
         if (false) {
-            $ddTools->addFnLink('Избор', 'actionsWithSelected();', array('ef_icon' => 'img/16/checked.png', 'title' => 'Действия с избраните', 'id' => "check{$rec->id}", 'class' => 'checkbox-btn'));
+            $ddTools->addFnLink('Избор', 'actionsWithSelected();', array('ef_icon' => 'img/16/checked.png', 'title' => 'Действия с избраните', 'id' => "check{$recId}", 'class' => 'checkbox-btn'));
         }
         
         $mvc->rowToolsColumn['_rowTools'] = 'rowtools-column';
@@ -145,12 +151,13 @@ class plg_RowTools2 extends core_Plugin
         if (!$mvc->haveRightFor('edit', $rec)) {
             return;
         }
+        $recId = is_object($rec) ? ($rec->id ?? null) : $rec;
         $retUrl = (cls::existsMethod($mvc, 'getRetUrl')) ? $mvc->getRetUrl($rec) : true;
         
         $editUrl = array(
             $mvc,
             'edit',
-            'id' => $rec->id,
+            'id' => $recId,
             'ret_url' => $retUrl
         );
     }
@@ -169,7 +176,8 @@ class plg_RowTools2 extends core_Plugin
             return;
         }
         
-        $deleteUrl = array($mvc, 'delete', 'id' => $rec->id, 'ret_url' => true);
+        $recId = is_object($rec) ? ($rec->id ?? null) : $rec;
+        $deleteUrl = array($mvc, 'delete', 'id' => $recId, 'ret_url' => true);
     }
     
     
@@ -178,16 +186,19 @@ class plg_RowTools2 extends core_Plugin
      */
     public static function on_BeforeRenderListTable($mvc, &$res, $data)
     {
-        $data->listFields = arr::make($data->listFields, true);
+        $data->listFields = arr::make($data->listFields ?? array(), true);
         unset($data->listFields['_rowTools']);
         
-        if (!is_array($data->rows) || empty($data->rows) || Mode::is('hideToolbar') === true) {
+        if (empty($data->rows) || !is_array($data->rows) || Mode::is('hideToolbar') === true) {
             return ;
         }
         
         $mustShow = false;
         
         foreach ($data->rows as $id => &$row) {
+            if (!isset($data->recs[$id])) {
+                continue;
+            }
             $rec = $data->recs[$id];
             
             // Ако има тулбар за реда

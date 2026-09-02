@@ -43,13 +43,6 @@ class csstoinline_Emogrifier extends core_Manager
         // Създаваме инстанция
         $Emogrifier = new \Pelago\Emogrifier($html, $css);
         
-        // Създава проблеми при енкодинга на някои файлове
-        // Запазваме енкодинга
-        //$Emogrifier->preserveEncoding = TRUE;
-        
-        // Задаваме кодировката на такста
-        $Emogrifier->encoding = 'UTF-8';
-        
         //Вкарва CSS във html, като inline
         $processedHTML = @$Emogrifier->emogrify();
         

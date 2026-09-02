@@ -38,13 +38,13 @@ class deepl_plugins_IncomingsTranslate extends core_Plugin
             $translateLgCodeArr[$lgCode] = $lgCode;
         }
 
-        $rLg = strtolower($rec->lg);
+        $rLg = strtolower((string) $rec->lg);
 
         $isGoodToTranslate = (boolean)($rLg != deepl_Setup::get('LANG'));
 
-        if (empty($translateLgCodeArr) || $translateLgCodeArr[$rLg]) {
+        if (empty($translateLgCodeArr) || !empty($translateLgCodeArr[$rLg])) {
             if (!(Mode::is('text', 'xhtml') && !Mode::is('printing')) && !Mode::is('text', 'plain')
-                && $fields['-single'] && trim($row->textPart) && $isGoodToTranslate) {
+                && !empty($fields['-single']) && strlen(trim((string) ($row->textPart ?? ''))) && $isGoodToTranslate) {
 
                 if ($mvc->haveRightFor('single', $rec->id)) {
                     $tr = Request::get('tr');
@@ -63,7 +63,7 @@ class deepl_plugins_IncomingsTranslate extends core_Plugin
                         $row->textPart = new ET($row->textPart);
                     }
                     if (!$cTextSubject) {
-                        $cTextSubject = $row->subject;
+                        $cTextSubject = $row->subject ?? null;
                     }
 
                     $row->subject = new ET($cTextSubject);

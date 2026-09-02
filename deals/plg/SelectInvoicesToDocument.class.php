@@ -49,7 +49,7 @@ class deals_plg_SelectInvoicesToDocument extends core_Plugin
      */
     protected static function on_BeforeSave($mvc, $id, $rec)
     {
-        if(isset($rec->id) && $rec->_isEdited){
+        if(isset($rec->id) && !empty($rec->_isEdited)){
             $oData = $mvc->getPaymentData($rec->id);
             $nData = $mvc->getPaymentData($rec);
 
@@ -143,7 +143,7 @@ class deals_plg_SelectInvoicesToDocument extends core_Plugin
                     $rec->fromContainerId = null;
                     $mvc->save_($rec, 'fromContainerId');
                 }
-            } elseif($rec->_amountChange == 'decrease') {
+            } elseif (($rec->_amountChange ?? null) == 'decrease') {
 
                 // Ако е само една и сумата е намалена то остава по-малкото от новата сума и старата разпределена
                 $nData = $mvc->getPaymentData($rec);
@@ -200,6 +200,7 @@ class deals_plg_SelectInvoicesToDocument extends core_Plugin
         $threadsArr = deals_Helper::getCombinedThreads($rec->threadId);
 
         $isTransfer = in_array($rec->operationSysId ?? null, array('case2customer', 'bank2customer', 'caseAdvance2customer', 'bankAdvance2customer', 'supplier2case', 'supplier2bank', 'supplierAdvance2case', 'supplierAdvance2bank'));
+        $isReverse = (($rec->isReverse ?? 'no') == 'yes');
         if($mvc instanceof acc_ValueCorrections){
             if($rec->action == 'decrease'){
                 $iArr = deals_Helper::getInvoicesInThread($threadsArr, null, false, false, true);
@@ -207,7 +208,7 @@ class deals_plg_SelectInvoicesToDocument extends core_Plugin
                 $iArr = deals_Helper::getInvoicesInThread($threadsArr, null, true, true, false);
             }
         } else {
-            $iArr = ($rec->isReverse == 'yes' && !$isTransfer) ? deals_Helper::getInvoicesInThread($threadsArr, null, false, false, true) : deals_Helper::getInvoicesInThread($threadsArr, null, true, true, true);
+            $iArr = ($isReverse && !$isTransfer) ? deals_Helper::getInvoicesInThread($threadsArr, null, false, false, true) : deals_Helper::getInvoicesInThread($threadsArr, null, true, true, true);
         }
 
         foreach ($iArr as $k => $number){
@@ -216,7 +217,7 @@ class deals_plg_SelectInvoicesToDocument extends core_Plugin
             $vAmount = 0;
             if($rate){
                 $vAmount = round(($iRec->dealValue + $iRec->vatAmount - $iRec->discountAmount) / $rate, 2);
-                if(($rec->isReverse == 'yes')){
+                if($isReverse){
                     if(!$isTransfer){
                         $vAmount = abs($vAmount);
                     } else {

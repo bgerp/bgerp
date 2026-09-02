@@ -207,7 +207,8 @@ class blast_ListDetails extends doc_Detail
      */
     public static function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
-        if ($bData = $data->form->rec->data) {
+        if (!empty($data->form->rec->data)) {
+            $bData = $data->form->rec->data;
             $fieldsArr = $mvc->getFncFieldsArr($data->masterRec->allFields);
             
             $bData = unserialize($bData);
@@ -236,16 +237,17 @@ class blast_ListDetails extends doc_Detail
         $data = array();
         
         foreach ($fieldsArr as $name => $caption) {
-            $data[$name] = $form->rec->{$name};
+            $data[$name] = $form->rec->{$name} ?? null;
         }
         
         $form->rec->data = serialize($data);
         
         $keyField = $masterRec->keyField;
         
-        $form->rec->key = str::convertToFixedKey(mb_strtolower(trim($form->rec->{$keyField})));
+        $form->rec->key = str::convertToFixedKey(mb_strtolower(trim((string) ($form->rec->{$keyField} ?? ''))));
         
-        if ($form->rec->id) {
+        $idCond = '';
+        if (!empty($form->rec->id)) {
             $idCond = " AND #id != {$form->rec->id}";
         }
         
@@ -572,7 +574,7 @@ class blast_ListDetails extends doc_Detail
         $exp->question('#companiesGroup,#inChargeUsers, #noSalesFrom, #noSalesTo, #city', tr('Посочете група от фирми, от която да се импортират контактните данни') . ':', "#source == 'groupCompanies'", 'title=' . tr('Избор на група фирми'));
         $exp->question('#personsGroup,#inChargeUsers, #noSalesFrom, #noSalesTo, #city', tr('Посочете група от лица, от която да се импортират контактните данни') . ':', "#source == 'groupPersons'", 'title=' . tr('Избор на група лица'));
         
-        $exp->DEF('#countriesInclude=Държава->Само тези', 'keylist(mvc=drdata_Countries, select=commonName, selectBg=commonNameBg, allowEmpty)', 'placeholder=Всички, notNull');
+        $exp->DEF('#countriesInclude=Държава->Само тези', 'keylist(mvc=drdata_Countries, select=commonName, selectBg=commonNameBg, allowEmpty)', 'placeholderType=all, notNull');
         $exp->SUGGESTIONS('#countriesInclude', 'getCountriesFromGroup(#companiesGroup)');
         $exp->SUGGESTIONS('#countriesInclude', 'getCountriesFromGroup(#personsGroup, "crm_Persons")');
         
@@ -580,11 +582,11 @@ class blast_ListDetails extends doc_Detail
         $exp->SUGGESTIONS('#countriesExclude', 'getCountriesFromGroup(#companiesGroup)');
         $exp->SUGGESTIONS('#countriesExclude', 'getCountriesFromGroup(#personsGroup, "crm_Persons")');
         
-        $exp->DEF('#documentType=Вид', 'keylist(mvc=core_Classes, select=title)', 'placeholder=Всички, notNull');
+        $exp->DEF('#documentType=Вид', 'keylist(mvc=core_Classes, select=title)', 'placeholderType=all, notNull');
         $exp->SUGGESTIONS('#documentType', 'getDocumentTypes()');
         $exp->ASSUME('#documentType', 'getDocumentTypesAssume()');
-        $exp->DEF('#catGroups=Продуктови групи', 'keylist(mvc=cat_Groups,select=name, allowEmpty)', 'placeholder=Всички, notNull');
-        $exp->DEF('#contragentType=Вид контрагент->Избор', 'enum(,crm_Companies=Фирми,crm_Persons=Лица)', 'placeholder=Всички, notNull');
+        $exp->DEF('#catGroups=Продуктови групи', 'keylist(mvc=cat_Groups,select=name, allowEmpty)', 'placeholderType=all, notNull');
+        $exp->DEF('#contragentType=Вид контрагент->Избор', 'enum(,crm_Companies=Фирми,crm_Persons=Лица)', 'placeholderType=all, notNull');
         $exp->DEF('#contragentAccess=Вид контрагент->Достъп', 'enum(, noAccess=Без Достъп, withAccess=С достъп)', 'placeholder=Без значение, notNull');
 
         $exp->DEF('#noSalesFrom=Без продажби през->От', 'date', 'placeholder=Игнорарине след, notNull');
@@ -650,6 +652,7 @@ class blast_ListDetails extends doc_Detail
         $listRec = blast_Lists::fetch($listId);
         $fieldsArr = $this->getFncFieldsArr($listRec->allFields);
         
+        $qFields = '';
         foreach ($fieldsArr as $name => $caption) {
             $exp->DEF("#col{$name}={$caption}", 'int', 'mandatory');
             $exp->OPTIONS("#col{$name}", 'getCsvColNames(#csvData,#delimiter,#enclosure, NULL, FALSE)');
@@ -668,7 +671,8 @@ class blast_ListDetails extends doc_Detail
         $exp->DEF('#priority=Приоритет', 'enum(data=Съществуващите данни да се запазят,update=Новите данни да обновят съществуващите)', 'mandatory');
         $exp->rule('#priority', '"data"', $listRec->contactsCnt ? '0' : '1');
         
-        $exp->question('#priority', tr('Какъв да бъде приоритета в случай, че има нов контакт с дублирано съдържание на полето') . " <span class=\"green\">'" . $fieldsArr[$listRec->keyField] . "'</span> ?", true, 'title=' . tr('Приоритет на данните'));
+        $keyFieldCaption = $fieldsArr[$listRec->keyField] ?? $listRec->keyField;
+        $exp->question('#priority', tr('Какъв да бъде приоритета в случай, че има нов контакт с дублирано съдържание на полето') . " <span class=\"green\">'" . $keyFieldCaption . "'</span> ?", true, 'title=' . tr('Приоритет на данните'));
 
         $exp->question($qFields, tr('Въведете съответстващите полета') . ':', true, 'title=' . tr('Съответствие между полетата на източника и списъка'));
         
@@ -703,6 +707,7 @@ class blast_ListDetails extends doc_Detail
                 foreach ($csvRows as $row) {
                     $rowArr = str_getcsv($row, $delimiter, $enclosure);
                     $rec = new stdClass();
+                    $exRec = null;
                     
                     foreach ($fieldsArr as $name => $caption) {
                         $id = $exp->getValue("#col{$name}");
@@ -710,14 +715,14 @@ class blast_ListDetails extends doc_Detail
                         if ($id === null) {
                             continue;
                         }
-                        $rec->{$name} = trim($rowArr[$id - 1]);
+                        $rec->{$name} = trim((string) ($rowArr[$id - 1] ?? ''));
                     }
                     
                     $err = $this->normalizeRec($rec);
                     $keyField = $listRec->keyField;
                     
                     // Вземаме стойността на ключовото поле;
-                    $key = $rec->{$keyField};
+                    $key = $rec->{$keyField} ?? null;
                     
                     // Ако ключа е празен, скипваме текущия ред
                     if (empty($key) || countR($err)) {
@@ -757,7 +762,7 @@ class blast_ListDetails extends doc_Detail
                     $data = array();
                     
                     foreach ($fieldsArr as $name => $caption) {
-                        setIfNot($data[$name], $rec->{$name}, $exRec->{$name});
+                        setIfNot($data[$name], $rec->{$name} ?? null, $exRec->{$name} ?? null);
                     }
                     
                     $rec->data = serialize($data);
@@ -1241,7 +1246,7 @@ class blast_ListDetails extends doc_Detail
                     
                     $fRec = doc_Folders::fetch($rec->folderId);
                     $cInstRec = null;
-                    if (($fRec->coverClass) && ($fRec->coverId)) {
+                    if ($fRec && !empty($fRec->coverClass) && !empty($fRec->coverId)) {
                         $cInst = cls::get($fRec->coverClass);
                         $cInstRec = $cInst->fetch($fRec->coverId);
                     }
@@ -1263,7 +1268,7 @@ class blast_ListDetails extends doc_Detail
                                     continue;
                                 }
                                 
-                                $email = trim($sendEmailsArr[0]);
+                                $email = trim($sendEmailsArr[0] ?? '');
                                 if ($email) {
                                     $eCDoc = doc_Containers::getDocument($eCRec->id);
                                     if ($eCDoc) {
@@ -1291,11 +1296,11 @@ class blast_ListDetails extends doc_Detail
                     // Ако все ощя няма имейл, използваме имейла от корицата
                     if (!$email) {
                         if ($cInstRec) {
-                            $emails = $cInstRec->buzEmail;
+                            $emails = $cInstRec->buzEmail ?? '';
                             $emails .= $emails ? ',' : '';
-                            $emails = $cInstRec->email;
+                            $emails .= $cInstRec->email ?? '';
                             $emailsArr = type_Emails::toArray($emails);
-                            $email = trim($emailsArr[0]);
+                            $email = trim($emailsArr[0] ?? '');
                         }
                     }
                     
@@ -1303,7 +1308,7 @@ class blast_ListDetails extends doc_Detail
                         continue ;
                     }
                     
-                    if ($allEmailArr[$email]) {
+                    if (!empty($allEmailArr[$email])) {
                         continue;
                     }
 
@@ -1366,7 +1371,7 @@ class blast_ListDetails extends doc_Detail
                         continue ;
                     }
 
-                    if ($allEmailArr[$email]) {
+                    if (!empty($allEmailArr[$email])) {
                         continue;
                     }
 
@@ -1448,10 +1453,13 @@ class blast_ListDetails extends doc_Detail
                     }
                     $contragentCls = cls::get($rec->contragentClass);
                     $cRec = $contragentCls->fetch($rec->contragentObjectId);
+                    if (!$cRec) {
+                        continue;
+                    }
 
                     // Ако не е в сътоветната държава
                     if ($allFoldersArr !== false) {
-                        if (!$allFoldersArr[$cRec->folderId]) {
+                        if (!$cRec || empty($allFoldersArr[$cRec->folderId])) {
 
                             continue;
                         }
@@ -1461,8 +1469,7 @@ class blast_ListDetails extends doc_Detail
                     if (!empty($gArr)) {
                         $pDetQuery = pos_ReceiptDetails::getQuery();
                         $pDetQuery->where(array("#receiptId = '[#1#]'", $rec->id));
-                        $pDetQuery->EXT('pGroups', 'cat_Products', "externalName=groups,externalKey=productId");
-                        $pDetQuery->likeKeylist('pGroups', $gArr);
+                        plg_ExpandInput::applyExtendedInputSearch('cat_Products', $pDetQuery, $gArr, 'productId');
                         if ($amountFrom || $amountTo) {
                             if ($amountFrom) {
                                 $query->where(array("#amount >= '[#1#]'", $amountFrom));
@@ -1506,7 +1513,7 @@ class blast_ListDetails extends doc_Detail
                         continue ;
                     }
 
-                    if ($allEmailArr[$email]) {
+                    if (!empty($allEmailArr[$email])) {
                         continue;
                     }
 
@@ -1579,14 +1586,8 @@ class blast_ListDetails extends doc_Detail
 
                 $prodArrRes[$groupIds] = array();
 
-                $catGroupsWhere = '';
-
-                foreach ($groupIdsArr as $gId) {
-                    $catGroupsWhere .= ($catGroupsWhere ? ' OR ' : '') . "LOCATE('|{$gId}|', #groups)";
-                }
-
                 $prodQuery = cat_Products::getQuery();
-                $prodQuery->where($catGroupsWhere);
+                plg_ExpandInput::applyExtendedInputSearch('cat_Products', $prodQuery, $groupIdsArr);
                 $prodQuery->where("#state != 'rejected'");
                 $prodQuery->where("#originId IS NOT NULL");
 
@@ -1602,7 +1603,7 @@ class blast_ListDetails extends doc_Detail
             }
         }
 
-        return $prodArrRes[$groupIds];
+        return $prodArrRes[$groupIds] ?? false;
     }
 
 
@@ -1739,7 +1740,7 @@ class blast_ListDetails extends doc_Detail
                     if (($type instanceof type_Email) || ($type instanceof type_Emails)) {
                         $eArr = type_Emails::toArray($value);
                         foreach ($eArr as $e) {
-                            if ($ignoreEmailArr[$e]) {
+                            if (!empty($ignoreEmailArr[$e])) {
                                 $ignore = true;
 
                                 break;

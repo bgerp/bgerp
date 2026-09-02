@@ -83,6 +83,7 @@ class pos_SellableProductsCache extends core_Master
      */
     protected static function on_AfterPrepareListFilter($mvc, &$res, $data)
     {
+        $data->listFilter->setField('priceListId', 'placeholderType=all');
         $data->listFilter->showFields = 'search,priceListId';
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');

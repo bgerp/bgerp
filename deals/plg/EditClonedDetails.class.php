@@ -69,8 +69,8 @@ class deals_plg_EditClonedDetails extends core_Plugin
         $rec = $form->rec;
 
         setPartIfNot($mvc, 'autoAddDetailsToChange', false);
-        if ($data->action != 'clone' && !$mvc->autoAddDetailsToChange) return;
-        if ($data->action != 'clone' && $mvc->autoAddDetailsToChange && isset($rec->id)) return;
+        if (($data->action ?? null) != 'clone' && !$mvc->autoAddDetailsToChange) return;
+        if (($data->action ?? null) != 'clone' && $mvc->autoAddDetailsToChange && isset($rec->id)) return;
 
         $MainDetail = cls::get($mvc->mainDetail);
         $detailsToCloneArr = $mvc->getDetailsToCloneAndChange($rec);
@@ -122,7 +122,7 @@ class deals_plg_EditClonedDetails extends core_Plugin
             }
             
             // Ако е инсталиран пакета за партиди, ще се показват и те
-            if ($installedBatch && is_object($Def) && $dRec->autoBatches !== true) {
+            if ($installedBatch && is_object($Def) && ($dRec->autoBatches ?? null) !== true) {
                 $subCaption = 'Без партида';
                 $bQuery = batch_BatchesInDocuments::getQuery();
                 $bQuery->where("#detailClassId = {$detailId} AND #detailRecId = {$dRec->id} AND #productId = {$dRec->{$Detail->productFld}}");
@@ -165,7 +165,7 @@ class deals_plg_EditClonedDetails extends core_Plugin
                     $form->setDefault("quantity||{$dRec->id}|", $dRec->packQuantity);
                 }
                 
-                if ($dRec->autoBatches === true && $installedBatch) {
+                if (($dRec->autoBatches ?? null) === true && $installedBatch) {
                     $type = $Detail->getBatchMovementDocument($dRec);
                     if ($type == 'out') {
                         $dRec->autoAllocate = true;
@@ -220,7 +220,7 @@ class deals_plg_EditClonedDetails extends core_Plugin
      */
     public static function on_BeforeSaveCloneDetails($mvc, &$newRec, &$detailArray)
     {
-        if ($newRec->cloneAndChange) {
+        if (!empty($newRec->cloneAndChange)) {
             
             // Занулява се за да не се клонира нищо
             $detailArray = array();
@@ -240,9 +240,18 @@ class deals_plg_EditClonedDetails extends core_Plugin
         $Detail = cls::get($mvc->mainDetail);
         $detailClassId = $Detail->getClassId();
         
-        $dontCloneFields = arr::make($Detail->fieldsNotToClone, true);
+        $dontCloneFields = arr::make($Detail->fieldsNotToClone ?? null, true);
 
         if (countR($rec->details ?? null)) {
+            $currencyFld = $mvc->currencyFld ?? null;
+            $rateFld = $mvc->rateFldName ?? null;
+            $valiorFld = $mvc->valiorFld ?? null;
+
+            $currencyId = isset($currencyFld) ? ($rec->{$currencyFld} ?? ($mvc->getField($currencyFld, false) ? $mvc->fetchField($id, $currencyFld) : null)) : null;
+            $currencyRate = isset($rateFld) ? ($rec->{$rateFld} ?? ($mvc->getField($rateFld, false) ? $mvc->fetchField($id, $rateFld) : null)) : null;
+            $valior = isset($valiorFld) ? ($rec->{$valiorFld} ?? ($mvc->getField($valiorFld, false) ? $mvc->fetchField($id, $valiorFld) : null)) : null;
+            $containerId = $rec->containerId ?? $mvc->fetchField($id, 'containerId');
+            $storeId = $rec->storeId ?? ($mvc->getField('storeId', false) ? $mvc->fetchField($id, 'storeId') : null);
 
             foreach ($rec->details as $det) {
                 if (!empty($det->baseQuantity)) {
@@ -251,36 +260,36 @@ class deals_plg_EditClonedDetails extends core_Plugin
                 }
 
                 // Ако има курс обръща се в този на документа
-                if(!in_array($rec->{$mvc->currencyFld}, array('BGN', 'EUR'))){
-                    if(isset($det->_rate)){
+                if (!in_array($currencyId, array('BGN', 'EUR'))) {
+                    if (isset($det->_rate) && isset($currencyRate)) {
                         $det->price /= $det->_rate;
-                        $det->price *= $rec->{$mvc->rateFldName};
+                        $det->price *= $currencyRate;
                     }
-               } elseif($det->_valior) {
-                    $det->price = deals_Helper::getSmartBaseCurrency($det->price, $det->_valior, $rec->{$mvc->valiorFld});
+               } elseif (isset($det->_valior, $valior)) {
+                    $det->price = deals_Helper::getSmartBaseCurrency($det->price, $det->_valior, $valior);
                 }
 
                 $newPackQuantity = $updatePackQuantity = 0;
-                if (is_array($det->batches) && core_Packs::isInstalled('batch')) {
+                if (isset($det->batches) && is_array($det->batches) && core_Packs::isInstalled('batch')) {
                     foreach ($det->batches as &$bRec) {
                         $bMd5 = md5($bRec->batch);
                         $key = "quantity|{$bMd5}|{$det->id}|";
 
-                        $q = $rec->{$key};
+                        $q = $rec->{$key} ?? 0;
                         if ($q > ($bRec->quantity / $bRec->quantityInPack)) {
                             $q = $bRec->quantity / $bRec->quantityInPack;
                         }
                         $updatePackQuantity += $q;
                         
-                        $newPackQuantity += $rec->{$key};
+                        $newPackQuantity += $q;
                         $bRec->oldQuantity = $bRec->quantity;
-                        $bRec->quantity = $rec->{$key} * $bRec->quantityInPack;
-                        $bRec->containerId = $rec->containerId;
-                        $bRec->storeId = $rec->storeId;
+                        $bRec->quantity = $q * $bRec->quantityInPack;
+                        $bRec->containerId = $containerId;
+                        $bRec->storeId = $storeId;
                     }
                 }
-                $newPackQuantity += $rec->{"quantity||{$det->id}|"};
-                $updatePackQuantity += $rec->{"quantity||{$det->id}|"};
+                $newPackQuantity += $rec->{"quantity||{$det->id}|"} ?? 0;
+                $updatePackQuantity += $rec->{"quantity||{$det->id}|"} ?? 0;
                 if (!empty($newPackQuantity)) {
                     if (!empty($det->baseQuantity)) {
                         $det->quantityInPack = $det->baseQuantity / $newPackQuantity;
@@ -293,7 +302,7 @@ class deals_plg_EditClonedDetails extends core_Plugin
                     $oldDetailId = $det->id;
                     $det->_clonedWithBatches = true;
                     
-                    if ($rec->deduct == 'yes') {
+                    if (($rec->deduct ?? null) == 'yes') {
                         if ($diff <= 0) {
                             $Detail->delete($det->id);
                             if (core_Packs::isInstalled('batch')) {
@@ -316,11 +325,11 @@ class deals_plg_EditClonedDetails extends core_Plugin
                     
                     $det->{$Detail->masterKey} = $rec->id;
                     $Detail->save($det);
-                    if (is_array($det->batches) && core_Packs::isInstalled('batch')) {
+                    if (isset($det->batches) && is_array($det->batches) && core_Packs::isInstalled('batch')) {
                         $batchesArr = array();
                         foreach ($det->batches as $batch) {
                             $d1 = $batch->oldQuantity - $batch->quantity;
-                            if ($rec->deduct == 'yes') {
+                            if (($rec->deduct ?? null) == 'yes') {
                                 if ($d1 <= 0) {
                                     batch_BatchesInDocuments::delete("#id = {$batch->id}");
                                 } else {

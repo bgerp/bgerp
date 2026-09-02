@@ -25,6 +25,12 @@ abstract class cat_ProductDriver extends core_BaseClass
 
 
     /**
+     * Записът на продукта, подаден от embed manager-а
+     */
+    public $driverRec;
+
+
+    /**
      * Кой може да избира драйвъра
      */
     public $canSelectDriver = 'user';
@@ -118,13 +124,13 @@ abstract class cat_ProductDriver extends core_BaseClass
                 
                 // Ако е 'hidden' и има зададена стойност, правим полето скрито
                 if ($display === 'hidden') {
-                    if (!is_null($form->rec->{$name})) {
+                    if (isset($form->rec->{$name})) {
                         $form->setField($name, 'input=hidden');
                     }
                 } elseif ($display === 'readOnly') {
-                    
+
                     // Ако е 'readOnly' и има зададена стойност, правим го 'само за четене'
-                    if (!is_null($form->rec->{$name})) {
+                    if (isset($form->rec->{$name})) {
                         $form->setReadOnly($name);
                     }
                 }
@@ -278,7 +284,7 @@ abstract class cat_ProductDriver extends core_BaseClass
         $rec = $data->rec;
 
         // Ако режима е за показване на сравнения при клониране
-        if(!empty($data->_showDiff)){
+        if(!empty($data->_showDiff) && !empty($rec->clonedFromId)){
 
             // Подготвя се изгледа на оригиналния артикул и се показват разликите спрямо него
             $clonedRec = $Embedder->fetch($rec->clonedFromId);
@@ -301,7 +307,7 @@ abstract class cat_ProductDriver extends core_BaseClass
      */
     public function renderProductDescription($data)
     {
-        if(!$data->defaultTpl){
+        if (empty($data->defaultTpl)) {
             $tpl = new ET(tr("|*
                     <div class='groupList'>
                         <div class='richtext' style='margin-top: 5px; font-weight:bold;'>[#title#]</div>
@@ -318,20 +324,20 @@ abstract class cat_ProductDriver extends core_BaseClass
         } else {
             $tpl = $data->defaultTpl;
         }
-        $title = tr($this->singleTitle);
+        $title = tr($this->singleTitle ?? $this->title ?? '');
         $tpl->append($title, 'title');
 
         $form = cls::get('core_Form');
         $this->addFields($form);
         $driverFields = $form->fields;
-        $tpl->replace($data->row->info, 'info');
+        $tpl->replace($data->row->info ?? null, 'info');
 
         if (is_array($driverFields)) {
             $usedGroups = core_Form::getUsedGroups($form, $driverFields, $data->rec, $data->row, 'single');
             $lastGroup = null;
             
             foreach ($driverFields as $name => $field) {
-                if ($field->single != 'none' && isset($data->row->{$name})) {
+                if (($field->single ?? null) != 'none' && isset($data->row->{$name})) {
                     $caption = $field->caption;
                     
                     if (strpos($caption, '->')) {
@@ -352,18 +358,18 @@ abstract class cat_ProductDriver extends core_BaseClass
                     }
                     
                     $caption = tr($caption);
-                    $unit = tr($field->unit);
+                    $unit = tr($field->unit ?? '');
                     
-                    if ($field->inlineTo) {
+                    if ($inlineTo = ($field->inlineTo ?? null)) {
                         $dhtml = new ET(" {$caption} " . $data->row->{$name} . " {$unit}");
-                        $tpl->prepend($dhtml, $field->inlineTo);
+                        $tpl->prepend($dhtml, $inlineTo);
                     } else {
-                        if ($field->singleCaption == '@') {
-                            $dhtml = new ET("<tr><td>&nbsp;&nbsp;</td><td colspan=2 style='padding-left:5px; font-weight:bold;'>" . $data->row->{$name} . " {$unit}[#${name}#]</td></tr>");
-                        } elseif ($field->singleCaption) {
-                            $caption = tr($field->singleCaption);
+                        if (($field->singleCaption ?? null) == '@') {
+                            $dhtml = new ET("<tr><td>&nbsp;&nbsp;</td><td colspan=2 style='padding-left:5px; font-weight:bold;'>" . $data->row->{$name} . " {$unit}[#{$name}#]</td></tr>");
+                        } elseif (($field->singleCaption ?? null)) {
+                            $caption = tr(($field->singleCaption ?? null));
                         } else {
-                            $dhtml = new ET("<tr><td>&nbsp;-&nbsp;</td> <td> {$caption}:</td><td style='padding-left:5px; font-weight:bold;'>" . $data->row->{$name} . " {$unit}[#${name}#]</td></tr>");
+                            $dhtml = new ET("<tr><td>&nbsp;-&nbsp;</td> <td> {$caption}:</td><td style='padding-left:5px; font-weight:bold;'>" . $data->row->{$name} . " {$unit}[#{$name}#]</td></tr>");
                         }
                         $tpl->append($dhtml, 'INFO');
                     }
@@ -489,6 +495,7 @@ abstract class cat_ProductDriver extends core_BaseClass
     public function getBomForPrice($productId)
     {
         // Търсим първо активната търговска рецепта, ако няма търсим активната работна
+        $bomRec = false;
         $productRec = cat_Products::fetchRec($productId, 'proto,id');
         
         if(isset($productRec->id)){
@@ -1042,7 +1049,28 @@ abstract class cat_ProductDriver extends core_BaseClass
      */
     public function getProductionData($productId)
     {
-        return array();
+        return static::getDefaultProductionData();
+    }
+
+
+    /**
+     * Връща пълния празен шаблон за производствени данни.
+     *
+     * @return array
+     */
+    public static function getDefaultProductionData()
+    {
+        $res =  array_fill_keys(array(
+            'name', 'centerId', 'storeIn', 'inputStores', 'fixedAssets', 'employees',
+            'norm', 'normPackagingId', 'labelPackagingId', 'labelQuantityInPack',
+            'labelType', 'labelTemplate', 'planningParams', 'actions', 'isFinal',
+            'showPreviousJobField', 'wasteProductId', 'wasteStart', 'wastePercent',
+            'calcWeightMode', 'fastProgressBtn', 'mandatoryDocuments', 'description',
+            'supportSystemFolderId', 'offsetAfter'
+        ), null);
+        $res['planningParams'] = array();
+
+        return $res;
     }
 
 
@@ -1138,7 +1166,7 @@ abstract class cat_ProductDriver extends core_BaseClass
                 $changeIcon = "img/16/checked-not-green.png";
                 $changeTitle = 'Показване на разликите с оригинала';
             }
-            $row->clonedFromId .= "&nbsp;" . ht::createLink('', $cUrl, false, "title={$changeTitle},ef_icon={$changeIcon}")->getContent();
+            $row->clonedFromId = ($row->clonedFromId ?? '') . "&nbsp;" . ht::createLink('', $cUrl, false, "title={$changeTitle},ef_icon={$changeIcon}")->getContent();
         }
     }
 

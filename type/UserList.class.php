@@ -151,7 +151,7 @@ class type_UserList extends type_Keylist
                 $this->suggestions[$gName] = $group;
                 foreach ($gVals->suggArr as $uId) {
                     if ($uId > 1) {
-                        if ($uRec = $userArr['r'][$uId]) {
+                        if ($uRec = ($userArr['r'][$uId] ?? null)) {
                             $key = $this->getKey($gKey, $uId);
                             $this->suggestions[$key] = html_entity_decode(core_Users::getVerbal($uRec, 'nick'));
                             if (EF_USSERS_EMAIL_AS_NICK) {
@@ -180,13 +180,16 @@ class type_UserList extends type_Keylist
             
             $teamMembers = 0;
             
-            foreach ((array) $userArr[$t] as $uId) {
-                $uRec = $userArr['r'][$uId];
+            foreach ((array) ($userArr[$t] ?? array()) as $uId) {
+                $uRec = $userArr['r'][$uId] ?? null;
+                if (!$uRec) {
+                    continue;
+                }
                 if ($uRec->state == 'rejected' || $uRec->state == 'draft') {
                     continue;
                 }
 
-                if ($this->params['showClosedUsers'] == 'no') {
+                if (($this->params['showClosedUsers'] ?? null) == 'no') {
                     if ($uRec->state == 'closed') {
                         continue;
                     }
@@ -315,7 +318,7 @@ class type_UserList extends type_Keylist
         
         foreach ($ids as $id) {
             if (strlen($id) && ($id > 1)) {
-                if (!($nick = $uar['r'][$id]->nick)) {
+                if (!($nick = ($uar['r'][$id]->nick ?? null))) {
                     $res = parent::toVerbal_($value);
                     break;
                 }
@@ -375,7 +378,7 @@ class type_UserList extends type_Keylist
                     foreach ($this->userOtherGroup as $gName => $gVal) {
                         $key = $this->getKey($gName, $uId);
                         
-                        if ($this->suggestions[$key]) {
+                        if (!empty($this->suggestions[$key])) {
                             $nValArr[$key] = $key;
                             $haveMatch = true;
                             
@@ -464,7 +467,7 @@ class type_UserList extends type_Keylist
             foreach ($suggestions as $keySugg => $suggestion) {
                 
                 // Ако не е група
-                if (!$suggestion->group) {
+                if (!is_object($suggestion) || empty($suggestion->group)) {
                     
                     // Добавяме в масива
                     $retTypeArr[$keySugg] = $keySugg;
@@ -479,7 +482,7 @@ class type_UserList extends type_Keylist
             foreach ($typeArr as $t) {
                 
                 // Ако има предложение с този тип
-                if ($suggestions[$t]) {
+                if (!empty($suggestions[$t])) {
                     
                     // Добавяме масива
                     $retTypeArr[$t] = $t;

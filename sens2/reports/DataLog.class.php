@@ -81,11 +81,11 @@ class sens2_reports_DataLog extends frame_BaseDriver
     public function checkEmbeddedForm(core_Form &$form)
     {
         if ($form->isSubmitted()) {
-            if ($form->rec->orderField == '') {
+            if (($form->rec->orderField ?? '') == '') {
                 unset($form->rec->orderField);
             }
             
-            if ($form->rec->orderBy == '') {
+            if (($form->rec->orderBy ?? '') == '') {
                 unset($form->rec->orderBy);
             }
         }
@@ -104,7 +104,7 @@ class sens2_reports_DataLog extends frame_BaseDriver
         $KeyList = cls::get('type_KeyList', array('params' => array('mvc' => 'sens2_Indicators', 'select' => 'title')));
         
         if (!strpos($filter->to, ' ')) {
-            $filter->to .= ' 23:59:59';
+            $filter->to = ($filter->to ?? '') . ' 23:59:59';
         }
         
         $query = sens2_DataLogs::getQuery();
@@ -157,7 +157,7 @@ class sens2_reports_DataLog extends frame_BaseDriver
         
         $layout->append($table->get($data->rows, 'time=Време,indicatorId=Индикатор,value=Стойност'), 'data');
         
-        if ($data->pager) {
+        if (!empty($data->pager)) {
             $layout->append($data->pager->getHtml(), 'data');
         }
         

@@ -117,7 +117,7 @@ class callcenter_ListOperationsPlg extends core_Plugin
         $areaCode = $numberObj->areaCode;
         $number = $numberObj->number;
         
-        if ($areaCode == '87' || $areaCode == '88' | $areaCode == '89') {
+        if ($areaCode == '87' || $areaCode == '88' || $areaCode == '89') {
             $areaCode .= $number[0];
             $number = substr($number, 1);
         }
@@ -127,7 +127,7 @@ class callcenter_ListOperationsPlg extends core_Plugin
         
         $tel = ($countryCode == 359) ? 'тел' : 'tel';
         
-        $q = "{$countryCode}{$areaCode}{$number} | ${tel} {$sNum}";
+        $q = "{$countryCode}{$areaCode}{$number} | {$tel} {$sNum}";
         
         if (strlen($number) == 6) {
             $q .= " | 0{$areaCode}_" . substr($number, 0, 2) . '_' . substr($number, 2, 2) . '_' . substr($number, 4, 2);

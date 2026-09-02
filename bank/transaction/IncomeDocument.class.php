@@ -90,7 +90,7 @@ class bank_transaction_IncomeDocument extends acc_DocumentTransactionSource
         $amount481 = ($rec->currencyId != $baseCurrencyId) ? $rec->amount : $rec->amountDeal;
 
         $dealCompareCurrencyCode = $dealRec->currencyId;
-        if($dealRec->valior < acc_Setup::getEurozoneDate() && $dealRec->oldCurrencyId == 'BGN'){
+        if ($dealRec->valior < acc_Setup::getEurozoneDate() && isset($dealRec->oldCurrencyId) && $dealRec->oldCurrencyId == 'BGN') {
             $dealCompareCurrencyCode = $dealRec->oldCurrencyId;
             $dealCurrencyRate = 1;
         }

@@ -178,7 +178,7 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
                             $Balance = $Balance->getBalanceBefore($accId);
                             $balHistory = acc_ActiveShortBalance::getBalanceHistory($accId, $cDate, $cDate, $contragentItem->id, $saleItem->id, $currencyItem->id);
                             
-                            if (is_array($balHistory['history'])) {
+                            if (is_array($balHistory['history'] ?? null)) {
                                 foreach ($balHistory['history'] as $history) {
                                     // платено по сделката
                                     $paid[$saleItem->id]['creditAmount'] += $history['creditAmount'];
@@ -203,7 +203,7 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
                     
                     
                     // фактурираното то всяка сделка (сумарно от всички фактури)
-                    $amountVatArr[$saleItem->id] += $amountVat;
+                    $amountVatArr[$saleItem->id] = ($amountVatArr[$saleItem->id] ?? 0) + $amountVat;
                     
                     // правим рековете
                     $data->recs[] = (object) array('contragentCls' => $contragentCls,
@@ -227,17 +227,17 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
             }
         }
         
-        if (is_array($data->recs)) {
+        if (is_array($data->recs ?? null)) {
             foreach ($data->recs as $id => $rec) {
                 
                 // ако имаме повече от една фактура в сделката
-                if ($invCntArr[$rec->saleId] > 1) {
+                if (($invCntArr[$rec->saleId] ?? 0) > 1) {
                 
                 // само една фактура
                 } else {
                     
                     // ако сделката не е фактурирана цялата
-                    if ($amountVatArr[$rec->saleId] != $rec->amountVat) {
+                    if (($amountVatArr[$rec->saleId] ?? 0) != $rec->amountVat) {
                         // от сумата на сделката вадим фактурираното и платеното
                         $rec->amountRest = $amountVatArr[$rec->saleId] - $rec->amountVat - $paid[$rec->saleId]['creditAmount'];
                     
@@ -351,7 +351,7 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
             }
         }
         
-        if (is_array($data->recs)) {
+        if (is_array($data->recs ?? null)) {
             $data->sum = new stdClass();
             foreach ($data->recs as $currRec) {
                 $data->sum->amountVat += $currRec->amountVat;
@@ -449,7 +449,7 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
             $row->amountVat =
                 "<div>
 						<span class='cCode'>{$data->currencyId}</span>
-						<span>${amountVat}</span></b>
+						<span>{$amountVat}</span></b>
 				</div>";
             
             $data->rows[] = $row;
@@ -527,7 +527,7 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
         
         $tpl->append($table->get($data->rows, $data->listFields), 'CONTENT');
         
-        if (is_array($data->summary) && countR($data->summary)) {
+        if (is_array($data->summary ?? null) && countR($data->summary)) {
             $data->summary->colspan = countR($data->listFields) - 3;
             $afterRow = new core_ET("<tr  style = 'background-color: #eee'><td colspan=[#colspan#]><b>" . tr('ОБЩО') . "</b></td><td style='text-align:right'><span class='cCode'>[#currencyId#]</span>&nbsp;<b>[#amountInv#]</b></td><td style='text-align:right'><span class='cCode'>[#currencyId#]</span>&nbsp;<b>[#amountToPaid#]</b></td><!--ET_BEGIN amountArrears--><td style='text-align:right;color:red'><span class='cCode'>[#currencyId#]</span>&nbsp;<b>[#amountArrears#]</b><!--ET_END amountArrears--></td></tr>");
             
@@ -538,7 +538,7 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
             $tpl->append($afterRow, 'ROW_AFTER');
         }
         
-        if ($data->pager) {
+        if (!empty($data->pager)) {
             $tpl->append($data->pager->getHtml(), 'PAGER');
         }
         

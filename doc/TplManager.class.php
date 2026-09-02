@@ -38,7 +38,7 @@ class doc_TplManager extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_SaveAndNew, plg_State2, plg_Modified, doc_Wrapper, plg_RowTools, plg_Sorting, plg_Search';
+    public $loadList = 'plg_Created, plg_SaveAndNew, plg_State2, plg_Modified, doc_Wrapper, plg_RowTools2, plg_Sorting, plg_Search';
 
     
     /**
@@ -194,7 +194,8 @@ class doc_TplManager extends core_Master
         $rec = $form->rec;
 
         // Ако шаблона е клонинг
-        if ($originId = $rec->originId) {
+        if (!empty($rec->originId)) {
+            $originId = $rec->originId;
             
             // Копират се нужните данни от ориджина
             expect($origin = static::fetch($originId));
@@ -211,14 +212,16 @@ class doc_TplManager extends core_Master
             $form->setField('docClassId', array('removeAndRefreshForm' => 'lang|content|toggleFields|path'));
         }
         
+        $docClassId = $rec->docClassId ?? null;
+
         // Ако има избран документ, се подготвят допълнителните полета
-        if ($rec->docClassId) {
-            $DocClass = cls::get($rec->docClassId);
+        if ($docClassId) {
+            $DocClass = cls::get($docClassId);
             $mvc->prepareToggleFields($DocClass, $form);
         }
 
         // Ако шаблона е системен, може да се променя само броя му копия
-        if($rec->createdBy == core_Users::SYSTEM_USER){
+        if(($rec->createdBy ?? null) == core_Users::SYSTEM_USER){
             $form->setReadOnly('name');
             $fields = array_keys($form->selectFields("#input != 'hidden' AND #name != 'name' AND #name != 'printCount'"));
             foreach ($fields as $fld){
@@ -228,7 +231,7 @@ class doc_TplManager extends core_Master
 
         $handlers = core_Classes::getOptionsByInterface('doc_TplScriptIntf', 'title');
         foreach ($handlers as $handlerKey => $handlerVal){
-            if(!cls::get($handlerKey)->canAddToClass($rec->docClassId)){
+            if(!cls::get($handlerKey)->canAddToClass($docClassId)){
                 unset($handlers[$handlerKey]);
             }
         }
@@ -273,13 +276,15 @@ class doc_TplManager extends core_Master
      */
     private function setTempField(core_Mvc $DocClass, core_Form &$form)
     {
+        $toggleFields = $DocClass->toggleFields ?? null;
+
         // Ако са посочени незадължителни полета
-        if ($DocClass->toggleFields) {
+        if ($toggleFields) {
             
             // Създаване на FNC поле със стойности идващи от 'toggleFields'
             $fldName = ($DocClass instanceof core_Master) ? 'masterFld' : $DocClass->className;
-            $fields = array_keys(arr::make($DocClass->toggleFields));
-            $form->FNC($fldName, "set({$DocClass->toggleFields})", 'caption=Полета за показване->Колони,input,columns=3,tempFld,silent');
+            $fields = array_keys(arr::make($toggleFields));
+            $form->FNC($fldName, "set({$toggleFields})", 'caption=Полета за показване->Колони,input,columns=3,tempFld,silent');
             
             // Стойност по подразбиране
             if (isset($form->rec->{$fldName})) {
@@ -310,7 +315,8 @@ class doc_TplManager extends core_Master
             }
             
             // Ако шаблона е клонинг
-            if ($originId = $rec->originId) {
+            if (!empty($rec->originId)) {
+                $originId = $rec->originId;
                 expect($origin = static::fetch($originId));
                 $new = preg_replace("/\s+/", '', $form->rec->content);
                 $old = preg_replace("/\s+/", '', $origin->content);
@@ -713,7 +719,7 @@ class doc_TplManager extends core_Master
             $row->docClassId = ht::createLink($row->docClassId, array('doc_TplManager', 'list', 'docClassId' => $rec->docClassId));
         }
 
-        if(isset($rec->handler)){
+        if(isset($rec->handler, $row->handler, $row->handlerInEffectOn)){
             $row->handler .= " ({$row->handlerInEffectOn})";
         }
     }

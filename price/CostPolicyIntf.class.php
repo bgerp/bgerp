@@ -17,6 +17,12 @@
  */
 class price_CostPolicyIntf
 {
+    /**
+     * Клас, имплементиращ интерфейса
+     */
+    public $class;
+
+
     
     
     /**
@@ -29,6 +35,19 @@ class price_CostPolicyIntf
     public function getName($verbal = false)
     {
         return $this->class->getName($verbal);
+    }
+    
+    
+    /**
+     * Дали политиката е приложима за артикула
+     *
+     * @param int $productId
+     *
+     * @return bool
+     */
+    public function isApplicableForProduct($productId)
+    {
+        return $this->class->isApplicableForProduct($productId);
     }
     
     

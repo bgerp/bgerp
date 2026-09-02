@@ -132,7 +132,7 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
         }
         
         $transaction = (object) array(
-            'reason' => 'Покупка #' . $rec->id,
+            'reason' => 'Покупка #' . ($rec->id ?? ''),
             'valior' => $rec->valior,
             'entries' => $entries,
         );
@@ -471,7 +471,10 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
     public static function getBlAmount($jRecs, $id)
     {
         $rec = purchase_Purchases::fetchRec($id);
+        if (!is_object($rec)) return 0;
+
         $itemRec = acc_items::fetchItem('purchase_Purchases', $rec->id);
+        if (!is_object($itemRec)) return 0;
 
         $useCurrencyField = !in_array($rec->currencyId, array('EUR', 'BGN'));
         $paid = acc_Balances::getBlAmounts($jRecs, '401', null, null, array(null, $itemRec->id, null), array(), $rec->valior, $useCurrencyField)->amount;
@@ -488,7 +491,10 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
     public static function getDeliveryAmount($jRecs, $id)
     {
         $rec = purchase_Purchases::fetchRec($id);
+        if (!is_object($rec)) return 0;
+
         $itemRec = acc_items::fetchItem('purchase_Purchases', $rec->id);
+        if (!is_object($itemRec)) return 0;
 
         $useCurrencyField = !in_array($rec->currencyId, array('EUR', 'BGN'));
         $delivered = acc_Balances::getBlAmounts($jRecs, '401', 'credit', null, array(null, $itemRec->id, null), array(), $rec->valior, $useCurrencyField)->amount;
@@ -515,14 +521,18 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
     {
         $res = array();
         $rec = purchase_Purchases::fetchRec($rec);
+        if (!is_object($rec)) return $res;
 
         // Извличаме тези, отнасящи се за експедиране
-        $itemId = acc_items::fetchItem('purchase_Purchases', $rec->id)->id;
+        $itemRec = acc_items::fetchItem('purchase_Purchases', $rec->id);
+        if (!is_object($itemRec)) return $res;
+
+        $itemId = $itemRec->id;
 
         $from = ($onlySupplier === true) ? '401' : null;
         $dInfo = acc_Balances::getBlAmounts($jRecs, $accs, 'debit', $from);
         
-        if (!countR($dInfo->recs)) {
+        if (!countR($dInfo->recs ?? null)) {
             
             return $res;
         }
@@ -555,7 +565,7 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
                     if ($groupByStore === true) {
                         $storePositionId = acc_Lists::getPosition(acc_Accounts::fetchField($p->debitAccId, 'systemId'), 'store_AccRegIntf');
                         
-                        if ($p->{"debitItem{$storePositionId}"}) {
+                        if (!empty($storePositionId) && $p->{"debitItem{$storePositionId}"}) {
                             $storeItem = acc_Items::fetch($p->{"debitItem{$storePositionId}"});
                             
                             $res[$index]->inStores[$storeItem->objectId]['amount'] = ($res[$index]->inStores[$storeItem->objectId]['amount'] ?? 0) + $amount;
@@ -566,7 +576,7 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
                     if ($groupByExpense === true) {
                         $expensePositionId = acc_Lists::getPosition(acc_Accounts::fetchField($p->debitAccId, 'systemId'), 'doc_DocumentIntf');
                         
-                        if ($p->{"debitItem{$expensePositionId}"}) {
+                        if (!empty($expensePositionId) && $p->{"debitItem{$expensePositionId}"}) {
                             $expenseItem = acc_Items::fetch($p->{"debitItem{$expensePositionId}"})->id;
                             
                             $res[$index]->expenseItems[$expenseItem]['amount'] = ($res[$index]->expenseItems[$expenseItem]['amount'] ?? 0) + $amount;

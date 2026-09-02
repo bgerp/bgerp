@@ -122,22 +122,22 @@ class fileman_webdrv_Inkscape extends fileman_webdrv_ImageT
         if ($to == 'png') {
             $height = static::$pngExportHeight;
             $lineExec = 'inkscape [#INPUTF#] --export-png=[#OUTPUTF#] --export-area-drawing';
-            if ($otherParam['exportHeight']) {
+            if (!empty($otherParam['exportHeight'])) {
                 $lineExec .= ' --export-height=' . $otherParam['exportHeight'];
             }
             
-            if ($otherParam['exportWidth']) {
+            if (!empty($otherParam['exportWidth'])) {
                 $lineExec .= ' --export-width=' . $otherParam['exportWidth'];
             }
         }
 
         if (($to == 'jpg') || ($to == 'jpeg')) {
             $lineExec = 'convert -density 150 [#INPUTF#] [#OUTPUTF#]';
-            if ($otherParam['exportHeight']) {
+            if (!empty($otherParam['exportHeight'])) {
                 $lineExec .= ' --export-height=' . $otherParam['exportHeight'];
             }
 
-            if ($otherParam['exportWidth']) {
+            if (!empty($otherParam['exportWidth'])) {
                 $lineExec .= ' --export-width=' . $otherParam['exportWidth'];
             }
 
@@ -192,7 +192,7 @@ class fileman_webdrv_Inkscape extends fileman_webdrv_ImageT
         if (is_file($outFilePath)) {
             if (!$cmyk) {
                 $bucketName = 'fileIndex';
-                if ($otherParam['bucket']) {
+                if (!empty($otherParam['bucket'])) {
                     $bucketName = $otherParam['bucket'];
                 }
                 

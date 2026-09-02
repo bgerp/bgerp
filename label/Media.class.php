@@ -123,6 +123,9 @@ class label_Media extends core_Manager
     public static function markMediaAsUsed($id)
     {
         $rec = self::fetch($id);
+        if (!$rec) {
+            return false;
+        }
         
         if ($rec->state == 'active') {
             
@@ -145,6 +148,9 @@ class label_Media extends core_Manager
     public static function getCountInPage($id)
     {
         $rec = self::fetch($id);
+        if (!$rec) {
+            return 1;
+        }
         $cnt = $rec->columnsCnt * $rec->linesCnt;
         
         return $cnt;
@@ -200,8 +206,8 @@ class label_Media extends core_Manager
         $sizeArr = explode('x', $sizes);
         
         $query = self::getQuery();
-        $query->where(array("#width = '[#1#]'", trim($sizeArr[0])));
-        $query->where(array("#height = '[#1#]'", trim($sizeArr[1])));
+        $query->where(array("#width = '[#1#]'", trim($sizeArr[0] ?? '')));
+        $query->where(array("#height = '[#1#]'", trim($sizeArr[1] ?? '')));
 
         $query->where("#state != 'rejected'");
 
@@ -222,16 +228,16 @@ class label_Media extends core_Manager
      */
     public static function prepareMediaPageLayout(&$data)
     {
-        $rec = $data->Media->rec;
+        $rec = $data->Media->rec ?? null;
         
         // Ако някоя от необходимите стойности не е сетната
-        if (!$rec->columnsCnt || !$rec->linesCnt || !$data->cnt) {
+        if (!$rec || empty($rec->columnsCnt) || empty($rec->linesCnt) || empty($data->cnt)) {
             
             return false;
         }
         
         // Ако не е сетнат
-        if (!$data->pageLayout) {
+        if (empty($data->pageLayout)) {
             
             // Създаваме обекта
             $data->pageLayout = new stdClass();
@@ -304,7 +310,7 @@ class label_Media extends core_Manager
             for ($s = 0; $s < $columns; $s++) {
                 
                 // Добавяме колона
-                $t .= "<td>[#${cnt}#]</td>";
+                $t .= "<td>[#{$cnt}#]</td>";
                 
                 // Увеличаваме брояча
                 $cnt++;
@@ -334,8 +340,9 @@ class label_Media extends core_Manager
     {
         // Активните записи да не може да се редактират или изтриват
         if ($rec && ($action == 'edit' || $action == 'delete')) {
-            if (($rec->state == 'active') || ($rec->state == 'rejected') || ($rec->state == 'restore')) {
-                if (!haveRole('debug', $userId) || ($rec->state != 'active') || ($action != 'edit')) {
+            $state = $rec->state ?? null;
+            if (($state == 'active') || ($state == 'rejected') || ($state == 'restore')) {
+                if (!haveRole('debug', $userId) || ($state != 'active') || ($action != 'edit')) {
                     $requiredRoles = 'no_one';
                 }
             }
@@ -348,7 +355,7 @@ class label_Media extends core_Manager
      */
     protected static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
-        $row->title = $row->title . ' ' . self::getSize($row->width, $row->height);
+        $row->title = ($row->title ?? '') . ' ' . self::getSize($row->width ?? null, $row->height ?? null);
     }
     
     

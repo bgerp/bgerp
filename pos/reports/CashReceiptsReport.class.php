@@ -77,10 +77,10 @@ class pos_reports_CashReceiptsReport extends frame2_driver_TableData
         $fieldset->FLD('start', 'datetime(smartTime)', 'caption=От,refreshForm,after=title');
         $fieldset->FLD('end', 'datetime(smartTime)', 'caption=До,refreshForm,after=start');
 
-        $fieldset->FLD('customers', 'keylist(mvc=core_Users,select=names,allowEmpty)', 'caption=Клиент,placeholder=Всички,after=end,single=none');
+        $fieldset->FLD('customers', 'keylist(mvc=core_Users,select=names,allowEmpty)', 'caption=Клиент,placeholderType=all,after=end,single=none');
 
 
-        $fieldset->FLD('pos', 'keylist(mvc=pos_Points,select=name,allowEmpty)', 'caption=ПОС,placeholder=Всички,after=customers,single=none');
+        $fieldset->FLD('pos', 'keylist(mvc=pos_Points,select=name,allowEmpty)', 'caption=ПОС,placeholderType=all,after=customers,single=none');
 
 
         //Групиране на резултатите
@@ -188,7 +188,7 @@ class pos_reports_CashReceiptsReport extends frame2_driver_TableData
 
             $id = $receiptRec->id;
 
-            $totalSum[$folderId] += $receiptRec->total;
+            $totalSum[$folderId] = ($totalSum[$folderId] ?? 0) + $receiptRec->total;
 
             if (!array_key_exists($id, $recs)) {
                 $recs[$id] = (object)array(
@@ -281,7 +281,7 @@ class pos_reports_CashReceiptsReport extends frame2_driver_TableData
 
         $row->contragentName = $dRec->contragentName;
         if ($rec->groupBy == 'contragentName') {
-            $row->contragentName .= '<span class="fright">  ОБЩО: ' . $dRec->totalSum . ' лв.</span>';
+            $row->contragentName = ($row->contragentName ?? '') . '<span class="fright">  ОБЩО: ' . $dRec->totalSum . ' лв.</span>';
         }
 
         $row->total = ht::createLink($dRec->total, array('pos_Receipts', 'single', $dRec->receiptId));

@@ -158,7 +158,7 @@ class price_Updates extends core_Manager
     {
         $rec = $data->form->rec;
         $objectClass = ($rec->type == 'category') ? 'cat_Categories' : (($rec->type == 'group') ? 'cat_Groups' : 'cat_Products');
-        $data->form->title = core_Detail::getEditTitle($objectClass, $rec->objectId, $mvc->singleTitle, $rec->id);
+        $data->form->title = core_Detail::getEditTitle($objectClass, $rec->objectId, $mvc->singleTitle, $rec->id ?? null);
     }
     
     
@@ -279,8 +279,8 @@ class price_Updates extends core_Manager
             } elseif ($rec->type == 'product') {
                 $pRec = cat_Products::fetch($rec->objectId);
                 
-                // Ако добавяме правило за артикул трябва да е активен,публичен,складируем и купуваем или производим
-                if ($pRec->state != 'active' || $pRec->canStore != 'yes' || $pRec->isPublic != 'yes' || !($pRec->canBuy == 'yes' || $pRec->canManifacture == 'yes')) {
+                // Ако добавяме правило за артикул трябва да е активен, публичен и купуваем или производим
+                if ($pRec->state != 'active' || $pRec->isPublic != 'yes' || !($pRec->canBuy == 'yes' || $pRec->canManifacture == 'yes')) {
                     $requiredRoles = 'no_one';
                 }
             } elseif($rec->type == 'group'){
@@ -338,7 +338,7 @@ class price_Updates extends core_Manager
             // Ако е правило за група, обновява се само на артикулите от нея, отговарящи на условията
             $pQuery = cat_Products::getQuery();
             plg_ExpandInput::applyExtendedInputSearch('cat_Products', $pQuery, $rec->objectId);
-            $pQuery->where("#state = 'active' AND #isPublic = 'yes' AND #canStore = 'yes' AND (#canBuy = 'yes' OR #canManifacture = 'yes')");
+            $pQuery->where("#state = 'active' AND #isPublic = 'yes' AND (#canBuy = 'yes' OR #canManifacture = 'yes')");
             $pQuery->show('id');
             while ($pRec = $pQuery->fetch()) {
 
@@ -350,7 +350,7 @@ class price_Updates extends core_Manager
             // Ако е категория, всички артикули в папката на категорията
             $folderId = cat_Categories::fetchField($rec->objectId, 'folderId');
             $pQuery = cat_Products::getQuery();
-            $pQuery->where("#state = 'active' AND #isPublic = 'yes' AND #canStore = 'yes' AND (#canBuy = 'yes' OR #canManifacture = 'yes')");
+            $pQuery->where("#state = 'active' AND #isPublic = 'yes' AND (#canBuy = 'yes' OR #canManifacture = 'yes')");
             $pQuery->where("#folderId = {$folderId}");
             $pQuery->show('id,groups');
             
@@ -400,10 +400,10 @@ class price_Updates extends core_Manager
         // За всеки артикул
         $res = array();
         foreach ($products as $productId) {
-            $pRec = cat_Products::fetch($productId, 'state,canStore,isPublic,canBuy,canManifacture');
+            $pRec = cat_Products::fetch($productId, 'state,isPublic,canBuy,canManifacture');
 
-            // Обновяване на себестойностите само ако артикула е складируем, публичен, активен, купуваем или производим
-            if ($pRec->state != 'active' || $pRec->canStore != 'yes' || $pRec->isPublic != 'yes' || !($pRec->canBuy == 'yes' || $pRec->canManifacture == 'yes')) {
+            // Обновяване на себестойностите само ако артикула е публичен, активен, купуваем или производим
+            if ($pRec->state != 'active' || $pRec->isPublic != 'yes' || !($pRec->canBuy == 'yes' || $pRec->canManifacture == 'yes')) {
                 continue;
             }
             
@@ -509,6 +509,12 @@ class price_Updates extends core_Manager
         $sources = array($sourceClass1, $sourceClass2, $sourceClass3);
         foreach ($sources as $source) {
             if (isset($source)) {
+
+                // Ако политиката не е приложима за артикула, минава се към следващата
+                if (!cls::load($source, true)) continue;
+                $Interface = cls::getInterface('price_CostPolicyIntf', $source);
+                if (!$Interface->isApplicableForProduct($productId)) continue;
+
                 $price = price_ProductCosts::getPrice($productId, $source);
                 if (isset($price)) {
                     
@@ -675,7 +681,7 @@ class price_Updates extends core_Manager
     public function prepareDetail($data)
     {
         $data->recs = array();
-        $type = ($data->masterMvc instanceof cat_Categories) ? 'category' : (($data->masterMvc instanceof cat_Groups) ? 'group' : 'product');
+        $type = (($data->masterMvc ?? null) instanceof cat_Categories) ? 'category' : ((($data->masterMvc ?? null) instanceof cat_Groups) ? 'group' : 'product');
 
         if($type == 'product'){
             if($uRec = price_Updates::fetch("#type = 'product' AND #objectId = {$data->masterId}")){
@@ -736,7 +742,7 @@ class price_Updates extends core_Manager
         if(!empty($data->hide)) return new core_ET("");
 
         $tpl = new core_ET("<div><div>[#title#]</div>[#RULES#]<!--ET_BEGIN RULE--><div style='margin:5px;text-align:center;'>[#RULE#]</div><!--ET_END RULE--></div>");
-        $isFromProduct = $data->masterMvc instanceof cat_Products;
+        $isFromProduct = ($data->masterMvc ?? null) instanceof cat_Products;
         $caption = tr('Правила за обновяване на себестойност');
 
         if(countR($data->recs)){
@@ -757,7 +763,7 @@ class price_Updates extends core_Manager
         }
 
         $btnPlaceholder = 'title';
-        if(!($data->masterMvc instanceof cat_Products)){
+        if(!(($data->masterMvc ?? null) instanceof cat_Products)){
             $tpl->removeBlocksAndPlaces();
             $finalTpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
             $finalTpl->append(tr('Обновяване на себестойности'), 'title');
@@ -821,7 +827,7 @@ class price_Updates extends core_Manager
 
         if (price_Updates::haveRightFor('saveprimecost', $rec)) {
             $url = array('price_Updates', 'saveprimecost', $rec->id, 'ret_url' => true);
-            if($data->masterMvc instanceof cat_Products){
+            if(($data->masterMvc ?? null) instanceof cat_Products){
                 $url['productId'] = $data->masterId;
             }
 
@@ -905,9 +911,9 @@ class price_Updates extends core_Manager
      */
     protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
-        $data->listFilter->FLD('classId', 'class(interface=price_CostPolicyIntf,select=title,allowEmpty)', 'caption=Източник');
+        $data->listFilter->FLD('classId', 'class(interface=price_CostPolicyIntf,select=title,allowEmpty)', 'caption=Източник,placeholderType=all');
         $data->listFilter->setFieldType('type', "enum(,category=Категория,product=Артикул,group=Група)");
-        $data->listFilter->setField('type', 'input');
+        $data->listFilter->setField('type', 'input,placeholderType=all');
         $data->listFilter->setOptions('classId', price_Updates::getCostPoliciesOptions());
         $data->listFilter->view = 'horizontal';
         $data->listFilter->showFields = 'type,classId';

@@ -125,8 +125,9 @@ class planning_interface_TaskLabel extends label_ProtoSequencerImpl
         $productId = ($rec->isFinal == 'yes') ? $jRec->productId : $rec->productId;
 
         $jobCode = mb_strtoupper(planning_Jobs::getHandle($jRec->id));
-        if ($lg != 'bg' && isset($jRec->saleId)) {
-            $lData = cls::get('sales_Sales')->getLogisticData($jRec->saleId);
+        list($sourceClass, $sourceId) = planning_Jobs::getSourceInfo($jRec);
+        if ($lg != 'bg' && isset($sourceClass)) {
+            $lData = $sourceClass::getLogisticData($sourceId);
             $countryCode = drdata_Countries::fetchField(array("#commonName = '[#1#]'", $lData['toCountry']), 'letterCode2');
             $countryCode .= ' ' . date('m/y');
         }

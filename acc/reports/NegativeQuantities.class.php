@@ -51,7 +51,7 @@ class acc_reports_NegativeQuantities extends frame2_driver_TableData
     {
         $fieldset->FLD('period', 'key(mvc=acc_Periods,title=title)', 'caption = Период,after=accountId,single=none');
         $fieldset->FLD('accountId', 'key(mvc=acc_Accounts,title=title)', 'caption = Сметка,after=title,single=none');
-        $fieldset->FLD('storeId', 'keylist(mvc=store_Stores,select=name)', 'caption = Склад,after=accountId');
+        $fieldset->FLD('storeId', 'keylist(mvc=store_Stores,select=name)', 'caption = Склад,placeholderType=all,after=accountId');
         $fieldset->FLD('minval', 'double(decimals=2)', 'caption = Минимален праг за отчитане,unit= (количество),
                         placeholder=Без праг,after=period,single=none');
         
@@ -200,11 +200,18 @@ class acc_reports_NegativeQuantities extends frame2_driver_TableData
         
         $row->articul = "<span class= ''>" . $dRec->articulNo . '. ' . '</span>';
         
-        $row->articul .= "<span class= ''>" . cat_Products::getShortHyperlink($productId, true) . '</span>';
+        $row->articul = ($row->articul ?? '') . "<span class= ''>" . cat_Products::getShortHyperlink($productId, true) . '</span>';
         
         $row->uomId = cat_UoM::getTitleById($dRec->uomId);
         
-        $resArr = array_combine($dRec->storeId, $dRec->quantity);
+        $storeIds = (array) ($dRec->storeId ?? array());
+        $quantities = (array) ($dRec->quantity ?? array());
+        $resArr = array();
+        foreach ($storeIds as $key => $storeId) {
+            if (array_key_exists($key, $quantities)) {
+                $resArr[$storeId] = $quantities[$key];
+            }
+        }
         
         asort($resArr);
         
@@ -231,7 +238,7 @@ class acc_reports_NegativeQuantities extends frame2_driver_TableData
             
             $row->store = ($row->store ?? '') . "<div class='nowrap'>" . ht::createLink('', $histUrl, null, 'title=Хронологична справка,ef_icon=img/16/clock_history.png');
 
-            $row->store .= store_Stores::getHyperlink($storeId, true) . '</div>';
+            $row->store = ($row->store ?? '') . store_Stores::getHyperlink($storeId, true) . '</div>';
             
             $color = 'green';
             if ($val < 0) {

@@ -112,6 +112,7 @@ class wtime_Summary extends core_Manager
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         $data->listFilter->class = 'simpleForm';
         $data->listFilter->defOrder = false;
+        $data->listFilter->setField('personId', 'placeholderType=all');
         $data->listFilter->showFields = 'selectPeriod,personId,from,to,type';
         $data->listFilter->input(null, 'silent');
         $data->listFilter->input();
@@ -149,7 +150,7 @@ class wtime_Summary extends core_Manager
             $scheduleId = planning_Hr::getSchedule($rec->personId);
             $row->scheduleId = hr_Schedules::getHyperlink($scheduleId, true);
         }
-        $row->ROW_ATTR['class'] = ($rec->_isSummary) ? 'state-closed' : 'state-active';
+        $row->ROW_ATTR['class'] = !empty($rec->_isSummary) ? 'state-closed' : 'state-active';
 
         foreach(arr::make('onSiteTime,onSiteTimeOnHolidays,onSiteTimeOnNonWorkingDays,onSiteTimeNightShift,onSiteTimeOffSchedule,onlineTime,onlineTimeRemote,onlineTimeOffSchedule', true) as $fld){
             if(empty($rec->{$fld})){
@@ -196,7 +197,7 @@ class wtime_Summary extends core_Manager
         $form = cls::get('core_Form');
         $form->title = "Преизчисляване на обобщенията";
         $form->FLD('from', 'date', 'caption=От,mandatory');
-        $form->FLD('personId', 'key2(mvc=crm_Persons,select=names,allowEmpty)', 'caption=Служител,placeholder=Всички');
+        $form->FLD('personId', 'key2(mvc=crm_Persons,select=names,allowEmpty)', 'caption=Служител,placeholderType=all');
         $form->setDefault('from', dt::addDays(-2, null, false) . " 00:00:00");
         $emplGroupId = crm_Groups::getIdFromSysId('employees');
         $form->setFieldTypeParams('personId', array('groups' => keylist::addKey('', $emplGroupId)));
@@ -252,7 +253,7 @@ class wtime_Summary extends core_Manager
         core_Debug::startTimer('CAL_ON_SITE_TIME');
         wtime_OnSiteEntries::calcOnSiteTime($calcFromTime, $personId);
         core_Debug::stopTimer('CAL_ON_SITE_TIME');
-        core_Debug::log("GET CAL_ON_SITE_TIME " . round(core_Debug::$timers["CAL_ON_SITE_TIME"]->workingTime, 6));
+        core_Debug::log("GET CAL_ON_SITE_TIME " . round(core_Debug::$timers["CAL_ON_SITE_TIME"]->workingTime ?? 0, 6));
 
         $entriesArr = wtime_OnSiteEntries::getPersonEntries($calcFromTime, $personId, 'in');
         core_App::setTimeLimit(countR($entriesArr) * 0.2, false, 150);
@@ -439,11 +440,11 @@ class wtime_Summary extends core_Manager
             }
         }
 
-        core_Debug::log("GET SCHEDULES " . round(core_Debug::$timers["SCHEDULES"]->workingTime, 6));
-        core_Debug::log("GET CALC_ONLINE_TIME " . round(core_Debug::$timers["CALC_ONLINE_TIME"]->workingTime, 6));
-        core_Debug::log("GET USER_LOGS " . round(core_Debug::$timers["USER_LOGS"]->workingTime, 6));
-        core_Debug::log("GET ON_SITE " . round(core_Debug::$timers["ON_SITE"]->workingTime, 6));
-        core_Debug::log("GET ON_SITE_OFF_SCHEDULE " . round(core_Debug::$timers["ON_SITE_OFF_SCHEDULE"]->workingTime, 6));
+        core_Debug::log("GET SCHEDULES " . round(core_Debug::$timers["SCHEDULES"]->workingTime ?? 0, 6));
+        core_Debug::log("GET CALC_ONLINE_TIME " . round(core_Debug::$timers["CALC_ONLINE_TIME"]->workingTime ?? 0, 6));
+        core_Debug::log("GET USER_LOGS " . round(core_Debug::$timers["USER_LOGS"]->workingTime ?? 0, 6));
+        core_Debug::log("GET ON_SITE " . round(core_Debug::$timers["ON_SITE"]->workingTime ?? 0, 6));
+        core_Debug::log("GET ON_SITE_OFF_SCHEDULE " . round(core_Debug::$timers["ON_SITE_OFF_SCHEDULE"]->workingTime ?? 0, 6));
 
         $exQuery = self::getQuery();
         $exQuery->where("#date >= '{$from}'");
@@ -755,7 +756,7 @@ class wtime_Summary extends core_Manager
 
 
         $tpl->append($dTable);
-        if ($data->Pager) {
+        if (!empty($data->Pager)) {
             $tpl->append($data->Pager->getHtml());
         }
 

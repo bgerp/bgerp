@@ -165,10 +165,7 @@ class acc_ClosePeriods extends core_Master
         $form = &$data->form;
         $rec = &$form->rec;
         
-        $pQuery = acc_Periods::getQuery();
-        $pQuery->where("#state = 'pending'");
-        
-        $options = acc_Periods::makeArray4Select(null, array("#state = 'active' OR #state = 'pending'", $root));
+        $options = acc_Periods::makeArray4Select(null, "#state = 'active' OR #state = 'pending'");
         $form->setOptions('periodId', $options);
         
         if (empty($rec->id)) {
@@ -284,10 +281,14 @@ class acc_ClosePeriods extends core_Master
         }
         
         foreach (array('amountVatGroup1', 'amountVatGroup2', 'amountVatGroup3', 'amountVatGroup4', 'amountWithoutInvoice', 'amountKeepBalance', 'amountFromInvoices') as $fld) {
-            $row->{$fld} = ht::styleNumber($row->{$fld}, $rec->{$fld});
+            if (isset($row->{$fld}, $rec->{$fld})) {
+                $row->{$fld} = ht::styleNumber($row->{$fld}, $rec->{$fld});
+            }
         }
         
-        $row->amountKeepBalance .= " <span class='cCode'>{$row->baseCurrencyId}</span>";
+        if (isset($row->amountKeepBalance, $row->baseCurrencyId)) {
+            $row->amountKeepBalance .= " <span class='cCode'>{$row->baseCurrencyId}</span>";
+        }
     }
     
     

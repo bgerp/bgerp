@@ -100,8 +100,8 @@ class price_interface_LastActiveDeliveryCostPolicyImpl extends price_interface_B
         $pQuery->EXT('isPublic', 'cat_Products', 'externalName=isPublic,externalKey=productId');
         $pQuery->EXT('activatedOn', 'purchase_Purchases', 'externalName=activatedOn,externalKey=requestId');
         $pQuery->EXT('documentModifiedOn', 'purchase_Purchases', 'externalName=modifiedOn,externalKey=requestId');
-        $pQuery->EXT('state', 'purchase_Purchases', 'externalName=state,externalKey=requestId');
-        $pQuery->where("(#state = 'closed' AND #documentModifiedOn >= '{$datetime}') OR (#state = 'active' AND #activatedOn >= '{$datetime}') OR (#state = 'rejected' AND #activatedOn IS NOT NULL AND #documentModifiedOn >= '{$datetime}')");
+        $pQuery->EXT('mState', 'purchase_Purchases', 'externalName=state,externalKey=requestId');
+        $pQuery->where("(#mState = 'closed' AND #documentModifiedOn >= '{$datetime}') OR (#mState = 'active' AND #activatedOn >= '{$datetime}') OR (#mState = 'rejected' AND #activatedOn IS NOT NULL AND #documentModifiedOn >= '{$datetime}')");
         $pQuery->where("#isPublic = 'yes'");
         $pQuery->show('productId');
 

@@ -153,6 +153,17 @@ abstract class batch_definitions_Proto extends core_BaseClass
         
         return $Type;
     }
+
+
+    /**
+     * Зависи ли типът на партидата от датата на документа
+     *
+     * @return bool
+     */
+    public function isDocumentDateDependent()
+    {
+        return false;
+    }
     
     
     /**

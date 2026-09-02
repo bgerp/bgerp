@@ -65,6 +65,7 @@ class lib_Diff
         }
         
         $out = $mode = $buf = '';
+        $res = array();
         
         foreach ($arrDiff as $e) {
             
@@ -76,6 +77,8 @@ class lib_Diff
                 $res[] = $out;
                 continue;
             }
+
+            $e += array('d' => array(), 'i' => array());
             
             // Замяна
             while (countR($e['d']) && countR($e['i']) && (($ct = self::getCharType($e['d'])) == self::getCharType($e['i']))) {
@@ -100,6 +103,9 @@ class lib_Diff
                     $res[$last - 2]->str .= $res[$last - 1]->str . $res[$last]->str;
                     $res[$last - 2]->del .= $res[$last - 1]->str . $res[$last]->del;
                     unset($res[$last], $res[$last - 1]);
+                    
+                    // Преиндексиране - иначе следващите добавяния получават по-голям ключ от броя
+                    $res = array_values($res);
                 }
             }
             
@@ -223,7 +229,7 @@ class lib_Diff
     {
         $ptr = '/(<[^>]*>|[\\s]+|[' . self::PUNCTUATION . ']+|[^\\s' . self::PUNCTUATION . '\\<]+)/';
         
-        preg_match_all($ptr, $html, $matches);
+        preg_match_all($ptr, (string) $html, $matches);
         
         return $matches[0];
     }
@@ -287,26 +293,29 @@ class lib_Diff
             
             # Try right diagonal
             $k++;
-            $x = $V[$k];
-            $y = $x - $k;
-            $y++;
-            
-            while ($x < $cx && $y < $cy
-            && isset($src[$x], $dst[$y]) && $src[$x] == $dst[$y]) {
-                $x++;
-                $y++;
-            }
-            
-            if ($x == $cx && $y == $cy) {
+            if (isset($V[$k])) {
                 $x = $V[$k];
                 $y = $x - $k;
-                
-                $res[] = array('i',$x,$y);
-                continue;
+                $y++;
+
+                while ($x < $cx && $y < $cy
+                && isset($src[$x], $dst[$y]) && $src[$x] == $dst[$y]) {
+                    $x++;
+                    $y++;
+                }
+
+                if ($x == $cx && $y == $cy) {
+                    $x = $V[$k];
+                    $y = $x - $k;
+
+                    $res[] = array('i',$x,$y);
+                    continue;
+                }
             }
             
             # Right diagonal wasn't the solution, use left diagonal
             $k -= 2;
+            expect(isset($V[$k]));
             $x = $V[$k];
             $y = $x - $k;
             $res[] = array('d',$x,$y);
@@ -326,14 +335,15 @@ class lib_Diff
         
         // Подготовка на форматирания резултат
         foreach ($src as $i => $el) {
-            if (($o = $res[$p][0]) && ($res[$p][1] == $i)) {
+            $operation = $res[$p] ?? null;
+            if ($operation && (($o = $operation[0]) && ($operation[1] == $i))) {
                 $li = null;
                 $flag = false;
                 
-                while (($res[$p][1] == $i) && ($res[$p] !== null)) {
+                while (isset($res[$p]) && ($res[$p][1] == $i)) {
                     if (!isset($li)) {
                         $li = countR($r) - 1;
-                        if (!is_array($r[$li])) {
+                        if (!isset($r[$li]) || !is_array($r[$li])) {
                             $li++;
                             $r[$li] = array();
                         }
