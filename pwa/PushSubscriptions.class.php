@@ -1479,7 +1479,7 @@ class pwa_PushSubscriptions extends core_Manager
 
                         $bt = $tag . '|' . $brid;
 
-                        if ($allNotifyArr[$userId][$bt]['msg']) {
+                        if (!empty($allNotifyArr[$userId][$bt]['msg'])) {
                             $msg = $allNotifyArr[$userId][$bt]['msg'] . "\n" . $msg;
                             $urlArr = array('Portal', 'Show', '#' => 'notificationsPortal');
                         }
