@@ -57,7 +57,7 @@ class cams_driver_IpDevice extends core_BaseClass
      */
     public function init($params = array())
     {
-        if (strpos($params, '}')) {
+        if (is_string($params) && strpos($params, '}')) {
             $params = arr::make(json_decode($params));
         } else {
             $params = arr::make($params, true);
@@ -131,6 +131,7 @@ class cams_driver_IpDevice extends core_BaseClass
         }
         
         $className = cls::getClassName($this);
+        $fpsName = $resolutionName = null;
         
         switch ($className) {
             case 'cams_driver_UIC':
@@ -144,8 +145,13 @@ class cams_driver_IpDevice extends core_BaseClass
             break;
         }
         
-        list($params->width, $params->height) = preg_split('/[x,X]+/', $resArr["{$resolutionName}"]);
-        $params->FPS = $resArr["{$fpsName}"];
+        if (empty($resArr[$resolutionName]) || empty($resArr[$fpsName])) {
+            
+            return $params;
+        }
+        
+        list($params->width, $params->height) = preg_split('/[x,X]+/', $resArr[$resolutionName]);
+        $params->FPS = $resArr[$fpsName];
         
         return($params);
     }
@@ -158,6 +164,7 @@ class cams_driver_IpDevice extends core_BaseClass
     private function getParamsUrl()
     {
         $className = cls::getClassName($this);
+        $suffix = '';
         
         switch ($className) {
             case 'cams_driver_UIC9272':
@@ -182,6 +189,7 @@ class cams_driver_IpDevice extends core_BaseClass
     protected function getPictureUrl()
     {
         $className = cls::getClassName($this);
+        $suffix = '';
         
         switch ($className) {
             case 'cams_driver_UIC':
@@ -215,11 +223,12 @@ class cams_driver_IpDevice extends core_BaseClass
     protected function getStreamUrl()
     {
         $className = cls::getClassName($this);
+        $suffix = '';
         
         switch ($className) {
             case 'cams_driver_UIC':
             case 'cams_driver_UIC9272':
-                $suffix = "/cam{$this->id}/" . $this->codec;
+                $suffix = "/cam{$this->id}/" . (!empty($this->codec) ? $this->codec : '');
             break;
             case 'cams_driver_Edimax':
                 $suffix = '/ipcam.sdp'; // за H.264 ->"/ipcam_264.sdp"
@@ -243,6 +252,7 @@ class cams_driver_IpDevice extends core_BaseClass
     protected function getPtzUrl()
     {
         $className = cls::getClassName($this);
+        $suffix = '';
         
         switch ($className) {
             case 'cams_driver_UIC':
@@ -261,8 +271,9 @@ class cams_driver_IpDevice extends core_BaseClass
      */
     private function getDeviceUrl($protocol, $portName = null)
     {
-        if ($this->user) {
-            $url = "{$this->user}:{$this->password}@{$this->ip}";
+        if (!empty($this->user)) {
+            $password = !empty($this->password) ? $this->password : '';
+            $url = "{$this->user}:{$password}@{$this->ip}";
         } else {
             $url = "{$this->ip}";
         }
@@ -271,7 +282,7 @@ class cams_driver_IpDevice extends core_BaseClass
             $portName = $protocol . 'Port';
         }
         
-        if ($this->{$portName}) {
+        if (!empty($this->{$portName})) {
             $url .= ':' . $this->{$portName};
         }
         
@@ -301,7 +312,7 @@ class cams_driver_IpDevice extends core_BaseClass
      */
     public function havePtzControl()
     {
-        return $this->ptzControl == 'yes';
+        return !empty($this->ptzControl) && $this->ptzControl == 'yes';
     }
     
     
@@ -310,6 +321,6 @@ class cams_driver_IpDevice extends core_BaseClass
      */
     public function isActive()
     {
-        return $this->running == 'yes';
+        return !empty($this->running) && $this->running == 'yes';
     }
 }
