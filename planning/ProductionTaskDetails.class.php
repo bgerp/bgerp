@@ -1486,7 +1486,7 @@ class planning_ProductionTaskDetails extends doc_Detail
                             $expectedNetWeightVerbal = core_Type::getByName('cat_type_Weight(smartRound=no)')->toVerbal($deviationRec->expectedNetWeight);
                             $msg = "|*{$deviationVerbal} |разминаване|*{$hintMsg}<br>|спрямо очакваното|* ({$expectedNetWeightVerbal}) |нето|*!";
                             if(haveRole('debug')){
-                                $msg .= "<br><br>debug info:<br>{$deviationRec->debugInfo}";
+                                $msg .= "<br>debug info:<br>{$deviationRec->debugInfo}";
                             }
                             $row->netWeight = ht::createHint($row->netWeight, $msg, $iconHint, false, array('isHtml' => true));
                         }
