@@ -176,6 +176,30 @@ class store_TransfersDetails extends doc_Detail
 
 
     /**
+     * В етап сканираното к-во се натрупва към к-то на самия етап, а не към последно въведеното
+     *
+     * @param stdClass $rec
+     *
+     * @return float|NULL - к-то в опаковки или NULL, ако мастърът не е в етап
+     *
+     * @see wbarcode_plg_AddByBarcode
+     */
+    public function getWbarcodeRowQuantity_($rec)
+    {
+        $fieldName = store_Transfers::getQuantityFieldName($rec->{$this->masterKey});
+        if ($fieldName == 'requestedQuantity') {
+
+            return null;
+        }
+
+        $quantityInPack = !empty($rec->quantityInPack) ? $rec->quantityInPack : 1;
+
+        // Празната колона на етапа значи начало от нула, а не от к-то на предходния етап
+        return isset($rec->{$fieldName}) ? $rec->{$fieldName} / $quantityInPack : 0;
+    }
+
+
+    /**
      * Въведеното к-во се записва и в колоната на текущия етап на мастъра
      */
     protected static function on_BeforeSave($mvc, &$id, $rec, $fields = null, $mode = null)
