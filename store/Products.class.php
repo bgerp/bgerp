@@ -643,11 +643,9 @@ class store_Products extends core_Detail
                 if (!empty($rec->{$type})) {
                     $date = in_array($type, array('reservedQuantity', 'expectedQuantity')) ? $today : (in_array($type, array('reservedQuantityMin', 'expectedQuantityMin')) ? ($rec->dateMin ?? $today) : ($data->horizon ?? $today));
 
-                    $tooltipUrl = toUrl(array('store_Products', 'ShowReservedDocs', 'productId' => $rec->productId, 'stores' => keylist::addKey('', $rec->storeId), 'replaceField' => "{$type}{$rec->id}", 'field' => $type, 'date' => $date), 'local');
-                    $arrowImg = ht::createElement('img', array('height' => 16, 'width' => 16, 'src' => sbf('img/32/info-gray.png', '')));
-                    $arrow = ht::createElement('span', array('class' => 'anchor-arrow tooltip-arrow-link', 'data-url' => $tooltipUrl, 'title' => $title), $arrowImg, true);
-                    $arrow = "<span class='additionalInfo-holder'><span class='additionalInfo' id='{$type}{$rec->id}'></span>{$arrow}</span>";
-                    $row->{$type} = $arrow . ($row->{$type} ?? '');
+                    $tooltipUrl = array('store_Products', 'ShowReservedDocs', 'productId' => $rec->productId, 'stores' => keylist::addKey('', $rec->storeId), 'field' => $type, 'date' => $date);
+                    $hintAttr = array('url' => $tooltipUrl, 'id' => "{$type}{$rec->id}", 'iconAttr' => array('height' => 16, 'width' => 16));
+                    $row->{$type} = ht::createHint($row->{$type} ?? '', $title, 'notice', false, $hintAttr);
                 }
             }
 
