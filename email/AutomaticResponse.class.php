@@ -121,6 +121,8 @@ class email_AutomaticResponse extends core_Master
         $this->FLD('content', 'richtext(rows=4)', 'caption=Шаблон за получени имейли->Съдържание');
         $this->FLD('titleOfMessage', 'varchar(128)', 'caption=Автоматични отговори->Заглавие, mandatory');
         $this->FLD('text', 'richtext(rows=4)', 'caption=Автоматични отговори->Съдържание, mandatory');
+        $this->FLD('maxResponseCount', 'int(min=1,max=100)', 'caption=Ограничение към един имейл->Максимален брой, mandatory');
+        $this->FLD('responsePeriod', 'time(min=60,suggestions=1 час|6 часа|12 часа|24 часа|2 дни|1 седмица)', 'caption=Ограничение към един имейл->Период, mandatory');
         $this->FLD('state', 'enum(active=Активен, rejected=Деактивиран)', 'caption=Автоматични отговори->Състояние');
         $this->FLD('inboxEmail', 'key(mvc=email_inboxes,select=email)', 'caption=Автоматични отговори->Имейл, mandatory');
         if(core_Packs::isInstalled('ai')){
@@ -167,6 +169,9 @@ class email_AutomaticResponse extends core_Master
     { 
         $form = &$data->form;
         $rec = $form->rec;
+
+        $form->setDefault('maxResponseCount', email_Setup::get('AUTOMATIC_RESPONSE_MAX_COUNT'));
+        $form->setDefault('responsePeriod', email_Setup::get('AUTOMATIC_RESPONSE_PERIOD'));
 
         if(core_Packs::isInstalled('ai')){
             $form->setField('aiInstructions', 'input');
@@ -401,6 +406,61 @@ class email_AutomaticResponse extends core_Master
     */
     public function createEmail($mail, $rule){
 
+        $recipient = drdata_Emails::normalize($mail->fromEml);
+        $lockKey = 'automaticResponse|' . $recipient;
+
+        if (!core_Locks::obtain($lockKey, 600, 1, 1)) {
+            return false;
+        }
+
+        try {
+            if ($this->isResponseLimitReached($recipient, $rule)) {
+                return false;
+            }
+
+            return $this->sendAutomaticResponse($mail, $rule);
+        } finally {
+            core_Locks::release($lockKey);
+        }
+    }
+
+
+    /**
+     * Проверява дали е достигнат лимитът за автоматични отговори към получателя.
+     *
+     * За стари правила без записани стойности се използват настройките на пакета.
+     * Броят се само успешно изпратените автоматични отговори, независимо кое
+     * правило ги е създало. Така припокриващи се правила не могат да заобиколят лимита.
+     *
+     * @param string   $recipient
+     * @param stdClass $rule
+     *
+     * @return bool
+     */
+    protected function isResponseLimitReached($recipient, $rule)
+    {
+        $maxCount = !empty($rule->maxResponseCount) ? $rule->maxResponseCount : email_Setup::get('AUTOMATIC_RESPONSE_MAX_COUNT');
+        $period = !empty($rule->responsePeriod) ? $rule->responsePeriod : email_Setup::get('AUTOMATIC_RESPONSE_PERIOD');
+        $from = dt::addSecs(-1 * $period, dt::now());
+
+        $query = email_Outgoings::getQuery();
+        $query->where(array("#autoReplyRuleId IS NOT NULL AND #email = '[#1#]' AND #lastSendedOn >= '[#2#]'", $recipient, $from));
+
+        return $query->count() >= $maxCount;
+    }
+
+
+    /**
+     * Създава и изпраща автоматичния отговор.
+     *
+     * @param stdClass $mail
+     * @param stdClass $rule
+     *
+     * @return bool|null
+     */
+    protected function sendAutomaticResponse($mail, $rule)
+    {
+
         $Email = cls::get('email_Outgoings');
             
         // Подготовка на имейла
@@ -412,6 +472,7 @@ class email_AutomaticResponse extends core_Master
                                     'state' => 'active',
                                     'email' => $mail->fromEml, 
                                     'recipient' => $mail->fromEml,
+                                    'autoReplyRuleId' => $rule->id,
                                     'aiInstructions' => $rule->aiInstructions);
         
         $aiNotValid = false;
@@ -487,5 +548,7 @@ class email_AutomaticResponse extends core_Master
         $userId = $rule->userId;
         $urlArr = array('email_Outgoings', 'single', $emailRec->id);
         bgerp_Notifications::add($msg, $urlArr, $userId, 'normal');
+
+        return true;
     }
 }
