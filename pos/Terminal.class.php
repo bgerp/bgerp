@@ -1407,7 +1407,7 @@ class pos_Terminal extends peripheral_Terminal
 
             if(countR($subArr)){
                 $stringInputSearch = strtoupper($stringInput);
-                array_walk($subArr, function(&$a) use ($stringInputSearch) {$a = str_replace($stringInputSearch, "<span style='color:blue'>{$stringInputSearch}</span>", $a);});
+                array_walk($subArr, function(&$a) use ($stringInputSearch) {$a = str_replace($stringInputSearch, "<span class='blueText'>{$stringInputSearch}</span>", $a);});
 
                 $subTitle = implode('; ', $subArr);
                 $subTitle = "<div style='font-size:0.7em'>{$subTitle}</div>";
@@ -1856,15 +1856,12 @@ class pos_Terminal extends peripheral_Terminal
                 $tpl->appendOnce($intf->getJS($deviceRec, $fncName), 'SCRIPTS');
             }
 
-            // Добавяне на джаваскрипт за везна
-            $scaleDevice = peripheral_Devices::getDevice('wscales_intf_Scales');
-            if($scaleDevice){
-                $interface = core_Cls::getInterface('wscales_intf_Scales', $scaleDevice->driverClass);
-                $js = $interface->getJs($scaleDevice);
-                $tpl->appendOnce($js, 'SCRIPTS');
-                header('Access-Control-Allow-Origin: *');
-                header('Vary: Origin');
-                jquery_Jquery::run($tpl, 'readWeightScale();');
+            // Добавяне на джаваскрипт за везна - в терминала теглото влиза в полето за въвеждане
+            if(core_Packs::isInstalled('wscales') && wscales_Helper::appendJs($tpl, 'ean')){
+                wscales_Helper::allowCrossOrigin();
+
+                // Старите шаблони на драйверите нямат автостарт, а новите пазят от двойно пускане
+                jquery_Jquery::run($tpl, 'if(typeof readWeightScale === "function") readWeightScale();');
             }
 
             $tpl->push('pos/js/scripts.js', 'JS');

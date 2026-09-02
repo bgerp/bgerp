@@ -113,7 +113,7 @@ class cms_GalleryImages extends core_Manager
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
         // Ако създаваме нов
-        if (!$data->form->rec->id) {
+        if (empty($data->form->rec->id)) {
             
             // id на групата по подразбиране
             $grId = cms_GalleryGroups::getDefaultGroupId();
@@ -134,7 +134,7 @@ class cms_GalleryImages extends core_Manager
         
         $Fancybox = cls::get('fancybox_Fancybox');
         
-        if ($rec->src) {
+        if (!empty($rec->src)) {
             $row->src = $Fancybox->getImage($rec->src, $tArr, $mArr, $rec->title);
         }
         
@@ -295,6 +295,8 @@ class cms_GalleryImages extends core_Manager
         // Защитаваме променливите
         Request::setProtected('callback');
         
+        $id = null;
+        
         // Ако има избран текст
         if ($selText) {
             
@@ -304,7 +306,7 @@ class cms_GalleryImages extends core_Manager
             preg_match($pattern, $selText, $match);
             
             // Ако има окрит вид на галерията
-            if ($match['text']) {
+            if (!empty($match['text'])) {
                 
                 // Текста за търсене
                 $searchText = $match['text'];
@@ -350,6 +352,7 @@ class cms_GalleryImages extends core_Manager
         
         // id на записа
         $id = Request::get('id', 'int');
+        $rec = null;
         
         // Ако има id
         if ($id) {
@@ -565,7 +568,7 @@ class cms_GalleryImages extends core_Manager
                     $imgAdd = ht::createElement('img', array('src' => sbf('img/16/add1-16.png', '')));
                     
                     // Линк, който добавя изображението в рич едита
-                    $data->rows[$id]->tools .= ht::createLink($imgAdd, '#', null, $attr);
+                    $data->rows[$id]->tools = ($data->rows[$id]->tools ?? '') . ht::createLink($imgAdd, '#', null, $attr);
                 }
             }
         }
@@ -639,7 +642,7 @@ class cms_GalleryImages extends core_Manager
         $titleField = $this->galleryTitleFieldName;
         
         // Ако не е зададено заглавието
-        if (!$rec->{$titleField} && $rec->src) {
+        if (empty($rec->{$titleField}) && !empty($rec->src)) {
             
             // Определяме заглавието от името на файла
             $rec->{$titleField} = fileman_Files::fetchByFh($rec->src, 'name');

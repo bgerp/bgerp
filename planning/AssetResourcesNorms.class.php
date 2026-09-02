@@ -145,7 +145,7 @@ class planning_AssetResourcesNorms extends core_Manager
                 core_RowToolbar::createIfNotExists($row->_rowTools);
                 $row->_rowTools->removeBtn('*');
 
-                $row->indTime = "<span style='color:blue'>{$row->indTime}</span>";
+                $row->indTime = "<span class='blueText'>{$row->indTime}</span>";
                 $row->indTime = ht::createHint($row->indTime, 'Нормата е зададена във вида на оборудването', 'notice', false);
                 
                 unset($row->state);

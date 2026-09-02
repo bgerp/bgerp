@@ -502,6 +502,20 @@ class doc_Files extends core_Manager
 
     
     /**
+     * Листване
+     *
+     * Ако е конфигурирана репликационна база, филтрирането се изпълнява
+     * върху нея, за да не се натоварва основната
+     */
+    public function act_List()
+    {
+        $this->forceProxy($this->className);
+
+        return parent::act_List();
+    }
+
+
+    /**
      *
      *
      * @param doc_Files $mvc
@@ -625,6 +639,10 @@ class doc_Files extends core_Manager
 
             if (isset($usersArr)) {
                 $data->query = fileman_Files::getQuery();
+
+                // Заявката вече ще се изпълнява от друг мениджър, а форсирането
+                // в act_List() е върху този. Затова форсираме и него
+                $data->query->mvc->forceProxy();
 
                 if (isset($filter->search) && preg_match('/\.\w+/ui', $filter->search, $m)) {
                     $data->query->where(array("#name LIKE '%[#1#]'", $m[0]));

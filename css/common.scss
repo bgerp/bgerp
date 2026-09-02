@@ -2850,7 +2850,27 @@ div.alphabet.twoRows {
 	font-size: 0.84em;
 	padding: 1px 7px 2px;
 	position: relative;
-	top: -2px; 
+	top: -2px;
+}
+
+/* Балонче за вид/режим на документ - зеленикаво по подразбиране, червеникаво за
+   разпад. Слага се само от cat_Boms::renderBadge() */
+.type-badge {
+	display: inline-block;
+	@include border-radius(9px);
+	border-radius: 9px;
+	padding: 1px 7px;
+	border: 1px solid #81c784;
+	background: #e8f5e9;
+	color: #1b5e20;
+	font-size: 0.9em;
+	white-space: nowrap;
+}
+
+.type-badge-red {
+	border-color: #e57373;
+	background: #fdecea;
+	color: #b71c1c;
 }
 
 /* Стилове за елемента 'RichEdit' */
@@ -3549,6 +3569,18 @@ div.statuses-message h2 {
 	height: 16px;
 	display: inline-block;
 	margin: -2px 5px 0;
+	/* стрелка пред заглавието - svg, затова се мащабира с шрифта без да се размива */
+	&.front {
+		width: .85em;
+		height: .85em;
+		margin: 0 2px 0 0;
+		vertical-align: -.08em;
+		img {
+			width: 100%;
+			height: 100%;
+			display: block;
+		}
+	}
 }
 
 /*цветове*/

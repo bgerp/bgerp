@@ -22,6 +22,62 @@ class doc_plg_MasterRevision extends core_Plugin
 
 
     /**
+     * Полета на мастъра, от които се взима моментът, след който редовете са "нови"
+     */
+    const SINCE_FIELDS = 'activatedOn,pendingOn';
+
+
+    /**
+     * От кой момент нататък добавените редове се броят за нови
+     *
+     * При контираните документи това е активирането, а при тези, които стават на заявка,
+     * без да минават през активиране, #activatedOn е празно (@see doc_DocumentPlg::changepending) -
+     * там реперът е моментът на заявката (@see store_Transfers::$pendingOn)
+     *
+     * @param core_Master $Master
+     * @param int         $masterId
+     *
+     * @return datetime|null - най-ранният попълнен от SINCE_FIELDS
+     */
+    public static function getRevisionsSince($Master, $masterId)
+    {
+        $Master = cls::get($Master);
+
+        $fields = array();
+        foreach (arr::make(self::SINCE_FIELDS) as $fieldName) {
+            if ($Master->getField($fieldName, false)) {
+                $fields[] = $fieldName;
+            }
+        }
+
+        if (!countR($fields)) {
+
+            return null;
+        }
+
+        $rec = $Master->fetch($masterId, implode(',', $fields));
+        if (empty($rec)) {
+
+            return null;
+        }
+
+        $res = null;
+        foreach ($fields as $fieldName) {
+            $value = $rec->{$fieldName} ?? null;
+            if (empty($value)) {
+                continue;
+            }
+
+            if (!isset($res) || $value < $res) {
+                $res = $value;
+            }
+        }
+
+        return $res;
+    }
+
+
+    /**
      * Кои записи на посочения мастър са поискани с включени ревизии.
      * Request параметърът съдържа глобално уникалните containerId-та.
      */
@@ -94,10 +150,7 @@ class doc_plg_MasterRevision extends core_Plugin
         $requestedIds = self::getRequestedMasterIds($mvc);
         $showRevisions = isset($requestedIds[$masterId]);
 
-        $activatedOn = $data->rec->activatedOn ?? null;
-        if (!isset($activatedOn)) {
-            $activatedOn = $mvc->fetchField($masterId, 'activatedOn');
-        }
+        $since = self::getRevisionsSince($mvc, $masterId);
 
         $changesCnt = 0;
 
@@ -108,8 +161,8 @@ class doc_plg_MasterRevision extends core_Plugin
 
             // Ръчно добавени редове (не редакции) след активирането - също се броят за промяна
             $newRowsCond = "#{$Detail->masterKey} = {$masterId} AND #state != 'rejected' AND #revisionPrevId IS NULL";
-            if (!empty($activatedOn)) {
-                $changesCnt += $Detail->count($newRowsCond . " AND (#revisionRootId = 0 OR #createdOn > '{$activatedOn}')");
+            if (!empty($since)) {
+                $changesCnt += $Detail->count($newRowsCond . " AND (#revisionRootId = 0 OR #createdOn >= '{$since}')");
             } else {
                 $changesCnt += $Detail->count($newRowsCond . " AND #revisionRootId = 0");
             }
@@ -134,7 +187,7 @@ class doc_plg_MasterRevision extends core_Plugin
             $url['Cid'] = $containerId;
             $url['Tab'] = 'History';
             $icon = 'img/16/checkbox_no.png';
-            $hint = 'Показване на промените след активирането на документа|*!';
+            $hint = 'Показване на промените след активирането или заявяването на документа|*!';
         }
 
         if (countR($requested)) {

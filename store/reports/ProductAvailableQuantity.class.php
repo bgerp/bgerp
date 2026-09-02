@@ -307,7 +307,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
 
                         $details = (array)$details;
 
-                        $rQuery->where("#groups Like'%|{$rec->groupId}|%'");
+                        plg_ExpandInput::applyExtendedInputSearch('cat_Products', $rQuery, $rec->groupId);
 
                         while ($grProduct = $rQuery->fetch()) {
                             $measureName = cat_UoM::getTitleById(cat_Products::fetchField($grProduct->id, 'measureId'));
@@ -436,13 +436,12 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
 
         $sQuery = store_Products::getQuery();
 
-        $sQuery->EXT('groups', 'cat_Products', 'externalName=groups,externalKey=productId');
         $sQuery->EXT('measureId', 'cat_Products', 'externalName=measureId,externalKey=productId');
         $sQuery->EXT('code', 'cat_Products', 'externalName=code,externalKey=productId');
 
         if ($rec->limmits == 'no') {
             // Филтриране по група продукти
-            $sQuery->where("#groups LIKE '%|{$rec->groupId}|%'");
+            plg_ExpandInput::applyExtendedInputSearch('cat_Products', $sQuery, $rec->groupId, 'productId');
         } else {
             // Филтриране по кодове
             $codeList = '||';

@@ -104,7 +104,7 @@ class hr_reports_WorkFromHomeAndAbsence extends frame2_driver_TableData
         $arr = array();
         $numberOfLeavesDays = $numberOfTripsesDays = $numberOfSickdays = 0;
 
-        $typeOfAbsent = explode(',', $rec->type);
+        $typeOfAbsent = type_Set::toArray($rec->type);
         $rec->firstDayOfPeriod = $rec->from;
         $rec->periods = dt::mysql2verbal($rec->from, 'dmy');
 
@@ -402,7 +402,7 @@ class hr_reports_WorkFromHomeAndAbsence extends frame2_driver_TableData
         $totalAbs = 0;
         foreach ($periodsArr as $key => $val) {
 
-            $startPeriods = explode(',', $dRec->startPeriod);
+            $startPeriods = explode(',', $dRec->startPeriod ?? '');
 
             foreach ($startPeriods as $key1 => $start) {
 

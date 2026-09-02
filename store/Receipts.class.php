@@ -457,8 +457,8 @@ class store_Receipts extends store_DocumentMaster
     {
         $startTime = trans_Setup::get('START_WORK_TIME');
         $endTime = trans_Setup::get('END_WORK_TIME');
-        $res = array('loadingOn'   => array('caption' => 'Товарене', 'type' => "datetime(defaultTime={$startTime})", 'readOnlyIfActive' => false, "input" => "input"),
-                     'deliveryTime' => array('caption' => 'Разтоварване', 'type' => "datetime(defaultTime={$endTime})", 'readOnlyIfActive' => true, "input" => "input"),);
+        $res = array('loadingOn'   => array('caption' => 'Товарене', 'type' => "datetime(defaultTime={$startTime})", 'readOnlyIfActive' => false, "input" => "input", 'displayExternal' => false),
+                     'deliveryTime' => array('caption' => 'Разтоварване', 'type' => "datetime(defaultTime={$endTime})", 'readOnlyIfActive' => true, "input" => "input", 'displayExternal' => false),);
 
         return $res;
     }
@@ -488,4 +488,3 @@ class store_Receipts extends store_DocumentMaster
         }
     }
 }
-

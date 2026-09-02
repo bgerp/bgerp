@@ -24,6 +24,9 @@ fwrite(STDOUT, "OK|" . getmypid());
         
 do {
     $string = stream_socket_recvfrom($socket, 149, 0, $peer);
+    if ($string === false) {
+        break;
+    }
 
     // Ако са данни различни от команда ги пращаме към bgERP-a
     $url = $logUrl; // "http://{$domain}/tracking_Log/Log/?";

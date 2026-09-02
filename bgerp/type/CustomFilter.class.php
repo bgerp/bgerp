@@ -84,11 +84,11 @@ class bgerp_type_CustomFilter extends type_Varchar
     /**
      * Обръща стойностите в масив
      *
-     * @param string $value
+     * @param string|null $value
      * @return array
      */
     public static function toArray($value)
     {
-        return arr::make(explode(',', $value), true);
+        return arr::make($value, true);
     }
 }

@@ -57,13 +57,16 @@ class bgfisc_plg_CashDocument extends core_Plugin
                 if (!empty($rec->originId) && empty($rec->fromContainerId)) {
                     $Origin = doc_Containers::getDocument($rec->originId);
                     if ($Origin->isInstanceOf('sales_Sales')) {
-                        $originRec = $Origin->fetch('contoActions,state,amountDeal');
+                        $originRec = $Origin->fetch('id,contoActions,state,amountDeal,amountDelivered,closedDocuments');
                         if ($originRec->state != 'active') {
                             $requiredRoles = 'no_one';
                         } else {
                             $contoActions = type_Set::toArray($originRec->contoActions);
                             if ($mvc instanceof cash_Pko) {
-                                if (!isset($contoActions['ship']) || empty($originRec->amountDeal) || isset($contoActions['pay'])) {
+
+                                // Освен договорите с бърза експедиция, разрешава се и на обединяващите ги
+                                $isShipped = isset($contoActions['ship']) || self::canAddPkoToCombinedDeal($originRec);
+                                if (!$isShipped || empty($originRec->amountDeal) || isset($contoActions['pay'])) {
                                     $requiredRoles = 'no_one';
                                 }
                             } else {
@@ -378,8 +381,61 @@ class bgfisc_plg_CashDocument extends core_Plugin
         
         return $firstDoc->isInstanceOf('sales_Sales');
     }
-    
-    
+
+
+    /**
+     * Може ли да се издаде ПКО към обединяващ договор
+     *
+     * Директно ПКО (а с него и фискален бон) се разрешава само ако всички обединени договори са с
+     * бърза експедиция и по тях нищо не е доекспедирано/върнато. Тогава детайлите на обединяващия
+     * договор са точно сумата на експедираните по тях артикули и бона ще ги опише коректно.
+     * Изисква се и по никой от обединените да няма издаван фискален бон, за да не се дублира.
+     *
+     * @param stdClass $originRec - запис на обединяващия договор
+     *
+     * @return bool
+     */
+    public static function canAddPkoToCombinedDeal($originRec)
+    {
+        // Договорът трябва да обединява други договори
+        $combinedIds = keylist::toArray($originRec->closedDocuments ?? null);
+        if (!countR($combinedIds)) {
+
+            return false;
+        }
+
+        // Договореното трябва да отговаря на експедираното, иначе артикулите в детайла няма да са
+        // тези от журнала (има доекспедиране, връщане или недоставени артикули)
+        if (round($originRec->amountDeal, 2) != round($originRec->amountDelivered, 2)) {
+
+            return false;
+        }
+
+        foreach ($combinedIds as $combinedId) {
+            $combinedRec = sales_Sales::fetch($combinedId, 'id,contoActions');
+            if (empty($combinedRec)) {
+
+                return false;
+            }
+
+            // Всеки от обединените договори трябва да е контиран с експедиране
+            $combinedActions = type_Set::toArray($combinedRec->contoActions);
+            if (!isset($combinedActions['ship'])) {
+
+                return false;
+            }
+
+            // ... и по неговото УНП да няма издавани фискални бонове
+            if (bgfisc_PrintedReceipts::haveReceiptsByUrn('sales_Sales', $combinedRec->id)) {
+
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+
     /**
      * След подготовка на сингъла
      */

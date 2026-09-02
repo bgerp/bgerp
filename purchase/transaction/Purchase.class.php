@@ -521,9 +521,13 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
     {
         $res = array();
         $rec = purchase_Purchases::fetchRec($rec);
+        if (!is_object($rec)) return $res;
 
         // Извличаме тези, отнасящи се за експедиране
-        $itemId = acc_items::fetchItem('purchase_Purchases', $rec->id)->id;
+        $itemRec = acc_items::fetchItem('purchase_Purchases', $rec->id);
+        if (!is_object($itemRec)) return $res;
+
+        $itemId = $itemRec->id;
 
         $from = ($onlySupplier === true) ? '401' : null;
         $dInfo = acc_Balances::getBlAmounts($jRecs, $accs, 'debit', $from);

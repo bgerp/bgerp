@@ -272,7 +272,7 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
         }
 
         if(empty($rec->storeId)){
-            $row->storeId = ht::createHint("<i style='color:blue'>" . tr('Не е посочен') . "</i>", 'В протокола могат да се избират само услуги|*!');
+            $row->storeId = ht::createHint("<i class='blueText'>" . tr('Не е посочен') . "</i>", 'В протокола могат да се избират само услуги|*!');
         }
 
         $row->protocolTitle = tr("протокол за влагане в производство");
@@ -485,5 +485,28 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
         if($savedCount){
             core_Statuses::newStatus("Добавени артикули към планирането в производствената операция|*: <b>{$savedCount}</b>", 'warning');
         }
+    }
+
+
+    /**
+     * За коя дата се заплануват наличностите
+     *
+     * @param stdClass $rec    - запис
+     * @return array
+     *          ['date']   - дата
+     *          ['isLive'] - дали е ръчно въведена или не
+     */
+    public function getPlannedQuantityDate_($rec)
+    {
+        // Ако няма срок или вальор, се стъпва на датата на създаване - за да се вижда кой пръв е запазил
+        if (!empty($rec->{$this->termDateFld})) {
+            $date = $rec->{$this->termDateFld};
+        } elseif (!empty($rec->{$this->valiorFld})) {
+            $date = $rec->{$this->valiorFld};
+        } else {
+            $date = $rec->createdOn;
+        }
+
+        return array('date' => $date, 'isLive' => false);
     }
 }

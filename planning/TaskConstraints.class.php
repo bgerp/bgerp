@@ -534,10 +534,21 @@ class planning_TaskConstraints extends core_Master
                 if (!isset($allTasksById[$taskId], $allTasksById[$previousTaskId])) {
                     continue;
                 }
+                $isStartedTask = !empty($allTasksById[$taskId]->actualStart)
+                    && $allTasksById[$taskId]->state != 'stopped';
+                $isRequiredPackageLink = isset($requiredPackageLinks[$taskId])
+                    && (int)$requiredPackageLinks[$taskId] === (int)$previousTaskId;
                 if ($allTasksById[$taskId]->assetId != $assetId || $allTasksById[$previousTaskId]->assetId != $assetId
-                    || (!empty($allTasksById[$taskId]->actualStart) && $allTasksById[$taskId]->state != 'stopped')) {
+                    || ($isStartedTask && !$isRequiredPackageLink)) {
                     $problemTaskIds[$previousTaskId] = $previousTaskId;
                     $problemTaskIds[$taskId] = $taskId;
+                    continue;
+                }
+
+                // Задължителната технологична връзка може вече да е изпълнена от започнати операции.
+                // Тя е проверена за правилна последователност и съседство по-горе и не участва
+                // в графа на оставащите за планиране операции.
+                if ($isStartedTask) {
                     continue;
                 }
 

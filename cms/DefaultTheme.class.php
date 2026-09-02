@@ -79,7 +79,7 @@ class cms_DefaultTheme extends core_ProtoInner
         $tpl->replace($this->getHeaderImg(), 'HEADER_IMG');
         
         // Добавяме заглавния текст
-        $title = $this->innerForm->title;
+        $title = $this->innerForm->title ?? null;
         
         $style = '';
         if (!empty($this->innerForm->titleColor)) {
@@ -258,7 +258,7 @@ class cms_DefaultTheme extends core_ProtoInner
                     
                     $banner = '';
                     
-                    if ($this->innerForm->interframeImage) {
+                    if (!empty($this->innerForm->interframeImage)) {
                         $img = new thumb_Img(array($this->innerForm->interframeImage, 1600, 460, 'fileman', 'isAbsolute' => true, 'mode' => 'large-no-change'));
                         $imageURL = $img->getUrl('forced');
                         $hImage = ht::createElement('img', array('src' => $imageURL, 'width' => 1600, 'height' => 460, 'alt' => $conf->EF_APP_TITLE, 'class' => 'headerImg', 'style' => 'position:absolute'));
@@ -276,8 +276,8 @@ class cms_DefaultTheme extends core_ProtoInner
                     }
                     $banner .= '</div>';
                     $banner = new ET($banner);
-                    $fadeTransition = $this->innerForm->fadeTransition ? $this->innerForm->fadeTransition : 1500;
-                    $fadeDelay = $this->innerForm->fadeDelay ? $this->innerForm->fadeDelay : 5000;
+                    $fadeTransition = !empty($this->innerForm->fadeTransition) ? $this->innerForm->fadeTransition : 1500;
+                    $fadeDelay = !empty($this->innerForm->fadeDelay) ? $this->innerForm->fadeDelay : 5000;
                     $banner->append('.fadein { position:relative; display:block; max-height:100%; max-width:100%} .fadein img {position:relative; left:0; top:0;}', 'STYLES');
                     jquery_Jquery::run($banner, "fadeImages('#cmsTop', {$fadeTransition}, {$fadeDelay});", true);
                     
@@ -301,7 +301,7 @@ class cms_DefaultTheme extends core_ProtoInner
             
             $img = $imgs[rand(1, countR($imgs))];
             
-            if ($img) {
+            if (!empty($img)) {
                 if (!Mode::is('screenMode', 'narrow')) {
                     $img = new thumb_Img(array($img, 1600, 460, 'fileman', 'isAbsolute' => true, 'mode' => 'large-no-change'));
                 } else {

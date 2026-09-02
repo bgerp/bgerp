@@ -56,8 +56,14 @@ class label_Prints extends core_Master
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'label, admin, ceo, seeLabelAll';
-    
+    public $canList = 'seeLabel, label, admin, ceo, seeLabelAll';
+
+
+    /**
+     * Кой може да разглежда листа с етикетите от всички източници
+     */
+    public $rolesForAllSources = 'label, admin, ceo, seeLabelAll';
+
     
     /**
      * Кой може да разглежда сингъла на документите?
@@ -168,7 +174,7 @@ class label_Prints extends core_Master
         
         $this->FLD('state', 'enum(, active=Активно, closed=Отпечатано, rejected=Оттеглено)', 'caption=Състояние, input=none, notNull, refreshForm, allowEmpty');
         
-        $this->FLD('classId', 'class(interface=label_SequenceIntf)', 'caption=Клас, silent, input=hidden');
+        $this->FLD('classId', 'class(interface=label_SequenceIntf,select=title,allowEmpty)', 'caption=Клас, silent, input=hidden');
         $this->FLD('objectId', 'int', 'caption=Обект, title=Обект, silent, input=hidden');
 
         $this->FLD('series', 'varchar', 'caption=Серия,notNull,value=label,input=hidden,silent');
@@ -824,59 +830,128 @@ class label_Prints extends core_Master
     {
         // По подразбиране да се показват черновите записи най-отпред
         $data->query->orderBy('createdOn', 'DESC');
-        
+
+        // Ако източникът идва защитен от урл-то, се показват само етикетите от него, без филтър
+        $protectedSource = $mvc->getProtectedSource();
+        if (countR($protectedSource)) {
+            $data->query->where(array("#classId = '[#1#]' AND #objectId = '[#2#]'", $protectedSource['classId'], $protectedSource['objectId']));
+            $data->listFilter->hide = true;
+
+            // Рефрешът се спира, защото защитените параметри не се пренасят при вътрешната заявка
+            $data->stopListRefresh = true;
+
+            return;
+        }
+
         $data->listFilter->setField('mediaId', 'allowEmpty,placeholderType=all');
         $data->listFilter->setField('templateId', 'placeholderType=all');
         unset($data->listFilter->fields['mediaId']->notNull);
         unset($data->listFilter->fields['mediaId']->removeAndRefreshForm);
         unset($data->listFilter->fields['mediaId']->mandatory);
         $data->listFilter->fields['mediaId']->type->params['allowEmpty'] = 'allowEmpty';
-        
+
+        $data->listFilter->class = 'simpleForm';
+
+        // Източникът се избира от потребителя
         $data->listFilter->FNC('author', 'users(rolesForAll=labelMaster|ceo|admin|seeLabelAllGlobal, rolesForTeams=label|ceo|admin|seeLabelAll)', 'caption=От, refreshForm');
-        
-        $data->listFilter->showFields = 'author, search, templateId, mediaId';
-        
-        $data->listFilter->view = 'horizontal';
-        
+        $data->listFilter->setField('classId', 'caption=Клас, input, placeholderType=all, silent');
+        $data->listFilter->setFieldTypeParams('classId', array('allowEmpty' => 'allowEmpty'));
+        $data->listFilter->setField('objectId', 'caption=Обект, input, silent');
+
+        $data->listFilter->showFields = 'author, search, templateId, mediaId, classId, objectId';
+
         $data->listFilter->input('author', true);
-        
-        //Добавяме бутон "Филтрирай"
-        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
-        
+        $data->listFilter->input('classId,objectId', 'silent');
+
         // Ако не е избран потребител по подразбиране
-        if (!($data->listFilter->rec->author ?? null)) {
-            
+        if (empty($data->listFilter->rec->author)) {
+
             // Да е текущия
             $data->listFilter->rec->author = '|' . core_Users::getCurrent() . '|';
         }
-        
+
+        //Добавяме бутон "Филтрирай"
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+
         // Ако има филтър
         if ($filter = $data->listFilter->rec) {
 
             // Ако се търси по всички
-            if (strpos($filter->author, '|-1|') === false) {
+            if (strpos((string) ($filter->author ?? ''), '|-1|') === false) {
                 // Масив с потребителите
-                $usersArr = type_Keylist::toArray($filter->author);
+                $usersArr = type_Keylist::toArray($filter->author ?? null);
 
                 $data->query->orWhereArr('createdBy', $usersArr);
                 $data->query->orWhereArr('modifiedBy', $usersArr, true);
             }
-            
-            if ($filter->templateId ?? null) {
+
+            if (!empty($filter->templateId)) {
                 $data->query->where(array("#templateId = '[#1#]'", $filter->templateId));
             }
 
-            if ($filter->mediaId ?? null) {
+            if (!empty($filter->mediaId)) {
                 $data->query->where(array("#mediaId = '[#1#]'", $filter->mediaId));
             }
-        }
 
-        // Добавяне на филтър по източник, ако има в урл-то
+            // Филтър по избрания източник
+            if (!empty($filter->classId)) {
+                $data->query->where(array("#classId = '[#1#]'", $filter->classId));
+            }
+
+            if (!empty($filter->objectId)) {
+                $data->query->where(array("#objectId = '[#1#]'", $filter->objectId));
+            }
+        }
+    }
+
+
+    /**
+     * Кой е защитеният източник от урл-то. Чете се само от защитената част на заявката,
+     * за да не може да бъде подменен с ръчно нагласено урл
+     *
+     * @return array $res - ['classId'] и ['objectId'], или празен масив
+     */
+    public static function getProtectedSource()
+    {
+        core_Request::setProtected('classId,objectId');
         $classId = Request::get('classId', 'int');
         $objectId = Request::get('objectId', 'int');
-        if($classId && $objectId){
-            $data->query->where(array("#classId = '[#1#]' AND #objectId = '[#2#]'", $classId, $objectId));
+        core_Request::removeProtected('classId,objectId');
+
+        if (empty($classId) || empty($objectId)) {
+
+            return array();
         }
+
+        return array('classId' => $classId, 'objectId' => $objectId);
+    }
+
+
+    /**
+     * Урл към листовия изглед, филтриран по източника. Ако потребителя няма роли за листа,
+     * параметрите се защитават - вижда само етикетите от този източник
+     *
+     * @param int $classId
+     * @param int $objectId
+     *
+     * @return string
+     */
+    public static function getSourceListUrl($classId, $objectId)
+    {
+        $me = cls::get(get_called_class());
+        $protect = !haveRole($me->rolesForAllSources);
+
+        if ($protect) {
+            core_Request::setProtected('classId,objectId');
+        }
+
+        $url = toUrl(array($me, 'list', 'classId' => $classId, 'objectId' => $objectId, 'ret_url' => true));
+
+        if ($protect) {
+            core_Request::removeProtected('classId,objectId');
+        }
+
+        return $url;
     }
     
     
@@ -977,7 +1052,14 @@ class label_Prints extends core_Master
                 $requiredRoles = 'no_one';
             }
         }
-        
+
+        // До листа без ограничение по източник се допускат само тези с роли за него
+        if ($action == 'list' && $requiredRoles != 'no_one') {
+            if (!countR($mvc->getProtectedSource()) && !haveRole($mvc->rolesForAllSources, $userId)) {
+                $requiredRoles = 'no_one';
+            }
+        }
+
         if ($action == 'add' && $rec && $requiredRoles != 'no_one') {
             if (!empty($rec->classId) && !empty($rec->objectId)) {
                 if (!cls::get($rec->classId)->getLabelTemplates($rec->objectId, $rec->series ?? null, false)) {

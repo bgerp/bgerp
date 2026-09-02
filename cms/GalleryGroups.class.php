@@ -154,7 +154,7 @@ class cms_GalleryGroups extends core_Manager
     public static function on_BeforeImportRec($mvc, &$rec)
     {
         // Ако не са подадени роли
-        if (!$rec->roles) {
+        if (empty($rec->roles)) {
             
             return ;
         }
@@ -443,7 +443,7 @@ class cms_GalleryGroups extends core_Manager
         $titleField = $this->galleryTitleFieldName;
         
         // Ако не е зададено заглавието
-        if (!$rec->{$titleField} && $rec->position) {
+        if (empty($rec->{$titleField}) && !empty($rec->position)) {
             
             // Определяме заглавието от името на файла
             $rec->{$titleField} = $rec->position;

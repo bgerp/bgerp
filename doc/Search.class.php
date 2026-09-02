@@ -575,7 +575,7 @@ class doc_Search extends core_Manager
         $linkUrl = array($docProxy->className, 'single', $docProxy->that);
         
         $search = Request::get('search');
-        if (trim($search)) {
+        if (trim($search ?? '')) {
             $linkUrl['Q'] = $search;
         }
         

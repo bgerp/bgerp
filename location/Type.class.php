@@ -103,7 +103,7 @@ class location_Type extends type_Varchar
         $tpl->prepend("<div class='location-input'>");
         $tpl->append('</div>');
         
-        if (!$stopGeolocation && $this->params['geolocation']) {
+        if (!$stopGeolocation && ($this->params['geolocation'] ?? null)) {
             jquery_Jquery::run($tpl, "getEO().setPosition('{$attr['id']}');");
         }
         

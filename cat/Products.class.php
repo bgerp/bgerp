@@ -275,7 +275,7 @@ class cat_Products extends embed_Manager
     /**
      * Стратегии за дефолт стойностти
      */
-    public static $defaultStrategies = array('groups' => 'lastDocUser');
+    public static $defaultStrategies = array('groupsInput' => 'lastDocUser');
     
     
     /**
@@ -357,7 +357,7 @@ class cat_Products extends embed_Manager
         $this->FLD('nameEn', 'varchar(autocomplete=off)', 'caption=Международно,width=100%,after=name, oldFieldName=nameInt,remember');
         $this->FLD('info', 'richtext(rows=4, bucket=Notes, passage)', 'caption=Описание');
         $this->FLD('measureId', 'key(mvc=cat_UoM, select=name,allowEmpty)', 'caption=Мярка,mandatory,remember,silent,notSorting,smartCenter');
-        $this->FLD('photo', 'fileman_FileType(bucket=pictures)', 'caption=Илюстрация,input=none');
+        $this->FLD('photo', 'fileman_FileType(bucket=pictures,focus=none)', 'caption=Илюстрация,input=none');
         $this->FLD('groups', 'keylist(mvc=cat_Groups, select=name, makeLinks)', 'caption=Групи,maxColumns=2,remember');
         $this->FLD('isPublic', 'enum(no=Частен,yes=Публичен)', 'input=none');
         $this->FNC('quantity', 'double(decimals=2)', 'input=none,caption=Наличност,smartCenter');
@@ -553,8 +553,15 @@ class cat_Products extends embed_Manager
             
             $form->setDefault('name', $sourceRec->title);
             if (empty($rec->id)) {
+
+                // Копират се само полетата, които източникът наистина има
+                $sourceDriverRec = is_array($sourceRec->driverRec ?? null) ? $sourceRec->driverRec : array();
                 foreach ($fields as $name => $fld) {
-                    $form->rec->{$name} = $sourceRec->driverRec[$name];
+                    if (!array_key_exists($name, $sourceDriverRec)) {
+                        continue;
+                    }
+
+                    $form->rec->{$name} = $sourceDriverRec[$name];
                 }
             }
         }
@@ -1282,7 +1289,8 @@ class cat_Products extends embed_Manager
             $sQuery->show('productId');
             $productWithAssets = arr::extractValuesFromArray($sQuery->fetchAll(), 'productId');
             $replacementsGroupId = cat_Groups::fetchField("#sysId = 'replacements'");
-            $wherePartNine = "#canStore = 'yes' AND #canConvert = 'yes' AND LOCATE('|{$replacementsGroupId}|', #groups)";
+            $wherePartNine = "#canStore = 'yes' AND #canConvert = 'yes'";
+            plg_ExpandInput::applyExtendedInputSearch('cat_Products', $query, $replacementsGroupId, $productIdFld);
             if(countR($productWithAssets)) {
                 $productWithAssetsStr = implode(',', $productWithAssets);
                 $wherePartNine .= " AND #id NOT IN ($productWithAssetsStr)";
@@ -2344,6 +2352,46 @@ class cat_Products extends embed_Manager
 
 
     /**
+     * Всички ли подадени артикули са в еднаква (или производна) мярка - напр. при
+     * основна мярка килограм минават кг/тон/грам, но не и брой
+     *
+     * @param array $productIds - ид-та на артикули (повторенията са без значение)
+     * @param array $measureArr - мерките на артикулите: productId => measureId
+     *
+     * @return bool
+     */
+    public static function areProductsInTheSameUom($productIds, &$measureArr = array())
+    {
+        $productIds = arr::make($productIds, true);
+        if (!countR($productIds)) return true;
+
+        // Извличане на мерките на артикула
+        $pQuery = static::getQuery();
+        $pQuery->in('id', $productIds);
+        $pQuery->show('measureId');
+        while ($pRec = $pQuery->fetch()) {
+            $measureArr[$pRec->id] = $pRec->measureId;
+        }
+
+        $sameTypeMeasures = null;
+        foreach ($productIds as $productId) {
+            $measureId = $measureArr[$productId] ?? null;
+            if (empty($measureId)) return false;
+
+            // Дали са всичките в една мярка
+            if (!isset($sameTypeMeasures)) {
+                $sameTypeMeasures = cat_UoM::getSameTypeMeasures($measureId);
+            } elseif (!array_key_exists($measureId, $sameTypeMeasures)) {
+
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+
+    /**
      * Връща масив със всички опаковки, в които може да участва един продукт + основната му мярка
      * Първия елемент на масива е основната опаковка (ако няма основната мярка)
      *
@@ -2621,10 +2669,13 @@ class cat_Products extends embed_Manager
         arr::placeInAssocArray($data->listFields, 'packId=Мярка', 'blQuantity');
         $data->reportTableMvc->FLD('packId', 'varchar', 'tdClass=small-field');
         
+        // Мярката се подготвя само ако е имало записи (@see on_AfterPrepareAccReportRecs)
+        $packName = $data->packName ?? null;
+        
         foreach ($rows as &$arrs) {
-            if (countR($arrs['rows'])) {
+            if (countR($arrs['rows'] ?? null)) {
                 foreach ($arrs['rows'] as &$row) {
-                    $row->packId = $data->packName;
+                    $row->packId = $packName;
                 }
             }
         }
@@ -3685,6 +3736,22 @@ class cat_Products extends embed_Manager
     
     
     /**
+     * Връща коефициента за изчисляване на формулите на компонентите
+     *
+     * @param float $componentQuantity
+     * @param float $bomQuantity
+     *
+     * @return float
+     */
+    public static function getComponentQuantityScale($componentQuantity, $bomQuantity)
+    {
+        $bomQuantity = !empty($bomQuantity) ? $bomQuantity : 1;
+
+        return $componentQuantity / $bomQuantity;
+    }
+
+
+    /**
      * Подготвя обект от компонентите на даден артикул
      *
      * @param int    $productId
@@ -3724,7 +3791,9 @@ class cat_Products extends embed_Manager
         
         // Кои детайли от нея ще показваме като компоненти
         $details = cat_BomDetails::getOrderedBomDetails($rec->id);
+        $showDescriptions = ($documentType != 'job') || cat_Boms::shouldTransferNotes($rec, 'transferNotes', 'job');
         $qQuantity = $componentQuantity;
+        $formulaScale = static::getComponentQuantityScale($qQuantity, $rec->quantity);
         
         if (is_array($details)) {
             $fields = cls::get('cat_BomDetails')->selectFields();
@@ -3732,7 +3801,7 @@ class cat_Products extends embed_Manager
             
             foreach ($details as $dRec) {
                 if (!isset($dRec->parentId)) {
-                    $dRec->params['$T'] = $qQuantity;
+                    $dRec->params['$T'] = $formulaScale;
                 }
                 
                 $obj = new stdClass();
@@ -3771,7 +3840,7 @@ class cat_Products extends embed_Manager
                     }
                 }
                 
-                if ($dRec->description) {
+                if ($showDescriptions && $dRec->description) {
                     $obj->description = $row->description;
                     $obj->leveld = $obj->level;
                 }

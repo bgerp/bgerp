@@ -37,7 +37,7 @@ class cms_GalleryDialogWrapper extends core_Plugin
         
         // Урл
         $url = array(
-            'callback' => $mvc->callback);
+            'callback' => $mvc->callback ?? null);
         
         // Обхождаме табовете
         foreach ($tabArr as $name => $params) {

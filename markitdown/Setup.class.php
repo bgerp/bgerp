@@ -121,6 +121,74 @@ class markitdown_Setup extends core_ProtoSetup
 
 
     /**
+     * Ограничава избора на бинарник само до реално открити на системата
+     * markitdown изпълними файлове - предпазва от въвеждане на
+     * произволна команда в полето
+     *
+     * @param core_Form $configForm
+     * @return void
+     */
+    public function manageConfigDescriptionForm(&$configForm)
+    {
+        if (!$configForm->getField('MARKITDOWN_PATH', false)) {
+
+            return;
+        }
+
+        $options = $this->getAvailableBinPaths();
+        if (countR($options)) {
+            $configForm->setOptions('MARKITDOWN_PATH', $options);
+            $configForm->setField('MARKITDOWN_PATH', 'mandatory');
+        } else {
+            $configForm->setReadOnly('MARKITDOWN_PATH');
+            $configForm->info = "<div class='red'>" . tr('Не е намерена инсталирана програма markitdown. Инсталирайте пакета отново, за да бъде инсталирана автоматично в собствен venv|*.') . '</div>';
+        }
+    }
+
+
+    /**
+     * Търси реално налични на системата markitdown изпълними файлове -
+     * текущо зададения (ако е валиден), системно инсталирания и
+     * инсталирания в собствен venv в EF_VENDOR_PATH
+     *
+     * @return array $path => $path
+     */
+    private function getAvailableBinPaths()
+    {
+        $paths = array();
+
+        $current = trim((string) self::get('PATH'));
+        if (strlen($current) && is_executable($current)) {
+            $paths[$current] = $current;
+        }
+
+        if (!core_Os::isWindows()) {
+            if (strlen($current) && !isset($paths[$current])) {
+                $found = trim((string) shell_exec('command -v ' . escapeshellarg($current) . ' 2>/dev/null'));
+                if (strlen($found) && is_executable($found)) {
+                    $paths[$found] = $found;
+                }
+            }
+
+            $found = trim((string) shell_exec('command -v markitdown 2>/dev/null'));
+            if (strlen($found) && is_executable($found)) {
+                $paths[$found] = $found;
+            }
+        }
+
+        // Дефинира EF_VENDOR_PATH, ако core_Composer още не е зареждан
+        cls::load('core_Composer');
+
+        $vendorBin = rtrim(EF_VENDOR_PATH, '/') . '/markitdown/bin/markitdown';
+        if (is_executable($vendorBin)) {
+            $paths[$vendorBin] = $vendorBin;
+        }
+
+        return $paths;
+    }
+
+
+    /**
      * Инсталиране на пакета
      */
     public function install()

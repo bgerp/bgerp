@@ -279,14 +279,15 @@ class change_History extends core_Manager
         $now = dt::now();
 
         try{
-            $row->objectId = cls::get($rec->classId)->getHyperlink($rec->objectId, true);
+            $row->objectId = cls::get($rec->classId ?? null)->getHyperlink($rec->objectId ?? null, true);
         } catch(core_exception_Expect $e){
 
         }
 
-        if($rec->state == 'rejected') {
+        // Методът се вика и с частични записи
+        if(($rec->state ?? null) == 'rejected') {
             $row->ROW_ATTR['class'] = "state-rejected";
-        } elseif($rec->validFrom > $now){
+        } elseif(($rec->validFrom ?? null) > $now){
             $row->ROW_ATTR['class'] = "state-draft";
         } else {
             $row->ROW_ATTR['class'] = "state-active";
@@ -382,13 +383,15 @@ class change_History extends core_Manager
             $rec->count = $count;
             $row = $this->recToVerbal($rec);
 
-            $data->recs[$rec->id] = $rec;
+            // Текущата версия може да не е от историята и да няма ид
+            $recId = $rec->id ?? null;
+            $data->recs[$recId] = $rec;
             $row->date = "{$row->validFrom}" . (!empty($row->validTo) ? " - {$row->validTo}" : '');
             $row->count = core_Type::getByName('int')->toVerbal($rec->count);
             if($rec->validFrom > $now){
                 $row->ROW_ATTR['class'] = "state-draft";
                 $row->btn = ht::createLink('', $this->getDeleteUrl($rec), 'Наистина ли желаете да изтриете бъдещата версия', 'ef_icon=img/16/delete.png,title=Изтриване на бъдеща версия');
-            } elseif($rec->isCurrent){
+            } elseif(!empty($rec->isCurrent)){
                 $row->ROW_ATTR['class'] = "state-active";
                 $Class = cls::get($rec->classId);
                 if($Class->haveRightFor('editcurrentversion', $data->masterId)){
@@ -399,7 +402,7 @@ class change_History extends core_Manager
             }
 
             // Подготовка на бутоните за избор
-            $versionId = $rec->isCurrent ? static::CURRENT_VERSION_ID : $rec->id;
+            $versionId = !empty($rec->isCurrent) ? static::CURRENT_VERSION_ID : $recId;
             if($this->isSelected($data->masterMvc->getClassId(), $data->masterId, $versionId)){
                 $icon = 'img/16/checkbox_yes.png';
                 $action = 'deselect';
@@ -414,7 +417,7 @@ class change_History extends core_Manager
             $row->count = ht::createLink('', $link, null, "ef_icon={$icon},title={$title}")->getContent() . $row->count;
             $row->created =  "{$row->createdOn} " . tr('от||by') . " {$row->createdBy}";
 
-            $data->rows[$rec->id] = $row;
+            $data->rows[$recId] = $row;
             $count--;
         }
 

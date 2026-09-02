@@ -39,6 +39,7 @@ class planning_interface_ImportTaskProducts extends planning_interface_ImportDri
     public function addImportFields($mvc, core_FieldSet $form)
     {
         $rec = &$form->rec;
+        $rec->detailsDef = array();
         $masterRec = $mvc->Master->fetch($rec->{$mvc->masterKey});
         $form->info = tr('Засклаждане в') . ' ' . store_Stores::getHyperlink($masterRec->storeId, true);
         $details = self::getProductsFromTasks($masterRec->threadId, $masterRec->storeId, $mvc->taskActionLoad);
@@ -150,7 +151,7 @@ class planning_interface_ImportTaskProducts extends planning_interface_ImportDri
     private function getImportRecs(core_Manager $mvc, $rec)
     {
         $recs = array();
-        if (!is_array($rec->detailsDef)) {
+        if (!is_array($rec->detailsDef ?? null)) {
             
             return $recs;
         }

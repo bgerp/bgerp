@@ -91,7 +91,7 @@ class spas_Setup extends core_ProtoSetup
             $resStr .= "<li class='debug-error'>Грешка: {$e->getMessage()}</li>";
         }
         
-        if ($res === true) {
+        if (($res ?? null) === true) {
             $resStr .= "<li class='debug-info'>Има връзка със SPAS</li>";
         }
         

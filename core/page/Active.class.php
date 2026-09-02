@@ -20,6 +20,27 @@
 class core_page_Active extends page_Html
 {
     public $interfaces = 'core_page_WrapperIntf';
+
+
+    /**
+     * Стандартни действия, при които се показва форма за въвеждане
+     */
+    protected static $inputFormActions = array(
+        'add',
+        'edit',
+        'config',
+        'manage',
+        'save',
+        'changefields',
+        'clonefields',
+        'editsection',
+        'new',
+        'modify',
+        'insert',
+        'createproduct',
+        'replaceproduct',
+        'transferinnewcontragent',
+    );
     
     
     /**
@@ -41,7 +62,20 @@ class core_page_Active extends page_Html
         
         jquery_Jquery::enable($this);
         $this->push('js/efCommon.js', 'JS');
-        
-        $this->appendOnce("\n<link  rel=\"shortcut icon\" href=\"" . getBoot(true, true, true) . '/favicon.ico"' . ' type="image/x-icon">', 'HEAD');
+
+        $faviconUrl = getBoot(true, true, true) . '/favicon.ico';
+        $addEditIndicator = false;
+        $action = strtolower(Request::get('Act') ?? '');
+        if (Mode::is('renderedInputForm') || in_array($action, self::$inputFormActions, true)) {
+            $addEditIndicator = true;
+            if (cls::load('cms_Domains', true)) {
+                $faviconUrl = cms_Domains::getEditFaviconUrl($addEditIndicator);
+            }
+        }
+
+        $this->appendOnce("\n<link rel=\"shortcut icon\" href=\"" . ht::escapeAttr($faviconUrl) . '" type="image/x-icon">', 'HEAD');
+        if ($addEditIndicator) {
+            jquery_Jquery::run($this, 'setEditFavIcon(' . json_encode($faviconUrl) . ');');
+        }
     }
 }

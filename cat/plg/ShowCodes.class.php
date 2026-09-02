@@ -155,7 +155,14 @@ class cat_plg_ShowCodes extends core_Plugin
 
             // Иначе ще си се сортират по реда на създаване
             if(!countR($res)){
-                $dQuery->orderBy('id', 'ASC');
+                if($DetailMvc->hasPlugin('doc_plg_DetailRevisions')){
+
+                    // Редактираният ред си пази мястото, както и в таблицата
+                    doc_plg_DetailRevisions::orderByRevisionGroup($dQuery);
+                } else {
+                    $dQuery->orderBy('id', 'ASC');
+                }
+
                 $res = array_values(arr::extractValuesFromArray($dQuery->fetchAll(), 'id'));
             }
         }

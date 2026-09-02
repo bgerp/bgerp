@@ -264,7 +264,7 @@ class price_reports_PriceList extends price_reports_PriceListProto
         $row->productId = cat_Products::getAutoProductDesc($dRec->productId, null, $display, 'public', $rec->lang, null, false);
         Mode::pop('noIconImg');
 
-        $row->groupName = core_Type::getByName('varchar')->toVerbal($dRec->groupName);
+        $row->groupName = core_Type::getByName('varchar')->toVerbal($dRec->groupName ?? null);
         $row->code = core_Type::getByName('varchar')->toVerbal($dRec->code);
         $row->measureId = cat_UoM::getShortName($dRec->measureId);
 
@@ -279,7 +279,7 @@ class price_reports_PriceList extends price_reports_PriceListProto
         }
 
         // Рендиране на опаковките в таблица
-        if (countR($dRec->packs)) {
+        if (countR($dRec->packs ?? null)) {
             $row->packs = $this->getPackTable($rec, $dRec);
         }
 
@@ -289,13 +289,15 @@ class price_reports_PriceList extends price_reports_PriceListProto
 
         // Показване на процента промяна
         if (!empty($rec->period)) {
-            if ($dRec->type == 'new') {
+            // В по-старите изчислени версии може да няма 'type'
+            $type = $dRec->type ?? null;
+            if ($type == 'new') {
                 $row->difference = "<span class='price-list-new-item'>" . tr('Нов') . '</span>';
-            } elseif ($dRec->type == 'removed') {
+            } elseif ($type == 'removed') {
                 $row->difference = "<span class='price-list-removed-item'>" . tr('Премахнат') . '</span>';
             } else {
-                $row->difference = core_Type::getByName('percent(decimals=2)')->toVerbal($dRec->difference);
-                if ($dRec->difference > 0) {
+                $row->difference = core_Type::getByName('percent(decimals=2)')->toVerbal($dRec->difference ?? null);
+                if (($dRec->difference ?? 0) > 0) {
                     $row->difference = "<span class='green'>+{$row->difference}</span>";
                 } else {
                     $row->difference = "<span class='red'>{$row->difference}</span>";
@@ -521,12 +523,12 @@ class price_reports_PriceList extends price_reports_PriceListProto
             $clone->currencyId = $rec->currencyId;
 
             $exportRecs[] = $clone;
-            if (countR($dRec->packs)) {
+            if (countR($dRec->packs ?? null)) {
                 foreach ($dRec->packs as $packRec) {
                     $clone1 = clone $clone;
                     $clone1->packs = array();
                     $clone1->price = $packRec->price;
-                    $clone1->eanCode = $packRec->eanCode;
+                    $clone1->eanCode = $packRec->eanCode ?? null;
                     $clone1->measureId = $packRec->packagingId;
 
                     $exportRecs[] = $clone1;

@@ -35,7 +35,7 @@ function scheduleTwoColsFilterWidthUpdate() {
 
     var refresh = function () {
         twoColsFilterMeasureFrame = null;
-        setTwoColsFilterWidth();
+        render_setTwoColsFilterWidth();
         // Select2 възстановява размера на полето за търсене в края на своето
         // събитие. Връщаме компактния размер след него, без ново измерване.
         window.setTimeout(resizeTwoColsFilterCompactSelects, 0);
@@ -110,7 +110,7 @@ function resizeTwoColsFilterCompactSelects() {
  */
 function alignTwoColsFilterButtons(filter) {
     var $filter = $(filter);
-    var $buttonHolder = $filter.find('.form-filter-btn').first();
+    var $buttonHolder = $filter.find('.form-filter-btn, .listFilter .formToolbar').first();
     var $caption = $filter.find('.formFieldCaption:visible').first();
 
     if (!$buttonHolder.length) {
@@ -157,7 +157,7 @@ function updateTwoColsFilterModes() {
 /**
  * Измерва филтъра след рендиране и запазва размерите за ресайз.
  */
-function setTwoColsFilterWidth() {
+function render_setTwoColsFilterWidth() {
     var $filters = $('.wide .twoColsFilter');
     if (!$filters.length) {
         return;
@@ -364,5 +364,7 @@ function setTwoColsFilterWidth() {
 
     // Показваме филтъра и списъка едва след прилагането на окончателния изглед.
     // Така при първоначално зареждане не се вижда междинният едноколонен кадър.
+    var $pendingFilters = $filters.not('.twoColsFilterReady');
     $filters.addClass('twoColsFilterReady');
+    $pendingFilters.trigger('twoColsFilterReady');
 }

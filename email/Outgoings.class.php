@@ -1377,7 +1377,7 @@ class email_Outgoings extends core_Master
                         $className = $fileInfo['className'];
                         $hRec = $className::fetchByHandle($fileInfo);
 
-                        if (($form->rec->theadId && (($form->rec->theadId != $hRec->threadId))) ||
+                        if (($form->rec->threadId && (($form->rec->threadId != $hRec->threadId))) ||
                             ($form->rec->folderId && (($form->rec->folderId != $hRec->folderId)))) {
                             $quotOtherArr[$hnd] = $hnd;
                         }
@@ -1793,7 +1793,7 @@ class email_Outgoings extends core_Master
             
             core_Lg::pop();
             
-            $recEmailsArr = type_Emails::toArray($rec->email);
+            $recEmailsArr = type_Emails::toArray($rec->email ?? null);
 
             // Ако не отговаряме на конкретен имейл, премахваме нашите имейли
             if (!$emailTo) {
@@ -1840,7 +1840,7 @@ class email_Outgoings extends core_Master
                     
                     $ccEmailsArr = array();
                     foreach ((array) $parseCCEmail as $eml) {
-                        if (!trim($eml['address'])) {
+                        if (empty($eml['address']) || !strlen(trim($eml['address']))) {
                             continue;
                         }
                         
@@ -1874,7 +1874,7 @@ class email_Outgoings extends core_Master
                     
                     $toEmailsArr = array();
                     foreach ((array) $parseToEmail as $eml) {
-                        if (!trim($eml['address'])) {
+                        if (empty($eml['address']) || !strlen(trim($eml['address']))) {
                             continue;
                         }
                         

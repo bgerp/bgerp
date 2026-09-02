@@ -34,6 +34,12 @@ class purchase_transaction_CloseDeal extends deals_ClosedDealTransaction
      * Дата
      */
     private $date;
+
+
+    /**
+     * Вальор на сделката
+     */
+    private $valior;
     
     
     /**

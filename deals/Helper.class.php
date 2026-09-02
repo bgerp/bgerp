@@ -989,7 +989,6 @@ abstract class deals_Helper
         }
         
         if (!empty($hint)) {
-            $html = ht::createHint($html, $hint, 'warning', false, null, "class={$class}");
 
             //  Показване на хоризонта при нужда
             $url = array('store_Products', 'list', 'storeId' => $storeId, 'productId' => $productId);
@@ -998,10 +997,12 @@ abstract class deals_Helper
                 $url['horizon'] = $diff;
             }
 
-            // Линк към наличното в склада ако има права
+            // Линкът е преди хинта, за да е иконката на хинта най-отпред, а стрелката - до к-то
             if ($makeLink === true && store_Stores::haveRightFor('select', $storeId) && store_Products::haveRightFor('list') && !Mode::isReadOnly()) {
-                $html = ht::createLinkRef($html, $url);
+                $html = ht::createLinkRef($html, $url, false, array('arrowFront' => true));
             }
+
+            $html = ht::createHint($html, $hint, 'warning', false, null, "class={$class}");
         }
 
         if($pRec->isPublic == 'no') {
@@ -1704,7 +1705,7 @@ abstract class deals_Helper
         $valueRow = core_Type::getByName($valueType)->toVerbal($value);
         if(!Mode::isReadOnly() && $hint === true) {
             $hintType = ($type == 'weight') ? 'Транспортното тегло e прогнозно' : (($type == 'volume') ? 'Транспортният обем е прогнозен' : (($type == 'netWeight') ? 'Нето теглото е прогнозно' : 'Тарата е прогнозна'));
-            $valueRow = "<span style='color:blue'>{$valueRow}</span>";
+            $valueRow = "<span class='blueText'>{$valueRow}</span>";
             $valueRow = ht::createHint($valueRow, "{$hintType} на база количеството", 'notice', false);
         }
 
@@ -1760,7 +1761,7 @@ abstract class deals_Helper
             $bestArr = trans_TransportUnits::getBestUnit($productId, $quantity, $packagingId);
             if(isset($bestArr)){
                 $row = trans_TransportUnits::display($bestArr['unitId'], $bestArr['quantity']);
-                $row = "<span style='color:blue'>{$row}</span>";
+                $row = "<span class='blueText'>{$row}</span>";
 
                 return ht::createHint($row, 'Логистичните единици са изчислени динамично', 'notice', false);
 
@@ -2970,7 +2971,7 @@ abstract class deals_Helper
                 $hint = "За съставител ще се запише потребителя, контирал документа!";
             } else {
                 $hint = "Ще бъде записан след активиране";
-                $issuerName = "<span style='color:blue'>{$issuerName}</span>";
+                $issuerName = "<span class='blueText'>{$issuerName}</span>";
             }
 
             $issuerName = ht::createHint($issuerName, $hint);

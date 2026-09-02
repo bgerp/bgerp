@@ -730,17 +730,19 @@ class blast_Letters extends core_Master
                 if ($rec->group == 'company') {
                     
                     // Извличаме записите за фирмата
+                    $gClass = 'crm_Companies';
                     $gQuery = crm_Companies::getQuery();
                 } else {
                     
                     // Ако е лице
                     
                     // Извличаме записите за лицето
+                    $gClass = 'crm_Persons';
                     $gQuery = crm_Persons::getQuery();
                 }
                 
                 // Всички, които са от тази група и не са оттеглени
-                $gQuery->likeKeylist('groupList', $coverArr);
+                plg_ExpandInput::applyExtendedInputSearch($gClass, $gQuery, $coverArr);
                 $gQuery->where("#state != 'rejected'");
                 
                 // Обхождаме откритите резултати
@@ -798,7 +800,7 @@ class blast_Letters extends core_Master
         $date = dt::mysql2verbal($rec->createdOn);
         
         // Добавяме във формата информация, за да знаем за кое писмо става дума
-        $form->info = new ET('[#1#]', tr("|*<b>|Писмо|*<i style='color:blue'>: {$subject} / {$date}</i></b>"));
+        $form->info = new ET('[#1#]', tr("|*<b>|Писмо|*<i class='blueText'>: {$subject} / {$date}</i></b>"));
         
         // Опциите за създаване на тялот
         $options = new stdClass();
@@ -838,17 +840,19 @@ class blast_Letters extends core_Master
             if ($rec->group == 'company') {
                 
                 // Вземаме записите за фирмата
+                $gClass = 'crm_Companies';
                 $gQuery = crm_Companies::getQuery();
             } else {
                 
                 // Ако е лице
                 
                 // Вземаме записите за лицето
+                $gClass = 'crm_Persons';
                 $gQuery = crm_Persons::getQuery();
             }
             
             // Вземаме всички заиси от групата, които не са оттеглени
-            $gQuery->likeKeylist('groupList', $coverArr);
+            plg_ExpandInput::applyExtendedInputSearch($gClass, $gQuery, $coverArr);
             $gQuery->where("#state != 'rejected'");
             
             // Обхождаме получените резултати

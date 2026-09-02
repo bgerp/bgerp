@@ -181,6 +181,13 @@
                         <td>[#pBomId#]</td>
                     </tr>
                     <!--ET_END pBomId-->
+
+                    <!--ET_BEGIN dBomId-->
+                    <tr>
+                        <td class='quiet' style='text-align: left;white-space: nowrap;'>|Рецепта за разпад|*:</td>
+                        <td>[#dBomId#]</td>
+                    </tr>
+                    <!--ET_END dBomId-->
                     <!--ET_END RECEIPTS-->
                     <!--ET_BEGIN BATCHES-->
                     <tr style='padding-bottom:80px;padding-top:80px'>

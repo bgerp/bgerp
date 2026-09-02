@@ -173,8 +173,13 @@ class page_Html extends core_ET
         $logAjaxDebugUrl = toUrl(array('log_System', 'JsLog'), 'local');
         jquery_Jquery::run($tpl, "setLogDebugUrl('{$logAjaxDebugUrl}');", true);
 
+        // Локално URL - подава се на efae в масива със `subscribed`
         $url = json_encode(toUrl(array('bgerp_A', 'wp'), 'local'));
         $tpl->appendOnce("var wpUrl = {$url};", 'SCRIPTS');
+
+        // Реално URL - за директни AJAX заявки, които не минават през efae
+        $ajaxUrl = json_encode(toUrl(array('bgerp_A', 'wp')));
+        $tpl->appendOnce("var wpAjaxUrl = {$ajaxUrl};", 'SCRIPTS');
         
         return $tpl;
     }

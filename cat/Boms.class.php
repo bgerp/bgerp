@@ -9,7 +9,7 @@
  * @package   cat
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2023 Experta OOD
+ * @copyright 2006 - 2026 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -31,13 +31,13 @@ class cat_Boms extends core_Master
     /**
      * Неща, подлежащи на начално зареждане
      */
-    public $loadList = 'plg_RowTools2, cat_Wrapper, doc_DocumentPlg, plg_Printing, doc_plg_Close, doc_plg_Prototype, acc_plg_DocumentSummary, doc_ActivatePlg, plg_Clone, cat_plg_AddSearchKeywords, plg_Search, change_Plugin, plg_Sorting,plg_Select';
+    public $loadList = 'plg_RowTools2, cat_Wrapper, doc_DocumentPlg, plg_Printing, doc_plg_Close, doc_plg_Prototype, acc_plg_DocumentSummary, doc_ActivatePlg, doc_plg_SingleActiveDoc, plg_Clone, cat_plg_AddSearchKeywords, plg_Search, change_Plugin, plg_Sorting,plg_Select';
     
     
     /**
      * Полетата, които могат да се променят с change_Plugin
      */
-    public $changableFields = 'title,showInProduct,expenses,isComplete,transferNotes';
+    public $changableFields = 'title,showInProduct,expenses,isComplete,transferNotes,transferBomNotes';
     
     
     /**
@@ -194,19 +194,16 @@ class cat_Boms extends core_Master
      * Дали в листовия изглед да се показва бутона за добавяне
      */
     public $listAddBtn = false;
-    
-    
-    /**
-     * Опашка от активираните рецепти
-     */
-    private static $activatedBoms = array();
-    
-    
-    /**
-     * Опашка от спрените рецепти
-     */
-    private static $stoppedActiveBoms = array();
 
+
+    /**
+     * Полета, определящи групата за затваряне на "конкурентните" активни
+     * рецепти - само 1 активна рецепта за даден артикул и вид рецепта
+     *
+     * @see doc_plg_SingleActiveDoc
+     */
+    public $singleActiveDocRefField = 'productId,type';
+    
 
     /**
      * Полета, които при клониране да не са попълнени
@@ -251,7 +248,9 @@ class cat_Boms extends core_Master
 
         $this->FLD('expenses', 'percent(min=0)', 'caption=Общи режийни,changeable,placeholder=Автоматично');
         $this->FLD('isComplete', 'enum(auto=Автоматично,yes=Без допълване (рецептата е Пълна),no=Допълване до "Себестойност" (рецептата е Непълна))', 'caption=Себестойност,notNull,value=auto,mandatory,width=100%');
-        $this->FLD('transferNotes', 'enum(auto=Автоматично,yes=Да,no=Не)', 'caption=Пренасяне забележките на артикулите от рецептата в Протокола за производство->Избор,notNull,value=auto');
+        $transferCaption = 'Пренасяне от Рецептата в Заданието и Протокола за производство';
+        $this->FLD('transferNotes', 'enum(auto=Автоматично,job=в Заданието,production=в Протокола за производство,yes=в Заданието и Протокола,no=Не се пренасят)', "caption={$transferCaption}->Описанията на артикулите,notNull,value=auto,maxRadio=5,autohide=any");
+        $this->FLD('transferBomNotes', 'enum(auto=Автоматично,job=в Заданието,production=в Протокола за производство,yes=в Заданието и Протокола,no=Не се пренася)', "caption={$transferCaption}->Забележките от рецептата,notNull,value=auto,maxRadio=5,autohide=any");
         $this->FLD('state', 'enum(draft=Чернова, active=Активиран, rejected=Оттеглен, closed=Затворен,template=Шаблон)', 'caption=Статус, input=none');
         $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'input=hidden,silent');
         $this->FLD('showInProduct', 'enum(,auto=Автоматично,product=В артикула,job=В заданието,yes=Навсякъде,no=Никъде)', 'caption=Показване в артикула,changeable');
@@ -299,6 +298,76 @@ class cat_Boms extends core_Master
         }
         
         return $res;
+    }
+
+
+    /**
+     * Дали съответната информация от рецептата се пренася в дадения документ
+     *
+     * @param mixed  $id          - ид или запис на рецепта
+     * @param string $field       - transferNotes|transferBomNotes
+     * @param string $destination - job|production
+     *
+     * @return bool
+     */
+    public static function shouldTransferNotes($id, $field, $destination)
+    {
+        $rec = static::fetchRec($id);
+        $configKey = ($field == 'transferBomNotes') ? 'BOM_TRANSFER_RECIPE_NOTES' : 'BOM_TRANSFER_NOTES';
+        $value = (($rec->{$field} ?? 'auto') == 'auto') ? planning_Setup::get($configKey) : $rec->{$field};
+
+        if (in_array($value, array('yes', 'both'))) {
+            $value = 'both';
+        }
+
+        return $value == 'both' || $value == $destination;
+    }
+
+
+    /**
+     * Връща забележките от рецептата, ако са избрани за дадения документ
+     *
+     * @param mixed  $id          - ид или запис на рецепта
+     * @param string $destination - job|production
+     *
+     * @return string|null
+     */
+    public static function getRecipeNotesForDocument($id, $destination)
+    {
+        $rec = static::fetchRec($id);
+        if (!static::shouldTransferNotes($rec, 'transferBomNotes', $destination) || empty($rec->notes)) return null;
+
+        return "От рецептата: {$rec->notes}";
+    }
+
+
+    /**
+     * Добавя пренесените забележки, ако вече не се съдържат в текста
+     *
+     * @param string|null $notes
+     * @param string|null $transferredNotes
+     *
+     * @return string|null
+     */
+    public static function appendTransferredNotes($notes, $transferredNotes)
+    {
+        if (empty($transferredNotes)) return $notes;
+
+        $normalizedNotes = str_replace(array("\r\n", "\r"), "\n", (string) $notes);
+        $normalizedTransferredNotes = str_replace(array("\r\n", "\r"), "\n", $transferredNotes);
+        if (strpos($normalizedNotes, $normalizedTransferredNotes) !== false) return $notes;
+
+        return !empty($notes) ? "{$notes}\n\n{$transferredNotes}" : $transferredNotes;
+    }
+    /**
+     * Връща ефективната стойност на настройка за пренасяне от рецептата
+     */
+    private static function getTransferSettingValue($rec, $field, $configKey)
+    {
+        $value = $rec->{$field} ?? 'auto';
+        $value = ($value == 'auto') ? planning_Setup::get($configKey) : $value;
+
+        return ($value == 'both') ? 'yes' : $value;
     }
     
     
@@ -385,149 +454,27 @@ class cat_Boms extends core_Master
     
     
     /**
-     * Активира последната затворена рецепта за артикула
-     *
-     * @param mixed $id
-     *
-     * @return FALSE|int
+     * Ако има задания към артикула, при активиране на рецепта се обновяват
+     * запазените им количества (@see doc_plg_SingleActiveDoc::on_Shutdown)
      */
-    private function activateLastBefore($id)
+    protected static function on_AfterSingleActiveDocActivated($mvc, $rec)
     {
-        $rec = $this->fetchRec($id);
-        if ($rec->state != 'closed' && $rec->state != 'rejected') {
-            
-            return false;
-        }
-        
-        // Намираме последната приключена рецепта (различна от текущата за артикула)
-        $query = $this->getQuery();
-        $query->where("#state = 'closed' AND #id != {$rec->id} AND #productId = {$rec->productId} AND #type = '{$rec->type}'");
-        $query->orderBy('id', 'DESC');
-
-        while ($nextActiveBomRec = $query->fetch()) {
-
-            // Ако предишната активна рецепта е ОК - активира се
-            if($this->isOk($nextActiveBomRec)){
-                $nextActiveBomRec->state = 'active';
-                $nextActiveBomRec->brState = 'closed';
-                $nextActiveBomRec->modifiedOn = dt::now();
-
-                $id = $this->save_($nextActiveBomRec, 'state,brState,modifiedOn');
-                $this->logWrite("Активиране на последна '" . $this->getVerbal($rec, 'type') . "' рецепта", $id);
-                doc_DocumentCache::cacheInvalidation($nextActiveBomRec->containerId);
-
-                return $id;
-            }
-        }
-
-        return false;
-    }
-    
-    
-    /**
-     * Реакция в счетоводния журнал при оттегляне на счетоводен документ
-     *
-     * @param core_Mvc   $mvc
-     * @param mixed      $res
-     * @param int|object $id  първичен ключ или запис на $mvc
-     */
-    protected static function on_AfterReject(core_Mvc $mvc, &$res, $id)
-    {
-        $rec = $mvc->fetchRec($id);
-        
-        if($rec->brState == 'active'){
-            static::$stoppedActiveBoms[$rec->id] = $rec;
+        $jQuery = planning_Jobs::getQuery();
+        $jQuery->where("#productId = {$rec->productId} AND #state IN ('active', 'stopped', 'wakeup')");
+        $jQuery->show('id');
+        while($jRec = $jQuery->fetch()){
+            store_StockPlanning::updateByDocument('planning_Jobs', $jRec->id);
         }
     }
-    
-    
-    /**
-     * След промяна на състоянието
-     */
-    protected function on_AfterChangeState($mvc, $rec, $state)
-    {
-        $rec = $mvc->fetchRec($rec);
-        if ($state == 'closed' && $rec->brState == 'active') {
-            static::$stoppedActiveBoms[$rec->id] = $rec;
-        } elseif($state == 'active' && $rec->brState == 'closed'){
-            static::$activatedBoms[$rec->id] = $rec;
-        }
-    }
-    
-    
-    /**
-     * Реакция в счетоводния журнал при възстановяване на оттеглен счетоводен документ
-     *
-     * @param core_Mvc   $mvc
-     * @param mixed      $res
-     * @param int|object $id  първичен ключ или запис на $mvc
-     */
-    protected static function on_AfterRestore(core_Mvc $mvc, &$res, $id)
-    {
-        $rec = $mvc->fetchRec($id);
-        if($rec->state == 'active'){
-            static::$activatedBoms[$rec->id] = $rec;
-        }
-    }
-    
-    
-    /**
-     * Функция, която прихваща след активирането на документа
-     */
-    protected static function on_AfterActivation($mvc, &$rec)
-    {
-        $rec = $mvc->fetchRec($rec);
-        static::$activatedBoms[$rec->id] = $rec;
-    }
-    
-    
-    /**
-     * Обновява списъците със свойства на номенклатурите от които е имало засегнати пера
-     *
-     * @param acc_Items $mvc
-     */
-    public static function on_Shutdown($mvc)
-    {
-        if(countR(static::$activatedBoms)){
-            foreach (static::$activatedBoms as $rec){
 
-                // Намираме всички останали активни рецепти
-                $query = static::getQuery();
-                $query->where("#state = 'active' AND #id != {$rec->id} AND #productId = {$rec->productId} AND #type = '{$rec->type}'");
-                
-                // Затваряме ги
-                $idCount = 0;
-                while ($bomRec = $query->fetch()) {
-                    $bomRec->state = 'closed';
-                    $bomRec->brState = 'active';
-                    $bomRec->modifiedOn = dt::now();
-                    $mvc->save_($bomRec, 'state,brState,modifiedOn');
-                    $mvc->logWrite("Затваряне при активиране на нова '" . $mvc->getVerbal($rec, 'type') . "' рецепта", $bomRec->id);
-                    
-                    doc_DocumentCache::cacheInvalidation($bomRec->containerId);
-                    $idCount++;
-                }
-                
-                if ($idCount) {
-                    core_Statuses::newStatus("|Затворени рецепти|*: {$idCount}");
-                }
 
-                // Ако има задания към артикула да се обновят запазените им количества
-                $jQuery = planning_Jobs::getQuery();
-                $jQuery->where("#productId = {$rec->productId} AND #state IN ('active', 'stopped', 'wakeup')");
-                $jQuery->show('id');
-                while($jRec = $jQuery->fetch()){
-                    store_StockPlanning::updateByDocument('planning_Jobs', $jRec->id);
-                }
-            }
-        }
-
-        // Ако по изключените е имало запазени количества, рекалкулират се запазените по заданията
-        if(countR(static::$stoppedActiveBoms)){
-            foreach (static::$stoppedActiveBoms as $rec){
-                store_StockPlanning::recalcByReff($mvc, $rec->id);
-            }
-        }
+    /**
+     * Ако по изключената рецепта е имало запазени количества, рекалкулират
+     * се запазените по заданията (@see doc_plg_SingleActiveDoc::on_Shutdown)
+     */
+    protected static function on_AfterSingleActiveDocStopped($mvc, $rec)
+    {
+        store_StockPlanning::recalcByReff($mvc, $rec->id);
     }
     
     
@@ -712,7 +659,7 @@ class cat_Boms extends core_Master
         if (empty($rec->showInProduct)) {
             $showInProduct = cat_Setup::get('SHOW_BOM_IN_PRODUCT');
             $row->showInProduct = $mvc->getFieldType('showInProduct')->toVerbal($showInProduct);
-            $row->showInProduct = "<span style='color:blue'>{$row->showInProduct}</span>";
+            $row->showInProduct = "<span class='blueText'>{$row->showInProduct}</span>";
             $row->showInProduct = ht::createHint($row->showInProduct, 'По подразбиране', 'notice', false);
         }
         
@@ -752,9 +699,9 @@ class cat_Boms extends core_Master
                     if (!empty($defaultOverheadCost)) {
                         $overheadCost = $defaultOverheadCost['overheadCost'];
                         $defaultOverheadCostVerbal = $mvc->getFieldType('expenses')->toVerbal($defaultOverheadCost['overheadCost']);
-                        $row->expenses = ht::createHint("<span style='color:blue'>{$defaultOverheadCostVerbal}</span>", "Автоматично|* {$defaultOverheadCost['hint']}", 'notice', false);
+                        $row->expenses = ht::createHint("<span class='blueText'>{$defaultOverheadCostVerbal}</span>", "Автоматично|* {$defaultOverheadCost['hint']}", 'notice', false);
                     } else {
-                        $row->expenses = ht::createHint("<span style='color:blue'>n/a</span>", "Не може да се определи автоматично|*!");
+                        $row->expenses = ht::createHint("<span class='blueText'>n/a</span>", "Не може да се определи автоматично|*!");
                     }
                 }
 
@@ -794,15 +741,37 @@ class cat_Boms extends core_Master
                 if ($rec->isComplete == 'auto') {
                     $autoValue = cat_Setup::get('DEFAULT_BOM_IS_COMPLETE');
                     $row->isComplete = $mvc->getFieldType('isComplete')->toVerbal($autoValue);
-                    $row->isComplete = "<span style='color:blue'>{$row->isComplete}</span>";
+                    $row->isComplete = "<span class='blueText'>{$row->isComplete}</span>";
                     $row->isComplete = ht::createHint($row->isComplete, 'Стойността е автоматично определена', 'notice', false);
                 }
 
-                if ($rec->transferNotes == 'auto') {
-                    $autoValue = planning_Setup::get('BOM_TRANSFER_NOTES');
-                    $row->transferNotes = $mvc->getFieldType('transferNotes')->toVerbal($autoValue);
-                    $row->transferNotes = "<span style='color:blue'>{$row->transferNotes}</span>";
-                    $row->transferNotes = ht::createHint($row->transferNotes, 'Стойността е автоматично определена', 'notice', false);
+                $transferValues = $transferHint = array();
+                foreach (array('transferNotes' => 'BOM_TRANSFER_NOTES', 'transferBomNotes' => 'BOM_TRANSFER_RECIPE_NOTES') as $field => $configKey) {
+                    $transferValues[$field] = static::getTransferSettingValue($rec, $field, $configKey);
+                    $transferHint[$field] = "<b>{$mvc->getFieldType($field)->toVerbal($transferValues[$field])}</b>";
+                    if (($rec->{$field} ?? 'auto') == 'auto') {
+                        $transferHint[$field] = "<span class='blueText'>{$transferHint[$field]} <span style='font-weight:normal'>(" . tr('автом.') . ')</span></span>';
+                    }
+                }
+
+                if (!Mode::is('printing') && !Mode::is('pdf') && !Mode::is('text', 'xhtml') && !Mode::is('text', 'plain')) {
+                    $hint = new core_ET(tr("|*<table>
+                        <tr><td class='aright' style='font-weight:normal'>|Описанията на артикулите|*:</td><td>[#transferNotes#]</td></tr>
+                        <tr><td class='aright' style='font-weight:normal'>|Забележката от рецептата|*:</td><td>[#transferBomNotes#]</td></tr>
+                    </table>"));
+                    $hint->placeArray($transferHint);
+                    $icon = ht::createElement('img', array('src' => sbf('img/32/info-gray.png', '')));
+                    $icon = ht::createElement('span', array('class' => 'frontTooltip', 'style' => 'position:relative;top:2px'), $icon, true);
+                    $row->transferInfo = "<span class='additionalInfo-holder bomTransferInfo' style='margin-left:2px;margin-right:4px'><span class='additionalInfo left'>{$hint}</span>{$icon}</span>";
+
+                    if (countR(array_unique($transferValues)) == 1) {
+                        $commonValue = reset($transferValues);
+                        $commonVerbal = $mvc->getFieldType('transferNotes')->toVerbal($commonValue);
+                        if (($rec->transferNotes ?? 'auto') == 'auto' && ($rec->transferBomNotes ?? 'auto') == 'auto') {
+                            $commonVerbal = "<span class='blueText'>{$commonVerbal}</span>";
+                        }
+                        $row->transferInfo .= $commonVerbal;
+                    }
                 }
 
                 if(isset($rec->regeneratedFromId)){
@@ -1099,6 +1068,52 @@ class cat_Boms extends core_Master
     
     
     /**
+     * Балонче за вида на рецептата/заданието - червеникаво за разпад,
+     * зеленикаво за производството. Ползва се и от двата таба
+     * (@see planning_GenericMapper), и от заданията (@see planning_Jobs)
+     *
+     * Кой от двата стила важи, се определя от класа - рецептата за разпад е
+     * винаги разпад. Заданията обаче са и за производство, и за разпад, затова
+     * за тях решава видът в записа
+     *
+     * @param string|null   $typeVerbal - какво да пише в балончето
+     * @param mixed         $mvc        - клас (име или инстанция), чийто вид се показва
+     * @param stdClass|null $rec        - записът; нужен е само за класовете,
+     *                                    които са и за производство, и за разпад
+     *
+     * @return string|null
+     */
+    public static function renderTypeBadge($typeVerbal, $mvc = null, $rec = null)
+    {
+        if (empty($typeVerbal)) return $typeVerbal;
+
+        $Mvc = (is_object($mvc) || is_string($mvc)) ? cls::get($mvc) : null;
+        $isDisassembly = ($Mvc instanceof cat_DisassemblyBoms) || (($rec->type ?? null) == 'disassembly');
+
+        return static::renderBadge($typeVerbal, $isDisassembly);
+    }
+
+
+    /**
+     * Балонче с текст - зеленикаво или червеникаво. Единственото място, което
+     * слага класовете му (@see .type-badge в css/common.scss)
+     *
+     * @param string|null $text
+     * @param bool        $isRed
+     *
+     * @return string|null
+     */
+    public static function renderBadge($text, $isRed = false)
+    {
+        if (empty($text)) return $text;
+
+        $class = $isRed ? 'type-badge type-badge-red' : 'type-badge';
+
+        return "<span class='{$class}'>{$text}</span>";
+    }
+
+
+    /**
      * Подготвяне на рецептите за един артикул
      *
      * @param stdClass $data
@@ -1107,42 +1122,87 @@ class cat_Boms extends core_Master
      */
     public function prepareBoms(&$data)
     {
-        $data->rows = array();
+        // Технологичните рецепти и тези за разпад (@see #Tsk9167) вървят в една
+        // таблица - разликата се вижда в колонката "Вид". Ключовете се префиксират,
+        // защото ид-тата на двата мениджъра се застъпват, а plg_RowTools2 търси
+        // записа в $data->recs по ключа на реда
+        $data->rows = $data->recs = array();
+        $bomSections = array(array('mvc'    => $this,
+                                   'prefix' => 'b',
+                                   'type'   => null,
+                                   'isDisassembly' => false,
+            ), array('mvc'    => cls::get('cat_DisassemblyBoms'),
+                    'prefix' => 'd',
+                    'type'   => 'Разпад',
+                    'isDisassembly' => true,),
+        );
 
-        // Намираме неоттеглените задания
-        $query = cat_Boms::getQuery();
-        $query->XPR('orderByState', 'int', "(CASE #state WHEN 'active' THEN 1 WHEN 'closed' THEN 2 ELSE 3 END)");
-        
-        $query->where("#productId = {$data->masterId}");
-        $query->where("#state != 'rejected'");
-        $query->orderBy('orderByState', 'ASC');
+        // Първо се събират записите от двата мениджъра - лимит на ниво заявка не
+        // може да обхване две отделни таблици, затова пейджърът се прилага после
+        // върху общия списък (@see core_Pager::isOnPage)
+        $allRecs = array();
+        foreach ($bomSections as $section) {
+            $query = $section['mvc']->getQuery();
+            $query->where("#productId = {$data->masterId}");
+            $query->where("#state != 'rejected'");
+            $query->XPR('orderByState', 'int', "(CASE #state WHEN 'active' THEN 1 WHEN 'closed' THEN 2 ELSE 3 END)");
+            $query->orderBy('orderByState', 'ASC');
+
+            while ($rec = $query->fetch()) {
+                $allRecs[] = array('rec' => $rec, 'section' => $section);
+            }
+        }
 
         $data->Pager = cls::get('core_Pager', array('itemsPerPage' => 20));
         $data->Pager->setPageVar('cat_Products', $data->masterId, 'cat_Boms');
-        $data->Pager->setLimit($query);
+        $data->Pager->itemsCount = countR($allRecs);
 
-        while ($rec = $query->fetch()) {
-            $data->recs[$rec->id] = $rec;
-            $data->rows[$rec->id] = $this->recToVerbal($rec);
+        foreach ($allRecs as $item) {
+
+            // isOnPage() брои по едно извикване на запис - вика се точно веднъж
+            // за всеки, преди по-скъпото recToVerbal()
+            if (!$data->Pager->isOnPage()) continue;
+
+            $rec = $item['rec'];
+            $section = $item['section'];
+            $key = $section['prefix'] . $rec->id;
+            $row = $section['mvc']->recToVerbal($rec);
+
+            $typeVerbal = isset($section['type']) ? tr($section['type']) : ($row->type ?? null);
+            $row->type = static::renderTypeBadge($typeVerbal, $section['mvc'], $rec);
+
+            $data->recs[$key] = $rec;
+            $data->rows[$key] = $row;
         }
-        
-        $masterInfo = cat_Products::getProductInfo($data->masterId);
-        if (!isset($masterInfo->meta['canManifacture'])) {
+
+        $masterRec = $data->masterData->rec;
+        if ($masterRec->canManifacture != 'yes') {
             $data->notManifacturable = true;
         }
 
-        if (!haveRole('ceo,sales,cat,planning') || (($data->notManifacturable ?? false) === true && !countR($data->rows))) {            $data->hide = true;
-            
+        // Табът се показва, ако артикулът е производим и/или складируем+вложим
+        // (т.е. може да се разпада), или ако вече има някакви рецепти
+        $data->canBeDisassembled = $masterRec->canStore == 'yes' && $masterRec->canConvert == 'yes';
+        $showTab = (($data->notManifacturable ?? false) !== true) || $data->canBeDisassembled || countR($data->rows);
+
+        if (!haveRole('ceo,sales,cat,planning') || !$showTab) {
+            $data->hide = true;
+
             return;
         }
-        
+
         $data->TabCaption = 'Рецепти';
         $data->Tab = 'top';
-        
+
         // Проверяваме можем ли да добавяме нови рецепти
         if ($this->haveRightFor('add', (object) array('productId' => $data->masterId, 'originId' => $data->masterData->rec->containerId))) {
             $data->addUrl1 = array('cat_Boms', 'add', 'productId' => $data->masterData->rec->id, 'originId' => $data->masterData->rec->containerId, 'type' => 'sales', 'ret_url' => true);
             $data->addUrl2 = array('cat_Boms', 'add', 'productId' => $data->masterData->rec->id, 'originId' => $data->masterData->rec->containerId, 'type' => 'instant', 'ret_url' => true);
+        }
+
+        // Рецепта за разпад - на артикула, който се разпада (@see #Tsk9167)
+        if (cat_DisassemblyBoms::haveRightFor('add', (object) array('productId' => $data->masterId, 'originId' => $data->masterData->rec->containerId))) {
+            $data->addUrlDisassembly = array('cat_DisassemblyBoms', 'add', 'productId' => $data->masterData->rec->id, 'originId' => $data->masterData->rec->containerId, 'ret_url' => true);
         }
     }
     
@@ -1158,27 +1218,32 @@ class cat_Boms extends core_Master
         if (!empty($data->hide)) return;
         
         $tpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
-        if(!empty($data->fromConvertable)){
-            $title = tr('Технологични рецепти');
-            $tpl->append($title, 'title');
+
+        // В таб 'Употреба' заглавието се слага от planning_GenericMapper::renderResources,
+        // защото там таблицата е с друг смисъл - рецептите, в които артикулът участва
+        if (empty($data->fromConvertable)) {
+            $tpl->append(tr('Всички рецепти'), 'title');
         }
-        
-        $data->listFields = arr::make('title=Рецепта,type=Вид,action=Като,quantity=Количество,createdBy=От||By,createdOn=На');
+
+        // Ако артикула не е производим, показваме в детайла. При вложим+складируем
+        // артикул табът е там заради рецептите за разпад, а не по погрешка -
+        // затова не го маркираме като проблемен (@see #Tsk9167)
+        if (!empty($data->notManifacturable) && empty($data->canBeDisassembled)) {
+            $tpl->append(" <span class='red small'>(" . tr('Артикулът не е производим') . ')</span>', 'title');
+            $tpl->append('state-rejected', 'TAB_STATE');
+        }
+
+        // Технологичните рецепти и тези за разпад са в обща таблица - различават
+        // се по колонката "Вид" (@see #Tsk9167)
+        $data->listFields = arr::make('title=Рецепта,type=Вид,action=Като,quantity=К-во,createdBy=От||By,createdOn=На');
         $table = cls::get('core_TableView', array('mvc' => $this));
         $this->invoke('BeforeRenderListTable', array($tpl, &$data));
         $details = $table->get($data->rows, $data->listFields);
         if (!empty($data->Pager)) {
             $details->append($data->Pager->getHtml());
         }
-
-        // Ако артикула не е производим, показваме в детайла
-        if (!empty($data->notManifacturable)) {
-            $tpl->append(" <span class='red small'>(" . tr('Артикулът не е производим') . ')</span>', 'title');
-            $tpl->append('state-rejected', 'TAB_STATE');
-        }
-
         $tpl->append($details, 'content');
-        
+
         if(!Mode::isReadOnly()){
             if (isset($data->addUrl1)) {
                 $addBtn = ht::createBtn('Търговска', $data->addUrl1, false, false, "ef_icon={$this->singleIcon},title=Добавяне на нова търговска технологична рецепта");
@@ -1187,6 +1252,11 @@ class cat_Boms extends core_Master
             
             if (isset($data->addUrl2)) {
                 $addBtn = ht::createBtn('Моментна', $data->addUrl2, false, false, "ef_icon={$this->singleIcon},title=Добавяне на нова моментна технологична рецепта");
+                $tpl->append($addBtn, 'toolbar');
+            }
+
+            if (isset($data->addUrlDisassembly)) {
+                $addBtn = ht::createBtn('За разпад', $data->addUrlDisassembly, false, false, 'ef_icon=img/16/article_decay.png,title=Добавяне на нова рецепта за разпад');
                 $tpl->append($addBtn, 'toolbar');
             }
         }
@@ -1663,8 +1733,7 @@ class cat_Boms extends core_Master
         // Ако изчисляваме цената на рецептата по себестойност, ще кешираме изчислените цени на редовете
         $canCalcPrimeCost = true;
 
-        $transferNotes = $rec->transferNotes == 'auto' ? planning_Setup::get('BOM_TRANSFER_NOTES') : $rec->transferNotes;
-        $transferNotes = $transferNotes == 'yes';
+        $transferNotes = static::shouldTransferNotes($rec, 'transferNotes', 'production');
 
         // За всеки от тях
         if (is_array($details)) {
@@ -2227,7 +2296,7 @@ class cat_Boms extends core_Master
      * Добавя допълнителни полетата в антетката
      *
      * @param core_Master $mvc
-     * @param NULL|array  $res
+     * @param NULL|array  $resArr
      * @param object      $rec
      * @param object      $row
      */
@@ -2239,12 +2308,12 @@ class cat_Boms extends core_Master
                 <tr><td style='font-weight:normal'>|Себестойност|*:</td><td>[#primeCost#]</td></tr>
                 <!--ET_BEGIN primeCostWithOverheadCost--><tr><td style='font-weight:normal'>|С реж. разходи|*:</td><td>[#primeCostWithOverheadCost#]</td></tr><!--ET_END primeCostWithOverheadCost-->
                 <!--ET_BEGIN expenses--><tr><td style='font-weight:normal'>|Режийни разходи|*:</td><td>[#expenses#]</td></tr><!--ET_END expenses-->
-                <!--ET_BEGIN transferNotes--><tr><td style='font-weight:normal'>|Пренасяне на забележки в ПП|*:</td><td>[#transferNotes#]</td></tr><!--ET_END transferNotes-->
                 <tr><td style='font-weight:normal' colspan='2'><b>[#isComplete#]</b></td></tr>
                 </table>"));
 
         $resArr['info'] = array('name' => tr('Информация'), 'val' => tr("|*<table class='docHeaderVal'>
                 <!--ET_BEGIN showInProduct--><tr><td style='font-weight:normal'>|Показване в артикула|*:</td><td>[#showInProduct#]</td></tr><!--ET_END showInProduct-->
+                <!--ET_BEGIN transferInfo--><tr><td style='font-weight:normal'>|Пренасяне от рецептата|*:</td><td>[#transferInfo#]</td></tr><!--ET_END transferInfo-->
                 <tr><td style='font-weight:normal'>|Модифициранe|*:</td><td>[#modifiedOn#]</b> |от|* [#modifiedBy#]</td></tr>
                 <!--ET_BEGIN lastUpdatedDetailOn--><tr><td style='font-weight:normal'>|Промяна на детайл|*:</td><td>[#lastUpdatedDetailOn#]</td></tr><!--ET_END lastUpdatedDetailOn-->
                 <!--ET_BEGIN prototypeId--><tr><td style='font-weight:normal'>|Базирано на|*:</td><td>[#prototypeId#]</td></tr><!--ET_END prototypeId-->
@@ -2440,7 +2509,7 @@ class cat_Boms extends core_Master
         $csvFields->FLD('type', 'enum(input=Влаг.,pop=Отп.,stage=Етап,subProduct=Субпр.)', 'caption=Действие');
         $csvFields->FLD('resourceId', 'varchar', 'caption=Артикул');
         $csvFields->FLD('packagingId', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка');
-        $csvFields->FLD('propQuantity', 'text', 'caption=Формула');
+        $csvFields->FLD('propQuantity', 'text', 'caption=Количество');
         $csvFields->FLD('description', 'text', 'caption=Забележка');
         $csvFields->FLD('paramId', 'key(mvc=cat_Params,select=typeExt)', 'caption=Параметър');
 

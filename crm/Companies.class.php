@@ -1022,7 +1022,7 @@ class crm_Companies extends core_Master
         }
 
         if ($rec->folderName ?? null) {
-            $row->folderName = "<div style='color:blue;'>" . $mvc->getVerbal($rec, 'folderName') . '</div>';
+            $row->folderName = "<div class='blueText'>" . $mvc->getVerbal($rec, 'folderName') . '</div>';
         }
         
         $row->titleNumber = "<div class='number-block' style='display:inline'>№{$rec->id}</div>";

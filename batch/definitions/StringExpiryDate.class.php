@@ -99,6 +99,17 @@ class batch_definitions_StringExpiryDate extends batch_definitions_Varchar
         return $rec->{$Class->valiorFld} ?? null;
     }
 
+
+    /**
+     * Зависи ли типът на партидата от датата на документа
+     *
+     * @return bool
+     */
+    public function isDocumentDateDependent()
+    {
+        return true;
+    }
+
     /**
      * Проверява дали стойността е невалидна
      *

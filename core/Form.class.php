@@ -236,6 +236,15 @@ class core_Form extends core_FieldSet
                 }
             }
             
+            // Запазваме вече зададената mandatory парола при служебния вход
+            // "без промяна". Без стара стойност mandatory проверката остава.
+            if (($field->mandatory ?? null) && $field->type instanceof type_Password &&
+                empty($field->type->params['show']) && empty($field->type->params['allowEmpty']) &&
+                $value === type_Password::EF_PASS_NO_CHANGE && property_exists($this->rec, $name) &&
+                is_scalar($this->rec->{$name}) && (string) $this->rec->{$name} !== '') {
+                continue;
+            }
+
             if ($value === '' && ($field->mandatory ?? null) && $this->cmd != 'refresh') {
                 $captions = str_replace('» |@', '', $captions);
                 $this->setError($name, 'Непопълнено задължително поле' .
@@ -300,7 +309,7 @@ class core_Form extends core_FieldSet
                 
                 // Вдигаме грешка, ако стойността от Request
                 // не може да се конвертира към вътрешния тип
-                if (strlen($type->error)) {
+                if (!empty($type->error)) {
                     $result = array('error' => $type->error);
                     
                     $this->setErrorFromResult($result, $field, $name);
@@ -461,7 +470,7 @@ class core_Form extends core_FieldSet
                 
                 // Вдигаме грешка, ако стойността от Request
                 // не може да се конвертира към вътрешния тип
-                if (strlen($type->error)) {
+                if (!empty($type->error)) {
                     $result = array('error' => $type->error);
                     
                     $this->setErrorFromResult($result, $field, $name);
@@ -552,7 +561,7 @@ class core_Form extends core_FieldSet
         ht::setUniqId($this->formAttr);
         
         if (empty($this->layout)) {
-            if ($this->view == 'horizontal') {
+            if (($this->view ?? null) == 'horizontal') {
                 $this->layout = new ET(
                     "<form <!--ET_BEGIN CLASS-->class = '[#CLASS#]'<!--ET_END CLASS--> [#FORM_ATTR#] " .
                     "<!--ET_BEGIN ON_SUBMIT-->onSubmit=\"[#ON_SUBMIT#]\"<!--ET_END ON_SUBMIT-->>\n" .
@@ -591,7 +600,7 @@ class core_Form extends core_FieldSet
                 jquery_Jquery::run($this->layout, 'setFormElementsWidth();');
                 jquery_Jquery::runAfterAjax($this->layout, 'setFormElementsWidth');
                 jquery_Jquery::runAfterAjax($this->layout, 'markSelectedChecboxes');
-                jquery_Jquery::run($this->layout, 'markSelectedChecboxes();');
+                jquery_Jquery::run($this->layout, 'render_markSelectedChecboxes();');
                 jquery_Jquery::run($this->layout, 'markElementsForRefresh();');
                 jquery_Jquery::run($this->layout, '$(window).resize(function(){setFormElementsWidth();});');
             }
@@ -908,6 +917,13 @@ class core_Form extends core_FieldSet
                 // фокусираме на него
                 if (empty($firstError)) {
                     if (!empty($field->focus)) {
+                        // 'focus=force' - полето поема фокуса и на мобилно устройство.
+                        // Ползва се за полета, в които се сканира с хардуерен скенер и
+                        // без фокус в тях сканирането не попада никъде.
+                        if ($field->focus === 'force') {
+                            $attr['data-focus'] = 'forceFocus';
+                        }
+                        
                         ht::setUniqId($attr);
                         $idForFocus = $attr['id'];
                     } elseif (empty($field->type->params['isReadOnly']) && (countR($field->type->options ?? null) != 1) && empty($idFirstFocus) &&
@@ -993,7 +1009,11 @@ class core_Form extends core_FieldSet
                 $fieldsLayout->append('</div>');
             } else {
                 if (!empty($idForFocus)) {
-                    jquery_Jquery::run($fieldsLayout, "focusOnce('#{$idForFocus}');", true);
+                    // При AJAX рефреш на формата фокусът се форсира. Иначе полето
+                    // с 'focus' остава нефокусирано, защото старата форма е заместена
+                    // и фокусът пада върху BODY (не може да се сканира без клик).
+                    $force = ($this->cmd == 'refresh' && Request::get('ajax_mode')) ? ', true' : '';
+                    jquery_Jquery::run($fieldsLayout, "focusOnce('#{$idForFocus}'{$force});", true);
                 } elseif (!empty($idFirstFocus)) {
                     jquery_Jquery::run($fieldsLayout, "focusOnce('#{$idFirstFocus}');", true);
                 }
@@ -1089,6 +1109,7 @@ class core_Form extends core_FieldSet
 
             $plusUrl = sbf('img/16/toggle1.png', '');
             $plusImg = ht::createElement('img', array('src' => $plusUrl, 'class' => 'btns-icon plus'));
+            $otherGroupCaption = tr('Други');
             foreach ($fields as $name => $field) {
                 if (!empty($field->rowStyle)) {
                     $rowStyle = ' style="' . $field->rowStyle . '"';
@@ -1173,7 +1194,7 @@ class core_Form extends core_FieldSet
 
                 if (Mode::is('screenMode', 'narrow')) {
                     if ($emptyRow) {
-                        $tpl->append("\n<tr><td><div class='formGroup'>&nbsp;</div></td></tr>", 'FIELDS');
+                        $tpl->append("\n<tr><td><div class='formGroup'>{$otherGroupCaption}</div></td></tr>", 'FIELDS');
                     }
                     
                     if ($headerRow) {
@@ -1185,7 +1206,7 @@ class core_Form extends core_FieldSet
                     $fld = new ET("\n<tr class='filed-{$name}{$toggable}{$fsRow}'{$rowStyle}><td class='formCell[#{$field->name}_INLINETO_CLASS#] wideNowrap'  style='padding-top:5px;'><small>{$caption}{$unit}</small><br>[#{$field->name}#]</td></tr>");
                 } else {
                     if ($emptyRow) {
-                        $tpl->append(new ET("\n<tr class='{$fsRow}'><td colspan=2><div class='formGroup'>&nbsp;</div></td></tr>"), 'FIELDS');
+                        $tpl->append(new ET("\n<tr class='{$fsRow}'><td colspan=2><div class='formGroup'>{$otherGroupCaption}</div></td></tr>"), 'FIELDS');
                     }
                     
                     if ($headerRow) {
@@ -1400,6 +1421,11 @@ class core_Form extends core_FieldSet
      */
     public function renderHtml_($fields = null, $vars = null)
     {
+        $canBeInputForm =
+            strtolower($this->view ?? '') != 'horizontal' &&
+            strtolower($this->class ?? '') != 'simpleform' &&
+            !Mode::is('staticFormView');
+
         $this->formAttr['id'] = $this->formAttr['id'] ?? str::getRand();
         $this->smartSet('showFields', arr::make($fields, true));
         $this->smartSet('renderVars', arr::make($vars, true));
@@ -1422,7 +1448,15 @@ class core_Form extends core_FieldSet
             $tpl->append($this->$method(), "FORM_{$view}");
         }
 
-        jquery_Jquery::run($tpl, 'alignFormFilterButtons();');
+        // Проверяваме действителния HTML, защото специален лейаут може да не
+        // използва FORM_ATTR и тогава браузърът приема формата за GET.
+        if ($canBeInputForm && preg_match('/<form\b[^>]*\bmethod\s*=\s*["\']?post\b/i', $tpl->content)) {
+            // Маркерът се пренася от ET само ако формата действително попадне
+            // в крайното съдържание на страницата.
+            $tpl->push(true, 'POST_INPUT_FORM_FAVICON');
+        }
+
+        jquery_Jquery::run($tpl, 'render_alignFormFilterButtons();');
         jquery_Jquery::runAfterAjax($tpl, 'alignFormFilterButtons');
         
         if ($this->cmd == 'refresh' && Request::get('ajax_mode')) {
@@ -1443,13 +1477,13 @@ class core_Form extends core_FieldSet
         $res = new stdClass();
         $res->css = array_keys(array_flip($tpl->getArray('CSS')));
         foreach ($res->css as $key => $file) {
-            $res->css[$key] = sbf($file, '');
+            $res->css[$key] = page_Html::getFileForAppend($file, false);
         }
 
         $res->js = array_keys(array_flip($tpl->getArray('JS')));
         
         foreach ($res->js as $key => $file) {
-            $res->js[$key] = sbf($file, '');
+            $res->js[$key] = page_Html::getFileForAppend($file, false);
         }
         $ajaxPage = new ET("[#1#]<!--ET_BEGIN JQRUN-->\n<script type=\"text/javascript\">[#JQRUN#]\n[#ON_LOAD#]</script><!--ET_END JQRUN-->" .
         "<!--ET_BEGIN SCRIPTS-->\n<script type=\"text/javascript\">[#SCRIPTS#]\n</script><!--ET_END SCRIPTS-->", $tpl);

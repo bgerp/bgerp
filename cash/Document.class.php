@@ -233,14 +233,14 @@ abstract class cash_Document extends deals_PaymentDocument
         $documentRec = $Document->fetch();
         $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
         $firstRec = $firstDoc->fetch();
-        $willConvert = ($firstRec->currencyId != $documentRec->currencyId);
 
         if ($Document->isInstanceOf('deals_InvoiceMaster')) {
             $rate = ($documentRec->displayRate) ? $documentRec->displayRate : $documentRec->rate;
             $rawAmount = ($documentRec->dealValue - $documentRec->discountAmount) + $documentRec->vatAmount;
 
             $minus = 0;
-            if ($documentRec->type != 'dc_note') {
+            // Проформите нямат поле `type`
+            if (($documentRec->type ?? null) != 'dc_note') {
                 $testAmount = $rate ? ($rawAmount / $rate) : $rawAmount;
 
                 // Ако резултатът и без това е практически точен до 2 знака,
@@ -250,10 +250,10 @@ abstract class cash_Document extends deals_PaymentDocument
                 }
             }
 
-            $amount = ($rawAmount - $minus);
-            $amount /= $rate;
+            // Без валиден курс сумата не може да се изчисли
+            $amount = !empty($rate) ? (($rawAmount - $minus) / $rate) : null;
         } elseif ($Document->isInstanceOf('store_DocumentMaster')) {
-            $amount = $documentRec->amountDelivered / $documentRec->currencyRate;
+            $amount = !empty($documentRec->currencyRate) ? ($documentRec->amountDelivered / $documentRec->currencyRate) : null;
         }
 
         $documentCurrencyId = is_numeric($documentRec->currencyId) ? currency_Currencies::getCodeById($documentRec->currencyId) : $documentRec->currencyId;
@@ -405,7 +405,14 @@ abstract class cash_Document extends deals_PaymentDocument
                 }
             }
 
-            $operation = $dealInfo->allowedPaymentOperations[$rec->operationSysId];
+            $allowedOperations = arr::make($dealInfo->get('allowedPaymentOperations'));
+            $operation = $allowedOperations[$rec->operationSysId] ?? null;
+            if (empty($operation)) {
+                $form->setError('operationSysId', 'Операцията не е допустима по сделката|*!');
+
+                return;
+            }
+
             $debitAcc = empty($operation['reverse']) ? $operation['debit'] : $operation['credit'];
             $creditAcc = empty($operation['reverse']) ? $operation['credit'] : $operation['debit'];
             
@@ -614,8 +621,8 @@ abstract class cash_Document extends deals_PaymentDocument
             }
             
             if ($origin = $mvc->getOrigin($rec)) {
-                $options = $origin->allowedPaymentOperations;
-                $row->operationSysId = $options[$rec->operationSysId]['title'];
+                $options = arr::make($origin->allowedPaymentOperations);
+                $row->operationSysId = $options[$rec->operationSysId]['title'] ?? $row->operationSysId;
             }
 
             // Ако има посочено колко е платено - показва се и рестото
@@ -796,7 +803,7 @@ abstract class cash_Document extends deals_PaymentDocument
     protected static function on_BeforeConto(core_Mvc $mvc, &$res, $id)
     {
         $rec = $mvc->fetchRec($id);
-        $rec->peroCase = (isset($rec->peroCase)) ? $rec->peroCase : $mvc->getDefaultCase($rec);;
+        $rec->peroCase = (isset($rec->peroCase)) ? $rec->peroCase : $mvc->getDefaultCase($rec);
         
         if(empty($rec->peroCase)){
             redirect(array($mvc, 'single', $rec->id), false, 'За да контирате документа, трябва да е избрана каса', 'error');
@@ -827,7 +834,9 @@ abstract class cash_Document extends deals_PaymentDocument
         // Измежду кои каси може да се избира, ако е инсталирана многофирмеността ще е от разрешените каси в посочената Наша фирма
         $allowedCases = null;
         if(core_Packs::isInstalled('holding')){
-            $allowedCases = holding_Companies::getSelectedOptions('cashes', $rec->{$this->ownCompanyFieldName});
+            if(isset($this->ownCompanyFieldName)){
+                $allowedCases = holding_Companies::getSelectedOptions('cashes', $rec->{$this->ownCompanyFieldName});
+            }
         }
 
         // Ако има транс. линия с дефолтна каса
@@ -981,10 +990,7 @@ abstract class cash_Document extends deals_PaymentDocument
 
         $resArr = $errors = array();
         if(!empty($amount) && !empty($newCurrencyCode)){
-            if(static::saveAmountGiven($rec, $amount, $newCurrencyCode, $errors)) {
-                $change = static::renderChange($rec);
-                core_Statuses::newStatus("Платено|*: {$amount} {$newCurrencyCode}. |Ресто|*: {$change}");
-            }
+            static::saveAmountGiven($rec, $amount, $newCurrencyCode, $errors);
         }
 
         $this->conto($rec->id);
@@ -1020,6 +1026,8 @@ abstract class cash_Document extends deals_PaymentDocument
             $newCurrencyId = currency_Currencies::getIdByCode($currencyCode);
         } catch (core_exception_Expect $ex) {
             $errors[] = "Неразпозната валута|*: {$currencyCode}";
+
+            return false;
         }
 
         $amount = core_Type::getByName('double')->fromVerbal($amount);

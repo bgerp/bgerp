@@ -205,13 +205,13 @@ class core_Tabs extends core_BaseClass
             "<!--ET_BEGIN SCRIPTS-->\n<script type=\"text/javascript\">[#SCRIPTS#]\n</script><!--ET_END SCRIPTS-->", $body);
             $res->css = array_keys(array_flip($body->getArray('CSS')));
             foreach ($res->css as $key => $file) {
-                $res->css[$key] = sbf($file, '');
+                $res->css[$key] = page_Html::getFileForAppend($file, false);
             }
 
             $res->js = array_keys(array_flip($body->getArray('JS')));
         
             foreach ($res->js as $key => $file) {
-                $res->js[$key] = sbf($file, '');
+                $res->js[$key] = page_Html::getFileForAppend($file, false);
             }
 
             $res->body = $hint . $body;

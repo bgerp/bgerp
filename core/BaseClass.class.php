@@ -118,7 +118,15 @@ class core_BaseClass
         }
         
         $class = cls::getClassName($class);
-        
+
+        // Ако липсва кода на плъгина/класа, той не се зарежда. Само го запомняме,
+        // за да бъде репортван при инсталацията на пакета
+        if (!cls::load($class, true)) {
+            core_Plugins::addMissing($class, $this);
+
+            return;
+        }
+
         // Ако е подклас на core_Mvc, записваме го като член на този клас
         if (!isset($this->{$name}) && cls::isSubclass($class, 'core_Mvc')) {
             $this->{$name} = &cls::get($class);
@@ -206,7 +214,12 @@ class core_BaseClass
                 if (method_exists($className, $method)) {
                     $RM = new ReflectionMethod($className, $method);
                     if ($className == $RM->class) {
-                        $this->_listenerCache[$method][] = $first ? $this : $className;
+                        if ($first || $RM->isStatic()) {
+                            $this->_listenerCache[$method][] = $first ? $this : $className;
+                        } else {
+                            // PHP 8 не допуска нестатичен метод като callback чрез име на клас
+                            $this->_listenerCache[$method][] = array('class' => $className);
+                        }
                     }
                 }
                 $first = false;
@@ -223,7 +236,17 @@ class core_BaseClass
             }
             
             foreach ($this->_listenerCache[$method] as $subject) {
-                if (call_user_func_array(array($subject, $method), $args1) === false) {
+                if (is_array($subject) && isset($subject['class'])) {
+                    $RM = new ReflectionMethod($subject['class'], $method);
+                    if (!$RM->isPublic()) {
+                        $RM->setAccessible(true);
+                    }
+                    $status = $RM->invokeArgs($this, $args1);
+                } else {
+                    $status = call_user_func_array(array($subject, $method), $args1);
+                }
+
+                if ($status === false) {
                     
                     return false;
                 }
@@ -243,6 +266,7 @@ class core_BaseClass
      */
     public function __call($method, $args)
     {
+        $flag = false;
         $argsHnd = array(&$res);
         $argsMtd = array();
         

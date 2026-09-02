@@ -305,18 +305,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         $form->setDefault('storeId', $storeId);
         $form->setOptions('productId', $productOptions);
         $form->setDefault('productId', key($productOptions));
-        $originPackId = $originRec->packagingId;
-
-        if (core_Packs::isInstalled('batch') && isset($rec->productId)) {
-            $BatchDef = batch_Defs::getBatchDef($rec->productId);
-            if ($BatchDef instanceof batch_definitions_StringExpiryDate) {
-                $form->setField('valior', 'removeAndRefreshForm=batch');
-                $requestValior = Request::get('valior', 'date');
-                if (isset($requestValior)) {
-                    $rec->valior = $requestValior;
-                }
-            }
-        }
+        $originPackId = $originRec->{$defaultOriginPackField};
 
         if(isset($rec->productId)){
             if($rec->productId != $jobRec->productId){
@@ -386,6 +375,11 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                 }
             }
             $form->setDefault('expenses', $defaultOverheadCost);
+
+            $notesBomRec = cat_Products::getLastActiveBom($rec->productId, 'production,instant,sales');
+            if (empty($rec->id) && $notesBomRec) {
+                $form->setDefault('note', cat_Boms::getRecipeNotesForDocument($notesBomRec, 'production'));
+            }
 
             // Ако има избрана опаковка
             if(isset($rec->packagingId)){
@@ -1179,6 +1173,13 @@ class planning_DirectProductionNote extends planning_ProductionDocument
      */
     protected static function on_BeforeSave($mvc, &$id, $rec, $fields = null, $mode = null)
     {
+        if (empty($rec->id) && isset($rec->productId)) {
+            if ($bomRec = cat_Products::getLastActiveBom($rec->productId, 'production,instant,sales')) {
+                $transferredNotes = cat_Boms::getRecipeNotesForDocument($bomRec, 'production');
+                $rec->note = cat_Boms::appendTransferredNotes($rec->note ?? null, $transferredNotes);
+            }
+        }
+
         if(isset($rec->id)){
             // Какво е било старото количество
             $rec->_exQuantity = $mvc->fetchField($rec->id, 'quantity', false);
@@ -1291,7 +1292,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         }
 
         if(haveRole('debug') && $rec->state != 'rejected'){
-            $data->toolbar->addBtn('Зареди очакваното', array($mvc, 'fillNote', $rec->id, 'ret_url' => true), null, 'ef_icon = img/16/bug.png,title=Зареди очакваните количества,row=2');
+            $data->toolbar->addBtn('Очаквано', array($mvc, 'fillNote', $rec->id, 'ret_url' => true), null, 'ef_icon = img/16/bug.png,title=Зареди очакваните количества,row=2');
         }
 
         if (planning_ReturnNotes::haveRightFor('add', (object) array('originId' => $rec->containerId, 'threadId' => $rec->threadId))) {

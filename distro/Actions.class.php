@@ -311,7 +311,7 @@ class distro_Actions extends embed_Manager
         
         $rec = $this->fetch($id);
         
-        if ($rec->state == 'rejected') {
+        if (empty($rec) || $rec->state == 'rejected') {
             
             return ;
         }
@@ -334,6 +334,7 @@ class distro_Actions extends embed_Manager
         $fRec = distro_Files::fetch($rec->fileId);
         
         if ($fRec) {
+            $sudoUser = null;
             if ($rec->createdBy > 0) {
                 $sudoUser = core_Users::sudo($rec->createdBy);
             }
@@ -360,7 +361,7 @@ class distro_Actions extends embed_Manager
         
         $rec = $this->fetch($id);
         
-        if ($rec->state == 'rejected') {
+        if (empty($rec) || $rec->state == 'rejected') {
             
             return ;
         }
@@ -389,7 +390,8 @@ class distro_Actions extends embed_Manager
         }
         
         // Логваме грешката в системата
-        if ($tContent = trim($content)) {
+        $tContent = trim((string) $content);
+        if (strlen($tContent)) {
             $this->logWarning($tContent, $rec->id);
         }
     }
@@ -538,7 +540,8 @@ class distro_Actions extends embed_Manager
         if ($action == 'add') {
             
             // Ако има master
-            if (($masterKey = $mvc->masterKey) && ($rec->$masterKey)) {
+            $masterKey = $mvc->masterKey;
+            if (!empty($masterKey) && !empty($rec->$masterKey)) {
                 
                 // Ако няма права за добавяне на детайл
                 if (!$mvc->Master->canAddDetail($rec->$masterKey)) {
@@ -578,16 +581,16 @@ class distro_Actions extends embed_Manager
         
         $driverInst = $mvc->getDriver($rec);
         
-        $fRec = distro_Files::fetch($rec->fileId);
+        $fRec = distro_Files::fetch($rec->fileId ?? null);
         
         // Ако е зададено да се форсира записването
         if ($driverInst) {
-            if ($rec->fileId && $driverInst->canForceSave() && !$data->form->isSubmitted()) {
+            if (!empty($rec->fileId) && $driverInst->canForceSave() && !$data->form->isSubmitted()) {
                 expect(core_Request::getSessHash(core_Request::get($mvc->driverClassField, 'int')) === Request::get('CfDrv'));
                 
                 $retUrl = getRetUrl();
                 if (empty($retUrl)) {
-                    $retUrl = array('distro_Group', 'single', $rec->groupId);
+                    $retUrl = array('distro_Group', 'single', $rec->groupId ?? null);
                 }
                 
                 $mvc->requireRightFor('Add', $data->form->rec, null, $retUrl);
@@ -600,8 +603,8 @@ class distro_Actions extends embed_Manager
         
         $data->form->setHidden($mvc->driverClassField);
         
-        if ($data->form->isSubmitted() && $data->form->rec->fileId) {
-            if ($driverInst) {
+        if ($data->form->isSubmitted() && !empty($data->form->rec->fileId)) {
+            if ($driverInst && !empty($fRec)) {
                 if (!$driverInst->canMakeAction($fRec->groupId, $fRec->repoId, $fRec->id, $fRec->name, $fRec->md5)) {
                     $data->form->setError($mvc->driverClassField, 'Не може да се направи това действие');
                 }
@@ -617,7 +620,7 @@ class distro_Actions extends embed_Manager
     {
         $data->form->title = 'Действия с файла';
         
-        if ($data->form->rec->repoId) {
+        if (!empty($data->form->rec->repoId)) {
             $repoName = distro_Repositories::getVerbal($data->form->rec->repoId, 'name');
             $data->form->title .= ' в хранилище|* ' . $repoName;
         }
@@ -634,8 +637,8 @@ class distro_Actions extends embed_Manager
     public static function on_AfterSave($mvc, $res, $rec)
     {
         // Ако ще се пускат обработки на файла
-        if (!$rec->StopExec) {
-            if (!$rec->OnlyCallback) {
+        if (empty($rec->StopExec)) {
+            if (empty($rec->OnlyCallback)) {
                 $driverInst = $mvc->getDriver($rec);
                 if ($driverInst) {
                     try {
@@ -654,7 +657,7 @@ class distro_Actions extends embed_Manager
                         return ;
                     }
 
-                    if ($rec->repoId) {
+                    if (!empty($rec->repoId)) {
                         $errExec = $mvc::getErrHandleExec($rec->id, $rec->repoId);
                         
                         // Ако преди всяка заявка ще се създава директорията, ако липсва
@@ -683,7 +686,8 @@ class distro_Actions extends embed_Manager
                         
                         $ssh->exec($command, $output, $errors, $callBackUrl);
                         
-                        if ($eTrim = trim($errors)) {
+                        $eTrim = trim((string) $errors);
+                        if (strlen($eTrim)) {
                             $mvc->notifyErr($rec);
                             $mvc->logWarning($errors, $rec->id);
                         }
@@ -691,17 +695,17 @@ class distro_Actions extends embed_Manager
                 }
             }
             
-            if ($rec->OnlyCallback || !$rec->repoId) {
+            if (!empty($rec->OnlyCallback) || empty($rec->repoId)) {
                 // Ако трябва да се извика само калбек функцията
                 Request::forward(array('Ctr' => $mvc->className, 'Act' => 'Callback', 'id' => $rec->id));
             }
         }
         
-        if ($rec->groupId) {
+        if (!empty($rec->groupId)) {
             $DGroup = cls::get('distro_Group');
             $DGroup->touchRec($rec->groupId);
             
-            if (!$rec->StopExec) {
+            if (empty($rec->StopExec)) {
                 $mvc->addNotifications($rec->groupId);
             }
         }
@@ -720,7 +724,7 @@ class distro_Actions extends embed_Manager
         $DGroup = cls::get('distro_Group');
         
         $gRec = $DGroup->fetch($groupId);
-        if ($gRec->containerId) {
+        if (!empty($gRec->containerId)) {
             $sArr = doc_Containers::getSubscribedUsers($gRec->containerId, true, true);
             if (!empty($sArr)) {
                 $cRec = doc_Containers::fetch($gRec->containerId);
@@ -739,9 +743,11 @@ class distro_Actions extends embed_Manager
      */
     public static function on_BeforeSave(core_Manager $mvc, $res, $rec)
     {
-        $fRec = distro_Files::fetch($rec->fileId);
-        setIfNot($rec->fileName, $fRec->name);
-        setIfNot($rec->fileSourceFh, $fRec->sourceFh);
+        $fRec = distro_Files::fetch($rec->fileId ?? null);
+        if (!empty($fRec)) {
+            setIfNot($rec->fileName, $fRec->name);
+            setIfNot($rec->fileSourceFh, $fRec->sourceFh);
+        }
     }
     
     

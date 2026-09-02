@@ -304,11 +304,20 @@ class dec_Declarations extends core_Master
             }
         }
 
-        // слагаме Управители
-        $managers = $mvc->getManagers();
-        if (countR($managers) > 0) {
-            $data->form->setSuggestions('declaratorName', $managers);
-            $data->form->setDefault('declaratorName', key($managers));
+        // Текущия потребител + управителите се слагат като предложения за подпис
+        $declarators = $mvc->getManagers();
+        $cu = core_Users::getCurrent();
+        if(!array_key_exists($cu, $declarators)) {
+            $cuPersonRec = crm_Profiles::getProfile($cu);
+            if(!empty($cuPersonRec)){
+                $declarators[$cuPersonRec->name] = $cuPersonRec->name;
+            }
+        }
+
+        if (countR($declarators) > 0) {
+            // Празната опция се слага най-отпред, за да не разделя визуално предложенията от 'recently'
+            $data->form->setSuggestions('declaratorName', array('' => '') + $declarators);
+            $data->form->setDefault('declaratorName', key($declarators));
         }
 
         // ако не е указана дата взимаме днешната
@@ -714,10 +723,11 @@ class dec_Declarations extends core_Master
         $options = array();
         $groupId = crm_Groups::fetchField("#sysId = 'managers'", 'id');
         $personQuery = crm_Persons::getQuery();
-        $personQuery->where("#groupList LIKE '%|{$groupId}|%'");
+        plg_ExpandInput::applyExtendedInputSearch('crm_Persons', $personQuery, $groupId);
 
         while ($personRec = $personQuery->fetch()) {
-            $options[crm_Persons::getVerbal($personRec, 'name')] = crm_Persons::getVerbal($personRec, 'name');
+            $managerName = crm_Persons::getVerbal($personRec, 'name');
+            $options[$managerName] = $managerName;
         }
 
         return $options;

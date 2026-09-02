@@ -107,7 +107,7 @@ class docarch_Archives extends core_Master
         $rec = $form->rec;
         
         if (!empty($rec->id)) {
-            $rec->typeArr = explode(',', $rec->volType);
+            $rec->typeArr = explode(',', (string) ($rec->volType ?? ''));
         }
         
         $docClasses = core_Classes::getOptionsByInterface('doc_DocumentIntf');
@@ -137,11 +137,12 @@ class docarch_Archives extends core_Master
         $rec = $form->rec;
         
         if ($form->isSubmitted()) {
-            $typesArr = explode(',', $rec->volType);
+            $typesArr = explode(',', (string) ($rec->volType ?? ''));
             
             if (!empty($rec->id)) {
-                foreach ($rec->typeArr as $v) {
-                if ((!in_array($v, $typesArr)) && ($rec->typeArr[0] != '')) {
+                $oldTypesArr = explode(',', (string) $mvc->fetchField($rec->id, 'volType'));
+                foreach ($oldTypesArr as $v) {
+                    if ((!in_array($v, $typesArr)) && ($oldTypesArr[0] != '')) {
                         $form->setError('volType', 'Не може да се премахват дефинирани типове');
                     }
                 }
@@ -161,7 +162,7 @@ class docarch_Archives extends core_Master
      */
     public static function on_BeforeSave(core_Mvc $mvc, &$id, $rec, &$fields = null, $mode = null)
     {
-        $rec->isCreated = $rec->id ? true : false;
+        $rec->isCreated = !empty($rec->id);
     }
     
     
@@ -217,9 +218,13 @@ class docarch_Archives extends core_Master
      */
     public static function minDefType($id)
     {
-        $typesArr = arr::make(self::fetch($id)->volType, false);
-        
-        $minDefType = $typesArr[0];
+        $rec = self::fetch($id, 'volType');
+        if (!$rec) {
+            return null;
+        }
+
+        $typesArr = arr::make($rec->volType, false);
+        $minDefType = $typesArr[0] ?? null;
         
         return $minDefType;
     }
@@ -234,6 +239,7 @@ class docarch_Archives extends core_Master
      */
     public static function getArchiveTypeName($type)
     {
+        $typeName = $type;
         switch ($type) {
             
             case 'folder':$typeName = 'Папка'; break;

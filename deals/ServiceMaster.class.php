@@ -117,11 +117,17 @@ abstract class deals_ServiceMaster extends core_Master
         deals_Helper::fillRecs($this, $recs, $rec);
         
         // ДДС-т е отделно amountDeal  е сумата без ддс + ддс-то, иначе самата сума си е с включено ддс
-        $amount = ($rec->chargeVat == 'separate') ? $this->_total->amount + $this->_total->vat : $this->_total->amount;
-        $amount -= $this->_total->discount;
-        $rec->amountDelivered = $amount * $rec->currencyRate;
-        $rec->amountDeliveredVat = $this->_total->vat * $rec->currencyRate;
-        $rec->amountDiscount = $this->_total->discount * $rec->currencyRate;
+        if (isset($this->_total)) {
+            $amount = ($rec->chargeVat == 'separate') ? $this->_total->amount + $this->_total->vat : $this->_total->amount;
+            $amount -= $this->_total->discount;
+            $rec->amountDelivered = $amount * $rec->currencyRate;
+            $rec->amountDeliveredVat = $this->_total->vat * $rec->currencyRate;
+            $rec->amountDiscount = $this->_total->discount * $rec->currencyRate;
+        } else {
+            $rec->amountDelivered = 0;
+            $rec->amountDeliveredVat = 0;
+            $rec->amountDiscount = 0;
+        }
         
         return $this->save($rec);
     }
@@ -304,8 +310,16 @@ abstract class deals_ServiceMaster extends core_Master
     {
         if (isset($fields['-list'])) {
             if ($rec->amountDeliveredVat || $rec->amountDelivered) {
-                $row->amountDeliveredVat = "<span class='cCode' style='float:left'>{$rec->currencyId}</span> &nbsp;{$row->amountDeliveredVat}";
-                $row->amountDelivered = "<span class='cCode' style='float:left'>{$rec->currencyId}</span> &nbsp;{$row->amountDelivered}";
+
+                // Наследниците показват в списъка само едната от двете суми,
+                // затова се украсява само вербализираната
+                if (isset($row->amountDeliveredVat)) {
+                    $row->amountDeliveredVat = "<span class='cCode' style='float:left'>{$rec->currencyId}</span> &nbsp;{$row->amountDeliveredVat}";
+                }
+
+                if (isset($row->amountDelivered)) {
+                    $row->amountDelivered = "<span class='cCode' style='float:left'>{$rec->currencyId}</span> &nbsp;{$row->amountDelivered}";
+                }
             } else {
                 $row->amountDeliveredVat = "<span class='quiet'>0.00</span>";
             }

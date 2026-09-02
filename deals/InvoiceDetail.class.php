@@ -216,7 +216,12 @@ abstract class deals_InvoiceDetail extends doc_Detail
                 $this->save($det);
 
                 if($chargeVat == 'yes'){
-                    $iAmount += isset($det->discount) ? ($det->amount * (1 - $det->discount)) : $det->amount;
+
+                    // Сумата е изчислимо поле - не се попълва при записа
+                    $this->invoke('CalcAmount', array($det));
+                    if(isset($det->amount)){
+                        $iAmount += isset($det->discount) ? ($det->amount * (1 - $det->discount)) : $det->amount;
+                    }
                 }
             }
         }
@@ -236,7 +241,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
                 $tRec->documentClassId = $this->Master->getClassId();
                 $tRec->documentId = $invoiceRec->id;
                 unset($tRec->id);
-                if($chargeVat == 'yes'){
+                if($chargeVat == 'yes' && !empty($totalDiscountSum)){
                     $tRec->amount = $expectedDiscount * ($tRec->amount / $totalDiscountSum);
                 }
                 price_DiscountsPerDocuments::save($tRec);
@@ -376,7 +381,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
                         $invoiceInfoVerbal = cat_Products::getParams($rec->productId, $mvc->productInvoiceInfoParamName, true);
                         if(!empty($invoiceInfoVerbal)){
                             if(!Mode::isReadOnly()){
-                                $invoiceInfoVerbal = "<span style='color:blue'>{$invoiceInfoVerbal}</span>";
+                                $invoiceInfoVerbal = "<span class='blueText'>{$invoiceInfoVerbal}</span>";
                                 $invoiceInfoVerbal = ht::createHint($invoiceInfoVerbal, 'Стойността ще се добави в забележката при контиране|*!');
                             }
                             if ($row1->productId instanceof core_ET) {

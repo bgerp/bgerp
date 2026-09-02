@@ -117,6 +117,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
         $this->FLD('type', 'enum(input=Влагане,pop=Отпадък,allocated=Разходи,subProduct=Субпродукт)', 'caption=Действие,silent,input=hidden');
         parent::setDetailFields($this);
         $this->setField('quantity', 'caption=Количества');
+        $this->setField('packagingId', 'notSorting');
         $this->FLD('quantityFromBom', 'double', 'caption=От рецепта,input=none,tdClass=noteBomCol aright');
         $this->FLD('quantityExpected', 'double', 'caption=Реално вложено,input=none,tdClass=noteExpectedCol aright');
 
@@ -125,9 +126,9 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
         $packQuantityClasses['aright'] = 'aright';
         $this->fields['packQuantity']->tdClass = implode(' ', $packQuantityClasses);
 
-        $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Изписване,input=none,tdClass=custom-field nowrap,placeholder=Незавършено производство,silent,removeAndRefreshForm');
+        $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Изписване,input=none,tdClass=custom-field storeName nowrap,placeholder=Незавършено производство,silent,removeAndRefreshForm');
         $this->FLD('isOutsourced', 'enum(no=Не,yes=Да)', 'caption=Ишлеме|*?,input=hidden,maxRadio=2,notNull,value=no');
-        $this->FLD('fromAccId', 'customKey(mvc=acc_Accounts,key=systemId,select=systemId)', 'caption=Изписване,input=none,tdClass=small-field nowrap,placeholder=Незавършено производство');
+        $this->FLD('fromAccId', 'customKey(mvc=acc_Accounts,key=systemId,select=systemId)', 'caption=Изписване,input=none,tdClass=storeName small-field nowrap,placeholder=Незавършено производство');
         $this->FLD('expenseItemId', 'acc_type_Item(select=titleNum,lists=600)', 'input=none,after=expenses,caption=Разходен обект');
         
         $this->setDbIndex('productId');
@@ -434,7 +435,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     {
         $tpl = new ET('');
         $tpl->push('planning/js/DisassemblyNoteTables.js', 'JS');
-        jquery_Jquery::run($tpl, 'syncDisassemblyNoteTables();');
+        jquery_Jquery::run($tpl, 'render_syncDisassemblyNoteTables();');
         jquery_Jquery::runAfterAjax($tpl, 'syncDisassemblyNoteTables');
 
         if (Mode::is('printing')) {
@@ -460,7 +461,6 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
         if (!isset($fieldset->fields['_rowTools'])) {
             $fieldset->FNC('_rowTools', 'varchar', 'tdClass=rowtools-column');
         }
-        $fieldset->appendFieldClass('productId', 'tdClass', 'disassemblyProductColumn');
         $fieldset->appendFieldClass('tools', 'tdClass', 'productionToolsColumn');
         $fieldset->appendFieldClass('tools', 'tdClass', 'rightCol');
         $fieldset->appendFieldClass('packQuantity', 'tdClass', 'directProductionQuantityColumn');
@@ -485,7 +485,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
             unset($iData->listFields['_rowTools']);
         }
         if (isset($iData->listFields['code']) && !isset($fieldset->fields['code'])) {
-            $fieldset->FNC('code', 'varchar', 'tdClass=small-field morePadding nowrap directProductionCodeColumn');
+            $fieldset->FNC('code', 'varchar', 'tdClass= morePadding wrapText directProductionCodeColumn');
         }
         $fieldset->appendFieldClass('code', 'tdClass', 'rightCol');
         plg_AlignDecimals2::alignDecimals($this, $iData->recs, $iData->rows);

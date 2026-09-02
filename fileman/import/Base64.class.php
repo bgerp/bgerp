@@ -24,7 +24,7 @@ class fileman_import_Base64 extends core_Mvc
     /**
      * Заглавие на модела
      */
-    public $title = '';
+    public $title = 'fileman_import_Base64';
     
     
     /**

@@ -808,7 +808,7 @@ class type_Key extends type_Int
                             $select->append('</optgroup>');
                         }
                         $element = 'optgroup';
-                        $attr = $title->attr;
+                        $attr = $title->attr ?? array();
                         $attr['label'] = $title->title;
                         $newGroup = ht::createElement($element, $attr);
                         continue;
@@ -818,7 +818,7 @@ class type_Key extends type_Int
                         $newGroup = null;
                         $openGroup = true;
                     }
-                    $attr = $title->attr;
+                    $attr = $title->attr ?? array();
                     $title = $title->title;
                 } else {
                     if ($newGroup) {

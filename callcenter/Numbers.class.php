@@ -126,6 +126,8 @@ class callcenter_Numbers extends core_Manager
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
+        $card = '';
+        
         // Ако има клас
         if ($rec->classId) {
             
@@ -210,7 +212,7 @@ class callcenter_Numbers extends core_Manager
         $numRec = callcenter_Numbers::fetch($id);
         
         // Ако няма клас или id на контрагент
-        if (!$numRec->classId || !$numRec->contragentId) {
+        if (empty($numRec->classId) || empty($numRec->contragentId)) {
 
             return $name;
         }
@@ -300,7 +302,7 @@ class callcenter_Numbers extends core_Manager
                             $fType = 'fax';
                         } else {
                             // Ако е мобилине
-                            if ($numberDetObj->mobile) {
+                            if ($numberDetObj->mobile ?? false) {
                                 $fType = 'mobile';
                             } else {
                                 $fType = 'tel';
@@ -852,10 +854,10 @@ class callcenter_Numbers extends core_Manager
             $pRecArr = (array) $Person->updateNumbers($pRec);
             
             // Броя на записаните номера
-            $savedNums += $pRecArr['saved'];
+            $savedNums += $pRecArr['saved'] ?? 0;
             
             // Броя на изтритите номера
-            $delNums += $pRecArr['deleted'];
+            $delNums += $pRecArr['deleted'] ?? 0;
         }
         
         $this->logDebug('Край на обновяването на номерата за лицата');
@@ -873,10 +875,10 @@ class callcenter_Numbers extends core_Manager
             $cRecArr = (array) $Company->updateNumbers($cRec);
             
             // Броя на записаните номера
-            $savedNums += $cRecArr['saved'];
+            $savedNums += $cRecArr['saved'] ?? 0;
             
             // Броя на изтритите номера
-            $delNums += $cRecArr['deleted'];
+            $delNums += $cRecArr['deleted'] ?? 0;
         }
         
         $this->logDebug('Край на обновяването на номерата за фирмите');

@@ -25,7 +25,7 @@ class sales_PrimeCostByDocument extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'sales_Wrapper,plg_AlignDecimals2,plg_Sorting';
+    public $loadList = 'sales_Wrapper,plg_AlignDecimals2,plg_Sorting,plg_SelectPeriod';
     
     
     /**
@@ -981,9 +981,11 @@ class sales_PrimeCostByDocument extends core_Manager
         $data->listFilter->FLD('documentId', 'varchar', 'caption=Документ или контейнер, silent');
         $data->listFilter->FLD('folder', 'key2(mvc=doc_Folders,select=title,allowEmpty,coverInterface=crm_ContragentAccRegIntf)', 'caption=Папка,placeholderType=all');
         $data->listFilter->FLD('primeCostType', 'enum(all=Със себестойност,positive=Положителна себестойност,negative=Отрицателна себестойност,zero=Нулева себестойност,empty=Без себестойност)', 'caption=Вид себестойност, silent');
+        $data->listFilter->FLD('from', 'date', 'caption=От,silent');
+        $data->listFilter->FLD('to', 'date', 'caption=До,silent');
         $data->listFilter->setField('productId', 'placeholderType=all');
-        $data->listFilter->showFields = 'documentId,productId,productDriverClassId,primeCostType,folder';
-        $data->listFilter->view = 'horizontal';
+        $data->listFilter->showFields = 'documentId,productId,productDriverClassId,primeCostType,folder,selectPeriod,from,to';
+        $data->listFilter->class = 'simpleForm';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
         $data->listFilter->setDefault('primeCostType', 'all');
         $data->listFilter->input(null, 'silent');
@@ -991,6 +993,16 @@ class sales_PrimeCostByDocument extends core_Manager
 
         $orderByValior = true;
         if ($rec = $data->listFilter->rec) {
+
+            // Филтър по вальор - периодът идва от plg_SelectPeriod
+            if (!empty($rec->from)) {
+                $data->query->where(array("#valior >= '[#1#]'", $rec->from));
+            }
+
+            if (!empty($rec->to)) {
+                $data->query->where(array("#valior <= '[#1#]'", $rec->to));
+            }
+
             if (!empty($rec->productId)){
                 $data->query->where("#productId={$rec->productId}");
             }
@@ -1263,7 +1275,8 @@ class sales_PrimeCostByDocument extends core_Manager
             Mode::pop('calcCompareBomPrice');
         }
 
-        $resObj = (object)array('bellowPrimeCost' => (round($price, 4) < round($primeCost, 4)), 'primeCost' => $primeCost);
+        $bellowPrimeCost = isset($price, $primeCost) && round($price, 4) < round($primeCost, 4);
+        $resObj = (object)array('bellowPrimeCost' => $bellowPrimeCost, 'primeCost' => $primeCost);
         if($firstDocState == 'closed') {
             $resObj->isCache = true;
             core_Permanent::set("bCost|{$threadId}|{$Mvc->getClassId()}|{$recId}", $resObj, core_Permanent::FOREVER_VALUE);

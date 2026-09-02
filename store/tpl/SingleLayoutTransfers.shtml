@@ -12,6 +12,12 @@
             <!--ET_BEGIN state-->
             <div class="state [#STATE_CLASS#]" style='margin: 5px 0;'>[#state#]</div>
             <!--ET_END state-->
+            <!--ET_BEGIN pendingStage-->
+            <div style='margin: 5px 0;'>[#pendingStage#]</div>
+            <!--ET_END pendingStage-->
+            <!--ET_BEGIN pendingOn-->
+            <div class='quiet small'>|Заявено|*: [#pendingOn#]</div>
+            <!--ET_END pendingOn-->
 
             <!--ET_BEGIN MISC_BLOCK-->
             [#MISC_BLOCK#]

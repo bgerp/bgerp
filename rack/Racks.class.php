@@ -217,10 +217,11 @@ class rack_Racks extends core_Master
         }
 
         // Ако може да се задават приоритизирани стелажи
-        if(static::canUsePriorityRacks($rec->storeId)){
+        $storeId = $rec->storeId ?? store_Stores::getCurrent();
+        if(static::canUsePriorityRacks($storeId)){
             $form->FNC('groupSet', 'text', 'caption=Приоритетно използване в зони->Групи,input');
             $form->setFieldType('groupSet', $mvc->getGroupType());
-            $form->setDefault('groupSet', $form->getFieldType('groupSet')->fromVerbal(keylist::toArray($rec->groups)));
+            $form->setDefault('groupSet', $form->getFieldType('groupSet')->fromVerbal(keylist::toArray($rec->groups ?? null)));
         }
     }
 

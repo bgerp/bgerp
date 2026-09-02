@@ -1,5 +1,9 @@
 var shortURL;
-var hitState = {};
+// Ако файлът се зареди повторно (напр. по AJAX), кешът да не се нулира -
+// иначе getHitState() почва да връща 'refresh' и авто-фокусът спира да работи.
+var hitState = window.hitState || {};
+// Дали в момента формата се възстановява от сесията (при връщане назад)
+var isRestoringFormData = false;
 var self = this;
 
 function spr(sel, refresh, from, to) {
@@ -44,23 +48,96 @@ function spr(sel, refresh, from, to) {
 
 
 /**
+ * Репортва JS грешка на сървъра (bgerp_A::wp)
+ *
+ * Безопасна е за викане от catch блок - никога не хвърля и нищо не връща.
+ * Ползва директно $.ajax, а не efae, за да не влиза в машинарията, която
+ * евентуално току-що е гръмнала.
+ *
+ * Праща по един репорт на уникална грешка - иначе грешка в цикъл, интервал
+ * или scroll хендлър праща заявка при всяко задействане.
+ *
+ * @param string errType - вид на грешката, напр. 'JS render error'
+ * @param mixed  err     - хванатото изключение или съобщение
+ * @param object data    - допълнителни данни за конкретното място (по избор)
+ */
+function reportErr(errType, err, data) {
+    try {
+
+        var type = errType || 'JS error';
+
+        // Само един репорт на вид грешка за хита - следващият от същия вид тръгва
+        // чак след презареждане на страницата. Страницата живее дълго заради efae,
+        // а повтаряща се грешка иначе залива сървъра.
+        // hasOwnProperty, за да не се хванем на наследено свойство ('constructor' и т.н.)
+        window.reportedErr = window.reportedErr || {};
+
+        if (window.reportedErr.hasOwnProperty(type)) return;
+
+        // `typeof $.ajax` хвърля ReferenceError, ако `$` изобщо липсва - това е
+        // напълно възможно при ранна грешка, преди jQuery да е зареден
+        if ((typeof $ == 'undefined') || (typeof $.ajax == 'undefined')) return;
+
+        var reportData = {
+            errType: type,
+            currUrl: window.location.href,
+            error: String(err).substring(0, 1000)
+        };
+
+        // Данните от конкретното място не могат да презапишат горните
+        for (var key in data) {
+            if (!data.hasOwnProperty(key) || (typeof reportData[key] != 'undefined')) continue;
+
+            var val = data[key];
+
+            // Липсващите стойности само шумят в репорта - `arg : (string) undefined`
+            if ((val === null) || (typeof val == 'undefined')) continue;
+
+            if (typeof val == 'object') {
+                try {
+                    val = JSON.stringify(val);
+                } catch (e) {
+                    val = '[не може да се сериализира]';
+                }
+            }
+
+            reportData[key] = String(val).substring(0, 1000);
+        }
+
+        window.reportedErr[type] = true;
+
+        $.ajax({
+            // wpAjaxUrl идва от page_Html::addJs(); резервният адрес е
+            // верен само при инсталация в корена на домейна
+            url: (typeof wpAjaxUrl != 'undefined') ? wpAjaxUrl : "/A/wp/",
+
+            // Диагностиката да не задейства глобалните ajaxStart/ajaxStop
+            // хендлъри - те пипат скрола при iframe.autoHeight
+            global: false,
+            data: reportData
+        })
+    } catch (e) {
+
+        // Репортът е само диагностика - не бива да вдига нова грешка
+    }
+}
+
+
+/**
  * Опитваме се да репортнем JS грешките
  */
 window.onerror = function (errorMsg, url, lineNumber, columnNum, errorObj) {
 
-    if (typeof $.ajax != 'undefined') {
-        $.ajax({
-            url: "/A/wp/",
-            data: {
-                errType: 'JS error',
-                currUrl: window.location.href,
-                error: errorMsg,
-                script: url,
-                line: lineNumber,
-                column: columnNum
-            }
-        })
-    }
+    // Браузърът скрива детайлите за грешки във външни скриптове без CORS
+    // като `Script error.` с празен URL и позиция 0:0. Такъв репорт не може
+    // да се диагностицира и не трябва да измества следваща реална JS грешка.
+    var opaqueScriptError = errorMsg === 'Script error.' &&
+        !url && (!lineNumber || lineNumber == 0) &&
+        (!columnNum || columnNum == 0) && !errorObj;
+
+    if (opaqueScriptError) return false;
+
+    reportErr('JS error', errorMsg, {script: url, line: lineNumber, column: columnNum});
 }
 
 function runOnLoad(functionName) {
@@ -102,12 +179,70 @@ function showTooltip() {
     }
     // Ако има тултипи
     var element;
+    var tooltipAnchor;
+    var tooltipResizeObserver;
+    var tooltipScrollParents;
 
     var cachedArr = new Array();
 
+    function closeTooltip() {
+        if (typeof element != 'undefined') {
+            $(element).hide().removeClass('viewport-positioned bottom left right');
+        }
+        if (tooltipResizeObserver) {
+            tooltipResizeObserver.disconnect();
+            tooltipResizeObserver = null;
+        }
+        if (tooltipScrollParents) {
+            tooltipScrollParents.off('scroll.additionalInfoTooltip');
+            tooltipScrollParents = null;
+        }
+        tooltipAnchor = null;
+    }
+
+    function positionTooltip() {
+        if (!element || !tooltipAnchor || !$(element).is(':visible')) {
+            return;
+        }
+
+        var margin = 10;
+        var gap = 6;
+        var viewportWidth = document.documentElement.clientWidth;
+        var viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+        var anchorRect = tooltipAnchor.getBoundingClientRect();
+        var tooltip = $(element);
+
+        tooltip.css({
+            'max-width': Math.max(0, viewportWidth - 2 * margin),
+            'max-height': Math.max(0, viewportHeight - 2 * margin),
+            'overflow': 'auto'
+        });
+
+        var tooltipRect = tooltip.get(0).getBoundingClientRect();
+        var spaceAbove = anchorRect.top - margin - gap;
+        var spaceBelow = viewportHeight - anchorRect.bottom - margin - gap;
+        var top;
+
+        if (tooltipRect.height <= spaceBelow || spaceBelow >= spaceAbove) {
+            top = anchorRect.bottom + gap;
+        } else {
+            top = anchorRect.top - tooltipRect.height - gap;
+        }
+
+        top = Math.max(margin, Math.min(top, viewportHeight - tooltipRect.height - margin));
+
+        var left = anchorRect.left;
+        if (left + tooltipRect.width > viewportWidth - margin) {
+            left = anchorRect.right - tooltipRect.width;
+        }
+        left = Math.max(margin, Math.min(left, viewportWidth - tooltipRect.width - margin));
+
+        tooltip.css({top: Math.round(top), left: Math.round(left)});
+    }
+
     $('body').on('click', function (e) {
-        var target = $(e.target).parent();
-        if ($(target).is(".tooltip-arrow-link")) {
+        var target = $(e.target).closest('.tooltip-arrow-link');
+        if (target.length) {
             var url = $(target).attr("data-url");
             if (!url) {
                 return;
@@ -130,56 +265,31 @@ function showTooltip() {
             }
 
             // затваряме предишния тултип, ако има такъв
-            if (typeof element != 'undefined') {
-                $(element).hide();
-            }
+            closeTooltip();
 
 
             // намираме този, който ще покажем сега
             element = $(target).parent().find('.additionalInfo');
+            tooltipAnchor = target.get(0);
+            tooltipScrollParents = $(element).parents();
+            tooltipScrollParents.on('scroll.additionalInfoTooltip', positionTooltip);
+            $(element).removeClass('bottom left right').addClass('viewport-positioned').css('display', 'block');
+            positionTooltip();
 
-            // Ако тултипа е в скролиращ елемент и няма достатъчно място нагоре, го показваме надолу от срелката, за да не се отреже
-            if ($(element).closest('.overflow-scroll').length) {
-                $(element).css('overflow-y', 'auto');
-                var holderOffset = $(element).closest('.overflow-scroll').offset().top;
-                var parentOffset = $(element).parent().offset().top;
-                var absPos = $(element).parent().get(0).getBoundingClientRect();
-                if (parentOffset - 500 < holderOffset || absPos.top < 500) {
-                    $(element).addClass('bottom');
-                    $(element).css('max-height', parseInt(window.innerHeight - absPos.bottom - 10));
-                } else {
-                    $(element).css('max-height', Math.min(parseInt(parentOffset - holderOffset - 25), 600));
-                }
+            // AJAX съдържанието може да промени размера след първоначалното показване.
+            if (window.ResizeObserver) {
+                tooltipResizeObserver = new ResizeObserver(positionTooltip);
+                tooltipResizeObserver.observe($(element).get(0));
+            } else {
+                setTimeout(positionTooltip, 100);
             }
-
-            var tOffset = $(element).closest('table').offset();
-            var iconLeftOffset = $(element).parent().offset().left;
-            if (typeof tOffset != 'undefined') {
-                iconLeftOffset = $(element).parent().offset().left - tOffset.left;
-            }
-
-            var tWidth = $(element).closest('table').width()
-            var iconRightOffset = iconLeftOffset;
-            if (typeof tWidth != 'undefined') {
-                iconRightOffset = tWidth - iconLeftOffset;
-            }
-
-            // ако е при скролиране и отляво от иконката има повече място отколкото вдясно, показваме попъпа напред
-            if ($(element).closest('.scrolling-holder').length && iconLeftOffset > iconRightOffset) {
-                $(element).addClass('left');
-            }
-            if ($(element).parent().offset().left < 200) {
-                $(element).addClass('right');
-            }
-
-            $(element).css('display', 'block');
         } else {
             // при кликане в бодито затвавяме отворения тултип, ако има такъв
-            if (typeof element != 'undefined') {
-                $(element).hide();
-            }
+            closeTooltip();
         }
     });
+
+    $(window).off('.additionalInfoTooltip').on('resize.additionalInfoTooltip scroll.additionalInfoTooltip', positionTooltip);
 
     $('.tooltip-arrow-link').each(function () {
         if ($(this).attr("data-useHover")) {
@@ -187,7 +297,7 @@ function showTooltip() {
             $(this).hover(function () {
                 $(this).children().click();
             }, function () {
-                $(element).hide();
+                closeTooltip();
             });
         }
     });
@@ -1160,6 +1270,10 @@ function js2php(obj, path, new_path) {
  * Подготвя контекстното меню
  */
 function prepareContextMenu() {
+    // The context-menu plugin may not be loaded yet (for example after an
+    // AJAX refresh). Do not abort the remaining document-ready callbacks.
+    if (typeof $.fn.contextMenu !== 'function') return;
+
     jQuery.each($('.more-btn'), function (i, val) {
         if ($(this).hasClass('nojs')) return;
 
@@ -2086,9 +2200,10 @@ function markElementsForRefresh() {
 
 /**
  * Подравнява бутоните във вертикалните филтри с елементите за попълване.
+ * Името е с префикс render_, за да може да се вика и през efae (runAfterAjax).
  */
-function alignFormFilterButtons() {
-    $('.form-filter-btn').each(function () {
+function render_alignFormFilterButtons() {
+    $('.form-filter-btn, .listFilter .formToolbar').each(function () {
         var $buttonHolder = $(this);
         var $caption = $buttonHolder.closest('form').find('.formFieldCaption:visible').first();
 
@@ -2390,40 +2505,20 @@ function saveSelectedTextToSession(handle, onlyHandle) {
             try {
                 if (typeof window.getSelection != "undefined") {
                     var sel = window.getSelection();
+                    var anchorNode = sel && sel.rangeCount ? sel.anchorNode : null;
+                    var anchorElement = anchorNode && (anchorNode.nodeType == 1 ? anchorNode : anchorNode.parentNode);
 
-                    if (sel.rangeCount) {
-                        var c = 0;
-                        var parentNode = sel.anchorNode.parentNode;
-                        while (true) {
-                            if (c++ > 20) break;
+                    if (anchorElement) {
+                        var richtext = $(anchorElement).closest('.richtext');
+                        var documentRow = richtext.closest('tr[data-document-handle]');
 
-                            // От нивото на ричтекста, намираме div с id на документа
-                            if ($(parentNode).attr('class') == 'richtext') {
-
-                                var parentNode6 = parentNode.parentNode.parentNode.parentNode.parentNode.parentNode;
-                                var handle2 = $(parentNode6).attr('id');
-
-                                if (typeof handle2 == "undefined") {
-                                    var parentNode5 = parentNode.parentNode.parentNode.parentNode.parentNode;
-                                    handle2 = $(parentNode5).attr('id');
-                                }
-
-                                break;
-                            }
-
-                            parentNode = parentNode.parentNode;
+                        if (documentRow.length) {
+                            handle = documentRow.attr('data-document-handle');
                         }
-                    }
-
-                    if (typeof handle2 != "undefined") {
-                        handle = handle2;
                     }
                 }
             } catch (err) {
-            }
-
-            if (typeof handle2 != "undefined") {
-                handle = handle2;
+                reportErr('JS error', err, {func: 'getSelectionHandle'});
             }
 
             if ((typeof handle != "undefined") && (handle != "undefined")) {
@@ -2468,6 +2563,7 @@ function getSelText() {
         }
     } catch (err) {
         getEO().log('Грешка при извличане на текста');
+        reportErr('JS error', err, {func: 'getSelText'});
     }
 
     // Ако има функция за превръщане в стринг
@@ -2549,9 +2645,9 @@ function appendQuote(id, line, useParagraph) {
     if ((!quoteText) && (selTime > now)) {
 
         // Вземаме текста
-        text = sessionStorage.getItem('selText');
+        text = sessionStorage.getItem('selText') || '';
 
-        text = text.replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}]/gu, '');
+        text = text.replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}\u{FE0F}\u{20E3}\u{200D}\u{E0020}-\u{E007F}]/gu, '');
 
         if (text) {
 
@@ -2887,6 +2983,33 @@ function clearSelect(select2, cssClass) {
 
 
 /**
+ * Връща (и при нужда инициализира) паметта за вече заредените JS/CSS файлове
+ *
+ * Файловете от първоначалното зареждане на страницата също са вече налични.
+ * Ако jQuery се зареди повторно при AJAX refresh, се губят всички регистрирани
+ * $.fn разширения (isInViewport, contextMenu и др.), а повторното изпълнение на
+ * efCommon.js нулира глобалните променливи (напр. hitState).
+ *
+ * @return array
+ */
+function getLoadedFiles() {
+    if (typeof refreshForm.loadedFiles == 'undefined') {
+        refreshForm.loadedFiles = [];
+
+        $('script[src], link[rel~="stylesheet"][href]').each(function () {
+            var file = $(this).attr('src') || $(this).attr('href');
+
+            if (file && refreshForm.loadedFiles.indexOf(file) < 0) {
+                refreshForm.loadedFiles.push(file);
+            }
+        });
+    }
+
+    return refreshForm.loadedFiles;
+}
+
+
+/**
  * Помощна функция за заместване на формата
  *
  * @param object
@@ -2894,9 +3017,8 @@ function clearSelect(select2, cssClass) {
  */
 function replaceFormData(frm, data) {
     // Памет за заредените вече файлове
-    if (typeof refreshForm.loadedFiles == 'undefined') {
-        refreshForm.loadedFiles = [];
-    }
+    getLoadedFiles();
+
     var params = frm.serializeArray();
 
     // Затваря всики select2 елементи
@@ -2938,7 +3060,7 @@ function replaceFormData(frm, data) {
         }
     });
 
-    // Зареждаме JS файловете синхронно
+    // Зареждаме JS файловете последователно
     loadFiles(data.js, refreshForm.loadedFiles, frm, data.html);
 
     // Забраняваме отново кеширането при зареждане по ajax
@@ -2989,40 +3111,135 @@ function replaceFormData(frm, data) {
 
 
 /**
- * Зарежда подадените JS файлове синхронно
+ * Зарежда подадените JS файлове последователно
  *
  * @param jsFiles
  * @param loadedFiles
  * @param frm
  * @param html
+ *
+ * @return promise
  */
 function loadFiles(jsFiles, loadedFiles, frm, html) {
-    if (typeof jsFiles == 'undefined' || (jsFiles.length == 0)) {
+    var result = $.Deferred();
+    var files = jsFiles ? jsFiles.slice(0) : [];
+    var loadFailed = false;
+    var loadError;
+
+    loadedFiles = loadedFiles || getLoadedFiles();
+
+    if (typeof refreshForm.loadingFiles == 'undefined') {
+        refreshForm.loadingFiles = {};
+    }
+
+    function complete() {
+        if (loadFailed) {
+            result.reject(loadError);
+
+            return;
+        }
+
         if (typeof frm != 'undefined') {
             frm.replaceWith(html);
         }
 
-        return;
+        result.resolve();
     }
 
-    file = jsFiles.shift();
-
-    if (typeof file == 'undefined') {
-        if (typeof frm != 'undefined') {
-            frm.replaceWith(html);
+    function reportLoadError(file, xhr, textStatus, errorThrown) {
+        var msg = 'Не може да се зареди JS файл: ' + file;
+        if (xhr && xhr.status) {
+            msg += ' (HTTP ' + xhr.status + ')';
+        }
+        if (errorThrown) {
+            msg += ': ' + errorThrown;
         }
 
-        return;
+        var error = new Error(msg);
+
+        try {
+            getEO().log(msg);
+        } catch (logError) {
+            // Диагностиката не трябва да оставя опашката в изчакване
+        }
+
+        try {
+            reportErr('JS file load error', error, {
+                file: file,
+                httpStatus: xhr && xhr.status,
+                textStatus: textStatus
+            });
+        } catch (reportError) {
+            // Диагностиката не трябва да оставя опашката в изчакване
+        }
+
+        return error;
     }
 
-    if (loadedFiles.indexOf(file) < 0) {
-        $.getScript(file, function () {
-            loadFiles(jsFiles, loadedFiles, frm, html)
+    function next() {
+        if (!files.length) {
+            complete();
+
+            return;
+        }
+
+        var file = files.shift();
+        if (!file || loadedFiles.indexOf(file) >= 0) {
+            next();
+
+            return;
+        }
+
+        var key = 'js:' + file;
+        var filePromise = refreshForm.loadingFiles[key];
+
+        if (!filePromise) {
+            var fileResult = $.Deferred();
+            filePromise = fileResult.promise();
+            refreshForm.loadingFiles[key] = filePromise;
+
+            var fileRequest;
+
+            try {
+                // Да не блокира EFAE безкрайно при увиснала заявка за ресурс
+                fileRequest = $.ajax({
+                    url: file,
+                    dataType: 'script',
+                    timeout: 30000
+                });
+            } catch (err) {
+                delete refreshForm.loadingFiles[key];
+                fileResult.reject(reportLoadError(file, null, 'error', err));
+            }
+
+            if (fileRequest) {
+                fileRequest.done(function () {
+                    if (loadedFiles.indexOf(file) < 0) {
+                        loadedFiles.push(file);
+                    }
+
+                    delete refreshForm.loadingFiles[key];
+                    fileResult.resolve();
+                }).fail(function (xhr, textStatus, errorThrown) {
+                    delete refreshForm.loadingFiles[key];
+                    fileResult.reject(reportLoadError(file, xhr, textStatus, errorThrown));
+                });
+            }
+        }
+
+        filePromise.done(next).fail(function (error) {
+            if (!loadFailed) {
+                loadFailed = true;
+                loadError = error;
+            }
+
+            next();
         });
-        loadedFiles.push(file);
-    } else {
-        loadFiles(jsFiles, loadedFiles, frm, html);
     }
+
+    next();
+
+    return result.promise();
 }
 
 
@@ -3381,9 +3598,11 @@ function smartCenter() {
         $("span.maxwidth[data-col='" + key + "']").css('width', smartCenterWidth[key]);
     }
 
-    $("span.maxwidth:not('.notcentered')").css('display', "block");
-    $("span.maxwidth:not('.notcentered')").css('margin', "0 auto");
-    $("span.maxwidth:not('.notcentered')").css('text-align', "right");
+    $("span.maxwidth:not(.notcentered)").css({
+        'display': "block",
+        'margin': "0 auto",
+        'text-align': "right"
+    });
 }
 
 
@@ -3961,6 +4180,7 @@ efae.prototype.run = function () {
 
         // Ако възникне грешка
         getEO().log('Грешка при стартиране на процеса');
+        reportErr('JS error', err, {func: 'efae.periodicAjaxCall'});
     } finally {
         // Инстанция на класа
         var thisEfaeInst = this;
@@ -3996,6 +4216,89 @@ efae.prototype.getObjectKeysCnt = function (subscribedObj) {
 
     return keys.length;
 };
+
+
+/**
+ * Изпълнява последователно render командите от AJAX отговора
+ *
+ * @param array res
+ * @param efae efaeInst
+ *
+ * @return promise
+ */
+function processRenderQueue(res, efaeInst) {
+    var queue = $.Deferred();
+    var index = 0;
+    var queueFailed = false;
+    var queueError;
+
+    if (!res || typeof res.length == 'undefined') {
+        res = [];
+    }
+
+    function next() {
+        try {
+            processNext();
+        } catch (err) {
+            queue.reject(err);
+        }
+    }
+
+    function processNext() {
+        if (index >= res.length) {
+            if (queueFailed) {
+                queue.reject(queueError);
+            } else {
+                queue.resolve();
+            }
+
+            return;
+        }
+
+        var item = res[index++] || {};
+        var func = item.func;
+        var arg = item.arg;
+
+        if (!func) {
+            getEO().log('Не е подадена функция');
+            next();
+
+            return;
+        }
+
+        func = efaeInst.renderPrefix + func;
+
+        var renderResult;
+
+        try {
+            renderResult = window[func](arg);
+        } catch (err) {
+            getEO().log(err + 'Несъществуваща функция: ' + func + ' с аргументи: ' + arg);
+            reportErr('JS render error', err, {func: func, arg: arg});
+            next();
+
+            return;
+        }
+
+        if (renderResult && $.isFunction(renderResult.done) && $.isFunction(renderResult.fail)) {
+            renderResult.done(next);
+            renderResult.fail(function (error) {
+                if (!queueFailed) {
+                    queueError = error;
+                }
+                queueFailed = true;
+
+                next();
+            });
+        } else {
+            next();
+        }
+    }
+
+    next();
+
+    return queue.promise();
+}
 
 
 /**
@@ -4094,56 +4397,77 @@ efae.prototype.process = function (subscribedObj, otherData, async) {
 
         // Преди да пратим заявката, вдигаме флага, че е пратена заявката, за да не се прати друга
         // докато не завърши текущата
+        if (typeof this.pendingProcesses == 'undefined') {
+            this.pendingProcesses = 0;
+        }
+        this.pendingProcesses++;
         this.isWaitingResponse = true;
 
-        // Извикваме по AJAX URL-то и подаваме необходимите данни и очакваме резултата в JSON формат
-        return $.ajax({
-            async: async,
-            type: "POST",
-            url: efaeUrl,
-            data: dataObj,
-            dataType: 'json'
-        }).done(function (res) {
+        var renderPromise;
+        var processFinished = false;
+
+        function finishProcess() {
+            if (processFinished) return;
+
+            processFinished = true;
+
+            thisEfaeInst.pendingProcesses--;
+            if (thisEfaeInst.pendingProcesses > 0) return;
+
+            // Отключваме изпълнението на AJAX заявките
+            try {
+                localStorage.setItem('lockEfaeAjaxCalls', 0);
+            } catch (err) {
+                getEO().log('Не може да се премахне заключването за AJAX заявките: ' + err);
+            }
+
+            // След приключване на процеса сваляме флага
+            thisEfaeInst.isWaitingResponse = false;
+
+            // Ако е имало грешка и е оправенена, премахваме статуса
+            if (getEfae().AJAXHaveError && getEfae().AJAXErrorRepaired) {
+
+                if ($('.connection-error-status').length) {
+                    $('.connection-error-status').remove();
+                }
+                if ($('.connection-warning-status').length) {
+                    $('.connection-warning-status').remove();
+                }
+
+                if ($('.toast-type-error').length) {
+                    $('.toast-type-error').remove();
+                }
+                if ($('.toast-type-warning').length) {
+                    $('.toast-type-warning').remove();
+                }
+            }
+        }
+
+        var request;
+
+        try {
+            // Извикваме по AJAX URL-то и подаваме необходимите данни и очакваме резултата в JSON формат
+            request = $.ajax({
+                async: async,
+                type: "POST",
+                url: efaeUrl,
+                data: dataObj,
+                dataType: 'json'
+            });
+        } catch (err) {
+            finishProcess();
+
+            throw err;
+        }
+
+        return request.done(function (res) {
             // Ако са спрени заявките - нищо не правим
             if (thisEfaeInst.preventRequest > 0) {
                 thisEfaeInst.preventRequest--;
                 return;
             }
 
-            var n = res.length;
-
-            // Обхождаме всички получени данни
-            for (var i = 0; i < n; ++i) {
-
-                // Фунцкцията, която да се извика
-                func = res[i].func;
-
-                // Аргументи на функцията
-                arg = res[i].arg;
-
-                // Ако няма функция
-                if (!func) {
-
-                    // Изкарваме грешката в лога
-                    getEO().log('Не е подадена функция');
-
-                    continue;
-                }
-
-                // Името на функцията с префикаса
-                func = thisEfaeInst.renderPrefix + func;
-
-                try {
-
-                    // Извикваме функцията
-                    window[func](arg);
-                } catch (err) {
-
-                    // Ако възникне грешка
-                    getEO().log(err + 'Несъществуваща фунцкция: ' + func + ' с аргументи: ' + arg);
-                }
-            }
-
+            renderPromise = processRenderQueue(res, thisEfaeInst);
             if (getEfae().AJAXHaveError) {
                 getEfae().AJAXErrorRepaired = true;
             }
@@ -4222,33 +4546,11 @@ efae.prototype.process = function (subscribedObj, otherData, async) {
                     }
                 }
             }, timeOut);
-        }).always(function (res) {
-            // Отключваме изпълнението на AJAX заявките
-            try {
-                localStorage.setItem('lockEfaeAjaxCalls', 0);
-            } catch (err) {
-                getEO().log('Не може да се премахне заключването за AJAX заявките: ' + err);
-            }
-
-            // След приключване на процеса сваляме флага
-            getEfae().isWaitingResponse = false;
-
-            // Ако е имало грешка и е оправенена, премахваме статуса
-            if (getEfae().AJAXHaveError && getEfae().AJAXErrorRepaired) {
-
-                if ($('.connection-error-status').length) {
-                    $('.connection-error-status').remove();
-                }
-                if ($('.connection-warning-status').length) {
-                    $('.connection-warning-status').remove();
-                }
-
-                if ($('.toast-type-error').length) {
-                    $('.toast-type-error').remove();
-                }
-                if ($('.toast-type-warning').length) {
-                    $('.toast-type-warning').remove();
-                }
+        }).always(function () {
+            if (renderPromise) {
+                renderPromise.always(finishProcess);
+            } else {
+                finishProcess();
             }
         });
     } else {
@@ -4547,6 +4849,7 @@ function render_html(data) {
     var replace = data.replace;
     var dCss = data.css;
     var dJs = data.js;
+    var loadPromise;
 
     // Ако няма HTML, да не се изпуълнява
     if ((typeof html == 'undefined') || !html) return;
@@ -4588,13 +4891,12 @@ function render_html(data) {
 
     // Зареждаме JS файловете
     if (dJs) {
-        if (typeof refreshForm.loadedFiles == 'undefined') {
-            refreshForm.loadedFiles = [];
-        }
-        loadFiles(data.js, refreshForm.loadedFiles);
+        loadPromise = loadFiles(dJs, getLoadedFiles());
     }
 
     scrollLongListTable();
+
+    return loadPromise;
 }
 
 
@@ -4922,11 +5224,83 @@ function prepareFavIcon(iconPath) {
     if ((!iconPath) || (typeof iconPath == 'undefined')) return false;
 
     var icon = document.createElement('link');
-    icon.type = 'image/x-icon';
+    icon.type = /^data:image\/png[;,]/i.test(iconPath) ? 'image/png' : 'image/x-icon';
     icon.rel = 'shortcut icon';
     icon.href = iconPath;
 
     return icon;
+}
+
+
+/**
+ * Добавя червен индикатор върху текущата икона за формите за въвеждане
+ * @param iconPath - пътят до основната икона
+ */
+function setEditFavIcon(iconPath) {
+    if (!iconPath) return;
+
+    var cacheName = 'bgerpEditFavicon';
+    var source = iconPath + '|record-dot-v2';
+
+    try {
+        var cached = JSON.parse(localStorage.getItem(cacheName));
+        if (cached && cached.source === source && /^data:image\/png;base64,/.test(cached.icon)) {
+            applyEditFavIcon(cached.icon);
+            return;
+        }
+    } catch (e) {
+        // При забранен localStorage иконата се генерира отново за страницата.
+    }
+
+    var image = new Image();
+    image.onload = function () {
+        try {
+            var size = 64;
+            var canvas = document.createElement('canvas');
+            var context = canvas.getContext('2d');
+            canvas.width = size;
+            canvas.height = size;
+            context.drawImage(image, 0, 0, size, size);
+
+            // Белият кант отделя яркочервената точка от произволен фон.
+            context.beginPath();
+            context.arc(47, 47, 16, 0, 2 * Math.PI);
+            context.fillStyle = '#ffffff';
+            context.fill();
+            context.beginPath();
+            context.arc(47, 47, 13, 0, 2 * Math.PI);
+            context.fillStyle = '#ff0000';
+            context.fill();
+
+            var icon = canvas.toDataURL('image/png');
+            try {
+                localStorage.setItem(cacheName, JSON.stringify({source: source, icon: icon}));
+            } catch (e) {
+                // Кешът е оптимизация и не е необходим за показването.
+            }
+            applyEditFavIcon(icon);
+        } catch (e) {
+            // При проблем оставяме непроменена основната икона.
+        }
+    };
+    image.src = iconPath;
+}
+
+
+/**
+ * Поставя редакционната икона и я потвърждава след зареждането на ресурсите
+ * @param iconPath - пътят до генерираната икона
+ */
+function applyEditFavIcon(iconPath) {
+    setFavIcon(prepareFavIcon(iconPath));
+
+    // Firefox може да приложи първоначалната favicon след document.ready.
+    // Поставяме генерираната икона още веднъж, след като ресурсите са заредени.
+    if (document.readyState !== 'complete') {
+        window.addEventListener('load', function () {
+            setFavIcon(prepareFavIcon(iconPath));
+        });
+    }
 }
 
 
@@ -4936,6 +5310,9 @@ function prepareFavIcon(iconPath) {
  */
 function setFavIcon(icon) {
     if (icon) {
+        // В страницата трябва да остава само една активна favicon връзка.
+        // Иначе различните браузъри могат да продължат да показват старата.
+        $('link[rel~="icon"]').remove();
         $('head').append(icon);
     }
 }
@@ -5812,7 +6189,15 @@ Experta.prototype.reloadFormData = function () {
 
     if (!formObj[bodyId].formId) return;
 
+    // При връщане назад формата се възстановява от сесията. Съхраненият HTML е
+    // от AJAX рефреш и съдържа форсиран фокус - тук той не трябва да се прилага.
+    isRestoringFormData = true;
+
     replaceFormData($('#' + formObj[bodyId].formId), formObj[bodyId].data);
+
+    setTimeout(function () {
+        isRestoringFormData = false;
+    }, 0);
 }
 
 
@@ -6292,15 +6677,48 @@ $.fn.isInViewport = function () {
 
 /**
  * Фокусира еднократно върху посоченото id пи зададения rand
+ *
+ * @param string id    - селектор на елемента
+ * @param bool   force - при AJAX рефреш сървърът изрично иска полето да поеме
+ *                       фокуса, затова не се гледа състоянието на страницата
  */
-function focusOnce(id) {
+function focusOnce(id, force) {
 
-    if($('body').hasClass('narrow') && isRealMobile() && $(id).data('focus') !== 'forceFocus') return;
+    var elem = $(id);
+
+    if (!elem.length) return;
+
+    var pendingTwoColsFilter = elem.closest('.wide .twoColsFilter:not(.twoColsFilterReady)');
+
+    if (pendingTwoColsFilter.length) {
+        // Двуколонният филтър е скрит до приключване на измерването и браузърът
+        // не може да фокусира полето. Повтаряме същата заявка веднага след това.
+        pendingTwoColsFilter.one('twoColsFilterReady.focusOnce', function () {
+            focusOnce(id, force);
+        });
+
+        return;
+    }
+
+    // data-focus="forceFocus" идва от поле, декларирано с 'focus=force'. В него се
+    // сканира с хардуерен скенер и без фокус сканираното не попада никъде, затова
+    // фокусираме и на мобилно устройство, където иначе не пипаме фокуса.
+    var isForced = force || elem.data('focus') === 'forceFocus';
+
+    if($('body').hasClass('narrow') && isRealMobile() && !isForced) return;
+
+    if (isForced) {
+        if (!isRestoringFormData) {
+            elem.focus();
+        }
+
+        return;
+    }
 
     var state = getHitState();
 
-    if (state && (state == 'firstTime') && $(id).isInViewport && $(id).isInViewport()) {
-        $(id).focus();
+    if (state && (state == 'firstTime') && elem.isInViewport && elem.isInViewport()) {
+        elem.focus();
     }
 }
 
@@ -6354,7 +6772,15 @@ function detailDeleteRowsAct() {
     });
 
     $(document.body).on('click', ".deleteAllCheckedRows", function (e) {
-        var url = $(this).attr("data-url");
+        var btn = $(this);
+
+        // Бутонът не е събмит, затова защитата срещу двоен събмит не важи за него
+        if (btn.data('deleteRowsStarted')) {
+
+            return;
+        }
+
+        var url = btn.attr("data-url");
         var chkArray = [];
 
         // Look for all checkboxes that have a specific class and was checked
@@ -6364,9 +6790,11 @@ function detailDeleteRowsAct() {
         });
 
         if (!chkArray.length) {
-            alert($(this).attr("data-errorMsg"));
+            alert(btn.attr("data-errorMsg"));
         } else {
             var selected = chkArray.join('|');
+            btn.data('deleteRowsStarted', true);
+            btn.attr("disabled", "disabled");
             window.location = url + "&selected=" + selected;
         }
     });
@@ -6376,7 +6804,7 @@ function detailDeleteRowsAct() {
 /**
  * Групово маркиране на чекбоксове при натиснат шрифт
  */
-function markSelectedChecboxes() {
+function render_markSelectedChecboxes() {
     var checkboxIdName = null;
     var checkboxIdNameTime = null;
     var isChecked = null;
@@ -7389,7 +7817,7 @@ const bgLog = (() => {
     };
 })();
 
-runOnLoad(markSelectedChecboxes);
+runOnLoad(render_markSelectedChecboxes);
 runOnLoad(maxSelectWidth);
 runOnLoad(onBeforeUnload);
 runOnLoad(reloadOnPageShow);

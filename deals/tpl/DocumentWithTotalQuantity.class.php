@@ -47,7 +47,7 @@ abstract class deals_tpl_DocumentWithTotalQuantity extends doc_TplScript
         $baseMeasureId = key($baseMeasures);
         $totalQuantity = 0;
         foreach ($data->recs as $rec){
-            if($data->masterData->rec->type == 'dc_note' && $rec->changedQuantity !== true) continue;
+            if(($data->masterData->rec->type ?? null) == 'dc_note' && ($rec->changedQuantity ?? null) !== true) continue;
 
             $ratio = $pArr[$rec->productId];
             $totalQuantity += $ratio * (($detail instanceof deals_InvoiceDetail) ? ($rec->quantity / $rec->quantityInPack) : $rec->quantity);
@@ -74,7 +74,7 @@ abstract class deals_tpl_DocumentWithTotalQuantity extends doc_TplScript
      */
     public function afterRenderListTable(core_Mvc $detail, &$tpl, &$data)
     {
-        if(is_object($data->totalQuantityData)){
+        if(is_object($data->totalQuantityData ?? null)){
             $subtract = (isset($data->listFields['discount'])) ? 5 : 4;
             $columns = countR($data->listFields) - $subtract;
             $tpl1 = new core_ET(tr("|*<tr><td colspan='[#colspan#]' class='rightCol'>|Общо|*:</td><td class='centered'>[#baseMeasureId#]</td><td class='centered'>[#totalQuantity#]</td><td></td><td></td></tr>"));

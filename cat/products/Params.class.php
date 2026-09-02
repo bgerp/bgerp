@@ -157,7 +157,7 @@ class cat_products_Params extends doc_Detail
                     $row->paramValue .= ' ' . tr($suffix);
                 }
             } else {
-                $row->paramValue = "<span style='color:blue;'>n/a</span>";
+                $row->paramValue = "<span class='blueText'>n/a</span>";
             }
             if(!empty($rec->type)){
                 $row->paramValue = ht::createHint($row->paramValue, "$row->type", 'notice', false);
@@ -207,7 +207,7 @@ class cat_products_Params extends doc_Detail
             if (!countR($options)) {
                 $warningMsg = 'Няма параметри за добавяне';
                 if($rec->classId == cat_BomDetails::getClassId()){
-                    $warningMsg = 'Няма повече планиращи параметри';
+                    $warningMsg = 'Няма повече планиращи параметри|*!';
                 }
 
                 followRetUrl(null, $warningMsg, 'warning');

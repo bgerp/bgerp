@@ -76,13 +76,7 @@ class rack_PositionType extends type_Varchar
             return false;
         }
         
-        $res = strtoupper(((int) $matches[1]) . '-' . strtoupper($matches[2]) . '-' . ((int) $matches[3]));
-
-        if($matches[3]) {
-            $res .= strtolower($matches[5]);
-        }
-
-        return $res;
+        return strtoupper(((int) $matches[1]) . '-' . strtoupper($matches[2]) . '-' . ((int) $matches[3]));
     }
     
     
@@ -100,7 +94,7 @@ class rack_PositionType extends type_Varchar
             return $value;
         }
         
-        list($n, $r, $c) = rack_PositionType::toArray($value);
+        list($n, $r, $c) = rack_PositionType::toArray($value) ?: array(null, null, null);
         
         $storeId = store_Stores::getCurrent();
         $error = null;

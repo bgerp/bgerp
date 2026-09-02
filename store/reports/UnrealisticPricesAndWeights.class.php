@@ -167,6 +167,9 @@ class store_reports_UnrealisticPricesAndWeights extends frame2_driver_TableData
 
         //Обема на кашона
         $uomRec = cat_UoM::fetchBySinonim('кашон');
+        if (!$uomRec) {
+            return $recs;
+        }
 
         //Rec-ове на пакетажите по артикули
         $packQuery = cat_products_Packagings::getQuery();
@@ -183,6 +186,7 @@ class store_reports_UnrealisticPricesAndWeights extends frame2_driver_TableData
         foreach ($prodsRecArr as $pRec) {
 
             $productId = $pRec->id;
+            $driverName = $material = null;
 
             $Driver = cat_Products::getDriver($productId);
 
@@ -192,45 +196,43 @@ class store_reports_UnrealisticPricesAndWeights extends frame2_driver_TableData
             }
 
             $prodTransWeight = $prodTransVolume = $realProdVol = $realProdWeight = $deviation = $deviationDensity = 0;
+            $transDensity = $realDensity = 0;
             $packVolume = $realPackTara = 0;
+            $prodParamsArr = cat_Products::getParams($productId);
 
             $key = $productId . '|' . $uomRec->id;
+            if (!isset($packRecArr[$key])) {
+                continue;
+            }
             $packRec = $packRecArr[$key];
 
             //Обем на кашона в куб.м.
-            $packVolume = $packRec->sizeWidth * $packRec->sizeHeight * $packRec->sizeDepth;
+            $packVolume = (float) $packRec->sizeWidth * (float) $packRec->sizeHeight * (float) $packRec->sizeDepth;
 
             //Обем за единица продукт
-            if ($packRec->quantity) {
+            if ((float) $packRec->quantity) {
 
                 //Обем на артикула в куб.м за 1000 бр.
-                $realProdVol = ($packVolume / $packRec->quantity) * 1000;
+                $realProdVol = ($packVolume / (float) $packRec->quantity) * 1000;
 
                 //Тегло на тарата в кг за 1 артикул
-                $realPackTara = $packRec->tareWeight / $packRec->quantity;
-
-                //Масив с параметрите на артикула
-                $prodParamsArr = cat_Products::getParams($productId);
+                $realPackTara = (float) $packRec->tareWeight / (float) $packRec->quantity;
 
                 //Тегло на артикула от параметъра в кг
-                $prodWeight = $prodParamsArr[$prodWeightParamId] / 1000 ?? $prodParamsArr[$prodWeightKgParamId];
-                $prodWeight = $prodWeight ?? 0;
+                $prodWeight = isset($prodParamsArr[$prodWeightParamId])
+                    ? (float) $prodParamsArr[$prodWeightParamId] / 1000
+                    : (float) ($prodParamsArr[$prodWeightKgParamId] ?? 0);
 
                 //Реално тегло на артикула в кг за 1000 бройки
                 $realProdWeight = ($prodWeight + $realPackTara) * 1000;
 
             }
 
-            try {
-                // Транспортен обем на продукта от параметър "Транспортен обем" в куб.м за 1000 бр.
-                $prodTransVolume = $prodParamsArr[$transportVolumeParamId];
+            // Транспортен обем на продукта от параметър "Транспортен обем" в куб.м за 1000 бр.
+            $prodTransVolume = (float) ($prodParamsArr[$transportVolumeParamId] ?? 0);
 
-                //Транспортно тегло от параметър "Транспортно тегло" в кг за 1000 бр
-                $prodTransWeight = $prodParamsArr[$transportWeightParamId] * 1000;
-
-            } catch (Exception $e) {
-
-            }
+            //Транспортно тегло от параметър "Транспортно тегло" в кг за 1000 бр
+            $prodTransWeight = (float) ($prodParamsArr[$transportWeightParamId] ?? 0) * 1000;
 
             //Плътност
             if ($prodTransVolume) {
@@ -270,7 +272,7 @@ class store_reports_UnrealisticPricesAndWeights extends frame2_driver_TableData
                 );
             }
 
-            unset($Driver, $driverName, $material);
+            unset($Driver);
 
         }
 
@@ -342,7 +344,6 @@ class store_reports_UnrealisticPricesAndWeights extends frame2_driver_TableData
 
         $row->prodVolume = $Double->toVerbal($dRec->prodVolume);
         $row->prodWeight = $Double->toVerbal($dRec->prodWeight);
-        $row->volumeWeight = $Double->toVerbal($dRec->volumeWeight);
         $row->realProdVol = $Double->toVerbal($dRec->realProdVol);
         $row->realProdWeight = $Double->toVerbal($dRec->realProdWeight);
 
@@ -424,7 +425,6 @@ class store_reports_UnrealisticPricesAndWeights extends frame2_driver_TableData
         $res->productId = cat_Products::fetch($dRec->productId)->name;
         $res->prodVolume = $Double->toVerbal($dRec->prodVolume);
         $res->prodWeight = $Double->toVerbal($dRec->prodWeight);
-        $res->volumeWeight = $Double->toVerbal($dRec->volumeWeight);
     }
 
 }

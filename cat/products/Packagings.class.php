@@ -264,7 +264,13 @@ class cat_products_Packagings extends core_Detail
     {
         // Ако за този продукт има друга втора мярка, тя става не основна
         if (($rec->isSecondMeasure ?? null) == 'yes') {
-            if ($packRec = static::fetch("#productId = {$rec->productId} AND #isSecondMeasure = 'yes' AND #id != '{$rec->id}'")) {
+            $query = static::getQuery();
+            $query->where(array("#productId = '[#1#]' AND #isSecondMeasure = 'yes'", $rec->productId));
+            if (!empty($id)) {
+                $query->where(array("#id != '[#1#]'", $id));
+            }
+
+            if ($packRec = $query->fetch()) {
                 $packRec->isSecondMeasure = 'no';
                 $mvc->save_($packRec, 'isSecondMeasure');
             }

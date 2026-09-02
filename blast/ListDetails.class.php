@@ -1469,8 +1469,7 @@ class blast_ListDetails extends doc_Detail
                     if (!empty($gArr)) {
                         $pDetQuery = pos_ReceiptDetails::getQuery();
                         $pDetQuery->where(array("#receiptId = '[#1#]'", $rec->id));
-                        $pDetQuery->EXT('pGroups', 'cat_Products', "externalName=groups,externalKey=productId");
-                        $pDetQuery->likeKeylist('pGroups', $gArr);
+                        plg_ExpandInput::applyExtendedInputSearch('cat_Products', $pDetQuery, $gArr, 'productId');
                         if ($amountFrom || $amountTo) {
                             if ($amountFrom) {
                                 $query->where(array("#amount >= '[#1#]'", $amountFrom));
@@ -1587,14 +1586,8 @@ class blast_ListDetails extends doc_Detail
 
                 $prodArrRes[$groupIds] = array();
 
-                $catGroupsWhere = '';
-
-                foreach ($groupIdsArr as $gId) {
-                    $catGroupsWhere .= ($catGroupsWhere ? ' OR ' : '') . "LOCATE('|{$gId}|', #groups)";
-                }
-
                 $prodQuery = cat_Products::getQuery();
-                $prodQuery->where($catGroupsWhere);
+                plg_ExpandInput::applyExtendedInputSearch('cat_Products', $prodQuery, $groupIdsArr);
                 $prodQuery->where("#state != 'rejected'");
                 $prodQuery->where("#originId IS NOT NULL");
 

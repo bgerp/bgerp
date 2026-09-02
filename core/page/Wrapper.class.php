@@ -39,6 +39,12 @@ class core_page_Wrapper extends core_BaseClass
             $tplName = $coreConf->CORE_PAGE_WRAPPER;
         }
         
+        // Избираме edit иконата само ако в крайното съдържание действително е
+        // включена форма за въвеждане. Така временни, отхвърлени при подготовката
+        // форми не променят иконата на страницата.
+        $hasInputForm = $content instanceof core_ET && countR($content->getArray('POST_INPUT_FORM_FAVICON'));
+        Mode::set('renderedInputForm', (bool) $hasInputForm);
+
         // Зареждаме опаковката
         $wrapperTpl = cls::get($tplName);
         

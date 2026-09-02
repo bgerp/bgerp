@@ -26,6 +26,12 @@ class price_interface_AverageCostStorePricePolicyImpl extends price_interface_Ba
     
     
     /**
+     * Дали политиката важи само за складируеми артикули
+     */
+    protected $forStorableOnly = true;
+    
+    
+    /**
      * Как се казва политиката
      *
      * @param bool $verbal - вербалното име или системното
@@ -84,7 +90,7 @@ class price_interface_AverageCostStorePricePolicyImpl extends price_interface_Ba
         }
         
         foreach ($map as $itemId => $iMap) {
-            $lastDebitRec = $dRecs[$itemId];
+            $lastDebitRec = $dRecs[$itemId] ?? null;
             
             if (!is_object($lastDebitRec)) {
                 continue;
@@ -106,7 +112,7 @@ class price_interface_AverageCostStorePricePolicyImpl extends price_interface_Ba
             $oldPrice = 0;
             
             // Ако има съществуващ запис, взимат се данните от него
-            if (is_object($exRecs[$iMap->productId])) {
+            if (is_object($exRecs[$iMap->productId] ?? null)) {
                 $lastRec = clone $exRecs[$iMap->productId];
                 $oldDate = $lastRec->valior;
                 $oldPrice = $lastRec->price;
@@ -122,15 +128,22 @@ class price_interface_AverageCostStorePricePolicyImpl extends price_interface_Ba
 
                 if ($iQuantity > 0) {
                     
-                    // Взема се новата наличност на артикула, след дебита Q1 и ако тя е положителна:
+                    // Ако има съществуващ запис - верижно изчисление:
                     // В модела нека да имаме Q за количество и P за цена. Нека дебита е за сума Qd и цена Pd.
                     // Правим нова цена: (P * (Q1 - Qd) + Pd*Qd)/(Q1), а новото количество е Q1. записваме датата на дебита.
-                    $nQuantity = ($iQuantity - $lastDebitRec->debitQuantity);
-                    $price = ($oldPrice * $nQuantity + $lastDebitRec->amount) / $iQuantity;
+                    if ($oldPrice) {
+                        $nQuantity = ($iQuantity - $lastDebitRec->debitQuantity);
+                        $price = ($oldPrice * $nQuantity + $lastDebitRec->amount) / $iQuantity;
+                    } else {
+                        // Първоначално изчисление: няма стар запис, затова себестойността идва от балансовата сума,
+                        // която включва всички дебити - и доставки, и разпределени разходи
+                        $iAmount = arr::sumValuesArray($bRecs, 'blAmount');
+                        $price = $iAmount / $iQuantity;
+                    }
                     $price = round($price, 6);
                     
-                    // Ако има сметната цена
-                    if ($price) {
+                    // Ако има сметната цена и тя е положителна
+                    if ($price > 0) {
                         $obj->price = $price;
                         $obj->quantity = $iQuantity;
                         $res[$iMap->productId] = $obj;
@@ -153,7 +166,7 @@ class price_interface_AverageCostStorePricePolicyImpl extends price_interface_Ba
      * @return array
      */
     private function getLastDebitRecs($productItemIds, $storeItemIds, $useCachedDate = true)
-    {'ссс';
+    {
         // Ако баланса се изчислява в момента да не прави нищо
         if ($useCachedDate && !core_Locks::obtain('RecalcBalances', 600, 100, 30)) {
             log_System::logDebug('AVG BALANCE NOT FREE');
@@ -222,8 +235,9 @@ class price_interface_AverageCostStorePricePolicyImpl extends price_interface_Ba
                 $baseRecByItem[$itemId] = clone $jRec;
             }
 
-            // Събираме само редовете от последния journal за артикула
-            if ($jRec->journalId != $foundJournalByItem[$itemId]) {
+            // Събираме само редовете от последния journal за артикула (само при първоначално засиване);
+            // при инкрементално изчисление (кеширана дата) се сумират всички дебити в прозореца
+            if (empty($lastCalcedDebitTime) && $jRec->journalId != $foundJournalByItem[$itemId]) {
                 continue;
             }
 

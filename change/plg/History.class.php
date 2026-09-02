@@ -317,20 +317,22 @@ class change_plg_History extends core_Plugin
 
             // Сравняват се двата варианта
             foreach ($loggableFields as $fld){
-                $newFieldVal = lib_Diff::getDiff($firstRow->{$fld}, $lastRow->{$fld});
+                $firstVal = $firstRow->{$fld} ?? null;
+                $lastVal = $lastRow->{$fld} ?? null;
+                $newFieldVal = lib_Diff::getDiff($firstVal, $lastVal);
 
                 // Добавяне на pending полетата от новия запис
-                if ($firstRow->{$fld} instanceof core_ET) {
+                if ($firstVal instanceof core_ET) {
                     $newFieldVal = new ET($newFieldVal);
-                    foreach ((array) $firstRow->{$fld}->pending as $pending) {
+                    foreach ((array) ($firstVal->pending ?? null) as $pending) {
                         $newFieldVal->addSubstitution($pending->str, $pending->place, $pending->once, $pending->mode);
                     }
                 }
 
                 // Добавяне на pending полетата от стария запис
-                if ($lastRow->{$fld} instanceof core_ET) {
+                if ($lastVal instanceof core_ET) {
                     $newFieldVal = new ET($newFieldVal);
-                    foreach ((array) $lastRow->{$fld}->pending as $pending) {
+                    foreach ((array) ($lastVal->pending ?? null) as $pending) {
                         $newFieldVal->addSubstitution($pending->str, $pending->place, $pending->once, $pending->mode);
                     }
                 }
@@ -360,8 +362,13 @@ class change_plg_History extends core_Plugin
     {
         $clone = clone $rec;
         $versionRec = ($versionId == change_History::CURRENT_VERSION_ID) ? $rec : change_History::fetch($versionId);
+        if (empty($versionRec)) {
+            
+            return $clone;
+        }
+        
         foreach ($fields as $fld){
-            $clone->{$fld} = ($versionId == change_History::CURRENT_VERSION_ID) ? $versionRec->{$fld} : (is_object($versionRec->data) && property_exists($versionRec->data, $fld) ? $versionRec->data->{$fld} : $versionRec->{$fld});
+            $clone->{$fld} = ($versionId == change_History::CURRENT_VERSION_ID) ? ($versionRec->{$fld} ?? null) : (is_object($versionRec->data) && property_exists($versionRec->data, $fld) ? $versionRec->data->{$fld} : ($versionRec->{$fld} ?? null));
         }
 
         return $clone;

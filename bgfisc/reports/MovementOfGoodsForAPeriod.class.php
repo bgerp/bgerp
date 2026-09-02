@@ -102,37 +102,40 @@ class bgfisc_reports_MovementOfGoodsForAPeriod extends frame2_driver_TableData
             $id = $item->ent2Id;
             
             $iRec = acc_Items::fetch($item->ent2Id);
-            
+            if (!$iRec) continue;
+
             //Код на продукта
-            list($productCode) = explode(' ', $iRec->num);
-            
+            list($productCode) = explode(' ', $iRec->num ?? '');
+
             //Име на продукта
             $productName = $iRec->title;
-            
-            
+
+            // Балансът връща само полетата, за които има начално салдо или оборот,
+            // затова липсващите се приемат за нула
+
             //Количество в началото на периода
-            $baseQuantity = $item->baseQuantity;
-            
+            $baseQuantity = $item->baseQuantity ?? 0;
+
             //Стойност в началото на периода
-            $baseAmount = $item->baseAmount;
-            
+            $baseAmount = $item->baseAmount ?? 0;
+
             //Дебит оборот количество
-            $debitQuantity = $item->debitQuantity;
-            
+            $debitQuantity = $item->debitQuantity ?? 0;
+
             //Дебит оборот стойност
-            $debitAmount = $item->debitAmount;
-            
+            $debitAmount = $item->debitAmount ?? 0;
+
             //Кредит оборот количество
-            $creditQuantity = $item->creditQuantity;
-            
+            $creditQuantity = $item->creditQuantity ?? 0;
+
             //Кредит оборот стойност
-            $creditAmount = $item->creditAmount;
-            
+            $creditAmount = $item->creditAmount ?? 0;
+
             //Количество в края на периода
-            $blQuantity = $item->blQuantity;
-            
+            $blQuantity = $item->blQuantity ?? 0;
+
             //Стойност в края на периода
-            $blAmount = $item->blAmount;
+            $blAmount = $item->blAmount ?? 0;
             
             // добавя в масива
             if (!array_key_exists($id, $recs)) {

@@ -92,7 +92,7 @@ class core_Html
     public static function escapeAttr($attrContent)
     {
         //$content = str_replace(array('&', "\""), array('&amp;', "&quot;"), $attrContent);
-        $content = htmlspecialchars($attrContent, ENT_QUOTES, null);
+        $content = htmlspecialchars((string) $attrContent, ENT_QUOTES, null);
         $content = str_replace(array("\r\n", "\n\r", "\n"), array('&#13;&#10;', '&#10;&#13;', '&#10;'), $content);
         
         return $content;
@@ -212,7 +212,7 @@ class core_Html
      */
     public static function groupOptions($options, $div = '»')
     {
-        $lastGroup = null;
+        $lastGroup = '';
         if (countR($options) > 1) {
             $groups = $newOptions = array();
             
@@ -224,13 +224,13 @@ class core_Html
                         $defaultGroup = trim($opt->title);
                         continue;
                     }
-                    $title = $opt->title;
+                    $title = $opt->title ?? '';
                 } else {
                     $title = $opt;
                 }
-                
+
                 // Ако в името на класа има '->' то приемаме, че стринга преди знака е името на групата
-                list($group, $caption) = array_pad(explode($div, $title, 2), 2, null);
+                list($group, $caption) = array_pad(explode($div, (string) $title, 2), 2, null);
 
                 if (!$caption) {
                     $caption = $group;
@@ -336,7 +336,7 @@ class core_Html
                 
                 // Хак за добавяне на плейс-холдер
                 if (!empty($selAttr['placeholder']) &&
-                    strlen($attr['value']) == 0 && !trim($title)) {
+                    strlen((string) $attr['value']) == 0 && !trim((string) $title)) {
                     $title = $selAttr['placeholder'];
                     $attr['style'] = ($attr['style'] ?? '') . 'color:#777;';
                 }
@@ -674,7 +674,7 @@ class core_Html
                 if ($l) {
                     list($titles, $c) = array_pad(explode('=', $l, 2), 2, null);
                     $titles = trim($titles);
-                    $c = str::utf2ascii(trim($c));
+                    $c = str::utf2ascii(trim($c ?? ''));
                     if (strlen($titles) > 1 && strlen($c) == 1) {
                         $titlesArr = explode(',', $titles);
                         foreach ($titlesArr as $t) {
@@ -837,7 +837,7 @@ class core_Html
         self::addAccessKey($attr, $title);
 
         if (is_array($cmd) && !isset($attr['name'])) {
-            wp('За CMD се подава масив: ', $cmd);
+//            wp('За CMD се подава масив: ', $cmd);
             $cmd = $cmd[1] ?? $cmd[0] ?? '';
         }
 
@@ -1016,34 +1016,57 @@ class core_Html
     
     
     /**
-     * Създава хипервръзка със стрелка в скоби след подаден $title
+     * Създава хипервръзка със стрелка в скоби след подаден $title.
+     * С атрибут 'arrowFront' стрелката е пред заглавието и огледално обърната
      */
     public static function createLinkRef($title, $url = false, $warning = false, $attr = array())
     {
+        // Нормализация, за да работят флаговете и при подадени атрибути като стринг
+        $attr = arr::make($attr, true);
+
+        // Флагът не е html атрибут - маха се, за да не влезе в тага на линка
+        $arrowFront = false;
+        if (!empty($attr['arrowFront'])) {
+            $arrowFront = true;
+            unset($attr['arrowFront']);
+        }
+
         // Ако има зададена иконка в линка, слагаме я преди заглавието
         $link = null;
-        if (is_array($attr) && isset($attr['ef_icon'])) {
+        if (isset($attr['ef_icon'])) {
             $icon = ht::createElement('img', array('src' => sbf($attr['ef_icon'], ''), 'class' => 'linkRefIcon'));
             $title = "{$icon} <span class = 'linkRefText'>{$title}</span>";
             unset($attr['ef_icon']);
         }
-        
+
         if ($url !== false && (is_string($url) || (is_array($url) && countR($url)))) {
-            $imgSrc = $attr['ef_icon'] ?? 'img/16/anchor-image.png';
+
+            // Отпред стрелката е без рамка и се мащабира с шрифта, за да е на реда на текста
+            $default = ($arrowFront === true) ? 'img/16/anchor-arrow.svg' : 'img/16/anchor-image.png';
+            $imgSrc = $attr['ef_icon'] ?? $default;
             $arrowImg = ht::createElement('img', array('src' => sbf($imgSrc, '')));
-            $link = self::createLink("<span class='anchor-arrow'>{$arrowImg}</span>", $url, $warning, $attr);
+            $arrowClass = ($arrowFront === true) ? 'anchor-arrow front' : 'anchor-arrow';
+            $arrow = "<span class='{$arrowClass}'>{$arrowImg}</span>";
+
+            $link = self::createLink($arrow, $url, $warning, $attr);
         }
 
         if(!empty($link)){
             if($title instanceof core_ET){
-                $res = new core_ET("[#title#]&nbsp;[#link#]");
+                $layout = ($arrowFront === true) ? "[#link#]&nbsp;[#title#]" : "[#title#]&nbsp;[#link#]";
+                $res = new core_ET($layout);
                 $res->append($title, 'title');
                 $res->append($link, 'link');
 
                 return $res;
-            } else {
-                return "{$title}&nbsp;{$link}";
             }
+
+            if ($arrowFront === true) {
+
+                return "{$link}&nbsp;{$title}";
+            }
+
+            return "{$title}&nbsp;{$link}";
         }
 
         return $title;
@@ -1408,9 +1431,16 @@ class core_Html
     public static function fixObject(&$object)
     {
         if ($object instanceof __PHP_Incomplete_Class) {
-            $class = $class ?? null;
-            $strlen = $class ? strlen($class) : '';
-            return ($object = unserialize(preg_replace('/^O:\d+:"[^"]++"/', 'O:' . $strlen . ':"' . $class . '"', serialize($object))));
+
+            // Името на оригиналния клас се пази в служебно поле на непълния обект
+            $vars = (array) $object;
+            $class = $vars['__PHP_Incomplete_Class_Name'] ?? null;
+
+            // Възстановяваме обекта, само ако класът вече е зареден
+            if (!empty($class) && class_exists($class)) {
+
+                return ($object = unserialize(preg_replace('/^O:\d+:"[^"]++"/', 'O:' . strlen($class) . ':"' . $class . '"', serialize($object))));
+            }
         }
         
         return $object;

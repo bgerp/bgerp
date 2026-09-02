@@ -114,11 +114,12 @@ class sales_DeliveryData extends core_Manager
         $Doc = doc_Containers::getDocument($containerId);
 
         $logisticData = $Doc->getLogisticData();
+        $toCountry = $logisticData['toCountry'] ?? null;
         $newRec = new stdClass();
-        $newRec->countryId = drdata_Countries::getIdByName($logisticData['toCountry']);
-        $newRec->place = $logisticData['toPlace'];
-        $newRec->pCode = $logisticData['toPCode'];
-        $newRec->address = $logisticData['toAddress'];
+        $newRec->countryId = $toCountry ? drdata_Countries::getIdByName($toCountry) : null;
+        $newRec->place = $logisticData['toPlace'] ?? null;
+        $newRec->pCode = $logisticData['toPCode'] ?? null;
+        $newRec->address = $logisticData['toAddress'] ?? null;
         $newRec->containerId = $containerId;
 
         return self::save($newRec, null, 'REPLACE');
@@ -171,7 +172,10 @@ class sales_DeliveryData extends core_Manager
             $logisticData = $Class->getLogisticData($rec);
             core_Debug::stopTimer('GET_LOGISTIC_DATA');
             Mode::pop('calcOnlyDeliveryPart');
-            $countryIds[$logisticData['toCountry']] = $countries[$logisticData['toCountry']];
+            $toCountry = $logisticData['toCountry'] ?? null;
+            if (!array_key_exists($toCountry, $countryIds)) {
+                $countryIds[$toCountry] = $countries[$toCountry] ?? ($toCountry ? drdata_Countries::getIdByName($toCountry) : null);
+            }
 
             $newRec = new stdClass();
 
@@ -186,10 +190,10 @@ class sales_DeliveryData extends core_Manager
                 core_Debug::stopTimer('GET_READY_EXP_PERCENTAGE');
             }
 
-            $newRec->countryId = $countryIds[$logisticData['toCountry']];
-            $newRec->place = $logisticData['toPlace'];
-            $newRec->pCode = $logisticData['toPCode'];
-            $newRec->address = $logisticData['toAddress'];
+            $newRec->countryId = $countryIds[$toCountry];
+            $newRec->place = $logisticData['toPlace'] ?? null;
+            $newRec->pCode = $logisticData['toPCode'] ?? null;
+            $newRec->address = $logisticData['toAddress'] ?? null;
             $newRec->containerId = $rec->containerId;
             $newRec->classId = $rec->_classId;
             $toSave[$rec->containerId] = $newRec;
@@ -467,11 +471,12 @@ class sales_DeliveryData extends core_Manager
                 $explain .= "<li>--- e нестандартен";
 
                 // Сумира се всичко произведено и планирано по задания за артикула по сделката, които са приключени
-                $closedJobRec = $closedJobArr[$pId];
-                $activeJobId = $activeJobArr[$pId];
+                $closedJobRec = $closedJobArr[$pId] ?? null;
+                $closedJobCount = $closedJobRec->totalCount ?? 0;
+                $activeJobId = $activeJobArr[$pId] ?? null;
 
                 // Ако има приключени задания и няма други активни, се приема че е готово
-                if ($closedJobRec->totalCount && !$activeJobId) {
+                if ($closedJobCount && !$activeJobId) {
                     $explain .= "<li>------ има приключени, но няма активни задания";
 
                     $q = $closedJobRec->totalQuantity;
@@ -494,7 +499,7 @@ class sales_DeliveryData extends core_Manager
                         }
                     }
                 } else {
-                    $explain .= "<li>------ приключени задания '{$closedJobRec->totalCount}', активно '{$activeJobId}'";
+                    $explain .= "<li>------ приключени задания '{$closedJobCount}', активно '{$activeJobId}'";
                 }
             } else {
                 $explain .= "<li>------ e стандартен";

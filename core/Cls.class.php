@@ -282,7 +282,9 @@ class core_Cls
      */
     public static function isSingleton($class)
     {
-        return is_callable(array($class, '_Singleton'));
+        // `_Singleton` е само marker и не се извиква. От PHP 8 нестатичен
+        // метод не е callable чрез име на клас, затова проверяваме наличието му.
+        return method_exists($class, '_Singleton');
     }
     
     
@@ -300,7 +302,14 @@ class core_Cls
     {
         $parentClassName = self::getClassName($parentClass);
         $className = self::getClassName($class);
-        
+
+        // Ако липсва кода на класа, той не може да е наследник.
+        // Без тази проверка class_parents() дава грешка за несъществуващ клас
+        if (!class_exists($className)) {
+
+            return false;
+        }
+
         return ($parentClassName === $className) || isset(class_parents($className)[$parentClassName]);
     }
     
@@ -371,6 +380,13 @@ class core_Cls
         
         // Добавяме интерфейсите на парентите
         foreach ($classObj->interfaces as $intf => $impl) {
+
+            // Ако липсва кода на интерфейса, няма как да се вземат родителите му.
+            // В PHP 8+ подаването на несъществуващ клас на get_parent_class() е фатално
+            if (!class_exists($intf)) {
+                continue;
+            }
+
             while ($pIntf = get_parent_class($intf)) {
                 $classObj->interfaces[$pIntf] = $pIntf;
                 $intf = $pIntf;
@@ -424,6 +440,9 @@ class core_Cls
      */
     public static function getTitle($class)
     {
+        // Ако липсва кода на класа - разбираема грешка, вместо ReflectionException
+        expect(is_object($class) || class_exists($class), 'Липсва кода на класа', $class);
+
         $rfl = new ReflectionClass($class);
         
         $comment = $rfl->getDocComment();

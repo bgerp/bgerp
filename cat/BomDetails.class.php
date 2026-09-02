@@ -32,12 +32,18 @@ class cat_BomDetails extends doc_Detail
      * Име на поле от модела, външен ключ към мастър записа
      */
     public $masterKey = 'bomId';
+
+
+    /**
+     * Интерфейс на драйверите за импортиране
+     */
+    public $importInterface = 'cat_interface_BomDetailImportIntf';
     
     
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_Modified, plg_RowTools2, cat_plg_LogPackUsage, cat_Wrapper, plg_SaveAndNew, planning_plg_ReplaceProducts, bgerp_plg_Import, plg_PrevAndNext';
+    public $loadList = 'plg_Created, plg_Modified, plg_RowTools2, cat_plg_LogPackUsage, cat_Wrapper, plg_SaveAndNew, planning_plg_ReplaceProducts, import2_Plugin, plg_PrevAndNext';
     
     
     /**
@@ -313,13 +319,13 @@ class cat_BomDetails extends doc_Detail
                 $Driver = cat_Products::getDriver($rec->resourceId);
                 $productionData = $Driver->getProductionData($rec->resourceId);
                 $canStore = cat_Products::fetchField($rec->resourceId, 'canStore');
+                $productMeasureId = cat_Products::fetchField($rec->resourceId, 'measureId');
                 if($canStore == 'yes'){
                     // Показване на полетата за етикетиране
                     $form->setField('storeIn', 'input');
                     $form->setField('inputStores', 'input');
                     $form->setField('labelPackagingId', 'input');
 
-                    $productMeasureId = cat_Products::fetchField($rec->resourceId, 'measureId');
                     $packs = planning_Tasks::getAllowedLabelPackagingOptions($productMeasureId, $rec->resourceId, $rec->labelPackagingId ?? null);
                     $form->setOptions("labelPackagingId", $packs);
                 }
@@ -538,7 +544,7 @@ class cat_BomDetails extends doc_Detail
             foreach ($params as $var => $val) {
                 if ($val !== self::CALC_ERROR && $var != '$T') {
                     $Double = cls::get('type_Double', array('params' => array('smartRound' => true)));
-                    $context[$var] = "<span style='color:blue' title='{$Double->toVerbal($val)}'>{$var}</span>";
+                    $context[$var] = "<span class='blueText' title='{$Double->toVerbal($val)}'>{$var}</span>";
                 } else {
                     $context[$var] = "<span title='{$val}'>{$var}</span>";
                 }
@@ -549,7 +555,7 @@ class cat_BomDetails extends doc_Detail
         if (!is_numeric($expr)) {
             $expr = "<span style='{$style}'>{$expr}</span>";
         }
-        $expr = preg_replace('/\$Начално\s*=\s*/iu', "<span style='color:blue'>" . tr('Начално') . '</span>=', $expr);
+        $expr = preg_replace('/\$Начално\s*=\s*/iu', "<span class='blueText'>" . tr('Начално') . '</span>=', $expr);
         
         if (isset($coefficient) && $coefficient != 1) {
             $expr = "( {$expr} ) / <span style='color:darkgreen' title='" . tr('Количеството от оригиналната рецепта') . "'>{$coefficient}</span>";
@@ -834,13 +840,13 @@ class cat_BomDetails extends doc_Detail
             $row->ROW_ATTR['class'] = ($rec->type == 'input') ? 'row-added' : ($rec->type == 'pop' ? 'row-removed' : 'row-subProduct');
 
             if(!empty($rec->paramId)){
-                $row->resourceId = ht::createHint("<span style='color:blue'>{$row->resourceId}</span>", "Материалът ще бъде подменен при промяна на стойноста на параметъра|*: {$row->paramId}", 'warning', false);
+                $row->resourceId = ht::createHint("<span class='blueText'>{$row->resourceId}</span>", "Материалът ще бъде подменен при промяна на стойноста на параметъра|*: {$row->paramId}", 'warning', false);
                 $row->paramId = cat_Params::getHyperlink($rec->paramId);
 
                 if($errorProductId = core_Permanent::get("receiptErrReplace_{$rec->id}")){
                     $pCode = cat_Products::fetchField($errorProductId, 'code');
                     $pCode = $pCode ?? "Art{$errorProductId}";
-                    $row->resourceId = ht::createHint("<span style='color:blue'>{$row->resourceId}</span>", "Имало е неуспешен опит за авт. промяна на материала при промяна на параметъра на|*: [{$pCode}]", 'error', false);
+                    $row->resourceId = ht::createHint("<span class='blueText'>{$row->resourceId}</span>", "Имало е неуспешен опит за авт. промяна на материала при промяна на параметъра на|*: [{$pCode}]", 'error', false);
                 }
             }
         }
@@ -913,7 +919,7 @@ class cat_BomDetails extends doc_Detail
                 if(!empty($wasteFldVal)){
                     $wasteFldValVerbal = $mvc->getFieldType($wasteFld)->toVerbal($wasteFldVal);
                     if(empty($rec->{$wasteFld})){
-                        $wasteFldValVerbal = "<span style='color:blue'>{$wasteFldValVerbal}</span>";
+                        $wasteFldValVerbal = "<span class='blueText'>{$wasteFldValVerbal}</span>";
                         $wasteFldValVerbal = ht::createHint($wasteFldValVerbal, 'От етапа');
                     }
                     $descriptionArr[] = tr("|*<tr><td>|{$wasteCaption}|*:</td><td>") . $wasteFldValVerbal . "</td></tr>";
@@ -926,7 +932,7 @@ class cat_BomDetails extends doc_Detail
                 if(empty($rec->labelQuantityInPack)){
                     $packRec = cat_products_Packagings::getPack($rec->resourceId, $rec->labelPackagingId);
                     $quantityInPackDefault = is_object($packRec) ? $packRec->quantity : 1;
-                    $quantityInPackDefault = "<span style='color:blue'>" . core_Type::getByName('double(smartRound)')->toVerbal($quantityInPackDefault) . "</span>";
+                    $quantityInPackDefault = "<span class='blueText'>" . core_Type::getByName('double(smartRound)')->toVerbal($quantityInPackDefault) . "</span>";
                     $quantityInPackDefault = ht::createHint($quantityInPackDefault, 'От опаковката/мярката на артикула');
                     $labelQuantityInPack = $quantityInPackDefault;
                 } else {

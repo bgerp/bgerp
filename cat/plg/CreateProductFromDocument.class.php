@@ -446,6 +446,9 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
                     
                     $dRec->quantity = !empty($dRec->quantity) ? $dRec->quantity : 1;
 
+                    // Офертите нямат 'valior', а 'date'
+                    $valior = $masterRec->valior ?? ($masterRec->date ?? null);
+
                     // Хакване на автоматично изчислена цена
                     if (!($mvc instanceof sales_QuotationsDetails)) {
 
@@ -465,7 +468,7 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
                                 $dRec->quantity = $dRec->packQuantity * $dRec->quantityInPack;
                             }
                             
-                            $policyInfo = $Policy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $dRec->productId, $dRec->packagingId, $dRec->quantity, $masterRec->valior, $masterRec->currencyRate, $masterRec->chargeVat, $listId);
+                            $policyInfo = $Policy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $dRec->productId, $dRec->packagingId, $dRec->quantity, $valior, $masterRec->currencyRate, $masterRec->chargeVat, $listId);
                             
                             $price = $policyInfo->price;
                             if (!empty($policyInfo->discount) && !isset($dRec->discount)) {
@@ -476,7 +479,7 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
                             if($mvc instanceof store_InternalDocumentDetail){
                                 $dRec->packPrice = $price;
                             } else {
-                                $price = deals_Helper::getPurePrice($price, cat_Products::getVat($productId, $masterRec->valior, $vatExceptionId), $masterRec->currencyRate, $masterRec->chargeVat);
+                                $price = deals_Helper::getPurePrice($price, cat_Products::getVat($productId, $valior, $vatExceptionId), $masterRec->currencyRate, $masterRec->chargeVat);
                                 $dRec->price = $price;
                             }
                         }
@@ -490,8 +493,6 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 
                     if (!$dRec->autoPrice && $action != 'cloneRecInDocument' && isset($dRec->price)) {
 
-                        // Офертите нямат 'valior', а 'date'
-                        $valior = $masterRec->valior ?? ($masterRec->date ?? null);
                         $vat = cat_Products::getVat($productId, $valior, $vatExceptionId);
                         if ($masterRec->chargeVat == 'yes') {
                             $dRec->price = $dRec->price / (1 + $vat);
