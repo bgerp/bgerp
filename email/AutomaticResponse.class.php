@@ -367,10 +367,9 @@ class email_AutomaticResponse extends core_Master
     public function matchesRule($mail, $rule){
         
         $query = doc_Folders::getQuery();
+        $query->where(array("#inCharge = [#1#]", $rule->userId));
 
-        if(empty($rule->folders)){
-            $query->where("#inCharge = {$rule->userId}");
-        } else{
+        if(!empty($rule->folders)){
             $query->in("id", keylist::toArray($rule->folders));
         }
         $recs = $query->fetchAll();
@@ -428,7 +427,7 @@ class email_AutomaticResponse extends core_Master
     /**
      * Проверява дали е достигнат лимитът за автоматични отговори към получателя.
      *
-     * За стари правила без записани стойности се използват настройките на пакета.
+     * За стари правила без записани стойности се използват системните стойности по подразбиране.
      * Броят се само успешно изпратените автоматични отговори, независимо кое
      * правило ги е създало. Така припокриващи се правила не могат да заобиколят лимита.
      *
