@@ -133,7 +133,7 @@
         }
         
         //Крайна дата / 'към дата'
-        if ($rec->from) {
+        if ($rec->to) {
             $sQuery->where(array(
                 "#date <= '[#1#]'",
                 $rec->to . ' 23:59:59'
@@ -179,8 +179,13 @@
             $contragentClassName = core_Classes::getName($contragentClassId);
             
             $cRec = $contragentClassName::fetch($contrgentId);
+            if (empty($cRec)) {
+                
+                continue;
+            }
             
             $id = $cRec->folderId;
+            $eic = '';
             if($contragentClassName == 'crm_Companies'){
                 $eic = $cRec->uicId ? $cRec->uicId :'' ;
             }
@@ -204,7 +209,7 @@
                     'mol' =>'',
                     'vatId' => $vatNo,
                     'eic' =>$eic,
-                    'country' =>drdata_Countries::fetch($cRec->country)->letterCode2,
+                    'country' =>drdata_Countries::fetchField($cRec->country, 'letterCode2'),
                     'place' =>$cRec->place,
                     'address' =>$cRec->address,
                     
