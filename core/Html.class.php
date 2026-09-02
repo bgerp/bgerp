@@ -1211,34 +1211,58 @@ class core_Html
             return static::createAjaxHint($body, $hint, $type, $appendToEnd, $hintAttr, $elementArr, $iconAttr, $url, $urlIdParam, $useHover, $useCache, $holderClass, $arrowClass);
         }
 
+        // При инсталиран пакет `floatingui` хинтът се показва в общия слой на страницата
+        $useFloatingUi = core_Packs::isInstalled('floatingui');
+
         if ($isHtml) {
             // При HTML хинт съдържанието се запазва и отива в балончето
             $hint = ($hint instanceof core_ET) ? $hint->getContent() : tr($hint);
-            
-            $hintClass = !empty($hintAttr['class']) ? " {$hintAttr['class']}" : '';
-            $hintAttr['class'] = "additionalInfo{$hintClass}";
-            $hintSpan = ht::createElement('span', $hintAttr);
         } else {
             $hint = strip_tags(tr($hint));
+
+            // Текстът се ескейпва, защото и той се вгражда като HTML в слоя
+            if ($useFloatingUi) {
+                $hint = core_Type::escape($hint);
+            }
         }
 
-        if ($type == 'noicon') {
-            if ($isHtml) {
-                $element = "<span class='additionalInfo-holder hoverHint'>{$hintSpan}[#hint#]</span><span class='textHint'>[#body#]</span></span>";
+        if ($useFloatingUi) {
+            // Съдържанието пътува в `data-hint` - виж floatingui/js/Hints.js
+            $hint = ht::escapeAttr($hint);
+
+            if ($type == 'noicon') {
+                $element = "<span class='textHint fuiHint' data-hint=\"[#hint#]\">[#body#]</span>";
             } else {
-                $element = "<span class='textHint' title='[#hint#]' rel='tooltip'>[#body#]</span>";
+                $iconHtml = static::getHintIcon($type, $iconAttr);
+                $iconClass = ($appendToEnd === true) ? 'endTooltip' : 'frontTooltip';
+                $trigger = "<span class='{$iconClass} fuiHint' style='position: relative; top: 2px;' data-hint=\"[#hint#]\">[#icon#]</span>";
+                $element = ($appendToEnd === true) ? "[#body#] {$trigger}" : "{$trigger} [#body#]";
             }
         } else {
-            $iconHtml = static::getHintIcon($type, $iconAttr);
-            
             if ($isHtml) {
-                $iconClass = ($appendToEnd === true) ? 'endTooltip' : 'frontTooltip';
-                $holder = "<span class='additionalInfo-holder hoverHint'>{$hintSpan}[#hint#]</span><span class='{$iconClass}' style='position: relative; top: 2px;'>[#icon#]</span></span>";
-                $element = ($appendToEnd === true) ? "[#body#] {$holder}" : "{$holder} [#body#]";
-            } elseif ($appendToEnd === true) {
-                $element = "[#body#] <span class='endTooltip' style='position: relative; top: 2px;' title='[#hint#]' rel='tooltip'>[#icon#]</span>";
+                $hintClass = !empty($hintAttr['class']) ? " {$hintAttr['class']}" : '';
+                $hintAttr['class'] = "additionalInfo{$hintClass}";
+                $hintSpan = ht::createElement('span', $hintAttr);
+            }
+
+            if ($type == 'noicon') {
+                if ($isHtml) {
+                    $element = "<span class='additionalInfo-holder hoverHint'>{$hintSpan}[#hint#]</span><span class='textHint'>[#body#]</span></span>";
+                } else {
+                    $element = "<span class='textHint' title='[#hint#]' rel='tooltip'>[#body#]</span>";
+                }
             } else {
-                $element = "<span class='frontTooltip' style='position: relative; top: 2px;' title='[#hint#]' rel='tooltip'>[#icon#]</span> [#body#]";
+                $iconHtml = static::getHintIcon($type, $iconAttr);
+                
+                if ($isHtml) {
+                    $iconClass = ($appendToEnd === true) ? 'endTooltip' : 'frontTooltip';
+                    $holder = "<span class='additionalInfo-holder hoverHint'>{$hintSpan}[#hint#]</span><span class='{$iconClass}' style='position: relative; top: 2px;'>[#icon#]</span></span>";
+                    $element = ($appendToEnd === true) ? "[#body#] {$holder}" : "{$holder} [#body#]";
+                } elseif ($appendToEnd === true) {
+                    $element = "[#body#] <span class='endTooltip' style='position: relative; top: 2px;' title='[#hint#]' rel='tooltip'>[#icon#]</span>";
+                } else {
+                    $element = "<span class='frontTooltip' style='position: relative; top: 2px;' title='[#hint#]' rel='tooltip'>[#icon#]</span> [#body#]";
+                }
             }
         }
         
@@ -1252,7 +1276,7 @@ class core_Html
             $elementTpl->append('</span>');
         }
         
-        if (!$isHtml) {
+        if (!$isHtml && !$useFloatingUi) {
             $hint = str_replace("'", '"', $hint);
         }
         
