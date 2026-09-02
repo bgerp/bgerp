@@ -634,10 +634,13 @@ class dec_Declarations extends core_Master
     public function getDefaultTemplate_($rec)
     {
         $origin = doc_Containers::getDocument($rec->originId);
+        $folderId = $rec->folderId ?? $origin->fetchField('folderId');
+        $folderLang = $folderId ? doc_Folders::getLanguage($folderId) : null;
         $originTemplateLang = doc_TplManager::fetchField($origin->fetchField('template'), 'lang');
+        $language = $folderLang ?: $originTemplateLang;
 
         $conf = core_Packs::getConfig('dec');
-        $def = ($originTemplateLang == 'bg') ? $conf->DEC_DEF_TPL_BG : $conf->DEC_DEF_TPL_EN;
+        $def = ($language == 'bg') ? $conf->DEC_DEF_TPL_BG : $conf->DEC_DEF_TPL_EN;
 
         return $def;
     }
