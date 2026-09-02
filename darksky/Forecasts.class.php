@@ -68,7 +68,7 @@ class darksky_Forecasts extends core_Manager
         if (!$location) {
             $pSettings = core_Settings::fetchKey(crm_Profiles::getSettingsKey());
             
-            if ($pSettings['DARKSKY_LOCATION']) {
+            if (!empty($pSettings['DARKSKY_LOCATION'])) {
                 $location = $pSettings['DARKSKY_LOCATION'];
             } else {
                 $location = darksky_Setup::get('LOCATION', false, core_Users::getCurrent());
@@ -127,7 +127,7 @@ class darksky_Forecasts extends core_Manager
             
             $weather = json_decode($jsonRes);
             
-            $forecastday = $weather->daily->data;
+            $forecastday = isset($weather->daily->data) ? $weather->daily->data : null;
             
             if (is_array($forecastday)) {
                 foreach ($forecastday as $day => $data) {

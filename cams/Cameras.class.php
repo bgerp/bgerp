@@ -320,7 +320,7 @@ class cams_Cameras extends core_Master
         
         $driver = cls::getInterface('cams_DriverIntf', $rec->driver, $rec->params);
         
-        if (strpos($rec->params, '}')) {
+        if (is_string($rec->params) && strpos($rec->params, '}')) {
             $params = json_decode($rec->params);
         } else {
             $params = arr::make($rec->params, true);
