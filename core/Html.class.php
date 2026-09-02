@@ -1220,9 +1220,10 @@ class core_Html
         } else {
             $hint = strip_tags(tr($hint));
 
-            // Текстът се ескейпва, защото и той се вгражда като HTML в слоя
+            // Текстът се вгражда като HTML в слоя, затова ентитетата от вербалното
+            // представяне (`5&nbsp;424`) се декодират и се ескейпва наново
             if ($useFloatingUi) {
-                $hint = core_Type::escape($hint);
+                $hint = core_Type::escape(html_entity_decode($hint, ENT_QUOTES, 'UTF-8'));
             }
         }
 
