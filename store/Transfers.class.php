@@ -422,7 +422,6 @@ class store_Transfers extends core_Master
 
         $rec->pendingStage = $stage;
         $this->save($rec, 'pendingStage');
-        $this->fillStageQuantities($rec->id, $stage);
         $this->touchRec($rec->id);
         $this->logWrite(($stage == 'loading') ? 'Изпращане' : 'Получаване', $rec->id);
 
@@ -432,46 +431,6 @@ class store_Transfers extends core_Master
         }
 
         return new Redirect($res);
-    }
-
-
-    /**
-     * При започване на етап к-тата от предходния се пренасят в новия
-     *
-     * @param int    $id
-     * @param string $stage - loading|execution
-     *
-     * @return void
-     */
-    private function fillStageQuantities($id, $stage)
-    {
-        $Detail = cls::get($this->mainDetail);
-        $fieldName = ($stage == 'loading') ? 'loadedQuantity' : 'executedQuantity';
-
-        $dQuery = $Detail->getQuery();
-        $dQuery->where("#{$Detail->masterKey} = {$id}");
-        $dQuery->where("#state != 'rejected'");
-
-        while ($dRec = $dQuery->fetch()) {
-
-            // При получаване се тръгва от изпратеното, а ако липсва - от заявеното
-            if ($stage == 'loading') {
-                $quantity = $dRec->requestedQuantity;
-            } elseif (isset($dRec->loadedQuantity)) {
-                $quantity = $dRec->loadedQuantity;
-            } else {
-                $quantity = $dRec->requestedQuantity;
-            }
-
-            if (!isset($quantity)) {
-
-                continue;
-            }
-
-            // Директен запис, за да не се правят ревизии на редовете (@see doc_plg_DetailRevisions)
-            $dRec->{$fieldName} = $quantity;
-            $Detail->save_($dRec, $fieldName);
-        }
     }
 
 

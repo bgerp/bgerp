@@ -180,7 +180,7 @@ class store_TransfersDetails extends doc_Detail
      */
     protected static function on_BeforeSave($mvc, &$id, $rec, $fields = null, $mode = null)
     {
-        if (!empty($rec->_skipDetailRevision) || !empty($rec->_stageQuantityNotChanged) || !empty($fields) || !isset($rec->quantity)) {
+        if (!empty($rec->_skipDetailRevision) || !empty($rec->_skipStageQuantity) || !empty($fields) || !isset($rec->quantity)) {
 
             return;
         }
@@ -238,63 +238,6 @@ class store_TransfersDetails extends doc_Detail
                 $rec->{$fieldName} /= $rec->quantityInPack;
                 $row->{$fieldName} = $mvc->getFieldType($fieldName)->toVerbal($rec->{$fieldName});
             }
-        }
-    }
-
-
-    /**
-     * Оцветява к-то на етапа, ако се разминава с предходния - маркира се само колоната,
-     * в която е възникнало отклонението, а „Заявено“ е базата и не се оцветява
-     *
-     * @param core_Mvc $mvc
-     * @param stdClass $row
-     * @param stdClass $rec
-     *
-     * @return void
-     */
-    private static function markStageDiff($mvc, &$row, $rec)
-    {
-        // „Изпратено“ се мери спрямо заявеното, а „Получено“ - спрямо изпратеното,
-        // а ако то липсва - спрямо заявеното (@see store_Transfers::fillStageQuantities)
-        $compareArr = array('loadedQuantity' => array('requestedQuantity'),
-                            'executedQuantity' => array('loadedQuantity', 'requestedQuantity'));
-
-        foreach ($compareArr as $fieldName => $baseFields) {
-            if (!isset($rec->{$fieldName}) || empty($row->{$fieldName})) {
-
-                continue;
-            }
-
-            // Кой е предходният етап с попълнено к-во
-            $baseField = null;
-            foreach ($baseFields as $field) {
-                if (isset($rec->{$field})) {
-                    $baseField = $field;
-                    break;
-                }
-            }
-
-            if (empty($baseField)) {
-
-                continue;
-            }
-
-            $diff = round($rec->{$fieldName} - $rec->{$baseField}, 5);
-            if (empty($diff)) {
-
-                continue;
-            }
-
-            $quantity = core_Type::getByName('double(smartRound)')->toVerbal(abs($diff));
-            if (isset($rec->packagingId)) {
-                $quantity .= ' ' . cat_UoM::getShortName($rec->packagingId);
-            }
-
-            $caption = ($baseField == 'requestedQuantity') ? 'заявеното' : 'изпратеното';
-            $hint = ($diff < 0) ? "С|* {$quantity} |по-малко от {$caption}" : "С|* {$quantity} |повече от {$caption}";
-            $class = ($diff < 0) ? 'red' : 'stageOver';
-
-            $row->{$fieldName} = ht::createHint("<span class='{$class}'>{$row->{$fieldName}}</span>", $hint, 'noicon', false);
         }
     }
 
@@ -360,10 +303,6 @@ class store_TransfersDetails extends doc_Detail
 
             $deliveryDate = !empty($data->masterData->rec->deliveryTime) ? $data->masterData->rec->deliveryTime : $data->masterData->rec->valior;
             deals_Helper::getQuantityHint($row->packQuantity, $mvc, $rec->newProductId, $data->masterData->rec->fromStore, $rec->quantity, $data->masterData->rec->state, $deliveryDate);
-
-            // Тук, а не в recToVerbal - plg_AlignDecimals2 подравнява по десетичния знак
-            // в същия хук, но прескача стойностите, които вече съдържат таг
-            static::markStageDiff($mvc, $row, $rec);
         }
     }
     
@@ -378,13 +317,21 @@ class store_TransfersDetails extends doc_Detail
         
         $form->setField('requestedQuantity, loadedQuantity, executedQuantity', 'input=none');
 
-        // Подсказка в коя колона ще влезе въведеното к-во
+        // В етап на заявката се въвежда к-то на текущия етап, а предходните са само за информация
         if (!empty($rec->transferId)) {
             $fieldName = store_Transfers::getQuantityFieldName($rec->transferId);
-            $form->setField('packQuantity', array('unit' => $mvc->getField($fieldName)->caption));
 
-            // В етап на заявката фокусът е на к-то, а не на първото празно поле
-            if (!empty($data->masterRec) && $data->masterRec->state == 'pending' && !empty($data->masterRec->pendingStage)) {
+            if ($fieldName != 'requestedQuantity') {
+
+                // При опресняване на формата к-тата ги няма в записа - взимат се от базата
+                $dbRec = !empty($rec->id) ? $mvc->fetch($rec->id) : null;
+                $quantityInPack = !empty($dbRec->quantityInPack) ? $dbRec->quantityInPack : 1;
+
+                // Празно поле изчиства к-то на етапа - задължително е само ако няма к-во
+                // от предходен етап, към което да се върне редът
+                $rec->packQuantity = isset($dbRec->{$fieldName}) ? $dbRec->{$fieldName} / $quantityInPack : null;
+                $prevQuantity = isset($dbRec) ? static::getPrevStageQuantity($dbRec, $fieldName) : null;
+                $form->setField('packQuantity', array('caption' => $mvc->getField($fieldName)->caption, 'mandatory' => !isset($prevQuantity)));
                 $form->setField('packQuantity', 'focus');
             }
         }
@@ -425,46 +372,128 @@ class store_TransfersDetails extends doc_Detail
             $form->setDefault('packagingId', key($packs));
         }
 
-        if (!empty($rec->transferId)) {
-            $form->info = static::getStageInfo($mvc, $rec->transferId) . ($form->info ?? '');
-        }
-
         if ($form->isSubmitted()) {
-            if (empty($rec->packQuantity)) {
-                $form->setWarning('packQuantity', 'Въведено е количество|* <b>0</b>?');
+            $stageField = !empty($rec->transferId) ? store_Transfers::getQuantityFieldName($rec->transferId) : 'requestedQuantity';
+            $inStage = ($stageField != 'requestedQuantity');
+
+            // В етап празното поле изчиства к-то на етапа, а редът се връща към предходния
+            $oldRec = ($inStage && !empty($rec->id)) ? $mvc->fetch($rec->id) : null;
+            $clearStage = !empty($oldRec) && !isset($rec->packQuantity);
+
+            if ($clearStage) {
+                $prevQuantity = static::getPrevStageQuantity($oldRec, $stageField);
+                $rec->{$stageField} = null;
+                $rec->quantity = isset($prevQuantity) ? $prevQuantity : $oldRec->quantity;
+                $rec->_skipStageQuantity = true;
+            } else {
+                if (empty($rec->packQuantity)) {
+                    $form->setWarning('packQuantity', 'Въведено е количество|* <b>0</b>?');
+                }
+
+                // Проверка на к-то
+                $warning = null;
+                if (!deals_Helper::checkQuantity($rec->packagingId, $rec->packQuantity, $warning)) {
+                    $form->setWarning('packQuantity', $warning);
+                }
+
+                $pInfo = cat_Products::getProductInfo($rec->newProductId);
+                $rec->quantityInPack = !empty($pInfo->packagings[$rec->packagingId]) ? $pInfo->packagings[$rec->packagingId]->quantity : 1;
+
+                $rec->quantity = $rec->packQuantity * $rec->quantityInPack;
             }
 
-            // Проверка на к-то
-            $warning = null;
-            if (!deals_Helper::checkQuantity($rec->packagingId, $rec->packQuantity, $warning)) {
-                $form->setWarning('packQuantity', $warning);
-            }
-            
-            $pInfo = cat_Products::getProductInfo($rec->newProductId);
-            $rec->quantityInPack = !empty($pInfo->packagings[$rec->packagingId]) ? $pInfo->packagings[$rec->packagingId]->quantity : 1;
-            
-            $rec->quantity = $rec->packQuantity * $rec->quantityInPack;
+            // Ако к-то на етапа и нищо друго в реда не са променени - няма нова ревизия
+            if ($inStage && !empty($oldRec)) {
+                $newQuantity = $clearStage ? null : $rec->quantity;
+                $oldQuantity = $oldRec->{$stageField} ?? null;
 
-            // В етап на заявката непроменено к-во не се записва в колоната на етапа,
-            // а ако и нищо друго в реда не е променено - не се прави и нова ревизия
-            if (!empty($rec->id)) {
-                $mRec = store_Transfers::fetch($rec->transferId, 'state,pendingStage');
-                $oldRec = $mvc->fetch($rec->id);
+                $isSame = (isset($newQuantity) == isset($oldQuantity));
+                if ($isSame && isset($newQuantity)) {
+                    $isSame = (round($newQuantity, 5) == round($oldQuantity, 5));
+                }
 
-                if (!empty($oldRec) && !empty($mRec) && $mRec->state == 'pending' && !empty($mRec->pendingStage)) {
-                    if (round($rec->quantity, 5) == round($oldRec->quantity, 5)) {
-                        $rec->_stageQuantityNotChanged = true;
-
-                        if (!static::isRowChangedOutsideQuantity($mvc, $form, $rec, $oldRec)) {
-                            $rec->_skipDetailRevision = true;
-                        }
-                    }
+                if ($isSame && !static::isRowChangedOutsideQuantity($mvc, $form, $rec, $oldRec)) {
+                    $rec->_skipDetailRevision = true;
                 }
             }
+        }
+
+        static::setPrevStageFields($mvc, $form);
+    }
+
+
+    /**
+     * К-тата от предходните етапи - само за информация. Добавят се след въвеждането,
+     * за да не участват в него, и се показват в текущата опаковка
+     *
+     * @param core_Mvc  $mvc
+     * @param core_Form $form
+     *
+     * @return void
+     */
+    private static function setPrevStageFields($mvc, $form)
+    {
+        $rec = $form->rec;
+        if (empty($rec->id) || empty($rec->transferId)) {
+
+            return;
+        }
+
+        $stageField = store_Transfers::getQuantityFieldName($rec->transferId);
+        $dbRec = ($stageField != 'requestedQuantity') ? $mvc->fetch($rec->id) : null;
+        if (empty($dbRec)) {
+
+            return;
+        }
+
+        $packagingId = $rec->packagingId ?? $dbRec->packagingId;
+        $quantityInPack = !empty($dbRec->quantityInPack) ? $dbRec->quantityInPack : 1;
+        if (!empty($rec->newProductId) && !empty($packagingId)) {
+            $pInfo = cat_Products::getProductInfo($rec->newProductId);
+            $quantityInPack = !empty($pInfo->packagings[$packagingId]) ? $pInfo->packagings[$packagingId]->quantity : 1;
+        }
+
+        $unit = !empty($packagingId) ? cat_UoM::getShortName($packagingId) : null;
+        $prevFields = ($stageField == 'loadedQuantity') ? array('requestedQuantity') : array('requestedQuantity', 'loadedQuantity');
+
+        foreach ($prevFields as $prevField) {
+            if (!isset($dbRec->{$prevField})) {
+
+                continue;
+            }
+
+            $params = "caption={$mvc->getField($prevField)->caption},input,before=packQuantity";
+            $params .= isset($unit) ? ",unit={$unit}" : '';
+            $form->FNC("prev{$prevField}", 'double(smartRound)', $params);
+            $form->setReadOnly("prev{$prevField}", $dbRec->{$prevField} / $quantityInPack);
         }
     }
 
 
+    /**
+     * К-то от последния попълнен етап преди текущия
+     *
+     * @param stdClass $rec
+     * @param string   $stageField - поле на текущия етап
+     *
+     * @return float|NULL
+     */
+    private static function getPrevStageQuantity($rec, $stageField)
+    {
+        $stages = array('executedQuantity', 'loadedQuantity', 'requestedQuantity');
+        $prevFields = array_slice($stages, array_search($stageField, $stages) + 1);
+
+        foreach ($prevFields as $fieldName) {
+            if (isset($rec->{$fieldName})) {
+
+                return $rec->{$fieldName};
+            }
+        }
+
+        return null;
+    }
+    
+    
     /**
      * Променено ли е нещо в реда, извън количеството - сравняват се полетата от формата
      *
@@ -499,32 +528,6 @@ class store_TransfersDetails extends doc_Detail
         }
 
         return false;
-    }
-    
-    
-    /**
-     * Инфо за формата - в кой етап се записва въведеното количество
-     *
-     * @param core_Mvc $mvc
-     * @param int      $masterId
-     *
-     * @return string
-     */
-    private static function getStageInfo($mvc, $masterId)
-    {
-        $fieldName = store_Transfers::getQuantityFieldName($masterId);
-        $colors = array('loadedQuantity' => '#ef6c00', 'executedQuantity' => '#2e7d32');
-        $caption = tr($mvc->getField($fieldName)->caption);
-        $style = 'display:inline-block;font-weight:bold;padding:1px 10px;border-radius:8px;';
-
-        // Извън етапите к-то влиза в „Заявено“ - значката е в цвета на състоянието „чакащо“
-        if (isset($colors[$fieldName])) {
-            $badge = "<span style='{$style}background:{$colors[$fieldName]};color:#fff;'>{$caption}</span>";
-        } else {
-            $badge = "<span class='state-pending' style='{$style}'>{$caption}</span>";
-        }
-
-        return "<div class='formCustomInfo'>" . tr("|Количеството ще се запише в|* {$badge}") . '</div>';
     }
     
     
