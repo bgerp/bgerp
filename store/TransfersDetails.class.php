@@ -434,19 +434,21 @@ class store_TransfersDetails extends doc_Detail
     private static function setPrevStageFields($mvc, $form)
     {
         $rec = $form->rec;
-        if (empty($rec->id) || empty($rec->transferId)) {
+        if (empty($rec->transferId)) {
 
             return;
         }
 
         $stageField = store_Transfers::getQuantityFieldName($rec->transferId);
-        $dbRec = ($stageField != 'requestedQuantity') ? $mvc->fetch($rec->id) : null;
-        if (empty($dbRec)) {
+        if ($stageField == 'requestedQuantity') {
 
             return;
         }
 
-        $packagingId = $rec->packagingId ?? $dbRec->packagingId;
+        // При опресняване на формата к-тата ги няма в записа - взимат се от базата
+        $dbRec = !empty($rec->id) ? $mvc->fetch($rec->id) : null;
+
+        $packagingId = $rec->packagingId ?? ($dbRec->packagingId ?? null);
         $quantityInPack = !empty($dbRec->quantityInPack) ? $dbRec->quantityInPack : 1;
         if (!empty($rec->newProductId) && !empty($packagingId)) {
             $pInfo = cat_Products::getProductInfo($rec->newProductId);
@@ -456,16 +458,17 @@ class store_TransfersDetails extends doc_Detail
         $unit = !empty($packagingId) ? cat_UoM::getShortName($packagingId) : null;
         $prevFields = ($stageField == 'loadedQuantity') ? array('requestedQuantity') : array('requestedQuantity', 'loadedQuantity');
 
+        // Етап без к-во излиза с 0, за да се вижда, че по него не е минавало
         foreach ($prevFields as $prevField) {
-            if (!isset($dbRec->{$prevField})) {
-
-                continue;
-            }
+            $quantity = isset($dbRec->{$prevField}) ? $dbRec->{$prevField} / $quantityInPack : 0;
 
             $params = "caption={$mvc->getField($prevField)->caption},input,before=packQuantity";
             $params .= isset($unit) ? ",unit={$unit}" : '';
-            $form->FNC("prev{$prevField}", 'double(smartRound)', $params);
-            $form->setReadOnly("prev{$prevField}", $dbRec->{$prevField} / $quantityInPack);
+
+            // Типът е като на самите колони - при smartRound нулата се вербализира
+            // до '0' и readOnly полето излиза празно (@see ht::createSmartSelect)
+            $form->FNC("prev{$prevField}", 'double', $params);
+            $form->setReadOnly("prev{$prevField}", $quantity);
         }
     }
 
