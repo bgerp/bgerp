@@ -80,7 +80,9 @@ class bgerp_Menu extends core_Manager
                 if (!($thisMenu = ($pos[$rec->menu] ?? null))) {
                     $thisMenu = $pos[$rec->menu] = $next++;
                 }
-                list($whole, $decimal) = explode('.', $rec->row);
+                // Целите редове са без десетична част
+                $rowParts = explode('.', (string) $rec->row);
+                $decimal = isset($rowParts[1]) ? $rowParts[1] : 0;
                 $newRec->order = $thisMenu . '.' . $decimal;
                 
                 $newRec->row = (int) $rec->row;
@@ -226,8 +228,12 @@ class bgerp_Menu extends core_Manager
      */
     public static function prepareMenu_($menuObj, $active)
     {
-        $activeArr = explode(':', $active);
-        
+        $activeArr = explode(':', (string) $active);
+        $aMainMenu = $activeArr[0];
+        $aSubMenu = $activeArr[1] ?? '';
+
+        $menus = $subMenus = array();
+
         if (($menuObj) && (countR($menuObj))) {
             $lastRec = (object) array('menu' => null, 'ctr' => null, 'act' => null);
             foreach ($menuObj as $key => $rec) {
