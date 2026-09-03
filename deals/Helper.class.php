@@ -137,7 +137,7 @@ abstract class deals_Helper
             $price = self::calcPrice($rec->{$map['priceFld']} ?? null, $vat, $masterRec->{$map['rateFld']});
             $rec->{$map['priceFld']} = ($hasVat) ? $price->withVat : $price->noVat;
             $noVatAmount = round($price->noVat * $rec->{$map['quantityFld']}, $vatDecimals);
-            $discountVal = $rec->{$map['discount']};
+            $discountVal = $rec->{$map['discount']} ?? null;
 
             if(!empty($rec->{$map['autoDiscount']})){
                 if(in_array($masterRec->state, array('draft', 'pending'))){
