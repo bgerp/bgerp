@@ -47,7 +47,7 @@ class cat_interface_BomDetailImport extends cat_interface_BomDetailImportProto
      */
     protected function getDefaultCsvColumns()
     {
-        return array('position' => 1, 'type' => 2, 'productId' => 3, 'packagingId' => 4, 'propQuantity' => 5, 'description' => 6, 'paramId' => 7);
+        return array('position' => 1, 'type' => 2, 'code' => 3, 'packagingId' => 4, 'propQuantity' => 5, 'description' => 6, 'paramId' => 7);
     }
 
 
@@ -66,11 +66,11 @@ class cat_interface_BomDetailImport extends cat_interface_BomDetailImportProto
         // Полетата са като в експорта на рецептата
         $fields['position'] = array('caption' => 'Позиция');
         $fields['type'] = array('caption' => 'Действие');
-        $fields['productId'] = array('caption' => 'Артикул', 'mandatory' => 'mandatory', 'columnNames' => array('code', 'resourceId'));
+        $fields['code'] = array('caption' => 'Код', 'mandatory' => 'mandatory', 'columnNames' => array('resourceId'));
         $fields['packagingId'] = array('caption' => 'Мярка');
         $fields['propQuantity'] = array('caption' => 'Количество');
         $fields['paramId'] = array('caption' => 'Параметър');
-        $fields['description'] = array('caption' => 'Забележка');
+        $fields['description'] = array('caption' => 'Описание');
 
         // Какво да става с редовете, които рецептата вече има
         if (cat_BomDetails::count("#bomId = {$bomId}")) {
@@ -242,7 +242,7 @@ class cat_interface_BomDetailImport extends cat_interface_BomDetailImportProto
         }
 
         $csvPosition = (string) ($values->position ?? '');
-        $code = $values->productId ?? null;
+        $code = $values->code ?? null;
 
         // Позицията определя мястото в йерархията - '3.1' е подред на '3'
         $path = ($csvPosition !== '') ? $this->parsePosition($csvPosition) : array();

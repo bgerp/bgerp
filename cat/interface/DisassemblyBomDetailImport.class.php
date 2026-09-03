@@ -36,13 +36,13 @@ class cat_interface_DisassemblyBomDetailImport extends cat_interface_BomDetailIm
         expect($bomRec = cat_DisassemblyBoms::fetch($bomId));
 
         $fields = array();
-        $fields['productId'] = array('caption' => 'Артикул', 'mandatory' => 'mandatory', 'columnNames' => array('code', 'resourceId'));
+        $fields['code'] = array('caption' => 'Код', 'mandatory' => 'mandatory', 'columnNames' => array('resourceId'));
         $fields['packagingId'] = array('caption' => 'Мярка');
         $fields['packQuantity'] = array('caption' => 'Количество', 'mandatory' => 'mandatory');
         if ($bomRec->allocationBy == 'manual') {
             $fields['costPercent'] = array('caption' => '% от себестойността');
         }
-        $fields['notes'] = array('caption' => 'Забележка');
+        $fields['notes'] = array('caption' => 'Описание');
 
         if (cat_DisassemblyBomDetails::count("#bomId = {$bomId} AND #type = 'production' AND #state != 'rejected'")) {
             $fields['existingDetails'] = array('caption' => 'Уточнения->Наличните редове', 'notColumn' => true, 'default' => 'keep', 'type' => 'varchar', 'options' => arr::make('keep=Запазване - импортираните се добавят след тях,delete=Изтриване - остават само импортираните'));
@@ -222,7 +222,7 @@ class cat_interface_DisassemblyBomDetailImport extends cat_interface_BomDetailIm
         $bomId = Request::get('bomId', 'int');
         $isManual = ($bomId && cat_DisassemblyBoms::fetchField($bomId, 'allocationBy') == 'manual');
 
-        return array('productId' => 1, 'packagingId' => 2, 'packQuantity' => 3, 'costPercent' => 4, 'notes' => $isManual ? 5 : 4);
+        return array('code' => 1, 'packagingId' => 2, 'packQuantity' => 3, 'costPercent' => 4, 'notes' => $isManual ? 5 : 4);
     }
 
 
@@ -240,16 +240,10 @@ class cat_interface_DisassemblyBomDetailImport extends cat_interface_BomDetailIm
             }
         }
 
-        $code = $values->productId ?? null;
+        $code = $values->code ?? null;
         $rec = (object) array('bomId' => $bomRec->id, 'type' => 'production', 'quantityInPack' => 1);
 
-        $productByCode = false;
-        $productSourceField = $fields['productId'] ?? null;
-        if ($productSourceField == 'productId' && type_Int::isInt($code) && cat_Products::fetchField($code, 'id')) {
-            $productByCode = (object) array('productId' => $code, 'packagingId' => null);
-        } elseif (strlen((string) $code)) {
-            $productByCode = cat_Products::getByCode($code);
-        }
+        $productByCode = strlen((string) $code) ? cat_Products::getByCode($code) : false;
         if (empty($productByCode->productId)) {
             $errors[] = 'Неразпознат код';
         } else {
