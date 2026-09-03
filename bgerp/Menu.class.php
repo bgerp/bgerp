@@ -211,7 +211,7 @@ class bgerp_Menu extends core_Manager
                 $currUrl = getCurrentUrl();
                 
                 // Ако контролера не е core_Packs
-                if (strtolower($currUrl['Ctr']) != 'core_packs') {
+                if (strtolower($currUrl['Ctr'] ?? '') != 'core_packs') {
                     
                     // Редиректваме към управление на пакети
                     redirect(array('core_Packs', 'list'), false, '|Няма инсталирано меню');
@@ -257,12 +257,12 @@ class bgerp_Menu extends core_Manager
                 }
                 
                 // Определяме дали състоянието на елемента от менюто не е 'активно'
-                if (($activeArr[0] == $rec->menu) && ($activeArr[1] == $rec->subMenu)) {
+                if (($aMainMenu == $rec->menu) && ($aSubMenu == $rec->subMenu)) {
                     $rec->state = 3;
                 }
-                
+
                 // Дали да влезе в списъка с под-менюта?
-                if ($activeArr[0] == $rec->menu) {
+                if ($aMainMenu == $rec->menu) {
                     $subMenus[$rec->subMenu] = $rec;
                 }
                 
@@ -286,7 +286,7 @@ class bgerp_Menu extends core_Manager
                 $currUrl = getCurrentUrl();
                 
                 // Ако контролера не е core_Packs
-                if (strtolower($currUrl['Ctr']) != 'core_packs') {
+                if (strtolower($currUrl['Ctr'] ?? '') != 'core_packs') {
                     
                     // Редиректваме към управление на пакети
                     redirect(array('core_Packs', 'list'), false, '|Няма инсталирано меню');
