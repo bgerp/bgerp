@@ -122,10 +122,22 @@ class location_Places extends core_Master
     public static function toVerbal($coordinates)
     {
         // Координати на обекта чиято позиция вербализираме
-        list($latitudeTo, $longitudeTo) = explode(',', $coordinates);
+        $coordinatesArr = explode(',', (string) $coordinates);
+
+        if (countR($coordinatesArr) < 2) {
+
+            return '';
+        }
+
+        list($latitudeTo, $longitudeTo) = $coordinatesArr;
 
         //Определяне координатите на най–близката база
         $closestBase = self::getClosestBase($latitudeTo, $longitudeTo);
+
+        if (empty($closestBase)) {
+
+            return '';
+        }
 
         $closestBaseName = $closestBase->name;
 
@@ -276,7 +288,7 @@ class location_Places extends core_Master
      */
     protected static function getClosestBase($latitudeTo, $longitudeTo)
     {
-        $closestBase = array();
+        $closestBase = null;
 
         foreach (array('location_LocationsCoords','drdata_bg_Places') as $cls) {
 
@@ -303,7 +315,7 @@ class location_Places extends core_Master
 
                 $distance = self::vincentyGreatCircleDistance($latitudeFrom, $longitudeFrom, $latitudeTo, $longitudeTo);
 
-                if ($closestBase->distance && $closestBase->distance < $distance) continue;
+                if (!empty($closestBase->distance) && $closestBase->distance < $distance) continue;
 
                 $name = ($cls == 'location_LocationsCoords') ? $base->title : $base->city;
 
