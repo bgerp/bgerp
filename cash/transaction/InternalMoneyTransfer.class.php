@@ -70,22 +70,24 @@ class cash_transaction_InternalMoneyTransfer extends acc_DocumentTransactionSour
             }
 
             $baseCurrencyEquivalent = round(cond_Payments::toBaseCurrency($paymentId, $rec->amount, $rec->valior), 2);
+            // Първо е редът за източника на средствата, след него - за получателя
+            $entries[] = array('debit' => array('481', array('currency_Currencies', $currencyId), 'quantity' => $baseCurrencyEquivalent),
+                              'credit' => $creditArr, 'reason' => $reason);
+
             $entries[] = array('amount' => $baseCurrencyEquivalent,
                 'debit' => array($debitAccId, $debitArr, $item2Arr, 'quantity' => $rec->amount),
                 'credit' => array('481', array('currency_Currencies', $currencyId), 'quantity' => $baseCurrencyEquivalent), 'reason' => $reason);
 
-            $entries[] = array('debit' => array('481', array('currency_Currencies', $currencyId), 'quantity' => $baseCurrencyEquivalent),
-                              'credit' => $creditArr, 'reason' => $reason);
-
         } else {
             // Кредитирането на сметката за разликите сумата е винаци тази на валутата към централния курс
             $debitAmount = currency_CurrencyRates::convertAmount($rec->amount, $rec->valior, $currencyCode);
+            // Първо е редът за източника на средствата, след него - за получателя
+            $entries[] = array('debit' => array('481', array('currency_Currencies', $currencyId), 'quantity' => $rec->amount),
+                               'credit' => $creditArr, 'reason' => $reason);
+
             $entries[] = array('amount' => $debitAmount,
                                'debit' => array($debitAccId, $debitArr, $item2Arr, 'quantity' => $rec->amount),
                                'credit' => array('481', array('currency_Currencies', $currencyId), 'quantity' => $rec->amount), 'reason' => $reason);
-
-            $entries[] = array('debit' => array('481', array('currency_Currencies', $currencyId), 'quantity' => $rec->amount),
-                               'credit' => $creditArr, 'reason' => $reason);
         }
 
         // Подготвяме информацията която ще записваме в Журнала

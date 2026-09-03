@@ -107,9 +107,9 @@ class planning_GenericMapper extends core_Manager
     protected static function on_AfterPrepareEditTitle($mvc, &$res, &$data)
     {
         $rec = $data->form->rec;
-        $productId = $rec->productId;
+        $productId = $rec->productId ?? null;
         if(empty($rec->id) && empty($productId)){
-            $productId = $rec->genericProductId;
+            $productId = $rec->genericProductId ?? null;
         }
         
         $data->form->title = core_Detail::getEditTitle('cat_Products', $productId, $mvc->singleTitle, $rec->id ?? null);

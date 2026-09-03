@@ -137,7 +137,7 @@ abstract class deals_Helper
             $price = self::calcPrice($rec->{$map['priceFld']} ?? null, $vat, $masterRec->{$map['rateFld']});
             $rec->{$map['priceFld']} = ($hasVat) ? $price->withVat : $price->noVat;
             $noVatAmount = round($price->noVat * $rec->{$map['quantityFld']}, $vatDecimals);
-            $discountVal = $rec->{$map['discount']};
+            $discountVal = $rec->{$map['discount']} ?? null;
 
             if(!empty($rec->{$map['autoDiscount']})){
                 if(in_array($masterRec->state, array('draft', 'pending'))){
@@ -613,7 +613,7 @@ abstract class deals_Helper
         
         $quantityInPack = ($quantityInPack == 1) ? '' : core_Type::getByName('double(smartRound)')->toVerbal($quantityInPack) . ' ';
         if ($hint === true) {
-            $quantityInPack = ht::createHint($quantityInPack, 'Има отклонение спрямо очакваното', 'warning', true, 'width=12px,height=12px');
+            $quantityInPack = ht::createHint($quantityInPack, 'Има отклонение спрямо очакваното', 'warning', true, array('iconAttr' => 'width=12px,height=12px'));
         }
         
         $tpl = new core_ET("<span class='nowrap'>&nbsp;<small class='quiet'>[#quantityInPack#] [#shortUomName#]</small></span>");
@@ -883,7 +883,7 @@ abstract class deals_Helper
         if($mvc->manifactureProductsOnShipment ?? null) {
             $lastInstantBom = cat_Products::getLastActiveBom($productId, 'instant');
             if(is_object($lastInstantBom)) {
-                $html = ht::createHint($html, "Артикулът е с моментна рецепта и ще бъде произведен при изписване от склада|*!", 'img/16/cog.png', false, null, "class=doc-positive-quantity");
+                $html = ht::createHint($html, "Артикулът е с моментна рецепта и ще бъде произведен при изписване от склада|*!", 'img/16/cog.png', false, array(), "class=doc-positive-quantity");
                 return;
             }
         }
@@ -936,6 +936,7 @@ abstract class deals_Helper
         $futureQuantity = $stRec->quantity - $quantity;
         $measureName = cat_UoM::getShortName(cat_Products::fetchField($productId, 'measureId'));
         $inStockVerbal = $Double->toVerbal($stRec->quantity);
+        $inStockStyled = ht::styleNumber($inStockVerbal, $stRec->quantity);
         $class = 'doc-warning-quantity';
         $showNegativeWarning = $makeLink = true;
 
@@ -950,13 +951,13 @@ abstract class deals_Helper
                 if($showNegativeWarning){
                     if(isset($date) && $date != dt::today()){
                         $minDateVerbal = dt::mysql2verbal($minQuantityDate, 'd.m.Y');
-                        $freeQuantityMinVerbal = core_Type::getByName('double(smartRound)')->toVerbal($freeQuantityMin);
+                        $freeQuantityMinVerbal = ht::styleNumber(core_Type::getByName('double(smartRound)')->toVerbal($freeQuantityMin), $freeQuantityMin);
                         $hint = "Разполагаемо минимално налично към|* {$minDateVerbal}: {$freeQuantityMinVerbal} |{$measureName}|*";
                     } else {
                         if($stRec->quantity >= $quantity) {
                             $hint = "Наличността в склада е достатъчна за изпълнение / контиране на документа, но разполагаемата наличност е недостатъчна за изпълнението на всички чакащи документи!";
                         } else {
-                            $hint = "Недостатъчна наличност|*(1): {$inStockVerbal} |{$measureName}|*! |Контирането на документа ще доведе до отрицателна наличност|* |{$showStoreInMsg}|*!";
+                            $hint = "Недостатъчна наличност|*(1): {$inStockStyled} |{$measureName}|*!<br>|Контирането на документа ще доведе до отрицателна наличност|* |{$showStoreInMsg}|*!";
                         }
                     }
                 }
@@ -968,22 +969,22 @@ abstract class deals_Helper
         if(!$firstCheck){
             if ($futureQuantity < 0 && $freeQuantity < 0) {
                 if($showNegativeWarning){
-                    $hint = "Недостатъчна наличност|*(2): {$inStockVerbal} |{$measureName}|*! |Контирането на документа ще доведе до отрицателна наличност|* |{$showStoreInMsg}|*!";
+                    $hint = "Недостатъчна наличност|*(2): {$inStockStyled} |{$measureName}|*!<br>|Контирането на документа ще доведе до отрицателна наличност|* |{$showStoreInMsg}|*!";
                     if(haveRole('debug')) {
-                        $hint .= " (debug) количество: {$quantity}, бъдещо: {$futureQuantity}, разполагаемо {$freeQuantity} (текущо разп. {$freeQuantityOriginal}), налично {$stRec->quantity}";
+                        $hint .= "<br><i class='quiet'>(debug) количество: {$quantity}, бъдещо: {$futureQuantity}, разполагаемо {$freeQuantity} (текущо разп. {$freeQuantityOriginal}), налично {$stRec->quantity}</i>";
                     }
                     $class = 'doc-negative-quantity';
                     $makeLink = false;
                 }
             } elseif ($futureQuantity < 0 && $freeQuantity >= 0) {
                 if($showNegativeWarning) {
-                    $freeQuantityOriginalVerbal = $Double->toVerbal($freeQuantityOriginal);
-                    $hint = "Недостатъчна наличност|*: {$inStockVerbal} |{$measureName}|*! |Контирането на документа ще доведе до отрицателна наличност|* |{$showStoreInMsg}|*! |Очаква се доставка - разполагаема наличност|*: {$freeQuantityOriginalVerbal} |{$measureName}|*";
+                    $freeQuantityOriginalVerbal = ht::styleNumber($Double->toVerbal($freeQuantityOriginal), $freeQuantityOriginal);
+                    $hint = "Недостатъчна наличност|*: {$inStockStyled} |{$measureName}|*!<br>|Контирането на документа ще доведе до отрицателна наличност|* |{$showStoreInMsg}|*!<br>|Очаква се доставка - разполагаема наличност|*: {$freeQuantityOriginalVerbal} |{$measureName}|*";
                 }
             } elseif ($futureQuantity >= 0 && $freeQuantity < 0) {
                 if($showNegativeWarning) {
-                    $freeQuantityOriginalVerbal = $Double->toVerbal($freeQuantityOriginal);
-                    $hint = "Разполагаема наличност|*: {$freeQuantityOriginalVerbal} |{$measureName}|* |Наличното количество|*: {$inStockVerbal} |{$measureName}|* |е резервирано|*.";
+                    $freeQuantityOriginalVerbal = ht::styleNumber($Double->toVerbal($freeQuantityOriginal), $freeQuantityOriginal);
+                    $hint = "Разполагаема наличност|*: {$freeQuantityOriginalVerbal} |{$measureName}|*<br>|Наличното количество|*: {$inStockStyled} |{$measureName}|* |е резервирано|*.";
                 }
             }
         }
@@ -997,17 +998,21 @@ abstract class deals_Helper
                 $url['horizon'] = $diff;
             }
 
-            // Линкът е преди хинта, за да е иконката на хинта най-отпред, а стрелката - до к-то
+            // Съобщението се превежда тук, за да остане линкът след него непокътнат
+            $hint = new core_ET(tr($hint));
+
+            // Линкът към наличностите е в самия хинт
             if ($makeLink === true && store_Stores::haveRightFor('select', $storeId) && store_Products::haveRightFor('list') && !Mode::isReadOnly()) {
-                $html = ht::createLinkRef($html, $url, false, array('arrowFront' => true));
+                $link = ht::createLink(tr('Наличности в склада'), $url, false, 'ef_icon=img/16/package.png');
+                $hint->append('<br>' . $link->getContent());
             }
 
-            $html = ht::createHint($html, $hint, 'warning', false, null, "class={$class}");
+            $html = ht::createHint($html, $hint, 'warning', false, array('isHtml' => true), "class={$class}");
         }
 
         if($pRec->isPublic == 'no') {
             if($futureQuantity > 0) {
-                $html = ht::createHint($html, "Наличността в склада е по-голяма|*: {$inStockVerbal} {$measureName}", 'notice', false, null, "class=doc-positive-quantity");
+                $html = ht::createHint($html, "Наличността в склада е по-голяма|*: {$inStockVerbal} {$measureName}", 'notice', false, array(), "class=doc-positive-quantity");
             }
         }
     }

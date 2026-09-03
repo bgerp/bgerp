@@ -705,11 +705,24 @@ class planning_Jobs extends core_Master
 
     
     /**
+     * Видът на заданията в текущия таб (Производство/Разпад)
+     *
+     * @return string - manifacture|disassembly
+     */
+    private static function getListType()
+    {
+        $type = Request::get('type', 'enum(manifacture,disassembly)');
+
+        return !empty($type) ? $type : 'manifacture';
+    }
+
+
+    /**
      *  Подготовка на филтър формата
      */
     protected static function on_AfterPrepareListFilter($mvc, $data)
     {
-        $filterType = Request::get('type', 'enum(manifacture,disassembly)');
+        $filterType = self::getListType();
         $data->title = $filterType == 'disassembly' ? 'Задания за разпад' : 'Задания за производство';
         if($filterType == 'disassembly'){
             $data->listFields['quantityProduced'] = "Количество->|*<small>|Разпаднато|*</small>";
@@ -847,11 +860,9 @@ class planning_Jobs extends core_Master
      */
     protected static function on_AfterPrepareListToolbar($mvc, &$res, $data)
     {
+        // Видът винаги се подава - полето е скрито и задължително, а без него формата гърми
         if ($data->toolbar->haveButton('btnAdd')) {
-            $type = Request::get('type', 'enum(manifacture,disassembly)');
-            if (isset($type)) {
-                $data->toolbar->setUrlParam('btnAdd', 'type', $type);
-            }
+            $data->toolbar->setUrlParam('btnAdd', 'type', self::getListType());
         }
     }
 
@@ -1017,14 +1028,6 @@ class planning_Jobs extends core_Master
      */
     protected static function on_BeforeSave($mvc, &$id, $rec, $fields = null, $mode = null)
     {
-        // Пренасяне на забележките от рецептата при създаване
-        if (empty($rec->id) && ($rec->type ?? 'manifacture') == 'manifacture' && isset($rec->productId)) {
-            if ($bomRec = cat_Products::getLastActiveBom($rec->productId, 'production,instant,sales')) {
-                $transferredNotes = cat_Boms::getRecipeNotesForDocument($bomRec, 'job');
-                $rec->notes = cat_Boms::appendTransferredNotes($rec->notes ?? null, $transferredNotes);
-            }
-        }
-
         list($sourceClass) = self::getSourceInfo($rec);
 
         // Ако заданието е към сделка и е избран департамент, да се рутира към него
@@ -3120,8 +3123,7 @@ class planning_Jobs extends core_Master
     public static function on_BeforeAction(core_Mvc $mvc, &$res, $action)
     {
         if ($action != 'list' && $action != 'default') return;
-        $show = Request::get('type', 'enum(manifacture,disassembly)');
-        $subMenu = $show == 'disassembly' ? "Разпад" : "Производство";
+        $subMenu = (self::getListType() == 'disassembly') ? "Разпад" : "Производство";
         $mvc->currentTab = "Задания->{$subMenu}";
         Mode::set('pageMenu', 'Задания');
         Mode::set('pageSubMenu', $subMenu);

@@ -298,25 +298,19 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
         $date = !empty($rec->date) ? $rec->date : dt::today();
         $title = 'От кои документи е сформирано количеството';
 
-        $tooltipUrl = toUrl(array('store_Products', 'ShowReservedDocs', 'productId' => $dRec->productId, 'stores' => $rec->stores ?? null, 'replaceField' => "reserved{$dRec->productId}", 'field' => 'reserved', 'date' => $date), 'local');
-        $arrowImg = ht::createElement('img', array('height' => 16, 'width' => 16, 'src' => sbf('img/32/info-gray.png', '')));
-        $arrow = ht::createElement('span', array('class' => 'anchor-arrow tooltip-arrow-link', 'data-url' => $tooltipUrl, 'title' => $title), $arrowImg, true);
-        $arrow = "<span class='additionalInfo-holder'><span class='additionalInfo' id='reserved{$dRec->productId}'></span>{$arrow}</span>";
-
         if ($dRec->reserved) {
-            $row->reserved = $arrow . $row->reserved;
+            $tooltipUrl = array('store_Products', 'ShowReservedDocs', 'productId' => $dRec->productId, 'stores' => $rec->stores ?? null, 'field' => 'reserved', 'date' => $date);
+            $hintAttr = array('url' => $tooltipUrl, 'id' => "reserved{$dRec->productId}", 'iconAttr' => array('height' => 16, 'width' => 16));
+            $row->reserved = ht::createHint($row->reserved, $title, 'notice', false, $hintAttr);
         }
 
         $row->expected = $Double->toVerbal($dRec->expected);
         $row->expected = ht::styleIfNegative($row->expected, $dRec->expected);
 
-        $tooltipUrl = toUrl(array('store_Products', 'ShowReservedDocs', 'productId' => $dRec->productId, 'stores' => $rec->stores ?? null, 'replaceField' => "expected{$dRec->productId}", 'field' => 'expected', 'date' => $date), 'local');
-        $arrowImg = ht::createElement('img', array('height' => 16, 'width' => 16, 'src' => sbf('img/32/info-gray.png', '')));
-        $arrow = ht::createElement('span', array('class' => 'anchor-arrow tooltip-arrow-link', 'data-url' => $tooltipUrl, 'title' => $title), $arrowImg, true);
-        $arrow = "<span class='additionalInfo-holder'><span class='additionalInfo' id='expected{$dRec->productId}'></span>{$arrow}</span>";
-
         if ($dRec->expected) {
-            $row->expected = $arrow . $row->expected;
+            $tooltipUrl = array('store_Products', 'ShowReservedDocs', 'productId' => $dRec->productId, 'stores' => $rec->stores ?? null, 'field' => 'expected', 'date' => $date);
+            $hintAttr = array('url' => $tooltipUrl, 'id' => "expected{$dRec->productId}", 'iconAttr' => array('height' => 16, 'width' => 16));
+            $row->expected = ht::createHint($row->expected, $title, 'notice', false, $hintAttr);
         }
 
         $row->free = $Double->toVerbal($dRec->free);

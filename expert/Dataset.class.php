@@ -275,9 +275,9 @@ class expert_Dataset extends core_BaseClass
         try {
             $res = eval($code);
         } catch (DivisionByZeroError $e) {
-            // До PHP 8 делението на нула връщаше false с E_WARNING.
+            // До PHP 8 делението на нула връщаше INF с E_WARNING, а не false.
             // Запазваме старото поведение за съществуващите експертни правила.
-            $res = false;
+            $res = INF;
         } catch (Error $e) {
             // Показваме кой израз е проблемен (напр. липсващ '$' пред променлива)
             expect(false, $code, $e->getMessage());

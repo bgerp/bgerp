@@ -159,7 +159,8 @@ class acc_transaction_ClosePeriod extends acc_DocumentTransactionSource
         
         $bQuery = acc_BalanceDetails::getQuery();
         acc_BalanceDetails::filterQuery($bQuery, $this->balanceId, '4535');
-        $amount4535 = $bQuery->fetch()->blAmount;
+        $balanceRec = $bQuery->fetch();
+        $amount4535 = $balanceRec->blAmount ?? 0;
         $amount4535 += $diffAmount;
         
         if ($amount4535 > 0) {
@@ -174,12 +175,14 @@ class acc_transaction_ClosePeriod extends acc_DocumentTransactionSource
         acc_BalanceDetails::filterQuery($bQuery, $this->balanceId, '4531');
         
         $bQuery->where('#ent1Id IS NULL && #ent2Id IS NULL && #ent3Id IS NULL');
-        $amount4531 = $bQuery->fetch()->blAmount;
+        $balanceRec = $bQuery->fetch();
+        $amount4531 = $balanceRec->blAmount ?? 0;
         
         $bQuery = acc_BalanceDetails::getQuery();
         acc_BalanceDetails::filterQuery($bQuery, $this->balanceId, '4532');
         $bQuery->where('#ent1Id IS NULL && #ent2Id IS NULL && #ent3Id IS NULL');
-        $amount4532 = $bQuery->fetch()->blAmount;
+        $balanceRec = $bQuery->fetch();
+        $amount4532 = $balanceRec->blAmount ?? 0;
         
         // Местим дебитното салдо на '4531' в '4532'
         $amount4531 = ($amount4531) ? $amount4531 : 0;
@@ -211,7 +214,8 @@ class acc_transaction_ClosePeriod extends acc_DocumentTransactionSource
             $bQuery = acc_BalanceDetails::getQuery();
             acc_BalanceDetails::filterQuery($bQuery, $this->balanceId, '4538');
             $bQuery->where('#ent1Id IS NULL && #ent2Id IS NULL && #ent3Id IS NULL');
-            $amount4538 = $bQuery->fetch()->blAmount;
+            $balanceRec = $bQuery->fetch();
+            $amount4538 = $balanceRec->blAmount ?? 0;
             
             if ($amount4538) {
                 $rAmount = ($amount4538 > abs($amount)) ? abs($amount) : $amount4538;
@@ -312,7 +316,7 @@ class acc_transaction_ClosePeriod extends acc_DocumentTransactionSource
                         $creditArr = $arr1;
                     }
                     
-                    $incomeRes[$rec->ent1Id][$rec->ent2Id] += $rec->blAmount;
+                    $incomeRes[$rec->ent1Id][$rec->ent2Id] = ($incomeRes[$rec->ent1Id][$rec->ent2Id] ?? 0) + $rec->blAmount;
                     $total += abs($rec->blAmount);
                     
                     switch ($accIds[$rec->accountId]) {
@@ -331,7 +335,7 @@ class acc_transaction_ClosePeriod extends acc_DocumentTransactionSource
                 } else {
                     
                     // Ако имаме крайно салдо по 700, само го добавяме към натрупването
-                    $incomeRes[$rec->ent1Id][$rec->ent2Id] += $rec->blAmount;
+                    $incomeRes[$rec->ent1Id][$rec->ent2Id] = ($incomeRes[$rec->ent1Id][$rec->ent2Id] ?? 0) + $rec->blAmount;
                 }
             }
         }
@@ -356,12 +360,12 @@ class acc_transaction_ClosePeriod extends acc_DocumentTransactionSource
                 $debitArr = $arr2;
                 $creditArr = $arr1;
                 $reason = 'Извънредни приходи - надплатени';
-                $incomeRes[$bRec1->ent1Id][$bRec1->ent2Id] -= abs($bRec1->blAmount);
+                $incomeRes[$bRec1->ent1Id][$bRec1->ent2Id] = ($incomeRes[$bRec1->ent1Id][$bRec1->ent2Id] ?? 0) - abs($bRec1->blAmount);
             } else {
                 $debitArr = $arr1;
                 $creditArr = $arr2;
                 $reason = 'Извънредни разходи - недоплатени';
-                $incomeRes[$bRec1->ent1Id][$bRec1->ent2Id] += abs($bRec1->blAmount);
+                $incomeRes[$bRec1->ent1Id][$bRec1->ent2Id] = ($incomeRes[$bRec1->ent1Id][$bRec1->ent2Id] ?? 0) + abs($bRec1->blAmount);
             }
             
             $entries[] = array('amount' => abs($bRec1->blAmount), 'debit' => $debitArr, 'credit' => $creditArr, 'reason' => $reason);
@@ -516,7 +520,8 @@ class acc_transaction_ClosePeriod extends acc_DocumentTransactionSource
         $bQuery2 = acc_BalanceDetails::getQuery();
         acc_BalanceDetails::filterQuery($bQuery2, $this->balanceId, '699');
         $bQuery2->XPR('roundBlAmount', 'double', 'ROUND(#blAmount, 2)');
-        $bl699 = $bQuery2->fetch()->roundBlAmount;
+        $balanceRec = $bQuery2->fetch();
+        $bl699 = $balanceRec->roundBlAmount ?? 0;
         
         if ($bl699 > 0) {
             $entries[] = array('amount' => $bl699,
@@ -533,7 +538,8 @@ class acc_transaction_ClosePeriod extends acc_DocumentTransactionSource
         $bQuery3 = acc_BalanceDetails::getQuery();
         acc_BalanceDetails::filterQuery($bQuery3, $this->balanceId, '799');
         $bQuery3->XPR('roundBlAmount', 'double', 'ROUND(#blAmount, 2)');
-        $bl799 = $bQuery3->fetch()->roundBlAmount;
+        $balanceRec = $bQuery3->fetch();
+        $bl799 = $balanceRec->roundBlAmount ?? 0;
         
         if ($bl799 < 0) {
             $entries[] = array('amount' => abs($bl799),
@@ -637,7 +643,8 @@ class acc_transaction_ClosePeriod extends acc_DocumentTransactionSource
         // Колко е крайното салдо на 61102 преди да започнем да отчитаме разходите
         acc_BalanceDetails::filterQuery($query2, $this->balanceId, '61102');
         $query2->where('#ent1Id IS NULL && #ent2Id IS NULL && #ent3Id IS NULL');
-        $amount61102 = $query2->fetch()->blAmount;
+        $balanceRec = $query2->fetch();
+        $amount61102 = $balanceRec->blAmount ?? 0;
         
         $entries = array();
         
@@ -717,7 +724,7 @@ class acc_transaction_ClosePeriod extends acc_DocumentTransactionSource
                 $saleRec = sales_Sales::fetch($saleId, 'contragentId,contragentClassId');
                 $contragentItemId = acc_Items::fetchItem($saleRec->contragentClassId, $saleRec->contragentId)->id;
                 
-                $incomeRes[$contragentItemId][$dRec->ent1Id] += $dRec->blAmount;
+                $incomeRes[$contragentItemId][$dRec->ent1Id] = ($incomeRes[$contragentItemId][$dRec->ent1Id] ?? 0) + $dRec->blAmount;
                 
                 if ($dRec->blQuantity > 0) {
                     $entry = array('amount' => $dRec->blAmount,
@@ -813,6 +820,8 @@ class acc_transaction_ClosePeriod extends acc_DocumentTransactionSource
         if (!is_object($rec605)) {
             $rec605 = new stdClass();
         }
+        $rec604->blAmount = $rec604->blAmount ?? 0;
+        $rec605->blAmount = $rec605->blAmount ?? 0;
         
         if (!empty($selfValueLabor)) {
             $rec604->blQuantity = $rec604->blAmount / $selfValueLabor;

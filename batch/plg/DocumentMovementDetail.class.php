@@ -298,6 +298,18 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
                 }
             }
         }
+
+        // При редакция на входящ ред запомня се новото к-во, ако е променено
+        if (isset($rec->id) && $mvc->getBatchMovementDocument($rec) != 'out') {
+            $newQuantity = $rec->quantity ?? null;
+            if (!isset($newQuantity) && isset($rec->packQuantity, $rec->quantityInPack)) {
+                $newQuantity = $rec->packQuantity * $rec->quantityInPack;
+            }
+
+            if (isset($newQuantity) && $newQuantity != $mvc->fetchField($rec->id, 'quantity')) {
+                $rec->_updateSingleInBatch = $newQuantity;
+            }
+        }
     }
     
     
@@ -333,6 +345,45 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
                 batch_BatchesInDocuments::saveBatches($mvc, $rec->id, array($rec->batch => $rec->quantity), true);
             }
         }
+
+        // Ако к-то на входящия ред е променено, обновява се и разписаната партида
+        if (isset($rec->_updateSingleInBatch)) {
+            static::updateSingleInBatch($mvc, $rec);
+        }
+    }
+
+
+    /**
+     * Обновява к-то на единствената разписана партида на входящ ред
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $rec
+     *
+     * @return void
+     */
+    private static function updateSingleInBatch($mvc, $rec)
+    {
+        $query = batch_BatchesInDocuments::getQuery();
+        $query->where("#detailClassId = {$mvc->getClassId()} AND #detailRecId = {$rec->id}");
+        $bRecs = $query->fetchAll();
+
+        // При повече от една разписана партида, преразпределянето остава ръчно
+        if (countR($bRecs) != 1) {
+
+            return;
+        }
+
+        $bRec = reset($bRecs);
+        $bRec->quantity = $rec->_updateSingleInBatch;
+        if (isset($rec->quantityInPack)) {
+            $bRec->quantityInPack = $rec->quantityInPack;
+        }
+        if (isset($rec->packagingId)) {
+            $bRec->packagingId = $rec->packagingId;
+        }
+
+        batch_BatchesInDocuments::save($bRec, 'quantity,quantityInPack,packagingId');
+        core_Statuses::newStatus('Обновено количество на партидата, поради променено количество');
     }
     
     

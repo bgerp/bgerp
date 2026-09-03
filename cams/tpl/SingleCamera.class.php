@@ -27,6 +27,6 @@ class cams_tpl_SingleCamera extends core_ET
                  <br/><br/>
                  <img height='303' width='370' src='http://10.0.0.221/image.cgi' alt='http://10.0.0.221/image.cgi' style='cursor: -moz-zoom-in;'>";
         
-        return parent::core_ET($html);
+        parent::__construct($html);
     }
 }

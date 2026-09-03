@@ -337,7 +337,7 @@ class cat_Boms extends core_Master
         $rec = static::fetchRec($id);
         if (!static::shouldTransferNotes($rec, 'transferBomNotes', $destination) || empty($rec->notes)) return null;
 
-        return "От рецептата: {$rec->notes}";
+        return "[i]От рецептата:[/i]\n{$rec->notes}";
     }
 
 
@@ -760,18 +760,19 @@ class cat_Boms extends core_Master
                         <tr><td class='aright' style='font-weight:normal'>|Забележката от рецептата|*:</td><td>[#transferBomNotes#]</td></tr>
                     </table>"));
                     $hint->placeArray($transferHint);
-                    $icon = ht::createElement('img', array('src' => sbf('img/32/info-gray.png', '')));
-                    $icon = ht::createElement('span', array('class' => 'frontTooltip', 'style' => 'position:relative;top:2px'), $icon, true);
-                    $row->transferInfo = "<span class='additionalInfo-holder bomTransferInfo' style='margin-left:2px;margin-right:4px'><span class='additionalInfo left'>{$hint}</span>{$icon}</span>";
 
+                    // Ако и двете настройки са с една и съща стойност, тя се показва до иконата
+                    $commonVerbal = '';
                     if (countR(array_unique($transferValues)) == 1) {
                         $commonValue = reset($transferValues);
                         $commonVerbal = $mvc->getFieldType('transferNotes')->toVerbal($commonValue);
                         if (($rec->transferNotes ?? 'auto') == 'auto' && ($rec->transferBomNotes ?? 'auto') == 'auto') {
                             $commonVerbal = "<span class='blueText'>{$commonVerbal}</span>";
                         }
-                        $row->transferInfo .= $commonVerbal;
                     }
+
+                    $holderAttr = array('style' => 'margin-left:2px;margin-right:4px');
+                    $row->transferInfo = ht::createHint($commonVerbal, $hint, 'notice', false, array('isHtml' => true, 'class' => 'left'), $holderAttr);
                 }
 
                 if(isset($rec->regeneratedFromId)){

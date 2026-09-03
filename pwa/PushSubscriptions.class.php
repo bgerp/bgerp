@@ -220,7 +220,7 @@ class pwa_PushSubscriptions extends core_Manager
             $query->where(array("#domainId = '[#1#]'", $domainId));
         }
 
-        $mailTo = trim(pwa_Setup::get('MAILTO'));
+        $mailTo = trim((string) pwa_Setup::get('MAILTO'));
         if (empty($mailTo)) {
             $cAcc = email_Accounts::getCorporateAcc();
             if ($cAcc) {
@@ -232,7 +232,7 @@ class pwa_PushSubscriptions extends core_Manager
                 }
             }
 
-            $mailTo = trim($mailTo);
+            $mailTo = trim((string) $mailTo);
         }
 
         if (empty($mailTo)) {
@@ -1229,9 +1229,11 @@ class pwa_PushSubscriptions extends core_Manager
 
         $data->listFilter->input();
 
-        if ($data->listFilter->rec->users) {
+        if (!empty($data->listFilter->rec->users)) {
             $uArr = type_Keylist::toArray($data->listFilter->rec->users);
-            if (!$uArr[-1]) {
+
+            // -1 e маркерът за "всички" - тогава не се филтрира
+            if (empty($uArr[-1])) {
                 $data->query->in('userId', $uArr);
             }
         }
@@ -1479,7 +1481,7 @@ class pwa_PushSubscriptions extends core_Manager
 
                         $bt = $tag . '|' . $brid;
 
-                        if ($allNotifyArr[$userId][$bt]['msg']) {
+                        if (!empty($allNotifyArr[$userId][$bt]['msg'])) {
                             $msg = $allNotifyArr[$userId][$bt]['msg'] . "\n" . $msg;
                             $urlArr = array('Portal', 'Show', '#' => 'notificationsPortal');
                         }

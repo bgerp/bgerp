@@ -73,6 +73,9 @@ class core_Html
                 $element = "<{$name}{$attrStr}>";
             } else {
                 if (in_array(strtolower($name), array('textarea', 'option'))) {
+                    if (is_array($body) || (is_object($body) && !method_exists($body, '__toString'))) {
+                        $body = print_r($body, true);
+                    }
                     $body = str_replace(array('&', '<', '>'), array('&amp;', '&lt;', '&gt;'), $body ?? '');
                 }
                 $element = "<{$name}{$attrStr}>{$body}</{$name}>";
@@ -1170,35 +1173,97 @@ class core_Html
      * @param string $hint        - текст на хинта
      * @param string $type        - тип на хинта
      * @param bool   $appendToEnd - дали хинта да се добави в края на стринга
-     * @param array  $iconAttr    - атрибути на иконката
+     * @param array  $hintAttr    - атрибути на балончето, плюс настройките на хинта:
+     *                             o bool         isHtml      - хинтът е HTML и се показва в балонче, вместо в 'title'
+     *                             o array|string iconAttr    - атрибути на иконката
+     *                             o array|string url         - адрес, от който съдържанието на балончето се дърпа по ajax
+     *                             o string       urlIdParam  - параметър в урл-то с ид-то на балончето, по подразбиране 'replaceField'; null - да не се добавя
+     *                             o bool         useHover    - ajax балончето да се показва и при посочване, не само при клик
+     *                             o bool         useCache    - ajax заявката да се прави само първия път
+     *                             o string       holderClass - допълнителен клас на обвивката
+     *                             o string       arrowClass  - клас на стрелката, по подразбиране 'anchor-arrow'
      * @param array  $elementArr  - атрибути на елемента
      *
      * @return core_ET $elementTpl  - шаблон с хинта
      */
-    public static function createHint($body, $hint, $type = 'notice', $appendToEnd = true, $iconAttr = array(), $elementArr = array())
+    public static function createHint($body, $hint, $type = 'notice', $appendToEnd = true, $hintAttr = array(), $elementArr = array())
     {
-        if (empty($hint) || Mode::is('printing') || Mode::is('text', 'xhtml') || Mode::is('pdf')) {
+        // Настройките се изваждат - остатъкът са атрибутите на балончето
+        $hintAttr = arr::make($hintAttr, true);
+        $isHtml = !empty($hintAttr['isHtml']);
+        $iconAttr = $hintAttr['iconAttr'] ?? array();
+        $url = $hintAttr['url'] ?? null;
+        $urlIdParam = array_key_exists('urlIdParam', $hintAttr) ? $hintAttr['urlIdParam'] : 'replaceField';
+        $useHover = !empty($hintAttr['useHover']);
+        $useCache = !empty($hintAttr['useCache']);
+        $holderClass = $hintAttr['holderClass'] ?? null;
+        $arrowClass = array_key_exists('arrowClass', $hintAttr) ? $hintAttr['arrowClass'] : 'anchor-arrow';
+        unset($hintAttr['isHtml'], $hintAttr['iconAttr'], $hintAttr['url'], $hintAttr['urlIdParam'], $hintAttr['useHover'], $hintAttr['useCache'], $hintAttr['holderClass'], $hintAttr['arrowClass']);
+
+        // При ajax хинт балончето е празно, затова се допуска и без текст
+        if ((empty($hint) && empty($url)) || Mode::is('printing') || Mode::is('text', 'xhtml') || Mode::is('pdf')) {
             
             return new core_ET($body);
         }
-        
-        $hint = strip_tags(tr($hint));
 
-        if ($type == 'noicon') {
-            $element = "<span class='textHint' title='[#hint#]' rel='tooltip'>[#body#]</span>";
-        } else {
-            $iconAttr = arr::make($iconAttr, true);
-            if (!array_key_exists('src', $iconAttr)) {
-                $iconPath = ($type == 'notice') ? 'img/32/info-gray.png' : (($type == 'warning') ? 'img/32/dialog_warning.png' : (($type == 'error') ? 'img/32/dialog_error.png' : $type));
-                $iconAttr['src'] = $iconPath;
-            }
-            $iconAttr['src'] = sbf($iconAttr['src'], '');
-            $iconHtml = ht::createElement('img', $iconAttr);
+        if (!empty($url)) {
             
-            if ($appendToEnd === true) {
-                $element = "[#body#] <span class='endTooltip' style='position: relative; top: 2px;' title='[#hint#]' rel='tooltip'>[#icon#]</span>";
+            return static::createAjaxHint($body, $hint, $type, $appendToEnd, $hintAttr, $elementArr, $iconAttr, $url, $urlIdParam, $useHover, $useCache, $holderClass, $arrowClass);
+        }
+
+        // При инсталиран пакет `floatingui` хинтът се показва в общия слой на страницата
+        $useFloatingUi = core_Packs::isInstalled('floatingui');
+
+        if ($isHtml) {
+            // При HTML хинт съдържанието се запазва и отива в балончето
+            $hint = ($hint instanceof core_ET) ? $hint->getContent() : tr($hint);
+        } else {
+            $hint = strip_tags(tr($hint));
+
+            // Текстът се вгражда като HTML в слоя, затова ентитетата от вербалното
+            // представяне (`5&nbsp;424`) се декодират и се ескейпва наново
+            if ($useFloatingUi) {
+                $hint = core_Type::escape(html_entity_decode($hint, ENT_QUOTES, 'UTF-8'));
+            }
+        }
+
+        if ($useFloatingUi) {
+            // Съдържанието пътува в `data-hint` - виж floatingui/js/Hints.js
+            $hint = ht::escapeAttr($hint);
+
+            if ($type == 'noicon') {
+                $element = "<span class='textHint fuiHint' data-hint=\"[#hint#]\">[#body#]</span>";
             } else {
-                $element = "<span class='frontTooltip' style='position: relative; top: 2px;' title='[#hint#]' rel='tooltip'>[#icon#]</span> [#body#]";
+                $iconHtml = static::getHintIcon($type, $iconAttr);
+                $iconClass = ($appendToEnd === true) ? 'endTooltip' : 'frontTooltip';
+                $trigger = "<span class='{$iconClass} fuiHint' style='position: relative; top: 2px;' data-hint=\"[#hint#]\">[#icon#]</span>";
+                $element = ($appendToEnd === true) ? "[#body#] {$trigger}" : "{$trigger} [#body#]";
+            }
+        } else {
+            if ($isHtml) {
+                $hintClass = !empty($hintAttr['class']) ? " {$hintAttr['class']}" : '';
+                $hintAttr['class'] = "additionalInfo{$hintClass}";
+                $hintSpan = ht::createElement('span', $hintAttr);
+            }
+
+            if ($type == 'noicon') {
+                if ($isHtml) {
+                    $element = "<span class='additionalInfo-holder hoverHint'>{$hintSpan}[#hint#]</span><span class='textHint'>[#body#]</span></span>";
+                } else {
+                    $element = "<span class='textHint' title='[#hint#]' rel='tooltip'>[#body#]</span>";
+                }
+            } else {
+                $iconHtml = static::getHintIcon($type, $iconAttr);
+                
+                if ($isHtml) {
+                    $iconClass = ($appendToEnd === true) ? 'endTooltip' : 'frontTooltip';
+                    $holder = "<span class='additionalInfo-holder hoverHint'>{$hintSpan}[#hint#]</span><span class='{$iconClass}' style='position: relative; top: 2px;'>[#icon#]</span></span>";
+                    $element = ($appendToEnd === true) ? "[#body#] {$holder}" : "{$holder} [#body#]";
+                } elseif ($appendToEnd === true) {
+                    $element = "[#body#] <span class='endTooltip' style='position: relative; top: 2px;' title='[#hint#]' rel='tooltip'>[#icon#]</span>";
+                } else {
+                    $element = "<span class='frontTooltip' style='position: relative; top: 2px;' title='[#hint#]' rel='tooltip'>[#icon#]</span> [#body#]";
+                }
             }
         }
         
@@ -1212,13 +1277,117 @@ class core_Html
             $elementTpl->append('</span>');
         }
         
-        $hint = str_replace("'", '"', $hint);
+        if (!$isHtml && !$useFloatingUi) {
+            $hint = str_replace("'", '"', $hint);
+        }
+        
         $elementTpl->append($body, 'body');
         $elementTpl->append($hint, 'hint');
         if(!empty($iconHtml)){
             $elementTpl->append($iconHtml, 'icon');
         }
 
+        return $elementTpl;
+    }
+    
+    
+    /**
+     * Подготвя иконката на хинта според типа му
+     *
+     * @param string       $type     - тип на хинта или път до иконка
+     * @param array|string $iconAttr - атрибути на иконката
+     *
+     * @return string - html на иконката
+     */
+    private static function getHintIcon($type, $iconAttr)
+    {
+        $iconAttr = arr::make($iconAttr, true);
+        if (!array_key_exists('src', $iconAttr)) {
+            $iconPath = ($type == 'notice') ? 'img/32/info-gray.png' : (($type == 'warning') ? 'img/32/dialog_warning.png' : (($type == 'error') ? 'img/32/dialog_error.png' : $type));
+            $iconAttr['src'] = $iconPath;
+        }
+        $iconAttr['src'] = sbf($iconAttr['src'], '');
+        
+        return ht::createElement('img', $iconAttr);
+    }
+    
+    
+    /**
+     * Създава хинт, чието балонче се попълва по ajax от подадения адрес
+     *
+     * @see ht::createHint()
+     *
+     * @param mixed        $body        - тяло
+     * @param string       $hint        - подсказка на иконката
+     * @param string       $type        - тип на хинта
+     * @param bool         $appendToEnd - дали иконката да е в края на стринга
+     * @param array        $hintAttr    - атрибути на балончето
+     * @param array        $elementArr  - атрибути на елемента
+     * @param array|string $iconAttr    - атрибути на иконката
+     * @param array|string $url         - адрес, от който се дърпа съдържанието на балончето
+     * @param string       $urlIdParam  - параметър в урл-то с ид-то на балончето
+     * @param bool         $useHover    - показване и при посочване, не само при клик
+     * @param bool         $useCache    - заявката да се прави само първия път
+     * @param string|null  $holderClass - допълнителен клас на обвивката
+     * @param string|null  $arrowClass  - клас на стрелката
+     *
+     * @return core_ET - шаблон с хинта
+     */
+    private static function createAjaxHint($body, $hint, $type, $appendToEnd, $hintAttr, $elementArr, $iconAttr, $url, $urlIdParam, $useHover, $useCache, $holderClass, $arrowClass)
+    {
+        // Ид-то на балончето отива и в урл-то, за да знае екшъна какво да замести
+        static $count = 0;
+        $count++;
+        $id = !empty($hintAttr['id']) ? $hintAttr['id'] : "hint{$count}" . rand(1, 10000);
+        $hintAttr['id'] = $id;
+        $hintClass = !empty($hintAttr['class']) ? " {$hintAttr['class']}" : '';
+        $hintAttr['class'] = "additionalInfo{$hintClass}";
+        
+        if (is_array($url)) {
+            if (!empty($urlIdParam)) {
+                $url[$urlIdParam] = $id;
+            }
+            $url = toUrl($url, 'local');
+        }
+        
+        $arrowClass = !empty($arrowClass) ? "{$arrowClass} " : '';
+        $linkAttr = array('class' => "{$arrowClass}tooltip-arrow-link", 'data-url' => $url);
+        if (!empty($hint)) {
+            $linkAttr['title'] = $hint;
+        }
+        
+        if ($useHover) {
+            $linkAttr['data-useHover'] = '1';
+        }
+        
+        if ($useCache) {
+            $linkAttr['data-useCache'] = '1';
+        }
+        
+        $iconHtml = static::getHintIcon($type, $iconAttr);
+        $linkHtml = ht::createElement('span', $linkAttr, $iconHtml, true);
+        
+        $holderClass = !empty($holderClass) ? " {$holderClass}" : '';
+        $hintSpan = ht::createElement('span', $hintAttr);
+        $holder = "<span class='additionalInfo-holder{$holderClass}'>{$hintSpan}</span>[#icon#]</span>";
+        
+        // Без разделител, ако няма тяло
+        $space = ($body === '' || $body === null) ? '' : ' ';
+        $element = ($appendToEnd === true) ? "[#body#]{$space}{$holder}" : "{$holder}{$space}[#body#]";
+        
+        $elementTpl = new core_ET($element);
+        
+        // Ако има атрибути за целия елемент, задават се в span
+        $elementArr = arr::make($elementArr, true);
+        if (countR($elementArr)) {
+            $span = ht::createElement('span', $elementArr);
+            $elementTpl->prepend($span);
+            $elementTpl->append('</span>');
+        }
+        
+        $elementTpl->append($body, 'body');
+        $elementTpl->append($linkHtml, 'icon');
+        
         return $elementTpl;
     }
     

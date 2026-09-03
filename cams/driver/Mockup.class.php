@@ -36,7 +36,7 @@ class cams_driver_Mockup extends cams_driver_IpDevice
      */
     public function getPicture()
     {
-        if ($this->running == 'yes') {
+        if (!empty($this->running) && $this->running == 'yes') {
             $file = 'example' . rand(1, 3) . '.jpg';
         } else {
             $file = 'setup.jpg';
@@ -115,7 +115,7 @@ class cams_driver_Mockup extends cams_driver_IpDevice
      */
     public function isActive()
     {
-        return $this->running == 'yes';
+        return !empty($this->running) && $this->running == 'yes';
     }
     
     
@@ -124,7 +124,7 @@ class cams_driver_Mockup extends cams_driver_IpDevice
      */
     public function havePtzControl()
     {
-        return $this->ptzControl == 'yes';
+        return !empty($this->ptzControl) && $this->ptzControl == 'yes';
     }
     
     

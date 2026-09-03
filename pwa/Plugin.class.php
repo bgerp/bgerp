@@ -127,7 +127,7 @@ class pwa_Plugin extends core_Plugin
      */
     public static function removeServiceWorkerVersionForHost($host)
     {
-        $handler = md5(strtolower(trim(cms_Domains::getReal($host))));
+        $handler = md5(strtolower(trim((string) cms_Domains::getReal($host))));
         core_Cache::remove(self::SERVICE_WORKER_VERSION_CACHE_TYPE, $handler);
         unset(self::$serviceWorkerVersions[$handler]);
     }
@@ -150,7 +150,7 @@ class pwa_Plugin extends core_Plugin
             $domain = 'domainId_' . (int) $domainId;
         }
 
-        return md5(strtolower(trim($domain)));
+        return md5(strtolower(trim((string) $domain)));
     }
 
     public function on_Output(&$invoker)
