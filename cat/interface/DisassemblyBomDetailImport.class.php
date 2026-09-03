@@ -42,7 +42,7 @@ class cat_interface_DisassemblyBomDetailImport extends cat_interface_BomDetailIm
         if ($bomRec->allocationBy == 'manual') {
             $fields['costPercent'] = array('caption' => '% от себестойността');
         }
-        $fields['notes'] = array('caption' => 'Забележка');
+        $fields['notes'] = array('caption' => 'Описание');
 
         if (cat_DisassemblyBomDetails::count("#bomId = {$bomId} AND #type = 'production' AND #state != 'rejected'")) {
             $fields['existingDetails'] = array('caption' => 'Уточнения->Наличните редове', 'notColumn' => true, 'default' => 'keep', 'type' => 'varchar', 'options' => arr::make('keep=Запазване - импортираните се добавят след тях,delete=Изтриване - остават само импортираните'));

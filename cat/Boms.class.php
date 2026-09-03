@@ -2511,7 +2511,7 @@ class cat_Boms extends core_Master
         $csvFields->FLD('code', 'varchar', 'caption=Код');
         $csvFields->FLD('packagingId', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка');
         $csvFields->FLD('propQuantity', 'text', 'caption=Количество');
-        $csvFields->FLD('description', 'text', 'caption=Забележка');
+        $csvFields->FLD('description', 'text', 'caption=Описание');
         $csvFields->FLD('paramId', 'key(mvc=cat_Params,select=typeExt)', 'caption=Параметър');
 
         // Забележката е richtext - обръща се в чист текст, за да е годна за CSV

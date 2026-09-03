@@ -70,7 +70,7 @@ class cat_interface_BomDetailImport extends cat_interface_BomDetailImportProto
         $fields['packagingId'] = array('caption' => 'Мярка');
         $fields['propQuantity'] = array('caption' => 'Количество');
         $fields['paramId'] = array('caption' => 'Параметър');
-        $fields['description'] = array('caption' => 'Забележка');
+        $fields['description'] = array('caption' => 'Описание');
 
         // Какво да става с редовете, които рецептата вече има
         if (cat_BomDetails::count("#bomId = {$bomId}")) {
