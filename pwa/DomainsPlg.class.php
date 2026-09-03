@@ -114,7 +114,7 @@ class pwa_DomainsPlg extends core_Plugin
      */
     protected static function queueManifestHost($host)
     {
-        $host = strtolower(trim(cms_Domains::getReal($host)));
+        $host = strtolower(trim((string) cms_Domains::getReal($host)));
         if ($host !== '') {
             self::$manifestHostsToRegenerate[$host] = $host;
         }

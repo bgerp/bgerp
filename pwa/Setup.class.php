@@ -145,10 +145,10 @@ class pwa_Setup extends core_ProtoSetup
                 continue;
             }
 
-            if ($published['manifestChanged']) {
+            if (!empty($published['manifestChanged'])) {
                 $html .= '<li>Генериране на манифест на PWA за ' . $dRec->domain . '</li>';
             }
-            if ($published['serviceWorkerChanged']) {
+            if (!empty($published['serviceWorkerChanged'])) {
                 $html .= '<li>Регистриране на PWA за ' . $dRec->domain . '</li>';
             }
         }
@@ -189,7 +189,7 @@ class pwa_Setup extends core_ProtoSetup
             $dQuery = cms_Domains::getQuery();
             $existKeysDomainsArr = $notExistKeysDomainsArr =  array();
             while ($dRec = $dQuery->fetch()) {
-                if (trim($dRec->publicKey) && trim($dRec->privateKey)) {
+                if (trim((string) $dRec->publicKey) && trim((string) $dRec->privateKey)) {
                     $existKeysDomainsArr[$dRec->domain][$dRec->id] = $dRec;
                 } else {
                     $notExistKeysDomainsArr[$dRec->domain][$dRec->id] = $dRec;
@@ -197,7 +197,7 @@ class pwa_Setup extends core_ProtoSetup
             }
 
             foreach ($notExistKeysDomainsArr as $dName => $notDArr) {
-                if ($existKeysDomainsArr[$dName]) {
+                if (!empty($existKeysDomainsArr[$dName])) {
                     foreach ($notDArr as $nRec) {
                         $uRec = reset($existKeysDomainsArr[$dName]);
                         $nRec->publicKey = $uRec->publicKey;
@@ -338,7 +338,7 @@ class pwa_Setup extends core_ProtoSetup
                 $conf = core_Packs::getConfig('pwa');
                 $data = array();
 
-                if ($conf->_data['PWA_DOMAINS']) {
+                if (!empty($conf->_data['PWA_DOMAINS'])) {
                     $data['PWA_DOMAINS'] = null;
                     core_Packs::setConfig('pwa', $data);
                 }

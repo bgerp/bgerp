@@ -793,6 +793,32 @@ class thumb_Img
 
 
     /**
+     * Записва умалените изображения (1x и 2x) още сега, ако още ги няма.
+     *
+     * Без това getUrl() в режим 'auto' връща отложен /thumb_M/R/?t=... адрес,
+     * когато файлът още го няма. Отложеният адрес се самозаписва при първото
+     * дръпване от браузър, но ако генерираният HTML попадне в кеш преди това,
+     * адресът остава там и всяко показване минава през декриптиране и GD
+     * вместо през статичен файл.
+     *
+     * Нарочно не връща нищо и не хвърля: ако записът не успее, createImg()
+     * се държи както досега и връща отложения адрес.
+     */
+    public function warmUp()
+    {
+        try {
+            $this->getUrl('forced');
+
+            if ($this->size2x) {
+                $this->size2x->getUrl('forced');
+            }
+        } catch (\Throwable $e) {
+            // Загряването е оптимизация - провалът му не бива да чупи страницата
+        }
+    }
+
+
+    /**
      * Връща умаленото изображение, като html <img> таг
      *
      * @param attr array Допълнителни атрибути за html тага
@@ -973,11 +999,70 @@ class thumb_Img
      */
     public static function canUseWebP()
     {
+        // Проверката е обратна - по подразбиране webp, освен ако браузърът не е
+        // от малкото, които не го поддържат.
+        //
+        // Accept хедърът не върши работа за целта: Firefox праща image/webp
+        // само в заявките за картинки, но не и в тази за самия документ. Заради
+        // това форматът на thumb-а зависеше от браузъра, кешът се раздвояваше
+        // на webp и jpg, а при Firefox всяка картинка излизаше с отложен
+        // /thumb_M/R/?t=... адрес вместо със статичен път.
+        //
+        // Писмата, бюлетините и PDF-ите минават през xhtml режим и остават на
+        // стария формат - там webp не е сигурен.
         if (thumb_Setup::get('WEBP') == 'yes' && function_exists('imagewebp')) {
-            if (strpos($_SERVER['HTTP_ACCEPT'] ?? '', 'image/webp') !== false && !Mode::is('text', 'xhtml')) {
+            if (!Mode::is('text', 'xhtml') && !self::isWebPUnsupported()) {
 
                 return true;
             }
         }
+    }
+
+
+    /**
+     * Браузърът от текущата заявка ли е от онези, които не разбират webp?
+     *
+     * Поддръжката тръгва с Chrome 32, Firefox 65, Edge 18 и Safari 14, тоест
+     * извън обхват остават само IE11 и iOS 13 и по-стари. Затова списъкът е на
+     * изключенията, а не на поддържащите.
+     *
+     * Непознат или празен User-Agent се смята за поддържащ - иначе всеки бот
+     * или warmer би напълнил кеша с jpg вариант.
+     *
+     * @return bool
+     */
+    protected static function isWebPUnsupported()
+    {
+        $ua = log_Browsers::getUserAgent();
+
+        if ($ua === '') {
+
+            return false;
+        }
+
+        // IE11 и по-стари
+        if (stripos($ua, 'Trident/') !== false || stripos($ua, 'MSIE ') !== false) {
+
+            return true;
+        }
+
+        // iOS/iPadOS преди 14 - "CPU iPhone OS 13_5" или "CPU OS 13_5"
+        if (preg_match('/(?:iPhone |CPU )OS (\d+)/i', $ua, $m) && $m[1] < 14) {
+
+            return true;
+        }
+
+        // Safari преди 14. Chrome, Edge и Opera също носят "Safari" в UA-то,
+        // затова първо ги изключваме.
+        if (stripos($ua, 'Safari/') !== false
+            && stripos($ua, 'Chrome/') === false
+            && stripos($ua, 'Chromium/') === false
+            && stripos($ua, 'Edg/') === false
+            && preg_match('/Version\/(\d+)/i', $ua, $m) && $m[1] < 14) {
+
+            return true;
+        }
+
+        return false;
     }
 }

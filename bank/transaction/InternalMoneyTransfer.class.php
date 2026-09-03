@@ -44,13 +44,14 @@ class bank_transaction_InternalMoneyTransfer extends acc_DocumentTransactionSour
         $debitCase = $rec->debitCase ?? null;
         $debitArr = $debitCase ? array('cash_Cases', $debitCase) : array('bank_OwnAccounts', $rec->debitBank ?? null);
         $entries = array();
-        $entries[] = array('amount' => $amount, 'debit' => array($rec->debitAccId, $debitArr, array('currency_Currencies', $rec->currencyId),
-                                        'quantity' => $rec->amount),
-                            'credit' => array('481', array('currency_Currencies', $rec->currencyId), 'quantity' => $rec->amount));
-
+        // Първо е редът за източника на средствата, след него - за получателя
         $entries[] = array('debit' => array('481', array('currency_Currencies', $rec->currencyId), 'quantity' => $rec->amount),
                            'credit' => array($rec->creditAccId, array('bank_OwnAccounts', $rec->creditBank), array('currency_Currencies', $rec->currencyId),
                                             'quantity' => $rec->amount));
+
+        $entries[] = array('amount' => $amount, 'debit' => array($rec->debitAccId, $debitArr, array('currency_Currencies', $rec->currencyId),
+                                        'quantity' => $rec->amount),
+                            'credit' => array('481', array('currency_Currencies', $rec->currencyId), 'quantity' => $rec->amount));
 
         // Подготвяме информацията която ще записваме в Журнала
         $result = (object) array(

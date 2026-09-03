@@ -1091,7 +1091,17 @@ div.acc-detail {
     width: auto;
     border-radius: 5px;
     font-size: 15px;
-    color: black; }
+    color: black;
+        /*
+     * Балончето стои в елемента, към който е закачено - текстовите стилове на бащата се нулират
+     */
+    font-weight: normal;
+    font-style: normal;
+    line-height: 1.35;
+    text-align: left;
+    text-transform: none;
+    text-shadow: none;
+    letter-spacing: normal; }
     .additionalInfo-holder .additionalInfo.viewport-positioned {
       position: fixed;
       right: auto;

@@ -20,7 +20,6 @@ class deals_plg_EditDetailQuantities extends core_Plugin
      */
     const EDIT_QUANTITY_COLUMN = '_editPackQuantity';
 
-
     /**
      * Задава настройките по подразбиране след описанието на модела
      *
@@ -90,6 +89,23 @@ class deals_plg_EditDetailQuantities extends core_Plugin
 
         $data->toolbar->addBtn('Количества', static::getActionUrl($mvc, $data->masterId),
             'order=490,ef_icon=img/16/edit.png,title=Бързо редактиране на количествата');
+    }
+
+
+    /**
+     * Запазва колоните за текущо и ново количество след останалите list hooks
+     *
+     * @param core_Mvc $mvc
+     * @param mixed    $res
+     * @param stdClass $data
+     *
+     * @return void
+     */
+    public static function on_RightBeforeRenderListTable($mvc, &$res, &$data)
+    {
+        if (empty($data->_isEditQuantities)) return;
+
+        $data->listFields = static::addQuantityColumns($data->listFields, $mvc->packQuantityFld);
     }
 
 
@@ -224,18 +240,7 @@ class deals_plg_EditDetailQuantities extends core_Plugin
         $mvc->prepareListRows($data);
 
         unset($data->listFields['_rowTools']);
-        $quantityListFields = array();
-        foreach ($data->listFields as $name => $caption) {
-            if ($name == $mvc->packQuantityFld) {
-                $quantityListFields[static::EDIT_QUANTITY_COLUMN] = 'Количество';
-            } else {
-                $quantityListFields[$name] = $caption;
-            }
-        }
-        if (!isset($quantityListFields[static::EDIT_QUANTITY_COLUMN])) {
-            $quantityListFields[static::EDIT_QUANTITY_COLUMN] = 'Количество';
-        }
-        $data->listFields = $quantityListFields;
+        $data->listFields = static::addQuantityColumns($data->listFields, $mvc->packQuantityFld);
 
         return $data;
     }
@@ -254,39 +259,36 @@ class deals_plg_EditDetailQuantities extends core_Plugin
     {
         $form = cls::get('core_Form');
         $form->title = 'Бързо редактиране на количествата в|* ' . $mvc->Master->getFormTitleLink($masterRec->id);
-        $form->info = tr('Променете директно необходимите количества.');
+        $form->info = tr('Въведете ново количество или относителна промяна със знак') .
+            ' <b>+</b>, <b>-</b>, <b>*</b> ' . tr('или') . ' <b>/</b>.';
 
         $fieldNames = array();
         foreach ($data->recs as $dId => $dRec) {
             if (!$mvc->haveRightFor('edit', $dRec)) {
-                $quantity = $data->rows[$dId]->{$mvc->packQuantityFld};
-                $data->rows[$dId]->{static::EDIT_QUANTITY_COLUMN} = is_object($quantity) ? clone $quantity : $quantity;
+                $data->rows[$dId]->{static::EDIT_QUANTITY_COLUMN} = '';
 
                 continue;
             }
 
             $fieldName = "newPackQuantity{$dId}";
             $detailForm = static::prepareDetailEditForm($mvc, $dRec, $masterRec);
-            $quantityField = clone $detailForm->getField($mvc->packQuantityFld);
-            if (in_array($quantityField->input ?? null, array('none', 'hidden'))) {
-                $quantity = $data->rows[$dId]->{$mvc->packQuantityFld};
-                $data->rows[$dId]->{static::EDIT_QUANTITY_COLUMN} = is_object($quantity) ? clone $quantity : $quantity;
+            $detailQuantityField = $detailForm->getField($mvc->packQuantityFld);
+            if (in_array($detailQuantityField->input ?? null, array('none', 'hidden'))) {
+                $data->rows[$dId]->{static::EDIT_QUANTITY_COLUMN} = '';
 
                 continue;
             }
 
             $fieldNames[$dId] = $fieldName;
-            $quantityField->type = clone $quantityField->type;
-            $quantityField->name = $fieldName;
-            $quantityField->caption = 'Количество';
-            $fieldClasses = arr::make($quantityField->class ?? null, true);
-            $fieldClasses['w25'] = 'w25';
-            $quantityField->class = implode(' ', $fieldClasses);
-            $form->fields[$fieldName] = $quantityField;
-            $form->setDefault($fieldName, $detailForm->rec->{$mvc->packQuantityFld});
+            $form->FLD($fieldName, 'varchar(32)', array(
+                'caption' => 'Ново количество',
+                'input' => 'input',
+                'class' => 'w25',
+            ));
         }
 
         $data->fieldNames = $fieldNames;
+        $data->listClass = 'listRows editDetailQuantitiesTable';
         $data->listTableMvc = clone $mvc;
         $quantityColumnField = clone $mvc->getField($mvc->packQuantityFld);
         $quantityColumnField->type = clone $quantityColumnField->type;
@@ -327,9 +329,18 @@ class deals_plg_EditDetailQuantities extends core_Plugin
             }
 
             $newPackQuantity = $form->rec->{$fieldName};
-            if ($dRec->{$mvc->packQuantityFld} == $newPackQuantity) continue;
+            if (!strlen(trim($newPackQuantity ?? ''))) continue;
 
             $detailForm = static::prepareDetailEditForm($mvc, $dRec, $masterRec);
+            $quantityType = clone $detailForm->getField($mvc->packQuantityFld)->type;
+            $error = null;
+            if (!static::calculateQuantity($newPackQuantity, $dRec->{$mvc->packQuantityFld}, $quantityType, $newPackQuantity, $error)) {
+                $form->setError($fieldName, $error);
+
+                continue;
+            }
+            if ($dRec->{$mvc->packQuantityFld} == $newPackQuantity) continue;
+
             static::validateDetailForm($mvc, $detailForm, $newPackQuantity, $form->ignore ?? null);
             static::copyFormErrors($detailForm, $form, $fieldName);
             if (!$detailForm->gotErrors()) {
@@ -380,6 +391,7 @@ class deals_plg_EditDetailQuantities extends core_Plugin
         $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon=img/16/close-red.png,title=Прекратяване на действието');
         $res = $mvc->renderWrapping($form->renderHtml());
         core_Form::preventDoubleSubmission($res, $form);
+        jquery_Jquery::run($res, "$('.editDetailQuantitiesTable a').attr('tabindex', '-1');");
         $mvc->Master->logRead('Разглеждане на формата за бърза промяна на количества', $masterId);
 
         return $res;
@@ -399,6 +411,102 @@ class deals_plg_EditDetailQuantities extends core_Plugin
             '_filterFldVals' => Request::get('_filterFldVals', 'varchar'),
             '_filterFldNot' => Request::get('_filterFldNot', 'int'),
         );
+    }
+
+
+    /**
+     * Подрежда колоните за текущото и новото количество
+     *
+     * @param array|string $listFields
+     * @param string       $quantityField
+     *
+     * @return array
+     */
+    private static function addQuantityColumns($listFields, $quantityField)
+    {
+        $listFields = arr::make($listFields, true);
+        $result = array();
+        $quantityColumnsAdded = false;
+        foreach ($listFields as $name => $caption) {
+            if (in_array($name, array($quantityField, static::EDIT_QUANTITY_COLUMN))) {
+                if (!$quantityColumnsAdded) {
+                    $result[$quantityField] = 'Количество';
+                    $result[static::EDIT_QUANTITY_COLUMN] = 'Ново количество';
+                    $quantityColumnsAdded = true;
+                }
+
+                continue;
+            }
+
+            $result[$name] = $caption;
+        }
+
+        if (!$quantityColumnsAdded) {
+            $result[$quantityField] = 'Количество';
+            $result[static::EDIT_QUANTITY_COLUMN] = 'Ново количество';
+        }
+
+        return $result;
+    }
+
+
+    /**
+     * Изчислява крайното количество от число или относителна операция
+     *
+     * @param string    $input
+     * @param float     $currentQuantity
+     * @param core_Type $quantityType
+     * @param float     $result
+     * @param string    $error
+     *
+     * @return bool
+     */
+    private static function calculateQuantity($input, $currentQuantity, $quantityType, &$result, &$error)
+    {
+        $pattern = '/^\s*([+\-*\/])?\s*((?:\d[\d\s]*(?:[\.,]\d*)?|[\.,]\d+))\s*$/';
+        if (!preg_match($pattern, $input, $matches)) {
+            $error = 'Въведете число или знак +, -, *, /, последван от число';
+
+            return false;
+        }
+
+        $operator = $matches[1] ?? null;
+        $operand = $quantityType->fromVerbal($matches[2]);
+        if ($operand === false || !isset($operand)) {
+            $error = $quantityType->error ?: 'Невалидно число';
+
+            return false;
+        }
+
+        switch ($operator) {
+            case '+':
+                $result = $currentQuantity + $operand;
+                break;
+            case '-':
+                $result = $currentQuantity - $operand;
+                break;
+            case '*':
+                $result = $currentQuantity * $operand;
+                break;
+            case '/':
+                if ((float) $operand == 0.0) {
+                    $error = 'Не може да се дели на нула';
+
+                    return false;
+                }
+                $result = $currentQuantity / $operand;
+                break;
+            default:
+                $result = $operand;
+        }
+
+        if (!is_finite((float) $result)) {
+            $error = 'Полученото количество е невалидно';
+
+            return false;
+        }
+
+        return true;
     }
 
 

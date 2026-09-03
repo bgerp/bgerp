@@ -220,6 +220,7 @@ class email_Outgoings extends core_Master
         $this->FLD('waiting', 'time', 'input=none, caption=Изчакване');
         $this->FLD('lastSendedOn', 'datetime(format=smartTime)', 'input=none, caption=Изпратено->на');
         $this->FLD('lastSendedBy', 'key(mvc=core_Users)', 'caption=Изпратено->От, notNull, input=none');
+        $this->FLD('autoReplyRuleId', 'key(mvc=email_AutomaticResponse)', 'caption=Автоматичен отговор->Правило,input=none');
         $this->FLD('forward', 'enum(,no=Не, yes=Да)', 'caption=Препращане, input=hidden, allowEmpty');
         
         //Данни за адресата
@@ -235,6 +236,7 @@ class email_Outgoings extends core_Master
         $this->FLD('address', 'varchar', 'caption=Адресат->Адрес,class=contactData,changable');
         
         $this->setDbIndex('createdOn');
+        $this->setDbIndex('lastSendedOn,autoReplyRuleId');
     }
     
     

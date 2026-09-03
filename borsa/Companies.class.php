@@ -118,7 +118,7 @@ class borsa_Companies extends core_Manager
      */
     function on_CalcName($mvc, $rec)
     {
-        if ($rec->companyId) {
+        if (!empty($rec->companyId)) {
             $rec->name = crm_Companies::getVerbal($rec->companyId, 'name');
         }
     }
@@ -147,10 +147,10 @@ class borsa_Companies extends core_Manager
      */
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
-        if ($data->form->rec->companyId) {
+        if (!empty($data->form->rec->companyId)) {
             $emailsArr = type_Emails::toArray(crm_Companies::fetchField($data->form->rec->companyId, 'email'));
             
-            if ($emailsArr[0]) {
+            if (!empty($emailsArr[0])) {
                 $data->form->setDefault('email', $emailsArr[0]);
             }
         }
@@ -165,9 +165,9 @@ class borsa_Companies extends core_Manager
      */
     public static function on_AfterInputEditForm($mvc, &$form)
     {
-        if ($form->rec->email && $form->isSubmitted()) {
+        if (!empty($form->rec->email) && $form->isSubmitted()) {
             if (!empty($form->rec->id)) {
-                $haveRec = $mvc->fetch(array("#email = '[#1#]' AND #id != '[#1#]'", $form->rec->email, $form->rec->id));
+                $haveRec = $mvc->fetch(array("#email = '[#1#]' AND #id != '[#2#]'", $form->rec->email, $form->rec->id));
             } else {
                 $haveRec = $mvc->fetch(array("#email = '[#1#]'", $form->rec->email));
             }
@@ -188,7 +188,7 @@ class borsa_Companies extends core_Manager
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
-        if ($rec->companyId) {
+        if (!empty($rec->companyId)) {
             if (crm_Companies::haveRightFor('single', $rec->companyId)) {
                 $row->companyId = crm_Companies::getLinkToSingle($rec->companyId, 'name');
             }
