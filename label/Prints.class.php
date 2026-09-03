@@ -104,7 +104,7 @@ class label_Prints extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'label_Wrapper, plg_Created, plg_Modified, plg_State, plg_RefreshRows, plg_Search, plg_Sorting, plg_rowTools2, plg_Clone, plg_Rejected, plg_LastUsedKeys';
+    public $loadList = 'label_Wrapper, plg_Created, plg_Modified, plg_State, plg_RefreshRows, plg_Search, plg_Sorting, plg_rowTools2, plg_Clone, plg_Rejected, plg_LastUsedKeys, plg_SelectPeriod';
     
     
     /**
@@ -858,10 +858,15 @@ class label_Prints extends core_Master
         $data->listFilter->setFieldTypeParams('classId', array('allowEmpty' => 'allowEmpty'));
         $data->listFilter->setField('objectId', 'caption=Обект, input, silent');
 
-        $data->listFilter->showFields = 'author, search, templateId, mediaId, classId, objectId';
+        // Филтър по дата на промяна
+        $data->listFilter->FLD('from', 'date', 'caption=От, silent');
+        $data->listFilter->FLD('to', 'date', 'caption=До, silent');
+
+        $data->listFilter->showFields = 'selectPeriod, from, to, author, search, templateId, mediaId, classId, objectId';
 
         $data->listFilter->input('author', true);
         $data->listFilter->input('classId,objectId', 'silent');
+        $data->listFilter->input('from,to', 'silent');
 
         // Ако не е избран потребител по подразбиране
         if (empty($data->listFilter->rec->author)) {
@@ -900,6 +905,14 @@ class label_Prints extends core_Master
 
             if (!empty($filter->objectId)) {
                 $data->query->where(array("#objectId = '[#1#]'", $filter->objectId));
+            }
+
+            if (!empty($filter->from)) {
+                $data->query->where(array("#createdOn >= '[#1#] 00:00:00'", $filter->from));
+            }
+
+            if (!empty($filter->to)) {
+                $data->query->where(array("#createdOn <= '[#1#] 23:59:59'", $filter->to));
             }
         }
     }
