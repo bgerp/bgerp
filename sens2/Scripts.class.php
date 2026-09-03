@@ -260,8 +260,8 @@ class sens2_Scripts extends core_Master
     {
         static $opts = array();
         
-        if (!$opts[$scriptId]) {
-            $opts = array();
+        if (!isset($opts[$scriptId])) {
+            $opts[$scriptId] = array();
             $inds = sens2_Indicators::getContex($scriptId);
             
             foreach ($inds as $name => $value) {

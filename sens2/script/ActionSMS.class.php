@@ -97,7 +97,7 @@ class sens2_script_ActionSMS
         } catch (core_exception_Expect $e) {
             $res = false;
             $dump = $e->getdump();
-            $logMsg = $dump[0] ? $dump[0] : $e->getMessage();
+            $logMsg = !empty($dump[0]) ? $dump[0] : $e->getMessage();
             log_System::add('sens2_Scripts', $logMsg, $rec->scriptId, 'warning', 2);
         }
         

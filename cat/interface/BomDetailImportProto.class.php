@@ -102,7 +102,13 @@ abstract class cat_interface_BomDetailImportProto extends import2_AbstractDriver
             $fieldName = "col{$name}";
             if ($fromClipboard) {
                 $form->setOptions($fieldName, array('' => '') + $clipboardColumns['options']);
-                $matchedColumn = import2_Clipboard::findMatchingColumn($name, $field['caption'] ?? $name, $clipboardColumns);
+                $matchedColumn = null;
+                $columnNames = array_unique(array_merge((array) ($field['columnNames'] ?? array()), array($name)));
+                foreach ($columnNames as $columnName) {
+                    $caption = ($columnName == $name) ? ($field['caption'] ?? $name) : $columnName;
+                    $matchedColumn = import2_Clipboard::findMatchingColumn($columnName, $caption, $clipboardColumns);
+                    if (isset($matchedColumn)) break;
+                }
                 if (isset($matchedColumn)) {
                     $form->setDefault($fieldName, $matchedColumn);
                 }
