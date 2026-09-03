@@ -36,7 +36,7 @@ class cat_interface_DisassemblyBomDetailImport extends cat_interface_BomDetailIm
         expect($bomRec = cat_DisassemblyBoms::fetch($bomId));
 
         $fields = array();
-        $fields['productId'] = array('caption' => 'Артикул', 'mandatory' => 'mandatory');
+        $fields['productId'] = array('caption' => 'Артикул', 'mandatory' => 'mandatory', 'columnNames' => array('code', 'resourceId'));
         $fields['packagingId'] = array('caption' => 'Мярка');
         $fields['packQuantity'] = array('caption' => 'Количество', 'mandatory' => 'mandatory');
         if ($bomRec->allocationBy == 'manual') {

@@ -66,7 +66,7 @@ class cat_interface_BomDetailImport extends cat_interface_BomDetailImportProto
         // Полетата са като в експорта на рецептата
         $fields['position'] = array('caption' => 'Позиция');
         $fields['type'] = array('caption' => 'Действие');
-        $fields['productId'] = array('caption' => 'Артикул', 'mandatory' => 'mandatory');
+        $fields['productId'] = array('caption' => 'Артикул', 'mandatory' => 'mandatory', 'columnNames' => array('code', 'resourceId'));
         $fields['packagingId'] = array('caption' => 'Мярка');
         $fields['propQuantity'] = array('caption' => 'Количество');
         $fields['paramId'] = array('caption' => 'Параметър');
