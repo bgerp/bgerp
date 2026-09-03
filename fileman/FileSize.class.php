@@ -53,11 +53,11 @@ class fileman_FileSize extends type_Bigint
      */
     public function renderInput_($name, $value = '', &$attr = array())
     {
-        if ($this->params[0]) {
+        if (!empty($this->params[0])) {
             $attr['maxlength'] = $this->params[0];
         }
-        
-        if ($this->params['size']) {
+
+        if (!empty($this->params['size'])) {
             $attr['size'] = $this->params['size'];
         }
         
