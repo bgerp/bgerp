@@ -535,6 +535,221 @@ class pos_Terminal extends peripheral_Terminal
     
     
     /**
+     * Модал с възможностите за трансфер към избрания склад
+     *
+     * @return array $res
+     */
+    public function act_TransferStoreModal()
+    {
+        $Receipts = cls::get('pos_Receipts');
+        $Receipts->requireRightFor('terminal');
+        expect($receiptId = Request::get('receiptId', 'int'));
+        expect($storeId = Request::get('storeId', 'int'));
+        expect($rec = $Receipts->fetch($receiptId));
+        $Receipts->requireRightFor('terminal', $rec);
+
+        $stores = $this->getStoresForTransfer($rec);
+        expect(array_key_exists($storeId, $stores), 'Не може да се създаде МСТ към този склад');
+
+        $tpl = new core_ET("<div class='transferStoreModal'><div class='grid'>[#BTNS#]</div></div>");
+
+        // Създаването на нов трансфер е винаги първата възможност
+        $newUrl = toUrl(array($this, 'CreateTransfer', 'receiptId' => $rec->id, 'storeId' => $storeId));
+        $newAttr = array('id' => 'newTransferBtn', 'class' => 'posBtns transferModalBtn newTransferBtn', 'title' => 'Създаване на нов междускладов трансфер от бележката', 'onclick' => "document.location='{$newUrl}';");
+        $tpl->append(ht::createElement('div', $newAttr, tr('Нов трансфер'), true), 'BTNS');
+
+        // Заявките между склада на точката и избрания - отварят се
+        $pointStoreId = pos_Points::fetchField($rec->pointId, 'storeId');
+        foreach ($this->getPendingTransfersBetweenStores($pointStoreId, $storeId) as $transferRec) {
+            $openUrl = toUrl(store_Transfers::getSingleUrlArray($transferRec->id));
+            $btnCaption = store_Transfers::getRecTitle($transferRec) . "<div class='small'>" . store_Stores::getTitleById($transferRec->fromStore) . ' &raquo; ' . store_Stores::getTitleById($transferRec->toStore) . '</div>';
+            $openAttr = array('id' => "openTransfer{$transferRec->id}", 'class' => 'posBtns transferModalBtn state-pending', 'title' => 'Отваряне на заявката', 'onclick' => "document.location='{$openUrl}';");
+            $tpl->append(ht::createElement('div', $openAttr, $btnCaption, true), 'BTNS');
+        }
+
+        // Заявките към този склад, които са в етап "Получаване"
+        foreach ($this->getPendingTransfersForStore($storeId) as $transferRec) {
+            $fillUrl = toUrl(array($this, 'FillTransfer', 'receiptId' => $rec->id, 'transferId' => $transferRec->id));
+            $btnCaption = store_Transfers::getRecTitle($transferRec) . "<div class='small'>" . tr('Наливане в получените') . '</div>';
+            $fillAttr = array('id' => "fillTransfer{$transferRec->id}", 'class' => 'posBtns transferModalBtn state-pending', 'title' => 'Наливане на количествата от бележката в получените', 'onclick' => "document.location='{$fillUrl}';");
+            $tpl->append(ht::createElement('div', $fillAttr, $btnCaption, true), 'BTNS');
+        }
+
+        $res = array();
+        $resObj = new stdClass();
+        $resObj->func = 'html';
+        $resObj->arg = array('id' => 'modalContent', 'html' => $tpl->getContent(), 'replace' => true);
+        $res[] = $resObj;
+
+        return $res;
+    }
+
+
+    /**
+     * Заявките на заявка между двата склада, в която и да е посока
+     *
+     * @param int $pointStoreId
+     * @param int $storeId
+     *
+     * @return array - записите на заявките
+     */
+    private function getPendingTransfersBetweenStores($pointStoreId, $storeId)
+    {
+        $tQuery = store_Transfers::getQuery();
+        $tQuery->where("#state = 'pending'");
+        $tQuery->where("(#fromStore = {$pointStoreId} AND #toStore = {$storeId}) OR (#fromStore = {$storeId} AND #toStore = {$pointStoreId})");
+        $tQuery->orderBy('id', 'DESC');
+
+        return $tQuery->fetchAll();
+    }
+
+
+    /**
+     * Заявките към склада, които са в етап "Получаване" и потребителят може да редактира
+     *
+     * @param int $storeId
+     *
+     * @return array - записите на заявките
+     */
+    private function getPendingTransfersForStore($storeId)
+    {
+        $res = array();
+        $tQuery = store_Transfers::getQuery();
+        $tQuery->where("#toStore = {$storeId} AND #state = 'pending' AND #pendingStage = 'execution'");
+        $tQuery->orderBy('id', 'DESC');
+
+        while ($transferRec = $tQuery->fetch()) {
+            if (store_TransfersDetails::haveRightFor('edit', (object)array('transferId' => $transferRec->id))) {
+                $res[$transferRec->id] = $transferRec;
+            }
+        }
+
+        return $res;
+    }
+
+
+    /**
+     * Наливане на количествата от бележката в получените на съществуваща заявка
+     *
+     * @return Redirect
+     */
+    public function act_FillTransfer()
+    {
+        $Receipts = cls::get('pos_Receipts');
+        $Receipts->requireRightFor('terminal');
+        expect($receiptId = Request::get('receiptId', 'int'));
+        expect($transferId = Request::get('transferId', 'int'));
+        expect($rec = $Receipts->fetch($receiptId));
+        $Receipts->requireRightFor('terminal', $rec);
+        expect($transferRec = store_Transfers::fetch($transferId), 'Несъществуваща заявка');
+
+        // Заявката трябва да е към разрешен склад и още да е в етап "Получаване"
+        $stores = $this->getStoresForTransfer($rec);
+        expect(array_key_exists($transferRec->toStore, $stores), 'Не може да се налива в заявка към този склад');
+        expect(array_key_exists($transferId, $this->getPendingTransfersForStore($transferRec->toStore)), 'Заявката не е в етап "Получаване"');
+
+        $Details = cls::get('store_TransfersDetails');
+        $filled = $skipped = array();
+
+        foreach ($Receipts->getProducts($rec->id) as $product) {
+            $detailRec = $Details->fetch("#transferId = {$transferId} AND #productId = {$product->productId}");
+            if (empty($detailRec)) {
+                $skipped[$product->productId] = cat_Products::getTitleById($product->productId);
+                continue;
+            }
+
+            // К-тата по етапите се пазят в основна мярка, а в бележката са в опаковки
+            $packRec = cat_products_Packagings::getPack($product->productId, $product->packagingId);
+            $quantityInPack = is_object($packRec) ? $packRec->quantity : 1;
+
+            // Записаното к-во отива в колоната на текущия етап през on_BeforeSave на детайла
+            $detailRec->quantity = ($detailRec->executedQuantity ?? 0) + $product->quantity * $quantityInPack;
+            $Details->save($detailRec);
+            $filled[$product->productId] = $product->productId;
+        }
+
+        // Ако нищо не е налято, бележката не се пипа
+        if (!countR($filled)) {
+            return new Redirect(array('pos_Terminal', 'open', 'receiptId' => $rec->id), 'Няма артикули от бележката в заявката|*!', 'error');
+        }
+
+        // Бележката се затваря и запазените по нея количества се освобождават
+        $rec->state = 'closed';
+        $rec->storeTransferId = $transferRec->id;
+        $Receipts->save($rec, 'state,storeTransferId');
+        $Receipts->logInAct('Наливане на количествата в МСТ', $rec->id);
+        store_StockPlanning::updateByDocument($Receipts, $rec->id);
+
+        Mode::setPermanent("currentOperation{$rec->id}", 'receipts');
+        Mode::setPermanent("currentSearchString{$rec->id}", null);
+
+        doc_ThreadUsers::addShared($transferRec->threadId, $transferRec->containerId, core_Users::getCurrent());
+
+        $msg = 'Количествата от бележката са налети в заявката|*!';
+        if (countR($skipped)) {
+            $msg = 'Налети са само артикулите от заявката, останалите са пропуснати|*: ' . implode(', ', $skipped);
+        }
+
+        return new Redirect(array('store_Transfers', 'single', $transferRec->id), $msg, countR($skipped) ? 'warning' : 'notice');
+    }
+
+
+    /**
+     * Създаване на междускладов трансфер от бележката и затварянето ѝ
+     *
+     * @return Redirect
+     */
+    public function act_CreateTransfer()
+    {
+        $Receipts = cls::get('pos_Receipts');
+        $Receipts->requireRightFor('terminal');
+        expect($receiptId = Request::get('receiptId', 'int'));
+        expect($storeId = Request::get('storeId', 'int'));
+        expect($rec = $Receipts->fetch($receiptId));
+        $Receipts->requireRightFor('terminal', $rec);
+
+        // Складът трябва да е сред разрешените за бележката
+        $stores = $this->getStoresForTransfer($rec);
+        expect(array_key_exists($storeId, $stores), 'Не може да се създаде МСТ към този склад');
+
+        // Създаване на чернова на МСТ от склада на точката към избрания
+        $Transfers = cls::get('store_Transfers');
+        $transferRec = (object)array('fromStore' => pos_Points::fetchField($rec->pointId, 'storeId'),
+                                     'toStore' => $storeId,
+                                     'folderId' => store_Stores::forceCoverAndFolder($storeId));
+        $Transfers->save($transferRec);
+        $Transfers->logWrite('Създаване от ПОС бележка', $transferRec->id);
+
+        // Прехвърляне на складируемите артикули от бележката
+        foreach ($Receipts->getProducts($rec->id) as $product){
+            $productRec = cat_Products::fetch($product->productId, 'canStore,measureId');
+            if($productRec->canStore != 'yes') continue;
+
+            $packagingId = !empty($product->packagingId) ? $product->packagingId : $productRec->measureId;
+            $packRec = cat_products_Packagings::getPack($product->productId, $packagingId);
+            $quantityInPack = is_object($packRec) ? $packRec->quantity : 1;
+            store_Transfers::addRow($transferRec->id, $product->productId, $packagingId, $product->quantity, $quantityInPack, $product->batch);
+        }
+
+        // Бележката се затваря и запазените по нея количества се освобождават
+        $rec->state = 'closed';
+        $rec->storeTransferId = $transferRec->id;
+        $Receipts->save($rec, 'state,storeTransferId');
+        $Receipts->logInAct('Създаване на МСТ от бележката', $rec->id);
+        store_StockPlanning::updateByDocument($Receipts, $rec->id);
+
+        Mode::setPermanent("currentOperation{$rec->id}", 'receipts');
+        Mode::setPermanent("currentSearchString{$rec->id}", null);
+
+        // Споделяне на потребителя към нишката на трансфера
+        $transferRec = $Transfers->fetch($transferRec->id);
+        doc_ThreadUsers::addShared($transferRec->threadId, $transferRec->containerId, core_Users::getCurrent());
+
+        return new Redirect(array('store_Transfers', 'single', $transferRec->id), 'Успешно създаден междускладов трансфер от бележката|*!');
+    }
+
+
+    /**
      * Пълна клавиатура
      *
      * @return array $res
@@ -1109,6 +1324,7 @@ class pos_Terminal extends peripheral_Terminal
         $personClassId = crm_Persons::getClassId();
         $companyClassId = crm_Companies::getClassId();
         $showUniqueNumberLike = false;
+        $transferStores = array();
 
         $tpl = new core_ET("");
         if($rec->contragentObjectId == $defaultContragentId && $rec->contragentClass == $defaultContragentClassId){
@@ -1138,8 +1354,21 @@ class pos_Terminal extends peripheral_Terminal
                 $holderTpl->append(ht::createElement('div', $newCompanyAttr, $btnName, true));
             }
 
+            // Бутон, показващ секцията за създаване на МСТ към друг склад
+            $transferStores = $this->getStoresForTransfer($rec);
+            $toggleAttr = array('id' => 'transferStoresToggle', 'class' => 'posBtns transferStoresToggleBtn', 'title' => 'Създаване на междускладов трансфер от бележката');
+            if(countR($transferStores)){
+                $toggleAttr['onclick'] = "jQuery('.transferStores, .contragentSearchSection').toggleClass('hidden'); jQuery(this).toggleClass('active');";
+            } else {
+                $toggleAttr['disabled'] = 'disabled';
+                $toggleAttr['class'] .= ' disabledBtn';
+            }
+            $holderTpl->append(ht::createElement('div', $toggleAttr, 'Склад', true));
+
             $holderTpl = ht::createElement('div', array('class' => 'grid'), $holderTpl, true);
             $tpl->append($holderTpl);
+            $tpl->append($this->renderTransferStores($rec, $transferStores));
+            $tpl->append("<div class='contragentSearchSection'>");
             $tpl->append(tr("|*<div class='divider'>|Търсене на клиенти|*</div>"));
             
             $count = 0;
@@ -1420,7 +1649,10 @@ class pos_Terminal extends peripheral_Terminal
         }
         $tpl->append(ht::createElement('div', array('class' => 'grid'), $temp, true));
 
-
+        // Затваряне на секцията за търсене на контрагенти, ако е отворена
+        if(countR($transferStores)){
+            $tpl->append("</div>");
+        }
 
         $tpl->prepend("<div class='contentHolderResults'>");
         $tpl->append("</div>");
@@ -1429,6 +1661,67 @@ class pos_Terminal extends peripheral_Terminal
     }
     
     
+    /**
+     * Активните складове, към които може да се създаде МСТ от бележката
+     *
+     * @param stdClass $rec - записа на бележката
+     *
+     * @return array - име на склад, по ид
+     */
+    private function getStoresForTransfer($rec)
+    {
+        $res = array();
+        if($rec->state != 'draft') return $res;
+
+        // Не може да се прехвърля бележка с направено плащане
+        if(pos_ReceiptDetails::count("#receiptId = {$rec->id} AND #action LIKE '%payment%'")) return $res;
+
+        $pointStoreId = pos_Points::fetchField($rec->pointId, 'storeId');
+        if(empty($pointStoreId)) return $res;
+
+        // Трябва да има права за създаване на МСТ в папката на склада на точката
+        $folderId = store_Stores::fetchField($pointStoreId, 'folderId');
+        if(empty($folderId)) return $res;
+        if(!store_Transfers::haveRightFor('add', (object)array('folderId' => $folderId))) return $res;
+
+        $sQuery = store_Stores::getQuery();
+        $sQuery->where("#state = 'active' AND #id != {$pointStoreId}");
+        $sQuery->show('id,name');
+        while($sRec = $sQuery->fetch()){
+            $res[$sRec->id] = store_Stores::getTitleById($sRec->id);
+        }
+
+        return $res;
+    }
+
+
+    /**
+     * Рендиране на скритата секция с бутони за създаване на МСТ към друг склад
+     *
+     * @param stdClass $rec - записа на бележката
+     * @param array $stores - складовете от getStoresForTransfer
+     *
+     * @return core_ET
+     */
+    private function renderTransferStores($rec, $stores)
+    {
+        $tpl = new core_ET("");
+        if(!countR($stores)) return $tpl;
+
+        foreach ($stores as $storeId => $storeName){
+            $url = toUrl(array($this, 'TransferStoreModal', 'receiptId' => $rec->id, 'storeId' => $storeId), 'local');
+            $attr = array('id' => "transferStore{$storeId}", 'class' => 'posBtns navigable transferStoreBtn', 'title' => 'Междускладов трансфер към склада', 'data-url' => $url, 'data-modal-title' => strip_tags($storeName));
+            $tpl->append(ht::createElement('div', $attr, $storeName, true));
+        }
+
+        $tpl = ht::createElement('div', array('class' => 'grid'), $tpl, true);
+        $tpl->prepend(tr("|*<div class='transferStores hidden'><div class='divider'>|Избор на склад дестинация|*</div>"));
+        $tpl->append("</div>");
+
+        return $tpl;
+    }
+
+
     /**
      * Рендиране на таблицата с начините на плащане
      *
