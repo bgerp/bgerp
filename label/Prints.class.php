@@ -104,7 +104,9 @@ class label_Prints extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'label_Wrapper, plg_Created, plg_Modified, plg_State, plg_RefreshRows, plg_Search, plg_Sorting, plg_rowTools2, plg_Clone, plg_Rejected, plg_LastUsedKeys, plg_SelectPeriod';
+    // plg_SelectPeriod е преди plg_Search - плъгините се изпълняват обратно на реда тук,
+    // а ако зададе showFields преди търсенето, то въвежда само него (@see plg_SelectPeriod)
+    public $loadList = 'label_Wrapper, plg_Created, plg_Modified, plg_State, plg_RefreshRows, plg_SelectPeriod, plg_Search, plg_Sorting, plg_rowTools2, plg_Clone, plg_Rejected, plg_LastUsedKeys';
     
     
     /**
