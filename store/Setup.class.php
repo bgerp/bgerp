@@ -360,20 +360,14 @@ class store_Setup extends core_ProtoSetup
         $col = str::phpToMysqlName('productId');
         $oldCol = str::phpToMysqlName('newProductId');
 
+        // Ако старата колона я няма, преименуването е минало нормално
         if (!$Detail->db->isFieldExists($tbl, $oldCol) || !$Detail->db->isFieldExists($tbl, $col)) {
 
             return;
         }
 
-        // Изтрива се само ако наистина е празна
-        $dbRes = $Detail->db->query("SELECT COUNT(`{$col}`) AS cnt FROM `{$tbl}`");
-        $countArr = $Detail->db->fetchArray($dbRes);
-        if (!empty($countArr['cnt'])) {
-
-            return;
-        }
-
-        $Detail->db->query("ALTER TABLE `{$tbl}` DROP COLUMN `{$col}`");
-        $Detail->setupMvc();
+        // Артикулът е останал в старата колона - пренася се само където няма записан
+        $Detail->db->query("UPDATE `{$tbl}` SET `{$col}` = `{$oldCol}` WHERE (`{$col}` IS NULL OR `{$col}` = 0) AND `{$oldCol}` IS NOT NULL");
+        $Detail->db->query("ALTER TABLE `{$tbl}` DROP COLUMN `{$oldCol}`");
     }
 }
