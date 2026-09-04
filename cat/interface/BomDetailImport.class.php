@@ -66,7 +66,7 @@ class cat_interface_BomDetailImport extends cat_interface_BomDetailImportProto
         // Полетата са като в експорта на рецептата
         $fields['position'] = array('caption' => 'Позиция');
         $fields['type'] = array('caption' => 'Действие');
-        $fields['code'] = array('caption' => 'Код', 'mandatory' => 'mandatory', 'columnNames' => array('resourceId'));
+        $fields['code'] = array('caption' => 'Код', 'mandatory' => 'mandatory', 'columnNames' => array('productId', 'resourceId'));
         $fields['packagingId'] = array('caption' => 'Мярка');
         $fields['propQuantity'] = array('caption' => 'Количество');
         $fields['paramId'] = array('caption' => 'Параметър');
@@ -262,8 +262,8 @@ class cat_interface_BomDetailImport extends cat_interface_BomDetailImportProto
         if (empty($productRec->productId)) {
             $errors[] = 'Неразпознат код';
         } else {
-            $rec->resourceId = $productRec->productId;
-            $pRec = cat_Products::fetch($rec->resourceId, 'canConvert,canManifacture,canStore,measureId');
+            $rec->productId = $productRec->productId;
+            $pRec = cat_Products::fetch($rec->productId, 'canConvert,canManifacture,canStore,measureId');
 
             if (in_array($rec->type, array('input', 'pop')) && $pRec->canConvert != 'yes') {
                 $errors[] = 'Материалът/Отпадакът не е вложим';
@@ -275,8 +275,8 @@ class cat_interface_BomDetailImport extends cat_interface_BomDetailImportProto
                 $errors[] = 'Етапът не е производим';
             } else {
                 $notAllowed = array();
-                cls::get('cat_BomDetails')->findNotAllowedProducts($rec->resourceId, $bomRec->productId, $notAllowed);
-                if (isset($notAllowed[$rec->resourceId])) {
+                cls::get('cat_BomDetails')->findNotAllowedProducts($rec->productId, $bomRec->productId, $notAllowed);
+                if (isset($notAllowed[$rec->productId])) {
                     $errors[] = 'Невъзможен за добавяне';
                 }
 
@@ -294,10 +294,10 @@ class cat_interface_BomDetailImport extends cat_interface_BomDetailImportProto
                 }
                 setIfNot($rec->packagingId, $pRec->measureId);
 
-                if (!array_key_exists($rec->packagingId, cat_Products::getPacks($rec->resourceId))) {
+                if (!array_key_exists($rec->packagingId, cat_Products::getPacks($rec->productId))) {
                     $errors[] = 'Мярката не е допустима за артикула';
                 } else {
-                    $pInfo = cat_Products::getProductInfo($rec->resourceId);
+                    $pInfo = cat_Products::getProductInfo($rec->productId);
                     $rec->quantityInPack = isset($pInfo->packagings[$rec->packagingId]) ? $pInfo->packagings[$rec->packagingId]->quantity : 1;
                 }
             }
@@ -461,8 +461,8 @@ class cat_interface_BomDetailImport extends cat_interface_BomDetailImportProto
     {
         // На етапите се задават и данните за производство от артикула им
         if ($rec->type == 'stage') {
-            if ($Driver = cat_Products::getDriver($rec->resourceId)) {
-                $productionData = $Driver->getProductionData($rec->resourceId);
+            if ($Driver = cat_Products::getDriver($rec->productId)) {
+                $productionData = $Driver->getProductionData($rec->productId);
                 foreach (array('centerId', 'norm', 'storeIn', 'inputStores', 'fixedAssets', 'employees', 'labelPackagingId', 'labelQuantityInPack', 'labelType', 'labelTemplate') as $productionFld) {
                     $productionValue = $productionData[$productionFld] ?? null;
                     $rec->{$productionFld} = is_array($productionValue) ? keylist::fromArray($productionValue) : $productionValue;

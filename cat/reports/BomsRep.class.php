@@ -150,7 +150,7 @@ class cat_reports_BomsRep extends frame_BaseDriver
                     $materials = array();
                     
                     while ($recDetail = $queryDetail->fetch()) {
-                        $index = $rec->saleId.'|'.$recDetail->resourceId;
+                        $index = $rec->saleId.'|'.$recDetail->productId;
                         
                         $componentArr = cat_Products::prepareComponents($rec->productId, $data->component, null, null, 'production');
                         
@@ -165,9 +165,9 @@ class cat_reports_BomsRep extends frame_BaseDriver
                                 if (!$recDetail->parentId || $recDetail->type == 'stage') {
                                     $dRecs[$index] =
                                     (object) array('id' => $recDetail->id,
-                                        'article' => $recDetail->resourceId,
+                                        'article' => $recDetail->productId,
                                         'articleCnt' => $q,
-                                        'params' => cat_Products::getParams($recDetail->resourceId, null, true),
+                                        'params' => cat_Products::getParams($recDetail->productId, null, true),
                                         'quantity' => $rec->quantity,
                                         'materials' => 0,
                                         'sal' => $rec->saleId,
