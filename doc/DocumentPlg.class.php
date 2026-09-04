@@ -2522,7 +2522,9 @@ class doc_DocumentPlg extends core_Plugin
 
                 if (!empty($form->rec->id)) {
                     $oldRec = $mvc->fetch($form->rec->id);
-                    doc_Containers::changeNotifications($rec, $oldRec->sharedUsers, $rec->sharedUsers);
+                    $oldSharedUsers = $oldRec->sharedUsers ?? null;
+                    $newSharedUsers = property_exists($rec, 'sharedUsers') ? $rec->sharedUsers : $oldSharedUsers;
+                    doc_Containers::changeNotifications($rec, $oldSharedUsers, $newSharedUsers);
                 }
             }
         }

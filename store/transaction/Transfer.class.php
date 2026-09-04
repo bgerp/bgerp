@@ -18,7 +18,7 @@
 class store_transaction_Transfer extends acc_DocumentTransactionSource
 {
     /**
-     * @param int $id
+     * @param int|object $id
      *
      * @return stdClass
      *
@@ -39,9 +39,12 @@ class store_transaction_Transfer extends acc_DocumentTransactionSource
         
         $productArr = array();
         $error = true;
-        $dQuery = store_TransfersDetails::getQuery();
-        $dQuery->where("#transferId = '{$rec->id}'");
-        $details = $dQuery->fetchAll();
+        $details = array();
+        if (!empty($rec->id)) {
+            $dQuery = store_TransfersDetails::getQuery();
+            $dQuery->where("#transferId = '{$rec->id}'");
+            $details = $dQuery->fetchAll();
+        }
 
         // Ако ще се доведе до отрицателна, количност и не е разрешено да се сетне грешка
         if (acc_Journal::throwErrorsIfFoundWhenTryingToPost()) {
