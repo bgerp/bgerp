@@ -191,8 +191,39 @@ class store_TransfersDetails extends doc_Detail
             return;
         }
 
-        $fieldName = store_Transfers::getQuantityFieldName($rec->{$mvc->masterKey});
+        $masterRec = store_Transfers::fetchRec($rec->{$mvc->masterKey}, 'state,pendingStage');
+
+        // В чернова етапите още не са започнали - заявеното се попълва чак когато документът стане заявка
+        if ($masterRec->state == 'draft') return;
+
+        $fieldName = store_Transfers::getQuantityFieldName($masterRec);
         $rec->{$fieldName} = $rec->quantity;
+    }
+
+
+    /**
+     * Заявеното к-во на редовете става к-то, с което документът е станал заявка
+     *
+     * @param int $masterId
+     *
+     * @return void
+     *
+     * @see store_Transfers::on_AfterSavePendingDocument
+     */
+    public static function fillRequestedQuantities($masterId)
+    {
+        $me = cls::get(get_called_class());
+
+        $query = $me->getQuery();
+        $query->where("#transferId = {$masterId}");
+        $query->show('quantity,requestedQuantity');
+
+        while ($rec = $query->fetch()) {
+            if (isset($rec->requestedQuantity) && round($rec->requestedQuantity, 5) == round($rec->quantity, 5)) continue;
+
+            $rec->requestedQuantity = $rec->quantity;
+            $me->save_($rec, 'requestedQuantity');
+        }
     }
     
     
@@ -303,6 +334,8 @@ class store_TransfersDetails extends doc_Detail
             
             return;
         }
+
+        static::prepareStageColumns($data);
         
         foreach ($data->rows as $id => $row) {
             $rec = $data->recs[$id];
@@ -313,6 +346,52 @@ class store_TransfersDetails extends doc_Detail
     }
     
     
+    /**
+     * Етап, по който няма нито едно к-во, не се показва - освен ако е текущият.
+     * Основната колона се откроява само когато остане поне една етапна
+     *
+     * @param stdClass $data
+     *
+     * @return void
+     */
+    private static function prepareStageColumns($data)
+    {
+        $masterRec = $data->masterData->rec ?? null;
+        if (empty($masterRec)) return;
+
+        $stageFields = arr::make('requestedQuantity,loadedQuantity,executedQuantity', true);
+
+        // Колоната на текущия етап стои, докато не въведат к-во в нея
+        $currentField = null;
+        if ($masterRec->state == 'pending' && !empty($masterRec->pendingStage)) {
+            $currentField = store_Transfers::getQuantityFieldName($masterRec);
+            unset($stageFields[$currentField]);
+        }
+
+        $hideIfEmpty = arr::make($data->hideListFieldsIfEmpty ?? null, true);
+        $data->hideListFieldsIfEmpty = $hideIfEmpty + $stageFields;
+
+        // Основното к-во се откроява само ако ще излезе поне една етапна колона
+        $showStages = isset($currentField);
+        foreach ($stageFields as $fieldName) {
+            if ($showStages) break;
+            if (!isset($data->listFields[$fieldName])) continue;
+
+            foreach ($data->recs as $rec) {
+                if (!empty($rec->{$fieldName})) {
+                    $showStages = true;
+                    break;
+                }
+            }
+        }
+
+        // Задава се и в двата случая - описанието на полето е общо за всички МСТ-та в рендера
+        if (!empty($data->listTableMvc)) {
+            $data->listTableMvc->setField('packQuantity', 'tdClass=' . ($showStages ? 'mainQuantityCol' : 'unsetValue'));
+        }
+    }
+
+
     /**
      * Преди показване на форма за добавяне/промяна
      */
