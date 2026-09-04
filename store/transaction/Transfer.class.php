@@ -46,14 +46,14 @@ class store_transaction_Transfer extends acc_DocumentTransactionSource
         // Ако ще се доведе до отрицателна, количност и не е разрешено да се сетне грешка
         if (acc_Journal::throwErrorsIfFoundWhenTryingToPost()) {
             if(!store_Setup::canDoShippingWhenStockIsNegative()){
-                if ($warning = deals_Helper::getWarningForNegativeQuantitiesInStore($details, $rec->fromStore, $rec->state, 'newProductId')) {
+                if ($warning = deals_Helper::getWarningForNegativeQuantitiesInStore($details, $rec->fromStore, $rec->state)) {
                     acc_journal_RejectRedirect::expect(false, $warning);
                 }
             }
         }
 
         foreach ($details as $dRec) {
-            $productArr[$dRec->newProductId] = $dRec->newProductId;
+            $productArr[$dRec->productId] = $dRec->productId;
             if (empty($dRec->quantity)) {
                 if (Mode::get('saveTransaction')) {
                     continue;
@@ -68,13 +68,13 @@ class store_transaction_Transfer extends acc_DocumentTransactionSource
                 'amount' => 0,
                 'credit' => array($accId,
                     array('store_Stores', $rec->fromStore), // Перо 1 - Склад
-                    array('cat_Products', $dRec->newProductId),  // Перо 2 - Артикул
+                    array('cat_Products', $dRec->productId),  // Перо 2 - Артикул
                     'quantity' => $dRec->quantity, // Количество продукт в основната му мярка,
                 ),
                 
                 'debit' => array($accId,
                     array('store_Stores', $rec->toStore), // Перо 1 - Склад
-                    array('cat_Products', $dRec->newProductId),  // Перо 2 - Артикул
+                    array('cat_Products', $dRec->productId),  // Перо 2 - Артикул
                     'quantity' => $dRec->quantity, // Количество продукт в основната му мярка
                 ),
             );

@@ -620,7 +620,7 @@ class store_Transfers extends core_Master
         $dQuery->EXT('mState', 'store_Transfers', 'externalName=state,externalKey=transferId');
         $dQuery->where("#transferId = '{$id}'");
         while ($dRec = $dQuery->fetch()) {
-            $cid = cat_Products::fetchField($dRec->newProductId, 'containerId');
+            $cid = cat_Products::fetchField($dRec->productId, 'containerId');
             $res[$cid] = $cid;
         }
 
@@ -674,14 +674,14 @@ class store_Transfers extends core_Master
         $query->where("#transferId = {$rec->id}");
         while ($dRec = $query->fetch()) {
             if($option == 'storable'){
-                $canStore = cat_Products::fetchField($dRec->newProductId, 'canStore');
+                $canStore = cat_Products::fetchField($dRec->productId, 'canStore');
                 if($canStore != 'yes') continue;
             }
 
-            if (!array_key_exists($dRec->newProductId, $products)) {
-                $products[$dRec->newProductId] = (object)array('productId' => $dRec->newProductId,
+            if (!array_key_exists($dRec->productId, $products)) {
+                $products[$dRec->productId] = (object)array('productId' => $dRec->productId,
                     'quantity' => 0,
-                    'name' => cat_Products::getTitleById($dRec->newProductId, false),
+                    'name' => cat_Products::getTitleById($dRec->productId, false),
                     'amount' => null,
                     'transportWeight' => $dRec->weight,
                     'transportVolume' => $dRec->volume,
@@ -689,8 +689,8 @@ class store_Transfers extends core_Master
                 );
             }
 
-            $products[$dRec->newProductId]->quantity += $dRec->quantity;
-            $products[$dRec->newProductId]->inStores[$rec->toStore] += $dRec->quantity;
+            $products[$dRec->productId]->quantity += $dRec->quantity;
+            $products[$dRec->productId]->inStores[$rec->toStore] += $dRec->quantity;
         }
 
         return $products;
@@ -846,9 +846,9 @@ class store_Transfers extends core_Master
         $rec = $this->fetchRec($id);
         $dQuery = store_TransfersDetails::getQuery();
         $dQuery->where("#transferId = {$id}");
-        $dQuery->show('newProductId, quantity');
+        $dQuery->show('productId, quantity');
 
-        $warning = deals_Helper::getWarningForNegativeQuantitiesInStore($dQuery->fetchAll(), $rec->fromStore, $rec->state, 'newProductId');
+        $warning = deals_Helper::getWarningForNegativeQuantitiesInStore($dQuery->fetchAll(), $rec->fromStore, $rec->state);
 
         return !empty($warning) ? array('text' => $warning, 'severity' => acc_plg_Contable::SEVERITY_WARNING) : null;
     }
@@ -964,8 +964,6 @@ class store_Transfers extends core_Master
                 $dQuery = $Detail->getQuery();
                 $dQuery->where("#{$Detail->masterKey} = {$id}");
                 while($dRec = $dQuery->fetch()){
-                    $dRec->newProductId = $dRec->productId;
-
                     $inStoreQuantity = store_Products::getQuantities($dRec->productId, $rec->fromStore)->quantity;
                     $quantity = min($inStoreQuantity, $dRec->quantity);
                     $dRec->quantity = $quantity;
@@ -1006,24 +1004,24 @@ class store_Transfers extends core_Master
         $horizonAdd = store_Setup::get('PLANNED_DATE_ADDITIVE_IF_IN_THE_PAST');
 
         $dQuery = $Detail->getQuery();
-        $dQuery->EXT('generic', 'cat_Products', "externalName=generic,externalKey=newProductId");
-        $dQuery->EXT('canConvert', 'cat_Products', "externalName=canConvert,externalKey=newProductId");
+        $dQuery->EXT('generic', 'cat_Products', "externalName=generic,externalKey=productId");
+        $dQuery->EXT('canConvert', 'cat_Products', "externalName=canConvert,externalKey=productId");
         $dQuery->XPR('totalQuantity', 'double', "SUM(#{$Detail->quantityFld})");
         $dQuery->where("#{$Detail->masterKey} = {$rec->id}");
-        $dQuery->groupBy('newProductId');
+        $dQuery->groupBy('productId');
         $today = dt::today();
         $now = dt::now();
 
         while ($dRec = $dQuery->fetch()) {
             $genericProductId = null;
             if($dRec->generic == 'yes'){
-                $genericProductId = $dRec->newProductId;
+                $genericProductId = $dRec->productId;
             } elseif($dRec->canConvert == 'yes'){
-                $genericProductId = planning_GenericMapper::fetchField("#productId = {$dRec->newProductId}", 'genericProductId');
+                $genericProductId = planning_GenericMapper::fetchField("#productId = {$dRec->productId}", 'genericProductId');
             }
 
             $res[] = (object)array('storeId'          => $rec->fromStore,
-                                   'productId'        => $dRec->newProductId,
+                                   'productId'        => $dRec->productId,
                                    'date'             => $dateArr['date'],
                                    'quantityIn'       => null,
                                    'quantityOut'      => $dRec->totalQuantity,
@@ -1035,7 +1033,7 @@ class store_Transfers extends core_Master
             }
 
             $res[] = (object)array('storeId'          => $rec->toStore,
-                                   'productId'        => $dRec->newProductId,
+                                   'productId'        => $dRec->productId,
                                    'date'             => $dateIn,
                                    'quantityIn'       => $dRec->totalQuantity,
                                    'quantityOut'      => null,
@@ -1079,7 +1077,7 @@ class store_Transfers extends core_Master
         $quantity = $quantityInPack * $packQuantity;
 
         $Detail = cls::get('store_TransfersDetails');
-        $nRec = (object)array('transferId' => $id, 'newProductId' => $productId, 'packagingId' => $packagingId, 'quantity' => $quantity, 'quantityInPack' => $quantityInPack, 'batch' => $batch);
+        $nRec = (object)array('transferId' => $id, 'productId' => $productId, 'packagingId' => $packagingId, 'quantity' => $quantity, 'quantityInPack' => $quantityInPack, 'batch' => $batch);
         $nRec->autoAllocate = !empty($batch);
 
         if(!empty($batch)) {
@@ -1118,7 +1116,7 @@ class store_Transfers extends core_Master
         }
 
         if(!$cache || $res === false){
-            $products = deals_Helper::sumProductsByQuantity('store_TransfersDetails', $rec->id, true, 'newProductId');
+            $products = deals_Helper::sumProductsByQuantity('store_TransfersDetails', $rec->id, true);
             $res = store_StockPlanning::getEarliestDateAllAreAvailable($rec->fromStore, $products);
             core_Cache::set($this->className, "earliestDateAllAvailable{$rec->containerId}", $res, 10);
         }
