@@ -653,6 +653,10 @@ class trans_plg_LinesPlugin extends core_Plugin
 
                 // За всяко генерирано предупреждение - датата се разкрасява да се види
                 foreach ($warnings as $warningFld => $fieldWarningArr){
+
+                    // Полето може да не е сред вербализираните, ако не е в исканите полета
+                    if(!isset($row->{$warningFld})) continue;
+
                     foreach ($fieldWarningArr as $warningMsg){
                         $row->{$warningFld} = ht::createHint($row->{$warningFld}, $warningMsg, 'warning');
                     }
