@@ -362,6 +362,11 @@ class store_Transfers extends core_Master
             $rec->pendingOn = dt::now();
             $mvc->save_($rec, 'pendingOn');
         }
+
+        // Заявеното к-во се попълва чак когато документът стане заявка, преди да е започнал етап
+        if ($rec->state == 'pending' && empty($rec->pendingStage)) {
+            store_TransfersDetails::fillRequestedQuantities($rec->id);
+        }
     }
 
 
