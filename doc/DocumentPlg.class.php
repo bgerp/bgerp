@@ -2520,7 +2520,9 @@ class doc_DocumentPlg extends core_Plugin
                 $form->rec->state = 'pending';
                 $form->rec->pendingSaved = true;
 
-                if (!empty($form->rec->id)) {
+                // При клониране id-то все още е на оригиналния документ. Неговите
+                // нотификации не трябва да се променят преди записа на клонирания.
+                if (!empty($form->rec->id) && empty($form->_cloneForm)) {
                     $oldRec = $mvc->fetch($form->rec->id);
                     $oldSharedUsers = $oldRec->sharedUsers ?? null;
                     $newSharedUsers = property_exists($rec, 'sharedUsers') ? $rec->sharedUsers : $oldSharedUsers;
