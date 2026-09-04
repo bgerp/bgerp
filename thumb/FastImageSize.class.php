@@ -38,7 +38,9 @@ class thumb_FastImageSize
         $this->str = '';
         $this->type = null;
         
-        $this->handle = fopen($uri, 'r');
+        $this->handle = @fopen($uri, 'rb');
+
+        return (bool) $this->handle;
     }
     
     
@@ -244,6 +246,11 @@ class thumb_FastImageSize
     
     private function getChars($n)
     {
+        if (!is_resource($this->handle)) {
+
+            return false;
+        }
+
         $response = null;
         
         // do we need more data?
