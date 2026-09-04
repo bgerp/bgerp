@@ -362,6 +362,11 @@ class store_Transfers extends core_Master
             $rec->pendingOn = dt::now();
             $mvc->save_($rec, 'pendingOn');
         }
+
+        // Заявеното к-во се попълва чак когато документът стане заявка, преди да е започнал етап
+        if ($rec->state == 'pending' && empty($rec->pendingStage)) {
+            store_TransfersDetails::fillRequestedQuantities($rec->id);
+        }
     }
 
 
@@ -587,7 +592,7 @@ class store_Transfers extends core_Master
         expect($rec = $this->fetch($id));
         $title = $this->getRecTitle($rec);
         $subTitle = '<b>' . store_Stores::getTitleById($rec->fromStore) . '</b> » <b>' . store_Stores::getTitleById($rec->toStore) . '</b>';
-        if($rec->state == 'pending'){
+        if($rec->state == 'pending' && !empty($rec->pendingStage)){
             $subTitle .= " [" . $this->getVerbal($rec, 'pendingStage') . "]";
         }
 

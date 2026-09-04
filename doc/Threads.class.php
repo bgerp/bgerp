@@ -2668,6 +2668,12 @@ class doc_Threads extends core_Manager
             $bestRate = 0;
             
             while ($rec = $query->fetch()) {
+
+                // Замърсените контейнери се прескачат (@see doc_Containers::repair)
+                if (empty($rec->docClass) || empty($rec->docId)) {
+                    continue;
+                }
+
                 $className = Cls::getClassName($rec->docClass);
                 
                 if (cls::haveInterface('doc_ContragentDataIntf', $className)) {

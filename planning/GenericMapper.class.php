@@ -322,7 +322,7 @@ class planning_GenericMapper extends core_Manager
         $bomSections = array(
             array('details'       => cls::get('cat_BomDetails'),
                   'master'       => cls::get('cat_Boms'),
-                  'productFld'   => 'resourceId',
+                  'productFld'   => 'productId',
                   'prefix'       => 'b',
                   'isDisassembly' => false,
             ),
