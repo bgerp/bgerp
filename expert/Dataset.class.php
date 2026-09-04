@@ -279,8 +279,9 @@ class expert_Dataset extends core_BaseClass
             // Запазваме старото поведение за съществуващите експертни правила.
             $res = INF;
         } catch (Error $e) {
-            // Показваме кой израз е проблемен (напр. липсващ '$' пред променлива)
-            expect(false, $code, $e->getMessage());
+            // Показваме кой израз е проблемен (напр. липсващ '$' пред променлива).
+            // Грешката може да е и в извикана от израза ф-я - оттам е и мястото ѝ
+            expect(false, $code, $e->getMessage(), $e->getFile() . ':' . $e->getLine(), $this->vars);
         }
         
         return $res;
