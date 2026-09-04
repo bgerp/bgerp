@@ -760,6 +760,11 @@ class cat_products_Packagings extends core_Detail
      */
     public static function getPack($productId, $packagingId, $field = null)
     {
+        if (empty($productId) || empty($packagingId)) {
+
+            return false;
+        }
+
         if (isset($field)) {
 
             return self::fetchField("#productId = {$productId} AND #packagingId = '{$packagingId}'", $field);
