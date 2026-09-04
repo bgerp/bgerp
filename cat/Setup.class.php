@@ -239,6 +239,7 @@ class cat_Setup extends core_ProtoSetup
         'migrate::calcExpand36Field2445v2',
         'migrate::updateFiltersCreatedBy2625',
         'migrate::deleteHsCode2609',
+        'migrate::dropOldBomDetailsProductId2609',
     );
     
     
@@ -523,5 +524,27 @@ class cat_Setup extends core_ProtoSetup
         if(!empty($hsCodeId)){
             cat_products_Params::delete("#paramId = {$hsCodeId}");
         }
+    }
+
+
+    /**
+     * Стара празна колона '#productId' спира преименуването на '#resourceId' (@see core_Mvc::setupMVC)
+     */
+    public function dropOldBomDetailsProductId2609()
+    {
+        $Detail = cls::get('cat_BomDetails');
+        $tbl = $Detail->dbTableName;
+        $col = str::phpToMysqlName('productId');
+        $oldCol = str::phpToMysqlName('resourceId');
+
+        // Ако старата колона я няма, преименуването е минало нормално
+        if (!$Detail->db->isFieldExists($tbl, $oldCol) || !$Detail->db->isFieldExists($tbl, $col)) {
+
+            return;
+        }
+
+        // Артикулът е останал в старата колона - пренася се само където няма записан
+        $Detail->db->query("UPDATE `{$tbl}` SET `{$col}` = `{$oldCol}` WHERE (`{$col}` IS NULL OR `{$col}` = 0) AND `{$oldCol}` IS NOT NULL");
+        $Detail->db->query("ALTER TABLE `{$tbl}` DROP COLUMN `{$oldCol}`");
     }
 }
