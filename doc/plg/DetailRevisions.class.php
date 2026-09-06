@@ -359,7 +359,7 @@ class doc_plg_DetailRevisions extends core_Plugin
 
         $activeGroups = self::groupsWithActiveRow($data->recs);
 
-        // При някои детайли артикулът не е в #productId (@see store_TransfersDetails)
+        // При някои детайли артикулът може да не е в #productId
         $productFld = $mvc->productFld ?? $mvc->productFieldName ?? 'productId';
 
         foreach ($data->rows as $id => $row) {

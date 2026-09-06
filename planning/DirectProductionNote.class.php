@@ -1420,7 +1420,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         while ($dRec = $dQuery->fetch()) {
             $index = "{$dRec->productId}|{$dRec->type}";
             if (!array_key_exists($index, $recsToSave)) {
-                $recsToSave[$index] = (object) array('resourceId' => $dRec->productId,
+                $recsToSave[$index] = (object) array('productId' => $dRec->productId,
                     'type' => $dRec->type,
                     'propQuantity' => 0,
                     'packagingId' => $dRec->packagingId,

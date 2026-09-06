@@ -3805,7 +3805,7 @@ class cat_Products extends embed_Manager
                 }
                 
                 $obj = new stdClass();
-                $obj->componentId = $dRec->resourceId;
+                $obj->componentId = $dRec->productId;
                 $row = cat_BomDetails::recToVerbal($dRec, $fields);
                 $obj->code = $row->position;
                 
@@ -3814,7 +3814,7 @@ class cat_Products extends embed_Manager
                 $length = ($length < 0) ? 0 : $length;
                 $obj->parent = substr($obj->code, 0, $length);
                 
-                $obj->title = cat_Products::getTitleById($dRec->resourceId);
+                $obj->title = cat_Products::getTitleById($dRec->productId);
                 $obj->measureId = $row->packagingId;
                 $obj->_measureId = $dRec->packagingId;
                 $obj->quantity = $dRec->rowQuantity;
@@ -3822,7 +3822,7 @@ class cat_Products extends embed_Manager
                 $obj->level = substr_count($obj->code, '.');
                 $obj->titleClass = 'product-component-title';
                 if ($dRec->type == 'stage') {
-                    $specTpl = cat_Products::getParams($dRec->resourceId, 'specTpl');
+                    $specTpl = cat_Products::getParams($dRec->productId, 'specTpl');
                     if ($specTpl && countR($dRec->params)) {
                         $specTpl = strtr($specTpl, $dRec->params);
                         $specTpl = new core_ET($specTpl);

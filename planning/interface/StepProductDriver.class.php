@@ -115,7 +115,7 @@ class planning_interface_StepProductDriver extends cat_GeneralProductDriver
                 if(cat_Products::haveDriver($data->form->rec->id, 'planning_interface_StepProductDriver')){
                     if($Driver = cat_Products::getDriver($data->form->rec->id)){
                         if ($Driver->canSelectDriver()) {
-                            $retUrl['resourceId'] = $data->form->rec->id;
+                            $retUrl['productId'] = $data->form->rec->id;
                             $data->retUrl = $retUrl;
                         }
                     }

@@ -121,6 +121,7 @@ class store_Setup extends core_ProtoSetup
         'migrate::repairSearchKeywords2505',
         'migrate::repairSearchKeywordsNotes2505',
         'migrate::updateDocumentsInCurrencies2606',
+        'migrate::dropOldTransfersProductId2609',
     );
     
     
@@ -346,5 +347,27 @@ class store_Setup extends core_ProtoSetup
     {
         $classes = 'store_Receipts,store_ShipmentOrders';
         deals_Setup::recontoDocumentRatesInDifferentPeriods($classes);
+    }
+
+
+    /**
+     * Стара празна колона '#productId' спира преименуването на '#newProductId' (@see core_Mvc::setupMVC)
+     */
+    public function dropOldTransfersProductId2609()
+    {
+        $Detail = cls::get('store_TransfersDetails');
+        $tbl = $Detail->dbTableName;
+        $col = str::phpToMysqlName('productId');
+        $oldCol = str::phpToMysqlName('newProductId');
+
+        // Ако старата колона я няма, преименуването е минало нормално
+        if (!$Detail->db->isFieldExists($tbl, $oldCol) || !$Detail->db->isFieldExists($tbl, $col)) {
+
+            return;
+        }
+
+        // Артикулът е останал в старата колона - пренася се само където няма записан
+        $Detail->db->query("UPDATE `{$tbl}` SET `{$col}` = `{$oldCol}` WHERE (`{$col}` IS NULL OR `{$col}` = 0) AND `{$oldCol}` IS NOT NULL");
+        $Detail->db->query("ALTER TABLE `{$tbl}` DROP COLUMN `{$oldCol}`");
     }
 }

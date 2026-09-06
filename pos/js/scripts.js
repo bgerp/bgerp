@@ -584,6 +584,16 @@ function openInfo(element) {
 	}
 }
 
+// Отваря модал с трансферите към избрания склад
+function openTransferStoreModal(element) {
+	element = $(element);
+	if(element.hasClass("disabledBtn")) return;
+
+	processUrl(element.attr("data-url"), {});
+	openModal(element.attr("data-modal-title"), "smallHeight");
+}
+
+
 // Отваря модал с хелпа
 function openHelp() {
 	var url = $('.helpBtn').attr("data-url");
@@ -1077,6 +1087,9 @@ function pressNavigable(element)
 		
 	} else if(element.hasClass("newContragentBtn") || element.hasClass("locationBtn")){
 		location.href = url;
+		return;
+	} else if(element.hasClass("transferStoreBtn")){
+		openTransferStoreModal(element);
 		return;
 	} else if(element.hasClass("deleteRow")){
 		deleteSelectedElement();
@@ -1696,7 +1709,12 @@ function triggerSearchInput(element, timeoutTime, keyupTriggered)
 {
 	// След всяко натискане на бутон изчистваме времето на изчакване
 	clearTimeout(timeout);
-	
+
+	// Докато е отворена секцията с складовете, не се търси
+	if($("#transferStoresToggle").hasClass("active")){
+		return;
+	}
+
 	var url = element.attr("data-keyupurl");
 	if(!url){
 		return;

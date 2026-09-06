@@ -113,6 +113,12 @@
                   <td>[#lineVehicleId#]</td>
                </tr>
                <!--ET_END lineVehicleId-->
+               <!--ET_BEGIN receiptId-->
+               <tr>
+                  <td class='nowrap quiet aright'>|ПОС бележка|*: </td>
+                  <td>[#receiptId#]</td>
+               </tr>
+               <!--ET_END receiptId-->
                <!--ET_BEGIN logisticInfo-->
                <tr>
                   <td colspan="2" ><hr><span class='quiet'>|Логистични единици|*</span>: [#logisticInfo#]</td>

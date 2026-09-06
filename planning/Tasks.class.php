@@ -1561,7 +1561,7 @@ class planning_Tasks extends core_Master
                         $nRec->packagingId = $bRec->packagingId;
                         $nRec->quantityInPack = $bRec->quantityInPack;
                         $nRec->plannedQuantity = $quantityP * $rec->plannedQuantity;
-                        $nRec->productId = $bRec->resourceId;
+                        $nRec->productId = $bRec->productId;
                         $nRec->type = ($bRec->type == 'pop') ? 'waste' : (($bRec->type == 'subProduct' ? 'production': 'input'));
 
                         $saveProducts[] = $nRec;

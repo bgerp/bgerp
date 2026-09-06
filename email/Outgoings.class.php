@@ -236,7 +236,7 @@ class email_Outgoings extends core_Master
         $this->FLD('address', 'varchar', 'caption=Адресат->Адрес,class=contactData,changable');
         
         $this->setDbIndex('createdOn');
-        $this->setDbIndex('lastSendedOn,autoReplyRuleId');
+        //$this->setDbIndex('lastSendedOn,autoReplyRuleId');
     }
     
     

@@ -357,8 +357,7 @@ class cat_products_Params extends doc_Detail
                 $notIn[$kgSysid] = $kgSysid;
             }
         } elseif($classId == $taskClassId || $classId == $bomClassId){
-            $productField = ($classId == $taskClassId) ? 'productId' : 'resourceId';
-            $taskStepId = cls::get($classId)->fetchField($productId, $productField);
+            $taskStepId = cls::get($classId)->fetchField($productId, 'productId');
             $Driver = cat_Products::getDriver($taskStepId);
             $pData = $Driver->getProductionData($taskStepId);
             $in = $pData['planningParams'];

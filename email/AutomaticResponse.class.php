@@ -170,8 +170,8 @@ class email_AutomaticResponse extends core_Master
         $form = &$data->form;
         $rec = $form->rec;
 
-        $form->setDefault('maxResponseCount', EMAIL_AUTOMATIC_RESPONSE_MAX_COUNT);
-        $form->setDefault('responsePeriod', EMAIL_AUTOMATIC_RESPONSE_PERIOD);
+        $form->setDefault('maxResponseCount', email_Setup::get('AUTOMATIC_RESPONSE_MAX_COUNT'));
+        $form->setDefault('responsePeriod', email_Setup::get('AUTOMATIC_RESPONSE_PERIOD'));
 
         if(core_Packs::isInstalled('ai')){
             $form->setField('aiInstructions', 'input');
@@ -438,8 +438,8 @@ class email_AutomaticResponse extends core_Master
      */
     protected function isResponseLimitReached($recipient, $rule)
     {
-        $maxCount = !empty($rule->maxResponseCount) ? $rule->maxResponseCount : EMAIL_AUTOMATIC_RESPONSE_MAX_COUNT;
-        $period = !empty($rule->responsePeriod) ? $rule->responsePeriod : EMAIL_AUTOMATIC_RESPONSE_PERIOD;
+        $maxCount = !empty($rule->maxResponseCount) ? $rule->maxResponseCount : email_Setup::get('AUTOMATIC_RESPONSE_MAX_COUNT');
+        $period = !empty($rule->responsePeriod) ? $rule->responsePeriod : email_Setup::get('AUTOMATIC_RESPONSE_PERIOD');
         $from = dt::addSecs(-1 * $period, dt::now());
 
         $query = email_Outgoings::getQuery();
