@@ -668,17 +668,33 @@ function comboBoxInit(id, selectId) {
     var selCombo = get$(selectId);
 
     if (txtCombo && selCombo) {
+        // Repeated initialization must measure the original responsive input,
+        // not the reduced pixel width left by the previous initialization.
+        if (!txtCombo.comboOriginalStyle) {
+            txtCombo.comboOriginalStyle = {
+                width: txtCombo.style.width,
+                marginRight: txtCombo.style.marginRight,
+                paddingRight: txtCombo.style.paddingRight
+            };
+        }
+        txtCombo.style.width = txtCombo.comboOriginalStyle.width;
+        txtCombo.style.marginRight = txtCombo.comboOriginalStyle.marginRight;
+        txtCombo.style.paddingRight = txtCombo.comboOriginalStyle.paddingRight;
         var width = txtCombo.offsetWidth;
+        if (!width) return;
         var arrow = 22;
         var clipPadding = isIE() ? 1 : 3;
         selCombo.style.width = (width + 1) + 'px';
+        // Narrow forms may constrain SELECT with max-width after initial layout.
+        // Clip against its actual width so the arrow cannot be clipped away.
+        width = Math.min(width, selCombo.offsetWidth);
         txtCombo.style.width = (width - arrow + 6) + 'px';
         txtCombo.style.marginRight = (arrow - 5) + 'px';
         selCombo.style.clip = 'rect(auto, auto, auto, ' + (width - arrow + clipPadding) + 'px)';
         txtCombo.style.paddingRight = '2px';
 
         if (txtCombo.offsetHeight != selCombo.offsetHeight) {
-            txtCombo.style.height = (selCombo.height - 0) + 'px';
+            txtCombo.style.height = selCombo.offsetHeight + 'px';
         }
 
         selCombo.style.visibility = 'visible';
@@ -2347,6 +2363,11 @@ function setFormElementsWidth() {
             $('.typeTable').width("100%");
         }
     }
+    // Run after responsive constraints, including AJAX form refresh and resize.
+    $('.formFields input.combo:visible').each(function () {
+        var select = $(this).siblings('select.combo').get(0);
+        if (this.id && select && select.id) comboBoxInit(this.id, select.id);
+    });
 }
 
 // при двоен клин да отваря корицата
