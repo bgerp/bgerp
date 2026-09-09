@@ -491,6 +491,12 @@ class store_Transfers extends core_Master
                     $row->toAdress = crm_Locations::getAddress($toStoreLocation);
                 }
             }
+
+            // Показване на ПОС бележката, от която е създаден трансферът
+            $receiptId = pos_Receipts::fetchField("#storeTransferId = {$rec->id}", 'id');
+            if ($receiptId) {
+                $row->receiptId = pos_Receipts::getHyperlink($receiptId, true);
+            }
         }
 
         if (isset($fields['-list'])) {
@@ -1083,7 +1089,6 @@ class store_Transfers extends core_Master
 
         $Detail = cls::get('store_TransfersDetails');
         $nRec = (object)array('transferId' => $id, 'productId' => $productId, 'packagingId' => $packagingId, 'quantity' => $quantity, 'quantityInPack' => $quantityInPack, 'batch' => $batch);
-        $nRec->autoAllocate = !empty($batch);
 
         if(!empty($batch)) {
             expect($Def = batch_Defs::getBatchDef($productId), 'Опит за задаване на партида на артикул без партида');
@@ -1147,11 +1152,11 @@ class store_Transfers extends core_Master
                      'deliveryOn'   => array('caption' => 'Доставка', 'type' => "datetime(defaultTime={$endTime})", 'readOnlyIfActive' => false, "input" => "input", 'autoCalcFieldName' => 'deliveryOnCalc', 'displayExternal' => true));
 
         if(isset($rec)){
-            $res['deliveryTime']['placeholder'] = store_Stores::calcLoadingDate($rec->fromStore, $rec->deliveryOn);
+            $res['deliveryTime']['placeholder'] = store_Stores::calcLoadingDate($rec->fromStore, $rec->deliveryOn ?? null);
             $res['readyOn']['placeholder'] = ($cache && !empty($rec->readyOnCalc)) ? $rec->readyOnCalc : $this->getEarliestDateAllProductsAreAvailableInStore($rec);
 
-            $loadingOn = !empty($rec->deliveryTime) ? $rec->deliveryTime : $rec->deliveryTimeCalc;
-            $res['shipmentOn']['placeholder'] = ($cache && !empty($rec->shipmentOnCalc)) ? $rec->shipmentOnCalc : trans_Helper::calcShippedOnDate($rec->valior, $rec->lineId, $rec->activatedOn, $loadingOn);
+            $loadingOn = !empty($rec->deliveryTime) ? $rec->deliveryTime : ($rec->deliveryTimeCalc ?? null);
+            $res['shipmentOn']['placeholder'] = ($cache && !empty($rec->shipmentOnCalc)) ? $rec->shipmentOnCalc : trans_Helper::calcShippedOnDate($rec->valior ?? null, $rec->lineId ?? null, $rec->activatedOn ?? null, $loadingOn);
         }
 
         return $res;

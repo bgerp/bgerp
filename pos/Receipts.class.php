@@ -207,6 +207,7 @@ class pos_Receipts extends core_Master
         $this->FLD('tax', 'double(decimals=2)', 'caption=Такса, input=none, value=0');
         $this->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Оттеглен, closed=Затворен,waiting=Чакащ)', 'caption=Статус, input=none');
         $this->FLD('transferredIn', 'key(mvc=sales_Sales)', 'input=none,oldFieldName=transferedIn');
+        $this->FLD('storeTransferId', 'key(mvc=store_Transfers)', 'caption=Прехвърлена в МСТ,input=none');
         $this->FLD('revertId', 'int', 'input=none,caption=Сторнира');
         $this->FLD('returnedTotal', 'double(decimals=2)', 'caption=Сторнирано, input=none');
         $this->FNC('productCount', 'int', 'caption=Артикули');
@@ -400,6 +401,10 @@ class pos_Receipts extends core_Master
             $row->storeId = store_Stores::getHyperLink(pos_Points::fetchField($rec->pointId, 'storeId'), true);
             if ($rec->transferredIn) {
                 $row->transferredIn = sales_Sales::getHyperlink($rec->transferredIn, true);
+            }
+
+            if (!empty($rec->storeTransferId)) {
+                $row->storeTransferId = store_Transfers::getLink($rec->storeTransferId, 0);
             }
 
             if ($rec->state == 'closed' || $rec->state == 'rejected') {
@@ -678,13 +683,25 @@ class pos_Receipts extends core_Master
 
 
     /**
+     * Сторнирането и прехвърлянията като допълнителни опции на филтъра по състояние
+     */
+    protected static function on_AfterGetStateFilterOptions($mvc, &$stateOptions)
+    {
+        $stateOptions += array('no' => 'Без сторниране',
+                               'revertId' => 'Сторниращи',
+                               'isReverted' => 'Сторнирани',
+                               'storeTransferId' => 'Прехвърлени в МСТ',
+                               'transferredIn' => 'Прехвърлени в продажби');
+    }
+
+
+    /**
      *  След подготовка на лист филтъра
      */
     protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
         pos_Points::addPointFilter($data->listFilter, $data->query);
         $filterDateFld = $data->listFilter->rec->filterDateField ?? null;
-        $data->listFilter->FLD('revertState', 'enum(,no=Без сторниране,revertId=Сторниращи,isReverted=Сторнирани)', 'caption=Сторно,placeholderType=all');
 
         // Добавяне на филтър по начините на плащане
         $paymentOptions = array();
@@ -707,9 +724,9 @@ class pos_Receipts extends core_Master
         }
         $data->listFilter->FLD('payment', 'varchar', 'caption=Плащане');
         $data->listFilter->setOptions('payment', array('all' => tr('Всички'), '-1' => tr('В брой')) + $paymentOptions);
-        $data->listFilter->showFields .= ',payment,revertState';
+        $data->listFilter->showFields .= ',payment';
         $data->listFilter->setDefault('payment', 'all');
-        $data->listFilter->input('payment,revertState');
+        $data->listFilter->input('payment');
         $data->query->orderBy($filterDateFld, 'DESC');
 
         // Скриване на полето за дата, ако се филтрира по конкретно поле
@@ -752,15 +769,18 @@ class pos_Receipts extends core_Master
                 }
             }
 
-            // Филтър по сторно състояния
-            if (!empty($filter->revertState)) {
-                if($filter->revertState == 'no'){
-                    $data->query->where("#returnedTotal IS NULL");
-                } elseif($filter->revertState == 'isReverted'){
-                    $data->query->where("#returnedTotal IS NOT NULL");
-                } elseif($filter->revertState == 'revertId'){
-                    $data->query->where("#revertId IS NOT NULL");
-                }
+            // Филтриране по допълнителните опции на филтъра по състояние
+            $fState = $filter->fState ?? null;
+            if ($fState == 'no') {
+                $data->query->where("#returnedTotal IS NULL");
+            } elseif ($fState == 'isReverted') {
+                $data->query->where("#returnedTotal IS NOT NULL");
+            } elseif ($fState == 'revertId') {
+                $data->query->where("#revertId IS NOT NULL");
+            } elseif ($fState == 'storeTransferId') {
+                $data->query->where("#storeTransferId IS NOT NULL");
+            } elseif ($fState == 'transferredIn') {
+                $data->query->where("#transferredIn IS NOT NULL");
             }
         }
     }
