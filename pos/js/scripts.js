@@ -373,11 +373,6 @@ function posActions() {
 		openKeyboard();
 	});
 	
-	// При натискане на бутон за нова фирма
-	$(document.body).on('click', ".newContragentBtn", function(e){
-		presssNavigable(this);
-	});
-	
 	// При натискане на бутона за клавиатура
 	$(document.body).on('click', ".helpBtn", function(e){
 		clearTimeout(timeout);

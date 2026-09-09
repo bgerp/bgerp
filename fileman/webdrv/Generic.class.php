@@ -728,17 +728,18 @@ class fileman_webdrv_Generic extends core_Manager
         // Добавяме в текста
         $content = $dangerRate . $containsIn . $createdText . $sizeText . $linkText . core_Type::escape($content);
         
-        // Инстанция на класа
-        $pageInst = cls::get(Mode::get('wrapper'));
+        // Обвивката се извежда от page_Wrapper след връщането на съдържанието
+        $tpl = new ET();
+        $tpl->append($content);
         
         // Линковете вътре в документа, да се отварят в родителската страница
-        $pageInst->appendOnce('<base target="_parent" />', 'HEAD');
+        $tpl->appendOnce('<base target="_parent" />', 'HEAD');
         
         // Добавяме стилове
-        $pageInst->appendOnce('body{line-height:150%;}', 'STYLES');
+        $tpl->appendOnce('body{line-height:150%;}', 'STYLES');
         
         // Връщаме съдържанието
-        return $pageInst->output($content);
+        return $tpl;
     }
 
 

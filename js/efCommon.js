@@ -6096,18 +6096,37 @@ Experta.prototype.log = function (txt) {
 };
 
 
+// Дори достъпът до sessionStorage може да е забранен от браузъра.
+function getSessionStorageItem(key) {
+    try {
+        return window.sessionStorage ? window.sessionStorage.getItem(key) : null;
+    } catch (e) {
+        return null;
+    }
+}
+
+
+function setSessionStorageItem(key, value) {
+    try {
+        if (window.sessionStorage) {
+            window.sessionStorage.setItem(key, value);
+        }
+    } catch (e) {
+        // Забранен или пълен storage не трябва да прекъсва работата на страницата.
+    }
+}
+
+
 /**
  * Записва id-то на body в сесията на браузъра
  */
 Experta.prototype.saveBodyId = function () {
-    // Ако не е дефиниран
-    if (typeof sessionStorage == "undefined") return;
 
     var bodyId = $('body').attr('id');
 
     if (!bodyId) return;
 
-    var bodyIds = sessionStorage.getItem('bodyIdHit');
+    var bodyIds = getSessionStorageItem('bodyIdHit');
 
     if (bodyIds) {
         bodyIds = JSON.parse(bodyIds);
@@ -6118,7 +6137,7 @@ Experta.prototype.saveBodyId = function () {
     bodyIds[bodyId] = 'ajaxRefresh';
     self.hitState[bodyId] = undefined;
 
-    sessionStorage.setItem('bodyIdHit', JSON.stringify(bodyIds));
+    setSessionStorageItem('bodyIdHit', JSON.stringify(bodyIds));
 };
 
 
@@ -6154,11 +6173,6 @@ function radioButtonActions() {
  * return firstTime, refresh, ajaxRefresh
  */
 function getHitState(bodyId) {
-    if (typeof sessionStorage == "undefined") {
-
-        return 'firstTime';
-    }
-
     if (typeof (bodyId) === 'undefined') {
         var bodyId = $('body').attr('id');
     }
@@ -6173,7 +6187,7 @@ function getHitState(bodyId) {
         return this.hitState[bodyId];
     }
 
-    var bodyIds = sessionStorage.getItem('bodyIdHit');
+    var bodyIds = getSessionStorageItem('bodyIdHit');
 
     if (typeof (bodyIds) !== 'undefined' && bodyIds) {
         bodyIds = JSON.parse(bodyIds);
@@ -6188,7 +6202,7 @@ function getHitState(bodyId) {
     }
     bodyIds[bodyId] = 'refresh';
 
-    sessionStorage.setItem('bodyIdHit', JSON.stringify(bodyIds));
+    setSessionStorageItem('bodyIdHit', JSON.stringify(bodyIds));
 
     this.hitState[bodyId] = 'firstTime';
 
@@ -6216,7 +6230,7 @@ Experta.prototype.saveFormData = function (formId, data) {
 
     if (!bodyId) return;
 
-    var formObj = sessionStorage.getItem(this.formSessName);
+    var formObj = getSessionStorageItem(this.formSessName);
 
     var maxN = 0;
     var minN = 0;
@@ -6251,7 +6265,7 @@ Experta.prototype.saveFormData = function (formId, data) {
 
     formObj[bodyId] = {'formId': formId, 'data': data, 'num': maxN};
 
-    sessionStorage.setItem(this.formSessName, JSON.stringify(formObj));
+    setSessionStorageItem(this.formSessName, JSON.stringify(formObj));
 };
 
 
@@ -6265,7 +6279,7 @@ Experta.prototype.reloadFormData = function () {
 
     if (!bodyId) return;
 
-    var formObj = sessionStorage.getItem(this.formSessName);
+    var formObj = getSessionStorageItem(this.formSessName);
 
     if (!formObj) return;
 
