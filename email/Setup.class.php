@@ -72,20 +72,6 @@ defIfNot('EMAIL_RESENDING_TIME', '43200');
 
 
 /**
- * Максимален брой автоматични отговори към един имейл за зададения период
- */
-defIfNot('EMAIL_AUTOMATIC_RESPONSE_MAX_COUNT', 3);
-
-
-/**
- * Период за ограничаване на автоматичните отговори към един имейл
- *
- * По подразбиране 24 часа
- */
-defIfNot('EMAIL_AUTOMATIC_RESPONSE_PERIOD', 86400);
-
-
-/**
  * Максимална дължина на текстовата част на входящите имейли
  */
 defIfNot('EMAIL_MAX_TEXT_LEN', '1000000');
@@ -524,6 +510,7 @@ class email_Setup extends core_ProtoSetup
         'email_AddressesInfo',
         'email_IncomingsShowTypes',
         'email_AutomaticResponse',
+        'email_AutomaticResponseLog',
         'migrate::serviceRules2121',
     );
     
