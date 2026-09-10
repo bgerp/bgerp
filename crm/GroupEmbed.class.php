@@ -85,10 +85,13 @@ class crm_GroupEmbed extends core_BaseClass
         $form->setDefault('logoSize', 'medium');
         $form->setDefault('orderBy', 'name');
         $form->setDefault('textMode', 'original');
+        // Нулата е валидна настройка за рамката и сянката.
+        $form->setDefault('borderWidth', 1);
+        $form->setDefault('shadowOpacity', 20);
         $form->setDefaults(array(
             'backgroundType' => 'default', 'backgroundColor' => '#ffffff', 'backgroundColor2' => '#eef4fc', 'backgroundDirection' => '135',
-            'borderStyle' => 'default', 'borderWidth' => 1, 'borderColor' => '#dce3e9', 'borderColor2' => '#7c3aed', 'borderDirection' => '135',
-            'shadow' => 'default', 'shadowColor' => '#1e3246', 'shadowOpacity' => 20, 'logoBackground' => 'default',
+            'borderStyle' => 'default', 'borderColor' => '#dce3e9', 'borderColor2' => '#7c3aed', 'borderDirection' => '135',
+            'shadow' => 'default', 'shadowColor' => '#1e3246', 'logoBackground' => 'default',
         ));
 
         if ($standalone) {
