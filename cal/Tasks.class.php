@@ -436,6 +436,11 @@ class cal_Tasks extends embed_Manager
         $form = &$data->form;
         $rec = $form->rec;
 
+        // При редакция смяната на ресурс/етап трябва да запазва избраните възложени.
+        if (!empty($rec->id)) {
+            $form->setField('assetResourceId,stepId', 'removeAndRefreshForm=unsetValue,refreshForm');
+        }
+
         $form->setField($mvc->driverClassField, 'input=hidden');
         if(Request::get('parentId', 'int') || isset($rec->parentId)){
             $form->setReadOnly('parentId');
