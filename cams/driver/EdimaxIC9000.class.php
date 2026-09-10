@@ -105,7 +105,7 @@ class cams_driver_EdimaxIC9000 extends cams_driver_IpDevice
     
     public function normalizeCameraId()
     {
-        $res = str_replace('-', '', $this->cameraId);
+        $res = str_replace('-', '', !empty($this->cameraId) ? $this->cameraId : '');
         
         return $res;
     }

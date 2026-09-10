@@ -89,7 +89,7 @@ class wbarcode_Setup extends core_ProtoSetup
     {
         if (!countR(wbarcode_Helper::getMasks())) {
 
-            return 'Не е въведена нито една маска на тегловен баркод|*!';
+            return 'Не е въведена нито една маска на тегловен баркод!';
         }
     }
 }

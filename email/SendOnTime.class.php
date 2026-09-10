@@ -191,7 +191,7 @@ class email_SendOnTime extends core_Manager
      */
     public static function on_CalcEmailsTo($mvc, $rec)
     {
-        $rec->emailsTo = $rec->data['options']->emailsTo;
+        $rec->emailsTo = $rec->data['options']->emailsTo ?? null;
     }
     
     
@@ -203,7 +203,7 @@ class email_SendOnTime extends core_Manager
      */
     public static function on_CalcEmailsCc($mvc, $rec)
     {
-        $rec->emailsCc = $rec->data['options']->emailsCc;
+        $rec->emailsCc = $rec->data['options']->emailsCc ?? null;
     }
     
     
@@ -215,7 +215,7 @@ class email_SendOnTime extends core_Manager
      */
     public static function on_CalcFaxTo($mvc, $rec)
     {
-        $rec->faxTo = $rec->data['options']->faxTo;
+        $rec->faxTo = $rec->data['options']->faxTo ?? null;
     }
     
     
@@ -227,7 +227,7 @@ class email_SendOnTime extends core_Manager
      */
     public static function on_CalcFaxService($mvc, $rec)
     {
-        $rec->faxService = $rec->data['options']->service;
+        $rec->faxService = $rec->data['options']->service ?? null;
     }
     
     
@@ -239,7 +239,7 @@ class email_SendOnTime extends core_Manager
      */
     public static function on_CalcBoxFrom($mvc, $rec)
     {
-        $rec->boxFrom = $rec->data['options']->boxFrom;
+        $rec->boxFrom = $rec->data['options']->boxFrom ?? null;
     }
     
     

@@ -38,6 +38,10 @@ class type_Blob extends core_Type
      */
     public function renderInput_($name, $value = '', &$attr = array())
     {
+        if (is_array($value) || is_object($value)) {
+            $value = print_r($value, true);
+        }
+
         if (Mode::is('screenMode', 'narrow')) {
             setPartIfNot($attr, 'rows', 5);
             setPartIfNot($attr, 'cols', 20);

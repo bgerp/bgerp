@@ -137,7 +137,7 @@ class borsa_Lots extends core_Master
      */
     function on_CalcProductName($mvc, $rec)
     {
-        if ($rec->productId) {
+        if (!empty($rec->productId)) {
             $rec->productName = cat_Products::getVerbal($rec->productId, 'name');
         }
     }
@@ -151,7 +151,7 @@ class borsa_Lots extends core_Master
      */
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
-        if ($data->form->rec->productId) {
+        if (!empty($data->form->rec->productId)) {
             $data->form->setDefault('basePrice', cls::get('cat_Products')->getDefaultCost($data->form->rec->productId, 1));
             
             $mId = cat_Products::fetchField($data->form->rec->productId, 'measureId');
@@ -302,7 +302,7 @@ class borsa_Lots extends core_Master
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-        if ($rec->productId && cat_Products::haveRightFor('single', $rec->productId)) {
+        if (!empty($rec->productId) && cat_Products::haveRightFor('single', $rec->productId)) {
             $row->productId = cat_Products::getLinkToSingle($rec->productId, 'name');
         }
     }
@@ -347,11 +347,11 @@ class borsa_Lots extends core_Master
             $lotId = key($prodOptArr);
         }
         
-        if ($lotId && !$prodOptArr[$lotId]) {
+        if ($lotId && empty($prodOptArr[$lotId])) {
             $lotId = key($prodOptArr);
         }
         
-        if (!$lotId || !$prodOptArr[$lotId] || !($lRec = $this->fetch($lotId))) {
+        if (!$lotId || empty($prodOptArr[$lotId]) || !($lRec = $this->fetch($lotId))) {
             $tpl = new ET("<h1>" . tr('Няма опции за офериране') . "</h1>");
             
             return $this->getExternalLayout($tpl);
@@ -364,7 +364,13 @@ class borsa_Lots extends core_Master
         $links = '<ul class="otherProduct">';
         foreach ((array)$prodOptArr as $pId) {
             $pLRec = $this->fetch($pId);
-            $pLRec->productName = trim($pLRec->productName) ? $pLRec->productName : tr("Продукт") . $pId;
+            if (empty($pLRec)) {
+                
+                continue;
+            }
+            
+            $pName = !empty($pLRec->productName) ? trim($pLRec->productName) : '';
+            $pLRec->productName = !empty($pName) ? $pName : tr("Продукт") . $pId;
             $links .= "<li>" . ht::createLink($pLRec->productName, array($this, 'show', $pId)) . "</li>";
         }
         $links .= "</ul>";
@@ -556,12 +562,13 @@ class borsa_Lots extends core_Master
         
         $pArr = $this->getPeriods($id);
         
-        expect($pArr[$period]);
+        expect(isset($pArr[$period]));
         
         $form = cls::get('core_Form');
         
         $bQurr = acc_Periods::getBaseCurrencyCode();
 
+        $sName = '';
         $mId = cat_Products::fetchField($rec->productId, 'measureId');
         if ($mId) {
             $sName = cat_UoM::getShortName($mId);
@@ -693,13 +700,14 @@ class borsa_Lots extends core_Master
     public static function getPeriodVerb($pVal, $mask = 'd.m.Y, l')
     {
         $keySel = null;
+        $period = null;
         $periodArr = plg_SelectPeriod::getOptions($keySel, $pVal['bPeriod'], $pVal['ePeriod']);
         
-        if ($keySel && $periodArr[$keySel]) {
+        if ($keySel && !empty($periodArr[$keySel])) {
             $period = $periodArr[$keySel];
         }
         
-        if (!$period) {
+        if (empty($period)) {
             if ($pVal['bPeriod'] == $pVal['ePeriod']) {
                 $period = core_DateTime::mysql2verbal($pVal['bPeriod'], $mask);
             } else {
@@ -790,13 +798,14 @@ class borsa_Lots extends core_Master
             return $mArr;
         }
         
-        if ($pRec->priceChange) {
+        $pChange = null;
+        if (!empty($pRec->priceChange)) {
             $pChange = @json_decode($pRec->priceChange);
         }
         
         // Добавяме текущия
-        $period = $pChange->period;
-        $priceChange = $pChange->priceChange;
+        $period = !empty($pChange->period) ? (array) $pChange->period : array();
+        $priceChange = !empty($pChange->priceChange) ? (array) $pChange->priceChange : array();
         $period[-1] = $priceChange[-1] = 0;
         
         if ($period) {
@@ -829,7 +838,7 @@ class borsa_Lots extends core_Master
                 $mArr[$pId]['ePeriod'] = $endPeriod;
                 
                 $price = $pRec->basePrice;
-                if ($priceChange[$pId]) {
+                if (!empty($priceChange[$pId])) {
                     $price = $price + ($price * $priceChange[$pId]/100);
                 }
                 

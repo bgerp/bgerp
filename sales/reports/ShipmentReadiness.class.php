@@ -213,11 +213,13 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
 
             // Показване на информация за доставките до същата локация
             if(countR($sameLocationDocuments) && $dRec->readiness != 0){
-                $tooltipUrl = toUrl(array('sales_DeliveryData', 'showDeliveryInfo', 'containerId' => $dRec->containerId, 'replaceField' => "sh{$dRec->containerId}"), 'local');
-                $arrowImg = ht::createElement('img', array('height' => 12, 'width' => 12, 'src' => sbf('img/32/dialog_warning.png', '')));
-                $arrow = ht::createElement('span', array('class' => 'anchor-arrow tooltip-arrow-link', 'data-url' => $tooltipUrl, 'title' => 'Има други поръчки за същата / близка дестинация! (клик за подробности)'), $arrowImg, true);
-                $arrow = "<span class='additionalInfo-holder shipmentReadiness'><span class='additionalInfo' id='sh{$dRec->containerId}'></span>{$arrow}</span>";
-                $row->document->append($arrow);
+                $tooltipUrl = array('sales_DeliveryData', 'showDeliveryInfo', 'containerId' => $dRec->containerId);
+                $hintAttr = array('url' => $tooltipUrl,
+                                  'id' => "sh{$dRec->containerId}",
+                                  'holderClass' => 'shipmentReadiness',
+                                  'iconAttr' => array('height' => 12, 'width' => 12));
+                $arrow = ht::createHint('', 'Има други поръчки за същата / близка дестинация! (клик за подробности)', 'warning', false, $hintAttr);
+                $row->document->append($arrow->getContent());
             }
 
             if($Document->isInstanceOf('sales_Sales')){

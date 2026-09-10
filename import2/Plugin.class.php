@@ -41,7 +41,8 @@ class import2_Plugin extends core_Plugin
         
         $mvc->requireRightFor('import2', $rec);
         
-        if ($mvc->Master && isset($mvc->masterKey, $rec->{$mvc->masterKey})) {
+        // Плъгинът върви и на обикновени мениджъри - те нямат 'Master' и 'masterKey'
+        if (!empty($mvc->Master) && isset($mvc->masterKey, $rec->{$mvc->masterKey})) {
             $masterId = $rec->{$mvc->masterKey};
             $title = $mvc->Master->getFormTitleLink($masterId);
         } else {

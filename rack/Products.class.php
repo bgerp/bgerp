@@ -547,10 +547,7 @@ class rack_Products extends store_Products
                 if(!empty($rec->batch)){
                     $row->batch = $batchDef->toVerbal($rec->batch);
                     if (batch_Movements::haveRightFor('list')) {
-                        $link = array('batch_Movements', 'list', 'batch' => $rec->batch);
-                        if (isset($fields['-list'])) {
-                            $link += array('productId' => $rec->productId, 'storeId' => $rec->storeId);
-                        }
+                        $link = array('batch_Movements', 'list', 'batch' => $rec->batch, 'productId' => $data->masterId, 'storeId' => $rec->storeId);
                         $row->batch = ht::createLink($row->batch, $link);
                     }
                 } else {

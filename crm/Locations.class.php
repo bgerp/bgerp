@@ -413,7 +413,7 @@ class crm_Locations extends core_Master
             if (isset($fields['-single'])) {
                 $row->headerRejected = ' state-rejected';
             } else {
-                $row->ROW_ATTR['class'] .= ' state-rejected';
+                $row->ROW_ATTR['class'] = ($row->ROW_ATTR['class'] ?? '') . ' state-rejected';
             }
         }
 

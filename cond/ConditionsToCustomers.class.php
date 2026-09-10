@@ -220,7 +220,7 @@ class cond_ConditionsToCustomers extends core_Manager
             $dRow = cond_Countries::recToVerbal($fRec);
             $dRow->group = $fRec->group;
             $dRow->order = $fRec->order;
-            $dRow->value = ht::createHint($dRow->value, "Стойност по подразбиране за контрагенти от|* \"{$caption}\"", 'notice', true, 'width=12px,height=12px');
+            $dRow->value = ht::createHint($dRow->value, "Стойност по подразбиране за контрагенти от|* \"{$caption}\"", 'notice', true, array('iconAttr' => 'width=12px,height=12px'));
             unset($dRow->_rowTools);
             $data->rows[$condId] = $dRow;
         }

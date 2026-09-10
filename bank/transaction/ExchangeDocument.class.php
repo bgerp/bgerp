@@ -35,11 +35,11 @@ class bank_transaction_ExchangeDocument extends acc_DocumentTransactionSource
      *
      * Ако е в друга валута различна от основната
      *
-     * Dt: 503. Разплащателни сметки             (Банкови сметки, Валути)
-     * Ct: 481. Разчети по курсови разлики       (Валути)
-     *
      * Dt: 481. Разчети по курсови разлики       (Валути)
      * Ct: 503. Разплащателни сметки             (Банкови сметки, Валути)
+     *
+     * Dt: 503. Разплащателни сметки             (Банкови сметки, Валути)
+     * Ct: 481. Разчети по курсови разлики       (Валути)
      */
     public function getTransaction($id)
     {
@@ -67,11 +67,12 @@ class bank_transaction_ExchangeDocument extends acc_DocumentTransactionSource
         }
 
         $entries = array();
+        // Първо е редът за източника на средствата, след него - за получателя
+        $entries[] = array('debit' => array('481', array('currency_Currencies', $rec->creditCurrency), 'quantity' => $rec->creditQuantity),
+            'credit' => $fromBank);
         $entries[] = array('amount' => $amount,
             'debit' => $toBank,
             'credit' => array('481', array('currency_Currencies', $rec->creditCurrency), 'quantity' => $rec->creditQuantity));
-        $entries[] = array('debit' => array('481', array('currency_Currencies', $rec->creditCurrency), 'quantity' => $rec->creditQuantity),
-            'credit' => $fromBank);
 
         // Подготвяме информацията която ще записваме в Журнала
         $result = (object) array(

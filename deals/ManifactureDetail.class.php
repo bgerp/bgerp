@@ -90,7 +90,7 @@ abstract class deals_ManifactureDetail extends doc_Detail
     {
         $mvc->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,maxSuggestions=100,forceAjax,titleFld=name,forceOpen)', 'class=w100,caption=Артикул,mandatory', 'tdClass=productCell leftCol wrap,silent,removeAndRefreshForm=quantity|measureId|packagingId|packQuantity|isOutsourced');
         $mvc->FLD('packagingId', 'key(mvc=cat_UoM, select=shortName, select2MinItems=0)', 'caption=Мярка', 'tdClass=small-field nowrap,smartCenter,mandatory,input=hidden,silent');
-        $mvc->FNC('packQuantity', 'double(min=0)', 'caption=Количество,input=input,mandatory,smartCenter');
+        $mvc->FNC('packQuantity', 'double(min=0,smartRound)', 'caption=Количество,input=input,mandatory,smartCenter');
         $mvc->FLD('quantityInPack', 'double(smartRound)', 'input=none,notNull,value=1');
         
         $mvc->FLD('quantity', 'double', 'caption=Количество,input=none,smartCenter');

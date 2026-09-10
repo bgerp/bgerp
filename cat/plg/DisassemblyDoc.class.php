@@ -456,6 +456,39 @@ class cat_plg_DisassemblyDoc extends core_Plugin
 
 
     /**
+     * Сборът на количествата по разпределяните редове, приведени към базовата им мярка
+     *
+     * @param core_Mvc $mvc
+     * @param int      $id
+     * @param int|null $baseMeasureId - мярката, в която е сборът
+     *
+     * @return float|null - null, когато мерките не са сравними
+     */
+    public static function sumRowsQuantity(core_Mvc $mvc, $id, &$baseMeasureId = null)
+    {
+        $baseMeasureId = null;
+        $dQuery = static::getRowQuery($mvc, $id);
+        $dQuery->show('productId,quantity');
+        $dRecs = $dQuery->fetchAll();
+        if (!countR($dRecs)) return null;
+
+        $measureArr = array();
+        $productIds = arr::extractValuesFromArray($dRecs, 'productId');
+        if (!cat_Products::areProductsInTheSameUom($productIds, $measureArr)) return null;
+
+        $sum = 0;
+        foreach ($dRecs as $dRec) {
+            $sum += cat_UoM::convertToBaseUnit($dRec->quantity, $measureArr[$dRec->productId]);
+        }
+
+        $measureId = $measureArr[reset($dRecs)->productId];
+        $baseMeasureId = cat_UoM::fetchField($measureId, 'baseUnitId') ?: $measureId;
+
+        return $sum;
+    }
+
+
+    /**
      * Колко от разпределяните редове имат ръчно зададен процент
      *
      * @param core_Mvc $mvc

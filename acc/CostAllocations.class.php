@@ -488,7 +488,7 @@ class acc_CostAllocations extends core_Manager
                 $singleUrl['Sid'] = $Register->fetchField('containerId');
                 $eItem = ht::createLink($eItem, $singleUrl);
                 if ($iRec->state == 'closed') {
-                    $eItem = ht::createHint($eItem, 'Перото е затворено', 'warning', false, array('height' => 14, 'width' => 14))->getContent();
+                    $eItem = ht::createHint($eItem, 'Перото е затворено', 'warning', false, array('iconAttr' => array('height' => 14, 'width' => 14)))->getContent();
                     $eItem = "<span class='state-closed' style='padding:3px'>{$eItem}</span>";
                 }
             }
@@ -500,7 +500,7 @@ class acc_CostAllocations extends core_Manager
         
         $row->expenseItemId = "<b class='quiet'>" . tr('Разход за') . "</b>: {$eItem}";
         if (isset($hint)) {
-            $row->expenseItemId = ht::createHint($row->expenseItemId, $hint, 'warning', false, array('height' => 14, 'width' => 14))->getContent();
+            $row->expenseItemId = ht::createHint($row->expenseItemId, $hint, 'warning', false, array('iconAttr' => array('height' => 14, 'width' => 14)))->getContent();
             $row->expenseItemId = "<span style='opacity: 0.7;'>{$row->expenseItemId}</span>";
         }
         

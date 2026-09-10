@@ -643,11 +643,9 @@ class store_Products extends core_Detail
                 if (!empty($rec->{$type})) {
                     $date = in_array($type, array('reservedQuantity', 'expectedQuantity')) ? $today : (in_array($type, array('reservedQuantityMin', 'expectedQuantityMin')) ? ($rec->dateMin ?? $today) : ($data->horizon ?? $today));
 
-                    $tooltipUrl = toUrl(array('store_Products', 'ShowReservedDocs', 'productId' => $rec->productId, 'stores' => keylist::addKey('', $rec->storeId), 'replaceField' => "{$type}{$rec->id}", 'field' => $type, 'date' => $date), 'local');
-                    $arrowImg = ht::createElement('img', array('height' => 16, 'width' => 16, 'src' => sbf('img/32/info-gray.png', '')));
-                    $arrow = ht::createElement('span', array('class' => 'anchor-arrow tooltip-arrow-link', 'data-url' => $tooltipUrl, 'title' => $title), $arrowImg, true);
-                    $arrow = "<span class='additionalInfo-holder'><span class='additionalInfo' id='{$type}{$rec->id}'></span>{$arrow}</span>";
-                    $row->{$type} = $arrow . ($row->{$type} ?? '');
+                    $tooltipUrl = array('store_Products', 'ShowReservedDocs', 'productId' => $rec->productId, 'stores' => keylist::addKey('', $rec->storeId), 'field' => $type, 'date' => $date);
+                    $hintAttr = array('url' => $tooltipUrl, 'id' => "{$type}{$rec->id}", 'iconAttr' => array('height' => 16, 'width' => 16));
+                    $row->{$type} = ht::createHint($row->{$type} ?? '', $title, 'notice', false, $hintAttr);
                 }
             }
 
@@ -666,7 +664,7 @@ class store_Products extends core_Detail
 
             $dateMin = !empty($rec->dateMin) ? $rec->dateMin : dt::today();
             $date = dt::mysql2verbal($dateMin, 'd.m.Y');
-            $row->freeQuantityMin = ht::createHint($row->freeQuantityMin ?? '', $date,'img/16/calendar_1.png', true, 'height=12px,width=12px');
+            $row->freeQuantityMin = ht::createHint($row->freeQuantityMin ?? '', $date,'img/16/calendar_1.png', true, array('iconAttr' => 'height=12px,width=12px'));
 
             // Ако се показва колонка за последно инвентаризиране - да се покаже последния документ
             if(is_array($data->inventoryRecs ?? null)){
@@ -865,7 +863,7 @@ class store_Products extends core_Detail
             }
 
             // Подготвяне на реда с информация
-            $link = new core_ET("<div style='float:left;padding-bottom:2px;padding-top: 2px;'>[#link#]<!--ET_BEGIN date--> | [#date#]<!--ET_END date-->| [#createdBy#]</div>");
+            $link = new core_ET("<div style='padding-bottom:2px;padding-top: 2px;text-align: left'>[#link#]<!--ET_BEGIN date--> | [#date#]<!--ET_END date-->| [#createdBy#]</div>");
             $link->placeObject($row);
             $links .= $link->getContent();
         }
@@ -874,7 +872,7 @@ class store_Products extends core_Detail
         Request::setProtected('hash');
         $linkToFilter = ht::createLink(tr('Още|* ...'), array('store_StockPlanning', 'Browse', 'storeId' => $storeId, 'productId' => $productId, 'hash' => md5(store_StockPlanning::LIST_CACHE_STRING)))->getContent();
         Request::removeProtected('hash');
-        $links .= "<br><div style='float:left;padding-bottom:2px;padding-top: 2px;'>{$linkToFilter}</div>";
+        $links .= "<div style='padding-bottom:2px;padding-top: 2px;'>{$linkToFilter}</div>";
 
         $tpl = new core_ET($links);
 

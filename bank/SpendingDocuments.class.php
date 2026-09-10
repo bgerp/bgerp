@@ -233,7 +233,7 @@ class bank_SpendingDocuments extends bank_Document
             $valior = $rec->valior ?? dt::today();
             if($valior > $rec->earlyPaymentUntil){
                 $row->earlyPaymentClass = 'quiet';
-                $row->earlyPaymentInfo .= " (" . tr('изтекло') . ")";
+                $row->earlyPaymentInfo = ($row->earlyPaymentInfo ?? '') . " (" . tr('изтекло') . ")";
             } else {
                 $row->earlyPaymentClass = 'earlyPaymentDiscountActive';
 

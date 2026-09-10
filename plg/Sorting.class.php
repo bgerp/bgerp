@@ -184,15 +184,16 @@ class plg_Sorting extends core_Plugin
                     }
                 }
                 
+                // Заглавието може да носи собствени маркери за превод - тогава не се отваря нова фраза
+                $caption = (substr($lastF, 0, 1) == '|') ? $lastF : "|{$lastF}";
+
                 if (isset($mvc->fields[$field]) && $mvc->fields[$field]->type->getTdClass() == 'rightCol') {
-                    $lastF = ltrim($lastF, '|*');
                     $fArr[countR($fArr) - 1] = $startChar . "|*<div class='rowtools'>" . "<a class='l' href='" .
                     ht::escapeAttr(toUrl($currUrl)) .
                     "' ><img  src=" . sbf($img) .
-                    " width='16' height='16' alt='sort' class='sortBtn'></a>" . "<div class='l'>|{$lastF}|*</div></div>";
+                    " width='16' height='16' alt='sort' class='sortBtn'></a>" . "<div class='l'>{$caption}|*</div></div>";
                 } else {
-                    $lastF = ltrim($lastF, '|*');
-                    $fArr[countR($fArr) - 1] = $startChar . "|*<div class='rowtools'><div class='l'>|" . $lastF . "|*</div><a class='r' href='" .
+                    $fArr[countR($fArr) - 1] = $startChar . "|*<div class='rowtools'><div class='l'>" . $caption . "|*</div><a class='r' href='" .
                     ht::escapeAttr(toUrl($currUrl)) .
                     "' ><img  src=" . sbf($img) .
                     " width='16' height='16' alt='sort' class='sortBtn'></a></div>";

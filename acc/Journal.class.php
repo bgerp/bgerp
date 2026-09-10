@@ -618,7 +618,7 @@ class acc_Journal extends core_Master
             
             if (!$item) {
                 
-                return;
+                return array();
             }
         }
         

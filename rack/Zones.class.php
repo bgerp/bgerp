@@ -2109,7 +2109,7 @@ class rack_Zones extends core_Master
             $res->replace($zoneTitle, 'element');
             $zoneTitle = $res->getContent();
             if(isset($hint)){
-                $zoneTitle = ht::createHint($zoneTitle, $hint, 'notice', true,'style=background-color:#fff !important;margin-left:3px;border-radius:8px;');
+                $zoneTitle = ht::createHint($zoneTitle, $hint, 'notice', true, array('iconAttr' => 'style=background-color:#fff !important;margin-left:3px;border-radius:8px;'));
             }
         }
 

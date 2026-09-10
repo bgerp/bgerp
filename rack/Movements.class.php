@@ -1056,20 +1056,21 @@ class rack_Movements extends rack_MovementAbstract
      */
     private static function getReservedTomorrowInfoIcon($productId, $storeId, $date)
     {
-        $replaceField = "rackReservedTomorrow{$productId}_{$storeId}";
-        $tooltipUrl = toUrl(array(
+        $tooltipUrl = array(
             'store_Products',
             'ShowReservedDocs',
             'productId' => $productId,
             'stores' => keylist::addKey('', $storeId),
-            'replaceField' => $replaceField,
             'field' => 'reserved',
             'date' => $date
-        ), 'local');
-        $arrowImg = ht::createElement('img', array('height' => 16, 'width' => 16, 'src' => sbf('img/32/info-gray.png', ''), 'style' => 'vertical-align:middle; position:relative; top:-1px;'));
-        $arrow = ht::createElement('span', array('class' => 'anchor-arrow tooltip-arrow-link', 'data-url' => $tooltipUrl, 'title' => 'От кои документи е сформирано количеството'), $arrowImg, true);
+        );
 
-        return "<span class='additionalInfo-holder'><span class='additionalInfo' id='{$replaceField}' style='white-space:nowrap;'></span>{$arrow}</span>";
+        $hintAttr = array('url' => $tooltipUrl,
+                          'id' => "rackReservedTomorrow{$productId}_{$storeId}",
+                          'style' => 'white-space:nowrap;',
+                          'iconAttr' => array('height' => 16, 'width' => 16, 'style' => 'vertical-align:middle; position:relative; top:-1px;'));
+
+        return ht::createHint('', 'От кои документи е сформирано количеството', 'notice', false, $hintAttr)->getContent();
     }
 
 

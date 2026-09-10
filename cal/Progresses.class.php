@@ -152,7 +152,8 @@ class cal_Progresses extends core_Mvc
                     $query->where("#state != 'rejected'");
                     $query->XPR('workingTimeSum', 'int', 'sum(#workingTime)');
                     $query->show('workingTimeSum');
-                    $tRec->workingTime = (int) $query->fetch()->workingTimeSum;
+                    $workingTimeRec = $query->fetch();
+                    $tRec->workingTime = (int) ($workingTimeRec->workingTimeSum ?? 0);
                 }
                 
                 // Да се вземе времената на новите прогреси
@@ -391,7 +392,7 @@ class cal_Progresses extends core_Mvc
             $pValStr = $progressArr[$pVal] ?? null;
             
             if ($pValStr && ($pValStr != $pVal)) {
-                $row->progress .= ' (' . $pValStr . ')';
+                $row->progress = ($row->progress ?? '') . ' (' . $pValStr . ')';
             }
         }
     }

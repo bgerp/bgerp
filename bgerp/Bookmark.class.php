@@ -430,7 +430,7 @@ class bgerp_Bookmark extends core_Manager
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
         // Премахваме броя на нотификациите пред стринга и името на приложението
-        if (!$data->form->rec->id && !$data->form->isSubmitted() && $data->form->rec->title) {
+        if (empty($data->form->rec->id) && !$data->form->isSubmitted() && !empty($data->form->rec->title)) {
             $data->form->rec->title = preg_replace('/^\([0-9]*\) /', '', $data->form->rec->title);
             
             $delimiter = ' « ';
@@ -444,7 +444,7 @@ class bgerp_Bookmark extends core_Manager
         
         $form = $data->form;
         $rec = $form->rec;
-        if (!$rec->type) {
+        if (empty($rec->type)) {
             $rec->type = 'bookmark';
         }
         
@@ -453,7 +453,7 @@ class bgerp_Bookmark extends core_Manager
         }
 
         // При създаване на връзка, да не може да се редактира
-        if ($form->rec->url && empty($form->rec->id) && !$form->cmd) {
+        if (!empty($form->rec->url) && empty($form->rec->id) && empty($form->cmd)) {
             $form->setReadOnly('url');
         }
     }

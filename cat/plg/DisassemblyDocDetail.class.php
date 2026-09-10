@@ -105,6 +105,7 @@ class cat_plg_DisassemblyDocDetail extends core_Plugin
     {
         $data->totalPercent = 0;
         $data->percentWarning = null;
+        $data->totalQuantityData = null;
         $data->percentsArr = array();
         if (!countR($data->recs ?? null)) return;
 
@@ -142,6 +143,17 @@ class cat_plg_DisassemblyDocDetail extends core_Plugin
 
         if (countR($warningArr)) {
             $data->percentWarning = implode('<br>', $warningArr);
+        }
+
+        // Сборът на количествата има смисъл само при сравними мерки
+        if (countR($masterIds) == 1) {
+            $baseMeasureId = null;
+            $totalQuantity = cat_plg_DisassemblyDoc::sumRowsQuantity($mvc->Master, key($masterIds), $baseMeasureId);
+            if (!empty($totalQuantity)) {
+                $totalQuantity = cat_UoM::round($baseMeasureId, $totalQuantity);
+                $data->totalQuantityData = (object) array('quantity' => core_Type::getByName('double(smartRound)')->toVerbal($totalQuantity),
+                                                         'measure' => tr(cat_UoM::getShortName($baseMeasureId)));
+            }
         }
     }
 
@@ -201,16 +213,17 @@ class cat_plg_DisassemblyDocDetail extends core_Plugin
 
 
     /**
-     * Ред "Общо" със сбора на процентите - зелен при точно 100%, червен при над 100%
+     * Ред "Общо" под таблицата - всеки сбор застава точно под своята колона.
+     * Процентът е зелен при точно 100% и червен при над 100%
      *
-     * @param core_ET $tpl     - таблицата с разпределяните редове
-     * @param float   $total   - сборът на процентите
-     * @param int     $columns - брой колони в таблицата
+     * @param core_ET  $tpl  - таблицата с разпределяните редове
+     * @param stdClass $data - данните, с които е рендирана (@see on_AfterPrepareListRows)
      *
      * @return void
      */
-    public static function appendTotalRow($tpl, $total, $columns)
+    public static function appendTotalRow($tpl, $data)
     {
+        $total = $data->totalPercent ?? 0;
         $totalVerbal = core_Type::getByName('percent')->toVerbal($total);
         if ($total > 1) {
             $totalVerbal = ht::styleIfNegative($totalVerbal, -1);
@@ -218,6 +231,73 @@ class cat_plg_DisassemblyDocDetail extends core_Plugin
             $totalVerbal = "<span style='color:green'>{$totalVerbal}</span>";
         }
 
-        $tpl->append(tr("|*<tr style='background-color:#eee'><td colspan='{$columns}' style='text-align:right;'>|Общо|*: <b>{$totalVerbal}</b></td></tr>"), 'ROW_AFTER');
+        // Кой сбор под коя колона застава
+        $cellArr = array('costPercent' => (object) array('value' => "<b>{$totalVerbal}</b>", 'class' => 'aright'));
+        if (is_object($data->totalQuantityData ?? null)) {
+            $cellArr['packagingId'] = (object) array('value' => $data->totalQuantityData->measure, 'class' => 'centered');
+            $cellArr['packQuantity'] = (object) array('value' => "<b>{$data->totalQuantityData->quantity}</b>", 'class' => 'centered');
+        }
+
+        $columns = static::getTableColumns($data);
+        $cellArr = array_intersect_key($cellArr, $columns);
+        if (!countR($cellArr)) return;
+
+        // Колоните без сбор се сливат, а етикетът застава непосредствено преди първия
+        $row = '';
+        $emptyCount = 0;
+        $label = tr('Общо') . ':';
+        foreach ($columns as $name => $dummy) {
+            if (!array_key_exists($name, $cellArr)) {
+                $emptyCount++;
+                continue;
+            }
+
+            if ($emptyCount) {
+                $row .= "<td colspan='{$emptyCount}' class='aright'>{$label}</td>";
+                $emptyCount = 0;
+                $label = '';
+            }
+
+            $value = strlen($label) ? "{$label} {$cellArr[$name]->value}" : $cellArr[$name]->value;
+            $label = '';
+            $row .= "<td class='{$cellArr[$name]->class}'>{$value}</td>";
+        }
+
+        if ($emptyCount) {
+            $row .= "<td colspan='{$emptyCount}'></td>";
+        }
+
+        // Класът пази реда от измерването на колоните (@see planning/js/DisassemblyNoteTables.js)
+        $tpl->append("<tr class='disassemblyTotalRow' style='background-color:#eee'>{$row}</tr>", 'ROW_AFTER');
+    }
+
+
+    /**
+     * Реалните колони на рендираната таблица, в реда на клетките
+     * (@see core_TableView::get)
+     *
+     * @param stdClass $data
+     *
+     * @return array - име на поле => подредба
+     */
+    private static function getTableColumns($data)
+    {
+        $i = 0;
+        $columns = array();
+        $mvc = $data->listTableMvc;
+        foreach (arr::make($data->listFields, true) as $name => $caption) {
+            if (empty($caption)) continue;
+
+            // Колоните без заглавие се рендират като отделни редове под записа
+            $colHeaders = is_string($caption) ? explode('->', $caption) : $caption;
+            if (strlen($colHeaders[0]) && $colHeaders[0][0] == '@') continue;
+            if (isset($mvc->fields[$name]->singleRow)) continue;
+
+            $columns[$name] = (float) ($mvc->fields[$name]->column ?? 0) ?: $i++;
+        }
+
+        asort($columns);
+
+        return $columns;
     }
 }

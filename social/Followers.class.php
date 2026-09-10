@@ -88,6 +88,8 @@ class social_Followers extends core_Master
         
         // За всеки един запис от базата
         foreach ($socialNetworks as $socialNetwork) {
+            // Намираме името на услугата
+            $name = social_Sharings::getServiceNameByUrl($socialNetwork->url);
 
             // Вземаме качената икона
             if ($socialNetwork->icon) {
@@ -96,14 +98,6 @@ class social_Followers extends core_Master
             
             // Ако тя липсва
             } else {
-                
-                // Вземаме URL от базата
-                $socUrl = $socialNetwork->url;
-                
-                // Намираме името на функцията
-                $name = social_Sharings::getServiceNameByUrl($socUrl);
-
-                
                 if (log_Browsers::isRetina()) {
                     $size = 48;
                 } else {
@@ -123,10 +117,10 @@ class social_Followers extends core_Master
             $theme = Mode::get("theme");
             if($theme && $theme == 'singlepage') {
                 // Създаваме линка на бутона
-                $link = ht::createLink("<i class='bx bxl-{$name}'></i>" . $socialNetwork->followersCnt, $url, null, array('class' =>  $name , 'target' => '_blank', 'rel' => 'nofollow', 'title' => '|*' . $socialNetwork->title));
+                $link = ht::createLink("<i class='bx bxl-{$name}'></i>", $url, null, array('class' =>  $name , 'target' => '_blank', 'rel' => 'nofollow', 'title' => '|*' . $socialNetwork->title));
             } else {
                 // Създаваме линка на бутона
-                $link = ht::createLink("{$img}" . $socialNetwork->followersCnt, $url, null, array('class' => 'soc-following noSelect ' . $name , 'target' => '_blank', 'rel' => 'nofollow', 'title' => '|*' . $socialNetwork->title));
+                $link = ht::createLink("{$img}", $url, null, array('class' => 'soc-following noSelect ' . $name , 'target' => '_blank', 'rel' => 'nofollow', 'title' => '|*' . $socialNetwork->title));
             }
 
             // Добавямего към шаблона

@@ -3034,7 +3034,7 @@ class eshop_Carts extends core_Master
         
         if ($form->isSubmitted()) {
             if (isset($rec->saleId)) {
-                $form->setWarning('folderId', 'Към количката има създадена вече продажба|*. |Наистина ли искате да продължите|*');
+                $form->setWarning('folderId', 'Към количката има създадена вече продажба|*. |Наистина ли искате да продължите|*?');
             }
             
             // Ако няма грешки

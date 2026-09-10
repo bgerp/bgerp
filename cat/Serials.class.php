@@ -277,6 +277,9 @@ class cat_Serials extends core_Manager
             
             $clsInst = cls::get($catRec->sourceClassId);
             $clsRec = $clsInst->fetch($catRec->sourceObjectId);
+            if (empty($clsRec)) {
+                continue;
+            }
             
             $res = new stdClass();
             $res->title = tr('СН') . ': ' . $clsInst->getTitleById($catRec->sourceObjectId);

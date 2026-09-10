@@ -183,14 +183,15 @@ class cash_transaction_Pko extends acc_DocumentTransactionSource
                     $type = cond_Payments::getTitleById($dRec->paymentId);
 
                     $caseCreditQuantity = $sign * round($dRec->amount, 2);
-                    $entry[] = array('amount' => $sign * $amount,
-                        'debit' => array('502', array('cash_Cases', $rec->peroCase), array('cond_Payments', $dRec->paymentId), 'quantity' => $sign * $amount),
-                        'credit' => array('481', array('currency_Currencies', $rec->currencyId), 'quantity' => $caseCreditQuantity),
-                        'reason' => "Плащане с '{$type}'");
-
+                    // Първо е редът за източника на средствата, след него - за получателя
                     $entry[] = array(
                         'debit' => array('481', array('currency_Currencies', $rec->currencyId), 'quantity' => $caseCreditQuantity),
                         'credit' => array($rec->debitAccount, array('cash_Cases', $rec->peroCase), array('currency_Currencies', $rec->currencyId), 'quantity' => $caseCreditQuantity),
+                        'reason' => "Плащане с '{$type}'");
+
+                    $entry[] = array('amount' => $sign * $amount,
+                        'debit' => array('502', array('cash_Cases', $rec->peroCase), array('cond_Payments', $dRec->paymentId), 'quantity' => $sign * $amount),
+                        'credit' => array('481', array('currency_Currencies', $rec->currencyId), 'quantity' => $caseCreditQuantity),
                         'reason' => "Плащане с '{$type}'");
                 }
             }

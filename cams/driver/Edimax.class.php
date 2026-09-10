@@ -93,6 +93,7 @@ class cams_driver_Edimax extends cams_driver_IpDevice
             return false;
         }
         
+        $r = '';
         while ((substr_count(strtolower($r), 'content-type') != 2) && strlen($r) < 200000) {
             $r .= fread($f, 512);
         }

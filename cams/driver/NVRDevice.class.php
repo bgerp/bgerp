@@ -53,7 +53,7 @@ class cams_driver_NVRDevice extends core_BaseClass
      */
     public function init($params = array())
     {
-        if (strpos($params, '}')) {
+        if (is_string($params) && strpos($params, '}')) {
             $params = arr::make(json_decode($params));
         } else {
             $params = arr::make($params, true);

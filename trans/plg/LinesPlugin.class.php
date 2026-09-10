@@ -249,9 +249,9 @@ class trans_plg_LinesPlugin extends core_Plugin
                         $clone->{$f} = $v;
                     }
                     $lineDateFields = $mvc->getShipmentDateFields($clone);
-                    $deliveryOn = !empty($form->rec->deliveryTime) ? $form->rec->deliveryTime : $lineDateFields['deliveryTime']['placeholder'];
+                    $deliveryOn = !empty($form->rec->deliveryTime) ? $form->rec->deliveryTime : ($lineDateFields['deliveryTime']['placeholder'] ?? null);
 
-                    if($lineRec->start < $deliveryOn) {
+                    if(isset($deliveryOn) && $lineRec->start < $deliveryOn) {
                         $deliveryOn = dt::mysql2verbal($deliveryOn);
                         $form->setWarning('lineId', "Началото на линията е преди очакваната дата на товарене|*: {$deliveryOn}!");
                     }
@@ -272,9 +272,9 @@ class trans_plg_LinesPlugin extends core_Plugin
                 if(is_array($lineDateFields)){
                     foreach ($lineDateFields as $dateFld => $dateObj){
                         if(!in_array($rec->state, array('draft', 'pending'))) {
-                            if ($dateObj['readOnlyIfActive']) continue;
+                            if (!empty($dateObj['readOnlyIfActive'])) continue;
                         }
-                        $rec->{$dateFld} = $formRec->{$dateFld};
+                        $rec->{$dateFld} = $formRec->{$dateFld} ?? null;
                     }
                 }
 

@@ -137,7 +137,7 @@
         }
         
         //Крайна дата / 'към дата'
-        if ($rec->from) {
+        if ($rec->to) {
             $sQuery->where(array(
                 "#date <= '[#1#]'",
                 $rec->to . ' 23:59:59'
@@ -178,6 +178,10 @@
         foreach ($items as $val){
             
             $iRec = cat_Products::fetch($val);
+            if (empty($iRec)) {
+                
+                continue;
+            }
             
             $id = $val;
             

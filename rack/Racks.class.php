@@ -381,7 +381,7 @@ class rack_Racks extends core_Master
      */
     public static function getRackPositionSqlCondition($field, $storeId)
     {
-        $field = ($field[0] == '#') ? $field : "#{$field}";
+        $field = (($field[0] ?? null) == '#') ? $field : "#{$field}";
 
         $conditions = array();
         foreach (self::getRacksByStore($storeId) as $num => $rackRec){

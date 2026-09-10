@@ -184,6 +184,9 @@ class ztm_Registers extends core_Master
     public static function getOurType($registerId, &$value = null)
     {
         $rec = self::fetch($registerId);
+        if (empty($rec)) {
+            $rec = (object) array('format' => null, 'type' => null);
+        }
 
         if ($rec->format && isset($value)) {
             $decimals = null;
@@ -390,7 +393,7 @@ class ztm_Registers extends core_Master
     {
 //         $rec->default = trim($rec->default, '"');
         $rec->state = 'active';
-        if ($rec->profiles) {
+        if (!empty($rec->profiles)) {
             $pArr = explode('|', $rec->profiles);
             $pIdArr = array();
             foreach ($pArr as $pSysId) {
@@ -413,7 +416,11 @@ class ztm_Registers extends core_Master
      */
     public function on_AfterImportRec($mvc, $rec)
     {
-        setPartIfNot($mvc, 'activeRegistersArr', array());
+        // Полето е protected - глобалните хелпъри нямат достъп до него
+        if (!is_array($mvc->activeRegistersArr)) {
+            $mvc->activeRegistersArr = array();
+        }
+
         $mvc->activeRegistersArr[$rec->id] = $rec->id;
     }
     

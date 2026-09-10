@@ -177,9 +177,9 @@ class cond_type_Product extends cond_type_Varchar
         $BomDetails = cls::get('cat_BomDetails');
 
         $bQuery = $BomDetails->getQuery();
-        $bQuery->EXT('productId', 'cat_Boms', 'externalName=productId,externalKey=bomId');
-        $bQuery->EXT('state',     'cat_Boms', 'externalName=state,externalKey=bomId');
-        $bQuery->where("#productId = {$domainId} AND #state NOT IN ('rejected', 'closed')");
+        $bQuery->EXT('bomProductId', 'cat_Boms', 'externalName=productId,externalKey=bomId');
+        $bQuery->EXT('state',        'cat_Boms', 'externalName=state,externalKey=bomId');
+        $bQuery->where("#bomProductId = {$domainId} AND #state NOT IN ('rejected', 'closed')");
 
         $details = array();
         while ($bRec = $bQuery->fetch()) {

@@ -31,8 +31,13 @@
     <!--ET_BEGIN text-->
     <p><b>|Съдържание|*:</b> [#text#]</p>
     <!--ET_END text-->
+    <!--ET_BEGIN maxResponseCount-->
+    <p><b>|Максимален брой към един имейл|*:</b> [#maxResponseCount#]</p>
+    <!--ET_END maxResponseCount-->
+    <!--ET_BEGIN responsePeriod-->
+    <p><b>|Период на ограничението|*:</b> [#responsePeriod#]</p>
+    <!--ET_END responsePeriod-->
     <!--ET_BEGIN aiInstructions-->
     <p><b>|Инструкции за ИИ|*:</b> [#aiInstructions#]</p>
     <!--ET_END aiInstructions-->
 </div>
-

@@ -191,12 +191,16 @@ class fileman_Get extends core_Manager
         }
         
         $fh = null;
+        $headers = array();
+        $ext = null;
+        $ct = null;
+        $fileName = null;
         
         $fRec = new stdClass();
         if ($data === false) {
             $err[] = 'Грешка при свалянето на файла.';
         } else {
-            foreach ($http_response_header as $l) {
+            foreach ((array) ($http_response_header ?? array()) as $l) {
                 $hArr = explode(':', $l, 2);
                 if (isset($hArr[1])) {
                     $h = $headers[strtolower(trim($hArr[0]))] = trim($hArr[1]);
@@ -238,30 +242,30 @@ class fileman_Get extends core_Manager
                 }
             }
             
-            $fileName = $rec->name ? $rec->name : $headers['filename'];
+            $fileName = $rec->name ?? ($headers['filename'] ?? null);
             
             if (!$fileName && $ext) {
                 $fPattern = "/[^\\?\\/*:;{}\\\\]+\\.{$ext}/i";
                 
                 preg_match($fPattern, $rec->url, $matches);
                 
-                $fileName = decodeUrl($matches[0]);
+                $fileName = isset($matches[0]) ? decodeUrl($matches[0]) : null;
             }
             
-            $location = $headers['location'] ? $headers['location'] : $rec->url;
+            $location = $headers['location'] ?? $rec->url;
             
             // Ако URL-то завършва с нещо като име на файл, го вземаме
             if (!$fileName) {
                 $fPattern = "/[=\/]([a-z0-9_\-]{0,40}\.([a-z]{2,4}))$/i";
                 preg_match($fPattern, $location, $matches);
-                if (!in_array(strtolower($matches[2]), array('php', 'asp', 'jsp'))) {
+                if (isset($matches[1], $matches[2]) && !in_array(strtolower($matches[2]), array('php', 'asp', 'jsp'))) {
                     $fileName = $matches[1];
                 }
             }
             
             if (!$fileName) {
                 $urlArr = parse_url($rec->url);
-                $fileName = str_replace('.', '_', $urlArr['host']);
+                $fileName = isset($urlArr['host']) ? str_replace('.', '_', $urlArr['host']) : null;
             }
             
             if (!$fileName) {
@@ -275,7 +279,7 @@ class fileman_Get extends core_Manager
             // Записваме данните в посочения файл
             file_put_contents($tmpFile, $data);
             
-            if ($rec->bucketId) {
+            if (!empty($rec->bucketId)) {
                 
                 // Вземаме инфото на обекта, който ще получи файла
                 $Buckets = cls::get('fileman_Buckets');
@@ -284,14 +288,13 @@ class fileman_Get extends core_Manager
                 if ($Buckets->isValid($err, $rec->bucketId, $fileName, $tmpFile)) {
                     $bucketName = fileman_Buckets::fetchField($rec->bucketId, 'name');
                     $fh = fileman::absorb($tmpFile, $bucketName, $fileName);
+                    $fRec = fileman_Files::fetchByFh($fh);
                     
                     $add = $Buckets->getInfoAfterAddingFile($fh);
                     
-                    if ($rec->callback) {
-                        if (isset($fh)) {
-                            $fRec = fileman_Files::fetchByFh($fh);
-                        }
-                        $add->append("<script>  if(window.opener.{$rec->callback}('{$fh}','{$fRec->name}') != true) self.close(); else   self.focus();  </script>");
+                    if (!empty($rec->callback)) {
+                        $absorbedFileName = $fRec->name ?? $fileName;
+                        $add->append("<script>  if(window.opener.{$rec->callback}('{$fh}','{$absorbedFileName}') != true) self.close(); else   self.focus();  </script>");
                     }
                 }
             }
@@ -311,7 +314,7 @@ class fileman_Get extends core_Manager
             $rec->url = '';
             
             if (isset($fh)) {
-                fileman_Files::logWrite('Добавен файл от линк', $fRec->id);
+                fileman_Files::logWrite('Добавен файл от линк', $fRec->id ?? null);
             }
         }
         

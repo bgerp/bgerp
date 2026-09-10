@@ -111,6 +111,12 @@ class escpos_printer_TD2120N extends peripheral_DeviceDriver
         $url = toUrl($url, 'local');
         $url = urlencode($url);
 
+        // При статус `0` браузърът изобщо не е получил отговор от принт-сървъра - съобщенията се подготвят от тук, за да са преведени
+        $serverUrl = json_encode($rec->serverUrl);
+        $noConnMsg = json_encode(tr('Няма връзка с принт-сървъра|*!') . ' ' . $rec->serverUrl . ' - ' . tr('не е стартиран, недостъпен е или заявката е блокирана от браузъра|*!'));
+        $timeoutMsg = json_encode(tr('Изтече времето за отговор от принт-сървъра|*!') . ' ' . $rec->serverUrl);
+        $abortMsg = json_encode(tr('Прекъсната заявка към принт-сървъра|*!') . ' ' . $rec->serverUrl);
+
         $res = " function escPrintOnSuccess(res) {
                     if (res == 'OK') {
                         getEfae().process({resUrl: '{$url}'}, {res:  res});
@@ -121,7 +127,17 @@ class escpos_printer_TD2120N extends peripheral_DeviceDriver
                 
                 function escPrintOnError(res) {
                     if($.isPlainObject(res)){
-                        res = res.status  + '. ' +  res.statusText;
+                        if (res.status == 0) {
+                            if (res.statusText == 'timeout') {
+                                res = {$timeoutMsg};
+                            } else if (res.statusText == 'abort') {
+                                res = {$abortMsg};
+                            } else {
+                                res = {$noConnMsg};
+                            }
+                        } else {
+                            res = res.status  + '. ' +  res.statusText + ' (' + {$serverUrl} + ')';
+                        }
                     }
                     getEfae().process({resUrl: '{$url}'}, {type: 'error', res:  res});
                 }";
