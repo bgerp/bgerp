@@ -30,7 +30,12 @@ class spas_Client
     protected $socket;
     protected $protocolVersion = '1.5';
     protected $enableZlib;
-    
+
+    /**
+     * Таймаут в секунди - и за свързването, и за четенето от сокета
+     */
+    protected $timeout = 5;
+
     
     /**
      * Class constructor
@@ -57,19 +62,27 @@ class spas_Client
      */
     protected function getSocket()
     {
+        $timeout = ((float) $this->timeout > 0) ? (float) $this->timeout : 5;
+
+        // Без изричен таймаут fsockopen ползва default_socket_timeout (обикновено 60 сек.)
         if (!empty($this->socketPath)) {
-            $socket = @fsockopen('unix://' . $this->socketPath, null, $errno, $errstr);
+            $socket = @fsockopen('unix://' . $this->socketPath, null, $errno, $errstr, $timeout);
         } else {
-            $socket = @fsockopen($this->hostname, $this->port, $errno, $errstr);
+            $socket = @fsockopen($this->hostname, $this->port, $errno, $errstr, $timeout);
         }
-        
+
         if (!$socket) {
+            $target = !empty($this->socketPath) ? $this->socketPath : "{$this->hostname}:{$this->port}";
+
             throw new spas_client_Exception(
-                "Could not connect to SpamAssassin: {$errstr}",
+                "Няма връзка със SpamAssassin ({$target}) за {$timeout} сек.: {$errstr}",
                 $errno
             );
         }
-        
+
+        // Иначе четенето от сокета блокира по default_socket_timeout
+        stream_set_timeout($socket, (int) $timeout, (int) (fmod($timeout, 1) * 1000000));
+
         return $socket;
     }
     
@@ -150,25 +163,63 @@ class spas_Client
     {
         $headers = '';
         $message = '';
-        
+        $timedOut = false;
+
         while (true) {
             $buffer = fgets($socket, 128);
+
+            // При таймаут fgets връща false, но feof() още е false - без тази
+            // проверка цикълът се върти безкрайно
+            if ($buffer === false) {
+                $timedOut = $this->isTimedOut($socket);
+
+                break;
+            }
+
             $headers .= $buffer;
+
             if ($buffer == "\r\n" || feof($socket)) {
                 break;
             }
         }
-        
-        while (!feof($socket)) {
-            $message .= fgets($socket, 128);
+
+        while (!$timedOut && !feof($socket)) {
+            $buffer = fgets($socket, 128);
+
+            if ($buffer === false) {
+                $timedOut = $this->isTimedOut($socket);
+
+                break;
+            }
+
+            $message .= $buffer;
         }
-        
+
         fclose($socket);
-        
+
+        if ($timedOut) {
+            throw new spas_client_Exception("Няма отговор от SpamAssassin за {$this->timeout} сек.");
+        }
+
         return array(trim($headers), trim($message));
     }
     
     
+    /**
+     * Прекъсната ли е връзката заради изтекъл таймаут?
+     *
+     * @param resource $socket
+     *
+     * @return bool
+     */
+    protected function isTimedOut($socket)
+    {
+        $meta = stream_get_meta_data($socket);
+
+        return !empty($meta['timed_out']);
+    }
+
+
     /**
      * Parses SpamAssassin output ($header and $message)
      *
