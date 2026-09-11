@@ -288,7 +288,7 @@ class email_Mime extends core_BaseClass
                 $tPart = mb_substr($this->textPart, 0, $priorityLen);
                 $dLang = i18n_Language::detect($tPart);
                 if ($dLang) {
-                    $defLgArr[$dLang] += 3;
+                    $defLgArr[$dLang] = ($defLgArr[$dLang] ?? 0) + 3;
                 }
             }
 
