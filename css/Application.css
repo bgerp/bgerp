@@ -5741,6 +5741,13 @@ div.location.public {
 /*
  * край на бласт
  */
+  .acc_drivers_TotalRepPortal .portal > div:not(.legend) {
+    width: 0;
+    min-width: 100%; }
+  .acc_drivers_TotalRepPortal canvas {
+    max-width: 100%;
+    height: auto !important; }
+
 /*
  * търсене в портала
  */

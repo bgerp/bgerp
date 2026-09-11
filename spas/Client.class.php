@@ -31,6 +31,12 @@ class spas_Client
     protected $protocolVersion = '1.5';
     protected $enableZlib;
 
+    /** @var string|null Optional SpamAssassin user. */
+    public $user;
+
+    /** @var int|null Optional maximum message size. */
+    public $maxSize;
+
     /**
      * Таймаут в секунди - и за свързването, и за четенето от сокета
      */
