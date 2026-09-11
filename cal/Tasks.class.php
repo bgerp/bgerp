@@ -1540,10 +1540,11 @@ class cal_Tasks extends embed_Manager
         // Добавяме поле във формата за търсене
         $data->listFilter->FNC('from', 'date', 'caption=От');
         $data->listFilter->FNC('to', 'date', 'caption=До');
+        $data->listFilter->input('from,to', 'silent');
         $data->listFilter->FNC('selectedUsers', "users(rolesForAll={$mvc->filterRolesForAll})", 'caption=Потребител,input,silent,autoFilter');
         $data->listFilter->FNC('Chart', 'varchar', 'caption=Таблица,input=hidden,silent,autoFilter');
         $data->listFilter->FNC('View', 'varchar', 'caption=Изглед,input=hidden,silent,autoFilter');
-        $data->listFilter->FNC('stateTask', 'enum(all=Всички,active=Активни,draft=Чернови,waiting=Чакащи,pending=Заявка,actPend=Активни+Чакащи+Събудени+Спрени+Заявка,closed=Приключени)', 'caption=Състояние,input,silent,autoFilter');
+        $data->listFilter->FNC('stateTask', self::getStateTaskFilterType(), 'caption=Състояние,input,silent,autoFilter');
         $data->listFilter->FNC('folder', 'key2(mvc=doc_FoldersProxy, allowEmpty, selectSourceArr=doc_Folders::getSelectArr, forceProxy)', 'caption=Папка,placeholderType=all,silent,autoFilter,input');
         $data->listFilter->setOptions('stepId', doc_UnsortedFolderSteps::getOptionArr());
         $data->listFilter->setField('stepId', 'placeholderType=all');
@@ -1587,7 +1588,7 @@ class cal_Tasks extends embed_Manager
         // филтъра по дата е -1/+1 месец от днещната дата
         $data->listFilter->setDefault('from', date('Y-m-d', strtotime('-1 week', dt::mysql2timestamp(dt::now()))));
         $data->listFilter->setDefault('to', date('Y-m-d', strtotime('+1 week', dt::mysql2timestamp(dt::now()))));
-        $data->listFilter->setDefault('selectPeriod', 'one_week_next_before');
+        $data->listFilter->setDefault('selectPeriod', Request::get('selectPeriod') ?: 'one_week_next_before');
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
 
         // Показваме само това поле. Иначе и другите полета на модела ще се появят
@@ -1634,6 +1635,10 @@ class cal_Tasks extends embed_Manager
         if (countR($dateRange) == 2) {
             sort($dateRange);
         }
+
+        if (Request::get('Chart') == 'Gantt' && isset($dateRange[1])) {
+            $dateRange[1] .= ' 23:59:59';
+        }
         
         // сега
         $now = dt::now();
@@ -1675,7 +1680,7 @@ class cal_Tasks extends embed_Manager
             if ($filterRec->stateTask != 'all' && $filterRec->stateTask != 'actPend') {
                 $data->query->where(array("#state = '[#1#]'", $filterRec->stateTask));
             } elseif ($filterRec->stateTask == 'actPend') {
-                $data->query->where("#state = 'active' OR #state = 'waiting'");
+                $data->query->in('state', array('active', 'waiting', 'wakeup', 'stopped', 'pending'));
             }
             
             if ($filterRec->order == 'onStart') {
@@ -1783,9 +1788,17 @@ class cal_Tasks extends embed_Manager
 
             if ($filterRec->folder ?? null) {
                 unset($data->listFields['folderId']);
-                $data->query->where(array("#{$mvc->driverClassField} = '[#1#]'", $filterRec->{$mvc->driverClassField}));
             }
         }
+    }
+
+
+    /**
+     * Общи състояния за филтъра на списъка и порталния Гант.
+     */
+    public static function getStateTaskFilterType()
+    {
+        return 'enum(all=Всички,active=Активни,draft=Чернови,waiting=Чакащи,pending=Заявка,actPend=Активни+Чакащи+Събудени+Спрени+Заявка,closed=Приключени)';
     }
     
     
@@ -2581,16 +2594,29 @@ class cal_Tasks extends embed_Manager
             }
         }
         
+        $ganttData = $data;
+        if (!empty($data->ganttPortal)) {
+            $ganttData = clone $data;
+            $ganttData->ganttScale = self::getGanttTimeType($data);
+            $ganttData->ganttTasks = $resTask;
+        }
+
         // други параметри
-        $others = self::renderGanttTimeType($data);
+        $others = self::renderGanttTimeType($ganttData);
         
-        $params = $others->otherParams;
-        $header = $others->headerInfo;
+        $params = $others->otherParams ?? array();
+        $header = $others->headerInfo ?? array();
+        if (!empty($data->ganttPortal)) {
+            $params['smallerPeriod'] = $params['biggerPeriod'] = '';
+            $params['currentTime'] = (int) (floor(time() / 60) * 60);
+            $data->ganttVisibleFrom = dt::timestamp2Mysql((int) ($params['startTime'] ?? 0));
+            $data->ganttVisibleTo = dt::timestamp2Mysql((int) ($params['endTime'] ?? 0));
+        }
         
         // връщаме един обект от всички масиви
         $res = (object) array('tasksData' => $resTask, 'headerInfo' => $header, 'resources' => $resUser, 'otherParams' => $params);
         
-        $chart = gantt_Adapter::render($res);
+        $chart = gantt_Adapter::render($res, $data->ganttId ?? null);
         
         return $chart;
     }
@@ -2695,9 +2721,11 @@ class cal_Tasks extends embed_Manager
         $stringTz = date_default_timezone_get();
         
         // Сетваме времевата зона
-        date_default_timezone_set('UTC');
-        
-        $ganttType = Request::get('View');
+        if (empty($data->ganttPortal)) {
+            date_default_timezone_set('UTC');
+        }
+
+        $ganttType = !empty($data->ganttPortal) ? ($data->ganttScale ?? null) : Request::get('View');
         if (!isset(self::$view[$ganttType])) {
             $ganttType = self::getGanttTimeType($data);
         }
@@ -2710,7 +2738,7 @@ class cal_Tasks extends embed_Manager
         //       [1] - часа
         $startTasksTime = explode(' ', dt::timestamp2Mysql($dateTasks->minStartTaskTime));
         $endTasksTime = explode(' ', dt::timestamp2Mysql($dateTasks->maxEndTaskTime));
-        
+
         // Масив [0] - година
         //       [1] - месец
         //       [2] - ден
@@ -2930,7 +2958,8 @@ class cal_Tasks extends embed_Manager
                 $otherParams['startTime'] = mktime(0, 0, 0, $startExplode[1], $startExplode[2], $startExplode[0]);
                 
                 // до последния ден на намерения за край месец
-                $otherParams['endTime'] = mktime(23, 59, 59, $endExplode[1], $endExplode[2] + 3, $endExplode[0]);
+                $extraDays = !empty($data->ganttPortal) ? 0 : 3;
+                $otherParams['endTime'] = mktime(23, 59, 59, $endExplode[1], $endExplode[2] + $extraDays, $endExplode[0]);
                 
                 // урл-тата на стрелките
                 $otherParams['smallerPeriod'] = ht::createLink($imgPlus, $url->prevUrl)->getContent();
@@ -2940,7 +2969,7 @@ class cal_Tasks extends embed_Manager
                 $otherParams['currentTime'] = dt::mysql2timestamp(dt::now());
                 
                 $curDate = $startTasksTime[0]. ' 00:00:00';
-                $toDate = dt::addDays(3, $endTasksTime[0]). ' 23:59:59';
+                $toDate = dt::addDays($extraDays, $endTasksTime[0]). ' 23:59:59';
                 
                 // генерираме номерата на седмиците между началото и края
                 while ($curDate <= $toDate) {
@@ -2983,6 +3012,9 @@ class cal_Tasks extends embed_Manager
                 } else {
                     $otherParams['endTime'] = mktime(23, 59, 59, $endExplode[1], $endExplode[2], $endExplode[0]);
                 }
+                if (!empty($data->ganttPortal)) {
+                    $otherParams['endTime'] = strtotime('next Monday', dt::mysql2timestamp($endTasksTime[0])) - 1;
+                }
                 
                 // урл-тата на стрелките
                 $otherParams['smallerPeriod'] = ht::createLink($imgPlus, $url->prevUrl)->getContent();
@@ -2993,6 +3025,9 @@ class cal_Tasks extends embed_Manager
                 
                 $curDate = date('Y-m-d H:i:s', $otherParams['startTime']);
                 $toDate = dt::addSecs(86399, date('Y-m-d H:i:s', strtotime('Sunday', mktime(23, 59, 59, $endExplode[1], $endExplode[2], $endExplode[0]))));
+                if (!empty($data->ganttPortal)) {
+                    $toDate = dt::timestamp2Mysql($otherParams['endTime']);
+                }
                 
                 // генерираме номерата на седмиците между началото и края
                 while ($curDate < $toDate) {
@@ -3042,6 +3077,30 @@ class cal_Tasks extends embed_Manager
      */
     public static function calcTasksMinStartMaxEndTime($data)
     {
+        if (!empty($data->ganttFrom) && !empty($data->ganttTo)) {
+            $from = dt::mysql2timestamp($data->ganttFrom . ' 00:00:00');
+            $to = dt::mysql2timestamp($data->ganttTo . ' 23:59:59');
+            $start = $end = array();
+            // Свиваме оста само по изчертаните задачи, в рамките на избрания период.
+            foreach ((array) ($data->ganttTasks ?? array()) as $task) {
+                if (empty($task['rowId'])) {
+                    continue;
+                }
+                foreach ((array) ($task['timeline'] ?? array()) as $part) {
+                    $taskStart = (int) ($part['startTime'] ?? 0);
+                    $taskEnd = $taskStart + (int) ($part['duration'] ?? 0);
+                    if ($taskEnd > $taskStart && $taskStart < $to && $taskEnd > $from) {
+                        $start[] = max($from, $taskStart);
+                        // Край в полунощ не добавя празен ден след лентата.
+                        $end[] = min($to, $taskEnd - 1);
+                    }
+                }
+            }
+
+            return (object) array('minStartTaskTime' => countR($start) ? min($start) : $from,
+                'maxEndTaskTime' => countR($end) ? max($end) : $to);
+        }
+
         $start = $end = array();
         $timeStart = $timeEnd = null;
         if (is_object($data) && !empty($data->recs)) {

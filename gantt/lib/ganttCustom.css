@@ -1,3 +1,39 @@
+.portal-tasks-gantt .legend {
+	white-space: normal;
+	overflow-wrap: anywhere;
+}
+
+.portal-tasks-gantt .gantt-portal-content {
+	width: 0;
+	min-width: 100%;
+	overflow: auto;
+}
+
+.portal-tasks-gantt .gantt-period {
+	display: inline-block;
+	margin-left: 4px;
+	font-size: 0.85em;
+	font-weight: normal;
+	white-space: nowrap;
+	color: #666;
+}
+
+.portal-tasks-gantt .scroll-table {
+	overflow-x: auto;
+}
+
+.portal-tasks-gantt .gantt-table {
+	min-width: 100%;
+}
+
+.portal-tasks-gantt .gantt-holder {
+	width: 100%;
+}
+
+.narrow .portal-tasks-gantt .scroll-table {
+	width: auto !important;
+}
+
 .gantt-holder > tbody > tr > td{
 	vertical-align:top;
 }
