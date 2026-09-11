@@ -2552,7 +2552,11 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                                     </div>
                                 </fieldset><!--ET_END BLOCK-->"));
 
+        $baseCurrencyDate = $data->rec->to ?? null;
         if ($data->rec->compare == 'month') {
+            if (!empty($data->rec->firstMonth)) {
+                $baseCurrencyDate = acc_Periods::fetchField($data->rec->firstMonth, 'end');
+            }
             unset($data->rec->from);
             unset($data->rec->to);
         } else {
@@ -2677,7 +2681,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             $fieldTpl->append('<b>' . $data->row->compare . '</b>', 'compare');
         }
 
-        $baseCurrency = acc_Periods::getBaseCurrencyCode($data->rec->to);
+        $baseCurrency = acc_Periods::getBaseCurrencyCode($baseCurrencyDate);
         if (isset($data->rec->currency)) {
             $currency = currency_Currencies::getCodeById($data->rec->currency);
             if ($currency == $baseCurrency) {

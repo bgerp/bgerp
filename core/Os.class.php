@@ -350,30 +350,56 @@ class core_Os
         $paths = array(defined('EF_PHP_PATH') ? EF_PHP_PATH : false,
             defined('PHP_PATH') ? PHP_PATH : false,
             getenv('PHP_PATH'),
-            defined('PHP_BINARY') ? PHP_BINARY : false);
-        
+            // PHP_BINARY сочи към CLI бинарника само когато сме в CLI. Под FPM/CGI
+            // сочи към php-fpm/php-cgi, които не могат да изпълняват скриптове
+            (PHP_SAPI == 'cli' && defined('PHP_BINARY')) ? PHP_BINARY : false);
+
         foreach ($paths as $p) {
-            if ($p && file_exists($p) && is_executable($p) && strpos(basename($p), 'php') !== false) {
-                
+            if ($p && file_exists($p) && is_executable($p) && self::isPhpCliBin($p)) {
+
                 return $p;
             }
         }
-        
-        if (self::isWindows()) {
-            $cmd = 'where php';
-        } else {
-            $cmd = 'which php';
+
+        // Търсим CLI от същата версия, за да не се разминава с тази на уеб сървъра
+        $names = array('php' . PHP_MAJOR_VERSION . '.' . PHP_MINOR_VERSION, 'php');
+
+        foreach ($names as $name) {
+            $cmd = self::isWindows() ? "where {$name}" : "which {$name}";
+
+            $lines = array();
+            exec($cmd, $lines, $returnVal);
+
+            if ($returnVal != 0 || empty($lines[0])) {
+                continue;
+            }
+
+            $p = trim($lines[0]);
+
+            if (is_executable($p) && self::isPhpCliBin($p)) {
+
+                return $p;
+            }
         }
-        
-        exec($cmd, $lines, $returnVal);
-        
-        $php = false;
-        
-        if ($returnVal == 0 && strlen($lines[0]) && is_executable($lines[0])) {
-            $php = $lines[0];
+
+        return false;
+    }
+
+
+    /**
+     * Изпълнимият файл PHP ли е и от вид, който може да изпълнява скриптове?
+     * Отсяват се php-fpm и php-cgi, които при подаден скрипт връщат само usage
+     */
+    private static function isPhpCliBin($path)
+    {
+        $name = strtolower(basename($path));
+
+        if (strpos($name, 'php') === false) {
+
+            return false;
         }
-        
-        return $php;
+
+        return strpos($name, 'fpm') === false && strpos($name, 'cgi') === false;
     }
     
     

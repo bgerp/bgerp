@@ -258,8 +258,8 @@ class deals_QuotationDetails extends doc_Detail
             $rec->quantity = $rec->packQuantity * $rec->quantityInPack;
 
             // Проверка дали к-то е под МКП
-            if (isset($rec->productId)) {
-                deals_Helper::isQuantityBellowMoq($form, $rec->productId, $rec->quantity, $rec->quantityInPack);
+            if (isset($rec->productId) || !empty($rec->_moq)) {
+                deals_Helper::isQuantityBellowMoq($form, $rec->productId ?? null, $rec->quantity, $rec->quantityInPack);
             }
             $price = null;
             if (!isset($rec->packPrice)) {

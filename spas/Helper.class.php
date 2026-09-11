@@ -117,6 +117,7 @@ class spas_Helper extends core_Mvc
         setIfNot($params['hostname'], spas_Setup::get('HOSTNAME'));
         setIfNot($params['port'], spas_Setup::get('PORT'));
         setIfNot($params['user'], spas_Setup::get('USER'));
+        setIfNot($params['timeout'], spas_Setup::get('TIMEOUT'));
 
         $hash = md5(serialize($params));
 

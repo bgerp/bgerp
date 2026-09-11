@@ -324,18 +324,35 @@ class bank_OwnAccounts extends core_Master
         }
         
         $total = 0;
+        $haveAmount = false;
+
+        // blAmount се попълва в on_AfterRecToVerbal само за перата, до които
+        // потребителят има достъп през bgerp_plg_FLB - за останалите го няма
         foreach ($data->recs as $rec) {
+            if (!isset($rec->blAmount)) {
+                continue;
+            }
+
             $total += $rec->blAmount;
+            $haveAmount = true;
         }
-        
+
+        // Няма нито едно салдо за сумиране - редът "Общо" би показал подвеждаща нула
+        if (!$haveAmount) {
+
+            return;
+        }
+
+        $isNegative = ($total < 0);
+
         $Double = cls::get('type_Double');
         $Double->params['decimals'] = 2;
         $total = $Double->toVerbal($total);
-        
-        if ($total < 0) {
+
+        if ($isNegative) {
             $total = "<span style='color:red'>{$total}</span>";
         }
-        
+
         $currencyId = acc_Periods::getBaseCurrencyCode();
         $state = (Request::get('Rejected', 'int')) ? 'rejected' : 'closed';
         $colspan = countR($data->listFields) - 1;
