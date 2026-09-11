@@ -395,7 +395,7 @@ class email_Mime extends core_BaseClass
                     default:
                     $rate = 40;
                 }
-                $countries[$ccByEmail] += $rate;
+                $countries[$ccByEmail] = ($countries[$ccByEmail] ?? 0) + $rate;
             }
         }
         
@@ -421,7 +421,7 @@ class email_Mime extends core_BaseClass
                     $rate = $rate / 1.2;
                 }
                 
-                $countries[$ccByIp] += $rate;
+                $countries[$ccByIp] = ($countries[$ccByIp] ?? 0) + $rate;
             }
         }
         
@@ -429,7 +429,7 @@ class email_Mime extends core_BaseClass
         
         // Списък с държави в които се говори намерения език
         if ($lg) {
-            $countries[$lg] += 30;
+            $countries[$lg] = ($countries[$lg] ?? 0) + 30;
         }
         
         // Намираме страната с най-много събрани точки
