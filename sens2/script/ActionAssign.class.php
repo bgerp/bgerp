@@ -118,7 +118,7 @@ class sens2_script_ActionAssign
         }
 
         // Проверяваме дали семафора позволява да се зададе променливата
-        if(!sens2_Semaphores::check($rec->id, $value, $rec->onlyDifferent, $rec->minInterval, $rec->minAttempts)) {
+        if(!sens2_Semaphores::check($rec->id, $value, $rec->onlyDifferent ?? null, $rec->minInterval ?? null, $rec->minAttempts ?? null)) {
 
             return 'active';
         }
