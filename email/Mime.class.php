@@ -1144,7 +1144,7 @@ class email_Mime extends core_BaseClass
             } else {
                 
                 // Ако частта представлява атачнат файл, определяме името му и разширението му
-                $fileName = $this->getFileName($index);
+                $fileName = $this->getFileName($index, $data);
                 
                 $cid = trim($cid, '<>');
                 
@@ -1177,7 +1177,7 @@ class email_Mime extends core_BaseClass
     /**
      * Връща най-доброто име за прикачен файл съответстващ на прикачената част
      */
-    private function getFileName($partIndex)
+    private function getFileName($partIndex, $data = null)
     {
         $p = $this->parts[$partIndex];
         
@@ -1186,7 +1186,7 @@ class email_Mime extends core_BaseClass
         // Ако липсва файл, името му е производно на хеша на съдържанието му
         if (!$fileName) {
             $partIndexName = str_replace('.', '-', $partIndex);
-            $fileName = $partIndexName . '_' . substr(md5($p->data), 0, 6);
+            $fileName = $partIndexName . '_' . substr(md5($data ?? $p->data ?? ''), 0, 6);
         }
         
         // Ако липсва файлово разширение се опитваме да го определим от 'Content-Type'

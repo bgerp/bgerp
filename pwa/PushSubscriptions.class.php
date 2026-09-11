@@ -1403,7 +1403,7 @@ class pwa_PushSubscriptions extends core_Manager
                                 }
 
                                 if ($fType == 'urgent') {
-                                    if (($priority != 'alert') || ($priority != 'warning')) {
+                                    if (($priority != 'alert') && ($priority != 'warning')) {
 
                                         continue;
                                     }
@@ -1412,7 +1412,7 @@ class pwa_PushSubscriptions extends core_Manager
 
                             $time = $uRec->{$fName};
                             if (!isset($time)) {
-                                $time = $this->defaultValues[$fName];
+                                $time = $this->defaultValues[$fName] ?? null;
                             }
 
                             if (!isset($time)) {
