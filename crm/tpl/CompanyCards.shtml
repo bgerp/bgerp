@@ -1,0 +1,21 @@
+<div class="crm-group-embed crm-group-embed--[#LAYOUT#] crm-group-embed--columns-[#COLUMNS#] crm-group-embed--logo-[#LOGO_SIZE#] [#APPEARANCE_CLASSES#]" style="max-width: [#MAX_WIDTH#]px; [#APPEARANCE#]">
+    <div class="crm-group-embed__grid">
+        <!--ET_BEGIN COMPANY-->
+        <article class="crm-group-embed__card">
+            <!--ET_BEGIN logo--><div class="crm-group-embed__logo">[#logo#]</div><!--ET_END logo-->
+            <div class="crm-group-embed__content">
+                <h3 class="crm-group-embed__name">[#name#]</h3>
+                <div class="crm-group-embed__details">
+                    <!--ET_BEGIN country--><div class="crm-group-embed__country">[#country#]</div><!--ET_END country-->
+                    <!--ET_BEGIN locality--><div class="crm-group-embed__locality">[#locality#]</div><!--ET_END locality-->
+                    <!--ET_BEGIN address--><div class="crm-group-embed__address">[#address#]</div><!--ET_END address-->
+                    <!--ET_BEGIN tel--><div class="crm-group-embed__contact"><span class="crm-group-embed__label">|Тел.|*:</span> [#tel#]</div><!--ET_END tel-->
+                    <!--ET_BEGIN email--><div class="crm-group-embed__contact">[#email#]</div><!--ET_END email-->
+                    <!--ET_BEGIN website--><div class="crm-group-embed__contact">[#website#]</div><!--ET_END website-->
+                </div>
+            </div>
+            <!--ET_BEGIN info--><div class="crm-group-embed__description">[#info#]</div><!--ET_END info-->
+        </article>
+        <!--ET_END COMPANY-->
+    </div>
+</div>

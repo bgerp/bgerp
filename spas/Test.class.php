@@ -4,6 +4,12 @@
 class spas_Test extends core_Mvc
 {
     /**
+     * Заглавие
+     */
+    public $title = 'Интеграция със SpamAssassin';
+
+
+    /**
      * Списък с плъгини
      */
     public $loadList = 'plg_SystemWrapper';
@@ -55,7 +61,8 @@ class spas_Test extends core_Mvc
         // Ако формата е успешно изпратена - запис, лог, редирект
         if ($form->isSubmitted()) {
             $sa = $this->getSa();
-            
+            $html = '';
+
             try {
                 $res = $sa->getSpamReport($rec->message);
                 
@@ -98,7 +105,8 @@ class spas_Test extends core_Mvc
         // Ако формата е успешно изпратена - запис, лог, редирект
         if ($form->isSubmitted()) {
             $sa = $this->getSa();
-            
+            $html = '';
+
             switch ($rec->type) {
                 case 'spam': $type = spas_Client::LEARN_SPAM;
                     break;
@@ -106,9 +114,9 @@ class spas_Test extends core_Mvc
                     break;
                 case 'forget': $type = spas_Client::LEARN_FORGET;
                     break;
-            
+                default: $type = spas_Client::LEARN_SPAM;
             }
-            
+
             try {
                 $res = $sa->learn($rec->message, $type);
                 
@@ -174,7 +182,8 @@ class spas_Test extends core_Mvc
         $params = array(
             'hostname' => spas_Setup::get('HOSTNAME'),
             'port' => spas_Setup::get('PORT'),
-            'user' => spas_Setup::get('USER'));
+            'user' => spas_Setup::get('USER'),
+            'timeout' => spas_Setup::get('TIMEOUT'));
         $sa = new spas_Client($params);
         
         return $sa;

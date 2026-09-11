@@ -761,7 +761,9 @@ function toggleFormGroup(id) {
     $('.fs-toggle' + id).toggleClass('openToggleRow');
     setRicheditWidth();
     setTimeout(function () {
-        $('.autosize').autosize({maxHeight: $(window).height() - 150});
+        if (typeof $.fn.autosize === 'function') {
+            $('.autosize').autosize({maxHeight: $(window).height() - 150});
+        }
     }, 1000);
 }
 

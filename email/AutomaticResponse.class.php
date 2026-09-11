@@ -170,8 +170,8 @@ class email_AutomaticResponse extends core_Master
         $form = &$data->form;
         $rec = $form->rec;
 
-        $form->setDefault('maxResponseCount', email_Setup::get('AUTOMATIC_RESPONSE_MAX_COUNT'));
-        $form->setDefault('responsePeriod', email_Setup::get('AUTOMATIC_RESPONSE_PERIOD'));
+        $form->setDefault('maxResponseCount', 1);
+        $form->setDefault('responsePeriod', 86400);
 
         if(core_Packs::isInstalled('ai')){
             $form->setField('aiInstructions', 'input');
@@ -406,7 +406,7 @@ class email_AutomaticResponse extends core_Master
     public function createEmail($mail, $rule){
 
         $recipient = drdata_Emails::normalize($mail->fromEml);
-        $lockKey = 'automaticResponse|' . $recipient;
+        $lockKey = 'automaticResponse|' . $rule->id . '|' . $recipient;
 
         if (!core_Locks::obtain($lockKey, 600, 1, 1)) {
             return false;
@@ -417,7 +417,12 @@ class email_AutomaticResponse extends core_Master
                 return false;
             }
 
-            return $this->sendAutomaticResponse($mail, $rule);
+            $sent = $this->sendAutomaticResponse($mail, $rule);
+            if ($sent) {
+                email_AutomaticResponseLog::record($rule->id, $recipient);
+            }
+
+            return $sent;
         } finally {
             core_Locks::release($lockKey);
         }
@@ -427,9 +432,8 @@ class email_AutomaticResponse extends core_Master
     /**
      * Проверява дали е достигнат лимитът за автоматични отговори към получателя.
      *
-     * За стари правила без записани стойности се използват системните стойности по подразбиране.
-     * Броят се само успешно изпратените автоматични отговори, независимо кое
-     * правило ги е създало. Така припокриващи се правила не могат да заобиколят лимита.
+     * Броят се само успешните изпращания от конкретното правило към този получател.
+     * Стари правила без стойности имат същите дефолти като формата: 1 отговор за 1 ден.
      *
      * @param string   $recipient
      * @param stdClass $rule
@@ -438,14 +442,10 @@ class email_AutomaticResponse extends core_Master
      */
     protected function isResponseLimitReached($recipient, $rule)
     {
-        $maxCount = !empty($rule->maxResponseCount) ? $rule->maxResponseCount : email_Setup::get('AUTOMATIC_RESPONSE_MAX_COUNT');
-        $period = !empty($rule->responsePeriod) ? $rule->responsePeriod : email_Setup::get('AUTOMATIC_RESPONSE_PERIOD');
-        $from = dt::addSecs(-1 * $period, dt::now());
+        $maxCount = !empty($rule->maxResponseCount) ? $rule->maxResponseCount : 1;
+        $period = !empty($rule->responsePeriod) ? $rule->responsePeriod : 86400;
 
-        $query = email_Outgoings::getQuery();
-        $query->where(array("#autoReplyRuleId IS NOT NULL AND #email = '[#1#]' AND #lastSendedOn >= '[#2#]'", $recipient, $from));
-
-        return $query->count() >= $maxCount;
+        return email_AutomaticResponseLog::isLimitReached($rule->id, $recipient, $maxCount, $period);
     }
 
 
@@ -471,7 +471,6 @@ class email_AutomaticResponse extends core_Master
                                     'state' => 'active',
                                     'email' => $mail->fromEml, 
                                     'recipient' => $mail->fromEml,
-                                    'autoReplyRuleId' => $rule->id,
                                     'aiInstructions' => $rule->aiInstructions);
         
         $aiNotValid = false;
@@ -541,6 +540,12 @@ class email_AutomaticResponse extends core_Master
 
         // Изпращане на имейла
         email_Outgoings::send($emailRec, $options, 'bg');
+
+        // send() няма булев резултат; lastSendedOn се записва само при успех.
+        // Записът е нов, затова няма старо изпращане, което да се приеме за текущо.
+        if (!email_Outgoings::fetchField($emailRec->id, 'lastSendedOn', false)) {
+            return false;
+        }
 
         // Известие за изпратен автоматичен отговор
         $msg = 'Изпратен автоматичен отговор';

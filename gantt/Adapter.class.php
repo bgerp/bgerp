@@ -19,24 +19,21 @@ class gantt_Adapter extends core_Mvc
      *
      * @param array $ganttData - структура, от която вземаме данните за гант таблица
      */
-    public static function render_($ganttData)
+    public static function render_($ganttData, $id = null)
     {
-        static $ganttChartCnt;
-        if (!$ganttChartCnt) {
-            $orgChartCnt = 0;
-        }
+        static $ganttChartCnt = 0;
         $ganttChartCnt++;
-        $idChart = 'ganttTableHolder' . $ganttChartCnt;
+        $idChart = $id ?? ('ganttTableHolder' . $ganttChartCnt);
         
         $tpl = new ET();
-        $ganttHolder = ht::createElement('div', array('id' => $idChart), $tpl);
+        $ganttHolder = ht::createElement('div', array('id' => $idChart, 'class' => 'gantt-chart', 'data-gantt' => json_encode($ganttData)), $tpl);
         $tpl->append($ganttHolder);
         
         $tpl->push('gantt/lib/ganttCustom.css', 'CSS');
         $tpl->push('gantt/lib/ganttCustom.js', 'JS');
         
-        $ganttData = json_encode($ganttData);
-        jquery_Jquery::run($tpl, "ganttRender($('#{$idChart}'),{$ganttData});");
+        jquery_Jquery::run($tpl, 'ganttInit();');
+        jquery_Jquery::runAfterAjax($tpl, 'ganttInit');
         
         return $tpl;
     }
