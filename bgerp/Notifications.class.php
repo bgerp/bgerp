@@ -1896,7 +1896,7 @@ class bgerp_Notifications extends core_Manager
             
             $res = array('cnt' => $res, 'priority' => $priority);
             
-            if (isset($msgRec)) {
+            if (is_object($msgRec)) {
                 $res['msg'] = $msgRec->msg;
             }
         }
