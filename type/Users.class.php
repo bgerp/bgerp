@@ -392,7 +392,7 @@ class type_Users extends type_Keylist
         $this->prepareOptions();
         
         // Ако подадения тип не е в опциите
-        if (!$typeObj = $this->options[$key]) {
+        if (!$typeObj = ($this->options[$key] ?? null)) {
             
             // Вземаме първия от масива
             $typeObj = reset($this->options);
