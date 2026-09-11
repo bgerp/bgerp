@@ -4,6 +4,12 @@
 class spas_Test extends core_Mvc
 {
     /**
+     * Заглавие
+     */
+    public $title = 'Интеграция със SpamAssassin';
+
+
+    /**
      * Списък с плъгини
      */
     public $loadList = 'plg_SystemWrapper';
