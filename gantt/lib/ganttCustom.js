@@ -150,7 +150,8 @@ function ganttRender(elem,ganttData) {
 		var ganttTaskOffset = elem.find('.gantt-tasks').offset().left;
 		var customWidth = winw - ganttTaskWidth - 2 * ganttTaskOffset;
 		var isPortal = elem.closest('.portal-tasks-gantt').length > 0;
-		if (isPortal) {
+		var fitWidth = isPortal || elem.closest('.listBlock.cal_Tasks').length > 0;
+		if (fitWidth) {
 			customWidth = Math.max(100, elem.width() - ganttTaskWidth - 4);
 		}
 		
@@ -161,12 +162,12 @@ function ganttRender(elem,ganttData) {
 		
 		
 		//свиване на получената ширина на scroll-table, ако "реже" колона
-		if(!isPortal && customWidth % tdWidth != 0){
+		if(!fitWidth && customWidth % tdWidth != 0){
 			customWidth = customWidth -1  - customWidth % tdWidth ;
 		}
 		
 		//ако има нужда от скролиране
-		if(isPortal || currentTable.width() > customWidth){
+		if(fitWidth || currentTable.width() > customWidth){
 			//задаване на изчислената ширина
 			$(currentTable).css("width", customWidth);
 		}
@@ -178,13 +179,13 @@ function ganttRender(elem,ganttData) {
 		var marginFromCell = 5;
 		
 		//височината на ТН-тата
-		var thHeight = currentGraphChart.find(isPortal ? 'tbody tr:first' : 'tbody tr:first th:first').outerHeight();
+		var thHeight = currentGraphChart.find(fitWidth ? 'tbody tr:first' : 'tbody tr:first th:first').outerHeight();
 		
 		//височината на TH-тата + разстоянието, което искаме да има от началото на клетката
 		var headerHeight = 2 * thHeight + marginFromCell;
 		
 		//височината на ТД-тата
-		var tdHeight = currentGraphChart.find(isPortal ? 'tbody tr:last' : 'tbody tr:last td:last').outerHeight();
+		var tdHeight = currentGraphChart.find(fitWidth ? 'tbody tr:last' : 'tbody tr:last td:last').outerHeight();
 		
 		//начало и край на таблицата в секунди
 		var end = parseInt(ganttData['otherParams']['endTime']);

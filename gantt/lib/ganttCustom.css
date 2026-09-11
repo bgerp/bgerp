@@ -22,12 +22,19 @@
 	overflow-x: auto;
 }
 
-.portal-tasks-gantt .gantt-table {
+.portal-tasks-gantt .gantt-table,
+.listBlock.cal_Tasks .gantt-table {
 	min-width: 100%;
 }
 
-.portal-tasks-gantt .gantt-holder {
+.portal-tasks-gantt .gantt-holder,
+.listBlock.cal_Tasks .gantt-holder {
 	width: 100%;
+}
+
+.listBlock.cal_Tasks .gantt-chart {
+	width: 0;
+	min-width: 100%;
 }
 
 .narrow .portal-tasks-gantt .scroll-table {

@@ -2,7 +2,7 @@
 
 
 /**
- * Регресионни проверки за относителните периоди на порталния Гант.
+ * Регресионни проверки за периодите на Гант в портала и списъка със задачи.
  *
  * @category  bgerp
  * @package   bgerp
@@ -15,6 +15,45 @@
  */
 class bgerp_tests_drivers_TasksGantt extends unit_Class
 {
+    public function test_ListDisplayPadding()
+    {
+        $timezone = date_default_timezone_get();
+        date_default_timezone_set('UTC');
+        try {
+            $cases = array(
+                array('2026-09-14 09:00:00', '2026-09-14 10:00:00', '2026-09-13', '2026-09-17', 5),
+                array('2026-09-14 09:00:00', '2026-09-15 10:00:00', '2026-09-13', '2026-09-18', 6),
+                array('2026-06-30 09:00:00', '2026-07-01 00:00:00', '2026-06-29', '2026-07-03', 5),
+                array('2024-02-29 09:00:00', '2024-02-29 10:00:00', '2024-02-28', '2024-03-03', 5),
+            );
+            foreach ($cases as $case) {
+                $data = (object) array('action' => 'list', 'recs' => array((object) array(
+                    'timeStart' => $case[0], 'timeEnd' => $case[1])));
+                ut::expectEqual(cal_Tasks::getGanttTimeType($data), 'WeekDay');
+                foreach (array('WeekDay' => 1, 'Months' => 1, 'WeekHour' => 24,
+                    'WeekHour4' => 6, 'WeekHour6' => 4) as $scale => $columnsPerDay) {
+                    Request::push(array('View' => $scale), 'testGanttPadding');
+                    try {
+                        $chart = cal_Tasks::renderGanttTimeType($data);
+                        $params = $chart->otherParams ?? array();
+                        ut::expectEqual($params['startTime'] ?? null, dt::mysql2timestamp($case[2] . ' 00:00:00'));
+                        ut::expectEqual($params['endTime'] ?? null, dt::mysql2timestamp($case[3] . ' 23:59:59'));
+                        $columns = 0;
+                        foreach ((array) ($chart->headerInfo ?? array()) as $header) {
+                            $columns += countR($header['subHeader'] ?? array());
+                        }
+                        ut::expectEqual($columns, $case[4] * $columnsPerDay);
+                    } finally {
+                        Request::pop('testGanttPadding');
+                    }
+                }
+            }
+        } finally {
+            date_default_timezone_set($timezone);
+        }
+    }
+
+
     public function test_Periods()
     {
         $cases = array(

@@ -1529,6 +1529,21 @@ class cal_Tasks extends embed_Manager
 
 
     /**
+     * Множественият избор е само във филтъра, преди плъгините да прочетат входа.
+     */
+    public function prepareListFilter_($data)
+    {
+        $res = parent::prepareListFilter_($data);
+        $form = $data->listFilter ?? null;
+        expect($form instanceof core_Form);
+        $form->setFieldType('assetResourceId', self::getAssetResourceFilterType());
+        $form->setField('assetResourceId', 'caption=Ресурси');
+
+        return $res;
+    }
+
+
+    /**
      * Филтър на on_AfterPrepareListFilter()
      * Малко манипулации след подготвянето на формата за филтриране
      *
@@ -1608,6 +1623,16 @@ class cal_Tasks extends embed_Manager
         }
         $data->listFilter->input(implode(',', $inputSilent), 'silent');
 
+        // Старите линкове и порталните настройки могат да съдържат единичен ключ.
+        $assetResourceId = Request::get('assetResourceId', false);
+        if (is_scalar($assetResourceId) && $assetResourceId !== '') {
+            $resourceType = $data->listFilter->getFieldType('assetResourceId');
+            $filterRec->assetResourceId = $resourceType->fromVerbal(keylist::toArray((string) $assetResourceId));
+            if (!empty($resourceType->error)) {
+                $data->listFilter->setError('assetResourceId', $resourceType->error);
+            }
+        }
+
         // размяна на датите във филтъра
         $dateRange = array();
         $useDateRange = true;
@@ -1617,7 +1642,7 @@ class cal_Tasks extends embed_Manager
         }
 
         if (!empty($filterRec->assetResourceId)) {
-            $data->query->where("#assetResourceId = {$filterRec->assetResourceId}");
+            $data->query->in('assetResourceId', keylist::toArray($filterRec->assetResourceId));
         }
 
         if (!empty($filterRec->folder)) {
@@ -1790,6 +1815,15 @@ class cal_Tasks extends embed_Manager
                 unset($data->listFields['folderId']);
             }
         }
+    }
+
+
+    /**
+     * Общ избор на ресурси за филтъра на списъка и порталния Гант.
+     */
+    public static function getAssetResourceFilterType()
+    {
+        return 'keylist(mvc=planning_AssetResources,select=*,orderBy=name,allowEmpty)';
     }
 
 
@@ -2666,7 +2700,12 @@ class cal_Tasks extends embed_Manager
             $type = 'Years';
         }
         
-        return  $type;
+        if (($data->action ?? null) == 'list' && empty($data->ganttPortal) &&
+            in_array($type, array('WeekHour', 'WeekHour4', 'WeekHour6'))) {
+            $type = 'WeekDay';
+        }
+
+        return $type;
     }
     
     
@@ -2733,6 +2772,17 @@ class cal_Tasks extends embed_Manager
         $url = self::getNextGanttType($ganttType);
         
         $dateTasks = self::calcTasksMinStartMaxEndTime($data);
+
+        // В списъка оставяме контекст около задачите; порталът запазва компактния период.
+        if (empty($data->ganttPortal) && !in_array($ganttType, array('Years', 'YearWeek'))) {
+            $startTime = $dateTasks->minStartTaskTime ?? 0;
+            $endTime = $dateTasks->maxEndTaskTime ?? $startTime;
+            if ($endTime > $startTime && date('H:i:s', $endTime) == '00:00:00') {
+                $endTime--;
+            }
+            $dateTasks->minStartTaskTime = strtotime('-1 day', $startTime);
+            $dateTasks->maxEndTaskTime = strtotime('+3 days', $endTime);
+        }
         
         // Масив [0] - датата
         //       [1] - часа
@@ -2958,8 +3008,7 @@ class cal_Tasks extends embed_Manager
                 $otherParams['startTime'] = mktime(0, 0, 0, $startExplode[1], $startExplode[2], $startExplode[0]);
                 
                 // до последния ден на намерения за край месец
-                $extraDays = !empty($data->ganttPortal) ? 0 : 3;
-                $otherParams['endTime'] = mktime(23, 59, 59, $endExplode[1], $endExplode[2] + $extraDays, $endExplode[0]);
+                $otherParams['endTime'] = mktime(23, 59, 59, $endExplode[1], $endExplode[2], $endExplode[0]);
                 
                 // урл-тата на стрелките
                 $otherParams['smallerPeriod'] = ht::createLink($imgPlus, $url->prevUrl)->getContent();
@@ -2969,7 +3018,7 @@ class cal_Tasks extends embed_Manager
                 $otherParams['currentTime'] = dt::mysql2timestamp(dt::now());
                 
                 $curDate = $startTasksTime[0]. ' 00:00:00';
-                $toDate = dt::addDays($extraDays, $endTasksTime[0]). ' 23:59:59';
+                $toDate = $endTasksTime[0]. ' 23:59:59';
                 
                 // генерираме номерата на седмиците между началото и края
                 while ($curDate <= $toDate) {

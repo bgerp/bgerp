@@ -36,7 +36,7 @@ class bgerp_drivers_TasksGantt extends core_BaseClass
         $fieldset->FLD('search', 'varchar', 'caption=Филтри->Ключови думи,inputmode=search,hint=Търсене в заглавието и описанието както в списъка със задачи');
         $fieldset->FLD('stateTask', cal_Tasks::getStateTaskFilterType(), 'caption=Филтри->Състояние');
         $fieldset->FLD('folder', 'key2(mvc=doc_FoldersProxy,allowEmpty,selectSourceArr=doc_Folders::getSelectArr,forceProxy)', 'caption=Филтри->Папка');
-        $fieldset->FLD('assetResourceId', clone $Tasks->getFieldType('assetResourceId'), 'caption=Филтри->Ресурс');
+        $fieldset->FLD('assetResourceId', cal_Tasks::getAssetResourceFilterType(), 'caption=Филтри->Ресурси');
         $fieldset->FLD('stepId', clone $Tasks->getFieldType('stepId'), 'caption=Филтри->Относно');
         $fieldset->FLD('progress', 'percent(min=0,max=1,decimals=0)', 'caption=Филтри->Минимален прогрес');
         $fieldset->FLD('taskType', 'class(interface=cal_TaskTypeIntf,select=title,allowEmpty)', 'caption=Филтри->Вид');
@@ -56,6 +56,9 @@ class bgerp_drivers_TasksGantt extends core_BaseClass
         $form->setDefault('period', 'thisMonth');
         $form->setDefault('stateTask', 'all');
         $form->setDefault('selectedUsers', keylist::fromArray(array(core_Users::getCurrent() => true)));
+        if (!empty($form->rec->assetResourceId)) {
+            $form->rec->assetResourceId = keylist::fromArray(keylist::toArray($form->rec->assetResourceId));
+        }
         $form->setOptions('stepId', array('' => '') + doc_UnsortedFolderSteps::getOptionArr());
         $period = $form->rec->period ?? 'thisMonth';
         if ($period != 'fixed') {
