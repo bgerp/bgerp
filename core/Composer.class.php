@@ -240,11 +240,14 @@ class core_Composer extends core_Mvc
 
             foreach($lines as $l) {
                 $matches = array();
-                preg_match_all("/^([a-z0-9\.\/\_\-]+)[ ]+([v0-9\.]+)/", $l, $matches);
- 
-                $p = $matches[1][0];
-                
-                $ver = $matches[2][0];
+
+                // Пропускат се редовете, които не са пакет с версия (предупреждения, празни редове и т.н.)
+                if (!preg_match("/^([a-z0-9\.\/\_\-]+)[ ]+([v0-9\.]+)/", $l, $matches)) {
+                    continue;
+                }
+
+                $p = $matches[1];
+                $ver = $matches[2];
                 self::$packs[$p] = ltrim(trim($ver), 'v');
             }
  
