@@ -1445,7 +1445,7 @@ class pwa_PushSubscriptions extends core_Manager
                         $msgTitle = "{$priorityVerb} известие в " . core_Setup::get('EF_APP_TITLE', true);
 
                         // Превеждама заглавието и съобщението спрямо настройките на съответния потребител
-                        $nRecUserId = $nRec->userId;
+                        $nRecUserId = $msgObj->userId;
                         $sudo = null;
                         if ($nRecUserId > 0) {
                             $sudo = core_Users::sudo($nRecUserId);
