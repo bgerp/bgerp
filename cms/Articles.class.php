@@ -394,7 +394,7 @@ class cms_Articles extends core_Master
             $lArr1 = explode('.', self::getVerbal($rec1, 'level'));
             
             if ($lArr) {
-                if (($lArr1[2] ?? null) && (($lArr[0] != $lArr1[0]) || ($lArr[1] != $lArr1[1]))) {
+                if (($lArr1[2] ?? null) && (($lArr[0] != $lArr1[0]) || (($lArr[1] ?? null) != $lArr1[1]))) {
                     continue;
                 }
             }
