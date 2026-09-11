@@ -69,8 +69,8 @@ class i18n_Language
         
         foreach (self::$lgAnalyzer as $lg => $dict) {
             foreach ($dict as $w => $f) {
-                if ($arr[$w]) {
-                    $rate[$lg] += sqrt($f * $arr[$w]);
+                if (!empty($arr[$w])) {
+                    $rate[$lg] = ($rate[$lg] ?? 0) + sqrt($f * $arr[$w]);
                 }
             }
         }
@@ -95,15 +95,18 @@ class i18n_Language
         $text = mb_strtolower($text);
         
         $textArr = explode(' ', $text);
-        
+
+        $count = array();
         foreach ($textArr as $word) {
             $wordLen = mb_strlen($word);
-            
+
             if ($wordLen >= 5) {
-                $count[mb_substr($word, 0, 3) . '*']++;
-                $count['*' . mb_substr($word, $wordLen - 3)]++;
+                $pref = mb_substr($word, 0, 3) . '*';
+                $suf = '*' . mb_substr($word, $wordLen - 3);
+                $count[$pref] = ($count[$pref] ?? 0) + 1;
+                $count[$suf] = ($count[$suf] ?? 0) + 1;
             } elseif ($wordLen > 1) {
-                $count[$word]++;
+                $count[$word] = ($count[$word] ?? 0) + 1;
             }
         }
         
