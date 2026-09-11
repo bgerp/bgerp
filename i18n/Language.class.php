@@ -39,7 +39,7 @@ class i18n_Language
         foreach ((array) $prefLangArr as $lg => $ratio) {
             $lg = strtolower($lg);
             
-            if (!$res[$lg]) {
+            if (empty($res[$lg])) {
                 continue;
             }
             
