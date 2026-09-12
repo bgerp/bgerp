@@ -2889,10 +2889,10 @@ class email_Incomings extends core_Master
 
         // Ако се е прекъснало нормалното рутиране по нишка
         // Бием нотификация на създателя на документа
-        if ($rec->originId) {
+        if (!empty($rec->originId)) {
             $cRec = doc_Containers::fetch($rec->originId);
-            
-            if (($cRec->createdBy > 0) && $rec->containerId && email_Incomings::haveRightFor('single', $rec, $cRec->createdBy)) {
+
+            if ($cRec && ($cRec->createdBy > 0) && $rec->containerId && email_Incomings::haveRightFor('single', $rec, $cRec->createdBy)) {
                 $newCRec = doc_Containers::fetch($rec->containerId);
                 doc_Containers::addNotifications(array($cRec->createdBy => $cRec->createdBy), $mvc, $newCRec, 'добави', false);
             }
