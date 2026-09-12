@@ -2878,10 +2878,11 @@ class email_Incomings extends core_Master
     {
         static::needFields($rec, 'fromEml, toBox, date, containerId,threadId, accId');
         
-        if ($rec->containerId && $rec->folderId && $rec->fromEml && $rec->toBox) {
-            if ($rec->state == 'rejected') {
+        if ($rec->containerId && !empty($rec->folderId) && $rec->fromEml && $rec->toBox) {
+            $routeBy = $rec->routeBy ?? null;
+            if (($rec->state ?? null) == 'rejected') {
                 $mvc->removeRouterRules($rec);
-            } elseif (($rec->routeBy != 'thread') && ($rec->routeBy != 'preroute') && ($rec->routeBy != 'file')) {
+            } elseif (($routeBy != 'thread') && ($routeBy != 'preroute') && ($routeBy != 'file')) {
                 // Ако рутираме по нишка или потребителски филтър или файл да не се създават правила
                 $mvc->makeRouterRules($rec);
             }
@@ -2889,10 +2890,10 @@ class email_Incomings extends core_Master
 
         // Ако се е прекъснало нормалното рутиране по нишка
         // Бием нотификация на създателя на документа
-        if ($rec->originId) {
+        if (!empty($rec->originId)) {
             $cRec = doc_Containers::fetch($rec->originId);
-            
-            if (($cRec->createdBy > 0) && $rec->containerId && email_Incomings::haveRightFor('single', $rec, $cRec->createdBy)) {
+
+            if ($cRec && ($cRec->createdBy > 0) && $rec->containerId && email_Incomings::haveRightFor('single', $rec, $cRec->createdBy)) {
                 $newCRec = doc_Containers::fetch($rec->containerId);
                 doc_Containers::addNotifications(array($cRec->createdBy => $cRec->createdBy), $mvc, $newCRec, 'добави', false);
             }
