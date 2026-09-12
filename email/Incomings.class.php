@@ -1717,15 +1717,15 @@ class email_Incomings extends core_Master
             return ;
         }
         
-        if ($rec->toAndCc) {
-            $rec->AllTo = $rec->toAndCc['allTo'];
-            $rec->AllCc = $rec->toAndCc['allCc'];
+        if (!empty($rec->toAndCc)) {
+            $rec->AllTo = $rec->toAndCc['allTo'] ?? null;
+            $rec->AllCc = $rec->toAndCc['allCc'] ?? null;
             
             return ;
         }
         
         // Ако няма хедъри
-        if (!$rec->headers && $rec->emlFile) {
+        if (empty($rec->headers) && !empty($rec->emlFile)) {
             
             // Манипулатора на eml файла
             $fh = fileman_Files::fetchField($rec->emlFile, 'fileHnd');
@@ -1753,7 +1753,7 @@ class email_Incomings extends core_Master
         } else {
             
             // Хедърите ги преобразуваме в масив
-            $headersArr = $rec->headers;
+            $headersArr = $rec->headers ?? null;
         }
         
         // Парсираме To хедъра
