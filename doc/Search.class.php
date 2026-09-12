@@ -377,9 +377,11 @@ class doc_Search extends core_Manager
                 $data->query->useIndex($useIndex);
             }
 
-            /**
-             * Останалата част от заявката - търсенето по ключови думи - ще я допълни plg_Search
-             */
+            // The search plugin has already added the text predicates at this point.
+            if (!empty($filterRec->search) && (!empty($filterRec->scopeFolderId)
+                || (!empty($filterRec->docClass) && (!empty($filterRec->fromDate) || !empty($filterRec->toDate))))) {
+                plg_Search::restrictToScope($data->query);
+            }
 
             // Ако ще се филтира по състояни и текущия потребител (автор)
             if (!empty($filterRec->state)) {
