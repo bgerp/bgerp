@@ -2878,10 +2878,11 @@ class email_Incomings extends core_Master
     {
         static::needFields($rec, 'fromEml, toBox, date, containerId,threadId, accId');
         
-        if ($rec->containerId && $rec->folderId && $rec->fromEml && $rec->toBox) {
-            if ($rec->state == 'rejected') {
+        if ($rec->containerId && !empty($rec->folderId) && $rec->fromEml && $rec->toBox) {
+            $routeBy = $rec->routeBy ?? null;
+            if (($rec->state ?? null) == 'rejected') {
                 $mvc->removeRouterRules($rec);
-            } elseif (($rec->routeBy != 'thread') && ($rec->routeBy != 'preroute') && ($rec->routeBy != 'file')) {
+            } elseif (($routeBy != 'thread') && ($routeBy != 'preroute') && ($routeBy != 'file')) {
                 // Ако рутираме по нишка или потребителски филтър или файл да не се създават правила
                 $mvc->makeRouterRules($rec);
             }
