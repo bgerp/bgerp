@@ -94,22 +94,23 @@ class vislog_Referer extends core_Manager
         
         if ($rec->referer) {
             $parts = @parse_url($rec->referer);
+            $host = is_array($parts) ? ($parts['host'] ?? '') : '';
             
-            $localHost = $_SERVER['SERVER_NAME'];
+            $localHost = $_SERVER['SERVER_NAME'] ?? '';
             
-            if (stripos($parts['host'], $localHost) === false) {
+            if (stripos($host, $localHost) === false) {
                
                 if($query = Mode::get('adWordsQuery')) {
                     $rec->query = $query;
                 } else { 
-                    parse_str($parts['query'], $query);
+                    parse_str(is_array($parts) ? ($parts['query'] ?? '') : '', $query);
                     $search_engines = array(
                         'bing' => 'q',
                         'google' => 'q',
                         'yahoo' => 'p'
                     );
                 
-                    preg_match('/(' . implode('|', array_keys($search_engines)) . ')\./', $parts['host'], $matches);
+                    preg_match('/(' . implode('|', array_keys($search_engines)) . ')\./', $host, $matches);
                     
                     $rec->query = isset($matches[1], $query[$search_engines[$matches[1]]]) ? $query[$search_engines[$matches[1]]] : '';
                 }
@@ -117,7 +118,7 @@ class vislog_Referer extends core_Manager
                 $rec->searchLogResourceId = $resource;
                 
                 // Поставяме IP ако липсва
-                if (!$rec->ip) {
+                if (empty($rec->ip)) {
                     $rec->ip = type_Ip::getRealIp();
                 }
                 $rec->domainId = cms_Domains::getPublicDomain('id');
