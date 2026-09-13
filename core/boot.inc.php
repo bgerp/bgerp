@@ -351,8 +351,7 @@ function logHitState($debugCode = '200', $state = array())
             $dataArr = (array)@json_decode($data);
             
             if (!$dataArr) {
-                $dataArr = json_last_error();
-                $dataArr .= array('jsonData' => ' Unserialize: ' . $data);
+                $dataArr = array('jsonError' => json_last_error(), 'jsonData' => ' Unserialize: ' . $data);
             }
         }  
         
