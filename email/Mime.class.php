@@ -105,6 +105,12 @@ class email_Mime extends core_BaseClass
     
     
     /**
+     * id във fileman на файла с HTML частта на писмото
+     */
+    public $htmlFile;
+    
+    
+    /**
      * Масив със съобщения за грешки по време на парсирането
      */
     public $errors = array();
