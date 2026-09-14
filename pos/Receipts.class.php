@@ -687,7 +687,8 @@ class pos_Receipts extends core_Master
      */
     protected static function on_AfterGetStateFilterOptions($mvc, &$stateOptions)
     {
-        $stateOptions += array('no' => 'Без сторниране',
+        $stateOptions += array('started' => 'Започнати',
+                               'no' => 'Без сторниране',
                                'revertId' => 'Сторниращи',
                                'isReverted' => 'Сторнирани',
                                'storeTransferId' => 'Прехвърлени в МСТ',
@@ -702,6 +703,7 @@ class pos_Receipts extends core_Master
     {
         pos_Points::addPointFilter($data->listFilter, $data->query);
         $filterDateFld = $data->listFilter->rec->filterDateField ?? null;
+        $data->listFilter->input('point', 'silent');
 
         // Добавяне на филтър по начините на плащане
         $paymentOptions = array();
@@ -771,7 +773,30 @@ class pos_Receipts extends core_Master
 
             // Филтриране по допълнителните опции на филтъра по състояние
             $fState = $filter->fState ?? null;
-            if ($fState == 'no') {
+            if ($fState == 'started') {
+                // Започнати = черновите бележки, в които вече има добавени артикули
+                $data->query->where("#state = 'draft'");
+
+                $cloneQuery = clone $data->query;
+                $cloneQuery->show('id');
+                $draftIds = arr::extractValuesFromArray($cloneQuery->fetchAll(), 'id');
+
+                $startedIds = array();
+                if (countR($draftIds)) {
+                    $dQuery = pos_ReceiptDetails::getQuery();
+                    $dQuery->where("#quantity != 0");
+                    $dQuery->where("#action LIKE '%sale%'");
+                    $dQuery->in('receiptId', $draftIds);
+                    $dQuery->show('receiptId');
+                    $startedIds = arr::extractValuesFromArray($dQuery->fetchAll(), 'receiptId');
+                }
+
+                if (countR($startedIds)) {
+                    $data->query->in('id', $startedIds);
+                } else {
+                    $data->query->where("1=2");
+                }
+            } elseif ($fState == 'no') {
                 $data->query->where("#returnedTotal IS NULL");
             } elseif ($fState == 'isReverted') {
                 $data->query->where("#returnedTotal IS NOT NULL");
@@ -1306,6 +1331,14 @@ class pos_Receipts extends core_Master
     {
         $tpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
         $tpl->append(tr('Чакащи бележки') . " ({$data->count})", 'title');
+
+        // Ако потребителят има права за листовия изглед, показваме иконка за филтър към списъка с бележки за текущата точка
+        // Празните 'from' и 'to' изчистват периода (тук списъкът е без ограничение по дата, само по състояние)
+        if ($this->haveRightFor('list')) {
+            $filterLink = ht::createLink('', array($this, 'list', 'point' => $data->masterId, 'from' => '', 'to' => ''), false, 'ef_icon=img/16/funnel.png,title=Филтриране на бележките за тази точка на продажба');
+            $tpl->append(' ' . $filterLink, 'title');
+        }
+
         $fieldset = new core_FieldSet();
 
         $fieldset->FLD('num', 'varchar', 'tdClass=leftCol');
