@@ -462,7 +462,7 @@ class tcost_FeeZones extends core_Master
                 $string2 = tr("|за да спечелите|* <b style='color:green;text-transform:uppercase'>" . tr('безплатна') . "</b> |доставка|*.");
                 $block = new core_ET(tr("|*<!--ET_BEGIN freeDelivery--><div>{$string1} <b style='font-size:1.1em'>[#freeDelivery#]</b>, {$string2}</div><!--ET_END freeDelivery-->"));
                 $transportId = cat_Products::fetchField("#code = 'transport'", 'id');
-                $deliveryWithVat  = $cartRec->deliveryNoVat * (1 + cat_Products::getVat($transportId, null, $settings->vatExeptionId));
+                $deliveryWithVat  = $cartRec->deliveryNoVat * (1 + cat_Products::getVat($transportId, null, $settings->vatExeptionId ?? null));
                 $delivery = currency_CurrencyRates::convertAmount($cartRec->total - $deliveryWithVat, null, null, $settings->currencyId);
                 $deliveryAmount = round($deliveryAmount - ($delivery), 2);
             } else {
