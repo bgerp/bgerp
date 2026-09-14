@@ -539,7 +539,7 @@ class core_Cache extends core_Manager
      * @param string $type
      * @param mixed $handler
      * @param callable $callback функция без аргументи; изключенията не се кешират
-     * @param array|string $depends имена или инстанции на модели за обезсилване в текущия хит
+     * @param array|string $depends модели за обезсилване при промени в текущия хит
      * @param float $keepMinutes срок в стандартния кеш; 0 означава само текущия хит
      * @return mixed
      */
@@ -555,9 +555,8 @@ class core_Cache extends core_Manager
 
         $versions = array();
         foreach (arr::make($depends) as $dependency) {
-            $mvc = is_object($dependency) ? $dependency : cls::get($dependency);
-            $db = $mvc->db ?? null;
-            $versions[] = array($db->dbName ?? null, $mvc->dbTableName ?? null, $mvc->getDbTableUpdateCount());
+            $mvc = cls::get($dependency);
+            $versions[] = array($mvc->db->dbName, $mvc->dbTableName, $mvc->getDbTableUpdateCount());
         }
 
         $previous = self::$requestCache[$key] ?? null;
