@@ -48,6 +48,12 @@ class core_Mvc extends core_FieldSet
      *
      */
     protected $lastUpdateTime;
+
+
+    /**
+     * Брой промени по таблици в текущото PHP изпълнение
+     */
+    protected static $dbTableUpdateCounts = array();
     
     /**
      * По подразбиране типа на id полето е int
@@ -541,6 +547,7 @@ class core_Mvc extends core_FieldSet
                     
                     return false;
                 }
+                $this->dbTableUpdated();
                 $query = '';
             }
             $query .= $row;
@@ -556,6 +563,7 @@ class core_Mvc extends core_FieldSet
                 
                 return false;
             }
+            $this->dbTableUpdated();
         }
         
         return true;
@@ -568,7 +576,9 @@ class core_Mvc extends core_FieldSet
     public static function truncate()
     {
         $self = cls::get(get_called_class());
-        $self->db->query("TRUNCATE TABLE `{$self->dbTableName}`", false, $self->doReplication);
+        if ($self->db->query("TRUNCATE TABLE `{$self->dbTableName}`", false, $self->doReplication)) {
+            $self->dbTableUpdated();
+        }
     }
     
     
@@ -657,12 +667,25 @@ class core_Mvc extends core_FieldSet
     
     
     /**
-     * Извиква се след като е променяна MySQL-ската таблица
+     * Връща броя локални промени без заявка към базата, включително в една секунда
+     */
+    public function getDbTableUpdateCount()
+    {
+        $key = $this->db->dbName . '|' . $this->dbTableName;
+
+        return self::$dbTableUpdateCounts[$key] ?? 0;
+    }
+
+
+    /**
+     * Извиква се след като е променяна MySQL-ската таблица, включително с пряк SQL
      */
     public function dbTableUpdated_()
     {
         $this->_cachedRecords = array();
         $this->lastUpdateTime = DT::verbal2mysql();
+        $key = $this->db->dbName . '|' . $this->dbTableName;
+        self::$dbTableUpdateCounts[$key] = $this->getDbTableUpdateCount() + 1;
     }
     
     

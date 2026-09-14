@@ -489,8 +489,6 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         }
 
 
-        $suggestions = $prodSuggestions = $prodSalesArr = $posProdsArr = $prodArr = array();
-
         if ($rec->compare == 'month') {
             $form->setField('from', 'input=hidden');
             $form->setField('to', 'input=hidden');
@@ -570,147 +568,19 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             $form->setField('dealersTeam', 'input=none');
         }
 
-        // POS продажби
-        //Подготвям масиви с артикули, и контрагенти
-        $posProdsArr = $posContragents = array();
-
-        $posDetQuery = pos_ReceiptDetails::getQuery();
-
-        $posDetQuery->EXT('state', 'pos_Receipts', 'externalName=state,externalKey=receiptId');
-
-        $posDetQuery->EXT('valior', 'pos_Receipts', 'externalName=valior,externalKey=receiptId');
-
-        $posDetQuery->EXT('contragentClass', 'pos_Receipts', 'externalName=contragentClass,externalKey=receiptId');
-
-        $posDetQuery->EXT('contragentObjectId', 'pos_Receipts', 'externalName=contragentObjectId,externalKey=receiptId');
-
-        $posDetQuery->EXT('contragentName', 'pos_Receipts', 'externalName=contragentName,externalKey=receiptId');
-
-        $posDetQuery->where("#valior >= '{$periodStart}' AND #valior <= '{$periodEnd}'");
-
-        $posDetQuery->where('#productId IS NOT NULL');
-
-        $posDetStateArr = array('active', 'closed', 'waiting');
-
-        $posDetQuery->in('state', $posDetStateArr);
-
-        $posDetQuery->show('productId,receiptId,contragentObjectId,contragentClass,contragentName');
-
-        foreach ($posDetQuery->fetchAll() as $det) {
-
-            $posProdsArr[$det->productId] = $det->productId;
-
-            $posContragentClassName = core_Classes::fetch($det->contragentClass)->name;
-
-            $posContragentFolder = $posContragentClassName::fetch($det->contragentObjectId)->folderId;
-
-            $posContragents[$posContragentFolder] = $det->contragentName;
-
-        }
-
-        //Ако имаме разбивка по контрагенти
-        if ($rec->seeByContragent == 'yes') {
+        $includeProducts = ($rec->seeByContragent ?? null) == 'yes';
+        $periodSuggestions = self::getPeriodSuggestions($periodStart, $periodEnd, $includeProducts);
+        if ($includeProducts) {
             $form->setField('products', 'input');
-
-            //Подготовка на масива за зареждане на полето 'АРТИКУЛИ'
-            //Полето 'АРТИКУЛИ' е активно само в комбинация с полето 'ПО КОНТРАГЕНТИ'
-
-            //от експедиционни
-            $shipmentdetQuery = store_ShipmentOrderDetails::getQuery();
-
-            $shipmentdetQuery->EXT('state', 'store_ShipmentOrders', 'externalName=state,externalKey=shipmentId');
-
-            $shipmentdetQuery->EXT('valior', 'store_ShipmentOrders', 'externalName=valior,externalKey=shipmentId');
-
-            $shipmentdetQuery->where("#valior >= '{$periodStart}' AND #valior <= '{$periodEnd}'");
-
-            $shipmentdetQuery->where("#state != 'rejected'  AND #state != 'draft'");
-            $shipmentdetQuery->show('productId');
-
-            $prodArr = arr::extractValuesFromArray($shipmentdetQuery->fetchAll(), 'productId');
-
-            //от бързи продажби
-            $salesDetQuery = sales_SalesDetails::getQuery();
-
-            $salesDetQuery->EXT('state', 'sales_Sales', 'externalName=state,externalKey=saleId');
-
-            $salesDetQuery->EXT('valior', 'sales_Sales', 'externalName=valior,externalKey=saleId');
-
-            $salesDetQuery->EXT('contoActions', 'sales_Sales', 'externalName=contoActions,externalKey=saleId');
-
-            $salesDetQuery->where("#valior >= '{$periodStart}' AND #valior <= '{$periodEnd}'");
-
-            $salesDetQuery->where("#state != 'rejected' AND #state != 'draft'");
-
-            $salesDetQuery->where("#contoActions  Like '%ship%'");
-
-            $salesDetQuery->show('productId');
-
-            $prodSalesArr = arr::extractValuesFromArray($salesDetQuery->fetchAll(), 'productId');
-
-            //Добавяме артикулите от бързите продажби
-            if(!empty($prodSalesArr)) {
-                $prodArr = array_unique(array_merge($prodArr, $prodSalesArr));
-            }
-            //Добавяме артикулите от POS продажбите
-            if(!empty($posProdsArr)){
-                $prodArr = array_unique(array_merge($prodArr, $posProdsArr));
-            }
-
-            if (!empty($prodArr)) {
-                foreach ($prodArr as $val) {
-                    $prodSuggestions[$val] = cat_Products::getTitleById($val);
-                }
-            }
-
-            asort($prodSuggestions);
+            $prodSuggestions = $periodSuggestions['products'];
         } else {
             $rec->products = null;
             $prodSuggestions = array('' => '');
         }
-
         $form->setSuggestions('products', $prodSuggestions);
 
-        //Масив с предложения за избор на КОНТРАГЕНТ $suggestionContragents[]
-        // Да се заредят контрагентите от продажбите
-        $salesQuery = sales_Sales::getQuery();
-
-        $salesQuery->EXT('folderTitle', 'doc_Folders', 'externalName=title,externalKey=folderId');
-
-     //   $salesQuery->where("#valior >= '{$periodStart}' AND #valior <= '{$periodEnd}'");
-
-        $salesQuery->groupBy('folderId');
-
-        $salesQuery->show('folderId, contragentId, folderTitle');
-        $suggestionContragents = array();
-        while ($contragent = $salesQuery->fetch()) {
-            if (!is_null($contragent->contragentId)) {
-                $suggestionContragents[$contragent->folderId] = $contragent->folderTitle;
-            }
-        }
-
-
-        if (empty($posContragents)) {
-
-            // контрагенти от POS
-            foreach ($posDetQuery->fetchAll() as $det) {
-
-                $posContragentClassName = core_Classes::fetch($det->contragentClass)->name;
-
-                $posContragentFolder = $posContragentClassName::fetch($det->contragentObjectId)->folderId;
-
-                $posContragents[$posContragentFolder] = $det->contragentName;
-
-            }
-
-        }
-        // Да се заредят контрагентите от POS  бележките
-        //$suggestionContragents = $posContragents;
-
-        $suggestionContragents = $suggestionContragents+$posContragents;
-
+        $suggestionContragents = sales_Sales::getContragentFolderSuggestions() + $periodSuggestions['contragents'];
         asort($suggestionContragents);
-
         $form->setSuggestions('contragent', $suggestionContragents);
 
         // Ограничаваме опциите във формата според правата на текущия потребител
@@ -738,6 +608,73 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             $form->setField('dealersTeam', 'input=none');
         }
 
+    }
+
+
+    /**
+     * Опции от POS, експедиции и бързи продажби за периода, с кеш за 5 минути
+     */
+    protected static function getPeriodSuggestions($periodStart, $periodEnd, $includeProducts)
+    {
+        $context = array(core_Users::getCurrent(), core_Users::getCurrent('roles'), core_Lg::getCurrent(),
+                         Mode::is('forSearch'), $periodStart, $periodEnd, $includeProducts);
+
+        return core_Cache::remember(__METHOD__, $context, function () use ($periodStart, $periodEnd, $includeProducts) {
+            $res = array('products' => array(), 'contragents' => array());
+            $posProducts = array();
+            $posQuery = pos_ReceiptDetails::getQuery();
+            $posQuery->EXT('state', 'pos_Receipts', 'externalName=state,externalKey=receiptId');
+            $posQuery->EXT('valior', 'pos_Receipts', 'externalName=valior,externalKey=receiptId');
+            $posQuery->EXT('contragentClass', 'pos_Receipts', 'externalName=contragentClass,externalKey=receiptId');
+            $posQuery->EXT('contragentObjectId', 'pos_Receipts', 'externalName=contragentObjectId,externalKey=receiptId');
+            $posQuery->EXT('contragentName', 'pos_Receipts', 'externalName=contragentName,externalKey=receiptId');
+            $posQuery->where(array("#valior >= '[#1#]' AND #valior <= '[#2#]'", $periodStart, $periodEnd));
+            $posQuery->where('#productId IS NOT NULL');
+            $posQuery->in('state', array('active', 'closed', 'waiting'));
+            $posQuery->show('productId,receiptId,contragentObjectId,contragentClass,contragentName');
+
+            foreach ($posQuery->fetchAll() as $det) {
+                if (isset($det->productId)) {
+                    $posProducts[$det->productId] = $det->productId;
+                }
+                $classRec = core_Classes::fetch($det->contragentClass ?? null);
+                $className = $classRec->name ?? null;
+                if (!$className) continue;
+                $contragentRec = $className::fetch($det->contragentObjectId ?? null);
+                $folderId = $contragentRec->folderId ?? null;
+                if (isset($folderId)) {
+                    $res['contragents'][$folderId] = $det->contragentName ?? '';
+                }
+            }
+
+            if ($includeProducts) {
+                $shipmentQuery = store_ShipmentOrderDetails::getQuery();
+                $shipmentQuery->EXT('state', 'store_ShipmentOrders', 'externalName=state,externalKey=shipmentId');
+                $shipmentQuery->EXT('valior', 'store_ShipmentOrders', 'externalName=valior,externalKey=shipmentId');
+                $shipmentQuery->where(array("#valior >= '[#1#]' AND #valior <= '[#2#]'", $periodStart, $periodEnd));
+                $shipmentQuery->where("#state != 'rejected' AND #state != 'draft'");
+                $shipmentQuery->show('productId');
+                $products = arr::extractValuesFromArray($shipmentQuery->fetchAll(), 'productId');
+
+                $salesQuery = sales_SalesDetails::getQuery();
+                $salesQuery->EXT('state', 'sales_Sales', 'externalName=state,externalKey=saleId');
+                $salesQuery->EXT('valior', 'sales_Sales', 'externalName=valior,externalKey=saleId');
+                $salesQuery->EXT('contoActions', 'sales_Sales', 'externalName=contoActions,externalKey=saleId');
+                $salesQuery->where(array("#valior >= '[#1#]' AND #valior <= '[#2#]'", $periodStart, $periodEnd));
+                $salesQuery->where("#state != 'rejected' AND #state != 'draft'");
+                $salesQuery->where("#contoActions LIKE '%ship%'");
+                $salesQuery->show('productId');
+                $saleProducts = arr::extractValuesFromArray($salesQuery->fetchAll(), 'productId');
+
+                $products = array_unique(array_merge($products, $saleProducts, $posProducts));
+                foreach ($products as $productId) {
+                    $res['products'][$productId] = cat_Products::getTitleById($productId);
+                }
+                asort($res['products']);
+            }
+
+            return $res;
+        }, array(), 5);
     }
 
 
