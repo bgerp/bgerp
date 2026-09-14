@@ -204,17 +204,19 @@ class acc_reports_ProductGroupRep extends frame2_driver_TableData
     {
         $Double = core_Type::getByName('double(decimals=2)');
         $groArr = array();
-        $Document = doc_Containers::getDocument($dRec->docId);
         $row = new stdClass();
-        
+
         $row->kod = $dRec->kod;
         $singleUrl = cat_Products::getSingleUrlArray($dRec->productId);
         $row->productId = ht::createLinkRef(cat_Products::getVerbal($dRec->productId, 'name'), $singleUrl);
-        $row->docId = $Document->getLink(0);
+        if (!empty($dRec->docId) && ($Document = doc_Containers::getDocument($dRec->docId))) {
+            $row->docId = $Document->getLink(0);
+        }
         
         foreach (array('quantity', 'primeCost', 'sellCost') as $fld) {
-            $row->{$fld} = $Double->toVerbal($dRec->{$fld});
-            $row->{$fld} = ht::styleNumber($row->{$fld}, $dRec->{$fld});
+            $value = $dRec->{$fld} ?? null;
+            $row->{$fld} = $Double->toVerbal($value);
+            $row->{$fld} = ht::styleNumber($row->{$fld}, $value);
         }
         
         if (isset($dRec->group)) {
@@ -268,7 +270,7 @@ class acc_reports_ProductGroupRep extends frame2_driver_TableData
         $row->from = $Date->toVerbal($rec->from);
         $row->to = $Date->toVerbal($rec->to);
         $groupbyArr = array('none' => 'Няма','users' => 'Потребители');
-        $row->groupBy = $groupbyArr[$rec->groupBy];
+        $row->groupBy = $groupbyArr[$rec->groupBy ?? ''] ?? '';
         
         if (isset($rec->group)) {
             // избраната позиция

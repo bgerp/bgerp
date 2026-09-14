@@ -338,7 +338,7 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
         }
 
         // Подреждане по дата
-        $order = ($rec->sortDirection == 'asc') ? 1 : -1;
+        $order = (($rec->sortDirection ?? null) == 'asc') ? 1 : -1;
         usort($recs, function ($a, $b) use ($order) {
             return ($a->payDate <=> $b->payDate) * $order;
         });

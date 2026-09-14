@@ -229,7 +229,7 @@ class acc_RatesDifferences extends core_Master
         $row->dealOriginId = "<div class='state-{$dealState} document-handler'>{$row->dealOriginId}</div>";
         $row->baseCurrencyCode = acc_Periods::getBaseCurrencyCode($rec->valior);
 
-        $row->total = ht::styleNumber($row->total, $rec->total);
+        $row->total = ht::styleNumber($row->total ?? '', $rec->total ?? null);
         if(isset($fields['-single'])){
             $row->total = "<b>{$row->total}</b>";
         }

@@ -430,7 +430,7 @@ class deals_QuotationDetails extends doc_Detail
         $countryId = $data->cData->countryId;
 
         // Дали цените са заличени за текущия потребител от doc_plg_HidePrices - тогава не показваме и еквивалента в другата валута
-        $pricesHidden = !doc_plg_HidePrices::canSeePriceFields($data->masterMvc, $masterRec) && $data->dontHidePrices !== true;
+        $pricesHidden = !doc_plg_HidePrices::canSeePriceFields($data->masterMvc, $masterRec) && ($data->dontHidePrices ?? null) !== true;
 
         // Групираме записите за по-лесно показване
         foreach ($data->rows as $i => $row) {

@@ -419,7 +419,7 @@ class email_Outgoings extends core_Master
         $oEmails = $options->emailsTo;
 
         $groupEmailsArr = array();
-        $groupEmailsArr['cc'][0] = $options->emailsCc;
+        $groupEmailsArr['cc'][0] = $options->emailsCc ?? null;
 
         // Ако не сме променили имейлите
         if (trim($rEmails) == trim($oEmails)) {
@@ -478,7 +478,7 @@ class email_Outgoings extends core_Master
         foreach ($groupEmailsArr['to'] as $key => $emailTo) {
 
             // Вземаме имейлите от cc
-            $emailsCc = $groupEmailsArr['cc'][$key];
+            $emailsCc = $groupEmailsArr['cc'][$key] ?? null;
 
             // Конфигурацията на пакета
             $conf = core_Packs::getConfig('email');
@@ -660,9 +660,10 @@ class email_Outgoings extends core_Master
             $saveArray['id'] = 'id';
             $saveArray['modifiedOn'] = 'modifiedOn';
             $saveArray['modifiedBy'] = 'modifiedBy';
+            $waiting = $options->waiting ?? null;
 
             // Ако имейла е активен или чернова и не е въведено време за изчакване
-            if (!$options->waiting && ($rec->state == 'active' || $rec->state == 'draft' || $rec->state == 'pending')) {
+            if (!$waiting && (($rec->state ?? null) == 'active' || ($rec->state ?? null) == 'draft' || ($rec->state ?? null) == 'pending')) {
 
                 // Сменяме състоянието на затворено
                 $nRec->state = 'closed';
@@ -670,10 +671,10 @@ class email_Outgoings extends core_Master
             }
 
             // Ако ще се изчаква
-            if ($options->waiting) {
+            if ($waiting) {
 
                 // Добавяме времето на изчкаваме и състоянието
-                $nRec->waiting = $options->waiting;
+                $nRec->waiting = $waiting;
                 $nRec->state = 'waiting';
                 $saveArray['state'] = 'state';
                 $saveArray['waiting'] = 'waiting';
@@ -3208,7 +3209,13 @@ class email_Outgoings extends core_Master
                 );
             }
         }
-        
+
+        // Ако имейлът е в папка на контрагент (фирма или лице) - бутон за създаване на продажба от него.
+        // Проверката за правото 'add' в папката гарантира, че кориците ѝ е контрагент (@see deals_DealMaster::canAddToFolder)
+        if (sales_Sales::haveRightFor('add', (object) array('folderId' => $data->rec->folderId))) {
+            $data->toolbar->addBtn('Продажба', array('sales_Sales', 'add', 'folderId' => $data->rec->folderId, 'foreignId' => $data->rec->containerId, 'ret_url' => true), array('order' => '25', 'row' => '2', 'ef_icon' => 'img/16/cart_go.png', 'title' => 'Създаване на продажба от имейла'));
+        }
+
         if ($mvc->haveRightFor('close', $data->rec)) {
             $data->toolbar->addBtn('Затваряне', array($mvc, 'close', $data->rec->id, 'ret_url' => true), array('ef_icon' => 'img/16/gray-close.png', 'title' => 'Спиране на изпращането'));
         }

@@ -572,7 +572,7 @@ class email_Mime extends core_BaseClass
         // Пропускаме само тази PLAIN TEXT част, която е използване
         foreach ($this->parts as $index => $p) {
             if ($p->type == 'TEXT') {
-                if (($index == $this->bestTextIndex) || (!$p->data)) {
+                if (($index == $this->bestTextIndex) || empty($p->data)) {
                     continue;
                 }
                 

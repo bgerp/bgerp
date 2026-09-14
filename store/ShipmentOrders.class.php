@@ -344,7 +344,7 @@ class store_ShipmentOrders extends store_DocumentMaster
             if (is_array($conditions)) {
                 foreach ($conditions as $cond) {
                     if(isset($cond)){
-                        $row->note .= "\n" . $cond;
+                        $row->note = ($row->note ?? '') . "\n" . $cond;
                     }
                 }
             }

@@ -604,6 +604,9 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
 
                 }
 
+                // amount е изчисляемо (FNC) поле - при празна цена/количество не се смята и остава незададено
+                $detRec->amount = $detRec->amount ?? 0;
+
                 $quantity = $amount = 0;
                 $quantityPrevious = $amountPrevious = 0;
                 $quantityLastYear = $amountLastYear = 0;
@@ -616,7 +619,9 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
 
                     $thisClassName = $firstDocument->className;
 
-                    $thisDealerId = $thisClassName::fetchField($firstDocument->that, 'dealerId');
+                    // Не всеки документ има поле 'dealerId' - ако липсва, третираме го като без дилър
+                    $thisClass = cls::get($thisClassName);
+                    $thisDealerId = $thisClass->getField('dealerId', false) ? $thisClass->fetchField($firstDocument->that, 'dealerId') : null;
 
                     if (!in_array($thisDealerId, $dealers)) {
                         continue;

@@ -339,7 +339,7 @@ class marketing_Inquiries2 extends embed_Manager
         $uom = '';
         if (isset($data->Driver) || isset($form->rec->innerClass)) {
             $uomId = $form->rec->measureId ?? null;
-            if (isset($uomId) && ($uomId != cat_UoM::fetchBySysId('pcs')->id || $form->rec->quantityCount > 0)) {
+            if (isset($uomId) && ($uomId != cat_UoM::fetchBySysId('pcs')->id || ($form->rec->quantityCount ?? 0) > 0)) {
                 $uom = cat_UoM::getShortName($uomId);
             }
             
@@ -1258,7 +1258,7 @@ class marketing_Inquiries2 extends embed_Manager
             $Driver = cat_Products::getDriver($protoRec);
             
             // Скриване на полетата от драйвера, ако прототипа не е шаблон
-            if($protoRec->state != 'template' && $rec->customizeProto == 'no'){
+            if($protoRec->state != 'template' && ($rec->customizeProto ?? 'yes') == 'no'){
                 if(isset($Driver)){
                     $DriverFields = array_keys($mvc->getDriverFields($Driver));
                     foreach ($DriverFields as $fld) {
@@ -1412,7 +1412,7 @@ class marketing_Inquiries2 extends embed_Manager
         if ($cu && !haveRole('powerUser')) {
             $personId = crm_Profiles::fetchField("#userId = {$cu}", 'personId');
             $personRec = crm_Persons::fetch($personId);
-            $inCharge = marketing_Router::getInChargeUser($form->rec->place, $form->rec->country, cms_Domains::getPublicDomain()->id);
+            $inCharge = marketing_Router::getInChargeUser($form->rec->place ?? null, $form->rec->country ?? null, cms_Domains::getPublicDomain()->id);
             
             // Ако лицето е обвързано с фирма, документа отива в нейната папка
             if ($personCompanyId = $personRec->buzCompanyId) {

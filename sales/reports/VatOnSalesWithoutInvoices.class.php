@@ -232,7 +232,7 @@ class sales_reports_VatOnSalesWithoutInvoices extends frame2_driver_TableData
             $row->productId = cat_Products::getLinkToSingle_($dRec->productId, 'name');
         }
         
-        $row->code = ($dRec->code) ? ($dRec->code) : "Art{$dRec->productId}";
+        $row->code = (!empty($dRec->code)) ? ($dRec->code) : "Art{$dRec->productId}";
         
         if (isset($dRec->quantity)) {
             $row->quantity = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->quantity) ;

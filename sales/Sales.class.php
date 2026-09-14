@@ -60,6 +60,13 @@ class sales_Sales extends deals_DealMaster
     
     
     /**
+     * Полета на ориджина, за които автоматично да се създава връзка към документа-източник
+     * (напр. имейла, от който е генерирана продажбата) - @see doc_DocumentPlg
+     */
+    public $addLinkedOriginFieldNames = array('originId', 'foreignId');
+
+
+    /**
      * При създаване на имейл, дали да се използва първият имейл от списъка
      */
     public $forceFirstEmail = true;
@@ -1415,7 +1422,7 @@ class sales_Sales extends deals_DealMaster
             $errorStr = null;
 
             $ownBankRec = bank_OwnAccounts::fetch(array("#bankAccountId = '[#1#]'", $rec->bankAccountId));
-            if(in_array($ownBankRec->state, array('closed', 'rejected'))){
+            if($ownBankRec && in_array($ownBankRec->state, array('closed', 'rejected'))){
                 $errorStr = 'Банковата сметка е закрита|*!';
             }
 
@@ -1445,7 +1452,7 @@ class sales_Sales extends deals_DealMaster
             }
             if(!empty($errorStr) && $rec->paymentType != 'cash'){
                 if(core_Users::isPowerUser()){
-                    $row->bankAccountId = "<span class='warning-balloon' style ='background-color:#ff9494a8'>{$row->bankAccountId}</span>";
+                    $row->bankAccountId = "<span class='warning-balloon' style ='background-color:#ff9494a8'>" . ($row->bankAccountId ?? '') . "</span>";
                     $row->bankAccountId = ht::createHint($row->bankAccountId, $errorStr, 'warning');
                 }
             }
@@ -2346,6 +2353,19 @@ class sales_Sales extends deals_DealMaster
         if(in_array($rec->state, array('active', 'pending'))){
             sales_DeliveryData::sync($rec->containerId);
         }
+    }
+
+
+    /**
+     * Може ли документа да се добавя като свързан документ към ориджина си.
+     * Продажбата се свързва с документа, от който е създадена (@see $addLinkedOriginFieldNames)
+     *
+     * @param stdClass $rec
+     * @return bool
+     */
+    public static function canAddDocumentToOriginAsLink_($rec)
+    {
+        return true;
     }
 
 

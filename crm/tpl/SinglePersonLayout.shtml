@@ -61,7 +61,7 @@
 
             <!--ET_BEGIN groupListInput-->
             <fieldset class="detail-info">
-                <legend class="groupTitle">|Групи|*</legend>
+                <legend class="groupTitle">|Групи|* [#editSection_groupsPerson#]</legend>
                 <div class="groupList">
                     [#groupListInput#]
                 </div>

@@ -158,6 +158,17 @@ function updateTwoColsFilterModes() {
  * Измерва филтъра след рендиране и запазва размерите за ресайз.
  */
 function render_setTwoColsFilterWidth() {
+    // Календарът и датата споделят широчината на едно поле, ако има бутон за избор.
+    $('.doc_Search .twoColsFilter, .cal_Tasks .twoColsFilter').find('input[type=text]').each(function () {
+        var $input = $(this);
+        var $button = $input.next('a');
+
+        if (this.id && $button.attr('id') === this.id + '_btn' &&
+            !$input.parent().hasClass('twoColsFilterDateInput')) {
+            $input.add($button).wrapAll('<span class="twoColsFilterDateInput"></span>');
+        }
+    });
+
     var $filters = $('.wide .twoColsFilter');
     if (!$filters.length) {
         return;
@@ -320,6 +331,12 @@ function render_setTwoColsFilterWidth() {
         var leftFieldWidth = leftSize.total - leftSize.caption;
         var rightFieldWidth = rightSize.total - rightSize.caption;
         var maxFieldWidth = Math.max(singleFieldWidth, leftFieldWidth, rightFieldWidth);
+        var formHorizontalSpacing = 0;
+        if ($filter.closest('.doc_Search').length) {
+            var $formSection = $fieldTable.closest('.formSection');
+            // Самостоятелната форма има и рамка с вътрешни отстъпи.
+            formHorizontalSpacing = $formSection.outerWidth() - $formSection.width();
+        }
         // Всяка колона пази реалната широчина на собствените си полета. Така
         // по-широко поле в едната не оставя излишно празно място в другата.
         // При „Още филтри“ полетата използват широчината от оригиналния
@@ -334,7 +351,7 @@ function render_setTwoColsFilterWidth() {
         var summarySafetySpace = $summary.length ? 40 : 0;
         var singleColumnMinWidth = summaryWidth ?
             singleSize.total + summaryGap + summaryWidth + summarySafetySpace : 0;
-        var twoColumnsMinWidth = twoColumnsWidth + summaryGap + summaryWidth + summarySafetySpace;
+        var twoColumnsMinWidth = twoColumnsWidth + formHorizontalSpacing + summaryGap + summaryWidth + summarySafetySpace;
 
         $.each(rowIndexes, function (position, rowIndex) {
             $allRows.eq(rowIndex).addClass(position < rowsInFirstColumn ?
