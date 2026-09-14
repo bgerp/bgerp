@@ -142,7 +142,8 @@ $twoColsFilterSummaryMaxWidth: unquote("var(--two-cols-filter-summary-max-width,
 .wide .cal_Tasks .twoColsFilter.twoColsFilterReady .formElement {
 	> input[type="text"],
 	> select:not(.select2-hidden-accessible),
-	> .select2-container {
+	> .select2-container,
+	> .twoColsFilterDateInput {
 		box-sizing: border-box;
 		width: 100% !important;
 		min-width: 0;
@@ -161,12 +162,29 @@ $twoColsFilterSummaryMaxWidth: unquote("var(--two-cols-filter-summary-max-width,
 	.formCell {
 		> input[type="text"],
 		> select:not(.select2-hidden-accessible),
-		> .select2-container {
+		> .select2-container,
+		> .twoColsFilterDateInput {
 			box-sizing: border-box;
 			width: 100% !important;
 			min-width: 0;
 			max-width: 100% !important;
 		}
+	}
+}
+
+.twoColsFilterDateInput {
+	display: inline-flex;
+	vertical-align: top;
+	align-items: center;
+
+	> input[type="text"] {
+		box-sizing: border-box;
+		flex: 1 1 auto;
+		min-width: 0;
+	}
+
+	> a {
+		flex: 0 0 auto;
 	}
 }
 
