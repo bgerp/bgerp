@@ -27,6 +27,10 @@ class cat_interface_PackLabelImpl extends label_ProtoSequencerImpl
     public function getLabelName($id, $series = 'label')
     {
         $rec = $this->class->fetchRec($id);
+        if (empty($rec)) {
+
+            return '';
+        }
         $productName = cat_Products::getTitleById($rec->productId);
         $packName = cat_UoM::getShortName($rec->packagingId);
         $labelName = "{$productName} ({$packName})";

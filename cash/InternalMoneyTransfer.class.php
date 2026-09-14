@@ -635,7 +635,7 @@ class cash_InternalMoneyTransfer extends core_Master
         $this->requireRightFor('collectnoncashpayments', $rec);
 
         $count = $this->syncNotCollectedRecs($rec);
-        $msg = $count ? "Добавени нови плащания за инкасиране|*: {$count}" : "Няма нови плащания за инкасиране за тази сметка";
+        $msg = $count ? "Добавени нови плащания за инкасиране|*: {$count}" : "Няма нови плащания за инкасиране за тази сметка|*!";
 
         followRetUrl(null, $msg);
     }
