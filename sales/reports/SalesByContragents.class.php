@@ -219,9 +219,8 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
 
         $contragentsId = array();
 
-        $query = sales_PrimeCostByDocument::getQuery();
-
-        $query->EXT('code', 'cat_Products', 'externalName=code,externalKey=productId');
+        $PrimeCost = cls::get('sales_PrimeCostByDocument');
+        $query = $PrimeCost->getQuery();
 
         $query->where("#state != 'rejected'");
 
@@ -288,25 +287,43 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
             }
         }
 
-        // Синхронизира таймлимита с броя записи //
-        $rec->count = $query->count();
-
-        $timeLimit = $query->count() * 0.05;
-
-        if ($timeLimit >= 30) {
-            core_App::setTimeLimit($timeLimit);
+        // Предварителен филтър в SQL. Проверката в цикъла остава водеща, защото при
+        // избран контрагент, който не отговаря на папка, филтърът трябва да върне празен резултат.
+        if (!empty($checkContragentsFolders)) {
+            $query->in('folderId', $checkContragentsFolders);
         }
+
+        // Само полетата, участващи в изчисленията. 'delta' нарочно не се избира - то е
+        // функционално и без dependFromFields би издърпало всички полета на модела.
+        $query->show('valior,detailClassId,detailRecId,folderId,threadId,productId,contragentId,contragentClassId,quantity,sellCost,primeCost');
+
+        // Таймлимитът се задава преди тежката заявка - COUNT върху таблицата е също толкова
+        // бавен, колкото самото четене, затова лимитът се удължава по време на обхождането.
+        core_App::setTimeLimit(300);
+
+        $rec->count = 0;
+
         $unicart = $salesArr = array();
         $unicartPrev = $salesArrPrev = array();
         $unicartLast = $salesArrLast = array();
 
-        while ($recPrime = $query->fetch()) {
+        // 'for', а не 'while', за да се извлича следващият запис и при 'continue' в тялото
+        for ($recPrime = $query->fetch(); $recPrime; $recPrime = $query->fetch()) {
+            $rec->count++;
+
+            // Удължава лимита по 0.05 сек/ред, както при предишното броене със заявка
+            if (($rec->count % 100000) === 0) {
+                core_App::setTimeLimit($rec->count * 0.05);
+            }
+
+            // Понеже 'delta' не е в show(), fetch() не го изчислява. Извиква се същото
+            // изчисление на модела, което прави и core_Query::fetch(), и то преди
+            // подразбиращите се стойности по-долу, за да не се променя резултатът.
+            $PrimeCost->invoke('CalcDelta', array(&$recPrime));
 
             // Полетата в статистиката зависят от източника на реда и при стари
             // записи част от тях може да липсват изцяло.
             $recPrime->sellCost = $recPrime->sellCost ?? null;
-            $recPrime->autoDiscountAmount = $recPrime->autoDiscountAmount ?? 0;
-            $recPrime->sellCostWithOriginalDiscount = $recPrime->sellCostWithOriginalDiscount ?? 0;
             $recPrime->primeCost = $recPrime->primeCost ?? 0;
             $recPrime->delta = $recPrime->delta ?? 0;
             $recPrime->quantity = $recPrime->quantity ?? 0;
@@ -327,9 +344,6 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
             //Превалутиране на сумите
             $recPrime->sellCost = deals_Helper::getSmartBaseCurrency($recPrime->sellCost, null, $rec->to);
 
-            $recPrime->autoDiscountAmount = deals_Helper::getSmartBaseCurrency($recPrime->autoDiscountAmount, null, $rec->to);
-            $recPrime->sellCostWithOriginalDiscount = deals_Helper::getSmartBaseCurrency($recPrime->sellCostWithOriginalDiscount, null, $rec->to);
-            $recPrime->primeCost = deals_Helper::getSmartBaseCurrency($recPrime->primeCost, null, $rec->to);
             $recPrime->delta = deals_Helper::getSmartBaseCurrency($recPrime->delta, null, $rec->to);
 
             $sellValuePrevious = $sellValueLastYear = $sellValue = $delta = $deltaPrevious = $deltaLastYear = 0;
