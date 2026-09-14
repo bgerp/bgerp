@@ -78,11 +78,6 @@ class sens2_script_ActionAssign
         $expr = sens2_Scripts::highliteExpr($rec->expr, $rec->scriptId);
         $cond = sens2_Scripts::highliteExpr($rec->cond, $rec->scriptId);
         
-        $res = "{$output} = {$expr}";
-        if (!empty($rec->cond)) {
-            $res .= ", ако {$cond}";
-        }
-        
         $res = "{$varId} = {$expr}";
         if (!empty($rec->cond)) {
             $res .= ", ако {$cond}";
