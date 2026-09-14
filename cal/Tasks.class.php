@@ -1971,7 +1971,7 @@ class cal_Tasks extends embed_Manager
         // Подготвяме запис за началната дата
         if ($rec->state == 'active' || $rec->state == 'closed' || $rec->state == 'pending' || $rec->state == 'waiting') {
             $calRec = new stdClass();
-            $calRec->time = $calRec->time ?? $rec->timeStart ?? $rec->timeCalc ?? $rec->expectationTimeStart ?? $calRec->timeEnd;
+            $calRec->time = $rec->timeStart ?? $rec->timeCalc ?? $rec->expectationTimeStart ?? null;
 
             // В чии календари да влезе?
             $calRec->users = $rec->assign;

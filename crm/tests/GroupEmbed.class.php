@@ -62,11 +62,28 @@ class crm_tests_GroupEmbed extends unit_Class
     public static function test_OriginalAndTransliteratedText()
     {
         $company = self::company();
-        $originalName = $company->name;
-        $row = self::prepare($company, array('place' => 'place'), 'transliterate');
-        ut::expectEqual(strpos($row->name, 'Тест'), false);
-        ut::expectEqual(strpos($row->place, 'Търново'), false);
-        ut::expectEqual($company->name, $originalName);
+        $original = clone $company;
+        $fields = array('place' => 'place', 'address' => 'address');
+        $expected = array(
+            'bg' => array('name' => 'Тест &amp; партньори', 'place' => 'Велико Търново', 'address' => 'ул. &lt;script> 1'),
+            'en' => array('name' => 'Test &amp; partnyori', 'place' => 'Veliko Tarnovo', 'address' => 'ul. &lt;script> 1'),
+        );
+        foreach ($expected as $lg => $values) {
+            core_Lg::push($lg);
+            try {
+                $row = self::prepare($company, $fields);
+                ut::expectEqual($row->name ?? null, 'Тест &amp; партньори');
+                ut::expectEqual($row->place ?? null, 'Велико Търново');
+
+                $row = self::prepare($company, $fields, 'transliterate');
+                foreach ($values as $field => $value) {
+                    ut::expectEqual($row->{$field} ?? null, $value);
+                }
+                ut::expectEqual($company == $original, true);
+            } finally {
+                core_Lg::pop();
+            }
+        }
     }
 
 

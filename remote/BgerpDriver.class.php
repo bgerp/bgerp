@@ -475,7 +475,7 @@ class remote_BgerpDriver extends core_Mvc
             core_Users::loginUser($auth->userId);
         }
         
-        if ($url = $args['url']) {
+        if ($url = $args['url'] ?? null) {
             redirect($url);
         } else {
             redirect(array('bgerp_Portal', 'Show'));

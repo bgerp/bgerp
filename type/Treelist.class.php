@@ -68,10 +68,10 @@ class type_Treelist extends type_Keylist
         }
         
         $attrCB['type'] = 'checkbox';
-        $attrCB['class'] .= ' checkbox';
+        $attrCB['class'] = 'checkbox';
         
         // Определяме броя на колоните, ако не са зададени.
-        $maxChars = $this->params['maxChars'];
+        $maxChars = $this->params['maxChars'] ?? null;
         $col = self::getCol((array) $this->suggestions, $maxChars);
         
         $i = 0;
