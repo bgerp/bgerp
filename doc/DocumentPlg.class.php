@@ -80,7 +80,7 @@ class doc_DocumentPlg extends core_Plugin
 
         setPartIfNot($mvc, 'addDocumentLinks', array());
         setPartIfNot($mvc, 'addLinkedDocumentToOriginId', false);
-        setPartIfNot($mvc, 'addLinkedOriginFieldName', 'originId');
+        setPartIfNot($mvc, 'addLinkedOriginFieldNames', array('originId'));
 
         // Добавя поле за последно използване
         if (!isset($mvc->fields['lastUsedOn'])) {
@@ -801,8 +801,11 @@ class doc_DocumentPlg extends core_Plugin
     {
         // Ако създаваме нов документ и ...
         if (empty($rec->id)) {
-            if(($mvc->addLinkedOriginFieldName ?? null) && !empty($rec->{$mvc->addLinkedOriginFieldName}) && $mvc->canAddDocumentToOriginAsLink($rec)){
-                $mvc->addDocumentLinks[spl_object_hash($rec)] = $rec;
+            foreach (arr::make($mvc->addLinkedOriginFieldNames ?? null) as $originFieldName){
+                if(!empty($rec->{$originFieldName}) && $mvc->canAddDocumentToOriginAsLink($rec)){
+                    $mvc->addDocumentLinks[spl_object_hash($rec)] = $rec;
+                    break;
+                }
             }
 
             // Опит за извличане на създателя
@@ -965,9 +968,13 @@ class doc_DocumentPlg extends core_Plugin
         // Ако има заопашени документи за добавяне като връзки да се добавят
         if(countR($mvc->addDocumentLinks ?? null)){
             foreach ($mvc->addDocumentLinks as $r){
-                if(isset($r->containerId) && ($mvc->addLinkedOriginFieldName ?? null) && isset($r->{$mvc->addLinkedOriginFieldName})){
+                if(!isset($r->containerId)) continue;
+
+                foreach (arr::make($mvc->addLinkedOriginFieldNames ?? null) as $originFieldName){
+                    if(empty($r->{$originFieldName})) continue;
+
                     $comment = $mvc->getLinkedDocCommentToOrigin($r);
-                    doc_Linked::add($r->containerId, $r->{$mvc->addLinkedOriginFieldName}, 'doc', 'doc', $comment);
+                    doc_Linked::add($r->containerId, $r->{$originFieldName}, 'doc', 'doc', $comment);
                 }
             }
         }
