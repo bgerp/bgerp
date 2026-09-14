@@ -361,6 +361,8 @@ class core_Users extends core_Manager
                 $query->limit($limit);
             }
             
+            $usersArr[$cash] = array();
+            
             while ($rec = $query->fetch()) {
                 if (!$rec->nick) {
                     continue;
