@@ -74,6 +74,18 @@
     min-width: 0;
     max-width: 400px; }
 
+  .narrow .doc_Search .twoColsFilter .formTable,
+  .narrow .doc_Search .twoColsFilter .vFormField {
+    table-layout: fixed;
+    width: 100%; }
+    .narrow .doc_Search .twoColsFilter .formCell > input[type="text"],
+    .narrow .doc_Search .twoColsFilter .formCell > select:not(.select2-hidden-accessible),
+    .narrow .doc_Search .twoColsFilter .formCell > .select2-container {
+      box-sizing: border-box;
+      width: 100% !important;
+      min-width: 0;
+      max-width: 100% !important; }
+
 .doc_Search .select2-container .select2-selection--multiple {
   background-position: right center !important;
   padding-right: 21px; }

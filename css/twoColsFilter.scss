@@ -132,6 +132,25 @@ $twoColsFilterSummaryMaxWidth: unquote("var(--two-cols-filter-summary-max-width,
 	}
 }
 
+.narrow .doc_Search .twoColsFilter {
+	.formTable,
+	.vFormField {
+		table-layout: fixed;
+		width: 100%;
+	}
+
+	.formCell {
+		> input[type="text"],
+		> select:not(.select2-hidden-accessible),
+		> .select2-container {
+			box-sizing: border-box;
+			width: 100% !important;
+			min-width: 0;
+			max-width: 100% !important;
+		}
+	}
+}
+
 .doc_Search .select2-container .select2-selection--multiple {
 	background-position: right center !important;
 	// Място за стрелката и бутона за изчистване на таговете.
