@@ -37,7 +37,7 @@ class pos_Receipts extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'createdOn, modifiedOn, valior, title=Бележка, currency=Валута, pointId=Точка, contragentId=Контрагент, productCount, total, paid, change, state, returnedTotal, createdOn, createdBy, waitingOn, waitingBy';
+    public $listFields = 'createdOn, modifiedOn, valior, title=Бележка, currency=Валута, pointId=Точка, contragentId=Контрагент, productCount, total, paid, change, state, transferredDoc, returnedTotal, createdOn, createdBy, waitingOn, waitingBy';
 
 
     /**
@@ -181,7 +181,7 @@ class pos_Receipts extends core_Master
     /**
      * Кои полета от листовия изглед да се скриват ако няма записи в тях
      */
-    public $hideListFieldsIfEmpty = 'revertId,returnedTotal,waitingOn,waitingBy';
+    public $hideListFieldsIfEmpty = 'revertId,returnedTotal,waitingOn,waitingBy,transferredDoc';
 
 
     /**
@@ -211,6 +211,7 @@ class pos_Receipts extends core_Master
         $this->FLD('revertId', 'int', 'input=none,caption=Сторнира');
         $this->FLD('returnedTotal', 'double(decimals=2)', 'caption=Сторнирано, input=none');
         $this->FNC('productCount', 'int', 'caption=Артикули');
+        $this->FNC('transferredDoc', 'varchar', 'caption=Прехвърлено,smartCenter');
         $this->FLD('waitingOn', 'datetime(format=smartTime)', 'caption=Чакаща->На,input=none');
         $this->FLD('waitingBy', 'key(mvc=core_Users,select=nick)', 'caption=Чакаща->От,input=none');
         $this->FLD('policyId', 'key(mvc=price_Lists,select=id)', 'caption=Ваучер,input=none');
@@ -394,6 +395,13 @@ class pos_Receipts extends core_Master
 
         if (isset($fields['-list'])) {
             $row->title = $mvc->getHyperlink($rec->id, true);
+
+            // Към кой документ е прехвърлена бележката - продажба или МСТ
+            if (!empty($rec->transferredIn)) {
+                $row->transferredDoc = sales_Sales::getLink($rec->transferredIn, 0);
+            } elseif (!empty($rec->storeTransferId)) {
+                $row->transferredDoc = store_Transfers::getLink($rec->storeTransferId, 0);
+            }
         } elseif (isset($fields['-single'])) {
             $row->title = self::getRecTitle($rec);
             $row->iconStyle = 'background-image:url("' . sbf('img/16/view.png', '') . '");';
