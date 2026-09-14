@@ -345,6 +345,7 @@ class price_ListToCustomers extends core_Manager
                         $newPrice = $rec->price / $rate;
                         if ($chargeVat == 'yes') {
 
+                            $vatExceptionId = $listId ? price_Lists::fetchField($listId, 'vatExceptionId') : null;
                             $vat = cat_Products::getVat($productId, $datetime, $vatExceptionId);
                             $newPrice = $newPrice * (1 + $vat);
                         }

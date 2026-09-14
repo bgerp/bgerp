@@ -646,7 +646,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
             $conditionParts = explode('|', $dRec->conditionQuantity, 2);
             $conditionQuantity = $conditionParts[1] ?? $conditionParts[0];
 
-            $row->conditionQuantity = "<span style='color: {$dRec->conditionColor}'>{$conditionQuantity}</span>";
+            $row->conditionQuantity = "<span style='color: " . ($dRec->conditionColor ?? '') . "'>{$conditionQuantity}</span>";
         }
 
         return $row;
@@ -680,20 +680,29 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
 
 
         if (isset($data->rec->groupsChecked)) {
-            $marker = 0;
-            $arr = explode(',',$data->rec->groupsChecked);
-            foreach ($arr as $group) {
-                $marker++;
+            // groupsChecked може да е списък с id-та, разделени със запетая, или keylist (|id|id|)
+            $groupIds = array();
+            foreach (explode(',', $data->rec->groupsChecked) as $token) {
+                $token = trim($token);
+                if ($token === '') continue;
 
-                $groupRec = cat_Groups::fetch($group);
-                $groupVerb .= $groupRec->name ?? '';
-
-                if ((countR($arr)) - $marker != 0) {
-                    $groupVerb .= ', ';
+                if (strpos($token, '|') !== false) {
+                    $groupIds = array_merge($groupIds, array_keys(keylist::toArray($token)));
+                } elseif (is_numeric($token)) {
+                    $groupIds[] = $token;
                 }
             }
 
-            $fieldTpl->append('<b>' . $groupVerb . '</b>', 'groupsChecked');
+            $names = array();
+            foreach ($groupIds as $groupId) {
+                if ($groupRec = cat_Groups::fetch($groupId)) {
+                    $names[] = $groupRec->name;
+                }
+            }
+
+            if (countR($names)) {
+                $fieldTpl->append('<b>' . implode(', ', $names) . '</b>', 'groupsChecked');
+            }
         }
 
       //  if ($data->rec->limmits == 'no') {

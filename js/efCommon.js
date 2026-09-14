@@ -199,19 +199,33 @@ function positionAdditionalInfo(element, anchor, preferAbove) {
     var tooltipRect = tooltip.get(0).getBoundingClientRect();
     var spaceAbove = anchorRect.top - margin - gap;
     var spaceBelow = viewportHeight - anchorRect.bottom - margin - gap;
-    var top;
+    var placeAbove;
+
+    // Дългите списъци използват цялата височина отстрани на брояча.
+    // При тесен екран оставаме над/под него, без да го застъпваме.
+    var spaceRight = viewportWidth - anchorRect.right - margin - gap;
+    var spaceLeft = anchorRect.left - margin - gap;
+    if (tooltipRect.height > Math.max(spaceAbove, spaceBelow) &&
+        tooltipRect.width <= Math.max(spaceRight, spaceLeft)) {
+        var sideLeft = tooltipRect.width <= spaceRight ?
+            anchorRect.right + gap : anchorRect.left - gap - tooltipRect.width;
+        var sideTop = Math.max(margin, Math.min(anchorRect.top, viewportHeight - tooltipRect.height - margin));
+        tooltip.css({top: Math.round(sideTop), left: Math.round(sideLeft)});
+        return;
+    }
 
     if (preferAbove) {
-        if (tooltipRect.height <= spaceAbove || spaceAbove >= spaceBelow) {
-            top = anchorRect.top - tooltipRect.height - gap;
-        } else {
-            top = anchorRect.bottom + gap;
-        }
-    } else if (tooltipRect.height <= spaceBelow || spaceBelow >= spaceAbove) {
-        top = anchorRect.bottom + gap;
+        placeAbove = tooltipRect.height <= spaceAbove || spaceAbove >= spaceBelow;
     } else {
-        top = anchorRect.top - tooltipRect.height - gap;
+        placeAbove = !(tooltipRect.height <= spaceBelow || spaceBelow >= spaceAbove);
     }
+
+    // Високият попъп трябва да се скролира от едната страна на анкера.
+    // Ако го поберем в целия viewport, той застъпва брояча и предизвиква
+    // цикъл mouseleave -> затваряне -> mouseenter -> отваряне.
+    tooltip.css('max-height', Math.max(0, Math.floor(placeAbove ? spaceAbove : spaceBelow)));
+    tooltipRect = tooltip.get(0).getBoundingClientRect();
+    var top = placeAbove ? anchorRect.top - tooltipRect.height - gap : anchorRect.bottom + gap;
 
     top = Math.max(margin, Math.min(top, viewportHeight - tooltipRect.height - margin));
 
@@ -282,11 +296,24 @@ function showTooltip() {
     var tooltipAnchor;
     var tooltipResizeObserver;
     var tooltipScrollParents;
+    var tooltipCloseTimer;
 
     var cachedArr = new Array();
 
+    function cancelTooltipClose() {
+        clearTimeout(tooltipCloseTimer);
+    }
+
+    function scheduleTooltipClose() {
+        cancelTooltipClose();
+        // Време за преминаване през разстоянието между брояча и попъпа.
+        tooltipCloseTimer = setTimeout(closeTooltip, 250);
+    }
+
     function closeTooltip() {
+        cancelTooltipClose();
         if (typeof element != 'undefined') {
+            $(element).off('.additionalInfoHover');
             $(element).hide().removeClass('viewport-positioned bottom left right');
         }
         if (tooltipResizeObserver) {
@@ -335,6 +362,10 @@ function showTooltip() {
             // намираме този, който ще покажем сега
             element = $(target).parent().find('.additionalInfo');
             tooltipAnchor = target.get(0);
+            if (target.attr('data-useHover')) {
+                $(element).on('mouseenter.additionalInfoHover', cancelTooltipClose)
+                    .on('mouseleave.additionalInfoHover', scheduleTooltipClose);
+            }
             tooltipScrollParents = $(element).parents();
             tooltipScrollParents.on('scroll.additionalInfoTooltip', positionTooltip);
             $(element).removeClass('bottom left right').addClass('viewport-positioned').css('display', 'block');
@@ -347,7 +378,7 @@ function showTooltip() {
             } else {
                 setTimeout(positionTooltip, 100);
             }
-        } else {
+        } else if (!element || !$(e.target).closest(element).length) {
             // при кликане в бодито затвавяме отворения тултип, ако има такъв
             closeTooltip();
         }
@@ -359,9 +390,13 @@ function showTooltip() {
         if ($(this).attr("data-useHover")) {
 
             $(this).hover(function () {
+                cancelTooltipClose();
+                if (tooltipAnchor === this && $(element).is(':visible')) {
+                    return;
+                }
                 $(this).children().click();
             }, function () {
-                closeTooltip();
+                scheduleTooltipClose();
             });
         }
     });

@@ -112,7 +112,11 @@ class doc_Search extends core_Manager
             }
             $data->listFilter->setOptions('docClass', $docClassesOption);
         } else {
-            $data->listFilter->showFields = 'search, scopeFolderId, docClass,  author, withMe, tags, state, fromDate, toDate';
+            $listFilter = $data->listFilter ?? null;
+            $listFilter->showFields = 'search, docClass, state, scopeFolderId, author, withMe, tags, fromDate, toDate';
+            if (!Mode::is('screenMode', 'narrow')) {
+                $listFilter->setFieldAttr('withMe', array('style' => 'width:180px;'));
+            }
         }
 
         $data->listFilter->toolbar->addSbBtn('Търсене', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');

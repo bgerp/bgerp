@@ -413,7 +413,7 @@ class tcost_reports_ComparisonOfTransportCosts extends frame2_driver_TableData
             "ef_icon={$Sale->getSingleIcon()}"
             ). '</span>';
 
-        if($dRec->deliveryTermId){
+        if(!empty($dRec->deliveryTermId)){
             $row->deliveryTermId = cond_DeliveryTerms::fetch($dRec->deliveryTermId)->codeName;
         }
 
@@ -422,7 +422,7 @@ class tcost_reports_ComparisonOfTransportCosts extends frame2_driver_TableData
         $row->contragent = $contragentClass::fetchField($dRec->contragentId, 'name');
         
         
-        $row->amountPart = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->amountPart);
+        $row->amountPart = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->amountPart ?? null);
         
         $row->difference = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->difference);
         $row->difference = ht::styleNumber($row->difference, ($dRec->difference));
