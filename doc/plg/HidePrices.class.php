@@ -150,7 +150,7 @@ class doc_plg_HidePrices extends core_Plugin
      */
     public static function on_AfterPrepareSingle($mvc, &$res, &$data)
     {
-        if (self::canSeePriceFields($mvc, $data->rec) || $data->dontHidePrices === true) {
+        if (self::canSeePriceFields($mvc, $data->rec) || ($data->dontHidePrices ?? null) === true) {
             
             return;
         }
@@ -164,7 +164,7 @@ class doc_plg_HidePrices extends core_Plugin
      */
     public static function on_BeforePrepareSingle(core_Mvc $mvc, &$res, $data)
     {
-        if (self::canSeePriceFields($mvc, $data->rec) || $data->dontHidePrices === true) {
+        if (self::canSeePriceFields($mvc, $data->rec) || ($data->dontHidePrices ?? null) === true) {
             
             return;
         }
@@ -180,7 +180,7 @@ class doc_plg_HidePrices extends core_Plugin
      */
     public static function on_AfterPrepareDetail($mvc, $res, &$data)
     {
-        if (self::canSeePriceFields($data->masterMvc, $data->masterData->rec) || $data->dontHidePrices === true) {
+        if (self::canSeePriceFields($data->masterMvc, $data->masterData->rec) || ($data->dontHidePrices ?? null) === true) {
             
             return;
         }
