@@ -158,6 +158,17 @@ function updateTwoColsFilterModes() {
  * Измерва филтъра след рендиране и запазва размерите за ресайз.
  */
 function render_setTwoColsFilterWidth() {
+    // Календарът и датата споделят широчината на едно поле, ако има бутон за избор.
+    $('.doc_Search .twoColsFilter, .cal_Tasks .twoColsFilter').find('input[type=text]').each(function () {
+        var $input = $(this);
+        var $button = $input.next('a');
+
+        if (this.id && $button.attr('id') === this.id + '_btn' &&
+            !$input.parent().hasClass('twoColsFilterDateInput')) {
+            $input.add($button).wrapAll('<span class="twoColsFilterDateInput"></span>');
+        }
+    });
+
     var $filters = $('.wide .twoColsFilter');
     if (!$filters.length) {
         return;

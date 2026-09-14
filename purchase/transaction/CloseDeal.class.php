@@ -148,7 +148,7 @@ class purchase_transaction_CloseDeal extends deals_ClosedDealTransaction
             }
         }
 
-        if (is_array($quantities)) {
+        if (is_array($quantities ?? null)) {
             foreach ($quantities as $index => $obj1) {
                 $entry = $this->getCloseEntry($obj1->amount, $obj1->quantity, $index, $result->totalAmount, $docRec, $firstDoc);
                 if (countR($entry)) {

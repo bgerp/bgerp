@@ -78,9 +78,11 @@
   .wide .doc_Search .twoColsFilter.twoColsFilterReady .formElement > input[type="text"],
   .wide .doc_Search .twoColsFilter.twoColsFilterReady .formElement > select:not(.select2-hidden-accessible),
   .wide .doc_Search .twoColsFilter.twoColsFilterReady .formElement > .select2-container,
+  .wide .doc_Search .twoColsFilter.twoColsFilterReady .formElement > .twoColsFilterDateInput,
   .wide .cal_Tasks .twoColsFilter.twoColsFilterReady .formElement > input[type="text"],
   .wide .cal_Tasks .twoColsFilter.twoColsFilterReady .formElement > select:not(.select2-hidden-accessible),
-  .wide .cal_Tasks .twoColsFilter.twoColsFilterReady .formElement > .select2-container {
+  .wide .cal_Tasks .twoColsFilter.twoColsFilterReady .formElement > .select2-container,
+  .wide .cal_Tasks .twoColsFilter.twoColsFilterReady .formElement > .twoColsFilterDateInput {
     box-sizing: border-box;
     width: 100% !important;
     min-width: 0;
@@ -95,13 +97,26 @@
     .narrow .doc_Search .twoColsFilter .formCell > input[type="text"],
     .narrow .doc_Search .twoColsFilter .formCell > select:not(.select2-hidden-accessible),
     .narrow .doc_Search .twoColsFilter .formCell > .select2-container,
+    .narrow .doc_Search .twoColsFilter .formCell > .twoColsFilterDateInput,
     .narrow .cal_Tasks .twoColsFilter .formCell > input[type="text"],
     .narrow .cal_Tasks .twoColsFilter .formCell > select:not(.select2-hidden-accessible),
-    .narrow .cal_Tasks .twoColsFilter .formCell > .select2-container {
+    .narrow .cal_Tasks .twoColsFilter .formCell > .select2-container,
+    .narrow .cal_Tasks .twoColsFilter .formCell > .twoColsFilterDateInput {
       box-sizing: border-box;
       width: 100% !important;
       min-width: 0;
       max-width: 100% !important; }
+
+.twoColsFilterDateInput {
+  display: inline-flex;
+  vertical-align: top;
+  align-items: center; }
+  .twoColsFilterDateInput > input[type="text"] {
+    box-sizing: border-box;
+    flex: 1 1 auto;
+    min-width: 0; }
+  .twoColsFilterDateInput > a {
+    flex: 0 0 auto; }
 
 .doc_Search .select2-container .select2-selection--multiple,
 .cal_Tasks .twoColsFilter .select2-container .select2-selection--multiple {

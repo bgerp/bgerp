@@ -52,7 +52,7 @@
                 <!--ET_END address-->
                 <!--ET_BEGIN groupListInput-->
                 <fieldset class="detail-info">
-                    <legend class="groupTitle">|Групи|*</legend>
+                    <legend class="groupTitle">|Групи|* [#editSection_groupsCompany#]</legend>
                     <div class="groupList">
                         [#groupListInput#]
                     </div>
