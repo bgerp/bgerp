@@ -49,27 +49,44 @@ class core_tests_Cache extends unit_Class
     public static function test_RememberInvalidatesOnlyChangedDependencies()
     {
         $key = uniqid('', true);
-        $sales = self::makeMvc('sales_' . $key);
-        $folders = self::makeMvc('folders_' . $key);
-        $sameTable = self::makeMvc($folders->dbTableName);
+        $sales = self::makeMvc('sales_' . $key, 'core_tests_CacheSales');
+        $folders = self::makeMvc('folders_' . $key, 'core_tests_CacheFolders');
+        $sameTable = self::makeMvc($folders->dbTableName ?? '');
         $unrelated = self::makeMvc('other_' . $key);
-        $anotherDb = self::makeMvc($folders->dbTableName);
-        $anotherDb->db->dbName = 'another_database';
-        $depends = array($sales, $folders);
+        $anotherDb = self::makeMvc($folders->dbTableName ?? '');
+        $anotherDb->db = (object) array('dbName' => 'another_database');
+        $depends = array(get_class($sales), get_class($folders));
         $calls = 0;
         $load = function () use (&$calls) { return ++$calls; };
 
-        ut::expectEqual(core_Cache::remember(__METHOD__, $key, $load, $depends), 1);
-        $unrelated->dbTableUpdated_();
-        $anotherDb->dbTableUpdated_();
-        ut::expectEqual(core_Cache::remember(__METHOD__, $key, $load, $depends), 1);
-        $sales->dbTableUpdated_();
-        ut::expectEqual(core_Cache::remember(__METHOD__, $key, $load, $depends), 2);
-        $sameTable->dbTableUpdated_();
-        ut::expectEqual(core_Cache::remember(__METHOD__, $key, $load, $depends), 3);
-        $sameTable->dbTableUpdated_();
-        ut::expectEqual(core_Cache::remember(__METHOD__, $key, $load, $depends), 4);
-        ut::expectEqual($folders->getDbTableUpdateCount(), 2);
+        // cls::get() разрешава зависимостите до singleton инстанциите на моделите.
+        $oldSingletons = array();
+        foreach (array($sales, $folders) as $mvc) {
+            $class = get_class($mvc);
+            $oldSingletons[$class] = cls::$singletons[$class] ?? null;
+            cls::$singletons[$class] = $mvc;
+        }
+        try {
+            ut::expectEqual(core_Cache::remember(__METHOD__, $key, $load, $depends), 1);
+            $unrelated->dbTableUpdated_();
+            $anotherDb->dbTableUpdated_();
+            ut::expectEqual(core_Cache::remember(__METHOD__, $key, $load, $depends), 1);
+            $sales->dbTableUpdated_();
+            ut::expectEqual(core_Cache::remember(__METHOD__, $key, $load, $depends), 2);
+            $sameTable->dbTableUpdated_();
+            ut::expectEqual(core_Cache::remember(__METHOD__, $key, $load, $depends), 3);
+            $sameTable->dbTableUpdated_();
+            ut::expectEqual(core_Cache::remember(__METHOD__, $key, $load, $depends), 4);
+            ut::expectEqual($folders->getDbTableUpdateCount(), 2);
+        } finally {
+            foreach ($oldSingletons as $class => $mvc) {
+                if (isset($mvc)) {
+                    cls::$singletons[$class] = $mvc;
+                } else {
+                    unset(cls::$singletons[$class]);
+                }
+            }
+        }
     }
 
 
@@ -179,14 +196,30 @@ class core_tests_Cache extends unit_Class
     }
 
 
-    private static function makeMvc($table)
+    private static function makeMvc($table, $class = 'core_Mvc')
     {
-        $mvc = new core_Mvc();
+        $mvc = new $class();
         $mvc->db = (object) array('dbName' => 'cache_unit_test');
         $mvc->dbTableName = $table;
 
         return $mvc;
     }
+}
+
+
+/**
+ * Тестов модел за продажби, без достъп до база данни
+ */
+class core_tests_CacheSales extends core_Mvc
+{
+}
+
+
+/**
+ * Тестов модел за папки, без достъп до база данни
+ */
+class core_tests_CacheFolders extends core_Mvc
+{
 }
 
 
