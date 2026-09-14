@@ -2299,6 +2299,35 @@ class sales_Sales extends deals_DealMaster
 
 
     /**
+     * Папки на контрагенти с продажби, преизползвани при подготовката на справки
+     *
+     * @return array
+     */
+    public static function getContragentFolderSuggestions()
+    {
+        $context = array(core_Users::getCurrent(), core_Users::getCurrent('roles'), core_Lg::getCurrent());
+
+        return core_Cache::remember(__METHOD__, $context, function () {
+            $suggestions = array();
+            $query = sales_Sales::getQuery();
+            $query->EXT('folderTitle', 'doc_Folders', 'externalName=title,externalKey=folderId');
+            $query->groupBy('folderId');
+            $query->show('folderId, contragentId, folderTitle');
+
+            while ($contragent = $query->fetch()) {
+                if (isset($contragent->contragentId)) {
+                    $suggestions[$contragent->folderId ?? ''] = $contragent->folderTitle ?? '';
+                }
+            }
+
+            asort($suggestions);
+
+            return $suggestions;
+        }, array('sales_Sales', 'doc_Folders'), 5);
+    }
+
+
+    /**
      * Връща класа на обратния документ
      */
     public function getDocumentReverseClass($rec)

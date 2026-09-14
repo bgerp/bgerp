@@ -89,25 +89,7 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
         $form->setDefault('typeGrupping', 'contragent');
         $form->setDefault('minSumForEmail', 0.05);
 
-        $suggestions = array();
-
-        $salesQuery = sales_Sales::getQuery();
-
-        $salesQuery->EXT('folderTitle', 'doc_Folders', 'externalName=title,externalKey=folderId');
-
-        $salesQuery->groupBy('folderId');
-
-        $salesQuery->show('folderId, contragentId, folderTitle');
-
-        while ($contragent = $salesQuery->fetch()) {
-            if (!is_null($contragent->contragentId)) {
-                $suggestions[$contragent->folderId] = $contragent->folderTitle;
-            }
-        }
-
-        asort($suggestions);
-
-        $form->setSuggestions('contragent', $suggestions);
+        $form->setSuggestions('contragent', sales_Sales::getContragentFolderSuggestions());
     }
 
     /**

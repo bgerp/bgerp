@@ -1426,12 +1426,25 @@ class core_App
         $time = (int) ceil(max($time, $minTime));
         
         $now = time();
+
+        // PHP may have a larger limit set by configuration or a direct call,
+        // outside this method's bookkeeping. Zero means unlimited execution.
+        $currentLimit = (int) ini_get('max_execution_time');
+        if (!$force && $currentLimit === 0) {
+            return;
+        }
         
         // Ако форсираме или новото максимално време за изпълнение е по-голямо от старото задаваме го
-        if ($force || (self::$timeSetTimeLimit + self::$runningTimeLimit) < ($now + $time)) {
+        if ($force || $time === 0 || $currentLimit !== self::$runningTimeLimit
+            || (self::$timeSetTimeLimit + self::$runningTimeLimit) < ($now + $time)) {
+            if (!$force && $time > 0) {
+                $time = max($time, $currentLimit);
+            }
             
             // Увеличава времето за изпълнение
-            set_time_limit($time);
+            if (!set_time_limit($time)) {
+                return;
+            }
             
             // Записваме последното зададено време за изпълнение;
             self::$runningTimeLimit = $time;

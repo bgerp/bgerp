@@ -221,7 +221,7 @@ class remote_Authorizations extends embed_Manager
      */
     public static function renderAuthorizationsList($data)
     {
-        if (arr::count($data->recs)) {
+        if (arr::count($data->recs ?? null)) {
             $mvc = cls::get(__CLASS__);
             
             $tpl = $mvc->renderList($data);
