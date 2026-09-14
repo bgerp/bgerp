@@ -90,7 +90,7 @@ class crm_Persons extends core_Master
                      crm_Wrapper, crm_AlphabetWrapper, plg_SaveAndNew, plg_PrevAndNext, bgerp_plg_Groups, plg_Printing, plg_State,
                      plg_Sorting, recently_Plugin, plg_Search, acc_plg_Registry, doc_FolderPlg,
                      bgerp_plg_Import, change_plg_History, doc_plg_Close, drdata_PhonePlg,bgerp_plg_Export,plg_ExpandInput, core_UserTranslatePlg,
-                     callcenter_AdditionalNumbersPlg, crm_ContragentGroupsPlg';
+                     callcenter_AdditionalNumbersPlg, crm_ContragentGroupsPlg, plg_EditSections';
 
 
     /**
@@ -372,7 +372,7 @@ class crm_Persons extends core_Master
         $this->FLD('photo', 'fileman_FileType(bucket=pictures,focus=none)', 'caption=Информация->Фото,export=Csv');
 
         // В кои групи е?
-        $this->FLD('groupList', 'keylist(mvc=crm_Groups,select=name,makeLinks,where=#allow !\\= \\\'companies\\\' AND #state !\\= \\\'rejected\\\',classLink=group-link)', 'caption=Групи->Групи,remember,silent,export=Csv');
+        $this->FLD('groupList', 'keylist(mvc=crm_Groups,select=name,makeLinks,where=#allow !\\= \\\'companies\\\' AND #state !\\= \\\'rejected\\\',classLink=group-link)', 'caption=Групи->Групи,remember,silent,export=Csv,editSection=groupsPerson');
 
         // Състояние
         $this->FLD('state', 'enum(active=Вътрешно,closed=Нормално,rejected=Оттеглено)', 'caption=Състояние,value=closed,notNull,input=none');
