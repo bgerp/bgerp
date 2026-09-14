@@ -2133,9 +2133,9 @@ class email_Incomings extends core_Master
                 
                 $cData = $this->getContragentData($rec->id);
                 
-                $mob = $cData->mob ? $cData->mob : null;
-                $tel = $cData->tel ? $cData->tel : null;
-                $fax = $cData->fax ? $cData->fax : null;
+                $mob = $cData->mob ?? null;
+                $tel = $cData->tel ?? null;
+                $fax = $cData->fax ?? null;
                 
                 if (!$mob && !$tel && !$fax) {
                     continue;
