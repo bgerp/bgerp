@@ -455,6 +455,19 @@ class store_TransfersDetails extends doc_Detail
             $form->setField('packagingId', 'input');
             $form->setOptions('packagingId', $packs);
             $form->setDefault('packagingId', key($packs));
+
+            // На заявка в етап (изпратено/получено) опаковката на реда е фиксирана
+            if (isset($rec->id) && !empty($rec->transferId) && store_Transfers::getQuantityFieldName($rec->transferId) != 'requestedQuantity') {
+                $packagingId = !empty($rec->packagingId) ? $rec->packagingId : $mvc->fetchField($rec->id, 'packagingId');
+                if (!empty($packagingId)) {
+                    $rec->packagingId = $packagingId;
+                    $form->setReadOnly('packagingId', $packagingId);
+
+                    // Полето с removeAndRefreshForm се рендира като интерактивен select и подминава readOnly
+                    $packField = $form->getField('packagingId');
+                    unset($packField->removeAndRefreshForm, $packField->refreshForm);
+                }
+            }
         }
 
         if ($form->isSubmitted()) {
