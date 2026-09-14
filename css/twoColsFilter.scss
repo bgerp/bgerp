@@ -137,8 +137,9 @@ $twoColsFilterSummaryMaxWidth: unquote("var(--two-cols-filter-summary-max-width,
 	}
 }
 
-// Полетата за търсене запълват колоната независимо от широчината на отделния тип.
-.wide .doc_Search .twoColsFilter.twoColsFilterReady .formElement {
+// Полетата запълват колоната независимо от широчината на отделния тип.
+.wide .doc_Search .twoColsFilter.twoColsFilterReady .formElement,
+.wide .cal_Tasks .twoColsFilter.twoColsFilterReady .formElement {
 	> input[type="text"],
 	> select:not(.select2-hidden-accessible),
 	> .select2-container {
@@ -149,7 +150,8 @@ $twoColsFilterSummaryMaxWidth: unquote("var(--two-cols-filter-summary-max-width,
 	}
 }
 
-.narrow .doc_Search .twoColsFilter {
+.narrow .doc_Search .twoColsFilter,
+.narrow .cal_Tasks .twoColsFilter {
 	.formTable,
 	.vFormField {
 		table-layout: fixed;
@@ -168,9 +170,10 @@ $twoColsFilterSummaryMaxWidth: unquote("var(--two-cols-filter-summary-max-width,
 	}
 }
 
-.doc_Search .select2-container .select2-selection--multiple {
+.doc_Search .select2-container .select2-selection--multiple,
+.cal_Tasks .twoColsFilter .select2-container .select2-selection--multiple {
 	background-position: right center !important;
-	// Място за стрелката и бутона за изчистване на таговете.
+	// Място за стрелката и бутона за изчистване.
 	padding-right: 21px;
 
 	.select2-selection__clear {
