@@ -660,9 +660,10 @@ class email_Outgoings extends core_Master
             $saveArray['id'] = 'id';
             $saveArray['modifiedOn'] = 'modifiedOn';
             $saveArray['modifiedBy'] = 'modifiedBy';
+            $waiting = $options->waiting ?? null;
 
             // Ако имейла е активен или чернова и не е въведено време за изчакване
-            if (!$options->waiting && ($rec->state == 'active' || $rec->state == 'draft' || $rec->state == 'pending')) {
+            if (!$waiting && (($rec->state ?? null) == 'active' || ($rec->state ?? null) == 'draft' || ($rec->state ?? null) == 'pending')) {
 
                 // Сменяме състоянието на затворено
                 $nRec->state = 'closed';
@@ -670,10 +671,10 @@ class email_Outgoings extends core_Master
             }
 
             // Ако ще се изчаква
-            if ($options->waiting) {
+            if ($waiting) {
 
                 // Добавяме времето на изчкаваме и състоянието
-                $nRec->waiting = $options->waiting;
+                $nRec->waiting = $waiting;
                 $nRec->state = 'waiting';
                 $saveArray['state'] = 'state';
                 $saveArray['waiting'] = 'waiting';
