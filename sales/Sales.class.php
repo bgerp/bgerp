@@ -1422,7 +1422,7 @@ class sales_Sales extends deals_DealMaster
             $errorStr = null;
 
             $ownBankRec = bank_OwnAccounts::fetch(array("#bankAccountId = '[#1#]'", $rec->bankAccountId));
-            if(in_array($ownBankRec->state, array('closed', 'rejected'))){
+            if($ownBankRec && in_array($ownBankRec->state, array('closed', 'rejected'))){
                 $errorStr = 'Банковата сметка е закрита|*!';
             }
 
@@ -1452,7 +1452,7 @@ class sales_Sales extends deals_DealMaster
             }
             if(!empty($errorStr) && $rec->paymentType != 'cash'){
                 if(core_Users::isPowerUser()){
-                    $row->bankAccountId = "<span class='warning-balloon' style ='background-color:#ff9494a8'>{$row->bankAccountId}</span>";
+                    $row->bankAccountId = "<span class='warning-balloon' style ='background-color:#ff9494a8'>" . ($row->bankAccountId ?? '') . "</span>";
                     $row->bankAccountId = ht::createHint($row->bankAccountId, $errorStr, 'warning');
                 }
             }
