@@ -1603,7 +1603,13 @@ class core_Users extends core_Manager
             return ;
         }
         
-        $nick = $inputs->nick ? $inputs->nick : $inputs->email;
+        if (is_object($inputs)) {
+            $nick = !empty($inputs->nick) ? $inputs->nick : ($inputs->email ?? null);
+        } else {
+            
+            // При автоматично логване няма входни данни от форма - вземаме ника на потребителя
+            $nick = $userRec->nick ?? null;
+        }
         
         if ($nick) {
             log_Ips::addUser($nick);
