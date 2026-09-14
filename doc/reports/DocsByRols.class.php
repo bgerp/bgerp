@@ -154,7 +154,7 @@ class doc_reports_DocsByRols extends frame2_driver_TableData
                             if ($detailEnd == 'details') {
                                 $dInst = cls::get($detail);
                                 
-                                $masterKey = $dInst->masterKey;
+                                $masterKey = $dInst->masterKey ?? null;
                                 
                                 if (!$masterKey) {
                                     continue;

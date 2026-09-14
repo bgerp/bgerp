@@ -66,6 +66,53 @@
 .wide .doc_Search .twoColsFilter.twoColsFilterActive {
   contain: none; }
 
+  .wide .doc_Search .twoColsFilter {
+    column-gap: 0; }
+    .wide .doc_Search .twoColsFilter .listFilter {
+      flex: 1 1 auto; }
+  .wide .doc_Search .twoColsFilter .formTable,
+  .wide .doc_Search .listRows > .listTable {
+    width: 100%;
+    max-width: none; }
+
+  .wide .doc_Search .twoColsFilter.twoColsFilterReady .formElement > input[type="text"],
+  .wide .doc_Search .twoColsFilter.twoColsFilterReady .formElement > select:not(.select2-hidden-accessible),
+  .wide .doc_Search .twoColsFilter.twoColsFilterReady .formElement > .select2-container,
+  .wide .cal_Tasks .twoColsFilter.twoColsFilterReady .formElement > input[type="text"],
+  .wide .cal_Tasks .twoColsFilter.twoColsFilterReady .formElement > select:not(.select2-hidden-accessible),
+  .wide .cal_Tasks .twoColsFilter.twoColsFilterReady .formElement > .select2-container {
+    box-sizing: border-box;
+    width: 100% !important;
+    min-width: 0;
+    max-width: 400px; }
+
+  .narrow .doc_Search .twoColsFilter .formTable,
+  .narrow .doc_Search .twoColsFilter .vFormField,
+  .narrow .cal_Tasks .twoColsFilter .formTable,
+  .narrow .cal_Tasks .twoColsFilter .vFormField {
+    table-layout: fixed;
+    width: 100%; }
+    .narrow .doc_Search .twoColsFilter .formCell > input[type="text"],
+    .narrow .doc_Search .twoColsFilter .formCell > select:not(.select2-hidden-accessible),
+    .narrow .doc_Search .twoColsFilter .formCell > .select2-container,
+    .narrow .cal_Tasks .twoColsFilter .formCell > input[type="text"],
+    .narrow .cal_Tasks .twoColsFilter .formCell > select:not(.select2-hidden-accessible),
+    .narrow .cal_Tasks .twoColsFilter .formCell > .select2-container {
+      box-sizing: border-box;
+      width: 100% !important;
+      min-width: 0;
+      max-width: 100% !important; }
+
+.doc_Search .select2-container .select2-selection--multiple,
+.cal_Tasks .twoColsFilter .select2-container .select2-selection--multiple {
+  background-position: right center !important;
+  padding-right: 21px; }
+  .doc_Search .select2-container .select2-selection--multiple .select2-selection__clear,
+  .cal_Tasks .twoColsFilter .select2-container .select2-selection--multiple .select2-selection__clear {
+    font-size: 1em;
+    line-height: 24px;
+    transform: translateY(-1px); }
+
 .wide select.twoColsFilterCompactSelect + .select2-container {
   width: max-content !important;
   height: 26px;

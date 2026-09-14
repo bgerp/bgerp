@@ -338,8 +338,8 @@ class store_reports_UnrealisticPricesAndWeights extends frame2_driver_TableData
         $row = new stdClass();
 
         $row->productId = cat_Products::getHyperlink($dRec->productId);
-        $row->material = $dRec->material;
-        $row->driverName = $dRec->driverName;
+        $row->material = $dRec->material ?? null;
+        $row->driverName = $dRec->driverName ?? null;
 
 
         $row->prodVolume = $Double->toVerbal($dRec->prodVolume);

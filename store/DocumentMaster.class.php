@@ -887,6 +887,7 @@ abstract class store_DocumentMaster extends core_Master
 
             $vatExceptionId = cond_VatExceptions::getFromThreadId($rec->threadId);
             $vat = cat_Products::getVat($dRec->productId, $rec->valior, $vatExceptionId);
+            $dRec->packPrice = $dRec->packPrice ?? 0;
             if ($rec->chargeVat == 'yes' || $rec->chargeVat == 'separate') {
                 $dRec->packPrice += $dRec->packPrice * $vat;
             }

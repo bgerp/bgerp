@@ -447,7 +447,7 @@ class colab_Threads extends core_Manager
             } else {
                 // Трябва папката на нишката да е споделена към текущия партньор
                 $sharedFolders = colab_Folders::getSharedFolders($userId);
-                if (!in_array($rec->folderId, $sharedFolders)) {
+                if (!is_object($rec) || !in_array($rec->folderId, $sharedFolders)) {
                     $requiredRoles = 'no_one';
                 }
             }
