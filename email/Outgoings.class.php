@@ -3208,7 +3208,13 @@ class email_Outgoings extends core_Master
                 );
             }
         }
-        
+
+        // Ако имейлът е в папка на контрагент (фирма или лице) - бутон за създаване на продажба от него.
+        // Проверката за правото 'add' в папката гарантира, че кориците ѝ е контрагент (@see deals_DealMaster::canAddToFolder)
+        if (sales_Sales::haveRightFor('add', (object) array('folderId' => $data->rec->folderId))) {
+            $data->toolbar->addBtn('Продажба', array('sales_Sales', 'add', 'folderId' => $data->rec->folderId, 'foreignId' => $data->rec->containerId, 'ret_url' => true), array('order' => '25', 'row' => '2', 'ef_icon' => 'img/16/cart_go.png', 'title' => 'Създаване на продажба от имейла'));
+        }
+
         if ($mvc->haveRightFor('close', $data->rec)) {
             $data->toolbar->addBtn('Затваряне', array($mvc, 'close', $data->rec->id, 'ret_url' => true), array('ef_icon' => 'img/16/gray-close.png', 'title' => 'Спиране на изпращането'));
         }
