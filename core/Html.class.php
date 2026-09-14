@@ -446,7 +446,7 @@ class core_Html
             $attr['readonly'] = 'readonly';
             $attr['class'] = 'readonly';
             
-            if (empty($value)) {
+            if (!strlen((string) $value)) {
                 if (!empty($attr['placeholder'])) {
                     $value = $attr['placeholder'];
                     $attr['style'] = 'color:#777';
