@@ -66,6 +66,15 @@
 .wide .doc_Search .twoColsFilter.twoColsFilterActive {
   contain: none; }
 
+  .wide .doc_Search .twoColsFilter {
+    column-gap: 0; }
+    .wide .doc_Search .twoColsFilter .listFilter {
+      flex: 1 1 auto; }
+  .wide .doc_Search .twoColsFilter .formTable,
+  .wide .doc_Search .listRows > .listTable {
+    width: 100%;
+    max-width: none; }
+
   .wide .doc_Search .twoColsFilter.twoColsFilterReady .formElement > input[type="text"],
   .wide .doc_Search .twoColsFilter.twoColsFilterReady .formElement > select:not(.select2-hidden-accessible),
   .wide .doc_Search .twoColsFilter.twoColsFilterReady .formElement > .select2-container {

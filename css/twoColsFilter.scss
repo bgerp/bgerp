@@ -120,6 +120,23 @@ $twoColsFilterSummaryMaxWidth: unquote("var(--two-cols-filter-summary-max-width,
 	contain: none;
 }
 
+// Формата и резултатите запълват общата широчина на списъка.
+.wide .doc_Search {
+	.twoColsFilter {
+		column-gap: 0;
+
+		.listFilter {
+			flex: 1 1 auto;
+		}
+	}
+
+	.twoColsFilter .formTable,
+	.listRows > .listTable {
+		width: 100%;
+		max-width: none;
+	}
+}
+
 // Полетата за търсене запълват колоната независимо от широчината на отделния тип.
 .wide .doc_Search .twoColsFilter.twoColsFilterReady .formElement {
 	> input[type="text"],
