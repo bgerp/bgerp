@@ -66,6 +66,22 @@
 .wide .doc_Search .twoColsFilter.twoColsFilterActive {
   contain: none; }
 
+  .wide .doc_Search .twoColsFilter.twoColsFilterReady .formElement > input[type="text"],
+  .wide .doc_Search .twoColsFilter.twoColsFilterReady .formElement > select:not(.select2-hidden-accessible),
+  .wide .doc_Search .twoColsFilter.twoColsFilterReady .formElement > .select2-container {
+    box-sizing: border-box;
+    width: 100% !important;
+    min-width: 0;
+    max-width: 400px; }
+
+.doc_Search .select2-container .select2-selection--multiple {
+  background-position: right center !important;
+  padding-right: 21px; }
+  .doc_Search .select2-container .select2-selection--multiple .select2-selection__clear {
+    font-size: 1em;
+    line-height: 24px;
+    transform: translateY(-1px); }
+
 .wide select.twoColsFilterCompactSelect + .select2-container {
   width: max-content !important;
   height: 26px;

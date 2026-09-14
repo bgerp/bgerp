@@ -120,6 +120,30 @@ $twoColsFilterSummaryMaxWidth: unquote("var(--two-cols-filter-summary-max-width,
 	contain: none;
 }
 
+// Полетата за търсене запълват колоната независимо от широчината на отделния тип.
+.wide .doc_Search .twoColsFilter.twoColsFilterReady .formElement {
+	> input[type="text"],
+	> select:not(.select2-hidden-accessible),
+	> .select2-container {
+		box-sizing: border-box;
+		width: 100% !important;
+		min-width: 0;
+		max-width: 400px;
+	}
+}
+
+.doc_Search .select2-container .select2-selection--multiple {
+	background-position: right center !important;
+	// Място за стрелката и бутона за изчистване на таговете.
+	padding-right: 21px;
+
+	.select2-selection__clear {
+		font-size: 1em;
+		line-height: 24px;
+		transform: translateY(-1px);
+	}
+}
+
 // Компактните select2 полета растат според избраните стойности, без да ги подреждат вертикално
 .wide select.twoColsFilterCompactSelect + .select2-container {
 	width: max-content !important;
