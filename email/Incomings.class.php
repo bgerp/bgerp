@@ -1066,7 +1066,12 @@ class email_Incomings extends core_Master
 
                     if (countR($nFilesArr)) {
                         krsort($nFilesArr);
+                        $isPlain = Mode::is('text', 'plain');
                         foreach ($nFilesArr as $fVerb) {
+                            // В текстов режим всеки файл е на отделен ред
+                            if ($isPlain && $row->files !== '') {
+                                $row->files .= "\n";
+                            }
                             $row->files .= $fVerb;
                         }
                     }
