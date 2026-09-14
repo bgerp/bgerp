@@ -1634,7 +1634,7 @@ class core_Users extends core_Manager
         if (core_LoginLog::isFirstLogin($currIp, $userRec->id)) {
             
             // Записваме в лога и връщаме
-            core_LoginLog::add('first_login', $userRec->id, $inputs->time);
+            core_LoginLog::add('first_login', $userRec->id ?? null, $inputs->time ?? null);
             
             return ;
         }
@@ -1749,7 +1749,7 @@ class core_Users extends core_Manager
         }
         
         // Записваме в лога успешното логване
-        core_LoginLog::add('success', $userRec->id, $inputs->time);
+        core_LoginLog::add('success', $userRec->id ?? null, $inputs->time ?? null);
     }
     
     
