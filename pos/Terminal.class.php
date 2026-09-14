@@ -852,7 +852,12 @@ class pos_Terminal extends peripheral_Terminal
             if($rec->state != 'draft' && !array_key_exists($operation, $allowedOperationsForNonDraftReceipts)) {
                 $disabled = true;
             }
-            
+
+            // Ако бележката е прехвърлена към МСТ - не може да се прехвърля повече към клиент
+            if($operation == 'contragent' && isset($rec->storeTransferId)) {
+                $disabled = true;
+            }
+
             if($disabled){
                 $attr['data-url'] = null;
                 $attr['class'] .= ' disabledBtn';

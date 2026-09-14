@@ -411,6 +411,11 @@ class log_Browsers extends core_Master
         }
         
         $brid = self::getBrid();
+
+        if (!$brid) {
+
+            return ;
+        }
         
         $rec = self::fetch(array("#brid = '[#1#]'", $brid), 'userData');
         
@@ -419,13 +424,14 @@ class log_Browsers extends core_Master
         $nRec->brid = $brid;
         
         if ($rec) {
-            $nRec->id = $rec->id;
+            $nRec->id = $rec->id ?? null;
         }
         
         $now = dt::now();
+        $userData = $rec->userData ?? array();
         
         // Добавяме подадените данни в началото на масива
-        if ($rec->userData) {
+        if ($userData) {
             
             // Ако няма да се обновяват предишните данни
             if (!$addOnExist) {
@@ -433,7 +439,6 @@ class log_Browsers extends core_Master
                 return ;
             }
             
-            $userData = $rec->userData;
             $userData = array($now => $varsArr) + $userData;
             
             // Ограничаваме броя на записите
