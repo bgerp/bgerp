@@ -382,7 +382,7 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
 
 
         if (!is_null($recs)) {
-            if ($rec->orderBy) {
+            if (!empty($rec->orderBy)) {
                 arr::sortObjects($recs, $rec->orderBy, 'asc');
             } else {
                 arr::sortObjects($recs, 'quantity', 'desc');

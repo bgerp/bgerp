@@ -33,13 +33,13 @@
                 <b>&nbsp;&nbsp; 2. Consignee (name, address, country)</b>
                 <div class='filledFieled leftAlign' style="margin-left:5px;height: 100px;">[#consigneeData#]</div>
             </div>
-            <div class="span6 basicFontSize" style="border:3px; border-bottom:1px; border-left:2px; border-style:solid; box-sizing: border-box;   padding:6px; min-height:126px; margin-left:0px"><b>&nbsp;&nbsp; 16. Carrier (name, address, country)</b>
+            <div class="span6 basicFontSize" style="position: relative; border:3px; border-bottom:1px; border-left:2px; border-style:solid; box-sizing: border-box;   padding:6px; min-height:126px; margin-left:0px"><b>&nbsp;&nbsp; 16. Carrier (name, address, country)</b>
                 <div class='filledFieled leftAlign' style="margin-left:5px;height: 70px;">[#cariersData#]</div>
                 <div class="row-fluid">
                     <div class="span4"><span class="fright" style="font-size: 1.2em; padding-top: 10px;">Vehicle Reg. no.</span></div>
                     <div class="span8"><div class='filledFieled leftAlign bigNumber' style="margin-left:5px;">[#vehicleReg#]</div></div>
                 </div>
-                [#CARRIER_STAMP#]
+                <div style="position:absolute; top:38%; left:0; right:0; transform:translateY(-50%); text-align:center; padding-right:22%;">[#CARRIER_STAMP#]</div>
             </div>
         </div>
         <div class="row-fluid">

@@ -338,8 +338,8 @@ class email_Accounts extends core_Master
     public static function canSendEmail($id)
     {
         $rec = self::fetch($id);
-        
-        return ($rec->smtpServer != '' && $rec->state == 'active');
+
+        return ($rec && $rec->smtpServer != '' && $rec->state == 'active');
     }
     
     

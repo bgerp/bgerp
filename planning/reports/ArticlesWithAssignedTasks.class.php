@@ -181,7 +181,7 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
                 }
                 $Document = doc_Containers::getDocument($d->inVal);
                 
-                if (core_Users::getCurrent() != $d->credatedBy) {
+                if (core_Users::getCurrent() != $d->createdBy) {
                     if (! $Document->haveRightFor('single', $rec->createdBy)) {
                         continue;
                     }
@@ -241,7 +241,7 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
                 }
                 $Document = doc_Containers::getDocument($d->inVal);
 
-                if (core_Users::getCurrent() != $d->credatedBy) {
+                if (core_Users::getCurrent() != $d->createdBy) {
                     if (! $Document->haveRightFor('single', $rec->createdBy)) {
                         continue;
                     }

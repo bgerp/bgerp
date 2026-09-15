@@ -249,7 +249,7 @@ class sales_SalesDetails extends deals_DealDetail
 
                    // Предупреждение дали цената е под очакваната за клиента
                    $useQuotationPrice = isset($masterRec->originId);
-                   $discountPercent = ($rec->autoDiscount) ? round((1 - (1 - $rec->discountPercent) * (1 - $rec->autoDiscount)), 4) : $rec->discount;
+                   $discountPercent = (!empty($rec->autoDiscount)) ? round((1 - (1 - ($rec->discountPercent ?? 0)) * (1 - $rec->autoDiscount)), 4) : ($rec->discount ?? null);
                    $transportFeeRec = sales_TransportValues::get($mvc->Master, $rec->saleId, $rec->id);
                    core_Debug::startTimer('CALC_COMPARE_CONTRAGENT_PRICE');
                    if($checkedObject = deals_Helper::checkPriceWithContragentPrice($rec->productId, $rec->price, $discountPercent, $rec->quantity, $rec->quantityInPack, $masterRec->contragentClassId, $masterRec->contragentId, $priceDate, $masterRec->priceListId, $useQuotationPrice, $mvc, $masterRec->threadId, $masterRec->currencyRate, $masterRec->currencyId, $transportFeeRec)){

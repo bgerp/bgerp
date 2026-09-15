@@ -200,13 +200,13 @@ class doc_plg_HidePrices extends core_Plugin
     {
         $priceFields = arr::make($mvc->priceFields ?? null);
         
-        if (countR($data->rows)) {
+        if (countR($data->rows ?? null)) {
             foreach ($data->rows as $row) {
                 self::unsetPriceFields($row, $priceFields);
             }
         }
         
-        if ($data->row) {
+        if (!empty($data->row)) {
             self::unsetPriceFields($data->row, $priceFields);
         }
         

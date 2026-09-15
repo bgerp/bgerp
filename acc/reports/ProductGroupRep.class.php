@@ -103,6 +103,9 @@ class acc_reports_ProductGroupRep extends frame2_driver_TableData
         
         // за всеки един показател
         while ($recPrime = $query->fetch()) {
+            if (empty($recPrime->containerId)) {
+                continue;
+            }
             $Document = doc_Containers::getDocument($recPrime->containerId);
             $state = $Document->fetchField('state');
             if ($state == 'rejected') {
