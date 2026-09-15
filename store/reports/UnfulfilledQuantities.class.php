@@ -337,12 +337,12 @@ class store_reports_UnfulfilledQuantities extends frame2_driver_TableData
                 $shipDetRecs[$saleDetKey] = (object)array(
 
 
-                    'productId' => $saleDetRecs->productId,
+                    'productId' => $saleDetRecs[$saleDetKey]->productId,
                     'shipedQuantity' => 0,
                     'shipmentId' => '',
                     'firstDocumentName' => 'sales_Sales',
-                    'saleIdShip' => $saleDetRecs->saleId,
-                    'threadIdShip' => $saleDetRecs->threadId
+                    'saleIdShip' => $saleDetRecs[$saleDetKey]->saleId,
+                    'threadIdShip' => $saleDetRecs[$saleDetKey]->threadId
 
                 );
 

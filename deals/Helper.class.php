@@ -3959,7 +3959,25 @@ abstract class deals_Helper
      */
     public static function renderVatDataLayout(&$tpl, $mvc, $vats, $row)
     {
-        if(!is_array($vats)) return;
+        // ДДС секцията се показва само когато реда наистина носи ддс данни
+        // (фактура или отделен ред за ДДС). При "без ДДС"/"вкл. ДДС" тези полета липсват,
+        // затова махаме и обвивката VAT_INFO, за да не остане самотен разделител (<hr>).
+        $hasVatRows = false;
+        if(is_array($vats)){
+            foreach(array_keys($vats) as $vatPercent){
+                $percentVal = str_replace('.', '', $vatPercent);
+                if(isset($row->{"vat{$percentVal}"}) || isset($row->{"vat{$percentVal}Amount"})){
+                    $hasVatRows = true;
+                    break;
+                }
+            }
+        }
+
+        if(!$hasVatRows){
+            $tpl->removeBlock('VAT_INFO');
+
+            return;
+        }
 
         try{
             $block = $tpl->getBlock('VAT_BLOCK');

@@ -885,7 +885,8 @@ class hr_Leaves extends core_Master
                 if (crm_Persons::haveRightFor('single', $aPerson) && ($name = crm_Persons::fetchField(array("#id = '[#1#]'", $aPerson), 'name'))) {
                     $aPersonsArr[] = ht::createLink($name, array('crm_Persons', 'single', 'id' => $aPerson), null, 'ef_icon = img/16/vcard.png');
                 } else {
-                    $pRow = crm_Persons::recToVerbal($aPerson, 'name');
+                    $pRec = crm_Persons::fetch($aPerson);
+                    $pRow = $pRec ? crm_Persons::recToVerbal($pRec, 'name') : null;
                     if ($pRow) {
                         $aPersonsArr[] = $pRow->name;
                     } else {

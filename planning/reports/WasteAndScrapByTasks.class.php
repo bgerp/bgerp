@@ -131,7 +131,7 @@ class planning_reports_WasteAndScrapByTasks extends frame2_driver_TableData
 
         $jQuery = planning_Tasks::getQuery();
         $jQuery->in('state', $stateArr);
-        $jQuery->where(array("#activatedOn >= '[#1#]' AND #activatedOn <= '[#2#]'", $rec->from, $rec->to . ' 23:59:59'));
+        $jQuery->where(array("#activatedOn >= '[#1#]' AND #activatedOn <= '[#2#]'", $rec->from ?? null, ($rec->to ?? '') . ' 23:59:59'));
         $jQuery->show('employees,assetId');
 
         while ($jRec = $jQuery->fetch()) {
@@ -204,6 +204,7 @@ class planning_reports_WasteAndScrapByTasks extends frame2_driver_TableData
             $jobRec = planning_Jobs::fetch($JOB->that);
 
             $prodWeigth = cat_Products::convertToUoM($jobRec->productId, 'kg');
+            $wasteProdWeigth = null;
 
             if (!$wasteQuantity) {
                 $totalWastePercent = null;
@@ -214,7 +215,7 @@ class planning_reports_WasteAndScrapByTasks extends frame2_driver_TableData
             $wasteWeightNullMark = null;     //Ако има поне един отпадък без тегло да се отбележи в изгледа с ? след цифрата
 
             foreach ($waste as $v) {
-                if ($v->quantity) {
+                if (!empty($v->quantity)) {
 
                     if (planning_reports_WasteAndScrapByJobs::isWeightMeasure($v->packagingId) === false) {
 
