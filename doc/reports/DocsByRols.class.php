@@ -57,7 +57,7 @@ class doc_reports_DocsByRols extends frame2_driver_TableData
     protected static function on_AfterInputEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$form)
     {
         if ($form->isSubmitted()) {
-            if ($form->rec->from > $form->rec->to) {
+            if (($form->rec->from ?? null) > ($form->rec->to ?? null)) {
                 $form->setError('from, to', 'Началната дата не може да бъде по-голяма от крайната дата');
             }
         }
