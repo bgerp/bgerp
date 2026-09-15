@@ -3547,7 +3547,7 @@ class cat_Products extends embed_Manager
                 }
 
                 // Добавяме материала в масива
-                $quantity1 = (double)$rRec->baseQuantity + (double)$rRec->propQuantity;
+                $quantity1 = (double)($rRec->baseQuantity ?? 0) + (double)($rRec->propQuantity ?? 0);
                 if (!array_key_exists($rRec->productId, $res)) {
                     $res[$rRec->productId] = array('productId' => $rRec->productId, 'quantity' => $quantity1);
                 } else {

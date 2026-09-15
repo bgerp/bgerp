@@ -153,6 +153,9 @@ class acc_reports_UnactiveContableDocs extends frame2_driver_TableData
         }
         
         while ($document = $query->fetch()) {
+            if (empty($document->docId) || empty($document->docClass)) {
+                continue;
+            }
             $Document = doc_Containers::getDocument($document->id);
             if (!$Document) {
                 continue;
