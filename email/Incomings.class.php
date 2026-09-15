@@ -1001,14 +1001,15 @@ class email_Incomings extends core_Master
      */
     public static function on_BeforeRecToVerbal($mvc, &$row, $rec, $fields)
     {
-        if (!is_object($rec) && is_numeric($rec)) {
-            $rec = $mvc->fetch($rec);
+        $rec = $mvc->fetchRec($rec);
+        if (!$rec) {
+            return false;
         }
         
-        $rec->textPart = trim((string) $rec->textPart);
+        $rec->textPart = trim((string) ($rec->textPart ?? ''));
         
         if (empty($rec->toEml)) {
-            $rec->toEml = $rec->toBox;
+            $rec->toEml = $rec->toBox ?? null;
         }
     }
     
@@ -1018,6 +1019,11 @@ class email_Incomings extends core_Master
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields)
     {
+        $rec = $mvc->fetchRec($rec);
+        if (!$rec) {
+            return;
+        }
+
         // При ограничен списък от полета (@see doc_Containers::renderHiddenDocument) или при
         // празна стойност, вербалното представяне на полето липсва
         foreach (array('subject', 'fromEml', 'fromName', 'toEml') as $vFld) {
@@ -1027,11 +1033,11 @@ class email_Incomings extends core_Master
         }
         
         $haveErr = false;
-        if (!$rec->subject) {
+        if (empty($rec->subject)) {
             $row->subject .= '[' . tr('Липсва заглавие') . ']';
         }
         
-        if ($rec->headers) {
+        if (!empty($rec->headers)) {
             $xResentFrom = email_Mime::getHeadersFromArr($rec->headers, 'X-ResentFrom');
             
             if ($xResentFrom && ($xEmailStr = email_Mime::getAllEmailsFromStr($xResentFrom))) {
@@ -1187,7 +1193,7 @@ class email_Incomings extends core_Master
             }
         }
         
-        if (!$rec->toBox) {
+        if (empty($rec->toBox)) {
             $row->toBox = $row->toEml;
         }
         

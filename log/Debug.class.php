@@ -547,8 +547,12 @@ class log_Debug extends core_Manager
             
             
             if ($resStr == 'OK') {
-                $tpl = new ET();
-                jquery_Jquery::run($tpl, 'self.close();');
+                $closeAfter = 6;
+                $tpl = getTplFromFile('log/tpl/ReportSuccess.shtml');
+                $tpl->replace($closeAfter, 'SECONDS');
+                $tpl->push('log/css/report.css', 'CSS');
+                $tpl->push('log/js/report.js', 'JS');
+                jquery_Jquery::run($tpl, "logReportSuccess({$closeAfter});");
             } else {
                 $form->setError('description', 'Възникна грешка при изпращане на сигнала.');
                 $tpl = $form->renderHtml();

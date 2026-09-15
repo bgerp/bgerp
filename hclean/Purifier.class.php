@@ -66,6 +66,11 @@ class hclean_Purifier
         
         //Настройваме purifier' а
         $config = HTMLPurifier_Config::createDefault();
+
+        // Подсигуряваме, че кеш директорията съществува (напр. /tmp може да е изчистена)
+        if (!is_dir(PURIFIER_TEMP_PATH)) {
+            mkdir(PURIFIER_TEMP_PATH, 0777, true);
+        }
         $config->set('Cache.SerializerPath', PURIFIER_TEMP_PATH);
         
         // Винаги работик с конвертирани до UTF-8 текстове

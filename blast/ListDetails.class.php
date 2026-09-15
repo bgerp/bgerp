@@ -273,9 +273,9 @@ class blast_ListDetails extends doc_Detail
             $emailState = email_AddressesInfo::getState($rec->key);
             
             if ($emailState == 'error') {
-                $row->ROW_ATTR['class'] .= ' state-error-email';
+                $row->ROW_ATTR['class'] = ($row->ROW_ATTR['class'] ?? '') . ' state-error-email';
             } elseif ($emailState == 'blocked') {
-                $row->ROW_ATTR['class'] .= ' state-blocked-email';
+                $row->ROW_ATTR['class'] = ($row->ROW_ATTR['class'] ?? '') . ' state-blocked-email';
             }
         }
         
@@ -372,7 +372,7 @@ class blast_ListDetails extends doc_Detail
         while ($fRec = $query->fetch()) {
             $dObj = (object) unserialize($fRec->data);
             
-            if (email_AddressesInfo::isBlocked($dObj->email)) {
+            if (email_AddressesInfo::isBlocked($dObj->email ?? null)) {
                 
                 continue;
             }

@@ -1055,8 +1055,8 @@ class core_Url
     public static function getDomain($url)
     {
         $domain = false;
-        $arr = @parse_url(strtolower($url));
-        if (is_array($arr) && $h = $arr['host']) {
+        $arr = @parse_url(strtolower($url ?? ''));
+        if (is_array($arr) && ($h = $arr['host'] ?? null)) {
             $hArr = explode('.', $h);
             if (($c = countR($hArr)) >= 2) {
                 $domain = $hArr[$c - 2] . '.' . $hArr[$c - 1];
