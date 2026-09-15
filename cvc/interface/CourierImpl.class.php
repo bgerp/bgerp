@@ -214,7 +214,7 @@ class cvc_interface_CourierImpl extends core_Manager
 
         $form->setDefault('recipientDeliveryType', 'address');
 
-        if($formRec->parcelType == 'parcel'){
+        if(($formRec->parcelType ?? null) == 'parcel'){
             $form->setField('fixedTime', 'input');
             $form->setField('palletCount', "caption=Брой пакети и тегло->Брой пакети");
             $form->setFieldTypeParams('palletCount', array('max' => 100));
@@ -224,12 +224,12 @@ class cvc_interface_CourierImpl extends core_Manager
             $form->setFieldType('parcelInfo', 'table(columns=width|depth|height|weight,captions=Ширина [см]|Дълбочина [см]|Височина [см]|Тегло [кг],validate=cvc_interface_CourierImpl::validatePallets,parcelType=parcel)');
             $form->setField('test', 'input');
             $form->setDefault('test', 'no');
-            if($formRec->test != 'no'){
+            if(($formRec->test ?? null) != 'no'){
                 $form->setField('rejectPayer', 'input');
                 $form->setDefault('rejectPayer', 'contract');
             }
 
-        } elseif($formRec->parcelType == 'pallet'){
+        } elseif(($formRec->parcelType ?? null) == 'pallet'){
             $form->setField('returnPackagings', 'input');
             $form->setDefault('returnPackagings', 'no');
             $form->setField('palletCount', "caption=Брой палети и тегло->Брой палети");
@@ -248,7 +248,7 @@ class cvc_interface_CourierImpl extends core_Manager
         }
 
         $customLocations = cvc_Adapter::getCustomLocations();
-        $senderData = $customLocations[$formRec->customerId];
+        $senderData = $customLocations[$formRec->customerId ?? null] ?? null;
 
         $form->FLD('senderPcode', 'varchar','caption=Приемане от->Населено място,class=w25,placeholder=П.К');
         $form->FLD('senderPlace', 'varchar','caption=Приемане от->-,class=w75,placeholder=Наименование,inlineTo=senderPcode');
@@ -259,9 +259,9 @@ class cvc_interface_CourierImpl extends core_Manager
         $form->FLD('senderApp', 'int(size=3)','caption=Приемане от->-,class=w10,placeholder=Апарт.,inlineTo=senderFloor');
         $form->FLD('senderNotes', 'text(rows=2)','caption=Приемане от->Уточнения');
         $hideFields = array();
-        if($formRec->senderDeliveryType == 'address'){
+        if(($formRec->senderDeliveryType ?? null) == 'address'){
             foreach (array('zip' => 'senderPcode', 'cityBg' => 'senderPlace', 'street' => 'senderAddress', 'num' => 'senderAddressNum') as $theirFld => $ourFld){
-                $form->setDefault($ourFld, $senderData[$theirFld]);
+                $form->setDefault($ourFld, $senderData[$theirFld] ?? null);
             }
         } else {
             $form->setField('senderHubId', 'input,mandatory');
@@ -302,13 +302,13 @@ class cvc_interface_CourierImpl extends core_Manager
         }
 
         $form->setDefault('haveInsurance', 'no');
-        if($formRec->haveCodPayment == 'yes'){
+        if(($formRec->haveCodPayment ?? null) == 'yes'){
             $form->setField('codAmount', 'input');
             $form->setField('isCodPpp', 'input');
             $form->setDefault('isCodPpp', 'no');
         }
 
-        if($formRec->haveInsurance == 'yes'){
+        if(($formRec->haveInsurance ?? null) == 'yes'){
             $form->setField('insuranceAmount', 'input,mandatory');
             $form->setField('isFragile', 'input');
             $form->setDefault('isCodPpp', 'no');
@@ -319,23 +319,23 @@ class cvc_interface_CourierImpl extends core_Manager
         $form->setDefault('recipientNotes', $logisticData['instructions'] ?? null);
         $form->setDefault('recipientPersonName', $logisticData['toPerson'] ?? null);
 
-        if($formRec->recipientDeliveryType == 'hub'){
+        if(($formRec->recipientDeliveryType ?? null) == 'hub'){
             $form->setField('recipientHubId', 'input,mandatory');
             $hideFieldRecipient = array('recipientOfficeId', 'recipientCountryId', 'recipientPcode', 'recipientPlace', 'recipientAddress', 'recipientAddressNum', 'recipientEntrance', 'recipientFloor', 'recipientApp');
-        } elseif($formRec->recipientDeliveryType == 'office'){
+        } elseif(($formRec->recipientDeliveryType ?? null) == 'office'){
             $form->setField('recipientOfficeId', 'input,mandatory');
             $hideFieldRecipient = array('recipientHubId', 'recipientCountryId', 'recipientPcode', 'recipientPlace', 'recipientAddress', 'recipientAddressNum', 'recipientEntrance', 'recipientFloor', 'recipientApp');
         } else {
             $hideFieldRecipient = array('recipientHubId', 'recipientOfficeId');
-            $logisticCountryId = drdata_Countries::getIdByName($logisticData['toCountry']);
+            $logisticCountryId = drdata_Countries::getIdByName($logisticData['toCountry'] ?? null);
             $form->setDefault('recipientCountryId', $logisticCountryId);
             $form->setField('recipientPcode', 'mandatory');
             $form->setField('recipientPlace', 'mandatory');
 
-            if($form->rec->recipientCountryId == $logisticCountryId){
-                $form->setDefault('recipientPlace', $logisticData['toPlace']);
-                $form->setDefault('recipientAddress', $logisticData['toAddress']);
-                $form->setDefault('recipientPcode', $logisticData['toPCode']);
+            if(($form->rec->recipientCountryId ?? null) == $logisticCountryId){
+                $form->setDefault('recipientPlace', $logisticData['toPlace'] ?? null);
+                $form->setDefault('recipientAddress', $logisticData['toAddress'] ?? null);
+                $form->setDefault('recipientPcode', $logisticData['toPCode'] ?? null);
             }
         }
         $hideFields = array_merge($hideFields, $hideFieldRecipient);
@@ -348,10 +348,10 @@ class cvc_interface_CourierImpl extends core_Manager
 
         $tel = !empty($profile->buzTel) ? $profile->buzTel : $profile->tel;
         $phones = drdata_PhoneType::toArray($tel);
-        $phone = $phones[0]->original;
+        $phone = $phones[0]->original ?? null;
         $form->setDefault('senderName', $profile->name);
         $form->setDefault('senderPhone', $phone);
-        $form->setDefault('totalWeight', $logisticData['totalWeight']);
+        $form->setDefault('totalWeight', $logisticData['totalWeight'] ?? null);
     }
 
 
@@ -549,6 +549,9 @@ class cvc_interface_CourierImpl extends core_Manager
         $tpl = getTplFromFile('cvc/tpl/CalculationResult.shtml');
         $currencyId = dt::today() >= acc_Setup::getEurozoneDate() ? 'EUR' : 'BGN';
 
+        // Числовата стойност (преди декориране) отива в price обекта за конвертиране
+        $obj->price = (object)array('total' => $res['priceWithVAT'], 'currency' => $currencyId);
+
         $res['price'] = currency_Currencies::decorate($res['price'], $currencyId, true);
         $res['priceWithVAT'] = currency_Currencies::decorate($res['priceWithVAT'], $currencyId, true);
         $tpl->replace($res['price'], 'price');
@@ -557,7 +560,6 @@ class cvc_interface_CourierImpl extends core_Manager
             $tpl->append("<div>{$additionalText}</div>", 'ADDITIONAL');
         }
         $obj->tpl = $tpl;
-        $obj->price = (object)array('total' => $res['priceWithVAT'], 'currencyCode' => 'BGN');
 
         return $obj;
     }
@@ -667,19 +669,19 @@ class cvc_interface_CourierImpl extends core_Manager
             $res['is_test'] = false;
         }
 
-        if($rec->haveCodPayment == 'yes'){
+        if(($rec->haveCodPayment ?? null) == 'yes'){
             $res['cod_amount'] = $rec->codAmount;
-            $res['is_cod_ppp'] = ($rec->isCodPpp == 'yes');
+            $res['is_cod_ppp'] = (($rec->isCodPpp ?? null) == 'yes');
         }
 
-        if($rec->haveInsurance == 'yes'){
+        if(($rec->haveInsurance ?? null) == 'yes'){
             $res['os_value'] = $rec->insuranceAmount;
-            $res['is_fragile'] = ($rec->isFragile == 'yes');
+            $res['is_fragile'] = (($rec->isFragile ?? null) == 'yes');
         }
-        $res['is_sms'] = ($rec->isSms == 'yes');
-        $res['is_return_amb'] = ($rec->returnPackagings == 'yes');
-        $res['is_return_receipt'] = ($rec->returnReceipt == 'yes');
-        $res['is_return_docs'] = ($rec->returnDocuments == 'yes');
+        $res['is_sms'] = (($rec->isSms ?? null) == 'yes');
+        $res['is_return_amb'] = (($rec->returnPackagings ?? null) == 'yes');
+        $res['is_return_receipt'] = (($rec->returnReceipt ?? null) == 'yes');
+        $res['is_return_docs'] = (($rec->returnDocuments ?? null) == 'yes');
 
         return $res;
     }
@@ -729,7 +731,8 @@ class cvc_interface_CourierImpl extends core_Manager
             $cacheArr = array('parcelType' => $form->rec->parcelType, 'customerId' => $form->rec->customerId, 'senderName' => $form->rec->senderName, 'senderPhone' => $form->rec->senderPhone, 'senderEmail' => $form->rec->senderEmail);
             core_Permanent::set(self::getUserDataCacheKey($documentRec->folderId), $cacheArr, 4320);
             $obj->fh = $res['pdf'];
-            $obj->price = (object)array('total' => $res['priceWithVAT'], 'currencyCode' => 'BGN');
+            $reqCurrencyId = dt::today() >= acc_Setup::getEurozoneDate() ? 'EUR' : 'BGN';
+            $obj->price = (object)array('total' => $res['priceWithVAT'], 'currency' => $reqCurrencyId);
 
             return $obj;
         }

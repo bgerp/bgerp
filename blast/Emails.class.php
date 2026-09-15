@@ -2234,11 +2234,11 @@ class blast_Emails extends core_Master
         }
         
         // Опитваме се да извлечен масива с данните
-        if ($options->__detArr) {
-            
+        if (!empty($options->__detArr)) {
+
             // Ако е подаден масива с данните
             $detDataArr = $options->__detArr;
-        } elseif ($options->detId) {
+        } elseif (!empty($options->detId)) {
             
             // Ако е подадено id, вместо масива
             $detDataArr = blast_EmailSend::getDataArr($options->detId);

@@ -41,7 +41,7 @@ class bgerp_plg_Fancybox extends core_Plugin
         }
         
         // Създава линк към свалянето на картинката
-        $resUrl = toUrl(array('F', 'T', doc_DocumentPlg::getMidPlace(), 'n' => $baseName), $imgAttr['isAbsolute'], true, array('n'));
+        $resUrl = toUrl(array('F', 'T', doc_DocumentPlg::getMidPlace(), 'n' => $baseName), $imgAttr['isAbsolute'] ?? false, true, array('n'));
         $resTpl = new ET(tr('Картинка|*: ') . $resUrl);
         
         return false;
