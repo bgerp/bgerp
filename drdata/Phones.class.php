@@ -140,7 +140,7 @@ class drdata_Phones extends core_Manager
             }
         }
         
-        return $mobileInfo[$countryCode];
+        return $mobileInfo[$countryCode] ?? null;
     }
     
     
