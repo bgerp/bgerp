@@ -301,6 +301,14 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
         // бавен, колкото самото четене, затова лимитът се удължава по време на обхождането.
         core_App::setTimeLimit(300);
 
+        try {
+            $PrimeCost->forceProxy();
+            // Буферираме редовете преди връщането към основната БД за обработката им.
+            $query->select();
+        } finally {
+            $PrimeCost->unforceProxy();
+        }
+
         $rec->count = 0;
 
         $unicart = $salesArr = array();
