@@ -372,7 +372,7 @@ class blast_ListDetails extends doc_Detail
         while ($fRec = $query->fetch()) {
             $dObj = (object) unserialize($fRec->data);
             
-            if (email_AddressesInfo::isBlocked($dObj->email)) {
+            if (email_AddressesInfo::isBlocked($dObj->email ?? null)) {
                 
                 continue;
             }

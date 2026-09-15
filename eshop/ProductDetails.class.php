@@ -538,6 +538,13 @@ class eshop_ProductDetails extends core_Detail
     {
         $me = cls::get(get_called_class());
         $settings = cms_Domains::getSettings();
+
+        // Нормализиране на полета, които може да липсват (напр. в list изглед)
+        $rec->packagingId = $rec->packagingId ?? null;
+        $rec->quantityInPack = $rec->quantityInPack ?? null;
+        $rec->name = $rec->name ?? null;
+        $rec->recId = $rec->recId ?? null;
+
         $row = new stdClass();
         $row->catalogPrice = '';
         $row->saleInfo = '';
