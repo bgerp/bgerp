@@ -66,6 +66,21 @@
 .wide .doc_Search .twoColsFilter.twoColsFilterActive {
   contain: none; }
 
+.wide .doc_Search .twoColsFilter.twoColsFilterActive .listFilter,
+.wide .cal_Tasks .twoColsFilter.twoColsFilterActive .listFilter {
+  flex-grow: 1; }
+  .wide .doc_Search .twoColsFilter.twoColsFilterActive .listFilter > form,
+  .wide .cal_Tasks .twoColsFilter.twoColsFilterActive .listFilter > form {
+    width: 100%; }
+  .wide .doc_Search .twoColsFilter.twoColsFilterActive .listFilter .vFormField,
+  .wide .cal_Tasks .twoColsFilter.twoColsFilterActive .listFilter .vFormField {
+    width: 100%;
+    min-width: var(--two-cols-filter-width, calc(800px + 12em + 3em));
+    contain: inline-size; }
+    .wide .doc_Search .twoColsFilter.twoColsFilterActive .listFilter .vFormField > tbody,
+    .wide .cal_Tasks .twoColsFilter.twoColsFilterActive .listFilter .vFormField > tbody {
+      grid-template-columns: minmax(var(--two-cols-filter-left-width, calc(400px + 6em + 1em)), 1fr) minmax(var(--two-cols-filter-right-width, calc(400px + 6em + 1em)), 1fr); }
+
   .wide .doc_Search .twoColsFilter {
     column-gap: 0; }
     .wide .doc_Search .twoColsFilter .listFilter {
@@ -78,15 +93,17 @@
   .wide .doc_Search .twoColsFilter.twoColsFilterReady .formElement > input[type="text"],
   .wide .doc_Search .twoColsFilter.twoColsFilterReady .formElement > select:not(.select2-hidden-accessible),
   .wide .doc_Search .twoColsFilter.twoColsFilterReady .formElement > .select2-container,
+  .wide .doc_Search .twoColsFilter.twoColsFilterReady .formElement > .twoColsFilterComboInput,
   .wide .doc_Search .twoColsFilter.twoColsFilterReady .formElement > .twoColsFilterDateInput,
   .wide .cal_Tasks .twoColsFilter.twoColsFilterReady .formElement > input[type="text"],
   .wide .cal_Tasks .twoColsFilter.twoColsFilterReady .formElement > select:not(.select2-hidden-accessible),
   .wide .cal_Tasks .twoColsFilter.twoColsFilterReady .formElement > .select2-container,
+  .wide .cal_Tasks .twoColsFilter.twoColsFilterReady .formElement > .twoColsFilterComboInput,
   .wide .cal_Tasks .twoColsFilter.twoColsFilterReady .formElement > .twoColsFilterDateInput {
     box-sizing: border-box;
     width: 100% !important;
     min-width: 0;
-    max-width: 400px; }
+    max-width: none; }
 
   .narrow .doc_Search .twoColsFilter .formTable,
   .narrow .doc_Search .twoColsFilter .vFormField,
@@ -97,15 +114,33 @@
     .narrow .doc_Search .twoColsFilter .formCell > input[type="text"],
     .narrow .doc_Search .twoColsFilter .formCell > select:not(.select2-hidden-accessible),
     .narrow .doc_Search .twoColsFilter .formCell > .select2-container,
+    .narrow .doc_Search .twoColsFilter .formCell > .twoColsFilterComboInput,
     .narrow .doc_Search .twoColsFilter .formCell > .twoColsFilterDateInput,
     .narrow .cal_Tasks .twoColsFilter .formCell > input[type="text"],
     .narrow .cal_Tasks .twoColsFilter .formCell > select:not(.select2-hidden-accessible),
     .narrow .cal_Tasks .twoColsFilter .formCell > .select2-container,
+    .narrow .cal_Tasks .twoColsFilter .formCell > .twoColsFilterComboInput,
     .narrow .cal_Tasks .twoColsFilter .formCell > .twoColsFilterDateInput {
       box-sizing: border-box;
       width: 100% !important;
       min-width: 0;
       max-width: 100% !important; }
+
+.twoColsFilterComboInput {
+  display: inline-block;
+  position: relative;
+  vertical-align: top; }
+  .twoColsFilterComboInput > input.combo {
+    width: 100% !important;
+    margin-right: 0 !important;
+    padding-right: 22px !important; }
+  .twoColsFilterComboInput > select.combo {
+    top: 0;
+    left: 0;
+    width: 100% !important;
+    max-width: none !important;
+    clip: auto !important;
+    clip-path: inset(0 0 0 calc(100% - 22px)); }
 
 .twoColsFilterDateInput {
   display: inline-flex;

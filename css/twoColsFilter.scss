@@ -115,9 +115,29 @@ $twoColsFilterSummaryMaxWidth: unquote("var(--two-cols-filter-summary-max-width,
 	}
 }
 
-// Самостоятелната форма за търсене следва реалната широчина на полетата си.
+// Самостоятелната форма задава минималната широчина и на резултатите.
 .wide .doc_Search .twoColsFilter.twoColsFilterActive {
 	contain: none;
+}
+
+// Колоните използват и допълнителната широчина от резултатите.
+.wide .doc_Search .twoColsFilter.twoColsFilterActive .listFilter,
+.wide .cal_Tasks .twoColsFilter.twoColsFilterActive .listFilter {
+	flex-grow: 1;
+
+	> form {
+		width: 100%;
+	}
+
+	.vFormField {
+		width: 100%;
+		min-width: $twoColsFilterWidth;
+		contain: inline-size;
+
+		> tbody {
+			grid-template-columns: unquote("minmax(#{$twoColsFilterLeftWidth}, 1fr) minmax(#{$twoColsFilterRightWidth}, 1fr)");
+		}
+	}
 }
 
 // Формата и резултатите запълват общата широчина на списъка.
@@ -143,11 +163,12 @@ $twoColsFilterSummaryMaxWidth: unquote("var(--two-cols-filter-summary-max-width,
 	> input[type="text"],
 	> select:not(.select2-hidden-accessible),
 	> .select2-container,
+	> .twoColsFilterComboInput,
 	> .twoColsFilterDateInput {
 		box-sizing: border-box;
 		width: 100% !important;
 		min-width: 0;
-		max-width: 400px;
+		max-width: none;
 	}
 }
 
@@ -163,12 +184,34 @@ $twoColsFilterSummaryMaxWidth: unquote("var(--two-cols-filter-summary-max-width,
 		> input[type="text"],
 		> select:not(.select2-hidden-accessible),
 		> .select2-container,
+		> .twoColsFilterComboInput,
 		> .twoColsFilterDateInput {
 			box-sizing: border-box;
 			width: 100% !important;
 			min-width: 0;
 			max-width: 100% !important;
 		}
+	}
+}
+
+.twoColsFilterComboInput {
+	display: inline-block;
+	position: relative;
+	vertical-align: top;
+
+	> input.combo {
+		width: 100% !important;
+		margin-right: 0 !important;
+		padding-right: 22px !important;
+	}
+
+	> select.combo {
+		top: 0;
+		left: 0;
+		width: 100% !important;
+		max-width: none !important;
+		clip: auto !important;
+		clip-path: unquote("inset(0 0 0 calc(100% - 22px))");
 	}
 }
 
