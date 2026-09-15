@@ -2323,7 +2323,7 @@ class eshop_Carts extends core_Master
             }
         }
 
-        self::setDefaultsFromFolder($form, $form->rec->saleFolderId);
+        self::setDefaultsFromFolder($form, $form->rec->saleFolderId ?? null);
         
         if(empty($form->rec->termId)){
             $form->setField('deliveryCountry', 'input=hidden');

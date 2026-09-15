@@ -129,7 +129,7 @@ class sales_interface_SaleLabelImpl extends label_ProtoSequencerImpl
 
         $arr = array();
         for ($i = 1; $i <= $cnt; $i++) {
-            $dRec = $recs[$i];
+            $dRec = $recs[$i] ?? null;
             if (!is_object($dRec)) continue;
 
             $code = cat_Products::fetchField($dRec->productId, 'code');
