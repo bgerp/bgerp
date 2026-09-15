@@ -46,7 +46,7 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
 
         // Ако за реда вече има разписани партиди, складът не бива да се сменя -
         // иначе партидите остават разписани към склад, различен от този на реда
-        if (isset($rec->id) && isset($form->fields[$mvc->storeFieldName]) && batch_BatchesInDocuments::fetch("#detailClassId = {$mvc->getClassId()} AND #detailRecId = {$rec->id}")) {
+        if (isset($rec->id) && isset($form->fields[$mvc->storeFieldName]) && batch_BatchesInDocuments::fetch("#detailClassId = {$mvc->getClassId()} AND #detailRecId = {$rec->id} AND #batch IS NOT NULL AND #batch != ''")) {
             $form->setField($mvc->storeFieldName, array('hint' => 'Склада не може да се смени, защото има разпределени партиди от него'));
             $form->setReadOnly($mvc->storeFieldName);
         }
