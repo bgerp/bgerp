@@ -36,14 +36,22 @@ class bgerp_plg_Fancybox extends core_Plugin
         
         // Да сработва само за plain режим
         if (!Mode::is('text', 'plain')) {
-            
+
             return ;
         }
-        
+
+        // Ако е поискано картинките да се извеждат като bbCode таг към файла (напр. при
+        // извличане на описание за друг документ/е-магазин), за да се рендират като картинка
+        if (Mode::get('imageAsFileBbcode')) {
+            $resTpl = new ET("[file={$fh}]" . ($baseName ?? $fh) . "[/file]");
+
+            return false;
+        }
+
         // Създава линк към свалянето на картинката
         $resUrl = toUrl(array('F', 'T', doc_DocumentPlg::getMidPlace(), 'n' => $baseName), $imgAttr['isAbsolute'] ?? false, true, array('n'));
         $resTpl = new ET(tr('Картинка|*: ') . $resUrl);
-        
+
         return false;
     }
 }
