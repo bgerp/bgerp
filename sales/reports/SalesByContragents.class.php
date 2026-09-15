@@ -297,8 +297,7 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
         // функционално и без dependFromFields би издърпало всички полета на модела.
         $query->show('valior,detailClassId,detailRecId,folderId,threadId,productId,contragentId,contragentClassId,quantity,sellCost,primeCost');
 
-        // Таймлимитът се задава преди тежката заявка - COUNT върху таблицата е също толкова
-        // бавен, колкото самото четене, затова лимитът се удължава по време на обхождането.
+        // Начален лимит за изпълнението на тежката заявка.
         core_App::setTimeLimit(300);
 
         try {
@@ -309,6 +308,9 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
             $PrimeCost->unforceProxy();
         }
 
+        // Броят е от буферирания резултат, без допълнителна COUNT заявка.
+        core_App::setTimeLimit(max(300, $query->numRec() * 0.05));
+
         $rec->count = 0;
 
         $unicart = $salesArr = array();
@@ -318,11 +320,6 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
         // 'for', а не 'while', за да се извлича следващият запис и при 'continue' в тялото
         for ($recPrime = $query->fetch(); $recPrime; $recPrime = $query->fetch()) {
             $rec->count++;
-
-            // Удължава лимита по 0.05 сек/ред, както при предишното броене със заявка
-            if (($rec->count % 100000) === 0) {
-                core_App::setTimeLimit($rec->count * 0.05);
-            }
 
             // Понеже 'delta' не е в show(), fetch() не го изчислява. Извиква се същото
             // изчисление на модела, което прави и core_Query::fetch(), и то преди
