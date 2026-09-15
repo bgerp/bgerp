@@ -43,7 +43,7 @@ class cond_iface_AllergensTemplateRendered extends core_BaseClass
      */
     public function modifyLabelData($templateId, &$labelString, &$placeholderArr, &$labelDataArr)
     {
-        if($labelDataArr['АЛЕРГЕНИ']){
+        if(!empty($labelDataArr['АЛЕРГЕНИ'])){
             $tpl = new core_ET("");
             $allergenNums = explode(',', $labelDataArr['АЛЕРГЕНИ']);
             foreach ($allergenNums as $num){
@@ -63,7 +63,7 @@ class cond_iface_AllergensTemplateRendered extends core_BaseClass
             $labelDataArr['ЛЮТО'] = $tpl->getContent();
         }
 
-        if($labelDataArr['ТИП']){
+        if(!empty($labelDataArr['ТИП'])){
             $tpl = new core_ET("");
             $iconImg = $labelDataArr['ТИП'] == 'Веган' ? 'leave-red' : 'leave-green';
             $iconImg = ht::createImg(array('class' => 'pictograms',  'alt' => $labelDataArr['ТИП'], 'src' => sbf("cond/img/{$iconImg}.png", '')));
