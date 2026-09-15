@@ -141,7 +141,7 @@ class bulmar_BankDocumentExport extends core_Manager
      */
     public function checkExportForm(core_Form &$form)
     {
-        if ($form->rec->from > $form->rec->to) {
+        if (($form->rec->from ?? null) > ($form->rec->to ?? null)) {
             $form->setError('from,to', 'Началната дата трябва да е по-малка от голямата');
         }
     }
@@ -284,6 +284,8 @@ class bulmar_BankDocumentExport extends core_Manager
         // Добавяме информацията за фактурите
         $num = 1;
         foreach ($data->recs as $rec) {
+            $rec->EIC = $rec->EIC ?? '';
+            $rec->endDate = $rec->endDate ?? '';
             $line = "{$num}|{$static->documentNumber}|{$rec->id}|{$rec->valior}|{$rec->EIC}|{$rec->endDate}|{$static->folder}|{$rec->contragentName}|" . "\r\n";
 
             switch($rec->type){

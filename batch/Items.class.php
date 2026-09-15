@@ -946,7 +946,7 @@ class batch_Items extends core_Master
         if ($form->isSubmitted()) {
             $rec = &$form->rec;
 
-            if ($rec->from > $rec->to) {
+            if (($rec->from ?? null) > ($rec->to ?? null)) {
                 $form->setError('from', 'Началната дата трябва да е по-малка от крайната');
             }
 

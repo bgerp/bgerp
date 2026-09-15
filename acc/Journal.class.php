@@ -906,7 +906,7 @@ class acc_Journal extends core_Master
                 followRetUrl(null, tr('|Балансът се преизчислява в момента. Моля, изчакайте!'));
             }
             
-            if ($rec->from > $rec->to) {
+            if (($rec->from ?? null) > ($rec->to ?? null)) {
                 $form->setError('from', 'Началната дата трябва да е по-малка от крайната');
             }
             

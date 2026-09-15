@@ -191,8 +191,9 @@ class batch_definitions_StringAndDate extends batch_definitions_Varchar
      */
     public function getFeatures($value)
     {
-        list($string, $date) = explode('|', $value);
-        
+        $delimiter = html_entity_decode($this->rec->delimiter, ENT_COMPAT, 'UTF-8');
+        list($string, $date) = array_pad(explode($delimiter, $value), 2, null);
+
         $varcharClassId = batch_definitions_Varchar::getClassId();
         $dateClassId = batch_definitions_ExpirationDate::getClassId();
         $date = dt::getMysqlFromMask($date, $this->rec->format);
