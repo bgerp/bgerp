@@ -206,7 +206,7 @@ class batch_plg_TaskDetails extends core_Plugin
         $bQuery = batch_BatchesInDocuments::getQuery();
         $bQuery->where("#containerId = {$masterRec->originId}");
         while($bRec = $bQuery->fetch()){
-            $batchesSummary[$bRec->batch] = array('planned' => $bRec->quantity / $masterRec->quantityInPack, 'produced' => 0, 'currentUserProduced' => 0, 'batch' => $batchDef->toVerbal($bRec->batch));
+            $batchesSummary[$bRec->batch] = array('planned' => $bRec->quantity / $masterRec->quantityInPack, 'produced' => 0, 'currentUserProduced' => 0, 'batch' => $bRec->batch);
         }
 
         $dQuery = planning_ProductionTaskDetails::getQuery();
@@ -214,7 +214,7 @@ class batch_plg_TaskDetails extends core_Plugin
         while($dRec = $dQuery->fetch()){
             $sign = ($dRec->type == 'scrap') ? -1 : 1;
             if(!array_key_exists($dRec->batch, $batchesSummary)){
-                $batchesSummary[$dRec->batch] = array('planned' => 0, 'produced' => 0, 'currentUserProduced' => 0, 'batch' => $batchDef->toVerbal($dRec->batch));
+                $batchesSummary[$dRec->batch] = array('planned' => 0, 'produced' => 0, 'currentUserProduced' => 0, 'batch' => $dRec->batch);
             }
 
             // Ако текущия потребител е и оператор показва се в отделна колонка

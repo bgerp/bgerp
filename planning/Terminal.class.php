@@ -296,7 +296,7 @@ class planning_Terminal extends peripheral_Terminal
                 $row->title = ht::createLink($title, $selectUrl, false, "title=Избиране на операцията за текуща,class=changeTab");
                 $row->title .= "<br><small>{$row->originShortLink}</small>";
                 if($id == $taskId){
-                    $row->ROW_ATTR['class'] .= ' task-selected';
+                    $row->ROW_ATTR['class'] = ($row->ROW_ATTR['class'] ?? '') . ' task-selected';
                 }
                 unset($row->_rowTools);
             }

@@ -840,8 +840,10 @@ class cat_Boms extends core_Master
                     $m->propQuantity /= $m->quantityInPack;
                 }
 
-                $round = isset($uRecs[$m->packagingId]) ? $uRecs[$m->packagingId] : 0;
-                $m->propQuantity = round($m->propQuantity, $round);
+                if ($m->propQuantity != cat_BomDetails::CALC_ERROR) {
+                    $round = isset($uRecs[$m->packagingId]) ? $uRecs[$m->packagingId] : 0;
+                    $m->propQuantity = round($m->propQuantity, $round);
+                }
             }
         }
 

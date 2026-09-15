@@ -254,7 +254,7 @@ class acc_Limits extends core_Manager
         }
         
         if ($rec->status == 'exceeded') {
-            $row->ROW_ATTR['class'] .= ' state-pending';
+            $row->ROW_ATTR['class'] = ($row->ROW_ATTR['class'] ?? '') . ' state-pending';
         }
     }
     

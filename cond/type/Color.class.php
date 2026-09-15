@@ -47,7 +47,7 @@ class cond_type_Color extends cond_type_abstract_Proto
      */
     public function toVerbal($rec, $domainClass, $domainId, $value)
     {
-        $valueVerbal = parent::toVerbal($id, $domainClass, $domainId, $value);
+        $valueVerbal = parent::toVerbal($rec, $domainClass, $domainId, $value);
         $valueHex = cond_Colors::fetchField($value, 'hex');
        
         $attr = array('class' => 'colorBox', 'style' => "background-color: {$valueHex} !important;width:15px;height:15px;display:inline-block");

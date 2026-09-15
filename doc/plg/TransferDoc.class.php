@@ -74,7 +74,7 @@ class doc_plg_TransferDoc extends core_Plugin
     protected static function on_BeforeRoute($mvc, &$res, $rec)
     {
         // Ако е събмитнато поле към което да се трансферира
-        if (isset($rec->{$mvc->transferFolderField})) {
+        if (!empty($mvc->transferFolderField) && isset($rec->{$mvc->transferFolderField})) {
             $coverId = $rec->{$mvc->transferFolderField};
             
             // Форсира се папката на обекта, документа ще се създаде там

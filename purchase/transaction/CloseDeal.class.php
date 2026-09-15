@@ -128,9 +128,9 @@ class purchase_transaction_CloseDeal extends deals_ClosedDealTransaction
             if (is_array($downpaymentAmounts)) {
                 foreach ($downpaymentAmounts as $index => $obj) {
                     if (!array_key_exists($index, $quantities)) {
-                        $quantities[$index] = new stdClass();
+                        $quantities[$index] = (object) array('quantity' => 0, 'amount' => 0);
                     }
-                    
+
                     $quantities[$index]->quantity += $obj->quantity;
                     $quantities[$index]->amount += $obj->amount;
                 }
@@ -139,16 +139,16 @@ class purchase_transaction_CloseDeal extends deals_ClosedDealTransaction
             if (is_array($this->blQuantities)) {
                 foreach ($this->blQuantities as $index => $obj) {
                     if (!array_key_exists($index, $quantities)) {
-                        $quantities[$index] = new stdClass();
+                        $quantities[$index] = (object) array('quantity' => 0, 'amount' => 0);
                     }
-                    
+
                     $quantities[$index]->quantity -= $obj->quantity;
                     $quantities[$index]->amount -= $obj->amount;
                 }
             }
         }
 
-        if (is_array($quantities)) {
+        if (is_array($quantities ?? null)) {
             foreach ($quantities as $index => $obj1) {
                 $entry = $this->getCloseEntry($obj1->amount, $obj1->quantity, $index, $result->totalAmount, $docRec, $firstDoc);
                 if (countR($entry)) {

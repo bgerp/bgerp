@@ -314,10 +314,10 @@ class cvc_interface_CourierImpl extends core_Manager
             $form->setDefault('isCodPpp', 'no');
         }
 
-        $form->setDefault('recipientPhone', $logisticData['toPersonPhones']);
-        $form->setDefault('recipientName', $logisticData['toCompany']);
-        $form->setDefault('recipientNotes', $logisticData['instructions']);
-        $form->setDefault('recipientPersonName', $logisticData['toPerson']);
+        $form->setDefault('recipientPhone', $logisticData['toPersonPhones'] ?? null);
+        $form->setDefault('recipientName', $logisticData['toCompany'] ?? null);
+        $form->setDefault('recipientNotes', $logisticData['instructions'] ?? null);
+        $form->setDefault('recipientPersonName', $logisticData['toPerson'] ?? null);
 
         if($formRec->recipientDeliveryType == 'hub'){
             $form->setField('recipientHubId', 'input,mandatory');

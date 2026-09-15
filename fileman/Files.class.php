@@ -1488,6 +1488,12 @@ class fileman_Files extends core_Master
             //Името на файла
             $name = static::getVerbal($fRec, 'name');
         }
+
+        // При рендиране за LLM файлът не е линк, а bbCode таг с хендлъра, името и размера му
+        if (Mode::is('renderForLlm')) {
+
+            return fileman_RichTextPlg::getLlmTag($fh, $name, $fRec->fileLen ?? null);
+        }
         
         //Разширението на файла
         $ext = static::getExt($fRec->name);
