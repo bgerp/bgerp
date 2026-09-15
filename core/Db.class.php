@@ -103,6 +103,15 @@ class core_Db
 
 
     /**
+     * Връзка за възстановяване след временно пренасочване към репликата
+     */
+    public $__origDbName;
+    public $__origDbUser;
+    public $__origDbPass;
+    public $__origDbHost;
+
+
+    /**
      *
      */
     public $dbCharset;

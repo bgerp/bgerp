@@ -213,10 +213,12 @@ class core_Manager extends core_Mvc
                     // todo: да праща signal msg на админа
                 }
             } else {
-                $this->db->__origDbName = $this->db->dbName;
-                $this->db->__origDbPass = $this->db->dbPass;
-                $this->db->__origDbUser = $this->db->dbUser;
-                $this->db->__origDbHost = $this->db->dbHost;
+                if (!isset($this->db->__origDbName)) {
+                    $this->db->__origDbName = $this->db->dbName;
+                    $this->db->__origDbPass = $this->db->dbPass ?? null;
+                    $this->db->__origDbUser = $this->db->dbUser;
+                    $this->db->__origDbHost = $this->db->dbHost;
+                }
 
                 $this->db->dbName = SEARCH_DB_NAME;
                 $this->db->dbPass = SEARCH_DB_PASS;
@@ -243,9 +245,9 @@ class core_Manager extends core_Mvc
         }
 
         if (defined('SEARCH_DB_HOST')) {
-            if (isset($this->db->__origDbName) && isset($this->db->__origDbPass) && isset($this->db->__origDbUser) && isset($this->db->__origDbHost)) {
+            if (isset($this->db->__origDbName, $this->db->__origDbUser, $this->db->__origDbHost)) {
                 $this->db->dbName = $this->db->__origDbName;
-                $this->db->dbPass = $this->db->__origDbPass;
+                $this->db->dbPass = $this->db->__origDbPass ?? null;
                 $this->db->dbUser = $this->db->__origDbUser;
                 $this->db->dbHost = $this->db->__origDbHost;
                 unset($this->db->__origDbHost);
