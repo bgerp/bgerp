@@ -55,7 +55,7 @@ class cond_iface_AllergensTemplateRendered extends core_BaseClass
             $labelDataArr['ALLERGENS_IMG'] = $tpl->getContent();
         }
 
-        if($labelDataArr['ЛЮТО']){
+        if(!empty($labelDataArr['ЛЮТО'])){
             $tpl = new core_ET("");
             $iconImg = ($labelDataArr['ЛЮТО'] == 'Малко люто') ? 'yellow' : (($labelDataArr['ЛЮТО'] == 'Средно люто') ? 'orange' : 'red');
             $iconImg = ht::createImg(array('class' => 'pictograms', 'alt' => $labelDataArr['ЛЮТО'], 'src' => sbf("cond/img/{$iconImg}.png", '')));
