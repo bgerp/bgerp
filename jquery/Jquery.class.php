@@ -61,7 +61,11 @@ class jquery_Jquery
     public static function run(&$tpl, $code, $once = true)
     {
         $code = trim($code);
-        
+
+        if (!is_object($tpl)) {
+            $tpl = new core_ET($tpl);
+        }
+
         if ($once) {
             $tpl->appendOnce("\n$(document).ready(function(){ {$code} });", 'JQRUN');
         } else {
