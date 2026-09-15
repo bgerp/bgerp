@@ -467,7 +467,8 @@ class plg_TreeObject extends core_Plugin
             
             foreach ($ids as $id) {
                 $rec = $mvc->fetch($id, "{$mvc->nameField},{$mvc->parentFieldName}");
-                
+                if (empty($rec)) continue;
+
                 // Намираме името на обекта
                 $nameVerbal = type_Varchar::escape($rec->{$mvc->nameField});
                 $nameVerbal = strip_tags($nameVerbal);

@@ -1743,13 +1743,15 @@ class rack_Movements extends rack_MovementAbstract
                 }
             }
             
-            $fromQuantity = $fromPallet->quantity;
-            
-            if ($fromPallet->quantity - $transaction->quantity < 0) {
-                $res->errors = 'Няма достатъчна наличност на изходящия палет';
-                $res->errorFields[] = 'packQuantity,palletId';
-                
-                return $res;
+            if (!empty($fromPallet)) {
+                $fromQuantity = $fromPallet->quantity;
+
+                if ($fromPallet->quantity - $transaction->quantity < 0) {
+                    $res->errors = 'Няма достатъчна наличност на изходящия палет';
+                    $res->errorFields[] = 'packQuantity,palletId';
+
+                    return $res;
+                }
             }
         }
         

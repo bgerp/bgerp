@@ -3601,7 +3601,7 @@ class planning_Tasks extends core_Master
                 $row->notes = ht::createElement("span", $rowNoteAttr, $row->notes, true);
                 if ($isStartedForReorder && $manualPlanning == 'no') {
                     $row->ROW_ATTR['data-dragging'] = "false";
-                    $row->ROW_ATTR['class'] .= " state-forbidden";
+                    $row->ROW_ATTR['class'] = ($row->ROW_ATTR['class'] ?? '') . " state-forbidden";
                     $row->ROW_ATTR['style'] = 'opacity:0.7';
                 }
             } else {

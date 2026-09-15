@@ -96,7 +96,7 @@ class acc_CostObjectDetail extends core_Manager
         while($iRec = $iQuery->fetch()){
             $itemArr[$iRec->id] = $iRec;
         }
-        $normalizedSearch = plg_Search::normalizeText($data->listFilter->rec->search);
+        $normalizedSearch = plg_Search::normalizeText($data->listFilter->rec->search ?? '');
 
         // За всеки разходен обект, групиран по класа му
         $taskClassId = cal_Tasks::getClassId();
@@ -127,7 +127,7 @@ class acc_CostObjectDetail extends core_Manager
                 // На кое ниво е обекта в дървото
                 $totalAmount = $blAmount;
                 $parentArr = array_filter($data->costItemData->recs[$classId], function($a) use (&$parentCount, $tRec){
-                    if(is_array($a->children)){
+                    if(is_array($a->children ?? null)){
                         return (in_array($tRec->id, $a->children));
                     }
                     return false;
@@ -135,7 +135,7 @@ class acc_CostObjectDetail extends core_Manager
                 $row->level = countR($parentArr);
 
                 // Ако има деца, сумират се сумите на децата му
-                if(is_array($tRec->children)){
+                if(is_array($tRec->children ?? null)){
                     foreach ($tRec->children as $childId){
                         if(array_key_exists($childId, $data->costItemData->recs[$classId])){
                             $childItemId = $data->costItemData->recs[$classId][$childId]->itemId;
@@ -194,8 +194,9 @@ class acc_CostObjectDetail extends core_Manager
                 }
                 $row->info = $infoTpl;
 
-                if($data->listFilter->rec->withAmount == 'yes' && empty($row->blAmount)) continue;
-                if($data->listFilter->rec->withAmount == 'no' && !empty($row->blAmount)) continue;
+                $withAmount = $data->listFilter->rec->withAmount ?? null;
+                if($withAmount == 'yes' && empty($row->blAmount)) continue;
+                if($withAmount == 'no' && !empty($row->blAmount)) continue;
 
                 $data->costItemData->rows[$classId][$tRec->id] = $row;
             }

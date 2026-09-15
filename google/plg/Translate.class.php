@@ -48,13 +48,21 @@ EOT;
     
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields)
     {
-        if ($rec->lg != core_Lg::getCurrent() &&
+        $fields = arr::make($fields, true);
+        if (empty($fields['-single'])) {
+            return;
+        }
+
+        $rec = $mvc->fetchRec($rec);
+        $textPart = (string) ($row->textPart ?? '');
+
+        if ($rec && ($rec->lg ?? null) != core_Lg::getCurrent() &&
             !(Mode::is('text', 'xhtml') && !Mode::is('printing')) &&
             !Mode::is('text', 'plain') &&
-            $fields['-single'] && trim($row->textPart)
+            trim($textPart)
              ) {
             $row->textPart = new core_ET(
-                sprintf(static::$markupTpl, $row->textPart)
+                sprintf(static::$markupTpl, $textPart)
             );
             
             if (!Request::get('ajax_mode')) {

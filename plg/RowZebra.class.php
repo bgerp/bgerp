@@ -27,8 +27,8 @@ class plg_RowZebra extends core_Plugin
             $zebra = 1;
             
             foreach ($data->rows as $id => $row) {
-                if ($mvc->zebraRows !== false && $rec->state == '') {
-                    $row->ROW_ATTR['class'] .= ' zebra' . ($zebra % 2);
+                if ($mvc->zebraRows !== false && ($data->recs[$id]->state ?? '') == '') {
+                    $row->ROW_ATTR['class'] = ($row->ROW_ATTR['class'] ?? '') . ' zebra' . ($zebra % 2);
                 }
                 $zebra++;
             }

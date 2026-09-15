@@ -34,7 +34,14 @@ class doc_plg_LlmExportable extends core_Plugin
 
         // Рендираме веднъж нормалния `plain` HTML, без renderForAI, за да останат
         // групиращите редове, междинните суми и останалата таблична структура.
-        $content = doc_plg_TxtExportable::renderDocumentHtml($mvc, $id);
+        // В renderForLlm режим прикачените файлове се рендират като [file=XXXXXX] тагове с размер,
+        // а не като линкове за сваляне (виж fileman_Files::getLink)
+        Mode::push('renderForLlm', true);
+        try {
+            $content = doc_plg_TxtExportable::renderDocumentHtml($mvc, $id);
+        } finally {
+            Mode::pop('renderForLlm');
+        }
         $content = self::prepareHtmlForMarkitdown($content);
 
         $string = '';
@@ -52,6 +59,10 @@ class doc_plg_LlmExportable extends core_Plugin
         if ($string === '') {
             $string = self::convertHtmlToLlmMarkdown($content);
         }
+
+        // Ако извикващият е рендирал файловете като линкове (напр. по-стар пакет без 'renderForLlm'),
+        // те се превръщат в [file=XXXXXX] тагове
+        $string = fileman_RichTextPlg::replaceFileLinksWithLlmTags($string);
         $row = doc_plg_TxtExportable::getVerbalRow($mvc, $rec);
 
         $authorName = doc_plg_TxtExportable::getAuthorName($mvc, $rec);
@@ -135,7 +146,8 @@ class doc_plg_LlmExportable extends core_Plugin
 
         $result = preg_replace('/\n{2,}/', "\n", $result);
 
-        return trim($result);
+        // Текстовите линкове към файлове (от рендиране без 'renderForLlm') стават [file=XXXXXX] тагове
+        return fileman_RichTextPlg::replaceFileLinksWithLlmTags(trim($result));
     }
 
 

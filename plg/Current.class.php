@@ -323,7 +323,7 @@ class plg_Current extends core_Plugin
                 $row->currentPlg = ht::createElement('img', array('src' => sbf('img/16/accept.png', ''), 'width' => '16', 'height' => '16'));
             }
 
-            $row->ROW_ATTR['class'] .= ' state-waiting';
+            $row->ROW_ATTR['class'] = ($row->ROW_ATTR['class'] ?? '') . ' state-waiting';
         } elseif ($mvc->haveRightFor('select', $rec)) {
 
             // Ако записа не е текущия обект, но може да бъде избран добавяме бутон за избор

@@ -419,7 +419,7 @@ class email_Outgoings extends core_Master
         $oEmails = $options->emailsTo;
 
         $groupEmailsArr = array();
-        $groupEmailsArr['cc'][0] = $options->emailsCc;
+        $groupEmailsArr['cc'][0] = $options->emailsCc ?? null;
 
         // Ако не сме променили имейлите
         if (trim($rEmails) == trim($oEmails)) {
@@ -478,7 +478,7 @@ class email_Outgoings extends core_Master
         foreach ($groupEmailsArr['to'] as $key => $emailTo) {
 
             // Вземаме имейлите от cc
-            $emailsCc = $groupEmailsArr['cc'][$key];
+            $emailsCc = $groupEmailsArr['cc'][$key] ?? null;
 
             // Конфигурацията на пакета
             $conf = core_Packs::getConfig('email');
