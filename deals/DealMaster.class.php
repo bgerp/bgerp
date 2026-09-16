@@ -3033,14 +3033,14 @@ abstract class deals_DealMaster extends deals_DealBase
                 self::$logisticDataCache['countryId'][$ownCountryId] = drdata_Countries::fetchField($ownCountryId, 'commonName');
             }
         }
-        $ownCountry = self::$logisticDataCache['countryId'][$ownCountryId];
+        $ownCountry = self::$logisticDataCache['countryId'][$ownCountryId] ?? null;
 
         if(!array_key_exists($contragentCountryId, self::$logisticDataCache['countryId'])) {
             if($contragentCountryId) {
                 self::$logisticDataCache['countryId'][$contragentCountryId] = drdata_Countries::fetchField($contragentCountryId, 'commonName');
             }
         }
-        $contragentCountry = self::$logisticDataCache['countryId'][$contragentCountryId];
+        $contragentCountry = self::$logisticDataCache['countryId'][$contragentCountryId] ?? null;
         $ownPart = ($this instanceof sales_Sales) ? 'from' : 'to';
         $contrPart = ($this instanceof sales_Sales) ? 'to' : 'from';
 
