@@ -3615,7 +3615,7 @@ class cal_Tasks extends embed_Manager
         
         if (!$dependTimeEnd) {
             if (!$closedTime) {
-                $dependTimeEnd = dt::timestamp2Mysql(dt::mysql2timestamp($dependTimeStart) + $recCond->timeDuration);
+                $dependTimeEnd = dt::timestamp2Mysql(dt::mysql2timestamp($dependTimeStart) + ($recCond->timeDuration ?? 0));
             } else {
                 $dependTimeEnd = $closedTime;
             }

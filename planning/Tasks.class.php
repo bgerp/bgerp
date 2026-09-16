@@ -591,12 +591,15 @@ class planning_Tasks extends core_Master
             $row->storeId = store_Stores::getHyperlink($rec->storeId, true);
         }
 
-        if (in_array($rec->state, array('closed', 'rejected'))) {
+        if (in_array($rec->state ?? null, array('closed', 'rejected'))) {
             if(isset($fields['-detail'])){
-                $row->state = ($rec->state == 'closed') ? tr("Прикл.") : $row->state;
+                $row->state = ($rec->state == 'closed') ? tr("Прикл.") : ($row->state ?? null);
             }
-            $row->expectedTimeStart = "<i class = 'quiet'>{$row->state}</i>";
-            $row->expectedTimeEnd = "<i class = 'quiet'>{$row->state}</i>";
+
+            // В листовия изглед състоянието може да не е сред вербализираните полета
+            $stateVerbal = $row->state ?? null;
+            $row->expectedTimeStart = "<i class = 'quiet'>{$stateVerbal}</i>";
+            $row->expectedTimeEnd = "<i class = 'quiet'>{$stateVerbal}</i>";
         } elseif(!Mode::is('isReorder')) {
 
             if (!empty($rec->expectedTimeEnd) && $rec->expectedTimeEnd >= ("{$origin->fetchField('dueDate')} 23:59:59")) {
