@@ -1061,19 +1061,32 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
         $productInfo = cat_Products::getProductInfo($dRec->productId ?? null);
         $packInfo = is_object($productInfo) ? ($productInfo->packagings[$orderMeasure] ?? null) : null;
         $quantityInPack = is_object($packInfo) ? ($packInfo->quantity ?? 0) : 0;
+        $productRec = is_object($productInfo) ? ($productInfo->productRec ?? null) : null;
+        $baseMeasureId = $dRec->measure ?? (is_object($productRec) ? ($productRec->measureId ?? null) : null);
+        $measureId = $orderMeasure ?: $baseMeasureId;
+        $precision = $measureId ? (cat_UoM::fetchField($measureId, 'round') ?? 0) : 0;
+        $isBaseMeasure = $measureId && $measureId == $baseMeasureId;
 
         if ($quantityInPack > 0) {
-            $packOrder = max(ceil($suggQuantity / $quantityInPack), ceil($minOrder));
+            // Основната мярка следва точността си, отделните опаковки са цели нагоре.
+            $packOrder = $isBaseMeasure
+                ? max(round($suggQuantity / $quantityInPack, $precision), round($minOrder, $precision))
+                : max(ceil($suggQuantity / $quantityInPack), ceil($minOrder));
 
             if ($maxQuantity > 0) {
-                // Максимумът е с предимство пред минималната поръчка, с цяла опаковка нагоре.
-                $maxPacks = ceil(($maxQuantity - $quantity) / $quantityInPack);
+                // Максимумът е с предимство пред минималната поръчка.
+                $maxPacks = $isBaseMeasure
+                    ? round(($maxQuantity - $quantity) / $quantityInPack, $precision)
+                    : ceil(($maxQuantity - $quantity) / $quantityInPack);
                 $packOrder = min($packOrder, $maxPacks);
             }
         } else {
             $packOrder = ($maxQuantity <= 0 && $minQuantity > 0) ? 0 : $suggQuantity;
             if ($maxQuantity > 0) {
                 $packOrder = min($packOrder, $maxQuantity - $quantity);
+            }
+            if ($measureId) {
+                $packOrder = round($packOrder, $precision);
             }
         }
 
