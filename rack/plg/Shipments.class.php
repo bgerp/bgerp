@@ -506,7 +506,7 @@ class rack_plg_Shipments extends core_Plugin
                                                    'packagingId' => $zRec->packagingId,
                                                    'batch'       => $zRec->batch,
                                                    'positions'   => array(),
-                                                   'transUnitId' => $details["{$zRec->productId}|{$zRec->packagingId}"],
+                                                   'transUnitId' => $details["{$zRec->productId}|{$zRec->packagingId}"] ?? null,
                                                    'quantity'    => $zRec->documentQuantity);
             unset($details["{$zRec->productId}|{$zRec->packagingId}"]);
 

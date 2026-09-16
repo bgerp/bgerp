@@ -193,6 +193,8 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
      */
     public function getBatchMovementDocument($rec)
     {
+        $rec = $this->fetchRec($rec);
+
         return $rec->type == 'production' ? 'in' : 'out';
     }
 
@@ -588,9 +590,9 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
         $rec = $mvc->fetchRec($rec);
         $res->operation = array();
         if($rec->type == 'input') {
-            $res->operation['out'] = $rec->storeId;
+            $res->operation['out'] = $rec->storeId ?? null;
         } else {
-            $res->operation['in'] = $rec->storeId;
+            $res->operation['in'] = $rec->storeId ?? null;
         }
     }
 

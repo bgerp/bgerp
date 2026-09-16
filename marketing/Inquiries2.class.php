@@ -1597,7 +1597,7 @@ class marketing_Inquiries2 extends embed_Manager
      *
      * @return array $res - добавените полета от драйвера
      */
-    public static function getInquiryFields($protoId, $driver, $existingFields = array())
+    public static function getInquiryFields($protoId, $driver, $existingFields = array(), $onlySingleFields = false)
     {
         $fieldset = cls::get('core_Fieldset');
         $driver->addInquiryFields($protoId, $fieldset, $existingFields);

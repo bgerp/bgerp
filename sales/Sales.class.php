@@ -1761,7 +1761,7 @@ class sales_Sales extends deals_DealMaster
                     $tRec->where("#threadId = {$rec->threadId}");
                     $tRec->show('id');
                     $containerIds = arr::extractValuesFromArray($tRec->fetchAll(), 'id');
-                    $containerIds[$fRec->containerId] = $rec->containerId;
+                    $containerIds[$rec->containerId] = $rec->containerId;
                     
                     // Ще им се преизчисляват делтите
                     sales_PrimeCostByDocument::updatePersons($containerIds);

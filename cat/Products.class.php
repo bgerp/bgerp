@@ -1636,6 +1636,9 @@ class cat_Products extends embed_Manager
         $touchedGroups = '';
         $productId = $rec->id ?? $id;
         $groups = $rec->groups ?? ($rec->_oldGroups ?? null);
+
+        // Драйверните параметри може да се ползват във формули на рецепти
+        cat_Boms::clearProductParamsCache($productId);
         if(isset($rec->_oldGroups)){
             $touchedGroups = keylist::diff($rec->_oldGroups, $groups);
             $touchedGroups = keylist::merge($touchedGroups, keylist::diff($groups, $rec->_oldGroups));
@@ -3284,7 +3287,7 @@ class cat_Products extends embed_Manager
         $productQuery1->where("#lastItemUsedOn IS NULL OR #lastItemUsedOn <= '{$olderThenDate}'");
         $count = $productQuery1->count();
 
-        core_App::setTimeLimit($count * 0.9, 600);
+        core_App::setTimeLimit($count * 0.9, false, 600);
         
         // Взимат се балансите от складовите сметки
         $balanceRec = acc_Balances::getLastBalance();

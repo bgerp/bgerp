@@ -762,7 +762,36 @@ class crm_Companies extends core_Master
     
     
     /**
+     * Дали намереното съвпадение да се пропусне от предупреждението за дублиране -
+     * оттеглени записи без нито една нишка в папката им не са реални дубликати
+     *
+     * @param stdClass $similarRec
+     *
+     * @return bool
+     */
+    protected static function isSimilarRecIgnorable($similarRec)
+    {
+        if ($similarRec->state != 'rejected') {
+
+            return false;
+        }
+
+        if (empty($similarRec->folderId)) {
+
+            return true;
+        }
+
+        $fRec = doc_Folders::fetch($similarRec->folderId);
+
+        return !$fRec || empty($fRec->allThreadsCnt);
+    }
+
+
+    /**
      * Връща масив с възможните съвпадения
+     *
+     * При редакция се проверяват само полетата, които са променени спрямо записания запис -
+     * съвпаденията по непроменени полета вече са били потвърдени от потребителя
      *
      * @param stdClass $rec
      * @param string   $fields
@@ -772,9 +801,12 @@ class crm_Companies extends core_Master
     protected static function getSimilarRecs($rec, &$fields = '')
     {
         $similarsArr = array();
-        
+
         $fieldsArr = array();
-        
+
+        // Съществуващият запис, ако се редактира
+        $exRec = !empty($rec->id) ? self::fetch($rec->id, '*', false) : null;
+
         $nameL = '#' . mb_strtolower($rec->name) . '#';
         
         static $companyTypesArr = array();
@@ -794,54 +826,78 @@ class crm_Companies extends core_Master
         
         $oQuery = self::getQuery();
         self::restrictAccess($oQuery);
-        
-        $nQuery = clone $oQuery;
-        $nQuery->where(array("CONCAT(' ', LOWER(#name), ' ') LIKE '% [#1#] %'", $nameL));
-        if ($rec->country) {
-            $nQuery->where(array("#country = '[#1#]'", $rec->country));
-        }
-        
-        while ($similarRec = $nQuery->fetch()) {
-            if (!empty($rec->id) && ($similarRec->id == $rec->id)) {
-                continue;
+
+        // Името се проверява само ако е ново или е променено (заедно с държавата)
+        $nameChanged = !$exRec || (mb_strtolower(trim($exRec->name ?? '')) != mb_strtolower(trim($rec->name ?? ''))) || ($exRec->country != $rec->country);
+
+        if ($nameChanged) {
+            $nQuery = clone $oQuery;
+            $nQuery->where(array("CONCAT(' ', LOWER(#name), ' ') LIKE '% [#1#] %'", $nameL));
+            if ($rec->country) {
+                $nQuery->where(array("#country = '[#1#]'", $rec->country));
             }
-            
-            $similarsArr[$similarRec->id] = $similarRec;
-            $fieldsArr['name'] = 'name';
+
+            while ($similarRec = $nQuery->fetch()) {
+                if (!empty($rec->id) && ($similarRec->id == $rec->id)) {
+                    continue;
+                }
+
+                if (self::isSimilarRecIgnorable($similarRec)) {
+                    continue;
+                }
+
+                $similarsArr[$similarRec->id] = $similarRec;
+                $fieldsArr['name'] = 'name';
+            }
         }
-        
+
         $vatNumb = !empty($rec->vatId) ? preg_replace('/[^0-9]/', '', $rec->vatId) : null;
-        
-        if ($vatNumb) {
+        $exVatNumb = ($exRec && !empty($exRec->vatId)) ? preg_replace('/[^0-9]/', '', $exRec->vatId) : null;
+
+        // ДДС номерът се проверява само ако е нов или е променен
+        if ($vatNumb && ($vatNumb != $exVatNumb)) {
             $vQuery = clone $oQuery;
             $vQuery->where(array("#vatId LIKE '%[#1#]%'", $vatNumb));
-            
+
             while ($similarRec = $vQuery->fetch()) {
                 if (!empty($rec->id) && ($similarRec->id == $rec->id)) {
                     continue;
                 }
-                
+
+                if (self::isSimilarRecIgnorable($similarRec)) {
+                    continue;
+                }
+
                 $similarsArr[$similarRec->id] = $similarRec;
                 $fieldsArr['vatId'] = 'vatId';
             }
         }
-        
+
         if ($rec->email) {
             $emailArr = type_Emails::toArray($rec->email);
-            
+
+            // Проверяват се само новодобавените имейли
+            $exEmailArr = ($exRec && !empty($exRec->email)) ? type_Emails::toArray($exRec->email) : array();
+            $emailArr = array_udiff($emailArr, $exEmailArr, 'strcasecmp');
+
             if (!empty($emailArr)) {
                 foreach ($emailArr as $email) {
                     $folderId = email_Router::route($email, null, email_Router::RuleFrom, false);
-                    
+
                     if ($folderId) {
                         $fRec = doc_Folders::fetch($folderId);
-                        
+
                         if ($fRec->coverClass == core_Classes::getId('crm_Companies')) {
                             if (!empty($rec->id) && ($fRec->coverId == $rec->id)) {
                                 continue;
                             }
-                            
-                            $similarsArr[$fRec->coverId] = self::fetch($fRec->coverId);
+
+                            $similarRec = self::fetch($fRec->coverId);
+                            if (!$similarRec || self::isSimilarRecIgnorable($similarRec)) {
+                                continue;
+                            }
+
+                            $similarsArr[$fRec->coverId] = $similarRec;
                             $fieldsArr['email'] = 'email';
                         }
                     }

@@ -3682,7 +3682,7 @@ class email_Outgoings extends core_Master
         $currUserId = core_Users::getCurrent();
         
         // Ако имаме корпоративен акаунт
-        if ($corpAccId = $corpAccRec->id) {
+        if ($corpAccId = ($corpAccRec->id ?? null)) {
             
             // Корпоративния имейла на потребиеля
             $currUserCorpEmail = mb_strtolower(email_Inboxes::getUserEmail());

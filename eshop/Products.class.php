@@ -1376,8 +1376,10 @@ class eshop_Products extends core_Master
         $form->setSuggestions('packagings', cat_Products::getPacks($productRec->id));
 
         Mode::push('text', 'plain');
+        Mode::push('imageAsFileBbcode', true);
         $description = cat_Products::getDescription($productRec->id, 'public')->getContent();
-        Mode::pop();
+        Mode::pop('imageAsFileBbcode');
+        Mode::pop('text');
 
         $description = html2text_Converter::toRichText($description);
         $description = cls::get('type_Richtext')->fromVerbal($description);

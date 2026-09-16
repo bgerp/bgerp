@@ -839,7 +839,7 @@ class support_TaskType extends core_Mvc
     protected static function on_AfterRecToVerbal($Driver, embed_Manager $Embedder, $row, $rec, $fields = array())
     {
         if(!empty($rec->issueTemplateId)){
-            $row->description = "{$row->issueTemplateId}</br>{$row->description}" ;
+            $row->description = ($row->issueTemplateId ?? '') . "</br>" . ($row->description ?? '');
         }
     }
 
