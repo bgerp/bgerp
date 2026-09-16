@@ -2950,9 +2950,33 @@ class doc_DocumentPlg extends core_Plugin
         
         // Проверка, дали има права за експорт на документа
         if ($action == 'exportdoc') {
-            $possibleExportsArr = export_Export::getPossibleExports($mvc->getClassId(), $rec->id, 1);
-            if (empty($possibleExportsArr)) {
-                $requiredRoles = 'no_one';
+
+            // Партньорът може да види документа и през временния списък с контейнери, който
+            // не важи в екшъна за експорт. Затова му се иска реален достъп до нишката
+            if (core_Users::haveRole('partner', $userId)) {
+                $threadId = $rec->threadId ?? null;
+                if (empty($threadId) && !empty($rec->id)) {
+                    $threadId = $mvc->fetchField($rec->id, 'threadId');
+                }
+
+                $haveThreadAccess = false;
+                if (core_Packs::isInstalled('colab') && !empty($threadId)) {
+                    $threadRec = doc_Threads::fetch($threadId);
+                    if (is_object($threadRec)) {
+                        $haveThreadAccess = colab_Threads::haveRightFor('single', $threadRec);
+                    }
+                }
+
+                if (!$haveThreadAccess) {
+                    $requiredRoles = 'no_one';
+                }
+            }
+
+            if ($requiredRoles != 'no_one') {
+                $possibleExportsArr = export_Export::getPossibleExports($mvc->getClassId(), $rec->id ?? null, 1);
+                if (empty($possibleExportsArr)) {
+                    $requiredRoles = 'no_one';
+                }
             }
         }
         
