@@ -1129,9 +1129,9 @@ class doc_Threads extends core_Manager
             );
 
             $row->_title = $row->title;
-            $row->_subTitle = $docRow->subTitle;
+            $row->_subTitle = $docRow->subTitle ?? null;
 
-            if ($docRow->subTitle) {
+            if (!empty($docRow->subTitle)) {
                 $row->title .= "\n<div class='threadSubTitle'>{$docRow->subTitle}</div>";
             }
             
@@ -2999,7 +2999,7 @@ class doc_Threads extends core_Manager
             if ($verbal) {
                 $title = $docRow->title;
             } else {
-                $title = $docRow->recTitle;
+                $title = $docRow->recTitle ?? '';
             }
         } catch (core_exception_Expect $e) {
             $title = '';
