@@ -1636,6 +1636,9 @@ class cat_Products extends embed_Manager
         $touchedGroups = '';
         $productId = $rec->id ?? $id;
         $groups = $rec->groups ?? ($rec->_oldGroups ?? null);
+
+        // Драйверните параметри може да се ползват във формули на рецепти
+        cat_Boms::clearProductParamsCache($productId);
         if(isset($rec->_oldGroups)){
             $touchedGroups = keylist::diff($rec->_oldGroups, $groups);
             $touchedGroups = keylist::merge($touchedGroups, keylist::diff($groups, $rec->_oldGroups));
