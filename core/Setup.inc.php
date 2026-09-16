@@ -1457,6 +1457,44 @@ function gitCurrentBranch($repoPath, &$log)
 
 
 /**
+ * Брой комити зад origin за текущия HEAD, с опционално опресняване без промяна на кода.
+ *
+ * @return int|false FALSE при липсващ бранч или недостъпна Git информация
+ */
+function gitCommitsBehind($repoPath, $branch, $fetch = false)
+{
+    if (!$branch || $branch === 'HEAD') {
+        return false;
+    }
+
+    if ($fetch) {
+        // Ограничаваме чакането и обновяваме само remote ref, независимо от fetch конфигурацията.
+        $refspec = '+refs/heads/' . $branch . ':refs/remotes/origin/' . $branch;
+        $command = 'timeout --signal=TERM --kill-after=2s 10s env GIT_TERMINAL_PROMPT=0 '
+            . 'GIT_SSH_COMMAND=' . escapeshellarg('ssh -o BatchMode=yes -o ConnectTimeout=5')
+            . ' ' . BGERP_GIT_PATH . ' --git-dir=' . escapeshellarg($repoPath . '/.git')
+            . ' -c gc.auto=0 fetch --quiet --no-tags --no-recurse-submodules --no-write-fetch-head --refmap= origin '
+            . escapeshellarg($refspec) . ' 2>&1';
+        @exec($command, $output, $exitCode);
+        if ($exitCode !== 0) {
+            return false;
+        }
+    }
+
+    $range = 'HEAD..refs/remotes/origin/' . $branch;
+    $command = ' --git-dir=' . escapeshellarg($repoPath . '/.git') . ' rev-list --count ' . escapeshellarg($range) . ' -- 2>&1';
+    if (gitExec($command, $res)) {
+        $count = trim($res[0] ?? '');
+        if (ctype_digit($count)) {
+            return (int) $count;
+        }
+    }
+
+    return false;
+}
+
+
+/**
  * Сетва репозиторито в зададен бранч. Ако не е зададен го взима от конфигурацията
  */
 function gitSetBranch($repoPath, &$log, $branch = null)

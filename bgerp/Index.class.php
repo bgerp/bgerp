@@ -64,16 +64,11 @@ class bgerp_Index extends core_Manager
         
         // Зареждаме хранилищата
         require_once(EF_APP_PATH . '/core/Setup.inc.php');
-        $repos = core_App::getRepos();
-        $repos = array_reverse($repos);
+        $repos = array_reverse(core_App::getRepos());
+        $showRepoStatus = haveRole('admin');
         $reposLastDate = '';
         $log = '';
         foreach ($repos as $repoPath => $branch) {
-            $lastCommitDate = gitLastCommitDate($repoPath, $log);
-            if ($lastCommitDate) {
-                $lastCommitDate = dt::mysql2verbal($lastCommitDate);
-            }
-            
             $licensePath = rtrim($repoPath, '/') . '/' . 'LICENSE.md';
             
             $baseName = basename($repoPath);
@@ -107,8 +102,20 @@ class bgerp_Index extends core_Manager
             }
                 
             
-            $hash = gitLastCommitHash($repoPath);
-            $reposLastDate .= "<div>" . $baseName . ":   <b>" . $lastCommitDate . ' </b>(' . gitCurrentBranch($repoPath, $log) . ' - ' . $hash . ") <span class='fright'>{$lName}</span></div>";
+            $versionInfo = '';
+            if ($showRepoStatus) {
+                $lastCommitDate = gitLastCommitDate($repoPath, $log);
+                if ($lastCommitDate) {
+                    $lastCommitDate = dt::mysql2verbal($lastCommitDate);
+                }
+                $hash = gitLastCommitHash($repoPath);
+                $currentBranch = gitCurrentBranch($repoPath, $log);
+                $cacheKey = md5($repoPath . '|' . $currentBranch . '|' . $hash);
+                $status = core_Cache::get('bgerp_RepoStatus', $cacheKey);
+                $behindStatus = ht::createElement('span', array('id' => 'repoStatus' . md5($repoPath)), self::renderRepoStatus($status));
+                $versionInfo = ': <b>' . $lastCommitDate . ' </b>(' . $currentBranch . ' - ' . $hash . ") {$behindStatus}";
+            }
+            $reposLastDate .= "<div>" . $baseName . "{$versionInfo} <span class='fright'>{$lName}</span></div>";
         }
         $resData->REPOS = $reposLastDate;
 
@@ -138,12 +145,90 @@ class bgerp_Index extends core_Manager
         }
 
         $tpl = getTplFromFile('/bgerp/tpl/About.shtml');
+
+        if ($showRepoStatus && $tpl->isPlaceholderExists('REPOS')) {
+            core_Ajax::subscribe($tpl, array('Bgerp', 'RepoStatus'), 'aboutRepos', 2000);
+        }
         
         jquery_Jquery::run($tpl, '$(".scrollable").css("height", $(window).height() - $(".inner-framecontentTop").height() - 88)');
         
         $tpl->placeObject($resData);
         
         return $tpl;
+    }
+
+
+    /**
+     * Проверява по едно хранилище на AJAX заявка, без да бави отварянето на страницата.
+     */
+    public function act_RepoStatus()
+    {
+        requireRole('admin');
+        expect(Request::get('ajax_mode'));
+
+        require_once(EF_APP_PATH . '/core/Setup.inc.php');
+        $res = array();
+        $checked = false;
+        $pending = false;
+        $log = '';
+        foreach (array_reverse(core_App::getRepos()) as $repoPath => $branch) {
+            $currentBranch = gitCurrentBranch($repoPath, $log);
+            $hash = gitLastCommitHash($repoPath);
+            $cacheKey = md5($repoPath . '|' . $currentBranch . '|' . $hash);
+            $status = core_Cache::get('bgerp_RepoStatus', $cacheKey);
+            if ($status === false) {
+                $lockKey = 'aboutRepo' . md5($repoPath);
+                if ($checked || !core_Locks::obtain($lockKey, 20, 0, 0)) {
+                    $pending = true;
+                    continue;
+                }
+                try {
+                    core_Session::pause();
+                    $status = array('behind' => gitCommitsBehind($repoPath, $currentBranch, true), 'checkedOn' => dt::now());
+                    core_Cache::set('bgerp_RepoStatus', $cacheKey, $status, 5);
+                    $checked = true;
+                } finally {
+                    core_Locks::release($lockKey);
+                }
+            }
+            $res[] = (object) array('func' => 'html', 'arg' => array(
+                'id' => 'repoStatus' . md5($repoPath),
+                'html' => self::renderRepoStatus($status)->getContent(),
+                'replace' => true,
+            ));
+        }
+
+        if (!$pending) {
+            $res[] = (object) array('func' => 'js', 'arg' => array('js' => "delete getEfae().subscribedArr.aboutRepos;"));
+        }
+
+        return $res;
+    }
+
+
+    /**
+     * Статус на проверката, общ за първоначалното показване и AJAX опресняването.
+     */
+    protected static function renderRepoStatus($status)
+    {
+        if ($status === false) {
+            return ht::createElement('span', array('class' => 'quiet'), tr('Проверка...||Checking...'));
+        }
+
+        $behind = $status['behind'] ?? false;
+        if ($behind !== false) {
+            $text = new ET(tr('[#count#] комита назад||[#count#] commits behind'));
+            $text->replace($behind, 'count');
+            $hint = new ET(tr('Спрямо origin на показания клон. Проверено на [#date#].||Compared with origin for the displayed branch. Checked at [#date#].'));
+            $hint->replace(dt::mysql2verbal($status['checkedOn'] ?? ''), 'date');
+        } else {
+            $text = tr('Няма данни||Unavailable');
+            $hint = tr('Неуспешна проверка на отдалечения клон||Could not check the remote branch');
+        }
+
+        $class = $behind > 0 ? 'red' : 'quiet';
+
+        return ht::createHint("<span class='{$class}'>{$text}</span>", $hint, 'noicon');
     }
     
     
