@@ -245,7 +245,8 @@ class borsa_Lots extends core_Master
     {
         $pArr = $mvc->getChangePeriods($rec->id);
         
-        if ($rec->quantity) {
+        // При частичен запис к-то липсва в записа - няма какво да се добавя
+        if (!empty($rec->quantity)) {
             // Добавяме периоди с количества по подразбиране
             foreach ($pArr as $pVal) {
                 $pRec = borsa_Periods::getPeriodRec($rec->id, $pVal['bPeriod'], $pVal['ePeriod']);

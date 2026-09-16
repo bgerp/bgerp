@@ -371,6 +371,8 @@ class cat_Boms extends core_Master
 
         return !empty($notes) ? "{$notes}\n\n{$transferredNotes}" : $transferredNotes;
     }
+
+    
     /**
      * Връща ефективната стойност на настройка за пренасяне от рецептата
      */
