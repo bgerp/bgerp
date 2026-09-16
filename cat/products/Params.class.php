@@ -608,6 +608,9 @@ class cat_products_Params extends doc_Detail
             $mvc->syncWithFeature($rec->paramId, $rec->productId);
         }
 
+        // Параметрите може да се ползват във формули на рецепти
+        cat_Boms::clearProductParamsCache();
+
         // Има ли промяна на стойноста на параметъра
         $exValue = $rec->_exParamValue ?? null;
         if($exValue != $rec->paramValue){
@@ -641,6 +644,8 @@ class cat_products_Params extends doc_Detail
      */
     public static function on_AfterDelete($mvc, &$res, $query, $cond)
     {
+        cat_Boms::clearProductParamsCache();
+
         foreach ($query->getDeletedRecs() as $rec) {
             $mvc->syncWithFeature($rec->paramId, $rec->productId);
             
