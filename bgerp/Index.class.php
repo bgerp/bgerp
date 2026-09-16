@@ -217,7 +217,7 @@ class bgerp_Index extends core_Manager
 
         $behind = $status['behind'] ?? false;
         if ($behind !== false) {
-            $text = new ET(tr('[#count#] комита назад||[#count#] commits behind'));
+            $text = new ET(tr($behind == 1 ? '[#count#] комит назад||[#count#] commit behind' : '[#count#] комита назад||[#count#] commits behind'));
             $text->replace($behind, 'count');
             $hint = new ET(tr('Спрямо origin на показания клон. Проверено на [#date#].||Compared with origin for the displayed branch. Checked at [#date#].'));
             $hint->replace(dt::mysql2verbal($status['checkedOn'] ?? ''), 'date');
