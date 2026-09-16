@@ -126,6 +126,7 @@ class compactor_Plugin extends core_Plugin
         
         if ($force || !file_exists($compactFilePath)) {
             // Подготвяме сбора на съдържанието на всички файлове
+            $compacted = '';
             foreach ($contentFilePathsArr as $filePath) {
                 $content = file_get_contents($filePath);
                 if ($callback) {

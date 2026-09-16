@@ -62,6 +62,7 @@ class prosody_RemoteDriver extends core_Mvc
     public function on_AfterInputEditForm($driver, $embedder, $form)
     {
         $setNewPass = false;
+        $exRec = null;
         
         $rec = $form->rec;
         if (!empty($rec->id)) {
@@ -101,7 +102,7 @@ class prosody_RemoteDriver extends core_Mvc
             }
         }
         
-        if ($rec->xmppPass) {
+        if (!empty($rec->xmppPass)) {
             if ($setNewPass) {
                 $res = prosody_RestApi::changePassword($nick, $rec->xmppPass);
                 
