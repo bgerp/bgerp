@@ -480,7 +480,7 @@ class email_Mime extends core_BaseClass
     {
         $list = '';
         foreach ($this->files as  $fRec) {
-            $list .= ($list ? '' : '|') . $fRec->fmId . '|';
+            $list .= ($list ? '' : '|') . ($fRec->fmId ?? '') . '|';
         }
         
         return $list;
