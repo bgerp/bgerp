@@ -180,7 +180,7 @@ class bgerp_drivers_Tasks extends core_BaseClass
                     $doubleClickUrl = $Tasks->getUrlForDblClick($rec->id, $singleUrlArray);
                     if(isset($doubleClickUrl)){
                         $doubleClickDataUrl = toUrl($doubleClickUrl);
-                        $linkArr['data-doubleclick'] .= $doubleClickDataUrl;
+                        $linkArr['data-doubleclick'] = $doubleClickDataUrl;
                     }
 
                     // Документа да е линк към single' а на документа

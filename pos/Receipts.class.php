@@ -907,7 +907,7 @@ class pos_Receipts extends core_Master
         }
 
         if ($action == 'edit' && isset($rec)) {
-            if(in_array($rec->state, array('waiting', 'closed'))){
+            if(in_array($rec->state ?? null, array('waiting', 'closed'))){
                 $res = 'no_one';
             } elseif(!Request::get('terminal')){
                 $res = 'no_one';
