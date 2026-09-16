@@ -132,7 +132,7 @@ class remote_Authorizations extends embed_Manager
             $form->setReadonly('userId');
         }
         
-        if (!$rec->driverClass) {
+        if (empty($rec->driverClass)) {
             $form->setField('url', 'input=none');
         }
         

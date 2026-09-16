@@ -641,7 +641,7 @@ abstract class bank_Document extends deals_PaymentDocument
         $exOptions = $form->getField('ownAccount')->options;
         $allowedBankAccounts = null;
         if(core_Packs::isInstalled('holding')){
-            $allowedBankAccounts = holding_Companies::getSelectedOptions('ownAccounts', $form->rec->{$this->ownCompanyFieldName});
+            $allowedBankAccounts = holding_Companies::getSelectedOptions('ownAccounts', $form->rec->{$this->ownCompanyFieldName} ?? null);
         }
 
         if (isset($form->rec->fromContainerId)) {

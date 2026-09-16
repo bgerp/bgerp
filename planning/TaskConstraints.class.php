@@ -979,7 +979,7 @@ class planning_TaskConstraints extends core_Master
             $debugRes .= "<hr />Слагане на задачи на <b>{$assets[$assetRec->id]->code} [{$assets[$assetRec->id]->scheduleName}]</b><br />";
 
 
-            if(is_array($assets[$assetRec->id]->manualOrder)){
+            if(isset($assets[$assetRec->id]->manualOrder) && is_array($assets[$assetRec->id]->manualOrder)){
                 $debugRes .=  "<hr />Приложена ръчна подредба: " . countR($assets[$assetRec->id]->manualOrder);
                 $tasksInAsset = arr::reorderArrayByOrderedKeys($tasksInAsset, $assets[$assetRec->id]->manualOrder);
             } else {

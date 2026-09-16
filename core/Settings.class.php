@@ -482,7 +482,8 @@ class core_Settings extends core_Manager
                 $paramType = Mode::is('screenMode', 'narrow') ? 'unit' : 'hint';
                 
                 foreach ((array) $mergeValsArr as $valKey => $val) {
-                    if (!$form->fields[$valKey]->type) {
+                    // Настройката може да не е сред полетата на формата
+                    if (empty($form->fields[$valKey]->type)) {
                         continue;
                     }
                     

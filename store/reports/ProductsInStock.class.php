@@ -258,12 +258,12 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
 
             $Balance = new acc_ActiveShortBalance(array('from' => $date, 'to' => $date, 'accs' => $acc, 'item1' => $item1, 'item2' => $item2, 'cacheBalance' => false, 'keepUnique' => true));
             $bRecs = $Balance->getBalance($acc);
-
+            $stockAccountId = acc_Accounts::fetchField("#num = 321", 'id');
             foreach ($bRecs as $item) {
                 $iRec = null;
 
                 //Когато движението е в сметката на суровините и материалите можем да филтрираме по склад. Ако е избран.
-                $stockAccountId = acc_Accounts::fetchField("#num = 321", 'id');
+
                 if ($item->accountId == $stockAccountId) {
 
                     if (($rec->storeId && !in_array($item->ent1Id, $storeItemIdArr)) ||
