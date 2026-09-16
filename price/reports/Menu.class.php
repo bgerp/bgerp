@@ -91,6 +91,9 @@ class price_reports_Menu extends price_reports_PriceListProto
             return array();
         }
 
+        // Правилата за цените наведнъж, вместо по една заявка на артикул
+        price_ListRules::preloadRules($rec->policyId, array_keys($common->pRecs), $common->date);
+
         $recs = array();
         foreach ($common->pRecs as $productRec) {
             $obj = $this->preparePriceRow($rec, $productRec, $common->date);
