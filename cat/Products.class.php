@@ -3287,7 +3287,7 @@ class cat_Products extends embed_Manager
         $productQuery1->where("#lastItemUsedOn IS NULL OR #lastItemUsedOn <= '{$olderThenDate}'");
         $count = $productQuery1->count();
 
-        core_App::setTimeLimit($count * 0.9, 600);
+        core_App::setTimeLimit($count * 0.9, false, 600);
         
         // Взимат се балансите от складовите сметки
         $balanceRec = acc_Balances::getLastBalance();
