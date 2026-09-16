@@ -207,7 +207,9 @@ class cat_products_Usage extends core_Manager
             $query->XPR('orderByState', 'int', "(CASE #state WHEN 'active' THEN 1 WHEN 'closed' THEN 2  WHEN 'pending' THEN '3' ELSE 4 END)");
             $query->orderBy('#orderByState=ASC,#id=DESC');
             $query->in('id', $ids);
-            $query->limit($data->Pager->itemsPerPage);
+            // Броят е по диапазона на пейджъра, а не по itemsPerPage - при неточното страниране
+            // последната страница поема остатъка и е по-дълга от една страница
+            $query->limit($data->Pager->getRangeLength());
             $query->startFrom($data->Pager->rangeStart);
 
             $fields = $data->Document->selectFields();
