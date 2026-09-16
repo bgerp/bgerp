@@ -2736,10 +2736,11 @@ class doc_Threads extends core_Manager
             }
 
             if ($rate > $bestRate) {
-                if (is_object($bestContragentData) && $bestContragentData->company == $contragentData->company) {
+                if (is_object($bestContragentData) && ($bestContragentData->company ?? null) == ($contragentData->company ?? null)) {
                     foreach (array('tel', 'fax', 'email', 'web', 'address', 'person') as $part) {
-                        if ($bestContragentData->{$part}) {
-                            setIfNot($contragentData->{$part}, $bestContragentData->{$part});
+                        $partValue = $bestContragentData->{$part} ?? null;
+                        if ($partValue) {
+                            setPartIfNot($contragentData, $part, $partValue);
                         }
                     }
                 }
@@ -2860,7 +2861,7 @@ class doc_Threads extends core_Manager
 
             return ;
         }
-        $bestContragentData->company = $bestContragentData->company ?? $contragentData->company;
+        $bestContragentData->company = $bestContragentData->company ?? $contragentData->company ?? null;
     }
 
     
