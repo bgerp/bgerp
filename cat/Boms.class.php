@@ -220,6 +220,18 @@ class cat_Boms extends core_Master
 
 
     /**
+     * На каква дълбочина е текущото изчисление на рецепта
+     */
+    protected static $calcPriceDepth = 0;
+
+
+    /**
+     * Кеш на формулните параметри на артикулите
+     */
+    protected static $productParamsCache = array();
+
+
+    /**
      * Да се показва ли антетката
      */
     public $showLetterHead = true;
@@ -1316,13 +1328,39 @@ class cat_Boms extends core_Master
      */
     public static function getProductParams($productId)
     {
+        // Параметрите на артикула не се променят в рамките на един хит
+        if (array_key_exists($productId, static::$productParamsCache)) {
+
+            return static::$productParamsCache[$productId];
+        }
+
         $params = cat_Products::getParams($productId);
         $params = cond_type_Formula::tryToCalcAllFormulas($params);
         $res = cat_Params::getFormulaParamMap($params);
 
-        if (countR($res)) return array($productId => $res);
-        
+        if (countR($res)) {
+            $res = array($productId => $res);
+        }
+        static::$productParamsCache[$productId] = $res;
+
         return $res;
+    }
+
+
+    /**
+     * Изчиства кеша на формулните параметри
+     *
+     * @param int|null $productId - ид на артикул или NULL за всички
+     *
+     * @return void
+     */
+    public static function clearProductParamsCache($productId = null)
+    {
+        if (isset($productId)) {
+            unset(static::$productParamsCache[$productId]);
+        } else {
+            static::$productParamsCache = array();
+        }
     }
     
     
@@ -1487,7 +1525,7 @@ class cat_Boms extends core_Master
      *
      * @return float|FALSE $price   - намерената цена или FALSE ако не можем
      */
-    private static function getRowCost($rec, $params, $t, $q, $date, $priceListId, $savePriceCost = false, &$materials = array())
+    private static function getRowCost($rec, $params, $t, $q, $date, $priceListId, $savePriceCost = false, &$materials = array(), $collectMaterials = false)
     {
         // Изчисляваме количеството ако можем
         $rowParams = self::getProductParams($rec->productId);
@@ -1503,7 +1541,7 @@ class cat_Boms extends core_Master
         }
 
         // Сумираме какви количества ще вложим към материалите
-        if ($rec->type != 'stage') {
+        if ($collectMaterials === true && $rec->type != 'stage') {
             $index = "{$rec->productId}|{$rec->type}";
             if (!isset($materials[$index])) {
                 $materials[$index] = (object) array('productId' => $rec->productId,
@@ -1608,11 +1646,11 @@ class cat_Boms extends core_Master
 
                 // Опитваме се да намерим цената му
                 if($rQuantity != cat_BomDetails::CALC_ERROR){
-                    $dRec->primeCost = self::getRowCost($dRec, $params, $t * $rQuantity, $q * $rQuantity, $date, $priceListId, $savePriceCost, $materials);
+                    $dRec->primeCost = self::getRowCost($dRec, $params, $t * $rQuantity, $q * $rQuantity, $date, $priceListId, $savePriceCost, $materials, $collectMaterials);
                 } else {
                     $dRec->primeCost = null;
 
-                    if($dRec->type != 'stage'){
+                    if($collectMaterials === true && $dRec->type != 'stage'){
                         $index = "{$dRec->productId}|{$dRec->type}";
                         if (!isset($materials[$index])) {
                             $materials[$index] = (object) array('productId' => $dRec->productId,
@@ -1688,6 +1726,36 @@ class cat_Boms extends core_Master
      */
     public static function getBomPrice($id, $quantity, $minDelta, $maxDelta, $date, $priceListId, &$materials = array(), $jobQuantity = null)
     {
+        // Брояча против зацикляне важи само в рамките на едно изчисление от горно ниво
+        if (static::$calcPriceDepth == 0) {
+            static::$calcPriceCounter = array();
+        }
+
+        // Материалите се събират само ако извикващия ги иска
+        $collectMaterials = (func_num_args() >= 7);
+
+        static::$calcPriceDepth++;
+        try {
+            $price = static::calcBomPrice($id, $quantity, $minDelta, $maxDelta, $date, $priceListId, $materials, $collectMaterials, $jobQuantity);
+        } finally {
+            static::$calcPriceDepth--;
+        }
+
+        return $price;
+    }
+
+
+    /**
+     * Същинското изчисление на цената по рецепта
+     *
+     * @see cat_Boms::getBomPrice()
+     *
+     * @param bool $collectMaterials - дали да се събират вложените материали
+     *
+     * @return FALSE|float - намерената цена или FALSE ако няма
+     */
+    protected static function calcBomPrice($id, $quantity, $minDelta, $maxDelta, $date, $priceListId, &$materials, $collectMaterials, $jobQuantity)
+    {
         $primeCost1 = $primeCost2 = null;
         
         // Трябва да има такъв запис
@@ -1738,14 +1806,16 @@ class cat_Boms extends core_Master
 
         $transferNotes = static::shouldTransferNotes($rec, 'transferNotes', 'production');
 
+        // Параметрите са на продукта на рецептата - едни и същи са за всички редове
+        $bomProductParams = static::getProductParams($rec->productId);
+
         // За всеки от тях
         if (is_array($details)) {
             foreach ($details as $dRec) {
                 $dRec->_transferNotes = $transferNotes;
 
-                // Параметрите са на продукта на рецептата
                 $params = array();
-                $pushParams = static::getProductParams($rec->productId);
+                $pushParams = $bomProductParams;
                 $pushParams[$rec->productId]['$T'] = $quantity;
 
                 $jQuantity = !empty($jobQuantity) ? $jobQuantity : $rec->quantityForPrice;
@@ -1754,7 +1824,7 @@ class cat_Boms extends core_Master
                 self::pushParams($params, $pushParams);
 
                 // Опитваме се да намерим себестойността за основното количество
-                $rowCost1 = self::getRowCost($dRec, $params, $quantity, $q, $date, $priceListId, $savePrimeCost, $materials);
+                $rowCost1 = self::getRowCost($dRec, $params, $quantity, $q, $date, $priceListId, $savePrimeCost, $materials, $collectMaterials);
 
                 // Ако няма връщаме FALSE
                 if ($rowCost1 === false) {

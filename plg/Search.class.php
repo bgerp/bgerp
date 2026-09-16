@@ -663,7 +663,7 @@ class plg_Search extends core_Plugin
         $str = str::utf2ascii($str);
         if ($str) {
             $iConvStr = @iconv('UTF-8', 'ASCII//TRANSLIT', $str);
-            if (isset($iConvStr)) {
+            if ($iConvStr !== false) {
                 $str = $iConvStr;
             }
         }
@@ -698,7 +698,7 @@ class plg_Search extends core_Plugin
      /*   if ($latin) {
             $str = str::utf2ascii($str);
             $iConvStr = @iconv('UTF-8', 'ASCII//TRANSLIT', $str);
-            if (isset($iConvStr)) {
+            if ($iConvStr !== false) {
                 $str = $iConvStr;
             }
         } */
