@@ -189,7 +189,7 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
         }
 
         // Артикулите и наличностите им се четат наведнъж, вместо за всеки ред поотделно
-        $this->preloadProducts($productIds);
+        $products = $this->preloadProducts($productIds);
         $quantities = $this->getProductQuantities($productIds, $rec->storeId ?? null);
 
         $prodArr = $notSelfPrice = array();
@@ -198,7 +198,7 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
             $pQuantity = 0;
 
             //Себестойност на артикула
-            $selfPrice = cat_Products::getPrimeCost($pRec->productId, null, $pRec->quantity, null);
+            $selfPrice = cat_Products::getPrimeCost($products[$pRec->productId] ?? $pRec->productId, null, $pRec->quantity, null);
 
             //Попълване на списъка с артикули без себестойност
             $markNotPrice = null;
@@ -341,26 +341,31 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
 
 
     /**
-     * Зарежда артикулите в кеша на модела, за да не се четат един по един
+     * Артикулите наведнъж, за да не се четат един по един
      *
      * @param array $productIds
      *
-     * @return void
+     * @return array - ид на артикул => запис
      */
     private function preloadProducts($productIds)
     {
-        if (!countR($productIds)) return;
+        $res = array();
+        if (!countR($productIds)) return $res;
 
-        // Нарочно от основната база - кешът е общ за заявката и се ползва и след справката,
-        // затова трябва да съдържа същото, което би върнал fetchRec() за всеки артикул
+        // Нарочно от основната база - записите се подават на getPrimeCost() вместо ид-та,
+        // затова трябва да съдържат същото, което би върнал fetchRec() за всеки артикул
         $Products = cls::get('cat_Products');
         $pQuery = cat_Products::getQuery();
         $pQuery->in('id', $productIds);
 
-        // Ключът е същият, който ползва core_Query::fetchAndCache()
         while ($pRec = $pQuery->fetch()) {
+            $res[$pRec->id] = $pRec;
+
+            // Ключът е същият, който ползва core_Query::fetchAndCache()
             $Products->_cachedRecords[$pRec->id . '|*'] = $pRec;
         }
+
+        return $res;
     }
 
 

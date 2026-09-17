@@ -2281,6 +2281,14 @@ class cat_Products extends embed_Manager
      */
     public static function getPrimeCost($productId, $packagingId = null, $quantity = 1, $date = null, $primeCostlistId = null)
     {
+        // Може да се подаде и готов запис, за да не се чете артикулът наново при много извиквания
+        $productRec = self::fetchRec($productId);
+        if (!is_object($productRec)) {
+            $productRec = null;
+        }
+
+        $productId = $productRec->id ?? $productId;
+
         core_Debug::startTimer("GET_PRIME_COST_ALL");
         core_Debug::startTimer("GET_PRIME_COST_{$productId}");
 
@@ -2288,11 +2296,11 @@ class cat_Products extends embed_Manager
         $primeCostlistId = (isset($primeCostlistId)) ? $primeCostlistId : price_ListRules::PRICE_LIST_COST;
 
         // Дали артикула е стандартен или не
-        $isPublic = cat_Products::fetchField($productId, 'isPublic');
+        $isPublic = isset($productRec) ? ($productRec->isPublic ?? null) : cat_Products::fetchField($productId, 'isPublic');
 
         // Ако няма цена се опитва да намери от драйвера
         $primeCostDriver = null;
-        if ($Driver = cat_Products::getDriver($productId)) {
+        if ($Driver = cat_Products::getDriver($productRec ?? $productId)) {
             try {
                 Mode::push('contragentListId', price_ListRules::PRICE_LIST_COST);
                 $primeCostDriver = $Driver->getPrice($productId, $quantity, 0, 0, $date, 1, 'no');
@@ -2318,7 +2326,8 @@ class cat_Products extends embed_Manager
 
         // Ако няма себестойност, но има прототип, гледа се неговата себестойност
         if ((is_object($primeCost) && !isset($primeCost->price)) || !isset($primeCost)) {
-            if ($proto = cat_Products::fetchField($productId, 'proto')) {
+            $proto = isset($productRec) ? ($productRec->proto ?? null) : cat_Products::fetchField($productId, 'proto');
+            if ($proto) {
                 $primeCost = price_ListRules::getPrice($primeCostlistId, $proto, $packagingId, $date);
             }
         }
