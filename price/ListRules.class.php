@@ -531,20 +531,31 @@ class price_ListRules extends core_Detail
         if (!countR($productIds)) return;
 
         $datetime = price_ListToCustomers::canonizeTime($datetime);
-        static::preloadGroups($productIds);
 
-        // Всички групи на артикулите - по тях се търсят груповите правила
-        $allGroups = array();
-        foreach ($productIds as $productId) {
-            $groups = isset(static::$groupsMap[$productId]) ? static::$groupsMap[$productId] : array();
-            foreach ($groups as $groupId) {
-                $allGroups[$groupId] = $groupId;
+        // Тук се само чете, затова всичко минава през репликата, ако е конфигурирана.
+        // Форсира се веднъж за цялата верига - всяко форсиране отваря нова връзка към
+        // репликата и я проверява с "show slave status" @see core_App::isReplicationOK()
+        $me = cls::get(get_called_class());
+
+        try {
+            $me->forceProxy();
+            static::preloadGroups($productIds);
+
+            // Всички групи на артикулите - по тях се търсят груповите правила
+            $allGroups = array();
+            foreach ($productIds as $productId) {
+                $groups = isset(static::$groupsMap[$productId]) ? static::$groupsMap[$productId] : array();
+                foreach ($groups as $groupId) {
+                    $allGroups[$groupId] = $groupId;
+                }
             }
-        }
 
-        // Ценообразуването рекурсира към бащите, затова се зарежда цялата верига
-        foreach (static::getListChain($listId, $datetime) as $chainListId) {
-            static::preloadListRules($chainListId, $productIds, $allGroups, $datetime);
+            // Ценообразуването рекурсира към бащите, затова се зарежда цялата верига
+            foreach (static::getListChain($listId, $datetime) as $chainListId) {
+                static::preloadListRules($chainListId, $productIds, $allGroups, $datetime);
+            }
+        } finally {
+            $me->unforceProxy();
         }
     }
 
@@ -632,8 +643,6 @@ class price_ListRules extends core_Detail
         $query->groupBy('productId');
         $query->show('productId,winner');
 
-        static::selectOnProxy($query);
-
         $bestKey = $ruleIdByProduct = $groupRuleByProduct = $rules = array();
         while ($winnerRec = $query->fetch()) {
             if (!isset($newIds[$winnerRec->productId])) continue;
@@ -648,8 +657,6 @@ class price_ListRules extends core_Detail
             $gQuery = self::getQuery();
             $gQuery->where($where);
             $gQuery->in('groupId', $allGroups);
-            static::selectOnProxy($gQuery);
-
             while ($gRec = $gQuery->fetch()) {
                 $groupRules[$gRec->groupId][] = $gRec;
             }
@@ -678,8 +685,6 @@ class price_ListRules extends core_Detail
             $rQuery = self::getQuery();
             $rQuery->where($where);
             $rQuery->in('id', $ruleIdByProduct);
-            static::selectOnProxy($rQuery);
-
             while ($rRec = $rQuery->fetch()) {
                 $recsById[$rRec->id] = $rRec;
             }
@@ -714,30 +719,6 @@ class price_ListRules extends core_Detail
 
         static::$rulesMap[$mapKey] += $rules;
         static::$preloadedRules[$mapKey] += array_fill_keys($newIds, true);
-    }
-
-
-    /**
-     * Изпълнява заявката на репликата, ако е конфигурирана, и буферира резултата, преди
-     * връзката да се върне към основната БД. Само за четящи заявки - връзката е споделена
-     * между всички мениджъри.
-     *
-     * @see core_Manager::forceProxy()
-     *
-     * @param core_Query $query
-     *
-     * @return void
-     */
-    protected static function selectOnProxy($query)
-    {
-        $me = cls::get(get_called_class());
-
-        try {
-            $me->forceProxy();
-            $query->select();
-        } finally {
-            $me->unforceProxy();
-        }
     }
 
 
