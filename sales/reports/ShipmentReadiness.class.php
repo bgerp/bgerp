@@ -464,14 +464,31 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
             }
         }
 
-        $saleRecs = $sQuery->fetchAll();
-        $deliveryData = $folderContragentCountries = array();
-        $dQuery = sales_DeliveryData::getQuery();
-        $dQuery->in('containerId', arr::extractValuesFromArray($saleRecs, 'containerId'));
-        $dQuery->show('countryId,containerId,readiness');
-        while($dRec = $dQuery->fetch()){
-            $deliveryData[$dRec->containerId] = $dRec;
+        $sQuery->selectOnProxy();
+        $saleRecs = array();
+        while ($sRec = $sQuery->fetch()) {
+            $saleRecs[$sRec->id] = $sRec;
         }
+
+        // Лимитът се вдига пропорционално на извадените продажби
+        core_App::setTimeLimit(0.2 * countR($saleRecs), false, 200);
+
+        $folderContragentCountries = array();
+
+        // Чакащите ЕН-та по нишките на продажбите, групирани по нишка
+        $shipmentsByThread = $this->getPendingShipments($saleRecs);
+
+        // Данните за доставка на продажбите и на техните ЕН-та
+        $containerIds = arr::extractValuesFromArray($saleRecs, 'containerId');
+        foreach ($shipmentsByThread as $threadShipments) {
+            foreach ($threadShipments as $soRec) {
+                $containerIds[$soRec->containerId] = $soRec->containerId;
+            }
+        }
+        $deliveryData = $this->getDeliveryData($containerIds);
+
+        // Крайните дати по заданията на всички продажби
+        $dueDatesArr = $this->getSaleDueDatesArr(array_keys($saleRecs));
 
         // За всяка
         foreach ($saleRecs as $sRec) {
@@ -503,24 +520,20 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
             
             $delTime = (!empty($sRec->deliveryTime)) ? $sRec->deliveryTime : (!empty($sRec->deliveryTermTime) ?  dt::addSecs($sRec->deliveryTermTime, $sRec->valior) : null);
             if (empty($delTime)) {
-                $delTime = $Sales->calcDeliveryTime($sRec->id);
+                // Записът се подава наготово, за да не се извлича повторно
+                $delTime = $Sales->calcDeliveryTime(clone $sRec);
                 $delTime = ($delTime) ? dt::addSecs($delTime, $sRec->valior) : $sRec->valior;
             }
             
             $max = $readiness;
             $minDel = $delTime;
             
-            $shipQuery = store_ShipmentOrders::getQuery();
-            $shipQuery->where("#state = 'pending'");
-            $shipQuery->where("#threadId = {$sRec->threadId}");
-            while ($soRec = $shipQuery->fetch()) {
+            $shipmentRecs = $shipmentsByThread[$sRec->threadId] ?? array();
+            foreach ($shipmentRecs as $soRec) {
                 $deliveryTime = !empty($soRec->deliveryTime) ? $soRec->deliveryTime : $soRec->valior;
 
                 // Изчислява им се готовността
-                if (!array_key_exists($soRec->containerId, $deliveryData)) {
-                    $deliveryData[$soRec->containerId] = sales_DeliveryData::fetch(array("#containerId = '[#1#]'", $soRec->containerId));
-                }
-                $soDeliveryData = $deliveryData[$soRec->containerId];
+                $soDeliveryData = $deliveryData[$soRec->containerId] ?? false;
                 $readiness1 = $soDeliveryData ?
                     $soDeliveryData->readiness :
                     sales_DeliveryData::calcSoReadiness($soRec);
@@ -540,7 +553,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
             if (!isset($rec->precision) || (isset($rec->precision) && $max >= $rec->precision)) {
                 $dealerId = ($sRec->dealerId) ? $sRec->dealerId : (($sRec->activatedBy) ? $sRec->activatedBy : $sRec->createdBy);
                 
-                $dueDates = $this->getSaleDueDates($sRec);
+                $dueDates = $dueDatesArr[$sRec->id] ?? array();
                 if (isset($dueDates['minDel'])) {
                     $dueDates['minDel'] = dt::verbal2mysql($dueDates['minDel'], true);
                     $minDel = min($minDel, $dueDates['minDel']);
@@ -690,32 +703,95 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
     
     
     /**
-     * Крайните дати за плащане
+     * Крайните дати за плащане, групирани по продажба
+     *
+     * @param array $saleIds
+     *
+     * @return array - ид на продажба => масив с датите
      */
-    private function getSaleDueDates($saleRec)
+    private function getSaleDueDatesArr($saleIds)
     {
-        $dates = array();
-        
+        $res = array();
+        if (!countR($saleIds)) return $res;
+
         $jQuery = planning_Jobs::getQuery();
-        $jQuery->where("#saleId = {$saleRec->id} AND (#state = 'active' OR #state = 'stopped' OR #state = 'wakeup' OR #state = 'closed')");
+        $jQuery->in('saleId', $saleIds);
+        $jQuery->in('state', array('active', 'stopped', 'wakeup', 'closed'));
         $jQuery->XPR('max', 'int', 'MAX(#dueDate)');
         $jQuery->XPR('min', 'int', 'MIN(#dueDate)');
         $jQuery->XPR('maxDel', 'int', 'MAX(#deliveryDate)');
         $jQuery->XPR('minDel', 'int', 'MIN(#deliveryDate)');
-        
-        $jQuery->show('min,max,maxDel,minDel');
-        
-        $fRec = $jQuery->fetch();
-        if (isset($fRec->min) || isset($fRec->max)) {
-            $dates['min'] = $fRec->min;
-            $dates['max'] = $fRec->max;
+        $jQuery->show('saleId,min,max,maxDel,minDel');
+        $jQuery->groupBy('saleId');
+
+        $jQuery->selectOnProxy();
+        while ($fRec = $jQuery->fetch()) {
+            $dates = array();
+            if (isset($fRec->min) || isset($fRec->max)) {
+                $dates['min'] = $fRec->min;
+                $dates['max'] = $fRec->max;
+            }
+
+            if (isset($fRec->minDel) || isset($fRec->maxDel)) {
+                $dates['minDel'] = $fRec->minDel;
+                $dates['maxDel'] = $fRec->maxDel;
+            }
+
+            $res[$fRec->saleId] = $dates;
         }
-        
-        if (isset($fRec->minDel) || isset($fRec->maxDel)) {
-            $dates['minDel'] = $fRec->minDel;
-            $dates['maxDel'] = $fRec->maxDel;
+
+        return $res;
+    }
+
+
+    /**
+     * Чакащите експедиционни нареждания по нишките на продажбите
+     *
+     * @param array $saleRecs
+     *
+     * @return array - ид на нишка => (ид на ЕН => запис)
+     */
+    private function getPendingShipments($saleRecs)
+    {
+        $res = array();
+        $threadIds = arr::extractValuesFromArray($saleRecs, 'threadId');
+        if (!countR($threadIds)) return $res;
+
+        $shipQuery = store_ShipmentOrders::getQuery();
+        $shipQuery->where("#state = 'pending'");
+        $shipQuery->in('threadId', $threadIds);
+        $shipQuery->show('id,containerId,threadId,state,storeId,valior,deliveryTime');
+
+        $shipQuery->selectOnProxy();
+        while ($soRec = $shipQuery->fetch()) {
+            $res[$soRec->threadId][$soRec->id] = $soRec;
         }
-        
-        return $dates;
+
+        return $res;
+    }
+
+
+    /**
+     * Данните за доставка на посочените контейнери
+     *
+     * @param array $containerIds
+     *
+     * @return array - ид на контейнер => запис
+     */
+    private function getDeliveryData($containerIds)
+    {
+        $res = array();
+        if (!countR($containerIds)) return $res;
+
+        $dQuery = sales_DeliveryData::getQuery();
+        $dQuery->in('containerId', $containerIds);
+        $dQuery->show('countryId,containerId,readiness');
+
+        $dQuery->selectOnProxy();
+        while ($dRec = $dQuery->fetch()) {
+            $res[$dRec->containerId] = $dRec;
+        }
+
+        return $res;
     }
 }

@@ -275,7 +275,7 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
         $jQuery->setUnion("#creditAccId = {$acc['321']} AND (#debitAccId IS NULL OR #debitAccId != {$acc['321']})");
         $jQuery->useUnionAll = true;
 
-        self::selectReportQuery($jQuery);
+        $jQuery->selectOnProxy();
         $this->logWhilePreparing('Записи от журнала: ' . $jQuery->numRec());
 
         while ($jRec = $jQuery->fetch()) {
@@ -366,24 +366,6 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
         }
 
         return $res;
-    }
-
-
-    /**
-     * Изпълнява заявката на репликата, за да не се заключва таблицата на основната база
-     *
-     * @param core_Query $query
-     *
-     * @return void
-     */
-    private static function selectReportQuery($query)
-    {
-        try {
-            $query->mvc->forceProxy();
-            $query->select();
-        } finally {
-            $query->mvc->unforceProxy();
-        }
     }
 
 

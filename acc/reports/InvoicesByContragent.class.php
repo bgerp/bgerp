@@ -201,12 +201,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
     private static function selectReportQuery($query, $secondsPerRow)
     {
         core_App::setTimeLimit(300);
-        try {
-            $query->mvc->forceProxy();
-            $query->select();
-        } finally {
-            $query->mvc->unforceProxy();
-        }
+        $query->selectOnProxy();
         core_App::setTimeLimit(max(300, $query->numRec() * $secondsPerRow));
     }
 

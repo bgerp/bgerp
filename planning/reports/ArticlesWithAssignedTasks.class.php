@@ -123,7 +123,7 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
         $jobsQuery = planning_Jobs::getQuery();
         $jobsQuery->in('state', 'active,wakeup');
         $jobsQuery->show('id,productId,folderId,saleId,containerId,dueDate,deliveryDate,activatedOn,history,designers');
-        self::selectReportQuery($jobsQuery);
+        $jobsQuery->selectOnProxy();
         $jobs = $jobsQuery->fetchAll();
         if (!count($jobs)) return $recs;
 
@@ -231,21 +231,6 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
         return $recs;
     }
     
-    /**
-     * Буферира SELECT преди връщането към основната БД за обработка и права.
-     *
-     * @param core_Query $query
-     */
-    private static function selectReportQuery($query)
-    {
-        try {
-            $query->mvc->forceProxy();
-            $query->select();
-        } finally {
-            $query->mvc->unforceProxy();
-        }
-    }
-
 
     /**
      * @param core_Manager $mvc
@@ -261,7 +246,7 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
             $query = $mvc->getQuery();
             $query->in('id', $chunk);
             if ($fields !== null) $query->show($fields);
-            self::selectReportQuery($query);
+            $query->selectOnProxy();
             $records += $query->fetchAll();
         }
 
@@ -284,7 +269,7 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
             $query->setUnion("#inType = 'doc' AND #inVal IN ({$ids})");
             $query->orderBy('createdOn', 'DESC');
             $query->show('id,outType,outVal,inType,inVal,createdBy,createdOn');
-            self::selectReportQuery($query);
+            $query->selectOnProxy();
             $wanted = array_fill_keys($chunk, true);
             foreach ($query->fetchAll() as $link) {
                 $sources = array();
@@ -303,7 +288,7 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
                 $query->setUnion(array("#inType = 'doc' AND #inVal = '[#1#]'", $sourceId));
                 $query->orderBy('createdOn', 'DESC');
                 $query->limit(100);
-                self::selectReportQuery($query);
+                $query->selectOnProxy();
                 $result[$sourceId] = array_values($query->fetchAll());
             }
         }
