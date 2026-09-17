@@ -418,11 +418,8 @@ class sales_reports_PassiveCustomers extends frame2_driver_TableData
      */
     protected function detailRecToVerbal($rec, &$dRec)
     {
-        $Int = cls::get('type_Int');
-        $Date = cls::get('type_Date');
-        $Double = cls::get('type_Double');
-        $Double->params['decimals'] = 2;
-
+        $Int = core_Type::getByName('int');
+        $Double = core_Type::getByName('double(decimals=2)');
         $row = new stdClass();
 
         $row->folderId = doc_Folders::getHyperlink($dRec->folderId ?? null);
@@ -465,7 +462,6 @@ class sales_reports_PassiveCustomers extends frame2_driver_TableData
                                     </div>
                                 </fieldset><!--ET_END BLOCK-->"));
 
-
         $periodPassive = $data->rec->periodPassive ?? 6 * 30 * 24 * 60 * 60;
         $periodActive = $data->rec->periodActive ?? 2 * 365 * 24 * 60 * 60;
         $lastRefreshed = $data->rec->lastRefreshed ?? dt::now();
@@ -488,9 +484,7 @@ class sales_reports_PassiveCustomers extends frame2_driver_TableData
             if (isset($data->rec->crmGroup)) {
                 foreach (type_Keylist::toArray($data->rec->crmGroup) as $group) {
                     $marker++;
-
                     $groupVerb .= (crm_Groups::getTitleById($group));
-
                     if ((countR((type_Keylist::toArray($data->rec->crmGroup))) - $marker) != 0) {
                         $groupVerb .= ', ';
                     }
@@ -524,6 +518,7 @@ class sales_reports_PassiveCustomers extends frame2_driver_TableData
      * @param stdClass $res
      * @param stdClass $rec
      * @param stdClass $dRec
+     * @param $ExportClass
      */
     protected static function on_AfterGetExportRec(frame2_driver_Proto $Driver, &$res, $rec, $dRec, $ExportClass)
     {
