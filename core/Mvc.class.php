@@ -291,6 +291,33 @@ class core_Mvc extends core_FieldSet
                 
                 return $me->_cachedRecords[$cacheKey];
             }
+
+            // Ако целият запис вече е зареден, той върши работа и за част от полетата - така
+            // груповото му зареждане спестява заявка и когато после се искат отделни полета
+            if ($fields != '*') {
+                $fullRec = $me->_cachedRecords[$cond . '|*'] ?? null;
+                if (is_object($fullRec)) {
+                    $rec = new stdClass();
+                    foreach (arr::make($fields) as $name) {
+
+                        // Изчислимите полета може да ги няма в записа - тогава се чете от базата
+                        if (!property_exists($fullRec, $name)) {
+                            $rec = null;
+                            break;
+                        }
+
+                        $rec->{$name} = $fullRec->{$name};
+                    }
+
+                    if (isset($rec)) {
+                        if (!property_exists($rec, 'id')) {
+                            $rec->id = $fullRec->id ?? null;
+                        }
+
+                        return $rec;
+                    }
+                }
+            }
         }
         
         if ($cache === 'only') {
