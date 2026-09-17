@@ -9,7 +9,7 @@
  * @package   synck
  *
  * @author    Yusein Yuseinov <y.yuseinov@gmail.com>
- * @copyright 2020 - 2020 Experta OOD
+ * @copyright 2020 - 2026 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -24,7 +24,10 @@ class sync_Dictionary extends sync_Helper
      */
     public function act_Export()
     {
-        self::requireRight();
+        self::requireRight('export', true);
+        sync_Settings::guardExportRun(
+            sync_Settings::getRequestSettings(false, true)
+        );
 
         expect(core_Packs::isInstalled('replace'));
         
@@ -33,16 +36,37 @@ class sync_Dictionary extends sync_Helper
         $res = array();
         
         core_Users::forceSystemUser();
-        
-        $dQuery = replace_Dictionary::getQuery();
-        
-        while ($rec = $dQuery->fetch()) {
-            sync_Map::exportRec('replace_Dictionary', $rec->id, $res, $this);
+        try {
+            self::collectExport($res, $this);
+        } finally {
+            core_Users::cancelSystemUser();
         }
-        
-        core_Users::cancelSystemUser();
-        
+
         return self::outputRes($res);
+    }
+
+
+    /**
+     * Добавя речника към общия export traversal, ако е разрешен за клиента
+     *
+     * @param array         $res
+     * @param stdClass|null $controller
+     */
+    public static function collectExport(&$res, $controller = null)
+    {
+        $settingsRec = sync_Settings::getRequestSettings(true, true);
+        if (sync_Settings::getExportMode($settingsRec, 'dictionary') != 'all') {
+
+            return;
+        }
+
+        expect(core_Packs::isInstalled('replace'));
+        $me = $controller ?: cls::get(get_called_class());
+        $dQuery = replace_Dictionary::getQuery();
+
+        while ($rec = $dQuery->fetch()) {
+            sync_Map::exportRec('replace_Dictionary', $rec->id, $res, $me);
+        }
     }
 
 
@@ -56,18 +80,17 @@ class sync_Dictionary extends sync_Helper
         expect(core_Packs::isInstalled('replace'));
         
         core_App::setTimeLimit(100);
+        // Ръчният import може да върви успоредно с други; вдигаме лимита,
+        // защото payload-ът се държи целият в паметта.
+        ini_set('memory_limit', '2048M');
         
         $resArr = self::getDataFromUrl(get_called_class());
         
         core_Users::forceSystemUser();
-        
-        Mode::set('preventNotifications', true);
-        Mode::set('syncing', true);
-        
-        foreach ($resArr as $class => $objArr) {
-            foreach ($objArr as $id => $rec) {
-                sync_Map::importRec($class, $id, $resArr, $this);
-            }
+        try {
+            sync_Settings::importData($resArr, true);
+        } finally {
+            core_Users::cancelSystemUser();
         }
     }
 }
