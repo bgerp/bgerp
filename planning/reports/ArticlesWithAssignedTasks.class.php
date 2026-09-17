@@ -122,7 +122,10 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
         /** @var core_Query $jobsQuery */
         $jobsQuery = planning_Jobs::getQuery();
         $jobsQuery->in('state', 'active,wakeup');
-        $jobsQuery->show('id,productId,folderId,saleId,containerId,dueDate,deliveryDate,activatedOn,history,designers');
+        $jobsQuery->show('id,productId,folderId,saleId,containerId,dueDate,deliveryDate,activatedOn,history');
+        if ($jobsQuery->getField('designers', false)) {
+            $jobsQuery->show('designers');
+        }
         $jobsQuery->selectOnProxy();
         $jobs = $jobsQuery->fetchAll();
         if (!count($jobs)) return $recs;
