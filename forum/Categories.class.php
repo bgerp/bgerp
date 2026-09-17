@@ -104,8 +104,8 @@ class forum_Categories extends core_Manager
         $query->orderBy('#order');
         
         // Ако е сетнато $data->category, то връщаме само тази категория
-        if ($data->category ?? null) {
-            $query->where($data->category);
+        if (!empty($data->category)) {
+            $query->where(array("#id = '[#1#]'", $data->category));
         } else {
             $domainId = cms_Domains::getPublicDomain('id');
             $query->where("#domainId = {$domainId}");
