@@ -2107,9 +2107,8 @@ class cal_Tasks extends embed_Manager
         }
 
         // Премахваме оттеглените задачи от календар
-        if ($rec->state == 'rejected') {
-            cal_Calendar::updateEvents($events, $fromDate, $toDate, $prefix . '-Start', true);
-            cal_Calendar::updateEvents($events, $fromDate, $toDate, $prefix . '-End', true);
+        if (($rec->state ?? null) == 'rejected') {
+            cal_Calendar::updateEvents($events, $fromDate, $toDate, $prefix . '-', true);
         }
 
         return cal_Calendar::updateEvents($events, $fromDate, $toDate, $prefix, $onlyDel);
