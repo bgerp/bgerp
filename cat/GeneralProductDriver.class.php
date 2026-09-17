@@ -634,7 +634,7 @@ class cat_GeneralProductDriver extends cat_ProductDriver
         if(empty($priceFound)){
             core_Debug::startTimer("GET_PRICE_FROM_PRIME_COST");
             $price = price_ListRules::getPrice(price_ListRules::PRICE_LIST_COST, $productId, null, $datetime);
-            core_Debug::startTimer("GET_PRICE_FROM_PRIME_COST");
+            core_Debug::stopTimer("GET_PRICE_FROM_PRIME_COST");
             if(isset($price)){
                 $priceFound = $price;
             }
