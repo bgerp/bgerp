@@ -9,7 +9,7 @@
  * @category  extrapack
  * @package   acc
  *
- * @author    Gabriela Petrova <gab4eto@gmail.com>
+ * @author    Gabriela Petrova <gab4eto@gmail.com> и Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  *
@@ -131,8 +131,6 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
      */
     protected function prepareRecs($rec, &$data = null)
     {
-        $recs = array();
-        $itemAll = array();
         $rec->from = $rec->from ?? date('Y-m-01');
         $rec->to = $rec->to ?? dt::today();
         $rec->group = $rec->group ?? null;
@@ -156,171 +154,51 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
         // задаваме лимит пропорционален на бр. извадени продукти
         core_App::setTimeLimit($maxTimeLimit);
 
-        // id-to на класа на продуктите
+        // Извличат се перата на артикулите
+        $productItems = array();
         $productClassId = cat_Products::getClassId();
-
-        // Извличат се всички пера
         $iQuery = acc_Items::getQuery();
         $iQuery->where("#classId = {$productClassId}");
         $iQuery->in('objectId', array_keys($productArr));
         $iQuery->show('id,objectId');
         while ($iRec = $iQuery->fetch()) {
-            $itemAll[$iRec->objectId] = $iRec->id;
+            $productItems[$iRec->objectId] = $iRec->id;
         }
 
-        $productItemsFlip = array_flip($itemAll);
-        $productItems = $itemAll;
+        // Начални количества във всички складове, групирани по артикули
+        $baseQuantities = $this->getBaseQuantities($rec, array_flip($productItems));
+        $this->logWhilePreparing('Артикули: ' . countR($productArr) . ', с начално салдо: ' . countR($baseQuantities));
 
-        // Начално количество
-        $baseQuantities = array();
-
-        // Извличат се само записите за сметка 321 с участието на перата на артикулите
-        $Balance = new acc_ActiveShortBalance(array('from' => $rec->from, 'to' => $rec->to, 'accs' => '321', 'cacheBalance' => false, 'keepUnique' => true));
-        $balanceRec = $Balance->getBalance('321');
-        $balanceRec = is_array($balanceRec) ? $balanceRec : array();
-
-        // От баланса извличаме всички начални количества във всички складове, групирани по артикули
-        foreach ($balanceRec as $bRec) {
-            $productId = $productItemsFlip[$bRec->ent2Id ?? null] ?? null;
-            if (!$productId) {
-                continue;
-            }
-
-            $baseQuantity = $bRec->baseQuantity ?? 0;
-
-            if (!array_key_exists($productId, $baseQuantities)) {
-                $baseQuantities[$productId] = $baseQuantity;
-            } else {
-                $baseQuantities[$productId] = ($baseQuantities[$productId] ?? 0) + $baseQuantity;
-            }
-        }
-
-        // Извличане на записите от журнала по желаните сметки
-        $jQuery = acc_JournalDetails::getQuery();
-
-        $from = $rec->from;
-        $to = $rec->to;
-
-        acc_JournalDetails::filterQuery($jQuery, $from, $to, '321');
-        //acc_JournalDetails::filterQuery($jQuery, $from, $to, '321,401,61101,61102,61103,701,706,799');
-        $jRecs = $jQuery->fetchAll();
-
-
-        //Производство
-        $id2 = planning_DirectProductionNote::getClassid();
-        $jQuery2 = clone $jQuery;
-        $jRecs2 = $jQuery2->where("#docType = {$id2}");
-        $jRecs2 = $jQuery2->fetchAll();
-
-        //връщане
-        $id1 = planning_ConsumptionNotes::getClassid();
-        $jQuery4 = clone $jQuery;
-        $jRecs4 = $jQuery4->where("#docType = {$id1}");
-        $jRecs4 = $jQuery4->fetchAll();
-
-        // инвентаризация
-        $id3 = store_InventoryNotes::getClassid();
-        $jQuery6 = clone $jQuery; //bp($jRecs6,$id3);
-        $jRecs6 = $jQuery6->where("#docType = {$id3}");
-        $jRecs6 = $jQuery6->fetchAll();
-
-
-        $jRecs3 = array_diff_key($jRecs, $jRecs2);
-
-        $jRecs5 = array_merge($jRecs2, $jRecs4, $jRecs6);
-
-        $recs = array();
-
-        log_System::add(get_called_class(), 'jRecsCnt: ' . countR($jRecs) . ', producsCnt: ' . countR($productArr), null, 'debug', 1);
-        log_System::add(get_called_class(), 'jRecsCnt: ' . countR($jRecs2) . ', producsCnt: ' . countR($productArr), null, 'debug', 1);
+        // Движенията в периода, сумирани по перо с едно четене на журнала
+        $movements = $this->aggregateMovements($rec->from, $rec->to);
 
         // за всеки един продукт, се изчисляват търсените количества
+        $recs = array();
         foreach ($productArr as $productRec) {
-            if ($itemId = ($productItems[$productRec->id] ?? null)) {
-                $baseQuantity = (isset($baseQuantities[$productRec->id])) ? $baseQuantities[$productRec->id] : 0;
-                $obj = (object)array('baseQuantity' => $baseQuantity, 'delivered' => 0, 'converted' => 0, 'produced' => 0, 'sold' => 0, 'blQuantity' => 0);
-                $obj->code = (!empty($productRec->code)) ? $productRec->code : "Art{$productRec->id}";
-                $obj->measureId = $productRec->measureId;
-                $obj->productId = $productRec->id;
-                $obj->groups = $productRec->groups;
+            if (empty($productItems[$productRec->id])) continue;
 
-                // Доставено: Влязло в склада от доставчици
-                if ($delRes = acc_Balances::getBlQuantities($jRecs, '321', 'debit', '401', array(null, $itemId, null))) {
-                    $obj->delivered = $delRes[$itemId]->quantity ?? 0;
-                }
-
-                // Доставено влязло в склада от инвентаризация
-                if ($delRes1 = acc_Balances::getBlQuantities($jRecs, '321', 'credit', '799', array(null, $itemId, null))) {
-                    $obj->delivered -= $delRes1[$itemId]->quantity ?? 0;
-                }
-
-                // Вложено детайлно
-                if ($convRes = acc_Balances::getBlQuantities($jRecs5, '61101', 'debit', '321', array($itemId, null, null))) {
-                    $obj->converted = $convRes[$itemId]->quantity ?? 0;
-                }
-
-//                 // Вложено в протокола за производство - мисля, че е излишно
-//                 if ($convRes1 = acc_Balances::getBlQuantities($jRecs5, '61103', 'debit', '321', array($itemId, null, null))) {
-//                     $obj->converted += $convRes1[$itemId]->quantity;
-//                 }
-                // Вложено бездетайлно
-                if ($convRes2 = acc_Balances::getBlQuantities($jRecs5, '321', 'credit', '61102', array(null, $itemId, null))) {
-                    $obj->converted += $convRes2[$itemId]->quantity ?? 0;
-                }
-
-                // Вложено в протокола за производство
-                if ($convRes3 = acc_Balances::getBlQuantities($jRecs5, '321', 'credit', '61103', array(null, $itemId, null))) {
-                    $obj->converted += $convRes3[$itemId]->quantity ?? 0;
-                }
-                // Вложено от инвентаризация
-                if ($convRes4 = acc_Balances::getBlQuantities($jRecs5, '321', 'credit', '699', array(null, $itemId, null))) {
-                    $obj->converted += $convRes4[$itemId]->quantity ?? 0;
-                }
-
-                // Приспадане на вложеното с върнатото от производството детайлно
-                if ($convRes5 = acc_Balances::getBlQuantities($jRecs3, '321', 'debit', '61101', array(null, $itemId, null))) {
-                    $obj->converted -= $convRes5[$itemId]->quantity ?? 0;
-                }
-
-                // Приспадане на вложеното с върнатото от производството бездетайлно
-                if ($convRes6 = acc_Balances::getBlQuantities($jRecs3, '321', 'debit', '61102', array(null, $itemId, null))) {
-                    $obj->converted -= $convRes6[$itemId]->quantity ?? 0;
-                }
-
-                // Произведено от протокол за производство (Незавършено производство)
-                if ($prodRes1 = acc_Balances::getBlQuantities($jRecs2, '321', 'debit', '61101', array(null, $itemId, null))) {
-                    $obj->produced += $prodRes1[$itemId]->quantity ?? 0;
-                }
-
-                // Произведено от протокол за производство (Бездетайлно произвеждане)
-                if ($prodRes2 = acc_Balances::getBlQuantities($jRecs2, '321', 'debit', '61102', array(null, $itemId, null))) {
-                    $obj->produced += $prodRes2[$itemId]->quantity ?? 0;
-                }
-
-                // Произведено от протокол за производство (Влагане на материал в производството от склад)
-                if ($prodRes3 = acc_Balances::getBlQuantities($jRecs2, '321', 'debit', '61103', array(null, $itemId, null))) {
-                    $obj->produced += $prodRes3[$itemId]->quantity ?? 0;
-                }
-
-                // Продадено
-                if ($soldRes = acc_Balances::getBlQuantities($jRecs, '701', 'debit', '321', array(null, null, $itemId))) {
-                    $obj->sold = $soldRes[$itemId]->quantity ?? 0;
-                }
-
-                // Продадено
-                if ($soldRes2 = acc_Balances::getBlQuantities($jRecs, '706', 'debit', '321', array(null, null, $itemId))) {
-                    $obj->sold += $soldRes2[$itemId]->quantity ?? 0;
-                }
-
-                // Крайно количество
-                $obj->blQuantity = $baseQuantity;
-                if ($blRes = acc_Balances::getBlQuantities($jRecs, '321', null, null, array(null, $itemId, null))) {
-                    $obj->blQuantity += $blRes[$itemId]->quantity ?? 0;
-                }
-
-                $recs[$productRec->id] = $obj;
+            $itemId = $productItems[$productRec->id];
+            $baseQuantity = 0;
+            if (isset($baseQuantities[$productRec->id])) {
+                $baseQuantity = $baseQuantities[$productRec->id];
             }
+
+            $obj = (object) array('baseQuantity' => $baseQuantity,
+                                  'delivered' => self::getSum($movements['delivered'], $itemId),
+                                  'converted' => self::getSum($movements['converted'], $itemId),
+                                  'produced' => self::getSum($movements['produced'], $itemId),
+                                  'sold' => self::getSum($movements['sold'], $itemId),
+                                  'blQuantity' => $baseQuantity + self::getSum($movements['blQuantity'], $itemId));
+
+            $obj->code = (!empty($productRec->code)) ? $productRec->code : "Art{$productRec->id}";
+            $obj->measureId = $productRec->measureId;
+            $obj->productId = $productRec->id;
+            $obj->groups = $productRec->groups;
+
+            $recs[$productRec->id] = $obj;
         }
+
+        $this->logWhilePreparing('Редове в справката: ' . countR($recs));
 
         //Ако е избрано справката да е само в кегловни мерки
         if ($rec->uomKg == 'weight') {
@@ -331,6 +209,201 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
         $recs = $this->groupRecs($recs, $rec->group, $data);
 
         return $recs;
+    }
+
+
+    /**
+     * Началните количества по артикули към началото на периода
+     *
+     * @param stdClass $rec
+     * @param array $productItemsFlip - ид на перо => ид на артикул
+     *
+     * @return array - ид на артикул => количество
+     */
+    private function getBaseQuantities($rec, $productItemsFlip)
+    {
+        $res = array();
+        $Balance = new acc_ActiveShortBalance(array('from' => $rec->from, 'to' => $rec->to, 'accs' => '321', 'cacheBalance' => false, 'keepUnique' => true));
+
+        // Ползва се само началното салдо, движенията в периода се сумират отделно
+        $accArr = array();
+        $balanceRecs = $Balance->getBalanceBefore('321', $accArr);
+        if (!is_array($balanceRecs)) return $res;
+
+        foreach ($balanceRecs as $bRec) {
+
+            // Записите от кореспондиращите сметки не участват в началните количества
+            if (countR($accArr) && !in_array($bRec['accountId'], $accArr)) continue;
+            if (empty($bRec['ent2Id'])) continue;
+            if (empty($productItemsFlip[$bRec['ent2Id']])) continue;
+
+            $productId = $productItemsFlip[$bRec['ent2Id']];
+            self::addToSum($res, $productId, $bRec['baseQuantity']);
+        }
+
+        return $res;
+    }
+
+
+    /**
+     * Сумира движенията по с/ка 321 в периода по перото на артикула, с едно четене на журнала
+     *
+     * @param string $from
+     * @param string $to
+     *
+     * @return array - вид движение => (ид на перо => количество)
+     */
+    private function aggregateMovements($from, $to)
+    {
+        $acc = array();
+        foreach (array('321', '401', '799', '61101', '61102', '61103', '699', '701', '706') as $sysId) {
+            $acc[$sysId] = acc_Accounts::getRecBySystemId($sysId)->id;
+        }
+
+        $productionTypeId = planning_DirectProductionNote::getClassId();
+        $consumptionTypeId = planning_ConsumptionNotes::getClassId();
+        $inventoryTypeId = store_InventoryNotes::getClassId();
+
+        $res = array('delivered' => array(), 'produced' => array(), 'converted' => array(), 'sold' => array(), 'blQuantity' => array());
+
+        $jQuery = acc_JournalDetails::getQuery();
+        acc_JournalDetails::filterQuery($jQuery, $from, $to);
+        $jQuery->show('debitAccId,debitItem1,debitItem2,debitItem3,debitQuantity,creditAccId,creditItem1,creditItem2,creditItem3,creditQuantity,docType');
+
+        // Двата клона не се застъпват, за да не се броят по два пъти записите с 321 от двете страни
+        $jQuery->setUnion("#debitAccId = {$acc['321']}");
+        $jQuery->setUnion("#creditAccId = {$acc['321']} AND (#debitAccId IS NULL OR #debitAccId != {$acc['321']})");
+        $jQuery->useUnionAll = true;
+
+        $jQuery->selectOnProxy();
+        $this->logWhilePreparing('Записи от журнала: ' . $jQuery->numRec());
+
+        while ($jRec = $jQuery->fetch()) {
+            $debitAccId = $jRec->debitAccId;
+            $creditAccId = $jRec->creditAccId;
+
+            $isProduction = ($jRec->docType == $productionTypeId);
+            $isConsumption = $isProduction || $jRec->docType == $consumptionTypeId || $jRec->docType == $inventoryTypeId;
+
+            // Перото, по което getBlQuantities() индексира резултата
+            $debitItem = null;
+            if (isset($jRec->debitItem3)) {
+                $debitItem = $jRec->debitItem3;
+            } elseif (isset($jRec->debitItem2)) {
+                $debitItem = $jRec->debitItem2;
+            } elseif (isset($jRec->debitItem1)) {
+                $debitItem = $jRec->debitItem1;
+            }
+
+            $creditItem = null;
+            if (isset($jRec->creditItem3)) {
+                $creditItem = $jRec->creditItem3;
+            } elseif (isset($jRec->creditItem2)) {
+                $creditItem = $jRec->creditItem2;
+            } elseif (isset($jRec->creditItem1)) {
+                $creditItem = $jRec->creditItem1;
+            }
+
+            $isStoreDebit = ($debitAccId == $acc['321']);
+            $isStoreCredit = ($creditAccId == $acc['321']);
+
+            // Крайно количество - getBlQuantities() филтрира по дебитното перо, ако 321 е дебитна
+            if ($isStoreDebit || $isStoreCredit) {
+                $filterItem = $isStoreDebit ? $jRec->debitItem2 : $jRec->creditItem2;
+
+                if (!empty($filterItem)) {
+                    if ($isStoreDebit && $debitItem == $filterItem) {
+                        self::addToSum($res['blQuantity'], $filterItem, $jRec->debitQuantity);
+                    }
+
+                    if ($isStoreCredit && $creditItem == $filterItem) {
+                        self::addToSum($res['blQuantity'], $filterItem, -1 * $jRec->creditQuantity);
+                    }
+                }
+            }
+
+            // При с/ка 321 артикулът е перо на втора позиция
+            if ($isStoreDebit && !empty($debitItem) && $debitItem == $jRec->debitItem2) {
+
+                // Доставено: Влязло в склада от доставчици
+                if ($creditAccId == $acc['401']) {
+                    self::addToSum($res['delivered'], $debitItem, $jRec->debitQuantity);
+                }
+
+                // Произведено с протокол за производство
+                if ($isProduction && ($creditAccId == $acc['61101'] || $creditAccId == $acc['61102'] || $creditAccId == $acc['61103'])) {
+                    self::addToSum($res['produced'], $debitItem, $jRec->debitQuantity);
+                }
+
+                // Приспадане на вложеното с върнатото от производството
+                if (!$isProduction && ($creditAccId == $acc['61101'] || $creditAccId == $acc['61102'])) {
+                    self::addToSum($res['converted'], $debitItem, -1 * $jRec->debitQuantity);
+                }
+            }
+
+            if ($isStoreCredit && !empty($creditItem) && $creditItem == $jRec->creditItem2) {
+
+                // Доставено влязло в склада от инвентаризация
+                if ($debitAccId == $acc['799']) {
+                    self::addToSum($res['delivered'], $creditItem, -1 * $jRec->creditQuantity);
+                }
+
+                // Вложено бездетайлно, в протокола за производство и от инвентаризация
+                if ($isConsumption && ($debitAccId == $acc['61102'] || $debitAccId == $acc['61103'] || $debitAccId == $acc['699'])) {
+                    self::addToSum($res['converted'], $creditItem, $jRec->creditQuantity);
+                }
+            }
+
+            // Вложено детайлно - при с/ка 61101 артикулът е перо на първа позиция
+            if ($isConsumption && $isStoreCredit && $debitAccId == $acc['61101'] && !empty($debitItem) && $debitItem == $jRec->debitItem1) {
+                self::addToSum($res['converted'], $debitItem, $jRec->debitQuantity);
+            }
+
+            // Продадено - при сметките за приходи артикулът е перо на трета позиция
+            if ($isStoreCredit && ($debitAccId == $acc['701'] || $debitAccId == $acc['706']) && !empty($debitItem) && $debitItem == $jRec->debitItem3) {
+                self::addToSum($res['sold'], $debitItem, $jRec->debitQuantity);
+            }
+        }
+
+        return $res;
+    }
+
+
+    /**
+     * Натрупва количество към сумата за даден ключ
+     *
+     * @param array $arr
+     * @param int $key
+     * @param float $quantity
+     *
+     * @return void
+     */
+    private static function addToSum(&$arr, $key, $quantity)
+    {
+        if (!isset($arr[$key])) {
+            $arr[$key] = 0;
+        }
+
+        $arr[$key] += $quantity;
+    }
+
+
+    /**
+     * Сумата за даден ключ, или 0 ако няма движение
+     *
+     * @param array $arr
+     * @param int $key
+     *
+     * @return float
+     */
+    private static function getSum($arr, $key)
+    {
+        if (!isset($arr[$key])) {
+
+            return 0;
+        }
+
+        return $arr[$key];
     }
 
 
@@ -516,7 +589,7 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
     /**
      * След рендиране на единичния изглед
      *
-     * @param cat_ProductDriver $Driver
+     * @param frame2_driver_Proto $Driver
      * @param embed_Manager $Embedder
      * @param core_ET $tpl
      * @param stdClass $data

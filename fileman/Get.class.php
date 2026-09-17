@@ -344,18 +344,21 @@ class fileman_Get extends core_Manager
 
         if ($form->isSubmitted()) {
             if (!defined('BGERP_GIT_BRANCH') || (BGERP_GIT_BRANCH != 'dev')) {
+                // 'error' се попълва само при невалидно URL, а 'tld' - само при разпознат
+                // домейн @see core_Url::parseUrl()
                 $pArr = core_Url::parseUrl($form->rec->url);
-                
-                if ($pArr['error']) {
+                $scheme = $pArr['scheme'] ?? '';
+
+                if (!empty($pArr['error'])) {
                     $form->setError('url', $pArr['error']);
                 }
                 
-                if (!$pArr['tld']) {
+                if (empty($pArr['tld'])) {
                     $form->setError('url', 'Не е зададено коректно разширение на домейна');
                 }
                 
-                if (!in_array($pArr['scheme'], array('http', 'https', 'ftp', 'ftps'))) {
-                    $form->setError('url', 'Неподдържан протокол:|* <b>' . $pArr['scheme'] . '</b>');
+                if (!in_array($scheme, array('http', 'https', 'ftp', 'ftps'))) {
+                    $form->setError('url', 'Неподдържан протокол:|* <b>' . $scheme . '</b>');
                 }
                 
                 if (core_Url::isPrivate($form->rec->url)) {

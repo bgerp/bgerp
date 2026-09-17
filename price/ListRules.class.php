@@ -114,6 +114,31 @@ class price_ListRules extends core_Detail
 
 
     /**
+     * Работен кеш на груповото зареждане: "листId|дата" => productId => правило
+     *
+     * @see preloadRules()
+     */
+    public static $rulesMap = array();
+
+
+    /**
+     * За кои артикули вече е търсено правило при груповото зареждане
+     *
+     * @see preloadRules()
+     */
+    public static $preloadedRules = array();
+
+
+    /**
+     * От този брой артикули нагоре груповата заявка минава без филтър по артикул.
+     * С филтър цената е като на стария път (пропорционална на историята на избраните
+     * артикули), без филтър е константна - едно обхождане на правилата в ЦП. Границата е
+     * там, където двете се изравняват при обичаен каталог; над нея обхождането печели.
+     */
+    const PRELOAD_FULL_SCAN_FROM = 800;
+
+
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -349,24 +374,7 @@ class price_ListRules extends core_Detail
 
         if ((!$canUseCache) || ($price = price_Cache::getPrice($listId, $productId, null, $discountIncluded)) === null) {
             $price = null;
-            $query = self::getQuery();
-            $query->where("#listId = {$listId} AND #validFrom <= '{$datetime}' AND (#validUntil IS NULL OR #validUntil >= '{$datetime}')");
-            $query->where("#productId = {$productId}");
-
-            if ($listId != price_ListRules::PRICE_LIST_COST) {
-                // Ако групите са предварително заредени да се използват от тем иначе да се фечнат
-                $groups = static::$groupsMap[$productId]
-                    ?? keylist::toArray(cat_Products::fetchField($productId, 'groups'));
-                if (countR($groups)) {
-                    $query->in('groupId', $groups, false, true);
-                }
-            }
-            
-            $query->orderBy('#priority', 'ASC');
-            $query->orderBy('#validFrom,#id', 'DESC');
-            $query->limit(1);
-
-            $rec = $query->fetch();
+            $rec = static::getBestRule($listId, $productId, $datetime);
 
             // Фечване на ЦП ако вече не е
             if (!array_key_exists($listId, static::$listRecCache)) {
@@ -447,8 +455,289 @@ class price_ListRules extends core_Detail
         // Връщаме намерената цена
         return $price;
     }
-    
-    
+
+
+    /**
+     * Правилото, определящо цената на артикула в посочената ЦП към посочения момент.
+     * Ако правилата са заредени групово с preloadRules(), се чете от кеша без заявка.
+     *
+     * @param int      $listId    - ид на ЦП (след замяната с активната вариация)
+     * @param int      $productId - ид на артикул
+     * @param datetime $datetime  - канонизиран момент
+     *
+     * @return stdClass|null $rec - правилото или NULL, ако няма
+     */
+    protected static function getBestRule($listId, $productId, $datetime)
+    {
+        $mapKey = "{$listId}|{$datetime}";
+        if (isset(static::$preloadedRules[$mapKey][$productId])) {
+
+            return isset(static::$rulesMap[$mapKey][$productId]) ? static::$rulesMap[$mapKey][$productId] : null;
+        }
+
+        return static::fetchBestRule($listId, $productId, $datetime);
+    }
+
+
+    /**
+     * Правилото за един артикул с една заявка - оригиналното търсене, без кеш
+     *
+     * @param int      $listId
+     * @param int      $productId
+     * @param datetime $datetime
+     *
+     * @return stdClass|null $rec
+     */
+    protected static function fetchBestRule($listId, $productId, $datetime)
+    {
+        $query = self::getQuery();
+        $query->where("#listId = {$listId} AND #validFrom <= '{$datetime}' AND (#validUntil IS NULL OR #validUntil >= '{$datetime}')");
+        $query->where("#productId = {$productId}");
+
+        if ($listId != price_ListRules::PRICE_LIST_COST) {
+            // Ако групите са предварително заредени да се използват от тем иначе да се фечнат
+            $groups = static::$groupsMap[$productId]
+                ?? keylist::toArray(cat_Products::fetchField($productId, 'groups'));
+            if (countR($groups)) {
+                $query->in('groupId', $groups, false, true);
+            }
+        }
+
+        $query->orderBy('#priority', 'ASC');
+        $query->orderBy('#validFrom,#id', 'DESC');
+        $query->limit(1);
+
+        $rec = $query->fetch();
+
+        return !empty($rec) ? $rec : null;
+    }
+
+
+    /**
+     * Групово зареждане на правилата за посочените артикули - по едно обхождане на таблицата
+     * за всяко ниво от веригата ЦП, вместо по една заявка на артикул.
+     *
+     * @see getBestRule()
+     *
+     * @param int           $listId     - от коя ЦП тръгва ценообразуването
+     * @param array         $productIds - ид-та на артикулите
+     * @param datetime|null $datetime   - към кой момент или NULL за сега
+     *
+     * @return void
+     */
+    public static function preloadRules($listId, array $productIds, $datetime = null)
+    {
+        $productIds = array_filter(array_unique($productIds), 'is_numeric');
+        if (!countR($productIds)) return;
+
+        $datetime = price_ListToCustomers::canonizeTime($datetime);
+
+        // Тук се само чете, затова всичко минава през репликата, ако е конфигурирана.
+        // Форсира се веднъж за цялата верига - всяко форсиране отваря нова връзка към
+        // репликата и я проверява с "show slave status" @see core_App::isReplicationOK()
+        $me = cls::get(get_called_class());
+
+        try {
+            $me->forceProxy();
+            static::preloadGroups($productIds);
+
+            // Всички групи на артикулите - по тях се търсят груповите правила
+            $allGroups = array();
+            foreach ($productIds as $productId) {
+                $groups = isset(static::$groupsMap[$productId]) ? static::$groupsMap[$productId] : array();
+                foreach ($groups as $groupId) {
+                    $allGroups[$groupId] = $groupId;
+                }
+            }
+
+            // Ценообразуването рекурсира към бащите, затова се зарежда цялата верига
+            foreach (static::getListChain($listId, $datetime) as $chainListId) {
+                static::preloadListRules($chainListId, $productIds, $allGroups, $datetime);
+            }
+        } finally {
+            $me->unforceProxy();
+        }
+    }
+
+
+    /**
+     * Веригата ЦП, през които може да мине ценообразуването - същият обход като рекурсията
+     * в getPrice(), включително замяната с активната вариация.
+     *
+     * @param int      $listId
+     * @param datetime $datetime
+     *
+     * @return array $res - ид-тата на ЦП, от избраната към корена
+     */
+    protected static function getListChain($listId, $datetime)
+    {
+        $res = $replaced = array();
+
+        while (!empty($listId)) {
+
+            // Всяка ЦП се заменя с вариацията си само веднъж - иначе вариация, чийто баща е
+            // самата варирана ЦП, зацикля и собствените ѝ правила никога не се стигат
+            // @see price_ListRules::$alreadyReplaced
+            if (!array_key_exists($listId, $replaced)) {
+                $variationId = price_ListVariations::getActiveVariationId($listId, $datetime);
+                if (!empty($variationId)) {
+                    $replaced[$listId] = true;
+                    $listId = $variationId;
+                }
+            }
+
+            // Предпазване от зациклане при наследственост в кръг
+            if (array_key_exists($listId, $res)) break;
+            $res[$listId] = $listId;
+
+            if (!array_key_exists($listId, static::$listRecCache)) {
+                static::$listRecCache[$listId] = price_Lists::fetch($listId);
+            }
+
+            $listRec = static::$listRecCache[$listId];
+            $listId = (is_object($listRec) && !empty($listRec->parent)) ? $listRec->parent : null;
+        }
+
+        return $res;
+    }
+
+
+    /**
+     * Зарежда печелившите правила на едно ниво от веригата ЦП
+     *
+     * @param int      $listId
+     * @param array    $productIds
+     * @param array    $allGroups
+     * @param datetime $datetime
+     *
+     * @return void
+     */
+    protected static function preloadListRules($listId, $productIds, $allGroups, $datetime)
+    {
+        $mapKey = "{$listId}|{$datetime}";
+
+        // При повторно извикване се обработват само артикулите, за които още не е търсено
+        $newIds = array();
+        foreach ($productIds as $productId) {
+            if (!isset(static::$preloadedRules[$mapKey][$productId])) {
+                $newIds[$productId] = $productId;
+            }
+        }
+        if (!countR($newIds)) return;
+
+        $where = "#listId = {$listId} AND #validFrom <= '{$datetime}' AND (#validUntil IS NULL OR #validUntil >= '{$datetime}')";
+
+        // Победителят се кодира в един сортируем стринг с фиксирана ширина, за да се вземе с
+        // едно GROUP BY вместо с по едно "ORDER BY ... LIMIT 1" на артикул. Приоритетът се
+        // обръща (по-малкият е по-силен, липсващият - най-силен, преди невалидната празна
+        // стойност), а датата и ид-то и без това се търсят в намаляващ ред.
+        $query = self::getQuery();
+        $query->XPR('winner', 'varchar', "MAX(CONCAT(LPAD(10 - COALESCE(#priority + 0, -1), 2, '0'), #validFrom, LPAD(#id, 10, '0')))");
+        $query->where($where);
+        $query->where('#productId IS NOT NULL');
+
+        if (countR($newIds) < self::PRELOAD_FULL_SCAN_FROM) {
+            $query->in('productId', $newIds);
+        }
+
+        $query->groupBy('productId');
+        $query->show('productId,winner');
+
+        $bestKey = $ruleIdByProduct = $groupRuleByProduct = $rules = array();
+        while ($winnerRec = $query->fetch()) {
+            if (!isset($newIds[$winnerRec->productId])) continue;
+
+            $bestKey[$winnerRec->productId] = $winnerRec->winner;
+            $ruleIdByProduct[$winnerRec->productId] = (int) substr($winnerRec->winner, -10);
+        }
+
+        // Груповите правила са малко на брой - взимат се наведнъж и се сравняват в PHP
+        if ($listId != price_ListRules::PRICE_LIST_COST && countR($allGroups)) {
+            $groupRules = array();
+            $gQuery = self::getQuery();
+            $gQuery->where($where);
+            $gQuery->in('groupId', $allGroups);
+            while ($gRec = $gQuery->fetch()) {
+                $groupRules[$gRec->groupId][] = $gRec;
+            }
+
+            foreach ($newIds as $productId) {
+                $groups = isset(static::$groupsMap[$productId]) ? static::$groupsMap[$productId] : array();
+                foreach ($groups as $groupId) {
+                    if (!isset($groupRules[$groupId])) continue;
+
+                    foreach ($groupRules[$groupId] as $gRec) {
+                        $sortKey = static::getRuleSortKey($gRec);
+                        if (isset($bestKey[$productId]) && $sortKey <= $bestKey[$productId]) continue;
+
+                        $bestKey[$productId] = $sortKey;
+                        $groupRuleByProduct[$productId] = $gRec;
+                        unset($ruleIdByProduct[$productId]);
+                    }
+                }
+            }
+        }
+
+        // Пълните записи на спечелилите продуктови правила - с една заявка. Условието за
+        // валидност се повтаря, за да не се приложи правило, отпаднало между двете заявки
+        if (countR($ruleIdByProduct)) {
+            $recsById = array();
+            $rQuery = self::getQuery();
+            $rQuery->where($where);
+            $rQuery->in('id', $ruleIdByProduct);
+            while ($rRec = $rQuery->fetch()) {
+                $recsById[$rRec->id] = $rRec;
+            }
+
+            foreach ($ruleIdByProduct as $productId => $ruleId) {
+                if (isset($recsById[$ruleId])) {
+                    $rules[$productId] = $recsById[$ruleId];
+                    continue;
+                }
+
+                // Победителят е отпаднал между двете заявки - следващото подходящо правило
+                // се търси поединично, иначе артикулът би останал без правило
+                $fallbackRec = static::fetchBestRule($listId, $productId, $datetime);
+                if (!empty($fallbackRec)) {
+                    $rules[$productId] = $fallbackRec;
+                }
+            }
+        }
+
+        foreach ($groupRuleByProduct as $productId => $gRec) {
+            $rules[$productId] = $gRec;
+        }
+
+        // Кешът се пипа чак тук - при изключение в някоя от заявките не остават маркери
+        // за заредени артикули, за които правило така и не е намерено
+        if (!isset(static::$rulesMap[$mapKey])) {
+            static::$rulesMap[$mapKey] = array();
+        }
+        if (!isset(static::$preloadedRules[$mapKey])) {
+            static::$preloadedRules[$mapKey] = array();
+        }
+
+        static::$rulesMap[$mapKey] += $rules;
+        static::$preloadedRules[$mapKey] += array_fill_keys($newIds, true);
+    }
+
+
+    /**
+     * Ключ за подредба на правило - същата подредба като в getBestRule(), но смятана в PHP.
+     * Форматът трябва да съвпада с този от MySQL израза в preloadListRules().
+     *
+     * @param stdClass $rec
+     *
+     * @return string
+     */
+    protected static function getRuleSortKey($rec)
+    {
+        $priority = 10 - (isset($rec->priority) ? (int) $rec->priority : -1);
+
+        return str_pad($priority, 2, '0', STR_PAD_LEFT) . $rec->validFrom . str_pad($rec->id, 10, '0', STR_PAD_LEFT);
+    }
+
+
     /**
      * Обръща цената от записа в основна валута без ддс
      *
@@ -659,6 +948,8 @@ class price_ListRules extends core_Detail
      */
     protected static function on_AfterSave($mvc, &$id, &$rec, $fields = null)
     {
+        static::flushPreloadedRules();
+
         if (!empty($rec->listId)) {
 
             if (empty($rec->validFrom) || $rec->validFrom <= dt::now()) {
@@ -670,6 +961,44 @@ class price_ListRules extends core_Detail
                 core_CallOnTime::setOnce('price_Cache', 'InvalidatePriceList', $rec->listId, $rec->validUntil);
             }
         }
+    }
+
+
+    /**
+     * Изчиства груповия кеш на правилата - иначе след запис/изтриване в същия хит
+     * ценообразуването ще ползва старото правило
+     *
+     * @see preloadRules()
+     */
+    public static function on_AfterDelete($mvc, &$numDelRows, $query, $cond)
+    {
+        static::flushPreloadedRules();
+    }
+
+
+    /**
+     * Забравя груповото зареждане за един артикул - за всички ЦП и дати
+     *
+     * @param int $productId
+     *
+     * @return void
+     */
+    protected static function forgetPreloadedProduct($productId)
+    {
+        foreach (array_keys(static::$preloadedRules) as $mapKey) {
+            unset(static::$preloadedRules[$mapKey][$productId], static::$rulesMap[$mapKey][$productId]);
+        }
+    }
+
+
+    /**
+     * Изчиства груповия кеш на правилата
+     *
+     * @return void
+     */
+    public static function flushPreloadedRules()
+    {
+        static::$rulesMap = static::$preloadedRules = array();
     }
 
 
@@ -1152,7 +1481,14 @@ class price_ListRules extends core_Detail
             if (is_object($val)) {
                 // готов запис — групите се вземат директно, ключът е productId
                 $pid = $key;
-                static::$groupsMap[$pid] = keylist::toArray($val->{$groupField} ?? '');
+                $groups = keylist::toArray($val->{$groupField} ?? '');
+
+                // Сменени групи означават, че вече избраното правило може да е по стара група
+                if (isset(static::$groupsMap[$pid]) && static::$groupsMap[$pid] != $groups) {
+                    static::forgetPreloadedProduct($pid);
+                }
+
+                static::$groupsMap[$pid] = $groups;
             } else {
                 // само ид — събираме за групов фечч
                 $toFetch[$val] = $val;

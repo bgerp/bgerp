@@ -259,6 +259,32 @@ class core_Manager extends core_Mvc
     }
 
 
+    /**
+     * Изпълнява подадения код на репликата и връща връзката към основната база
+     *
+     * @param callable $callback
+     *
+     * @return mixed
+     */
+    public function callOnProxy($callback)
+    {
+        // При вложено извикване връзката се владее от външния блок - вътрешният само я ползва,
+        // иначе неговият unforceProxy() би върнал външния код на основната база
+        if (isset($this->db->__origDbName)) {
+
+            return call_user_func($callback);
+        }
+
+        try {
+            $this->forceProxy();
+
+            return call_user_func($callback);
+        } finally {
+            $this->unforceProxy();
+        }
+    }
+
+
 
     
     /**

@@ -2294,15 +2294,16 @@ class doc_Folders extends core_Master
                 $folderIds = core_Cache::get('doc_Folders', $cacheKey);
                 if (!is_array($folderIds)) {
                     $Containers = cls::get('doc_Containers');
-                    $Containers->forceProxy();
                     $cQuery = $Containers->getQuery();
                     $cQuery->in('docClass', $documentIds);
                     $cQuery->show('folderId');
                     $cQuery->groupBy('folderId');
                     $cQuery->limit(20);
                     $cQuery->orderBy('createdOn', 'DESC');
-                    $folderIds = arr::extractValuesFromArray($cQuery->fetchAll(),'folderId');
-                    $Containers->unforceProxy();
+                    $folderIds = $Containers->callOnProxy(function () use ($cQuery) {
+
+                        return arr::extractValuesFromArray($cQuery->fetchAll(), 'folderId');
+                    });
                     if(countR($folderIds)) {
                         core_Cache::set('doc_Folders', $cacheKey, $folderIds, 10);
                     }

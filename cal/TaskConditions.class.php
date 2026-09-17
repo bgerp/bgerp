@@ -225,26 +225,28 @@ class cal_TaskConditions extends core_Detail
         }
         $taskRec = cal_Tasks::fetch($rec->baseId);
         
-        $row->condition = '<td>' . $row->tool . '</td><td>'  . $row->condition;
+        // 'tool' се попълва от плъгина за инструментите на реда, а 'condition' - само при
+        // непразна стойност, затова и двете може да липсват
+        $row->condition = '<td>' . ($row->tool ?? '') . '</td><td>'  . ($row->condition ?? '');
         
         if ($rec->activationCond == 'onProgress') {
-            $row->condition .= $row->progress . tr(' от изпълнението на ') . ht::createLink($row->dependId, array('cal_Tasks', 'single', $rec->dependId, 'ret_url' => true, ''), null, 'ef_icon=img/16/task-normal.png');
+            $row->condition .= ($row->progress ?? '') . tr(' от изпълнението на ') . ht::createLink($row->dependId, array('cal_Tasks', 'single', $rec->dependId, 'ret_url' => true, ''), null, 'ef_icon=img/16/task-normal.png');
         }
         
         if ($rec->activationCond == 'afterTime') {
-            $row->condition .= $row->distTime . tr(' след началото на ') . ht::createLink($row->dependId, array('cal_Tasks', 'single', $rec->dependId, 'ret_url' => true, ''), null, 'ef_icon=img/16/task-normal.png');
+            $row->condition .= ($row->distTime ?? '') . tr(' след началото на ') . ht::createLink($row->dependId, array('cal_Tasks', 'single', $rec->dependId, 'ret_url' => true, ''), null, 'ef_icon=img/16/task-normal.png');
         }
         
         if ($rec->activationCond == 'beforeTime') {
-            $row->condition .= $row->distTime . tr(' преди началото на ') . ht::createLink($row->dependId, array('cal_Tasks', 'single', $rec->dependId, 'ret_url' => true, ''), null, 'ef_icon=img/16/task-normal.png');
+            $row->condition .= ($row->distTime ?? '') . tr(' преди началото на ') . ht::createLink($row->dependId, array('cal_Tasks', 'single', $rec->dependId, 'ret_url' => true, ''), null, 'ef_icon=img/16/task-normal.png');
         }
         
         if ($rec->activationCond == 'afterTimeEnd') {
-            $row->condition .= $row->distTime . tr(' след края на ') . ht::createLink($row->dependId, array('cal_Tasks', 'single', $rec->dependId, 'ret_url' => true, ''), null, 'ef_icon=img/16/task-normal.png');
+            $row->condition .= ($row->distTime ?? '') . tr(' след края на ') . ht::createLink($row->dependId, array('cal_Tasks', 'single', $rec->dependId, 'ret_url' => true, ''), null, 'ef_icon=img/16/task-normal.png');
         }
         
         if ($rec->activationCond == 'beforeTimeEnd') {
-            $row->condition .= $row->distTime . tr(' преди края на ') . ht::createLink($row->dependId, array('cal_Tasks', 'single', $rec->dependId, 'ret_url' => true, ''), null, 'ef_icon=img/16/task-normal.png');
+            $row->condition .= ($row->distTime ?? '') . tr(' преди края на ') . ht::createLink($row->dependId, array('cal_Tasks', 'single', $rec->dependId, 'ret_url' => true, ''), null, 'ef_icon=img/16/task-normal.png');
         }
     }
     
