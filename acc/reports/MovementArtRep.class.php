@@ -19,6 +19,12 @@
 class acc_reports_MovementArtRep extends frame2_driver_TableData
 {
     /**
+     * До колко пера журналът се филтрира по артикулите от справката
+     */
+    const MAX_ITEMS_IN_JOURNAL_FILTER = 10000;
+
+
+    /**
      * Кой може да избира драйвъра
      */
     public $canSelectDriver = 'ceo, acc, repAll, repAllGlobal';
@@ -275,12 +281,22 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
         acc_JournalDetails::filterQuery($jQuery, $from, $to);
         $jQuery->show('debitAccId,debitItem1,debitItem2,debitItem3,debitQuantity,creditAccId,creditItem1,creditItem2,creditItem3,creditQuantity,docType');
 
+        // Четенето тръгва по сметката, а не по перото - при дълъг списък пера оптимизаторът
+        // иначе минава по индекса на перото и заявката се разпада на хиляди обхождания
+        $jQuery->useIndex('debit_acc_id');
+        $jQuery->useIndex('credit_acc_id');
+
         // Само перата от справката - записите с други артикули не влизат в никоя сума
-        $itemsIn = implode(',', array_map('intval', $productItemIds));
+        $debitFilter = $creditFilter = '';
+        if (countR($productItemIds) <= self::MAX_ITEMS_IN_JOURNAL_FILTER) {
+            $itemsIn = implode(',', array_map('intval', $productItemIds));
+            $debitFilter = " AND #debitItem2 IN ({$itemsIn})";
+            $creditFilter = " AND #creditItem2 IN ({$itemsIn})";
+        }
 
         // Двата клона не се застъпват, за да не се броят по два пъти записите с 321 от двете страни
-        $jQuery->setUnion("#debitAccId = {$acc['321']} AND #debitItem2 IN ({$itemsIn})");
-        $jQuery->setUnion("#creditAccId = {$acc['321']} AND (#debitAccId IS NULL OR #debitAccId != {$acc['321']}) AND #creditItem2 IN ({$itemsIn})");
+        $jQuery->setUnion("#debitAccId = {$acc['321']}{$debitFilter}");
+        $jQuery->setUnion("#creditAccId = {$acc['321']} AND (#debitAccId IS NULL OR #debitAccId != {$acc['321']}){$creditFilter}");
         $jQuery->useUnionAll = true;
 
         $jQuery->selectOnProxy();
