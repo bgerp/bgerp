@@ -12,6 +12,8 @@
  * @copyright 2006 - 2024 Experta OOD
  * @license   GPL 3
  *
+ * @deprecated Използвайте doc_Folders с callOnReplica() или selectOnReplica().
+ *
  * @since     v 0.1
  */
 class doc_FoldersProxy extends core_Master
@@ -26,11 +28,10 @@ class doc_FoldersProxy extends core_Master
 
 
     /**
-    /**
      * Описание на модела
      */
     public function description()
     {
-        $this->forceProxy('doc_Folders');
+        $this->forceReplica('doc_Folders');
     }
 }

@@ -35,7 +35,7 @@ class bgerp_drivers_TasksGantt extends core_BaseClass
         ));
         $fieldset->FLD('search', 'varchar', 'caption=Филтри->Ключови думи,inputmode=search,hint=Търсене в заглавието и описанието както в списъка със задачи');
         $fieldset->FLD('stateTask', cal_Tasks::getStateTaskFilterType(), 'caption=Филтри->Състояние');
-        $fieldset->FLD('folder', 'key2(mvc=doc_FoldersProxy,allowEmpty,selectSourceArr=doc_Folders::getSelectArr,forceProxy)', 'caption=Филтри->Папка');
+        $fieldset->FLD('folder', 'key2(mvc=doc_Folders,forceReplica,allowEmpty,selectSourceArr=doc_Folders::getSelectArr)', 'caption=Филтри->Папка');
         $fieldset->FLD('assetResourceId', cal_Tasks::getAssetResourceFilterType(), 'caption=Филтри->Ресурси');
         $fieldset->FLD('stepId', clone $Tasks->getFieldType('stepId'), 'caption=Филтри->Относно');
         $fieldset->FLD('progress', 'percent(min=0,max=1,decimals=0)', 'caption=Филтри->Минимален прогрес');

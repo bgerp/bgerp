@@ -12,6 +12,8 @@
  * @copyright 2006 - 2024 Experta OOD
  * @license   GPL 3
  *
+ * @deprecated Използвайте doc_Linked с callOnReplica() или selectOnReplica().
+ *
  * @since     v 0.1
  */
 class doc_LinkedProxy extends core_Manager
@@ -25,11 +27,10 @@ class doc_LinkedProxy extends core_Manager
 
 
     /**
-    /**
      * Описание на модела
      */
     public function description()
     {
-        $this->forceProxy('doc_Linked');
+        $this->forceReplica('doc_Linked');
     }
 }

@@ -289,6 +289,7 @@ class core_Manager extends core_Mvc
      * Помощна функция, която форсира използване на друга БД
      * Обвивка към forceReplica() - запазена за съвместимост
      *
+     * @deprecated Използвайте forceReplica().
      * @param string $clsName
      *
      * @return void
@@ -303,6 +304,7 @@ class core_Manager extends core_Mvc
      * Помощна функция, която спира форсираното използване на друга БД
      * Обвивка към unforceReplica() - запазена за съвместимост
      *
+     * @deprecated Използвайте unforceReplica().
      * @param string $clsName
      *
      * @return void
@@ -317,6 +319,7 @@ class core_Manager extends core_Mvc
      * Изпълнява подадения код на репликата и връща връзката към основната база
      * Обвивка към callOnReplica() - запазена за съвместимост
      *
+     * @deprecated Използвайте callOnReplica().
      * @param callable $callback
      *
      * @return mixed

@@ -1560,7 +1560,7 @@ class cal_Tasks extends embed_Manager
         $data->listFilter->FNC('Chart', 'varchar', 'caption=Таблица,input=hidden,silent,autoFilter');
         $data->listFilter->FNC('View', 'varchar', 'caption=Изглед,input=hidden,silent,autoFilter');
         $data->listFilter->FNC('stateTask', self::getStateTaskFilterType(), 'caption=Състояние,input,silent,autoFilter');
-        $data->listFilter->FNC('folder', 'key2(mvc=doc_FoldersProxy, allowEmpty, selectSourceArr=doc_Folders::getSelectArr, forceProxy)', 'caption=Папка,placeholderType=all,silent,autoFilter,input');
+        $data->listFilter->FNC('folder', 'key2(mvc=doc_Folders,forceReplica, allowEmpty, selectSourceArr=doc_Folders::getSelectArr)', 'caption=Папка,placeholderType=all,silent,autoFilter,input');
         $data->listFilter->setOptions('stepId', doc_UnsortedFolderSteps::getOptionArr());
         $data->listFilter->setField('stepId', 'placeholderType=all');
         $data->listFilter->setField('assetResourceId', 'placeholderType=all');
