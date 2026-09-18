@@ -202,7 +202,7 @@ class doc_Linked extends core_Manager
      */
     public static function getRecsForType($type, $id, $showRejecte = true, $limit = 100, $Pager = null)
     {
-        $query = doc_LinkedProxy::getQuery();
+        $query = self::getQuery();
         
         if (!$showRejecte) {
             $query->where("#state != 'rejected'");
@@ -215,14 +215,18 @@ class doc_Linked extends core_Manager
         if (isset($Pager)) {
             $query->where(array("#outType = '[#1#]' AND #outVal = '[#2#]'", $type, $id));
             $query->orWhere(array("#inType = '[#1#]' AND #inVal = '[#2#]'", $type, $id));
-
-            $Pager->setLimit($query);
         } else {
             $query->setUnion(array("#outType = '[#1#]' AND #outVal = '[#2#]'", $type, $id));
             $query->setUnion(array("#inType = '[#1#]' AND #inVal = '[#2#]'", $type, $id));
         }
 
-        $recArr = $query->fetchAll();
+        $recArr = $query->mvc->callOnReplica(function () use ($query, $Pager) {
+            if (isset($Pager)) {
+                $Pager->setLimit($query);
+            }
+
+            return $query->fetchAll();
+        });
 
         return $recArr;
     }
@@ -733,7 +737,7 @@ class doc_Linked extends core_Manager
                 $unsetStr = ",unsetId={$originFId}";
             }
             
-            $form->FNC('linkFolderId', 'key2(forceAjax, mvc=doc_FoldersProxy, titleFld=title, maxSuggestions=100, selectSourceArr=doc_Linked::prepareFoldersForDoc, allowEmpty, docType=' . ($form->rec->linkDocType ?? '') . ", showWithDocs{$unsetStr})", 'caption=Папка, class=w100, input, removeAndRefreshForm=linkContainerId');
+            $form->FNC('linkFolderId', 'key2(forceAjax, mvc=doc_Folders,forceReplica, titleFld=title, maxSuggestions=100, selectSourceArr=doc_Linked::prepareFoldersForDoc, allowEmpty, docType=' . ($form->rec->linkDocType ?? '') . ", showWithDocs{$unsetStr})", 'caption=Папка, class=w100, input, removeAndRefreshForm=linkContainerId');
             $form->input();
 
             $form->FNC('linkContainerId', 'key2(forceAjax, mvc=doc_Search, titleFld=id, maxSuggestions=100, selectSourceArr=doc_Linked::prepareLinkDocId, allowEmpty, docType=' . ($form->rec->linkDocType ?? '') . ', folderId=' . ($form->rec->linkFolderId ?? '') . "{$unsetStr})", 'caption=Документ, class=w100, input, mandatory, refreshForm');
@@ -756,7 +760,7 @@ class doc_Linked extends core_Manager
             $form->input();
             
             if (!empty($form->rec->linkDocType)) {
-                $form->FNC('linkFolderId', 'key2(forceAjax, mvc=doc_FoldersProxy, titleFld=title, maxSuggestions=100, selectSourceArr=doc_Linked::prepareFoldersForDoc, allowEmpty, docType=' . $form->rec->linkDocType . ')', 'caption=Папка, class=w100, input, mandatory, removeAndRefreshForm=linkThreadId');
+                $form->FNC('linkFolderId', 'key2(forceAjax, mvc=doc_Folders,forceReplica, titleFld=title, maxSuggestions=100, selectSourceArr=doc_Linked::prepareFoldersForDoc, allowEmpty, docType=' . $form->rec->linkDocType . ')', 'caption=Папка, class=w100, input, mandatory, removeAndRefreshForm=linkThreadId');
                 $form->input();
                 
                 $dInst = cls::get($form->rec->linkDocType);
@@ -769,7 +773,7 @@ class doc_Linked extends core_Manager
                         $mandatory = ' ,mandatory';
                     }
                     
-                    $form->FNC('linkThreadId', 'key2(forceAjax, mvc=doc_ThreadsProxy, titleFld=firstContainerId, maxSuggestions=100, selectSourceArr=doc_Linked::prepareThreadsForDoc, allowEmpty, docType=' . $form->rec->linkDocType . ', folderId=' . $form->rec->linkFolderId . ')', "caption=Нишка, class=w100, input, refreshForm{$mandatory}");
+                    $form->FNC('linkThreadId', 'key2(forceAjax, mvc=doc_Threads,forceReplica, titleFld=firstContainerId, maxSuggestions=100, selectSourceArr=doc_Linked::prepareThreadsForDoc, allowEmpty, docType=' . $form->rec->linkDocType . ', folderId=' . $form->rec->linkFolderId . ')', "caption=Нишка, class=w100, input, refreshForm{$mandatory}");
                 }
             }
         }
@@ -966,7 +970,7 @@ class doc_Linked extends core_Manager
             }
         }
         
-        $query = doc_LinkedProxy::getQuery();
+        $query = self::getQuery();
         $query->where("#state = 'active'");
         $query->orderBy('createdOn', 'DESC');
         $query->limit($qLimit);
@@ -1057,6 +1061,7 @@ class doc_Linked extends core_Manager
         $actStr = '';
         foreach ($qArr as $q) {
             $actTypeArr = array();
+            $q->selectOnReplica();
             while ($rec = $q->fetch()) {
                 if (!$rec->actType) {
                     continue;
@@ -1483,6 +1488,7 @@ class doc_Linked extends core_Manager
     {
         $limit = $limit ?? $params['maxSuggestions'] ?? 100;
         $res = array();
+        $docTypeInst = null;
         
         if (!empty($params['docType'])) {
             $docTypeInst = cls::get($params['docType']);
@@ -1538,7 +1544,7 @@ class doc_Linked extends core_Manager
                         }
                         
                         if ($docTypeInst) {
-                            if ($docTypeInst->onlyFirstInThread || !$docTypeInst->canAddToThread($tId)) {
+                            if (!empty($docTypeInst->onlyFirstInThread) || !$docTypeInst->canAddToThread($tId)) {
                                 continue;
                             }
                             
@@ -1600,7 +1606,7 @@ class doc_Linked extends core_Manager
             }
             
             if ($docTypeInst) {
-                if ($docTypeInst->onlyFirstInThread || !$docTypeInst->canAddToThread($rec->id)) {
+                if (!empty($docTypeInst->onlyFirstInThread) || !$docTypeInst->canAddToThread($rec->id)) {
                     continue;
                 }
                 

@@ -340,9 +340,15 @@ class cat_Products extends embed_Manager
 
 
     /**
-     * Прокси клас, който да се използва за търсенето в листа
+     * Листване от репликата
      */
-    public $listFilterProxyTable = 'cat_ProductsProxy';
+    public function act_List()
+    {
+        return $this->callOnReplica(function () {
+
+            return parent::act_List();
+        });
+    }
 
 
     /**

@@ -669,78 +669,162 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
     {
         core_Debug::startTimer('CHANGE_UOM_TO_KG');
 
-        $res = $weightMeasuresId = array();
-        $kgMeasureId = null;
-        $query = cat_UoM::getQuery();
-        $query->in('name', array('килограм', 'тон', 'грам'));
-        while ($qRec = $query->fetch()) {
-
-            $weightMeasuresId[$qRec->id] = $qRec->id;
-            if ($qRec->name == 'килограм') {
-                $kgMeasureId = $qRec->id;
-            }
-        }
-
-        if (!$kgMeasureId) {
-            $kgMeasure = cat_UoM::fetchBySysId('kg');
-            $kgMeasureId = $kgMeasure->id ?? null;
-        }
+        $kgMeasure = cat_UoM::fetchBySysId('kg');
+        $kgMeasureId = $kgMeasure->id ?? null;
         if (!$kgMeasureId) {
             core_Debug::stopTimer('CHANGE_UOM_TO_KG');
 
             return $recs;
         }
 
-        $res = $recs;
-        foreach ($recs as $key => $val) {
+        // Тегловни са всички сродни на килограма мерки, включително оттеглените
+        $weightMeasures = cat_UoM::getSameTypeMeasures($kgMeasureId, false, false);
+        unset($weightMeasures['']);
 
-            if (!in_array($val->measureId, $weightMeasuresId)) {
-
-                //Взема единичното тегло на целия продукт
-                $singleProductWeight = null;
-                $singleProductWeight = cat_Products::getParams($val->productId, 'weight');
-
-                if ($singleProductWeight) {
-                    $singleProductWeight = $singleProductWeight / 1000;
-                } else {
-                    $singleProductWeight = cat_Products::getParams($val->productId, 'weightKg');
-                }
-
-                //Ако няма въведени параметри за единично тегло взема втората мярка, ако е кг.
-                if (!$singleProductWeight) {
-                    $prodInfo = cat_Products::getProductInfo($val->productId);
-                    if(!empty($prodInfo->packagings)){
-                        foreach ($prodInfo->packagings as $measure){
-                            if(($measure->isSecondMeasure ?? 'no') == 'yes' && !empty($measure->quantity)){
-                                $singleProductWeight = 1 / $measure->quantity;
-                            }
-                        }
-                    }
-
-                }
-                if ($singleProductWeight) {
-                    $res[$key]->baseQuantity = $val->baseQuantity * $singleProductWeight;
-                    $res[$key]->delivered = $val->delivered * $singleProductWeight;
-                    $res[$key]->converted = $val->converted * $singleProductWeight;
-                    $res[$key]->produced = $val->produced * $singleProductWeight;
-                    $res[$key]->sold = $val->sold * $singleProductWeight;
-                    $res[$key]->blQuantity = $val->blQuantity * $singleProductWeight;
-                    $res[$key]->measureId = $kgMeasureId;
-                    $res[$key]->singleWeight = $singleProductWeight;
-
-                } else {
-                    $res[$key]->baseQuantity = 0;
-                    $res[$key]->delivered = 0;
-                    $res[$key]->converted = 0;
-                    $res[$key]->produced = 0;
-                    $res[$key]->sold = 0;
-                    $res[$key]->blQuantity = 0;
-                    $res[$key]->measureId = $kgMeasureId;
-                    $res[$key]->singleWeight = $singleProductWeight;
-                }
+        // Данните за артикулите се четат наведнъж, вместо с отделни заявки за всеки ред
+        $productIds = array();
+        foreach ($recs as $val) {
+            if (!isset($weightMeasures[$val->measureId])) {
+                $productIds[$val->productId] = $val->productId;
             }
         }
+        self::preloadProductData($productIds);
+        $secondMeasures = self::getSecondMeasuresInKg($productIds);
+
+        // Изключва преизчисляването на параметрите - иначе драйверът ги преизчислява и записва
+        Mode::push('doNotCalculate', true);
+
+        $res = $recs;
+        try {
+            foreach ($recs as $key => $val) {
+
+                if (!isset($weightMeasures[$val->measureId])) {
+
+                    //Взема единичното тегло на целия продукт
+                    $singleProductWeight = null;
+                    $singleProductWeight = cat_Products::getParams($val->productId, 'weight');
+
+                    if ($singleProductWeight) {
+                        $singleProductWeight = $singleProductWeight / 1000;
+                    } else {
+                        $singleProductWeight = cat_Products::getParams($val->productId, 'weightKg');
+                    }
+
+                    //Ако няма въведени параметри за единично тегло взема втората мярка, ако е кг.
+                    if (!$singleProductWeight) {
+                        if (isset($secondMeasures[$val->productId])) {
+                            $singleProductWeight = $secondMeasures[$val->productId];
+                        }
+                    }
+                    if ($singleProductWeight) {
+                        $res[$key]->baseQuantity = $val->baseQuantity * $singleProductWeight;
+                        $res[$key]->delivered = $val->delivered * $singleProductWeight;
+                        $res[$key]->converted = $val->converted * $singleProductWeight;
+                        $res[$key]->produced = $val->produced * $singleProductWeight;
+                        $res[$key]->sold = $val->sold * $singleProductWeight;
+                        $res[$key]->blQuantity = $val->blQuantity * $singleProductWeight;
+                        $res[$key]->measureId = $kgMeasureId;
+                        $res[$key]->singleWeight = $singleProductWeight;
+
+                    } else {
+                        $res[$key]->baseQuantity = 0;
+                        $res[$key]->delivered = 0;
+                        $res[$key]->converted = 0;
+                        $res[$key]->produced = 0;
+                        $res[$key]->sold = 0;
+                        $res[$key]->blQuantity = 0;
+                        $res[$key]->measureId = $kgMeasureId;
+                        $res[$key]->singleWeight = $singleProductWeight;
+                    }
+                }
+            }
+        } finally {
+            Mode::pop('doNotCalculate');
+        }
+
         core_Debug::stopTimer('CHANGE_UOM_TO_KG');
+
+        return $res;
+    }
+
+
+    /**
+     * Зарежда наведнъж данните, които иначе се четат за всеки артикул поотделно
+     *
+     * @param array $productIds - ид-та на артикулите
+     *
+     * @return void
+     *
+     * @author Ivelin Dimov <ivelin_pdimov@abv.bg>
+     */
+    private static function preloadProductData($productIds)
+    {
+        if (!countR($productIds)) return;
+
+        // Записите на артикулите - иначе cat_Products::getParams() чете всеки артикул поотделно
+        $Products = cls::get('cat_Products');
+        $pQuery = $Products->getQuery();
+        $pQuery->in('id', $productIds);
+        while ($pRec = $pQuery->fetch()) {
+            $Products->_cachedRecords[$pRec->id . '|*'] = $pRec;
+        }
+
+        $classId = cat_Products::getClassId();
+        $paramIds = array();
+        foreach (array('weight', 'weightKg') as $sysId) {
+            if ($paramId = cat_Params::fetchIdBySysId($sysId)) {
+                $paramIds[$paramId] = $paramId;
+            }
+        }
+
+        if (!countR($paramIds)) return;
+
+        $values = array();
+        $Params = cls::get('cat_products_Params');
+        $vQuery = $Params->getQuery();
+        $vQuery->in('productId', $productIds);
+        $vQuery->in('paramId', $paramIds);
+        $vQuery->where("#classId = {$classId}");
+        $vQuery->show('productId,paramId,paramValue');
+        while ($vRec = $vQuery->fetch()) {
+            $values[$vRec->productId][$vRec->paramId] = $vRec;
+        }
+
+        // Ключът е същият, който ползва cat_products_Params::fetchParamValue(), за да минат
+        // през кеша и заявките на драйвъра, без да се заобикаля самият драйвър
+        foreach ($productIds as $productId) {
+            foreach ($paramIds as $paramId) {
+                $cacheKey = "#productId = {$productId} AND #paramId = {$paramId} AND #classId = {$classId}|paramValue";
+                $Params->_cachedRecords[$cacheKey] = $values[$productId][$paramId] ?? false;
+            }
+        }
+    }
+
+
+    /**
+     * Единичните тегла от втора мярка в кг, по артикули
+     *
+     * @param array $productIds - ид-та на артикулите
+     *
+     * @return array - ид на артикул => единично тегло
+     *
+     * @author Ivelin Dimov <ivelin_pdimov@abv.bg>
+     */
+    private static function getSecondMeasuresInKg($productIds)
+    {
+        $res = array();
+        if (!countR($productIds)) return $res;
+
+        $pQuery = cat_products_Packagings::getQuery();
+        $pQuery->in('productId', $productIds);
+        $pQuery->where("#isSecondMeasure = 'yes'");
+        $pQuery->show('productId,quantity');
+        $pQuery->orderBy('#id', 'ASC');
+        while ($pRec = $pQuery->fetch()) {
+            if (!empty($pRec->quantity)) {
+                $res[$pRec->productId] = 1 / $pRec->quantity;
+            }
+        }
 
         return $res;
     }

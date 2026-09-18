@@ -111,7 +111,7 @@ class doc_UnsortedFolderSteps extends core_Master
         $this->FLD('code', 'varchar(16)', 'caption=Код,mandatory');
         $this->FLD('lastUsedOn', 'datetime(format=smartTime)', 'caption=Последна употреба,input=none,column=none');
         $this->FLD('description', 'richtext(rows=2,bucket=Notes)', 'caption=Допълнително->Описание');
-        $this->FLD('productSteps', 'keylist(mvc=cat_ProductsProxy,select=name)', 'caption=Допълнително->Произв. етапи');
+        $this->FLD('productSteps', 'keylist(mvc=cat_Products,select=name)', 'caption=Допълнително->Произв. етапи');
 
         $powerUserId = core_Roles::fetchByName('powerUser');
         $this->FLD('supportUsers', "keylist(mvc=core_Users, select=nick, where=#state !\\= \\'rejected\\' AND #roles LIKE '%|{$powerUserId}|%')", 'caption=Допълнително->Отговорници');
@@ -131,6 +131,7 @@ class doc_UnsortedFolderSteps extends core_Master
         $pQuery = cat_Products::getQuery();
         $pQuery->where("#state = 'active' && #innerClass=" . planning_interface_StepProductDriver::getClassId());
         $pQuery->show('name,nameEn,isPublic,code');
+        $pQuery->selectOnReplica();
         while($pRec = $pQuery->fetch()){
             $stepOptions[$pRec->id] = cat_Products::getRecTitle($pRec, false);
         }
