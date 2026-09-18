@@ -146,6 +146,7 @@ class price_reports_PriceList extends price_reports_PriceListProto
             $packQuery = cat_products_Packagings::getQuery();
             $packQuery->in('productId', $common->sellableProducts);
             $packQuery->where("#isBase = 'yes'");
+            $packQuery->selectOnReplica();
             while ($packRec = $packQuery->fetch()) {
                 $basePackagings[$packRec->productId] = $packRec;
             }
@@ -161,6 +162,7 @@ class price_reports_PriceList extends price_reports_PriceListProto
             $allPackQuery->in('productId', $common->sellableProducts);
             $allPackQuery->where("#state != 'closed'");
             $allPackQuery->show('eanCode,quantity,packagingId,productId');
+            $allPackQuery->selectOnReplica();
             while ($allPackRec = $allPackQuery->fetch()) {
                 $packsByProduct[$allPackRec->productId][$allPackRec->packagingId] = $allPackRec;
             }

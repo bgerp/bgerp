@@ -201,7 +201,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
     private static function selectReportQuery($query, $secondsPerRow)
     {
         core_App::setTimeLimit(300);
-        $query->selectOnProxy();
+        $query->selectOnReplica();
         core_App::setTimeLimit(max(300, $query->numRec() * $secondsPerRow));
     }
 
@@ -343,6 +343,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             $salesQuery = sales_Sales::getQuery();
             $salesQuery->where("#closedDocuments != '' OR #contoActions IS NOT NULL");
             $salesQuery->show('id,closedDocuments,contoActions');
+            $salesQuery->selectOnReplica();
             while ($sale = $salesQuery->fetch()) {
                 foreach (keylist::toArray($sale->closedDocuments ?? '') as $id) {
                     $salesUN[$id] = true;
@@ -720,6 +721,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
 
             $purchasesQuery->where("#closedDocuments != '' OR #contoActions IS NOT NULL");
             $purchasesQuery->show('id,closedDocuments,contoActions');
+            $purchasesQuery->selectOnReplica();
 
             //Масив с затварящи документи по обединени покупки  и масив с бързи покупки
             $purchasesUN = array();

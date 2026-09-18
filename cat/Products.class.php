@@ -1952,6 +1952,8 @@ class cat_Products extends embed_Manager
         core_Debug::startTimer('PRODUCT_GET_FETCH_ALL');
         if($defaultSearch){
 
+            // Търсенето обхожда всички артикули, затова SELECT-ът е на репликата. Не и цялата
+            // функция - по-долу има записи (кеш на цените). При ид-та се чете от основната БД
             $alwaysIds = array();
             if (!empty($params['favourites']) && is_array($params['favourites'])) {
                 $alwaysIds += $params['favourites'];
@@ -1968,18 +1970,22 @@ class cat_Products extends embed_Manager
 
                 if($addLimit){
                     $cloneQuery->limit($limit);
+                    $cloneQuery->selectOnReplica();
                     $foundRecs = $cloneQuery->fetchAll();
 
                     $restLimit = $limit - countR($foundRecs);
                     $query->limit($restLimit);
+                    $query->selectOnReplica();
                     $foundRecs += $query->fetchAll();
                 } else {
+                    $cloneQuery->selectOnReplica();
                     $foundRecs = $cloneQuery->fetchAll();
                 }
             } else {
                 if($addLimit){
                     $query->limit($limit);
                 }
+                $query->selectOnReplica();
                 $foundRecs = $query->fetchAll();
             }
         } else {
