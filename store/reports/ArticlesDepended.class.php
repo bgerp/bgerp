@@ -202,7 +202,7 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
         }
 
         $timer = microtime(true);
-        $pQuery->selectOnProxy();
+        $pQuery->selectOnReplica();
         $storeProductRecs = $productIds = array();
         while ($pRec = $pQuery->fetch()) {
             $storeProductRecs[] = $pRec;
@@ -313,7 +313,7 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
         $query->groupBy('creditItem1,creditItem2');
         $query->show('creditItem1,creditItem2,creditQuantitySum');
         $timer = microtime(true);
-        $query->selectOnProxy();
+        $query->selectOnReplica();
 
         // Групирането е поотделно във всеки клон на обединението, затова сумите се сливат тук
         $quantityByItems = $itemIds = array();
@@ -416,10 +416,10 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
     /**
      * Записва показател за изпълнението на справката
      *
-     * @param stdClass $data       - данните на справката
-     * @param string   $key        - ключ на показателя
-     * @param float    $seconds    - измереното време
-     * @param int      $count      - броят
+     * @param stdClass $data - данните на справката
+     * @param string   $key - ключ на показателя
+     * @param float    $seconds - измереното време
+     * @param int      $count - броят
      * @param array    $productIds - артикулите, до които се отнася
      *
      * @return void
@@ -493,7 +493,7 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
         $query->XPR('quantityTotal', 'double', 'SUM(#quantity)');
         $query->groupBy('productId');
         $query->show('productId,quantityTotal');
-        $query->selectOnProxy();
+        $query->selectOnReplica();
 
         while ($qRec = $query->fetch()) {
             $res[$qRec->productId] = $qRec->quantityTotal ?? 0;
@@ -518,7 +518,7 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
         $query = acc_Items::getQuery();
         $query->in('id', $itemIds);
         $query->show('id,objectId,classId');
-        $query->selectOnProxy();
+        $query->selectOnReplica();
 
         while ($iRec = $query->fetch()) {
             $res[$iRec->id] = $iRec;
@@ -575,7 +575,7 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
             $i=0;
             foreach ($dRec->array as $val) {
                 $i++;
-                $row->productId = ($row->productId ?? '') . $i.'>>'.cat_Products::getLinkToSingle_($val, 'name') . '</br>';
+                $row->productId = ($row->productId ?? '') . $i.'>>'.cat_Products::getVerbal($val, 'name') . '</br>';
             }
 
             return $row;
@@ -585,7 +585,7 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
             $row->code = $dRec->code;
         }
         if (isset($dRec->productId)) {
-            $row->productId = cat_Products::getLinkToSingle_($dRec->productId, 'name');
+            $row->productId = cat_Products::getVerbal($dRec->productId, 'name');
         }
 
         $measureId = cat_Products::fetchField($dRec->productId, 'measureId');

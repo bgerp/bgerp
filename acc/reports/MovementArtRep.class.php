@@ -2,17 +2,13 @@
 
 
 /**
- * Мениджър на отчети за продукти по групи
+ * Мениджър на отчети за Счетоводство » Движения на материали
  *
- *
- *
- * @category  extrapack
+ * @category  бгерп
  * @package   acc
- *
- * @author    Gabriela Petrova <gab4eto@gmail.com> и Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2017 Experta OOD
+ * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
+ * @copyright 2006 - 2026 Experta OOD
  * @license   GPL 3
- *
  * @since     v 0.1
  * @title     Счетоводство » Движения на материали
  */
@@ -42,6 +38,8 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
         'journal' => 'Записи от журнала',
         'rows' => 'Редове в справката',
         'uomKg' => 'Обърнати в кг',
+        'uomPreload' => 'Заредени параметри за тегло',
+        'uomSecond' => 'Втори мерки в кг',
         'withoutWeight' => 'Без тегло (нулирани)',
         'grouped' => 'Редове след групиране',
         'zeroRows' => 'От тях изцяло нулеви',
@@ -55,10 +53,9 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
      */
     public $canSelectDriver = 'ceo, acc, repAll, repAllGlobal';
 
-         /**
+
+    /**
       * Кои полета от таблицата в справката да се сумират в обобщаващия ред
-      *
-      * @var int
       */
      protected $summaryListFields = 'baseQuantity,delivered,produced,converted,sold,blQuantity';
 
@@ -96,7 +93,6 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
         $fieldset->FLD('to', 'date', 'caption=До,after=from');
         $fieldset->FLD('group', 'keylist(mvc=cat_Groups,select=name)', 'caption=Група,placeholderType=all,after=to,single=none');
         $fieldset->FLD('uomKg', 'enum(base=Основна, weight=Тегловна)', 'notNull,caption=Мярка,maxRadio=2,after=group,single=none');
-
     }
 
 
@@ -110,17 +106,8 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
     protected static function on_AfterPrepareEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$data)
     {
         $form = $data->form;
-        $rec = $form->rec;
 
         $form->setDefault('uomKg', 'base');
-
-        /*$form = &$data->form;
-        $periods = acc_Periods::getCalcedPeriods(true);
-        $form->setOptions('from', array('' => '') + $periods);
-        $form->setOptions('to', array('' => '') + $periods);
-        
-        $lastPeriod = acc_Periods::fetchByDate(dt::addMonths(-1, dt::now()));
-        $form->setDefault('from', $lastPeriod->id);*/
     }
 
 
@@ -141,22 +128,6 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
             if (cat_Groups::checkForNestedGroups($rec->group ?? null)) {
                 $form->setError('group', 'Избрани са вложени групи');
             }
-
-            // Размяна, ако периодите са объркани
-            /*if (isset($rec->from, $rec->to)) {
-                $from = acc_Periods::fetch($rec->from);
-                $to = acc_Periods::fetch($rec->to);
-                
-                if ($from->start > $to->start) {
-                    $rec->from = $to->id;
-                    $rec->to = $from->id;
-                }
-            }
-            bp($rec->from, $rec->to, $rec);
-            if (empty($rec->to)) {
-                $currentPeriod = acc_Periods::fetchByDate(dt::today());
-                $rec->to = $currentPeriod->id;
-            }*/
         }
     }
 
@@ -179,7 +150,7 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
 
         // Обръщаме се към продуктите и търсим всички складируеми и неоттеглени продукти
         $query = cat_Products::getQuery();
-        $query->where("#state = 'active' OR #state = 'closed'");
+        $query->in('state', array('active', 'closed'));
         $query->where("#canStore = 'yes'");
         $query->show('id,measureId,code,groups');
 
@@ -195,6 +166,7 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
         $iQuery->show('id,objectId');
 
         $timer = microtime(true);
+        $iQuery->selectOnReplica();
         while ($iRec = $iQuery->fetch()) {
             $productItems[$iRec->objectId] = $iRec->id;
         }
@@ -202,16 +174,17 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
 
         // Артикул без перо не дава ред, затова не се и пази
         $timer = microtime(true);
-        $productArr = $readProducts = array();
+        $productArr = array();
+        $readProducts = 0;
+        $query->selectOnReplica();
         while ($pRec = $query->fetch()) {
-            $readProducts[$pRec->id] = true;
+            $readProducts++;
             if (empty($productItems[$pRec->id])) continue;
 
             $productArr[$pRec->id] = $pRec;
         }
-        self::setStat($data, 'products', microtime(true) - $timer, countR($readProducts));
+        self::setStat($data, 'products', microtime(true) - $timer, $readProducts);
         self::setStat($data, 'withItem', 0, countR($productArr));
-        unset($readProducts);
 
         // За журнала и за салдата важат само перата на артикулите от справката
         $reportItems = array_intersect_key($productItems, $productArr);
@@ -327,8 +300,8 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
      *
      * @param string $from
      * @param string $to
-     * @param array  $productItemIds - перата на артикулите в справката
-     * @param stdClass $data           - данните на справката, за диагностиката
+     * @param array $productItemIds - перата на артикулите в справката
+     * @param stdClass $data - данните на справката, за диагностиката
      *
      * @return array - вид движение => (ид на перо => количество)
      */
@@ -373,7 +346,7 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
         $jQuery->useUnionAll = true;
 
         $timer = microtime(true);
-        $jQuery->selectOnProxy();
+        $jQuery->selectOnReplica();
         self::setStat($data, 'journal', microtime(true) - $timer, $jQuery->numRec());
 
         while ($jRec = $jQuery->fetch()) {
@@ -738,6 +711,24 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
         return false;
     }
 
+
+    /**
+     * Стойността на тегловния параметър, само ако е валидно число
+     *
+     * @param int $productId
+     * @param string $name
+     *
+     * @return float|NULL
+     */
+    private static function getWeightParam($productId, $name)
+    {
+        $value = cat_Products::getParams($productId, $name);
+
+        // Повреден параметър - NAN минава за валидно тегло и занулява целия ред
+        return (is_float($value) && !is_finite($value)) ? null : $value;
+    }
+    
+    
     public function changeUomToKg($recs, &$data = null)
     {
         core_Debug::startTimer('CHANGE_UOM_TO_KG');
@@ -762,8 +753,13 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
                 $productIds[$val->productId] = $val->productId;
             }
         }
+        $stepTimer = microtime(true);
         self::preloadProductData($productIds);
+        self::setStat($data, 'uomPreload', microtime(true) - $stepTimer, countR($productIds));
+
+        $stepTimer = microtime(true);
         $secondMeasures = self::getSecondMeasuresInKg($productIds);
+        self::setStat($data, 'uomSecond', microtime(true) - $stepTimer, countR($secondMeasures));
 
         // Изключва преизчисляването на параметрите - иначе драйверът ги преизчислява и записва
         Mode::push('doNotCalculate', true);
@@ -777,12 +773,12 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
 
                     //Взема единичното тегло на целия продукт
                     $singleProductWeight = null;
-                    $singleProductWeight = cat_Products::getParams($val->productId, 'weight');
+                    $singleProductWeight = self::getWeightParam($val->productId, 'weight');
 
                     if ($singleProductWeight) {
                         $singleProductWeight = $singleProductWeight / 1000;
                     } else {
-                        $singleProductWeight = cat_Products::getParams($val->productId, 'weightKg');
+                        $singleProductWeight = self::getWeightParam($val->productId, 'weightKg');
                     }
 
                     //Ако няма въведени параметри за единично тегло взема втората мярка, ако е кг.
@@ -829,11 +825,11 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
     /**
      * Записва показател за изпълнението на справката
      *
-     * @param stdClass $data       - данните на справката
-     * @param string   $key        - ключ на показателя
-     * @param float    $seconds    - измереното време
-     * @param int      $count      - броят
-     * @param array    $productIds - артикулите, до които се отнася
+     * @param stdClass $data - данните на справката
+     * @param string $key - ключ на показателя
+     * @param float $seconds - измереното време
+     * @param int $count - броят
+     * @param array $productIds - артикулите, до които се отнася
      *
      * @return void
      */
@@ -860,7 +856,6 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
      * Зарежда наведнъж данните, които иначе се четат за всеки артикул поотделно
      *
      * @param array $productIds - ид-та на артикулите
-     *
      * @return void
      */
     private static function preloadProductData($productIds)
@@ -871,6 +866,7 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
         $Products = cls::get('cat_Products');
         $pQuery = $Products->getQuery();
         $pQuery->in('id', $productIds);
+        $pQuery->selectOnReplica();
         while ($pRec = $pQuery->fetch()) {
             $Products->_cachedRecords[$pRec->id . '|*'] = $pRec;
         }
@@ -892,6 +888,7 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
         $vQuery->in('paramId', $paramIds);
         $vQuery->where("#classId = {$classId}");
         $vQuery->show('productId,paramId,paramValue');
+        $vQuery->selectOnReplica();
         while ($vRec = $vQuery->fetch()) {
             $values[$vRec->productId][$vRec->paramId] = $vRec;
         }
@@ -924,6 +921,7 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
         $pQuery->where("#isSecondMeasure = 'yes'");
         $pQuery->show('productId,quantity');
         $pQuery->orderBy('#id', 'ASC');
+        $pQuery->selectOnReplica();
         while ($pRec = $pQuery->fetch()) {
             if (!empty($pRec->quantity)) {
                 $res[$pRec->productId] = 1 / $pRec->quantity;
