@@ -181,7 +181,7 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
 
         // Начални количества във всички складове, групирани по артикули
         $baseQuantities = $this->getBaseQuantities($rec, array_flip($productItems));
-        $this->logWhilePreparing('Артикули: ' . countR($productArr) . ', с начално салдо: ' . countR($baseQuantities));
+        $this->logWhilePreparing('Артикули: ' . countR($productArr) . ', с пера: ' . countR($productItems) . ', с начално салдо: ' . countR($baseQuantities));
 
         // Движенията в периода, сумирани по перо с едно четене на журнала
         $movements = $this->aggregateMovements($rec->from, $rec->to, array_values($productItems));
@@ -221,6 +221,7 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
 
         $data->groupByField = 'groupId';
         $recs = $this->groupRecs($recs, $rec->group, $data);
+        $this->logWhilePreparing('Редове след групиране: ' . countR($recs));
 
         return $recs;
     }

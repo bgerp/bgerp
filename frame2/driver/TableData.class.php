@@ -375,6 +375,8 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
      */
     protected function renderTable($rec, &$data)
     {
+        core_Debug::startTimer('RENDER_REPORT_TABLE');
+        core_Debug::log('Редове за рендиране: ' . countR($data->recs ?? null));
         $tpl = new core_ET('');
         $customTpl = $this->getReportLayoutTpl($rec);
 
@@ -471,7 +473,11 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
 
         // Рендиране на кустом изгледа
         $customLayout = $this->renderCustomLayout($rec, $data);
-        if($customLayout instanceof core_ET) return $customLayout;
+        if($customLayout instanceof core_ET) {
+            core_Debug::stopTimer('RENDER_REPORT_TABLE');
+
+            return $customLayout;
+        }
 
         // Филтриране на празните колони и рендиране на таблицата
         $table = cls::get('core_TableView', array('mvc' => $fld));
@@ -484,6 +490,8 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
             $tpl->replace($data->Pager->getHtml(), 'PAGER_TOP');
             $tpl->replace($data->Pager->getHtml(), 'PAGER_BOTTOM');
         }
+
+        core_Debug::stopTimer('RENDER_REPORT_TABLE');
 
         return $tpl;
     }
@@ -502,6 +510,7 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
      */
     private function orderByGroupField($recs, $groupField, $sortFld = null, $sortDirection = null, $subGroupFieldOrder = null)
     {
+        core_Debug::startTimer('ORDER_BY_GROUP_FIELD');
         $newRecs = array();
 
         if ($recs) {
@@ -512,19 +521,21 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
             }
         }
 
+        // Записите се разпределят по групи с едно обхождане - при обхождане на всички записи
+        // за всеки запис времето расте квадратично и при няколко хиляди реда справката спира
+        $groupedRecs = array();
         foreach ($recs as $i => $r) {
-            
-            // Извличане на тези записи от със същата стойност за групиране
-            $groupedArr = array($i => $r);
-
             $groupValue = $r->{$groupField} ?? null;
-            $subArr = array_filter($recs, function ($a) use ($groupValue, $groupField) {
-                return (($a->{$groupField} ?? null) == $groupValue);
-            });
+            if ($groupValue === null) {
+                $groupValue = '';
+            } elseif (!is_int($groupValue) && !is_string($groupValue)) {
+                $groupValue = is_scalar($groupValue) ? (string) $groupValue : serialize($groupValue);
+            }
 
-            // Сортират се допълнително ако е указано
-            $groupedArr += $subArr;
+            $groupedRecs[$groupValue][$i] = $r;
+        }
 
+        foreach ($groupedRecs as $groupedArr) {
             $this->sortRecsByDirection($groupedArr, $sortFld, $sortDirection);
 
             // Сортира се вътре във всяка група по втори показател $subGroupFieldOrder ако не е null
@@ -534,6 +545,8 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
 
             $newRecs += $groupedArr;
         }
+
+        core_Debug::stopTimer('ORDER_BY_GROUP_FIELD');
 
         return $newRecs;
     }
