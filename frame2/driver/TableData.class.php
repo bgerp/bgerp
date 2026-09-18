@@ -495,8 +495,47 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
 
         return $tpl;
     }
-    
-    
+
+
+    /**
+     * Добавя готов ред към диагностиката на справката
+     *
+     * Драйверът решава какво и как да пише - тук се пази само редът
+     *
+     * @param stdClass $data - данните на справката
+     * @param string   $key  - ключ на реда
+     * @param string   $msg  - готовият текст, може и с хтмл
+     *
+     * @return void
+     */
+    protected static function setReportStat(&$data, $key, $msg)
+    {
+        if (!is_object($data) || empty($msg)) return;
+
+        if (!is_array($data->reportStatRows ?? null)) {
+            $data->reportStatRows = array();
+        }
+
+        $data->reportStatRows[$key] = $msg;
+    }
+
+
+    /**
+     * Диагностиката на справката, събрана в един ред
+     *
+     * @param stdClass $data - данните на справката
+     * @param string   $glue - разделител между редовете
+     *
+     * @return string|null
+     */
+    protected function getReportStatsMsg($data, $glue = ' &nbsp;|&nbsp; ')
+    {
+        $rows = (is_object($data) && is_array($data->reportStatRows ?? null)) ? $data->reportStatRows : array();
+
+        return countR($rows) ? implode($glue, $rows) : null;
+    }
+
+
     /**
      * Групиране и сортиране на резултатите по поле
      * 
