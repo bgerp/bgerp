@@ -712,7 +712,7 @@ class core_Query extends core_FieldSet
      *
      * @return int
      */
-    public function selectOnProxy()
+    public function selectOnReplica()
     {
         if (!($this->mvc instanceof core_Manager)) {
 
@@ -721,10 +721,22 @@ class core_Query extends core_FieldSet
 
         $me = $this;
 
-        return $this->mvc->callOnProxy(function () use ($me) {
+        return $this->mvc->callOnReplica(function () use ($me) {
 
             return $me->select();
         });
+    }
+
+
+    /**
+     * Обвивка към selectOnReplica() - запазена за съвместимост
+     *
+     * @deprecated Използвайте selectOnReplica().
+     * @return int
+     */
+    public function selectOnProxy()
+    {
+        return $this->selectOnReplica();
     }
     
     
