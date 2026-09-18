@@ -8,7 +8,7 @@
  * @category  bgerp
  * @package   store
  *
- * @author    Angel Trifonov angel.trifonoff@gmail.com
+ * @author    Angel Trifonov angel.trifonoff@gmail.com и Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2019 Experta OOD
  * @license   GPL 3
  *
@@ -585,7 +585,7 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
             $row->code = $dRec->code;
         }
         if (isset($dRec->productId)) {
-            $row->productId = cat_Products::getVerbal($dRec->productId, 'name');
+            $row->productId = cat_Products::getShortHyperlink($dRec->productId);
         }
 
         $measureId = cat_Products::fetchField($dRec->productId, 'measureId');
@@ -597,19 +597,19 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
         }
 
         if (isset($dRec->storeQuantity)) {
-            $row->storeQuantity = $Double->toVerbal($dRec->storeQuantity);
+            $row->storeQuantity = ht::styleNumber($Double->toVerbal($dRec->storeQuantity), $dRec->storeQuantity);
         }
 
         if (isset($dRec->storeAmount)) {
-            $row->storeAmount = $Double->toVerbal($dRec->storeAmount);
+            $row->storeAmount = ht::styleNumber($Double->toVerbal($dRec->storeAmount), $dRec->storeAmount);
         }
 
         if (isset($dRec->totalCreditQuantity)) {
-            $row->totalCreditQuantity = $Double->toVerbal($dRec->totalCreditQuantity);
+            $row->totalCreditQuantity = ht::styleNumber($Double->toVerbal($dRec->totalCreditQuantity), $dRec->totalCreditQuantity);
         }
 
         if (isset($dRec->reversibility)) {
-            $row->reversibility = core_Type::getByName('percent(decimals=2)')->toVerbal($dRec->reversibility);
+            $row->reversibility = ht::styleNumber(core_Type::getByName('percent(decimals=2)')->toVerbal($dRec->reversibility), $dRec->reversibility);
         }
 
         return $row;
