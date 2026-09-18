@@ -1183,12 +1183,12 @@ class core_App
                     $boot = $protocol . '://' . $auth . $domain . $dirName;
                 } elseif (defined('FORCE_BGERP_ABSOLUTE_HTTP_HOST') && !$forceHttpHost) {
                     $boot = $protocol . '://' . $auth . FORCE_BGERP_ABSOLUTE_HTTP_HOST . $dirName;
-                } elseif (core_Url::isValidTld($domain = $_SERVER['HTTP_HOST'])) {
+                } elseif (core_Url::isValidTld($domain = ($_SERVER['HTTP_HOST'] ?? ''))) {
                     $boot = $protocol . '://' . $auth . $domain . $dirName;
                 } elseif (defined('BGERP_ABSOLUTE_HTTP_HOST') && !$forceHttpHost) {
                     $boot = $protocol . '://' . $auth . BGERP_ABSOLUTE_HTTP_HOST . $dirName;
                 } else {
-                    $boot = $protocol . '://' . $auth . $_SERVER['HTTP_HOST'] . $dirName;
+                    $boot = $protocol . '://' . $auth . ($_SERVER['HTTP_HOST'] ?? '') . $dirName;
                 }
             }
         } else {
