@@ -194,43 +194,50 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
 
         $prodArr = $notSelfPrice = array();
 
-        foreach ($storeProductRecs as $pRec) {
-            $pQuantity = 0;
+        // Изключва преизчисляването на параметрите - иначе драйверът ги преизчислява и записва
+        Mode::push('doNotCalculate', true);
 
-            //Себестойност на артикула
-            $selfPrice = cat_Products::getPrimeCost($products[$pRec->productId] ?? $pRec->productId, null, $pRec->quantity, null);
+        try {
+            foreach ($storeProductRecs as $pRec) {
+                $pQuantity = 0;
 
-            //Попълване на списъка с артикули без себестойност
-            $markNotPrice = null;
-            if (!$selfPrice) {
+                //Себестойност на артикула
+                $selfPrice = cat_Products::getPrimeCost($products[$pRec->productId] ?? $pRec->productId, null, $pRec->quantity, null);
 
-                //При избран склад влизат само тъези от избрания слкад
-                $markNotPrice = (empty($rec->storeId) || $rec->storeId == $pRec->storeId) ? 1 : null;
+                //Попълване на списъка с артикули без себестойност
+                $markNotPrice = null;
+                if (!$selfPrice) {
+
+                    //При избран склад влизат само тъези от избрания слкад
+                    $markNotPrice = (empty($rec->storeId) || $rec->storeId == $pRec->storeId) ? 1 : null;
 
 
-                if ((!is_null($markNotPrice)) && (!in_array($pRec->productId, $notSelfPrice))) {
-                    array_push($notSelfPrice, $pRec->productId);
+                    if ((!is_null($markNotPrice)) && (!in_array($pRec->productId, $notSelfPrice))) {
+                        array_push($notSelfPrice, $pRec->productId);
+                    }
+                    continue;
                 }
-                continue;
+                $minCost = $rec->minCost ?? 0;
+                $pQuantity = $quantities[$pRec->productId] ?? 0;
+                $amount = $pQuantity * $selfPrice;
+                $code = $pRec->code ? $pRec->code : 'Art' . $pRec->productId;
+
+                if ($amount > $minCost) {
+
+                    //Налични артикули на склад
+                    $prodArr[$pRec->productId] = (object)array(
+
+                        'productId' => $pRec->productId,                //Id на артикула
+                        'selfPrice' => $selfPrice,                      //себестойност на артикула
+                        'pQuantity' => $pQuantity,                      //Складова наличност: количество
+                        'amount' => $amount,                            //Складова наличност: стойност
+                        'code' => $code,                                //код на артикула
+
+                    );
+                }
             }
-            $minCost = $rec->minCost ?? 0;
-            $pQuantity = $quantities[$pRec->productId] ?? 0;
-            $amount = $pQuantity * $selfPrice;
-            $code = $pRec->code ? $pRec->code : 'Art' . $pRec->productId;
-
-            if ($amount > $minCost) {
-
-                //Налични артикули на склад
-                $prodArr[$pRec->productId] = (object)array(
-
-                    'productId' => $pRec->productId,                //Id на артикула
-                    'selfPrice' => $selfPrice,                      //себестойност на артикула
-                    'pQuantity' => $pQuantity,                      //Складова наличност: количество
-                    'amount' => $amount,                            //Складова наличност: стойност
-                    'code' => $code,                                //код на артикула
-
-                );
-            }
+        } finally {
+            Mode::pop('doNotCalculate');
         }
 
         //Изключване на артикули, които имат скорошна доставка или производство
