@@ -290,10 +290,9 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
         acc_JournalDetails::filterQuery($jQuery, $from, $to);
         $jQuery->show('debitAccId,debitItem1,debitItem2,debitItem3,debitQuantity,creditAccId,creditItem1,creditItem2,creditItem3,creditQuantity,docType');
 
-        // Четенето тръгва по сметката, а не по перото - при дълъг списък пера оптимизаторът
-        // иначе минава по индекса на перото и заявката се разпада на хиляди обхождания
-        $jQuery->useIndex('debit_acc_id');
-        $jQuery->useIndex('credit_acc_id');
+        // Умишлено без хинт за индекс - оптимизаторът сам избира дали да тръгне по перата (при
+        // кратък списък), или по периода на журнала. Заковаването му за сметката обхожда цялата
+        // ѝ история независимо от периода
 
         // Само перата от справката - записите с други артикули не влизат в никоя сума
         $debitFilter = $creditFilter = '';
