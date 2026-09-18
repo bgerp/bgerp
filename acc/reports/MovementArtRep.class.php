@@ -635,6 +635,7 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
 
     public function changeUomToKg($recs)
     {
+        core_Debug::startTimer('CHANGE_UOM_TO_KG');
 
         $res = $weightMeasuresId = array();
         $kgMeasureId = null;
@@ -653,6 +654,8 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
             $kgMeasureId = $kgMeasure->id ?? null;
         }
         if (!$kgMeasureId) {
+            core_Debug::stopTimer('CHANGE_UOM_TO_KG');
+
             return $recs;
         }
 
@@ -705,6 +708,7 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
                 }
             }
         }
+        core_Debug::stopTimer('CHANGE_UOM_TO_KG');
 
         return $res;
     }
