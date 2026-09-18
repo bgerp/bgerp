@@ -267,8 +267,10 @@ class frame2_Reports extends embed_Manager
         $this->FLD('sharedUsers', 'userList(roles=powerUser,showClosedUsers=no)', 'caption=Обновяване и известяване->Потребители,autohide');
         $this->FLD('changeFields', 'set', 'caption=Други настройки->Промяна,autohide,input=none');
         $this->FLD('maxKeepHistory', 'int(Min=0,max=40)', 'caption=Други настройки->Предишни състояния,autohide,placeholder=Неограничено');
-        $this->FLD('data', 'blob(serialize, compress,size=20000000)', 'input=none');
-        $this->FLD('log', 'blob(serialize, compress,size=20000000)', 'input=none');
+        // Без single и column - иначе type_Blob::toVerbal() рендира цялото съдържание на
+        // справката като HTML дърво, което никъде не се показва
+        $this->FLD('data', 'blob(serialize, compress,size=20000000)', 'input=none,single=none,column=none');
+        $this->FLD('log', 'blob(serialize, compress,size=20000000)', 'input=none,single=none,column=none');
 
         $this->FLD('lastRefreshed', 'datetime(format=smartTime)', 'caption=Последно актуализиране,input=none');
         $this->FLD('lastRefreshDuration', 'double', 'caption=Продължителност на актуализиране,input=none');
