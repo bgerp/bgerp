@@ -261,16 +261,22 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
         $query->setUnion("#debitAccId = {$acc321}");
         $query->setUnion("#creditAccId = {$acc321} AND (#debitAccId IS NULL OR #debitAccId != {$acc321})");
         $query->useUnionAll = true;
-        $query->show('creditItem1,creditItem2,creditQuantity');
+        // Редовете без перо на артикул се пропускат и в РНР, затова не се и вадят
+        $query->where('#creditItem2 IS NOT NULL');
+
+        // Сумирането е в базата - иначе всички редове на журнала минават един по един през РНР
+        $query->XPR('creditQuantitySum', 'double', 'SUM(#creditQuantity)');
+        $query->groupBy('creditItem1,creditItem2');
+        $query->show('creditItem1,creditItem2,creditQuantitySum');
         $query->selectOnProxy();
 
-        // Сумира се по двойка пера, за да не се държат всички редове в паметта
+        // Групирането е поотделно във всеки клон на обединението, затова сумите се сливат тук
         $quantityByItems = $itemIds = array();
         while ($jRec = $query->fetch()) {
             if (!$jRec->creditItem2) continue;
 
             $key = $jRec->creditItem1 . '|' . $jRec->creditItem2;
-            $quantityByItems[$key] = ($quantityByItems[$key] ?? 0) + $jRec->creditQuantity;
+            $quantityByItems[$key] = ($quantityByItems[$key] ?? 0) + $jRec->creditQuantitySum;
 
             $itemIds[$jRec->creditItem2] = $jRec->creditItem2;
             if ($jRec->creditItem1) {
