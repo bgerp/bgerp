@@ -622,28 +622,62 @@ class sync_Helper extends core_Manager
         self::requireSecureUrl($url);
 
         $params = array(
-            'syncSysId' => sync_Setup::get('SYS_ID'),
+            'syncSysId' => trim((string) sync_Setup::get('SYS_ID')),
             'syncPass' => sync_Setup::getSyncPass(),
         );
+        $httpOptions = array(
+            'method' => 'GET',
+            'timeout' => self::EXPORT_REQUEST_TIMEOUT,
+            'follow_location' => 0,
+            'max_redirects' => 0,
+        );
+        // Старите IP-базирани exporter-и се извикваха с GET без POST тяло.
+        if ($params['syncSysId'] !== '' || $params['syncPass'] !== '') {
+            $httpOptions['method'] = 'POST';
+            $httpOptions['header'] = "Content-Type: application/x-www-form-urlencoded\r\n";
+            $httpOptions['content'] = http_build_query($params);
+        }
         $context = stream_context_create(array(
-            'http' => array(
-                'header' => "Content-Type: application/x-www-form-urlencoded\r\n",
-                'method' => 'POST',
-                'content' => http_build_query($params),
-                'timeout' => self::EXPORT_REQUEST_TIMEOUT,
-                'follow_location' => 0,
-                'max_redirects' => 0,
-            ),
+            'http' => $httpOptions,
             'ssl' => array(
                 'verify_peer' => true,
                 'verify_peer_name' => true,
             ),
         ));
 
-        $res = @file_get_contents($url, false, $context);
-        if ($res === false) {
-            self::logErr('Грешка при синхронизиране с ' . $url);
-            expect(false, 'Грешка при свързване с експортиращата система');
+        // Запазваме transport причината, която @ и общото съобщение скриваха.
+        $requestErrors = array();
+        $http_response_header = array();
+        set_error_handler(function ($severity, $message) use (&$requestErrors) {
+            // PHP маскира userinfo в URL, но оставя query параметрите видими.
+            $requestErrors[] = preg_replace('/^file_get_contents\(.*\):\s*/s', '', $message);
+
+            return true;
+        }, E_WARNING);
+        try {
+            $res = file_get_contents($url, false, $context);
+        } finally {
+            restore_error_handler();
+        }
+
+        $statusCode = null;
+        foreach ($http_response_header as $headerLine) {
+            if (preg_match('/^HTTP\/\S+\s+(\d{3})\b/i', (string) $headerLine, $matches)) {
+                $statusCode = (int) $matches[1];
+            }
+        }
+        if ($res === false || ($statusCode !== null && ($statusCode < 200 || $statusCode >= 300))) {
+            $urlParts = parse_url($url);
+            $safeUrl = ($urlParts['scheme'] ?? '') . '://' . ($urlParts['host'] ?? '') .
+                (isset($urlParts['port']) ? ':' . $urlParts['port'] : '') . ($urlParts['path'] ?? '');
+            $detail = $httpOptions['method'] . ' ' . $safeUrl . '; ' .
+                ($statusCode !== null ? 'HTTP ' . $statusCode : 'без HTTP отговор');
+            if ($statusCode === null && $requestErrors) {
+                $detail .= '; ' . substr(str_replace($url, '[URL]', implode('; ', array_unique($requestErrors))), 0, 1000);
+            }
+            $message = 'Грешка при свързване с експортиращата система: ' . $detail;
+            self::logErr($message);
+            expect(false, $message);
         }
 
         $uncompressed = @gzuncompress($res);
