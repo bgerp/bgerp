@@ -34,8 +34,9 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
      * Показателите на справката, в реда на обработката
      */
     protected static $statCaptions = array(
-        'products' => 'Складируеми артикули',
         'items' => 'Пера на артикули',
+        'products' => 'Складируеми артикули',
+        'withItem' => 'От тях с перо',
         'baseQuantities' => 'С начално салдо',
         'itemFilter' => 'Пера във филтъра на журнала',
         'journal' => 'Записи от журнала',
@@ -186,27 +187,12 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
             plg_ExpandInput::applyExtendedInputSearch('cat_Products', $query, $rec->group, 'productId');
         }
 
-        $timer = microtime(true);
-        $productArr = $query->fetchAll();
-        self::setStat($data, 'products', microtime(true) - $timer, countR($productArr));
-
-        $maxTimeLimit = 15 * countR($productArr);
-        $maxTimeLimit = max(array($maxTimeLimit, 300));
-
-        // задаваме лимит пропорционален на бр. извадени продукти
-        core_App::setTimeLimit($maxTimeLimit);
-
-        // Извличат се перата на артикулите
+        // Перата се четат първи, за да не се държат в паметта артикулите, които нямат перо
         $productItems = array();
         $productClassId = cat_Products::getClassId();
         $iQuery = acc_Items::getQuery();
         $iQuery->where("#classId = {$productClassId}");
         $iQuery->show('id,objectId');
-
-        // При целия каталог се четат всички пера на артикули - излишните не дават редове
-        if (countR($productArr) <= self::MAX_IDS_IN_QUERY_FILTER) {
-            $iQuery->in('objectId', array_keys($productArr));
-        }
 
         $timer = microtime(true);
         while ($iRec = $iQuery->fetch()) {
@@ -214,13 +200,35 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
         }
         self::setStat($data, 'items', microtime(true) - $timer, countR($productItems));
 
+        // Артикул без перо не дава ред, затова не се и пази
+        $timer = microtime(true);
+        $productArr = $readProducts = array();
+        while ($pRec = $query->fetch()) {
+            $readProducts[$pRec->id] = true;
+            if (empty($productItems[$pRec->id])) continue;
+
+            $productArr[$pRec->id] = $pRec;
+        }
+        self::setStat($data, 'products', microtime(true) - $timer, countR($readProducts));
+        self::setStat($data, 'withItem', 0, countR($productArr));
+        unset($readProducts);
+
+        // За журнала и за салдата важат само перата на артикулите от справката
+        $reportItems = array_intersect_key($productItems, $productArr);
+
+        $maxTimeLimit = 15 * countR($productArr);
+        $maxTimeLimit = max(array($maxTimeLimit, 300));
+
+        // задаваме лимит пропорционален на бр. извадени продукти
+        core_App::setTimeLimit($maxTimeLimit);
+
         // Начални количества във всички складове, групирани по артикули
         $timer = microtime(true);
-        $baseQuantities = $this->getBaseQuantities($rec, array_flip($productItems));
+        $baseQuantities = $this->getBaseQuantities($rec, array_flip($reportItems));
         self::setStat($data, 'baseQuantities', microtime(true) - $timer, countR($baseQuantities));
 
         // Движенията в периода, сумирани по перо с едно четене на журнала
-        $movements = $this->aggregateMovements($rec->from, $rec->to, array_values($productItems), $data);
+        $movements = $this->aggregateMovements($rec->from, $rec->to, array_values($reportItems), $data);
 
         // за всеки един продукт, се изчисляват търсените количества
         $recs = array();
