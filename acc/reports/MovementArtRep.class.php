@@ -38,6 +38,14 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
 
 
     /**
+     * Кои полета от таблицата да могат да се сортират
+     *
+     * @var string
+     */
+    protected $sortableListFields = 'code,productId,baseQuantity,delivered,produced,converted,sold,blQuantity,singleWeight';
+
+
+    /**
      * Как да се казва обобщаващия ред. За да се покаже трябва да е зададено $summaryListFields
      *
      * @var int
