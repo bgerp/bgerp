@@ -678,8 +678,17 @@ class rack_ZoneDetails extends core_Detail
         foreach ($data->rows as $mId => &$rRow) {
             $mRec = $data->recs[$mId];
             if (!empty($mRec->palletId) && $mRec->quantity > 0) {
+                $availableQtyBeforeStart = null;
                 $availableQty = rack_Pallets::fetchField($mRec->palletId, 'quantity');
-                if (!empty($availableQty) && abs($mRec->quantity - $availableQty) < 0.0001) {
+                if (isset($availableQty)) {
+                    $availableQtyBeforeStart = (float) $availableQty;
+                    if ($mRec->state == 'active') {
+                        // При започване количеството на палета вече е намалено с количеството на движението
+                        $availableQtyBeforeStart += (float) $mRec->quantity;
+                    }
+                }
+
+                if (!empty($availableQtyBeforeStart) && abs($mRec->quantity - $availableQtyBeforeStart) < 0.0001) {
                     if (!empty($rRow->movement)) {
                         $positionInfo = rack_Pallets::getPositionQuantityInfo($mRec->position, $mRec->storeId, $mRec->productId);
                         $positionRows = array();
@@ -691,6 +700,7 @@ class rack_ZoneDetails extends core_Detail
                         $diagnosticTitle = "Цялото налично количество на позицията! Диагностика: движение #{$mRec->id}; състояние={$mRec->state}; количество на движението="
                             . round($mRec->quantity, 5)
                             . "; свързан палет #{$mRec->palletId}=" . round($availableQty, 5)
+                            . "; количество преди започване=" . round($availableQtyBeforeStart, 5)
                             . "; общо на позицията=" . round($positionInfo->totalQuantity, 5)
                             . "; активни записи={$positionRows}";
                         $diagnosticTitle = ht::escapeAttr($diagnosticTitle);
