@@ -616,6 +616,10 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
             $groupLinks = cat_Groups::getLinks($rec->group);
             $row->group = implode(' ', $groupLinks);
         }
+
+        // Мярката е с single=none и рамката не я вербализира, затова се прави тук
+        $driverFields = $Embedder->getDriverFields($Driver, false, true);
+        $row->uomKg = $driverFields['uomKg']->type->toVerbal($rec->uomKg ?? 'base');
     }
 
 
@@ -635,6 +639,7 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
                                         <!--ET_BEGIN from--><div>|От|*: [#from#]</div><!--ET_END from-->
                                         <!--ET_BEGIN to--><div>|До|*: [#to#]</div><!--ET_END to-->
                                         <!--ET_BEGIN group--><div>|Групи|*: [#group#]</div><!--ET_END group-->
+                                        <!--ET_BEGIN uomKg--><div>|Мярка|*: [#uomKg#]</div><!--ET_END uomKg-->
                                     </div>
                                 </fieldset><!--ET_END BLOCK-->"));
 
@@ -649,6 +654,8 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
         if (isset($data->rec->group)) {
             $fieldTpl->append($data->row->group, 'group');
         }
+
+        $fieldTpl->append($data->row->uomKg ?? null, 'uomKg');
 
         $tpl->append($fieldTpl, 'DRIVER_FIELDS');
     }
