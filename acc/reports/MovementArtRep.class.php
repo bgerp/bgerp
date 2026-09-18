@@ -19,6 +19,12 @@
 class acc_reports_MovementArtRep extends frame2_driver_TableData
 {
     /**
+     * До колко пера журналът се филтрира по артикулите от справката
+     */
+    const MAX_ITEMS_IN_JOURNAL_FILTER = 10000;
+
+
+    /**
      * Кой може да избира драйвъра
      */
     public $canSelectDriver = 'ceo, acc, repAll, repAllGlobal';
@@ -29,6 +35,14 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
       * @var int
       */
      protected $summaryListFields = 'baseQuantity,delivered,produced,converted,sold,blQuantity';
+
+
+    /**
+     * Кои полета от таблицата да могат да се сортират
+     *
+     * @var string
+     */
+    protected $sortableListFields = 'code,productId,baseQuantity,delivered,produced,converted,sold,blQuantity,singleWeight';
 
 
     /**
@@ -170,7 +184,7 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
         $this->logWhilePreparing('Артикули: ' . countR($productArr) . ', с начално салдо: ' . countR($baseQuantities));
 
         // Движенията в периода, сумирани по перо с едно четене на журнала
-        $movements = $this->aggregateMovements($rec->from, $rec->to);
+        $movements = $this->aggregateMovements($rec->from, $rec->to, array_values($productItems));
 
         // за всеки един продукт, се изчисляват търсените количества
         $recs = array();
@@ -250,11 +264,18 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
      *
      * @param string $from
      * @param string $to
+     * @param array  $productItemIds - перата на артикулите в справката
      *
      * @return array - вид движение => (ид на перо => количество)
      */
-    private function aggregateMovements($from, $to)
+    private function aggregateMovements($from, $to, $productItemIds)
     {
+        $res = array('delivered' => array(), 'produced' => array(), 'converted' => array(), 'sold' => array(), 'blQuantity' => array());
+        if (!countR($productItemIds)) {
+
+            return $res;
+        }
+
         $acc = array();
         foreach (array('321', '401', '799', '61101', '61102', '61103', '699', '701', '706') as $sysId) {
             $acc[$sysId] = acc_Accounts::getRecBySystemId($sysId)->id;
@@ -264,15 +285,26 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
         $consumptionTypeId = planning_ConsumptionNotes::getClassId();
         $inventoryTypeId = store_InventoryNotes::getClassId();
 
-        $res = array('delivered' => array(), 'produced' => array(), 'converted' => array(), 'sold' => array(), 'blQuantity' => array());
-
         $jQuery = acc_JournalDetails::getQuery();
         acc_JournalDetails::filterQuery($jQuery, $from, $to);
         $jQuery->show('debitAccId,debitItem1,debitItem2,debitItem3,debitQuantity,creditAccId,creditItem1,creditItem2,creditItem3,creditQuantity,docType');
 
+        // Четенето тръгва по сметката, а не по перото - при дълъг списък пера оптимизаторът
+        // иначе минава по индекса на перото и заявката се разпада на хиляди обхождания
+        $jQuery->useIndex('debit_acc_id');
+        $jQuery->useIndex('credit_acc_id');
+
+        // Само перата от справката - записите с други артикули не влизат в никоя сума
+        $debitFilter = $creditFilter = '';
+        if (countR($productItemIds) <= self::MAX_ITEMS_IN_JOURNAL_FILTER) {
+            $itemsIn = implode(',', array_map('intval', $productItemIds));
+            $debitFilter = " AND #debitItem2 IN ({$itemsIn})";
+            $creditFilter = " AND #creditItem2 IN ({$itemsIn})";
+        }
+
         // Двата клона не се застъпват, за да не се броят по два пъти записите с 321 от двете страни
-        $jQuery->setUnion("#debitAccId = {$acc['321']}");
-        $jQuery->setUnion("#creditAccId = {$acc['321']} AND (#debitAccId IS NULL OR #debitAccId != {$acc['321']})");
+        $jQuery->setUnion("#debitAccId = {$acc['321']}{$debitFilter}");
+        $jQuery->setUnion("#creditAccId = {$acc['321']} AND (#debitAccId IS NULL OR #debitAccId != {$acc['321']}){$creditFilter}");
         $jQuery->useUnionAll = true;
 
         $jQuery->selectOnProxy();
@@ -635,6 +667,7 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
 
     public function changeUomToKg($recs)
     {
+        core_Debug::startTimer('CHANGE_UOM_TO_KG');
 
         $res = $weightMeasuresId = array();
         $kgMeasureId = null;
@@ -653,6 +686,8 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
             $kgMeasureId = $kgMeasure->id ?? null;
         }
         if (!$kgMeasureId) {
+            core_Debug::stopTimer('CHANGE_UOM_TO_KG');
+
             return $recs;
         }
 
@@ -705,6 +740,7 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
                 }
             }
         }
+        core_Debug::stopTimer('CHANGE_UOM_TO_KG');
 
         return $res;
     }

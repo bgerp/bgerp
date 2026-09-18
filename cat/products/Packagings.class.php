@@ -9,7 +9,7 @@
  * @package   cat
  *
  * @author    Milen Georgiev <milen@download.bg> и Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2023 Experta OOD
+ * @copyright 2006 - 2026 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -1052,37 +1052,74 @@ class cat_products_Packagings extends core_Detail
                     return $notMatchArr;
                 }
 
-                $options = array('http' => array(
-                    'header' => "Content-type: application/x-www-form-urlencoded\r\n",
-                    'method' => 'POST'));
+                $exportUrl = rtrim($exportDomain, '/');
+                $exportUrl .= '/cat_products_Packagings/getRemoteQuality/';
+                sync_Helper::requireSecureUrl($exportUrl);
+
+                $syncSysId = trim((string) sync_Setup::get('SYS_ID'));
+                $syncPass = sync_Setup::getSyncPass();
+                expect(($syncSysId === '') === ($syncPass === ''), 'ID и парола за sync трябва да са попълнени едновременно');
+
+                $params = array(
+                    'exportIds' => $remoteIds,
+                    'syncSysId' => $syncSysId,
+                    'syncPass' => $syncPass,
+                );
+                $options = array(
+                    'http' => array(
+                        'header' => "Content-Type: application/x-www-form-urlencoded\r\n",
+                        'method' => 'POST',
+                        'content' => http_build_query($params),
+                        'timeout' => 60,
+                        'follow_location' => 0,
+                        'max_redirects' => 0,
+                    ),
+                    'ssl' => array(
+                        'verify_peer' => true,
+                        'verify_peer_name' => true,
+                    ),
+                );
 
                 $context = stream_context_create($options);
-                $exportUrl = rtrim($exportDomain, '/');
-                $exportUrl .= "/cat_products_Packagings/getRemoteQuality/?exportIds={$remoteIds}";
-
                 @$data = file_get_contents($exportUrl, false, $context);
 
-                if ($data === 'FALSE' || $data === FALSE) {
-                    $mvc->logWarning('Проблем при проверка на отдалечените количества', $rec->id);
+                $statusCode = null;
+                foreach ((array) ($http_response_header ?? array()) as $headerLine) {
+                    if (preg_match('/^HTTP\/\S+\s+(\d{3})\b/i', (string) $headerLine, $matches)) {
+                        $statusCode = (int) $matches[1];
+                    }
+                }
 
-                    return $notMatchArr;
+                if ($data === 'FALSE' || $data === FALSE || $statusCode < 200 || $statusCode >= 300) {
+                    $mvc->logWarning('Проблем при проверка на отдалечените количества', $rec->id ?? null);
+
+                    expect(false, 'Не може да се проверят отдалечените количества');
                 }
 
                 $dArr = json_decode($data, true);
-                if (is_array($dArr)) {
-                    foreach ($dArr as $rId => $rQuantity) {
-                        if ($lArr[$rId]['quantity'] != $rQuantity) {
-                            list($prodId, $packId) = explode('_', $lArr[$rId]['lStr']);
+                if (!is_array($dArr)) {
+                    $mvc->logWarning('Невалиден отговор при проверка на отдалечените количества', $rec->id ?? null);
 
-                            $packId = self::fetchField(array("#productId = '[#1#]' AND #packagingId = '[#2#]'", $prodId, $packId), 'id');
+                    expect(false, 'Невалиден отговор при проверка на отдалечените количества');
+                }
 
-                            if ($packId) {
-                                $notMatchArr[$packId] = $rQuantity;
-                            }
+                foreach ($lArr as $rId => $localData) {
+                    if (!array_key_exists($rId, $dArr) || !is_numeric($dArr[$rId])) {
+                        $mvc->logWarning('Непълен отговор при проверка на отдалечените количества', $rec->id ?? null);
+
+                        expect(false, 'Непълен отговор при проверка на отдалечените количества');
+                    }
+
+                    $rQuantity = $dArr[$rId];
+                    if ($localData['quantity'] != $rQuantity) {
+                        list($prodId, $packId) = explode('_', $localData['lStr']);
+
+                        $packId = self::fetchField(array("#productId = '[#1#]' AND #packagingId = '[#2#]'", $prodId, $packId), 'id');
+
+                        if ($packId) {
+                            $notMatchArr[$packId] = $rQuantity;
                         }
                     }
-                } else {
-                    wp('Няма отговор', $dArr, $data);
                 }
             }
         }
@@ -1101,7 +1138,7 @@ class cat_products_Packagings extends core_Detail
      */
     function act_getRemoteQuality()
     {
-        sync_Helper::requireRight('export');
+        sync_Helper::requireRight('export', true);
         expect($ids = Request::get('exportIds'));
         $resArr = array();
 
