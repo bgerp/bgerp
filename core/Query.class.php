@@ -705,6 +705,27 @@ class core_Query extends core_FieldSet
         
         return $this->numRec();
     }
+
+
+    /**
+     * Изпълнява SELECT-а на репликата; обработката остава на основната база
+     *
+     * @return int
+     */
+    public function selectOnProxy()
+    {
+        if (!($this->mvc instanceof core_Manager)) {
+
+            return $this->select();
+        }
+
+        $me = $this;
+
+        return $this->mvc->callOnProxy(function () use ($me) {
+
+            return $me->select();
+        });
+    }
     
     
     /**

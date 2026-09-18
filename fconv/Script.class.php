@@ -534,7 +534,9 @@ class fconv_Script
                 
                 $executablePath = stristr(PHP_OS, 'WIN') ? trim($path, '"') : $path;
                 if (!(is_executable($executablePath) || exec("{$which} {$path}"))) {
-                    log_System::add('fconv_Remote', 'Липсва програма: ' . $path, $rRec->id, 'warning');
+                    // Тук няма отдалечен запис - дотук се стига само ако за нито една програма
+                    // не е намерен такъв, тоест $rRec е от предишния цикъл
+                    log_System::add('fconv_Remote', 'Липсва програма: ' . $path, null, 'warning');
                     $missing[$program] = true;
                     return false;
                 }

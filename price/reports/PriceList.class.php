@@ -120,6 +120,14 @@ class price_reports_PriceList extends price_reports_PriceListProto
         $dateBefore = (!empty($rec->period)) ? (dt::addSecs(-1 * $rec->period, $common->date, false) . ' 23:59:59') : null;
         $round = !empty($rec->round) ? $rec->round : self::DEFAULT_ROUND;
 
+        // Правилата за цените наведнъж, вместо по една заявка на артикул. Груповият кеш е по
+        // ЦП и дата, а при сравнение по период всеки артикул се оценява и към двете дати -
+        // затова се зарежда веднъж за всяка от тях, а не едната вместо другата
+        price_ListRules::preloadRules($rec->policyId, array_keys($common->pRecs), $common->date);
+        if (isset($dateBefore)) {
+            price_ListRules::preloadRules($rec->policyId, array_keys($common->pRecs), $dateBefore);
+        }
+
         // Ако няма опаковки, това са всички
         $recs = $packArr = array();
 

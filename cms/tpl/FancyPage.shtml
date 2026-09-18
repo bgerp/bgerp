@@ -64,7 +64,7 @@
 
 <div class="externalPage">
     [#TOP_PAGE#]
-    <header>
+    <header role="banner">
 
         <div class="narrowCenter">
             <a href="/" title="Към началната страница"> [#HEADER_IMG#]</a>
@@ -83,7 +83,7 @@
     </header>
 
     [#MENU#]
-    <div id="maincontent" class="[#MAIN_CONTENT_CLASS#]">
+    <div id="maincontent" class="[#MAIN_CONTENT_CLASS#]" role="main">
 
 
         [#BOTTOM_MENU#]
@@ -110,7 +110,7 @@
     </div>
     <!--ET_END FOOTER_CENTER_NARROW-->
     <!--ET_BEGIN AFTER_FOOTER-->
-    <div id="cmsBottom">
+    <div id="cmsBottom"  role="contentinfo">
         <!--ET_BEGIN FOOTER_MENU-->
         [#FOOTER_MENU#]
         <div class="centerContent">

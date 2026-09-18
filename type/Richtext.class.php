@@ -921,7 +921,7 @@ class type_Richtext extends type_Blob
     public function _catchBQuoteSingle($match)
     {
         $quote = '';
-        $this->invoke('afterCatchBQuote', array(&$quote, $match[2]));
+        $this->invoke('afterCatchBQuote', array(&$quote, $match[2] ?? ''));
         
         $quote .= self::BQUOTE_DIV_BEGIN;
         
