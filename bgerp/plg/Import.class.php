@@ -196,7 +196,7 @@ class bgerp_plg_Import extends core_Plugin
     public static function getFileContent($fh)
     {
         $csv = fileman_Files::getContent($fh);
-        $csv = i18n_Charset::convertToUtf8($csv, array('UTF-8', 'CP1251'));
+        $csv = i18n_Charset::convertToUtf8($csv, array('UTF-8' => 10, 'CP1251' => 10));
         
         return $csv;
     }

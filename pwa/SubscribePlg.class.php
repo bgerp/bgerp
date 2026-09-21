@@ -116,7 +116,7 @@ class pwa_SubscribePlg extends core_Plugin
             $canUse = null;
             if ($dId) {
                 $dRec = cms_Domains::fetch($dId);
-                $key = $dRec ? $dRec->publicKey : null;
+                $key = $dRec->publicKey ?? null;
                 if ($key) {
                     $canUse = pwa_Settings::canUse($dId);
                 }
@@ -151,10 +151,10 @@ class pwa_SubscribePlg extends core_Plugin
             }
 
             $pRec = pwa_PushSubscriptions::fetch(array("#brid = '[#1#]' AND #userId = '[#2#]' AND #domainId = '[#3#]'", $brid, $cu, $dId));
-            if ($pRec && $pRec->state == 'active') {
+            if (($pRec->state ?? null) == 'active') {
                 $rArr = $defRedirect;
                 if (pwa_PushSubscriptions::haveRightFor('edit', $pRec)) {
-                    $rArr = array('pwa_PushSubscriptions', 'edit', $pRec->id, 'ret_url' => $defRedirect);
+                    $rArr = array('pwa_PushSubscriptions', 'edit', $pRec->id ?? null, 'ret_url' => $defRedirect);
                 }
 
                 $res = new Redirect($rArr, 'Това приложение има активен абонамент за известия.');
@@ -195,11 +195,11 @@ class pwa_SubscribePlg extends core_Plugin
             $appendJS = $isForced;
 
             if (!$isForced && $form->isSubmitted()) {
-                if ($form->rec->subscribe == 'no') {
+                if (($form->rec->subscribe ?? null) == 'no') {
                     $form->info = tr('Пропускате да се абонирате за известия от системата на това устройство.|<br>|*
                                     Ако искате може да се абонирате по-късно от бутона "Известяване" в профила си.');
 
-                    if ($form->rec->force == 'yes') {
+                    if (($form->rec->force ?? null) == 'yes') {
                         self::rememberPrompt('onboarding', 'declined', $brid, $cu, $dId);
                         $res = new Redirect($defRedirect);
 
@@ -209,7 +209,7 @@ class pwa_SubscribePlg extends core_Plugin
                     $form->setDefault('force', 'yes');
 
                     $form->toolbar->addBtn('Назад', array($mvc, 'pwaSubscribe'), 'ef_icon=img/16/back16.png');
-                } else if ($form->rec->subscribe) {
+                } else if (!empty($form->rec->subscribe)) {
                     $appendJS = true;
                 }
             }
@@ -223,7 +223,7 @@ class pwa_SubscribePlg extends core_Plugin
                     // Това е стандартна сървърна навигация. Отделният id не
                     // позволява JS unsubscribe handler-ът да стартира второ,
                     // конкурентно отписване преди навигацията.
-                    $form->toolbar->addBtn('Не желая известия', array('pwa_PushSubscriptions', 'stop', $pRec->id, 'ret_url' => $defRedirect), 'id=pwa-recovery-decline-button, ef_icon=img/16/deletered.png');
+                    $form->toolbar->addBtn('Не желая известия', array('pwa_PushSubscriptions', 'stop', $pRec->id ?? null, 'ret_url' => $defRedirect), 'id=pwa-recovery-decline-button, ef_icon=img/16/deletered.png');
                 }
 
                 $form->info = $isForced
@@ -258,7 +258,7 @@ class pwa_SubscribePlg extends core_Plugin
                 $pwaSubscriptionUrl = urlencode($pwaSubscriptionUrl);
 
                 $tpl->appendOnce('const pwaSubscriptionUrl = ' . self::encodeJsValue($pwaSubscriptionUrl) . ';', 'SCRIPTS');
-                $serverSubscriptionState = $pRec ? $pRec->state : 'missing';
+                $serverSubscriptionState = $pRec->state ?? 'missing';
                 $tpl->appendOnce('const pwaServerSubscriptionState = ' . self::encodeJsValue($serverSubscriptionState) . ';', 'SCRIPTS');
                 $serverSubscriptionFingerprint = self::getSubscriptionFingerprint($pRec);
                 $tpl->appendOnce('const pwaServerSubscriptionFingerprint = ' . self::encodeJsValue($serverSubscriptionFingerprint) . ';', 'SCRIPTS');
@@ -319,7 +319,7 @@ class pwa_SubscribePlg extends core_Plugin
                 }
             } elseif (!Request::get('ajax_mode')) {
                 // Ако е спрян абонамента, дава възможност за ново абониране
-                if ($rec->state == 'stopped' && !self::isPromptRemembered('recovery', $brid, $cu, $dId)) {
+                if (($rec->state ?? null) == 'stopped' && !self::isPromptRemembered('recovery', $brid, $cu, $dId)) {
                     $res = new Redirect(array($mvc, 'pwaSubscribe', 'forceSubscribe' => 'yes', 'ret_url' => true));
 
                     return false;

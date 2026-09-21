@@ -2970,6 +2970,11 @@ form select.w50 + .select2 {
 	vertical-align: top !important;
 }
 
+.footer-notes li {
+	overflow-wrap: anywhere;
+	word-break: normal;
+}
+
 .narrow .footer-notes ol li {
 	word-break: break-word;
 }

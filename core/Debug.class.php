@@ -956,7 +956,22 @@ class core_Debug
         if ($debugFileName) {
             $state['_debugFileName'] = $debugFileName;
         }
+
+        // Преди конфигурацията стандартните страници за грешка зависят от незаредени модели.
+        if (!defined('EF_DB_NAME') || !defined('EF_SALT')) {
+            self::logErrorStateToPhpLog($state);
+
+            if (!$supressShowing && !headers_sent()) {
+                $status = ($state['httpStatusCode'] ?? 500) . ' ' . ($state['httpStatusMsg'] ?? 'Internal Server Error');
+                header(($_SERVER['SERVER_PROTOCOL'] ?? 'HTTP/1.1') . ' ' . $status);
+                header('Content-Type: text/plain; charset=UTF-8');
+                echo $status;
+            }
+
+            return;
+        }
         
+        $debugPage = '';
         if (isDebug() || defined('EF_DEBUG_LOG_PATH') || defined('EF_REMOTE_ERROR_REPORT_URL')) {
             $debugPage = core_Debug::getDebugPage($state);
         }
@@ -985,7 +1000,7 @@ class core_Debug
         }
         
         // Логваме на отдалечен сървър
-        if (defined('EF_REMOTE_ERROR_REPORT_URL') && self::$isErrorReporting && !self::$isRemoteReportingBroken) {
+        if (defined('EF_REMOTE_ERROR_REPORT_URL') && self::$isErrorReporting) {
             $data = array('data' => gzcompress($debugPage),
                 'domain' => $_SERVER['SERVER_NAME'],
                 'errCtr' => $ctr,
@@ -994,8 +1009,21 @@ class core_Debug
                 'title' => ltrim($state['errTitle'], '@'),
             );
             
-            self::sendRemoteErrorReport(EF_REMOTE_ERROR_REPORT_URL, $data);
+            if (self::$isRemoteReportingBroken || !self::sendRemoteErrorReport(EF_REMOTE_ERROR_REPORT_URL, $data)) {
+                self::logErrorStateToPhpLog($state);
+            }
         }
+    }
+
+
+    /**
+     * Запазва първоначалната грешка, когато стандартният рапорт не е възможен
+     */
+    protected static function logErrorStateToPhpLog($state)
+    {
+        error_log('[' . ($_SERVER['SERVER_NAME'] ?? 'unknown') . '] '
+            . ($state['errType'] ?? 'PHP ERROR') . ': ' . ($state['errTitle'] ?? '')
+            . ' in ' . ($state['breakFile'] ?? '') . ':' . ($state['breakLine'] ?? ''));
     }
 
 
@@ -1015,6 +1043,7 @@ class core_Debug
     {
         $timeout = self::REMOTE_ERROR_REPORT_TIMEOUT;
         $content = http_build_query($data);
+        $httpStatus = 0;
 
         if (function_exists('curl_init')) {
             $ch = curl_init($url);
@@ -1042,6 +1071,7 @@ class core_Debug
             ));
 
             $result = @curl_exec($ch);
+            $httpStatus = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
             curl_close($ch);
         } else {
             // use key 'http' even if you send the request to https://...
@@ -1066,12 +1096,18 @@ class core_Debug
             // Подтискаме грешката - иначе тя влиза в обработчика на грешките и
             // измества страницата на оригиналната грешка
             $result = @file_get_contents($url, false, stream_context_create($options));
+            foreach ($http_response_header ?? array() as $responseHeader) {
+                if (preg_match('/^HTTP\/\S+\s+(\d{3})\b/i', $responseHeader, $matches)) {
+                    $httpStatus = (int) $matches[1];
+                }
+            }
         }
 
         // При проблем спираме опитите до края на хита
-        self::$isRemoteReportingBroken = ($result === false);
+        $success = $result !== false && $httpStatus >= 200 && $httpStatus < 300;
+        self::$isRemoteReportingBroken = !$success;
 
-        return $result !== false;
+        return $success;
     }
     
     
