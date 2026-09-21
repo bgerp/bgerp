@@ -49,10 +49,12 @@ class bgerp_BaseImporter extends core_Manager
         $Dfields = $this->mvc->selectFields();
         
         foreach ($Dfields as $name => $fld) {
-            if ($fld->input != 'none' && $fld->input != 'hidden' &&
-                $fld->kind != 'FNC' && !($fld->type instanceof type_Enum) &&
-                !($fld->type instanceof type_Key) && !($fld->type instanceof type_Key2) && !($fld->type instanceof type_KeyList)) {
-                $fields[$name] = array('caption' => $fld->caption, 'mandatory' => $fld->mandatory);
+            $input = $fld->input ?? null;
+            $type = $fld->type ?? null;
+            if ($input != 'none' && $input != 'hidden' &&
+                ($fld->kind ?? null) != 'FNC' && !($type instanceof type_Enum) &&
+                !($type instanceof type_Key) && !($type instanceof type_Key2) && !($type instanceof type_KeyList)) {
+                $fields[$name] = array('caption' => $fld->caption ?? $name, 'mandatory' => $fld->mandatory ?? null);
             }
         }
 
