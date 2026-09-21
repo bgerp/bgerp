@@ -3294,12 +3294,10 @@ abstract class deals_Helper
             $dQuery->where("#{$Detail->masterKey} = {$rec->id}");
             $priceDate = ($rec->state == 'draft') ? null : $rec->valior;
 
+            $useQuotationPrice = false;
             if($mvc instanceof sales_Sales){
                 $useQuotationPrice = isset($rec->originId);
-            } elseif($mvc instanceof sales_Quotations){
-                $useQuotationPrice = false;
-            } elseif($mvc instanceof store_ShipmentOrders){
-                $useQuotationPrice = false;
+            } elseif($mvc instanceof store_ShipmentOrders || $mvc instanceof sales_Services){
                 if($firstDocument = doc_Threads::getFirstDocument($rec->threadId)){
                     if($firstDocument->isInstanceOf('sales_Sales')){
                         $firstDocumentOrigin = $firstDocument->fetchField('originId');
