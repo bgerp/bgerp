@@ -119,6 +119,12 @@
         
         $sQuery->where("#state != 'rejected' ");
         $pQuery->where("#state != 'rejected' ");
+
+        // Артикулите само от нулеви редове на фактури не се експортират
+        $sQuery->EXT('invType', 'sales_Invoices', 'externalName=type,externalKey=invoiceId');
+        $pQuery->EXT('invType', 'purchase_Invoices', 'externalName=type,externalKey=invoiceId');
+        $sQuery->where("#quantity != 0 OR #invType != 'invoice'");
+        $pQuery->where("#quantity != 0 OR #invType != 'invoice'");
         
         $sQuery->show('productId');
         $pQuery->show('productId');

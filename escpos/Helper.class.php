@@ -129,6 +129,10 @@ class escpos_Helper
                         
                         continue;
                     }
+                } elseif (empty($dRec->quantity)) {
+
+                    // Нулевите редове на фактурата не се печатат
+                    continue;
                 }
             }
             
