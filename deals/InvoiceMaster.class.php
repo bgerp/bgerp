@@ -736,6 +736,9 @@ abstract class deals_InvoiceMaster extends core_Master
             $SourceRec = $Source->fetch("currencyId,{$Source->valiorFld}");
             if (is_array($detailsToSave)) {
                 foreach ($detailsToSave as $det) {
+                    // Закръгляне, за да се хванат и остатъци от изваждане на дробни к-ва
+                    if (round($det->quantity ?? 0, 5) == 0) continue;
+
                     if($SourceRec->currencyId == 'BGN'){
                         $det->price = deals_Helper::getSmartBaseCurrency($det->price, $SourceRec->{$Source->valiorFld}, $rec->date);
                     } else {
