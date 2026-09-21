@@ -536,7 +536,7 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
         foreach ($groups as $grId => $groupName) {
 
             // Отделяме тези записи, които съдържат текущия маркер
-            $res = array_filter($recs, function ($e) use ($grId, $groupName, &$data, $withTotals) {
+            $res = array_filter($recs, function ($e) use ($grId, &$data, $withTotals) {
                 if (keylist::isIn($grId, $e->groups ?? null) || $grId === 'total') {
                     $e->groupId = $grId;
                     if (!$withTotals) {
@@ -651,11 +651,8 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
     {
         $row = new stdClass();
 
-        $Int = cls::get('type_Int');
-        $Date = cls::get('type_Date');
         $Double = cls::get('type_Double');
         $Double->params['decimals'] = 2;
-        $groArr = array();
 
         $row->code = $dRec->code;
         $row->productId = cat_Products::getVerbal($dRec->productId, 'name');
