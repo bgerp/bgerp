@@ -506,6 +506,23 @@ abstract class deals_InvoiceDetail extends doc_Detail
         $invRec = &$data->masterData->rec;
         
         $mvc->calculateAmount($recs, $invRec);
+
+        // В активна ф-ра/проформа нулевите редове се крият при печат и от непауър потребители
+        if (($invRec->type ?? 'invoice') != 'invoice' || ($invRec->state ?? null) != 'active') {
+
+            return;
+        }
+
+        if (!Mode::isReadOnly() && core_Users::isPowerUser()) {
+
+            return;
+        }
+
+        foreach ($recs as $id => $rec) {
+            if (empty($rec->quantity)) {
+                unset($recs[$id]);
+            }
+        }
     }
     
     
@@ -536,12 +553,18 @@ abstract class deals_InvoiceDetail extends doc_Detail
         // Показваме подробната информация за опаковката при нужда
         deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
         
-        if (($masterRec->type ?? null) == 'invoice') {
+        // Проформите нямат поле за тип
+        if (($masterRec->type ?? 'invoice') == 'invoice') {
             if (empty($rec->quantity) && !Mode::isReadOnly()) {
                 $row->ROW_ATTR['style'] = ' background-color:#f1f1f1;color:#777';
+
+                if ($masterRec->state == 'active' && core_Users::isPowerUser()) {
+                    $quantityVerbal = core_Type::getByName('double(smartRound)')->toVerbal($rec->quantity);
+                    $row->quantity = ht::createHint($quantityVerbal,'Редът е с нулево количество и е скрит при печат, изпращане и за партньори|*!', 'notice', false);
+                }
             }
         }
-        
+
         return $row;
     }
     

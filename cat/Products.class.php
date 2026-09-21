@@ -1952,6 +1952,8 @@ class cat_Products extends embed_Manager
         core_Debug::startTimer('PRODUCT_GET_FETCH_ALL');
         if($defaultSearch){
 
+            // Търсенето обхожда всички артикули, затова SELECT-ът е на репликата. Не и цялата
+            // функция - по-долу има записи (кеш на цените). При ид-та се чете от основната БД
             $alwaysIds = array();
             if (!empty($params['favourites']) && is_array($params['favourites'])) {
                 $alwaysIds += $params['favourites'];
@@ -1968,18 +1970,22 @@ class cat_Products extends embed_Manager
 
                 if($addLimit){
                     $cloneQuery->limit($limit);
+                    $cloneQuery->selectOnReplica();
                     $foundRecs = $cloneQuery->fetchAll();
 
                     $restLimit = $limit - countR($foundRecs);
                     $query->limit($restLimit);
+                    $query->selectOnReplica();
                     $foundRecs += $query->fetchAll();
                 } else {
+                    $cloneQuery->selectOnReplica();
                     $foundRecs = $cloneQuery->fetchAll();
                 }
             } else {
                 if($addLimit){
                     $query->limit($limit);
                 }
+                $query->selectOnReplica();
                 $foundRecs = $query->fetchAll();
             }
         } else {
@@ -2012,13 +2018,14 @@ class cat_Products extends embed_Manager
                     if(isset($params['priceData']) && $rec->isPublic == 'yes' && $showPrices != 'no'){
                         $customerClass = $params['customerClass'] ?? null;
                         $customerId = $params['customerId'] ?? null;
-                        $policyInfo = cls::get('price_ListToCustomers')->getPriceInfo($customerClass, $customerId, $rec->id, $rec->measureId, 1, $params['priceData']['valior'], 1, 'no', $params['priceData']['listId']);
+                        $priceListId = $params['priceData']['listId'] ?? null;
+                        $policyInfo = cls::get('price_ListToCustomers')->getPriceInfo($customerClass, $customerId, $rec->id, $rec->measureId, 1, $params['priceData']['valior'], 1, 'no', $priceListId);
                         if(isset($policyInfo->price)){
                             $price = ($policyInfo->discount) ?  $policyInfo->price * (1 - $policyInfo->discount) : $policyInfo->price;
                             $vatExceptionId = cond_VatExceptions::getFromThreadId($params['priceData']['threadId']);
                             $vat = cat_Products::getVat($rec->id, $params['priceData']['valior'], $vatExceptionId);
                             $price = deals_Helper::getDisplayPrice($price, $vat, $params['priceData']['rate'], $params['priceData']['chargeVat']);
-                            $listId = $params['priceData']['listId'] ?? price_ListToCustomers::getListForCustomer($customerClass, $customerId);
+                            $listId = $priceListId ?? price_ListToCustomers::getListForCustomer($customerClass, $customerId);
                             $measureId = $rec->measureId;
 
                             if($showPrices == 'basePack'){

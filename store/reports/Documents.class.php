@@ -150,7 +150,7 @@ class store_reports_Documents extends frame2_driver_TableData
                 $cQuery = $pDoc::getQuery();
                 self::applyFilters($cQuery, $storeIds, $pDoc, $rec, 'deadline');
                 $cQuery->show('containerId,storeId,deadline,folderId,createdOn,createdBy,modifiedOn');
-                $cQuery->selectOnProxy();
+                $cQuery->selectOnReplica();
                 while ($cRec = $cQuery->fetch()) {
                     $recs[$cRec->containerId] = (object) array('containerId' => $cRec->containerId,
                         'stores' => array($cRec->storeId),
@@ -175,7 +175,7 @@ class store_reports_Documents extends frame2_driver_TableData
                 
                 $sQuery = $Document->getQuery();
                 self::applyFilters($sQuery, $storeIds, $pDoc, $rec, $deadlineFld);
-                $sQuery->selectOnProxy();
+                $sQuery->selectOnReplica();
 
                 $documentRecs = array();
                 while ($sRec = $sQuery->fetch()) {
@@ -217,7 +217,7 @@ class store_reports_Documents extends frame2_driver_TableData
             $pQuery = planning_DirectProductionNote::getQuery();
             self::applyFilters($pQuery, $storeIds, 'planning_DirectProductionNote', $rec, 'deadline');
             $pQuery->show('containerId,storeId,deadline,folderId,createdOn,createdBy,modifiedOn');
-            $pQuery->selectOnProxy();
+            $pQuery->selectOnReplica();
 
             while ($pRec = $pQuery->fetch()) {
                 $recs[$pRec->containerId] = (object) array('containerId' => $pRec->containerId,
@@ -309,7 +309,7 @@ class store_reports_Documents extends frame2_driver_TableData
         $dQuery = $Detail->getQuery();
         $dQuery->in($Detail->masterKey, array_keys($documentRecs));
         $dQuery->show("{$Detail->masterKey},{$productFld},{$packagingFld},{$quantityFld},{$weightField}");
-        $dQuery->selectOnProxy();
+        $dQuery->selectOnReplica();
 
         $detailRecs = $productIds = array();
         while ($dRec = $dQuery->fetch()) {
@@ -401,7 +401,7 @@ class store_reports_Documents extends frame2_driver_TableData
 
         $cQuery->show('outVal,inVal');
         $cQuery->orderBy('createdOn', 'DESC');
-        $cQuery->selectOnProxy();
+        $cQuery->selectOnReplica();
 
         while ($cRec = $cQuery->fetch()) {
             $res[$cRec->outVal][$cRec->inVal] = $cRec->inVal;
@@ -426,7 +426,7 @@ class store_reports_Documents extends frame2_driver_TableData
         $lQuery = trans_Lines::getQuery();
         $lQuery->in('id', $lineContainers);
         $lQuery->show('id,containerId');
-        $lQuery->selectOnProxy();
+        $lQuery->selectOnReplica();
 
         $byLine = array();
         while ($lRec = $lQuery->fetch()) {
