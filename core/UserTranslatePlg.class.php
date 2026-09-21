@@ -146,7 +146,7 @@ class core_UserTranslatePlg extends core_Plugin
                         break;
                     }
                 } elseif ($tName == 'user') {
-                    $uTranslate = core_UserTranslates::getUserTranslatedStr($mvc->getClassId(), $rec->id, core_Lg::getCurrent(), $part, $rec->{$part});
+                    $uTranslate = core_UserTranslates::getUserTranslatedStr($mvc->getClassId(), $rec->id ?? null, core_Lg::getCurrent(), $part, $rec->{$part});
                     if (isset($uTranslate)) {
                         $tr = $uTranslate;
                         
