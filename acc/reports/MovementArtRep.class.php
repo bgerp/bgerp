@@ -244,8 +244,7 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
         // Артикули без никакво движение и без начално салдо - реда им е само нули
         $zeroRows = 0;
         foreach ($recs as $obj) {
-            if (empty($obj->baseQuantity) && empty($obj->delivered) && empty($obj->converted)
-                && empty($obj->produced) && empty($obj->sold) && empty($obj->blQuantity)) {
+            if (self::isZeroRow($obj)) {
                 $zeroRows++;
             }
         }
@@ -348,17 +347,19 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
 
         // Само перата от справката - записите с други артикули не влизат в никоя сума
         $debitFilter = $creditFilter = '';
+        $outsideDebitFilter = '';
         $filtered = (countR($productItemIds) <= self::MAX_IDS_IN_QUERY_FILTER);
         if ($filtered) {
             $itemsIn = implode(',', array_map('intval', $productItemIds));
             $debitFilter = " AND #debitItem2 IN ({$itemsIn})";
             $creditFilter = " AND #creditItem2 IN ({$itemsIn})";
+            $outsideDebitFilter = " OR #debitItem2 IS NULL OR #debitItem2 NOT IN ({$itemsIn})";
         }
         self::setStat($data, 'itemFilter', 0, $filtered ? countR($productItemIds) : 0);
 
         // Двата клона не се застъпват, за да не се броят по два пъти записите с 321 от двете страни
         $jQuery->setUnion("#debitAccId = {$acc['321']}{$debitFilter}");
-        $jQuery->setUnion("#creditAccId = {$acc['321']} AND (#debitAccId IS NULL OR #debitAccId != {$acc['321']}){$creditFilter}");
+        $jQuery->setUnion("#creditAccId = {$acc['321']} AND (#debitAccId IS NULL OR #debitAccId != {$acc['321']}{$outsideDebitFilter}){$creditFilter}");
         $jQuery->useUnionAll = true;
 
         $timer = microtime(true);
@@ -472,6 +473,20 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
         }
 
         $arr[$key] += $quantity;
+    }
+
+
+    /**
+     * Дали редът е без начално салдо, без движение и без крайно салдо
+     *
+     * @param stdClass $obj
+     *
+     * @return bool
+     */
+    private static function isZeroRow($obj)
+    {
+        return empty($obj->baseQuantity) && empty($obj->delivered) && empty($obj->converted)
+            && empty($obj->produced) && empty($obj->sold) && empty($obj->blQuantity);
     }
 
 
@@ -781,7 +796,7 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
         // Данните за артикулите се четат наведнъж, вместо с отделни заявки за всеки ред
         $productIds = array();
         foreach ($recs as $val) {
-            if (!isset($weightMeasures[$val->measureId])) {
+            if (!isset($weightMeasures[$val->measureId]) && !self::isZeroRow($val)) {
                 $productIds[$val->productId] = $val->productId;
             }
         }
@@ -790,7 +805,7 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
         self::setStat($data, 'uomPreload', microtime(true) - $stepTimer, countR($productIds));
 
         $stepTimer = microtime(true);
-        $secondMeasures = self::getSecondMeasuresInKg($productIds);
+        $secondMeasures = self::getSecondMeasuresInKg($productIds, $kgMeasureId);
         self::setStat($data, 'uomSecond', microtime(true) - $stepTimer, countR($secondMeasures));
 
         // Изключва преизчисляването на параметрите - иначе драйверът ги преизчислява и записва
@@ -800,6 +815,12 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
         $withoutWeight = $measureRatios = array();
         try {
             foreach ($recs as $key => $val) {
+
+                // Нулите остават нули при всяко тегло - търсенето му е излишно
+                if (self::isZeroRow($val)) {
+                    $res[$key]->measureId = $kgMeasureId;
+                    continue;
+                }
 
                 // Грамовете, тоновете и др. се обръщат в кг по коефициента на мярката
                 if (isset($weightMeasures[$val->measureId])) {
@@ -949,10 +970,11 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
      * Единичните тегла от втора мярка в кг, по артикули
      *
      * @param array $productIds - ид-та на артикулите
+     * @param int $kgMeasureId - ид на мярката килограм
      *
      * @return array - ид на артикул => единично тегло
      */
-    private static function getSecondMeasuresInKg($productIds)
+    private static function getSecondMeasuresInKg($productIds, $kgMeasureId)
     {
         $res = array();
         if (!countR($productIds)) return $res;
@@ -960,12 +982,15 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
         $pQuery = cat_products_Packagings::getQuery();
         $pQuery->in('productId', $productIds);
         $pQuery->where("#isSecondMeasure = 'yes'");
-        $pQuery->show('productId,quantity');
+        $pQuery->show('productId,packagingId,quantity');
         $pQuery->orderBy('#id', 'ASC');
         $pQuery->selectOnReplica();
         while ($pRec = $pQuery->fetch()) {
-            if (!empty($pRec->quantity)) {
-                $res[$pRec->productId] = 1 / $pRec->quantity;
+            if (!empty($pRec->productId) && !empty($pRec->quantity) && !empty($pRec->packagingId)) {
+                $weight = cat_UoM::convertValue(1 / $pRec->quantity, $pRec->packagingId, $kgMeasureId);
+                if ($weight !== false) {
+                    $res[$pRec->productId] = $weight;
+                }
             }
         }
 
