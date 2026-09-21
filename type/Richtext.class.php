@@ -1648,18 +1648,18 @@ class type_Richtext extends type_Blob
             unset($restArr[countR($restArr) - 1]);
         }
         
-        setIfNot($params['Ctr'], $restArr[0]);
+        $params['Ctr'] = $params['Ctr'] ?? $restArr[0] ?? null;
         
         // Ако екшъна е SBF
-        if (strtolower($params['Ctr']) == 'sbf') {
+        if (strtolower($params['Ctr'] ?? '') == 'sbf') {
             
             return false;
         }
         
-        setIfNot($params['Act'], $restArr[1] ?? null, 'default');
+        $params['Act'] = $params['Act'] ?? $restArr[1] ?? 'default';
 
         if (countR($restArr) % 2) {
-            setIfNot($params['id'], $restArr[2] ?? null);
+            $params['id'] = $params['id'] ?? $restArr[2] ?? null;
             $pId = 3;
         } else {
             $pId = 2;

@@ -96,7 +96,11 @@ abstract class price_reports_PriceListProto extends frame2_driver_TableData
 
         $data->variationId = price_ListVariations::getActiveVariationId($rec->policyId, $date);
 
-        $sellableProducts = cat_Products::getProducts(null, null, null, 'canSell', null, null, false, $rec->productGroups, $rec->notInGroups, 'yes');
+        // Филтрирането по свойства и групи обхожда всички артикули, затова се чете от репликата
+        $sellableProducts = cls::get('cat_Products')->callOnReplica(function () use ($rec) {
+
+            return cat_Products::getProducts(null, null, null, 'canSell', null, null, false, $rec->productGroups, $rec->notInGroups, 'yes');
+        });
 
         // Ако се показват за себестойност излизат и активните нестандартни със сб-ст
         if ($rec->policyId == price_ListRules::PRICE_LIST_COST) {
@@ -105,6 +109,7 @@ abstract class price_reports_PriceListProto extends frame2_driver_TableData
             $ruleQuery->EXT('pState', 'cat_Products', 'externalName=state,externalKey=productId');
             $ruleQuery->where("#listId = {$rec->policyId} AND #productId IS NOT NULL AND #isPublic = 'no' AND #pState = 'active'");
             $ruleQuery->groupBy('productId');
+            $ruleQuery->selectOnReplica();
 
             $sellableProducts += arr::extractValuesFromArray($ruleQuery->fetchAll(), 'productId');
         }
@@ -131,6 +136,7 @@ abstract class price_reports_PriceListProto extends frame2_driver_TableData
             $pQuery->where("1=2");
         }
         $pQuery->show('groups,code,measureId,name,isPublic,nameEn');
+        $pQuery->selectOnReplica();
         $pRecs = $pQuery->fetchAll();
 
         // Предварително зареждане в хита на ддс-то и групите на артикулите за по-лесно ползване

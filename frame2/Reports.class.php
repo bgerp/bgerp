@@ -44,8 +44,17 @@ class frame2_Reports extends embed_Manager
      * Необходими плъгини
      */
     public $loadList = 'plg_RowTools2, doc_Wrapper, doc_plg_Prototype, doc_DocumentPlg, doc_plg_SelectFolder, plg_Search, plg_Printing, bgerp_plg_Blank, doc_SharablePlg, plg_Clone, doc_plg_Close, doc_EmailCreatePlg, plg_Sorting, plg_SelectPeriod';
-    
-    
+
+
+    /**
+     * Дали се очаква в документа да има файлове
+     *
+     * Съдържанието на справката е изчислено, а търсенето на файлове подготвя целия документ
+     * наново - при няколко хиляди реда това са секунди на всеки запис
+     */
+    public $expectFiles = false;
+
+
     /**
      * Кой има право да клонира?
      */
@@ -258,8 +267,10 @@ class frame2_Reports extends embed_Manager
         $this->FLD('sharedUsers', 'userList(roles=powerUser,showClosedUsers=no)', 'caption=Обновяване и известяване->Потребители,autohide');
         $this->FLD('changeFields', 'set', 'caption=Други настройки->Промяна,autohide,input=none');
         $this->FLD('maxKeepHistory', 'int(Min=0,max=40)', 'caption=Други настройки->Предишни състояния,autohide,placeholder=Неограничено');
-        $this->FLD('data', 'blob(serialize, compress,size=20000000)', 'input=none');
-        $this->FLD('log', 'blob(serialize, compress,size=20000000)', 'input=none');
+        // Без single и column - иначе type_Blob::toVerbal() рендира цялото съдържание на
+        // справката като HTML дърво, което никъде не се показва
+        $this->FLD('data', 'blob(serialize, compress,size=20000000)', 'input=none,single=none,column=none');
+        $this->FLD('log', 'blob(serialize, compress,size=20000000)', 'input=none,single=none,column=none');
 
         $this->FLD('lastRefreshed', 'datetime(format=smartTime)', 'caption=Последно актуализиране,input=none');
         $this->FLD('lastRefreshDuration', 'double', 'caption=Продължителност на актуализиране,input=none');
@@ -684,9 +695,9 @@ class frame2_Reports extends embed_Manager
         // Рендиране на таблицата в лога
         if(isset($data->logRows)){
             $fieldset = new core_FieldSet();
-            $fieldset->FLD('time', 'datetime','tdClass=small-field');
-            $fieldset->FLD('msg', 'varchar','tdClass=leftCol');
-            $table = cls::get('core_TableView', array('mvc' => $fieldset));
+            $fieldset->FLD('time', 'datetime','tdClass=reportLogTime');
+            $fieldset->FLD('msg', 'varchar','tdClass=reportLogMsg');
+            $table = cls::get('core_TableView', array('mvc' => $fieldset, 'tableClass' => 'reportLogTable'));
             $details = $table->get($data->logRows, 'time=Време,msg=Съобщение');
             $tpl->append($details, 'LOGS');
             if(isset($data->logPager)){
@@ -1509,8 +1520,7 @@ class frame2_Reports extends embed_Manager
                 foreach ($rec->log as $logArr) {
                     if (!$data->logPager->isOnPage()) continue;
                     $data->logRows[] = (object)array('time' => core_Type::getByName('date(format=smartTime)')->toVerbal($logArr['time'] ?? null),
-                                                      'msg' => core_Type::getByName('varchar')->toVerbal($logArr['msg'] ?? ''),
-                                                      'ROW_ATTR' => array('style' => 'background-color:#fefec2;'));
+                                                      'msg' => core_Type::getByName('varchar')->toVerbal($logArr['msg'] ?? ''));
                 }
             }
         }

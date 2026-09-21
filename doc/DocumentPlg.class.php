@@ -3908,7 +3908,10 @@ class doc_DocumentPlg extends core_Plugin
                     if ($pushUser) {
                         core_Users::sudo($userId);
                     }
+                    // Документът се подготвя целия само за да се намерят файловете в него
+                    core_Debug::startTimer('LINKED_OBJ_PREPARE_DOC');
                     $docMvc->prepareDocument($cRec->docId);
+                    core_Debug::stopTimer('LINKED_OBJ_PREPARE_DOC');
                     if ($pushUser) {
                         core_Users::exitSudo();
                     }

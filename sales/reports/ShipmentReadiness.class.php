@@ -464,7 +464,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
             }
         }
 
-        $sQuery->selectOnProxy();
+        $sQuery->selectOnReplica();
         $saleRecs = array();
         while ($sRec = $sQuery->fetch()) {
             $saleRecs[$sRec->id] = $sRec;
@@ -724,7 +724,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
         $jQuery->show('saleId,min,max,maxDel,minDel');
         $jQuery->groupBy('saleId');
 
-        $jQuery->selectOnProxy();
+        $jQuery->selectOnReplica();
         while ($fRec = $jQuery->fetch()) {
             $dates = array();
             if (isset($fRec->min) || isset($fRec->max)) {
@@ -762,7 +762,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
         $shipQuery->in('threadId', $threadIds);
         $shipQuery->show('id,containerId,threadId,state,storeId,valior,deliveryTime');
 
-        $shipQuery->selectOnProxy();
+        $shipQuery->selectOnReplica();
         while ($soRec = $shipQuery->fetch()) {
             $res[$soRec->threadId][$soRec->id] = $soRec;
         }
@@ -787,7 +787,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
         $dQuery->in('containerId', $containerIds);
         $dQuery->show('countryId,containerId,readiness');
 
-        $dQuery->selectOnProxy();
+        $dQuery->selectOnReplica();
         while ($dRec = $dQuery->fetch()) {
             $res[$dRec->containerId] = $dRec;
         }

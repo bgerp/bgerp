@@ -1007,8 +1007,10 @@ class sales_Invoices extends deals_InvoiceMaster
         $rec = $this->fetchRec($rec);
         $dQuery = sales_InvoiceDetails::getQuery();
         $dQuery->where("#invoiceId = {$rec->id}");
-        $dQuery->show('productId,batches');
+        $dQuery->show('productId,batches,quantity');
         while($dRec = $dQuery->fetch()){
+            if (empty($dRec->quantity)) continue;
+
             $res[$dRec->productId] = (object)array('productId' => $dRec->productId, 'batches' => $dRec->batches);
         }
 
