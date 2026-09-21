@@ -585,7 +585,7 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
             $row->code = $dRec->code;
         }
         if (isset($dRec->productId)) {
-            $row->productId = cat_Products::getShortHyperlink($dRec->productId);
+            $row->productId = cat_Products::getVerbal($dRec->productId, 'name');
         }
 
         $measureId = cat_Products::fetchField($dRec->productId, 'measureId');
