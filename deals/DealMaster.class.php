@@ -349,7 +349,8 @@ abstract class deals_DealMaster extends deals_DealBase
         $mvc->FLD('vatExceptionId', 'key(mvc=cond_VatExceptions,select=title,allowEmpty)', 'caption=Допълнително->ДДС изключение,silent');
 
         $mvc->FLD('makeInvoice', 'enum(yes=Да,no=Не)', 'caption=Допълнително->Фактуриране,maxRadio=2,columns=2,notChangeableByContractor');
-        $mvc->FLD('note', 'text(rows=4)', 'caption=Допълнително->Условия,notChangeableByContractor', array('attr' => array('rows' => 3)));
+        // Без компресия - EDI импортите търсят сделката с LIKE по полето
+        $mvc->FLD('note', 'richtext(rows=4,bucket=Notes,compress=no)', 'caption=Допълнително->Условия,notChangeableByContractor', array('attr' => array('rows' => 3)));
         $mvc->FLD('username', 'varchar', 'caption=Допълнително->Съставил');
         $mvc->FLD('additionalConditions', 'blob(serialize, compress)', 'caption=Допълнително->Условия (Кеширани),notChangeableByContractor,input=none');
         $mvc->FLD(
@@ -1461,10 +1462,13 @@ abstract class deals_DealMaster extends deals_DealBase
 
             $row->notes = '';
 
+            // Всеки ред е отделна точка - вербализира се поотделно, за да не се разкъса HTML-ът на ричтекста
             if ($rec->note) {
-                $notes = explode('<br>', $row->note);
-                foreach ($notes as $note) {
-                    $row->notes .= "<li>{$note}</li>";
+                $NoteType = $mvc->getFieldType('note');
+                foreach (preg_split("/\r\n|\n|\r/", $rec->note) as $note) {
+                    if (!strlen(trim($note))) continue;
+
+                    $row->notes .= "<li><span class='inlineRichtextCond'>" . $NoteType->toVerbal($note) . '</span></li>';
                 }
             }
 
