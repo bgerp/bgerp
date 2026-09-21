@@ -6,6 +6,46 @@
  */
 class core_tests_App extends unit_Class
 {
+    public function test_ProcessUrlWithQueryString()
+    {
+        $oldGet = $_GET;
+        $oldPost = $_POST;
+        $oldServer = $_SERVER;
+        set_error_handler(function ($errno, $message, $file, $line) {
+            throw new ErrorException($message, 0, $errno, $file, $line);
+        });
+
+        try {
+            $cases = array(
+                array('/index.php', '/?isPwa=yes', '', null),
+                array('/index.php', '/?foo=bar', '', null),
+                array('/index.php', '/index?isPwa=yes', 'index', null),
+                array('/index.php', '/bgerp_Portal/Show/?isPwa=yes', 'bgerp_Portal', 'Show'),
+                array('/index.php', '/controller_/show/?isPwa=yes', 'controller_', 'show'),
+                array('/nested/index.php', '/nested/?isPwa=yes', '', null),
+            );
+            foreach ($cases as $case) {
+                list($script, $uri, $controller, $action) = $case;
+                $_GET = array('virtual_url' => $uri, 'isPwa' => 'yes');
+                $_POST = array();
+                $_SERVER['SCRIPT_NAME'] = $script;
+                $_SERVER['REQUEST_URI'] = $uri;
+
+                $query = core_App::processUrl();
+
+                ut::expectEqual($query['Ctr'] ?? null, $controller);
+                ut::expectEqual($query['Act'] ?? null, $action);
+                ut::expectEqual($_GET['isPwa'], 'yes');
+            }
+        } finally {
+            restore_error_handler();
+            $_GET = $oldGet;
+            $_POST = $oldPost;
+            $_SERVER = $oldServer;
+        }
+    }
+
+
     public function test_SetTimeLimit()
     {
         $limitProperty = new ReflectionProperty('core_App', 'runningTimeLimit');

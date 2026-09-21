@@ -191,15 +191,6 @@ class core_App
                 
                 // Дали това не е име на контролер?
                 if (!isset($q['Ctr']) && $id < 2) {
-                    if (!preg_Match('/([A-Z])/', $prm)) {
-                        $last = strrpos($prm, '_');
-                        
-                        if ($last !== false && $last < strlen($prm)) {
-                            $className[$last + 1] = strtoupper($prm[$last + 1]);
-                        } else {
-                            $className[0] = strtoupper($prm[0]);
-                        }
-                    }
                     $q['Ctr'] = preg_replace('/[^a-zA-Z0-9_]*/', '', $prm);
                     continue;
                 }
