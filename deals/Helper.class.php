@@ -3223,7 +3223,7 @@ abstract class deals_Helper
                 $msgSuffix = '';
                 if(is_object($transportFeeRec) && $transportFeeRec->fee > 0){
                     $var->price += $transportFeeRec->fee / $quantity;
-                    $var->price = round($foundPrice->price, 6);
+                    $var->price = round($var->price, 6);
                     $msgSuffix .= ", |вкл. транспорт|*";
                 }
 
