@@ -580,6 +580,10 @@ class bgfisc_plg_CashDocument extends core_Plugin
             
             $vats = array();
             foreach ($dRecs as $dRec) {
+
+                // Нулевите редове на фактурата не носят сума и не бива да дават група с нулева цена
+                if (($originRec->type ?? null) != 'dc_note' && empty($dRec->quantity)) continue;
+
                 if (in_array($originRec->vatRate, array('yes', 'separate', 'no'))) {
                     $vatGroupRec = cat_products_VatGroups::getCurrentGroup($dRec->productId);
                     $vatSysId = $vatGroupRec->sysId ?? 'B';
