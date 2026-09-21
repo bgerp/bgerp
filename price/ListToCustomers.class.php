@@ -248,7 +248,7 @@ class price_ListToCustomers extends core_Manager
         $tpl->append(tr('Ценови политики'), 'priceListTitle');
         $tpl->append($table->get($data->rows, $data->listFields));
         
-        if ($data->addUrl && !Mode::is('text', 'xhtml') && !Mode::is('printing')) {
+        if (!empty($data->addUrl) && !Mode::is('text', 'xhtml') && !Mode::is('printing')) {
             $addBtn = ht::createLink('', $data->addUrl, null, array('ef_icon' => 'img/16/add.png', 'class' => 'addSalecond', 'title' => 'Избор на ценова политика'));
             $tpl->append($addBtn, 'priceListTitle');
         }

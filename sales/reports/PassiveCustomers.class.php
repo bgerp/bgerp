@@ -493,7 +493,7 @@ class sales_reports_PassiveCustomers extends frame2_driver_TableData
                 $fieldTpl->append('<b>' . $groupVerb . '</b>', 'crmGroup');
             }
         } else {
-            $fieldTpl->append('<b>|Всички|*</b>', 'crmGroup');
+            $fieldTpl->append(tr('|*<b>|Всички|*</b>'), 'crmGroup');
         }
 
         $dealers = keylist::toArray($data->rec->dealers ?? null);
@@ -504,7 +504,7 @@ class sales_reports_PassiveCustomers extends frame2_driver_TableData
 
             $fieldTpl->append('<b>' . trim($dealersVerb, ',  ') . '</b>', 'dealers');
         } else {
-            $fieldTpl->append('<b>|Всички|*</b>', 'dealers');
+            $fieldTpl->append(tr('|*<b>|Всички|*</b>'), 'dealers');
         }
 
         $tpl->append($fieldTpl, 'DRIVER_FIELDS');
