@@ -426,7 +426,8 @@ class core_Users extends core_Manager
             $rec = self::fetch($rec);
         }
         
-        if (!$force && (!$rec || ($rec->id < 1))) {
+        // При добавяне на нов потребител от форма записът още няма id
+        if (!$force && (!$rec || (($rec->id ?? 0) < 1))) {
             
             return false;
         }
