@@ -142,7 +142,12 @@ class bulmar_PurchaseInvoiceExport extends bulmar_InvoiceExport
         $byProducts = $byOtherService = $byTransport = 0;
         $dQuery = purchase_InvoiceDetails::getQuery();
         $dQuery->where("#invoiceId = {$rec->id}");
-        
+
+        // Нулевите редове на фактурите не се експортират, при известията са промяна
+        if ($rec->type == 'invoice') {
+            $dQuery->where("#quantity != 0");
+        }
+
         $vatDecimals = sales_Setup::get('SALE_INV_VAT_DISPLAY', true) == 'yes' ? 20 : 2;
         $transProductIds = keylist::toArray(sales_Setup::get('TRANSPORT_PRODUCTS_ID'));
 

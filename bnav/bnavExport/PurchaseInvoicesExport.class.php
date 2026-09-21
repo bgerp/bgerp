@@ -186,6 +186,10 @@ class bnav_bnavExport_PurchaseInvoicesExport extends frame2_driver_TableData
         $dQuery = purchase_InvoiceDetails::getQuery();
 
         $dQuery->in('invoiceId', $invArr);
+
+        // Нулевите редове на фактурите не се експортират, при известията са промяна
+        $dQuery->EXT('invType', 'purchase_Invoices', 'externalName=type,externalKey=invoiceId');
+        $dQuery->where("#quantity != 0 OR #invType != 'invoice'");
         
         
         while ($dRec = $dQuery->fetch()) {
