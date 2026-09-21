@@ -1071,14 +1071,25 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
 
             }
 
-            if (countR($recs)) {
-                arr::sortObjects($recs, 'className', 'ASC', 'stri');
-            }
-
         }
 
         if (countR($recs)) {
-            arr::sortObjects($recs, 'invoiceDate', 'asc', 'stri');
+            // Групите запазват реда на първата поява при рендиране на таблицата.
+            uasort($recs, function ($a, $b) {
+                $aName = (string) ($a->contragent ?? '');
+                $bName = (string) ($b->contragent ?? '');
+                $result = strcmp(mb_strtolower($aName, 'UTF-8'), mb_strtolower($bName, 'UTF-8'));
+                if ($result != 0) return $result;
+
+                // Различно изписаните имена са отделни групи и трябва да останат събрани.
+                $result = strcmp($aName, $bName);
+                if ($result != 0) return $result;
+
+                $result = strcmp((string) ($a->invoiceDate ?? ''), (string) ($b->invoiceDate ?? ''));
+                if ($result != 0) return $result;
+
+                return strnatcasecmp(ltrim((string) ($a->invoiceNo ?? ''), '0'), ltrim((string) ($b->invoiceNo ?? ''), '0'));
+            });
         }
 
         return $recs;

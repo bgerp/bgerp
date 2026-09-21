@@ -176,6 +176,11 @@ class planning_Hr extends core_Master
         if (isset($rec->personId) && empty($rec->code)) {
             $rec->code = self::getDefaultCode($rec->personId);
         }
+
+        // Нормализира се при всеки запис, не само от формата
+        if (isset($rec->code)) {
+            $rec->code = self::normalizeCode($rec->code);
+        }
     }
     
     
@@ -212,7 +217,7 @@ class planning_Hr extends core_Master
         $rec = $form->rec;
         
         if ($form->isSubmitted()) {
-            $rec->code = strtoupper((string) ($rec->code ?? ''));
+            $rec->code = self::normalizeCode($rec->code ?? '');
             
             if (isset($rec->personId) && $personId = $mvc->fetchField(array("#code = '[#1#]' AND #personId != {$rec->personId}", $rec->code), 'personId')) {
                 $personLink = crm_Persons::getHyperlink($personId, true);
@@ -634,7 +639,7 @@ class planning_Hr extends core_Master
         // Нормализиране на кодовете
         $parsedCodes = $persons = $errorArr = array();
         $exploded = explode(',', $string);
-        array_walk($exploded, function($a) use (&$parsedCodes){$v = trim($a);$v = strtoupper($v);if(!empty($v)) {$parsedCodes[$v] = $v;}});
+        array_walk($exploded, function($a) use (&$parsedCodes){$v = self::normalizeCode($a);if(!empty($v)) {$parsedCodes[$v] = $v;}});
 
         if(empty($parsedCodes)) return null;
 
@@ -686,9 +691,30 @@ class planning_Hr extends core_Master
      */
     public static function getPersonIdByCode($code)
     {
-        $normalizedCode = strtoupper(trim((string) $code));
+        $normalizedCode = self::normalizeCode($code);
         $personId = planning_Hr::fetchField(array("#code='[#1#]'", $normalizedCode), 'personId');
 
         return (!empty($personId)) ? $personId : null;
+    }
+
+
+    /**
+     * Нормализира код - главни латински букви, за да не се различават еднакво изглеждащи кодове
+     *
+     * @param string|null $code
+     * @return string
+     */
+    public static function normalizeCode($code)
+    {
+        $code = mb_strtoupper(trim((string) $code));
+
+        // Първо по изглед (Н е H, не N), а останалата кирилица се транслитерира
+        $code = strtr($code, array('А' => 'A', 'В' => 'B', 'Е' => 'E', 'К' => 'K', 'М' => 'M', 'Н' => 'H',
+                                   'О' => 'O', 'Р' => 'P', 'С' => 'C', 'Т' => 'T', 'Х' => 'X'));
+        if (preg_match('/\p{Cyrillic}/u', $code)) {
+            $code = strtoupper(str::utf2ascii($code));
+        }
+
+        return $code;
     }
 }
