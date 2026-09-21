@@ -254,6 +254,11 @@ class bulmar_InvoiceExport extends core_Manager
         if(empty($rec->_isVirtual)){
             $dQuery = sales_InvoiceDetails::getQuery();
             $dQuery->where("#invoiceId = {$rec->id}");
+
+            // Нулевите редове на фактурите не се експортират, при известията са промяна
+            if ($rec->type == 'invoice') {
+                $dQuery->where("#quantity != 0");
+            }
             $details = $dQuery->fetchAll();
 
             if($rec->type != 'invoice'){
