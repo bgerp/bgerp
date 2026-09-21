@@ -93,6 +93,7 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
         $fieldset->FLD('to', 'date', 'caption=До,after=from');
         $fieldset->FLD('group', 'keylist(mvc=cat_Groups,select=name)', 'caption=Група,placeholderType=all,after=to,single=none');
         $fieldset->FLD('uomKg', 'enum(base=Основна, weight=Тегловна)', 'notNull,caption=Мярка,maxRadio=2,after=group,single=none');
+        $fieldset->FLD('showWithoutMovements', 'enum(no=Не, yes=Да)', 'notNull,caption=Без движения,maxRadio=2,after=uomKg,single=none');
     }
 
 
@@ -108,6 +109,7 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
         $form = $data->form;
 
         $form->setDefault('uomKg', 'base');
+        $form->setDefault('showWithoutMovements', 'no');
     }
 
 
@@ -146,6 +148,9 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
         $rec->to = $rec->to ?? dt::today();
         $rec->group = $rec->group ?? null;
         $rec->uomKg = $rec->uomKg ?? 'base';
+
+        // Старите справки нямат полето и продължават да показват всички артикули
+        $hideWithoutMovements = (($rec->showWithoutMovements ?? null) == 'no');
         $startedOn = microtime(true);
 
         // Обръщаме се към продуктите и търсим всички складируеми и неоттеглени продукти
@@ -221,6 +226,11 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
                                   'sold' => self::getSum($movements['sold'], $itemId),
                                   'blQuantity' => $baseQuantity + self::getSum($movements['blQuantity'], $itemId));
 
+            if ($hideWithoutMovements && empty($obj->delivered) && empty($obj->produced)
+                && empty($obj->converted) && empty($obj->sold)) {
+                continue;
+            }
+
             $obj->code = (!empty($productRec->code)) ? $productRec->code : "Art{$productRec->id}";
             $obj->measureId = $productRec->measureId;
             $obj->productId = $productRec->id;
@@ -246,8 +256,14 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
             $recs = self::changeUomToKg($recs, $data);
         }
 
+        // Различните мерки не се сумират - общо има само в тегловна мярка
+        $withTotals = ($rec->uomKg == 'weight');
+        if (!$withTotals) {
+            $data->summaryListFields = '';
+        }
+
         $data->groupByField = 'groupId';
-        $recs = $this->groupRecs($recs, $rec->group, $data);
+        $recs = $this->groupRecs($recs, $rec->group, $data, $withTotals);
         self::setStat($data, 'grouped', 0, countR($recs));
         self::setStat($data, 'memory', 0, round(memory_get_peak_usage(true) / 1048576));
         self::setStat($data, 'total', microtime(true) - $startedOn, countR($recs));
@@ -484,10 +500,11 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
      * @param array $recs
      * @param string $group
      * @param stdClass $data
+     * @param bool $withTotals - да се сумират ли групите
      *
      * @return array
      */
-    private function groupRecs($recs, $group, $data)
+    private function groupRecs($recs, $group, $data, $withTotals = true)
     {
         $ordered = array();
 
@@ -504,9 +521,14 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
         foreach ($groups as $grId => $groupName) {
 
             // Отделяме тези записи, които съдържат текущия маркер
-            $res = array_filter($recs, function ($e) use ($grId, $groupName, &$data) {
+            $res = array_filter($recs, function ($e) use ($grId, $groupName, &$data, $withTotals) {
                 if (keylist::isIn($grId, $e->groups ?? null) || $grId === 'total') {
                     $e->groupId = $grId;
+                    if (!$withTotals) {
+
+                        return true;
+                    }
+
                     if (!isset($data->totals[$e->groupId])) {
                         $data->totals[$e->groupId] = array(
                             'baseQuantity' => 0,
@@ -552,6 +574,11 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
      */
     protected function getGroupedTr($columnsCount, $groupValue, $groupVerbal, &$data)
     {
+        if (!isset($data->totals[$groupValue])) {
+
+            return parent::getGroupedTr($columnsCount, $groupValue, $groupVerbal, $data);
+        }
+
         $baseQuantity = $blQuantity = $delivered = $produced = $converted = $sold = '';
         foreach (array('baseQuantity', 'blQuantity', 'delivered', 'produced', 'converted', 'sold') as $totalFld) {
             $totalValue = $data->totals[$groupValue][$totalFld] ?? 0;
@@ -622,6 +649,11 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
         $row->productId = ht::createLinkRef($row->productId, $link);
 
         $row->measureId = cat_UoM::getShortName($dRec->measureId);
+
+        // Нулите на артикул без тегло не са липса на движение
+        if (!empty($dRec->withoutWeight)) {
+            $row->measureId = ht::createHint($row->measureId, 'Артикулът няма тегло и количествата са нулирани', 'warning');
+        }
         $row->groupId = ($dRec->groupId !== 'total') ? cat_Groups::getVerbal($dRec->groupId, 'name') : tr('Общо');
 
         foreach (array('baseQuantity', 'delivered', 'produced', 'converted', 'sold', 'blQuantity') as $fld) {
@@ -765,14 +797,21 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
         Mode::push('doNotCalculate', true);
 
         $res = $recs;
-        $withoutWeight = array();
+        $withoutWeight = $measureRatios = array();
         try {
             foreach ($recs as $key => $val) {
 
-                if (!isset($weightMeasures[$val->measureId])) {
+                // Грамовете, тоновете и др. се обръщат в кг по коефициента на мярката
+                if (isset($weightMeasures[$val->measureId])) {
+                    if ($val->measureId == $kgMeasureId) continue;
+
+                    if (!isset($measureRatios[$val->measureId])) {
+                        $measureRatios[$val->measureId] = cat_UoM::convertValue(1, $val->measureId, $kgMeasureId);
+                    }
+                    $singleProductWeight = $measureRatios[$val->measureId];
+                } else {
 
                     //Взема единичното тегло на целия продукт
-                    $singleProductWeight = null;
                     $singleProductWeight = self::getWeightParam($val->productId, 'weight');
 
                     if ($singleProductWeight) {
@@ -787,27 +826,29 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
                             $singleProductWeight = $secondMeasures[$val->productId];
                         }
                     }
-                    if ($singleProductWeight) {
-                        $res[$key]->baseQuantity = $val->baseQuantity * $singleProductWeight;
-                        $res[$key]->delivered = $val->delivered * $singleProductWeight;
-                        $res[$key]->converted = $val->converted * $singleProductWeight;
-                        $res[$key]->produced = $val->produced * $singleProductWeight;
-                        $res[$key]->sold = $val->sold * $singleProductWeight;
-                        $res[$key]->blQuantity = $val->blQuantity * $singleProductWeight;
-                        $res[$key]->measureId = $kgMeasureId;
-                        $res[$key]->singleWeight = $singleProductWeight;
+                }
 
-                    } else {
-                        $res[$key]->baseQuantity = 0;
-                        $res[$key]->delivered = 0;
-                        $res[$key]->converted = 0;
-                        $res[$key]->produced = 0;
-                        $res[$key]->sold = 0;
-                        $res[$key]->blQuantity = 0;
-                        $res[$key]->measureId = $kgMeasureId;
-                        $res[$key]->singleWeight = $singleProductWeight;
-                        $withoutWeight[] = $val->productId;
-                    }
+                if ($singleProductWeight) {
+                    $res[$key]->baseQuantity = $val->baseQuantity * $singleProductWeight;
+                    $res[$key]->delivered = $val->delivered * $singleProductWeight;
+                    $res[$key]->converted = $val->converted * $singleProductWeight;
+                    $res[$key]->produced = $val->produced * $singleProductWeight;
+                    $res[$key]->sold = $val->sold * $singleProductWeight;
+                    $res[$key]->blQuantity = $val->blQuantity * $singleProductWeight;
+                    $res[$key]->measureId = $kgMeasureId;
+                    $res[$key]->singleWeight = $singleProductWeight;
+
+                } else {
+                    $res[$key]->baseQuantity = 0;
+                    $res[$key]->delivered = 0;
+                    $res[$key]->converted = 0;
+                    $res[$key]->produced = 0;
+                    $res[$key]->sold = 0;
+                    $res[$key]->blQuantity = 0;
+                    $res[$key]->measureId = $kgMeasureId;
+                    $res[$key]->singleWeight = $singleProductWeight;
+                    $res[$key]->withoutWeight = true;
+                    $withoutWeight[] = $val->productId;
                 }
             }
         } finally {
