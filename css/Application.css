@@ -2289,6 +2289,10 @@ td.rowtools-column {
   text-align: right;
   max-width: 400px !important; }
 
+.listAction table.listTable>tbody>tr> .standart-field {
+  max-width: 400px !important;
+  white-space: normal !important; }
+
 .medium-field {
   width: 200px; }
 
