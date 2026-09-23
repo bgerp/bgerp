@@ -54,6 +54,14 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
      * @var int
      */
     protected $summaryRowCaption = 'ОБЩО';
+
+
+    /**
+     * Дали в обобщаващия ред да се показва в скоби и броят на всички редове
+     *
+     * @var bool
+     */
+    protected $summaryRowShowCount = false;
     
     
     /**
@@ -235,6 +243,7 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
         $data->groupedFieldOnNewRow = $data->groupedFieldOnNewRow ?? $this->groupedFieldOnNewRow;
         $data->summaryListFields = $data->summaryListFields ?? $this->summaryListFields;
         $data->summaryRowCaption = $data->summaryRowCaption ?? $this->summaryRowCaption;
+        $data->summaryRowShowCount = $data->summaryRowShowCount ?? $this->summaryRowShowCount;
         $data->listFields = $this->getListFields($rec);
         $data->rows = array();
         
@@ -331,6 +340,11 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
         // Добавяне на сумиращия ред
         $firstKey = key($data->listFields);
         $summaryRow->{$firstKey} = tr($data->summaryRowCaption);
+
+        // Броят е на всички записи, не само на тези от текущата страница
+        if (!empty($data->summaryRowShowCount)) {
+            $summaryRow->{$firstKey} .= ' (' . core_Type::getByName('int')->toVerbal(countR($data->recs)) . ')';
+        }
         $summaryRow->_isSummary = true;
         $summaryRow->ROW_ATTR['class'] = 'reportTableDataTotal';
         
