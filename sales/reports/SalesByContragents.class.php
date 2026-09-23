@@ -48,6 +48,18 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
 
 
     /**
+     * Кои полета от таблицата в справката да се сумират в обобщаващия ред
+     */
+    protected $summaryListFields = 'saleValue,delta,articles,sales,sellValueCompare,deltaCompare,unicartCompare,salesCompareCount,changeSales,changeDeltas,changeArticles,changeSalesCount';
+
+
+    /**
+     * Кои полета от листовия изглед да може да се сортират
+     */
+    protected $sortableListFields = 'saleValue,delta,articles,sales,sellValueCompare,deltaCompare,unicartCompare,salesCompareCount,changeSales,changeDeltas,changeArticles,changeSalesCount';
+
+
+    /**
      * Кои полета може да се променят от потребител споделен към справката, но нямащ права за нея
      */
     protected $changeableFields = 'from,to,compare,group,dealers,contragent,crmGroup,articleType';
@@ -213,8 +225,6 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
         }
 
         $recs = array();
-        $totalSaleValue = $totalDelta = $totalDeltaPrevious = $totalDeltaLastYear = 0;
-        $totalValuePrevious = $totalValueLastYear = $unicartTotal = $salesArrTotal = 0;
         $fromPrevious = $toPrevious = $fromLastYear = $toLastYear = null;
 
         $PrimeCost = cls::get('sales_PrimeCostByDocument');
@@ -510,14 +520,6 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
                 $obj->saleValue += $sellValue;
                 $obj->delta += $delta;
             }
-
-            $totalSaleValue += $sellValue;
-
-            $totalDelta += $delta;
-            $totalDeltaPrevious += $deltaPrevious;
-            $totalDeltaLastYear += $deltaLastYear;
-            $totalValuePrevious += $sellValuePrevious;
-            $totalValueLastYear += $sellValueLastYear;
         }
 
         $tempArr = $groupValues = $groupDeltas = array();
@@ -576,32 +578,99 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
             $v->salesArr = countR($salesArr[$v->folderId] ?? array());
             $v->salesArrPrevious = countR($salesArrPrev[$v->folderId] ?? array());
             $v->salesArrLast = countR($salesArrLast[$v->folderId] ?? array());
-
-            $unicartTotal += $v->unicart;
-            $salesArrTotal += $v->salesArr;
         }
 
-
-        $totalArr = array();
-        if (!is_null($recs)) {
-            arr::sortObjects($recs, $rec->orderBy, 'desc');
-        }
-
-        $totalArr['total'] = (object)array(
-            'totalValue' => $totalSaleValue,
-            'totalDelta' => $totalDelta,
-            'totalUnicart' => $unicartTotal,
-            'totalSalesArr' => $salesArrTotal,
-
-            'totalValuePrevious' => $totalValuePrevious,
-            'totalValueLastYear' => $totalValueLastYear,
-            'totalDeltaPrevious' => $totalDeltaPrevious,
-            'totalDeltaLastYear' => $totalDeltaLastYear
-        );
-
-        array_unshift($recs, $totalArr['total']);
+        arr::sortObjects($recs, $rec->orderBy, 'desc');
 
         return $recs;
+    }
+
+
+    /**
+     * Рендиране на данните, с попълнени колони на редовете
+     *
+     * @param stdClass $rec
+     *
+     * @return core_ET
+     */
+    public function renderData($rec)
+    {
+        // Работи се върху копие, за да не се променят записаните данни
+        if (is_object($rec->data ?? null) && is_array($rec->data->recs ?? null)) {
+            $rec = clone $rec;
+            $rec->data = clone $rec->data;
+            $rec->data->recs = $this->getRecsWithListFields($rec, $rec->data->recs);
+        }
+
+        return parent::renderData($rec);
+    }
+
+
+    /**
+     * Редовете за експорт, с обобщаващия ред най-отгоре
+     *
+     * @param stdClass $rec
+     * @param core_BaseClass $ExportClass
+     *
+     * @return array
+     */
+    protected function getRecsForExport($rec, $ExportClass)
+    {
+        $recs = $this->getRecsWithListFields($rec, $rec->data->recs ?? array());
+
+        $data = (object) array('recs' => $recs, 'listFields' => array('contragentId' => 'contragentId'), 'summaryRowCaption' => $this->summaryRowCaption);
+        $summaryRow = $this->getSummaryListRow($data, arr::make($this->summaryListFields));
+
+        return is_object($summaryRow) ? array('_total' => $summaryRow) + $recs : $recs;
+    }
+
+
+    /**
+     * Копия на редовете с попълнени полета за колоните на таблицата
+     *
+     * @param stdClass $rec
+     * @param array $recs
+     *
+     * @return array
+     */
+    private function getRecsWithListFields($rec, $recs)
+    {
+        $compare = $rec->compare ?? 'no';
+        $compareFields = null;
+        if ($compare == 'previous' || $compare == 'month') {
+            $compareFields = array('sellValuePrevious', 'deltaPrevious', 'unicartPrevious', 'salesArrPrevious');
+        } elseif ($compare == 'year') {
+            $compareFields = array('sellValueLastYear', 'deltaLastYear', 'unicartLast', 'salesArrLast');
+        }
+
+        $res = array();
+        foreach ($recs as $key => $dRec) {
+
+            // Старите версии пазят обобщаващия ред в данните - той вече се смята от TableData
+            if (isset($dRec->totalValue)) {
+                continue;
+            }
+
+            $dRec = clone $dRec;
+            $dRec->articles = $dRec->unicart ?? 0;
+            $dRec->sales = $dRec->salesArr ?? 0;
+
+            if (isset($compareFields)) {
+                list($sellFld, $deltaFld, $unicartFld, $salesFld) = $compareFields;
+                $dRec->sellValueCompare = $dRec->{$sellFld} ?? 0;
+                $dRec->deltaCompare = $dRec->{$deltaFld} ?? 0;
+                $dRec->unicartCompare = $dRec->{$unicartFld} ?? 0;
+                $dRec->salesCompareCount = $dRec->{$salesFld} ?? 0;
+                $dRec->changeSales = ($dRec->saleValue ?? 0) - $dRec->sellValueCompare;
+                $dRec->changeDeltas = ($dRec->delta ?? 0) - $dRec->deltaCompare;
+                $dRec->changeArticles = $dRec->articles - $dRec->unicartCompare;
+                $dRec->changeSalesCount = $dRec->sales - $dRec->salesCompareCount;
+            }
+
+            $res[$key] = $dRec;
+        }
+
+        return $res;
     }
 
 
@@ -816,131 +885,31 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
     {
         $row = new stdClass();
 
-        if (isset($dRec->totalValue)) {
-            $row->contragentId = '<b>' . 'ОБЩО' . '</b>';
-
-            $row->saleValue = '<b>' . core_Type::getByName('double(decimals=2)')->toVerbal(($dRec->totalValue ?? 0)) . '</b>';
-            $row->saleValue = ht::styleNumber($row->saleValue, ($dRec->totalValue ?? 0));
-
-            $row->delta = '<b>' . core_Type::getByName('double(decimals=2)')->toVerbal(($dRec->totalDelta ?? 0)) . '</b>';
-            $row->delta = ht::styleNumber($row->delta, ($dRec->totalDelta ?? 0));
-
-            $row->articles = '<b>' . core_Type::getByName('double(decimals=2)')->toVerbal(($dRec->totalUnicart ?? 0)) . '</b>';
-            $row->articles = ht::styleNumber($row->articles, ($dRec->totalUnicart ?? 0));
-
-            $row->sales = '<b>' . core_Type::getByName('double(decimals=2)')->toVerbal(($dRec->totalSalesArr ?? 0)) . '</b>';
-            $row->sales = ht::styleNumber($row->sales, ($dRec->totalSalesArr ?? 0));
-
-            $row->groupList = '';
-
-            if ($rec->compare != 'no') {
-                if (($rec->compare == 'previous') || ($rec->compare == 'month')) {
-                    $row->sellValueCompare = '<b>' . core_Type::getByName('double(decimals=2)')->toVerbal(($dRec->totalValuePrevious ?? 0)) . '</b>';
-                    $row->sellValueCompare = ht::styleNumber($row->sellValueCompare, ($dRec->totalValuePrevious ?? 0));
-
-                    $row->deltaCompare = '<b>' . core_Type::getByName('double(decimals=2)')->toVerbal(($dRec->totalDeltaPrevious ?? 0)) . '</b>';
-                    $row->deltaCompare = ht::styleNumber($row->deltaCompare, ($dRec->totalDeltaPrevious ?? 0));
-
-                    $changeSales = ($dRec->totalValue ?? 0) - ($dRec->totalValuePrevious ?? 0);
-                    $row->changeSales = '<b>' . core_Type::getByName('double(decimals=2)')->toVerbal($changeSales) . '</b>';
-                    $row->changeSales = ht::styleNumber($row->changeSales, $changeSales);
-
-                    $changeDeltas = ($dRec->totalDelta ?? 0) - ($dRec->totalDeltaPrevious ?? 0);
-                    $row->changeDeltas = '<b>' . core_Type::getByName('double(decimals=2)')->toVerbal($changeDeltas) . '</b>';
-                    $row->changeDeltas = ht::styleNumber($row->changeDeltas, $changeDeltas);
-                }
-
-                if ($rec->compare == 'year') {
-                    $row->sellValueCompare = '<b>' . core_Type::getByName('double(decimals=2)')->toVerbal(($dRec->totalValueLastYear ?? 0)) . '</b>';
-                    $row->sellValueCompare = ht::styleNumber($row->sellValueCompare, ($dRec->totalValueLastYear ?? 0));
-
-                    $row->deltaCompare = '<b>' . core_Type::getByName('double(decimals=2)')->toVerbal(($dRec->totalDeltaLastYear ?? 0)) . '</b>';
-                    $row->deltaCompare = ht::styleNumber($row->deltaCompare, ($dRec->totalDeltaLastYear ?? 0));
-
-                    $changeSales = ($dRec->totalValue ?? 0) - ($dRec->totalValueLastYear ?? 0);
-                    $row->changeSales = '<b>' . core_Type::getByName('double(decimals=2)')->toVerbal($changeSales) . '</b>';
-                    $row->changeSales = ht::styleNumber($row->changeSales, $changeSales);
-
-                    $changeDeltas = ($dRec->totalDelta ?? 0) - ($dRec->totalDeltaLastYear ?? 0);
-                    $row->changeDeltas = '<b>' . core_Type::getByName('double(decimals=2)')->toVerbal($changeDeltas) . '</b>';
-                    $row->changeDeltas = ht::styleNumber($row->changeDeltas, $changeDeltas);
-                }
-            }
-
-            return $row;
-        }
-
         if (isset($dRec->code)) {
             $row->code = $dRec->code;
         }
 
         $row->contragentId = self::getContragent($dRec, true, $rec);
 
-        foreach (array(
-                     'saleValue',
-                     'delta'
-                 ) as $fld) {
-            $row->{$fld} = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->{$fld});
-            $row->{$fld} = ht::styleNumber($row->{$fld}, $dRec->{$fld});
-        }
+        $Double = core_Type::getByName('double(decimals=2)');
+        $Int = core_Type::getByName('int');
+        $fields = array('saleValue' => $Double, 'delta' => $Double, 'sellValueCompare' => $Double, 'deltaCompare' => $Double,
+            'changeSales' => $Double, 'changeDeltas' => $Double, 'articles' => $Int, 'sales' => $Int,
+            'unicartCompare' => $Int, 'salesCompareCount' => $Int, 'changeArticles' => $Int, 'changeSalesCount' => $Int);
 
-        $row->articles = core_Type::getByName('int')->toVerbal(($dRec->unicart ?? 0));
+        // Бройките се показват без оцветяване
+        $notStyled = array('articles', 'sales', 'unicartCompare', 'salesCompareCount');
 
-        $row->sales = core_Type::getByName('int')->toVerbal(($dRec->salesArr ?? 0));
+        foreach ($fields as $fld => $Type) {
 
-        if ($rec->compare != 'no') {
-            if (($rec->compare == 'previous') || ($rec->compare == 'month')) {
-                $row->sellValueCompare = core_Type::getByName('double(decimals=2)')->toVerbal(($dRec->sellValuePrevious ?? 0));
-                $row->sellValueCompare = ht::styleNumber($row->sellValueCompare, ($dRec->sellValuePrevious ?? 0));
-
-                $row->unicartCompare = core_Type::getByName('int')->toVerbal(($dRec->unicartPrevious ?? 0));
-                $row->salesCompareCount = core_Type::getByName('int')->toVerbal(($dRec->salesArrPrevious ?? 0));
-
-                $row->deltaCompare = core_Type::getByName('double(decimals=2)')->toVerbal(($dRec->deltaPrevious ?? 0));
-                $row->deltaCompare = ht::styleNumber($row->deltaCompare, ($dRec->deltaPrevious ?? 0));
-
-                $changeSales = $dRec->saleValue - ($dRec->sellValuePrevious ?? 0);
-                $row->changeSales = core_Type::getByName('double(decimals=2)')->toVerbal($changeSales);
-                $row->changeSales = ht::styleNumber($row->changeSales, $changeSales);
-
-                $changeDeltas = $dRec->delta - ($dRec->deltaPrevious ?? 0);
-                $row->changeDeltas = core_Type::getByName('double(decimals=2)')->toVerbal($changeDeltas);
-                $row->changeDeltas = ht::styleNumber($row->changeDeltas, $changeDeltas);
-
-                $changeArticles = ($dRec->unicart ?? 0) - ($dRec->unicartPrevious ?? 0);
-                $row->changeArticles = core_Type::getByName('int')->toVerbal($changeArticles);
-                $row->changeArticles = ht::styleNumber($row->changeArticles, $changeArticles);
-
-                $changeSalesCount = ($dRec->salesArr ?? 0) - ($dRec->salesArrPrevious ?? 0);
-                $row->changeSalesCount = core_Type::getByName('int')->toVerbal($changeSalesCount);
-                $row->changeSalesCount = ht::styleNumber($row->changeSalesCount, $changeSalesCount);
+            // Полетата за сравнение ги има само при избрано сравнение
+            if (!isset($dRec->{$fld})) {
+                continue;
             }
 
-            if ($rec->compare == 'year') {
-                $row->sellValueCompare = core_Type::getByName('double(decimals=2)')->toVerbal(($dRec->sellValueLastYear ?? 0));
-                $row->sellValueCompare = ht::styleNumber($row->sellValueCompare, ($dRec->sellValueLastYear ?? 0));
-
-                $row->unicartCompare = core_Type::getByName('int')->toVerbal(($dRec->unicartLast ?? 0));
-                $row->salesCompareCount = core_Type::getByName('int')->toVerbal(($dRec->salesArrLast ?? 0));
-
-                $row->deltaCompare = core_Type::getByName('double(decimals=2)')->toVerbal(($dRec->deltaLastYear ?? 0));
-                $row->deltaCompare = ht::styleNumber($row->deltaCompare, ($dRec->deltaLastYear ?? 0));
-
-                $changeSales = $dRec->saleValue - ($dRec->sellValueLastYear ?? 0);
-                $row->changeSales = core_Type::getByName('double(decimals=2)')->toVerbal($changeSales);
-                $row->changeSales = ht::styleNumber($row->changeSales, $changeSales);
-
-                $changeDeltas = $dRec->delta - ($dRec->deltaLastYear ?? 0);
-                $row->changeDeltas = core_Type::getByName('double(decimals=2)')->toVerbal($changeDeltas);
-                $row->changeDeltas = ht::styleNumber($row->changeDeltas, $changeDeltas);
-
-                $changeArticles = ($dRec->unicart ?? 0) - ($dRec->unicartLast ?? 0);
-                $row->changeArticles = core_Type::getByName('int')->toVerbal($changeArticles);
-                $row->changeArticles = ht::styleNumber($row->changeArticles, $changeArticles);
-
-                $changeSalesCount = ($dRec->salesArr ?? 0) - ($dRec->salesArrLast ?? 0);
-                $row->changeSalesCount = core_Type::getByName('int')->toVerbal($changeSalesCount);
-                $row->changeSalesCount = ht::styleNumber($row->changeSalesCount, $changeSalesCount);
+            $row->{$fld} = $Type->toVerbal($dRec->{$fld});
+            if (!in_array($fld, $notStyled)) {
+                $row->{$fld} = ht::styleNumber($row->{$fld}, $dRec->{$fld});
             }
         }
 
@@ -1137,82 +1106,12 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
      */
     protected static function on_AfterGetExportRec(frame2_driver_Proto $Driver, &$res, $rec, $dRec, $ExportClass)
     {
-        if (isset($dRec->totalValue)) {
+        if (!empty($dRec->_isSummary)) {
             $res->contragentId = 'ОБЩО:';
-            $res->saleValue = $dRec->totalValue;
-            $res->delta = $dRec->totalDelta ?? 0;
-            $res->articles = $dRec->totalUnicart ?? 0;
-            $res->sales = $dRec->totalSalesArr ?? 0;
-
-            if (($rec->compare == 'previous') || ($rec->compare == 'month')) {
-                $res->sellValueCompare = $dRec->totalValuePrevious ?? 0;
-                $res->deltaCompare = $dRec->totalDeltaPrevious ?? 0;
-                $res->changeSales = $res->saleValue - $res->sellValueCompare;
-                $res->changeDeltas = $res->delta - $res->deltaCompare;
-            } elseif ($rec->compare == 'year') {
-                $res->sellValueCompare = $dRec->totalValueLastYear ?? 0;
-                $res->deltaCompare = $dRec->totalDeltaLastYear ?? 0;
-                $res->changeSales = $res->saleValue - $res->sellValueCompare;
-                $res->changeDeltas = $res->delta - $res->deltaCompare;
-            }
 
             return;
         }
 
         $res->contragentId = self::getContragent($dRec, false, $rec);
-
-        if ($rec->compare != 'no') {
-
-            $saleValue = $dRec->saleValue;
-            $delta = $dRec->delta ?? 0;
-
-            if (($rec->compare == 'previous') || ($rec->compare == 'month')) {
-                $res->saleValue = $saleValue;
-                $res->delta = $delta;
-                $res->sellValueCompare = ($dRec->sellValuePrevious);
-                $res->deltaCompare = ($dRec->deltaPrevious);
-                $res->changeSales = ($saleValue - $dRec->sellValuePrevious);
-                $res->changeDeltas = ($delta - $dRec->deltaPrevious);
-            }
-
-            if ($rec->compare == 'year') {
-                $res->saleValue = ($saleValue);
-                $res->delta = ($delta);
-                $res->sellValueCompare = ($dRec->sellValueLastYear);
-                $res->deltaCompare = ($dRec->deltaLastYear);
-                $res->changeSales = ($saleValue - $dRec->sellValueLastYear);
-                $res->changeDeltas = ($delta - $dRec->deltaLastYear);
-            }
-        }
-        $res->articles = core_Type::getByName('int')->toVerbal($dRec->unicart);
-
-        $res->sales = core_Type::getByName('int')->toVerbal($dRec->salesArr);
-
-        if (isset($dRec->totalValue)) {
-            $res->contragentId = 'ОБЩО:';
-
-            $saleValue = $dRec->totalValue;
-            $delta = $dRec->totalDelta;
-
-            $res->saleValue = $saleValue;
-            $res->delta = $delta;
-
-            $res->articles = $dRec->totalUnicart;
-            $res->sales = $dRec->totalSalesArr;
-
-            if (($rec->compare == 'previous') || ($rec->compare == 'month')) {
-                $res->sellValueCompare = ($dRec->totalValuePrevious);
-                $res->deltaCompare = ($dRec->totalDeltaPrevious);
-                $res->changeSales = ($saleValue - $dRec->totalValuePrevious);
-                $res->changeDeltas = ($delta - $dRec->totalDeltaPrevious);
-            }
-
-            if ($rec->compare == 'year') {
-                $res->sellValueCompare = ($dRec->totalValueLastYear);
-                $res->deltaCompare = ($dRec->totalDeltaLastYear);
-                $res->changeSales = ($saleValue - $dRec->totalValueLastYear);
-                $res->changeDeltas = $delta - $dRec->totalDeltaLastYear;
-            }
-        }
     }
 }
