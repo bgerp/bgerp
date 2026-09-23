@@ -490,7 +490,9 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
         
         // Десериализираме нужните помощни данни
         $params = unserialize($script->params);
-        
+
+        $savedId = $error = null;
+
         // Ако има генерирани файлове, които са качени успешно
         if (countR($fileHndArr)) {
             

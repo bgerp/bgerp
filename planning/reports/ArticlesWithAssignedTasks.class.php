@@ -126,7 +126,7 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
         if ($jobsQuery->getField('designers', false)) {
             $jobsQuery->show('designers');
         }
-        $jobsQuery->selectOnProxy();
+        $jobsQuery->selectOnReplica();
         $jobs = $jobsQuery->fetchAll();
         if (!count($jobs)) return $recs;
 
@@ -249,7 +249,7 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
             $query = $mvc->getQuery();
             $query->in('id', $chunk);
             if ($fields !== null) $query->show($fields);
-            $query->selectOnProxy();
+            $query->selectOnReplica();
             $records += $query->fetchAll();
         }
 
@@ -272,7 +272,7 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
             $query->setUnion("#inType = 'doc' AND #inVal IN ({$ids})");
             $query->orderBy('createdOn', 'DESC');
             $query->show('id,outType,outVal,inType,inVal,createdBy,createdOn');
-            $query->selectOnProxy();
+            $query->selectOnReplica();
             $wanted = array_fill_keys($chunk, true);
             foreach ($query->fetchAll() as $link) {
                 $sources = array();
@@ -291,7 +291,7 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
                 $query->setUnion(array("#inType = 'doc' AND #inVal = '[#1#]'", $sourceId));
                 $query->orderBy('createdOn', 'DESC');
                 $query->limit(100);
-                $query->selectOnProxy();
+                $query->selectOnReplica();
                 $result[$sourceId] = array_values($query->fetchAll());
             }
         }

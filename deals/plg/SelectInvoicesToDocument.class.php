@@ -278,20 +278,34 @@ class deals_plg_SelectInvoicesToDocument extends core_Plugin
         $paymentData = $mvc->getPaymentData($rec);
         $currencyCode = currency_Currencies::getCodeById($paymentData->currencyId);
 
+        // Сумите се заличават както в сингъла (deals_InvoicesToDocuments::prepareInvoicesToDocuments)
+        $canSeePrices = doc_plg_HidePrices::canSeePriceFields($mvc, $rec);
+
         $text .= "\n\n" . tr('Разпределение по фактури||Distribution by invoices') . ":\n";
-        foreach ($invRecs as $invRec) {
-            $Document = doc_Containers::getDocument($invRec->containerId);
-            $iInst = $Document->getInstance();
-            $iRec = $Document->fetch();
 
-            if ($iInst->getField('number', false)) {
-                $number = $iInst->getVerbal($iRec, 'number');
-            } else {
-                $number = '#' . $Document->getHandle();
+        // Текстът се добавя след конвертирането от HTML, затова вербализацията е в plain режим
+        Mode::push('text', 'plain');
+        try {
+            foreach ($invRecs as $invRec) {
+                $Document = doc_Containers::getDocument($invRec->containerId);
+                $iInst = $Document->getInstance();
+                $iRec = $Document->fetch();
+
+                if ($iInst->getField('number', false)) {
+                    $number = $iInst->getVerbal($iRec, 'number');
+                } else {
+                    $number = '#' . $Document->getHandle();
+                }
+
+                if ($canSeePrices) {
+                    $amount = core_Type::getByName('double(decimals=2)')->toVerbal($invRec->amount) . " {$currencyCode}";
+                } else {
+                    $amount = doc_plg_HidePrices::getBuriedElement(true);
+                }
+                $text .= "- " . tr($iInst->singleTitle) . " {$number}: {$amount}\n";
             }
-
-            $amount = core_Type::getByName('double(decimals=2)')->toVerbal($invRec->amount);
-            $text .= "- " . tr($iInst->singleTitle) . " {$number}: {$amount} {$currencyCode}\n";
+        } finally {
+            Mode::pop('text');
         }
     }
 }

@@ -776,7 +776,7 @@ class doc_Threads extends core_Manager
      */
     public function act_List()
     {
-        $this->forceProxy($this->className);
+        $this->forceReplica($this->className);
 
         return parent::act_List();
     }
@@ -2929,7 +2929,7 @@ class doc_Threads extends core_Manager
         
         doc_Folders::restrictAccess($query, $userId, $viewAccess);
         
-        if (($query->mvc->className != 'doc_Threads') && ($query->mvc->className != 'doc_ThreadsProxy')) {
+        if ($query->mvc->className != 'doc_Threads') {
             // Добавя необходимите полета от модела doc_Threads
             $query->EXT('threadShared', 'doc_Threads', 'externalName=shared,externalKey=threadId');
         } else {
