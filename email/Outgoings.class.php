@@ -2767,11 +2767,12 @@ class email_Outgoings extends core_Master
         }
         
         if (Mode::is('externalThreadView')) {
-            $data->row->ExternalThreadViewDate = $data->rec->ExternalThreadViewDate;
-            $data->row->ExternalThreadViewTo = $data->rec->ExternalThreadViewTo;
-            $data->row->ExternalThreadViewCc = $data->rec->ExternalThreadViewCc;
-            $data->row->ExternalThreadViewFrom = $data->rec->ExternalThreadViewFrom;
-            $data->row->ExternalThreadViewAvatar = $data->rec->ExternalThreadViewAvatar;
+            // Полетата се задават в bgerp_L само ако има данни за изпращането (To/Cc - само ако не са празни)
+            $data->row->ExternalThreadViewDate = $data->rec->ExternalThreadViewDate ?? null;
+            $data->row->ExternalThreadViewTo = $data->rec->ExternalThreadViewTo ?? null;
+            $data->row->ExternalThreadViewCc = $data->rec->ExternalThreadViewCc ?? null;
+            $data->row->ExternalThreadViewFrom = $data->rec->ExternalThreadViewFrom ?? null;
+            $data->row->ExternalThreadViewAvatar = $data->rec->ExternalThreadViewAvatar ?? null;
         }
         
         //Полета До и Към
@@ -3682,7 +3683,7 @@ class email_Outgoings extends core_Master
         $currUserId = core_Users::getCurrent();
         
         // Ако имаме корпоративен акаунт
-        if ($corpAccId = $corpAccRec->id) {
+        if ($corpAccId = ($corpAccRec->id ?? null)) {
             
             // Корпоративния имейла на потребиеля
             $currUserCorpEmail = mb_strtolower(email_Inboxes::getUserEmail());

@@ -12,6 +12,8 @@
  * @copyright 2006 - 2024 Experta OOD
  * @license   GPL 3
  *
+ * @deprecated Използвайте cat_Products с callOnReplica() или selectOnReplica().
+ *
  * @since     v 0.1
  */
 class cat_ProductsProxy extends core_Manager
@@ -29,6 +31,6 @@ class cat_ProductsProxy extends core_Manager
      */
     public function description()
     {
-        $this->forceProxy('cat_Products');
+        $this->forceReplica('cat_Products');
     }
 }

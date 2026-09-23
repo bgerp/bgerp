@@ -1122,6 +1122,12 @@ class batch_BatchesInDocuments extends core_Manager
         foreach ($batchesArr as $b => $q) {
             if(is_array($recInfo->operation)){
                 foreach ($recInfo->operation as $operation => $storeId) {
+
+                    // Без склад не се създава запис за партида в документа
+                    if (empty($storeId)) {
+                        continue;
+                    }
+
                     $obj = clone $recInfo;
                     $obj->operation = $operation;
                     $obj->storeId = $storeId;

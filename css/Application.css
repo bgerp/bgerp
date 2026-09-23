@@ -985,8 +985,6 @@ div.mobile {
   border: solid 1px #bbbbbb;
   background-color: rgba(0, 0, 0, 0.05);
   font-size: 0.8em;
-  top: -1px;
-  position: relative;
   -moz-border-radius: 3px;
   -webkit-border-radius: 3px;
   -ms-border-radius: 3px;
@@ -2574,6 +2572,10 @@ form select.w50 + .select2 {
   border: 1px solid #bbbbbb;
   vertical-align: top !important; }
 
+.footer-notes li {
+  overflow-wrap: anywhere;
+  word-break: normal; }
+
 .narrow .footer-notes ol li {
   word-break: break-word; }
 
@@ -2820,6 +2822,8 @@ th:has(.wrapText) {
   .inlineRichtextCond .endTooltip {
     display: inline !important;
     vertical-align: middle; }
+  .inlineRichtextCond .richtext {
+    color: inherit; }
 
 .blueText {
   color: blue !important; }
@@ -7806,6 +7810,53 @@ tr.wasteWeightPercent td {
 .reportTableDataTotal {
   background-color: #cccccc !important;
   font-weight: bold; }
+
+.reportLogHolder {
+  margin-top: 16px;
+  padding: 10px 14px 12px;
+  background-color: #fbfbfb;
+  border: 1px solid #ececec;
+  border-radius: 4px; }
+
+.reportLogTitle {
+  margin-bottom: 6px;
+  color: #999999;
+  font-size: 0.75em;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.06em; }
+
+.reportLogTable {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: rgba(0, 0, 0, 0); }
+  .reportLogTable th {
+    padding: 0 0 5px;
+    border: 0;
+    background: none;
+    color: #555555;
+    font-size: 0.82em;
+    font-weight: bold;
+    text-align: left; }
+  .reportLogTable td {
+    padding: 5px 0;
+    border: 0;
+    border-top: 1px solid #ededed;
+    background: none;
+    vertical-align: top;
+    line-height: 1.5; }
+  .reportLogTable tr:hover td {
+    background-color: #f3f7fc; }
+  .reportLogTable .reportLogTime {
+    width: 1%;
+    white-space: nowrap;
+    padding-right: 18px;
+    color: #a0a0a0;
+    font-size: 0.8em; }
+  .reportLogTable .reportLogMsg {
+    text-align: left;
+    color: #444444;
+    font-size: 0.85em; }
 
 .logs-type-warning {
   background-color: #fae3ca; }

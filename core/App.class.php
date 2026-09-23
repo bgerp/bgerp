@@ -191,15 +191,6 @@ class core_App
                 
                 // Дали това не е име на контролер?
                 if (!isset($q['Ctr']) && $id < 2) {
-                    if (!preg_Match('/([A-Z])/', $prm)) {
-                        $last = strrpos($prm, '_');
-                        
-                        if ($last !== false && $last < strlen($prm)) {
-                            $className[$last + 1] = strtoupper($prm[$last + 1]);
-                        } else {
-                            $className[0] = strtoupper($prm[0]);
-                        }
-                    }
                     $q['Ctr'] = preg_replace('/[^a-zA-Z0-9_]*/', '', $prm);
                     continue;
                 }
@@ -1183,12 +1174,12 @@ class core_App
                     $boot = $protocol . '://' . $auth . $domain . $dirName;
                 } elseif (defined('FORCE_BGERP_ABSOLUTE_HTTP_HOST') && !$forceHttpHost) {
                     $boot = $protocol . '://' . $auth . FORCE_BGERP_ABSOLUTE_HTTP_HOST . $dirName;
-                } elseif (core_Url::isValidTld($domain = $_SERVER['HTTP_HOST'])) {
+                } elseif (core_Url::isValidTld($domain = ($_SERVER['HTTP_HOST'] ?? ''))) {
                     $boot = $protocol . '://' . $auth . $domain . $dirName;
                 } elseif (defined('BGERP_ABSOLUTE_HTTP_HOST') && !$forceHttpHost) {
                     $boot = $protocol . '://' . $auth . BGERP_ABSOLUTE_HTTP_HOST . $dirName;
                 } else {
-                    $boot = $protocol . '://' . $auth . $_SERVER['HTTP_HOST'] . $dirName;
+                    $boot = $protocol . '://' . $auth . ($_SERVER['HTTP_HOST'] ?? '') . $dirName;
                 }
             }
         } else {

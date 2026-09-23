@@ -180,7 +180,7 @@ class email_drivers_CheckEmails extends core_BaseClass
 
             $iQuery->limit(100);
 
-            $iQuery->show('id, threadId, folderId, containerId, subject, modifiedOn');
+            $iQuery->show('id, threadId, folderId, containerId, subject, modifiedOn, docCnt');
 
             foreach ($fieldArrMap as $serviceFieldName => $recFieldName) {
 

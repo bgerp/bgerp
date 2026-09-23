@@ -481,6 +481,7 @@ class trans_Lines extends core_Master
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
+        $rec = $mvc->fetchRec($rec);
         $transUnitsTotal = array();
 
         if (isset($fields['-single'])) {

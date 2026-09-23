@@ -93,7 +93,7 @@ class ajur_SalesInvoicesExport extends frame2_driver_TableData
     /**
      * След рендиране на единичния изглед
      *
-     * @param cat_ProductDriver $Driver
+     * @param frame2_driver_Proto $Driver
      * @param embed_Manager $Embedder
      * @param core_Form $form
      * @param stdClass $data
@@ -320,6 +320,10 @@ class ajur_SalesInvoicesExport extends frame2_driver_TableData
         }
         $dQuery = sales_InvoiceDetails::getQuery();
         $dQuery->in('invoiceId', $invArr);
+
+        // Нулевите редове на фактурите не се експортират, при известията са промяна
+        $dQuery->EXT('invType', 'sales_Invoices', 'externalName=type,externalKey=invoiceId');
+        $dQuery->where("#quantity != 0 OR #invType != 'invoice'");
 
         $details = $dQuery->fetchAll();
 

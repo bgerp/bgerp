@@ -9,7 +9,7 @@
  * @package   sync
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2020 Experta OOD
+ * @copyright 2006 - 2026 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -60,19 +60,39 @@ class sync_plg_ProductExport extends core_Plugin
             sync_Helper::requireRight('export');
             
             expect($importUrl = self::getImportUrl($rec));
-            
-            $params = array('remoteId' => $rec->id);
-            $httpQuery = http_build_query($params);
+
+            $sysId = trim((string) sync_Setup::get('SYS_ID'));
+            $pass = sync_Setup::getSyncPass();
+            expect($sysId !== '' && $pass !== '', 'Ръчният export изисква SYNC_SYS_ID и SYNC_PASS');
+
+            // При push receiver-ът е този, който прилага per-client policy.
+            // Локалният администратор подготвя payload-а без да избира ред от
+            // собствената sync_Settings таблица.
+            Mode::push('syncBypassExportPolicy', true);
+            try {
+                $exportData = self::getExportData($rec->id);
+            } finally {
+                Mode::pop('syncBypassExportPolicy');
+            }
+
+            $params = array(
+                'remoteId' => $rec->id,
+                'syncSysId' => $sysId,
+                'syncPass' => $pass,
+                'sourceUrl' => toUrl(array('cat_Products', 'single', $rec->id), 'absolute'),
+                'data' => $exportData,
+            );
             
             $ch = curl_init();
             curl_setopt($ch, CURLOPT_URL, $importUrl);
             curl_setopt($ch, CURLOPT_POST, 1);
-            curl_setopt($ch, CURLOPT_POSTFIELDS, $httpQuery);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, $params);
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
-            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+            curl_setopt($ch, CURLOPT_FOLLOWLOCATION, false);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
             
-            curl_setopt($ch, CURLOPT_TIMEOUT, 60);
+            curl_setopt($ch, CURLOPT_TIMEOUT, sync_Helper::EXPORT_REQUEST_TIMEOUT);
             curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 20);
             
             // Прави се опит за импорт в приемащата система
@@ -124,8 +144,13 @@ class sync_plg_ProductExport extends core_Plugin
         
         // Екшън който 'сервира' данните за експорт на артикула
         if($action == 'remoteexport'){
-            sync_Helper::requireRight('export');
+            $settingsRec = sync_Helper::requireRight('export');
             expect($id = Request::get('exportId', 'int'));
+            expect($productRec = $mvc->fetch($id));
+            expect(
+                !$settingsRec || sync_Settings::canExportProduct($productRec, $settingsRec),
+                'Артикулът не е разрешен за този клиент'
+            );
             
             try{
                 $data = self::getExportData($id);
@@ -159,10 +184,11 @@ class sync_plg_ProductExport extends core_Plugin
     {
         $importUrl = sync_Setup::get('EXPORT_URL');
         if(empty($importUrl)) return null;
-        
+
         $importUrl = rtrim($importUrl, '/');
         $importUrl .= "/sync_ProductQuotes/import/";
-        
+        sync_Helper::requireSecureUrl($importUrl);
+
         return $importUrl;
     }
     

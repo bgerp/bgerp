@@ -1408,7 +1408,7 @@ class cal_Tasks extends embed_Manager
             }
         }
         
-        if ($action == 'edit' && is_object($rec) && $rec->state == 'pending') {
+        if ($action == 'edit' && is_object($rec) && ($rec->state ?? null) == 'pending') {
             $oState = null;
             if (!empty($rec->id)) {
                 $oState = $mvc->fetchField($rec->id, 'state');
@@ -1560,7 +1560,7 @@ class cal_Tasks extends embed_Manager
         $data->listFilter->FNC('Chart', 'varchar', 'caption=Таблица,input=hidden,silent,autoFilter');
         $data->listFilter->FNC('View', 'varchar', 'caption=Изглед,input=hidden,silent,autoFilter');
         $data->listFilter->FNC('stateTask', self::getStateTaskFilterType(), 'caption=Състояние,input,silent,autoFilter');
-        $data->listFilter->FNC('folder', 'key2(mvc=doc_FoldersProxy, allowEmpty, selectSourceArr=doc_Folders::getSelectArr, forceProxy)', 'caption=Папка,placeholderType=all,silent,autoFilter,input');
+        $data->listFilter->FNC('folder', 'key2(mvc=doc_Folders,forceReplica, allowEmpty, selectSourceArr=doc_Folders::getSelectArr)', 'caption=Папка,placeholderType=all,silent,autoFilter,input');
         $data->listFilter->setOptions('stepId', doc_UnsortedFolderSteps::getOptionArr());
         $data->listFilter->setField('stepId', 'placeholderType=all');
         $data->listFilter->setField('assetResourceId', 'placeholderType=all');
@@ -2107,9 +2107,8 @@ class cal_Tasks extends embed_Manager
         }
 
         // Премахваме оттеглените задачи от календар
-        if ($rec->state == 'rejected') {
-            cal_Calendar::updateEvents($events, $fromDate, $toDate, $prefix . '-Start', true);
-            cal_Calendar::updateEvents($events, $fromDate, $toDate, $prefix . '-End', true);
+        if (($rec->state ?? null) == 'rejected') {
+            cal_Calendar::updateEvents($events, $fromDate, $toDate, $prefix . '-', true);
         }
 
         return cal_Calendar::updateEvents($events, $fromDate, $toDate, $prefix, $onlyDel);
@@ -3615,7 +3614,7 @@ class cal_Tasks extends embed_Manager
         
         if (!$dependTimeEnd) {
             if (!$closedTime) {
-                $dependTimeEnd = dt::timestamp2Mysql(dt::mysql2timestamp($dependTimeStart) + $recCond->timeDuration);
+                $dependTimeEnd = dt::timestamp2Mysql(dt::mysql2timestamp($dependTimeStart) + ($recCond->timeDuration ?? 0));
             } else {
                 $dependTimeEnd = $closedTime;
             }

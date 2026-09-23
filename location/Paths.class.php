@@ -37,12 +37,13 @@ class location_Paths
         
         $id = 'map' . $n;
         
-        setIfNot($width, $attr['width'], 400);
-        setIfNot($height, $attr['height'], 300);
+        $width = $attr['width'] ?? 400;
+        $height = $attr['height'] ?? 300;
         
         $conf = core_Packs::getConfig('google');
         $apiKey = $conf->GOOGLE_API_KEY;
         
+        $keyString = '';
         if (isset($apiKey) && $apiKey != '') {
             $keyString = "key={$apiKey}&";
         }

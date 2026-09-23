@@ -291,7 +291,7 @@ class doc_drivers_LatestDocPortal extends core_BaseClass
                         $doubleClickUrl = $doc->getUrlForDblClick();
                         if(isset($doubleClickUrl)){
                             $doubleClickDataUrl = toUrl($doubleClickUrl);
-                            $attr['data-doubleclick'] .= $doubleClickDataUrl;
+                            $attr['data-doubleclick'] = $doubleClickDataUrl;
                         }
 
                         $dRowStr = "<div class='portalLatestThreads state-{$tRec->state} {$tUnsighted} {$subTitleClass}'>" . ht::createLink(str::limitLen($title, 50), $doc->getSingleUrlArray(), null, $attr) . '</div>';

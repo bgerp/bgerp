@@ -141,18 +141,23 @@ class store_reports_Documents extends frame2_driver_TableData
             return $recs;
         }
         $documentFld = ($rec->documentType) ? 'documentType' : 'document';
+        $lineContainers = array();
+        $documentCnt = 0;
+        core_App::setTimeLimit(200);
         
         foreach (array('planning_ConsumptionNotes', 'planning_ReturnNotes') as $pDoc) {
             if (empty($rec->{$documentFld}) || ($rec->{$documentFld} == $pDoc::getClassId())) {
                 $cQuery = $pDoc::getQuery();
                 self::applyFilters($cQuery, $storeIds, $pDoc, $rec, 'deadline');
+                $cQuery->show('containerId,storeId,deadline,folderId,createdOn,createdBy,modifiedOn');
+                $cQuery->selectOnReplica();
                 while ($cRec = $cQuery->fetch()) {
                     $recs[$cRec->containerId] = (object) array('containerId' => $cRec->containerId,
                         'stores' => array($cRec->storeId),
                         'dueDate' => $cRec->deadline,
                         'weight' => null,
                         'pallets' => null,
-                        'linked' => $this->getLinkedDocumentsFor($cRec->containerId),
+                        'linked' => array(),
                         'folderId' => $cRec->folderId,
                         'createdOn' => $cRec->createdOn,
                         'createdBy' => $cRec->createdBy,
@@ -166,27 +171,39 @@ class store_reports_Documents extends frame2_driver_TableData
             if (empty($rec->{$documentFld}) || ($rec->{$documentFld} == $pDoc::getClassId())) {
                 $Document = cls::get($pDoc);
                 $deadlineFld = ($pDoc != 'store_ConsignmentProtocols') ? 'deliveryTime' : 'valior';
+                $weightFld = $Document->totalWeightFieldName;
                 
                 $sQuery = $Document->getQuery();
                 self::applyFilters($sQuery, $storeIds, $pDoc, $rec, $deadlineFld);
+                $sQuery->selectOnReplica();
+
+                $documentRecs = array();
                 while ($sRec = $sQuery->fetch()) {
-                    $linked = $this->getLinkedDocumentsFor($sRec->containerId);
+                    $documentRecs[$sRec->id] = $sRec;
                     if (!empty($sRec->lineId)) {
-                        $lineCid = trans_Lines::fetchField($sRec->lineId, 'containerId');
-                        $linked[$lineCid] = $lineCid;
+                        $lineContainers[$sRec->containerId] = $sRec->lineId;
                     }
+                }
+
+                // Лимитът се вдига според натрупаните документи, преди да се смятат теглата
+                $documentCnt += countR($documentRecs);
+                core_App::setTimeLimit(0.2 * $documentCnt, false, 200);
+
+                // Теглата на всички документи от този тип с едно четене на детайлите им
+                $weights = $this->getDocumentWeights($Document, $documentRecs);
+
+                foreach ($documentRecs as $sRec) {
                     $stores = ($pDoc != 'store_Transfers') ? array($sRec->storeId) : array($sRec->fromStore, $sRec->toStore);
                     
-                    $measures = $Document->getTotalTransportInfo($sRec->id);
-                    setIfNot($sRec->{$Document->totalWeightFieldName}, $measures->weight);
-                    $sRec->{$Document->totalWeightFieldName} = ($sRec->weightInput) ? $sRec->weightInput : $sRec->{$Document->totalWeightFieldName};
+                    setIfNot($sRec->{$weightFld}, $weights[$sRec->id] ?? null);
+                    $sRec->{$weightFld} = ($sRec->weightInput) ? $sRec->weightInput : $sRec->{$weightFld};
                     
                     $recs[$sRec->containerId] = (object) array('containerId' => $sRec->containerId,
                         'stores' => $stores,
                         'dueDate' => $sRec->deliveryTime,
-                        'weight' => $sRec->{$Document->totalWeightFieldName},
+                        'weight' => $sRec->{$weightFld},
                         'pallets' => null, // @TODO
-                        'linked' => $linked,
+                        'linked' => array(),
                         'folderId' => $sRec->folderId,
                         'createdOn' => $sRec->createdOn,
                         'createdBy' => $sRec->createdBy,
@@ -199,6 +216,8 @@ class store_reports_Documents extends frame2_driver_TableData
         if (empty($rec->{$documentFld}) || ($rec->{$documentFld} == planning_DirectProductionNote::getClassId())) {
             $pQuery = planning_DirectProductionNote::getQuery();
             self::applyFilters($pQuery, $storeIds, 'planning_DirectProductionNote', $rec, 'deadline');
+            $pQuery->show('containerId,storeId,deadline,folderId,createdOn,createdBy,modifiedOn');
+            $pQuery->selectOnReplica();
 
             while ($pRec = $pQuery->fetch()) {
                 $recs[$pRec->containerId] = (object) array('containerId' => $pRec->containerId,
@@ -206,7 +225,7 @@ class store_reports_Documents extends frame2_driver_TableData
                     'dueDate' => $pRec->deadline,
                     'weight' => null,
                     'pallets' => null,
-                    'linked' => $this->getLinkedDocumentsFor($pRec->containerId),
+                    'linked' => array(),
                     'folderId' => $pRec->folderId,
                     'createdOn' => $pRec->createdOn,
                     'createdBy' => $pRec->createdBy,
@@ -214,7 +233,21 @@ class store_reports_Documents extends frame2_driver_TableData
                 );
             }
         }
-        
+
+        // Свързаните документи на всички контейнери наведнъж
+        $linkedArr = $this->getLinkedDocuments(array_keys($recs));
+        $lineCids = $this->getLineContainers($lineContainers);
+
+        foreach ($recs as $containerId => $obj) {
+            $obj->linked = $linkedArr[$containerId] ?? array();
+
+            if (isset($lineCids[$containerId])) {
+                $lineCid = $lineCids[$containerId];
+                $obj->linked[$lineCid] = $lineCid;
+            }
+        }
+
+        $dueDateArr = $noDueDateArr = array();
         if (countR($recs)) {
             $dueDateArr = array_filter($recs, function ($a) {
                 
@@ -242,35 +275,171 @@ class store_reports_Documents extends frame2_driver_TableData
     
     
     /**
-     * Връща линкнатите документи към контейнера
+     * Бруто теглото на подадените документи
      *
-     * @param int $containerId
+     * Сумира само теглото - за разлика от getTotalTransportInfo(), който смята и обем, нето,
+     * тара и логистични единици, а справката ги изхвърля
      *
-     * @return array $linked
+     * @param core_Master $Document
+     * @param array $documentRecs
+     *
+     * @return array - ид на документ => тегло
      */
-    private function getLinkedDocumentsFor($containerId)
+    private function getDocumentWeights($Document, $documentRecs)
     {
-        $linked = array();
-        
+        $res = array();
+        if (!countR($documentRecs)) return $res;
+
+        // Протоколите нямат основен детайл - теглото им се сумира от два, със своя логика
+        if (empty($Document->mainDetail)) {
+            foreach ($documentRecs as $id => $dRec) {
+                $measures = $Document->getTotalTransportInfo($id);
+                $res[$id] = $measures->weight;
+            }
+
+            return $res;
+        }
+
+        $Detail = cls::get($Document->mainDetail);
+        $productFld = $Detail->productFld;
+        $packagingFld = $Detail->packagingFld;
+        $quantityFld = $Detail->quantityFld;
+        $weightField = $Detail->weightField;
+
+        $dQuery = $Detail->getQuery();
+        $dQuery->in($Detail->masterKey, array_keys($documentRecs));
+        $dQuery->show("{$Detail->masterKey},{$productFld},{$packagingFld},{$quantityFld},{$weightField}");
+        $dQuery->selectOnReplica();
+
+        $detailRecs = $productIds = array();
+        while ($dRec = $dQuery->fetch()) {
+            $detailRecs[] = $dRec;
+            $productIds[$dRec->{$productFld}] = $dRec->{$productFld};
+        }
+
+        // Иначе всеки ред чете артикула си с отделна заявка
+        $this->preloadProducts($productIds);
+
+        $sums = array();
+        foreach ($detailRecs as $dRec) {
+            $masterId = $dRec->{$Detail->masterKey};
+            if (!isset($documentRecs[$masterId])) continue;
+
+            if (cat_Products::fetchField($dRec->{$productFld}, 'canStore') != 'yes') continue;
+
+            // Както в store_plg_TransportDataDetail - на живо за чернова и заявка
+            $masterState = $documentRecs[$masterId]->state;
+            if (in_array($masterState, array('draft', 'pending'))) {
+                $w = $Detail->getWeight($dRec->{$productFld}, $dRec->{$packagingFld}, $dRec->{$quantityFld}, $dRec->{$weightField});
+            } else {
+                $w = $dRec->{$weightField};
+            }
+
+            if (!array_key_exists($masterId, $sums)) {
+                $sums[$masterId] = 0;
+            }
+
+            if (empty($dRec->{$quantityFld}) || (!empty($w) && !is_null($sums[$masterId]))) {
+                $sums[$masterId] += $w;
+            } else {
+                $sums[$masterId] = null;
+            }
+        }
+
+        foreach ($sums as $masterId => $sum) {
+            $res[$masterId] = (!empty($sum)) ? $sum : null;
+        }
+
+        return $res;
+    }
+
+
+    /**
+     * Зарежда артикулите в кеша на модела, за да не се четат един по един
+     *
+     * @param array $productIds
+     *
+     * @return void
+     */
+    private function preloadProducts($productIds)
+    {
+        if (!countR($productIds)) return;
+
+        // Нарочно от основната база - кешът е общ за заявката и се ползва и след справката,
+        // затова трябва да съдържа същото, което би върнал fetchRec() за всеки артикул
+        $Products = cls::get('cat_Products');
+        $pQuery = cat_Products::getQuery();
+        $pQuery->in('id', $productIds);
+
+        // Ключът е същият, който ползва core_Query::fetchAndCache()
+        while ($pRec = $pQuery->fetch()) {
+            $Products->_cachedRecords[$pRec->id . '|*'] = $pRec;
+        }
+    }
+
+
+    /**
+     * Свързаните документи на посочените контейнери
+     *
+     * @param array $containerIds
+     *
+     * @return array - ид на контейнер => (ид на свързан контейнер => същото)
+     */
+    private function getLinkedDocuments($containerIds)
+    {
+        $res = array();
+        if (!countR($containerIds)) return $res;
+
         $cQuery = doc_Linked::getQuery();
-        $cQuery->where(array("#outVal = '[#1#]'", $containerId));
+        $cQuery->in('outVal', $containerIds);
         $cQuery->where("#outType = 'doc'");
         $cQuery->where("#inType = 'doc'");
-        
         $cQuery->where("#state != 'rejected'");
-        
+
         $cQuery->EXT('cState', 'doc_Containers', 'externalName=state,externalKey=inVal');
         $cQuery->where("#cState != 'rejected'");
-        
-        $cQuery->show('inVal');
-        
+
+        $cQuery->show('outVal,inVal');
         $cQuery->orderBy('createdOn', 'DESC');
-        
+        $cQuery->selectOnReplica();
+
         while ($cRec = $cQuery->fetch()) {
-            $linked[$cRec->inVal] = $cRec->inVal;
+            $res[$cRec->outVal][$cRec->inVal] = $cRec->inVal;
         }
-        
-        return $linked;
+
+        return $res;
+    }
+
+
+    /**
+     * Контейнерите на транспортните линии
+     *
+     * @param array $lineContainers - ид на контейнер => ид на линия
+     *
+     * @return array - ид на контейнер => ид на контейнера на линията
+     */
+    private function getLineContainers($lineContainers)
+    {
+        $res = array();
+        if (!countR($lineContainers)) return $res;
+
+        $lQuery = trans_Lines::getQuery();
+        $lQuery->in('id', $lineContainers);
+        $lQuery->show('id,containerId');
+        $lQuery->selectOnReplica();
+
+        $byLine = array();
+        while ($lRec = $lQuery->fetch()) {
+            $byLine[$lRec->id] = $lRec->containerId;
+        }
+
+        foreach ($lineContainers as $containerId => $lineId) {
+            if (isset($byLine[$lineId])) {
+                $res[$containerId] = $byLine[$lineId];
+            }
+        }
+
+        return $res;
     }
     
     

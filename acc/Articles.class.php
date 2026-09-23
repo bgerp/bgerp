@@ -261,7 +261,7 @@ class acc_Articles extends core_Master
         }
 
 
-        $row->totalAmount = currency_Currencies::decorate($row->totalAmount, acc_Periods::getBaseCurrencyCode($rec->valior));
+        $row->totalAmount = currency_Currencies::decorate($row->totalAmount, acc_Periods::getBaseCurrencyCode($rec->valior), true);
         $row->title = $mvc->getLink($rec->id, 0);
     }
     

@@ -822,6 +822,7 @@ class csv_Lib
         $fp = fopen('php://memory', 'r+');
         fputs($fp, $csv);
         $best = null;
+        $bestIsMultiColumn = false;
         $parse = array();
         
         foreach ($dArr as $d) {
@@ -881,10 +882,15 @@ class csv_Lib
                 $points -= $soloUse;
                 $points += 0.6 * ($soloUse == 1);
                 
-                if (!isset($best) || $best < $points) {
+                // Разбор на една колона печели по брой редове, когато стойностите са многоредови -
+                // затова вариант с повече колони винаги е с предимство
+                $isMultiColumn = ($cellsPerRow >= 2);
+                if (!isset($best) || ($isMultiColumn && !$bestIsMultiColumn)
+                    || ($isMultiColumn == $bestIsMultiColumn && $best < $points)) {
                     $delimiter = $d;
                     $enclosure = $e;
                     $best = $points;
+                    $bestIsMultiColumn = $isMultiColumn;
                     $parse = $res;
                 }
             }

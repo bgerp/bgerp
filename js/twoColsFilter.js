@@ -167,6 +167,13 @@ function render_setTwoColsFilterWidth() {
             !$input.parent().hasClass('twoColsFilterDateInput')) {
             $input.add($button).wrapAll('<span class="twoColsFilterDateInput"></span>');
         }
+
+        // Абсолютният SELECT с предложения се ограничава до собственото поле.
+        var $comboSelect = $input.siblings('select.combo');
+        if ($input.hasClass('combo') && $comboSelect.length &&
+            !$input.parent().hasClass('twoColsFilterComboInput')) {
+            $comboSelect.add($input).wrapAll('<span class="twoColsFilterComboInput"></span>');
+        }
     });
 
     var $filters = $('.wide .twoColsFilter');

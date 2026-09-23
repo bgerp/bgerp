@@ -91,14 +91,29 @@ class batch_definitions_StringAndDate extends batch_definitions_Varchar
         foreach ($existingBatches as $batch) {
             $exploded = explode($delimiter, $batch);
             if(countR($exploded) == 2){
-                $normalized[] = str_replace($this->rec->prefix, '', $exploded[0]);
+                $num = str_replace($this->rec->prefix, '', $exploded[0]);
+
+                // Прескачат се номерата, които не могат да се инкрементират, за да не "отровят" максимума
+                if ($num !== '' && str::increment($num) !== false) {
+                    $normalized[] = $num;
+                }
             }
         }
-        
+
         rsort($normalized);
-        $max = $normalized[0];
-       
-        $nextNumber = isset($max) ? str::increment($max) : str_pad(1, $this->rec->length, '0', STR_PAD_LEFT);
+        $used = array_flip($normalized);
+        $max = $normalized[0] ?? null;
+        $nextNumber = isset($max) ? str::increment($max) : false;
+
+        // Ако номерът е зает (при замърсени данни), се търси следващият свободен
+        while (!empty($nextNumber) && isset($used[$nextNumber])) {
+            $nextNumber = str::increment($nextNumber);
+        }
+
+        // Ако няма максимум или инкрементирането се провали - започва се от 1
+        if (empty($nextNumber)) {
+            $nextNumber = str_pad(1, $this->rec->length, '0', STR_PAD_LEFT);
+        }
         $nextNumber = "{$this->rec->prefix}{$nextNumber}";
         if (!empty($this->rec->length) && mb_strlen($nextNumber) > $this->rec->length) {
             

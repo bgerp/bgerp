@@ -54,6 +54,14 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
      * @var int
      */
     protected $summaryRowCaption = 'ОБЩО';
+
+
+    /**
+     * Дали в обобщаващия ред да се показва в скоби и броят на всички редове
+     *
+     * @var bool
+     */
+    protected $summaryRowShowCount = false;
     
     
     /**
@@ -235,6 +243,7 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
         $data->groupedFieldOnNewRow = $data->groupedFieldOnNewRow ?? $this->groupedFieldOnNewRow;
         $data->summaryListFields = $data->summaryListFields ?? $this->summaryListFields;
         $data->summaryRowCaption = $data->summaryRowCaption ?? $this->summaryRowCaption;
+        $data->summaryRowShowCount = $data->summaryRowShowCount ?? $this->summaryRowShowCount;
         $data->listFields = $this->getListFields($rec);
         $data->rows = array();
         
@@ -331,6 +340,11 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
         // Добавяне на сумиращия ред
         $firstKey = key($data->listFields);
         $summaryRow->{$firstKey} = tr($data->summaryRowCaption);
+
+        // Броят е на всички записи, не само на тези от текущата страница
+        if (!empty($data->summaryRowShowCount)) {
+            $summaryRow->{$firstKey} .= ' (' . core_Type::getByName('int')->toVerbal(countR($data->recs)) . ')';
+        }
         $summaryRow->_isSummary = true;
         $summaryRow->ROW_ATTR['class'] = 'reportTableDataTotal';
         
@@ -375,6 +389,8 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
      */
     protected function renderTable($rec, &$data)
     {
+        core_Debug::startTimer('RENDER_REPORT_TABLE');
+        core_Debug::log('Редове за рендиране: ' . countR($data->recs ?? null));
         $tpl = new core_ET('');
         $customTpl = $this->getReportLayoutTpl($rec);
 
@@ -393,6 +409,7 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
             $summaryFields = arr::make($data->summaryListFields);
             $fieldsToSumArr = array_intersect($summaryFields, array_keys($data->listFields));
             $summaryRow = $this->getSummaryListRow($data, $fieldsToSumArr);
+            $sumFieldSet = is_object($summaryRow) ? $this->getTableFieldSet($rec) : null;
             
             // Ако е указано сортиране, сортират се записите, ако има сумарен ред той не участва в сортирането
             $sortDirection = Request::get("Sort{$rec->containerId}");
@@ -421,11 +438,13 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
                 $isSummary = (($dRec->_isSummary ?? false) === true);
                 $data->rows[$index] = !$isSummary ? $this->detailRecToVerbal($rec, $dRec) : $dRec;
                 
-                // Ако реда е обобщаващ вербализира се отделно
+                // Ако реда е обобщаващ вербализира се отделно, целите числа остават без десетични
                 if($isSummary && countR($fieldsToSumArr)){
-                    foreach ($fieldsToSumArr as $fld){
-                        $data->rows[$index]->{$fld} = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->{$fld});
-                        $data->rows[$index]->{$fld} = ht::styleNumber($data->rows[$index]->{$fld}, $dRec->{$fld});
+                    foreach ($fieldsToSumArr as $sumFld){
+                        $SumType = $sumFieldSet->getFieldType($sumFld, false);
+                        $SumType = ($SumType instanceof type_Int) ? $SumType : core_Type::getByName('double(decimals=2)');
+                        $data->rows[$index]->{$sumFld} = $SumType->toVerbal($dRec->{$sumFld});
+                        $data->rows[$index]->{$sumFld} = ht::styleNumber($data->rows[$index]->{$sumFld}, $dRec->{$sumFld});
                     }
                 }
             }
@@ -471,7 +490,11 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
 
         // Рендиране на кустом изгледа
         $customLayout = $this->renderCustomLayout($rec, $data);
-        if($customLayout instanceof core_ET) return $customLayout;
+        if($customLayout instanceof core_ET) {
+            core_Debug::stopTimer('RENDER_REPORT_TABLE');
+
+            return $customLayout;
+        }
 
         // Филтриране на празните колони и рендиране на таблицата
         $table = cls::get('core_TableView', array('mvc' => $fld));
@@ -485,10 +508,51 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
             $tpl->replace($data->Pager->getHtml(), 'PAGER_BOTTOM');
         }
 
+        core_Debug::stopTimer('RENDER_REPORT_TABLE');
+
         return $tpl;
     }
-    
-    
+
+
+    /**
+     * Добавя готов ред към диагностиката на справката
+     *
+     * Драйверът решава какво и как да пише - тук се пази само редът
+     *
+     * @param stdClass $data - данните на справката
+     * @param string   $key  - ключ на реда
+     * @param string   $msg  - готовият текст, може и с хтмл
+     *
+     * @return void
+     */
+    protected static function setReportStat(&$data, $key, $msg)
+    {
+        if (!is_object($data) || empty($msg)) return;
+
+        if (!is_array($data->reportStatRows ?? null)) {
+            $data->reportStatRows = array();
+        }
+
+        $data->reportStatRows[$key] = $msg;
+    }
+
+
+    /**
+     * Диагностиката на справката, събрана в един ред
+     *
+     * @param stdClass $data - данните на справката
+     * @param string   $glue - разделител между редовете
+     *
+     * @return string|null
+     */
+    protected function getReportStatsMsg($data, $glue = ' &nbsp;|&nbsp; ')
+    {
+        $rows = (is_object($data) && is_array($data->reportStatRows ?? null)) ? $data->reportStatRows : array();
+
+        return countR($rows) ? implode($glue, $rows) : null;
+    }
+
+
     /**
      * Групиране и сортиране на резултатите по поле
      * 
@@ -502,6 +566,7 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
      */
     private function orderByGroupField($recs, $groupField, $sortFld = null, $sortDirection = null, $subGroupFieldOrder = null)
     {
+        core_Debug::startTimer('ORDER_BY_GROUP_FIELD');
         $newRecs = array();
 
         if ($recs) {
@@ -512,19 +577,21 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
             }
         }
 
+        // Записите се разпределят по групи с едно обхождане - при обхождане на всички записи
+        // за всеки запис времето расте квадратично и при няколко хиляди реда справката спира
+        $groupedRecs = array();
         foreach ($recs as $i => $r) {
-            
-            // Извличане на тези записи от със същата стойност за групиране
-            $groupedArr = array($i => $r);
-
             $groupValue = $r->{$groupField} ?? null;
-            $subArr = array_filter($recs, function ($a) use ($groupValue, $groupField) {
-                return (($a->{$groupField} ?? null) == $groupValue);
-            });
+            if ($groupValue === null) {
+                $groupValue = '';
+            } elseif (!is_int($groupValue) && !is_string($groupValue)) {
+                $groupValue = is_scalar($groupValue) ? (string) $groupValue : serialize($groupValue);
+            }
 
-            // Сортират се допълнително ако е указано
-            $groupedArr += $subArr;
+            $groupedRecs[$groupValue][$i] = $r;
+        }
 
+        foreach ($groupedRecs as $groupedArr) {
             $this->sortRecsByDirection($groupedArr, $sortFld, $sortDirection);
 
             // Сортира се вътре във всяка група по втори показател $subGroupFieldOrder ако не е null
@@ -535,6 +602,8 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
             $newRecs += $groupedArr;
         }
 
+        core_Debug::stopTimer('ORDER_BY_GROUP_FIELD');
+
         return $newRecs;
     }
     
@@ -542,10 +611,10 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
     /**
      * След рендиране на единичния изглед
      *
-     * @param cat_ProductDriver $Driver
-     * @param embed_Manager     $Embedder
-     * @param core_ET           $tpl
-     * @param stdClass          $data
+     * @param frame2_driver_Proto $Driver
+     * @param embed_Manager       $Embedder
+     * @param core_ET             $tpl
+     * @param stdClass            $data
      */
     protected static function on_AfterRenderSingle(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$tpl, $data)
     {

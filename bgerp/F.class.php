@@ -83,9 +83,7 @@ class bgerp_F extends core_Manager
             }
         }
         
-        if ($actRec && $actRec->data->to) {
-            log_Browsers::setVars(array('email' => $actRec->data->to), false, false);
-        }
+        self::setBrowserEmail($actRec);
         
         // Записа на файла
         $docRec = $doc->fetch();
@@ -205,9 +203,7 @@ class bgerp_F extends core_Manager
                 }
             }
             
-            if ($actRec && $actRec->data->to) {
-                log_Browsers::setVars(array('email' => $actRec->data->to), false, false);
-            }
+            self::setBrowserEmail($actRec);
             
             // Запис за документа
             $docRec = $doc->fetch();
@@ -432,6 +428,19 @@ class bgerp_F extends core_Manager
         $delCnt = self::delete("DATE_ADD(#createdOn, INTERVAL #validity SECOND) < '{$now}'");
         
         return $delCnt;
+    }
+    
+    
+    /**
+     * Запомня в браузъра имейла, до който е изпратен документът
+     */
+    private static function setBrowserEmail($actRec)
+    {
+        $actData = $actRec->data ?? null;
+        $sentTo = is_object($actData) ? ($actData->to ?? null) : null;
+        if (!empty($sentTo)) {
+            log_Browsers::setVars(array('email' => $sentTo), false, false);
+        }
     }
     
     

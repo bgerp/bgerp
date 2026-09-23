@@ -3223,7 +3223,7 @@ abstract class deals_Helper
                 $msgSuffix = '';
                 if(is_object($transportFeeRec) && $transportFeeRec->fee > 0){
                     $var->price += $transportFeeRec->fee / $quantity;
-                    $var->price = round($foundPrice->price, 6);
+                    $var->price = round($var->price, 6);
                     $msgSuffix .= ", |вкл. транспорт|*";
                 }
 
@@ -3294,12 +3294,10 @@ abstract class deals_Helper
             $dQuery->where("#{$Detail->masterKey} = {$rec->id}");
             $priceDate = ($rec->state == 'draft') ? null : $rec->valior;
 
+            $useQuotationPrice = false;
             if($mvc instanceof sales_Sales){
                 $useQuotationPrice = isset($rec->originId);
-            } elseif($mvc instanceof sales_Quotations){
-                $useQuotationPrice = false;
-            } elseif($mvc instanceof store_ShipmentOrders){
-                $useQuotationPrice = false;
+            } elseif($mvc instanceof store_ShipmentOrders || $mvc instanceof sales_Services){
                 if($firstDocument = doc_Threads::getFirstDocument($rec->threadId)){
                     if($firstDocument->isInstanceOf('sales_Sales')){
                         $firstDocumentOrigin = $firstDocument->fetchField('originId');
@@ -3309,9 +3307,9 @@ abstract class deals_Helper
             }
 
             while ($dRec = $dQuery->fetch()) {
-                $discount = isset($dRec->discount) ? $dRec->discount : $dRec->autoDiscount;
+                $discount = isset($dRec->discount) ? $dRec->discount : ($dRec->autoDiscount ?? null);
                 $transportFeeRec = sales_TransportValues::get($mvc, $rec->id, $dRec->id);
-                if($checkedObject = deals_Helper::checkPriceWithContragentPrice($dRec->productId, $dRec->price, $discount, $dRec->quantity, $dRec->quantityInPack, $rec->contragentClassId, $rec->contragentId, $priceDate, $rec->priceListId, $useQuotationPrice, $mvc, $rec->threadId, $rec->currencyRate, $rec->currencyId, $transportFeeRec)){
+                if($checkedObject = deals_Helper::checkPriceWithContragentPrice($dRec->productId, $dRec->price, $discount, $dRec->quantity, $dRec->quantityInPack, $rec->contragentClassId, $rec->contragentId, $priceDate, $rec->priceListId ?? null, $useQuotationPrice, $mvc, $rec->threadId, $rec->currencyRate, $rec->currencyId, $transportFeeRec)){
                     if($checkedObject['hintType'] == 'error'){
                         $products[$dRec->productId] = cat_Products::getTitleById($dRec->productId);
                     }

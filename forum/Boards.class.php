@@ -116,7 +116,7 @@ class forum_Boards extends core_Master
             $data->query->where("NOT (#boardType = 'confidential'  AND !(#shared LIKE '%|{$cu}|%'))");
         }
         
-        if ($category = Request::get('cat')) {
+        if ($category = Request::get('cat', 'int')) {
             $data->query->where(array('#category = [#1#]', $category));
         }
         
@@ -201,7 +201,7 @@ class forum_Boards extends core_Master
         $data->ForumTheme = static::getThemeClass();
         $data->action = 'forum';
         $data->display = 'public';
-        $data->category = Request::get('cat');
+        $data->category = Request::get('cat', 'int');
         
         // Подготвяме необходимите данни за показване на дъските
         $this->prepareForum($data);
@@ -510,7 +510,7 @@ class forum_Boards extends core_Master
      */
     public static function on_AfterPrepareListToolbar($mvc, &$data)
     {
-        if ($cat = Request::get('category')) {
+        if ($cat = Request::get('category', 'int')) {
             $url = array($mvc, 'forum', 'cat' => $cat);
         } else {
             $url = array($mvc, 'forum');
@@ -661,7 +661,7 @@ class forum_Boards extends core_Master
      */
     public static function on_BeforePrepareListTitle($mvc, &$res, $data)
     {
-        $data->navigation = $mvc->prepareNavigation(Request::get('cat'));
+        $data->navigation = $mvc->prepareNavigation(Request::get('cat', 'int'));
     }
     
     

@@ -181,13 +181,13 @@ class core_Manager extends core_Mvc
 
 
     /**
-     * Помощна функция, която форсира използване на друга БД
+     * Помощна функция, която форсира използване на репликата (друга БД)
      *
      * @param string $clsName
      *
      * @return void
      */
-    public function forceProxy($clsName = null)
+    public function forceReplica($clsName = null)
     {
         if (!$clsName) {
             $DC = $this;
@@ -230,13 +230,13 @@ class core_Manager extends core_Mvc
 
 
     /**
-     * Помощна функция, която спира форсираното използване на друга БД
+     * Помощна функция, която спира форсираното използване на репликата (друга БД)
      *
      * @param string $clsName
      *
      * @return void
      */
-    public function unforceProxy($clsName = null)
+    public function unforceReplica($clsName = null)
     {
         if (!$clsName) {
             $DC = $this;
@@ -256,6 +256,77 @@ class core_Manager extends core_Mvc
                 unset($this->db->__origDbUser);
             }
         }
+    }
+
+
+    /**
+     * Изпълнява подадения код на репликата и връща връзката към основната база
+     *
+     * @param callable $callback
+     *
+     * @return mixed
+     */
+    public function callOnReplica($callback)
+    {
+        // При вложено извикване връзката се владее от външния блок - вътрешният само я ползва,
+        // иначе неговият unforceReplica() би върнал външния код на основната база
+        if (isset($this->db->__origDbName)) {
+
+            return call_user_func($callback);
+        }
+
+        try {
+            $this->forceReplica();
+
+            return call_user_func($callback);
+        } finally {
+            $this->unforceReplica();
+        }
+    }
+
+
+    /**
+     * Помощна функция, която форсира използване на друга БД
+     * Обвивка към forceReplica() - запазена за съвместимост
+     *
+     * @deprecated Използвайте forceReplica().
+     * @param string $clsName
+     *
+     * @return void
+     */
+    public function forceProxy($clsName = null)
+    {
+        $this->forceReplica($clsName);
+    }
+
+
+    /**
+     * Помощна функция, която спира форсираното използване на друга БД
+     * Обвивка към unforceReplica() - запазена за съвместимост
+     *
+     * @deprecated Използвайте unforceReplica().
+     * @param string $clsName
+     *
+     * @return void
+     */
+    public function unforceProxy($clsName = null)
+    {
+        $this->unforceReplica($clsName);
+    }
+
+
+    /**
+     * Изпълнява подадения код на репликата и връща връзката към основната база
+     * Обвивка към callOnReplica() - запазена за съвместимост
+     *
+     * @deprecated Използвайте callOnReplica().
+     * @param callable $callback
+     *
+     * @return mixed
+     */
+    public function callOnProxy($callback)
+    {
+        return $this->callOnReplica($callback);
     }
 
 

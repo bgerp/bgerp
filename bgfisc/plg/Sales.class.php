@@ -151,7 +151,8 @@ class bgfisc_plg_Sales extends core_Plugin
      */
     public static function on_AfterRenderSingleLayout($mvc, &$tpl, $data)
     {
-        $block = tr("|*<span class='quiet'>|УНП|*</span>: {$data->row->cashRegNum}");
+        $cashRegNum = $data->row->cashRegNum ?? null;
+        $block = tr("|*<span class='quiet'>|УНП|*</span>: {$cashRegNum}");
         $tpl->replace($block, 'ADDITIONAL_BLOCK');
     }
     

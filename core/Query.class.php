@@ -705,6 +705,39 @@ class core_Query extends core_FieldSet
         
         return $this->numRec();
     }
+
+
+    /**
+     * Изпълнява SELECT-а на репликата; обработката остава на основната база
+     *
+     * @return int
+     */
+    public function selectOnReplica()
+    {
+        if (!($this->mvc instanceof core_Manager)) {
+
+            return $this->select();
+        }
+
+        $me = $this;
+
+        return $this->mvc->callOnReplica(function () use ($me) {
+
+            return $me->select();
+        });
+    }
+
+
+    /**
+     * Обвивка към selectOnReplica() - запазена за съвместимост
+     *
+     * @deprecated Използвайте selectOnReplica().
+     * @return int
+     */
+    public function selectOnProxy()
+    {
+        return $this->selectOnReplica();
+    }
     
     
     /**

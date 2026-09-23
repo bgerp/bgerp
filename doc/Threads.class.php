@@ -1129,9 +1129,9 @@ class doc_Threads extends core_Manager
             );
 
             $row->_title = $row->title;
-            $row->_subTitle = $docRow->subTitle;
+            $row->_subTitle = $docRow->subTitle ?? null;
 
-            if ($docRow->subTitle) {
+            if (!empty($docRow->subTitle)) {
                 $row->title .= "\n<div class='threadSubTitle'>{$docRow->subTitle}</div>";
             }
             
@@ -2736,10 +2736,11 @@ class doc_Threads extends core_Manager
             }
 
             if ($rate > $bestRate) {
-                if (is_object($bestContragentData) && $bestContragentData->company == $contragentData->company) {
+                if (is_object($bestContragentData) && ($bestContragentData->company ?? null) == ($contragentData->company ?? null)) {
                     foreach (array('tel', 'fax', 'email', 'web', 'address', 'person') as $part) {
-                        if ($bestContragentData->{$part}) {
-                            setIfNot($contragentData->{$part}, $bestContragentData->{$part});
+                        $partValue = $bestContragentData->{$part} ?? null;
+                        if ($partValue) {
+                            setPartIfNot($contragentData, $part, $partValue);
                         }
                     }
                 }
@@ -2860,7 +2861,7 @@ class doc_Threads extends core_Manager
 
             return ;
         }
-        $bestContragentData->company = $bestContragentData->company ?? $contragentData->company;
+        $bestContragentData->company = $bestContragentData->company ?? $contragentData->company ?? null;
     }
 
     
@@ -2998,7 +2999,7 @@ class doc_Threads extends core_Manager
             if ($verbal) {
                 $title = $docRow->title;
             } else {
-                $title = $docRow->recTitle;
+                $title = $docRow->recTitle ?? '';
             }
         } catch (core_exception_Expect $e) {
             $title = '';

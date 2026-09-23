@@ -837,7 +837,7 @@ class forum_Postings extends core_Detail
                 $data->recs[$rec->id] = $rec;
                 $data->rows[$rec->id] = $this->recToVerbal($rec, $fields);
                 $boardUrl = array($this, 'browse', $rec->boardId);
-                $data->rows[$rec->id]->board = ht::createLink($data->rows[$rec->id]->board, $boardUrl);
+                $data->rows[$rec->id]->board = ht::createLink($data->rows[$rec->id]->board ?? null, $boardUrl);
             }
         }
         

@@ -82,8 +82,10 @@ class ztm_SensMonitoring extends sens2_ProtoDriver
         }
 
         foreach ($this->inputRegistryMaps as $iVal => $registry) {
-            list($input, $reg, $delta) = explode('|', $iVal);
-            if ($inputs[$input]) {
+
+            // Ключът е с една, две или три части - "вход|поле|delta"
+            list($input, $reg, $delta) = explode('|', $iVal) + array('', '', '');
+            if (!empty($inputs[$input])) {
                 $regId = ztm_Registers::fetchField(array("#name = '[#1#]'", $registry));
 
                 if ($rRec = ztm_RegisterValues::get($dId, $regId)) {

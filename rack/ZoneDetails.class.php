@@ -678,25 +678,47 @@ class rack_ZoneDetails extends core_Detail
         foreach ($data->rows as $mId => &$rRow) {
             $mRec = $data->recs[$mId];
             if (!empty($mRec->palletId) && $mRec->quantity > 0) {
+                $availableQtyBeforeStart = null;
                 $availableQty = rack_Pallets::fetchField($mRec->palletId, 'quantity');
-                if (!empty($availableQty) && abs($mRec->quantity - $availableQty) < 0.0001) {
+                if (isset($availableQty)) {
+                    $availableQtyBeforeStart = (float) $availableQty;
+                    if ($mRec->state == 'active') {
+                        // При започване количеството на палета вече е намалено с количеството на движението
+                        $availableQtyBeforeStart += (float) $mRec->quantity;
+                    }
+                }
+
+                if (!empty($availableQtyBeforeStart) && abs($mRec->quantity - $availableQtyBeforeStart) < 0.0001) {
                     if (!empty($rRow->movement)) {
-                        $positionInfo = rack_Pallets::getPositionQuantityInfo($mRec->position, $mRec->storeId, $mRec->productId);
-                        $positionRows = array();
-                        foreach ($positionInfo->rows as $palletRec) {
-                            $batch = !empty($palletRec->batch) ? ", партида={$palletRec->batch}" : '';
-                            $positionRows[] = "#{$palletRec->id}=" . round($palletRec->quantity, 5) . $batch;
+                        $hint = new core_ET('Цялото налично количество на позицията!');
+                        if (haveRole('debug')) {
+                            $positionInfo = rack_Pallets::getPositionQuantityInfo($mRec->position, $mRec->storeId, $mRec->productId);
+                            $positionRows = array();
+                            foreach ($positionInfo->rows as $palletRec) {
+                                $batch = !empty($palletRec->batch) ? ', партида = ' . core_Type::escape($palletRec->batch) : '';
+                                $positionRows[] = "#{$palletRec->id} = " . round($palletRec->quantity, 5) . $batch;
+                            }
+                            $positionRows = countR($positionRows) ? implode(', ', $positionRows) : 'няма';
+                            $stateVerbal = $Movements->getFieldType('state')->toVerbal($mRec->state);
+                            $diagnosticRows = array(
+                                "Движение: #{$mRec->id} / {$stateVerbal}",
+                                'Количество на движението: ' . round($mRec->quantity, 5),
+                                "Свързан палет: #{$mRec->palletId} с " . round($availableQty, 5),
+                                'Количество преди започване: ' . round($availableQtyBeforeStart, 5),
+                                'Общо на позицията: ' . round($positionInfo->totalQuantity, 5),
+                                "Активни записи: {$positionRows}",
+                            );
+                            $hint->append("<br><small class='quiet'>" . implode('<br>', $diagnosticRows) . '</small>');
                         }
-                        $positionRows = countR($positionRows) ? implode(', ', $positionRows) : 'няма';
-                        $diagnosticTitle = "Цялото налично количество на позицията! Диагностика: движение #{$mRec->id}; състояние={$mRec->state}; количество на движението="
-                            . round($mRec->quantity, 5)
-                            . "; свързан палет #{$mRec->palletId}=" . round($availableQty, 5)
-                            . "; общо на позицията=" . round($positionInfo->totalQuantity, 5)
-                            . "; активни записи={$positionRows}";
-                        $diagnosticTitle = ht::escapeAttr($diagnosticTitle);
-                        $rRow->movement = preg_replace(
+
+                        $rRow->movement = preg_replace_callback(
                             '/\(([^)]+)\)(?=.*»)/u',
-                            '( <span style="background:#c0c0c0; border-radius:6px; padding:1px 6px; font-weight:bold; color:#000;" title="' . $diagnosticTitle . '">$1</span> )',
+                            function ($matches) use ($hint) {
+                                $quantity = '<span style="background:#c0c0c0; border-radius:6px; padding:1px 6px; font-weight:bold; color:#000;">' . $matches[1] . '</span>';
+                                $quantityHint = ht::createHint($quantity, $hint, 'noicon', false, array('isHtml' => true));
+
+                                return '( ' . $quantityHint->getContent() . ' )';
+                            },
                             $rRow->movement,
                             1 // само първото срещане
                         );

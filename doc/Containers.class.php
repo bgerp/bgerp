@@ -2456,7 +2456,7 @@ class doc_Containers extends core_Manager
                             }
                             
                             if ($update) {
-                                $resArr['containerId']++;
+                                $resArr['containerId'] = ($resArr['containerId'] ?? 0) + 1;
                                 $clsInst->logNotice('Обновен containerId на документа', $dRec->id);
                                 $dRec->containerId = $cId;
                                 
@@ -2482,7 +2482,7 @@ class doc_Containers extends core_Manager
                         
                         // Ако originId липсва в контейнерите
                         if (!$oCRec = doc_Containers::fetch($dRec->originId, '*', false)) {
-                            $resArr['originId']++;
+                            $resArr['originId'] = ($resArr['originId'] ?? 0) + 1;
                             $clsInst->logNotice('Нулиран originId на документа', $dRec->id);
                             $dRec->originId = null;
                             
@@ -2512,7 +2512,7 @@ class doc_Containers extends core_Manager
                             }
                             
                             if ($update) {
-                                $resArr['threadId']++;
+                                $resArr['threadId'] = ($resArr['threadId'] ?? 0) + 1;
                                 $clsInst->logNotice('Обновен threadId на документа', $dRec->id);
                                 $dRec->threadId = $threadId;
                                 try {
@@ -2554,7 +2554,7 @@ class doc_Containers extends core_Manager
                                 }
                                 
                                 if ($update) {
-                                    $resArr['folderId']++;
+                                    $resArr['folderId'] = ($resArr['folderId'] ?? 0) + 1;
                                     $clsInst->logNotice('Обновен folderId на документа', $dRec->id);
                                     $dRec->folderId = $folderId;
                                     try {
@@ -2600,7 +2600,7 @@ class doc_Containers extends core_Manager
                             }
                             
                             $clsInst->logInfo($delMsg, $dRec->id);
-                            $resArr['del_cnt']++;
+                            $resArr['del_cnt'] = ($resArr['del_cnt'] ?? 0) + 1;
                             $clsInst->delete($dRec->id);
                         } catch (ErrorException $e) {
                             reportException($e);
