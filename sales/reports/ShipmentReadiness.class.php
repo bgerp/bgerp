@@ -225,8 +225,8 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
             if($Document->isInstanceOf('sales_Sales')){
                 $documentRec = $Document->fetch();
                 $documentRow = $Document->getInstance()->recToVerbal($documentRec);
-                $amountDealVerbal = currency_Currencies::decorate($documentRow->amountDeal, $documentRec->currencyId);
-                $amountPaidVerbal = currency_Currencies::decorate($documentRow->amountPaid, $documentRec->currencyId);
+                $amountDealVerbal = currency_Currencies::decorate($documentRow->amountDeal, $documentRec->currencyId, true);
+                $amountPaidVerbal = currency_Currencies::decorate($documentRow->amountPaid, $documentRec->currencyId, true);
                 if($documentRec->amountPaid > 0){
                     $amountPaidVerbal = "<span style='color:green;'>{$amountPaidVerbal}</span>";
                 }

@@ -274,7 +274,11 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
             $groupBlock->append($transUnitsVerbal, 'transUnits');
             if($totalInPackListWithTariffCodeVal == 'yes'){
                 $groupAmountVerbal = $this->getVerbalRow($tariffObject->amount, 'double(decimals=2)', $tariffCodeRec->amount);
-                $groupAmountVerbal .= "<span style='font-weight:normal;'> {$masterRec->currencyId} " . (($masterRec->chargeVat == 'yes' || $masterRec->chargeVat == 'separate') ? tr('|с ДДС|*') : tr('|без ДДС|*')) . "</span>";
+                if (doc_plg_HidePrices::canSeePriceFields($data->masterMvc, $masterRec)) {
+                    $groupAmountVerbal .= "<span style='font-weight:normal;'> {$masterRec->currencyId} " . (($masterRec->chargeVat == 'yes' || $masterRec->chargeVat == 'separate') ? tr('|с ДДС|*') : tr('|без ДДС|*')) . "</span>";
+                } else {
+                    $groupAmountVerbal = doc_plg_HidePrices::getBuriedElement();
+                }
                 $groupBlock->append($groupAmountVerbal, 'groupAmount');
             }
             $groupVerbal = $groupBlock;

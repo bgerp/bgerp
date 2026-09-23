@@ -286,53 +286,6 @@ class core_Manager extends core_Mvc
 
 
     /**
-     * Помощна функция, която форсира използване на друга БД
-     * Обвивка към forceReplica() - запазена за съвместимост
-     *
-     * @deprecated Използвайте forceReplica().
-     * @param string $clsName
-     *
-     * @return void
-     */
-    public function forceProxy($clsName = null)
-    {
-        $this->forceReplica($clsName);
-    }
-
-
-    /**
-     * Помощна функция, която спира форсираното използване на друга БД
-     * Обвивка към unforceReplica() - запазена за съвместимост
-     *
-     * @deprecated Използвайте unforceReplica().
-     * @param string $clsName
-     *
-     * @return void
-     */
-    public function unforceProxy($clsName = null)
-    {
-        $this->unforceReplica($clsName);
-    }
-
-
-    /**
-     * Изпълнява подадения код на репликата и връща връзката към основната база
-     * Обвивка към callOnReplica() - запазена за съвместимост
-     *
-     * @deprecated Използвайте callOnReplica().
-     * @param callable $callback
-     *
-     * @return mixed
-     */
-    public function callOnProxy($callback)
-    {
-        return $this->callOnReplica($callback);
-    }
-
-
-
-    
-    /**
      * Връща линк към подадения обект
      *
      * @param int $objId
@@ -392,12 +345,7 @@ class core_Manager extends core_Mvc
         
         $data->ListId = Request::get('id', 'int');
 
-        // Ако има зададен прокси клас за листа - да се използва той
-        if(isset($this->listFilterProxyTable)){
-            $data->query = cls::get($this->listFilterProxyTable)->getQuery();
-        } else {
-            $data->query = $this->getQuery();
-        }
+        $data->query = $this->getQuery();
         
         // Подготвяме полетата за показване
         $this->prepareListFields($data);

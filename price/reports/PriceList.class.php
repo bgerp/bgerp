@@ -189,6 +189,9 @@ class price_reports_PriceList extends price_reports_PriceListProto
             // Ако има избран период в който да се гледа променена ли е цената
             if (isset($dateBefore)) {
                 $oldPrice = price_ListRules::getPrice($rec->policyId, $productRec->id, null, $dateBefore);
+
+                // Старата цена е в основната валута към старата дата (напр. лв. -> евро)
+                $oldPrice = deals_Helper::getSmartBaseCurrency($oldPrice, $dateBefore, $common->date);
                 $oldPrice = round($oldPrice, $round);
                 $priceByPolicy = round($priceByPolicy, $round);
                 $differenceHint = null;
