@@ -117,6 +117,18 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
      * Активиране на таб с графика
      */
     protected $enableChartTab = false;
+
+
+    /**
+     * До колко ид-та се изброяват в показател от диагностиката
+     */
+    const MAX_SHOWN_STAT_IDS = 50;
+
+
+    /**
+     * Имената на показателите от диагностиката, в реда на обработката
+     */
+    protected static $statCaptions = array();
     
     
     /**
@@ -511,6 +523,38 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
         core_Debug::stopTimer('RENDER_REPORT_TABLE');
 
         return $tpl;
+    }
+
+
+    /**
+     * Записва показател за изпълнението на справката: брой, време и до MAX_SHOWN_STAT_IDS ид-та
+     *
+     * @author Ivelin Dimov <ivelin_pdimov@abv.bg>
+     *
+     * @param stdClass $data    - данните на справката
+     * @param string   $key     - ключ на показателя от $statCaptions
+     * @param float    $seconds - измереното време
+     * @param int      $count   - броят
+     * @param array    $ids     - ид-та, до които се отнася (напр. артикули)
+     *
+     * @return void
+     */
+    protected static function addReportStat(&$data, $key, $seconds, $count, $ids = array())
+    {
+        $seconds = round($seconds, 3);
+        $msg = tr(static::$statCaptions[$key] ?? $key) . ": {$count}";
+        if ($seconds > 0) {
+            $msg .= " / {$seconds} " . tr('сек.');
+        }
+
+        // Изброяват се само първите, иначе при десетки хиляди се подува логът
+        $shown = array_slice(array_values($ids), 0, static::MAX_SHOWN_STAT_IDS);
+        if (countR($shown)) {
+            $rest = countR($ids) - countR($shown);
+            $msg .= ' (' . implode(', ', $shown) . ($rest > 0 ? ' ... +' . $rest : '') . ')';
+        }
+
+        static::setReportStat($data, $key, $msg);
     }
 
 

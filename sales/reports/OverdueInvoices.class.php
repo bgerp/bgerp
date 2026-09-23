@@ -35,6 +35,20 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
 
 
     /**
+     * Показателите на справката, в реда на обработката
+     */
+    protected static $statCaptions = array(
+        'invoices' => 'Кандидат фактури',
+        'sales' => 'Отворени продажби',
+        'combined' => 'Обединени сделки',
+        'payments' => 'Разпределени плащания по нишки',
+        'rows' => 'Просрочени фактури',
+        'memory' => 'Пикова памет (MB)',
+        'total' => 'Общо',
+    );
+
+
+    /**
      * По-кое поле да се групират листовите данни
      */
     protected $groupByField;
@@ -106,6 +120,7 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
      */
     protected function prepareRecs($rec, &$data = null)
     {
+        $startedOn = microtime(true);
         core_App::setTimeLimit(300);
         self::$paymentValiors = array();
 
@@ -116,7 +131,6 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
         }
 
         $this->groupByField = $rec->typeGrupping ?? 'contragent';
-        $recs = array();
 
         // Старите записи на справката може да нямат попълнени периоди.
         // При липсващ/невалиден JSON използваме стандартните граници.
@@ -142,6 +156,7 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
         $contragents = $contragentClasses = $invoices = $invoiceThreads = array();
 
         // Само кандидати за показване; разпределението на плащанията остава по цялата сделка.
+        $timer = microtime(true);
         /** @var core_Query $invQuery */
         $invQuery = sales_Invoices::getQuery();
         $invQuery->where("#state = 'active'");
@@ -175,7 +190,9 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
             $invoices[$invoice->containerId ?? 0] = $invoice;
             $invoiceThreads[$invoice->threadId ?? 0] = true;
         }
+        self::addReportStat($data, 'invoices', microtime(true) - $timer, count($invoices));
 
+        $timer = microtime(true);
         /** @var core_Query $salQuery */
         $salQuery = sales_Sales::getQuery();
         $salQuery->in('state', array('rejected', 'draft', 'pending'), true);
@@ -186,6 +203,7 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
         $salQuery->show('threadId');
         $salQuery->selectOnReplica();
         $threadsActivSalesArr = arr::extractValuesFromArray($salQuery->fetchAll(), 'threadId');
+        self::addReportStat($data, 'sales', microtime(true) - $timer, count($threadsActivSalesArr));
         core_App::setTimeLimit(max(300, count($threadsActivSalesArr) * 5));
 
         $salesTotalOverDue = $salesTotalPayout = 0;
@@ -194,6 +212,7 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
         if (count($invoices)) {
 
             // Групите от обединени сделки с две заявки, вместо getCombinedThreads() за всяка нишка
+            $timer = microtime(true);
             $combinedGroups = $threadToGroup = $closedDealGroup = array();
             $cQuery = sales_Sales::getQuery();
             $cQuery->where("#closedDocuments != ''");
@@ -214,8 +233,10 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
                     $threadToGroup[$dRec->threadId] = $groupKey;
                 }
             }
+            self::addReportStat($data, 'combined', microtime(true) - $timer, count($combinedGroups));
 
             $processedGroups = array();
+            $paymentsSeconds = 0;
             foreach ($threadsActivSalesArr as $thread) {
 
                 // Обединената сделка може да съдържа фактура от друга нишка; всяка група се смята веднъж
@@ -226,7 +247,9 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
                 $processedGroups[$groupKey] = true;
 
                 // масив от фактури в тази нишка към избраната дата
-                $invoicePayments = (deals_Helper::getInvoicePayments($groupKey, $checkDate));
+                $timer = microtime(true);
+                $invoicePayments = deals_Helper::getInvoicePayments($groupKey, $checkDate);
+                $paymentsSeconds += microtime(true) - $timer;
 
                 if (is_array($invoicePayments) && !empty($invoicePayments)) {
 
@@ -250,30 +273,20 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
                         $paydocspayOutBaseCurr = deals_Helper::getSmartBaseCurrency($paydocspayOutBaseCurr, $payDate, $rec->checkDate ?? null);
                         $paydocsAmountBaseCurr = deals_Helper::getSmartBaseCurrency($paydocsAmountBaseCurr, $payDate, $rec->checkDate ?? null);
 
-                        if (($iRec->dueDate ?? null) && ($amount - $payout) > ($rec->minOverdueLevel ?? 0) &&
-                            ($iRec->dueDate ?? null) < $checkDate) {
-                            $overdueDays = dt::daysBetween($checkDate, ($iRec->dueDate ?? null));
-
-                            if ($overdueDays <= $limit1) {
-                                $overduePeriod = 'до ' . $limit1;
-                                $overColor = 'green';
-                            }
-
-                            if (($overdueDays > $limit1) && ($overdueDays <= $limit2)) {
-                                $overduePeriod = $limit1 . ' - ' . $limit2;
-                                $overColor = 'orange';
-                            }
-
-                            if ($overdueDays > $limit2) {
-                                $overduePeriod = 'над ' . $limit2;
-                                $overColor = 'red';
-                            }
-
-                            $invoiceCurrentSummArr[$contragentFolderId] = ($invoiceCurrentSummArr[$contragentFolderId] ?? 0) + $paydocsAmountBaseCurr - $paydocspayOutBaseCurr; //Обща сума за контрагента в основна валута
-
+                        // Падежът е преди датата още от заявката, а сумите под прага са пропуснати по-горе
+                        $overdueDays = dt::daysBetween($checkDate, $iRec->dueDate);
+                        if ($overdueDays <= $limit1) {
+                            $overduePeriod = 'до ' . $limit1;
+                            $overColor = 'green';
+                        } elseif ($overdueDays <= $limit2) {
+                            $overduePeriod = $limit1 . ' - ' . $limit2;
+                            $overColor = 'orange';
                         } else {
-                            continue;
+                            $overduePeriod = 'над ' . $limit2;
+                            $overColor = 'red';
                         }
+
+                        $invoiceCurrentSummArr[$contragentFolderId] = ($invoiceCurrentSummArr[$contragentFolderId] ?? 0) + $paydocsAmountBaseCurr - $paydocspayOutBaseCurr; //Обща сума за контрагента в основна валута
 
                         $salesTotalOverDue += $paydocsAmountBaseCurr ;      // Обща стойност на просрочените фактури преизчислени в основна валута
                         $salesTotalPayout += $paydocspayOutBaseCurr ;       // Обща стойност на плащанията по просрочените фактури преизчислени в основна валута
@@ -306,6 +319,7 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
                     }
                 }
             }
+            self::addReportStat($data, 'payments', $paymentsSeconds, count($processedGroups));
         }
 
         $rec->salesTotalOverDue = $salesTotalOverDue;
@@ -317,8 +331,6 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
         }
 
         $recs = $sRecs;
-
-        $rTemp = array();
         if (!empty($invoiceCurrentSummArr)) {
             arsort($invoiceCurrentSummArr);
 
@@ -327,13 +339,23 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
                 $val->contragentCurrentSumm = $invoiceCurrentSummArr[$val->contragent ?? 0] ?? 0;
                 $byContragent[$val->contragent ?? 0][] = $val;
             }
-            foreach ($invoiceCurrentSummArr as $k => $v) {
+
+            $recs = array();
+            foreach (array_keys($invoiceCurrentSummArr) as $k) {
                 foreach ($byContragent[$k] ?? array() as $val) {
-                    $rTemp[] = $val;
+                    $recs[] = $val;
                 }
             }
+        }
 
-            $recs = $rTemp;
+        self::addReportStat($data, 'rows', 0, count($recs));
+        self::addReportStat($data, 'memory', 0, round(memory_get_peak_usage(true) / 1048576));
+        self::addReportStat($data, 'total', microtime(true) - $startedOn, count($recs));
+
+        // В лога на справката се записва едно обобщение на етапите
+        $statsMsg = $this->getReportStatsMsg($data, ', ');
+        if (!empty($statsMsg)) {
+            $this->logWhilePreparing($statsMsg);
         }
 
         return $recs;
