@@ -24,12 +24,6 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
 
 
     /**
-     * До колко артикула се изброяват в диагностиката
-     */
-    const MAX_SHOWN_PRODUCTS = 50;
-
-
-    /**
      * Показателите на справката, в реда на обработката
      */
     protected static $statCaptions = array(
@@ -215,14 +209,14 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
             $productId = $pRec->productId ?? null;
             $productIds[$productId] = $productId;
         }
-        self::setStat($data, 'storeProducts', microtime(true) - $timer, countR($storeProductRecs));
-        self::setStat($data, 'products', 0, countR($productIds));
+        self::addReportStat($data, 'storeProducts', microtime(true) - $timer, countR($storeProductRecs));
+        self::addReportStat($data, 'products', 0, countR($productIds));
 
         // Артикулите и наличностите им се четат наведнъж, вместо за всеки ред поотделно
         $timer = microtime(true);
         $products = $this->preloadProducts($productIds);
         $quantities = $this->getProductQuantities($productIds, $rec->storeId ?? null);
-        self::setStat($data, 'quantities', microtime(true) - $timer, countR($quantities));
+        self::addReportStat($data, 'quantities', microtime(true) - $timer, countR($quantities));
 
         $prodArr = $notSelfPrice = $belowMinCost = array();
         $primeCosts = $missingPrices = $publicPrices = array();
@@ -290,15 +284,15 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
         $notSelfPrice = array_values($notSelfPrice);
         unset($storeProductRecs, $primeCosts, $fallbackPrices, $publicPrices);
 
-        self::setStat($data, 'withoutPrimeCost', 0, countR($notSelfPrice), $notSelfPrice);
-        self::setStat($data, 'belowMinCost', 0, countR($belowMinCost), $belowMinCost);
-        self::setStat($data, 'withPrimeCost', microtime(true) - $timer, countR($prodArr));
+        self::addReportStat($data, 'withoutPrimeCost', 0, countR($notSelfPrice), $notSelfPrice);
+        self::addReportStat($data, 'belowMinCost', 0, countR($belowMinCost), $belowMinCost);
+        self::addReportStat($data, 'withPrimeCost', microtime(true) - $timer, countR($prodArr));
 
         //Изключване на артикули, които имат скорошна доставка или производство
         $timer = microtime(true);
         $beforeSoon = countR($prodArr);
         $prodArr = self::removeSoonDeliveredProds($rec, $prodArr);
-        self::setStat($data, 'soonDelivered', microtime(true) - $timer, $beforeSoon - countR($prodArr));
+        self::addReportStat($data, 'soonDelivered', microtime(true) - $timer, $beforeSoon - countR($prodArr));
 
         $rec->from = $startDate = dt::addSecs(-($rec->period ?? 0), dt::now());
         $rec->to = dt::today();
@@ -356,12 +350,12 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
                 }
             }
 
-            self::setStat($data, 'journal', microtime(true) - $timer, countR($quantityByItems));
+            self::addReportStat($data, 'journal', microtime(true) - $timer, countR($quantityByItems));
 
             // Перата се четат наведнъж, вместо по две на всеки запис
             $timer = microtime(true);
             $items = $this->getAccItems($itemIds);
-            self::setStat($data, 'items', microtime(true) - $timer, countR($items));
+            self::addReportStat($data, 'items', microtime(true) - $timer, countR($items));
 
             foreach ($quantityByItems as $key => $creditQuantity) {
                 list($storeItemId, $productItemId) = explode('|', $key);
@@ -384,8 +378,8 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
             }
 
         } else {
-            self::setStat($data, 'journal', 0, 0);
-            self::setStat($data, 'items', 0, 0);
+            self::addReportStat($data, 'journal', 0, 0);
+            self::addReportStat($data, 'items', 0, 0);
         }
 
         $aboveReversibility = array();
@@ -429,10 +423,10 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
             arr::sortObjects($recs, $orderBy, $order, $typeOrder);
         }
 
-        self::setStat($data, 'aboveReversibility', 0, countR($aboveReversibility), $aboveReversibility);
-        self::setStat($data, 'rows', 0, countR($recs));
-        self::setStat($data, 'memory', 0, round(memory_get_peak_usage(true) / 1048576));
-        self::setStat($data, 'total', microtime(true) - $startedOn, countR($recs));
+        self::addReportStat($data, 'aboveReversibility', 0, countR($aboveReversibility), $aboveReversibility);
+        self::addReportStat($data, 'rows', 0, countR($recs));
+        self::addReportStat($data, 'memory', 0, round(memory_get_peak_usage(true) / 1048576));
+        self::addReportStat($data, 'total', microtime(true) - $startedOn, countR($recs));
         $statsMsg = $this->getReportStatsMsg($data, ', ');
         if (!empty($statsMsg)) {
             $this->logWhilePreparing($statsMsg);
@@ -511,36 +505,6 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
         }
 
         return $prices;
-    }
-
-
-    /**
-     * Записва показател за изпълнението на справката
-     *
-     * @param stdClass $data - данните на справката
-     * @param string   $key - ключ на показателя
-     * @param float    $seconds - измереното време
-     * @param int      $count - броят
-     * @param array    $productIds - артикулите, до които се отнася
-     *
-     * @return void
-     */
-    private static function setStat(&$data, $key, $seconds, $count, $productIds = array())
-    {
-        $seconds = round($seconds, 3);
-        $msg = tr(self::$statCaptions[$key] ?? $key) . ": {$count}";
-        if ($seconds > 0) {
-            $msg .= " / {$seconds} " . tr('сек.');
-        }
-
-        // Изброяват се само първите артикули, иначе при десетки хиляди се подува логът
-        $shown = array_slice(array_values($productIds), 0, self::MAX_SHOWN_PRODUCTS);
-        if (countR($shown)) {
-            $rest = countR($productIds) - countR($shown);
-            $msg .= ' (' . implode(', ', $shown) . ($rest > 0 ? ' ... +' . $rest : '') . ')';
-        }
-
-        self::setReportStat($data, $key, $msg);
     }
 
 
