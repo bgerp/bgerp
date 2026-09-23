@@ -42,6 +42,14 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
 
 
     /**
+     * Дали в обобщаващия ред да се показва в скоби и броят на всички редове
+     *
+     * @var bool
+     */
+    protected $summaryRowShowCount = true;
+
+
+    /**
      * Кой може да избира драйвъра
      */
     public $canSelectDriver = 'ceo,debug,manager,store,planning,purchase,cat,acc';
