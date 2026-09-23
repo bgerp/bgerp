@@ -460,8 +460,6 @@ class email_AutomaticResponse extends core_Master
     protected function sendAutomaticResponse($mail, $rule)
     {
 
-        $Email = cls::get('email_Outgoings');
-            
         // Подготовка на имейла
         $emailRec = (object) array('subject' => "Re: {$mail->subject}" . " {$rule->titleOfMessage}",
                                     'body' => $rule->text,
@@ -469,48 +467,24 @@ class email_AutomaticResponse extends core_Master
                                     'originId' => $mail->containerId,
                                     'threadId' => $mail->threadId,
                                     'state' => 'active',
-                                    'email' => $mail->fromEml, 
-                                    'recipient' => $mail->fromEml,
-                                    'aiInstructions' => $rule->aiInstructions);
-        
+                                    'email' => $mail->fromEml,
+                                    'recipient' => $mail->fromEml);
+
         $aiNotValid = false;
-        
-        //Логика за интеграция с ИИ (Задейства се при изпращане на формата)
-        if (!empty($rule->aiInstructions) && core_Packs::isInstalled('ai')) {
 
-            // Вземане на настройките на промпта от посочения път
-            $promptPath = 'ai/prompts/AutoReply.xml';
-            $promptRec =$Email->getPrompt($emailRec, $promptPath);
+        // Ако правилото има инструкции за ИИ, текстът му се преработва от агента за
+        // автоматични отговори (ai_AutoReply в пакета ai). Заглавието остава това от
+        // правилото. Без инсталиран/обновен пакет ai тръгва текстът на правилото
+        if (!empty($rule->aiInstructions) && core_Packs::isInstalled('ai') && cls::load('ai_AutoReply', true)) {
+            $oParams = array('userId' => $rule->userId, 'lang' => $mail->lg);
+            $res = ai_AutoReply::generate($emailRec, $rule->aiInstructions, $oParams, $aiError);
 
-            if ($promptRec) {
-                core_Lg::push($promptRec->_lg);
-
-                // Тук се извличат стойностите на полетата, дефинирани в промпта
-                $params = $Email->getPromptParams($emailRec, $promptRec->fields);
-                core_Lg::pop();
-                $params['lang'] = $mail->lg;
-                
-                $otherParams = [];
-                $otherParams['difficulty'] == 'high';
-                // Извикване на услугата за ИИ
-                $res = ai_Dialogs::get($promptRec->id, $params, array(), $otherParams, $emailRec->_dialogId);
-                
-                if (is_object($res)) {
-
-                    //Замяна на съдържанието (ако ИИ го е върнал)
-                    if (!empty($res->body)) {
-                        $emailRec->body = $res->body;
-                    }
-
-                    //Замяна на заглавието (ако ИИ го е върнал)
-                    if (!empty($rule->subject)) {
-                        $emailRec->subject = $rule->subject;
-                    } 
-                } 
-                else {
-                    $aiNotValid = true;
-                }
-            }   
+            if (is_object($res) && !empty($res->body)) {
+                $emailRec->body = $res->body;
+            } else {
+                $aiNotValid = true;
+                self::logWarning("Няма отговор от агента за автоматични отговори: {$aiError}", $rule->id);
+            }
         }
 
         //Записваме записа предварително, за да генерираме ID, което ще ползваме в нотификацията при грешка
