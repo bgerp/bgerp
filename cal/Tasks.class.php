@@ -1408,7 +1408,7 @@ class cal_Tasks extends embed_Manager
             }
         }
         
-        if ($action == 'edit' && is_object($rec) && $rec->state == 'pending') {
+        if ($action == 'edit' && is_object($rec) && ($rec->state ?? null) == 'pending') {
             $oState = null;
             if (!empty($rec->id)) {
                 $oState = $mvc->fetchField($rec->id, 'state');
