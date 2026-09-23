@@ -258,7 +258,7 @@ class cat_products_Usage extends core_Manager
         if ($data->Document instanceof planning_Tasks) {
             // planning_Tasks няма поле "вальор" - вместо това показваме заданието му
             arr::placeInAssocArray($data->listFields, array('originId' => 'Задание'), null, 'title');
-            $data->listTableMvc->setField('originId', 'tdClass=leftCol');
+            $data->listTableMvc->setField('originId', 'tdClass=leftCol standart-field');
         } else {
             $dateArr = ($data->Document instanceof sales_Quotations) ? array('date' => 'Дата') : array('valior' => 'Вальор');
             arr::placeInAssocArray($data->listFields, $dateArr, null, 'title');
@@ -267,7 +267,11 @@ class cat_products_Usage extends core_Manager
         $data->Document->invoke('BeforeRenderListTable', array($tpl, &$data));
 
         $data->Document->setFieldType('title', 'varchar');
-        $data->Document->setField('title', array('tdClass' => 'leftCell'));
+        $titleTdClass = 'leftCell';
+        if ($data->Document instanceof sales_Sales) {
+            $titleTdClass .= ' standart-field';
+        }
+        $data->Document->setField('title', array('tdClass' => $titleTdClass));
 
         $table = cls::get('core_TableView', array('mvc' => $data->Document));
         $details = $table->get($data->rows, $data->listFields);

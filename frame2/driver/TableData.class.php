@@ -54,6 +54,14 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
      * @var int
      */
     protected $summaryRowCaption = 'ОБЩО';
+
+
+    /**
+     * Дали в обобщаващия ред да се показва в скоби и броят на всички редове
+     *
+     * @var bool
+     */
+    protected $summaryRowShowCount = false;
     
     
     /**
@@ -235,6 +243,7 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
         $data->groupedFieldOnNewRow = $data->groupedFieldOnNewRow ?? $this->groupedFieldOnNewRow;
         $data->summaryListFields = $data->summaryListFields ?? $this->summaryListFields;
         $data->summaryRowCaption = $data->summaryRowCaption ?? $this->summaryRowCaption;
+        $data->summaryRowShowCount = $data->summaryRowShowCount ?? $this->summaryRowShowCount;
         $data->listFields = $this->getListFields($rec);
         $data->rows = array();
         
@@ -331,6 +340,11 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
         // Добавяне на сумиращия ред
         $firstKey = key($data->listFields);
         $summaryRow->{$firstKey} = tr($data->summaryRowCaption);
+
+        // Броят е на всички записи, не само на тези от текущата страница
+        if (!empty($data->summaryRowShowCount)) {
+            $summaryRow->{$firstKey} .= ' (' . core_Type::getByName('int')->toVerbal(countR($data->recs)) . ')';
+        }
         $summaryRow->_isSummary = true;
         $summaryRow->ROW_ATTR['class'] = 'reportTableDataTotal';
         
@@ -395,6 +409,7 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
             $summaryFields = arr::make($data->summaryListFields);
             $fieldsToSumArr = array_intersect($summaryFields, array_keys($data->listFields));
             $summaryRow = $this->getSummaryListRow($data, $fieldsToSumArr);
+            $sumFieldSet = is_object($summaryRow) ? $this->getTableFieldSet($rec) : null;
             
             // Ако е указано сортиране, сортират се записите, ако има сумарен ред той не участва в сортирането
             $sortDirection = Request::get("Sort{$rec->containerId}");
@@ -423,11 +438,13 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
                 $isSummary = (($dRec->_isSummary ?? false) === true);
                 $data->rows[$index] = !$isSummary ? $this->detailRecToVerbal($rec, $dRec) : $dRec;
                 
-                // Ако реда е обобщаващ вербализира се отделно
+                // Ако реда е обобщаващ вербализира се отделно, целите числа остават без десетични
                 if($isSummary && countR($fieldsToSumArr)){
-                    foreach ($fieldsToSumArr as $fld){
-                        $data->rows[$index]->{$fld} = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->{$fld});
-                        $data->rows[$index]->{$fld} = ht::styleNumber($data->rows[$index]->{$fld}, $dRec->{$fld});
+                    foreach ($fieldsToSumArr as $sumFld){
+                        $SumType = $sumFieldSet->getFieldType($sumFld, false);
+                        $SumType = ($SumType instanceof type_Int) ? $SumType : core_Type::getByName('double(decimals=2)');
+                        $data->rows[$index]->{$sumFld} = $SumType->toVerbal($dRec->{$sumFld});
+                        $data->rows[$index]->{$sumFld} = ht::styleNumber($data->rows[$index]->{$sumFld}, $dRec->{$sumFld});
                     }
                 }
             }
