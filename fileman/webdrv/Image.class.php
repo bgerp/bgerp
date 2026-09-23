@@ -260,7 +260,9 @@ class fileman_webdrv_Image extends fileman_webdrv_Generic
         }
         
         $params = unserialize($script->params);
-        
+
+        $savedId = $error = null;
+
         if (countR($fileHndArr)) {
             $params['content'] = $fileHndArr;
             
