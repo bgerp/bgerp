@@ -67,7 +67,7 @@ class doc_Search extends core_Manager
      */
     public function description()
     {
-        $this->forceProxy('doc_Containers');
+        $this->forceReplica('doc_Containers');
     }
     
     

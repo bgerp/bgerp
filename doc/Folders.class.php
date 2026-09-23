@@ -177,7 +177,7 @@ class doc_Folders extends core_Master
      */
     public function act_List()
     {
-        $this->forceProxy($this->className);
+        $this->forceReplica($this->className);
 
         return parent::act_List();
     }
@@ -1169,7 +1169,7 @@ class doc_Folders extends core_Master
      */
     public static function restrictAccess_(&$query, $userId = null, $viewAccess = true)
     {
-        if (($query->mvc->className != 'doc_Folders') && ($query->mvc->className != 'doc_FoldersProxy')) {
+        if ($query->mvc->className != 'doc_Folders') {
             // Добавя необходимите полета от модела doc_Folders
             if (!($query->fields['folderAccess'] ?? null)) {
                 $query->EXT('folderAccess', 'doc_Folders', 'externalName=access,externalKey=folderId');
@@ -2300,7 +2300,7 @@ class doc_Folders extends core_Master
                     $cQuery->groupBy('folderId');
                     $cQuery->limit(20);
                     $cQuery->orderBy('createdOn', 'DESC');
-                    $folderIds = $Containers->callOnProxy(function () use ($cQuery) {
+                    $folderIds = $Containers->callOnReplica(function () use ($cQuery) {
 
                         return arr::extractValuesFromArray($cQuery->fetchAll(), 'folderId');
                     });

@@ -154,7 +154,7 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
             }
         }
         $invQuery->show('id,number,vatAmount,rate,containerId,currencyId,date,dueDate,contragentId,contragentClassId,threadId');
-        $invQuery->selectOnProxy();
+        $invQuery->selectOnReplica();
         while ($invoice = $invQuery->fetch()) {
             $classId = $invoice->contragentClassId ?? null;
             if (!array_key_exists($classId, $contragentClasses)) {
@@ -184,7 +184,7 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
             $salQuery->where(array("#dealerId = '[#1#]'", $rec->dealer));
         }
         $salQuery->show('threadId');
-        $salQuery->selectOnProxy();
+        $salQuery->selectOnReplica();
         $threadsActivSalesArr = arr::extractValuesFromArray($salQuery->fetchAll(), 'threadId');
         core_App::setTimeLimit(max(300, count($threadsActivSalesArr) * 5));
 

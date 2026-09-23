@@ -538,7 +538,7 @@ class price_ListRules extends core_Detail
         $me = cls::get(get_called_class());
 
         try {
-            $me->forceProxy();
+            $me->forceReplica();
             static::preloadGroups($productIds);
 
             // Всички групи на артикулите - по тях се търсят груповите правила
@@ -555,7 +555,7 @@ class price_ListRules extends core_Detail
                 static::preloadListRules($chainListId, $productIds, $allGroups, $datetime);
             }
         } finally {
-            $me->unforceProxy();
+            $me->unforceReplica();
         }
     }
 

@@ -145,7 +145,7 @@ class sales_reports_PassiveCustomers extends frame2_driver_TableData
         $shQuery->EXT('firstDocClass', 'doc_Threads', 'externalKey=threadId');
         $shQuery->EXT('firstDocId', 'doc_Threads', 'externalKey=threadId');
         $shQuery->show('folderId,threadId,valior,amountDelivered,firstDocClass,firstDocId');
-        $shQuery->selectOnProxy();
+        $shQuery->selectOnReplica();
 
         // Първи обход - остават само експедициите, чиято нишка започва с продажба
         $salesClassId = sales_Sales::getClassId();
@@ -176,7 +176,7 @@ class sales_reports_PassiveCustomers extends frame2_driver_TableData
             $dQuery = sales_Sales::getQuery();
             $dQuery->in('id', $saleIds);
             $dQuery->show('id,dealerId');
-            $dQuery->selectOnProxy();
+            $dQuery->selectOnReplica();
             while ($dRec = $dQuery->fetch()) {
                 $saleDealers[$dRec->id] = $dRec->dealerId ?? null;
             }
@@ -229,7 +229,7 @@ class sales_reports_PassiveCustomers extends frame2_driver_TableData
         $salQuery->like('contoActions', 'ship');
         $salQuery->where("#valior >= '$activePeriodStart'");
         $salQuery->show('folderId,valior,amountDelivered,dealerId');
-        $salQuery->selectOnProxy();
+        $salQuery->selectOnReplica();
 
         while ($salRec = $salQuery->fetch()) {
 
@@ -344,7 +344,7 @@ class sales_reports_PassiveCustomers extends frame2_driver_TableData
         $cQuery = crm_Companies::getQuery();
         plg_ExpandInput::applyExtendedInputSearch('crm_Companies', $cQuery, $crmGroup);
         $cQuery->show('id,folderId');
-        $cQuery->selectOnProxy();
+        $cQuery->selectOnReplica();
 
         $companyIds = array();
         while ($cRec = $cQuery->fetch()) {
@@ -362,7 +362,7 @@ class sales_reports_PassiveCustomers extends frame2_driver_TableData
         $pQuery->in('buzCompanyId', $companyIds);
         $pQuery->where("#folderId IS NOT NULL");
         $pQuery->show('folderId');
-        $pQuery->selectOnProxy();
+        $pQuery->selectOnReplica();
 
         while ($pRec = $pQuery->fetch()) {
             $res[$pRec->folderId] = $pRec->folderId;
@@ -392,7 +392,7 @@ class sales_reports_PassiveCustomers extends frame2_driver_TableData
         $query->XPR('mailsCount', 'int', 'COUNT(#id)');
         $query->groupBy('folderId');
         $query->show('folderId,mailsCount');
-        $query->selectOnProxy();
+        $query->selectOnReplica();
 
         while ($mRec = $query->fetch()) {
             $res[$mRec->folderId] = $mRec->mailsCount;
