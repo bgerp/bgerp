@@ -9,7 +9,7 @@
             <!--ET_BEGIN coMoq--><span title='|Минимално количество за поръчка|*'>|Мин. количество||Min. quantity|*: <b>[#coMoq#]</b></span><!--ET_END coMoq-->
         </div>
         <!--ET_BEGIN catalogPrice-->
-        <div class="eshop-card-price">[#catalogPrice#] [#chargeVat#] <span>|за||per|* [#packagingId#]</span></div>
+        <div class="eshop-card-price">[#catalogPrice#] <span class="eshop-card-price-tail">[#chargeVat#] <span>|за||per|* [#packagingId#]</span></span></div>
         <!--ET_END catalogPrice-->
         <!--ET_BEGIN saleInfo--><div class="eshop-card-sale-info">[#saleInfo#]</div><!--ET_END saleInfo-->
         <!--ET_BEGIN commonParams-->

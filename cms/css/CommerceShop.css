@@ -929,6 +929,18 @@ body.eshop-public #cmsNavigation .commerce-shortcuts .sel_page {
     font-size: 13px;
     font-weight: 400;
 }
+/* "с ДДС за бр." wraps as one piece, never a lone "бр." on the next line. */
+.eshop-public .eshop-card-price > .eshop-card-price-tail {
+    color: inherit;
+    font-size: inherit;
+    font-weight: inherit;
+    white-space: nowrap;
+}
+.eshop-public .eshop-card-price-tail > span {
+    color: var(--shop-muted);
+    font-size: 13px;
+    font-weight: 400;
+}
 .eshop-public .eshop-card-actions {
     display: flex;
     flex-wrap: nowrap;
