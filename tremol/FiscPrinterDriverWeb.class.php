@@ -1094,13 +1094,14 @@ class tremol_FiscPrinterDriverWeb extends tremol_FiscPrinterDriverParent
     {
         $fnc = '';
         
+        // Полетата ги има във формата само за някои видове отчети
         $isDetailed = 'false';
-        if ($rec->isDetailed == 'yes') {
+        if (($rec->isDetailed ?? null) == 'yes') {
             $isDetailed = 'true';
         }
-        
+
         $isZeroing = 'false';
-        if ($rec->zeroing == 'yes') {
+        if (($rec->zeroing ?? null) == 'yes') {
             $isZeroing = 'true';
         }
         
