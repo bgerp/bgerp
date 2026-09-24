@@ -17,6 +17,18 @@
 class eshop_ProductDetails extends core_Detail
 {
     /**
+     * Моментът на цените във външната част в текущия хит
+     */
+    protected static $priceMoment;
+
+
+    /**
+     * Изчислените цени във външната част в текущия хит
+     */
+    protected static $publicPrices = array();
+
+
+    /**
      * Име на поле от модела, външен ключ към мастър записа
      */
     public $masterKey = 'eshopProductId';
@@ -208,13 +220,89 @@ class eshop_ProductDetails extends core_Detail
      */
     public static function getPublicDisplayPrice($productId, $packagingId = null, $quantityInPack = 1, $domainId = null)
     {
-        $res = (object) array('price' => null, 'discount' => null);
         $domainId = (isset($domainId)) ? $domainId : cms_Domains::getPublicDomain()->id;
+
+        // Една и съща цена се пита няколко пъти в хита (опаковка, ред, общи параметри)
+        $cacheKey = "{$productId}|{$packagingId}|{$quantityInPack}|{$domainId}";
+        if (!array_key_exists($cacheKey, self::$publicPrices)) {
+            self::$publicPrices[$cacheKey] = self::calcPublicDisplayPrice($productId, $packagingId, $quantityInPack, $domainId);
+        }
+
+        return is_object(self::$publicPrices[$cacheKey]) ? clone self::$publicPrices[$cacheKey] : self::$publicPrices[$cacheKey];
+    }
+
+
+    /**
+     * Моментът на цените във външната част - един за целия хит
+     *
+     * Цените са към точен момент и заобикалят price_Cache, затова груповото зареждане на правилата
+     * (@see preloadPublicPrices) помага само ако моментът е същият
+     *
+     * @return datetime
+     */
+    public static function getPriceMoment()
+    {
+        if (!isset(self::$priceMoment)) {
+            self::$priceMoment = dt::now();
+        }
+
+        return self::$priceMoment;
+    }
+
+
+    /**
+     * Зарежда накуп ценовите правила и ДДС-а на артикулите, вместо по заявка на артикул
+     *
+     * @param array    $productIds
+     * @param int|null $domainId
+     *
+     * @return void
+     */
+    public static function preloadPublicPrices($productIds, $domainId = null)
+    {
+        $productIds = array_filter(array_unique($productIds), 'is_numeric');
+        if (!countR($productIds)) return;
+
+        $domainId = (isset($domainId)) ? $domainId : cms_Domains::getPublicDomain()->id;
+        $settings = cms_Domains::getSettings($domainId);
+        $listId = cms_Helper::getCurrentEshopPriceList($settings);
+        if (!isset($listId)) return;
+
+        $listIds = array($listId => $listId);
+        $discountListId = price_Lists::fetchField($listId, 'discountCompared');
+        if (!empty($discountListId)) {
+            $listIds[$discountListId] = $discountListId;
+        }
+
+        $now = self::getPriceMoment();
+        foreach ($listIds as $id) {
+            price_ListRules::preloadRules($id, $productIds, $now);
+        }
+
+        if (($settings->chargeVat ?? 'no') == 'yes') {
+            cat_products_VatGroups::getVats($productIds, dt::today(), $settings->vatExceptionId ?? null);
+        }
+    }
+
+
+    /**
+     * Изчислява цената във външната част
+     *
+     * @param int      $productId
+     * @param int|null $packagingId
+     * @param float    $quantityInPack
+     * @param int      $domainId
+     *
+     * @return stdClass|null
+     */
+    protected static function calcPublicDisplayPrice($productId, $packagingId, $quantityInPack, $domainId)
+    {
+        $res = (object) array('price' => null, 'discount' => null);
         $settings = cms_Domains::getSettings($domainId);
         $listId = cms_Helper::getCurrentEshopPriceList($settings);
 
         // Ако има ценоразпис
-        $now = dt::now();
+        $now = self::getPriceMoment();
         if (isset($listId)) {
             $price = price_ListRules::getPrice($listId, $productId, $packagingId, $now);
 

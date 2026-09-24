@@ -749,6 +749,15 @@ class eshop_Products extends core_Master
         $data->Pager = cls::get('core_Pager', array('itemsPerPage' => $perPage));
         $data->Pager->itemsCount = countR($data->recs);
 
+        // Цените на опциите са към точен момент и заобикалят price_Cache - правилата се зареждат накуп
+        if(countR($data->recs)){
+            $optQuery = eshop_ProductDetails::getQuery();
+            $optQuery->in('eshopProductId', array_keys($data->recs));
+            $optQuery->where("#state = 'active'");
+            $optQuery->show('productId');
+            eshop_ProductDetails::preloadPublicPrices(arr::extractValuesFromArray($optQuery->fetchAll(), 'productId'));
+        }
+
         $commerceTheme = cms_Domains::getCmsSkin() instanceof cms_CommerceTheme;
         foreach ($data->recs as $pRec) {
             if (!$data->Pager->isOnPage()) continue;
