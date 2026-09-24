@@ -151,41 +151,6 @@
     border-left-color: var(--shop-accent);
 }
 
-.eshop-public #cmsNavigation #simpleSearch {
-    position: relative;
-    width: 100%;
-    height: 44px;
-    min-width: 0;
-    box-sizing: border-box;
-    border: 1px solid #b8c8d2;
-    background: #fff;
-    margin: 0 0 12px;
-}
-
-.eshop-public #cmsNavigation #simpleSearch #searchInput {
-    position: static;
-    width: 100%;
-    height: 42px;
-    box-sizing: border-box;
-    padding: 10px 42px 10px 12px;
-    border: 1px solid #b8c8d2;
-    border-radius: 6px;
-    background: #fff;
-    font-size: 16px;
-    box-shadow: none;
-}
-
-.eshop-public #cmsNavigation #simpleSearch #searchButton {
-    position: absolute;
-    top: 0;
-    right: 0;
-    width: 40px;
-    height: 44px;
-    border: 0;
-    background: transparent;
-    cursor: pointer;
-}
-
 .eshop-public .eshop-content h1 {
     margin: 0 0 24px;
     color: var(--shop-ink);
@@ -616,9 +581,6 @@ body.eshop-public .optionsTable .priceCol .eshop-product-buy-button + .eshop-pro
     .eshop-public .eshop-layout #cmsNavigation {
         margin: 0 !important;
         padding: 12px;
-    }
-    .eshop-public #cmsNavigation #simpleSearch {
-        margin-bottom: 8px;
     }
     .eshop-public .eshop-group,
     .eshop-public .eshop-product,
