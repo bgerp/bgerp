@@ -944,7 +944,7 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
         }
         
         if ($form->isSubmitted()) {
-            if ($rec->zeroing == 'yes') {
+            if (($rec->zeroing ?? null) == 'yes') {
                 $form->setWarning('report, zeroing', 'Отчетът ще бъде нулиран');
             }
         }
@@ -975,7 +975,7 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
                 unset($retUrl['update']);
             }
 
-            if ($rec->printIn == 'PC') {
+            if (($rec->printIn ?? null) == 'PC') {
                 $retUrl = array();
             }
 
