@@ -40,6 +40,24 @@ class cms_CommerceTheme extends cms_FancyTheme
     }
 
 
+    /** Банер по подразбиране, когато няма изображение за текущия екран. */
+    public function getHeaderImg()
+    {
+        $fields = Mode::is('screenMode', 'narrow') ? array('nImg') : array('wImg1', 'wImg2', 'wImg3', 'wImg4', 'wImg5', 'wImg6', 'wImg7', 'wImg8');
+        foreach ($fields as $field) {
+            if (!empty($this->innerForm->{$field})) {
+                return parent::getHeaderImg();
+            }
+        }
+
+        return ht::createElement('img', array(
+            'src' => sbf('cms/img/commerce-banner.png', ''),
+            'alt' => 'bgERP',
+            'class' => 'headerImg commerce-default-banner',
+        ));
+    }
+
+
     /**
      * Избира специализиран шаблон само за търговската тема.
      */
