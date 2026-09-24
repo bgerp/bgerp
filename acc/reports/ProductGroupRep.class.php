@@ -43,6 +43,14 @@ class acc_reports_ProductGroupRep extends frame2_driver_TableData
 
 
     /**
+     * Кои полета от таблицата са цени/суми
+     *
+     * @var string
+     */
+    protected $priceListFields = 'primeCost,sellCost';
+
+
+    /**
      * Кои полета са за избор на период
      */
     protected $periodFields = 'from,to';

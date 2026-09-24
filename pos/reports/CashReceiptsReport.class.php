@@ -36,6 +36,12 @@ class pos_reports_CashReceiptsReport extends frame2_driver_TableData
 
 
     /**
+     * Кои полета от таблицата са цени/суми
+     */
+    protected $priceListFields = 'total';
+
+
+    /**
      * Брой записи на страница
      *
      * @var int
@@ -280,7 +286,7 @@ class pos_reports_CashReceiptsReport extends frame2_driver_TableData
         $row->pointId = pos_Points::getHyperlink($dRec->pointId, true);
 
         $row->contragentName = $dRec->contragentName;
-        if ($rec->groupBy == 'contragentName') {
+        if ($rec->groupBy == 'contragentName' && $this->canSeePriceFields($rec)) {
             $row->contragentName = ($row->contragentName ?? '') . '<span class="fright">  ОБЩО: ' . $dRec->totalSum . ' лв.</span>';
         }
 

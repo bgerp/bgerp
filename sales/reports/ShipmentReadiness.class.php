@@ -222,7 +222,8 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
                 $row->document->append($arrow->getContent());
             }
 
-            if($Document->isInstanceOf('sales_Sales')){
+            // Сумите по сделката се показват само ако потребителят вижда цените
+            if($Document->isInstanceOf('sales_Sales') && $this->canSeePriceFields($rec)){
                 $documentRec = $Document->fetch();
                 $documentRow = $Document->getInstance()->recToVerbal($documentRec);
                 $amountDealVerbal = currency_Currencies::decorate($documentRow->amountDeal, $documentRec->currencyId, true);

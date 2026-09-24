@@ -400,6 +400,8 @@ class trans_LineDetails extends doc_Detail
             $row->containerId .= " <small>" . implode(',', $documentArr) . "</small>";
         }
 
+        $canSeePrices = doc_plg_HidePrices::canSeePriceFields('trans_Lines', trans_Lines::fetch($rec->lineId));
+
         // Ако има платежни документи към складовия
         if(is_array($rec->paymentsArr ?? null) && $rec->status != 'removed'){
             $rec->_allPaymentActive = (bool)countR($rec->paymentsArr);
@@ -417,7 +419,8 @@ class trans_LineDetails extends doc_Detail
                 }
 
                 Mode::push('text', 'plain');
-                $paymentCaption = "#" . $PayDoc->getHandle() . " (" . core_Type::getByName('double(decimals=2)')->toVerbal($paymentInfo['amount']) . ")";
+                $paymentAmountVerbal = $canSeePrices ? core_Type::getByName('double(decimals=2)')->toVerbal($paymentInfo['amount']) : doc_plg_HidePrices::getBuriedElement(true);
+                $paymentCaption = "#" . $PayDoc->getHandle() . " ({$paymentAmountVerbal})";
                 Mode::pop('text');
                 $row->_rowTools->addLink($paymentCaption, $PayDoc->getSingleUrlArray(), array('ef_icon' => $PayDoc->getSingleIcon(), 'title' => 'Преглед на документа'));
 
@@ -429,6 +432,10 @@ class trans_LineDetails extends doc_Detail
             if(countR($rec->paymentsArr)){
                 $row->amount = $amountTpl;
             }
+        }
+
+        if(!$canSeePrices && !empty($row->amount)){
+            $row->amount = doc_plg_HidePrices::getBuriedElement();
         }
 
         // В какъв цвят да се оцвети реда на линията

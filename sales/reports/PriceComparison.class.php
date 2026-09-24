@@ -30,6 +30,12 @@ class sales_reports_PriceComparison extends frame2_driver_TableData
 
 
     /**
+     * Кои полета от таблицата са цени/суми
+     */
+    protected $priceListFields = 'lowPrice,hiPrice,diffPrice,diffPercent';
+
+
+    /**
      * Кои полета от таблицата в справката да се сумират в обобщаващия ред
      *
      * @var int

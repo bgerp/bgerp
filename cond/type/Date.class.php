@@ -18,6 +18,12 @@
 class cond_type_Date extends cond_type_abstract_Proto
 {
     /**
+     * Как се индексира стойността за филтриране (@see cat_products_ParamIndex)
+     */
+    protected $indexKind = 'num';
+
+
+    /**
      * Кой базов тип наследява
      */
     protected $baseType = 'type_Date';
@@ -101,5 +107,35 @@ class cond_type_Date extends cond_type_abstract_Proto
         }
 
         return $default;
+    }
+
+
+    /**
+     * Датата се индексира като timestamp, за да се търси в диапазон
+     */
+    public function getIndexValues($rec, $domainClass, $domainId, $value, $langs)
+    {
+        $value = trim((string) $value);
+        $time = strlen($value) ? strtotime($value) : false;
+        if ($time === false) {
+
+            return array();
+        }
+
+        return array($this->makeIndexRow(array('valueNum' => $time)));
+    }
+
+
+    /**
+     * Вербално представяне на индексиран ред
+     */
+    public function getIndexVerbal($rec, $domainClass, $domainId, $iRec)
+    {
+        if (!isset($iRec->valueNum)) {
+
+            return '';
+        }
+
+        return $this->toVerbal($rec, $domainClass, $domainId, dt::timestamp2Mysql($iRec->valueNum));
     }
 }

@@ -33,6 +33,12 @@ class sales_reports_PassiveCustomers extends frame2_driver_TableData
 
 
     /**
+     * Кои полета от таблицата са цени/суми
+     */
+    protected $priceListFields = 'amountDelivered';
+
+
+    /**
      * Кои полета от таблицата в справката да се сумират в обобщаващия ред
      */
     protected $summaryListFields = 'numberOfSales,amountDelivered,numberOfInMails,numberOfOutMails';

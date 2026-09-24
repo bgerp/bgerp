@@ -67,6 +67,12 @@ class tcost_reports_ComparisonOfTransportCosts extends frame2_driver_TableData
 
 
     /**
+     * Кои полета от таблицата са цени/суми
+     */
+    protected $priceListFields = 'expectedTransportCost,amountPart,difference';
+
+
+    /**
      * Добавя полетата на драйвера към Fieldset
      *
      * @param core_Fieldset $fieldset

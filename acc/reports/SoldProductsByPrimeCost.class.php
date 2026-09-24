@@ -38,6 +38,14 @@ class acc_reports_SoldProductsByPrimeCost extends frame2_driver_TableData
 
 
     /**
+     * Кои полета от таблицата са цени/суми
+     *
+     * @var string
+     */
+    protected $priceListFields = 'amount';
+
+
+    /**
      * Как да се казва обобщаващия ред. За да се покаже трябва да е зададено $summaryListFields
      *
      * @var int

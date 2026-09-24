@@ -85,6 +85,12 @@ class sales_reports_OverdueByAdvancePayment extends frame2_driver_TableData
     
     
     /**
+     * Кои полета от таблицата са цени/суми
+     */
+    protected $priceListFields = 'amount';
+    
+    
+    /**
      * Добавя полетата на драйвера към Fieldset
      *
      * @param core_Fieldset $fieldset

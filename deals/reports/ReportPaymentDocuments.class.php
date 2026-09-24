@@ -52,6 +52,12 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
 
 
     /**
+     * Кои полета от таблицата са цени/суми
+     */
+    protected $priceListFields = 'amountDeal';
+
+
+    /**
      * Добавя полетата на драйвера към формата за справката
      *
      * @param core_Fieldset $fieldset - обектът на формата, към който се добавят полета
@@ -397,7 +403,10 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
         // Групиращ ред (ако сме в групиране)
         if (($rec->groupBy ?? null) == 'yes') {
             $sums = array();
-            foreach ($dRec->totalSumContr as $cur => $val) {
+
+            // Сумите по контрагент не се показват, ако потребителят не вижда цените
+            $totalSumContr = $this->canSeePriceFields($rec) ? $dRec->totalSumContr : array();
+            foreach ($totalSumContr as $cur => $val) {
                 $absVal = abs($val);
                 $verbalVal = $Double->toVerbal($absVal);
                 $displayVal = ($val < 0) ? '-' . $verbalVal : $verbalVal;

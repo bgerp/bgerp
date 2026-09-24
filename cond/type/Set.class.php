@@ -18,6 +18,12 @@
 class cond_type_Set extends cond_type_abstract_Proto
 {
     /**
+     * Как се индексира стойността за филтриране (@see cat_products_ParamIndex)
+     */
+    protected $indexKind = 'key';
+
+
+    /**
      * Добавя полетата на драйвера към Fieldset
      *
      * @param core_Fieldset $fieldset
@@ -53,5 +59,14 @@ class cond_type_Set extends cond_type_abstract_Proto
         $Type = core_Type::getByName("set({$options})");
         
         return $Type;
+    }
+
+
+    /**
+     * Всяка избрана опция е отделен ключ в индекса
+     */
+    protected function getIndexKeys($value)
+    {
+        return array_values(type_Set::toArray($value));
     }
 }

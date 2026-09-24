@@ -38,7 +38,10 @@ class deepl_plugins_IncomingsTranslate extends core_Plugin
             $translateLgCodeArr[$lgCode] = $lgCode;
         }
 
-        $rLg = strtolower((string) $rec->lg);
+        // recToVerbal() може да е извикан с id вместо със запис
+        $rec = $mvc->fetchRec($rec);
+
+        $rLg = strtolower((string) ($rec->lg ?? ''));
 
         $isGoodToTranslate = (boolean)($rLg != deepl_Setup::get('LANG'));
 

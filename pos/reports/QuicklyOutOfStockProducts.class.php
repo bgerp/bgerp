@@ -40,6 +40,14 @@ class pos_reports_QuicklyOutOfStockProducts extends frame2_driver_TableData
 
 
     /**
+     * Кои полета от таблицата са цени/суми
+     *
+     * @var string
+     */
+    protected $priceListFields = 'amount';
+
+
+    /**
      * Кой може да избира драйвъра
      */
     public $canSelectDriver = 'ceo,manager,debug';

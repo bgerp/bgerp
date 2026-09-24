@@ -37,6 +37,12 @@ class doc_reports_ActivatedDocumentsByTime extends frame2_driver_TableData
      * @var int
      */
     protected $summaryListFields = 'counter';
+
+
+    /**
+     * С колко знака да се закръглят полетата в обобщаващия ред
+     */
+    protected $summaryDecimals = 'counter=0';
     
     
     /**
@@ -68,6 +74,12 @@ class doc_reports_ActivatedDocumentsByTime extends frame2_driver_TableData
     
     //Кои полета да се проверяват са стойност на документа
     protected $totalAmountFields = 'dealValue,amountDeal,deliveryTermId';
+
+
+    /**
+     * Кои полета от таблицата са цени/суми
+     */
+    protected $priceListFields = 'amount';
 
 
     /**

@@ -61,6 +61,12 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
 
 
     /**
+     * Кои полета от таблицата са цени/суми
+     */
+    protected $priceListFields = 'invoiceValue,paidAmount,invoiceCurrentSumm,invoiceOverSumm';
+
+
+    /**
      * Добавя полетата на драйвера към Fieldset
      *
      * @param core_Fieldset $fieldset
@@ -558,10 +564,14 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
                     $invoiceCurrentSumm = self::getContragentCurrentSumm($dRec);
                 }
 
-                $row->contragent = doc_Folders::getTitleById($dRec->contragent) .
-                    "<span class= 'fright'><span class= 'quiet'>" . 'Общо ПРОСРОЧЕНИ фактури: ' . '</span>' .
-                    core_Type::getByName('double(decimals=2)')->toVerbal($invoiceCurrentSumm) .
-                    ' ' . " €" . '</span>';
+                $row->contragent = doc_Folders::getTitleById($dRec->contragent);
+
+                // Сумата на групата се показва само ако потребителят вижда цените
+                if ($this->canSeePriceFields($rec)) {
+                    $row->contragent .= "<span class= 'fright'><span class= 'quiet'>" . 'Общо ПРОСРОЧЕНИ фактури: ' . '</span>' .
+                        core_Type::getByName('double(decimals=2)')->toVerbal($invoiceCurrentSumm) .
+                        ' ' . " €" . '</span>';
+                }
             } else {
                 $row->overduePeriod = 'Просрочие ' . $dRec->overduePeriod . ' дни';
                 $row->contragent = doc_Folders::getTitleById($dRec->contragent);
@@ -685,18 +695,16 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
         }
 
 
-        if (isset($data->rec->salesTotalOverDue)) {
-
-
-
+        $canSeePrices = $Driver->canSeePriceFields($data->rec);
+        if (isset($data->rec->salesTotalOverDue) && $canSeePrices) {
             $fieldTpl->append(core_Type::getByName('double(decimals=2)')->toVerbal($salesTotalOverDue) . " €", 'salesTotalOverDue');
         }
 
-        if (isset($data->rec->salesTotalPayout)) {
+        if (isset($data->rec->salesTotalPayout) && $canSeePrices) {
             $fieldTpl->append(core_Type::getByName('double(decimals=2)')->toVerbal($salesTotalPayout) . " €", 'salesTotalPayout');
         }
 
-        if (isset($data->rec->salesCurrentSum)) {
+        if (isset($data->rec->salesCurrentSum) && $canSeePrices) {
             $fieldTpl->append(core_Type::getByName('double(decimals=2)')->toVerbal($salesCurrentSum) . " €", 'salesCurrentSum');
         }
 
