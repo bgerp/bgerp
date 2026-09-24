@@ -416,14 +416,13 @@ class cat_products_ParamIndexState extends core_Manager
         expect($id = Request::get('id', 'int'));
         expect($rec = $this->fetch($id));
 
+        // Ръчното преиндексиране обхваща и затворените артикули
+        self::markForced(array($rec->productId));
         $status = cat_products_ParamIndex::reindex($rec->productId);
         $this->logWrite('Преиндексиране на артикул', $id);
 
         if ($status == 'locked') {
             followRetUrl(null, '|Артикулът се индексира в друг процес|*!', 'warning');
-        }
-        if ($status == 'skipped') {
-            followRetUrl(null, '|Затвореният артикул остава с последно индексираните стойности|*!', 'warning');
         }
 
         $msg = ($status == 'ok') ? '|Артикулът е преиндексиран' : '|Грешка при преиндексиране|*!';
@@ -442,7 +441,10 @@ class cat_products_ParamIndexState extends core_Manager
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         $data->listFilter->input(null, 'silent');
-        $data->query->orderBy('indexedOn', 'DESC');
+        // Първо изискващите внимание
+        $data->query->XPR('orderByStatus', 'int', "(CASE #status WHEN 'error' THEN 1 WHEN 'dirty' THEN 2 WHEN 'processing' THEN 3 ELSE 4 END)");
+        $data->query->orderBy('orderByStatus', 'ASC');
+        $data->query->orderBy('indexedOn,id', 'DESC');
 
         $filterRec = $data->listFilter->rec;
         if (!empty($filterRec->product)) {
