@@ -22,12 +22,18 @@ class cms_CommerceTheme extends cms_FancyTheme
     public function prepareEmbeddedForm(core_Form &$form)
     {
         parent::prepareEmbeddedForm($form);
-        $form->setDefault('menuPosition', 'above');
+        $form->setField('menuPosition', 'input=none');
+        $form->rec->menuPosition = 'above';
     }
 
 
     public function prepareWrapper($tpl)
     {
+        // Ignore inherited positions saved before switching to this theme.
+        if (!is_object($this->innerForm ?? null)) {
+            $this->innerForm = new stdClass();
+        }
+        $this->innerForm->menuPosition = 'above';
         parent::prepareWrapper($tpl);
         $tpl->push('cms/css/CommerceMenu.css', 'CSS');
         $tpl->appendOnce(' commerce-theme', 'BODY_CLASS_NAME');
