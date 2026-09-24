@@ -25,7 +25,7 @@ class eshop_Settings extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Modified, plg_RowTools2, eshop_Wrapper, plg_Created, plg_Rejected';
+    public $loadList = 'plg_Modified, plg_RowTools2, eshop_Wrapper, plg_Created, plg_Rejected, plg_Select, plg_PrevAndNext';
     
     
     /**
