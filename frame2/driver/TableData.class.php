@@ -46,6 +46,14 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
      * @var int
      */
     protected $summaryListFields;
+
+
+    /**
+     * С колко знака да се закръглят полетата в обобщаващия ред, ако не са с 2 (напр. 'quantity=3')
+     *
+     * @var string
+     */
+    protected $summaryDecimals;
     
    
     /**
@@ -354,11 +362,11 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
             $summaryRow->{$fld} = 0;
         }
         
-        // Ако има полета за сумиране
+        // Сумират се закръглените стойности, за да съвпада сборът с показаните редове
         array_walk($data->recs, function ($a) use (&$summaryRow, $fieldsToSumArr){
             foreach ($fieldsToSumArr as $fld){
                 if(isset($a->{$fld}) && is_numeric($a->{$fld})){
-                    $summaryRow->{$fld} = ($summaryRow->{$fld} ?? 0) + $a->{$fld};
+                    $summaryRow->{$fld} = ($summaryRow->{$fld} ?? 0) + round($a->{$fld}, $data->summaryDecimals[$fld] ?? 2);
                 }
             }
         });
@@ -375,6 +383,37 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
         $summaryRow->ROW_ATTR['class'] = 'reportTableDataTotal';
         
         return $summaryRow;
+    }
+
+
+    /**
+     * С колко знака се закръглят и показват полетата в сумиращия ред
+     *
+     * @param stdClass $rec
+     * @param array $fieldsToSumArr
+     *
+     * @return array $res - [поле => брой знаци]
+     */
+    protected function getSummaryDecimals($rec, $fieldsToSumArr)
+    {
+        $res = array();
+        if (!countR($fieldsToSumArr)) {
+
+            return $res;
+        }
+
+        // Знаците трябва да са колкото на показаните редове, за да съвпада сборът с тях
+        $decimalsArr = arr::make($this->summaryDecimals, true);
+        $fieldset = $this->getTableFieldSet($rec);
+        foreach ($fieldsToSumArr as $fld) {
+            if (isset($decimalsArr[$fld])) {
+                $res[$fld] = (int) $decimalsArr[$fld];
+            } else {
+                $res[$fld] = ($fieldset->getFieldType($fld, false) instanceof type_Int) ? 0 : 2;
+            }
+        }
+
+        return $res;
     }
 
 
@@ -434,8 +473,8 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
             // Добавяне на обобщаващия ред, ако е указано да се показва
             $summaryFields = arr::make($data->summaryListFields);
             $fieldsToSumArr = array_intersect($summaryFields, array_keys($data->listFields));
+            $data->summaryDecimals = $this->getSummaryDecimals($rec, $fieldsToSumArr);
             $summaryRow = $this->getSummaryListRow($data, $fieldsToSumArr);
-            $sumFieldSet = is_object($summaryRow) ? $this->getTableFieldSet($rec) : null;
             
             // Ако е указано сортиране, сортират се записите, ако има сумарен ред той не участва в сортирането
             $sortDirection = Request::get("Sort{$rec->containerId}");
@@ -473,8 +512,7 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
                 // Ако реда е обобщаващ вербализира се отделно, целите числа остават без десетични
                 if($isSummary && countR($fieldsToSumArr)){
                     foreach ($fieldsToSumArr as $sumFld){
-                        $SumType = $sumFieldSet->getFieldType($sumFld, false);
-                        $SumType = ($SumType instanceof type_Int) ? $SumType : core_Type::getByName('double(decimals=2)');
+                        $SumType = core_Type::getByName("double(decimals={$data->summaryDecimals[$sumFld]})");
                         $data->rows[$index]->{$sumFld} = $SumType->toVerbal($dRec->{$sumFld});
                         $data->rows[$index]->{$sumFld} = ht::styleNumber($data->rows[$index]->{$sumFld}, $dRec->{$sumFld});
                     }

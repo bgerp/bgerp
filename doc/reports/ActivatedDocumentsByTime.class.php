@@ -37,6 +37,12 @@ class doc_reports_ActivatedDocumentsByTime extends frame2_driver_TableData
      * @var int
      */
     protected $summaryListFields = 'counter';
+
+
+    /**
+     * С колко знака да се закръглят полетата в обобщаващия ред
+     */
+    protected $summaryDecimals = 'counter=0';
     
     
     /**
