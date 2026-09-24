@@ -992,7 +992,7 @@ body.eshop-public .favouritesBtn.linkWithIcon {
     border-radius: 10px;
     background-color: #fff;
     background-position: center !important;
-    background-size: 20px 20px !important;
+    background-size: 24px 24px !important;
     background-repeat: no-repeat;
     vertical-align: middle;
     cursor: pointer;
@@ -1001,6 +1001,16 @@ body.eshop-public .favouritesBtn.linkWithIcon:hover,
 body.eshop-public .favouritesBtn.is-favourite {
     background-color: #fff0f4;
     border-color: #dca0b3;
+}
+/* Старите правила за #addToFavouritesBtn махат рамката и фона с !important */
+body.eshop-public #addToFavouritesBtn .favouritesBtn.linkWithIcon {
+    border: 1px solid #e4d5dc !important;
+    background-color: #fff !important;
+}
+body.eshop-public #addToFavouritesBtn .favouritesBtn.linkWithIcon:hover,
+body.eshop-public #addToFavouritesBtn .favouritesBtn.is-favourite {
+    border-color: #dca0b3 !important;
+    background-color: #fff0f4 !important;
 }
 body.eshop-public .favouritesBtn:focus-visible {
     outline: 2px solid #a83e60;
