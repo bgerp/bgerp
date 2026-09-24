@@ -74,6 +74,22 @@ class planning_reports_Workflows extends frame2_driver_TableData
 
 
     /**
+     * Показателите на справката, в реда на обработката
+     */
+    protected static $statCaptions = array(
+        'details' => 'Записи от прогреса',
+        'tasks' => 'Операции',
+        'preload' => 'Заредени артикули',
+        'employees' => 'Служители',
+        'norm' => 'Изчислени норми',
+        'calc' => 'Изчислени редове',
+        'breakdown' => 'Редове след разбивката',
+        'memory' => 'Пикова памет (MB)',
+        'total' => 'Общо',
+    );
+
+
+    /**
      * Кои полета може да се променят от потребител споделен към справката, но нямащ права за нея
      */
     protected $changeableFields = 'start,to,resultsOn,centre,assetResources,typeOfReport';
@@ -173,6 +189,10 @@ class planning_reports_Workflows extends frame2_driver_TableData
 
         $recs = array();
         $quantitiesByMeasure = array();
+        $startedOn = microtime(true);
+
+        // Начален лимит за зареждането; след него се удължава според броя на записите
+        core_App::setTimeLimit(300);
 
         $pDetails = cls::get('planning_ProductionTaskDetails');
         $pDetails->forceReplica($pDetails->className);
@@ -181,29 +201,15 @@ class planning_reports_Workflows extends frame2_driver_TableData
         $query->EXT('folderId', 'planning_Tasks', array('onCond' => "#planning_Tasks.id = #planning_ProductionTaskDetails.taskId", 'join' => 'INNER', 'externalName' => 'folderId'));
         $query->EXT('originId', 'planning_Tasks', array('onCond' => "#planning_Tasks.id = #planning_ProductionTaskDetails.taskId", 'join' => 'INNER', 'externalName' => 'originId'));
         $query->where("#state != 'rejected' ");
-
-
-        // Синхронизира таймлимита с броя записи //
-        $query1 = $pDetails->getQuery();
-        $maxTimeLimit = $query1->count() * 20;
-        $maxTimeLimit = max(array($maxTimeLimit, 300));
-        if ($maxTimeLimit > 300) {
-            core_App::setTimeLimit($maxTimeLimit);
-        }
+        $query->show('id,taskId,productId,type,quantity,weight,employees,fixedAsset,norm,indTimeAllocation,folderId,originId');
 
         //Филтър по център на дейност
         if ($rec->centre) {
-
             $cQuery = planning_Centers::getQuery();
             $cQuery->in('id', keylist::toArray($rec->centre));
             $cQuery->show('folderId');
             $centFoldersArr = arr::extractValuesFromArray($cQuery->fetchAll(), 'folderId');
             $query->in('folderId', $centFoldersArr);
-        }
-
-        //Филтър по групи артикули
-        if (isset($rec->group)) {
-           // plg_ExpandInput::applyExtendedInputSearch('cat_Products', $query, $rec->group, 'productId');
         }
 
         //Филтър по артикул
@@ -218,9 +224,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
 
         //Филтър по машини
         if ($rec->assetResources) {
-            $assetArr = keylist::toArray($rec->assetResources);
-
-            $query->in('fixedAsset', $assetArr);
+            $query->in('fixedAsset', keylist::toArray($rec->assetResources));
         }
 
         $indTimeSumArr = array();
@@ -250,6 +254,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
 			$createdOnWhere .= (!empty($createdOnWhere) ? " AND " : "") . "#createdOn <= '{$to}'";
 		}
 
+        $timer = microtime(true);
         if(!empty($createdOnWhere) && !empty($dateWhere)){
             $query2 = clone $query;
             $query->where($dateWhere);
@@ -265,22 +270,50 @@ class planning_reports_Workflows extends frame2_driver_TableData
             $taskDetails = $query->fetchAll();
         }
 
+        self::addReportStat($data, 'details', microtime(true) - $timer, countR($taskDetails));
+
+        // Таймлимитът се синхронизира с броя на избраните записи
+        $maxTimeLimit = countR($taskDetails) * 20;
+        if ($maxTimeLimit > 300) {
+            core_App::setTimeLimit($maxTimeLimit);
+        }
+
+        $timer = microtime(true);
         $taskArr = array();
         $taskIds = arr::extractValuesFromArray($taskDetails, 'taskId');
         if(countR($taskIds)){
             $taskQuery = planning_Tasks::getQuery();
             $taskQuery->in('id', $taskIds);
-            $taskQuery->show("id,containerId,saoOrder,measureId,folderId,quantityInPack,indTimeAllocation,labelPackagingId,indTime,indPackagingId,totalQuantity,originId");
+
+            // isFinal, productId и labelQuantityInPack са за calcNormByRec(), за да не чете операцията отново
+            $taskQuery->show("id,containerId,saoOrder,measureId,folderId,quantityInPack,indTimeAllocation,labelPackagingId,indTime,indPackagingId,totalQuantity,originId,isFinal,productId,labelQuantityInPack");
             $taskArr = $taskQuery->fetchAll();
         }
+        self::addReportStat($data, 'tasks', microtime(true) - $timer, countR($taskArr));
 
-        //Масив с имена на служителите за използване в цикъла
-        $emplQuery =  crm_Persons::getQuery();
-        $allEmplArr = array();
-        while ($eplRec  = $emplQuery->fetch()) {
-            $allEmplArr[$eplRec->id] = $eplRec->name;
+        $timer = microtime(true);
+        $productArr = self::preloadData($taskDetails, $taskArr);
+        self::addReportStat($data, 'preload', microtime(true) - $timer, countR($productArr));
+
+        // Имената само на служителите, които участват в избраните записи
+        $timer = microtime(true);
+        $emplIds = array();
+        foreach ($taskDetails as $tRec) {
+            $emplIds += keylist::toArray($tRec->employees ?? null);
         }
+        $allEmplArr = array();
+        if (countR($emplIds)) {
+            $emplQuery = crm_Persons::getQuery();
+            $emplQuery->in('id', $emplIds);
+            $emplQuery->show('id,name');
+            while ($eplRec = $emplQuery->fetch()) {
+                $allEmplArr[$eplRec->id] = $eplRec->name;
+            }
+        }
+        self::addReportStat($data, 'employees', microtime(true) - $timer, countR($allEmplArr));
 
+        $timer = microtime(true);
+        $normSeconds = $normCount = 0;
         foreach ($taskDetails as $tRec) {
             $id = self::breakdownBy($tRec, $rec);
 
@@ -294,28 +327,33 @@ class planning_reports_Workflows extends frame2_driver_TableData
                 $counter = array_intersect($counter, keylist::toArray($rec->employees));
             }
 
-            foreach ($counter as $val) {
-                $iRec = $taskArr[$tRec->taskId] ?? null;
-                if (!$iRec) {
-                    continue;
-                }
+            // Не зависят от служителя - смятат се веднъж за записа
+            $iRec = $taskArr[$tRec->taskId] ?? null;
+            $pRec = $productArr[$tRec->productId] ?? null;
+            if (!$iRec || !$pRec) {
+                continue;
+            }
 
+            $quantityInPack = 1;
+            if (isset($iRec->indPackagingId)) {
+                if ($packRec = cat_products_Packagings::getPack($tRec->productId, $iRec->indPackagingId)) {
+                    $quantityInPack = $packRec->quantity;
+                }
+            }
+            $normTimer = microtime(true);
+            $normTime = planning_ProductionTaskDetails::calcNormByRec($tRec, $iRec);
+            $normSeconds += microtime(true) - $normTimer;
+            $normCount++;
+
+            foreach ($counter as $val) {
                 $quantity = $tRec->quantity;
                 $weight = round($tRec->weight ?? 0, 3);
                 $crapQuantity = 0;
 
                 //Количеството се преизчилсява според мерките за производство
-                $quantityInPack = 1;
                 if (isset($iRec->indPackagingId)) {
-                    if ($packRec = cat_products_Packagings::getPack($tRec->productId, $iRec->indPackagingId)) {
-                        $quantityInPack = $packRec->quantity;
-                    }
-
                     $quantity = round(($tRec->quantity / $quantityInPack), 3);
                 }
-
-                $normTime = planning_ProductionTaskDetails::calcNormByRec($tRec);
-
 
                 if ($rec->resultsOn == 'users' || $rec->resultsOn == 'usersMachines' || $rec->typeOfReport == 'short') {
                     $divisor = countR(keylist::toArray($tRec->employees ?? null));
@@ -323,11 +361,8 @@ class planning_reports_Workflows extends frame2_driver_TableData
                     $divisor = 1;
                 }
                 if ($rec->typeOfReport == 'short') {
-
                     $id = $val;
-
                     $labelQuantity = 1 / $divisor;
-
                     $employees = $val;
                     $employeesName = $allEmplArr[$val] ?? crm_Persons::getTitleById($val);
                 }
@@ -335,19 +370,12 @@ class planning_reports_Workflows extends frame2_driver_TableData
                 if ($divisor) {
                     $timeAlocation = ($tRec->indTimeAllocation == 'common') ? 1 / $divisor : 1;
                     $indTimeSum = $timeAlocation * $normTime;
-
                 } else {
                     $indTimeSum = 0;
                 }
 
-                $pRec = cat_Products::fetch($tRec->productId, 'measureId,name');
-                if (!$pRec) {
-                    continue;
-                }
-
                 //Ако е брак
                 if ($tRec->type == 'scrap') {
-                    // $crapQuantity = round(($tRec->quantity / $quantityInPack), 3);
                     $crapQuantity = round($tRec->quantity ?? 0, 3);
                     $quantity = round(($tRec->quantity ?? 0) * (-1), 3);
                     $weight = round(($tRec->weight ?? 0) * (-1), 3);
@@ -355,11 +383,9 @@ class planning_reports_Workflows extends frame2_driver_TableData
                     $indTimeSum = $indTimeSum * (-1);
                 }
 
-
                 // Запис в масива
                 if (!array_key_exists($id, $recs)) {
                     $recs[$id] = (object)array(
-
                         'taskId' => $tRec->taskId,
                         'originId' => $tRec->originId,
                         'detailId' => $tRec->id,
@@ -375,16 +401,12 @@ class planning_reports_Workflows extends frame2_driver_TableData
                         'indTimeAllocation' => $iRec->indTimeAllocation,
                         'productId' => $tRec->productId,
                         'measureId' => $pRec->measureId,
-
                         'quantity' => $quantity,
                         'scrap' => $crapQuantity,
-
                         'labelMeasure' => $iRec->labelPackagingId,
                         'labelQuantity' => $labelQuantity,
-
                         'weight' => $weight,
                         'indTimeSumArr' => '',
-
                     );
                 } else {
                     $obj = &$recs[$id];
@@ -398,6 +420,9 @@ class planning_reports_Workflows extends frame2_driver_TableData
             }
         }
 
+        self::addReportStat($data, 'norm', $normSeconds, $normCount);
+        self::addReportStat($data, 'calc', microtime(true) - $timer, countR($recs));
+
         if (countR($recs)) {
             arr::sortObjects($recs, 'employeesName', 'asc', 'stri');
         }
@@ -407,6 +432,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
 
         //Когато е избран тип на справката - ПОДРОБНА
         if ($rec->typeOfReport == 'full') {
+            $timer = microtime(true);
 
             if ($rec->resultsOn == 'users') {
                 $this->subGroupFieldOrder = 'taskId';
@@ -420,7 +446,6 @@ class planning_reports_Workflows extends frame2_driver_TableData
 
             //Разпределяне по работници,или по машини
             foreach ($recs as $key => $val) {
-
                 if ($rec->resultsOn == 'users' || $rec->resultsOn == 'usersMachines') {
                     $divisor = countR(keylist::toArray($val->employees));
                     $arr = keylist::toArray($val->employees);
@@ -431,7 +456,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
 
                 $clone = clone $val;
 
-                foreach ($arr as $k => $v) {
+                foreach ($arr as $v) {
                     unset($id);
 
                     if (!is_null($rec->employees) && !in_array($v, keylist::toArray($rec->employees)) && $rec->resultsOn != 'arts' && $rec->resultsOn != 'machines') {
@@ -459,16 +484,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
                         $id = $val->taskId . '|' . $val->productId . '|' . '|' . $v . '|' . '|' . $val->assetResources;
                     }
 
-                    $labelQuantity = $clone->labelQuantity;
-                    if ($divisor) {
-                        $timeAlocation = ($clone->indTimeAllocation == 'common') ? 1 / $divisor : 1;
-                        $indTimeSum = $timeAlocation * $clone->indTime;
-                        if ($clone->type == 'input') {
-                            $labelQuantity = 1;
-                        }
-                    } else {
-                        $indTimeSum = 0;
-                    }
+                    $labelQuantity = ($divisor && $clone->type == 'input') ? 1 : $clone->labelQuantity;
 
                     //Попълваме масива с количствата по различните видове етикетирания(производство, влагане, отпадък)
                     if ($clone->type == 'production' || $clone->type == 'scrap') {
@@ -479,20 +495,12 @@ class planning_reports_Workflows extends frame2_driver_TableData
                         $typesQuantities->input += 1;
                     }
 
-                    if (!array_key_exists($clone->measureId, $quantitiesByMeasure)) {
-                        $quantitiesByMeasure[$clone->measureId] = $clone->quantity;
-                    } else {
-                        $quantitiesByMeasure[$clone->measureId] = ($quantitiesByMeasure[$clone->measureId] ?? 0) + $clone->quantity;
-                    }
-
+                    $quantitiesByMeasure[$clone->measureId] = ($quantitiesByMeasure[$clone->measureId] ?? 0) + $clone->quantity;
 
                     $indTimeSum = $clone->indTimeSum;
-
-                    $clone = clone $val;
                     unset($recs[$key]);
                     if (!array_key_exists($id, $recs)) {
                         $recs[$id] = (object)array(
-
                             'taskId' => $clone->taskId,
                             'originId' => $clone->originId,
                             'saoOrder' => $clone->saoOrder,
@@ -509,12 +517,9 @@ class planning_reports_Workflows extends frame2_driver_TableData
                             'measureId' => $clone->measureId,
                             'quantity' => $clone->quantity / $divisor,
                             'scrap' => $clone->scrap / $divisor,
-
                             'labelMeasure' => $clone->labelMeasure,
                             'labelQuantity' => $labelQuantity / $divisor,
-
                             'weight' => $clone->weight / $divisor,
-
                         );
                     } else {
                         $obj = &$recs[$id];
@@ -526,14 +531,11 @@ class planning_reports_Workflows extends frame2_driver_TableData
                         $obj->indTimeSum += $indTimeSum;
                     }
                 }
-
             }
 
-            foreach ($recs as $key => $val) {
-
+            foreach ($recs as $val) {
                 $k = trim($val->employees ?? '', '|');
                 $indTimeSumArr[$k] = ($indTimeSumArr[$k] ?? 0) + $val->indTimeSum / 60;
-
             }
             arr::sortObjects($recs, 'taskId', 'asc');
 
@@ -541,6 +543,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
                 arr::sortObjects($recs, 'employeesName', 'asc', 'stri');
             }
 
+            self::addReportStat($data, 'breakdown', microtime(true) - $timer, countR($recs));
         }
 
         $rec->indTimeSumArr = $indTimeSumArr;
@@ -550,6 +553,15 @@ class planning_reports_Workflows extends frame2_driver_TableData
         //сумарните ко.личества по дености
         if ($rec->typeOfReport == 'full' && ($rec->resultsOn == 'arts' || $rec->resultsOn == 'machines')) {
             array_unshift($recs, $typesQuantities);
+        }
+
+        self::addReportStat($data, 'memory', 0, round(memory_get_peak_usage(true) / 1048576));
+        self::addReportStat($data, 'total', microtime(true) - $startedOn, countR($recs));
+
+        // В лога на справката се записва едно обобщение на етапите
+        $statsMsg = $this->getReportStatsMsg($data, ', ');
+        if (!empty($statsMsg)) {
+            $this->logWhilePreparing($statsMsg);
         }
 
         return $recs;
@@ -942,6 +954,75 @@ class planning_reports_Workflows extends frame2_driver_TableData
 
         $res->labelMeasure = (($dRec->type ?? null) == 'input') ? 'бр.' : cat_UoM::getShortName($dRec->labelMeasure ?? null);
         $res->labelQuantity = $dRec->labelQuantity ?? 0;
+    }
+
+
+    /**
+     * Групово зарежда артикулите и пълни кеша на опаковките и заданията, четени от calcNormByRec()
+     *
+     * @author Ivelin Dimov <ivelin_pdimov@abv.bg>
+     *
+     * @param array $taskDetails - записи от прогреса на операциите
+     * @param array $taskArr     - операциите им
+     *
+     * @return array - артикулите (measureId, name) по ид
+     */
+    private static function preloadData($taskDetails, $taskArr)
+    {
+        $productIds = arr::extractValuesFromArray($taskDetails, 'productId');
+        if (!countR($productIds)) return array();
+
+        $pQuery = cat_Products::getQuery();
+        $pQuery->in('id', $productIds);
+        $pQuery->show('id,measureId,name');
+        $productArr = $pQuery->fetchAll();
+
+        // Ключът в кеша е условието, както го строи cat_products_Packagings::getPack()
+        $packConds = array();
+        foreach ($taskDetails as $tRec) {
+            $packagingId = $taskArr[$tRec->taskId]->indPackagingId ?? null;
+            if (empty($tRec->productId) || empty($packagingId)) continue;
+            $packConds["{$tRec->productId}|{$packagingId}"] = "#productId = {$tRec->productId} AND #packagingId = '{$packagingId}'";
+        }
+        if (countR($packConds)) {
+            $Packagings = cls::get('cat_products_Packagings');
+            $packRecs = array();
+            $packQuery = $Packagings->getQuery();
+            $packQuery->in('productId', $productIds);
+            $packQuery->orderBy('id', 'ASC');
+            while ($packRec = $packQuery->fetch()) {
+                $key = "{$packRec->productId}|{$packRec->packagingId}";
+                if (isset($packConds[$key]) && !isset($packRecs[$key])) {
+                    $packRecs[$key] = $packRec;
+                }
+            }
+
+            // Липсващите се пълнят с false, иначе fetchField() пак прави заявка
+            foreach ($packConds as $key => $cond) {
+                $Packagings->_cachedRecords["{$cond}|*"] = $packRecs[$key] ?? false;
+                if (!isset($packRecs[$key])) {
+                    $Packagings->_cachedRecords["{$cond}|quantity"] = false;
+                }
+            }
+        }
+
+        // Артикулът от заданието, който calcNormByRec() чете за всяка операция
+        $originIds = array_filter(arr::extractValuesFromArray($taskArr, 'originId'));
+        if (countR($originIds)) {
+            $Jobs = cls::get('planning_Jobs');
+            $jobRecs = array();
+            $jQuery = $Jobs->getQuery();
+            $jQuery->in('containerId', $originIds);
+            $jQuery->show('id,containerId,productId');
+            while ($jRec = $jQuery->fetch()) {
+                $jobRecs[$jRec->containerId] = $jRec;
+            }
+            foreach ($originIds as $originId) {
+                $Jobs->_cachedRecords["#containerId = {$originId}|productId"] = $jobRecs[$originId] ?? false;
+            }
+        }
+
+        return $productArr;
     }
 
 

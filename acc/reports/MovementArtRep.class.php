@@ -21,12 +21,6 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
 
 
     /**
-     * До колко артикула се изброяват в диагностиката
-     */
-    const MAX_SHOWN_PRODUCTS = 50;
-
-
-    /**
      * Показателите на справката, в реда на обработката
      */
     protected static $statCaptions = array(
@@ -175,7 +169,7 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
         while ($iRec = $iQuery->fetch()) {
             $productItems[$iRec->objectId] = $iRec->id;
         }
-        self::setStat($data, 'items', microtime(true) - $timer, countR($productItems));
+        self::addReportStat($data, 'items', microtime(true) - $timer, countR($productItems));
 
         // Артикул без перо не дава ред, затова не се и пази
         $timer = microtime(true);
@@ -188,8 +182,8 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
 
             $productArr[$pRec->id] = $pRec;
         }
-        self::setStat($data, 'products', microtime(true) - $timer, $readProducts);
-        self::setStat($data, 'withItem', 0, countR($productArr));
+        self::addReportStat($data, 'products', microtime(true) - $timer, $readProducts);
+        self::addReportStat($data, 'withItem', 0, countR($productArr));
 
         // За журнала и за салдата важат само перата на артикулите от справката
         $reportItems = array_intersect_key($productItems, $productArr);
@@ -203,7 +197,7 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
         // Начални количества във всички складове, групирани по артикули
         $timer = microtime(true);
         $baseQuantities = $this->getBaseQuantities($rec, array_flip($reportItems));
-        self::setStat($data, 'baseQuantities', microtime(true) - $timer, countR($baseQuantities));
+        self::addReportStat($data, 'baseQuantities', microtime(true) - $timer, countR($baseQuantities));
 
         // Движенията в периода, сумирани по перо с едно четене на журнала
         $movements = $this->aggregateMovements($rec->from, $rec->to, array_values($reportItems), $data);
@@ -239,7 +233,7 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
             $recs[$productRec->id] = $obj;
         }
 
-        self::setStat($data, 'rows', 0, countR($recs));
+        self::addReportStat($data, 'rows', 0, countR($recs));
 
         // Артикули без никакво движение и без начално салдо - реда им е само нули
         $zeroRows = 0;
@@ -248,7 +242,7 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
                 $zeroRows++;
             }
         }
-        self::setStat($data, 'zeroRows', 0, $zeroRows);
+        self::addReportStat($data, 'zeroRows', 0, $zeroRows);
 
         //Ако е избрано справката да е само в кегловни мерки
         if ($rec->uomKg == 'weight') {
@@ -263,9 +257,9 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
 
         $data->groupByField = 'groupId';
         $recs = $this->groupRecs($recs, $rec->group, $data, $withTotals);
-        self::setStat($data, 'grouped', 0, countR($recs));
-        self::setStat($data, 'memory', 0, round(memory_get_peak_usage(true) / 1048576));
-        self::setStat($data, 'total', microtime(true) - $startedOn, countR($recs));
+        self::addReportStat($data, 'grouped', 0, countR($recs));
+        self::addReportStat($data, 'memory', 0, round(memory_get_peak_usage(true) / 1048576));
+        self::addReportStat($data, 'total', microtime(true) - $startedOn, countR($recs));
 
         // В лога на справката се записва едно обобщение - иначе 20-те му реда стигат за два обхода
         $statsMsg = $this->getReportStatsMsg($data, ', ');
@@ -355,7 +349,7 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
             $creditFilter = " AND #creditItem2 IN ({$itemsIn})";
             $outsideDebitFilter = " OR #debitItem2 IS NULL OR #debitItem2 NOT IN ({$itemsIn})";
         }
-        self::setStat($data, 'itemFilter', 0, $filtered ? countR($productItemIds) : 0);
+        self::addReportStat($data, 'itemFilter', 0, $filtered ? countR($productItemIds) : 0);
 
         // Двата клона не се застъпват, за да не се броят по два пъти записите с 321 от двете страни
         $jQuery->setUnion("#debitAccId = {$acc['321']}{$debitFilter}");
@@ -364,7 +358,7 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
 
         $timer = microtime(true);
         $jQuery->selectOnReplica();
-        self::setStat($data, 'journal', microtime(true) - $timer, $jQuery->numRec());
+        self::addReportStat($data, 'journal', microtime(true) - $timer, $jQuery->numRec());
 
         while ($jRec = $jQuery->fetch()) {
             $debitAccId = $jRec->debitAccId;
@@ -799,11 +793,11 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
         }
         $stepTimer = microtime(true);
         self::preloadProductData($productIds);
-        self::setStat($data, 'uomPreload', microtime(true) - $stepTimer, countR($productIds));
+        self::addReportStat($data, 'uomPreload', microtime(true) - $stepTimer, countR($productIds));
 
         $stepTimer = microtime(true);
         $secondMeasures = self::getSecondMeasuresInKg($productIds, $kgMeasureId);
-        self::setStat($data, 'uomSecond', microtime(true) - $stepTimer, countR($secondMeasures));
+        self::addReportStat($data, 'uomSecond', microtime(true) - $stepTimer, countR($secondMeasures));
 
         // Изключва преизчисляването на параметрите - иначе драйверът ги преизчислява и записва
         Mode::push('doNotCalculate', true);
@@ -873,41 +867,11 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
             Mode::pop('doNotCalculate');
         }
 
-        self::setStat($data, 'uomKg', microtime(true) - $timer, countR($productIds));
-        self::setStat($data, 'withoutWeight', 0, countR($withoutWeight), $withoutWeight);
+        self::addReportStat($data, 'uomKg', microtime(true) - $timer, countR($productIds));
+        self::addReportStat($data, 'withoutWeight', 0, countR($withoutWeight), $withoutWeight);
         core_Debug::stopTimer('CHANGE_UOM_TO_KG');
 
         return $res;
-    }
-
-
-    /**
-     * Записва показател за изпълнението на справката
-     *
-     * @param stdClass $data - данните на справката
-     * @param string $key - ключ на показателя
-     * @param float $seconds - измереното време
-     * @param int $count - броят
-     * @param array $productIds - артикулите, до които се отнася
-     *
-     * @return void
-     */
-    private static function setStat(&$data, $key, $seconds, $count, $productIds = array())
-    {
-        $seconds = round($seconds, 3);
-        $msg = tr(self::$statCaptions[$key] ?? $key) . ": {$count}";
-        if ($seconds > 0) {
-            $msg .= " / {$seconds} " . tr('сек.');
-        }
-
-        // Изброяват се само първите артикули, иначе при десетки хиляди се подува логът
-        $shown = array_slice(array_values($productIds), 0, self::MAX_SHOWN_PRODUCTS);
-        if (countR($shown)) {
-            $rest = countR($productIds) - countR($shown);
-            $msg .= ' (' . implode(', ', $shown) . ($rest > 0 ? ' ... +' . $rest : '') . ')';
-        }
-
-        self::setReportStat($data, $key, $msg);
     }
 
 
