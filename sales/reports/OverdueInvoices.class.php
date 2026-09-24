@@ -34,6 +34,10 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
     private static $paymentValiors = array();
 
 
+    /** @var array Имена на контрагентите за текущия експорт */
+    private static $exportContragentTitles = array();
+
+
     /**
      * Показателите на справката, в реда на обработката
      */
@@ -369,6 +373,8 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
             }
         }
 
+        $recs = self::orderInvoices($recs, $this->groupByField);
+
         self::addReportStat($data, 'rows', 0, count($recs));
         self::addReportStat($data, 'memory', 0, round(memory_get_peak_usage(true) / 1048576));
         self::addReportStat($data, 'total', microtime(true) - $startedOn, count($recs));
@@ -380,6 +386,42 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
         }
 
         return $recs;
+    }
+
+
+    /**
+     * Запазва реда на групите, а фактурите в тях подрежда по дата и номер.
+     */
+    private static function orderInvoices($recs, $groupField)
+    {
+        $groups = array();
+        foreach ($recs as $key => $invoice) {
+            $groups[$invoice->{$groupField} ?? ''][$key] = $invoice;
+        }
+
+        $ordered = array();
+        foreach ($groups as $group) {
+            uasort($group, function ($a, $b) {
+                $dateOrder = strcmp($a->invoiceDate ?? '', $b->invoiceDate ?? '');
+
+                return $dateOrder ?: ((int) ($a->invoiceNo ?? 0) <=> (int) ($b->invoiceNo ?? 0));
+            });
+            $ordered += $group;
+        }
+
+        return $ordered;
+    }
+
+
+    /**
+     * Експортът следва същото групиране и подреждане като таблицата.
+     */
+    protected function getRecsForExport($rec, $ExportClass)
+    {
+        self::$exportContragentTitles = array();
+        self::$paymentValiors = array();
+
+        return self::orderInvoices($rec->data->recs ?? array(), $rec->data->groupByField ?? $rec->typeGrupping ?? 'contragent');
     }
 
 
@@ -504,9 +546,9 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
             $fld->FLD('invoiceDate', 'date', 'caption=Дата,smartCenter');
             $fld->FLD('contragent', 'varchar', 'caption=Контрагент');
             $fld->FLD('dueDate', 'date', 'caption=Краен срок,smartCenter');
-            $fld->FLD('overdueDays', 'varchar', 'caption=Дни');
+            $fld->FLD('overdueDays', 'int', 'caption=Дни просрочие');
             if (!empty($rec->additional)) {
-                $fld->FLD('overduePeriod', 'varchar', 'caption=Дни,smartCenter');
+                $fld->FLD('overduePeriod', 'varchar', 'caption=Период на просрочие,smartCenter');
             }
             $fld->FLD('currencyId', 'varchar', 'caption=Валута,tdClass=centered');
             $fld->FLD('invoiceValue', 'double(decimals=2)', 'caption=Стойност');
@@ -562,6 +604,10 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
             foreach ($dRec->payDocuments as $onePayDoc) {
                 $containerId = $onePayDoc->containerId ?? null;
                 if (!$containerId) continue;
+                if (!empty($onePayDoc->date)) {
+                    $paidDatesList[] = $onePayDoc->date;
+                    continue;
+                }
                 if (!array_key_exists($containerId, self::$paymentValiors)) {
                     $Document = doc_Containers::getDocument($containerId);
                     $valior = null;
@@ -579,9 +625,15 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
             }
         }
 
+        $dateFormat = 'd.m.y';
+        if (!$verbal) {
+            $paidDatesList = array_unique($paidDatesList);
+            sort($paidDatesList, SORT_STRING);
+            $dateFormat = csv_Setup::get('DATE_MASK') ?: 'd.m.Y';
+        }
         $paidDates = array();
         foreach ($paidDatesList as $v) {
-            $paidDates[] = dt::mysql2verbal($v, 'd.m.y');
+            $paidDates[] = dt::mysql2verbal($v, $dateFormat);
         }
 
         return implode($verbal ? '<br>' : "\n", $paidDates);
@@ -868,27 +920,28 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
      */
     protected static function on_AfterGetExportRec(frame2_driver_Proto $Driver, &$res, $rec, $dRec, $ExportClass)
     {
-        $res->paidAmount = (self::getPaidAmount($dRec));
-
-        $res->paidDates = self::getPaidDates($dRec, false);
-
-        $res->dueDate = self::getDueDate($dRec, false, $rec);
-
-        if (($dRec->invoiceCurrentSumm ?? 0) < 0) {
-            $invoiceOverSumm = -1 * $dRec->invoiceCurrentSumm;
-            $res->invoiceCurrentSumm = '';
-            $res->invoiceOverSumm = ($invoiceOverSumm);
+        $contragentId = $dRec->contragent ?? null;
+        if (!array_key_exists($contragentId, self::$exportContragentTitles)) {
+            self::$exportContragentTitles[$contragentId] = $contragentId
+                ? doc_Folders::getTitleById($contragentId, false) : '';
         }
 
-        if (!empty($dRec->dueDate) && ($dRec->invoiceCurrentSumm ?? 0) > 0 && $dRec->dueDate < ($rec->checkDate ?? dt::today())) {
-            $res->dueDateStatus = 'Просрочен';
+        // Самостоятелен ред само с експортните полета, без промяна на запазените данни.
+        $res = (object) array(
+            'invoiceNo' => str_pad((string) ($dRec->invoiceNo ?? ''), 10, '0', STR_PAD_LEFT),
+            'invoiceDate' => $dRec->invoiceDate ?? null,
+            'contragent' => self::$exportContragentTitles[$contragentId],
+            'dueDate' => $dRec->dueDate ?? null,
+            'overdueDays' => (int) ($dRec->overdueDays ?? 0),
+            'currencyId' => $dRec->currencyId ?? '',
+            'invoiceValue' => (float) ($dRec->invoiceValue ?? 0),
+            'paidAmount' => (float) self::getPaidAmount($dRec),
+            'paidDates' => self::getPaidDates($dRec, false),
+            'invoiceCurrentSumm' => (float) ($dRec->invoiceCurrentSumm ?? 0),
+        );
+        if (!empty($rec->additional)) {
+            $res->overduePeriod = $dRec->overduePeriod ?? '';
         }
-
-        $invoiceNo = str_pad($dRec->invoiceNo ?? '', 10, '0', STR_PAD_LEFT);
-
-        $res->invoiceNo = $invoiceNo;
-
-        $res->contragent = doc_Folders::getTitleById($dRec->contragent);
     }
 
     /**
