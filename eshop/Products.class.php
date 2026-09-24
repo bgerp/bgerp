@@ -784,7 +784,7 @@ class eshop_Products extends core_Master
                         $pRow->chargeVat = (($settings->chargeVat ?? 'no') == 'yes') ? tr('с ДДС') : tr('без ДДС');
                         $pRow->catalogPrice = "<b>" . $dRow->catalogPrice . "</b>";
                         $pRow->packagingId = $dRow->packagingId;
-                        $pRow->btn = $dRow->btn;
+                        $pRow->btn = $dRow->btn ?? '';
                     }
                 }
             } elseif ($saleState == 'multi') {
