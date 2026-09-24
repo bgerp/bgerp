@@ -965,11 +965,11 @@ class email_Incomings extends core_Master
         
         $form->input('country, accId', 'silent');
         
-        if ($form->rec->country) {
+        if (!empty($form->rec->country)) {
             $data->query->where(array("#country= '[#1#]'", $form->rec->country));
         }
         
-        if ($form->rec->accId) {
+        if (!empty($form->rec->accId)) {
             $data->query->where(array("#accId= '[#1#]'", $form->rec->accId));
         }
 
