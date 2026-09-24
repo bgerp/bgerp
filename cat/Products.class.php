@@ -1800,7 +1800,7 @@ class cat_Products extends embed_Manager
      */
     public static function getProductOptions($params, $limit = null, $q = '', $onlyIds = null, $includeHiddens = false)
     {
-        $private = $products = $templates = $favourites = array();
+        $private = $products = $templates = $favourites = $closed = array();
 
         $query = cat_Products::getQuery();
         $reverseOrder = false;
@@ -1825,6 +1825,8 @@ class cat_Products extends embed_Manager
                         $query->notIn('folderId', $ignoreFolderIds);
                     }
                 }
+            } elseif(!empty($params['withClosed'])){
+                $query->where("#state != 'rejected'");
             } elseif(!empty($params['onlyTemplates'])){
                 $query->where("#state = 'template'");
                 $ignoreFolderIds = cls::get($params['driverId'])->getFoldersToIgnoreTemplates();
@@ -2071,6 +2073,8 @@ class cat_Products extends embed_Manager
                 $favourites[$rec->id] = $title;
             } elseif($rec->state == 'template'){
                 $templates[$rec->id] = $title;
+            } elseif(!empty($params['withClosed']) && $rec->state == 'closed'){
+                $closed[$rec->id] = $title;
             } elseif (($rec->isPublic ?? null) == 'yes') {
                 $products[$rec->id] = $title;
             } else {
@@ -2110,6 +2114,10 @@ class cat_Products extends embed_Manager
                 if (!empty($favourites)) {
                     asort($favourites);
                 }
+
+                if (!empty($closed)) {
+                    asort($closed);
+                }
             }
         }
 
@@ -2145,6 +2153,11 @@ class cat_Products extends embed_Manager
                 } elseif ($mustReverse === false) {
                     $mustReverse = -1;
                 }
+            }
+
+            if (isset($closed[$mId])) {
+                unset($closed[$mId]);
+                $closed = array($mId => $mTitle) + $closed;
             }
 
             if (isset($favourites[$mId])) {
@@ -2187,6 +2200,13 @@ class cat_Products extends embed_Manager
                 $templates = array('tu' => (object) array('group' => true, 'title' => tr('Шаблони'))) + $templates;
             }
             $products = $products + $templates;
+        }
+
+        if(countR($closed)){
+            if(!isset($onlyIds)){
+                $closed = array('cl' => (object) array('group' => true, 'title' => tr('Закрити'))) + $closed;
+            }
+            $products = $products + $closed;
         }
 
         if (countR($favourites)) {

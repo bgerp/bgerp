@@ -384,13 +384,11 @@ abstract class cond_type_abstract_Proto extends core_BaseClass
             $texts = array('' => reset($uniqueTexts));
         }
 
-        // Ключът е нормализиран като в plg_Search - „Котка“ и „kotka“ дават един ключ
+        // Ключът е самата стойност с главна първа буква - по него се групират отметките във филтъра
         $res = array();
         foreach ($texts as $lg => $verbal) {
-            $key = plg_Search::normalizeText($verbal);
-            if (!strlen($key)) continue;
-
-            $res[] = $this->makeIndexRow(array('lg' => $lg, 'valueKey' => mb_substr($key, 0, 255), 'valueVerbal' => mb_substr($verbal, 0, 255), 'valueId' => $valueId));
+            $key = mb_substr(str::mbUcfirst($verbal), 0, 255);
+            $res[] = $this->makeIndexRow(array('lg' => $lg, 'valueKey' => $key, 'valueVerbal' => mb_substr($verbal, 0, 255), 'valueId' => $valueId));
         }
 
         return $res;

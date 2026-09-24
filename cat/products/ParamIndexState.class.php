@@ -32,7 +32,7 @@ class cat_products_ParamIndexState extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'cat_Wrapper, plg_Sorting, plg_RowTools2, plg_Select';
+    public $loadList = 'cat_Wrapper, plg_Sorting, plg_RowTools2, plg_Select, plg_Created';
 
 
     /**
@@ -44,7 +44,7 @@ class cat_products_ParamIndexState extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'productId,driver=Драйвер,status,forced,rowsCnt,indexedOn,hash,lastError';
+    public $listFields = 'productId,driver=Драйвер,status,forced,rowsCnt,indexedOn,hash,lastError,createdOn';
 
 
     /**
@@ -436,7 +436,7 @@ class cat_products_ParamIndexState extends core_Manager
      */
     protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
-        $data->listFilter->FLD('product', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty)', 'caption=Артикул,silent');
+        $data->listFilter->FLD('product', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,withClosed,allowEmpty)', 'caption=Артикул,silent');
         $data->listFilter->FLD('statusFilter', 'enum(all=Всички,dirty=За обновяване,processing=Обработва се,ok=Актуален,error=Грешка)', 'caption=Статус,silent');
         $data->listFilter->showFields = 'product,statusFilter';
         $data->listFilter->view = 'horizontal';

@@ -726,7 +726,7 @@ class cat_products_ParamIndex extends core_Manager
      */
     protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
-        $data->listFilter->FLD('product', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty)', 'caption=Артикул,silent');
+        $data->listFilter->FLD('product', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,withClosed,allowEmpty)', 'caption=Артикул,silent');
         $data->listFilter->FLD('param', 'key(mvc=cat_Params,select=typeExt,allowEmpty)', 'caption=Параметър,silent');
         $data->listFilter->setOptions('param', array('' => '') + cat_Params::makeArray4Select('typeExt', "#filterable = 'yes'"));
         $data->listFilter->showFields = 'product,param';
