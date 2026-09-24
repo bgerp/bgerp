@@ -1018,7 +1018,7 @@ class cat_products_Packagings extends core_Detail
                         }
                     }
                 } else {
-                    if ($rec->packagingId && $rec->productId) {
+                    if (!empty($rec->packagingId) && !empty($rec->productId)) {
                         $packRec = self::fetch(array("#productId = '[#1#]' AND #packagingId = '[#2#]'", $rec->productId, $rec->packagingId));
 
                         if ($packRec && !$packRec->firstClassId && !$packRec->firstDocId) {
