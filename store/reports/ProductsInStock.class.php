@@ -78,6 +78,12 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
 
 
     /**
+     * Кои полета от таблицата са цени/суми
+     */
+    protected $priceListFields = 'selfPrice,amount';
+
+
+    /**
      * Добавя полетата на драйвера към Fieldset
      *
      * @param core_Fieldset $fieldset
@@ -695,8 +701,13 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
         if (is_numeric($dRec->groupOne ?? null)) {
 
             $groupAmount = $rec->sumByGroup[$dRec->groupOne]->amount ?? 0;
-            $row->groupOne = cat_Groups::getVerbal($dRec->groupOne, 'name') . ' :: стойност: ' . $Double->toVerbal($groupAmount) . ' ' . acc_Periods::getBaseCurrencyCode($rec->date ?? null) .
-                ';  количества: ';
+            $row->groupOne = cat_Groups::getVerbal($dRec->groupOne, 'name') . ' :: ';
+
+            // Стойността на групата се показва само ако може да се виждат цените
+            if ($this->canSeePriceFields($rec)) {
+                $row->groupOne .= 'стойност: ' . $Double->toVerbal($groupAmount) . ' ' . acc_Periods::getBaseCurrencyCode($rec->date ?? null) . ';  ';
+            }
+            $row->groupOne .= 'количества: ';
             $bm = 0;
             foreach (($rec->sumByGroup['quantities'] ?? array()) as $val) {
                 if ($val->gr == $dRec->groupOne) {

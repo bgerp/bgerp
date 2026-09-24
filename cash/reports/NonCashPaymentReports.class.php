@@ -78,6 +78,12 @@ class cash_reports_NonCashPaymentReports extends frame2_driver_TableData
 
 
     /**
+     * Кои полета от таблицата са цени/суми
+     */
+    protected $priceListFields = 'pkoAmount,rest,amount';
+
+
+    /**
      * Кои полета са за избор на период
      */
     protected $periodFields = 'from,to';

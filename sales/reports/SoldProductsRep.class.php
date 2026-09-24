@@ -145,6 +145,12 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 
 
     /**
+     * Кои полета от таблицата са цени/суми
+     */
+    protected $priceListFields = 'primeCost,delta,primeCostCompare,deltaCompare,changeSales,changeDeltas,invAmount';
+
+
+    /**
      * Връща обхвата на достъп до търговци и екипи за потребителя
      *
      * Използва saleAllGlobal за всички търговци и saleAll за екипите на потребителя.
@@ -2108,10 +2114,11 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
      *
      * @param stdClass $dRec
      * @param bool $verbal
+     * @param bool $showPrices - дали да се показват сумите на групата
      *
      * @return mixed $dueDate
      */
-    private static function getGroups($dRec, $verbal = true, $rec = null)
+    private static function getGroups($dRec, $verbal = true, $rec = null, $showPrices = true)
     {
         $typeGroup = ($rec->typeOfGroups == 'art') ? 'group' : 'category';
 
@@ -2133,7 +2140,13 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 
                 $groupName = $groupClass::getVerbal($dRec->$typeGroup, 'name');
 
-                $group = $groupName . "<span class= 'fright'><span class= ''>" . 'Общо за групата (количество:' . core_Type::getByName('double(decimals=2)')->toVerbal($groupQuantity) . ' ; ' . 'стойност: ' . core_Type::getByName('double(decimals=2)')->toVerbal($groupVal) . ' ; ' . 'ср. цена: ' . core_Type::getByName('double(decimals=2)')->toVerbal($price) . $grouping . ' )' . '</span>';
+                if (!$showPrices) {
+                    $group = $groupName . "<span class= 'fright'><span class= ''>" . 'Общо за групата (количество:' . core_Type::getByName('double(decimals=2)')->toVerbal($groupQuantity) . ' )' . '</span>';
+                } else {
+                    $group = $groupName . "<span class= 'fright'><span class= ''>" . 'Общо за групата (количество:' . core_Type::getByName('double(decimals=2)')->toVerbal($groupQuantity) . ' ; ' . 'стойност: ' . core_Type::getByName('double(decimals=2)')->toVerbal($groupVal) . ' ; ' . 'ср. цена: ' . core_Type::getByName('double(decimals=2)')->toVerbal($price) . $grouping . ' )' . '</span>';
+                }
+            } elseif (!$showPrices) {
+                $group = ($dRec->group ?? null) . "<span class= 'fright'>" . 'Общо за групата (количество:' . core_Type::getByName('double(decimals=2)')->toVerbal($groupQuantity) . ' )' . '</span>';
             } else {
                 $group = ($dRec->group ?? null) . "<span class= 'fright'>" . 'Общо за групата (количество:' . core_Type::getByName('double(decimals=2)')->toVerbal($groupQuantity) . ' ; ' . 'стойност: ' . core_Type::getByName('double(decimals=2)')->toVerbal($groupVal) . ' ; ' . 'ср. цена: ' . core_Type::getByName('double(decimals=2)')->toVerbal($price) . ', делта: ' . core_Type::getByName('double(decimals=2)')->toVerbal($groupDeltas) . ' )' . '</span>';
             }
@@ -2357,7 +2370,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                 $fieldForGroup = 'category';
             }
             if ($rec->$fieldForGroup) {
-                $row->$fieldForGroup = self::getGroups($dRec, true, $rec);
+                $row->$fieldForGroup = self::getGroups($dRec, true, $rec, $this->canSeePriceFields($rec));
             }
 
 

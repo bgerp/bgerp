@@ -72,6 +72,12 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
 
 
     /**
+     * Кои полета от таблицата са цени/суми
+     */
+    protected $priceListFields = 'saleValue,delta,sellValueCompare,deltaCompare,changeSales,changeDeltas';
+
+
+    /**
      * Добавя полетата на драйвера към Fieldset
      *
      * @param core_Fieldset $fieldset
@@ -925,7 +931,11 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
             }
         }
 
-        if (is_numeric($dRec->groupList)) {
+        // Сумите на групата се показват само ако потребителят вижда цените
+        $canSeePrices = $this->canSeePriceFields($rec);
+        if (is_numeric($dRec->groupList) && !$canSeePrices) {
+            $row->groupList = crm_Groups::getVerbal($dRec->groupList, 'name');
+        } elseif (is_numeric($dRec->groupList)) {
             $row->groupList = ($row->groupList ?? '') . crm_Groups::getVerbal($dRec->groupList, 'name') .
                 "<span class= 'fright'><span class= ''>" . 'Общо за групата ( стойност: ' .
                 core_Type::getByName('double(decimals=2)')->toVerbal($dRec->groupValues) . '</span>';
@@ -937,7 +947,9 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
             }
             $row->groupList = ($row->groupList ?? '') . "<span class= 'fright'><span class= ''>" . ' )' . '</span>';
         } else {
-            if ($dRec->groupList) {
+            if ($dRec->groupList && !$canSeePrices) {
+                $row->group = $dRec->groupList;
+            } elseif ($dRec->groupList) {
                 $row->group = $dRec->groupList .
                     "<span class= 'fright'><span class= ''>" . 'Общо за групата ( стойност: ' .
                     core_Type::getByName('double(decimals=2)')->toVerbal($dRec->groupValues ?? 0) . ', делта: ' .

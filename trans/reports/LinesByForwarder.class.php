@@ -43,6 +43,12 @@
 
 
      /**
+      * Кои полета от таблицата са цени/суми
+      */
+     protected $priceListFields = 'sumOfPko';
+
+
+     /**
       * Добавя полетата на драйвера към Fieldset
       *
       * @param core_Fieldset $fieldset

@@ -35,6 +35,12 @@ class bgfisc_reports_AggregateSalesData extends frame2_driver_TableData
 
 
     /**
+     * Кои полета от таблицата са цени/суми
+     */
+    protected $priceListFields = 'totalAmount,discount,vat,dueAmount';
+
+
+    /**
      * Добавя полетата на драйвера към Fieldset
      *
      * @param core_Fieldset $fieldset

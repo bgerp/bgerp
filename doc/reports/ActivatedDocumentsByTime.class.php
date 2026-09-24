@@ -71,6 +71,12 @@ class doc_reports_ActivatedDocumentsByTime extends frame2_driver_TableData
 
 
     /**
+     * Кои полета от таблицата са цени/суми
+     */
+    protected $priceListFields = 'amount';
+
+
+    /**
      * Кои полета са за избор на период
      */
     protected $periodFields = 'from,to';

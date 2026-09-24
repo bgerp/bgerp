@@ -47,6 +47,12 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
 
 
     /**
+     * Кои полета от таблицата са цени/суми
+     */
+    protected $priceListFields = 'invoiceValue,invoiceValueBaseCurr,paidAmount,invoiceCurrentSumm,invoiceOverSumm';
+
+
+    /**
      * Кои полета може да се променят от потребител споделен към справката, но нямащ права за нея
      */
     protected $changeableFields = 'contragent,checkDate,crmGroup,typeOfInvoice,unpaid';
@@ -1546,6 +1552,11 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             }
         }
 
+        // Без права за цени в групиращия ред остава само името на контрагента
+        if (isset($row->contragent) && !$this->canSeePriceFields($rec)) {
+            $row->contragent = $dRec->contragent;
+        }
+
         $row->invoiceDate = $Date->toVerbal($dRec->invoiceDate);
 
         $row->dueDate = self::getDueDate($dRec, true, $rec);
@@ -1648,6 +1659,13 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
 
             $fieldTpl->append($Enum->toVerbal($data->rec->paymentType), 'paymentType');
 
+        }
+
+        // Без права за цени общите суми не се показват
+        if (!$Driver->canSeePriceFields($data->rec)) {
+            $tpl->append($fieldTpl, 'DRIVER_FIELDS');
+
+            return;
         }
 
         //Всички фактури

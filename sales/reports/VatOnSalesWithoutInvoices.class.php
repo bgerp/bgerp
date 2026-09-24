@@ -25,6 +25,12 @@ class sales_reports_VatOnSalesWithoutInvoices extends frame2_driver_TableData
     
     
     /**
+     * Кои полета от таблицата са цени/суми
+     */
+    protected $priceListFields = 'price,amount,vat';
+    
+    
+    /**
      * Преди показване на форма за добавяне/промяна.
      *
      * @param frame2_driver_Proto $Driver   $Driver

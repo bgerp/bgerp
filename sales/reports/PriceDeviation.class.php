@@ -57,6 +57,12 @@ class sales_reports_PriceDeviation extends frame2_driver_TableData
 
 
     /**
+     * Кои полета от таблицата са цени/суми
+     */
+    protected $priceListFields = 'price,selfPrice,catPrice,deviationDownSelf,deviationCatPrice';
+
+
+    /**
      * Добавя полетата на драйвера към Fieldset
      *
      * @param core_Fieldset $fieldset
