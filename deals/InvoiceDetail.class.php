@@ -370,6 +370,8 @@ abstract class deals_InvoiceDetail extends doc_Detail
         
         $batchesInstalled = core_Packs::isInstalled('batch');
         foreach ($data->rows as $id => &$row1) {
+            // Шаблоните добавят и заглавни редове без запис от детайла.
+            if (!isset($data->recs[$id])) continue;
             $rec = $data->recs[$id];
 
             // Ако под артикула ще се показва текста за ф-ра добавя се
@@ -420,6 +422,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
         }
         
         foreach ($data->rows as $id => &$row) {
+            if (!isset($data->recs[$id])) continue;
             $rec = $data->recs[$id];
             
             $changed = false;
