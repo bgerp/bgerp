@@ -2590,9 +2590,20 @@ class cal_Tasks extends embed_Manager
             }
 
             if (!empty($resources) && is_array($resources)) {
+                $userNicks = array();
+                foreach (array_keys($resources) as $id) {
+                    $userNicks[$id] = mb_strtolower(core_Users::getNick($id) ?? '');
+                }
+                asort($userNicks, SORT_STRING);
+
+                $currentUser = core_Users::getCurrent();
+                if (isset($userNicks[$currentUser])) {
+                    $userNicks = array($currentUser => $userNicks[$currentUser]) + $userNicks;
+                }
+
                 // номерирваме ги да почват от 0
-                foreach ($resources as $res) {
-                    $resUser[] = $res;
+                foreach (array_keys($userNicks) as $id) {
+                    $resUser[] = $resources[$id];
                 }
             }
             
