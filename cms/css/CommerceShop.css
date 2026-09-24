@@ -1177,3 +1177,166 @@ body.eshop-public .cart-view-buttons-right .eshop-btn:not([disabled]):hover {
     background: #0e4356 !important;
 }
 body.eshop-public #cart-view-total tr:last-child td { font-size: 19px; color: #182b3a; }
+
+/* Parameter filters: one card with collapsible sections, like large marketplaces. */
+.eshop-public #cmsNavigation .eshop-param-filter {
+    margin: 0 0 14px;
+    padding: 0;
+    border: 1px solid var(--shop-line);
+    border-radius: 10px;
+    background: #fff;
+    font-family: inherit;
+    overflow: hidden;
+}
+.eshop-public #cmsNavigation .eshop-param-filter-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin: 0;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--shop-line);
+    background: var(--shop-surface);
+    color: var(--shop-ink);
+    font-size: 15px;
+    font-weight: 700;
+}
+.eshop-public #cmsNavigation a.eshop-param-filter-clear {
+    display: inline;
+    padding: 0;
+    border: 0;
+    color: var(--shop-accent);
+    font-size: 12px;
+    font-weight: 600;
+    text-decoration: underline;
+}
+.eshop-public #cmsNavigation details.eshop-param-filter-param {
+    margin: 0;
+    border-bottom: 1px solid #edf1f3;
+}
+.eshop-public #cmsNavigation details.eshop-param-filter-param:last-child {
+    border-bottom: 0;
+}
+.eshop-public #cmsNavigation details.eshop-param-filter-param > summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 10px 12px;
+    color: var(--shop-ink);
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1.35;
+    list-style: none;
+    cursor: pointer;
+}
+.eshop-public #cmsNavigation details.eshop-param-filter-param > summary:hover {
+    background: #f7fafb;
+}
+.eshop-public #cmsNavigation .eshop-param-filter summary::-webkit-details-marker {
+    display: none;
+}
+.eshop-public #cmsNavigation details.eshop-param-filter-param > summary::after {
+    content: "";
+    flex: 0 0 auto;
+    width: 7px;
+    height: 7px;
+    margin: -3px 2px 0 0;
+    border-right: 2px solid var(--shop-muted);
+    border-bottom: 2px solid var(--shop-muted);
+    transform: rotate(45deg);
+    transition: transform .15s ease;
+}
+.eshop-public #cmsNavigation details.eshop-param-filter-param[open] > summary::after {
+    margin-top: 3px;
+    transform: rotate(-135deg);
+}
+.eshop-public #cmsNavigation .eshop-param-filter-values {
+    max-height: 280px;
+    margin: 0;
+    padding: 0 12px 10px;
+    overflow-y: auto;
+}
+.eshop-public #cmsNavigation .eshop-param-filter-value {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    padding: 5px 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    color: var(--shop-ink);
+    font-size: 13px;
+    font-weight: 400;
+    line-height: 1.35;
+    text-decoration: none;
+    overflow-wrap: anywhere;
+}
+.eshop-public #cmsNavigation a.eshop-param-filter-value:hover {
+    color: var(--shop-accent);
+}
+.eshop-public #cmsNavigation .eshop-param-filter-value.checked {
+    font-weight: 600;
+}
+.eshop-public #cmsNavigation .eshop-param-filter-value.disabled {
+    color: #a3adb5;
+    cursor: default;
+}
+.eshop-public #cmsNavigation .eshop-param-check {
+    position: relative;
+    flex: 0 0 16px;
+    width: 16px;
+    height: 16px;
+    box-sizing: border-box;
+    margin: 0;
+    border: 1.5px solid #9fb0bb;
+    border-radius: 4px;
+    background: #fff;
+    box-shadow: none;
+}
+.eshop-public #cmsNavigation a.eshop-param-filter-value:hover .eshop-param-check {
+    border-color: var(--shop-accent);
+}
+.eshop-public #cmsNavigation .checked .eshop-param-check {
+    border-color: var(--shop-accent);
+    background: var(--shop-accent);
+}
+.eshop-public #cmsNavigation .checked .eshop-param-check::after {
+    content: "";
+    position: absolute;
+    left: 4px;
+    top: 1px;
+    width: 4px;
+    height: 8px;
+    border: solid #fff;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+}
+.eshop-public #cmsNavigation .disabled .eshop-param-check {
+    border-color: #d5dde2;
+    background: #f5f7f8;
+}
+.eshop-public #cmsNavigation .eshop-param-count {
+    flex: 0 0 auto;
+    margin-left: auto;
+    padding-left: 6px;
+    white-space: nowrap;
+    color: var(--shop-muted);
+    font-size: 12px;
+    font-weight: 400;
+}
+.eshop-public #cmsNavigation .disabled .eshop-param-count {
+    color: #b6bfc6;
+}
+.eshop-public #cmsNavigation details.eshop-param-filter-more > summary {
+    padding: 6px 0 0;
+    color: var(--shop-accent);
+    font-size: 12px;
+    font-weight: 600;
+    list-style: none;
+    cursor: pointer;
+}
+.eshop-public #cmsNavigation details.eshop-param-filter-more[open] > summary {
+    display: none;
+}
