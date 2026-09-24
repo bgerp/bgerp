@@ -26,7 +26,7 @@ class deepl_plugins_IncomingsTranslate extends core_Plugin
      * @param $fields
      * @return void
      */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields)
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         $translateLg = email_Setup::get('INCOMINGS_TRANSLATE_LG');
         $translateLgArr = type_Keylist::toArray($translateLg);
