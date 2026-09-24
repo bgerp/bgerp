@@ -289,6 +289,12 @@ defIfNot('PLANNING_BOM_TRANSFER_NOTES', 'no');
 defIfNot('PLANNING_BOM_TRANSFER_RECIPE_NOTES', 'no');
 
 
+/**
+ * Роли, които виждат начислените минути за заработка
+ */
+defIfNot('PLANNING_SHOW_IND_TIME_ROLES', '');
+
+
 
 /**
  * Производствено планиране - инсталиране / деинсталиране
@@ -386,6 +392,7 @@ class planning_Setup extends core_ProtoSetup
         'PLANNING_TASK_FAST_PROGRESS_BTN' => array('enum(no=Изключено,yes=Включено)', array('caption' => 'Добавяне на бърз прогрес за оставащото в листа на ПО->Избор')),
         'PLANNING_BOM_TRANSFER_NOTES' => array('enum(job=в Заданието,production=в Протокола за производство,yes=в Заданието и Протокола,no=Не се пренасят)', 'caption=Пренасяне от Рецептата в Заданието и Протокола за производство->Описанията на артикулите'),
         'PLANNING_BOM_TRANSFER_RECIPE_NOTES' => array('enum(job=в Заданието,production=в Протокола за производство,yes=в Заданието и Протокола,no=Не се пренася)', 'caption=Пренасяне от Рецептата в Заданието и Протокола за производство->Забележката от рецептата'),
+        'PLANNING_SHOW_IND_TIME_ROLES' => array('keylist(mvc=core_Roles,select=role)', 'caption=Виждане на начислените минути за заработка (празно - всички)->Роли'),
     );
 
 
@@ -548,6 +555,37 @@ class planning_Setup extends core_ProtoSetup
         }
 
         return $html;
+    }
+
+
+    /**
+     * Зареждане на данни
+     */
+    public function loadSetupData($itr = '')
+    {
+        $res = parent::loadSetupData($itr);
+
+        $showIndTimeRoles = core_Packs::getConfigValue('planning', 'PLANNING_SHOW_IND_TIME_ROLES') ?? '';
+        if (strlen($showIndTimeRoles) === 0) {
+            core_Packs::setConfig('planning', array('PLANNING_SHOW_IND_TIME_ROLES' => core_Roles::getRolesAsKeylist('hr,task,manager,ceo')));
+        }
+
+        return $res;
+    }
+
+
+    /**
+     * Може ли потребителя да вижда начислените минути за заработка
+     *
+     * @param int|null $userId
+     * @return bool
+     */
+    public static function canSeeIndTime($userId = null)
+    {
+        $allowedRoles = planning_Setup::get('SHOW_IND_TIME_ROLES');
+        if (empty($allowedRoles)) return true;
+
+        return haveRole($allowedRoles, $userId);
     }
 
 

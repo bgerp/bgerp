@@ -617,7 +617,7 @@ class cat_products_Packagings extends core_Detail
     /**
      * След преобразуване на записа в четим за хора вид.
      */
-    protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields)
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         foreach (array('sizeWidth', 'sizeHeight', 'sizeDepth') as $sizeFld) {
             if ($rec->{$sizeFld} == 0) {
@@ -1018,7 +1018,7 @@ class cat_products_Packagings extends core_Detail
                         }
                     }
                 } else {
-                    if ($rec->packagingId && $rec->productId) {
+                    if (!empty($rec->packagingId) && !empty($rec->productId)) {
                         $packRec = self::fetch(array("#productId = '[#1#]' AND #packagingId = '[#2#]'", $rec->productId, $rec->packagingId));
 
                         if ($packRec && !$packRec->firstClassId && !$packRec->firstDocId) {
