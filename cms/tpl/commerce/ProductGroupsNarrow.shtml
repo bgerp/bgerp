@@ -1,4 +1,4 @@
-<div class='cms-row'>
+<div class='cms-row eshop-layout'>
     <!--ET_BEGIN NAVIGATION-->
     <div   id='cmsNavigation' class='articles-menu'  style='margin:2%'>
         <div class='articles-navigation'>
@@ -8,7 +8,7 @@
 
         <div class="narrowNav">
             [#NAVIGATION_EXTRA_BTNS#]
-            <div class="clearfix21">
+            <div class="commerce-shortcuts">
                 <div id="faveNavBtn">[#NAVIGATION_FAV#]</div>
                 [#NAVIGATION_OTHER_BTNS#]
             </div>
@@ -17,9 +17,9 @@
         </div>
     </div>
     <!--ET_END NAVIGATION-->
-    <div style='padding:0 2% 0;'>
+    <div class='eshop-content'>
         [#TOP_CONTENT#]
-        [#PAGE_CONTENT#] 
+        [#PAGE_CONTENT#]
         <!--ET_BEGIN SOCIAL-->
         [#SOCIAL#]
         [#social_Sharings::getButtons#]

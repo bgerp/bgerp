@@ -1,10 +1,10 @@
-<div class='cms-row'>
+<div class='cms-row eshop-layout'>
     <!--ET_BEGIN NAVIGATION-->
     <div class='fourcol' id='cmsNavigation'>
         [#TOP_NAV#]
         [#SEARCH_BOX#]
         [#NAVIGATION_EXTRA_BTNS#]
-        <div class="clearfix21">
+        <div class="commerce-shortcuts">
             <div id="faveNavBtn">[#NAVIGATION_FAV#]</div>
             [#NAVIGATION_OTHER_BTNS#]
         </div>
@@ -15,9 +15,9 @@
         <div class='bulletin-link clearfix21'></div>
     </div>
     <!--ET_END NAVIGATION-->
-    <div class='eightcol'>
+    <div class='eightcol eshop-content'>
         [#TOP_CONTENT#]
-        [#PAGE_CONTENT#] 
+        [#PAGE_CONTENT#]
         <!--ET_BEGIN SOCIAL-->
         <div class='clearfix21'></div>
         [#SOCIAL#]

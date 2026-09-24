@@ -49,6 +49,20 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
 
 
     /**
+     * Показател за изпълнението на справката
+     */
+    protected static function addReportStat(&$data, $key, $seconds, $count, $ids = array())
+    {
+        $seconds = round($seconds, 3);
+        $msg = tr(static::$statCaptions[$key] ?? $key) . ": {$count}";
+        if ($seconds > 0) {
+            $msg .= " / {$seconds} " . tr('сек.');
+        }
+        static::setReportStat($data, $key, $msg);
+    }
+
+
+    /**
      * По-кое поле да се групират листовите данни
      */
     protected $groupByField;
@@ -255,6 +269,7 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
                 // масив от фактури в тази нишка към избраната дата
                 $timer = microtime(true);
                 $invoicePayments = deals_Helper::getInvoicePayments($groupKey, $checkDate);
+                self::correctTransferPayments($invoicePayments);
                 $paymentsSeconds += microtime(true) - $timer;
 
                 if (is_array($invoicePayments) && !empty($invoicePayments)) {
@@ -365,6 +380,93 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
         }
 
         return $recs;
+    }
+
+
+    /**
+     * Преизчислява насочените плащания с прехвърляния във валутата на фактурата.
+     */
+    protected static function correctTransferPayments(&$invoices)
+    {
+        $transferRates = array();
+        foreach ($invoices as $invoice) {
+            $payments = array();
+            $changed = false;
+            foreach ($invoice->used ?? array() as $key => $payment) {
+                // getInvoicePayments() се извиква само с точните насочвания.
+                if (empty($payment->isExactLink) || empty($payment->to)) continue;
+                $payment = clone $payment;
+                if (($payment->paymentType ?? null) == 'intercept') {
+                    $containerId = $payment->containerId ?? null;
+                    if (!isset($transferRates[$containerId])) {
+                        $Document = doc_Containers::getDocument($containerId);
+                        $transfer = $Document->fetch();
+                        $Origin = $Document->getInstance()->getOrigin($transfer);
+                        $origin = $Origin->fetch();
+                        $date = $transfer->valior ?? null;
+                        $baseCode = acc_Periods::getBaseCurrencyCode($date);
+                        $currencyCode = $payment->currencyId ?? $baseCode;
+                        $originCode = $origin->currencyId ?? $baseCode;
+                        if ($date < acc_Setup::getEurozoneDate() && !empty($origin->oldCurrencyId)) {
+                            $originCode = $origin->oldCurrencyId;
+                        }
+
+                        $rate = 1;
+                        if ($currencyCode != $baseCode) {
+                            $amount = (float) ($transfer->amount ?? 0);
+                            $amountDeal = (float) ($transfer->amountDeal ?? 0);
+                            if ($amount != 0 && $amountDeal != 0) {
+                                // amount е в оригиналната сделка, а не непременно в основната валута.
+                                $originRate = 1;
+                                if ($originCode != $baseCode) {
+                                    $valiorField = $Origin->valiorFld ?? 'valior';
+                                    $originDate = $origin->{$valiorField} ?? null;
+                                    $originRate = deals_Helper::getSmartBaseCurrency(
+                                        (float) ($origin->currencyRate ?? 1), $originDate, $date
+                                    );
+                                }
+                                $rate = $amount / $amountDeal * $originRate;
+                            } else {
+                                $rate = currency_CurrencyRates::getRate($date, $currencyCode, $baseCode);
+                            }
+                        }
+                        $transferRates[$containerId] = round((float) $rate, 6);
+                    }
+                    $rate = $transferRates[$containerId];
+                    if ($rate > 0 && abs($rate - (float) ($payment->rate ?? 1)) > 0.0000001) {
+                        $payment->rate = $rate;
+                        $changed = true;
+                    }
+                }
+                $payments[$key] = $payment;
+            }
+            if (!$changed) continue;
+
+            // Известията вече са слети; разпределяме в контекста на първоначалните документи.
+            $targets = array();
+            foreach ($payments as $payment) {
+                $targetId = $payment->to ?? null;
+                if (isset($targets[$targetId])) continue;
+                $target = doc_Containers::getDocument($targetId)->fetch();
+                $targets[$targetId] = (object) array(
+                    'containerId' => $targetId,
+                    'amount' => round(((float) ($target->dealValue ?? 0) - (float) ($target->discountAmount ?? 0)
+                        + (float) ($target->vatAmount ?? 0)) / (float) ($target->rate ?? 1), 2),
+                    'rate' => $target->rate ?? 1,
+                    'date' => $target->date ?? null,
+                    'currencyId' => $target->currencyId ?? null,
+                );
+            }
+            deals_Helper::allocationOfPayments($targets, $payments);
+
+            $invoice->payout = 0;
+            foreach ($targets as $target) {
+                $paidBase = (float) ($target->payout ?? 0) * (float) ($target->rate ?? 1);
+                $paidBase = deals_Helper::getSmartBaseCurrency($paidBase, $target->date ?? null, $invoice->date ?? null);
+                $invoice->payout = round($invoice->payout + $paidBase / (float) ($invoice->rate ?? 1), 2);
+            }
+            $invoice->used = $payments;
+        }
     }
 
 
@@ -567,7 +669,7 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
                 $row->contragent = doc_Folders::getTitleById($dRec->contragent);
 
                 // Сумата на групата се показва само ако потребителят вижда цените
-                if ($this->canSeePriceFields($rec)) {
+                if (doc_plg_HidePrices::canSeePriceFields('frame2_Reports', $rec)) {
                     $row->contragent .= "<span class= 'fright'><span class= 'quiet'>" . 'Общо ПРОСРОЧЕНИ фактури: ' . '</span>' .
                         core_Type::getByName('double(decimals=2)')->toVerbal($invoiceCurrentSumm) .
                         ' ' . " €" . '</span>';
@@ -695,7 +797,7 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
         }
 
 
-        $canSeePrices = $Driver->canSeePriceFields($data->rec);
+        $canSeePrices = doc_plg_HidePrices::canSeePriceFields('frame2_Reports', $data->rec ?? null);
         if (isset($data->rec->salesTotalOverDue) && $canSeePrices) {
             $fieldTpl->append(core_Type::getByName('double(decimals=2)')->toVerbal($salesTotalOverDue) . " €", 'salesTotalOverDue');
         }

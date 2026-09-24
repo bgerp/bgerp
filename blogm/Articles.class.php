@@ -865,7 +865,7 @@ class blogm_Articles extends core_Master
         $navigationArr = cls::get('blogm_Categories')->getNestedTree($data->categoryId);
         if(countR($navigationArr)){
             $pathArr = $this->flattenNavPaths($navigationArr, $data->menuId);
-            $pathArr[0] .= " » <span>" . strip_tags($data->title) . "</span>";
+                $pathArr[0] .= " » <span>" . strip_tags($data->title ?? '') . "</span>";
             $layout->replace($pathArr[key($pathArr)], 'navigationBar');
         }
 
@@ -938,6 +938,11 @@ class blogm_Articles extends core_Master
         
         // Добавяме лейаута на страницата
         Mode::set('cmsLayout', $data->ThemeClass->getBlogLayout());
+        if (cms_Domains::getCmsSkin() instanceof cms_CommerceTheme) {
+            Mode::set('cmsLayout', 'cms/tpl/commerce/BlogLayout.shtml');
+            $layout->push('cms/css/CommerceBlog.css', 'CSS');
+            $layout->appendOnce(' commerce-blog', 'BODY_CLASS_NAME');
+        }
 
         return $layout;
     }

@@ -387,11 +387,24 @@ abstract class cond_type_abstract_Proto extends core_BaseClass
         // Ключът е самата стойност с главна първа буква - по него се групират отметките във филтъра
         $res = array();
         foreach ($texts as $lg => $verbal) {
-            $key = mb_substr(str::mbUcfirst($verbal), 0, 255);
+            $key = mb_substr($this->getIndexKey($verbal), 0, 255);
             $res[] = $this->makeIndexRow(array('lg' => $lg, 'valueKey' => $key, 'valueVerbal' => mb_substr($verbal, 0, 255), 'valueId' => $valueId));
         }
 
         return $res;
+    }
+
+
+    /**
+     * Ключът в индекса за текстова стойност
+     *
+     * @param string $verbal
+     *
+     * @return string
+     */
+    protected function getIndexKey($verbal)
+    {
+        return str::mbUcfirst($verbal);
     }
 
 

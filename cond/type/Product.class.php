@@ -223,4 +223,13 @@ class cond_type_Product extends cond_type_Varchar
 
         return $this->makeTextIndexRows($rec, $domainClass, $domainId, $value, $langs, (int) $value);
     }
+
+
+    /**
+     * Името на артикула се индексира както е, без изравняването на свободния текст
+     */
+    protected function getIndexKey($verbal)
+    {
+        return str::mbUcfirst($verbal);
+    }
 }

@@ -318,6 +318,7 @@ class cms_FancyTheme extends core_ProtoInner
             }
         }
 
+        $imageURL = null;
         $imgsCnt = countR($imgs);
 
         if ($imgsCnt) {
