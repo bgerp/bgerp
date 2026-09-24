@@ -1702,10 +1702,15 @@ class cal_Tasks extends embed_Manager
                 $data->query->orLikeKeylist('assign', $filterRec->selectedUsers);
             }
             
-            if ($filterRec->stateTask != 'all' && $filterRec->stateTask != 'actPend') {
-                $data->query->where(array("#state = '[#1#]'", $filterRec->stateTask));
-            } elseif ($filterRec->stateTask == 'actPend') {
-                $data->query->in('state', array('active', 'waiting', 'wakeup', 'stopped', 'pending'));
+            $stateTask = $filterRec->stateTask ?? 'all';
+            $query = $data->query ?? null;
+            expect($query instanceof core_Query);
+            if ($stateTask == 'closed') {
+                $query->in('state', array('closed', 'stopped'));
+            } elseif ($stateTask == 'actPend') {
+                $query->in('state', array('active', 'waiting', 'wakeup', 'pending'));
+            } elseif ($stateTask != 'all') {
+                $query->where(array("#state = '[#1#]'", $stateTask));
             }
             
             if ($filterRec->order == 'onStart') {
@@ -1832,7 +1837,7 @@ class cal_Tasks extends embed_Manager
      */
     public static function getStateTaskFilterType()
     {
-        return 'enum(all=Всички,active=Активни,draft=Чернови,waiting=Чакащи,pending=Заявка,actPend=Активни+Чакащи+Събудени+Спрени+Заявка,closed=Приключени)';
+        return 'enum(all=Всички,active=Активни,draft=Чернови,waiting=Чакащи,pending=Заявка,actPend=Активни+Чакащи+Събудени+Заявка,closed=Приключени)';
     }
     
     
