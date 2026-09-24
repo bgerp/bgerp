@@ -707,6 +707,10 @@ class eshop_Products extends core_Master
             $data->recs[$pRec1->id] = $pRec1;
         }
 
+        if (!empty($data->withParamFilter)) {
+            eshop_ParamFilter::prepare($data);
+        }
+
         $data->Pager = cls::get('core_Pager', array('itemsPerPage' => $perPage));
         $data->Pager->itemsCount = countR($data->recs);
 

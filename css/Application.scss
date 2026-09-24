@@ -5403,6 +5403,68 @@ table .eshop-btn {
 #cmsNavigation div.nav_item {
     font-size:1em;
 }
+
+#cmsNavigation .eshop-param-filter {
+	clear: both;
+	margin: 10px 0 15px;
+	font-family: Trebuchet MS, Geneva, Tahoma, sans-serif;
+	.eshop-param-filter-title {
+		font-size: 16px;
+		font-weight: bold;
+		margin-bottom: 5px;
+	}
+	a.eshop-param-filter-clear {
+		font-size: 12px;
+		font-weight: normal;
+		padding: 0;
+	}
+	details.eshop-param-filter-param {
+		margin-bottom: 4px;
+		> summary {
+			cursor: pointer;
+			font-size: 15px;
+			padding: 2px 0;
+		}
+	}
+	.eshop-param-filter-values {
+		margin: 2px 0 6px 10px;
+	}
+	details.eshop-param-filter-more > summary {
+		cursor: pointer;
+		font-size: 12px;
+		color: #666;
+	}
+	.eshop-param-filter-value {
+		display: block;
+		padding: 1px 0;
+		border: none;
+		&.disabled {
+			color: #aaa;
+		}
+		&.checked {
+			font-weight: bold;
+		}
+	}
+	.eshop-param-check {
+		display: inline-block;
+		width: 11px;
+		height: 11px;
+		margin-right: 5px;
+		vertical-align: -1px;
+		border: 1px solid #888;
+		@include border-radius(2px);
+		background: #fff;
+	}
+	.checked .eshop-param-check {
+		border-color: #336;
+		background: #336;
+		box-shadow: inset 0 0 0 2px #fff;
+	}
+	.eshop-param-count {
+		color: #888;
+		font-size: 0.9em;
+	}
+}
 #cmsNavigation .addPage {
 	clear: both;
 	padding:2px;

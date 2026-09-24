@@ -447,6 +447,7 @@ class eshop_Groups extends core_Master
         $layout->append(eshop_Favourites::renderFavouritesBtnInNavigation(), 'NAVIGATION_FAV');
         $layout->append(eshop_Carts::renderLastOrderedProductsBtnInNavigation(), 'NAVIGATION_OTHER_BTNS');
 
+        $layout->append(eshop_ParamFilter::renderNavigation($data->products), 'NAVIGATION_FILTERS');
         $layout->append(cms_Articles::renderNavigation($data), 'NAVIGATION');
         $layout->append($this->renderGroup($data), 'PAGE_CONTENT');
         
@@ -542,6 +543,7 @@ class eshop_Groups extends core_Master
 
         $data->products = new stdClass();
         $data->products->groupId = $data->groupId;
+        $data->products->withParamFilter = ($data->groupId > 0);
 
         if($data->groupId > 0){
             $this->prepareAllGroups($data, $data->groupId);
