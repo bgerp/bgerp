@@ -590,7 +590,7 @@ class sens2_Controllers extends core_Master
         $value = round($value, 4);
         
         // Парсраме входа и получаваме името на контролера и изхода
-        list($ctrName, $name) = explode('.', ltrim($output, '$'), 2);
+        list($ctrName, $name) = array_pad(explode('.', ltrim((string) $output, '$'), 2), 2, '');
         
         // Вземаме записа на контролера
         $rec = self::fetch(array("#name = '[#1#]'", $ctrName));

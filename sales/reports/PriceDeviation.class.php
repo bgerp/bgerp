@@ -57,6 +57,12 @@ class sales_reports_PriceDeviation extends frame2_driver_TableData
 
 
     /**
+     * Кои полета от таблицата са цени/суми
+     */
+    protected $priceListFields = 'price,selfPrice,catPrice,deviationDownSelf,deviationCatPrice';
+
+
+    /**
      * Добавя полетата на драйвера към Fieldset
      *
      * @param core_Fieldset $fieldset
@@ -302,13 +308,22 @@ class sales_reports_PriceDeviation extends frame2_driver_TableData
         core_App::setTimeLimit($maxTimeLimit);
         
         while ($expProducts = $expQuery->fetch()) {
-            $threadId = store_ShipmentOrders::fetch($expProducts->shipmentId)->threadId;
-            
-            $saleId = doc_Threads::getFirstDocument($threadId)->that;
-            
-            $dealerId = sales_Sales::fetch($saleId)->dealerId;
-            
-            if ($rec->dealers && ! in_array($dealerId, $dealersId)) {
+            $shipmentRec = store_ShipmentOrders::fetch($expProducts->shipmentId);
+            if (empty($shipmentRec)) {
+                continue;
+            }
+            $threadId = $shipmentRec->threadId;
+
+            $firstDoc = doc_Threads::getFirstDocument($threadId);
+            if (empty($firstDoc)) {
+                continue;
+            }
+            $saleId = $firstDoc->that;
+
+            $saleRec = sales_Sales::fetch($saleId);
+            $dealerId = $saleRec ? $saleRec->dealerId : null;
+
+            if (!empty($rec->dealers) && ! in_array($dealerId, $dealersId)) {
                 continue;
             }
             
@@ -347,8 +362,8 @@ class sales_reports_PriceDeviation extends frame2_driver_TableData
                     $valior
                 );
             }
-            
-            $isPublic = $saleProducts->isPublic;
+
+            $isPublic = $expProducts->isPublic;
             
             if ($rec->articleType != 'all') {
                 if ($rec->articleType != $isPublic) {
@@ -634,10 +649,10 @@ class sales_reports_PriceDeviation extends frame2_driver_TableData
     /**
      * След рендиране на единичния изглед
      *
-     * @param cat_ProductDriver $Driver
-     * @param embed_Manager     $Embedder
-     * @param core_ET           $tpl
-     * @param stdClass          $data
+     * @param frame2_driver_Proto $Driver
+     * @param embed_Manager       $Embedder
+     * @param core_ET             $tpl
+     * @param stdClass            $data
      */
     protected static function on_AfterRenderSingle(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$tpl, $data)
     {

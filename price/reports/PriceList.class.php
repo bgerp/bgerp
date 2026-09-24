@@ -36,6 +36,12 @@ class price_reports_PriceList extends price_reports_PriceListProto
 
 
     /**
+     * Кои полета от таблицата са цени/суми
+     */
+    protected $priceListFields = 'price,difference';
+
+
+    /**
      * Добавя полетата на драйвера към Fieldset
      *
      * @param core_Fieldset $fieldset
@@ -120,6 +126,14 @@ class price_reports_PriceList extends price_reports_PriceListProto
         $dateBefore = (!empty($rec->period)) ? (dt::addSecs(-1 * $rec->period, $common->date, false) . ' 23:59:59') : null;
         $round = !empty($rec->round) ? $rec->round : self::DEFAULT_ROUND;
 
+        // Правилата за цените наведнъж, вместо по една заявка на артикул. Груповият кеш е по
+        // ЦП и дата, а при сравнение по период всеки артикул се оценява и към двете дати -
+        // затова се зарежда веднъж за всяка от тях, а не едната вместо другата
+        price_ListRules::preloadRules($rec->policyId, array_keys($common->pRecs), $common->date);
+        if (isset($dateBefore)) {
+            price_ListRules::preloadRules($rec->policyId, array_keys($common->pRecs), $dateBefore);
+        }
+
         // Ако няма опаковки, това са всички
         $recs = $packArr = array();
 
@@ -138,6 +152,7 @@ class price_reports_PriceList extends price_reports_PriceListProto
             $packQuery = cat_products_Packagings::getQuery();
             $packQuery->in('productId', $common->sellableProducts);
             $packQuery->where("#isBase = 'yes'");
+            $packQuery->selectOnReplica();
             while ($packRec = $packQuery->fetch()) {
                 $basePackagings[$packRec->productId] = $packRec;
             }
@@ -153,6 +168,7 @@ class price_reports_PriceList extends price_reports_PriceListProto
             $allPackQuery->in('productId', $common->sellableProducts);
             $allPackQuery->where("#state != 'closed'");
             $allPackQuery->show('eanCode,quantity,packagingId,productId');
+            $allPackQuery->selectOnReplica();
             while ($allPackRec = $allPackQuery->fetch()) {
                 $packsByProduct[$allPackRec->productId][$allPackRec->packagingId] = $allPackRec;
             }
@@ -179,6 +195,9 @@ class price_reports_PriceList extends price_reports_PriceListProto
             // Ако има избран период в който да се гледа променена ли е цената
             if (isset($dateBefore)) {
                 $oldPrice = price_ListRules::getPrice($rec->policyId, $productRec->id, null, $dateBefore);
+
+                // Старата цена е в основната валута към старата дата (напр. лв. -> евро)
+                $oldPrice = deals_Helper::getSmartBaseCurrency($oldPrice, $dateBefore, $common->date);
                 $oldPrice = round($oldPrice, $round);
                 $priceByPolicy = round($priceByPolicy, $round);
                 $differenceHint = null;
@@ -360,6 +379,11 @@ class price_reports_PriceList extends price_reports_PriceListProto
         $listFields = arr::make('eanCode=ЕАН,packagingId=Опаковка,price=Цена', true);
         if ($rec->showEan != 'yes') {
             unset($listFields['eanCode']);
+        }
+
+        // Без права за цени в опаковките остават само наименованията им
+        if (!$this->canSeePriceFields($rec)) {
+            unset($listFields['price']);
         }
 
         $tpl = $table->get($rows, $listFields);

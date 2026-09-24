@@ -96,6 +96,7 @@ class cms_page_External extends core_page_Active
         
         // Добавяме лейаута
         $domainRec = cms_Domains::getPublicDomain();
+        $this->append(' lang="' . ht::escapeAttr($domainRec->lang ?? core_Lg::getCurrent()) . '"', 'HTML_ATTR');
         
         // Къде да добавим линковете
         $footerLinks = cms_Articles::addFooterLinks();

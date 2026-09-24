@@ -80,7 +80,7 @@ class doc_DocumentPlg extends core_Plugin
 
         setPartIfNot($mvc, 'addDocumentLinks', array());
         setPartIfNot($mvc, 'addLinkedDocumentToOriginId', false);
-        setPartIfNot($mvc, 'addLinkedOriginFieldName', 'originId');
+        setPartIfNot($mvc, 'addLinkedOriginFieldNames', array('originId'));
 
         // Добавя поле за последно използване
         if (!isset($mvc->fields['lastUsedOn'])) {
@@ -801,8 +801,11 @@ class doc_DocumentPlg extends core_Plugin
     {
         // Ако създаваме нов документ и ...
         if (empty($rec->id)) {
-            if(($mvc->addLinkedOriginFieldName ?? null) && !empty($rec->{$mvc->addLinkedOriginFieldName}) && $mvc->canAddDocumentToOriginAsLink($rec)){
-                $mvc->addDocumentLinks[spl_object_hash($rec)] = $rec;
+            foreach (arr::make($mvc->addLinkedOriginFieldNames ?? null) as $originFieldName){
+                if(!empty($rec->{$originFieldName}) && $mvc->canAddDocumentToOriginAsLink($rec)){
+                    $mvc->addDocumentLinks[spl_object_hash($rec)] = $rec;
+                    break;
+                }
             }
 
             // Опит за извличане на създателя
@@ -965,9 +968,13 @@ class doc_DocumentPlg extends core_Plugin
         // Ако има заопашени документи за добавяне като връзки да се добавят
         if(countR($mvc->addDocumentLinks ?? null)){
             foreach ($mvc->addDocumentLinks as $r){
-                if(isset($r->containerId) && ($mvc->addLinkedOriginFieldName ?? null) && isset($r->{$mvc->addLinkedOriginFieldName})){
+                if(!isset($r->containerId)) continue;
+
+                foreach (arr::make($mvc->addLinkedOriginFieldNames ?? null) as $originFieldName){
+                    if(empty($r->{$originFieldName})) continue;
+
                     $comment = $mvc->getLinkedDocCommentToOrigin($r);
-                    doc_Linked::add($r->containerId, $r->{$mvc->addLinkedOriginFieldName}, 'doc', 'doc', $comment);
+                    doc_Linked::add($r->containerId, $r->{$originFieldName}, 'doc', 'doc', $comment);
                 }
             }
         }
@@ -2520,9 +2527,13 @@ class doc_DocumentPlg extends core_Plugin
                 $form->rec->state = 'pending';
                 $form->rec->pendingSaved = true;
 
-                if (!empty($form->rec->id)) {
+                // При клониране id-то все още е на оригиналния документ. Неговите
+                // нотификации не трябва да се променят преди записа на клонирания.
+                if (!empty($form->rec->id) && empty($form->_cloneForm)) {
                     $oldRec = $mvc->fetch($form->rec->id);
-                    doc_Containers::changeNotifications($rec, $oldRec->sharedUsers, $rec->sharedUsers);
+                    $oldSharedUsers = $oldRec->sharedUsers ?? null;
+                    $newSharedUsers = property_exists($rec, 'sharedUsers') ? $rec->sharedUsers : $oldSharedUsers;
+                    doc_Containers::changeNotifications($rec, $oldSharedUsers, $newSharedUsers);
                 }
             }
         }
@@ -2939,9 +2950,33 @@ class doc_DocumentPlg extends core_Plugin
         
         // Проверка, дали има права за експорт на документа
         if ($action == 'exportdoc') {
-            $possibleExportsArr = export_Export::getPossibleExports($mvc->getClassId(), $rec->id, 1);
-            if (empty($possibleExportsArr)) {
-                $requiredRoles = 'no_one';
+
+            // Партньорът може да види документа и през временния списък с контейнери, който
+            // не важи в екшъна за експорт. Затова му се иска реален достъп до нишката
+            if (core_Users::haveRole('partner', $userId)) {
+                $threadId = $rec->threadId ?? null;
+                if (empty($threadId) && !empty($rec->id)) {
+                    $threadId = $mvc->fetchField($rec->id, 'threadId');
+                }
+
+                $haveThreadAccess = false;
+                if (core_Packs::isInstalled('colab') && !empty($threadId)) {
+                    $threadRec = doc_Threads::fetch($threadId);
+                    if (is_object($threadRec)) {
+                        $haveThreadAccess = colab_Threads::haveRightFor('single', $threadRec);
+                    }
+                }
+
+                if (!$haveThreadAccess) {
+                    $requiredRoles = 'no_one';
+                }
+            }
+
+            if ($requiredRoles != 'no_one') {
+                $possibleExportsArr = export_Export::getPossibleExports($mvc->getClassId(), $rec->id ?? null, 1);
+                if (empty($possibleExportsArr)) {
+                    $requiredRoles = 'no_one';
+                }
             }
         }
         
@@ -3873,7 +3908,10 @@ class doc_DocumentPlg extends core_Plugin
                     if ($pushUser) {
                         core_Users::sudo($userId);
                     }
+                    // Документът се подготвя целия само за да се намерят файловете в него
+                    core_Debug::startTimer('LINKED_OBJ_PREPARE_DOC');
                     $docMvc->prepareDocument($cRec->docId);
+                    core_Debug::stopTimer('LINKED_OBJ_PREPARE_DOC');
                     if ($pushUser) {
                         core_Users::exitSudo();
                     }

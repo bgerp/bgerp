@@ -345,7 +345,7 @@ class wbarcode_plg_AddByBarcode extends core_Plugin
             $backUrl['ret_url'] = $retUrl;
         }
 
-        $mvc->Master->logWrite('Въвеждане на тегловен код', $masterId);
+        $mvc->Master->logWrite('Въвеждане на тегловен баркод', $masterId);
 
         // Баркодът не се пази в реда, затова се помни в сесията за инфото на следващата форма
         Mode::setPermanent(self::CODE_VAR, array('code' => $barcode, 'quantity' => $scannedQuantity, 'added' => !empty($oldQuantity)));

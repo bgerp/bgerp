@@ -105,6 +105,12 @@ class email_Mime extends core_BaseClass
     
     
     /**
+     * id във fileman на файла с HTML частта на писмото
+     */
+    public $htmlFile;
+    
+    
+    /**
      * Масив със съобщения за грешки по време на парсирането
      */
     public $errors = array();
@@ -288,7 +294,7 @@ class email_Mime extends core_BaseClass
                 $tPart = mb_substr($this->textPart, 0, $priorityLen);
                 $dLang = i18n_Language::detect($tPart);
                 if ($dLang) {
-                    $defLgArr[$dLang] += 3;
+                    $defLgArr[$dLang] = ($defLgArr[$dLang] ?? 0) + 3;
                 }
             }
 
@@ -395,7 +401,7 @@ class email_Mime extends core_BaseClass
                     default:
                     $rate = 40;
                 }
-                $countries[$ccByEmail] += $rate;
+                $countries[$ccByEmail] = ($countries[$ccByEmail] ?? 0) + $rate;
             }
         }
         
@@ -421,7 +427,7 @@ class email_Mime extends core_BaseClass
                     $rate = $rate / 1.2;
                 }
                 
-                $countries[$ccByIp] += $rate;
+                $countries[$ccByIp] = ($countries[$ccByIp] ?? 0) + $rate;
             }
         }
         
@@ -429,7 +435,7 @@ class email_Mime extends core_BaseClass
         
         // Списък с държави в които се говори намерения език
         if ($lg) {
-            $countries[$lg] += 30;
+            $countries[$lg] = ($countries[$lg] ?? 0) + 30;
         }
         
         // Намираме страната с най-много събрани точки
@@ -474,7 +480,7 @@ class email_Mime extends core_BaseClass
     {
         $list = '';
         foreach ($this->files as  $fRec) {
-            $list .= ($list ? '' : '|') . $fRec->fmId . '|';
+            $list .= ($list ? '' : '|') . ($fRec->fmId ?? '') . '|';
         }
         
         return $list;
@@ -566,7 +572,7 @@ class email_Mime extends core_BaseClass
         // Пропускаме само тази PLAIN TEXT част, която е използване
         foreach ($this->parts as $index => $p) {
             if ($p->type == 'TEXT') {
-                if (($index == $this->bestTextIndex) || (!$p->data)) {
+                if (($index == $this->bestTextIndex) || empty($p->data)) {
                     continue;
                 }
                 
@@ -1144,7 +1150,7 @@ class email_Mime extends core_BaseClass
             } else {
                 
                 // Ако частта представлява атачнат файл, определяме името му и разширението му
-                $fileName = $this->getFileName($index);
+                $fileName = $this->getFileName($index, $data);
                 
                 $cid = trim($cid, '<>');
                 
@@ -1177,7 +1183,7 @@ class email_Mime extends core_BaseClass
     /**
      * Връща най-доброто име за прикачен файл съответстващ на прикачената част
      */
-    private function getFileName($partIndex)
+    private function getFileName($partIndex, $data = null)
     {
         $p = $this->parts[$partIndex];
         
@@ -1186,7 +1192,7 @@ class email_Mime extends core_BaseClass
         // Ако липсва файл, името му е производно на хеша на съдържанието му
         if (!$fileName) {
             $partIndexName = str_replace('.', '-', $partIndex);
-            $fileName = $partIndexName . '_' . substr(md5($p->data), 0, 6);
+            $fileName = $partIndexName . '_' . substr(md5($data ?? $p->data ?? ''), 0, 6);
         }
         
         // Ако липсва файлово разширение се опитваме да го определим от 'Content-Type'

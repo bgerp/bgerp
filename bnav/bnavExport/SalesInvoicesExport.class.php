@@ -59,6 +59,12 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
      */
     protected $changeableFields;
 
+
+    /**
+     * Кои полета от таблицата са цени/суми
+     */
+    protected $priceListFields = 'dealValue,price,detAmount';
+
     /**
      * Кои полета са за избор на период
      */
@@ -102,7 +108,7 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
     /**
      * След рендиране на единичния изглед
      *
-     * @param cat_ProductDriver $Driver
+     * @param frame2_driver_Proto $Driver
      * @param embed_Manager $Embedder
      * @param core_Form $form
      * @param stdClass $data
@@ -165,7 +171,7 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
         }
 
         //Крайна дата / 'към дата'
-        if ($rec->from) {
+        if ($rec->to) {
             $sQuery->where(array(
                 "#date <= '[#1#]'",
                 $rec->to . ' 23:59:59'
@@ -188,7 +194,7 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
 
             //Код на контрагента, така както е експортиран в БН. В случая folderId  на контрагента
             $contragentClassName = core_Classes::getName($sRec->contragentClassId);
-            $contragentCode = $contragentClassName::fetch($sRec->contragentId)->folderId;
+            $contragentCode = $contragentClassName::fetchField($sRec->contragentId, 'folderId');
 
             //Име на контрагента
             $contragentName = $sRec->contragentName;
@@ -240,6 +246,12 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
                         'changeAmount' => $sRec->changeAmount / $currencyType,
                         'state' => $state,
                         'brState' => $brState,
+                        'prodCode' => '',
+                        'group' => '',
+                        'quantity' => null,
+                        'price' => null,
+                        'measure' => '',
+                        'vat' => null,
 
                     );
                 }
@@ -281,6 +293,10 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
         $dQuery = sales_InvoiceDetails::getQuery();
         $dQuery->in('invoiceId', $invArr);
 
+        // Нулевите редове на фактурите не се експортират, при известията са промяна
+        $dQuery->EXT('invType', 'sales_Invoices', 'externalName=type,externalKey=invoiceId');
+        $dQuery->where("#quantity != 0 OR #invType != 'invoice'");
+
         $details = $dQuery->fetchAll();
 
         $detArr = array();
@@ -295,6 +311,10 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
         //На тези които имат промяна и се добавят полета changedQuantity или changedPrice
         foreach ($detArr as $k => $v) {
             $sdRec = sales_Invoices::fetch($k);
+            if (empty($sdRec)) {
+                continue;
+            }
+
             if ($sdRec->type != 'invoice') {
                 sales_InvoiceDetails::modifyDcDetails($v, $sdRec, cls::get('sales_InvoiceDetails'));
             } else {
@@ -306,15 +326,20 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
         foreach ($details as $dRec) {
             //река на артикула от детайла
             $pRec = cat_Products::fetch($dRec->productId);
+            if (empty($pRec)) {
+
+                continue;
+            }
 
             //Извличане на счетоводна сметка и код на артикула
             $accItem = null;
+            $bnavCodeMarker = null;
+            $prodCode = '';
+            $group = '';
 
             $confBnav = core_Packs::getConfig('bnav');
 
             if ($pRec->bnavCode && $confBnav->SYCODE_PRODCODE == 'yes') {
-
-                $bnavCodeMarker = null;
 
                 //Проверяваме дали продулта е складируем или услуга
                 $const = ($pRec->canStore == 'yes') ? 'FSD_SALES' : 'FSD_SALES_SERVICES';
@@ -372,7 +397,7 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
                     'contragentNo' => $invoices[$dRec->invoiceId]->contragentNo,
                     'contragentName' => $invoices[$dRec->invoiceId]->contragentName,
                     'paymentType' => $invoices[$dRec->invoiceId]->paymentType,
-                    'accountId' => $invoices[$dRec->invoiceId]->bankAccount,
+                    'accountId' => $invoices[$dRec->invoiceId]->accountId,
                     'accItem' => $accItem,
                     'currencyId' => $invoices[$dRec->invoiceId]->currencyId,
                     'rate' => $invoices[$dRec->invoiceId]->rate,
@@ -381,6 +406,12 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
                     'brState' => $invoices[$dRec->invoiceId]->brState,
                     'detAmount' => $invoices[$dRec->invoiceId]->dpAmount / $currencyType,
                     'bnavCodeMarker' => $bnavCodeMarker,
+                    'prodCode' => '',
+                    'group' => '',
+                    'quantity' => null,
+                    'price' => null,
+                    'measure' => '',
+                    'vat' => null,
 
                 );
                 $id = $dRec->id;
@@ -512,7 +543,7 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
         $Double = core_Type::getByName('double(decimals=2)');
 
         $row = new stdClass();
-        if ($dRec->invoice) {
+        if (!empty($dRec->invoice)) {
 
             //нулираме стойностите на анулираните фактури
             if ($dRec->invoice->state == 'rejected') {
@@ -542,7 +573,6 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
             if (isset($dRec->invoice->accountId)) {
                 $row->bankAccount = bank_Accounts::getTitleById($dRec->invoice->accountId);
             }
-            $row->bankAccount = bank_Accounts::getTitleById($dRec->invoice->accountId);
         } else {
 
             //нулираме стойностите на анулираните фактури
@@ -570,7 +600,7 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
             $row->measure = $dRec->measure;
             $row->vat = $dRec->vat;
             $row->paymentType = $dRec->paymentType;
-            if (isset($dRec->invoice->accountId)) {
+            if (isset($dRec->accountId)) {
                 $row->bankAccount = bank_Accounts::getTitleById($dRec->accountId);
             }
         }
@@ -596,7 +626,7 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
 
         $row = new stdClass();
 
-        if ($dRec->invoice) {
+        if (!empty($dRec->invoice)) {
 
             //нулираме стойностите на анулираните фактури
             if ($dRec->invoice->state == 'rejected') {
@@ -631,7 +661,7 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
             if ($dRec->state == 'rejected') {
                 $dRec->dealValue = $dRec->quantity = $dRec->price = $dRec->detAmount = $dRec->vat = 0;
             }
-            if (isset($dRec->invoice->accountId)) {
+            if (isset($dRec->accountId)) {
                 $res->bankAccount = bank_Accounts::getTitleById($dRec->accountId);
             }
         }
@@ -664,7 +694,7 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
             // Ако има експедиционно със същия containerId,
             // взимаме данните за доставка и проверяваме дали това ни е случая
             $shOrder = store_ShipmentOrders::fetch("#fromContainerId = {$rec->containerId}");
-            if ($shOrder->country) {
+            if (!empty($shOrder->country)) {
                 $groupsArr = drdata_CountryGroups::getGroupsArr($shOrder->country);
                 foreach ($groupsArr as $group) {
                     if ('Чужбина извън ЕС' == $group->name) {

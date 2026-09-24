@@ -249,10 +249,10 @@ class cams_Records extends core_Master
         }
         
         // Подготвяме параметрите на записа
-        $params = json_decode($rec->params);
+        $params = !empty($rec->params) ? json_decode($rec->params) : null;
         
-        $data->width = $params->width;
-        $data->height = $params->height;
+        $data->width = !empty($params->width) ? $params->width : null;
+        $data->height = !empty($params->height) ? $params->height : null;
         
         if (!file_exists($fp->mp4File) && !self::isRecordConverting($fp->mp4File)) {
             // Стартираме конвертирането на видеото към mp4, ако това все още не е направено
@@ -355,7 +355,7 @@ class cams_Records extends core_Master
         // Ако кодека е h264 не конвертираме видеото
         $output = array();
         exec ('ffprobe -v error -select_streams v:0 -show_entries stream=codec_name -of default=noprint_wrappers=1:nokey=1 ' . $mp4Path, $output);
-        if ($output[0] === 'h264') {
+        if (isset($output[0]) && $output[0] === 'h264') {
             copy($mp4Path, $mp4File);
             
             return;
@@ -480,7 +480,9 @@ class cams_Records extends core_Master
         
         $fp = $this->getFilePaths($rec->startTime, $rec->cameraId);
         
-        unlink($fp->flvFile);
+        if (!empty($fp->flvFile)) {
+            unlink($fp->flvFile);
+        }
         
         $rec->marked = 'no';
         
@@ -516,6 +518,8 @@ class cams_Records extends core_Master
         $startTime = dt::timestamp2Mysql(round(time() / $conf->CAMS_CLIP_DURATION) * $conf->CAMS_CLIP_DURATION);
         
         $clips = 0;
+        $shots = 0;
+        $toThumb = array();
         
         while ($camRec = $camsQuery->fetch()) {
             $fp = $this->getFilePaths($startTime, $camRec->id);
@@ -640,7 +644,7 @@ class cams_Records extends core_Master
         
         setIfNot($fRec->startTime, dt::verbal2mysql($firstPage));
         
-        $camTitle = $camOpt[$fRec->cameraId]->title;
+        $camTitle = !empty($camOpt[$fRec->cameraId]) ? $camOpt[$fRec->cameraId]->title : '';
         
         $startPage = dt::mysql2verbal($fRec->startTime);
         
@@ -705,7 +709,7 @@ class cams_Records extends core_Master
             //            $pageOptsVerbal[$pageVerbal]->title = $pageVerbal;
             $pageOptsVerbal[$page]->title = $pageVerbal;
             
-            if (!$pageState[$page]) {
+            if (empty($pageState[$page])) {
                 $pageOptsVerbal[$pageVerbal] = new stdClass();
                 $pageOptsVerbal[$pageVerbal]->attr = array('style' => 'color:#666');
             } else {
@@ -742,6 +746,7 @@ class cams_Records extends core_Master
     {
         $camQuery = $this->Cameras->getQuery();
         
+        $cameraOpts = array();
         while ($camRec = $camQuery->fetch()) {
             $obj = new stdClass();
             
@@ -765,6 +770,11 @@ class cams_Records extends core_Master
         $conf = core_Packs::getConfig('cams');
         
         $rec = $this->fetch($id);
+        if (empty($rec)) {
+            
+            return null;
+        }
+        
         $startStamp = dt::mysql2timestamp($rec->startTime);
         $prevStamp = $startStamp - $conf->CAMS_CLIP_DURATION;
         $prevTime = dt::timestamp2mysql($prevStamp);
@@ -784,6 +794,11 @@ class cams_Records extends core_Master
         $conf = core_Packs::getConfig('cams');
         
         $rec = $this->fetch($id);
+        if (empty($rec)) {
+            
+            return null;
+        }
+        
         $startStamp = dt::mysql2timestamp($rec->startTime);
         $nextStamp = $startStamp + $conf->CAMS_CLIP_DURATION;
         $nextTime = dt::timestamp2mysql($nextStamp);
@@ -866,7 +881,7 @@ class cams_Records extends core_Master
         $cols = $this->getClipsPerRow();
         $rows = $this->getClipsPerPage() / $this->getClipsPerRow();
         
-        $html .= '<table cellspacing="3" bgcolor="white" class="video-rec">';
+        $html = '<table cellspacing="3" bgcolor="white" class="video-rec">';
         
         for ($r = 0; $r < $rows; $r++) {
             $html .= '<tr>';
@@ -879,7 +894,7 @@ class cams_Records extends core_Master
                     $content = '';
                 }
                 
-                if (!$data->listRows[$r][$c]->startTime) {
+                if (empty($data->listRows[$r][$c]->startTime)) {
                     $startStamp = $data->startPageStamp + ($r * $cols + $c) * $conf->CAMS_CLIP_DURATION;
                     $startTime = dt::timestamp2mysql($startStamp);
                     $startVerbalTime = dt::mysql2verbal($startTime);
@@ -887,7 +902,7 @@ class cams_Records extends core_Master
                     $startVerbalTime = $data->listRows[$r][$c]->startTime;
                 }
                 
-                $class = $this->getCaptionClassByRec($data->listRecs[$r][$c]);
+                $class = isset($data->listRecs[$r][$c]) ? $this->getCaptionClassByRec($data->listRecs[$r][$c]) : 'normal';
                 
                 $date = "<div class='{$class}' style='border-bottom:solid 1px #ccc;'>" . $startVerbalTime . '</div>';
                 
@@ -910,7 +925,7 @@ class cams_Records extends core_Master
     {
         if ($rec->marked == 'yes') {
             $class = 'marked';
-        } elseif ($rec->playedOn) {
+        } elseif (!empty($rec->playedOn)) {
             $class = 'played';
         } else {
             $class = 'normal';
@@ -1200,7 +1215,7 @@ class cams_Records extends core_Master
         // Отбелязваме че записа е анализиран
         $rec = new stdClass();
         $rec->id = $script->recId;
-        $rec->isAnalyzed = yes;
+        $rec->isAnalyzed = 'yes';
         $this->save($rec);
         
         // Ако е наближило 300 секунди от началото на процеса - излизаме иначе, продължаваме от начало

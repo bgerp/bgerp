@@ -78,11 +78,6 @@ class sens2_script_ActionAssign
         $expr = sens2_Scripts::highliteExpr($rec->expr, $rec->scriptId);
         $cond = sens2_Scripts::highliteExpr($rec->cond, $rec->scriptId);
         
-        $res = "{$output} = {$expr}";
-        if (!empty($rec->cond)) {
-            $res .= ", ако {$cond}";
-        }
-        
         $res = "{$varId} = {$expr}";
         if (!empty($rec->cond)) {
             $res .= ", ако {$cond}";
@@ -118,7 +113,7 @@ class sens2_script_ActionAssign
         }
 
         // Проверяваме дали семафора позволява да се зададе променливата
-        if(!sens2_Semaphores::check($rec->id, $value, $rec->onlyDifferent, $rec->minInterval, $rec->minAttempts)) {
+        if(!sens2_Semaphores::check($rec->id, $value, $rec->onlyDifferent ?? null, $rec->minInterval ?? null, $rec->minAttempts ?? null)) {
 
             return 'active';
         }

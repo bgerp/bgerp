@@ -404,7 +404,7 @@ abstract class deals_DealBase extends core_Master
                 $dealRec->valior < acc_Setup::getEurozoneDate() ? $beforeEu++ : $afterEu++;
 
                 // Държава на доставка има само при документите с логистични данни
-                if($this->haveInterface('trans_LogisticDataIntf')){
+                if(cls::haveInterface('trans_LogisticDataIntf', $this)){
                     $logisticData = $this->getLogisticData($d1);
                     if(isset($logisticData['toCountry'])){
                         $toCountryId = drdata_Countries::getIdByName($logisticData['toCountry']);

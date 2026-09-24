@@ -17,8 +17,19 @@
  */
 class rack_plg_IncomingShipmentDetails extends core_Plugin
 {
-    
-    
+    /**
+     * След дефиниране на полетата на модела
+     *
+     * @param core_Mvc $mvc
+     */
+    public static function on_AfterDescription(core_Mvc $mvc)
+    {
+        setIfNot($mvc->productFld, 'productId');
+        setIfNot($mvc->packagingFld, 'packagingId');
+        setIfNot($mvc->packQuantityFld, 'packQuantity');
+    }
+
+
     /**
      * Преди рендиране на таблицата
      */

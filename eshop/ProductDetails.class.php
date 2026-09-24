@@ -538,6 +538,13 @@ class eshop_ProductDetails extends core_Detail
     {
         $me = cls::get(get_called_class());
         $settings = cms_Domains::getSettings();
+
+        // Нормализиране на полета, които може да липсват (напр. в list изглед)
+        $rec->packagingId = $rec->packagingId ?? null;
+        $rec->quantityInPack = $rec->quantityInPack ?? null;
+        $rec->name = $rec->name ?? null;
+        $rec->recId = $rec->recId ?? null;
+
         $row = new stdClass();
         $row->catalogPrice = '';
         $row->saleInfo = '';
@@ -550,7 +557,7 @@ class eshop_ProductDetails extends core_Detail
         $startSale = cat_Products::getParams($rec->productId, 'startSales');
 
         $productRec = cat_Products::fetch($rec->productId, 'state');
-        $row->packagingId = cat_UoM::getShortName($rec->packagingId);
+        $row->packagingId = cat_UoM::getShortName($rec->packagingId ?? null);
 
         $showPrice = !($productRec->state == 'template' || $rec->action == 'stopped');
         $showCartBtn = in_array($rec->action, array('buy', 'both'));
@@ -563,7 +570,7 @@ class eshop_ProductDetails extends core_Detail
 
         $catalogPriceInfo = (object) array('price' => null, 'discount' => null);
         if($showPrice){
-            $catalogPriceInfo = self::getPublicDisplayPrice($rec->productId, $rec->packagingId, $rec->quantityInPack)
+            $catalogPriceInfo = self::getPublicDisplayPrice($rec->productId, $rec->packagingId ?? null, $rec->quantityInPack ?? null)
                 ?? (object) array('price' => null, 'discount' => null);
 
             if(isset($catalogPriceInfo->price)){
@@ -645,16 +652,16 @@ class eshop_ProductDetails extends core_Detail
             $customizeProto = ($productRec->state == 'template') ? 'yes' : 'no';
 
             if (cls::load($productRec->innerClass, true)) {
-                $title = 'Изпратете запитване за|* ' . tr($rec->name);
+                $title = 'Изпратете запитване за|* ' . tr($rec->name ?? '');
                 Request::setProtected('classId,objectId,customizeProtoOpt');
-                $url = toUrl(array('marketing_Inquiries2', 'new', 'classId' => $me->getClassId(), 'objectId' => $rec->recId, 'customizeProtoOpt' => $customizeProto, 'ret_url' => true));
+                $url = toUrl(array('marketing_Inquiries2', 'new', 'classId' => $me->getClassId(), 'objectId' => $rec->recId ?? null, 'customizeProtoOpt' => $customizeProto, 'ret_url' => true));
                 Request::removeProtected('classId,objectId,customizeProtoOpt');
                 $row->btnInquiry = ht::createBtn('Запитване', $url, false, false, "ef_icon=img/16/help_contents.png,title={$title},class=productBtn,rel=nofollow");
             }
         }
 
         if(($rec->_listView ?? false) !== true){
-            deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
+            deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId ?? null, $rec->quantityInPack ?? null);
         }
 
         // Проверка дали артикула е спрян от продажба

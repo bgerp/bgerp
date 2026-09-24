@@ -37,7 +37,7 @@ class cams_plg_RecordState extends core_Plugin
      */
     public function on_BeforeSave(&$invoker, &$id, &$rec, $fields = null)
     {
-        if (!$rec->state) {
+        if (empty($rec->state)) {
             $rec->state = 'draft';
         }
     }
@@ -58,6 +58,9 @@ class cams_plg_RecordState extends core_Plugin
                 break;
             case 'hidden':
                 $bgColor = '#f0f0f0';
+                if (empty($row->ROW_ATTR['style'])) {
+                    $row->ROW_ATTR['style'] = '';
+                }
                 $row->ROW_ATTR['style'] .= "background:{$bgColor};";
                 break;
         }

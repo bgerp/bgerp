@@ -181,13 +181,13 @@ class core_Manager extends core_Mvc
 
 
     /**
-     * Помощна функция, която форсира използване на друга БД
+     * Помощна функция, която форсира използване на репликата (друга БД)
      *
      * @param string $clsName
      *
      * @return void
      */
-    public function forceProxy($clsName = null)
+    public function forceReplica($clsName = null)
     {
         if (!$clsName) {
             $DC = $this;
@@ -213,10 +213,12 @@ class core_Manager extends core_Mvc
                     // todo: да праща signal msg на админа
                 }
             } else {
-                $this->db->__origDbName = $this->db->dbName;
-                $this->db->__origDbPass = $this->db->dbPass;
-                $this->db->__origDbUser = $this->db->dbUser;
-                $this->db->__origDbHost = $this->db->dbHost;
+                if (!isset($this->db->__origDbName)) {
+                    $this->db->__origDbName = $this->db->dbName;
+                    $this->db->__origDbPass = $this->db->dbPass ?? null;
+                    $this->db->__origDbUser = $this->db->dbUser;
+                    $this->db->__origDbHost = $this->db->dbHost;
+                }
 
                 $this->db->dbName = SEARCH_DB_NAME;
                 $this->db->dbPass = SEARCH_DB_PASS;
@@ -228,13 +230,13 @@ class core_Manager extends core_Mvc
 
 
     /**
-     * Помощна функция, която спира форсираното използване на друга БД
+     * Помощна функция, която спира форсираното използване на репликата (друга БД)
      *
      * @param string $clsName
      *
      * @return void
      */
-    public function unforceProxy($clsName = null)
+    public function unforceReplica($clsName = null)
     {
         if (!$clsName) {
             $DC = $this;
@@ -243,9 +245,9 @@ class core_Manager extends core_Mvc
         }
 
         if (defined('SEARCH_DB_HOST')) {
-            if (isset($this->db->__origDbName) && isset($this->db->__origDbPass) && isset($this->db->__origDbUser) && isset($this->db->__origDbHost)) {
+            if (isset($this->db->__origDbName, $this->db->__origDbUser, $this->db->__origDbHost)) {
                 $this->db->dbName = $this->db->__origDbName;
-                $this->db->dbPass = $this->db->__origDbPass;
+                $this->db->dbPass = $this->db->__origDbPass ?? null;
                 $this->db->dbUser = $this->db->__origDbUser;
                 $this->db->dbHost = $this->db->__origDbHost;
                 unset($this->db->__origDbHost);
@@ -257,8 +259,32 @@ class core_Manager extends core_Mvc
     }
 
 
+    /**
+     * Изпълнява подадения код на репликата и връща връзката към основната база
+     *
+     * @param callable $callback
+     *
+     * @return mixed
+     */
+    public function callOnReplica($callback)
+    {
+        // При вложено извикване връзката се владее от външния блок - вътрешният само я ползва,
+        // иначе неговият unforceReplica() би върнал външния код на основната база
+        if (isset($this->db->__origDbName)) {
 
-    
+            return call_user_func($callback);
+        }
+
+        try {
+            $this->forceReplica();
+
+            return call_user_func($callback);
+        } finally {
+            $this->unforceReplica();
+        }
+    }
+
+
     /**
      * Връща линк към подадения обект
      *
@@ -319,12 +345,7 @@ class core_Manager extends core_Mvc
         
         $data->ListId = Request::get('id', 'int');
 
-        // Ако има зададен прокси клас за листа - да се използва той
-        if(isset($this->listFilterProxyTable)){
-            $data->query = cls::get($this->listFilterProxyTable)->getQuery();
-        } else {
-            $data->query = $this->getQuery();
-        }
+        $data->query = $this->getQuery();
         
         // Подготвяме полетата за показване
         $this->prepareListFields($data);

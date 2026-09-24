@@ -776,7 +776,7 @@ class doc_Threads extends core_Manager
      */
     public function act_List()
     {
-        $this->forceProxy($this->className);
+        $this->forceReplica($this->className);
 
         return parent::act_List();
     }
@@ -937,6 +937,7 @@ class doc_Threads extends core_Manager
         
         // Налагане на условията за търсене
         if (!empty($filter->search)) {
+            $query->EXT('searchContainerId', 'doc_Containers', 'externalName=id');
             $query->EXT('containerSearchKeywords', 'doc_Containers', 'externalName=searchKeywords');
             $query->where(
                   '`' . doc_Containers::getDbTableName() . '`.`thread_id`' . ' = '
@@ -946,6 +947,7 @@ class doc_Threads extends core_Manager
             plg_Search::applySearch($filter->search, $query, 'containerSearchKeywords');
             
             $query->groupBy('`doc_threads`.`id`');
+            $query->countById = true;
         }
         
         if ($filter->documentClassId ?? null) {
@@ -1127,9 +1129,9 @@ class doc_Threads extends core_Manager
             );
 
             $row->_title = $row->title;
-            $row->_subTitle = $docRow->subTitle;
+            $row->_subTitle = $docRow->subTitle ?? null;
 
-            if ($docRow->subTitle) {
+            if (!empty($docRow->subTitle)) {
                 $row->title .= "\n<div class='threadSubTitle'>{$docRow->subTitle}</div>";
             }
             
@@ -1787,7 +1789,8 @@ class doc_Threads extends core_Manager
             
             $sameEmailMsgCnt = $msgQuery->count() - 1;
             
-            $msgRow = $doc->recToVerbal($msgRec);
+            // През core_ObjectReference id-то се вмъква като първи аргумент и записът отива в $fields
+            $msgRow = $doc->getInstance()->recToVerbal($msgRec);
             
             if ($sameEmailMsgCnt > 0) {
                 if ($sameEmailMsgCnt == 1) {
@@ -2329,6 +2332,14 @@ class doc_Threads extends core_Manager
                 // Показваме или само оттеглените или всички останали нишки
                 $data->query->where("#state != 'rejected' OR #state IS NULL");
             }
+
+            // Count containers, rather than threads, after the final active/rejected filters.
+            if (!empty($data->listFilter->rec->folderId) && !empty($data->listFilter->rec->search)) {
+                plg_Search::restrictToScope($data->query, 'searchContainerId');
+                if (!Request::get('Rejected') && !empty($data->rejQuery)) {
+                    plg_Search::restrictToScope($data->rejQuery, 'searchContainerId');
+                }
+            }
         }
     }
     
@@ -2668,6 +2679,12 @@ class doc_Threads extends core_Manager
             $bestRate = 0;
             
             while ($rec = $query->fetch()) {
+
+                // Замърсените контейнери се прескачат (@see doc_Containers::repair)
+                if (empty($rec->docClass) || empty($rec->docId)) {
+                    continue;
+                }
+
                 $className = Cls::getClassName($rec->docClass);
                 
                 if (cls::haveInterface('doc_ContragentDataIntf', $className)) {
@@ -2720,10 +2737,11 @@ class doc_Threads extends core_Manager
             }
 
             if ($rate > $bestRate) {
-                if (is_object($bestContragentData) && $bestContragentData->company == $contragentData->company) {
+                if (is_object($bestContragentData) && ($bestContragentData->company ?? null) == ($contragentData->company ?? null)) {
                     foreach (array('tel', 'fax', 'email', 'web', 'address', 'person') as $part) {
-                        if ($bestContragentData->{$part}) {
-                            setIfNot($contragentData->{$part}, $bestContragentData->{$part});
+                        $partValue = $bestContragentData->{$part} ?? null;
+                        if ($partValue) {
+                            setPartIfNot($contragentData, $part, $partValue);
                         }
                     }
                 }
@@ -2844,7 +2862,7 @@ class doc_Threads extends core_Manager
 
             return ;
         }
-        $bestContragentData->company = $bestContragentData->company ?? $contragentData->company;
+        $bestContragentData->company = $bestContragentData->company ?? $contragentData->company ?? null;
     }
 
     
@@ -2912,7 +2930,7 @@ class doc_Threads extends core_Manager
         
         doc_Folders::restrictAccess($query, $userId, $viewAccess);
         
-        if (($query->mvc->className != 'doc_Threads') && ($query->mvc->className != 'doc_ThreadsProxy')) {
+        if ($query->mvc->className != 'doc_Threads') {
             // Добавя необходимите полета от модела doc_Threads
             $query->EXT('threadShared', 'doc_Threads', 'externalName=shared,externalKey=threadId');
         } else {
@@ -2982,7 +3000,7 @@ class doc_Threads extends core_Manager
             if ($verbal) {
                 $title = $docRow->title;
             } else {
-                $title = $docRow->recTitle;
+                $title = $docRow->recTitle ?? '';
             }
         } catch (core_exception_Expect $e) {
             $title = '';

@@ -236,6 +236,8 @@ class sales_Invoices extends deals_InvoiceMaster
     {
         parent::setInvoiceFields($this);
 
+        $this->setField('issuerId', 'changable');
+
         $this->FLD('accountId', 'key(mvc=bank_OwnAccounts,select=title, allowEmpty)', 'caption=Плащане->Банкова с-ка, changable,silent,removeAndRefreshForm=additionalConditionsInput');
         $this->FLD('numlimit', "key(mvc=cond_Ranges,select=id)", 'caption=Допълнително->Диапазон, after=template,input=hidden,notNull,default=1');
         $this->FLD('number', 'bigint(21)', 'caption=Номер, after=place,input=none');
@@ -340,6 +342,11 @@ class sales_Invoices extends deals_InvoiceMaster
         }
 
         parent::prepareInvoiceForm($mvc, $data);
+
+        if (($data->action ?? null) == 'changefields' && !haveRole('ceo,acc')) {
+            $form->setField('issuerId', 'changable=no');
+        }
+
         if(empty($rec->id)){
             $defaultImportProducts = 'shippedNotInvoiced';
 
@@ -503,6 +510,17 @@ class sales_Invoices extends deals_InvoiceMaster
                    $form->setError('contragentVatNo', 'Невалиден български данъчен номер');
                 }
             }
+        }
+    }
+
+
+    /**
+     * След промяна на съставителя премахва кешираното му име
+     */
+    public static function on_AfterInputChanges($mvc, $oldRec, $newRec)
+    {
+        if (($oldRec->issuerId ?? null) != ($newRec->issuerId ?? null)) {
+            $newRec->username = null;
         }
     }
 
@@ -989,8 +1007,10 @@ class sales_Invoices extends deals_InvoiceMaster
         $rec = $this->fetchRec($rec);
         $dQuery = sales_InvoiceDetails::getQuery();
         $dQuery->where("#invoiceId = {$rec->id}");
-        $dQuery->show('productId,batches');
+        $dQuery->show('productId,batches,quantity');
         while($dRec = $dQuery->fetch()){
+            if (empty($dRec->quantity)) continue;
+
             $res[$dRec->productId] = (object)array('productId' => $dRec->productId, 'batches' => $dRec->batches);
         }
 

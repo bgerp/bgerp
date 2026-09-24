@@ -46,6 +46,14 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
      * @var int
      */
     protected $summaryListFields;
+
+
+    /**
+     * С колко знака да се закръглят полетата в обобщаващия ред, ако не са с 2 (напр. 'quantity=3')
+     *
+     * @var string
+     */
+    protected $summaryDecimals;
     
    
     /**
@@ -54,6 +62,14 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
      * @var int
      */
     protected $summaryRowCaption = 'ОБЩО';
+
+
+    /**
+     * Дали в обобщаващия ред да се показва в скоби и броят на всички редове
+     *
+     * @var bool
+     */
+    protected $summaryRowShowCount = false;
     
     
     /**
@@ -62,6 +78,20 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
      * @var int
      */
     protected $sortableListFields;
+
+
+    /**
+     * Кои полета от таблицата са цени/суми - заличават се, ако потребителят няма права да ги вижда
+     *
+     * @var string
+     */
+    protected $priceListFields;
+
+
+    /**
+     * Кеш дали потребителят вижда цените в справката
+     */
+    private $canSeePriceFieldsCache = array();
     
     
     /**
@@ -109,6 +139,18 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
      * Активиране на таб с графика
      */
     protected $enableChartTab = false;
+
+
+    /**
+     * До колко ид-та се изброяват в показател от диагностиката
+     */
+    const MAX_SHOWN_STAT_IDS = 50;
+
+
+    /**
+     * Имената на показателите от диагностиката, в реда на обработката
+     */
+    protected static $statCaptions = array();
     
     
     /**
@@ -235,6 +277,7 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
         $data->groupedFieldOnNewRow = $data->groupedFieldOnNewRow ?? $this->groupedFieldOnNewRow;
         $data->summaryListFields = $data->summaryListFields ?? $this->summaryListFields;
         $data->summaryRowCaption = $data->summaryRowCaption ?? $this->summaryRowCaption;
+        $data->summaryRowShowCount = $data->summaryRowShowCount ?? $this->summaryRowShowCount;
         $data->listFields = $this->getListFields($rec);
         $data->rows = array();
         
@@ -319,11 +362,11 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
             $summaryRow->{$fld} = 0;
         }
         
-        // Ако има полета за сумиране
+        // Сумират се закръглените стойности, за да съвпада сборът с показаните редове
         array_walk($data->recs, function ($a) use (&$summaryRow, $fieldsToSumArr){
             foreach ($fieldsToSumArr as $fld){
                 if(isset($a->{$fld}) && is_numeric($a->{$fld})){
-                    $summaryRow->{$fld} = ($summaryRow->{$fld} ?? 0) + $a->{$fld};
+                    $summaryRow->{$fld} = ($summaryRow->{$fld} ?? 0) + round($a->{$fld}, $data->summaryDecimals[$fld] ?? 2);
                 }
             }
         });
@@ -331,10 +374,46 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
         // Добавяне на сумиращия ред
         $firstKey = key($data->listFields);
         $summaryRow->{$firstKey} = tr($data->summaryRowCaption);
+
+        // Броят е на всички записи, не само на тези от текущата страница
+        if (!empty($data->summaryRowShowCount)) {
+            $summaryRow->{$firstKey} .= ' (' . core_Type::getByName('int')->toVerbal(countR($data->recs)) . ')';
+        }
         $summaryRow->_isSummary = true;
         $summaryRow->ROW_ATTR['class'] = 'reportTableDataTotal';
         
         return $summaryRow;
+    }
+
+
+    /**
+     * С колко знака се закръглят и показват полетата в сумиращия ред
+     *
+     * @param stdClass $rec
+     * @param array $fieldsToSumArr
+     *
+     * @return array $res - [поле => брой знаци]
+     */
+    protected function getSummaryDecimals($rec, $fieldsToSumArr)
+    {
+        $res = array();
+        if (!countR($fieldsToSumArr)) {
+
+            return $res;
+        }
+
+        // Знаците трябва да са колкото на показаните редове, за да съвпада сборът с тях
+        $decimalsArr = arr::make($this->summaryDecimals, true);
+        $fieldset = $this->getTableFieldSet($rec);
+        foreach ($fieldsToSumArr as $fld) {
+            if (isset($decimalsArr[$fld])) {
+                $res[$fld] = (int) $decimalsArr[$fld];
+            } else {
+                $res[$fld] = ($fieldset->getFieldType($fld, false) instanceof type_Int) ? 0 : 2;
+            }
+        }
+
+        return $res;
     }
 
 
@@ -375,6 +454,8 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
      */
     protected function renderTable($rec, &$data)
     {
+        core_Debug::startTimer('RENDER_REPORT_TABLE');
+        core_Debug::log('Редове за рендиране: ' . countR($data->recs ?? null));
         $tpl = new core_ET('');
         $customTpl = $this->getReportLayoutTpl($rec);
 
@@ -392,6 +473,7 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
             // Добавяне на обобщаващия ред, ако е указано да се показва
             $summaryFields = arr::make($data->summaryListFields);
             $fieldsToSumArr = array_intersect($summaryFields, array_keys($data->listFields));
+            $data->summaryDecimals = $this->getSummaryDecimals($rec, $fieldsToSumArr);
             $summaryRow = $this->getSummaryListRow($data, $fieldsToSumArr);
             
             // Ако е указано сортиране, сортират се записите, ако има сумарен ред той не участва в сортирането
@@ -399,6 +481,12 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
             $sortDirectionArr = !empty($sortDirection) ? explode('|', $sortDirection) : array();
             $sortFld = $sortDirectionArr[0] ?? null;
             $sortDirection = $sortDirectionArr[1] ?? null;
+
+            // По заличените полета не се сортира, за да не се издава подредбата им
+            $hiddenPriceFields = $this->getHiddenPriceFields($rec);
+            if (isset($sortFld) && array_key_exists($sortFld, $hiddenPriceFields)) {
+                $sortFld = null;
+            }
 
             // Ако има поле за групиране, предварително се групират записите
             if (!empty($data->groupByField)) {
@@ -421,11 +509,18 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
                 $isSummary = (($dRec->_isSummary ?? false) === true);
                 $data->rows[$index] = !$isSummary ? $this->detailRecToVerbal($rec, $dRec) : $dRec;
                 
-                // Ако реда е обобщаващ вербализира се отделно
+                // Ако реда е обобщаващ вербализира се отделно, целите числа остават без десетични
                 if($isSummary && countR($fieldsToSumArr)){
-                    foreach ($fieldsToSumArr as $fld){
-                        $data->rows[$index]->{$fld} = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->{$fld});
-                        $data->rows[$index]->{$fld} = ht::styleNumber($data->rows[$index]->{$fld}, $dRec->{$fld});
+                    foreach ($fieldsToSumArr as $sumFld){
+                        $SumType = core_Type::getByName("double(decimals={$data->summaryDecimals[$sumFld]})");
+                        $data->rows[$index]->{$sumFld} = $SumType->toVerbal($dRec->{$sumFld});
+                        $data->rows[$index]->{$sumFld} = ht::styleNumber($data->rows[$index]->{$sumFld}, $dRec->{$sumFld});
+                    }
+                }
+
+                foreach ($hiddenPriceFields as $priceFld) {
+                    if (isset($data->rows[$index]->{$priceFld}) && $data->rows[$index]->{$priceFld} !== '') {
+                        $data->rows[$index]->{$priceFld} = doc_plg_HidePrices::getBuriedElement(Mode::is('text', 'plain'));
                     }
                 }
             }
@@ -471,7 +566,11 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
 
         // Рендиране на кустом изгледа
         $customLayout = $this->renderCustomLayout($rec, $data);
-        if($customLayout instanceof core_ET) return $customLayout;
+        if($customLayout instanceof core_ET) {
+            core_Debug::stopTimer('RENDER_REPORT_TABLE');
+
+            return $customLayout;
+        }
 
         // Филтриране на празните колони и рендиране на таблицата
         $table = cls::get('core_TableView', array('mvc' => $fld));
@@ -485,10 +584,83 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
             $tpl->replace($data->Pager->getHtml(), 'PAGER_BOTTOM');
         }
 
+        core_Debug::stopTimer('RENDER_REPORT_TABLE');
+
         return $tpl;
     }
-    
-    
+
+
+    /**
+     * Записва показател за изпълнението на справката: брой, време и до MAX_SHOWN_STAT_IDS ид-та
+     *
+     * @author Ivelin Dimov <ivelin_pdimov@abv.bg>
+     *
+     * @param stdClass $data    - данните на справката
+     * @param string   $key     - ключ на показателя от $statCaptions
+     * @param float    $seconds - измереното време
+     * @param int      $count   - броят
+     * @param array    $ids     - ид-та, до които се отнася (напр. артикули)
+     *
+     * @return void
+     */
+    protected static function addReportStat(&$data, $key, $seconds, $count, $ids = array())
+    {
+        $seconds = round($seconds, 3);
+        $msg = tr(static::$statCaptions[$key] ?? $key) . ": {$count}";
+        if ($seconds > 0) {
+            $msg .= " / {$seconds} " . tr('сек.');
+        }
+
+        // Изброяват се само първите, иначе при десетки хиляди се подува логът
+        $shown = array_slice(array_values($ids), 0, static::MAX_SHOWN_STAT_IDS);
+        if (countR($shown)) {
+            $rest = countR($ids) - countR($shown);
+            $msg .= ' (' . implode(', ', $shown) . ($rest > 0 ? ' ... +' . $rest : '') . ')';
+        }
+
+        static::setReportStat($data, $key, $msg);
+    }
+
+
+    /**
+     * Добавя готов ред към диагностиката на справката
+     *
+     * Драйверът решава какво и как да пише - тук се пази само редът
+     *
+     * @param stdClass $data - данните на справката
+     * @param string   $key  - ключ на реда
+     * @param string   $msg  - готовият текст, може и с хтмл
+     *
+     * @return void
+     */
+    protected static function setReportStat(&$data, $key, $msg)
+    {
+        if (!is_object($data) || empty($msg)) return;
+
+        if (!is_array($data->reportStatRows ?? null)) {
+            $data->reportStatRows = array();
+        }
+
+        $data->reportStatRows[$key] = $msg;
+    }
+
+
+    /**
+     * Диагностиката на справката, събрана в един ред
+     *
+     * @param stdClass $data - данните на справката
+     * @param string   $glue - разделител между редовете
+     *
+     * @return string|null
+     */
+    protected function getReportStatsMsg($data, $glue = ' &nbsp;|&nbsp; ')
+    {
+        $rows = (is_object($data) && is_array($data->reportStatRows ?? null)) ? $data->reportStatRows : array();
+
+        return countR($rows) ? implode($glue, $rows) : null;
+    }
+
+
     /**
      * Групиране и сортиране на резултатите по поле
      * 
@@ -502,6 +674,7 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
      */
     private function orderByGroupField($recs, $groupField, $sortFld = null, $sortDirection = null, $subGroupFieldOrder = null)
     {
+        core_Debug::startTimer('ORDER_BY_GROUP_FIELD');
         $newRecs = array();
 
         if ($recs) {
@@ -512,19 +685,21 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
             }
         }
 
+        // Записите се разпределят по групи с едно обхождане - при обхождане на всички записи
+        // за всеки запис времето расте квадратично и при няколко хиляди реда справката спира
+        $groupedRecs = array();
         foreach ($recs as $i => $r) {
-            
-            // Извличане на тези записи от със същата стойност за групиране
-            $groupedArr = array($i => $r);
-
             $groupValue = $r->{$groupField} ?? null;
-            $subArr = array_filter($recs, function ($a) use ($groupValue, $groupField) {
-                return (($a->{$groupField} ?? null) == $groupValue);
-            });
+            if ($groupValue === null) {
+                $groupValue = '';
+            } elseif (!is_int($groupValue) && !is_string($groupValue)) {
+                $groupValue = is_scalar($groupValue) ? (string) $groupValue : serialize($groupValue);
+            }
 
-            // Сортират се допълнително ако е указано
-            $groupedArr += $subArr;
+            $groupedRecs[$groupValue][$i] = $r;
+        }
 
+        foreach ($groupedRecs as $groupedArr) {
             $this->sortRecsByDirection($groupedArr, $sortFld, $sortDirection);
 
             // Сортира се вътре във всяка група по втори показател $subGroupFieldOrder ако не е null
@@ -535,6 +710,8 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
             $newRecs += $groupedArr;
         }
 
+        core_Debug::stopTimer('ORDER_BY_GROUP_FIELD');
+
         return $newRecs;
     }
     
@@ -542,10 +719,10 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
     /**
      * След рендиране на единичния изглед
      *
-     * @param cat_ProductDriver $Driver
-     * @param embed_Manager     $Embedder
-     * @param core_ET           $tpl
-     * @param stdClass          $data
+     * @param frame2_driver_Proto $Driver
+     * @param embed_Manager       $Embedder
+     * @param core_ET             $tpl
+     * @param stdClass            $data
      */
     protected static function on_AfterRenderSingle(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$tpl, $data)
     {
@@ -711,6 +888,7 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
         $listFields = array();
         $sortUrlParam = "Sort{$rec->containerId}";
         $listFieldsToSort = arr::make($this->sortableListFields, true);
+        $listFieldsToSort = array_diff_key($listFieldsToSort, $this->getHiddenPriceFields($rec));
         
         $fieldset = $this->getTableFieldSet($rec, $export);
         $fields = $fieldset->selectFields();
@@ -741,13 +919,59 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
         $recsToExport = $this->getRecsForExport($rec, $ExportClass);
         
         $recs = array();
+        $hiddenPriceFields = $this->getHiddenPriceFields($rec);
         if (is_array($recsToExport)) {
             foreach ($recsToExport as $dRec) {
-                $recs[] = $this->getExportRec($rec, $dRec, $ExportClass);
+                $exportRec = $this->getExportRec($rec, $dRec, $ExportClass);
+                if (countR($hiddenPriceFields) && is_object($exportRec)) {
+                    $exportRec = clone $exportRec;
+                    foreach ($hiddenPriceFields as $priceFld) {
+                        unset($exportRec->{$priceFld});
+                    }
+                }
+                $recs[] = $exportRec;
             }
         }
         
         return $recs;
+    }
+
+
+    /**
+     * Може ли текущият потребител да вижда цените/сумите в справката
+     *
+     * @param stdClass $rec - запис на справката
+     *
+     * @return bool
+     */
+    public function canSeePriceFields($rec)
+    {
+        // Кешира се, защото някои справки проверяват и при вербализирането на всеки ред
+        $key = ($rec->id ?? '') . '|' . core_Users::getCurrent('id', false);
+        if (!array_key_exists($key, $this->canSeePriceFieldsCache)) {
+            $this->canSeePriceFieldsCache[$key] = doc_plg_HidePrices::canSeePriceFields('frame2_Reports', $rec);
+        }
+
+        return $this->canSeePriceFieldsCache[$key];
+    }
+
+
+    /**
+     * Ценовите полета от таблицата, които да се заличат за текущия потребител
+     *
+     * @param stdClass $rec - запис на справката
+     *
+     * @return array
+     */
+    protected function getHiddenPriceFields($rec)
+    {
+        $priceFields = arr::make($this->priceListFields, true);
+        if (!countR($priceFields) || $this->canSeePriceFields($rec)) {
+
+            return array();
+        }
+
+        return $priceFields;
     }
     
     

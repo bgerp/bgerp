@@ -900,10 +900,10 @@ class blast_Emails extends core_Master
         }
         
         // За да вземем mid'а който се предава на $options
-        $rec->__mid = $options->rec->__mid;
-        
+        $rec->__mid = $options->rec->__mid ?? null;
+
         // За да вземем subject'а със заменените данни
-        $rec->subject = $options->rec->subject;
+        $rec->subject = $options->rec->subject ?? null;
         
         //Ако изпращаме имейла
         if ($sending) {
@@ -962,10 +962,10 @@ class blast_Emails extends core_Master
         $res = self::getDocumentBody($rec->id, 'plain', $options);
         
         // За да вземем mid'а който се предава на $options
-        $rec->__mid = $options->rec->__mid;
-        
+        $rec->__mid = $options->rec->__mid ?? null;
+
         // За да вземем subject'а със заменените данни
-        $rec->subject = $options->rec->subject;
+        $rec->subject = $options->rec->subject ?? null;
         
         return $res;
     }
@@ -1988,7 +1988,7 @@ class blast_Emails extends core_Master
             
             // Добавяме бутона Активирай, ако състоянието е чернова или спряно
             
-            if ($mvc->haveRightFor('activate', $rec->rec)) {
+            if ($mvc->haveRightFor('activate', $rec)) {
                 $data->toolbar->addBtn('Активиране', array($mvc, 'Activation', $rec->id), 'ef_icon = img/16/lightning.png, title=Активирай документа');
             }
         }
@@ -1997,14 +1997,14 @@ class blast_Emails extends core_Master
             
             // Добавяме бутона Спри, ако състоянието е активно или изчакване
             if (($state == 'waiting') || ($state == 'active')) {
-                if ($mvc->haveRightFor('stop', $rec->rec)) {
+                if ($mvc->haveRightFor('stop', $rec)) {
                     $data->toolbar->addBtn('Спиране', array($mvc, 'Stop', $rec->id), 'ef_icon = img/16/gray-close.png, title=Прекратяване на действието');
                 }
             }
             
             // Добавяме бутон за обновяване в, ако състоянието е активно, изчакване или затворено
             if (($state == 'waiting') || ($state == 'active') || ($state == 'closed')) {
-                if ($mvc->haveRightFor('update', $rec->rec)) {
+                if ($mvc->haveRightFor('update', $rec)) {
                     $data->toolbar->addBtn('Обновяване', array($mvc, 'Update', $rec->id), null, array('ef_icon' => 'img/16/update-icon.png', 'row' => '1', 'title' => 'Добави новите имейли към списъка'));
                 }
             }
@@ -2044,17 +2044,17 @@ class blast_Emails extends core_Master
     public function on_AfterRenderSingleLayout($mvc, &$tpl, $data)
     {
         // Полета До и Към
-        $attn = $data->row->recipient . $data->row->attn;
+        $attn = ($data->row->recipient ?? '') . ($data->row->attn ?? '');
         $attn = trim($attn);
         
         // Ако нямаме въведени данни До: и Към:, тогава не показваме имейл-а, и го записваме в полето До:
         if (!$attn) {
-            $data->row->recipientEmail = $data->row->email;
+            $data->row->recipientEmail = $data->row->email ?? null;
             unset($data->row->email);
         }
         
         // Полета Град и Адрес
-        $addrStr = $data->row->place . $data->row->address;
+        $addrStr = ($data->row->place ?? '') . ($data->row->address ?? '');
         $addrStr = trim($addrStr);
         
         // Ако липсва адреса и града
@@ -2064,19 +2064,19 @@ class blast_Emails extends core_Master
             unset($data->row->pcode);
             
             // Ако имаме До: и Държава, и нямаме адресни данни, тогава добавяме държавата след фирмата
-            if ($data->row->recipient) {
-                $data->row->firmCountry = $data->row->country;
+            if (!empty($data->row->recipient)) {
+                $data->row->firmCountry = $data->row->country ?? null;
             }
             
             // Не се показва и държавата
             unset($data->row->country);
             
-            $telFaxStr = $data->row->tel . $data->row->fax;
+            $telFaxStr = ($data->row->tel ?? '') . ($data->row->fax ?? '');
             $telFaxStr = trim($telFaxStr);
-            
+
             // Имейла е само в дясната част, преместваме в ляво
             if (!$telFaxStr) {
-                $data->row->emailLeft = $data->row->email;
+                $data->row->emailLeft = $data->row->email ?? null;
                 unset($data->row->email);
             }
         }
@@ -2087,7 +2087,7 @@ class blast_Emails extends core_Master
             // Записите
             $rec = $data->rec;
             
-            if (!$data->row->sendingDay) {
+            if (empty($data->row->sendingDay)) {
                 $data->row->sendingDay = tr('Всеки ден');
             }
             
@@ -2234,11 +2234,11 @@ class blast_Emails extends core_Master
         }
         
         // Опитваме се да извлечен масива с данните
-        if ($options->__detArr) {
-            
+        if (!empty($options->__detArr)) {
+
             // Ако е подаден масива с данните
             $detDataArr = $options->__detArr;
-        } elseif ($options->detId) {
+        } elseif (!empty($options->detId)) {
             
             // Ако е подадено id, вместо масива
             $detDataArr = blast_EmailSend::getDataArr($options->detId);

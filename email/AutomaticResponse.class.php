@@ -121,6 +121,8 @@ class email_AutomaticResponse extends core_Master
         $this->FLD('content', 'richtext(rows=4)', 'caption=Шаблон за получени имейли->Съдържание');
         $this->FLD('titleOfMessage', 'varchar(128)', 'caption=Автоматични отговори->Заглавие, mandatory');
         $this->FLD('text', 'richtext(rows=4)', 'caption=Автоматични отговори->Съдържание, mandatory');
+        $this->FLD('maxResponseCount', 'int(min=1,max=100)', 'caption=Ограничение към един имейл->Максимален брой, mandatory');
+        $this->FLD('responsePeriod', 'time(min=60,suggestions=1 час|6 часа|12 часа|24 часа|2 дни|1 седмица)', 'caption=Ограничение към един имейл->Период, mandatory');
         $this->FLD('state', 'enum(active=Активен, rejected=Деактивиран)', 'caption=Автоматични отговори->Състояние');
         $this->FLD('inboxEmail', 'key(mvc=email_inboxes,select=email)', 'caption=Автоматични отговори->Имейл, mandatory');
         if(core_Packs::isInstalled('ai')){
@@ -167,6 +169,9 @@ class email_AutomaticResponse extends core_Master
     { 
         $form = &$data->form;
         $rec = $form->rec;
+
+        $form->setDefault('maxResponseCount', 1);
+        $form->setDefault('responsePeriod', 86400);
 
         if(core_Packs::isInstalled('ai')){
             $form->setField('aiInstructions', 'input');
@@ -362,10 +367,9 @@ class email_AutomaticResponse extends core_Master
     public function matchesRule($mail, $rule){
         
         $query = doc_Folders::getQuery();
+        $query->where(array("#inCharge = [#1#]", $rule->userId));
 
-        if(empty($rule->folders)){
-            $query->where("#inCharge = {$rule->userId}");
-        } else{
+        if(!empty($rule->folders)){
             $query->in("id", keylist::toArray($rule->folders));
         }
         $recs = $query->fetchAll();
@@ -401,8 +405,61 @@ class email_AutomaticResponse extends core_Master
     */
     public function createEmail($mail, $rule){
 
-        $Email = cls::get('email_Outgoings');
-            
+        $recipient = drdata_Emails::normalize($mail->fromEml);
+        $lockKey = 'automaticResponse|' . $rule->id . '|' . $recipient;
+
+        if (!core_Locks::obtain($lockKey, 600, 1, 1)) {
+            return false;
+        }
+
+        try {
+            if ($this->isResponseLimitReached($recipient, $rule)) {
+                return false;
+            }
+
+            $sent = $this->sendAutomaticResponse($mail, $rule);
+            if ($sent) {
+                email_AutomaticResponseLog::record($rule->id, $recipient);
+            }
+
+            return $sent;
+        } finally {
+            core_Locks::release($lockKey);
+        }
+    }
+
+
+    /**
+     * Проверява дали е достигнат лимитът за автоматични отговори към получателя.
+     *
+     * Броят се само успешните изпращания от конкретното правило към този получател.
+     * Стари правила без стойности имат същите дефолти като формата: 1 отговор за 1 ден.
+     *
+     * @param string   $recipient
+     * @param stdClass $rule
+     *
+     * @return bool
+     */
+    protected function isResponseLimitReached($recipient, $rule)
+    {
+        $maxCount = !empty($rule->maxResponseCount) ? $rule->maxResponseCount : 1;
+        $period = !empty($rule->responsePeriod) ? $rule->responsePeriod : 86400;
+
+        return email_AutomaticResponseLog::isLimitReached($rule->id, $recipient, $maxCount, $period);
+    }
+
+
+    /**
+     * Създава и изпраща автоматичния отговор.
+     *
+     * @param stdClass $mail
+     * @param stdClass $rule
+     *
+     * @return bool|null
+     */
+    protected function sendAutomaticResponse($mail, $rule)
+    {
+
         // Подготовка на имейла
         $emailRec = (object) array('subject' => "Re: {$mail->subject}" . " {$rule->titleOfMessage}",
                                     'body' => $rule->text,
@@ -410,48 +467,24 @@ class email_AutomaticResponse extends core_Master
                                     'originId' => $mail->containerId,
                                     'threadId' => $mail->threadId,
                                     'state' => 'active',
-                                    'email' => $mail->fromEml, 
-                                    'recipient' => $mail->fromEml,
-                                    'aiInstructions' => $rule->aiInstructions);
-        
+                                    'email' => $mail->fromEml,
+                                    'recipient' => $mail->fromEml);
+
         $aiNotValid = false;
-        
-        //Логика за интеграция с ИИ (Задейства се при изпращане на формата)
-        if (!empty($rule->aiInstructions) && core_Packs::isInstalled('ai')) {
 
-            // Вземане на настройките на промпта от посочения път
-            $promptPath = 'ai/prompts/AutoReply.xml';
-            $promptRec =$Email->getPrompt($emailRec, $promptPath);
+        // Ако правилото има инструкции за ИИ, текстът му се преработва от агента за
+        // автоматични отговори (ai_AutoReply в пакета ai). Заглавието остава това от
+        // правилото. Без инсталиран/обновен пакет ai тръгва текстът на правилото
+        if (!empty($rule->aiInstructions) && core_Packs::isInstalled('ai') && cls::load('ai_AutoReply', true)) {
+            $oParams = array('userId' => $rule->userId, 'lang' => $mail->lg);
+            $res = ai_AutoReply::generate($emailRec, $rule->aiInstructions, $oParams, $aiError);
 
-            if ($promptRec) {
-                core_Lg::push($promptRec->_lg);
-
-                // Тук се извличат стойностите на полетата, дефинирани в промпта
-                $params = $Email->getPromptParams($emailRec, $promptRec->fields);
-                core_Lg::pop();
-                $params['lang'] = $mail->lg;
-                
-                $otherParams = [];
-                $otherParams['difficulty'] == 'high';
-                // Извикване на услугата за ИИ
-                $res = ai_Dialogs::get($promptRec->id, $params, array(), $otherParams, $emailRec->_dialogId);
-                
-                if (is_object($res)) {
-
-                    //Замяна на съдържанието (ако ИИ го е върнал)
-                    if (!empty($res->body)) {
-                        $emailRec->body = $res->body;
-                    }
-
-                    //Замяна на заглавието (ако ИИ го е върнал)
-                    if (!empty($rule->subject)) {
-                        $emailRec->subject = $rule->subject;
-                    } 
-                } 
-                else {
-                    $aiNotValid = true;
-                }
-            }   
+            if (is_object($res) && !empty($res->body)) {
+                $emailRec->body = $res->body;
+            } else {
+                $aiNotValid = true;
+                self::logWarning("Няма отговор от агента за автоматични отговори: {$aiError}", $rule->id);
+            }
         }
 
         //Записваме записа предварително, за да генерираме ID, което ще ползваме в нотификацията при грешка
@@ -482,10 +515,18 @@ class email_AutomaticResponse extends core_Master
         // Изпращане на имейла
         email_Outgoings::send($emailRec, $options, 'bg');
 
+        // send() няма булев резултат; lastSendedOn се записва само при успех.
+        // Записът е нов, затова няма старо изпращане, което да се приеме за текущо.
+        if (!email_Outgoings::fetchField($emailRec->id, 'lastSendedOn', false)) {
+            return false;
+        }
+
         // Известие за изпратен автоматичен отговор
         $msg = 'Изпратен автоматичен отговор';
         $userId = $rule->userId;
         $urlArr = array('email_Outgoings', 'single', $emailRec->id);
         bgerp_Notifications::add($msg, $urlArr, $userId, 'normal');
+
+        return true;
     }
 }

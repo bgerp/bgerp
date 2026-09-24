@@ -48,12 +48,6 @@ class store_TransfersDetails extends doc_Detail
 
 
     /**
-     * По кое поле се търси изтрит ред за свързване (@see doc_plg_DetailRevisions)
-     */
-    public $revisionLinkField = 'newProductId';
-
-
-    /**
      * Кой има право да импортира?
      */
     public $canImport = 'ceo, store';
@@ -80,7 +74,7 @@ class store_TransfersDetails extends doc_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'newProductId, packagingId, packQuantity=К-во, requestedQuantity=Заяв., loadedQuantity=Изпр., executedQuantity=Получ., weight=Тегло, volume=Обем, transUnitId = ЛЕ';
+    public $listFields = 'productId, packagingId, packQuantity=К-во, requestedQuantity=Заяв., loadedQuantity=Изпр., executedQuantity=Получ., weight=Тегло, volume=Обем, transUnitId = ЛЕ';
     
     
     /**
@@ -93,18 +87,6 @@ class store_TransfersDetails extends doc_Detail
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
     public $rowToolsField = 'RowNumb';
-    
-    
-    /**
-     * Поле за артикула
-     */
-    public $productFieldName = 'newProductId';
-    
-    
-    /**
-     * Поле за артикула
-     */
-    public $productFld = 'newProductId';
     
     
     /**
@@ -130,7 +112,7 @@ class store_TransfersDetails extends doc_Detail
     /**
      * Полета, които се експортват
      */
-    public $exportToMaster = 'quantity, newProductId=code';
+    public $exportToMaster = 'quantity, productId=code';
 
 
     /**
@@ -139,7 +121,7 @@ class store_TransfersDetails extends doc_Detail
     public function description()
     {
         $this->FLD('transferId', 'key(mvc=store_Transfers)', 'column=none,notNull,silent,hidden,mandatory');
-        $this->FLD('newProductId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,hasProperties=canStore,hasnotProperties=generic,maxSuggestions=100,forceAjax,titleFld=name,forceOpen)', 'class=w100,caption=Артикул,mandatory,silent,refreshForm,tdClass=productCell leftCol wrap');
+        $this->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,hasProperties=canStore,hasnotProperties=generic,maxSuggestions=100,forceAjax,titleFld=name,forceOpen)', 'class=w100,caption=Артикул,mandatory,silent,refreshForm,tdClass=productCell leftCol wrap,oldFieldName=newProductId');
         $this->FLD('packagingId', 'key(mvc=cat_UoM, select=shortName, select2MinItems=0)', 'caption=Мярка,mandatory,smartCenter,input=hidden,tdClass=small-field nowrap');
         $this->FLD('quantity', 'double', 'caption=Количество,input=none');
         $this->FLD('quantityInPack', 'double(decimals=2)', 'input=none,column=none');
@@ -150,7 +132,7 @@ class store_TransfersDetails extends doc_Detail
         $this->FLD('loadedQuantity', 'double', 'caption=Изпратено,smartCenter,tdClass=stageCol');
         $this->FLD('executedQuantity', 'double', 'caption=Получено,smartCenter,tdClass=stageCol');
 
-        $this->setDbIndex('newProductId');
+        $this->setDbIndex('productId');
     }
 
 
@@ -209,8 +191,39 @@ class store_TransfersDetails extends doc_Detail
             return;
         }
 
-        $fieldName = store_Transfers::getQuantityFieldName($rec->{$mvc->masterKey});
+        $masterRec = store_Transfers::fetchRec($rec->{$mvc->masterKey}, 'state,pendingStage');
+
+        // В чернова етапите още не са започнали - заявеното се попълва чак когато документът стане заявка
+        if ($masterRec->state == 'draft') return;
+
+        $fieldName = store_Transfers::getQuantityFieldName($masterRec);
         $rec->{$fieldName} = $rec->quantity;
+    }
+
+
+    /**
+     * Заявеното к-во на редовете става к-то, с което документът е станал заявка
+     *
+     * @param int $masterId
+     *
+     * @return void
+     *
+     * @see store_Transfers::on_AfterSavePendingDocument
+     */
+    public static function fillRequestedQuantities($masterId)
+    {
+        $me = cls::get(get_called_class());
+
+        $query = $me->getQuery();
+        $query->where("#transferId = {$masterId}");
+        $query->show('quantity,requestedQuantity');
+
+        while ($rec = $query->fetch()) {
+            if (isset($rec->requestedQuantity) && round($rec->requestedQuantity, 5) == round($rec->quantity, 5)) continue;
+
+            $rec->requestedQuantity = $rec->quantity;
+            $me->save_($rec, 'requestedQuantity');
+        }
     }
     
     
@@ -296,9 +309,9 @@ class store_TransfersDetails extends doc_Detail
             foreach ($data->rows as $i => &$row) {
                 $rec = &$data->recs[$i];
                 
-                $singleUrl = cat_Products::getSingleUrlArray($rec->newProductId);
-                $row->newProductId = cat_Products::getVerbal($rec->newProductId, 'name');
-                $row->newProductId = ht::createLinkRef($row->newProductId, $singleUrl);
+                $singleUrl = cat_Products::getSingleUrlArray($rec->productId);
+                $row->productId = cat_Products::getVerbal($rec->productId, 'name');
+                $row->productId = ht::createLinkRef($row->productId, $singleUrl);
                 
                 if (empty($rec->quantity) && !Mode::isReadOnly()) {
                     $row->ROW_ATTR['style'] = ' background-color:#f1f1f1;color:#777';
@@ -306,7 +319,7 @@ class store_TransfersDetails extends doc_Detail
                 }
                 
                 // Показваме подробната информация за опаковката при нужда
-                deals_Helper::getPackInfo($row->packagingId, $rec->newProductId, $rec->packagingId, $rec->quantityInPack);
+                deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
             }
         }
     }
@@ -321,16 +334,64 @@ class store_TransfersDetails extends doc_Detail
             
             return;
         }
+
+        static::prepareStageColumns($data);
         
         foreach ($data->rows as $id => $row) {
             $rec = $data->recs[$id];
 
             $deliveryDate = !empty($data->masterData->rec->deliveryTime) ? $data->masterData->rec->deliveryTime : $data->masterData->rec->valior;
-            deals_Helper::getQuantityHint($row->packQuantity, $mvc, $rec->newProductId, $data->masterData->rec->fromStore, $rec->quantity, $data->masterData->rec->state, $deliveryDate);
+            deals_Helper::getQuantityHint($row->packQuantity, $mvc, $rec->productId, $data->masterData->rec->fromStore, $rec->quantity, $data->masterData->rec->state, $deliveryDate);
         }
     }
     
     
+    /**
+     * Етап, по който няма нито едно к-во, не се показва - освен ако е текущият.
+     * Основната колона се откроява само когато остане поне една етапна
+     *
+     * @param stdClass $data
+     *
+     * @return void
+     */
+    private static function prepareStageColumns($data)
+    {
+        $masterRec = $data->masterData->rec ?? null;
+        if (empty($masterRec)) return;
+
+        $stageFields = arr::make('requestedQuantity,loadedQuantity,executedQuantity', true);
+
+        // Колоната на текущия етап стои, докато не въведат к-во в нея
+        $currentField = null;
+        if ($masterRec->state == 'pending' && !empty($masterRec->pendingStage)) {
+            $currentField = store_Transfers::getQuantityFieldName($masterRec);
+            unset($stageFields[$currentField]);
+        }
+
+        $hideIfEmpty = arr::make($data->hideListFieldsIfEmpty ?? null, true);
+        $data->hideListFieldsIfEmpty = $hideIfEmpty + $stageFields;
+
+        // Основното к-во се откроява само ако ще излезе поне една етапна колона
+        $showStages = isset($currentField);
+        foreach ($stageFields as $fieldName) {
+            if ($showStages) break;
+            if (!isset($data->listFields[$fieldName])) continue;
+
+            foreach ($data->recs as $rec) {
+                if (!empty($rec->{$fieldName})) {
+                    $showStages = true;
+                    break;
+                }
+            }
+        }
+
+        // Задава се и в двата случая - описанието на полето е общо за всички МСТ-та в рендера
+        if (!empty($data->listTableMvc)) {
+            $data->listTableMvc->setField('packQuantity', 'tdClass=' . ($showStages ? 'mainQuantityCol' : 'unsetValue'));
+        }
+    }
+
+
     /**
      * Преди показване на форма за добавяне/промяна
      */
@@ -368,11 +429,11 @@ class store_TransfersDetails extends doc_Detail
             }
         }
 
-        if(empty($rec->newProductId)){
+        if(empty($rec->productId)){
             $form->setField('packagingId', 'input=none');
         }
         if (isset($rec->id)) {
-            $form->setReadOnly('newProductId');
+            $form->setReadOnly('productId');
         }
     }
     
@@ -384,16 +445,29 @@ class store_TransfersDetails extends doc_Detail
     {
         $rec = &$form->rec;
         
-        if (!empty($rec->newProductId)) {
+        if (!empty($rec->productId)) {
             $masterRec = store_Transfers::fetch($rec->transferId, 'fromStore,deliveryTime,valior');
             $deliveryDate = !empty($masterRec->deliveryTime) ? $masterRec->deliveryTime : $masterRec->valior;
-            $storeInfo = deals_Helper::checkProductQuantityInStore($rec->newProductId, $rec->packagingId ?? null, $rec->packQuantity ?? null, $masterRec->fromStore, $deliveryDate);
+            $storeInfo = deals_Helper::checkProductQuantityInStore($rec->productId, $rec->packagingId ?? null, $rec->packQuantity ?? null, $masterRec->fromStore, $deliveryDate);
             $form->info = $storeInfo->formInfo;
             
-            $packs = cat_Products::getPacks($rec->newProductId, $rec->packagingId ?? null);
+            $packs = cat_Products::getPacks($rec->productId, $rec->packagingId ?? null);
             $form->setField('packagingId', 'input');
             $form->setOptions('packagingId', $packs);
             $form->setDefault('packagingId', key($packs));
+
+            // На заявка в етап (изпратено/получено) опаковката на реда е фиксирана
+            if (isset($rec->id) && !empty($rec->transferId) && store_Transfers::getQuantityFieldName($rec->transferId) != 'requestedQuantity') {
+                $packagingId = !empty($rec->packagingId) ? $rec->packagingId : $mvc->fetchField($rec->id, 'packagingId');
+                if (!empty($packagingId)) {
+                    $rec->packagingId = $packagingId;
+                    $form->setReadOnly('packagingId', $packagingId);
+
+                    // Полето с removeAndRefreshForm се рендира като интерактивен select и подминава readOnly
+                    $packField = $form->getField('packagingId');
+                    unset($packField->removeAndRefreshForm, $packField->refreshForm);
+                }
+            }
         }
 
         if ($form->isSubmitted()) {
@@ -420,7 +494,7 @@ class store_TransfersDetails extends doc_Detail
                     $form->setWarning('packQuantity', $warning);
                 }
 
-                $pInfo = cat_Products::getProductInfo($rec->newProductId);
+                $pInfo = cat_Products::getProductInfo($rec->productId);
                 $rec->quantityInPack = !empty($pInfo->packagings[$rec->packagingId]) ? $pInfo->packagings[$rec->packagingId]->quantity : 1;
 
                 $rec->quantity = $rec->packQuantity * $rec->quantityInPack;
@@ -474,8 +548,8 @@ class store_TransfersDetails extends doc_Detail
 
         $packagingId = $rec->packagingId ?? ($dbRec->packagingId ?? null);
         $quantityInPack = !empty($dbRec->quantityInPack) ? $dbRec->quantityInPack : 1;
-        if (!empty($rec->newProductId) && !empty($packagingId)) {
-            $pInfo = cat_Products::getProductInfo($rec->newProductId);
+        if (!empty($rec->productId) && !empty($packagingId)) {
+            $pInfo = cat_Products::getProductInfo($rec->productId);
             $quantityInPack = !empty($pInfo->packagings[$packagingId]) ? $pInfo->packagings[$packagingId]->quantity : 1;
         }
 

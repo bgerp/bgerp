@@ -106,12 +106,24 @@ class core_Query extends core_FieldSet
      * Масив, където съхраняваме WHERE и HAVE условията
      */
     public $where = array();
+
+
+    /**
+     * Оригинални текстови условия, използвани за ограничаване на претърсвания набор
+     */
+    public $searchConditions = array();
     
     
     /**
      * Масив, където съхраняваме GROUP BY условията
      */
     public $groupBy = array();
+
+
+    /**
+     * Олекотява COUNT проекцията при групиране единствено по първичния ключ
+     */
+    public $countById = false;
     
     
     /**
@@ -693,8 +705,29 @@ class core_Query extends core_FieldSet
         
         return $this->numRec();
     }
-    
-    
+
+
+    /**
+     * Изпълнява SELECT-а на репликата; обработката остава на основната база
+     *
+     * @return int
+     */
+    public function selectOnReplica()
+    {
+        if (!($this->mvc instanceof core_Manager)) {
+
+            return $this->select();
+        }
+
+        $me = $this;
+
+        return $this->mvc->callOnReplica(function () use ($me) {
+
+            return $me->select();
+        });
+    }
+
+
     /**
      * SQL кода, отговарящ на този обект-заявка.
      *
@@ -812,6 +845,16 @@ class core_Query extends core_FieldSet
         $query = "SELECT {$options}\n   count(*) AS `_count`";
         if (countR($this->selectFields("#kind == 'XPR' || #kind == 'EXT'"))) {
             $fields = $temp->getShowFields();
+
+            // Запазваме JOIN-овете от оригиналната проекция, включително неявните EXT връзки.
+            if ($temp->countById && !$temp->useHaving && countR($temp->groupBy) === 1
+                && ($temp->fields['id']->kind ?? null) === 'FLD') {
+                $idField = $temp->getMysqlField('id');
+                if (isset($temp->groupBy[$idField])) {
+                    $fields = "{$idField} AS `id` ";
+                }
+            }
+
             $query .= ($fields ? ',' : '') . $fields;
         }
 
@@ -1046,6 +1089,15 @@ class core_Query extends core_FieldSet
             
             return $this->dbRes->num_rows;
         }
+    }
+
+
+    /**
+     * Дали SELECT е изпълнен, включително когато резултатът вече е изчерпан
+     */
+    public function hasExecuted()
+    {
+        return $this->executed;
     }
     
     
@@ -1503,6 +1555,15 @@ class core_Query extends core_FieldSet
     public function setUnion($cond)
     {
         $this->unions[] = $cond;
+    }
+
+
+    /**
+     * Дали заявката съдържа UNION условия
+     */
+    public function hasUnion()
+    {
+        return !empty($this->unions);
     }
     
     

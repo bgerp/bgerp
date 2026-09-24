@@ -89,7 +89,7 @@ class page_Wrapper extends core_BaseClass
                 $content = $html;
             }
             
-            if (strpos($content, '::') !== false) {
+            if (strpos((string) $content, '::') !== false) {
                 self::replaceSpecialPlaceholders($html);
             }
             

@@ -469,7 +469,7 @@ class cat_products_Relations extends core_Manager
 
                             $dRow = eshop_ProductDetails::getExternalRow($pRecClone);
                             $tabRow->price = $dRow->catalogPrice;
-                            $tabRow->btn = $dRow->btn;
+                            $tabRow->btn = $dRow->btn ?? null;
                         } else {
                             $thumb = new thumb_Img(getFullPath('eshop/img/noimage' . (cms_Content::getLang() == 'bg' ? 'bg' : 'en') . '.png'), $data->imageSize['width'], $data->imageSize['height'], 'path');
                             $preview = cat_Products::getParams($tabRec->productId, 'preview');

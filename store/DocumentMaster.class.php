@@ -887,6 +887,7 @@ abstract class store_DocumentMaster extends core_Master
 
             $vatExceptionId = cond_VatExceptions::getFromThreadId($rec->threadId);
             $vat = cat_Products::getVat($dRec->productId, $rec->valior, $vatExceptionId);
+            $dRec->packPrice = $dRec->packPrice ?? 0;
             if ($rec->chargeVat == 'yes' || $rec->chargeVat == 'separate') {
                 $dRec->packPrice += $dRec->packPrice * $vat;
             }
@@ -1046,8 +1047,8 @@ abstract class store_DocumentMaster extends core_Master
             $res["{$contrPart}PCode"] = !empty($rec->pCode) ? $rec->pCode : null;
             $res["{$contrPart}Place"] = !empty($rec->place) ? $rec->place : null;
             $res["{$contrPart}Address"] = !empty($rec->address) ? $rec->address : null;
-            $res["{$contrPart}Company"] = !empty($rec->company) ? $rec->company : $contragentData->company;
-            $res["{$contrPart}Person"] = !empty($rec->person) ? $rec->person : $contragentData->person;
+            $res["{$contrPart}Company"] = !empty($rec->company) ? $rec->company : ($contragentData->company ?? null);
+            $res["{$contrPart}Person"] = !empty($rec->person) ? $rec->person : ($contragentData->person ?? null);
             $res["{$contrPart}AddressInfo"] = !empty($rec->addressInfo) ? $rec->addressInfo : null;
             $res["{$contrPart}PersonPhones"] = !empty($rec->tel) ? $rec->tel : null;
             $res["{$contrPart}AddressFeatures"] = !empty($rec->features) ? $rec->features : null;

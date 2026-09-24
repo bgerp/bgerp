@@ -88,6 +88,8 @@ class social_Followers extends core_Master
         
         // За всеки един запис от базата
         foreach ($socialNetworks as $socialNetwork) {
+            // Намираме името на услугата
+            $name = social_Sharings::getServiceNameByUrl($socialNetwork->url);
 
             // Вземаме качената икона
             if ($socialNetwork->icon) {
@@ -96,14 +98,6 @@ class social_Followers extends core_Master
             
             // Ако тя липсва
             } else {
-                
-                // Вземаме URL от базата
-                $socUrl = $socialNetwork->url;
-                
-                // Намираме името на функцията
-                $name = social_Sharings::getServiceNameByUrl($socUrl);
-
-                
                 if (log_Browsers::isRetina()) {
                     $size = 48;
                 } else {

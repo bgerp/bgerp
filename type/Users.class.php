@@ -255,17 +255,15 @@ class type_Users extends type_Keylist
                         $this->options[$key]->title = $uRec->nick . ' (' . $uRec->names . ')';
                         $this->options[$key]->keylist = '|' . $uId . '|';
                         $haveTeamMembers = true;
+
+                        if ($this->params['cuFirst'] == 'yes' && empty($cuRecArr) && ($uId == $cu)) {
+                            $cuRecArr[$key] = $this->options[$key];
+                        }
                     } else {
                         $rejected .= $rejected ? '|' . $uId : $uId;
                     }
-                    
+
                     $teamMembers .= $teamMembers ? '|' . $uId : $uId;
-                    
-                    if ($this->params['cuFirst'] == 'yes' && empty($cuRecArr)) {
-                        if ($this->options[$key] && ($uId == $cu)) {
-                            $cuRecArr[$key] = $this->options[$key];
-                        }
-                    }
                 }
                 
                 if ($haveTeamMembers) {
@@ -394,7 +392,7 @@ class type_Users extends type_Keylist
         $this->prepareOptions();
         
         // Ако подадения тип не е в опциите
-        if (!$typeObj = $this->options[$key]) {
+        if (!$typeObj = ($this->options[$key] ?? null)) {
             
             // Вземаме първия от масива
             $typeObj = reset($this->options);

@@ -103,7 +103,7 @@ class bgerp_drivers_Notifications extends core_BaseClass
             
             $data->query->orderBy('modifiedOn=DESC');
 
-            if (Mode::is('screenMode', 'narrow') && !Request::get($Notifications->searchInputField) && ($dRec->showClosed != 'yes')) {
+            if (Mode::is('screenMode', 'narrow') && !Request::get($Notifications->searchInputField) && (($dRec->showClosed ?? null) != 'yes')) {
                 $data->query->where("#state = 'active'");
                 
                 // Нотификациите, модифицирани в скоро време да се показват
@@ -117,7 +117,7 @@ class bgerp_drivers_Notifications extends core_BaseClass
             $data->listFilter->showFields = $Notifications->searchInputField;
             bgerp_Portal::prepareSearchForm($Notifications, $data->listFilter);
             
-            $Notifications->listItemsPerPage = $dRec->perPage ? $dRec->perPage : 20;
+            $Notifications->listItemsPerPage = !empty($dRec->perPage) ? $dRec->perPage : 20;
             
             // Подготвяме навигацията по страници
             $Notifications->prepareListPager($data);

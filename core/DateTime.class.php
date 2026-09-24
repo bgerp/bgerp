@@ -286,6 +286,15 @@ class core_DateTime
      */
     public static function mysql2verbal($mysqlDate, $mask = 'd.m.y H:i', $lg = null, $autoTimeZone = null, $callRecursive = true)
     {
+        // Normalize display masks for AI tools, without changing date-part calculations.
+        if ($textDateFormat = Mode::get('textDateFormat')) {
+            if ($mask === 'smartDate' || $mask === 'smartTime') {
+                $mask = $textDateFormat . ($mask === 'smartTime' ? ' H:i:s' : '');
+            } else {
+                $mask = preg_replace('/^(?:d|j)[.\/ -](?:m|n|M|F)[.\/ -](?:Y|y)(?=$| )/', $textDateFormat, $mask);
+            }
+        }
+
         $noTime = false;
         
         if ($mask == 'smartDate') {

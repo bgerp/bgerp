@@ -446,7 +446,7 @@ class core_Html
             $attr['readonly'] = 'readonly';
             $attr['class'] = 'readonly';
             
-            if (empty($value)) {
+            if (!strlen((string) $value)) {
                 if (!empty($attr['placeholder'])) {
                     $value = $attr['placeholder'];
                     $attr['style'] = 'color:#777';
@@ -1507,7 +1507,16 @@ class core_Html
                         $name = $prop->getName();
 
                         if (!isset($scopeArr[$name])) {
-                            $res[$name] = @$prop->getValue($o);
+                            try {
+                                if (method_exists($prop, 'isInitialized') && !$prop->isInitialized($prop->isStatic() ? null : $o)) {
+                                    $res[$name] = '(uninitialized)';
+                                } else {
+                                    $res[$name] = $prop->getValue($prop->isStatic() ? null : $o);
+                                }
+                            } catch (Throwable $e) {
+                                // Някои вътрешни PHP обекти не разрешават четене на свойствата си
+                                $res[$name] = '(unavailable)';
+                            }
                             if ($prop->isStatic()) {
                                 $scopeArr[$name] = 'static';
                             } elseif ($prop->isPublic()) {

@@ -88,6 +88,7 @@ class cams_driver_UIC9272 extends cams_driver_IpDevice
     public function applyPtzCommands($cmdArr)
     {
         $cmdArr = (array) $cmdArr;
+        $params = '';
         
         foreach ($cmdArr as $key => $value) {
             if ($value) {

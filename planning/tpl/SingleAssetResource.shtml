@@ -96,22 +96,6 @@
                     <td>[#planningParams#]</td>
                 </tr>
             <!--ET_END planningParams-->
-            <!--ET_BEGIN planningParamSimilarity-->
-                <tr>
-                    <td class="gray-title aright" style="padding-right: 5px;">
-                        |Автом. групиране - съвпадение над |*:
-                    </td>
-                    <td>[#planningParamSimilarity#]</td>
-                </tr>
-            <!--ET_END planningParamSimilarity-->
-            <!--ET_BEGIN planningParamGroupDays-->
-                <tr>
-                    <td class="gray-title aright" style="padding-right: 5px;">
-                        |Автоматично групиране - период под|*:
-                    </td>
-                    <td>[#planningParamGroupDays#] |дни|*</td>
-                </tr>
-            <!--ET_END planningParamGroupDays-->
             <!--ET_BEGIN lastRecalcTimes-->
                 <tr>
                     <td class="gray-title aright" style="padding-right: 5px;">
@@ -129,6 +113,26 @@
                     <td>[#lastReorderedTasks#]</td>
                 </tr>
             <!--ET_END lastReorderedTasks-->
+            </table>
+            <hr>
+            <legend style="margin-bottom: 5px">|Автоматично групиране при:|*</legend>
+            <table>
+            <!--ET_BEGIN planningParamSimilarity-->
+                <tr>
+                    <td class="gray-title aright" style="padding-right: 5px;">
+                        |Съвпадение над |*:
+                    </td>
+                    <td>[#planningParamSimilarity#]</td>
+                </tr>
+            <!--ET_END planningParamSimilarity-->
+            <!--ET_BEGIN planningParamGroupDays-->
+                <tr>
+                    <td class="gray-title aright" style="padding-right: 5px;">
+                        |Период под|*:
+                    </td>
+                    <td>[#planningParamGroupDays#] |дни|*</td>
+                </tr>
+            <!--ET_END planningParamGroupDays-->
             </table>
         </fieldset>
 

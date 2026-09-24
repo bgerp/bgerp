@@ -509,7 +509,7 @@ class doc_Files extends core_Manager
      */
     public function act_List()
     {
-        $this->forceProxy($this->className);
+        $this->forceReplica($this->className);
 
         return parent::act_List();
     }
@@ -642,7 +642,7 @@ class doc_Files extends core_Manager
 
                 // Заявката вече ще се изпълнява от друг мениджър, а форсирането
                 // в act_List() е върху този. Затова форсираме и него
-                $data->query->mvc->forceProxy();
+                $data->query->mvc->forceReplica();
 
                 if (isset($filter->search) && preg_match('/\.\w+/ui', $filter->search, $m)) {
                     $data->query->where(array("#name LIKE '%[#1#]'", $m[0]));

@@ -191,15 +191,6 @@ class core_App
                 
                 // Дали това не е име на контролер?
                 if (!isset($q['Ctr']) && $id < 2) {
-                    if (!preg_Match('/([A-Z])/', $prm)) {
-                        $last = strrpos($prm, '_');
-                        
-                        if ($last !== false && $last < strlen($prm)) {
-                            $className[$last + 1] = strtoupper($prm[$last + 1]);
-                        } else {
-                            $className[0] = strtoupper($prm[0]);
-                        }
-                    }
                     $q['Ctr'] = preg_replace('/[^a-zA-Z0-9_]*/', '', $prm);
                     continue;
                 }
@@ -1183,12 +1174,12 @@ class core_App
                     $boot = $protocol . '://' . $auth . $domain . $dirName;
                 } elseif (defined('FORCE_BGERP_ABSOLUTE_HTTP_HOST') && !$forceHttpHost) {
                     $boot = $protocol . '://' . $auth . FORCE_BGERP_ABSOLUTE_HTTP_HOST . $dirName;
-                } elseif (core_Url::isValidTld($domain = $_SERVER['HTTP_HOST'])) {
+                } elseif (core_Url::isValidTld($domain = ($_SERVER['HTTP_HOST'] ?? ''))) {
                     $boot = $protocol . '://' . $auth . $domain . $dirName;
                 } elseif (defined('BGERP_ABSOLUTE_HTTP_HOST') && !$forceHttpHost) {
                     $boot = $protocol . '://' . $auth . BGERP_ABSOLUTE_HTTP_HOST . $dirName;
                 } else {
-                    $boot = $protocol . '://' . $auth . $_SERVER['HTTP_HOST'] . $dirName;
+                    $boot = $protocol . '://' . $auth . ($_SERVER['HTTP_HOST'] ?? '') . $dirName;
                 }
             }
         } else {
@@ -1426,12 +1417,25 @@ class core_App
         $time = (int) ceil(max($time, $minTime));
         
         $now = time();
+
+        // PHP may have a larger limit set by configuration or a direct call,
+        // outside this method's bookkeeping. Zero means unlimited execution.
+        $currentLimit = (int) ini_get('max_execution_time');
+        if (!$force && $currentLimit === 0) {
+            return;
+        }
         
         // Ако форсираме или новото максимално време за изпълнение е по-голямо от старото задаваме го
-        if ($force || (self::$timeSetTimeLimit + self::$runningTimeLimit) < ($now + $time)) {
+        if ($force || $time === 0 || $currentLimit !== self::$runningTimeLimit
+            || (self::$timeSetTimeLimit + self::$runningTimeLimit) < ($now + $time)) {
+            if (!$force && $time > 0) {
+                $time = max($time, $currentLimit);
+            }
             
             // Увеличава времето за изпълнение
-            set_time_limit($time);
+            if (!set_time_limit($time)) {
+                return;
+            }
             
             // Записваме последното зададено време за изпълнение;
             self::$runningTimeLimit = $time;

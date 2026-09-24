@@ -3359,3 +3359,634 @@ en,Наш артикул,Our item
 en,Чужд артикул,Third-party item
 en,Амбалаж,Packaging
 en,Нов документ в,New document in
+en,Дистрибутив,Distribution
+en,Аида✨,Aida✨
+en,Навла,Freight rates
+en,Борса,Marketplace
+en,ФСД,FSD
+en,EDI Метро,METRO EDI
+en,Торбички,Bags
+en,Екструдиране,Extrusion
+en,EP Продукти,EP Products
+en,Шиене,Sewing
+en,Планове,Floor plans
+en,Хендлър,Handle
+en,По разписание,Scheduled
+en,Сесии,Sessions
+en,Разписание,Schedule
+en,Следващо изпъл_2f96,Next run
+en,Последно изпъл_f5ab,Last run
+en,Изпълнения,Runs
+en,Последна сесия,Last session
+en,Причина за пауза,Pause reason
+en,Наши фирми,Our companies
+en,Редиректи,Redirects
+en,Релации,Relations
+en,Миграции,Migrations
+en,Пасажи,Text passages
+en,МТК,Customs tariff codes
+en,Показване на м_23c47,Display delivery location
+en,Хостове,Hosts
+en,Ресурс/Етап,Resource/Stage
+en,Възложени,Assigned to
+en,Споделени,Shared with
+en,Програми,Programmes
+en,Дисциплини,Subjects
+en,Рег.№ ППС и ДПК,PPS and DPK reg. nos.
+en,Рег.№ ПКС,PKS reg. nos.
+en,Рег.№ ДО,DO reg. nos.
+en,Ученици,Students
+en,Цени от баланса,Prices from trial balances
+en,Продуктови такси,Product fees
+en,Заплащане,Remuneration
+en,Подбор,Recruitment
+en,Договори,Contracts
+en,Работа от вкъщи,Work from home
+en,Удръжки,Deductions
+en,Вход/Изход,Entry/Exit
+en,Обобщения,Summaries
+en,Време на място,Time on site
+en,Избор на текущ _984d,Select as current and use in documents and filters
+en,Търгове,Auctions
+en,Спедитори,Freight forwarders
+en,Системни,System
+en,Външни складове,External warehouses
+en,Сравнение,Comparison
+en,Готовност,Readiness
+en,Лог. единици,Logistics units
+en,Дестинации,Destinations
+en,Зона,Zone
+en,Изчисление,Calculation
+en,Фиск. бонове,Fiscal receipts
+en,Потвърждения,Acknowledgements
+en,Вал.,Curr.
+en,Импорт Метро,Import METRO
+en,Импорт Bulde,Import Bulde
+en,Импорт Кауфланд,Import Kaufland
+en,Лотове,Lots
+en,Вид период,Period type
+en,Базова цена,Base price
+en,Промяна на цена,Price change
+en,"Потребители, к_0260d",Users allowed to approve requests
+en,Допълнителна и_8f91,Additional information in the form
+en,Основен склад,Main warehouse
+en,Кой,Who
+en,ЕП Продукти,EP Products
+en,FSD стара система,FSD legacy system
+en,Банкови сметки_901b,Bank accounts - accounting entries
+en,Име на фирма,Company name
+en,VAT номер,VAT number
+en,ФСД номер,FSD number
+en,Номенклатура,Nomenclature
+en,EDI Метро артикули,METRO EDI items
+en,Брой в пакет,Quantity per pack
+en,Брой за продаване,Quantity for sale
+en,EAN код,EAN code
+en,Метро код,METRO code
+en,Цветове,Colours
+en,Силози,Silos
+en,Екструдери,Extruders
+en,На склад,In stock
+en,В силоз,In silo
+en,Медии,Media
+en,Броячи,Counters
+en,Серия,Series
+en,Копия,Copies
+en,Нов етикет,New label
+en,Фигури,Shapes
+en,Бърз печат,Quick print
+en,Валове,Cylinders
+en,Пантон,Pantone
+en,Заетост,Occupancy
+en,Производителност,Productivity
+en,Заети дни,Occupied days
+en,П. Шаблони,Custom templates
+en,Вкаран на,Inserted on
+en,IP източник,Source IP
+en,Идентификатор,Identifier
+en,Синхронизиране,Synchronisation
+en,Сесия,Session
+en,Автомобили,Vehicles
+en,Бази,Bases
+en,Тракер,Tracker
+en,Марка,Make
+en,Водач,Driver
+en,Изгледи,Views
+en,Мащаб,Scale
+en,Декоратор,Decorator
+en,Библиотека,Library
+en,Показване в,Display in
+en,Оформление,Layout
+en,Движение,Movement
+en,Време (сек.),Time (sec.)
+en,Обработвачи,Handlers
+en,Версии на обекти,Object versions
+en,СПАМ правила,Spam rules
+en,Адреси,Addresses
+en,Хост,Host
+en,Агент,Agent
+en,Адаптер,Adapter
+en,Приключена на,Completed on
+en,Агенти,Agents
+en,Умения,Skills
+en,Инструменти,Tools
+en,Адаптери,Adapters
+en,Кратко описание,Short description
+en,Индивидуални,Individual
+en,Предварително _0738,Preloaded skills
+en,Изпълнение,Execution
+en,Ходове,Turns
+en,Импорт на редове,Row imports
+en,Подготовка на _56c16,Document preparations
+en,Паралелни инст_a503,Parallel tools
+en,Файлови чернови,File drafts
+en,Диалог,Dialog
+en,Изчакване (s),Waiting (s)
+en,Изпълнение (s),Execution (s)
+en,Асоцииране,Associate
+en,Нишки по наши ф_9069,Threads by own company
+en,Доставчик от,Supplier since
+en,Просрочия,Overdue amounts
+en,Продажби (Акти_fa6ad,Sales (Active)
+en,Продажби (Всички),Sales (All)
+en,Продажби (Прос_66aa5,Sales (Overdue)
+en,Покупки (Активни),Purchases (Active)
+en,Покупки (Всички),Purchases (All)
+en,дни × сума,days × amount
+en,Праг,Threshold
+en,Диапазон на фа_946a0,Invoice number range
+en,Напомняния пре_440c,Reminders before the event
+en,Действие при с_8379a,Action on trigger
+en,Действие в,Action at
+en,Брой имейли,Number of emails
+en,Вербална част,Readable part
+en,Аботнати,Subscribers
+en,Сортиране на а_acefd,Item sorting
+en,ФСД №,FSD No.
+en,Реж.,Overheads
+en,Дробни цифри (б_663e,Decimal places (count)
+en,Значещи цифри (_54f3,Significant digits (minimum)
+en,Версии на форм_18ec4,Formula versions
+en,Външни,External
+en,Пр. операции,Production operations
+en,Релация,Relation
+en,Първо,First
+en,Второ,Second
+en,Симетр.,Symmetric
+en,Генерирани ном_ab9b,Generated numbers
+en,Продуктови пар_b4ad,Product parameters
+en,Източник 1,Source 1
+en,Източник 2,Source 2
+en,Източник 3,Source 3
+en,Добавка,Markup
+en,Сб-ст,Cost price
+en,Преизчисли,Recalculate
+en,Изчислени,Calculated
+en,Отстъпки по ЦП,Discounts by price policy
+en,Отстъпки по до_7d730,Discounts by document
+en,В сила до,Effective until
+en,Миграция на папки,Migrate folders
+en,Потребителски,User
+en,Системен,System
+en,Браузъри,Browsers
+en,IP адрес,IP address
+en,Максимални сто_d4ed,Maximum values
+en,Постоянен кеш,Persistent cache
+en,Състояние на APCu,APCu status
+en,Публикуване,Publication
+en,Репозитори,Repository
+en,Бранч,Branch
+en,Преводи,Translations
+en,Регенериране,Regenerate
+en,Док. без журнал,Documents without journal entries
+en,Прикл. сделки с_182d,Closed deals with active account items
+en,Акт. сделки с з_003aa,Active deals with closed account items
+en,Поправки,Corrections
+en,Промяна на усл_e0c6f,Change conditions
+en,Преизчисляван_fd431,Recalculate margins
+en,Изпразни платки,Clear circuit boards
+en,Изпразни Мак а_0f57f,Clear MAC addresses
+en,Системно ID,System ID
+en,От №,From No.
+en,До №,To No.
+en,Валидно от,Valid from
+en,Валидно до,Valid until
+en,Текстове,Texts
+en,Алерген,Allergen
+en,Описание (межд.),Description (international)
+en,Зависим пакет,Dependent package
+en,Настройки за ф_192fa,Filter settings
+en,Рег. израз,Regular expression
+en,Сортиране,Sorting
+en,Продължаване,Continuation
+en,Настройки на ф_4a2de,Form settings
+en,Пояснения,Notes
+en,Условия към ко_d09e3,Partner conditions
+en,Тагнати обекти,Tagged objects
+en,Тагове в справки,Report tags
+en,Сума за деня,Daily total
+en,За завършване,For graduation
+en,За учебен час,For a lesson
+en,Дисциплина,Subject
+en,Факултет,Faculty
+en,Факултети,Faculties
+en,Общо часове,Total hours
+en,Специалности,Specialties
+en,Зали,Rooms
+en,Формати,Formats
+en,Параметри (Зап_f9ab9,Parameters (Inquiry)
+en,Параметри (Обу_f1ce7,Parameters (Students)
+en,Параметри (Док_36a07,Parameters (Documents)
+en,Колизии,Conflicts
+en,Лекция,Lecture
+en,Хеш,Hash
+en,Регистрационен №,Registration No.
+en,Курсови разлики,Exchange rate differences
+en,Отнесени разходи,Allocated costs
+en,Ориджин,Origin
+en,Разпределяне,Allocation
+en,Разход за,Cost for
+en,Разпределено по,Allocated by
+en,Складови,Warehouse
+en,Разходи,Costs
+en,Първо използване,First use
+en,Свойство,Property
+en,Надвишаване,Excess
+en,Нотифициране,Notification
+en,Такса,Fee
+en,HS кодове,HS codes
+en,Формули,Formulas
+en,Видове индикат_d9ee,Indicator types
+en,Показател,Indicator
+en,Център,Centre
+en,Диаграма,Chart
+en,Департамент,Department
+en,Форма CV,CV form
+en,Опции за подбор,Recruitment options
+en,Издаден на,Issued on
+en,MKБ код,ICD code
+en,Цел,Purpose
+en,Начисления,Allowances
+en,Пътни,Travel expenses
+en,Дневни,Daily allowances
+en,Квартирни,Accommodation expenses
+en,Време в завода/_028c,Time at factory/office
+en,Онлайн,Online
+en,На място,On site
+en,Извънработно,Outside working hours
+en,Неработни,Non-working days
+en,Нощем,At night
+en,Хоум офис,Home office
+en,Вземания,Receivables
+en,Заверено,Credited
+en,Осчетоводяване,Posting
+en,Разнасяне,Reconciliation
+en,Транспортни де_5a74,Transport activities
+en,Дестиниации,Destinations
+en,Нов спедитор,New freight forwarder
+en,Единици,Units
+en,Възможности,Capabilities
+en,Използване в т_569df,Use in transport
+en,Единично,Singular
+en,Множествено,Plural
+en,Макс. тегло,Max. weight
+en,Макс. обем,Max. volume
+en,Приемателни,Acceptance
+en,ВОП,Intra-community acquisitions
+en,Външен склад,External warehouse
+en,Външна наличност,External stock
+en,Външно име,External name
+en,Добавено,Added
+en,Митница,Customs
+en,Генеричен,Generic
+en,Излиза,Outgoing
+en,Влиза,Incoming
+en,Допълнителен,Additional
+en,Преизчисли вси_16e9,Recalculate all
+en,Дефиниция,Definition
+en,Използване в д_21eb5,Use in documents
+en,Задължителна н_863a,Stock required
+en,Производители,Manufacturers
+en,PCB номер,PCB number
+en,Ръчно синхрони_e744,Manual synchronisation
+en,ЧМР №,CMR No.
+en,Систем ид,System ID
+en,Продуктова опа_d0ad,Product packaging
+en,Почивни дни,Days off
+en,Касов апарат №,Cash register No.
+en,Ел. бележка,Electronic receipt
+en,Отпечатано,Printed
+en,Делти,Margins
+en,Сходни продукти,Similar products
+en,Продуктови рей_683b,Product ratings
+en,Последни прода_a71d,Latest sales
+en,Публичен,Public
+en,Продажна,Selling price
+en,Делта,Margin
+en,Без авт.отс.,Before automatic discount
+en,Прил. отст.,Applied discount
+en,Дата на проформа,Proforma date
+en,Към проформа,For proforma
+en,За период,For period
+en,Запазено,Reserved
+en,Потвърдено,Confirmed
+en,Цена EUR,Price EUR
+en,Прехвърлено,Transferred
+en,Keш,Cache
+en,Ид,ID
+en,Име ЕН,Name EN
+en,Сметка (Продажба),Account (Sale)
+en,Сметка (Покупка),Account (Purchase)
+en,ДДС %,VAT %
+en,Цена за кг.,Price per kg
+en,Коеф. пак.,Packaging coefficient
+en,Материал опак.,Packaging material
+en,Ан.,Analytic item
+en,Стандартни арт_ce26,Standard items without an FSD number
+en,FSD номер,FSD number
+en,ВАТ номер,VAT number
+en,Сметка №,Account No.
+en,Аналитичност №,Analytic item No.
+en,Работни карти,Work cards
+en,Тек. начало,Current start
+en,Про-грес,Progress
+en,Тек. край,Current end
+en,Следв. начало,Next start
+en,Тираж (Зад.),Quantity (Job)
+en,Тираж (ПО),Quantity (Operation)
+en,Хора,People
+en,Зависимости,Dependencies
+en,Използване в п_6a30d,Use in production
+en,Норма,Standard rate
+en,Произвеждане,Production
+en,Норми,Standard rates
+en,Резерв. части,Spare parts
+en,Готови сигнали,Issue templates
+en,Генерични,Generic
+en,Почивки на обо_75a98,Equipment breaks
+en,Оборудване/Група,Equipment/Group
+en,По документи,By document
+en,Ресурси по папки,Resources by folder
+en,Ограничения,Constraints
+en,Ръчна подредба,Manual ordering
+en,Силоз,Silo
+en,Наличност (т),Stock (t)
+en,Заявка (т),Request (t)
+en,Вход 1,Input 1
+en,Вход 2,Input 2
+en,Вход 3,Input 3
+en,Вход 4,Input 4
+en,Вход 5,Input 5
+en,Вход 6,Input 6
+en,Кг,kg
+en,Отстъпи,Margins
+en,Отгоре,Top
+en,Отляво,Left
+en,Междина,Gap
+en,Стъпка,Step
+en,Име EN,Name EN
+en,Екстри,Extras
+en,Повърхност,Surface
+en,Предишен,Previous
+en,Изделие,Product
+en,Плътност,Density
+en,Времена за про_24367,Production times
+en,Брак,Scrap
+en,Използвани рес_0a6b,Resources used
+en,Дъно/Фалт,Bottom/Gusset
+en,За пускане,For setup
+en,За 100 бр.,Per 100 pcs
+en,ДМА цена,Fixed asset cost
+en,Работници,Workers
+en,Обиколка,Circumference
+en,Фотопечат,Photo printing
+en,Машина,Machine
+en,Хартии,Papers
+en,Вложки,Inserts
+en,Лепенки,Adhesive tapes
+en,Фолиа,Films
+en,Полимери,Polymers
+en,За 1 мин,Per minute
+en,Мин. за пуск.,Setup minutes
+en,Раб. часове на ден,Working hours per day
+en,Тест,Test
+en,Функция,Function
+en,Присвояване,Assignment
+en,Блокове,Blocks
+en,Променливи,Variables
+en,Семафори,Semaphores
+en,Устройство,Device
+en,Обновено на,Updated on
+en,Регистри,Registers
+en,Съкратено,Short
+en,Детайлно,Detailed
+en,Дълги стойности,Long values
+en,Дневник,Journal
+en,Автомобил,Vehicle
+en,Време на засичане,Detection time
+en,Тракер IP,Tracker IP
+en,Вътрешен диаме_7c3f,Internal diameter
+en,Позиция на таб_70beb,Tab position
+en,Реклама,Advertisement
+en,Дъска,Board
+en,Изходен,Source
+en,Пренасочване п_a353,Redirect on sending
+en,Капацитет,Capacity
+en,Скорост,Speed
+en,Контекстен про_fbc6,Context window
+en,Макс. изходящи _d660,Max. output tokens
+en,Изображения,Images
+en,Разсъждение,Reasoning
+en,Тест:embedding,Test:embedding
+en,Ход,Turn
+en,Вид на връзката,Relation type
+en,Ред от източника,Source row
+en,Детайл,Detail
+en,Ид на ред,Row ID
+en,Инструмент,Tool
+en,Пр-ст (сек.),Duration (sec.)
+en,Започнат,Started
+en,Име на файла,File name
+en,Разговор,Conversation
+en,Записан файл,Saved file
+en,Записана на,Saved on
+en,Главна сесия,Main session
+en,Наша фирма,Our company
+en,Стара формула,Old formula
+en,Нова формула,New formula
+en,Артикул 1,Item 1
+en,Артикул 2,Item 2
+en,Генериран №,Generated No.
+en,Алгоритъм,Algorithm
+en,Ед. цена,Unit price
+en,Процент,Percentage
+en,Твърда,Fixed
+en,Стек,Stack
+en,Средно,Average
+en,Макс.,Max.
+en,Незиползвани и_5cda,Unused indexes
+en,Системни проме_f80e,System variables
+en,Статистика по _179ed,Table statistics
+en,Кеш на заявките,Query cache
+en,crc32 на действието,Action CRC32
+en,crc32 на класа,Class CRC32
+en,Име на класа,Class name
+en,Потребител/Роля,User/Role
+en,Системен ID,System ID
+en,Ресто?,Change?
+en,Имена във ФУ,Names in fiscal device
+en,Зала,Room
+en,Преподаватели,Teachers
+en,Използване за,Use for
+en,Текст за потвъ_7e818,Confirmation text
+en,Допустими файл_34f9,Allowed files
+en,Показване на и_56929,Display name in inquiry
+en,Показване в за_fb3f4,Display in inquiry
+en,Структура и по_09d57,Structure and order
+en,За документ,For document
+en,Засичане с,Conflict with
+en,Кореспондент,Correspondent
+en,Раздел,Section
+en,Глава,Chapter
+en,Подглава,Subchapter
+en,Степен,Level
+en,Стока,Goods
+en,Степен на подр_08afe,Level of detail of the product code
+en,Код по КН,CN code
+en,Описание на ст_64ec0,Goods description
+en,Мерна единица,Unit of measure
+en,NC8 код,NC8 code
+en,Вид индикатор,Indicator type
+en,Формула,Formula
+en,Заплата,Salary
+en,Проверка на смяна,Check shift
+en,Предпочитания,Preferences
+en,Тип на избора,Selection type
+en,Тип на позицията,Position type
+en,Вх. фактура,Purchase invoice
+en,ЕН,Shipment order
+en,Филтриране,Filter
+en,Друго,Other
+en,Моментно?,Current?
+en,Историческо,Historical
+en,MAC адрес,MAC address
+en,Ид на документа,Document ID
+en,Ид на реда,Row ID
+en,Сума на трансп_59300,Transport amount
+en,Срок на доставка,Delivery time
+en,Продуцт,Product
+en,Рейтинг,Rating
+en,Последна прода_068e,Last sale
+en,Произв. №,Production No.
+en,Нето кг,Net kg
+en,Бруто кг,Gross kg
+en,Оператор,Operator
+en,Допустимост в ПО,Eligibility for production operations
+en,Предходен етап,Previous stage
+en,Изчакване,Waiting
+en,Застъпване,Overlap
+en,Обордуване,Equipment
+en,Всичко,Total
+en,Готов сигнал,Issue template
+en,Замества,Replaces
+en,Генеричен арти_06f0,Generic item
+en,Мярка генериче_0adf,Generic item unit
+en,Предходна,Previous
+en,Най-рано,Earliest
+en,Изпразни,Empty
+en,Преизч. продъл_a8308,Recalculate duration
+en,ПОДРЕДБА,ORDERING
+en,Пакетни връзки,Batch links
+en,Котви към пред_f2ef3,Anchors to previous operation
+en,Автоматични па_d28a,Automatic batch links
+en,Ръчно разкачен_ba38,Manually excluded from automatic grouping
+en,Ангажирана сле_f8b8,Committed next operation
+en,Версия на авто_ae982,Automatic grouping version
+en,Настройки на а_96695,Automatic grouping settings
+en,Количество (т),Quantity (t)
+en,Заявено,Requested
+en,Широчини,Widths
+en,Тегло на 1 м,Weight per metre
+en,Дебелини,Thicknesses
+en,Променлива,Variable
+en,Последна,Last
+en,Опити,Attempts
+en,Дефолтна стойн_c1ca,Default value
+en,Описание на ре_5cf61,Register description
+en,Тъмб,Thumbnail
+en,Зап.,Reserve
+en,Д-ие,Action
+en,Изп.,Executant
+en,Основно,Main
+en,Нова статия,New article
+en,Палетиране,Palletise
+en,Генериране на _4789c,Generate movements
+en,Свободни,Free
+en,Използвани,Used
+en,Запазени,Reserved
+en,Първи,First
+en,Състояния,States
+en,Генератор (ver3),Generator (ver3)
+en,Генератор (ver2),Generator (ver2)
+en,Генератор (ver1),Generator (ver1)
+en,Закъснение,Delay
+en,Споделяне в,Share in
+en,Експорт за превод,Export for translation
+en,Импорт на превод,Import translation
+en,Експорт параме_e788,Export parameters for translation
+en,Импорт парамет_9b80,Import parameter translations
+en,Условия на пла_6be4b,Payment terms
+en,ДДС режим,VAT mode
+en,Ешоп артикул,E-shop item
+en,Любими артикули,Favourite items
+en,Използвана,Used
+en,Показване на HTM_773e,Show HTML in the incoming email view
+en,Максимална общ_976a,Maximum total option length for radio buttons
+en,Брой символи,Number of characters
+en,(в това число 3 _414ef,(including 3 characters for each option button)
+en,Добавяне или п_92625,Add or change a file
+en,Баркод...,Barcode...
+en,Сканиране на б_5b48f,Scan a barcode
+en,Търсене по баркод,Search by barcode
+en,Запис на докум_e9a7e,Save document
+en,Партньори,Partners
+en,Тъжен,Sad
+en,Подравняване в_7578,Align left
+en,Подравняване в_40f2,Align center
+en,Подравняване в_c615,Align right
+en,Двустранно под_99b7,Justify
+en,Куриерско Api,Courier API
+en,С прихващане,By offsetting
+en,С карта,By card
+en,Факторинг,Factoring
+en,Пощенски парич_6eb7,Postal money transfer
+en,Без плащане,No payment
+en,Без избор,No selection
+en,Наем на зала,Room rental
+en,Наем на коуъркинг,Coworking rental
+en,Обучителен клас,Training class
+en,Поддръжка/Ремонт,Maintenance/Repair
+en,"Торбичка тип ""П_4d49",T-shirt bag
+en,Трансформатор,Transformer
+en,Вид артикул,Product type
+en,Достъп до поме_ca8d8,Room access
+en,Импортиран арт_35cb,Imported product
+en,В сервиза,At the service center
+en,На адрес,On site
+en,Отдалечено,Remote
+en,Стандартна,Standard
+en,Експресна,Express
+en,Аварийна,Emergency
+en,Закупен на,Purchased on
+en,Гаранция,Warranty
+en,След ремонта,After repair
+en,Очаквано време_a534,Estimated repair time
+en,Проблем,Problem
+en,Вашето запитване,Your inquiry
+en,самостоятелно,Standalone
+en,от коуъркинг п_e0903,From a coworking package
+en,Разглеждане на_7205,View thread
+en,Скриване на до_08308,Hide document in thread
+en,Търсене на статии,Search articles
+en,Търси този тек_c3254,Search for this text in articles
+en,Споделете в,Share on

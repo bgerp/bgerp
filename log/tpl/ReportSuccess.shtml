@@ -1,0 +1,17 @@
+<div class="log-report-success">
+    <section class="log-report-success-card" aria-labelledby="log-report-success-title">
+        <div class="log-report-success-icon" aria-hidden="true"></div>
+        <div role="status">
+            <h2 id="log-report-success-title">|Сигналът е изпратен успешно!||Report sent successfully!|*</h2>
+            <p class="log-report-success-message">|Благодарим, че ни помагате да подобряваме bgERP.||Thank you for helping us improve bgERP.|*</p>
+        </div>
+        <div class="log-report-success-countdown">
+            <span>|Автоматично затваряне след||Closing automatically in|*</span>
+            <span class="log-report-success-time" role="timer" aria-live="off"><strong id="log-report-seconds">[#SECONDS#]</strong> |сек.||sec.|*</span>
+        </div>
+        <div class="log-report-success-track" aria-hidden="true">
+            <div class="log-report-success-progress"></div>
+        </div>
+        <button type="button" id="log-report-close">|Затвори сега||Close now|*</button>
+    </section>
+</div>

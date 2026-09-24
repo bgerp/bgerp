@@ -68,12 +68,10 @@ class transsrv_Import extends core_BaseClass
                             $rData->toPerson .= "; tel: {$rData->toPersonPhones}";
                         }
                         foreach (array('from', 'to') as $prefix) {
-                            if ($rData->{"{$prefix}Country"} == $data->{"{$prefix}Country"}) {
-                                setIfNot($data->{"{$prefix}PCode"}, $rData->{"{$prefix}PCode"});
-                                setIfNot($data->{"{$prefix}Place"}, $rData->{"{$prefix}Place"});
-                                setIfNot($data->{"{$prefix}Address"}, $rData->{"{$prefix}Address"});
-                                setIfNot($data->{"{$prefix}Company"}, $rData->{"{$prefix}Company"});
-                                setIfNot($data->{"{$prefix}Person"}, $rData->{"{$prefix}Person"});
+                            if (($rData->{"{$prefix}Country"} ?? null) == ($data->{"{$prefix}Country"} ?? null)) {
+                                foreach (array('PCode', 'Place', 'Address', 'Company', 'Person') as $fName) {
+                                    setIfNot($data->{"{$prefix}{$fName}"}, $rData->{"{$prefix}{$fName}"} ?? null);
+                                }
                             }
                         }
                         

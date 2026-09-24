@@ -322,7 +322,7 @@ class planning_GenericMapper extends core_Manager
         $bomSections = array(
             array('details'       => cls::get('cat_BomDetails'),
                   'master'       => cls::get('cat_Boms'),
-                  'productFld'   => 'resourceId',
+                  'productFld'   => 'productId',
                   'prefix'       => 'b',
                   'isDisassembly' => false,
             ),
@@ -398,8 +398,9 @@ class planning_GenericMapper extends core_Manager
                 if(is_array($rInfo['resources'])){
                     $foundRec = array_filter($rInfo['resources'], function($a) use ($data){return $a->productId == $data->masterId;});
                     $quantityVerbal = "<span class='red'>???</span>";
-                    if($foundRec[key($foundRec)]->propQuantity){
-                        $quantityVerbal = core_Type::getByName('double(smartRound)')->toVerbal($foundRec[key($foundRec)]->propQuantity);
+                    $firstFound = reset($foundRec);
+                    if(!empty($firstFound->propQuantity)){
+                        $quantityVerbal = core_Type::getByName('double(smartRound)')->toVerbal($firstFound->propQuantity);
                     }
                     $row->quantity = "{$quantityVerbal} {$shortUom}";
                 }

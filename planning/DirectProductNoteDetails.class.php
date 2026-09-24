@@ -798,6 +798,8 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
      */
     public function getBatchMovementDocument($rec)
     {
+        $rec = $this->fetchRec($rec);
+
         return $rec->type == 'subProduct' ? 'in' : 'out';
     }
 

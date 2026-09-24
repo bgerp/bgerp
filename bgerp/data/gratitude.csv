@@ -1,3 +1,4 @@
+url|name|author
 https://github.com/Tihauan/jsgauge/|jsgauge|Dragos Tihauan
 https://github.com/globalcitizen/php-iban/|php-iban|Walter Stanish
 https://georgi.unixsol.org/programs/egn.php|BulgarianEGN|Georgi Chorbadzhiyski
@@ -6,24 +7,70 @@ https://code.google.com/p/avatarco/|Avatarco|Rodion Baskakov
 https://select2.org/|Select2|Kevin Brown
 https://ckeditor.com|CKEditor|Frederico Knabben
 https://fancyapps.com/fancybox/|FancyBox|Janis Skarnelis
-https://github.com/GeSHi|GeSHi|Ross Golder
 https://chuggnutt.com/html2text|class.html2text.inc|Jon Abernathy
 https://github.com/powerbuoy/|Colour Picker|Andreas Lagerkvist
 https://jquery.com/|jQuery JavaScript Library|John Resig
 https://github.com/tijsverkoyen/CssToInlineStyles|CssToInlineStyles|Tijs Verkoyen
 https://pelagodesign.com/sidecar/emogrifier/|Emogrifier|Pelago Corp.
 https://github.com/dagwieers/unoconv|unoconv|Dag Wieers
-https://wkhtmltopdf.org/|wkhtmltopdf|Christian Sciberras
-https://code.google.com/p/dompdf/|dompdf|Fabien Ménager, Benj Carson, Helmut Tischer
-https://tika.apache.org/download.html|apache tika|Arturo Beltran
+https://wkhtmltopdf.org/|wkhtmltopdf|Екипа на wkhtmltopdf
+https://tika.apache.org/|Apache Tika|Apache Software Foundation
 https://sourceforge.net/projects/phpbarcode/|phpbarcode|Demonte Jean-Baptiste, Hourez Jonathan
-https://sourceforge.net/projects/phpqrcode/files/|phpqrcode|Nicola Asuni
-https://code.google.com/p/jodconverter/downloads/list|jodconverte|Mirko Nasato
+https://sourceforge.net/projects/phpqrcode/files/|phpqrcode|Dominik Dzienia
+https://github.com/jodconverter/jodconverter|JODConverter|Mirko Nasato и екипа на JODConverter
 https://github.com/akquinet/jquery-toastmessage-plugin|jquery toastmessage|Daniel Bremer-Tonn
 https://openoffice.org/download/|openoffice|Екипа на OpenOffice
 https://zbar.sourceforge.net/|zbar|Jeff Brown
-https://daringfireball.net/projects/markdown/|Markdown|Daring Fireball
+https://daringfireball.net/projects/markdown/|Markdown|John Gruber
+https://michelf.ca/projects/php-markdown/|PHP Markdown Extra|Michel Fortin
 https://pear.php.net/package/File_IMC|File_IMC|Paul M. Jones
+https://sourceforge.net/projects/jscalendar/|DHTML Date/Time Selector|Mihai Bazon
+https://github.com/jackmoore/autosize|Autosize|Jack Moore
+https://canvas-gauges.com/|Canvas Gauges|Mykhailo Stadnyk
+https://www.chartjs.org/|Chart.js|Екипа на Chart.js
+https://codemirror.net/|CodeMirror|Marijn Haverbeke и екипа на CodeMirror
+https://github.com/s-yadav|contextMenu|Sudhanshu Yadav
+https://conversejs.org/|Converse.js|Екипа на Converse.js
+https://floating-ui.com/|Floating UI|Екипа на Floating UI
+https://highlightjs.org/|Highlight.js|Ivan Sagalaev и екипа на Highlight.js
+https://www.jqplot.com/|jqPlot|Chris Leonello
+https://keith-wood.name/datepick.html|jQuery Datepick|Keith Wood
+https://jqueryui.com/|jQuery UI|jQuery Foundation и сътрудници
+https://www.mediaelementjs.com/|MediaElement.js|John Dyer и екипа на MediaElement.js
+https://github.com/PHPMailer/PHPMailer|PHPMailer|Marcus Bointon, Jim Jagielski, Andy Prevost, Brent R. Matzelle
+https://tcpdf.org/|TCPDF|Nicola Asuni
+https://www.tiny.cloud/|TinyMCE|Екипа на TinyMCE
+https://github.com/kenwheeler/slick|Slick|Ken Wheeler
+https://github.com/yuku-t/jquery-textcomplete|jquery-textcomplete|Yuku Takahashi
+https://github.com/krakorj/phpmodbus|Phpmodbus|Jan Krakora
+https://github.com/u01jmg3/ics-parser|PHP ICS Parser|Martin Thoma, John Grogg, Jonathan Goode
+https://code.google.com/archive/p/xmpphp/|XMPPHP|Nathan Fritz, Stephan Wentz и сътрудници
+https://github.com/rgrove/jsmin-php|JSMin PHP|Douglas Crockford, Ryan Grove, Steve Clay
+https://github.com/tubalmartin/YUI-CSS-compressor-PHP-port|CSS Minifier|Tubal Martin и сътрудници
+https://tesseract-ocr.github.io/|Tesseract OCR|Екипа на Tesseract
+https://poppler.freedesktop.org/|Poppler|Екипа на Poppler
+https://imagemagick.org/|ImageMagick|Екипа на ImageMagick
+https://www.7-zip.org/|7-Zip|Igor Pavlov
+https://github.com/chrome-php/chrome|Chrome PHP|Екипа на Chrome PHP
+https://github.com/aws/aws-sdk-php|AWS SDK for PHP|Amazon Web Services
+https://github.com/web-push-libs/web-push-php|Web Push PHP|Екипа на Web Push PHP
+https://scssphp.github.io/scssphp/|scssphp|Екипа на scssphp
+https://github.com/mlocati/spf-lib|SPF Library|Michele Locati
+https://github.com/spatie/schema-org|Schema.org PHP|Spatie
+https://github.com/marcelog/PAMI|PAMI|Marcelo Gornstein
+https://packagist.org/packages/jigarakatidus/php-signal|PHP Signal|Екипа на PHP Signal
+https://github.com/AsamK/signal-cli|signal-cli|AsamK и сътрудници
+https://github.com/dropbox/zxcvbn|zxcvbn|Dropbox и сътрудници
+https://github.com/pqina/tick/|Tick и Flip|PQINA
+https://github.com/PButcher/flipdown|FlipDown|Peter Butcher
+https://github.com/jackmoore/wheelzoom|Wheelzoom|Jack Moore
+https://github.com/jaywcjlove/hotkeys-js|Hotkeys.js|Kenny Wong
+https://github.com/arlocarreon|PHP Colors|Arlo Carreon
+https://github.com/niallkennedy/open-graph-protocol-tools|Open Graph Protocol Tools|Niall Kennedy
+https://github.com/ltoscano/ponvif|ponvif / PHP ONVIF|Lorenzo Toscano, KuroNeko-san, Rick и сътрудници
+https://github.com/minkphp/Mink|Mink|Екипа на Mink
+https://github.com/minkphp/MinkGoutteDriver|Mink Goutte Driver|Екипа на Mink
+http://led24.de/iconset/|LED Icon Set|Екипа на LED24
 https://designcontest.com/|DesignContest|DesignContest
 https://webdesignerdepot.com|Webdesigner Depot|Webdesigner Depot
 https://aha-soft.com/|Aha-Soft|Aha-Soft

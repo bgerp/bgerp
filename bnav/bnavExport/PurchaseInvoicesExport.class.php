@@ -37,6 +37,12 @@ class bnav_bnavExport_PurchaseInvoicesExport extends frame2_driver_TableData
 
 
     /**
+     * Кои полета от таблицата са цени/суми
+     */
+    protected $priceListFields = 'dealValue,price';
+
+
+    /**
      * Кои полета са за избор на период
      */
     protected $periodFields = 'from,to';
@@ -72,10 +78,10 @@ class bnav_bnavExport_PurchaseInvoicesExport extends frame2_driver_TableData
     /**
      * След рендиране на единичния изглед
      *
-     * @param cat_ProductDriver $Driver
-     * @param embed_Manager     $Embedder
-     * @param core_Form         $form
-     * @param stdClass          $data
+     * @param frame2_driver_Proto $Driver
+     * @param embed_Manager       $Embedder
+     * @param core_Form           $form
+     * @param stdClass            $data
      */
     protected static function on_AfterInputEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$form)
     {
@@ -128,7 +134,7 @@ class bnav_bnavExport_PurchaseInvoicesExport extends frame2_driver_TableData
         }
         
         //Крайна дата / 'към дата'
-        if ($rec->from) {
+        if ($rec->to) {
             $pQuery->where(array(
                 "#date <= '[#1#]'",
                 $rec->to . ' 23:59:59'
@@ -186,12 +192,23 @@ class bnav_bnavExport_PurchaseInvoicesExport extends frame2_driver_TableData
         $dQuery = purchase_InvoiceDetails::getQuery();
 
         $dQuery->in('invoiceId', $invArr);
+
+        // Нулевите редове на фактурите не се експортират, при известията са промяна
+        $dQuery->EXT('invType', 'purchase_Invoices', 'externalName=type,externalKey=invoiceId');
+        $dQuery->where("#quantity != 0 OR #invType != 'invoice'");
         
         
         while ($dRec = $dQuery->fetch()) {
             $id = $dRec->id;
             
             $prodRec = cat_Products::fetch($dRec->productId);
+            if (empty($prodRec)) {
+                
+                continue;
+            }
+            
+            $group = '';
+            
             //Ако има регистрирана "ОСНОВНА ГРУПА", определяме група на артикула спрямо нея
             if(core_Packs::getConfig('bnav')->BASE_GROUP != ''){
 
@@ -200,7 +217,7 @@ class bnav_bnavExport_PurchaseInvoicesExport extends frame2_driver_TableData
 
                     $group = 'n.a.';
                 }else{
-                    expect(countR(array_intersect($gArr,$flGroups)) < 2, "Има регистрирани повече от една група на първо ниво след  ОСНОВНАТА за артикул $pRec->name");
+                    expect(countR(array_intersect($gArr,$flGroups)) < 2, "Има регистрирани повече от една група на първо ниво след  ОСНОВНАТА за артикул $prodRec->name");
                     $group = implode(',',array_intersect($gArr,$flGroups));
                 }
 
@@ -367,7 +384,7 @@ class bnav_bnavExport_PurchaseInvoicesExport extends frame2_driver_TableData
         $res->price = core_Type::getByName('double(decimals=6)')->toVerbal($dRec->price);
         $res->measure = $dRec->measure;
         $res->vat = $dRec->vat;
-        $row->paymentType = $dRec->invoice->paymentType;
-        $row->bankAccount = bank_Accounts::getTitleById($dRec->invoice->accountId);
+        $res->paymentType = $dRec->invoice->paymentType;
+        $res->bankAccount = bank_Accounts::getTitleById($dRec->invoice->accountId);
     }
 }

@@ -24,7 +24,7 @@ class darksky_Wrapper extends plg_ProtoWrapper
      */
     public function description()
     {
-        $this->TAB('darksky_Forecast', 'Прогнози');
+        $this->TAB('darksky_Forecasts', 'Прогнози');
         
         $this->title = 'Прогнози за времето';
     }

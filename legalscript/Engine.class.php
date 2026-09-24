@@ -24,7 +24,7 @@ class legalscript_Engine extends core_BaseClass
     {
         parent::init($params);
         
-        if ($this->path) {
+        if (!empty($this->path)) {
             $this->script = file_get_contents(EF_APP_PATH . '/' . $this->path);
         }
     }

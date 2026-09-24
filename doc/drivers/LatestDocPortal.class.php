@@ -60,7 +60,7 @@ class doc_drivers_LatestDocPortal extends core_BaseClass
      */
     protected static function on_AfterRecToVerbal($Driver, embed_Manager $Embedder, $row, $rec, $fields = array())
     {
-        $row->tags = tags_Tags::decorateTags($rec->tags);
+        $row->tags = tags_Tags::decorateTags($rec->tags ?? null);
     }
     
     
@@ -101,15 +101,15 @@ class doc_drivers_LatestDocPortal extends core_BaseClass
         $containerArr = array();
 
         if (!$resData->tpl) {
-            $tCnt = $dRec->tCnt ? $dRec->tCnt : 20;
+            $tCnt = ($dRec->tCnt ?? null) ? $dRec->tCnt : 20;
             $resData->data = new stdClass();
 
             $resArr = array();
 
-            if ($dRec->tags) {
+            if ($dRec->tags ?? null) {
                 $cQuery = doc_Containers::getQuery();
                 $cQuery->where("#state != 'rejected'");
-                if ($dRec->docClassId) {
+                if ($dRec->docClassId ?? null) {
                     $cQuery->in('docClass', type_Keylist::toArray($dRec->docClassId));
                 }
 
@@ -181,7 +181,7 @@ class doc_drivers_LatestDocPortal extends core_BaseClass
                 $tQuery->orderBy('last', 'DESC');
                 $tQuery->orderBy('id', 'DESC');
                 $tQuery->show('id, folderId, firstContainerId, state, folderId, shared');
-                if ($dRec->docClassId) {
+                if ($dRec->docClassId ?? null) {
                     $tQuery->EXT('docClass', 'doc_Containers', 'externalName=docClass,externalKey=firstContainerId');
                     $tQuery->in('docClass', type_Keylist::toArray($dRec->docClassId));
                 }
@@ -291,7 +291,7 @@ class doc_drivers_LatestDocPortal extends core_BaseClass
                         $doubleClickUrl = $doc->getUrlForDblClick();
                         if(isset($doubleClickUrl)){
                             $doubleClickDataUrl = toUrl($doubleClickUrl);
-                            $attr['data-doubleclick'] .= $doubleClickDataUrl;
+                            $attr['data-doubleclick'] = $doubleClickDataUrl;
                         }
 
                         $dRowStr = "<div class='portalLatestThreads state-{$tRec->state} {$tUnsighted} {$subTitleClass}'>" . ht::createLink(str::limitLen($title, 50), $doc->getSingleUrlArray(), null, $attr) . '</div>';
@@ -317,7 +317,7 @@ class doc_drivers_LatestDocPortal extends core_BaseClass
             $resData->data = $data;
         }
 
-        $resData->blockTitle = '|*' . tags_Tags::decorateTags($dRec->tags, "<span class='portalHeaderTitle'>|Най-новото|*</span>");
+        $resData->blockTitle = '|*' . tags_Tags::decorateTags($dRec->tags ?? null, "<span class='portalHeaderTitle'>|Най-новото|*</span>");
 
         return $resData;
     }
@@ -400,7 +400,7 @@ class doc_drivers_LatestDocPortal extends core_BaseClass
         $tQuery->show('last, id, firstContainerId');
         $tQuery->limit(1);
 
-        if ($dRec->tags) {
+        if ($dRec->tags ?? null) {
             $tagQuery = tags_Logs::getQuery();
             $tagQuery->in('tagId', $dRec->tags);
             $tagQuery->orderBy('id', 'DESC');

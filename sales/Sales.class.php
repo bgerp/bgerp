@@ -60,6 +60,13 @@ class sales_Sales extends deals_DealMaster
     
     
     /**
+     * Полета на ориджина, за които автоматично да се създава връзка към документа-източник
+     * (напр. имейла, от който е генерирана продажбата) - @see doc_DocumentPlg
+     */
+    public $addLinkedOriginFieldNames = array('originId', 'foreignId');
+
+
+    /**
      * При създаване на имейл, дали да се използва първият имейл от списъка
      */
     public $forceFirstEmail = true;
@@ -467,7 +474,7 @@ class sales_Sales extends deals_DealMaster
 
                 // ако все още е активна и може да я избира потребителя - попълва се
                 $ownBankSelectedRec = bank_OwnAccounts::fetch("#bankAccountId = {$lastSelectedBankAccountId}");
-                if(!in_array($ownBankSelectedRec->state, array('closed', 'rejected')) && $ownBankSelectedRec && bgerp_plg_FLB::canUse('bank_OwnAccounts', $ownBankSelectedRec, null, 'select')){
+                if($ownBankSelectedRec && !in_array($ownBankSelectedRec->state, array('closed', 'rejected')) && bgerp_plg_FLB::canUse('bank_OwnAccounts', $ownBankSelectedRec, null, 'select')){
                     $defaultBankAccountId = $lastSelectedBankAccountId;
                 }
             }
@@ -1415,7 +1422,7 @@ class sales_Sales extends deals_DealMaster
             $errorStr = null;
 
             $ownBankRec = bank_OwnAccounts::fetch(array("#bankAccountId = '[#1#]'", $rec->bankAccountId));
-            if(in_array($ownBankRec->state, array('closed', 'rejected'))){
+            if($ownBankRec && in_array($ownBankRec->state, array('closed', 'rejected'))){
                 $errorStr = 'Банковата сметка е закрита|*!';
             }
 
@@ -1445,7 +1452,7 @@ class sales_Sales extends deals_DealMaster
             }
             if(!empty($errorStr) && $rec->paymentType != 'cash'){
                 if(core_Users::isPowerUser()){
-                    $row->bankAccountId = "<span class='warning-balloon' style ='background-color:#ff9494a8'>{$row->bankAccountId}</span>";
+                    $row->bankAccountId = "<span class='warning-balloon' style ='background-color:#ff9494a8'>" . ($row->bankAccountId ?? '') . "</span>";
                     $row->bankAccountId = ht::createHint($row->bankAccountId, $errorStr, 'warning');
                 }
             }
@@ -1754,7 +1761,7 @@ class sales_Sales extends deals_DealMaster
                     $tRec->where("#threadId = {$rec->threadId}");
                     $tRec->show('id');
                     $containerIds = arr::extractValuesFromArray($tRec->fetchAll(), 'id');
-                    $containerIds[$fRec->containerId] = $rec->containerId;
+                    $containerIds[$rec->containerId] = $rec->containerId;
                     
                     // Ще им се преизчисляват делтите
                     sales_PrimeCostByDocument::updatePersons($containerIds);
@@ -2299,6 +2306,35 @@ class sales_Sales extends deals_DealMaster
 
 
     /**
+     * Папки на контрагенти с продажби, преизползвани при подготовката на справки
+     *
+     * @return array
+     */
+    public static function getContragentFolderSuggestions()
+    {
+        $context = array(core_Users::getCurrent(), core_Users::getCurrent('roles'), core_Lg::getCurrent());
+
+        return core_Cache::remember(__METHOD__, $context, function () {
+            $suggestions = array();
+            $query = sales_Sales::getQuery();
+            $query->EXT('folderTitle', 'doc_Folders', 'externalName=title,externalKey=folderId');
+            $query->groupBy('folderId');
+            $query->show('folderId, contragentId, folderTitle');
+
+            while ($contragent = $query->fetch()) {
+                if (isset($contragent->contragentId)) {
+                    $suggestions[$contragent->folderId ?? ''] = $contragent->folderTitle ?? '';
+                }
+            }
+
+            asort($suggestions);
+
+            return $suggestions;
+        }, array('sales_Sales', 'doc_Folders'), 5);
+    }
+
+
+    /**
      * Връща класа на обратния документ
      */
     public function getDocumentReverseClass($rec)
@@ -2317,6 +2353,19 @@ class sales_Sales extends deals_DealMaster
         if(in_array($rec->state, array('active', 'pending'))){
             sales_DeliveryData::sync($rec->containerId);
         }
+    }
+
+
+    /**
+     * Може ли документа да се добавя като свързан документ към ориджина си.
+     * Продажбата се свързва с документа, от който е създадена (@see $addLinkedOriginFieldNames)
+     *
+     * @param stdClass $rec
+     * @return bool
+     */
+    public static function canAddDocumentToOriginAsLink_($rec)
+    {
+        return true;
     }
 
 

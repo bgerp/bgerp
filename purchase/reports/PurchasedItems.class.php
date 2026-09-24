@@ -62,6 +62,12 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
 
 
     /**
+     * Кои полета от таблицата са цени/суми
+     */
+    protected $priceListFields = 'amount,amountCompare,changePurchases';
+
+
+    /**
      * Кои полета са за избор на период
      */
     protected $periodFields = 'from,to';
@@ -123,7 +129,7 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
     /**
      * След рендиране на единичния изглед
      *
-     * @param cat_ProductDriver $Driver
+     * @param frame2_driver_Proto $Driver
      * @param embed_Manager $Embedder
      * @param core_Form $form
      * @param stdClass $data
@@ -604,6 +610,9 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
 
                 }
 
+                // amount е изчисляемо (FNC) поле - при празна цена/количество не се смята и остава незададено
+                $detRec->amount = $detRec->amount ?? 0;
+
                 $quantity = $amount = 0;
                 $quantityPrevious = $amountPrevious = 0;
                 $quantityLastYear = $amountLastYear = 0;
@@ -616,7 +625,9 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
 
                     $thisClassName = $firstDocument->className;
 
-                    $thisDealerId = $thisClassName::fetchField($firstDocument->that, 'dealerId');
+                    // Не всеки документ има поле 'dealerId' - ако липсва, третираме го като без дилър
+                    $thisClass = cls::get($thisClassName);
+                    $thisDealerId = $thisClass->getField('dealerId', false) ? $thisClass->fetchField($firstDocument->that, 'dealerId') : null;
 
                     if (!in_array($thisDealerId, $dealers)) {
                         continue;
@@ -1020,16 +1031,20 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
      *
      * @param stdClass $dRec
      * @param bool $verbal
+     * @param bool $showValue - дали да се показва стойността на групата
      *
      * @return mixed $dueDate
      */
-    private static function getGroups($dRec, $verbal = true, $rec = null)
+    private static function getGroups($dRec, $verbal = true, $rec = null, $showValue = true)
     {
         if ($verbal === true) {
             if (is_numeric($dRec->group)) {
                 $groupVal = $dRec->groupValues;
 
-                $group = cat_Groups::getVerbal($dRec->group, 'name') . "<span class= 'fright'><span class= ''>" . 'Общо за групата ( стойност: ' . core_Type::getByName('double(decimals=2)')->toVerbal($groupVal) . '</span>';
+                $group = cat_Groups::getVerbal($dRec->group, 'name');
+                if ($showValue) {
+                    $group .= "<span class= 'fright'><span class= ''>" . 'Общо за групата ( стойност: ' . core_Type::getByName('double(decimals=2)')->toVerbal($groupVal) . '</span>';
+                }
             } else {
                 $groupName = $dRec->group;
                 if (is_array($groupName)) {
@@ -1039,7 +1054,10 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
                     unset($groupId);
                     $groupName = implode(', ', $groupName);
                 }
-                $group = $groupName . "<span class= 'fright'>" . 'Общо за групата ( стойност: ' . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->groupValues) . '</span>';
+                $group = $groupName;
+                if ($showValue) {
+                    $group .= "<span class= 'fright'>" . 'Общо за групата ( стойност: ' . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->groupValues) . '</span>';
+                }
             }
         } else {
             if (!is_numeric($dRec->group)) {
@@ -1182,7 +1200,7 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
                 $row->{$fld} = ht::styleNumber($row->{$fld}, $dRec->{$fld});
             }
 
-            $row->group = self::getGroups($dRec, true, $rec);
+            $row->group = self::getGroups($dRec, true, $rec, $this->canSeePriceFields($rec));
 
             if ($rec->compare != 'no') {
                 if ($rec->compare == 'previous') {
@@ -1272,7 +1290,7 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
     /**
      * След рендиране на единичния изглед
      *
-     * @param cat_ProductDriver $Driver
+     * @param frame2_driver_Proto $Driver
      * @param embed_Manager $Embedder
      * @param core_ET $tpl
      * @param stdClass $data

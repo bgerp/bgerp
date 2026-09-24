@@ -46,9 +46,15 @@ class cat_DisassemblyBomDetails extends doc_Detail
 
 
     /**
+     * Интерфейс на драйверите за импортиране
+     */
+    public $importInterface = 'cat_interface_BomDetailImportIntf';
+
+
+    /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, plg_Created, doc_plg_DetailRevisions, cat_Wrapper, plg_Sorting, plg_SaveAndNew, cat_plg_ShowCodes, plg_AlignDecimals2, plg_PrevAndNext, cat_plg_DisassemblyDocDetail';
+    public $loadList = 'plg_RowTools2, plg_Created, doc_plg_DetailRevisions, cat_Wrapper, plg_Sorting, plg_SaveAndNew, cat_plg_ShowCodes, plg_AlignDecimals2, plg_PrevAndNext, cat_plg_DisassemblyDocDetail, import2_Plugin';
 
 
     /**
@@ -374,6 +380,11 @@ class cat_DisassemblyBomDetails extends doc_Detail
 
         if (!Mode::isReadOnly() && $this->haveRightFor('add', (object) array('bomId' => $data->masterId, 'type' => 'production'))) {
             $tpl->append(ht::createBtn('Артикул', array($this, 'add', 'bomId' => $data->masterId, 'type' => 'production', 'ret_url' => true), null, null, array('style' => 'margin-top:5px;margin-bottom:15px;', 'ef_icon' => 'img/16/door_in.png', 'title' => 'Добавяне на произведен артикул')), 'PRODUCED_PRODUCTS_TABLE');
+        }
+
+        $importRec = (object) array('bomId' => $data->masterId);
+        if (!Mode::isReadOnly() && $this->haveRightFor('import2', $importRec)) {
+            $tpl->append(ht::createBtn('Импорт', array($this, 'import2', 'bomId' => $data->masterId, 'ret_url' => true), null, null, array('style' => 'margin-top:5px;margin-bottom:15px;', 'ef_icon' => 'img/16/import.png', 'title' => 'Импортиране на произведени артикули')), 'PRODUCED_PRODUCTS_TABLE');
         }
 
         // При бутоните под таблицата, както е и в Протокола за разпад

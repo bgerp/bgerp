@@ -444,7 +444,7 @@ class eshop_Settings extends core_Master
         if ($rec->classId == cms_Domains::getClassId()) {
             $cartQuery = eshop_CartDetails::getQuery();
             $cartQuery->EXT('domainId', 'eshop_Carts', 'externalName=domainId,externalKey=cartId');
-            $cartQuery->where("#domainId = '{$rec->objectId}'");
+            $cartQuery->where("#domainId = '" . ($rec->objectId ?? '') . "'");
 
             if ($cartQuery->count()) {
                 $form->setReadOnly('currencyId');
@@ -506,7 +506,7 @@ class eshop_Settings extends core_Master
         }
 
         if(core_Packs::isInstalled('sync')){
-            $syncedStores = sync_Stores::getStoreOptions($rec->remoteStores);
+            $syncedStores = sync_Stores::getStoreOptions($rec->remoteStores ?? null);
             if(countR($syncedStores)){
                 $form->setField('remoteStores', 'input');
                 $form->setSuggestions('remoteStores', $syncedStores);

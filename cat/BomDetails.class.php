@@ -109,21 +109,7 @@ class cat_BomDetails extends doc_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'bomId=Рецепта,position=№, type=Вид, resourceId=Материал / Етап,paramId=Параметър, packagingId=Мярка,propQuantity=Формула,rowQuantity=Вложено->Количество,primeCost,coefficient';
-    
-    
-    /**
-     * Поле за заместване на артикул
-     *
-     * @see planning_plg_ReplaceProducts
-     */
-    public $replaceProductFieldName = 'resourceId';
-    
-    
-    /**
-     * Поле за артикула
-     */
-    public $productFld = 'resourceId';
+    public $listFields = 'bomId=Рецепта,position=№, type=Вид, productId=Материал / Етап,paramId=Параметър, packagingId=Мярка,propQuantity=Формула,rowQuantity=Вложено->Количество,primeCost,coefficient';
     
     
     /**
@@ -162,7 +148,7 @@ class cat_BomDetails extends doc_Detail
     public function description()
     {
         $this->FLD('bomId', 'key(mvc=cat_Boms)', 'column=none,input=hidden,silent');
-        $this->FLD('resourceId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,maxSuggestions=100,forceAjax)', 'class=w100,tdClass=materialCol,caption=Материал,mandatory,silent,removeAndRefreshForm=packagingId|subTitle|description|inputStores|storeIn|centerId|fixedAssets|employees|norm|labelPackagingId|labelQuantityInPack|labelType|labelTemplate|paramcat');
+        $this->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,maxSuggestions=100,forceAjax)', 'class=w100,tdClass=materialCol,caption=Материал,mandatory,silent,removeAndRefreshForm=packagingId|subTitle|description|inputStores|storeIn|centerId|fixedAssets|employees|norm|labelPackagingId|labelQuantityInPack|labelType|labelTemplate|paramcat,oldFieldName=resourceId');
         $this->FLD('paramId', 'key(mvc=cat_Params,select=typeExt,allowEmpty)', 'input=none,caption=Зависи от парам.,tdClass=small');
         $this->FLD('parentId', 'key(mvc=cat_BomDetails,select=id)', 'caption=Подетап на,remember,removeAndRefreshForm=propQuantity,silent');
         $this->FLD('packagingId', 'key(mvc=cat_UoM, select=shortName, select2MinItems=0)', 'caption=Мярка', 'tdClass=small-field nowrap,smartCenter,silent,removeAndRefreshForm=quantityInPack,mandatory,input=hidden');
@@ -196,7 +182,7 @@ class cat_BomDetails extends doc_Detail
         $this->FLD('coefficient', 'double', 'input=none');
 
         $this->setDbIndex('parentId');
-        $this->setDbIndex('resourceId');
+        $this->setDbIndex('productId');
         $this->setDbIndex('type');
     }
     
@@ -211,7 +197,7 @@ class cat_BomDetails extends doc_Detail
         $masterRec = $data->masterData->rec ?? null;
         $masterQuantity = $masterRow->quantity ?? ($masterRec->quantity ?? null);
 
-        $data->listFields['resourceId'] .= "|* <a href=\"javascript:clickAllClasses('bomResourceColName{$data->masterData->rec->id}','bomDetailStepDescription{$data->masterData->rec->id}')\"  style=\"background-image:url(" . sbf('img/16/toggle1.png', "'") . ");\" class=' plus-icon more-btn' id='bomResourceColName{$data->masterData->rec->id}'> </a>";
+        $data->listFields['productId'] .= "|* <a href=\"javascript:clickAllClasses('bomResourceColName{$data->masterData->rec->id}','bomDetailStepDescription{$data->masterData->rec->id}')\"  style=\"background-image:url(" . sbf('img/16/toggle1.png', "'") . ");\" class=' plus-icon more-btn' id='bomResourceColName{$data->masterData->rec->id}'> </a>";
 
         if(cat_BomDetails::count("#bomId = {$data->masterId} AND #parentId IS NOT NULL")) {
             if(!in_array($data->masterData->rec->state, array('draft', 'rejected'))){
@@ -244,22 +230,22 @@ class cat_BomDetails extends doc_Detail
         $rec = &$form->rec;
 
         if(!isset($rec->id)){
-            $form->setFieldTypeParams('resourceId', array('forceOpen' => 'forceOpen'));
+            $form->setFieldTypeParams('productId', array('forceOpen' => 'forceOpen'));
         } elseif(($data->action ?? null) != 'replaceproduct') {
-            $form->setReadOnly('resourceId');
+            $form->setReadOnly('productId');
         }
 
         $matCaption = ($rec->type == 'input') ? 'Артикул' : (($rec->type == 'pop') ? 'Отпадък' : (($rec->type == 'subProduct') ? 'Субпродукт' : 'Етап'));
         $parentIdCaption = ($rec->type == 'stage') ? 'Подетап на' : 'Етап';
         $form->setField('parentId', "caption={$parentIdCaption}");
-        $form->setField('resourceId', "caption={$matCaption}");
+        $form->setField('productId', "caption={$matCaption}");
         
         // Добавяме всички вложими артикули за избор
         $metas = ($rec->type == 'pop') ? 'canConvert,canStore' : ($rec->type == 'input' ? 'canConvert' : 'canManifacture');
         $groups = ($rec->type == 'pop') ? cat_Groups::getKeylistBySysIds('waste') : null;
 
         $onlyProductionStages = ($rec->type != 'stage') ? null : true;
-        $form->setFieldTypeParams('resourceId', array('hasProperties' => $metas, 'groups' => $groups, 'onlyProductionStages' => $onlyProductionStages));
+        $form->setFieldTypeParams('productId', array('hasProperties' => $metas, 'groups' => $groups, 'onlyProductionStages' => $onlyProductionStages));
         
         $form->setDefault('type', 'input');
         $quantity = $data->masterRec->quantity;
@@ -303,7 +289,7 @@ class cat_BomDetails extends doc_Detail
                 }
             }
 
-            if(isset($rec->resourceId)){
+            if(isset($rec->productId)){
 
                 // Ако има данни за производство
                 $wasteSysId = cat_Groups::getKeylistBySysIds('waste');
@@ -316,22 +302,22 @@ class cat_BomDetails extends doc_Detail
                 $form->setField('centerId', 'input');
                 $form->setField('norm', 'input');
                 $form->input('centerId', 'silent');
-                $Driver = cat_Products::getDriver($rec->resourceId);
-                $productionData = $Driver->getProductionData($rec->resourceId);
-                $canStore = cat_Products::fetchField($rec->resourceId, 'canStore');
-                $productMeasureId = cat_Products::fetchField($rec->resourceId, 'measureId');
+                $Driver = cat_Products::getDriver($rec->productId);
+                $productionData = $Driver->getProductionData($rec->productId);
+                $canStore = cat_Products::fetchField($rec->productId, 'canStore');
+                $productMeasureId = cat_Products::fetchField($rec->productId, 'measureId');
                 if($canStore == 'yes'){
                     // Показване на полетата за етикетиране
                     $form->setField('storeIn', 'input');
                     $form->setField('inputStores', 'input');
                     $form->setField('labelPackagingId', 'input');
 
-                    $packs = planning_Tasks::getAllowedLabelPackagingOptions($productMeasureId, $rec->resourceId, $rec->labelPackagingId ?? null);
+                    $packs = planning_Tasks::getAllowedLabelPackagingOptions($productMeasureId, $rec->productId, $rec->labelPackagingId ?? null);
                     $form->setOptions("labelPackagingId", $packs);
                 }
 
                 // Добавяне на дефолтите от производствените данни
-                if($form->cmd == 'refresh' || Request::get('resourceId', 'int')){
+                if($form->cmd == 'refresh' || Request::get('productId', 'int')){
 
                     if(empty($rec->centerId) && empty($rec->norm) && empty($rec->storeIn) && empty($rec->inputStores) && empty($rec->fixedAssets) && empty($rec->employees) && empty($rec->labelPackagingId) && empty($rec->labelTemplate) && empty($rec->labelType) && empty($rec->labelQuantityInPack) && empty($rec->wasteProductId) && empty($rec->wasteStart) && empty($rec->wastePercent)){
                        foreach (array('centerId', 'norm', 'storeIn', 'inputStores', 'fixedAssets', 'employees', 'labelPackagingId', 'labelQuantityInPack', 'labelType', 'labelTemplate', 'wasteProductId', 'wasteStart', 'wastePercent') as $productionFld){
@@ -363,7 +349,7 @@ class cat_BomDetails extends doc_Detail
                     $form->setOptions("labelTemplate", $templateOptions);
 
                     // К-то в опаковката като хинт
-                    $packRec = cat_products_Packagings::getPack($rec->resourceId, $rec->labelPackagingId);
+                    $packRec = cat_products_Packagings::getPack($rec->productId, $rec->labelPackagingId);
                     $quantityInPack = is_object($packRec) ? $packRec->quantity : 1;
                     $form->setField("labelQuantityInPack", "placeholder=|*{$quantityInPack}");
                 }
@@ -385,10 +371,10 @@ class cat_BomDetails extends doc_Detail
 
                 $masterRec = cat_Boms::fetch($rec->bomId);
                 if(empty($rec->id)){
-                    cat_products_Params::addProductParamsToForm($mvc, $rec->id ?? null, $masterRec->productId, $rec->resourceId, $form);
+                    cat_products_Params::addProductParamsToForm($mvc, $rec->id ?? null, $masterRec->productId, $rec->productId, $form);
                 }
 
-                $form->setFieldTypeParams("norm", array('measureId' => cat_Products::fetchField($rec->resourceId, 'measureId')));
+                $form->setFieldTypeParams("norm", array('measureId' => cat_Products::fetchField($rec->productId, 'measureId')));
             }
         }
     }
@@ -409,7 +395,7 @@ class cat_BomDetails extends doc_Detail
         $query->where("#bomId = {$bomId} AND #type = 'stage'");
         while ($dRec = $query->fetch()) {
             $code = implode('.', $me->getProductPath($dRec, true));
-            $options[$dRec->id] = $code . ". " . cat_Products::getTitleById($dRec->resourceId, false);
+            $options[$dRec->id] = $code . ". " . cat_Products::getTitleById($dRec->productId, false);
         }
         unset($options[$id]);
 
@@ -657,16 +643,16 @@ class cat_BomDetails extends doc_Detail
         $masterProductId = $masterRec->productId;
         
         // Ако има избран ресурс, добавяме му мярката до полетата за количества
-        if (isset($rec->resourceId)) {
+        if (isset($rec->productId)) {
             
             $rec->params = $mvc->getProductParamScope($rec, $masterProductId);
             $context = cat_Params::formulaMapToSuggestions($rec->params);
             unset($context['$T']);
             $form->setSuggestions('propQuantity', $context);
-            $pInfo = cat_Products::getProductInfo($rec->resourceId);
+            $pInfo = cat_Products::getProductInfo($rec->productId);
 
             if(empty($form->_replaceProduct) || $form->_replaceProduct !== true){
-                $packs = cat_Products::getPacks($rec->resourceId, $rec->packagingId ?? null);
+                $packs = cat_Products::getPacks($rec->productId, $rec->packagingId ?? null);
                 $form->setOptions('packagingId', $packs);
                 $form->setDefault('packagingId', key($packs));
             } else {
@@ -691,7 +677,7 @@ class cat_BomDetails extends doc_Detail
             $calced = static::calcExpr($rec->propQuantity, $rec->params);
             if ($calced == static::CALC_ERROR) {
                 if(isset($form->_replaceProduct) && $form->_replaceProduct === true){
-                    $form->setWarning('resourceId', 'При замяна на артикула, формулата за количествата му няма да може да се изчисли');
+                    $form->setWarning('productId', 'При замяна на артикула, формулата за количествата му няма да може да се изчисли');
                 } else {
                     $form->setWarning('propQuantity', 'Има проблем при изчисляването на количеството');
                 }
@@ -708,24 +694,24 @@ class cat_BomDetails extends doc_Detail
                 }
             }
             
-            if (isset($rec->resourceId)) {
+            if (isset($rec->productId)) {
                 
                 // Ако е избран артикул проверяваме дали артикула от рецептата не се съдържа в него
                 $productVerbal = cat_Products::getTitleById($masterProductId);
                 
                 $notAllowed = array();
-                $mvc->findNotAllowedProducts($rec->resourceId, $masterProductId, $notAllowed);
-                if (isset($notAllowed[$rec->resourceId])) {
-                    $form->setError('resourceId', "Артикулът не може да бъде избран, защото в рецептата на някой от материалите му се съдържа|* <b>{$productVerbal}</b>");
+                $mvc->findNotAllowedProducts($rec->productId, $masterProductId, $notAllowed);
+                if (isset($notAllowed[$rec->productId])) {
+                    $form->setError('productId', "Артикулът не може да бъде избран, защото в рецептата на някой от материалите му се съдържа|* <b>{$productVerbal}</b>");
                 }
             }
             
             // Ако добавяме отпадък, искаме да има себестойност
             if (in_array($rec->type, array('pop', 'subProduct'))) {
-                $selfValue = price_ListRules::getPrice(price_ListRules::PRICE_LIST_COST, $rec->resourceId);
+                $selfValue = price_ListRules::getPrice(price_ListRules::PRICE_LIST_COST, $rec->productId);
                 if (!isset($selfValue)) {
                     $midCaption = ($rec->type == 'subProduct') ? 'Субпродуктът няма себестойност|*!' : 'Отпадъкът няма себестойност|*!';
-                    $form->setWarning('resourceId', $midCaption);
+                    $form->setWarning('productId', $midCaption);
                 }
             }
             $rec->quantityInPack = (isset($pInfo) && isset($pInfo->packagings[$rec->packagingId])) ? $pInfo->packagings[$rec->packagingId]->quantity : 1;
@@ -747,7 +733,7 @@ class cat_BomDetails extends doc_Detail
                     
                     // Ако добавяме етап
                     if ($rec->type == 'stage') {
-                        $bom = cat_Products::getLastActiveBom($rec->resourceId);
+                        $bom = cat_Products::getLastActiveBom($rec->productId);
                         if (!empty($bom)) {
                             
                             // и има детайли
@@ -766,7 +752,7 @@ class cat_BomDetails extends doc_Detail
                                     }
                                 }
                                 
-                                if (in_array($rec->resourceId, $path)) {
+                                if (in_array($rec->productId, $path)) {
                                     $canAdd = false;
                                 }
                             }
@@ -775,7 +761,7 @@ class cat_BomDetails extends doc_Detail
                     
                     // Ако артикула не може да се избере сетваме грешка
                     if ($canAdd === false) {
-                        $form->setError('parentId,resourceId', 'Артикулът не може да се повтаря в нивото');
+                        $form->setError('parentId,productId', 'Артикулът не може да се повтаря в нивото');
                     }
                 }
             }
@@ -794,11 +780,11 @@ class cat_BomDetails extends doc_Detail
     public function getProductPath($rec, $position = false)
     {
         $path = array();
-        $path[] = ($position) ? $rec->position : $rec->resourceId;
+        $path[] = ($position) ? $rec->position : $rec->productId;
         
         $parent = $rec->parentId ?? null;
-        while ($parent && ($pRec = $this->fetch($parent, 'parentId,position,resourceId'))) {
-            $path[] = ($position) ? $pRec->position : $pRec->resourceId;
+        while ($parent && ($pRec = $this->fetch($parent, 'parentId,position,productId'))) {
+            $path[] = ($position) ? $pRec->position : $pRec->productId;
             $parent = $pRec->parentId ?? null;
         }
         
@@ -814,17 +800,17 @@ class cat_BomDetails extends doc_Detail
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         // Показваме подробната информация за опаковката при нужда
-        deals_Helper::getPackInfo($row->packagingId, $rec->resourceId, $rec->packagingId, $rec->quantityInPack);
-        $row->resourceId = cat_Products::getTitleById($rec->resourceId);
+        deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
+        $row->productId = cat_Products::getTitleById($rec->productId);
         if (!empty($rec->subTitle)) {
             $subTitleVerbal = $mvc->getFieldType('subTitle')->toVerbal($rec->subTitle);
-            $row->resourceId .= " <i>{$subTitleVerbal}</i>";
+            $row->productId .= " <i>{$subTitleVerbal}</i>";
         }
 
         if(!Mode::isReadOnly()){
-            $singleProductUrlArray = cat_Products::getSingleUrlArray($rec->resourceId);
+            $singleProductUrlArray = cat_Products::getSingleUrlArray($rec->productId);
             if(countR($singleProductUrlArray)){
-                $row->resourceId = ht::createLinkRef($row->resourceId, $singleProductUrlArray);
+                $row->productId = ht::createLinkRef($row->productId, $singleProductUrlArray);
             }
         }
 
@@ -833,20 +819,20 @@ class cat_BomDetails extends doc_Detail
         }
 
         if ($rec->type == 'stage') {
-            $row->resourceId = "<b>{$row->resourceId}</b>";
+            $row->productId = "<b>{$row->productId}</b>";
             $row->ROW_ATTR['style'] = 'background-color:#EFEFEF';
             $row->ROW_ATTR['title'] = tr('Етап');
         } else {
             $row->ROW_ATTR['class'] = ($rec->type == 'input') ? 'row-added' : ($rec->type == 'pop' ? 'row-removed' : 'row-subProduct');
 
             if(!empty($rec->paramId)){
-                $row->resourceId = ht::createHint("<span class='blueText'>{$row->resourceId}</span>", "Материалът ще бъде подменен при промяна на стойноста на параметъра|*: {$row->paramId}", 'warning', false);
+                $row->productId = ht::createHint("<span class='blueText'>{$row->productId}</span>", "Материалът ще бъде подменен при промяна на стойноста на параметъра|*: {$row->paramId}", 'warning', false);
                 $row->paramId = cat_Params::getHyperlink($rec->paramId);
 
                 if($errorProductId = core_Permanent::get("receiptErrReplace_{$rec->id}")){
                     $pCode = cat_Products::fetchField($errorProductId, 'code');
                     $pCode = $pCode ?? "Art{$errorProductId}";
-                    $row->resourceId = ht::createHint("<span class='blueText'>{$row->resourceId}</span>", "Имало е неуспешен опит за авт. промяна на материала при промяна на параметъра на|*: [{$pCode}]", 'error', false);
+                    $row->productId = ht::createHint("<span class='blueText'>{$row->productId}</span>", "Имало е неуспешен опит за авт. промяна на материала при промяна на параметъра на|*: [{$pCode}]", 'error', false);
                 }
             }
         }
@@ -885,7 +871,7 @@ class cat_BomDetails extends doc_Detail
                 }
             }
 
-            $row->resourceId .= $extraBtnTpl;
+            $row->productId .= $extraBtnTpl;
         }
 
         $descriptionArr = array();
@@ -910,8 +896,8 @@ class cat_BomDetails extends doc_Detail
             }
 
             $productionData = array();
-            if($Driver = cat_Products::getDriver($rec->resourceId)){
-                $productionData = $Driver->getProductionData($rec->resourceId);
+            if($Driver = cat_Products::getDriver($rec->productId)){
+                $productionData = $Driver->getProductionData($rec->productId);
             }
 
             foreach (array('wasteProductId' => 'Отпадък', 'wasteStart' => 'Отпадък: Начален', 'wastePercent' => 'Отпадък: Допустим') as $wasteFld => $wasteCaption){
@@ -930,7 +916,7 @@ class cat_BomDetails extends doc_Detail
                 $descriptionArr[] = tr("|*<tr><td>|Опаковка (Етикет)|*:</td><td>") . $mvc->getFieldType('labelPackagingId')->toVerbal($rec->labelPackagingId) . "</td></tr>";
 
                 if(empty($rec->labelQuantityInPack)){
-                    $packRec = cat_products_Packagings::getPack($rec->resourceId, $rec->labelPackagingId);
+                    $packRec = cat_products_Packagings::getPack($rec->productId, $rec->labelPackagingId);
                     $quantityInPackDefault = is_object($packRec) ? $packRec->quantity : 1;
                     $quantityInPackDefault = "<span class='blueText'>" . core_Type::getByName('double(smartRound)')->toVerbal($quantityInPackDefault) . "</span>";
                     $quantityInPackDefault = ht::createHint($quantityInPackDefault, 'От опаковката/мярката на артикула');
@@ -977,12 +963,12 @@ class cat_BomDetails extends doc_Detail
         }
 
         if(!empty($productDescriptionTpl->getContent())){
-            $newTpl = new core_ET("[#resourceId#] [#link#] <div style='margin-top:2px;margin-top:2px;margin-bottom:2px;color:#888;display:none' id='{$rec->id}inf'>[#content#]</div>");
-            $newTpl->replace($row->resourceId, 'resourceId');
+            $newTpl = new core_ET("[#productId#] [#link#] <div style='margin-top:2px;margin-top:2px;margin-bottom:2px;color:#888;display:none' id='{$rec->id}inf'>[#content#]</div>");
+            $newTpl->replace($row->productId, 'productId');
             $newTpl->replace(" <a href=\"javascript:toggleDisplay('{$rec->id}inf');saveToggleState();\"  style=\"background-image:url(" . sbf('img/16/minus-black.png', "'") . ');" data-id="' .$rec->id. 'inf" class=" plus-icon more-btn bomDetailStepDescription' . $rec->bomId . '"> </a>', 'link');
             $newTpl->replace($productDescriptionTpl, 'content');
             $newTpl->removeBlocksAndPlaces();
-            $row->resourceId = $newTpl;
+            $row->productId = $newTpl;
             $row->ROW_ATTR['data-id'] = "receiptDetailRecStepTr{$rec->id}";
         }
 
@@ -1047,22 +1033,22 @@ class cat_BomDetails extends doc_Detail
         // Проверка може ли артикулът да бъде разпънат като етап
         $masterRec = cat_Boms::fetch($rec->bomId);
         $notAllowed = array();
-        $this->findNotAllowedProducts($rec->resourceId, $masterRec->productId, $notAllowed);
-        if (isset($notAllowed[$rec->resourceId])) {
+        $this->findNotAllowedProducts($rec->productId, $masterRec->productId, $notAllowed);
+        if (isset($notAllowed[$rec->productId])) {
             $productVerbal = cat_Products::getTitleById($masterRec->productId);
             
             return followRetUrl(null, "|Артикулът не може да бъде , защото в рецептата на някой от материалите му се съдържа|* <b>{$productVerbal}</b>", 'error');
         }
         
         $bomRec = null;
-        cat_BomDetails::addProductComponents($rec->resourceId, $rec->bomId, $rec->id, $bomRec);
+        cat_BomDetails::addProductComponents($rec->productId, $rec->bomId, $rec->id, $bomRec);
         if (isset($bomRec)) {
             $rec->coefficient = $bomRec->quantity;
         }
 
-        $Driver = cat_Products::getDriver($rec->resourceId);
+        $Driver = cat_Products::getDriver($rec->productId);
         if(isset($Driver)){
-            $productionData = $Driver->getProductionData($rec->resourceId);
+            $productionData = $Driver->getProductionData($rec->productId);
             foreach (array('centerId', 'norm', 'storeIn', 'inputStores', 'fixedAssets', 'employees', 'labelPackagingId', 'labelQuantityInPack', 'labelType', 'labelTemplate') as $productionFld) {
                 $productionValue = $productionData[$productionFld] ?? null;
                 $defaultValue = is_array($productionValue) ? keylist::fromArray($productionValue) : $productionValue;
@@ -1073,7 +1059,7 @@ class cat_BomDetails extends doc_Detail
         $this->save($rec);
 
         static::addParamsToStepRec($masterRec->productId, $rec);
-        $title = cat_Products::getTitleById($rec->resourceId);
+        $title = cat_Products::getTitleById($rec->productId);
         $msg = "{$title} |вече е етап|*";
         $this->Master->logWrite('Разпъване на вложен артикул', $rec->bomId);
         
@@ -1101,7 +1087,7 @@ class cat_BomDetails extends doc_Detail
         }
 
         $this->save($rec);
-        $title = cat_Products::getTitleById($rec->resourceId);
+        $title = cat_Products::getTitleById($rec->productId);
         $msg = "|Свиване на|* {$title}";
         $this->Master->logWrite('Свиване на етап', $rec->bomId);
         
@@ -1158,16 +1144,16 @@ class cat_BomDetails extends doc_Detail
         if (($action == 'expand' || $action == 'shrink') && isset($rec)) {
             
             // Артикула трябва да е производим и да има активна рецепта
-            $canManifacture = cat_Products::fetchField($rec->resourceId, 'canManifacture');
+            $canManifacture = cat_Products::fetchField($rec->productId, 'canManifacture');
             if ($canManifacture != 'yes') {
                 $requiredRoles = 'no_one';
             } else {
                 $type = cat_Boms::fetchField($rec->bomId, 'type');
                 if ($type == 'production') {
-                    $aBom = cat_Products::getLastActiveBom($rec->resourceId, 'production');
+                    $aBom = cat_Products::getLastActiveBom($rec->productId, 'production');
                 }
                 if (empty($aBom)) {
-                    $aBom = cat_Products::getLastActiveBom($rec->resourceId, 'sales');
+                    $aBom = cat_Products::getLastActiveBom($rec->productId, 'sales');
                 }
                
                if (empty($aBom)) {
@@ -1228,18 +1214,18 @@ class cat_BomDetails extends doc_Detail
     {
         $query = $this->getQuery();
         $query->where("#parentId = {$id}");
-        $query->show('resourceId,propQuantity,packagingId,quantityInPack,type');
-        $query->orderBy('resourceId', 'ASC');
+        $query->show('productId,propQuantity,packagingId,quantityInPack,type');
+        $query->orderBy('productId', 'ASC');
         
         while ($rec = $query->fetch()) {
             $obj = new stdClass();
-            $obj->resourceId = $rec->resourceId;
+            $obj->productId = $rec->productId;
             $obj->packagingId = $rec->packagingId;
             $obj->propQuantity = trim((string) $rec->propQuantity);
-            $res[$rec->resourceId . '|' . $rec->packagingId] = $obj;
+            $res[$rec->productId . '|' . $rec->packagingId] = $obj;
             
             if ($rec->type != 'stage') {
-                $this->getComponents($rec->resourceId, $res);
+                $this->getComponents($rec->productId, $res);
             }
             $this->getDescendents($rec->id, $res);
         }
@@ -1265,13 +1251,13 @@ class cat_BomDetails extends doc_Detail
         if (is_array($details)) {
             foreach ($details as $dRec) {
                 $obj = new stdClass();
-                $obj->resourceId = $dRec->resourceId;
+                $obj->productId = $dRec->productId;
                 $obj->packagingId = $dRec->packagingId;
                 $obj->propQuantity = trim((string) $dRec->propQuantity);
-                $res[$dRec->resourceId . '|' . $dRec->packagingId] = $obj;
+                $res[$dRec->productId . '|' . $dRec->packagingId] = $obj;
                 
                 if ($dRec->type != 'stage') {
-                    $this->getComponents($dRec->resourceId, $res);
+                    $this->getComponents($dRec->productId, $res);
                 }
             }
         }
@@ -1286,7 +1272,7 @@ class cat_BomDetails extends doc_Detail
     {
         $children = $bomDetails = array();
         $this->getDescendents($rec->id, $children);
-        $this->getComponents($rec->resourceId, $bomDetails);
+        $this->getComponents($rec->productId, $bomDetails);
         ksort($children);
         ksort($bomDetails);
         
@@ -1298,7 +1284,7 @@ class cat_BomDetails extends doc_Detail
             }
 
             $other = $bomDetails[$index];
-            if ($obj->propQuantity != $other->propQuantity || $obj->resourceId != $other->resourceId || $obj->packagingId != $other->packagingId) {
+            if ($obj->propQuantity != $other->propQuantity || $obj->productId != $other->productId || $obj->packagingId != $other->packagingId) {
                 $areSame = false;
                 break;
             }
@@ -1469,7 +1455,7 @@ class cat_BomDetails extends doc_Detail
         // Ако сме добавили нов етап
         if (($rec->stageAdded ?? null) === true) {
             $bomRec = null;
-            static::addProductComponents($rec->resourceId, $rec->bomId, $rec->id, $bomRec);
+            static::addProductComponents($rec->productId, $rec->bomId, $rec->id, $bomRec);
             if ($bomRec) {
                 $rec->coefficient = $bomRec->quantity;
                 $mvc->save_($rec, 'coefficient');
@@ -1572,7 +1558,7 @@ class cat_BomDetails extends doc_Detail
                 $this->save_($dRec);
 
                 if($genericProductId = planning_GenericProductPerDocuments::getRec($this, $oldId)){
-                    planning_GenericProductPerDocuments::sync($this, $dRec->id, $dRec->resourceId, $toRec->containerId, $genericProductId);
+                    planning_GenericProductPerDocuments::sync($this, $dRec->id, $dRec->productId, $toRec->containerId, $genericProductId);
                 }
 
                 $map[$oldId] = $dRec->id;
@@ -1678,15 +1664,15 @@ class cat_BomDetails extends doc_Detail
      */
     public static function addParamsToStepRec($bomProductId, $dRec)
     {
-        $StepDriver = cat_Products::getDriver($dRec->resourceId);
+        $StepDriver = cat_Products::getDriver($dRec->productId);
         if(!$StepDriver) return;
 
         // Винаги се регенерират и параметрите
-        $pData = $StepDriver->getProductionData($dRec->resourceId);
+        $pData = $StepDriver->getProductionData($dRec->productId);
         if (is_array($pData['planningParams'] ?? null)) {
             foreach ($pData['planningParams'] as $paramId){
                 $productParamValues = cat_Products::getParams($bomProductId);
-                $stepParams = cat_Products::getParams($dRec->resourceId);
+                $stepParams = cat_Products::getParams($dRec->productId);
 
                 $v = null;
                 if(array_key_exists($paramId, $productParamValues)){

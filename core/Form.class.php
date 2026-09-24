@@ -823,7 +823,7 @@ class core_Form extends core_FieldSet
                 }
                 
                 if (!empty($field->hint)) {
-                    $attr['title'] = $field->hint;
+                    $attr['title'] = tr($field->hint);
                 }
                 
                 if (!empty($field->class)) {

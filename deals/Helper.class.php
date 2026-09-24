@@ -136,8 +136,8 @@ abstract class deals_Helper
             // Калкулира се цената с и без ддс и се показва една от тях взависимост трябвали да се показва ддс-то
             $price = self::calcPrice($rec->{$map['priceFld']} ?? null, $vat, $masterRec->{$map['rateFld']});
             $rec->{$map['priceFld']} = ($hasVat) ? $price->withVat : $price->noVat;
-            $noVatAmount = round($price->noVat * $rec->{$map['quantityFld']}, $vatDecimals);
-            $discountVal = $rec->{$map['discount']};
+            $noVatAmount = round($price->noVat * ($rec->{$map['quantityFld']} ?? 0), $vatDecimals);
+            $discountVal = $rec->{$map['discount']} ?? null;
 
             if(!empty($rec->{$map['autoDiscount']})){
                 if(in_array($masterRec->state, array('draft', 'pending'))){
@@ -971,7 +971,7 @@ abstract class deals_Helper
                 if($showNegativeWarning){
                     $hint = "Недостатъчна наличност|*(2): {$inStockStyled} |{$measureName}|*!<br>|Контирането на документа ще доведе до отрицателна наличност|* |{$showStoreInMsg}|*!";
                     if(haveRole('debug')) {
-                        $hint .= "<br>(debug) количество: {$quantity}, бъдещо: {$futureQuantity}, разполагаемо {$freeQuantity} (текущо разп. {$freeQuantityOriginal}), налично {$stRec->quantity}";
+                        $hint .= "<br><i class='quiet'>(debug) количество: {$quantity}, бъдещо: {$futureQuantity}, разполагаемо {$freeQuantity} (текущо разп. {$freeQuantityOriginal}), налично {$stRec->quantity}</i>";
                     }
                     $class = 'doc-negative-quantity';
                     $makeLink = false;
@@ -3223,7 +3223,7 @@ abstract class deals_Helper
                 $msgSuffix = '';
                 if(is_object($transportFeeRec) && $transportFeeRec->fee > 0){
                     $var->price += $transportFeeRec->fee / $quantity;
-                    $var->price = round($foundPrice->price, 6);
+                    $var->price = round($var->price, 6);
                     $msgSuffix .= ", |вкл. транспорт|*";
                 }
 
@@ -3294,12 +3294,10 @@ abstract class deals_Helper
             $dQuery->where("#{$Detail->masterKey} = {$rec->id}");
             $priceDate = ($rec->state == 'draft') ? null : $rec->valior;
 
+            $useQuotationPrice = false;
             if($mvc instanceof sales_Sales){
                 $useQuotationPrice = isset($rec->originId);
-            } elseif($mvc instanceof sales_Quotations){
-                $useQuotationPrice = false;
-            } elseif($mvc instanceof store_ShipmentOrders){
-                $useQuotationPrice = false;
+            } elseif($mvc instanceof store_ShipmentOrders || $mvc instanceof sales_Services){
                 if($firstDocument = doc_Threads::getFirstDocument($rec->threadId)){
                     if($firstDocument->isInstanceOf('sales_Sales')){
                         $firstDocumentOrigin = $firstDocument->fetchField('originId');
@@ -3309,9 +3307,9 @@ abstract class deals_Helper
             }
 
             while ($dRec = $dQuery->fetch()) {
-                $discount = isset($dRec->discount) ? $dRec->discount : $dRec->autoDiscount;
+                $discount = isset($dRec->discount) ? $dRec->discount : ($dRec->autoDiscount ?? null);
                 $transportFeeRec = sales_TransportValues::get($mvc, $rec->id, $dRec->id);
-                if($checkedObject = deals_Helper::checkPriceWithContragentPrice($dRec->productId, $dRec->price, $discount, $dRec->quantity, $dRec->quantityInPack, $rec->contragentClassId, $rec->contragentId, $priceDate, $rec->priceListId, $useQuotationPrice, $mvc, $rec->threadId, $rec->currencyRate, $rec->currencyId, $transportFeeRec)){
+                if($checkedObject = deals_Helper::checkPriceWithContragentPrice($dRec->productId, $dRec->price, $discount, $dRec->quantity, $dRec->quantityInPack, $rec->contragentClassId, $rec->contragentId, $priceDate, $rec->priceListId ?? null, $useQuotationPrice, $mvc, $rec->threadId, $rec->currencyRate, $rec->currencyId, $transportFeeRec)){
                     if($checkedObject['hintType'] == 'error'){
                         $products[$dRec->productId] = cat_Products::getTitleById($dRec->productId);
                     }
@@ -3959,7 +3957,25 @@ abstract class deals_Helper
      */
     public static function renderVatDataLayout(&$tpl, $mvc, $vats, $row)
     {
-        if(!is_array($vats)) return;
+        // ДДС секцията се показва само когато реда наистина носи ддс данни
+        // (фактура или отделен ред за ДДС). При "без ДДС"/"вкл. ДДС" тези полета липсват,
+        // затова махаме и обвивката VAT_INFO, за да не остане самотен разделител (<hr>).
+        $hasVatRows = false;
+        if(is_array($vats)){
+            foreach(array_keys($vats) as $vatPercent){
+                $percentVal = str_replace('.', '', $vatPercent);
+                if(isset($row->{"vat{$percentVal}"}) || isset($row->{"vat{$percentVal}Amount"})){
+                    $hasVatRows = true;
+                    break;
+                }
+            }
+        }
+
+        if(!$hasVatRows){
+            $tpl->removeBlock('VAT_INFO');
+
+            return;
+        }
 
         try{
             $block = $tpl->getBlock('VAT_BLOCK');

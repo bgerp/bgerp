@@ -115,9 +115,133 @@ $twoColsFilterSummaryMaxWidth: unquote("var(--two-cols-filter-summary-max-width,
 	}
 }
 
-// Самостоятелната форма за търсене следва реалната широчина на полетата си.
+// Самостоятелната форма задава минималната широчина и на резултатите.
 .wide .doc_Search .twoColsFilter.twoColsFilterActive {
 	contain: none;
+}
+
+// Колоните използват и допълнителната широчина от резултатите.
+.wide .doc_Search .twoColsFilter.twoColsFilterActive .listFilter,
+.wide .cal_Tasks .twoColsFilter.twoColsFilterActive .listFilter {
+	flex-grow: 1;
+
+	> form {
+		width: 100%;
+	}
+
+	.vFormField {
+		width: 100%;
+		min-width: $twoColsFilterWidth;
+		contain: inline-size;
+
+		> tbody {
+			grid-template-columns: unquote("minmax(#{$twoColsFilterLeftWidth}, 1fr) minmax(#{$twoColsFilterRightWidth}, 1fr)");
+		}
+	}
+}
+
+// Формата и резултатите запълват общата широчина на списъка.
+.wide .doc_Search {
+	.twoColsFilter {
+		column-gap: 0;
+
+		.listFilter {
+			flex: 1 1 auto;
+		}
+	}
+
+	.twoColsFilter .formTable,
+	.listRows > .listTable {
+		width: 100%;
+		max-width: none;
+	}
+}
+
+// Полетата запълват колоната независимо от широчината на отделния тип.
+.wide .doc_Search .twoColsFilter.twoColsFilterReady .formElement,
+.wide .cal_Tasks .twoColsFilter.twoColsFilterReady .formElement {
+	> input[type="text"],
+	> select:not(.select2-hidden-accessible),
+	> .select2-container,
+	> .twoColsFilterComboInput,
+	> .twoColsFilterDateInput {
+		box-sizing: border-box;
+		width: 100% !important;
+		min-width: 0;
+		max-width: none;
+	}
+}
+
+.narrow .doc_Search .twoColsFilter,
+.narrow .cal_Tasks .twoColsFilter {
+	.formTable,
+	.vFormField {
+		table-layout: fixed;
+		width: 100%;
+	}
+
+	.formCell {
+		> input[type="text"],
+		> select:not(.select2-hidden-accessible),
+		> .select2-container,
+		> .twoColsFilterComboInput,
+		> .twoColsFilterDateInput {
+			box-sizing: border-box;
+			width: 100% !important;
+			min-width: 0;
+			max-width: 100% !important;
+		}
+	}
+}
+
+.twoColsFilterComboInput {
+	display: inline-block;
+	position: relative;
+	vertical-align: top;
+
+	> input.combo {
+		width: 100% !important;
+		margin-right: 0 !important;
+		padding-right: 22px !important;
+	}
+
+	> select.combo {
+		top: 0;
+		left: 0;
+		width: 100% !important;
+		max-width: none !important;
+		clip: auto !important;
+		clip-path: unquote("inset(0 0 0 calc(100% - 22px))");
+	}
+}
+
+.twoColsFilterDateInput {
+	display: inline-flex;
+	vertical-align: top;
+	align-items: center;
+
+	> input[type="text"] {
+		box-sizing: border-box;
+		flex: 1 1 auto;
+		min-width: 0;
+	}
+
+	> a {
+		flex: 0 0 auto;
+	}
+}
+
+.doc_Search .select2-container .select2-selection--multiple,
+.cal_Tasks .twoColsFilter .select2-container .select2-selection--multiple {
+	background-position: right center !important;
+	// Място за стрелката и бутона за изчистване.
+	padding-right: 21px;
+
+	.select2-selection__clear {
+		font-size: 1em;
+		line-height: 24px;
+		transform: translateY(-1px);
+	}
 }
 
 // Компактните select2 полета растат според избраните стойности, без да ги подреждат вертикално

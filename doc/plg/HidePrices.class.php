@@ -150,7 +150,7 @@ class doc_plg_HidePrices extends core_Plugin
      */
     public static function on_AfterPrepareSingle($mvc, &$res, &$data)
     {
-        if (self::canSeePriceFields($mvc, $data->rec) || $data->dontHidePrices === true) {
+        if (self::canSeePriceFields($mvc, $data->rec) || ($data->dontHidePrices ?? null) === true) {
             
             return;
         }
@@ -164,7 +164,7 @@ class doc_plg_HidePrices extends core_Plugin
      */
     public static function on_BeforePrepareSingle(core_Mvc $mvc, &$res, $data)
     {
-        if (self::canSeePriceFields($mvc, $data->rec) || $data->dontHidePrices === true) {
+        if (self::canSeePriceFields($mvc, $data->rec) || ($data->dontHidePrices ?? null) === true) {
             
             return;
         }
@@ -180,7 +180,7 @@ class doc_plg_HidePrices extends core_Plugin
      */
     public static function on_AfterPrepareDetail($mvc, $res, &$data)
     {
-        if (self::canSeePriceFields($data->masterMvc, $data->masterData->rec) || $data->dontHidePrices === true) {
+        if (self::canSeePriceFields($data->masterMvc, $data->masterData->rec) || ($data->dontHidePrices ?? null) === true) {
             
             return;
         }
@@ -200,13 +200,13 @@ class doc_plg_HidePrices extends core_Plugin
     {
         $priceFields = arr::make($mvc->priceFields ?? null);
         
-        if (countR($data->rows)) {
+        if (countR($data->rows ?? null)) {
             foreach ($data->rows as $row) {
                 self::unsetPriceFields($row, $priceFields);
             }
         }
         
-        if ($data->row) {
+        if (!empty($data->row)) {
             self::unsetPriceFields($data->row, $priceFields);
         }
         
@@ -218,10 +218,18 @@ class doc_plg_HidePrices extends core_Plugin
 
     /**
      * Какъв е скритие елемент, с който ще се замести чувствителната информация
+     *
+     * @param bool $plain - само текст, за готов текст извън рендирането
      * @return string
      */
-    public static function getBuriedElement()
+    public static function getBuriedElement($plain = false)
     {
+        // В рендирането трябва да остане span-а - plg_AlignDecimals2 презаписва клетки без HTML с истинската стойност
+        if ($plain) {
+
+            return tr('заличено||buried');
+        }
+
         $title = tr("Нямате права да виждате сумата/цената");
 
         return "<span class='confidential-field' title = '{$title}'>" . tr('заличено||buried'). "</span>";

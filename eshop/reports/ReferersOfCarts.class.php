@@ -68,6 +68,12 @@ class eshop_reports_ReferersOfCarts extends frame2_driver_TableData
 
 
     /**
+     * Кои полета от таблицата са цени/суми
+     */
+    protected $priceListFields = 'totalNoVat';
+
+
+    /**
      * Кои полета са за избор на период
      */
     protected $periodFields = 'from,to';
@@ -107,7 +113,7 @@ class eshop_reports_ReferersOfCarts extends frame2_driver_TableData
     /**
      * След рендиране на единичния изглед
      *
-     * @param cat_ProductDriver $Driver
+     * @param frame2_driver_Proto $Driver
      * @param embed_Manager $Embedder
      * @param core_Form $form
      * @param stdClass $data
@@ -272,7 +278,7 @@ class eshop_reports_ReferersOfCarts extends frame2_driver_TableData
     /**
      * След рендиране на единичния изглед
      *
-     * @param cat_ProductDriver $Driver
+     * @param frame2_driver_Proto $Driver
      * @param embed_Manager $Embedder
      * @param core_ET $tpl
      * @param stdClass $data

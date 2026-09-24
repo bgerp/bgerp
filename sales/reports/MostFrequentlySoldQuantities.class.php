@@ -71,7 +71,7 @@ class sales_reports_MostFrequentlySoldQuantities extends frame2_driver_TableData
     /**
      * След рендиране на единичния изглед
      *
-     * @param cat_ProductDriver $Driver
+     * @param frame2_driver_Proto $Driver
      * @param embed_Manager $Embedder
      * @param core_Form $form
      * @param stdClass $data
@@ -195,7 +195,7 @@ class sales_reports_MostFrequentlySoldQuantities extends frame2_driver_TableData
     /**
      * След рендиране на единичния изглед
      *
-     * @param cat_ProductDriver $Driver
+     * @param frame2_driver_Proto $Driver
      * @param embed_Manager $Embedder
      * @param core_ET $tpl
      * @param stdClass $data
@@ -212,11 +212,14 @@ class sales_reports_MostFrequentlySoldQuantities extends frame2_driver_TableData
                                 </fieldset><!--ET_END BLOCK-->"));
 
 
-        $periodStart = dt::addSecs(-$data->rec->periodStart, dt::today(), false);
-        $periodEnd = dt::addSecs(-$data->rec->periodEnd, $periodStart, false);
-
+        $periodStart = null;
         if (isset($data->rec->periodStart)) {
+            $periodStart = dt::addSecs(-1 * $data->rec->periodStart, dt::today(), false);
             $fieldTpl->append('<b>' . $Date->toVerbal($periodStart). '</b>', 'periodStart');
+        }
+
+        if (isset($data->rec->periodEnd)) {
+            $periodEnd = dt::addSecs(-1 * $data->rec->periodEnd, $periodStart, false);
         }
 
 

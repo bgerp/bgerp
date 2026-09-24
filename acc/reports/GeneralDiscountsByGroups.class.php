@@ -32,6 +32,12 @@ class acc_reports_GeneralDiscountsByGroups extends frame2_driver_TableData
 
 
     /**
+     * Кои полета от таблицата са цени/суми
+     */
+    protected $priceListFields = 'allAutoDiscountContragent,autoDiscount,discountDate,allCompanyDiscount';
+
+
+    /**
      * Как да се казва обобщаващия ред. За да се покаже трябва да е зададено $summaryListFields
      *
      * @var int
@@ -147,7 +153,7 @@ class acc_reports_GeneralDiscountsByGroups extends frame2_driver_TableData
     /**
      * След рендиране на единичния изглед
      *
-     * @param cat_ProductDriver $Driver
+     * @param frame2_driver_Proto $Driver
      * @param embed_Manager $Embedder
      * @param core_Form $form
      * @param stdClass $data
@@ -414,7 +420,7 @@ class acc_reports_GeneralDiscountsByGroups extends frame2_driver_TableData
         }
 
         $row->contragentName = $dRec->contragentName;
-        if ($rec->seeBy == 'kross') {
+        if ($rec->seeBy == 'kross' && $this->canSeePriceFields($rec)) {
             $row->contragentName = ($row->contragentName ?? '') . '<span class="fright">' . $Double->toVerbal($dRec->allCompanyDiscount) . '</span>';
         }
 
@@ -466,7 +472,7 @@ class acc_reports_GeneralDiscountsByGroups extends frame2_driver_TableData
     /**
      * След рендиране на единичния изглед
      *
-     * @param cat_ProductDriver $Driver
+     * @param frame2_driver_Proto $Driver
      * @param embed_Manager $Embedder
      * @param core_ET $tpl
      * @param stdClass $data
@@ -508,7 +514,7 @@ class acc_reports_GeneralDiscountsByGroups extends frame2_driver_TableData
             $fieldTpl->append(crm_Groups::getTitleById($data->rec->crmGroup), 'crmGroup');
         }
 
-        if (isset($data->rec->allCompanyDiscount)) {
+        if (isset($data->rec->allCompanyDiscount) && $Driver->canSeePriceFields($data->rec)) {
             $allCompanyDiscount = is_array($data->rec->allCompanyDiscount)
                 ? array_sum($data->rec->allCompanyDiscount)
                 : $data->rec->allCompanyDiscount;
@@ -587,7 +593,7 @@ class acc_reports_GeneralDiscountsByGroups extends frame2_driver_TableData
                         return $a->contragentName <=> $b->contragentName;
                     });
 
-                    return $recs;
+                    break;
 
                 } elseif ($rec->seeBy == 'date') {
                     $dCloneRec = clone $dRec;
@@ -598,6 +604,21 @@ class acc_reports_GeneralDiscountsByGroups extends frame2_driver_TableData
                 } else {
                     $recs = $recsToExport;
                 }
+            }
+        }
+
+        // Методът е предефиниран, затова сумите се заличават и тук
+        $hiddenPriceFields = $this->getHiddenPriceFields($rec);
+        if (countR($hiddenPriceFields)) {
+            foreach ($recs as $i => $exportRec) {
+                if (!is_object($exportRec)) {
+                    continue;
+                }
+                $exportRec = clone $exportRec;
+                foreach ($hiddenPriceFields as $priceFld) {
+                    unset($exportRec->{$priceFld});
+                }
+                $recs[$i] = $exportRec;
             }
         }
 

@@ -8,10 +8,30 @@ define("IP_ADDRESS", "11.0.0.77");
 define("PORT", "9100");
 define ("OUT", "\x1B\x69\x61\x00\x1B\x40\x1B\x69\x4C\x01\x1b\x28\43\x02\x00\xFC\x02\x1B\x24\xCB\x00\x1B\x28\x56\x02\x00\xCB\x00\x1B\x68\x0B\x1B\x58\x00\x64\x00\x41\x74\x20\x79\x6F\x75\x72\x20\x73\x69\x64\x65\x0C");
 
-header('Access-Control-Allow-Origin: *');
+// Ако браузърът е пратил `Origin` - връщаме точно него, а не звездичка. Така отговорът е валиден и за preflight заявките
+if (!empty($_SERVER['HTTP_ORIGIN'])) {
+    header('Access-Control-Allow-Origin: ' . $_SERVER['HTTP_ORIGIN']);
+    header('Vary: Origin');
+} else {
+    header('Access-Control-Allow-Origin: *');
+}
+
+// Заявката е от страница в публичната мрежа към този локален адрес. Без този хедър Chrome я блокира (Private Network Access) и браузърът връща статус `0`
+header('Access-Control-Allow-Private-Network: true');
+
+// Preflight заявка - връщат се само хедърите, без тяло
+if ($_SERVER["REQUEST_METHOD"] == 'OPTIONS') {
+    header('Access-Control-Allow-Methods: GET, OPTIONS');
+    header('Access-Control-Allow-Headers: ' . (empty($_SERVER['HTTP_ACCESS_CONTROL_REQUEST_HEADERS']) ? '*' : $_SERVER['HTTP_ACCESS_CONTROL_REQUEST_HEADERS']));
+    header('Access-Control-Max-Age: 86400');
+    http_response_code(204);
+
+    exit;
+}
 
 if ($_SERVER["REQUEST_METHOD"] != 'GET') {
-    
+    http_response_code(405);
+
     exit;
 }
 

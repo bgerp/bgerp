@@ -316,7 +316,7 @@ class email_Setup extends core_ProtoSetup
     /**
      * Версия на пакета
      */
-    public $version = '0.1';
+    public $version = '0.2';
     
     
     /**
@@ -410,7 +410,7 @@ class email_Setup extends core_ProtoSetup
         
         // След колко време (в секунди) след първото изпращане към един имейл да се взема в предвид, че е изпратено преди (Повторно изпращане)
         'EMAIL_RESENDING_TIME' => array('time(suggestions=1 часа|2 часа|3 часа|5 часа|7 часа|10 часа|12 часа)', 'caption=Време от първото изпращане на имейл|*&comma;| след което се маркира "Преизпращане"->Време'),
-        
+
         // Максимален брой символи в текстовата част на входящите имейли
         'EMAIL_MAX_TEXT_LEN' => array('int', 'caption=Максимален брой символи в текстовата част на входящите имейли->Символи'),
         
@@ -510,6 +510,7 @@ class email_Setup extends core_ProtoSetup
         'email_AddressesInfo',
         'email_IncomingsShowTypes',
         'email_AutomaticResponse',
+        'email_AutomaticResponseLog',
         'migrate::serviceRules2121',
     );
     

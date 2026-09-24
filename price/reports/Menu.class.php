@@ -37,6 +37,12 @@ class price_reports_Menu extends price_reports_PriceListProto
 
 
     /**
+     * Кои полета от таблицата са цени/суми
+     */
+    protected $priceListFields = 'price';
+
+
+    /**
      * Връща заглавието на отчета
      *
      * @param stdClass $rec - запис
@@ -90,6 +96,9 @@ class price_reports_Menu extends price_reports_PriceListProto
 
             return array();
         }
+
+        // Правилата за цените наведнъж, вместо по една заявка на артикул
+        price_ListRules::preloadRules($rec->policyId, array_keys($common->pRecs), $common->date);
 
         $recs = array();
         foreach ($common->pRecs as $productRec) {

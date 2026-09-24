@@ -248,7 +248,7 @@ class price_ListToCustomers extends core_Manager
         $tpl->append(tr('Ценови политики'), 'priceListTitle');
         $tpl->append($table->get($data->rows, $data->listFields));
         
-        if ($data->addUrl && !Mode::is('text', 'xhtml') && !Mode::is('printing')) {
+        if (!empty($data->addUrl) && !Mode::is('text', 'xhtml') && !Mode::is('printing')) {
             $addBtn = ht::createLink('', $data->addUrl, null, array('ef_icon' => 'img/16/add.png', 'class' => 'addSalecond', 'title' => 'Избор на ценова политика'));
             $tpl->append($addBtn, 'priceListTitle');
         }
@@ -345,6 +345,7 @@ class price_ListToCustomers extends core_Manager
                         $newPrice = $rec->price / $rate;
                         if ($chargeVat == 'yes') {
 
+                            $vatExceptionId = $listId ? price_Lists::fetchField($listId, 'vatExceptionId') : null;
                             $vat = cat_Products::getVat($productId, $datetime, $vatExceptionId);
                             $newPrice = $newPrice * (1 + $vat);
                         }

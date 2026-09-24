@@ -773,13 +773,12 @@ class core_Packs extends core_Manager
         
         $res = '';
 
-        // Ако има зависимости, проследяваме ги
-        // Първо инсталираме зависимостите
+        // Зависимостите се инициализират първи и със същия режим на форсиране
         if ($setup->depends) {
             $depends = arr::make($setup->depends, true);
             
             foreach ($depends as $p => $v) {
-                $res .= $this->setupPack($p, $v, false, $loadData, $verbose);
+                $res .= $this->setupPack($p, $v, $force, $loadData, $verbose);
             }
         }
         

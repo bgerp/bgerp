@@ -361,6 +361,8 @@ class core_Users extends core_Manager
                 $query->limit($limit);
             }
             
+            $usersArr[$cash] = array();
+            
             while ($rec = $query->fetch()) {
                 if (!$rec->nick) {
                     continue;
@@ -424,7 +426,8 @@ class core_Users extends core_Manager
             $rec = self::fetch($rec);
         }
         
-        if (!$force && (!$rec || ($rec->id < 1))) {
+        // При добавяне на нов потребител от форма записът още няма id
+        if (!$force && (!$rec || (($rec->id ?? 0) < 1))) {
             
             return false;
         }
@@ -1603,7 +1606,13 @@ class core_Users extends core_Manager
             return ;
         }
         
-        $nick = $inputs->nick ? $inputs->nick : $inputs->email;
+        if (is_object($inputs)) {
+            $nick = !empty($inputs->nick) ? $inputs->nick : ($inputs->email ?? null);
+        } else {
+            
+            // При автоматично логване няма входни данни от форма - вземаме ника на потребителя
+            $nick = $userRec->nick ?? null;
+        }
         
         if ($nick) {
             log_Ips::addUser($nick);
@@ -1628,7 +1637,7 @@ class core_Users extends core_Manager
         if (core_LoginLog::isFirstLogin($currIp, $userRec->id)) {
             
             // Записваме в лога и връщаме
-            core_LoginLog::add('first_login', $userRec->id, $inputs->time);
+            core_LoginLog::add('first_login', $userRec->id ?? null, $inputs->time ?? null);
             
             return ;
         }
@@ -1743,7 +1752,7 @@ class core_Users extends core_Manager
         }
         
         // Записваме в лога успешното логване
-        core_LoginLog::add('success', $userRec->id, $inputs->time);
+        core_LoginLog::add('success', $userRec->id ?? null, $inputs->time ?? null);
     }
     
     

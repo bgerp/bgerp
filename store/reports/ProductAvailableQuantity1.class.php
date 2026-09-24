@@ -42,6 +42,14 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
 
 
     /**
+     * Дали в обобщаващия ред да се показва в скоби и броят на всички редове
+     *
+     * @var bool
+     */
+    protected $summaryRowShowCount = true;
+
+
+    /**
      * Кой може да избира драйвъра
      */
     public $canSelectDriver = 'ceo,debug,manager,store,planning,purchase,cat,acc';
@@ -185,7 +193,7 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
     /**
      * След рендиране на единичния изглед
      *
-     * @param cat_ProductDriver $Driver
+     * @param frame2_driver_Proto $Driver
      * @param embed_Manager $Embedder
      * @param core_Form $form
      * @param stdClass $data
@@ -382,7 +390,7 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
 
 
         if (!is_null($recs)) {
-            if ($rec->orderBy) {
+            if (!empty($rec->orderBy)) {
                 arr::sortObjects($recs, $rec->orderBy, 'asc');
             } else {
                 arr::sortObjects($recs, 'quantity', 'desc');
@@ -538,7 +546,7 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
     /**
      * След рендиране на единичния изглед
      *
-     * @param cat_ProductDriver $Driver
+     * @param frame2_driver_Proto $Driver
      * @param embed_Manager $Embedder
      * @param core_ET $tpl
      * @param stdClass $data
@@ -1038,81 +1046,59 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
      */
     public static function getPacksForOrder($dRec, $rec)
     {
-        $orderArr = array();
+        $quantity = $dRec->quantity ?? 0;
+        $maxQuantity = $dRec->maxQuantity ?? 0;
+        $minQuantity = $dRec->minQuantity ?? 0;
+        $minOrder = $dRec->minOrder ?? 0;
+        $orderMeasure = $dRec->orderMeasure ?? null;
 
-        $pRec = (cat_Products::fetch($dRec->productId));
-
-        if ($dRec->maxQuantity) {
-
-            //Предложено количество за поръчка
-            $suggQuantity = $dRec->maxQuantity * $rec->orderLimit / 100 - $dRec->quantity;
-
-            //Пакети за поръчка
-            $_packInfo = cat_Products::getProductInfo($pRec->id)->packagings[$dRec->orderMeasure] ?? null;
-            $quantityInPack = is_object($_packInfo) ? $_packInfo->quantity : null;
-
-            if ($quantityInPack) {
-                $packOrder = ceil($suggQuantity / $quantityInPack);
-                $packOrder = ($dRec->minOrder < $packOrder) ? $packOrder : $dRec->minOrder;
-                if (($packOrder * $quantityInPack + $dRec->quantity) > $dRec->maxQuantity) $packOrder--;
-            } else {
-                $packOrder = $suggQuantity;
-            }
-
-
-            $orderArr = (object)array('packOrder' => $packOrder,
-                'suggQuantity' => $suggQuantity);
-
+        if ($maxQuantity > 0) {
+            $suggQuantity = $maxQuantity * ($rec->orderLimit ?? 0) / 100 - $quantity;
+        } elseif ($minQuantity > 0) {
+            $suggQuantity = $minQuantity * 3 - $quantity;
+        } elseif ($quantity < 0) {
+            $suggQuantity = -$quantity;
         } else {
-            if ($dRec->minQuantity) {
+            return array();
+        }
 
-                $suggQuantity = $dRec->minQuantity * 3 - $dRec->quantity;
+        if ($suggQuantity <= 0 || ($maxQuantity > 0 && $quantity >= $maxQuantity)) {
+            return (object) array('packOrder' => 0, 'suggQuantity' => 0);
+        }
 
-                //Пакети за поръчка
-                $_packInfo = cat_Products::getProductInfo($pRec->id)->packagings[$dRec->orderMeasure] ?? null;
-                $quantityInPack = is_object($_packInfo) ? $_packInfo->quantity : null;
-                if ($quantityInPack) {
-                    $packOrder = ceil($suggQuantity / $quantityInPack);
-                    $packOrder = ($dRec->minOrder < $packOrder) ? $packOrder : $dRec->minOrder;
-                    if (($packOrder * $quantityInPack + $dRec->quantity) > $dRec->maxQuantity) $packOrder--;
-                } else {
-                    $packOrder = 0;
-                }
+        $productInfo = cat_Products::getProductInfo($dRec->productId ?? null);
+        $packInfo = is_object($productInfo) ? ($productInfo->packagings[$orderMeasure] ?? null) : null;
+        $quantityInPack = is_object($packInfo) ? ($packInfo->quantity ?? 0) : 0;
+        $productRec = is_object($productInfo) ? ($productInfo->productRec ?? null) : null;
+        $baseMeasureId = $dRec->measure ?? (is_object($productRec) ? ($productRec->measureId ?? null) : null);
+        $measureId = $orderMeasure ?: $baseMeasureId;
+        $precision = $measureId ? (cat_UoM::fetchField($measureId, 'round') ?? 0) : 0;
+        $isBaseMeasure = $measureId && $measureId == $baseMeasureId;
 
-                $orderArr = (object)array('packOrder' => $packOrder,
-                    'suggQuantity' => $suggQuantity);
+        if ($quantityInPack > 0) {
+            // Основната мярка следва точността си, отделните опаковки са цели нагоре.
+            $packOrder = $isBaseMeasure
+                ? max(round($suggQuantity / $quantityInPack, $precision), round($minOrder, $precision))
+                : max(ceil($suggQuantity / $quantityInPack), ceil($minOrder));
 
-
-            } else {
-                if ($dRec->quantity < 0) {
-
-                    $suggQuantity = $dRec->quantity * (-1);
-
-                    //Пакети за поръчка
-                    $_packInfo = cat_Products::getProductInfo($pRec->id)->packagings[$dRec->orderMeasure] ?? null;
-                    $quantityInPack = is_object($_packInfo) ? $_packInfo->quantity : null;
-
-                    if ($quantityInPack) {
-                        $packOrder = ceil($suggQuantity / $quantityInPack);
-                        $packOrder = ($dRec->minOrder < $packOrder) ? $packOrder : $dRec->minOrder;
-                        if (($packOrder * $quantityInPack + $dRec->quantity) > $dRec->maxQuantity) $packOrder--;
-                    } else {
-                        $packOrder = $suggQuantity;
-                    }
-                    $orderArr = (object)array('packOrder' => $packOrder,
-                        'suggQuantity' => $suggQuantity);
-
-                }
+            if ($maxQuantity > 0) {
+                // Максимумът е с предимство пред минималната поръчка.
+                $maxPacks = $isBaseMeasure
+                    ? round(($maxQuantity - $quantity) / $quantityInPack, $precision)
+                    : ceil(($maxQuantity - $quantity) / $quantityInPack);
+                $packOrder = min($packOrder, $maxPacks);
             }
-
+        } else {
+            $packOrder = ($maxQuantity <= 0 && $minQuantity > 0) ? 0 : $suggQuantity;
+            if ($maxQuantity > 0) {
+                $packOrder = min($packOrder, $maxQuantity - $quantity);
+            }
+            if ($measureId) {
+                $packOrder = round($packOrder, $precision);
+            }
         }
 
-        //Ако предложението за поръчка е отрицателно, то се нулира
-        if (is_object($orderArr) && ($orderArr->packOrder < 0 || $orderArr->suggQuantity < 0)) {
-            $orderArr->packOrder = $orderArr->suggQuantity = 0;
-        }
-
-        return $orderArr;
+        return (object) array('packOrder' => $packOrder, 'suggQuantity' => $suggQuantity);
 
     }
 

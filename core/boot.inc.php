@@ -351,8 +351,7 @@ function logHitState($debugCode = '200', $state = array())
             $dataArr = (array)@json_decode($data);
             
             if (!$dataArr) {
-                $dataArr = json_last_error();
-                $dataArr .= array('jsonData' => ' Unserialize: ' . $data);
+                $dataArr = array('jsonError' => json_last_error(), 'jsonData' => ' Unserialize: ' . $data);
             }
         }  
         
@@ -405,8 +404,8 @@ function logHitState($debugCode = '200', $state = array())
         
         $state['_Ctr'] = ($_GET['Ctr'] ?? null) ? $_GET['Ctr'] : 'Index';
         $state['_Act'] = ($_GET['Act'] ?? null) ? $_GET['Act'] : 'default';
-        $state['_dbName'] = EF_DB_NAME;
-        $state['_info'] = 'DB: ' . EF_DB_NAME . ' » Ctr: ' . $state['_Ctr'] . ' » Act: ' . $state['_Act'];
+        $state['_dbName'] = defined('EF_DB_NAME') ? EF_DB_NAME : 'unknown';
+        $state['_info'] = 'DB: ' . $state['_dbName'] . ' » Ctr: ' . $state['_Ctr'] . ' » Act: ' . $state['_Act'];
         $state['_debugCode'] = $debugCode;
         $state['_cookie'] = $_COOKIE;
         
@@ -433,6 +432,13 @@ function logHitState($debugCode = '200', $state = array())
             } catch (Exception $e) {
                 $data .= ' MixedToString: ' . core_Type::mixedToString($state);
             }
+        }
+
+        // При грешка преди конфигурацията log_Debug и сесията още не могат да се заредят.
+        if (!defined('EF_DB_NAME') || !defined('EF_SALT')) {
+            @file_put_contents(DEBUG_FATAL_ERRORS_FILE, $data);
+
+            return DEBUG_FATAL_ERRORS_FILE;
         }
         
         $cnt = 0;

@@ -71,7 +71,7 @@ class store_tpl_SingleLayoutShipmentOrderEuro extends doc_TplScript
         }
         arr::placeInAssocArray($data->listFields, 'priceEuro=Ед. цена в EUR', $before);
 
-        $euroRate = round(currency_CurrencyRates::getRate($data->masterData->rec->date, 'EUR', null), 4);
+        $euroRate = round(currency_CurrencyRates::getRate($data->masterData->rec->valior, 'EUR', null), 4);
         currency_CurrencyRates::checkRateAndRedirect($euroRate);
 
         foreach ($data->rows as $id => $row) {

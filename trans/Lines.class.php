@@ -481,6 +481,7 @@ class trans_Lines extends core_Master
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
+        $rec = $mvc->fetchRec($rec);
         $transUnitsTotal = array();
 
         if (isset($fields['-single'])) {
@@ -651,6 +652,10 @@ class trans_Lines extends core_Master
         $row->totalAmountReturn = core_Type::getByName('double(decimals=2)')->toVerbal(abs($amountReturned));
         $row->totalAmountReturn = currency_Currencies::decorate($row->totalAmountReturn, $baseCurrencyCode, true);
         $row->totalAmountReturn = ht::styleNumber($row->totalAmountReturn, abs($amountReturned));
+
+        if(!doc_plg_HidePrices::canSeePriceFields($mvc, $rec)){
+            $row->totalAmount = $row->totalAmountExpected = $row->totalAmountReturn = doc_plg_HidePrices::getBuriedElement();
+        }
     }
 
 

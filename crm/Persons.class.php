@@ -90,7 +90,7 @@ class crm_Persons extends core_Master
                      crm_Wrapper, crm_AlphabetWrapper, plg_SaveAndNew, plg_PrevAndNext, bgerp_plg_Groups, plg_Printing, plg_State,
                      plg_Sorting, recently_Plugin, plg_Search, acc_plg_Registry, doc_FolderPlg,
                      bgerp_plg_Import, change_plg_History, doc_plg_Close, drdata_PhonePlg,bgerp_plg_Export,plg_ExpandInput, core_UserTranslatePlg,
-                     callcenter_AdditionalNumbersPlg, crm_ContragentGroupsPlg';
+                     callcenter_AdditionalNumbersPlg, crm_ContragentGroupsPlg, plg_EditSections';
 
 
     /**
@@ -372,7 +372,7 @@ class crm_Persons extends core_Master
         $this->FLD('photo', 'fileman_FileType(bucket=pictures,focus=none)', 'caption=Информация->Фото,export=Csv');
 
         // В кои групи е?
-        $this->FLD('groupList', 'keylist(mvc=crm_Groups,select=name,makeLinks,where=#allow !\\= \\\'companies\\\' AND #state !\\= \\\'rejected\\\',classLink=group-link)', 'caption=Групи->Групи,remember,silent,export=Csv');
+        $this->FLD('groupList', 'keylist(mvc=crm_Groups,select=name,makeLinks,where=#allow !\\= \\\'companies\\\' AND #state !\\= \\\'rejected\\\',classLink=group-link)', 'caption=Групи->Групи,remember,silent,export=Csv,editSection=groupsPerson');
 
         // Състояние
         $this->FLD('state', 'enum(active=Вътрешно,closed=Нормално,rejected=Оттеглено)', 'caption=Състояние,value=closed,notNull,input=none');
@@ -2480,7 +2480,36 @@ class crm_Persons extends core_Master
 
 
     /**
+     * Дали намереното съвпадение да се пропусне от предупреждението за дублиране -
+     * оттеглени записи без нито една нишка в папката им не са реални дубликати
+     *
+     * @param stdClass $similarRec
+     *
+     * @return bool
+     */
+    protected static function isSimilarRecIgnorable($similarRec)
+    {
+        if ($similarRec->state != 'rejected') {
+
+            return false;
+        }
+
+        if (empty($similarRec->folderId)) {
+
+            return true;
+        }
+
+        $fRec = doc_Folders::fetch($similarRec->folderId);
+
+        return !$fRec || empty($fRec->allThreadsCnt);
+    }
+
+
+    /**
      * Връща масив с възможните съвпадения
+     *
+     * При редакция се проверяват само полетата, които са променени спрямо записания запис -
+     * съвпаденията по непроменени полета вече са били потвърдени от потребителя
      *
      * @param stdClass $rec
      * @param string $fields
@@ -2493,32 +2522,46 @@ class crm_Persons extends core_Master
 
         $fieldsArr = array();
 
+        // Съществуващият запис, ако се редактира
+        $exRec = !empty($rec->id) ? self::fetch($rec->id, '*', false) : null;
+
         // Правим проверка за дублиране с друг запис
         $nameL = plg_Search::normalizeText($rec->name ?? '');
 
         $oQuery = self::getQuery();
         self::restrictAccess($oQuery);
 
-        $nQuery = clone $oQuery;
+        // Името се проверява само ако е ново или е променено (заедно с държавата)
+        $nameChanged = !$exRec || (plg_Search::normalizeText($exRec->name ?? '') != $nameL) || (($exRec->country ?? null) != ($rec->country ?? null));
 
-        $nQuery->where(array("#searchKeywords LIKE '% [#1#] %'", $nameL));
-        if (!empty($rec->country)) {
-            $nQuery->where(array("#country = '[#1#]'", $rec->country));
-        }
+        if ($nameChanged) {
+            $nQuery = clone $oQuery;
 
-        while ($similarRec = $nQuery->fetch()) {
-            if (!empty($rec->id) && ($similarRec->id == $rec->id)) {
-                continue;
+            $nQuery->where(array("#searchKeywords LIKE '% [#1#] %'", $nameL));
+            if (!empty($rec->country)) {
+                $nQuery->where(array("#country = '[#1#]'", $rec->country));
             }
 
-            $similarsArr[$similarRec->id] = $similarRec;
-            $fieldsArr['name'] = 'name';
+            while ($similarRec = $nQuery->fetch()) {
+                if (!empty($rec->id) && ($similarRec->id == $rec->id)) {
+                    continue;
+                }
+
+                if (self::isSimilarRecIgnorable($similarRec)) {
+                    continue;
+                }
+
+                $similarsArr[$similarRec->id] = $similarRec;
+                $fieldsArr['name'] = 'name';
+            }
         }
 
         if (!empty($rec->egn)) {
             $egnNumb = preg_replace('/[^0-9]/', '', $rec->egn);
+            $exEgnNumb = ($exRec && !empty($exRec->egn)) ? preg_replace('/[^0-9]/', '', $exRec->egn) : null;
 
-            if ($egnNumb) {
+            // ЕГН-то се проверява само ако е ново или е променено
+            if ($egnNumb && ($egnNumb != $exEgnNumb)) {
                 $eQuery = clone $oQuery;
                 $eQuery->where((array("#egn LIKE '[#1#]'", $egnNumb)));
 
@@ -2527,9 +2570,13 @@ class crm_Persons extends core_Master
                         continue;
                     }
 
+                    if (self::isSimilarRecIgnorable($similarRec)) {
+                        continue;
+                    }
+
                     $similarsArr[$similarRec->id] = $similarRec;
+                    $fieldsArr['egn'] = 'egn';
                 }
-                $fieldsArr['egn'] = 'egn';
             }
         }
 
@@ -2538,6 +2585,12 @@ class crm_Persons extends core_Master
         $buzEmail = $rec->buzEmail ?? '';
         if ($email || $buzEmail) {
             $emailArr = type_Emails::toArray($email . ', ' . $buzEmail);
+
+            // Проверяват се само новодобавените имейли
+            if ($exRec) {
+                $exEmailArr = type_Emails::toArray(($exRec->email ?? '') . ', ' . ($exRec->buzEmail ?? ''));
+                $emailArr = array_udiff($emailArr, $exEmailArr, 'strcasecmp');
+            }
 
             if (!empty($emailArr)) {
                 $eQuery = clone $oQuery;
@@ -2552,6 +2605,10 @@ class crm_Persons extends core_Master
 
                 while ($similarRec = $eQuery->fetch()) {
                     if (!empty($rec->id) && ($similarRec->id == $rec->id)) {
+                        continue;
+                    }
+
+                    if (self::isSimilarRecIgnorable($similarRec)) {
                         continue;
                     }
 

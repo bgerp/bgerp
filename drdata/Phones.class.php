@@ -140,7 +140,7 @@ class drdata_Phones extends core_Manager
             }
         }
         
-        return $mobileInfo[$countryCode];
+        return $mobileInfo[$countryCode] ?? null;
     }
     
     
@@ -154,6 +154,8 @@ class drdata_Phones extends core_Manager
             $dAC = '2';
         }
         
+        $res = null;
+
         if ($useCache) {
             $telSave = $tel;
             $dCCSave = $dCC;
@@ -177,23 +179,30 @@ class drdata_Phones extends core_Manager
                 $from[] = ' 00' . $dCC;
                 $from[] = ' 00 ' . $dCC;
             }
+            // При неуспех пробваме и без регионалния код: " 029" може да е част от номера.
+            $fromArr = array($from);
             if ($dAC) {
                 $from[] = ' 0' . $dAC;
+                array_unshift($fromArr, $from);
             }
             
             $sepArr = array(';', ',', ' ', '.', '/', '\\');      // възможни сепаратори
 
             $test = array();
-            foreach ($sepArr as $sep) {
-                $to = array();
-                foreach ($from as $c) {
-                    $to[] = $sep . $c;
-                }
-                $tel = str_replace($from, $to, $tel);
-                
-                $test[] = explode($sep, $tel);
-                if ($sep != ';' && strpos($tel, ';')) {
-                    $test[] = explode($sep, str_replace(';', $sep, $tel));
+            $telOriginal = $tel;
+            foreach ($fromArr as $from) {
+                $tel = $telOriginal;
+                foreach ($sepArr as $sep) {
+                    $to = array();
+                    foreach ($from as $c) {
+                        $to[] = $sep . $c;
+                    }
+                    $tel = str_replace($from, $to, $tel);
+
+                    $test[] = explode($sep, $tel);
+                    if ($sep != ';' && strpos($tel, ';')) {
+                        $test[] = explode($sep, str_replace(';', $sep, $tel));
+                    }
                 }
             }
             
@@ -307,7 +316,7 @@ class drdata_Phones extends core_Manager
                     
                     // Ако първата цифра е 0, но втората не е и все пак, телефона е дълъг за да бъде регионален,
                     // Проверяваме дали не започва с националния код, и ако е така, отпред добавяме една 0
-                    if ($t1[0] == '0' && $t1[1] > '0' && strlen($t1) >= 9 && $defaultCountryCode) {
+                    if ($t1[0] == '0' && ($t1[1] ?? '') > '0' && strlen($t1) >= 9 && $defaultCountryCode) {
                         if (substr($t1, 1, strlen($defaultCountryCode)) == $defaultCountryCode) {
                             $t1 = '0' . $t1;
                         }
@@ -341,7 +350,7 @@ class drdata_Phones extends core_Manager
                         }
                         
                         // само за италия
-                        if ($obj->countryCode == '39' && $t1[1] == '0') {
+                        if (($obj->countryCode ?? null) == '39' && ($t1[1] ?? '') == '0') {
                             $t1 = substr($t1, 1);
                         }
                         
@@ -362,11 +371,11 @@ class drdata_Phones extends core_Manager
                                 $areaCodeLen = 2;
                             }
                             
-                            if ($t1[$areaCodeLen + 1] == '0') {
+                            if (($t1[$areaCodeLen + 1] ?? '') == '0') {
                                 $areaCodeLen++;
                             }
                             
-                            if ($t1[$areaCodeLen + 1] == '0') {
+                            if (($t1[$areaCodeLen + 1] ?? '') == '0') {
                                 $areaCodeLen++;
                             }
                             
@@ -430,7 +439,7 @@ class drdata_Phones extends core_Manager
                     $obj->number = $t1;
                     $this->debug("<li> {$t1} [ " . $obj->countryCode . '-' . $obj->areaCode . '-' . $obj->number . " ] ( {$defaultCountryCode} ) ( {$defaultAreaCode} ) {$obj->area} ");
                     
-                    if (strpos($obj->area, 'Cellular') !== false) {
+                    if (strpos($obj->area ?? '', 'Cellular') !== false) {
                         $obj->mobile = true;
                     }
                     
@@ -490,6 +499,9 @@ class drdata_Phones extends core_Manager
                 if (!$error) {
                     break;
                 }
+
+                // Не връщаме само началото на списък с невалиден номер след него.
+                $res = array();
             }
             
             if ($useCache) {

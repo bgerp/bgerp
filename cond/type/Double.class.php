@@ -18,6 +18,12 @@
 class cond_type_Double extends cond_type_abstract_Proto
 {
     /**
+     * Как се индексира стойността за филтриране (@see cat_products_ParamIndex)
+     */
+    protected $indexKind = 'num';
+
+
+    /**
      * Кой базов тип наследява
      */
     protected $baseType = 'type_Double';

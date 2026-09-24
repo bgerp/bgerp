@@ -1214,7 +1214,7 @@ class planning_ProductionTaskDetails extends doc_Detail
         // Показване на хинт към изчисленото време
         if(!empty($rec->employees) && $rec->state != 'rejected'){
             if(!empty($rec->norm)){
-                $calcedNormHint = $mvc->calcNormByRec($rec, null, true);
+                $calcedNormHint = planning_Setup::canSeeIndTime() ? $mvc->calcNormByRec($rec, null, true) : '|Заработка|*: ' . doc_plg_HidePrices::getBuriedElement(true);
                 $row->employees = ht::createHint($row->employees, $calcedNormHint, 'notice', false);
             } else {
                 $row->employees = ht::createHint($row->employees, 'Няма начислена заработка', 'warning', false);
@@ -1484,11 +1484,11 @@ class planning_ProductionTaskDetails extends doc_Detail
                             $deviationVerbal = core_Type::getByName('percent(decimals=2)')->toVerbal($deviationRec->deviation);
                             $hintMsg = ($iconHint == 'notice') ? '' : (($iconHint == 'img/16/red-warning.png' ? ' (критично!!)' : ($iconHint == 'warning' ? ' (значително!)' : null)));
                             $expectedNetWeightVerbal = core_Type::getByName('cat_type_Weight(smartRound=no)')->toVerbal($deviationRec->expectedNetWeight);
-                            $msg = "|*{$deviationVerbal} |разминаване|*{$hintMsg}&lt;br&gt;|спрямо очакваното|* ({$expectedNetWeightVerbal}) |нето|*!";
+                            $msg = "|*{$deviationVerbal} |разминаване|*{$hintMsg}<br>|спрямо очакваното|* ({$expectedNetWeightVerbal}) |нето|*!";
                             if(haveRole('debug')){
-                                $msg .= "&lt;br&gt;&lt;br&gt;debug info:&lt;br&gt;{$deviationRec->debugInfo}";
+                                $msg .= "<br>debug info:<br>{$deviationRec->debugInfo}";
                             }
-                            $row->netWeight = ht::createHint($row->netWeight, $msg, $iconHint, false);
+                            $row->netWeight = ht::createHint($row->netWeight, $msg, $iconHint, false, array('isHtml' => true));
                         }
                     } else {
                         $row->netWeight = ht::createHint($row->netWeight, 'Няма информация за очакваното нето тегло', 'notice', false);

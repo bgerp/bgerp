@@ -199,19 +199,33 @@ function positionAdditionalInfo(element, anchor, preferAbove) {
     var tooltipRect = tooltip.get(0).getBoundingClientRect();
     var spaceAbove = anchorRect.top - margin - gap;
     var spaceBelow = viewportHeight - anchorRect.bottom - margin - gap;
-    var top;
+    var placeAbove;
+
+    // Дългите списъци използват цялата височина отстрани на брояча.
+    // При тесен екран оставаме над/под него, без да го застъпваме.
+    var spaceRight = viewportWidth - anchorRect.right - margin - gap;
+    var spaceLeft = anchorRect.left - margin - gap;
+    if (tooltipRect.height > Math.max(spaceAbove, spaceBelow) &&
+        tooltipRect.width <= Math.max(spaceRight, spaceLeft)) {
+        var sideLeft = tooltipRect.width <= spaceRight ?
+            anchorRect.right + gap : anchorRect.left - gap - tooltipRect.width;
+        var sideTop = Math.max(margin, Math.min(anchorRect.top, viewportHeight - tooltipRect.height - margin));
+        tooltip.css({top: Math.round(sideTop), left: Math.round(sideLeft)});
+        return;
+    }
 
     if (preferAbove) {
-        if (tooltipRect.height <= spaceAbove || spaceAbove >= spaceBelow) {
-            top = anchorRect.top - tooltipRect.height - gap;
-        } else {
-            top = anchorRect.bottom + gap;
-        }
-    } else if (tooltipRect.height <= spaceBelow || spaceBelow >= spaceAbove) {
-        top = anchorRect.bottom + gap;
+        placeAbove = tooltipRect.height <= spaceAbove || spaceAbove >= spaceBelow;
     } else {
-        top = anchorRect.top - tooltipRect.height - gap;
+        placeAbove = !(tooltipRect.height <= spaceBelow || spaceBelow >= spaceAbove);
     }
+
+    // Високият попъп трябва да се скролира от едната страна на анкера.
+    // Ако го поберем в целия viewport, той застъпва брояча и предизвиква
+    // цикъл mouseleave -> затваряне -> mouseenter -> отваряне.
+    tooltip.css('max-height', Math.max(0, Math.floor(placeAbove ? spaceAbove : spaceBelow)));
+    tooltipRect = tooltip.get(0).getBoundingClientRect();
+    var top = placeAbove ? anchorRect.top - tooltipRect.height - gap : anchorRect.bottom + gap;
 
     top = Math.max(margin, Math.min(top, viewportHeight - tooltipRect.height - margin));
 
@@ -282,11 +296,24 @@ function showTooltip() {
     var tooltipAnchor;
     var tooltipResizeObserver;
     var tooltipScrollParents;
+    var tooltipCloseTimer;
 
     var cachedArr = new Array();
 
+    function cancelTooltipClose() {
+        clearTimeout(tooltipCloseTimer);
+    }
+
+    function scheduleTooltipClose() {
+        cancelTooltipClose();
+        // Време за преминаване през разстоянието между брояча и попъпа.
+        tooltipCloseTimer = setTimeout(closeTooltip, 250);
+    }
+
     function closeTooltip() {
+        cancelTooltipClose();
         if (typeof element != 'undefined') {
+            $(element).off('.additionalInfoHover');
             $(element).hide().removeClass('viewport-positioned bottom left right');
         }
         if (tooltipResizeObserver) {
@@ -335,6 +362,10 @@ function showTooltip() {
             // намираме този, който ще покажем сега
             element = $(target).parent().find('.additionalInfo');
             tooltipAnchor = target.get(0);
+            if (target.attr('data-useHover')) {
+                $(element).on('mouseenter.additionalInfoHover', cancelTooltipClose)
+                    .on('mouseleave.additionalInfoHover', scheduleTooltipClose);
+            }
             tooltipScrollParents = $(element).parents();
             tooltipScrollParents.on('scroll.additionalInfoTooltip', positionTooltip);
             $(element).removeClass('bottom left right').addClass('viewport-positioned').css('display', 'block');
@@ -347,7 +378,7 @@ function showTooltip() {
             } else {
                 setTimeout(positionTooltip, 100);
             }
-        } else {
+        } else if (!element || !$(e.target).closest(element).length) {
             // при кликане в бодито затвавяме отворения тултип, ако има такъв
             closeTooltip();
         }
@@ -359,9 +390,13 @@ function showTooltip() {
         if ($(this).attr("data-useHover")) {
 
             $(this).hover(function () {
+                cancelTooltipClose();
+                if (tooltipAnchor === this && $(element).is(':visible')) {
+                    return;
+                }
                 $(this).children().click();
             }, function () {
-                closeTooltip();
+                scheduleTooltipClose();
             });
         }
     });
@@ -668,17 +703,33 @@ function comboBoxInit(id, selectId) {
     var selCombo = get$(selectId);
 
     if (txtCombo && selCombo) {
+        // Repeated initialization must measure the original responsive input,
+        // not the reduced pixel width left by the previous initialization.
+        if (!txtCombo.comboOriginalStyle) {
+            txtCombo.comboOriginalStyle = {
+                width: txtCombo.style.width,
+                marginRight: txtCombo.style.marginRight,
+                paddingRight: txtCombo.style.paddingRight
+            };
+        }
+        txtCombo.style.width = txtCombo.comboOriginalStyle.width;
+        txtCombo.style.marginRight = txtCombo.comboOriginalStyle.marginRight;
+        txtCombo.style.paddingRight = txtCombo.comboOriginalStyle.paddingRight;
         var width = txtCombo.offsetWidth;
+        if (!width) return;
         var arrow = 22;
         var clipPadding = isIE() ? 1 : 3;
         selCombo.style.width = (width + 1) + 'px';
+        // Narrow forms may constrain SELECT with max-width after initial layout.
+        // Clip against its actual width so the arrow cannot be clipped away.
+        width = Math.min(width, selCombo.offsetWidth);
         txtCombo.style.width = (width - arrow + 6) + 'px';
         txtCombo.style.marginRight = (arrow - 5) + 'px';
         selCombo.style.clip = 'rect(auto, auto, auto, ' + (width - arrow + clipPadding) + 'px)';
         txtCombo.style.paddingRight = '2px';
 
         if (txtCombo.offsetHeight != selCombo.offsetHeight) {
-            txtCombo.style.height = (selCombo.height - 0) + 'px';
+            txtCombo.style.height = selCombo.offsetHeight + 'px';
         }
 
         selCombo.style.visibility = 'visible';
@@ -745,7 +796,9 @@ function toggleFormGroup(id) {
     $('.fs-toggle' + id).toggleClass('openToggleRow');
     setRicheditWidth();
     setTimeout(function () {
-        $('.autosize').autosize({maxHeight: $(window).height() - 150});
+        if (typeof $.fn.autosize === 'function') {
+            $('.autosize').autosize({maxHeight: $(window).height() - 150});
+        }
     }, 1000);
 }
 
@@ -2347,6 +2400,11 @@ function setFormElementsWidth() {
             $('.typeTable').width("100%");
         }
     }
+    // Run after responsive constraints, including AJAX form refresh and resize.
+    $('.formFields input.combo:visible').each(function () {
+        var select = $(this).siblings('select.combo').get(0);
+        if (this.id && select && select.id) comboBoxInit(this.id, select.id);
+    });
 }
 
 // при двоен клин да отваря корицата
@@ -6075,18 +6133,37 @@ Experta.prototype.log = function (txt) {
 };
 
 
+// Дори достъпът до sessionStorage може да е забранен от браузъра.
+function getSessionStorageItem(key) {
+    try {
+        return window.sessionStorage ? window.sessionStorage.getItem(key) : null;
+    } catch (e) {
+        return null;
+    }
+}
+
+
+function setSessionStorageItem(key, value) {
+    try {
+        if (window.sessionStorage) {
+            window.sessionStorage.setItem(key, value);
+        }
+    } catch (e) {
+        // Забранен или пълен storage не трябва да прекъсва работата на страницата.
+    }
+}
+
+
 /**
  * Записва id-то на body в сесията на браузъра
  */
 Experta.prototype.saveBodyId = function () {
-    // Ако не е дефиниран
-    if (typeof sessionStorage == "undefined") return;
 
     var bodyId = $('body').attr('id');
 
     if (!bodyId) return;
 
-    var bodyIds = sessionStorage.getItem('bodyIdHit');
+    var bodyIds = getSessionStorageItem('bodyIdHit');
 
     if (bodyIds) {
         bodyIds = JSON.parse(bodyIds);
@@ -6097,7 +6174,7 @@ Experta.prototype.saveBodyId = function () {
     bodyIds[bodyId] = 'ajaxRefresh';
     self.hitState[bodyId] = undefined;
 
-    sessionStorage.setItem('bodyIdHit', JSON.stringify(bodyIds));
+    setSessionStorageItem('bodyIdHit', JSON.stringify(bodyIds));
 };
 
 
@@ -6133,11 +6210,6 @@ function radioButtonActions() {
  * return firstTime, refresh, ajaxRefresh
  */
 function getHitState(bodyId) {
-    if (typeof sessionStorage == "undefined") {
-
-        return 'firstTime';
-    }
-
     if (typeof (bodyId) === 'undefined') {
         var bodyId = $('body').attr('id');
     }
@@ -6152,7 +6224,7 @@ function getHitState(bodyId) {
         return this.hitState[bodyId];
     }
 
-    var bodyIds = sessionStorage.getItem('bodyIdHit');
+    var bodyIds = getSessionStorageItem('bodyIdHit');
 
     if (typeof (bodyIds) !== 'undefined' && bodyIds) {
         bodyIds = JSON.parse(bodyIds);
@@ -6167,7 +6239,7 @@ function getHitState(bodyId) {
     }
     bodyIds[bodyId] = 'refresh';
 
-    sessionStorage.setItem('bodyIdHit', JSON.stringify(bodyIds));
+    setSessionStorageItem('bodyIdHit', JSON.stringify(bodyIds));
 
     this.hitState[bodyId] = 'firstTime';
 
@@ -6195,7 +6267,7 @@ Experta.prototype.saveFormData = function (formId, data) {
 
     if (!bodyId) return;
 
-    var formObj = sessionStorage.getItem(this.formSessName);
+    var formObj = getSessionStorageItem(this.formSessName);
 
     var maxN = 0;
     var minN = 0;
@@ -6230,7 +6302,7 @@ Experta.prototype.saveFormData = function (formId, data) {
 
     formObj[bodyId] = {'formId': formId, 'data': data, 'num': maxN};
 
-    sessionStorage.setItem(this.formSessName, JSON.stringify(formObj));
+    setSessionStorageItem(this.formSessName, JSON.stringify(formObj));
 };
 
 
@@ -6244,7 +6316,7 @@ Experta.prototype.reloadFormData = function () {
 
     if (!bodyId) return;
 
-    var formObj = sessionStorage.getItem(this.formSessName);
+    var formObj = getSessionStorageItem(this.formSessName);
 
     if (!formObj) return;
 

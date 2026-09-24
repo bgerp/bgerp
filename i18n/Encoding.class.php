@@ -79,7 +79,7 @@ class i18n_Encoding
      */
     public static function getCanonical($encoding)
     {
-        $encoding = strtoupper(trim($encoding));
+        $encoding = strtoupper(trim((string) $encoding));
         
         if (!$encoding) {
             
@@ -88,7 +88,8 @@ class i18n_Encoding
         
         self::prepareEncodingMatchs();
         
-        if (self::$encodingsMatchs[$encoding]) {
+        $findEncoding = null;
+        if (!empty(self::$encodingsMatchs[$encoding])) {
             $findEncoding = $encoding;
         } else {
             foreach (self::$encodingsMatchs as $key => $name) {

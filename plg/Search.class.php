@@ -235,6 +235,8 @@ class plg_Search extends core_Plugin
      */
     public static function applySearch($search, $query, $field = null, $strict = 2, $limit = null)
     {
+        $firstCondition = count($query->where);
+
         if (!$field) {
             $field = 'searchKeywords';
         }
@@ -417,6 +419,84 @@ class plg_Search extends core_Plugin
                 $query->isSlowQuery = true;
             }
         }
+
+        // Remember the original predicates without changing the search parser or its semantics.
+        foreach (array_slice($query->where, $firstCondition) as $condition) {
+            $query->searchConditions[$condition] = $condition;
+        }
+    }
+
+
+    /**
+     * Evaluate text using primary-key lookups within a small, complete set of documents.
+     * Returns false without changing the query when its scope is too large or unsupported.
+     */
+    public static function restrictToScope($query, $idField = 'id', $limit = 5000)
+    {
+        if (!$query->searchConditions || $limit < 1 || $query->hasUnion() || $query->hasExecuted()) {
+            return false;
+        }
+
+        // Boolean FULLTEXT respects USE INDEX on MyISAM; without the hint the global index can win.
+        if (defined('CORE_QUERY_USE_INDEXES') && CORE_QUERY_USE_INDEXES === 'no') {
+            return false;
+        }
+
+        foreach ($query->searchConditions as $condition) {
+            // An enclosing OR added by another hook cannot safely be split here.
+            if (!in_array($condition, $query->where, true)) {
+                return false;
+            }
+        }
+
+        $probe = clone $query;
+        if ($probe->groupBy && (count($probe->groupBy) !== 1
+            || !isset($probe->groupBy[$probe->getMysqlField('id')]))) {
+            return false;
+        }
+
+        // Custom ON joins depend on their original projection and need a separate plan.
+        foreach ($probe->selectFields("#kind == 'EXT'") as $field) {
+            if (isset($field->onCond)) {
+                return false;
+            }
+        }
+        $probe->getShowFields();
+
+        $probe->where = array_values(array_diff($probe->where, array_keys($query->searchConditions)));
+        $probe->show = $probe->exprShow = $probe->orderBy = $probe->groupBy = array();
+        $probe->start = null;
+        $probe->limit = $limit + 1;
+        $probe->show($idField);
+        $probe->addOption('DISTINCT');
+
+        // Keep all structural joins and filters, including access restrictions and dates.
+        $clauses = $probe->getWhereAndHaving();
+        if (!empty($clauses->h)) {
+            return false;
+        }
+
+        $ids = array();
+        while ($rec = $probe->fetch(null, true)) {
+            $id = (int) $rec->{$idField};
+            $ids[$id] = $id;
+            if (count($ids) > $limit) {
+                return false;
+            }
+        }
+
+        if ($ids) {
+            sort($ids, SORT_NUMERIC);
+            $query->in($idField, $ids);
+        } else {
+            $query->where('1 = 2');
+        }
+
+        $field = $query->getField($idField);
+        $idMvc = $field->kind === 'EXT' ? cls::get($field->externalClass) : $query->mvc;
+        $query->indexes[$idMvc->dbTableName] = array('PRIMARY' => true);
+
+        return true;
     }
     
     
@@ -583,7 +663,7 @@ class plg_Search extends core_Plugin
         $str = str::utf2ascii($str);
         if ($str) {
             $iConvStr = @iconv('UTF-8', 'ASCII//TRANSLIT', $str);
-            if (isset($iConvStr)) {
+            if ($iConvStr !== false) {
                 $str = $iConvStr;
             }
         }
@@ -618,7 +698,7 @@ class plg_Search extends core_Plugin
      /*   if ($latin) {
             $str = str::utf2ascii($str);
             $iConvStr = @iconv('UTF-8', 'ASCII//TRANSLIT', $str);
-            if (isset($iConvStr)) {
+            if ($iConvStr !== false) {
                 $str = $iConvStr;
             }
         } */

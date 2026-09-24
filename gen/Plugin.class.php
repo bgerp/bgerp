@@ -23,15 +23,15 @@ class gen_Plugin extends core_Plugin
      */
     public function on_AfterDescription(&$mvc)
     {
-        if (!$mvc->fields['mother']) {
+        if (empty($mvc->fields['mother'])) {
             $mvc->FLD('mother', 'key(mvc=crm_Persons, allowEmpty, select=name)', 'caption=Генеалогически данни->Майка');
         }
         
-        if (!$mvc->fields['father']) {
+        if (empty($mvc->fields['father'])) {
             $mvc->FLD('father', 'key(mvc=crm_Persons, allowEmpty, select=name)', 'caption=Генеалогически данни->Баща');
         }
         
-        if (!$mvc->fields['deathOn']) {
+        if (empty($mvc->fields['deathOn'])) {
             $mvc->FLD('deathOn', 'date', 'caption=Генеалогически данни->Починал на');
         }
     }
@@ -42,24 +42,33 @@ class gen_Plugin extends core_Plugin
      */
     public function on_AfterRecToVerbal($mvc, $row, $rec)
     {
-        $row->nameList = new ET('[#1#]', $row->nameList);
+        if (isset($row->nameList)) {
+            $row->nameList = new ET('[#1#]', $row->nameList);
+        }
         
-        if ($rec->mother) {
+        $gen = '';
+        
+        if (!empty($rec->mother)) {
             $gen = "<div style='margin-top:5px;'>Майка: " .
                     ht::createLink($mvc->getVerbal($rec, 'mother'), array('crm_Persons', 'single', $rec->mother)) .
                     '</div>';
         }
         
-        if ($rec->father) {
+        if (!empty($rec->father)) {
             $gen .= "<div style='margin-top:5px;'>Баща: " .
                     ht::createLink($mvc->getVerbal($rec, 'father'), array('crm_Persons', 'single',  $rec->father)) .
                     '</div>';
         }
         
-        if ($rec->deathOn) {
-            $gen .= "<div style='margin-top:5px;'>" . (($rec->salutation == 'mr' || $rec->salutation === '') ? 'Починал на: ' : 'Починала на: ') .
+        if (!empty($rec->deathOn)) {
+            $salutation = isset($rec->salutation) ? $rec->salutation : '';
+            $gen .= "<div style='margin-top:5px;'>" . (($salutation == 'mr' || $salutation === '') ? 'Починал на: ' : 'Починала на: ') .
                     $mvc->getVerbal($rec, 'deathOn') .
                     '</div>';
+        }
+        
+        if (empty($row->contacts)) {
+            $row->contacts = '';
         }
         
         $row->contacts .= $gen;
@@ -71,7 +80,7 @@ class gen_Plugin extends core_Plugin
      */
     public static function on_Shutdown($mvc)
     {
-        if (countR($mvc->updatedRecs)) {
+        if (!empty($mvc->updatedRecs)) {
             // Обновяване на информацията за рожденните дни, за променените лица
             foreach ($mvc->updatedRecs as $id => $rec) {
                 self::updateDeathToCalendar($id);
@@ -86,6 +95,8 @@ class gen_Plugin extends core_Plugin
      */
     public static function updateDeathToCalendar($id)
     {
+        $y = $m = $d = 0;
+        
         if (($rec = crm_Persons::fetch($id)) && ($rec->state != 'rejected')) {
             if (!$rec->deathOn) {
                 
@@ -156,7 +167,7 @@ class gen_Plugin extends core_Plugin
         $mothers = crm_Persons::makeArray4Select('name', "#salutation != 'mr' AND #salutation != 'miss'");
         $fathers = crm_Persons::makeArray4Select('name', "#salutation != 'mrs' AND #salutation != 'miss'");
         
-        if ($data->form->rec->id) {
+        if (!empty($data->form->rec->id)) {
             unset($mothers[$data->form->rec->id]);
             unset($fathers[$data->form->rec->id]);
         }
@@ -178,6 +189,7 @@ class gen_Plugin extends core_Plugin
      */
     public function insertAfter($sourceArr, $afterField, $key, $value)
     {
+        $destArr = array();
         foreach ($sourceArr as $k => $v) {
             $destArr[$k] = $v;
             

@@ -50,7 +50,7 @@ class cond_type_Product extends cond_type_Varchar
     public function getType($rec, $domainClass = null, $domainId = null, $value = null)
     {
         $maxSuggestions = !empty($this->driverRec->maxSuggestions) ? $this->driverRec->maxSuggestions : 10;
-        $CType = core_Type::getByName("key2(mvc=cat_ProductsProxy,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,maxSuggestions={$maxSuggestions},forceAjax)");
+        $CType = core_Type::getByName("key2(mvc=cat_Products,forceReplica,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,maxSuggestions={$maxSuggestions},forceAjax)");
         $CType->params['groups'] = $this->driverRec->productGroups;
         if(!empty($this->driverRec->meta)){
             $CType->params['hasProperties'] = $this->driverRec->meta;
@@ -177,9 +177,9 @@ class cond_type_Product extends cond_type_Varchar
         $BomDetails = cls::get('cat_BomDetails');
 
         $bQuery = $BomDetails->getQuery();
-        $bQuery->EXT('productId', 'cat_Boms', 'externalName=productId,externalKey=bomId');
-        $bQuery->EXT('state',     'cat_Boms', 'externalName=state,externalKey=bomId');
-        $bQuery->where("#productId = {$domainId} AND #state NOT IN ('rejected', 'closed')");
+        $bQuery->EXT('bomProductId', 'cat_Boms', 'externalName=productId,externalKey=bomId');
+        $bQuery->EXT('state',        'cat_Boms', 'externalName=state,externalKey=bomId');
+        $bQuery->where("#bomProductId = {$domainId} AND #state NOT IN ('rejected', 'closed')");
 
         $details = array();
         while ($bRec = $bQuery->fetch()) {
@@ -208,5 +208,19 @@ class cond_type_Product extends cond_type_Varchar
         }
 
         return $res;
+    }
+
+
+    /**
+     * Индексира се името на артикула, заедно с ид-то му
+     */
+    public function getIndexValues($rec, $domainClass, $domainId, $value, $langs)
+    {
+        if (!is_numeric($value)) {
+
+            return array();
+        }
+
+        return $this->makeTextIndexRows($rec, $domainClass, $domainId, $value, $langs, (int) $value);
     }
 }

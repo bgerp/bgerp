@@ -178,7 +178,7 @@ class label_plg_Print extends core_Plugin
             $cacheSuccess = true;
             if($type == 'error'){
                 $msg = $res;
-                $logMvc->logInfo($msg . " ({$deviceId})", $logId);
+                $logMvc->logWarning($msg . " ({$deviceId})", $logId);
                 $msg = haveRole('debug') ? $msg . " ({$deviceId})" : tr("Проблем при разпечатването|*! ({$deviceId})");
                 $statusData['type'] = 'error';
                 $statusData['isSticky'] = 1;

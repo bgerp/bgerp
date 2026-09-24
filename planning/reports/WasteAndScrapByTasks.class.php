@@ -31,6 +31,12 @@ class planning_reports_WasteAndScrapByTasks extends frame2_driver_TableData
 
 
     /**
+     * С колко знака да се закръглят полетата в обобщаващия ред
+     */
+    protected $summaryDecimals = 'scrappedWeight=3,wasteWeight=3';
+
+
+    /**
      * Как да се казва обобщаващия ред. За да се покаже трябва да е зададено $summaryListFields
      *
      * @var int
@@ -97,7 +103,7 @@ class planning_reports_WasteAndScrapByTasks extends frame2_driver_TableData
     /**
      * След рендиране на единичния изглед
      *
-     * @param cat_ProductDriver $Driver
+     * @param frame2_driver_Proto $Driver
      * @param embed_Manager $Embedder
      * @param core_Form $form
      * @param stdClass $data
@@ -131,7 +137,7 @@ class planning_reports_WasteAndScrapByTasks extends frame2_driver_TableData
 
         $jQuery = planning_Tasks::getQuery();
         $jQuery->in('state', $stateArr);
-        $jQuery->where(array("#activatedOn >= '[#1#]' AND #activatedOn <= '[#2#]'", $rec->from, $rec->to . ' 23:59:59'));
+        $jQuery->where(array("#activatedOn >= '[#1#]' AND #activatedOn <= '[#2#]'", $rec->from ?? null, ($rec->to ?? '') . ' 23:59:59'));
         $jQuery->show('employees,assetId');
 
         while ($jRec = $jQuery->fetch()) {
@@ -204,6 +210,7 @@ class planning_reports_WasteAndScrapByTasks extends frame2_driver_TableData
             $jobRec = planning_Jobs::fetch($JOB->that);
 
             $prodWeigth = cat_Products::convertToUoM($jobRec->productId, 'kg');
+            $wasteProdWeigth = null;
 
             if (!$wasteQuantity) {
                 $totalWastePercent = null;
@@ -214,7 +221,7 @@ class planning_reports_WasteAndScrapByTasks extends frame2_driver_TableData
             $wasteWeightNullMark = null;     //Ако има поне един отпадък без тегло да се отбележи в изгледа с ? след цифрата
 
             foreach ($waste as $v) {
-                if ($v->quantity) {
+                if (!empty($v->quantity)) {
 
                     if (planning_reports_WasteAndScrapByJobs::isWeightMeasure($v->packagingId) === false) {
 
@@ -372,7 +379,7 @@ class planning_reports_WasteAndScrapByTasks extends frame2_driver_TableData
     /**
      * След рендиране на единичния изглед
      *
-     * @param cat_ProductDriver $Driver
+     * @param frame2_driver_Proto $Driver
      * @param embed_Manager $Embedder
      * @param core_ET $tpl
      * @param stdClass $data

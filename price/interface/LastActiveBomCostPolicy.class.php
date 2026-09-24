@@ -70,11 +70,15 @@ class price_interface_LastActiveBomCostPolicy extends price_interface_BaseCostPo
         $now = dt::now();
         $classId = cat_Boms::getClassId();
 
+        // Последните активни рецепти на всички артикули се извличат наведнъж
+        $lastBomsArr = $this->getLastActiveBoms($affectedTargetedProducts);
+
         // За всеки артикул
         foreach ($affectedTargetedProducts as $productId) {
             
             // Търсим му рецептата
-            if ($bomRec = cat_Products::getLastActiveBom($productId)) {
+            if (array_key_exists($productId, $lastBomsArr)) {
+                $bomRec = $lastBomsArr[$productId];
 
                 // Ако има, намираме и цената
                 $t = ($bomRec->quantityForPrice) ? $bomRec->quantityForPrice : $bomRec->quantity;
@@ -122,6 +126,35 @@ class price_interface_LastActiveBomCostPolicy extends price_interface_BaseCostPo
     }
     
     
+    /**
+     * Последните активни рецепти на подадените артикули
+     *
+     * @param array $productIds
+     *
+     * @return array $res - ид на артикул => запис на рецептата му
+     * @see cat_Products::getLastActiveBom()
+     */
+    protected function getLastActiveBoms($productIds)
+    {
+        $res = array();
+        if (!countR($productIds)) return $res;
+
+        $query = cat_Boms::getQuery();
+        $query->EXT('canManifacture', 'cat_Products', 'externalName=canManifacture,externalKey=productId');
+        $query->where("#state = 'active'");
+        $query->where("(#canManifacture IS NULL OR #canManifacture != 'no')");
+        $query->in('productId', $productIds);
+        $query->orderBy('id', 'ASC');
+
+        // Рецептата с най-голямо ид остава последна
+        while ($rec = $query->fetch()) {
+            $res[$rec->productId] = $rec;
+        }
+
+        return $res;
+    }
+
+
     /**
      * Дали има самостоятелен крон процес за изчисление
      *
@@ -223,9 +256,8 @@ class price_interface_LastActiveBomCostPolicy extends price_interface_BaseCostPo
 
             // Изтриване на несрещнатите себестойностти
             if (countR($res['delete'])) {
-                foreach ($res['delete'] as $id) {
-                    $ProductCache->delete($id);
-                }
+                $deleteIds = implode(',', $res['delete']);
+                $ProductCache->delete("#id IN ({$deleteIds})");
             }
         }
     }

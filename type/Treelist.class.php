@@ -68,10 +68,10 @@ class type_Treelist extends type_Keylist
         }
         
         $attrCB['type'] = 'checkbox';
-        $attrCB['class'] .= ' checkbox';
+        $attrCB['class'] = 'checkbox';
         
         // Определяме броя на колоните, ако не са зададени.
-        $maxChars = $this->params['maxChars'];
+        $maxChars = $this->params['maxChars'] ?? null;
         $col = self::getCol((array) $this->suggestions, $maxChars);
         
         $i = 0;
@@ -95,6 +95,7 @@ class type_Treelist extends type_Keylist
             }
             $mvc = &cls::get($this->params['mvc']);
             $query = $mvc->getQuery();
+            $data = array();
             while($rec = $query->fetch("#id IN ({$keys})")) {
 
                 if($mvc->nameField) {
@@ -107,7 +108,8 @@ class type_Treelist extends type_Keylist
             arr::sortObjects($data, 'title', 'asc', 'stri');
             $items = array();
             self::addItems($items, $data, null, $openIds); 
-            
+
+            $verbal = '';
             foreach($items as $i => $item) {               
                 $id = $eId . '_' . $i;
                 $n = "{$name}[$i]";
@@ -127,9 +129,10 @@ class type_Treelist extends type_Keylist
                     continue;
                 }
                 $lastId = $id;
-                if($item->hasGroup) {
+                $addClass = '';
+                if(!empty($item->hasGroup)) {
 
-                    if($item->isOpen) {
+                    if(!empty($item->isOpen)) {
                         $toggle = $downArrow;
                     } else {
                         $toggle = $rightArrow;
@@ -141,7 +144,7 @@ class type_Treelist extends type_Keylist
                     $toggle = "<i>&nbsp;</i>";
                 }
 
-                if($item->checked) {
+                if(!empty($item->checked)) {
                     $html .= "\n<li class='row'>{$toggle}<input type='checkbox' name='{$n}' checked id='{$id}'><label $class for='{$id}'>{$item->title}</label></li>";
                     $verbal .= "<span class='group-link'>{}</span> ";
                 } else {
@@ -170,9 +173,9 @@ class type_Treelist extends type_Keylist
         $haveItem = false;
         foreach($data as $id => $item) {
             if($item->parentId == $parentId) {
-                
-                if($openIds[$id]) {
-                    $item->checked = true;
+
+                $item->checked = isset($openIds[$id]);
+                if($item->checked) {
                     $hasOpen = true;
                 }
 

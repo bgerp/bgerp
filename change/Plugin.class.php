@@ -144,6 +144,11 @@ class change_Plugin extends core_Plugin
 
             $mvc->save($rec, 'assign');
 
+            // Записът е само на assign и modifiedOn на контейнера не се сменя - ключът на кеша остава същият
+            if (!empty($rec->containerId)) {
+                doc_DocumentCache::cacheInvalidation($rec->containerId);
+            }
+
             $mvc->logWrite($msg, $rec);
 
             $retUrl = getRetUrl();

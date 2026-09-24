@@ -573,7 +573,7 @@ class core_Array
         expect(is_array($arr));
         $result = array_values(array_map(function ($obj) use ($field) {
             
-            return (is_object($obj)) ? $obj->{$field} : $obj[$field];
+            return (is_object($obj)) ? ($obj->{$field} ?? null) : ($obj[$field] ?? null);
         }, $arr));
         $result = array_values($result);
         if (countR($result)) {
