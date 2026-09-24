@@ -10,7 +10,7 @@
  *
  * @category  bgerp
  * @package   cat
- * @author    [Твоето ИМЕ] <[твоят@имейл.com]>
+ * @author    Yusein Yuseinov <y.yuseinov@gmail.com>
  * @copyright 2006 - 2026 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
