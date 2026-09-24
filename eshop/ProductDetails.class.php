@@ -673,7 +673,7 @@ class eshop_ProductDetails extends core_Detail
             } else {
                 $showCartBtn = false;
                 if($rec->action != 'inquiry'){
-                    $row->catalogPrice = "<span class=' option-not-in-stock' style='background-color: #e6e6e6 !important;border: solid 1px #ff7070;color: #c00;margin-top: 5px;'>" . tr('Свържете се с нас') . "</span><br>";
+                    $row->catalogPrice = "<span class='option-not-in-stock eshop-contact-us'>" . tr('Свържете се с нас') . "</span><br>";
                     if(in_array($rec->action, array('price', 'buy'))){
                         $row->_noPrice = true;
                     }

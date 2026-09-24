@@ -542,6 +542,28 @@ body.eshop-public a.eshop-edit-link img {
     border-bottom: 1px solid var(--shop-line);
 }
 
+/* Price on its own row; "Buy" and "Inquiry" share the next row half and half and never wrap. */
+.eshop-public .optionsTable .priceCol > b {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(max-content, 1fr));
+    justify-items: end;
+    align-items: center;
+    gap: 6px 8px;
+}
+.eshop-public .optionsTable .priceCol > b > .eshop-product-price-holder,
+.eshop-public .optionsTable .priceCol .eshop-product-price-holder + .eshop-product-buy-button:last-child {
+    grid-column: 1 / -1;
+}
+.eshop-public .optionsTable .priceCol .eshop-product-buy-button:not(:last-child),
+.eshop-public .optionsTable .priceCol .eshop-product-buy-button + .eshop-product-buy-button {
+    justify-self: stretch;
+}
+body.eshop-public .optionsTable .priceCol .eshop-product-buy-button:not(:last-child) .productBtn,
+body.eshop-public .optionsTable .priceCol .eshop-product-buy-button + .eshop-product-buy-button .productBtn {
+    width: 100%;
+    margin: 0 !important;
+}
+
 .eshop-public .product-gallery + .productInfo .overflow-scroll {
     overflow: auto !important;
 }
@@ -901,21 +923,45 @@ body.eshop-public #cmsNavigation .commerce-shortcuts .sel_page {
 }
 .eshop-public .eshop-card-actions {
     display: flex;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     gap: 8px;
     margin-top: auto;
     padding-top: 14px;
     border-top: 1px solid #edf1f3;
 }
 .eshop-public .eshop-card-actions:empty { display: none; }
+/* Two actions always share one row equally; a lone one keeps half the width. */
 body.eshop-public .eshop-card-actions .productBtn {
-    flex: 0 0 calc(50% - 4px);
-    width: calc(50% - 4px);
+    flex: 1 1 50%;
+    width: auto;
     min-width: 0;
     padding-left: 6px !important;
     padding-right: 6px !important;
     white-space: normal;
     margin: 0 !important;
+}
+body.eshop-public .eshop-card-actions .productBtn:only-child {
+    flex: 0 0 calc(50% - 4px);
+}
+/* A stopped option shows its label instead of "Buy" - same half of the row, label stretched. */
+body.eshop-public .eshop-card-actions > .eshop-product-price-holder {
+    display: flex;
+    flex: 1 1 50%;
+    min-width: 0;
+}
+body.eshop-public .eshop-card-actions > .eshop-product-price-holder > br {
+    display: none;
+}
+body.eshop-public .eshop-card-actions > .eshop-product-price-holder > .option-not-in-stock {
+    justify-content: center;
+    gap: 5px;
+    width: 100%;
+    min-height: 38px;
+    margin: 0 !important;
+    padding-left: 6px !important;
+    padding-right: 6px !important;
+    white-space: normal;
+    text-align: center;
 }
 body.eshop-public .eshop-new-product {
     display: inline-block;
@@ -1339,4 +1385,55 @@ body.eshop-public #cart-view-total tr:last-child td { font-size: 19px; color: #1
 }
 .eshop-public #cmsNavigation details.eshop-param-filter-more[open] > summary {
     display: none;
+}
+
+/* Availability labels share the button shape; each keeps its own background colour. */
+body.eshop-public .option-not-in-stock {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    box-sizing: border-box;
+    min-height: 34px;
+    margin: 4px 0 !important;
+    padding: 6px 12px !important;
+    top: 0;
+    border: 1px solid transparent;
+    border-radius: 7px !important;
+    color: #fff;
+    font: 600 13px/1.35 Arial, Helvetica, sans-serif !important;
+    text-shadow: none !important;
+    white-space: nowrap;
+}
+body.eshop-public .option-not-in-stock.notAvailable::before {
+    content: "";
+    flex: 0 0 16px;
+    width: 16px;
+    height: 16px;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='6.5' fill='none' stroke='%23fff'/%3E%3Cpath d='M3.5 12.5l9-9' fill='none' stroke='%23fff'/%3E%3C/svg%3E") center / 16px 16px no-repeat;
+}
+
+/* "Contact us" for an option without price: a theme label, not a red warning. */
+body.eshop-public .option-not-in-stock.eshop-contact-us {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    box-sizing: border-box;
+    min-height: 34px;
+    margin: 4px 0 !important;
+    padding: 6px 12px !important;
+    top: 0;
+    border: 1px solid #b5c9d0 !important;
+    border-radius: 7px !important;
+    background: #f5f8fa !important;
+    color: var(--shop-accent) !important;
+    font: 600 13px/1.35 Arial, Helvetica, sans-serif !important;
+    text-shadow: none !important;
+    white-space: nowrap;
+}
+body.eshop-public .option-not-in-stock.eshop-contact-us::before {
+    content: "";
+    flex: 0 0 16px;
+    width: 16px;
+    height: 16px;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Crect x='1.5' y='3.5' width='13' height='9' rx='1.5' fill='none' stroke='%23145b73'/%3E%3Cpath d='M2 4.5l6 4.5 6-4.5' fill='none' stroke='%23145b73' stroke-linejoin='round'/%3E%3C/svg%3E") center / 16px 16px no-repeat;
 }
