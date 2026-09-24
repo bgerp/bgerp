@@ -43,6 +43,8 @@ class cat_Wrapper extends plg_ProtoWrapper
         $this->TAB('cat_ProductTplCache', 'Дебъг->Кеш', 'ceo, debug, cat');
         $this->TAB('cat_Serials', 'Дебъг->Генерирани номера', 'debug');
         $this->TAB('cat_products_Params', 'Дебъг->Продуктови параметри', 'debug');
+        $this->TAB('cat_products_ParamIndex', 'Дебъг->Индекс на параметрите', 'debug');
+        $this->TAB('cat_products_ParamIndexState', 'Дебъг->Състояние на индекса', 'debug');
         $this->TAB('cat_products_VatGroups', 'Дебъг->ДДС групи', 'debug');
 
         $this->title = 'Продукти';

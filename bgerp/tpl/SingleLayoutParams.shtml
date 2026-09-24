@@ -224,6 +224,12 @@
                 <td>[#editInLabel#]</td>
             </tr>
             <!--ET_END editInLabel-->
+            <!--ET_BEGIN filterable-->
+            <tr>
+                <td class="title-style">|Филтриране на артикулите|*</td>
+                <td>[#filterable#]</td>
+            </tr>
+            <!--ET_END filterable-->
         </table>
     </div>
     [#DETAILS#]

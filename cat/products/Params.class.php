@@ -606,6 +606,7 @@ class cat_products_Params extends doc_Detail
         $Class = cls::get($rec->classId);
         if($Class instanceof cat_Products){
             $mvc->syncWithFeature($rec->paramId, $rec->productId);
+            cat_products_ParamIndex::markDirty($rec->productId);
         }
 
         // Параметрите може да се ползват във формули на рецепти
@@ -646,8 +647,12 @@ class cat_products_Params extends doc_Detail
     {
         cat_Boms::clearProductParamsCache();
 
+        $productClassId = cat_Products::getClassId();
         foreach ($query->getDeletedRecs() as $rec) {
             $mvc->syncWithFeature($rec->paramId, $rec->productId);
+            if ($rec->classId == $productClassId) {
+                cat_products_ParamIndex::markDirty($rec->productId);
+            }
             
             $paramName = cat_Params::getVerbal($rec->paramId, 'typeExt');
             cls::get($rec->classId)->logWrite('Изтриване на параметър', $rec->productId);

@@ -188,6 +188,18 @@ class cat_Products extends embed_Manager
      * Кой може да го разгледа?
      */
     public $canList = 'powerUser';
+
+
+    /**
+     * Действия с избраните
+     */
+    public $doWithSelected = 'reindexparams=Преиндексиране на параметрите';
+
+
+    /**
+     * Кой може да преиндексира параметрите на избраните артикули
+     */
+    public $canReindexparams = 'debug';
     
     
     /**
@@ -1645,6 +1657,12 @@ class cat_Products extends embed_Manager
 
         // Драйверните параметри може да се ползват във формули на рецепти
         cat_Boms::clearProductParamsCache($productId);
+
+        // Индексът на параметрите се обновява само при запис, който може да ги промени
+        $savedFields = arr::make($fields, true);
+        if (!countR($savedFields) || isset($savedFields['*']) || array_intersect_key($savedFields, array('state' => 1, 'driverRec' => 1, 'innerClass' => 1))) {
+            cat_products_ParamIndex::markDirty($productId);
+        }
         if(isset($rec->_oldGroups)){
             $touchedGroups = keylist::diff($rec->_oldGroups, $groups);
             $touchedGroups = keylist::merge($touchedGroups, keylist::diff($groups, $rec->_oldGroups));
@@ -4034,6 +4052,27 @@ class cat_Products extends embed_Manager
     }
     
     
+    /**
+     * Маркиране на избраните артикули за индексиране на параметрите, независимо от състоянието им
+     */
+    public function act_Reindexparams()
+    {
+        $this->requireRightFor('reindexparams');
+
+        $productIds = array();
+        foreach (arr::make(Request::get('Selected', 'varchar')) as $id) {
+            if (is_numeric($id) && $this->haveRightFor('reindexparams', $id)) {
+                $productIds[$id] = $id;
+            }
+        }
+
+        cat_products_ParamIndexState::markForced($productIds);
+        $this->logWrite('Маркиране за индексиране на параметрите');
+
+        followRetUrl(array($this, 'list'), '|Маркирани за индексиране на параметрите|*: ' . countR($productIds));
+    }
+
+
     /**
      * Екшън за редактиране на групите на артикула
      */
