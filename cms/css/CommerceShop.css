@@ -964,15 +964,18 @@ body.eshop-public .eshop-card-actions .productBtn:only-child {
     flex: 0 0 calc(50% - 4px);
 }
 /* A stopped option shows its label instead of "Buy" - same half of the row, label stretched. */
-body.eshop-public .eshop-card-actions > .eshop-product-price-holder {
+body.eshop-public .eshop-card-actions > .eshop-product-price-holder,
+body.eshop-public .eshop-card-actions > .option-not-in-stock {
     display: flex;
     flex: 1 1 50%;
     min-width: 0;
 }
-body.eshop-public .eshop-card-actions > .eshop-product-price-holder > br {
+body.eshop-public .eshop-card-actions > .eshop-product-price-holder > br,
+body.eshop-public .eshop-card-actions > br {
     display: none;
 }
-body.eshop-public .eshop-card-actions > .eshop-product-price-holder > .option-not-in-stock {
+body.eshop-public .eshop-card-actions > .eshop-product-price-holder > .option-not-in-stock,
+body.eshop-public .eshop-card-actions > .option-not-in-stock {
     justify-content: center;
     gap: 5px;
     width: 100%;

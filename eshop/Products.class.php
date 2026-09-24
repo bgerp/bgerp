@@ -824,11 +824,17 @@ class eshop_Products extends core_Master
                         $dRow = eshop_ProductDetails::getExternalRow($pRecClone);
 
                         $pRow->saleInfo = $dRow->saleInfo;
-                        $pRow->singleCurrencyId = $settings->currencyId ?? null;
-                        $pRow->chargeVat = (($settings->chargeVat ?? 'no') == 'yes') ? tr('с ДДС') : tr('без ДДС');
-                        $pRow->catalogPrice = "<b>" . $dRow->catalogPrice . "</b>";
-                        $pRow->packagingId = $dRow->packagingId;
                         $pRow->btn = $dRow->btn ?? '';
+
+                        // ДДС и мярката са само до цена - спряната опция показва етикет вместо нея
+                        if (isset($dRow->orderPrice)) {
+                            $pRow->singleCurrencyId = $settings->currencyId ?? null;
+                            $pRow->chargeVat = (($settings->chargeVat ?? 'no') == 'yes') ? tr('с ДДС') : tr('без ДДС');
+                            $pRow->catalogPrice = "<b>" . $dRow->catalogPrice . "</b>";
+                            $pRow->packagingId = $dRow->packagingId;
+                        } elseif (!empty($dRow->catalogPrice)) {
+                            $pRow->btn = $dRow->catalogPrice . $pRow->btn;
+                        }
                     }
                 }
             } elseif ($saleState == 'multi') {
