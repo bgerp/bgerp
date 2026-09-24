@@ -1,0 +1,195 @@
+/* Checkout only: preserve framework fields, refresh and validation. */
+body.commerce-checkout #eshop_Carts-EditForm {
+    width: 100%;
+    max-width: 800px;
+    margin: 32px auto 48px;
+}
+body.commerce-checkout #eshop_Carts-EditForm .formTable {
+    float: none;
+    width: 100%;
+    min-width: 0;
+    border: 1px solid #dce5e9;
+    border-radius: 12px;
+    border-spacing: 0;
+    background: #fff;
+    box-shadow: 0 4px 20px rgba(24,43,58,.04);
+    overflow: hidden;
+}
+body.commerce-checkout #eshop_Carts-EditForm .formTitle {
+    padding: 24px 28px 16px;
+    background: #fff !important;
+    color: #182b3a !important;
+    border: 0;
+    font-size: 26px;
+    font-weight: 700;
+    text-shadow: none;
+}
+body.commerce-checkout #eshop_Carts-EditForm .formSection {
+    padding: 0 28px 24px;
+    background: #fff !important;
+    border: 0;
+}
+body.commerce-checkout #eshop_Carts-EditForm .formFields {
+    padding: 0;
+    margin: 0;
+    background: none;
+}
+body.commerce-checkout #eshop_Carts-EditForm .vFormField { width: 100%; border-spacing: 0; }
+body.commerce-checkout #eshop_Carts-EditForm .formFieldCaption {
+    width: 150px;
+    padding: 10px 16px 10px 0;
+    text-align: left;
+    vertical-align: middle;
+    color: #526875;
+    font-size: 14px;
+    white-space: normal;
+}
+body.commerce-checkout #eshop_Carts-EditForm .formFieldCaption b { font-weight: 600; color: #263f4d; }
+body.commerce-checkout #eshop_Carts-EditForm .formElement { padding: 6px 0; min-width: 0; }
+body.commerce-checkout #eshop_Carts-EditForm .formGroup {
+    margin: 22px 0 10px;
+    padding: 16px 0 0;
+    border: 0;
+    border-top: 1px solid #e3ebef;
+    border-radius: 0;
+    background: transparent !important;
+    color: #182b3a !important;
+    font-size: 18px;
+    font-weight: 600;
+    text-shadow: none;
+}
+body.commerce-checkout #eshop_Carts-EditForm input:not([type=hidden]):not([type=submit]):not([type=button]):not([type=checkbox]):not([type=radio]),
+body.commerce-checkout #eshop_Carts-EditForm select:not(.select2-hidden-accessible),
+body.commerce-checkout #eshop_Carts-EditForm textarea {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100%;
+    box-sizing: border-box;
+    min-height: 42px;
+    padding: 9px 12px;
+    border: 1px solid #b9cbd4;
+    border-radius: 7px;
+    background: #fff;
+    color: #182b3a;
+    font: 15px/1.4 Arial, sans-serif;
+    box-shadow: none;
+}
+body.commerce-checkout #eshop_Carts-EditForm select.readonly,
+body.commerce-checkout #eshop_Carts-EditForm input[readonly] {
+    background: #f3f6f8;
+    color: #62737d;
+    border-color: #e0e7eb;
+}
+body.commerce-checkout #eshop_Carts-EditForm textarea { min-height: 90px; resize: vertical; }
+body.commerce-checkout #eshop_Carts-EditForm .richEdit {
+    width: 100%;
+    min-width: 0;
+    border: 1px solid #b9cbd4;
+    border-radius: 7px;
+    box-sizing: border-box;
+    background: #fff;
+}
+body.commerce-checkout #eshop_Carts-EditForm .richEdit:focus-within {
+    outline: 2px solid #92b8c6;
+    outline-offset: 1px;
+    border-color: #145b73;
+}
+body.commerce-checkout #eshop_Carts-EditForm .richEdit textarea {
+    display: block;
+    margin: 0;
+    border: 0;
+    border-radius: 6px 6px 0 0;
+    background: #fff !important;
+}
+body.commerce-checkout #eshop_Carts-EditForm .richEdit textarea:focus {
+    outline: none;
+    box-shadow: none;
+}
+body.commerce-checkout #eshop_Carts-EditForm .richedit-toolbar {
+    padding: 5px;
+    margin: 0;
+    min-width: 0;
+    border: 0;
+    border-top: 1px solid #e3ebef;
+    background: #f5f8fa;
+    border-radius: 0 0 7px 7px;
+}
+body.commerce-checkout #eshop_Carts-EditForm .select2-container { width: 100% !important; min-width: 0; }
+body.commerce-checkout #eshop_Carts-EditForm .select2-selection {
+    min-height: 42px;
+    border: 1px solid #b9cbd4;
+    border-radius: 7px;
+    background: #fff;
+    box-shadow: none !important;
+}
+body.commerce-checkout #eshop_Carts-EditForm .select2-selection--single .select2-selection__rendered {
+    height: 40px;
+    max-height: none;
+    line-height: 40px;
+    padding-left: 12px;
+    color: #182b3a;
+    font-size: 15px;
+}
+body.commerce-checkout #eshop_Carts-EditForm .select2-selection__arrow { height: 40px; }
+body.commerce-checkout #eshop_Carts-EditForm .select2-selection:focus,
+body.commerce-checkout #eshop_Carts-EditForm .select2-container--focus .select2-selection,
+body.commerce-checkout #eshop_Carts-EditForm .select2-container--open .select2-selection {
+    outline: 2px solid #92b8c6 !important;
+    outline-offset: 1px;
+    border-color: #145b73;
+    box-shadow: none !important;
+}
+body.commerce-checkout #eshop_Carts-EditForm input:focus,
+body.commerce-checkout #eshop_Carts-EditForm textarea:focus {
+    outline: 2px solid #92b8c6;
+    outline-offset: 1px;
+    border-color: #145b73;
+}
+body.commerce-checkout #eshop_Carts-EditForm .formToolbar {
+    padding: 0;
+    background: none;
+    border: 0;
+}
+body.commerce-checkout #eshop_Carts-EditForm .toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 18px 28px;
+    margin: 0 !important;
+    background: #f6f8fa;
+    border-top: 1px solid #e3ebef;
+}
+body.commerce-checkout #eshop_Carts-EditForm .toolbar .button {
+    min-height: 42px;
+    margin: 0;
+    padding: 10px 22px !important;
+    border: 1px solid #c5d5dc;
+    border-radius: 7px;
+    background: #fff !important;
+    color: #405a68 !important;
+    box-shadow: none;
+    text-shadow: none;
+    font: 600 14px/1.4 Arial, sans-serif;
+    cursor: pointer;
+}
+body.commerce-checkout #eshop_Carts-EditForm .toolbar .submitBtn {
+    background: #145b73 !important;
+    border-color: #145b73;
+    color: #fff !important;
+}
+body.commerce-checkout #eshop_Carts-EditForm .toolbar .submitBtn:hover { background: #0e4356 !important; }
+body.commerce-checkout #eshop_Carts-EditForm .inputError,
+body.commerce-checkout #eshop_Carts-EditForm .richEdit textarea.inputError { border-color: #bd4050 !important; background-color: #fff4f5 !important; }
+@media (max-width: 650px) {
+    body.commerce-checkout #eshop_Carts-EditForm { margin: 20px auto; }
+    body.commerce-checkout #eshop_Carts-EditForm .formTitle { padding: 20px 16px 12px; font-size: 23px; }
+    body.commerce-checkout #eshop_Carts-EditForm .formSection { padding: 0 16px 20px; }
+    body.commerce-checkout #eshop_Carts-EditForm .vFormField,
+    body.commerce-checkout #eshop_Carts-EditForm .vFormField > tbody,
+    body.commerce-checkout #eshop_Carts-EditForm .vFormField > tbody > tr,
+    body.commerce-checkout #eshop_Carts-EditForm .vFormField > tbody > tr > td { display: block; width: auto; }
+    body.commerce-checkout #eshop_Carts-EditForm .formFieldCaption { padding: 10px 0 2px; }
+    body.commerce-checkout #eshop_Carts-EditForm .formElement { padding: 3px 0; }
+    body.commerce-checkout #eshop_Carts-EditForm .toolbar { padding: 16px; }
+    body.commerce-checkout #eshop_Carts-EditForm .toolbar .button { flex: 1; }
+}

@@ -355,7 +355,7 @@ class eshop_Groups extends core_Master
             $cRec = cms_Content::fetch($data->menuId);
             $seoRec->seoTitle = $cRec->title;
             cms_Content::prepareSeo($seoRec);
-            $layout->append('<h1>' . type_Varchar::escape($cRec->title) . '</h1>', 'PAGE_CONTENT');
+            $layout->append('<h1 class="eshop-catalog-title">' . type_Varchar::escape($cRec->title) . '</h1>', 'PAGE_CONTENT');
             $layout->append($this->renderAllGroups($data), 'PAGE_CONTENT');
             cms_Content::renderSeo($layout, $seoRec);
         } else {
@@ -583,7 +583,7 @@ class eshop_Groups extends core_Master
         
         if (is_array($data->recs ?? null)) {
             foreach ($data->recs as $rec) {
-                $tpl = new ET(getFileContent('eshop/tpl/GroupButton.shtml'));
+                $tpl = new ET(getFileContent(cms_CommerceTheme::getShopTemplate('eshop/tpl/GroupButton.shtml')));
                 
                 if (!empty($rec->icon)) {
                     $img = new thumb_Img($rec->icon, 600, 450, 'fileman');
@@ -609,6 +609,9 @@ class eshop_Groups extends core_Master
     {
         $groupTpl = getTplFromFile('eshop/tpl/SingleGroupShow.shtml');
         $groupTpl->setRemovableBlocks(array('PRODUCT'));
+        if (in_array($data->groupId, array(eshop_Favourites::FAVOURITE_SYSTEM_GROUP_ID, eshop_Carts::LAST_SALES_SYSTEM_ID))) {
+            $groupTpl->replace('eshop-personal-group', 'groupClass');
+        }
         $groupTpl->placeArray($data->row);
         
         // Добавяне на подгрупите
@@ -657,9 +660,12 @@ class eshop_Groups extends core_Master
             $layout = 'eshop/tpl/AllProducts.shtml';
         }
         
-        Mode::set('cmsLayout', $layout);
+        Mode::set('cmsLayout', cms_CommerceTheme::getShopTemplate($layout));
         
-        return new ET();
+        $tpl = new ET();
+        cms_CommerceTheme::prepareShop($tpl);
+
+        return $tpl;
     }
     
     
@@ -744,7 +750,7 @@ class eshop_Groups extends core_Master
             $l->selected = ($groupId == $rec->id);
             
             if ($this->haveRightFor('edit', $rec)) {
-                $l->editLink = ht::createLink($editImg, array('eshop_Groups', 'edit', $rec->id, 'ret_url' => true));
+                $l->editLink = ht::createLink($editImg, array('eshop_Groups', 'edit', $rec->id, 'ret_url' => true), null, array('class' => 'eshop-edit-link', 'title' => 'Редактиране на групата'));
             }
 
             if(isset($rec->seoTitle)) {

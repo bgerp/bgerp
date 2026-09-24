@@ -1,0 +1,30 @@
+<div class='cms-row eshop-layout'>
+    <!--ET_BEGIN NAVIGATION-->
+    <div   id='cmsNavigation' class='articles-menu'  style='margin:2%'>
+        <div class='articles-navigation'>
+            [#SEARCH_BOX#] [#TOGGLE_BTN#]
+            <div class="clearfix21"></div>
+        </div>
+
+        <div class="narrowNav">
+            [#NAVIGATION_EXTRA_BTNS#]
+            <div class="commerce-shortcuts">
+                <div id="faveNavBtn">[#NAVIGATION_FAV#]</div>
+                [#NAVIGATION_OTHER_BTNS#]
+            </div>
+            [#NAVIGATION#]
+        </div>
+    </div>
+    <!--ET_END NAVIGATION-->
+    <div class='eshop-content'>
+        [#TOP_CONTENT#]
+        [#PAGE_CONTENT#]
+        <!--ET_BEGIN SOCIAL-->
+        [#SOCIAL#]
+        [#social_Sharings::getButtons#]
+        <!--ET_END SOCIAL-->
+        [#BOTTOM_CONTENT#]
+        [#BEFORE_FOOTER_INFO#]
+        <div class='bulletin-link clearfix21'></div>
+    </div>
+</div>

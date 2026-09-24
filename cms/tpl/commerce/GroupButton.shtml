@@ -1,0 +1,9 @@
+<div class='eshop-group-button'>
+    <div class='eshop-group-button-img'>
+        [#img#]
+    </div>
+    <h2 class='eshop-group-button-title'>
+        [#name#]
+    </h2>
+    <span class="eshop-group-arrow" aria-hidden="true">&#8594;</span>
+</div>
