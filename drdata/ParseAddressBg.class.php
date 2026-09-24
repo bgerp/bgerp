@@ -402,11 +402,11 @@ class drdata_ParseAddressBg extends core_Manager
         
         $all = $place = $addr = '';
         
-        if ($parts['гр.'] == $parts['обл.']) {
+        if (isset($parts['гр.'], $parts['обл.']) && $parts['гр.'] == $parts['обл.']) {
             unset($parts['обл.']);
         }
         
-        if ($parts['гр.'] == $parts['общ.']) {
+        if (isset($parts['гр.'], $parts['общ.']) && $parts['гр.'] == $parts['общ.']) {
             unset($parts['общ.']);
         }
         
