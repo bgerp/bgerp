@@ -643,7 +643,7 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
             $compareFields = array('sellValueLastYear', 'deltaLastYear', 'unicartLast', 'salesArrLast');
         }
 
-        $res = array();
+        $res = $groupValues = $groupDeltas = array();
         foreach ($recs as $key => $dRec) {
 
             // Старите версии пазят обобщаващия ред в данните - той вече се смята от TableData
@@ -652,22 +652,34 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
             }
 
             $dRec = clone $dRec;
+            // Обобщенията и промените следват показаните суми, без да променят записаните данни.
+            $dRec->saleValue = round($dRec->saleValue ?? 0, 2);
+            $dRec->delta = round($dRec->delta ?? 0, 2);
             $dRec->articles = $dRec->unicart ?? 0;
             $dRec->sales = $dRec->salesArr ?? 0;
 
             if (isset($compareFields)) {
                 list($sellFld, $deltaFld, $unicartFld, $salesFld) = $compareFields;
-                $dRec->sellValueCompare = $dRec->{$sellFld} ?? 0;
-                $dRec->deltaCompare = $dRec->{$deltaFld} ?? 0;
+                $dRec->sellValueCompare = round($dRec->{$sellFld} ?? 0, 2);
+                $dRec->deltaCompare = round($dRec->{$deltaFld} ?? 0, 2);
                 $dRec->unicartCompare = $dRec->{$unicartFld} ?? 0;
                 $dRec->salesCompareCount = $dRec->{$salesFld} ?? 0;
-                $dRec->changeSales = ($dRec->saleValue ?? 0) - $dRec->sellValueCompare;
-                $dRec->changeDeltas = ($dRec->delta ?? 0) - $dRec->deltaCompare;
+                $dRec->changeSales = round($dRec->saleValue - $dRec->sellValueCompare, 2);
+                $dRec->changeDeltas = round($dRec->delta - $dRec->deltaCompare, 2);
                 $dRec->changeArticles = $dRec->articles - $dRec->unicartCompare;
                 $dRec->changeSalesCount = $dRec->sales - $dRec->salesCompareCount;
             }
 
+            $group = $dRec->groupList ?? '';
+            $groupValues[$group] = ($groupValues[$group] ?? 0) + $dRec->saleValue;
+            $groupDeltas[$group] = ($groupDeltas[$group] ?? 0) + $dRec->delta;
             $res[$key] = $dRec;
+        }
+
+        foreach ($res as $dRec) {
+            $group = $dRec->groupList ?? '';
+            $dRec->groupValues = round($groupValues[$group], 2);
+            $dRec->groupDeltas = round($groupDeltas[$group], 2);
         }
 
         return $res;
