@@ -46,6 +46,14 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
      * @var int
      */
     protected $summaryListFields;
+
+
+    /**
+     * С колко знака да се закръглят полетата в обобщаващия ред, ако не са с 2 (напр. 'quantity=3')
+     *
+     * @var string
+     */
+    protected $summaryDecimals;
     
    
     /**
@@ -70,6 +78,20 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
      * @var int
      */
     protected $sortableListFields;
+
+
+    /**
+     * Кои полета от таблицата са цени/суми - заличават се, ако потребителят няма права да ги вижда
+     *
+     * @var string
+     */
+    protected $priceListFields;
+
+
+    /**
+     * Кеш дали потребителят вижда цените в справката
+     */
+    private $canSeePriceFieldsCache = array();
     
     
     /**
@@ -340,11 +362,11 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
             $summaryRow->{$fld} = 0;
         }
         
-        // Ако има полета за сумиране
+        // Сумират се закръглените стойности, за да съвпада сборът с показаните редове
         array_walk($data->recs, function ($a) use (&$summaryRow, $fieldsToSumArr){
             foreach ($fieldsToSumArr as $fld){
                 if(isset($a->{$fld}) && is_numeric($a->{$fld})){
-                    $summaryRow->{$fld} = ($summaryRow->{$fld} ?? 0) + $a->{$fld};
+                    $summaryRow->{$fld} = ($summaryRow->{$fld} ?? 0) + round($a->{$fld}, $data->summaryDecimals[$fld] ?? 2);
                 }
             }
         });
@@ -361,6 +383,37 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
         $summaryRow->ROW_ATTR['class'] = 'reportTableDataTotal';
         
         return $summaryRow;
+    }
+
+
+    /**
+     * С колко знака се закръглят и показват полетата в сумиращия ред
+     *
+     * @param stdClass $rec
+     * @param array $fieldsToSumArr
+     *
+     * @return array $res - [поле => брой знаци]
+     */
+    protected function getSummaryDecimals($rec, $fieldsToSumArr)
+    {
+        $res = array();
+        if (!countR($fieldsToSumArr)) {
+
+            return $res;
+        }
+
+        // Знаците трябва да са колкото на показаните редове, за да съвпада сборът с тях
+        $decimalsArr = arr::make($this->summaryDecimals, true);
+        $fieldset = $this->getTableFieldSet($rec);
+        foreach ($fieldsToSumArr as $fld) {
+            if (isset($decimalsArr[$fld])) {
+                $res[$fld] = (int) $decimalsArr[$fld];
+            } else {
+                $res[$fld] = ($fieldset->getFieldType($fld, false) instanceof type_Int) ? 0 : 2;
+            }
+        }
+
+        return $res;
     }
 
 
@@ -420,14 +473,20 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
             // Добавяне на обобщаващия ред, ако е указано да се показва
             $summaryFields = arr::make($data->summaryListFields);
             $fieldsToSumArr = array_intersect($summaryFields, array_keys($data->listFields));
+            $data->summaryDecimals = $this->getSummaryDecimals($rec, $fieldsToSumArr);
             $summaryRow = $this->getSummaryListRow($data, $fieldsToSumArr);
-            $sumFieldSet = is_object($summaryRow) ? $this->getTableFieldSet($rec) : null;
             
             // Ако е указано сортиране, сортират се записите, ако има сумарен ред той не участва в сортирането
             $sortDirection = Request::get("Sort{$rec->containerId}");
             $sortDirectionArr = !empty($sortDirection) ? explode('|', $sortDirection) : array();
             $sortFld = $sortDirectionArr[0] ?? null;
             $sortDirection = $sortDirectionArr[1] ?? null;
+
+            // По заличените полета не се сортира, за да не се издава подредбата им
+            $hiddenPriceFields = $this->getHiddenPriceFields($rec);
+            if (isset($sortFld) && array_key_exists($sortFld, $hiddenPriceFields)) {
+                $sortFld = null;
+            }
 
             // Ако има поле за групиране, предварително се групират записите
             if (!empty($data->groupByField)) {
@@ -453,10 +512,15 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
                 // Ако реда е обобщаващ вербализира се отделно, целите числа остават без десетични
                 if($isSummary && countR($fieldsToSumArr)){
                     foreach ($fieldsToSumArr as $sumFld){
-                        $SumType = $sumFieldSet->getFieldType($sumFld, false);
-                        $SumType = ($SumType instanceof type_Int) ? $SumType : core_Type::getByName('double(decimals=2)');
+                        $SumType = core_Type::getByName("double(decimals={$data->summaryDecimals[$sumFld]})");
                         $data->rows[$index]->{$sumFld} = $SumType->toVerbal($dRec->{$sumFld});
                         $data->rows[$index]->{$sumFld} = ht::styleNumber($data->rows[$index]->{$sumFld}, $dRec->{$sumFld});
+                    }
+                }
+
+                foreach ($hiddenPriceFields as $priceFld) {
+                    if (isset($data->rows[$index]->{$priceFld}) && $data->rows[$index]->{$priceFld} !== '') {
+                        $data->rows[$index]->{$priceFld} = doc_plg_HidePrices::getBuriedElement(Mode::is('text', 'plain'));
                     }
                 }
             }
@@ -824,6 +888,7 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
         $listFields = array();
         $sortUrlParam = "Sort{$rec->containerId}";
         $listFieldsToSort = arr::make($this->sortableListFields, true);
+        $listFieldsToSort = array_diff_key($listFieldsToSort, $this->getHiddenPriceFields($rec));
         
         $fieldset = $this->getTableFieldSet($rec, $export);
         $fields = $fieldset->selectFields();
@@ -854,13 +919,59 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
         $recsToExport = $this->getRecsForExport($rec, $ExportClass);
         
         $recs = array();
+        $hiddenPriceFields = $this->getHiddenPriceFields($rec);
         if (is_array($recsToExport)) {
             foreach ($recsToExport as $dRec) {
-                $recs[] = $this->getExportRec($rec, $dRec, $ExportClass);
+                $exportRec = $this->getExportRec($rec, $dRec, $ExportClass);
+                if (countR($hiddenPriceFields) && is_object($exportRec)) {
+                    $exportRec = clone $exportRec;
+                    foreach ($hiddenPriceFields as $priceFld) {
+                        unset($exportRec->{$priceFld});
+                    }
+                }
+                $recs[] = $exportRec;
             }
         }
         
         return $recs;
+    }
+
+
+    /**
+     * Може ли текущият потребител да вижда цените/сумите в справката
+     *
+     * @param stdClass $rec - запис на справката
+     *
+     * @return bool
+     */
+    public function canSeePriceFields($rec)
+    {
+        // Кешира се, защото някои справки проверяват и при вербализирането на всеки ред
+        $key = ($rec->id ?? '') . '|' . core_Users::getCurrent('id', false);
+        if (!array_key_exists($key, $this->canSeePriceFieldsCache)) {
+            $this->canSeePriceFieldsCache[$key] = doc_plg_HidePrices::canSeePriceFields('frame2_Reports', $rec);
+        }
+
+        return $this->canSeePriceFieldsCache[$key];
+    }
+
+
+    /**
+     * Ценовите полета от таблицата, които да се заличат за текущия потребител
+     *
+     * @param stdClass $rec - запис на справката
+     *
+     * @return array
+     */
+    protected function getHiddenPriceFields($rec)
+    {
+        $priceFields = arr::make($this->priceListFields, true);
+        if (!countR($priceFields) || $this->canSeePriceFields($rec)) {
+
+            return array();
+        }
+
+        return $priceFields;
     }
     
     

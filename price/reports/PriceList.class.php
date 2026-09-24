@@ -36,6 +36,12 @@ class price_reports_PriceList extends price_reports_PriceListProto
 
 
     /**
+     * Кои полета от таблицата са цени/суми
+     */
+    protected $priceListFields = 'price,difference';
+
+
+    /**
      * Добавя полетата на драйвера към Fieldset
      *
      * @param core_Fieldset $fieldset
@@ -373,6 +379,11 @@ class price_reports_PriceList extends price_reports_PriceListProto
         $listFields = arr::make('eanCode=ЕАН,packagingId=Опаковка,price=Цена', true);
         if ($rec->showEan != 'yes') {
             unset($listFields['eanCode']);
+        }
+
+        // Без права за цени в опаковките остават само наименованията им
+        if (!$this->canSeePriceFields($rec)) {
+            unset($listFields['price']);
         }
 
         $tpl = $table->get($rows, $listFields);

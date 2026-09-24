@@ -38,6 +38,12 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
 
 
     /**
+     * С колко знака да се закръглят полетата в обобщаващия ред
+     */
+    protected $summaryDecimals = 'quantity=3';
+
+
+    /**
      * Как да се казва обобщаващия ред. За да се покаже трябва да е зададено $summaryListFields
      *
      * @var int

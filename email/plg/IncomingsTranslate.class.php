@@ -29,12 +29,15 @@ class email_plg_IncomingsTranslate extends core_Plugin
             $translateLgCodeArr[$lgCode] = $lgCode;
         }
         
-        $rLg = strtolower($rec->lg);
+        // recToVerbal() може да е извикан с id вместо със запис
+        $rec = $mvc->fetchRec($rec);
+
+        $rLg = strtolower((string) ($rec->lg ?? ''));
         if (empty($translateLgCodeArr) || !empty($translateLgCodeArr[$rLg])) {
             if ($rLg != core_Lg::getCurrent() &&
                 !(Mode::is('text', 'xhtml') && !Mode::is('printing')) &&
                 !Mode::is('text', 'plain') &&
-                $fields['-single'] && trim($row->textPart)
+                !empty($fields['-single']) && trim((string) ($row->textPart ?? ''))
                  ) {
                 $row->textPart = new core_ET(
                         google_Translate1::getMarkupTpl($row->textPart)

@@ -188,6 +188,18 @@ class cat_Products extends embed_Manager
      * Кой може да го разгледа?
      */
     public $canList = 'powerUser';
+
+
+    /**
+     * Действия с избраните
+     */
+    public $doWithSelected = 'reindexparams=Преиндексиране на параметрите';
+
+
+    /**
+     * Кой може да преиндексира параметрите на избраните артикули
+     */
+    public $canReindexparams = 'debug';
     
     
     /**
@@ -1645,6 +1657,12 @@ class cat_Products extends embed_Manager
 
         // Драйверните параметри може да се ползват във формули на рецепти
         cat_Boms::clearProductParamsCache($productId);
+
+        // Индексът на параметрите се обновява само при запис, който може да ги промени
+        $savedFields = arr::make($fields, true);
+        if (!countR($savedFields) || isset($savedFields['*']) || array_intersect_key($savedFields, array('state' => 1, 'driverRec' => 1, 'innerClass' => 1))) {
+            cat_products_ParamIndex::markDirty($productId);
+        }
         if(isset($rec->_oldGroups)){
             $touchedGroups = keylist::diff($rec->_oldGroups, $groups);
             $touchedGroups = keylist::merge($touchedGroups, keylist::diff($groups, $rec->_oldGroups));
@@ -1782,7 +1800,7 @@ class cat_Products extends embed_Manager
      */
     public static function getProductOptions($params, $limit = null, $q = '', $onlyIds = null, $includeHiddens = false)
     {
-        $private = $products = $templates = $favourites = array();
+        $private = $products = $templates = $favourites = $closed = array();
 
         $query = cat_Products::getQuery();
         $reverseOrder = false;
@@ -1807,6 +1825,8 @@ class cat_Products extends embed_Manager
                         $query->notIn('folderId', $ignoreFolderIds);
                     }
                 }
+            } elseif(!empty($params['withClosed'])){
+                $query->where("#state != 'rejected'");
             } elseif(!empty($params['onlyTemplates'])){
                 $query->where("#state = 'template'");
                 $ignoreFolderIds = cls::get($params['driverId'])->getFoldersToIgnoreTemplates();
@@ -2053,6 +2073,8 @@ class cat_Products extends embed_Manager
                 $favourites[$rec->id] = $title;
             } elseif($rec->state == 'template'){
                 $templates[$rec->id] = $title;
+            } elseif(!empty($params['withClosed']) && $rec->state == 'closed'){
+                $closed[$rec->id] = $title;
             } elseif (($rec->isPublic ?? null) == 'yes') {
                 $products[$rec->id] = $title;
             } else {
@@ -2092,6 +2114,10 @@ class cat_Products extends embed_Manager
                 if (!empty($favourites)) {
                     asort($favourites);
                 }
+
+                if (!empty($closed)) {
+                    asort($closed);
+                }
             }
         }
 
@@ -2127,6 +2153,11 @@ class cat_Products extends embed_Manager
                 } elseif ($mustReverse === false) {
                     $mustReverse = -1;
                 }
+            }
+
+            if (isset($closed[$mId])) {
+                unset($closed[$mId]);
+                $closed = array($mId => $mTitle) + $closed;
             }
 
             if (isset($favourites[$mId])) {
@@ -2169,6 +2200,13 @@ class cat_Products extends embed_Manager
                 $templates = array('tu' => (object) array('group' => true, 'title' => tr('Шаблони'))) + $templates;
             }
             $products = $products + $templates;
+        }
+
+        if(countR($closed)){
+            if(!isset($onlyIds)){
+                $closed = array('cl' => (object) array('group' => true, 'title' => tr('Закрити'))) + $closed;
+            }
+            $products = $products + $closed;
         }
 
         if (countR($favourites)) {
@@ -4034,6 +4072,27 @@ class cat_Products extends embed_Manager
     }
     
     
+    /**
+     * Маркиране на избраните артикули за индексиране на параметрите, независимо от състоянието им
+     */
+    public function act_Reindexparams()
+    {
+        $this->requireRightFor('reindexparams');
+
+        $productIds = array();
+        foreach (arr::make(Request::get('Selected', 'varchar')) as $id) {
+            if (is_numeric($id) && $this->haveRightFor('reindexparams', $id)) {
+                $productIds[$id] = $id;
+            }
+        }
+
+        cat_products_ParamIndexState::markForced($productIds);
+        $this->logWrite('Маркиране за индексиране на параметрите');
+
+        followRetUrl(array($this, 'list'), '|Маркирани за индексиране на параметрите|*: ' . countR($productIds));
+    }
+
+
     /**
      * Екшън за редактиране на групите на артикула
      */

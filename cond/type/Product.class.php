@@ -209,4 +209,18 @@ class cond_type_Product extends cond_type_Varchar
 
         return $res;
     }
+
+
+    /**
+     * Индексира се името на артикула, заедно с ид-то му
+     */
+    public function getIndexValues($rec, $domainClass, $domainId, $value, $langs)
+    {
+        if (!is_numeric($value)) {
+
+            return array();
+        }
+
+        return $this->makeTextIndexRows($rec, $domainClass, $domainId, $value, $langs, (int) $value);
+    }
 }

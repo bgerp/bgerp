@@ -1789,7 +1789,8 @@ class doc_Threads extends core_Manager
             
             $sameEmailMsgCnt = $msgQuery->count() - 1;
             
-            $msgRow = $doc->recToVerbal($msgRec);
+            // През core_ObjectReference id-то се вмъква като първи аргумент и записът отива в $fields
+            $msgRow = $doc->getInstance()->recToVerbal($msgRec);
             
             if ($sameEmailMsgCnt > 0) {
                 if ($sameEmailMsgCnt == 1) {

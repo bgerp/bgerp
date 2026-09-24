@@ -35,6 +35,12 @@ class bgfisc_reports_MovementOfGoodsForAPeriod extends frame2_driver_TableData
 
 
     /**
+     * Кои полета от таблицата са цени/суми
+     */
+    protected $priceListFields = 'baseAmount,debitAmount,creditAmount,blAmount';
+
+
+    /**
      * Добавя полетата на драйвера към Fieldset
      *
      * @param core_Fieldset $fieldset

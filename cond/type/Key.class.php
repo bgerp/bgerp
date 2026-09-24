@@ -18,6 +18,12 @@
 class cond_type_Key extends cond_type_abstract_Proto
 {
     /**
+     * Как се индексира стойността за филтриране (@see cat_products_ParamIndex)
+     */
+    protected $indexKind = 'text';
+
+
+    /**
      * Добавя полетата на драйвера към Fieldset
      *
      * @param core_Fieldset $fieldset
@@ -149,5 +155,19 @@ class cond_type_Key extends cond_type_abstract_Proto
         }
 
         return $verbal;
+    }
+
+
+    /**
+     * Индексира се името на обекта, заедно с ид-то му
+     */
+    public function getIndexValues($rec, $domainClass, $domainId, $value, $langs)
+    {
+        if (!is_numeric($value)) {
+
+            return array();
+        }
+
+        return $this->makeTextIndexRows($rec, $domainClass, $domainId, $value, $langs, (int) $value);
     }
 }

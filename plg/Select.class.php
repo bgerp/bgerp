@@ -23,7 +23,11 @@ class plg_Select extends core_Plugin
                                                      'browse' => 'img/16/view.png',
                                                      'changemeta' => 'img/16/view.png',
                                                      'grouping' => 'img/16/category-icon.png',
-                                                     'groupconto' => 'img/16/tick-circle-frame.png');
+                                                     'groupconto' => 'img/16/tick-circle-frame.png',
+                                                     'filterableon' => 'img/16/funnel.png',
+                                                     'filterableoff' => 'img/16/filter.png',
+                                                     'markdirty' => 'img/16/arrow_refresh.png',
+                                                     'reindexparams' => 'img/16/arrow_refresh.png');
 
 
     /**
