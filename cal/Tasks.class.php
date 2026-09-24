@@ -1702,10 +1702,15 @@ class cal_Tasks extends embed_Manager
                 $data->query->orLikeKeylist('assign', $filterRec->selectedUsers);
             }
             
-            if ($filterRec->stateTask != 'all' && $filterRec->stateTask != 'actPend') {
-                $data->query->where(array("#state = '[#1#]'", $filterRec->stateTask));
-            } elseif ($filterRec->stateTask == 'actPend') {
-                $data->query->in('state', array('active', 'waiting', 'wakeup', 'stopped', 'pending'));
+            $stateTask = $filterRec->stateTask ?? 'all';
+            $query = $data->query ?? null;
+            expect($query instanceof core_Query);
+            if ($stateTask == 'closed') {
+                $query->in('state', array('closed', 'stopped'));
+            } elseif ($stateTask == 'actPend') {
+                $query->in('state', array('active', 'waiting', 'wakeup', 'pending'));
+            } elseif ($stateTask != 'all') {
+                $query->where(array("#state = '[#1#]'", $stateTask));
             }
             
             if ($filterRec->order == 'onStart') {
@@ -1832,7 +1837,7 @@ class cal_Tasks extends embed_Manager
      */
     public static function getStateTaskFilterType()
     {
-        return 'enum(all=Всички,active=Активни,draft=Чернови,waiting=Чакащи,pending=Заявка,actPend=Активни+Чакащи+Събудени+Спрени+Заявка,closed=Приключени)';
+        return 'enum(all=Всички,active=Активни,draft=Чернови,waiting=Чакащи,pending=Заявка,actPend=Активни+Чакащи+Събудени+Заявка,closed=Приключени)';
     }
     
     
@@ -2590,9 +2595,20 @@ class cal_Tasks extends embed_Manager
             }
 
             if (!empty($resources) && is_array($resources)) {
+                $userNicks = array();
+                foreach (array_keys($resources) as $id) {
+                    $userNicks[$id] = mb_strtolower(core_Users::getNick($id) ?? '');
+                }
+                asort($userNicks, SORT_STRING);
+
+                $currentUser = core_Users::getCurrent();
+                if (isset($userNicks[$currentUser])) {
+                    $userNicks = array($currentUser => $userNicks[$currentUser]) + $userNicks;
+                }
+
                 // номерирваме ги да почват от 0
-                foreach ($resources as $res) {
-                    $resUser[] = $res;
+                foreach (array_keys($userNicks) as $id) {
+                    $resUser[] = $resources[$id];
                 }
             }
             
