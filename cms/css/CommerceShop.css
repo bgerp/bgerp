@@ -951,7 +951,7 @@ body.eshop-public .eshop-card-actions > .option-not-in-stock {
 body.eshop-public .eshop-new-product {
     display: inline-block;
     min-height: 38px;
-    padding: 8px 16px !important;
+    padding: 8px 16px 8px 36px !important;
     border: 1px dashed #8baab7 !important;
     border-radius: 7px;
     background: #f5f9fa url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Cpath d='M8 3v10M3 8h10' fill='none' stroke='%23145b73' stroke-width='1.6' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat 12px center !important;
