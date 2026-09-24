@@ -1,0 +1,15 @@
+<div class="cms-row commerce-blog-layout">
+    <!--ET_BEGIN NAVIGATION-->
+    <div id="cmsNavigation">
+        [#TOP_NAV#]
+        [#NAVIGATION#]
+        <div class="bulletin-link"></div>
+        [#BOTTOM_NAV#]
+    </div>
+    <!--ET_END NAVIGATION-->
+    <div class="commerce-blog-content searchContent">
+        [#TOP_CONTENT#]
+        [#PAGE_CONTENT#]
+        [#BOTTOM_CONTENT#]
+    </div>
+</div>

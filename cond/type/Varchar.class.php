@@ -98,6 +98,15 @@ class cond_type_Varchar extends cond_type_abstract_Proto
 
 
     /**
+     * Свободният текст се индексира без разлика в регистъра („КотКа“ = „Котка“)
+     */
+    protected function getIndexKey($verbal)
+    {
+        return str::mbUcfirst(mb_strtolower($verbal));
+    }
+
+
+    /**
      * Текст, който е число, се индексира и като число, за да се търси в диапазон
      */
     public function getIndexValues($rec, $domainClass, $domainId, $value, $langs)

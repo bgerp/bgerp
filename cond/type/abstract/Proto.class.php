@@ -52,6 +52,12 @@ abstract class cond_type_abstract_Proto extends core_BaseClass
 
 
     /**
+     * Дали числовите стойности могат да се групират в диапазони във филтъра
+     */
+    protected $indexRanges = false;
+
+
+    /**
      * Добавя полетата на драйвера към Fieldset
      *
      * @param core_Fieldset $fieldset
@@ -270,6 +276,17 @@ abstract class cond_type_abstract_Proto extends core_BaseClass
 
 
     /**
+     * Могат ли стойностите да се групират в диапазони във филтъра
+     *
+     * @return bool
+     */
+    public function canIndexRanges()
+    {
+        return $this->indexKind == 'num' && $this->indexRanges;
+    }
+
+
+    /**
      * Връща редовете за индекса на параметрите (@see cat_products_ParamIndex)
      *
      * @param stdClass $rec         - запис на параметъра
@@ -387,11 +404,24 @@ abstract class cond_type_abstract_Proto extends core_BaseClass
         // Ключът е самата стойност с главна първа буква - по него се групират отметките във филтъра
         $res = array();
         foreach ($texts as $lg => $verbal) {
-            $key = mb_substr(str::mbUcfirst($verbal), 0, 255);
+            $key = mb_substr($this->getIndexKey($verbal), 0, 255);
             $res[] = $this->makeIndexRow(array('lg' => $lg, 'valueKey' => $key, 'valueVerbal' => mb_substr($verbal, 0, 255), 'valueId' => $valueId));
         }
 
         return $res;
+    }
+
+
+    /**
+     * Ключът в индекса за текстова стойност
+     *
+     * @param string $verbal
+     *
+     * @return string
+     */
+    protected function getIndexKey($verbal)
+    {
+        return str::mbUcfirst($verbal);
     }
 
 

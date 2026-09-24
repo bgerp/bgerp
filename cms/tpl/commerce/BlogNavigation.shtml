@@ -1,0 +1,30 @@
+<!--ET_BEGIN SEARCH_FORM-->
+<div class='blogm-search-form'>
+    [#SEARCH_FORM#]
+</div>
+<!--ET_END SEARCH_FORM-->
+<!--ET_BEGIN WORKSHOP-->
+<div class='blogm-workshop'>
+    [#WORKSHOP#]
+</div>
+<!--ET_END WORKSHOP-->
+<!--ET_BEGIN CATEGORIES-->
+<div class='blogm-categories'>
+    <!--ET_BEGIN CATEGORY_CAPTION-->
+    <div class='nav_item  level1'>[#CATEGORY_CAPTION#]</div>
+    <!--ET_END CATEGORY_CAPTION-->
+    [#CATEGORIES#]
+</div>
+<!--ET_END CATEGORIES-->
+<!--ET_BEGIN ARCHIVE-->
+<div class='blogm-archive'>
+    <div class='nav_item  level1'>|Архив|*</div>
+    [#ARCHIVE#]
+</div>
+<!--ET_END ARCHIVE-->
+<!--ET_BEGIN LINKS-->
+<div class='blogm-links'>
+    <div class='nav_item  level1'>|Ние четем|*</div>
+    [#LINKS#]
+</div>
+<!--ET_END LINKS-->

@@ -4069,6 +4069,12 @@ span.sharing-history-title {
 .eshop-product-list .external-discount {
   margin-left: 10px; }
 
+.option-not-in-stock.eshop-contact-us {
+  background-color: #e6e6e6 !important;
+  border: solid 1px #ff7070;
+  color: #cc0000;
+  margin-top: 5px; }
+
 .option-not-in-stock {
   background-color: rgba(230, 0, 0, 0.8) !important;
   text-shadow: none !important;
@@ -4630,6 +4636,58 @@ table .eshop-btn {
 
 #cmsNavigation div.nav_item {
   font-size: 1em; }
+
+#cmsNavigation .eshop-param-filter {
+  clear: both;
+  margin: 10px 0 15px;
+  font-family: Trebuchet MS, Geneva, Tahoma, sans-serif; }
+  #cmsNavigation .eshop-param-filter .eshop-param-filter-title {
+    font-size: 16px;
+    font-weight: bold;
+    margin-bottom: 5px; }
+  #cmsNavigation .eshop-param-filter a.eshop-param-filter-clear {
+    font-size: 12px;
+    font-weight: normal;
+    padding: 0; }
+  #cmsNavigation .eshop-param-filter details.eshop-param-filter-param {
+    margin-bottom: 4px; }
+    #cmsNavigation .eshop-param-filter details.eshop-param-filter-param > summary {
+      cursor: pointer;
+      font-size: 15px;
+      padding: 2px 0; }
+  #cmsNavigation .eshop-param-filter .eshop-param-filter-values {
+    margin: 2px 0 6px 10px; }
+  #cmsNavigation .eshop-param-filter details.eshop-param-filter-more > summary {
+    cursor: pointer;
+    font-size: 12px;
+    color: #666666; }
+  #cmsNavigation .eshop-param-filter .eshop-param-filter-value {
+    display: block;
+    padding: 1px 0;
+    border: none; }
+    #cmsNavigation .eshop-param-filter .eshop-param-filter-value.disabled {
+      color: #aaaaaa; }
+    #cmsNavigation .eshop-param-filter .eshop-param-filter-value.checked {
+      font-weight: bold; }
+  #cmsNavigation .eshop-param-filter .eshop-param-check {
+    display: inline-block;
+    width: 11px;
+    height: 11px;
+    margin-right: 5px;
+    vertical-align: -1px;
+    border: 1px solid #888888;
+    -moz-border-radius: 2px;
+    -webkit-border-radius: 2px;
+    -ms-border-radius: 2px;
+    border-radius: 2px;
+    background: white; }
+  #cmsNavigation .eshop-param-filter .checked .eshop-param-check {
+    border-color: #333366;
+    background: #333366;
+    box-shadow: inset 0 0 0 2px white; }
+  #cmsNavigation .eshop-param-filter .eshop-param-count {
+    color: #888888;
+    font-size: 0.9em; }
 
 #cmsNavigation .addPage {
   clear: both;

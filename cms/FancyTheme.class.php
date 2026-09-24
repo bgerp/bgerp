@@ -86,6 +86,9 @@ class cms_FancyTheme extends core_ProtoInner
         // Добавяме заглавната картика
         $tpl->replace($this->getHeaderImg(), 'HEADER_IMG');
 
+        // Началната страница е коренът на приложението, а не на хоста (напр. /bgn/ локално)
+        $tpl->replace(core_App::getBoot(false, false, true) . '/', 'HOME_URL');
+
         $css = '';
         $content = $this->getCmsLayout();
         if ($content !== false) {
@@ -318,6 +321,7 @@ class cms_FancyTheme extends core_ProtoInner
             }
         }
 
+        $imageURL = null;
         $imgsCnt = countR($imgs);
 
         if ($imgsCnt) {

@@ -283,7 +283,7 @@ class cat_products_ParamIndex extends core_Manager
         $rows = array();
         $error = null;
 
-        // Маркирането по време на обработката я връща към „За обновяване“ (@see finishProcessing)
+        // Маркирането по време на обработката я връща към „Чакащ“ (@see finishProcessing)
         $stateRec = cat_products_ParamIndexState::startProcessing($productId, $stateRec);
 
         // Затвореният артикул остава с последните стойности, освен ако е маркиран принудително,
