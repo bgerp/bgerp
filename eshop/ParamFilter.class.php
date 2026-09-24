@@ -4,8 +4,8 @@
 /**
  * Филтър на е-артикулите в групата по стойностите на параметрите им
  *
- * Стойностите идват от индекса на параметрите (@see cat_products_ParamIndex), а в URL-то
- * изборът е четим: pf=tsvyat-p12.cherven-1a2b3c.sin-4d5e6f_dalzhina-p15.10-5
+ * Тук е само специфичното за магазина - опциите на е-артикулите, скритите опаковки и показването;
+ * общата логика е в cat_products_ParamFilter
  *
  * @category  bgerp
  * @package   eshop
@@ -22,6 +22,12 @@ class eshop_ParamFilter
      * Параметър в URL-то с избора
      */
     const URL_VAR = 'pf';
+
+
+    /**
+     * Параметър в URL-то с избраните категории при търсенето
+     */
+    const GROUP_URL_VAR = 'pc';
 
 
     /**
@@ -67,48 +73,159 @@ class eshop_ParamFilter
         $data->paramFilter = null;
         if (!countR($data->recs) || !self::isEnabled()) return;
 
+        $isSearch = ($data->groupId == eshop_Groups::SEARCH_SYSTEM_ID);
         $start = self::startTimer('params');
-        $params = self::getParams();
+        $params = cat_products_ParamFilter::getParams(true);
         self::stopTimer('params', $start);
-        if (!countR($params)) return;
+        if (!countR($params) && !$isSearch) return;
 
-        // Изборът по неизвестен параметър се пропуска, а липсващата стойност остава и не намира нищо
-        $selected = array();
-        foreach (self::parseUrlValue(Request::get(self::URL_VAR, 'varchar')) as $paramId => $slugs) {
-            if (isset($params[$paramId])) {
-                $selected[$paramId] = $slugs;
-            }
-        }
+        $selected = cat_products_ParamFilter::parseSelection(Request::get(self::URL_VAR, 'varchar'), $params);
+        $lg = cat_products_ParamFilter::getLang();
+        $allRecs = $data->recs;
 
-        $lg = core_Lg::getCurrent();
-        if (!array_key_exists($lg, core_Lg::getLangs())) {
-            $lg = 'en';
+        // При търсенето изборът на категория стеснява е-артикулите, по които се броят параметрите
+        $selectedGroups = $isSearch ? self::parseGroups(Request::get(self::GROUP_URL_VAR, 'varchar')) : array();
+        if (countR($selectedGroups)) {
+            $data->recs = array_filter($data->recs, function ($rec) use ($selectedGroups) {
+                return isset($selectedGroups[$rec->groupId ?? null]);
+            });
         }
-        $base = (object) array('eshopIds' => array_keys($data->recs), 'lg' => $lg);
 
         // Опциите, скрити в публичния изглед заради опаковките, не участват
         $start = self::startTimer('details');
-        $base->hiddenDetailIds = self::getHiddenDetailIds($data->recs);
+        $hiddenDetailIds = self::getHiddenDetailIds($allRecs);
         self::stopTimer('details', $start);
+        $base = self::makeBase($data->recs, $hiddenDetailIds, $lg);
+        $allBase = self::makeBase($allRecs, $hiddenDetailIds, $lg);
 
-        // Всичко се агрегира в MySQL - в PHP идват само различните стойности, не редовете на опциите
-        $start = self::startTimer('values');
-        $values = self::getValues($base, $params);
-        self::stopTimer('values', $start);
-
-        $start = self::startTimer('counts');
-        $counts = self::countValues($base, $params, $values, $selected);
-        self::stopTimer('counts', $start);
+        // Стойностите са от всички намерени, а бройките - от избраните категории; броят се е-артикулите, не опциите им
+        if (countR($params)) {
+            $filter = cat_products_ParamFilter::prepare(self::getIndexQuery($allBase), $params, $selected, $lg, 'eshopProductId', 'detailState', self::getIndexQuery($base));
+            foreach ($filter->times as $name => $time) {
+                self::$stats[$name] = (self::$stats[$name] ?? 0) + $time;
+            }
+        } else {
+            $filter = (object) array('params' => array(), 'selected' => array(), 'lg' => $lg, 'values' => array(), 'counts' => array(), 'times' => array());
+        }
 
         $start = self::startTimer('match');
-        $eshopCnt = countR($data->recs);
+        $eshopCnt = countR($allRecs);
+        if ($isSearch) {
+            $filter->groups = self::countGroups($allRecs, $selectedGroups, countR($selected) ? self::getMatchingEshopIds($allBase, $filter->values, $selected) : null);
+        }
         if (countR($selected)) {
-            $data->recs = array_intersect_key($data->recs, self::getMatchingEshopIds($base, $values, $selected));
+            $data->recs = array_intersect_key($data->recs, self::getMatchingEshopIds($base, $filter->values, $selected));
         }
         self::stopTimer('match', $start);
 
-        self::$stats['info'] = "е-артикули {$eshopCnt} → " . countR($data->recs) . ', скрити опции ' . countR($base->hiddenDetailIds) . ', стойности ' . array_sum(array_map('countR', $values)) . ', избрани параметри ' . countR($selected);
-        $data->paramFilter = (object) array('params' => $params, 'values' => $values, 'counts' => $counts, 'selected' => $selected);
+        self::$stats['info'] = "е-артикули {$eshopCnt} → " . countR($data->recs) . ', скрити опции ' . countR($hiddenDetailIds) . ', стойности ' . array_sum(array_map('countR', $filter->values)) . ', избрани параметри ' . countR($selected) . ', категории ' . countR($selectedGroups);
+        $data->paramFilter = $filter;
+    }
+
+
+    /**
+     * Кръгът от е-артикули за заявките
+     *
+     * @param array  $eshopRecs
+     * @param array  $hiddenDetailIds
+     * @param string $lg
+     *
+     * @return stdClass
+     */
+    protected static function makeBase($eshopRecs, $hiddenDetailIds, $lg)
+    {
+        // Празният кръг не трябва да стане „без ограничение“
+        $eshopIds = countR($eshopRecs) ? array_keys($eshopRecs) : array(0);
+
+        return (object) array('eshopIds' => $eshopIds, 'hiddenDetailIds' => $hiddenDetailIds, 'lg' => $lg);
+    }
+
+
+    /**
+     * Бройките по категория (основната група на е-артикула) при избора по параметри
+     *
+     * @param array      $eshopRecs - намерените е-артикули
+     * @param array      $selected  - избраните групи
+     * @param array|null $matched   - е-артикулите, отговарящи на параметрите, или null без избор
+     *
+     * @return stdClass - selected, counts (група => брой) и names (група => име)
+     */
+    protected static function countGroups($eshopRecs, $selected, $matched)
+    {
+        $counts = array();
+        foreach ($eshopRecs as $id => $rec) {
+            if (empty($rec->groupId)) continue;
+
+            $counts[$rec->groupId] = ($counts[$rec->groupId] ?? 0) + ((!isset($matched) || isset($matched[$id])) ? 1 : 0);
+        }
+        $counts += array_fill_keys(array_keys($selected), 0);
+
+        $names = array();
+        if (countR($counts)) {
+            $gQuery = eshop_Groups::getQuery();
+            $gQuery->in('id', array_keys($counts));
+            $gQuery->show('id,name');
+            while ($gRec = $gQuery->fetch()) {
+                $names[$gRec->id] = eshop_Groups::getVerbal($gRec, 'name');
+            }
+        }
+
+        return (object) array('selected' => $selected, 'counts' => $counts, 'names' => $names);
+    }
+
+
+    /**
+     * Избраните категории от URL-то: slug-4.slug-3 - важи числото накрая
+     *
+     * @param string|null $urlValue
+     *
+     * @return array - група => група
+     */
+    protected static function parseGroups($urlValue)
+    {
+        $res = array();
+        foreach (explode('.', (string) $urlValue) as $part) {
+            if (preg_match('/(?:^|-)(\d+)$/', $part, $matches)) {
+                $res[(int) $matches[1]] = (int) $matches[1];
+            }
+        }
+
+        return $res;
+    }
+
+
+    /**
+     * URL-то на текущата страница с добавена или махната категория, от първата страница
+     *
+     * @param stdClass $groups  - @see countGroups
+     * @param int      $groupId
+     *
+     * @return array
+     */
+    protected static function getGroupToggleUrl($groups, $groupId)
+    {
+        $selected = $groups->selected;
+        if (isset($selected[$groupId])) {
+            unset($selected[$groupId]);
+        } else {
+            $selected[$groupId] = $groupId;
+        }
+
+        $parts = array();
+        foreach ($selected as $id) {
+            $slug = strtolower(str::canonize(html_entity_decode(strip_tags((string) ($groups->names[$id] ?? '')), ENT_QUOTES, 'UTF-8')));
+            $parts[] = (strlen($slug) ? "{$slug}-" : '') . $id;
+        }
+
+        $url = getCurrentUrl();
+        unset($url['P']);
+        if (countR($parts)) {
+            $url[self::GROUP_URL_VAR] = implode('.', $parts);
+        } else {
+            unset($url[self::GROUP_URL_VAR]);
+        }
+
+        return $url;
     }
 
 
@@ -187,8 +304,7 @@ class eshop_ParamFilter
      * Заявка по индекса, ограничена до видимите опции на е-артикулите
      *
      * core_Query прави JOIN ... ON само ако EXT поле е в show() - затова детайлът се показва и групира
-     * по detailState, което е еднакво за всички редове. Числото е текстът му от базата, за да съвпадат
-     * групирането, слъгът и условието (MariaDB връща double с 16 значещи цифри)
+     * по detailState, което е еднакво за всички редове
      *
      * @param stdClass $base - е-артикули, скрити опции и език
      *
@@ -197,7 +313,7 @@ class eshop_ParamFilter
     protected static function getIndexQuery($base)
     {
         $onCond = array('onCond' => '#eshop_ProductDetails.productId = #productId', 'join' => 'INNER');
-        $query = cat_products_ParamIndex::getQuery();
+        $query = cat_products_ParamFilter::getIndexQuery($base->lg);
         $query->EXT('eshopProductId', 'eshop_ProductDetails', array('externalName' => 'eshopProductId') + $onCond);
         $query->EXT('detailId', 'eshop_ProductDetails', array('externalName' => 'id') + $onCond);
         $query->EXT('detailState', 'eshop_ProductDetails', array('externalName' => 'state') + $onCond);
@@ -206,78 +322,8 @@ class eshop_ParamFilter
         if (countR($base->hiddenDetailIds)) {
             $query->notIn('detailId', $base->hiddenDetailIds);
         }
-        $query->where(array("#lg = '' OR #lg = '[#1#]'", $base->lg));
-        $query->XPR('valueNumText', 'varchar', 'CAST(#valueNum AS CHAR)');
 
         return $query;
-    }
-
-
-    /**
-     * Различните стойности на параметрите сред опциите - изписванията на една стойност
-     * („Котка“, „КотКа“) са една отметка и се показва най-честото
-     *
-     * @param stdClass $base
-     * @param array    $params
-     *
-     * @return array - параметър => слъг => ред с valueKey, valueNum, valueVerbal и productId за вербализиране
-     */
-    protected static function getValues($base, $params)
-    {
-        $query = self::getIndexQuery($base);
-        $query->in('paramId', array_keys($params));
-        $query->XPR('rowsCnt', 'int', 'COUNT(#id)');
-        $query->XPR('anyProductId', 'int', 'MIN(#productId)');
-        $query->groupBy('paramId,valueKey,valueNumText,valueVerbal,detailState');
-        $query->orderBy('rowsCnt', 'DESC');
-        $query->show('paramId,valueKey,valueNumText,valueVerbal,rowsCnt,anyProductId,detailState');
-
-        $values = array();
-        while ($rec = $query->fetch()) {
-            $rec->valueNum = $rec->valueNumText;
-            $slug = self::getValueSlug($rec);
-            if (!isset($values[$rec->paramId][$slug])) {
-                $rec->productId = $rec->anyProductId;
-                $values[$rec->paramId][$slug] = $rec;
-            }
-        }
-
-        return $values;
-    }
-
-
-    /**
-     * Броят е-артикули по стойност - за всеки параметър при избора по останалите, в една заявка
-     *
-     * @param stdClass $base
-     * @param array    $params   - параметрите
-     * @param array    $values   - известните стойности
-     * @param array    $selected - параметър => избрани слъгове
-     *
-     * @return array - параметър => слъг => брой е-артикули
-     */
-    protected static function countValues($base, $params, $values, $selected)
-    {
-        // Редът се брои, ако опцията му изпълнява избора по всички параметри без собствения си
-        $conds = array();
-        foreach ($selected as $paramId => $slugs) {
-            $conds[] = '(#paramId = ' . (int) $paramId . ' OR ' . self::getValueCondition($paramId, $values[$paramId] ?? array(), $slugs, $base->lg) . ')';
-        }
-        $eshopExpr = countR($conds) ? 'IF(' . implode(' AND ', $conds) . ', #eshopProductId, NULL)' : '#eshopProductId';
-
-        $query = self::getIndexQuery($base);
-        $query->in('paramId', array_keys($params));
-        $query->XPR('eshopCnt', 'int', "COUNT(DISTINCT {$eshopExpr})");
-        $query->groupBy('paramId,valueKey,valueNumText,detailState');
-        $query->show('paramId,valueKey,valueNumText,eshopCnt,detailState');
-
-        $counts = array();
-        while ($rec = $query->fetch()) {
-            $rec->valueNum = $rec->valueNumText;
-            $counts[$rec->paramId][self::getValueSlug($rec)] = (int) $rec->eshopCnt;
-        }
-
-        return $counts;
     }
 
 
@@ -298,9 +344,7 @@ class eshop_ParamFilter
         if (countR($base->hiddenDetailIds)) {
             $query->notIn('id', $base->hiddenDetailIds);
         }
-        foreach ($selected as $paramId => $slugs) {
-            $query->where(self::getValueCondition($paramId, $values[$paramId] ?? array(), $slugs, $base->lg));
-        }
+        cat_products_ParamFilter::applySelection($query, $values, $selected, $base->lg);
         $query->groupBy('eshopProductId');
         $query->show('eshopProductId');
 
@@ -310,52 +354,6 @@ class eshop_ParamFilter
         }
 
         return $res;
-    }
-
-
-    /**
-     * Условие „артикулът има някоя от избраните стойности на параметъра“
-     *
-     * Подзаявката е с физическите имена, защото е по същата таблица като основната
-     *
-     * @param int    $paramId
-     * @param array  $paramValues - слъг => ред от индекса
-     * @param array  $slugs       - избраните слъгове
-     * @param string $lg
-     *
-     * @return string
-     */
-    protected static function getValueCondition($paramId, $paramValues, $slugs, $lg)
-    {
-        $Index = cls::get('cat_products_ParamIndex');
-        $keys = $nums = array();
-        foreach (array_intersect_key($paramValues, $slugs) as $rec) {
-            if (isset($rec->valueKey)) {
-                $keys[] = "'" . $Index->db->escape($rec->valueKey) . "'";
-            } else {
-                $nums[] = "'" . $Index->db->escape($rec->valueNum) . "'";
-            }
-        }
-
-        // Липсващата стойност не намира нищо, вместо да махне ограничението
-        if (!countR($keys) && !countR($nums)) {
-
-            return '1 = 0';
-        }
-
-        $col = function ($name) {
-            return '`' . str::phpToMysqlName($name) . '`';
-        };
-        $valueConds = array();
-        if (countR($keys)) {
-            $valueConds[] = $col('valueKey') . ' IN (' . implode(',', $keys) . ')';
-        }
-        if (countR($nums)) {
-            $valueConds[] = 'CAST(' . $col('valueNum') . ' AS CHAR) IN (' . implode(',', $nums) . ')';
-        }
-
-        return "#productId IN (SELECT {$col('productId')} FROM `{$Index->dbTableName}` WHERE {$col('paramId')} = " . (int) $paramId
-            . " AND {$col('lg')} IN ('', '" . $Index->db->escape($lg) . "') AND (" . implode(' OR ', $valueConds) . '))';
     }
 
 
@@ -393,31 +391,17 @@ class eshop_ParamFilter
             return $tpl;
         }
 
-        $blocks = '';
-        foreach ($filter->params as $paramId => $pRec) {
-            $paramValues = $filter->values[$paramId] ?? array();
-            $selected = $filter->selected[$paramId] ?? array();
-
-            // Параметър с една стойност не филтрира нищо
-            if (countR($paramValues) < 2 && !countR($selected)) continue;
-
+        $blocks = self::renderGroupsBlock($filter->groups ?? null);
+        foreach (cat_products_ParamFilter::getDisplayParams($filter) as $paramId => $param) {
             $items = array();
-            foreach (self::getSortedValues($pRec, $paramValues) as $slug => $verbal) {
-                $cnt = $filter->counts[$paramId][$slug] ?? 0;
-                $isChecked = isset($selected[$slug]);
-                $class = 'eshop-param-filter-value' . ($isChecked ? ' checked' : '');
-                $caption = "<span class='eshop-param-check'></span>{$verbal} <span class='eshop-param-count'>({$cnt})</span>";
-                if (!$cnt && !$isChecked) {
+            foreach ($param->items as $slug => $item) {
+                $class = 'eshop-param-filter-value' . ($item->isChecked ? ' checked' : '');
+                $caption = "<span class='eshop-param-check'></span>{$item->caption} <span class='eshop-param-count'>({$item->cnt})</span>";
+                if ($item->isDisabled) {
                     $items[$slug] = "<span class='{$class} disabled'>{$caption}</span>";
                 } else {
                     $items[$slug] = ht::createLink($caption, self::getToggleUrl($filter, $paramId, $slug), false, array('class' => $class, 'rel' => 'nofollow'));
                 }
-            }
-
-            // Избраните стойности, които вече ги няма, остават за махане
-            foreach (array_diff_key($selected, $paramValues) as $slug) {
-                $caption = "<span class='eshop-param-check'></span>" . type_Varchar::escape(self::getSlugCaption($slug)) . " <span class='eshop-param-count'>(0)</span>";
-                $items[$slug] = ht::createLink($caption, self::getToggleUrl($filter, $paramId, $slug), false, array('class' => 'eshop-param-filter-value checked', 'rel' => 'nofollow'));
             }
 
             // Стойностите над лимита се скриват, освен ако някоя от тях е избрана
@@ -425,14 +409,12 @@ class eshop_ParamFilter
             $more = array_slice($items, self::$maxVisibleValues, null, true);
             $html = implode('', $visible);
             if (countR($more)) {
-                $open = countR(array_intersect_key($more, $selected)) ? ' open' : '';
+                $open = countR(array_intersect_key($more, $filter->selected[$paramId] ?? array())) ? ' open' : '';
                 $html .= "<details class='eshop-param-filter-more'{$open}><summary>" . tr('още||more') . '</summary>' . implode('', $more) . '</details>';
             }
 
-            $open = countR($selected) ? ' open' : '';
-            // Като в списъците - с групата и суфикса, иначе еднакво наречените не се различават
-            $caption = str::mbUcfirst(cat_Params::getVerbal($pRec, 'typeExt'));
-            $blocks .= "<details class='eshop-param-filter-param'{$open}><summary>{$caption}</summary><div class='eshop-param-filter-values'>{$html}</div></details>";
+            $open = $param->isOpen ? ' open' : '';
+            $blocks .= "<details class='eshop-param-filter-param'{$open}><summary>{$param->caption}</summary><div class='eshop-param-filter-values'>{$html}</div></details>";
         }
 
         if (!strlen($blocks)) {
@@ -443,13 +425,46 @@ class eshop_ParamFilter
         $tpl = new core_ET("<div class='eshop-param-filter'><div class='eshop-param-filter-title'>[#TITLE#] [#CLEAR#]</div>[#PARAMS#]</div>");
         $tpl->replace(tr('Филтри||Filters'), 'TITLE');
         $tpl->replace($blocks, 'PARAMS');
-        if (countR($filter->selected)) {
+        if (countR($filter->selected) || countR($filter->groups->selected ?? array())) {
             $clearUrl = getCurrentUrl();
-            unset($clearUrl[self::URL_VAR], $clearUrl['P']);
+            unset($clearUrl[self::URL_VAR], $clearUrl[self::GROUP_URL_VAR], $clearUrl['P']);
             $tpl->replace(ht::createLink(tr('изчисти||clear'), $clearUrl, false, array('class' => 'eshop-param-filter-clear', 'rel' => 'nofollow')), 'CLEAR');
         }
 
         return $tpl;
+    }
+
+
+    /**
+     * Секцията „Категория“ при търсенето
+     *
+     * @param stdClass|null $groups - @see countGroups
+     *
+     * @return string
+     */
+    protected static function renderGroupsBlock($groups)
+    {
+        if (!is_object($groups) || (countR($groups->counts) < 2 && !countR($groups->selected))) {
+
+            return '';
+        }
+
+        // Първо с най-много намерени
+        $counts = $groups->counts;
+        arsort($counts);
+        $html = '';
+        foreach ($counts as $groupId => $cnt) {
+            $isChecked = isset($groups->selected[$groupId]);
+            $class = 'eshop-param-filter-value' . ($isChecked ? ' checked' : '');
+            $caption = "<span class='eshop-param-check'></span>" . ($groups->names[$groupId] ?? $groupId) . " <span class='eshop-param-count'>({$cnt})</span>";
+            if (!$cnt && !$isChecked) {
+                $html .= "<span class='{$class} disabled'>{$caption}</span>";
+            } else {
+                $html .= ht::createLink($caption, self::getGroupToggleUrl($groups, $groupId), false, array('class' => $class, 'rel' => 'nofollow'));
+            }
+        }
+
+        return "<details class='eshop-param-filter-param' open><summary>" . tr('Категория||Category') . "</summary><div class='eshop-param-filter-values'>{$html}</div></details>";
     }
 
 
@@ -523,72 +538,6 @@ class eshop_ParamFilter
 
 
     /**
-     * Филтрируемите параметри, които се показват публично, по реда им
-     *
-     * @return array
-     */
-    protected static function getParams()
-    {
-        $params = array();
-        foreach (cat_products_ParamIndex::getFilterableParams() as $pRec) {
-            if (($pRec->state ?? null) == 'active' && ($pRec->showInPublicDocuments ?? null) == 'yes') {
-                $params[$pRec->id] = $pRec;
-            }
-        }
-
-        uasort($params, function ($a, $b) {
-            $aOrder = $a->order ?? PHP_INT_MAX;
-            $bOrder = $b->order ?? PHP_INT_MAX;
-            if ($aOrder != $bOrder) {
-
-                return ($aOrder < $bOrder) ? -1 : 1;
-            }
-
-            return strnatcasecmp($a->name ?? '', $b->name ?? '');
-        });
-
-        return $params;
-    }
-
-
-    /**
-     * Вербалните стойности на параметъра, подредени за показване
-     *
-     * @param stdClass $pRec        - параметърът
-     * @param array    $paramValues - слъг => ред от индекса
-     *
-     * @return array - слъг => вербална стойност
-     */
-    protected static function getSortedValues($pRec, $paramValues)
-    {
-        $Driver = cat_Params::getDriver($pRec);
-        $suffix = !empty($pRec->suffix) ? ' ' . tr($pRec->suffix) : '';
-        $productClassId = cat_Products::getClassId();
-
-        $sortKeys = $res = array();
-        foreach ($paramValues as $slug => $iRec) {
-            $isNum = !isset($iRec->valueKey);
-            $verbal = $Driver ? $Driver->getIndexVerbal($pRec, $productClassId, $iRec->productId, $iRec) : type_Varchar::escape($iRec->valueKey ?? $iRec->valueNum);
-            $res[$slug] = $isNum ? $verbal . $suffix : $verbal;
-            $sortKeys[$slug] = $isNum ? $iRec->valueNum : html_entity_decode(strip_tags((string) $verbal), ENT_QUOTES, 'UTF-8');
-        }
-
-        uksort($res, function ($a, $b) use ($sortKeys) {
-            $aKey = $sortKeys[$a];
-            $bKey = $sortKeys[$b];
-            if (is_string($aKey) || is_string($bKey)) {
-
-                return strnatcasecmp((string) $aKey, (string) $bKey);
-            }
-
-            return $aKey <=> $bKey;
-        });
-
-        return $res;
-    }
-
-
-    /**
      * URL-то на текущата страница с добавена или махната стойност, от първата страница
      *
      * @param stdClass $filter  - подготвеният филтър
@@ -599,16 +548,11 @@ class eshop_ParamFilter
      */
     protected static function getToggleUrl($filter, $paramId, $slug)
     {
-        $selected = $filter->selected;
-        if (isset($selected[$paramId][$slug])) {
-            unset($selected[$paramId][$slug]);
-        } else {
-            $selected[$paramId][$slug] = $slug;
-        }
+        $selected = cat_products_ParamFilter::toggle($filter->selected, $paramId, $slug);
 
         $url = getCurrentUrl();
         unset($url['P']);
-        $urlValue = self::buildUrlValue($selected, $filter->params);
+        $urlValue = cat_products_ParamFilter::buildUrlValue($selected, $filter->params);
         if (strlen($urlValue)) {
             $url[self::URL_VAR] = $urlValue;
         } else {
@@ -616,91 +560,5 @@ class eshop_ParamFilter
         }
 
         return $url;
-    }
-
-
-    /**
-     * Стойността на избора за URL-то
-     *
-     * @param array $selected - параметър => слъг => слъг
-     * @param array $params   - параметрите
-     *
-     * @return string
-     */
-    protected static function buildUrlValue($selected, $params)
-    {
-        ksort($selected);
-        $parts = array();
-        foreach ($selected as $paramId => $slugs) {
-            if (!countR($slugs) || !isset($params[$paramId])) continue;
-
-            $paramSlug = strtolower(str::canonize($params[$paramId]->name));
-            $paramSlug = (strlen($paramSlug) ? "{$paramSlug}-" : '') . "p{$paramId}";
-            $parts[] = $paramSlug . '.' . implode('.', $slugs);
-        }
-
-        return implode('_', $parts);
-    }
-
-
-    /**
-     * Разчита избора от URL-то - името на параметъра е само за четимост, важи ид-то след „p“
-     *
-     * @param string|null $urlValue
-     *
-     * @return array - параметър => слъг => слъг
-     */
-    protected static function parseUrlValue($urlValue)
-    {
-        $res = array();
-        foreach (explode('_', (string) $urlValue) as $part) {
-            $slugs = explode('.', $part);
-            $paramSlug = array_shift($slugs);
-            if (!preg_match('/(?:^|-)p(\d+)$/', $paramSlug, $matches)) continue;
-
-            foreach ($slugs as $slug) {
-                if (strlen($slug)) {
-                    $res[(int) $matches[1]][$slug] = $slug;
-                }
-            }
-        }
-
-        return $res;
-    }
-
-
-    /**
-     * Слъгът на индексирана стойност - четим текст и къс хеш на самата стойност, за да не се сливат различни
-     *
-     * @param stdClass $iRec - ред от индекса
-     *
-     * @return string
-     */
-    protected static function getValueSlug($iRec)
-    {
-        if (isset($iRec->valueKey)) {
-            $slug = strtolower(str::canonize($iRec->valueKey));
-            $hash = substr(md5($iRec->valueKey), 0, 6);
-
-            return strlen($slug) ? "{$slug}-{$hash}" : $hash;
-        }
-
-        // Числото е текстът му от базата, без хеш: 10.5 -> 10-5, -3 -> m3, 1e20 -> 1e20
-        return str_replace(array('-', '+', '.'), array('m', '', '-'), (string) $iRec->valueNum);
-    }
-
-
-    /**
-     * Четимата част на слъга - за избрана стойност, която вече я няма в групата
-     *
-     * @param string $slug
-     *
-     * @return string
-     */
-    protected static function getSlugCaption($slug)
-    {
-        $caption = preg_replace('/-[0-9a-f]{6}$/', '', $slug);
-
-        return str_replace('-', ' ', $caption);
     }
 }

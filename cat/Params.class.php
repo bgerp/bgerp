@@ -130,6 +130,7 @@ class cat_Params extends bgerp_ProtoParam
         $this->FLD('showInTasks', 'enum(no=Не,yes=Да)', 'caption=Показване на параметъра->Пр. операции,notNull,value=no,maxRadio=2');
         $this->FLD('editInLabel', 'enum(yes=Да,no=Не)', 'caption=Показване на параметъра->Редакция в етикет,notNull,value=yes,maxRadio=2');
         $this->FLD('filterable', 'enum(no=Не,yes=Да)', 'caption=Филтриране на артикулите по параметъра->Използване,notNull,value=no,maxRadio=2');
+        $this->FLD('filterMode', 'enum(auto=Автоматично,values=Отделни стойности,ranges=Диапазони)', 'caption=Филтриране на артикулите по параметъра->Стойности,notNull,value=auto,hint=Автоматично - отделни стойности, а при много различни - диапазони');
         $this->FLD('state', 'enum(active=Активен,closed=Затворен,rejected=Оттеглен)', 'caption=Видимост,input=none,notSorting,notNull,value=active,smartCenter');
     }
     
@@ -150,6 +151,28 @@ class cat_Params extends bgerp_ProtoParam
         if (!self::canBeFilterable($data->form->rec)) {
             $data->form->setField('filterable', 'input=none');
         }
+        if (!self::canBeRanged($data->form->rec)) {
+            $data->form->setField('filterMode', 'input=none');
+        }
+    }
+
+
+    /**
+     * Могат ли числовите стойности на параметъра да се групират в диапазони във филтъра
+     *
+     * @param stdClass $rec
+     *
+     * @return bool
+     */
+    public static function canBeRanged($rec)
+    {
+        if (!self::canBeFilterable($rec)) {
+
+            return false;
+        }
+        $Driver = cls::get($rec->driverClass);
+
+        return cls::existsMethod($Driver, 'canIndexRanges') && $Driver->canIndexRanges();
     }
 
 

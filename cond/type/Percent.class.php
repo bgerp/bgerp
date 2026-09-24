@@ -24,6 +24,12 @@ class cond_type_Percent extends cond_type_abstract_Proto
 
 
     /**
+     * Стойностите могат да се групират в диапазони във филтъра
+     */
+    protected $indexRanges = true;
+
+
+    /**
      * Кой базов тип наследява
      */
     protected $baseType = 'type_Percent';

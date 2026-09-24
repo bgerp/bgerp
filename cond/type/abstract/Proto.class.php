@@ -52,6 +52,12 @@ abstract class cond_type_abstract_Proto extends core_BaseClass
 
 
     /**
+     * Дали числовите стойности могат да се групират в диапазони във филтъра
+     */
+    protected $indexRanges = false;
+
+
+    /**
      * Добавя полетата на драйвера към Fieldset
      *
      * @param core_Fieldset $fieldset
@@ -266,6 +272,17 @@ abstract class cond_type_abstract_Proto extends core_BaseClass
     public function canBeIndexed()
     {
         return !empty($this->indexKind);
+    }
+
+
+    /**
+     * Могат ли стойностите да се групират в диапазони във филтъра
+     *
+     * @return bool
+     */
+    public function canIndexRanges()
+    {
+        return $this->indexKind == 'num' && $this->indexRanges;
     }
 
 
