@@ -1214,7 +1214,7 @@ class planning_ProductionTaskDetails extends doc_Detail
         // Показване на хинт към изчисленото време
         if(!empty($rec->employees) && $rec->state != 'rejected'){
             if(!empty($rec->norm)){
-                $calcedNormHint = $mvc->calcNormByRec($rec, null, true);
+                $calcedNormHint = planning_Setup::canSeeIndTime() ? $mvc->calcNormByRec($rec, null, true) : '|Заработка|*: ' . doc_plg_HidePrices::getBuriedElement(true);
                 $row->employees = ht::createHint($row->employees, $calcedNormHint, 'notice', false);
             } else {
                 $row->employees = ht::createHint($row->employees, 'Няма начислена заработка', 'warning', false);

@@ -7,7 +7,7 @@
  * @category  bgerp
  * @package   planning
  *
- * @author    Angel Trifonov angel.trifonoff@gmail.com
+ * @author    Angel Trifonov angel.trifonoff@gmail.com и Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2019 Experta OOD
  * @license   GPL 3
  *
@@ -580,6 +580,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
     protected function getTableFieldSet($rec, $export = false)
     {
         $fld = cls::get('core_FieldSet');
+        $canSeeIndTime = planning_Setup::canSeeIndTime();
 
         if ($export === false) {
 
@@ -598,7 +599,9 @@ class planning_reports_Workflows extends frame2_driver_TableData
                 $fld->FLD('scrap', 'double(decimals=2)', 'caption=Брак');
                 $fld->FLD('weight', 'double(decimals=2)', 'caption=Тегло');
 
-                $fld->FLD('min', 'double(decimals=2)', 'caption=Минути');
+                if ($canSeeIndTime) {
+                    $fld->FLD('min', 'double(decimals=2)', 'caption=Минути');
+                }
                 if ($rec->resultsOn != 'arts') {
                     if ($rec->resultsOn == 'users' || $rec->resultsOn == 'usersMachines') {
                         $fld->FLD('employees', 'varchar', 'caption=Служител');
@@ -610,7 +613,9 @@ class planning_reports_Workflows extends frame2_driver_TableData
             }
             if ($rec->typeOfReport == 'short') {
                 $fld->FLD('employees', 'varchar', 'caption=Служител');
-                $fld->FLD('indTimeSum', 'double(smartRound,decimals=2)', 'caption=Време->min,tdClass=centered');
+                if ($canSeeIndTime) {
+                    $fld->FLD('indTimeSum', 'double(smartRound,decimals=2)', 'caption=Време->min,tdClass=centered');
+                }
             }
             $fld->FLD('labelMeasure', 'varchar', 'caption=Етикет->мярка,tdClass=centered');
             $fld->FLD('labelQuantity', 'varchar', 'caption=Етикет->кол,tdClass=centered');
@@ -639,12 +644,16 @@ class planning_reports_Workflows extends frame2_driver_TableData
                 $fld->FLD('scrap', 'double(decimals=2)', 'caption=Брак');
                 $fld->FLD('weight', 'double(decimals=2)', 'caption=Тегло');
 
-                $fld->FLD('min', 'double(decimals=2)', 'caption=Минути');
+                if ($canSeeIndTime) {
+                    $fld->FLD('min', 'double(decimals=2)', 'caption=Минути');
+                }
             }
 
             if ($rec->typeOfReport == 'short') {
                 $fld->FLD('employees', 'varchar', 'caption=Служител');
-                $fld->FLD('indTimeSum', 'double(decimals=2)', 'caption=Време->min,tdClass=centered');
+                if ($canSeeIndTime) {
+                    $fld->FLD('indTimeSum', 'double(decimals=2)', 'caption=Време->min,tdClass=centered');
+                }
             }
 
             $fld->FLD('labelMeasure', 'varchar', 'caption=Етикет->мярка,tdClass=centered');
@@ -671,6 +680,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
 
         $Double = cls::get('type_Double');
         $Double->params['decimals'] = 2;
+        $canSeeIndTime = planning_Setup::canSeeIndTime();
 
         $row = new stdClass();
 
@@ -727,7 +737,10 @@ class planning_reports_Workflows extends frame2_driver_TableData
                     $indTimeSum = $Double->toVerbal($rec->indTimeSumArr[$val] ?? 0);
 
                     $name = crm_Persons::fetchField($val, 'name').' / '.planning_Hr::getCodeLink($val);
-                    $pers = ht::createLink($name, array('crm_Persons', 'single', $val)) . ' - ' . $indTimeSum . ' мин.';
+                    $pers = ht::createLink($name, array('crm_Persons', 'single', $val));
+                    if ($canSeeIndTime) {
+                        $pers .= ' - ' . $indTimeSum . ' мин.';
+                    }
 
                     $row->employees = ($row->employees ?? '') . $pers . '</br>';
                 }
@@ -741,7 +754,10 @@ class planning_reports_Workflows extends frame2_driver_TableData
                     $indTimeSum = $Double->toVerbal($rec->indTimeSumArr[$val] ?? 0);
 
                     $name = crm_Persons::fetchField($val, 'name').' / '.planning_Hr::getCodeLink($val);
-                    $pers = ht::createLink($name, array('crm_Persons', 'single', $val)) . ' - ' . $indTimeSum . ' мин.';
+                    $pers = ht::createLink($name, array('crm_Persons', 'single', $val));
+                    if ($canSeeIndTime) {
+                        $pers .= ' - ' . $indTimeSum . ' мин.';
+                    }
 
                     $row->employees = ($row->employees ?? '') . $pers . '</br>';
                 }

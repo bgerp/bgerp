@@ -46,7 +46,7 @@ EOT;
 
 EOT;
     
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields)
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         $fields = arr::make($fields, true);
         if (empty($fields['-single'])) {

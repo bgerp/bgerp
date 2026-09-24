@@ -999,7 +999,7 @@ class email_Incomings extends core_Master
     /**
      * Изпълнява се преди преобразуването към вербални стойности на полетата на записа
      */
-    public static function on_BeforeRecToVerbal($mvc, &$row, $rec, $fields)
+    public static function on_BeforeRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         $rec = $mvc->fetchRec($rec);
         if (!$rec) {
@@ -1017,7 +1017,7 @@ class email_Incomings extends core_Master
     /**
      * Преобразува containerId в машинен вид
      */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields)
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         $rec = $mvc->fetchRec($rec);
         if (!$rec) {

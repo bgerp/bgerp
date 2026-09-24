@@ -1196,6 +1196,10 @@ class planning_Tasks extends core_Master
         if (isset($rec->indPackagingId) && !empty($rec->indTime)) {
             $row->indTime = core_Type::getByName("planning_type_ProductionRate(measureId={$rec->indPackagingId})")->toVerbal($rec->indTime);
         }
+
+        if (!empty($rec->indTime) && !planning_Setup::canSeeIndTime()) {
+            $row->indTime = doc_plg_HidePrices::getBuriedElement();
+        }
     }
 
 
