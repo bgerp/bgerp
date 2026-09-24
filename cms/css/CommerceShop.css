@@ -151,41 +151,6 @@
     border-left-color: var(--shop-accent);
 }
 
-.eshop-public #cmsNavigation #simpleSearch {
-    position: relative;
-    width: 100%;
-    height: 44px;
-    min-width: 0;
-    box-sizing: border-box;
-    border: 1px solid #b8c8d2;
-    background: #fff;
-    margin: 0 0 12px;
-}
-
-.eshop-public #cmsNavigation #simpleSearch #searchInput {
-    position: static;
-    width: 100%;
-    height: 42px;
-    box-sizing: border-box;
-    padding: 10px 42px 10px 12px;
-    border: 1px solid #b8c8d2;
-    border-radius: 6px;
-    background: #fff;
-    font-size: 16px;
-    box-shadow: none;
-}
-
-.eshop-public #cmsNavigation #simpleSearch #searchButton {
-    position: absolute;
-    top: 0;
-    right: 0;
-    width: 40px;
-    height: 44px;
-    border: 0;
-    background: transparent;
-    cursor: pointer;
-}
-
 .eshop-public .eshop-content h1 {
     margin: 0 0 24px;
     color: var(--shop-ink);
@@ -542,6 +507,28 @@ body.eshop-public a.eshop-edit-link img {
     border-bottom: 1px solid var(--shop-line);
 }
 
+/* Price on its own row; "Buy" and "Inquiry" share the next row half and half and never wrap. */
+.eshop-public .optionsTable .priceCol > b {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(max-content, 1fr));
+    justify-items: end;
+    align-items: center;
+    gap: 6px 8px;
+}
+.eshop-public .optionsTable .priceCol > b > .eshop-product-price-holder,
+.eshop-public .optionsTable .priceCol .eshop-product-price-holder + .eshop-product-buy-button:last-child {
+    grid-column: 1 / -1;
+}
+.eshop-public .optionsTable .priceCol .eshop-product-buy-button:not(:last-child),
+.eshop-public .optionsTable .priceCol .eshop-product-buy-button + .eshop-product-buy-button {
+    justify-self: stretch;
+}
+body.eshop-public .optionsTable .priceCol .eshop-product-buy-button:not(:last-child) .productBtn,
+body.eshop-public .optionsTable .priceCol .eshop-product-buy-button + .eshop-product-buy-button .productBtn {
+    width: 100%;
+    margin: 0 !important;
+}
+
 .eshop-public .product-gallery + .productInfo .overflow-scroll {
     overflow: auto !important;
 }
@@ -594,9 +581,6 @@ body.eshop-public a.eshop-edit-link img {
     .eshop-public .eshop-layout #cmsNavigation {
         margin: 0 !important;
         padding: 12px;
-    }
-    .eshop-public #cmsNavigation #simpleSearch {
-        margin-bottom: 8px;
     }
     .eshop-public .eshop-group,
     .eshop-public .eshop-product,
@@ -822,7 +806,15 @@ body.eshop-public a.eshop-edit-link img {
     display: grid;
     grid-template-columns: minmax(0, 1fr);
     gap: 6px;
-    margin: 0 0 12px;
+    margin: 0 0 20px;
+}
+/* Extra actions and personal shortcuts read as one group. */
+.eshop-public #cmsNavigation .commerce-shortcuts:has(+ .commerce-shortcuts .nav_item) {
+    margin-bottom: 6px;
+}
+.eshop-public #cmsNavigation .commerce-shortcuts:not(:has(.nav_item)),
+.eshop-public #cmsNavigation .commerce-shortcuts #faveNavBtn:not(:has(.nav_item)) {
+    display: none;
 }
 body.eshop-public #cmsNavigation .commerce-shortcuts .nav_item {
     margin: 0;
@@ -899,28 +891,67 @@ body.eshop-public #cmsNavigation .commerce-shortcuts .sel_page {
     font-size: 13px;
     font-weight: 400;
 }
+/* "с ДДС за бр." wraps as one piece, never a lone "бр." on the next line. */
+.eshop-public .eshop-card-price > .eshop-card-price-tail {
+    color: inherit;
+    font-size: inherit;
+    font-weight: inherit;
+    white-space: nowrap;
+}
+.eshop-public .eshop-card-price-tail > span {
+    color: var(--shop-muted);
+    font-size: 13px;
+    font-weight: 400;
+}
 .eshop-public .eshop-card-actions {
     display: flex;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     gap: 8px;
     margin-top: auto;
     padding-top: 14px;
     border-top: 1px solid #edf1f3;
 }
 .eshop-public .eshop-card-actions:empty { display: none; }
+/* Two actions always share one row equally; a lone one keeps half the width. */
 body.eshop-public .eshop-card-actions .productBtn {
-    flex: 0 0 calc(50% - 4px);
-    width: calc(50% - 4px);
+    flex: 1 1 50%;
+    width: auto;
     min-width: 0;
     padding-left: 6px !important;
     padding-right: 6px !important;
     white-space: normal;
     margin: 0 !important;
 }
+body.eshop-public .eshop-card-actions .productBtn:only-child {
+    flex: 0 0 calc(50% - 4px);
+}
+/* A stopped option shows its label instead of "Buy" - same half of the row, label stretched. */
+body.eshop-public .eshop-card-actions > .eshop-product-price-holder,
+body.eshop-public .eshop-card-actions > .option-not-in-stock {
+    display: flex;
+    flex: 1 1 50%;
+    min-width: 0;
+}
+body.eshop-public .eshop-card-actions > .eshop-product-price-holder > br,
+body.eshop-public .eshop-card-actions > br {
+    display: none;
+}
+body.eshop-public .eshop-card-actions > .eshop-product-price-holder > .option-not-in-stock,
+body.eshop-public .eshop-card-actions > .option-not-in-stock {
+    justify-content: center;
+    gap: 5px;
+    width: 100%;
+    min-height: 38px;
+    margin: 0 !important;
+    padding-left: 6px !important;
+    padding-right: 6px !important;
+    white-space: normal;
+    text-align: center;
+}
 body.eshop-public .eshop-new-product {
     display: inline-block;
     min-height: 38px;
-    padding: 8px 16px !important;
+    padding: 8px 16px 8px 36px !important;
     border: 1px dashed #8baab7 !important;
     border-radius: 7px;
     background: #f5f9fa url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Cpath d='M8 3v10M3 8h10' fill='none' stroke='%23145b73' stroke-width='1.6' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat 12px center !important;
@@ -961,7 +992,7 @@ body.eshop-public .favouritesBtn.linkWithIcon {
     border-radius: 10px;
     background-color: #fff;
     background-position: center !important;
-    background-size: 20px 20px !important;
+    background-size: 24px 24px !important;
     background-repeat: no-repeat;
     vertical-align: middle;
     cursor: pointer;
@@ -970,6 +1001,16 @@ body.eshop-public .favouritesBtn.linkWithIcon:hover,
 body.eshop-public .favouritesBtn.is-favourite {
     background-color: #fff0f4;
     border-color: #dca0b3;
+}
+/* Старите правила за #addToFavouritesBtn махат рамката и фона с !important */
+body.eshop-public #addToFavouritesBtn .favouritesBtn.linkWithIcon {
+    border: 1px solid #e4d5dc !important;
+    background-color: #fff !important;
+}
+body.eshop-public #addToFavouritesBtn .favouritesBtn.linkWithIcon:hover,
+body.eshop-public #addToFavouritesBtn .favouritesBtn.is-favourite {
+    border-color: #dca0b3 !important;
+    background-color: #fff0f4 !important;
 }
 body.eshop-public .favouritesBtn:focus-visible {
     outline: 2px solid #a83e60;
@@ -1339,4 +1380,55 @@ body.eshop-public #cart-view-total tr:last-child td { font-size: 19px; color: #1
 }
 .eshop-public #cmsNavigation details.eshop-param-filter-more[open] > summary {
     display: none;
+}
+
+/* Availability labels share the button shape; each keeps its own background colour. */
+body.eshop-public .option-not-in-stock {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    box-sizing: border-box;
+    min-height: 34px;
+    margin: 4px 0 !important;
+    padding: 6px 12px !important;
+    top: 0;
+    border: 1px solid transparent;
+    border-radius: 7px !important;
+    color: #fff;
+    font: 600 13px/1.35 Arial, Helvetica, sans-serif !important;
+    text-shadow: none !important;
+    white-space: nowrap;
+}
+body.eshop-public .option-not-in-stock.notAvailable::before {
+    content: "";
+    flex: 0 0 16px;
+    width: 16px;
+    height: 16px;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='6.5' fill='none' stroke='%23fff'/%3E%3Cpath d='M3.5 12.5l9-9' fill='none' stroke='%23fff'/%3E%3C/svg%3E") center / 16px 16px no-repeat;
+}
+
+/* "Contact us" for an option without price: a theme label, not a red warning. */
+body.eshop-public .option-not-in-stock.eshop-contact-us {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    box-sizing: border-box;
+    min-height: 34px;
+    margin: 4px 0 !important;
+    padding: 6px 12px !important;
+    top: 0;
+    border: 1px solid #b5c9d0 !important;
+    border-radius: 7px !important;
+    background: #f5f8fa !important;
+    color: var(--shop-accent) !important;
+    font: 600 13px/1.35 Arial, Helvetica, sans-serif !important;
+    text-shadow: none !important;
+    white-space: nowrap;
+}
+body.eshop-public .option-not-in-stock.eshop-contact-us::before {
+    content: "";
+    flex: 0 0 16px;
+    width: 16px;
+    height: 16px;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Crect x='1.5' y='3.5' width='13' height='9' rx='1.5' fill='none' stroke='%23145b73'/%3E%3Cpath d='M2 4.5l6 4.5 6-4.5' fill='none' stroke='%23145b73' stroke-linejoin='round'/%3E%3C/svg%3E") center / 16px 16px no-repeat;
 }

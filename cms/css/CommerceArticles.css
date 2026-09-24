@@ -42,33 +42,6 @@
     border-top: 1px solid #dce3e8;
     font-size: 15px;
 }
-.commerce-article #cmsNavigation #simpleSearch {
-    width: 100%;
-    position: relative;
-    box-sizing: border-box;
-    height: 40px;
-    min-width: 0;
-    padding: 0;
-    margin: 0 0 12px !important;
-    border: 1px solid #b9cbd4;
-    background: #fff;
-    border-radius: 7px;
-}
-.commerce-article #cmsNavigation #simpleSearch:focus-within { outline: 2px solid #92b8c6; outline-offset: 1px; border-color: #145b73; }
-.commerce-article #cmsNavigation #searchInput {
-    width: 100%;
-    height: 38px;
-    min-width: 0;
-    box-sizing: border-box;
-    padding: 7px 32px 7px 10px;
-    border: 1px solid #b9cbd4;
-    border-radius: 7px;
-    box-shadow: none;
-    font: 14px/1.5 Arial, sans-serif;
-    position: static;
-    background: transparent;
-}
-.commerce-article #cmsNavigation #searchButton { position: absolute; right: 0; top: 0; width: 36px; height: 38px; margin: 0; padding: 0; border: 0; background: transparent; }
 .commerce-article #cmsNavigation.articles-menu .nav_item > a,
 .commerce-article #cmsNavigation.articles-menu .nav_item > span { float: none; border: 0; }
 .commerce-article #cmsNavigation .nav_item > a.commerce-article-edit {

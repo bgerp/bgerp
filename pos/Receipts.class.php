@@ -824,6 +824,11 @@ class pos_Receipts extends core_Master
      */
     public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = null, $userId = null)
     {
+        // При несъществуващ запис $rec е false, а не обект
+        if (!is_object($rec)) {
+            $rec = null;
+        }
+
         // Само черновите бележки могат да се редактират в терминала
         if ($action == 'terminal' && isset($rec)) {
             if (!pos_Points::haveRightFor('select', $rec->pointId)) {

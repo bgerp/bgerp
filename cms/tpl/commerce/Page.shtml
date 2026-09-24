@@ -68,7 +68,7 @@
     <header role="banner">
 
         <div class="narrowCenter">
-            <a href="/" title="Към началната страница"> [#HEADER_IMG#]</a>
+            <a href="[#HOME_URL#]" title="Към началната страница"> [#HEADER_IMG#]</a>
             <!--ET_BEGIN CORE_APP_NAME-->
 
             <div class='app-name'>[#CORE_APP_NAME#]</div>

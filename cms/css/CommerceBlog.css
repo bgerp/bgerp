@@ -24,7 +24,7 @@ body.commerce-blog {
 .commerce-blog #cmsNavigation {
     width: auto;
     margin: 0;
-    padding: 16px;
+    padding: 12px;
     background: #fff;
     border: 1px solid #dce3e8;
     border-radius: 12px;
@@ -78,18 +78,32 @@ body.commerce-blog {
 .commerce-blog #cmsNavigation .nav_item.sel_page { border-left-color: #145b73; }
 .commerce-blog #cmsNavigation .sel_page a { background: transparent !important; border: 0; box-shadow: none; color: #145b73; }
 .commerce-blog #cmsNavigation form { width: 100%; }
-.commerce-blog .blogm-search-form #simpleSearch { width: 100%; position: relative; }
-.commerce-blog .blogm-search-form #searchButton { position: absolute; right: 6px; top: 6px; }
-.commerce-blog .blogm-search-form #searchInput {
+.commerce-blog #cmsNavigation .blogm-search-form { display: flow-root; margin: 0; padding: 0; }
+.commerce-blog #cmsNavigation .blogm-workshop { clear: both; margin: 0 0 12px; }
+.commerce-blog #cmsNavigation .blogm-workshop .button {
+    display: block;
     width: 100%;
-    min-width: 0;
+    min-height: 36px;
     box-sizing: border-box;
-    height: 38px;
-    border: 1px solid #b9cbd4;
+    margin: 0;
+    padding: 7px 10px 7px 36px !important;
+    border: 1px solid #dce5e9;
     border-radius: 7px;
-    padding: 7px 32px 7px 10px;
-    font: 14px/1.5 Arial, sans-serif;
-    box-shadow: none;
+    background-color: #f5f8fa !important;
+    background-position: 10px center !important;
+    background-repeat: no-repeat;
+    color: #334e5c !important;
+    font: 600 13px/1.35 Arial, Helvetica, sans-serif;
+    text-align: left;
+    text-decoration: none;
+    text-shadow: none;
+    box-shadow: none !important;
+    cursor: pointer;
+}
+.commerce-blog #cmsNavigation .blogm-workshop .button:hover,
+.commerce-blog #cmsNavigation .blogm-workshop .button:focus-visible {
+    background-color: #eaf2f5 !important;
+    border-color: #9bbac6;
 }
 .commerce-blog .blogm-browse > h1 {
     margin: 0 0 16px;

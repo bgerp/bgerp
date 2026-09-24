@@ -209,3 +209,55 @@ body.commerce-theme .soc-sharing-holder .soc-sharing sup {
     line-height: inherit;
     margin-right: -5px;
 }
+
+/* One search control for shop, blog and CMS article navigation. */
+body.commerce-theme #cmsNavigation form:has(#simpleSearch) {
+    display: block;
+    float: none;
+    margin: 0 !important;
+    padding: 0;
+    width: 100%;
+}
+body.commerce-theme #cmsNavigation #simpleSearch {
+    position: relative;
+    width: 100%;
+    height: 44px;
+    min-width: 0;
+    box-sizing: border-box;
+    padding: 0;
+    border: 1px solid #b8c8d2;
+    border-radius: 6px;
+    background: #fff;
+    margin: 0 0 12px !important;
+}
+body.commerce-theme #cmsNavigation #simpleSearch #searchInput {
+    position: static;
+    width: 100%;
+    height: 42px;
+    min-width: 0;
+    box-sizing: border-box;
+    padding: 10px 42px 10px 12px;
+    border: 0;
+    border-radius: 6px;
+    background: #fff;
+    color: #182b3a;
+    font: 16px/20px Arial, Helvetica, sans-serif;
+    box-shadow: none;
+}
+body.commerce-theme #cmsNavigation #simpleSearch #searchButton {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 40px;
+    height: 42px;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+body.commerce-theme #cmsNavigation #simpleSearch #searchButton img { width: 12px; height: 13px; margin: 0; }
+body.commerce-theme #cmsNavigation #simpleSearch:focus-within { outline: 2px solid #92b8c6; outline-offset: 1px; border-color: #145b73; }

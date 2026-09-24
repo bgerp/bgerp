@@ -909,6 +909,9 @@ class blogm_Articles extends core_Master
     public function renderNavigation_($data)
     {
         $layout = $data->ThemeClass->getNavigationLayout();
+        if (cms_Domains::getCmsSkin() instanceof cms_CommerceTheme && Mode::is('screenMode', 'wide')) {
+            $layout = getTplFromFile('cms/tpl/commerce/BlogNavigation.shtml');
+        }
         
         // Рендираме формата за търсене
         $layout->append($this->renderSearch($data), 'SEARCH_FORM');

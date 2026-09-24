@@ -688,6 +688,23 @@ class eshop_Products extends core_Master
                 $pQuery->where("1=2");
             }
             $perPage = null;
+        } elseif($data->groupId == eshop_Groups::SEARCH_SYSTEM_ID){
+
+            // Намерените е-артикули от групите на менюто - най-широкото от търсенията в eshop_Groups::getSearchResults()
+            $gQuery = eshop_Groups::getQuery();
+            $gQuery->where(array("#state = 'active' AND (#menuId = '[#1#]' OR LOCATE('|[#1#]|', #sharedMenus))", $data->menuId));
+            $gQuery->show('id');
+            $groupIds = arr::extractValuesFromArray($gQuery->fetchAll(), 'id');
+
+            $pQuery->where("#state = 'active' AND #saleState != 'closed'");
+            if (countR($groupIds) && strlen($data->q ?? '')) {
+                $pQuery->in('groupId', $groupIds);
+                $pQuery->orLikeKeylist('sharedInGroups', keylist::fromArray($groupIds));
+                plg_Search::applySearch($data->q, $pQuery, null, 3);
+            } else {
+                $pQuery->where("1=2");
+            }
+            $perPage = eshop_Setup::get('PRODUCTS_PER_PAGE');
         } else {
             $displayedGroupRec = eshop_Groups::fetch($data->groupId);
             $pQuery->where("#state = 'active' AND #saleState != 'closed' AND (#groupId = {$data->groupId} OR LOCATE('|{$data->groupId}|', #sharedInGroups))");
@@ -707,12 +724,39 @@ class eshop_Products extends core_Master
             $data->recs[$pRec1->id] = $pRec1;
         }
 
+        // Намерените се подреждат по рейтинг, както в бързото търсене
+        if($data->groupId == eshop_Groups::SEARCH_SYSTEM_ID && countR($data->recs)){
+            $rQuery = sales_ProductRatings::getQuery();
+            $rQuery->where(array("#classId = '[#1#]'", self::getClassId()));
+            $rQuery->in('objectId', array_keys($data->recs));
+            $rQuery->show('objectId,value');
+            $ratings = array();
+            while($rRec = $rQuery->fetch()){
+                $ratings[$rRec->objectId] = $rRec->value;
+            }
+            $positions = array_flip(array_keys($data->recs));
+            uksort($data->recs, function($a, $b) use ($ratings, $positions) {
+                $res = ($ratings[$b] ?? 0) <=> ($ratings[$a] ?? 0);
+
+                return $res ?: ($positions[$a] <=> $positions[$b]);
+            });
+        }
+
         if (!empty($data->withParamFilter)) {
             eshop_ParamFilter::prepare($data);
         }
 
         $data->Pager = cls::get('core_Pager', array('itemsPerPage' => $perPage));
         $data->Pager->itemsCount = countR($data->recs);
+
+        // Цените на опциите са към точен момент и заобикалят price_Cache - правилата се зареждат накуп
+        if(countR($data->recs)){
+            $optQuery = eshop_ProductDetails::getQuery();
+            $optQuery->in('eshopProductId', array_keys($data->recs));
+            $optQuery->where("#state = 'active'");
+            $optQuery->show('productId');
+            eshop_ProductDetails::preloadPublicPrices(arr::extractValuesFromArray($optQuery->fetchAll(), 'productId'));
+        }
 
         $commerceTheme = cms_Domains::getCmsSkin() instanceof cms_CommerceTheme;
         foreach ($data->recs as $pRec) {
@@ -780,11 +824,17 @@ class eshop_Products extends core_Master
                         $dRow = eshop_ProductDetails::getExternalRow($pRecClone);
 
                         $pRow->saleInfo = $dRow->saleInfo;
-                        $pRow->singleCurrencyId = $settings->currencyId ?? null;
-                        $pRow->chargeVat = (($settings->chargeVat ?? 'no') == 'yes') ? tr('с ДДС') : tr('без ДДС');
-                        $pRow->catalogPrice = "<b>" . $dRow->catalogPrice . "</b>";
-                        $pRow->packagingId = $dRow->packagingId;
                         $pRow->btn = $dRow->btn ?? '';
+
+                        // ДДС и мярката са само до цена - спряната опция показва етикет вместо нея
+                        if (isset($dRow->orderPrice)) {
+                            $pRow->singleCurrencyId = $settings->currencyId ?? null;
+                            $pRow->chargeVat = (($settings->chargeVat ?? 'no') == 'yes') ? tr('с ДДС') : tr('без ДДС');
+                            $pRow->catalogPrice = "<b>" . $dRow->catalogPrice . "</b>";
+                            $pRow->packagingId = $dRow->packagingId;
+                        } elseif (!empty($dRow->catalogPrice)) {
+                            $pRow->btn = $dRow->catalogPrice . $pRow->btn;
+                        }
                     }
                 }
             } elseif ($saleState == 'multi') {

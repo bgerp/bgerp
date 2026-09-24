@@ -107,7 +107,7 @@ class cat_products_ParamIndexState extends core_Manager
     public function description()
     {
         $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул');
-        $this->FLD('status', 'enum(dirty=За обновяване,processing=Обработва се,ok=Актуален,error=Грешка)', 'caption=Статус,notNull,value=dirty');
+        $this->FLD('status', 'enum(dirty=Чакащ,processing=Обработва се,ok=Актуален,error=Грешка)', 'caption=Статус,notNull,value=dirty');
         $this->FLD('forced', 'enum(no=Не,yes=Да)', 'caption=Принудително,notNull,value=no');
         $this->FLD('processingOn', 'datetime(format=smartTime)', 'caption=Начало на обработката,input=none,column=none');
         $this->FLD('rowsCnt', 'int', 'caption=Редове');
@@ -436,7 +436,7 @@ class cat_products_ParamIndexState extends core_Manager
     protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
         $data->listFilter->FLD('product', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,withClosed,allowEmpty)', 'caption=Артикул,silent');
-        $data->listFilter->FLD('statusFilter', 'enum(all=Всички,dirty=За обновяване,processing=Обработва се,ok=Актуален,error=Грешка)', 'caption=Статус,silent');
+        $data->listFilter->FLD('statusFilter', 'enum(all=Всички,dirty=Чакащ,processing=Обработва се,ok=Актуален,error=Грешка)', 'caption=Статус,silent');
         $data->listFilter->showFields = 'product,statusFilter';
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
@@ -495,6 +495,10 @@ class cat_products_ParamIndexState extends core_Manager
 
         $statusClass = array('dirty' => 'quiet', 'processing' => 'quiet', 'ok' => 'green', 'error' => 'red');
         $row->status = "<span class='{$statusClass[$rec->status]}'>{$row->status}</span>";
+
+        // Редът е в цвета на статуса - грешката е като спрян, червеното в системата е за оттеглено
+        $rowClass = array('dirty' => 'state-pending', 'processing' => 'state-draft', 'ok' => 'state-active', 'error' => 'state-stopped');
+        $row->ROW_ATTR['class'] = trim(($row->ROW_ATTR['class'] ?? '') . ' ' . ($rowClass[$rec->status] ?? ''));
 
         // Показва се само принудителното маркиране
         if ($rec->forced != 'yes') {
