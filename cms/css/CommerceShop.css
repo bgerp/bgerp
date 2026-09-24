@@ -844,7 +844,15 @@ body.eshop-public .optionsTable .priceCol .eshop-product-buy-button + .eshop-pro
     display: grid;
     grid-template-columns: minmax(0, 1fr);
     gap: 6px;
-    margin: 0 0 12px;
+    margin: 0 0 20px;
+}
+/* Extra actions and personal shortcuts read as one group. */
+.eshop-public #cmsNavigation .commerce-shortcuts:has(+ .commerce-shortcuts .nav_item) {
+    margin-bottom: 6px;
+}
+.eshop-public #cmsNavigation .commerce-shortcuts:not(:has(.nav_item)),
+.eshop-public #cmsNavigation .commerce-shortcuts #faveNavBtn:not(:has(.nav_item)) {
+    display: none;
 }
 body.eshop-public #cmsNavigation .commerce-shortcuts .nav_item {
     margin: 0;
