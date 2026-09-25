@@ -397,16 +397,20 @@ class cms_Domains extends core_Embedder
     
     
     /**
-     * Връща възможните езици за подадените домейни
+     * Връща активните езици за подадените домейни или за текущия публичен домейн
      */
     public static function getCmsLangs($domainRecs = null)
     {
-        if (!$domainRecs) {
+        if ($domainRecs === null) {
             $domainRecs = self::findPublicDomainRecs();
         }
         
         $cmsLangs = array();
         foreach ($domainRecs as $rec) {
+            if ($rec->state != 'active') {
+                continue;
+            }
+
             $cmsLangs[$rec->lang] = $rec->lang;
         }
         

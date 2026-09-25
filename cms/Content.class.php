@@ -328,7 +328,7 @@ class cms_Content extends core_Manager
         // Ако имаме действащи менюта на повече от един език, показваме бутон за избор на езика
         $usedLangsArr = cms_Domains::getCmsLangs();
         
-        if ($commerceTheme && countR($usedLangsArr) > 1) {
+        if ($commerceTheme && countR($usedLangsArr) > 2) {
             $lang = self::getLang();
             $currentLabel = htmlspecialchars($lang == 'bg' ? 'БГ' : strtoupper($lang), ENT_QUOTES, 'UTF-8');
             $languageLinks = '';
@@ -373,7 +373,7 @@ class cms_Content extends core_Manager
                 
                 
                 if ($commerceTheme) {
-                    $img .= ht::createElement('span', array('class' => 'cms-menu-label'), strtoupper($lg));
+                    $img .= ht::createElement('span', array('class' => 'cms-menu-label'), $lg == 'bg' ? 'БГ' : strtoupper($lg));
                 }
                 $tpl->append(ht::createLink($img, $url, null, $attr));
             }
