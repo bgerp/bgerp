@@ -63,8 +63,8 @@ class type_Check extends type_Enum
         $value = ($value == 'yes') ? 'yes' : 'no';
        
         if (isset($this->params['mandatory']) && $value != 'yes') {
-            if($this->_isRefreshed !== true){
-                $error = ($this->params['errorIfNotChecked']) ? $this->params['errorIfNotChecked'] : 'Стойността трябва да е избрана|*!';
+            if(($this->_isRefreshed ?? false) !== true){
+                $error = !empty($this->params['errorIfNotChecked']) ? $this->params['errorIfNotChecked'] : 'Стойността трябва да е избрана|*!';
                 $this->error = $error;
                 
                 return false;
