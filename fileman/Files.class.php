@@ -1492,7 +1492,7 @@ class fileman_Files extends core_Master
         // При рендиране за LLM файлът не е линк, а bbCode таг с хендлъра, името и размера му
         if (Mode::is('renderForLlm')) {
 
-            return fileman_RichTextPlg::getLlmTag($fh, $name, $fRec->fileLen ?? null);
+            return fileman_RichTextPlg::getLlmTag($fh, $name, $fRec->fileLen ?? null, $fRec);
         }
         
         //Разширението на файла
@@ -1551,7 +1551,7 @@ class fileman_Files extends core_Master
                     
                     if (self::isDanger($fRec)) {
                         $attr['class'] .= ' dangerFile';
-                        $vName = $attr['title'] ? $attr['title'] : $nameFix;
+                        $vName = !empty($attr['title']) ? $attr['title'] : $nameFix;
                         $attr['title'] = '|Файл с вирус|*: ' . $vName;
                         if (is_array($url)) {
                             $url['currentTab'] = 'info';

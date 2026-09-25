@@ -164,7 +164,7 @@ class email_Incomings extends core_Master
      *
      * @see plg_HideRows
      */
-    public $hideRows = 'fromIp=debug';
+    public $hideRows = 'fromIp=debug, fromIpCountry=debug';
 
 
     /**
@@ -1199,6 +1199,14 @@ class email_Incomings extends core_Master
         
         if ($rec->fromIp) {
             $row->fromIp = type_Ip::decorateIp($rec->fromIp, $rec->createdOn);
+
+            // За LLM е полезна държавата на IP-то, а не самият адрес
+            if (Mode::is('renderForLlm')) {
+                $ipCountryCode = drdata_IpToCountry::get($rec->fromIp);
+                $ipCountryName = ($ipCountryCode && $ipCountryCode != '??') ? drdata_Countries::getCountryName($ipCountryCode, core_Lg::getCurrent()) : null;
+                $row->fromIpCountry = !empty($ipCountryName) ? "{$ipCountryName} ({$ipCountryCode})" : tr('Неизвестна');
+                unset($row->fromIp);
+            }
         }
         
         $row->fromName = str_replace(' чрез ', ' ' . tr('чрез') . ' ', $row->fromName);

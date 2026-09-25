@@ -559,20 +559,33 @@ class pos_Terminal extends peripheral_Terminal
         $tpl->append(ht::createElement('div', $newAttr, tr('Нов трансфер'), true), 'BTNS');
 
         // Заявките между склада на точката и избрания - отварят се
+        $transferBtns = array();
         $pointStoreId = pos_Points::fetchField($rec->pointId, 'storeId');
         foreach ($this->getPendingTransfersBetweenStores($pointStoreId, $storeId) as $transferRec) {
             $openUrl = toUrl(store_Transfers::getSingleUrlArray($transferRec->id));
-            $btnCaption = store_Transfers::getRecTitle($transferRec) . "<div class='small'>" . store_Stores::getTitleById($transferRec->fromStore) . ' &raquo; ' . store_Stores::getTitleById($transferRec->toStore) . '</div>';
+            $subCaption = store_Stores::getTitleById($transferRec->fromStore) . ' &raquo; ' . store_Stores::getTitleById($transferRec->toStore);
             $openAttr = array('id' => "openTransfer{$transferRec->id}", 'class' => 'posBtns transferModalBtn state-pending', 'title' => 'Отваряне на заявката', 'onclick' => "document.location='{$openUrl}';");
-            $tpl->append(ht::createElement('div', $openAttr, $btnCaption, true), 'BTNS');
+            $transferBtns[] = (object)array('rec' => $transferRec, 'subCaption' => $subCaption, 'attr' => $openAttr);
         }
 
         // Заявките към този склад, които са в етап "Получаване"
         foreach ($this->getPendingTransfersForStore($storeId) as $transferRec) {
             $fillUrl = toUrl(array($this, 'FillTransfer', 'receiptId' => $rec->id, 'transferId' => $transferRec->id));
-            $btnCaption = store_Transfers::getRecTitle($transferRec) . "<div class='small'>" . tr('Наливане в получените') . '</div>';
             $fillAttr = array('id' => "fillTransfer{$transferRec->id}", 'class' => 'posBtns transferModalBtn state-pending', 'title' => 'Наливане на количествата от бележката в получените', 'onclick' => "document.location='{$fillUrl}';");
-            $tpl->append(ht::createElement('div', $fillAttr, $btnCaption, true), 'BTNS');
+            $transferBtns[] = (object)array('rec' => $transferRec, 'subCaption' => tr('Наливане в получените'), 'attr' => $fillAttr);
+        }
+
+        foreach ($transferBtns as $btn) {
+            $dQuery = store_TransfersDetails::getQuery();
+            $dQuery->where("#transferId = {$btn->rec->id}");
+            $dQuery->XPR('productsCount', 'int', 'COUNT(DISTINCT(#productId))');
+            $dQuery->show('productsCount');
+            $productsCount = (int) $dQuery->fetch()->productsCount;
+
+            // Датата и броят артикули за по-лесно различаване на заявките
+            $info = dt::mysql2verbal($btn->rec->createdOn, 'd.m.Y H:i') . ' | ' . tr('Артикули') . ": {$productsCount}";
+            $btnCaption = store_Transfers::getRecTitle($btn->rec) . "<div class='small'>{$btn->subCaption}</div><div class='small'>{$info}</div>";
+            $tpl->append(ht::createElement('div', $btn->attr, $btnCaption, true), 'BTNS');
         }
 
         $res = array();

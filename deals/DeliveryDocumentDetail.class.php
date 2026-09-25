@@ -387,14 +387,14 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
         $pRec = cat_Products::getByCode($row->code);
         $pRec->packagingId = (isset($pRec->packagingId)) ? $pRec->packagingId : $row->pack;
         $masterThreadId = $Master::fetchField($masterId, 'threadId');
-        $metaFld = $this->metaProducts;
+        $metaFld = $this->metaProducts ?? '';
 
         $fetchFieldsArr = array('canSell' => 'canSell', 'canBuy' => 'canBuy');
         if(!empty($metaFld)){
             $fetchFieldsArr[$metaFld] = $metaFld;
         }
         $metaRec = cat_Products::fetch($pRec->productId, $fetchFieldsArr);
-        $meta = $metaRec->{$metaFld} ?? null;
+        $meta = !empty($metaFld) ? ($metaRec->{$metaFld} ?? null) : null;
 
         if (!$meta) {
             $firstDoc = doc_Threads::getFirstDocument($masterThreadId);
