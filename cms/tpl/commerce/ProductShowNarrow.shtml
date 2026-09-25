@@ -20,15 +20,17 @@
 	<!--ET_END STATE_EXTERNAL-->
 	[#IMAGES_BLOCK#]
 	<!--ET_BEGIN PRODUCT_OPT-->
-	<div class="scrolling-holder" style="margin: 15px 0;">
+	<div class="scrolling-holder commerce-product-options" style="margin: 15px 0;">
 		[#PRODUCT_OPT#]
 	</div>
 	<!--ET_END PRODUCT_OPT-->
 	<div class="vtop" style='padding-left:8px;'>
+		<div class="commerce-product-description">
 		[#info#]
 		<br>
 		[#AFTER_PRODUCTS#]
 		[#longInfo#]
+		</div>
 		<!--ET_BEGIN RELATION_TABS-->
 		<div class="overflow-scroll" style="margin: 5px 0;">
 			[#RELATION_TABS#]

@@ -149,7 +149,7 @@
                   <td colspan="2"><h4 style="margin: 10px 0 3px;">|Фактура|*</h4></td>
                </tr>
                <tr>
-                  <td colspan="2">[#invoiceNames#]</td>
+                  <td class="aright">[#INV_CAPTION#]:</td><td class="cardValue">[#invoiceNames#]</td>
                </tr>
                <!--ET_END invoiceNames-->
                <!--ET_BEGIN invoiceVatNo-->
@@ -211,8 +211,8 @@
                </tr>
                <!--ET_END totalVat-->
                <!--ET_BEGIN total-->
-               <tr>
-                  <td class="aright"><b style='font-size:1.2em'>|Общо|*</b>: </td>
+               <tr class="cart-grand-total">
+                  <td class="aright"><b>|Общо|*</b>: </td>
                   <td class="aright"><b>[#total#]</b></td>
                </tr>
                <!--ET_END total-->

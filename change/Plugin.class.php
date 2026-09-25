@@ -164,46 +164,26 @@ class change_Plugin extends core_Plugin
 
         // Ако има права за промяна
         $mvc->requireRightFor('changerec');
-        
+
         $data = new stdClass();
-        
-        $data->action = 'changefields';
-        
+
         // Създаване и подготвяне на формата
-        $mvc->prepareEditForm($data);
-        
+        $fieldsArrLogSave = static::prepareChangeForm($mvc, $data);
+
         // Вземаме формата към този модел
         $form = &$data->form;
-        
+
         // Екшъна, който ще се използва
         $form->setAction($mvc, 'changefields');
-        
+
         // Записите от формата
         $fRec = &$form->rec;
-        
+
         // Очакваме да има такъв запис
         expect($rec = $mvc->fetch($fRec->id));
-        
-        // Вземаме всички позволени полета
-        $allowedFieldsArr = static::getAllowedFields($form, $mvc->changableFields ?? null);
 
-        // Очакваме да има зададени полета, които ще се променят
-        expect(countR($allowedFieldsArr));
-        
-        // Полетата, които ще записваме в лога
-        $fieldsArrLogSave = $allowedFieldsArr;
-        
-        // Дабавяме версията
-        $allowedFieldsArr['version'] = 'version';
-        
         // Полетата, които ще се показва
-        $fieldsArrShow = $allowedFieldsArr;
-
-        // Всички полета, които ще се показват да се инпутват
-        foreach ($fieldsArrShow as $f) {
-            expect(is_object($form->fields[$f]), "Липсващо поле '{$f}'", $form->fields);
-            $form->fields[$f]->input = 'input';
-        }
+        $fieldsArrShow = $allowedFieldsArr = $fieldsArrLogSave + array('version' => 'version');
 
         // Добавяме подверсията
         $allowedFieldsArr['subVersion'] = 'subVersion';
@@ -252,124 +232,57 @@ class change_Plugin extends core_Plugin
 
         // Ако формата е изпратена без грешки
         if ($form->isSubmitted()) {
-            if (($rec->version ?? null) === null && ($rec->subVersion ?? null) === null) {
-                $rec->version = 0;
-                $rec->subVersion = 1;
-            }
-            
-            // Ако не е подадена версия
-            if (empty($fRec->version)) {
-                
-                // Да е нула
-                $fRec->version = '0';
-            }
-            
-            // Ако сме променили версията
-            if ((string) $fRec->version != (string) ($rec->version ?? null)) {
-                
-                // Нулираме флага
-                $fRec->__noChange = false;
-                
-                // Подверсията
-                $subVersion = 0;
-                $lastSubVersionsArr = array();
-                
-                // Ако има id
-                if (!empty($rec->id)) {
-                    
-                    // Вземаме последните подверсии за съответнате версии
-                    $lastSubVersionsArr = change_Log::getLastSubVersionsArr($mvc, $rec->id);
-                }
-                
-                // Ако я има съответната версия
-                if (!empty($lastSubVersionsArr[$fRec->version])) {
-                    
-                    // Вземаме подверсията
-                    $subVersion = $lastSubVersionsArr[$fRec->version];
-                }
-            } else {
-                
-                // Подверсията
-                $subVersion = $rec->subVersion ?? 0;
-            }
-            
-            // Ако не е зададено да не се променя
-            if (!($fRec->__noChange ?? false)) {
-                
-                // Увеличаваме подверсията
-                $subVersion++;
-                
-                // Добавяме подверсията
-                $fRec->subVersion = $subVersion;
-                
-                // Извикваме фунцкията, за да дадем възможност за добавяне от други хора
-                $mvc->invoke('AfterInputChanges', array($rec, $fRec));
-                
-                // Нулираме ги за да се променят
-                $fRec->changeModifiedBy = null;
-                $fRec->changeModifiedOn = null;
-                
-                // Записваме промени
-                $mvc->save($fRec);
-                
-                $mvc->logInAct('Промяна', $fRec);
-                
-                // Записваме лога на промените
-                $savedRecsArr = change_Log::create($mvc->className, $fieldsArrLogSave, $rec, $fRec);
-                
-                // Извикваме фунцкия, след като запишем
-                $mvc->invoke('AfterSaveLogChange', array($savedRecsArr));
-            }
-            
+            static::saveChanges($mvc, $rec, $fRec, $fieldsArrLogSave);
+
             // Редиректваме
             redirect($retUrl);
         }
 
         // Ако няма грешки
         if (!$form->gotErrors()) {
-            
+
             // Вземаме данните
             $vRec = $rec;
-            
+
             // Ако няма последна версия
             if (!$lastVersion) {
-                
+
                 // Ако има първа версия
                 if ($firstVersion) {
-                    
+
                     // Версията, която ще използваме е първата
                     $versionKey = $firstVersion;
                 }
             } else {
-                
+
                 // Версията, която ще използваме е последната
                 $versionKey = $lastVersion;
             }
-            
+
             // Вземаме записитеи за съответния ред
             $gRecArr = change_Log::getRecForVersion($classId, $rec->id, $versionKey, $fieldsArrLogSave);
-            
+
             // Обхождаме масива
             foreach ((array) $gRecArr as $field => $gRec) {
-                
+
                 // Ако няма запис - прескачаме
                 if (!$gRec) {
                     continue;
                 }
-                
+
                 // Добавяме полето към записа
                 $vRec->$field = $gRec->value;
-                
+
                 // Добавяме версията
                 $vRec->version = $gRec->version;
             }
-            
+
             // Ако има избрана версия, от нея да се вземат всичките данни
             if ($versionKey) {
-                
+
                 // Обхождаме стария запис
                 foreach ((array) $fieldsArrShow as $field) {
-                    
+
                     // Добавяме старта стойност
                     $form->rec->$field = $vRec->$field ?? null;
                 }
@@ -378,47 +291,166 @@ class change_Plugin extends core_Plugin
 
         // Задаваме да се показват само полетата, които ни интересуват
         $form->showFields = $fieldsArrShow;
-        
+
         // Добавяме бутоните на формата
         $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png');
         $form->toolbar->addBtn('Отказ', $retUrl, 'ef_icon = img/16/close-red.png');
-        
+
         $form->title = 'Промяна';
-        
+
         try {
-            
+
             // Ако имплементира doc_DocumentIntf
             if (cls::haveInterface('doc_DocumentIntf', $mvc)) {
-                
+
                 // Титлата на документа
                 $title = $mvc->getFormTitleLink($fRec->id);
-                
+
                 // Ако има открито заглавие
                 if ($title) {
-                    
+
                     // Титлата на формата
                     $form->title .= " на|*: {$title}";
                 }
             }
         } catch (core_exception_Expect $e) {
         }
-        
+
         // Ако има избрана версия
         if ($versionKey) {
-            
+
             // Вземаме стринга
             $versionStr = change_Log::getVersionStrFromKey($mvc, $versionKey);
-            
+
             // Към заглавието добавяме вербалното представяне на версията
             $form->title .= "|* <b style='color:red;'>{$versionStr}</b>";
         }
-        
+
         // Рендираме изгледа
         $tpl = $mvc->renderWrapping($form->renderHtml());
 
         $mvc->invoke('AfterRenderPrepareEditForm', array($tpl, $form));
-        
+
         return false;
+    }
+
+
+    /**
+     * Подготвя формата за промяна: полетата, които могат да се променят, стават за въвеждане
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $data
+     *
+     * @return array полетата, чиито промени се записват в лога
+     */
+    public static function prepareChangeForm($mvc, $data)
+    {
+        $data->action = 'changefields';
+
+        // Създаване и подготвяне на формата
+        $mvc->prepareEditForm($data);
+        $form = $data->form;
+
+        // Вземаме всички позволени полета
+        $allowedFieldsArr = static::getAllowedFields($form, $mvc->changableFields ?? null);
+
+        // Очакваме да има зададени полета, които ще се променят
+        expect(countR($allowedFieldsArr));
+
+        // Всички полета, които ще се показват (и версията) да се инпутват
+        foreach ($allowedFieldsArr + array('version' => 'version') as $f) {
+            expect(is_object($form->fields[$f]), "Липсващо поле '{$f}'", $form->fields);
+            $form->fields[$f]->input = 'input';
+        }
+
+        return $allowedFieldsArr;
+    }
+
+
+    /**
+     * Записва въведените промени като нова подверсия и ги отбелязва в лога
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $rec              записът преди промяната
+     * @param stdClass $fRec             записът от формата
+     * @param array    $fieldsArrLogSave полетата за лога (от prepareChangeForm)
+     *
+     * @return bool дали има записана промяна
+     */
+    public static function saveChanges($mvc, $rec, $fRec, $fieldsArrLogSave)
+    {
+        if (($rec->version ?? null) === null && ($rec->subVersion ?? null) === null) {
+            $rec->version = 0;
+            $rec->subVersion = 1;
+        }
+        
+        // Ако не е подадена версия
+        if (empty($fRec->version)) {
+            
+            // Да е нула
+            $fRec->version = '0';
+        }
+        
+        // Ако сме променили версията
+        if ((string) $fRec->version != (string) ($rec->version ?? null)) {
+            
+            // Нулираме флага
+            $fRec->__noChange = false;
+            
+            // Подверсията
+            $subVersion = 0;
+            $lastSubVersionsArr = array();
+            
+            // Ако има id
+            if (!empty($rec->id)) {
+                
+                // Вземаме последните подверсии за съответнате версии
+                $lastSubVersionsArr = change_Log::getLastSubVersionsArr($mvc, $rec->id);
+            }
+            
+            // Ако я има съответната версия
+            if (!empty($lastSubVersionsArr[$fRec->version])) {
+                
+                // Вземаме подверсията
+                $subVersion = $lastSubVersionsArr[$fRec->version];
+            }
+        } else {
+            
+            // Подверсията
+            $subVersion = $rec->subVersion ?? 0;
+        }
+        
+        // Ако е зададено да не се променя
+        if ($fRec->__noChange ?? false) {
+            
+            return false;
+        }
+        
+        // Увеличаваме подверсията
+        $subVersion++;
+        
+        // Добавяме подверсията
+        $fRec->subVersion = $subVersion;
+        
+        // Извикваме фунцкията, за да дадем възможност за добавяне от други хора
+        $mvc->invoke('AfterInputChanges', array($rec, $fRec));
+        
+        // Нулираме ги за да се променят
+        $fRec->changeModifiedBy = null;
+        $fRec->changeModifiedOn = null;
+        
+        // Записваме промени
+        $mvc->save($fRec);
+        
+        $mvc->logInAct('Промяна', $fRec);
+        
+        // Записваме лога на промените
+        $savedRecsArr = change_Log::create($mvc->className, $fieldsArrLogSave, $rec, $fRec);
+        
+        // Извикваме фунцкия, след като запишем
+        $mvc->invoke('AfterSaveLogChange', array($savedRecsArr));
+        
+        return true;
     }
 
 

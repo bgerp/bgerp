@@ -101,7 +101,7 @@ class plg_Created extends core_Plugin
             $mvc->protectedSystemFields = arr::make($mvc->protectedSystemFields, true);
             
             foreach ($data->form->fields as &$f) {
-                if ($mvc->protectedSystemFields[$f->name]) {
+                if (!empty($mvc->protectedSystemFields[$f->name])) {
                     $f->input = 'none';
                 }
             }
