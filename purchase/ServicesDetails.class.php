@@ -131,6 +131,7 @@ class purchase_ServicesDetails extends deals_DeliveryDocumentDetail
     {
         $tplLang = $data->masterData->rec->tplLang ?? null;
         $date = ($data->masterData->rec->state == 'draft') ? null : $data->masterData->rec->modifiedOn;
+        $tplLang = $data->masterData->rec->tplLang ?? null;
         
         if (countR($data->rows)) {
             foreach ($data->rows as $i => &$row) {
