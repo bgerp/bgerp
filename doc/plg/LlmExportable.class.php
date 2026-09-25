@@ -18,6 +18,23 @@ class doc_plg_LlmExportable extends core_Plugin
 {
 
     /**
+     * Системна бележка в LLM експорта, поставяна веднага след елемента, за който се отнася
+     *
+     * Ползва се в режим 'renderForLlm' за всичко, което моделът трябва да знае, а в интерфейса
+     * се вижда само като иконка, цвят или хинт (напр. вирус във файл - fileman_RichTextPlg::getLlmTag).
+     * Текстът се превежда с tr() и се добавя в bgerp/data/csv/Translations.csv.
+     *
+     * @param string $text - преведеният текст на бележката
+     *
+     * @return string - [!bgERP: текст]
+     */
+    public static function systemNote($text)
+    {
+        return '[!bgERP: ' . trim((string) $text) . ']';
+    }
+
+
+    /**
      * Рендира документа в LLM-четим маркдаун формат.
      *
      * @param core_Mvc $mvc
@@ -36,6 +53,7 @@ class doc_plg_LlmExportable extends core_Plugin
         // групиращите редове, междинните суми и останалата таблична структура.
         // В renderForLlm режим прикачените файлове се рендират като [file=XXXXXX] тагове с размер,
         // а не като линкове за сваляне (виж fileman_Files::getLink)
+        // Показаното само визуално (иконки, хинтове) се губи - за него виж self::systemNote()
         Mode::push('renderForLlm', true);
         try {
             $content = doc_plg_TxtExportable::renderDocumentHtml($mvc, $id);
