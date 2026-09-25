@@ -1005,7 +1005,7 @@ class core_Query extends core_FieldSet
                 $this->mvc->invoke('AfterRead', array(&$rec));
             }
             
-            $this->mvc->lastFetchedRec = $rec;
+            $this->mvc->lastFetchedRec = clone $rec;
             
             return $rec;
         }
