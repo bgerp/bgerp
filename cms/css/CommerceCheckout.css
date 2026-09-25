@@ -443,3 +443,44 @@ body.commerce-theme #login-form .commerce-password-toggle:focus-visible { outlin
 body.commerce-theme #login-form .commerce-password-toggle svg { width: 20px; height: 20px; }
 body.commerce-theme #login-form .commerce-eye-slash { display: none; }
 body.commerce-theme #login-form .commerce-password-toggle[aria-pressed=true] .commerce-eye-slash { display: block; }
+/* Consistent feedback for public forms, including validation summaries. */
+body.commerce-theme .formError,
+body.commerce-theme .formWarning,
+body.commerce-theme .formNotice {
+    box-sizing: border-box;
+    min-width: 0;
+    max-width: 100%;
+    margin: 0 0 14px;
+    padding: 12px 14px;
+    border: 1px solid #eccbd0;
+    border-left: 3px solid #bd4050;
+    border-radius: 7px;
+    background: #fff4f5;
+    color: #8f3040;
+    font: 14px/1.5 Arial, sans-serif;
+    text-align: left;
+    box-shadow: none;
+}
+body.commerce-theme .formWarning {
+    border-color: #e7d9b9;
+    border-left-color: #ab7a24;
+    background: #fff9ee;
+    color: #79591e;
+}
+body.commerce-theme .formNotice {
+    border-color: #c5d5dc;
+    border-left-color: #145b73;
+    background: #eef4f6;
+    color: #405a68;
+}
+body.commerce-theme :is(.formError, .formWarning, .formNotice) b { font-weight: 600; }
+body.commerce-theme :is(.formError, .formWarning, .formNotice) ul {
+    margin: 6px 0 0;
+    padding-left: 20px;
+}
+body.commerce-theme :is(.formError, .formWarning, .formNotice) li { margin: 3px 0; }
+body.commerce-theme .formWarning > div {
+    margin-top: 10px;
+    padding-top: 10px !important;
+    border-top: 1px solid #e7d9b9 !important;
+}

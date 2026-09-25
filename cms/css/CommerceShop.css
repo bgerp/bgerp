@@ -510,7 +510,10 @@ body.eshop-public a.eshop-edit-link img {
 /* Price on its own row; "Buy" and "Inquiry" share the next row half and half and never wrap. */
 .eshop-public .optionsTable .priceCol > b {
     display: grid;
-    grid-template-columns: repeat(2, minmax(max-content, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 224px;
+    max-width: 100%;
+    margin-left: auto;
     justify-items: end;
     align-items: center;
     gap: 6px 8px;
@@ -522,6 +525,8 @@ body.eshop-public a.eshop-edit-link img {
 .eshop-public .optionsTable .priceCol .eshop-product-buy-button:not(:last-child),
 .eshop-public .optionsTable .priceCol .eshop-product-buy-button + .eshop-product-buy-button {
     justify-self: stretch;
+    min-width: 0;
+    margin: 0;
 }
 body.eshop-public .optionsTable .priceCol .eshop-product-buy-button:not(:last-child) .productBtn,
 body.eshop-public .optionsTable .priceCol .eshop-product-buy-button + .eshop-product-buy-button .productBtn {
@@ -1183,7 +1188,7 @@ body.eshop-public .cartInfoBlock h4 { background: none; color: #182b3a; font-siz
 body.eshop-public .cartInfoBlock table { width: 100%; margin-left: 0 !important; }
 body.eshop-public .cartInfoBlock td { padding: 5px 3px; font-size: 14px; overflow-wrap: anywhere; }
 body.eshop-public .cartInfoBlock td.aright { white-space: nowrap; overflow-wrap: normal; }
-body.eshop-public .cartInfoBlock .summary-holder { margin: 16px 0; padding: 16px; border: 0; background: #eef4f6; }
+body.eshop-public .cartInfoBlock .summary-holder { margin: 10px 0; padding: 10px 14px; border: 0; background: #eef4f6; }
 body.eshop-public .cart-view-buttons-right { float: none; text-align: left; }
 body.eshop-public .cart-view-buttons-right .eshop-btn {
     width: 100%;
@@ -1433,3 +1438,53 @@ body.eshop-public .option-not-in-stock.eshop-contact-us::before {
     height: 16px;
     background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Crect x='1.5' y='3.5' width='13' height='9' rx='1.5' fill='none' stroke='%23145b73'/%3E%3Cpath d='M2 4.5l6 4.5 6-4.5' fill='none' stroke='%23145b73' stroke-linejoin='round'/%3E%3C/svg%3E") center / 16px 16px no-repeat;
 }
+
+/* Keep dual actions compact and equal without expanding the price column. */
+body.eshop-public .optionsTable .priceCol .eshop-product-buy-button .productBtn {
+    box-sizing: border-box;
+    min-width: 0;
+    min-height: 34px;
+    padding: 7px 10px !important;
+    font-size: 13px;
+}
+body.eshop-public .optionsTable .priceCol > b > .eshop-product-price-holder {
+    margin: 0;
+    line-height: 1.4;
+}
+@media (max-width: 650px) {
+    body.eshop-public .optionsTable .priceCol > b { width: 196px; gap: 6px; }
+    body.eshop-public .optionsTable td,
+    body.eshop-public .optionsTable th { padding: 10px 6px; }
+}
+/* Delivery quotation notice belongs to the cart summary. */
+body.eshop-public .cartInfoBlock .info-transport {
+    display: block;
+    position: static;
+    transform: none;
+    margin: 8px 0;
+    padding: 12px 14px !important;
+    border: 1px solid #c5d5dc;
+    border-left: 3px solid #145b73;
+    border-radius: 7px;
+    background: #eef4f6;
+    color: #405a68;
+    font: 400 14px/1.5 Arial, sans-serif !important;
+}
+
+/* Compact cart totals, with one clear separation before the final amount. */
+body.eshop-public #cart-view-total table {
+    float: none;
+    width: 100%;
+    margin: 0;
+    border-collapse: collapse;
+    border-spacing: 0;
+}
+body.eshop-public #cart-view-total td { padding: 3px 0; line-height: 1.4; }
+body.eshop-public #cart-view-total td:first-child { text-align: left; padding-right: 12px; color: #526875; }
+body.eshop-public #cart-view-total .cart-grand-total td {
+    padding-top: 7px;
+    border-top: 1px solid #d5e1e6;
+    font-size: 18px;
+    color: #182b3a;
+}
+body.eshop-public #cart-view-total > .clearfix21 { display: none; }
