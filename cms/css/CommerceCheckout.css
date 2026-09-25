@@ -195,7 +195,7 @@ body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) .richEdit t
 }
 
 /* Keep framework combo widths and paired controls intact. */
-body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) input:not(.combo):not([inputmode=decimals]):not([inputmode=decimal]):not([type=hidden]):not([type=submit]):not([type=button]):not([type=checkbox]):not([type=radio]),
+body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) input:not(.combo):not([name="captcha[value]"]):not([inputmode=decimals]):not([inputmode=decimal]):not([type=hidden]):not([type=submit]):not([type=button]):not([type=checkbox]):not([type=radio]),
 body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) select:not(.combo):not(.select2-hidden-accessible),
 body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) textarea { width: 100% !important; }
 body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) .inlineTo > .select2-container { width: calc(50% - 12px) !important; }
@@ -484,4 +484,35 @@ body.commerce-theme .formWarning > div {
     margin-top: 10px;
     padding-top: 10px !important;
     border-top: 1px solid #e7d9b9 !important;
+}
+
+/* Account forms: calm instructions and an inline recognition field. */
+body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)):has(input[name="captcha[value]"]) .formInfo,
+body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)):has(input[name=nick]):has(input[name=names]) .formInfo {
+    width: 100%;
+    max-width: none;
+    box-sizing: border-box;
+    padding: 0.75em 1em;
+    border: 1px solid #dce5e9;
+    border-radius: 7px;
+    background: #f5f8fa;
+    color: #526875;
+    line-height: 1.6;
+}
+body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) .formElement:has(> input[name="captcha[value]"]) {
+    display: flex;
+    align-items: center;
+    gap: 0.75em;
+}
+body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) input[name="captcha[value]"] {
+    order: 0;
+    width: 7em !important;
+    flex: 0 1 7em;
+    margin: 0;
+}
+body.commerce-theme .formElement:has(> input[name="captcha[value]"]) > img {
+    order: 1;
+    flex: 0 0 auto;
+    margin: 0;
+    border-radius: 4px;
 }

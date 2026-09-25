@@ -297,6 +297,7 @@
 }
 
 .eshop-public .eshop-group-arrow {
+    pointer-events: none;
     color: var(--shop-accent);
     font-size: 1.5rem;
     line-height: 1;
@@ -1491,3 +1492,7 @@ body.eshop-public .commerce-product-description {
 }
 
 body.eshop-public .commerce-product-description .richtext { font-size: 1em; line-height: inherit; }
+/* Separate subcategory navigation from the product results below it. */
+body.eshop-public .subgroups:has(.eshop-group-button) + .eshop-product-list-holder {
+    margin-top: 1.5rem;
+}
