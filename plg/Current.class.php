@@ -17,6 +17,12 @@
 class plg_Current extends core_Plugin
 {
     /**
+     * Моделите без текущ обект и без автоматичен избор в този хит - потребител|клас => true
+     */
+    protected static $noCurrent = array();
+
+
+    /**
      * Връща указаната част (по подразбиране - id-то) на текущия за сесията запис
      *
      * @param core_Mvc $mvc
@@ -37,7 +43,14 @@ class plg_Current extends core_Plugin
                 
                 return;
             }
-            
+
+            // Без текущ в сесията търсенето до края на хита дава същото, а е заявка при всяко питане
+            $noCurrentKey = core_Users::getCurrent('id', false) . "|{$mvc->className}";
+            if (!$bForce && isset(self::$noCurrent[$noCurrentKey])) {
+
+                return;
+            }
+
             $rec = null;
             $query = $mvc->getQuery();
             if($mvc->getField('state', false)){
@@ -86,6 +99,10 @@ class plg_Current extends core_Plugin
                 
                 // Подканваме потребителя да избере обект от модела, като текущ
                 redirect(array($mvc, 'SelectCurrent', 'ret_url' => true), false, '|Нямате права за избор на|* |' . mb_strtolower(tr($mvc->singleTitle)));
+            }
+
+            if (!$res) {
+                self::$noCurrent[$noCurrentKey] = true;
             }
         }
     }
@@ -246,6 +263,7 @@ class plg_Current extends core_Plugin
         }
         
         $className = cls::getClassName($mvc);
+        self::$noCurrent = array();
         
         // Задаваме новия текущ запис
         $modeKey = self::getModeKey($className);
@@ -366,6 +384,22 @@ class plg_Current extends core_Plugin
                 if (($rec->id ?? null) != $mvc->getCurrent('id', false)) {
                     $res = 'no_one';
                 }
+            }
+        }
+    }
+
+
+    /**
+     * След промяна на таблицата на модела
+     *
+     * @param core_Mvc $mvc
+     */
+    public static function on_AfterDbTableUpdated($mvc)
+    {
+        // Нов или променен запис може вече да се избира автоматично
+        foreach (array_keys(self::$noCurrent) as $key) {
+            if (substr($key, strpos($key, '|') + 1) == $mvc->className) {
+                unset(self::$noCurrent[$key]);
             }
         }
     }
