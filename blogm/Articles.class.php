@@ -807,6 +807,7 @@ class blogm_Articles extends core_Master
         // Ако е посочено заглавие по-което се търси
         $showRoot = blogm_Setup::get('SHOW_ALL_ARTICLE_CAPTION');
         $data->descr = '';
+        $data->emptyMessage = '';
         $data->title = null;
         if (!empty($data->q)) {
             $domainId = cms_Domains::getPublicDomain('id');
@@ -821,6 +822,9 @@ class blogm_Articles extends core_Master
             $data->rows = array();
         } elseif (!empty($data->archive)) {
             $data->title = tr('Архив за месец') . '&nbsp;<b>' . dt::getMonth($data->archiveM, Mode::is('screenMode', 'narrow') ? 'M' : 'F') . ', ' . $data->archiveY . '&nbsp;</b>';
+            if (!countR($data->rows)) {
+                $data->emptyMessage = tr($blogType ? 'Няма статии за този месец' : 'Няма новини за този месец');
+            }
         } elseif (isset($data->category)) {
             $catRec = blogm_Categories::fetch($data->category);
             if (!$catRec) {
@@ -835,15 +839,15 @@ class blogm_Articles extends core_Master
             $data->descr = blogm_Categories::getVerbal($catRec, 'description');
             if (!countR($data->rows)) {
                 $str = (blogm_Setup::get('TYPE') == 'blog') ? 'Няма статии в тази категория' : 'Няма новини в тази категория';
-                $data->descr .= "<p><b style='color:#666;'>" . tr($str) . '</b></p>';
+                $data->emptyMessage = tr($str);
             }
         } else {
             if($showRoot == 'yes'){
                 $data->title = tr(blogm_Setup::get('ALL_ARTICLES_IN_PAGE_TITLE'));
             }
             if (!countR($data->rows)) {
-                $str = ($blogType == 'blog') ? 'Няма статии в този блог' : 'Няма новини в този блог';
-                $data->descr .= "<p><b style='color:#666;'>" . tr($str) . '</b></p>';
+                $str = $blogType ? 'Няма статии в този блог' : 'Няма новини в този блог';
+                $data->emptyMessage = tr($str);
             }
         }
 
@@ -865,7 +869,9 @@ class blogm_Articles extends core_Master
         $navigationArr = cls::get('blogm_Categories')->getNestedTree($data->categoryId);
         if(countR($navigationArr)){
             $pathArr = $this->flattenNavPaths($navigationArr, $data->menuId);
-                $pathArr[0] .= " » <span>" . strip_tags($data->title ?? '') . "</span>";
+            if (!empty($data->title)) {
+                $pathArr[0] .= " » <span>" . strip_tags($data->title) . "</span>";
+            }
             $layout->replace($pathArr[key($pathArr)], 'navigationBar');
         }
 
@@ -875,10 +881,25 @@ class blogm_Articles extends core_Master
                 $rowTpl->placeObject($row);
                 $rowTpl->append2master();
             }
+        } else {
+            $layout->removeBlock('ROW');
+        }
+
+        $description = $data->descr;
+        if (cms_Domains::getCmsSkin() instanceof cms_CommerceTheme) {
+            if (trim((string) $description) !== '') {
+                $descriptionClass = !empty($data->q) ? 'commerce-blog-search-results' : 'commerce-blog-description';
+                $description = "<div class='{$descriptionClass}'>{$description}</div>";
+            }
+            if (!empty($data->emptyMessage)) {
+                $description .= '<div class="commerce-blog-empty" role="status">' . $data->emptyMessage . '</div>';
+            }
+        } elseif (!empty($data->emptyMessage)) {
+            $description .= "<p><b style='color:#666;'>" . $data->emptyMessage . '</b></p>';
         }
 
         $layout->replace($data->title, 'BROWSE_HEADER');
-        $layout->replace($data->descr, 'BROWSE_DESCR');
+        $layout->replace($description, 'BROWSE_DESCR');
         $layout->append($data->pager->getPrevNext('« по-стари', 'по-нови »'));
         
         // Рендираме навигацията
