@@ -685,35 +685,22 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
             }
         }
 
-        $marker = 0;
-        $jobVerb = '';
         if (($data->rec->option ?? 'no') == 'no') {
             if (isset($data->rec->jobses)) {
+                $jobVerbArr = array();
                 foreach (type_Keylist::toArray($data->rec->jobses) as $job) {
-                    $marker++;
-
-                    $jRec = planning_Jobs::fetch($job);
-
+                    $jRec = planning_Jobs::fetch($job, 'containerId,state');
                     if (!$jRec) {
                         continue;
                     }
 
-                    $jContainer = $jRec->containerId;
-
-                    $Job = doc_Containers::getDocument($jContainer);
-
-                    $handle = $Job->getHandle();
-
+                    $Job = doc_Containers::getDocument($jRec->containerId);
                     $singleUrl = $Job->getUrlWithAccess($Job->getInstance(), $job);
-
-                    $jobVerb .= ht::createLink("#{$handle}", $singleUrl);
-
-                    if ((countR((type_Keylist::toArray($data->rec->jobses))) - $marker) != 0) {
-                        $jobVerb .= ', ';
-                    }
+                    $link = ht::createLink("#{$Job->getHandle()}", $singleUrl);
+                    $jobVerbArr[] = ht::createElement('span', array('class' => "state-{$jRec->state} document-handler"), $link);
                 }
 
-                $fieldTpl->append('<b>' . $jobVerb . '</b>', 'jobses');
+                $fieldTpl->append(implode(' ', $jobVerbArr), 'jobses');
             } else {
                 $fieldTpl->append('<b>' . 'Всички' . '</b>', 'jobses');
             }
