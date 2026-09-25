@@ -3242,6 +3242,14 @@ class cat_Products extends embed_Manager
             }
             $data->toolbar->addBtn('Продажба', $saleUrlArr, 'ef_icon = img/16/cart_go.png,title=Създаване на нова продажба,warning=Наистина ли искате да създадете нова продажба|*?');
         }
+
+        if (cat_products_ParamIndex::haveRightFor('list')) {
+            $data->toolbar->addBtn('Индекси', array('cat_products_ParamIndex', 'list', 'product' => $data->rec->id), 'ef_icon = img/16/bug.png,title=Записаните параметрични индекси на артикула,row=2');
+        }
+
+        if ($mvc->haveRightFor('reindexparams', $data->rec)) {
+            $data->toolbar->addBtn('Преиндексиране', array($mvc, 'reindexparams', 'Selected' => $data->rec->id, 'ret_url' => true), 'ef_icon = img/16/bug.png,title=Преиндексиране на параметрите на артикула,row=2');
+        }
     }
     
     

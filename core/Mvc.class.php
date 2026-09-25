@@ -407,8 +407,8 @@ class core_Mvc extends core_FieldSet
         
         if ($rec->id ?? null) {
             $exRec = $this->_cachedRecords[$rec->id .'|*'] ?? null;
-            if ($exRec === null && $this->lastFetchedRec && $this->lastFetchedRec == $rec->id) {
-                $exRec = $this->lastFetchedRec;
+            if ($exRec === null && (($this->lastFetchedRec->id ?? null) == ($rec->id ?? null))) {
+                $exRec = $this->lastFetchedRec ?? null;
             }
         }
         
@@ -715,6 +715,7 @@ class core_Mvc extends core_FieldSet
     public function dbTableUpdated_()
     {
         $this->_cachedRecords = array();
+        $this->lastFetchedRec = null;
         $this->lastUpdateTime = DT::verbal2mysql();
         $key = $this->db->dbName . '|' . $this->dbTableName;
         self::$dbTableUpdateCounts[$key] = $this->getDbTableUpdateCount() + 1;

@@ -328,7 +328,28 @@ class cms_Content extends core_Manager
         // Ако имаме действащи менюта на повече от един език, показваме бутон за избор на езика
         $usedLangsArr = cms_Domains::getCmsLangs();
         
-        if (countR($usedLangsArr) == 2) {
+        if ($commerceTheme && countR($usedLangsArr) > 2) {
+            $lang = self::getLang();
+            $currentLabel = htmlspecialchars($lang == 'bg' ? 'БГ' : strtoupper($lang), ENT_QUOTES, 'UTF-8');
+            $languageLinks = '';
+            foreach ($usedLangsArr as $lg) {
+                $nativeName = drdata_Languages::fetchField("#code = '{$lg}'", 'nativeName');
+                $label = htmlspecialchars($lg == 'bg' ? 'БГ' : strtoupper($lg), ENT_QUOTES, 'UTF-8');
+                $flag = '';
+                if (getFullPath('img/flags/' . $lg . '.png')) {
+                    $flag = ht::createElement('img', array('src' => sbf('img/flags/' . $lg . '.png', ''), 'alt' => ''))->getContent();
+                }
+                if ($lg == $lang) {
+                    $currentLabel = $flag . $currentLabel;
+                }
+                $attr = array('class' => 'commerce-language-link', 'hreflang' => $lg, 'lang' => $lg, 'title' => $nativeName, 'aria-label' => $nativeName ?: strtoupper($lg));
+                if ($lg == $lang) {
+                    $attr['aria-current'] = 'true';
+                }
+                $languageLinks .= ht::createLink($flag . $label, array($this, 'SelectLang', 'lang' => $lg), null, $attr);
+            }
+            $tpl->append('<details class="commerce-languages"><summary aria-label="' . htmlspecialchars(tr('Език||Language'), ENT_QUOTES, 'UTF-8') . '">' . $currentLabel . '</summary><div class="commerce-language-options">' . $languageLinks . '</div></details>');
+        } elseif (countR($usedLangsArr) == 2) {
             
             // Премахваме текущия език
             $lang = self::getLang();
@@ -352,7 +373,7 @@ class cms_Content extends core_Manager
                 
                 
                 if ($commerceTheme) {
-                    $img .= ht::createElement('span', array('class' => 'cms-menu-label'), strtoupper($lg));
+                    $img .= ht::createElement('span', array('class' => 'cms-menu-label'), $lg == 'bg' ? 'БГ' : strtoupper($lg));
                 }
                 $tpl->append(ht::createLink($img, $url, null, $attr));
             }

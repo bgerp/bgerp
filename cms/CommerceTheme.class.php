@@ -39,6 +39,7 @@ class cms_CommerceTheme extends cms_FancyTheme
         $tpl->push('cms/css/CommerceCheckout.css', 'CSS');
         $tpl->appendOnce(' commerce-theme', 'BODY_CLASS_NAME');
         $tpl->push('cms/js/CommerceForms.js', 'JS');
+        jquery_Jquery::run($tpl, 'initCommerceLanguages();');
         jquery_Jquery::run($tpl, 'initCommerceLogin(' . json_encode(tr('Покажи паролата')) . ', ' . json_encode(tr('Скрий паролата')) . ');');
     }
 
