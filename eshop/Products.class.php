@@ -660,13 +660,13 @@ class eshop_Products extends core_Master
     /**
      * Е-артикулите от заявката, без скритите заради липса на цени
      *
-     * @param core_Query    $pQuery            - заявка по е-артикулите
-     * @param int           $groupId           - показваната група
-     * @param stdClass|null $displayedGroupRec - групата, чиято настройка за цените важи, иначе тази на е-артикула
+     * @param core_Query $pQuery    - заявка по е-артикулите
+     * @param int        $groupId   - показваната група
+     * @param array      $groupRecs - групите, в които се показват (ид => запис); празно - основната група на е-артикула
      *
      * @return array
      */
-    private static function fetchGroupListRecs($pQuery, $groupId, $displayedGroupRec = null)
+    private static function fetchGroupListRecs($pQuery, $groupId, $groupRecs = array())
     {
         $pQuery->XPR('cOrder', 'double', "IF(#groupId = {$groupId}, #saoOrder, 999999999)");
         $pQuery->EXT('showProductsWithoutPrices', 'eshop_Groups', "externalName=showProductsWithoutPrices,externalKey=groupId");
@@ -676,13 +676,39 @@ class eshop_Products extends core_Master
         $haveDebug = haveRole('debug');
         $settings = cms_Domains::getSettings();
         while($pRec1 = $pQuery->fetch()){
-            $showProductsWithoutPrices = is_object($displayedGroupRec) ? $displayedGroupRec->showProductsWithoutPrices : $pRec1->showProductsWithoutPrices;
-            $pRec1->showProductsWithoutPrices = ($showProductsWithoutPrices == 'auto') ? ($settings->showProductsWithoutPrices ?? 'yes') : $showProductsWithoutPrices;
-            if($pRec1->showProductsWithoutPrices == 'no' && !$haveDebug) continue;
+            $showValues = array($pRec1->showProductsWithoutPrices);
+            if(countR($groupRecs)){
+
+                // Важи настройката на групата, в която е показан; от няколко подгрупи стига една да го показва
+                $inGroups = array($pRec1->groupId => $pRec1->groupId) + keylist::toArray($pRec1->sharedInGroups ?? '');
+                $showValues = arr::extractValuesFromArray(array_intersect_key($groupRecs, $inGroups), 'showProductsWithoutPrices');
+            }
+
+            $pRec1->showProductsWithoutPrices = 'no';
+            foreach ($showValues as $showValue){
+                if((($showValue == 'auto') ? ($settings->showProductsWithoutPrices ?? 'yes') : $showValue) != 'no'){
+                    $pRec1->showProductsWithoutPrices = 'yes';
+                    break;
+                }
+            }
+            if(self::isHiddenWithoutPrices($pRec1) && !$haveDebug) continue;
             $recs[$pRec1->id] = $pRec1;
         }
 
         return $recs;
+    }
+
+
+    /**
+     * Дали е-артикулът е само за купуване, без цени и групата му крие такива
+     *
+     * @param stdClass $rec
+     *
+     * @return bool
+     */
+    private static function isHiddenWithoutPrices($rec)
+    {
+        return $rec->showProductsWithoutPrices == 'no' && $rec->detailActions == 'onlySell' && $rec->haveProductsWithPrice == 'no' && empty($rec->coDriver);
     }
 
 
@@ -740,18 +766,19 @@ class eshop_Products extends core_Master
             $perPage = eshop_Groups::fetchField($data->groupId, 'perPage');
             $perPage = !empty($perPage) ? $perPage : eshop_Setup::get('PRODUCTS_PER_PAGE');
         }
-        $data->recs = self::fetchGroupListRecs($pQuery, $data->groupId, $displayedGroupRec);
+        $data->recs = self::fetchGroupListRecs($pQuery, $data->groupId, is_object($displayedGroupRec) ? array($data->groupId => $displayedGroupRec) : array());
 
         // Филтърът по параметри обхваща и е-артикулите от подгрупите; показват се само при избор
         $data->subgroupRecs = array();
         if(!empty($data->withParamFilter) && $data->groupId > 0 && eshop_ParamFilter::isEnabled()){
-            $subgroupIds = eshop_Groups::getSubgroupIds($data->groupId, $data->menuId);
-            if(countR($subgroupIds)){
+            $subgroups = eshop_Groups::getSubgroups($data->groupId, $data->menuId);
+            if(countR($subgroups)){
+                $subgroupIds = array_keys($subgroups);
                 $sQuery = self::getQuery();
                 $sQuery->where("#state = 'active' AND #saleState != 'closed'");
                 $sQuery->in('groupId', $subgroupIds);
                 $sQuery->orLikeKeylist('sharedInGroups', keylist::fromArray($subgroupIds));
-                $data->subgroupRecs = array_diff_key(self::fetchGroupListRecs($sQuery, $data->groupId), $data->recs);
+                $data->subgroupRecs = array_diff_key(self::fetchGroupListRecs($sQuery, $data->groupId, $subgroups), $data->recs);
             }
         }
 
@@ -790,12 +817,13 @@ class eshop_Products extends core_Master
         }
 
         $haveDebug = haveRole('debug');
+        $settings = cms_Domains::getSettings();
         $commerceTheme = cms_Domains::getCmsSkin() instanceof cms_CommerceTheme;
         foreach ($data->recs as $pRec) {
             if (!$data->Pager->isOnPage()) continue;
 
             $pRow = self::recToVerbal($pRec, 'name,info,image,code,coMoq');
-            if($haveDebug && ($pRec->showProductsWithoutPrices == 'no' && $pRec->detailActions == 'onlySell' && $pRec->haveProductsWithPrice == 'no' && empty($pRec->coDriver))){
+            if($haveDebug && self::isHiddenWithoutPrices($pRec)){
                 $pRow->CLASS = 'eshopHiddenRow';
             }
 
