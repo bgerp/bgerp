@@ -11,13 +11,13 @@
 }
 .commerce-article .commerce-article-content .richtext {
     color: #344b59;
-    font-size: 16px;
+    font-size: 1rem;
     line-height: 1.75;
 }
 .commerce-article .commerce-article-content h1 {
     margin: 0 0 16px;
     color: #182b3a;
-    font-size: clamp(26px, 2.4vw, 36px);
+    font-size: clamp(1.625em, 2.4vw, 2.25em);
     line-height: 1.2;
     letter-spacing: -.6px;
 }
@@ -29,8 +29,8 @@
     color: #182b3a;
     line-height: 1.3;
 }
-.commerce-article .commerce-article-content h2 { font-size: 24px; }
-.commerce-article .commerce-article-content h3 { font-size: 20px; }
+.commerce-article .commerce-article-content h2 { font-size: 1.5em; }
+.commerce-article .commerce-article-content h3 { font-size: 1.25em; }
 .commerce-article .commerce-article-content img { max-width: 100%; height: auto; }
 .commerce-article .commerce-article-content a { color: #145b73; }
 .commerce-article .commerce-article-content .prevNextNav {
@@ -40,7 +40,7 @@
     background: none;
     border: 0;
     border-top: 1px solid #dce3e8;
-    font-size: 15px;
+    font-size: 0.9375rem;
 }
 .commerce-article #cmsNavigation.articles-menu .nav_item > a,
 .commerce-article #cmsNavigation.articles-menu .nav_item > span { float: none; border: 0; }

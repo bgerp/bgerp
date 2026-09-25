@@ -19,7 +19,7 @@
 
     .footer-menus p {
         margin: 0 0 5px -1px;
-        font-size: 16px;
+        font-size: 1rem;
         font-weight: 700;
         text-shadow: 1px 1px 1px #000;
     }

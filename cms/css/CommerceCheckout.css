@@ -6,6 +6,7 @@ body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) {
 }
 body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) .formTable {
     float: none;
+    font-size: 1rem;
     width: 100%;
     min-width: 0;
     border: 1px solid #dce5e9;
@@ -20,7 +21,7 @@ body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) .formTitle 
     background: #fff !important;
     color: #182b3a !important;
     border: 0;
-    font-size: 26px;
+    font-size: 1.625em;
     font-weight: 700;
     text-shadow: none;
 }
@@ -41,11 +42,11 @@ body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) .formFieldC
     text-align: left;
     vertical-align: middle;
     color: #526875;
-    font-size: 15px;
+    font-size: 0.9375em;
     white-space: normal;
 }
 body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) .formFieldCaption b { font-weight: 600; color: #263f4d; }
-body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) .formElement { padding: 4px 0; min-width: 0; font-size: 15px; }
+body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) .formElement { padding: 4px 0; min-width: 0; font-size: 0.9375em; }
 body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) .formGroup {
     margin: 16px 0 8px;
     padding: 12px 0 0;
@@ -54,7 +55,7 @@ body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) .formGroup 
     border-radius: 0;
     background: transparent !important;
     color: #182b3a !important;
-    font-size: 18px;
+    font-size: 1.125em;
     font-weight: 600;
     text-shadow: none;
 }
@@ -64,13 +65,13 @@ body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) textarea {
     min-width: 0 !important;
     max-width: 100%;
     box-sizing: border-box;
-    min-height: 36px;
+    min-height: 2.25rem;
     padding: 6px 10px;
     border: 1px solid #b9cbd4;
     border-radius: 7px;
     background: #fff;
     color: #182b3a;
-    font: 15px/1.4 Arial, sans-serif;
+    font: 0.9375rem/1.4 Arial, sans-serif;
     box-shadow: none;
 }
 body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) select.readonly,
@@ -115,21 +116,21 @@ body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) .richedit-t
 }
 body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) .select2-container { width: 100% !important; min-width: 0; }
 body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) .select2-selection {
-    min-height: 36px;
+    min-height: 2.25rem;
     border: 1px solid #b9cbd4;
     border-radius: 7px;
     background: #fff;
     box-shadow: none !important;
 }
 body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) .select2-selection--single .select2-selection__rendered {
-    height: 34px;
+    height: 2.125rem;
     max-height: none;
-    line-height: 34px;
+    line-height: 2.125rem;
     padding-left: 12px;
     color: #182b3a;
-    font-size: 15px;
+    font-size: 0.9375rem;
 }
-body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) .select2-selection__arrow { height: 34px; }
+body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) .select2-selection__arrow { height: 2.125rem; }
 body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) .select2-selection:focus,
 body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) .select2-container--focus .select2-selection,
 body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) .select2-container--open .select2-selection {
@@ -159,7 +160,7 @@ body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) .toolbar {
     border-top: 1px solid #e3ebef;
 }
 body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) .toolbar .button {
-    min-height: 36px;
+    min-height: 2.25rem;
     margin: 0;
     padding: 10px 22px !important;
     border: 1px solid #c5d5dc;
@@ -168,7 +169,7 @@ body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) .toolbar .b
     color: #405a68 !important;
     box-shadow: none;
     text-shadow: none;
-    font: 600 14px/1.4 Arial, sans-serif;
+    font: 600 0.875rem/1.4 Arial, sans-serif;
     cursor: pointer;
 }
 body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) .toolbar :is(.submitBtn, input[type=submit]) {
@@ -181,7 +182,7 @@ body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) .inputError
 body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) .richEdit textarea.inputError { border-color: #bd4050 !important; background-color: #fff4f5 !important; }
 @media (max-width: 650px) {
     body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) { margin: 20px auto; }
-    body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) .formTitle { padding: 20px 16px 12px; font-size: 23px; }
+    body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) .formTitle { padding: 20px 16px 12px; font-size: 1.4375em; }
     body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) .formSection { padding: 0 16px 20px; }
     body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) .vFormField,
     body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) .vFormField > tbody,
@@ -201,7 +202,7 @@ body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) .inlineTo >
 body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) .formInfo {
     margin: 0 0 16px;
     padding: 0;
-    font: 14px/1.5 Arial, sans-serif;
+    font: 0.875rem/1.5 Arial, sans-serif;
     color: #526875;
 }
 body.commerce-theme .commerce-login-note {
@@ -222,7 +223,7 @@ body.commerce-theme #login-form form { margin: 0; }
 body.commerce-theme #login-form .formTitle img { display: none; }
 body.commerce-theme #login-form .formFieldCaption { width: 64px; padding-right: 10px; }
 body.commerce-theme #login-form .toolbar .button { width: 100%; background: #145b73 !important; color: #fff !important; border-color: #145b73; }
-body.commerce-theme #login-form > p { margin: 12px 0 0; font-size: 14px; }
+body.commerce-theme #login-form > p { margin: 12px 0 0; font-size: 0.875rem; }
 body.commerce-theme #login-form .login-links { color: #145b73; text-decoration: none; }
 body.commerce-theme #login-form .login-links:hover { text-decoration: underline; }
 body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) .formTitle a { color: #145b73 !important; }
@@ -252,7 +253,7 @@ body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) tr[class*="
     border: 1px solid #dce5e9;
     border-radius: 7px;
     background: #f5f8fa !important;
-    font-size: 16px;
+    font-size: 1em;
     transition: background-color .15s, border-color .15s;
 }
 body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) tr[class*="fs-toggle"] .formGroup:hover {
@@ -312,7 +313,7 @@ body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) input:is([t
     transform: none;
 }
 body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) input:is([type=radio], [type=checkbox]) + label {
-    font: 14px/1.4 Arial, sans-serif;
+    font: 0.875rem/1.4 Arial, sans-serif;
     vertical-align: middle;
     color: #526875;
     text-shadow: none;
@@ -337,8 +338,8 @@ body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) .input_alig
     float: none;
     display: inline-block;
     width: 36px;
-    height: 36px;
-    min-height: 36px;
+    height: 2.25rem;
+    min-height: 2.25rem;
     padding: 0 !important;
     margin: 0 8px 0 0;
     border: 1px solid #b9cbd4;
@@ -367,7 +368,7 @@ body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) .simple-too
     border-radius: 5px;
     background: #fff;
     color: #145b73;
-    font: 14px/1.4 Arial, sans-serif;
+    font: 0.875rem/1.4 Arial, sans-serif;
     cursor: pointer;
 }
 
@@ -393,7 +394,7 @@ body.commerce-theme .tooltip {
     background: #fff;
     color: #263f4d;
     box-shadow: 0 4px 16px rgba(24,43,58,.14);
-    font: 14px/1.5 Arial, sans-serif;
+    font: 0.875em/1.5 Arial, sans-serif;
     text-align: left;
 }
 body.commerce-theme .tooltip::after { border-top-color: #fff; }
@@ -411,11 +412,11 @@ body.commerce-theme .formFieldCaption .textHint {
 }
 /* Compact, centered login card. */
 body.commerce-theme #login-form { max-width: 420px; margin: 24px auto 32px; }
-body.commerce-theme #login-form .formTitle { padding: 18px 20px 10px; font-size: 23px; text-align: center; }
+body.commerce-theme #login-form .formTitle { padding: 18px 20px 10px; font-size: 1.4375em; text-align: center; }
 body.commerce-theme #login-form .formSection { padding: 0 20px 16px; }
 body.commerce-theme #login-form .formInfo { margin-bottom: 10px; }
 body.commerce-theme #login-form .toolbar { padding: 12px 20px; }
-body.commerce-theme #login-form .toolbar .button { font-size: 16px; padding: 8px 18px !important; }
+body.commerce-theme #login-form .toolbar .button { font-size: 1rem; padding: 8px 18px !important; }
 body.commerce-theme #login-form > p { margin-top: 8px; text-align: center; }
 body.commerce-theme #login-form .commerce-password { position: relative; width: 100%; }
 body.commerce-theme #login-form input[name=pass] { padding-right: 42px !important; }
@@ -457,7 +458,7 @@ body.commerce-theme .formNotice {
     border-radius: 7px;
     background: #fff4f5;
     color: #8f3040;
-    font: 14px/1.5 Arial, sans-serif;
+    font: 0.875em/1.5 Arial, sans-serif;
     text-align: left;
     box-shadow: none;
 }

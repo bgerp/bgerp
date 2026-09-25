@@ -1,3 +1,6 @@
+/* Use the browser text size as the common theme baseline. */
+body.commerce-theme { font-size: 1rem; }
+
 /* Primary navigation and the surrounding CommerceTheme masthead. */
 body.commerce-theme #cmsMenu.menuRow {
     min-width: 0;
@@ -27,7 +30,7 @@ body.commerce-theme #cmsMenu.menuRow a {
     justify-content: center;
     gap: 10px;
     float: none !important;
-    min-height: 40px;
+    min-height: 2.5rem;
     margin: 0 !important;
     padding: 8px 15px;
     box-sizing: border-box;
@@ -36,7 +39,7 @@ body.commerce-theme #cmsMenu.menuRow a {
     background: transparent;
     color: #e5edef !important;
     font-family: Arial, Helvetica, sans-serif;
-    font-size: 15px;
+    font-size: 0.9375rem;
     font-weight: 600;
     line-height: 1.4;
     text-decoration: none;
@@ -81,7 +84,7 @@ body.commerce-theme #cmsMenu.menuRow a.loginIcon img {
 }
 body.commerce-theme #cmsMenu.menuRow a.langIcon {
     padding: 10px 12px;
-    font-size: 12px;
+    font-size: 0.75rem;
     letter-spacing: .8px;
 }
 body.commerce-theme #cmsMenu.menuRow a.langIcon img {
@@ -127,9 +130,9 @@ body.commerce-theme .externalPage > header .headerImg[style*="display: none"] { 
         padding: 10px 0;
     }
     body.commerce-theme #cmsMenu.menuRow a {
-        min-height: 44px;
+        min-height: 2.75rem;
         padding: 10px 14px;
-        font-size: 14px;
+        font-size: 0.875rem;
     }
     body.commerce-theme #cmsMenu.menuRow .cms-menu-tools {
         padding-left: 8px;
@@ -177,7 +180,7 @@ body.commerce-theme #cmsMenu .commerce-cart-link .count {
     border-radius: 11px;
     background: #d8ed94;
     color: #142d38;
-    font-size: 12px;
+    font-size: 0.75rem;
     line-height: 1;
     box-sizing: border-box;
 }
@@ -192,7 +195,7 @@ body.commerce-theme .soc-sharing-holder .soc-sharing {
     height: auto;
     padding: 2px 8px;
     box-sizing: border-box;
-    line-height: 20px;
+    line-height: 1.25rem;
     vertical-align: middle;
 }
 body.commerce-theme .soc-sharing-holder .soc-sharing:hover {
@@ -221,7 +224,7 @@ body.commerce-theme #cmsNavigation form:has(#simpleSearch) {
 body.commerce-theme #cmsNavigation #simpleSearch {
     position: relative;
     width: 100%;
-    height: 44px;
+    height: 2.75rem;
     min-width: 0;
     box-sizing: border-box;
     padding: 0;
@@ -233,7 +236,7 @@ body.commerce-theme #cmsNavigation #simpleSearch {
 body.commerce-theme #cmsNavigation #simpleSearch #searchInput {
     position: static;
     width: 100%;
-    height: 42px;
+    height: 2.625rem;
     min-width: 0;
     box-sizing: border-box;
     padding: 10px 42px 10px 12px;
@@ -241,7 +244,7 @@ body.commerce-theme #cmsNavigation #simpleSearch #searchInput {
     border-radius: 6px;
     background: #fff;
     color: #182b3a;
-    font: 16px/20px Arial, Helvetica, sans-serif;
+    font: 1rem/1.25 Arial, Helvetica, sans-serif;
     box-shadow: none;
 }
 body.commerce-theme #cmsNavigation #simpleSearch #searchButton {
@@ -249,7 +252,7 @@ body.commerce-theme #cmsNavigation #simpleSearch #searchButton {
     top: 0;
     right: 0;
     width: 40px;
-    height: 42px;
+    height: 2.625rem;
     margin: 0;
     padding: 0;
     border: 0;
@@ -271,7 +274,7 @@ body.commerce-theme .bulletinReg .push_button {
     width: 100%;
     max-width: 100%;
     height: auto;
-    min-height: 40px;
+    min-height: 2.5rem;
     box-sizing: border-box;
     margin: 0 !important;
     padding: 9px 14px !important;
@@ -279,7 +282,7 @@ body.commerce-theme .bulletinReg .push_button {
     border-radius: 7px;
     background: #145b73 !important;
     color: #fff !important;
-    font: 600 14px/1.4 Arial, Helvetica, sans-serif !important;
+    font: 600 0.875rem/1.4 Arial, Helvetica, sans-serif !important;
     line-height: 1.4 !important;
     white-space: normal;
     overflow-wrap: anywhere;
@@ -309,12 +312,12 @@ body.commerce-theme .bulletinReg {
 }
 body.commerce-theme .bulletinReg .push_button { margin: 12px 0 14px !important; }
 body.commerce-theme .bulletinFields .rowBulletin input {
-    height: 42px;
+    height: 2.625rem;
     box-sizing: border-box;
     border: 1px solid #b8c8d2;
     border-radius: 6px;
     color: #182b3a;
-    font: 16px/20px Arial, Helvetica, sans-serif;
+    font: 1rem/1.25 Arial, Helvetica, sans-serif;
 }
 body.commerce-theme .bulletinFields .rowBulletin input:focus {
     outline: 2px solid #92b8c6;
