@@ -3584,10 +3584,10 @@ abstract class deals_Helper
             $fieldset->FLD('batch', 'varchar', 'caption=Партида,detailField');
         }
         $fieldset->FLD('packagingId', 'varchar', 'caption=Мярка,detailField');
-        $fieldset->FLD('packQuantity', 'varchar', 'caption=Количество,detailField');
+        $fieldset->FLD('packQuantity', 'varchar', 'caption=Количество,detailField,exportNumeric');
         if(!($mvc instanceof store_TransfersDetails)){
-            $fieldset->FLD('packPrice', 'varchar', 'caption=Цена,detailField');
-            $fieldset->FLD('discount', 'varchar', 'caption=Отстъпка,detailField');
+            $fieldset->FLD('packPrice', 'varchar', 'caption=Цена,detailField,exportNumeric');
+            $fieldset->FLD('discount', 'varchar', 'caption=Отстъпка,detailField,exportNumeric');
             $fieldset->FLD('vatPercent', 'percent', 'caption=ДДС %,detailField');
             $fieldset->FLD('chargeVat', 'varchar', 'caption=ДДС режим,detailField');
         }

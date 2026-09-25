@@ -223,7 +223,9 @@ class export_Csv extends core_Mvc
         
         $fileHnd = null;
         if (!empty($recs)) {
-            $csv = csv_Lib::createCsv($recs, $csvFields);
+            $params = array_intersect_key((array) ($form->rec ?? null), array('decPoint' => true, 'thousandsSep' => true));
+            $csv = csv_Lib::createCsv($recs, $csvFields, null, $params);
+            $form->csvExportData = (object) array('fieldSet' => $csvFields, 'params' => $params);
             
             $fileName = $clsInst->getHandle($cRec->id) . '_Export.csv';
             

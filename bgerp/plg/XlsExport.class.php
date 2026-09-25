@@ -64,16 +64,6 @@ class bgerp_plg_XlsExport extends bgerp_plg_CsvExport
         $name = parent::getExportedFileName();
         $fh = fileman::absorbStr($content, 'exportCsv', $name);
 
-        $fRec = fileman::fetchByFh($fh);
-        $fPath = fileman_webdrv_Office::convertToFile($fRec, 'xls', false, 'export_Xls::afterConvertToXls', 'xls');
-
-        if ($fPath && is_file($fPath)) {
-            $nFileHnd = fileman::absorb($fPath, 'exportFiles');
-            core_Os::deleteDir(dirname($fPath));
-
-            return $nFileHnd;
-        }
-
-        return null;
+        return export_Xls::convertToXls($fh, $this->csvExportData);
     }
 }

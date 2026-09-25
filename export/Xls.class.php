@@ -115,15 +115,8 @@ class export_Xls extends core_Mvc
                 
                 // Ако се създаде CSV - генерираме XLS
                 if ($fileHnd) {
-                    $fRec = fileman::fetchByFh($fileHnd);
-                    $fPath = fileman_webdrv_Office::convertToFile($fRec, 'xls', false, 'export_Xls::afterConvertToXls', 'xls');
-                    
-                    if ($fPath && is_file($fPath)) {
-                        $nFileHnd = fileman::absorb($fPath, 'exportFiles');
-                        
-                        // Изтриваме директорията след като качим файла
-                        core_Os::deleteDir(dirname($fPath));
-                        
+                    $nFileHnd = static::convertToXls($fileHnd, $nForm->csvExportData ?? null);
+                    if ($nFileHnd) {
                         break;
                     }
                 }
@@ -143,6 +136,39 @@ class export_Xls extends core_Mvc
     }
     
     
+    /**
+     * Общ конвертор за XLS експортите на документи, справки и списъци
+     *
+     * @param string        $fileHnd
+     * @param stdClass|null $csvData - типове и настройки на междинния CSV
+     * @return string|null
+     */
+    public static function convertToXls($fileHnd, $csvData = null)
+    {
+        $converterClass = export_Setup::get('XLS_CONVERTER');
+        if (!$converterClass) {
+            $converterClass = core_Packs::isInstalled('phpspreadsheet') ? 'phpspreadsheet_Adapter' : 'export_OfficeXls';
+        }
+
+        if ($converterClass != 'export_OfficeXls') {
+            try {
+                $converter = cls::getInterface('export_XlsConverterIntf', $converterClass);
+                if ($converter->isAvailable() && !($converter->class instanceof export_OfficeXls)) {
+                    $result = $converter->convertToXls($fileHnd, $csvData);
+                    if ($result) {
+                        return $result;
+                    }
+                }
+            } catch (Throwable $e) {
+                reportException($e);
+                self::logWarning('Неуспешен XLS експорт; използва се офис конверторът');
+            }
+        }
+
+        return export_OfficeXls::convertToXls($fileHnd, $csvData);
+    }
+
+
     /**
      * Функция, която получава управлението след конвертирането на офис докуемнта към PDF
      *

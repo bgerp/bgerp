@@ -135,6 +135,7 @@ class frame2_CsvExport extends core_Mvc
             
             // Създаване на csv-то
             $csv = csv_Lib::createCsv($csvRecs, $fields, null, $params);
+            $form->csvExportData = (object) array('fieldSet' => $fields, 'params' => $params);
             
             // Подсигуряване че енкодига е UTF8
             $csv = mb_convert_encoding($csv, 'UTF-8', 'UTF-8');
