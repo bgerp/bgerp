@@ -36,6 +36,72 @@ class type_tests_Richtext extends unit_Class
         UT::expectEqual(stripos(' '. $res2, '<b>' . $sample2 . '</b>'), true);
         UT::expectEqual(stripos(' '. $res3, '<b>' . $sample3 . '</b>'), false);
     }
+
+
+    /**
+     * Markdown заглавия, подравняване и отделни таблици в един текст.
+     */
+    public function test_MarkdownTables()
+    {
+        $rt = cls::get('type_Richtext');
+        $input = "|Model|Input|Output|Note|\r\n| --- | ---: | :---: | :--- |\r\n|Example|10|20|Text|\r\n\r\n|Legacy|Value|\r\n";
+        $html = $rt->replaceTables($input);
+
+        UT::expectEqual(strpos($html, '<th style=\'text-align: left\'>Model</th>') !== false, true);
+        UT::expectEqual(strpos($html, '<th style=\'text-align: right\'>Input</th>') !== false, true);
+        UT::expectEqual(strpos($html, '<td style=\'text-align: right\'>10</td>') !== false, true);
+        UT::expectEqual(strpos($html, '<td style=\'text-align: center\'>20</td>') !== false, true);
+        UT::expectEqual(strpos($html, '<td style=\'text-align: left\'>Text</td>') !== false, true);
+        UT::expectEqual(strpos($html, '---') === false, true);
+        UT::expectEqual(substr_count($html, '<tr>'), 3);
+        UT::expectEqual(strpos($html, '<tr><td>Legacy</td><td>Value</td></tr>') !== false, true);
+
+        $html = $rt->replaceTables("|A|B\n|---|---:\n|x|2\n");
+        UT::expectEqual(substr_count($html, '<th '), 2);
+        UT::expectEqual(strpos($html, '<td style=\'text-align: right\'>2</td>') !== false, true);
+    }
+
+
+    /**
+     * Обикновените редове и невалидните разделители запазват съдържанието си.
+     */
+    public function test_LegacyTables()
+    {
+        $rt = cls::get('type_Richtext');
+        $html = $rt->replaceTables("Before\n|A|B|\n|x||\nAfter");
+        UT::expectEqual($html, "\nBefore\n<div class='overflow-scroll'><table class='inlineRichTable listTable'><tr><td>A</td><td>B</td></tr><tr><td>x</td></tr></table></div>\nAfter");
+
+        $cases = array(
+            "|A|B|\n|---|Text|\n" => '<tr><td>---</td><td>Text</td></tr>',
+            "|A|B|\n|---:|\n" => '<tr><td>---:</td></tr>',
+            "|A|B|\n|--|--:|\n" => '<tr><td>--</td><td>--:</td></tr>',
+            "|A|B|\n|---||---:|\n" => '<tr><td>---</td><td></td><td>---:</td></tr>',
+            "|A|B|\n|x|y|\n|---|---:|\n" => '<tr><td>---</td><td>---:</td></tr>',
+            "|---|---:|\n" => '<tr><td>---</td><td>---:</td></tr>',
+        );
+        foreach ($cases as $input => $row) {
+            $html = $rt->replaceTables($input);
+            UT::expectEqual(strpos($html, $row) !== false, true);
+            UT::expectEqual(strpos($html, '<th') === false, true);
+            UT::expectEqual(strpos($html, 'text-align') === false, true);
+        }
+    }
+
+
+    /**
+     * Plain text режимът запазва оригиналния текст на таблицата.
+     */
+    public function test_PlainTextTables()
+    {
+        $rt = cls::get('type_Richtext');
+        $input = "|Model|Value|\r\n|---|---:|\r\n|Example|10|";
+        Mode::push('text', 'plain');
+        try {
+            UT::expectEqual($rt->replaceTables($input), $input);
+        } finally {
+            Mode::pop('text');
+        }
+    }
     
     
     /**

@@ -41,6 +41,12 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
 
 
     /**
+     * С колко знака да се закръглят полетата в обобщаващия ред
+     */
+    protected $summaryDecimals = 'scrappedWeight=3,wasteWeight=3';
+
+
+    /**
      * Как да се казва обобщаващия ред. За да се покаже трябва да е зададено $summaryListFields
      *
      * @var int

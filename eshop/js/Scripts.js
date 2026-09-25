@@ -243,8 +243,9 @@ function eshopActions() {
 
 
 	$('.eshop-product .eshop-btn, .eshop-product-list .eshop-btn').on('click', function () {
+		if ($(document.body).hasClass('commerce-theme')) return;
 		if($('.eshop-product-option').hasClass('inputError')) return;
-		var cart = $('.logoutBlock #cart-external-status');
+		var cart = $('#cart-external-status');
 		if($('.eshop-product-list').length) {
 			var imgtodrag = $(this).closest('.eshop-product-list').find('.eshop-product-image');
 		} else {

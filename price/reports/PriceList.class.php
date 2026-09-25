@@ -36,6 +36,12 @@ class price_reports_PriceList extends price_reports_PriceListProto
 
 
     /**
+     * Кои полета от таблицата са цени/суми
+     */
+    protected $priceListFields = 'price,difference';
+
+
+    /**
      * Добавя полетата на драйвера към Fieldset
      *
      * @param core_Fieldset $fieldset
@@ -189,6 +195,9 @@ class price_reports_PriceList extends price_reports_PriceListProto
             // Ако има избран период в който да се гледа променена ли е цената
             if (isset($dateBefore)) {
                 $oldPrice = price_ListRules::getPrice($rec->policyId, $productRec->id, null, $dateBefore);
+
+                // Старата цена е в основната валута към старата дата (напр. лв. -> евро)
+                $oldPrice = deals_Helper::getSmartBaseCurrency($oldPrice, $dateBefore, $common->date);
                 $oldPrice = round($oldPrice, $round);
                 $priceByPolicy = round($priceByPolicy, $round);
                 $differenceHint = null;
@@ -370,6 +379,11 @@ class price_reports_PriceList extends price_reports_PriceListProto
         $listFields = arr::make('eanCode=ЕАН,packagingId=Опаковка,price=Цена', true);
         if ($rec->showEan != 'yes') {
             unset($listFields['eanCode']);
+        }
+
+        // Без права за цени в опаковките остават само наименованията им
+        if (!$this->canSeePriceFields($rec)) {
+            unset($listFields['price']);
         }
 
         $tpl = $table->get($rows, $listFields);

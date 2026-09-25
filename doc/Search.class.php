@@ -67,7 +67,7 @@ class doc_Search extends core_Manager
      */
     public function description()
     {
-        $this->forceProxy('doc_Containers');
+        $this->forceReplica('doc_Containers');
     }
     
     
@@ -108,7 +108,7 @@ class doc_Search extends core_Manager
             $cloneQuery = clone $data->query;
             $visibleColabDocClasses = arr::extractValuesFromArray($cloneQuery->fetchAll(), 'docClass');
             foreach ($visibleColabDocClasses as $visibleDocClass){
-                $docClassesOption[$visibleDocClass] = core_Classes::getTitleById($visibleDocClass);
+                $docClassesOption[$visibleDocClass] = tr(core_Classes::getTitleById($visibleDocClass));
             }
             $data->listFilter->setOptions('docClass', $docClassesOption);
         } else {

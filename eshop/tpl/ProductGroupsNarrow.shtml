@@ -12,6 +12,7 @@
                 <div id="faveNavBtn">[#NAVIGATION_FAV#]</div>
                 [#NAVIGATION_OTHER_BTNS#]
             </div>
+            [#NAVIGATION_FILTERS#]
             [#NAVIGATION#]
         </div>
     </div>

@@ -395,9 +395,11 @@ class fileman_webdrv_Inkscape extends fileman_webdrv_ImageT
             fileman_Indexes::createErrorLog($params['dataId'], $params['type']);
         }
         
+        $savedId = null;
+
         // Ако се качи успешно записваме манипулатора в масив
         if ($fileHnd) {
-            
+
             // Масив с манипулатора на файла
             $fileHndArr[$fileHnd] = $fileHnd;
             

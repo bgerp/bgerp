@@ -37,6 +37,12 @@ class bnav_bnavExport_PurchaseInvoicesExport extends frame2_driver_TableData
 
 
     /**
+     * Кои полета от таблицата са цени/суми
+     */
+    protected $priceListFields = 'dealValue,price';
+
+
+    /**
      * Кои полета са за избор на период
      */
     protected $periodFields = 'from,to';

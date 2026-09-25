@@ -776,7 +776,7 @@ class doc_Threads extends core_Manager
      */
     public function act_List()
     {
-        $this->forceProxy($this->className);
+        $this->forceReplica($this->className);
 
         return parent::act_List();
     }
@@ -1789,7 +1789,8 @@ class doc_Threads extends core_Manager
             
             $sameEmailMsgCnt = $msgQuery->count() - 1;
             
-            $msgRow = $doc->recToVerbal($msgRec);
+            // През core_ObjectReference id-то се вмъква като първи аргумент и записът отива в $fields
+            $msgRow = $doc->getInstance()->recToVerbal($msgRec);
             
             if ($sameEmailMsgCnt > 0) {
                 if ($sameEmailMsgCnt == 1) {
@@ -2929,7 +2930,7 @@ class doc_Threads extends core_Manager
         
         doc_Folders::restrictAccess($query, $userId, $viewAccess);
         
-        if (($query->mvc->className != 'doc_Threads') && ($query->mvc->className != 'doc_ThreadsProxy')) {
+        if ($query->mvc->className != 'doc_Threads') {
             // Добавя необходимите полета от модела doc_Threads
             $query->EXT('threadShared', 'doc_Threads', 'externalName=shared,externalKey=threadId');
         } else {

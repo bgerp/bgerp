@@ -690,14 +690,14 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
             $operator = 1;
             $operPass = $this->getOperPass($operator, $pRec);
             
-            $amount = $rec->amount;
-            if ($amount && $rec->type == 'paidOut') {
+            $amount = $rec->amount ?? null;
+            if ($amount && ($rec->type ?? null) == 'paidOut') {
                 $amount *= -1;
             }
             
-            $printAvailability = $form->rec->printAvailability == 'yes' ? true : false;
+            $printAvailability = ($rec->printAvailability ?? null) == 'yes' ? true : false;
             
-            $actTypeVerb = $form->fields['type']->type->toVerbal($rec->type);
+            $actTypeVerb = $form->fields['type']->type->toVerbal($rec->type ?? '');
             $actTypeVerb = tr(mb_strtolower($actTypeVerb));
 
             $defPaymentType = 0;
@@ -708,14 +708,14 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
                 }
             }
 
-            $this->getResForCashReceivedOrPaidOut($pRec, $operator, $operPass, $amount, $retUrl, $printAvailability, $rec->text, $actTypeVerb, $jsTpl, $defPaymentType);
+            $this->getResForCashReceivedOrPaidOut($pRec, $operator, $operPass, $amount, $retUrl, $printAvailability, $rec->text ?? '', $actTypeVerb, $jsTpl, $defPaymentType);
             
             $cancelBtn = 'Назад';
         }
         
         $submitTitle = 'Захранване';
         $submitIcon = 'img/16/money_add.png';
-        if ($rec->type == 'paidOut') {
+        if (($rec->type ?? null) == 'paidOut') {
             $submitTitle = 'Изплащане';
             $submitIcon = 'img/16/money_delete.png';
         }
@@ -944,7 +944,7 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
         }
         
         if ($form->isSubmitted()) {
-            if ($rec->zeroing == 'yes') {
+            if (($rec->zeroing ?? null) == 'yes') {
                 $form->setWarning('report, zeroing', 'Отчетът ще бъде нулиран');
             }
         }
@@ -975,7 +975,7 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
                 unset($retUrl['update']);
             }
 
-            if ($rec->printIn == 'PC') {
+            if (($rec->printIn ?? null) == 'PC') {
                 $retUrl = array();
             }
 

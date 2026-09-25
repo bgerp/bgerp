@@ -120,7 +120,7 @@ class colab_Threads extends core_Manager
      */
     public function act_Single()
     {
-        $this->forceProxy($this->className);
+        $this->forceReplica($this->className);
 
         expect($id = Request::get('threadId', 'key(mvc=doc_Threads)'));
         
@@ -242,9 +242,9 @@ class colab_Threads extends core_Manager
      */
     public function act_List()
     {
-        $this->forceProxy($this->className);
-        $this->Threads->forceProxy();
-        $this->Containers->forceProxy();
+        $this->forceReplica($this->className);
+        $this->Threads->forceReplica();
+        $this->Containers->forceReplica();
 
         $folderId = Request::get('folderId', 'int');
         

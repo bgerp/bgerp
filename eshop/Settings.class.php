@@ -25,7 +25,7 @@ class eshop_Settings extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Modified, plg_RowTools2, eshop_Wrapper, plg_Created, plg_Rejected';
+    public $loadList = 'plg_Modified, plg_RowTools2, eshop_Wrapper, plg_Created, plg_Rejected, plg_Select, plg_PrevAndNext';
     
     
     /**
@@ -269,6 +269,7 @@ class eshop_Settings extends core_Master
         $this->FLD('salePendingText', 'varchar(24)', 'caption=Информация за артикули със срок на продажба->Предстоящи');
 
         $this->FLD('showNavigation', 'enum(auto=Автоматично,yes=С навигация,no=Без навигация)', 'caption=Навигация със списъка с групите->Показване');
+        $this->FLD('paramFilters', 'enum(no=Без филтри,yes=Показване)', 'caption=Навигация със списъка с групите->Филтри по параметри,notNull,value=no');
         $this->FLD('rootNavigationName', 'varchar', 'caption=Показване на основната група на списъка с артикулите->Основна група');
         $this->FLD('showRootNavigation', 'enum(yes=Показване,no=Скриване)', 'caption=Показване на основната група на списъка с артикулите->Показване');
         

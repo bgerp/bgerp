@@ -552,6 +552,7 @@ abstract class deals_DealDetail extends doc_Detail
      *                        ->quantity - К-во на опаковката или в основна мярка
      *                        ->price - цената във валутата на мастъра, ако няма се изчислява директно
      *                        ->pack - Опаковката
+     *                        ->notes - Забележки
      *
      * @return mixed - резултата от експорта
      */
@@ -580,7 +581,7 @@ abstract class deals_DealDetail extends doc_Detail
             $price = deals_Helper::getPurePrice($row->price, cat_Products::getVat($pRec->productId, null, $vatExceptionId), $masterRec->currencyRate, $masterRec->chargeVat);
         }
 
-        return $Master::addRow($masterId, $pRec->productId, $row->quantity, $price, $pRec->packagingId, null, null, null, null, $row->batch ?? null);
+        return $Master::addRow($masterId, $pRec->productId, $row->quantity, $price, $pRec->packagingId, null, null, null, $row->notes ?? null, $row->batch ?? null);
     }
     
     

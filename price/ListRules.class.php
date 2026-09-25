@@ -538,7 +538,7 @@ class price_ListRules extends core_Detail
         $me = cls::get(get_called_class());
 
         try {
-            $me->forceProxy();
+            $me->forceReplica();
             static::preloadGroups($productIds);
 
             // Всички групи на артикулите - по тях се търсят груповите правила
@@ -555,7 +555,7 @@ class price_ListRules extends core_Detail
                 static::preloadListRules($chainListId, $productIds, $allGroups, $datetime);
             }
         } finally {
-            $me->unforceProxy();
+            $me->unforceReplica();
         }
     }
 
@@ -1158,9 +1158,26 @@ class price_ListRules extends core_Detail
         }
         
         $row->ROW_ATTR['class'] = (($row->ROW_ATTR ?? [])['class'] ?? '') . " state-{$state}";
-        if ($state == 'active') {
+        if (!self::canSeeRules($masterRec)) {
+            $row->rule = doc_plg_HidePrices::getBuriedElement();
+        } elseif ($state == 'active') {
             $row->rule = "<b>{$row->rule}</b>";
         }
+    }
+
+
+    /**
+     * Може ли текущия потребител да вижда правилата на политиката
+     */
+    private static function canSeeRules($listRec)
+    {
+        static $cache = array();
+
+        if (!array_key_exists($listRec->id, $cache)) {
+            $cache[$listRec->id] = ($listRec->visiblePricesByAnyone == 'yes') || price_Lists::haveRightFor('edit', $listRec) || doc_plg_HidePrices::canSeePriceFields('price_Lists', $listRec);
+        }
+
+        return $cache[$listRec->id];
     }
     
     

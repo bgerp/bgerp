@@ -284,6 +284,16 @@ class core_Form extends core_FieldSet
                     $newOptions = $options;
                 }
 
+                // Масив идва от остаряла форма, напр. дата+час на поле, което междувременно е станало само за четене
+                if (is_array($valueCompare)) {
+                    if ($this->cmd != 'refresh') {
+                        $this->setError($name, 'Невъзможна стойност за полето' .
+                            "|* <b>|{$captions}|*</b>!");
+                        $this->fields[$name]->input = 'input';
+                    }
+                    continue;
+                }
+
                 // Не могат да се селектират неща които не са опции
                 if ((!array_key_exists($valueCompare, $newOptions) && $this->cmd != 'refresh') || (isset($newOptions[$valueCompare]) && is_object($newOptions[$valueCompare]) && ($newOptions[$valueCompare]->group ?? null))) {
                     $this->setError($name, 'Невъзможна стойност за полето' .
@@ -443,6 +453,14 @@ class core_Form extends core_FieldSet
                 } else {
                     $valueCompare = $value;
                     $newOptions = $options;
+                }
+
+                // Масив не може да е ключ на опция
+                if (is_array($valueCompare)) {
+                    $this->setError($name, 'Невъзможна стойност за полето' .
+                        "|* <b>|{$captions}|*</b>!");
+                    $this->fields[$name]->input = 'input';
+                    continue;
                 }
 
                 // Не могат да се селектират неща които не са опции
@@ -823,7 +841,7 @@ class core_Form extends core_FieldSet
                 }
                 
                 if (!empty($field->hint)) {
-                    $attr['title'] = $field->hint;
+                    $attr['title'] = tr($field->hint);
                 }
                 
                 if (!empty($field->class)) {

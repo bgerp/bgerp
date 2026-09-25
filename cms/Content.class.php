@@ -247,6 +247,7 @@ class cms_Content extends core_Manager
     public function renderMenu_($data)
     {
         $tpl = new ET();
+        $commerceTheme = cms_Domains::getCmsSkin() instanceof cms_CommerceTheme;
         
         $cMenuId = Mode::get('cMenuId');
         if (!$cMenuId) {
@@ -261,6 +262,7 @@ class cms_Content extends core_Manager
                 $attr = array();
                 if (($cMenuId == $rec->id)) {
                     $attr['class'] = 'selected';
+                    $attr['aria-current'] = 'page';
                 }
                 
                 $url = $this->getContentUrl($rec);
@@ -277,33 +279,46 @@ class cms_Content extends core_Manager
             }
         }
         
+        if ($commerceTheme) {
+            $tpl->append(new core_ET('<span class="cms-menu-tools"><span id="cart-external-status">[#USERCART#]</span>'));
+        }
+
         // Поставяне на иконка за Вход
         if ($loginLink == false) {
-            $dRec = cms_Domains::getPublicDomain('form');
-            
-            if (haveRole('user')) {
-                $filePath = 'img/32/inside';
-                $title = 'Меню||Menu';
+            if ($commerceTheme) {
+                $title = haveRole('user') ? 'Меню||Menu' : 'Вход||Log in';
+                $icon = ht::createImg(array('path' => 'cms/img/account.svg', 'alt' => '', 'aria-hidden' => 'true'));
+                $label = ht::createElement('span', array('class' => 'cms-menu-label'), tr($title));
+                $loginContent = $icon->getContent() . $label->getContent();
             } else {
-                $filePath = 'img/32/login';
-                $title = 'Вход||Log in';
+                $dRec = cms_Domains::getPublicDomain('form');
+
+                if (haveRole('user')) {
+                    $filePath = 'img/32/inside';
+                    $title = 'Меню||Menu';
+                } else {
+                    $filePath = 'img/32/login';
+                    $title = 'Вход||Log in';
+                }
+
+                if ((isset($dRec->baseColor) && phpcolor_Adapter::checkColor($dRec->baseColor) && Request::get('Ctr') != 'core_Users') ||
+                    (isset($dRec->activeColor) && phpcolor_Adapter::checkColor($dRec->activeColor) && Request::get('Ctr') == 'core_Users')) {
+                    $filePath .= 'Dark';
+                } else {
+                    $filePath .= 'Light';
+                }
+
+                if (Mode::is('screenMode', 'narrow')) {
+                    $filePath .= 'M';
+                }
+
+                $filePath .= '.png';
+
+                $loginContent = ht::createImg(array('path' => $filePath, 'alt' => 'login'));
             }
-            
-            if ((isset($dRec->baseColor) && phpcolor_Adapter::checkColor($dRec->baseColor) && Request::get('Ctr') != 'core_Users') ||
-                (isset($dRec->activeColor) && phpcolor_Adapter::checkColor($dRec->activeColor) && Request::get('Ctr') == 'core_Users')) {
-                $filePath .= 'Dark';
-            } else {
-                $filePath .= 'Light';
-            }
-            
-            if (Mode::is('screenMode', 'narrow')) {
-                $filePath .= 'M';
-            }
-            
-            $filePath .= '.png';
-            
+
             $tpl->append(ht::createLink(
-                ht::createImg(array('path' => $filePath, 'alt' => 'login')),
+                $loginContent,
                 array('Portal', 'Show'),
                 null,
                 array('title' => $title, 'class' => Request::get('Ctr') == 'core_Users' ? 'loginIcon selected' : 'loginIcon')
@@ -336,6 +351,9 @@ class cms_Content extends core_Manager
                 $url = array($this, 'SelectLang', 'lang' => $lg);
                 
                 
+                if ($commerceTheme) {
+                    $img .= ht::createElement('span', array('class' => 'cms-menu-label'), strtoupper($lg));
+                }
                 $tpl->append(ht::createLink($img, $url, null, $attr));
             }
         } elseif (countR($usedLangsArr) > 1) {
@@ -348,6 +366,10 @@ class cms_Content extends core_Manager
             $tpl->append(ht::createLink(ht::createElement('img', array('src' => sbf('img/24/globe.png', ''))), array($this, 'selectLang'), null, $attr));
         }
         
+        if ($commerceTheme) {
+            $tpl->append('</span>');
+        }
+
         return $tpl;
     }
     

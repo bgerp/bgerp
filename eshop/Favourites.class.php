@@ -216,6 +216,14 @@ class eshop_Favourites extends core_Manager
 
         $attr['ef_icon'] = $isIn ? 'img/16/heart-red.png' : 'img/16/heart_empty.png';
         $attr['title'] = $isIn ? tr('Добавено в любими') : tr('Добави в любими');
+        if (cms_Domains::getCmsSkin() instanceof cms_CommerceTheme) {
+            $attr['ef_icon'] = $isIn ? 'cms/img/heart-filled.svg' : 'cms/img/heart-outline.svg';
+            $attr['class'] .= $isIn ? ' is-favourite' : '';
+            $attr['role'] = 'button';
+            $attr['aria-pressed'] = $isIn ? 'true' : 'false';
+            $attr['aria-label'] = $attr['title'];
+        }
+
         $tpl = ht::createLink('', null, null, $attr);
 
         return $tpl;

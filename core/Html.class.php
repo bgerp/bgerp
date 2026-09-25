@@ -444,7 +444,7 @@ class core_Html
             }
             
             $attr['readonly'] = 'readonly';
-            $attr['class'] = 'readonly';
+            $attr['class'] = trim(($attr['class'] ?? '') . ' readonly');
             
             if (!strlen((string) $value)) {
                 if (!empty($attr['placeholder'])) {

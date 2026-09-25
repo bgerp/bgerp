@@ -1,0 +1,329 @@
+/* Use the browser text size as the common theme baseline. */
+body.commerce-theme { font-size: 1rem; }
+
+/* Primary navigation and the surrounding CommerceTheme masthead. */
+body.commerce-theme #cmsMenu.menuRow {
+    min-width: 0;
+    padding: 0;
+    background: #142d38;
+    border: 0 !important;
+    box-shadow: 0 4px 18px rgba(16, 39, 49, .12);
+    position: relative;
+    z-index: 5;
+}
+body.commerce-theme #cmsMenu.menuRow .centerContent {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    width: calc(100% - 64px) !important;
+    max-width: 1400px;
+    min-height: 64px;
+    margin: 0 auto;
+    padding: 8px 0;
+    box-sizing: border-box;
+}
+body.commerce-theme #cmsMenu.menuRow a {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    float: none !important;
+    min-height: 2.5rem;
+    margin: 0 !important;
+    padding: 8px 15px;
+    box-sizing: border-box;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    background: transparent;
+    color: #e5edef !important;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    line-height: 1.4;
+    text-decoration: none;
+    text-shadow: none !important;
+    transition: background-color 180ms ease, color 180ms ease, border-color 180ms ease;
+}
+body.commerce-theme #cmsMenu.menuRow a:hover,
+body.commerce-theme #cmsMenu.menuRow a:focus-visible {
+    background: #29434d;
+    color: #fff !important;
+}
+body.commerce-theme #cmsMenu.menuRow a.selected {
+    background: #d8ed94;
+    color: #182e29 !important;
+}
+body.commerce-theme #cmsMenu.menuRow a.selected:hover {
+    background: #e5f5b6;
+}
+body.commerce-theme #cmsMenu.menuRow a:focus-visible {
+    outline: 2px solid #d8ed94;
+    outline-offset: 3px;
+}
+body.commerce-theme #cmsMenu.menuRow .cms-menu-tools {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-left: auto;
+    padding-left: 24px;
+    border-left: 1px solid #3a515a;
+}
+body.commerce-theme #cmsMenu.menuRow .cms-menu-tools:empty { display: none; }
+body.commerce-theme #cmsMenu.menuRow a.loginIcon {
+    background: #fff;
+    color: #142d38 !important;
+    padding: 8px 14px;
+}
+body.commerce-theme #cmsMenu.menuRow a.loginIcon:hover { background: #e5edef; }
+body.commerce-theme #cmsMenu.menuRow a.loginIcon img {
+    width: 22px;
+    height: 22px;
+    min-height: 0;
+}
+body.commerce-theme #cmsMenu.menuRow a.langIcon {
+    padding: 10px 12px;
+    font-size: 0.75rem;
+    letter-spacing: .8px;
+}
+body.commerce-theme #cmsMenu.menuRow a.langIcon img {
+    display: block;
+    width: 22px;
+    height: 22px;
+    min-height: 0;
+    object-fit: cover;
+    border-radius: 50%;
+    box-shadow: 0 0 0 3px rgba(255,255,255,.12);
+}
+body.commerce-theme .externalPage > header {
+    width: calc(100% - 64px);
+    max-width: 1400px;
+    margin: 24px auto 0;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #142d38 !important;
+    min-height: 0;
+}
+body.commerce-theme .externalPage > header::after { display: none; }
+body.commerce-theme .externalPage #cmsBottom { min-width: 0; }
+body.commerce-theme .externalPage > header .narrowCenter {
+    width: 100%;
+    max-width: none;
+    height: auto !important;
+    margin: 0;
+}
+body.commerce-theme .externalPage > header .headerImg {
+    display: block;
+    width: 100% !important;
+    height: auto !important;
+    max-height: 180px;
+    object-fit: cover;
+    position: relative;
+}
+body.commerce-theme .externalPage > header .headerImg[style*="display:none"],
+body.commerce-theme .externalPage > header .headerImg[style*="display: none"] { display: none; }
+@media (max-width: 700px) {
+    body.commerce-theme #cmsMenu.menuRow .centerContent {
+        width: calc(100% - 32px) !important;
+        gap: 4px;
+        padding: 10px 0;
+    }
+    body.commerce-theme #cmsMenu.menuRow a {
+        min-height: 2.75rem;
+        padding: 10px 14px;
+        font-size: 0.875rem;
+    }
+    body.commerce-theme #cmsMenu.menuRow .cms-menu-tools {
+        padding-left: 8px;
+        gap: 4px;
+        border-left: 0;
+    }
+    body.commerce-theme .externalPage > header {
+        width: calc(100% - 32px);
+        margin-top: 16px;
+        border-radius: 8px;
+    }
+    body.commerce-theme .externalPage > header .headerImg { max-height: 140px; }
+}
+@media (prefers-reduced-motion: reduce) {
+    body.commerce-theme #cmsMenu.menuRow a { transition: none; }
+}
+
+body.commerce-theme #cmsMenu #cart-external-status { display: inline-flex; }
+body.commerce-theme #cmsMenu #cart-external-status:empty { display: none; }
+body.commerce-theme #cmsMenu a.commerce-cart-link {
+    background: #29434d !important;
+    padding: 8px 12px !important;
+    gap: 8px;
+    border: 1px solid #526974;
+    box-shadow: none !important;
+    text-shadow: none !important;
+    color: #fff !important;
+}
+body.commerce-theme #cmsMenu a.commerce-cart-link::before {
+    content: "";
+    width: 20px;
+    height: 20px;
+    background: url('../img/cart.svg') center / contain no-repeat;
+}
+body.commerce-theme #cmsMenu a.commerce-cart-link:hover { background-color: #3b5763 !important; }
+body.commerce-theme #cmsMenu .commerce-cart-link .count {
+    position: static;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 22px;
+    height: 22px;
+    margin: 0;
+    padding: 0 5px;
+    border-radius: 11px;
+    background: #d8ed94;
+    color: #142d38;
+    font-size: 0.75rem;
+    line-height: 1;
+    box-sizing: border-box;
+}
+@media (max-width: 700px) {
+    body.commerce-theme #cmsMenu .commerce-cart-label { display: none; }
+}
+
+body.commerce-theme .soc-sharing-holder .soc-sharing {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    height: auto;
+    padding: 2px 8px;
+    box-sizing: border-box;
+    line-height: 1.25rem;
+    vertical-align: middle;
+}
+body.commerce-theme .soc-sharing-holder .soc-sharing:hover {
+    text-decoration: none;
+}
+body.commerce-theme .soc-sharing-holder .soc-sharing img {
+    position: static;
+    flex-shrink: 0;
+}
+body.commerce-theme .soc-sharing-holder .soc-sharing sup {
+    position: static;
+    vertical-align: baseline;
+    font-size: inherit;
+    line-height: inherit;
+    margin-right: -5px;
+}
+
+/* One search control for shop, blog and CMS article navigation. */
+body.commerce-theme #cmsNavigation form:has(#simpleSearch) {
+    display: block;
+    float: none;
+    margin: 0 !important;
+    padding: 0;
+    width: 100%;
+}
+body.commerce-theme #cmsNavigation #simpleSearch {
+    position: relative;
+    width: 100%;
+    height: 2.75rem;
+    min-width: 0;
+    box-sizing: border-box;
+    padding: 0;
+    border: 1px solid #b8c8d2;
+    border-radius: 6px;
+    background: #fff;
+    margin: 0 0 12px !important;
+}
+body.commerce-theme #cmsNavigation #simpleSearch #searchInput {
+    position: static;
+    width: 100%;
+    height: 2.625rem;
+    min-width: 0;
+    box-sizing: border-box;
+    padding: 10px 42px 10px 12px;
+    border: 0;
+    border-radius: 6px;
+    background: #fff;
+    color: #182b3a;
+    font: 1rem/1.25 Arial, Helvetica, sans-serif;
+    box-shadow: none;
+}
+body.commerce-theme #cmsNavigation #simpleSearch #searchButton {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 40px;
+    height: 2.625rem;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+body.commerce-theme #cmsNavigation #simpleSearch #searchButton img { width: 12px; height: 13px; margin: 0; }
+body.commerce-theme #cmsNavigation #simpleSearch:focus-within { outline: 2px solid #92b8c6; outline-offset: 1px; border-color: #145b73; }
+
+/* Newsletter button injected by marketing_Bulletins; overrides its !important gradient styles. */
+body.commerce-theme .bulletin-link { padding-top: 12px; }
+body.commerce-theme .bulletin-link:empty { display: none; }
+body.commerce-theme .bulletin-link .push_button,
+body.commerce-theme .bulletinReg .push_button {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+    min-height: 2.5rem;
+    box-sizing: border-box;
+    margin: 0 !important;
+    padding: 9px 14px !important;
+    border: 1px solid #145b73 !important;
+    border-radius: 7px;
+    background: #145b73 !important;
+    color: #fff !important;
+    font: 600 0.875rem/1.4 Arial, Helvetica, sans-serif !important;
+    line-height: 1.4 !important;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    text-align: center;
+    text-shadow: none !important;
+    box-shadow: none !important;
+    top: 0 !important;
+    cursor: pointer;
+    transition: background-color 150ms ease, border-color 150ms ease;
+}
+body.commerce-theme .bulletin-link .push_button:hover,
+body.commerce-theme .bulletinReg .push_button:hover {
+    background: #0e4356 !important;
+    border-color: #0e4356 !important;
+}
+body.commerce-theme .bulletin-link .push_button:focus-visible,
+body.commerce-theme .bulletinReg .push_button:focus-visible {
+    outline: 2px solid #145b73;
+    outline-offset: 3px;
+}
+
+/* Subscription popup of marketing_Bulletins */
+body.commerce-theme .bulletinReg {
+    border-radius: 12px;
+    box-shadow: 0 12px 40px rgba(16, 39, 49, .35);
+    font-family: Arial, Helvetica, sans-serif;
+}
+body.commerce-theme .bulletinReg .push_button { margin: 12px 0 14px !important; }
+body.commerce-theme .bulletinFields .rowBulletin input {
+    height: 2.625rem;
+    box-sizing: border-box;
+    border: 1px solid #b8c8d2;
+    border-radius: 6px;
+    color: #182b3a;
+    font: 1rem/1.25 Arial, Helvetica, sans-serif;
+}
+body.commerce-theme .bulletinFields .rowBulletin input:focus {
+    outline: 2px solid #92b8c6;
+    outline-offset: 1px;
+    border-color: #145b73;
+}
+body.commerce-theme .bulletinFields .rowBulletin input.inputError { border-color: #c0392b; }
+body.commerce-theme .bulletinClose { text-shadow: none; }
+body.commerce-theme .bulletinCancel:hover { color: #145b73 !important; }

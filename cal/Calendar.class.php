@@ -2278,7 +2278,7 @@ class cal_Calendar extends core_Master
     		if($h === 'allDay' || ($h >= self::$tr && $h <= self::$tk)){
     			$tUrl = str_replace('Цял ден', '', $t);
 	    		$hourArr = $dayData[$h] ?? [];
-	    		$hourArr['time'] = $t;
+            $hourArr['time'] = tr($t);
 
 //	    		$hourArr['timeJs'] = $h;
 	    		
@@ -2401,7 +2401,7 @@ class cal_Calendar extends core_Master
    			// Ограничаваме часовета в таблицата до цел ден и най-малкия и най-големия час
    			if($h === 'allDay' || ($h >= self::$tr && $h <= self::$tk)){
     		$hourArr = $weekData[$h] ?? [];
-    		$hourArr['time'] = $t;
+        $hourArr['time'] = tr($t);
     		if($h === 'allDay'){
     			$hourArr['timeJs'] ??= null;
     		} else {

@@ -218,10 +218,18 @@ class doc_plg_HidePrices extends core_Plugin
 
     /**
      * Какъв е скритие елемент, с който ще се замести чувствителната информация
+     *
+     * @param bool $plain - само текст, за готов текст извън рендирането
      * @return string
      */
-    public static function getBuriedElement()
+    public static function getBuriedElement($plain = false)
     {
+        // В рендирането трябва да остане span-а - plg_AlignDecimals2 презаписва клетки без HTML с истинската стойност
+        if ($plain) {
+
+            return tr('заличено||buried');
+        }
+
         $title = tr("Нямате права да виждате сумата/цената");
 
         return "<span class='confidential-field' title = '{$title}'>" . tr('заличено||buried'). "</span>";

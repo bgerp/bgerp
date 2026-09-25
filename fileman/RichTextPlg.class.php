@@ -134,10 +134,11 @@ class fileman_RichTextPlg extends core_Plugin
      * @param string $fh - хендлър на файла
      * @param string $name - име на файла
      * @param int|null $fileLen - размер на файла в байтове
+     * @param stdClass|null $fRec - запис на файла, за предупреждение при засечен вирус
      *
      * @return string - [file=XXXXXX]name.ext[/file] (12 kB)
      */
-    public static function getLlmTag($fh, $name, $fileLen = null)
+    public static function getLlmTag($fh, $name, $fileLen = null, $fRec = null)
     {
         $res = "[file={$fh}]{$name}[/file]";
 
@@ -146,6 +147,12 @@ class fileman_RichTextPlg extends core_Plugin
             $size = cls::get('fileman_FileSize')->toVerbal($fileLen);
             Mode::pop('text');
             $res .= " ({$size})";
+        }
+
+        // Същият праг, при който в интерфейса излиза буболечката
+        if (is_object($fRec) && fileman_Files::isDanger($fRec)) {
+            $dangerPercent = round($fRec->dangerRate * 100);
+            $res .= ' ' . doc_plg_LlmExportable::systemNote(tr("Засечен вирус/зловреден код, риск|* {$dangerPercent}%"));
         }
 
         return $res;
@@ -168,10 +175,10 @@ class fileman_RichTextPlg extends core_Plugin
         $text = preg_replace_callback(self::FILE_LINK_PATTERN, function ($match) {
             $fRec = fileman_Files::fetchByFh($match['fh']);
 
-            return self::getLlmTag($match['fh'], trim($match['name']), $fRec->fileLen ?? null);
+            return self::getLlmTag($match['fh'], trim($match['name']), $fRec->fileLen ?? null, $fRec);
         }, $text);
 
-        return preg_replace('/(\[\/file\](?: \([^()\n]*\))?)(?=\[file=)/', "$1\n", $text);
+        return preg_replace('/(\[\/file\](?: \([^()\n]*\))?(?: \[!bgERP: [^\]\n]*\])?)(?=\[file=)/', "$1\n", $text);
     }
 
 

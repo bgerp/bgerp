@@ -18,6 +18,12 @@
 class cond_type_Keylist extends cond_type_abstract_Proto
 {
     /**
+     * Как се индексира стойността за филтриране (@see cat_products_ParamIndex)
+     */
+    protected $indexKind = 'text';
+
+
+    /**
      * Добавя полетата на драйвера към Fieldset
      *
      * @param core_Fieldset $fieldset
@@ -62,5 +68,20 @@ class cond_type_Keylist extends cond_type_abstract_Proto
         $Type = core_Type::getByName("keylist(mvc={$rec->class},select={$select})");
 
         return $Type;
+    }
+
+
+    /**
+     * Индексира се името на всеки избран обект, заедно с ид-то му
+     */
+    public function getIndexValues($rec, $domainClass, $domainId, $value, $langs)
+    {
+        $res = array();
+        foreach (keylist::toArray($value) as $id) {
+            $rows = $this->makeTextIndexRows($rec, $domainClass, $domainId, keylist::fromArray(array($id => $id)), $langs, (int) $id);
+            $res = array_merge($res, $rows);
+        }
+
+        return $res;
     }
 }

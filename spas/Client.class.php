@@ -284,7 +284,7 @@ class spas_Client
              * processed message headers.
              */
             if (preg_match(
-                  '/X-Spam-Status: (Yes|No)\, score=(\d+\.\d) required=(\d+\.\d)/',
+                  '/X-Spam-Status: (Yes|No)\, score=(-?\d+(?:\.\d+)?) required=(\d+(?:\.\d+)?)/',
                   $header.$message,
                   $matches
             )) {

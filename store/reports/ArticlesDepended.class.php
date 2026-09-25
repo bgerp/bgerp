@@ -24,12 +24,6 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
 
 
     /**
-     * До колко артикула се изброяват в диагностиката
-     */
-    const MAX_SHOWN_PRODUCTS = 50;
-
-
-    /**
      * Показателите на справката, в реда на обработката
      */
     protected static $statCaptions = array(
@@ -93,6 +87,12 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
 
 
     /**
+     * Кои полета от таблицата са цени/суми
+     */
+    protected $priceListFields = 'storeAmount';
+
+
+    /**
      * Добавя полетата на драйвера към Fieldset
      *
      * @param core_Fieldset $fieldset
@@ -101,7 +101,7 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
     {
         $fieldset->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,placeholderType=all,after=title,single=none');
         $fieldset->FLD('period', 'time(suggestions=1 месец|3 месеца|6 месеца|1 година)', 'caption=Период, after=storeId,mandatory,single=none,removeAndRefreshForm');
-        $fieldset->FLD('minCost', 'double', 'caption=Мин. наличност, after=period,single=none, unit= лв.');
+        $fieldset->FLD('minCost', 'double', 'caption=Мин. наличност, after=period,single=none,unit=' . acc_Periods::getBaseCurrencyCode());
         $fieldset->FLD('reversibility', 'percent(suggestions=1%|5% |10%|20%)', 'caption=Обращаемост, after=minCost,mandatory,single=none');
 
 
@@ -185,6 +185,7 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
         $recs = array();
         $startedOn = microtime(true);
 
+        /** @var core_Query $pQuery */
         $pQuery = store_Products::getQuery();
 
         $pQuery->where("#state != 'rejected'");
@@ -194,7 +195,7 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
         }
 
         $pQuery->EXT('code', 'cat_Products', 'externalName=code,externalKey=productId');
-        $pQuery->EXT('groups', 'cat_Products', 'externalName=groups,externalKey=productId');
+        $pQuery->show('productId,storeId,quantity,code');
 
         //Филтър по група артикули
         if (isset($rec->groups)) {
@@ -202,29 +203,30 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
         }
 
         $timer = microtime(true);
-        $pQuery->selectOnReplica();
-        $storeProductRecs = $productIds = array();
-        while ($pRec = $pQuery->fetch()) {
-            $storeProductRecs[] = $pRec;
-            $productIds[$pRec->productId] = $pRec->productId;
-        }
-        self::setStat($data, 'storeProducts', microtime(true) - $timer, countR($storeProductRecs));
-        self::setStat($data, 'products', 0, countR($productIds));
-
-        // Синхронизира таймлимита с броя записи
-        $timeLimit = countR($storeProductRecs) * 0.2;
-
+        $storeCount = $pQuery->selectOnReplica();
+        // Лимитът се увеличава преди извличането и обработката на редовете.
+        $timeLimit = $storeCount * 0.2;
         if ($timeLimit >= 30) {
             core_App::setTimeLimit($timeLimit);
         }
+        $storeProductRecs = $productIds = array();
+        while ($pRec = $pQuery->fetch()) {
+            $storeProductRecs[] = $pRec;
+            $productId = $pRec->productId ?? null;
+            $productIds[$productId] = $productId;
+        }
+        self::addReportStat($data, 'storeProducts', microtime(true) - $timer, countR($storeProductRecs));
+        self::addReportStat($data, 'products', 0, countR($productIds));
 
         // Артикулите и наличностите им се четат наведнъж, вместо за всеки ред поотделно
         $timer = microtime(true);
         $products = $this->preloadProducts($productIds);
         $quantities = $this->getProductQuantities($productIds, $rec->storeId ?? null);
-        self::setStat($data, 'quantities', microtime(true) - $timer, countR($quantities));
+        self::addReportStat($data, 'quantities', microtime(true) - $timer, countR($quantities));
 
         $prodArr = $notSelfPrice = $belowMinCost = array();
+        $primeCosts = $missingPrices = $publicPrices = array();
+        $minCost = $rec->minCost ?? 0;
 
         // Изключва преизчисляването на параметрите - иначе драйверът ги преизчислява и записва
         Mode::push('doNotCalculate', true);
@@ -232,39 +234,47 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
 
         try {
             foreach ($storeProductRecs as $pRec) {
-                $pQuantity = 0;
+                $productId = $pRec->productId ?? null;
+                $quantity = $pRec->quantity ?? 0;
+                $product = $products[$productId] ?? null;
+                // За стандартните артикули тази политика има предимство пред драйвера.
+                if (($product->isPublic ?? null) == 'yes' && !array_key_exists($productId, $publicPrices)) {
+                    $publicPrices[$productId] = price_ListRules::getPrice(price_ListRules::PRICE_LIST_COST, $productId);
+                }
+                // Драйверът може да върне различна цена за различно количество.
+                $priceKey = $productId . '|' . serialize($quantity);
+                if (!array_key_exists($priceKey, $primeCosts)) {
+                    $primeCosts[$priceKey] = $publicPrices[$productId] ?? cat_Products::getPrimeCost($product ?? $productId, null, $quantity, null);
+                }
+                $pRec->reportPrimeCost = $primeCosts[$priceKey];
+                if (empty($pRec->reportPrimeCost)) {
+                    $missingPrices[$productId] = $productId;
+                }
+            }
+            $fallbackPrices = $this->getFallbackPrices($missingPrices, $rec->storeId ?? null);
 
-                //Себестойност на артикула
-                $selfPrice = cat_Products::getPrimeCost($products[$pRec->productId] ?? $pRec->productId, null, $pRec->quantity, null);
+            foreach ($storeProductRecs as $pRec) {
+                $productId = $pRec->productId ?? null;
+                $selfPrice = ($pRec->reportPrimeCost ?? null) ?: ($fallbackPrices[$productId] ?? null);
 
-                //Попълване на списъка с артикули без себестойност
-                $markNotPrice = null;
                 if (!$selfPrice) {
-
-                    //При избран склад влизат само тъези от избрания слкад
-                    $markNotPrice = (empty($rec->storeId) || $rec->storeId == $pRec->storeId) ? 1 : null;
-
-
-                    if ((!is_null($markNotPrice)) && (!in_array($pRec->productId, $notSelfPrice))) {
-                        array_push($notSelfPrice, $pRec->productId);
-                    }
+                    $notSelfPrice[$productId] = $productId;
                     continue;
                 }
-                $minCost = $rec->minCost ?? 0;
-                $pQuantity = $quantities[$pRec->productId] ?? 0;
+                $pQuantity = $quantities[$productId] ?? 0;
                 $amount = $pQuantity * $selfPrice;
-                $code = $pRec->code ? $pRec->code : 'Art' . $pRec->productId;
+                $code = !empty($pRec->code) ? $pRec->code : 'Art' . $productId;
 
                 if ($amount <= $minCost) {
-                    $belowMinCost[$pRec->productId] = $pRec->productId;
+                    $belowMinCost[$productId] = $productId;
                 }
 
                 if ($amount > $minCost) {
 
                     //Налични артикули на склад
-                    $prodArr[$pRec->productId] = (object)array(
+                    $prodArr[$productId] = (object)array(
 
-                        'productId' => $pRec->productId,                //Id на артикула
+                        'productId' => $productId,                //Id на артикула
                         'selfPrice' => $selfPrice,                      //себестойност на артикула
                         'pQuantity' => $pQuantity,                      //Складова наличност: количество
                         'amount' => $amount,                            //Складова наличност: стойност
@@ -277,84 +287,105 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
             Mode::pop('doNotCalculate');
         }
 
-        self::setStat($data, 'withoutPrimeCost', 0, countR($notSelfPrice), $notSelfPrice);
-        self::setStat($data, 'belowMinCost', 0, countR($belowMinCost), $belowMinCost);
-        self::setStat($data, 'withPrimeCost', microtime(true) - $timer, countR($prodArr));
+        $notSelfPrice = array_values($notSelfPrice);
+        unset($storeProductRecs, $primeCosts, $fallbackPrices, $publicPrices);
+
+        self::addReportStat($data, 'withoutPrimeCost', 0, countR($notSelfPrice), $notSelfPrice);
+        self::addReportStat($data, 'belowMinCost', 0, countR($belowMinCost), $belowMinCost);
+        self::addReportStat($data, 'withPrimeCost', microtime(true) - $timer, countR($prodArr));
 
         //Изключване на артикули, които имат скорошна доставка или производство
         $timer = microtime(true);
         $beforeSoon = countR($prodArr);
         $prodArr = self::removeSoonDeliveredProds($rec, $prodArr);
-        self::setStat($data, 'soonDelivered', microtime(true) - $timer, $beforeSoon - countR($prodArr));
+        self::addReportStat($data, 'soonDelivered', microtime(true) - $timer, $beforeSoon - countR($prodArr));
 
-        //Масив с дебитните обороти на артикулите от журнала, филтрирани за периода и с-ка'321'
-
-        $docTypeIdArr = array();
-        foreach (array('sales_Sales', 'store_ShipmentOrders', 'planning_DirectProductionNote', 'planning_ConsumptionNotes') as $val) {
-            $docTypeIdArr[] = (core_Classes::getId($val));
-        }
-
-        $rec->from = $startDate = dt::addSecs(-$rec->period, dt::now());
+        $rec->from = $startDate = dt::addSecs(-($rec->period ?? 0), dt::now());
         $rec->to = dt::today();
-        $acc321 = acc_Accounts::getRecBySystemId('321')->id;
-
-        $query = acc_JournalDetails::getQuery();
-        acc_JournalDetails::filterQuery($query, $startDate, dt::now(), null, null, null, null, null, null, $documents = $docTypeIdArr);
-
-        // Двата клона не се застъпват, за да не се броят по два пъти записите с 321 от двете страни
-        $query->setUnion("#debitAccId = {$acc321}");
-        $query->setUnion("#creditAccId = {$acc321} AND (#debitAccId IS NULL OR #debitAccId != {$acc321})");
-        $query->useUnionAll = true;
-        // Редовете без перо на артикул се пропускат и в РНР, затова не се и вадят
-        $query->where('#creditItem2 IS NOT NULL');
-
-        // Сумирането е в базата - иначе всички редове на журнала минават един по един през РНР
-        $query->XPR('creditQuantitySum', 'double', 'SUM(#creditQuantity)');
-        $query->groupBy('creditItem1,creditItem2');
-        $query->show('creditItem1,creditItem2,creditQuantitySum');
-        $timer = microtime(true);
-        $query->selectOnReplica();
-
-        // Групирането е поотделно във всеки клон на обединението, затова сумите се сливат тук
-        $quantityByItems = $itemIds = array();
-        while ($jRec = $query->fetch()) {
-            if (!$jRec->creditItem2) continue;
-
-            $key = $jRec->creditItem1 . '|' . $jRec->creditItem2;
-            $quantityByItems[$key] = ($quantityByItems[$key] ?? 0) + $jRec->creditQuantitySum;
-
-            $itemIds[$jRec->creditItem2] = $jRec->creditItem2;
-            if ($jRec->creditItem1) {
-                $itemIds[$jRec->creditItem1] = $jRec->creditItem1;
-            }
-        }
-
-        self::setStat($data, 'journal', microtime(true) - $timer, countR($quantityByItems));
-
-        // Перата се четат наведнъж, вместо по две на всеки запис
-        $timer = microtime(true);
-        $items = $this->getAccItems($itemIds);
-        self::setStat($data, 'items', microtime(true) - $timer, countR($items));
-
         $journalProdArr = array();
-        foreach ($quantityByItems as $key => $creditQuantity) {
-            list($storeItemId, $productItemId) = explode('|', $key);
+        if (countR($prodArr)) {
+            // Кредитните количества от записи със сметка 321 за периода.
 
-            $productItem = $items[$productItemId] ?? null;
-            $storeItem = $items[$storeItemId] ?? null;
-            if (!$productItem || !$storeItem) {
-                continue;
-            }
-            $productId = $productItem->objectId;
-            $storeId = $storeItem->objectId;
-
-            //Филтър по склад
-            if (!empty($rec->storeId) && ($storeId != $rec->storeId)) {
-                continue;
+            $docTypeIdArr = array();
+            foreach (array('sales_Sales', 'store_ShipmentOrders', 'planning_DirectProductionNote', 'planning_ConsumptionNotes') as $val) {
+                $docTypeIdArr[] = (core_Classes::getId($val));
             }
 
-            //Обороти дебит на артикулите от журнала, за които записите са от посочените класове
-            $journalProdArr[$productId] = ($journalProdArr[$productId] ?? 0) + $creditQuantity;
+            $accountRec = acc_Accounts::getRecBySystemId('321');
+            $acc321 = $accountRec->id ?? null;
+
+            /** @var core_Query $query */
+            $query = acc_JournalDetails::getQuery();
+            acc_JournalDetails::filterQuery($query, $startDate, dt::now(), null, null, null, null, null, null, $documents = $docTypeIdArr);
+
+            // Четат се само оборотите на останалите кандидати.
+            $query->EXT('reportProductId', 'acc_Items', 'externalName=objectId,externalKey=creditItem2');
+            $query->in('reportProductId', array_keys($prodArr));
+            if (!empty($rec->storeId)) {
+                $query->EXT('reportStoreId', 'acc_Items', 'externalName=objectId,externalKey=creditItem1');
+                $query->where(array('#reportStoreId = [#1#]', $rec->storeId));
+            }
+
+            // Двата клона не се застъпват, за да не се броят по два пъти записите с 321 от двете страни
+            $query->setUnion("#debitAccId = {$acc321}");
+            $query->setUnion("#creditAccId = {$acc321} AND (#debitAccId IS NULL OR #debitAccId != {$acc321})");
+            $query->useUnionAll = true;
+            // Редовете без перо на артикул се пропускат и в РНР, затова не се и вадят
+            $query->where('#creditItem2 IS NOT NULL');
+
+            // Сумирането е в базата - иначе всички редове на журнала минават един по един през РНР
+            $query->XPR('creditQuantitySum', 'double', 'SUM(#creditQuantity)');
+            $query->groupBy('creditItem1,creditItem2');
+            $query->show('creditItem1,creditItem2,creditQuantitySum');
+            $timer = microtime(true);
+            $query->selectOnReplica();
+
+            // Групирането е поотделно във всеки клон на обединението, затова сумите се сливат тук
+            $quantityByItems = $itemIds = array();
+            while ($jRec = $query->fetch()) {
+                if (empty($jRec->creditItem2)) continue;
+
+                $storeItemId = $jRec->creditItem1 ?? null;
+                $productItemId = $jRec->creditItem2 ?? null;
+                $key = $storeItemId . '|' . $productItemId;
+                $quantityByItems[$key] = ($quantityByItems[$key] ?? 0) + ($jRec->creditQuantitySum ?? 0);
+
+                $itemIds[$productItemId] = $productItemId;
+                if ($storeItemId) {
+                    $itemIds[$storeItemId] = $storeItemId;
+                }
+            }
+
+            self::addReportStat($data, 'journal', microtime(true) - $timer, countR($quantityByItems));
+
+            // Перата се четат наведнъж, вместо по две на всеки запис
+            $timer = microtime(true);
+            $items = $this->getAccItems($itemIds);
+            self::addReportStat($data, 'items', microtime(true) - $timer, countR($items));
+
+            foreach ($quantityByItems as $key => $creditQuantity) {
+                list($storeItemId, $productItemId) = explode('|', $key);
+
+                $productItem = $items[$productItemId] ?? null;
+                $storeItem = $items[$storeItemId] ?? null;
+                if (!$productItem || !$storeItem) {
+                    continue;
+                }
+                $productId = $productItem->objectId ?? null;
+                $storeId = $storeItem->objectId ?? null;
+
+                //Филтър по склад
+                if (!empty($rec->storeId) && ($storeId != $rec->storeId)) {
+                    continue;
+                }
+
+                // Кредитните количества се обединяват по артикул.
+                $journalProdArr[$productId] = ($journalProdArr[$productId] ?? 0) + $creditQuantity;
+            }
+
+        } else {
+            self::addReportStat($data, 'journal', 0, 0);
+            self::addReportStat($data, 'items', 0, 0);
         }
 
         $aboveReversibility = array();
@@ -398,10 +429,10 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
             arr::sortObjects($recs, $orderBy, $order, $typeOrder);
         }
 
-        self::setStat($data, 'aboveReversibility', 0, countR($aboveReversibility), $aboveReversibility);
-        self::setStat($data, 'rows', 0, countR($recs));
-        self::setStat($data, 'memory', 0, round(memory_get_peak_usage(true) / 1048576));
-        self::setStat($data, 'total', microtime(true) - $startedOn, countR($recs));
+        self::addReportStat($data, 'aboveReversibility', 0, countR($aboveReversibility), $aboveReversibility);
+        self::addReportStat($data, 'rows', 0, countR($recs));
+        self::addReportStat($data, 'memory', 0, round(memory_get_peak_usage(true) / 1048576));
+        self::addReportStat($data, 'total', microtime(true) - $startedOn, countR($recs));
         $statsMsg = $this->getReportStatsMsg($data, ', ');
         if (!empty($statsMsg)) {
             $this->logWhilePreparing($statsMsg);
@@ -414,32 +445,72 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
 
 
     /**
-     * Записва показател за изпълнението на справката
-     *
-     * @param stdClass $data - данните на справката
-     * @param string   $key - ключ на показателя
-     * @param float    $seconds - измереното време
-     * @param int      $count - броят
-     * @param array    $productIds - артикулите, до които се отнася
-     *
-     * @return void
+     * Заместващите цени се четат наведнъж само за артикулите без себестойност.
      */
-    private static function setStat(&$data, $key, $seconds, $count, $productIds = array())
+    private function getFallbackPrices($productIds, $storeId = null)
     {
-        $seconds = round($seconds, 3);
-        $msg = tr(self::$statCaptions[$key] ?? $key) . ": {$count}";
-        if ($seconds > 0) {
-            $msg .= " / {$seconds} " . tr('сек.');
+        $prices = array_fill_keys($productIds, null);
+        if (!countR($productIds)) return $prices;
+
+        /** @var core_Query $query */
+        $query = acc_Items::getQuery();
+        $query->where(array('#classId = [#1#]', cat_Products::getClassId()));
+        $query->in('objectId', $productIds);
+        $query->show('id,objectId');
+        $query->selectOnReplica();
+        $itemMap = array();
+        while ($item = $query->fetch()) {
+            $itemMap[$item->id ?? null] = $item->objectId ?? null;
         }
 
-        // Изброяват се само първите артикули, иначе при десетки хиляди се подува логът
-        $shown = array_slice(array_values($productIds), 0, self::MAX_SHOWN_PRODUCTS);
-        if (countR($shown)) {
-            $rest = countR($productIds) - countR($shown);
-            $msg .= ' (' . implode(', ', $shown) . ($rest > 0 ? ' ... +' . $rest : '') . ')';
+        $storeItems = null;
+        if (!empty($storeId)) {
+            $storeItem = acc_Items::fetchItem('store_Stores', $storeId);
+            $storeItems = !empty($storeItem->id) ? array($storeItem->id) : array();
+        }
+        if (countR($itemMap) && (empty($storeId) || countR($storeItems))) {
+            // Същото осредняване и закръгляне като getWacAmountInStore(1, ...).
+            // getPricesToDate() приема MySQL низ, въпреки PHPDoc типа datetime.
+            /** @noinspection PhpParamsInspection */
+            $stockPrices = acc_ProductPricePerPeriods::getPricesToDate(dt::getLastDayOfMonth(dt::today()), array_keys($itemMap), $storeItems);
+            $sums = $counts = array();
+            foreach ($stockPrices as $stockPrice) {
+                $productId = $itemMap[$stockPrice->productItemId ?? null] ?? null;
+                if (!$productId) continue;
+                $sums[$productId] = ($sums[$productId] ?? 0) + ($stockPrice->price ?? 0);
+                $counts[$productId] = ($counts[$productId] ?? 0) + 1;
+            }
+            foreach ($sums as $productId => $sum) {
+                $price = round($sum / $counts[$productId], 4);
+                if ($price > 0) $prices[$productId] = $price;
+            }
         }
 
-        self::setReportStat($data, $key, $msg);
+        $missing = array_keys(array_filter($prices, function ($price) { return $price === null; }));
+        if (!countR($missing)) return $prices;
+
+        /** @var core_Query $query */
+        $query = purchase_PurchasesDetails::getQuery();
+        $query->EXT('purchaseState', 'purchase_Purchases', 'externalName=state,externalKey=requestId');
+        $query->EXT('valior', 'purchase_Purchases', 'externalName=valior,externalKey=requestId');
+        $query->in('productId', $missing);
+        $query->in('purchaseState', array('active', 'closed'));
+        $query->orderBy('valior,requestId,id', 'DESC');
+        $query->show('productId,price,discount,valior');
+        $query->selectOnReplica();
+        $seen = array();
+        while ($purchaseRec = $query->fetch()) {
+            $productId = $purchaseRec->productId ?? null;
+            if (isset($seen[$productId])) continue;
+            // Нулева цена в последната поръчка не се заменя с цена от по-стара.
+            $seen[$productId] = true;
+            $price = ($purchaseRec->price ?? 0) * (1 - ($purchaseRec->discount ?? 0));
+            $price = deals_Helper::getSmartBaseCurrency($price, $purchaseRec->valior ?? dt::today());
+            if ($price > 0) $prices[$productId] = $price;
+            if (countR($seen) == countR($missing)) break;
+        }
+
+        return $prices;
     }
 
 
@@ -458,6 +529,7 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
         // Нарочно от основната база - записите се подават на getPrimeCost() вместо ид-та,
         // затова трябва да съдържат същото, което би върнал fetchRec() за всеки артикул
         $Products = cls::get('cat_Products');
+        /** @var core_Query $pQuery */
         $pQuery = cat_Products::getQuery();
         $pQuery->in('id', $productIds);
 
@@ -485,6 +557,7 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
         $res = array();
         if (!countR($productIds)) return $res;
 
+        /** @var core_Query $query */
         $query = store_Products::getQuery();
         $query->in('productId', $productIds);
         if (!empty($storeId)) {
@@ -515,6 +588,7 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
         $res = array();
         if (!countR($itemIds)) return $res;
 
+        /** @var core_Query $query */
         $query = acc_Items::getQuery();
         $query->in('id', $itemIds);
         $query->show('id,objectId,classId');
@@ -642,7 +716,7 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
         $Date = cls::get('type_Date');
         $Double = cls::get('type_Double');
         $Double->params['decimals'] = 2;
-        $currency = 'лв.';
+        $currency = acc_Periods::getBaseCurrencyCode();
 
         $fieldTpl = new core_ET(tr("|*<!--ET_BEGIN BLOCK-->[#BLOCK#]
 								<fieldset class='detail-info'><legend class='groupTitle'><small><b>|Филтър|*</b></small></legend>
@@ -725,6 +799,7 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
         }
 
         //Проверка за доставени количества през периода soonPeriod
+        /** @var core_Query $query */
         $query = purchase_PurchasesData::getQuery();
 
         $from = dt::addSecs(-($rec->soonPeriod ?? 0), dt::now());
@@ -741,6 +816,8 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
         }
 
         $query->in('detailClassId', $detClassesId);
+        $query->show('productId,quantity');
+        $query->selectOnReplica();
 
         $deliveredProdInPeriod = array();
         while ($prod = $query->fetch()) {
@@ -757,19 +834,16 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
 
             if ($val > $prodArr[$key]->amount * ($rec->soonQuantity ?? 0)) {
                 unset($prodArr[$key]);
-                $extractKey = array_search($key, $extractProdArr, true);
-                if ($extractKey !== false) {
-                    unset($extractProdArr[$extractKey]);
-                }
             }
         }
 
         if (!countR($prodArr)) {
             return $prodArr;
         }
-        $extractProdArr = array_values($extractProdArr);
+        $extractProdArr = array_keys($prodArr);
 
         //Произведени артикули
+        /** @var core_Query $planningQuery */
         $planningQuery = planning_DirectProductionNote::getQuery();
 
         $planningQuery->where("#state = 'active'");
@@ -777,6 +851,8 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
         $planningQuery->where(array("#valior>= '[#1#]' AND #valior <= '[#2#]'", $from, dt::now()));
 
         $planningQuery->in('productId', $extractProdArr);
+        $planningQuery->show('productId,quantity');
+        $planningQuery->selectOnReplica();
 
         $planningProdsInPeriod = array();
         while ($planningProd = $planningQuery->fetch()) {

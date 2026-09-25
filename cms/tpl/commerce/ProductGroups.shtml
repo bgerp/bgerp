@@ -1,0 +1,28 @@
+<div class='cms-row eshop-layout'>
+    <!--ET_BEGIN NAVIGATION-->
+    <div class='fourcol' id='cmsNavigation'>
+        [#TOP_NAV#]
+        [#SEARCH_BOX#]
+        [#NAVIGATION_EXTRA_BTNS#]
+        <div class="commerce-shortcuts">
+            <div id="faveNavBtn">[#NAVIGATION_FAV#]</div>
+            [#NAVIGATION_OTHER_BTNS#]
+        </div>
+        [#NAVIGATION_FILTERS#]
+        [#NAVIGATION#]
+        [#BOTTOM_NAV#]
+        [#BEFORE_FOOTER_INFO#]
+        <div class='bulletin-link clearfix21'></div>
+    </div>
+    <!--ET_END NAVIGATION-->
+    <div class='eightcol eshop-content'>
+        [#TOP_CONTENT#]
+        [#PAGE_CONTENT#]
+        <!--ET_BEGIN SOCIAL-->
+        <div class='clearfix21'></div>
+        [#SOCIAL#]
+        [#social_Sharings::getButtons#]
+        <!--ET_END SOCIAL-->
+        [#BOTTOM_CONTENT#]
+    </div>
+</div>

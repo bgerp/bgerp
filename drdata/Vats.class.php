@@ -298,7 +298,9 @@ class drdata_Vats extends core_Manager
 		} catch (SoapFault $f) {
 
 			// Очакваните откази на VIES не са грешка в кода - логват се като предупреждение
-			if (self::isTemporaryViesFault($f)) {
+			if (trim($f->faultstring ?? $f->getMessage()) === 'INVALID_INPUT') {
+				$this->logWarning('VIES отхвърли входните данни: INVALID_INPUT');
+			} elseif (self::isTemporaryViesFault($f)) {
 				$this->logWarning('VIES недостъпен: ' . $f->getMessage());
 			} else {
 				reportException($f);
@@ -329,7 +331,7 @@ class drdata_Vats extends core_Manager
 		// Ако локалният regex не е разпознал формата, но сме питали VIES – добавяме неутрална бележка
 		if (!$syntaxOk && $plausible) {
 			$note = "Забележка: форматът не съвпада с познатите локални модели, но е направена онлайн проверка (VIES).";
-			$info = trim($info) ? ($info . "\n" . $note) : $note;
+			$info = trim($info ?? '') ? ($info . "\n" . $note) : $note;
 		}
 
 		return array($res, $info, $result->name, $result->address);

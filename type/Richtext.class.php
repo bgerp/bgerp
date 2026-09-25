@@ -1359,18 +1359,50 @@ class type_Richtext extends type_Blob
         $lines = explode("\n", $html);
         
         $table = false;
+        $separatorLine = null;
 
         $out = '';
         
-        foreach ($lines as $l) {
+        foreach ($lines as $lineNo => $l) {
+            if ($lineNo === $separatorLine) {
+                continue;
+            }
+
             if (isset($l[0]) && $l[0] == '|') {
+                $l = trim($l, " \t");
+                $l = trim($l, '|');
+                $cells = explode('|', $l);
+                $tag = 'td';
+
                 if (!$table) {
                     $out .= "\n<div class='overflow-scroll'><table class='inlineRichTable listTable'>";
                     $table = true;
+                    $alignments = array();
+                    $separator = $lines[$lineNo + 1] ?? '';
+
+                    // Markdown разделител се допуска само след заглавие със същия брой колони.
+                    if (preg_match('/^\|[ \t]*:?-{3,}:?[ \t]*(?:\|[ \t]*:?-{3,}:?[ \t]*)*\|?[ \t]*$/D', $separator)) {
+                        $markers = explode('|', trim(trim($separator), '|'));
+                        if (count($markers) == count($cells)) {
+                            foreach ($markers as $col => $marker) {
+                                $marker = trim($marker);
+                                $alignments[$col] = 'left';
+                                if (substr($marker, -1) == ':') {
+                                    $alignments[$col] = ($marker[0] == ':') ? 'center' : 'right';
+                                }
+                            }
+                            $tag = 'th';
+                            $separatorLine = $lineNo + 1;
+                        }
+                    }
                 }
-                $l = trim($l, " \t");
-                $l = trim($l, '|');
-                $out .= '<tr><td>' . str_replace('|', '</td><td>', $l) . '</td></tr>';
+
+                $out .= '<tr>';
+                foreach ($cells as $col => $cell) {
+                    $style = isset($alignments[$col]) ? " style='text-align: {$alignments[$col]}'" : '';
+                    $out .= "<{$tag}{$style}>{$cell}</{$tag}>";
+                }
+                $out .= '</tr>';
             } else {
                 if ($table) {
                     $out .= '</table></div>';

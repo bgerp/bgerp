@@ -1,0 +1,62 @@
+/* CMS articles share the public blog's typography and navigation. */
+.commerce-article .commerce-article-layout:not(:has(> #cmsNavigation)) {
+    grid-template-columns: minmax(0, 1fr);
+}
+.commerce-article .commerce-article-content {
+    padding: 28px;
+    background: #fff;
+    border: 1px solid #dce3e8;
+    border-radius: 12px;
+    overflow-wrap: anywhere;
+}
+.commerce-article .commerce-article-content .richtext {
+    color: #344b59;
+    font-size: 1rem;
+    line-height: 1.75;
+}
+.commerce-article .commerce-article-content h1 {
+    margin: 0 0 16px;
+    color: #182b3a;
+    font-size: clamp(1.625em, 2.4vw, 2.25em);
+    line-height: 1.2;
+    letter-spacing: -.6px;
+}
+.commerce-article .commerce-article-content h2,
+.commerce-article .commerce-article-content h3 {
+    padding: 0;
+    margin: 24px 0 12px;
+    background: none !important;
+    color: #182b3a;
+    line-height: 1.3;
+}
+.commerce-article .commerce-article-content h2 { font-size: 1.5em; }
+.commerce-article .commerce-article-content h3 { font-size: 1.25em; }
+.commerce-article .commerce-article-content img { max-width: 100%; height: auto; }
+.commerce-article .commerce-article-content a { color: #145b73; }
+.commerce-article .commerce-article-content .prevNextNav {
+    display: flow-root;
+    margin-top: 24px;
+    padding: 16px 0 0;
+    background: none;
+    border: 0;
+    border-top: 1px solid #dce3e8;
+    font-size: 0.9375rem;
+}
+.commerce-article #cmsNavigation.articles-menu .nav_item > a,
+.commerce-article #cmsNavigation.articles-menu .nav_item > span { float: none; border: 0; }
+.commerce-article #cmsNavigation .nav_item > a.commerce-article-edit {
+    position: relative;
+    z-index: 1;
+    display: inline-block;
+    width: 22px;
+    height: 22px;
+    padding: 0;
+    margin: 0 0 0 4px;
+    vertical-align: middle;
+    background: transparent url('../../img/16/edit.png') center / 16px 16px no-repeat !important;
+}
+.commerce-article #cmsNavigation .commerce-article-edit::after { content: none; }
+.commerce-article #cmsNavigation .commerce-article-edit:hover { background-color: #dceaf0 !important; }
+@media (max-width: 800px) {
+    .commerce-article .commerce-article-content { padding: 18px; }
+}

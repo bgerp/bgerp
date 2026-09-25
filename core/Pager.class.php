@@ -306,7 +306,7 @@ class core_Pager extends core_BaseClass
                 // Ако не сме имали резултати от кеша
                 if ($resCntCache === null || $resCntCache === false) {
                     $mvc = $query->mvc;
-                    $totalRows = $mvc->callOnProxy(function () use ($mvc) {
+                    $totalRows = $mvc->callOnReplica(function () use ($mvc) {
 
                         return $mvc->db->countRows($mvc->dbTableName);
                     });

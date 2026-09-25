@@ -729,18 +729,6 @@ class core_Query extends core_FieldSet
 
 
     /**
-     * Обвивка към selectOnReplica() - запазена за съвместимост
-     *
-     * @deprecated Използвайте selectOnReplica().
-     * @return int
-     */
-    public function selectOnProxy()
-    {
-        return $this->selectOnReplica();
-    }
-    
-    
-    /**
      * SQL кода, отговарящ на този обект-заявка.
      *
      * @return string

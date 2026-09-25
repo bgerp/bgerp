@@ -37,6 +37,12 @@ class price_reports_Menu extends price_reports_PriceListProto
 
 
     /**
+     * Кои полета от таблицата са цени/суми
+     */
+    protected $priceListFields = 'price';
+
+
+    /**
      * Връща заглавието на отчета
      *
      * @param stdClass $rec - запис

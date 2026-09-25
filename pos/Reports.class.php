@@ -196,7 +196,7 @@ class pos_Reports extends core_Master
     /**
      * Изпълнява се преди вербалното представяне
      */
-    protected static function on_BeforeRecToVerbal($mvc, &$row, $rec, $fields)
+    protected static function on_BeforeRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         // Ако няма записани детайли извличаме актуалните
         if (empty($rec->details)) {

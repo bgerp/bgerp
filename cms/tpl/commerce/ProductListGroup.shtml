@@ -1,0 +1,20 @@
+<div class='eshop-product-list [#CLASS#]'>
+    <div class="eshop-card-media">
+        [#image#]
+    </div>
+    <div class="eshop-card-content">
+        <h2 class='eshop-product-list-name'>[#name#] [#singleLink#][#editLink#]</h2>
+        <div class="eshop-card-meta">
+            <!--ET_BEGIN code--><span>|Код|*: <b>[#code#]</b></span><!--ET_END code-->
+            <!--ET_BEGIN coMoq--><span title='|Минимално количество за поръчка|*'>|Мин. количество||Min. quantity|*: <b>[#coMoq#]</b></span><!--ET_END coMoq-->
+        </div>
+        <!--ET_BEGIN catalogPrice-->
+        <div class="eshop-card-price">[#catalogPrice#] <span class="eshop-card-price-tail">[#chargeVat#] <span>|за||per|* [#packagingId#]</span></span></div>
+        <!--ET_END catalogPrice-->
+        <!--ET_BEGIN saleInfo--><div class="eshop-card-sale-info">[#saleInfo#]</div><!--ET_END saleInfo-->
+        <!--ET_BEGIN commonParams-->
+        <div class='small'>[#commonParams#]</div>
+        <!--ET_END commonParams-->
+        <div class="eshop-card-actions">[#btn#][#coInquiry#]</div>
+    </div>
+</div>

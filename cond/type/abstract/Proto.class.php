@@ -44,6 +44,20 @@ abstract class cond_type_abstract_Proto extends core_BaseClass
 
 
     /**
+     * Как се индексира стойността за филтриране (num, key, text), празно - не се индексира
+     *
+     * @see cat_products_ParamIndex
+     */
+    protected $indexKind;
+
+
+    /**
+     * Дали числовите стойности могат да се групират в диапазони във филтъра
+     */
+    protected $indexRanges = false;
+
+
+    /**
      * Добавя полетата на драйвера към Fieldset
      *
      * @param core_Fieldset $fieldset
@@ -247,5 +261,179 @@ abstract class cond_type_abstract_Proto extends core_BaseClass
     public function onParamChanged($rec, $domainClass, $domainId, $newValue, $oldValue) : array
     {
         return array('msg' => null, 'error' => null);
+    }
+
+
+    /**
+     * Може ли параметър от този тип да се индексира за филтриране
+     *
+     * @return bool
+     */
+    public function canBeIndexed()
+    {
+        return !empty($this->indexKind);
+    }
+
+
+    /**
+     * Могат ли стойностите да се групират в диапазони във филтъра
+     *
+     * @return bool
+     */
+    public function canIndexRanges()
+    {
+        return $this->indexKind == 'num' && $this->indexRanges;
+    }
+
+
+    /**
+     * Връща редовете за индекса на параметрите (@see cat_products_ParamIndex)
+     *
+     * @param stdClass $rec         - запис на параметъра
+     * @param mixed    $domainClass - клас на домейна
+     * @param int      $domainId    - ид на домейна
+     * @param mixed    $value       - стойност
+     * @param array    $langs       - езиците, за които се индексира текст
+     *
+     * @return array - масив от обекти с полета lg, valueNum, valueKey, valueVerbal, valueId
+     */
+    public function getIndexValues($rec, $domainClass, $domainId, $value, $langs)
+    {
+        $value = trim((string) $value);
+        if (!strlen($value)) {
+
+            return array();
+        }
+
+        switch ($this->indexKind) {
+            case 'num':
+                return is_numeric($value) ? array($this->makeIndexRow(array('valueNum' => (float) $value))) : array();
+            case 'key':
+                $res = array();
+                foreach ($this->getIndexKeys($value) as $key) {
+                    $res[] = $this->makeIndexRow(array('valueKey' => mb_substr($key, 0, 255)));
+                }
+
+                return $res;
+            case 'text':
+                return $this->makeTextIndexRows($rec, $domainClass, $domainId, $value, $langs);
+        }
+
+        return array();
+    }
+
+
+    /**
+     * Вербално представяне на индексиран ред
+     *
+     * @param stdClass $rec         - запис на параметъра
+     * @param mixed    $domainClass - клас на домейна
+     * @param int      $domainId    - ид на домейна
+     * @param stdClass $iRec        - запис от индекса
+     *
+     * @return mixed
+     */
+    public function getIndexVerbal($rec, $domainClass, $domainId, $iRec)
+    {
+        if (isset($iRec->valueVerbal)) {
+
+            return type_Varchar::escape($iRec->valueVerbal);
+        }
+
+        $value = $iRec->valueKey ?? $iRec->valueNum ?? null;
+        if (!isset($value)) {
+
+            return '';
+        }
+
+        return $this->toVerbal($rec, $domainClass, $domainId, $value);
+    }
+
+
+    /**
+     * Ключовете, които се индексират за стойността
+     *
+     * @param string $value
+     *
+     * @return array
+     */
+    protected function getIndexKeys($value)
+    {
+        return array($value);
+    }
+
+
+    /**
+     * Текстови редове за индекса - по един за език или един общ, ако не зависи от езика
+     *
+     * @param stdClass $rec         - запис на параметъра
+     * @param mixed    $domainClass - клас на домейна
+     * @param int      $domainId    - ид на домейна
+     * @param mixed    $value       - стойност
+     * @param array    $langs       - езици
+     * @param int|null $valueId     - ид на обекта, ако стойността е обект
+     *
+     * @return array
+     */
+    protected function makeTextIndexRows($rec, $domainClass, $domainId, $value, $langs, $valueId = null)
+    {
+        $texts = array();
+        foreach ($langs as $lg) {
+            core_Lg::push($lg);
+            Mode::push('text', 'plain');
+            try {
+                $verbal = $this->toVerbal($rec, $domainClass, $domainId, $value);
+            } finally {
+                Mode::pop('text');
+                core_Lg::pop();
+            }
+
+            $verbal = html_entity_decode(strip_tags((string) $verbal), ENT_QUOTES, 'UTF-8');
+            $verbal = trim(preg_replace('/\s+/u', ' ', $verbal));
+            if (strlen($verbal)) {
+                $texts[$lg] = $verbal;
+            }
+        }
+
+        // Еднаквият текст на всички езици се пази веднъж
+        $uniqueTexts = array_unique($texts);
+        if (countR($uniqueTexts) == 1 && countR($texts) == countR($langs)) {
+            $texts = array('' => reset($uniqueTexts));
+        }
+
+        // Ключът е самата стойност с главна първа буква - по него се групират отметките във филтъра
+        $res = array();
+        foreach ($texts as $lg => $verbal) {
+            $key = mb_substr($this->getIndexKey($verbal), 0, 255);
+            $res[] = $this->makeIndexRow(array('lg' => $lg, 'valueKey' => $key, 'valueVerbal' => mb_substr($verbal, 0, 255), 'valueId' => $valueId));
+        }
+
+        return $res;
+    }
+
+
+    /**
+     * Ключът в индекса за текстова стойност
+     *
+     * @param string $verbal
+     *
+     * @return string
+     */
+    protected function getIndexKey($verbal)
+    {
+        return str::mbUcfirst($verbal);
+    }
+
+
+    /**
+     * Ред за индекса с празни полета по подразбиране
+     *
+     * @param array $fields
+     *
+     * @return stdClass
+     */
+    protected function makeIndexRow($fields)
+    {
+        return (object) ($fields + array('lg' => '', 'valueNum' => null, 'valueKey' => null, 'valueVerbal' => null, 'valueId' => null));
     }
 }

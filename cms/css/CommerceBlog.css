@@ -1,0 +1,194 @@
+/* Public blog in the Commerce CMS theme. */
+body.commerce-blog {
+    background: #f4f6f8;
+    color: #182b3a;
+    font: 1rem/1.5 Arial, Helvetica, sans-serif;
+    min-width: 0;
+}
+.commerce-blog .externalPage #maincontent { background: #f4f6f8; }
+.commerce-blog .externalPage .centerContent {
+    width: calc(100% - 64px) !important;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+.commerce-blog .externalPage .narrowCenter { width: 100%; max-width: 1400px; }
+.commerce-blog .commerce-blog-layout {
+    display: grid;
+    grid-template-columns: 250px minmax(0, 1fr);
+    gap: 32px;
+    width: 100%;
+    padding: 24px 0 40px;
+    align-items: start;
+}
+.commerce-blog .commerce-blog-content { min-width: 0; }
+.commerce-blog #cmsNavigation {
+    width: auto;
+    margin: 0;
+    padding: 12px;
+    background: #fff;
+    border: 1px solid #dce3e8;
+    border-radius: 12px;
+    box-sizing: border-box;
+}
+.commerce-blog #cmsNavigation .nav_item {
+    position: relative;
+    padding: 3px 7px;
+    margin: 0;
+    background: transparent;
+    line-height: 1.35;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    font-size: 0.875rem;
+}
+.commerce-blog #cmsNavigation .nav_item a {
+    display: inline;
+    padding: 0;
+    margin: 0;
+    border: 0;
+    background: transparent !important;
+    box-shadow: none;
+    color: #405a68;
+    font-size: inherit;
+    font-weight: inherit;
+    line-height: inherit;
+    text-shadow: none;
+    text-decoration: none;
+    overflow-wrap: anywhere;
+}
+.commerce-blog #cmsNavigation .nav_item > a:first-child:not(.commerce-article-edit)::after { content: ""; position: absolute; inset: 0; border-radius: inherit; }
+.commerce-blog #cmsNavigation .nav_item a:hover { color: #145b73; }
+.commerce-blog #cmsNavigation .level1 { font-weight: 700; color: #182b3a; margin: 0 0 4px; }
+.commerce-blog #cmsNavigation .nav_item:hover,
+.commerce-blog #cmsNavigation .nav_item:focus-within,
+.commerce-blog #cmsNavigation .sel_page { background: #eaf2f5; border-color: #d0e2e9; }
+.commerce-blog #cmsNavigation .level2,
+.commerce-blog #cmsNavigation .level3,
+.commerce-blog #cmsNavigation .level4,
+.commerce-blog #cmsNavigation .level5 {
+    margin: 0 0 0 17px;
+    padding: 3px 7px 3px 10px;
+    border-left: 2px solid #dce5e9;
+    border-radius: 0 5px 5px 0;
+    font-size: 0.8125rem;
+    font-weight: 400;
+}
+.commerce-blog #cmsNavigation .level3 { margin-left: 31px; }
+.commerce-blog #cmsNavigation .level4 { margin-left: 45px; }
+.commerce-blog #cmsNavigation .level5 { margin-left: 59px; }
+.commerce-blog #cmsNavigation .nav_item.sel_page { border-left-color: #145b73; }
+.commerce-blog #cmsNavigation .sel_page a { background: transparent !important; border: 0; box-shadow: none; color: #145b73; }
+.commerce-blog #cmsNavigation form { width: 100%; }
+.commerce-blog #cmsNavigation .blogm-search-form { display: flow-root; margin: 0; padding: 0; }
+.commerce-blog #cmsNavigation .blogm-workshop { clear: both; margin: 0 0 12px; }
+.commerce-blog #cmsNavigation .blogm-workshop .button {
+    display: block;
+    width: 100%;
+    min-height: 36px;
+    box-sizing: border-box;
+    margin: 0;
+    padding: 7px 10px 7px 36px !important;
+    border: 1px solid #dce5e9;
+    border-radius: 7px;
+    background-color: #f5f8fa !important;
+    background-position: 10px center !important;
+    background-repeat: no-repeat;
+    color: #334e5c !important;
+    font: 600 0.8125rem/1.35 Arial, Helvetica, sans-serif;
+    text-align: left;
+    text-decoration: none;
+    text-shadow: none;
+    box-shadow: none !important;
+    cursor: pointer;
+}
+.commerce-blog #cmsNavigation .blogm-workshop .button:hover,
+.commerce-blog #cmsNavigation .blogm-workshop .button:focus-visible {
+    background-color: #eaf2f5 !important;
+    border-color: #9bbac6;
+}
+.commerce-blog .blogm-browse > h1 {
+    margin: 0 0 16px;
+    padding: 16px 24px;
+    background: #fff;
+    border: 1px solid #dce3e8;
+    border-radius: 12px;
+    color: #182b3a;
+    font-size: clamp(1.625rem, 2.4vw, 2.25rem) !important;
+    line-height: 1.2;
+    letter-spacing: -.6px;
+}
+.commerce-blog .blogm-browse-article {
+    padding: 24px;
+    margin-bottom: 16px;
+    background: #fff;
+    border: 1px solid #dce3e8;
+    border-radius: 12px;
+    transition: border-color .18s, box-shadow .18s;
+}
+.commerce-blog .blogm-browse-article:hover {
+    border-color: #a9c3ce;
+    box-shadow: 0 4px 16px rgba(24,43,58,.06);
+}
+.commerce-blog .blogm-article-title,
+.commerce-blog .blogm-browse .blogm-article-title { margin: 0 0 12px; font-size: 1.75em; line-height: 1.25; color: #182b3a; }
+.commerce-blog .blogm-article-title a { font-size: inherit; line-height: inherit; color: #182b3a; text-decoration: none; }
+.commerce-blog .blogm-article-title a:hover { color: #145b73; }
+.commerce-blog .blogm-article-info {
+    padding: 0;
+    margin: 0 0 12px;
+    background: none;
+    color: #647582;
+    font-size: 0.8125rem;
+    line-height: 1.6;
+}
+.commerce-blog .blogm-article-body { margin: 12px 0 0; overflow-wrap: anywhere; }
+.commerce-blog .blogm-article-body .richtext { font-size: 1rem; line-height: 1.75; color: #344b59; }
+.commerce-blog .blogm-article-body img { max-width: 100%; height: auto; border-radius: 8px; }
+.commerce-blog .blogmBrowseImg { margin: 0 0 16px 24px; max-width: 38%; }
+.commerce-blog .commerce-blog-content:has(> .blogm-article-title) {
+    padding: 28px;
+    background: #fff;
+    border: 1px solid #dce3e8;
+    border-radius: 12px;
+}
+.commerce-blog .path { color: #647582; font-size: 0.8125rem; margin-bottom: 16px; }
+.commerce-blog .blogm-article-body .prevNextNav {
+    display: flow-root;
+    margin-top: 24px;
+    padding: 16px 0 0;
+    background: none;
+    border: 0;
+    border-top: 1px solid #dce3e8;
+    font-size: 0.9375rem;
+}
+.commerce-blog .prevNextNav a { color: #145b73; }
+.commerce-blog .blogm-comment { box-sizing: border-box; background: #f5f8fa; border: 1px solid #dce3e8; border-radius: 8px; padding: 16px; }
+.commerce-blog .blogm-comments { margin-top: 28px; }
+.commerce-blog .blogm-comment-form input[type=text],
+.commerce-blog .blogm-comment-form textarea {
+    max-width: 100%;
+    box-sizing: border-box;
+    padding: 9px 12px;
+    border: 1px solid #b9cbd4;
+    border-radius: 7px;
+    background: #fff;
+    box-shadow: none;
+    font: inherit;
+}
+.commerce-blog .blogm-comment-form input[type=submit] {
+    width: auto;
+    padding: 10px 22px;
+    background: #145b73;
+    color: #fff;
+    border: 1px solid #145b73;
+    border-radius: 7px;
+    box-shadow: none;
+    cursor: pointer;
+}
+@media (max-width: 800px) {
+    .commerce-blog .externalPage .centerContent { width: calc(100% - 32px) !important; }
+    .commerce-blog .commerce-blog-layout { grid-template-columns: minmax(0, 1fr); gap: 20px; padding-top: 16px; }
+    .commerce-blog .blogm-browse-article,
+    .commerce-blog .commerce-blog-content:has(> .blogm-article-title) { padding: 18px; }
+    .commerce-blog .blogm-article-title { font-size: 1.5em; }
+    .commerce-blog .blogmBrowseImg { float: none; display: block; max-width: 100%; margin: 0 0 16px; }
+}
