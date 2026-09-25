@@ -434,6 +434,8 @@ body.commerce-theme #cmsMenu .commerce-language-options {
 body.commerce-theme #cmsMenu.menuRow a.commerce-language-link {
     display: flex;
     align-items: center;
+    justify-content: flex-start;
+    text-align: left;
     gap: 0.7em;
     margin: 0;
     padding: 0.65em 0.8em;
