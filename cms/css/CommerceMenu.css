@@ -261,3 +261,39 @@ body.commerce-theme #cmsNavigation #simpleSearch #searchButton {
 }
 body.commerce-theme #cmsNavigation #simpleSearch #searchButton img { width: 12px; height: 13px; margin: 0; }
 body.commerce-theme #cmsNavigation #simpleSearch:focus-within { outline: 2px solid #92b8c6; outline-offset: 1px; border-color: #145b73; }
+
+/* Newsletter button injected by marketing_Bulletins; overrides its !important gradient styles. */
+body.commerce-theme .bulletin-link { padding-top: 12px; }
+body.commerce-theme .bulletin-link:empty { display: none; }
+body.commerce-theme .bulletin-link .push_button {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+    min-height: 40px;
+    box-sizing: border-box;
+    margin: 0 !important;
+    padding: 9px 14px !important;
+    border: 1px solid #145b73 !important;
+    border-radius: 7px;
+    background: #145b73 !important;
+    color: #fff !important;
+    font: 600 14px/1.4 Arial, Helvetica, sans-serif !important;
+    line-height: 1.4 !important;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    text-align: center;
+    text-shadow: none !important;
+    box-shadow: none !important;
+    top: 0 !important;
+    cursor: pointer;
+    transition: background-color 150ms ease, border-color 150ms ease;
+}
+body.commerce-theme .bulletin-link .push_button:hover {
+    background: #0e4356 !important;
+    border-color: #0e4356 !important;
+}
+body.commerce-theme .bulletin-link .push_button:focus-visible {
+    outline: 2px solid #145b73;
+    outline-offset: 3px;
+}
