@@ -190,7 +190,8 @@ class store_ReceiptDetails extends deals_DeliveryDocumentDetail
      */
     public static function on_AfterPrepareListRows(core_Mvc $mvc, $data)
     {
-        core_Lg::push($data->masterData->rec->tplLang);
+        $tplLang = $data->masterData->rec->tplLang ?? null;
+        core_Lg::push($tplLang);
         $date = ($data->masterData->rec->state == 'draft') ? null : $data->masterData->rec->modifiedOn;
         if (countR($data->rows)) {
             foreach ($data->rows as $i => &$row) {
@@ -198,7 +199,7 @@ class store_ReceiptDetails extends deals_DeliveryDocumentDetail
 
                 core_RowToolbar::createIfNotExists($row->_rowTools);
                 cat_Products::addButtonsToDocToolbar($rec->productId, $row->_rowTools, $mvc->className, $rec->id);
-                $row->productId = cat_Products::getAutoProductDesc($rec->productId, $date, 'short', 'public', $data->masterData->rec->tplLang, 1, false);
+                $row->productId = cat_Products::getAutoProductDesc($rec->productId, $date, 'short', 'public', $tplLang, 1, false);
                 deals_Helper::addNotesToProductRow($row->productId, $rec->notes);
             }
         }
