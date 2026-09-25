@@ -1137,7 +1137,7 @@ class core_Debug
      *
      * Клиентските грешки (4xx) най-често са предизвикани от ботове, сканиращи за
      * несъществуващи адреси, и не индикират проблем в системата. Рапортуват се
-     * само ако хитът идва от логнат потребител или от вътрешен линк
+     * само ако хитът идва от логнат потребител или от вътрешен линк в истински браузър
      *
      * @param array $state
      *
@@ -1153,9 +1153,10 @@ class core_Debug
             return true;
         }
 
-        // Счупен вътрешен линк - референтът е от домейна на системата
+        // Счупен вътрешен линк - референтът е от домейна на системата. Ботовете често
+        // пращат Referer към самия сайт, затова се изисква и валидна brid бисквитка
         $refHost = parse_url($_SERVER['HTTP_REFERER'] ?? '', PHP_URL_HOST);
-        if ($refHost && strcasecmp($refHost, $_SERVER['SERVER_NAME'] ?? '') === 0) {
+        if ($refHost && strcasecmp($refHost, $_SERVER['SERVER_NAME'] ?? '') === 0 && self::isHitFromBrowser()) {
 
             return true;
         }
@@ -1166,6 +1167,25 @@ class core_Debug
 
                 return true;
             }
+        } catch (Exception $e) {
+        } catch (Throwable $t) {
+        }
+
+        return false;
+    }
+
+
+    /**
+     * Дали хитът идва от истински браузър - с валидна brid бисквитка, която не е за бот
+     *
+     * @return bool
+     */
+    protected static function isHitFromBrowser()
+    {
+        try {
+            $brid = log_Browsers::getBrid(false);
+
+            return !empty($brid) && !log_Browsers::isBotBrid($brid, false);
         } catch (Exception $e) {
         } catch (Throwable $t) {
         }

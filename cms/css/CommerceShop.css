@@ -8,7 +8,7 @@
     color: var(--shop-ink);
     background: var(--shop-surface);
     font-family: Arial, Helvetica, sans-serif;
-    font-size: 16px;
+    font-size: 1rem;
     line-height: 1.5;
     min-width: 0;
 }
@@ -30,7 +30,7 @@
 
 .eshop-public #cmsMenu a {
     text-shadow: none;
-    font-size: 16px;
+    font-size: 1rem;
     padding: 12px 16px;
 }
 
@@ -82,7 +82,7 @@
     border: 1px solid var(--shop-line);
     border-radius: 12px;
     background: #fff;
-    font-size: 14px;
+    font-size: 0.875rem;
 }
 
 /* Category text and its edit action share one highlighted block. */
@@ -134,7 +134,7 @@
     padding: 3px 7px 3px 10px;
     border-left: 2px solid #dce5e9;
     border-radius: 0 5px 5px 0;
-    font-size: 13px;
+    font-size: 0.8125rem;
 }
 .eshop-public #cmsNavigation .level4,
 .eshop-public #cmsNavigation .level3.noRoot { margin-left: 31px; }
@@ -154,7 +154,7 @@
 .eshop-public .eshop-content h1 {
     margin: 0 0 24px;
     color: var(--shop-ink);
-    font-size: clamp(26px, 2.4vw, 36px) !important;
+    font-size: clamp(1.625rem, 2.4vw, 2.25rem) !important;
     line-height: 1.2;
     letter-spacing: -0.6px;
     overflow-wrap: anywhere;
@@ -162,7 +162,7 @@
 
 .eshop-public .path {
     color: var(--shop-muted);
-    font-size: 13px;
+    font-size: 0.8125rem;
 }
 
 .eshop-public .eshop-content h1.eshop-catalog-title {
@@ -283,7 +283,7 @@
 .eshop-public .eshop-group-button .eshop-group-button-title {
     height: auto;
     margin: 0;
-    font-size: 16px;
+    font-size: 1rem;
     font-weight: 700;
     line-height: 1.4;
     overflow-wrap: anywhere;
@@ -298,7 +298,7 @@
 
 .eshop-public .eshop-group-arrow {
     color: var(--shop-accent);
-    font-size: 24px;
+    font-size: 1.5rem;
     line-height: 1;
     transition: transform 150ms ease;
 }
@@ -355,7 +355,7 @@
 }
 
 .eshop-public .eshop-product-list .eshop-product-list-name {
-    font-size: 18px;
+    font-size: 1.125rem;
     line-height: 1.4;
     padding: 0 0 14px;
 }
@@ -376,7 +376,7 @@
     margin: 0 4px 8px 0;
     background: var(--shop-surface);
     border-color: var(--shop-line);
-    font-size: 12px;
+    font-size: 0.75rem;
 }
 
 .eshop-public .eshop-product-labels .eshop-card-price {
@@ -385,12 +385,12 @@
     border: 0;
     padding: 10px 0;
     color: var(--shop-ink);
-    font-size: 16px;
+    font-size: 1rem;
 }
 
 .eshop-public .eshop-card-content > .richtext {
     color: var(--shop-muted);
-    font-size: 14px;
+    font-size: 0.875rem;
     line-height: 1.6;
 }
 
@@ -406,7 +406,7 @@ body.eshop-public .productBtn {
     border-radius: 7px;
     background: #fff !important;
     color: #145b73 !important;
-    font: 600 14px/1.4 Arial, sans-serif;
+    font: 600 0.875rem/1.4 Arial, sans-serif;
     text-decoration: none;
     text-shadow: none;
     box-shadow: none;
@@ -490,7 +490,7 @@ body.eshop-public a.eshop-edit-link img {
 .eshop-public .eshop-product .optionsTable {
     min-width: 320px;
     border-collapse: collapse;
-    font-size: 14px;
+    font-size: 0.875rem;
 }
 
 .eshop-public .optionsTable thead tr:first-child {
@@ -507,27 +507,28 @@ body.eshop-public a.eshop-edit-link img {
     border-bottom: 1px solid var(--shop-line);
 }
 
-/* Price on its own row; "Buy" and "Inquiry" share the next row half and half and never wrap. */
-.eshop-public .optionsTable .priceCol > b {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(max-content, 1fr));
-    justify-items: end;
+/* Price and actions stay together on one compact row. */
+body.eshop-public .optionsTable .priceCol > b {
+    display: flex;
+    justify-content: flex-end;
     align-items: center;
-    gap: 6px 8px;
+    gap: 8px;
+    white-space: nowrap;
 }
-.eshop-public .optionsTable .priceCol > b > .eshop-product-price-holder,
-.eshop-public .optionsTable .priceCol .eshop-product-price-holder + .eshop-product-buy-button:last-child {
-    grid-column: 1 / -1;
+body.eshop-public .optionsTable .priceCol .eshop-product-buy-button {
+    flex: 0 0 auto;
+    margin: 0;
 }
-.eshop-public .optionsTable .priceCol .eshop-product-buy-button:not(:last-child),
-.eshop-public .optionsTable .priceCol .eshop-product-buy-button + .eshop-product-buy-button {
-    justify-self: stretch;
-}
-body.eshop-public .optionsTable .priceCol .eshop-product-buy-button:not(:last-child) .productBtn,
-body.eshop-public .optionsTable .priceCol .eshop-product-buy-button + .eshop-product-buy-button .productBtn {
-    width: 100%;
+body.eshop-public .optionsTable .priceCol .productBtn {
+    width: auto;
     margin: 0 !important;
 }
+body.eshop-public .commerce-product-options {
+    clear: both;
+    width: 100%;
+    overflow-x: auto;
+}
+body.eshop-public .commerce-product-options .optionsTable { width: 100%; }
 
 .eshop-public .product-gallery + .productInfo .overflow-scroll {
     overflow: auto !important;
@@ -646,7 +647,7 @@ body.eshop-public .optionsTable .priceCol .eshop-product-buy-button + .eshop-pro
     padding: 0;
     background: none !important;
     color: var(--shop-ink, #182b3a);
-    font-size: 24px;
+    font-size: 1.5rem;
     font-weight: 700;
     line-height: 1.3;
 }
@@ -704,7 +705,7 @@ body.eshop-public .optionsTable .priceCol .eshop-product-buy-button + .eshop-pro
 
 .eshop-related-caption .productName {
     color: var(--shop-ink, #182b3a);
-    font-size: 15px;
+    font-size: 0.9375rem;
     font-weight: 600;
     line-height: 1.35;
     text-decoration: none;
@@ -728,7 +729,7 @@ body.eshop-public .optionsTable .priceCol .eshop-product-buy-button + .eshop-pro
     background: #eaf2f5;
     border-radius: 50%;
     color: var(--shop-accent, #145b73);
-    font-size: 19px;
+    font-size: 1.1875rem;
     line-height: 1;
     transition: color 180ms ease, background-color 180ms ease;
 }
@@ -778,12 +779,12 @@ body.eshop-public .optionsTable .priceCol .eshop-product-buy-button + .eshop-pro
         padding: 12px 2px 6px;
     }
     .eshop-related-caption .productName {
-        font-size: 13px;
+        font-size: 0.8125rem;
     }
     .eshop-related-arrow {
         flex-basis: 22px;
         height: 22px;
-        font-size: 16px;
+        font-size: 1rem;
     }
 }
 
@@ -837,13 +838,13 @@ body.eshop-public #cmsNavigation .commerce-shortcuts .nav_item > a {
     padding: 7px 10px !important;
     background: transparent !important;
     color: #334e5c !important;
-    font-size: 13px;
+    font-size: 0.8125rem;
     font-weight: 600;
     line-height: 1.35;
 }
 body.eshop-public #cmsNavigation .commerce-shortcuts .nav_item > a::before {
     content: "♡";
-    font-size: 21px;
+    font-size: 1.3125rem;
     font-weight: 400;
     line-height: 1;
     color: #a54b63;
@@ -872,7 +873,7 @@ body.eshop-public #cmsNavigation .commerce-shortcuts .sel_page {
     gap: 4px 16px;
     margin-bottom: 12px;
     color: var(--shop-muted);
-    font-size: 12px;
+    font-size: 0.75rem;
     line-height: 1.5;
 }
 .eshop-public .eshop-card-meta b {
@@ -882,13 +883,13 @@ body.eshop-public #cmsNavigation .commerce-shortcuts .sel_page {
 .eshop-public .eshop-card-content > .eshop-card-price {
     margin-bottom: 12px;
     color: var(--shop-ink);
-    font-size: 17px;
+    font-size: 1.0625rem;
     font-weight: 600;
 }
 .eshop-public .eshop-card-price > span,
 .eshop-public .eshop-card-sale-info {
     color: var(--shop-muted);
-    font-size: 13px;
+    font-size: 0.8125rem;
     font-weight: 400;
 }
 /* "с ДДС за бр." wraps as one piece, never a lone "бр." on the next line. */
@@ -900,7 +901,7 @@ body.eshop-public #cmsNavigation .commerce-shortcuts .sel_page {
 }
 .eshop-public .eshop-card-price-tail > span {
     color: var(--shop-muted);
-    font-size: 13px;
+    font-size: 0.8125rem;
     font-weight: 400;
 }
 .eshop-public .eshop-card-actions {
@@ -956,7 +957,7 @@ body.eshop-public .eshop-new-product {
     border-radius: 7px;
     background: #f5f9fa url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Cpath d='M8 3v10M3 8h10' fill='none' stroke='%23145b73' stroke-width='1.6' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat 12px center !important;
     color: #145b73 !important;
-    font: 600 14px/1.4 Arial, sans-serif;
+    font: 600 0.875rem/1.4 Arial, sans-serif;
     box-shadow: none;
     text-shadow: none;
     cursor: pointer;
@@ -1077,10 +1078,10 @@ body.eshop-public .cart-holder-external > h3 {
     grid-column: 1 / -1;
     margin: 0 !important;
     background: none;
-    font-size: 28px;
+    font-size: 1.75rem;
     color: #182b3a;
 }
-body.eshop-public #cart-view-count { font-size: 15px; font-weight: 400; color: #566675; }
+body.eshop-public #cart-view-count { font-size: 0.9375rem; font-weight: 400; color: #566675; }
 body.eshop-public .cart-view-buttons-top {
     grid-column: 1;
     display: flex;
@@ -1106,7 +1107,7 @@ body.eshop-public .cart-view-buttons-top a.eshop-link {
     background: transparent !important;
     box-shadow: none;
     color: #145b73 !important;
-    font-size: 14px;
+    font-size: 0.875rem;
     font-weight: 600;
     line-height: 1.4;
     text-decoration: none;
@@ -1127,7 +1128,7 @@ body.eshop-public .cart-view-buttons-top a.eshop-link:hover {
 body.eshop-public .cart-view-buttons-top a.cart-clear-link {
     margin-left: auto;
     color: #667781 !important;
-    font-size: 13px;
+    font-size: 0.8125rem;
     font-weight: 400;
 }
 body.eshop-public .cart-view-buttons-top a.cart-clear-link:hover {
@@ -1159,7 +1160,7 @@ body.eshop-public #cart-view-table { width: 100%; border-collapse: collapse; }
 body.eshop-public #cart-view-table th {
     background: #f3f6f8;
     color: #526875;
-    font-size: 12px;
+    font-size: 0.75rem;
     padding: 12px 10px;
     border: 0;
 }
@@ -1177,12 +1178,13 @@ body.eshop-public #cart-view-table input {
     box-sizing: border-box;
     box-shadow: none;
 }
-body.eshop-public .cart-holder-external .textInfo { font-size: 13px; line-height: 1.6; color: #566675; }
+body.eshop-public .cart-holder-external .textInfo { font-size: 0.8125rem; line-height: 1.6; color: #566675; }
 body.eshop-public .cartInfoBlock .order-info { margin: 0; padding: 0; }
-body.eshop-public .cartInfoBlock h4 { background: none; color: #182b3a; font-size: 17px; }
+body.eshop-public .cartInfoBlock h4 { background: none; color: #182b3a; font-size: 1.0625rem; }
 body.eshop-public .cartInfoBlock table { width: 100%; margin-left: 0 !important; }
-body.eshop-public .cartInfoBlock td { padding: 5px 3px; font-size: 14px; overflow-wrap: anywhere; }
-body.eshop-public .cartInfoBlock .summary-holder { margin: 16px 0; padding: 16px; border: 0; background: #eef4f6; }
+body.eshop-public .cartInfoBlock td { padding: 5px 3px; font-size: 0.875rem; overflow-wrap: anywhere; }
+body.eshop-public .cartInfoBlock td.aright { white-space: nowrap; overflow-wrap: normal; }
+body.eshop-public .cartInfoBlock .summary-holder { margin: 10px 0; padding: 10px 14px; border: 0; background: #eef4f6; }
 body.eshop-public .cart-view-buttons-right { float: none; text-align: left; }
 body.eshop-public .cart-view-buttons-right .eshop-btn {
     width: 100%;
@@ -1194,7 +1196,7 @@ body.eshop-public .cart-view-buttons-right .eshop-btn {
     color: #fff;
     box-shadow: none;
     text-shadow: none;
-    font-size: 15px;
+    font-size: 0.9375rem;
     box-sizing: border-box;
 }
 body.eshop-public .cart-view-buttons-right .eshop-btn[disabled] { opacity: .5; }
@@ -1217,7 +1219,7 @@ body.eshop-public .cart-view-buttons-right .eshop-btn {
 body.eshop-public .cart-view-buttons-right .eshop-btn:not([disabled]):hover {
     background: #0e4356 !important;
 }
-body.eshop-public #cart-view-total tr:last-child td { font-size: 19px; color: #182b3a; }
+body.eshop-public #cart-view-total tr:last-child td { font-size: 1.1875rem; color: #182b3a; }
 
 /* Parameter filters: one card with collapsible sections, like large marketplaces. */
 .eshop-public #cmsNavigation .eshop-param-filter {
@@ -1239,7 +1241,7 @@ body.eshop-public #cart-view-total tr:last-child td { font-size: 19px; color: #1
     border-bottom: 1px solid var(--shop-line);
     background: var(--shop-surface);
     color: var(--shop-ink);
-    font-size: 15px;
+    font-size: 0.9375rem;
     font-weight: 700;
 }
 .eshop-public #cmsNavigation a.eshop-param-filter-clear {
@@ -1247,7 +1249,7 @@ body.eshop-public #cart-view-total tr:last-child td { font-size: 19px; color: #1
     padding: 0;
     border: 0;
     color: var(--shop-accent);
-    font-size: 12px;
+    font-size: 0.75rem;
     font-weight: 600;
     text-decoration: underline;
 }
@@ -1265,7 +1267,7 @@ body.eshop-public #cart-view-total tr:last-child td { font-size: 19px; color: #1
     gap: 8px;
     padding: 10px 12px;
     color: var(--shop-ink);
-    font-size: 14px;
+    font-size: 0.875rem;
     font-weight: 700;
     line-height: 1.35;
     list-style: none;
@@ -1308,7 +1310,7 @@ body.eshop-public #cart-view-total tr:last-child td { font-size: 19px; color: #1
     border-radius: 0;
     background: transparent;
     color: var(--shop-ink);
-    font-size: 13px;
+    font-size: 0.8125rem;
     font-weight: 400;
     line-height: 1.35;
     text-decoration: none;
@@ -1364,7 +1366,7 @@ body.eshop-public #cart-view-total tr:last-child td { font-size: 19px; color: #1
     padding-left: 6px;
     white-space: nowrap;
     color: var(--shop-muted);
-    font-size: 12px;
+    font-size: 0.75rem;
     font-weight: 400;
 }
 .eshop-public #cmsNavigation .disabled .eshop-param-count {
@@ -1373,7 +1375,7 @@ body.eshop-public #cart-view-total tr:last-child td { font-size: 19px; color: #1
 .eshop-public #cmsNavigation details.eshop-param-filter-more > summary {
     padding: 6px 0 0;
     color: var(--shop-accent);
-    font-size: 12px;
+    font-size: 0.75rem;
     font-weight: 600;
     list-style: none;
     cursor: pointer;
@@ -1395,7 +1397,7 @@ body.eshop-public .option-not-in-stock {
     border: 1px solid transparent;
     border-radius: 7px !important;
     color: #fff;
-    font: 600 13px/1.35 Arial, Helvetica, sans-serif !important;
+    font: 600 0.8125rem/1.35 Arial, Helvetica, sans-serif !important;
     text-shadow: none !important;
     white-space: nowrap;
 }
@@ -1421,7 +1423,7 @@ body.eshop-public .option-not-in-stock.eshop-contact-us {
     border-radius: 7px !important;
     background: #f5f8fa !important;
     color: var(--shop-accent) !important;
-    font: 600 13px/1.35 Arial, Helvetica, sans-serif !important;
+    font: 600 0.8125rem/1.35 Arial, Helvetica, sans-serif !important;
     text-shadow: none !important;
     white-space: nowrap;
 }
@@ -1432,3 +1434,60 @@ body.eshop-public .option-not-in-stock.eshop-contact-us::before {
     height: 16px;
     background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Crect x='1.5' y='3.5' width='13' height='9' rx='1.5' fill='none' stroke='%23145b73'/%3E%3Cpath d='M2 4.5l6 4.5 6-4.5' fill='none' stroke='%23145b73' stroke-linejoin='round'/%3E%3C/svg%3E") center / 16px 16px no-repeat;
 }
+
+/* Keep dual actions compact and equal without expanding the price column. */
+body.eshop-public .optionsTable .priceCol .eshop-product-buy-button .productBtn {
+    box-sizing: border-box;
+    min-width: 0;
+    min-height: 34px;
+    padding: 7px 10px !important;
+    font-size: 0.8125rem;
+}
+body.eshop-public .optionsTable .priceCol > b > .eshop-product-price-holder {
+    margin: 0;
+    line-height: 1.4;
+}
+@media (max-width: 650px) {
+    body.eshop-public .optionsTable .priceCol > b { gap: 6px; }
+    body.eshop-public .optionsTable td,
+    body.eshop-public .optionsTable th { padding: 10px 6px; }
+}
+/* Delivery quotation notice belongs to the cart summary. */
+body.eshop-public .cartInfoBlock .info-transport {
+    display: block;
+    position: static;
+    transform: none;
+    margin: 8px 0;
+    padding: 12px 14px !important;
+    border: 1px solid #c5d5dc;
+    border-left: 3px solid #145b73;
+    border-radius: 7px;
+    background: #eef4f6;
+    color: #405a68;
+    font: 400 0.875rem/1.5 Arial, sans-serif !important;
+}
+
+/* Compact cart totals, with one clear separation before the final amount. */
+body.eshop-public #cart-view-total table {
+    float: none;
+    width: 100%;
+    margin: 0;
+    border-collapse: collapse;
+    border-spacing: 0;
+}
+body.eshop-public #cart-view-total td { padding: 3px 0; line-height: 1.4; }
+body.eshop-public #cart-view-total td:first-child { text-align: left; padding-right: 12px; color: #526875; }
+body.eshop-public #cart-view-total .cart-grand-total td {
+    padding-top: 7px;
+    border-top: 1px solid #d5e1e6;
+    font-size: 1.125rem;
+    color: #182b3a;
+}
+body.eshop-public #cart-view-total > .clearfix21 { display: none; }
+
+body.eshop-public .commerce-product-description {
+    font-size: 0.9375em;
+    line-height: 1.55;
+}
+
+body.eshop-public .commerce-product-description .richtext { font-size: 1em; line-height: inherit; }

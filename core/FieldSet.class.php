@@ -558,8 +558,8 @@ class core_FieldSet extends core_BaseClass
     public function getFieldType($name, $strict = true)
     {
         // Ако има такова поле в модела
-        if ($this->fields[$name]) {
-            
+        if (!empty($this->fields[$name])) {
+
             // Връщаме му типа
             return $this->fields[$name]->type;
         }

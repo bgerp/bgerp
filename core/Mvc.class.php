@@ -277,6 +277,11 @@ class core_Mvc extends core_FieldSet
         if (is_array($cond)) {
             $cond = $query->substituteArray($cond);
         }
+
+        // Полетата може да са подадени като масив - за ключа на кеша е нужен низ
+        if (is_array($fields)) {
+            $fields = implode(',', $fields);
+        }
         
         // Ако имаме кеширане, пробваме се да извлечем стойността от кеша
         if ($cache) {

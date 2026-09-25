@@ -728,6 +728,15 @@ function comboBoxInit(id, selectId) {
         selCombo.style.clip = 'rect(auto, auto, auto, ' + (width - arrow + clipPadding) + 'px)';
         txtCombo.style.paddingRight = '2px';
 
+        // In the commerce theme the input draws one complete field; only the
+        // native select arrow overlays it, keeping typed and suggested values.
+        if (document.body.classList.contains('commerce-theme')) {
+            txtCombo.style.width = (width + 1) + 'px';
+            txtCombo.style.marginRight = '0';
+            txtCombo.style.paddingRight = '28px';
+            selCombo.style.clip = 'rect(auto, auto, auto, ' + Math.max(0, width - 27) + 'px)';
+        }
+
         if (txtCombo.offsetHeight != selCombo.offsetHeight) {
             txtCombo.style.height = selCombo.offsetHeight + 'px';
         }

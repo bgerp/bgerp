@@ -141,17 +141,16 @@ class social_Followers extends core_Master
         
         // Намираме нейния запис
         $rec = self::fetch((int) $id);
-        
+        expect404($rec);
+
         // Записваме в историята, че сме направели споделяне
-        if ($rec) {
-            if (core_Packs::fetch("#name = 'vislog'") &&
-               vislog_History::add('Последване в ' . $rec->title)) {
-                if (!Mode::is('javascript', 'no') && !log_Browsers::detectBot()) {
-                   
-                   // Увеличаване на брояча на споделянията
-                    $rec->followersCnt++;
-                    self::save($rec, 'followersCnt');
-                }
+        if (core_Packs::fetch("#name = 'vislog'") &&
+           vislog_History::add('Последване в ' . $rec->title)) {
+            if (!Mode::is('javascript', 'no') && !log_Browsers::detectBot()) {
+
+               // Увеличаване на брояча на споделянията
+                $rec->followersCnt++;
+                self::save($rec, 'followersCnt');
             }
         }
         

@@ -1,11 +1,12 @@
-/* Checkout only: preserve framework fields, refresh and validation. */
-body.commerce-checkout #eshop_Carts-EditForm {
+/* Shared public forms in the commerce theme; framework behavior is preserved. */
+body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) {
     width: 100%;
     max-width: 800px;
     margin: 32px auto 48px;
 }
-body.commerce-checkout #eshop_Carts-EditForm .formTable {
+body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) .formTable {
     float: none;
+    font-size: 1rem;
     width: 100%;
     min-width: 0;
     border: 1px solid #dce5e9;
@@ -15,73 +16,72 @@ body.commerce-checkout #eshop_Carts-EditForm .formTable {
     box-shadow: 0 4px 20px rgba(24,43,58,.04);
     overflow: hidden;
 }
-body.commerce-checkout #eshop_Carts-EditForm .formTitle {
+body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) .formTitle {
     padding: 24px 28px 16px;
     background: #fff !important;
     color: #182b3a !important;
     border: 0;
-    font-size: 26px;
+    font-size: 1.625em;
     font-weight: 700;
     text-shadow: none;
 }
-body.commerce-checkout #eshop_Carts-EditForm .formSection {
+body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) .formSection {
     padding: 0 28px 24px;
     background: #fff !important;
     border: 0;
 }
-body.commerce-checkout #eshop_Carts-EditForm .formFields {
+body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) .formFields {
     padding: 0;
     margin: 0;
     background: none;
 }
-body.commerce-checkout #eshop_Carts-EditForm .vFormField { width: 100%; border-spacing: 0; }
-body.commerce-checkout #eshop_Carts-EditForm .formFieldCaption {
+body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) .vFormField { width: 100%; border-spacing: 0; }
+body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) .formFieldCaption {
     width: 150px;
-    padding: 10px 16px 10px 0;
+    padding: 6px 16px 6px 0;
     text-align: left;
     vertical-align: middle;
     color: #526875;
-    font-size: 14px;
+    font-size: 0.9375em;
     white-space: normal;
 }
-body.commerce-checkout #eshop_Carts-EditForm .formFieldCaption b { font-weight: 600; color: #263f4d; }
-body.commerce-checkout #eshop_Carts-EditForm .formElement { padding: 6px 0; min-width: 0; }
-body.commerce-checkout #eshop_Carts-EditForm .formGroup {
-    margin: 22px 0 10px;
-    padding: 16px 0 0;
+body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) .formFieldCaption b { font-weight: 600; color: #263f4d; }
+body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) .formElement { padding: 4px 0; min-width: 0; font-size: 0.9375em; }
+body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) .formGroup {
+    margin: 16px 0 8px;
+    padding: 12px 0 0;
     border: 0;
     border-top: 1px solid #e3ebef;
     border-radius: 0;
     background: transparent !important;
     color: #182b3a !important;
-    font-size: 18px;
+    font-size: 1.125em;
     font-weight: 600;
     text-shadow: none;
 }
-body.commerce-checkout #eshop_Carts-EditForm input:not([type=hidden]):not([type=submit]):not([type=button]):not([type=checkbox]):not([type=radio]),
-body.commerce-checkout #eshop_Carts-EditForm select:not(.select2-hidden-accessible),
-body.commerce-checkout #eshop_Carts-EditForm textarea {
-    width: 100% !important;
+body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) input:not([type=hidden]):not([type=submit]):not([type=button]):not([type=checkbox]):not([type=radio]),
+body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) select:not(.select2-hidden-accessible),
+body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) textarea {
     min-width: 0 !important;
     max-width: 100%;
     box-sizing: border-box;
-    min-height: 42px;
-    padding: 9px 12px;
+    min-height: 2.25rem;
+    padding: 6px 10px;
     border: 1px solid #b9cbd4;
     border-radius: 7px;
     background: #fff;
     color: #182b3a;
-    font: 15px/1.4 Arial, sans-serif;
+    font: 0.9375rem/1.4 Arial, sans-serif;
     box-shadow: none;
 }
-body.commerce-checkout #eshop_Carts-EditForm select.readonly,
-body.commerce-checkout #eshop_Carts-EditForm input[readonly] {
+body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) select.readonly,
+body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) input[readonly] {
     background: #f3f6f8;
     color: #62737d;
     border-color: #e0e7eb;
 }
-body.commerce-checkout #eshop_Carts-EditForm textarea { min-height: 90px; resize: vertical; }
-body.commerce-checkout #eshop_Carts-EditForm .richEdit {
+body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) textarea { min-height: 90px; resize: vertical; }
+body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) .richEdit {
     width: 100%;
     min-width: 0;
     border: 1px solid #b9cbd4;
@@ -89,23 +89,23 @@ body.commerce-checkout #eshop_Carts-EditForm .richEdit {
     box-sizing: border-box;
     background: #fff;
 }
-body.commerce-checkout #eshop_Carts-EditForm .richEdit:focus-within {
+body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) .richEdit:focus-within {
     outline: 2px solid #92b8c6;
     outline-offset: 1px;
     border-color: #145b73;
 }
-body.commerce-checkout #eshop_Carts-EditForm .richEdit textarea {
+body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) .richEdit textarea {
     display: block;
     margin: 0;
     border: 0;
     border-radius: 6px 6px 0 0;
     background: #fff !important;
 }
-body.commerce-checkout #eshop_Carts-EditForm .richEdit textarea:focus {
+body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) .richEdit textarea:focus {
     outline: none;
     box-shadow: none;
 }
-body.commerce-checkout #eshop_Carts-EditForm .richedit-toolbar {
+body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) .richedit-toolbar {
     padding: 5px;
     margin: 0;
     min-width: 0;
@@ -114,43 +114,43 @@ body.commerce-checkout #eshop_Carts-EditForm .richedit-toolbar {
     background: #f5f8fa;
     border-radius: 0 0 7px 7px;
 }
-body.commerce-checkout #eshop_Carts-EditForm .select2-container { width: 100% !important; min-width: 0; }
-body.commerce-checkout #eshop_Carts-EditForm .select2-selection {
-    min-height: 42px;
+body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) .select2-container { width: 100% !important; min-width: 0; }
+body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) .select2-selection {
+    min-height: 2.25rem;
     border: 1px solid #b9cbd4;
     border-radius: 7px;
     background: #fff;
     box-shadow: none !important;
 }
-body.commerce-checkout #eshop_Carts-EditForm .select2-selection--single .select2-selection__rendered {
-    height: 40px;
+body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) .select2-selection--single .select2-selection__rendered {
+    height: 2.125rem;
     max-height: none;
-    line-height: 40px;
+    line-height: 2.125rem;
     padding-left: 12px;
     color: #182b3a;
-    font-size: 15px;
+    font-size: 0.9375rem;
 }
-body.commerce-checkout #eshop_Carts-EditForm .select2-selection__arrow { height: 40px; }
-body.commerce-checkout #eshop_Carts-EditForm .select2-selection:focus,
-body.commerce-checkout #eshop_Carts-EditForm .select2-container--focus .select2-selection,
-body.commerce-checkout #eshop_Carts-EditForm .select2-container--open .select2-selection {
+body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) .select2-selection__arrow { height: 2.125rem; }
+body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) .select2-selection:focus,
+body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) .select2-container--focus .select2-selection,
+body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) .select2-container--open .select2-selection {
     outline: 2px solid #92b8c6 !important;
     outline-offset: 1px;
     border-color: #145b73;
     box-shadow: none !important;
 }
-body.commerce-checkout #eshop_Carts-EditForm input:focus,
-body.commerce-checkout #eshop_Carts-EditForm textarea:focus {
+body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) input:focus,
+body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) textarea:focus {
     outline: 2px solid #92b8c6;
     outline-offset: 1px;
     border-color: #145b73;
 }
-body.commerce-checkout #eshop_Carts-EditForm .formToolbar {
+body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) .formToolbar {
     padding: 0;
     background: none;
     border: 0;
 }
-body.commerce-checkout #eshop_Carts-EditForm .toolbar {
+body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) .toolbar {
     display: flex;
     flex-wrap: wrap;
     gap: 10px;
@@ -159,8 +159,8 @@ body.commerce-checkout #eshop_Carts-EditForm .toolbar {
     background: #f6f8fa;
     border-top: 1px solid #e3ebef;
 }
-body.commerce-checkout #eshop_Carts-EditForm .toolbar .button {
-    min-height: 42px;
+body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) .toolbar .button {
+    min-height: 2.25rem;
     margin: 0;
     padding: 10px 22px !important;
     border: 1px solid #c5d5dc;
@@ -169,27 +169,319 @@ body.commerce-checkout #eshop_Carts-EditForm .toolbar .button {
     color: #405a68 !important;
     box-shadow: none;
     text-shadow: none;
-    font: 600 14px/1.4 Arial, sans-serif;
+    font: 600 0.875rem/1.4 Arial, sans-serif;
     cursor: pointer;
 }
-body.commerce-checkout #eshop_Carts-EditForm .toolbar .submitBtn {
+body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) .toolbar :is(.submitBtn, input[type=submit]) {
     background: #145b73 !important;
     border-color: #145b73;
     color: #fff !important;
 }
-body.commerce-checkout #eshop_Carts-EditForm .toolbar .submitBtn:hover { background: #0e4356 !important; }
-body.commerce-checkout #eshop_Carts-EditForm .inputError,
-body.commerce-checkout #eshop_Carts-EditForm .richEdit textarea.inputError { border-color: #bd4050 !important; background-color: #fff4f5 !important; }
+body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) .toolbar :is(.submitBtn, input[type=submit]):hover { background: #0e4356 !important; }
+body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) .inputError,
+body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) .richEdit textarea.inputError { border-color: #bd4050 !important; background-color: #fff4f5 !important; }
 @media (max-width: 650px) {
-    body.commerce-checkout #eshop_Carts-EditForm { margin: 20px auto; }
-    body.commerce-checkout #eshop_Carts-EditForm .formTitle { padding: 20px 16px 12px; font-size: 23px; }
-    body.commerce-checkout #eshop_Carts-EditForm .formSection { padding: 0 16px 20px; }
-    body.commerce-checkout #eshop_Carts-EditForm .vFormField,
-    body.commerce-checkout #eshop_Carts-EditForm .vFormField > tbody,
-    body.commerce-checkout #eshop_Carts-EditForm .vFormField > tbody > tr,
-    body.commerce-checkout #eshop_Carts-EditForm .vFormField > tbody > tr > td { display: block; width: auto; }
-    body.commerce-checkout #eshop_Carts-EditForm .formFieldCaption { padding: 10px 0 2px; }
-    body.commerce-checkout #eshop_Carts-EditForm .formElement { padding: 3px 0; }
-    body.commerce-checkout #eshop_Carts-EditForm .toolbar { padding: 16px; }
-    body.commerce-checkout #eshop_Carts-EditForm .toolbar .button { flex: 1; }
+    body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) { margin: 20px auto; }
+    body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) .formTitle { padding: 20px 16px 12px; font-size: 1.4375em; }
+    body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) .formSection { padding: 0 16px 20px; }
+    body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) .vFormField,
+    body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) .vFormField > tbody,
+    body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) .vFormField > tbody > tr,
+    body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) .vFormField > tbody > tr > td { display: block; width: auto; }
+    body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) .formFieldCaption { padding: 10px 0 2px; }
+    body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) .formElement { padding: 3px 0; }
+    body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) .toolbar { padding: 16px; }
+    body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) .toolbar .button { flex: 1; }
+}
+
+/* Keep framework combo widths and paired controls intact. */
+body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) input:not(.combo):not([inputmode=decimals]):not([inputmode=decimal]):not([type=hidden]):not([type=submit]):not([type=button]):not([type=checkbox]):not([type=radio]),
+body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) select:not(.combo):not(.select2-hidden-accessible),
+body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) textarea { width: 100% !important; }
+body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) .inlineTo > .select2-container { width: calc(50% - 12px) !important; }
+body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) .formInfo {
+    margin: 0 0 16px;
+    padding: 0;
+    font: 0.875rem/1.5 Arial, sans-serif;
+    color: #526875;
+}
+body.commerce-theme .commerce-login-note {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 12px;
+    padding: 12px 16px;
+    border: 1px solid #dce5e9;
+    border-radius: 7px;
+    background: #f5f8fa;
+    color: #526875;
+}
+body.commerce-theme .commerce-login-note a { color: #145b73; font-weight: 600; text-decoration: none; }
+body.commerce-theme .commerce-login-note a:hover { text-decoration: underline; }
+body.commerce-theme table:has(> tbody > tr > #login-form) { width: 100%; border-spacing: 0; }
+body.commerce-theme #login-form { display: block; width: 100%; max-width: 480px; margin: 32px auto 48px; padding: 0; }
+body.commerce-theme #login-form form { margin: 0; }
+body.commerce-theme #login-form .formTitle img { display: none; }
+body.commerce-theme #login-form .formFieldCaption { width: 64px; padding-right: 10px; }
+body.commerce-theme #login-form .toolbar .button { width: 100%; background: #145b73 !important; color: #fff !important; border-color: #145b73; }
+body.commerce-theme #login-form > p { margin: 12px 0 0; font-size: 0.875rem; }
+body.commerce-theme #login-form .login-links { color: #145b73; text-decoration: none; }
+body.commerce-theme #login-form .login-links:hover { text-decoration: underline; }
+body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) .formTitle a { color: #145b73 !important; }
+body.commerce-theme #newEnquiryForm:has(> .eprod-form) { max-width: 1120px; }
+body.commerce-theme .eprod-form { display: flex; align-items: flex-start; gap: 24px; width: 100%; }
+body.commerce-theme .eprod-form > .vertical { display: block; flex: 1; min-width: 0; width: auto; }
+body.commerce-theme .eprod-form > .drawing { display: block; flex: 0 0 280px; width: 280px; padding: 24px 0; }
+body.commerce-theme .eprod-form > .drawing img { width: 100%; max-width: 100%; height: auto; }
+@media (max-width: 900px) {
+    body.commerce-theme .eprod-form { flex-direction: column; }
+    body.commerce-theme .eprod-form > .vertical { width: 100%; }
+    body.commerce-theme .eprod-form > .drawing { order: 1; flex: none; width: 240px; max-width: 100%; margin: 0 auto; padding: 0; }
+}
+
+/* Leave room for quantities' units and other numeric field hints. */
+body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) .formElement input:is([inputmode=decimals], [inputmode=decimal]):not(.combo) {
+    width: min(160px, 65%) !important;
+    vertical-align: middle;
+    margin-right: 6px;
+}
+/* Collapsible optional groups use a chevron instead of the legacy plus image. */
+body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) tr[class*="fs-toggle"] .formGroup {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    border: 1px solid #dce5e9;
+    border-radius: 7px;
+    background: #f5f8fa !important;
+    font-size: 1em;
+    transition: background-color .15s, border-color .15s;
+}
+body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) tr[class*="fs-toggle"] .formGroup:hover {
+    background: #edf4f7 !important;
+    border-color: #92b8c6;
+}
+body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) tr[class*="fs-toggle"] .btns-icon.plus { display: none !important; }
+body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) tr[class*="fs-toggle"] .formGroup::after {
+    content: "";
+    width: 7px;
+    height: 7px;
+    flex: 0 0 7px;
+    margin-left: auto;
+    border-right: 2px solid #145b73;
+    border-bottom: 2px solid #145b73;
+    transform: rotate(45deg);
+    transition: transform .15s;
+}
+body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) tr.openToggleRow .formGroup::after { transform: rotate(225deg); }
+
+/* The clipped native arrow sits over the complete editable combo field. */
+body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) select.combo {
+    z-index: 1;
+    padding: 0;
+    border-left: 0;
+    border-radius: 0 7px 7px 0;
+    cursor: pointer;
+    outline: none;
+}
+body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) .formElement > select.w25 + .select2-container {
+    width: min(150px, 45%) !important;
+    margin-right: 6px;
+    vertical-align: middle;
+}
+body.commerce-theme .select2-selection__rendered .color-preview,
+body.commerce-theme .select2-results__option .color-preview {
+    display: inline-block;
+    float: none;
+    width: 14px;
+    height: 14px;
+    box-sizing: border-box;
+    margin: 0 5px 0 0 !important;
+    vertical-align: middle;
+    border: 1px solid rgba(24,43,58,.2);
+    border-radius: 3px;
+}
+/* Compact choices, with labels remaining clickable. */
+body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) input:is([type=radio], [type=checkbox]) {
+    width: 14px;
+    height: 14px;
+    min-width: 14px;
+    min-height: 14px;
+    padding: 0;
+    margin: 0 5px 0 0;
+    vertical-align: middle;
+    accent-color: #145b73;
+    transform: none;
+}
+body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) input:is([type=radio], [type=checkbox]) + label {
+    font: 0.875rem/1.4 Arial, sans-serif;
+    vertical-align: middle;
+    color: #526875;
+    text-shadow: none;
+    cursor: pointer;
+}
+body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) input:is([type=radio], [type=checkbox]):checked + label {
+    color: #182b3a;
+}
+/* A block wrapper preserves the editor's rounded border (no table collapsing). */
+body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) .richEdit {
+    display: block;
+    border-collapse: separate;
+    background-clip: padding-box;
+}
+body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) .formElement:has(> .input_align_vertical_btn) {
+    padding: 10px;
+    border: 1px dashed #b9cbd4;
+    border-radius: 7px;
+    background: #f5f8fa;
+}
+body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) .input_align_vertical_btn {
+    float: none;
+    display: inline-block;
+    width: 36px;
+    height: 2.25rem;
+    min-height: 2.25rem;
+    padding: 0 !important;
+    margin: 0 8px 0 0;
+    border: 1px solid #b9cbd4;
+    border-radius: 7px;
+    background: #fff url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='18'%20height='18'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='%23145b73'%20stroke-width='1.8'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Cpath%20d='M12%2016V3m-5%205%205-5%205%205M4%2015v5a1%201%200%200%200%201%201h14a1%201%200%200%200%201-1v-5'/%3E%3C/svg%3E") center no-repeat !important;
+    font-size: 0;
+    box-shadow: none;
+    vertical-align: middle;
+    cursor: pointer;
+}
+body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) .input_align_vertical_btn:hover {
+    border-color: #145b73;
+    background-color: #eaf2f5 !important;
+}
+body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) .input_align_vertical {
+    float: none;
+    display: inline-block;
+    max-width: calc(100% - 52px);
+    vertical-align: middle;
+    overflow-wrap: anywhere;
+}
+body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) .simple-toolbar .rtbutton {
+    display: inline-block;
+    padding: 5px 10px;
+    border: 1px solid #dce5e9;
+    border-radius: 5px;
+    background: #fff;
+    color: #145b73;
+    font: 0.875rem/1.4 Arial, sans-serif;
+    cursor: pointer;
+}
+
+body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) .vFormField:has(.input_align_vertical_btn) {
+    border-collapse: separate;
+}
+/* Section headings extend beyond the fields to make their hierarchy clear. */
+body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) .formGroup {
+    margin-left: -12px;
+    margin-right: -12px;
+    padding-left: 12px;
+    padding-right: 12px;
+}
+body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) tr[class*="fs-toggle"] .formGroup {
+    margin-left: -12px;
+    margin-right: -12px;
+}
+body.commerce-theme .fuiHintLayer,
+body.commerce-theme .tooltip {
+    padding: 10px 14px;
+    border: 1px solid #c5d5dc;
+    border-radius: 8px;
+    background: #fff;
+    color: #263f4d;
+    box-shadow: 0 4px 16px rgba(24,43,58,.14);
+    font: 0.875em/1.5 Arial, sans-serif;
+    text-align: left;
+}
+body.commerce-theme .tooltip::after { border-top-color: #fff; }
+body.commerce-theme .tooltip.top::after { border-top-color: transparent; border-bottom-color: #fff; }
+body.commerce-theme .formFieldCaption .textHint {
+    border-bottom: 1px dotted #92b8c6;
+    cursor: help;
+}
+@media (max-width: 650px) {
+    body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) .formGroup,
+    body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) tr[class*="fs-toggle"] .formGroup {
+        margin-left: -8px;
+        margin-right: -8px;
+    }
+}
+/* Compact, centered login card. */
+body.commerce-theme #login-form { max-width: 420px; margin: 24px auto 32px; }
+body.commerce-theme #login-form .formTitle { padding: 18px 20px 10px; font-size: 1.4375em; text-align: center; }
+body.commerce-theme #login-form .formSection { padding: 0 20px 16px; }
+body.commerce-theme #login-form .formInfo { margin-bottom: 10px; }
+body.commerce-theme #login-form .toolbar { padding: 12px 20px; }
+body.commerce-theme #login-form .toolbar .button { font-size: 1rem; padding: 8px 18px !important; }
+body.commerce-theme #login-form > p { margin-top: 8px; text-align: center; }
+body.commerce-theme #login-form .commerce-password { position: relative; width: 100%; }
+body.commerce-theme #login-form input[name=pass] { padding-right: 42px !important; }
+body.commerce-theme #login-form .commerce-password-toggle {
+    position: absolute;
+    top: 1px;
+    right: 1px;
+    bottom: 1px;
+    width: 36px;
+    min-width: 0;
+    padding: 7px;
+    margin: 0;
+    border: 0;
+    border-radius: 0 6px 6px 0;
+    background: transparent;
+    color: #526875;
+    box-shadow: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+body.commerce-theme #login-form .commerce-password-toggle:hover { background: #edf4f7; color: #145b73; }
+body.commerce-theme #login-form .commerce-password-toggle:focus-visible { outline: 2px solid #92b8c6; outline-offset: -2px; }
+body.commerce-theme #login-form .commerce-password-toggle svg { width: 20px; height: 20px; }
+body.commerce-theme #login-form .commerce-eye-slash { display: none; }
+body.commerce-theme #login-form .commerce-password-toggle[aria-pressed=true] .commerce-eye-slash { display: block; }
+/* Consistent feedback for public forms, including validation summaries. */
+body.commerce-theme .formError,
+body.commerce-theme .formWarning,
+body.commerce-theme .formNotice {
+    box-sizing: border-box;
+    min-width: 0;
+    max-width: 100%;
+    margin: 0 0 14px;
+    padding: 12px 14px;
+    border: 1px solid #eccbd0;
+    border-left: 3px solid #bd4050;
+    border-radius: 7px;
+    background: #fff4f5;
+    color: #8f3040;
+    font: 0.875em/1.5 Arial, sans-serif;
+    text-align: left;
+    box-shadow: none;
+}
+body.commerce-theme .formWarning {
+    border-color: #e7d9b9;
+    border-left-color: #ab7a24;
+    background: #fff9ee;
+    color: #79591e;
+}
+body.commerce-theme .formNotice {
+    border-color: #c5d5dc;
+    border-left-color: #145b73;
+    background: #eef4f6;
+    color: #405a68;
+}
+body.commerce-theme :is(.formError, .formWarning, .formNotice) b { font-weight: 600; }
+body.commerce-theme :is(.formError, .formWarning, .formNotice) ul {
+    margin: 6px 0 0;
+    padding-left: 20px;
+}
+body.commerce-theme :is(.formError, .formWarning, .formNotice) li { margin: 3px 0; }
+body.commerce-theme .formWarning > div {
+    margin-top: 10px;
+    padding-top: 10px !important;
+    border-top: 1px solid #e7d9b9 !important;
 }

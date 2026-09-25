@@ -1161,7 +1161,8 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             $fld->FLD('dueDateStatus', 'varchar', 'caption=Състояние,smartCenter');
             $fld->FLD('currencyId', 'varchar', 'caption=Валута,tdClass=centered');
             $fld->FLD('invoiceValue', 'double(smartRound,decimals=2)', 'caption=Стойност');
-            $fld->FLD('invoiceValueBaseCurr', 'double(decimals=2)', 'caption=Стойност-> Сума-> лв.,smartCenter');
+            $baseCurrency = acc_Periods::getBaseCurrencyCode($rec->checkDate);
+            $fld->FLD('invoiceValueBaseCurr', 'double(decimals=2)', "caption=Стойност-> Сума-> {$baseCurrency},smartCenter");
             $fld->FLD('paidAmount', 'double(smartRound,decimals=2)', 'caption=Платено->сума');
             $fld->FLD('paidDates', 'varchar', 'caption=Платено->Плащания,smartCenter');
             if ($rec->unpaid == 'unpaid') {
@@ -1452,18 +1453,6 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                 $row->paidDates = "<span class= 'small'>" . self::getPaidDates($dRec, true) . '</span>';
             }
 
-            //СПОРЕД ДАТАТА НА ИЗДАВАНЕ НА ФАКТУРАТА
-            //ФАКТУРА ИЗДАДЕНА ПРЕДИ ЕВРОЗОНАТА
-            if ($dRec->invoiceDate < $euroZoneDate) {
-                if ($dRec->currencyId == 'BGN' && $baseCurrency == 'BGN') {
-                    $row->invoiceValue = $styleAmount($dRec->invoiceValue);
-                } elseif ($dRec->currencyId == 'EUR' && $baseCurrency == 'BGN') {
-                    $row->invoiceValue = $styleAmount($dRec->invoiceValue / 1.95583);
-                } elseif ($dRec->currencyId != 'EUR' && $dRec->currencyId != 'BGN' && $baseCurrency == 'BGN') {
-                    $row->invoiceValue = $styleAmount($dRec->invoiceValue / $dRec->rate);
-                }
-            }
-
             //Стойност на фактурата в основна валута
             $row->invoiceValueBaseCurr = $styleAmount($dRec->invoiceValue);
 
@@ -1531,25 +1520,12 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                 $row->invoiceOverSumm = $styleAmount($invoiceOverSumm * $dRec->rate);
             }
 
-            //Стойност на фактурата във валутата на издаване
-            if ($dRec->invoiceDate >= $euroZoneDate) {
-                if ($dRec->currencyId == 'EUR' && $baseCurrency == 'EUR') {
-                    $row->invoiceValue = $styleAmount($dRec->invoiceValue);
-                } elseif ($dRec->currencyId != 'EUR' && $baseCurrency == 'EUR') {
-                    $row->invoiceValue = $styleAmount($dRec->invoiceValue / $dRec->rate);
-                }
-            }
+        }
 
-            //Стойност на фактурата във валутата на издаване
-            if ($dRec->invoiceDate < $euroZoneDate) {
-                if ($dRec->currencyId == 'BGN' && $baseCurrency == 'EUR') {
-                    $row->invoiceValue = $styleAmount($dRec->invoiceValue * 1.95583);
-                } elseif ($dRec->currencyId != 'EUR' && $dRec->currencyId != 'BGN' && $baseCurrency == 'EUR') {
-                    $row->invoiceValue = $styleAmount($dRec->invoiceValue / ($dRec->rate / 1.95583));
-                } elseif ($dRec->currencyId == 'EUR' && $baseCurrency == 'EUR') {
-                    $row->invoiceValue = $styleAmount($dRec->invoiceValue);
-                }
-            }
+        //Стойност на фактурата във валутата на издаване
+        $invoiceCurrencyValue = self::getInvoiceCurrencyValue($rec, $dRec);
+        if (isset($invoiceCurrencyValue)) {
+            $row->invoiceValue = $styleAmount($invoiceCurrencyValue);
         }
 
         // Без права за цени в групиращия ред остава само името на контрагента
@@ -1870,6 +1846,59 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
 
 
     /**
+     * Стойността на фактурата във валутата на издаване - invoiceValue е в основната валута към датата на справката
+     *
+     * @param stdClass $rec
+     * @param stdClass $dRec
+     *
+     * @return float|null
+     */
+    private static function getInvoiceCurrencyValue($rec, $dRec)
+    {
+        $euroZoneDate = acc_Setup::getEurozoneDate();
+        $baseCurrency = acc_Periods::getBaseCurrencyCode($rec->checkDate);
+        $value = $dRec->invoiceValue;
+        $rate = $dRec->rate;
+
+        if ($rec->checkDate < $euroZoneDate) {
+            if ($dRec->invoiceDate < $euroZoneDate && $baseCurrency == 'BGN') {
+                if ($dRec->currencyId == 'BGN') {
+
+                    return $value;
+                }
+                if ($dRec->currencyId == 'EUR') {
+
+                    return $value / 1.95583;
+                }
+
+                return $value / $rate;
+            }
+
+            return null;
+        }
+
+        if ($baseCurrency != 'EUR') {
+
+            return null;
+        }
+        if ($dRec->currencyId == 'EUR') {
+
+            return $value;
+        }
+        if ($dRec->invoiceDate >= $euroZoneDate) {
+
+            return $value / $rate;
+        }
+        if ($dRec->currencyId == 'BGN') {
+
+            return $value * 1.95583;
+        }
+
+        return $value / ($rate / 1.95583);
+    }
+
+
+    /**
      * Допълва липсващите полета в редове от стари версии на справката.
      *
      * @param stdClass $dRec
@@ -1964,7 +1993,9 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
 
         $res->invoiceNo = $invoiceNo;
 
-        $res->invoiceValueBaseCurr = $invoiceValue * ($dRec->rate ?? 1);
+        // Като на екрана: invoiceValue вече е в основната валута
+        $res->invoiceValue = self::getInvoiceCurrencyValue($rec, $dRec);
+        $res->invoiceValueBaseCurr = $invoiceValue;
     }
 
 }

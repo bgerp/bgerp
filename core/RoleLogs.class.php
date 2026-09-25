@@ -168,6 +168,54 @@ class core_RoleLogs extends core_Manager
     
     
     /**
+     * Откроява промените спрямо предишния запис за същия потребител.
+     */
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    {
+        if (!isset($fields['roles']) || empty($rec->id) || empty($rec->userId) || empty($rec->createdOn)
+            || Mode::is('text', 'plain') || Mode::get('text-export')) {
+
+            return;
+        }
+
+        // Предишният запис може да е извън текущата страница или филтър.
+        $query = $mvc->getQuery();
+        $query->where(array("#userId = '[#1#]'", $rec->userId ?? null));
+        $query->where(array("(#createdOn < '[#1#]' OR (#createdOn = '[#1#]' AND #id < [#2#]))", $rec->createdOn ?? '', $rec->id ?? null));
+        $query->orderBy('createdOn', 'DESC');
+        $query->orderBy('id', 'DESC');
+        $query->show('roles');
+        $query->limit(1);
+
+        if (!$previousRec = $query->fetch()) {
+
+            return;
+        }
+
+        $roles = $rec->roles ?? '';
+        $diff = type_Keylist::getDiffArr($previousRec->roles ?? '', $roles);
+        if (empty($diff['add']) && empty($diff['delete'])) {
+
+            return;
+        }
+
+        $rolesType = $mvc->getFieldType('roles');
+        $verbalRoles = array();
+        foreach (keylist::toArray($roles) + $diff['delete'] as $roleId) {
+            $role = $rolesType->toVerbal("|{$roleId}|");
+            if (isset($diff['add'][$roleId])) {
+                $role = ht::createElement('span', array('class' => 'green nowrap', 'title' => tr('Добавена роля||Added role')), '+ ' . $role);
+            } elseif (isset($diff['delete'][$roleId])) {
+                $role = ht::createElement('del', array('class' => 'red nowrap', 'title' => tr('Премахната роля||Removed role')), '- ' . $role);
+            }
+            $verbalRoles[] = $role;
+        }
+
+        $row->roles = implode(', ', $verbalRoles);
+    }
+
+
+    /**
      *
      *
      * @param core_Mvc $mvc
@@ -243,6 +291,7 @@ class core_RoleLogs extends core_Manager
         }
         
         $data->query->orderBy('createdOn', 'DESC');
+        $data->query->orderBy('id', 'DESC');
     }
     
     

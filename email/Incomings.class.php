@@ -3524,6 +3524,11 @@ class email_Incomings extends core_Master
                     
                     $data->toolbar->addBtn('Артикул', $url, 'ef_icon=img/16/wooden-box.png,title=Създаване на артикул по това запитване');
                 }
+
+                // Правото 'add' в папката гарантира, че корицата ѝ е контрагент (@see deals_DealMaster::canAddToFolder)
+                if (sales_Sales::haveRightFor('add', (object) array('folderId' => $rec->folderId))) {
+                    $data->toolbar->addBtn('Продажба', array('sales_Sales', 'add', 'folderId' => $rec->folderId, 'foreignId' => $rec->containerId, 'ret_url' => true), array('order' => '25', 'row' => '2', 'ef_icon' => 'img/16/cart_go.png', 'title' => 'Създаване на продажба от имейла'));
+                }
             }
         }
 

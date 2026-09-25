@@ -1252,7 +1252,7 @@ class eshop_Carts extends core_Master
         }
 
         if ($rec->deliveryNoVat < 0) {
-            $body->replace(tr('Цената за транспорт ще ви бъде оферирана отделно за да я потвърдите или отхвърлите|*!'), 'PROBLEM_WITH_DELIVERY');
+            $body->replace(tr('Цената за транспорт ще ви бъде оферирана отделно, за да я потвърдите или отхвърлите|*!'), 'PROBLEM_WITH_DELIVERY');
         }
 
         $threadCount = doc_Threads::count("#folderId = {$saleRec->folderId}");
@@ -1713,8 +1713,11 @@ class eshop_Carts extends core_Master
                 $tpl->replace(core_Type::getByName('varchar')->toVerbal($rec->{$name}), $name);
             }
             
-            $nameCaption = ($rec->makeInvoice == 'person') ? 'Лице' : 'Фирма';
-            $tpl->replace(tr($nameCaption), 'INV_CAPTION');
+            // Do not retain the optional invoice-name block for its caption alone.
+            if (trim((string) ($rec->invoiceNames ?? '')) !== '') {
+                $nameCaption = ($rec->makeInvoice == 'person') ? 'Имена' : 'Фирма';
+                $tpl->replace(tr($nameCaption), 'INV_CAPTION');
+            }
             if (!empty($rec->invoiceUicNo)) {
                 $vatCaption = ($rec->makeInvoice == 'person') ? 'ЕГН' : 'ЕИК №';
                 $tpl->replace(tr($vatCaption), 'VAT_CAPTION');
@@ -1734,7 +1737,7 @@ class eshop_Carts extends core_Master
         }
         
         if ($rec->deliveryNoVat < 0) {
-            $tpl->replace(tr('Цената за транспорт ще ви бъде оферирана отделно за да я потвърдите или отхвърлите|*!'), 'deliveryError');
+            $tpl->replace(tr('Цената за транспорт ще ви бъде оферирана отделно, за да я потвърдите или отхвърлите|*!'), 'deliveryError');
         }
         
         if (!empty($rec->instruction)) {
