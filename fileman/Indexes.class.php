@@ -1073,7 +1073,7 @@ class fileman_Indexes extends core_Manager
             $content = $text;
         }
         
-        if ($textOcr !== false && is_string($textOcr)) {
+        if (is_string($textOcr) && (trim($textOcr) !== '' || $content === false)) {
             $content = $textOcr;
         }
 
@@ -1243,10 +1243,15 @@ class fileman_Indexes extends core_Manager
      *                по текстовия индекс, като за табличните файлове (xls/xlsx/ods/csv и др. -
      *                вижте $tabularExtensions) таб-разделените редове се преобразуват в
      *                markdown-подобни таблични редове
+     * @param string|null $extractionStatus ready|processing|error|empty|unsupported|unavailable
      * @return string|null
      */
-    public static function forceTextForIndex($fileHnd, $asMarkdownIfPossible = false)
+    public static function forceTextForIndex($fileHnd, $asMarkdownIfPossible = false, &$extractionStatus = null)
     {
+        $withStatus = func_num_args() > 2;
+        $extractionStatus = 'unavailable';
+        $failed = false;
+
         // Съдържанието в markdown е с предимство - то е с максимално запазена структура.
         // При какъвто и да е проблем с markdown обработката (ненастроена/липсваща програма,
         // неочаквано изключение от драйвер) падаме обратно към текстовата логика по-долу,
@@ -1255,12 +1260,14 @@ class fileman_Indexes extends core_Manager
             try {
                 $markdownContent = self::forceMarkdownForIndex($fileHnd);
 
-                if (!empty($markdownContent)) {
+                if (is_string($markdownContent) && trim($markdownContent) !== '') {
+                    $extractionStatus = 'ready';
 
                     return $markdownContent;
                 }
             } catch (Throwable $e) {
                 reportException($e);
+                $failed = true;
             }
         }
 
@@ -1270,23 +1277,86 @@ class fileman_Indexes extends core_Manager
         if ($fileTxtContent === false) {
             $me = cls::get(get_called_class());
             $fRec = fileman::fetchByFh($fileHnd);
-            if ($fRec && $fRec->dataId) {
-                $fData = fileman_Data::fetch($fRec->dataId);
-                $me->processFile($fData, dt::addSecs(120));
+            $dataId = $fRec->dataId ?? null;
+            if ($dataId) {
+                $fData = fileman_Data::fetch($dataId);
+                try {
+                    if ($fData) $me->processFile($fData, dt::addSecs(120));
+                } catch (Throwable $e) {
+                    if (!$withStatus) throw $e;
+                    reportException($e);
+                    $failed = true;
+                }
                 $fileTxtContent = fileman_Indexes::getTextForIndex($fileHnd);
             }
         }
 
         // Ако няма извлечено или е извлечен празен стринг няма да се върне нищо
-        if ($fileTxtContent === false || empty(trim($fileTxtContent))) return null;
+        if (!is_string($fileTxtContent) || trim($fileTxtContent) === '') {
+            if (!$withStatus) return null;
+            try {
+                $extractionStatus = self::getContentExtractionStatus($fileHnd, $asMarkdownIfPossible);
+            } catch (Throwable $e) {
+                reportException($e);
+                $extractionStatus = 'error';
+            }
+            if ($failed && $extractionStatus !== 'processing') $extractionStatus = 'error';
+
+            return null;
+        }
 
         $fileTxtContent = trim($fileTxtContent);
+        $extractionStatus = 'ready';
 
         if ($asMarkdownIfPossible && self::isTabularFileExt($fileHnd)) {
             $fileTxtContent = str::tabsToMarkdownTable($fileTxtContent);
         }
 
         return $fileTxtContent;
+    }
+
+
+    /**
+     * Разграничава липсващия резултат от завършила празна или неуспешна обработка.
+     */
+    protected static function getContentExtractionStatus($fileHnd, $asMarkdownIfPossible)
+    {
+        $fRec = fileman_Files::fetchByFh($fileHnd);
+        $dataId = $fRec->dataId ?? null;
+        if (!$dataId) return 'unavailable';
+
+        $types = $asMarkdownIfPossible ? array('markdown', 'text', 'textOcr') : array('text', 'textOcr');
+        $failed = $empty = false;
+        foreach ($types as $type) {
+            $lockId = fileman_webdrv_Generic::getLockId($type, $dataId);
+            if (core_Locks::isLocked($lockId)) return 'processing';
+
+            $content = self::getInfoContentByFh($fileHnd, $type);
+            if (is_object($content) && !empty($content->errorProc)) $failed = true;
+            if (is_string($content) && trim($content) === '') $empty = true;
+        }
+        if ($failed) return 'error';
+        if ($empty) return 'empty';
+
+        $name = $fRec->name ?? '';
+        $ext = strtolower(fileman_Files::getExt($name));
+        if (self::getDrvForMethod($ext, 'extractText', $name) || isset(self::$ocrIndexArr[$ext])) {
+            return 'unavailable';
+        }
+
+        if ($asMarkdownIfPossible) {
+            $intf = fileman_webdrv_Generic::getMarkdownIntf();
+            if ($intf) {
+                if ($intf->canExtract($fRec)) return 'unavailable';
+                // canExtract() може да откаже заради размер или настройки, а не заради формата.
+                $converter = $intf->class ?? null;
+                if (!$converter || !method_exists($converter, 'getAllowedExtArr')) return 'unavailable';
+                $extensions = $converter->getAllowedExtArr();
+                if (isset($extensions[$ext])) return 'unavailable';
+            }
+        }
+
+        return 'unsupported';
     }
 
 
@@ -1308,12 +1378,13 @@ class fileman_Indexes extends core_Manager
         // Ако все още не е извлечено съдържанието, форсираме извличането му
         if ($content === false) {
             $fRec = fileman::fetchByFh($fileHnd);
+            $dataId = $fRec->dataId ?? null;
 
-            if ($fRec && $fRec->dataId) {
+            if ($dataId) {
                 fileman_webdrv_Generic::extractMarkdown($fRec);
 
                 // Изчакваме, докато приключи обработката
-                $lockId = fileman_webdrv_Generic::getLockId('markdown', $fRec->dataId);
+                $lockId = fileman_webdrv_Generic::getLockId('markdown', $dataId);
                 $endOn = dt::addSecs($waitSecs);
 
                 while (core_Locks::isLocked($lockId)) {
@@ -1328,7 +1399,7 @@ class fileman_Indexes extends core_Manager
         }
 
         // Ако няма извлечено или е извлечен празен стринг, няма да се върне нищо
-        if ($content === false || empty(trim($content))) {
+        if (!is_string($content) || trim($content) === '') {
 
             return null;
         }
