@@ -511,6 +511,33 @@ class eshop_Groups extends core_Master
     
     
     /**
+     * Активните подгрупи от всички нива под групата, видими в менюто
+     *
+     * @param int $groupId
+     * @param int $menuId
+     *
+     * @return array - ид => ид
+     */
+    public static function getSubgroupIds($groupId, $menuId)
+    {
+        $res = array();
+        $parentIds = array($groupId => $groupId);
+        while (countR($parentIds)) {
+            $query = self::getQuery();
+            $query->where(array("#state = 'active' AND (#menuId = '[#1#]' OR LOCATE('|[#1#]|', #sharedMenus))", $menuId));
+            $query->in('saoParentId', $parentIds);
+            $query->show('id');
+
+            // Без вече обходените - при сгрешена структура да не се зацикли
+            $parentIds = array_diff_key(arr::extractValuesFromArray($query->fetchAll(), 'id'), $res, array($groupId => $groupId));
+            $res += $parentIds;
+        }
+
+        return $res;
+    }
+
+
+    /**
      * Подготвя данните за показването на страницата със всички групи
      */
     public function prepareAllGroups($data, $groupId = null)
@@ -578,6 +605,11 @@ class eshop_Groups extends core_Master
         }
 
         eshop_Products::prepareGroupList($data->products);
+
+        // При избор по параметри се показват намерените от цялото поддърво, без плочките на подгрупите
+        if (!empty($data->products->paramFilter->selected)) {
+            $data->recs = array();
+        }
     }
     
     

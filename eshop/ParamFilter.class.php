@@ -71,7 +71,10 @@ class eshop_ParamFilter
     public static function prepare($data)
     {
         $data->paramFilter = null;
-        if (!countR($data->recs) || !self::isEnabled()) return;
+
+        // Стойностите са и от подгрупите, въпреки че без избор се показват само е-артикулите на групата
+        $allRecs = $data->recs + ($data->subgroupRecs ?? array());
+        if (!countR($allRecs) || !self::isEnabled()) return;
 
         $isSearch = ($data->groupId == eshop_Groups::SEARCH_SYSTEM_ID);
         $start = self::startTimer('params');
@@ -81,21 +84,22 @@ class eshop_ParamFilter
 
         $selected = cat_products_ParamFilter::parseSelection(Request::get(self::URL_VAR, 'varchar'), $params);
         $lg = cat_products_ParamFilter::getLang();
-        $allRecs = $data->recs;
 
         // При търсенето изборът на категория стеснява е-артикулите, по които се броят параметрите
         $selectedGroups = $isSearch ? self::parseGroups(Request::get(self::GROUP_URL_VAR, 'varchar')) : array();
+        $recs = $allRecs;
         if (countR($selectedGroups)) {
-            $data->recs = array_filter($data->recs, function ($rec) use ($selectedGroups) {
+            $recs = array_filter($allRecs, function ($rec) use ($selectedGroups) {
                 return isset($selectedGroups[$rec->groupId ?? null]);
             });
+            $data->recs = $recs;
         }
 
         // Опциите, скрити в публичния изглед заради опаковките, не участват
         $start = self::startTimer('details');
         $hiddenDetailIds = self::getHiddenDetailIds($allRecs);
         self::stopTimer('details', $start);
-        $base = self::makeBase($data->recs, $hiddenDetailIds, $lg);
+        $base = self::makeBase($recs, $hiddenDetailIds, $lg);
         $allBase = self::makeBase($allRecs, $hiddenDetailIds, $lg);
 
         // Стойностите са от всички намерени, а бройките - от избраните категории; броят се е-артикулите, не опциите им
@@ -114,7 +118,7 @@ class eshop_ParamFilter
             $filter->groups = self::countGroups($allRecs, $selectedGroups, countR($selected) ? self::getMatchingEshopIds($allBase, $filter->values, $selected) : null);
         }
         if (countR($selected)) {
-            $data->recs = array_intersect_key($data->recs, self::getMatchingEshopIds($base, $filter->values, $selected));
+            $data->recs = array_intersect_key($recs, self::getMatchingEshopIds($base, $filter->values, $selected));
         }
         self::stopTimer('match', $start);
 

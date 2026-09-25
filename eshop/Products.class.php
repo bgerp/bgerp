@@ -658,6 +658,35 @@ class eshop_Products extends core_Master
     
     
     /**
+     * Е-артикулите от заявката, без скритите заради липса на цени
+     *
+     * @param core_Query    $pQuery            - заявка по е-артикулите
+     * @param int           $groupId           - показваната група
+     * @param stdClass|null $displayedGroupRec - групата, чиято настройка за цените важи, иначе тази на е-артикула
+     *
+     * @return array
+     */
+    private static function fetchGroupListRecs($pQuery, $groupId, $displayedGroupRec = null)
+    {
+        $pQuery->XPR('cOrder', 'double', "IF(#groupId = {$groupId}, #saoOrder, 999999999)");
+        $pQuery->EXT('showProductsWithoutPrices', 'eshop_Groups', "externalName=showProductsWithoutPrices,externalKey=groupId");
+        $pQuery->orderBy('cOrder,code');
+
+        $recs = array();
+        $haveDebug = haveRole('debug');
+        $settings = cms_Domains::getSettings();
+        while($pRec1 = $pQuery->fetch()){
+            $showProductsWithoutPrices = is_object($displayedGroupRec) ? $displayedGroupRec->showProductsWithoutPrices : $pRec1->showProductsWithoutPrices;
+            $pRec1->showProductsWithoutPrices = ($showProductsWithoutPrices == 'auto') ? ($settings->showProductsWithoutPrices ?? 'yes') : $showProductsWithoutPrices;
+            if($pRec1->showProductsWithoutPrices == 'no' && !$haveDebug) continue;
+            $recs[$pRec1->id] = $pRec1;
+        }
+
+        return $recs;
+    }
+
+
+    /**
      * Подготвя данните за артикулите от една група
      */
     public static function prepareGroupList($data)
@@ -711,17 +740,19 @@ class eshop_Products extends core_Master
             $perPage = eshop_Groups::fetchField($data->groupId, 'perPage');
             $perPage = !empty($perPage) ? $perPage : eshop_Setup::get('PRODUCTS_PER_PAGE');
         }
-        $pQuery->XPR('cOrder', 'double', "IF(#groupId = {$data->groupId}, #saoOrder, 999999999)");
-        $pQuery->EXT('showProductsWithoutPrices', 'eshop_Groups', "externalName=showProductsWithoutPrices,externalKey=groupId");
-        $pQuery->orderBy('cOrder,code');
+        $data->recs = self::fetchGroupListRecs($pQuery, $data->groupId, $displayedGroupRec);
 
-        $haveDebug = haveRole('debug');
-        $settings = cms_Domains::getSettings();
-        while($pRec1 = $pQuery->fetch()){
-            $showProductsWithoutPrices = is_object($displayedGroupRec) ? $displayedGroupRec->showProductsWithoutPrices : $pRec1->showProductsWithoutPrices;
-            $pRec1->showProductsWithoutPrices = ($showProductsWithoutPrices == 'auto') ? ($settings->showProductsWithoutPrices ?? 'yes') : $showProductsWithoutPrices;
-            if($pRec1->showProductsWithoutPrices == 'no' && !$haveDebug) continue;
-            $data->recs[$pRec1->id] = $pRec1;
+        // Филтърът по параметри обхваща и е-артикулите от подгрупите; показват се само при избор
+        $data->subgroupRecs = array();
+        if(!empty($data->withParamFilter) && $data->groupId > 0 && eshop_ParamFilter::isEnabled()){
+            $subgroupIds = eshop_Groups::getSubgroupIds($data->groupId, $data->menuId);
+            if(countR($subgroupIds)){
+                $sQuery = self::getQuery();
+                $sQuery->where("#state = 'active' AND #saleState != 'closed'");
+                $sQuery->in('groupId', $subgroupIds);
+                $sQuery->orLikeKeylist('sharedInGroups', keylist::fromArray($subgroupIds));
+                $data->subgroupRecs = array_diff_key(self::fetchGroupListRecs($sQuery, $data->groupId), $data->recs);
+            }
         }
 
         // Намерените се подреждат по рейтинг, както в бързото търсене
@@ -758,6 +789,7 @@ class eshop_Products extends core_Master
             eshop_ProductDetails::preloadPublicPrices(arr::extractValuesFromArray($optQuery->fetchAll(), 'productId'));
         }
 
+        $haveDebug = haveRole('debug');
         $commerceTheme = cms_Domains::getCmsSkin() instanceof cms_CommerceTheme;
         foreach ($data->recs as $pRec) {
             if (!$data->Pager->isOnPage()) continue;
