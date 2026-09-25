@@ -423,7 +423,7 @@ class SimpleXLSX {
 			foreach ( $relations->Relationship as $rel ) {
 
 				$rel_type = trim( (string) $rel['Type'] );
-				$rel_target = trim( (string) $rel['Target'] );
+				$rel_target = ltrim( trim( (string) $rel['Target'] ), '/' );
 
 				if ( $rel_type === self::SCHEMA_REL_OFFICEDOCUMENT && $this->workbook = $this->getEntryXML( $rel_target ) ) {
 
@@ -446,7 +446,8 @@ class SimpleXLSX {
 						foreach ( $workbookRelations->Relationship as $workbookRelation ) {
 
 							$wrel_type = trim( (string) $workbookRelation['Type'] );
-							$wrel_path = dirname( trim( (string) $rel['Target'] ) ) . '/' . trim( (string) $workbookRelation['Target'] );
+							$wrel_target = trim( (string) $workbookRelation['Target'] );
+							$wrel_path = substr( $wrel_target, 0, 1 ) === '/' ? ltrim( $wrel_target, '/' ) : dirname( $rel_target ) . '/' . $wrel_target;
 							if ( ! $this->entryExists( $wrel_path ) ) {
 								continue;
 							}
@@ -530,10 +531,13 @@ class SimpleXLSX {
 //			echo '<pre>'.$name."\r\n".htmlspecialchars( $entry_xml ).'</pre>'.
 
 			// XML External Entity (XXE) Prevention
-			$_old         = libxml_disable_entity_loader();
-			$entry_xmlobj = simplexml_load_string( $entry_xml );
+			$_old = PHP_VERSION_ID < 80000 ? libxml_disable_entity_loader() : null;
+			try {
+				$entry_xmlobj = simplexml_load_string( $entry_xml, 'SimpleXMLElement', LIBXML_NONET );
+			} finally {
+				if ( $_old !== null ) libxml_disable_entity_loader( $_old );
+			}
 //			echo '<pre>'.print_r( $entry_xmlobj, true).'</pre>';
-			libxml_disable_entity_loader($_old);
 			if ( $entry_xmlobj ) {
 				return $entry_xmlobj;
 			}
