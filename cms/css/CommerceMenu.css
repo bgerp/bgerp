@@ -265,7 +265,8 @@ body.commerce-theme #cmsNavigation #simpleSearch:focus-within { outline: 2px sol
 /* Newsletter button injected by marketing_Bulletins; overrides its !important gradient styles. */
 body.commerce-theme .bulletin-link { padding-top: 12px; }
 body.commerce-theme .bulletin-link:empty { display: none; }
-body.commerce-theme .bulletin-link .push_button {
+body.commerce-theme .bulletin-link .push_button,
+body.commerce-theme .bulletinReg .push_button {
     display: block;
     width: 100%;
     max-width: 100%;
@@ -289,11 +290,37 @@ body.commerce-theme .bulletin-link .push_button {
     cursor: pointer;
     transition: background-color 150ms ease, border-color 150ms ease;
 }
-body.commerce-theme .bulletin-link .push_button:hover {
+body.commerce-theme .bulletin-link .push_button:hover,
+body.commerce-theme .bulletinReg .push_button:hover {
     background: #0e4356 !important;
     border-color: #0e4356 !important;
 }
-body.commerce-theme .bulletin-link .push_button:focus-visible {
+body.commerce-theme .bulletin-link .push_button:focus-visible,
+body.commerce-theme .bulletinReg .push_button:focus-visible {
     outline: 2px solid #145b73;
     outline-offset: 3px;
 }
+
+/* Subscription popup of marketing_Bulletins */
+body.commerce-theme .bulletinReg {
+    border-radius: 12px;
+    box-shadow: 0 12px 40px rgba(16, 39, 49, .35);
+    font-family: Arial, Helvetica, sans-serif;
+}
+body.commerce-theme .bulletinReg .push_button { margin: 12px 0 14px !important; }
+body.commerce-theme .bulletinFields .rowBulletin input {
+    height: 42px;
+    box-sizing: border-box;
+    border: 1px solid #b8c8d2;
+    border-radius: 6px;
+    color: #182b3a;
+    font: 16px/20px Arial, Helvetica, sans-serif;
+}
+body.commerce-theme .bulletinFields .rowBulletin input:focus {
+    outline: 2px solid #92b8c6;
+    outline-offset: 1px;
+    border-color: #145b73;
+}
+body.commerce-theme .bulletinFields .rowBulletin input.inputError { border-color: #c0392b; }
+body.commerce-theme .bulletinClose { text-shadow: none; }
+body.commerce-theme .bulletinCancel:hover { color: #145b73 !important; }
