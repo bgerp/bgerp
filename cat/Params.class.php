@@ -38,13 +38,19 @@ class cat_Params extends bgerp_ProtoParam
     /**
      * Действия с избраните
      */
-    public $doWithSelected = 'filterableon=Филтриране: включи,filterableoff=Филтриране: изключи';
+    public $doWithSelected = 'filterableon=Филтриране: вътрешно и в е-магазина,filterableinternal=Филтриране: само вътрешно,filterableoff=Филтриране: изключи';
 
 
     /**
      * Кой може да включва параметрите за филтриране
      */
     public $canFilterableon = 'cat,ceo';
+
+
+    /**
+     * Кой може да включва параметрите само за вътрешно филтриране
+     */
+    public $canFilterableinternal = 'cat,ceo';
 
 
     /**
@@ -129,7 +135,7 @@ class cat_Params extends bgerp_ProtoParam
         $this->FLD('showInPublicDocuments', 'enum(no=Не,yes=Да)', 'caption=Показване на параметъра->Външни документи,notNull,value=yes,maxRadio=2');
         $this->FLD('showInTasks', 'enum(no=Не,yes=Да)', 'caption=Показване на параметъра->Пр. операции,notNull,value=no,maxRadio=2');
         $this->FLD('editInLabel', 'enum(yes=Да,no=Не)', 'caption=Показване на параметъра->Редакция в етикет,notNull,value=yes,maxRadio=2');
-        $this->FLD('filterable', 'enum(no=Не,yes=Да)', 'caption=Филтриране на артикулите по параметъра->Използване,notNull,value=no,maxRadio=2');
+        $this->FLD('filterable', 'enum(no=Не,internal=Вътрешно,yes=Вътрешно и в е-магазина)', 'caption=Филтриране на артикулите по параметъра->Използване,notNull,value=no,maxRadio=3');
         $this->FLD('filterMode', 'enum(auto=Автоматично,values=Отделни стойности,ranges=Диапазони)', 'caption=Филтриране на артикулите по параметъра->Стойности,notNull,value=auto,hint=Автоматично - отделни стойности, а при много различни - диапазони');
         $this->FLD('state', 'enum(active=Активен,closed=Затворен,rejected=Оттеглен)', 'caption=Видимост,input=none,notSorting,notNull,value=active,smartCenter');
     }
@@ -229,7 +235,7 @@ class cat_Params extends bgerp_ProtoParam
             return;
         }
 
-        if ($newRec->filterable == 'yes' && $newRec->state != 'rejected') {
+        if (self::isFilterable($newRec)) {
             cat_products_ParamIndex::markDirtyByParams($newRec->id);
         } elseif (isset($exSign) && strpos($exSign, 'yes|') === 0) {
             cat_products_ParamIndex::removeParams($newRec->id);
@@ -251,7 +257,8 @@ class cat_Params extends bgerp_ProtoParam
             return null;
         }
 
-        $filterable = ($rec->filterable ?? 'no') == 'yes' && ($rec->state ?? null) != 'rejected' ? 'yes' : 'no';
+        // Вътрешното и в е-магазина се индексират еднакво - смяната между тях не пипа индекса
+        $filterable = self::isFilterable($rec) ? 'yes' : 'no';
 
         return $filterable . '|' . ($rec->driverClass ?? '') . '|' . md5(serialize($rec->driverRec ?? null));
     }
@@ -270,11 +277,33 @@ class cat_Params extends bgerp_ProtoParam
 
 
     /**
-     * Включване на избраните параметри за филтриране
+     * Дали параметърът се индексира за филтриране - вътрешно или и в е-магазина
+     *
+     * @param stdClass $rec
+     *
+     * @return bool
+     */
+    public static function isFilterable($rec)
+    {
+        return in_array($rec->filterable ?? 'no', array('internal', 'yes')) && ($rec->state ?? null) != 'rejected';
+    }
+
+
+    /**
+     * Включване на избраните параметри за филтриране вътрешно и в е-магазина
      */
     public function act_Filterableon()
     {
         return $this->changeFilterable('yes');
+    }
+
+
+    /**
+     * Включване на избраните параметри само за вътрешно филтриране
+     */
+    public function act_Filterableinternal()
+    {
+        return $this->changeFilterable('internal');
     }
 
 
@@ -290,13 +319,14 @@ class cat_Params extends bgerp_ProtoParam
     /**
      * Групова смяна на филтрирането на параметрите
      *
-     * @param string $value - yes или no
+     * @param string $value - yes, internal или no
      *
      * @return void
      */
     protected function changeFilterable($value)
     {
-        $action = ($value == 'yes') ? 'filterableon' : 'filterableoff';
+        $actions = array('yes' => 'filterableon', 'internal' => 'filterableinternal', 'no' => 'filterableoff');
+        $action = $actions[$value];
         $this->requireRightFor($action);
 
         $selArr = arr::make(Request::get('Selected', 'varchar'));
@@ -304,7 +334,7 @@ class cat_Params extends bgerp_ProtoParam
             $selArr[] = $id;
         }
 
-        $changed = array();
+        $changed = $toIndex = array();
         $skipped = 0;
         foreach ($selArr as $paramId) {
             $rec = is_numeric($paramId) ? $this->fetch($paramId) : null;
@@ -313,23 +343,26 @@ class cat_Params extends bgerp_ProtoParam
                 continue;
             }
 
-            // Индексът се обновява накуп след цикъла
+            // Индексът се обновява накуп след цикъла, само ако параметърът досега не е бил филтрируем
+            if (!self::isFilterable($rec)) {
+                $toIndex[$rec->id] = $rec->id;
+            }
             $rec->filterable = $value;
             $rec->_skipParamIndex = true;
             $this->save($rec, 'filterable');
-            $this->logWrite(($value == 'yes') ? 'Включване за филтриране' : 'Изключване от филтриране', $rec->id);
+            $this->logWrite(($value == 'no') ? 'Изключване от филтриране' : 'Включване за филтриране', $rec->id);
             $changed[$rec->id] = $rec->id;
         }
 
-        if (countR($changed)) {
-            if ($value == 'yes') {
-                cat_products_ParamIndex::markDirtyByParams($changed);
-            } else {
+        if ($value == 'no') {
+            if (countR($changed)) {
                 cat_products_ParamIndex::removeParams($changed);
             }
+        } elseif (countR($toIndex)) {
+            cat_products_ParamIndex::markDirtyByParams($toIndex);
         }
 
-        $msg = ($value == 'yes') ? 'Включени за филтриране' : 'Изключени от филтриране';
+        $msg = ($value == 'no') ? 'Изключени от филтриране' : 'Включени за филтриране';
         followRetUrl(array($this, 'list'), "|{$msg}|*: " . countR($changed) . ', |пропуснати|*: ' . $skipped);
     }
 
@@ -339,13 +372,12 @@ class cat_Params extends bgerp_ProtoParam
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
-        if (in_array($action, array('filterableon', 'filterableoff')) && isset($rec)) {
+        $actions = array('filterableon' => 'yes', 'filterableinternal' => 'internal', 'filterableoff' => 'no');
+        if (isset($actions[$action]) && isset($rec)) {
             $rec = $mvc->fetchRec($rec);
-            if (!$rec || $rec->state == 'rejected') {
+            if (!$rec || $rec->state == 'rejected' || $rec->filterable == $actions[$action]) {
                 $requiredRoles = 'no_one';
-            } elseif ($action == 'filterableon' && ($rec->filterable == 'yes' || !self::canBeFilterable($rec))) {
-                $requiredRoles = 'no_one';
-            } elseif ($action == 'filterableoff' && $rec->filterable != 'yes') {
+            } elseif ($action != 'filterableoff' && !self::canBeFilterable($rec)) {
                 $requiredRoles = 'no_one';
             }
         }

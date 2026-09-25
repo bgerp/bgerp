@@ -445,7 +445,7 @@ class cat_products_ParamIndex extends core_Manager
     {
         if (!isset(self::$filterableParams)) {
             $query = cat_Params::getQuery();
-            $query->where("#filterable = 'yes' AND #state != 'rejected'");
+            $query->where("#filterable IN ('internal', 'yes') AND #state != 'rejected'");
             self::$filterableParams = $query->fetchAll();
         }
 
@@ -728,7 +728,7 @@ class cat_products_ParamIndex extends core_Manager
     {
         $data->listFilter->FLD('product', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,withClosed,allowEmpty)', 'caption=Артикул,silent');
         $data->listFilter->FLD('param', 'key(mvc=cat_Params,select=typeExt,allowEmpty)', 'caption=Параметър,silent');
-        $data->listFilter->setOptions('param', array('' => '') + cat_Params::makeArray4Select('typeExt', "#filterable = 'yes'"));
+        $data->listFilter->setOptions('param', array('' => '') + cat_Params::makeArray4Select('typeExt', "#filterable IN ('internal', 'yes')"));
         $data->listFilter->showFields = 'product,param';
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');

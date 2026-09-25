@@ -34,16 +34,16 @@ class cat_products_ParamFilter
     /**
      * Филтрируемите параметри по реда им
      *
-     * @param bool $onlyPublic - само показваните във външни документи
+     * @param bool $onlyEshop - само филтрируемите и в е-магазина
      *
      * @return array - ид => запис
      */
-    public static function getParams($onlyPublic = false)
+    public static function getParams($onlyEshop = false)
     {
         $params = array();
         foreach (cat_products_ParamIndex::getFilterableParams() as $pRec) {
             if (($pRec->state ?? null) != 'active') continue;
-            if ($onlyPublic && ($pRec->showInPublicDocuments ?? null) != 'yes') continue;
+            if ($onlyEshop && ($pRec->filterable ?? null) != 'yes') continue;
 
             $params[$pRec->id] = $pRec;
         }
