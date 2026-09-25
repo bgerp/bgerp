@@ -30,7 +30,7 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
         'storeProducts' => 'Записи от наличностите',
         'products' => 'Различни артикули',
         'quantities' => 'С прочетено количество',
-        'withoutPrimeCost' => 'Без себестойност (пропуснати)',
+        'withoutPrimeCost' => 'Без себестойност (отделни редове)',
         'belowMinCost' => 'Под мин. стойност (пропуснати)',
         'withPrimeCost' => 'Остават след себестойност',
         'soonDelivered' => 'Със скорошна доставка (пропуснати)',
@@ -224,7 +224,7 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
         $quantities = $this->getProductQuantities($productIds, $rec->storeId ?? null);
         self::addReportStat($data, 'quantities', microtime(true) - $timer, countR($quantities));
 
-        $prodArr = $notSelfPrice = $belowMinCost = array();
+        $prodArr = $notSelfPrice = $belowMinCost = $pricedProducts = array();
         $primeCosts = $missingPrices = $publicPrices = array();
         $minCost = $rec->minCost ?? 0;
 
@@ -257,13 +257,21 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
                 $productId = $pRec->productId ?? null;
                 $selfPrice = ($pRec->reportPrimeCost ?? null) ?: ($fallbackPrices[$productId] ?? null);
 
+                $pQuantity = $quantities[$productId] ?? 0;
+                $amount = $selfPrice ? $pQuantity * $selfPrice : null;
+                $code = !empty($pRec->code) ? $pRec->code : 'Art' . $productId;
+
                 if (!$selfPrice) {
-                    $notSelfPrice[$productId] = $productId;
+                    $notSelfPrice[$productId] = (object)array(
+                        'productId' => $productId,
+                        'pQuantity' => $pQuantity,
+                        'amount' => null,
+                        'code' => $code,
+                        'noPrice' => true,
+                    );
                     continue;
                 }
-                $pQuantity = $quantities[$productId] ?? 0;
-                $amount = $pQuantity * $selfPrice;
-                $code = !empty($pRec->code) ? $pRec->code : 'Art' . $productId;
+                $pricedProducts[$productId] = $productId;
 
                 if ($amount <= $minCost) {
                     $belowMinCost[$productId] = $productId;
@@ -287,10 +295,11 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
             Mode::pop('doNotCalculate');
         }
 
-        $notSelfPrice = array_values($notSelfPrice);
+        // Един артикул може да има различна драйверна цена за количествата в различни складове.
+        $notSelfPrice = array_diff_key($notSelfPrice, $pricedProducts);
         unset($storeProductRecs, $primeCosts, $fallbackPrices, $publicPrices);
 
-        self::addReportStat($data, 'withoutPrimeCost', 0, countR($notSelfPrice), $notSelfPrice);
+        self::addReportStat($data, 'withoutPrimeCost', 0, countR($notSelfPrice), array_keys($notSelfPrice));
         self::addReportStat($data, 'belowMinCost', 0, countR($belowMinCost), $belowMinCost);
         self::addReportStat($data, 'withPrimeCost', microtime(true) - $timer, countR($prodArr));
 
@@ -303,7 +312,9 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
         $rec->from = $startDate = dt::addSecs(-($rec->period ?? 0), dt::now());
         $rec->to = dt::today();
         $journalProdArr = array();
-        if (countR($prodArr)) {
+        // И редовете без цена имат количества и обороти.
+        $allCandidates = $prodArr + $notSelfPrice;
+        if (countR($allCandidates)) {
             // Кредитните количества от записи със сметка 321 за периода.
 
             $docTypeIdArr = array();
@@ -320,7 +331,7 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
 
             // Четат се само оборотите на останалите кандидати.
             $query->EXT('reportProductId', 'acc_Items', 'externalName=objectId,externalKey=creditItem2');
-            $query->in('reportProductId', array_keys($prodArr));
+            $query->in('reportProductId', array_keys($allCandidates));
             if (!empty($rec->storeId)) {
                 $query->EXT('reportStoreId', 'acc_Items', 'externalName=objectId,externalKey=creditItem1');
                 $query->where(array('#reportStoreId = [#1#]', $rec->storeId));
@@ -389,14 +400,14 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
         }
 
         $aboveReversibility = array();
-        foreach ($prodArr as $prod) {
+        foreach ($allCandidates as $prod) {
 
             $id = $prod->productId;
 
             $totalCreditQuantity = $journalProdArr[$prod->productId] ?? 0;
             $reversibility = $prod->pQuantity ? $totalCreditQuantity / $prod->pQuantity : 0;
 
-            if ($reversibility > ($rec->reversibility ?? 0)) {
+            if (empty($prod->noPrice) && $reversibility > ($rec->reversibility ?? 0)) {
                 $aboveReversibility[$id] = $id;
                 continue;
             }
@@ -407,6 +418,7 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
             if (!array_key_exists($id, $recs)) {
                 $recs[$id] = (object)array(
 
+                    'noPrice' => !empty($prod->noPrice),
                     'productId' => $prod->productId,                            //Id на артикула
                     'code' => $prod->code,                                      //код на артикула
                     'name' => cat_Products::getTitleById($prod->productId),     //Име на артикула
@@ -438,9 +450,31 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
             $this->logWhilePreparing($statsMsg);
         }
 
-        $recs['self'] = (object)array('info' => true, 'array' => $notSelfPrice);
+        $unpricedRecs = array_intersect_key($recs, $notSelfPrice);
+        $recs = array_diff_key($recs, $notSelfPrice);
+        if (countR($unpricedRecs)) {
+            $recs['self'] = (object)array('info' => true);
+            $recs += $unpricedRecs;
+        }
 
         return $recs;
+    }
+
+
+    /**
+     * Форматира показателите на тази справка за общата диагностика.
+     */
+    protected static function addReportStat(&$data, $key, $seconds, $count, $ids = array())
+    {
+        $msg = tr(static::$statCaptions[$key] ?? $key) . ": {$count}";
+        $seconds = round($seconds, 3);
+        if ($seconds > 0) $msg .= " / {$seconds} " . tr('сек.');
+        $shown = array_slice(array_values($ids), 0, 20);
+        if (countR($shown)) {
+            $rest = countR($ids) - countR($shown);
+            $msg .= ' (' . implode(', ', $shown) . ($rest > 0 ? ' ... +' . $rest : '') . ')';
+        }
+        static::setReportStat($data, $key, $msg);
     }
 
 
@@ -483,6 +517,31 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
             foreach ($sums as $productId => $sum) {
                 $price = round($sum / $counts[$productId], 4);
                 if ($price > 0) $prices[$productId] = $price;
+            }
+        }
+
+        // При липсваща кеширана складова цена проверяваме действителното салдо по 321.
+        // Всички липсващи пера се изчисляват наведнъж, в основната валута към днес.
+        $missingItems = array_filter($itemMap, function ($productId) use ($prices) {
+            return $prices[$productId] === null;
+        });
+        if (countR($missingItems) && (empty($storeId) || countR($storeItems))) {
+            $today = dt::today();
+            $Balance = new acc_ActiveShortBalance(array(
+                'from' => $today, 'to' => $today, 'accs' => '321',
+                'item1' => $storeItems, 'item2' => array_keys($missingItems),
+            ));
+            $amounts = $quantities = array();
+            foreach ($Balance->getBalance('321') as $balanceRec) {
+                $productId = $missingItems[$balanceRec->ent2Id ?? null] ?? null;
+                if (!$productId) continue;
+                $amounts[$productId] = ($amounts[$productId] ?? 0) + ($balanceRec->blAmount ?? 0);
+                $quantities[$productId] = ($quantities[$productId] ?? 0) + ($balanceRec->blQuantity ?? 0);
+            }
+            foreach ($amounts as $productId => $amount) {
+                if ($amount > 0 && $quantities[$productId] > 0) {
+                    $prices[$productId] = $amount / $quantities[$productId];
+                }
             }
         }
 
@@ -645,11 +704,11 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
         $row = new stdClass();
 
         if (!empty($dRec->info)) {
-            $row->productId = '<b>' . 'Артикули без себестойност:' . '</b></br></br>';
-            $i=0;
-            foreach ($dRec->array as $val) {
-                $i++;
-                $row->productId = ($row->productId ?? '') . $i.'>>'.cat_Products::getVerbal($val, 'name') . '</br>';
+            $row->productId = '<b>' . tr('Артикули без себестойност') . ':</b>';
+            // Старите запазени версии съдържат само ид-та, без количества и обороти.
+            // Пазим имената им видими до обновяване на справката.
+            foreach (($dRec->array ?? array()) as $productId) {
+                $row->productId .= '<br>' . cat_Products::getHyperlink($productId, true);
             }
 
             return $row;
@@ -659,7 +718,7 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
             $row->code = $dRec->code;
         }
         if (isset($dRec->productId)) {
-            $row->productId = cat_Products::getVerbal($dRec->productId, 'name');
+            $row->productId = cat_Products::getHyperlink($dRec->productId, true);
         }
 
         $measureId = cat_Products::fetchField($dRec->productId, 'measureId');
@@ -674,7 +733,9 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
             $row->storeQuantity = ht::styleNumber($Double->toVerbal($dRec->storeQuantity), $dRec->storeQuantity);
         }
 
-        if (isset($dRec->storeAmount)) {
+        if (!empty($dRec->noPrice)) {
+            $row->storeAmount = 'n.a.';
+        } elseif (isset($dRec->storeAmount)) {
             $row->storeAmount = ht::styleNumber($Double->toVerbal($dRec->storeAmount), $dRec->storeAmount);
         }
 
