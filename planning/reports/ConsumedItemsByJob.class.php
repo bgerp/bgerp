@@ -94,7 +94,7 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
         $fieldset->FLD('department', 'keylist(mvc=planning_Centers,select=name,allowEmpty)', 'caption=Ц-р дейност,after=title,placeholderType=all,removeAndRefreshForm,silent');
 
         //Задания
-        $fieldset->FLD('jobses', 'keylist2(mvc=planning_Jobs,selectSourceArr=planning_reports_ConsumedItemsByJob::getJobOptions,maxSuggestions=100,forceAjax,allowEmpty)', 'caption=Задания,placeholder=Всички активни,after=department,single=none,class=w100');
+        $fieldset->FLD('jobses', 'keylist2(mvc=planning_Jobs,selectSourceArr=planning_Jobs::getJobOptions,maxSuggestions=100,forceAjax,allowEmpty)', 'caption=Задания,placeholder=Всички активни,after=department,single=none,class=w100');
 
         //Да има ли филтър по артикул
         $fieldset->FLD('option', 'enum(yes=Включен,no=Изключен)', 'caption=Артикули по задание->Филтър по артикул,after=jobses,removeAndRefreshForm,silent');
@@ -179,8 +179,9 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
         $form->input('seeAmount');
 
 
-        // Артикулите за избор са само тези със задания в избраните центрове
-        if ($option == 'yes' && !empty($rec->department)) {
+        // Заданията и артикулите за избор са само от избраните центрове
+        if (!empty($rec->department)) {
+            $form->setFieldTypeParams('jobses', array('departments' => $rec->department));
             $form->setFieldTypeParams('products', array('departments' => $rec->department));
         }
     }
@@ -735,49 +736,6 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
         $productRec = cat_Products::fetch($dRec->productId);
         $res->name = $productRec->name ?? '';
         $res->measure = cat_UoM::fetchField($productRec->measureId ?? null, 'shortName');
-    }
-
-
-    /**
-     * Опции за избор на задания (@see type_Keylist2)
-     */
-    public static function getJobOptions($params, $limit = null, $q = '', $onlyIds = null, $includeHiddens = false)
-    {
-        $jQuery = planning_Jobs::getQuery();
-        $jQuery->orderBy('id', 'DESC');
-        $jQuery->show('id,productId');
-
-        if (is_array($onlyIds)) {
-            if (!countR($onlyIds)) {
-
-                return array();
-            }
-            $jQuery->in('id', $onlyIds);
-        } elseif (preg_match('/^[0-9,]+$/', (string) $onlyIds)) {
-            $jQuery->in('id', explode(',', trim($onlyIds, ',')));
-        } else {
-            $jQuery->in('state', array('active', 'wakeup', 'closed'));
-        }
-
-        if ($q) {
-            $q1 = plg_Search::normalizeText($q);
-            if (is_numeric($q1)) {
-                $jQuery->where(array("#id = '[#1#]'", $q1));
-            } else {
-                plg_Search::applySearch($q1, $jQuery, 'searchKeywords');
-            }
-        }
-
-        if ($limit) {
-            $jQuery->limit($limit);
-        }
-
-        $options = array();
-        while ($jRec = $jQuery->fetch()) {
-            $options[$jRec->id] = planning_Jobs::getRecTitle($jRec);
-        }
-
-        return $options;
     }
 
 
