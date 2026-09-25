@@ -243,6 +243,7 @@ function eshopActions() {
 
 
 	$('.eshop-product .eshop-btn, .eshop-product-list .eshop-btn').on('click', function () {
+		if ($(document.body).hasClass('commerce-theme')) return;
 		if($('.eshop-product-option').hasClass('inputError')) return;
 		var cart = $('#cart-external-status');
 		if($('.eshop-product-list').length) {

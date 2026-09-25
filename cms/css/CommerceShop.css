@@ -1182,6 +1182,7 @@ body.eshop-public .cartInfoBlock .order-info { margin: 0; padding: 0; }
 body.eshop-public .cartInfoBlock h4 { background: none; color: #182b3a; font-size: 17px; }
 body.eshop-public .cartInfoBlock table { width: 100%; margin-left: 0 !important; }
 body.eshop-public .cartInfoBlock td { padding: 5px 3px; font-size: 14px; overflow-wrap: anywhere; }
+body.eshop-public .cartInfoBlock td.aright { white-space: nowrap; overflow-wrap: normal; }
 body.eshop-public .cartInfoBlock .summary-holder { margin: 16px 0; padding: 16px; border: 0; background: #eef4f6; }
 body.eshop-public .cart-view-buttons-right { float: none; text-align: left; }
 body.eshop-public .cart-view-buttons-right .eshop-btn {
