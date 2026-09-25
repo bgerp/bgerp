@@ -455,6 +455,14 @@ class core_Form extends core_FieldSet
                     $newOptions = $options;
                 }
 
+                // Масив не може да е ключ на опция
+                if (is_array($valueCompare)) {
+                    $this->setError($name, 'Невъзможна стойност за полето' .
+                        "|* <b>|{$captions}|*</b>!");
+                    $this->fields[$name]->input = 'input';
+                    continue;
+                }
+
                 // Не могат да се селектират неща които не са опции
                 if (!isset($newOptions[$valueCompare]) || (is_object($newOptions[$valueCompare]) && $newOptions[$valueCompare]->group)) {
                     $this->setError($name, 'Невъзможна стойност за полето' .
