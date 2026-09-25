@@ -94,13 +94,13 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
         $fieldset->FLD('department', 'keylist(mvc=planning_Centers,select=name,allowEmpty)', 'caption=Ц-р дейност,after=title,placeholderType=all,removeAndRefreshForm,silent');
 
         //Задания
-        $fieldset->FLD('jobses', 'keylist(mvc=planning_Jobs,allowEmpty)', 'caption=Задания,placeholder=Всички активни,after=department,single=none');
+        $fieldset->FLD('jobses', 'keylist2(mvc=planning_Jobs,selectSourceArr=planning_reports_ConsumedItemsByJob::getJobOptions,maxSuggestions=100,forceAjax,allowEmpty)', 'caption=Задания,placeholder=Всички активни,after=department,single=none,class=w100');
 
         //Да има ли филтър по артикул
         $fieldset->FLD('option', 'enum(yes=Включен,no=Изключен)', 'caption=Артикули по задание->Филтър по артикул,after=jobses,removeAndRefreshForm,silent');
 
         //Артикули
-        $fieldset->FLD('products', 'keylist(mvc=cat_Products,select=name)', 'caption=Артикули по задание->Артикул,placeholderType=all,after=option,single=none,input=none,class=w100');
+        $fieldset->FLD('products', 'keylist2(mvc=cat_Products,select=name,selectSourceArr=planning_reports_ConsumedItemsByJob::getJobProductOptions,maxSuggestions=100,forceAjax)', 'caption=Артикули по задание->Артикул,placeholderType=all,after=option,single=none,input=none,class=w100');
 
 
         //Групи артикули
@@ -179,49 +179,9 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
         $form->input('seeAmount');
 
 
-        $suggestions = array();
-        foreach (keylist::toArray($rec->jobses ?? null) as $val) {
-            $suggestions[$val] = planning_Jobs::getTitleById($val);
-        }
-
-        $stateArr = array('active', 'wakeup', 'closed');
-
-        $jQuery = planning_Jobs::getQuery();
-        $jQuery->in('state', $stateArr);
-        $jQuery->show('productId');
-        while ($jRec = $jQuery->fetch()) {
-            if (!array_key_exists($jRec->id, $suggestions)) {
-                $suggestions[$jRec->id] = planning_Jobs::getRecTitle($jRec);
-            }
-        }
-
-        asort($suggestions);
-
-        $form->setSuggestions('jobses', $suggestions);
-
-        //Когато е избрано 'по артикули'зареждаме за избор само онези артикули, които имат задания през периода
-        if ($option == 'yes') {
-
-            $jQuery = planning_Jobs::getQuery();
-
-            $jQuery->in('state', $stateArr);
-
-            if (!empty($rec->department)) {
-                $jQuery->in('department', keylist::toArray($rec->department));
-            }
-
-            $jQuery->show('productId');
-            $prodSuggestions = array();
-            $prodArr = arr::extractValuesFromArray($jQuery->fetchAll(), 'productId');
-            if (!empty($prodArr)) {
-                foreach ($prodArr as $val) {
-                    $prodSuggestions[$val] = cat_Products::getTitleById($val);
-                }
-            } else {
-                $rec->products = null;
-                $prodSuggestions = array('' => '');
-            }
-            $form->setSuggestions('products', $prodSuggestions);
+        // Артикулите за избор са само тези със задания в избраните центрове
+        if ($option == 'yes' && !empty($rec->department)) {
+            $form->setFieldTypeParams('products', array('departments' => $rec->department));
         }
     }
 
@@ -775,6 +735,103 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
         $productRec = cat_Products::fetch($dRec->productId);
         $res->name = $productRec->name ?? '';
         $res->measure = cat_UoM::fetchField($productRec->measureId ?? null, 'shortName');
+    }
+
+
+    /**
+     * Опции за избор на задания (@see type_Keylist2)
+     */
+    public static function getJobOptions($params, $limit = null, $q = '', $onlyIds = null, $includeHiddens = false)
+    {
+        $jQuery = planning_Jobs::getQuery();
+        $jQuery->orderBy('id', 'DESC');
+        $jQuery->show('id,productId');
+
+        if (is_array($onlyIds)) {
+            if (!countR($onlyIds)) {
+
+                return array();
+            }
+            $jQuery->in('id', $onlyIds);
+        } elseif (preg_match('/^[0-9,]+$/', (string) $onlyIds)) {
+            $jQuery->in('id', explode(',', trim($onlyIds, ',')));
+        } else {
+            $jQuery->in('state', array('active', 'wakeup', 'closed'));
+        }
+
+        if ($q) {
+            $q1 = plg_Search::normalizeText($q);
+            if (is_numeric($q1)) {
+                $jQuery->where(array("#id = '[#1#]'", $q1));
+            } else {
+                plg_Search::applySearch($q1, $jQuery, 'searchKeywords');
+            }
+        }
+
+        if ($limit) {
+            $jQuery->limit($limit);
+        }
+
+        $options = array();
+        while ($jRec = $jQuery->fetch()) {
+            $options[$jRec->id] = planning_Jobs::getRecTitle($jRec);
+        }
+
+        return $options;
+    }
+
+
+    /**
+     * Опции за избор на артикули, по които има задания (@see type_Keylist2)
+     */
+    public static function getJobProductOptions($params, $limit = null, $q = '', $onlyIds = null, $includeHiddens = false)
+    {
+        $pQuery = cat_Products::getQuery();
+        $pQuery->orderBy('name', 'ASC');
+
+        if (is_array($onlyIds)) {
+            if (!countR($onlyIds)) {
+
+                return array();
+            }
+            $pQuery->in('id', $onlyIds);
+        } elseif (preg_match('/^[0-9,]+$/', (string) $onlyIds)) {
+            $pQuery->in('id', explode(',', trim($onlyIds, ',')));
+        } else {
+            $jQuery = planning_Jobs::getQuery();
+            $jQuery->in('state', array('active', 'wakeup', 'closed'));
+            if (!empty($params['departments'])) {
+                $jQuery->in('department', keylist::toArray($params['departments']));
+            }
+            $jQuery->groupBy('productId');
+            $jQuery->show('productId');
+            $productIds = arr::extractValuesFromArray($jQuery->fetchAll(), 'productId');
+            if (!countR($productIds)) {
+
+                return array();
+            }
+            $pQuery->in('id', $productIds);
+        }
+
+        if ($q) {
+            $q1 = plg_Search::normalizeText($q);
+            if (preg_match('/^art(\d+)$/', $q1, $matches)) {
+                $pQuery->where(array("#id = '[#1#]'", $matches[1]));
+            } else {
+                plg_Search::applySearch($q1, $pQuery, 'searchKeywords');
+            }
+        }
+
+        if ($limit) {
+            $pQuery->limit($limit);
+        }
+
+        $options = array();
+        while ($pRec = $pQuery->fetch()) {
+            $options[$pRec->id] = cat_Products::getRecTitle($pRec);
+        }
+
+        return $options;
     }
 
 
