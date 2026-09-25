@@ -556,8 +556,9 @@ class deals_plg_DpInvoice extends core_Plugin
             $lastRow = new ET("<tr><td colspan='{$colspan}' style='text-indent:20px'>" . $deductCaption . ' ' . $reason . " <td style='text-align:right'>[#dpAmount#]</td></td></tr>");
         }
 
+        // Начисляването показва вербалната сума, приспадането - оцветената, затова се заличават и двете
         if(!doc_plg_HidePrices::canSeePriceFields($data->masterMvc, $masterRec)){
-            $data->dpInfo->dpAmount = doc_plg_HidePrices::getBuriedElement();
+            $data->dpInfo->dpAmount = $data->dpInfo->dpAmountVerbal = doc_plg_HidePrices::getBuriedElement();
         }
 
         $lastRow->placeObject($data->dpInfo);
