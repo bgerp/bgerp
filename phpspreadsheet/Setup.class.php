@@ -16,6 +16,9 @@ class phpspreadsheet_Setup extends core_ProtoSetup
     public $version = '0.1';
 
 
+    public $depends = 'export=0.1';
+
+
     public $info = 'Експорт на електронни таблици с PhpSpreadsheet';
 
 
