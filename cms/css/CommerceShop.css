@@ -1267,6 +1267,11 @@ body.eshop-public #cart-view-total tr:last-child td { font-size: 1.1875rem; colo
     font-weight: 600;
     text-decoration: underline;
 }
+.eshop-public #cmsNavigation .eshop-param-filter-hint {
+    padding: 10px 12px;
+    color: var(--shop-muted, #667085);
+    font-size: 0.8125rem;
+}
 .eshop-public #cmsNavigation details.eshop-param-filter-param {
     margin: 0;
     border-bottom: 1px solid #edf1f3;

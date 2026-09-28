@@ -57,7 +57,167 @@ class eshop_ParamFilter
     {
         $settings = cms_Domains::getSettings();
 
-        return (($settings->paramFilters ?? 'no') == 'yes') && (($settings->showNavigation ?? 'no') == 'yes');
+        return countR($settings->paramFilterParams ?? null) && (($settings->showNavigation ?? 'no') == 'yes');
+    }
+
+
+    /**
+     * Параметрите на филтъра от настройките на домейна, в избрания там ред
+     *
+     * @return array - ид => запис
+     */
+    public static function getParams()
+    {
+        $paramIds = cms_Domains::getSettings()->paramFilterParams ?? array();
+        if (!countR($paramIds)) return array();
+
+        // Избраните, които вече не са филтрируеми в е-магазина, се пропускат
+        $params = array();
+        $eshopParams = cat_products_ParamFilter::getParams(true);
+        foreach ($paramIds as $paramId) {
+            if (isset($eshopParams[$paramId])) {
+                $params[$paramId] = $eshopParams[$paramId];
+            }
+        }
+
+        return $params;
+    }
+
+
+    /**
+     * Опциите за избор на параметри на филтъра - филтрируемите в е-магазина
+     *
+     * @param string|array|null $value - текущата стойност на таблицата
+     *
+     * @return array
+     */
+    public static function getParamOptions($value = null)
+    {
+        $options = cat_Params::makeArray4Select('typeExt', "#filterable IN ('eshop', 'yes') AND #state != 'rejected'");
+
+        // Вече избраните, които не са за е-магазина, остават с името си, за да се видят и махнат
+        foreach (self::getTableParamIds($value) as $paramId) {
+            if (isset($options[$paramId])) continue;
+
+            $pRec = cat_Params::fetch($paramId);
+            $name = is_object($pRec) ? cat_Params::getVerbal($pRec, 'typeExt') : $paramId;
+            $options[$paramId] = $name . ' (' . tr('не е за е-магазина') . ')';
+        }
+
+        return $options;
+    }
+
+
+    /**
+     * Ид-тата на параметрите от поле-таблица, в реда на редовете, без празните и повторенията
+     *
+     * @param string|array|null $value - стойност на table(columns=paramId)
+     *
+     * @return array - ид => ид
+     */
+    public static function getTableParamIds($value)
+    {
+        $paramIds = array();
+        foreach (type_Table::toArray($value) as $row) {
+            $paramId = $row->paramId ?? null;
+            if (!empty($paramId) && !isset($paramIds[$paramId])) {
+                $paramIds[$paramId] = $paramId;
+            }
+        }
+
+        return $paramIds;
+    }
+
+
+    /**
+     * Проверка на таблицата с параметрите на филтъра - всеки параметър само веднъж
+     *
+     * @param array      $values - стойностите от таблицата
+     * @param type_Table $Table  - типът на полето
+     *
+     * @return array $res - грешките, ако има такива
+     */
+    public static function validateParamTable($values, $Table)
+    {
+        $res = $used = array();
+        $paramIds = isset($values['paramId']) ? (array) $values['paramId'] : array();
+        foreach ($paramIds as $key => $paramId) {
+            if (empty($paramId)) continue;
+
+            if (isset($used[$paramId])) {
+                $res['errorFields']['paramId'][$key] = 'Параметърът е избран повече от веднъж|*!';
+            } else {
+                $used[$paramId] = true;
+            }
+        }
+
+        if (isset($res['errorFields'])) {
+            $res['error'] = 'Параметърът е избран повече от веднъж|*!';
+        }
+
+        return $res;
+    }
+
+
+    /**
+     * Показване на таблицата с параметрите на филтъра - с имената им, не с ид-тата
+     *
+     * @param array      $value - стойностите от таблицата
+     * @param type_Table $Table - типът на полето
+     *
+     * @return string
+     */
+    public static function renderParamTable($value, $Table)
+    {
+        $Type = clone $Table;
+        unset($Type->params['render']);
+        $Type->params['paramId_opt'] = self::getParamOptions($value);
+
+        return $Type->toVerbal($value);
+    }
+
+
+    /**
+     * Секцията на филтъра в навигацията, когато не е избрана група
+     *
+     * @return core_ET
+     */
+    public static function renderSelectGroupHint()
+    {
+        return self::renderHint(tr('Изберете група или потърсете в търсачката, за да се покажат филтрите||Choose a group or use the search to see the filters'));
+    }
+
+
+    /**
+     * Секцията на филтъра в навигацията, когато показаните артикули нямат стойности за филтриране
+     *
+     * @return core_ET
+     */
+    protected static function renderNoFiltersHint()
+    {
+        return self::renderHint(tr('Няма налични филтри||No filters available'));
+    }
+
+
+    /**
+     * Секцията на филтъра само с пояснителен текст, ако филтрите са включени
+     *
+     * @param string $hint - преведеният текст
+     *
+     * @return core_ET
+     */
+    protected static function renderHint($hint)
+    {
+        if (!self::isEnabled()) {
+
+            return new core_ET('');
+        }
+
+        $tpl = new core_ET("<div class='eshop-param-filter'><div class='eshop-param-filter-title'>[#TITLE#]</div><div class='eshop-param-filter-hint'>[#HINT#]</div></div>");
+        $tpl->replace(tr('Филтри||Filters'), 'TITLE');
+        $tpl->replace($hint, 'HINT');
+
+        return $tpl;
     }
 
 
@@ -78,7 +238,7 @@ class eshop_ParamFilter
 
         $isSearch = ($data->groupId == eshop_Groups::SEARCH_SYSTEM_ID);
         $start = self::startTimer('params');
-        $params = cat_products_ParamFilter::getParams(true);
+        $params = self::getParams();
         self::stopTimer('params', $start);
         if (!countR($params) && !$isSearch) return;
 
@@ -388,11 +548,10 @@ class eshop_ParamFilter
      */
     protected static function doRenderNavigation($data)
     {
-        $tpl = new core_ET('');
         $filter = $data->paramFilter ?? null;
         if (!is_object($filter)) {
 
-            return $tpl;
+            return self::renderNoFiltersHint();
         }
 
         $blocks = self::renderGroupsBlock($filter->groups ?? null);
@@ -423,7 +582,7 @@ class eshop_ParamFilter
 
         if (!strlen($blocks)) {
 
-            return $tpl;
+            return self::renderNoFiltersHint();
         }
 
         $tpl = new core_ET("<div class='eshop-param-filter'><div class='eshop-param-filter-title'>[#TITLE#] [#CLEAR#]</div>[#PARAMS#]</div>");

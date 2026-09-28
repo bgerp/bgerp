@@ -34,16 +34,17 @@ class cat_products_ParamFilter
     /**
      * Филтрируемите параметри по реда им
      *
-     * @param bool $onlyEshop - само филтрируемите и в е-магазина
+     * @param bool $forEshop - за е-магазина или за вътрешната част
      *
      * @return array - ид => запис
      */
-    public static function getParams($onlyEshop = false)
+    public static function getParams($forEshop = false)
     {
+        $allowed = $forEshop ? array('eshop', 'yes') : array('internal', 'yes');
         $params = array();
         foreach (cat_products_ParamIndex::getFilterableParams() as $pRec) {
             if (($pRec->state ?? null) != 'active') continue;
-            if ($onlyEshop && ($pRec->filterable ?? null) != 'yes') continue;
+            if (!in_array($pRec->filterable ?? null, $allowed)) continue;
 
             $params[$pRec->id] = $pRec;
         }

@@ -1122,6 +1122,7 @@ class eshop_Products extends core_Master
         $tpl = eshop_Groups::getLayout();
         $tpl->append(eshop_Favourites::renderFavouritesBtnInNavigation(), 'NAVIGATION_FAV');
         $tpl->append(eshop_Carts::renderLastOrderedProductsBtnInNavigation(), 'NAVIGATION_OTHER_BTNS');
+        $tpl->append(eshop_ParamFilter::renderSelectGroupHint(), 'NAVIGATION_FILTERS');
         $tpl->append(cms_Articles::renderNavigation($data->groups), 'NAVIGATION');
         
         // Поставяме SEO данните

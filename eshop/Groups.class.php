@@ -368,8 +368,9 @@ class eshop_Groups extends core_Master
 
             $layout->append(eshop_Favourites::renderFavouritesBtnInNavigation(), 'NAVIGATION_FAV');
             $layout->append(eshop_Carts::renderLastOrderedProductsBtnInNavigation(), 'NAVIGATION_OTHER_BTNS');
+            $layout->append(eshop_ParamFilter::renderSelectGroupHint(), 'NAVIGATION_FILTERS');
             $layout->append(cms_Articles::renderNavigation($data), 'NAVIGATION');
-            
+
             $seoRec = new stdClass();
             $cRec = cms_Content::fetch($data->menuId);
             $seoRec->seoTitle = $cRec->title;
