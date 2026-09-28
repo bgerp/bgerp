@@ -3255,7 +3255,7 @@ abstract class deals_Helper
                             $obj['hint'] = "{$startMsg} е под минималната за клиента";
                             $obj['hint'] .= "|*: {$primeVerbal} {$currencyId} |без ДДС|*{$msgSuffix}";
                             $obj['hintType'] = 'error';
-                            $obj['aiHint'] = 'Price below client minimum';
+                            $obj['aiHint'] = "Price below client minimum: {$primeVerbal} {$currencyId} excl. VAT" . ($msgSuffix ? ', incl. transport' : '');
                             
                             return $obj;
                         } 
@@ -3265,7 +3265,7 @@ abstract class deals_Helper
                             $obj['hint'] = ($percent < 0) ? "{$startMsg} е над очакваната за клиента" : "{$startMsg} е под очакваната за клиента";
                             $obj['hint'] .= "|*: {$primeVerbal} {$currencyId} |без ДДС|*{$msgSuffix}";
                             $obj['hintType'] = ($percent < 0) ? 'notice' : 'warning';
-                            $obj['aiHint'] = ($percent < 0) ? null : 'Price below client expected';
+                            $obj['aiHint'] = ($percent < 0) ? null : "Price below client expected: {$primeVerbal} {$currencyId} excl. VAT" . ($msgSuffix ? ', incl. transport' : '');
                         
                             return $obj;
                         }
