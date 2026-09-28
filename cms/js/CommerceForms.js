@@ -40,3 +40,97 @@ function initCommerceLanguages() {
         }
     });
 }
+
+/** Progressive mobile navigation; the original links and search forms are retained. */
+function initCommerceNavigation(menuLabel, categoriesLabel, categoryLabel) {
+    var body = document.body;
+    if (!body.classList.contains('commerce-theme') || body.dataset.commerceNavigation) return;
+    body.dataset.commerceNavigation = 'true';
+    var media = window.matchMedia('(max-width: 900px)');
+    var menus = [];
+    var header = document.querySelector('#cmsMenu .centerContent');
+    if (header) {
+        var menu = document.createElement('details');
+        menu.className = 'commerce-primary-menu';
+        var summary = document.createElement('summary');
+        summary.textContent = menuLabel;
+        menu.appendChild(summary);
+        var links = document.createElement('nav');
+        links.className = 'commerce-primary-links';
+        links.setAttribute('aria-label', menuLabel);
+        Array.prototype.slice.call(header.children).forEach(function (child) {
+            if (child.tagName === 'A' && !child.classList.contains('loginIcon') && !child.classList.contains('langIcon')) links.appendChild(child);
+        });
+        menu.appendChild(links);
+        header.insertBefore(menu, header.firstChild);
+        menus.push(menu);
+        menu.addEventListener('keydown', function (event) {
+            if (event.key === 'Escape' && body.classList.contains('commerce-compact')) {
+                menu.open = false;
+                summary.focus();
+            }
+        });
+    }
+    var sidebar = document.querySelector('#cmsNavigation');
+    if (sidebar) {
+        var categories = document.createElement('details');
+        categories.className = 'commerce-category-menu';
+        var caption = document.createElement('summary');
+        caption.textContent = body.classList.contains('eshop-public') ? categoriesLabel : categoryLabel;
+        categories.appendChild(caption);
+        var content = document.createElement('div');
+        content.className = 'commerce-category-links';
+        Array.prototype.slice.call(sidebar.children).forEach(function (child) {
+            if (child.matches('form, .articles-navigation, .blogm-search-form')) return;
+            content.appendChild(child);
+        });
+        categories.appendChild(content);
+        sidebar.appendChild(categories);
+        // Keep the current selection readable even while the mobile filters are closed.
+        var activeFilters = document.createElement('dl');
+        activeFilters.className = 'commerce-active-filters';
+        content.querySelectorAll('.eshop-param-filter-param').forEach(function (group) {
+            var selected = group.querySelectorAll('.eshop-param-filter-value.checked');
+            if (!selected.length) return;
+            var title = document.createElement('dt');
+            title.textContent = group.querySelector('summary').textContent.trim();
+            var values = document.createElement('dd');
+            selected.forEach(function (item) {
+                var value = item.cloneNode(true);
+                value.querySelectorAll('.eshop-param-check, .eshop-param-count').forEach(function (extra) { extra.remove(); });
+                var label = document.createElement('span');
+                label.textContent = value.textContent.trim();
+                values.appendChild(label);
+            });
+            activeFilters.appendChild(title);
+            activeFilters.appendChild(values);
+        });
+        if (activeFilters.children.length) {
+            var resultsTitle = document.querySelector('.eshop-content .eshop-group .eshop-name');
+            if (resultsTitle) {
+                resultsTitle.parentNode.insertBefore(activeFilters, resultsTitle.nextSibling);
+            } else {
+                sidebar.insertBefore(activeFilters, categories);
+            }
+        }
+        menus.push(categories);
+    }
+    var eventTags = document.querySelector('.eventHub > .tags, .eventHub .searchBox > .flexBox.menu');
+    if (eventTags) {
+        var eventMenu = document.createElement('details');
+        eventMenu.className = 'commerce-category-menu commerce-event-menu';
+        var eventCaption = document.createElement('summary');
+        eventCaption.textContent = categoryLabel;
+        eventMenu.appendChild(eventCaption);
+        eventTags.parentNode.insertBefore(eventMenu, eventTags);
+        eventMenu.appendChild(eventTags);
+        menus.push(eventMenu);
+    }
+    function updateLayout() {
+        var compact = body.classList.contains('narrow') || media.matches;
+        body.classList.toggle('commerce-compact', compact);
+        menus.forEach(function (menu) { menu.open = !compact; });
+    }
+    updateLayout();
+    media.addEventListener('change', updateLayout);
+}
