@@ -176,6 +176,12 @@ defIfNot('ESHOP_SHOW_EXPECTED_DELIVERY_MIN_TIME', 60 * 60 * 24 * 3);
 
 
 /**
+ * Филтри по параметри в навигацията->Параметри
+ */
+defIfNot('ESHOP_PARAM_FILTER_PARAMS', '');
+
+
+/**
  * class cat_Setup
  *
  * Инсталиране/Деинсталиране на
@@ -282,7 +288,20 @@ class eshop_Setup extends core_ProtoSetup
         'ESHOP_TOMORROW_DELIVERY_DEADLINE' => array('hour', 'caption=До кога да се приемат заявки за доставка по маршрути за следващия работен ден->Час'),
         'ESHOP_SHOW_EXPANDED_GROUPS_IN_NAV' => array('enum(yes=Да,no=Не)', 'caption=Показване винаги разпънати групи в навигацията->Избор'),
         'ESHOP_SHOW_EXPECTED_DELIVERY_MIN_TIME' => array('time', 'caption="Очаква се доставка" в онлайн магазина се показва само ако очакваната доставка е със срок до->Избор'),
+        'ESHOP_PARAM_FILTER_PARAMS' => array('table(columns=paramId,captions=Параметър,validate=eshop_ParamFilter::validateParamTable,render=eshop_ParamFilter::renderParamTable)','caption=Филтри по параметри в навигацията (в този ред)->Параметри'),
     );
+
+
+    /**
+     * Подготовка на формата за настройките
+     *
+     * @param core_Form $configForm
+     * @return void
+     */
+    public function manageConfigDescriptionForm(&$configForm)
+    {
+        $configForm->setFieldTypeParams('ESHOP_PARAM_FILTER_PARAMS', array('paramId_opt' => array('' => '') + eshop_ParamFilter::getParamOptions(eshop_Setup::get('PARAM_FILTER_PARAMS'))));
+    }
     
     
     /**

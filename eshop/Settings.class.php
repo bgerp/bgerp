@@ -269,7 +269,8 @@ class eshop_Settings extends core_Master
         $this->FLD('salePendingText', 'varchar(24)', 'caption=Информация за артикули със срок на продажба->Предстоящи');
 
         $this->FLD('showNavigation', 'enum(auto=Автоматично,yes=С навигация,no=Без навигация)', 'caption=Навигация със списъка с групите->Показване');
-        $this->FLD('paramFilters', 'enum(no=Без филтри,yes=Показване)', 'caption=Навигация със списъка с групите->Филтри по параметри,notNull,value=no');
+        $this->FLD('paramFilterMode', 'enum(auto=Автоматично,yes=Да,no=Не)', 'caption=Навигация със списъка с групите->Филтри по параметри,notNull,value=auto,refreshForm,silent');
+        $this->FLD('paramFilterParams', 'table(columns=paramId,captions=Параметър,validate=eshop_ParamFilter::validateParamTable,render=eshop_ParamFilter::renderParamTable)', 'caption=Навигация със списъка с групите->Параметри (в този ред),input=none');
         $this->FLD('rootNavigationName', 'varchar', 'caption=Показване на основната група на списъка с артикулите->Основна група');
         $this->FLD('showRootNavigation', 'enum(yes=Показване,no=Скриване)', 'caption=Показване на основната група на списъка с артикулите->Показване');
         
@@ -367,6 +368,10 @@ class eshop_Settings extends core_Master
             if(isset($rec->defaultMethodId) && !isset($payments[$rec->defaultMethodId])){
                 $form->setError('defaultMethodId,payments', "Дефолтният метод не е избран сред разрешените в домейна");
             }
+
+            if($rec->paramFilterMode == 'yes' && !countR(eshop_ParamFilter::getTableParamIds($rec->paramFilterParams))){
+                $form->setError('paramFilterParams', 'Не са избрани параметри за филтриране|*!');
+            }
         }
     }
     
@@ -421,6 +426,12 @@ class eshop_Settings extends core_Master
                 $form->info = "<div class='formError'>" . tr("Всички налични домейни имат вече настройки|*!") . "</div>";
                 $form->setReadOnly('objectId');
             }
+        }
+
+        // Конкретните параметри се избират само при изрично включени филтри
+        if (($rec->paramFilterMode ?? null) == 'yes') {
+            $form->setField('paramFilterParams', 'input');
+            $form->setFieldTypeParams('paramFilterParams', array('paramId_opt' => array('' => '') + eshop_ParamFilter::getParamOptions($rec->paramFilterParams ?? null)));
         }
 
         $form->setDefault('currencyId', acc_Periods::getBaseCurrencyCode());
@@ -543,7 +554,12 @@ class eshop_Settings extends core_Master
         if (isset($rec->storeId)) {
             $row->storeId = store_Stores::getHyperlink($rec->storeId, true);
         }
-        
+
+        // Конкретните параметри имат смисъл само при изрично включени филтри
+        if (($rec->paramFilterMode ?? null) != 'yes') {
+            unset($row->paramFilterParams);
+        }
+
         $row->ROW_ATTR['class'] = "state-{$rec->state}";
     }
     
@@ -667,6 +683,16 @@ class eshop_Settings extends core_Master
 
             $showNavigation = $settingRec->showNavigation ?? null;
             $settingRec->showNavigation = in_array($showNavigation, array('yes', 'no')) ? $showNavigation : eshop_Setup::get('SHOW_NAVIGATION');
+
+            // Параметрите за филтриране в реда на показване: при "Не" - никои, при "Автоматично" - от пакета
+            $paramFilterMode = $settingRec->paramFilterMode ?? 'auto';
+            if ($paramFilterMode == 'no') {
+                $settingRec->paramFilterParams = array();
+            } elseif ($paramFilterMode == 'yes') {
+                $settingRec->paramFilterParams = eshop_ParamFilter::getTableParamIds($settingRec->paramFilterParams ?? null);
+            } else {
+                $settingRec->paramFilterParams = eshop_ParamFilter::getTableParamIds(eshop_Setup::get('PARAM_FILTER_PARAMS'));
+            }
             $fldArr = array('mandatoryEcartContactFields' => 'MANDATORY_CONTACT_FIELDS', 'mandatoryInquiryContactFields' => 'MANDATORY_INQUIRY_CONTACT_FIELDS', 'mandatoryEGN' => 'MANDATORY_EGN', 'mandatoryUicId' => 'MANDATORY_UIC_ID', 'mandatoryVatId' => 'MANDATORY_VAT_ID', 'listId' => 'DEFAULT_POLICY_ID', 'payments' => 'DEFAULT_PAYMENTS', 'terms' => 'DEFAULT_DELIVERY_TERMS');
             foreach ($fldArr as $fld => $const){
                 $settingRec->{$fld} = (empty($settingRec->{$fld}) || $settingRec->{$fld} == 'auto') ? eshop_Setup::get($const) : $settingRec->{$fld};
