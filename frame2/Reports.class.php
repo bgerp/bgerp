@@ -653,6 +653,10 @@ class frame2_Reports extends embed_Manager
                 }
 
                 if($rec->data !== static::DATA_ERROR_STATE){
+                    if (!empty($data->cmsObjectId)) {
+                        $rec = clone $rec;
+                        $rec->_renderingCmsObject = true;
+                    }
                     $tplData = $Driver->renderData($rec);
                 } else {
                     $hint = ht::createHint(tr('Възникна проблем при актуализиране'), 'Възникна проблем при актуализиране на справката', 'error', false);
