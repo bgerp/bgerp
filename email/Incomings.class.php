@@ -1203,8 +1203,7 @@ class email_Incomings extends core_Master
             // За LLM е полезна държавата на IP-то, а не самият адрес
             if (Mode::is('renderForLlm')) {
                 $ipCountryCode = drdata_IpToCountry::get($rec->fromIp);
-                $ipCountryName = ($ipCountryCode && $ipCountryCode != '??') ? drdata_Countries::getCountryName($ipCountryCode, core_Lg::getCurrent()) : null;
-                $row->fromIpCountry = !empty($ipCountryName) ? "{$ipCountryName} ({$ipCountryCode})" : tr('Неизвестна');
+                $row->fromIpCountry = ($ipCountryCode && $ipCountryCode != '??') ? $ipCountryCode : 'unknown';
                 unset($row->fromIp);
             }
         }
