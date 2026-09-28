@@ -567,11 +567,11 @@ class eshop_ParamFilter
             $html = implode('', $visible);
             if (countR($more)) {
                 $open = countR(array_intersect_key($more, $filter->selected[$paramId] ?? array())) ? ' open' : '';
-                $html .= "<details class='eshop-param-filter-more'{$open}><summary>" . tr('още') . '</summary>' . implode('', $more) . '</details>';
+                $html .= "<details class='eshop-param-filter-more' data-filter-section='{$paramSlug}-more'{$open}><summary>" . tr('още') . '</summary>' . implode('', $more) . '</details>';
             }
 
             $open = $param->isOpen ? ' open' : '';
-            $blocks .= "<details class='eshop-param-filter-param'{$open}><summary>{$param->caption}</summary><div class='eshop-param-filter-values'>{$html}</div></details>";
+            $blocks .= "<details class='eshop-param-filter-param' data-filter-section='{$paramSlug}'{$open}><summary>{$param->caption}</summary><div class='eshop-param-filter-values'>{$html}</div></details>";
         }
 
         if (!strlen($blocks)) {
@@ -591,7 +591,7 @@ class eshop_ParamFilter
         $tpl->replace(tr('Филтри'), 'TITLE');
         $tpl->replace($blocks, 'PARAMS');
         if (countR($filter->selected) || countR($groupsSelected)) {
-            $tpl->replace(ht::createLink(tr('изчисти'), $clearUrl, false, array('class' => 'eshop-param-filter-clear', 'rel' => 'nofollow')), 'CLEAR');
+            $tpl->replace(ht::createLink(tr('Изчисти всички'), $clearUrl, false, array('class' => 'eshop-param-filter-clear', 'rel' => 'nofollow')), 'CLEAR');
         }
         $tpl = ht::createElement('div', $attr, $tpl);
 
@@ -629,7 +629,7 @@ class eshop_ParamFilter
             }
         }
 
-        return "<details class='eshop-param-filter-param' open><summary>" . tr('Категория') . "</summary><div class='eshop-param-filter-values'>{$html}</div></details>";
+        return "<details class='eshop-param-filter-param' data-filter-section='" . self::GROUP_URL_VAR . "' open><summary>" . tr('Категория') . "</summary><div class='eshop-param-filter-values'>{$html}</div></details>";
     }
 
 
