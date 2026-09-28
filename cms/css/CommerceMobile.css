@@ -23,6 +23,8 @@ body.commerce-theme:is(.narrow, .commerce-compact) .externalPage .centerContent,
 body.commerce-theme:is(.narrow, .commerce-compact) #cmsMenu.menuRow .centerContent {
     width: calc(100% - 1.5rem) !important;
     min-width: 0;
+    margin-left: auto;
+    margin-right: auto;
     box-sizing: border-box;
 }
 body.commerce-theme:is(.narrow, .commerce-compact) #cmsMenu.menuRow .centerContent {
@@ -89,7 +91,7 @@ body.commerce-theme:is(.narrow, .commerce-compact) #maincontent.hasLogoutBlock .
 body.commerce-theme:is(.narrow, .commerce-compact) #maincontent.hasLogoutBlock .centerContent .cms-row { padding-top: 5px; }
 body.commerce-theme:is(.narrow, .commerce-compact) #maincontent .logoutBlock { position: static; display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 0.25rem; width: calc(100% - 1.5rem); margin: 0.5rem auto 0; padding: 0; background: none; border: 0; box-shadow: none; }
 body.commerce-theme:is(.narrow, .commerce-compact) #maincontent .logoutBlock:not(:has(a, .linkWithIcon)) { display: none; }
-body.commerce-theme.eshop-public:is(.narrow, .commerce-compact) .cart-holder-external { margin-top: 0.75rem; padding-top: 0; }
+body.commerce-theme.eshop-public:is(.narrow, .commerce-compact) .cart-holder-external { margin-top: 0.75rem; padding-top: 0; padding-left: 0; padding-right: 0; }
 body.commerce-theme:is(.narrow, .commerce-compact) header .narrowCenter:has(.commerce-default-banner):has(.app-name, .app-subtitle) {
     padding: 1em;
     min-height: 8.5em;
