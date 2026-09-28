@@ -566,9 +566,9 @@ abstract class deals_ClosedDeals extends core_Master
             
             if ($origin && $origin->haveInterface('bgerp_DealAggregatorIntf')) {
                 $item = acc_Items::fetchItem($origin->getInstance(), $origin->that);
-                if (is_null($item->lastUseOn)) {
+                if (!is_object($item) || is_null($item->lastUseOn)) {
                     
-                    // Ако перото на сделката не е използвано, не може да се приключи
+                    // Ако перото на сделката липсва или не е използвано, не може да се приключи
                     $res = 'no_one';
                 }
             }
