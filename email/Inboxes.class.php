@@ -535,7 +535,7 @@ class email_Inboxes extends core_Master
                         $rec->inCharge = $userRec->id;
                         $rec->access = 'private';
                         
-                        $rec->id = self::fetchField("#email = '{$rec->email}'", 'id');
+                        $rec->id = self::fetchField(array("#email = '[#1#]'", $rec->email ?? null), 'id');
                         
                         self::save($rec);
                         
@@ -693,7 +693,7 @@ class email_Inboxes extends core_Master
      */
     public static function isGeneric($email)
     {
-        $rec = email_Accounts::fetch("#email = '{$email}'");
+        $rec = email_Accounts::fetch(array("#email = '[#1#]'", $email));
         
         return (boolean) $rec && ($rec->applyRouting == 'yes');
     }
@@ -713,7 +713,7 @@ class email_Inboxes extends core_Master
         
         $email = strtolower(trim($email));
         
-        $rec = static::fetch("#email = '{$email}'");
+        $rec = static::fetch(array("#email = '[#1#]'", $email));
         
         if (!$rec) {
             // Ако това е корпоративен имейл - създава кутията и папката към нея
@@ -771,7 +771,7 @@ class email_Inboxes extends core_Master
             return false;
         }
         
-        $id = email_Inboxes::fetchField("#email = '{$email}'");
+        $id = email_Inboxes::fetchField(array("#email = '[#1#]'", $email));
         
         return $id;
     }
@@ -1134,7 +1134,7 @@ class email_Inboxes extends core_Master
             
             // Ако не е зададено да се показват само персоналните
             if (!$personalOnly) {
-                $rec = self::fetch("#email = '{$corpAccRec->email}' AND #state = 'active'");
+                $rec = self::fetch(array("#email = '[#1#]' AND #state = 'active'", $corpAccRec->email ?? null));
                 
                 if ($rec) {
                     $options[$rec->id] = $rec->email;
@@ -1145,7 +1145,7 @@ class email_Inboxes extends core_Master
             
             $userEmail = email_Inboxes::getUserEmail($userId);
             
-            if ($userEmail && ($rec = self::fetch("#email = '{$userEmail}' AND #state = 'active'"))) {
+            if ($userEmail && ($rec = self::fetch(array("#email = '[#1#]' AND #state = 'active'", $userEmail)))) {
                 $options[$rec->id] = $rec->email;
             }
             

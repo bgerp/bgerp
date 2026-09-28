@@ -886,7 +886,7 @@ class acc_Items extends core_Manager
         $lists = keylist::addKey('', acc_Lists::fetchBySystemId($listSysId)->id);
         
         // Имали от същата номенклатура перо с такова име
-        $item = static::fetch("#title = '{$title}' AND #lists LIKE '%{$lists}%'");
+        $item = static::fetch(array("#title = '[#1#]' AND #lists LIKE '%[#2#]%'", $title, $lists));
         
         // Ако няма го създаваме
         if (empty($item)) {

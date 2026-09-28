@@ -704,7 +704,7 @@ class doc_Threads extends core_Manager
     {
         if ($selected = Request::get('Selected')) {
             Debug::log('Selected = ' . $selected);
-            $selArr = arr::make($selected);
+            $selArr = arr::makeIds($selected);
             
             foreach ($selArr as $id) {
                 if ($this->haveRightFor('single', $id)) {
@@ -1185,7 +1185,7 @@ class doc_Threads extends core_Manager
         $selArr = array();
 
         if ($selected = Request::get('Selected')) {
-            $selArr = arr::make($selected);
+            $selArr = arr::makeIds($selected);
             Request::push(array('threadId' => $selArr[0]));
         }
 
@@ -2598,7 +2598,7 @@ class doc_Threads extends core_Manager
     public function act_Open()
     {
         if ($selected = Request::get('Selected')) {
-            foreach (arr::make($selected) as $id) {
+            foreach (arr::makeIds($selected) as $id) {
                 $R = cls::get('core_Request');
                 Request::push(array('threadId' => $id, 'Selected' => false));
                 Request::forward();
@@ -2632,7 +2632,7 @@ class doc_Threads extends core_Manager
     public function act_Close()
     {
         if ($selected = Request::get('Selected')) {
-            foreach (arr::make($selected) as $id) {
+            foreach (arr::makeIds($selected) as $id) {
                 $R = cls::get('core_Request');
                 Request::push(array('threadId' => $id, 'Selected' => false));
                 Request::forward();

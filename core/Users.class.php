@@ -793,7 +793,7 @@ class core_Users extends core_Manager
         $recId = $rec->id ?? null;
         
         //Проверяваме дали има такъв имейл
-        if ($newRecId = $mvc->fetchField("LOWER(#email) = LOWER('{$form->rec->email}')")) {
+        if ($newRecId = $mvc->fetchField(array("LOWER(#email) = LOWER('[#1#]')", $rec->email ?? null))) {
             //Проверяваме дали редактираме текущия запис или създаваме нов
             if ($newRecId != $recId) {
                 //Съобщение за грешка, ако имейл-а е зает

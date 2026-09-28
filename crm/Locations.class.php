@@ -921,7 +921,7 @@ class crm_Locations extends core_Master
             $rec = $form->rec;
             
             // Трябва името да е уникално
-            if (crm_Companies::fetchField("#name = '{$rec->name}'")) {
+            if (crm_Companies::fetchField(array("#name = '[#1#]'", $rec->name ?? null))) {
                 $form->setError('name', 'Има фирма със същото име');
             }
             

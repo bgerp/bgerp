@@ -1619,7 +1619,7 @@ abstract class deals_DealMaster extends deals_DealBase
             if(!empty($rec->{$fld}) && $calc){
                 $objectId = $rec->{$fld};
                 if($fld == 'bankAccountId' && !is_numeric($rec->{$fld})){
-                    $objectId = bank_Accounts::fetchField("#iban = '{$rec->{$fld}}'");
+                    $objectId = bank_Accounts::fetchField(array("#iban = '[#1#]'", $rec->{$fld} ?? null));
                     if(empty($objectId)) continue;
                 }
 
@@ -2779,7 +2779,7 @@ abstract class deals_DealMaster extends deals_DealBase
             $currencyId = "EUR";
         }
         $query = $this->getQuery();
-        $query->where("#state = 'draft' AND #currencyId = '{$currencyId}' AND #contragentId = {$contragentId} AND #contragentClassId = {$contragentClassId}");
+        $query->where(array("#state = 'draft' AND #currencyId = '[#1#]' AND #contragentId = '[#2#]' AND #contragentClassId = '[#3#]'", $currencyId, $contragentId, $contragentClassId));
         $Quotation = cls::get($this->quotationClass);
 
         // Ако ще се създава към оферта - да се филтрира и по избраната наша фирма в нея, ако е инсталиран пакета за многофирменост

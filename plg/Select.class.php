@@ -135,7 +135,8 @@ class plg_Select extends core_Plugin
 
             // Сумираме броя на редовете, които позволяват всяко едно от посочените действия
             $cnt = $listArr = array();
-            foreach ($row as $id => $on) {
+            expect(is_array($row), 'Некоректен списък от идентификатори');
+            foreach (arr::makeIds(array_keys($row)) as $id) {
 
                 foreach ($actArr as $action => $caption) {
                     if ($mvc->haveRightFor($action, $id)) {
@@ -195,7 +196,7 @@ class plg_Select extends core_Plugin
             $sel = Request::get('Selected');
             
             // Превръщаме в масив, списъка с избраниуте id-та
-            $selArr = arr::make($sel);
+            $selArr = arr::makeIds($sel);
             
             $processed = 0;
             

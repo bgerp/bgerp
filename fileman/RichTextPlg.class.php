@@ -52,7 +52,7 @@ class fileman_RichTextPlg extends core_Plugin
                 $args = 'width=400,height=530,resizable=yes,scrollbars=yes,status=no,location=no,menubar=no,location=no';
             }
             
-            $bucketId = fileman_Buckets::fetchField("#name = '" . $mvc->params['bucket'] . "'", 'id');
+            $bucketId = fileman_Buckets::fetchField(array("#name = '[#1#]'", $mvc->params['bucket'] ?? null), 'id');
             $url = fileman_Files::getUrLForAddFile($bucketId, $callbackName);
             $js = "sessionStorage.removeItem('disabledRowArr'); openWindow('{$url}', '{$windowName}', '{$args}'); return false;";
             

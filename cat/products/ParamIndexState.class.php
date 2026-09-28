@@ -375,7 +375,7 @@ class cat_products_ParamIndexState extends core_Manager
         $this->requireRightFor('markdirty');
 
         $productIds = array();
-        foreach (arr::make(Request::get('Selected', 'varchar')) as $id) {
+        foreach (arr::makeIds(Request::get('Selected', 'varchar')) as $id) {
             $rec = is_numeric($id) ? $this->fetch($id) : null;
             if ($rec && $this->haveRightFor('markdirty', $rec)) {
                 $productIds[$rec->productId] = $rec->productId;

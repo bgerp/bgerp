@@ -97,7 +97,7 @@ class crm_ext_IdCards extends core_Detail
         if (empty($form->rec->id)) {
             // Слагаме Default за поле 'country'
             $Countries = cls::get('drdata_Countries');
-            $form->setDefault('country', $Countries->fetchField("#commonName = '" . $conf->BGERP_OWN_COMPANY_COUNTRY . "'", 'id'));
+            $form->setDefault('country', $Countries->fetchField(array("#commonName = '[#1#]'", $conf->BGERP_OWN_COMPANY_COUNTRY ?? null), 'id'));
         }
         
         $mvrQuery = bglocal_Mvr::getQuery();

@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   sales
  *
- * @author    Gabriela Petrova <gab4eto@gmail.com>
+ * @author    Gabriela Petrova <gab4eto@gmail.com> и Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  *
@@ -137,118 +137,127 @@ class sales_reports_PurBomsRep extends frame2_driver_TableData
     protected function prepareRecs($rec, &$data = null)
     {
         $recs = array();
-        $salArr = array();
         $Sales = cls::get('sales_Sales');
-        $dealers = keylist::toArray($rec->dealers);
-        $count = 1;
+        $dealers = keylist::toArray($rec->dealers ?? '');
+        $precision = isset($rec->precision) ? $rec->precision : 0.95;
         
-        // Всички чакащи и активни продажби на избраните дилъри
+        // Активните продажби на избраните дилъри
+        $sales = array();
         $sQuery = sales_Sales::getQuery();
         $sQuery->where("#state = 'active'");
-        
         if (countR($dealers)) {
             $sQuery->in('dealerId', $dealers);
         }
-        
-        // За всяка
         while ($sRec = $sQuery->fetch()) {
+            $sales[$sRec->id] = $sRec;
+        }
+        if (!countR($sales)) {
             
-            // Взимане на договорените и експедираните артикули по продажбата (събрани по артикул)
+            return $recs;
+        }
+        
+        // Договорените нестандартни производими артикули, сумирани по продажба и артикул
+        $agreed = array();
+        $dQuery = sales_SalesDetails::getQuery();
+        $dQuery->EXT('isPublic', 'cat_Products', 'externalName=isPublic,externalKey=productId');
+        $dQuery->EXT('canManifacture', 'cat_Products', 'externalName=canManifacture,externalKey=productId');
+        $dQuery->where("#isPublic = 'no' AND #canManifacture = 'yes'");
+        $dQuery->in('saleId', array_keys($sales));
+        $dQuery->show('saleId,productId,quantity');
+        while ($dRec = $dQuery->fetch()) {
+            $agreed[$dRec->saleId][$dRec->productId] = ($agreed[$dRec->saleId][$dRec->productId] ?? 0) + $dRec->quantity;
+        }
+        if (!countR($agreed)) {
+            
+            return $recs;
+        }
+        
+        // Заданията се търсят и по продажбите, приключени с текущата
+        $jobSaleIds = array();
+        foreach ($agreed as $saleId => $products) {
+            $jobSaleIds[$saleId] = keylist::toArray(keylist::addKey($sales[$saleId]->closedDocuments ?? '', $saleId));
+        }
+        
+        // Планираните количества по производствените задания, без черновите и оттеглените
+        $planned = array();
+        $jQuery = planning_Jobs::getQuery();
+        $jQuery->in('saleId', array_merge(...array_values($jobSaleIds)));
+        $jQuery->notIn('state', array('draft', 'rejected'));
+        $jQuery->where("#type = 'manifacture'");
+        $jQuery->show('saleId,productId,quantity');
+        while ($jRec = $jQuery->fetch()) {
+            $planned[$jRec->saleId][$jRec->productId] = ($planned[$jRec->saleId][$jRec->productId] ?? 0) + $jRec->quantity;
+        }
+        
+        foreach ($agreed as $saleId => $products) {
+            $sRec = $sales[$saleId];
+            
+            // Артикулите без задание за поне 90% от договореното
+            $missing = array();
+            foreach ($products as $productId => $quantity) {
+                $jobQuantity = 0;
+                foreach ($jobSaleIds[$saleId] as $jobSaleId) {
+                    $jobQuantity += $planned[$jobSaleId][$productId] ?? 0;
+                }
+                if ($jobQuantity < $quantity * 0.90) {
+                    $missing[$productId] = $quantity;
+                }
+            }
+            if (!countR($missing) || !self::isDownpaymentPaid($sRec, $precision)) continue;
+            
             $dealerId = ($sRec->dealerId) ? $sRec->dealerId : (($sRec->activatedBy) ? $sRec->activatedBy : $sRec->createdBy);
-            $dealInfo = $Sales->getAggregateDealInfo($sRec);
-            
             $delTime = (!empty($sRec->deliveryTime)) ? $sRec->deliveryTime : (!empty($sRec->deliveryTermTime) ?  dt::addSecs($sRec->deliveryTermTime, $sRec->valior) : null);
             if (empty($delTime)) {
                 $delTime = $Sales->calcDeliveryTime($sRec->id);
                 $delTime = ($delTime) ? dt::addSecs($delTime, $sRec->valior) : $sRec->valior;
             }
             
-            // Колко е очакваното авансово плащане
-            $downPayment = $dealInfo->agreedDownpayment;
-            
-            // Колко е очакваното платено
-            $downpayment = $dealInfo->downpayment;
-            
-            // колко е платено
-            $downpaymentAmount = $dealInfo->amountPaid;
-            
-            if (empty($downpayment)) {
-                $dPayment = $downpaymentAmount;
-            } else {
-                $dPayment = $downpayment;
-            }
-            
-            // ако имаме зададено авансово плащане
-            // дали имаме поне 95% авансово плащане
-            if (isset($rec->precision)) {
-                if ($dPayment < $downPayment * $rec->precision) {
-                    continue;
-                }
-            } else {
-                if ($dPayment < $downPayment * 0.95) {
-                    continue;
-                }
-            }
-            
-            // Артикулите
-            $agreedProducts = $dealInfo->get('products');
-
-            $salesArr = null;
-            $salesSrt = null;
-            if ($sRec->closedDocuments != null) {
-                $newKeylist = keylist::addKey($sRec->closedDocuments, $sRec->id);
-                $salesArr = keylist::toArray($newKeylist);
-                $salesSrt = implode(',', $salesArr);
-            }
-            
-            // За всеки договорен артикул
-            foreach ($agreedProducts as $pId => $pRec) {
-                // ако е нестандартен
-                $productRec = cat_Products::fetch($pId, 'canManifacture,isPublic,nameEn');
-                
-                // Ако артикула е нестандартен и няма задание по продажбата
-                // артикула да е произведим
-                if ($productRec->isPublic == 'no' && $productRec->canManifacture == 'yes') {
-                    if (is_array($salesArr)) {
-                        if (in_array($sRec->id, $salesArr)) {
-                            $jobId = planning_Jobs::fetchField("#productId = {$pId} AND #saleId IN ({$salesSrt})");
-                        } else {
-                            $jobId = planning_Jobs::fetchField("#productId = {$pId} AND #saleId = {$sRec->id} ");
-                        }
-                    } else {
-                        $jobId = planning_Jobs::fetchField("#productId = {$pId} AND #saleId = {$sRec->id}");
-                    }
-                    
-                    $jobState = null;
-                    $jobQuantity = null;
-                    if (isset($jobId)) {
-                        $jobState = planning_Jobs::fetchField("#id = {$jobId}", 'state');
-                        $jobQuantity = planning_Jobs::fetchField("#id = {$jobId}", 'quantity');
-                    }
-
-                    if (!$jobId || ($jobState == 'draft' || $jobState == 'rejected') || $jobQuantity < $pRec->quantity * 0.90) {
-                        $index = $sRec->id . '|' . $pId;
-                        $d = (object) array('num' => $count,
-                            'reff' => $sRec->reff,
-                            'containerId' => $sRec->containerId,
-                            'pur' => $sRec->id,
-                            'purDate' => $sRec->valior,
-                            'deliveryTime' => $delTime,
-                            'article' => $pId,
-                            'dealerId' => $dealerId,
-                            'quantity' => $pRec->quantity);
-                        
-                        if ($pId == $d->article) {
-                            $recs[$index] = $d;
-                        }
-                        
-                        $count++;
-                    }
-                }
+            foreach ($missing as $productId => $quantity) {
+                $recs["{$saleId}|{$productId}"] = (object) array('reff' => $sRec->reff,
+                    'containerId' => $sRec->containerId,
+                    'pur' => $sRec->id,
+                    'purDate' => $sRec->valior,
+                    'deliveryTime' => $delTime,
+                    'article' => $productId,
+                    'dealerId' => $dealerId,
+                    'quantity' => $quantity);
             }
         }
         
         return $recs;
+    }
+    
+    
+    /**
+     * Дали платеният аванс по продажбата покрива изискуемия с дадената точност
+     *
+     * @param stdClass $sRec      - запис на продажбата
+     * @param float    $precision - каква част от аванса трябва да е платена
+     *
+     * @return bool
+     */
+    private static function isDownpaymentPaid($sRec, $precision)
+    {
+        if (!cond_PaymentMethods::hasDownpayment($sRec->paymentMethodId)) {
+            
+            return true;
+        }
+        
+        $agreedDownpayment = cond_PaymentMethods::getDownpayment($sRec->paymentMethodId, $sRec->amountDeal);
+        if (empty($agreedDownpayment)) {
+            
+            return true;
+        }
+        
+        // Счетоводните записвания се четат само за продажбите, при които е важно
+        sales_transaction_Sale::clearCache();
+        $entries = sales_transaction_Sale::getEntries($sRec->id);
+        $paid = sales_transaction_Sale::getDownpayment($entries, $sRec);
+        if (empty($paid)) {
+            $paid = sales_transaction_Sale::getPaidAmount($entries, $sRec);
+        }
+        
+        return $paid >= $agreedDownpayment * $precision;
     }
     
     

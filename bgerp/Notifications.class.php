@@ -587,7 +587,7 @@ class bgerp_Notifications extends core_Manager
 //            $query->where(array("#urlId = '[#1#]'", $urlId));
 //        }
         
-        $query->where("#url = '{$url}'");
+        $query->where(array("#url = '[#1#]'", $url));
         
         $usersArr = array();
         while ($rec = $query->fetch()) {
@@ -613,7 +613,7 @@ class bgerp_Notifications extends core_Manager
 //            $query->where(array("#urlId = '[#1#]'", $urlId));
 //        }
         
-        $query->where("#url = '{$url}'");
+        $query->where(array("#url = '[#1#]'", $url));
         
         if ($userId) {
             $query->where("#userId = '{$userId}'");

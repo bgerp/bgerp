@@ -1681,7 +1681,7 @@ class doc_DocumentPlg extends core_Plugin
         
         // Ако ще се създава нова нишка от последния документ
         if ($action == 'movelast') {
-            $id = Request::get('id');
+            $id = Request::get('id', 'int');
             $rec = $mvc->fetch($id);
             expect($rec);
             

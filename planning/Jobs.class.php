@@ -1852,7 +1852,7 @@ class planning_Jobs extends core_Master
                 $warning = false;
                 $exLinkArray = array();
                 $exQuery = planning_Tasks::getQuery();
-                $exQuery->where("#originId = {$jobRec->containerId} AND (#systemId = {$sysId} OR (#productId = {$defTask->productId} AND #subTitle = '{$defTask->subTitle}'))AND #state != 'rejected'");
+                $exQuery->where(array("#originId = '[#1#]' AND (#systemId = '[#2#]' OR (#productId = '[#3#]' AND #subTitle = '[#4#]'))AND #state != 'rejected'", $jobRec->containerId ?? null, $sysId, $defTask->productId ?? null, $defTask->subTitle ?? null));
                 $exQuery->show('id');
                 while($exRec = $exQuery->fetch()) {
                     if (planning_Tasks::haveRightFor('single', $exRec->id)) {

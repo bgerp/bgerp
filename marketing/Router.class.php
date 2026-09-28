@@ -97,7 +97,7 @@ class marketing_Router extends core_Manager
         if ($corpAcc) {
             
             // Намираме отговорника на папката с корица кутията на корпоративния акаунт
-            $corpAccId = email_Inboxes::fetchField("#email = '{$corpAcc->email}'");
+            $corpAccId = email_Inboxes::fetchField(array("#email = '[#1#]'", $corpAcc->email ?? null));
             $inboxClassId = email_Inboxes::getClassId();
             $inCharge = doc_Folders::fetchField("#coverClass = {$inboxClassId} AND #coverId = {$corpAccId}", 'inCharge');
             

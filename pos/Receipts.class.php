@@ -1577,7 +1577,7 @@ class pos_Receipts extends core_Master
     public function act_setvoucher()
     {
         $this->requireRightFor('setvoucher');
-        expect($id = Request::get('id'));
+        expect($id = Request::get('id', 'int'));
         expect($rec = $this->fetch($id));
         $this->requireRightFor('setvoucher', $rec);
         $voucherId = Request::get('voucherId', 'int');
@@ -1635,7 +1635,7 @@ class pos_Receipts extends core_Master
     public function act_setcontragent()
     {
         $this->requireRightFor('setcontragent');
-        expect($id = Request::get('id'));
+        expect($id = Request::get('id', 'int'));
         expect($rec = $this->fetch($id));
         $this->requireRightFor('setcontragent', $rec);
         expect($contragentClassId = Request::get('contragentClassId', 'int'));

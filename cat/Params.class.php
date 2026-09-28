@@ -344,7 +344,7 @@ class cat_Params extends bgerp_ProtoParam
         $action = $actions[$value];
         $this->requireRightFor($action);
 
-        $selArr = arr::make(Request::get('Selected', 'varchar'));
+        $selArr = arr::makeIds(Request::get('Selected', 'varchar'));
         if ($id = Request::get('id', 'int')) {
             $selArr[] = $id;
         }
@@ -545,8 +545,11 @@ class cat_Params extends bgerp_ProtoParam
         } else {
 
             // Ако няма сис ид все пак се проверява дали няма такъв параметър
-            $where = "#name = '{$name}' AND #suffix = '{$suffix}' AND ";
-            $where .= ($groupName) ? "#group = '{$groupName}'" : "#group IS NULL";
+            $where = array("#name = '[#1#]' AND #suffix = '[#2#]' AND ", $name, $suffix);
+            $where[0] .= ($groupName) ? "#group = '[#3#]'" : "#group IS NULL";
+            if ($groupName) {
+                $where[] = $groupName;
+            }
             if($exId = static::fetchField($where)){
 
                  return $exId;

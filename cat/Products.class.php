@@ -787,7 +787,7 @@ class cat_Products extends embed_Manager
             $folderId = $folder;
         } else {
             // Иначе се предполага, че се създава в системна категория
-            $categoryId = cat_Categories::fetchField("#sysId = '{$folder}'", 'id');
+            $categoryId = cat_Categories::fetchField(array("#sysId = '[#1#]'", $folder), 'id');
             if (!$categoryId) {
                 $categoryId = cat_Categories::fetchField("#sysId = 'goods'", 'id');
             }
@@ -1347,12 +1347,12 @@ class cat_Products extends embed_Manager
 
         // Ако има останали филтри - проверява се дали имат регулярни изрази
         foreach ($leftFilter as $fName){
-            $filterRec = bgerp_Filters::fetch("#name = '{$fName}'");
+            $filterRec = bgerp_Filters::fetch(array("#name = '[#1#]'", $fName));
             if(!empty($filterRec->regex) && !empty($filterRec->regexField)){
 
                 // Ако имат се прилагат
                 if(!empty($query->fields[$filterRec->regexField])){
-                    $escapedRegex = str::escapeRegexForMySQL($filterRec->regex);
+                    $regex = $filterRec->regex ?? '';
                     $regexField = $filterRec->regexField;
                     if($filterRec->regexField == 'code'){
                         $xpr = $fName == 'numberCode' ? "COALESCE(LPAD(#code, 15, 0), LPAD(CONCAT('Art', #id), 15, 0))" : "COALESCE(#code, CONCAT('Art', #id))";
@@ -1361,7 +1361,7 @@ class cat_Products extends embed_Manager
                             $regexField = "codeExpr";
                         }
                     }
-                    $query->where("#{$regexField} REGEXP '{$escapedRegex}'");
+                    $query->where(array("#{$regexField} REGEXP '[#1#]'", $regex));
                     $query->orderBy($regexField, $filterRec->orderBy);
                 }
             }
@@ -4088,7 +4088,7 @@ class cat_Products extends embed_Manager
         $this->requireRightFor('reindexparams');
 
         $productIds = array();
-        foreach (arr::make(Request::get('Selected', 'varchar')) as $id) {
+        foreach (arr::makeIds(Request::get('Selected', 'varchar')) as $id) {
             if (is_numeric($id) && $this->haveRightFor('reindexparams', $id)) {
                 $productIds[$id] = $id;
             }

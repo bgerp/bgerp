@@ -242,7 +242,7 @@ class cat_Categories extends core_Master
         $keylist = '';
 
         foreach ($sysArr as $sysId) {
-            $id = static::fetchField("#sysId = '{$sysId}'", 'id');
+            $id = static::fetchField(array("#sysId = '[#1#]'", $sysId), 'id');
             
             if ($strict) {
                 expect($id, $sysId, $list);

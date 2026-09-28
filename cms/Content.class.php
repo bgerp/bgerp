@@ -1132,7 +1132,7 @@ class cms_Content extends core_Manager
     {
         $dQuery = cms_Domains::getQuery();
         $dIds = array();
-        while ($d = $dQuery->fetch("#domain = '{$dRec->domain}'")) {
+        while ($d = $dQuery->fetch(array("#domain = '[#1#]'", $dRec->domain ?? null))) {
             $dIds[] = $d->id;
         }
         

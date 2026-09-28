@@ -168,8 +168,8 @@ class transsrv_Import extends core_BaseClass
      */
     private static function forcePurchaseId($folderId, $data)
     {
-        $fromCountryId = drdata_Countries::fetchField("#commonName = '{$data->fromCountry}'");
-        $toCountryId = drdata_Countries::fetchField("#commonName = '{$data->toCountry}'");
+        $fromCountryId = drdata_Countries::fetchField(array("#commonName = '[#1#]'", $data->fromCountry));
+        $toCountryId = drdata_Countries::fetchField(array("#commonName = '[#1#]'", $data->toCountry));
         $fromEu = drdata_Countries::isEu($fromCountryId);
         $toEu = drdata_Countries::isEu($toCountryId);
 
@@ -188,7 +188,7 @@ class transsrv_Import extends core_BaseClass
         
         $purQuery = purchase_Purchases::getQuery();
         $purQuery->where("#folderId = '{$folderId}'");
-        $purQuery->where("#chargeVat = '{$chargeVat}' AND #currencyId = '{$data->currencyId}'");
+        $purQuery->where(array("#chargeVat = '[#1#]' AND #currencyId = '[#2#]'", $chargeVat, $data->currencyId));
         $purQuery->where("#state = 'draft'");
         $purQuery->orderBy('valior', 'DESC');
         $purQuery->show('id');
