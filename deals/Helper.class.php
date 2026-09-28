@@ -937,6 +937,7 @@ abstract class deals_Helper
         $measureName = cat_UoM::getShortName(cat_Products::fetchField($productId, 'measureId'));
         $inStockVerbal = $Double->toVerbal($stRec->quantity);
         $inStockStyled = ht::styleNumber($inStockVerbal, $stRec->quantity);
+        $aiHint = null;
         $class = 'doc-warning-quantity';
         $showNegativeWarning = $makeLink = true;
 
@@ -958,6 +959,7 @@ abstract class deals_Helper
                             $hint = "Наличността в склада е достатъчна за изпълнение / контиране на документа, но разполагаемата наличност е недостатъчна за изпълнението на всички чакащи документи!";
                         } else {
                             $hint = "Недостатъчна наличност|*(1): {$inStockStyled} |{$measureName}|*!<br>|Контирането на документа ще доведе до отрицателна наличност|* |{$showStoreInMsg}|*!";
+                            $aiHint = 'Insufficient stock, goes negative';
                         }
                     }
                 }
@@ -970,6 +972,7 @@ abstract class deals_Helper
             if ($futureQuantity < 0 && $freeQuantity < 0) {
                 if($showNegativeWarning){
                     $hint = "Недостатъчна наличност|*(2): {$inStockStyled} |{$measureName}|*!<br>|Контирането на документа ще доведе до отрицателна наличност|* |{$showStoreInMsg}|*!";
+                    $aiHint = 'Insufficient stock, goes negative';
                     if(haveRole('debug')) {
                         $hint .= "<br><i class='quiet'>(debug) количество: {$quantity}, бъдещо: {$futureQuantity}, разполагаемо {$freeQuantity} (текущо разп. {$freeQuantityOriginal}), налично {$stRec->quantity}</i>";
                     }
@@ -980,6 +983,7 @@ abstract class deals_Helper
                 if($showNegativeWarning) {
                     $freeQuantityOriginalVerbal = ht::styleNumber($Double->toVerbal($freeQuantityOriginal), $freeQuantityOriginal);
                     $hint = "Недостатъчна наличност|*: {$inStockStyled} |{$measureName}|*!<br>|Контирането на документа ще доведе до отрицателна наличност|* |{$showStoreInMsg}|*!<br>|Очаква се доставка - разполагаема наличност|*: {$freeQuantityOriginalVerbal} |{$measureName}|*";
+                    $aiHint = 'Insufficient stock, goes negative; delivery expected';
                 }
             } elseif ($futureQuantity >= 0 && $freeQuantity < 0) {
                 if($showNegativeWarning) {
@@ -1007,7 +1011,7 @@ abstract class deals_Helper
                 $hint->append('<br>' . $link->getContent());
             }
 
-            $html = ht::createHint($html, $hint, 'warning', false, array('isHtml' => true), "class={$class}");
+            $html = ht::createHint($html, $hint, 'warning', false, array('isHtml' => true, 'aiHint' => $aiHint), "class={$class}");
         }
 
         if($pRec->isPublic == 'no') {
@@ -3251,6 +3255,7 @@ abstract class deals_Helper
                             $obj['hint'] = "{$startMsg} е под минималната за клиента";
                             $obj['hint'] .= "|*: {$primeVerbal} {$currencyId} |без ДДС|*{$msgSuffix}";
                             $obj['hintType'] = 'error';
+                            $obj['aiHint'] = 'Price below client minimum';
                             
                             return $obj;
                         } 
@@ -3260,6 +3265,7 @@ abstract class deals_Helper
                             $obj['hint'] = ($percent < 0) ? "{$startMsg} е над очакваната за клиента" : "{$startMsg} е под очакваната за клиента";
                             $obj['hint'] .= "|*: {$primeVerbal} {$currencyId} |без ДДС|*{$msgSuffix}";
                             $obj['hintType'] = ($percent < 0) ? 'notice' : 'warning';
+                            $obj['aiHint'] = ($percent < 0) ? null : 'Price below client expected';
                         
                             return $obj;
                         }
