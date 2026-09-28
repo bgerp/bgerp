@@ -558,7 +558,8 @@ class bgerp_drivers_Calendar extends core_BaseClass
             $rec->title = $this->removeDateAndHoursFromTitle($rec->title, '1970-01-01 00:00:00');
         }
 
-        if (!$showDate) {
+        // Без дата в подзаглавието заглавието се ползва както е, независимо от $showDate
+        if (!$showDate || !$subTitleDateRec) {
             $title = str::limitLen(type_Varchar::escape($rec->title), 60, 30, ' ... ', true);
         }
 

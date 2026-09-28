@@ -38,7 +38,7 @@ class doc_DialogWrapper extends core_Plugin
         
         // Урл
         $url = array(
-            'callback' => $mvc->callback);
+            'callback' => Request::get('callback', 'identifier'));
         
         // Обхождаме табовете
         foreach ($tabArr as $name => $params) {
