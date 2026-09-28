@@ -389,7 +389,7 @@ class eshop_Settings extends core_Master
     protected static function on_BeforeSave(core_Manager $mvc, $res, $rec)
     {
         if (empty($rec->validFrom)) {
-            $rec->validFrom = isset($rec->modifiedOn) ? $rec->modifiedOn : dt::now();
+            $rec->validFrom = $rec->modifiedOn ?? dt::now();
         }
     }
     
