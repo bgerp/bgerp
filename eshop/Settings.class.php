@@ -275,7 +275,7 @@ class eshop_Settings extends core_Master
         $this->FLD('salePendingText', 'varchar(24)', 'caption=Информация за артикули със срок на продажба->Предстоящи');
 
         $this->FLD('showNavigation', 'enum(auto=Автоматично,yes=С навигация,no=Без навигация)', 'caption=Навигация със списъка с групите->Показване');
-        $this->FLD('paramFilterMode', 'enum(auto=Автоматично,yes=Да,no=Не)', 'caption=Навигация със списъка с групите->Филтри по параметри,notNull,value=auto,refreshForm,silent');
+        $this->FLD('paramFilterMode', 'enum(auto=Автоматично,yes=Да,no=Не)', 'caption=Навигация със списъка с групите->Филтри по параметри,notNull,value=auto,removeAndRefreshForm=paramFilterParams,silent');
         $this->FLD('paramFilterParams', 'table(columns=paramId,captions=Параметър,validate=eshop_ParamFilter::validateParamTable,render=eshop_ParamFilter::renderParamTable)', 'caption=Навигация със списъка с групите->Параметри (в този ред),input=none');
         $this->FLD('rootNavigationName', 'varchar', 'caption=Показване на основната група на списъка с артикулите->Основна група');
         $this->FLD('showRootNavigation', 'enum(yes=Показване,no=Скриване)', 'caption=Показване на основната група на списъка с артикулите->Показване');
@@ -335,8 +335,9 @@ class eshop_Settings extends core_Master
     protected static function on_AfterInputEditForm($mvc, &$form)
     {
         $rec = &$form->rec;
+
         if ($form->isSubmitted()) {
-            
+
             $fieldArray = array('emailBodyIntroduction' => array('[#NAME#]'), 'emailBodyFooter' => array('[#COMPANY_NAME#]'));
             foreach ($fieldArray as $name => $placeholders){
                 if (!empty($rec->{$name})) {
@@ -434,8 +435,8 @@ class eshop_Settings extends core_Master
             }
         }
 
-        // Конкретните параметри се избират само при изрично включени филтри
-        if (($rec->paramFilterMode ?? null) == 'yes') {
+        // Скрива се след въвеждането, защото при запис тук режимът още е стойността от базата
+        if(isset($rec->paramFilterMode) && $rec->paramFilterMode == 'yes'){
             $form->setField('paramFilterParams', 'input');
             $form->setFieldTypeParams('paramFilterParams', array('paramId_opt' => array('' => '') + eshop_ParamFilter::getParamOptions($rec->paramFilterParams ?? null)));
         }
