@@ -1715,14 +1715,10 @@ class blast_ListDetails extends doc_Detail
                 
                 if (($type instanceof type_Key) || ($type instanceof type_Key2)) {
                     $value = $mvc->getVerbal($cRec, $field);
-                } elseif ($type instanceof type_Varchar) {
-                    $value = $cRec->{$field};
-                } elseif ($type instanceof type_Int) {
-                    $value = $cRec->{$field};
-                } elseif ($type instanceof type_Double) {
-                    $value = $cRec->{$field};
+                } elseif (($type instanceof type_Varchar) || ($type instanceof type_Int) || ($type instanceof type_Double)) {
+                    $value = $cRec->{$field} ?? '';
                 } elseif ($type instanceof type_Date) {
-                    $value = dt::mysql2verbal($cRec->{$field});
+                    $value = !empty($cRec->{$field}) ? dt::mysql2verbal($cRec->{$field}) : '';
                 } else {
                     $value = '';
                 }
