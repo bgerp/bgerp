@@ -389,8 +389,9 @@ class acc_Limits extends core_Manager
     public function cron_CheckAccLimits()
     {
         // Кой е последния баланс
-        $balanceId = acc_Balances::getLastBalance()->id;
-        
+        $lastBalance = acc_Balances::getLastBalance();
+        $balanceId = is_object($lastBalance) ? $lastBalance->id : null;
+
         // Ако няма баланс не правим нищо
         if (!$balanceId) {
             
