@@ -188,6 +188,7 @@ class blast_ListDetails extends doc_Detail
      */
     public static function on_BeforePrepareEditForm($mvc, &$res, $data)
     {
+        $masterRec = null;
         if ($id = Request::get('id', 'int')) {
             expect($rec = $mvc->fetch($id));
             expect($masterRec = $mvc->Master->fetch($rec->listId));
@@ -214,7 +215,7 @@ class blast_ListDetails extends doc_Detail
             $bData = unserialize($bData);
             
             foreach ($fieldsArr as $name => $caption) {
-                $data->form->rec->{$name} = $bData[$name];
+                $data->form->rec->{$name} = $bData[$name] ?? null;
             }
         }
     }
@@ -279,16 +280,12 @@ class blast_ListDetails extends doc_Detail
             }
         }
         
-        static $fieldsArr;
+        $fieldsArr = $mvc->getFncFieldsArr($masterRec->allFields ?? '');
         
-        if (!$fieldsArr) {
-            $fieldsArr = $mvc->getFncFieldsArr($masterRec->allFields);
-        }
-        
-        $body = unserialize($rec->data);
+        $body = !empty($rec->data) ? unserialize($rec->data) : array();
         
         foreach ($fieldsArr as $name => $caption) {
-            $rec->{$name} = $body[$name];
+            $rec->{$name} = $body[$name] ?? null;
             $row->{$name} = $mvc->getVerbal($rec, $name);
         }
         
@@ -370,7 +367,7 @@ class blast_ListDetails extends doc_Detail
         $data = array();
         
         while ($fRec = $query->fetch()) {
-            $dObj = (object) unserialize($fRec->data);
+            $dObj = (object) (!empty($fRec->data) ? unserialize($fRec->data) : array());
             
             if (email_AddressesInfo::isBlocked($dObj->email ?? null)) {
                 
@@ -510,7 +507,7 @@ class blast_ListDetails extends doc_Detail
      */
     public static function getFncFieldsArr($fields)
     {
-        $fields = str_replace(array("\n", "\r\n", "\n\r"), array(',', ',', ','), trim($fields));
+        $fields = str_replace(array("\r\n", "\n\r", "\r", "\n"), ',', trim($fields ?? ''));
         $fieldsArr = arr::make($fields, true);
         
         return $fieldsArr;
@@ -642,7 +639,7 @@ class blast_ListDetails extends doc_Detail
         
         $exp->question('#delimiterAsk,#enclosure,#firstRow', tr('Посочете формата на CSV данните') . ':', '#csvData', 'title=' . tr('Уточняване на разделителя и ограждането'));
         
-        setIfNot($listId, Request::get('listId', 'int'), $exp->getValue('listId'));
+        $listId = Request::get('listId', 'int') ?? $exp->getValue('listId');
         
         // Изискване за права
         $rec = new stdClass();
@@ -669,7 +666,7 @@ class blast_ListDetails extends doc_Detail
         
         
         $exp->DEF('#priority=Приоритет', 'enum(data=Съществуващите данни да се запазят,update=Новите данни да обновят съществуващите)', 'mandatory');
-        $exp->rule('#priority', '"data"', $listRec->contactsCnt ? '0' : '1');
+        $exp->rule('#priority', '"data"', !empty($listRec->contactsCnt) ? '0' : '1');
         
         $keyFieldCaption = $fieldsArr[$listRec->keyField] ?? $listRec->keyField;
         $exp->question('#priority', tr('Какъв да бъде приоритета в случай, че има нов контакт с дублирано съдържание на полето') . " <span class=\"green\">'" . $keyFieldCaption . "'</span> ?", true, 'title=' . tr('Приоритет на данните'));
@@ -685,7 +682,7 @@ class blast_ListDetails extends doc_Detail
             $enclosure = $exp->getValue('#enclosure');
             
             if (!is_array($csv)) {
-                $csvRows = explode("\n", trim($csv));
+                $csvRows = explode("\n", trim($csv ?? ''));
             } else {
                 $csvRows = $csv;
             }
@@ -705,7 +702,7 @@ class blast_ListDetails extends doc_Detail
             
             if (countR($csvRows)) {
                 foreach ($csvRows as $row) {
-                    $rowArr = str_getcsv($row, $delimiter, $enclosure);
+                    $rowArr = str_getcsv($row ?? '', $delimiter, $enclosure, '\\');
                     $rec = new stdClass();
                     $exRec = null;
                     
@@ -738,7 +735,7 @@ class blast_ListDetails extends doc_Detail
                         continue;
                     }
                     
-                    $rec->key = str::convertToFixedKey($key);
+                    $rec->key = str::convertToFixedKey(mb_strtolower(trim($key)));
                     $rec->listId = $listId;
                     $rec->state = 'active';
                     
@@ -760,16 +757,17 @@ class blast_ListDetails extends doc_Detail
                     
                     // Подготвяме $rec->data
                     $data = array();
+                    $oldData = !empty($exRec->data) ? unserialize($exRec->data) : array();
                     
                     foreach ($fieldsArr as $name => $caption) {
-                        setIfNot($data[$name], $rec->{$name} ?? null, $exRec->{$name} ?? null);
+                        $data[$name] = $rec->{$name} ?? $oldData[$name] ?? null;
                     }
                     
                     $rec->data = serialize($data);
                     
                     // Да се попълват полетата, които се попълват в плъгина, защото не се прекъсва записа
-                    setIfNot($rec->createdOn, dt::verbal2Mysql());
-                    setIfNot($rec->createdBy, core_Users::getCurrent());
+                    $rec->createdOn = $exRec->createdOn ?? dt::verbal2Mysql();
+                    $rec->createdBy = $exRec->createdBy ?? core_Users::getCurrent();
                     
                     $this->save_($rec);
                 }
@@ -809,8 +807,9 @@ class blast_ListDetails extends doc_Detail
         $err = array();
         
         // Валидираме полето, ако е имейл
-        if (trim($rec->email)) {
-            $rec->email = strtolower($rec->email);
+        if (trim($rec->email ?? '')) {
+            $rec->email = strtolower($rec->email ?? '');
+            $haveValidEmail = false;
             
             // Масив с всички имейли
             $emailArr = type_Emails::toArray($rec->email);
@@ -839,27 +838,31 @@ class blast_ListDetails extends doc_Detail
         }
         
         // Валидираме полето, ако е GSM
-        if (trim($rec->mobile)) {
+        if (trim($rec->mobile ?? '')) {
             $Phones = cls::get('drdata_Phones');
             $code = '359';
-            $parsedTel = $Phones->parseTel($rec->mobile, $code);
+            $parsedTel = $Phones->parseTel($rec->mobile ?? '', $code);
+            $phone = $parsedTel[0] ?? null;
             
-            if (!$parsedTel[0]->mobile) {
+            if (empty($phone->mobile)) {
                 $err['mobile'] = 'Некоректен мобилен номер';
+            } else {
+                $rec->mobile = ($phone->countryCode ?? '') . ($phone->areaCode ?? '') . ($phone->number ?? '');
             }
-            $rec->mobile = $parsedTel[0]->countryCode . $parsedTel[0]->areaCode . $parsedTel[0]->number;
         }
         
         // Валидираме полето, ако е GSM
-        if (trim($rec->fax)) {
+        if (trim($rec->fax ?? '')) {
             $Phones = cls::get('drdata_Phones');
             $code = '359';
-            $parsedTel = $Phones->parseTel($rec->fax, $code);
+            $parsedTel = $Phones->parseTel($rec->fax ?? '', $code);
+            $phone = $parsedTel[0] ?? null;
             
-            if (!$parsedTel[0]) {
+            if (!$phone) {
                 $err['fax'] = 'Некоректен факс номер';
+            } else {
+                $rec->fax = ($phone->countryCode ?? '') . ($phone->areaCode ?? '') . ($phone->number ?? '');
             }
-            $rec->fax = $parsedTel[0]->countryCode . $parsedTel[0]->areaCode . $parsedTel[0]->number;
         }
         
         // Валидираме полето ако е държава
@@ -887,14 +890,14 @@ class blast_ListDetails extends doc_Detail
     {
         $Groups = cls::get('crm_Groups');
         $gQuery = $Groups->getQuery();
-        $res[$groupId] = $groupId;
+        $res = keylist::toArray($groupId);
         $flag = true;
         $gRecs = $gQuery->fetchAll();
         while ($flag) {
             $flag = false;
             
             foreach ($gRecs as $r) {
-                if (isset($res[$r->parentId])) {
+                if (isset($res[$r->parentId ?? ''])) {
                     if (!isset($res[$r->id])) {
                         $res[$r->id] = $r->id;
                         $flag = true;
@@ -977,7 +980,9 @@ class blast_ListDetails extends doc_Detail
         
         $cRecArr = array();
         while ($cRec = $cQuery->fetch()) {
-            $cRecArr[$cRec->country] = $cRec->country;
+            if (!empty($cRec->country)) {
+                $cRecArr[$cRec->country] = $cRec->country;
+            }
         }
         
         $resArr[$hash] = array();
@@ -998,11 +1003,12 @@ class blast_ListDetails extends doc_Detail
         if (is_array($csvData)) {
             $rowsOrig = $csvData;
         } else {
-            $rowsOrig = explode("\n", $csvData);
+            $rowsOrig = explode("\n", $csvData ?? '');
         }
         
+        $rows = array();
         foreach ($rowsOrig as $r) {
-            if (trim($r)) {
+            if (trim($r ?? '')) {
                 $rows[] = $r;
             }
         }
@@ -1012,10 +1018,10 @@ class blast_ListDetails extends doc_Detail
             return array();
         }
         
-        $rowArr = str_getcsv($rows[0], $delimiter, $enclosure);
+        $rowArr = str_getcsv($rows[0], $delimiter, $enclosure, '\\');
         
         if (countR($rows) > 1) {
-            $rowArr1 = str_getcsv($rows[1], $delimiter, $enclosure);
+            $rowArr1 = str_getcsv($rows[1], $delimiter, $enclosure, '\\');
             
             if (countR($rowArr) != countR($rowArr1)) {
                 
@@ -1026,7 +1032,7 @@ class blast_ListDetails extends doc_Detail
         //Ескейпваме стойностите
         foreach ($rowArr as $key => $value) {
             if ($escape) {
-                $rowArr[$key] = core_Type::escape($value);
+                $rowArr[$key] = core_Type::escape($value ?? '');
             } else {
                 $rowArr[$key] = $value;
             }
@@ -1039,9 +1045,9 @@ class blast_ListDetails extends doc_Detail
         
         if ($caption) {
             $captionC = trim(mb_strtolower($caption));
-            $nameC = trim(mb_strtolower($name));
+            $nameC = trim(mb_strtolower($name ?? ''));
             foreach ($rowArr as $id => $val) {
-                $valC = trim(mb_strtolower($val));
+                $valC = trim(mb_strtolower($val ?? ''));
                 
                 if (!$valC) {
                     continue;
@@ -1051,7 +1057,7 @@ class blast_ListDetails extends doc_Detail
                     
                     return $id + 1;
                 }
-                if (strpos($nameC, $valC) !== false || strpos($valC, $nameC) !== false) {
+                if ($nameC !== '' && (strpos($nameC, $valC) !== false || strpos($valC, $nameC) !== false)) {
                     
                     return $id + 1;
                 }
@@ -1088,9 +1094,6 @@ class blast_ListDetails extends doc_Detail
     public static function importCsvFromDocuments($documentType, $groupIds, $listId, $countriesInclude, $countriesExlude, $contragentType, $contragentAccess, $docFrom, $docTo, $amountFrom, $amountTo, $noSalesFrom, $noSalesTo, $city)
     {
         core_App::setTimeLimit(600);
-
-        // Спираме логването в дебъг
-        core_Debug::$isLogging = false;
 
         $listRec = blast_Lists::fetch($listId);
         core_Lg::push($listRec->lg);
@@ -1192,7 +1195,7 @@ class blast_ListDetails extends doc_Detail
                     $query->in('mFolderId', $allFoldersArr);
                 }
 
-                $query->EXT('mState', $masterClass, "externalName=folderId,externalKey={$docDetailsInst->masterKey}");
+                $query->EXT('mState', $masterClass, "externalName=state,externalKey={$docDetailsInst->masterKey}");
                 $query->where("#mState != 'rejected'");
 
                 $query->groupBy($docDetailsInst->masterKey);
@@ -1252,16 +1255,17 @@ class blast_ListDetails extends doc_Detail
                     }
 
                     // Ако няма имейл в записа, вземаме следващия до когото е изпратен
-                    $email = $rec->email;
+                    $email = $rec->email ?? '';
                     if (!$email) {
-                        if ($rec->containerId) {
-                            $cRec = doc_Containers::fetch($rec->containerId);
+                        if (!empty($rec->containerId) && ($cRec = doc_Containers::fetch($rec->containerId))) {
                             
                             $cQuery = doc_Containers::getQuery();
-                            $cQuery->where(array("#threadId = '[#1#]'", $cRec->threadId));
-                            $cQuery->where(array("#createdOn >= '[#1#]'", $cRec->createdOn));
+                            $cQuery->where(array("#threadId = '[#1#]'", $cRec->threadId ?? null));
+                            $cQuery->where(array("#createdOn >= '[#1#]'", $cRec->createdOn ?? null));
                             $cQuery->where(array("#docClass = '[#1#]'", email_Outgoings::getClassId()));
                             $cQuery->where("#state != 'rejected' && #state != 'draft'");
+                            $cQuery->orderBy('createdOn', 'ASC');
+                            $cQuery->orderBy('id', 'ASC');
                             while ($eCRec = $cQuery->fetch()) {
                                 $sendEmailsArr = doclog_Documents::getSendEmails($eCRec->id);
                                 if (empty($sendEmailsArr)) {
@@ -1277,12 +1281,12 @@ class blast_ListDetails extends doc_Detail
                                         if ($eCDocRec) {
                                             if ($contragentType) {
                                                 if ($contragentType == 'crm_Persons') {
-                                                    $name = $eCDocRec->attn;
+                                                    $name = $eCDocRec->attn ?? '';
                                                 } else {
-                                                    $name = $eCDocRec->recipient;
+                                                    $name = $eCDocRec->recipient ?? '';
                                                 }
                                             } else {
-                                                $name = $eCDocRec->attn ? $eCDocRec->attn : $eCDocRec->recipient;
+                                                $name = !empty($eCDocRec->attn) ? $eCDocRec->attn : ($eCDocRec->recipient ?? '');
                                             }
                                         }
                                     }
@@ -1320,12 +1324,12 @@ class blast_ListDetails extends doc_Detail
                     }
 
                     $countryName = '';
-                    if ($cInstRec && $cInstRec->country) {
+                    if (!empty($cInstRec->country)) {
                         $countryName = $cInst->getVerbal($cInstRec, 'country');
                     }
                     
                     if (!$name) {
-                        $name = $cInstRec->name;
+                        $name = $cInstRec->name ?? '';
                     }
 
                     $csvArr[] = csv_Lib::getCsvLine(array($email, $name, $countryName), ',', '"');
@@ -1365,7 +1369,7 @@ class blast_ListDetails extends doc_Detail
 
                 while ($rec = $query->fetch()) {
 
-                    $email = trim($rec->email);
+                    $email = trim($rec->email ?? '');
                     
                     if (!$email) {
                         continue ;
@@ -1390,7 +1394,7 @@ class blast_ListDetails extends doc_Detail
                     } catch (core_exception_Expect $e) {
                         reportException($e);
 
-                        if ($rec->country) {
+                        if (!empty($rec->country)) {
                             $countryName = $docType::getVerbal($rec, 'country');
                         }
                     }
@@ -1405,12 +1409,12 @@ class blast_ListDetails extends doc_Detail
                     $name = '';
                     if ($contragentType) {
                         if ($contragentType == 'crm_Persons') {
-                            $name = $rec->personNames;
+                            $name = $rec->personNames ?? '';
                         } else {
-                            $name = $rec->company;
+                            $name = $rec->company ?? '';
                         }
                     } else {
-                        $name = $rec->company ? $rec->company : $rec->personNames;
+                        $name = !empty($rec->company) ? $rec->company : ($rec->personNames ?? '');
                     }
 
                     $csvArr[] = csv_Lib::getCsvLine(array($email, $name, $countryName), ',', '"');
@@ -1447,7 +1451,7 @@ class blast_ListDetails extends doc_Detail
                         continue;
                     }
 
-                    if (!$rec->contragentClass) {
+                    if (empty($rec->contragentClass)) {
 
                         continue;
                     }
@@ -1459,23 +1463,26 @@ class blast_ListDetails extends doc_Detail
 
                     // Ако не е в сътоветната държава
                     if ($allFoldersArr !== false) {
-                        if (!$cRec || empty($allFoldersArr[$cRec->folderId])) {
+                        if (empty($allFoldersArr[$cRec->folderId ?? ''])) {
 
                             continue;
                         }
                     }
 
                     // Ако няма нито един артикул от групата или не отговаря на цената, този имейл се прескача
-                    if (!empty($gArr)) {
+                    if (!empty($gArr) || $amountFrom || $amountTo) {
                         $pDetQuery = pos_ReceiptDetails::getQuery();
                         $pDetQuery->where(array("#receiptId = '[#1#]'", $rec->id));
-                        plg_ExpandInput::applyExtendedInputSearch('cat_Products', $pDetQuery, $gArr, 'productId');
+                        $pDetQuery->where("#action LIKE '%sale%'");
+                        if (!empty($gArr)) {
+                            plg_ExpandInput::applyExtendedInputSearch('cat_Products', $pDetQuery, $gArr, 'productId');
+                        }
                         if ($amountFrom || $amountTo) {
                             if ($amountFrom) {
-                                $query->where(array("#amount >= '[#1#]'", $amountFrom));
+                                $pDetQuery->where(array("#amount >= '[#1#]'", $amountFrom));
                             }
                             if ($amountTo) {
-                                $query->where(array("#amount <= '[#1#]'", $amountTo));
+                                $pDetQuery->where(array("#amount <= '[#1#]'", $amountTo));
                             }
                         }
                         $pDetQuery->limit(1);
@@ -1485,8 +1492,8 @@ class blast_ListDetails extends doc_Detail
                         }
                     }
 
-                    $email = trim($cRec->email);
-                    $buzEmail = trim($cRec->buzEmail);
+                    $email = trim($cRec->email ?? '');
+                    $buzEmail = trim($cRec->buzEmail ?? '');
                     if ($buzEmail) {
                         $email = $email ? $email . ',' . $buzEmail : $buzEmail;
                     }
@@ -1506,6 +1513,7 @@ class blast_ListDetails extends doc_Detail
                         }
 
                         $email = trim($eStr);
+                        break;
                     }
 
                     if (!$email) {
@@ -1525,8 +1533,8 @@ class blast_ListDetails extends doc_Detail
                     } catch (core_exception_Expect $e) {
                         reportException($e);
 
-                        if ($cRec->country) {
-                            $countryName = $docType::getVerbal($cRec, 'country');
+                        if (!empty($cRec->country)) {
+                            $countryName = $contragentCls->getVerbal($cRec, 'country');
                         }
                     }
 
@@ -1537,7 +1545,7 @@ class blast_ListDetails extends doc_Detail
                         continue;
                     }
 
-                    $name = $cRec->name;
+                    $name = $cRec->name ?? '';
 
                     $csvArr[] = csv_Lib::getCsvLine(array($email, $name, $countryName), ',', '"');
                 }
@@ -1549,12 +1557,13 @@ class blast_ListDetails extends doc_Detail
         // Премахваме продажбите в избрания период
         if (!empty($csvArr) && ($noSalesFrom || $noSalesTo)) {
             $salesEmailsArr = self::importCsvFromDocuments(sales_Sales::getClassId(), $groupIds, $listId, $countriesInclude, $countriesExlude, $contragentType, $contragentAccess, $noSalesFrom, $noSalesTo, $amountFrom, $amountTo, false, false, $city);
-            if (!empty($salesEmailsArr)) {
-                foreach ($salesEmailsArr as $email) {
-                    $aSearch = array_search($email, $csvArr);
-                    if ($aSearch !== false && $aSearch > 0) {
-                        unset($csvArr[$aSearch]);
-                    }
+            $ignoreEmails = self::getCsvEmails($salesEmailsArr);
+            foreach ($csvArr as $index => $csvRow) {
+                if ($index === 0) continue;
+                $values = str_getcsv($csvRow, ',', '"', '\\');
+                $email = strtolower(trim($values[0] ?? ''));
+                if (isset($ignoreEmails[$email])) {
+                    unset($csvArr[$index]);
                 }
             }
         }
@@ -1573,7 +1582,7 @@ class blast_ListDetails extends doc_Detail
     {
         static $prodArrRes = array();
 
-        setIfNot($prodArrRes[$groupIds], false);
+        $prodArrRes[$groupIds] = $prodArrRes[$groupIds] ?? false;
 
         if ($prodArrRes[$groupIds] !== false) {
 
@@ -1619,7 +1628,7 @@ class blast_ListDetails extends doc_Detail
     {
         $res = true;
 
-        if (!trim($accessType)) {
+        if (!trim($accessType ?? '')) {
 
             return $res;
         }
@@ -1627,18 +1636,37 @@ class blast_ListDetails extends doc_Detail
         $user = core_Users::fetch(array("#email = '[#1#]'", $email));
 
         if ($accessType == 'noAccess') {
-            if ($user && ($user->state != 'draft') && ($user->state != 'rejected')) {
+            if ($user && ($user->state ?? null) != 'draft' && ($user->state ?? null) != 'rejected') {
                 $res = false;
             }
         }
 
         if ($accessType == 'withAccess') {
-            if (!$user || ($user->state == 'draft') || ($user->state == 'rejected')) {
+            if (!$user || ($user->state ?? null) == 'draft' || ($user->state ?? null) == 'rejected') {
                 $res = false;
             }
         }
 
         return $res;
+    }
+
+
+    /**
+     * Имейлите от първата колона на CSV, без заглавния ред
+     */
+    private static function getCsvEmails($rows)
+    {
+        $emails = array();
+        foreach ($rows as $index => $row) {
+            if ($index === 0) continue;
+            $values = str_getcsv($row, ',', '"', '\\');
+            $email = strtolower(trim($values[0] ?? ''));
+            if ($email !== '') {
+                $emails[$email] = true;
+            }
+        }
+
+        return $emails;
     }
 
     
@@ -1654,20 +1682,7 @@ class blast_ListDetails extends doc_Detail
         // Премахваме продажбите в избрания период
         if ($noSalesFrom || $noSalesTo) {
             $salesEmailsArr = self::importCsvFromDocuments(sales_Sales::getClassId(), false, $listId, $countriesInclude, $countriesExlude, false, false, $noSalesFrom, $noSalesTo, false, false, false, false, $city);
-            if (!empty($salesEmailsArr)) {
-                foreach ($salesEmailsArr as $key => $eStr) {
-                    if ($key === 0) {
-
-                        continue ;
-                    }
-
-                    list($eEmail) = explode(',', $eStr);
-
-                    $eEmail = trim($eEmail);
-
-                    $ignoreEmailArr[$eEmail] = $eEmail;
-                }
-            }
+            $ignoreEmailArr = self::getCsvEmails($salesEmailsArr);
         }
 
         $listRec = blast_Lists::fetch($listId);
@@ -1684,7 +1699,7 @@ class blast_ListDetails extends doc_Detail
         $cQuery->where("#state != 'rejected'");
 
         if ($inChargeUsers) {
-            $cQuery->in('inCharge', $inChargeUsers);
+            $cQuery->in('inCharge', type_Keylist::toArray($inChargeUsers));
         }
         
         // Филтрираме само по-тези държави
@@ -1703,11 +1718,13 @@ class blast_ListDetails extends doc_Detail
         }
         
         $csv = array();
-        $columns = '';
-        $haveColumns = false;
+        $columns = array();
+        foreach ($mvc->fields as $field => $fieldRec) {
+            $columns[] = !empty($fieldRec->caption) ? $fieldRec->caption : $field;
+        }
         
         while ($cRec = $cQuery->fetch()) {
-            $rCsv = '';
+            $values = array();
             $ignore = false;
 
             foreach ($mvc->fields as $field => $dummy) {
@@ -1727,16 +1744,12 @@ class blast_ListDetails extends doc_Detail
                     $value = '';
                 }
                 
-                if (preg_match('/\\r|\\n|,|"/', $value)) {
-                    $value = '"' . str_replace('"', '""', $value) . '"';
-                }
-
                 // Ако този имейл трябва да се прескочи
                 if (!empty($ignoreEmailArr)) {
                     if (($type instanceof type_Email) || ($type instanceof type_Emails)) {
                         $eArr = type_Emails::toArray($value);
                         foreach ($eArr as $e) {
-                            if (!empty($ignoreEmailArr[$e])) {
+                            if (!empty($ignoreEmailArr[strtolower(trim($e))])) {
                                 $ignore = true;
 
                                 break;
@@ -1745,16 +1758,8 @@ class blast_ListDetails extends doc_Detail
                     }
                 }
 
-                $rCsv .= ($rCsv ? ',' : '') . $value;
-                
-                if (!$haveColumns) {
-                    $columns .= ($columns ? ',' : '') . ($mvc->fields[$field]->caption ? $mvc->fields[$field]->caption : $field);
-                } else {
-                    if ($ignore) {
-
-                        break;
-                    }
-                }
+                $values[] = (string) $value;
+                if ($ignore) break;
             }
 
             if ($ignore) {
@@ -1762,12 +1767,10 @@ class blast_ListDetails extends doc_Detail
                 continue ;
             }
 
-            $haveColumns = true;
-            
-            $csv[] = $rCsv;
+            $csv[] = csv_Lib::getCsvLine($values, ',', '"', false);
         }
         
-        $csv = array_merge(array($columns), (array) $csv);
+        array_unshift($csv, csv_Lib::getCsvLine($columns, ',', '"', false));
         
         core_Lg::pop();
         
