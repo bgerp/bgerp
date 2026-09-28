@@ -766,7 +766,7 @@ class doc_Linked extends core_Manager
                 $dInst = cls::get($form->rec->linkDocType);
                 
                 // Ако документа може да се създаде в съществуваща нишка, показваме избор
-                if (!empty($form->rec->linkFolderId) && !$dInst->onlyFirstInThread) {
+                if (!empty($form->rec->linkFolderId) && empty($dInst->onlyFirstInThread)) {
                     $mandatory = '';
                     
                     if (!$dInst->canAddToFolder($form->rec->linkFolderId) || !$dInst->haveRightFor('add', (object) array('folderId' => $form->rec->linkFolderId))) {
@@ -1343,7 +1343,7 @@ class doc_Linked extends core_Manager
                         }
                         
                         if ($docTypeInst) {
-                            if ($docTypeInst->onlyFirstInThread && (!$docTypeInst->canAddToFolder($fId) || !$docTypeInst->haveRightFor('add', (object) array('folderId' => $fId)))) {
+                            if (!empty($docTypeInst->onlyFirstInThread) && (!$docTypeInst->canAddToFolder($fId) || !$docTypeInst->haveRightFor('add', (object) array('folderId' => $fId)))) {
                                 continue;
                             }
                         }
@@ -1454,7 +1454,7 @@ class doc_Linked extends core_Manager
             }
 
             if ($docTypeInst) {
-                if ($docTypeInst->onlyFirstInThread && (!$docTypeInst->canAddToFolder($rec->id) || !$docTypeInst->haveRightFor('add', (object) array('folderId' => $rec->id)))) {
+                if (!empty($docTypeInst->onlyFirstInThread) && (!$docTypeInst->canAddToFolder($rec->id) || !$docTypeInst->haveRightFor('add', (object) array('folderId' => $rec->id)))) {
                     continue;
                 }
             }
