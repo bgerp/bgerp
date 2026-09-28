@@ -351,39 +351,83 @@ function afterSubmitDetails(){
  */
 function eshopParamFilter() {
 	var timer = null;
+	var refreshTimer = null;
+	var refreshNum = 0;
+	var pendingUrl = null;
+	var initial = null;
+
+	// Зарежда 2 s след последното действие във филтъра
+	var schedule = function() {
+		clearTimeout(timer);
+		if (!pendingUrl) return;
+		timer = setTimeout(function() {
+			document.location = pendingUrl;
+		}, 2000);
+	};
+
+	// Бройките и сивите стойности за натрупания избор - от същата страница, без да се презарежда
+	var refresh = function(url) {
+		clearTimeout(refreshTimer);
+		var num = ++refreshNum;
+		refreshTimer = setTimeout(function() {
+			$.get(url, function(html) {
+				if (num != refreshNum) return;
+
+				// В отделен документ, за да не се теглят картинките от страницата
+				var node = new DOMParser().parseFromString(html, 'text/html').querySelector('.eshop-param-filter');
+				var box = $('.eshop-param-filter').first();
+				if (!node || !box.length) return;
+				var fresh = $(document.importNode(node, true));
+
+				// Отворените и затворените секции остават, както ги е оставил посетителят
+				box.find('details[data-filter-section]').each(function() {
+					fresh.find('details[data-filter-section="' + $(this).attr('data-filter-section') + '"]').prop('open', this.open);
+				});
+				box.replaceWith(fresh);
+			});
+		}, 300);
+	};
 
 	// На фазата на прихващане, за да не стигне кликът до onclick-а на връзката, който зарежда веднага
 	document.addEventListener('click', function(event) {
-		var link = event.target.closest ? event.target.closest('.eshop-param-filter [data-filter-val]') : null;
-		if (!link || !window.URL) return;
+		if (!event.target.closest || !window.URL) return;
+		var link = event.target.closest('.eshop-param-filter [data-filter-val]');
+		if (!link) {
+
+			// Отварянето на параметър или „още“ удължава чакането, за да се стигне до следващия избор
+			if (event.target.closest('.eshop-param-filter')) schedule();
+
+			return;
+		}
 
 		event.preventDefault();
 		event.stopPropagation();
 
+		// Кутията се подменя при опресняването, затова изборът се чете наново от нея
 		var box = link.closest('.eshop-param-filter');
-		if (!box.filterState) {
-			box.filterState = eshopParamFilterParse(box.getAttribute('data-pf'), box.getAttribute('data-pc'));
+		var state = eshopParamFilterParse(box.getAttribute('data-pf'), box.getAttribute('data-pc'));
+		if (initial === null) {
 
 			// Началният избор в същия ред, в който се сглобява, за да се разпознае връщането към него
-			box.filterInitial = eshopParamFilterBuildPf(box.filterState) + '&' + eshopParamFilterBuildPc(box.filterState);
+			initial = eshopParamFilterBuildPf(state) + '&' + eshopParamFilterBuildPc(state);
 		}
-		eshopParamFilterToggle(box.filterState, link.getAttribute('data-filter-var'), link.getAttribute('data-filter-key'), link.getAttribute('data-filter-val'));
+		eshopParamFilterToggle(state, link.getAttribute('data-filter-var'), link.getAttribute('data-filter-key'), link.getAttribute('data-filter-val'));
 		$(link).toggleClass('checked');
 
-		var pf = eshopParamFilterBuildPf(box.filterState);
-		var pc = eshopParamFilterBuildPc(box.filterState);
-		var changed = (pf + '&' + pc != box.filterInitial);
+		var pf = eshopParamFilterBuildPf(state);
+		var pc = eshopParamFilterBuildPc(state);
+		box.setAttribute('data-pf', pf);
+		box.setAttribute('data-pc', pc);
+
+		var url = new URL(box.getAttribute('data-url'), document.location.href);
+		if (pf.length) url.searchParams.set('pf', pf);
+		if (pc.length) url.searchParams.set('pc', pc);
+
+		var changed = (pf + '&' + pc != initial);
 		$('#cmsNavigation').parent().toggleClass('eshop-param-filter-pending', changed);
-
-		clearTimeout(timer);
-		if (!changed) return;
-
-		timer = setTimeout(function() {
-			var url = new URL(box.getAttribute('data-url'), document.location.href);
-			if (pf.length) url.searchParams.set('pf', pf);
-			if (pc.length) url.searchParams.set('pc', pc);
-			document.location = url.toString();
-		}, 1500);
+		pendingUrl = changed ? url.toString() : null;
+		schedule();
+		refresh(url.toString());
 	}, true);
 
 	// При връщане назад от кеша на браузъра страницата не трябва да остане замъглена
