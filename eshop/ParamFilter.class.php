@@ -93,15 +93,21 @@ class eshop_ParamFilter
      */
     public static function getParamOptions($value = null)
     {
-        $options = cat_Params::makeArray4Select('typeExt', "#filterable IN ('eshop', 'yes') AND #state != 'rejected'");
+        // Само активните, както в cat_products_ParamFilter::getParams()
+        $options = cat_Params::makeArray4Select('typeExt', "#filterable IN ('eshop', 'yes') AND #state = 'active'");
 
-        // Вече избраните, които не са за е-магазина, остават с името си, за да се видят и махнат
+        // Вече избраните, които не се показват, остават с името си и причината, за да се видят и махнат
         foreach (self::getTableParamIds($value) as $paramId) {
             if (isset($options[$paramId])) continue;
 
             $pRec = cat_Params::fetch($paramId);
-            $name = is_object($pRec) ? cat_Params::getVerbal($pRec, 'typeExt') : $paramId;
-            $options[$paramId] = $name . ' (' . tr('не е за е-магазина') . ')';
+            if (!is_object($pRec)) {
+                $options[$paramId] = $paramId;
+                continue;
+            }
+
+            $reason = ($pRec->state != 'active') ? mb_strtolower(cat_Params::getVerbal($pRec, 'state')) : tr('не е за е-магазина');
+            $options[$paramId] = cat_Params::getVerbal($pRec, 'typeExt') . " ({$reason})";
         }
 
         return $options;
