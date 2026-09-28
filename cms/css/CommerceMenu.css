@@ -471,3 +471,49 @@ body.commerce-theme .newsbar:is(.topContentNewsbar, .topNavNewsbar) { margin: 0 
 body.commerce-theme .newsbar:is(.bottomContentNewsbar, .bottomNavNewsbar) { margin: 1rem 0 0; border-radius: 6px; }
 body.commerce-theme .newsbar.beforeFooterNewsbar { margin-top: 1.5rem; }
 body.commerce-theme .newsbar.afterFooterNewsbar { margin: 0; }
+
+/* Shared pagination for the public catalogue, articles and blog. */
+body.commerce-theme .pages {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 0.4em;
+    clear: both;
+    margin: 1.5em 0 1em;
+    padding: 1em 0 0;
+    border-top: 1px solid #e1e9ed;
+}
+body.commerce-theme .pages a.pager {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    min-width: 2.75rem;
+    min-height: 2.75rem;
+    margin: 0;
+    padding: 0.45em 0.75em;
+    border: 1px solid #d5e1e7;
+    border-radius: 0.5em;
+    background: #fff;
+    color: #31576a;
+    font-size: 1em;
+    font-weight: 600;
+    line-height: 1.25;
+    text-decoration: none;
+    box-shadow: none;
+}
+body.commerce-theme .pages a.pager:hover {
+    background: #edf5f7;
+    border-color: #7fa5b4;
+    color: #145b73;
+}
+body.commerce-theme .pages a.pager.pagerSelected {
+    background: #145b73;
+    border-color: #145b73;
+    color: #fff;
+}
+body.commerce-theme .pages a.pager:focus-visible {
+    outline: 2px solid #145b73;
+    outline-offset: 3px;
+}
