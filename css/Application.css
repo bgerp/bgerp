@@ -4692,6 +4692,12 @@ table .eshop-btn {
     color: #888888;
     font-size: 0.9em; }
 
+.eshop-param-filter-pending > :not(#cmsNavigation) {
+  opacity: 0.4;
+  filter: blur(2px);
+  pointer-events: none;
+  transition: opacity 0.2s, filter 0.2s; }
+
 #cmsNavigation .addPage {
   clear: both;
   padding: 2px;
