@@ -24,3 +24,19 @@ function initCommerceLogin(showLabel, hideLabel) {
     });
     holder.appendChild(toggle);
 }
+
+/** Close the language picker without changing the selected language. */
+function initCommerceLanguages() {
+    var picker = document.querySelector('body.commerce-theme .commerce-languages');
+    if (!picker || picker.dataset.initialized) return;
+    picker.dataset.initialized = 'true';
+    document.addEventListener('click', function (event) {
+        if (!picker.contains(event.target)) picker.open = false;
+    });
+    picker.addEventListener('keydown', function (event) {
+        if (event.key === 'Escape' && picker.open) {
+            picker.open = false;
+            picker.querySelector('summary').focus();
+        }
+    });
+}

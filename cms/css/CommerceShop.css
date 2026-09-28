@@ -214,6 +214,8 @@
 }
 
 .eshop-public .eshop-product-list {
+    display: flex;
+    flex-direction: column;
     width: auto;
     min-width: 0;
     margin: 0;
@@ -297,6 +299,7 @@
 }
 
 .eshop-public .eshop-group-arrow {
+    pointer-events: none;
     color: var(--shop-accent);
     font-size: 1.5rem;
     line-height: 1;
@@ -355,6 +358,7 @@
 }
 
 .eshop-public .eshop-product-list .eshop-product-list-name {
+    height: auto;
     font-size: 1.125rem;
     line-height: 1.4;
     padding: 0 0 14px;
@@ -867,6 +871,12 @@ body.eshop-public #cmsNavigation .commerce-shortcuts .sel_page {
     flex: 1;
     min-width: 0;
 }
+.eshop-public .eshop-card-content > * {
+    flex-shrink: 0;
+}
+.eshop-public .eshop-card-media {
+    flex-shrink: 0;
+}
 .eshop-public .eshop-card-meta {
     display: flex;
     flex-wrap: wrap;
@@ -932,6 +942,10 @@ body.eshop-public .eshop-card-actions > .option-not-in-stock {
     display: flex;
     flex: 1 1 50%;
     min-width: 0;
+}
+body.eshop-public .eshop-card-actions > .eshop-product-price-holder:only-child,
+body.eshop-public .eshop-card-actions > .option-not-in-stock:only-child {
+    flex: 0 0 calc(50% - 4px);
 }
 body.eshop-public .eshop-card-actions > .eshop-product-price-holder > br,
 body.eshop-public .eshop-card-actions > br {
@@ -1491,3 +1505,7 @@ body.eshop-public .commerce-product-description {
 }
 
 body.eshop-public .commerce-product-description .richtext { font-size: 1em; line-height: inherit; }
+/* Separate subcategory navigation from the product results below it. */
+body.eshop-public .subgroups:has(.eshop-group-button) + .eshop-product-list-holder {
+    margin-top: 1.5rem;
+}

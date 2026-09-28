@@ -8,7 +8,7 @@
  * @category  bgerp
  * @package   planning
  *
- * @author    Angel Trifonov angel.trifonoff@gmail.com
+ * @author    Angel Trifonov angel.trifonoff@gmail.com и Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2020 Experta OOD
  * @license   GPL 3
  *
@@ -94,13 +94,13 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
         $fieldset->FLD('department', 'keylist(mvc=planning_Centers,select=name,allowEmpty)', 'caption=Ц-р дейност,after=title,placeholderType=all,removeAndRefreshForm,silent');
 
         //Задания
-        $fieldset->FLD('jobses', 'keylist(mvc=planning_Jobs,allowEmpty)', 'caption=Задания,placeholder=Всички активни,after=department,single=none');
+        $fieldset->FLD('jobses', 'keylist2(mvc=planning_Jobs,selectSourceArr=planning_Jobs::getJobOptions,maxSuggestions=100,forceAjax,allowEmpty)', 'caption=Задания,placeholder=Всички активни,after=department,single=none,class=w100');
 
         //Да има ли филтър по артикул
         $fieldset->FLD('option', 'enum(yes=Включен,no=Изключен)', 'caption=Артикули по задание->Филтър по артикул,after=jobses,removeAndRefreshForm,silent');
 
         //Артикули
-        $fieldset->FLD('products', 'keylist(mvc=cat_Products,select=name)', 'caption=Артикули по задание->Артикул,placeholderType=all,after=option,single=none,input=none,class=w100');
+        $fieldset->FLD('products', 'keylist2(mvc=cat_Products,select=name,selectSourceArr=planning_reports_ConsumedItemsByJob::getJobProductOptions,maxSuggestions=100,forceAjax)', 'caption=Артикули по задание->Артикул,placeholderType=all,after=option,single=none,input=none,class=w100');
 
 
         //Групи артикули
@@ -179,49 +179,10 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
         $form->input('seeAmount');
 
 
-        $suggestions = array();
-        foreach (keylist::toArray($rec->jobses ?? null) as $val) {
-            $suggestions[$val] = planning_Jobs::getTitleById($val);
-        }
-
-        $stateArr = array('active', 'wakeup', 'closed');
-
-        $jQuery = planning_Jobs::getQuery();
-        $jQuery->in('state', $stateArr);
-        $jQuery->show('productId');
-        while ($jRec = $jQuery->fetch()) {
-            if (!array_key_exists($jRec->id, $suggestions)) {
-                $suggestions[$jRec->id] = planning_Jobs::getTitleById($jRec->id);
-            }
-        }
-
-        asort($suggestions);
-
-        $form->setSuggestions('jobses', $suggestions);
-
-        //Когато е избрано 'по артикули'зареждаме за избор само онези артикули, които имат задания през периода
-        if ($option == 'yes') {
-
-            $jQuery = planning_Jobs::getQuery();
-
-            $jQuery->in('state', $stateArr);
-
-            if (!empty($rec->department)) {
-                $jQuery->in('department', keylist::toArray($rec->department));
-            }
-
-            $jQuery->show('productId');
-            $prodSuggestions = array();
-            $prodArr = arr::extractValuesFromArray($jQuery->fetchAll(), 'productId');
-            if (!empty($prodArr)) {
-                foreach ($prodArr as $val) {
-                    $prodSuggestions[$val] = cat_Products::getTitleById($val);
-                }
-            } else {
-                $rec->products = null;
-                $prodSuggestions = array('' => '');
-            }
-            $form->setSuggestions('products', $prodSuggestions);
+        // Заданията и артикулите за избор са само от избраните центрове
+        if (!empty($rec->department)) {
+            $form->setFieldTypeParams('jobses', array('departments' => $rec->department));
+            $form->setFieldTypeParams('products', array('departments' => $rec->department));
         }
     }
 
@@ -298,6 +259,10 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
 
         }
         //Вложени и върнати артикули в нишките на заданията
+        $threadJobs = array();
+
+        // Стойностите се смятат само ако се показват или се подрежда по тях
+        $needPrices = !empty($rec->seeAmount) || $rec->orderBy == 'totalAmount';
 
         $mvcArr = array('planning_DirectProductionNote' => 'planning_DirectProductNoteDetails',
             'planning_ReturnNotes' => 'planning_ReturnNoteDetails',
@@ -373,36 +338,15 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
 
                 $name = cat_Products::fetchField($pRec->productId, 'name');
 
-                $FirstDocument = doc_Threads::getFirstDocument($pRec->threadId);
-                if (!$FirstDocument) {
+                // Заданието се определя веднъж за нишка
+                if (!array_key_exists($pRec->threadId, $threadJobs)) {
+                    $threadJobs[$pRec->threadId] = self::getJobByThread($pRec->threadId);
+                }
+                if ($threadJobs[$pRec->threadId] === false) {
                     continue;
                 }
+                list($jobId, $jobProductId) = $threadJobs[$pRec->threadId];
 
-                $jobId = $jobProductId = null;
-                if (($FirstDocument->className == 'planning_Jobs')) {
-
-                    $Job = $FirstDocument->fetch('id,productId');
-
-                    $jobId = $Job->id;
-
-                    $jobProductId = $Job->productId;
-
-                }
-
-                if ($FirstDocument->className != 'planning_Jobs') {
-
-                    $originId = $FirstDocument->fetch('originId')->originId;
-                    if ($originId) {
-                        $Job = doc_Containers::getDocument($originId);
-
-                        $JobRec = $Job->fetch('id,productId');
-
-                        $jobId = $JobRec->id;
-
-                        $jobProductId = $JobRec->productId;
-                    }
-
-                }
                 if (!$jobId) {
                     $jobId = $master . $pRec->id;
                 }
@@ -450,7 +394,7 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
                 }
 
                 //Себестойност на артикула
-                $selfPrice = self::getProductPrice($pRec, $master, $rec->pricesType);
+                $selfPrice = $needPrices ? self::getProductPrice($pRec, $master, $rec->pricesType) : null;
                 if (!is_null($selfPrice)) {
 
                     //Превалутиране
@@ -741,35 +685,22 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
             }
         }
 
-        $marker = 0;
-        $jobVerb = '';
         if (($data->rec->option ?? 'no') == 'no') {
             if (isset($data->rec->jobses)) {
+                $jobVerbArr = array();
                 foreach (type_Keylist::toArray($data->rec->jobses) as $job) {
-                    $marker++;
-
-                    $jRec = planning_Jobs::fetch($job);
-
+                    $jRec = planning_Jobs::fetch($job, 'containerId,state');
                     if (!$jRec) {
                         continue;
                     }
 
-                    $jContainer = $jRec->containerId;
-
-                    $Job = doc_Containers::getDocument($jContainer);
-
-                    $handle = $Job->getHandle();
-
+                    $Job = doc_Containers::getDocument($jRec->containerId);
                     $singleUrl = $Job->getUrlWithAccess($Job->getInstance(), $job);
-
-                    $jobVerb .= ht::createLink("#{$handle}", $singleUrl);
-
-                    if ((countR((type_Keylist::toArray($data->rec->jobses))) - $marker) != 0) {
-                        $jobVerb .= ', ';
-                    }
+                    $link = ht::createLink("#{$Job->getHandle()}", $singleUrl);
+                    $jobVerbArr[] = ht::createElement('span', array('class' => "state-{$jRec->state} document-handler"), $link);
                 }
 
-                $fieldTpl->append('<b>' . $jobVerb . '</b>', 'jobses');
+                $fieldTpl->append(implode(' ', $jobVerbArr), 'jobses');
             } else {
                 $fieldTpl->append('<b>' . 'Всички' . '</b>', 'jobses');
             }
@@ -796,67 +727,142 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
 
 
     /**
+     * Опции за избор на артикули, по които има задания (@see type_Keylist2)
+     */
+    public static function getJobProductOptions($params, $limit = null, $q = '', $onlyIds = null, $includeHiddens = false)
+    {
+        $pQuery = cat_Products::getQuery();
+        $pQuery->orderBy('name', 'ASC');
+
+        if (is_array($onlyIds)) {
+            if (!countR($onlyIds)) {
+
+                return array();
+            }
+            $pQuery->in('id', $onlyIds);
+        } elseif (preg_match('/^[0-9,]+$/', (string) $onlyIds)) {
+            $pQuery->in('id', explode(',', trim($onlyIds, ',')));
+        } else {
+            $jQuery = planning_Jobs::getQuery();
+            $jQuery->in('state', array('active', 'wakeup', 'closed'));
+            if (!empty($params['departments'])) {
+                $jQuery->in('department', keylist::toArray($params['departments']));
+            }
+            $jQuery->groupBy('productId');
+            $jQuery->show('productId');
+            $productIds = arr::extractValuesFromArray($jQuery->fetchAll(), 'productId');
+            if (!countR($productIds)) {
+
+                return array();
+            }
+            $pQuery->in('id', $productIds);
+        }
+
+        if ($q) {
+            $q1 = plg_Search::normalizeText($q);
+            if (preg_match('/^art(\d+)$/', $q1, $matches)) {
+                $pQuery->where(array("#id = '[#1#]'", $matches[1]));
+            } else {
+                plg_Search::applySearch($q1, $pQuery, 'searchKeywords');
+            }
+        }
+
+        if ($limit) {
+            $pQuery->limit($limit);
+        }
+
+        $options = array();
+        while ($pRec = $pQuery->fetch()) {
+            $options[$pRec->id] = cat_Products::getRecTitle($pRec);
+        }
+
+        return $options;
+    }
+
+
+    /**
+     * Връща заданието на нишката - самото задание или origin-а на първия документ
+     *
+     * @return array|false - [ид на задание, артикул] или false, ако нишката няма първи документ
+     */
+    private static function getJobByThread($threadId)
+    {
+        $FirstDocument = doc_Threads::getFirstDocument($threadId);
+        if (!$FirstDocument) {
+            return false;
+        }
+
+        $Job = $FirstDocument;
+        if (!$FirstDocument->isInstanceOf('planning_Jobs')) {
+            $originId = $FirstDocument->fetchField('originId');
+            $Job = $originId ? doc_Containers::getDocument($originId) : null;
+        }
+
+        if ($Job && $Job->isInstanceOf('planning_Jobs')) {
+            $JobRec = $Job->fetch('id,productId');
+
+            return array($JobRec->id, $JobRec->productId);
+        }
+
+        return array(null, null);
+    }
+
+
+    /**
      * Подава цена на артикула според избания тип цени
      * само за нуждите на тази справка
      *
      */
     private static function getProductPrice($pRec, $master, $priceType)
     {
+        static $reasonIds, $notePrices = array(), $listPrices = array();
+
         if ($priceType == 'accPrice') {
-            $docTypeId = core_Classes::getId($master);
-            $resonIdArr = array();
 
-            $q = acc_Operations::getQuery();
+            // Цените от журнала се четат веднъж за протокол
+            $noteKey = "{$master}|{$pRec->noteId}";
+            if (!array_key_exists($noteKey, $notePrices)) {
+                if (!isset($reasonIds)) {
+                    $reasonNameArr = array('Влагане на материал в производството', 'Влагане на услуга в производството',
+                        'Влагане на нескладируема услуга или консуматив в производството', 'Бездетайлно влагане на материал в производството');
+                    $q = acc_Operations::getQuery();
+                    $q->in('title', $reasonNameArr);
+                    $q->show('id');
+                    $reasonIds = arr::extractValuesFromArray($q->fetchAll(), 'id');
+                }
 
-            $reasonNameArr = array('Влагане на материал в производството', 'Влагане на услуга в производството',
-                'Влагане на нескладируема услуга или консуматив в производството,Бездетайлно влагане на материал в производството');
-            foreach ($q->fetchAll() as $qRec) {
-                if (!in_array($qRec->title, $reasonNameArr)) continue;
-                $resonIdArr[] = $qRec->id;
-            }
+                $notePrices[$noteKey] = array();
+                $docTypeId = core_Classes::getId($master);
+                $journalRec = acc_Journal::fetch("#docType = {$docTypeId} AND #docId = {$pRec->noteId}");
+                if ($journalRec && !empty($reasonIds)) {
+                    $jdQuery = acc_JournalDetails::getQuery();
+                    $jdQuery->where("#journalId = {$journalRec->id}");
+                    $jdQuery->in('reasonCode', $reasonIds);
+                    $jdQuery->show('creditItem2,creditPrice');
 
-            //  $resonId = acc_Operations::getIdByTitle('Влагане на материал в производството' OR 'Влагане на услуга в производството');
-
-            $journalRec = acc_Journal::fetch("#docType = {$docTypeId} AND #docId = {$pRec->noteId}");
-            if (!$journalRec) return;
-            $masterJurnalId = $journalRec->id;
-            //$masterJurnalId = acc_Journal::fetch("#docType = ${docTypeId} AND #docId = {$pRec->noteId}")->id;
-
-            $jdQuery = acc_JournalDetails::getQuery();
-
-            $jdQuery->where("#journalId = {$masterJurnalId}");
-
-            if (empty($resonIdArr)) return;
-            $jdQuery->in('reasonCode', $resonIdArr);
-
-            while ($jdRec = $jdQuery->fetch()) {
-                unset($prodJournalId);
-                $prodJournalId = acc_Items::fetchField($jdRec->creditItem2, 'objectId');
-                if ($pRec->productId == $prodJournalId) {
-
-                    return $jdRec->creditPrice;
+                    // Важи първият ред за артикула
+                    while ($jdRec = $jdQuery->fetch()) {
+                        $prodJournalId = acc_Items::fetchField($jdRec->creditItem2, 'objectId');
+                        if (!array_key_exists($prodJournalId, $notePrices[$noteKey])) {
+                            $notePrices[$noteKey][$prodJournalId] = $jdRec->creditPrice;
+                        }
+                    }
                 }
             }
+
+            return $notePrices[$noteKey][$pRec->productId] ?? null;
         }
 
-        if ($priceType == 'selfPrice') {
-            $primeCostlistId = price_ListRules::PRICE_LIST_COST;
-
+        if ($priceType == 'selfPrice' || $priceType == 'catalog') {
+            $listId = ($priceType == 'selfPrice') ? price_ListRules::PRICE_LIST_COST : price_ListRules::PRICE_LIST_CATALOG;
             $date = price_ListToCustomers::canonizeTime($pRec->valior);
 
-            $primeCost = price_ListRules::getPrice($primeCostlistId, $pRec->productId, $pRec->packagingId, $date);
+            $priceKey = "{$listId}|{$pRec->productId}|{$pRec->packagingId}|{$date}";
+            if (!array_key_exists($priceKey, $listPrices)) {
+                $listPrices[$priceKey] = price_ListRules::getPrice($listId, $pRec->productId, $pRec->packagingId, $date);
+            }
 
-            return $primeCost;
-        }
-
-        if ($priceType == 'catalog') {
-            $primeCostlistId = price_ListRules::PRICE_LIST_CATALOG;
-
-            $date = price_ListToCustomers::canonizeTime($pRec->valior);
-
-            $catalogCost = price_ListRules::getPrice($primeCostlistId, $pRec->productId, $pRec->packagingId, $date);
-
-            return $catalogCost;
+            return $listPrices[$priceKey];
         }
     }
 }

@@ -3242,6 +3242,14 @@ class cat_Products extends embed_Manager
             }
             $data->toolbar->addBtn('Продажба', $saleUrlArr, 'ef_icon = img/16/cart_go.png,title=Създаване на нова продажба,warning=Наистина ли искате да създадете нова продажба|*?');
         }
+
+        if (cat_products_ParamIndex::haveRightFor('list')) {
+            $data->toolbar->addBtn('Индекси', array('cat_products_ParamIndex', 'list', 'product' => $data->rec->id), 'ef_icon = img/16/bug.png,title=Записаните параметрични индекси на артикула,row=2');
+        }
+
+        if ($mvc->haveRightFor('reindexparams', $data->rec)) {
+            $data->toolbar->addBtn('Преиндексиране', array($mvc, 'reindexparams', 'Selected' => $data->rec->id, 'ret_url' => true), 'ef_icon = img/16/bug.png,title=Преиндексиране на параметрите на артикула,row=2');
+        }
     }
     
     
@@ -4549,6 +4557,9 @@ class cat_Products extends embed_Manager
                     }
                     if (empty($csvFields->fields[$fName])) {
                         $csvFields->FLD($fName, 'varchar', "caption={$fCaption}");
+                        if ($fName == 'packPrice' || $fName == 'discount') {
+                            $csvFields->setField($fName, 'exportNumeric');
+                        }
                     }
                 }
 
@@ -4606,7 +4617,7 @@ class cat_Products extends embed_Manager
 
                             if (empty($csvFields->fields[$v])) {
                                 if ($vInst->fields[$v]->type instanceof type_Double) {
-                                    $csvFields->FLD($v, 'varchar', "caption={$vInst->fields[$v]->caption}");
+                                    $csvFields->FLD($v, 'varchar', "caption={$vInst->fields[$v]->caption},exportNumeric");
                                 } else {
                                     $csvFields->fields[$v] = $vInst->fields[$v];
                                 }
@@ -4628,7 +4639,7 @@ class cat_Products extends embed_Manager
 
                         if (empty($csvFields->fields[$k])) {
                             if ($dInst->fields[$k]->type instanceof type_Double) {
-                                $csvFields->FLD($k, 'varchar', "caption={$dInst->fields[$k]->caption}");
+                                $csvFields->FLD($k, 'varchar', "caption={$dInst->fields[$k]->caption},exportNumeric");
                             } else {
                                 $csvFields->fields[$k] = $dInst->fields[$k];
                             }
@@ -4650,7 +4661,7 @@ class cat_Products extends embed_Manager
                                 $caption = $dInst->fields['packPrice']->caption;
                             }
                             if (empty($csvFields->fields['packPrice'])) {
-                                $csvFields->FLD('packPrice', 'varchar', "caption={$caption}");
+                                $csvFields->FLD('packPrice', 'varchar', "caption={$caption},exportNumeric");
                             }
                         }
                     } else {

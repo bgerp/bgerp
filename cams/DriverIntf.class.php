@@ -58,7 +58,7 @@ class cams_DriverIntf
      */
     public function getFPS()
     {
-        return $this->class->FPS;
+        return $this->class->FPS ?? null;
     }
     
     

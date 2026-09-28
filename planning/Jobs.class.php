@@ -308,7 +308,7 @@ class planning_Jobs extends core_Master
     {
         $this->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,maxSuggestions=100,forceAjax)', 'class=w100,silent,mandatory,caption=Артикул,removeAndRefreshForm=packagingId|packQuantity|quantityInPack|tolerance|productionScrap|quantity|oldJobId,placeholder=Търсете артикул');
         $this->FLD('type', 'enum(manifacture=Производство,disassembly=Разпад)', 'notNull,value=manifacture,caption=Вид,mandatory,after=productId,input=hidden,silent');
-        $this->FLD('oldJobId', 'key2(mvc=planning_Jobs,selectSourceArr=planning_Jobs::getPreviousJobs,allowEmpty,forceAjax,maxSuggestions=100)', 'silent,after=productId,caption=Предходно задание,removeAndRefreshForm=notes|department|packagingId|quantityInPack|storeId,input=none,class=w100');
+        $this->FLD('oldJobId', 'key2(mvc=planning_Jobs,selectSourceArr=planning_Jobs::getJobOptions,allowEmpty,forceAjax,maxSuggestions=100)', 'silent,after=productId,caption=Предходно задание,removeAndRefreshForm=notes|department|packagingId|quantityInPack|storeId,input=none,class=w100');
         $this->FLD('dueDate', 'date(smartTime)', 'caption=Падеж,mandatory,remember');
         $this->FLD('expectedDueDate', 'date(smartTime)', 'caption=Очакван падеж,input=none');
 
@@ -3023,11 +3023,24 @@ class planning_Jobs extends core_Master
 
 
     /**
-     * Филтрира заданията по подадените параметри
+     * Опции за избор на задания в key2/keylist2 полета
+     *
+     * Параметри за филтриране:
+     *   states      - състояния (масив или списък със запетаи), по подразбиране active, wakeup, stopped, closed
+     *   type        - manifacture|disassembly
+     *   departments - центрове на дейност (keylist)
+     *   productId   - групира на "Предходни" за артикула и "Подобни"
+     *   saleId/purchaseId - с productId добавя и заданията по сделките от същата папка
      */
-    public static function getPreviousJobs($params, $limit = null, $q = '', $onlyIds = null, $includeHiddens = false)
+    public static function getJobOptions($params, $limit = null, $q = '', $onlyIds = null, $includeHiddens = false)
     {
         $jQuery = planning_Jobs::getQuery();
+
+        // Предходните за артикула са първи, за да не изпаднат от лимита
+        if (isset($params['productId'])) {
+            $jQuery->XPR('isPrevious', 'int', "IF(#productId = " . (int) $params['productId'] . ", 1, 0)");
+            $jQuery->orderBy('isPrevious', 'DESC');
+        }
         $jQuery->orderBy('id', 'DESC');
 
         if (isset($params['type']) && in_array($params['type'], array('manifacture', 'disassembly'))) {
@@ -3039,15 +3052,19 @@ class planning_Jobs extends core_Master
 
                 return array();
             }
-            $ids = implode(',', $onlyIds);
-            $jQuery->where("#id IN ({$ids})");
-        } elseif (ctype_digit("{$onlyIds}")) {
-            $jQuery->where("#id = {$onlyIds}");
+            $jQuery->in('id', $onlyIds);
+        } elseif (preg_match('/^[0-9,]+$/', (string) $onlyIds)) {
+            $jQuery->in('id', explode(',', trim($onlyIds, ',')));
         } else {
-            $jQuery->where("#state IN ('active', 'wakeup', 'stopped', 'closed')");
+            $states = !empty($params['states']) ? $params['states'] : 'active,wakeup,stopped,closed';
+            $jQuery->in('state', arr::make($states, true));
+
+            if (!empty($params['departments'])) {
+                $jQuery->in('department', keylist::toArray($params['departments']));
+            }
 
             list($sourceClass, $sourceId, $jobField) = self::getSourceInfo((object) $params);
-            if (isset($sourceClass)) {
+            if (isset($sourceClass, $params['productId'])) {
                 $sourceFolderId = $sourceClass::fetchField($sourceId, 'folderId');
                 $sourceQuery = $sourceClass::getQuery();
                 $sourceQuery->where("#folderId = {$sourceFolderId} AND (#state IN ('active', 'closed'))");
@@ -3056,23 +3073,37 @@ class planning_Jobs extends core_Master
                 $otherSourceIds = implode(',', $otherSourceIds);
                 $jQuery->setUnion("#{$jobField} IN ({$otherSourceIds})");
                 $jQuery->setUnion("#productId = {$params['productId']}");
-            } elseif(isset($params['productId'])) {
+            } elseif (isset($params['productId'])) {
                 $jQuery->where("#productId = {$params['productId']}");
             }
         }
 
         if ($q) {
             $q1 = plg_Search::normalizeText($q);
-            if(is_numeric($q1)) {
+            if (is_numeric($q1)) {
                 $jQuery->where(array("#id = '[#1#]'", $q1));
             } else {
                 plg_Search::applySearch($q1, $jQuery, 'searchKeywords');
             }
         }
 
+        if ($limit) {
+            $jQuery->limit($limit);
+        }
+
+        // Без артикул опциите са само заглавия, без групи
+        if (!isset($params['productId'])) {
+            $options = array();
+            while ($jRec = $jQuery->fetch()) {
+                $options[$jRec->id] = self::getRecTitle($jRec);
+            }
+
+            return $options;
+        }
+
         $previousArr = $similarArr = array();
         while($jRec = $jQuery->fetch()){
-            if ($jRec->productId == ($params['productId'] ?? null)) {
+            if ($jRec->productId == $params['productId']) {
                 $previousArr[$jRec->id] = (object)array('title' => self::getRecTitle($jRec), 'attr' => array('class' => 'state-waiting'));
             } else {
                 $similarArr[$jRec->id] = (object)array('title' => self::getRecTitle($jRec), 'attr' => array('class' => 'state-template'));
@@ -3080,7 +3111,7 @@ class planning_Jobs extends core_Master
         }
 
         $options = array();
-        if(!isset($onlyIds) && isset($params['productId'])) {
+        if(!isset($onlyIds)) {
             if(countR($previousArr)) {
                 $options += array("prev" => (object) array('group' => true, 'title' => 'Предходни')) + $previousArr;
             }

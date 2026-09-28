@@ -37,6 +37,12 @@ class bgerp_plg_CsvExport extends core_BaseClass
 
 
     /**
+     * Описание на генерирания CSV за последващ експорт в таблица
+     */
+    protected $csvExportData;
+
+
+    /**
      * Може ли да се добавя към този мениджър
      */
     public function isApplicable($mvc)
@@ -230,6 +236,8 @@ class bgerp_plg_CsvExport extends core_BaseClass
 
         $content = csv_Lib::createCsv($recs, $fieldSet, $fieldsArr, $params);
         $content = iconv('utf-8', $filter->encoding . '//TRANSLIT', $content);
+        $params['encoding'] = $filter->encoding ?? 'UTF-8';
+        $this->csvExportData = (object) array('fieldSet' => $fieldSet, 'listFields' => $fieldsArr, 'params' => $params);
         
         return $content;
     }

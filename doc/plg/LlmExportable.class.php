@@ -22,9 +22,9 @@ class doc_plg_LlmExportable extends core_Plugin
      *
      * Ползва се в режим 'renderForLlm' за всичко, което моделът трябва да знае, а в интерфейса
      * се вижда само като иконка, цвят или хинт (напр. вирус във файл - fileman_RichTextPlg::getLlmTag).
-     * Текстът се превежда с tr() и се добавя в bgerp/data/csv/Translations.csv.
+     * Текстът е кратък и винаги на английски, без tr().
      *
-     * @param string $text - преведеният текст на бележката
+     * @param string $text - текстът на бележката
      *
      * @return string - [!bgERP: текст]
      */

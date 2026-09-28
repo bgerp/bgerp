@@ -152,7 +152,7 @@ class fileman_RichTextPlg extends core_Plugin
         // Същият праг, при който в интерфейса излиза буболечката
         if (is_object($fRec) && fileman_Files::isDanger($fRec)) {
             $dangerPercent = round($fRec->dangerRate * 100);
-            $res .= ' ' . doc_plg_LlmExportable::systemNote(tr("Засечен вирус/зловреден код, риск|* {$dangerPercent}%"));
+            $res .= ' ' . doc_plg_LlmExportable::systemNote("Malware risk {$dangerPercent}%");
         }
 
         return $res;

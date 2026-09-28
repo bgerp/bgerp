@@ -2450,7 +2450,8 @@ class sales_Sales extends deals_DealMaster
                 $fileName = PARTNER_AUTO_EXPORT_SALE_CSV_PATH . "/{$name}.csv";
             }
 
-            $res = file_put_contents($fileName, $content);
+            // Без warning, иначе в debug режим спира финализирането на вече създадената продажба
+            $res = is_writable(dirname($fileName)) ? file_put_contents($fileName, $content) : false;
             if($res){
                 $logClass::logWrite("Експортирано csv: `{$fileName}`", $rec->id);
                 fileman::absorbStr($content, 'exportCsv', "{$name}.csv");
