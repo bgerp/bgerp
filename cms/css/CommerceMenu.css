@@ -452,6 +452,7 @@ body.commerce-theme #cmsMenu.menuRow a.commerce-language-link[aria-current=true]
 
 /* News strips stay in document flow instead of covering the banner or navigation. */
 body.commerce-theme .newsbar {
+    font-family: Arial, Helvetica, sans-serif;
     position: static;
     display: block !important;
     width: 100%;
@@ -471,6 +472,9 @@ body.commerce-theme .newsbar:is(.topContentNewsbar, .topNavNewsbar) { margin: 0 
 body.commerce-theme .newsbar:is(.bottomContentNewsbar, .bottomNavNewsbar) { margin: 1rem 0 0; border-radius: 6px; }
 body.commerce-theme .newsbar.beforeFooterNewsbar { margin-top: 1.5rem; }
 body.commerce-theme .newsbar.afterFooterNewsbar { margin: 0; }
+body.commerce-theme .eventHub > .topContentNewsbar {
+    margin: 2em 0 1.5em;
+}
 
 /* Shared pagination for the public catalogue, articles and blog. */
 body.commerce-theme .pages {
