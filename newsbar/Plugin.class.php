@@ -102,6 +102,15 @@ class newsbar_Plugin extends core_Plugin
                 }
                 $themId = cms_Domains::getCurrent('theme', false);
 
+                if (cms_Domains::getCmsSkin() instanceof cms_CommerceTheme) {
+                    // The menu occupies TOP_PAGE; mobile uses the same footer slots as desktop.
+                    $positions = array('topPage' => 'COMMERCE_TOP_NEWS', 'beforeFooter' => 'BEFORE_FOOTER', 'afterFooter' => 'AFTER_FOOTER', 'topNav' => 'TOP_CONTENT', 'bottomNav' => 'BOTTOM_CONTENT');
+                    $placeholderName = $positions[$nRec->position] ?? $placeholderName;
+                    if (in_array($placeholderName, array('TOP_CONTENT', 'BOTTOM_CONTENT')) && !$invoker->isPlaceholderExists($placeholderName)) {
+                        $placeholderName = 'COMMERCE_' . $placeholderName;
+                    }
+                }
+
                 if ($themId) {
                     $theme = cls::get($themId);
                     $className .= ($theme instanceof cms_FancyTheme) ? ' wideTheme' : ' defaultTheme';
