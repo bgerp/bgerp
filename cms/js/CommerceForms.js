@@ -112,6 +112,12 @@ function initCommerceNavigation(menuLabel, categoriesLabel, categoryLabel) {
             } else {
                 sidebar.insertBefore(activeFilters, categories);
             }
+            var clearFilters = content.querySelector('a.eshop-param-filter-clear');
+            if (clearFilters) {
+                var clearButton = clearFilters.cloneNode(true);
+                clearButton.className = 'commerce-filter-reset';
+                activeFilters.parentNode.insertBefore(clearButton, activeFilters.nextSibling);
+            }
         }
         menus.push(categories);
     }

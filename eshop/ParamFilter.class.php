@@ -591,7 +591,7 @@ class eshop_ParamFilter
         $tpl->replace(tr('Филтри'), 'TITLE');
         $tpl->replace($blocks, 'PARAMS');
         if (countR($filter->selected) || countR($groupsSelected)) {
-            $tpl->replace(ht::createLink(tr('изчисти'), $clearUrl, false, array('class' => 'eshop-param-filter-clear', 'rel' => 'nofollow')), 'CLEAR');
+            $tpl->replace(ht::createLink(tr('Изчисти всички'), $clearUrl, false, array('class' => 'eshop-param-filter-clear', 'rel' => 'nofollow')), 'CLEAR');
         }
         $tpl = ht::createElement('div', $attr, $tpl);
 

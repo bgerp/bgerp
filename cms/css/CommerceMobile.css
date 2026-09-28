@@ -5,6 +5,16 @@ body.commerce-theme .commerce-category-menu > summary { display: none; }
 body.commerce-theme .commerce-primary-links { display: flex; flex-wrap: wrap; gap: 0.375em; }
 body.commerce-theme .commerce-category-menu .narrowNav { display: block !important; }
 body.commerce-theme .commerce-active-filters { display: none; }
+body.commerce-theme .commerce-filter-reset { display: none; }
+body.commerce-theme:is(.narrow, .commerce-compact) a.commerce-filter-reset {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.75rem;
+    box-sizing: border-box;
+    margin: 0;
+    justify-content: flex-start;
+    align-items: flex-start;
+}
 body.commerce-theme[data-commerce-navigation] #cmsNavigation .toggleLink { display: none; }
 
 body.commerce-theme:is(.narrow, .commerce-compact) { min-width: 0; }
@@ -112,7 +122,7 @@ body.commerce-theme:is(.narrow, .commerce-compact) .commerce-active-filters dd {
 body.commerce-theme:is(.narrow, .commerce-compact) .commerce-active-filters dd span { padding: 0.2em 0.6em; border: 1px solid #b8cdd6; border-radius: 5px; color: #145b73; overflow-wrap: anywhere; max-width: 100%; box-sizing: border-box; }
 body.commerce-theme:is(.narrow, .commerce-compact) .eshop-group:has(> .commerce-active-filters) .eshop-name { margin-bottom: 0.5rem; padding-bottom: 0; }
 body.commerce-theme:is(.narrow, .commerce-compact) .eshop-group > .commerce-active-filters { margin: 0; }
-body.commerce-theme:is(.narrow, .commerce-compact) .eshop-group > .commerce-active-filters + .eshop-group-description:not(:empty) { margin-top: 1em; }
+body.commerce-theme:is(.narrow, .commerce-compact) .eshop-group > .commerce-active-filters ~ .eshop-group-description:not(:empty) { margin-top: 1em; }
 body.commerce-theme:is(.narrow, .commerce-compact) .eshop-group:has(> .commerce-active-filters) .eshop-group-description:empty { display: none; }
 body.commerce-theme:is(.narrow, .commerce-compact) .commerce-category-menu > summary::after { content: "+"; margin-left: auto; font-size: 1.25em; }
 body.commerce-theme:is(.narrow, .commerce-compact) .commerce-category-menu[open] > summary::after { content: "−"; }
