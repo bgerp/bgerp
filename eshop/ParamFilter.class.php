@@ -210,8 +210,7 @@ class eshop_ParamFilter
     {
         $data->paramFilter = null;
 
-        // Стойностите са и от подгрупите, въпреки че без избор се показват само е-артикулите на групата
-        $allRecs = $data->recs + ($data->subgroupRecs ?? array());
+        $allRecs = $data->recs;
         if (!countR($allRecs) || !self::isEnabled()) return;
 
         $isSearch = ($data->groupId == eshop_Groups::SEARCH_SYSTEM_ID);

@@ -601,6 +601,7 @@ class eshop_Groups extends core_Master
         $data->products->menuId = $data->menuId;
         $data->products->q = $data->q ?? null;
         $data->products->withParamFilter = ($data->groupId > 0 || $data->groupId == self::SEARCH_SYSTEM_ID);
+        $data->products->withSubgroups = ($data->groupId > 0);
 
         if($data->groupId > 0){
             $this->prepareAllGroups($data, $data->groupId);
@@ -608,7 +609,7 @@ class eshop_Groups extends core_Master
 
         eshop_Products::prepareGroupList($data->products);
 
-        // При избор по параметри се показват намерените от цялото поддърво, без плочките на подгрупите
+        // При избор по параметри се показват само намерените, без плочките на подгрупите
         if (!empty($data->products->paramFilter->selected)) {
             $data->recs = array();
         }
