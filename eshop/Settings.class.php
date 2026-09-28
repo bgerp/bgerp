@@ -435,7 +435,8 @@ class eshop_Settings extends core_Master
             }
         }
 
-        // Скрива се след въвеждането, защото при запис тук режимът още е стойността от базата
+        // Режимът се чете наново - при запис на съществуващ запис тук е стойността от базата
+        $form->input('paramFilterMode', 'silent');
         if(isset($rec->paramFilterMode) && $rec->paramFilterMode == 'yes'){
             $form->setField('paramFilterParams', 'input');
             $form->setFieldTypeParams('paramFilterParams', array('paramId_opt' => array('' => '') + eshop_ParamFilter::getParamOptions($rec->paramFilterParams ?? null)));
