@@ -418,7 +418,7 @@ class hr_Sickdays extends core_Master
     {
         $Double = cls::get('type_Double', array('params' => array('decimals' => 2)));
         
-        $row->baseCurrencyId = acc_Periods::getBaseCurrencyCode($rec->from);
+        $row->baseCurrencyId = acc_Periods::getBaseCurrencyCode($rec->startDate ?? null);
         
         $row->paidByEmployer = $Double->toVerbal($rec->paidByEmployer);
         $row->paidByEmployer .= " <span class='cCode'>{$row->baseCurrencyId}</span>";
