@@ -38,7 +38,7 @@ class cat_Params extends bgerp_ProtoParam
     /**
      * Действия с избраните
      */
-    public $doWithSelected = 'filterableon=Филтриране: вътрешно и в е-магазина,filterableinternal=Филтриране: само вътрешно,filterableoff=Филтриране: изключи';
+    public $doWithSelected = 'filterableon=Филтриране: вътрешно и в е-магазина,filterableinternal=Филтриране: само вътрешно,filterableeshop=Филтриране: само в е-магазина,filterableoff=Филтриране: изключи';
 
 
     /**
@@ -51,6 +51,12 @@ class cat_Params extends bgerp_ProtoParam
      * Кой може да включва параметрите само за вътрешно филтриране
      */
     public $canFilterableinternal = 'cat,ceo';
+
+
+    /**
+     * Кой може да включва параметрите за филтриране само в е-магазина
+     */
+    public $canFilterableeshop = 'cat,ceo';
 
 
     /**
@@ -135,7 +141,7 @@ class cat_Params extends bgerp_ProtoParam
         $this->FLD('showInPublicDocuments', 'enum(no=Не,yes=Да)', 'caption=Показване на параметъра->Външни документи,notNull,value=yes,maxRadio=2');
         $this->FLD('showInTasks', 'enum(no=Не,yes=Да)', 'caption=Показване на параметъра->Пр. операции,notNull,value=no,maxRadio=2');
         $this->FLD('editInLabel', 'enum(yes=Да,no=Не)', 'caption=Показване на параметъра->Редакция в етикет,notNull,value=yes,maxRadio=2');
-        $this->FLD('filterable', 'enum(no=Не,internal=Вътрешно,yes=Вътрешно и в е-магазина)', 'caption=Филтриране на артикулите по параметъра->Използване,notNull,value=no,maxRadio=3');
+        $this->FLD('filterable', 'enum(no=Не,internal=Вътрешно,eshop=Е-магазин,yes=Вътрешно и в е-магазина)', 'caption=Филтриране на артикулите по параметъра->Използване,notNull,value=no,maxRadio=4');
         $this->FLD('filterMode', 'enum(auto=Автоматично,values=Отделни стойности,ranges=Диапазони)', 'caption=Филтриране на артикулите по параметъра->Стойности,notNull,value=auto,hint=Автоматично - отделни стойности, а при много различни - диапазони');
         $this->FLD('state', 'enum(active=Активен,closed=Затворен,rejected=Оттеглен)', 'caption=Видимост,input=none,notSorting,notNull,value=active,smartCenter');
     }
@@ -257,7 +263,7 @@ class cat_Params extends bgerp_ProtoParam
             return null;
         }
 
-        // Вътрешното и в е-магазина се индексират еднакво - смяната между тях не пипа индекса
+        // Вътрешното и е-магазинът се индексират еднакво - смяната между тях не пипа индекса
         $filterable = self::isFilterable($rec) ? 'yes' : 'no';
 
         return $filterable . '|' . ($rec->driverClass ?? '') . '|' . md5(serialize($rec->driverRec ?? null));
@@ -277,7 +283,7 @@ class cat_Params extends bgerp_ProtoParam
 
 
     /**
-     * Дали параметърът се индексира за филтриране - вътрешно или и в е-магазина
+     * Дали параметърът се индексира за филтриране - вътрешно, в е-магазина или и в двете
      *
      * @param stdClass $rec
      *
@@ -285,7 +291,7 @@ class cat_Params extends bgerp_ProtoParam
      */
     public static function isFilterable($rec)
     {
-        return in_array($rec->filterable ?? 'no', array('internal', 'yes')) && ($rec->state ?? null) != 'rejected';
+        return in_array($rec->filterable ?? 'no', array('internal', 'eshop', 'yes')) && ($rec->state ?? null) != 'rejected';
     }
 
 
@@ -308,6 +314,15 @@ class cat_Params extends bgerp_ProtoParam
 
 
     /**
+     * Включване на избраните параметри за филтриране само в е-магазина
+     */
+    public function act_Filterableeshop()
+    {
+        return $this->changeFilterable('eshop');
+    }
+
+
+    /**
      * Изключване на избраните параметри от филтриране
      */
     public function act_Filterableoff()
@@ -319,13 +334,13 @@ class cat_Params extends bgerp_ProtoParam
     /**
      * Групова смяна на филтрирането на параметрите
      *
-     * @param string $value - yes, internal или no
+     * @param string $value - yes, internal, eshop или no
      *
      * @return void
      */
     protected function changeFilterable($value)
     {
-        $actions = array('yes' => 'filterableon', 'internal' => 'filterableinternal', 'no' => 'filterableoff');
+        $actions = array('yes' => 'filterableon', 'internal' => 'filterableinternal', 'eshop' => 'filterableeshop', 'no' => 'filterableoff');
         $action = $actions[$value];
         $this->requireRightFor($action);
 
@@ -372,7 +387,7 @@ class cat_Params extends bgerp_ProtoParam
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
-        $actions = array('filterableon' => 'yes', 'filterableinternal' => 'internal', 'filterableoff' => 'no');
+        $actions = array('filterableon' => 'yes', 'filterableinternal' => 'internal', 'filterableeshop' => 'eshop', 'filterableoff' => 'no');
         if (isset($actions[$action]) && isset($rec)) {
             $rec = $mvc->fetchRec($rec);
             if (!$rec || $rec->state == 'rejected' || $rec->filterable == $actions[$action]) {

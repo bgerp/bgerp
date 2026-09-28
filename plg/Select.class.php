@@ -26,6 +26,7 @@ class plg_Select extends core_Plugin
                                                      'groupconto' => 'img/16/tick-circle-frame.png',
                                                      'filterableon' => 'img/16/funnel.png',
                                                      'filterableinternal' => 'img/16/funnel.png',
+                                                     'filterableeshop' => 'img/16/funnel.png',
                                                      'filterableoff' => 'img/16/filter.png',
                                                      'markdirty' => 'img/16/arrow_refresh.png',
                                                      'reindexparams' => 'img/16/arrow_refresh.png');

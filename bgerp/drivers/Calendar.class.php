@@ -528,7 +528,7 @@ class bgerp_drivers_Calendar extends core_BaseClass
 
         $subTitle = "<span class='threadSubTitle'> {$dRow->subTitleNoTime}</span>";
 
-        $linkArr = array('ef_icon' => $Tasks->getIcon($rec->id));
+        $linkArr = array('ef_icon' => $Tasks->getIcon($rec->id ?? null), 'class' => '');
         $subTitleDateRec = $dRow->subTitleDateRec ?? null;
 
         if ($subTitleDateRec) {
