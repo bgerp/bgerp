@@ -146,7 +146,7 @@ class drdata_CanonizedStrings extends core_Manager
             }
 
             if (!empty($filter->string)) {
-                $data->query->where("#string = '{$filter->string}'");
+                $data->query->where(array("#string = '[#1#]'", $filter->string ?? null));
             }
         }
     }

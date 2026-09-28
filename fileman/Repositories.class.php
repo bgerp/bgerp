@@ -1449,18 +1449,22 @@ class fileman_Repositories extends core_Master
         $id = Request::get('id', 'int');
         
         // Подпапката
-        $subPath = Request::get('subPath');
+        $subPath = Request::get('subPath', 'varchar') ?? '';
         
         // Относителен път до файла в хранилището
-        $file = Request::get('file');
+        $file = Request::get('file', 'varchar') ?? '';
         
         // Вземамем записа
-        $rec = static::fetch($id);
+        expect($rec = static::fetch($id));
+        $this->requireRightFor('retrive', $rec);
         
         // Вземаем пътя до файла
-        $path = static::getFullPath($rec->basePath, $rec->subPath);
+        $path = static::getFullPath($rec->basePath ?? '', $rec->subPath ?? '');
+        $rootPath = realpath($path);
         $path = static::getFullPath($path, $subPath);
         $path = static::getFullPath($path, $file);
+        $path = realpath($path);
+        expect($rootPath !== false && $path !== false && is_file($path) && strpos($path, rtrim($rootPath, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR) === 0, 'Файлът е извън хранилището');
         
         // Времето на последна модификация на файла
         $lastModified = fileman::getModificationTimeFromFilePath($path);

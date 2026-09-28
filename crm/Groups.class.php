@@ -206,7 +206,7 @@ class crm_Groups extends core_Master
 
             // Проверка дали бащата и името са уникални
             $where = (!empty($rec->parentId)) ? "#parentId = {$rec->parentId}" : "#parentId IS NULL";
-            if(static::fetchField("{$where} AND #name = '{$rec->name}' AND #id != '" . ($rec->id ?? 0) . "'")){
+            if(static::fetchField(array("{$where} AND #name = '[#1#]' AND #id != '[#2#]'", $rec->name ?? null, $rec->id ?? 0))){
                 $form->setError('parentId,name', 'Вече съществува запис със същите данни');
             }
         }
@@ -455,16 +455,16 @@ class crm_Groups extends core_Master
         foreach ($data as $newData) {
             $newRec = (object) $newData;
             
-            $rec = $mvc->fetch("#sysId = '{$newRec->sysId}'");
+            $rec = $mvc->fetch(array("#sysId = '[#1#]'", $newRec->sysId ?? null));
             $flagChange = false;
             
             if (!$rec) {
-                $rec = $mvc->fetch("LOWER(#name) = LOWER('{$newRec->name}')");
+                $rec = $mvc->fetch(array("LOWER(#name) = LOWER('[#1#]')", $newRec->name ?? null));
                 $flagChange = true;
             }
             
             if (!$rec) {
-                $rec = $mvc->fetch("LOWER(#name) = LOWER('{$newRec->exName}')");
+                $rec = $mvc->fetch(array("LOWER(#name) = LOWER('[#1#]')", $newRec->exName ?? null));
                 $flagChange = true;
             }
             
@@ -519,7 +519,7 @@ class crm_Groups extends core_Master
      */
     public static function forceGroup($gRec)
     {
-        $rec = self::fetch("#sysId = '{$gRec->sysId}'");
+        $rec = self::fetch(array("#sysId = '[#1#]'", $gRec->sysId ?? null));
 
         if ($rec) {
             if(strtolower($rec->name) != strtolower($gRec->name)){
@@ -529,9 +529,9 @@ class crm_Groups extends core_Master
             }
         } else {
             if(isset($gRec->parentId)){
-                $rec = self::fetch("LOWER(#name) = LOWER('{$gRec->name}') AND #parentId = {$gRec->parentId}");
+                $rec = self::fetch(array("LOWER(#name) = LOWER('[#1#]') AND #parentId = '[#2#]'", $gRec->name ?? null, $gRec->parentId ?? null));
             } else {
-                $rec = self::fetch("LOWER(#name) = LOWER('{$gRec->name}') AND #parentId IS NULL");
+                $rec = self::fetch(array("LOWER(#name) = LOWER('[#1#]') AND #parentId IS NULL", $gRec->name ?? null));
             }
         }
 
@@ -548,7 +548,7 @@ class crm_Groups extends core_Master
             self::save($rec);
             core_Users::cancelSystemUser();
         } elseif(empty($rec->sysId) && !empty($gRec->sysId)){
-            if(!self::fetch("#sysId = '{$gRec->sysId}'", '*', false)){
+            if(!self::fetch(array("#sysId = '[#1#]'", $gRec->sysId ?? null), '*', false)){
                 $rec->sysId = $gRec->sysId;
                 self::save($rec, 'sysId');
             }
@@ -649,7 +649,7 @@ class crm_Groups extends core_Master
      */
     public static function getIdFromSysId($sysId)
     {
-        return static::fetchField("#sysId = '{$sysId}'");
+        return static::fetchField(array("#sysId = '[#1#]'", $sysId));
     }
     
     

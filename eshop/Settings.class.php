@@ -478,7 +478,7 @@ class eshop_Settings extends core_Master
         // При нов запис, за имейл да е корпоративния
         if(empty($rec->id)){
             if($emailRec = email_Accounts::getCorporateAcc()){
-                $defaultInboxId = email_Inboxes::fetchField("#email = '{$emailRec->email}'", 'id');
+                $defaultInboxId = email_Inboxes::fetchField(array("#email = '[#1#]'", $emailRec->email ?? null), 'id');
                 $form->setDefault('inboxId', $defaultInboxId);
             }
         }

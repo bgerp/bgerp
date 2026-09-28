@@ -317,7 +317,7 @@ class planning_ProductionTaskDetails extends doc_Detail
         }
 
         if ($rec->type == 'scrap') {
-            $scrapProductId = isset($rec->scrapRecId) ? $mvc->fetchField($rec->scrapRecId, 'productId') : planning_ProductionTaskDetails::fetchField("#taskId = {$rec->taskId} AND #serial = '{$rec->serial}'", 'productId');
+            $scrapProductId = isset($rec->scrapRecId) ? $mvc->fetchField($rec->scrapRecId, 'productId') : planning_ProductionTaskDetails::fetchField(array("#taskId = '[#1#]' AND #serial = '[#2#]'", $rec->taskId ?? null, $rec->serial ?? null), 'productId');
             $form->setOptions('productId', array($scrapProductId => cat_Products::getTitleById($scrapProductId, false)));
             $form->setDefault('productId', $scrapProductId);
             $form->setField('quantity', 'caption=Брак');
@@ -729,7 +729,7 @@ class planning_ProductionTaskDetails extends doc_Detail
                     if($rec->type == 'production'){
                         if(!empty($rec->serial)){
                             $recId = $rec->id ?? 0;
-                            if(static::fetchField("#type = 'production' AND #weight = '{$rec->weight}' AND #employees = '{$rec->employees}' AND #serial = '{$rec->serial}' AND #quantity = {$rec->quantity} AND #taskId = {$rec->taskId} AND #id != '{$recId}' AND #state != 'rejected'")){
+                            if(static::fetchField(array("#type = 'production' AND #weight = '[#1#]' AND #employees = '[#2#]' AND #serial = '[#3#]' AND #quantity = '[#4#]' AND #taskId = '[#5#]' AND #id != '[#6#]' AND #state != 'rejected'", $rec->weight ?? null, $rec->employees ?? null, $rec->serial ?? null, $rec->quantity ?? null, $rec->taskId ?? null, $recId))){
                                 $form->setError('serial,weight,quantity,employees', "Има вече същия прогрес с тези данни|*!");
                             }
                         }

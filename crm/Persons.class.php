@@ -1968,8 +1968,7 @@ class crm_Persons extends core_Master
 
             // Слагаме Default за поле 'country'
             $Countries = cls::get('drdata_Countries');
-            $form->setDefault('country', $Countries->fetchField("#commonName = '" .
-                $conf->BGERP_OWN_COMPANY_COUNTRY . "'", 'id'));
+            $form->setDefault('country', $Countries->fetchField(array("#commonName = '[#1#]'", $conf->BGERP_OWN_COMPANY_COUNTRY ?? null), 'id'));
         }
 
         // Ако сме в тесен режим

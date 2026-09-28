@@ -837,7 +837,7 @@ class core_Cron extends core_Manager
     public static function getNextStartTime($systemId)
     {
         // Вземаме записитеи за тази ситема
-        $rec = core_Cron::fetch("#systemId = '{$systemId}'");
+        $rec = core_Cron::fetch(array("#systemId = '[#1#]'", $systemId));
         
         // Ако е спрян или няма период
         if ($rec->state == 'stopped' || !$rec->period) {

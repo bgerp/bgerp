@@ -635,7 +635,7 @@ class crm_Companies extends core_Master
      */
     protected static function on_BeforePrepareEditForm($mvc, &$res, $data)
     {
-        if (!Request::get('id') && $country = Request::get('country')) {
+        if (!Request::get('id') && $country = Request::get('country', 'int')) {
             $tel = Request::get('tel');
             $fax = Request::get('fax');
             if ($tel || $fax) {
@@ -1614,7 +1614,7 @@ class crm_Companies extends core_Master
             
             // Страната не е стринг, а id
             $Countries = cls::get('drdata_Countries');
-            $rec->country = $Countries->fetchField("#commonName = '" . $conf->BGERP_OWN_COMPANY_COUNTRY . "'", 'id');
+            $rec->country = $Countries->fetchField(array("#commonName = '[#1#]'", $conf->BGERP_OWN_COMPANY_COUNTRY ?? null), 'id');
             
             if (self::save($rec, null, 'REPLACE')) {
                 $html .= "<li style='color:green'>Фирмата " . $conf->BGERP_OWN_COMPANY_NAME . ' е записана с #id=' .

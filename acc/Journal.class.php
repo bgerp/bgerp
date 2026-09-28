@@ -1301,20 +1301,22 @@ class acc_Journal extends core_Master
         $Class = cls::get($data->class);
         $query = $Class->getQuery();
         if(!empty($data->from)){
-            $query->where("#{$Class->valiorFld} >= '{$data->from}'");
+            $query->where(array("#{$Class->valiorFld} >= '[#1#]'", $data->from));
         } elseif(is_object($lastClosedPeriod)){
-            $query->where("#{$Class->valiorFld} > '{$lastClosedPeriod->end}'");
+            $query->where(array("#{$Class->valiorFld} > '[#1#]'", $lastClosedPeriod->end));
         }
 
         // Ако е стигнато до определено ид - да се продължи след него
         if(isset($data->lastId)){
-            $query->where("#id > '{$data->lastId}'");
+            $query->where(array("#id > '[#1#]'", $data->lastId));
         }
 
         // Само активните документи отговарящи на условията
         $query->where("#state = 'active'");
         foreach ($data->fields as $fld => $value){
-            $query->where("#{$fld} = '{$value}'");
+            // Името на колоната не се ескейпва, затова само реални полета на модела
+            if(!$Class->getField($fld, false)) continue;
+            $query->where(array("#{$fld} = '[#1#]'", $value));
         }
         $query->orderBy('id', 'ASC');
         $query->limit(150);

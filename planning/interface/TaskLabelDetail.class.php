@@ -118,7 +118,7 @@ class planning_interface_TaskLabelDetail extends planning_interface_TaskLabel
 
         // Ако има със същия сериен номер да се третират като един запис
         $dQuery = planning_ProductionTaskDetails::getQuery();
-        $dQuery->where("#type = '{$rec->type}' AND #serial = {$rec->serial} AND #taskId = '{$rec->taskId}' AND #id != {$rec->id} AND #state != 'rejected'");
+        $dQuery->where(array("#type = '[#1#]' AND #serial = '[#2#]' AND #taskId = '[#3#]' AND #id != '[#4#]' AND #state != 'rejected'", $rec->type ?? null, $rec->serial ?? null, $rec->taskId ?? null, $rec->id ?? null));
         $dQuery->useIndex('task_id');
 
         while($dRec = $dQuery->fetch()){

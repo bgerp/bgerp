@@ -1203,8 +1203,8 @@ class log_Browsers extends core_Master
 
         $query = $this->getQuery();
         $query->where(array("#createdOn <= '[#1#]' AND #createdBy <= 0 AND #userData IS NULL", $before));
-        $query->orWhere(array("#brid IS NULL", $before));
-        $query->orWhere(array("#brid = ''", $before));
+        $query->orWhere("#brid IS NULL");
+        $query->orWhere("#brid = ''");
 
         $query->show('id, brid');
         $rCnt = 0;

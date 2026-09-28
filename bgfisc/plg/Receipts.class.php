@@ -563,7 +563,7 @@ class bgfisc_plg_Receipts extends core_Plugin
         
         // Ако няма закачено ФУ, показва се съобщение
         if (in_array($action, array('new', 'terminal'))) {
-            if ($pointId = Request::get('pointId')) {
+            if ($pointId = Request::get('pointId', 'int')) {
                 $caseId = pos_Points::fetchField($pointId, 'caseId');
                 $fiscSerialNum = null;
                 if (!bgfisc_Register::getFiscDevice($caseId, $fiscSerialNum)) {

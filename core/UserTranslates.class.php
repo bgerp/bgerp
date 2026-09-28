@@ -451,7 +451,7 @@ class core_UserTranslates extends core_Manager
         if ($sel = Request::get('Selected')) {
             $Cmd = Request::get('Cmd');
             
-            $recId = Request::get('recId');
+            $recId = Request::get('recId', 'int');
             $classId = Request::get('classId');
             
             $selArr = arr::make($sel);

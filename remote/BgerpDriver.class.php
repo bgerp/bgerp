@@ -317,7 +317,7 @@ class remote_BgerpDriver extends core_Mvc
      */
     public function act_AuthConfirm()
     {
-        expect($authId = Request::get('authId'));
+        expect($authId = Request::get('authId', 'int'));
         
         expect($rec = remote_Authorizations::fetch($authId));
         

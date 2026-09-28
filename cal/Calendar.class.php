@@ -226,7 +226,7 @@ class cal_Calendar extends core_Master
 
         // Ако завършва с -, тогава търсим -%
         $like = (substr($prefix, -1) === '-') ? '%' : '';
-        $query->where("#time >= '{$fromTime}' AND #time <= '{$toTime}' AND #key LIKE '{$prefix}{$like}'");
+        $query->where(array("#time >= '[#1#]' AND #time <= '[#2#]' AND #key LIKE '[#3#]'", $fromTime, $toTime, $prefix . $like));
 
         // Извличаме съществуващите събития за този префикс
         $exEvents = array();
@@ -268,7 +268,7 @@ class cal_Calendar extends core_Master
         
         // Изтриваме старите записи, които не са обновени
         foreach($exEvents as $e) {
-            self::delete("#key = '{$e->key}'");
+            self::delete(array("#key = '[#1#]'", $e->key ?? null));
             $res['deleted']++;
         }
         
