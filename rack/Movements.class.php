@@ -1627,8 +1627,8 @@ class rack_Movements extends rack_MovementAbstract
                 $this->save_($newRec);
                 core_Cache::removeByType("rack_Zones_{$currentZoneId}");
                 rack_OldMovements::sync($newRec);
-                rack_Logs::add($newRec->storeId, $newRec->productId, 'create', $newRec->positionTo, $newRec->id, "Отделяне на движение #{$newRec->id} от #{$rec->id}");
-                rack_Logs::add($newRec->storeId, $newRec->productId, 'close', $newRec->positionTo, $newRec->id, "Приключване на движение #{$newRec->id}");
+                rack_Logs::add($newRec->storeId, $newRec->productId, 'create', $newRec->positionTo ?? null, $newRec->id, "Отделяне на движение #{$newRec->id} от #{$rec->id}");
+                rack_Logs::add($newRec->storeId, $newRec->productId, 'close', $newRec->positionTo ?? null, $newRec->id, "Приключване на движение #{$newRec->id}");
 
                 // Оригиналното движение се редактира, премахвайки тази част, която е отделена като ново
                 $rec->zones = @json_encode($newZoneArr);
