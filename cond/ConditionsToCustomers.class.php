@@ -530,7 +530,7 @@ class cond_ConditionsToCustomers extends core_Manager
             
             $update = array();
             $query = cond_ConditionsToCustomers::getQuery();
-            $query->where("#conditionId = {$fRec->conditionId} AND #value = '{$fRec->oldValue}'");
+            $query->where(array("#conditionId = '[#1#]' AND #value = '[#2#]'", $fRec->conditionId ?? null, $fRec->oldValue ?? null));
             $companyClassId = crm_Companies::getClassId();
             $personClassId = crm_Persons::getClassId();
             

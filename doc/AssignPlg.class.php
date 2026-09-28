@@ -425,7 +425,7 @@ class doc_AssignPlg extends core_Plugin
             }
             
             // Собственика на папката и споделените да са най-отгоре
-            if ($folderId = Request::get('folderId')) {
+            if ($folderId = Request::get('folderId', 'int')) {
                 $fRec = doc_Folders::fetch($folderId);
 
                 if ($fRec) {

@@ -97,7 +97,7 @@ class cms_GalleryTitlePlg extends core_Plugin
                 
                 // Добавяме хеша след
                 $recTitleNew = $recTitle . '-' . $hash;
-            } while ($mvc->fetch("#{$titleFieldName} = '{$recTitleNew}'"));
+            } while ($mvc->fetch(array("#{$titleFieldName} = '[#1#]'", $recTitleNew)));
         } else {
             
             // Вербализираме вербалното ID - само букви и цифри на латиница или кирилица
@@ -106,7 +106,7 @@ class cms_GalleryTitlePlg extends core_Plugin
             $dash = '-';
             
             // Ако има такъв запис
-            while ($fRec = ($mvc->fetch("#{$titleFieldName} = '{$recTitleNew}'"))) {
+            while ($fRec = ($mvc->fetch(array("#{$titleFieldName} = '[#1#]'", $recTitleNew)))) {
                 
                 // Ако редактираме текущия запис, да не се порменя
                 if ($fRec->id == ($rec->id ?? null)) {
@@ -199,7 +199,8 @@ class cms_GalleryTitlePlg extends core_Plugin
                 if ($rec->vid != $rec->{$mvc->galleryTitleFieldName}) {
                     
                     // Ако няма запис със съответното име от полето
-                    if (!$mvc->fetch("#{$mvc->galleryTitleFieldName} = '{$rec->vid}'")) {
+                    $titleFieldName = $mvc->galleryTitleFieldName ?? 'title';
+                    if (!$mvc->fetch(array("#{$titleFieldName} = '[#1#]'", $rec->vid ?? null))) {
                         
                         // Задаваме заглавието
                         $rec->{$mvc->galleryTitleFieldName} = $rec->vid;

@@ -31,13 +31,19 @@ class eshop_Settings extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'objectId=Обект,currencyId,chargeVat,payments,terms=Доставка,listId=Политика,storeId=Склад,discountType=Отстъпка,validFrom=Продължителност->От,validUntil=Продължителност->До,modifiedOn,modifiedBy';
+    public $listFields = 'title=Заглавие,objectId=Домейн,currencyId,chargeVat,payments,terms=Доставка,listId=Политика,storeId=Склад,discountType=Отстъпка,validFrom=Продължителност->От,validUntil=Продължителност->До,modifiedOn,modifiedBy';
     
     
     /**
      * Наименование на единичния обект
      */
     public $singleTitle = 'Настройка на онлайн магазина';
+
+
+    /**
+     * Шаблон за единичния изглед
+     */
+    public $singleLayoutFile = 'eshop/tpl/SingleLayoutSettings.shtml';
     
     
     /**
@@ -269,7 +275,7 @@ class eshop_Settings extends core_Master
         $this->FLD('salePendingText', 'varchar(24)', 'caption=Информация за артикули със срок на продажба->Предстоящи');
 
         $this->FLD('showNavigation', 'enum(auto=Автоматично,yes=С навигация,no=Без навигация)', 'caption=Навигация със списъка с групите->Показване');
-        $this->FLD('paramFilterMode', 'enum(auto=Автоматично,yes=Да,no=Не)', 'caption=Навигация със списъка с групите->Филтри по параметри,notNull,value=auto,refreshForm,silent');
+        $this->FLD('paramFilterMode', 'enum(auto=Автоматично,yes=Да,no=Не)', 'caption=Навигация със списъка с групите->Филтри по параметри,notNull,value=auto,removeAndRefreshForm=paramFilterParams,silent');
         $this->FLD('paramFilterParams', 'table(columns=paramId,captions=Параметър,validate=eshop_ParamFilter::validateParamTable,render=eshop_ParamFilter::renderParamTable)', 'caption=Навигация със списъка с групите->Параметри (в този ред),input=none');
         $this->FLD('rootNavigationName', 'varchar', 'caption=Показване на основната група на списъка с артикулите->Основна група');
         $this->FLD('showRootNavigation', 'enum(yes=Показване,no=Скриване)', 'caption=Показване на основната група на списъка с артикулите->Показване');
@@ -329,8 +335,9 @@ class eshop_Settings extends core_Master
     protected static function on_AfterInputEditForm($mvc, &$form)
     {
         $rec = &$form->rec;
+
         if ($form->isSubmitted()) {
-            
+
             $fieldArray = array('emailBodyIntroduction' => array('[#NAME#]'), 'emailBodyFooter' => array('[#COMPANY_NAME#]'));
             foreach ($fieldArray as $name => $placeholders){
                 if (!empty($rec->{$name})) {
@@ -428,8 +435,9 @@ class eshop_Settings extends core_Master
             }
         }
 
-        // Конкретните параметри се избират само при изрично включени филтри
-        if (($rec->paramFilterMode ?? null) == 'yes') {
+        // Режимът се чете наново - при запис на съществуващ запис тук е стойността от базата
+        $form->input('paramFilterMode', 'silent');
+        if(isset($rec->paramFilterMode) && $rec->paramFilterMode == 'yes'){
             $form->setField('paramFilterParams', 'input');
             $form->setFieldTypeParams('paramFilterParams', array('paramId_opt' => array('' => '') + eshop_ParamFilter::getParamOptions($rec->paramFilterParams ?? null)));
         }
@@ -447,10 +455,9 @@ class eshop_Settings extends core_Master
             $form->setSuggestions('takingFromOffice', array('' => '') + $ourLocations);
         }
 
-        $namePlaceholder = eshop_Setup::get('CART_EXTERNAL_NAME');
-        $form->setField('cartName', "placeholder={$namePlaceholder}");
-        $notInStockPlaceholder = eshop_Setup::get('NOT_IN_STOCK_TEXT');
-        $form->setField('notInStockText', "placeholder={$notInStockPlaceholder}");
+        foreach (self::getPlaceholders($rec) as $fld => $placeholder) {
+            $form->setField($fld, array('placeholder' => $placeholder));
+        }
 
         // Ако има ред от количка в домейна да не може да се сменя валутата и ддс-то
         if ($rec->classId == cms_Domains::getClassId()) {
@@ -464,55 +471,16 @@ class eshop_Settings extends core_Master
             }
         }
         
-        // Добавяне на плейсхолдъри на някои полета
-        $lang = 'bg';
-        if (isset($rec->objectId)) {
-            $lang = cls::get($rec->classId)->fetchField($rec->objectId, 'lang');
-            
-            $placeholderValue = ($lang == 'bg') ? self::DEFAULT_EMAIL_INTRODUCTION_BG : self::DEFAULT_EMAIL_INTRODUCTION_EN;
-            $form->setParams('emailBodyIntroduction', array('placeholder' => $placeholderValue));
-            
-            $placeholderValue = ($lang == 'bg') ? self::DEFAULT_EMAIL_FOOTER_BG : self::DEFAULT_EMAIL_FOOTER_EN;
-            $form->setParams('emailBodyFooter', array('placeholder' => $placeholderValue));
-        }
-        
         if(isset($rec->currencyId)){
             $form->setField('freeDelivery', "unit={$rec->currencyId}");
             $form->setField('freeDeliveryByBus', "unit={$rec->currencyId}");
             $form->setField('minOrderAmount', "unit={$rec->currencyId}");
         }
-        
-        $btnPlaceholder = ($lang == 'bg') ? self::DEFAULT_ADD_TO_CART_LABEL_BG : self::DEFAULT_ADD_TO_CART_LABEL_EN;
-        $form->setField('addToCartBtn', array('placeholder' => $btnPlaceholder));
-
-        $btnPlaceholder = ($lang == 'bg') ? self::DEFAULT_STOPPED_OPTION_NAME_BG : self::DEFAULT_STOPPED_OPTION_NAME_EN;
-        $form->setField('stoppedOptionName', array('placeholder' => $btnPlaceholder));
-
-        $btnPlaceholder = ($lang == 'bg') ? self::DEFAULT_EXPECTED_DELIVERY_TEXT_BG : self::DEFAULT_EXPECTED_DELIVERY_TEXT_EN;
-        $form->setField('expectedDeliveryText', array('placeholder' => $btnPlaceholder));
-        
-        $companyPlaceholder = drdata_Countries::getCountryName($ownCompany->country);
-        $form->setField('countries',  array('placeholder' => $companyPlaceholder));
-
-        $btnPlaceholder = ($lang == 'bg') ? self::DEFAULT_FAVOURITE_PRODUCT_BTN_CAPTION_BG : self::DEFAULT_FAVOURITE_PRODUCT_BTN_CAPTION_EN;
-        $form->setField('favouriteProductBtnCaption', array('placeholder' => $btnPlaceholder));
-
-        $btnPlaceholder = ($lang == 'bg') ? self::DEFAULT_LAST_ORDERED_PRODUCTS_BTN_CAPTION_BG : self::DEFAULT_LAST_ORDERED_PRODUCTS_BTN_CAPTION_EN;
-        $form->setField('lastOrderedProductBtnCaption', array('placeholder' => $btnPlaceholder));
-
-        $btnPlaceholder = ($lang == 'bg') ? self::DEFAULT_ROOT_NAVIGATION_GROUP_NAME_BG : self::DEFAULT_ROOT_NAVIGATION_GROUP_NAME_EN;
-        $form->setField('rootNavigationName', array('placeholder' => $btnPlaceholder));
-
-        $btnPlaceholder = ($lang == 'bg') ? self::DEFAULT_SALE_ENDED_TEXT_BG : self::DEFAULT_SALE_ENDED_TEXT_EN;
-        $form->setField('saleEndedText', array('placeholder' => $btnPlaceholder));
-
-        $btnPlaceholder = ($lang == 'bg') ? self::DEFAULT_SALE_PENDING_TEXT_BG : self::DEFAULT_SALE_PENDING_TEXT_EN;
-        $form->setField('salePendingText', array('placeholder' => $btnPlaceholder));
 
         // При нов запис, за имейл да е корпоративния
         if(empty($rec->id)){
             if($emailRec = email_Accounts::getCorporateAcc()){
-                $defaultInboxId = email_Inboxes::fetchField("#email = '{$emailRec->email}'", 'id');
+                $defaultInboxId = email_Inboxes::fetchField(array("#email = '[#1#]'", $emailRec->email ?? null), 'id');
                 $form->setDefault('inboxId', $defaultInboxId);
             }
         }
@@ -527,11 +495,6 @@ class eshop_Settings extends core_Master
             }
         }
 
-        $form->setField('lifetimeForUserDraftCarts', 'placeholder=' . core_Type::getByName('time')->toVerbal(self::DEFAULT_LIFETIME_USER_CARTS));
-        $form->setField('lifetimeForNoUserDraftCarts', 'placeholder=' . core_Type::getByName('time')->toVerbal(self::DEFAULT_LIFETIME_NO_USER_CARTS));
-        $form->setField('lifetimeForEmptyDraftCarts', 'placeholder=' . core_Type::getByName('time')->toVerbal(self::DEFAULT_LIFETIME_EMPTY_CARTS));
-        $form->setField('timeBeforeDelete', 'placeholder=' . core_Type::getByName('time')->toVerbal(self::DEFAULT_SEND_NOTIFICATION_BEFORE_DELETION));
-
         $form->setDefault('mandatoryEcartContactFields', 'auto');
         $form->setDefault('mandatoryInquiryContactFields', 'auto');
         $form->setDefault('showProductsWithoutPrices', 'yes');
@@ -539,10 +502,94 @@ class eshop_Settings extends core_Master
     
     
     /**
+     * Заглавие на записа
+     *
+     * @param stdClass $rec
+     * @param bool     $escaped
+     *
+     * @return string
+     */
+    public static function getRecTitle($rec, $escaped = true)
+    {
+        if (empty($rec->classId) || empty($rec->objectId)) {
+            $rec = self::fetch($rec->id);
+        }
+        $objectTitle = is_object($rec) ? cls::get($rec->classId)->getTitleById($rec->objectId, $escaped) : '';
+
+        return tr('Е-маг') . " ({$objectTitle})";
+    }
+
+
+    /**
+     * Плейсхолдърите на полетата - стойностите, които се ползват, ако полето е празно
+     *
+     * @param stdClass $rec
+     *
+     * @return array - поле => текст
+     */
+    protected static function getPlaceholders($rec)
+    {
+        $me = cls::get(get_called_class());
+        $res = array();
+        foreach ($me->fields as $name => $field) {
+            if (isset($field->placeholder)) {
+                $res[$name] = $field->placeholder;
+            }
+        }
+
+        $lang = 'bg';
+        if (isset($rec->classId, $rec->objectId)) {
+            $lang = cls::get($rec->classId)->fetchField($rec->objectId, 'lang');
+            $res['emailBodyIntroduction'] = ($lang == 'bg') ? self::DEFAULT_EMAIL_INTRODUCTION_BG : self::DEFAULT_EMAIL_INTRODUCTION_EN;
+            $res['emailBodyFooter'] = ($lang == 'bg') ? self::DEFAULT_EMAIL_FOOTER_BG : self::DEFAULT_EMAIL_FOOTER_EN;
+        }
+
+        $res['cartName'] = eshop_Setup::get('CART_EXTERNAL_NAME');
+        $res['notInStockText'] = eshop_Setup::get('NOT_IN_STOCK_TEXT');
+        $res['addToCartBtn'] = ($lang == 'bg') ? self::DEFAULT_ADD_TO_CART_LABEL_BG : self::DEFAULT_ADD_TO_CART_LABEL_EN;
+        $res['stoppedOptionName'] = ($lang == 'bg') ? self::DEFAULT_STOPPED_OPTION_NAME_BG : self::DEFAULT_STOPPED_OPTION_NAME_EN;
+        $res['expectedDeliveryText'] = ($lang == 'bg') ? self::DEFAULT_EXPECTED_DELIVERY_TEXT_BG : self::DEFAULT_EXPECTED_DELIVERY_TEXT_EN;
+        $res['favouriteProductBtnCaption'] = ($lang == 'bg') ? self::DEFAULT_FAVOURITE_PRODUCT_BTN_CAPTION_BG : self::DEFAULT_FAVOURITE_PRODUCT_BTN_CAPTION_EN;
+        $res['lastOrderedProductBtnCaption'] = ($lang == 'bg') ? self::DEFAULT_LAST_ORDERED_PRODUCTS_BTN_CAPTION_BG : self::DEFAULT_LAST_ORDERED_PRODUCTS_BTN_CAPTION_EN;
+        $res['rootNavigationName'] = ($lang == 'bg') ? self::DEFAULT_ROOT_NAVIGATION_GROUP_NAME_BG : self::DEFAULT_ROOT_NAVIGATION_GROUP_NAME_EN;
+        $res['saleEndedText'] = ($lang == 'bg') ? self::DEFAULT_SALE_ENDED_TEXT_BG : self::DEFAULT_SALE_ENDED_TEXT_EN;
+        $res['salePendingText'] = ($lang == 'bg') ? self::DEFAULT_SALE_PENDING_TEXT_BG : self::DEFAULT_SALE_PENDING_TEXT_EN;
+
+        $ownCompany = crm_Companies::fetchOurCompany('country');
+        $res['countries'] = drdata_Countries::getCountryName($ownCompany->country ?? null);
+
+        $Time = core_Type::getByName('time');
+        $res['lifetimeForUserDraftCarts'] = $Time->toVerbal(self::DEFAULT_LIFETIME_USER_CARTS);
+        $res['lifetimeForNoUserDraftCarts'] = $Time->toVerbal(self::DEFAULT_LIFETIME_NO_USER_CARTS);
+        $res['lifetimeForEmptyDraftCarts'] = $Time->toVerbal(self::DEFAULT_LIFETIME_EMPTY_CARTS);
+        $res['timeBeforeDelete'] = $Time->toVerbal(self::DEFAULT_SEND_NOTIFICATION_BEFORE_DELETION);
+
+        return $res;
+    }
+
+
+    /**
+     * След подготовка на полетата за сингъла - празните с плейсхолдър остават, за да се покаже стойността по подразбиране
+     */
+    protected static function on_AfterPrepareSingleFields($mvc, &$res, $data)
+    {
+        foreach (self::getPlaceholders($data->rec) as $fld => $placeholder) {
+            if (!isset($data->singleFields[$fld]) && strlen((string) $placeholder)) {
+                $data->singleFields[$fld] = $mvc->getField($fld)->caption;
+            }
+        }
+    }
+
+
+    /**
      *  Обработки по вербалното представяне на данните
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
+        if (isset($fields['-list'])) {
+            $row->title = $mvc->getHyperlink($rec->id, true);
+        }
+
         if (isset($rec->classId, $rec->objectId)) {
             $row->objectId = cls::get($rec->classId)->getHyperlink($rec->objectId, true);
         }
@@ -558,6 +605,17 @@ class eshop_Settings extends core_Master
         // Конкретните параметри имат смисъл само при изрично включени филтри
         if (($rec->paramFilterMode ?? null) != 'yes') {
             unset($row->paramFilterParams);
+        }
+
+        // Празните полета с плейсхолдър показват стойността по подразбиране
+        if (isset($fields['-single'])) {
+            foreach (self::getPlaceholders($rec) as $fld => $placeholder) {
+                if (!empty($rec->{$fld}) || !strlen((string) $placeholder)) continue;
+
+                $Type = $mvc->getFieldType($fld);
+                $verbal = ($Type instanceof type_Richtext) ? $Type->toVerbal($placeholder) : type_Varchar::escape(tr($placeholder));
+                $row->{$fld} = ht::createHint("<span class='blueText'>{$verbal}</span>", 'Стойност по подразбиране');
+            }
         }
 
         $row->ROW_ATTR['class'] = "state-{$rec->state}";

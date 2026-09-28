@@ -387,7 +387,7 @@ class cat_Groups extends core_Master
         }
 
         foreach ($sysIds as $grId) {
-            $kList = keylist::addKey($kList, self::fetchField("#sysId = '{$grId}'", 'id'));
+            $kList = keylist::addKey($kList, self::fetchField(array("#sysId = '[#1#]'", $grId), 'id'));
         }
 
         return $kList;

@@ -641,7 +641,7 @@ class fileman_Files2 extends core_Master
         $regExp .= '$';
         
         // Добавяме регулярния израз за търсене
-        $query->where("LOWER(#name) REGEXP '{$regExp}'");
+        $query->where(array("LOWER(#name) REGEXP '[#1#]'", $regExp));
         
         // Ако сме открили запис
         if ($rec = $query->fetch()) {

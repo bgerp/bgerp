@@ -75,7 +75,7 @@ class planning_interface_ImportTaskProducts extends planning_interface_ImportDri
                         $bQuery = batch_BatchesInDocuments::getQuery();
                         $bQuery->XPR('sumQuantity', 'double', 'SUM(#quantity)');
                         $bQuery->in('containerId', $containers);
-                        $bQuery->where("#productId = {$dRec->productId} AND #batch = '{$dRec->batch}' AND #storeId = {$masterRec->storeId} AND #operation = '{$mvc->batchMovementDocument}'");
+                        $bQuery->where(array("#productId = '[#1#]' AND #batch = '[#2#]' AND #storeId = '[#3#]' AND #operation = '[#4#]'", $dRec->productId ?? null, $dRec->batch ?? null, $masterRec->storeId ?? null, $mvc->batchMovementDocument ?? null));
                         $bQuery->show('sumQuantity');
                         $dRec->selectedByNow = $bQuery->fetch()->sumQuantity;
                     }

@@ -558,7 +558,7 @@ class docarch2_Movements extends core_Master
 
         $form = cls::get('core_Form');
 
-        $thisVolId = Request::get('id');
+        $thisVolId = Request::get('id', 'int');
 
 
         $thisVolRec = docarch2_Volumes::fetch($thisVolId);
@@ -623,7 +623,7 @@ class docarch2_Movements extends core_Master
         $volOut = new stdClass();
         $mRec = new stdClass();
 
-        $thisVolId = Request::get('id');
+        $thisVolId = Request::get('id', 'int');
 
         $thisVolRec = docarch2_Volumes::fetch($thisVolId);
 
@@ -663,7 +663,7 @@ class docarch2_Movements extends core_Master
 
         $form = cls::get('core_Form');
 
-        $thisVolId = Request::get('id');
+        $thisVolId = Request::get('id', 'int');
 
 
         $thisVolRec = docarch2_Volumes::fetch($thisVolId);

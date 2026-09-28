@@ -413,7 +413,7 @@ class cal_Tasks extends embed_Manager
             $sTaskId = cal_TaskType::getClassId();
             
             // Ако е в папка на система, да е избран сигнал
-            if ($folderId = Request::get('folderId')) {
+            if ($folderId = Request::get('folderId', 'int')) {
                 if (doc_Folders::getCover($folderId)->instance instanceof support_Systems) {
                     if (cls::load('support_TaskType', true)) {
                         $sTaskId = support_TaskType::getClassId();

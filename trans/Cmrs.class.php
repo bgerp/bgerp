@@ -543,7 +543,7 @@ class trans_Cmrs extends trans_abstract_ShipmentDocument
     public static function fetchByHandle($parsedHandle)
     {
         if ($cmrNumber = ltrim($parsedHandle['id'], '0')) {
-            $rec = static::fetch("#cmrNumber = '{$cmrNumber}'");
+            $rec = static::fetch(array("#cmrNumber = '[#1#]'", $cmrNumber));
         }
         
         return $rec;

@@ -435,10 +435,10 @@ class fileman_Get extends core_Manager
         // Определяме разширението на файла от Content-Type
         if (!strpos($filename, '.')) {
             $lastHeader = $headersArr[countR($headersArr)];
-            $cType = addslashes($lastHeader['Content-Type']);
+            $cType = $lastHeader['Content-Type'] ?? '';
             
             $Mime2ext = cls::get('fileman_Mime2ext');
-            $ext = $Mime2ext->fetchField("#mime = '{$cType}'", 'ext');
+            $ext = $Mime2ext->fetchField(array("#mime = '[#1#]'", $cType), 'ext');
             
             // Ако имаме име на файл, което само няма никакво разширение
             // добавяме така намереното разширение

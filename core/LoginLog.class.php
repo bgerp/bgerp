@@ -638,7 +638,7 @@ class core_LoginLog extends core_Manager
             if ($usersId && is_numeric($usersId)) {
                 $optArr = $data->listFilter->fields['users']->type->prepareOptions();
 
-                $uRec = core_Users::fetch($usersId);
+                $uRec = core_Users::fetch((int) $usersId);
 
                 $cUserObj = new stdClass();
                 $cUserObj->keylist = "|{$usersId}|";

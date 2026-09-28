@@ -368,7 +368,7 @@ class eshop_Groups extends core_Master
 
             $layout->append(eshop_Favourites::renderFavouritesBtnInNavigation(), 'NAVIGATION_FAV');
             $layout->append(eshop_Carts::renderLastOrderedProductsBtnInNavigation(), 'NAVIGATION_OTHER_BTNS');
-            $layout->append(eshop_ParamFilter::renderSelectGroupHint(), 'NAVIGATION_FILTERS');
+            $layout->append(eshop_ParamFilter::renderHint('Изберете група или потърсете в търсачката, за да се покажат филтрите'), 'NAVIGATION_FILTERS');
             $layout->append(cms_Articles::renderNavigation($data), 'NAVIGATION');
 
             $seoRec = new stdClass();
@@ -583,7 +583,7 @@ class eshop_Groups extends core_Master
             $row->name = str::mbUcfirst($settings->lastOrderedProductBtnCaption);
         } elseif($data->groupId == self::SEARCH_SYSTEM_ID){
             $data->q = trim((string) Request::get('q', 'varchar'));
-            $row->name = tr('Търсене на||Search for') . ' „' . type_Varchar::escape($data->q) . '“';
+            $row->name = tr('Търсене на') . ' „' . type_Varchar::escape($data->q) . '“';
         } else {
             $row->name = $this->getVerbal($rec, 'name');
             if ($rec->image) {
@@ -694,7 +694,7 @@ class eshop_Groups extends core_Master
 
         $groupTpl->append(eshop_Products::renderGroupList($data->products), 'PRODUCTS');
         if ($data->groupId == self::SEARCH_SYSTEM_ID && !countR($data->products->rows)) {
-            $groupTpl->append("<p class='eshop-search-empty'>" . tr('Няма намерени артикули||No products found') . '</p>', 'PRODUCTS');
+            $groupTpl->append("<p class='eshop-search-empty'>" . tr('Няма намерени артикули') . '</p>', 'PRODUCTS');
         }
         
         // Рендираме данните за seo

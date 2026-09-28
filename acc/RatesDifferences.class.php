@@ -350,7 +350,7 @@ class acc_RatesDifferences extends core_Master
     {
         $this->requireRightFor('rejectselected');
         $selected = Request::get('Selected');
-        $selectedArr = explode(',', $selected);
+        $selectedArr = arr::makeIds($selected);
         expect(countR($selectedArr));
 
         // Оттегляне на избраните курсови разлики

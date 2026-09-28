@@ -178,35 +178,13 @@ class eshop_ParamFilter
 
 
     /**
-     * Секцията на филтъра в навигацията, когато не е избрана група
+     * Секцията на филтъра в навигацията само с пояснителен текст, ако филтрите са включени
+     *
+     * @param string $hint - текстът, превежда се тук
      *
      * @return core_ET
      */
-    public static function renderSelectGroupHint()
-    {
-        return self::renderHint(tr('Изберете група или потърсете в търсачката, за да се покажат филтрите||Choose a group or use the search to see the filters'));
-    }
-
-
-    /**
-     * Секцията на филтъра в навигацията, когато показаните артикули нямат стойности за филтриране
-     *
-     * @return core_ET
-     */
-    protected static function renderNoFiltersHint()
-    {
-        return self::renderHint(tr('Няма налични филтри||No filters available'));
-    }
-
-
-    /**
-     * Секцията на филтъра само с пояснителен текст, ако филтрите са включени
-     *
-     * @param string $hint - преведеният текст
-     *
-     * @return core_ET
-     */
-    protected static function renderHint($hint)
+    public static function renderHint($hint)
     {
         if (!self::isEnabled()) {
 
@@ -214,8 +192,8 @@ class eshop_ParamFilter
         }
 
         $tpl = new core_ET("<div class='eshop-param-filter'><div class='eshop-param-filter-title'>[#TITLE#]</div><div class='eshop-param-filter-hint'>[#HINT#]</div></div>");
-        $tpl->replace(tr('Филтри||Filters'), 'TITLE');
-        $tpl->replace($hint, 'HINT');
+        $tpl->replace(tr('Филтри'), 'TITLE');
+        $tpl->replace(tr($hint), 'HINT');
 
         return $tpl;
     }
@@ -551,7 +529,7 @@ class eshop_ParamFilter
         $filter = $data->paramFilter ?? null;
         if (!is_object($filter)) {
 
-            return self::renderNoFiltersHint();
+            return self::renderHint('Няма налични филтри');
         }
 
         $blocks = self::renderGroupsBlock($filter->groups ?? null);
@@ -573,7 +551,7 @@ class eshop_ParamFilter
             $html = implode('', $visible);
             if (countR($more)) {
                 $open = countR(array_intersect_key($more, $filter->selected[$paramId] ?? array())) ? ' open' : '';
-                $html .= "<details class='eshop-param-filter-more'{$open}><summary>" . tr('още||more') . '</summary>' . implode('', $more) . '</details>';
+                $html .= "<details class='eshop-param-filter-more'{$open}><summary>" . tr('още') . '</summary>' . implode('', $more) . '</details>';
             }
 
             $open = $param->isOpen ? ' open' : '';
@@ -582,16 +560,16 @@ class eshop_ParamFilter
 
         if (!strlen($blocks)) {
 
-            return self::renderNoFiltersHint();
+            return self::renderHint('Няма налични филтри');
         }
 
         $tpl = new core_ET("<div class='eshop-param-filter'><div class='eshop-param-filter-title'>[#TITLE#] [#CLEAR#]</div>[#PARAMS#]</div>");
-        $tpl->replace(tr('Филтри||Filters'), 'TITLE');
+        $tpl->replace(tr('Филтри'), 'TITLE');
         $tpl->replace($blocks, 'PARAMS');
         if (countR($filter->selected) || countR($filter->groups->selected ?? array())) {
             $clearUrl = getCurrentUrl();
             unset($clearUrl[self::URL_VAR], $clearUrl[self::GROUP_URL_VAR], $clearUrl['P']);
-            $tpl->replace(ht::createLink(tr('изчисти||clear'), $clearUrl, false, array('class' => 'eshop-param-filter-clear', 'rel' => 'nofollow')), 'CLEAR');
+            $tpl->replace(ht::createLink(tr('изчисти'), $clearUrl, false, array('class' => 'eshop-param-filter-clear', 'rel' => 'nofollow')), 'CLEAR');
         }
 
         return $tpl;
@@ -627,7 +605,7 @@ class eshop_ParamFilter
             }
         }
 
-        return "<details class='eshop-param-filter-param' open><summary>" . tr('Категория||Category') . "</summary><div class='eshop-param-filter-values'>{$html}</div></details>";
+        return "<details class='eshop-param-filter-param' open><summary>" . tr('Категория') . "</summary><div class='eshop-param-filter-values'>{$html}</div></details>";
     }
 
 

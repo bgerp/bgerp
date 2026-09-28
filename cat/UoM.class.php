@@ -477,7 +477,7 @@ class cat_UoM extends core_Manager
     {
         // Ако се импортира от csv файл, заместваме основната единица с ид-то и от системата
         if (isset($rec->csv_baseUnitId) && strlen($rec->csv_baseUnitId) != 0) {
-            $rec->baseUnitId = static::fetchField("#name = '{$rec->csv_baseUnitId}'", 'id');
+            $rec->baseUnitId = static::fetchField(array("#name = '[#1#]'", $rec->csv_baseUnitId ?? null), 'id');
         }
     }
     
@@ -519,7 +519,7 @@ class cat_UoM extends core_Manager
     public static function fetchBySysId($sysId)
     {
         if (!array_key_exists($sysId, self::$cache)) {
-            self::$cache[$sysId] = static::fetch("#sysId = '{$sysId}'");
+            self::$cache[$sysId] = static::fetch(array("#sysId = '[#1#]'", $sysId));
         }
         
         $rec = self::$cache[$sysId];

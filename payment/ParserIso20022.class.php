@@ -92,7 +92,7 @@ class payment_ParserIso20022 extends core_BaseClass
                 continue;
             }
 
-            $bankAccRec = bank_Accounts::fetch("#iban = '{$iban}'");
+            $bankAccRec = bank_Accounts::fetch(array("#iban = '[#1#]'", $iban));
             if (!$bankAccRec) {
                 $res->warnings[] = "IBAN {$iban} липсва в списъка с банкови сметки";
                 continue;
