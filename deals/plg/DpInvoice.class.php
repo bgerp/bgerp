@@ -94,7 +94,7 @@ class deals_plg_DpInvoice extends core_Plugin
         
         if (isset($rec->dpAmount)) {
             $dpAmount = $rec->dpAmount / $rec->rate;
-            $periodRec = acc_Periods::fetchByDate($rec->date);
+            $periodRec = acc_Periods::fetchByDate($rec->date ?? null);
             $vat = $periodRec->vatRate ?? null;
             if(isset($rec->dpVatGroupId)){
                 $vat = acc_VatGroups::fetchField($rec->dpVatGroupId, 'vat');
@@ -402,7 +402,7 @@ class deals_plg_DpInvoice extends core_Plugin
                     $expectedDpVatGroupId = self::getDefaultDpVatGroupId($mvc, $rec);
                 }
 
-                $periodRec = acc_Periods::fetchByDate($rec->date);
+                $periodRec = acc_Periods::fetchByDate($rec->date ?? null);
                 $vat = $periodRec->vatRate ?? null;
                 if(empty($rec->id)){
                     if(isset($expectedDpVatGroupId) && isset($rec->dpVatGroupId) && $rec->dpVatGroupId != $expectedDpVatGroupId){
@@ -698,7 +698,7 @@ class deals_plg_DpInvoice extends core_Plugin
         $total = &$mvc->Master->_total;
         
         // Колко е ддс-то
-        $periodRec = acc_Periods::fetchByDate($masterRec->date);
+        $periodRec = acc_Periods::fetchByDate($masterRec->date ?? null);
         $vat = $periodRec->vatRate ?? null;
         if(isset($dpVatGroupId)){
             $vat = acc_VatGroups::fetchField($dpVatGroupId, 'vat');
