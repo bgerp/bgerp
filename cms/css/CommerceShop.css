@@ -1237,7 +1237,7 @@ body.eshop-public #cart-view-total tr:last-child td { font-size: 1.1875rem; colo
 
 /* Parameter filters: one card with collapsible sections, like large marketplaces. */
 .eshop-public #cmsNavigation .eshop-param-filter {
-    margin: 0 0 14px;
+    margin: 20px 0;
     padding: 0;
     border: 1px solid var(--shop-line);
     border-radius: 10px;
