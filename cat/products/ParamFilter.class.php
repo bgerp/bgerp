@@ -653,12 +653,26 @@ class cat_products_ParamFilter
         foreach ($selected as $paramId => $slugs) {
             if (!countR($slugs) || !isset($params[$paramId])) continue;
 
-            $paramSlug = strtolower(str::canonize($params[$paramId]->name ?? ''));
-            $paramSlug = (strlen($paramSlug) ? "{$paramSlug}-" : '') . "p{$paramId}";
-            $parts[] = $paramSlug . '.' . implode('.', $slugs);
+            $parts[] = self::getParamSlug($paramId, $params) . '.' . implode('.', $slugs);
         }
 
         return implode('_', $parts);
+    }
+
+
+    /**
+     * Слъгът на параметъра в URL-то - името е само за четимост, важи ид-то след „p“
+     *
+     * @param int   $paramId
+     * @param array $params
+     *
+     * @return string
+     */
+    public static function getParamSlug($paramId, $params)
+    {
+        $paramSlug = strtolower(str::canonize($params[$paramId]->name ?? ''));
+
+        return (strlen($paramSlug) ? "{$paramSlug}-" : '') . "p{$paramId}";
     }
 
 

@@ -762,25 +762,20 @@ class eshop_Products extends core_Master
             $perPage = eshop_Setup::get('PRODUCTS_PER_PAGE');
         } else {
             $displayedGroupRec = eshop_Groups::fetch($data->groupId);
-            $pQuery->where("#state = 'active' AND #saleState != 'closed' AND (#groupId = {$data->groupId} OR LOCATE('|{$data->groupId}|', #sharedInGroups))");
+            $groupRecs = array($data->groupId => $displayedGroupRec);
+
+            // Избраната група показва и е-артикулите от всички нива подгрупи
+            if(!empty($data->withSubgroups)){
+                $groupRecs += eshop_Groups::getSubgroups($data->groupId, $data->menuId);
+            }
+            $groupIds = array_keys($groupRecs);
+            $pQuery->where("#state = 'active' AND #saleState != 'closed'");
+            $pQuery->in('groupId', $groupIds);
+            $pQuery->orLikeKeylist('sharedInGroups', keylist::fromArray($groupIds));
             $perPage = eshop_Groups::fetchField($data->groupId, 'perPage');
             $perPage = !empty($perPage) ? $perPage : eshop_Setup::get('PRODUCTS_PER_PAGE');
         }
-        $data->recs = self::fetchGroupListRecs($pQuery, $data->groupId, is_object($displayedGroupRec) ? array($data->groupId => $displayedGroupRec) : array());
-
-        // Филтърът по параметри обхваща и е-артикулите от подгрупите; показват се само при избор
-        $data->subgroupRecs = array();
-        if(!empty($data->withParamFilter) && $data->groupId > 0 && eshop_ParamFilter::isEnabled()){
-            $subgroups = eshop_Groups::getSubgroups($data->groupId, $data->menuId);
-            if(countR($subgroups)){
-                $subgroupIds = array_keys($subgroups);
-                $sQuery = self::getQuery();
-                $sQuery->where("#state = 'active' AND #saleState != 'closed'");
-                $sQuery->in('groupId', $subgroupIds);
-                $sQuery->orLikeKeylist('sharedInGroups', keylist::fromArray($subgroupIds));
-                $data->subgroupRecs = array_diff_key(self::fetchGroupListRecs($sQuery, $data->groupId, $subgroups), $data->recs);
-            }
-        }
+        $data->recs = self::fetchGroupListRecs($pQuery, $data->groupId, is_object($displayedGroupRec) ? $groupRecs : array());
 
         // Намерените се подреждат по рейтинг, както в бързото търсене
         if($data->groupId == eshop_Groups::SEARCH_SYSTEM_ID && countR($data->recs)){

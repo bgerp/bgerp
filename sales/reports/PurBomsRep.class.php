@@ -33,6 +33,22 @@ class sales_reports_PurBomsRep extends frame2_driver_TableData
     
     
     /**
+     * Показателите на справката, в реда на обработката
+     */
+    protected static $statCaptions = array(
+        'sales' => 'Активни продажби',
+        'agreed' => 'С нестандартни производими артикули',
+        'jobs' => 'Производствени задания',
+        'payment' => 'Проверени аванси',
+        'notPaid' => 'От тях с недостатъчен аванс',
+        'delivery' => 'Изчислени срокове за доставка',
+        'rows' => 'Редове в справката',
+        'memory' => 'Пикова памет (MB)',
+        'total' => 'Общо',
+    );
+    
+    
+    /**
      * Полета от таблицата за скриване, ако са празни
      *
      * @var int
@@ -136,12 +152,14 @@ class sales_reports_PurBomsRep extends frame2_driver_TableData
      */
     protected function prepareRecs($rec, &$data = null)
     {
+        $startedOn = microtime(true);
         $recs = array();
         $Sales = cls::get('sales_Sales');
         $dealers = keylist::toArray($rec->dealers ?? '');
         $precision = isset($rec->precision) ? $rec->precision : 0.95;
         
         // Активните продажби на избраните дилъри
+        $timer = microtime(true);
         $sales = array();
         $sQuery = sales_Sales::getQuery();
         $sQuery->where("#state = 'active'");
@@ -151,25 +169,22 @@ class sales_reports_PurBomsRep extends frame2_driver_TableData
         while ($sRec = $sQuery->fetch()) {
             $sales[$sRec->id] = $sRec;
         }
-        if (!countR($sales)) {
-            
-            return $recs;
-        }
+        self::addReportStat($data, 'sales', microtime(true) - $timer, countR($sales));
         
         // Договорените нестандартни производими артикули, сумирани по продажба и артикул
         $agreed = array();
-        $dQuery = sales_SalesDetails::getQuery();
-        $dQuery->EXT('isPublic', 'cat_Products', 'externalName=isPublic,externalKey=productId');
-        $dQuery->EXT('canManifacture', 'cat_Products', 'externalName=canManifacture,externalKey=productId');
-        $dQuery->where("#isPublic = 'no' AND #canManifacture = 'yes'");
-        $dQuery->in('saleId', array_keys($sales));
-        $dQuery->show('saleId,productId,quantity');
-        while ($dRec = $dQuery->fetch()) {
-            $agreed[$dRec->saleId][$dRec->productId] = ($agreed[$dRec->saleId][$dRec->productId] ?? 0) + $dRec->quantity;
-        }
-        if (!countR($agreed)) {
-            
-            return $recs;
+        if (countR($sales)) {
+            $timer = microtime(true);
+            $dQuery = sales_SalesDetails::getQuery();
+            $dQuery->EXT('isPublic', 'cat_Products', 'externalName=isPublic,externalKey=productId');
+            $dQuery->EXT('canManifacture', 'cat_Products', 'externalName=canManifacture,externalKey=productId');
+            $dQuery->where("#isPublic = 'no' AND #canManifacture = 'yes'");
+            $dQuery->in('saleId', array_keys($sales));
+            $dQuery->show('saleId,productId,quantity');
+            while ($dRec = $dQuery->fetch()) {
+                $agreed[$dRec->saleId][$dRec->productId] = ($agreed[$dRec->saleId][$dRec->productId] ?? 0) + $dRec->quantity;
+            }
+            self::addReportStat($data, 'agreed', microtime(true) - $timer, countR($agreed));
         }
         
         // Заданията се търсят и по продажбите, приключени с текущата
@@ -180,15 +195,23 @@ class sales_reports_PurBomsRep extends frame2_driver_TableData
         
         // Планираните количества по производствените задания, без черновите и оттеглените
         $planned = array();
-        $jQuery = planning_Jobs::getQuery();
-        $jQuery->in('saleId', array_merge(...array_values($jobSaleIds)));
-        $jQuery->notIn('state', array('draft', 'rejected'));
-        $jQuery->where("#type = 'manifacture'");
-        $jQuery->show('saleId,productId,quantity');
-        while ($jRec = $jQuery->fetch()) {
-            $planned[$jRec->saleId][$jRec->productId] = ($planned[$jRec->saleId][$jRec->productId] ?? 0) + $jRec->quantity;
+        if (countR($jobSaleIds)) {
+            $timer = microtime(true);
+            $jobsCount = 0;
+            $jQuery = planning_Jobs::getQuery();
+            $jQuery->in('saleId', array_merge(...array_values($jobSaleIds)));
+            $jQuery->notIn('state', array('draft', 'rejected'));
+            $jQuery->where("#type = 'manifacture'");
+            $jQuery->show('saleId,productId,quantity');
+            while ($jRec = $jQuery->fetch()) {
+                $planned[$jRec->saleId][$jRec->productId] = ($planned[$jRec->saleId][$jRec->productId] ?? 0) + $jRec->quantity;
+                $jobsCount++;
+            }
+            self::addReportStat($data, 'jobs', microtime(true) - $timer, $jobsCount);
         }
         
+        $paymentSeconds = $deliverySeconds = 0;
+        $paymentChecks = $notPaid = 0;
         foreach ($agreed as $saleId => $products) {
             $sRec = $sales[$saleId];
             
@@ -203,14 +226,25 @@ class sales_reports_PurBomsRep extends frame2_driver_TableData
                     $missing[$productId] = $quantity;
                 }
             }
-            if (!countR($missing) || !self::isDownpaymentPaid($sRec, $precision)) continue;
+            if (!countR($missing)) continue;
             
+            $timer = microtime(true);
+            $paymentChecks++;
+            $isPaid = self::isDownpaymentPaid($sRec, $precision);
+            $paymentSeconds += microtime(true) - $timer;
+            if (!$isPaid) {
+                $notPaid++;
+                continue;
+            }
+            
+            $timer = microtime(true);
             $dealerId = ($sRec->dealerId) ? $sRec->dealerId : (($sRec->activatedBy) ? $sRec->activatedBy : $sRec->createdBy);
             $delTime = (!empty($sRec->deliveryTime)) ? $sRec->deliveryTime : (!empty($sRec->deliveryTermTime) ?  dt::addSecs($sRec->deliveryTermTime, $sRec->valior) : null);
             if (empty($delTime)) {
                 $delTime = $Sales->calcDeliveryTime($sRec->id);
                 $delTime = ($delTime) ? dt::addSecs($delTime, $sRec->valior) : $sRec->valior;
             }
+            $deliverySeconds += microtime(true) - $timer;
             
             foreach ($missing as $productId => $quantity) {
                 $recs["{$saleId}|{$productId}"] = (object) array('reff' => $sRec->reff,
@@ -222,6 +256,19 @@ class sales_reports_PurBomsRep extends frame2_driver_TableData
                     'dealerId' => $dealerId,
                     'quantity' => $quantity);
             }
+        }
+        
+        self::addReportStat($data, 'payment', $paymentSeconds, $paymentChecks);
+        self::addReportStat($data, 'notPaid', 0, $notPaid);
+        self::addReportStat($data, 'delivery', $deliverySeconds, $paymentChecks - $notPaid);
+        self::addReportStat($data, 'rows', 0, countR($recs));
+        self::addReportStat($data, 'memory', 0, round(memory_get_peak_usage(true) / 1048576));
+        self::addReportStat($data, 'total', microtime(true) - $startedOn, countR($recs));
+        
+        // В лога на справката се записва едно обобщение на етапите
+        $statsMsg = $this->getReportStatsMsg($data, ', ');
+        if (!empty($statsMsg)) {
+            $this->logWhilePreparing($statsMsg);
         }
         
         return $recs;
