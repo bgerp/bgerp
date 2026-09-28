@@ -339,6 +339,7 @@ class csv_Lib
         setIfNot($enclosure, $params['enclosure'] ?? null, '"');
         setIfNot($decimals, csv_Setup::get('DECIMALS'));
 
+        $csv = '';
         // Вземаме колоните, ако са зададени
         if (($params['columns'] ?? null) != 'none') {
             foreach ($listFields as $fld => $caption) {

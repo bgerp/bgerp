@@ -667,7 +667,6 @@ en,Зареди от ECB,Load from ECB
 en,Зареждане EONIA,Load EONIA
 en,Зареждане EURIBOR,Load EURIBOR
 en,Зареждане SOFIBID _633f,Load SOFIBID & SOFIBOR
-en,"Засечен вирус/_14628","Virus/malware detected, risk"
 en,Заскладено,Stored
 en,Затваряне,Close
 en,Затвори,Close
@@ -1152,7 +1151,6 @@ en,Неделя,Sunday
 en,Недопустими символи в число/израз,Inadmissible symbols in number/expression
 en,Недоставени,Undelivered
 en,Незаскладено,Not stored
-en,Неизвестна,Unknown
 en,Неинсталирани,Non-installed
 en,Некоректен имейл,Incorrect email
 en,Некоректна сто_a431,Incorrect field value
@@ -3993,3 +3991,4 @@ en,Скриване на до_08308,Hide document in thread
 en,Търсене на статии,Search articles
 en,Търси този тек_c3254,Search for this text in articles
 en,Споделете в,Share on
+en,Поне едно от полетата трябва да бъде въведено,At least one of the fields must be filled in

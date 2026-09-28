@@ -1,6 +1,9 @@
 <?php
 
 
+defIfNot('EXPORT_XLS_CONVERTER', '');
+
+
 /**
  * Конвертиране на файлове
  *
@@ -25,6 +28,15 @@ class export_Setup extends core_ProtoSetup
      * Описание на модула
      */
     public $info = 'Експортване на документи';
+
+
+    public $defClasses = 'export_OfficeXls';
+
+
+    public $configDescription = array(
+        'EXPORT_XLS_CONVERTER' => array('class(interface=export_XlsConverterIntf,select=title,allowEmpty)',
+            'caption=Експорт към XLS->Конвертор,placeholder=Автоматично'),
+    );
     
     
     /**

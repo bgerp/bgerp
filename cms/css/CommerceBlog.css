@@ -128,6 +128,37 @@ body.commerce-blog {
     border-color: #a9c3ce;
     box-shadow: 0 4px 16px rgba(24,43,58,.06);
 }
+.commerce-blog .commerce-blog-description,
+.commerce-blog .commerce-blog-empty,
+.commerce-blog .commerce-blog-search-results {
+    display: flow-root;
+    box-sizing: border-box;
+    margin: 0 0 1em;
+    padding: 1em 1.5em;
+    border: 1px solid #dce3e8;
+    border-radius: 12px;
+    background: #fff;
+    color: #405a68;
+    font-size: 1rem;
+    line-height: 1.65;
+    overflow-wrap: anywhere;
+}
+.commerce-blog .commerce-blog-description .richtext { font-size: 1em; line-height: inherit; }
+.commerce-blog .commerce-blog-description .richtext > :first-child { margin-top: 0; }
+.commerce-blog .commerce-blog-description .richtext > :last-child { margin-bottom: 0; }
+.commerce-blog .commerce-blog-description img { max-width: 100%; height: auto; border-radius: 6px; }
+.commerce-blog .commerce-blog-empty {
+    background: #edf4f7;
+    border-color: #d0e2e9;
+    color: #405a68;
+}
+.commerce-blog .commerce-blog-search-results > :is(h1, h3) {
+    margin: 0 0 0.75em;
+    font-size: 1.125em;
+    line-height: 1.5;
+}
+.commerce-blog .commerce-blog-search-results > :is(h1, h3):only-child { margin-bottom: 0; }
+.commerce-blog .commerce-blog-search-results > :is(h1, h3) strong { color: #145b73 !important; }
 .commerce-blog .blogm-article-title,
 .commerce-blog .blogm-browse .blogm-article-title { margin: 0 0 12px; font-size: 1.75em; line-height: 1.25; color: #182b3a; }
 .commerce-blog .blogm-article-title a { font-size: inherit; line-height: inherit; color: #182b3a; text-decoration: none; }
@@ -185,6 +216,9 @@ body.commerce-blog {
     cursor: pointer;
 }
 @media (max-width: 800px) {
+    .commerce-blog .commerce-blog-description,
+    .commerce-blog .commerce-blog-empty,
+    .commerce-blog .commerce-blog-search-results { padding: 1em; }
     .commerce-blog .externalPage .centerContent { width: calc(100% - 32px) !important; }
     .commerce-blog .commerce-blog-layout { grid-template-columns: minmax(0, 1fr); gap: 20px; padding-top: 16px; }
     .commerce-blog .blogm-browse-article,

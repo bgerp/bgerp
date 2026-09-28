@@ -549,6 +549,12 @@ class eshop_Settings extends core_Master
     
     
     /**
+     * Текущите настройки, вече изчислени в хита - клас|обект => запис
+     */
+    protected static $currentSettings = array();
+
+
+    /**
      * Връща настройките на класа
      *
      * @param int           $classId  - клас
@@ -561,6 +567,13 @@ class eshop_Settings extends core_Master
     {
         $classId = cls::get($classId)->getClassId();
         $cacheKey = "{$classId}|{$objectId}";
+
+        // Текущите настройки се питат много пъти в хита - без заявка към core_Cache всеки път
+        if (!isset($date) && array_key_exists($cacheKey, self::$currentSettings)) {
+            $settingRec = self::$currentSettings[$cacheKey];
+
+            return is_object($settingRec) ? clone $settingRec : $settingRec;
+        }
         
         if (isset($date)) {
             $settingRec = self::get($classId, $objectId, $date);
@@ -665,6 +678,10 @@ class eshop_Settings extends core_Master
             $settingRec->inStockStores = keylist::toArray(keylist::merge($stores, $otherStores));
         }
 
+        if (!isset($date)) {
+            self::$currentSettings[$cacheKey] = is_object($settingRec) ? clone $settingRec : $settingRec;
+        }
+
         return $settingRec;
     }
     
@@ -700,6 +717,7 @@ class eshop_Settings extends core_Master
      */
     protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
+        self::$currentSettings = array();
         core_Cache::remove('eshop_Settings', "{$rec->classId}|{$rec->objectId}");
     }
     

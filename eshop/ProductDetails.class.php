@@ -368,7 +368,8 @@ class eshop_ProductDetails extends core_Detail
             }
         }
         
-        if($action == 'delete' && isset($rec)){
+        // Заявките са излишни, ако потребителят и без тях няма право (напр. посетител във външната част)
+        if($action == 'delete' && isset($rec) && $requiredRoles != 'no_one' && haveRole($requiredRoles, $userId)){
             if(eshop_CartDetails::fetchField("#eshopProductId = {$rec->eshopProductId} AND #productId = {$rec->productId}")){
                 $requiredRoles = 'no_one';
             } elseif (marketing_Inquiries2::fetchField("#sourceClassId = {$mvc->getClassId()} AND #sourceId = {$rec->id}")){
@@ -389,6 +390,9 @@ class eshop_ProductDetails extends core_Detail
     {
         $data->rows = $data->recs = array();
 
+        // Само се показва - драйверите да не преизчисляват и записват параметрите на всяко питане
+        Mode::push('doNotCalculate', true);
+
         $me = cls::get(get_called_class());
         $data->listFields = arr::make('code=Код,productId=Артикул,packagingId=Опаковка,quantity=Количество,catalogPrice=Цена');
         $fields = cls::get(get_called_class())->selectFields();
@@ -398,12 +402,14 @@ class eshop_ProductDetails extends core_Detail
         $query->where("#eshopProductId = {$data->rec->id} AND #state = 'active'");
         $query->orderBy('productId');
         $data->optionsProductsCount = $query->count();
+        $recs =  $query->fetchAll();
+
+        // Цените са към точен момент и заобикалят price_Cache - правилата се зареждат накуп
+        self::preloadPublicPrices(arr::extractValuesFromArray($recs, 'productId'));
         $data->commonParams = eshop_Products::getCommonParams($data->rec->id);
 
         $orderByParam = isset($data->rec->orderByParam) ? $data->rec->orderByParam : '_code';
         $orderByDir = isset($data->rec->orderByDir) ? $data->rec->orderByDir : 'asc';
-        
-        $recs =  $query->fetchAll();
         
         // Подготовка на полето, по което ще се сортира
         array_walk($recs, function (&$a) use ($orderByParam) {
@@ -502,6 +508,8 @@ class eshop_ProductDetails extends core_Detail
                 $prev = strip_tags($row1->orderCode);
             }
         }
+
+        Mode::pop('doNotCalculate');
     }
     
     

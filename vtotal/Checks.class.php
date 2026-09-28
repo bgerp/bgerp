@@ -333,7 +333,7 @@ class vtotal_Checks extends core_Master
                     }
                     
                     // Проверка на разширението дали е от сканируемите
-                    if (!$dangerExtensionsArr[mb_strtolower($ext)]) {
+                    if (empty($dangerExtensionsArr[mb_strtolower($ext)])) {
                         continue;
                     }
                     
@@ -494,7 +494,7 @@ class vtotal_Checks extends core_Master
                         
                         $extensionFRec = mb_strtolower(pathinfo($fRec->name, PATHINFO_EXTENSION));
                         
-                        if (!$dangerExtensionsArr[$extensionFRec]) {
+                        if (empty($dangerExtensionsArr[$extensionFRec])) {
                             $dangerExtensionsArr[$extensionFRec] = $extensionFRec;
                             
                             core_Packs::setConfig('vtotal', array('VTOTAL_DANGER_EXTENSIONS' => implode(',', $dangerExtensionsArr)));

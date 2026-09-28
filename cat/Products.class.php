@@ -4557,6 +4557,9 @@ class cat_Products extends embed_Manager
                     }
                     if (empty($csvFields->fields[$fName])) {
                         $csvFields->FLD($fName, 'varchar', "caption={$fCaption}");
+                        if ($fName == 'packPrice' || $fName == 'discount') {
+                            $csvFields->setField($fName, 'exportNumeric');
+                        }
                     }
                 }
 
@@ -4614,7 +4617,7 @@ class cat_Products extends embed_Manager
 
                             if (empty($csvFields->fields[$v])) {
                                 if ($vInst->fields[$v]->type instanceof type_Double) {
-                                    $csvFields->FLD($v, 'varchar', "caption={$vInst->fields[$v]->caption}");
+                                    $csvFields->FLD($v, 'varchar', "caption={$vInst->fields[$v]->caption},exportNumeric");
                                 } else {
                                     $csvFields->fields[$v] = $vInst->fields[$v];
                                 }
@@ -4636,7 +4639,7 @@ class cat_Products extends embed_Manager
 
                         if (empty($csvFields->fields[$k])) {
                             if ($dInst->fields[$k]->type instanceof type_Double) {
-                                $csvFields->FLD($k, 'varchar', "caption={$dInst->fields[$k]->caption}");
+                                $csvFields->FLD($k, 'varchar', "caption={$dInst->fields[$k]->caption},exportNumeric");
                             } else {
                                 $csvFields->fields[$k] = $dInst->fields[$k];
                             }
@@ -4658,7 +4661,7 @@ class cat_Products extends embed_Manager
                                 $caption = $dInst->fields['packPrice']->caption;
                             }
                             if (empty($csvFields->fields['packPrice'])) {
-                                $csvFields->FLD('packPrice', 'varchar', "caption={$caption}");
+                                $csvFields->FLD('packPrice', 'varchar', "caption={$caption},exportNumeric");
                             }
                         }
                     } else {

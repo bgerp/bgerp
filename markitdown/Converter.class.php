@@ -359,7 +359,7 @@ class markitdown_Converter extends core_Manager
 
         $content = @file_get_contents($outFilePath);
 
-        if (!$content) {
+        if ($content === false || $content === '') {
 
             return '';
         }

@@ -34,16 +34,16 @@ class cat_products_ParamFilter
     /**
      * Филтрируемите параметри по реда им
      *
-     * @param bool $onlyPublic - само показваните във външни документи
+     * @param bool $onlyEshop - само филтрируемите и в е-магазина
      *
      * @return array - ид => запис
      */
-    public static function getParams($onlyPublic = false)
+    public static function getParams($onlyEshop = false)
     {
         $params = array();
         foreach (cat_products_ParamIndex::getFilterableParams() as $pRec) {
             if (($pRec->state ?? null) != 'active') continue;
-            if ($onlyPublic && ($pRec->showInPublicDocuments ?? null) != 'yes') continue;
+            if ($onlyEshop && ($pRec->filterable ?? null) != 'yes') continue;
 
             $params[$pRec->id] = $pRec;
         }
@@ -134,7 +134,7 @@ class cat_products_ParamFilter
     /**
      * Какво да се покаже от подготвения филтър, независимо от вида - навигация, форма...
      *
-     * Параметър с една стойност не филтрира нищо и се пропуска, освен ако има избор по него.
+     * Параметърът се показва и с една стойност - да се вижда какво има в групата.
      * Избраната стойност, която вече я няма, остава, за да може да се махне
      *
      * @param stdClass $filter - @see prepare
@@ -147,7 +147,7 @@ class cat_products_ParamFilter
         foreach ($filter->params as $paramId => $pRec) {
             $paramValues = $filter->values[$paramId] ?? array();
             $selected = $filter->selected[$paramId] ?? array();
-            if (countR($paramValues) < 2 && !countR($selected)) continue;
+            if (!countR($paramValues) && !countR($selected)) continue;
 
             $items = array();
             foreach (self::getSortedValues($pRec, $paramValues) as $slug => $verbal) {

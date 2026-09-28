@@ -286,7 +286,7 @@ class cms_Content extends core_Manager
         // Поставяне на иконка за Вход
         if ($loginLink == false) {
             if ($commerceTheme) {
-                $title = haveRole('user') ? 'Меню||Menu' : 'Вход||Log in';
+                $title = haveRole('user') ? 'Към системата||Go to system' : 'Вход||Log in';
                 $icon = ht::createImg(array('path' => 'cms/img/account.svg', 'alt' => '', 'aria-hidden' => 'true'));
                 $label = ht::createElement('span', array('class' => 'cms-menu-label'), tr($title));
                 $loginContent = $icon->getContent() . $label->getContent();

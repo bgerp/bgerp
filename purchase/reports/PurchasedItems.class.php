@@ -237,7 +237,7 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
         //ПОКУПКИ
         $purchasesQuery = purchase_Purchases::getQuery();
 
-        $purchasesQuery->where("#state != 'rejected'");
+        $purchasesQuery->where("#state != 'rejected, pending'");
 
         $purchasesQuery->show('threadId,contoActions');
 
@@ -442,7 +442,7 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
 
         core_Lg::pop();
 
-        $receiptsDetQuery->where("#state != 'rejected'");
+        $receiptsDetQuery->where("#state != 'rejected, pending'");
 
         $fastPurchasesDetQuery->where("#state != 'rejected'");
 
