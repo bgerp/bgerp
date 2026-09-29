@@ -707,14 +707,20 @@ class planning_Hr extends core_Master
     public static function normalizeCode($code)
     {
         $code = mb_strtoupper(trim((string) $code));
+        if (!preg_match('/\p{Cyrillic}/u', $code)) {
 
-        // Първо по изглед (Н е H, не N), а останалата кирилица се транслитерира
-        $code = strtr($code, array('А' => 'A', 'В' => 'B', 'Е' => 'E', 'К' => 'K', 'М' => 'M', 'Н' => 'H',
-                                   'О' => 'O', 'Р' => 'P', 'С' => 'C', 'Т' => 'T', 'Х' => 'X'));
-        if (preg_match('/\p{Cyrillic}/u', $code)) {
-            $code = strtoupper(str::utf2ascii($code));
+            return $code;
         }
 
-        return $code;
+        // Латиница с кирилски двойници изглежда латинска - сменя се по изглед (HОT е HOT)
+        $visual = strtr($code, array('А' => 'A', 'В' => 'B', 'Е' => 'E', 'К' => 'K', 'М' => 'M', 'Н' => 'H',
+                                     'О' => 'O', 'Р' => 'P', 'С' => 'C', 'Т' => 'T', 'Х' => 'X'));
+        if (preg_match('/[A-Z]/', $code) && !preg_match('/\p{Cyrillic}/u', $visual)) {
+
+            return $visual;
+        }
+
+        // Иначе е кирилица и се транслитерира (ТИХОМИР е TIHOMIR, не TIXOMIP)
+        return strtoupper(str::utf2ascii($code));
     }
 }
