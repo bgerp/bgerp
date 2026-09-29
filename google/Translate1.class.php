@@ -2,8 +2,6 @@
 
 
 /**
- * google_Translate1 - Реализирано на базата на google_plg_Translate
- *
  * Превод чрез Google Translate API v.1
  *
  * @category  vendors
