@@ -1020,11 +1020,9 @@ class acc_BalanceDetails extends core_Detail
 
         $start = microtime(true);
         $fetchTime = 0;
-        $explainQuery = self::getQuery();
-        $explainQuery->where("#balanceId = {$balanceId}");
-        $this->calcStats['saveCompareExplain'] = $this->explainQuery($explainQuery);
         $fetchStart = microtime(true);
         $query = self::getQuery();
+        $this->useBalanceIndex($query);
         while ($rec = $query->fetch("#balanceId = {$balanceId}")) {
             $fetchTime += microtime(true) - $fetchStart;
 
@@ -1117,7 +1115,7 @@ class acc_BalanceDetails extends core_Detail
         $tracing    = Mode::is('traceBalance');
         $loadedRows = [];
 
-        $this->calcStats['loadExplain'] = $this->explainQuery($query);
+        $this->useBalanceIndex($query);
         $fetchStart = microtime(true);
         while ($rec = $query->fetch()) {
             $fetchTime += microtime(true) - $fetchStart;
@@ -1701,17 +1699,22 @@ class acc_BalanceDetails extends core_Detail
 
 
     /**
-     * Връща плана на заявката (таблица, индекс, очаквани редове) без да я изпълнява
+     * Насочва заявката по баланс към индекса по баланс и сметка, ако го има
+     *
+     * Заради JOIN-а с acc_accounts MySQL избира индекс по сметка и чете редовете на всички баланси
      */
-    private function explainQuery($query)
+    private function useBalanceIndex($query)
     {
-        $res = array();
-        $dbRes = $this->db->query('EXPLAIN ' . $query->buildQuery());
-        while ($row = $this->db->fetchObject($dbRes)) {
-            $res[] = ($row->table ?? '') . ':' . ($row->type ?? '') . ':' . ($row->key ?? 'NULL') . ':' . ($row->rows ?? '') . ':' . ($row->Extra ?? '');
+        static $hasIndex;
+
+        if (!isset($hasIndex)) {
+            $indexes = $this->db->getIndexes($this->dbTableName);
+            $hasIndex = isset($indexes['balance_id_account_id']);
         }
 
-        return $res;
+        if ($hasIndex) {
+            $query->useIndex('balance_id_account_id');
+        }
     }
 
 
