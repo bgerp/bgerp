@@ -1020,10 +1020,18 @@ class acc_BalanceDetails extends core_Detail
 
         $start = microtime(true);
         $fetchTime = 0;
+        $explainQuery = self::getQuery();
+        $explainQuery->where("#balanceId = {$balanceId}");
+        $this->calcStats['saveCompareExplain'] = $this->explainQuery($explainQuery);
         $fetchStart = microtime(true);
         $query = self::getQuery();
         while ($rec = $query->fetch("#balanceId = {$balanceId}")) {
             $fetchTime += microtime(true) - $fetchStart;
+
+            // Първото fetch() изпълнява заявката и прехвърля буферирания резултат
+            if (!isset($this->calcStats['saveCompareQueryTime'])) {
+                $this->calcStats['saveCompareQueryTime'] = round($fetchTime, 2);
+            }
             $this->calcStats['saveExisting']++;
             $key    = $rec->accountId . '|' . $rec->ent1Id . '|' . $rec->ent2Id . '|' . $rec->ent3Id;
             $newRec = $toSave[$key] ?? null;
@@ -1109,9 +1117,15 @@ class acc_BalanceDetails extends core_Detail
         $tracing    = Mode::is('traceBalance');
         $loadedRows = [];
 
+        $this->calcStats['loadExplain'] = $this->explainQuery($query);
         $fetchStart = microtime(true);
         while ($rec = $query->fetch()) {
             $fetchTime += microtime(true) - $fetchStart;
+
+            // Първото fetch() изпълнява заявката и прехвърля буферирания резултат
+            if (!isset($this->calcStats['loadQueryTime'])) {
+                $this->calcStats['loadQueryTime'] = round($fetchTime, 2);
+            }
             $this->calcStats['loadRows']++;
             $accId  = $rec->accountId;
             $ent1Id = !empty($rec->ent1Id) ? $rec->ent1Id : null;
@@ -1683,6 +1697,21 @@ class acc_BalanceDetails extends core_Detail
     public function addCalcPhase($name, $start)
     {
         $this->calcStats['phases'][$name] = array(microtime(true) - $start, memory_get_usage(true), memory_get_peak_usage(true));
+    }
+
+
+    /**
+     * Връща плана на заявката (таблица, индекс, очаквани редове) без да я изпълнява
+     */
+    private function explainQuery($query)
+    {
+        $res = array();
+        $dbRes = $this->db->query('EXPLAIN ' . $query->buildQuery());
+        while ($row = $this->db->fetchObject($dbRes)) {
+            $res[] = ($row->table ?? '') . ':' . ($row->type ?? '') . ':' . ($row->key ?? 'NULL') . ':' . ($row->rows ?? '') . ':' . ($row->Extra ?? '');
+        }
+
+        return $res;
     }
 
 
