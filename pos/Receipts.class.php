@@ -545,7 +545,7 @@ class pos_Receipts extends core_Master
         }
 
         if ($mvc->haveRightFor('manualpending', $data->rec)) {
-            $data->toolbar->addBtn('Чакащо (Ръчно)', array($mvc, 'manualpending', 'id' => $data->rec->id, 'ret_url' => true), 'ef_icon=img/16/tick-circle-frame.png,warning=Наистина ли желаете ръчно да направите бележката чакаща|*?');
+            $data->toolbar->addBtn('Чакащо (Ръчно)', array($mvc, 'manualpending', 'id' => $data->rec->id, 'ret_url' => true), 'ef_icon=img/16/tick-circle-frame.png');
         }
 
         if(cash_NonCashPaymentDetails::haveRightFor('list')){
@@ -1195,13 +1195,14 @@ class pos_Receipts extends core_Master
      * Ръчно маркира бележката като чакаща
      *
      * @param stdClass $rec
+     * @param int|null $userId - кой да е отбелязан, че я е направил чакаща (ако няма - текущия)
      * @return void
      */
-    private function markAsWaiting($rec)
+    private function markAsWaiting($rec, $userId = null)
     {
         $rec->state = 'waiting';
         $rec->waitingOn = dt::now();
-        $rec->waitingBy = core_Users::getCurrent();
+        $rec->waitingBy = !empty($userId) ? $userId : core_Users::getCurrent();
         $rec->__closed = true;
 
         if ($this->save($rec)) {
@@ -1993,10 +1994,27 @@ class pos_Receipts extends core_Master
         expect($id = Request::get('id', 'int'));
         expect($rec = static::fetch($id));
         $this->requireRightFor('manualpending', $rec);
-        $this->markAsWaiting($rec);
-        $this->logInAct('Ръчно приключване на бележка', $rec->id);
 
-        followRetUrl(null, '|Бележката е ръчно приключена');
+        $form = cls::get('core_Form');
+        $form->title = 'Ръчно приключване на|* ' . $this->getFormTitleLink($rec);
+        $form->FLD('waitingBy', 'user(roles=pos|ceo,allowEmpty)', 'caption=Чакаща от,placeholder=Текущия потребител');
+        $form->input();
+
+        if ($form->isSubmitted()) {
+            $this->markAsWaiting($rec, $form->rec->waitingBy);
+            $this->logWrite('Бележката е станала чакаща ръчно', $rec->id);
+
+            followRetUrl(null, 'Бележката вече е чакаща|*!');
+        }
+
+        $form->toolbar->addSbBtn('Направи чакаща', 'save', 'ef_icon = img/16/tick-circle-frame.png,order=1,warning=Наистина ли желаете ръчно да направите бележката чакаща|*?');
+        $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png');
+
+        $res = $form->renderHtml();
+        $res = $this->renderWrapping($res);
+        core_Form::preventDoubleSubmission($res, $form);
+
+        return $res;
     }
 
 
