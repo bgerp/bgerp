@@ -1356,7 +1356,7 @@ function logToHtml($log, &$stat)
     $html = '';
 
     foreach ($log as $line) {
-        list($class, $text) = explode(':', $line, 2);
+        list($class, $text) = explode(':', $line ?? '', 2) + array('', '');
         $html .= "\n<div class='{$class}'>{$text}</div>";
         if (!isset($stat[$class])) {
             $stat[$class] = 0;
