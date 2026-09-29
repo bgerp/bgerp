@@ -949,45 +949,10 @@ class acc_BalanceDetails extends core_Detail
      */
     public function saveBalance($balanceId)
     {
-        $toSave   = [];
-        $toDelete = [];
-
-        if (countR($this->balance)) {
-            foreach ($this->balance as $accId => $l0) {
-                foreach ($l0 as $ent1 => $l1) {
-                    foreach ($l1 as $ent2 => $l2) {
-                        foreach ($l2 as $ent3 => $rec) {
-                            $rec['balanceId'] = $balanceId;
-
-                            foreach (['baseQuantity', 'baseAmount', 'debitQuantity', 'debitAmount', 'creditQuantity', 'creditAmount', 'blQuantity', 'blAmount'] as $fld) {
-                                if (!array_key_exists($fld, $rec)) {
-                                    $rec[$fld] = null;
-                                }
-                            }
-
-                            foreach (['blAmount', 'baseAmount'] as $fld) {
-                                if (!is_null($rec[$fld] ?? null)) {
-                                    $rec[$fld] = round($rec[$fld], 8);
-                                }
-                            }
-
-                            foreach (['blQuantity', 'baseQuantity'] as $fld) {
-                                if (!is_null($rec[$fld] ?? null) && round($rec[$fld], 8) == 0) {
-                                    $rec[$fld] = round($rec[$fld], 8);
-                                }
-                            }
-
-                            $key          = $rec['accountId'] . '|' . $rec['ent1Id'] . '|' . $rec['ent2Id'] . '|' . $rec['ent3Id'];
-                            $toSave[$key] = (object) $rec;
-                        }
-                    }
-                }
-            }
-        }
-
         if (Mode::is('traceBalance')) {
             $finalRows = [];
-            foreach ($toSave as $rec) {
+            foreach ($this->getBalanceLeaves() as $leaf) {
+                $rec = $this->prepareSaveRec($leaf, $balanceId);
                 $finalRows[] = [
                     'acc_num'        => $this->Accounts->getNumById($rec->accountId),
                     'ent1'           => acc_BalanceDebugger::entLabel($rec->ent1Id),
@@ -1007,8 +972,6 @@ class acc_BalanceDetails extends core_Detail
             acc_BalanceDebugger::log('final_balance', $finalRows);
         }
 
-        // Оригинална логика на запис (непроменена)
-        $this->calcStats['saveTotal'] = countR($toSave);
         $this->calcStats['saveExisting'] = 0;
         $this->calcStats['saveChanged'] = 0;
         $this->calcStats['savePrecisionOnly'] = 0;
@@ -1019,42 +982,9 @@ class acc_BalanceDetails extends core_Detail
         $this->addCalcPhase('saveLockWait', $start);
 
         $start = microtime(true);
-        $fetchTime = 0;
-        $fetchStart = microtime(true);
-        $query = self::getQuery();
-        $this->useBalanceIndex($query);
-        while ($rec = $query->fetch("#balanceId = {$balanceId}")) {
-            $fetchTime += microtime(true) - $fetchStart;
-
-            // Първото fetch() изпълнява заявката и прехвърля буферирания резултат
-            if (!isset($this->calcStats['saveCompareQueryTime'])) {
-                $this->calcStats['saveCompareQueryTime'] = round($fetchTime, 2);
-            }
-            $this->calcStats['saveExisting']++;
-            $key    = $rec->accountId . '|' . $rec->ent1Id . '|' . $rec->ent2Id . '|' . $rec->ent3Id;
-            $newRec = $toSave[$key] ?? null;
-            if (isset($newRec)) {
-                if ($newRec->blAmount       != $rec->blAmount       || $newRec->baseAmount     != $rec->baseAmount     ||
-                    $newRec->blQuantity     != $rec->blQuantity     || $newRec->baseQuantity   != $rec->baseQuantity   ||
-                    $newRec->debitQuantity  != $rec->debitQuantity  || $newRec->debitAmount    != $rec->debitAmount    ||
-                    $newRec->creditQuantity != $rec->creditQuantity || $newRec->creditAmount   != $rec->creditAmount) {
-                    $this->countSaveDiff($newRec, $rec);
-                    if (isset($toSave[$key]->id)) {
-                        $toDelete[$toSave[$key]->id] = $toSave[$key]->id;
-                    }
-                    $toSave[$key]->id = $rec->id;
-                } else {
-                    unset($toSave[$key]);
-                }
-            } else {
-                $toDelete[$rec->id] = $rec->id;
-            }
-            $fetchStart = microtime(true);
-        }
-        $fetchTime += microtime(true) - $fetchStart;
+        list($toSave, $toDelete) = $this->planBalanceSave($balanceId, $this->fetchBalanceRecs($balanceId));
 
         $this->addCalcPhase('saveCompare', $start);
-        $this->calcStats['saveCompareFetchTime'] = round($fetchTime, 2);
 
         $this->calcStats['saveNew'] = 0;
         foreach ($toSave as $sRec) {
@@ -1092,6 +1022,134 @@ class acc_BalanceDetails extends core_Detail
     }
     
     
+    /**
+     * Определя кои редове на баланса да се запишат и кои да се изтрият
+     *
+     * Нормализираният запис се прави само при нужда, вместо предварително копие на целия баланс
+     *
+     * @param int      $balanceId    - ид на баланса
+     * @param iterable $existingRecs - записаните в базата редове на баланса
+     *
+     * @return array [$toSave, $toDelete]
+     */
+    private function planBalanceSave($balanceId, $existingRecs)
+    {
+        $matched  = [];
+        $toDelete = [];
+        $removed  = 0;
+
+        foreach ($existingRecs as $rec) {
+            $key = $rec->accountId . '|' . $rec->ent1Id . '|' . $rec->ent2Id . '|' . $rec->ent3Id;
+
+            // Редът е отпаднал от баланса или вече е махнат като непроменен (при дубликат)
+            if (!isset($this->balance[$rec->accountId][$rec->ent1Id][$rec->ent2Id][$rec->ent3Id])) {
+                $toDelete[$rec->id] = $rec->id;
+                continue;
+            }
+
+            $newRec = $matched[$key] ?? $this->prepareSaveRec($this->balance[$rec->accountId][$rec->ent1Id][$rec->ent2Id][$rec->ent3Id], $balanceId);
+            if ($newRec->blAmount       != $rec->blAmount       || $newRec->baseAmount     != $rec->baseAmount     ||
+                $newRec->blQuantity     != $rec->blQuantity     || $newRec->baseQuantity   != $rec->baseQuantity   ||
+                $newRec->debitQuantity  != $rec->debitQuantity  || $newRec->debitAmount    != $rec->debitAmount    ||
+                $newRec->creditQuantity != $rec->creditQuantity || $newRec->creditAmount   != $rec->creditAmount) {
+                $this->countSaveDiff($newRec, $rec);
+                if (isset($newRec->id)) {
+                    $toDelete[$newRec->id] = $newRec->id;
+                }
+                $newRec->id = $rec->id;
+                $matched[$key] = $newRec;
+            } else {
+                unset($matched[$key]);
+                unset($this->balance[$rec->accountId][$rec->ent1Id][$rec->ent2Id][$rec->ent3Id]);
+                $removed++;
+            }
+        }
+
+        // Останалите в баланса редове са променени (с ид) или нови
+        $toSave = [];
+        foreach ($this->getBalanceLeaves() as $leaf) {
+            $key = $leaf['accountId'] . '|' . $leaf['ent1Id'] . '|' . $leaf['ent2Id'] . '|' . $leaf['ent3Id'];
+            $toSave[$key] = $matched[$key] ?? $this->prepareSaveRec($leaf, $balanceId);
+        }
+
+        $this->calcStats['saveTotal'] = countR($toSave) + $removed;
+
+        return [$toSave, $toDelete];
+    }
+
+
+    /**
+     * Обхожда редовете на баланса в паметта
+     */
+    private function getBalanceLeaves()
+    {
+        foreach ((array) $this->balance as $l0) {
+            foreach ($l0 as $l1) {
+                foreach ($l1 as $l2) {
+                    foreach ($l2 as $leaf) {
+                        yield $leaf;
+                    }
+                }
+            }
+        }
+    }
+
+
+    /**
+     * Подготвя ред от баланса за запис (попълва полетата и закръгля салдата)
+     */
+    private function prepareSaveRec($rec, $balanceId)
+    {
+        $rec['balanceId'] = $balanceId;
+
+        foreach (['baseQuantity', 'baseAmount', 'debitQuantity', 'debitAmount', 'creditQuantity', 'creditAmount', 'blQuantity', 'blAmount'] as $fld) {
+            if (!array_key_exists($fld, $rec)) {
+                $rec[$fld] = null;
+            }
+        }
+
+        foreach (['blAmount', 'baseAmount'] as $fld) {
+            if (!is_null($rec[$fld] ?? null)) {
+                $rec[$fld] = round($rec[$fld], 8);
+            }
+        }
+
+        foreach (['blQuantity', 'baseQuantity'] as $fld) {
+            if (!is_null($rec[$fld] ?? null) && round($rec[$fld], 8) == 0) {
+                $rec[$fld] = round($rec[$fld], 8);
+            }
+        }
+
+        return (object) $rec;
+    }
+
+
+    /**
+     * Чете записаните редове на баланса и отчита времето за четене
+     */
+    private function fetchBalanceRecs($balanceId)
+    {
+        $fetchTime = 0;
+        $query = self::getQuery();
+        $this->useBalanceIndex($query);
+        $fetchStart = microtime(true);
+        while ($rec = $query->fetch("#balanceId = {$balanceId}")) {
+            $fetchTime += microtime(true) - $fetchStart;
+
+            // Първото fetch() изпълнява заявката и прехвърля буферирания резултат
+            if (!isset($this->calcStats['saveCompareQueryTime'])) {
+                $this->calcStats['saveCompareQueryTime'] = round($fetchTime, 2);
+            }
+            $this->calcStats['saveExisting']++;
+
+            yield $rec;
+            $fetchStart = microtime(true);
+        }
+        $fetchTime += microtime(true) - $fetchStart;
+        $this->calcStats['saveCompareFetchTime'] = round($fetchTime, 2);
+    }
+
+
     /**
      * Зарежда в сингълтона баланса с посоченото id
      */
