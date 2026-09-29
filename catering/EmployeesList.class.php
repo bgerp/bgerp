@@ -126,7 +126,7 @@ class catering_EmployeesList extends core_Manager
         $userName = Users::getCurrent('names');
         
         // get $personId
-        $personId = crm_Persons::fetchField("#name = '{$userName}'", 'id');
+        $personId = crm_Persons::fetchField(array("#name = '[#1#]'", $userName), 'id');
         
         // get $personId
         $personId = self::fetchField("#personId = '{$personId}'", 'id');

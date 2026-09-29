@@ -2,7 +2,7 @@
 
 
 /**
- * Филтриране на артикули по стойностите на параметрите им (@see cat_products_ParamIndex)
+ * Филтриране на артикули по стойностите на параметрите им (@see cat_products_ProtoParamIndex)
  *
  * Общата логика за външната и вътрешната част - кои артикули се филтрират, решава извикващият
  * с базовата заявка по индекса. Всичко се агрегира в MySQL, в PHP идват само различните стойности.
@@ -34,16 +34,13 @@ class cat_products_ParamFilter
     /**
      * Филтрируемите параметри по реда им
      *
-     * @param bool $onlyEshop - само филтрируемите и в е-магазина
-     *
      * @return array - ид => запис
      */
-    public static function getParams($onlyEshop = false)
+    public static function getParams()
     {
         $params = array();
         foreach (cat_products_ParamIndex::getFilterableParams() as $pRec) {
             if (($pRec->state ?? null) != 'active') continue;
-            if ($onlyEshop && ($pRec->filterable ?? null) != 'yes') continue;
 
             $params[$pRec->id] = $pRec;
         }
@@ -83,12 +80,13 @@ class cat_products_ParamFilter
      * MariaDB връща double с 16 значещи цифри
      *
      * @param string $lg
+     * @param string $indexClass - таблицата на индекса: вътрешната или тази на е-магазина
      *
      * @return core_Query
      */
-    public static function getIndexQuery($lg)
+    public static function getIndexQuery($lg, $indexClass = 'cat_products_ParamIndex')
     {
-        $query = cat_products_ParamIndex::getQuery();
+        $query = cls::get($indexClass)->getQuery();
         $query->where(array("#lg = '' OR #lg = '[#1#]'", $lg));
         $query->XPR('valueNumText', 'varchar', 'CAST(#valueNum AS CHAR)');
 
@@ -222,8 +220,9 @@ class cat_products_ParamFilter
     {
         // Редът се брои, ако артикулът му изпълнява избора по всички параметри без собствения си
         $conds = array();
+        $indexClass = cls::getClassName($baseQuery->mvc);
         foreach ($selected as $paramId => $slugs) {
-            $conds[] = '(#paramId = ' . (int) $paramId . ' OR ' . self::getValueCondition($paramId, $values[$paramId] ?? array(), $slugs, $lg) . ')';
+            $conds[] = '(#paramId = ' . (int) $paramId . ' OR ' . self::getValueCondition($paramId, $values[$paramId] ?? array(), $slugs, $lg, $indexClass) . ')';
         }
         $countExpr = countR($conds) ? 'IF(' . implode(' AND ', $conds) . ", #{$countField}, NULL)" : "#{$countField}";
 
@@ -275,12 +274,13 @@ class cat_products_ParamFilter
      * @param array  $paramValues - слъг => ред от индекса
      * @param array  $slugs       - избраните слъгове
      * @param string $lg
+     * @param string $indexClass  - таблицата на индекса
      *
      * @return string
      */
-    public static function getValueCondition($paramId, $paramValues, $slugs, $lg)
+    public static function getValueCondition($paramId, $paramValues, $slugs, $lg, $indexClass = 'cat_products_ParamIndex')
     {
-        $Index = cls::get('cat_products_ParamIndex');
+        $Index = cls::get($indexClass);
         $col = function ($name) {
             return '`' . str::phpToMysqlName($name) . '`';
         };
@@ -325,13 +325,14 @@ class cat_products_ParamFilter
      * @param array      $values   - известните стойности
      * @param array      $selected - параметър => избрани слъгове
      * @param string     $lg
+     * @param string     $indexClass - таблицата на индекса
      *
      * @return void
      */
-    public static function applySelection($query, $values, $selected, $lg)
+    public static function applySelection($query, $values, $selected, $lg, $indexClass = 'cat_products_ParamIndex')
     {
         foreach ($selected as $paramId => $slugs) {
-            $query->where(self::getValueCondition($paramId, $values[$paramId] ?? array(), $slugs, $lg));
+            $query->where(self::getValueCondition($paramId, $values[$paramId] ?? array(), $slugs, $lg, $indexClass));
         }
     }
 
@@ -652,12 +653,26 @@ class cat_products_ParamFilter
         foreach ($selected as $paramId => $slugs) {
             if (!countR($slugs) || !isset($params[$paramId])) continue;
 
-            $paramSlug = strtolower(str::canonize($params[$paramId]->name ?? ''));
-            $paramSlug = (strlen($paramSlug) ? "{$paramSlug}-" : '') . "p{$paramId}";
-            $parts[] = $paramSlug . '.' . implode('.', $slugs);
+            $parts[] = self::getParamSlug($paramId, $params) . '.' . implode('.', $slugs);
         }
 
         return implode('_', $parts);
+    }
+
+
+    /**
+     * Слъгът на параметъра в URL-то - името е само за четимост, важи ид-то след „p“
+     *
+     * @param int   $paramId
+     * @param array $params
+     *
+     * @return string
+     */
+    public static function getParamSlug($paramId, $params)
+    {
+        $paramSlug = strtolower(str::canonize($params[$paramId]->name ?? ''));
+
+        return (strlen($paramSlug) ? "{$paramSlug}-" : '') . "p{$paramId}";
     }
 
 

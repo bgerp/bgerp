@@ -44,13 +44,13 @@ class cat_products_ParamIndexState extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'productId,driver=Драйвер,status,forced,rowsCnt,indexedOn,hash,lastError,createdOn';
+    public $listFields = 'productId,driver=Драйвер,status,forced,inEshop,rowsCnt,indexedOn,hash,lastError,createdOn';
 
 
     /**
      * Кои полета от листовия изглед да се скриват ако няма записи в тях
      */
-    public $hideListFieldsIfEmpty = 'forced,lastError';
+    public $hideListFieldsIfEmpty = 'forced,inEshop,lastError';
 
 
     /**
@@ -110,6 +110,7 @@ class cat_products_ParamIndexState extends core_Manager
         $this->FLD('status', 'enum(dirty=Чакащ,processing=Обработва се,ok=Актуален,error=Грешка)', 'caption=Статус,notNull,value=dirty');
         $this->FLD('forced', 'enum(no=Не,yes=Да)', 'caption=Принудително,notNull,value=no');
         $this->FLD('processingOn', 'datetime(format=smartTime)', 'caption=Начало на обработката,input=none,column=none');
+        $this->FLD('inEshop', 'enum(no=Не,yes=Да)', 'caption=В е-магазина,notNull,value=no');
         $this->FLD('rowsCnt', 'int', 'caption=Редове');
         $this->FLD('indexedOn', 'datetime(format=smartTime)', 'caption=Индексиран');
         $this->FLD('hash', 'varchar(32)', 'caption=Хеш');
@@ -290,6 +291,42 @@ class cat_products_ParamIndexState extends core_Manager
 
 
     /**
+     * Маркира артикулите, които са влезли в е-артикул или са излезли от всички, без да са преиндексирани
+     *
+     * Масово е с директен SQL, за да хване и промените, минали покрай хуковете (напр. saveArray)
+     *
+     * @return int - брой маркирани
+     */
+    public static function markEshopChanged()
+    {
+        if (!core_Packs::isInstalled('eshop')) {
+
+            return 0;
+        }
+
+        $me = cls::get(get_called_class());
+        $Details = cls::get('eshop_ProductDetails');
+        $productIdCol = str::phpToMysqlName('productId');
+        $status = str::phpToMysqlName('status');
+        $inEshop = str::phpToMysqlName('inEshop');
+
+        // Липсващите се добавят като неиндексирани - ще се индексират и за е-магазина
+        $me->db->query("INSERT IGNORE INTO `{$me->dbTableName}` (`{$productIdCol}`, `{$status}`)
+                        SELECT DISTINCT `{$productIdCol}`, 'dirty' FROM `{$Details->dbTableName}`");
+        $res = $me->db->affectedRows();
+
+        $me->db->query("UPDATE `{$me->dbTableName}` s
+                        LEFT JOIN (SELECT DISTINCT `{$productIdCol}` FROM `{$Details->dbTableName}`) d ON d.`{$productIdCol}` = s.`{$productIdCol}`
+                        SET s.`{$status}` = 'dirty'
+                        WHERE s.`{$status}` != 'dirty' AND ((s.`{$inEshop}` = 'yes' AND d.`{$productIdCol}` IS NULL) OR (s.`{$inEshop}` = 'no' AND d.`{$productIdCol}` IS NOT NULL))");
+        $res += $me->db->affectedRows();
+        $me->dbTableUpdated();
+
+        return $res;
+    }
+
+
+    /**
      * Маркира незатворените и неоттеглени артикули по условие с една заявка
      *
      * Масово е с директен SQL, защото артикулите може да са стотици хиляди
@@ -342,10 +379,12 @@ class cat_products_ParamIndexState extends core_Manager
         $this->requireRightFor('reset');
 
         cat_products_ParamIndex::truncate();
+        cat_products_EshopParamIndex::truncate();
         self::truncate();
 
         cat_products_ParamIndex::setEshopParamsFilterable();
         self::markMissing();
+        self::markEshopChanged();
         $this->logWrite('Изчистване на индекса на параметрите');
 
         followRetUrl(array($this, 'list'), '|Индексът е изчистен, маркирани артикули|*: ' . self::count());
@@ -362,7 +401,7 @@ class cat_products_ParamIndexState extends core_Manager
     public static function addResetBtn($toolbar)
     {
         if (cls::get(get_called_class())->haveRightFor('reset')) {
-            $toolbar->addBtn('Изчисти индекса', array(get_called_class(), 'reset', 'ret_url' => true), 'ef_icon=img/16/recycle.png,title=Изчистване на двете таблици на индекса и повторно пускане на миграциите му,warning=Наистина ли желаете индексът да се изчисти и да се изгради наново|*?');
+            $toolbar->addBtn('Изчисти индекса', array(get_called_class(), 'reset', 'ret_url' => true), 'ef_icon=img/16/recycle.png,title=Изчистване на таблиците на индекса и повторно пускане на миграциите му,warning=Наистина ли желаете индексът да се изчисти и да се изгради наново|*?');
         }
     }
 
@@ -375,7 +414,7 @@ class cat_products_ParamIndexState extends core_Manager
         $this->requireRightFor('markdirty');
 
         $productIds = array();
-        foreach (arr::make(Request::get('Selected', 'varchar')) as $id) {
+        foreach (arr::makeIds(Request::get('Selected', 'varchar')) as $id) {
             $rec = is_numeric($id) ? $this->fetch($id) : null;
             if ($rec && $this->haveRightFor('markdirty', $rec)) {
                 $productIds[$rec->productId] = $rec->productId;
@@ -503,6 +542,9 @@ class cat_products_ParamIndexState extends core_Manager
         // Показва се само принудителното маркиране
         if ($rec->forced != 'yes') {
             unset($row->forced);
+        }
+        if (($rec->inEshop ?? null) != 'yes') {
+            unset($row->inEshop);
         }
 
         if (!empty($rec->hash)) {

@@ -57,7 +57,151 @@ class eshop_ParamFilter
     {
         $settings = cms_Domains::getSettings();
 
-        return (($settings->paramFilters ?? 'no') == 'yes') && (($settings->showNavigation ?? 'no') == 'yes');
+        return countR($settings->paramFilterParams ?? null) && (($settings->showNavigation ?? 'no') == 'yes');
+    }
+
+
+    /**
+     * Параметрите на филтъра от настройките на домейна, в избрания там ред
+     *
+     * @return array - ид => запис
+     */
+    public static function getParams()
+    {
+        $paramIds = cms_Domains::getSettings()->paramFilterParams ?? array();
+        if (!countR($paramIds)) return array();
+
+        // Избраните, които вече не са филтрируеми, се пропускат
+        $params = array();
+        $eshopParams = cat_products_ParamFilter::getParams();
+        foreach ($paramIds as $paramId) {
+            if (isset($eshopParams[$paramId])) {
+                $params[$paramId] = $eshopParams[$paramId];
+            }
+        }
+
+        return $params;
+    }
+
+
+    /**
+     * Опциите за избор на параметри на филтъра - филтрируемите
+     *
+     * @param string|array|null $value - текущата стойност на таблицата
+     *
+     * @return array
+     */
+    public static function getParamOptions($value = null)
+    {
+        // Само активните, както в cat_products_ParamFilter::getParams()
+        $options = cat_Params::makeArray4Select('typeExt', "#filterable = 'yes' AND #state = 'active'");
+
+        // Вече избраните, които не се показват, остават с името си и причината, за да се видят и махнат
+        foreach (self::getTableParamIds($value) as $paramId) {
+            if (isset($options[$paramId])) continue;
+
+            $pRec = cat_Params::fetch($paramId);
+            if (!is_object($pRec)) {
+                $options[$paramId] = $paramId;
+                continue;
+            }
+
+            $reason = ($pRec->state != 'active') ? mb_strtolower(cat_Params::getVerbal($pRec, 'state')) : tr('не е филтрируем');
+            $options[$paramId] = cat_Params::getVerbal($pRec, 'typeExt') . " ({$reason})";
+        }
+
+        return $options;
+    }
+
+
+    /**
+     * Ид-тата на параметрите от поле-таблица, в реда на редовете, без празните и повторенията
+     *
+     * @param string|array|null $value - стойност на table(columns=paramId)
+     *
+     * @return array - ид => ид
+     */
+    public static function getTableParamIds($value)
+    {
+        $paramIds = array();
+        foreach (type_Table::toArray($value) as $row) {
+            $paramId = $row->paramId ?? null;
+            if (!empty($paramId) && !isset($paramIds[$paramId])) {
+                $paramIds[$paramId] = $paramId;
+            }
+        }
+
+        return $paramIds;
+    }
+
+
+    /**
+     * Проверка на таблицата с параметрите на филтъра - всеки параметър само веднъж
+     *
+     * @param array      $values - стойностите от таблицата
+     * @param type_Table $Table  - типът на полето
+     *
+     * @return array $res - грешките, ако има такива
+     */
+    public static function validateParamTable($values, $Table)
+    {
+        $res = $used = array();
+        $paramIds = isset($values['paramId']) ? (array) $values['paramId'] : array();
+        foreach ($paramIds as $key => $paramId) {
+            if (empty($paramId)) continue;
+
+            if (isset($used[$paramId])) {
+                $res['errorFields']['paramId'][$key] = 'Параметърът е избран повече от веднъж|*!';
+            } else {
+                $used[$paramId] = true;
+            }
+        }
+
+        if (isset($res['errorFields'])) {
+            $res['error'] = 'Параметърът е избран повече от веднъж|*!';
+        }
+
+        return $res;
+    }
+
+
+    /**
+     * Показване на таблицата с параметрите на филтъра - с имената им, не с ид-тата
+     *
+     * @param array      $value - стойностите от таблицата
+     * @param type_Table $Table - типът на полето
+     *
+     * @return string
+     */
+    public static function renderParamTable($value, $Table)
+    {
+        $Type = clone $Table;
+        unset($Type->params['render']);
+        $Type->params['paramId_opt'] = self::getParamOptions($value);
+
+        return $Type->toVerbal($value);
+    }
+
+
+    /**
+     * Секцията на филтъра в навигацията само с пояснителен текст, ако филтрите са включени
+     *
+     * @param string $hint - текстът, превежда се тук
+     *
+     * @return core_ET
+     */
+    public static function renderHint($hint)
+    {
+        if (!self::isEnabled()) {
+
+            return new core_ET('');
+        }
+
+        $tpl = new core_ET("<div class='eshop-param-filter'><div class='eshop-param-filter-title'>[#TITLE#]</div><div class='eshop-param-filter-hint'>[#HINT#]</div></div>");
+        $tpl->replace(tr('Филтри'), 'TITLE');
+        $tpl->replace(tr($hint), 'HINT');
+
+        return $tpl;
     }
 
 
@@ -72,13 +216,12 @@ class eshop_ParamFilter
     {
         $data->paramFilter = null;
 
-        // Стойностите са и от подгрупите, въпреки че без избор се показват само е-артикулите на групата
-        $allRecs = $data->recs + ($data->subgroupRecs ?? array());
+        $allRecs = $data->recs;
         if (!countR($allRecs) || !self::isEnabled()) return;
 
         $isSearch = ($data->groupId == eshop_Groups::SEARCH_SYSTEM_ID);
         $start = self::startTimer('params');
-        $params = cat_products_ParamFilter::getParams(true);
+        $params = self::getParams();
         self::stopTimer('params', $start);
         if (!countR($params) && !$isSearch) return;
 
@@ -215,21 +358,36 @@ class eshop_ParamFilter
             $selected[$groupId] = $groupId;
         }
 
+        $urlValue = self::getGroupsUrlValue($groups, $selected);
+        $url = getCurrentUrl();
+        unset($url['P']);
+        if (strlen($urlValue)) {
+            $url[self::GROUP_URL_VAR] = $urlValue;
+        } else {
+            unset($url[self::GROUP_URL_VAR]);
+        }
+
+        return $url;
+    }
+
+
+    /**
+     * Избраните категории като стойност за URL-то: slug-4.slug-3
+     *
+     * @param stdClass $groups   - @see countGroups
+     * @param array    $selected - група => група
+     *
+     * @return string
+     */
+    protected static function getGroupsUrlValue($groups, $selected)
+    {
         $parts = array();
         foreach ($selected as $id) {
             $slug = strtolower(str::canonize(html_entity_decode(strip_tags((string) ($groups->names[$id] ?? '')), ENT_QUOTES, 'UTF-8')));
             $parts[] = (strlen($slug) ? "{$slug}-" : '') . $id;
         }
 
-        $url = getCurrentUrl();
-        unset($url['P']);
-        if (countR($parts)) {
-            $url[self::GROUP_URL_VAR] = implode('.', $parts);
-        } else {
-            unset($url[self::GROUP_URL_VAR]);
-        }
-
-        return $url;
+        return implode('.', $parts);
     }
 
 
@@ -317,7 +475,7 @@ class eshop_ParamFilter
     protected static function getIndexQuery($base)
     {
         $onCond = array('onCond' => '#eshop_ProductDetails.productId = #productId', 'join' => 'INNER');
-        $query = cat_products_ParamFilter::getIndexQuery($base->lg);
+        $query = cat_products_ParamFilter::getIndexQuery($base->lg, 'cat_products_EshopParamIndex');
         $query->EXT('eshopProductId', 'eshop_ProductDetails', array('externalName' => 'eshopProductId') + $onCond);
         $query->EXT('detailId', 'eshop_ProductDetails', array('externalName' => 'id') + $onCond);
         $query->EXT('detailState', 'eshop_ProductDetails', array('externalName' => 'state') + $onCond);
@@ -348,7 +506,7 @@ class eshop_ParamFilter
         if (countR($base->hiddenDetailIds)) {
             $query->notIn('id', $base->hiddenDetailIds);
         }
-        cat_products_ParamFilter::applySelection($query, $values, $selected, $base->lg);
+        cat_products_ParamFilter::applySelection($query, $values, $selected, $base->lg, 'cat_products_EshopParamIndex');
         $query->groupBy('eshopProductId');
         $query->show('eshopProductId');
 
@@ -388,23 +546,24 @@ class eshop_ParamFilter
      */
     protected static function doRenderNavigation($data)
     {
-        $tpl = new core_ET('');
         $filter = $data->paramFilter ?? null;
         if (!is_object($filter)) {
 
-            return $tpl;
+            return self::renderHint('Няма налични филтри');
         }
 
         $blocks = self::renderGroupsBlock($filter->groups ?? null);
         foreach (cat_products_ParamFilter::getDisplayParams($filter) as $paramId => $param) {
             $items = array();
+            $paramSlug = cat_products_ParamFilter::getParamSlug($paramId, $filter->params);
             foreach ($param->items as $slug => $item) {
                 $class = 'eshop-param-filter-value' . ($item->isChecked ? ' checked' : '');
                 $caption = "<span class='eshop-param-check'></span>{$item->caption} <span class='eshop-param-count'>({$item->cnt})</span>";
                 if ($item->isDisabled) {
                     $items[$slug] = "<span class='{$class} disabled'>{$caption}</span>";
                 } else {
-                    $items[$slug] = ht::createLink($caption, self::getToggleUrl($filter, $paramId, $slug), false, array('class' => $class, 'rel' => 'nofollow'));
+                    $attr = array('class' => $class, 'rel' => 'nofollow', 'data-filter-var' => self::URL_VAR, 'data-filter-key' => $paramSlug, 'data-filter-val' => $slug);
+                    $items[$slug] = ht::createLink($caption, self::getToggleUrl($filter, $paramId, $slug), false, $attr);
                 }
             }
 
@@ -414,26 +573,33 @@ class eshop_ParamFilter
             $html = implode('', $visible);
             if (countR($more)) {
                 $open = countR(array_intersect_key($more, $filter->selected[$paramId] ?? array())) ? ' open' : '';
-                $html .= "<details class='eshop-param-filter-more'{$open}><summary>" . tr('още||more') . '</summary>' . implode('', $more) . '</details>';
+                $html .= "<details class='eshop-param-filter-more' data-filter-section='{$paramSlug}-more'{$open}><summary>" . tr('още') . '</summary>' . implode('', $more) . '</details>';
             }
 
             $open = $param->isOpen ? ' open' : '';
-            $blocks .= "<details class='eshop-param-filter-param'{$open}><summary>{$param->caption}</summary><div class='eshop-param-filter-values'>{$html}</div></details>";
+            $blocks .= "<details class='eshop-param-filter-param' data-filter-section='{$paramSlug}'{$open}><summary>{$param->caption}</summary><div class='eshop-param-filter-values'>{$html}</div></details>";
         }
 
         if (!strlen($blocks)) {
 
-            return $tpl;
+            return self::renderHint('Няма налични филтри');
         }
 
-        $tpl = new core_ET("<div class='eshop-param-filter'><div class='eshop-param-filter-title'>[#TITLE#] [#CLEAR#]</div>[#PARAMS#]</div>");
-        $tpl->replace(tr('Филтри||Filters'), 'TITLE');
+        // Скриптът натрупва изборите и зарежда страницата след пауза - затова текущият избор и адресът без него
+        $clearUrl = getCurrentUrl();
+        unset($clearUrl[self::URL_VAR], $clearUrl[self::GROUP_URL_VAR], $clearUrl['P']);
+        $groupsSelected = $filter->groups->selected ?? array();
+        $attr = array('class' => 'eshop-param-filter',
+            'data-url' => toUrl($clearUrl),
+            'data-pf' => cat_products_ParamFilter::buildUrlValue($filter->selected, $filter->params),
+            'data-pc' => is_object($filter->groups ?? null) ? self::getGroupsUrlValue($filter->groups, $groupsSelected) : '');
+        $tpl = new core_ET("<div class='eshop-param-filter-title'>[#TITLE#] [#CLEAR#]</div>[#PARAMS#]");
+        $tpl->replace(tr('Филтри'), 'TITLE');
         $tpl->replace($blocks, 'PARAMS');
-        if (countR($filter->selected) || countR($filter->groups->selected ?? array())) {
-            $clearUrl = getCurrentUrl();
-            unset($clearUrl[self::URL_VAR], $clearUrl[self::GROUP_URL_VAR], $clearUrl['P']);
-            $tpl->replace(ht::createLink(tr('изчисти||clear'), $clearUrl, false, array('class' => 'eshop-param-filter-clear', 'rel' => 'nofollow')), 'CLEAR');
+        if (countR($filter->selected) || countR($groupsSelected)) {
+            $tpl->replace(ht::createLink(tr('Изчисти всички'), $clearUrl, false, array('class' => 'eshop-param-filter-clear', 'rel' => 'nofollow')), 'CLEAR');
         }
+        $tpl = ht::createElement('div', $attr, $tpl);
 
         return $tpl;
     }
@@ -464,11 +630,12 @@ class eshop_ParamFilter
             if (!$cnt && !$isChecked) {
                 $html .= "<span class='{$class} disabled'>{$caption}</span>";
             } else {
-                $html .= ht::createLink($caption, self::getGroupToggleUrl($groups, $groupId), false, array('class' => $class, 'rel' => 'nofollow'));
+                $attr = array('class' => $class, 'rel' => 'nofollow', 'data-filter-var' => self::GROUP_URL_VAR, 'data-filter-val' => self::getGroupsUrlValue($groups, array($groupId => $groupId)));
+                $html .= ht::createLink($caption, self::getGroupToggleUrl($groups, $groupId), false, $attr);
             }
         }
 
-        return "<details class='eshop-param-filter-param' open><summary>" . tr('Категория||Category') . "</summary><div class='eshop-param-filter-values'>{$html}</div></details>";
+        return "<details class='eshop-param-filter-param' data-filter-section='" . self::GROUP_URL_VAR . "' open><summary>" . tr('Категория') . "</summary><div class='eshop-param-filter-values'>{$html}</div></details>";
     }
 
 

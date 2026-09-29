@@ -43,6 +43,23 @@ class price_reports_Menu extends price_reports_PriceListProto
 
 
     /**
+     * Публикуваното в сайта меню показва цените и на посетители без вход
+     *
+     * @param stdClass $rec
+     * @return bool
+     */
+    public function canSeePriceFields($rec)
+    {
+        if (!empty($rec->_renderingCmsObject)) {
+
+            return true;
+        }
+
+        return parent::canSeePriceFields($rec);
+    }
+
+
+    /**
      * Връща заглавието на отчета
      *
      * @param stdClass $rec - запис

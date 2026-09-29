@@ -377,8 +377,8 @@ class sync_Settings extends core_Manager
             return true;
         }
 
-        $allowed = type_Keylist::toArray($settingsRec->catGroups);
-        $productGroups = type_Keylist::toArray($productRec->groups);
+        $allowed = type_Keylist::toArray($settingsRec->catGroups ?? '');
+        $productGroups = type_Keylist::toArray($productRec->groups ?? '');
 
         return !empty($allowed) && (bool) array_intersect($allowed, $productGroups);
     }

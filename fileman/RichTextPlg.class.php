@@ -52,7 +52,7 @@ class fileman_RichTextPlg extends core_Plugin
                 $args = 'width=400,height=530,resizable=yes,scrollbars=yes,status=no,location=no,menubar=no,location=no';
             }
             
-            $bucketId = fileman_Buckets::fetchField("#name = '" . $mvc->params['bucket'] . "'", 'id');
+            $bucketId = fileman_Buckets::fetchField(array("#name = '[#1#]'", $mvc->params['bucket'] ?? null), 'id');
             $url = fileman_Files::getUrLForAddFile($bucketId, $callbackName);
             $js = "sessionStorage.removeItem('disabledRowArr'); openWindow('{$url}', '{$windowName}', '{$args}'); return false;";
             
@@ -152,7 +152,7 @@ class fileman_RichTextPlg extends core_Plugin
         // Същият праг, при който в интерфейса излиза буболечката
         if (is_object($fRec) && fileman_Files::isDanger($fRec)) {
             $dangerPercent = round($fRec->dangerRate * 100);
-            $res .= ' ' . doc_plg_LlmExportable::systemNote(tr("Засечен вирус/зловреден код, риск|* {$dangerPercent}%"));
+            $res .= ' ' . doc_plg_LlmExportable::systemNote("Malware risk {$dangerPercent}%");
         }
 
         return $res;

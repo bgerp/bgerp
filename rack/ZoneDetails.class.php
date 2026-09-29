@@ -1143,7 +1143,7 @@ class rack_ZoneDetails extends core_Detail
         // Изтриване на чакащите и запазените движения за този ред
         $mQuery = rack_Movements::getQuery();
         $mQuery->where("LOCATE('|{$zoneRec->id}|', #zoneList)");
-        $mQuery->where("#productId = {$rec->productId} AND #packagingId = {$rec->packagingId} AND #batch = '{$rec->batch}' AND #state IN ('pending', 'waiting')");
+        $mQuery->where(array("#productId = '[#1#]' AND #packagingId = '[#2#]' AND #batch = '[#3#]' AND #state IN ('pending', 'waiting')", $rec->productId ?? null, $rec->packagingId ?? null, $rec->batch ?? null));
         $mQuery->show('id');
         $deleted = 0;
         while ($mRec = $mQuery->fetch()) {

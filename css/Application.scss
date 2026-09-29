@@ -5425,6 +5425,10 @@ table .eshop-btn {
 		font-weight: normal;
 		padding: 0;
 	}
+	.eshop-param-filter-hint {
+		font-size: 13px;
+		color: #666;
+	}
 	details.eshop-param-filter-param {
 		margin-bottom: 4px;
 		> summary {
@@ -5471,6 +5475,13 @@ table .eshop-btn {
 		color: #888;
 		font-size: 0.9em;
 	}
+}
+// Изборът във филтъра чака да се натрупат още, преди да зареди страницата
+.eshop-param-filter-pending > :not(#cmsNavigation) {
+	opacity: 0.4;
+	filter: blur(2px);
+	pointer-events: none;
+	transition: opacity 0.2s, filter 0.2s;
 }
 #cmsNavigation .addPage {
 	clear: both;

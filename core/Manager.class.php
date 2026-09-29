@@ -25,12 +25,6 @@ class core_Manager extends core_Mvc
      ****************************************************************************************/
     
     /**
-     * Флагът в Mode, с който callWithoutReplica() изключва репликата
-     */
-    const NO_REPLICA_MODE = 'noReplica';
-    
-    
-    /**
      * Какви интерфейси поддържа този мениджър
      */
     public $interfaces = 'core_ManagerIntf';
@@ -70,6 +64,12 @@ class core_Manager extends core_Mvc
      * Ке за правата на достъп до обектите
      */
     private static $cacheRights = array();
+
+
+    /**
+     * Временно изпълнение на заявките към основната база
+     */
+    private static $replicaDisabled = false;
 
 
     /**
@@ -204,9 +204,10 @@ class core_Manager extends core_Mvc
         $this->fields = $DC->fields;
         $this->dbTableName = $DC->dbTableName;
         $this->dbIndexes = $DC->dbIndexes;
-
-        // В callWithoutReplica() се чете основната база, напр. току-що записани данни
-        if (defined('SEARCH_DB_HOST') && !Mode::is(self::NO_REPLICA_MODE)) {
+        if (self::$replicaDisabled) {
+            return;
+        }
+        if (defined('SEARCH_DB_HOST')) {
             $error = core_App::isReplicationOK();
             if (!empty($error)) {
                 if (false === core_Cache::get($this->title, 'Report_Replica')) {
@@ -246,6 +247,9 @@ class core_Manager extends core_Mvc
      */
     public function unforceReplica($clsName = null)
     {
+        if (self::$replicaDisabled) {
+            return;
+        }
         if (!$clsName) {
             $DC = $this;
         } else {
@@ -268,26 +272,6 @@ class core_Manager extends core_Mvc
 
 
     /**
-     * Изпълнява кода само с основната база: forceReplica() и callOnReplica() в него не
-     * превключват към репликата. За проверки, които трябва да виждат току-що записаното
-     *
-     * @param callable $callback
-     *
-     * @return mixed
-     */
-    public static function callWithoutReplica($callback)
-    {
-        Mode::push(self::NO_REPLICA_MODE, true);
-        try {
-
-            return call_user_func($callback);
-        } finally {
-            Mode::pop(self::NO_REPLICA_MODE);
-        }
-    }
-
-
-    /**
      * Изпълнява подадения код на репликата и връща връзката към основната база
      *
      * @param callable $callback
@@ -298,7 +282,7 @@ class core_Manager extends core_Mvc
     {
         // При вложено извикване връзката се владее от външния блок - вътрешният само я ползва,
         // иначе неговият unforceReplica() би върнал външния код на основната база
-        if (isset($this->db->__origDbName)) {
+        if (self::$replicaDisabled || isset($this->db->__origDbName)) {
 
             return call_user_func($callback);
         }
@@ -309,6 +293,38 @@ class core_Manager extends core_Mvc
             return call_user_func($callback);
         } finally {
             $this->unforceReplica();
+        }
+    }
+
+
+    /**
+     * Изпълнява подадения код в основната база, включително вложени заявки към репликата
+     *
+     * @param callable $callback
+     *
+     * @return mixed
+     */
+    public static function callWithoutReplica($callback)
+    {
+        $db = cls::get('core_Db');
+        $wasDisabled = self::$replicaDisabled;
+        $replicaConfig = array();
+        if (isset($db->__origDbName, $db->__origDbUser, $db->__origDbHost)) {
+            foreach (array('dbName', 'dbUser', 'dbPass', 'dbHost') as $field) {
+                $replicaConfig[$field] = $db->{$field} ?? null;
+                $originalField = '__orig' . ucfirst($field);
+                $db->{$field} = $db->{$originalField} ?? null;
+            }
+        }
+        self::$replicaDisabled = true;
+
+        try {
+            return call_user_func($callback);
+        } finally {
+            foreach ($replicaConfig as $field => $value) {
+                $db->{$field} = $value;
+            }
+            self::$replicaDisabled = $wasDisabled;
         }
     }
 

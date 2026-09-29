@@ -63,7 +63,7 @@ class sync_ProductQuotes extends core_BaseClass
         $otherPushSource = sync_Settings::fetch(
             array(
                 "#id != [#1#] AND #state = 'active' AND #allowProductPush = 'yes'",
-                $settingsRec->id
+                $settingsRec->id ?? null
             )
         );
         expect(
@@ -172,14 +172,14 @@ class sync_ProductQuotes extends core_BaseClass
         );
         
         // Импортиране на контрагента, ако е нужно
-        $exportContragentRes = (array)$data->exportContragentRes;
+        $exportContragentRes = (array) ($data->exportContragentRes ?? array());
         $controller = cls::get('sync_Companies');
         $controller->invoke('BeforeSyncImportAll', array(&$exportContragentRes, $controller, null));
         Mode::push('syncTrustedFileOrigin', $sourceUrl);
         try {
             $localContragentId = sync_Map::importRec(
                 $data->contragentClassName,
-                $data->contragentRemoteId,
+                $data->contragentRemoteId ?? null,
                 $exportContragentRes,
                 $controller,
                 null
@@ -192,6 +192,8 @@ class sync_ProductQuotes extends core_BaseClass
         }
         
         // Подмяна на линковете за сваляне на файловете от хтмл-а
+        $data->html = $data->html ?? '';
+        $data->htmlEn = $data->htmlEn ?? '';
         $matches = array();
         preg_match_all('/http.*?forceDownload=1/', $data->html, $matches);
         if (countR($matches[0])) {
@@ -216,12 +218,13 @@ class sync_ProductQuotes extends core_BaseClass
         $folderId = cls::get($data->contragentClassName)->forceCoverAndFolder($localContragentId);
         
         // Проверка има ли я мапната основната мярка в системата, ако не се импортира при нужда и мапва
+        expect(is_object($data->measureRec ?? null) && !empty($data->measureRec->id), 'Липсва основна мярка в product payload');
         $localBaseMeasureId = sync_Map::getLocalId('cat_UoM', $data->measureRec->id);
         if(!$localBaseMeasureId){
             $newBaseUomRec = clone $data->measureRec;
             unset($newBaseUomRec->id);
             
-            $localBaseMeasureId = cat_UoM::fetchBySinonim($newBaseUomRec->name)->id;
+            $localBaseMeasureId = cat_UoM::fetchBySinonim($newBaseUomRec->name ?? '')->id ?? null;
             if(!$localBaseMeasureId){
                 $localBaseMeasureId = cat_UoM::save($newBaseUomRec);
            }
@@ -230,24 +233,25 @@ class sync_ProductQuotes extends core_BaseClass
         }
         
         // Попълват се данните на драйвера за импортиран артикул
-        $productRec = (object)array('name' => $data->name,
-            'nameEn' => $data->nameEn,
+        $productRec = (object)array('name' => $data->name ?? null,
+            'nameEn' => $data->nameEn ?? null,
             'innerClass' => cat_ImportedProductDriver::getClassId(),
             'html' => $data->html,
             'htmlEn' => $data->htmlEn,
             'measureId' => $localBaseMeasureId,
-            'meta' => $data->meta,
-            'quotations' => $data->quotations,
+            'meta' => $data->meta ?? null,
+            'quotations' => $data->quotations ?? array(),
             'folderId' => $folderId,
             'importedFromDomain' => $data->exportUrl,
-            'moq' => $data->moq,
-            'conditions' => $data->conditions,
+            'moq' => $data->moq ?? null,
+            'conditions' => $data->conditions ?? array(),
         );
         
         // Импортиране на параметри
         $productRec->params = array();
-        $data->params = (array)$data->params;
+        $data->params = (array) ($data->params ?? array());
         foreach ($data->params as $obj){
+            expect(is_object($obj->paramRec ?? null) && !empty($obj->remoteId), 'Невалиден параметър в product payload');
             
             // Мапване на параметъра
             $localParamId = sync_Map::getLocalId('cat_Params', $obj->remoteId);
@@ -255,48 +259,49 @@ class sync_ProductQuotes extends core_BaseClass
             
             // Ако няма такъв се създава и мапва
             if(!$localParamId){
-                $localParamId = cat_Params::force($paramRec->sysId, $paramRec->name, $paramRec->driverClass, $paramRec->options, $paramRec->suffix, $paramRec->showInTasks);
+                $localParamId = cat_Params::force($paramRec->sysId ?? null, $paramRec->name ?? '', $paramRec->driverClass ?? null, $paramRec->options ?? array(), $paramRec->suffix ?? null, $paramRec->showInTasks ?? false);
                 sync_Map::add('cat_Params', $localParamId, $obj->remoteId);
             }
             
             // Ако има намерен параметър и той е с драйвер за качен файл
             if(isset($localParamId)){
-                if(in_array($paramRec->driverClass, array('cond_type_File', 'cond_type_Image'))){
+                if(in_array($paramRec->driverClass ?? null, array('cond_type_File', 'cond_type_Image'))){
                     
                     // Абсорбиране на файла от урл-то за сваляне и подмяна с хендлъра към новия файл
                     $fileContent = sync_Helper::fetchFileFromTrustedOrigin(
-                        $obj->value,
+                        $obj->value ?? '',
                         $sourceUrl
                     );
-                    $fileName = basename(parse_url($obj->value, PHP_URL_PATH));
+                    $fileName = basename(parse_url($obj->value ?? '', PHP_URL_PATH) ?? '');
                     $obj->value = fileman::absorbStr(
                         $fileContent,
                         'importedProductFiles',
                         $fileName ?: 'file'
                     );
                     expect($obj->value, 'Проблем при запис на параметър-файл');
-                } elseif($paramRec->driverClass == 'cond_type_Store'){
+                } elseif(($paramRec->driverClass ?? null) == 'cond_type_Store'){
                     continue;
                 }
                
                 // Записване на стойността на параметъра, съответстваща на локалния ключ
-                $productRec->params[$localParamId] = $obj->value;
+                $productRec->params[$localParamId] = $obj->value ?? null;
             }
         }
         
-        $productRec->quotations = $data->quotations;
+        $productRec->quotations = $data->quotations ?? array();
         
         // Артикулът се създава
         $Products = cls::get('cat_Products');
         $Products->route($productRec);
         $Products->save($productRec);
-        $Products->logWrite('Импортиране от друга Bgerp система', $productRec->id);
-        $productId = $productRec->id;
+        $Products->logWrite('Импортиране от друга Bgerp система', $productRec->id ?? null);
+        $productId = $productRec->id ?? null;
         
         // Ако е създаден артикул и има опаковки за импорт
         if(isset($productId)){
-            if(countR($data->packagings)){
+            if(countR($data->packagings ?? null)){
                 foreach ($data->packagings as $packObject){
+                    expect(is_object($packObject->uomRec ?? null) && is_object($packObject->rec ?? null) && !empty($packObject->remoteId), 'Невалидна опаковка в product payload');
                     
                     // Мапване на опаковката
                     $localPackagingId = sync_Map::getLocalId('cat_UoM', $packObject->remoteId);
@@ -304,7 +309,7 @@ class sync_ProductQuotes extends core_BaseClass
                     // Ако не е мапната и не съществува се форсира нова
                     if(!$localPackagingId){
                         $newUomRec = $packObject->uomRec;
-                        $localPackagingId = cat_UoM::fetchBySinonim($newUomRec->name)->id;
+                        $localPackagingId = cat_UoM::fetchBySinonim($newUomRec->name ?? '')->id ?? null;
                         if(!$localPackagingId){
                             $localPackagingId = cat_UoM::save($newUomRec);
                         }

@@ -449,3 +449,75 @@ body.commerce-theme #cmsMenu.menuRow a.commerce-language-link {
 }
 body.commerce-theme #cmsMenu.menuRow a.commerce-language-link:hover,
 body.commerce-theme #cmsMenu.menuRow a.commerce-language-link[aria-current=true] { background: #edf4f7 !important; }
+
+/* News strips stay in document flow instead of covering the banner or navigation. */
+body.commerce-theme .newsbar {
+    font-family: Arial, Helvetica, sans-serif;
+    position: static;
+    display: block !important;
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
+    margin: 0;
+    overflow: hidden;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    text-align: left;
+}
+body.commerce-theme .newsbar .richtext { font: inherit; line-height: inherit; white-space: normal; }
+body.commerce-theme .newsbar marquee { display: block; width: 100%; min-height: 1.5em; line-height: 1.5; }
+body.commerce-theme .newsbar marquee .richtext { white-space: nowrap; overflow: visible !important; max-width: none; }
+body.commerce-theme .newsbar:is(.topContentNewsbar, .topNavNewsbar) { margin: 0 0 1rem; border-radius: 6px; }
+body.commerce-theme .newsbar:is(.bottomContentNewsbar, .bottomNavNewsbar) { margin: 1rem 0 0; border-radius: 6px; }
+body.commerce-theme .newsbar.beforeFooterNewsbar { margin-top: 1.5rem; }
+body.commerce-theme .newsbar.afterFooterNewsbar { margin: 0; }
+body.commerce-theme .eventHub > .topContentNewsbar {
+    margin: 2em 0 1.5em;
+}
+
+/* Shared pagination for the public catalogue, articles and blog. */
+body.commerce-theme .pages {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 0.4em;
+    clear: both;
+    margin: 1.5em 0 1em;
+    padding: 1em 0 0;
+    border-top: 1px solid #e1e9ed;
+}
+body.commerce-theme .pages a.pager {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    min-width: 2.75rem;
+    min-height: 2.75rem;
+    margin: 0;
+    padding: 0.45em 0.75em;
+    border: 1px solid #d5e1e7;
+    border-radius: 0.5em;
+    background: #fff;
+    color: #31576a;
+    font-size: 1em;
+    font-weight: 600;
+    line-height: 1.25;
+    text-decoration: none;
+    box-shadow: none;
+}
+body.commerce-theme .pages a.pager:hover {
+    background: #edf5f7;
+    border-color: #7fa5b4;
+    color: #145b73;
+}
+body.commerce-theme .pages a.pager.pagerSelected {
+    background: #145b73;
+    border-color: #145b73;
+    color: #fff;
+}
+body.commerce-theme .pages a.pager:focus-visible {
+    outline: 2px solid #145b73;
+    outline-offset: 3px;
+}

@@ -880,7 +880,7 @@ class type_Key extends type_Int
         
         // Очакваме мениджъра да поддържа или sysId или systemId
         expect($sysIdField, 'Мениджъра не поддържа sysId-та');
-        $groupQuery->where("#{$sysIdField} = '{$this->params['group']}'");
+        $groupQuery->where(array("#{$sysIdField} = '[#1#]'", $this->params['group'] ?? null));
         
         // Очакваме да има запис зад това sysId
         expect($groupRec = $groupQuery->fetch(), 'Няма група с това sysId = ' . $this->params['group']);

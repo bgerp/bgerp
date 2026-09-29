@@ -37,9 +37,12 @@ class cms_CommerceTheme extends cms_FancyTheme
         parent::prepareWrapper($tpl);
         $tpl->push('cms/css/CommerceMenu.css', 'CSS');
         $tpl->push('cms/css/CommerceCheckout.css', 'CSS');
+        $tpl->push('cms/css/CommerceMobile.css', 'CSS');
+        $tpl->push('cms/css/CommerceColab.css', 'CSS');
         $tpl->appendOnce(' commerce-theme', 'BODY_CLASS_NAME');
         $tpl->push('cms/js/CommerceForms.js', 'JS');
         jquery_Jquery::run($tpl, 'initCommerceLanguages();');
+        jquery_Jquery::run($tpl, 'initCommerceNavigation(' . json_encode(tr('Меню')) . ', ' . json_encode(tr('Категории и филтри')) . ', ' . json_encode(tr('Категории')) . ');');
         jquery_Jquery::run($tpl, 'initCommerceLogin(' . json_encode(tr('Покажи паролата')) . ', ' . json_encode(tr('Скрий паролата')) . ');');
     }
 
@@ -89,6 +92,16 @@ class cms_CommerceTheme extends cms_FancyTheme
         if (cms_Domains::getCmsSkin() instanceof self) {
             $tpl->push('cms/css/CommerceShop.css', 'CSS');
             $tpl->appendOnce(' eshop-public', 'BODY_CLASS_NAME');
+        }
+    }
+
+
+    /** Добавя стиловете на публичния форум само за тази тема. */
+    public static function prepareForum($tpl)
+    {
+        if (cms_Domains::getCmsSkin() instanceof self) {
+            $tpl->push('cms/css/CommerceForum.css', 'CSS');
+            $tpl->appendOnce(' commerce-forum', 'BODY_CLASS_NAME');
         }
     }
 }

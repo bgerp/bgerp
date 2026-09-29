@@ -66,7 +66,7 @@ class zbar_Reader
             foreach ($allBarcodesArr as $key => $barcode) {
                 
                 // Разделяме типа на баркода от съдържанието му
-                list($barcodeType, $barcodeStr) = explode(':', $barcode, 2);
+                list($barcodeType, $barcodeStr) = explode(':', (string) $barcode, 2) + array('', '');
                 
                 $barcodeType = trim($barcodeType);
                 
@@ -89,7 +89,7 @@ class zbar_Reader
                     
                     continue;
                 }
-                if (!is_object($barcodesArr[$key])) {
+                if (!is_object($barcodesArr[$key] ?? null)) {
                     $barcodesArr[$key] = new stdClass();
                 }
                 

@@ -540,7 +540,7 @@ class tesseract_Converter extends core_Manager
         $data = array();
         
         // Ако няма запис в модела
-        if (!$conf->_data['FILEMAN_OCR']) {
+        if (empty($conf->_data['FILEMAN_OCR'])) {
             
             // Да използваме текущия клас
             $data['FILEMAN_OCR'] = core_Classes::getId(get_called_class());

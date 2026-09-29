@@ -425,6 +425,7 @@ class forum_Boards extends core_Master
         }
         
         $tpl->push($data->ForumTheme->getStyles(), 'CSS');
+        cms_CommerceTheme::prepareForum($tpl);
         $tpl->replace($this->renderNavigation($data), 'NAVIGATION');
         $tpl->replace($this->renderSearchForm($data), 'SEARCH_FORM');
         
@@ -498,6 +499,7 @@ class forum_Boards extends core_Master
         }
         
         $tpl->push($data->ForumTheme->getStyles(), 'CSS');
+        cms_CommerceTheme::prepareForum($tpl);
         $tpl->replace($this->renderNavigation($data), 'NAVIGATION');
         $tpl->replace($this->renderSearchForm($data), 'SEARCH_FORM');
         

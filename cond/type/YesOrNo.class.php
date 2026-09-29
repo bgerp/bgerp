@@ -24,6 +24,12 @@ class cond_type_YesOrNo extends cond_type_abstract_Proto
 
 
     /**
+     * Новите параметри от този тип по подразбиране са филтрируеми
+     */
+    protected $filterableByDefault = true;
+
+
+    /**
      * Връща инстанция на типа
      *
      * @param stdClass    $rec         - запис на параметъра

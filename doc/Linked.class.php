@@ -766,7 +766,7 @@ class doc_Linked extends core_Manager
                 $dInst = cls::get($form->rec->linkDocType);
                 
                 // Ако документа може да се създаде в съществуваща нишка, показваме избор
-                if (!empty($form->rec->linkFolderId) && !$dInst->onlyFirstInThread) {
+                if (!empty($form->rec->linkFolderId) && empty($dInst->onlyFirstInThread)) {
                     $mandatory = '';
                     
                     if (!$dInst->canAddToFolder($form->rec->linkFolderId) || !$dInst->haveRightFor('add', (object) array('folderId' => $form->rec->linkFolderId))) {
@@ -1343,7 +1343,7 @@ class doc_Linked extends core_Manager
                         }
                         
                         if ($docTypeInst) {
-                            if ($docTypeInst->onlyFirstInThread && (!$docTypeInst->canAddToFolder($fId) || !$docTypeInst->haveRightFor('add', (object) array('folderId' => $fId)))) {
+                            if (!empty($docTypeInst->onlyFirstInThread) && (!$docTypeInst->canAddToFolder($fId) || !$docTypeInst->haveRightFor('add', (object) array('folderId' => $fId)))) {
                                 continue;
                             }
                         }
@@ -1378,8 +1378,8 @@ class doc_Linked extends core_Manager
         }
 
         // Ако е зададено да се показват папките в които има такива документи
-        if ($params['showWithDocs'] && $docTypeInst) {
-            $pKey = 'linkedDocFolders_' . substr(md5($docTypeInst->className . '|' . core_Users::getCurrent()), 0, 8) . '|' . $params['unsetId'];
+        if (!empty($params['showWithDocs']) && $docTypeInst) {
+            $pKey = 'linkedDocFolders_' . substr(md5($docTypeInst->className . '|' . core_Users::getCurrent()), 0, 8) . '|' . ($params['unsetId'] ?? '');
             
             $cacheTime = 5;
             
@@ -1404,7 +1404,7 @@ class doc_Linked extends core_Manager
 
                 $dQuery->limit(10000);
 
-                if ($docTypeInst->fields['modifiedOn']) {
+                if (!empty($docTypeInst->fields['modifiedOn'])) {
                     $dQuery->where(array("#modifiedOn > '[#1#]'", dt::addMonths(-1)));
                 }
 
@@ -1454,7 +1454,7 @@ class doc_Linked extends core_Manager
             }
 
             if ($docTypeInst) {
-                if ($docTypeInst->onlyFirstInThread && (!$docTypeInst->canAddToFolder($rec->id) || !$docTypeInst->haveRightFor('add', (object) array('folderId' => $rec->id)))) {
+                if (!empty($docTypeInst->onlyFirstInThread) && (!$docTypeInst->canAddToFolder($rec->id) || !$docTypeInst->haveRightFor('add', (object) array('folderId' => $rec->id)))) {
                     continue;
                 }
             }

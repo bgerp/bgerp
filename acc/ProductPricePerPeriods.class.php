@@ -343,7 +343,7 @@ class acc_ProductPricePerPeriods extends core_Manager
         requireRole('debug');
         $this->currentTab = 'Дебъг->Артикулни цени КЪМ дата';
         $toDate = Request::get('toDate', 'date');
-        $type = Request::get('type', 'varchar');
+        $type = Request::get('type', 'enum(stores,production,costs)');
         $productItemId = Request::get('productItemId', 'int');
         $otherItemId = Request::get('otherItemId', 'int');
 
@@ -396,7 +396,7 @@ class acc_ProductPricePerPeriods extends core_Manager
         $typeColName = str::phpToMysqlName('type');
 
         $me = cls::get(get_called_class());
-        $typesString = "'" . implode("','", explode(",", $types)) . "'";
+        $typesString = "'" . implode("','", array_map(array($me->db, 'escape'), explode(',', $types))) . "'";
         $otherWhere = array("`{$me->dbTableName}`.{$typeColName} IN ({$typesString})");
 
         if (!empty($productItems)) {

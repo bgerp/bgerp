@@ -917,7 +917,7 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
             }
 
             // Взимаме ID на групата по име
-            $groupId = cat_Groups::fetchField("#name = '{$groupName}'", 'id');
+            $groupId = cat_Groups::fetchField(array("#name = '[#1#]'", $groupName), 'id');
             if (!$groupId) {
 
                 $groupId = (crc32($groupName) > 0) ? $groupId = crc32($groupName) * (-1) : crc32($groupName);

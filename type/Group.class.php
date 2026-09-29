@@ -54,12 +54,13 @@ class type_Group extends type_Key
         $baseMvc = cls::get($base);
         $baseQuery = $baseMvc->getQuery();
         $baseQuery->show($keylist);
+        $groups = array();
         
         while ($baseRec = $baseQuery->fetch()) {
             $arr = keylist::toArray($baseRec->{$keylist});
             
             foreach ($arr as $id => $dummy) {
-                $groups[$id]++;
+                $groups[$id] = ($groups[$id] ?? 0) + 1;
             }
         }
 

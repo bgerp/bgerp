@@ -1237,7 +1237,7 @@ body.eshop-public #cart-view-total tr:last-child td { font-size: 1.1875rem; colo
 
 /* Parameter filters: one card with collapsible sections, like large marketplaces. */
 .eshop-public #cmsNavigation .eshop-param-filter {
-    margin: 0 0 14px;
+    margin: 20px 0;
     padding: 0;
     border: 1px solid var(--shop-line);
     border-radius: 10px;
@@ -1259,13 +1259,46 @@ body.eshop-public #cart-view-total tr:last-child td { font-size: 1.1875rem; colo
     font-weight: 700;
 }
 .eshop-public #cmsNavigation a.eshop-param-filter-clear {
-    display: inline;
-    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.75em;
+}
+/* Match the understated clear action in the cart. */
+.eshop-public #cmsNavigation a.eshop-param-filter-clear,
+body.commerce-theme a.commerce-filter-reset {
+    gap: 0.35em;
+    padding: 0.25rem 0;
     border: 0;
-    color: var(--shop-accent);
-    font-size: 0.75rem;
-    font-weight: 600;
+    border-radius: 3px;
+    background: transparent;
+    box-shadow: none;
+    color: #667781;
+    font-size: 0.8125rem;
+    font-weight: 400;
+    line-height: 1.4;
+    text-decoration: none;
+}
+.eshop-public #cmsNavigation a.eshop-param-filter-clear::before,
+body.commerce-theme a.commerce-filter-reset::before {
+    content: "×";
+    font-size: 1.2em;
+    line-height: 1.1667;
+}
+.eshop-public #cmsNavigation a.eshop-param-filter-clear:hover,
+body.commerce-theme a.commerce-filter-reset:hover {
+    color: #a33e49;
     text-decoration: underline;
+    text-underline-offset: 0.25rem;
+}
+.eshop-public #cmsNavigation a.eshop-param-filter-clear:focus-visible,
+body.commerce-theme a.commerce-filter-reset:focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 4px;
+}
+.eshop-public #cmsNavigation .eshop-param-filter-hint {
+    padding: 10px 12px;
+    color: var(--shop-muted, #667085);
+    font-size: 0.8125rem;
 }
 .eshop-public #cmsNavigation details.eshop-param-filter-param {
     margin: 0;
@@ -1492,10 +1525,14 @@ body.eshop-public #cart-view-total table {
 body.eshop-public #cart-view-total td { padding: 3px 0; line-height: 1.4; }
 body.eshop-public #cart-view-total td:first-child { text-align: left; padding-right: 12px; color: #526875; }
 body.eshop-public #cart-view-total .cart-grand-total td {
-    padding-top: 7px;
-    border-top: 1px solid #d5e1e6;
     font-size: 1.125rem;
     color: #182b3a;
+}
+/* Линията отделя общото само от други суми; празните редове (напр. доставка без сума) не се виждат */
+body.eshop-public #cart-view-total tr:not(:has(b:not(:empty))) { display: none; }
+body.eshop-public #cart-view-total tr:has(b:not(:empty)) ~ .cart-grand-total td {
+    padding-top: 7px;
+    border-top: 1px solid #d5e1e6;
 }
 body.eshop-public #cart-view-total > .clearfix21 { display: none; }
 

@@ -9,6 +9,7 @@ body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) .formTable 
     font-size: 1rem;
     width: 100%;
     min-width: 0;
+    padding: 0;
     border: 1px solid #dce5e9;
     border-radius: 12px;
     border-spacing: 0;
@@ -146,7 +147,7 @@ body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) textarea:fo
     border-color: #145b73;
 }
 body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) .formToolbar {
-    padding: 0;
+    padding: 0 !important;
     background: none;
     border: 0;
 }
@@ -159,6 +160,9 @@ body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) .toolbar {
     background: #f6f8fa;
     border-top: 1px solid #e3ebef;
 }
+/* Псевдоелементите на clearfix във flex заемат място и отстояние */
+body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) .toolbar::before,
+body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) .toolbar::after { display: none; }
 body.commerce-theme :is(#eshop_Carts-EditForm, form:has(.formTable)) .toolbar .button {
     min-height: 2.25rem;
     margin: 0;

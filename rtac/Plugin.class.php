@@ -125,20 +125,20 @@ class rtac_Plugin extends core_Plugin
             $userIdsStr = '';
             $shareUsersRoles = str_replace('|', ',', $shareUsersRoles);
             $threadId = null;
-            $folderId = Request::get('folderId');
-            if (!$folderId && ($originId = Request::get('originId'))) {
+            $folderId = Request::get('folderId', 'int');
+            if (!$folderId && ($originId = Request::get('originId', 'int'))) {
                 $oRec = doc_Containers::fetch($originId);
                 $folderId = $oRec->folderId ?? null;
                 $threadId = $oRec->threadId ?? null;
             }
 
-            if (!$folderId && $threadId = Request::get('threadId')) {
+            if (!$folderId && $threadId = Request::get('threadId', 'int')) {
                 $tRec = doc_Threads::fetch($threadId);
                 $folderId = $tRec->folderId ?? null;
                 $threadId = $tRec->id ?? null;
             }
 
-            if (!$folderId && ($rId = Request::get('id')) && ($ctr = Request::get('Ctr'))) {
+            if (!$folderId && ($rId = Request::get('id', 'int')) && ($ctr = Request::get('Ctr'))) {
                 if (cls::load($ctr, true)) {
                     $ctr = cls::get($ctr);
                     if ($ctr instanceof core_Manager) {
@@ -223,7 +223,7 @@ class rtac_Plugin extends core_Plugin
                 $usersArrRes = array();
 
                 if ($users = Request::get('users')) {
-                    $users = explode(',', $users);
+                    $users = arr::makeIds($users);
                     foreach ((array) $users as $uId) {
                         $uRec = core_Users::fetch($uId);
                         if (is_object($uRec)) {

@@ -46,7 +46,7 @@ class payment_ParserUC
             $iban = (string) $stmt->BankAccount->IBAN;
             $iban = strtoupper(preg_replace('/[^a-z0-9]/i', '', $iban));
             
-            $bankAccRec = bank_Accounts::fetch("#iban = '{$iban}'");
+            $bankAccRec = bank_Accounts::fetch(array("#iban = '[#1#]'", $iban));
             if (!$bankAccRec) {
                 $res->warnings[] = "IBAN {$iban} липсва в списъка с банкови сметки";
                 continue;

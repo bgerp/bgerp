@@ -237,6 +237,7 @@ class cat_Setup extends core_ProtoSetup
         'cat_RelationTypes',
         'cat_products_ParamIndex',
         'cat_products_ParamIndexState',
+        'cat_products_EshopParamIndex',
         'migrate::repairSearchKeywords2536',
         'migrate::calcExpand36Field2445v2',
         'migrate::updateFiltersCreatedBy2625',
@@ -244,6 +245,8 @@ class cat_Setup extends core_ProtoSetup
         'migrate::dropOldBomDetailsProductId2609',
         'migrate::setFilterableParams2639',
         'migrate::markProductsForParamIndex2639',
+        'migrate::setDefaultFilterableParams2640v2',
+        'migrate::markEshopProductsForParamIndex2640',
     );
     
     
@@ -578,6 +581,29 @@ class cat_Setup extends core_ProtoSetup
     {
         cls::get('cat_Params')->setupMvc();
         cat_products_ParamIndex::setEshopParamsFilterable();
+    }
+
+
+    /**
+     * Параметрите, чийто тип по подразбиране е филтрируем, стават филтрируеми
+     */
+    public function setDefaultFilterableParams2640v2()
+    {
+        cls::get('cat_Params')->setupMvc();
+        cls::get('cat_products_ParamIndex')->setupMvc();
+        cls::get('cat_products_ParamIndexState')->setupMvc();
+        cat_products_ParamIndex::setDefaultFilterableParams();
+    }
+
+
+    /**
+     * Маркиране на артикулите от е-артикулите за пълнене на индекса на е-магазина
+     */
+    public function markEshopProductsForParamIndex2640()
+    {
+        cls::get('cat_products_ParamIndexState')->setupMvc();
+        cls::get('cat_products_EshopParamIndex')->setupMvc();
+        cat_products_ParamIndexState::markEshopChanged();
     }
 
 

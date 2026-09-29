@@ -24,7 +24,7 @@ class sync_plg_ProductExport extends core_Plugin
      */
     public static function on_AfterDescription(core_Mvc $mvc)
     {
-        setIfNot($mvc->canSyncexport, 'admin');
+        setPartIfNot($mvc, 'canSyncexport', 'admin');
     }
     
     
@@ -100,16 +100,16 @@ class sync_plg_ProductExport extends core_Plugin
             $errorCode = curl_errno($ch);
             curl_close($ch);
             $res = $serverOutput;
-            $res = json_decode($res);
+            $res = json_decode($res ?: '');
           
             $exportUrl = sync_Setup::get('EXPORT_URL');
             if(is_object($res)){
                 
                 // Ако не е върната грешка, се показва подходящо съобщение
                 if(empty($res->error)){
-                    if($res->status == 2){
+                    if(($res->status ?? null) == 2){
                         cat_Products::logWrite("Повторен опит за експорт");
-                        $msg = "|Артикулът е експортиран|*: #Art{$res->localId}";
+                        $msg = "|Артикулът е експортиран|*: #Art" . ($res->localId ?? '');
                        
                     } else {
                         cat_Products::logWrite("Експортиране към: '{$exportUrl}'", $rec->id);
@@ -117,7 +117,7 @@ class sync_plg_ProductExport extends core_Plugin
                     }
                     
                     // Ако върнатото урл е оторизирано потребителя ще се редиректва към него
-                    if(core_Packs::isInstalled('remote')){
+                    if(!empty($res->url) && core_Packs::isInstalled('remote')){
                         if($remoteUrl = remote_Authorizations::getAutoLoginUrl($res->url)){
                             redirect($remoteUrl, true);
                         }
@@ -169,7 +169,7 @@ class sync_plg_ProductExport extends core_Plugin
             requireRole('debug');
             $exp = self::getExportData(4034);
             
-            bp($exp,$data);
+            bp($exp);
         }
     }
     
@@ -203,7 +203,7 @@ class sync_plg_ProductExport extends core_Plugin
     {
         $rec = cat_Products::fetchRec($rec);
         $Driver = cat_Products::getDriver($rec);
-        $Cover = doc_Folders::getCover($rec->folderId);
+        $Cover = doc_Folders::getCover($rec->folderId ?? null);
         expect($Cover->isInstanceOf('crm_Companies'));
         
         // Подготовка на данните за експорт на контрагента, ако е нужно
@@ -221,9 +221,9 @@ class sync_plg_ProductExport extends core_Plugin
             core_Lg::pop();
         }
         
-        $data = (object)array('name' => $rec->name, 
-                              'nameEn' => $rec->nameEn, 
-                              'meta' => $rec->meta, 
+        $data = (object)array('name' => $rec->name ?? null,
+                              'nameEn' => $rec->nameEn ?? null,
+                              'meta' => $rec->meta ?? null,
                               'contragentClassName' => $Cover->className,
                               'contragentRemoteId' => $Cover->that,
                               'exportContragentRes' => $exportContragentRes,
@@ -234,7 +234,7 @@ class sync_plg_ProductExport extends core_Plugin
         
         // Подготовка на продуктовите параметри за експорт
         $data->params = array();
-        $params = cat_Products::getParams($rec->id);
+        $params = cat_Products::getParams($rec->id ?? null);
         foreach ($params as $paramId => $value){
             $paramRec = cat_Params::fetch($paramId);
             unset($paramRec->id); 
@@ -328,18 +328,18 @@ class sync_plg_ProductExport extends core_Plugin
         if($action == 'syncexport' && isset($rec)){
             if(!sync_Setup::get('EXPORT_URL')){
                 $requiredRoles = 'no_one';
-            } elseif($rec->isPublic == 'yes'){
+            } elseif(($rec->isPublic ?? null) == 'yes'){
                 $requiredRoles = 'no_one';
-            } elseif($rec->state == 'rejected'){
+            } elseif(($rec->state ?? null) == 'rejected'){
                 $requiredRoles = 'no_one';
             } else {
-                $Cover = doc_Folders::getCover($rec->folderId);
+                $Cover = doc_Folders::getCover($rec->folderId ?? null);
                 if(!$Cover->haveInterface('crm_CompanyAccRegIntf')){
                     $requiredRoles = 'no_one';
                 } else {
                     $cGroups = sync_Setup::get('COMPANY_GROUPS');
                     $diffArr = type_Keylist::getDiffArr($cGroups, $Cover->fetchField($Cover->groupsField));
-                    if(!$cGroups || !$diffArr['same']){
+                    if(!$cGroups || empty($diffArr['same'])){
                         $requiredRoles = 'no_one';
                     }
                 }

@@ -787,7 +787,7 @@ class cat_Products extends embed_Manager
             $folderId = $folder;
         } else {
             // Иначе се предполага, че се създава в системна категория
-            $categoryId = cat_Categories::fetchField("#sysId = '{$folder}'", 'id');
+            $categoryId = cat_Categories::fetchField(array("#sysId = '[#1#]'", $folder), 'id');
             if (!$categoryId) {
                 $categoryId = cat_Categories::fetchField("#sysId = 'goods'", 'id');
             }
@@ -1347,12 +1347,12 @@ class cat_Products extends embed_Manager
 
         // Ако има останали филтри - проверява се дали имат регулярни изрази
         foreach ($leftFilter as $fName){
-            $filterRec = bgerp_Filters::fetch("#name = '{$fName}'");
+            $filterRec = bgerp_Filters::fetch(array("#name = '[#1#]'", $fName));
             if(!empty($filterRec->regex) && !empty($filterRec->regexField)){
 
                 // Ако имат се прилагат
                 if(!empty($query->fields[$filterRec->regexField])){
-                    $escapedRegex = str::escapeRegexForMySQL($filterRec->regex);
+                    $regex = $filterRec->regex ?? '';
                     $regexField = $filterRec->regexField;
                     if($filterRec->regexField == 'code'){
                         $xpr = $fName == 'numberCode' ? "COALESCE(LPAD(#code, 15, 0), LPAD(CONCAT('Art', #id), 15, 0))" : "COALESCE(#code, CONCAT('Art', #id))";
@@ -1361,7 +1361,7 @@ class cat_Products extends embed_Manager
                             $regexField = "codeExpr";
                         }
                     }
-                    $query->where("#{$regexField} REGEXP '{$escapedRegex}'");
+                    $query->where(array("#{$regexField} REGEXP '[#1#]'", $regex));
                     $query->orderBy($regexField, $filterRec->orderBy);
                 }
             }
@@ -4088,7 +4088,7 @@ class cat_Products extends embed_Manager
         $this->requireRightFor('reindexparams');
 
         $productIds = array();
-        foreach (arr::make(Request::get('Selected', 'varchar')) as $id) {
+        foreach (arr::makeIds(Request::get('Selected', 'varchar')) as $id) {
             if (is_numeric($id) && $this->haveRightFor('reindexparams', $id)) {
                 $productIds[$id] = $id;
             }
@@ -4435,7 +4435,7 @@ class cat_Products extends embed_Manager
         }
 
         $showReffCol = false;
-        $detArr = arr::make($masterMvc->details);
+        $detArr = arr::make($masterMvc->details ?? null);
         if(!($masterMvc instanceof store_InventoryNotes)){
             $csvFields->FLD('vatPercent', 'percent', 'caption=ДДС %');
         }
@@ -4461,7 +4461,7 @@ class cat_Products extends embed_Manager
             $exportFStr = $this->getExportMasterFieldName($dName);
             $dInst = cls::get($dName);
 
-            if($masterMvc instanceof store_InventoryNotes) {
+            if($masterMvc instanceof store_InventoryNotes && !empty($dInst->productFld)) {
                 $dInst->FNC('packagingId', 'key(mvc=cat_UoM,select=name)', "caption=Мярка,after={$dInst->productFld}");
                 $csvFields->FNC('packagingId', 'key(mvc=cat_UoM,select=name)', "caption=Мярка,after={$dInst->productFld}");
             }
@@ -4550,7 +4550,7 @@ class cat_Products extends embed_Manager
                         continue;
                     }
 
-                    $recs[$dRec->id]->{$fName} = $dRec->{$fName};
+                    $recs[$dRec->id]->{$fName} = $dRec->{$fName} ?? null;
 
                     if (!empty($dInst->fields[$fName]) && !empty($dInst->fields[$fName]->caption)) {
                         $fCaption = $dInst->fields[$fName]->caption;
@@ -4609,13 +4609,13 @@ class cat_Products extends embed_Manager
                             }
 
                             // Попълване на кода
-                            if (($vInst instanceof cat_Products) && ($v == 'code')) {
+                            if (is_object($vRec) && ($vInst instanceof cat_Products) && ($v == 'code')) {
                                 cat_Products::setCodeIfEmpty($vRec);
                             }
 
-                            $recs[$dRec->id]->{$v} = $vRec->{$v};
+                            $recs[$dRec->id]->{$v} = is_object($vRec) ? ($vRec->{$v} ?? null) : null;
 
-                            if (empty($csvFields->fields[$v])) {
+                            if (empty($csvFields->fields[$v]) && !empty($vInst->fields[$v])) {
                                 if ($vInst->fields[$v]->type instanceof type_Double) {
                                     $csvFields->FLD($v, 'varchar', "caption={$vInst->fields[$v]->caption},exportNumeric");
                                 } else {
@@ -4635,7 +4635,7 @@ class cat_Products extends embed_Manager
                             }
                         }
 
-                        $recs[$dRec->id]->{$k} = $dRec->{$k};
+                        $recs[$dRec->id]->{$k} = $dRec->{$k} ?? null;
 
                         if (empty($csvFields->fields[$k])) {
                             if ($dInst->fields[$k]->type instanceof type_Double) {
@@ -4739,16 +4739,16 @@ class cat_Products extends embed_Manager
              * Ако артикула е ред във КИ или ДИ със промяна, да се покаже промененото количество
              */
             if ($masterMvc instanceof deals_InvoiceMaster) {
-                if (isset($allFFieldsArr['quantity']) && $mRec->type == 'dc_note') {
+                if (isset($allFFieldsArr['quantity']) && ($mRec->type ?? null) == 'dc_note') {
                     $Detail::modifyDcDetails($recs, $mRec, $Detail);
                     foreach ($recs as $id => &$mdRec) {
                         if (!empty($allFFieldsArr['packPrice'])) {
-                            if ($mdRec->packPrice && $mdRec->discount) {
+                            if (!empty($mdRec->packPrice) && !empty($mdRec->discount)) {
                                 $mdRec->packPrice -= ($mdRec->packPrice * $mdRec->discount);
                             }
                         }
 
-                        if (!$mdRec->changedQuantity && !$mdRec->changedPrice) {
+                        if (empty($mdRec->changedQuantity) && empty($mdRec->changedPrice)) {
                             unset($recs[$id]);
                         }
                     }
@@ -4782,7 +4782,8 @@ class cat_Products extends embed_Manager
                     }
 
                     if($chargeVat == 'yes'){
-                        $rec->packPrice = deals_Helper::getDisplayPrice($rec->packPrice, cat_Products::getVat($rec->_productId, $mRec->{$masterMvc->valiorFld}, $vatExceptionId), $rate, $chargeVat);
+                        $recValior = !empty($masterMvc->valiorFld) ? ($mRec->{$masterMvc->valiorFld} ?? null) : null;
+                        $rec->packPrice = deals_Helper::getDisplayPrice($rec->packPrice, cat_Products::getVat($rec->_productId, $recValior, $vatExceptionId), $rate, $chargeVat);
                         $rec->chargeVat = tr('с ДДС');
                     } else {
                         $rec->chargeVat = tr('без ДДС');

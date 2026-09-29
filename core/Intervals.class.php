@@ -307,6 +307,7 @@ class core_Intervals
      */
     public function getDates()
     {
+        $res = array();
         foreach ($this->data as $i => $int) {
             $res[$i] = array(dt::timestamp2Mysql($int[0]), dt::timestamp2Mysql($int[1]));
         }

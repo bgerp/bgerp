@@ -291,9 +291,10 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
                             $warning .= " (|Кеш|*)";
                         }
                     }
-                    if(!Mode::isReadOnly()){
+                    // В LLM експорта (inlineDocument) се показва само описателна бележка, без себестойността
+                    if(!Mode::isReadOnly() || Mode::is('renderForLlm')){
                         $row->packPrice = "<span class='priceBellowPrimeCost'>{$row->packPrice}</span>";
-                        $row->packPrice = ht::createHint($row->packPrice, $warning, 'img/16/red-warning.png', false)->getContent();
+                        $row->packPrice = ht::createHint($row->packPrice, $warning, 'img/16/red-warning.png', false, array('aiHint' => 'Price below prime cost'))->getContent();
                     }
                 } elseif(in_array($masterRec->state, array('pending', 'draft'))) {
 
@@ -309,7 +310,7 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
                     
                     // Предупреждение дали цената е под очакваната за клиента
                     if($checkedObject = deals_Helper::checkPriceWithContragentPrice($rec->productId, $rec->price, $rec->discount, $rec->quantity, $rec->quantityInPack, $masterRec->contragentClassId, $masterRec->contragentId, $priceDate, $listId, $useQuotationPrice, $mvc, $masterRec->threadId, $masterRec->currencyRate, $masterRec->currencyId)){
-                        $row->packPrice = ht::createHint($row->packPrice, $checkedObject['hint'], $checkedObject['hintType'], false);
+                        $row->packPrice = ht::createHint($row->packPrice, $checkedObject['hint'], $checkedObject['hintType'], false, array('aiHint' => $checkedObject['aiHint'] ?? null));
                     }
                 }
             }

@@ -194,7 +194,7 @@ class bnav_BnavImporter extends core_Manager
         foreach ($params['groups'] as $gr) {
             $nRec = new stdClass();
             $nRec->name = $gr;
-            if ($rec = cat_Groups::fetch("#name = '{$gr}'")) {
+            if ($rec = cat_Groups::fetch(array("#name = '[#1#]'", $gr))) {
                 $nRec->id = $rec->id;
                 $updatedGroups++;
             } else {

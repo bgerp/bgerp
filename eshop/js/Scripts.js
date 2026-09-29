@@ -94,6 +94,7 @@ function productGallery() {
 function eshopActions() {
 	changeInputWidth();
 	if ($(".product-gallery").length) productGallery();
+	eshopParamFilter();
 
 
 	// Добавяне/махане на артикул от любими
@@ -342,4 +343,168 @@ function afterSubmitDetails(){
 	$(document.body).on('click', ".submitBtn", function(e){
 		sessionStorage.setItem('editedForm', 1);
 	});
+}
+
+
+/**
+ * Филтър по параметри: изборите се натрупват и страницата се зарежда след кратка пауза
+ */
+function eshopParamFilter() {
+	var timer = null;
+	var refreshTimer = null;
+	var refreshNum = 0;
+	var pendingUrl = null;
+	var initial = null;
+
+	// Зарежда 2 s след последното действие във филтъра
+	var schedule = function() {
+		clearTimeout(timer);
+		if (!pendingUrl) return;
+		timer = setTimeout(function() {
+			document.location = pendingUrl;
+		}, 2000);
+	};
+
+	// Бройките и сивите стойности за натрупания избор - от същата страница, без да се презарежда
+	var refresh = function(url) {
+		clearTimeout(refreshTimer);
+		var num = ++refreshNum;
+		refreshTimer = setTimeout(function() {
+			$.get(url, function(html) {
+				if (num != refreshNum) return;
+
+				// В отделен документ, за да не се теглят картинките от страницата
+				var node = new DOMParser().parseFromString(html, 'text/html').querySelector('.eshop-param-filter');
+				var box = $('.eshop-param-filter').first();
+				if (!node || !box.length) return;
+				var fresh = $(document.importNode(node, true));
+
+				// Отворените и затворените секции остават, както ги е оставил посетителят
+				box.find('details[data-filter-section]').each(function() {
+					fresh.find('details[data-filter-section="' + $(this).attr('data-filter-section') + '"]').prop('open', this.open);
+				});
+				box.replaceWith(fresh);
+			});
+		}, 300);
+	};
+
+	// На фазата на прихващане, за да не стигне кликът до onclick-а на връзката, който зарежда веднага
+	document.addEventListener('click', function(event) {
+		if (!event.target.closest || !window.URL) return;
+		var link = event.target.closest('.eshop-param-filter [data-filter-val]');
+		if (!link) {
+
+			// Отварянето на параметър или „още“ удължава чакането, за да се стигне до следващия избор
+			if (event.target.closest('.eshop-param-filter')) schedule();
+
+			return;
+		}
+
+		event.preventDefault();
+		event.stopPropagation();
+
+		// Кутията се подменя при опресняването, затова изборът се чете наново от нея
+		var box = link.closest('.eshop-param-filter');
+		var state = eshopParamFilterParse(box.getAttribute('data-pf'), box.getAttribute('data-pc'));
+		if (initial === null) {
+
+			// Началният избор в същия ред, в който се сглобява, за да се разпознае връщането към него
+			initial = eshopParamFilterBuildPf(state) + '&' + eshopParamFilterBuildPc(state);
+		}
+		eshopParamFilterToggle(state, link.getAttribute('data-filter-var'), link.getAttribute('data-filter-key'), link.getAttribute('data-filter-val'));
+		$(link).toggleClass('checked');
+
+		var pf = eshopParamFilterBuildPf(state);
+		var pc = eshopParamFilterBuildPc(state);
+		box.setAttribute('data-pf', pf);
+		box.setAttribute('data-pc', pc);
+
+		var url = new URL(box.getAttribute('data-url'), document.location.href);
+		if (pf.length) url.searchParams.set('pf', pf);
+		if (pc.length) url.searchParams.set('pc', pc);
+
+		var changed = (pf + '&' + pc != initial);
+		$('#cmsNavigation').parent().toggleClass('eshop-param-filter-pending', changed);
+		pendingUrl = changed ? url.toString() : null;
+		schedule();
+		refresh(url.toString());
+	}, true);
+
+	// При връщане назад от кеша на браузъра страницата не трябва да остане замъглена
+	window.addEventListener('pageshow', function(event) {
+		if (event.persisted && $('.eshop-param-filter-pending').length) document.location.reload();
+	});
+}
+
+
+/**
+ * Текущият избор от pf=tsvyat-p5.cherven-1a9634_dalzhina-p15.10 и pc=slug-4.slug-3
+ */
+function eshopParamFilterParse(pf, pc) {
+	var state = {params: {}, groups: {}};
+	(pf || '').split('_').forEach(function(part) {
+		var slugs = part.split('.');
+		var key = slugs.shift();
+		var m = key.match(/(?:^|-)p(\d+)$/);
+		if (!m) return;
+		state.params[m[1]] = {key: key, vals: slugs.filter(function(v) { return v.length; })};
+	});
+	(pc || '').split('.').forEach(function(part) {
+		var m = part.match(/(?:^|-)(\d+)$/);
+		if (m) state.groups[m[1]] = part;
+	});
+
+	return state;
+}
+
+
+/**
+ * Добавя или маха стойност от избора
+ */
+function eshopParamFilterToggle(state, urlVar, key, val) {
+	var m;
+	if (urlVar == 'pc') {
+		m = val.match(/(?:^|-)(\d+)$/);
+		if (!m) return;
+		if (state.groups[m[1]]) {
+			delete state.groups[m[1]];
+		} else {
+			state.groups[m[1]] = val;
+		}
+
+		return;
+	}
+
+	m = (key || '').match(/(?:^|-)p(\d+)$/);
+	if (!m) return;
+	var param = state.params[m[1]] || (state.params[m[1]] = {key: key, vals: []});
+	var pos = param.vals.indexOf(val);
+	if (pos >= 0) {
+		param.vals.splice(pos, 1);
+	} else {
+		param.vals.push(val);
+	}
+}
+
+
+/**
+ * Изборът по параметри за URL-то - параметрите по ид, както в cat_products_ParamFilter::buildUrlValue()
+ */
+function eshopParamFilterBuildPf(state) {
+	var ids = Object.keys(state.params).sort(function(a, b) { return a - b; });
+	var parts = [];
+	ids.forEach(function(id) {
+		var param = state.params[id];
+		if (param.vals.length) parts.push(param.key + '.' + param.vals.join('.'));
+	});
+
+	return parts.join('_');
+}
+
+
+/**
+ * Избраните категории за URL-то
+ */
+function eshopParamFilterBuildPc(state) {
+	return Object.keys(state.groups).map(function(id) { return state.groups[id]; }).join('.');
 }

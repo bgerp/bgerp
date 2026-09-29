@@ -675,6 +675,16 @@ class expert_Expert extends core_FieldSet
         
         $this->setInStep[$name] = $this->currentStep;
 
+        $reasonValue = self::formatLogValue($value);
+        $this->reason[] = "{$name}=  " . type_Varchar::escape($reasonValue) . ' [' . $this->currentStep . ']';
+    }
+
+
+    /**
+     * Представяне на стойност в диагностичните съобщения
+     */
+    protected static function formatLogValue($value)
+    {
         if (is_array($value) || is_object($value)) {
             $reasonValue = json_encode($value, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
             if ($reasonValue === false) {
@@ -690,7 +700,7 @@ class expert_Expert extends core_FieldSet
             $reasonValue = gettype($value);
         }
         
-        $this->reason[] = "{$name}=  " . type_Varchar::escape($reasonValue) . ' [' . $this->currentStep . ']';
+        return $reasonValue;
     }
     
     
@@ -1085,7 +1095,7 @@ class expert_Expert extends core_FieldSet
             $form->layout = $layout;
         }
         
-        $form->info = "<div class='formError'>{$info}</info>";
+        $form->info = "<div class='formError'>{$info}</div>";
         
         $form->title = "|*<img width=32 height=32 alt='' align=absmiddle  src=" . sbf('img/32/error.png') . '> ' . $this->getTitle($kRec);
         $form->method = 'POST';
@@ -1291,7 +1301,7 @@ class expert_Expert extends core_FieldSet
         $this->setValue($vars, $res);
         
         // Записваме логови съобщения за проследяване на експертизата
-        $logMsg = $vars . '=' . $res . ' (' . $expr . '), TRUE = ' . $cond;
+        $logMsg = $vars . '=' . self::formatLogValue($res) . ' (' . self::formatLogValue($expr) . '), TRUE = ' . self::formatLogValue($cond);
         Debug::log($logMsg);
         $this->log[] = $logMsg;
         
@@ -1340,7 +1350,7 @@ class expert_Expert extends core_FieldSet
         // Задаваме стойността на променливата
         $this->setValue($var, $res);
         
-        $logMsg = $var . '=' . $res . ' (' . $expr . '), TRUE = ' . $cond;
+        $logMsg = $var . '=' . self::formatLogValue($res) . ' (' . self::formatLogValue($expr) . '), TRUE = ' . self::formatLogValue($cond);
         
         Debug::log($logMsg);
         
@@ -1413,7 +1423,7 @@ class expert_Expert extends core_FieldSet
         
         $this->setValue($var, $res);
         
-        $logMsg = $var . '=' . $opt . ' [' . countR($res) . '], TRUE = ' . $cond;
+        $logMsg = $var . '=' . $opt . ' [' . countR($res) . '], TRUE = ' . self::formatLogValue($cond);
         
         Debug::log($logMsg);
         
@@ -1707,7 +1717,13 @@ class expert_Expert extends core_FieldSet
         
         $expr1 = 'return ' . $expr1 . ';';
         
-        if (!@eval('return TRUE;' . $expr1)) {
+        try {
+            $validExpr = eval('return TRUE;' . $expr1);
+        } catch (ParseError $e) {
+            $validExpr = false;
+        }
+
+        if (!$validExpr) {
             $this->log[] = 'Syntax error: ' . $expr1 ;
             
             // Некоректен израз
