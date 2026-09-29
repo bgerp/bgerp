@@ -304,10 +304,10 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
                     $minOrder = 0;
 
                 } else {
-                    $minQuantity = $artLimitsArr[$productId]['minQuantity'];
-                    $maxQuantity = $artLimitsArr[$productId]['maxQuantity'];
-                    $orderMeasure = $artLimitsArr[$productId]['orderMeasure'];
-                    $minOrder = $artLimitsArr[$productId]['minOrder'];
+                    $minQuantity = $artLimitsArr[$productId]['minQuantity'] ?? 0;
+                    $maxQuantity = $artLimitsArr[$productId]['maxQuantity'] ?? 0;
+                    $orderMeasure = $artLimitsArr[$productId]['orderMeasure'] ?? 0;
+                    $minOrder = $artLimitsArr[$productId]['minOrder'] ?? 0;
                 }
 
                 $code = ($recProduct->code) ?: 'Art' . $productId;
@@ -758,10 +758,10 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
         $rec = frame2_Reports::fetch($recId);
 
         $details = $rec->artLimits;
-        $minVal = $details[$productId]['minQuantity'];
-        $maxVal = $details[$productId]['maxQuantity'];
-        $orderMeasure = $details[$productId]['orderMeasure'];
-        $minOrder = $details[$productId]['minOrder'];
+        $minVal = $details[$productId]['minQuantity'] ?? null;
+        $maxVal = $details[$productId]['maxQuantity'] ?? null;
+        $orderMeasure = $details[$productId]['orderMeasure'] ?? null;
+        $minOrder = $details[$productId]['minOrder'] ?? null;
 
         $keyVal = $productId;
 
