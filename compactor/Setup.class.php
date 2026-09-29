@@ -99,6 +99,7 @@ class compactor_Setup extends core_ProtoSetup
                 
                 // Инстанция на пакета
                 $inst = cls::get($pack);
+                $commonCss = $commonJs = '';
                 
                 // Вземаме CSS файловете и заместваме плейсхолдерите от конфига
                 if (method_exists($inst, 'getCommonCss')) {
