@@ -302,7 +302,7 @@ class core_ProtoSetup
      */
     public function getCommonCss()
     {
-        return $this->preparePacksPath($this->getPackName(), $this->commonCSS);
+        return $this->preparePacksPath($this->getPackName(), $this->commonCSS ?? '');
     }
     
     
@@ -313,7 +313,7 @@ class core_ProtoSetup
      */
     public function getCommonJs()
     {
-        return $this->preparePacksPath($this->getPackName(), $this->commonJS);
+        return $this->preparePacksPath($this->getPackName(), $this->commonJS ?? '');
     }
     
     
