@@ -67,6 +67,12 @@ class core_Manager extends core_Mvc
 
 
     /**
+     * Временно изпълнение на заявките към основната база
+     */
+    private static $replicaDisabled = false;
+
+
+    /**
      * Време за кеширане на правата към обекта
      */
     public $cacheRightsDuration = 0;
@@ -198,6 +204,9 @@ class core_Manager extends core_Mvc
         $this->fields = $DC->fields;
         $this->dbTableName = $DC->dbTableName;
         $this->dbIndexes = $DC->dbIndexes;
+        if (self::$replicaDisabled) {
+            return;
+        }
         if (defined('SEARCH_DB_HOST')) {
             $error = core_App::isReplicationOK();
             if (!empty($error)) {
@@ -238,6 +247,9 @@ class core_Manager extends core_Mvc
      */
     public function unforceReplica($clsName = null)
     {
+        if (self::$replicaDisabled) {
+            return;
+        }
         if (!$clsName) {
             $DC = $this;
         } else {
@@ -270,7 +282,7 @@ class core_Manager extends core_Mvc
     {
         // При вложено извикване връзката се владее от външния блок - вътрешният само я ползва,
         // иначе неговият unforceReplica() би върнал външния код на основната база
-        if (isset($this->db->__origDbName)) {
+        if (self::$replicaDisabled || isset($this->db->__origDbName)) {
 
             return call_user_func($callback);
         }
@@ -281,6 +293,38 @@ class core_Manager extends core_Mvc
             return call_user_func($callback);
         } finally {
             $this->unforceReplica();
+        }
+    }
+
+
+    /**
+     * Изпълнява подадения код в основната база, включително вложени заявки към репликата
+     *
+     * @param callable $callback
+     *
+     * @return mixed
+     */
+    public static function callWithoutReplica($callback)
+    {
+        $db = cls::get('core_Db');
+        $wasDisabled = self::$replicaDisabled;
+        $replicaConfig = array();
+        if (isset($db->__origDbName, $db->__origDbUser, $db->__origDbHost)) {
+            foreach (array('dbName', 'dbUser', 'dbPass', 'dbHost') as $field) {
+                $replicaConfig[$field] = $db->{$field} ?? null;
+                $originalField = '__orig' . ucfirst($field);
+                $db->{$field} = $db->{$originalField} ?? null;
+            }
+        }
+        self::$replicaDisabled = true;
+
+        try {
+            return call_user_func($callback);
+        } finally {
+            foreach ($replicaConfig as $field => $value) {
+                $db->{$field} = $value;
+            }
+            self::$replicaDisabled = $wasDisabled;
         }
     }
 

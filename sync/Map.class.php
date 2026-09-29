@@ -119,7 +119,7 @@ class sync_Map extends core_Manager
             $exportState = (object) array('added' => array());
         }
 
-        $idInt = is_object($id) ? $id->id : $id;
+        $idInt = is_object($id) ? ($id->id ?? null) : $id;
 
         // Вече експортираните обекти и тези със специални id-та не се експортират
         if ($idInt <= 0) {
@@ -174,7 +174,7 @@ class sync_Map extends core_Manager
         }
         
         // Фикс, ако е параметъра е файл
-        if (($mvc->className == 'cat_products_Params') && ($rec->paramId)) {
+        if (($mvc->className == 'cat_products_Params') && !empty($rec->paramId)) {
             $cParRec = cat_Params::fetch($rec->paramId);
             if ($cParRec) {
                 $Driver = cat_Params::getDriver($rec->paramId);
@@ -188,7 +188,7 @@ class sync_Map extends core_Manager
 
                                 return self::EXPORT_FILTERED;
                             }
-                            $rec->__paramValue = fileman_Download::getDownloadUrl($rec->paramValue);
+                            $rec->__paramValue = fileman_Download::getDownloadUrl($rec->paramValue ?? null);
                             $rec->__paramId = $rec->paramId;
                         } catch (core_exception_Expect $e) {
                             $rec->paramValue = null;
@@ -201,7 +201,7 @@ class sync_Map extends core_Manager
         $fields = $mvc->selectFields("#kind == 'FLD'");
         foreach ($fields as $name => $fRec) {
             foreach (array($mvc->className . '::' . $name, '*::' . $name) as $fKey) {
-                if (array_key_exists($fKey, $controller->fixedExport)) {
+                if (array_key_exists($fKey, $controller->fixedExport ?? array())) {
                     if (isset($controller->fixedExport[$fKey])) {
                         $funcArr = explode('::', $controller->fixedExport[$fKey]);
                         call_user_func_array(
@@ -214,20 +214,25 @@ class sync_Map extends core_Manager
                 }
             }
             
-            if ($rec->{$name} === null) {
+            if (($rec->{$name} ?? null) === null) {
                 unset($rec->{$name});
             }
             
-            if (array_key_exists($mvc->className, $controller->mapClass)) {
+            if (array_key_exists($mvc->className, $controller->mapClass ?? array())) {
                 $mapClsFieldArr = $controller->mapClass[$mvc->className];
                 $mapFieldRec = new stdClass();
                 foreach ($mapClsFieldArr as $mapFName) {
-                    $mapFieldRec->{$mapFName} = $rec->{$mapFName};
+                    $mapFieldRec->{$mapFName} = $rec->{$mapFName} ?? null;
                 }
                 
                 $res[$mvc->className][$id] = $mapFieldRec;
                 
                 break;
+            }
+
+            // Някои callbacks премахват полета, които не трябва да се обработват повече.
+            if (!isset($rec->{$name})) {
+                continue;
             }
 
             if ($fRec->type instanceof type_CustomKey) {
@@ -257,7 +262,7 @@ class sync_Map extends core_Manager
             } elseif ($fRec->type instanceof type_Key || $fRec->type instanceof type_Key2) {
                 $kMvc = $fRec->type->params['mvc'];
                 if (is_numeric($rec->{$name})) {
-                    if ($uf = $controller->globalUniqKeys[$kMvc]) {
+                    if ($uf = $controller->globalUniqKeys[$kMvc] ?? null) {
                         $kMvc = cls::get($kMvc);
                         $rec->{$name} = $kMvc->fetchField($rec->{$name}, $uf);
                     } else {
@@ -279,7 +284,7 @@ class sync_Map extends core_Manager
                 $kMvc = $fRec->type->params['mvc'];
                 if (preg_match('/\\|[0-9\\|]+\\|/', $rec->{$name})) {
                     $kArr = keylist::toArray($rec->{$name});
-                    if ($uf = $controller->globalUniqKeys[$kMvc]) {
+                    if ($uf = $controller->globalUniqKeys[$kMvc] ?? null) {
                         $kMvc = cls::get($kMvc);
                         $kArrN = array();
                         foreach ($kArr as $key) {
@@ -310,7 +315,7 @@ class sync_Map extends core_Manager
             }
         }
 
-        if ($expArr = $controller->exportAlso[$mvc->className]) {
+        if ($expArr = $controller->exportAlso[$mvc->className] ?? null) {
             foreach ($expArr as $clsArr) {
                 foreach ($clsArr as $cls => $field) {
                     $dMvc = cls::get($cls);
@@ -448,7 +453,7 @@ class sync_Map extends core_Manager
             expect(false, 'Изгубен mutex по време на sync import');
         }
 
-        static $i;
+        static $i = 0;
         if (($i++ % 1000) == 55) {
             self::logDebug("{$class}: {$id} - " . round(memory_get_usage()/(1024*1024)) . 'MB');
         }
@@ -498,14 +503,14 @@ class sync_Map extends core_Manager
                         continue;
                     }
 
-                    if ($pRec->userId == $id) {
-                        $personRec = $res['crm_Persons'][$pRec->personId] ?? null;
+                    if (($pRec->userId ?? null) == $id) {
+                        $personRec = $res['crm_Persons'][$pRec->personId ?? null] ?? null;
                         $checkIncharge = is_object($personRec)
                             ? ($personRec->inCharge ?? null)
                             : null;
                         $rec->personId = sync_Map::importRec(
                             'crm_Persons',
-                            $pRec->personId,
+                            $pRec->personId ?? null,
                             $res,
                             $controller,
                             $update,
@@ -534,8 +539,8 @@ class sync_Map extends core_Manager
             array("#classId = [#1#] AND #remoteId = [#2#]", $classId, $id),
             'id,classId,remoteId,localId'
         );
-        $mappedRec = ($mapRec && $mapRec->localId) ? $mvc->fetch($mapRec->localId) : null;
-        if ($mapRec && $mapRec->localId && !$mappedRec) {
+        $mappedRec = !empty($mapRec->localId) ? $mvc->fetch($mapRec->localId) : null;
+        if (!empty($mapRec->localId) && !$mappedRec) {
             self::logWarning(
                 "Поправя се sync mapping към липсващ запис: {$class}::{$id} => {$mapRec->localId}"
             );
@@ -568,7 +573,7 @@ class sync_Map extends core_Manager
                     $mvc,
                     $class,
                     $id,
-                    $mappedRec->id,
+                    $mappedRec->id ?? null,
                     $rec,
                     $res,
                     $controller,
@@ -595,7 +600,7 @@ class sync_Map extends core_Manager
 
             $continue = !empty($rec->__continue);
             foreach (array($mvc->className . '::' . $name, '*::' . $name) as $fKey) {
-                if (array_key_exists($fKey, $controller->fixedExport)) {
+                if (array_key_exists($fKey, $controller->fixedExport ?? array())) {
                     if (isset($controller->fixedExport[$fKey])) {
                         $funcArr = explode('::', $controller->fixedExport[$fKey]);
                         call_user_func_array(
@@ -616,15 +621,16 @@ class sync_Map extends core_Manager
                 continue;
             }
             
-            if (array_key_exists($mvc->className, $controller->mapClass)) {
+            if (array_key_exists($mvc->className, $controller->mapClass ?? array())) {
                 $mapClsFieldArr = $controller->mapClass[$mvc->className];
                 
                 $mapFieldsClsQuery = $mvc->getQuery();
                 $condStr = ''; 
                 foreach ($mapClsFieldArr as $mapFName) {
-                    $mapFieldsClsQuery->where(array("#{$mapFName} = '[#1#]'", $rec->{$mapFName}));
+                    $mapValue = $rec->{$mapFName} ?? '';
+                    $mapFieldsClsQuery->where(array("#{$mapFName} = '[#1#]'", $mapValue));
                     $condStr .= $condStr ? " && " : '';
-                    $condStr .= "{$mapFName} == '{$rec->{$mapFName}}'";
+                    $condStr .= "{$mapFName} == '{$mapValue}'";
                 }
                 $mapFieldsClsQuery->limit(1);
                 $rec = $mapFieldsClsQuery->fetch();
@@ -734,7 +740,7 @@ class sync_Map extends core_Manager
                 foreach (array('contragentCls', 'cClass', 'contragentClassId', 'classId') as $cfName) {
                     if ($cfType = $fields[$cfName]->type ?? null) {
                         if (($cfType->params['mvc'] ?? null) == 'core_Classes') {
-                            $kMvc = cls::get($rec->{$cfName});
+                            $kMvc = cls::get($rec->{$cfName} ?? null);
 
                             $rec->{$name} = self::importRec(
                                 $kMvc,
@@ -893,7 +899,7 @@ class sync_Map extends core_Manager
             // При забранено обновяване natural-key аналогът също се запазва
             // непроменен, но се създава mapping към него.
             if ($exRec && !$update) {
-                $lId = $exRec->id;
+                $lId = $exRec->id ?? null;
 
                 return self::finalizeImportedRecord(
                     $mvc,
@@ -919,7 +925,7 @@ class sync_Map extends core_Manager
                     
                     $value = $rec->{$name} ?? null;
                     if (empty($exRec->{$name}) && (is_array($value) || is_object($value) || strlen((string) $value))) {
-                        $exRec->{$name} = $rec->{$name};
+                        $exRec->{$name} = $value;
                     }
                 }
             }
@@ -1039,7 +1045,7 @@ class sync_Map extends core_Manager
                 return 0;
             }
 
-            if ($pRec->inCharge != $nInCharge) {
+            if (($pRec->inCharge ?? null) != $nInCharge) {
                 $pRec->inCharge = $nInCharge;
                 if (!crm_Persons::save($pRec, 'inCharge')) {
                     self::markImportFailed($class, $id);
@@ -1191,7 +1197,7 @@ class sync_Map extends core_Manager
             'id,classId,remoteId,localId'
         );
         if ($mRec) {
-            if ((int) $mRec->localId !== (int) $localId) {
+            if ((int) ($mRec->localId ?? null) !== (int) $localId) {
                 $mRec->localId = $localId;
                 if (!self::save($mRec, 'localId')) {
 
@@ -1199,7 +1205,7 @@ class sync_Map extends core_Manager
                 }
             }
 
-            return $mRec->id;
+            return $mRec->id ?? null;
         }
 
         $mRec = (object) array(
@@ -1352,7 +1358,7 @@ class sync_Map extends core_Manager
         
         $data->listFilter->input('search');
         
-        if ($search = $data->listFilter->rec->search) {
+        if ($search = $data->listFilter->rec->search ?? '') {
             $search = trim($search);
             $searchArr = explode(' ', $search);
             foreach ($searchArr as $search) {

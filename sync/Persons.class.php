@@ -73,19 +73,19 @@ class sync_Persons extends sync_Helper
         }
 
         while ($rec = $query->fetch()) {
-            sync_Map::exportRec('crm_Persons', $rec->id, $res, $me);
+            sync_Map::exportRec('crm_Persons', $rec->id ?? null, $res, $me);
 
-            $pRec = crm_Profiles::fetch("#personId = {$rec->id}");
+            $pRec = crm_Profiles::fetch(array("#personId = '[#1#]'", $rec->id ?? null));
             if ($pRec) {
-                sync_Map::exportRec('crm_Profiles', $pRec->id, $res, $me);
+                sync_Map::exportRec('crm_Profiles', $pRec->id ?? null, $res, $me);
             }
 
-            if ($rec->folderId && core_Packs::isInstalled('colab')) {
+            if (!empty($rec->folderId) && core_Packs::isInstalled('colab')) {
                 $pQuery = colab_FolderToPartners::getQuery();
                 $pQuery->where(array("#folderId = [#1#]", $rec->folderId));
 
                 while ($cRec = $pQuery->fetch()) {
-                    $cRec->_personId = $rec->id;
+                    $cRec->_personId = $rec->id ?? null;
                     sync_Map::exportRec('colab_FolderToPartners', $cRec, $res, $me);
                 }
             }
