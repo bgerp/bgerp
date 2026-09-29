@@ -583,55 +583,53 @@ class acc_Balances extends core_Master
             return;
         }
 
-        try {
-            $data = new stdClass();
-            $data->recalcedBalances = array();
-            if ($oldLastBalance = acc_Balances::getLastBalance()) {
-                $data->oldLastBalance = clone $oldLastBalance;
-            }
-
-            // Обикаляме всички активни и чакъщи периоди от по-старите, към по-новите
-            // Ако периода се нуждае от прекалкулиране - правим го
-            // Ако прекалкулирането се извършва в текущия период, то изисляваме баланса
-            // до предходния работен ден и селд това до днес
-
-            $pQuery = acc_Periods::getQuery();
-            $pQuery->orderBy('#end', 'ASC');
-            $pQuery->where("#state != 'closed'");
-            $pQuery->where("#state != 'draft'");
-
-            $rc = true;
-
-            // Ако е указана граница за изчисляването се използва
-            $windowStart = null;
-            $alternateWindow = acc_setup::get('ALTERNATE_WINDOW');
-            if ($alternateWindow) {
-                $windowStart = dt::addSecs(-$alternateWindow, null, false);
-                $pQuery->where("#end >= '{$windowStart}'");
-            }
-
-            while ($pRec = $pQuery->fetch()) {
-                $rec = new stdClass();
-                $rec->fromDate = $pRec->start;
-                $rec->toDate = $pRec->end;
-                $rec->periodId = $pRec->id;
-
-                // Преизчисляваме първия отворен баланс (когато в него има промени) 9+1 пъти, за да подаде верни данни на следващите
-                $j = 0;
-                do {
-                    core_Locks::obtain($lockKey, self::MAX_PERIOD_CALC_TIME);
-                    $r = self::forceCalc($rec);
-                    if($r){
-                        $data->recalcedBalances[$rec->toDate] = $rec;
-                    }
-                } while ($rec->lastCalculateChange != 'no' && $j++ < 9 && $rc);
-                $rc = false;
-            }
-        } finally {
-            // Освобождаваме заключването и при грешка в преизчисляването
-            core_Locks::release($lockKey);
-            core_Debug::stopTimer('recalcBalance');
+        $data = new stdClass();
+        $data->recalcedBalances = array();
+        if ($oldLastBalance = acc_Balances::getLastBalance()) {
+            $data->oldLastBalance = clone $oldLastBalance;
         }
+
+        // Обикаляме всички активни и чакъщи периоди от по-старите, към по-новите
+        // Ако периода се нуждае от прекалкулиране - правим го
+        // Ако прекалкулирането се извършва в текущия период, то изисляваме баланса
+        // до предходния работен ден и селд това до днес
+
+        $pQuery = acc_Periods::getQuery();
+        $pQuery->orderBy('#end', 'ASC');
+        $pQuery->where("#state != 'closed'");
+        $pQuery->where("#state != 'draft'");
+
+        $rc = true;
+
+        // Ако е указана граница за изчисляването се използва
+        $windowStart = null;
+        $alternateWindow = acc_setup::get('ALTERNATE_WINDOW');
+        if ($alternateWindow) {
+            $windowStart = dt::addSecs(-$alternateWindow, null, false);
+            $pQuery->where("#end >= '{$windowStart}'");
+        }
+
+        while ($pRec = $pQuery->fetch()) {
+            $rec = new stdClass();
+            $rec->fromDate = $pRec->start;
+            $rec->toDate = $pRec->end;
+            $rec->periodId = $pRec->id;
+
+            // Преизчисляваме първия отворен баланс (когато в него има промени) 9+1 пъти, за да подаде верни данни на следващите
+            $j = 0;
+            do {
+                core_Locks::obtain($lockKey, self::MAX_PERIOD_CALC_TIME);
+                $r = self::forceCalc($rec);
+                if($r){
+                    $data->recalcedBalances[$rec->toDate] = $rec;
+                }
+            } while ($rec->lastCalculateChange != 'no' && $j++ < 9 && $rc);
+            $rc = false;
+        }
+
+        // Освобождаваме заключването на процеса
+        core_Locks::release($lockKey);
+        core_Debug::stopTimer('recalcBalance');
 
         // Пораждаме събитие, че баланса е бил преизчислен
         $data->lastBalance = acc_Balances::getLastBalance();
