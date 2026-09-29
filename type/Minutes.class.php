@@ -53,6 +53,8 @@ class type_Minutes extends type_Int
                 return 0;
             }
         }
+
+        $minutes = $hours = $days = $weeks = null;
         
         //Извличаме минутите от текста
         if (preg_match(str::utf2ascii('/(\d+)[ ]*(m|minutes|min|минута|мин|м|минути)\b/'), $val, $matches)) {
@@ -81,7 +83,7 @@ class type_Minutes extends type_Int
         }
         
         if (strlen($minutes ?? '') || strlen($hours ?? '') || strlen($days ?? '') || strlen($weeks ?? '')) {
-            $duration = $minutes + 60 * $hours + 24 * 60 * $days + 7 * 24 * 60 * $weeks;
+            $duration = ($minutes ?? 0) + 60 * ($hours ?? 0) + 24 * 60 * ($days ?? 0) + 7 * 24 * 60 * ($weeks ?? 0);
             
             return $duration;
         }
