@@ -61,7 +61,7 @@ class compactor_Setup extends core_ProtoSetup
      */
     public function loadSetupData($itr = '')
     {
-        $res .= parent::loadSetupData($itr);
+        $res = parent::loadSetupData($itr);
         
         // JS и CSS файловете от конфигурацията от константите
         // Не се вземат с ::get, защото се връщат записаните в модела
