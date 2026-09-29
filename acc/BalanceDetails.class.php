@@ -1360,6 +1360,7 @@ class acc_BalanceDetails extends core_Detail
 
             foreach ($recs as $rec) {
                 $amountBefore = $rec->amount;
+                $pricesBefore = ($rec->debitPrice ?? '') . '/' . ($rec->creditPrice ?? '');
                 $this->calcAmount($rec);
                 $amountChanged = (round((float)$rec->amount, 8) != round((float)$amountBefore, 8));
                 $update = $this->calcPrice($rec);
@@ -1376,6 +1377,9 @@ class acc_BalanceDetails extends core_Detail
                     $JournalDetails->save_($rec);
                     $hasUpdatedJournal = true;
                     $this->calcStats['journalUpdated']++;
+                    if (countR($this->calcStats['journalSamples'] ?? null) < 5) {
+                        $this->calcStats['journalSamples'][] = sprintf('%s amount %s>%s price %s>%s', $rec->id, $amountBefore, $rec->amount, $pricesBefore, ($rec->debitPrice ?? '') . '/' . ($rec->creditPrice ?? ''));
+                    }
                 }
 
                 if ($tracing) {
@@ -1793,6 +1797,9 @@ class acc_BalanceDetails extends core_Detail
 
             // Загуба от точността е само когато в базата е точно текстът, до който се свежда новата стойност
             if (is_null($newVal) || is_null($exVal) || (float) (string) $newVal != $exVal) {
+                if (countR($this->calcStats['realChangeSamples'] ?? null) < 5) {
+                    $this->calcStats['realChangeSamples'][] = sprintf('%s|%s|%s|%s %s new=%s db=%s', $newRec->accountId, $newRec->ent1Id, $newRec->ent2Id, $newRec->ent3Id, $fld, var_export($newVal, true), var_export($exVal, true));
+                }
 
                 return;
             }
