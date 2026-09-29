@@ -362,9 +362,15 @@ class core_DbSess extends core_Manager
         return bin2hex($raw);
     }
 
+    /** Дали бисквитката да е само за HTTPS */
+    private function isSecureCookie()
+    {
+        return $this->secure || (EF_HTTPS == 'MANDATORY') || (strcasecmp($this->sameSite, 'None') === 0);
+    }
+
     private function buildCookieParams()
     {
-        $secure = $this->secure || (strcasecmp($this->sameSite, 'None') === 0);
+        $secure = $this->isSecureCookie();
 
         return array(
             'expires'  => 0,
@@ -397,7 +403,7 @@ class core_DbSess extends core_Manager
     /** Изтича cookie-то. */
     protected function expireCookie() {
         $name      = $this->sessName;
-        $secure    = $this->secure;
+        $secure    = $this->isSecureCookie();
         $httpOnly  = $this->httpOnly;
         $sameSite  = $this->sameSite ?: 'Lax';
 

@@ -4192,6 +4192,16 @@ function efae() {
         efaeInst.resetTimeout()
     });
 
+    // The first polling tab claims each status; let only the focused tab do so.
+    var pollStatusesOnFocus = function () {
+        if (!efaeInst.isStatusTabActive()) return;
+        efaeInst.resetTimeout();
+        efaeInst.ajaxLastTime = new Date(0);
+        efaeInst.lastTimeArr['status'] = new Date(0);
+    };
+    getEO().addEvent(window, 'focus', pollStatusesOnFocus);
+    getEO().addEvent(document, 'visibilitychange', pollStatusesOnFocus);
+
     getEO().addEvent(window, 'beforeunload', function () {
         efaeInst.preventRequest = 5;
     });
@@ -4279,6 +4289,12 @@ efae.prototype.subscribe = function (name, url, interval) {
 
     // Текущото време
     this.lastTimeArr[name] = new Date();
+};
+
+
+/** Only the tab the user is currently viewing may claim shared status messages. */
+efae.prototype.isStatusTabActive = function () {
+    return document.hidden !== true && (typeof document.hasFocus != 'function' || document.hasFocus());
 };
 
 
@@ -4719,6 +4735,7 @@ efae.prototype.getSubscribed = function () {
 
             // Всички абонирани процеси с интервал 0
             if (this.subscribedArr[name]['interval'] == 0) {
+                if ((name == 'status' || name == 'statusOnce') && !this.isStatusTabActive()) continue;
 
                 // Добавяме URL-то
                 resObj[name] = this.subscribedArr[name]['url'];
@@ -4757,6 +4774,7 @@ efae.prototype.getSubscribed = function () {
 
         // Обхождаме всички абонирани URL-та
         for (name in this.subscribedArr) {
+            if ((name == 'status' || name == 'statusOnce') && !this.isStatusTabActive()) continue;
 
             // Разлика във времето на абонираните процеси
             var diffSubscribed = now - this.lastTimeArr[name];
@@ -4769,6 +4787,7 @@ efae.prototype.getSubscribed = function () {
 
                 // Добавяме URL-то
                 resObj[name] = this.subscribedArr[name]['url'];
+                if (this.subscribedArr[name]['interval'] == 0) delete (this.subscribedArr[name]);
             }
         }
     }

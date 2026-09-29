@@ -25,6 +25,12 @@ class core_Manager extends core_Mvc
      ****************************************************************************************/
     
     /**
+     * Флагът в Mode, с който callWithoutReplica() изключва репликата
+     */
+    const NO_REPLICA_MODE = 'noReplica';
+    
+    
+    /**
      * Какви интерфейси поддържа този мениджър
      */
     public $interfaces = 'core_ManagerIntf';
@@ -198,7 +204,9 @@ class core_Manager extends core_Mvc
         $this->fields = $DC->fields;
         $this->dbTableName = $DC->dbTableName;
         $this->dbIndexes = $DC->dbIndexes;
-        if (defined('SEARCH_DB_HOST')) {
+
+        // В callWithoutReplica() се чете основната база, напр. току-що записани данни
+        if (defined('SEARCH_DB_HOST') && !Mode::is(self::NO_REPLICA_MODE)) {
             $error = core_App::isReplicationOK();
             if (!empty($error)) {
                 if (false === core_Cache::get($this->title, 'Report_Replica')) {
@@ -255,6 +263,26 @@ class core_Manager extends core_Mvc
                 unset($this->db->__origDbPass);
                 unset($this->db->__origDbUser);
             }
+        }
+    }
+
+
+    /**
+     * Изпълнява кода само с основната база: forceReplica() и callOnReplica() в него не
+     * превключват към репликата. За проверки, които трябва да виждат току-що записаното
+     *
+     * @param callable $callback
+     *
+     * @return mixed
+     */
+    public static function callWithoutReplica($callback)
+    {
+        Mode::push(self::NO_REPLICA_MODE, true);
+        try {
+
+            return call_user_func($callback);
+        } finally {
+            Mode::pop(self::NO_REPLICA_MODE);
         }
     }
 
