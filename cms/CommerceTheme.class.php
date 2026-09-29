@@ -38,6 +38,7 @@ class cms_CommerceTheme extends cms_FancyTheme
         $tpl->push('cms/css/CommerceMenu.css', 'CSS');
         $tpl->push('cms/css/CommerceCheckout.css', 'CSS');
         $tpl->push('cms/css/CommerceMobile.css', 'CSS');
+        $tpl->push('cms/css/CommerceColab.css', 'CSS');
         $tpl->appendOnce(' commerce-theme', 'BODY_CLASS_NAME');
         $tpl->push('cms/js/CommerceForms.js', 'JS');
         jquery_Jquery::run($tpl, 'initCommerceLanguages();');
