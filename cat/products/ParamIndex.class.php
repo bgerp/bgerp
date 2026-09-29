@@ -160,6 +160,11 @@ class cat_products_ParamIndex extends cat_products_ProtoParamIndex
      */
     public static function reindex($productId)
     {
+        if ((!is_int($productId) && !(is_string($productId) && ctype_digit($productId))) || (int) $productId <= 0) {
+
+            return 'error';
+        }
+
         // Изтриването и записът на редовете не бива да се застъпват между процесите
         $start = self::startTimer('lock');
         $lockKey = "cat_products_ParamIndex::reindex{$productId}";
@@ -509,6 +514,7 @@ class cat_products_ParamIndex extends cat_products_ProtoParamIndex
             $stuckBefore = dt::addSecs(-1 * self::$stuckProcessingSecs);
             $query = cat_products_ParamIndexState::getQuery();
             $query->where(array("(#status = 'dirty' OR (#status = 'processing' AND #processingOn < '[#1#]'))", $stuckBefore));
+            $query->where('#productId > 0');
             $query->orderBy('indexedOn', 'ASC');
             $query->show('productId');
             $query->limit(isset($maxCnt) ? min(1000, $maxCnt - countR($seen)) : 1000);

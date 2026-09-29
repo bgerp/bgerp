@@ -247,6 +247,7 @@ class cat_Setup extends core_ProtoSetup
         'migrate::markProductsForParamIndex2639',
         'migrate::setDefaultFilterableParams2640v2',
         'migrate::markEshopProductsForParamIndex2640',
+        'migrate::deleteParamIndexStateWithoutProduct2640',
     );
     
     
@@ -604,6 +605,23 @@ class cat_Setup extends core_ProtoSetup
         cls::get('cat_products_ParamIndexState')->setupMvc();
         cls::get('cat_products_EshopParamIndex')->setupMvc();
         cat_products_ParamIndexState::markEshopChanged();
+    }
+
+
+    /**
+     * Изтриване на състоянията на индекса без артикул (от е-артикули без артикул)
+     */
+    public function deleteParamIndexStateWithoutProduct2640()
+    {
+        $State = cls::get('cat_products_ParamIndexState');
+
+        // Ако моделът още не е създаден, няма какво да се чисти
+        if (!$State->db->tableExists($State->dbTableName)) {
+
+            return;
+        }
+
+        cat_products_ParamIndexState::delete('#productId IS NULL OR #productId <= 0');
     }
 
 

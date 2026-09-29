@@ -312,7 +312,8 @@ class cat_products_ParamIndexState extends core_Manager
 
         // Липсващите се добавят като неиндексирани - ще се индексират и за е-магазина
         $me->db->query("INSERT IGNORE INTO `{$me->dbTableName}` (`{$productIdCol}`, `{$status}`)
-                        SELECT DISTINCT `{$productIdCol}`, 'dirty' FROM `{$Details->dbTableName}`");
+                        SELECT DISTINCT `{$productIdCol}`, 'dirty' FROM `{$Details->dbTableName}`
+                        WHERE `{$productIdCol}` > 0");
         $res = $me->db->affectedRows();
 
         $me->db->query("UPDATE `{$me->dbTableName}` s
