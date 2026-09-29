@@ -142,7 +142,7 @@ class bgfisc_plg_PrintFiscReceipt extends core_Plugin
         $fiscalArr['IS_PRINT_VAT'] = bgfisc_Setup::get('PRINT_VAT_GROUPS') == 'yes';
 
         $receiptNumber = bgfisc_Register::getSaleNumber($mvc, $rec->id);
-        if ($rec->isReverse == 'yes') {
+        if (($rec->isReverse ?? null) == 'yes') {
             $Origin = doc_Containers::getDocument($rec->originId);
             $fiscalArr['RELATED_TO_URN'] = $receiptNumber;
             $fiscalArr['IS_STORNO'] = true;
@@ -169,7 +169,7 @@ class bgfisc_plg_PrintFiscReceipt extends core_Plugin
             $fiscalArr['RCP_NUM'] = $receiptNumber;
         }
         
-        if ($rec->fromContainerId) {
+        if (!empty($rec->fromContainerId)) {
             $DocumentFrom = doc_Containers::getDocument($rec->fromContainerId);
             if ($DocumentFrom->isInstanceOf('sales_Invoices')) {
                 $invoiceRec = $DocumentFrom->fetch();
@@ -239,7 +239,7 @@ class bgfisc_plg_PrintFiscReceipt extends core_Plugin
   
             $redirectUrl = $logUrl . "&res={$result}";
             
-            if ($registerRec->isElectronic == 'yes' && $rec->isReverse != 'yes' && !empty($result)) {
+            if ($registerRec->isElectronic == 'yes' && ($rec->isReverse ?? null) != 'yes' && !empty($result)) {
                 list(, $receiptNum) = array_pad(explode('*', $result), 2, null);
                 usleep(1000000);
                 $fh = $interface->saveReceiptToFile($registerRec, $receiptNum);
