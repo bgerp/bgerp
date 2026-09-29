@@ -4,8 +4,6 @@
 /**
  * Плъгин за превеждане на входящите имейли
  *
- * Базиран на google_plg_Translate
- *
  * @category  vendors
  * @package   google
  *

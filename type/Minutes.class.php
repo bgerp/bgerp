@@ -99,9 +99,9 @@ class type_Minutes extends type_Int
         }
         
         if (!$this->suggestions) {
-            if ($this->params['suggestions']) {
+            if (!empty($this->params['suggestions'])) {
                 $suggestions = explode('|', $this->params['suggestions']);
-                if ($this->params['allowEmpty']) {
+                if (!empty($this->params['allowEmpty'])) {
                     $this->suggestions[''] = '';
                 }
                 
