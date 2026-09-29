@@ -5,7 +5,8 @@
  * Индекс на параметрите на артикулите за филтриране
  *
  * Събира стойностите на филтрируемите параметри от cat_Products::getParams(),
- * независимо дали са записани в cat_products_Params или се изчисляват от драйвера
+ * независимо дали са записани в cat_products_Params или се изчисляват от драйвера.
+ * Ползваните в е-артикули се пишат и в отделна таблица (@see cat_products_EshopParamIndex)
  *
  * @category  bgerp
  * @package   cat
@@ -16,66 +17,12 @@
  *
  * @since     v 0.1
  */
-class cat_products_ParamIndex extends core_Manager
+class cat_products_ParamIndex extends cat_products_ProtoParamIndex
 {
     /**
      * Заглавие
      */
     public $title = 'Индекс на параметрите на артикулите';
-
-
-    /**
-     * Единично заглавие
-     */
-    public $singleTitle = 'Индексиран параметър';
-
-
-    /**
-     * Плъгини за зареждане
-     */
-    public $loadList = 'cat_Wrapper, plg_Sorting';
-
-
-    /**
-     * Полета, които ще се показват в листов изглед
-     */
-    public $listFields = 'productId,paramId,kind=Вид,lg,value=Стойност,valueNum,valueKey,valueId';
-
-
-    /**
-     * Кои полета от листовия изглед да се скриват ако няма записи в тях
-     */
-    public $hideListFieldsIfEmpty = 'valueNum,valueKey,valueId';
-
-
-    /**
-     * Брой записи на страница
-     */
-    public $listItemsPerPage = 100;
-
-
-    /**
-     * Кой може да листва
-     */
-    public $canList = 'debug';
-
-
-    /**
-     * Кой може да добавя
-     */
-    public $canAdd = 'no_one';
-
-
-    /**
-     * Кой може да редактира
-     */
-    public $canEdit = 'no_one';
-
-
-    /**
-     * Кой може да изтрива
-     */
-    public $canDelete = 'no_one';
 
 
     /**
@@ -130,27 +77,6 @@ class cat_products_ParamIndex extends core_Manager
      * Бавните артикули в текущия хит - ид => секунди
      */
     protected static $slowProducts = array();
-
-
-    /**
-     * Описание на модела
-     */
-    public function description()
-    {
-        $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул');
-        $this->FLD('paramId', 'key(mvc=cat_Params,select=typeExt)', 'caption=Параметър');
-        $this->FLD('lg', 'varchar(2)', 'caption=Език');
-        $this->FLD('valueNum', 'double(smartRound)', 'caption=Индекс->Число');
-        $this->FLD('valueKey', 'varchar(255)', 'caption=Индекс->Ключ');
-        $this->FLD('valueVerbal', 'varchar(255)', 'caption=Текст');
-        $this->FLD('valueId', 'int', 'caption=Индекс->Обект');
-
-        $this->setDbIndex('productId');
-
-        // Артикулът е в края, за да се търси само по индекса, без четене на редовете
-        $this->setDbIndex('paramId,valueNum,productId');
-        $this->setDbIndex('paramId,lg,valueKey,productId');
-    }
 
 
     /**
@@ -279,6 +205,8 @@ class cat_products_ParamIndex extends core_Manager
         $start = self::startTimer('fetch');
         $productRec = cat_Products::fetch($productId, 'id,state', false);
         $stateRec = cat_products_ParamIndexState::fetch("#productId = {$productId}");
+        $inEshop = self::isUsedInEshop($productId) ? 'yes' : 'no';
+        $eshopChanged = (($stateRec->inEshop ?? 'no') != $inEshop);
         self::stopTimer('fetch', $start);
         $rows = array();
         $error = null;
@@ -287,11 +215,11 @@ class cat_products_ParamIndex extends core_Manager
         $stateRec = cat_products_ParamIndexState::startProcessing($productId, $stateRec);
 
         // Затвореният артикул остава с последните стойности, освен ако е маркиран принудително,
-        // редовете му са изтрити отвън (нулиран хеш) или не е индексиран и се ползва в е-магазина
-        if ($productRec && $productRec->state == 'closed' && ($stateRec->forced ?? null) != 'yes') {
+        // редовете му са изтрити отвън (нулиран хеш), влязъл/излязъл е от е-магазина или не е индексиран и се ползва там
+        if ($productRec && $productRec->state == 'closed' && ($stateRec->forced ?? null) != 'yes' && !$eshopChanged) {
             $isIndexed = !empty($stateRec->indexedOn);
             $isInvalidated = $isIndexed && !isset($stateRec->hash);
-            if (($isIndexed && !$isInvalidated) || (!$isIndexed && !self::isUsedInEshop($productId))) {
+            if (($isIndexed && !$isInvalidated) || (!$isIndexed && $inEshop != 'yes')) {
                 cat_products_ParamIndexState::finishProcessing($productId, 'ok');
 
                 return 'skipped';
@@ -317,53 +245,33 @@ class cat_products_ParamIndex extends core_Manager
             return 'error';
         }
 
-        // Записите се подменят само при промяна
+        // Записите се подменят само при промяна, а в е-магазина - и при влизане/излизане от него
         $hash = md5(serialize($rows));
-        if (($stateRec->hash ?? null) !== $hash) {
+        $writeMain = (($stateRec->hash ?? null) !== $hash);
+        $writeEshop = $eshopChanged || ($writeMain && $inEshop == 'yes');
+        if ($writeMain || $writeEshop) {
             $start = self::startTimer('write');
-            self::replaceRows($productId, $rows, $stateRec);
+
+            // Без хеш прекъсната подмяна се пренаписва при следващото индексиране
+            $stateRec->hash = null;
+            cat_products_ParamIndexState::save($stateRec, 'hash');
+            if ($writeMain) {
+                self::replaceRows($productId, $rows);
+            }
+            if ($writeEshop) {
+                cat_products_EshopParamIndex::replaceRows($productId, ($inEshop == 'yes') ? $rows : array());
+            }
             self::stopTimer('write', $start);
             self::$stats['written'] = (self::$stats['written'] ?? 0) + 1;
         }
 
         // Хешът се записва само ако междувременно артикулът не е маркиран или инвалидиран
         $start = self::startTimer('state');
-        $fields = array('forced' => 'no', 'hash' => $hash, 'rowsCnt' => countR($rows), 'indexedOn' => dt::now(), 'lastError' => null);
+        $fields = array('forced' => 'no', 'hash' => $hash, 'inEshop' => $inEshop, 'rowsCnt' => countR($rows), 'indexedOn' => dt::now(), 'lastError' => null);
         cat_products_ParamIndexState::finishProcessing($productId, 'ok', $fields);
         self::stopTimer('state', $start);
 
         return 'ok';
-    }
-
-
-    /**
-     * Подменя редовете на артикула, без да остава момент, в който той липсва от индекса
-     *
-     * @param int      $productId - ид на артикул
-     * @param array    $rows      - новите редове
-     * @param stdClass $stateRec  - състоянието на артикула
-     *
-     * @return void
-     */
-    protected static function replaceRows($productId, $rows, $stateRec)
-    {
-        // Без хеш прекъсната подмяна се пренаписва при следващото индексиране
-        $stateRec->hash = null;
-        cat_products_ParamIndexState::save($stateRec, 'hash');
-
-        $query = self::getQuery();
-        $query->where("#productId = {$productId}");
-        $query->XPR('maxId', 'int', 'MAX(#id)');
-        $query->show('maxId');
-        $maxOldId = $query->fetch()->maxId ?? null;
-
-        // Първо новите, после старите - MyISAM няма транзакции
-        if (countR($rows)) {
-            cls::get(get_called_class())->saveArray($rows, 'productId,paramId,lg,valueNum,valueKey,valueVerbal,valueId');
-        }
-        if (!empty($maxOldId)) {
-            self::delete("#productId = {$productId} AND #id <= {$maxOldId}");
-        }
     }
 
 
@@ -406,10 +314,15 @@ class cat_products_ParamIndex extends core_Manager
             if (!$Driver || !cls::existsMethod($Driver, 'getIndexValues')) continue;
 
             $values = $Driver->getIndexValues($pRec, $productClassId, $productId, $value, $langs);
+
+            // Еднаквите по ключ стойности (напр. записи с едно име) са един ред - иначе синхронизацията ги трупа
             foreach ($values as $iRow) {
                 $iRow->productId = $productId;
                 $iRow->paramId = $paramId;
-                $rows[] = $iRow;
+                $key = arr::makeUniqueIndex($iRow, self::$rowKeyFields);
+                if (!isset($rows[$key])) {
+                    $rows[$key] = $iRow;
+                }
             }
         }
         self::stopTimer('values', $start);
@@ -445,7 +358,7 @@ class cat_products_ParamIndex extends core_Manager
     {
         if (!isset(self::$filterableParams)) {
             $query = cat_Params::getQuery();
-            $query->where("#filterable IN ('internal', 'eshop', 'yes') AND #state != 'rejected'");
+            $query->where("#filterable = 'yes' AND #state != 'rejected'");
             self::$filterableParams = $query->fetchAll();
         }
 
@@ -479,7 +392,7 @@ class cat_products_ParamIndex extends core_Manager
         $Params = cls::get('cat_Params');
         $query = cat_Params::getQuery();
         $query->in('id', $paramIds);
-        $query->where("#state != 'rejected' AND #filterable NOT IN ('eshop', 'yes')");
+        $query->where("#state != 'rejected' AND #filterable != 'yes'");
         while ($rec = $query->fetch()) {
             if (!cat_Params::canBeFilterable($rec)) continue;
 
@@ -487,6 +400,34 @@ class cat_products_ParamIndex extends core_Manager
             $rec->filterable = 'yes';
             $rec->_skipParamIndex = true;
             $Params->save($rec, 'filterable');
+        }
+        self::$filterableParams = null;
+    }
+
+
+    /**
+     * Прави филтрируеми параметрите, чийто тип по подразбиране е филтрируем
+     *
+     * @return void
+     */
+    public static function setDefaultFilterableParams()
+    {
+        $Params = cls::get('cat_Params');
+        $changed = array();
+        $query = cat_Params::getQuery();
+        $query->where("#state != 'rejected' AND #filterable != 'yes'");
+        while ($rec = $query->fetch()) {
+            if (cat_Params::getDefaultFilterable($rec) != 'yes') continue;
+
+            // Артикулите се маркират накуп след цикъла
+            $rec->filterable = 'yes';
+            $rec->_skipParamIndex = true;
+            $Params->save($rec, 'filterable');
+            $changed[$rec->id] = $rec->id;
+        }
+
+        if (countR($changed)) {
+            self::markDirtyByParams($changed);
         }
         self::$filterableParams = null;
     }
@@ -515,7 +456,9 @@ class cat_products_ParamIndex extends core_Manager
         $query->groupBy('productId');
         cat_products_ParamIndexState::invalidate(arr::extractValuesFromArray($query->fetchAll(), 'productId'));
 
-        self::delete('#paramId IN (' . implode(',', array_map('intval', $paramIds)) . ')');
+        $cond = '#paramId IN (' . implode(',', array_map('intval', $paramIds)) . ')';
+        self::delete($cond);
+        cat_products_EshopParamIndex::delete($cond);
     }
 
 
@@ -687,7 +630,11 @@ class cat_products_ParamIndex extends core_Manager
         $stale = cat_products_ParamIndexState::markStale(dt::addDays(-1 * self::$staleDays));
         $staleTime = microtime(true) - $start;
 
-        $msg = "Нови артикули: {$added} (" . round($missingTime, 2) . " s), остарели: {$stale} (" . round($staleTime, 2) . ' s)';
+        $start = microtime(true);
+        $eshop = cat_products_ParamIndexState::markEshopChanged();
+        $eshopTime = microtime(true) - $start;
+
+        $msg = "Нови артикули: {$added} (" . round($missingTime, 2) . " s), остарели: {$stale} (" . round($staleTime, 2) . " s), влезли/излезли от е-магазина: {$eshop} (" . round($eshopTime, 2) . ' s)';
         self::logInfo($msg);
 
         return $msg;
@@ -708,66 +655,6 @@ class cat_products_ParamIndex extends core_Manager
         self::$dirty = array();
         foreach ($productIds as $productId) {
             self::reindex($productId);
-        }
-    }
-
-
-    /**
-     * След подготовка на тулбара на списъчния изглед
-     */
-    protected static function on_AfterPrepareListToolbar($mvc, &$data)
-    {
-        cat_products_ParamIndexState::addResetBtn($data->toolbar);
-    }
-
-
-    /**
-     * Подготовка на филтър формата
-     */
-    protected static function on_AfterPrepareListFilter($mvc, &$data)
-    {
-        $data->listFilter->FLD('product', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,withClosed,allowEmpty)', 'caption=Артикул,silent');
-        $data->listFilter->FLD('param', 'key(mvc=cat_Params,select=typeExt,allowEmpty)', 'caption=Параметър,silent');
-        $data->listFilter->setOptions('param', array('' => '') + cat_Params::makeArray4Select('typeExt', "#filterable IN ('internal', 'eshop', 'yes')"));
-        $data->listFilter->showFields = 'product,param';
-        $data->listFilter->view = 'horizontal';
-        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
-        $data->listFilter->input(null, 'silent');
-        $data->query->orderBy('productId', 'DESC');
-        $data->query->orderBy('paramId,lg,id', 'ASC');
-
-        $filterRec = $data->listFilter->rec;
-        if (!empty($filterRec->product)) {
-            $data->query->where(array("#productId = [#1#]", $filterRec->product));
-        }
-        if (!empty($filterRec->param)) {
-            $data->query->where(array("#paramId = [#1#]", $filterRec->param));
-        }
-    }
-
-
-    /**
-     * След преобразуване на записа в четим за хора вид
-     */
-    protected static function on_AfterRecToVerbal($mvc, &$row, $rec)
-    {
-        $row->productId = cat_Products::getHyperlink($rec->productId, true);
-        $row->paramId = ht::createLink(cat_Params::getVerbal($rec->paramId, 'typeExt'), cat_Params::getSingleUrlArray($rec->paramId));
-        $row->lg = strlen($rec->lg ?? '') ? $mvc->getFieldType('lg')->toVerbal($rec->lg) : "<span class='quiet'>" . tr('всички') . '</span>';
-
-        $pRec = cat_Params::fetch($rec->paramId);
-        $Driver = $pRec ? cat_Params::getDriver($pRec) : null;
-        if (!$Driver) {
-            $row->kind = "<span class='red'>" . tr('Няма тип') . '</span>';
-
-            return;
-        }
-
-        $row->kind = tr(cls::getTitle($Driver));
-        $row->value = $Driver->getIndexVerbal($pRec, 'cat_Products', $rec->productId, $rec);
-
-        if (isset($rec->valueId)) {
-            $row->valueId = "#{$rec->valueId}";
         }
     }
 }

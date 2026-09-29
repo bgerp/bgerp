@@ -24,6 +24,12 @@ class cond_type_Set extends cond_type_abstract_Proto
 
 
     /**
+     * Новите параметри от този тип по подразбиране са филтрируеми
+     */
+    protected $filterableByDefault = true;
+
+
+    /**
      * Добавя полетата на драйвера към Fieldset
      *
      * @param core_Fieldset $fieldset

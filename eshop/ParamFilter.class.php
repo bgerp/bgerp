@@ -71,9 +71,9 @@ class eshop_ParamFilter
         $paramIds = cms_Domains::getSettings()->paramFilterParams ?? array();
         if (!countR($paramIds)) return array();
 
-        // Избраните, които вече не са филтрируеми в е-магазина, се пропускат
+        // Избраните, които вече не са филтрируеми, се пропускат
         $params = array();
-        $eshopParams = cat_products_ParamFilter::getParams(true);
+        $eshopParams = cat_products_ParamFilter::getParams();
         foreach ($paramIds as $paramId) {
             if (isset($eshopParams[$paramId])) {
                 $params[$paramId] = $eshopParams[$paramId];
@@ -85,7 +85,7 @@ class eshop_ParamFilter
 
 
     /**
-     * Опциите за избор на параметри на филтъра - филтрируемите в е-магазина
+     * Опциите за избор на параметри на филтъра - филтрируемите
      *
      * @param string|array|null $value - текущата стойност на таблицата
      *
@@ -94,7 +94,7 @@ class eshop_ParamFilter
     public static function getParamOptions($value = null)
     {
         // Само активните, както в cat_products_ParamFilter::getParams()
-        $options = cat_Params::makeArray4Select('typeExt', "#filterable IN ('eshop', 'yes') AND #state = 'active'");
+        $options = cat_Params::makeArray4Select('typeExt', "#filterable = 'yes' AND #state = 'active'");
 
         // Вече избраните, които не се показват, остават с името си и причината, за да се видят и махнат
         foreach (self::getTableParamIds($value) as $paramId) {
@@ -106,7 +106,7 @@ class eshop_ParamFilter
                 continue;
             }
 
-            $reason = ($pRec->state != 'active') ? mb_strtolower(cat_Params::getVerbal($pRec, 'state')) : tr('не е за е-магазина');
+            $reason = ($pRec->state != 'active') ? mb_strtolower(cat_Params::getVerbal($pRec, 'state')) : tr('не е филтрируем');
             $options[$paramId] = cat_Params::getVerbal($pRec, 'typeExt') . " ({$reason})";
         }
 
@@ -475,7 +475,7 @@ class eshop_ParamFilter
     protected static function getIndexQuery($base)
     {
         $onCond = array('onCond' => '#eshop_ProductDetails.productId = #productId', 'join' => 'INNER');
-        $query = cat_products_ParamFilter::getIndexQuery($base->lg);
+        $query = cat_products_ParamFilter::getIndexQuery($base->lg, 'cat_products_EshopParamIndex');
         $query->EXT('eshopProductId', 'eshop_ProductDetails', array('externalName' => 'eshopProductId') + $onCond);
         $query->EXT('detailId', 'eshop_ProductDetails', array('externalName' => 'id') + $onCond);
         $query->EXT('detailState', 'eshop_ProductDetails', array('externalName' => 'state') + $onCond);
@@ -506,7 +506,7 @@ class eshop_ParamFilter
         if (countR($base->hiddenDetailIds)) {
             $query->notIn('id', $base->hiddenDetailIds);
         }
-        cat_products_ParamFilter::applySelection($query, $values, $selected, $base->lg);
+        cat_products_ParamFilter::applySelection($query, $values, $selected, $base->lg, 'cat_products_EshopParamIndex');
         $query->groupBy('eshopProductId');
         $query->show('eshopProductId');
 

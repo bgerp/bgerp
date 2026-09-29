@@ -24,6 +24,12 @@ class cond_type_Int extends cond_type_abstract_Proto
 
 
     /**
+     * Новите параметри от този тип по подразбиране са филтрируеми
+     */
+    protected $filterableByDefault = true;
+
+
+    /**
      * Стойностите могат да се групират в диапазони във филтъра
      */
     protected $indexRanges = true;
