@@ -93,4 +93,14 @@ class cms_CommerceTheme extends cms_FancyTheme
             $tpl->appendOnce(' eshop-public', 'BODY_CLASS_NAME');
         }
     }
+
+
+    /** Добавя стиловете на публичния форум само за тази тема. */
+    public static function prepareForum($tpl)
+    {
+        if (cms_Domains::getCmsSkin() instanceof self) {
+            $tpl->push('cms/css/CommerceForum.css', 'CSS');
+            $tpl->appendOnce(' commerce-forum', 'BODY_CLASS_NAME');
+        }
+    }
 }
