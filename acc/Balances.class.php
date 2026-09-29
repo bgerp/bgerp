@@ -523,6 +523,9 @@ class acc_Balances extends core_Master
         // Пикът не се нулира, защото core_Cron го записва за цялата задача
         $peakBefore = memory_get_peak_usage(true);
         $bD->calcStats['phpPrecision'] = ini_get('precision');
+
+        // Използвана памет преди баланса - показва дали нещо остава от предходно изчисление
+        $bD->calcStats['usedBeforeMB'] = round(memory_get_usage(false) / 1048576);
         $lastRec            = self::getBalanceBefore($rec->toDate);
         $periodCurrencyCode = acc_Periods::getBaseCurrencyCode($rec->toDate);
 

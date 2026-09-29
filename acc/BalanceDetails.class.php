@@ -1694,7 +1694,7 @@ class acc_BalanceDetails extends core_Detail
      */
     public function addCalcPhase($name, $start)
     {
-        $this->calcStats['phases'][$name] = array(microtime(true) - $start, memory_get_usage(true), memory_get_peak_usage(true));
+        $this->calcStats['phases'][$name] = array(microtime(true) - $start, memory_get_usage(true), memory_get_peak_usage(true), memory_get_usage(false));
     }
 
 
@@ -1758,7 +1758,7 @@ class acc_BalanceDetails extends core_Detail
     {
         $parts = array();
         foreach ($this->calcStats['phases'] ?? array() as $name => $phase) {
-            $parts[] = $name . ' ' . round($phase[0], 2) . 's/' . round($phase[1] / 1048576) . 'MB/peak ' . round($phase[2] / 1048576) . 'MB';
+            $parts[] = $name . ' ' . round($phase[0], 2) . 's/used ' . round($phase[3] / 1048576) . 'MB/alloc ' . round($phase[1] / 1048576) . 'MB/peak ' . round($phase[2] / 1048576) . 'MB';
         }
 
         foreach ($this->calcStats as $name => $value) {
