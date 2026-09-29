@@ -944,7 +944,7 @@ class core_ET extends core_BaseClass
 
                 if (trim($path)) {
                     $pathInfoArr = pathinfo($path);
-                    if (!$pathInfoArr['extension']) {
+                    if (empty($pathInfoArr['extension'])) {
                         $path .= '.shtml';
                     }
 
@@ -982,7 +982,7 @@ class core_ET extends core_BaseClass
 
             $pathInfoArr = pathinfo($path);
 
-            if ($pathInfoArr['extension'] && $pathInfoArr['extension'] != 'shtml') {
+            if (!empty($pathInfoArr['extension']) && $pathInfoArr['extension'] != 'shtml') {
                 wp($pathInfoArr);
                 continue;
             }
