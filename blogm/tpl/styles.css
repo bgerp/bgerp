@@ -2,10 +2,9 @@
   font-size: 1.2em;
   margin-bottom: 1em;
   padding: 5px;
-  background-color: #dddddd; }
+  background-color: #ddd; }
 
-.blogm-article-title,
-.blogm-article-title a {
+.blogm-article-title, .blogm-article-title a {
   font-size: 1.8em;
   line-height: 130%;
   font-weight: bold;
@@ -20,31 +19,19 @@
 .blogm-article-info {
   font-size: 1em;
   padding: 5px;
-    /*
-   * fallback
-   */
-  background-color: #eeeeee;
-    /*
-   * Safari 4-5, Chrome 1-9
-   */
-  background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#dddddd), to(#f8f8f8));
-    /*
-   * Safari 5.1, Chrome 10+
-   */
-  background: -webkit-linear-gradient(top, #dddddd, #f8f8f8);
-    /*
-   * Firefox 3.6+
-   */
-  background: -moz-linear-gradient(top, #dddddd, #f8f8f8);
-    /*
-   * IE 10
-   */
-  background: -ms-linear-gradient(top, #dddddd, #f8f8f8);
-    /*
-   * Opera 11.10+
-   */
-  background: -o-linear-gradient(top, #dddddd, #f8f8f8);
-  color: #333333;
+  background-color: #eee;
+  /* fallback */
+  /* Safari 4-5, Chrome 1-9 */
+  background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#ddd), to(#f8f8f8));
+  /* Safari 5.1, Chrome 10+ */
+  background: -webkit-linear-gradient(top, #ddd, #f8f8f8);
+  /* Firefox 3.6+ */
+  background: -moz-linear-gradient(top, #ddd, #f8f8f8);
+  /* IE 10 */
+  background: -ms-linear-gradient(top, #ddd, #f8f8f8);
+  /* Opera 11.10+ */
+  background: -o-linear-gradient(top, #ddd, #f8f8f8);
+  color: #333;
   margin-bottom: 6px; }
 
 .blogmBrowseImg {
@@ -65,39 +52,81 @@
 
 .blogm-article-body .richtext {
   font-size: 1em;
-  color: #333333; }
+  color: #333; }
 
 .narrow .blogm-browse-article .blogm-article-body {
   font-size: 0.95em; }
 
 .wide .blogm-article-body .richtext {
   font-size: 1.1em;
-  color: #333333; }
+  color: #333; }
 
 .blogm-article-body .richtext h2 {
   margin-bottom: 10px; }
 
-.blogm-comment {
-  margin-top: 15px;
-  border: solid 1px #f8f8f8;
-  padding: 10px;
-  border-radius: 5px;
-  background-color: #f8f8f8;
-  border: solid 1px #eeeeee;
-  display: table;
-  width: 100%; }
+.blogm-comments-title {
+  margin: 20px 0 4px;
+  font-size: 1.1em; }
 
-.blogm-comment-who {
-  display: table-cell;
-  vertical-align: top;
-  width: 80px;
-  font-size: 0.7em; }
+.blogm-comment {
+  display: flex;
+  gap: 12px;
+  margin-top: 12px;
+  padding: 12px 14px;
+  box-sizing: border-box;
+  border: 1px solid #e3e3e3;
+  border-radius: 6px;
+  background-color: #fafafa; }
+  .blogm-comment.blogm-comment-pending {
+    border-left: 4px solid #5aa9e6;
+    background-color: #f2f8fd; }
+  .blogm-comment.blogm-comment-rejected {
+    border-left: 4px solid #cc6666;
+    background-color: #fbf1f1; }
+  .blogm-comment.blogm-comment-closed {
+    border-left: 4px solid #aaa;
+    color: #666; }
+
+.blogm-comment-avatar {
+  flex: 0 0 auto; }
+  .blogm-comment-avatar img {
+    display: block;
+    border-radius: 50%; }
+
+.blogm-comment-main {
+  flex: 1 1 auto;
+  min-width: 0; }
+
+.blogm-comment-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 10px;
+  margin-bottom: 6px; }
+
+.blogm-date {
+  font-size: 0.85em;
+  color: #777; }
+
+.blogm-status {
+  padding: 1px 8px;
+  border-radius: 10px;
+  font-size: 0.75em;
+  background-color: #dbeafa;
+  color: #1d4f7a; }
+  .blogm-status:empty {
+    display: none; }
+
+.blogm-comment-rejected .blogm-status {
+  background-color: #f3d6d6;
+  color: #7a1d1d; }
+
+.blogm-comment-closed .blogm-status {
+  background-color: #e5e5e5;
+  color: #555; }
 
 .blogm-comment-text {
-  display: table-cell;
-  width: 80%;
-  vertical-align: top;
-  float: left; }
+  overflow-wrap: anywhere; }
 
 #blogm-Comment {
   border: none;
@@ -106,15 +135,14 @@
   visibility: hidden; }
 
 .blogm-name {
-  white-space: nowrap; }
+  font-weight: bold; }
 
 .blogm-comment-form div {
   margin-top: 8px; }
 
-  .blogm-comment-form input[type="text"],
-  .blogm-comment-form input[type="submit"] {
-    padding: 3px;
-    width: 300px; }
+.blogm-comment-form input[type="text"], .blogm-comment-form input[type="submit"] {
+  padding: 3px;
+  width: 300px; }
 
 .blogm-comment-form textarea {
   padding: 3px;
@@ -150,8 +178,7 @@
   margin-bottom: 20px; }
 
 .blogArticleCategoryLink a {
-  color: #333333 !important; }
+  color: #333 !important; }
   .blogArticleCategoryLink a:hover {
     text-decoration: underline;
-    color: #333333 !important; }
-
+    color: #333 !important; }

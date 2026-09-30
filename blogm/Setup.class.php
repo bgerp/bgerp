@@ -69,7 +69,7 @@ defIfNot('BLOGM_ARTICLE_NAVIGATION_MAX_PATH', '0');
  * @category  bgerp
  * @package   blogm
  *
- * @author    Ивелин Димов <ivelin_pdimov@abv.bg>
+ * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
  *

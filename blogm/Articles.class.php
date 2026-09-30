@@ -8,8 +8,8 @@
  * @category  bgerp
  * @package   blogm
  *
- * @author    Ивелин Димов <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2021 Experta OOD
+ * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
+ * @copyright 2006 - 2026 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -142,9 +142,9 @@ class blogm_Articles extends core_Master
      */
     public function description()
     {
+        $this->FLD('title', 'varchar(190)', 'caption=Заглавие, mandatory');
         $this->FLD('author', 'varchar(40)', 'caption=Автор, mandatory, notNull');
         $this->FLD('publishedOn', 'datetime', 'caption=Публикуване');
-        $this->FLD('title', 'varchar(190)', 'caption=Заглавие, mandatory');
         $this->FLD('categories', 'keylist(mvc=blogm_Categories,select=title)', 'caption=Категории,mandatory');
         $this->FLD('body', 'richtext(bucket=' . self::FILE_BUCKET . ')', 'caption=Съдържание,mandatory');
         $this->FLD('state', 'enum(draft=Чернова,pending=Заявка,waiting=Чакаща,active=Публикувана,rejected=Оттеглена)', 'caption=Състояние,input=none');
@@ -814,7 +814,9 @@ class blogm_Articles extends core_Master
         $showAll = blogm_Setup::get('SHOW_EXPANDED_CATEGORIES_IN_NAV') == 'yes';
         $data->categories = blogm_Categories::getCategoriesByDomain($data->menuRec->domainId, $data->menuId, $data->categoryId, $showAll);
 
-        $data->query->likeKeylist('categories', keylist::fromArray($data->categories));
+        // Статиите се филтрират по всички категории на менюто, като архива, независимо от разгъването на навигацията
+        $data->contentCategories = blogm_Categories::getCategoriesByDomain($data->menuRec->domainId, $data->menuId, null, true);
+        $data->query->likeKeylist('categories', keylist::fromArray($data->contentCategories));
         $data->q = Request::get('q', 'varchar');
 
         // Архив
@@ -864,8 +866,9 @@ class blogm_Articles extends core_Master
         } else {
 
             // Добавка, ако няма избрана категория, резултатите да се филтрират само по категориите, които са от текущия език
-            if (countR($data->categories)) {
-                $data->query->likeKeylist('categories', keylist::fromArray($data->categories));
+            $contentCategories = $data->contentCategories ?? $data->categories ?? array();
+            if (countR($contentCategories)) {
+                $data->query->likeKeylist('categories', keylist::fromArray($contentCategories));
             } else {
                 $data->query->where("1=2");
             }

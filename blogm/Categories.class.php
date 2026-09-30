@@ -8,8 +8,8 @@
  * @category  bgerp
  * @package   blogm
  *
- * @author    Ивелин Димов <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2021 Experta OOD
+ * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
+ * @copyright 2006 - 2026 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1

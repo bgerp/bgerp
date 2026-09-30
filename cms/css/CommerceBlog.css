@@ -193,6 +193,11 @@ body.commerce-blog {
 }
 .commerce-blog .prevNextNav a { color: #145b73; }
 .commerce-blog .blogm-comment { box-sizing: border-box; background: #f5f8fa; border: 1px solid #dce3e8; border-radius: 8px; padding: 16px; }
+.commerce-blog .blogm-comment.blogm-comment-pending { border-left: 4px solid #145b73; background: #eef5f8; }
+.commerce-blog .blogm-comment.blogm-comment-rejected { border-left: 4px solid #b54848; background: #fbf1f1; }
+.commerce-blog .blogm-comment.blogm-comment-closed { border-left: 4px solid #9aa7ae; }
+.commerce-blog .blogm-comments-title { margin: 0 0 4px; font-size: 1.125rem; color: #145b73; }
+.commerce-blog .blogm-status { background: #dcebf1; color: #145b73; }
 .commerce-blog .blogm-comments { margin-top: 28px; }
 .commerce-blog .blogm-comment-form input[type=text],
 .commerce-blog .blogm-comment-form textarea {
