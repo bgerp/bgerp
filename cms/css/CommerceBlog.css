@@ -160,6 +160,37 @@ body.commerce-blog {
 }
 .commerce-blog .commerce-blog-search-results > :is(h1, h3):only-child { margin-bottom: 0; }
 .commerce-blog .commerce-blog-search-results > :is(h1, h3) strong { color: #145b73 !important; }
+/* Общият изход на търсенето (cms_Content::renderSearchResults) носи вградени стилове */
+.commerce-blog .commerce-blog-search-results .results h2 {
+    margin: 1.25em 0 0.25em !important;
+    padding: 0 0 6px !important;
+    background: none !important;
+    border: 0 !important;
+    border-bottom: 1px solid #dce3e8 !important;
+    font-size: 0.8125rem;
+    letter-spacing: .4px;
+    text-transform: uppercase;
+}
+.commerce-blog .commerce-blog-search-results .results h2:first-child { margin-top: 0 !important; }
+.commerce-blog .commerce-blog-search-results .results h2 strong { color: #145b73 !important; font-weight: 700; }
+.commerce-blog .commerce-blog-search-results .results ul { margin: 0; padding: 0; list-style: none; }
+.commerce-blog .commerce-blog-search-results .results li,
+.commerce-blog .commerce-blog-search-results .results table.searchResult tr {
+    border-bottom: 1px solid #edf1f4;
+}
+.commerce-blog .commerce-blog-search-results .results li {
+    margin: 0 !important;
+    padding: 8px 0;
+    font-size: 1rem !important;
+}
+.commerce-blog .commerce-blog-search-results .results li:last-child,
+.commerce-blog .commerce-blog-search-results .results table.searchResult tr:last-child { border-bottom: 0; }
+.commerce-blog .commerce-blog-search-results .results a { color: #182b3a; text-decoration: none; }
+.commerce-blog .commerce-blog-search-results .results a:hover { color: #145b73; text-decoration: underline; }
+.commerce-blog .commerce-blog-search-results .results table.searchResult { width: 100%; border-collapse: collapse; }
+.commerce-blog .commerce-blog-search-results .results table.searchResult td { padding: 8px 0; vertical-align: middle; }
+.commerce-blog .commerce-blog-search-results .results td.searchImg { width: 56px; padding-right: 12px; }
+.commerce-blog .commerce-blog-search-results .results td.searchImg img { display: block; width: 44px; height: 44px; object-fit: cover; border-radius: 8px; }
 .commerce-blog .blogm-article-title,
 .commerce-blog .blogm-browse .blogm-article-title { margin: 0 0 12px; font-size: 1.75em; line-height: 1.25; color: #182b3a; }
 .commerce-blog .blogm-article-title a { font-size: inherit; line-height: inherit; color: #182b3a; text-decoration: none; }
