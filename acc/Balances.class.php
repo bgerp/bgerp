@@ -707,22 +707,22 @@ class acc_Balances extends core_Master
             return false;
         }
         
-        // Ако нямаме никакви записи за периода, значи всичко е ОК
-        if (empty($rec->lastAlternation)) {
-            
-            return true;
-        }
-        
         // Вземаме предния баланс. Ако той е с по-ново време на изчисление, задължително изчисляваме и този
         $query = self::getQuery();
         $query->limit(1);
-        $query->where("#fromDate < '{$rec->fromDate}'");
-        $query->orderBy('fromDate', 'DESC');
+        $query->where("#toDate < '{$rec->fromDate}'");
+        $query->orderBy('toDate', 'DESC');
         $lastRec = $query->fetch();
         
         if ($lastRec && ($lastRec->lastCalculate > $rec->lastCalculate)) {
             
             return false;
+        }
+        
+        // Ако нямаме никакви записи за периода, значи всичко е ОК
+        if (empty($rec->lastAlternation)) {
+            
+            return true;
         }
         
         // Ако последното изчисляване е $calcMinutesAfter и повече след последната промяна на журнала за периода, значи баланса е валиден
