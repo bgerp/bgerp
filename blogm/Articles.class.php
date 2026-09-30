@@ -1172,7 +1172,9 @@ class blogm_Articles extends core_Master
                 }
                 
                 // Създаваме линк, който ще покаже само статиите от избраната категория
-                $title = ht::createLink(dt::getMonth($m, Mode::is('screenMode', 'narrow') ? 'M' : 'F') . '/' . $y, array('blogm_Articles', 'browse', 'cMenuId' => $data->menuId, 'archive' => $month));
+                $commerceTheme = cms_Domains::getCmsSkin() instanceof cms_CommerceTheme;
+                $monthTitle = dt::getMonth($m, $commerceTheme ? 'F' : (Mode::is('screenMode', 'narrow') ? 'M' : 'F')) . ($commerceTheme ? ' ' : '/') . $y;
+                $title = ht::createLink($monthTitle, array('blogm_Articles', 'browse', 'cMenuId' => $data->menuId, 'archive' => $month));
                 
                 // Див-обвивка
                 $title = ht::createElement('div', $attr, $title);
