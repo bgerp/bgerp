@@ -672,11 +672,30 @@ class change_Plugin extends core_Plugin
             }
         }
         
-        // Документите показват версиите си другаде; другите мастъри - в таблица в сингъла
+        // Документите показват версиите си другаде; другите мастъри - в таблица в сингъла, при поискване
         if (!cls::haveInterface('doc_DocumentIntf', $mvc)) {
-            $fields = 'createdOn=Дата, createdBy=От, Version=Версия';
-            $res->row->CHANGE_LOG = cls::get('core_TableView')->get(change_Log::prepareLogRow($mvc->className, $res->rec->id), $fields);
-            $res->row->CHANGE_LOG->replace("style='width:100%'", 'TABLE_ATTR');
+            $logRows = change_Log::prepareLogRow($mvc->className, $res->rec->id);
+            
+            // Един ред е само текущата версия - няма промени за показване
+            if (countR($logRows) > 1) {
+                
+                // По подразбиране се виждат, ако има избрани версии за сравнение
+                $show = Request::get('showChanges', 'int');
+                if (!isset($show)) {
+                    $show = countR(change_Log::getSelectedVersionsArr($classId, $res->rec->id)) > 0;
+                }
+                
+                if ($show) {
+                    $fields = 'createdOn=Дата, createdBy=От, Version=Версия';
+                    $res->row->CHANGE_LOG = cls::get('core_TableView')->get($logRows, $fields);
+                    $res->row->CHANGE_LOG->replace("style='width:100%'", 'TABLE_ATTR');
+                }
+                
+                if (isset($res->toolbar)) {
+                    $icon = $show ? 'img/16/checked.png' : 'img/16/checkbox_no.png';
+                    $res->toolbar->addBtn('Промени|* (' . (countR($logRows) - 1) . ')', array($mvc, 'single', $res->rec->id, 'showChanges' => $show ? 0 : 1), "id=btnChanges{$res->rec->id},row=2,order=19.1", "ef_icon={$icon},title=Показване на промените по записа");
+                }
+            }
         }
     }
     

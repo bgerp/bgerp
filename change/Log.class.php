@@ -268,19 +268,20 @@ class change_Log extends core_Manager
         // Последната версия на записа
         $docRec = $class->fetch($docId);
         
-        // Ако има дата и потребител
+        // Последната версия се форматира като останалите редове - през този модел, не през документа
+        $lastBy = $lastOn = null;
         if (isset($docRec->changeModifiedBy, $docRec->changeModifiedOn)) {
-            
-            // Вземаме вербалните им стойности
-            $lastVerRow = $class->recToVerbal($docRec, 'changeModifiedBy, changeModifiedOn, -single');
-            $row->createdBy = $lastVerRow->changeModifiedBy;
-            $row->createdOn = $lastVerRow->changeModifiedOn;
+            $lastBy = $docRec->changeModifiedBy;
+            $lastOn = $docRec->changeModifiedOn;
         } elseif (isset($docRec->modifiedBy, $docRec->modifiedOn)) {
-            
-            // Вземаме вербалните им стойности
-            $lastVerRow = $class->recToVerbal($docRec, 'modifiedBy, modifiedOn, -single');
-            $row->createdBy = $lastVerRow->modifiedBy;
-            $row->createdOn = $lastVerRow->modifiedOn;
+            $lastBy = $docRec->modifiedBy;
+            $lastOn = $docRec->modifiedOn;
+        }
+        
+        if (isset($lastBy)) {
+            $lastVerRow = static::recToVerbal((object) array('createdOn' => $lastOn, 'createdBy' => $lastBy), 'createdOn, createdBy, -single');
+            $row->createdBy = $lastVerRow->createdBy;
+            $row->createdOn = $lastVerRow->createdOn;
         }
         
         // Добавяме към резултатите
