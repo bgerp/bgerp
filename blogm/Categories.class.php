@@ -8,8 +8,8 @@
  * @category  bgerp
  * @package   blogm
  *
- * @author    Ивелин Димов <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2021 Experta OOD
+ * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
+ * @copyright 2006 - 2026 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -32,6 +32,12 @@ class blogm_Categories extends core_Manager
      * Полета за изглед
      */
     public $listFields = 'id, title, description, menuId, sharedMenus';
+
+
+    /**
+     * Поле, което се отмества според нивото в структурата
+     */
+    public $saoTitleField = 'title';
     
     
     /**

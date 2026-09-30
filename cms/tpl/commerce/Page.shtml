@@ -38,7 +38,7 @@
 
     .footer-menus a {
         text-decoration: none;
-        font-size: 0.75em;
+        font-size: 0.95em;
         transition: color 0.15s ease, text-decoration-color 0.15s ease;
     }
 
