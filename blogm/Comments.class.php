@@ -43,7 +43,7 @@ class blogm_Comments extends core_Detail
     /**
      * Полета за изглед
      */
-    public $listFields = 'name, email, web, ip, brid, userDelay, spamRate, articleId, comment=@, createdOn=Създаване||Created';
+    public $listFields = 'name, email, web, ip, brid, userDelay, spamRate, comment=@, createdOn=Създаване||Created';
     
     
     /**
@@ -107,6 +107,7 @@ class blogm_Comments extends core_Detail
         
         $this->setDbIndex('ip');
         $this->setDbIndex('brid');
+        $this->setDbIndex('state,createdOn');
     }
     
     
@@ -183,22 +184,24 @@ class blogm_Comments extends core_Detail
     
     
     /**
-     * Нова функция която се извиква blogm_Articles - act_Show
-     * от и рендира коментарите в нов шаблон
+     * Рендира коментарите и формата за нов коментар в шаблона на статията
      */
     public static function renderComments_($data, $layout)
     {
         if (countR($data->commentsRows)) {
             foreach ($data->commentsRows as $row) {
-                $commentTpl = $data->ThemeClass->getCommentsLayout();
+                $commentTpl = $layout->getBlock('COMMENT');
                 $commentTpl->placeObject($row);
-                $layout->append($commentTpl, 'COMMENTS');
+                $commentTpl->append2master();
             }
+        } else {
+            $layout->removeBlock('COMMENTS');
         }
         
         if ($data->commentForm ?? null) {
-            $data->commentForm->layout = $data->ThemeClass->getCommentFormLayout();
-            $data->commentForm->fieldsLayout = $data->ThemeClass->getCommentFormFieldsLayout();
+            $formTpl = getTplFromFile('blogm/tpl/CommentForm.shtml');
+            $data->commentForm->fieldsLayout = $formTpl->getBlock('FORM_FIELDS');
+            $data->commentForm->layout = $formTpl;
             $layout->replace($data->commentForm->renderHtml(), 'COMMENT_FORM');
         }
         
@@ -358,8 +361,9 @@ class blogm_Comments extends core_Detail
      */
     public function on_AfterPrepareListFields($mvc, $data)
     {
-        if (isset($data->masterMvc)) {
-            unset($data->listFields['articleId']);
+        // Извън статията се показва и към коя статия е коментарът
+        if (!isset($data->masterMvc)) {
+            arr::insert($data->listFields, 'name', array('articleId' => 'Статия'));
         }
         
         $data->query->orderBy('#createdOn', 'DESC');
@@ -414,9 +418,13 @@ class blogm_Comments extends core_Detail
      * @param stdClass $row Това ще се покаже
      * @param stdClass $rec Това е записа в машинно представяне
      */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec)
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         $row->ip = type_Ip::decorateIp($rec->ip, $rec->createdOn, true);
+        
+        if (isset($fields['-list']) && !empty($rec->articleId)) {
+            $row->articleId = blogm_Articles::getHyperlink($rec->articleId, true);
+        }
         
         $row->brid = log_Browsers::getLink($rec->brid);
     }

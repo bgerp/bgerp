@@ -5,7 +5,12 @@
     [#FORM_ERROR#]
     <!--ET_END FORM_ERROR-->
     <div class='formFields'>
-        [#FORM_FIELDS#]
+        <!--ET_BEGIN FORM_FIELDS-->
+        <div>[#name#]&nbsp;<b>|Име|*</b></div>
+        <div>[#email#]&nbsp;<b>|Имейл|*</b></div>
+        <div>[#web#]&nbsp;|Сайт|*</div>
+        <div>[#comment#]</div>
+        <!--ET_END FORM_FIELDS-->
         <input name="Comment" id='blogm-Comment'>
     </div>
     <div class='formToolbar'>
