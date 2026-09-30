@@ -51,7 +51,6 @@ class bgfisc_plg_Receipts extends core_Plugin
         if(!count($url)){
             $attr['class'] .= " disabledBtn";
             $attr['disabled'] = 'disabled';
-            $warning = '';
         } else {
             $attr['class'] .= " navigable printFiscBtn";
         }
@@ -74,7 +73,7 @@ class bgfisc_plg_Receipts extends core_Plugin
                     $url['stornoReason'] = urlencode($reason);
                     $attr['data-url'] = toUrl($url, 'local');
                     
-                    $closeBtn = ht::createFnBtn("ФБ|*: {$reason}", '', $warning, $attr);
+                    $closeBtn = ht::createFnBtn("ФБ|*: {$reason}", '', '', $attr);
                     $buttons["close{$reason}"] = (object)array('body' => $closeBtn, 'placeholder' => 'CLOSE_BTNS');
                 }
             }

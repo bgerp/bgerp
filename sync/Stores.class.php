@@ -108,7 +108,7 @@ class sync_Stores extends sync_Helper
 
         $form->setOptions('authorizationId', array('' => '') + $systemOptions);
         if(isset($rec->id)){
-            $form->setDefault('authorizationId', static::getUserAuthorizationIdByUrl($rec->url));
+            $form->setDefault('authorizationId', static::getUserAuthorizationIdByUrl($rec->url ?? ''));
         }
 
         // Ако е избрана система
@@ -116,7 +116,12 @@ class sync_Stores extends sync_Helper
 
             // Извличат се складовете от посочената система
             $authorizationRec = remote_Authorizations::fetch($rec->authorizationId);
-            $form->setDefault('url', $authorizationRec->url);
+            if (!$authorizationRec) {
+                $form->setError('authorizationId', 'Невалидна оторизация за външната система');
+
+                return;
+            }
+            $form->setDefault('url', $authorizationRec->url ?? '');
             $remoteOptions = $mvc->getRemoteStoreOptions($authorizationRec);
 
             // Ако има се показват, ако не показва се съобщение
@@ -140,7 +145,10 @@ class sync_Stores extends sync_Helper
     {
         if ($form->isSubmitted()) {
             $rec = &$form->rec;
-            $rec->remoteName = $rec->_remoteOptions[$rec->remoteId];
+            $rec->remoteName = $rec->_remoteOptions[$rec->remoteId ?? null] ?? null;
+            if ($rec->remoteName === null) {
+                $form->setError('remoteId', 'Изберете валиден склад от външната система');
+            }
         }
     }
 
@@ -166,7 +174,7 @@ class sync_Stores extends sync_Helper
         $rQuery->show('id');
         $rec = $rQuery->fetch();
 
-        return is_object($rec) ? $rec->id : null;
+        return $rec->id ?? null;
     }
 
 
@@ -178,7 +186,7 @@ class sync_Stores extends sync_Helper
         if($action == 'edit' && isset($rec)){
 
             // Ако потребителя има аутентикация за системата от която е създаден записа, ще може да го редактира
-            if(!static::getUserAuthorizationIdByUrl($rec->url, $userId)){
+            if(!static::getUserAuthorizationIdByUrl($rec->url ?? '', $userId)){
                 $requiredRoles = 'no_one';
             }
         }
@@ -206,12 +214,15 @@ class sync_Stores extends sync_Helper
 
         // Ако оторизацията е валидна
         $authRec = remote_Authorizations::fetchRec($authorizationId);
-        if ($authRec->data->lKeyCC && $authRec->data->rId) {
+        if (!empty($authRec->data->lKeyCC) && !empty($authRec->data->rId)) {
 
             // Прави се запитване до услугата от оторизацията
             $storeData = remote_BgerpDriver::sendQuestion($authRec, 'store_Stores', 'getStoresData');
             if (is_array($storeData) && countR($storeData)) {
                 foreach ($storeData as $storeDataArr) {
+                    if (!isset($storeDataArr['id'], $storeDataArr['name'])) {
+                        continue;
+                    }
                     $options[$storeDataArr['id']] = $storeDataArr['name'];
                 }
             }
@@ -228,13 +239,14 @@ class sync_Stores extends sync_Helper
     public static function getDisplayTitle($rec, $verbal = false)
     {
         $rec = static::fetchRec($rec);
-        $explode = explode('//', $rec->url);
+        $explode = explode('//', $rec->url ?? '');
         $pureUrl = countR($explode) == 2 ? $explode[1] : $explode[0];
+        $remoteName = $rec->remoteName ?? '';
         if($verbal){
-            return "{$rec->remoteName} [<span style='color:green'>{$pureUrl}</span>]";
+            return "{$remoteName} [<span style='color:green'>{$pureUrl}</span>]";
         }
 
-        return "{$rec->remoteName} [{$pureUrl}]";
+        return "{$remoteName} [{$pureUrl}]";
     }
 
 

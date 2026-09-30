@@ -175,7 +175,10 @@ class cal_Reminders extends core_Master
     public $newBtnGroup = '1.4|Общи';
 
 
-    public static $suggestions = array('', 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12);
+    /**
+     * Предложения за полето "Всеки" при повторение
+     */
+    public static $repetitionSuggestions = array('', 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12);
 
 
     /**
@@ -311,7 +314,7 @@ class cal_Reminders extends core_Master
             unset($mvc->getFieldType('repetitionType')->options['notifyNoAns']);
         }
 
-        $arr = array('' => '') + static::$suggestions;
+        $arr = array('' => '') + static::$repetitionSuggestions;
         unset($arr[0]);
 
         $data->form->setSuggestions('repetitionEach', $arr);
@@ -1056,7 +1059,8 @@ class cal_Reminders extends core_Master
         foreach ($fcMvc->fields as $name => $field) {
             $type = $field->type;
             if (($type instanceof type_Date) || ($type instanceof type_DateTime)) {
-                if (isset($newRec->{$name}) && $field->input != 'none' && $field->input != 'hidden') {
+                $input = $field->input ?? null;
+                if (isset($newRec->{$name}) && $input != 'none' && $input != 'hidden') {
                     $newRec->{$name} = dt::addSecs($secs, $newRec->{$name});
                 } else {
                     $newRec->{$name} = null;
@@ -1064,6 +1068,7 @@ class cal_Reminders extends core_Master
             }
         }
 
+        $tf = null;
         if (isset($newRec->title)) {
             $tf = 'title';
         } elseif (isset($newRec->name)) {

@@ -58,6 +58,12 @@ abstract class cond_type_abstract_Proto extends core_BaseClass
 
 
     /**
+     * Дали новите параметри от този тип по подразбиране са филтрируеми
+     */
+    protected $filterableByDefault = false;
+
+
+    /**
      * Добавя полетата на драйвера към Fieldset
      *
      * @param core_Fieldset $fieldset
@@ -272,6 +278,17 @@ abstract class cond_type_abstract_Proto extends core_BaseClass
     public function canBeIndexed()
     {
         return !empty($this->indexKind);
+    }
+
+
+    /**
+     * Дали новите параметри от този тип по подразбиране са филтрируеми
+     *
+     * @return bool
+     */
+    public function isFilterableByDefault()
+    {
+        return $this->canBeIndexed() && $this->filterableByDefault;
     }
 
 

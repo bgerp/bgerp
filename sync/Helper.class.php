@@ -145,7 +145,7 @@ class sync_Helper extends core_Manager
                 $settingsId = Request::get('syncSettingsId', 'int');
                 if ($settingsId) {
                     $rec = sync_Settings::fetch($settingsId);
-                    expect($rec && $rec->state == 'active', 'Невалидна или неактивна sync настройка');
+                    expect(($rec->state ?? null) == 'active', 'Невалидна или неактивна sync настройка');
                 } else {
                     $query = sync_Settings::getQuery();
                     $query->where("#state = 'active'");
@@ -192,9 +192,9 @@ class sync_Helper extends core_Manager
                 $authType = $rec ? ($rec->authType ?? 'credentials') : null;
 
                 if ($rec &&
-                    $rec->state == 'active' &&
+                    ($rec->state ?? null) == 'active' &&
                     $authType == 'credentials' &&
-                    strlen((string) $rec->pass) > 0 &&
+                    strlen((string) ($rec->pass ?? '')) > 0 &&
                     hash_equals((string) $rec->pass, $pass) &&
                     self::isAllowedIp($remoteAddr, $rec->allowedIps ?? null)) {
                     self::$requestSettings[$cacheKey] = $rec;
@@ -259,11 +259,11 @@ class sync_Helper extends core_Manager
     {
         if (!$rec) {
             $reason = 'непознато ID';
-        } elseif ($rec->state != 'active') {
+        } elseif (($rec->state ?? null) != 'active') {
             $reason = 'неактивен запис';
         } elseif ($authType != 'credentials') {
             $reason = 'записът е в legacy IP режим';
-        } elseif (!strlen((string) $rec->pass)) {
+        } elseif (!strlen((string) ($rec->pass ?? ''))) {
             $reason = 'записът няма зададена парола';
         } elseif (!hash_equals((string) $rec->pass, $pass)) {
             $reason = 'грешна парола';
@@ -442,7 +442,7 @@ class sync_Helper extends core_Manager
      */
     public static function requireSecureUrl($url)
     {
-        $parts = parse_url($url);
+        $parts = parse_url($url ?? '');
         expect(is_array($parts), 'Невалиден URL към sync master');
         $scheme = strtolower($parts['scheme'] ?? '');
 
@@ -727,12 +727,12 @@ class sync_Helper extends core_Manager
         $coverClassName = self::$fNewNamePref . 'coverClass';
         $coverIdName = self::$fNewNamePref . 'coverId';
         
-        $rec->{$coverClassName} = cls::get($fRec->coverClass)->className;
-        $rec->{$coverIdName} = $fRec->coverId;
+        $rec->{$coverClassName} = cls::get($fRec->coverClass ?? null)->className;
+        $rec->{$coverIdName} = $fRec->coverId ?? null;
         
         $rec->{$fName} = null;
         
-        sync_Map::exportRec($fRec->coverClass, $fRec->coverId, $res, $controller, $exportState);
+        sync_Map::exportRec($fRec->coverClass ?? null, $fRec->coverId ?? null, $res, $controller, $exportState);
     }
     
     

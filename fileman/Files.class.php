@@ -1354,7 +1354,7 @@ class fileman_Files extends core_Master
             include(dirname(__FILE__) . '/data/ext2mime.inc.php');
             
             // Разширение на файла
-            $ext = mb_substr($fileName, $dotPos + 1);
+            $ext = mb_strtolower(mb_substr($fileName, $dotPos + 1));
 
             return $ext2mime["{$ext}"] ?? null;
         }

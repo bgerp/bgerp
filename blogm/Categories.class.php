@@ -135,9 +135,9 @@ class blogm_Categories extends core_Manager
             $query->where("#menuId = {$cMenuId} OR LOCATE('|{$cMenuId}|', #sharedMenus)");
         }
 
+        $fRec = isset($categoryId) ? self::fetch($categoryId, 'id,saoParentId,saoLevel') : null;
         if(!$showAll){
-            if (isset($categoryId)) {
-                $fRec = self::fetch($categoryId, 'id,saoParentId,saoLevel');
+            if (!empty($fRec)) {
                 $parentGroupsArr = array($fRec->id);
                 $sisCond = ($fRec->saoParentId) ? " OR #saoParentId = {$fRec->saoParentId} " : '';
 

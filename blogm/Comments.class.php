@@ -214,7 +214,7 @@ class blogm_Comments extends core_Detail
     public static function on_BeforeSave($mvc, &$id, &$rec, $fields = null)
     {
         if (empty($rec->id)) {
-            if (!haveRole('cms,ceo,admin') || $rec->state == 'draft') {
+            if (!haveRole('cms,ceo,admin') || empty($rec->state) || $rec->state == 'draft') {
                 $artRec = $mvc->Master->fetch($rec->articleId);
                 $rec->state = ($artRec->commentsMode == 'enabled') ? 'active' : 'pending';
             }
@@ -246,7 +246,7 @@ class blogm_Comments extends core_Detail
         $sr += self::hasWord($rec->web, 'sex,xxx,porn,cam,teen,adult,cheap,sale,xenical,pharmacy,pills,prescription,опционы');
         
         // Ако в името на сайта има директория
-        $sr += explode('/', $rec->web) > 2 ? 1 : 0;
+        $sr += countR(explode('/', rtrim($rec->web ?? '', '/'))) > 3 ? 1 : 0;
         
         // Ако има линкове в описанието
         $sr += self::hasWord($rec->comment, array('href=', 'src='));
@@ -343,7 +343,7 @@ class blogm_Comments extends core_Detail
         $words = arr::make($words);
         
         foreach ($words as $w) {
-            if (stripos($str, $w) !== false) {
+            if (stripos($str ?? '', $w) !== false) {
                 
                 return true;
             }
@@ -383,11 +383,14 @@ class blogm_Comments extends core_Detail
             if (isset($rec->articleId)) {
                 $artRec = $mvc->Master->fetch($rec->articleId);
                 
+                // Срокът за коментиране тече от публикуването, не от последната редакция
+                $publishedOn = !empty($artRec->publishedOn) ? $artRec->publishedOn : $artRec->createdOn;
+                
                 // Ако записа е то статията е заключена за коментиране
                 if ($artRec->commentsMode == 'disabled' ||
                     $artRec->commentsMode == 'stopped' ||
                     $artRec->state != 'active' ||
-                    dt::addDays($conf->BLOGM_MAX_COMMENT_DAYS, $artRec->modifiedOn) < dt::now()) {
+                    dt::addSecs($conf->BLOGM_MAX_COMMENT_DAYS, $publishedOn) < dt::now()) {
                     $res = 'no_one'; // Коментарите са забранени
                 } else {
                     $res = 'every_one';  // Коментарите са разрешени

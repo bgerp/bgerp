@@ -64,6 +64,11 @@
 
 <div class="externalPage">
     [#COMMERCE_TOP_NEWS#]
+    <!--ET_BEGIN USERLINK-->
+    <div class="commerce-account-bar">
+        <!--ET_BEGIN USER_NOTIFICATIONS--><span id='notificationCountStatus'>[#USER_NOTIFICATIONS#]</span><!--ET_END USER_NOTIFICATIONS-->[#BARCODE_LINK#] [#USERLINK#] [#LOGOUT#]
+    </div>
+    <!--ET_END USERLINK-->
     [#TOP_PAGE#]
     [#MENU#]
     <header role="banner">
@@ -92,11 +97,6 @@
             [#STATUSES#]
         </div>
         <div class="centerContent">
-        <!--ET_BEGIN USERLINK-->
-        <div class="logoutBlock">
-            <!--ET_BEGIN USER_NOTIFICATIONS--><span id='notificationCountStatus'>[#USER_NOTIFICATIONS#]</span><!--ET_END USER_NOTIFICATIONS-->[#BARCODE_LINK#] [#USERLINK#]  [#LOGOUT#]
-        </div>
-        <!--ET_END USERLINK-->
         [#COMMERCE_TOP_CONTENT#]
         [#CMS_LAYOUT#]
         [#COMMERCE_BOTTOM_CONTENT#]

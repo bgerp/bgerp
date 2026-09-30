@@ -112,6 +112,12 @@ class eshop_ProductDetails extends core_Detail
      * Поле за забележки
      */
     public $notesFld = 'title';
+
+
+    /**
+     * Полета, които да се извлекат преди изтриване
+     */
+    public $fetchFieldsBeforeDelete = 'id,eshopProductId,productId';
     
     
     /**
@@ -205,6 +211,44 @@ class eshop_ProductDetails extends core_Detail
             if(static::hasSaleEnded($rec->productId)){
                 $form->setWarning('productId', "Крайният срок за онлайн продажба на артикула е изтекъл");
             }
+        }
+    }
+
+
+    /**
+     * Преди запис
+     */
+    protected static function on_BeforeSave($mvc, &$id, $rec, $fields = null, $mode = null)
+    {
+        // Предишният артикул, за да излезе от индекса на е-магазина
+        if (!empty($rec->id)) {
+            $rec->_exProductId = $mvc->fetchField($rec->id, 'productId', false);
+        }
+    }
+
+
+    /**
+     * След запис
+     */
+    protected static function on_AfterSave($mvc, &$id, $rec, $fields = null, $mode = null)
+    {
+        // Новият артикул влиза в индекса на е-магазина, заменения - излиза, ако не е в друг е-артикул
+        $exProductId = $rec->_exProductId ?? null;
+        if (!empty($rec->productId) && $rec->productId != $exProductId) {
+            cat_products_ParamIndex::markDirty(array_filter(array($rec->productId, $exProductId)));
+        }
+    }
+
+
+    /**
+     * След изтриване
+     */
+    public static function on_AfterDelete($mvc, &$numDelRows, $query, $cond)
+    {
+        // Артикулът излиза от индекса на е-магазина, ако не е в друг е-артикул
+        $productIds = arr::extractValuesFromArray($query->getDeletedRecs(), 'productId');
+        if (countR($productIds)) {
+            cat_products_ParamIndex::markDirty($productIds);
         }
     }
 
