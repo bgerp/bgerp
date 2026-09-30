@@ -117,6 +117,7 @@ body.commerce-blog {
     letter-spacing: -.6px;
 }
 .commerce-blog .blogm-browse-article {
+    display: flow-root;
     padding: 24px;
     margin-bottom: 16px;
     background: #fff;
