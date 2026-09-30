@@ -564,15 +564,35 @@ class plg_StructureAndOrder extends core_Plugin
      * @param $mvc
      * @param $res
      * @param $rec
+     * @param bool $fullTree - дали да се обходят всички разклонения на дървото
      * @return void
      */
-    public static function on_AfterGetDescendantsArr($mvc, &$res, $rec)
+    public static function on_AfterGetDescendantsArr($mvc, &$res, $rec, $fullTree = false)
     {
         if(isset($res)) return $res;
         $rec = $mvc->fetchRec($rec);
 
         $res = array();
         if (!$rec || empty($rec->id)) return;
+
+        // Обхождане ниво по ниво, за да се включат всички разклонения
+        if ($fullTree) {
+            $parents = array($rec->id);
+            while (countR($parents)) {
+                $query = $mvc->getQuery();
+                $query->in('saoParentId', $parents);
+                $query->show('id');
+                $parents = array();
+                while ($cRec = $query->fetch()) {
+                    if (!isset($res[$cRec->id])) {
+                        $res[$cRec->id] = $cRec->id;
+                        $parents[] = $cRec->id;
+                    }
+                }
+            }
+
+            return;
+        }
 
         $query = $mvc->getQuery();
         $query->where("#saoParentId = {$rec->id}");
