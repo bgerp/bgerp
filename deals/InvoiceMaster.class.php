@@ -1379,13 +1379,16 @@ abstract class deals_InvoiceMaster extends core_Master
             }
         }
 
-        if ($rec->state == 'active') {
+        if (($rec->state ?? null) == 'active') {
             if (empty($rec->dueDate)) {
+
+                // При частичен запис датата може да липсва в записа
+                $date = $rec->date ?? (!empty($rec->id) ? $mvc->fetchField($rec->id, 'date') : null);
 
                 if(isset($rec->paymentMethodId)){
                     if($firstDocument = doc_Threads::getFirstDocument($rec->threadId)){
                         $aggregateInfo = $firstDocument->getAggregateDealInfo();
-                        $plan = cond_PaymentMethods::getPaymentPlan($rec->paymentMethodId, $aggregateInfo->get('amount'), $rec->date);
+                        $plan = cond_PaymentMethods::getPaymentPlan($rec->paymentMethodId, $aggregateInfo->get('amount'), $date);
                         if (($plan['eventBalancePayment'] ?? null) == 'invEndOfMonth' && !empty($plan['deadlineForBalancePayment'])) {
                             if(empty($rec->dueTime) && empty($rec->dueDate)){
                                 $rec->dueDate = $plan['deadlineForBalancePayment'];
@@ -1398,7 +1401,7 @@ abstract class deals_InvoiceMaster extends core_Master
                     $dueTime = !empty($rec->dueTime) ? $rec->dueTime : sales_Setup::get('INVOICE_DEFAULT_VALID_FOR');
 
                     if ($dueTime) {
-                        $rec->dueDate = dt::verbal2mysql(dt::addSecs($dueTime, $rec->date), false);
+                        $rec->dueDate = dt::verbal2mysql(dt::addSecs($dueTime, $date), false);
                     }
                 }
             }
