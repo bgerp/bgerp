@@ -1018,13 +1018,6 @@ class draw_Designs extends core_Master
     
     public static function on_AfterPrepareSingle($mvc, $res, $data)
     {
-        // Инстанция на класа
-        $inst = cls::get('core_TableView');
-        
-        // Вземаме таблицата с попълнени данни
-        $fields = 'createdOn=Дата, createdBy=От, Version=Версия';
-        $data->row->CHANGE_LOG = $inst->get(change_Log::prepareLogRow($mvc->className, $data->rec->id), $fields);
-        
         // скрипта да се скрит с бутон за показване, ако потребителя е с по-малко права
         if (!haveRole('drawMaster, ceo, admin')) {
             $data->row->hiddenScript = "<a href=\"javascript:toggleDisplay('script-{$data->row->id}')\"  style=\"display: block; margin-bottom: 10px; background-repeat: no-repeat; font-weight:bold; background-image:url(" . sbf('img/16/toggle1.png', "'") . ');" class=" plus-icon more-btn">Покажи скрипт</a>';

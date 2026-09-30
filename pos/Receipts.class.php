@@ -1494,6 +1494,8 @@ class pos_Receipts extends core_Master
         $isDefaultContragent = pos_Receipts::isForDefaultContragent($rec);
         static::recalcPricesInDetail($rec, $isDefaultContragent);
 
+        cls::get(get_called_class())->invoke('AfterSetContragent', array($rec));
+
         core_Debug::stopTimer("SET_RECEIPT_CONTRAGENT");
     }
 

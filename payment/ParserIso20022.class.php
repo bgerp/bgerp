@@ -47,6 +47,7 @@ class payment_ParserIso20022 extends core_BaseClass
      *
      * @return null|stdClass
      *                  o recs      array   Парсирани редове
+     *                  o recordCurrencies array Валути по индексите на редовете
      *                  о warnings  array   Предупреждения
      *                  о errors    array   Грешки
      */
@@ -54,12 +55,18 @@ class payment_ParserIso20022 extends core_BaseClass
     {
         // Обект за върнатия резултат
         $res = new stdClass();
-        $res->warnings = $res->errors = $res->recs = array();
+        $res->warnings = $res->errors = $res->recs = $res->recordCurrencies = array();
         
         // Вземаме SimpleXMLElement обект, отговарящ на файла
-        $transactions = @ new SimpleXMLElement(trim($xml));
+        $previous = libxml_use_internal_errors(true);
+        try {
+            $transactions = simplexml_load_string(trim($xml), 'SimpleXMLElement', LIBXML_NONET);
+        } finally {
+            libxml_clear_errors();
+            libxml_use_internal_errors($previous);
+        }
 
-        if (!$transactions) {
+        if ($transactions === false) {
 
             $res->warnings[] = "Грешка при парсиране на XML";
 
@@ -67,7 +74,7 @@ class payment_ParserIso20022 extends core_BaseClass
         }
 
         if(strpos(implode('|', $transactions->getNamespaces()), 'camt.052') !== false) {
-            $array = array($transactions->BkToCstmrAcctRpt->Rpt);
+            $array = $transactions->BkToCstmrAcctRpt->Rpt;
         } else {
             $array = $transactions->BkToCstmrStmt->Stmt;
         }
@@ -108,12 +115,7 @@ class payment_ParserIso20022 extends core_BaseClass
             $bank = (string) $stmt->Acct->Svcr->FinInstnId->Nm;
             $bic = (string) $stmt->Acct->Svcr->FinInstnId->BIC;
             
-            // Проверка дали валутата на блока, отговаря на валутата на нашата сметка
-            $currency = strtoupper($stmt->Acct->Ccy);
-            if ($currency && $currency != currency_Currencies::getCodeById($bankAccRec->currencyId)) {
-                $res->warnings[] = "Валутата за IBAN {$iban} се различава от тази в сметката";
-                continue;
-            }
+            $currency = strtoupper(trim((string) $stmt->Acct->Ccy));
 
             foreach ($stmt->Ntry as $node) {
                 $rec = new stdClass();
@@ -121,6 +123,29 @@ class payment_ParserIso20022 extends core_BaseClass
                 $rec->serviceId = $serviceId;
                 $rec->ownAccountId = $ownBankAccRec->id;
                 $rec->valior = (string) $node->ValDt->Dt;
+                if (!$rec->valior) {
+                    $rec->valior = substr((string) $node->ValDt->DtTm, 0, 10);
+                }
+                if (!$rec->valior) {
+                    $rec->valior = (string) $node->BookgDt->Dt;
+                }
+                if (!$rec->valior) {
+                    $rec->valior = substr((string) $node->BookgDt->DtTm, 0, 10);
+                }
+                if (!preg_match('/^(\d{4})-(\d{2})-(\d{2})$/D', $rec->valior, $dateParts)
+                    || !checkdate((int) $dateParts[2], (int) $dateParts[3], (int) $dateParts[1])) {
+                    $res->warnings[] = "Липсва или е невалидна датата на операция за IBAN {$iban}";
+                    continue;
+                }
+
+                // BGN сметките преминават в EUR според датата на операцията.
+                $expectedCurrency = bank_OwnAccounts::getDefaultCurrency($ownBankAccRec->id, $rec->valior, true);
+                $amountCurrency = strtoupper(trim((string) $node->Amt['Ccy']));
+                $recordCurrency = $amountCurrency ?: ($currency ?: $expectedCurrency);
+                if (($currency && $currency != $expectedCurrency) || $recordCurrency != $expectedCurrency) {
+                    $res->warnings[] = "Валутата за IBAN {$iban} към {$rec->valior} се различава от очакваната {$expectedCurrency}";
+                    continue;
+                }
                 $rec->amount = (float) $node->Amt;
                 
                 if ($node->CdtDbtInd == 'DBIT') {
@@ -148,6 +173,7 @@ class payment_ParserIso20022 extends core_BaseClass
                 
                 // Добавяме реда в резултата
                 $res->recs[] = $rec;
+                $res->recordCurrencies[] = $recordCurrency;
             }
         }
         

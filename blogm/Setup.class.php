@@ -6,12 +6,6 @@ defIfNot('BLOGM_MAX_COMMENT_DAYS', 50 * 24 * 60 * 60);
 
 
 /**
- *  Константа за тема по-подразбиране на блога
- */
-defIfNot('BLOGM_DEFAULT_THEME', 'blogm_DefaultTheme');
-
-
-/**
  *  Броя на статии, които да се показват
  */
 defIfNot('BLOGM_ARTICLES_PER_PAGE', '5');
@@ -116,8 +110,7 @@ class blogm_Setup extends core_ProtoSetup
      * Описание на конфигурационните константи
      */
     public $configDescription = array(
-        'BLOGM_TYPE' => array('enum(blog=Блог,news=Новини)', 'caption=Тема по подразбиране в блога->Предназначение на модула'),
-        'BLOGM_DEFAULT_THEME' => array('class(interface=blogm_ThemeIntf,select=title)', 'caption=Тема по подразбиране в блога->Тема'),
+        'BLOGM_TYPE' => array('enum(blog=Блог,news=Новини)', 'caption=Блог->Предназначение на модула'),
         'BLOGM_MAX_COMMENT_DAYS' => array('time(uom=days,suggestions=1 ден|2 дни|5 дни|1 седмица|2 седмици|30 дни|45 дни|50 дни)', 'caption=След колко време статията да се заключва за коментиране?->Време'),
         'BLOGM_ARTICLES_PER_PAGE' => array('int', 'caption=Колко статии да се показват на една страница->Брой'),
         'BLOGM_ALL_ARTICLES_IN_PAGE_TITLE' => array('varchar', 'caption=Заглавие на страницата с всички статии->Заглавие'),
@@ -139,6 +132,7 @@ class blogm_Setup extends core_ProtoSetup
         'blogm_Comments',
         'blogm_Links',
         'migrate::fillCommentedOn2640',
+        'migrate::scheduledToWaiting2640',
     );
     
     
@@ -166,9 +160,6 @@ class blogm_Setup extends core_ProtoSetup
         $Bucket = cls::get('fileman_Buckets');
         $html .= $Bucket->createBucket(blogm_Articles::FILE_BUCKET, 'Файлове към блог-статиите', '', '10MB', 'every_one', 'every_one');
         
-        // Добавяме класа връщащ темата в core_Classes
-        $html .= core_Classes::add('blogm_DefaultTheme');
-        
         // Публикуване на чакащите блог статии по крон
         $rec = new stdClass();
         $rec->systemId = 'PublishPendingBlogArt';
@@ -193,6 +184,24 @@ class blogm_Setup extends core_ProtoSetup
         $html .= core_Cron::addOnce($rec);
         
         return $html;
+    }
+    
+    
+    /**
+     * Насрочените статии минават от 'pending' във 'waiting', тъй като 'pending' вече е заявка
+     */
+    public function scheduledToWaiting2640()
+    {
+        $Articles = cls::get('blogm_Articles');
+        $Articles->setupMvc();
+        
+        $query = $Articles->getQuery();
+        $query->where("#state = 'pending'");
+        $query->show('id,state');
+        while ($rec = $query->fetch()) {
+            $rec->state = 'waiting';
+            $Articles->save_($rec, 'state');
+        }
     }
     
     
