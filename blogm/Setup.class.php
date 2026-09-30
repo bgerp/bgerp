@@ -12,21 +12,9 @@ defIfNot('BLOGM_DEFAULT_THEME', 'blogm_DefaultTheme');
 
 
 /**
- *  Константа за продължителността на живота на бисквитките създадени от блога
- */
-defIfNot('BLOGM_COOKIE_LIFETIME', '2592000');
-
-
-/**
  *  Броя на статии, които да се показват
  */
 defIfNot('BLOGM_ARTICLES_PER_PAGE', '5');
-
-
-/**
- * Думи, срещани в спам моментари
- */
-defIfNot('BLOGM_SPAM_WORDS', 'sex, xxx, porn, cam, teen, adult, cheap, sale, xenical, pharmacy, pills, prescription, опционы');
 
 
 /**
@@ -132,7 +120,6 @@ class blogm_Setup extends core_ProtoSetup
         'BLOGM_DEFAULT_THEME' => array('class(interface=blogm_ThemeIntf,select=title)', 'caption=Тема по подразбиране в блога->Тема'),
         'BLOGM_MAX_COMMENT_DAYS' => array('time(uom=days,suggestions=1 ден|2 дни|5 дни|1 седмица|2 седмици|30 дни|45 дни|50 дни)', 'caption=След колко време статията да се заключва за коментиране?->Време'),
         'BLOGM_ARTICLES_PER_PAGE' => array('int', 'caption=Колко статии да се показват на една страница->Брой'),
-        'BLOGM_SPAM_WORDS' => array('text', 'caption=Определяне на SPAM рейтинг на коментар->Думи'),
         'BLOGM_ALL_ARTICLES_IN_PAGE_TITLE' => array('varchar', 'caption=Заглавие на страницата с всички статии->Заглавие'),
         'BLOGM_SHOW_ALL_ARTICLE_CAPTION' => array('enum(yes=Да,no=Не)', 'caption=Заглавие на страницата с всички статии->Показване'),
         'BLOGM_SHOW_CATEGORIES_ROOT' => array('enum(yes=Да,no=Не)', 'caption=Показване на "Категории" над списъка с категории->Избор'),
@@ -151,6 +138,7 @@ class blogm_Setup extends core_ProtoSetup
         'blogm_Categories',
         'blogm_Comments',
         'blogm_Links',
+        'migrate::fillCommentedOn2640',
     );
     
     
@@ -205,5 +193,25 @@ class blogm_Setup extends core_ProtoSetup
         $html .= core_Cron::addOnce($rec);
         
         return $html;
+    }
+    
+    
+    /**
+     * Попълва датата на последния коментар в статиите
+     */
+    public function fillCommentedOn2640()
+    {
+        $Articles = cls::get('blogm_Articles');
+        $Articles->setupMvc();
+        
+        $query = blogm_Comments::getQuery();
+        $query->where("#state = 'active'");
+        $query->XPR('lastCommentOn', 'datetime', 'MAX(#createdOn)');
+        $query->groupBy('articleId');
+        $query->show('articleId,lastCommentOn');
+        while ($cRec = $query->fetch()) {
+            $rec = (object) array('id' => $cRec->articleId, 'commentedOn' => $cRec->lastCommentOn);
+            $Articles->save_($rec, 'commentedOn');
+        }
     }
 }
