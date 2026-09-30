@@ -7,7 +7,9 @@
 
 <div class='blogm-article-info'>
     <span class='blogm-comments-cnt linkWithIcon' title="|Брой коментари|*">[#commentsCnt#]</span>
-    [#publishedOn#], [#author#] |в|* [#categories#] 
+    <span class="blogm-published-on">[#publishedOn#]</span>
+    <!--ET_BEGIN author--><span class="blogm-author">[#author#]</span><!--ET_END author-->
+    <span class="blogm-meta-categories">|в|* [#categories#]</span>
 </div>
 <div class='blogm-article-body'>
     [#body#]

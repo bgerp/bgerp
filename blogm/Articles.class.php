@@ -211,6 +211,13 @@ class blogm_Articles extends core_Master
         }
         
         $row->publishedOn = dt::mysql2verbal($rec->publishedOn, 'smartTime');
+        if ((isset($fields['-browse']) || isset($fields['-article'])) && cms_Domains::getCmsSkin() instanceof cms_CommerceTheme) {
+            $row->publishedOn = ht::createElement('time', array(
+                'class' => 'commerce-blog-date',
+                'title' => dt::mysql2verbal($rec->publishedOn, 'd.m.Y H:i'),
+                'datetime' => dt::mysql2verbal($rec->publishedOn, 'Y-m-d') . 'T' . dt::mysql2verbal($rec->publishedOn, 'H:i:s'),
+            ), dt::mysql2verbal($rec->publishedOn, 'd.m.y') . tr('г|*'));
+        }
         if ($rec->state == 'waiting' && !isset($fields['-article']) && !isset($fields['-browse'])) {
             // Без smartTime, чийто вграден цвят надделява над синия
             $publishedOn = dt::mysql2verbal($rec->publishedOn, 'd.m.Y H:i');
@@ -1029,7 +1036,15 @@ class blogm_Articles extends core_Master
 
         $layout->replace($data->title, 'BROWSE_HEADER');
         $layout->replace($description, 'BROWSE_DESCR');
-        $layout->append($data->pager->getPrevNext('« по-стари', 'по-нови »'));
+        if (cms_Domains::getCmsSkin() instanceof cms_CommerceTheme) {
+            if ($data->pager->getPagesCount() > 1) {
+                $navigation = ht::createElement('nav', array('class' => 'commerce-blog-pagination', 'aria-label' => tr('Страници на блога')),
+                    $data->pager->getPrevNext('← ' . tr('По-стари'), tr('По-нови') . ' →'));
+                $layout->append($navigation);
+            }
+        } else {
+            $layout->append($data->pager->getPrevNext('« по-стари', 'по-нови »'));
+        }
         
         $this->renderNavigation($data, $layout);
         
