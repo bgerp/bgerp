@@ -671,6 +671,13 @@ class change_Plugin extends core_Plugin
                 $res->row->LastSelectedVersionDate = dt::mysql2verbal($lastSelVerArr['createdOn'], $dateMask);
             }
         }
+        
+        // Документите показват версиите си другаде; другите мастъри - в таблица в сингъла
+        if (!cls::haveInterface('doc_DocumentIntf', $mvc)) {
+            $fields = 'createdOn=Дата, createdBy=От, Version=Версия';
+            $res->row->CHANGE_LOG = cls::get('core_TableView')->get(change_Log::prepareLogRow($mvc->className, $res->rec->id), $fields);
+            $res->row->CHANGE_LOG->replace("style='width:100%'", 'TABLE_ATTR');
+        }
     }
     
     
