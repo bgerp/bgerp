@@ -1048,17 +1048,17 @@ class acc_BalanceDetails extends core_Detail
             }
 
             $newRec = $matched[$key] ?? $this->prepareSaveRec($this->balance[$rec->accountId][$rec->ent1Id][$rec->ent2Id][$rec->ent3Id], $balanceId);
-            if ($newRec->blAmount       != $rec->blAmount       || $newRec->baseAmount     != $rec->baseAmount     ||
-                $newRec->blQuantity     != $rec->blQuantity     || $newRec->baseQuantity   != $rec->baseQuantity   ||
-                $newRec->debitQuantity  != $rec->debitQuantity  || $newRec->debitAmount    != $rec->debitAmount    ||
-                $newRec->creditQuantity != $rec->creditQuantity || $newRec->creditAmount   != $rec->creditAmount) {
-                $this->countSaveDiff($newRec, $rec);
+            if ($this->isChangedSaveRec($newRec, $rec)) {
                 if (isset($newRec->id)) {
                     $toDelete[$newRec->id] = $newRec->id;
                 }
                 $newRec->id = $rec->id;
                 $matched[$key] = $newRec;
             } else {
+                // По-ранен дубликат, чакащ обновяване, вече е излишен
+                if (isset($matched[$key])) {
+                    $toDelete[$matched[$key]->id] = $matched[$key]->id;
+                }
                 unset($matched[$key]);
                 unset($this->balance[$rec->accountId][$rec->ent1Id][$rec->ent2Id][$rec->ent3Id]);
                 $removed++;
@@ -1781,12 +1781,12 @@ class acc_BalanceDetails extends core_Detail
 
 
     /**
-     * Брои реалните промени и тези само от точността при запис в базата
+     * Дали записът на реда ще промени стойностите в базата
+     *
+     * Полетата се записват като текст с php precision, затова разлика само от точността не е промяна
      */
-    private function countSaveDiff($newRec, $exRec)
+    private function isChangedSaveRec($newRec, $exRec)
     {
-        $this->calcStats['saveChanged']++;
-
         $precisionFields = array();
         foreach (array('baseQuantity', 'baseAmount', 'debitQuantity', 'debitAmount', 'creditQuantity', 'creditAmount', 'blQuantity', 'blAmount') as $fld) {
             $newVal = $newRec->{$fld} ?? null;
@@ -1795,24 +1795,31 @@ class acc_BalanceDetails extends core_Detail
                 continue;
             }
 
-            // Загуба от точността е само когато в базата е точно текстът, до който се свежда новата стойност
-            if (is_null($newVal) || is_null($exVal) || (float) (string) $newVal != $exVal) {
-                if (countR($this->calcStats['realChangeSamples'] ?? null) < 5) {
-                    $this->calcStats['realChangeSamples'][] = sprintf('%s|%s|%s|%s %s new=%s db=%s', $newRec->accountId, $newRec->ent1Id, $newRec->ent2Id, $newRec->ent3Id, $fld, var_export($newVal, true), var_export($exVal, true));
+            // В базата вече е точно текстът, до който се свежда новата стойност
+            if (!is_null($newVal) && !is_null($exVal) && (float) (string) $newVal == $exVal) {
+                $precisionFields[] = $fld;
+                continue;
+            }
+
+            $this->calcStats['saveChanged']++;
+            if (countR($this->calcStats['realChangeSamples'] ?? null) < 5) {
+                $this->calcStats['realChangeSamples'][] = sprintf('%s|%s|%s|%s %s new=%s db=%s', $newRec->accountId, $newRec->ent1Id, $newRec->ent2Id, $newRec->ent3Id, $fld, var_export($newVal, true), var_export($exVal, true));
+            }
+
+            return true;
+        }
+
+        if (countR($precisionFields)) {
+            $this->calcStats['savePrecisionOnly']++;
+            foreach ($precisionFields as $fld) {
+                $this->calcStats['savePrecisionFields'][$fld] = ($this->calcStats['savePrecisionFields'][$fld] ?? 0) + 1;
+                if (countR($this->calcStats['precisionSamples'] ?? null) < 3) {
+                    $this->calcStats['precisionSamples'][] = sprintf('%s new=%.17g db=%.17g sql=%s', $fld, $newRec->{$fld}, $exRec->{$fld}, (string) $newRec->{$fld});
                 }
-
-                return;
-            }
-            $precisionFields[] = $fld;
-        }
-
-        $this->calcStats['savePrecisionOnly']++;
-        foreach ($precisionFields as $fld) {
-            $this->calcStats['savePrecisionFields'][$fld] = ($this->calcStats['savePrecisionFields'][$fld] ?? 0) + 1;
-            if (countR($this->calcStats['precisionSamples'] ?? null) < 3) {
-                $this->calcStats['precisionSamples'][] = sprintf('%s new=%.17g db=%.17g sql=%s', $fld, $newRec->{$fld}, $exRec->{$fld}, (string) $newRec->{$fld});
             }
         }
+
+        return false;
     }
 
 
