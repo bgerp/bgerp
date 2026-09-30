@@ -71,6 +71,10 @@ class type_tests_Richtext extends unit_Class
         $html = $rt->replaceTables("Before\n|A|B|\n|x||\nAfter");
         UT::expectEqual($html, "\nBefore\n<div class='overflow-scroll'><table class='inlineRichTable listTable'><tr><td>A</td><td>B</td></tr><tr><td>x</td></tr></table></div>\nAfter");
 
+        // Таблица в края на текста също затваря обвиващия div
+        $html = $rt->replaceTables("Before\n|A|B|");
+        UT::expectEqual(substr($html, -14), '</table></div>');
+
         $cases = array(
             "|A|B|\n|---|Text|\n" => '<tr><td>---</td><td>Text</td></tr>',
             "|A|B|\n|---:|\n" => '<tr><td>---:</td></tr>',
