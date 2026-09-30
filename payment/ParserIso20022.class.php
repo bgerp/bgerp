@@ -49,12 +49,13 @@ class payment_ParserIso20022 extends core_BaseClass
      *                  o recs      array   Парсирани редове
      *                  о warnings  array   Предупреждения
      *                  о errors    array   Грешки
+     *                  o recordCurrencies array Валутата на всеки ред в recs
      */
     public static function getRecs($xml, $serviceId = 'ISO20022 Import')
     {
         // Обект за върнатия резултат
         $res = new stdClass();
-        $res->warnings = $res->errors = $res->recs = array();
+        $res->warnings = $res->errors = $res->recs = $res->recordCurrencies = array();
         
         // Вземаме SimpleXMLElement обект, отговарящ на файла
         $transactions = @ new SimpleXMLElement(trim($xml));
@@ -108,11 +109,26 @@ class payment_ParserIso20022 extends core_BaseClass
             $bank = (string) $stmt->Acct->Svcr->FinInstnId->Nm;
             $bic = (string) $stmt->Acct->Svcr->FinInstnId->BIC;
             
-            // Проверка дали валутата на блока, отговаря на валутата на нашата сметка
-            $currency = strtoupper($stmt->Acct->Ccy);
-            if ($currency && $currency != currency_Currencies::getCodeById($bankAccRec->currencyId)) {
-                $res->warnings[] = "Валутата за IBAN {$iban} се различава от тази в сметката";
+            // Compare with the effective currency on the statement date, not the stored legacy currency.
+            $currency = strtoupper((string) $stmt->Acct->Ccy);
+            $statementDate = null;
+            if (isset($stmt->FrToDt->ToDtTm)) {
+                $statementDate = substr((string) $stmt->FrToDt->ToDtTm, 0, 10);
+            } elseif (isset($stmt->Ntry[0]->ValDt->Dt)) {
+                $statementDate = (string) $stmt->Ntry[0]->ValDt->Dt;
+            } elseif (isset($stmt->Ntry[0]->BookgDt->Dt)) {
+                $statementDate = (string) $stmt->Ntry[0]->BookgDt->Dt;
+            } elseif (isset($stmt->CreDtTm)) {
+                $statementDate = substr((string) $stmt->CreDtTm, 0, 10);
+            }
+            $expectedCurrency = $statementDate
+                ? bank_OwnAccounts::getDefaultCurrency($ownBankAccRec->id, $statementDate, true) : null;
+            if ($currency && $expectedCurrency && $currency != $expectedCurrency) {
+                $res->warnings[] = "Валутата {$currency} за IBAN {$iban} се различава от очакваната {$expectedCurrency} към {$statementDate}";
                 continue;
+            }
+            if ($currency && !$statementDate) {
+                $res->warnings[] = "Валутата {$currency} за IBAN {$iban} не е проверена, защото липсва дата на извлечението";
             }
 
             foreach ($stmt->Ntry as $node) {
@@ -148,6 +164,7 @@ class payment_ParserIso20022 extends core_BaseClass
                 
                 // Добавяме реда в резултата
                 $res->recs[] = $rec;
+                $res->recordCurrencies[] = $currency ?: $expectedCurrency;
             }
         }
         

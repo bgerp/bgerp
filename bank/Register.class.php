@@ -127,15 +127,15 @@ class bank_Register extends core_Manager
     {
         list($valior, $ownBankAccId) = array_pad(explode('|', $groupId, 2), 2, null);
 
-        $valior = dt::mysql2verbal($valior, 'd/m/Y');
+        $valiorVerbal = dt::mysql2verbal($valior, 'd/m/Y');
 
         $ownBankAcc = bank_OwnAccounts::getTitleById($ownBankAccId);
 
-        if ($currencyCode = self::getCurrencyCodeByAccount($ownBankAccId)) {
+        if ($currencyCode = self::getCurrencyCodeByAccount($ownBankAccId, $valior)) {
             $ownBankAcc .= ' ' . $currencyCode;
         }
 
-        $res = "<h3>{$valior}, {$ownBankAcc}</h3>";
+        $res = "<h3>{$valiorVerbal}, {$ownBankAcc}</h3>";
 
         return $res;
     }
@@ -158,7 +158,7 @@ class bank_Register extends core_Manager
         }
 
         // Валутата на трансакцията е тази на нашата сметка
-        $transCurrencyCode = self::getCurrencyCodeByAccount($rec->ownAccountId);
+        $transCurrencyCode = self::getCurrencyCodeByAccount($rec->ownAccountId, $rec->valior);
 
         if (!empty($transCurrencyCode)) {
             $row->amount = ($row->amount ?? '') . ' <small>' . $transCurrencyCode . '</small>';
@@ -218,7 +218,7 @@ class bank_Register extends core_Manager
                         $FirstDoc = doc_Threads::getFirstDocument($Document->fetchField('threadId'));
                         $dealCurrencyId = $FirstDoc->fetchField('currencyId');
 
-                        $ownAccountCurrencyId = bank_OwnAccounts::getOwnAccountInfo($rec->ownAccountId)->currencyId;
+                        $ownAccountCurrencyId = self::getCurrencyByAccount($rec->ownAccountId, $rec->valior);
                         $ownAccountCurrencyCode = currency_Currencies::getCodeById($ownAccountCurrencyId);
                         $inDealCurrencyAmount = currency_CurrencyRates::convertAmount($rec->amount, null, $ownAccountCurrencyCode, $dealCurrencyId);
                         $inDealCurrencyAmount = round($inDealCurrencyAmount, 2);
@@ -284,13 +284,14 @@ class bank_Register extends core_Manager
 
 
     /**
-     * Кода на валутата на нашата сметка - мемоизирано, защото се вика на всеки ред от листа
+     * Кода на валутата на нашата сметка към дата - мемоизирано за листа
      *
      * @param int $ownAccountId
+     * @param string|null $date
      *
      * @return string|null
      */
-    public static function getCurrencyCodeByAccount($ownAccountId)
+    public static function getCurrencyCodeByAccount($ownAccountId, $date = null)
     {
         static $cache = array();
 
@@ -299,12 +300,13 @@ class bank_Register extends core_Manager
             return null;
         }
 
-        if (!array_key_exists($ownAccountId, $cache)) {
-            $currencyId = self::getCurrencyByAccount($ownAccountId);
-            $cache[$ownAccountId] = $currencyId ? currency_Currencies::getCodeById($currencyId) : null;
+        $date = $date ?? dt::today();
+        $cacheKey = $ownAccountId . '|' . $date;
+        if (!array_key_exists($cacheKey, $cache)) {
+            $cache[$cacheKey] = bank_OwnAccounts::getDefaultCurrency($ownAccountId, $date, true);
         }
 
-        return $cache[$ownAccountId];
+        return $cache[$cacheKey];
     }
 
 
@@ -478,7 +480,7 @@ class bank_Register extends core_Manager
             $ourAcc = bank_OwnAccounts::fetch($rec->ownAccountId);
 
             // Валутата на трансакцията е тази на нашата сметка - импортът отхвърля извлеченията в друга валута
-            $transCurrencyCode = self::getCurrencyCodeByAccount($rec->ownAccountId);
+            $transCurrencyCode = self::getCurrencyCodeByAccount($rec->ownAccountId, $rec->valior);
             $rates = array();
 
             // Намираме папката на контрагента по ИБАН-а
@@ -742,7 +744,7 @@ class bank_Register extends core_Manager
         foreach ($recs as $rec) {
             $fixFolderId = null;
             $contragentName = self::transliterate($rec->contragentName, true);
-            $currencyId = self::getCurrencyByAccount($rec->ownAccountId);
+            $currencyId = self::getCurrencyByAccount($rec->ownAccountId, $rec->valior);
             $reffs = self::getNumSeqs($rec->reason, 3);
 
             // Опитваме се да фиксираме папката по IBAN
@@ -1111,18 +1113,16 @@ class bank_Register extends core_Manager
 
 
     /**
-     * Връща валутата на нашата сметка
+     * Връща валутата на нашата сметка към дата
      */
-    public static function getCurrencyByAccount($ourAccountId)
+    public static function getCurrencyByAccount($ourAccountId, $date = null)
     {
         if (empty($ourAccountId)) {
 
             return null;
         }
 
-        $accId = bank_OwnAccounts::fetchField($ourAccountId, 'bankAccountId');
-
-        return bank_Accounts::fetchField($accId, 'currencyId');
+        return bank_OwnAccounts::getDefaultCurrency($ourAccountId, $date);
     }
 
 

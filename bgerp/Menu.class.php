@@ -103,6 +103,13 @@ class bgerp_Menu extends core_Manager
             core_Cache::set($cachePrefix , $cacheKey, $menuObj, 90);
         }
         
+        // Aida must not fall back to an administrative settings tab for non-AI users.
+        if (!core_Users::haveRole('ai,aiMaster')) {
+            foreach ($menuObj as $key => $item) {
+                if (($item->pack ?? null) === 'ai') unset($menuObj[$key]);
+            }
+        }
+
         // Ако няма нито един запис в Менюто, но имаме права за администратор,
         // и текущия контролер не е core_*, редирекваме към core_Packs
         if (!countR($menuObj) && (strpos(Request::get('Ctr'), 'core_') === false)) {
