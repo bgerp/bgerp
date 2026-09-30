@@ -535,14 +535,6 @@ defIfNot('ACC_DEFAULT_VAT_RATE', 0.20);
  # defIfNot('BLOGM_MAX_COMMENT_DAYS', '50');
 
 
-// Константа за тема по-подразбиране на блога
- # defIfNot('BLOGM_DEFAULT_THEME', 'blogm/themes/default');
-
-
-// Константа за продължителността на живота на бисквитките създадени от блога
- # defIfNot('BLOGM_COOKIE_LIFETIME', '2592000');
-
-
 // Броя на статии, които да се показват
  # defIfNot('BLOGM_ARTICLES_PER_PAGE', '5');
 

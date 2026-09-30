@@ -236,9 +236,11 @@ class batch_definitions_StringAndParamAndManifactureDate extends batch_definitio
 
         if (!is_array($dates)) return;
 
-        usort($dates, function ($a, $b) {
-            list(, $aDate) = explode($this->rec->delimiter, $a);
-            list(, $bDate) = explode($this->rec->delimiter, $b);
+        // Разделителят се пази HTML-кодиран (напр. &#47;), а партидите - с истинския символ
+        $delimiter = html_entity_decode($this->rec->delimiter, ENT_COMPAT, 'UTF-8');
+        usort($dates, function ($a, $b) use ($delimiter) {
+            list(, $aDate) = explode($delimiter, (string) $a) + array('', '');
+            list(, $bDate) = explode($delimiter, (string) $b) + array('', '');
 
             $aTime = strtotime(dt::getMysqlFromMask($aDate, $this->rec->format));
             $bTime = strtotime(dt::getMysqlFromMask($bDate, $this->rec->format));

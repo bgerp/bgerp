@@ -43,7 +43,7 @@ class blogm_Comments extends core_Detail
     /**
      * Полета за изглед
      */
-    public $listFields = 'name, email, web, ip, brid, userDelay, spamRate, articleId, comment=@, createdOn=Създаване||Created';
+    public $listFields = 'name, email, web, ip, brid, userDelay, spamRate, comment=@, createdOn=Създаване||Created';
     
     
     /**
@@ -107,6 +107,7 @@ class blogm_Comments extends core_Detail
         
         $this->setDbIndex('ip');
         $this->setDbIndex('brid');
+        $this->setDbIndex('state,createdOn');
     }
     
     
@@ -183,22 +184,24 @@ class blogm_Comments extends core_Detail
     
     
     /**
-     * Нова функция която се извиква blogm_Articles - act_Show
-     * от и рендира коментарите в нов шаблон
+     * Рендира коментарите и формата за нов коментар в шаблона на статията
      */
     public static function renderComments_($data, $layout)
     {
         if (countR($data->commentsRows)) {
             foreach ($data->commentsRows as $row) {
-                $commentTpl = $data->ThemeClass->getCommentsLayout();
+                $commentTpl = $layout->getBlock('COMMENT');
                 $commentTpl->placeObject($row);
-                $layout->append($commentTpl, 'COMMENTS');
+                $commentTpl->append2master();
             }
+        } else {
+            $layout->removeBlock('COMMENTS');
         }
         
         if ($data->commentForm ?? null) {
-            $data->commentForm->layout = $data->ThemeClass->getCommentFormLayout();
-            $data->commentForm->fieldsLayout = $data->ThemeClass->getCommentFormFieldsLayout();
+            $formTpl = getTplFromFile('blogm/tpl/CommentForm.shtml');
+            $data->commentForm->fieldsLayout = $formTpl->getBlock('FORM_FIELDS');
+            $data->commentForm->layout = $formTpl;
             $layout->replace($data->commentForm->renderHtml(), 'COMMENT_FORM');
         }
         
@@ -214,7 +217,7 @@ class blogm_Comments extends core_Detail
     public static function on_BeforeSave($mvc, &$id, &$rec, $fields = null)
     {
         if (empty($rec->id)) {
-            if (!haveRole('cms,ceo,admin') || $rec->state == 'draft') {
+            if (!haveRole('cms,ceo,admin') || empty($rec->state) || $rec->state == 'draft') {
                 $artRec = $mvc->Master->fetch($rec->articleId);
                 $rec->state = ($artRec->commentsMode == 'enabled') ? 'active' : 'pending';
             }
@@ -246,7 +249,7 @@ class blogm_Comments extends core_Detail
         $sr += self::hasWord($rec->web, 'sex,xxx,porn,cam,teen,adult,cheap,sale,xenical,pharmacy,pills,prescription,опционы');
         
         // Ако в името на сайта има директория
-        $sr += explode('/', $rec->web) > 2 ? 1 : 0;
+        $sr += countR(explode('/', rtrim($rec->web ?? '', '/'))) > 3 ? 1 : 0;
         
         // Ако има линкове в описанието
         $sr += self::hasWord($rec->comment, array('href=', 'src='));
@@ -343,7 +346,7 @@ class blogm_Comments extends core_Detail
         $words = arr::make($words);
         
         foreach ($words as $w) {
-            if (stripos($str, $w) !== false) {
+            if (stripos($str ?? '', $w) !== false) {
                 
                 return true;
             }
@@ -358,8 +361,9 @@ class blogm_Comments extends core_Detail
      */
     public function on_AfterPrepareListFields($mvc, $data)
     {
-        if (isset($data->masterMvc)) {
-            unset($data->listFields['articleId']);
+        // Извън статията се показва и към коя статия е коментарът
+        if (!isset($data->masterMvc)) {
+            arr::insert($data->listFields, 'name', array('articleId' => 'Статия'));
         }
         
         $data->query->orderBy('#createdOn', 'DESC');
@@ -383,11 +387,14 @@ class blogm_Comments extends core_Detail
             if (isset($rec->articleId)) {
                 $artRec = $mvc->Master->fetch($rec->articleId);
                 
+                // Срокът за коментиране тече от публикуването, не от последната редакция
+                $publishedOn = !empty($artRec->publishedOn) ? $artRec->publishedOn : $artRec->createdOn;
+                
                 // Ако записа е то статията е заключена за коментиране
                 if ($artRec->commentsMode == 'disabled' ||
                     $artRec->commentsMode == 'stopped' ||
                     $artRec->state != 'active' ||
-                    dt::addDays($conf->BLOGM_MAX_COMMENT_DAYS, $artRec->modifiedOn) < dt::now()) {
+                    dt::addSecs($conf->BLOGM_MAX_COMMENT_DAYS, $publishedOn) < dt::now()) {
                     $res = 'no_one'; // Коментарите са забранени
                 } else {
                     $res = 'every_one';  // Коментарите са разрешени
@@ -411,9 +418,13 @@ class blogm_Comments extends core_Detail
      * @param stdClass $row Това ще се покаже
      * @param stdClass $rec Това е записа в машинно представяне
      */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec)
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         $row->ip = type_Ip::decorateIp($rec->ip, $rec->createdOn, true);
+        
+        if (isset($fields['-list']) && !empty($rec->articleId)) {
+            $row->articleId = blogm_Articles::getHyperlink($rec->articleId, true);
+        }
         
         $row->brid = log_Browsers::getLink($rec->brid);
     }

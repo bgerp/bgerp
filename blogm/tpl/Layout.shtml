@@ -1,16 +1,22 @@
-<!--ET_BEGIN NAVIGATION-->
-    <div class='articles-navigation'>
-        [#SEARCH_FORM#] [#TOGGLE_BTN#]
-    </div>
-    <div class="narrowNav">
+<div class='cms-row'>
+    <!--ET_BEGIN NAVIGATION-->
+    <div class='fourcol' id='cmsNavigation'>
+        [#TOP_NAV#]
         <!--ET_BEGIN WORKSHOP-->
         <div class='blogm-workshop'>
             [#WORKSHOP#]
         </div>
         <!--ET_END WORKSHOP-->
+        <!--ET_BEGIN SEARCH_FORM-->
+        <div class='blogm-search-form'>
+            [#SEARCH_FORM#]
+        </div>
+        <!--ET_END SEARCH_FORM-->
         <!--ET_BEGIN CATEGORIES-->
         <div class='blogm-categories'>
-            <div class='nav_item  level1'>|Категории|*</div>
+            <!--ET_BEGIN CATEGORY_CAPTION-->
+            <div class='nav_item  level1'>[#CATEGORY_CAPTION#]</div>
+            <!--ET_END CATEGORY_CAPTION-->
             [#CATEGORIES#]
         </div>
         <!--ET_END CATEGORIES-->
@@ -26,5 +32,13 @@
             [#LINKS#]
         </div>
         <!--ET_END LINKS-->
+        <div class='bulletin-link'></div>
+        [#BOTTOM_NAV#]
     </div>
-<!--ET_END NAVIGATION-->
+    <!--ET_END NAVIGATION-->
+    <div class='eightcol cms-last searchContent'>
+        [#TOP_CONTENT#]
+        [#PAGE_CONTENT#]
+        [#BOTTOM_CONTENT#]
+    </div>
+</div>

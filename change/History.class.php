@@ -474,7 +474,7 @@ class change_History extends core_Manager
 
         $Class = cls::get($classId);
         $cRec = $Class->fetch($objectId);
-        expect($Class->haveRightFor('single', $objectId) || doc_Threads::haveRightFor('single', $cRec->threadId));
+        expect($Class->haveRightFor('single', $objectId) || (!empty($cRec->threadId) && doc_Threads::haveRightFor('single', $cRec->threadId)));
 
         // Масив с всички избрани версии за съответния документ
         $selectedArr = self::getSelectedVersionsArr($classId, $objectId);
