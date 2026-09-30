@@ -299,7 +299,7 @@ class remote_Authorizations extends embed_Manager
         
         $rec = self::fetch($systemId);
         if (strpos($url, EF_APP_NAME)) {
-            list($p, $url) = explode(EF_APP_NAME, $url);
+            list($p, $url) = explode(EF_APP_NAME, $url, 2);
         }
         $url = rtrim($rec->url, '/') . '/' . ltrim($url, '/');
         
