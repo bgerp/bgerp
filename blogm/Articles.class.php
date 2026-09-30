@@ -861,7 +861,9 @@ class blogm_Articles extends core_Master
     {
         $blogType = (blogm_Setup::get('TYPE') == 'blog');
         if ($data->category) {
-            $data->query->where(array("#categories LIKE '%|[#1#]|%'", $data->category));
+            // Избраната категория показва и статиите от подкатегориите си
+            $catIds = array($data->category => $data->category) + cls::get('blogm_Categories')->getDescendantsArr($data->category, true);
+            $data->query->likeKeylist('categories', keylist::fromArray($catIds));
             $data->selectedCategories[$data->category] = true;
         } else {
 
@@ -947,7 +949,7 @@ class blogm_Articles extends core_Master
             $data->title = null;
             $data->rows = array();
         } elseif (!empty($data->archive)) {
-            $data->title = tr('Архив за месец') . '&nbsp;<b>' . dt::getMonth($data->archiveM, Mode::is('screenMode', 'narrow') ? 'M' : 'F') . ', ' . $data->archiveY . '&nbsp;</b>';
+            $data->title = tr('Архив за месец') . '&nbsp;<b>' . dt::getMonth($data->archiveM, Mode::is('screenMode', 'narrow') ? 'M' : 'F') . ' ' . $data->archiveY . '&nbsp;</b>';
             if (!countR($data->rows)) {
                 $data->emptyMessage = tr($blogType ? 'Няма статии за този месец' : 'Няма новини за този месец');
             }

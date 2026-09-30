@@ -32,6 +32,12 @@ class blogm_Categories extends core_Manager
      * Полета за изглед
      */
     public $listFields = 'id, title, description, menuId, sharedMenus';
+
+
+    /**
+     * Поле, което се отмества според нивото в структурата
+     */
+    public $saoTitleField = 'title';
     
     
     /**
