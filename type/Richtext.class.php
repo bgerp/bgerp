@@ -1413,7 +1413,7 @@ class type_Richtext extends type_Blob
             }
         }
         if ($table) {
-            $out .= '</table>';
+            $out .= '</table></div>';
             $table = false;
         }
         

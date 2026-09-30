@@ -120,7 +120,15 @@ class currency_CurrencyRates extends core_Detail
         $this->data = new stdClass();
         
         $this->data->rates = array();
-        $XML = simplexml_load_file('http://www.ecb.europa.eu/stats/eurofxref/eurofxref-daily.xml');
+        $XML = @simplexml_load_file('https://www.ecb.europa.eu/stats/eurofxref/eurofxref-daily.xml');
+        
+        // Без връзка (напр. стар OpenSSL без TLS 1.2) няма какво да се обработва
+        if ($XML === false || !isset($XML->Cube->Cube['time'])) {
+            $err = error_get_last();
+            self::logWarning('Неуспешно извличане на курсовете от ЕЦБ: ' . ($err['message'] ?? ''));
+            
+            return 'Неуспешно извличане на курсовете от ЕЦБ.';
+        }
         $now = $XML->Cube->Cube['time']->__toString();
         
         $countCurrencies = 0;

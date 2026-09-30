@@ -507,6 +507,13 @@ class change_Plugin extends core_Plugin
         // id на класа
         $classId = core_Classes::getId($mvc);
         
+        // При не-документите скриването на промените отменя и избраните за сравнение версии
+        $isDocument = cls::haveInterface('doc_DocumentIntf', $mvc);
+        $showChanges = $isDocument ? null : Request::get('showChanges');
+        if (isset($showChanges) && !$showChanges) {
+            change_Log::updateSelectedVersion($classId, $res->rec->id, array());
+        }
+        
         // Масив с най - новата и най - старата версия
         $selVerArr = (array) change_Log::getFirstAndLastVersion($classId, $res->rec->id);
         $firstSelectedVersion = $selVerArr['first'] ?? null;
@@ -669,6 +676,33 @@ class change_Plugin extends core_Plugin
             // Ако е върната дата
             if ($lastSelVerArr['createdOn'] ?? null) {
                 $res->row->LastSelectedVersionDate = dt::mysql2verbal($lastSelVerArr['createdOn'], $dateMask);
+            }
+        }
+        
+        // Документите показват версиите си другаде; другите мастъри - в таблица в сингъла, при поискване
+        if (!$isDocument) {
+            $logRows = change_Log::prepareLogRow($mvc->className, $res->rec->id);
+            
+            // Един ред е само текущата версия - няма промени за показване
+            if (countR($logRows) > 1) {
+                
+                // По подразбиране се виждат, ако има избрани версии за сравнение
+                if (isset($showChanges)) {
+                    $show = (bool) $showChanges;
+                } else {
+                    $show = countR(change_Log::getSelectedVersionsArr($classId, $res->rec->id)) > 0;
+                }
+                
+                if ($show) {
+                    $fields = 'createdOn=Дата, createdBy=От, Version=Версия';
+                    $res->row->CHANGE_LOG = cls::get('core_TableView')->get($logRows, $fields);
+                    $res->row->CHANGE_LOG->replace("style='width:100%'", 'TABLE_ATTR');
+                }
+                
+                if (isset($res->toolbar)) {
+                    $icon = $show ? 'img/16/checked.png' : 'img/16/checkbox_no.png';
+                    $res->toolbar->addBtn('Промени|* (' . (countR($logRows) - 1) . ')', array($mvc, 'single', $res->rec->id, 'showChanges' => $show ? 0 : 1), "id=btnChanges{$res->rec->id},row=2,order=19.1", "ef_icon={$icon},title=Показване на промените по записа");
+                }
             }
         }
     }

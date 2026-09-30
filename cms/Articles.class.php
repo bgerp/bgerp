@@ -814,20 +814,6 @@ class cms_Articles extends core_Master
     }
     
     
-    /**
-     * След подготвяне на сингъла, добавяме и лога с промените
-     */
-    public function on_AfterPrepareSingle($mvc, $res, $data)
-    {
-        // Инстанция на класа
-        $inst = cls::get('core_TableView');
-        
-        // Вземаме таблицата с попълнени данни
-        $fields = 'createdOn=Дата, createdBy=От, Version=Версия';
-        $data->row->CHANGE_LOG = $inst->get(change_Log::prepareLogRow($mvc->className, $data->rec->id), $fields);
-    }
-    
-    
     protected static function on_AfterPrepareListToolbar($mvc, $res, $data)
     {
         $data->toolbar->addBtn('Конкатениране', array($mvc, 'ShowAll', 'menuId' => $data->listFilter->rec->menuId ?? null), 'ef_icon=img/16/concatenate.png');

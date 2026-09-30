@@ -268,19 +268,20 @@ class change_Log extends core_Manager
         // Последната версия на записа
         $docRec = $class->fetch($docId);
         
-        // Ако има дата и потребител
+        // Последната версия се форматира като останалите редове - през този модел, не през документа
+        $lastBy = $lastOn = null;
         if (isset($docRec->changeModifiedBy, $docRec->changeModifiedOn)) {
-            
-            // Вземаме вербалните им стойности
-            $lastVerRow = $class->recToVerbal($docRec, 'changeModifiedBy, changeModifiedOn, -single');
-            $row->createdBy = $lastVerRow->changeModifiedBy;
-            $row->createdOn = $lastVerRow->changeModifiedOn;
+            $lastBy = $docRec->changeModifiedBy;
+            $lastOn = $docRec->changeModifiedOn;
         } elseif (isset($docRec->modifiedBy, $docRec->modifiedOn)) {
-            
-            // Вземаме вербалните им стойности
-            $lastVerRow = $class->recToVerbal($docRec, 'modifiedBy, modifiedOn, -single');
-            $row->createdBy = $lastVerRow->modifiedBy;
-            $row->createdOn = $lastVerRow->modifiedOn;
+            $lastBy = $docRec->modifiedBy;
+            $lastOn = $docRec->modifiedOn;
+        }
+        
+        if (isset($lastBy)) {
+            $lastVerRow = static::recToVerbal((object) array('createdOn' => $lastOn, 'createdBy' => $lastBy), 'createdOn, createdBy, -single');
+            $row->createdBy = $lastVerRow->createdBy;
+            $row->createdOn = $lastVerRow->createdOn;
         }
         
         // Добавяме към резултатите
@@ -325,7 +326,7 @@ class change_Log extends core_Manager
         // Очакваме да имаме права до сингъла или до треда
         expect($class->haveRightFor('single', $docId) || (!empty($cRec->threadId) && doc_Threads::haveRightFor('single', $cRec->threadId)));
         
-        if ($cRec->containerId) {
+        if (!empty($cRec->containerId)) {
             // Инвалидираме кеша на контейнера
             doc_DocumentCache::cacheInvalidation($cRec->containerId, core_Users::getCurrent());
         }
@@ -358,7 +359,7 @@ class change_Log extends core_Manager
             $class,
             'single',
             $cRec->id,
-            'Cid' => $cRec->containerId,
+            'Cid' => $cRec->containerId ?? null,
             'Tab' => $tab,
         );
         

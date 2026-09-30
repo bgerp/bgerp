@@ -55,7 +55,38 @@ class price_reports_Menu extends price_reports_PriceListProto
             return true;
         }
 
+        // Публикуваното меню е публично, затова и вътре цените не се крият
+        if (self::isPublishedInCms($rec)) {
+
+            return true;
+        }
+
         return parent::canSeePriceFields($rec);
+    }
+
+
+    /**
+     * Дали менюто е публикувано като обект в сайта
+     *
+     * @param stdClass $rec
+     * @return bool
+     */
+    private static function isPublishedInCms($rec)
+    {
+        static $cache = array();
+
+        $id = $rec->id ?? null;
+        if (empty($id)) {
+
+            return false;
+        }
+
+        if (!array_key_exists($id, $cache)) {
+            $classId = frame2_Reports::getClassId();
+            $cache[$id] = (bool) cms_Objects::fetchField(array("#sourceClass = [#1#] AND #sourceId = [#2#] AND #type = 'object'", $classId, $id), 'id');
+        }
+
+        return $cache[$id];
     }
 
 

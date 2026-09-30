@@ -1,0 +1,135 @@
+<div class="singleView blogmArticle">
+   [#SingleToolbar#]
+   <h2 class="block_title [#STATE_CLASS#]" style='padding:5px'>|Статия|*: <b style="color:green;display:inline-block;word-break:break-all">[#title#]</b></h2>
+   <fieldset class="detail-info">
+      <legend class="groupTitle">|Информация|*</legend>
+      <div class="groupList">
+         <table class="noBorder" style='width:99%'>
+            <!--ET_BEGIN categories-->
+            <tr>
+               <td class="title-style" style='width:150px'>|Категории|*:</td>
+               <td>[#categories#]</td>
+            </tr>
+            <!--ET_END categories-->
+            <!--ET_BEGIN author-->
+            <tr>
+               <td class="title-style" style='width:150px'>|Автор|*:</td>
+               <td>[#author#]</td>
+            </tr>
+            <!--ET_END author-->
+            <!--ET_BEGIN publishedOn-->
+            <tr>
+               <td class="title-style" style='width:150px'>|Публикуване|*:</td>
+               <td>[#publishedOn#]</td>
+            </tr>
+            <!--ET_END publishedOn-->
+            <!--ET_BEGIN LastVersion-->
+            <tr>
+               <td class="title-style" style='width:150px'>|Версия|*:</td>
+               <td>[#LastVersion#]<!--ET_BEGIN FirstSelectedVersion--> <b style='color: red;'>([#FirstSelectedVersion#]<!--ET_BEGIN LastSelectedVersion--> / [#LastSelectedVersion#]<!--ET_END LastSelectedVersion-->)</b><!--ET_END FirstSelectedVersion--></td>
+            </tr>
+            <!--ET_END LastVersion-->
+            <!--ET_BEGIN state-->
+            <tr>
+               <td class="title-style" style='width:150px'>|Състояние|*:</td>
+               <td>[#state#]</td>
+            </tr>
+            <!--ET_END state-->
+            <tr>
+               <td class="title-style" style='width:150px'>|Създаване|*:</td>
+               <td>[#createdOn#] |от|* [#createdBy#]</td>
+            </tr>
+            <tr>
+               <td class="title-style" style='width:150px'>|Модифициране|*:</td>
+               <td>[#modifiedOn#] |от|* [#modifiedBy#]</td>
+            </tr>
+         </table>
+      </div>
+   </fieldset>
+
+   <fieldset class="detail-info">
+      <legend class="groupTitle">|Коментари|*</legend>
+      <div class="groupList">
+         <table class="noBorder" style='width:99%'>
+            <!--ET_BEGIN commentsMode-->
+            <tr>
+               <td class="title-style" style='width:150px'>|Режим|*:</td>
+               <td>[#commentsMode#]</td>
+            </tr>
+            <!--ET_END commentsMode-->
+            <!--ET_BEGIN commentsCnt-->
+            <tr>
+               <td class="title-style" style='width:150px'>|Брой|*:</td>
+               <td>[#commentsCnt#]</td>
+            </tr>
+            <!--ET_END commentsCnt-->
+            <!--ET_BEGIN commentedOn-->
+            <tr>
+               <td class="title-style" style='width:150px'>|Последен|*:</td>
+               <td>[#commentedOn#]</td>
+            </tr>
+            <!--ET_END commentedOn-->
+         </table>
+      </div>
+   </fieldset>
+
+   <!--ET_BEGIN body-->
+   <fieldset class="detail-info">
+      <legend class="groupTitle">|Съдържание|*</legend>
+      <div class="groupList">
+         [#body#]
+      </div>
+   </fieldset>
+   <!--ET_END body-->
+
+   <fieldset class="detail-info">
+      <legend class="groupTitle">SEO</legend>
+      <div class="groupList">
+         <table class="noBorder" style='width:99%'>
+            <!--ET_BEGIN vid-->
+            <tr>
+               <td class="title-style" style='width:150px'>|Вербално ID|*:</td>
+               <td>[#vid#]</td>
+            </tr>
+            <!--ET_END vid-->
+            <!--ET_BEGIN seoTitle-->
+            <tr>
+               <td class="title-style" style='width:150px'>Title:</td>
+               <td>[#seoTitle#]</td>
+            </tr>
+            <!--ET_END seoTitle-->
+            <!--ET_BEGIN seoDescription-->
+            <tr>
+               <td class="title-style" style='width:150px'>Description:</td>
+               <td>[#seoDescription#]</td>
+            </tr>
+            <!--ET_END seoDescription-->
+            <!--ET_BEGIN seoKeywords-->
+            <tr>
+               <td class="title-style" style='width:150px'>Keywords:</td>
+               <td>[#seoKeywords#]</td>
+            </tr>
+            <!--ET_END seoKeywords-->
+            <!--ET_BEGIN seoThumb-->
+            <tr>
+               <td class="title-style" style='width:150px'>|Илюстрация|*:</td>
+               <td>[#seoThumb#]</td>
+            </tr>
+            <!--ET_END seoThumb-->
+         </table>
+      </div>
+   </fieldset>
+
+   <!--ET_BEGIN CHANGE_LOG-->
+   <fieldset class="detail-info">
+      <legend class="groupTitle">|История на промените|*</legend>
+      <div class="groupList">
+         [#CHANGE_LOG#]
+      </div>
+   </fieldset>
+   <!--ET_END CHANGE_LOG-->
+
+   <div style='margin-top:10px'>
+      [#DETAILS#]
+   </div>
+</div>
