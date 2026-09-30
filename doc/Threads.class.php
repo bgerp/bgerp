@@ -2473,6 +2473,12 @@ class doc_Threads extends core_Manager
     public static function getFastButtons($coverClass, $coverId)
     {
         expect($Cover = cls::get($coverClass));
+
+        // Стари папки на класове, които вече не са корици (напр. hr_Departments), нямат бързи бутони
+        if (!cls::existsMethod($Cover, 'getDocButtonsInFolder')) {
+            wp('замърсени данни', $coverClass, $coverId);
+            return array();
+        }
         $buttons = $Cover->getDocButtonsInFolder($coverId);
        
         $res = array();
