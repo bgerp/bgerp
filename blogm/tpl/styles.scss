@@ -86,29 +86,88 @@
     margin-bottom:10px;
 }
 
+.blogm-comments-title {
+	margin: 20px 0 4px;
+	font-size: 1.1em;
+}
+
 .blogm-comment {
-	margin-top:15px;
-	border:solid 1px #f8f8f8;
-	padding:10px;
-	border-radius:5px;
-	background-color:#f8f8f8;
-	border:solid 1px #eee;
-	display:table;
-	width:100%;
+	display: flex;
+	gap: 12px;
+	margin-top: 12px;
+	padding: 12px 14px;
+	box-sizing: border-box;
+	border: 1px solid #e3e3e3;
+	border-radius: 6px;
+	background-color: #fafafa;
+
+	&.blogm-comment-pending {
+		border-left: 4px solid #5aa9e6;
+		background-color: #f2f8fd;
+	}
+
+	&.blogm-comment-rejected {
+		border-left: 4px solid #cc6666;
+		background-color: #fbf1f1;
+	}
+
+	&.blogm-comment-closed {
+		border-left: 4px solid #aaa;
+		color: #666;
+	}
 }
 
-.blogm-comment-who {
-	display:table-cell;
-	vertical-align:top;
-	width:80px;
-	font-size:0.7em;
+.blogm-comment-avatar {
+	flex: 0 0 auto;
+
+	img {
+		display: block;
+		border-radius: 50%;
+	}
 }
 
-.blogm-comment-text  {
-	display:table-cell;
-	width:80%;
-	vertical-align:top;
-	float:left;
+.blogm-comment-main {
+	flex: 1 1 auto;
+	min-width: 0;
+}
+
+.blogm-comment-head {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: baseline;
+	gap: 2px 10px;
+	margin-bottom: 6px;
+}
+
+.blogm-date {
+	font-size: 0.85em;
+	color: #777;
+}
+
+.blogm-status {
+	padding: 1px 8px;
+	border-radius: 10px;
+	font-size: 0.75em;
+	background-color: #dbeafa;
+	color: #1d4f7a;
+
+	&:empty {
+		display: none;
+	}
+}
+
+.blogm-comment-rejected .blogm-status {
+	background-color: #f3d6d6;
+	color: #7a1d1d;
+}
+
+.blogm-comment-closed .blogm-status {
+	background-color: #e5e5e5;
+	color: #555;
+}
+
+.blogm-comment-text {
+	overflow-wrap: anywhere;
 }
 
 #blogm-Comment {
@@ -119,7 +178,7 @@
 }
 
 .blogm-name {
-	white-space:nowrap;
+	font-weight: bold;
 }
 
 .blogm-comment-form div {
@@ -170,8 +229,20 @@
 	margin-bottom:20px;
 }
 
+.blogm-browse-label {
+	display: block;
+	font-size: 0.55em;
+	font-weight: normal;
+	color: #777;
+}
+
+.blogm-browse-period {
+	white-space: nowrap;
+}
+
 .blogm-browse-article {
 	margin-bottom:20px;
+	display: flow-root;
 }
 .blogArticleCategoryLink a {
 	color: #333 !important;

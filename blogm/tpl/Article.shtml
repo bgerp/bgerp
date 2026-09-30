@@ -7,7 +7,9 @@
 
 <div class='blogm-article-info'>
     <span class='blogm-comments-cnt linkWithIcon' title="|Брой коментари|*">[#commentsCnt#]</span>
-    [#publishedOn#], [#author#] |в|* [#categories#] 
+    <span class="blogm-published-on">[#publishedOn#]</span>
+    <!--ET_BEGIN author--><span class="blogm-author">[#author#]</span><!--ET_END author-->
+    <span class="blogm-meta-categories">|в|* [#categories#]</span>
 </div>
 <div class='blogm-article-body'>
     [#body#]
@@ -18,31 +20,19 @@
 <!--ET_END SHARE_TOOLBAR-->
 <!--ET_BEGIN COMMENTS-->
 <div class='blogm-comments'>
+    <h3 class='blogm-comments-title'>|Коментари|*</h3>
     <!--ET_BEGIN COMMENT-->
-    <table class='blogm-comment clearfix21 [#stateClass#]' style='background-color:[#stateColor#]' cellpadding='10px'>
-        <tr>
-            <td class='blogm-comment-who' style="text-align:center">
-                <div style='text-align:left;'>
-                    <div class='blog-avatar'>
-                        [#avatar#]
-                    </div>
-                    <div class='blogm-name'>
-                        [#name#]
-                    </div>
-                    <div class='blogm-date'>
-                        [#createdOn#]
-                    </div>
-                    <div class='blogm-status'>
-                        [#status#]
-                    </div>
-                </div>
-            </td>
-            <td class='blogm-comment-text'>
-                [#comment#]
-            </td>
-        </tr>
-    </table>
-    <div class='clearfix21'></div>
+    <div class='blogm-comment [#stateClass#]'>
+        <div class='blogm-comment-avatar'>[#avatar#]</div>
+        <div class='blogm-comment-main'>
+            <div class='blogm-comment-head'>
+                <span class='blogm-name'>[#name#]</span>
+                <span class='blogm-date'>[#createdOn#]</span>
+                <span class='blogm-status'>[#status#]</span>
+            </div>
+            <div class='blogm-comment-text'>[#comment#]</div>
+        </div>
+    </div>
     <!--ET_END COMMENT-->
 </div>
 <!--ET_END COMMENTS-->

@@ -749,6 +749,7 @@ abstract class deals_Helper
                         foreach ($arr as $p) {
                             $index = $p->productId;
                             $discount = $p->discount ?? null;
+                            $price = $p->price ?? 0;
                             
                             if (!empty($p->notes)) {
                                 $index .= '|' . serialize($p->notes) . '|';
@@ -796,12 +797,12 @@ abstract class deals_Helper
 
                             $sign = ($parameter == 'arrays') ? 1 : -1;
                             $d->quantity += $sign * $p->quantity;
-                            $d->sumAmounts += $sign * ($p->quantity * $p->price * (1 - $discount));
+                            $d->sumAmounts += $sign * ($p->quantity * $price * (1 - $discount));
 
                             if(is_array($p->batches ?? null)){
                                 foreach ($p->batches as $batch => $batchQuantity){
                                     $d->batches[$batch] = ($d->batches[$batch] ?? 0) + $sign * $batchQuantity;
-                                    $d->batchesSums[$batch] = ($d->batchesSums[$batch] ?? 0) + $sign * ($batchQuantity * $p->price * (1 - $discount));
+                                    $d->batchesSums[$batch] = ($d->batchesSums[$batch] ?? 0) + $sign * ($batchQuantity * $price * (1 - $discount));
                                 }
                             }
 
