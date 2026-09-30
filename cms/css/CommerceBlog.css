@@ -197,6 +197,7 @@ body.commerce-blog {
 .commerce-blog .blogm-comment.blogm-comment-rejected { border-left: 4px solid #b54848; background: #fbf1f1; }
 .commerce-blog .blogm-comment.blogm-comment-closed { border-left: 4px solid #9aa7ae; }
 .commerce-blog .blogm-comments-title { margin: 0 0 4px; font-size: 1.125rem; color: #145b73; }
+.commerce-blog .blogm-browse-period { color: #145b73; }
 .commerce-blog .blogm-status { background: #dcebf1; color: #145b73; }
 .commerce-blog .blogm-comments { margin-top: 28px; }
 .commerce-blog .blogm-comment-form input[type=text],

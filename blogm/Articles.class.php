@@ -949,7 +949,8 @@ class blogm_Articles extends core_Master
             $data->title = null;
             $data->rows = array();
         } elseif (!empty($data->archive)) {
-            $data->title = tr('Архив за месец') . '&nbsp;<b>' . dt::getMonth($data->archiveM, Mode::is('screenMode', 'narrow') ? 'M' : 'F') . ' ' . $data->archiveY . '&nbsp;</b>';
+            $period = dt::getMonth($data->archiveM, Mode::is('screenMode', 'narrow') ? 'M' : 'F') . ' ' . $data->archiveY;
+            $data->title = "<span class='blogm-browse-label'>" . tr('Архив за месец') . "</span> <span class='blogm-browse-period'>{$period}</span>";
             if (!countR($data->rows)) {
                 $data->emptyMessage = tr($blogType ? 'Няма статии за този месец' : 'Няма новини за този месец');
             }
