@@ -44,7 +44,7 @@ class blogm_Articles extends core_Master
     /**
      * Полета за листов изглед
      */
-    public $listFields = 'id, title, categories, author, createdOn=Създаване||Created->На, createdBy=Създаване||Created->От||By, modifiedOn=Модифицирано||Modified->На, modifiedBy=Модифицирано||Modified->От||By';
+    public $listFields = 'id, title, categories, author, commentsCnt, commentedOn, createdOn=Създаване||Created->На, createdBy=Създаване||Created->От||By, modifiedOn=Модифицирано||Modified->На, modifiedBy=Модифицирано||Modified->От||By';
     
     
     /**
@@ -118,6 +118,7 @@ class blogm_Articles extends core_Master
             'caption=Коментари,mandatory,maxRadio=' . (Mode::is('screenMode', 'narrow') ? 2 : 4)
         );
         $this->FLD('commentsCnt', 'int', 'caption=Коментари->Брой,value=0,notNul,input=none');
+        $this->FLD('commentedOn', 'datetime(format=smartTime)', 'caption=Коментари->Последен,input=none');
         
         $this->setDbUnique('title');
     }
@@ -282,7 +283,14 @@ class blogm_Articles extends core_Master
             $rec = $mvc->fetch($id);
             if (is_object($rec)) {
                 $rec->commentsCnt = $queryC->count();
-                $mvc->save($rec);
+                
+                // Датата е на последния видим коментар, за да се връща назад при оттегляне
+                $queryC->XPR('lastCommentOn', 'datetime', 'MAX(#createdOn)');
+                $queryC->show('lastCommentOn');
+                $lastRec = $queryC->fetch();
+                $rec->commentedOn = is_object($lastRec) ? $lastRec->lastCommentOn : null;
+                
+                $mvc->save($rec, 'commentsCnt,commentedOn');
             }
         }
     }
@@ -386,9 +394,12 @@ class blogm_Articles extends core_Master
 
         $categories = keylist::toArray($rec->categories);
         $firstCategoryId = key($categories);
-        $menuId = blogm_Categories::fetchField($firstCategoryId, 'menuId');
+        if (empty($firstCategoryId)) {
 
-        return $menuId;
+            return null;
+        }
+
+        return blogm_Categories::fetchField($firstCategoryId, 'menuId');
     }
 
     /**
@@ -431,7 +442,14 @@ class blogm_Articles extends core_Master
         $data->articleId = $id;
         $data->menuId = $cMenuId;
         $data->category = $categoryId;
-        $data->menuRec = cms_Content::fetch($data->menuId);
+        $data->menuRec = $data->menuId ? cms_Content::fetch($data->menuId) : null;
+
+        // При невалидно меню от URL-а се ползва това на статията
+        if (!$data->menuRec) {
+            $data->menuId = $cMenuId = static::getDefaultMenuId($rec);
+            $data->menuRec = $data->menuId ? cms_Content::fetch($data->menuId) : null;
+            expect404($data->menuRec);
+        }
 
         $showAll = blogm_Setup::get('SHOW_EXPANDED_CATEGORIES_IN_NAV') == 'yes';
         $data->categories = blogm_Categories::getCategoriesByDomain($data->menuRec->domainId, $data->menuId, $data->category, $showAll);
@@ -596,7 +614,8 @@ class blogm_Articles extends core_Master
             $query = self::getQuery();
             $query->XPR('calcDate', 'datetime', "COALESCE(#publishedOn, #createdOn)");
             $query->likeKeylist('categories', $rec->categories);
-            $query->orderBy('#publishedOn');
+            $query->orderBy('#calcDate');
+            $query->orderBy('#id');
 
             $flagSelected = false;
             $prev = $next = null;
@@ -676,7 +695,8 @@ class blogm_Articles extends core_Master
             }
         }
 
-        $data->menuRec = cms_Content::fetch($data->menuId);
+        $data->menuRec = $data->menuId ? cms_Content::fetch($data->menuId) : null;
+        expect404($data->menuRec);
         cms_Domains::setPublicDomain($data->menuRec->domainId);
         cms_Content::setCurrent($data->menuId);
 
@@ -694,7 +714,7 @@ class blogm_Articles extends core_Master
         $data->archive = Request::get('archive', 'varchar');
 
         if (!empty($data->archive)) {
-            list($data->archiveY, $data->archiveM) = explode('|', $data->archive);
+            list($data->archiveY, $data->archiveM) = explode('|', $data->archive) + array('', '');
             expect(is_numeric($data->archiveY) && is_numeric($data->archiveM));
             $data->archiveM = str_pad($data->archiveM, 2, '0', STR_PAD_LEFT);
         }
@@ -749,12 +769,13 @@ class blogm_Articles extends core_Master
             }
         }
         
-        if ($data->archive) {
-            $data->query->where("#createdOn LIKE '{$data->archiveY}-{$data->archiveM}-%'");
-        }
-        
         $data->query->XPR('pubTime', 'datetime', 'IF(#publishedOn,#publishedOn,#createdOn)');
         $data->query->orderBy('#pubTime', 'DESC');
+        
+        // Архивът се групира по дата на публикуване, затова и филтърът е по нея
+        if ($data->archive) {
+            $data->query->where("#pubTime LIKE '{$data->archiveY}-{$data->archiveM}-%'");
+        }
         
         // Показваме само публикуваните статии
         $data->query->where("#state = 'active'");
@@ -1014,9 +1035,9 @@ class blogm_Articles extends core_Master
         $query->orderBy('#pubTime', 'DESC');
         $query->where("#state = 'active'");
         
-        // Филтриране по категориите на съответния език
-        $categories = blogm_Categories::getCategoriesByDomain();
-        if (!countR($categories)) {
+        // Всички категории от менюто, вкл. подкатегориите
+        $categories = blogm_Categories::getCategoriesByDomain($data->menuRec->domainId ?? null, $data->menuId ?? null, null, true);
+        if (countR($categories)) {
             $query->likeKeylist('categories', keylist::fromArray($categories));
         } else {
             $query->where("1=2");
@@ -1399,20 +1420,23 @@ class blogm_Articles extends core_Master
             $query->where("#state = 'active' AND #categories LIKE '%|{$id}|%'");
             $lastMod = '';
             while ($rec = $query->fetch()) {
-                if ($used[$id] ?? null) {
+                // Коментарите са част от страницата на статията
+                $recLastMod = max($rec->modifiedOn, (string) $rec->commentedOn);
+                $lastMod = max($lastMod, $recLastMod);
+                if (!empty($used[$rec->id])) {
                     continue;
                 }
+                $used[$rec->id] = true;
                 $resObj = new stdClass();
                 $resObj->loc = $this->getUrl($rec, true);
-                $resObj->lastmod = date('c', dt::mysql2timestamp($rec->modifiedOn));
+                $resObj->lastmod = date('c', dt::mysql2timestamp($recLastMod));
                 $resObj->priority = 0.5;
                 $res[] = $resObj;
-                $lastMod = max($lastMod, $rec->modifiedOn);
             }
             
             if ($lastMod) {
                 $resObj = new stdClass();
-                $resObj->loc = array('blogm_Articles', 'browse', 'category' => $id);
+                $resObj->loc = array('blogm_Articles', 'browse', 'cMenuId' => $menuId, 'category' => $id);
                 $resObj->lastmod = date('c', dt::mysql2timestamp($lastMod));
                 $resObj->priority = 0.5;
                 $res[] = $resObj;

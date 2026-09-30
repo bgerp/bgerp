@@ -159,8 +159,10 @@ class sync_StoreStocks extends sync_Helper
         if(!$force){
             $cMinute = dt::mysql2verbal(null, 'i');
             foreach ($remoteStores as $k => $storeRec){
-                $i = $cMinute + $storeRec->id;
-                if($i % $storeRec->syncTime != 0){
+                $i = $cMinute + ($storeRec->id ?? 0);
+                $syncTime = (int) ($storeRec->syncTime ?? 0);
+                // Нулевият интервал оставя само ръчното синхронизиране.
+                if($syncTime <= 0 || $i % $syncTime != 0){
                     unset($remoteStores[$k]);
                 }
             }
@@ -208,7 +210,7 @@ class sync_StoreStocks extends sync_Helper
 
             // Има ли права потребителя добавил записа все още за оторизация
             $authRec = remote_Authorizations::fetchRec($authorizationId);
-            if (!($authRec->data->lKeyCC && $authRec->data->rId)){
+            if (empty($authRec->data->lKeyCC) || empty($authRec->data->rId)){
                 remote_Authorizations::logErr("Потребителя вече няма оторизация за: '{$url}'");
                 continue;
             }
@@ -218,6 +220,11 @@ class sync_StoreStocks extends sync_Helper
             if(!(is_array($stockData) && countR($stockData))) continue;
 
             foreach ($stockData as $arr){
+                expect(
+                    is_array($arr) && isset($arr['code'], $arr['measureSysId'], $arr['storeId']) &&
+                    isset($remoteArr['remoteMap'][$arr['storeId']]),
+                    'Непълни данни за наличности от външната система'
+                );
 
                 // Ако в тази система няма артикул с този, код то няма да се извлича
                 if(!array_key_exists($arr['code'], $ourProducts)) continue;
@@ -226,7 +233,10 @@ class sync_StoreStocks extends sync_Helper
                 if($arr['measureSysId'] != $ourProducts[$arr['code']]['measureSysId']){
 
                     // Ако са различни прави се опит за конверсия, ако не може значи не е този артикул
-                    $ratio = cat_UoM::convertValue(1, $measureData[$arr['measureSysId']], $measureData[$ourProducts[$arr['code']]['measureSysId']]);
+                    $remoteMeasureId = $measureData[$arr['measureSysId']] ?? null;
+                    $localMeasureId = $measureData[$ourProducts[$arr['code']]['measureSysId']] ?? null;
+                    if (!$remoteMeasureId || !$localMeasureId) continue;
+                    $ratio = cat_UoM::convertValue(1, $remoteMeasureId, $localMeasureId);
                     if($ratio === false) continue;
 
                     foreach (array('quantity', 'reservedQuantity', 'expectedQuantity', 'reservedQuantityMin', 'expectedQuantityMin') as $fld){
@@ -239,7 +249,7 @@ class sync_StoreStocks extends sync_Helper
                 // Добавяне на мапнатия запис
                 $obj = (object)array('remoteCode' => $arr['code'], 'productId' => $ourProducts[$arr['code']]['id'], 'syncedStoreId' => $remoteArr['remoteMap'][$arr['storeId']], 'lastSynced' => $now);
                 foreach (array('quantity', 'reservedQuantity', 'expectedQuantity', 'reservedQuantityMin', 'expectedQuantityMin', 'dateMin') as $fld){
-                    $obj->{$fld} = $arr[$fld];
+                    $obj->{$fld} = $arr[$fld] ?? null;
                 }
                 if(empty($obj->productId)){
                    wp($obj, $arr);
@@ -296,34 +306,39 @@ class sync_StoreStocks extends sync_Helper
     protected static function on_AfterPrepareListRows($mvc, $data)
     {
         // Ако няма никакви записи - нищо не правим
-        if (!countR($data->recs)) return;
+        if (!countR($data->recs ?? null)) return;
 
-        foreach ($data->rows as $id => &$row) {
+        foreach ($data->rows ?? array() as $id => $row) {
             $rec = &$data->recs[$id];
+            $pRec = null;
 
-            if($rec->productId){
+            if (!empty($rec->productId)) {
                 $pRec = cat_Products::fetch($rec->productId, 'measureId,state');
+            }
+            if($pRec){
                 $row->productId = cat_Products::getVerbal($rec->productId, 'name');
                 $icon = cls::get('cat_Products')->getIcon($rec->productId);
                 $row->productId = ht::createLink($row->productId, cat_Products::getSingleUrlArray($rec->productId), false, "ef_icon={$icon}");
-                $row->measureId = cat_UoM::getTitleById($pRec->measureId);
+                $row->measureId = cat_UoM::getTitleById($pRec->measureId ?? null);
             } else {
                 $row->productId = "<span class='red'>проблем при показването</span>";
             }
 
-            if($rec->syncedStoreId){
+            if(!empty($rec->syncedStoreId)){
                 $row->syncedStoreId = sync_Stores::getDisplayTitle($rec->syncedStoreId, true);
             } else {
                 $row->syncedStoreId = "<span class='red'>проблем при показването</span>";
             }
 
 
-            $rec->freeQuantity = $rec->quantity - $rec->reservedQuantity + $rec->expectedQuantity;
+            $rec->freeQuantity = ($rec->quantity ?? 0) - ($rec->reservedQuantity ?? 0) + ($rec->expectedQuantity ?? 0);
             $row->freeQuantity = $mvc->getFieldType('freeQuantity')->toVerbal($rec->freeQuantity);
 
-            $rec->freeQuantityMin = $rec->quantity - $rec->reservedQuantityMin + $rec->expectedQuantityMin;
+            $rec->freeQuantityMin = ($rec->quantity ?? 0) - ($rec->reservedQuantityMin ?? 0) + ($rec->expectedQuantityMin ?? 0);
             $row->freeQuantityMin = $mvc->getFieldType('freeQuantityMin')->toVerbal($rec->freeQuantityMin);
-            $row->ROW_ATTR['class'] = "state-{$pRec->state}";
+            if (!empty($pRec->state)) {
+                $row->ROW_ATTR['class'] = "state-{$pRec->state}";
+            }
         }
     }
 
@@ -343,7 +358,7 @@ class sync_StoreStocks extends sync_Helper
         $query->where("#productId = {$productId}");
         $query->in('syncedStoreId', $remoteIdArr);
         while($rec = $query->fetch()){
-            $totalQuantity += $rec->quantity - $rec->reservedQuantityMin + $rec->expectedQuantityMin;
+            $totalQuantity += ($rec->quantity ?? 0) - ($rec->reservedQuantityMin ?? 0) + ($rec->expectedQuantityMin ?? 0);
         }
 
         return $totalQuantity;

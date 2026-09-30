@@ -122,7 +122,7 @@ class sync_Eshop extends sync_Helper
         }
 
         while ($rec = $eQuery->fetch()) {
-            sync_Map::exportRec('eshop_Products', $rec->id, $res, $me);
+            sync_Map::exportRec('eshop_Products', $rec->id ?? null, $res, $me);
         }
     }
 
@@ -178,8 +178,8 @@ class sync_Eshop extends sync_Helper
                 unset($rec->{$fName});
             }
             
-            $rec->{$lang} = $oRec->lang;
-            $rec->{$domain} = $oRec->domain;
+            $rec->{$lang} = $oRec->lang ?? null;
+            $rec->{$domain} = $oRec->domain ?? null;
         }
     }
     
@@ -200,22 +200,22 @@ class sync_Eshop extends sync_Helper
         
         $haveDomains = false;
         if (isset($rec->{$lang}) || isset($rec->{$domain})) {
-            $domains = trim(sync_Setup::get('CMS_DOMAINS'));
+            $domains = trim(sync_Setup::get('CMS_DOMAINS') ?? '');
             if ($domains) {
                 $dArr = explode("\n", $domains);
                 foreach ($dArr as $dStr) {
-                    list($remote, $local) = explode('|', $dStr);
+                    list($remote, $local) = explode('|', $dStr) + array('', '');
                     
-                    list($remoteDomain, $remoteLang) = explode(',', $remote);
-                    list($localDomain, $localLang) = explode(',', $local);
+                    list($remoteDomain, $remoteLang) = explode(',', $remote) + array('', '');
+                    list($localDomain, $localLang) = explode(',', $local) + array('', '');
                     
                     $remoteDomain = trim($remoteDomain);
                     $remoteLang = trim($remoteLang);
                     $localDomain = trim($localDomain);
                     $localLang = trim($localLang);
                     
-                    $rec->{$lang} = trim($rec->{$lang});
-                    $rec->{$domain} = trim($rec->{$domain});
+                    $rec->{$lang} = trim($rec->{$lang} ?? '');
+                    $rec->{$domain} = trim($rec->{$domain} ?? '');
                     
                     expect($remoteDomain && $remoteLang && $localDomain && $localLang);
                     
@@ -231,8 +231,8 @@ class sync_Eshop extends sync_Helper
             }
             
             if (!$haveDomains) {
-                $rec->lang = $rec->{$lang};
-                $rec->domain = $rec->{$domain};
+                $rec->lang = $rec->{$lang} ?? '';
+                $rec->domain = $rec->{$domain} ?? '';
             }
             
             foreach ((array)$rec as $fName => $fVal) {
@@ -258,7 +258,7 @@ class sync_Eshop extends sync_Helper
             
             $rec->__continue = true;
             
-            $rec->__id = $rec->id;
+            $rec->__id = $rec->id ?? null;
         }
     }
     

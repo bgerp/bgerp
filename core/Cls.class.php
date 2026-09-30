@@ -376,7 +376,7 @@ class core_Cls
         // Очакваме, че $classObj е обект
         expect(is_object($classObj), $classObj);
         
-        $classObj->interfaces = arr::make($classObj->interfaces, true);
+        $classObj->interfaces = arr::make($classObj->interfaces ?? null, true);
         
         // Добавяме интерфейсите на парентите
         foreach ($classObj->interfaces as $intf => $impl) {

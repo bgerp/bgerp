@@ -24,6 +24,12 @@ class cond_type_Varchar extends cond_type_abstract_Proto
 
 
     /**
+     * Новите параметри от този тип по подразбиране са филтрируеми
+     */
+    protected $filterableByDefault = true;
+
+
+    /**
      * Кой базов тип наследява
      */
     protected $baseType = 'type_Varchar';

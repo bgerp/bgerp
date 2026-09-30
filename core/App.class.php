@@ -587,14 +587,19 @@ class core_App
             if (EF_HTTPS == 'MANDATORY') {
                 $resArr[] = 'Strict-Transport-Security: max-age=86400';
             }
-            
-            $resArr[] = 'X-Frame-Options: sameorigin';
-            $resArr[] = 'X-XSS-Protection: 1; mode=block';
-            $resArr[] = 'X-Content-Type-Options: nosniff';
-            $resArr[] = 'Expect-CT: max-age=86400, enforce';
-            $resArr[] = "Feature-Policy: camera 'self'; microphone 'self'";
         }
-        
+
+        // false - без хедъра, ако системата се вгражда в iframe на чужд сайт
+        defIfNot('EF_X_FRAME_OPTIONS', 'SAMEORIGIN');
+        if (EF_X_FRAME_OPTIONS) {
+            $resArr[] = 'X-Frame-Options: ' . EF_X_FRAME_OPTIONS;
+        }
+        $resArr[] = 'X-Content-Type-Options: nosniff';
+        $resArr[] = 'Referrer-Policy: strict-origin-when-cross-origin';
+
+        // Геолокацията и камерата се ползват от location_Type и сканирането на баркодове
+        $resArr[] = 'Permissions-Policy: geolocation=(self), camera=(self), microphone=()';
+
         return $resArr;
     }
     

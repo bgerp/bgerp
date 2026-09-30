@@ -137,6 +137,18 @@ class acc_Balances extends core_Master
 
 
     /**
+     * Над колко секунди изчисление се записва статистика в лога
+     */
+    const STATS_LOG_MIN_TIME = 5;
+
+
+    /**
+     * Брой извиквания на calc() в текущия хит
+     */
+    public static $calcCount = 0;
+
+
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -474,8 +486,11 @@ class acc_Balances extends core_Master
                     // Намираме и изтриваме всички баланси, които нямат период и не се отнасят за предишния ден
                     $query = self::getQuery();
                     while ($delRec = $query->fetch("(#fromDate != '{$fromDate}' OR #toDate != '{$toDate}') AND #periodId IS NULL")) {
-                        acc_BalanceDetails::delete("#balanceId = {$delRec->id}");
+                        $delStart = microtime(true);
+                        $delCnt = acc_BalanceDetails::delete("#balanceId = {$delRec->id}");
                         self::delete($delRec->id);
+                        $delTime = round(microtime(true) - $delStart, 2);
+                        self::logNotice("Изтрит междинен баланс {$delRec->fromDate} - {$delRec->toDate}: {$delCnt} реда за {$delTime}s", $delRec->id, 3);
                     }
                 }
             }
@@ -500,7 +515,17 @@ class acc_Balances extends core_Master
      */
     public static function calc($rec)
     {
+        $calcStart          = microtime(true);
         $bD                 = cls::get('acc_BalanceDetails');
+        $bD->calcStats      = array();
+        self::$calcCount++;
+
+        // Пикът не се нулира, защото core_Cron го записва за цялата задача
+        $peakBefore = memory_get_peak_usage(true);
+        $bD->calcStats['phpPrecision'] = ini_get('precision');
+
+        // Използвана памет преди баланса - показва дали нещо остава от предходно изчисление
+        $bD->calcStats['usedBeforeMB'] = round(memory_get_usage(false) / 1048576);
         $lastRec            = self::getBalanceBefore($rec->toDate);
         $periodCurrencyCode = acc_Periods::getBaseCurrencyCode($rec->toDate);
 
@@ -566,6 +591,16 @@ class acc_Balances extends core_Master
 
         $rec->lastCalculate = dt::now();
         self::save($rec, 'lastCalculate,lastCalculateChange');
+
+        $totalTime = round(microtime(true) - $calcStart, 2);
+        $peakAfter = memory_get_peak_usage(true);
+        $peakMemory = round($peakAfter / 1048576);
+
+        // Ако пикът не е вдигнат от този баланс, неговият е неизвестен, но не по-голям
+        $peakText = ($peakAfter > $peakBefore) ? "peak {$peakMemory}MB" : "peak <={$peakMemory}MB (от по-ранно изчисление)";
+        if ($totalTime >= self::STATS_LOG_MIN_TIME) {
+            self::logNotice("Статистика на баланс {$rec->fromDate} - {$rec->toDate}: total {$totalTime}s, {$peakText}, change={$rec->lastCalculateChange}; " . $bD->getCalcStatsLine(), $rec->id, 3);
+        }
     }
 
 
@@ -617,14 +652,24 @@ class acc_Balances extends core_Master
 
             // Преизчисляваме първия отворен баланс (когато в него има промени) 9+1 пъти, за да подаде верни данни на следващите
             $j = 0;
+            $iterations = array();
+            $periodStart = microtime(true);
+            $calcCountBefore = self::$calcCount;
             do {
                 core_Locks::obtain($lockKey, self::MAX_PERIOD_CALC_TIME);
                 $r = self::forceCalc($rec);
                 if($r){
                     $data->recalcedBalances[$rec->toDate] = $rec;
+                    $iterations[] = $rec->lastCalculateChange;
                 }
             } while ($rec->lastCalculateChange != 'no' && $j++ < 9 && $rc);
             $rc = false;
+
+            $periodTime = round(microtime(true) - $periodStart, 2);
+            $calcCalls = self::$calcCount - $calcCountBefore;
+            if ($calcCalls > 1 || $periodTime >= self::STATS_LOG_MIN_TIME) {
+                $this->logNotice("Преизчисляване на {$rec->fromDate} - {$rec->toDate}: " . countR($iterations) . ' итерации (' . implode(',', $iterations) . "), calc() извиквания {$calcCalls} за {$periodTime}s", $rec->id, 3);
+            }
         }
 
         // Освобождаваме заключването на процеса

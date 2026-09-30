@@ -88,6 +88,10 @@ class store_reports_Documents extends frame2_driver_TableData
         }
 
         $stores = self::getContableStores($form->rec);
+        if (!countR($stores)) {
+            // Създател без складове (напр. Аида) иначе не може да избере нито един склад
+            $stores = self::getContableStores((object) array('typeOfWorker' => 'logWorker'));
+        }
         $form->setOptions('storeId', array('' => '') + $stores);
         $documents = array('planning_ConsumptionNotes', 'planning_ReturnNotes', 'store_Transfers', 'store_ShipmentOrders', 'store_Receipts', 'planning_DirectProductionNote', 'store_ConsignmentProtocols');
         
@@ -647,6 +651,26 @@ class store_reports_Documents extends frame2_driver_TableData
     {
         if (isset($rec->storeId)) {
             $row->storeId = store_Stores::getHyperlink($rec->storeId, true);
+        }
+    }
+
+
+    /**
+     * След рендиране на единичния изглед
+     *
+     * @param frame2_driver_Proto $Driver
+     * @param embed_Manager       $Embedder
+     * @param core_ET             $tpl
+     * @param stdClass            $data
+     */
+    protected static function on_AfterRenderSingle(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$tpl, $data)
+    {
+        $rec = $data->rec;
+
+        // Без избран склад се показват само складовете на създателя - обясняваме празния резултат
+        if (!isset($rec->storeId) && ($rec->typeOfWorker ?? null) != 'logWorker' && !countR(self::getContableStores($rec))) {
+            $msg = tr('Създателят на справката няма складове, в които да контира. Изберете склад.');
+            $tpl->append("<div class='richtext-message richtext-warning'>{$msg}</div>", 'DRIVER_FIELDS');
         }
     }
     
