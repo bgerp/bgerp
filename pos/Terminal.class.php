@@ -2220,8 +2220,8 @@ class pos_Terminal extends peripheral_Terminal
         $originState = Request::get('originState', 'enum(draft,waiting,rejected,closed)');
         $rec = pos_Receipts::fetch($id);
 
-        // Ако има промяна в оригиналното състояние на бележката се прави нова
-        if($originState != $rec->state){
+        // Ако бележката е изтрита или има промяна в оригиналното ѝ състояние се прави нова
+        if(!$rec || $originState != $rec->state){
             redirect(array('pos_Receipts', 'new', 'forced' => true));
         }
         
