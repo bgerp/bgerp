@@ -191,27 +191,25 @@ body.commerce-theme #cmsMenu .commerce-cart-link .count {
 body.commerce-theme .soc-sharing-holder .soc-sharing {
     display: inline-flex;
     align-items: center;
-    gap: 5px;
+    justify-content: center;
+    gap: 0.55em;
+    width: auto;
+    min-height: 1.5em;
     height: auto;
-    padding: 2px 8px;
+    padding: 0.15em 0.6em;
+    margin: 0;
     box-sizing: border-box;
-    line-height: 1.25rem;
+    line-height: 1;
     vertical-align: middle;
-    min-height: 2.5em;
-    padding: 0.4em 0.7em;
     border: 1px solid #d5e1e7;
-    border-radius: 0.5em;
+    border-radius: 0.35em;
     background: #fff;
     color: #536b79;
-    font-size: 0.85em;
+    font-size: 1em;
     text-shadow: none;
     box-shadow: none;
 }
 body.commerce-theme .soc-sharing-holder { display: flex; flex-wrap: wrap; gap: 0.5em; margin-block: 1em; }
-body.commerce-theme .soc-sharing-holder .soc-sharing::before {
-    content: ''; width: 1.1em; height: 1.1em;
-    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23536b79' stroke-width='1.7'%3E%3Ccircle cx='18' cy='5' r='3'/%3E%3Ccircle cx='6' cy='12' r='3'/%3E%3Ccircle cx='18' cy='19' r='3'/%3E%3Cpath d='m8.6 10.5 6.8-4m-6.8 7 6.8 4'/%3E%3C/svg%3E") center / contain no-repeat;
-}
 body.commerce-theme .soc-sharing-holder .soc-sharing:hover {
     text-decoration: none;
     background: #edf5f7;
@@ -220,14 +218,19 @@ body.commerce-theme .soc-sharing-holder .soc-sharing:hover {
 body.commerce-theme .soc-sharing-holder .soc-sharing:focus-visible { outline: 2px solid #145b73; outline-offset: 2px; }
 body.commerce-theme .soc-sharing-holder .soc-sharing img {
     position: static;
+    display: block;
+    width: 1em;
+    height: 1em;
+    margin: 0;
+    object-fit: contain;
     flex-shrink: 0;
 }
-body.commerce-theme .soc-sharing-holder .soc-sharing sup {
-    position: static;
-    vertical-align: baseline;
-    font-size: inherit;
-    line-height: inherit;
-    margin-right: -5px;
+body.commerce-theme .soc-sharing-holder .commerce-sharing-count {
+    padding-left: 0.6em;
+    border-left: 1px solid #e1e8ec;
+    font-size: 0.8em;
+    line-height: 1.25;
+    font-variant-numeric: tabular-nums;
 }
 
 /* One search control for shop, blog and CMS article navigation. */

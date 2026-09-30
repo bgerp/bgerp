@@ -144,7 +144,7 @@ class social_Sharings extends core_Master
             $socCntP = $socCnt ? $socCnt->cnt : 0;
             $linkContent = "{$img} <sup>+</sup>{$socCntP}";
             if (cms_Domains::getCmsSkin() instanceof cms_CommerceTheme) {
-                $linkContent = htmlspecialchars($socialNetwork->name, ENT_QUOTES, 'UTF-8');
+                $linkContent = $img . ht::createElement('span', array('class' => 'commerce-sharing-count'), (int) $socCntP);
             }
             
             // ✔ ЛИНК БЕЗ onclick и javascript:void(0)

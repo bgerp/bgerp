@@ -156,7 +156,7 @@ body.commerce-theme:is(.narrow, .commerce-compact) form .formTable { max-width: 
 body.commerce-theme:is(.narrow, .commerce-compact) :is(#eshop_Carts-EditForm, form:has(.formTable)) :is(input:not([type=button]):not([type=submit]):not([type=checkbox]):not([type=radio]), textarea, select) { font-size: 1rem; }
 body.commerce-theme:is(.narrow, .commerce-compact) .cart-holder-external .scrolling-holder { max-width: 100%; overflow-x: auto; }
 body.commerce-theme:is(.narrow, .commerce-compact) .footer-menus { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.5em 1em; padding: 1.25em 0; }
-body.commerce-theme:is(.narrow, .commerce-compact) .footer-menus a { display: inline-block; padding-block: 0.35em; font-size: 1em; }
+body.commerce-theme:is(.narrow, .commerce-compact) .footer-menus a { display: inline-block; padding-block: 0.35em; font-size: 0.85em; }
 body.commerce-theme:is(.narrow, .commerce-compact) .externalPage .additionalFooter {
     margin: 1.5rem 0 0;
     padding: 0.75rem 0;
