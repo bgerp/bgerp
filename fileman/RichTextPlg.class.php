@@ -118,6 +118,31 @@ class fileman_RichTextPlg extends core_Plugin
     
     
     /**
+     * При рендиране за LLM файловете в чистия ричтекст получават размер и предупреждение за вирус
+     *
+     * @param type_Richtext $mvc
+     * @param string        $value
+     */
+    public function on_AfterGetRichtextForAI($mvc, &$value)
+    {
+        if (!Mode::is('renderForLlm') || stripos($value ?? '', '[file=') === false) {
+
+            return;
+        }
+
+        $value = preg_replace_callback(static::$pattern, function ($match) {
+            $fRec = fileman::fetchByFh($match['fileHnd']);
+            if (!$fRec) {
+
+                return $match[0];
+            }
+
+            return self::getLlmTag($match['fileHnd'], $match['fileName'], $fRec->fileLen ?? null, $fRec);
+        }, $value);
+    }
+
+
+    /**
      * Съобщението, което ще се показва ако нямаме достъп до обекта
      */
     public static function on_AfterGetNotAccessMsg($mvc, $res)
