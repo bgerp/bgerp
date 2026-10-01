@@ -3905,6 +3905,12 @@ class cal_Tasks extends embed_Manager
         foreach ($this->fields as $fName => $dummy) {
             $form->setField($fName, 'input=none');
         }
+
+        $externalReview = !$isReportFromStream && support_ReviewInvitation::isExternalVisitor()
+            && ((support_Systems::fetchField($systemId, 'reviewMode') ?? 'off') !== 'off' || Request::get('reviewToken', 'varchar'));
+        if ($externalReview) {
+            support_ReviewInvitation::prepareForm($form, $systemId);
+        }
         
         $interfaces = static::getAvailableDriverOptions();
         
@@ -3968,6 +3974,16 @@ class cal_Tasks extends embed_Manager
                 $form->rec->folderId = support_Systems::forceCoverAndFolder($systemId);
             }
             
+            if ($externalReview) {
+                try {
+                    return support_ReviewInvitation::submit($form->rec, $systemId);
+                } finally {
+                    if ($lg) {
+                        core_Lg::pop();
+                    }
+                }
+            }
+
             cal_Tasks::save($form->rec);
             
             vislog_History::add('Изпращане на сигнал');

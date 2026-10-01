@@ -149,8 +149,18 @@ class support_Systems extends core_Master
         $this->FLD('defaultType', 'key(mvc=support_IssueTypes, select=type, allowEmpty)', 'caption=Сигнали->По подразбиране');
         $this->FLD('addFromEveryOne', 'enum(no=Не,yes=Да)', 'caption=Добавяне от външната част->Избор, removeAndRefreshForm=defaultTitle|addContragentValues');
         $this->FLD('defaultTitle', 'varchar', 'caption=Заглавие на формата->Заглавие, input=none');
+        $this->FLD('defaultTitleEn', 'varchar', 'caption=Заглавие на формата->Английски||English, input=none,autohide');
         $this->FLD('addContragentValues', 'enum(mandatory=Задължително, yes=Да, no=Не)', 'caption=Попълване на контрагент данни от нерегистрирани->Избор, input=none');
         $this->FLD('showConsumptionBtnsInSupportTask', 'enum(auto=Автоматично,firstRow=На първи ред,secondRow=На втори ред,no=Скриване)', 'caption=Бутони за влагане/връщане в сигналите->Избор,notNull,value=auto');
+
+        // Varchar запазва режима и когато доставчикът на оценката е изключен.
+        $this->FLD('reviewMode', 'varchar(32)', 'caption=Публичен отзив||Public review->Покана||Invitation,value=off,notNull,autohide=any');
+        $this->FLD('reviewUrl', 'url', 'caption=Публичен отзив||Public review->Връзка||URL,autohide=any');
+        $this->FLD('reviewButtonBg', 'varchar(128)', 'caption=Публичен отзив||Public review->Бутон BG||Button BG,autohide=any');
+        $this->FLD('reviewButtonEn', 'varchar(128)', 'caption=Публичен отзив||Public review->Бутон EN||Button EN,autohide=any');
+        $this->FLD('reviewTextBg', 'text(rows=3)', 'caption=Публичен отзив||Public review->Покана BG||Invitation BG,autohide=any');
+        $this->FLD('reviewTextEn', 'text(rows=3)', 'caption=Публичен отзив||Public review->Покана EN||Invitation EN,autohide=any');
+        $this->setOptions('reviewMode', $this->getReviewModes());
 
         $this->setDbUnique('name');
     }
@@ -261,6 +271,9 @@ class support_Systems extends core_Master
         if (($rec->addFromEveryOne ?? null) == 'yes') {
             $row->linkFromOutside = "<div onmouseup='selectInnerText(this);'>" . toUrl(array('cal_Tasks', 'New', $rec->id), 'absolute') . "</div>";
         }
+
+        $row->reviewMode = $mvc->getReviewModes()[$rec->reviewMode ?? 'off']
+            ?? tr('Недостъпен режим||Unavailable mode');
     }
 
 
@@ -358,6 +371,18 @@ class support_Systems extends core_Master
         $allowedTypes = $form->rec->allowedTypes ?? null;
         $defaultType = $form->rec->defaultType ?? null;
 
+        if ($form->isSubmitted() && haveRole('admin, supportMaster')) {
+            $mode = $form->rec->reviewMode ?? 'off';
+            $modes = $mvc->getReviewModes();
+            $old = $id ? $mvc->fetch($id) : null;
+            if (!isset($modes[$mode]) && $mode !== ($old->reviewMode ?? null)) {
+                $form->setError('reviewMode', 'Неподдържан режим на поканата||Unsupported invitation mode');
+            }
+            if ($mode !== 'off' && !support_ReviewInvitation::isValidUrl($form->rec->reviewUrl ?? '')) {
+                $form->setError('reviewUrl', 'Въведете пълна HTTP или HTTPS връзка||Enter a complete HTTP or HTTPS URL');
+            }
+        }
+
         // Ако формата е изпратена успешно
         if ($form->isSubmitted()) {
 
@@ -441,11 +466,20 @@ class support_Systems extends core_Master
 
         if (($form->rec->addFromEveryOne ?? null) == 'yes') {
             $form->setField('defaultTitle', array('input' => 'input'));
+            $form->setField('defaultTitleEn', array('input' => 'input'));
             $form->setField('addContragentValues', array('input' => 'input'));
         }
 
         $form->setField('steps', 'caption=Настройки на сигналите в системата->Етапи');
         $form->setField('addSubSteps', 'caption=Настройки на сигналите в системата->Добави подетапи');
+
+        $modes = $mvc->getReviewModes();
+        $mode = $form->rec->reviewMode ?? 'off';
+        if (!isset($modes[$mode])) {
+            $modes[$mode] = tr('Недостъпен модул за оценка||Evaluation module unavailable');
+            $form->info = ($form->info ?? '') . tr('|*<p>|Поканата няма да се показва, докато модулът за оценка е недостъпен.||The invitation is disabled while the evaluation module is unavailable.|*</p>');
+        }
+        $form->setOptions('reviewMode', $modes);
 
         if(!haveRole('admin, supportMaster')){
             $form->info = tr("|*<div class='formCustomInfo'><b>Може да редактирате само полетата за достъп|*!</b></div>");
@@ -457,6 +491,13 @@ class support_Systems extends core_Master
                 $form->setField($field, 'input=none');
             }
         }
+    }
+
+
+    /** Режимите с оценка се добавят от незадължителни плъгини. */
+    public function getReviewModes_()
+    {
+        return array('off' => tr('Изключено||Disabled'), 'always' => tr('Винаги за външни посетители||Always for external visitors'));
     }
 
 
