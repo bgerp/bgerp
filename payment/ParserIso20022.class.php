@@ -150,23 +150,23 @@ class payment_ParserIso20022 extends core_BaseClass
                 
                 if ($node->CdtDbtInd == 'DBIT') {
                     $rec->type = 'outgoing';
-                    $rec->contragentIban = (string) $node->NtryDtls->TxDtls->RltdPties->CdtrAcct->Id->IBAN;
-                    $rec->contragentName = (string) $node->NtryDtls->TxDtls->RltdPties->Cdtr->Nm;
+                    $rec->contragentIban = self::getXmlText($node, 'NtryDtls/TxDtls/RltdPties/CdtrAcct/Id/IBAN');
+                    $rec->contragentName = self::getXmlText($node, 'NtryDtls/TxDtls/RltdPties/Cdtr/Nm');
                     if ($rec->contragentIban == $iban) {
-                        $rec->contragentIban = (string) $node->NtryDtls->TxDtls->RltdPties->DbtrAcct->Id->IBAN;
-                        $rec->contragentName = (string) $node->NtryDtls->TxDtls->RltdPties->Dbtr->Nm;
+                        $rec->contragentIban = self::getXmlText($node, 'NtryDtls/TxDtls/RltdPties/DbtrAcct/Id/IBAN');
+                        $rec->contragentName = self::getXmlText($node, 'NtryDtls/TxDtls/RltdPties/Dbtr/Nm');
                     }
                 } else {
                     $rec->type = 'incoming';
-                    $rec->contragentIban = (string) $node->NtryDtls->TxDtls->RltdPties->DbtrAcct->Id->IBAN;
-                    $rec->contragentName = (string) $node->NtryDtls->TxDtls->RltdPties->Dbtr->Nm;
+                    $rec->contragentIban = self::getXmlText($node, 'NtryDtls/TxDtls/RltdPties/DbtrAcct/Id/IBAN');
+                    $rec->contragentName = self::getXmlText($node, 'NtryDtls/TxDtls/RltdPties/Dbtr/Nm');
                     if ($rec->contragentIban == $iban) {
-                        $rec->contragentIban = (string) $node->NtryDtls->TxDtls->RltdPties->CdtrAcct->Id->IBAN;
-                        $rec->contragentName = (string) $node->NtryDtls->TxDtls->RltdPties->Cdtr->Nm;
+                        $rec->contragentIban = self::getXmlText($node, 'NtryDtls/TxDtls/RltdPties/CdtrAcct/Id/IBAN');
+                        $rec->contragentName = self::getXmlText($node, 'NtryDtls/TxDtls/RltdPties/Cdtr/Nm');
                     }
                 }
                 
-                $rec->reason = (string) $node->NtryDtls->TxDtls->AddtlTxInf;
+                $rec->reason = self::getXmlText($node, 'NtryDtls/TxDtls/AddtlTxInf');
                 if (!$rec->reason) {
                     $rec->reason = (string) $node->AddtlNtryInf;
                 }
@@ -181,6 +181,28 @@ class payment_ParserIso20022 extends core_BaseClass
     }
     
     
+    /**
+     * Текстът на вложен XML възел; празен низ, ако някой възел по пътя липсва
+     *
+     * @param SimpleXMLElement $node
+     * @param string           $path  Имена на възлите, разделени с /
+     *
+     * @return string
+     */
+    private static function getXmlText($node, $path)
+    {
+        foreach (explode('/', $path) as $name) {
+            if (!isset($node->{$name})) {
+
+                return '';
+            }
+            $node = $node->{$name};
+        }
+
+        return (string) $node;
+    }
+
+
     /**
      * Проверява дали в $mime се съдържа спам писмо и ако е
      * така - съхранява го за определено време в този модел

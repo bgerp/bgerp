@@ -1059,7 +1059,7 @@ class acc_Items extends core_Manager
                 $this->cache['indexedItems'][$rec->classId . '|' . $rec->objectId] = $rec;
             }
             core_Debug::stopTimer('CACHE_ITEMS');
-            core_Debug::log("GET CACHED_ITEMS " . round(core_Debug::$timers["CACHE_ITEMS"]->workingTime, 6));
+            core_Debug::log("GET CACHED_ITEMS " . round(core_Debug::$timers["CACHE_ITEMS"]->workingTime ?? 0, 6));
         }
         
         return $this->cache;

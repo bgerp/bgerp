@@ -291,7 +291,7 @@ class plg_ExpandInput extends core_Plugin
                 $mvc->saveArray($updateRecs, "id,{$mvc->expandFieldName},{$mvc->expandInputFieldName}");
             }
             core_Debug::stopTimer('recalcExpandedInputs');
-            core_Debug::log("{$mvc->className} Total {$count} : REGEN FIELDS: " . round(core_Debug::$timers['recalcExpandedInputs']->workingTime, 2));
+            core_Debug::log("{$mvc->className} Total {$count} : REGEN FIELDS: " . round(core_Debug::$timers['recalcExpandedInputs']->workingTime ?? 0, 2));
         }
     }
 

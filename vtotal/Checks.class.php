@@ -433,6 +433,13 @@ class vtotal_Checks extends core_Master
         while ($rec = $query->fetch()) {
             $result = self::VTGetReport($rec->md5);
             
+            // Празен или невалиден отговор: няма връзка или HTTP 204 при изчерпана квота
+            if (!is_object($result)) {
+                self::logWarning('Няма валиден отговор от VirusTotal', $rec->id);
+                
+                break;
+            }
+            
             if ($result->response_code == -1) {
                 self::logErr('403: Нямате права за достъп, моля прегледайте API ключа за VirusTotal', $rec->id);
                 

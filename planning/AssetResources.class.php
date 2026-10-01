@@ -1038,7 +1038,7 @@ class planning_AssetResources extends core_Master
         }
 
         core_Debug::stopTimer('SCHEDULE_PREPARE');
-        core_Debug::log("END SCHEDULE_PREPARE " . round(core_Debug::$timers["SCHEDULE_PREPARE"]->workingTime, 6));
+        core_Debug::log("END SCHEDULE_PREPARE " . round(core_Debug::$timers["SCHEDULE_PREPARE"]->workingTime ?? 0, 6));
 
         $gap = planning_Setup::get('MIN_TIME_FOR_GAP');
         $scheduledData = planning_TaskConstraints::calcScheduledTimes($tasks, $previousTasks, $now, $options);

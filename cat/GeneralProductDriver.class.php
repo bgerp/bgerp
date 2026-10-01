@@ -282,7 +282,7 @@ class cat_GeneralProductDriver extends cat_ProductDriver
         plg_Search::forceUpdateKeywords($Embedder, $rec);
 
         core_Debug::stopTimer('saveParams');
-        core_Debug::log('END SAVE_ALL_PARAMS: ' . round(core_Debug::$timers['saveParams']->workingTime, 2));
+        core_Debug::log('END SAVE_ALL_PARAMS: ' . round(core_Debug::$timers['saveParams']->workingTime ?? 0, 2));
     }
     
     

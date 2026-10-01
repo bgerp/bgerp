@@ -165,7 +165,7 @@ class cat_Serials extends core_Manager
             $mvc->saveArray(static::$saveRecs);
             
             core_Debug::stopTimer('saveSerials');
-            core_Debug::log('Край запис на сер. номера: ' . round(core_Debug::$timers['saveSerials']->workingTime, 2));
+            core_Debug::log('Край запис на сер. номера: ' . round(core_Debug::$timers['saveSerials']->workingTime ?? 0, 2));
         }
     }
     

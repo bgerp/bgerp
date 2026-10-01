@@ -160,7 +160,7 @@ class price_interface_LastManifacturePrice extends price_interface_BaseCostPolic
         }
 
         core_Debug::stopTimer('CALC_LAST_MANIFACTURE_PRICE');
-        core_Debug::log("END CALC_LAST_MANIFACTURE_PRICE " . round(core_Debug::$timers["CALC_LAST_MANIFACTURE_PRICE"]->workingTime, 6));
+        core_Debug::log("END CALC_LAST_MANIFACTURE_PRICE " . round(core_Debug::$timers["CALC_LAST_MANIFACTURE_PRICE"]->workingTime ?? 0, 6));
 
         return $res;
     }
