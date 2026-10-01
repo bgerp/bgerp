@@ -1497,6 +1497,9 @@ class acc_BalanceDetails extends core_Detail
         $query = $JournalDetails->getQuery();
         acc_JournalDetails::filterQuery($query, $from, $to);
         $query->orderBy('valior,id', 'ASC');
+
+        // Първо документите за периода, после редовете им по journal_id - иначе MariaDB обхожда целия журнал
+        $query->addOption('STRAIGHT_JOIN');
         $recs = $query->fetchAll();
         $this->calcStats['journalRows'] = countR($recs);
         $this->addCalcPhase($phase, $start);
@@ -1509,6 +1512,7 @@ class acc_BalanceDetails extends core_Detail
             $query = $JournalDetails->getQuery();
             acc_JournalDetails::filterQuery($query, $from, dt::getLastDayOfMonth($to));
             $query->orderBy('valior,id', 'ASC');
+            $query->addOption('STRAIGHT_JOIN');
             $strategyRecs = $query->fetchAll();
             $this->calcStats['strategyRows'] = countR($strategyRecs);
             $this->addCalcPhase('strategyFetch', $start);
