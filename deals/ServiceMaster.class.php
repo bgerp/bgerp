@@ -289,7 +289,7 @@ abstract class deals_ServiceMaster extends core_Master
         if (empty($form->rec->id)) {
             
             // ... проверяваме предхождащия за bgerp_DealIntf
-            $origin = ($form->rec->originId) ? doc_Containers::getDocument($form->rec->originId) : doc_Threads::getFirstDocument($form->rec->threadId);
+            $origin = !empty($rec->originId) ? doc_Containers::getDocument($rec->originId) : doc_Threads::getFirstDocument($rec->threadId ?? null);
             expect($origin->haveInterface('bgerp_DealAggregatorIntf'));
             
             $dealInfo = $origin->getAggregateDealInfo();

@@ -1131,6 +1131,7 @@ class acc_BalanceDetails extends core_Detail
     {
         $fetchTime = 0;
         $query = self::getQuery();
+        $this->showOnlyBalanceFields($query, ['id', 'baseQuantity', 'baseAmount', 'debitQuantity', 'debitAmount', 'creditQuantity', 'creditAmount', 'blQuantity', 'blAmount']);
         $this->useBalanceIndex($query);
         $fetchStart = microtime(true);
         while ($rec = $query->fetch("#balanceId = {$balanceId}")) {
@@ -1165,6 +1166,9 @@ class acc_BalanceDetails extends core_Detail
 
         if (!$isMiddleBalance) {
             $query->where('ABS(#blQuantity) > 0.001 OR ABS(#blAmount) > 0.01');
+            $this->showOnlyBalanceFields($query, ['blQuantity', 'blAmount']);
+        } else {
+            $this->showOnlyBalanceFields($query, ['blQuantity', 'blAmount', 'baseQuantity', 'baseAmount', 'debitQuantity', 'debitAmount', 'creditQuantity', 'creditAmount']);
         }
 
         $feedWithNegativeBlQuantity = acc_Setup::get('FEED_STRATEGY_WITH_NEGATIVE_QUANTITY');
@@ -1354,6 +1358,7 @@ class acc_BalanceDetails extends core_Detail
 
             $start = microtime(true);
             $this->calcStats['journalUpdated'] = 0;
+            $this->calcStats['journalAmountChanged'] = 0;
 
             $tracing     = Mode::is('traceBalance');
             $journalRows = [];
@@ -1374,6 +1379,10 @@ class acc_BalanceDetails extends core_Detail
                 $this->addEntry($rec, 'credit');
 
                 if ($update) {
+                    // Стратегиите ползват сумата без закръгляне - всяка записана разлика налага второ смятане
+                    if ($rec->amount != $amountBefore || is_null($rec->amount) !== is_null($amountBefore)) {
+                        $this->calcStats['journalAmountChanged']++;
+                    }
                     $JournalDetails->save_($rec);
                     $hasUpdatedJournal = true;
                     $this->calcStats['journalUpdated']++;
@@ -1757,6 +1766,18 @@ class acc_BalanceDetails extends core_Detail
     public function addCalcPhase($name, $start)
     {
         $this->calcStats['phases'][$name] = array(microtime(true) - $start, memory_get_usage(true), memory_get_peak_usage(true), memory_get_usage(false));
+    }
+
+
+    /**
+     * Ограничава заявката до ключовете на реда и посочените полета, без JOIN-а към сметките
+     *
+     * core_Query добавя JOIN за всяко EXT поле, дори да не е в show()
+     */
+    private function showOnlyBalanceFields($query, $fields)
+    {
+        unset($query->fields['accountNum']);
+        $query->show('accountId,ent1Id,ent2Id,ent3Id,' . implode(',', $fields));
     }
 
 

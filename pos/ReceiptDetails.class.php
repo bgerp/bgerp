@@ -840,12 +840,12 @@ class pos_ReceiptDetails extends core_Detail
         Mode::setPermanent("currentSearchString{$rec->receiptId}", null);
 
         core_Debug::stopTimer('ADD_PRODUCT');
-        core_Debug::log("END ADD_PRODUCT " . round(core_Debug::$timers["ADD_PRODUCT"]->workingTime, 6));
+        core_Debug::log("END ADD_PRODUCT " . round(core_Debug::$timers["ADD_PRODUCT"]->workingTime ?? 0, 6));
 
         core_Debug::startTimer('ADD_PRODUCT_RESULT');
         $res = pos_Terminal::returnAjaxResponse($receiptId, $selectedRecId, $success, true, true, $refreshResult, 'add', $refreshHeader);
         core_Debug::stopTimer('ADD_PRODUCT_RESULT');
-        core_Debug::log("END ADD_PRODUCT_RESULT " . round(core_Debug::$timers["ADD_PRODUCT_RESULT"]->workingTime, 6));
+        core_Debug::log("END ADD_PRODUCT_RESULT " . round(core_Debug::$timers["ADD_PRODUCT_RESULT"]->workingTime ?? 0, 6));
 
         return $res;
     }

@@ -501,8 +501,14 @@ class acc_Balances extends core_Master
             static $rc1;
 
             if (!$rc1 && $rec->lastCalculateChange != 'no') {
-                self::calc($rec);
-                $rc1 = true;
+                if (empty($rec->journalAmountChanged)) {
+                    // Стратегиите се хранят от сумите в журнала - щом не са сменени, второто смятане ще е същото
+                    $rec->lastCalculateChange = 'no';
+                    self::save($rec, 'lastCalculateChange');
+                } else {
+                    self::calc($rec);
+                    $rc1 = true;
+                }
             }
 
             return true;
@@ -576,6 +582,7 @@ class acc_Balances extends core_Master
 
         $isMiddleBalance = !$rec->periodId;
         $bD->calcBalanceForPeriod($firstDay, $rec->toDate, $isMiddleBalance);
+        $rec->journalAmountChanged = !empty($bD->calcStats['journalAmountChanged']);
 
         if ($bD->saveBalance($rec->id)) {
             $rec->lastCalculateChange = 'yes';

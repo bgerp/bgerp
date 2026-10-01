@@ -199,7 +199,7 @@ class bgerp_BaseImporter extends core_Manager
         
         if (isDebug()) {
             $html .= ($html) ? '<br />' : '';
-            $html .= '|Общо време|*: ' . round(core_Debug::$timers['import']->workingTime, 2);
+            $html .= '|Общо време|*: ' . round(core_Debug::$timers['import']->workingTime ?? 0, 2);
         }
         
         return $html;

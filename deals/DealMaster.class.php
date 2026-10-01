@@ -1772,7 +1772,7 @@ abstract class deals_DealMaster extends deals_DealBase
         
         $mvc->save($rec, 'closedDocuments');
         core_Debug::stopTimer('AFTER_CLOSURE_WITH_DEAL');
-        core_Debug::log("CLOSE AFTER_CLOSURE_WITH_DEAL " . round(core_Debug::$timers["AFTER_CLOSURE_WITH_DEAL"]->workingTime, 6));
+        core_Debug::log("CLOSE AFTER_CLOSURE_WITH_DEAL " . round(core_Debug::$timers["AFTER_CLOSURE_WITH_DEAL"]->workingTime ?? 0, 6));
     }
     
     

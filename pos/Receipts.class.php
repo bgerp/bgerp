@@ -662,7 +662,7 @@ class pos_Receipts extends core_Master
         $this->save($rec);
 
         core_Debug::stopTimer('UPDATE_RECEIPT');
-        core_Debug::log("END UPDATE_RECEIPT " . round(core_Debug::$timers["UPDATE_RECEIPT"]->workingTime, 6));
+        core_Debug::log("END UPDATE_RECEIPT " . round(core_Debug::$timers["UPDATE_RECEIPT"]->workingTime ?? 0, 6));
     }
 
 
@@ -682,7 +682,7 @@ class pos_Receipts extends core_Master
         core_Debug::startTimer('CALC_AUTO_DISCOUNT');
         static::recalcAutoDiscount($rec);
         core_Debug::stopTimer('CALC_AUTO_DISCOUNT');
-        $uTime = round(core_Debug::$timers["CALC_AUTO_DISCOUNT"]->workingTime, 6);
+        $uTime = round(core_Debug::$timers["CALC_AUTO_DISCOUNT"]->workingTime ?? 0, 6);
         core_Debug::log("END CALC_AUTO_DISCOUNT: '{$uTime}'");
         $mvc->logDebug("POS AUTO_CALC_DISC: '{$uTime}'", $rec->id);
 

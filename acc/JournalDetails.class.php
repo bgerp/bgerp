@@ -372,7 +372,7 @@ class acc_JournalDetails extends core_Detail
         // Ако не са посочени полета и реда не е обработен от стратегия
         if (empty($fields) && empty($rec->_isFromStrategy)) {
             // Кое е перото на основната валута за периода
-            $valior = ($rec->valior) ? $rec->valior : acc_Journal::fetchField($rec->journalId, 'valior');
+            $valior = !empty($rec->valior) ? $rec->valior : acc_Journal::fetchField($rec->journalId ?? null, 'valior');
             $baseCurrencyItemId = self::getBaseCurrencyItemId($valior);
             
             $replaceAmount = false;
