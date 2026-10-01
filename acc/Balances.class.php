@@ -690,6 +690,9 @@ class acc_Balances extends core_Master
         $lastRec            = self::getBalanceBefore($rec->toDate);
         $periodCurrencyCode = acc_Periods::getBaseCurrencyCode($rec->toDate);
 
+        // От кой баланс тръгва смятането - междинен или с период
+        $bD->calcStats['baseBalance'] = $lastRec ? "{$lastRec->id}:{$lastRec->toDate}" . (empty($lastRec->periodId) ? ':middle' : '') : '-';
+
         if (Mode::is('traceBalance')) {
             acc_BalanceDebugger::log('calc_start', [
                 'balance_from'    => $rec->fromDate,

@@ -1126,6 +1126,22 @@ class acc_BalanceDetails extends core_Detail
 
 
     /**
+     * Дали записът на числото ще остави в базата същия текст
+     */
+    private static function isSameDbText($new, $old)
+    {
+        $newEmpty = is_null($new) || $new === '';
+        $oldEmpty = is_null($old) || $old === '';
+        if ($newEmpty || $oldEmpty) {
+
+            return $newEmpty && $oldEmpty;
+        }
+
+        return (string) $new === (string) $old || (float) (string) $new == (float) $old;
+    }
+
+
+    /**
      * Дали някоя от стойностите на реда е над прага за промяна
      */
     private function hasRealValue($rec)
@@ -1391,13 +1407,16 @@ class acc_BalanceDetails extends core_Detail
             $this->calcStats['journalUpdated'] = 0;
             $this->calcStats['journalAmountChanged'] = 0;
             $this->calcStats['journalAmountDiff'] = 0;
+            $this->calcStats['journalPrecisionOnly'] = 0;
 
             $tracing     = Mode::is('traceBalance');
             $journalRows = [];
 
             foreach ($recs as $rec) {
                 $amountBefore = $rec->amount;
-                $pricesBefore = ($rec->debitPrice ?? '') . '/' . ($rec->creditPrice ?? '');
+                $debitPriceBefore = $rec->debitPrice ?? null;
+                $creditPriceBefore = $rec->creditPrice ?? null;
+                $pricesBefore = ($debitPriceBefore ?? '') . '/' . ($creditPriceBefore ?? '');
                 $this->calcAmount($rec);
                 $amountChanged = (round((float)$rec->amount, 8) != round((float)$amountBefore, 8));
                 $update = $this->calcPrice($rec);
@@ -1409,6 +1428,12 @@ class acc_BalanceDetails extends core_Detail
 
                 $this->addEntry($rec, 'debit');
                 $this->addEntry($rec, 'credit');
+
+                // Записът не би сменил нищо в базата (числата се записват като текст с php precision)
+                if ($update && self::isSameDbText($rec->amount, $amountBefore) && self::isSameDbText($rec->debitPrice ?? null, $debitPriceBefore) && self::isSameDbText($rec->creditPrice ?? null, $creditPriceBefore)) {
+                    $update = false;
+                    $this->calcStats['journalPrecisionOnly']++;
+                }
 
                 if ($update) {
                     // Стратегиите се хранят от сумите - сборът от промените им показва дали са се уравновесили
