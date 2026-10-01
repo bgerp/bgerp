@@ -205,8 +205,8 @@ class backup_Restore extends core_Manager
                 $res['warn'][] = "Не можа да изтрие файл: $f";
             }
         }
-        $res['timersRestoreFull'] = core_Debug::$timers['restoreFull']->workingTime;
-        $res['timersRestoreBin'] = core_Debug::$timers['restoreBin']->workingTime;
+        $res['timersRestoreFull'] = core_Debug::$timers['restoreFull']->workingTime ?? 0;
+        $res['timersRestoreBin'] = core_Debug::$timers['restoreBin']->workingTime ?? 0;
         
         return $res;
     }

@@ -777,7 +777,7 @@ class frame2_Reports extends embed_Manager
                 core_Debug::stopTimer("PREPARE_DATA_TIMER_{$rec->id}");
 
                 $rec->lastRefreshed = dt::now();
-                $rec->lastRefreshDuration = round(core_Debug::$timers["PREPARE_DATA_TIMER_{$rec->id}"]->workingTime, 6);
+                $rec->lastRefreshDuration = round(core_Debug::$timers["PREPARE_DATA_TIMER_{$rec->id}"]->workingTime ?? 0, 6);
 
                 // Ако има логове по време на изчислението да се записват
                 $log = is_array($rec->log ?? null) ? $rec->log : array();
@@ -850,7 +850,7 @@ class frame2_Reports extends embed_Manager
             }
         }
         core_Debug::stopTimer($refreshReportTimer);
-        $timer = round(core_Debug::$timers[$refreshReportTimer]->workingTime, 2);
+        $timer = round(core_Debug::$timers[$refreshReportTimer]->workingTime ?? 0, 2);
         self::logDebug("Приключи обновление на отчет за {$timer}s", $rec->id);
 
         if ($timer > 30) {
