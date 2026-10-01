@@ -550,7 +550,7 @@ class doc_DocumentPlg extends core_Plugin
     public static function on_AfterGetAllBtnUrl($mvc, &$res, $rec)
     {
         if(empty($res)){
-            $res = array($mvc, 'list');
+            $res = array($mvc, 'listAll');
         }
     }
 
@@ -577,7 +577,7 @@ class doc_DocumentPlg extends core_Plugin
     {
         if (Request::get('Rejected')) {
             $data->toolbar->removeBtn('*');
-            $data->toolbar->addBtn('Всички', array($mvc), 'id=listBtn', 'ef_icon = img/16/application_view_list.png');
+            $data->toolbar->addBtn('Всички', array($mvc, 'listAll'), 'id=listBtn', 'ef_icon = img/16/application_view_list.png');
         } else {
             if (isset($data->rejQuery)) {
                 $data->rejectedCnt = $data->rejQuery->count();
@@ -1240,6 +1240,49 @@ class doc_DocumentPlg extends core_Plugin
      */
     public function on_BeforeAction($mvc, &$res, $action)
     {
+        if ($action == 'listall') {
+            $mvc->requireRightFor('list');
+            $url = getCurrentUrl();
+            $url['Act'] = 'list';
+            $limit = (int) doc_Setup::get('ALL_SEARCH_LIMIT');
+
+            if ($limit > 0 && cls::haveInterface('doc_DocumentIntf', $mvc) && doc_Search::haveRightFor('list')) {
+                $cacheKey = 'doc_listAllCounts';
+                $counts = core_Permanent::get($cacheKey) ?? array();
+                $cached = $counts[$mvc->className] ?? array();
+                $count = null;
+                if (($cached['limit'] ?? null) == $limit && ($cached['expiresOn'] ?? 0) > time()) {
+                    $count = $cached['count'] ?? null;
+                }
+
+                if ($count === null) {
+                    $query = $mvc->getQuery();
+                    $query->show('id');
+                    // Един допълнителен запис различава "над прага" от "точно на прага".
+                    $count = $query->count(null, $limit + 1);
+                    // Пазим бройките на другите класове при едновременно обновяване, без изчакване.
+                    if (core_Locks::obtain($cacheKey, 5, 0, 0)) {
+                        try {
+                            $counts = core_Permanent::get($cacheKey) ?? array();
+                            // Срокът на класа не се удължава при обновяване на общия запис.
+                            $counts[$mvc->className] = array('count' => $count, 'limit' => $limit, 'expiresOn' => time() + 30 * 24 * 60 * 60);
+                            core_Permanent::set($cacheKey, $counts, 30 * 24 * 60);
+                        } finally {
+                            core_Locks::release($cacheKey);
+                        }
+                    }
+                }
+
+                if ($count > $limit) {
+                    $url = array('doc_Search', 'list', 'docClass' => $mvc->getClassId(), 'ret_url' => $url['ret_url'] ?? null);
+                }
+            }
+
+            $res = new Redirect($url);
+
+            return false;
+        }
+
         $notAccessStatusMsg = '|Предишната страница не може да бъде показана, поради липса на права за достъп';
 
         if ($action == 'single' && !(Request::get('Printing')) && !Mode::is('dataType', 'php')) {
