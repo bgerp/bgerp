@@ -1192,11 +1192,8 @@ class acc_BalanceDetails extends core_Detail
     private function fetchBalanceRecs($balanceId)
     {
         $fetchTime = 0;
-        $query = self::getQuery();
-        $this->showOnlyBalanceFields($query, ['id', 'baseQuantity', 'baseAmount', 'debitQuantity', 'debitAmount', 'creditQuantity', 'creditAmount', 'blQuantity', 'blAmount']);
-        $this->useBalanceIndex($query);
         $fetchStart = microtime(true);
-        while ($rec = $query->fetch("#balanceId = {$balanceId}")) {
+        foreach ($this->fetchBalanceRows($balanceId, ['id', 'baseQuantity', 'baseAmount', 'debitQuantity', 'debitAmount', 'creditQuantity', 'creditAmount', 'blQuantity', 'blAmount']) as $rec) {
             $fetchTime += microtime(true) - $fetchStart;
 
             // Първото fetch() изпълнява заявката и прехвърля буферирания резултат
@@ -1221,16 +1218,25 @@ class acc_BalanceDetails extends core_Detail
         $start = microtime(true);
         $fetchTime = 0;
         $this->calcStats['loadRows'] = 0;
-        $query = $this->getQuery();
         $this->balance = [];
 
-        static::filterQuery($query, $balanceId, $accs, $itemsAll, $items1, $items2, $items3);
-
-        if (!$isMiddleBalance) {
-            $query->where('ABS(#blQuantity) > 0.001 OR ABS(#blAmount) > 0.01');
-            $this->showOnlyBalanceFields($query, ['blQuantity', 'blAmount']);
+        $fields = $isMiddleBalance ? ['blQuantity', 'blAmount', 'baseQuantity', 'baseAmount', 'debitQuantity', 'debitAmount', 'creditQuantity', 'creditAmount'] : ['blQuantity', 'blAmount'];
+        if (isset($accs) || isset($itemsAll) || isset($items1) || isset($items2) || isset($items3)) {
+            // С филтър по сметки или пера - през core_Query
+            $query = $this->getQuery();
+            static::filterQuery($query, $balanceId, $accs, $itemsAll, $items1, $items2, $items3);
+            if (!$isMiddleBalance) {
+                $query->where('ABS(#blQuantity) > 0.001 OR ABS(#blAmount) > 0.01');
+            }
+            $this->showOnlyBalanceFields($query, $fields);
+            $this->useBalanceIndex($query);
+            $rows = (function () use ($query) {
+                while ($rec = $query->fetch()) {
+                    yield $rec;
+                }
+            })();
         } else {
-            $this->showOnlyBalanceFields($query, ['blQuantity', 'blAmount', 'baseQuantity', 'baseAmount', 'debitQuantity', 'debitAmount', 'creditQuantity', 'creditAmount']);
+            $rows = $this->fetchBalanceRows($balanceId, $fields, $isMiddleBalance ? '' : 'ABS(`bl_quantity`) > 0.001 OR ABS(`bl_amount`) > 0.01');
         }
 
         $feedWithNegativeBlQuantity = acc_Setup::get('FEED_STRATEGY_WITH_NEGATIVE_QUANTITY');
@@ -1239,9 +1245,8 @@ class acc_BalanceDetails extends core_Detail
         $tracing    = Mode::is('traceBalance');
         $loadedRows = [];
 
-        $this->useBalanceIndex($query);
         $fetchStart = microtime(true);
-        while ($rec = $query->fetch()) {
+        foreach ($rows as $rec) {
             $fetchTime += microtime(true) - $fetchStart;
 
             // Първото fetch() изпълнява заявката и прехвърля буферирания резултат
@@ -1895,6 +1900,17 @@ class acc_BalanceDetails extends core_Detail
      */
     private function useBalanceIndex($query)
     {
+        if ($this->hasBalanceIndex()) {
+            $query->useIndex('balance_id_account_id');
+        }
+    }
+
+
+    /**
+     * Дали таблицата има индекса по баланс и сметка
+     */
+    private function hasBalanceIndex()
+    {
         static $hasIndex;
 
         if (!isset($hasIndex)) {
@@ -1902,9 +1918,76 @@ class acc_BalanceDetails extends core_Detail
             $hasIndex = isset($indexes['balance_id_account_id']);
         }
 
-        if ($hasIndex) {
-            $query->useIndex('balance_id_account_id');
+        return $hasIndex;
+    }
+
+
+    /**
+     * Чете редовете на баланса директно, без core_Query
+     *
+     * core_Query минава всяко поле през типа му, копира реда и вика AfterRead - около 3 пъти по-скъпо.
+     * Стойностите са същите: типовете на тези полета не ги променят при четене.
+     * Ако има обработчик на AfterRead, четенето е през core_Query.
+     *
+     * @param int    $balanceId - ид на баланса
+     * @param array  $fields    - полета освен сметката и перата
+     * @param string $where     - допълнително SQL условие с имената на колоните
+     *
+     * @return Generator - редовете като stdClass с имената на полетата
+     */
+    private function fetchBalanceRows($balanceId, $fields, $where = '')
+    {
+        if ($this->hasAfterReadListener()) {
+            $query = $this->getQuery();
+            $query->where("#balanceId = " . (int) $balanceId);
+            if ($where) {
+                $query->where($where);
+            }
+            $this->showOnlyBalanceFields($query, $fields);
+            $this->useBalanceIndex($query);
+            while ($rec = $query->fetch()) {
+                yield $rec;
+            }
+
+            return;
         }
+
+        $cols = array();
+        foreach (array_merge(array('accountId', 'ent1Id', 'ent2Id', 'ent3Id'), $fields) as $fld) {
+            $cols[] = '`' . str::phpToMysqlName($fld) . "` AS `{$fld}`";
+        }
+        $index = $this->hasBalanceIndex() ? ' USE INDEX(balance_id_account_id)' : '';
+        $sql = 'SELECT ' . implode(', ', $cols) . " FROM `{$this->dbTableName}`{$index} WHERE `balance_id` = " . (int) $balanceId . ($where ? " AND ({$where})" : '');
+
+        $dbRes = $this->db->query($sql);
+        try {
+            while ($row = $this->db->fetchArray($dbRes)) {
+                yield (object) $row;
+            }
+        } finally {
+            $this->db->freeResult($dbRes);
+        }
+    }
+
+
+    /**
+     * Дали има обработчик на AfterRead - тогава четенето минава през core_Query, за да го извика
+     */
+    private function hasAfterReadListener()
+    {
+        if (method_exists($this, 'on_AfterRead')) {
+
+            return true;
+        }
+
+        foreach ($this->_plugins as $plugin) {
+            if (method_exists($plugin, 'on_AfterRead')) {
+
+                return true;
+            }
+        }
+
+        return false;
     }
 
 
