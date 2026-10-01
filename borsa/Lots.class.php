@@ -885,6 +885,18 @@ class borsa_Lots extends core_Master
     
     
     /**
+     * Връща елементите за футър менюто, генерирани от този източник
+     *
+     * @param stdClass $menuRec
+     * @return array
+     */
+    public function getFooterMenuItems($menuRec)
+    {
+        return array();
+    }
+    
+    
+    /**
      * Връща връща масив със заглавия и URL-ta, които отговарят на търсенето
      * 
      * @see cms_SourceIntf
