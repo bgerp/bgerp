@@ -1941,7 +1941,7 @@ class doc_Threads extends core_Manager
             
             // Ако имаме добавяне/махане на документ от треда или промяна на състоянието към активно
             // тогава състоянието му се определя от последния документ в него
-            if (($rec->allDocCnt != $exAllDocCnt) || ($rec->lastState && ($lastDcRec->state != $rec->lastState))) {
+            if (($rec->allDocCnt != $exAllDocCnt) || ($rec->lastState && (($lastDcRec->state ?? null) != $rec->lastState))) {
                 // Ако състоянието не е draft или не е rejected
                 if ($lastDcRec && $lastDcRec->state != 'draft') {
                     $doc = doc_Containers::getDocument($lastDcRec->id);
