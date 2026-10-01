@@ -1062,9 +1062,10 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         }
 
         // Синхронизира таймлимита с броя записи
-        $rec->count = $query->count();
+        $recordCount = $query->count();
+        $rec->count = $recordCount;
 
-        $timeLimit = $query->count() * 0.05;
+        $timeLimit = $recordCount * 0.05;
 
         if ($timeLimit >= 30) {
             core_App::setTimeLimit($timeLimit);
