@@ -8,8 +8,8 @@
  * @category  bgerp
  * @package   blogm
  *
- * @author    Ивелин Димов <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2021 Experta OOD
+ * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
+ * @copyright 2006 - 2026 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -142,9 +142,9 @@ class blogm_Articles extends core_Master
      */
     public function description()
     {
+        $this->FLD('title', 'varchar(190)', 'caption=Заглавие, mandatory');
         $this->FLD('author', 'varchar(40)', 'caption=Автор, mandatory, notNull');
         $this->FLD('publishedOn', 'datetime', 'caption=Публикуване');
-        $this->FLD('title', 'varchar(190)', 'caption=Заглавие, mandatory');
         $this->FLD('categories', 'keylist(mvc=blogm_Categories,select=title)', 'caption=Категории,mandatory');
         $this->FLD('body', 'richtext(bucket=' . self::FILE_BUCKET . ')', 'caption=Съдържание,mandatory');
         $this->FLD('state', 'enum(draft=Чернова,pending=Заявка,waiting=Чакаща,active=Публикувана,rejected=Оттеглена)', 'caption=Състояние,input=none');
@@ -211,6 +211,13 @@ class blogm_Articles extends core_Master
         }
         
         $row->publishedOn = dt::mysql2verbal($rec->publishedOn, 'smartTime');
+        if ((isset($fields['-browse']) || isset($fields['-article'])) && cms_Domains::getCmsSkin() instanceof cms_CommerceTheme) {
+            $row->publishedOn = ht::createElement('time', array(
+                'class' => 'commerce-blog-date',
+                'title' => dt::mysql2verbal($rec->publishedOn, 'd.m.Y H:i'),
+                'datetime' => dt::mysql2verbal($rec->publishedOn, 'Y-m-d') . 'T' . dt::mysql2verbal($rec->publishedOn, 'H:i:s'),
+            ), dt::mysql2verbal($rec->publishedOn, 'd.m.y') . tr('г|*'));
+        }
         if ($rec->state == 'waiting' && !isset($fields['-article']) && !isset($fields['-browse'])) {
             // Без smartTime, чийто вграден цвят надделява над синия
             $publishedOn = dt::mysql2verbal($rec->publishedOn, 'd.m.Y H:i');
@@ -814,7 +821,9 @@ class blogm_Articles extends core_Master
         $showAll = blogm_Setup::get('SHOW_EXPANDED_CATEGORIES_IN_NAV') == 'yes';
         $data->categories = blogm_Categories::getCategoriesByDomain($data->menuRec->domainId, $data->menuId, $data->categoryId, $showAll);
 
-        $data->query->likeKeylist('categories', keylist::fromArray($data->categories));
+        // Статиите се филтрират по всички категории на менюто, като архива, независимо от разгъването на навигацията
+        $data->contentCategories = blogm_Categories::getCategoriesByDomain($data->menuRec->domainId, $data->menuId, null, true);
+        $data->query->likeKeylist('categories', keylist::fromArray($data->contentCategories));
         $data->q = Request::get('q', 'varchar');
 
         // Архив
@@ -859,13 +868,16 @@ class blogm_Articles extends core_Master
     {
         $blogType = (blogm_Setup::get('TYPE') == 'blog');
         if ($data->category) {
-            $data->query->where(array("#categories LIKE '%|[#1#]|%'", $data->category));
+            // Избраната категория показва и статиите от подкатегориите си
+            $catIds = array($data->category => $data->category) + cls::get('blogm_Categories')->getDescendantsArr($data->category, true);
+            $data->query->likeKeylist('categories', keylist::fromArray($catIds));
             $data->selectedCategories[$data->category] = true;
         } else {
 
             // Добавка, ако няма избрана категория, резултатите да се филтрират само по категориите, които са от текущия език
-            if (countR($data->categories)) {
-                $data->query->likeKeylist('categories', keylist::fromArray($data->categories));
+            $contentCategories = $data->contentCategories ?? $data->categories ?? array();
+            if (countR($contentCategories)) {
+                $data->query->likeKeylist('categories', keylist::fromArray($contentCategories));
             } else {
                 $data->query->where("1=2");
             }
@@ -944,7 +956,8 @@ class blogm_Articles extends core_Master
             $data->title = null;
             $data->rows = array();
         } elseif (!empty($data->archive)) {
-            $data->title = tr('Архив за месец') . '&nbsp;<b>' . dt::getMonth($data->archiveM, Mode::is('screenMode', 'narrow') ? 'M' : 'F') . ', ' . $data->archiveY . '&nbsp;</b>';
+            $period = dt::getMonth($data->archiveM, Mode::is('screenMode', 'narrow') ? 'M' : 'F') . ' ' . $data->archiveY;
+            $data->title = "<span class='blogm-browse-label'>" . tr('Архив за месец') . "</span> <span class='blogm-browse-period'>{$period}</span>";
             if (!countR($data->rows)) {
                 $data->emptyMessage = tr($blogType ? 'Няма статии за този месец' : 'Няма новини за този месец');
             }
@@ -1023,7 +1036,15 @@ class blogm_Articles extends core_Master
 
         $layout->replace($data->title, 'BROWSE_HEADER');
         $layout->replace($description, 'BROWSE_DESCR');
-        $layout->append($data->pager->getPrevNext('« по-стари', 'по-нови »'));
+        if (cms_Domains::getCmsSkin() instanceof cms_CommerceTheme) {
+            if ($data->pager->getPagesCount() > 1) {
+                $navigation = ht::createElement('nav', array('class' => 'commerce-blog-pagination', 'aria-label' => tr('Страници на блога')),
+                    $data->pager->getPrevNext('← ' . tr('По-стари'), tr('По-нови') . ' →'));
+                $layout->append($navigation);
+            }
+        } else {
+            $layout->append($data->pager->getPrevNext('« по-стари', 'по-нови »'));
+        }
         
         $this->renderNavigation($data, $layout);
         
@@ -1151,7 +1172,9 @@ class blogm_Articles extends core_Master
                 }
                 
                 // Създаваме линк, който ще покаже само статиите от избраната категория
-                $title = ht::createLink(dt::getMonth($m, Mode::is('screenMode', 'narrow') ? 'M' : 'F') . '/' . $y, array('blogm_Articles', 'browse', 'cMenuId' => $data->menuId, 'archive' => $month));
+                $commerceTheme = cms_Domains::getCmsSkin() instanceof cms_CommerceTheme;
+                $monthTitle = dt::getMonth($m, $commerceTheme ? 'F' : (Mode::is('screenMode', 'narrow') ? 'M' : 'F')) . ($commerceTheme ? ' ' : '/') . $y;
+                $title = ht::createLink($monthTitle, array('blogm_Articles', 'browse', 'cMenuId' => $data->menuId, 'archive' => $month));
                 
                 // Див-обвивка
                 $title = ht::createElement('div', $attr, $title);

@@ -3568,19 +3568,19 @@ class cat_Products extends embed_Manager
         if($countPricesBefore){
             $priceSum = arr::sumValuesArray($pricesArr, 'price');
             core_Debug::stopTimer('WAC_AMOUNT_FROM_CACHE');
-            core_Debug::log("END WAC_AMOUNT_FROM_CACHE " . round(core_Debug::$timers["WAC_AMOUNT_FROM_CACHE"]->workingTime, 6));
+            core_Debug::log("END WAC_AMOUNT_FROM_CACHE " . round(core_Debug::$timers["WAC_AMOUNT_FROM_CACHE"]->workingTime ?? 0, 6));
 
             core_Debug::stopTimer('WAC_AMOUNT');
-            core_Debug::log("END GET_WAC_AMOUNT " . round(core_Debug::$timers["WAC_AMOUNT"]->workingTime, 6));
+            core_Debug::log("END GET_WAC_AMOUNT " . round(core_Debug::$timers["WAC_AMOUNT"]->workingTime ?? 0, 6));
 
             return round($quantity * ($priceSum / $countPricesBefore), 4);
         }
 
         core_Debug::stopTimer('WAC_AMOUNT_FROM_CACHE');
-        core_Debug::log("END WAC_AMOUNT_FROM_CACHE " . round(core_Debug::$timers["WAC_AMOUNT_FROM_CACHE"]->workingTime, 6));
+        core_Debug::log("END WAC_AMOUNT_FROM_CACHE " . round(core_Debug::$timers["WAC_AMOUNT_FROM_CACHE"]->workingTime ?? 0, 6));
 
         core_Debug::stopTimer('WAC_AMOUNT');
-        core_Debug::log("END GET_WAC_AMOUNT " . round(core_Debug::$timers["WAC_AMOUNT"]->workingTime, 6));
+        core_Debug::log("END GET_WAC_AMOUNT " . round(core_Debug::$timers["WAC_AMOUNT"]->workingTime ?? 0, 6));
 
         // Връщаме сумата
         return null;

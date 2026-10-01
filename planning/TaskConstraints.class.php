@@ -398,7 +398,9 @@ class planning_TaskConstraints extends core_Master
         }
 
         core_Debug::stopTimer('SYNC_TASK_CONSTRAINTS');
-        core_Debug::log("SYNC_TASK_CONSTRAINTS " . round(core_Debug::$timers["SYNC_TASK_CONSTRAINTS"]->workingTime, 6));
+        if (isset(core_Debug::$timers['SYNC_TASK_CONSTRAINTS']->workingTime)) {
+            core_Debug::log("SYNC_TASK_CONSTRAINTS " . round(core_Debug::$timers['SYNC_TASK_CONSTRAINTS']->workingTime, 6));
+        }
 
         return "Синхронизирани ограничения I:{$i} / U: {$u} / D: {$d}";
     }
@@ -757,7 +759,7 @@ class planning_TaskConstraints extends core_Master
         cls::get('planning_Tasks')->saveArray($tasks, 'id,calcedDuration,calcedCurrentDuration');
 
         core_Debug::stopTimer('SYNC_TASK_DURATIONS');
-        core_Debug::log("SYNC_TASK_DURATIONS " . round(core_Debug::$timers["SYNC_TASK_DURATIONS"]->workingTime, 6));
+        core_Debug::log("SYNC_TASK_DURATIONS " . round(core_Debug::$timers["SYNC_TASK_DURATIONS"]->workingTime ?? 0, 6));
     }
 
 
@@ -854,7 +856,7 @@ class planning_TaskConstraints extends core_Master
         static::setPlanningParamSignatures($tasks, $assets);
 
         core_Debug::stopTimer('SCHEDULE_PREPARE_INTERVALS');
-        core_Debug::log("END SCHEDULE_PREPARE_INTERVALS " . round(core_Debug::$timers["SCHEDULE_PREPARE_INTERVALS"]->workingTime, 6));
+        core_Debug::log("END SCHEDULE_PREPARE_INTERVALS " . round(core_Debug::$timers["SCHEDULE_PREPARE_INTERVALS"]->workingTime ?? 0, 6));
 
         // Извлича се ръчната подредба по машини
         $manualQuery = planning_TaskManualOrderPerAssets::getQuery();
@@ -1347,7 +1349,7 @@ class planning_TaskConstraints extends core_Master
 
         $debugRes .= "<hr />КРАЙНО НЕПЛАНИРАНИ: " . implode(', ', array_keys($notPlanned)) . "<br />";
         core_Debug::stopTimer('SCHEDULE_CALC_TIMES');
-        core_Debug::log("END SCHEDULE_CALC_TIMES " . round(core_Debug::$timers['SCHEDULE_CALC_TIMES']->workingTime, 6));
+        core_Debug::log("END SCHEDULE_CALC_TIMES " . round(core_Debug::$timers['SCHEDULE_CALC_TIMES']->workingTime ?? 0, 6));
 
         return $debugRes;
     }
@@ -2601,7 +2603,7 @@ class planning_TaskConstraints extends core_Master
         $debugRes .= "<hr />КРАЙНО НЕПЛАНИРАНИ: " . implode(', ', array_keys($notPlanned)) . "<br />";
 
         core_Debug::stopTimer('SCHEDULE_CALC_TIMES');
-        core_Debug::log("END SCHEDULE_CALC_TIMES " . round(core_Debug::$timers["SCHEDULE_CALC_TIMES"]->workingTime, 6));
+        core_Debug::log("END SCHEDULE_CALC_TIMES " . round(core_Debug::$timers["SCHEDULE_CALC_TIMES"]->workingTime ?? 0, 6));
 
         return $debugRes;
     }

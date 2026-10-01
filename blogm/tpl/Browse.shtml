@@ -24,7 +24,9 @@
             <!--ET_BEGIN commentsCnt-->
             <span class='blogm-comments-cnt linkWithIcon' title="|Брой коментари|*">[#commentsCnt#]</span>
             <!--ET_END commentsCnt-->
-            [#publishedOn#], [#author#] |в|* [#categories#]
+            <span class="blogm-published-on">[#publishedOn#]</span>
+            <!--ET_BEGIN author--><span class="blogm-author">[#author#]</span><!--ET_END author-->
+            <span class="blogm-meta-categories">|в|* [#categories#]</span>
         </div>
         <!--ET_END articleBrowse-->
         <div class='blogm-article-title'>
@@ -37,4 +39,3 @@
     </div>
     <!--ET_END ROW-->
 </div>
-

@@ -102,7 +102,7 @@ class bgerp_ExtendedImporter extends core_Manager
         core_Debug::stopTimer('import');
         
         $html .= "|Импортирани|* {$created} |нови записа, обновени|* {$updated} |съществуващи записа|*<br />";
-        $html .= '|Общо време|*: ' . round(core_Debug::$timers['import']->workingTime, 2);
+        $html .= '|Общо време|*: ' . round(core_Debug::$timers['import']->workingTime ?? 0, 2);
         
         return $html;
     }

@@ -191,26 +191,46 @@ body.commerce-theme #cmsMenu .commerce-cart-link .count {
 body.commerce-theme .soc-sharing-holder .soc-sharing {
     display: inline-flex;
     align-items: center;
-    gap: 5px;
+    justify-content: center;
+    gap: 0.55em;
+    width: auto;
+    min-height: 1.5em;
     height: auto;
-    padding: 2px 8px;
+    padding: 0.15em 0.6em;
+    margin: 0;
     box-sizing: border-box;
-    line-height: 1.25rem;
+    line-height: 1;
     vertical-align: middle;
+    border: 1px solid #d5e1e7;
+    border-radius: 0.35em;
+    background: #fff;
+    color: #536b79;
+    font-size: 1em;
+    text-shadow: none;
+    box-shadow: none;
 }
+body.commerce-theme .soc-sharing-holder { display: flex; flex-wrap: wrap; gap: 0.5em; margin-block: 1em; }
 body.commerce-theme .soc-sharing-holder .soc-sharing:hover {
     text-decoration: none;
+    background: #edf5f7;
+    border-color: #8fb0bf;
 }
+body.commerce-theme .soc-sharing-holder .soc-sharing:focus-visible { outline: 2px solid #145b73; outline-offset: 2px; }
 body.commerce-theme .soc-sharing-holder .soc-sharing img {
     position: static;
+    display: block;
+    width: 1em;
+    height: 1em;
+    margin: 0;
+    object-fit: contain;
     flex-shrink: 0;
 }
-body.commerce-theme .soc-sharing-holder .soc-sharing sup {
-    position: static;
-    vertical-align: baseline;
-    font-size: inherit;
-    line-height: inherit;
-    margin-right: -5px;
+body.commerce-theme .soc-sharing-holder .commerce-sharing-count {
+    padding-left: 0.6em;
+    border-left: 1px solid #e1e8ec;
+    font-size: 0.8em;
+    line-height: 1.25;
+    font-variant-numeric: tabular-nums;
 }
 
 /* One search control for shop, blog and CMS article navigation. */
@@ -521,3 +541,29 @@ body.commerce-theme .pages a.pager:focus-visible {
     outline: 2px solid #145b73;
     outline-offset: 3px;
 }
+
+/* EventHub inherits Commerce colours only on this theme. */
+body.commerce-theme .eventHub {
+    --eh-accent: #145b73;
+    --eh-accent-2: #315f73;
+    --eh-accent-soft: #edf5f7;
+    --eh-ink: #182b3a;
+    --eh-muted: #647582;
+    --eh-line: #dce6eb;
+    --eh-bg: #f5f8fa;
+    font-family: Arial, Helvetica, sans-serif;
+}
+body.commerce-theme .eventHub :is(input, select, button, h1, h2, h3, h4, .nav_item, .date) { font-family: inherit; }
+body.commerce-theme .eventHub .searchBox { margin-block: 1em; padding-block: 0; }
+body.commerce-theme .eventHub .searchForm :is(input, select, button) { border-radius: 0.5em; box-shadow: none; }
+body.commerce-theme .eventHub #searchButton { background: #145b73; color: #fff; border-color: #145b73; }
+body.commerce-theme .eventHub .nav_item.sel_page a { background: #145b73; color: #fff; }
+body.commerce-theme .eventHub > :is(h1, h2),
+body.commerce-theme .eventHub .pastEvents > h2 { justify-content: center; text-align: center; margin: 1em 0 0.75em !important; line-height: 1.35; }
+body.commerce-theme .eventHub > h1 { font-size: 1.65em; }
+body.commerce-theme .eventHub > h2,
+body.commerce-theme .eventHub .pastEvents > h2 { font-size: 1.2em; color: #315f73; }
+body.commerce-theme .eventHub > h1::before,
+body.commerce-theme .eventHub > h1::after { display: none; }
+body.commerce-theme .eventHub > h1 + h2 { margin-top: 0.5em !important; }
+body.commerce-theme .eventHub .topContentNewsbar { margin-bottom: 1em; }

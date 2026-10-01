@@ -364,7 +364,7 @@ class acc_ProductPricePerPeriods extends core_Manager
             $rows[$rec->id] = $this->recToVerbal($rec);
         }
         core_Debug::stopTimer('RENDER_ROWS');
-        core_Debug::log("END RENDER_ROWS " . round(core_Debug::$timers["RENDER_ROWS"]->workingTime, 6));
+        core_Debug::log("END RENDER_ROWS " . round(core_Debug::$timers["RENDER_ROWS"]->workingTime ?? 0, 6));
 
         $table = cls::get('core_TableView', array('mvc' => $this));
         $fields = arr::make('date=Дата,otherItemId=Перо,productItemId=Артикул,price=Цена');

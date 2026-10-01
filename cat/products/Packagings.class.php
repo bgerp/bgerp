@@ -1554,12 +1554,12 @@ class cat_products_Packagings extends core_Detail
             }
 
             core_Debug::stopTimer("COUNT {$Detail}");
-            core_Debug::log("END COUNT {$Detail}" . round(core_Debug::$timers["COUNT {$Detail}"]->workingTime, 6));
+            core_Debug::log("END COUNT {$Detail}" . round(core_Debug::$timers["COUNT {$Detail}"]->workingTime ?? 0, 6));
         }
 
         core_Debug::stopTimer('COUNT_ALL');
-        core_Debug::log("END GET_PACKS" . round(core_Debug::$timers["GET_PACKS"]->workingTime, 6));
-        core_Debug::log("END COUNT_ALL" . round(core_Debug::$timers["COUNT_ALL"]->workingTime, 6));
+        core_Debug::log("END GET_PACKS" . round(core_Debug::$timers["GET_PACKS"]->workingTime ?? 0, 6));
+        core_Debug::log("END COUNT_ALL" . round(core_Debug::$timers["COUNT_ALL"]->workingTime ?? 0, 6));
 
         // Ще се обновят използванията само на съществуващите продуктови опаковки
         core_Debug::startTimer('SAVE_ALL');
