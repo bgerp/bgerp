@@ -275,9 +275,22 @@ class acc_Balances extends core_Master
         if (isset($fields['-list']) && isset($rec->id)) {
             $fingerprint = self::getFingerprint($rec->id);
             if (isset($fingerprint['calcDuration'])) {
-                $row->calcDuration = core_Type::getByName('double(decimals=1)')->toVerbal($fingerprint['calcDuration']) . ' ' . tr('сек.');
+                $Double = core_Type::getByName('double(decimals=1)');
+                $row->calcDuration = $Double->toVerbal($fingerprint['calcDuration']) . ' ' . tr('сек.');
                 if (($fingerprint['calcPasses'] ?? 1) > 1) {
                     $row->calcDuration .= ' ×' . $fingerprint['calcPasses'];
+                }
+
+                // Стрелка спрямо предишното пълно изчисление - само при разлика от поне 10%
+                $prev = $fingerprint['prevCalcDuration'] ?? null;
+                if (!empty($prev)) {
+                    $ratio = $fingerprint['calcDuration'] / $prev;
+                    $title = tr('Предишно изчисление') . ': ' . $Double->toVerbal($prev) . ' ' . tr('сек.');
+                    if ($ratio >= 1.1) {
+                        $row->calcDuration .= " <span class='red' title='" . ht::escapeAttr($title) . "'>↑</span>";
+                    } elseif ($ratio <= 0.9) {
+                        $row->calcDuration .= " <span class='green' title='" . ht::escapeAttr($title) . "'>↓</span>";
+                    }
                 }
             }
         }
@@ -627,6 +640,9 @@ class acc_Balances extends core_Master
 
         // Пропуснатото смятане не сменя показаното време на последното пълно изчисление
         if (empty($rec->calcSkipped)) {
+            if (isset($fingerprint['calcDuration'])) {
+                $fingerprint['prevCalcDuration'] = $fingerprint['calcDuration'];
+            }
             $fingerprint['calcDuration'] = round(microtime(true) - $calcStart, 1);
             $fingerprint['calcPasses'] = countR($diffs);
         }
@@ -852,7 +868,7 @@ class acc_Balances extends core_Master
     /**
      * Маркер на данните и отпечатък на входа от последното изчисление на баланса
      *
-     * @return array ['dataToken' => string, 'inputHash' => string|null, 'pendingRuns' => int, 'pendingKey' => string, 'calcDuration' => float, 'calcPasses' => int]
+     * @return array ['dataToken' => string, 'inputHash' => string|null, 'pendingRuns' => int, 'pendingKey' => string, 'calcDuration' => float, 'prevCalcDuration' => float, 'calcPasses' => int]
      */
     private static function getFingerprint($balanceId)
     {
