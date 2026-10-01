@@ -118,4 +118,15 @@ check(denied(function () use ($form2) { support_ReviewInvitation::submit($form2-
 check(!core_Locks::$held && count(cal_Tasks::$saved) === 1, 'Locks released and no duplicate after failed save');
 foreach (array('javascript:alert(1)', '//evil.example', 'https://user:pass@example.org', "https://example.org/\r\nLocation:x", '') as $url) check(!support_ReviewInvitation::isValidUrl($url), 'Unsafe or incomplete URL rejected');
 check(support_ReviewInvitation::isValidUrl('https://example.org/review?q=one%20two'), 'Complete HTTP(S) destination accepted');
+cal_Tasks::$fail = false;
+foreach (array('empty', 'null', 'missing') as $case) {
+    support_Systems::$rec = (object) array('reviewUrl' => 'https://example.org/review', 'state' => 'active');
+    if ($case !== 'missing') support_Systems::$rec->reviewMode = $case === 'null' ? null : '';
+    $form = new ReviewTestForm();
+    support_ReviewInvitation::prepareForm($form, 1);
+    support_ReviewInvitation::submit($form->rec, 1);
+    $calls = $test->calls;
+    check($test->advanceTest($form->rec->reviewToken)['state'] === 'deny' && $test->calls === $calls,
+        $case . ' mode disables invitations without editing the system or calling AI');
+}
 echo "PASS: invitation lifecycle\n";

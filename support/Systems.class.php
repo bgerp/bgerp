@@ -154,12 +154,12 @@ class support_Systems extends core_Master
         $this->FLD('showConsumptionBtnsInSupportTask', 'enum(auto=Автоматично,firstRow=На първи ред,secondRow=На втори ред,no=Скриване)', 'caption=Бутони за влагане/връщане в сигналите->Избор,notNull,value=auto');
 
         // Varchar запазва режима и когато доставчикът на оценката е изключен.
-        $this->FLD('reviewMode', 'varchar(32)', 'caption=Публичен отзив||Public review->Покана||Invitation,value=off,notNull,autohide=any');
-        $this->FLD('reviewUrl', 'url', 'caption=Публичен отзив||Public review->Връзка||URL,autohide=any');
-        $this->FLD('reviewButtonBg', 'varchar(128)', 'caption=Публичен отзив||Public review->Бутон BG||Button BG,autohide=any');
-        $this->FLD('reviewButtonEn', 'varchar(128)', 'caption=Публичен отзив||Public review->Бутон EN||Button EN,autohide=any');
-        $this->FLD('reviewTextBg', 'text(rows=3)', 'caption=Публичен отзив||Public review->Покана BG||Invitation BG,autohide=any');
-        $this->FLD('reviewTextEn', 'text(rows=3)', 'caption=Публичен отзив||Public review->Покана EN||Invitation EN,autohide=any');
+        $this->FLD('reviewMode', 'varchar(32)', 'caption=Публичен отзив||Public review->Покана||Invitation,value=off,notNull,mandatory,silent,refreshForm,class=w100');
+        $this->FLD('reviewUrl', 'url', 'caption=Публичен отзив||Public review->Връзка||URL,input=none');
+        $this->FLD('reviewButtonBg', 'varchar(128)', 'caption=Публичен отзив||Public review->Бутон BG||Button BG,input=none');
+        $this->FLD('reviewButtonEn', 'varchar(128)', 'caption=Публичен отзив||Public review->Бутон EN||Button EN,input=none');
+        $this->FLD('reviewTextBg', 'text(rows=3)', 'caption=Публичен отзив||Public review->Покана BG||Invitation BG,input=none');
+        $this->FLD('reviewTextEn', 'text(rows=3)', 'caption=Публичен отзив||Public review->Покана EN||Invitation EN,input=none');
         $this->setOptions('reviewMode', $this->getReviewModes());
 
         $this->setDbUnique('name');
@@ -272,8 +272,13 @@ class support_Systems extends core_Master
             $row->linkFromOutside = "<div onmouseup='selectInnerText(this);'>" . toUrl(array('cal_Tasks', 'New', $rec->id), 'absolute') . "</div>";
         }
 
-        $row->reviewMode = $mvc->getReviewModes()[$rec->reviewMode ?? 'off']
+        $row->reviewMode = $mvc->getReviewModes()[!empty($rec->reviewMode) ? $rec->reviewMode : 'off']
             ?? tr('Недостъпен режим||Unavailable mode');
+        if (empty($rec->reviewMode) || $rec->reviewMode === 'off') {
+            foreach (array('reviewUrl', 'reviewButtonBg', 'reviewButtonEn', 'reviewTextBg', 'reviewTextEn') as $field) {
+                unset($row->{$field});
+            }
+        }
     }
 
 
@@ -474,12 +479,28 @@ class support_Systems extends core_Master
         $form->setField('addSubSteps', 'caption=Настройки на сигналите в системата->Добави подетапи');
 
         $modes = $mvc->getReviewModes();
-        $mode = $form->rec->reviewMode ?? 'off';
+        if (empty($form->rec->reviewMode)) {
+            $form->rec->reviewMode = 'off';
+        }
+        $mode = $form->rec->reviewMode;
         if (!isset($modes[$mode])) {
             $modes[$mode] = tr('Недостъпен модул за оценка||Evaluation module unavailable');
             $form->info = ($form->info ?? '') . tr('|*<p>|Поканата няма да се показва, докато модулът за оценка е недостъпен.||The invitation is disabled while the evaluation module is unavailable.|*</p>');
         }
         $form->setOptions('reviewMode', $modes);
+        $form->input('reviewMode', 'silent');
+        if (($form->rec->reviewMode ?? 'off') !== 'off') {
+            $form->setField('reviewUrl,reviewButtonBg,reviewButtonEn,reviewTextBg,reviewTextEn', 'input=input,mandatory');
+            // Скритите полета липсват в заявката при повторно включване.
+            if ($form->cmd === 'refresh' && !empty($form->rec->id)) {
+                $stored = $mvc->fetch((int) $form->rec->id);
+                foreach (array('reviewUrl', 'reviewButtonBg', 'reviewButtonEn', 'reviewTextBg', 'reviewTextEn') as $field) {
+                    if (Request::get($field) === null) {
+                        $form->setDefault($field, $stored->{$field} ?? null);
+                    }
+                }
+            }
+        }
 
         if(!haveRole('admin, supportMaster')){
             $form->info = tr("|*<div class='formCustomInfo'><b>Може да редактирате само полетата за достъп|*!</b></div>");
