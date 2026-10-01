@@ -24,20 +24,53 @@ class transsrv_plg_CreateAuction extends core_Plugin
     {
         $rec = $data->rec;
 
-        if ($systemId = remote_Authorizations::getSystemId(transsrv_Setup::get('BID_DOMAIN'))) {
+        if ($systemId = self::getBidSystemId()) {
             if ($mvc->haveRightFor('createauction', $rec)) {
-
-                $d = $mvc->getAuctionData($rec);
-
-                $selfUrl = core_App::getSelfURL();
-                $selfUrl = str_replace($_SERVER['REQUEST_URI'], '', $selfUrl);
-                $d['ourReffDomainUrl'] = $selfUrl;
+                $d = self::getRemoteAuctionData($mvc, $rec);
                 $d = base64_encode(gzcompress(json_encode($d)));
 
                 $url = remote_Authorizations::getRemoteUrl($systemId, array('transbid_Auctions', 'Add', 'd' => $d));
                 $data->toolbar->addBtn('Търг', $url, 'ef_icon = img/16/view.png,title=Създаване на търг в trans.bid,row=2');
             }
         }
+    }
+
+
+    /**
+     * Оторизацията на текущия потребител към търговата система
+     *
+     * @return int|null
+     */
+    public static function getBidSystemId()
+    {
+        // Без зададен адрес LIKE-търсенето би хванало произволна оторизация
+        $domain = trim((string) transsrv_Setup::get('BID_DOMAIN'));
+        if ($domain === '') {
+
+            return null;
+        }
+
+        return remote_Authorizations::getSystemId($domain);
+    }
+
+
+    /**
+     * Данните за търга, които се пращат към търговата система
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $rec
+     *
+     * @return array
+     */
+    public static function getRemoteAuctionData($mvc, $rec)
+    {
+        $d = $mvc->getAuctionData($rec);
+
+        // Само хостът: от CLI REQUEST_URI е "/" и str_replace би изял всички наклонени черти
+        $selfUrl = core_App::getSelfURL();
+        $d['ourReffDomainUrl'] = substr($selfUrl, 0, strlen($selfUrl) - strlen($_SERVER['REQUEST_URI'] ?? ''));
+
+        return $d;
     }
 
 
