@@ -1354,6 +1354,7 @@ class acc_BalanceDetails extends core_Detail
 
             $start = microtime(true);
             $this->calcStats['journalUpdated'] = 0;
+            $this->calcStats['journalAmountChanged'] = 0;
 
             $tracing     = Mode::is('traceBalance');
             $journalRows = [];
@@ -1374,6 +1375,10 @@ class acc_BalanceDetails extends core_Detail
                 $this->addEntry($rec, 'credit');
 
                 if ($update) {
+                    // Стратегиите ползват сумата без закръгляне - всяка записана разлика налага второ смятане
+                    if ($rec->amount != $amountBefore || is_null($rec->amount) !== is_null($amountBefore)) {
+                        $this->calcStats['journalAmountChanged']++;
+                    }
                     $JournalDetails->save_($rec);
                     $hasUpdatedJournal = true;
                     $this->calcStats['journalUpdated']++;
