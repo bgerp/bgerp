@@ -72,7 +72,11 @@ class Archive_7z_Entry
     private function parseEntry(array $data)
     {
         foreach ($data as $line) {
-            list($k, $v) = explode(' =', $line, 2);
+            $parts = explode(' =', $line, 2);
+            if (count($parts) < 2) {
+                continue;
+            }
+            list($k, $v) = $parts;
             $v = ltrim($v);
 
             $this->setData($k, $v);
