@@ -1412,7 +1412,9 @@ class acc_BalanceDetails extends core_Detail
             $this->calcStats['journalUpdated'] = 0;
             $this->calcStats['journalAmountChanged'] = 0;
             $this->calcStats['journalAmountDiff'] = 0;
+            $this->calcStats['journalAmountMaxDiff'] = 0;
             $this->calcStats['journalPrecisionOnly'] = 0;
+            $journalSaveTime = 0;
 
             $tracing     = Mode::is('traceBalance');
             $journalRows = [];
@@ -1443,10 +1445,14 @@ class acc_BalanceDetails extends core_Detail
                 if ($update) {
                     // Стратегиите се хранят от сумите - сборът от промените им показва дали са се уравновесили
                     if ($rec->amount != $amountBefore) {
+                        $amountDiff = abs((float) $rec->amount - (float) $amountBefore);
                         $this->calcStats['journalAmountChanged']++;
-                        $this->calcStats['journalAmountDiff'] += abs((float) $rec->amount - (float) $amountBefore);
+                        $this->calcStats['journalAmountDiff'] += $amountDiff;
+                        $this->calcStats['journalAmountMaxDiff'] = max($this->calcStats['journalAmountMaxDiff'], $amountDiff);
                     }
+                    $saveStart = microtime(true);
                     $JournalDetails->save_($rec);
+                    $journalSaveTime += microtime(true) - $saveStart;
                     $hasUpdatedJournal = true;
                     $this->calcStats['journalUpdated']++;
                     if (countR($this->calcStats['journalSamples'] ?? null) < 5) {
@@ -1474,6 +1480,9 @@ class acc_BalanceDetails extends core_Detail
             }
 
             $this->addCalcPhase('entries', $start);
+
+            // Колко от entries е запис в журнала (чакане за заключени редове) и колко изчисление
+            $this->calcStats['journalSaveTime'] = round($journalSaveTime, 2);
 
             if ($tracing) {
                 acc_BalanceDebugger::log('journal_entries', $journalRows);

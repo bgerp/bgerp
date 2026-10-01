@@ -155,6 +155,14 @@ class acc_Balances extends core_Master
 
 
     /**
+     * Под този сбор от промените на сумите в журнала (стотинка) стратегиите се смятат за уравновесени
+     *
+     * Заедно с CHANGE_THRESHOLD за всеки ред - иначе стотици редове с шум в 8-10 знак държат итерациите
+     */
+    const JOURNAL_SUM_THRESHOLD = 0.01;
+
+
+    /**
      * До колко пъти се смята един баланс, докато стратегиите се уравновесят
      */
     const MAX_ITERATIONS = 10;
@@ -582,10 +590,12 @@ class acc_Balances extends core_Master
      *
      * Стратегиите се хранят от сумите в журнала - щом смятането не ги промени, следващо ще даде същото.
      * Така и следващите баланси по веригата получават вече крайните цени.
+     * Уравновесени са, когато никой ред не се мести с CHANGE_THRESHOLD и сборът е под JOURNAL_SUM_THRESHOLD.
      */
     private static function calcUntilStable($rec, $force = false)
     {
         $diffs = array();
+        $maxDiffs = array();
         $prevDiff = null;
         $calcStart = microtime(true);
 
@@ -597,9 +607,11 @@ class acc_Balances extends core_Master
             }
 
             $diff = $rec->journalAmountDiff ?? 0;
-            $diffs[] = round($diff, 5);
+            $maxDiff = $rec->journalAmountMaxDiff ?? 0;
+            $diffs[] = (float) sprintf('%.2g', $diff);
+            $maxDiffs[] = (float) sprintf('%.2g', $maxDiff);
 
-            if ($diff < self::CHANGE_THRESHOLD) {
+            if ($maxDiff < self::CHANGE_THRESHOLD && $diff < self::JOURNAL_SUM_THRESHOLD) {
                 $stop = 'stable';
                 break;
             }
@@ -660,7 +672,7 @@ class acc_Balances extends core_Master
         $rec->calcIterations = $diffs;
         $rec->calcStop = $stop;
         if (countR($diffs) > 1 || $stop != 'stable') {
-            self::logNotice("Итерации на {$rec->fromDate} - {$rec->toDate}: " . countR($diffs) . ' (промяна на сумите в журнала ' . implode(', ', $diffs) . "), край: {$stop}", $rec->id, 3);
+            self::logNotice("Итерации на {$rec->fromDate} - {$rec->toDate}: " . countR($diffs) . ' (промяна на сумите в журнала ' . implode(', ', $diffs) . '; най-голяма на ред ' . implode(', ', $maxDiffs) . "), край: {$stop}", $rec->id, 3);
         }
     }
 
@@ -702,6 +714,7 @@ class acc_Balances extends core_Master
         $bD->calcStats['usedBeforeMB'] = round(memory_get_usage(false) / 1048576);
         $rec->calcSkipped   = false;
         $rec->journalAmountDiff = 0;
+        $rec->journalAmountMaxDiff = 0;
         $convertToDate      = null;
         $lastRec            = self::getBalanceBefore($rec->toDate);
         $periodCurrencyCode = acc_Periods::getBaseCurrencyCode($rec->toDate);
@@ -780,6 +793,7 @@ class acc_Balances extends core_Master
 
         $bD->calcBalanceForPeriod($firstDay, $rec->toDate, $isMiddleBalance, $journal);
         $rec->journalAmountDiff = $bD->calcStats['journalAmountDiff'] ?? 0;
+        $rec->journalAmountMaxDiff = $bD->calcStats['journalAmountMaxDiff'] ?? 0;
 
         if ($bD->saveBalance($rec->id)) {
             $rec->lastCalculateChange = 'yes';
@@ -945,12 +959,19 @@ class acc_Balances extends core_Master
             if (self::forceCalc($rec)) {
                 $data->recalcedBalances[$rec->toDate] = $rec;
             }
+            $unfinished = self::$outOfTime;
 
             $periodTime = round(microtime(true) - $periodStart, 2);
             $calcCalls = self::$calcCount - $calcCountBefore;
             if ($calcCalls > 1 || $periodTime >= self::STATS_LOG_MIN_TIME) {
                 $iterations = $rec->calcIterations ?? array();
                 $this->logNotice("Преизчисляване на {$rec->fromDate} - {$rec->toDate}: " . countR($iterations) . ' итерации (' . implode(', ', $iterations) . '), край: ' . ($rec->calcStop ?? '-') . ", calc() извиквания {$calcCalls} за {$periodTime}s", $rec->id, 3);
+            }
+
+            // Времето е свършило при смятането на този период - следващото пускане продължава от него
+            if ($unfinished) {
+                $this->logNotice("Изчисляването продължава при следващото пускане от {$rec->fromDate} - {$rec->toDate}", null, 3);
+                break;
             }
         }
 
