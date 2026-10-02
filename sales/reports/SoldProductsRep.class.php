@@ -17,6 +17,30 @@
  */
 class sales_reports_SoldProductsRep extends frame2_driver_TableData
 {
+    /**
+     * Показателите на справката, в реда на обработката
+     */
+    protected static $statCaptions = array(
+        'invoicedByContragent' => 'Фактурирани редове по контрагент',
+        'dealers' => 'Филтър по търговци',
+        'contragents' => 'Филтър по контрагенти',
+        'productFilter' => 'Филтър по артикули',
+        'query' => 'Заявка',
+        'source' => 'Обработени редове',
+        'products' => 'Артикули',
+        'documents' => 'Документи',
+        'currencyRates' => 'Валутни курсове',
+        'dcNotes' => 'Известия без детайли',
+        'groups' => 'Изчисляване по групи',
+        'weight' => 'Тегла',
+        'sort' => 'Подреждане',
+        'preloaded' => 'Заредени записи',
+        'rows' => 'Редове в справката',
+        'memory' => 'Пикова памет (MB)',
+        'total' => 'Общо',
+    );
+
+
     /** Данни, използвани повторно в рамките на едно изчисление. */
     private static $reportRecords = array();
     private static $reportWeights = array();
@@ -800,6 +824,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
      */
     protected function prepareRecs($rec, &$data = null)
     {
+        $startedOn = microtime(true);
         self::applyRecDefaults($rec);
         self::$reportRecords = self::$reportWeights = array();
 
@@ -845,7 +870,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         //Подготвяме масив с фактурираните артикули през избрания период
         //разбити по контрагент
         if ($rec->seeByContragent == 'yes') {
-
+            $timer = microtime(true);
             $invDetQuery = self::getInvoicedProducts($rec);
 
             $invDetQuery->where("#state = 'active'");
@@ -901,6 +926,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                     $obj->invAmount += $invAmount;
                 }
             }
+            self::addReportStat($data, 'invoicedByContragent', microtime(true) - $timer, $invoiceCount);
         }
 
 
@@ -1024,6 +1050,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                 // Вижда всичко → ограничаваме само ако сам е избрал търговци
                 if (!empty($dealersArr)) {
                     $query->in('dealerId', $dealersArr);
+                    self::addReportStat($data, 'dealers', 0, countR($dealersArr), $dealersArr);
                 }
             } else {
                 // Ограничени права → само разрешените търговци
@@ -1037,14 +1064,20 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                 } else {
                     $query->in('dealerId', $dealersArr);
                 }
+                self::addReportStat($data, 'dealers', 0, countR($dealersArr), $dealersArr);
             }
         } else {
             // invoiced → фактурите нямат dealerId; атрибуцията към търговец е по нишката на сделката.
+            $timer = microtime(true);
             self::applyInvoiceDealerScope($query, $scope);
+            if (empty($scope['canSeeAll'])) {
+                self::addReportStat($data, 'dealers', microtime(true) - $timer, countR($scope['allowedDealers'] ?? null), $scope['allowedDealers'] ?? array());
+            }
         }
 
         // Избраните контрагенти и тези от CRM групите се обединяват без повторни четения на корици.
         if ($rec->contragent || $rec->crmGroup) {
+            $timer = microtime(true);
             $folderIds = keylist::toArray($rec->contragent);
             if ($rec->crmGroup) {
                 foreach (self::getContragentsInGroups($rec) as $folderId) $folderIds[$folderId] = $folderId;
@@ -1059,6 +1092,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                 $pairs[$classId . '|' . $objectId] = "({$classId}, {$objectId})";
             }
             $query->where($pairs ? '(#contragentClassId, #contragentId) IN (' . implode(', ', $pairs) . ')' : '1=2');
+            self::addReportStat($data, 'contragents', microtime(true) - $timer, countR($pairs), $folderIds);
         }
 
         //Филтър за АРТИКУЛ и ГРУПИ АРТИКУЛИ
@@ -1104,6 +1138,9 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                     $query->orLikeKeylist($checkFieldName, $rec->$filterGroupsType);
                 }
             }
+
+            $filterGroups = $rec->$filterGroupsType ? keylist::toArray($rec->$filterGroupsType) : array();
+            self::setReportStat($data, 'productFilter', tr(static::$statCaptions['productFilter']) . ': ' . countR($prodsArr) . ' / ' . tr('групи') . ' ' . countR($filterGroups));
         }
 
         //Филтър за стандартни артикули
@@ -1121,10 +1158,13 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         }
         $query->show($fields);
 
-        // Синхронизира таймлимита с броя записи
+        $timer = microtime(true);
         $recordCount = $query->selectOnReplica();
         $rec->count = $recordCount;
+        self::addReportStat($data, 'query', microtime(true) - $timer, $recordCount);
+        $timer = microtime(true);
 
+        // Синхронизира таймлимита с броя записи
         $timeLimit = $recordCount * 0.05;
 
         if ($timeLimit >= 30) {
@@ -1528,6 +1568,11 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             }
         }
 
+        self::addReportStat($data, 'source', microtime(true) - $timer, $recordCount);
+        self::addReportStat($data, 'products', 0, countR($recs));
+        self::addReportStat($data, 'documents', 0, countR($documentsCache));
+        self::addReportStat($data, 'currencyRates', 0, countR($currencyRates));
+
         //Отчитане на ДИ и КИ без детайли
 
         if ($rec->quantityType == 'invoiced') {
@@ -1535,6 +1580,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             //и то коригира фактура която е от периода
 
             //iQuery ДИ и КИ влизащи в периода и коригиращи обща сума(без детайли)
+            $timer = microtime(true);
             /** @var core_Query $iQuery */
             $iQuery = sales_Invoices::getQuery();
             $iQuery->where("#type = 'dc_note'");
@@ -1624,7 +1670,10 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                 }
 
             }
+            self::addReportStat($data, 'dcNotes', microtime(true) - $timer, $noteCount);
         }
+
+        $timer = microtime(true);
 
         //Изчисляване на промяната в стойността на продажбите и делтите за артикул
         //добавя в масива пропъртита:
@@ -1836,8 +1885,11 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             }
         }
 
+        self::addReportStat($data, 'groups', microtime(true) - $timer, countR($recs));
+
         //Добавяне на колона за теглото
         if ($rec->seeWeight == 'yes' && $rec->grouping == 'no' && $rec->compare == 'no') {
+            $timer = microtime(true);
 
             foreach ($recs as $val) {
                 $prodRec = self::getReportRecord('cat_Products', $val->productId);
@@ -1845,11 +1897,12 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                 $val->weight = (is_numeric($prodWeight)) ? $prodWeight * $val->quantity : 'n.a.';
 
             }
-
+            self::addReportStat($data, 'weight', microtime(true) - $timer, countR($recs));
 
         }
 
         //Подредба на резултатите
+        $timer = microtime(true);
         if (!is_null($recs)) {
             $typeOrder = ($rec->orderBy == 'code') ? 'stri' : 'native';
 
@@ -1868,6 +1921,25 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             }
 
             arr::sortObjects($recs, $orderBy, $rec->order, $typeOrder);
+        }
+        self::addReportStat($data, 'sort', microtime(true) - $timer, countR($recs));
+
+        $preloaded = array();
+        foreach (self::$reportRecords as $class => $classRecs) {
+            $preloaded[] = "{$class} " . countR($classRecs);
+        }
+        if (countR($preloaded)) {
+            self::setReportStat($data, 'preloaded', tr(static::$statCaptions['preloaded']) . ': ' . implode(', ', $preloaded));
+        }
+
+        self::addReportStat($data, 'rows', 0, countR($recs));
+        self::addReportStat($data, 'memory', 0, round(memory_get_peak_usage(true) / 1048576));
+        self::addReportStat($data, 'total', microtime(true) - $startedOn, countR($recs));
+
+        // В лога на справката се записва едно обобщение на етапите
+        $statsMsg = $this->getReportStatsMsg($data, ', ');
+        if (!empty($statsMsg)) {
+            $this->logWhilePreparing($statsMsg);
         }
 
         return $recs;
