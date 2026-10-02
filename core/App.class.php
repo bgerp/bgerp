@@ -627,9 +627,9 @@ class core_App
      */
     public static function redirect($url, $absolute = false, $msg = null, $type = 'notice', $permanent = false)
     {
-        // Очакваме най-много три символа (BOM) в буфера
-        expect(ob_get_length() <= 3, array(ob_get_length(), ob_get_contents()));
-        
+        $controller = is_array($url) ? ($url['Ctr'] ?? $url[0] ?? null) : null;
+        $action = is_array($url) ? ($url['Act'] ?? $url[1] ?? null) : null;
+        if (is_object($controller)) $controller = cls::getClassName($controller);
         $hitId = Request::get('hit_id');
         
         if (isset($msg)) {
@@ -638,8 +638,6 @@ class core_App
                 if (!$hitId) {
                     $hitId = str::getRand();
                 }
-                
-                core_Statuses::newStatus($msg, $type, null, 60, $hitId);
             }
         }
         
@@ -657,7 +655,38 @@ class core_App
             bp($url);
         }
         
-        if (Request::get('ajax_mode')) {
+        // URL и режимът се фиксират преди finally блоковете да възстановят Request/Mode.
+        $redirect = new core_exception_Redirect($url, $msg, $type, $permanent, Request::get('ajax_mode'), $hitId, $controller, $action);
+        if ($msg !== null && strlen(trim($msg))) {
+            $redirect->statusUserId = core_Users::getCurrent();
+        }
+        throw $redirect;
+    }
+
+
+    /**
+     * Изпраща вече подготвен редирект само на външната граница на заявката.
+     *
+     * @param core_exception_Redirect $redirect
+     *
+     * @return void
+     */
+    public static function sendRedirect(core_exception_Redirect $redirect)
+    {
+        if (PHP_SAPI !== 'cli') {
+            expect(!headers_sent(), 'Редирект след изпратен HTTP отговор');
+            expect(ob_get_length() <= 3, array(ob_get_length(), ob_get_contents()));
+        }
+        if ($redirect->statusMessage !== null && strlen(trim($redirect->statusMessage))) {
+            core_Statuses::newStatus($redirect->statusMessage, $redirect->messageType, $redirect->statusUserId, 60, $redirect->hitId);
+        }
+        if (PHP_SAPI === 'cli') {
+            core_Debug::log('Redirect: ' . $redirect->url);
+            core_Cls::shutdown();
+            static::exitScript();
+        }
+        $url = $redirect->url;
+        if ($redirect->ajax) {
             
             // Ако сме в Ajax_mode редиректа става чрез Javascript-а
             $resObj = new stdClass();
@@ -671,7 +700,7 @@ class core_App
         header('Cache-Control: no-cache, must-revalidate'); // HTTP 1.1.
         header('Expires: 0'); // Proxies.
         
-        header("Location: {$url}", true, $permanent ? 301 : 302);
+        header("Location: {$url}", true, $redirect->permanent ? 301 : 302);
         
         static::shutdown(false);
     }

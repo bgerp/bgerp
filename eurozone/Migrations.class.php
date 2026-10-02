@@ -554,6 +554,8 @@ SET
         try {
             self::updateCreatedPeriods();
             $html .= "<li>Мигриране на СЧ. Периоди успешно</li>";
+        } catch (core_exception_Redirect $e) {
+            throw $e;
         } catch(Exception $e){
             wp($e);
             $errors[] = "при периодите:" . $e->getMessage();
@@ -565,6 +567,8 @@ SET
         try {
             self::addBgnPayment();
             $html .= "<li>Мигриране на безналично плащане лева Успешно</li>";
+        } catch (core_exception_Redirect $e) {
+            throw $e;
         } catch(Exception $e){
             wp($e);
             $errors[] = "при безн. плащане:" . $e->getMessage();
@@ -579,6 +583,8 @@ SET
                 self::updateFinDeals('findeals_Deals');
                 core_Packs::setConfig('eurozone', array('EUROZONE_MIGRATE_FINDEALS' => 'yes'));
                 $html .= "<li>Мигриране на финансови сделки Успешно</li>";
+            } catch (core_exception_Redirect $e) {
+                throw $e;
             } catch(Exception $e){
                 wp($e);
                 $errors[] = "при ФС:" . $e->getMessage();
@@ -593,6 +599,8 @@ SET
                 self::updateFinDeals('findeals_AdvanceDeals');
                 core_Packs::setConfig('eurozone', array('EUROZONE_MIGRATE_ADVANCE_FINDEALS' => 'yes'));
                 $html .= "<li>Мигриране на СА Успешно</li>";
+            } catch (core_exception_Redirect $e) {
+                throw $e;
             } catch(Exception $e){
                 wp($e);
                 $errors[] = "при СА:" . $e->getMessage();
@@ -607,6 +615,8 @@ SET
                 self::updatePriceLists();
                 core_Packs::setConfig('eurozone', array('EUROZONE_MIGRATE_PRICE_LISTS' => 'yes'));
                 $html .= "<li>Мигриране на ЦП Успешно</li>";
+            } catch (core_exception_Redirect $e) {
+                throw $e;
             } catch(Exception $e){
                 wp($e);
                 $errors[] = "при ЦП:" . $e->getMessage();
@@ -623,6 +633,8 @@ SET
                 self::updateDeltas();
                 $html .= "<li>Мигриране на Делти Успешно</li>";
                 core_Packs::setConfig('eurozone', array('EUROZONE_MIGRATE_DELTAS' => 'yes'));
+            } catch (core_exception_Redirect $e) {
+                throw $e;
             } catch(Exception $e){
                 wp($e);
                 $html .= "<li>Мигриране на Делти ГРЕШКА {$e->getMessage()}</li>";
@@ -639,6 +651,8 @@ SET
                 self::updatePurchases();
                 core_Packs::setConfig('eurozone', array('EUROZONE_MIGRATE_PURCHASES' => 'yes'));
                 $html .= "<li>Мигриране на покупки Успешно</li>";
+            } catch (core_exception_Redirect $e) {
+                throw $e;
             } catch(Exception $e){
                 wp($e);
                 $errors[] = "при покупки:" . $e->getMessage();
@@ -653,6 +667,8 @@ SET
         try {
             self::updateEshopSettings();
             $html .= "<li>Мигриране на ешоп Успешно";
+        } catch (core_exception_Redirect $e) {
+            throw $e;
         } catch(Exception $e){
             wp($e);
             $errors[] = "при ешопа:" . $e->getMessage();
@@ -666,6 +682,8 @@ SET
                 self::updatePriceCosts();
                 core_Packs::setConfig('eurozone', array('EUROZONE_MIGRATE_COSTS' => 'yes'));
                 $html .= "<li>Мигриране на кеш. цени Успешно</li>";
+            } catch (core_exception_Redirect $e) {
+                throw $e;
             } catch(Exception $e){
                 wp($e);
                 $errors[] = "при кеш. цени:" . $e->getMessage();
@@ -682,6 +700,8 @@ SET
                 self::updatePricesByDate();
                 core_Packs::setConfig('eurozone', array('EUROZONE_MIGRATE_STORE_PRICES' => 'yes'));
                 $html .= "<li>Мигриране на складови цени Успешно</li>";
+            } catch (core_exception_Redirect $e) {
+                throw $e;
             } catch(Exception $e){
                 wp($e);
                 $errors[] = "при складови цени:" . $e->getMessage();
@@ -698,6 +718,8 @@ SET
                 self::updateHr();
                 core_Packs::setConfig('eurozone', array('EUROZONE_MIGRATE_HR' => 'yes'));
                 $html .= "<li>Мигриране на HR Успешно</li>";
+            } catch (core_exception_Redirect $e) {
+                throw $e;
             } catch(Exception $e){
                 wp($e);
                 $errors[] = "при HR:" . $e->getMessage();
@@ -714,6 +736,8 @@ SET
                 self::convertBgnAccounts2Euro();
                 core_Packs::setConfig('eurozone', array('EUROZONE_MIGRATE_ACCOUNTS' => 'yes'));
                 $html .= "<li>Мигриране на б. сметки Успешно</li>";
+            } catch (core_exception_Redirect $e) {
+                throw $e;
             } catch(Exception $e){
                 wp($e);
                 $errors[] = "при б. сметки:" . $e->getMessage();

@@ -381,6 +381,8 @@ class core_Request
                 // Записваме времето на извикване
                 Mode::set('hitTime', dt::mysql2timestamp());
             }
+        } catch (core_exception_Redirect $e) {
+            throw $e;
         } catch (Exception $e) {
         }
         
@@ -403,42 +405,44 @@ class core_Request
             $mustPop = true;
         }
         
-        //
-        if (defined('EF_CTR_NAME')) {
-            $ctr = EF_CTR_NAME;
-        } else {
-            $ctr = $Request->get('Ctr');
+        try {
+            //
+            if (defined('EF_CTR_NAME')) {
+                $ctr = EF_CTR_NAME;
+            } else {
+                $ctr = $Request->get('Ctr');
             
-            if (empty($ctr)) {
-                $ctr = 'Index';
+                if (empty($ctr)) {
+                    $ctr = 'Index';
+                }
             }
-        }
         
-        if (defined('EF_ACT_NAME')) {
-            $act = EF_ACT_NAME;
-        } else {
-            $act = $Request->get('Act');
+            if (defined('EF_ACT_NAME')) {
+                $act = EF_ACT_NAME;
+            } else {
+                $act = $Request->get('Act');
             
-            if (empty($act)) {
-                $act = 'default';
+                if (empty($act)) {
+                    $act = 'default';
+                }
             }
+        
+            $method = $prefix . $act;
+        
+            $ctr = cls::getClassName($ctr);
+        
+            if (cls::load($ctr, true) && ($mvc = & cls::get($ctr)) && (is_subclass_of($mvc, 'core_BaseClass'))) {
+                $content = $mvc->action(strtolower($act));
+            } else {
+                error('404 @Липсваща страница', $ctr, $_GET, $_POST);
+            }
+        
+        } finally {
+            if ($mustPop) {
+                $Request->pop($varsName);
+            }
+            Debug::log('Forward <= ' . $point);
         }
-        
-        $method = $prefix . $act;
-        
-        $ctr = cls::getClassName($ctr);
-        
-        if (cls::load($ctr, true) && ($mvc = & cls::get($ctr)) && (is_subclass_of($mvc, 'core_BaseClass'))) {
-            $content = $mvc->action(strtolower($act));
-        } else {
-            error('404 @Липсваща страница', $ctr, $_GET, $_POST);
-        }
-        
-        if ($mustPop) {
-            $Request->pop($varsName);
-        }
-        
-        Debug::log('Forward <= ' . $point);
         
         return $content;
     }

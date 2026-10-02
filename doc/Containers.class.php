@@ -2607,6 +2607,8 @@ class doc_Containers extends core_Manager
                         }
                     }
                 }
+            } catch (core_exception_Redirect $e) {
+                throw $e;
             } catch (Exception $e) {
                 reportException($e);
             }

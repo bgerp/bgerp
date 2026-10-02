@@ -1647,6 +1647,8 @@ class fileman_webdrv_Generic extends core_Manager
             try {
                 // Създаваме инстанция
                 $zip = new ZipArchive();
+            } catch (core_exception_Redirect $e) {
+                throw $e;
             } catch (Exception $e) {
                 $zip = false;
             }

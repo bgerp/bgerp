@@ -313,6 +313,8 @@ class drdata_Eori extends core_Manager
                     } else {
                         $res = self::statusInvalid;
                     }
+                } catch (core_exception_Redirect $e) {
+                    throw $e;
                 } catch (Exception $e) {
                     $res = self::statusInvalid;
                 }

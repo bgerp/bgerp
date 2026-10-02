@@ -1265,6 +1265,8 @@ class fileman_Indexes extends core_Manager
 
                     return $markdownContent;
                 }
+            } catch (core_exception_Redirect $e) {
+                throw $e;
             } catch (Throwable $e) {
                 reportException($e);
                 $failed = true;
@@ -1282,6 +1284,8 @@ class fileman_Indexes extends core_Manager
                 $fData = fileman_Data::fetch($dataId);
                 try {
                     if ($fData) $me->processFile($fData, dt::addSecs(120));
+                } catch (core_exception_Redirect $e) {
+                    throw $e;
                 } catch (Throwable $e) {
                     if (!$withStatus) throw $e;
                     reportException($e);
@@ -1296,6 +1300,8 @@ class fileman_Indexes extends core_Manager
             if (!$withStatus) return null;
             try {
                 $extractionStatus = self::getContentExtractionStatus($fileHnd, $asMarkdownIfPossible);
+            } catch (core_exception_Redirect $e) {
+                throw $e;
             } catch (Throwable $e) {
                 reportException($e);
                 $extractionStatus = 'error';

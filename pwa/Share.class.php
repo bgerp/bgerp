@@ -115,6 +115,8 @@ class pwa_Share extends core_Mvc
 
             try {
                 self::issueShareToken();
+            } catch (core_exception_Redirect $t) {
+                throw $t;
             } catch (Throwable $t) {
 
                 return self::getShareErrorRedirect(self::SHARE_ERROR_QUOTA);
@@ -132,6 +134,8 @@ class pwa_Share extends core_Mvc
 
             try {
                 $isDirectShareFallback = !self::validateAndConsumeShareToken();
+            } catch (core_exception_Redirect $t) {
+                throw $t;
             } catch (Throwable $t) {
                 $shareDiag = self::logShareTokenValidationFailure($t);
                 $shareError = ($shareDiag === 'php_direct_rate_limit')
@@ -186,6 +190,8 @@ class pwa_Share extends core_Mvc
                 if (core_Users::getCurrent() <= 0) {
                     try {
                         self::validateAnonymousUploadSize($_FILES['ulfile']);
+                    } catch (core_exception_Redirect $t) {
+                        throw $t;
                     } catch (Throwable $t) {
 
                         return self::getShareErrorRedirect(self::SHARE_ERROR_SIZE);
@@ -193,6 +199,8 @@ class pwa_Share extends core_Mvc
 
                     try {
                         $anonymousQuota = self::reserveAnonymousUploadSlot();
+                    } catch (core_exception_Redirect $t) {
+                        throw $t;
                     } catch (Throwable $t) {
 
                         return self::getShareErrorRedirect(self::SHARE_ERROR_QUOTA);
@@ -212,6 +220,8 @@ class pwa_Share extends core_Mvc
                     if ($anonymousQuota) {
                         $anonymousOwnedFiles = self::collectNewSharedFiles($bucketId, $lastFileId);
                     }
+                } catch (core_exception_Redirect $t) {
+                    throw $t;
                 } catch (Throwable $t) {
                     // makeUpload() може да е създал първите файлове, преди
                     // следващ файл да хвърли изключение. Докато държим lock-а,
@@ -220,6 +230,8 @@ class pwa_Share extends core_Mvc
                         try {
                             $partialFiles = self::collectNewSharedFiles($bucketId, $lastFileId);
                             self::deleteUnclaimedSharedFiles($partialFiles);
+                        } catch (core_exception_Redirect $cleanupError) {
+                            throw $cleanupError;
                         } catch (Throwable $cleanupError) {
                             reportException($cleanupError);
                         }
@@ -272,6 +284,8 @@ class pwa_Share extends core_Mvc
                         $anonymousOwnedFiles ?? array(),
                         $uploadDiagnosticSummary
                     );
+                } catch (core_exception_Redirect $t) {
+                    throw $t;
                 } catch (Throwable $t) {
                     self::releaseAnonymousUploadSlot($anonymousQuota ?? null);
                     reportException($t);
@@ -284,11 +298,15 @@ class pwa_Share extends core_Mvc
                 if ($link) {
                     try {
                         $remoteKey = self::storeSharedRemoteUrl($link, $name, 'file', $body);
+                    } catch (core_exception_Redirect $t) {
+                        throw $t;
                     } catch (Throwable $t) {
                         self::logWarning('Невалиден URL към споделени PWA файлове');
                         try {
                             $key = self::storeSharedUrlAsText($body, $name);
                             self::showSharedUrlFallbackStatus();
+                        } catch (core_exception_Redirect $fallbackError) {
+                            throw $fallbackError;
                         } catch (Throwable $fallbackError) {
                             reportException($fallbackError);
                             status_Messages::newStatus(tr(self::getShareErrorMessages()[self::SHARE_ERROR_URL]), 'warning');
@@ -319,12 +337,16 @@ class pwa_Share extends core_Mvc
             if ($link) {
                 try {
                     $remoteKey = self::storeSharedRemoteUrl($link, $name, 'file', $body);
+                } catch (core_exception_Redirect $t) {
+                    throw $t;
                 } catch (Throwable $t) {
                     try {
                         $key = self::storeSharedUrlAsText($body, $name);
                         self::showSharedUrlFallbackStatus();
 
                         return new Redirect(array('pwa_Share', 'SaveTargetFiles', 'key' => $key));
+                    } catch (core_exception_Redirect $fallbackError) {
+                        throw $fallbackError;
                     } catch (Throwable $fallbackError) {
                         reportException($t);
                         reportException($fallbackError);
@@ -339,6 +361,8 @@ class pwa_Share extends core_Mvc
             if ($desc && self::isRemoteShareUrl($desc)) {
                 try {
                     $remoteKey = self::storeSharedRemoteUrl($desc, $name, 'html', $body);
+                } catch (core_exception_Redirect $t) {
+                    throw $t;
                 } catch (Throwable $t) {
                     reportException($t);
 
@@ -352,6 +376,8 @@ class pwa_Share extends core_Mvc
                 $name = $name ? $name : tr('Споделен текст');
                 try {
                     $key = self::storeSharedText($body, $name);
+                } catch (core_exception_Redirect $t) {
+                    throw $t;
                 } catch (Throwable $t) {
                     reportException($t);
 
@@ -766,6 +792,8 @@ class pwa_Share extends core_Mvc
             if (core_Users::getCurrent() <= 0) {
                 try {
                     self::enforceShareTokenRateLimit();
+                } catch (core_exception_Redirect $t) {
+                    throw $t;
                 } catch (Throwable $t) {
                     $rateDiagnostic = $isWorkerFallback
                         ? 'php_worker_rate_limit'
@@ -1735,6 +1763,8 @@ class pwa_Share extends core_Mvc
 
         try {
             $parts = @parse_url($url);
+        } catch (core_exception_Redirect $t) {
+            throw $t;
         } catch (Throwable $t) {
             $parts = false;
         }
@@ -1999,6 +2029,8 @@ class pwa_Share extends core_Mvc
             }
 
             throw new RuntimeException('Сваленото съдържание не можа да бъде запазено', pwa_SafeUrl::ERROR_TEMP_FILE, $e);
+        } catch (core_exception_Redirect $t) {
+            throw $t;
         } catch (Throwable $t) {
             throw new RuntimeException('Сваленото съдържание не можа да бъде запазено', pwa_SafeUrl::ERROR_TEMP_FILE, $t);
         } finally {
@@ -2123,6 +2155,8 @@ class pwa_Share extends core_Mvc
         if ($fileKey) {
             try {
                 $fArr = self::claimSharedFiles($fileKey);
+            } catch (core_exception_Redirect $t) {
+                throw $t;
             } catch (Throwable $t) {
                 self::logWarning('Изтекъл или невалиден ключ за PWA файлове');
 
@@ -2136,6 +2170,8 @@ class pwa_Share extends core_Mvc
                 // Cache binding-ът се проверява и ключът се консумира преди
                 // мрежовата заявка, така refresh не може да свали два пъти.
                 $remoteData = self::consumeSharedRemoteUrl($remoteKey);
+            } catch (core_exception_Redirect $t) {
+                throw $t;
             } catch (Throwable $t) {
                 self::logWarning('Изтекъл или невалиден ключ за споделен URL');
                 if (!$fileKey) {
@@ -2154,6 +2190,8 @@ class pwa_Share extends core_Mvc
                     if (!empty($remoteResult->key)) {
                         $key = $remoteResult->key;
                     }
+                } catch (core_exception_Redirect $t) {
+                    throw $t;
                 } catch (Throwable $t) {
                     $error = self::getRemoteShareError($t);
                     if ($error === self::SHARE_ERROR_UPLOAD) {
@@ -2171,6 +2209,8 @@ class pwa_Share extends core_Mvc
                         $key = self::storeSharedUrlAsText($fallbackBody, $remoteData->name ?? '');
                         $fallbackStored = true;
                         self::showSharedUrlFallbackStatus();
+                    } catch (core_exception_Redirect $fallbackError) {
+                        throw $fallbackError;
                     } catch (Throwable $fallbackError) {
                         reportException($fallbackError);
                     }

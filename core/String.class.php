@@ -964,6 +964,8 @@ class core_String
         });
         try {
             eval('$result = ' . $expr . ';');
+        } catch (core_exception_Redirect $t) {
+            throw $t;
         } catch (Exception $t) {
             $error = $t->getMessage();
             $result = null;
@@ -972,8 +974,9 @@ class core_String
             $error = $t->getMessage();
             $result = null;
             $success = false;
+        } finally {
+            restore_error_handler();
         }
-        restore_error_handler();
         
         return $result;
     }

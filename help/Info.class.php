@@ -165,6 +165,8 @@ class help_Info extends core_Master
             if (cls::load($rec->class, true)) {
                 try {
                     $mvc = cls::get($rec->class);
+                } catch (core_exception_Redirect $e) {
+                    throw $e;
                 } catch (Throwable $e) {
                     reportException($e);
                 }

@@ -218,6 +218,8 @@ class markitdown_Converter extends core_Manager
                 return '';
             }
             $content = cls::get(get_called_class())->getMarkdown($filePath);
+        } catch (core_exception_Redirect $e) {
+            throw $e;
         } catch (Throwable $e) {
             reportException($e);
             $content = '';

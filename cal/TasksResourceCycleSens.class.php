@@ -157,6 +157,8 @@ class cal_TasksResourceCycleSens extends sens2_ProtoDriver
                     }
                 } catch (core_exception_Expect $e) {
 
+                } catch (core_exception_Redirect $e) {
+                    throw $e;
                 } catch (Exception $e) {
 
                 }

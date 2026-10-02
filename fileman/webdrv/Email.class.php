@@ -137,6 +137,8 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
 
         try {
             $clsArr = core_Classes::getOptionsByInterface('email_interfaces_ParseSourceDataIntf');
+        } catch (core_exception_Redirect $e) {
+            throw $e;
         } catch (Exception $e) {
             $clsArr = array();
         }

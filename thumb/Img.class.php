@@ -812,6 +812,8 @@ class thumb_Img
             if ($this->size2x) {
                 $this->size2x->getUrl('forced');
             }
+        } catch (core_exception_Redirect $e) {
+            throw $e;
         } catch (\Throwable $e) {
             // Загряването е оптимизация - провалът му не бива да чупи страницата
         }

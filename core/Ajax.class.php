@@ -75,94 +75,100 @@ class core_Ajax extends core_Mvc
             'divId' => true,
             'hitId' => true));
         
-        // Обхождаме всички подадедени локални URL-та
-        foreach ((array) $subscribedArr as $name => $url) {
+        try {
+            // Обхождаме всички подадедени локални URL-та
+            foreach ((array) $subscribedArr as $name => $url) {
             
-            // Декодираме URL-то
-            $url = urldecode($url);
+                // Декодираме URL-то
+                $url = urldecode($url);
             
-            // Вземаме масива от локолното URL
-            $urlArr = core_App::parseLocalUrl($url);
+                // Вземаме масива от локолното URL
+                $urlArr = core_App::parseLocalUrl($url);
             
-            // Добавяме параметър, който указва, че е стартиран по AJAX
-            $urlArr['ajax_mode'] = $ajaxMode;
+                // Добавяме параметър, който указва, че е стартиран по AJAX
+                $urlArr['ajax_mode'] = $ajaxMode;
             
-            // Ако е зададен hitTime
-            if ($hitTime) {
+                // Ако е зададен hitTime
+                if ($hitTime) {
                 
+                    // Да се добави в URL-то
+                    $urlArr['hitTime'] = $hitTime;
+                }
+            
+                // Добавяме уникалното ID на хита
+                if ($hitId) {
+                    $urlArr['hitId'] = $hitId;
+                }
+            
                 // Да се добави в URL-то
-                $urlArr['hitTime'] = $hitTime;
-            }
+                $urlArr['idleTime'] = $idleTime;
             
-            // Добавяме уникалното ID на хита
-            if ($hitId) {
-                $urlArr['hitId'] = $hitId;
-            }
+                // Добавяме URL-то в заявката
+                $urlArr['parentUrl'] = $parentUrl;
             
-            // Да се добави в URL-то
-            $urlArr['idleTime'] = $idleTime;
-            
-            // Добавяме URL-то в заявката
-            $urlArr['parentUrl'] = $parentUrl;
-            
-            try {
-                expect($urlArr['Ctr'], $urlArr);
+                try {
+                    expect($urlArr['Ctr'], $urlArr);
                 
-                // Извикваме URL-то
-                $resArr = Request::forward($urlArr);
-            } catch (core_exception_Expect $e) {
-                reportException($e);
+                    // Извикваме URL-то
+                    $resArr = Request::forward($urlArr);
+                } catch (core_exception_Expect $e) {
+                    reportException($e);
                 
-                $errMsg = "Грешка при вземане на данни от {$url} - {$e->getMessage()}";
+                    $errMsg = "Грешка при вземане на данни от {$url} - {$e->getMessage()}";
                 
-                // Записваме в лога
-                self::logNotice($errMsg, null, self::$logKeepDays);
+                    // Записваме в лога
+                    self::logNotice($errMsg, null, self::$logKeepDays);
                 
-                // Ако сме в дебъг режим и сме логнат
-                if (isDebug() && haveRole('user')) {
-                    $errMsg = "|Грешка при вземане на данни от|* {$url} - {$e->getMessage()}";
+                    // Ако сме в дебъг режим и сме логнат
+                    if (isDebug() && haveRole('user')) {
+                        $errMsg = "|Грешка при вземане на данни от|* {$url} - {$e->getMessage()}";
                     
-                    // Показваме статус съобщение
-                    core_Statuses::newStatus($errMsg, 'warning');
+                        // Показваме статус съобщение
+                        core_Statuses::newStatus($errMsg, 'warning');
+                    }
+                
+                    continue;
                 }
-                
-                continue;
-            }
             
-            // Ако няма масив или масива не е масива
-            if (!is_array($resArr)) {
-                if (is_object($resArr) && ($resArr instanceof core_Redirect)) {
-                    // Пушваме ajax_mode, за да може функцията да върне резултат по AJAX, вместо директно да редиректне
-                    Request::push(array('ajax_mode' => $ajaxMode));
-                    $resArr = $resArr->getContent();
+                // Ако няма масив или масива не е масива
+                if (!is_array($resArr)) {
+                    if (is_object($resArr) && ($resArr instanceof core_Redirect)) {
+                        // Пушваме ajax_mode, за да може функцията да върне резултат по AJAX, вместо директно да редиректне
+                        Request::push(array('ajax_mode' => $ajaxMode), 'ajaxTemplate');
+                        try {
+                            $resArr = $resArr->getContent();
+                        } finally {
+                            Request::pop('ajaxTemplate');
+                        }
+                    }
                 }
-            }
             
-            if (!is_array($resArr)) {
-                // Записваме в лога резултата
-                $resStr = core_Type::mixedToString($resArr);
+                if (!is_array($resArr)) {
+                    // Записваме в лога резултата
+                    $resStr = core_Type::mixedToString($resArr);
                 
-                $errMsg = "Некоректен резултат от {$url} - {$resStr}";
+                    $errMsg = "Некоректен резултат от {$url} - {$resStr}";
                 
-                self::logErr($errMsg, null, self::$logKeepDays);
+                    self::logErr($errMsg, null, self::$logKeepDays);
                 
-                // Ако сме в дебъг режим и сме логнат
-                if (isDebug() && haveRole('user')) {
-                    $errMsg = "|Некоректен резултат от|* {$url} - {$resStr}";
+                    // Ако сме в дебъг режим и сме логнат
+                    if (isDebug() && haveRole('user')) {
+                        $errMsg = "|Некоректен резултат от|* {$url} - {$resStr}";
                     
-                    // Показваме статус съобщение
-                    core_Statuses::newStatus($errMsg, 'warning');
-                }
+                        // Показваме статус съобщение
+                        core_Statuses::newStatus($errMsg, 'warning');
+                    }
                 
-                continue;
-            }
+                    continue;
+                }
             
-            // Обединяваме масивите
-            $jResArr = array_merge($jResArr, $resArr);
-        }
+                // Обединяваме масивите
+                $jResArr = array_merge($jResArr, $resArr);
+            }
         
-        // Нулираме масива за игнориране
-        Request::resetIgnoreParams();
+        } finally {
+            Request::resetIgnoreParams();
+        }
         
         core_App::outputJson($jResArr);
     }

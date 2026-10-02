@@ -380,6 +380,8 @@ class doc_plg_TplManager extends core_Plugin
                 
                 try {
                     $data->row->blankQrClient = barcode_Generator::getLink('qr', $qrString, array('width' => 87, 'height' => 87), $params);
+                } catch (core_exception_Redirect $e) {
+                    throw $e;
                 } catch (Exception $e) {
                     reportException($e);
                 }

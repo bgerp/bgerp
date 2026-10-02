@@ -236,6 +236,8 @@ class cat_products_ParamIndex extends cat_products_ProtoParamIndex
             if (countR($filterable)) {
                 try {
                     $rows = self::getIndexRows($productRec->id, $filterable);
+                } catch (core_exception_Redirect $e) {
+                    throw $e;
                 } catch (Throwable $e) {
                     $error = $e->getMessage();
                     reportException($e);

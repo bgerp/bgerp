@@ -415,29 +415,34 @@ class core_Classes extends core_Manager
         $query = self::getQuery();
         $res = '<li>Обновяване на информацията за класовете</li>';
         
-        Mode::set('RebuildingClasses', true);
-        while ($rec = $query->fetch("#state = 'active'")) {
-            $load = cls::load($rec->name, true);
-            if ($load) {
-                try {
-                    $inst = cls::get($rec->name);
-                } catch (Throwable $e) {
-                    $load = false;
+        Mode::push('RebuildingClasses', true);
+        try {
+            while ($rec = $query->fetch("#state = 'active'")) {
+                $load = cls::load($rec->name, true);
+                if ($load) {
+                    try {
+                        $inst = cls::get($rec->name);
+                    } catch (core_exception_Redirect $e) {
+                        throw $e;
+                    } catch (Throwable $e) {
+                        $load = false;
+                    }
+                }
+                if (!$load) {
+                    $rec->state = 'closed';
+                    self::save($rec, 'state');
+                    $res .= "<li style='color:red;'>Деактивиран беше класа {$rec->name} защото липсва кода му.</li>";
+                } elseif ($inst->deprecated ?? null) {
+                    $res .= "<li style='color:green;'>Деактивиран беше класа {$rec->name} защото е пенсиониран.</li>";
+                    $rec->state = 'closed';
+                    self::save($rec, 'state');
+                } else {
+                    core_Classes::add($rec->name);
                 }
             }
-            if (!$load) {
-                $rec->state = 'closed';
-                self::save($rec, 'state');
-                $res .= "<li style='color:red;'>Деактивиран беше класа {$rec->name} защото липсва кода му.</li>";
-            } elseif ($inst->deprecated ?? null) {
-                $res .= "<li style='color:green;'>Деактивиран беше класа {$rec->name} защото е пенсиониран.</li>";
-                $rec->state = 'closed';
-                self::save($rec, 'state');
-            } else {
-                core_Classes::add($rec->name);
-            }
+        } finally {
+            Mode::pop('RebuildingClasses');
         }
-        Mode::set('RebuildingClasses', false);
         self::on_AfterDbTableUpdated($query->mvc);
         
         return $res;

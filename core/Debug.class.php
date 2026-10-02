@@ -789,6 +789,8 @@ class core_Debug
                     
                     try {
                         $data['errTitle'] .= log_Debug::getReportLink($bName, 'сигнал', false);
+                    } catch (core_exception_Redirect $e) {
+                        throw $e;
                     } catch (Throwable $e) {
                     }
                 }
@@ -920,6 +922,8 @@ class core_Debug
             try {
                 $uId = core_Setup::get('BGERP_UNIQ_ID');
                 $contex['CORE_BGERP_UNIQ_ID']  = $uId ? $uId : 'undefined';
+            } catch (core_exception_Redirect $e) {
+                throw $e;
             } catch (Exception $e) {
                 
             } catch (Throwable $t) {
@@ -1167,6 +1171,8 @@ class core_Debug
 
                 return true;
             }
+        } catch (core_exception_Redirect $e) {
+            throw $e;
         } catch (Exception $e) {
         } catch (Throwable $t) {
         }
@@ -1186,6 +1192,8 @@ class core_Debug
             $brid = log_Browsers::getBrid(false);
 
             return !empty($brid) && !log_Browsers::isBotBrid($brid, false);
+        } catch (core_exception_Redirect $e) {
+            throw $e;
         } catch (Exception $e) {
         } catch (Throwable $t) {
         }
@@ -1253,6 +1261,8 @@ class core_Debug
             $data['cnt']++;
 
             @file_put_contents($file, json_encode($data), LOCK_EX);
+        } catch (core_exception_Redirect $e) {
+            throw $e;
         } catch (Exception $e) {
         } catch (Throwable $t) {
         }

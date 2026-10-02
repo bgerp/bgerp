@@ -810,6 +810,8 @@ class plg_Search extends core_Plugin
                         continue;
                     }
                 }
+            } catch (core_exception_Redirect $e) {
+                throw $e;
             } catch (Exception $e) {
                 reportException($e);
             }
@@ -946,12 +948,16 @@ class plg_Search extends core_Plugin
                             }
                         }
                     }
+                } catch (core_exception_Redirect $e) {
+                    throw $e;
                 } catch (Exception $e) {
                     reportException($e);
                 } catch (Throwable  $e) {
                     reportException($e);
                 }
             }
+        } catch (core_exception_Redirect $e) {
+            throw $e;
         } catch (Exception $e) {
             reportException($e);
         } catch (Throwable  $e) {
@@ -997,6 +1003,8 @@ class plg_Search extends core_Plugin
                 if ($query->mvc->db) {
                     $minLenFTS = $query->mvc->db->getVariable('ft_min_word_len');
                 }
+            } catch (core_exception_Redirect $e) {
+                throw $e;
             } catch (Exception $e) {
                 reportException($e);
             }

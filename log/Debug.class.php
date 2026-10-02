@@ -1005,6 +1005,8 @@ class log_Debug extends core_Manager
             self::logNotice('Не може да се обходи директорията', $dir);
             
             return $fArr;
+        } catch (core_exception_Redirect $e) {
+            throw $e;
         } catch (Throwable  $e) {
             self::logNotice('Не може да се обходи директорията', $dir);
             
@@ -1217,6 +1219,8 @@ class log_Debug extends core_Manager
                     if ($canShow) {
                         try {
                             $mTime = @$iterator->current()->getMTime();
+                        } catch (core_exception_Redirect $e) {
+                            throw $e;
                         } catch (Throwable  $e) {
                             $mTime = dt::now();
                         }
@@ -1228,6 +1232,8 @@ class log_Debug extends core_Manager
                             if (!isset($mTime)) {
                                 try {
                                     $mTime = @$iterator->current()->getMTime();
+                                } catch (core_exception_Redirect $e) {
+                                    throw $e;
                                 } catch (Throwable  $e) {
                                     $mTime = dt::now();
                                 }
@@ -1242,6 +1248,8 @@ class log_Debug extends core_Manager
                         }
                     }
                 }
+            } catch (core_exception_Redirect $e) {
+                throw $e;
             } catch (Exception  $e) {
                 // Не правим нищо
             } catch (Throwable  $e) {

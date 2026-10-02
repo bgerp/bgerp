@@ -823,6 +823,8 @@ class core_Manager extends core_Mvc
                             $options = $Type->type->suggestions;
                             $skip = false;
                         }
+                    } catch (core_exception_Redirect $t) {
+                        throw $t;
                     } catch (Exception $t) {
                         $hasError = true;
                         wp('Грешка при подготовка на опциите за филтъра', $Type, $showFields, $name, $mvc);
