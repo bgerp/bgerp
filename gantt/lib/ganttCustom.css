@@ -43,6 +43,7 @@
 
 .gantt-holder > tbody > tr > td{
 	vertical-align:top;
+	padding:0;
 }
 
 .scroll-table{
@@ -123,7 +124,10 @@
 }
 
 .gantt-task{
-	height:18px;
+	height:20px;
+	box-sizing:border-box;
+	overflow:hidden;
+	white-space:nowrap;
 	padding-top:2px;
 	position:absolute;
 	width:100%;
