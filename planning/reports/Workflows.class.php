@@ -81,6 +81,8 @@ class planning_reports_Workflows extends frame2_driver_TableData
         'productFilter' => 'Филтър по артикул',
         'employeeFilter' => 'Филтър по служители',
         'assetFilter' => 'Филтър по машини',
+        'detailsByDate' => 'Записи от прогреса по дата',
+        'detailsByCreatedOn' => 'Записи от прогреса без дата (по създаване)',
         'details' => 'Записи от прогреса',
         'tasks' => 'Операции',
         'preload' => 'Заредени артикули',
@@ -272,7 +274,18 @@ class planning_reports_Workflows extends frame2_driver_TableData
             $query2 = clone $query;
             $query->where($dateWhere);
             $query2->where($createdOnWhere);
-            $taskDetails = $query->fetchAll() + $query2->fetchAll();
+
+            // Без подсказката MySQL търси "date IS NULL" по индекса на датата - почти цялата таблица
+            $query2->useIndex('created_on');
+
+            $taskDetails = $query->fetchAll();
+            self::addReportStat($data, 'detailsByDate', microtime(true) - $timer, countR($taskDetails));
+
+            $timer2 = microtime(true);
+            $taskDetailsByCreatedOn = $query2->fetchAll();
+            self::addReportStat($data, 'detailsByCreatedOn', microtime(true) - $timer2, countR($taskDetailsByCreatedOn));
+            $taskDetails += $taskDetailsByCreatedOn;
+            unset($taskDetailsByCreatedOn);
         } elseif(!empty($createdOnWhere)){
             $query->where($createdOnWhere);
             $taskDetails = $query->fetchAll();
