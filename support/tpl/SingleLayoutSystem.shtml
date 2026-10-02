@@ -64,6 +64,12 @@
                                 <td>[#defaultTitle#]</td>
                             </tr>
                             <!--ET_END defaultTitle-->
+                            <!--ET_BEGIN defaultTitleEn-->
+                            <tr>
+                                <td class='dt'>|Заглавие на формата EN||Form title EN|*:</td>
+                                <td>[#defaultTitleEn#]</td>
+                            </tr>
+                            <!--ET_END defaultTitleEn-->
                             <!--ET_BEGIN addContragentValues-->
                             <tr>
                                 <td class='dt'>|Контрагент данни|*:</td>
@@ -77,6 +83,49 @@
                                 <td>[#showConsumptionBtnsInSupportTask#]</td>
                             </tr>
                             <!--ET_END showConsumptionBtnsInSupportTask-->
+                        </table>
+                    </div>
+                </fieldset>
+
+                <fieldset class="detail-info">
+                    <legend class="groupTitle">|Публичен отзив||Public review|*</legend>
+                    <div class="groupList">
+                        <table>
+                            <tr>
+                                <td class='dt'>|Показване на поканата||Show invitation|*:</td>
+                                <td>[#reviewMode#]</td>
+                            </tr>
+                            <!--ET_BEGIN reviewUrl-->
+                            <tr>
+                                <td class='dt'>|Връзка||URL|*:</td>
+                                <td style="overflow-wrap: anywhere;">[#reviewUrl#]</td>
+                            </tr>
+                            <!--ET_END reviewUrl-->
+                            <!--ET_BEGIN reviewButtonBg-->
+                            <tr>
+                                <td class='dt'>|Бутон BG||Button BG|*:</td>
+                                <td>[#reviewButtonBg#]</td>
+                            </tr>
+                            <!--ET_END reviewButtonBg-->
+                            <!--ET_BEGIN reviewButtonEn-->
+                            <tr>
+                                <td class='dt'>|Бутон EN||Button EN|*:</td>
+                                <td>[#reviewButtonEn#]</td>
+                            </tr>
+                            <!--ET_END reviewButtonEn-->
+                            <!--ET_BEGIN reviewTextBg-->
+                            <tr>
+                                <td class='dt'>|Покана BG||Invitation BG|*:</td>
+                                <td>[#reviewTextBg#]</td>
+                            </tr>
+                            <!--ET_END reviewTextBg-->
+                            <!--ET_BEGIN reviewTextEn-->
+                            <tr>
+                                <td class='dt'>|Покана EN||Invitation EN|*:</td>
+                                <td>[#reviewTextEn#]</td>
+                            </tr>
+                            <!--ET_END reviewTextEn-->
+                            [#REVIEW_PROVIDER_SETTINGS#]
                         </table>
                     </div>
                 </fieldset>

@@ -49,7 +49,7 @@ class acc_BalanceDetails extends core_Detail
     
     
     /**
-     * Временен акумулатор при изчисляване на баланс
+     * Временен акумулатор при изчисляване на баланс - редовете по ключ "сметка|перо1|перо2|перо3"
      * (@see acc_BalanceDetails::calculateBalance())
      *
      * @var array
@@ -104,6 +104,18 @@ class acc_BalanceDetails extends core_Detail
      * Статистика на текущото изчисление (времена, памет и броячи) за дебъг лога
      */
     public $calcStats = array();
+
+
+    /**
+     * Дали последният запис на баланса е променил стойност над прага
+     */
+    private $realChange = false;
+
+
+    /**
+     * Дали последният запис на баланса е записал или изтрил редове
+     */
+    public $balanceWritten = false;
     
     
     /**
@@ -974,7 +986,9 @@ class acc_BalanceDetails extends core_Detail
 
         $this->calcStats['saveExisting'] = 0;
         $this->calcStats['saveChanged'] = 0;
+        $this->calcStats['saveMinor'] = 0;
         $this->calcStats['savePrecisionOnly'] = 0;
+        $this->realChange = false;
         $this->calcStats['savePrecisionFields'] = array();
 
         $start = microtime(true);
@@ -990,6 +1004,9 @@ class acc_BalanceDetails extends core_Detail
         foreach ($toSave as $sRec) {
             if (!isset($sRec->id)) {
                 $this->calcStats['saveNew']++;
+                if ($this->hasRealValue($sRec)) {
+                    $this->realChange = true;
+                }
             }
         }
         $this->calcStats['saveWritten'] = countR($toSave);
@@ -1018,7 +1035,10 @@ class acc_BalanceDetails extends core_Detail
 
         core_Locks::release(acc_Balances::saveLockKey);
 
-        return $res;
+        // Записът може да е само от разлики под прага - тогава балансът не се брои за променен
+        $this->balanceWritten = $res;
+
+        return $this->realChange || !empty($this->calcStats['saveChanged']);
     }
     
     
@@ -1034,20 +1054,25 @@ class acc_BalanceDetails extends core_Detail
      */
     private function planBalanceSave($balanceId, $existingRecs)
     {
-        $matched  = [];
-        $toDelete = [];
-        $removed  = 0;
+        $matched   = [];
+        $unchanged = [];
+        $toDelete  = [];
+        $removed   = 0;
 
         foreach ($existingRecs as $rec) {
             $key = $rec->accountId . '|' . $rec->ent1Id . '|' . $rec->ent2Id . '|' . $rec->ent3Id;
 
             // Редът е отпаднал от баланса или вече е махнат като непроменен (при дубликат)
-            if (!isset($this->balance[$rec->accountId][$rec->ent1Id][$rec->ent2Id][$rec->ent3Id])) {
+            if (!isset($this->balance[$key])) {
+                // Дубликат на вече потвърден ред не е промяна
+                if (!isset($unchanged[$key]) && $this->hasRealValue($rec)) {
+                    $this->realChange = true;
+                }
                 $toDelete[$rec->id] = $rec->id;
                 continue;
             }
 
-            $newRec = $matched[$key] ?? $this->prepareSaveRec($this->balance[$rec->accountId][$rec->ent1Id][$rec->ent2Id][$rec->ent3Id], $balanceId);
+            $newRec = $matched[$key] ?? $this->prepareSaveRec($this->balance[$key], $balanceId);
             if ($this->isChangedSaveRec($newRec, $rec)) {
                 if (isset($newRec->id)) {
                     $toDelete[$newRec->id] = $newRec->id;
@@ -1060,15 +1085,15 @@ class acc_BalanceDetails extends core_Detail
                     $toDelete[$matched[$key]->id] = $matched[$key]->id;
                 }
                 unset($matched[$key]);
-                unset($this->balance[$rec->accountId][$rec->ent1Id][$rec->ent2Id][$rec->ent3Id]);
+                unset($this->balance[$key]);
+                $unchanged[$key] = true;
                 $removed++;
             }
         }
 
         // Останалите в баланса редове са променени (с ид) или нови
         $toSave = [];
-        foreach ($this->getBalanceLeaves() as $leaf) {
-            $key = $leaf['accountId'] . '|' . $leaf['ent1Id'] . '|' . $leaf['ent2Id'] . '|' . $leaf['ent3Id'];
+        foreach ($this->getBalanceLeaves() as $key => $leaf) {
             $toSave[$key] = $matched[$key] ?? $this->prepareSaveRec($leaf, $balanceId);
         }
 
@@ -1083,15 +1108,52 @@ class acc_BalanceDetails extends core_Detail
      */
     private function getBalanceLeaves()
     {
-        foreach ((array) $this->balance as $l0) {
-            foreach ($l0 as $l1) {
-                foreach ($l1 as $l2) {
-                    foreach ($l2 as $leaf) {
-                        yield $leaf;
-                    }
-                }
+        foreach ((array) $this->balance as $key => $leaf) {
+            yield $key => $leaf;
+        }
+    }
+
+
+    /**
+     * Ключ на реда в баланса в паметта
+     *
+     * Плосък ключ вместо четири нива масиви - влагането заема повече памет от самите редове
+     */
+    private static function getBalanceKey($accId, $ent1Id, $ent2Id, $ent3Id)
+    {
+        return $accId . '|' . $ent1Id . '|' . $ent2Id . '|' . $ent3Id;
+    }
+
+
+    /**
+     * Дали записът на числото ще остави в базата същия текст
+     */
+    private static function isSameDbText($new, $old)
+    {
+        $newEmpty = is_null($new) || $new === '';
+        $oldEmpty = is_null($old) || $old === '';
+        if ($newEmpty || $oldEmpty) {
+
+            return $newEmpty && $oldEmpty;
+        }
+
+        return (string) $new === (string) $old || (float) (string) $new == (float) $old;
+    }
+
+
+    /**
+     * Дали някоя от стойностите на реда е над прага за промяна
+     */
+    private function hasRealValue($rec)
+    {
+        foreach (array('baseQuantity', 'baseAmount', 'debitQuantity', 'debitAmount', 'creditQuantity', 'creditAmount', 'blQuantity', 'blAmount') as $fld) {
+            if (abs((float) ($rec->{$fld} ?? 0)) >= acc_Balances::CHANGE_THRESHOLD) {
+
+                return true;
             }
         }
+
+        return false;
     }
 
 
@@ -1130,11 +1192,8 @@ class acc_BalanceDetails extends core_Detail
     private function fetchBalanceRecs($balanceId)
     {
         $fetchTime = 0;
-        $query = self::getQuery();
-        $this->showOnlyBalanceFields($query, ['id', 'baseQuantity', 'baseAmount', 'debitQuantity', 'debitAmount', 'creditQuantity', 'creditAmount', 'blQuantity', 'blAmount']);
-        $this->useBalanceIndex($query);
         $fetchStart = microtime(true);
-        while ($rec = $query->fetch("#balanceId = {$balanceId}")) {
+        foreach ($this->fetchBalanceRows($balanceId, ['id', 'baseQuantity', 'baseAmount', 'debitQuantity', 'debitAmount', 'creditQuantity', 'creditAmount', 'blQuantity', 'blAmount']) as $rec) {
             $fetchTime += microtime(true) - $fetchStart;
 
             // Първото fetch() изпълнява заявката и прехвърля буферирания резултат
@@ -1159,16 +1218,25 @@ class acc_BalanceDetails extends core_Detail
         $start = microtime(true);
         $fetchTime = 0;
         $this->calcStats['loadRows'] = 0;
-        $query = $this->getQuery();
         $this->balance = [];
 
-        static::filterQuery($query, $balanceId, $accs, $itemsAll, $items1, $items2, $items3);
-
-        if (!$isMiddleBalance) {
-            $query->where('ABS(#blQuantity) > 0.001 OR ABS(#blAmount) > 0.01');
-            $this->showOnlyBalanceFields($query, ['blQuantity', 'blAmount']);
+        $fields = $isMiddleBalance ? ['blQuantity', 'blAmount', 'baseQuantity', 'baseAmount', 'debitQuantity', 'debitAmount', 'creditQuantity', 'creditAmount'] : ['blQuantity', 'blAmount'];
+        if (isset($accs) || isset($itemsAll) || isset($items1) || isset($items2) || isset($items3)) {
+            // С филтър по сметки или пера - през core_Query
+            $query = $this->getQuery();
+            static::filterQuery($query, $balanceId, $accs, $itemsAll, $items1, $items2, $items3);
+            if (!$isMiddleBalance) {
+                $query->where('ABS(#blQuantity) > 0.001 OR ABS(#blAmount) > 0.01');
+            }
+            $this->showOnlyBalanceFields($query, $fields);
+            $this->useBalanceIndex($query);
+            $rows = (function () use ($query) {
+                while ($rec = $query->fetch()) {
+                    yield $rec;
+                }
+            })();
         } else {
-            $this->showOnlyBalanceFields($query, ['blQuantity', 'blAmount', 'baseQuantity', 'baseAmount', 'debitQuantity', 'debitAmount', 'creditQuantity', 'creditAmount']);
+            $rows = $this->fetchBalanceRows($balanceId, $fields, $isMiddleBalance ? '' : 'ABS(`bl_quantity`) > 0.001 OR ABS(`bl_amount`) > 0.01');
         }
 
         $feedWithNegativeBlQuantity = acc_Setup::get('FEED_STRATEGY_WITH_NEGATIVE_QUANTITY');
@@ -1177,9 +1245,8 @@ class acc_BalanceDetails extends core_Detail
         $tracing    = Mode::is('traceBalance');
         $loadedRows = [];
 
-        $this->useBalanceIndex($query);
         $fetchStart = microtime(true);
-        while ($rec = $query->fetch()) {
+        foreach ($rows as $rec) {
             $fetchTime += microtime(true) - $fetchStart;
 
             // Първото fetch() изпълнява заявката и прехвърля буферирания резултат
@@ -1234,7 +1301,7 @@ class acc_BalanceDetails extends core_Detail
                 }
             }
 
-            $b = &$this->balance[$accId][$ent1Id][$ent2Id][$ent3Id];
+            $b = &$this->balance[self::getBalanceKey($accId, $ent1Id, $ent2Id, $ent3Id)];
             $b['accountId']    = $accId;
             $b['ent1Id']       = $ent1Id;
             $b['ent2Id']       = $ent2Id;
@@ -1307,10 +1374,11 @@ class acc_BalanceDetails extends core_Detail
      * @param string $from            дата в MySQL формат
      * @param string $to              дата в MySQL формат
      * @param bool   $isMiddleBalance - дали се изчислява зареждането на данни от междинния баланс
+     * @param array|null $journal     - предварително прочетеният журнал (@see fetchJournal)
      *
      * @return bool $hasUpdatedJournal - дали да продължи преизчисляването или не
      */
-    public function calcBalanceForPeriod($from, $to, $isMiddleBalance = false)
+    public function calcBalanceForPeriod($from, $to, $isMiddleBalance = false, $journal = null)
     {
         if ($cronRec = core_Cron::getCurrentRec()) {
             list($d, $t) = explode(' ', $cronRec->lastStart);
@@ -1319,13 +1387,10 @@ class acc_BalanceDetails extends core_Detail
 
         $JournalDetails = &cls::get('acc_JournalDetails');
 
-        $start = microtime(true);
-        $query = $JournalDetails->getQuery();
-        acc_JournalDetails::filterQuery($query, $from, $to);
-        $query->orderBy('valior,id', 'ASC');
-        $recs = $query->fetchAll();
-        $this->calcStats['journalRows'] = countR($recs);
-        $this->addCalcPhase('journalFetch', $start);
+        if (!isset($journal)) {
+            $journal = $this->fetchJournal($from, $to, $isMiddleBalance);
+        }
+        list($recs, $strategyRecs) = $journal;
 
         $timeLimit = ceil(countR($recs) / 3000) * 180;
         if ($timeLimit != 0) {
@@ -1335,19 +1400,6 @@ class acc_BalanceDetails extends core_Detail
         $hasUpdatedJournal = false;
 
         if (countR($recs)) {
-            if ($isMiddleBalance === true) {
-                $queryClone = $JournalDetails->getQuery();
-                $to         = dt::getLastDayOfMonth($to);
-                acc_JournalDetails::filterQuery($queryClone, $from, $to);
-                $queryClone->orderBy('valior,id', 'ASC');
-                $start = microtime(true);
-                $strategyRecs = $queryClone->fetchAll();
-                $this->calcStats['strategyRows'] = countR($strategyRecs);
-                $this->addCalcPhase('strategyFetch', $start);
-            } else {
-                $strategyRecs = $recs;
-            }
-
             $start = microtime(true);
             if (is_array($strategyRecs)) {
                 foreach ($strategyRecs as $rec1) {
@@ -1359,13 +1411,19 @@ class acc_BalanceDetails extends core_Detail
             $start = microtime(true);
             $this->calcStats['journalUpdated'] = 0;
             $this->calcStats['journalAmountChanged'] = 0;
+            $this->calcStats['journalAmountDiff'] = 0;
+            $this->calcStats['journalAmountMaxDiff'] = 0;
+            $this->calcStats['journalPrecisionOnly'] = 0;
+            $journalSaveTime = 0;
 
             $tracing     = Mode::is('traceBalance');
             $journalRows = [];
 
             foreach ($recs as $rec) {
                 $amountBefore = $rec->amount;
-                $pricesBefore = ($rec->debitPrice ?? '') . '/' . ($rec->creditPrice ?? '');
+                $debitPriceBefore = $rec->debitPrice ?? null;
+                $creditPriceBefore = $rec->creditPrice ?? null;
+                $pricesBefore = ($debitPriceBefore ?? '') . '/' . ($creditPriceBefore ?? '');
                 $this->calcAmount($rec);
                 $amountChanged = (round((float)$rec->amount, 8) != round((float)$amountBefore, 8));
                 $update = $this->calcPrice($rec);
@@ -1378,12 +1436,23 @@ class acc_BalanceDetails extends core_Detail
                 $this->addEntry($rec, 'debit');
                 $this->addEntry($rec, 'credit');
 
+                // Записът не би сменил нищо в базата (числата се записват като текст с php precision)
+                if ($update && self::isSameDbText($rec->amount, $amountBefore) && self::isSameDbText($rec->debitPrice ?? null, $debitPriceBefore) && self::isSameDbText($rec->creditPrice ?? null, $creditPriceBefore)) {
+                    $update = false;
+                    $this->calcStats['journalPrecisionOnly']++;
+                }
+
                 if ($update) {
-                    // Стратегиите ползват сумата без закръгляне - всяка записана разлика налага второ смятане
-                    if ($rec->amount != $amountBefore || is_null($rec->amount) !== is_null($amountBefore)) {
+                    // Стратегиите се хранят от сумите - сборът от промените им показва дали са се уравновесили
+                    if ($rec->amount != $amountBefore) {
+                        $amountDiff = abs((float) $rec->amount - (float) $amountBefore);
                         $this->calcStats['journalAmountChanged']++;
+                        $this->calcStats['journalAmountDiff'] += $amountDiff;
+                        $this->calcStats['journalAmountMaxDiff'] = max($this->calcStats['journalAmountMaxDiff'], $amountDiff);
                     }
+                    $saveStart = microtime(true);
                     $JournalDetails->save_($rec);
+                    $journalSaveTime += microtime(true) - $saveStart;
                     $hasUpdatedJournal = true;
                     $this->calcStats['journalUpdated']++;
                     if (countR($this->calcStats['journalSamples'] ?? null) < 5) {
@@ -1412,6 +1481,9 @@ class acc_BalanceDetails extends core_Detail
 
             $this->addCalcPhase('entries', $start);
 
+            // Колко от entries е запис в журнала (чакане за заключени редове) и колко изчисление
+            $this->calcStats['journalSaveTime'] = round($journalSaveTime, 2);
+
             if ($tracing) {
                 acc_BalanceDebugger::log('journal_entries', $journalRows);
             }
@@ -1424,6 +1496,55 @@ class acc_BalanceDetails extends core_Detail
         }
     }
 
+
+
+    /**
+     * Чете записите от журнала за периода и тези, с които се захранват стратегиите
+     *
+     * @return array [$recs, $strategyRecs]
+     */
+    public function fetchJournal($from, $to, $isMiddleBalance = false, $phase = 'journalFetch')
+    {
+        $JournalDetails = cls::get('acc_JournalDetails');
+
+        $start = microtime(true);
+        $query = $JournalDetails->getQuery();
+        acc_JournalDetails::filterQuery($query, $from, $to);
+        $query->orderBy('valior,id', 'ASC');
+
+        // Първо документите за периода, после редовете им по journal_id - иначе MariaDB обхожда целия журнал
+        $query->addOption('STRAIGHT_JOIN');
+        $recs = $query->fetchAll();
+        $this->calcStats['journalRows'] = countR($recs);
+        $this->addCalcPhase($phase, $start);
+
+        $strategyRecs = $recs;
+
+        // Междинният баланс захранва стратегиите с журнала до края на месеца
+        if (countR($recs) && $isMiddleBalance === true) {
+            $start = microtime(true);
+            $query = $JournalDetails->getQuery();
+            acc_JournalDetails::filterQuery($query, $from, dt::getLastDayOfMonth($to));
+            $query->orderBy('valior,id', 'ASC');
+            $query->addOption('STRAIGHT_JOIN');
+            $strategyRecs = $query->fetchAll();
+            $this->calcStats['strategyRows'] = countR($strategyRecs);
+            $this->addCalcPhase('strategyFetch', $start);
+        }
+
+        return array($recs, $strategyRecs);
+    }
+
+
+    /**
+     * Отпечатък на прочетения журнал
+     */
+    public function getJournalHash($journal)
+    {
+        list($recs, $strategyRecs) = $journal;
+
+        return md5(serialize(array($recs, ($strategyRecs === $recs) ? null : $strategyRecs)));
+    }
 
 
     /**
@@ -1726,7 +1847,7 @@ class acc_BalanceDetails extends core_Detail
         $ent3Id = !empty($rec->{"{$type}Item3"}) ? $rec->{"{$type}Item3"} : null;
         
         if ($ent1Id != null || $ent2Id != null || $ent3Id != null) {
-            $b = &$this->balance[$accId][$ent1Id][$ent2Id][$ent3Id];
+            $b = &$this->balance[self::getBalanceKey($accId, $ent1Id, $ent2Id, $ent3Id)];
             
             $b['accountId'] = $accId;
             $b['ent1Id'] = $ent1Id;
@@ -1745,7 +1866,7 @@ class acc_BalanceDetails extends core_Detail
                 continue;
             }
             
-            $b = &$this->balance[$accId][null][null][null];
+            $b = &$this->balance[self::getBalanceKey($accId, null, null, null)];
             
             $b['accountId'] = $accId;
             $b['ent1Id'] = null;
@@ -1788,6 +1909,17 @@ class acc_BalanceDetails extends core_Detail
      */
     private function useBalanceIndex($query)
     {
+        if ($this->hasBalanceIndex()) {
+            $query->useIndex('balance_id_account_id');
+        }
+    }
+
+
+    /**
+     * Дали таблицата има индекса по баланс и сметка
+     */
+    private function hasBalanceIndex()
+    {
         static $hasIndex;
 
         if (!isset($hasIndex)) {
@@ -1795,20 +1927,91 @@ class acc_BalanceDetails extends core_Detail
             $hasIndex = isset($indexes['balance_id_account_id']);
         }
 
-        if ($hasIndex) {
-            $query->useIndex('balance_id_account_id');
+        return $hasIndex;
+    }
+
+
+    /**
+     * Чете редовете на баланса директно, без core_Query
+     *
+     * core_Query минава всяко поле през типа му, копира реда и вика AfterRead - около 3 пъти по-скъпо.
+     * Стойностите са същите: типовете на тези полета не ги променят при четене.
+     * Ако има обработчик на AfterRead, четенето е през core_Query.
+     *
+     * @param int    $balanceId - ид на баланса
+     * @param array  $fields    - полета освен сметката и перата
+     * @param string $where     - допълнително SQL условие с имената на колоните
+     *
+     * @return Generator - редовете като stdClass с имената на полетата
+     */
+    private function fetchBalanceRows($balanceId, $fields, $where = '')
+    {
+        if ($this->hasAfterReadListener()) {
+            $query = $this->getQuery();
+            $query->where("#balanceId = " . (int) $balanceId);
+            if ($where) {
+                $query->where($where);
+            }
+            $this->showOnlyBalanceFields($query, $fields);
+            $this->useBalanceIndex($query);
+            while ($rec = $query->fetch()) {
+                yield $rec;
+            }
+
+            return;
         }
+
+        $cols = array();
+        foreach (array_merge(array('accountId', 'ent1Id', 'ent2Id', 'ent3Id'), $fields) as $fld) {
+            $cols[] = '`' . str::phpToMysqlName($fld) . "` AS `{$fld}`";
+        }
+        $index = $this->hasBalanceIndex() ? ' USE INDEX(balance_id_account_id)' : '';
+        $sql = 'SELECT ' . implode(', ', $cols) . " FROM `{$this->dbTableName}`{$index} WHERE `balance_id` = " . (int) $balanceId . ($where ? " AND ({$where})" : '');
+
+        $dbRes = $this->db->query($sql);
+        try {
+            while ($row = $this->db->fetchArray($dbRes)) {
+                yield (object) $row;
+            }
+        } finally {
+            $this->db->freeResult($dbRes);
+        }
+    }
+
+
+    /**
+     * Дали има обработчик на AfterRead - тогава четенето минава през core_Query, за да го извика
+     */
+    private function hasAfterReadListener()
+    {
+        if (method_exists($this, 'on_AfterRead')) {
+
+            return true;
+        }
+
+        foreach ($this->_plugins as $plugin) {
+            if (method_exists($plugin, 'on_AfterRead')) {
+
+                return true;
+            }
+        }
+
+        return false;
     }
 
 
     /**
      * Дали записът на реда ще промени стойностите в базата
      *
-     * Полетата се записват като текст с php precision, затова разлика само от точността не е промяна
+     * Полетата се записват като текст с php precision, затова разлика само от точността не е промяна.
+     * Разлика под acc_Balances::CHANGE_THRESHOLD се записва, но не се брои за промяна в баланса.
+     *
+     * @return false|string - false (без запис), 'minor' (запис под прага), 'real' (реална промяна)
      */
     private function isChangedSaveRec($newRec, $exRec)
     {
         $precisionFields = array();
+        $res = false;
         foreach (array('baseQuantity', 'baseAmount', 'debitQuantity', 'debitAmount', 'creditQuantity', 'creditAmount', 'blQuantity', 'blAmount') as $fld) {
             $newVal = $newRec->{$fld} ?? null;
             $exVal = $exRec->{$fld} ?? null;
@@ -1822,12 +2025,23 @@ class acc_BalanceDetails extends core_Detail
                 continue;
             }
 
+            if (abs((float) $newVal - (float) $exVal) < acc_Balances::CHANGE_THRESHOLD) {
+                $res = 'minor';
+                continue;
+            }
+
             $this->calcStats['saveChanged']++;
             if (countR($this->calcStats['realChangeSamples'] ?? null) < 5) {
                 $this->calcStats['realChangeSamples'][] = sprintf('%s|%s|%s|%s %s new=%s db=%s', $newRec->accountId, $newRec->ent1Id, $newRec->ent2Id, $newRec->ent3Id, $fld, var_export($newVal, true), var_export($exVal, true));
             }
 
-            return true;
+            return 'real';
+        }
+
+        if ($res) {
+            $this->calcStats['saveMinor']++;
+
+            return $res;
         }
 
         if (countR($precisionFields)) {

@@ -990,7 +990,7 @@ class core_Debug
         
         // Ако не трябва да подтиснем показването на глешката и хедърите все още не са изпратени, показваме
         if (!$supressShowing && !headers_sent()) {
-            header($_SERVER['SERVER_PROTOCOL']. ' ' . $state['httpStatusCode'] . ' ' . $state['httpStatusMsg']);
+            header(($_SERVER['SERVER_PROTOCOL'] ?? 'HTTP/1.1') . ' ' . $state['httpStatusCode'] . ' ' . $state['httpStatusMsg']);
             header('Content-Type: text/html; charset=UTF-8');
             
             echo isDebug() ? $debugPage : self::getErrorPage($state);

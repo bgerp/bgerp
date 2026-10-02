@@ -73,6 +73,9 @@ DEFINE('EF_APP_TITLE', 'bgERP');
 // Път до tifig
 // DEFINE('TIFIG_PATH','');
 
+// HEIC чрез libheif, с приоритет пред tifig. Указания: _docs/HEIC.txt
+// DEFINE('LIBHEIF_PATH', '/usr/local/bin/heif-convert');
+
 // Базова директория, където се намират по-директориите за
 // временните файлове. По подразбиране е системната папка за временни файлове
  # DEFINE( 'EF_TEMP_BASE_PATH', 'PATH_TO_FOLDER');

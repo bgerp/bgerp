@@ -208,7 +208,7 @@ class log_Debug extends core_Manager
         }
         
         // Опциите за потребители
-        $uArr = core_Cache::get('log_Debug', 'users', 1000, 'core_Users');
+        $uArr = core_Cache::get('log_Debug', 'userFilterOptions', 1000, 'core_Users');
         if (!$uArr) {
             $sysNick = core_Users::fetchField(-1, 'nick');
             $uArr = array();
@@ -216,9 +216,10 @@ class log_Debug extends core_Manager
             $uQuery->show('id, nick, names');
             $uQuery->orderBy('nick', 'ASC');
             $uArr[PHP_INT_MAX] = tr('Всички');
-            $uArr[PHP_INT_MAX - 1] = tr('Всички без') . ' ' . $sysNick;
+            $uArr['withoutSystemAndAnonymous'] = tr('Всички без @system и @anonym||All except @system and @anonym');
             $uArr[-1] = $sysNick;
             $uArr[0] = core_Users::fetchField(0, 'nick');
+            $uArr[-2] = '@Aida';
             $allUArr = array();
             while ($uRec = $uQuery->fetch()) {
                 $allUArr[$uRec->id] = $uRec->nick . ' (' . core_Users::prepareUserNames($uRec->names) . ')';
@@ -233,7 +234,7 @@ class log_Debug extends core_Manager
                 $uArr += $allUArr;
             }
             
-            core_Cache::set('log_Debug', 'users', $uArr, 1000, 'core_Users');
+            core_Cache::set('log_Debug', 'userFilterOptions', $uArr, 1000, 'core_Users');
         }
         $data->listFilter->setOptions('user', $uArr);
         
@@ -1035,16 +1036,11 @@ class log_Debug extends core_Manager
         $search = trim($searchArr['search'] ?? '');
         
         // Ако се филтрира по потребител
-        $searchUser = null;
-        $searchUserType = false;
-        if (isset($searchArr['user']) && ($searchArr['user'] != PHP_INT_MAX)) {
-            $searchUser = $searchArr['user'];
-            if ($searchArr['user'] == (PHP_INT_MAX - 1)) {
-                $searchUser = '-1';
-                $searchUserType = true;
-            }
-            
-            $searchUser = '_' . str_pad($searchUser, 5, '0', STR_PAD_LEFT) . '_';
+        $searchUser = isset($searchArr['user']) ? (string) $searchArr['user'] : null;
+        if ($searchUser === (string) PHP_INT_MAX) {
+            $searchUser = null;
+        } elseif ($searchUser === (string) (PHP_INT_MAX - 1)) {
+            $searchUser = 'withoutSystem';
         }
         
         // Ако се филтрира по бързина на изпълнение
@@ -1140,14 +1136,28 @@ class log_Debug extends core_Manager
                     
                     // Филтрираме по потребител
                     if ($canShow && isset($searchUser)) {
-                        if ($searchUserType) {
-                            if (strpos($fileName, $searchUser) !== false) {
-                                $canShow = false;
-                            }
-                        } else {
-                            if (strpos($fileName, $searchUser) === false) {
-                                $canShow = false;
-                            }
+                        $fileUser = null;
+                        // Отрицателните ID са допълнени с нули преди знака: 000-2.
+                        if (preg_match('/^[^_]+_0*(-?[0-9]+)_[0-9]{2}_[0-9]{2}_[0-9]{2}_[0-9]+_[0-9]+\.debug$/', $fileName, $userMatches)) {
+                            $fileUser = (int) $userMatches[1];
+                        }
+
+                        switch ($searchUser) {
+                            case 'registered':
+                                $canShow = isset($fileUser) && $fileUser > 0;
+                                break;
+                            case 'service':
+                                $canShow = isset($fileUser) && $fileUser < 0;
+                                break;
+                            case 'withoutSystem':
+                                $canShow = $fileUser !== core_Users::SYSTEM_USER;
+                                break;
+                            case 'withoutSystemAndAnonymous':
+                                $canShow = isset($fileUser) && $fileUser !== core_Users::SYSTEM_USER && $fileUser !== core_Users::ANONYMOUS_USER;
+                                break;
+                            default:
+                                $canShow = isset($fileUser) && (string) $fileUser === $searchUser;
+                                break;
                         }
                     }
                     
