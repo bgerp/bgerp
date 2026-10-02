@@ -836,8 +836,8 @@ class acc_Balances extends core_Master
             ]);
         }
 
-        // Всеки запис сменя маркера на данните - следващите баланси вече нямат същия вход
-        if ($bD->balanceWritten || empty($fingerprint['dataToken'])) {
+        // Само реалната промяна сменя маркера на данните - записите под прага не карат следващите баланси да се смятат
+        if ($rec->lastCalculateChange == 'yes' || empty($fingerprint['dataToken'])) {
             $fingerprint['dataToken'] = str::getRand('****************');
         }
 
