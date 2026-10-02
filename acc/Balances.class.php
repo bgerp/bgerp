@@ -590,7 +590,8 @@ class acc_Balances extends core_Master
      *
      * Стратегиите се хранят от сумите в журнала - щом смятането не ги промени, следващо ще даде същото.
      * Така и следващите баланси по веригата получават вече крайните цени.
-     * Уравновесени са, когато никой ред не се мести с CHANGE_THRESHOLD и сборът е под JOURNAL_SUM_THRESHOLD.
+     * Уравновесени са, когато никой ред не се мести с CHANGE_THRESHOLD и сборът е под JOURNAL_SUM_THRESHOLD,
+     * или когато сменените суми не захранват стратегия и не са от цена по подразбиране.
      */
     private static function calcUntilStable($rec, $force = false)
     {
@@ -615,6 +616,12 @@ class acc_Balances extends core_Master
                 $stop = 'stable';
                 break;
             }
+
+            // Променените суми не захранват стратегия и няма сума от getDefaultCost - следващото смятане би дало същото
+            if (empty($rec->journalNeedsRepeat)) {
+                $stop = 'no feed';
+                break;
+            }
             if ($i >= self::MAX_ITERATIONS) {
                 $stop = 'max';
                 break;
@@ -636,7 +643,7 @@ class acc_Balances extends core_Master
         }
 
         // Неуравновесен баланс се преизчислява и в следващите 10 минути (@see isValid)
-        $calcChange = ($stop == 'stable') ? 'no' : 'yes';
+        $calcChange = in_array($stop, array('stable', 'no feed')) ? 'no' : 'yes';
         if ($rec->lastCalculateChange != $calcChange) {
             $rec->lastCalculateChange = $calcChange;
             self::save($rec, 'lastCalculateChange');
@@ -715,6 +722,7 @@ class acc_Balances extends core_Master
         $rec->calcSkipped   = false;
         $rec->journalAmountDiff = 0;
         $rec->journalAmountMaxDiff = 0;
+        $rec->journalNeedsRepeat = false;
         $convertToDate      = null;
         $lastRec            = self::getBalanceBefore($rec->toDate);
         $periodCurrencyCode = acc_Periods::getBaseCurrencyCode($rec->toDate);
@@ -772,7 +780,8 @@ class acc_Balances extends core_Master
         $journal = $bD->fetchJournal($firstDay, $rec->toDate, $isMiddleBalance);
 
         $fingerprint = self::getFingerprint($rec->id);
-        $inputHash = self::getInputHash($rec, $lastRec, $firstDay, $convertToDate, $bD->getJournalHash($journal));
+        $journalHash = $bD->getJournalHash($journal);
+        $inputHash = self::getInputHash($rec, $lastRec, $firstDay, $convertToDate, $journalHash);
 
         // Външните промени: документ в периода или сменен предходен баланс (обновяването на журнала от смятането не сменя lastAlternation)
         $rec->externalKey = ($rec->lastAlternation ?? '') . '|' . ($lastRec ? $lastRec->id . ':' . (self::getFingerprint($lastRec->id)['dataToken'] ?? '') : '');
@@ -794,6 +803,7 @@ class acc_Balances extends core_Master
         $bD->calcBalanceForPeriod($firstDay, $rec->toDate, $isMiddleBalance, $journal);
         $rec->journalAmountDiff = $bD->calcStats['journalAmountDiff'] ?? 0;
         $rec->journalAmountMaxDiff = $bD->calcStats['journalAmountMaxDiff'] ?? 0;
+        $rec->journalNeedsRepeat = !empty($bD->calcStats['journalFeedChanged']) || !empty($bD->calcStats['journalDefaultCost']);
 
         if ($bD->saveBalance($rec->id)) {
             $rec->lastCalculateChange = 'yes';
@@ -812,10 +822,16 @@ class acc_Balances extends core_Master
             $fingerprint['dataToken'] = str::getRand('****************');
         }
 
-        // Обновеният журнал не се чете наново - би хванал и документ, осчетоводен по време на смятането.
-        // Следващото смятане, което не го променя, ще запише отпечатъка.
+        // Обновеният журнал е вход за отпечатъка, само ако повторно смятане би дало същото
+        // и при повторно четене се различава само по записаното от смятането
         if (!empty($bD->calcStats['journalUpdated'])) {
             $inputHash = null;
+            if (empty($rec->journalNeedsRepeat)) {
+                $journalHash = $bD->getUpdatedJournalHash($journalHash, $firstDay, $rec->toDate, $isMiddleBalance);
+                if (isset($journalHash)) {
+                    $inputHash = self::getInputHash($rec, $lastRec, $firstDay, $convertToDate, $journalHash);
+                }
+            }
         }
         unset($journal);
         $fingerprint['inputHash'] = $inputHash;
@@ -839,8 +855,8 @@ class acc_Balances extends core_Master
     /**
      * Отпечатък на всичко, от което зависи изчислението на баланса
      *
-     * Цената по подразбиране (getDefaultCost) не влиза: ползва се само за ред без сума, а такова смятане
-     * обновява журнала и не оставя отпечатък. Дата не влиза: при неприключени периоди от години насам
+     * Цената по подразбиране (getDefaultCost) не влиза: ползва се само за ред без сума, а след смятането
+     * сумата вече е в журнала. Дата не влиза: при неприключени периоди от години насам
      * тя би направила пълно и всяко следващо изчисление по веригата, макар данните да не са се сменили.
      */
     private static function getInputHash($rec, $lastRec, $firstDay, $convertToDate, $journalHash)
