@@ -1212,7 +1212,8 @@ en,Нотификация,Notification
 en,Нотификация-ако няма отговор,Notification-if no reply
 en,Нюзбар,Newsbar
 en,Няма,None
-en,Няма данни,No data availible
+en,Няма коментари,No comments
+en,Няма данни,No data available
 en,Няма достъпна _a3fb2,No accessible system
 en,Няма записи,No records
 en,Няма информация,No Information
@@ -1510,6 +1511,7 @@ en,Последващ,Subsequent
 en,Последен запис,Last record
 en,Последен месец,Last month
 en,Последен,Last
+en,последен,last
 en,Последна седмица,Last week
 en,Последна употр_c0e5,Last use
 en,Последни 24 часа,Last 24 hours
@@ -4029,3 +4031,10 @@ en,Отхвърлен,Rejected
 en,Изисква пакети,Requires packages
 en,не е инсталиран,not installed
 en,Предишно изчисление,Previous calculation
+en,Статия в блога,Blog article
+en,статия в блога,blog article
+en,CMS меню,CMS menu
+en,"Източникът не може да се смени, защото в папката на менюто има документи","The source cannot be changed because the menu folder contains documents"
+en,"Пакетът не може да бъде де-инсталиран, защото има създадени статии в блога.","The package cannot be uninstalled because there are blog articles."
+en,"Менюто не може да се смени, защото в категорията има статии","The menu cannot be changed because the category has articles"
+en,Настройки на блога,Blog settings

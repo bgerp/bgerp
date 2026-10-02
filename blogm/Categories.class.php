@@ -58,6 +58,14 @@ class blogm_Categories extends core_Manager
      * @see cms_plg_ContentSharable
      */
     public $sharableToContentSourceClass = 'blogm_Articles';
+    
+    
+    /**
+     * Основното меню може да е от всеки домейн
+     *
+     * @see cms_plg_ContentSharable
+     */
+    public $contentMenuFromAllDomains = true;
 
 
     /**
@@ -99,6 +107,10 @@ class blogm_Categories extends core_Manager
     protected function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         $row->title = ht::createLink($row->title, array('blogm_Articles', 'list', 'category' => $rec->id));
+        
+        if (!empty($rec->menuId) && isset($row->menuId)) {
+            $row->menuId = ht::createLink($row->menuId, cms_Content::getSingleUrlArray($rec->menuId), false, array('ef_icon' => cls::get('cms_Content')->getSingleIcon($rec->menuId)));
+        }
     }
     
     
@@ -122,8 +134,49 @@ class blogm_Categories extends core_Manager
     {
         $form = &$data->form;
         
-        $form->rec->domainId = cms_Domains::getCurrent();
-        $form->setReadonly('domainId');
+        $domainId = self::getDomainByMenu($form->rec) ?? cms_Domains::getCurrent('id', false);
+        if (!empty($domainId)) {
+            $form->rec->domainId = $domainId;
+            $form->setReadonly('domainId');
+        } else {
+            $form->setField('domainId', 'input=none');
+        }
+        
+        // Статиите са в папката на менюто, затова то не се сменя след като се ползва
+        if (!empty($form->rec->id) && ($data->action ?? null) != 'clone') {
+            $aQuery = blogm_Articles::getQuery();
+            $aQuery->likeKeylist('categories', keylist::fromArray(array($form->rec->id => $form->rec->id)));
+            $aQuery->show('id');
+            $aQuery->limit(1);
+            if ($aQuery->fetch()) {
+                $form->setField('menuId', array('hint' => 'Менюто не може да се смени, защото в категорията има статии'));
+                $form->setReadOnly('menuId');
+            }
+        }
+    }
+    
+    
+    /**
+     * Домейнът на категорията е този на основното ѝ меню
+     */
+    protected static function on_BeforeSave($mvc, &$id, $rec, $fields = null)
+    {
+        $domainId = self::getDomainByMenu($rec);
+        if (!empty($domainId)) {
+            $rec->domainId = $domainId;
+        }
+    }
+    
+    
+    /**
+     * Домейнът на основното меню на категорията
+     */
+    private static function getDomainByMenu($rec)
+    {
+        $menuId = $rec->menuId ?? null;
+        $domainId = !empty($menuId) ? cms_Content::fetchField($menuId, 'domainId') : null;
+        
+        return !empty($domainId) ? $domainId : null;
     }
     
     
@@ -226,7 +279,11 @@ class blogm_Categories extends core_Manager
      */
     protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
-        self::filterByDomain($data->query, cms_Domains::getCurrent());
+        // Домейнът е от филтъра на cms_plg_ContentSharable, празен е за всички
+        $domainId = $data->listFilter->rec->domainId ?? null;
+        if (!empty($domainId)) {
+            $data->query->where("#domainId = {$domainId}");
+        }
     }
 
 

@@ -1,0 +1,70 @@
+<div class='singleView'>
+    [#SingleToolbar#]
+    <div>
+        <div class="folder-cover [#STATE_CLASS#]">
+            <div class="inner-folder">
+                <div class="block_title [#STATE_CLASS#] special-title">
+                    [#SingleIcon#] |Меню|* <b>[#menu#]</b>
+                </div>
+                <fieldset class="detail-info">
+                    <legend class="groupTitle">|Информация|*</legend>
+                    <div class="groupList">
+                        <table>
+                            <!--ET_BEGIN domainId-->
+                            <tr>
+                                <td class='dt'>|Домейн|*:</td>
+                                <td>[#domainId#]</td>
+                            </tr>
+                            <!--ET_END domainId-->
+                            <!--ET_BEGIN source-->
+                            <tr>
+                                <td class='dt'>|Източник|*:</td>
+                                <td>[#source#]</td>
+                            </tr>
+                            <!--ET_END source-->
+                            <!--ET_BEGIN SOURCE_SETTINGS-->
+                            [#SOURCE_SETTINGS#]
+                            <!--ET_END SOURCE_SETTINGS-->
+                            <!--ET_BEGIN title-->
+                            <tr>
+                                <td class='dt'>|Заглавие|*:</td>
+                                <td>[#title#]</td>
+                            </tr>
+                            <!--ET_END title-->
+                            <!--ET_BEGIN sharedDomains-->
+                            <tr>
+                                <td class='dt'>|Споделяне с|*:</td>
+                                <td>[#sharedDomains#]</td>
+                            </tr>
+                            <!--ET_END sharedDomains-->
+                            <!--ET_BEGIN order-->
+                            <tr>
+                                <td class='dt'>№:</td>
+                                <td>[#order#]</td>
+                            </tr>
+                            <!--ET_END order-->
+                            <!--ET_BEGIN menuWallpaper-->
+                            <tr>
+                                <td class='dt'>|Изображение|*:</td>
+                                <td>[#menuWallpaper#]</td>
+                            </tr>
+                            <!--ET_END menuWallpaper-->
+                            <tr>
+                                <td class='dt'>|Състояние|*:</td>
+                                <td>[#state#]</td>
+                            </tr>
+                        </table>
+                    </div>
+                </fieldset>
+
+                <div>
+                    <!--ET_BEGIN DETAILS-->
+                    <div class='details'>
+                        [#DETAILS#]
+                    </div>
+                    <!--ET_END DETAILS-->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
