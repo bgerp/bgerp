@@ -522,6 +522,15 @@ class acc_Setup extends core_ProtoSetup
             'timeLimit' => 255
         ),
         array(
+            'systemId' => 'DeleteStaleBalanceDetails',
+            'description' => 'Триене на редовете на изтрити междинни баланси',
+            'controller' => 'acc_Balances',
+            'action' => 'DeleteStaleDetails',
+            'period' => 5,
+            'offset' => 3,
+            'timeLimit' => 120
+        ),
+        array(
             'systemId' => 'SyncAccFeatures',
             'description' => 'Синхронизиране на счетоводните свойства',
             'controller' => 'acc_Features',
