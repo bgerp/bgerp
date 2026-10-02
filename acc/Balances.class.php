@@ -177,6 +177,24 @@ class acc_Balances extends core_Master
 
 
     /**
+     * Колко реда от детайлите на изтрит междинен баланс се трият с една заявка
+     */
+    const STALE_DELETE_CHUNK = 20000;
+
+
+    /**
+     * До колко секунди в едно пускане се започват нови порции триене на детайли
+     */
+    const STALE_DELETE_MAX_TIME = 30;
+
+
+    /**
+     * Ключ в core_Permanent на изтритите междинни баланси, чиито детайли още не са изтрити
+     */
+    const STALE_QUEUE_KEY = 'accBalanceStaleDetails';
+
+
+    /**
      * Продължителност на последното смятане - за преценка дали има време за още едно
      */
     public static $lastPassTime = 0;
@@ -560,14 +578,15 @@ class acc_Balances extends core_Master
                     $toDate = $prevRec->toDate;
 
                     // Намираме и изтриваме всички баланси, които нямат период и не се отнасят за предишния ден
+                    // Детайлите им се трият на части в deleteStaleDetails(), извън смятането
                     $query = self::getQuery();
                     while ($delRec = $query->fetch("(#fromDate != '{$fromDate}' OR #toDate != '{$toDate}') AND #periodId IS NULL")) {
-                        $delStart = microtime(true);
-                        $delCnt = acc_BalanceDetails::delete("#balanceId = {$delRec->id}");
+                        if (!self::updateStaleQueue($delRec->id, true)) {
+                            continue;
+                        }
                         self::delete($delRec->id);
                         core_Permanent::remove("accBalanceFingerprint_{$delRec->id}");
-                        $delTime = round(microtime(true) - $delStart, 2);
-                        self::logNotice("Изтрит междинен баланс {$delRec->fromDate} - {$delRec->toDate}: {$delCnt} реда за {$delTime}s", $delRec->id, 3);
+                        self::logNotice("Изтрит междинен баланс #{$delRec->id} {$delRec->fromDate} - {$delRec->toDate}, редовете му се трият на части", null, 3);
                     }
                 }
             }
@@ -1008,6 +1027,111 @@ class acc_Balances extends core_Master
     public function cron_Recalc()
     {
         $this->recalc();
+    }
+
+
+    /**
+     * Трие редовете на изтритите междинни баланси - отделно, за да не държи задачата за преизчисляване
+     */
+    public function cron_DeleteStaleDetails()
+    {
+        self::deleteStaleDetails();
+    }
+
+
+    /**
+     * Добавя или маха изтрит междинен баланс от опашката за триене на детайлите
+     *
+     * @param int  $balanceId - ид на баланса
+     * @param bool $add       - true добавя, false маха
+     *
+     * @return bool - дали опашката е обновена
+     */
+    private static function updateStaleQueue($balanceId, $add)
+    {
+        $lockKey = 'accBalanceStaleQueue';
+        if (!core_Locks::obtain($lockKey, 60, 10, 10)) {
+
+            return false;
+        }
+
+        $queue = core_Permanent::get(self::STALE_QUEUE_KEY);
+        $queue = is_array($queue) ? $queue : array();
+        if ($add) {
+            $queue[$balanceId] = $balanceId;
+        } else {
+            unset($queue[$balanceId]);
+        }
+
+        if (countR($queue)) {
+            core_Permanent::set(self::STALE_QUEUE_KEY, $queue, core_Permanent::FOREVER_VALUE);
+        } else {
+            core_Permanent::remove(self::STALE_QUEUE_KEY);
+        }
+        core_Locks::release($lockKey);
+
+        return true;
+    }
+
+
+    /**
+     * Трие на части детайлите на изтритите междинни баланси
+     *
+     * Започнатата заявка не се прекъсва - бюджетът ограничава само започването на следващите
+     */
+    public static function deleteStaleDetails()
+    {
+        $queue = core_Permanent::get(self::STALE_QUEUE_KEY);
+        if (!is_array($queue) || !countR($queue)) {
+
+            return;
+        }
+
+        $lockKey = 'RecalcBalancesCleanup';
+        if (!core_Locks::obtain($lockKey, self::MAX_PERIOD_CALC_TIME, 1)) {
+
+            return;
+        }
+
+        $start = microtime(true);
+        $chunkTime = 0;
+        $deleted = 0;
+        $done = array();
+        foreach ($queue as $balanceId) {
+
+            // Заглавието още съществува - сривът е бил преди изтриването му и то ще се изтрие отново
+            if (self::fetch($balanceId, 'id', false)) {
+                continue;
+            }
+
+            while (true) {
+                $elapsed = microtime(true) - $start;
+                $timeLeft = core_Cron::getTimeLeft();
+                if ($elapsed + $chunkTime > self::STALE_DELETE_MAX_TIME || ($timeLeft !== false && $timeLeft < $chunkTime * 1.5 + 5)) {
+                    break 2;
+                }
+
+                $chunkStart = microtime(true);
+                $cnt = acc_BalanceDetails::delete("#balanceId = {$balanceId}", self::STALE_DELETE_CHUNK);
+                $chunkTime = microtime(true) - $chunkStart;
+                $deleted += $cnt;
+
+                if ($cnt < self::STALE_DELETE_CHUNK && !acc_BalanceDetails::fetch("#balanceId = {$balanceId}", 'id', false)) {
+                    if (self::updateStaleQueue($balanceId, false)) {
+                        $done[] = $balanceId;
+                    }
+                    break;
+                }
+            }
+        }
+        core_Locks::release($lockKey);
+
+        if ($deleted || countR($done)) {
+            $left = array_diff($queue, $done);
+            $time = round(microtime(true) - $start, 2);
+            $leftStr = countR($left) ? '#' . implode(', #', $left) : 'няма';
+            self::logNotice("Триене на редовете на изтрити междинни баланси: {$deleted} реда за {$time}s (последна порция " . round($chunkTime, 2) . "s), довършени: " . (countR($done) ? '#' . implode(', #', $done) : 'няма') . ", остават: {$leftStr}", null, 3);
+        }
     }
     
     
