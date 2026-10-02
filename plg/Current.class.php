@@ -223,8 +223,9 @@ class plg_Current extends core_Plugin
      *
      * @param core_Mvc $mvc   инстанция на mvc класа
      * @param $rec   mixed id към запис, който трябва да стана текущ или самия запис
+     * @param bool $silent без статус съобщение за избора
      */
-    public static function on_AfterSelectCurrent($mvc, &$res, $rec)
+    public static function on_AfterSelectCurrent($mvc, &$res, $rec, $silent = false)
     {
         if (!is_object($rec)) {
             expect(is_numeric($rec), $rec);
@@ -236,7 +237,7 @@ class plg_Current extends core_Plugin
 
         // Ако текущия обект е различен от избрания, избира се новия
         if ($curId != $rec->id) {
-            self::setCurrent($mvc, $res, $rec);
+            self::setCurrent($mvc, $res, $rec, $silent);
         }
         
         if (!isset($res)) {
@@ -254,7 +255,7 @@ class plg_Current extends core_Plugin
      *
      * @return null|false
      */
-    private static function setCurrent($mvc, &$res, &$rec)
+    private static function setCurrent($mvc, &$res, &$rec, $silent = false)
     {
         // Ако текущия потребител няма права - не правим избор
         if (!$mvc->haveRightFor('select', $rec)) {
@@ -270,11 +271,13 @@ class plg_Current extends core_Plugin
         Mode::setPermanent($modeKey, $rec);
         
         // Слагане на нотификация
-        $objectName = $mvc->getTitleById($rec->id);
-        $singleTitle = mb_strtolower($mvc->singleTitle);
-        
-        // Добавяме статус съобщението
-        core_Statuses::newStatus("|Успешен избор на {$singleTitle}|* \"{$objectName}\"");
+        if (!$silent) {
+            $objectName = $mvc->getTitleById($rec->id);
+            $singleTitle = mb_strtolower($mvc->singleTitle);
+            
+            // Добавяме статус съобщението
+            core_Statuses::newStatus("|Успешен избор на {$singleTitle}|* \"{$objectName}\"");
+        }
         
         // Извикваме събитие за да сигнализираме, че е сменен текущия елемент
         $mvc->invoke('afterChangeCurrent', array(&$res, $rec));
@@ -294,7 +297,7 @@ class plg_Current extends core_Plugin
     private static function getPermanentKey($mvc)
     {
         $key = 'Select-' . cls::getClassName($mvc) . '-' . core_Users::getCurrent();
-        
+
         return $key;
     }
     

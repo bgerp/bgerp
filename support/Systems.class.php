@@ -491,16 +491,8 @@ class support_Systems extends core_Master
         $form->input('reviewMode', 'silent');
         if (($form->rec->reviewMode ?? 'off') !== 'off') {
             $form->setField('reviewUrl,reviewButtonBg,reviewButtonEn,reviewTextBg,reviewTextEn', 'input=input,mandatory');
-            // Скритите полета липсват в заявката при повторно включване.
-            if ($form->cmd === 'refresh' && !empty($form->rec->id)) {
-                $stored = $mvc->fetch((int) $form->rec->id);
-                foreach (array('reviewUrl', 'reviewButtonBg', 'reviewButtonEn', 'reviewTextBg', 'reviewTextEn') as $field) {
-                    if (Request::get($field) === null) {
-                        $form->setDefault($field, $stored->{$field} ?? null);
-                    }
-                }
-            }
         }
+        self::preserveReviewFormFields($mvc, $form, array('reviewUrl', 'reviewButtonBg', 'reviewButtonEn', 'reviewTextBg', 'reviewTextEn'));
 
         if(!haveRole('admin, supportMaster')){
             $form->info = tr("|*<div class='formCustomInfo'><b>Може да редактирате само полетата за достъп|*!</b></div>");
@@ -510,6 +502,30 @@ class support_Systems extends core_Master
             $fieldsToHide = array_keys($fieldsToHide);
             foreach ($fieldsToHide as $field) {
                 $form->setField($field, 'input=none');
+            }
+        }
+    }
+
+
+    /** Запазва временните настройки при скриване, без да ги валидира или записва. */
+    public static function preserveReviewFormFields($mvc, $form, $fields)
+    {
+        if (!haveRole('admin, supportMaster')) {
+            return;
+        }
+        $refresh = ($form->cmd ?? null) === 'refresh';
+        $stored = $refresh && !empty($form->rec->id) ? $mvc->fetch((int) $form->rec->id) : null;
+        foreach ($fields as $name) {
+            $draft = $name . 'FormValue';
+            $value = Request::get($name) ?? Request::get($draft) ?? $form->rec->{$name} ?? $stored->{$name} ?? null;
+            if ($value === null || !is_scalar($value)) {
+                continue;
+            }
+            if (($form->fields[$name]->input ?? null) === 'none') {
+                $form->FNC($draft, 'text', 'input=hidden');
+                $form->setDefault($draft, $value);
+            } elseif ($refresh) {
+                $form->setDefault($name, $value);
             }
         }
     }

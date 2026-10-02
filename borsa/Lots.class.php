@@ -897,6 +897,17 @@ class borsa_Lots extends core_Master
     
     
     /**
+     * Добавя полетата за настройки на менюто, специфични за източника
+     *
+     * @param core_FieldSet $fieldset
+     * @return void
+     */
+    public function addContentSettingsFields($fieldset)
+    {
+    }
+    
+    
+    /**
      * Връща връща масив със заглавия и URL-ta, които отговарят на търсенето
      * 
      * @see cms_SourceIntf

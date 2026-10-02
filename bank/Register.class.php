@@ -1384,7 +1384,7 @@ class bank_Register extends core_Manager
         while ($rec = $query->fetch("#threadId IN ({$threadIds}) AND (#state = 'active' OR #state = 'pending')")) {
             $o = new stdClass();
             $o->type = 'incoming';
-            $o->number = $rec->number;
+            $o->number = $rec->number ?? null;
             $o->date = $rec->valior ? $rec->valior : $rec->termDate;
             $o->amount = round($rec->amountDeal, 2);
             $o->currencyId = $rec->currencyId;

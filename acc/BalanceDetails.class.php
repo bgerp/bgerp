@@ -65,6 +65,22 @@ class acc_BalanceDetails extends core_Detail
      * @var array
      */
     private $strategies;
+
+
+    /**
+     * Редовете от журнала, захранили стратегиите в текущото изчисление
+     *
+     * @var array
+     */
+    private $feedRecIds = array();
+
+
+    /**
+     * Записаните от изчислението стойности в журнала: ид => поле => [преди, след]
+     *
+     * @var array
+     */
+    private $journalUpdates = array();
     
     
     /**
@@ -1320,10 +1336,13 @@ class acc_BalanceDetails extends core_Detail
                     $creditAmount = deals_Helper::getSmartBaseCurrency($creditAmount, $balanceRec->toDate, $convertToDate);
                     $baseAmount   = deals_Helper::getSmartBaseCurrency($baseAmount,   $balanceRec->toDate, $convertToDate);
                 }
-                $this->inc($b['debitQuantity'],  $rec->debitQuantity);
-                $this->inc($b['debitAmount'],    $debitAmount);
-                $this->inc($b['creditQuantity'], $rec->creditQuantity);
-                $this->inc($b['creditAmount'],   $creditAmount);
+                // inc() взима ключа по референция и го създава и при NULL - 4 празни ключа правят реда двойно по-голям в паметта
+                $turnover = array('debitQuantity' => $rec->debitQuantity, 'debitAmount' => $debitAmount, 'creditQuantity' => $rec->creditQuantity, 'creditAmount' => $creditAmount);
+                foreach ($turnover as $fld => $value) {
+                    if (!is_null($value)) {
+                        $this->inc($b[$fld], $value);
+                    }
+                }
                 $b['baseQuantity'] += $rec->baseQuantity;
                 $b['baseAmount']   += $baseAmount;
             } else {
@@ -1399,6 +1418,9 @@ class acc_BalanceDetails extends core_Detail
 
         $hasUpdatedJournal = false;
 
+        $this->feedRecIds = array();
+        $this->journalUpdates = array();
+
         if (countR($recs)) {
             $start = microtime(true);
             if (is_array($strategyRecs)) {
@@ -1414,6 +1436,9 @@ class acc_BalanceDetails extends core_Detail
             $this->calcStats['journalAmountDiff'] = 0;
             $this->calcStats['journalAmountMaxDiff'] = 0;
             $this->calcStats['journalPrecisionOnly'] = 0;
+            $this->calcStats['journalFeedChanged'] = 0;
+            $this->calcStats['journalDefaultCost'] = 0;
+            $this->calcStats['journalFeedNoise'] = 0;
             $journalSaveTime = 0;
 
             $tracing     = Mode::is('traceBalance');
@@ -1426,7 +1451,13 @@ class acc_BalanceDetails extends core_Detail
                 $pricesBefore = ($debitPriceBefore ?? '') . '/' . ($creditPriceBefore ?? '');
                 $this->calcAmount($rec);
                 $amountChanged = (round((float)$rec->amount, 8) != round((float)$amountBefore, 8));
+                $amountFromStrategy = $rec->amount;
                 $update = $this->calcPrice($rec);
+
+                // Сумата от getDefaultCost идва след цената на другата страна - цените се уеднаквяват чак при следващото смятане
+                if (!isset($amountFromStrategy) && isset($rec->amount)) {
+                    $this->calcStats['journalDefaultCost']++;
+                }
 
                 // Ако calcAmount е сменил сумата, записваме дори цената да не се е променила
                 if ($amountChanged) {
@@ -1449,7 +1480,22 @@ class acc_BalanceDetails extends core_Detail
                         $this->calcStats['journalAmountChanged']++;
                         $this->calcStats['journalAmountDiff'] += $amountDiff;
                         $this->calcStats['journalAmountMaxDiff'] = max($this->calcStats['journalAmountMaxDiff'], $amountDiff);
+
+                        // Само такава промяна прави стратегиите неверни (след calcPrice - и сумата от getDefaultCost)
+                        // Шумът под прага в захранващ ред не изисква нов ход, ако и сборът му е под прага
+                        if (isset($this->feedRecIds[$rec->id])) {
+                            if ($amountDiff >= acc_Balances::CHANGE_THRESHOLD) {
+                                $this->calcStats['journalFeedChanged']++;
+                            } else {
+                                $this->calcStats['journalFeedNoise'] += $amountDiff;
+                            }
+                        }
                     }
+                    $this->journalUpdates[$rec->id] = array(
+                        'amount' => array($amountBefore, $rec->amount),
+                        'debitPrice' => array($debitPriceBefore, $rec->debitPrice ?? null),
+                        'creditPrice' => array($creditPriceBefore, $rec->creditPrice ?? null),
+                    );
                     $saveStart = microtime(true);
                     $JournalDetails->save_($rec);
                     $journalSaveTime += microtime(true) - $saveStart;
@@ -1480,6 +1526,10 @@ class acc_BalanceDetails extends core_Detail
             }
 
             $this->addCalcPhase('entries', $start);
+
+            if ($this->calcStats['journalFeedNoise'] >= acc_Balances::JOURNAL_SUM_THRESHOLD) {
+                $this->calcStats['journalFeedChanged']++;
+            }
 
             // Колко от entries е запис в журнала (чакане за заключени редове) и колко изчисление
             $this->calcStats['journalSaveTime'] = round($journalSaveTime, 2);
@@ -1533,6 +1583,51 @@ class acc_BalanceDetails extends core_Detail
         }
 
         return array($recs, $strategyRecs);
+    }
+
+
+    /**
+     * Отпечатък на журнала след записите на изчислението
+     *
+     * Журналът се чете наново и записаните от изчислението стойности се връщат към прочетените преди него.
+     * Само ако така се получи първоначалният отпечатък, разликата е единствено от изчислението.
+     *
+     * @return string|null - null, ако журналът е сменен и от друго място
+     */
+    public function getUpdatedJournalHash($journalHash, $from, $to, $isMiddleBalance)
+    {
+        // Броят на редовете в статистиката остава от изчислението
+        $rowStats = array_intersect_key($this->calcStats, array('journalRows' => 1, 'strategyRows' => 1));
+        $journal = $this->fetchJournal($from, $to, $isMiddleBalance, 'journalRecheck');
+        $this->calcStats = $rowStats + $this->calcStats;
+        $newHash = $this->getJournalHash($journal);
+
+        // При баланс с период стратегиите се хранят от същите обекти
+        list($recs, $strategyRecs) = $journal;
+        $lists = ($strategyRecs === $recs) ? array($recs) : array($recs, $strategyRecs);
+
+        $isOwnChange = true;
+        foreach ($lists as $list) {
+            foreach ($this->journalUpdates as $id => $fields) {
+                foreach ($fields as $field => $values) {
+                    if (!isset($list[$id]) || !self::isSameDbText($values[1], $list[$id]->{$field} ?? null)) {
+                        $isOwnChange = false;
+                        break 3;
+                    }
+
+                    // Обектите са общи за списъка и журнала - връщането сменя и отпечатъка
+                    $list[$id]->{$field} = $values[0];
+                }
+            }
+        }
+
+        $res = null;
+        if ($isOwnChange && $this->getJournalHash($journal) === $journalHash) {
+            $res = $newHash;
+        }
+        $this->calcStats['journalRecheck'] = isset($res) ? 'ok' : 'changed';
+
+        return $res;
     }
 
 
@@ -1647,6 +1742,7 @@ class acc_BalanceDetails extends core_Detail
 
             if ($creditType == 'passive') {
                 $creditStrategy->feed($rec->creditQuantity, $rec->amount);
+                $this->feedRecIds[$rec->id] = true;
 
                 if ($tracing) {
                     acc_BalanceDebugger::logStrategyFeed(
@@ -1663,6 +1759,7 @@ class acc_BalanceDetails extends core_Detail
                 }
             } elseif ($creditType == 'active' && $rec->creditQuantity < 0) {
                 $creditStrategy->feed(abs($rec->creditQuantity), abs($rec->amount));
+                $this->feedRecIds[$rec->id] = true;
 
                 if ($tracing) {
                     acc_BalanceDebugger::logStrategyFeed(
@@ -1685,6 +1782,7 @@ class acc_BalanceDetails extends core_Detail
 
             if ($debitType == 'active') {
                 $debitStrategy->feed($rec->debitQuantity, $rec->amount);
+                $this->feedRecIds[$rec->id] = true;
 
                 if ($tracing) {
                     acc_BalanceDebugger::logStrategyFeed(
@@ -1701,6 +1799,7 @@ class acc_BalanceDetails extends core_Detail
                 }
             } elseif ($debitType == 'passive' && $rec->debitQuantity < 0) {
                 $debitStrategy->feed(abs($rec->debitQuantity), abs($rec->amount));
+                $this->feedRecIds[$rec->id] = true;
 
                 if ($tracing) {
                     acc_BalanceDebugger::logStrategyFeed(

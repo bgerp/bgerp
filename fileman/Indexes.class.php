@@ -424,7 +424,7 @@ class fileman_Indexes extends core_Manager
     {
         // Ако няма lockId
         if (empty($params['lockId'])) {
-            $params['lockId'] = fileman_webdrv_Generic::getLockId($params['type'], $params['dataId']);
+            $params['lockId'] = fileman_webdrv_Generic::getLockId($params['type'], $params['dataId'] ?? null);
         }
         
         // Ако процеса е заключен
@@ -434,7 +434,7 @@ class fileman_Indexes extends core_Manager
         }
         
         // Ако има такъв запис
-        if ($params['dataId'] && $rec = fileman_Indexes::fetch("#dataId = '{$params['dataId']}' AND #type = '{$params['type']}'")) {
+        if (!empty($params['dataId']) && $rec = fileman_Indexes::fetch("#dataId = '{$params['dataId']}' AND #type = '{$params['type']}'")) {
             $conf = core_Packs::getConfig('fileman');
             
             // Времето след което ще се изтрият

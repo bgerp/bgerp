@@ -189,12 +189,6 @@ class blogm_Comments extends core_Detail
             $now = $Crypt->encodeVar(time(), $key);
             $data->commentForm->setHidden('renderOn', $now);
             
-//            $valsArr = log_Browsers::getVars(array('name', 'email', 'web'));
-//
-//            foreach ($valsArr as $vName => $val) {
-//                $data->commentForm->setDefault($vName, $val);
-//            }
-            
             $data->commentForm->toolbar->addSbBtn('Изпращане');
         }
     }
@@ -240,15 +234,20 @@ class blogm_Comments extends core_Detail
             }
             
             $rec->ip = core_Users::getRealIpAddr();
-            
             $rec->brid = log_Browsers::getBrid();
             
-            $Crypt = cls::get('core_Crypt');
-            $key = Mode::getPermanentKey();
-            $rec->userDelay = time() - $Crypt->decodeVar($rec->renderOn, $key);
-            
+            // Часът на зареждане идва само от публичната форма под статията
+            if (!empty($rec->renderOn)) {
+                $Crypt = cls::get('core_Crypt');
+                $key = Mode::getPermanentKey();
+                $renderOn = $Crypt->decodeVar($rec->renderOn, $key);
+                if (is_numeric($renderOn)) {
+                    $rec->userDelay = time() - $renderOn;
+                }
+            }
+
             // Да се записва само при нов запис и и когато няма регистриран потребител
-            log_Browsers::setVars(array('name' => $rec->name, 'email' => $rec->email, 'web' => $rec->web));
+            log_Browsers::setVars(array('name' => $rec->name ?? null, 'email' => $rec->email ?? null, 'web' => $rec->web ?? null));
         }
         
         // Начален рейтинг
@@ -381,9 +380,46 @@ class blogm_Comments extends core_Detail
         // Извън статията се показва и към коя статия е коментарът
         if (!isset($data->masterMvc)) {
             arr::insert($data->listFields, 'name', array('articleId' => 'Статия'));
+        } else {
+            
+            // В нишката данните за подателя са под името, за да се събере таблицата
+            unset($data->listFields['email'], $data->listFields['web'], $data->listFields['ip'], $data->listFields['brid'], $data->listFields['userDelay']);
+            $data->listFields['spamRate'] = 'Спам';
         }
         
         $data->query->orderBy('#createdOn', 'DESC');
+    }
+    
+    
+    /**
+     * В нишката събира данните за подателя в колоната с името
+     */
+    protected static function on_AfterPrepareListRows($mvc, $data)
+    {
+        if (!isset($data->masterMvc) || !countR($data->rows)) {
+            
+            return;
+        }
+        
+        foreach ($data->rows as $id => $row) {
+            $rec = $data->recs[$id];
+            $contacts = array();
+            foreach (array('email', 'web') as $fld) {
+                if (!empty($rec->{$fld})) {
+                    $contacts[] = $row->{$fld} ?? $mvc->getVerbal($rec, $fld);
+                }
+            }
+            
+            $name = "<b>{$row->name}</b>";
+            if (countR($contacts)) {
+                $name .= "<div class='small'>" . implode(' &middot; ', $contacts) . '</div>';
+            }
+            $row->name = $name . "<div class='small' style='margin-top:2px'>{$row->ip} {$row->brid}</div>";
+            
+            if (!empty($rec->userDelay)) {
+                $row->spamRate = ht::createHint($row->spamRate, 'Закъснение|*: ' . $mvc->getVerbal($rec, 'userDelay'));
+            }
+        }
     }
     
     
@@ -489,6 +525,14 @@ class blogm_Comments extends core_Detail
         $data->listFilter->showFields = 'ip, brid';
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+        
+        // Като детайл филтърът се изпраща към нишката на статията
+        $threadId = $data->masterData->rec->threadId ?? null;
+        if (!empty($threadId)) {
+            $data->listFilter->FNC('threadId', 'int', 'input=hidden,silent');
+            $data->listFilter->setDefault('threadId', $threadId);
+            $data->listFilter->showFields .= ', threadId';
+        }
         $data->listFilter->input($data->listFilter->showFields, 'silent');
         
         if ($ip = ($data->listFilter->rec->ip ?? null)) {
