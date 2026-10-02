@@ -404,7 +404,7 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
             $textPart = mb_strcut($textPart, 0, 1000000);
             $textPart = i18n_Charset::convertToUtf8($textPart);
             
-            if ($params['fileHnd']) {
+            if (!empty($params['fileHnd'])) {
                 // Обновяваме данните за запис във fileman_Indexes
                 $params['content'] = $textPart;
                 fileman_Indexes::saveContent($params);

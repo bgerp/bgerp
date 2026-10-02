@@ -513,22 +513,25 @@ class fileman_Indexes extends core_Manager
      */
     public static function saveContent($params)
     {
-        if (!$params['dataId'] && !is_numeric($params['dataId'])) {
+        $dataId = $params['dataId'] ?? null;
+        if (!$dataId && !is_numeric($dataId)) {
             
             return ;
         }
         
+        $content = $params['content'] ?? null;
+        
         $rec = new stdClass();
-        $rec->dataId = $params['dataId'];
-        $rec->type = $params['type'];
-        $rec->createdBy = $params['createdBy'];
-        $rec->content = static::prepareContent($params['content']);
+        $rec->dataId = $dataId;
+        $rec->type = $params['type'] ?? null;
+        $rec->createdBy = $params['createdBy'] ?? null;
+        $rec->content = static::prepareContent($content);
         
         $saveType = 'IGNORE';
         
         // Ако новата стойност не е грешка, презаписваме предишната
-        if (!is_object($params['content'])) {
-            if (!empty($params['content'])) {
+        if (!is_object($content)) {
+            if (!empty($content)) {
                 $saveType = 'REPLACE';
             } else {
                 $fRec = self::fetch(array("#dataId = '[#1#]' AND #type = '[#2#]'", $rec->dataId, $rec->type));
