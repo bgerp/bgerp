@@ -98,19 +98,20 @@ class bgerp_A extends core_Mvc
      */
     public static function getShortUrl($url)
     {
-        if ($url['Act'] == 'A') {
+        $act = $url['Act'] ?? '';
+        if ($act == 'A') {
             $url['Ctr'] = 'cms_Articles';
             $url['Act'] = 'Article';
             $url = cms_Articles::getShortUrl($url);
-        } elseif ($url['Act'] == 'G') {
+        } elseif ($act == 'G') {
             $url['Ctr'] = 'eshop_Groups';
             $url['Act'] = 'Show';
             $url = eshop_Groups::getShortUrl($url);
-        } elseif ($url['Act'] == 'P') {
+        } elseif ($act == 'P') {
             $url['Ctr'] = 'eshop_Products';
             $url['Act'] = 'Show';
             $url = eshop_Products::getShortUrl($url);
-        } elseif ($url['Act'] == 'B') {
+        } elseif ($act == 'B') {
             $url['Ctr'] = 'blogm_Articles';
             $url['Act'] = 'Article';
             $url = blogm_Articles::getShortUrl($url);

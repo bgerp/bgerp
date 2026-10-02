@@ -186,7 +186,9 @@ class hr_reports_AbsencesPerEmployee extends frame2_driver_TableData
                     
                 }else{
                     foreach ($employees as $v) {
-                        $employees[$v] = crm_Profiles::getProfile($v)->id;
+                        $profile = crm_Profiles::getProfile($v);
+                        // Запазваме филтъра и когато избраният потребител няма свързано лице.
+                        $employees[$v] = $profile->id ?? 0;
                     }
                     $sickdaysQuery->where('#personId IS NOT NULL');
                     $sickdaysQuery->in('personId', $employees);
