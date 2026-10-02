@@ -77,13 +77,20 @@ class planning_reports_Workflows extends frame2_driver_TableData
      * Показателите на справката, в реда на обработката
      */
     protected static $statCaptions = array(
+        'centres' => 'Филтър по центрове (папки)',
+        'productFilter' => 'Филтър по артикул',
+        'employeeFilter' => 'Филтър по служители',
+        'assetFilter' => 'Филтър по машини',
         'details' => 'Записи от прогреса',
         'tasks' => 'Операции',
         'preload' => 'Заредени артикули',
         'employees' => 'Служители',
         'norm' => 'Изчислени норми',
+        'skipped' => 'Пропуснати записи без операция или артикул',
         'calc' => 'Изчислени редове',
+        'sort' => 'Подреждане',
         'breakdown' => 'Редове след разбивката',
+        'rows' => 'Редове в справката',
         'memory' => 'Пикова памет (MB)',
         'total' => 'Общо',
     );
@@ -210,21 +217,27 @@ class planning_reports_Workflows extends frame2_driver_TableData
             $cQuery->show('folderId');
             $centFoldersArr = arr::extractValuesFromArray($cQuery->fetchAll(), 'folderId');
             $query->in('folderId', $centFoldersArr);
+            self::addReportStat($data, 'centres', 0, countR($centFoldersArr), $centFoldersArr);
         }
 
         //Филтър по артикул
         if (!empty($rec->productId)) {
             $query->where("#productId = {$rec->productId} ");
+            self::addReportStat($data, 'productFilter', 0, 1, array($rec->productId));
         }
 
         //Филтър по служители
         if ($rec->employees && $rec->resultsOn != 'arts') {
             $query->likeKeylist('employees', $rec->employees);
+            $employeeFilter = keylist::toArray($rec->employees);
+            self::addReportStat($data, 'employeeFilter', 0, countR($employeeFilter), $employeeFilter);
         }
 
         //Филтър по машини
         if ($rec->assetResources) {
-            $query->in('fixedAsset', keylist::toArray($rec->assetResources));
+            $assetFilter = keylist::toArray($rec->assetResources);
+            $query->in('fixedAsset', $assetFilter);
+            self::addReportStat($data, 'assetFilter', 0, countR($assetFilter), $assetFilter);
         }
 
         $indTimeSumArr = array();
@@ -314,6 +327,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
 
         $timer = microtime(true);
         $normSeconds = $normCount = 0;
+        $skippedDetails = array();
         foreach ($taskDetails as $tRec) {
             $id = self::breakdownBy($tRec, $rec);
 
@@ -331,6 +345,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
             $iRec = $taskArr[$tRec->taskId] ?? null;
             $pRec = $productArr[$tRec->productId] ?? null;
             if (!$iRec || !$pRec) {
+                $skippedDetails[$tRec->id] = $tRec->id;
                 continue;
             }
 
@@ -421,11 +436,14 @@ class planning_reports_Workflows extends frame2_driver_TableData
         }
 
         self::addReportStat($data, 'norm', $normSeconds, $normCount);
+        self::addReportStat($data, 'skipped', 0, countR($skippedDetails), $skippedDetails);
         self::addReportStat($data, 'calc', microtime(true) - $timer, countR($recs));
 
+        $timer = microtime(true);
         if (countR($recs)) {
             arr::sortObjects($recs, 'employeesName', 'asc', 'stri');
         }
+        self::addReportStat($data, 'sort', microtime(true) - $timer, countR($recs));
         if ($rec->typeOfReport == 'short') {
             $this->summaryListFields = 'labelQuantity';
         }
@@ -555,6 +573,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
             array_unshift($recs, $typesQuantities);
         }
 
+        self::addReportStat($data, 'rows', 0, countR($recs));
         self::addReportStat($data, 'memory', 0, round(memory_get_peak_usage(true) / 1048576));
         self::addReportStat($data, 'total', microtime(true) - $startedOn, countR($recs));
 
