@@ -1336,10 +1336,13 @@ class acc_BalanceDetails extends core_Detail
                     $creditAmount = deals_Helper::getSmartBaseCurrency($creditAmount, $balanceRec->toDate, $convertToDate);
                     $baseAmount   = deals_Helper::getSmartBaseCurrency($baseAmount,   $balanceRec->toDate, $convertToDate);
                 }
-                $this->inc($b['debitQuantity'],  $rec->debitQuantity);
-                $this->inc($b['debitAmount'],    $debitAmount);
-                $this->inc($b['creditQuantity'], $rec->creditQuantity);
-                $this->inc($b['creditAmount'],   $creditAmount);
+                // inc() взима ключа по референция и го създава и при NULL - 4 празни ключа правят реда двойно по-голям в паметта
+                $turnover = array('debitQuantity' => $rec->debitQuantity, 'debitAmount' => $debitAmount, 'creditQuantity' => $rec->creditQuantity, 'creditAmount' => $creditAmount);
+                foreach ($turnover as $fld => $value) {
+                    if (!is_null($value)) {
+                        $this->inc($b[$fld], $value);
+                    }
+                }
                 $b['baseQuantity'] += $rec->baseQuantity;
                 $b['baseAmount']   += $baseAmount;
             } else {
