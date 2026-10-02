@@ -1438,6 +1438,7 @@ class acc_BalanceDetails extends core_Detail
             $this->calcStats['journalPrecisionOnly'] = 0;
             $this->calcStats['journalFeedChanged'] = 0;
             $this->calcStats['journalDefaultCost'] = 0;
+            $this->calcStats['journalFeedNoise'] = 0;
             $journalSaveTime = 0;
 
             $tracing     = Mode::is('traceBalance');
@@ -1481,8 +1482,13 @@ class acc_BalanceDetails extends core_Detail
                         $this->calcStats['journalAmountMaxDiff'] = max($this->calcStats['journalAmountMaxDiff'], $amountDiff);
 
                         // Само такава промяна прави стратегиите неверни (след calcPrice - и сумата от getDefaultCost)
+                        // Шумът под прага в захранващ ред не изисква нов ход, ако и сборът му е под прага
                         if (isset($this->feedRecIds[$rec->id])) {
-                            $this->calcStats['journalFeedChanged']++;
+                            if ($amountDiff >= acc_Balances::CHANGE_THRESHOLD) {
+                                $this->calcStats['journalFeedChanged']++;
+                            } else {
+                                $this->calcStats['journalFeedNoise'] += $amountDiff;
+                            }
                         }
                     }
                     $this->journalUpdates[$rec->id] = array(
@@ -1520,6 +1526,10 @@ class acc_BalanceDetails extends core_Detail
             }
 
             $this->addCalcPhase('entries', $start);
+
+            if ($this->calcStats['journalFeedNoise'] >= acc_Balances::JOURNAL_SUM_THRESHOLD) {
+                $this->calcStats['journalFeedChanged']++;
+            }
 
             // Колко от entries е запис в журнала (чакане за заключени редове) и колко изчисление
             $this->calcStats['journalSaveTime'] = round($journalSaveTime, 2);
