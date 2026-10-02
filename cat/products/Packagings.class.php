@@ -1104,7 +1104,13 @@ class cat_products_Packagings extends core_Detail
                 }
 
                 foreach ($lArr as $rId => $localData) {
-                    if (!array_key_exists($rId, $dArr) || !is_numeric($dArr[$rId])) {
+                    // Основната система пропуска опаковките, които не намира за артикула.
+                    if (!array_key_exists($rId, $dArr)) {
+
+                        continue;
+                    }
+
+                    if (!is_numeric($dArr[$rId])) {
                         $mvc->logWarning('Непълен отговор при проверка на отдалечените количества', $rec->id ?? null);
 
                         expect(false, 'Непълен отговор при проверка на отдалечените количества');
