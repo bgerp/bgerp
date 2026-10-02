@@ -115,7 +115,7 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
 
         $fieldset->FLD('arhGroups', 'keylist(mvc=cat_Groups,select=name,allowEmpty)', 'caption=Група продукти,input=none,silent,single=none');
 
-        $fieldset->FLD('orderLimit', 'double', 'caption=Настройки->% за поръчка, unit=%-а от максималното количество,input,single=none');
+        $fieldset->FLD('orderLimit', 'double', 'caption=Настройки->% за поръчка, unit=% от максималното количество,input,single=none');
 
 
         $fieldset->FNC('button', 'varchar', 'caption=Бутон,input=none,single=none');
@@ -763,7 +763,11 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
         $orderMeasure = $details[$productId]['orderMeasure'] ?? null;
         $minOrder = $details[$productId]['minOrder'] ?? null;
 
-        $keyVal = $productId;
+        $productInfo = cat_Products::getProductInfo($productId);
+        $productRec = $productInfo->productRec ?? null;
+        expect($baseMeasureId = $productRec->measureId ?? null);
+        $baseMeasureName = cat_UoM::getShortName($baseMeasureId);
+        $packagings = $productInfo->packagings ?? array();
 
         $form = cls::get('core_Form');
 
@@ -792,24 +796,23 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
 
         $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png');
 
-        //Пакетажите на артикула за избор
-        $prodPackArr = arr::extractValuesFromArray(cat_Products::getProductInfo($productId)->packagings, 'packagingId');
-        $productRec = cat_Products::getProductInfo($productId)->productRec;
+        $form->setField('volNewMin', array('unit' => $baseMeasureName));
+        $form->setField('volNewMax', array('unit' => $baseMeasureName));
 
-        //Добавяме възможност за избор освен пакетажа и основната мярка
-        $prodPackArr[$productRec->measureId] = $productRec->measureId;
+        $prodPackArr = arr::extractValuesFromArray($packagings, 'packagingId');
+        $prodPackArr[$baseMeasureId] = $baseMeasureId;
+        $options = array();
+        $Double = core_Type::getByName('double(smartRound)');
 
+        /** @var core_Query $q */
         $q = cat_UoM::getQuery();
-        // $q->where("#type = 'packaging'");
         $q->in('id', $prodPackArr);
-
         while ($qRec = $q->fetch()) {
-            $options[$qRec->id] = $qRec->name;
-        }
-
-        if (empty($prodPackArr) || empty($options)) {
-            $options = array();
-            $options[cat_Products::fetch($productId)->measureId] = cat_UoM::fetch(cat_Products::fetch($productId)->measureId)->name;
+            $packagingId = $qRec->id ?? null;
+            // Съдържанието е в основната мярка, както въведените лимити.
+            $quantityInPack = ($packagingId == $baseMeasureId) ? 1 : ($packagings[$packagingId]->quantity ?? null);
+            $quantityVerbal = isset($quantityInPack) ? $Double->toVerbal($quantityInPack) : 'n.a.';
+            $options[$packagingId] = ($qRec->name ?? '') . " ({$quantityVerbal} {$baseMeasureName})";
         }
 
         $form->setOptions('orderMeasureNew', $options);

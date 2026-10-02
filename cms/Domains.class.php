@@ -971,6 +971,37 @@ class cms_Domains extends core_Embedder
     
     
     /**
+     * Поле за домейн в лист филтър: текущият по подразбиране, празно за всички
+     */
+    public static function inputListFilterField(core_Form $form, $defaultDomainId = null)
+    {
+        $domains = self::getDomainOptions(false, core_Users::getCurrent());
+        $form->FLD('domainId', 'key(mvc=cms_Domains,select=titleExt)', 'caption=Домейн,silent,autoFilter,forceField');
+        
+        // Полето може да идва от модела, затова изрично се разрешава празно
+        $form->setField('domainId', 'mandatory=,placeholderType=all');
+        $form->setFieldTypeParams('domainId', array('allowEmpty' => 'allowEmpty'));
+        if (countR($domains) == 1) {
+            $form->setField('domainId', 'input=hidden');
+        } else {
+            $form->setOptions('domainId', $domains);
+        }
+        $form->input('domainId', 'silent');
+        
+        // Празно изпратено поле означава всички домейни
+        if (Request::get('domainId') === null) {
+            $form->rec->domainId = $defaultDomainId ?? self::getCurrent('id', false);
+        } elseif (!empty($form->rec->domainId)) {
+            
+            // Избраният във филтъра домейн става тихо текущ
+            self::selectCurrent($form->rec->domainId, true);
+        }
+        
+        return !empty($form->rec->domainId) ? $form->rec->domainId : null;
+    }
+    
+    
+    /**
      * Опции от наличните домейни
      * 
      * @param boolean $uniqDomains - уникални домейни

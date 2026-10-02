@@ -478,6 +478,17 @@ class core_ProtoSetup
     
     
     /**
+     * Защо пакетът не може да се де-инсталира
+     *
+     * @return string
+     */
+    public function getCannotDeinstallHint()
+    {
+        return 'Пакетът не може да бъде де-инсталиран, защото има системни функции.';
+    }
+    
+    
+    /**
      * Де-инсталиране на пакета
      */
     public function deinstall()

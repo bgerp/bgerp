@@ -943,6 +943,17 @@ class eshop_Groups extends core_Master
 
         return $items;
     }
+    
+    
+    /**
+     * Добавя полетата за настройки на менюто, специфични за източника
+     *
+     * @param core_FieldSet $fieldset
+     * @return void
+     */
+    public function addContentSettingsFields($fieldset)
+    {
+    }
 
 
     /**

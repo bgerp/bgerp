@@ -2,7 +2,7 @@
 
 
 /**
- * Линкове
+ * Препратки в блога
  *
  *
  * @category  bgerp
@@ -31,13 +31,7 @@ class blogm_Links extends core_Manager
     /**
      * Полета за листов изглед
      */
-    public $listFields = ' id, name, url, state';
-    
-    
-    /**
-     * Кой може да листва линковете
-     */
-    public $canRead = 'cms, ceo, admin, blog';
+    public $listFields = 'id, name, url, state';
     
     
     /**
@@ -102,7 +96,7 @@ class blogm_Links extends core_Manager
      */
     public static function renderLinks($data)
     {
-        $tpl = new ET();
+        $tpl = new ET("");
         
         if ($data->links) {
             foreach ($data->links as $link) {
