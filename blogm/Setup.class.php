@@ -133,6 +133,8 @@ class blogm_Setup extends core_ProtoSetup
         'blogm_Links',
         'migrate::fillCommentedOn2640',
         'migrate::scheduledToWaiting2640',
+        'migrate::articlesToDocuments2640',
+        'migrate::repairSearchKeywords2640',
     );
     
     
@@ -222,5 +224,82 @@ class blogm_Setup extends core_ProtoSetup
             $rec = (object) array('id' => $cRec->articleId, 'commentedOn' => $cRec->lastCommentOn);
             $Articles->save_($rec, 'commentedOn');
         }
+    }
+    
+    
+    /**
+     * Прехвърля статиите като документи в папките на домейните им
+     */
+    public function articlesToDocuments2640()
+    {
+        cls::get('cms_Content')->setupMvc();
+        $Articles = cls::get('blogm_Articles');
+        $Articles->setupMvc();
+        
+        // Състоянието преди оттегляне е било в полето на plg_Rejected
+        $exStateCol = str::phpToMysqlName('exState');
+        if ($Articles->db->isFieldExists($Articles->dbTableName, $exStateCol)) {
+            $brStateCol = str::phpToMysqlName('brState');
+            $stateCol = str::phpToMysqlName('state');
+            $containerCol = str::phpToMysqlName('containerId');
+            $Articles->db->query("UPDATE `{$Articles->dbTableName}` SET `{$brStateCol}` = `{$exStateCol}` WHERE `{$stateCol}` = 'rejected' AND `{$containerCol}` IS NULL");
+        }
+        
+        $folders = array();
+        $query = $Articles->getQuery();
+        $query->where('#containerId IS NULL');
+        while ($rec = $query->fetch()) {
+            
+            // Папката е на основното меню на първата категория
+            $categories = keylist::toArray($rec->categories);
+            $menuId = countR($categories) ? blogm_Categories::fetchField(key($categories), 'menuId') : null;
+            if (empty($menuId)) {
+                $menuId = cms_Content::fetchField(array("#source = '[#1#]'", core_Classes::getId('blogm_Articles')), 'id');
+            }
+            if (!array_key_exists($menuId, $folders)) {
+                $folders[$menuId] = cms_Content::forceCoverAndFolder($menuId);
+            }
+            
+            $rec->folderId = $folders[$menuId];
+            $rec->_notModified = true;
+            $Articles->route($rec);
+            $Articles->save($rec);
+            
+            if ($rec->state == 'rejected') {
+                doc_Threads::rejectThread($rec->threadId);
+            }
+        }
+    }
+    
+    
+    /**
+     * Пакетът не се де-инсталира, докато има статии
+     */
+    public function canDeinstall()
+    {
+        if (core_Packs::isInstalled('blogm') && blogm_Articles::count()) {
+            
+            return false;
+        }
+        
+        return parent::canDeinstall();
+    }
+    
+    
+    /**
+     * Защо пакетът не може да се де-инсталира
+     */
+    public function getCannotDeinstallHint()
+    {
+        return 'Пакетът не може да бъде де-инсталиран, защото има създадени статии в блога.';
+    }
+    
+    
+    /**
+     * Ключовите думи на статиите включват и коментарите
+     */
+    public function repairSearchKeywords2640()
+    {
+        core_CallOnTime::setCall('plg_Search', 'repairSearchKeywords', 'blogm_Articles', dt::addSecs(120));
     }
 }

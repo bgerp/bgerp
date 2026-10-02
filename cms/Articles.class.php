@@ -9,7 +9,7 @@
  * @package   cms
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2026 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -116,12 +116,6 @@ class cms_Articles extends core_Master
     
     
     /**
-     * Кой има право да чете?
-     */
-    public $canRead = 'cms,admin,ceo';
-    
-    
-    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -142,7 +136,7 @@ class cms_Articles extends core_Master
     /**
      * Изпълнява се след подготовката на формата за филтриране
      */
-    public function on_AfterPrepareListFilter($mvc, $data)
+    protected function on_AfterPrepareListFilter($mvc, $data)
     {
         $form = $data->listFilter;
         
@@ -180,7 +174,7 @@ class cms_Articles extends core_Master
     /**
      * Подготвя някои полета на формата
      */
-    public static function on_AfterPrepareEditForm($mvc, $data)
+    protected static function on_AfterPrepareEditForm($mvc, $data)
     {
         $id = $data->form->rec->id ?? null;
         if (!empty($id)) {
@@ -199,11 +193,11 @@ class cms_Articles extends core_Master
     /**
      * Изпълнява се след преобразуването към вербални стойности на полетата на записа
      */
-    public function on_AfterRecToVerbal($mvc, $row, $rec, $fields = array())
+    protected function on_AfterRecToVerbal($mvc, $row, $rec, $fields = array())
     {
         if (trim((string) $rec->body) && ($fields['-list'] ?? null) && $mvc->haveRightFor('show', $rec)) {
             $row->title = ht::createLink($row->title, toUrl(self::getUrl($rec)), null, 
-                array('ef_icon' => 'img/16/monitor.png', 'title' => isset($rec->seoTitle) ? $rec->seoTitle : null));
+                array('ef_icon' => 'img/16/monitor.png', 'title' => $rec->seoTitle ?? null));
         }
     }
     
@@ -236,7 +230,6 @@ class cms_Articles extends core_Master
     public function act_Article()
     {
         Mode::set('wrapper', 'cms_page_External');
-        
         $conf = core_Packs::getConfig('cms');
 
         if (Mode::is('screenMode', 'narrow')) {
@@ -280,11 +273,8 @@ class cms_Articles extends core_Master
         
         if ($rec) {
             $rec->body = trim((string) $rec->body);
-            
             $menuId = $rec->menuId;
-            
             $lArr = explode('.', self::getVerbal($rec, 'level'));
-            
             $content = new ET('[#1#]', self::getVerbal($rec, 'body'));
         }
 
@@ -402,7 +392,6 @@ class cms_Articles extends core_Master
         
         while ($rec1 = $query->fetch()) {
             $navData->cnt++;
-            
             $lArr1 = explode('.', self::getVerbal($rec1, 'level'));
             
             if ($lArr) {
@@ -498,9 +487,7 @@ class cms_Articles extends core_Master
     
     
     /**
-     * $data->items = $array( $rec{$level, $title, $url, $isSelected, $icon, $editLink} )
-     * $data->new = {$caption, $url}
-     *
+     * Рендиране на навигацията
      */
     public function renderNavigation_($data)
     {
@@ -604,9 +591,7 @@ class cms_Articles extends core_Master
     {
         $query = self::getQuery();
         $query->orderBy('#level');
-        
         $rec = $query->fetch("#menuId = {$menuId} AND #body != '' AND #state = 'active'");
-        
         if ($rec) {
             
             return self::getUrl($rec);
@@ -719,11 +704,9 @@ class cms_Articles extends core_Master
                 
                 $url = self::getUrl($r);
                 $url['q'] = $q;
-                
                 $res[toUrl($url)] = (object) array('title' => $title, 'url' => $url);
             }
         }
-        
         
         if (countR($res) < $maxResults) {
             $query = clone($queryM);
@@ -754,7 +737,6 @@ class cms_Articles extends core_Master
         $kArr = array();
         
         $text = '';
-        
         $query = self::getQuery();
         $query->where("#state = 'active' AND #menuId = {$menuId}");
         $query->show('searchKeywords');
@@ -801,6 +783,17 @@ class cms_Articles extends core_Master
 
         return $items;
     }
+    
+    
+    /**
+     * Добавя полетата за настройки на менюто, специфични за източника
+     *
+     * @param core_FieldSet $fieldset
+     * @return void
+     */
+    public function addContentSettingsFields($fieldset)
+    {
+    }
 
 
     /**
@@ -812,23 +805,17 @@ class cms_Articles extends core_Master
         
         return $url;
     }
-    
-    
+
+
+    /**
+     * След рендиране на лист туулбара
+     */
     protected static function on_AfterPrepareListToolbar($mvc, $res, $data)
     {
         $data->toolbar->addBtn('Конкатениране', array($mvc, 'ShowAll', 'menuId' => $data->listFilter->rec->menuId ?? null), 'ef_icon=img/16/concatenate.png');
         
         if ($mvc->haveRightFor('add')) {
-            $data->toolbar->addBtn(
-                'Нова статия',
-                array(
-                    $mvc,
-                    'add',
-                    'menuId' => $data->listFilter->rec->menuId ?? null,
-                ),
-                'id=btnAdd',
-                'ef_icon = img/16/star_2.png,title=Създаване на нов запис'
-            );
+            $data->toolbar->addBtn('Нова статия', array($mvc, 'add', 'menuId' => $data->listFilter->rec->menuId ?? null,), 'id=btnAdd','ef_icon = img/16/star_2.png,title=Създаване на нов запис');
         }
     }
     
@@ -988,7 +975,7 @@ class cms_Articles extends core_Master
      */
     public static function addFooterLinks($domainId = null)
     {
-        $domainId = isset($domainId) ? $domainId : cms_Domains::getPublicDomain()->id;
+        $domainId = $domainId ?? cms_Domains::getPublicDomain()->id;
         
         // Всички активни статии към домейна с информация за добавяне във футъра
         $query = self::getQuery();

@@ -522,16 +522,19 @@ class plg_Search extends core_Plugin
         
         // Намираме максималното id на записа
         if (!isset($maxId) || ($maxId === false)) {
-            $q = $mvc->getQuery();
-            $q->XPR('maxId', 'int', 'max(#id)');
-            $q->show('maxId');
-            $qRec = $q->fetch();
-            
-            $maxId = $qRec->maxId;
-            
-            if (!isset($maxId)) {
-                $maxId = 0;
+            if (empty($mvc->dbTableName) || empty($mvc->db)) {
+
+                return false;
             }
+
+            // Директно по първичния ключ: плъгините на заявката (напр. ограничения за достъп)
+            // са без значение за оценката, а могат да я превърнат в пълно сканиране
+            $idCol = str::phpToMysqlName('id');
+            $dbRes = $mvc->db->query("SELECT MAX(`{$idCol}`) AS `maxId` FROM `{$mvc->dbTableName}`");
+            $qRec = $mvc->db->fetchObject($dbRes);
+            $mvc->db->freeResult($dbRes);
+
+            $maxId = (int) ($qRec->maxId ?? 0);
             
             core_Permanent::set($key, $maxId, 1000);
         }

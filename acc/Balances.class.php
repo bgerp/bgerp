@@ -392,6 +392,20 @@ class acc_Balances extends core_Master
 
 
     /**
+     * Последният месечен баланс, завършващ преди посочената дата - задължителната база
+     */
+    private static function getPrevPeriodBalance($date)
+    {
+        $query = self::getQuery();
+        $query->where(array("#toDate < '[#1#]' AND #periodId IS NOT NULL", $date));
+        $query->orderBy('toDate', 'DESC');
+        $query->limit(1);
+
+        return $query->fetch();
+    }
+
+
+    /**
      * Маркира балансите, които се засягат от документ с посочения вальор
      *
      * @param string $date Вальорът на алтерниращият документ
@@ -563,6 +577,23 @@ class acc_Balances extends core_Master
 
         if (!$isValid) {
 
+            // Без валиден предходен баланс смятането би тръгнало от по-стара база и би записало в журнала цени за чужди месеци
+            $prevRec = self::getPrevPeriodBalance($rec->fromDate);
+            if ($prevRec && !self::isValid($prevRec)) {
+                self::forceCalc($prevRec);
+
+                // Наново от базата - документ по време на смятането сменя lastAlternation
+                $prevId = $prevRec->id;
+                $prevPeriod = "{$prevRec->fromDate} - {$prevRec->toDate}";
+                $prevRec = self::fetch($prevId, '*', false);
+                if (!$prevRec || !self::isValid($prevRec)) {
+                    self::$outOfTime = true;
+                    self::logNotice("Предходният баланс {$prevPeriod} е променен по време на изчислението на {$rec->fromDate} - {$rec->toDate}", $prevId, 3);
+
+                    return false;
+                }
+            }
+
             // Днешна дата
             $today = dt::today();
 
@@ -622,6 +653,10 @@ class acc_Balances extends core_Master
         for ($i = 1; ; $i++) {
             $passStart = microtime(true);
             self::calc($rec, $i == 1 && !$force);
+            if (!empty($rec->calcBaseInvalid)) {
+                $stop = 'base';
+                break;
+            }
             if (empty($rec->calcSkipped)) {
                 self::$lastPassTime = microtime(true) - $passStart;
             }
@@ -739,12 +774,24 @@ class acc_Balances extends core_Master
         // Използвана памет преди баланса - показва дали нещо остава от предходно изчисление
         $bD->calcStats['usedBeforeMB'] = round(memory_get_usage(false) / 1048576);
         $rec->calcSkipped   = false;
+        $rec->calcBaseInvalid = false;
         $rec->journalAmountDiff = 0;
         $rec->journalAmountMaxDiff = 0;
         $rec->journalNeedsRepeat = false;
         $convertToDate      = null;
         $lastRec            = self::getBalanceBefore($rec->toDate);
         $periodCurrencyCode = acc_Periods::getBaseCurrencyCode($rec->toDate);
+
+        // Невалиден предходен месец (документ след проверката във forceCalc) - не се тръгва от по-стара база
+        $prevPeriodRec = self::getPrevPeriodBalance($rec->fromDate);
+        if ($prevPeriodRec && (!$lastRec || $lastRec->toDate < $prevPeriodRec->toDate)) {
+            $rec->calcSkipped = true;
+            $rec->calcBaseInvalid = true;
+            self::$outOfTime = true;
+            self::logNotice("Изчислението на {$rec->fromDate} - {$rec->toDate} се отлага: предходният баланс {$prevPeriodRec->fromDate} - {$prevPeriodRec->toDate} е невалиден", $rec->id, 3);
+
+            return;
+        }
 
         // От кой баланс тръгва смятането - междинен или с период
         $bD->calcStats['baseBalance'] = $lastRec ? "{$lastRec->id}:{$lastRec->toDate}" . (empty($lastRec->periodId) ? ':middle' : '') : '-';
