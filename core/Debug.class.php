@@ -337,11 +337,11 @@ class core_Debug
      */
     public static function getWorkingTime($name)
     {
-        $time = core_Debug::$timers[$name];
+        $time = core_Debug::$timers[$name] ?? null;
 
         if ($time) {
 
-            return $time->workingTime;
+            return $time->workingTime ?? null;
         }
     }
     
