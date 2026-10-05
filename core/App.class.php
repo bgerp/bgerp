@@ -1158,8 +1158,9 @@ class core_App
         if (!$s && (EF_HTTPS == 'MANDATORY')) {
             $s = 's';
         }
-        $slashPos = strpos($_SERVER['SERVER_PROTOCOL'], '/');
-        $protocol = substr(strtolower($_SERVER['SERVER_PROTOCOL']), 0, $slashPos) . $s;
+        $serverProtocol = $_SERVER['SERVER_PROTOCOL'] ?? 'HTTP/1.1';
+        $slashPos = strpos($serverProtocol, '/');
+        $protocol = substr(strtolower($serverProtocol), 0, $slashPos) . $s;
         
         return $protocol . '://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
     }
@@ -1187,8 +1188,11 @@ class core_App
             if (!$s && (EF_HTTPS == 'MANDATORY')) {
                 $s = 's';
             }
-            $slashPos = strpos($_SERVER['SERVER_PROTOCOL'], '/');
-            $protocol = substr(strtolower($_SERVER['SERVER_PROTOCOL']), 0, $slashPos) . $s;
+
+            // В CLI няма SERVER_PROTOCOL
+            $serverProtocol = $_SERVER['SERVER_PROTOCOL'] ?? 'HTTP/1.1';
+            $slashPos = strpos($serverProtocol, '/');
+            $protocol = substr(strtolower($serverProtocol), 0, $slashPos) . $s;
             
             $dirName = dirname($_SERVER['SCRIPT_NAME']);
             
