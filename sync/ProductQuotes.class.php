@@ -122,6 +122,8 @@ class sync_ProductQuotes extends core_BaseClass
             $res->error = $e->getMessage();
             $res->status = 3;
             reportException($e);
+        } catch (core_exception_Redirect $e) {
+            throw $e;
         } catch (Throwable $e) {
             $res->localId = null;
             $res->error = 'Невалиден или непълен product payload';

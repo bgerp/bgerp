@@ -186,6 +186,8 @@ class sens2_Scripts extends core_Master
             if((!$period) || ($curMin + $offset) % $period === 0) {
                 try {
                     sens2_script_Actions::runScript($rec->id);
+                } catch (core_exception_Redirect $t) {
+                    throw $t;
                 } catch (Throwable $t) {
                     reportException($t);
 

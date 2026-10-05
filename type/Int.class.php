@@ -117,6 +117,8 @@ class type_Int extends core_Type
                 
                 return (int) $val;
             }
+        } catch (core_exception_Redirect $e) {
+            throw $e;
         } catch (Throwable $e) {
             // Нищо не се прави - основно за PARSE_ERROR
         }

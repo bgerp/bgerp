@@ -33,6 +33,8 @@ class phpsignal_Client extends core_Manager
                 // Инстанция на класа
                 $binPath = phpsignal_Setup::get('SIGNAL_BIN_PATH');
                 $client = new Signal($binPath, phpsignal_Setup::get('SIGNAL_NUMBER'), Signal::FORMAT_JSON);
+            } catch (core_exception_Redirect $e) {
+                throw $e;
             } catch (Exception $e) {
                 reportException($e);
             }
@@ -92,6 +94,8 @@ class phpsignal_Client extends core_Manager
                 // Инстанция на класа
                 $binPath = phpsignal_Setup::get('SIGNAL_BIN_PATH');
                 $client = new Signal($binPath, phpsignal_Setup::get('SIGNAL_NUMBER'), Signal::FORMAT_JSON);
+            } catch (core_exception_Redirect $e) {
+                throw $e;
             } catch (Exception $e) {
                 reportException($e);
             }

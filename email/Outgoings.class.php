@@ -3885,6 +3885,8 @@ class email_Outgoings extends core_Master
                 email_Outgoings::logDebug('Успешно изпратен имейл CID=' . $r->containerId, $oRec->id);
 
                 $succ++;
+            } catch (core_exception_Redirect $e) {
+                throw $e;
             } catch (Exception $e) {
                 email_Outgoings::logDebug('Грешка при изпращане на имейл CID=' . $r->containerId, $oRec->id ?? null);
                 $err++;

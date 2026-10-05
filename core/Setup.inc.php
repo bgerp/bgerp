@@ -1305,24 +1305,33 @@ if ($step == 'start') {
     setlocale(LC_ALL, 'en_US.UTF8');
 
     $ef = new core_Setup();
+    $res = '';
     try {
         try {
-            $res = $ef->install();
-            file_put_contents(EF_SETUP_LOG_PATH, 'Стартирана инициализация ...' . $res);
-        } catch (core_exception_Expect $e) {
-            file_put_contents(EF_SETUP_LOG_PATH, $res . 'ERROR: ' . $e->getMessage());
+            try {
+                $res = $ef->install();
+                file_put_contents(EF_SETUP_LOG_PATH, 'Стартирана инициализация ...' . $res);
+            } catch (core_exception_Expect $e) {
+                file_put_contents(EF_SETUP_LOG_PATH, $res . 'ERROR: ' . $e->getMessage());
+                reportException($e);
+            }
+        } catch (core_exception_Redirect $e) {
+            throw $e;
+        } catch (Exception $e) {
+            file_put_contents(EF_SETUP_LOG_PATH, $e->getMessage());
             reportException($e);
         }
-    } catch (Exception $e) {
-        file_put_contents(EF_SETUP_LOG_PATH, $e->getMessage());
-        reportException($e);
+
+        $Packs = cls::get('core_Packs');
+
+        $Packs->setupPack('bgerp');
+
+    } catch (core_exception_Redirect $redirect) {
+        file_put_contents(EF_SETUP_LOG_PATH, PHP_EOL . 'Redirect: ' . $redirect->url, FILE_APPEND);
+    } finally {
+        $setupFlag = false;
+        setupUnlock();
     }
-
-    $Packs = cls::get('core_Packs');
-
-    $Packs->setupPack('bgerp');
-
-    setupUnlock();
 
     shutdown();
 }

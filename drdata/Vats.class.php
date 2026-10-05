@@ -307,6 +307,8 @@ class drdata_Vats extends core_Manager
 			}
 
 			$result = (object) array('valid' => null, 'name' => null, 'address' => null);
+		} catch (core_exception_Redirect $e) {
+		    throw $e;
 		} catch (Exception $e) {
 			reportException($e);
 			$result = (object) array('valid' => null, 'name' => null, 'address' => null);

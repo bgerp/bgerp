@@ -259,20 +259,18 @@ class fileman_Download extends core_Manager
                 $downloadPath = $downloadPath . '.' . $aExt;
 
                 archive_Adapter::compressFile($tFile, $downloadPath);
+            } catch (core_exception_Redirect $e) {
+                throw $e;
             } catch (Exception $e) {
                 reportException($e);
-                fileman::deleteTempPath($tFile);
-                @unlink($tFile);
                 expect(false);
             } catch (Throwable $t) {
                 reportException($t);
+                expect(false);
+            } finally {
                 fileman::deleteTempPath($tFile);
                 @unlink($tFile);
-                expect(false);
             }
-
-            fileman::deleteTempPath($tFile);
-            @unlink($tFile);
         } else {
             if (!@copy($originalPath, $downloadPath)) {
                 error('@Не може да бъде копиран файла', $originalPath, $downloadPath);

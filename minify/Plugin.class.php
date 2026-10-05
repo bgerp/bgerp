@@ -31,6 +31,8 @@ class minify_Plugin extends core_Plugin
             } elseif ($ext == 'js') {
                 $content = minify_Js::process($content);
             }
+        } catch (core_exception_Redirect $t) {
+            throw $t;
         } catch (Exception $t) {
             reportException('Грешка при minify', $t);
         } catch (Error $t) {

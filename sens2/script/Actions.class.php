@@ -242,6 +242,8 @@ class sens2_script_Actions extends core_Detail
             } catch (core_exception_Expect $e) {
                 reportException($e);
                 self::logWarning('Грешка при изпъление на скрипт: ' . $e->getMessage());
+            } catch (core_exception_Redirect $e) {
+                throw $e;
             } catch (Exception $e) {
                 reportException($e);
                 self::logWarning('Грешка при изпъление на скрипт: ' . $e->getMessage());

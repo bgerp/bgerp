@@ -1523,6 +1523,8 @@ class core_Html
                                 } else {
                                     $res[$name] = $prop->getValue($prop->isStatic() ? null : $o);
                                 }
+                            } catch (core_exception_Redirect $e) {
+                                throw $e;
                             } catch (Throwable $e) {
                                 // Някои вътрешни PHP обекти не разрешават четене на свойствата си
                                 $res[$name] = '(unavailable)';

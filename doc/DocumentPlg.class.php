@@ -3933,6 +3933,7 @@ class doc_DocumentPlg extends core_Plugin
         // Ако не са извлечени файловете или не сме в процес на извличане - форсираме процеса
         if ((!$oCid && $cId) || ($oCid && ($oCid != $cId))) {
             Mode::push('saveObjectsToCid', $cId);
+            $sudoPushed = false;
             try {
                 $cRec = doc_Containers::fetch($cId);
                 if ($cRec->docClass) {
@@ -3950,26 +3951,24 @@ class doc_DocumentPlg extends core_Plugin
                     $pushed = true;
                     if ($pushUser) {
                         core_Users::sudo($userId);
+                        $sudoPushed = true;
                     }
                     // Документът се подготвя целия само за да се намерят файловете в него
                     core_Debug::startTimer('LINKED_OBJ_PREPARE_DOC');
                     $docMvc->prepareDocument($cRec->docId);
                     core_Debug::stopTimer('LINKED_OBJ_PREPARE_DOC');
-                    if ($pushUser) {
-                        core_Users::exitSudo();
-                    }
                 }
+            } catch (core_exception_Redirect $e) {
+                throw $e;
             } catch (Exception $e) {
                 reportException($e);
             } catch (Throwable  $e) {
                 reportException($e);
+            } finally {
+                if ($sudoPushed) core_Users::exitSudo();
+                if ($pushed) Mode::pop('getLinkedObj');
+                Mode::pop('saveObjectsToCid');
             }
-            
-            if ($pushed) {
-                Mode::pop('getLinkedObj');
-            }
-            
-            Mode::pop('saveObjectsToCid');
         }
         
         doc_UsedInDocs::flushArr();

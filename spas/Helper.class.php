@@ -44,6 +44,8 @@ class spas_Helper extends core_Mvc
                 } catch (spas_client_Exception $e) {
                     $this->logWarning($e->getMessage());
                     wp($e->getMessage());
+                } catch (core_exception_Redirect $e) {
+                    throw $e;
                 } catch (Exception $e) {
                     reportException($e);
                 } catch (Throwable $t) {
@@ -86,6 +88,8 @@ class spas_Helper extends core_Mvc
                 } catch (spas_client_Exception $e) {
                     $this->logWarning($e->getMessage());
                     wp($e->getMessage());
+                } catch (core_exception_Redirect $e) {
+                    throw $e;
                 } catch (Exception $e) {
                     reportException($e);
                 } catch (Throwable $t) {
@@ -127,6 +131,8 @@ class spas_Helper extends core_Mvc
              } catch (spas_client_Exception $e) {
                 $this->logWarning($e->getMessage());
                 wp($e->getMessage());
+            } catch (core_exception_Redirect $e) {
+                throw $e;
             } catch (Exception $e) {
                 reportException($e);
             } catch (Throwable $t) {

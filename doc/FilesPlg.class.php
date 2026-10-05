@@ -140,6 +140,8 @@ class doc_FilesPlg extends core_Plugin
                     try {
                         // Първия документ в нишката
                         $docProxy = doc_Containers::getDocument($firstContainerId);
+                    } catch (core_exception_Redirect $e) {
+                        throw $e;
                     } catch (Exception $e) {
                         continue;
                     }

@@ -77,6 +77,11 @@ class core_Mode
      */
     public static function pop($name = null, $force = null)
     {
+        // Невалидното име не бива да унищожава записа, нужен за възстановяване на контекста.
+        if ($name && !$force) {
+            $top = self::$stack[0] ?? null;
+            expect($top && ($top->name ?? null) == $name, "Очаква се Mode::pop('" . ($top->name ?? '') . "') а не Mode::pop('{$name}')", self::$stack);
+        }
         do {
             expect($rec = array_shift(self::$stack), self::$stack);
         } while ($force && $rec->name != $name && countR(self::$stack));

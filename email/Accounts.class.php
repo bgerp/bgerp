@@ -952,6 +952,8 @@ class email_Accounts extends core_Master
                         if ($status != 'duplicated') {
                             email_Incomings::logNotice('Свален имейл, който е бил пропуснат');
                         }
+                    } catch (core_exception_Redirect $e) {
+                        throw $e;
                     } catch (Exception $e) {
                         reportException($e);
                     }

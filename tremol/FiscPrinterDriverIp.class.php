@@ -708,6 +708,8 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
         if ($Embedder instanceof peripheral_Devices && $Embedder->haveRightFor('edit', $data->rec->id)) {
             try {
                 $sn = $Driver->getSerialNumber($data->rec);
+            } catch (core_exception_Redirect $e) {
+                throw $e;
             } catch (Exception $e) {
                 $Driver->handleAndShowException($e);
             }
@@ -728,6 +730,8 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
                 // Добавяме паролата на оператора
                 try {
                     $oPass = $Driver->getOperPassFromFU($data->rec);
+                } catch (core_exception_Redirect $e) {
+                    throw $e;
                 } catch (Exception $e) {
                     $Driver->handleAndShowException($e);
                 }
@@ -742,6 +746,8 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
                 
                 try {
                     $dPaymArr = $Driver->getDefaultPaymentsFromFU($data->rec);
+                } catch (core_exception_Redirect $e) {
+                    throw $e;
                 } catch (Exception $e) {
                     $Driver->handleAndShowException($e);
                 }
@@ -755,6 +761,8 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
                 
                 try {
                     $depArr = $Driver->getDepArr($data->rec);
+                } catch (core_exception_Redirect $e) {
+                    throw $e;
                 } catch (Exception $e) {
                     $Driver->handleAndShowException($e);
                 }
@@ -766,6 +774,8 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
                 
                 try {
                     self::setDateTime($data->rec);
+                } catch (core_exception_Redirect $e) {
+                    throw $e;
                 } catch (Exception $e) {
                     $Driver->handleAndShowException($e);
                 }
@@ -781,6 +791,8 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
                     }
                     try {
                         self::progHeader($data->rec, $pHeaderArr);
+                    } catch (core_exception_Redirect $e) {
+                        throw $e;
                     } catch (Exception $e) {
                         $Driver->handleAndShowException($e);
                     }
@@ -789,6 +801,8 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
                 if ($data->rec->footer == 'yes') {
                     try {
                         self::progFooter($data->rec, self::formatText((string) $data->rec->footerText, $data->rec->footerPos, $maxTextLen));
+                    } catch (core_exception_Redirect $e) {
+                        throw $e;
                     } catch (Exception $e) {
                         $Driver->handleAndShowException($e);
                     }
@@ -966,10 +980,14 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
                     try {
                         $namePayment = "NamePayment{$i}";
                         $dPaymArr[trim($paymRes->{$namePayment})] = $i;
+                    } catch (core_exception_Redirect $e) {
+                        throw $e;
                     } catch (Exception $e) { }
                 }
                 try {
                     $exchangeRate = trim($paymRes->ExchangeRate);
+                } catch (core_exception_Redirect $e) {
+                    throw $e;
                 } catch (Exception $e) {
                     $exchangeRate = null;
                 }
@@ -982,11 +1000,15 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
                         $codePayment = "CodePaym{$i}";
                         
                         $dPaymArr[trim($paymRes->{$namePayment})] = $i;
+                    } catch (core_exception_Redirect $e) {
+                        throw $e;
                     } catch (Exception $e) { }
                 }
                 
                 try {
                     $exchangeRate = trim($paymRes->ExRate);
+                } catch (core_exception_Redirect $e) {
+                    throw $e;
                 } catch (Exception $e) {
                     $exchangeRate = null;
                 }
@@ -1150,6 +1172,8 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
             if ($retUrl) {
                 redirect($retUrl, false, "|Успешно {$actTypeVerb} във ФУ");
             }
+        } catch (core_exception_Redirect $e) {
+            throw $e;
         } catch (Exception $e) {
             $this->handleAndShowException($e);
             status_Messages::newStatus("|Грешка при {$actTypeVerb} във ФУ", 'error');
@@ -1308,6 +1332,8 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
             } catch (\Tremol\SException $e) {
                 $this->handleTremolException($e);
             }
+        } catch (core_exception_Redirect $e) {
+            throw $e;
         } catch (Exception $e) {
             $this->handleAndShowException($e);
         }
@@ -1337,6 +1363,8 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
             } catch (\Tremol\SException $e) {
                 $this->handleTremolException($e);
             }
+        } catch (core_exception_Redirect $e) {
+            throw $e;
         } catch (Exception $e) {
             $this->handleAndShowException($e);
         }
@@ -1380,6 +1408,8 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
             } catch (\Tremol\SException $e) {
                 $this->handleTremolException($e);
             }
+        } catch (core_exception_Redirect $e) {
+            throw $e;
         } catch (Exception $e) {
             $this->handleAndShowException($e);
         }

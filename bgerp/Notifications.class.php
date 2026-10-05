@@ -713,6 +713,8 @@ class bgerp_Notifications extends core_Manager
                     if (!$ctr || !$act || !$ctr::haveRightFor($act, $urlId, $rec->userId)) {
                         continue;
                     }
+                } catch (core_exception_Redirect $e) {
+                    throw $e;
                 } catch (Exception $e) {
                     reportException($e);
                 }

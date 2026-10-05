@@ -203,6 +203,8 @@ class support_ReviewInvitation extends core_BaseClass
                     self::store($token, array_merge($context, array('state' => 'deny')));
                     try {
                         $result = $this->evaluate($system, $context);
+                    } catch (core_exception_Redirect $e) {
+                        throw $e;
                     } catch (Throwable $e) {
                         reportException($e);
                         $result = array('state' => 'deny', 'reason' => 'Грешка при оценката');

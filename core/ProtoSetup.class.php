@@ -259,6 +259,8 @@ class core_ProtoSetup
                                                     isset($plg[4]) ? $plg[4] : 'active',
                                                     isset($plg[5]) ? $plg[5] : false
                                                 );
+                } catch (core_exception_Redirect $e) {
+                    throw $e;
                 } catch (Throwable $e) {
                     reportException($e);
                     $htmlRes .= "<li class='debug-error'>Плъгинът {$plg[1]} не беше закачен към {$plg[2]}: " .
@@ -543,6 +545,8 @@ class core_ProtoSetup
             // Проблем с един клас не трябва да спира инсталацията на целия пакет
             try {
                 $res .= core_Classes::add($cls);
+            } catch (core_exception_Redirect $e) {
+                throw $e;
             } catch (Throwable $e) {
                 reportException($e);
                 $res .= "<li class='debug-error'>Класът {$cls} не беше регистриран: {$e->getMessage()}</li>";

@@ -150,6 +150,8 @@ class log_Mysql extends core_Manager {
                     $rec->timeAvg = $rec->time / $rec->cnt;
                     self::save($rec);
                 }
+            } catch (core_exception_Redirect $e) {
+                throw $e;
             } catch ( \Exception $e ) {
             }
         }
