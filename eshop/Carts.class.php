@@ -1475,8 +1475,8 @@ class eshop_Carts extends core_Master
         $lang = cms_Domains::getPublicDomain('lang');
         core_Lg::push($lang);
         
-        $tpl = getTplFromFile(cms_CommerceTheme::getShopTemplate('eshop/tpl/SingleLayoutCartExternal.shtml'));
-        cms_CommerceTheme::prepareShop($tpl);
+        $tpl = getTplFromFile(cms_ProtoTheme::getCurrent()->getTemplate('eshop/tpl/SingleLayoutCartExternal.shtml'));
+        cms_ProtoTheme::getCurrent()->addShopAssets($tpl);
         $tpl->replace(self::renderViewCart($rec), 'CART_TABLE');
 
         self::renderCartToolbar($rec, $tpl);
@@ -2525,7 +2525,7 @@ class eshop_Carts extends core_Master
         
         $tpl = $form->renderHtml();
         if (cms_Domains::getCmsSkin() instanceof cms_CommerceTheme) {
-            cms_CommerceTheme::prepareShop($tpl);
+            cms_ProtoTheme::getCurrent()->addShopAssets($tpl);
             $tpl->appendOnce(' commerce-checkout', 'BODY_CLASS_NAME');
             $tpl->push('cms/css/CommerceCheckout.css', 'CSS');
         }

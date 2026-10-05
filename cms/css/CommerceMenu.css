@@ -5,7 +5,7 @@ body.commerce-theme { font-size: 1rem; }
 body.commerce-theme #cmsMenu.menuRow {
     min-width: 0;
     padding: 0;
-    background: #142d38;
+    background: var(--c-dark);
     border: 0 !important;
     box-shadow: 0 4px 18px rgba(16, 39, 49, .12);
     position: relative;
@@ -52,14 +52,14 @@ body.commerce-theme #cmsMenu.menuRow a:focus-visible {
     color: #fff !important;
 }
 body.commerce-theme #cmsMenu.menuRow a.selected {
-    background: #d8ed94;
+    background: var(--c-highlight);
     color: #182e29 !important;
 }
 body.commerce-theme #cmsMenu.menuRow a.selected:hover {
     background: #e5f5b6;
 }
 body.commerce-theme #cmsMenu.menuRow a:focus-visible {
-    outline: 2px solid #d8ed94;
+    outline: 2px solid var(--c-highlight);
     outline-offset: 3px;
 }
 body.commerce-theme #cmsMenu.menuRow .cms-menu-tools {
@@ -73,7 +73,7 @@ body.commerce-theme #cmsMenu.menuRow .cms-menu-tools {
 body.commerce-theme #cmsMenu.menuRow .cms-menu-tools:empty { display: none; }
 body.commerce-theme #cmsMenu.menuRow a.loginIcon {
     background: #fff;
-    color: #142d38 !important;
+    color: var(--c-dark) !important;
     padding: 8px 14px;
 }
 body.commerce-theme #cmsMenu.menuRow a.loginIcon:hover { background: #e5edef; }
@@ -102,7 +102,7 @@ body.commerce-theme .externalPage > header {
     margin: 24px auto 0;
     border-radius: 12px;
     overflow: hidden;
-    background: #142d38 !important;
+    background: var(--c-dark) !important;
     min-height: 0;
 }
 body.commerce-theme .externalPage > header::after { display: none; }
@@ -178,8 +178,8 @@ body.commerce-theme #cmsMenu .commerce-cart-link .count {
     margin: 0;
     padding: 0 5px;
     border-radius: 11px;
-    background: #d8ed94;
-    color: #142d38;
+    background: var(--c-highlight);
+    color: var(--c-dark);
     font-size: 0.75rem;
     line-height: 1;
     box-sizing: border-box;
@@ -201,7 +201,7 @@ body.commerce-theme .soc-sharing-holder .soc-sharing {
     box-sizing: border-box;
     line-height: 1;
     vertical-align: middle;
-    border: 1px solid #d5e1e7;
+    border: 1px solid var(--c-line-3);
     border-radius: 0.35em;
     background: #fff;
     color: #536b79;
@@ -212,10 +212,10 @@ body.commerce-theme .soc-sharing-holder .soc-sharing {
 body.commerce-theme .soc-sharing-holder { display: flex; flex-wrap: wrap; gap: 0.5em; margin-block: 1em; }
 body.commerce-theme .soc-sharing-holder .soc-sharing:hover {
     text-decoration: none;
-    background: #edf5f7;
+    background: var(--c-accent-soft-2);
     border-color: #8fb0bf;
 }
-body.commerce-theme .soc-sharing-holder .soc-sharing:focus-visible { outline: 2px solid #145b73; outline-offset: 2px; }
+body.commerce-theme .soc-sharing-holder .soc-sharing:focus-visible { outline: 2px solid var(--c-accent); outline-offset: 2px; }
 body.commerce-theme .soc-sharing-holder .soc-sharing img {
     position: static;
     display: block;
@@ -263,7 +263,7 @@ body.commerce-theme #cmsNavigation #simpleSearch #searchInput {
     border: 0;
     border-radius: 6px;
     background: #fff;
-    color: #182b3a;
+    color: var(--c-ink);
     font: 1rem/1.25 Arial, Helvetica, sans-serif;
     box-shadow: none;
 }
@@ -283,7 +283,7 @@ body.commerce-theme #cmsNavigation #simpleSearch #searchButton {
     justify-content: center;
 }
 body.commerce-theme #cmsNavigation #simpleSearch #searchButton img { width: 12px; height: 13px; margin: 0; }
-body.commerce-theme #cmsNavigation #simpleSearch:focus-within { outline: 2px solid #92b8c6; outline-offset: 1px; border-color: #145b73; }
+body.commerce-theme #cmsNavigation #simpleSearch:focus-within { outline: 2px solid var(--c-focus); outline-offset: 1px; border-color: var(--c-accent); }
 
 /* Newsletter button injected by marketing_Bulletins; overrides its !important gradient styles. */
 body.commerce-theme .bulletin-link { padding-top: 12px; }
@@ -298,9 +298,9 @@ body.commerce-theme .bulletinReg .push_button {
     box-sizing: border-box;
     margin: 0 !important;
     padding: 9px 14px !important;
-    border: 1px solid #145b73 !important;
+    border: 1px solid var(--c-accent) !important;
     border-radius: 7px;
-    background: #145b73 !important;
+    background: var(--c-accent) !important;
     color: #fff !important;
     font: 600 0.875rem/1.4 Arial, Helvetica, sans-serif !important;
     line-height: 1.4 !important;
@@ -315,12 +315,12 @@ body.commerce-theme .bulletinReg .push_button {
 }
 body.commerce-theme .bulletin-link .push_button:hover,
 body.commerce-theme .bulletinReg .push_button:hover {
-    background: #0e4356 !important;
-    border-color: #0e4356 !important;
+    background: var(--c-accent-dark) !important;
+    border-color: var(--c-accent-dark) !important;
 }
 body.commerce-theme .bulletin-link .push_button:focus-visible,
 body.commerce-theme .bulletinReg .push_button:focus-visible {
-    outline: 2px solid #145b73;
+    outline: 2px solid var(--c-accent);
     outline-offset: 3px;
 }
 
@@ -336,17 +336,17 @@ body.commerce-theme .bulletinFields .rowBulletin input {
     box-sizing: border-box;
     border: 1px solid #b8c8d2;
     border-radius: 6px;
-    color: #182b3a;
+    color: var(--c-ink);
     font: 1rem/1.25 Arial, Helvetica, sans-serif;
 }
 body.commerce-theme .bulletinFields .rowBulletin input:focus {
-    outline: 2px solid #92b8c6;
+    outline: 2px solid var(--c-focus);
     outline-offset: 1px;
-    border-color: #145b73;
+    border-color: var(--c-accent);
 }
 body.commerce-theme .bulletinFields .rowBulletin input.inputError { border-color: #c0392b; }
 body.commerce-theme .bulletinClose { text-shadow: none; }
-body.commerce-theme .bulletinCancel:hover { color: #145b73 !important; }
+body.commerce-theme .bulletinCancel:hover { color: var(--c-accent) !important; }
 /* Company branding overlays the original default banner image. */
 body.commerce-theme header .narrowCenter:has(.commerce-default-banner):has(.app-name, .app-subtitle) {
     position: relative;
@@ -434,7 +434,7 @@ body.commerce-theme #cmsMenu .commerce-languages summary::after {
 }
 body.commerce-theme #cmsMenu .commerce-languages[open] summary::after { transform: rotate(225deg); margin-top: 0.2em; }
 body.commerce-theme #cmsMenu .commerce-languages summary:hover { background: #29434d; }
-body.commerce-theme #cmsMenu .commerce-languages summary:focus-visible { outline: 2px solid #d8ed94; outline-offset: 3px; }
+body.commerce-theme #cmsMenu .commerce-languages summary:focus-visible { outline: 2px solid var(--c-highlight); outline-offset: 3px; }
 body.commerce-theme #cmsMenu .commerce-languages img { width: 1.25em; height: auto; margin: 0; }
 body.commerce-theme #cmsMenu .commerce-language-options {
     position: absolute;
@@ -446,7 +446,7 @@ body.commerce-theme #cmsMenu .commerce-language-options {
     max-height: 60vh;
     overflow: auto;
     padding: 0.35em;
-    border: 1px solid #dce5e9;
+    border: 1px solid var(--c-line-2);
     border-radius: 8px;
     background: #fff;
     box-shadow: 0 6px 20px #142d3826;
@@ -468,7 +468,7 @@ body.commerce-theme #cmsMenu.menuRow a.commerce-language-link {
     white-space: nowrap;
 }
 body.commerce-theme #cmsMenu.menuRow a.commerce-language-link:hover,
-body.commerce-theme #cmsMenu.menuRow a.commerce-language-link[aria-current=true] { background: #edf4f7 !important; }
+body.commerce-theme #cmsMenu.menuRow a.commerce-language-link[aria-current=true] { background: var(--c-accent-soft-3) !important; }
 
 /* News strips stay in document flow instead of covering the banner or navigation. */
 body.commerce-theme .newsbar {
@@ -506,7 +506,7 @@ body.commerce-theme .pages {
     clear: both;
     margin: 1.5em 0 1em;
     padding: 1em 0 0;
-    border-top: 1px solid #e1e9ed;
+    border-top: 1px solid var(--c-line-5);
 }
 body.commerce-theme .pages a.pager {
     display: inline-flex;
@@ -517,10 +517,10 @@ body.commerce-theme .pages a.pager {
     min-height: 2.75rem;
     margin: 0;
     padding: 0.45em 0.75em;
-    border: 1px solid #d5e1e7;
+    border: 1px solid var(--c-line-3);
     border-radius: 0.5em;
     background: #fff;
-    color: #31576a;
+    color: var(--c-accent-deep);
     font-size: 1em;
     font-weight: 600;
     line-height: 1.25;
@@ -528,41 +528,41 @@ body.commerce-theme .pages a.pager {
     box-shadow: none;
 }
 body.commerce-theme .pages a.pager:hover {
-    background: #edf5f7;
+    background: var(--c-accent-soft-2);
     border-color: #7fa5b4;
-    color: #145b73;
+    color: var(--c-accent);
 }
 body.commerce-theme .pages a.pager.pagerSelected {
-    background: #145b73;
-    border-color: #145b73;
+    background: var(--c-accent);
+    border-color: var(--c-accent);
     color: #fff;
 }
 body.commerce-theme .pages a.pager:focus-visible {
-    outline: 2px solid #145b73;
+    outline: 2px solid var(--c-accent);
     outline-offset: 3px;
 }
 
 /* EventHub inherits Commerce colours only on this theme. */
 body.commerce-theme .eventHub {
-    --eh-accent: #145b73;
-    --eh-accent-2: #315f73;
-    --eh-accent-soft: #edf5f7;
-    --eh-ink: #182b3a;
-    --eh-muted: #647582;
-    --eh-line: #dce6eb;
-    --eh-bg: #f5f8fa;
+    --eh-accent: var(--c-accent);
+    --eh-accent-2: var(--c-accent-muted);
+    --eh-accent-soft: var(--c-accent-soft-2);
+    --eh-ink: var(--c-ink);
+    --eh-muted: var(--c-muted);
+    --eh-line: var(--c-line-6);
+    --eh-bg: var(--c-bg);
     font-family: Arial, Helvetica, sans-serif;
 }
 body.commerce-theme .eventHub :is(input, select, button, h1, h2, h3, h4, .nav_item, .date) { font-family: inherit; }
 body.commerce-theme .eventHub .searchBox { margin-block: 1em; padding-block: 0; }
 body.commerce-theme .eventHub .searchForm :is(input, select, button) { border-radius: 0.5em; box-shadow: none; }
-body.commerce-theme .eventHub #searchButton { background: #145b73; color: #fff; border-color: #145b73; }
-body.commerce-theme .eventHub .nav_item.sel_page a { background: #145b73; color: #fff; }
+body.commerce-theme .eventHub #searchButton { background: var(--c-accent); color: #fff; border-color: var(--c-accent); }
+body.commerce-theme .eventHub .nav_item.sel_page a { background: var(--c-accent); color: #fff; }
 body.commerce-theme .eventHub > :is(h1, h2),
 body.commerce-theme .eventHub .pastEvents > h2 { justify-content: center; text-align: center; margin: 1em 0 0.75em !important; line-height: 1.35; }
 body.commerce-theme .eventHub > h1 { font-size: 1.65em; }
 body.commerce-theme .eventHub > h2,
-body.commerce-theme .eventHub .pastEvents > h2 { font-size: 1.2em; color: #315f73; }
+body.commerce-theme .eventHub .pastEvents > h2 { font-size: 1.2em; color: var(--c-accent-muted); }
 body.commerce-theme .eventHub > h1::before,
 body.commerce-theme .eventHub > h1::after { display: none; }
 body.commerce-theme .eventHub > h1 + h2 { margin-top: 0.5em !important; }

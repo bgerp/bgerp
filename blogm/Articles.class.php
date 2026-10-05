@@ -1253,7 +1253,7 @@ class blogm_Articles extends core_Master
         
         $isNarrow = Mode::is('screenMode', 'narrow');
         if (cms_Domains::getCmsSkin() instanceof cms_CommerceTheme) {
-            $cmsLayout = $isNarrow ? 'cms/tpl/commerce/BlogLayoutNarrow.shtml' : 'cms/tpl/commerce/BlogLayout.shtml';
+            $cmsLayout = cms_ProtoTheme::getCurrent()->getTemplate($isNarrow ? 'cms/tpl/commerce/BlogLayoutNarrow.shtml' : 'cms/tpl/commerce/BlogLayout.shtml');
             $tpl->push('cms/css/CommerceBlog.css', 'CSS');
             $tpl->appendOnce(' commerce-blog', 'BODY_CLASS_NAME');
         } else {
