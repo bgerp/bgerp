@@ -8,6 +8,7 @@
  * - roles:         Избират се само потребители с някоя от тази роля
  * - rolesForTeams: Поне една от тях е необходима за да се покажат всички потребители от екипите, на които той е член
  * - rolesForAll:  Поне една от ролите е необходима за да се покажат всички екипи и потребители
+ * - showUsersWithoutTeam: Показва и потребителите без екип при права rolesForAll
  * Когато се записват като стринг в атрибута, ролите могат да бъдат разделени с вертикална черта
  *
  *
@@ -226,6 +227,30 @@ class type_Users extends type_Keylist
             
             $cuRecArr = array();
             $rejected = '';
+
+            if (($this->params['showUsersWithoutTeam'] ?? null) == 'yes' && haveRole($this->params['rolesForAll'])) {
+                $allTeams = core_Roles::getRolesByType('team', 'array');
+                foreach (($userArr['r'] ?? array()) as $uId => $uRec) {
+                    $userRoles = $uRec->roles ?? '';
+                    if (type_Keylist::isIn($allTeams, $userRoles)
+                        || (!empty($rolesArr) && !type_Keylist::isIn($rolesArr, $userRoles))) {
+                        continue;
+                    }
+                    if (($uRec->state ?? null) == 'rejected') {
+                        $rejected .= $rejected ? '|' . $uId : $uId;
+                        continue;
+                    }
+
+                    $key = '0_' . $uId;
+                    $this->options[$key] = (object) array(
+                        'title' => ($uRec->nick ?? '') . ' (' . ($uRec->names ?? '') . ')',
+                        'keylist' => '|' . $uId . '|',
+                    );
+                    if ($this->params['cuFirst'] == 'yes' && $uId == $cu) {
+                        $cuRecArr[$key] = $this->options[$key];
+                    }
+                }
+            }
 
             foreach ($teams as $t) {
                 $group = new stdClass();
