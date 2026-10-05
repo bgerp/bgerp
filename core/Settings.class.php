@@ -580,6 +580,11 @@ class core_Settings extends core_Manager
             // Премахваме всички празни стойности или default от enum
             foreach ((array) $recArr as $valKey => $value) {
 
+                // Запазената настройка може вече да няма поле в тази форма.
+                if (empty($form->fields[$valKey]->type)) {
+                    continue;
+                }
+
                 // Ако тази опция е за всички потребители
                 if (!empty($uSettingForAllArr[$valKey]) && ($allSystemId != $form->rec->_userOrRole)) {
                     $sForAllValArr[$valKey] = $value;

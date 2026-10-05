@@ -79,6 +79,8 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
         'missingInvoice' => 'Пропуснати: липсваща фактура (контейнер)',
         'belowSill' => 'Пропуснати: остатък в прага',
         'otherPaymentType' => 'Пропуснати: друг начин на плащане',
+        'paymentTypeThreads' => 'Нишки с търсения начин на плащане',
+        'otherPaymentTypeThread' => 'Пропуснати преди плащанията: друг начин на плащане',
         'afterCheckDate' => 'Пропуснати: след датата „към“',
         'beforeFromDate' => 'Пропуснати: преди началната дата',
         'rows' => 'Редове в справката',
@@ -240,6 +242,40 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
         core_App::setTimeLimit(300);
         $query->selectOnReplica();
         core_App::setTimeLimit(max(300, $query->numRec() * $secondsPerRow));
+    }
+
+
+    /**
+     * Нишките, в които има фактура с дадения начин на плащане (изричен или автоматичен)
+     *
+     * @param string $className
+     * @param string $paymentType
+     * @param string $checkDate
+     * @param array|null $folderIds
+     *
+     * @return array [threadId => threadId]
+     */
+    private static function getThreadsWithPaymentType($className, $paymentType, $checkDate, $folderIds)
+    {
+        /** @var core_Query $query */
+        $query = $className::getQuery();
+        $query->where("#number IS NOT NULL");
+        $query->in('state', 'rejected, draft', true);
+        $query->where(array("#date <= '[#1#]'", $checkDate));
+        $query->where(array("IF(#paymentType IS NULL OR #paymentType = '', #autoPaymentType, #paymentType) = '[#1#]'", $paymentType));
+        if (isset($folderIds)) {
+            $query->in('folderId', $folderIds);
+        }
+        $query->show('threadId');
+        $query->groupBy('threadId');
+        $query->selectOnReplica();
+
+        $threads = array();
+        while ($iRec = $query->fetch()) {
+            $threads[$iRec->threadId] = $iRec->threadId;
+        }
+
+        return $threads;
     }
 
 
@@ -447,7 +483,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
 
             // Само принадлежността към бърза/обединена сделка участва в справката.
             $timer = microtime(true);
-            $salesUN = $fastSales = array();
+            $salesUN = $fastSales = $salesCombiners = array();
             /** @var core_Query $salesQuery */
             $salesQuery = sales_Sales::getQuery();
             $salesQuery->where("#closedDocuments != '' OR #contoActions LIKE '%pay%'");
@@ -456,6 +492,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             while ($sale = $salesQuery->fetch()) {
                 foreach (keylist::toArray($sale->closedDocuments ?? '') as $id) {
                     $salesUN[$id] = true;
+                    $salesCombiners[$sale->id] = true;
                 }
                 if (strpos($sale->contoActions ?? '', 'pay') !== false) {
                     $fastSales[$sale->id ?? 0] = true;
@@ -464,6 +501,14 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             self::addReportStat($data, 'deals', microtime(true) - $timer, $salesQuery->numRec());
             self::addReportStat($data, 'unitedDeals', 0, countR($salesUN));
             self::addReportStat($data, 'fastDeals', 0, countR($fastSales));
+
+            // Нишките без фактура с търсения начин на плащане отпадат преди скъпото разпределение на плащанията
+            $paymentTypeThreads = null;
+            if ($rec->unpaid == 'unpaid' && !empty($rec->paymentType)) {
+                $timer = microtime(true);
+                $paymentTypeThreads = self::getThreadsWithPaymentType(sales_Invoices::class, $rec->paymentType, $checkDate, $folderIds);
+                self::addReportStat($data, 'paymentTypeThreads', microtime(true) - $timer, countR($paymentTypeThreads));
+            }
 
             foreach ($docsArr as $InvDoc) {
 
@@ -552,6 +597,13 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                     }
 
                     if ($rec->unpaid == 'unpaid') {
+                        // Обединените сделки остават - плащанията им се разпределят върху няколко нишки
+                        if (isset($paymentTypeThreads) && !isset($paymentTypeThreads[$salesInvoice->threadId]) &&
+                            !isset($salesUN[$firstDocument->that]) && !isset($salesCombiners[$firstDocument->that])) {
+                            $skipped['otherPaymentTypeThread'][] = $salesInvoice->number;
+                            continue;
+                        }
+
                         $invoiceRecords[$salesInvoice->containerId] = $salesInvoice;
                     }
 
