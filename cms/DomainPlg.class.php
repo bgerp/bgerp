@@ -36,18 +36,13 @@ class cms_DomainPlg extends core_Plugin
         // на модела ще се появят
         $form->showFields = 'domainId';
         
-        $form->input();
-        
-        $domainId = Request::get('domainId', 'int');
-        if ($form->isSubmitted() && !empty($domainId)) {
-            cms_Domains::selectCurrent($domainId);
+        // Без текущ домейн се показват всички, вместо да се иска избор
+        $domainId = cms_Domains::inputListFilterField($form);
+        if (!empty($domainId)) {
+            $data->query->where("#domainId = {$domainId}");
+        } else {
+            $data->listFields['domainId'] = 'Домейн';
         }
-        
-        cms_Domains::setFormField($form);
-        
-        $domainId = cms_Domains::getCurrent();
-        
-        $data->query->where("#domainId = {$domainId}");
     }
     
     
@@ -65,6 +60,26 @@ class cms_DomainPlg extends core_Plugin
         $domainId = $form->rec->domainId ?? null;
         if ($form->isSubmitted() && !empty($domainId)) {
             cms_Domains::selectCurrent($domainId);
+        }
+    }
+
+
+
+    /**
+     * Домейнът в списъка е линк към него
+     */
+    public static function on_AfterPrepareListRows($mvc, &$res, $data)
+    {
+        if (empty($data->listFields['domainId']) || !countR($data->rows ?? null)) {
+
+            return;
+        }
+
+        foreach ($data->rows as $id => $row) {
+            $domainId = $data->recs[$id]->domainId ?? null;
+            if (!empty($domainId)) {
+                $row->domainId = cms_Domains::getHyperlink($domainId, true);
+            }
         }
     }
 }

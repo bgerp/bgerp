@@ -433,7 +433,7 @@ class cms_Domains extends core_Embedder
         
         expect($form instanceof core_Form);
         $form->setOptions($field, $opt);
-        $form->setDefault($field, self::getCurrent());
+        $form->setDefault($field, self::getCurrent('id', false));
     }
     
     
@@ -768,11 +768,30 @@ class cms_Domains extends core_Embedder
     
     /**
      * Връща добавка за домейна в листовия изглед на други модели
+     *
+     * @param stdClass|null $data - данните на списъка, ако филтърът му е по домейн
      */
-    public static function getCurrentDomainInTitle()
+    public static function getCurrentDomainInTitle($data = null)
     {
-        $res = '|* [<span style="color:green">' . self::getCurrent('domain') . '</span>, <span style="color:green">' . self::getCurrent('lang') . '</span>]';
-        
+        // Филтърът е за всички домейни - текущият не се показва
+        $filter = is_object($data) ? ($data->listFilter ?? null) : null;
+        if (is_object($filter) && isset($filter->fields['domainId'])) {
+            $filterRec = $filter->rec ?? null;
+            if (!is_object($filterRec) || empty($filterRec->domainId)) {
+
+                return '';
+            }
+        }
+
+        // Без текущ домейн заглавието е без добавка, вместо да се иска избор
+        $domain = self::getCurrent('domain', false);
+        if (empty($domain)) {
+
+            return '';
+        }
+
+        $res = '|* [<span style="color:green">' . $domain . '</span>, <span style="color:green">' . self::getCurrent('lang', false) . '</span>]';
+
         return $res;
     }
     
