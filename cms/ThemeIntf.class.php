@@ -27,4 +27,31 @@ class cms_ThemeIntf extends core_InnerObjectIntf
 
         return $this->class->prepareWrapper($content);
     }
+
+
+    /**
+     * Шаблонът, който темата ползва вместо подадения
+     */
+    public function getTemplate($path)
+    {
+        return $this->class->getTemplate($path);
+    }
+
+
+    /**
+     * Добавя стиловете на темата за публичния магазин
+     */
+    public function addShopAssets($tpl)
+    {
+        return $this->class->addShopAssets($tpl);
+    }
+
+
+    /**
+     * Добавя стиловете на темата за публичния форум
+     */
+    public function addForumAssets($tpl)
+    {
+        return $this->class->addForumAssets($tpl);
+    }
 }

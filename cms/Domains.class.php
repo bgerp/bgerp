@@ -522,6 +522,9 @@ class cms_Domains extends core_Embedder
             $driver = self::getDriver($dRec->id);
         }
         
+        // Вложените шаблони минават през темата, докато кожата не се определи отново
+        core_ET::$includePathResolver = ($driver instanceof cms_ProtoTheme) ? array($driver, 'resolveIncludePath') : null;
+        
         return $driver;
     }
 

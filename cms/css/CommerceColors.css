@@ -1,0 +1,33 @@
+/* Commerce theme palette; child themes override it on body.<name>-theme. */
+:root {
+    --c-accent: #145b73; /* Primary: buttons, links, active items */
+    --c-accent-dark: #0e4356; /* Primary on hover/press */
+    --c-accent-deep: #31576a; /* Dark primary shade */
+    --c-accent-muted: #315f73; /* Muted primary shade */
+    --c-accent-soft: #eaf2f5; /* Light primary background */
+    --c-accent-soft-2: #edf5f7;
+    --c-accent-soft-3: #edf4f7;
+    --c-accent-line: #d0e2e9; /* Primary-tinted borders */
+    --c-accent-line-strong: #9bbac6;
+    --c-focus: #92b8c6; /* Focus outline */
+    --c-highlight: #d8ed94; /* Highlight */
+    --c-ink: #182b3a; /* Body text */
+    --c-text: #405a68; /* Secondary text */
+    --c-text-2: #526875;
+    --c-muted: #647582; /* Muted text */
+    --c-dark: #142d38; /* Dark background */
+    --c-line: #dce3e8; /* Lines and borders */
+    --c-line-2: #dce5e9;
+    --c-line-3: #d5e1e7;
+    --c-line-4: #e6ecef;
+    --c-line-5: #e1e9ed;
+    --c-line-6: #dce6eb;
+    --c-line-strong: #b9cbd4; /* Field and card borders */
+    --c-line-strong-2: #c5d5dc;
+    --c-bg: #f5f8fa; /* Page and block background */
+    --c-surface: #f4f6f8; /* Shop and forum background */
+    --c-surface-2: #edf3f6;
+    --c-surface-3: #f8fafb;
+    --c-accent-rgb: 20, 91, 115;
+    --c-ink-rgb: 24, 43, 58;
+}

@@ -648,7 +648,7 @@ class eshop_Groups extends core_Master
         
         if (is_array($data->recs ?? null)) {
             foreach ($data->recs as $rec) {
-                $tpl = new ET(getFileContent(cms_CommerceTheme::getShopTemplate('eshop/tpl/GroupButton.shtml')));
+                $tpl = new ET(getFileContent(cms_ProtoTheme::getCurrent()->getTemplate('eshop/tpl/GroupButton.shtml')));
                 
                 if (!empty($rec->icon)) {
                     $img = new thumb_Img($rec->icon, 600, 450, 'fileman');
@@ -730,10 +730,10 @@ class eshop_Groups extends core_Master
             $layout = 'eshop/tpl/AllProducts.shtml';
         }
         
-        Mode::set('cmsLayout', cms_CommerceTheme::getShopTemplate($layout));
+        Mode::set('cmsLayout', cms_ProtoTheme::getCurrent()->getTemplate($layout));
         
         $tpl = new ET();
-        cms_CommerceTheme::prepareShop($tpl);
+        cms_ProtoTheme::getCurrent()->addShopAssets($tpl);
 
         return $tpl;
     }

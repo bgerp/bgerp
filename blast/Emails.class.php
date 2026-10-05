@@ -2245,7 +2245,7 @@ class blast_Emails extends core_Master
         }
         
         if (trim($emailRec->unsubscribe)) {
-            $unsUrl = self::getUnsubscribeUrl($id, $options->rec->lg, doc_DocumentPlg::getMidPlace());
+            $unsUrl = self::getUnsubscribeUrl($id, $options->rec->lg ?? $emailRec->lg, doc_DocumentPlg::getMidPlace());
             
             $emailRec->unsubscribe = str_replace('[unsubscribe]', "[link={$unsUrl}]", $emailRec->unsubscribe);
             $emailRec->unsubscribe = str_replace('[/unsubscribe]', '[/link]', $emailRec->unsubscribe);

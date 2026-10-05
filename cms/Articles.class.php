@@ -337,7 +337,7 @@ class cms_Articles extends core_Master
         }
 
         if (cms_Domains::getCmsSkin() instanceof cms_CommerceTheme) {
-            Mode::set('cmsLayout', $navData->showCnt <= 1 ? 'cms/tpl/commerce/WideArticles.shtml' : 'cms/tpl/commerce/Articles.shtml');
+            Mode::set('cmsLayout', cms_ProtoTheme::getCurrent()->getTemplate($navData->showCnt <= 1 ? 'cms/tpl/commerce/WideArticles.shtml' : 'cms/tpl/commerce/Articles.shtml'));
             $content->push('cms/css/CommerceBlog.css', 'CSS');
             $content->push('cms/css/CommerceArticles.css', 'CSS');
             $content->appendOnce(' commerce-blog commerce-article', 'BODY_CLASS_NAME');
