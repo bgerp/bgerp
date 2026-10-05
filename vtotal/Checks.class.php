@@ -435,7 +435,7 @@ class vtotal_Checks extends core_Master
             
             // Празен или невалиден отговор: няма връзка или HTTP 204 при изчерпана квота
             if (!is_object($result)) {
-                self::logWarning('Няма валиден отговор от VirusTotal', $rec->id);
+                self::logWarning('Няма валиден отговор от VirusTotal (' . gettype($result) . '): ' . var_export($result, true), $rec->id ?? null);
                 
                 break;
             }
