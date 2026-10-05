@@ -1380,7 +1380,6 @@ class pos_Receipts extends core_Master
     {
         foreach ($query->getDeletedRecs() as $rec) {
             self::logDebug("Изтриване на бележка: {$rec->id}");
-            wp('Изтриване на бележка', $rec);
             pos_ReceiptDetails::delete("#receiptId = {$rec->id}");
 
             if(isset($rec->voucherId) && core_Packs::isInstalled('voucher')){
