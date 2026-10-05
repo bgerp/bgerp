@@ -119,6 +119,8 @@ class backup_Restore extends core_Manager
                     
                 }
             }
+        } catch (core_exception_Redirect $e) {
+            throw $e;
         } catch (Exception $e) {
             $res['err'][] = $e->getMessage();
             

@@ -116,6 +116,8 @@ class sens2_DomainMon extends sens2_ProtoDriver
                 return 0;
             }
             $validity = $certinfo['validTo_time_t'] - time();
+        } catch (core_exception_Redirect $e) {
+            throw $e;
         } catch(Exception $e) {
             
             return 0;

@@ -493,6 +493,8 @@ class core_Setup extends core_ProtoSetup
             try {
                 // Ако вече има UNIQ ID => това не е “чиста” първа инсталация
                 $uniqId = self::get('BGERP_UNIQ_ID');
+            } catch (core_exception_Redirect $e) {
+                throw $e;
             } catch (Exception $e) {
                 // Игнорираме – при първоначална инсталация може още да няма настройки
             } catch (Throwable $t) {
@@ -670,6 +672,8 @@ class core_Setup extends core_ProtoSetup
          
         try {
             $this->setBGERPUniqId();
+        } catch (core_exception_Redirect $e) {
+            throw $e;
         } catch (Exception $e) {
             reportException($e);
         } catch (Throwable $t) {

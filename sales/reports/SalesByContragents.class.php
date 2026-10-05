@@ -874,6 +874,8 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
             if ($contragentId && $contragentClassName) {
                 try {
                     $contragent = $contragentClassName::getShortHyperlink($contragentId);
+                } catch (core_exception_Redirect $e) {
+                    throw $e;
                 } catch (Exception $e) {
                     reportException($e);
                 }

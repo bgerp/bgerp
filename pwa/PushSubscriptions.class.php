@@ -313,6 +313,8 @@ class pwa_PushSubscriptions extends core_Manager
                 } else {
                     self::logDebug("Успешно изпратено PUSH известие - '{$data->text}'", $rec->id, 3);
                 }
+            } catch (core_exception_Redirect $t) {
+                throw $t;
             } catch (Throwable $t) {
                 reportException($t);
 
@@ -486,6 +488,8 @@ class pwa_PushSubscriptions extends core_Manager
                 if ($mustSendWelcome) {
                     try {
                         $this->scheduleWelcomeNotification($rec);
+                    } catch (core_exception_Redirect $t) {
+                        throw $t;
                     } catch (Throwable $t) {
                         reportException($t);
                         self::logErr('Грешка при планиране на приветстващо PUSH известие', $rec->id, 7);
@@ -493,6 +497,8 @@ class pwa_PushSubscriptions extends core_Manager
                 }
 
                 return self::getAjaxRedirectResponse($this->getPostSubscribeRedirectUrl($rec, Request::get('redirectUrl'), $retUrl, $wasActiveSubscription));
+            } catch (core_exception_Redirect $t) {
+                throw $t;
             } catch (Throwable $t) {
                 reportException($t);
                 self::logErr('Грешка при синхронизиране на съществуващ PUSH абонамент', $rec->id ?? null, 7);
@@ -550,6 +556,8 @@ class pwa_PushSubscriptions extends core_Manager
                 }
 
                 return self::getAjaxRedirectResponse($retUrl);
+            } catch (core_exception_Redirect $t) {
+                throw $t;
             } catch (Throwable $t) {
                 reportException($t);
                 self::logErr('Грешка при премахване на PUSH абонамент', null, 7);
@@ -670,6 +678,8 @@ class pwa_PushSubscriptions extends core_Manager
             if ($mustSendWelcome) {
                 try {
                     $this->scheduleWelcomeNotification($rec);
+                } catch (core_exception_Redirect $t) {
+                    throw $t;
                 } catch (Throwable $t) {
                     reportException($t);
                     self::logErr('Грешка при планиране на приветстващо PUSH известие', $rec->id, 7);
@@ -679,6 +689,8 @@ class pwa_PushSubscriptions extends core_Manager
             $redirectUrl = $this->getPostSubscribeRedirectUrl($rec, Request::get('redirectUrl'), $retUrl, $wasActiveSubscription);
 
             return self::getAjaxRedirectResponse($redirectUrl);
+        } catch (core_exception_Redirect $t) {
+            throw $t;
         } catch (Throwable $t) {
             reportException($t);
             self::logErr('Грешка при записване на PUSH абонамент', isset($rec->id) ? $rec->id : null, 7);
@@ -867,6 +879,8 @@ class pwa_PushSubscriptions extends core_Manager
 
                 return $lockName;
             }
+        } catch (core_exception_Redirect $t) {
+            throw $t;
         } catch (Throwable $t) {
             reportException($t);
             self::logErr('Грешка при заключване на PUSH абонамент', null, 7);
@@ -890,6 +904,8 @@ class pwa_PushSubscriptions extends core_Manager
 
         try {
             core_Locks::release($lockName);
+        } catch (core_exception_Redirect $t) {
+            throw $t;
         } catch (Throwable $t) {
             reportException($t);
             self::logErr('Грешка при освобождаване на заключването на PUSH абонамент', null, 7);

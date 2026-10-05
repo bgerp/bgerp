@@ -1088,7 +1088,7 @@ class eshop_Groups extends core_Master
      */
     protected static function on_AfterPrepareListTitle($mvc, $res, $data)
     {
-        $data->title .= cms_Domains::getCurrentDomainInTitle();
+        $data->title .= cms_Domains::getCurrentDomainInTitle($data);
     }
     
     

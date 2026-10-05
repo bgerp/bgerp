@@ -159,6 +159,8 @@ class export_Xls extends core_Mvc
                         return $result;
                     }
                 }
+            } catch (core_exception_Redirect $e) {
+                throw $e;
             } catch (Throwable $e) {
                 reportException($e);
                 self::logWarning('Неуспешен XLS експорт; използва се офис конверторът');

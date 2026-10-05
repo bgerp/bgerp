@@ -802,7 +802,7 @@ class cms_Content extends core_Master
      */
     protected static function on_AfterPrepareListTitle($mvc, $res, $data)
     {
-        $data->title .= cms_Domains::getCurrentDomainInTitle();
+        $data->title .= cms_Domains::getCurrentDomainInTitle($data);
     }
 
 
@@ -873,7 +873,7 @@ class cms_Content extends core_Master
             $lastOrder = 0;
             $query = self::getQuery();
             $query->orderBy('#order', 'DESC');
-            $cd = cms_Domains::getCurrent();
+            $cd = !empty($rec->domainId) ? $rec->domainId : cms_Domains::getCurrent();
             
             $typeOrder = cls::get('type_Order');
             $lastRec = $query->fetch("#state = 'active' AND #domainId = {$cd}");

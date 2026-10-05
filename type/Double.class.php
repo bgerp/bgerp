@@ -142,6 +142,8 @@ class type_Double extends core_Type
 
                 return $v;
             }
+        } catch (core_exception_Redirect $e) {
+            throw $e;
         } catch (Throwable $e) {
             // Нищо не се прави - основно за PARSE_ERROR
         }

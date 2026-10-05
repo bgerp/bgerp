@@ -468,10 +468,11 @@ class core_Backup extends core_Mvc
                 self::adminNotification();
             }
         } catch (Throwable $e) {
-            self::fLog('Грешка: ' . $e->getMessage());
             if(isset($dbRes)) {
                 $dbRes->free();
             }
+            if ($e instanceof core_exception_Redirect) throw $e;
+            self::fLog('Грешка: ' . $e->getMessage());
             error_log("Error: "  . $e->getMessage());
             self::adminNotification(true);
         }
@@ -851,6 +852,7 @@ class core_Backup extends core_Mvc
             }
 
             $dbRes->free();
+            unset($dbRes);
 
             fclose($out);
             rename($tmpCsv, $path);
@@ -862,15 +864,14 @@ class core_Backup extends core_Mvc
             self::fLog('*Край на компресиране на ' . basename($dest));
 
             unlink($processFile);
-        }  catch (Throwable $e) {
+        } catch (Throwable $e) {
+            if (isset($dbRes)) $dbRes->free();
+            if (isset($processFile)) @unlink($processFile);
+            if (isset($out) && is_resource($out)) fclose($out);
+            if (isset($tmpCsv)) @unlink($tmpCsv);
+            if (isset($path)) @unlink($path);
+            if ($e instanceof core_exception_Redirect) throw $e;
             self::fLog('*Exception: ' . $e->getMessage());
-            if(isset($dbRes)) {
-                $dbRes->free();
-            }
-            @unlink($processFile);
-            @fclose($out);
-            @unlink($tmpCsv);
-            @unlink($path);
             error_log("Error in cli_doBackupTable: $className, $table, $suffix, $limit ");
         }
     }
@@ -885,6 +886,8 @@ class core_Backup extends core_Mvc
             if ($path = self::getSqlLogPath()) {
                 @file_put_contents($path, $sql . ";\n\r", FILE_APPEND);
             }
+        } catch (core_exception_Redirect $e) {
+            throw $e;
         } catch (Exception $e) {
         }
     }
@@ -1121,16 +1124,18 @@ class core_Backup extends core_Mvc
             file_put_contents($prcFile, "Import: {$res}" . PHP_EOL, FILE_APPEND);
             self::fLog("Importing {$file} has finished.");
 
+        } catch (core_exception_Redirect $e) {
+            throw $e;
         } catch (Throwable $e) {
              
             $msg = "*Error in cli_doBackupTable: $class, $table :" . $e->getMessage();
             echo $msg;
             self::fLog($msg);
             error_log($msg);
+        } finally {
+            if (isset($dest)) @unlink($dest);
+            if (isset($prcFile)) @unlink($prcFile);
         }
-        
-        @unlink($dest);
-        @unlink($prcFile);
         die();
     }
     
@@ -1228,6 +1233,9 @@ die('sss');
                         $linesArr = array();
                         $totalLen = 0;
                         continue;
+                    } catch (core_exception_Redirect $e) {
+                        fclose($handle);
+                        throw $e;
                     } catch (Exception $e) {
                         fclose($handle);
                         $res = "err: Error in `INSERT INTO `{$table}` ({$headers}) VALUES  (" . implode(') (', array_slice($query, 0, 3)) .')`';

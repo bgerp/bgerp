@@ -643,6 +643,8 @@ class doc_Search extends core_Manager
                         }
                     }
                 }
+            } catch (core_exception_Redirect $e) {
+                throw $e;
             } catch (Exception $e) {
                 continue;
             }

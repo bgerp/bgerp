@@ -238,6 +238,8 @@ class plg_ExpandInput extends core_Plugin
                 $mvc->logNotice('Поправка на полетата групите', $rec->id);
 
                 $cnt++;
+            } catch (core_exception_Redirect $e) {
+                throw $e;
             } catch (Exception $e) {
                 reportException($e);
             }

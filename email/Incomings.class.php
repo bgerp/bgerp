@@ -2165,6 +2165,8 @@ class email_Incomings extends core_Master
                 $iRec = $inst->fetch($rec->coverId);
                 $inst->addAddtionalNumber($iRec, $mob, $tel, $fax);
             }
+        } catch (core_exception_Redirect $e) {
+            throw $e;
         } catch (Exception $e) {
             reportException($e);
         } catch (Throwable $t) {

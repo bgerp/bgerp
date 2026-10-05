@@ -5960,6 +5960,8 @@ class planning_Tasks extends core_Master
             $applyChanges = (bool)Request::get('apply', 'int');
             expect($hash = Request::get('hash'));
             expect(str::checkHash($hash, 6, 'RO'));
+        } catch (core_exception_Redirect $e) {
+            throw $e;
         } catch (Exception $e){
             reportException($e);
             $success = false;

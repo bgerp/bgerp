@@ -509,42 +509,25 @@ class plg_Search extends core_Plugin
      */
     public static function isBigTable($query)
     {
-        $mvc = $query->mvc;
+        $mvc = $query->mvc ?? null;
         
-        if (!$mvc) {
+        if (!$mvc || empty($mvc->dbTableName) || empty($mvc->db)) {
             
             return false;
         }
         
-        $key = 'tableMaxId|' . $mvc->className;
+        $key = 'tableRows|' . $mvc->className;
         
-        $maxId = core_Permanent::get($key);
+        $rowsCount = core_Permanent::get($key);
         
-        // Намираме максималното id на записа
-        if (!isset($maxId) || ($maxId === false)) {
-            if (empty($mvc->dbTableName) || empty($mvc->db)) {
-
-                return false;
-            }
-
-            // Директно по първичния ключ: плъгините на заявката (напр. ограничения за достъп)
-            // са без значение за оценката, а могат да я превърнат в пълно сканиране
-            $idCol = str::phpToMysqlName('id');
-            $dbRes = $mvc->db->query("SELECT MAX(`{$idCol}`) AS `maxId` FROM `{$mvc->dbTableName}`");
-            $qRec = $mvc->db->fetchObject($dbRes);
-            $mvc->db->freeResult($dbRes);
-
-            $maxId = (int) ($qRec->maxId ?? 0);
+        // Use the physical row estimate without querying application records.
+        if (!isset($rowsCount) || ($rowsCount === false)) {
+            $rowsCount = (int) $mvc->db->getTableInfo($mvc->dbTableName, 'TABLE_ROWS');
             
-            core_Permanent::set($key, $maxId, 1000);
+            core_Permanent::set($key, $rowsCount, 1000);
         }
         
-        if ($maxId <= 1000000) {
-            
-            return false;
-        }
-        
-        return true;
+        return $rowsCount > 1000000;
     }
     
     
@@ -810,6 +793,8 @@ class plg_Search extends core_Plugin
                         continue;
                     }
                 }
+            } catch (core_exception_Redirect $e) {
+                throw $e;
             } catch (Exception $e) {
                 reportException($e);
             }
@@ -946,12 +931,16 @@ class plg_Search extends core_Plugin
                             }
                         }
                     }
+                } catch (core_exception_Redirect $e) {
+                    throw $e;
                 } catch (Exception $e) {
                     reportException($e);
                 } catch (Throwable  $e) {
                     reportException($e);
                 }
             }
+        } catch (core_exception_Redirect $e) {
+            throw $e;
         } catch (Exception $e) {
             reportException($e);
         } catch (Throwable  $e) {
@@ -997,6 +986,8 @@ class plg_Search extends core_Plugin
                 if ($query->mvc->db) {
                     $minLenFTS = $query->mvc->db->getVariable('ft_min_word_len');
                 }
+            } catch (core_exception_Redirect $e) {
+                throw $e;
             } catch (Exception $e) {
                 reportException($e);
             }

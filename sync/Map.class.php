@@ -944,6 +944,8 @@ class sync_Map extends core_Manager
             reportException($e);
             $lId = 0;
             self::$importErrors++;
+        } catch (core_exception_Redirect $e) {
+            throw $e;
         } catch (Exception $e) {
             log_System::add($mvc, "Грешка при синхронизиране на данните: " . core_Type::mixedToString($e->getMessage()), $exRec, 'err', 10);
             reportException($e);

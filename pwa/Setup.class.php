@@ -210,10 +210,10 @@ class pwa_Setup extends core_ProtoSetup
                         $keysArr = @VAPID::createVapidKeys();
                     } catch (core_exception_Expect $e) {
                         reportException($e);
+                    } catch (core_exception_Redirect $t) {
+                        throw $t;
                     } catch (Throwable $t) {
                         reportException($t);
-                    } catch (Error $e) {
-                        reportException($e);
                     }
 
                     if (empty($keysArr)) {
@@ -234,9 +234,9 @@ class pwa_Setup extends core_ProtoSetup
             }
         } catch (core_exception_Expect $e) {
             $html .= '<li class="red">Composer не е инсталиран. Не е зададен "EF_VENDOR_PATH"</li>';
+        } catch (core_exception_Redirect $t) {
+            throw $t;
         } catch (Throwable $t) {
-            $html .= '<li class="red">Composer не е инсталиран. Не е зададен "EF_VENDOR_PATH"</li>';
-        } catch (Error $e) {
             $html .= '<li class="red">Composer не е инсталиран. Не е зададен "EF_VENDOR_PATH"</li>';
         }
 

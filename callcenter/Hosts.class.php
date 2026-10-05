@@ -142,6 +142,8 @@ class callcenter_Hosts extends core_Master
         // Вземаме съдъжанието
         try {
             $content = $ssh->getContents($fPath);
+        } catch (core_exception_Redirect $e) {
+            throw $e;
         } catch (Exception $e) {
             self::logWarning($e->getMessage(), $rec->id);
             

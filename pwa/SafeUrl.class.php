@@ -151,6 +151,8 @@ class pwa_SafeUrl
             }
 
             throw new RuntimeException('Свалянето на отдалечения файл е неуспешно', self::ERROR_NETWORK, $e);
+        } catch (core_exception_Redirect $t) {
+            throw $t;
         } catch (Throwable $t) {
             throw new RuntimeException('Свалянето на отдалечения файл е неуспешно', self::ERROR_NETWORK, $t);
         } finally {
@@ -234,6 +236,8 @@ class pwa_SafeUrl
 
         try {
             $parts = @parse_url($url);
+        } catch (core_exception_Redirect $t) {
+            throw $t;
         } catch (Throwable $t) {
             $parts = false;
         }

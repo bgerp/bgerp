@@ -100,6 +100,8 @@ class pwa_DomainsPlg extends core_Plugin
         foreach ($hosts as $host) {
             try {
                 pwa_Settings::regenerateManifestForHost($host);
+            } catch (core_exception_Redirect $e) {
+                throw $e;
             } catch (Throwable $e) {
                 reportException($e);
             }

@@ -2217,6 +2217,8 @@ class doclog_Documents extends core_Manager
             }
         } catch (core_exception_Expect $e) {
             reportException($e);
+        } catch (core_exception_Redirect $t) {
+            throw $t;
         } catch (Throwable $t) {
             reportException($t);
         }

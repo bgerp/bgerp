@@ -339,6 +339,8 @@ class bgerp_Setup extends core_ProtoSetup
 
                     $Roles->save_($rRec, 'inheritInput, inherit');
                 }
+            } catch (core_exception_Redirect $t) {
+                throw $t;
             } catch (Exception $t) {
 
             }

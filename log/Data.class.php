@@ -606,6 +606,8 @@ class log_Data extends core_Manager
                     $clsInst = null;
                     try {
                         $clsInst = @cls::get($className);
+                    } catch (core_exception_Redirect $e) {
+                        throw $e;
                     } catch (Exception $e) {
                     } catch (ArgumentCountError $e) {}
                     
