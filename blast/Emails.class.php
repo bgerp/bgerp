@@ -2244,7 +2244,7 @@ class blast_Emails extends core_Master
             $detDataArr = blast_EmailSend::getDataArr($options->detId);
         }
         
-        if (trim($emailRec->unsubscribe)) {
+        if (trim($emailRec->unsubscribe ?? '')) {
             $unsUrl = self::getUnsubscribeUrl($id, $options->rec->lg ?? $emailRec->lg, doc_DocumentPlg::getMidPlace());
             
             $emailRec->unsubscribe = str_replace('[unsubscribe]', "[link={$unsUrl}]", $emailRec->unsubscribe);
@@ -2258,7 +2258,7 @@ class blast_Emails extends core_Master
         
         // Обединяваме рековете и ги добавяме в опциите
         // За да може да запазим ->mid' от река
-        $options->rec = (object) ((array) $emailRec + (array) $options->rec);
+        $options->rec = (object) ((array) $emailRec + (array) ($options->rec ?? array()));
     }
     
     
