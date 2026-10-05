@@ -907,17 +907,27 @@ class blogm_Articles extends core_Master
             return;
         }
         
-        $data->TabCaption = 'Посещения';
-        $data->Order = 1000;
-        if (empty($data->isCurrent)) {
-            
-            return;
-        }
-        
         $query = log_Data::getQuery();
         $query->where(array("#classCrc = '[#1#]' AND #objectId = '[#2#]' AND #type = 'read'", log_Classes::getClassCrc($this->className), $masterRec->id));
         $query->where(array("#actionCrc = '[#1#]'", log_Actions::getActionCrc('Разгледана статия')));
         $query->useIndex('object_id_class_crc');
+
+        // Без посещения табът не се показва
+        $existQuery = clone $query;
+        $existQuery->show('id');
+        $existQuery->limit(1);
+        if (!$existQuery->fetch()) {
+
+            return;
+        }
+
+        $data->TabCaption = 'Посещения';
+        $data->Order = 1000;
+        if (empty($data->isCurrent)) {
+
+            return;
+        }
+
         $query->XPR('cnt', 'int', 'COUNT(#id)');
         $query->XPR('lastTime', 'int', 'MAX(#time)');
         $query->groupBy('ipId,userId');
