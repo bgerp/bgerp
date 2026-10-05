@@ -95,13 +95,11 @@ class plg_Rejected extends core_Plugin
 
             $data->toolbar->addBtn('Всички', $allUrl, 'id=listBtn', 'ef_icon = img/16/application_view_list.png,title=Всички ' . mb_strtolower($mvc->title));
         } elseif(($data->showRejectedRows ?? $mvc->showRejectedRows ?? false) === false) {
-            $rejCnt = isset($data->rejQuery) ? $data->rejQuery->count() : 0;
+            $bin = isset($data->rejQuery) ? self::getBinSummary($data->rejQuery) : null;
+            $rejCnt = $bin->count ?? 0;
             
             if ($rejCnt) {
-                $data->rejQuery->orderBy('#modifiedOn', 'DESC', 100);
-                $data->rejQuery->limit(1);
-                $lastRec = $data->rejQuery->fetch();
-                $color = dt::getColorByTime($lastRec->modifiedOn);
+                $color = dt::getColorByTime($bin->modifiedOn ?? null);
                 $curUrl = getCurrentUrl();
                 $curUrl['Rejected'] = 1;
                 if (isset($data->pager->pageVar)) {
@@ -117,6 +115,60 @@ class plg_Rejected extends core_Plugin
     }
     
     
+    /**
+     * Брой и последна промяна в коша, без промяна на споделената заявка
+     */
+    public static function getBinSummary(core_Query $query)
+    {
+        $countQuery = clone $query;
+        $countQuery->countById = true;
+        $mvc = $query->mvc;
+        $depends = array(get_class($mvc) => $mvc, 'core_Roles' => 'core_Roles');
+        foreach ($query->selectFields("#kind == 'EXT'") as $field) {
+            if (!empty($field->externalClass)) {
+                $depends[$field->externalClass] = $field->externalClass;
+            }
+        }
+
+        // Условията включват филтрите и ограниченията за достъп на текущия потребител.
+        $handler = md5(core_Users::getCurrent() . '|' . core_Users::getRoles() . '|' . ($mvc->db->dbName ?? '') . '|' . $query->getHash());
+        $type = 'BinSummary_' . get_class($mvc);
+        $summary = core_Cache::get($type, $handler, null, $depends);
+        if ($summary !== false) {
+            return $summary;
+        }
+
+        $summary = (object) array('count' => $countQuery->count(), 'modifiedOn' => null);
+        if ($summary->count) {
+            $lastQuery = clone $query;
+            $lastQuery->orderBy('#modifiedOn', 'DESC', 100);
+            $lastQuery->limit(1);
+            $where = $lastQuery->getWhereAndHaving();
+            $simple = !$lastQuery->hasUnion() && !countR($lastQuery->groupBy) && empty($where->h);
+            if ($simple) {
+                // Материализираме и връзките, които идват само от избраните EXT полета.
+                $lastQuery->getShowFields();
+                $lastQuery->show = array('modifiedOn' => 'modifiedOn');
+            }
+            $lastRec = $lastQuery->fetch(null, $simple);
+            $summary->modifiedOn = $lastRec->modifiedOn ?? null;
+        }
+
+        core_Cache::set($type, $handler, $summary, 1440, $depends);
+
+        return $summary;
+    }
+
+
+    /**
+     * Обезсилва коша и при промени в рамките на една и съща секунда
+     */
+    public static function invalidateBinCache($mvc)
+    {
+        core_Cache::removeByType('BinSummary_' . get_class($mvc));
+    }
+
+
     /**
      * Оттегляне на обект
      *
@@ -140,6 +192,9 @@ class plg_Rejected extends core_Plugin
         $rec->state = 'rejected';
         $rec->modifiedOn = dt::now();
         $res = $mvc->save($rec);
+        if ($res) {
+            self::invalidateBinCache($mvc);
+        }
         
         $mvc->logWrite('Оттегляне', $rec->id);
     }
@@ -167,6 +222,9 @@ class plg_Rejected extends core_Plugin
         $rec->state = $rec->exState;
         $rec->modifiedOn = dt::now();
         $res = $mvc->save($rec);
+        if ($res) {
+            self::invalidateBinCache($mvc);
+        }
     }
     
     

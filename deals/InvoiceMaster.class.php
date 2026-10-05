@@ -1047,7 +1047,7 @@ abstract class deals_InvoiceMaster extends core_Master
             // При промяна да се показва поле за редакция на кешираните допълнителни условия от банковата сметка
             if($mvc->cacheAdditionalConditions){
                 $exRec = $mvc->fetch($rec->id, 'additionalConditions,accountId', false);
-                $defaultCondition = $exRec->additionalConditions[0];
+                $defaultCondition = $exRec->additionalConditions[0] ?? null;
                 if($rec->accountId != $exRec->accountId){
                     if($rec->accountId){
                         $ownBankAccountId = bank_OwnAccounts::fetchField($rec->accountId, 'bankAccountId');

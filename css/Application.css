@@ -4642,8 +4642,8 @@ table .eshop-btn {
   margin: 1.2em 0;
   padding-top: 0.8em;
   border-top: 1px solid #d8dce1;
-  font-family: Trebuchet MS, Geneva, Tahoma, sans-serif;
-}
+  font-family: Trebuchet MS, Geneva, Tahoma, sans-serif; }
+
 #cmsNavigation .eshop-param-filter .eshop-param-filter-title {
   display: flex;
   align-items: baseline;
@@ -4651,36 +4651,36 @@ table .eshop-btn {
   gap: 0.4em 0.75em;
   margin-bottom: 0.5em;
   font-size: 1em;
-  font-weight: bold;
-}
+  font-weight: bold; }
+
 #cmsNavigation .eshop-param-filter a.eshop-param-filter-clear {
   padding: 0.2em 0;
   border: 0;
-  background: transparent;
+  background: rgba(0, 0, 0, 0);
   box-shadow: none;
   font-size: 0.8em;
   font-weight: normal;
-  color: #666;
-}
+  color: #666666; }
+
 #cmsNavigation .eshop-param-filter a.eshop-param-filter-clear::before {
   content: "×";
-  margin-right: 0.3em;
-}
+  margin-right: 0.3em; }
+
 #cmsNavigation .eshop-param-filter a.eshop-param-filter-clear:hover {
   border: 0 !important;
-  background: transparent !important;
+  background: rgba(0, 0, 0, 0) !important;
   color: #963c36;
-  text-decoration: underline;
-}
+  text-decoration: underline; }
+
 #cmsNavigation .eshop-param-filter .eshop-param-filter-hint {
   font-size: 0.9em;
   line-height: 1.4;
-  color: #666;
-}
+  color: #666666; }
+
 #cmsNavigation .eshop-param-filter details.eshop-param-filter-param {
   margin: 0;
-  border-bottom: 1px solid #e6e8eb;
-}
+  border-bottom: 1px solid #e6e8eb; }
+
 #cmsNavigation .eshop-param-filter details.eshop-param-filter-param > summary {
   position: relative;
   padding: 0.65em 1.5em 0.65em 0;
@@ -4688,11 +4688,11 @@ table .eshop-btn {
   cursor: pointer;
   font-size: 0.95em;
   font-weight: bold;
-  line-height: 1.35;
-}
+  line-height: 1.35; }
+
 #cmsNavigation .eshop-param-filter summary::-webkit-details-marker {
-  display: none;
-}
+  display: none; }
+
 #cmsNavigation .eshop-param-filter details.eshop-param-filter-param > summary::after {
   content: "";
   position: absolute;
@@ -4702,21 +4702,21 @@ table .eshop-btn {
   height: 0.4em;
   border-right: 1px solid currentColor;
   border-bottom: 1px solid currentColor;
-  transform: rotate(45deg);
-}
+  transform: rotate(45deg); }
+
 #cmsNavigation .eshop-param-filter details.eshop-param-filter-param[open] > summary::after {
   transform: rotate(225deg);
-  top: 1.1em;
-}
+  top: 1.1em; }
+
 #cmsNavigation .eshop-param-filter .eshop-param-filter-values {
-  margin: 0 0 0.6em;
-}
+  margin: 0 0 0.6em; }
+
 #cmsNavigation .eshop-param-filter details.eshop-param-filter-more > summary {
   cursor: pointer;
   padding: 0.35em 0 0.35em 1.8em;
   font-size: 0.85em;
-  color: #666;
-}
+  color: #666666; }
+
 #cmsNavigation .eshop-param-filter .eshop-param-filter-value {
   display: block;
   position: relative;
@@ -4725,27 +4725,27 @@ table .eshop-btn {
   margin: 0.1em 0;
   border: 0;
   border-radius: 0.25em;
-  background: transparent;
+  background: rgba(0, 0, 0, 0);
   box-shadow: none;
   font-size: 0.9em;
   font-weight: normal;
   line-height: 1.4;
   white-space: normal;
   overflow-wrap: anywhere;
-  text-decoration: none;
-}
+  text-decoration: none; }
+
 #cmsNavigation .eshop-param-filter a.eshop-param-filter-value:hover {
   border: 0 !important;
   background: #f0f3f6 !important;
-  box-shadow: none;
-}
+  box-shadow: none; }
+
 #cmsNavigation .eshop-param-filter .eshop-param-filter-value.checked {
   background: #e9eff5;
-  font-weight: bold;
-}
+  font-weight: bold; }
+
 #cmsNavigation .eshop-param-filter .eshop-param-filter-value.disabled {
-  color: #999;
-}
+  color: #999999; }
+
 #cmsNavigation .eshop-param-filter .eshop-param-check {
   position: absolute;
   left: 0.45em;
@@ -4756,24 +4756,23 @@ table .eshop-btn {
   margin: 0;
   border: 1px solid #8a959f;
   border-radius: 0.15em;
-  background: white;
-}
+  background: white; }
+
 #cmsNavigation .eshop-param-filter .checked .eshop-param-check {
-  border-color: #336;
-  background: #336;
-  box-shadow: inset 0 0 0 2px white;
-}
+  border-color: #333366;
+  background: #333366;
+  box-shadow: inset 0 0 0 2px white; }
+
 #cmsNavigation .eshop-param-filter .eshop-param-count {
   color: #75808b;
   font-size: 0.9em;
   font-weight: normal;
-  white-space: nowrap;
-}
+  white-space: nowrap; }
+
 #cmsNavigation .eshop-param-filter a:focus-visible,
 #cmsNavigation .eshop-param-filter summary:focus-visible {
   outline: 2px solid #56738d;
-  outline-offset: 2px;
-}
+  outline-offset: 2px; }
 
 .eshop-param-filter-pending > :not(#cmsNavigation) {
   opacity: 0.4;
