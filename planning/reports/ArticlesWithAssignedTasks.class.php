@@ -122,13 +122,22 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
         /** @var core_Query $jobsQuery */
         $jobsQuery = planning_Jobs::getQuery();
         $jobsQuery->in('state', 'active,wakeup');
-        $jobsQuery->show('id,productId,folderId,saleId,containerId,dueDate,deliveryDate,activatedOn,history');
+        $jobsQuery->show('id,productId,folderId,saleId,containerId,dueDate,deliveryDate,activatedOn');
         if ($jobsQuery->getField('designers', false)) {
             $jobsQuery->show('designers');
         }
         $jobsQuery->selectOnReplica();
         $jobs = $jobsQuery->fetchAll();
         if (!count($jobs)) return $recs;
+
+        // Историята (компресиран blob) се чете само за заданията без activatedOn
+        $noActivatedOn = array();
+        foreach ($jobs as $job) {
+            if (empty($job->activatedOn)) $noActivatedOn[$job->id] = $job->id;
+        }
+        foreach (self::loadReportRecords(cls::get('planning_Jobs'), $noActivatedOn, 'id,history') as $hRec) {
+            $jobs[$hRec->id]->history = $hRec->history ?? null;
+        }
 
         $products = self::loadReportRecords(cls::get('cat_Products'), arr::extractValuesFromArray($jobs, 'productId'), 'id,containerId');
         $sourceIds = arr::extractValuesFromArray($jobs, 'containerId');

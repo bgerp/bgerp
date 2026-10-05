@@ -96,9 +96,9 @@ class blogm_Articles extends core_Master
     
     
     /**
-     * Коментари на статията
+     * Коментари и посещения на статията
      */
-    public $details = 'blogm_Comments';
+    public $details = 'blogm_Comments, Visits=blogm_Articles';
     
     
     /**
@@ -159,6 +159,12 @@ class blogm_Articles extends core_Master
      * Кой може да вижда публичните статии
      */
     public $canArticle = 'every_one';
+    
+    
+    /**
+     * Кой може да вижда посещенията на статията от сайта
+     */
+    public $canViewvisits = 'ceo, admin, cms';
     
     
     /**
@@ -517,8 +523,8 @@ class blogm_Articles extends core_Master
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         $data->listFilter->FNC('category', 'key(mvc=blogm_Categories,select=title,allowEmpty)', 'caption=Категория,placeholderType=all,silent,autoFilter');
-        
-        $data->listFilter->showFields = 'search,domainId,category';
+        $data->listFilter->FNC('stateFilter', 'enum(,draft=Чернова,pending=Заявка,waiting=Чакащ,active=Активен)', 'caption=Състояние,placeholderType=all,silent,autoFilter');
+        $data->listFilter->showFields = 'search,domainId,category,stateFilter';
         
         // Подреждаме статиите по датата им на публикуане в низходящ ред
         $data->query->XPR('pubTime', 'datetime', 'IF(#publishedOn,#publishedOn,#createdOn)');
@@ -553,6 +559,9 @@ class blogm_Articles extends core_Master
             $data->query->likeKeylist('categories', keylist::fromArray($categories));
         } else {
             $data->query->where('1=2');
+        }
+        if (!empty($recFilter->stateFilter)) {
+            $data->query->where(array("#state = '[#1#]'", $recFilter->stateFilter));
         }
         
         // Ако метода е 'browse' показваме само активните статии
@@ -878,6 +887,85 @@ class blogm_Articles extends core_Master
         if ($mvc->haveRightFor('article', $data->rec)) {
             $data->toolbar->addBtn('Преглед', array($this, 'Article', $data->rec->id), 'order=19.9', 'ef_icon=img/16/monitor.png,title=Преглед във външната част');
         }
+    }
+    
+    
+    /**
+     * Подготвя таба с посещенията на статията от сайта, групирани по IP и потребител
+     */
+    public function prepareVisits($data)
+    {
+        $masterRec = $data->masterData->rec;
+        if (Mode::isReadOnly() || Mode::is('renderForLlm') || !$this->haveRightFor('viewvisits', $masterRec)) {
+            
+            return;
+        }
+        
+        // Табът е до тези на историята, които се показват само за избрания документ
+        if (Request::get('Cid', 'int') != $masterRec->containerId) {
+            
+            return;
+        }
+        
+        $query = log_Data::getQuery();
+        $query->where(array("#classCrc = '[#1#]' AND #objectId = '[#2#]' AND #type = 'read'", log_Classes::getClassCrc($this->className), $masterRec->id));
+        $query->where(array("#actionCrc = '[#1#]'", log_Actions::getActionCrc('Разгледана статия')));
+        $query->useIndex('object_id_class_crc');
+
+        // Без посещения табът не се показва
+        $existQuery = clone $query;
+        $existQuery->show('id');
+        $existQuery->limit(1);
+        if (!$existQuery->fetch()) {
+
+            return;
+        }
+
+        $data->TabCaption = 'Посещения';
+        $data->Order = 1000;
+        if (empty($data->isCurrent)) {
+
+            return;
+        }
+
+        $query->XPR('cnt', 'int', 'COUNT(#id)');
+        $query->XPR('lastTime', 'int', 'MAX(#time)');
+        $query->groupBy('ipId,userId');
+        $query->show('ipId,userId,cnt,lastTime');
+        $query->orderBy('lastTime', 'DESC');
+        
+        $data->pager = cls::get('core_Pager', array('itemsPerPage' => 10, 'pageVar' => 'P_blogm_Visits'));
+        $data->pager->setLimit($query);
+        
+        $data->rows = array();
+        while ($rec = $query->fetch()) {
+            $lastOn = dt::timestamp2Mysql($rec->lastTime);
+            $ip = log_Ips::fetchField($rec->ipId, 'ip');
+            $data->rows[] = (object) array(
+                'ip' => type_Ip::decorateIp($ip, $lastOn, true),
+                'userId' => ($rec->userId > 0) ? crm_Profiles::createLink($rec->userId) : '',
+                'cnt' => $rec->cnt,
+                'lastOn' => dt::mysql2verbal($lastOn, 'smartTime'),
+            );
+        }
+    }
+    
+    
+    /**
+     * Рендира таба с посещенията със същия вид като историята
+     */
+    public function renderVisits($data)
+    {
+        if (empty($data->rows)) {
+            
+            return;
+        }
+        
+        $tpl = doclog_Documents::getLogDetailTpl();
+        $tpl->append(cls::get('core_TableView')->get($data->rows, 'lastOn=Последно, userId=Потребител, ip=IP, cnt=Посещения'), 'content');
+        $tpl->append($data->pager->getHtml());
+        
+        return $tpl;
     }
     
     

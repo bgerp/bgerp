@@ -2312,18 +2312,30 @@ class sales_Sales extends deals_DealMaster
      */
     public static function getContragentFolderSuggestions()
     {
-        $context = array(core_Users::getCurrent(), core_Users::getCurrent('roles'), core_Lg::getCurrent());
+        $aiRestricted = Mode::is('aiToolInvocation') && !Mode::is('aiSecretFolderCheck');
+        $context = array(core_Users::getCurrent(), core_Users::getCurrent('roles'), core_Lg::getCurrent(), $aiRestricted);
 
         return core_Cache::remember(__METHOD__, $context, function () {
             $suggestions = array();
+            $folderIds = array();
             $query = sales_Sales::getQuery();
-            $query->EXT('folderTitle', 'doc_Folders', 'externalName=title,externalKey=folderId');
             $query->groupBy('folderId');
-            $query->show('folderId, contragentId, folderTitle');
+            $query->show('folderId, contragentId');
 
             while ($contragent = $query->fetch()) {
-                if (isset($contragent->contragentId)) {
-                    $suggestions[$contragent->folderId ?? ''] = $contragent->folderTitle ?? '';
+                $folderId = $contragent->folderId ?? null;
+                if (isset($contragent->contragentId) && $folderId) {
+                    $folderIds[] = $folderId;
+                }
+            }
+
+            // Заглавията се зареждат след групирането, за да не раздуват временната таблица.
+            foreach (array_chunk($folderIds, 500) as $chunk) {
+                $folderQuery = doc_Folders::getQuery();
+                $folderQuery->in('id', $chunk);
+                $folderQuery->show('id,title');
+                while ($folder = $folderQuery->fetch()) {
+                    $suggestions[$folder->id ?? ''] = $folder->title ?? '';
                 }
             }
 

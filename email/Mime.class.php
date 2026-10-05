@@ -223,7 +223,8 @@ class email_Mime extends core_BaseClass
             }
         }
 
-        $this->fromEmail = $fromEmlArr[0];
+        // Писмо без адрес и в From, и в Return-Path
+        $this->fromEmail = $fromEmlArr[0] ?? null;
     }
     
     

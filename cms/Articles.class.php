@@ -148,29 +148,72 @@ class cms_Articles extends core_Master
         
         // Показваме само това поле. Иначе и другите полета
         // на модела ще се появят
-        $form->showFields = 'search, menuId';
+        $form->showFields = 'search, menuId, domainId';
+        $domainId = cms_Domains::inputListFilterField($form);
         $form->input('search, menuId', 'silent');
 
-        $domainId = cms_Domains::getPublicDomain('id');
         $opt = cms_Content::getMenuOpt($mvc, $domainId);
         $form->setOptions('menuId', $opt);
-        
-        $form->setField('menuId', 'refreshForm');
-        
+        $form->setField('menuId', 'refreshForm,placeholder=Всички');
+
         if (countR($opt) == 0) {
-            redirect(array('cms_Content'), false, '|Моля въведете поне един елемент от менюто');
+            if (empty($domainId)) {
+                redirect(array('cms_Content'), false, '|Моля въведете поне един елемент от менюто');
+            }
+
+            // Домейн без такова меню - празен списък
+            $data->query->where('1=2');
+
+            return;
         }
-        
-        if (empty($form->rec->menuId) || !($opt[$form->rec->menuId] ?? null)) {
+
+        // Първото меню е по подразбиране само при отваряне, изчистеното поле означава всички менюта
+        if (!empty($form->rec->menuId) && !($opt[$form->rec->menuId] ?? null)) {
+            $form->rec->menuId = null;
+        }
+        if (Request::get('menuId') === null) {
             $form->rec->menuId = key($opt);
         }
-        
-        $data->query->where(array("#menuId = '[#1#]'", $form->rec->menuId));
-        
+
+        if (!empty($form->rec->menuId)) {
+            $data->query->where(array("#menuId = '[#1#]'", $form->rec->menuId));
+        } else {
+            $data->query->in('menuId', array_keys($opt));
+        }
+
         $data->query->orderBy('#menuId,#level');
     }
     
     
+    /**
+     * Без избран домейн във филтъра се показва колона с домейна на менюто
+     */
+    protected static function on_AfterPrepareListRows($mvc, $res, $data)
+    {
+        $filterRec = $data->listFilter->rec ?? null;
+        if (!is_object($filterRec) || !empty($filterRec->domainId) || !isset($data->listFields['menuId'])) {
+
+            return;
+        }
+
+        arr::insert($data->listFields, 'menuId', array('domainId' => 'Домейн'), true);
+
+        $domainLinks = array();
+        foreach ($data->rows ?? array() as $id => $row) {
+            $menuId = $data->recs[$id]->menuId ?? null;
+            if (empty($menuId)) {
+                continue;
+            }
+
+            if (!array_key_exists($menuId, $domainLinks)) {
+                $domainId = cms_Content::fetchField($menuId, 'domainId');
+                $domainLinks[$menuId] = !empty($domainId) ? cms_Domains::getHyperlink($domainId, true) : null;
+            }
+            $row->domainId = $domainLinks[$menuId];
+        }
+    }
+
+
     /**
      * Подготвя някои полета на формата
      */
@@ -926,7 +969,7 @@ class cms_Articles extends core_Master
      */
     public static function on_AfterPrepareListTitle($mvc, $res, $data)
     {
-        $data->title .= cms_Domains::getCurrentDomainInTitle();
+        $data->title .= cms_Domains::getCurrentDomainInTitle($data);
     }
     
     

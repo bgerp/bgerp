@@ -1951,6 +1951,10 @@ input:focus[type=button] {
   .wide .doc_Search .listFilter {
     padding-bottom: 0; }
 
+  .wide .blogm_Comments .listFilter .formFields,
+  .wide .blogm_Comments .listFilter .formToolbar {
+    margin-bottom: 0; }
+
   .narrow .doc_Search .pages {
     padding-top: 3px;
     margin-bottom: 13px; }

@@ -38,6 +38,12 @@ class sales_TransportValues extends core_Manager
         'deliveryData' => 'deliveryData',
         'deliveryCalcTransport' => 'deliveryCalcTransport',
     );
+
+
+    /**
+     * Кеш за хита на адресните данни на контрагентите и на нашата фирма
+     */
+    private static $hitCache = array();
     
     
     /**
@@ -347,6 +353,21 @@ class sales_TransportValues extends core_Manager
      */
     public static function getCodeAndCountryId($contragentClassId, $contragentId, $pCode = null, $countryId = null, $locationId = null)
     {
+        // При много редове за един клиент в един хит адресът се чете само веднъж
+        $key = 'codeAndCountry|' . json_encode(array($contragentClassId, $contragentId, $pCode, $countryId, $locationId));
+        if (!array_key_exists($key, self::$hitCache)) {
+            self::$hitCache[$key] = self::fetchCodeAndCountryId($contragentClassId, $contragentId, $pCode, $countryId, $locationId);
+        }
+
+        return self::$hitCache[$key];
+    }
+
+
+    /**
+     * Извлича п. кода и държавата - без кеш, @see getCodeAndCountryId()
+     */
+    private static function fetchCodeAndCountryId($contragentClassId, $contragentId, $pCode, $countryId, $locationId)
+    {
         $cData = cls::get($contragentClassId)->getContragentData($contragentId);
         $cData = is_object($cData) ? $cData : new stdClass();
         
@@ -603,8 +624,11 @@ class sales_TransportValues extends core_Manager
         
         // Опит за изчисляване на транспорт
         $totalWeight = cond_Parameters::getParameter($contragentClassId, $contragentId, 'calcShippingWeight');
-        
-        $ourCompany = crm_Companies::fetchOurCompany();
+
+        if (!array_key_exists('ourCompany', self::$hitCache)) {
+            self::$hitCache['ourCompany'] = crm_Companies::fetchOurCompany();
+        }
+        $ourCompany = self::$hitCache['ourCompany'];
         $params = $params + array(
             'deliveryCountry' => $codeAndCountryArr['countryId'] ?? null,
             'deliveryPCode' => $codeAndCountryArr['pCode'] ?? null,

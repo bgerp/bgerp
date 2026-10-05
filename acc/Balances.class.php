@@ -157,9 +157,17 @@ class acc_Balances extends core_Master
     /**
      * Под този сбор от промените на сумите в журнала (стотинка) стратегиите се смятат за уравновесени
      *
-     * Заедно с CHANGE_THRESHOLD за всеки ред - иначе стотици редове с шум в 8-10 знак държат итерациите
+     * Заедно със STABLE_ROW_THRESHOLD за всеки ред - иначе стотици редове с шум в 8-10 знак държат итерациите
      */
     const JOURNAL_SUM_THRESHOLD = 0.01;
+
+
+    /**
+     * Под тази промяна на ред от журнала (половин стотинка) стратегиите се смятат за уравновесени
+     *
+     * Допуск, не гаранция - сума близо до половин стотинка може да смени закръглянето
+     */
+    const STABLE_ROW_THRESHOLD = 0.005;
 
 
     /**
@@ -201,7 +209,7 @@ class acc_Balances extends core_Master
 
 
     /**
-     * Дали времето на cron задачата е свършило - останалите баланси се смятат при следващото пускане
+     * Дали смятането спира, защото предходният баланс е сменен по време на изчислението - продължава при следващото пускане
      */
     public static $outOfTime = false;
 
@@ -622,8 +630,8 @@ class acc_Balances extends core_Master
                 }
             }
 
-            // Времето е свършило при междинния баланс - месецът е при следващото пускане
-            if (self::isOutOfTime()) {
+            // Междинният баланс е отложен - месецът е при следващото пускане
+            if (self::$outOfTime) {
 
                 return false;
             }
@@ -640,7 +648,8 @@ class acc_Balances extends core_Master
      *
      * Стратегиите се хранят от сумите в журнала - щом смятането не ги промени, следващо ще даде същото.
      * Така и следващите баланси по веригата получават вече крайните цени.
-     * Уравновесени са, когато никой ред не се мести с CHANGE_THRESHOLD и сборът е под JOURNAL_SUM_THRESHOLD,
+     * Уравновесени са, когато сборът е под JOURNAL_SUM_THRESHOLD и никой ред не се мести с CHANGE_THRESHOLD,
+     * а щом има прогноза за остатъка - със STABLE_ROW_THRESHOLD и прогнозата също под JOURNAL_SUM_THRESHOLD,
      * или когато сменените суми не захранват стратегия и не са от цена по подразбиране.
      */
     private static function calcUntilStable($rec, $force = false)
@@ -666,7 +675,17 @@ class acc_Balances extends core_Master
             $diffs[] = (float) sprintf('%.2g', $diff);
             $maxDiffs[] = (float) sprintf('%.2g', $maxDiff);
 
-            if ($maxDiff < self::CHANGE_THRESHOLD && $diff < self::JOURNAL_SUM_THRESHOLD) {
+            // Сходимостта е геометрична - прогнозата за остатъка е diff * r / (1 - r), r = diff / prevDiff, с двоен запас.
+            // Без прогноза (първи ход, сумите не намаляват) важи строгият праг CHANGE_THRESHOLD за ред.
+            if (isset($prevDiff) && $prevDiff > 0 && $diff < $prevDiff) {
+                $ratio = $diff / $prevDiff;
+                $remaining = 2 * $diff * $ratio / (1 - $ratio);
+                $isStable = $maxDiff < self::STABLE_ROW_THRESHOLD && $diff < self::JOURNAL_SUM_THRESHOLD && $remaining < self::JOURNAL_SUM_THRESHOLD;
+            } else {
+                $isStable = $maxDiff < self::CHANGE_THRESHOLD && $diff < self::JOURNAL_SUM_THRESHOLD;
+            }
+
+            if ($isStable) {
                 $stop = 'stable';
                 break;
             }
@@ -687,7 +706,8 @@ class acc_Balances extends core_Master
                 break;
             }
 
-            if (self::isOutOfTime()) {
+            // Повторенията са в рамките на cron задачата, веригата се довършва в същото пускане
+            if (self::isCronTimeOver()) {
                 $stop = 'time';
                 break;
             }
@@ -740,17 +760,12 @@ class acc_Balances extends core_Master
 
     /**
      * Дали в лимита на cron задачата не остава време за още едно смятане
-     *
-     * Тогава изчисляването спира и следващото пускане продължава от недовършения баланс
      */
-    private static function isOutOfTime()
+    private static function isCronTimeOver()
     {
         $timeLeft = core_Cron::getTimeLeft();
-        if ($timeLeft !== false && ($timeLeft <= 0 || $timeLeft < self::$lastPassTime * 1.2)) {
-            self::$outOfTime = true;
-        }
 
-        return self::$outOfTime;
+        return $timeLeft !== false && ($timeLeft <= 0 || $timeLeft < self::$lastPassTime * 1.2);
     }
 
 
@@ -1029,12 +1044,6 @@ class acc_Balances extends core_Master
             $rec->toDate = $pRec->end;
             $rec->periodId = $pRec->id;
 
-            // Без време за още едно смятане - следващото пускане продължава оттук
-            if (self::isOutOfTime()) {
-                $this->logNotice("Изчисляването продължава при следващото пускане от {$rec->fromDate} - {$rec->toDate}", null, 3);
-                break;
-            }
-
             $periodStart = microtime(true);
             $calcCountBefore = self::$calcCount;
             core_Locks::obtain($lockKey, self::MAX_PERIOD_CALC_TIME);
@@ -1050,7 +1059,7 @@ class acc_Balances extends core_Master
                 $this->logNotice("Преизчисляване на {$rec->fromDate} - {$rec->toDate}: " . countR($iterations) . ' итерации (' . implode(', ', $iterations) . '), край: ' . ($rec->calcStop ?? '-') . ", calc() извиквания {$calcCalls} за {$periodTime}s", $rec->id, 3);
             }
 
-            // Времето е свършило при смятането на този период - следващото пускане продължава от него
+            // Предходният баланс е сменен по време на смятането - следващото пускане продължава от този период
             if ($unfinished) {
                 $this->logNotice("Изчисляването продължава при следващото пускане от {$rec->fromDate} - {$rec->toDate}", null, 3);
                 break;

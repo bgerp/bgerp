@@ -944,7 +944,7 @@ class core_Manager extends core_Mvc
     {
         setPartIfNot($data, 'title', $this->title);
 
-        if ($data->ListId) {
+        if (!empty($data->ListId)) {
             $data->title = "Резултати за запис номер|* {$data->ListId}: |" . $data->title;
         }
         

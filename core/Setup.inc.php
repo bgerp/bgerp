@@ -1305,6 +1305,7 @@ if ($step == 'start') {
     setlocale(LC_ALL, 'en_US.UTF8');
 
     $ef = new core_Setup();
+    $res = '';
     try {
         try {
             try {
