@@ -9,6 +9,47 @@
  */
 class core_tests_Query extends unit_Class
 {
+    public static function test_PlainCountDropsProjectionButPreservesJoins()
+    {
+        $query = self::makeThreadQuery();
+        $query->groupBy = array();
+        $query->count();
+        $originalSql = $query->mvc->db->lastQuery;
+        $query->countById = true;
+        $query->count();
+        $sql = $query->mvc->db->lastQuery;
+
+        ut::expectEqual(substr($sql, 0, strpos($sql, "\nFROM ")), "SELECT \n   count(*) AS `_count`");
+        ut::expectEqual(substr($sql, strpos($sql, "\nFROM ")), substr($originalSql, strpos($originalSql, "\nFROM ")));
+        ut::expectEqual($query->show, array());
+    }
+
+
+    public static function test_PlainCountPreservesHavingAndBoundedQueries()
+    {
+        $query = self::makeThreadQuery();
+        $query->groupBy = array();
+        $query->countById = true;
+        $query->fields['matches'] = (object) array('name' => 'matches', 'kind' => 'XPR', 'expression' => 'COUNT(*)');
+        $query->where('#matches > 1');
+        $query->count();
+        ut::expectEqual(strpos($query->mvc->db->lastQuery, 'COUNT(*) AS `matches`') !== false, true);
+        ut::expectEqual(strpos($query->mvc->db->lastQuery, 'HAVING') !== false, true);
+
+        foreach (array(array(2, null), array(null, 2), array(2, 2)) as $bounds) {
+            $query = self::makeThreadQuery();
+            $query->groupBy = array();
+            $query->limit($bounds[0]);
+            $query->startFrom($bounds[1]);
+            $query->count();
+            $originalSql = $query->mvc->db->lastQuery;
+            $query->countById = true;
+            $query->count();
+            ut::expectEqual($query->mvc->db->lastQuery, $originalSql);
+        }
+    }
+
+
     public static function test_GroupedCountProjectsOnlyId()
     {
         $query = self::makeThreadQuery();
