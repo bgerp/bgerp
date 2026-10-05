@@ -5383,13 +5383,15 @@ function prepareFavIcon(iconPath) {
 
 
 /**
- * Добавя червен индикатор върху текущата икона за формите за въвеждане
+ * Добавя цветен индикатор върху текущата икона
  * @param iconPath - пътят до основната икона
+ * @param dotColor - цветът на точката (по подразбиране червен)
  */
-function setEditFavIcon(iconPath) {
+function setEditFavIcon(iconPath, dotColor) {
     if (!iconPath) return;
 
-    var cacheName = 'bgerpEditFavicon';
+    dotColor = dotColor || '#ff0000';
+    var cacheName = 'bgerpEditFavicon|' + dotColor;
     var source = iconPath + '|record-dot-v2';
 
     try {
@@ -5412,14 +5414,14 @@ function setEditFavIcon(iconPath) {
             canvas.height = size;
             context.drawImage(image, 0, 0, size, size);
 
-            // Белият кант отделя яркочервената точка от произволен фон.
+            // Белият кант отделя цветната точка от произволен фон.
             context.beginPath();
             context.arc(47, 47, 16, 0, 2 * Math.PI);
             context.fillStyle = '#ffffff';
             context.fill();
             context.beginPath();
             context.arc(47, 47, 13, 0, 2 * Math.PI);
-            context.fillStyle = '#ff0000';
+            context.fillStyle = dotColor;
             context.fill();
 
             var icon = canvas.toDataURL('image/png');

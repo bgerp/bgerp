@@ -1995,6 +1995,10 @@ abstract class deals_Helper
         $cQuery = doc_Containers::getQuery();
         $cQuery->in('threadId', $threads);
         $cQuery->show('id,docClass');
+
+        // Таблицата е MyISAM - без HIGH_PRIORITY чака зад чужди записи
+        $cQuery->highPriority = true;
+        $cQuery->selectOnReplica();
         while ($cRec = $cQuery->fetch()) {
             $docClasses[$cRec->docClass] = $cRec->docClass;
             $containerClasses[$cRec->id] = $cRec->docClass;
@@ -2010,6 +2014,7 @@ abstract class deals_Helper
 
             $iQuery = cls::get($classId)->getQuery();
             $iQuery->in('containerId', $cIds);
+            $iQuery->selectOnReplica();
             while ($iRec = $iQuery->fetch()) {
                 $invoiceRecs[$iRec->containerId] = $iRec;
             }
@@ -2081,6 +2086,7 @@ abstract class deals_Helper
                 $pQuery->where("#valior <= '{$valior}'");
             }
 
+            $pQuery->selectOnReplica();
             while ($pRec = $pQuery->fetch()) {
                 $payDocs[] = array($Pay, $Pdoc, $pRec);
                 $payContainerIds[$pRec->containerId] = $pRec->containerId;
@@ -2093,6 +2099,7 @@ abstract class deals_Helper
             $itdQuery = deals_InvoicesToDocuments::getQuery();
             $itdQuery->in('documentContainerId', $payContainerIds);
             $itdQuery->orderBy('id', 'ASC');
+            $itdQuery->selectOnReplica();
             while ($itdRec = $itdQuery->fetch()) {
                 $invArrByPayment[$itdRec->documentContainerId][$itdRec->id] = $itdRec;
             }

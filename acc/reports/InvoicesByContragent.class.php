@@ -401,11 +401,23 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
         $recs = array();
 
         core_App::setTimeLimit(300);
-        $invoicePaymentsByThread = $firstDocuments = $dealStates = $invoiceRecords = array();
-        $getPayments = function ($threadId) use (&$invoicePaymentsByThread, $checkDate, &$paymentsSeconds) {
+        $invoicePaymentsByThread = $invoicePaymentsByGroup = $firstDocuments = $dealStates = $invoiceRecords = array();
+        $getPayments = function ($threadId) use (&$invoicePaymentsByThread, &$invoicePaymentsByGroup, $checkDate, &$paymentsSeconds) {
             if (!array_key_exists($threadId, $invoicePaymentsByThread)) {
                 $timer = microtime(true);
-                $invoicePaymentsByThread[$threadId] = deals_Helper::getInvoicePayments($threadId, $checkDate, false, false);
+
+                // Нишките на една обединена сделка дават един и същ резултат - смята се веднъж
+                $groupThreads = deals_Helper::getCombinedThreads($threadId);
+                ksort($groupThreads);
+                $groupKey = implode('|', $groupThreads);
+                if ($groupKey !== '' && array_key_exists($groupKey, $invoicePaymentsByGroup)) {
+                    $invoicePaymentsByThread[$threadId] = $invoicePaymentsByGroup[$groupKey];
+                } else {
+                    $invoicePaymentsByThread[$threadId] = deals_Helper::getInvoicePayments($threadId, $checkDate, false, false);
+                    if ($groupKey !== '') {
+                        $invoicePaymentsByGroup[$groupKey] = $invoicePaymentsByThread[$threadId];
+                    }
+                }
                 $paymentsSeconds += microtime(true) - $timer;
             }
 
@@ -1183,8 +1195,10 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             }
         }
 
-        self::addReportStat($data, 'payments', $paymentsSeconds, countR($invoicePaymentsByThread));
+        self::addReportStat($data, 'payments', $paymentsSeconds, countR($invoicePaymentsByGroup));
         foreach ($skipped as $reason => $numbers) {
+            // Фактура от обединена сделка се среща във всяка нейна нишка
+            $numbers = array_values(array_unique($numbers));
             self::addReportStat($data, $reason, 0, countR($numbers), $numbers);
         }
 
