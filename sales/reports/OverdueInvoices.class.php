@@ -42,9 +42,9 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
      * Показателите на справката, в реда на обработката
      */
     protected static $statCaptions = array(
-        'invoices' => 'Кандидат фактури',
         'sales' => 'Отворени продажби',
         'combined' => 'Обединени сделки',
+        'invoices' => 'Кандидат фактури',
         'payments' => 'Разпределени плащания по нишки',
         'rows' => 'Просрочени фактури',
         'memory' => 'Пикова памет (MB)',
@@ -179,11 +179,72 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
             ? keylist::toArray(drdata_CountryGroups::fetchField($rec->countryGroup, 'countries') ?? '') : array();
         $contragents = $contragentClasses = $invoices = $invoiceThreads = array();
 
+        $timer = microtime(true);
+        /** @var core_Query $salQuery */
+        $salQuery = sales_Sales::getQuery();
+        $salQuery->in('state', array('rejected', 'draft', 'pending'), true);
+        $salQuery->where(array("#closedOn IS NULL OR #closedOn > '[#1#]'", $checkDate));
+        if (!empty($rec->dealer)) {
+            $salQuery->where(array("#dealerId = '[#1#]'", $rec->dealer));
+        }
+        $salQuery->show('threadId');
+        $salQuery->selectOnReplica();
+        $threadsActivSalesArr = arr::extractValuesFromArray($salQuery->fetchAll(), 'threadId');
+        self::addReportStat($data, 'sales', microtime(true) - $timer, count($threadsActivSalesArr));
+        core_App::setTimeLimit(max(300, count($threadsActivSalesArr) * 5));
+
+        // Групите от обединени сделки с две заявки, вместо getCombinedThreads() за всяка нишка
+        $timer = microtime(true);
+        $combinedGroups = $threadToGroup = $closedDealGroup = array();
+        $cQuery = sales_Sales::getQuery();
+        $cQuery->where("#closedDocuments != ''");
+        $cQuery->show('threadId,closedDocuments');
+        while ($cRec = $cQuery->fetch()) {
+            $combinedGroups[$cRec->threadId] = array($cRec->threadId => $cRec->threadId);
+            foreach (keylist::toArray($cRec->closedDocuments) as $closedId) {
+                $closedDealGroup[$closedId] = $cRec->threadId;
+            }
+        }
+        if (count($closedDealGroup)) {
+            $dQuery = sales_Sales::getQuery();
+            $dQuery->in('id', array_keys($closedDealGroup));
+            $dQuery->show('id,threadId');
+            while ($dRec = $dQuery->fetch()) {
+                $groupKey = $closedDealGroup[$dRec->id];
+                $combinedGroups[$groupKey][$dRec->threadId] = $dRec->threadId;
+                $threadToGroup[$dRec->threadId] = $groupKey;
+            }
+        }
+        self::addReportStat($data, 'combined', microtime(true) - $timer, count($combinedGroups));
+
+        // Нишките на отворените продажби с всички обединени с тях; само там се търсят фактури
+        $dealThreads = array();
+        $queue = array_values($threadsActivSalesArr);
+        while (count($queue)) {
+            $thread = array_pop($queue);
+            if (isset($dealThreads[$thread])) continue;
+            $dealThreads[$thread] = $thread;
+            $related = $combinedGroups[$thread] ?? array();
+            if (isset($threadToGroup[$thread])) {
+                $related += $combinedGroups[$threadToGroup[$thread]] ?? array();
+            }
+            foreach ($related as $relThread) {
+                if (!isset($dealThreads[$relThread])) {
+                    $queue[] = $relThread;
+                }
+            }
+        }
+
         // Само кандидати за показване; разпределението на плащанията остава по цялата сделка.
         $timer = microtime(true);
         /** @var core_Query $invQuery */
         $invQuery = sales_Invoices::getQuery();
         $invQuery->where("#state = 'active'");
+        if (count($dealThreads)) {
+            $invQuery->in('threadId', $dealThreads);
+        } else {
+            $invQuery->where('1 = 2');
+        }
         $invQuery->where(array("#date <= '[#1#]' AND #dueDate < '[#1#]'", $checkDate));
         if (!empty($rec->countryGroup)) {
             if (count($countries)) {
@@ -206,9 +267,9 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
             if (!array_key_exists($key, $contragents)) {
                 /** @var core_Mvc $Contragent */
                 $Contragent = cls::get($className);
-                $contragents[$key] = $Contragent->fetch($contragentId);
+                $contragents[$key] = $Contragent->fetchField($contragentId, 'folderId');
             }
-            $folderId = $contragents[$key]->folderId ?? null;
+            $folderId = $contragents[$key];
             if (!$folderId || (count($contragentFilter) && !isset($contragentFilter[$folderId]))) continue;
             $invoice->reportContragentFolderId = $folderId;
             $invoices[$invoice->containerId ?? 0] = $invoice;
@@ -216,48 +277,10 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
         }
         self::addReportStat($data, 'invoices', microtime(true) - $timer, count($invoices));
 
-        $timer = microtime(true);
-        /** @var core_Query $salQuery */
-        $salQuery = sales_Sales::getQuery();
-        $salQuery->in('state', array('rejected', 'draft', 'pending'), true);
-        $salQuery->where(array("#closedOn IS NULL OR #closedOn > '[#1#]'", $checkDate));
-        if (!empty($rec->dealer)) {
-            $salQuery->where(array("#dealerId = '[#1#]'", $rec->dealer));
-        }
-        $salQuery->show('threadId');
-        $salQuery->selectOnReplica();
-        $threadsActivSalesArr = arr::extractValuesFromArray($salQuery->fetchAll(), 'threadId');
-        self::addReportStat($data, 'sales', microtime(true) - $timer, count($threadsActivSalesArr));
-        core_App::setTimeLimit(max(300, count($threadsActivSalesArr) * 5));
-
         $salesTotalOverDue = $salesTotalPayout = 0;
         $invoiceCurrentSummArr = array();
 
         if (count($invoices)) {
-
-            // Групите от обединени сделки с две заявки, вместо getCombinedThreads() за всяка нишка
-            $timer = microtime(true);
-            $combinedGroups = $threadToGroup = $closedDealGroup = array();
-            $cQuery = sales_Sales::getQuery();
-            $cQuery->where("#closedDocuments != ''");
-            $cQuery->show('threadId,closedDocuments');
-            while ($cRec = $cQuery->fetch()) {
-                $combinedGroups[$cRec->threadId] = array($cRec->threadId => $cRec->threadId);
-                foreach (keylist::toArray($cRec->closedDocuments) as $closedId) {
-                    $closedDealGroup[$closedId] = $cRec->threadId;
-                }
-            }
-            if (count($closedDealGroup)) {
-                $dQuery = sales_Sales::getQuery();
-                $dQuery->in('id', array_keys($closedDealGroup));
-                $dQuery->show('id,threadId');
-                while ($dRec = $dQuery->fetch()) {
-                    $groupKey = $closedDealGroup[$dRec->id];
-                    $combinedGroups[$groupKey][$dRec->threadId] = $dRec->threadId;
-                    $threadToGroup[$dRec->threadId] = $groupKey;
-                }
-            }
-            self::addReportStat($data, 'combined', microtime(true) - $timer, count($combinedGroups));
 
             $processedGroups = array();
             $paymentsSeconds = 0;
