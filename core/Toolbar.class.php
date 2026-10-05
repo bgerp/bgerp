@@ -120,6 +120,9 @@ class core_Toolbar extends core_BaseClass
             unset($params['order']);
         } elseif ($btn->error ?? null) {
             $btn->order = 40;
+        } elseif (basename($params['ef_icon'] ?? '') == 'bug.png') {
+            // Дебъг бутоните са след обикновените, но преди тези с предупреждение
+            $btn->order = 25;
         } elseif ($btn->warning ?? null) {
             $btn->order = 30;
         } elseif ($btn->newWindow ?? null) {

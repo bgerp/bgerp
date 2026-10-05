@@ -121,7 +121,7 @@ class core_Query extends core_FieldSet
 
 
     /**
-     * Олекотява COUNT проекцията при групиране единствено по първичния ключ
+     * Олекотява COUNT проекцията без групиране или при групиране по първичния ключ
      */
     public $countById = false;
     
@@ -847,11 +847,14 @@ class core_Query extends core_FieldSet
             $fields = $temp->getShowFields();
 
             // Запазваме JOIN-овете от оригиналната проекция, включително неявните EXT връзки.
-            if ($temp->countById && !$temp->useHaving && countR($temp->groupBy) === 1
-                && ($temp->fields['id']->kind ?? null) === 'FLD') {
-                $idField = $temp->getMysqlField('id');
-                if (isset($temp->groupBy[$idField])) {
-                    $fields = "{$idField} AS `id` ";
+            if ($temp->countById && !$temp->useHaving) {
+                if (!countR($temp->groupBy) && $temp->limit === null && $temp->start === null) {
+                    $fields = '';
+                } elseif (countR($temp->groupBy) === 1 && ($temp->fields['id']->kind ?? null) === 'FLD') {
+                    $idField = $temp->getMysqlField('id');
+                    if (isset($temp->groupBy[$idField])) {
+                        $fields = "{$idField} AS `id` ";
+                    }
                 }
             }
 

@@ -580,13 +580,11 @@ class doc_DocumentPlg extends core_Plugin
             $data->toolbar->addBtn('Всички', array($mvc, 'listAll'), 'id=listBtn', 'ef_icon = img/16/application_view_list.png');
         } else {
             if (isset($data->rejQuery)) {
-                $data->rejectedCnt = $data->rejQuery->count();
+                $bin = plg_Rejected::getBinSummary($data->rejQuery);
+                $data->rejectedCnt = $bin->count ?? 0;
                 
                 if ($data->rejectedCnt) {
-                    $data->rejQuery->orderBy('#modifiedOn', 'DESC');
-                    $data->rejQuery->limit(1);
-                    $lastRec = $data->rejQuery->fetch();
-                    $color = dt::getColorByTime($lastRec->modifiedOn);
+                    $color = dt::getColorByTime($bin->modifiedOn ?? null);
                     $curUrl = getCurrentUrl();
                     $curUrl['Rejected'] = 1;
                     if (isset($data->pager->pageVar)) {
@@ -1922,6 +1920,8 @@ class doc_DocumentPlg extends core_Plugin
             
             return false;
         }
+
+        plg_Rejected::invalidateBinCache($mvc);
         
         // Ако състоянието е било чернова, не е нужно да се минава от там,
         // защото не е добавена нотификация и няма нужда да се чисти
