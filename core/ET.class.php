@@ -38,8 +38,15 @@ class core_ET extends core_BaseClass
      * Място за заместване по подразбиране
      */
     public $defaultPlace;
-    
-    
+
+
+    /**
+     * Функция, която подменя пътя на вложен шаблон
+     * Задава се от cms_Domains::getCmsSkin() и важи до следващото ѝ извикване в хита
+     */
+    public static $includePathResolver;
+
+
     /**
      * Масив с блокове
      */
@@ -946,6 +953,9 @@ class core_ET extends core_BaseClass
                     $pathInfoArr = pathinfo($path);
                     if (empty($pathInfoArr['extension'])) {
                         $path .= '.shtml';
+                    }
+                    if (is_callable(self::$includePathResolver)) {
+                        $path = call_user_func(self::$includePathResolver, $path);
                     }
 
                     $resContent = self::loadFilesRecursively($path);

@@ -12,6 +12,31 @@ class cms_CommerceTheme extends cms_FancyTheme
     public $layout = 'cms/tpl/commerce/Page.shtml';
 
 
+    /** Папка с шаблоните; наследникът задава своя и държи в нея само различните. */
+    public $tplDir = 'cms/tpl/commerce';
+
+
+    /** Шаблоните на магазина, които темата подменя. */
+    protected $shopTemplates = array(
+        'AllProducts', 'GroupButton', 'ProductGroups', 'ProductGroupsNarrow', 'SingleLayoutCartExternal',
+        'ProductListGroup', 'ProductListGroupNarrow', 'ProductShow', 'ProductShowNarrow',
+    );
+
+
+    /** Намерените шаблони в рамките на хита. */
+    protected $templatePaths = array();
+
+
+    /**
+     * Наследник със свой Page.shtml в tplDir не трябва да сменя и layout
+     */
+    public function __construct($params = null)
+    {
+        parent::__construct($params);
+        $this->layout = $this->getTemplate($this->layout);
+    }
+
+
     /** Не наследяваме старото име на широката тема. */
     public $oldClassName = null;
 
@@ -35,6 +60,7 @@ class cms_CommerceTheme extends cms_FancyTheme
         }
         $this->innerForm->menuPosition = 'above';
         parent::prepareWrapper($tpl);
+        $tpl->push('cms/css/CommerceColors.css', 'CSS');
         $tpl->push('cms/css/CommerceMenu.css', 'CSS');
         $tpl->push('cms/css/CommerceCheckout.css', 'CSS');
         $tpl->push('cms/css/CommerceMobile.css', 'CSS');
@@ -66,42 +92,97 @@ class cms_CommerceTheme extends cms_FancyTheme
 
 
     /**
-     * Избира специализиран шаблон само за търговската тема.
+     * Шаблон от папката на темата, а ако го няма там - от най-близкия ѝ родител
+     */
+    public function getTemplate($path)
+    {
+        if (isset($this->templatePaths[$path])) {
+            
+            return $this->templatePaths[$path];
+        }
+        
+        $name = null;
+        if (strpos($path, 'cms/tpl/commerce/') === 0) {
+            $name = basename($path, '.shtml');
+        } elseif (preg_match('#^eshop/tpl/(\w+)\.shtml$#', $path, $matches) && in_array($matches[1], $this->shopTemplates)) {
+            $name = $matches[1];
+        }
+        
+        $res = $path;
+        if (isset($name)) {
+            $class = get_class($this);
+            while ($class && is_a($class, __CLASS__, true)) {
+                $vars = get_class_vars($class);
+                if (getFullPath("{$vars['tplDir']}/{$name}.shtml")) {
+                    $res = "{$vars['tplDir']}/{$name}.shtml";
+                    break;
+                }
+                $class = get_parent_class($class);
+            }
+        }
+        $this->templatePaths[$path] = $res;
+        
+        return $res;
+    }
+    
+    
+    /**
+     * Подменя само вложените файлове на тази тема, другите остават непроменени
+     */
+    public function resolveIncludePath($path)
+    {
+        if (strpos($path, 'cms/tpl/commerce/') !== 0) {
+            
+            return $path;
+        }
+        
+        return $this->getTemplate($path);
+    }
+    
+    
+    /**
+     * Добавя стиловете на темата за публичния магазин
+     */
+    public function addShopAssets($tpl)
+    {
+        $tpl->push('cms/css/CommerceShop.css', 'CSS');
+        $tpl->appendOnce(' eshop-public', 'BODY_CLASS_NAME');
+    }
+    
+    
+    /**
+     * Добавя стиловете на темата за публичния форум
+     */
+    public function addForumAssets($tpl)
+    {
+        $tpl->push('cms/css/CommerceForum.css', 'CSS');
+        $tpl->appendOnce(' commerce-forum', 'BODY_CLASS_NAME');
+    }
+    
+    
+    /**
+     * @deprecated cms_ProtoTheme::getCurrent()->getTemplate()
      */
     public static function getShopTemplate($path)
     {
-        if (cms_Domains::getCmsSkin() instanceof self) {
-            $templates = array(
-                'AllProducts', 'GroupButton', 'ProductGroups', 'ProductGroupsNarrow', 'SingleLayoutCartExternal',
-                'ProductListGroup', 'ProductListGroupNarrow', 'ProductShow', 'ProductShowNarrow',
-            );
-            foreach ($templates as $name) {
-                if ($path == "eshop/tpl/{$name}.shtml") {
-                    return "cms/tpl/commerce/{$name}.shtml";
-                }
-            }
-        }
-
-        return $path;
+        return cms_ProtoTheme::getCurrent()->getTemplate($path);
     }
-
-
-    /** Добавя стиловете на магазина само за тази тема. */
+    
+    
+    /**
+     * @deprecated cms_ProtoTheme::getCurrent()->addShopAssets()
+     */
     public static function prepareShop($tpl)
     {
-        if (cms_Domains::getCmsSkin() instanceof self) {
-            $tpl->push('cms/css/CommerceShop.css', 'CSS');
-            $tpl->appendOnce(' eshop-public', 'BODY_CLASS_NAME');
-        }
+        cms_ProtoTheme::getCurrent()->addShopAssets($tpl);
     }
-
-
-    /** Добавя стиловете на публичния форум само за тази тема. */
+    
+    
+    /**
+     * @deprecated cms_ProtoTheme::getCurrent()->addForumAssets()
+     */
     public static function prepareForum($tpl)
     {
-        if (cms_Domains::getCmsSkin() instanceof self) {
-            $tpl->push('cms/css/CommerceForum.css', 'CSS');
-            $tpl->appendOnce(' commerce-forum', 'BODY_CLASS_NAME');
-        }
+        cms_ProtoTheme::getCurrent()->addForumAssets($tpl);
     }
 }

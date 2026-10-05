@@ -13,7 +13,7 @@
  *
  * @since     v 0.1
  */
-class cms_DefaultTheme extends core_ProtoInner
+class cms_DefaultTheme extends cms_ProtoTheme
 {
     /**
      * Поддържан интерфейс
