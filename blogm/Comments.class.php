@@ -389,7 +389,18 @@ class blogm_Comments extends core_Detail
         
         $data->query->orderBy('#createdOn', 'DESC');
     }
-    
+
+
+    /**
+     * В статията коментарите се странират по 10
+     */
+    protected static function on_AfterPrepareListPager($mvc, $data)
+    {
+        if (isset($data->masterMvc, $data->pager)) {
+            $data->pager->itemsPerPage = 10;
+        }
+    }
+
     
     /**
      * В нишката събира данните за подателя в колоната с името

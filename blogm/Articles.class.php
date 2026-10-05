@@ -517,8 +517,8 @@ class blogm_Articles extends core_Master
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         $data->listFilter->FNC('category', 'key(mvc=blogm_Categories,select=title,allowEmpty)', 'caption=Категория,placeholderType=all,silent,autoFilter');
-        
-        $data->listFilter->showFields = 'search,domainId,category';
+        $data->listFilter->FNC('stateFilter', 'enum(,draft=Чернова,pending=Заявка,waiting=Чакащ,active=Активен)', 'caption=Състояние,placeholderType=all,silent,autoFilter');
+        $data->listFilter->showFields = 'search,domainId,category,stateFilter';
         
         // Подреждаме статиите по датата им на публикуане в низходящ ред
         $data->query->XPR('pubTime', 'datetime', 'IF(#publishedOn,#publishedOn,#createdOn)');
@@ -553,6 +553,9 @@ class blogm_Articles extends core_Master
             $data->query->likeKeylist('categories', keylist::fromArray($categories));
         } else {
             $data->query->where('1=2');
+        }
+        if (!empty($recFilter->stateFilter)) {
+            $data->query->where(array("#state = '[#1#]'", $recFilter->stateFilter));
         }
         
         // Ако метода е 'browse' показваме само активните статии

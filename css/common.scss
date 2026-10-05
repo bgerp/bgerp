@@ -2129,6 +2129,12 @@ td.formElement {
 	}
 }
 
+.wide .blogm_Comments .listFilter {
+	.formFields, .formToolbar {
+		margin-bottom: 0;
+	}
+}
+
 .narrow .doc_Search {
  	.pages {
  		padding-top: 3px;
