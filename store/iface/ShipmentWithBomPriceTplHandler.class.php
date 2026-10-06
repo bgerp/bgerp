@@ -77,6 +77,7 @@ class store_iface_ShipmentWithBomPriceTplHandler extends doc_TplScript
         if(Mode::is('printing') || (Mode::is('text', 'xhtml') && !Mode::is('docView'))) return;
 
         $date = isset($data->masterData->rec->valior) ? $data->masterData->rec->valior : dt::today();
+        $baseCurrencyId = acc_Periods::getBaseCurrencyCode($date);
 
         // За всеки запис
         foreach ($data->rows as $id => &$row) {
