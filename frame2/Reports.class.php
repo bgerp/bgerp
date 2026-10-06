@@ -605,6 +605,20 @@ class frame2_Reports extends embed_Manager
             }
         }
     }
+
+
+    /**
+     * След подготовка на тулбара на списъчния изглед
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $data
+     */
+    protected static function on_AfterPrepareListToolbar($mvc, &$data)
+    {
+        if (log_System::haveRightFor('list')) {
+            $data->toolbar->addBtn('Бавни обновявания', array('log_System', 'list', 'search' => 'бавно обновяване'), 'ef_icon=img/16/clock_go.png, title=Справки с бавно обновяване в системния лог');
+        }
+    }
     
     
     /**
