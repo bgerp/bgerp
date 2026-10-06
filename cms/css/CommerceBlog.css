@@ -337,5 +337,5 @@ body.commerce-blog {
 .commerce-blog #cmsNavigation .blogm-archive { margin-top: 1em; padding-top: 0.75em; border-top: 1px solid var(--c-line-5); }
 .commerce-blog #cmsNavigation .blogm-archive .level1 { color: var(--c-muted); font-size: 0.9em; font-weight: 600; margin-bottom: 0.5em; }
 .commerce-blog #cmsNavigation .blogm-archive .nav_item.level2 a { display: block; padding: 0.5em 0.7em; border-radius: 0.4em; color: #405b6a; font-size: 0.9em; }
-.commerce-blog #cmsNavigation .blogm-archive .nav_item.sel_page a { background: var(--c-accent-soft-2); color: var(--c-accent); box-shadow: inset 3px 0 var(--c-accent); font-weight: 600; }
+.commerce-blog #cmsNavigation .blogm-archive .nav_item.sel_page a { background: var(--c-accent-soft-2); color: var(--c-accent); font-weight: 600; }
 .commerce-blog #cmsNavigation .blogm-archive .nav_item a:hover { background: #f0f6f8; }
