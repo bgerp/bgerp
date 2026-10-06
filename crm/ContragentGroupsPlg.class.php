@@ -72,7 +72,7 @@ class crm_ContragentGroupsPlg extends core_Plugin
             $gForRemove = drdata_CountryGroups::getGroupsArr($oCountryId);
 
             foreach ($gForRemove as $id => $gRec) {
-                if ($gForAdd[$id]) {
+                if (!empty($gForAdd[$id])) {
 
                     continue;
                 }

@@ -34,6 +34,12 @@ abstract class cat_ProductDriver extends core_BaseClass
      * Кой може да избира драйвъра
      */
     public $canSelectDriver = 'user';
+
+
+    /**
+     * Може ли към артикула да се добавят ръчно параметри
+     */
+    public $allowCustomParams = false;
     
     
     /**
@@ -184,12 +190,34 @@ abstract class cat_ProductDriver extends core_BaseClass
      */
     public function getParams($classId, $id, $name = null, $verbal = false)
     {
-        if ($name) {
-            
-            return false;
+        if (empty($this->allowCustomParams)) {
+            if ($name) {
+
+                return false;
+            }
+
+            return array();
         }
-        
-        return array();
+
+        if (isset($name)) {
+
+            return cat_products_Params::fetchParamValue($classId, $id, $name, $verbal);
+        }
+
+        $params = array();
+        $classId = cat_Products::getClassId();
+        $pQuery = cat_products_Params::getQuery();
+        $pQuery->where("#productId = {$id}");
+        $pQuery->where("#classId = {$classId} AND #paramValue != ''");
+        $pQuery->show('paramId,paramValue');
+        while ($pRec = $pQuery->fetch()) {
+            if ($verbal === true) {
+                $pRec->paramValue = cat_Params::toVerbal($pRec->paramId, $classId, $id, $pRec->paramValue);
+            }
+            $params[$pRec->paramId] = $pRec->paramValue;
+        }
+
+        return $params;
     }
     
     
@@ -219,6 +247,40 @@ abstract class cat_ProductDriver extends core_BaseClass
      */
     public function prepareProductDescription(&$data)
     {
+        if (!empty($this->allowCustomParams)) {
+            $data->masterId = $data->rec->id;
+            $data->masterClassId = cls::get($data->Embedder)->getClassId();
+            cat_products_Params::prepareParams($data);
+        }
+    }
+
+
+    /**
+     * Рендира ръчно добавените параметри, ако драйверът ги позволява
+     *
+     * @param stdClass $data
+     *
+     * @return core_ET|null
+     */
+    protected function renderCustomParams($data)
+    {
+        if (empty($this->allowCustomParams)) {
+
+            return null;
+        }
+
+        // Ако ембедъра няма интерфейса за артикул, то към него немогат да се променят параметрите
+        if (!cls::haveInterface('cat_ProductAccRegIntf', $data->Embedder)) {
+            $data->noChange = true;
+        }
+
+        // Рендираме параметрите винаги ако сме към артикул или ако има записи
+        if (($data->noChange ?? null) !== true || countR($data->params ?? array())) {
+
+            return cat_products_Params::renderParams($data);
+        }
+
+        return null;
     }
     
     
@@ -377,6 +439,11 @@ abstract class cat_ProductDriver extends core_BaseClass
             }
         }
         
+        $paramTpl = $this->renderCustomParams($data);
+        if ($paramTpl) {
+            $tpl->append($paramTpl, 'ROW_AFTER');
+        }
+
         return $tpl;
     }
 

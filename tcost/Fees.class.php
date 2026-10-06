@@ -43,7 +43,7 @@ class tcost_Fees extends core_Detail
     /**
      * Единично заглавие
      */
-    public $singleTitle = 'Държава и п. код';
+    public $singleTitle = 'Правило за навла';
     
     
     /**
@@ -99,8 +99,8 @@ class tcost_Fees extends core_Detail
         $this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code,maxRadio=1)', 'caption=Стойност->Валута, mandatory');
         $this->FLD('secondPrice', 'double(min=0)', 'caption=Втора стойност->Стойност,silent,removeAndRefreshForm=secondCurrencyId,unit=без ДДС');
         $this->FLD('secondCurrencyId', 'customKey(mvc=currency_Currencies,key=code,select=code,allowEmpty)', 'caption=Втора стойност->Валута');
-        $this->FLD('thirdPrice', 'double(min=0)', 'caption=Трета стойност->Стойност 2,silent,removeAndRefreshForm=thirdCurrencyId,unit=без ДДС');
-        $this->FLD('thirdCurrencyId', 'customKey(mvc=currency_Currencies,key=code,select=code,allowEmpty)', 'caption=Трета стойност->Валута 2');
+        $this->FLD('thirdPrice', 'double(min=0)', 'caption=Трета стойност->Стойност,silent,removeAndRefreshForm=thirdCurrencyId,unit=без ДДС');
+        $this->FLD('thirdCurrencyId', 'customKey(mvc=currency_Currencies,key=code,select=code,allowEmpty)', 'caption=Трета стойност->Валута');
         $this->FNC('total', 'double');
         
         // Добавяне на уникални индекси

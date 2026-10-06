@@ -512,7 +512,7 @@ class cat_products_Params extends doc_Detail
             if($rec->classId == cat_Products::getClassId()){
                 if ($action == 'add') {
                     $InnerClass = cls::get($pRec->innerClass);
-                    if (!($InnerClass instanceof cat_GeneralProductDriver)) {
+                    if (empty($InnerClass->allowCustomParams)) {
                         $requiredRoles = 'no_one';
                     }
                 }

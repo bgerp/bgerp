@@ -424,15 +424,48 @@ class callcenter_Numbers extends core_Manager
         // Показваме само това поле. Иначе и другите полета
         // на модела ще се появят
         $data->listFilter->showFields = 'search, type';
+        $data->listFilter->setField('search', 'hint=Телефон: *123 за край; +35988* за начало; *123* за част от номера');
         
         $data->listFilter->input('type', 'silent');
         
         // Ако има филтър
         if ($filter = $data->listFilter->rec) {
+            $pattern = static::getNumberSearchPattern($filter->search ?? '');
+            if ($pattern !== null) {
+                $data->query->where(array("#number LIKE '[#1#]'", $pattern));
+            }
             if ($type = ($filter->type ?? null)) {
                 $data->query->where(array("#type = '[#1#]'", $type));
             }
         }
+    }
+
+
+    /**
+     * Anchored phone searches are applied to the number, not the contact's keywords.
+     */
+    public static function on_AfterParseSearchQuery($mvc, &$words)
+    {
+        if (static::getNumberSearchPattern(implode(' ', (array) $words)) !== null) {
+            $words = array();
+        }
+    }
+
+
+    /**
+     * Build a phone-only LIKE pattern; other searches keep the standard search behavior.
+     */
+    protected static function getNumberSearchPattern($search)
+    {
+        if (!preg_match('/^(\*)?(\+?[\s().]*[0-9][0-9\s().-]*)(\*)?$/D', trim((string) $search), $matches)
+            || (empty($matches[1]) && empty($matches[3]))) {
+
+            return null;
+        }
+
+        $number = preg_replace('/[\s().-]+/', '', $matches[2]);
+
+        return (!empty($matches[1]) ? '%' : '') . $number . (!empty($matches[3]) ? '%' : '');
     }
     
     
