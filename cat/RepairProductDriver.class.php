@@ -25,6 +25,12 @@ class cat_RepairProductDriver extends cat_ProductDriver
     public $interfaces = 'cat_ProductDriverIntf';
 
 
+    /**
+     * Може ли към артикула да се добавят ръчно параметри
+     */
+    public $allowCustomParams = true;
+
+
 
     /**
      * Добавя полетата на драйвера към Fieldset
@@ -63,19 +69,5 @@ class cat_RepairProductDriver extends cat_ProductDriver
             $form->setField('quantity2', 'input=none');
             $form->setField('quantity3', 'input=none');
         }
-    }
-
-
-    /**
-     * Рендиране на описанието на драйвера
-     *
-     * @param stdClass $data
-     *
-     * @return core_ET $tpl
-     */
-    public function renderProductDescription($data)
-    {
-
-        return null;
     }
 }
