@@ -813,7 +813,7 @@ class eshop_Products extends core_Master
 
         $haveDebug = haveRole('debug');
         $settings = cms_Domains::getSettings();
-        $commerceTheme = cms_Domains::getCmsSkin() instanceof cms_CommerceTheme;
+        list($thumbWidth, $thumbHeight) = cms_ProtoTheme::getCurrent()->productThumbSize;
         foreach ($data->recs as $pRec) {
             if (!$data->Pager->isOnPage()) continue;
 
@@ -824,7 +824,7 @@ class eshop_Products extends core_Master
 
             // Показване на тъмбнейл на артикула
             $pRow->_id = $pRec->id;
-            $thumb = static::getProductThumb($pRec, $commerceTheme ? 640 : 240, $commerceTheme ? 360 : 240);
+            $thumb = static::getProductThumb($pRec, $thumbWidth, $thumbHeight);
             $pRow->image = $thumb->createImg(array('class' => 'eshop-product-image'));
 
             // Кои от детайлите отговарят на разрешените опаковки (ако има)
@@ -974,7 +974,7 @@ class eshop_Products extends core_Master
      */
     private function renderGroupListRow($data, $rec, $row)
     {
-        $pTpl = getTplFromFile(cms_CommerceTheme::getShopTemplate(Mode::is('screenMode', 'narrow') ? 'eshop/tpl/ProductListGroupNarrow.shtml' : 'eshop/tpl/ProductListGroup.shtml'));
+        $pTpl = getTplFromFile(cms_ProtoTheme::getCurrent()->getTemplate(Mode::is('screenMode', 'narrow') ? 'eshop/tpl/ProductListGroupNarrow.shtml' : 'eshop/tpl/ProductListGroup.shtml'));
         if ($this->haveRightFor('single', $rec)) {
             $row->singleLink = ht::createLink('', array('eshop_Products', 'single', $rec->id, 'ret_url' => true), false, 'ef_icon=img/16/globe.png,title=Разглеждане на Е-артикула');
         }
@@ -1293,9 +1293,9 @@ class eshop_Products extends core_Master
     public function renderProduct_($data)
     {
         if (Mode::is('screenMode', 'wide')) {
-            $tpl = getTplFromFile(cms_CommerceTheme::getShopTemplate('eshop/tpl/ProductShow.shtml'));
+            $tpl = getTplFromFile(cms_ProtoTheme::getCurrent()->getTemplate('eshop/tpl/ProductShow.shtml'));
         } else {
-            $tpl = getTplFromFile(cms_CommerceTheme::getShopTemplate('eshop/tpl/ProductShowNarrow.shtml'));
+            $tpl = getTplFromFile(cms_ProtoTheme::getCurrent()->getTemplate('eshop/tpl/ProductShowNarrow.shtml'));
         }
 
         $settings = cms_Domains::getSettings($data->rec->domainId);

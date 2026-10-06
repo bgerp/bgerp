@@ -117,6 +117,15 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
     }
 
 
+    /** Заглавието на папката от вече заредения запис, без отделна заявка. */
+    private static function getReportFolderTitle($folderId)
+    {
+        $folder = self::getReportRecord('doc_Folders', $folderId);
+
+        return $folder ? doc_Folders::getRecTitle($folder) : doc_Folders::getTitleById($folderId);
+    }
+
+
     /**
      * Допълва липсващите параметри в нови и стари записи на справката
      */
@@ -1249,7 +1258,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                 $posContragentFolder = $posContragentCache[$posContragentKey];
 
                 if (!isset($foldersTitleCache[$posContragentFolder])) {
-                    $foldersTitleCache[$posContragentFolder] = doc_Folders::getTitleById($posContragentFolder);
+                    $foldersTitleCache[$posContragentFolder] = self::getReportFolderTitle($posContragentFolder);
                 }
                 $contragentName = $foldersTitleCache[$posContragentFolder];
                 $posKey = $recPrime->contragentClassId . '|' . $recPrime->contragentId;
@@ -1259,7 +1268,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             } else {
 
                 if (!isset($foldersTitleCache[$recPrime->folderId])) {
-                    $foldersTitleCache[$recPrime->folderId] = doc_Folders::getTitleById($recPrime->folderId);
+                    $foldersTitleCache[$recPrime->folderId] = self::getReportFolderTitle($recPrime->folderId);
                 }
                 $contragentName = $foldersTitleCache[$recPrime->folderId];
             }

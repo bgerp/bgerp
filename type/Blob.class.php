@@ -217,6 +217,9 @@ class type_Blob extends core_Type
                     
                     // Използваме го
                     $value = $valueUnCompr;
+                } else {
+                    // Некомпресирана стойност е допустима - да не стигне до shutdownHandler
+                    error_clear_last();
                 }
             }
             

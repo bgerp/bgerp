@@ -253,12 +253,11 @@ class blogm_Articles extends core_Master
         }
         
         $row->publishedOn = dt::mysql2verbal($rec->publishedOn, 'smartTime');
-        if ((isset($fields['-browse']) || isset($fields['-article'])) && cms_Domains::getCmsSkin() instanceof cms_CommerceTheme) {
-            $row->publishedOn = ht::createElement('time', array(
-                'class' => 'commerce-blog-date',
-                'title' => dt::mysql2verbal($rec->publishedOn, 'd.m.Y H:i'),
-                'datetime' => dt::mysql2verbal($rec->publishedOn, 'Y-m-d') . 'T' . dt::mysql2verbal($rec->publishedOn, 'H:i:s'),
-            ), dt::mysql2verbal($rec->publishedOn, 'd.m.y') . tr('г|*'));
+        if (isset($fields['-browse']) || isset($fields['-article'])) {
+            // Отделни формати на датата за шаблоните на темите
+            $row->publishedOnFull = dt::mysql2verbal($rec->publishedOn, 'd.m.Y H:i');
+            $row->publishedOnIso = dt::mysql2verbal($rec->publishedOn, 'Y-m-d') . 'T' . dt::mysql2verbal($rec->publishedOn, 'H:i:s');
+            $row->publishedOnShort = dt::mysql2verbal($rec->publishedOn, 'd.m.y') . tr('г|*');
         }
         if ($rec->state == 'waiting' && !isset($fields['-article']) && !isset($fields['-browse'])) {
             // Без smartTime, чийто вграден цвят надделява над синия
@@ -730,7 +729,7 @@ class blogm_Articles extends core_Master
             }
         }
         
-        $layout = getTplFromFile('blogm/tpl/Article.shtml');
+        $layout = getTplFromFile(cms_ProtoTheme::getCurrent()->getTemplate('blogm/tpl/Article.shtml'));
         
         // Подготвяме SEO данните
         $rec = clone($data->rec);
@@ -1167,7 +1166,7 @@ class blogm_Articles extends core_Master
      */
     public function renderBrowse_($data)
     {
-        $layout = getTplFromFile('blogm/tpl/Browse.shtml');
+        $layout = getTplFromFile(cms_ProtoTheme::getCurrent()->getTemplate('blogm/tpl/Browse.shtml'));
 
         // Показва се и навигацията във всичките категории дето е включена
         $navigationArr = cls::get('blogm_Categories')->getNestedTree($data->categoryId);
@@ -1189,29 +1188,27 @@ class blogm_Articles extends core_Master
             $layout->removeBlock('ROW');
         }
 
-        $description = $data->descr;
-        if (cms_Domains::getCmsSkin() instanceof cms_CommerceTheme) {
-            if (trim((string) $description) !== '') {
-                $descriptionClass = !empty($data->q) ? 'commerce-blog-search-results' : 'commerce-blog-description';
-                $description = "<div class='{$descriptionClass}'>{$description}</div>";
-            }
-            if (!empty($data->emptyMessage)) {
-                $description .= '<div class="commerce-blog-empty" role="status">' . $data->emptyMessage . '</div>';
-            }
-        } elseif (!empty($data->emptyMessage)) {
-            $description .= "<p><b style='color:#666;'>" . $data->emptyMessage . '</b></p>';
-        }
-
         $layout->replace($data->title, 'BROWSE_HEADER');
-        $layout->replace($description, 'BROWSE_DESCR');
-        if (cms_Domains::getCmsSkin() instanceof cms_CommerceTheme) {
-            if ($data->pager->getPagesCount() > 1) {
-                $navigation = ht::createElement('nav', array('class' => 'commerce-blog-pagination', 'aria-label' => tr('Страници на блога')),
-                    $data->pager->getPrevNext('← ' . tr('По-стари'), tr('По-нови') . ' →'));
-                $layout->append($navigation);
+        // Подменените в частни пакети шаблони може да нямат SEARCH_DESCR, EMPTY_MESSAGE и PAGER
+        if ($data->descr instanceof core_ET || trim((string) $data->descr) !== '') {
+            $descrPlace = (!empty($data->q) && $layout->isPlaceholderExists('SEARCH_DESCR')) ? 'SEARCH_DESCR' : 'BROWSE_DESCR';
+            $layout->replace($data->descr, $descrPlace);
+        }
+        if (!empty($data->emptyMessage)) {
+            if ($layout->isPlaceholderExists('EMPTY_MESSAGE')) {
+                $layout->replace($data->emptyMessage, 'EMPTY_MESSAGE');
+            } else {
+                $layout->append("<p><b style='color:#666;'>" . $data->emptyMessage . '</b></p>', 'BROWSE_DESCR');
             }
-        } else {
-            $layout->append($data->pager->getPrevNext('« по-стари', 'по-нови »'));
+        }
+        if ($data->pager->getPagesCount() > 1) {
+            list($olderLabel, $newerLabel) = cms_ProtoTheme::getCurrent()->getBlogPagerLabels();
+            $pager = $data->pager->getPrevNext($olderLabel, $newerLabel);
+            if ($layout->isPlaceholderExists('PAGER')) {
+                $layout->replace($pager, 'PAGER');
+            } else {
+                $layout->append($pager);
+            }
         }
         
         $this->renderNavigation($data, $layout);
@@ -1251,17 +1248,11 @@ class blogm_Articles extends core_Master
         
         jquery_Jquery::run($tpl, 'toggleNarrowMenu();', true);
         
-        $isNarrow = Mode::is('screenMode', 'narrow');
-        if (cms_Domains::getCmsSkin() instanceof cms_CommerceTheme) {
-            $cmsLayout = $isNarrow ? 'cms/tpl/commerce/BlogLayoutNarrow.shtml' : 'cms/tpl/commerce/BlogLayout.shtml';
-            $tpl->push('cms/css/CommerceBlog.css', 'CSS');
-            $tpl->appendOnce(' commerce-blog', 'BODY_CLASS_NAME');
-        } else {
-            $cmsLayout = $isNarrow ? 'blogm/tpl/LayoutNarrow.shtml' : 'blogm/tpl/Layout.shtml';
-        }
-        
+        $theme = cms_ProtoTheme::getCurrent();
+        $theme->addAssets($tpl, 'blog');
+
         Mode::set('wrapper', 'cms_page_External');
-        Mode::set('cmsLayout', $cmsLayout);
+        Mode::set('cmsLayout', $theme->getTemplate(Mode::is('screenMode', 'narrow') ? 'blogm/tpl/LayoutNarrow.shtml' : 'blogm/tpl/Layout.shtml'));
     }
     
     
@@ -1357,8 +1348,7 @@ class blogm_Articles extends core_Master
                 }
                 
                 // Създаваме линк, който ще покаже само статиите от избраната категория
-                $commerceTheme = cms_Domains::getCmsSkin() instanceof cms_CommerceTheme;
-                $monthTitle = dt::getMonth($m, $commerceTheme ? 'F' : (Mode::is('screenMode', 'narrow') ? 'M' : 'F')) . ($commerceTheme ? ' ' : '/') . $y;
+                $monthTitle = cms_ProtoTheme::getCurrent()->getArchiveMonthTitle($m, $y);
                 $title = ht::createLink($monthTitle, array('blogm_Articles', 'browse', 'cMenuId' => $data->menuId, 'archive' => $month));
                 
                 // Див-обвивка

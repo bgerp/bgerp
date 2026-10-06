@@ -77,6 +77,7 @@ class store_iface_ShipmentWithBomPriceTplHandler extends doc_TplScript
         if(Mode::is('printing') || (Mode::is('text', 'xhtml') && !Mode::is('docView'))) return;
 
         $date = isset($data->masterData->rec->valior) ? $data->masterData->rec->valior : dt::today();
+        $baseCurrencyId = acc_Periods::getBaseCurrencyCode($date);
 
         // За всеки запис
         foreach ($data->rows as $id => &$row) {
@@ -99,7 +100,7 @@ class store_iface_ShipmentWithBomPriceTplHandler extends doc_TplScript
                 if(!isset($cachedRec->bomId)){
                     $row->_amountBom = ht::createHint("<span class='quiet'>N/A</span>", 'Артикулът няма активна рецепта|*!', 'notice', false);
                 } else {
-                    $rec->_amountBom = $cachedRec->amount;
+                    $rec->_amountBom = $cachedRec->amount ?? null;
                     $hint = null;
                     if(isset($cachedRec->price)){
                         $hintPrice = $Double->toVerbal(core_Math::roundNumber($cachedRec->price * $rec->quantityInPack));
@@ -109,7 +110,7 @@ class store_iface_ShipmentWithBomPriceTplHandler extends doc_TplScript
                         $row->_amountBom = "<span class='red'>???</span>";
                     }
 
-                    if($cachedRec->_isLive){
+                    if(!empty($cachedRec->_isLive)){
                         $row->_amountBom = "<span class='blueText'>{$row->_amountBom}</span>";
                         $hint .= 'Ще се запише при активиране|*!';
                     }

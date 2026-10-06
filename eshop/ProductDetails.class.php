@@ -1196,6 +1196,12 @@ class eshop_ProductDetails extends core_Detail
      */
     function cron_RemoveProductsFromEshop()
     {
+        // Редове без артикул няма как да се покажат, а спират крона при четенето на параметрите
+        $deleted = $this->delete('#productId IS NULL');
+        if ($deleted) {
+            $this->logWarning("Изтрити редове без артикул: {$deleted}");
+        }
+
         // Кои са всички артикули, закачени към е-артикул
         $query = eshop_ProductDetails::getQuery();
         $query->show('productId');

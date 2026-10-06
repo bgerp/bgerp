@@ -77,9 +77,7 @@ class cms_page_External extends core_page_Active
         }
         
         $this->replace(new ET($pageTpl), 'PAGE_CONTENT');
-        if ($skin) {
-            $skin->prepareWrapper($this);
-        }
+        cms_ProtoTheme::prepareSkin($skin, $this);
 
         // Скрипт за генериране на min-height, според устройството
         jquery_Jquery::run($this, 'setMinHeightExt();');

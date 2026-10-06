@@ -392,7 +392,7 @@ class forum_Postings extends core_Detail
         }
         
         $tpl->push($data->ForumTheme->getStyles(), 'CSS');
-        cms_CommerceTheme::prepareForum($tpl);
+        cms_ProtoTheme::getCurrent()->addAssets($tpl, 'forum');
         $tpl->replace($this->Master->renderNavigation($data), 'NAVIGATION');
         $tpl->replace($this->Master->renderSearchForm($data), 'SEARCH_FORM');
         
@@ -443,7 +443,7 @@ class forum_Postings extends core_Detail
         // Рендираме Формата
         $layout = $this->renderNew($data);
         $layout->push($data->ForumTheme->getStyles(), 'CSS');
-        cms_CommerceTheme::prepareForum($layout);
+        cms_ProtoTheme::getCurrent()->addAssets($layout, 'forum');
         $layout->replace($this->Master->renderNavigation($data), 'NAVIGATION');
         
         return $layout;
@@ -780,7 +780,7 @@ class forum_Postings extends core_Detail
         
         $layout = $this->renderSearch($data);
         $layout->push($data->ForumTheme->getStyles(), 'CSS');
-        cms_CommerceTheme::prepareForum($layout);
+        cms_ProtoTheme::getCurrent()->addAssets($layout, 'forum');
         $layout->replace($this->Master->renderNavigation($data), 'NAVIGATION');
         $layout->replace($this->Master->renderSearchForm($data), 'SEARCH_FORM');
         $layout->replace(ht::escapeAttr($data->q), 'SEARCH_FOR');

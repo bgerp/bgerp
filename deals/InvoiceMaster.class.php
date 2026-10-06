@@ -1048,9 +1048,12 @@ abstract class deals_InvoiceMaster extends core_Master
             if($mvc->cacheAdditionalConditions){
                 $exRec = $mvc->fetch($rec->id, 'additionalConditions,accountId', false);
                 $defaultCondition = $exRec->additionalConditions[0] ?? null;
-                if($rec->accountId != $exRec->accountId){
-                    if($rec->accountId){
-                        $ownBankAccountId = bank_OwnAccounts::fetchField($rec->accountId, 'bankAccountId');
+
+                // Ако сметката я няма във формата, значи не е сменена
+                $accountId = property_exists($rec, 'accountId') ? $rec->accountId : ($exRec->accountId ?? null);
+                if($accountId != ($exRec->accountId ?? null)){
+                    if($accountId){
+                        $ownBankAccountId = bank_OwnAccounts::fetchField($accountId, 'bankAccountId');
                         $lang = $rec->tplLang ?? doc_TplManager::fetchField($rec->template, 'lang');
                         $defaultCondition = bank_Accounts::getDocumentConditionFor($ownBankAccountId, 'sales_Sales', $lang);
                     } else {
@@ -1427,10 +1430,10 @@ abstract class deals_InvoiceMaster extends core_Master
         // Ако е променено условието от банковата сметка - записва се
         if($mvc->cacheAdditionalConditions){
             if(isset($rec->__isBeingChanged) && $rec->__isBeingChanged){
-                if(md5(str::removeWhiteSpace($rec->additionalConditions[0])) != md5(str::removeWhiteSpace($rec->additionalConditionsInput))){
+                if(md5(str::removeWhiteSpace($rec->additionalConditions[0] ?? null)) != md5(str::removeWhiteSpace($rec->additionalConditionsInput ?? null))){
                     $rec->_changedCondition = true;
                 }
-                $rec->additionalConditions[0] = $rec->additionalConditionsInput;
+                $rec->additionalConditions[0] = $rec->additionalConditionsInput ?? null;
             }
         }
     }
