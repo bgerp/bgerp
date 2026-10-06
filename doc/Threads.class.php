@@ -2447,7 +2447,7 @@ class doc_Threads extends core_Manager
             $data->rejQuery->orderBy('modifiedOn', 'DESC');
             $data->rejQuery->limit(1);
             $lastRec = $data->rejQuery->fetch();
-            $color = dt::getColorByTime($lastRec->modifiedOn);
+            $color = dt::getColorByTime($lastRec->modifiedOn ?? null);
             
             $data->toolbar->addBtn(
                 
