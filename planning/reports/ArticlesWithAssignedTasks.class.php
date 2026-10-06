@@ -64,6 +64,24 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
      * Кои полета може да се променят от потребител споделен към справката, но нямащ права за нея
      */
     protected $changeableFields = '';
+
+
+    /**
+     * Показателите на справката, в реда на обработката
+     */
+    protected static $statCaptions = array(
+        'jobs' => 'Задания',
+        'history' => 'История на задания',
+        'products' => 'Артикули',
+        'links' => 'Връзки',
+        'containers' => 'Свързани документи',
+        'tasks' => 'Задачи',
+        'rights' => 'Проверени права',
+        'build' => 'Редове',
+        'sort' => 'Подреждане',
+        'memory' => 'Пикова памет (MB)',
+        'total' => 'Общо',
+    );
     
     
     /**
@@ -113,12 +131,14 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
     protected function prepareRecs($rec, &$data = null)
     {
         core_App::setTimeLimit(300);
+        $startedOn = microtime(true);
         $recs = array();
         $assignedUsers = keylist::toArray($rec->assignedUsers ?? '');
         if (!count($assignedUsers)) return $recs;
 
         $currentUser = core_Users::getCurrent();
         $reportUser = $rec->createdBy ?? $currentUser;
+        $timer = microtime(true);
         /** @var core_Query $jobsQuery */
         $jobsQuery = planning_Jobs::getQuery();
         $jobsQuery->in('state', 'active,wakeup');
@@ -128,6 +148,7 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
         }
         $jobsQuery->selectOnReplica();
         $jobs = $jobsQuery->fetchAll();
+        self::addReportStat($data, 'jobs', microtime(true) - $timer, count($jobs));
         if (!count($jobs)) return $recs;
 
         // Историята (компресиран blob) се чете само за заданията без activatedOn
@@ -135,20 +156,27 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
         foreach ($jobs as $job) {
             if (empty($job->activatedOn)) $noActivatedOn[$job->id] = $job->id;
         }
+        $timer = microtime(true);
         foreach (self::loadReportRecords(cls::get('planning_Jobs'), $noActivatedOn, 'id,history') as $hRec) {
             $jobs[$hRec->id]->history = $hRec->history ?? null;
         }
+        self::addReportStat($data, 'history', microtime(true) - $timer, count($noActivatedOn));
 
+        $timer = microtime(true);
         $products = self::loadReportRecords(cls::get('cat_Products'), arr::extractValuesFromArray($jobs, 'productId'), 'id,containerId');
+        self::addReportStat($data, 'products', microtime(true) - $timer, count($products));
         $sourceIds = arr::extractValuesFromArray($jobs, 'containerId');
         $sourceIds = array_merge($sourceIds, arr::extractValuesFromArray($products, 'containerId'));
+        $timer = microtime(true);
         $linksBySource = self::loadReportLinks($sourceIds);
+        self::addReportStat($data, 'links', microtime(true) - $timer, array_sum(array_map('count', $linksBySource)));
         $targetIds = array();
         foreach ($linksBySource as $links) {
             foreach ($links as $link) {
                 if (($link->inType ?? null) == 'doc') $targetIds[$link->inVal] = $link->inVal;
             }
         }
+        $timer = microtime(true);
         $containers = self::loadReportRecords(cls::get('doc_Containers'), $targetIds, 'id,docId,docClass');
         $taskClassId = cal_Tasks::getClassId();
         $taskIds = array();
@@ -161,8 +189,12 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
             }
             if ($taskClasses[$classId]) $taskIds[$container->docId ?? 0] = $container->docId ?? 0;
         }
+        self::addReportStat($data, 'containers', microtime(true) - $timer, count($containers));
         // Пълните записи са нужни и за проверката на права от плъгините на задачите.
+        $timer = microtime(true);
         $tasks = self::loadReportRecords(cls::get('cal_Tasks'), $taskIds);
+        self::addReportStat($data, 'tasks', microtime(true) - $timer, count($tasks));
+        $timer = microtime(true);
         $rights = $tasksBySource = array();
         foreach ($linksBySource as $sourceId => $links) {
             $tasksBySource[$sourceId] = array();
@@ -184,6 +216,8 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
                 $tasksBySource[$sourceId][] = $task;
             }
         }
+        self::addReportStat($data, 'rights', microtime(true) - $timer, count($rights));
+        $timer = microtime(true);
 
         foreach ($jobs as $job) {
             $jobId = $job->id;
@@ -216,6 +250,9 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
             }
         }
 
+        self::addReportStat($data, 'build', microtime(true) - $timer, count($recs));
+        $timer = microtime(true);
+
         // Подрежда по дата на падеж
         if (($rec->orderingDate ?? 'activated') == 'pay') {
             if (($rec->typeOfSorting ?? 'up') == 'up') {
@@ -239,7 +276,16 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
             
             usort($recs, array($this, $sorting));
         }
-        
+        self::addReportStat($data, 'sort', microtime(true) - $timer, count($recs));
+        self::addReportStat($data, 'memory', 0, round(memory_get_peak_usage(true) / 1048576));
+        self::addReportStat($data, 'total', microtime(true) - $startedOn, count($recs));
+
+        // В лога на справката се записва едно обобщение на етапите
+        $statsMsg = $this->getReportStatsMsg($data, ', ');
+        if (!empty($statsMsg)) {
+            $this->logWhilePreparing($statsMsg);
+        }
+
         return $recs;
     }
     
