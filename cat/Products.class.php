@@ -569,7 +569,7 @@ class cat_Products extends embed_Manager
             $fields = $document->getInstance()->getDriverFields($Driver);
             $sourceRec = $document->rec();
             
-            $form->setDefault('name', $sourceRec->title);
+            $form->setDefault('name', $sourceRec->title ?? null);
             if (empty($rec->id)) {
 
                 // Копират се само полетата, които източникът наистина има
