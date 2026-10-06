@@ -225,14 +225,14 @@ class speedy_interface_ApiImpl extends core_BaseClass
             }
         }
 
-        $form->setDefault('receiverPhone', $logisticData['toPersonPhones']);
-        $form->setDefault('receiverNotes', $logisticData['instructions']);
+        $form->setDefault('receiverPhone', $logisticData['toPersonPhones'] ?? null);
+        $form->setDefault('receiverNotes', $logisticData['instructions'] ?? null);
         $form->setDefault('receiverCountryId', $logisticCountryId);
-        $toPerson = $logisticData['toPerson'];
+        $toPerson = $logisticData['toPerson'] ?? null;
 
-        if($form->rec->receiverCountryId == $logisticCountryId){
-            $form->setDefault('receiverPlace', $logisticData['toPlace']);
-            $form->setDefault('receiverPCode', $logisticData['toPCode']);
+        if(($form->rec->receiverCountryId ?? null) == $logisticCountryId){
+            $form->setDefault('receiverPlace', $logisticData['toPlace'] ?? null);
+            $form->setDefault('receiverPCode', $logisticData['toPCode'] ?? null);
         }
 
         $amountCod = round($amountCod, 2);
@@ -241,15 +241,15 @@ class speedy_interface_ApiImpl extends core_BaseClass
             $form->setDefault('receiverPhone', $Cover->fetchField('tel'));
         }
 
-        if($formRec->payer == 'third'){
+        if(($formRec->payer ?? null) == 'third'){
             $form->setField('thirdPayerRefId', 'input');
         }
 
-        if($formRec->isPrivatePerson == 'yes'){
+        if(($formRec->isPrivatePerson ?? null) == 'yes'){
             $form->setDefault('receiverName', $toPerson);
             $form->setField('receiverPerson', 'input=none');
         } else {
-            $form->setDefault('receiverName', $logisticData['toCompany']);
+            $form->setDefault('receiverName', $logisticData['toCompany'] ?? null);
             $form->setDefault('receiverPerson', $toPerson);
         }
 
@@ -260,7 +260,7 @@ class speedy_interface_ApiImpl extends core_BaseClass
             }
         } else {
             try{
-                $complexTypes = speedy_Adapter::getComplexTypes($formRec->receiverCountryId, $allComplexTypes);
+                $complexTypes = speedy_Adapter::getComplexTypes($formRec->receiverCountryId ?? null, $allComplexTypes);
             } catch(core_exception_Expect $e){
                 $complexTypes = array();
             }
@@ -276,7 +276,7 @@ class speedy_interface_ApiImpl extends core_BaseClass
         }
 
         $form->setSuggestions('amountCODBase', array('' => '', "{$amountCod}" => $amountCod));
-        if($formRec->amountCODBase){
+        if(!empty($formRec->amountCODBase)){
             $form->setDefault('isFragile', 'no');
             $form->setField('codType', 'input');
             $form->setDefault('codType', 'post,cardPaymentAllowed');
@@ -291,22 +291,22 @@ class speedy_interface_ApiImpl extends core_BaseClass
         }
 
         $form->setDefault('options', 'no');
-        if($formRec->isPrivatePerson == 'yes'){
+        if(($formRec->isPrivatePerson ?? null) == 'yes'){
             $form->setField('receiverPerson', 'input=none');
         }
 
         $form->setDefault('payerPackaging', 'same');
         $profile = crm_Profiles::getProfile();
         $phones = drdata_PhoneType::toArray($profile->tel);
-        $phone = $phones[0]->original;
+        $phone = $phones[0]->original ?? null;
         $form->setDefault('senderName', $profile->name);
         $form->setDefault('senderPhone', $phone);
         $form->setDefault('declare', 'yes');
-        $form->setDefault('totalWeight', $logisticData['totalWeight']);
+        $form->setDefault('totalWeight', $logisticData['totalWeight'] ?? null);
 
         if(!isset($formRec->receiverSpeedyOffice)){
             $form->setDefault('receiverCountryId', drdata_Countries::getIdByName($logisticCountryId));
-            if($formRec->receiverCountryId == $logisticCountryId){
+            if(($formRec->receiverCountryId ?? null) == $logisticCountryId){
 
                 // Ако има адрес за доставка - парсира се и се попълва
                 if(!empty($logisticData['toAddress'])){
@@ -334,8 +334,8 @@ class speedy_interface_ApiImpl extends core_BaseClass
                     $form->setField('complexType', "caption=Адрес за доставка->|Пълен адрес|*: <b>{$captionAddress}</b>->Комплекс");
                 }
 
-                $form->setDefault('receiverPlace', $logisticData['toPlace']);
-                $form->setDefault('receiverPCode', $logisticData['toPCode']);
+                $form->setDefault('receiverPlace', $logisticData['toPlace'] ?? null);
+                $form->setDefault('receiverPCode', $logisticData['toPCode'] ?? null);
             }
         }
 
@@ -343,18 +343,18 @@ class speedy_interface_ApiImpl extends core_BaseClass
         if((isset($formRec->receiverCountryId) && !empty($formRec->receiverPCode)) || !empty($formRec->receiverSpeedyOffice)){
 
             try{
-                $serviceOptions = speedy_Adapter::getServiceOptions($formRec->senderClientId, $formRec->receiverCountryId, $formRec->receiverPCode, $formRec->receiverPlace, $formRec->receiverSpeedyOffice, $formRec->isPrivatePerson);
+                $serviceOptions = speedy_Adapter::getServiceOptions($formRec->senderClientId ?? null, $formRec->receiverCountryId ?? null, $formRec->receiverPCode ?? null, $formRec->receiverPlace ?? null, $formRec->receiverSpeedyOffice ?? null, $formRec->isPrivatePerson ?? null);
             } catch(core_exception_Expect $e){
                 $serviceOptions = array();
             }
         }
 
-        $form->setDefault('pdfPrinterType', $cacheArr['pdfPrinterType']);
+        $form->setDefault('pdfPrinterType', $cacheArr['pdfPrinterType'] ?? null);
         $form->setDefault('pdfPrinterType', 'A4');
 
         if(countR($serviceOptions)){
             $form->setOptions('service', $serviceOptions);
-            if(array_key_exists($cacheArr['service'], $serviceOptions)){
+            if(array_key_exists($cacheArr['service'] ?? null, $serviceOptions)){
                 $form->setDefault('service', $cacheArr['service']);
             }
             $form->setDefault('service', key($serviceOptions));
@@ -374,7 +374,7 @@ class speedy_interface_ApiImpl extends core_BaseClass
             $form->setField('returnPayer', 'input');
         }
 
-        if($formRec->payer == 'third'){
+        if(($formRec->payer ?? null) == 'third'){
             $form->setField('thirdPayerRefId', 'input');
             $form->setOptions('thirdPayerRefId', $senderObjects);
             $form->setDefault('thirdPayerRefId', $rec->senderClientId);
@@ -712,7 +712,7 @@ class speedy_interface_ApiImpl extends core_BaseClass
         $tpl->placeObject($row);
 
         $obj->tpl = $tpl;
-        $obj->price = (object)array('total' => $priceObj->price->total, 'currencyCode' => $priceObj->price->currency);
+        $obj->price = (object)array('total' => $priceObj->price->total ?? null, 'currency' => $priceObj->price->currency ?? null);
 
         return $obj;
     }
@@ -746,7 +746,7 @@ class speedy_interface_ApiImpl extends core_BaseClass
 
         if(!$form->gotErrors()){
             if(is_object($res->price)){
-                $obj->price = (object)array('total' => $res->price->total, 'currencyCode' => $res->price->currency);
+                $obj->price = (object)array('total' => $res->price->total ?? null, 'currency' => $res->price->currency ?? null);
             }
 
             // Ако е генерирана успешно, прави се опит за разпечатването ѝ

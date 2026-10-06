@@ -34,6 +34,12 @@ class acc_reports_UnpaidInvoices extends frame2_driver_TableData
      * По-кое поле да се групират листовите данни
      */
     protected $groupByField = 'className';
+
+
+    /**
+     * Кои полета от таблицата са цени/суми
+     */
+    protected $priceListFields = 'invoiceValue,paidAmount,invoiceCurrentSumm,invoiceOverSumm';
     
     
     /**
@@ -543,10 +549,10 @@ class acc_reports_UnpaidInvoices extends frame2_driver_TableData
     /**
      * След рендиране на единичния изглед
      *
-     * @param cat_ProductDriver $Driver
-     * @param embed_Manager     $Embedder
-     * @param core_ET           $tpl
-     * @param stdClass          $data
+     * @param frame2_driver_Proto $Driver
+     * @param embed_Manager       $Embedder
+     * @param core_ET             $tpl
+     * @param stdClass            $data
      */
     protected static function on_AfterRenderSingle(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$tpl, $data)
     {
@@ -570,6 +576,13 @@ class acc_reports_UnpaidInvoices extends frame2_driver_TableData
             $fieldTpl->append(type_Varchar::escape(doc_Folders::fetch($data->rec->contragent)->title), 'contragent');
         } else {
             $fieldTpl->append('Всички', 'contragent');
+        }
+
+        // Без права за цени общите суми не се показват
+        if (!$Driver->canSeePriceFields($data->rec)) {
+            $tpl->append($fieldTpl, 'DRIVER_FIELDS');
+
+            return;
         }
         
         if (isset($data->rec->salesTotalNotPaid)) {

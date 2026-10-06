@@ -37,6 +37,18 @@ defIfNot('DEBUG_COOKIE_LIFETIME', 3600 * 24 * 7); // Седмица
 
 
 /**
+ * Период (в секунди), в който повторение на същата грешка не се рапортува на отдалечения сървър
+ */
+defIfNot('CORE_REMOTE_REPORT_DEDUP_PERIOD', 300);
+
+
+/**
+ * Максимален брой рапорти за грешки към отдалечения сървър за един час
+ */
+defIfNot('CORE_REMOTE_REPORT_MAX_PER_HOUR', 30);
+
+
+/**
  * Клас 'core_Debug' ['Debug'] - Функции за дебъг и настройка на приложения
  *
  *
@@ -325,11 +337,11 @@ class core_Debug
      */
     public static function getWorkingTime($name)
     {
-        $time = core_Debug::$timers[$name];
+        $time = core_Debug::$timers[$name] ?? null;
 
         if ($time) {
 
-            return $time->workingTime;
+            return $time->workingTime ?? null;
         }
     }
     
@@ -777,6 +789,8 @@ class core_Debug
                     
                     try {
                         $data['errTitle'] .= log_Debug::getReportLink($bName, 'сигнал', false);
+                    } catch (core_exception_Redirect $e) {
+                        throw $e;
                     } catch (Throwable $e) {
                     }
                 }
@@ -908,6 +922,8 @@ class core_Debug
             try {
                 $uId = core_Setup::get('BGERP_UNIQ_ID');
                 $contex['CORE_BGERP_UNIQ_ID']  = $uId ? $uId : 'undefined';
+            } catch (core_exception_Redirect $e) {
+                throw $e;
             } catch (Exception $e) {
                 
             } catch (Throwable $t) {
@@ -956,14 +972,29 @@ class core_Debug
         if ($debugFileName) {
             $state['_debugFileName'] = $debugFileName;
         }
+
+        // Преди конфигурацията стандартните страници за грешка зависят от незаредени модели.
+        if (!defined('EF_DB_NAME') || !defined('EF_SALT')) {
+            self::logErrorStateToPhpLog($state);
+
+            if (!$supressShowing && !headers_sent()) {
+                $status = ($state['httpStatusCode'] ?? 500) . ' ' . ($state['httpStatusMsg'] ?? 'Internal Server Error');
+                header(($_SERVER['SERVER_PROTOCOL'] ?? 'HTTP/1.1') . ' ' . $status);
+                header('Content-Type: text/plain; charset=UTF-8');
+                echo $status;
+            }
+
+            return;
+        }
         
+        $debugPage = '';
         if (isDebug() || defined('EF_DEBUG_LOG_PATH') || defined('EF_REMOTE_ERROR_REPORT_URL')) {
             $debugPage = core_Debug::getDebugPage($state);
         }
         
         // Ако не трябва да подтиснем показването на глешката и хедърите все още не са изпратени, показваме
         if (!$supressShowing && !headers_sent()) {
-            header($_SERVER['SERVER_PROTOCOL']. ' ' . $state['httpStatusCode'] . ' ' . $state['httpStatusMsg']);
+            header(($_SERVER['SERVER_PROTOCOL'] ?? 'HTTP/1.1') . ' ' . $state['httpStatusCode'] . ' ' . $state['httpStatusMsg']);
             header('Content-Type: text/html; charset=UTF-8');
             
             echo isDebug() ? $debugPage : self::getErrorPage($state);
@@ -985,17 +1016,39 @@ class core_Debug
         }
         
         // Логваме на отдалечен сървър
-        if (defined('EF_REMOTE_ERROR_REPORT_URL') && self::$isErrorReporting && !self::$isRemoteReportingBroken) {
-            $data = array('data' => gzcompress($debugPage),
-                'domain' => $_SERVER['SERVER_NAME'],
-                'errCtr' => $ctr,
-                'errAct' => $act,
-                'dbName' => defined('EF_DB_NAME') ? EF_DB_NAME : 'unknown',
-                'title' => ltrim($state['errTitle'], '@'),
-            );
-            
-            self::sendRemoteErrorReport(EF_REMOTE_ERROR_REPORT_URL, $data);
+        if (defined('EF_REMOTE_ERROR_REPORT_URL') && self::$isErrorReporting) {
+            $errTitle = ltrim($state['errTitle'] ?? '', '@');
+            $httpStatusCode = (int) ($state['httpStatusCode'] ?? 500);
+
+            // Клиентските грешки (4xx), генерирани най-често от ботове, не се рапортуват,
+            // а останалите - при спазване на локална дедупликация и лимит на честотата
+            if (self::mustReportRemotely($state) && self::passRemoteReportLimit("{$ctr}|{$act}|{$errTitle}|{$httpStatusCode}")) {
+                $data = array('data' => gzcompress($debugPage),
+                    'domain' => $_SERVER['SERVER_NAME'],
+                    'errCtr' => $ctr,
+                    'errAct' => $act,
+                    'dbName' => defined('EF_DB_NAME') ? EF_DB_NAME : 'unknown',
+                    'title' => $errTitle,
+                    'httpCode' => $httpStatusCode,
+                );
+
+                // Ако отдалеченият сървър не е достъпен, грешката се записва в PHP лога
+                if (self::$isRemoteReportingBroken || !self::sendRemoteErrorReport(EF_REMOTE_ERROR_REPORT_URL, $data)) {
+                    self::logErrorStateToPhpLog($state);
+                }
+            }
         }
+    }
+
+
+    /**
+     * Запазва първоначалната грешка, когато стандартният рапорт не е възможен
+     */
+    protected static function logErrorStateToPhpLog($state)
+    {
+        error_log('[' . ($_SERVER['SERVER_NAME'] ?? 'unknown') . '] '
+            . ($state['errType'] ?? 'PHP ERROR') . ': ' . ($state['errTitle'] ?? '')
+            . ' in ' . ($state['breakFile'] ?? '') . ':' . ($state['breakLine'] ?? ''));
     }
 
 
@@ -1015,6 +1068,7 @@ class core_Debug
     {
         $timeout = self::REMOTE_ERROR_REPORT_TIMEOUT;
         $content = http_build_query($data);
+        $httpStatus = 0;
 
         if (function_exists('curl_init')) {
             $ch = curl_init($url);
@@ -1042,6 +1096,7 @@ class core_Debug
             ));
 
             $result = @curl_exec($ch);
+            $httpStatus = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
             curl_close($ch);
         } else {
             // use key 'http' even if you send the request to https://...
@@ -1066,15 +1121,156 @@ class core_Debug
             // Подтискаме грешката - иначе тя влиза в обработчика на грешките и
             // измества страницата на оригиналната грешка
             $result = @file_get_contents($url, false, stream_context_create($options));
+            foreach ($http_response_header ?? array() as $responseHeader) {
+                if (preg_match('/^HTTP\/\S+\s+(\d{3})\b/i', $responseHeader, $matches)) {
+                    $httpStatus = (int) $matches[1];
+                }
+            }
         }
 
         // При проблем спираме опитите до края на хита
-        self::$isRemoteReportingBroken = ($result === false);
+        $success = $result !== false && $httpStatus >= 200 && $httpStatus < 300;
+        self::$isRemoteReportingBroken = !$success;
 
-        return $result !== false;
+        return $success;
     }
-    
-    
+
+
+    /**
+     * Определя дали грешката трябва да се рапортува на отдалечения сървър
+     *
+     * Клиентските грешки (4xx) най-често са предизвикани от ботове, сканиращи за
+     * несъществуващи адреси, и не индикират проблем в системата. Рапортуват се
+     * само ако хитът идва от логнат потребител или от вътрешен линк в истински браузър
+     *
+     * @param array $state
+     *
+     * @return bool
+     */
+    protected static function mustReportRemotely($state)
+    {
+        $httpStatusCode = (int) ($state['httpStatusCode'] ?? 500);
+
+        // Всичко, което не е клиентска грешка, се рапортува
+        if ($httpStatusCode < 400 || $httpStatusCode >= 500) {
+
+            return true;
+        }
+
+        // Счупен вътрешен линк - референтът е от домейна на системата. Ботовете често
+        // пращат Referer към самия сайт, затова се изисква и валидна brid бисквитка
+        $refHost = parse_url($_SERVER['HTTP_REFERER'] ?? '', PHP_URL_HOST);
+        if ($refHost && strcasecmp($refHost, $_SERVER['SERVER_NAME'] ?? '') === 0 && self::isHitFromBrowser()) {
+
+            return true;
+        }
+
+        // Хит от логнат потребител - не е бот
+        try {
+            if (core_Users::getCurrent('id', false)) {
+
+                return true;
+            }
+        } catch (core_exception_Redirect $e) {
+            throw $e;
+        } catch (Exception $e) {
+        } catch (Throwable $t) {
+        }
+
+        return false;
+    }
+
+
+    /**
+     * Дали хитът идва от истински браузър - с валидна brid бисквитка, която не е за бот
+     *
+     * @return bool
+     */
+    protected static function isHitFromBrowser()
+    {
+        try {
+            $brid = log_Browsers::getBrid(false);
+
+            return !empty($brid) && !log_Browsers::isBotBrid($brid, false);
+        } catch (core_exception_Redirect $e) {
+            throw $e;
+        } catch (Exception $e) {
+        } catch (Throwable $t) {
+        }
+
+        return false;
+    }
+
+
+    /**
+     * Локална дедупликация и ограничаване на честотата на отдалечените рапорти
+     *
+     * Същата грешка (по подпис) не се рапортува повторно в рамките на
+     * CORE_REMOTE_REPORT_DEDUP_PERIOD секунди, а общият брой рапорти се
+     * ограничава до CORE_REMOTE_REPORT_MAX_PER_HOUR на час. Състоянието се пази
+     * във файл в темп директорията - при грешка базата може да е недостъпна
+     *
+     * @param string $signature - подпис на грешката
+     *
+     * @return bool - дали рапортът може да се изпрати
+     */
+    protected static function passRemoteReportLimit($signature)
+    {
+        // Без темп директория не ограничаваме - по-добре да рапортуваме
+        if (!defined('EF_TEMP_PATH')) {
+
+            return true;
+        }
+
+        try {
+            $now = time();
+            $file = EF_TEMP_PATH . '/remoteErrorReports.json';
+
+            $data = null;
+            $content = @file_get_contents($file);
+            if ($content !== false) {
+                $data = @json_decode($content, true);
+            }
+            if (!is_array($data) || !is_array($data['sig'] ?? null)) {
+                $data = array('hour' => 0, 'cnt' => 0, 'sig' => array());
+            }
+
+            // При нов часови прозорец нулираме брояча
+            $hour = (int) floor($now / 3600);
+            if ($data['hour'] != $hour) {
+                $data['hour'] = $hour;
+                $data['cnt'] = 0;
+            }
+
+            // Премахваме изтеклите подписи
+            foreach ($data['sig'] as $s => $ts) {
+                if ($ts < $now - CORE_REMOTE_REPORT_DEDUP_PERIOD) {
+                    unset($data['sig'][$s]);
+                }
+            }
+
+            $sig = md5($signature);
+
+            // Същата грешка е рапортувана скоро или лимитът за часа е достигнат
+            if (isset($data['sig'][$sig]) || $data['cnt'] >= CORE_REMOTE_REPORT_MAX_PER_HOUR) {
+
+                return false;
+            }
+
+            $data['sig'][$sig] = $now;
+            $data['cnt']++;
+
+            @file_put_contents($file, json_encode($data), LOCK_EX);
+        } catch (core_exception_Redirect $e) {
+            throw $e;
+        } catch (Exception $e) {
+        } catch (Throwable $t) {
+        }
+
+        return true;
+    }
+
+
     /**
      * Прихваща състоянията на грешка и завършването на програмата (в т.ч. и аварийно)
      */

@@ -314,7 +314,7 @@ class log_Data extends core_Manager
     {
         $dQuery = log_Data::getQuery();
         $dQuery->where("#type = 'login'");
-        $dQuery->where(array("#classCrc = '[#1#]'"), log_Classes::getClassCrc('core_Users'));
+        $dQuery->where(array("#classCrc = '[#1#]'", log_Classes::getClassCrc('core_Users')));
         if (isset($bSec)) {
             $time = dt::mysql2timestamp(dt::subtractSecs($bSec));
             $dQuery->where(array("#time >= '[#1#]'", $time));
@@ -606,6 +606,8 @@ class log_Data extends core_Manager
                     $clsInst = null;
                     try {
                         $clsInst = @cls::get($className);
+                    } catch (core_exception_Redirect $e) {
+                        throw $e;
                     } catch (Exception $e) {
                     } catch (ArgumentCountError $e) {}
                     
@@ -696,7 +698,7 @@ class log_Data extends core_Manager
             if ($usersId && is_numeric($usersId)) {
                 $optArr = $data->listFilter->fields['users']->type->prepareOptions();
 
-                $uRec = core_Users::fetch($usersId);
+                $uRec = core_Users::fetch((int) $usersId);
 
                 $cUserObj = new stdClass();
                 $cUserObj->keylist = "|{$usersId}|";

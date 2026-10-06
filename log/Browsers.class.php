@@ -411,6 +411,11 @@ class log_Browsers extends core_Master
         }
         
         $brid = self::getBrid();
+
+        if (!$brid) {
+
+            return ;
+        }
         
         $rec = self::fetch(array("#brid = '[#1#]'", $brid), 'userData');
         
@@ -419,13 +424,14 @@ class log_Browsers extends core_Master
         $nRec->brid = $brid;
         
         if ($rec) {
-            $nRec->id = $rec->id;
+            $nRec->id = $rec->id ?? null;
         }
         
         $now = dt::now();
+        $userData = $rec->userData ?? array();
         
         // Добавяме подадените данни в началото на масива
-        if ($rec->userData) {
+        if ($userData) {
             
             // Ако няма да се обновяват предишните данни
             if (!$addOnExist) {
@@ -433,7 +439,6 @@ class log_Browsers extends core_Master
                 return ;
             }
             
-            $userData = $rec->userData;
             $userData = array($now => $varsArr) + $userData;
             
             // Ограничаваме броя на записите
@@ -540,7 +545,7 @@ class log_Browsers extends core_Master
         // Добавяме хеш към brid и записваме в кукитата
         $bridHash = str::addHash($brid, self::HASH_LENGTH, $bridSalt);
         
-        $cArr = array('expires' => time() + $conf->CORE_COOKIE_LIFETIME, 'path' => '/', 'secure' => (EF_HTTPS == 'MANDATORY') ? true : false, 'httponly' => true);
+        $cArr = array('expires' => time() + $conf->CORE_COOKIE_LIFETIME, 'path' => '/', 'secure' => (EF_HTTPS == 'MANDATORY') ? true : false, 'httponly' => true, 'samesite' => 'Lax');
         
         // Опитваме се да определим домейна за кукито
         $cArr['domain'] = null;
@@ -556,7 +561,7 @@ class log_Browsers extends core_Master
                 self::BRID_NAME,
                 $bridHash,
                 $cArr['expires'],
-                $cArr['path'],
+                $cArr['path'] . '; samesite=' . $cArr['samesite'],
                 $cArr['domain'],
                 $cArr['secure'],
                 $cArr['httponly']
@@ -1198,8 +1203,8 @@ class log_Browsers extends core_Master
 
         $query = $this->getQuery();
         $query->where(array("#createdOn <= '[#1#]' AND #createdBy <= 0 AND #userData IS NULL", $before));
-        $query->orWhere(array("#brid IS NULL", $before));
-        $query->orWhere(array("#brid = ''", $before));
+        $query->orWhere("#brid IS NULL");
+        $query->orWhere("#brid = ''");
 
         $query->show('id, brid');
         $rCnt = 0;

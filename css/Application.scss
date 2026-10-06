@@ -1119,8 +1119,6 @@ div.mobile {
 	border: solid 1px #BBB;
 	background-color: rgba(0, 0, 0, 0.05);
 	font-size: 0.8em;
-	top: -1px;
-	position: relative;
 	@include border-radius(3px);
 	box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.1);
 }
@@ -2635,7 +2633,10 @@ width:1%;
 	text-align: right;
 	max-width: 400px !important;
 }
-
+.listAction table.listTable>tbody>tr> .standart-field {
+	max-width: 400px !important;
+	white-space: normal !important;
+}
 .medium-field{
 	width: 200px;
 }
@@ -2972,6 +2973,11 @@ form select.w50 + .select2 {
 	vertical-align: top !important;
 }
 
+.footer-notes li {
+	overflow-wrap: anywhere;
+	word-break: normal;
+}
+
 .narrow .footer-notes ol li {
 	word-break: break-word;
 }
@@ -3278,6 +3284,9 @@ table.signiture{
 	.richtext, .endTooltip {
 		display: inline  !important;
 		vertical-align: middle;
+	}
+	.richtext {
+		color: inherit;
 	}
 }
 .blueText {
@@ -4743,6 +4752,13 @@ fieldset.sharing-history {
 	margin-left: 10px;
 }
 
+.option-not-in-stock.eshop-contact-us {
+	background-color: #e6e6e6 !important;
+	border: solid 1px #ff7070;
+	color: #c00;
+	margin-top: 5px;
+}
+
 .option-not-in-stock {
 	background-color: rgba(230,0,0,0.8) !important;
 	text-shadow: none !important;
@@ -5393,6 +5409,152 @@ table .eshop-btn {
 
 #cmsNavigation div.nav_item {
     font-size:1em;
+}
+
+#cmsNavigation .eshop-param-filter {
+  clear: both;
+  margin: 1.2em 0;
+  padding-top: 0.8em;
+  border-top: 1px solid #d8dce1;
+  font-family: Trebuchet MS, Geneva, Tahoma, sans-serif;
+}
+#cmsNavigation .eshop-param-filter .eshop-param-filter-title {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.4em 0.75em;
+  margin-bottom: 0.5em;
+  font-size: 1em;
+  font-weight: bold;
+}
+#cmsNavigation .eshop-param-filter a.eshop-param-filter-clear {
+  padding: 0.2em 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  font-size: 0.8em;
+  font-weight: normal;
+  color: #666;
+}
+#cmsNavigation .eshop-param-filter a.eshop-param-filter-clear::before {
+  content: "×";
+  margin-right: 0.3em;
+}
+#cmsNavigation .eshop-param-filter a.eshop-param-filter-clear:hover {
+  border: 0 !important;
+  background: transparent !important;
+  color: #963c36;
+  text-decoration: underline;
+}
+#cmsNavigation .eshop-param-filter .eshop-param-filter-hint {
+  font-size: 0.9em;
+  line-height: 1.4;
+  color: #666;
+}
+#cmsNavigation .eshop-param-filter details.eshop-param-filter-param {
+  margin: 0;
+  border-bottom: 1px solid #e6e8eb;
+}
+#cmsNavigation .eshop-param-filter details.eshop-param-filter-param > summary {
+  position: relative;
+  padding: 0.65em 1.5em 0.65em 0;
+  list-style: none;
+  cursor: pointer;
+  font-size: 0.95em;
+  font-weight: bold;
+  line-height: 1.35;
+}
+#cmsNavigation .eshop-param-filter summary::-webkit-details-marker {
+  display: none;
+}
+#cmsNavigation .eshop-param-filter details.eshop-param-filter-param > summary::after {
+  content: "";
+  position: absolute;
+  right: 0.4em;
+  top: 0.9em;
+  width: 0.4em;
+  height: 0.4em;
+  border-right: 1px solid currentColor;
+  border-bottom: 1px solid currentColor;
+  transform: rotate(45deg);
+}
+#cmsNavigation .eshop-param-filter details.eshop-param-filter-param[open] > summary::after {
+  transform: rotate(225deg);
+  top: 1.1em;
+}
+#cmsNavigation .eshop-param-filter .eshop-param-filter-values {
+  margin: 0 0 0.6em;
+}
+#cmsNavigation .eshop-param-filter details.eshop-param-filter-more > summary {
+  cursor: pointer;
+  padding: 0.35em 0 0.35em 1.8em;
+  font-size: 0.85em;
+  color: #666;
+}
+#cmsNavigation .eshop-param-filter .eshop-param-filter-value {
+  display: block;
+  position: relative;
+  box-sizing: border-box;
+  padding: 0.4em 0.45em 0.4em 1.9em;
+  margin: 0.1em 0;
+  border: 0;
+  border-radius: 0.25em;
+  background: transparent;
+  box-shadow: none;
+  font-size: 0.9em;
+  font-weight: normal;
+  line-height: 1.4;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  text-decoration: none;
+}
+#cmsNavigation .eshop-param-filter a.eshop-param-filter-value:hover {
+  border: 0 !important;
+  background: #f0f3f6 !important;
+  box-shadow: none;
+}
+#cmsNavigation .eshop-param-filter .eshop-param-filter-value.checked {
+  background: #e9eff5;
+  font-weight: bold;
+}
+#cmsNavigation .eshop-param-filter .eshop-param-filter-value.disabled {
+  color: #999;
+}
+#cmsNavigation .eshop-param-filter .eshop-param-check {
+  position: absolute;
+  left: 0.45em;
+  top: 0.65em;
+  box-sizing: border-box;
+  width: 0.9em;
+  height: 0.9em;
+  margin: 0;
+  border: 1px solid #8a959f;
+  border-radius: 0.15em;
+  background: white;
+}
+#cmsNavigation .eshop-param-filter .checked .eshop-param-check {
+  border-color: #336;
+  background: #336;
+  box-shadow: inset 0 0 0 2px white;
+}
+#cmsNavigation .eshop-param-filter .eshop-param-count {
+  color: #75808b;
+  font-size: 0.9em;
+  font-weight: normal;
+  white-space: nowrap;
+}
+#cmsNavigation .eshop-param-filter a:focus-visible,
+#cmsNavigation .eshop-param-filter summary:focus-visible {
+  outline: 2px solid #56738d;
+  outline-offset: 2px;
+}
+
+// Изборът във филтъра чака да се натрупат още, преди да зареди страницата
+.eshop-param-filter-pending > :not(#cmsNavigation) {
+	opacity: 0.4;
+	filter: blur(2px);
+	pointer-events: none;
+	transition: opacity 0.2s, filter 0.2s;
 }
 #cmsNavigation .addPage {
 	clear: both;
@@ -6602,6 +6764,17 @@ div.location.public {
 }
 /*край на бласт*/
 
+
+.acc_drivers_TotalRepPortal {
+  .portal > div:not(.legend) {
+    width: 0;
+    min-width: 100%;
+  }
+  canvas {
+    max-width: 100%;
+    height: auto !important;
+  }
+}
 
 /*търсене в портала*/
 .portal-filter {
@@ -8888,6 +9061,58 @@ tr.wasteWeightPercent td {
 .reportTableDataTotal {
 	background-color: #ccc !important;
 	font-weight: bold;
+}
+.reportLogHolder {
+	margin-top: 16px;
+	padding: 10px 14px 12px;
+	background-color: #fbfbfb;
+	border: 1px solid #ececec;
+	border-radius: 4px;
+}
+.reportLogTitle {
+	margin-bottom: 6px;
+	color: #999;
+	font-size: 0.75em;
+	font-weight: bold;
+	text-transform: uppercase;
+	letter-spacing: 0.06em;
+}
+.reportLogTable {
+	width: 100%;
+	border-collapse: collapse;
+	background-color: transparent;
+	th {
+		padding: 0 0 5px;
+		border: 0;
+		background: none;
+		color: #555;
+		font-size: 0.82em;
+		font-weight: bold;
+		text-align: left;
+	}
+	td {
+		padding: 5px 0;
+		border: 0;
+		border-top: 1px solid #ededed;
+		background: none;
+		vertical-align: top;
+		line-height: 1.5;
+	}
+	tr:hover td {
+		background-color: #f3f7fc;
+	}
+	.reportLogTime {
+		width: 1%;
+		white-space: nowrap;
+		padding-right: 18px;
+		color: #a0a0a0;
+		font-size: 0.8em;
+	}
+	.reportLogMsg {
+		text-align: left;
+		color: #444;
+		font-size: 0.85em;
+	}
 }
 .logs-type-warning {
     background-color: #fae3ca;

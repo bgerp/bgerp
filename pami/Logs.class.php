@@ -140,6 +140,8 @@ class pami_Logs extends core_Manager
             if (method_exists($this, $fncName)) {
                 $this->{$fncName}($log);
             }
+        } catch (core_exception_Redirect $e) {
+            throw $e;
         } catch (Exception $e) {
             reportException($e);
         } catch (Throwable $t) {

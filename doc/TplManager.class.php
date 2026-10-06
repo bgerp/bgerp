@@ -477,14 +477,14 @@ class doc_TplManager extends core_Master
             // Ако има старо име на шаблона
             if (!empty($object->oldName)) {
                 // Извличане на записа на стария шаблон
-                $exRec = static::fetch("#name = '{$object->oldName}'");
+                $exRec = static::fetch(array("#name = '[#1#]'", $object->oldName ?? null));
             } else {
                 $exRec = null;
             }
             
             // Ако няма старо име проверка имали шаблон с текущото име
             if (!$exRec) {
-                $exRec = static::fetch("#name = '{$object->name}'");
+                $exRec = static::fetch(array("#name = '[#1#]'", $object->name ?? null));
             }
             
             if ($exRec) {

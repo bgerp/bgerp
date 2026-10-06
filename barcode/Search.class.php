@@ -301,7 +301,7 @@ class barcode_Search extends core_Manager
         $retUrl = array ($this, 'search' => $search);
         $userAgent = log_Browsers::getUserAgentOsName();
         
-        if (! trim($search) && ($userAgent == 'Android')) {
+        if (! trim($search ?? '') && ($userAgent == 'Android')) {
             // $retUrl = $this->getScannerActivateUrl();
         }
         

@@ -313,7 +313,7 @@ class ograph_Factory extends core_Master
         
         // Ако преглеждаме единична статия зареждаме и нейния Ograph
         $rec->ogp->siteInfo = array('Locale' => ($lang == 'bg') ? 'bg_BG' : 'en_GB',
-            'SiteName' => $_SERVER['HTTP_HOST'],
+            'SiteName' => $_SERVER['HTTP_HOST'] ?? (defined('BGERP_ABSOLUTE_HTTP_HOST') ? BGERP_ABSOLUTE_HTTP_HOST : cms_Domains::getPublicDomain('domain')),
             'Title' => $rec->seoTitle,
             'Description' => $rec->seoDescription,
             'Type' => 'article',

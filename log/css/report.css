@@ -1,0 +1,126 @@
+.log-report-success {
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: calc(100vh - 10px);
+    padding: 24px 16px;
+    background: radial-gradient(ellipse at top, #e5f5ed, #f7f9f8 70%);
+    color: #203d31;
+}
+
+.log-report-success-card {
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 440px;
+    padding: 36px 28px 24px;
+    border: 1px solid #dce9e1;
+    border-radius: 18px;
+    background: #fff;
+    box-shadow: 0 12px 36px rgba(32, 61, 49, 0.08);
+    text-align: center;
+}
+
+.log-report-success-icon {
+    position: relative;
+    width: 64px;
+    height: 64px;
+    margin: 0 auto 24px;
+    border-radius: 50%;
+    background: #e0f5e9;
+    box-shadow: 0 0 0 8px #f3faf6;
+}
+
+.log-report-success-icon::after {
+    content: "";
+    position: absolute;
+    top: 18px;
+    left: 25px;
+    width: 12px;
+    height: 22px;
+    border: solid #248454;
+    border-width: 0 3px 3px 0;
+    transform: rotate(45deg);
+}
+
+.log-report-success h2 {
+    margin: 0 0 12px;
+    padding: 0;
+    border: 0;
+    font-size: 24px;
+    line-height: 1.3;
+    color: #203d31;
+}
+
+.log-report-success-message {
+    margin: 0 0 28px;
+    font-size: 15px;
+    line-height: 1.6;
+    color: #617369;
+}
+
+.log-report-success-countdown {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding-top: 20px;
+    border-top: 1px solid #edf2ee;
+    font-size: 13px;
+    color: #617369;
+}
+
+.log-report-success-time {
+    white-space: nowrap;
+    color: #248454;
+}
+
+.log-report-success-time strong {
+    display: inline-block;
+    min-width: 1ch;
+    font-size: 22px;
+    font-variant-numeric: tabular-nums;
+}
+
+.log-report-success-track {
+    height: 5px;
+    margin: 12px 0 20px;
+    overflow: hidden;
+    border-radius: 5px;
+    background: #edf4ef;
+}
+
+.log-report-success-progress {
+    height: 100%;
+    border-radius: inherit;
+    background: #38a66c;
+    transform-origin: left;
+}
+
+.log-report-success-progress.is-counting-down {
+    animation: log-report-countdown linear forwards;
+}
+
+.log-report-success #log-report-close {
+    margin: 0;
+    padding: 9px 18px;
+    border: 1px solid #dce9e1;
+    border-radius: 8px;
+    background: #f7faf8;
+    box-shadow: none;
+    color: #355c46;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+.log-report-success #log-report-close:hover,
+.log-report-success #log-report-close:focus-visible {
+    background: #e8f4ed;
+    border-color: #8ab69c;
+}
+
+@keyframes log-report-countdown {
+    from { transform: scaleX(1); }
+    to { transform: scaleX(0); }
+}

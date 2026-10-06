@@ -160,7 +160,7 @@ class cat_products_Params extends doc_Detail
                 $row->paramValue = "<span class='blueText'>n/a</span>";
             }
             if(!empty($rec->type)){
-                $row->paramValue = ht::createHint($row->paramValue, "$row->type", 'notice', false);
+                $row->paramValue = ht::createHint($row->paramValue, $row->type ?? '', 'notice', false);
             }
         } catch(core_exception_Expect $e){
             $row->paramValue = "<span class='color'>" . tr("Проблем при показване") . "</span>";
@@ -512,7 +512,7 @@ class cat_products_Params extends doc_Detail
             if($rec->classId == cat_Products::getClassId()){
                 if ($action == 'add') {
                     $InnerClass = cls::get($pRec->innerClass);
-                    if (!($InnerClass instanceof cat_GeneralProductDriver)) {
+                    if (empty($InnerClass->allowCustomParams)) {
                         $requiredRoles = 'no_one';
                     }
                 }
@@ -606,7 +606,11 @@ class cat_products_Params extends doc_Detail
         $Class = cls::get($rec->classId);
         if($Class instanceof cat_Products){
             $mvc->syncWithFeature($rec->paramId, $rec->productId);
+            cat_products_ParamIndex::markDirty($rec->productId);
         }
+
+        // Параметрите може да се ползват във формули на рецепти
+        cat_Boms::clearProductParamsCache();
 
         // Има ли промяна на стойноста на параметъра
         $exValue = $rec->_exParamValue ?? null;
@@ -621,7 +625,7 @@ class cat_products_Params extends doc_Detail
         }
 
         $paramName = cat_Params::getVerbal($rec->paramId, 'typeExt');
-        $logMsg = ($rec->_isCreated) ? 'Добавяне на параметър' : 'Редактиране на параметър';
+        $logMsg = (!empty($rec->_isCreated)) ? 'Добавяне на параметър' : 'Редактиране на параметър';
 
         $Class->logWrite($logMsg, $rec->productId);
         $Class->logDebug("{$logMsg}: {$paramName}", $rec->productId);
@@ -641,8 +645,14 @@ class cat_products_Params extends doc_Detail
      */
     public static function on_AfterDelete($mvc, &$res, $query, $cond)
     {
+        cat_Boms::clearProductParamsCache();
+
+        $productClassId = cat_Products::getClassId();
         foreach ($query->getDeletedRecs() as $rec) {
             $mvc->syncWithFeature($rec->paramId, $rec->productId);
+            if ($rec->classId == $productClassId) {
+                cat_products_ParamIndex::markDirty($rec->productId);
+            }
             
             $paramName = cat_Params::getVerbal($rec->paramId, 'typeExt');
             cls::get($rec->classId)->logWrite('Изтриване на параметър', $rec->productId);

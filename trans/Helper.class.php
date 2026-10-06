@@ -291,8 +291,7 @@ abstract class trans_Helper
         $deliveryDate = null;
         $firstDoc = doc_Threads::getFirstDocument($threadId);
 
-        if($firstDoc->isInstanceOf('deals_DealMaster')){
-            $dealRec = $firstDoc->fetch('deliveryTermTime,deliveryTime,valior');
+        if($firstDoc->isInstanceOf('deals_DealMaster') && ($dealRec = $firstDoc->fetch('deliveryTermTime,deliveryTime,valior'))){
             $deliveryCalced = !empty($dealRec->deliveryTermTime) ? (dt::addSecs($dealRec->deliveryTermTime, $valior, false) . " " . trans_Setup::get('END_WORK_TIME') . ":00") : $dealRec->deliveryTime;
             if(!empty($deliveryCalced)){
                 $deliveryDate = $deliveryCalced;

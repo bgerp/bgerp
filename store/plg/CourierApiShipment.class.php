@@ -137,7 +137,7 @@ class store_plg_CourierApiShipment extends core_Plugin
                     if(is_object($calculatedShipmentRes->tpl)){
                         $form->info = $calculatedShipmentRes->tpl;
                         if(is_object($calculatedShipmentRes->price)){
-                            $calcedPrice = currency_CurrencyRates::convertAmount($calculatedShipmentRes->price->total, $rec->{$mvc->valiorFld}, $calculatedShipmentRes->price->currency);
+                            $calcedPrice = currency_CurrencyRates::convertAmount($calculatedShipmentRes->price->total ?? null, $rec->{$mvc->valiorFld}, $calculatedShipmentRes->price->currency ?? null);
                             $rec->courierApiPrice = $calcedPrice;
                             $mvc->save_($rec, 'courierApiPrice');
                         }

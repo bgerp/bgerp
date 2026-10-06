@@ -250,7 +250,7 @@ class email_UserInboxPlg extends core_Plugin
             $nick = type_Nick::parseEmailToNick($rec->nick);
         }
         
-        $userId = core_Users::fetchField("#nick = '{$nick}'", 'id');
+        $userId = core_Users::fetchField(array("#nick = '[#1#]'", $nick), 'id');
         
         if (!$userId) {
             

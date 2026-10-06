@@ -98,7 +98,7 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
                 $isFromClipboard = false;
 
                 if (!$form->gotErrors()) {
-                    if (!$rec->fromClipboard) {
+                    if (empty($rec->fromClipboard)) {
                         $data = ($rec->csvFile) ? bgerp_plg_Import::getFileContent($rec->csvFile) : $rec->csvData;
 
                         $delimiter = $rec->delimiter == '\t' ? "\t" : $rec->delimiter;
@@ -112,10 +112,13 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
                         $isFromClipboard = true;
                     }
 
-                    $fields = array('code' => $rec->codecol, 'quantity' => $rec->quantitycol, 'price' => $rec->pricecol, 'pack' => $rec->packcol);
+                    $fields = array('code' => $rec->codecol, 'quantity' => $rec->quantitycol, 'price' => $rec->pricecol ?? null, 'pack' => $rec->packcol);
 
                     if (core_Packs::isInstalled('batch') && !($mvc instanceof deals_QuotationDetails)) {
-                        $fields['batch'] = $rec->batchcol;
+                        $fields['batch'] = $rec->batchcol ?? null;
+                    }
+                    if ($mvc instanceof deals_DealDetail) {
+                        $fields['notes'] = $rec->notescol ?? null;
                     }
                     if (!countR($rows)) {
                         $form->setError('csvData,csvFile,fromClipboard', 'Не са открити данни за импорт');
@@ -166,7 +169,7 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
                         }
 
                         if (!$form->gotErrors()) {
-                            $onDuplicate = $form->rec->onDuplicate == 'yes';
+                            $onDuplicate = ($form->rec->onDuplicate ?? null) == 'yes';
                             if($mvc instanceof sales_QuotationsDetails){
                                 array_walk($rows, function($a) use ($form){ $a->optional = $form->rec->optional;});
                             }
@@ -208,15 +211,18 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
         $err = array();
         $msg = false;
 
+        // Не всички колони се показват във формата, за да не се търсят липсващи ключове
+        $fields += array('code' => null, 'quantity' => null, 'pack' => null, 'price' => null, 'batch' => null, 'notes' => null);
+
         $isPartner = core_Users::haveRole('partner');
         $batchInstalled = core_Packs::isInstalled('batch');
 
         $masterId = Request::get($mvc->masterKey, 'int');
         $type = Request::get('type', 'varchar');
-        $metaArr = arr::make($mvc->metaProducts, true);
+        $metaArr = arr::make($mvc->metaProducts ?? '', true);
         $masterRec = $mvc->Master->fetch($masterId);
 
-        $dealInfo = null;
+        $dealInfo = $Document = $policyInfo = null;
         $firstDoc = doc_Threads::getFirstDocument($masterRec->threadId);
         if ($firstDoc->haveInterface('bgerp_DealAggregatorIntf')) {
             $dealInfo = $firstDoc->getAggregateDealInfo();
@@ -225,11 +231,12 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
         foreach ($rows as $i => &$row) {
 
             // Подготвяме данните за реда
-            $obj = (object) array('code' => "{$row["{$fields['code']}"]}",
-                'quantity' => $row[$fields['quantity']],
-                'pack' => ($row[$fields['pack']]) ? $row[$fields['pack']] : null,
-                'price' => $row[$fields['price']] ? $row[$fields['price']] : null,
-                'batch' => ($row[$fields['batch']]) ? $row[$fields['batch']] : null,
+            $obj = (object) array('code' => (string) ($row[$fields['code']] ?? ''),
+                'quantity' => $row[$fields['quantity']] ?? null,
+                'pack' => !empty($row[$fields['pack']]) ? $row[$fields['pack']] : null,
+                'price' => !empty($row[$fields['price']]) ? $row[$fields['price']] : null,
+                'batch' => !empty($row[$fields['batch']]) ? $row[$fields['batch']] : null,
+                'notes' => !empty($row[$fields['notes']]) ? $row[$fields['notes']] : null,
             );
 
             // Подсигуряваме се, че подадените данни са във вътрешен вид
@@ -474,7 +481,7 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
             foreach ($rows as $row){
                 $key = "{$row->code}|{$row->pack}|{$row->batch}";
                 if($mvc->allowPriceImport){
-                    $key .= "|{$row->price}";
+                    $key .= '|' . ($row->price ?? '');
                 }
 
                 if(!array_key_exists($key, $total)){
@@ -495,7 +502,7 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
             foreach ($rows as $row) {
                 $key = "{$row->code}|{$row->pack}";
                 if ($mvc->allowPriceImport) {
-                    $key .= "|{$row->price}";
+                    $key .= '|' . ($row->price ?? '');
                 }
 
                 if (!array_key_exists($key, $total)) {
@@ -504,7 +511,7 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
                     $total[$key] = $clone;
                 }
                 if (isset($row->batch)) {
-                    $total[$key]->batches[$row->batch] += $row->quantity;
+                    $total[$key]->batches[$row->batch] = ($total[$key]->batches[$row->batch] ?? 0) + $row->quantity;
                 }
 
                 $total[$key]->quantity += $row->quantity;
@@ -553,13 +560,14 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
         $key = "importProducts_{$cu}_{$isFromClipboard}";
 
         core_Cache::remove($mvc->className, $key);
-        $nRec = (object) array('delimiter' => $rec->delimiter,
-            'enclosure' => $rec->enclosure,
-            'firstRow' => $rec->firstRow,
+        $nRec = (object) array('delimiter' => $rec->delimiter ?? null,
+            'enclosure' => $rec->enclosure ?? null,
+            'firstRow' => $rec->firstRow ?? null,
             'codecol' => $rec->codecol,
             'quantitycol' => $rec->quantitycol,
-            'onDuplicate' => $rec->onDuplicate,
-            'pricecol' => $rec->pricecol);
+            'onDuplicate' => $rec->onDuplicate ?? null,
+            'pricecol' => $rec->pricecol ?? null,
+            'notescol' => $rec->notescol ?? null);
         
         
         core_Cache::set($mvc->className, $key, $nRec, 1440);
@@ -590,7 +598,7 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
 
                 $enum->options = $options;
 
-                $form->FLD('fromClipboard', $enum, 'width=100%,caption=От клипборда, removeAndRefreshForm=csvData|csvFile|delimiter|enclosure|firstRow|codecol|quantitycol|packcol|pricecol|batchcol, silent');
+                $form->FLD('fromClipboard', $enum, 'width=100%,caption=От клипборда, removeAndRefreshForm=csvData|csvFile|delimiter|enclosure|firstRow|codecol|quantitycol|packcol|pricecol|batchcol|notescol, silent');
             }
         }
 
@@ -645,6 +653,11 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
         if (core_Packs::isInstalled('batch') && !($mvc instanceof deals_QuotationDetails) && !($mvc instanceof sales_InvoiceDetails)) {
             $form->FLD('batchcol', $type, "caption=Съответствие в данните->Партида{$unit}");
             $fields[] = 'batchcol';
+        }
+
+        if ($mvc instanceof deals_DealDetail) {
+            $form->FLD('notescol', $type, "caption=Съответствие в данните->Забележки{$unit}");
+            $fields[] = 'notescol';
         }
 
         if (!$isFromClipboard) {

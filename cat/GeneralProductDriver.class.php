@@ -18,6 +18,12 @@
 class cat_GeneralProductDriver extends cat_ProductDriver
 {
     /**
+     * Може ли към артикула да се добавят ръчно параметри
+     */
+    public $allowCustomParams = true;
+
+
+    /**
      * Добавя полетата на драйвера към Fieldset
      *
      * @param core_Fieldset $fieldset
@@ -282,7 +288,7 @@ class cat_GeneralProductDriver extends cat_ProductDriver
         plg_Search::forceUpdateKeywords($Embedder, $rec);
 
         core_Debug::stopTimer('saveParams');
-        core_Debug::log('END SAVE_ALL_PARAMS: ' . round(core_Debug::$timers['saveParams']->workingTime, 2));
+        core_Debug::log('END SAVE_ALL_PARAMS: ' . round(core_Debug::$timers['saveParams']->workingTime ?? 0, 2));
     }
     
     
@@ -308,9 +314,10 @@ class cat_GeneralProductDriver extends cat_ProductDriver
      */
     public function getParams($classId, $id, $name = null, $verbal = false)
     {
-        // Ако има посочено име се посочва директно стойноста му
+        $res = parent::getParams($classId, $id, $name, $verbal);
+
+        // Ако няма параметър за изглед, се взима снимката на артикула
         if (isset($name)) {
-            $res = cat_products_Params::fetchParamValue($classId, $id, $name, $verbal);
             if($name == 'preview' && !$res){
                 $res = cls::get($classId)->fetch($id)->photo;
             }
@@ -318,30 +325,15 @@ class cat_GeneralProductDriver extends cat_ProductDriver
             return $res;
         }
 
-        // Ако не искаме точен параметър връщаме всичките параметри за артикула
-        $params = array();
-        $classId = cat_Products::getClassId();
-        $pQuery = cat_products_Params::getQuery();
-        $pQuery->where("#productId = {$id}");
-        $pQuery->where("#classId = {$classId} AND #paramValue != ''");
-        $pQuery->show('paramId,paramValue');
-
-        while ($pRec = $pQuery->fetch()) {
-            if ($verbal === true) {
-                $pRec->paramValue = cat_Params::toVerbal($pRec->paramId, $classId, $id, $pRec->paramValue);
-            }
-            $params[$pRec->paramId] = $pRec->paramValue;
-        }
-
         $previewId = cat_Params::force('preview', 'Изглед||Preview', 'cond_type_Image', null, '', true);
-        if(!array_key_exists($previewId, $params)){
-            $preview = cls::get($classId)->fetch($id)->photo;
+        if(!array_key_exists($previewId, $res)){
+            $preview = cat_Products::fetch($id)->photo;
             if(!empty($preview)){
-                $params[$previewId] = $preview;
+                $res[$previewId] = $preview;
             }
         }
 
-        return $params;
+        return $res;
     }
     
     
@@ -385,10 +377,6 @@ class cat_GeneralProductDriver extends cat_ProductDriver
         if(($data->documentType ?? null) == 'public' && $showImgInPublic != 'yes'){
             $data->_hidePhoto = true;
         }
-
-        $data->masterId = $data->rec->id;
-        $data->masterClassId = cls::get($data->Embedder)->getClassId();
-        cat_products_Params::prepareParams($data);
     }
     
     
@@ -434,14 +422,8 @@ class cat_GeneralProductDriver extends cat_ProductDriver
         $tpl = getTplFromFile($layout);
         $tpl->placeObject($data->row);
         
-        // Ако ембедъра няма интерфейса за артикул, то към него немогат да се променят параметрите
-        if (!cls::haveInterface('cat_ProductAccRegIntf', $data->Embedder)) {
-            $data->noChange = true;
-        }
-        
-        // Рендираме параметрите винаги ако сме към артикул или ако има записи
-        if (($data->noChange ?? null) !== true || countR($data->params ?? array())) {
-            $paramTpl = cat_products_Params::renderParams($data);
+        $paramTpl = $this->renderCustomParams($data);
+        if ($paramTpl) {
             $tpl->append($paramTpl, 'PARAMS');
         }
         
@@ -634,7 +616,7 @@ class cat_GeneralProductDriver extends cat_ProductDriver
         if(empty($priceFound)){
             core_Debug::startTimer("GET_PRICE_FROM_PRIME_COST");
             $price = price_ListRules::getPrice(price_ListRules::PRICE_LIST_COST, $productId, null, $datetime);
-            core_Debug::startTimer("GET_PRICE_FROM_PRIME_COST");
+            core_Debug::stopTimer("GET_PRICE_FROM_PRIME_COST");
             if(isset($price)){
                 $priceFound = $price;
             }

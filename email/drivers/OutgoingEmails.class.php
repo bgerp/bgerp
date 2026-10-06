@@ -102,7 +102,7 @@ abstract class email_drivers_OutgoingEmails extends core_BaseClass
 
         $data->form->rec->_systemId = $Driver->getClassId();
 
-        if (!$data->form->rec->id) {
+        if (empty($data->form->rec->id)) {
             $dRec = $Embedder->fetch(array("#email = '[#1#]' AND #driverClass = '[#2#]'", $data->form->rec->email, $Driver->getClassId()));
             if ($dRec) {
                 $data->form->setDefault('id', $dRec->id);

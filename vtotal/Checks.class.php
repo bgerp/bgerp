@@ -174,12 +174,13 @@ class vtotal_Checks extends core_Master
      *
      *
      * @param string $md5Hash Хеш за проверка на файл през VirusTotal MD5
+     * @param array|null $diagnostics HTTP, cURL и JSON диагностика
      *
      * @return mixed
      *               При неуспешно повикване връща int respone_code
      *               При успешно повикване връща stdClass Обект от VirusTotal отговор
      */
-    public static function VTGetReport($md5Hash)
+    public static function VTGetReport($md5Hash, &$diagnostics = null)
     {
         $post = array(
             'resource' => $md5Hash,
@@ -193,9 +194,15 @@ class vtotal_Checks extends core_Master
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
         $responce = curl_exec($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $diagnostics = array(
+            'httpCode' => $httpCode,
+            'curlErrno' => curl_errno($ch),
+            'curlError' => curl_error($ch),
+        );
         curl_close($ch);
         
-        if ($httpCode == '429') {
+        // API v2 връща HTTP 204 при изчерпана квота.
+        if ($httpCode == '204' || $httpCode == '429') {
             
             return (object) array(
                 'response_code' => -3
@@ -207,7 +214,16 @@ class vtotal_Checks extends core_Master
             );
         }
         
-        return json_decode($responce);
+        $result = json_decode((string) $responce);
+        $diagnostics['jsonError'] = json_last_error_msg();
+        $body = (string) $responce;
+        if (!empty($post['apikey'])) {
+            $body = str_replace($post['apikey'], '[redacted]', $body);
+            $diagnostics['curlError'] = str_replace($post['apikey'], '[redacted]', $diagnostics['curlError']);
+        }
+        $diagnostics['body'] = substr($body, 0, 1000);
+
+        return $result;
     }
     
     
@@ -333,7 +349,7 @@ class vtotal_Checks extends core_Master
                     }
                     
                     // Проверка на разширението дали е от сканируемите
-                    if (!$dangerExtensionsArr[mb_strtolower($ext)]) {
+                    if (empty($dangerExtensionsArr[mb_strtolower($ext)])) {
                         continue;
                     }
                     
@@ -431,18 +447,28 @@ class vtotal_Checks extends core_Master
         $isAvastInstalled = $this->isAvastInstalled();
         
         while ($rec = $query->fetch()) {
-            $result = self::VTGetReport($rec->md5);
+            $result = self::VTGetReport($rec->md5, $diagnostics);
+            $error = null;
+            $errorType = 'warning';
             
-            if ($result->response_code == -1) {
-                self::logErr('403: Нямате права за достъп, моля прегледайте API ключа за VirusTotal', $rec->id);
-                
-                break;
+            if (!is_object($result) || !isset($result->response_code)) {
+                $error = 'Няма валиден отговор от VirusTotal (' . gettype($result) . '): ' .
+                    json_encode($diagnostics, JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE);
+            } elseif ($result->response_code == -1) {
+                $error = '403: Нямате права за достъп, моля прегледайте API ключа за VirusTotal';
+                $errorType = 'err';
             } elseif ($result->response_code == -3) {
-                self::logWarning('429: Твърде много заявки към системата на VirusTotal, моля намалете броя на заявките от настройките на пакета или
-                увеличете вашият абонамент на един от платените във VirusTotal', $rec->id);
-                
+                $error = ($diagnostics['httpCode'] ?? 429) . ': Достигнат лимит на заявките към VirusTotal';
+            }
+
+            if ($error !== null) {
+                // Обединяваме повторенията в рамките на час; нов запис поне веднъж дневно.
+                log_System::add(get_called_class(), $error, $rec->id ?? null, $errorType, 10, 3600, 86400);
+
                 break;
-            } elseif ($result->response_code == 0) {
+            }
+
+            if ($result->response_code == 0) {
                 $rec->timesScanned = $rec->timesScanned + 1;
                 
                 if ($isAvastInstalled) {
@@ -494,7 +520,7 @@ class vtotal_Checks extends core_Master
                         
                         $extensionFRec = mb_strtolower(pathinfo($fRec->name, PATHINFO_EXTENSION));
                         
-                        if (!$dangerExtensionsArr[$extensionFRec]) {
+                        if (empty($dangerExtensionsArr[$extensionFRec])) {
                             $dangerExtensionsArr[$extensionFRec] = $extensionFRec;
                             
                             core_Packs::setConfig('vtotal', array('VTOTAL_DANGER_EXTENSIONS' => implode(',', $dangerExtensionsArr)));

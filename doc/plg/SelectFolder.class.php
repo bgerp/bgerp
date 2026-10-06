@@ -189,7 +189,7 @@ class doc_plg_SelectFolder extends core_Plugin
         }
 
         // Ако има дефолтна папка в урл-то и потребителя може да добавя документа в нея
-        if($defaultFolderId = Request::get('defaultFolderId')){
+        if($defaultFolderId = Request::get('defaultFolderId', 'int')){
             if($mvc->canAddToFolder($defaultFolderId)){
                 $form->setDefault('folderId', $defaultFolderId);
             }

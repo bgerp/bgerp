@@ -254,7 +254,7 @@ class acc_Limits extends core_Manager
         }
         
         if ($rec->status == 'exceeded') {
-            $row->ROW_ATTR['class'] .= ' state-pending';
+            $row->ROW_ATTR['class'] = ($row->ROW_ATTR['class'] ?? '') . ' state-pending';
         }
     }
     
@@ -389,8 +389,9 @@ class acc_Limits extends core_Manager
     public function cron_CheckAccLimits()
     {
         // Кой е последния баланс
-        $balanceId = acc_Balances::getLastBalance()->id;
-        
+        $lastBalance = acc_Balances::getLastBalance();
+        $balanceId = is_object($lastBalance) ? $lastBalance->id : null;
+
         // Ако няма баланс не правим нищо
         if (!$balanceId) {
             

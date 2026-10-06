@@ -12,6 +12,21 @@
  */
 class spas_client_Result
 {
+    /** @var string Protocol version returned by the server. */
+    public $protocolVersion;
+
+    /** @var bool Whether the server learned or reported the message. */
+    public $didSet;
+
+    /** @var bool Whether the server forgot the message. */
+    public $didRemove;
+
+    /** @var string Raw response headers. */
+    public $headers;
+
+    /** @var string Response body. */
+    public $message;
+
     /**
      * Response code.
      *

@@ -33,6 +33,12 @@
                         <td>[#fromIp#]</td>
                     </tr>
                     <!--ET_END fromIp-->
+                    <!--ET_BEGIN fromIpCountry-->
+                    <tr>
+                        <td  class='aright'>|Държава по IP|*:</td>
+                        <td>[#fromIpCountry#]</td>
+                    </tr>
+                    <!--ET_END fromIpCountry-->
                     <!--ET_BEGIN inReplyToOrigin-->          
                     <tr>
                         <td  class='aright'>|В отговор на|*:</td>

@@ -138,7 +138,7 @@ class bulmar_InvoiceExport extends core_Manager
      */
     public function checkExportForm(core_Form &$form)
     {
-        if ($form->rec->from > $form->rec->to) {
+        if (($form->rec->from ?? null) > ($form->rec->to ?? null)) {
             $form->setError('from,to', 'Началната дата трябва да е по-малка от голямата');
         }
     }
@@ -220,7 +220,7 @@ class bulmar_InvoiceExport extends core_Manager
     {
         $nRec = new stdClass();
         $nRec->contragent = $rec->contragentName;
-        $nRec->invNumber = ($rec->_isVirtual) ? $rec->number : $this->Invoices->getVerbal($rec, 'number');
+        $nRec->invNumber = (!empty($rec->_isVirtual)) ? $rec->number : $this->Invoices->getVerbal($rec, 'number');
 
         $nRec->date = dt::mysql2verbal($rec->date, 'd.m.Y');
         $nRec->num = $count;
@@ -254,6 +254,11 @@ class bulmar_InvoiceExport extends core_Manager
         if(empty($rec->_isVirtual)){
             $dQuery = sales_InvoiceDetails::getQuery();
             $dQuery->where("#invoiceId = {$rec->id}");
+
+            // Нулевите редове на фактурите не се експортират, при известията са промяна
+            if ($rec->type == 'invoice') {
+                $dQuery->where("#quantity != 0");
+            }
             $details = $dQuery->fetchAll();
 
             if($rec->type != 'invoice'){
@@ -461,9 +466,9 @@ class bulmar_InvoiceExport extends core_Manager
 
         foreach ($data->recs as $rec) {
             $operationId = $static->saleProducts;
-            if ($rec->dpOperation == 'accrued') {
+            if (($rec->dpOperation ?? null) == 'accrued') {
                 $operationId = $static->advancePayment;
-            } elseif ($rec->dpOperation == 'deducted') {
+            } elseif (($rec->dpOperation ?? null) == 'deducted') {
                 $rec->amount     += $rec->dpAmount;
                 $rec->baseAmount += $rec->dpAmount;
                 $operationId = $static->advancePayment;
@@ -480,13 +485,13 @@ class bulmar_InvoiceExport extends core_Manager
             $line = "{$rec->num}|{$rec->type}|{$rec->invNumber}|{$rec->date}|{$rec->contragentEik}|{$rec->date}|{$static->folder}|{$rec->contragent}|" . "\r\n";
             $line .= "{$rec->num}|1|{$operationId}|{$static->debitSale}|AN|$|{$rec->amount}||";
 
-            if ($rec->dpAmount && $rec->dpOperation == 'deducted') {
+            if (!empty($rec->dpAmount) && ($rec->dpOperation ?? null) == 'deducted') {
                 $line .= "{$static->creditAdvance}|PA|$|{$rec->dpAmount}||";
             }
 
-            if ($rec->dpOperation == 'accrued') {
+            if (($rec->dpOperation ?? null) == 'accrued') {
                 $line .= "{$static->creditAdvance}|PA|$|{$rec->dpAmount}||";
-            } elseif ($rec->creditBuckets !== null) {
+            } elseif (($rec->creditBuckets ?? null) !== null) {
                 // Нова логика — кредити по кофи
                 foreach ($rec->creditBuckets as $accId => $bucket) {
                     if ($bucket['amount'] == 0) continue;
@@ -517,15 +522,15 @@ class bulmar_InvoiceExport extends core_Manager
 
             $line .= "{$rec->num}|1|Prod|{$rec->reason}|0|||{$rec->baseAmount}|{$rec->vat}|{$rec->baseAmount}|{$rec->vat}|||||||||||||\r\n";
 
-            if ($rec->amountPaid) {
+            if (!empty($rec->amountPaid)) {
                 $line .= "{$rec->num}|2|{$static->paymentOp}|{$static->debitPayment}|||{$rec->amountPaid}||{$static->creditPayment}|AN|$|{$rec->amountPaid}||" . "\r\n";
             }
 
-            if ($rec->amountCardPaid) {
+            if (!empty($rec->amountCardPaid)) {
                 $line .= "{$rec->num}|2|{$static->pptAndCardOperation}|{$static->pptAndCardAccount}|{$static->cardAnal}|$|{$rec->amountCardPaid}||{$static->creditPayment}|AN|$|{$rec->amountCardPaid}||" . "\r\n";
             }
 
-            if ($rec->amountPostalPaid) {
+            if (!empty($rec->amountPostalPaid)) {
                 $line .= "{$rec->num}|2|{$static->pptAndCardOperation}|{$static->pptAndCardAccount}|{$static->pptAnal}|$|{$rec->amountPostalPaid}||{$static->creditPayment}|AN|$|{$rec->amountPostalPaid}||" . "\r\n";
             }
 

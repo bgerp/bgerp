@@ -317,7 +317,7 @@ class remote_BgerpDriver extends core_Mvc
      */
     public function act_AuthConfirm()
     {
-        expect($authId = Request::get('authId'));
+        expect($authId = Request::get('authId', 'int'));
         
         expect($rec = remote_Authorizations::fetch($authId));
         
@@ -475,7 +475,7 @@ class remote_BgerpDriver extends core_Mvc
             core_Users::loginUser($auth->userId);
         }
         
-        if ($url = $args['url']) {
+        if ($url = $args['url'] ?? null) {
             redirect($url);
         } else {
             redirect(array('bgerp_Portal', 'Show'));
@@ -638,10 +638,17 @@ class remote_BgerpDriver extends core_Mvc
         
         if ($res) {
             $params = self::decode($auth, $res, 'answer');
-            
-            return $params['result'];
+
+            if (is_array($params)) {
+
+                return $params['result'];
+            }
+
+            self::logWarning('Грешка при декодиране на отговора от URL: ' . $url);
+
+            return null;
         }
-        
+
         if ($res === false) {
             self::logWarning('Грешка при вземане на данни от URL: ' . $url);
         }
@@ -661,7 +668,8 @@ class remote_BgerpDriver extends core_Mvc
         $auth = self::prepareAuth($authId);
         
         $params = self::decode($auth, $encodedParams, 'question');
-        
+
+        expect(is_array($params), $authId, $params);
         expect($ctr = $params['Ctr'], $authId, $params);
         expect($act = $params['Act'], $authId, $params);
         

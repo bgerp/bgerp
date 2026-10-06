@@ -231,7 +231,7 @@ class fileman_Buckets extends core_Manager
             if (($dotPos = mb_strrpos($fileName, '.')) !== false) {
                 $ext = mb_strtolower(mb_substr($fileName, $dotPos + 1));
                 
-                if ($ext && !$extensions[$ext]) {
+                if ($ext && empty($extensions[$ext])) {
                     $err[] = "Разширението на файла |* <b>{$ext}</b> | не е в допустимите|*: {$row->extensions}";
                 }
             }

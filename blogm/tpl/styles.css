@@ -1,0 +1,194 @@
+.blog-browse-header {
+  font-size: 1.2em;
+  margin-bottom: 1em;
+  padding: 5px;
+  background-color: #ddd; }
+
+.blogm-article-title, .blogm-article-title a {
+  font-size: 1.8em;
+  line-height: 130%;
+  font-weight: bold;
+  margin-top: 10px;
+  margin-bottom: 10px; }
+
+.blogm-browse .blogm-article-title {
+  font-size: 1em;
+  margin-top: 0px;
+  margin-bottom: 0px; }
+
+.blogm-article-info {
+  font-size: 1em;
+  padding: 5px;
+  background-color: #eee;
+  /* fallback */
+  /* Safari 4-5, Chrome 1-9 */
+  background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#ddd), to(#f8f8f8));
+  /* Safari 5.1, Chrome 10+ */
+  background: -webkit-linear-gradient(top, #ddd, #f8f8f8);
+  /* Firefox 3.6+ */
+  background: -moz-linear-gradient(top, #ddd, #f8f8f8);
+  /* IE 10 */
+  background: -ms-linear-gradient(top, #ddd, #f8f8f8);
+  /* Opera 11.10+ */
+  background: -o-linear-gradient(top, #ddd, #f8f8f8);
+  color: #333;
+  margin-bottom: 6px; }
+
+.blogmBrowseImg {
+  float: right;
+  margin-left: 10px; }
+
+#sBtn {
+  background-image: url('../../img/search.png');
+  width: 25px; }
+
+.blogm-comments-cnt {
+  float: right;
+  background-image: url('../../img/12/comments.png'); }
+
+.blogm-article-body {
+  margin-top: 15px;
+  margin-bottom: 15px; }
+
+.blogm-article-body .richtext {
+  font-size: 1em;
+  color: #333; }
+
+.narrow .blogm-browse-article .blogm-article-body {
+  font-size: 0.95em; }
+
+.wide .blogm-article-body .richtext {
+  font-size: 1.1em;
+  color: #333; }
+
+.blogm-article-body .richtext h2 {
+  margin-bottom: 10px; }
+
+.blogm-comments-title {
+  margin: 20px 0 4px;
+  font-size: 1.1em; }
+
+.blogm-comment {
+  display: flex;
+  gap: 12px;
+  margin-top: 12px;
+  padding: 12px 14px;
+  box-sizing: border-box;
+  border: 1px solid #e3e3e3;
+  border-radius: 6px;
+  background-color: #fafafa; }
+  .blogm-comment.blogm-comment-pending {
+    border-left: 4px solid #5aa9e6;
+    background-color: #f2f8fd; }
+  .blogm-comment.blogm-comment-rejected {
+    border-left: 4px solid #cc6666;
+    background-color: #fbf1f1; }
+  .blogm-comment.blogm-comment-closed {
+    border-left: 4px solid #aaa;
+    color: #666; }
+
+.blogm-comment-avatar {
+  flex: 0 0 auto; }
+  .blogm-comment-avatar img {
+    display: block;
+    border-radius: 50%; }
+
+.blogm-comment-main {
+  flex: 1 1 auto;
+  min-width: 0; }
+
+.blogm-comment-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 10px;
+  margin-bottom: 6px; }
+
+.blogm-date {
+  font-size: 0.85em;
+  color: #777; }
+
+.blogm-status {
+  padding: 1px 8px;
+  border-radius: 10px;
+  font-size: 0.75em;
+  background-color: #dbeafa;
+  color: #1d4f7a; }
+  .blogm-status:empty {
+    display: none; }
+
+.blogm-comment-rejected .blogm-status {
+  background-color: #f3d6d6;
+  color: #7a1d1d; }
+
+.blogm-comment-closed .blogm-status {
+  background-color: #e5e5e5;
+  color: #555; }
+
+.blogm-comment-text {
+  overflow-wrap: anywhere; }
+
+#blogm-Comment {
+  border: none;
+  position: absolute;
+  height: 0px;
+  visibility: hidden; }
+
+.blogm-name {
+  font-weight: bold; }
+
+.blogm-comment-form div {
+  margin-top: 8px; }
+
+.blogm-comment-form input[type="text"], .blogm-comment-form input[type="submit"] {
+  padding: 3px;
+  width: 300px; }
+
+.blogm-comment-form textarea {
+  padding: 3px;
+  width: 600px; }
+
+.blogm-category-row {
+  margin-top: 5px; }
+
+.blog-article-share {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  margin-top: 8px;
+  margin-bottom: 8px;
+  height: 20px;
+  visibility: hidden; }
+
+.blogm-search-form {
+  margin-bottom: 10px; }
+
+.blogm-workshop {
+  margin-bottom: 10px; }
+
+.blogm-categories {
+  margin-bottom: 10px; }
+
+.blogm-archive {
+  margin-bottom: 10px; }
+
+.blog-browse-header {
+  margin-bottom: 20px; }
+
+.blogm-browse-label {
+  display: block;
+  font-size: 0.55em;
+  font-weight: normal;
+  color: #777; }
+
+.blogm-browse-period {
+  white-space: nowrap; }
+
+.blogm-browse-article {
+  margin-bottom: 20px;
+  display: flow-root; }
+
+.blogArticleCategoryLink a {
+  color: #333 !important; }
+  .blogArticleCategoryLink a:hover {
+    text-decoration: underline;
+    color: #333 !important; }

@@ -377,8 +377,7 @@ class core_Detail extends core_Manager
 
                     // Ако има указани допълнителни полета за филтриране на детайлите
                     if(isset($rec->_filterFld)){
-                        $sign = ($rec->_filterFldNot ?? false) ? '!=' : '=';
-                        $query->where("#{$rec->_filterFld} {$sign} '{$rec->_filterFldVal}'");
+                        $query->where($this->getDeleteRowsFilter($rec->_filterFld, $rec->_filterFldVal ?? null, $rec->_filterFldNot ?? false));
                     }
 
                     $canDeleteCount = 0;
@@ -561,9 +560,14 @@ class core_Detail extends core_Manager
         
         if (isset($objId) && ($masterKey = $inst->masterKey) && is_object($inst->Master) && ($inst->Master instanceof core_Master)) {
             $rec = $inst->fetch($objId);
-            
+
+            if (empty($rec)) {
+
+                return '';
+            }
+
             $masterId = $rec->{$masterKey};
-            
+
             return $inst->Master->getLinkForObject($masterId);
         }
         
@@ -595,6 +599,20 @@ class core_Detail extends core_Manager
 
 
     /**
+     * Допуска само реални полета и ескейпва стойността на филтъра за изтриване.
+     */
+    protected function getDeleteRowsFilter($field, $value, $not = false)
+    {
+        expect(is_string($field) && preg_match('/\A[a-zA-Z_][a-zA-Z0-9_]*\z/', $field), 'Невалидно поле за филтриране');
+        $definition = $this->getField($field, false);
+        expect($definition && ($definition->kind ?? null) == 'FLD', 'Невалидно поле за филтриране');
+        $sign = $not ? '!=' : '=';
+
+        return array("#{$field} {$sign} '[#1#]'", $value);
+    }
+
+
+    /**
      * Екшън за групово изтриване на детайлите
      */
     public function act_selectRowsToDelete()
@@ -605,6 +623,7 @@ class core_Detail extends core_Manager
         $filterFld = Request::get('_filterFld', 'varchar');
         $filterNot = Request::get('_filterFldNot', 'varchar');
         $filterFldVal = Request::get('_filterFldVal', 'varchar');
+        $filterCondition = !empty($filterFld) ? $this->getDeleteRowsFilter($filterFld, $filterFldVal, $filterNot) : null;
 
         // Филтърът се пази и в урл-то за изтриване, за да важи и при самото изтриване
         $deleteAllUrl = toUrl(array($this, 'selectrowstodelete', "{$this->masterKey}" => $masterId, '_filterFld' => $filterFld, '_filterFldVal' => $filterFldVal, '_filterFldNot' => $filterNot));
@@ -632,10 +651,7 @@ class core_Detail extends core_Manager
                 $deleteQuery->in('id', $idArr);
 
                 // Филтърът се прилага и при изтриването, за да не се трият редове извън него
-                if(!empty($filterFld)){
-                    $sign = ($filterNot) ? '!=' : '=';
-                    $deleteQuery->where("#{$filterFld} {$sign} '{$filterFldVal}'");
-                }
+                $deleteQuery->where($filterCondition);
 
                 $deletedCount = 0;
                 $skippedArr = array();
@@ -668,10 +684,7 @@ class core_Detail extends core_Manager
         $query = $this->getQuery();
         $query->where("#{$this->masterKey} = {$masterId}");
 
-        if(!empty($filterFld)){
-            $sign = ($filterNot) ? '!=' : '=';
-            $query->where("#{$filterFld} {$sign} '{$filterFldVal}'");
-        }
+        $query->where($filterCondition);
 
         // Визуализиране на редовете за изтриване
         $data = (object)array('masterMvc' => $this->Master, 'masterData' => (object)array('rec' => $this->Master->fetch($masterId)), 'recs' => array(), 'rows' => array(), 'masterId' => $masterId, 'query' => $query);

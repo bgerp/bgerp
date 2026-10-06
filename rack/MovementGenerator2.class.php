@@ -241,7 +241,7 @@ class rack_MovementGenerator2 extends core_Manager
         if($qInPallet) {
             foreach($pArr as $pId => $pQ) {
                 if($pQ == $qInPallet) {
-                    $fullPallets[$pId] = (int) $pallets[$pId]->age;
+                    $fullPallets[$pId] = (int) ($pallets[$pId]->age ?? 0);
                     if(self::isFirstRow($pallets[$pId]->position)) {
                         $fullPallets[$pId] -= $maxAge+1;
                     }
@@ -528,7 +528,7 @@ class rack_MovementGenerator2 extends core_Manager
             }
 
             // Връщане
-            if($o->ret) {
+            if(!empty($o->ret)) {
                 $rate += $timeReturn;
                 $m->timeReturn = $timeReturn;
             }
@@ -552,6 +552,7 @@ class rack_MovementGenerator2 extends core_Manager
 //        expect($pallet >= $q);
         
         $sec = rack_Setup::get('TIME_COUNT');
+        $res = 0;
 
         krsort($packs);
          
@@ -642,7 +643,7 @@ class rack_MovementGenerator2 extends core_Manager
 
         if($rack = (int) $pos) {
             $rRec = rack_Racks::fetch($rack);
-            $res = $rRec->maxLoad;
+            $res = $rRec ? $rRec->maxLoad : null;
         }
 
         if(!$res) {
@@ -665,7 +666,7 @@ class rack_MovementGenerator2 extends core_Manager
                 if (strpos($mK, '|'. $k . '|') === false) {
                     $Q = $q + $qK;
                     $ind = $mK  . $k. '|';
-                    if (!$combi[$ind]) {
+                    if (empty($combi[$ind])) {
                         $combi[$ind] = $Q;
                     }
                 }

@@ -114,7 +114,7 @@ class fileman_webdrv_Text extends fileman_webdrv_Generic
         if (core_Locks::obtain($params['lockId'], 100, 0, 0, false)) {
             
             // Вземаме съдържанието на файла
-            if ($params['fileHnd']) {
+            if (!empty($params['fileHnd'])) {
                 $text = fileman_Files::getContent($params['fileHnd']);
             } else {
                 $text = @file_get_contents($fRec);
@@ -123,7 +123,7 @@ class fileman_webdrv_Text extends fileman_webdrv_Generic
             $text = mb_strcut($text, 0, 1000000);
             $text = i18n_Charset::convertToUtf8($text);
             
-            if ($params['fileHnd']) {
+            if (!empty($params['fileHnd'])) {
                 // Обновяваме данните за запис във fileman_Indexes
                 $params['content'] = $text;
                 fileman_Indexes::saveContent($params);

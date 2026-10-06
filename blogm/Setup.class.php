@@ -6,27 +6,9 @@ defIfNot('BLOGM_MAX_COMMENT_DAYS', 50 * 24 * 60 * 60);
 
 
 /**
- *  Константа за тема по-подразбиране на блога
- */
-defIfNot('BLOGM_DEFAULT_THEME', 'blogm_DefaultTheme');
-
-
-/**
- *  Константа за продължителността на живота на бисквитките създадени от блога
- */
-defIfNot('BLOGM_COOKIE_LIFETIME', '2592000');
-
-
-/**
  *  Броя на статии, които да се показват
  */
 defIfNot('BLOGM_ARTICLES_PER_PAGE', '5');
-
-
-/**
- * Думи, срещани в спам моментари
- */
-defIfNot('BLOGM_SPAM_WORDS', 'sex, xxx, porn, cam, teen, adult, cheap, sale, xenical, pharmacy, pills, prescription, опционы');
 
 
 /**
@@ -87,7 +69,7 @@ defIfNot('BLOGM_ARTICLE_NAVIGATION_MAX_PATH', '0');
  * @category  bgerp
  * @package   blogm
  *
- * @author    Ивелин Димов <ivelin_pdimov@abv.bg>
+ * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
  *
@@ -128,11 +110,9 @@ class blogm_Setup extends core_ProtoSetup
      * Описание на конфигурационните константи
      */
     public $configDescription = array(
-        'BLOGM_TYPE' => array('enum(blog=Блог,news=Новини)', 'caption=Тема по подразбиране в блога->Предназначение на модула'),
-        'BLOGM_DEFAULT_THEME' => array('class(interface=blogm_ThemeIntf,select=title)', 'caption=Тема по подразбиране в блога->Тема'),
+        'BLOGM_TYPE' => array('enum(blog=Блог,news=Новини)', 'caption=Блог->Предназначение на модула'),
         'BLOGM_MAX_COMMENT_DAYS' => array('time(uom=days,suggestions=1 ден|2 дни|5 дни|1 седмица|2 седмици|30 дни|45 дни|50 дни)', 'caption=След колко време статията да се заключва за коментиране?->Време'),
         'BLOGM_ARTICLES_PER_PAGE' => array('int', 'caption=Колко статии да се показват на една страница->Брой'),
-        'BLOGM_SPAM_WORDS' => array('text', 'caption=Определяне на SPAM рейтинг на коментар->Думи'),
         'BLOGM_ALL_ARTICLES_IN_PAGE_TITLE' => array('varchar', 'caption=Заглавие на страницата с всички статии->Заглавие'),
         'BLOGM_SHOW_ALL_ARTICLE_CAPTION' => array('enum(yes=Да,no=Не)', 'caption=Заглавие на страницата с всички статии->Показване'),
         'BLOGM_SHOW_CATEGORIES_ROOT' => array('enum(yes=Да,no=Не)', 'caption=Показване на "Категории" над списъка с категории->Избор'),
@@ -151,6 +131,10 @@ class blogm_Setup extends core_ProtoSetup
         'blogm_Categories',
         'blogm_Comments',
         'blogm_Links',
+        'migrate::fillCommentedOn2640',
+        'migrate::scheduledToWaiting2640',
+        'migrate::articlesToDocuments2640',
+        'migrate::repairSearchKeywords2640',
     );
     
     
@@ -178,9 +162,6 @@ class blogm_Setup extends core_ProtoSetup
         $Bucket = cls::get('fileman_Buckets');
         $html .= $Bucket->createBucket(blogm_Articles::FILE_BUCKET, 'Файлове към блог-статиите', '', '10MB', 'every_one', 'every_one');
         
-        // Добавяме класа връщащ темата в core_Classes
-        $html .= core_Classes::add('blogm_DefaultTheme');
-        
         // Публикуване на чакащите блог статии по крон
         $rec = new stdClass();
         $rec->systemId = 'PublishPendingBlogArt';
@@ -205,5 +186,120 @@ class blogm_Setup extends core_ProtoSetup
         $html .= core_Cron::addOnce($rec);
         
         return $html;
+    }
+    
+    
+    /**
+     * Насрочените статии минават от 'pending' във 'waiting', тъй като 'pending' вече е заявка
+     */
+    public function scheduledToWaiting2640()
+    {
+        $Articles = cls::get('blogm_Articles');
+        $Articles->setupMvc();
+        
+        $query = $Articles->getQuery();
+        $query->where("#state = 'pending'");
+        $query->show('id,state');
+        while ($rec = $query->fetch()) {
+            $rec->state = 'waiting';
+            $Articles->save_($rec, 'state');
+        }
+    }
+    
+    
+    /**
+     * Попълва датата на последния коментар в статиите
+     */
+    public function fillCommentedOn2640()
+    {
+        $Articles = cls::get('blogm_Articles');
+        $Articles->setupMvc();
+        
+        $query = blogm_Comments::getQuery();
+        $query->where("#state = 'active'");
+        $query->XPR('lastCommentOn', 'datetime', 'MAX(#createdOn)');
+        $query->groupBy('articleId');
+        $query->show('articleId,lastCommentOn');
+        while ($cRec = $query->fetch()) {
+            $rec = (object) array('id' => $cRec->articleId, 'commentedOn' => $cRec->lastCommentOn);
+            $Articles->save_($rec, 'commentedOn');
+        }
+    }
+    
+    
+    /**
+     * Прехвърля статиите като документи в папките на домейните им
+     */
+    public function articlesToDocuments2640()
+    {
+        cls::get('cms_Content')->setupMvc();
+        $Articles = cls::get('blogm_Articles');
+        $Articles->setupMvc();
+        
+        // Състоянието преди оттегляне е било в полето на plg_Rejected
+        $exStateCol = str::phpToMysqlName('exState');
+        if ($Articles->db->isFieldExists($Articles->dbTableName, $exStateCol)) {
+            $brStateCol = str::phpToMysqlName('brState');
+            $stateCol = str::phpToMysqlName('state');
+            $containerCol = str::phpToMysqlName('containerId');
+            $Articles->db->query("UPDATE `{$Articles->dbTableName}` SET `{$brStateCol}` = `{$exStateCol}` WHERE `{$stateCol}` = 'rejected' AND `{$containerCol}` IS NULL");
+        }
+        
+        $folders = array();
+        $query = $Articles->getQuery();
+        $query->where('#containerId IS NULL');
+        while ($rec = $query->fetch()) {
+            
+            // Папката е на основното меню на първата категория
+            $categories = keylist::toArray($rec->categories);
+            $menuId = countR($categories) ? blogm_Categories::fetchField(key($categories), 'menuId') : null;
+            if (empty($menuId)) {
+                $menuId = cms_Content::fetchField(array("#source = '[#1#]'", core_Classes::getId('blogm_Articles')), 'id');
+            }
+            if (!array_key_exists($menuId, $folders)) {
+                $folders[$menuId] = cms_Content::forceCoverAndFolder($menuId);
+            }
+            
+            $rec->folderId = $folders[$menuId];
+            $rec->_notModified = true;
+            $Articles->route($rec);
+            $Articles->save($rec);
+            
+            if ($rec->state == 'rejected') {
+                doc_Threads::rejectThread($rec->threadId);
+            }
+        }
+    }
+    
+    
+    /**
+     * Пакетът не се де-инсталира, докато има статии
+     */
+    public function canDeinstall()
+    {
+        if (core_Packs::isInstalled('blogm') && blogm_Articles::count()) {
+            
+            return false;
+        }
+        
+        return parent::canDeinstall();
+    }
+    
+    
+    /**
+     * Защо пакетът не може да се де-инсталира
+     */
+    public function getCannotDeinstallHint()
+    {
+        return 'Пакетът не може да бъде де-инсталиран, защото има създадени статии в блога.';
+    }
+    
+    
+    /**
+     * Ключовите думи на статиите включват и коментарите
+     */
+    public function repairSearchKeywords2640()
+    {
+        core_CallOnTime::setCall('plg_Search', 'repairSearchKeywords', 'blogm_Articles', dt::addSecs(120));
     }
 }

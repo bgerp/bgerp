@@ -37,6 +37,12 @@ class doc_reports_ActivatedDocumentsByTime extends frame2_driver_TableData
      * @var int
      */
     protected $summaryListFields = 'counter';
+
+
+    /**
+     * С колко знака да се закръглят полетата в обобщаващия ред
+     */
+    protected $summaryDecimals = 'counter=0';
     
     
     /**
@@ -71,6 +77,12 @@ class doc_reports_ActivatedDocumentsByTime extends frame2_driver_TableData
 
 
     /**
+     * Кои полета от таблицата са цени/суми
+     */
+    protected $priceListFields = 'amount';
+
+
+    /**
      * Кои полета са за избор на период
      */
     protected $periodFields = 'from,to';
@@ -100,10 +112,10 @@ class doc_reports_ActivatedDocumentsByTime extends frame2_driver_TableData
     /**
      * След рендиране на единичния изглед
      *
-     * @param cat_ProductDriver $Driver
-     * @param embed_Manager     $Embedder
-     * @param core_Form         $form
-     * @param stdClass          $data
+     * @param frame2_driver_Proto $Driver
+     * @param embed_Manager       $Embedder
+     * @param core_Form           $form
+     * @param stdClass            $data
      */
     protected static function on_AfterInputEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$form)
     {
@@ -319,10 +331,10 @@ class doc_reports_ActivatedDocumentsByTime extends frame2_driver_TableData
     /**
      * След рендиране на единичния изглед
      *
-     * @param cat_ProductDriver $Driver
-     * @param embed_Manager     $Embedder
-     * @param core_ET           $tpl
-     * @param stdClass          $data
+     * @param frame2_driver_Proto $Driver
+     * @param embed_Manager       $Embedder
+     * @param core_ET             $tpl
+     * @param stdClass            $data
      */
     protected static function on_AfterRenderSingle(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$tpl, $data)
     {

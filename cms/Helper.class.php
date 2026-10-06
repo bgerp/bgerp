@@ -59,8 +59,11 @@ class cms_Helper extends core_BaseClass
         // Ако потребителя не е логнат да се показва статус, подканващ към логване
         $info = new ET("<div id='editStatus'><div class='warningMsg'>[#1#] [#link#]</div></div>", tr('Ако имате регистрация, моля логнете се от|* '));
         $retUrl = array('bgerp_Portal', 'show');
-        $js = 'w=window.open("' . toUrl(array('core_Users', 'login', 'ret_url' => $retUrl, 'popup' => 1)) . '","Login","width=484,height=303,resizable=no,scrollbars=no,location=0,status=no,menubar=0,resizable=0,status=0"); if(w) w.focus();';
+        $theme = cms_ProtoTheme::getCurrent();
+        $loginWindow = $theme->loginWindowFeatures;
+        $js = 'w=window.open("' . toUrl(array('core_Users', 'login', 'ret_url' => $retUrl, 'popup' => 1)) . '","Login","' . $loginWindow . ',location=0,status=no,menubar=0"); if(w) w.focus();';
         $loginHtml = "<a href='javascript:void(0)' oncontextmenu='{$js}' onclick='{$js}' style='text-decoration:underline;font-weight:bold'>" . tr('тук||here') . '</a>';
+        $theme->prepareLoginNote($info, $loginHtml, $js);
         $info->append($loginHtml, 'link');
         
         $form->info = new core_ET('[#1#][#2#]', $form->info, $info);

@@ -18,6 +18,23 @@ class doc_plg_LlmExportable extends core_Plugin
 {
 
     /**
+     * Системна бележка в LLM експорта, поставяна веднага след елемента, за който се отнася
+     *
+     * Ползва се в режим 'renderForLlm' за всичко, което моделът трябва да знае, а в интерфейса
+     * се вижда само като иконка, цвят или хинт (напр. вирус във файл - fileman_RichTextPlg::getLlmTag).
+     * Текстът е кратък и винаги на английски, без tr().
+     *
+     * @param string $text - текстът на бележката
+     *
+     * @return string - [!bgERP: текст]
+     */
+    public static function systemNote($text)
+    {
+        return '[!bgERP: ' . trim((string) $text) . ']';
+    }
+
+
+    /**
      * Рендира документа в LLM-четим маркдаун формат.
      *
      * @param core_Mvc $mvc
@@ -34,7 +51,15 @@ class doc_plg_LlmExportable extends core_Plugin
 
         // Рендираме веднъж нормалния `plain` HTML, без renderForAI, за да останат
         // групиращите редове, междинните суми и останалата таблична структура.
-        $content = doc_plg_TxtExportable::renderDocumentHtml($mvc, $id);
+        // В renderForLlm режим прикачените файлове се рендират като [file=XXXXXX] тагове с размер,
+        // а не като линкове за сваляне (виж fileman_Files::getLink)
+        // Показаното само визуално (иконки, хинтове) се губи - за него виж self::systemNote()
+        Mode::push('renderForLlm', true);
+        try {
+            $content = doc_plg_TxtExportable::renderDocumentHtml($mvc, $id);
+        } finally {
+            Mode::pop('renderForLlm');
+        }
         $content = self::prepareHtmlForMarkitdown($content);
 
         $string = '';
@@ -52,6 +77,10 @@ class doc_plg_LlmExportable extends core_Plugin
         if ($string === '') {
             $string = self::convertHtmlToLlmMarkdown($content);
         }
+
+        // Ако извикващият е рендирал файловете като линкове (напр. по-стар пакет без 'renderForLlm'),
+        // те се превръщат в [file=XXXXXX] тагове
+        $string = fileman_RichTextPlg::replaceFileLinksWithLlmTags($string);
         $row = doc_plg_TxtExportable::getVerbalRow($mvc, $rec);
 
         $authorName = doc_plg_TxtExportable::getAuthorName($mvc, $rec);
@@ -135,7 +164,8 @@ class doc_plg_LlmExportable extends core_Plugin
 
         $result = preg_replace('/\n{2,}/', "\n", $result);
 
-        return trim($result);
+        // Текстовите линкове към файлове (от рендиране без 'renderForLlm') стават [file=XXXXXX] тагове
+        return fileman_RichTextPlg::replaceFileLinksWithLlmTags(trim($result));
     }
 
 

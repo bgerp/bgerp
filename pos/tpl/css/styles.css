@@ -839,6 +839,30 @@ select.tabHolder {
 .newContragentBtn {
   background: #a162ca; }
 
+.transferStoresToggleBtn {
+  background: #374bbe;
+  color: white !important; }
+  .transferStoresToggleBtn.active {
+    background: #1d2a6e;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.5); }
+
+.transferStoreBtn {
+  font-size: 1.05em;
+  background: #374bbe;
+  color: white !important;
+  text-decoration: none; }
+
+.transferStoreModal .transferModalBtn {
+  font-size: 1.05em; }
+  .transferStoreModal .transferModalBtn .small {
+    font-size: 0.75em;
+    opacity: 0.85; }
+  .transferStoreModal .transferModalBtn.newTransferBtn {
+    background: #374bbe;
+    color: white !important; }
+  .transferStoreModal .transferModalBtn.state-pending {
+    color: #333333 !important; }
+
 .subBatch {
   font-weight: bold;
   font-style: italic;

@@ -77,7 +77,7 @@ class newsbar_News extends core_Master
         $this->FLD('newStartTime', 'datetime(format=smartTime)', 'caption=Показване на новината->Начало, input=hidden,silent,column=none');
         $this->FLD('newEndTime', 'datetime(defaultTime=23:59:59,format=smartTime)', 'caption=Показване на новината->Край,input=hidden,silent,column=none');
         
-        $this->FLD('domainId', 'key(mvc=cms_Domains, select=titleExt)', 'caption=Показване в->Домейн,notNull,defValue=bg,mandatory,autoFilter, removeAndRefreshForm=menu|eshopProducts, silent');
+        $this->FLD('domainId', 'key(mvc=cms_Domains, select=titleExt)', 'caption=Показване в->Домейн,notNull,defValue=bg,mandatory,autoFilter, removeAndRefreshForm=menu|eshopProducts|position, silent');
         $this->FLD('position', 'enum(topPage=В началото,bottomHeader=Над менюто,topContent=Преди съдържанието, bottomContent=След съдържанието, topNav=Над навигацията, bottomNav=Под навигацията, beforeFooter=Преди футър, afterFooter=След футър)', 'caption=Показване в->Позиция, notNull, mandatory');
         $this->FLD('menu', 'keylist(mvc=cms_Content,select=menu)', 'caption=Филтриране при показване->Меню');
         $this->FLD('articles', 'keylist(mvc=cms_Articles,select=title)', 'caption=Филтриране при показване->Статии');
@@ -292,6 +292,17 @@ class newsbar_News extends core_Master
         if (empty($form->rec->id)) {
             $form->setDefault('domainId', cms_Domains::getCurrent());
         }
+
+        // Темата на домейна на новината, не на текущия
+        $theme = !empty($rec->domainId) ? cms_Domains::getDriver($rec->domainId) : null;
+        if ($theme instanceof cms_ProtoTheme) {
+            $defaultPositions = $form->fields['position']->type->options;
+            $positions = $defaultPositions;
+            $theme->prepareNewsbarPositions($positions, $rec);
+            if ($positions !== $defaultPositions) {
+                $form->setOptions('position', $positions);
+            }
+        }
         
         if (empty($form->rec->padding)) {
             $form->setDefault('padding', 10);
@@ -411,7 +422,7 @@ class newsbar_News extends core_Master
     public static function generateHTML($rec)
     {
         $rgb = static::hex2rgb($rec->color);
-        $hexTransparency = dechex($rec->transparency * 255);
+        $hexTransparency = dechex((int) ($rec->transparency * 255));
         $forIE = '#'. $hexTransparency. str_replace('#', '', $rec->color);
         
         $text = '';
@@ -426,10 +437,9 @@ class newsbar_News extends core_Master
             $text .= $rec->newsHtml;
         }
         
-        $html = new ET("<div class=\"[#class#]\" style=\"<!--ET_BEGIN padding-->padding: [#padding#]px;<!--ET_END padding-->background-color: rgb([#r#], [#g#], [#b#]);
+        $html = new ET("<div class=\"[#class#]\" style=\"padding: [#padding#]px;background-color: rgb([#r#], [#g#], [#b#]);
             										   background-color: rgba([#r#], [#g#], [#b#], [#transparency#]);
-                                                       <!--ET_BEGIN borderColor--> border: 1px solid [#borderColor#];
-                                                       border-style: solid;<!--ET_END borderColor-->
+                                                       border: [#borderWidth#]px solid [#borderColor#];
                           filter:progid:DXImageTransform.Microsoft.gradient(startColorstr=[#ie#], endColorstr=[#ie#]);
                           -ms-filter: 'progid:DXImageTransform.Microsoft.gradient(startColorstr=[#ie#], endColorstr=[#ie#])';
                           zoom: 1;\">
@@ -440,8 +450,9 @@ class newsbar_News extends core_Master
         $html->replace($rgb[1], 'g');
         $html->replace($rgb[2], 'b');
         $html->replace($rec->transparency, 'transparency');
-        $html->replace($rec->border, 'borderColor');
-        $html->replace($rec->padding, 'padding');
+        $html->replace(empty($rec->border) ? 0 : 1, 'borderWidth');
+        $html->replace($rec->border ?: 'transparent', 'borderColor');
+        $html->replace((int) ($rec->padding ?? 0), 'padding');
         $html->replace($forIE, 'ie');
         
         return $html;

@@ -886,7 +886,7 @@ class acc_Items extends core_Manager
         $lists = keylist::addKey('', acc_Lists::fetchBySystemId($listSysId)->id);
         
         // Имали от същата номенклатура перо с такова име
-        $item = static::fetch("#title = '{$title}' AND #lists LIKE '%{$lists}%'");
+        $item = static::fetch(array("#title = '[#1#]' AND #lists LIKE '%[#2#]%'", $title, $lists));
         
         // Ако няма го създаваме
         if (empty($item)) {
@@ -1059,7 +1059,7 @@ class acc_Items extends core_Manager
                 $this->cache['indexedItems'][$rec->classId . '|' . $rec->objectId] = $rec;
             }
             core_Debug::stopTimer('CACHE_ITEMS');
-            core_Debug::log("GET CACHED_ITEMS " . round(core_Debug::$timers["CACHE_ITEMS"]->workingTime, 6));
+            core_Debug::log("GET CACHED_ITEMS " . round(core_Debug::$timers["CACHE_ITEMS"]->workingTime ?? 0, 6));
         }
         
         return $this->cache;

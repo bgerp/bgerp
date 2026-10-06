@@ -180,7 +180,7 @@ class email_Spam extends email_ServiceEmails
                     $score = email_Mime::getHeadersFromArr($headerArr, $header);
                     
                     if (!is_numeric($score)) {
-                        if (preg_match('/score\s*=\s*([0-9\.]+)(\s|$|[^0-9])/i', $score, $matches)) {
+                        if (preg_match('/score\s*=\s*(-?[0-9]+(?:\.[0-9]+)?)/i', $score, $matches)) {
                             $score = $matches[1];
                         }
                     }
@@ -345,10 +345,10 @@ class email_Spam extends email_ServiceEmails
                 
                 foreach ($nHeadersArr as $header) {
                     
-                    if (preg_match("/{$header}\s*:\s*([0-9\.]+)/i", $data, $matches)) {
+                    if (preg_match("/{$header}\s*:\s*(-?[0-9]+(?:\.[0-9]+)?)/i", $data, $matches)) {
                         $score = $matches[1];
                     } else {
-                        if (preg_match("/{$header}\s*:\s*[\w|\W]*score\s*=\s*([0-9\.]+)(\s|\n|[^0-9])/i", $data, $matches)) {
+                        if (preg_match("/{$header}\s*:\s*[\w|\W]*score\s*=\s*(-?[0-9]+(?:\.[0-9]+)?)/i", $data, $matches)) {
                             $score = $matches[1];
                         }
                     }

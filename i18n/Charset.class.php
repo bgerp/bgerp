@@ -457,7 +457,7 @@ class i18n_Charset extends core_MVC
             }
             
             if ($cs && (@self::iconv(self::iconv($text, $cs), 'UTF-8', $cs) != $text)) {
-                unset($cs);
+                $cs = null;
             }
             
             if (!$cs) {
@@ -1164,8 +1164,9 @@ class i18n_Charset extends core_MVC
      */
     public static function convertToUtf8($text, $fromCharsets = array(), $isHtml = false)
     { 
-        $bFrom = $fromCharsets;        
-        
+        $bFrom = $fromCharsets;
+        $fromCharset = null;
+
         if (preg_match('%^(?:
       [\x09\x0A\x0D\x20-\x7E]            # ASCII
     | [\xC2-\xDF][\x80-\xBF]             # non-overlong 2-byte

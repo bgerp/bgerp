@@ -1,3 +1,58 @@
+function ganttInit() {
+	$('.gantt-chart').each(function () {
+		var elem = $(this);
+		if (!elem.is(':visible') || elem.data('ganttRendered')) return;
+		elem.data('ganttRendered', true);
+		ganttRender(elem, JSON.parse(elem.attr('data-gantt')));
+	});
+}
+
+function render_ganttInit() {
+	ganttInit();
+}
+
+// Скритите мобилни табове се изчертават след показването им.
+$(document).off('click.gantt').on('click.gantt', function () { setTimeout(ganttInit, 0); });
+$(window).off('resize.gantt').on('resize.gantt', function () {
+	$('.gantt-chart:visible').empty().removeData('ganttRendered');
+	ganttInit();
+});
+
+// Частите на една задача остават заедно; застъпването се смята по видимите пиксели.
+function ganttTaskLanes(bars, rowCount) {
+	var rows = [];
+	for (var r = 0; r < rowCount; r++) rows.push({tasks: {}, lanes: 1});
+	bars.forEach(function (bar) {
+		var tasks = rows[bar.row].tasks;
+		var task = tasks[bar.task];
+		if (!task) task = tasks[bar.task] = {left: bar.left, right: bar.left + bar.width, bars: []};
+		task.left = Math.min(task.left, bar.left);
+		task.right = Math.max(task.right, bar.left + bar.width);
+		task.bars.push(bar);
+	});
+	rows.forEach(function (row) {
+		var tasks = Object.keys(row.tasks).map(function (key) { return row.tasks[key]; });
+		tasks.sort(function (a, b) { return a.left - b.left || b.right - a.right; });
+		var lanes = [];
+		tasks.forEach(function (task) {
+			var lane = 0;
+			while (lane < lanes.length && task.bars.some(function (bar) {
+				return lanes[lane].some(function (placed) {
+					return bar.left < placed.left + placed.width + 2 && placed.left < bar.left + bar.width + 2;
+				});
+			})) lane++;
+			if (!lanes[lane]) lanes[lane] = [];
+			task.bars.forEach(function (bar) {
+				bar.lane = lane;
+				lanes[lane].push(bar);
+			});
+		});
+		row.lanes = Math.max(1, lanes.length);
+	});
+
+	return rows;
+}
+
 function ganttRender(elem,ganttData) {
 	if($(ganttData).length){
 		//генериране на html-a, необходим за начертаването на гант-а
@@ -126,23 +181,28 @@ function ganttRender(elem,ganttData) {
 		
 		//пресмятане на оптималната ширина на scroll-table
 		var winw = $(window).width();
-		var ganttTaskWidth = $('.gantt-tasks').width();
-		var ganttTaskOffset = $('.gantt-tasks').offset().left;
+		var ganttTaskWidth = elem.find('.gantt-tasks').width();
+		var ganttTaskOffset = elem.find('.gantt-tasks').offset().left;
 		var customWidth = winw - ganttTaskWidth - 2 * ganttTaskOffset;
+		var isPortal = elem.closest('.portal-tasks-gantt').length > 0;
+		var fitWidth = isPortal || elem.closest('.listBlock.cal_Tasks').length > 0;
+		if (fitWidth) {
+			customWidth = Math.max(100, elem.width() - ganttTaskWidth - 4);
+		}
 		
 		//пресмятане на ширината на клетка
 		var tdWidth = currentGraphChart.find('tbody tr:last td:first').outerWidth() + 1 ;
 		
-		$('.overflow-cell').css('max-width', tdWidth - 3);
+		elem.find('.overflow-cell').css('max-width', tdWidth - 3);
 		
 		
 		//свиване на получената ширина на scroll-table, ако "реже" колона
-		if(customWidth % tdWidth != 0){
+		if(!fitWidth && customWidth % tdWidth != 0){
 			customWidth = customWidth -1  - customWidth % tdWidth ;
 		}
 		
 		//ако има нужда от скролиране
-		if(currentTable.width() > customWidth){
+		if(fitWidth || currentTable.width() > customWidth){
 			//задаване на изчислената ширина
 			$(currentTable).css("width", customWidth);
 		}
@@ -154,13 +214,13 @@ function ganttRender(elem,ganttData) {
 		var marginFromCell = 5;
 		
 		//височината на ТН-тата
-		var thHeight = currentGraphChart.find('tbody tr:first th:first').outerHeight() ;
+		var thHeight = currentGraphChart.find(fitWidth ? 'tbody tr:first' : 'tbody tr:first th:first').outerHeight();
 		
 		//височината на TH-тата + разстоянието, което искаме да има от началото на клетката
 		var headerHeight = 2 * thHeight + marginFromCell;
 		
 		//височината на ТД-тата
-		var tdHeight = currentGraphChart.find('tbody tr:last td:last').outerHeight() ;
+		var tdHeight = currentGraphChart.find(fitWidth ? 'tbody tr:last' : 'tbody tr:last td:last').outerHeight();
 		
 		//начало и край на таблицата в секунди
 		var end = parseInt(ganttData['otherParams']['endTime']);
@@ -217,6 +277,7 @@ function ganttRender(elem,ganttData) {
 			$(currentTable).append( $( futureBlock ) );
 		}
 		
+		var taskBars = [];
 		//за всяка задача
 		jQuery.each( ganttData['tasksData'], function( i, val ) {
 			
@@ -269,9 +330,10 @@ function ganttRender(elem,ganttData) {
 					
 					//създаваме линк за съответната задача
 					var addedAnchor = document.createElement( "a" );
+					var progressAnchor = null;
 					
 					if(progress > 0){
-						var progressAnchor = document.createElement( "a" );
+						progressAnchor = document.createElement( "a" );
 					}
 					
 					//ако задачата се пада извън таблицата
@@ -315,14 +377,9 @@ function ganttRender(elem,ganttData) {
 						//ширина на задачата
 						var widthTask = duration /secPerPX;
 					
-						if ($(addedAnchor).hasClass ('dashed-left')){
-							widthTask = widthTask - 1;
-						}	
-						
-						//ако представянето на задачата е по-малко от 3пх да стане 3пх
-						if(widthTask < 3){
-							widthTask = 3;
-						}
+						// Кратките задачи остават видими, включително до десния край на периода.
+						widthTask = Math.min(Math.floor(ganttWidth), Math.max(8, Math.floor(widthTask)));
+						offsetInPx = Math.max(0, Math.min(Math.floor(offsetInPx), Math.floor(ganttWidth) - widthTask));
 						
 						//по-късите задачи да излизат по-отгоре
 						var zIndex = parseInt(1000 - widthTask);
@@ -363,11 +420,7 @@ function ganttRender(elem,ganttData) {
 						
 						
 						//за да имаме уникално id за всяка задача, дори и да е за няколко ресурса
-						if(resouceCounter > 1){
-							$(addedAnchor).attr('id', taskid + "("+ resouceCounter + ")");
-						}else{
-							$(addedAnchor).attr('id', taskid);
-						}
+						$(addedAnchor).attr('id', elem.attr('id') + '-task-' + taskid + '-' + resouceCounter + '-' + currentPartNumber);
 						
 						//брой символи на taskid
 						var countOfChars = taskid.length;
@@ -389,9 +442,32 @@ function ganttRender(elem,ganttData) {
 						if(progressAnchor){
 							$(currentTable).append( $( progressAnchor ) );
 						}
+						taskBars.push({task: i, row: Number(valRow), left: offsetInPx, width: widthTask,
+							element: addedAnchor, progress: progressAnchor});
 					}
 				}
 			});
 		});
+
+		var rowLayout = ganttTaskLanes(taskBars, rows);
+		var graphRows = currentGraphChart.find('tr').slice(2);
+		var resourceRows = elem.find('.gantt-tasks tr').slice(2);
+		rowLayout.forEach(function (row, index) {
+			graphRows.eq(index).height(row.lanes * tdHeight);
+			resourceRows.eq(index).height(row.lanes * tdHeight);
+		});
+		var rowTops = [];
+		var bodyHeight = 0;
+		graphRows.each(function () {
+			rowTops.push($(this).offset().top - currentTable.offset().top);
+			bodyHeight += $(this).outerHeight();
+		});
+		taskBars.forEach(function (bar) {
+			var top = rowTops[bar.row] + marginFromCell + bar.lane * tdHeight;
+			$(bar.element).css('top', top);
+			if (bar.progress) $(bar.progress).css('top', top);
+		});
+		currentTable.find('.current-line').height(bodyHeight);
+		currentTable.find('.future-block').height(bodyHeight - 1);
 	}
 }

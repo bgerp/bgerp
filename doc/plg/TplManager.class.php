@@ -335,17 +335,17 @@ class doc_plg_TplManager extends core_Plugin
     public static function on_AfterPrepareSingle(core_Mvc $mvc, &$res, &$data)
     {
         // Ако има избран шаблон
-        if ($data->rec->template) {
+        if (!empty($data->rec->template)) {
             $toggleFields = doc_TplManager::fetchField($data->rec->template, 'toggleFields');
             
             // Ако има данни, за кои полета да се показват от мастъра
-            if (countR($toggleFields) && $toggleFields['masterFld'] !== null) {
+            if (countR($toggleFields) && isset($toggleFields['masterFld'])) {
                 
                 // Полетата които трябва да се показват
                 $fields = arr::make($toggleFields['masterFld']);
                 
                 // Всички полета, които могат да се скриват/показват
-                $toggleFields = arr::make($mvc->toggleFields);
+                $toggleFields = arr::make($mvc->toggleFields ?? null);
                 
                 // Намират се засичането на двата масива с полета
                 $intersect = array_keys(array_intersect_key((array) $data->row, $toggleFields));
@@ -380,6 +380,8 @@ class doc_plg_TplManager extends core_Plugin
                 
                 try {
                     $data->row->blankQrClient = barcode_Generator::getLink('qr', $qrString, array('width' => 87, 'height' => 87), $params);
+                } catch (core_exception_Redirect $e) {
+                    throw $e;
                 } catch (Exception $e) {
                     reportException($e);
                 }

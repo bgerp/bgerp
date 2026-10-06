@@ -177,6 +177,8 @@ class pwa_Plugin extends core_Plugin
                     if (method_exists('pwa_Settings', 'ensureWebrootFilesForDomain')) {
                         pwa_Settings::ensureWebrootFilesForDomain($dId);
                     }
+                } catch (core_exception_Redirect $e) {
+                    throw $e;
                 } catch (Throwable $e) {
                     reportException($e);
                 }

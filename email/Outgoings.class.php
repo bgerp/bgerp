@@ -220,7 +220,6 @@ class email_Outgoings extends core_Master
         $this->FLD('waiting', 'time', 'input=none, caption=Изчакване');
         $this->FLD('lastSendedOn', 'datetime(format=smartTime)', 'input=none, caption=Изпратено->на');
         $this->FLD('lastSendedBy', 'key(mvc=core_Users)', 'caption=Изпратено->От, notNull, input=none');
-        $this->FLD('autoReplyRuleId', 'key(mvc=email_AutomaticResponse)', 'caption=Автоматичен отговор->Правило,input=none');
         $this->FLD('forward', 'enum(,no=Не, yes=Да)', 'caption=Препращане, input=hidden, allowEmpty');
         
         //Данни за адресата
@@ -236,7 +235,6 @@ class email_Outgoings extends core_Master
         $this->FLD('address', 'varchar', 'caption=Адресат->Адрес,class=contactData,changable');
         
         $this->setDbIndex('createdOn');
-        //$this->setDbIndex('lastSendedOn,autoReplyRuleId');
     }
     
     
@@ -421,7 +419,7 @@ class email_Outgoings extends core_Master
         $oEmails = $options->emailsTo;
 
         $groupEmailsArr = array();
-        $groupEmailsArr['cc'][0] = $options->emailsCc;
+        $groupEmailsArr['cc'][0] = $options->emailsCc ?? null;
 
         // Ако не сме променили имейлите
         if (trim($rEmails) == trim($oEmails)) {
@@ -480,7 +478,7 @@ class email_Outgoings extends core_Master
         foreach ($groupEmailsArr['to'] as $key => $emailTo) {
 
             // Вземаме имейлите от cc
-            $emailsCc = $groupEmailsArr['cc'][$key];
+            $emailsCc = $groupEmailsArr['cc'][$key] ?? null;
 
             // Конфигурацията на пакета
             $conf = core_Packs::getConfig('email');
@@ -662,9 +660,10 @@ class email_Outgoings extends core_Master
             $saveArray['id'] = 'id';
             $saveArray['modifiedOn'] = 'modifiedOn';
             $saveArray['modifiedBy'] = 'modifiedBy';
+            $waiting = $options->waiting ?? null;
 
             // Ако имейла е активен или чернова и не е въведено време за изчакване
-            if (!$options->waiting && ($rec->state == 'active' || $rec->state == 'draft' || $rec->state == 'pending')) {
+            if (!$waiting && (($rec->state ?? null) == 'active' || ($rec->state ?? null) == 'draft' || ($rec->state ?? null) == 'pending')) {
 
                 // Сменяме състоянието на затворено
                 $nRec->state = 'closed';
@@ -672,10 +671,10 @@ class email_Outgoings extends core_Master
             }
 
             // Ако ще се изчаква
-            if ($options->waiting) {
+            if ($waiting) {
 
                 // Добавяме времето на изчкаваме и състоянието
-                $nRec->waiting = $options->waiting;
+                $nRec->waiting = $waiting;
                 $nRec->state = 'waiting';
                 $saveArray['state'] = 'state';
                 $saveArray['waiting'] = 'waiting';
@@ -2769,11 +2768,12 @@ class email_Outgoings extends core_Master
         }
         
         if (Mode::is('externalThreadView')) {
-            $data->row->ExternalThreadViewDate = $data->rec->ExternalThreadViewDate;
-            $data->row->ExternalThreadViewTo = $data->rec->ExternalThreadViewTo;
-            $data->row->ExternalThreadViewCc = $data->rec->ExternalThreadViewCc;
-            $data->row->ExternalThreadViewFrom = $data->rec->ExternalThreadViewFrom;
-            $data->row->ExternalThreadViewAvatar = $data->rec->ExternalThreadViewAvatar;
+            // Полетата се задават в bgerp_L само ако има данни за изпращането (To/Cc - само ако не са празни)
+            $data->row->ExternalThreadViewDate = $data->rec->ExternalThreadViewDate ?? null;
+            $data->row->ExternalThreadViewTo = $data->rec->ExternalThreadViewTo ?? null;
+            $data->row->ExternalThreadViewCc = $data->rec->ExternalThreadViewCc ?? null;
+            $data->row->ExternalThreadViewFrom = $data->rec->ExternalThreadViewFrom ?? null;
+            $data->row->ExternalThreadViewAvatar = $data->rec->ExternalThreadViewAvatar ?? null;
         }
         
         //Полета До и Към
@@ -3211,7 +3211,7 @@ class email_Outgoings extends core_Master
                 );
             }
         }
-        
+
         if ($mvc->haveRightFor('close', $data->rec)) {
             $data->toolbar->addBtn('Затваряне', array($mvc, 'close', $data->rec->id, 'ret_url' => true), array('ef_icon' => 'img/16/gray-close.png', 'title' => 'Спиране на изпращането'));
         }
@@ -3678,7 +3678,7 @@ class email_Outgoings extends core_Master
         $currUserId = core_Users::getCurrent();
         
         // Ако имаме корпоративен акаунт
-        if ($corpAccId = $corpAccRec->id) {
+        if ($corpAccId = ($corpAccRec->id ?? null)) {
             
             // Корпоративния имейла на потребиеля
             $currUserCorpEmail = mb_strtolower(email_Inboxes::getUserEmail());
@@ -3886,6 +3886,8 @@ class email_Outgoings extends core_Master
                 email_Outgoings::logDebug('Успешно изпратен имейл CID=' . $r->containerId, $oRec->id);
 
                 $succ++;
+            } catch (core_exception_Redirect $e) {
+                throw $e;
             } catch (Exception $e) {
                 email_Outgoings::logDebug('Грешка при изпращане на имейл CID=' . $r->containerId, $oRec->id ?? null);
                 $err++;

@@ -758,7 +758,7 @@ class fileman_Files extends core_Master
         $regExp .= '$';
         
         // Добавяме регулярния израз за търсене
-        $query->where("LOWER(#name) REGEXP '{$regExp}'");
+        $query->where(array("LOWER(#name) REGEXP '[#1#]'", $regExp));
         
         // Ако сме открили запис
         if ($rec = $query->fetch()) {
@@ -1354,7 +1354,7 @@ class fileman_Files extends core_Master
             include(dirname(__FILE__) . '/data/ext2mime.inc.php');
             
             // Разширение на файла
-            $ext = mb_substr($fileName, $dotPos + 1);
+            $ext = mb_strtolower(mb_substr($fileName, $dotPos + 1));
 
             return $ext2mime["{$ext}"] ?? null;
         }
@@ -1488,6 +1488,12 @@ class fileman_Files extends core_Master
             //Името на файла
             $name = static::getVerbal($fRec, 'name');
         }
+
+        // При рендиране за LLM файлът не е линк, а bbCode таг с хендлъра, името и размера му
+        if (Mode::is('renderForLlm')) {
+
+            return fileman_RichTextPlg::getLlmTag($fh, $name, $fRec->fileLen ?? null, $fRec);
+        }
         
         //Разширението на файла
         $ext = static::getExt($fRec->name);
@@ -1545,7 +1551,7 @@ class fileman_Files extends core_Master
                     
                     if (self::isDanger($fRec)) {
                         $attr['class'] .= ' dangerFile';
-                        $vName = $attr['title'] ? $attr['title'] : $nameFix;
+                        $vName = !empty($attr['title']) ? $attr['title'] : $nameFix;
                         $attr['title'] = '|Файл с вирус|*: ' . $vName;
                         if (is_array($url)) {
                             $url['currentTab'] = 'info';
@@ -2093,7 +2099,7 @@ class fileman_Files extends core_Master
     {
         expect(haveRole('user'));
         
-        $id = Request::get('id');
+        $id = Request::get('id', 'int');
         
         expect($id);
         

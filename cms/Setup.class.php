@@ -134,7 +134,8 @@ class cms_Setup extends core_ProtoSetup
         'cms_GalleryImages',
         'cms_Library',
         'migrate::domainFiles',
-        'migrate::updateDomainState2449'
+        'migrate::updateDomainState2449',
+        'migrate::forceContentFolders2640',
     );
     
     
@@ -210,6 +211,7 @@ class cms_Setup extends core_ProtoSetup
         // Добавяме класа връщащ темата в core_Classes
         $html .= core_Classes::add('cms_DefaultTheme');
         $html .= core_Classes::add('cms_FancyTheme');
+        $html .= core_Classes::add('cms_CommerceTheme');
 
         return $html;
     }
@@ -273,5 +275,23 @@ class cms_Setup extends core_ProtoSetup
         $stateColName = str::phpToMysqlName('state');
         $query = "UPDATE {$Domain->dbTableName} SET {$stateColName} = 'active' WHERE {$stateColName} IS NULL OR {$stateColName} = ''";
         $Domain->db->query($query);
+    }
+    
+    
+    /**
+     * Създава папки на менютата, чийто източник е документ
+     */
+    public function forceContentFolders2640()
+    {
+        $Content = cls::get('cms_Content');
+        $Content->setupMvc();
+        
+        $query = $Content->getQuery();
+        $query->where('#folderId IS NULL');
+        while ($rec = $query->fetch()) {
+            if (cms_Content::isFolderCover($rec)) {
+                $Content->forceCoverAndFolder($rec);
+            }
+        }
     }
 }

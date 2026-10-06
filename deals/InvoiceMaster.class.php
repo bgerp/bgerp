@@ -736,6 +736,9 @@ abstract class deals_InvoiceMaster extends core_Master
             $SourceRec = $Source->fetch("currencyId,{$Source->valiorFld}");
             if (is_array($detailsToSave)) {
                 foreach ($detailsToSave as $det) {
+                    // Закръгляне, за да се хванат и остатъци от изваждане на дробни к-ва
+                    if (round($det->quantity ?? 0, 5) == 0) continue;
+
                     if($SourceRec->currencyId == 'BGN'){
                         $det->price = deals_Helper::getSmartBaseCurrency($det->price, $SourceRec->{$Source->valiorFld}, $rec->date);
                     } else {
@@ -1044,10 +1047,13 @@ abstract class deals_InvoiceMaster extends core_Master
             // При промяна да се показва поле за редакция на кешираните допълнителни условия от банковата сметка
             if($mvc->cacheAdditionalConditions){
                 $exRec = $mvc->fetch($rec->id, 'additionalConditions,accountId', false);
-                $defaultCondition = $exRec->additionalConditions[0];
-                if($rec->accountId != $exRec->accountId){
-                    if($rec->accountId){
-                        $ownBankAccountId = bank_OwnAccounts::fetchField($rec->accountId, 'bankAccountId');
+                $defaultCondition = $exRec->additionalConditions[0] ?? null;
+
+                // Ако сметката я няма във формата, значи не е сменена
+                $accountId = property_exists($rec, 'accountId') ? $rec->accountId : ($exRec->accountId ?? null);
+                if($accountId != ($exRec->accountId ?? null)){
+                    if($accountId){
+                        $ownBankAccountId = bank_OwnAccounts::fetchField($accountId, 'bankAccountId');
                         $lang = $rec->tplLang ?? doc_TplManager::fetchField($rec->template, 'lang');
                         $defaultCondition = bank_Accounts::getDocumentConditionFor($ownBankAccountId, 'sales_Sales', $lang);
                     } else {
@@ -1376,13 +1382,16 @@ abstract class deals_InvoiceMaster extends core_Master
             }
         }
 
-        if ($rec->state == 'active') {
+        if (($rec->state ?? null) == 'active') {
             if (empty($rec->dueDate)) {
+
+                // При частичен запис датата може да липсва в записа
+                $date = $rec->date ?? (!empty($rec->id) ? $mvc->fetchField($rec->id, 'date') : null);
 
                 if(isset($rec->paymentMethodId)){
                     if($firstDocument = doc_Threads::getFirstDocument($rec->threadId)){
                         $aggregateInfo = $firstDocument->getAggregateDealInfo();
-                        $plan = cond_PaymentMethods::getPaymentPlan($rec->paymentMethodId, $aggregateInfo->get('amount'), $rec->date);
+                        $plan = cond_PaymentMethods::getPaymentPlan($rec->paymentMethodId, $aggregateInfo->get('amount'), $date);
                         if (($plan['eventBalancePayment'] ?? null) == 'invEndOfMonth' && !empty($plan['deadlineForBalancePayment'])) {
                             if(empty($rec->dueTime) && empty($rec->dueDate)){
                                 $rec->dueDate = $plan['deadlineForBalancePayment'];
@@ -1395,7 +1404,7 @@ abstract class deals_InvoiceMaster extends core_Master
                     $dueTime = !empty($rec->dueTime) ? $rec->dueTime : sales_Setup::get('INVOICE_DEFAULT_VALID_FOR');
 
                     if ($dueTime) {
-                        $rec->dueDate = dt::verbal2mysql(dt::addSecs($dueTime, $rec->date), false);
+                        $rec->dueDate = dt::verbal2mysql(dt::addSecs($dueTime, $date), false);
                     }
                 }
             }
@@ -1421,10 +1430,10 @@ abstract class deals_InvoiceMaster extends core_Master
         // Ако е променено условието от банковата сметка - записва се
         if($mvc->cacheAdditionalConditions){
             if(isset($rec->__isBeingChanged) && $rec->__isBeingChanged){
-                if(md5(str::removeWhiteSpace($rec->additionalConditions[0])) != md5(str::removeWhiteSpace($rec->additionalConditionsInput))){
+                if(md5(str::removeWhiteSpace($rec->additionalConditions[0] ?? null)) != md5(str::removeWhiteSpace($rec->additionalConditionsInput ?? null))){
                     $rec->_changedCondition = true;
                 }
-                $rec->additionalConditions[0] = $rec->additionalConditionsInput;
+                $rec->additionalConditions[0] = $rec->additionalConditionsInput ?? null;
             }
         }
     }
@@ -1541,7 +1550,7 @@ abstract class deals_InvoiceMaster extends core_Master
                     } else {
                         $bgId = drdata_Countries::getIdByName('Bulgaria');
                         if (($rec->contragentCountryId ?? null) == $bgId) {
-                            $row->vatReason = ht::createHint($row->vatReason, 'При неначисляване на ДДС на контрагент от "България", трябва да е посочено основание|*!', 'error');
+                            $row->vatReason = ht::createHint($row->vatReason ?? '', 'При неначисляване на ДДС на контрагент от "България", трябва да е посочено основание|*!', 'error');
                         }
                     }
                 }

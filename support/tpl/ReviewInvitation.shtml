@@ -1,0 +1,24 @@
+<div class="support-review-invitation">
+    <div class="support-review-intro">
+        <span class="support-review-intro-icon" aria-hidden="true">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 11.5a8.5 8.5 0 0 1-8.5 8.5H4l-3 3v-11A8.5 8.5 0 0 1 9.5 3h3a8.5 8.5 0 0 1 8.5 8.5Z"/>
+                <path d="m11 6 1.5 3 3.3.5-2.4 2.3.6 3.3-3-1.6-3 1.6.6-3.3-2.4-2.3L9.5 9Z"/>
+            </svg>
+        </span>
+        <p>[#INVITATION#]</p>
+    </div>
+    <div class="support-review-text-header">
+        <span id="supportReviewTextLabel">[#LABEL#]</span>
+        <button type="button" class="support-review-copy" data-review-copy>
+            <img src="[#COPY_ICON#]" width="16" height="16" alt="" aria-hidden="true" data-review-copy-icon>
+            <span aria-hidden="true" data-review-check hidden>✓</span>
+            <span data-review-copy-label>[#COPY#]</span>
+        </button>
+    </div>
+    <p class="support-review-message" data-review-message role="status" aria-live="polite" aria-atomic="true"></p>
+    <div id="supportReviewText" class="support-review-text" tabindex="0" role="region" aria-labelledby="supportReviewTextLabel">[#TEXT#]</div>
+    <div class="support-review-actions">
+        [#LINK#]
+    </div>
+</div>

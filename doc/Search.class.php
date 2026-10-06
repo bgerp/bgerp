@@ -67,7 +67,7 @@ class doc_Search extends core_Manager
      */
     public function description()
     {
-        $this->forceProxy('doc_Containers');
+        $this->forceReplica('doc_Containers');
     }
     
     
@@ -81,7 +81,7 @@ class doc_Search extends core_Manager
         $data->listFilter->FNC('scopeFolderId', 'key2(mvc=doc_Folders, allowEmpty, , maxSuggestions=5)', ' silent,width=100%,caption=Обхват,placeholderType=all');
         $data->listFilter->FNC('fromDate', 'date', 'input,silent,caption=От,width=140px, placeholder=Дата');
         $data->listFilter->FNC('toDate', 'date', 'input,silent,caption=До,width=140px, placeholder=Дата');
-        $data->listFilter->FNC('author', 'type_Users(rolesForAll=user)', 'caption=Автор');
+        $data->listFilter->FNC('author', 'type_Users(rolesForAll=user,showUsersWithoutTeam=yes)', 'caption=Автор');
         $data->listFilter->FNC('withMe', 'enum(,shared_with_me=Споделени с мен, liked_from_me=Харесани от мен,tag_from_me=Тагнати от мен)', 'caption=Само, placeholderType=all');
         $data->listFilter->FNC('toDateHorizon', 'time', 'silent');
 
@@ -108,11 +108,15 @@ class doc_Search extends core_Manager
             $cloneQuery = clone $data->query;
             $visibleColabDocClasses = arr::extractValuesFromArray($cloneQuery->fetchAll(), 'docClass');
             foreach ($visibleColabDocClasses as $visibleDocClass){
-                $docClassesOption[$visibleDocClass] = core_Classes::getTitleById($visibleDocClass);
+                $docClassesOption[$visibleDocClass] = tr(core_Classes::getTitleById($visibleDocClass));
             }
             $data->listFilter->setOptions('docClass', $docClassesOption);
         } else {
-            $data->listFilter->showFields = 'search, scopeFolderId, docClass,  author, withMe, tags, state, fromDate, toDate';
+            $listFilter = $data->listFilter ?? null;
+            $listFilter->showFields = 'search, docClass, state, scopeFolderId, author, withMe, tags, fromDate, toDate';
+            if (!Mode::is('screenMode', 'narrow')) {
+                $listFilter->setFieldAttr('withMe', array('style' => 'width:180px;'));
+            }
         }
 
         $data->listFilter->toolbar->addSbBtn('Търсене', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
@@ -377,9 +381,11 @@ class doc_Search extends core_Manager
                 $data->query->useIndex($useIndex);
             }
 
-            /**
-             * Останалата част от заявката - търсенето по ключови думи - ще я допълни plg_Search
-             */
+            // The search plugin has already added the text predicates at this point.
+            if (!empty($filterRec->search) && (!empty($filterRec->scopeFolderId)
+                || (!empty($filterRec->docClass) && (!empty($filterRec->fromDate) || !empty($filterRec->toDate))))) {
+                plg_Search::restrictToScope($data->query);
+            }
 
             // Ако ще се филтира по състояни и текущия потребител (автор)
             if (!empty($filterRec->state)) {
@@ -637,6 +643,8 @@ class doc_Search extends core_Manager
                         }
                     }
                 }
+            } catch (core_exception_Redirect $e) {
+                throw $e;
             } catch (Exception $e) {
                 continue;
             }

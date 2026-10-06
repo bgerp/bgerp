@@ -1,0 +1,11 @@
+<div class='cms-row eshop-layout eshop-layout-full'>
+    <div class='cms-last eshop-content'>
+        [#PAGE_CONTENT#]
+        <div class='bulletin-link clearfix21'></div>
+        <!--ET_BEGIN SOCIAL-->
+        <div class='clearfix21'></div>
+        [#SOCIAL#]
+        [#social_Sharings::getButtons#]
+        <!--ET_END SOCIAL-->
+    </div>
+</div>

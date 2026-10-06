@@ -328,7 +328,7 @@ class doc_SharablePlg extends core_Plugin
                     $firstRec = $firstDoc->fetch();
                     if(($form->rec->containerId ?? null) != $firstRec->containerId) {
                         foreach ($contractorIds as $contractorId) {
-                            if($firstRec->createdBy != $contractorId && !keylist::isIn($contractorId, $firstRec->sharedUsers)) {
+                            if($firstRec->createdBy != $contractorId && !keylist::isIn($contractorId, $firstRec->sharedUsers ?? null)) {
                                 if(!haveRole('powerPartner', $contractorId)) {
                                     unset($contractorIds[$contractorId]);
                                 }

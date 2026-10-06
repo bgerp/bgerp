@@ -19,7 +19,7 @@ class core_String
 {
     /**
      * Конвертира всички европейски азбуки,
-     * включително и кирилицата, но без гръцката към латиница
+     * включително кирилицата и гръцката, към латиница
      *
      * @param string $text текст за конвертиране
      *
@@ -964,6 +964,8 @@ class core_String
         });
         try {
             eval('$result = ' . $expr . ';');
+        } catch (core_exception_Redirect $t) {
+            throw $t;
         } catch (Exception $t) {
             $error = $t->getMessage();
             $result = null;
@@ -972,8 +974,9 @@ class core_String
             $error = $t->getMessage();
             $result = null;
             $success = false;
+        } finally {
+            restore_error_handler();
         }
-        restore_error_handler();
         
         return $result;
     }
@@ -2247,11 +2250,12 @@ class core_String
          *
          * Lookahead-ът сега включва и точка (за "Владайска река 2."),
          * освен запетая, интервал и маркер за следваща част.
+         * Номерът може да е отделен и със запетая ("ул. Черни връх, 76а").
          */
         $streetRe = '/(?:^|[\s,])'
             . '(?:(?:ул(?:ица)?|бул(?:евард)?|пл(?:ощад)?|str(?:eet)?|st|ave(?:nue)?|rd|road)\.?\s*)?'
             . '([0-9\p{L}][0-9\p{L}\s\-\'\.]*?[0-9\p{L}\.])'
-            . '\s+№?\s*#?\s*'
+            . '(?:\s*,\s*|\s+)№?\s*#?\s*'
             . '(\d+[\p{L}]?(?:[-\/]\d+[\p{L}]?)?)'
             . '(?=$|[\s,\.]|\s+(?:магазин|маг|офис|апартамент|ап|етаж|ет|вход|вх|блок|бл)\b)/iu';
 

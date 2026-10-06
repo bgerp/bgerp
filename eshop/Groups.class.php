@@ -17,6 +17,12 @@
 class eshop_Groups extends core_Master
 {
     /**
+     * Служебна група с резултатите от търсенето
+     */
+    const SEARCH_SYSTEM_ID = -3;
+
+
+    /**
      * Заглавие
      */
     public $title = 'Онлайн магазин';
@@ -314,6 +320,19 @@ class eshop_Groups extends core_Master
      */
     public function act_ShowAll()
     {
+        // При филтри по параметри търсенето е списък на намерените е-артикули, като група.
+        // Менюто се задава първо, иначе настройките са на друг домейн
+        $q = trim((string) Request::get('q', 'varchar'));
+        if (strlen($q)) {
+            $menuId = Request::get('cMenuId', 'int');
+            cms_Content::setCurrent($menuId ? $menuId : cms_Content::getDefaultMenuId($this));
+            if (eshop_ParamFilter::isEnabled()) {
+                Request::push(array('id' => self::SEARCH_SYSTEM_ID));
+
+                return $this->act_Show();
+            }
+        }
+
         // Поставя временно външният език, за език на интерфейса
         $lang = cms_Domains::getPublicDomain('lang');
         core_Lg::push($lang);
@@ -349,13 +368,14 @@ class eshop_Groups extends core_Master
 
             $layout->append(eshop_Favourites::renderFavouritesBtnInNavigation(), 'NAVIGATION_FAV');
             $layout->append(eshop_Carts::renderLastOrderedProductsBtnInNavigation(), 'NAVIGATION_OTHER_BTNS');
+            $layout->append(eshop_ParamFilter::renderHint('Изберете група или потърсете в търсачката, за да се покажат филтрите'), 'NAVIGATION_FILTERS');
             $layout->append(cms_Articles::renderNavigation($data), 'NAVIGATION');
-            
+
             $seoRec = new stdClass();
             $cRec = cms_Content::fetch($data->menuId);
             $seoRec->seoTitle = $cRec->title;
             cms_Content::prepareSeo($seoRec);
-            $layout->append('<h1>' . type_Varchar::escape($cRec->title) . '</h1>', 'PAGE_CONTENT');
+            $layout->append('<h1 class="eshop-catalog-title">' . type_Varchar::escape($cRec->title) . '</h1>', 'PAGE_CONTENT');
             $layout->append($this->renderAllGroups($data), 'PAGE_CONTENT');
             cms_Content::renderSeo($layout, $seoRec);
         } else {
@@ -447,6 +467,7 @@ class eshop_Groups extends core_Master
         $layout->append(eshop_Favourites::renderFavouritesBtnInNavigation(), 'NAVIGATION_FAV');
         $layout->append(eshop_Carts::renderLastOrderedProductsBtnInNavigation(), 'NAVIGATION_OTHER_BTNS');
 
+        $layout->append(eshop_ParamFilter::renderNavigation($data->products), 'NAVIGATION_FILTERS');
         $layout->append(cms_Articles::renderNavigation($data), 'NAVIGATION');
         $layout->append($this->renderGroup($data), 'PAGE_CONTENT');
         
@@ -460,8 +481,12 @@ class eshop_Groups extends core_Master
         $conf = core_Packs::getConfig('eshop');
         Mode::set('BrowserCacheExpires', $conf->ESHOP_BROWSER_CACHE_EXPIRES);
 
-        if (core_Packs::fetch("#name = 'vislog'") && isset($groupRec)) {
-            vislog_History::add('Група «' . $groupRec->name . '»');
+        if (core_Packs::fetch("#name = 'vislog'")) {
+            if (isset($groupRec)) {
+                vislog_History::add('Група «' . $groupRec->name . '»');
+            } elseif ($data->groupId == self::SEARCH_SYSTEM_ID) {
+                vislog_History::add('Търсене в продуктите: ' . ($data->q ?? ''));
+            }
         }
         
         // Премахва зададения временно текущ език
@@ -486,6 +511,34 @@ class eshop_Groups extends core_Master
     }
     
     
+    /**
+     * Активните подгрупи от всички нива под групата, видими в менюто
+     *
+     * @param int $groupId
+     * @param int $menuId
+     *
+     * @return array - ид => запис с id и showProductsWithoutPrices
+     */
+    public static function getSubgroups($groupId, $menuId)
+    {
+        $res = array();
+        $parentIds = array($groupId => $groupId);
+        while (countR($parentIds)) {
+            $query = self::getQuery();
+            $query->where(array("#state = 'active' AND (#menuId = '[#1#]' OR LOCATE('|[#1#]|', #sharedMenus))", $menuId));
+            $query->in('saoParentId', $parentIds);
+            $query->show('id,showProductsWithoutPrices');
+
+            // Без вече обходените - при сгрешена структура да не се зацикли
+            $recs = array_diff_key($query->fetchAll(), $res, array($groupId => $groupId));
+            $res += $recs;
+            $parentIds = arr::extractValuesFromArray($recs, 'id');
+        }
+
+        return $res;
+    }
+
+
     /**
      * Подготвя данните за показването на страницата със всички групи
      */
@@ -528,6 +581,9 @@ class eshop_Groups extends core_Master
         } elseif($data->groupId == eshop_Carts::LAST_SALES_SYSTEM_ID){
             $settings = cms_Domains::getSettings();
             $row->name = str::mbUcfirst($settings->lastOrderedProductBtnCaption);
+        } elseif($data->groupId == self::SEARCH_SYSTEM_ID){
+            $data->q = trim((string) Request::get('q', 'varchar'));
+            $row->name = tr('Търсене на') . ' „' . type_Varchar::escape($data->q) . '“';
         } else {
             $row->name = $this->getVerbal($rec, 'name');
             if ($rec->image) {
@@ -542,12 +598,21 @@ class eshop_Groups extends core_Master
 
         $data->products = new stdClass();
         $data->products->groupId = $data->groupId;
+        $data->products->menuId = $data->menuId;
+        $data->products->q = $data->q ?? null;
+        $data->products->withParamFilter = ($data->groupId > 0 || $data->groupId == self::SEARCH_SYSTEM_ID);
+        $data->products->withSubgroups = ($data->groupId > 0);
 
         if($data->groupId > 0){
             $this->prepareAllGroups($data, $data->groupId);
         }
 
         eshop_Products::prepareGroupList($data->products);
+
+        // При избор по параметри се показват само намерените, без плочките на подгрупите
+        if (!empty($data->products->paramFilter->selected)) {
+            $data->recs = array();
+        }
     }
     
     
@@ -583,7 +648,7 @@ class eshop_Groups extends core_Master
         
         if (is_array($data->recs ?? null)) {
             foreach ($data->recs as $rec) {
-                $tpl = new ET(getFileContent('eshop/tpl/GroupButton.shtml'));
+                $tpl = new ET(getFileContent(cms_ProtoTheme::getCurrent()->getTemplate('eshop/tpl/GroupButton.shtml')));
                 
                 if (!empty($rec->icon)) {
                     $img = new thumb_Img($rec->icon, 600, 450, 'fileman');
@@ -609,6 +674,9 @@ class eshop_Groups extends core_Master
     {
         $groupTpl = getTplFromFile('eshop/tpl/SingleGroupShow.shtml');
         $groupTpl->setRemovableBlocks(array('PRODUCT'));
+        if (in_array($data->groupId, array(eshop_Favourites::FAVOURITE_SYSTEM_GROUP_ID, eshop_Carts::LAST_SALES_SYSTEM_ID))) {
+            $groupTpl->replace('eshop-personal-group', 'groupClass');
+        }
         $groupTpl->placeArray($data->row);
         
         // Добавяне на подгрупите
@@ -626,10 +694,15 @@ class eshop_Groups extends core_Master
         }
 
         $groupTpl->append(eshop_Products::renderGroupList($data->products), 'PRODUCTS');
+        if ($data->groupId == self::SEARCH_SYSTEM_ID && !countR($data->products->rows)) {
+            $groupTpl->append("<p class='eshop-search-empty'>" . tr('Няма намерени артикули') . '</p>', 'PRODUCTS');
+        }
         
         // Рендираме данните за seo
         if($data->groupId > 0){
             cms_Content::renderSeo($groupTpl, $rec);
+        } elseif($data->groupId == self::SEARCH_SYSTEM_ID) {
+            $groupTpl->prependOnce(strip_tags($data->row->name) . ' » ', 'PAGE_TITLE');
         } elseif(in_array($data->groupId, array(eshop_Favourites::FAVOURITE_SYSTEM_GROUP_ID, eshop_Carts::LAST_SALES_SYSTEM_ID))) {
             $settings = cms_Domains::getSettings();
             $seoTitle = ($data->groupId == eshop_Favourites::FAVOURITE_SYSTEM_GROUP_ID) ? $settings->favouriteProductBtnCaption : $settings->lastOrderedProductBtnCaption;
@@ -657,9 +730,12 @@ class eshop_Groups extends core_Master
             $layout = 'eshop/tpl/AllProducts.shtml';
         }
         
-        Mode::set('cmsLayout', $layout);
+        Mode::set('cmsLayout', cms_ProtoTheme::getCurrent()->getTemplate($layout));
         
-        return new ET();
+        $tpl = new ET();
+        cms_ProtoTheme::getCurrent()->addAssets($tpl, 'shop');
+
+        return $tpl;
     }
     
     
@@ -744,7 +820,7 @@ class eshop_Groups extends core_Master
             $l->selected = ($groupId == $rec->id);
             
             if ($this->haveRightFor('edit', $rec)) {
-                $l->editLink = ht::createLink($editImg, array('eshop_Groups', 'edit', $rec->id, 'ret_url' => true));
+                $l->editLink = ht::createLink($editImg, array('eshop_Groups', 'edit', $rec->id, 'ret_url' => true), null, array('class' => 'eshop-edit-link', 'title' => 'Редактиране на групата'));
             }
 
             if(isset($rec->seoTitle)) {
@@ -866,6 +942,17 @@ class eshop_Groups extends core_Master
         }
 
         return $items;
+    }
+    
+    
+    /**
+     * Добавя полетата за настройки на менюто, специфични за източника
+     *
+     * @param core_FieldSet $fieldset
+     * @return void
+     */
+    public function addContentSettingsFields($fieldset)
+    {
     }
 
 
@@ -1001,7 +1088,7 @@ class eshop_Groups extends core_Master
      */
     protected static function on_AfterPrepareListTitle($mvc, $res, $data)
     {
-        $data->title .= cms_Domains::getCurrentDomainInTitle();
+        $data->title .= cms_Domains::getCurrentDomainInTitle($data);
     }
     
     

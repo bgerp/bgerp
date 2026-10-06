@@ -235,11 +235,19 @@ class cat_Setup extends core_ProtoSetup
         'cat_ParamFormulaVersions',
         'cat_products_Relations',
         'cat_RelationTypes',
+        'cat_products_ParamIndex',
+        'cat_products_ParamIndexState',
+        'cat_products_EshopParamIndex',
         'migrate::repairSearchKeywords2536',
         'migrate::calcExpand36Field2445v2',
         'migrate::updateFiltersCreatedBy2625',
         'migrate::deleteHsCode2609',
         'migrate::dropOldBomDetailsProductId2609',
+        'migrate::setFilterableParams2639',
+        'migrate::markProductsForParamIndex2639',
+        'migrate::setDefaultFilterableParams2640v2',
+        'migrate::markEshopProductsForParamIndex2640',
+        'migrate::deleteParamIndexStateWithoutProduct2640',
     );
     
     
@@ -346,6 +354,24 @@ class cat_Setup extends core_ProtoSetup
             'period' => 60,
             'offset' => 10,
             'timeLimit' => 300
+        ),
+        array(
+            'systemId' => 'Update Param Index',
+            'description' => 'Обновяване на индекса на параметрите за филтриране',
+            'controller' => 'cat_products_ParamIndex',
+            'action' => 'UpdateDirty',
+            'period' => 5,
+            'offset' => 2,
+            'timeLimit' => 240
+        ),
+        array(
+            'systemId' => 'Mark Stale Param Index',
+            'description' => 'Маркиране на остарелия индекс на параметрите',
+            'controller' => 'cat_products_ParamIndex',
+            'action' => 'MarkStale',
+            'period' => 1440,
+            'offset' => 180,
+            'timeLimit' => 60
         ),
         array(
             'systemId' => 'Recalc Last Used Packs',
@@ -546,5 +572,66 @@ class cat_Setup extends core_ProtoSetup
         // Артикулът е останал в старата колона - пренася се само където няма записан
         $Detail->db->query("UPDATE `{$tbl}` SET `{$col}` = `{$oldCol}` WHERE (`{$col}` IS NULL OR `{$col}` = 0) AND `{$oldCol}` IS NOT NULL");
         $Detail->db->query("ALTER TABLE `{$tbl}` DROP COLUMN `{$oldCol}`");
+    }
+
+
+    /**
+     * Параметрите, показвани в е-магазина, стават филтрируеми
+     */
+    public function setFilterableParams2639()
+    {
+        cls::get('cat_Params')->setupMvc();
+        cat_products_ParamIndex::setEshopParamsFilterable();
+    }
+
+
+    /**
+     * Параметрите, чийто тип по подразбиране е филтрируем, стават филтрируеми
+     */
+    public function setDefaultFilterableParams2640v2()
+    {
+        cls::get('cat_Params')->setupMvc();
+        cls::get('cat_products_ParamIndex')->setupMvc();
+        cls::get('cat_products_ParamIndexState')->setupMvc();
+        cat_products_ParamIndex::setDefaultFilterableParams();
+    }
+
+
+    /**
+     * Маркиране на артикулите от е-артикулите за пълнене на индекса на е-магазина
+     */
+    public function markEshopProductsForParamIndex2640()
+    {
+        cls::get('cat_products_ParamIndexState')->setupMvc();
+        cls::get('cat_products_EshopParamIndex')->setupMvc();
+        cat_products_ParamIndexState::markEshopChanged();
+    }
+
+
+    /**
+     * Изтриване на състоянията на индекса без артикул (от е-артикули без артикул)
+     */
+    public function deleteParamIndexStateWithoutProduct2640()
+    {
+        $State = cls::get('cat_products_ParamIndexState');
+
+        // Ако моделът още не е създаден, няма какво да се чисти
+        if (!$State->db->tableExists($State->dbTableName)) {
+
+            return;
+        }
+
+        cat_products_ParamIndexState::delete('#productId IS NULL OR #productId <= 0');
+    }
+
+
+    /**
+     * Маркиране на всички артикули за първоначално пълнене на индекса на параметрите
+     */
+    public function markProductsForParamIndex2639()
+    {
+        cls::get('cat_products_ParamIndex')->setupMvc();
+        cls::get('cat_products_ParamIndexState')->setupMvc();
+        cat_products_ParamIndexState::markMissing();
     }
 }

@@ -58,7 +58,9 @@ class colab_Search extends doc_Search
 
         if ($action == 'list') {
             $sharedFolders = colab_Folders::getSharedFolders($userId);
-            if(!countR($sharedFolders)) return;
+            if (!countR($sharedFolders)) {
+                $requiredRoles = 'no_one';
+            }
         }
     }
 
@@ -93,15 +95,46 @@ class colab_Search extends doc_Search
         $cu = core_Users::getCurrent();
 
         $sharedFolders = colab_Folders::getSharedFolders($cu);
+        if (!countR($sharedFolders)) {
+            $query->where('1 = 2');
+
+            return;
+        }
 
         $query->EXT('firstContainerId', 'doc_Threads', 'externalKey=threadId');
         $query->EXT('threadVisibleForPartners', 'doc_Threads', 'externalName=visibleForPartners,externalKey=threadId');
-        $query->EXT('threadCreatedBy', 'doc_Threads', 'externalName=createdBy,externalKey=threadId');
         $query->in('folderId', $sharedFolders);
 
         $query->where("#visibleForPartners = 'yes' AND #threadVisibleForPartners = 'yes'");
-        if(!haveRole('powerPartner', $cu)){
-            $query->where("#threadCreatedBy = {$cu}");
+        $isPowerPartner = haveRole('powerPartner', $cu);
+        $visibleThreads = array();
+        $draftConditions = array("#state NOT IN ('draft', 'rejected')");
+        foreach ($sharedFolders as $folderId) {
+            $folderId = (int) $folderId;
+            $sharedUsers = colab_Folders::getSharedUsers($folderId);
+            $sharedUsers[$cu] = $cu;
+            $sharedUsers = implode(',', array_map('intval', $sharedUsers));
+            // Същите чернови и оттеглени документи, които се показват в colab_Threads::act_Single().
+            $draftConditions[] = "(#folderId = {$folderId} AND #createdBy IN ({$sharedUsers}))";
+
+            if (!$isPowerPartner) {
+                // Използваме правилата за споделени и анонимно създадени нишки от списъка с нишки.
+                $threadQuery = colab_Threads::getQuery(array('folderId' => $folderId));
+                $threadQuery->show('id');
+                while ($threadRec = $threadQuery->fetch()) {
+                    $threadId = (int) ($threadRec->id ?? 0);
+                    $visibleThreads[$threadId] = $threadId;
+                }
+            }
+        }
+        $query->where(implode(' OR ', $draftConditions));
+
+        if (!$isPowerPartner) {
+            if (countR($visibleThreads)) {
+                $query->in('threadId', $visibleThreads);
+            } else {
+                $query->where('1 = 2');
+            }
         }
     }
 }

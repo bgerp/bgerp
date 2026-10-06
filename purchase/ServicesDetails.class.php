@@ -129,14 +129,16 @@ class purchase_ServicesDetails extends deals_DeliveryDocumentDetail
      */
     public static function on_AfterPrepareListRows(core_Mvc $mvc, $data)
     {
+        $tplLang = $data->masterData->rec->tplLang ?? null;
         $date = ($data->masterData->rec->state == 'draft') ? null : $data->masterData->rec->modifiedOn;
+        $tplLang = $data->masterData->rec->tplLang ?? null;
         
         if (countR($data->rows)) {
             foreach ($data->rows as $i => &$row) {
                 $rec = &$data->recs[$i];
                 core_RowToolbar::createIfNotExists($row->_rowTools);
                 cat_Products::addButtonsToDocToolbar($rec->productId, $row->_rowTools, $mvc->className, $rec->id);
-                $row->productId = cat_Products::getAutoProductDesc($rec->productId, $date, 'title', 'public', $data->masterData->rec->tplLang);
+                $row->productId = cat_Products::getAutoProductDesc($rec->productId, $date, 'title', 'public', $tplLang);
                 deals_Helper::addNotesToProductRow($row->productId, $rec->notes);
             }
         }

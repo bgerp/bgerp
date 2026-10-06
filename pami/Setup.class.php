@@ -321,8 +321,8 @@ class pami_Setup extends core_ProtoSetup
         // Парсираме резултата от ps -fp <PID> команда и взимаме командната линия на процеса
         @exec('ps -fp ' . $pid, $output);
         
-        // Ако командата се съдържа в резултата от ps значи процеса е нашия
-        if (strpos($output[1], $cmd) !== false) {
+        // Ако командата се съдържа в резултата от ps значи процеса е нашия (ако няма такъв процес, ps връща само заглавния ред)
+        if (isset($output[1]) && strpos($output[1], $cmd) !== false) {
             
             return true;
         }

@@ -211,6 +211,18 @@ header {
     position: relative;
 }
 
+.wide .externalPage > header::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 40px;
+    z-index: 2;
+    pointer-events: none;
+    background: linear-gradient(to bottom, transparent, rgba(0, 0, 0, 0.6));
+}
+
 .wide .externalPage .formTable {
     float: left;
 }

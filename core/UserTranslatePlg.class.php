@@ -119,9 +119,9 @@ class core_UserTranslatePlg extends core_Plugin
         }
         
         if (!Mode::is('forSearch') && $part && ($uTranslateFields[$part] ?? null) && ($rec->{$part} ?? null)) {
-            $trArr = explode('|', $uTranslateFields[$part]->translate);
+            $trArr = explode('|', $uTranslateFields[$part]->translate ?? '');
             
-            $val = $rec->{$part};
+            $val = $rec->{$part} ?? '';
             
             $tr = null;
             
@@ -142,11 +142,16 @@ class core_UserTranslatePlg extends core_Plugin
                     $lg = ucfirst(core_Lg::getCurrent());
                     $lgPart = $part . $lg;
                     if (strlen(trim($rec->{$lgPart} ?? '')) && (($rec->{$lgPart} ?? null) != ($rec->{$part} ?? null))) {
-                        $tr = $rec->{$lgPart};
+                        $tr = $rec->{$lgPart} ?? null;
                         break;
                     }
                 } elseif ($tName == 'user') {
-                    $uTranslate = core_UserTranslates::getUserTranslatedStr($mvc->getClassId(), $rec->id, core_Lg::getCurrent(), $part, $rec->{$part});
+                    $recId = $rec->id ?? null;
+                    if (!$recId) {
+                        continue;
+                    }
+
+                    $uTranslate = core_UserTranslates::getUserTranslatedStr($mvc->getClassId(), $recId, core_Lg::getCurrent(), $part, $val);
                     if (isset($uTranslate)) {
                         $tr = $uTranslate;
                         

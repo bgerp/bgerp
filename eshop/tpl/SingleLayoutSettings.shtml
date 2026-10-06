@@ -1,0 +1,453 @@
+<div class="singleView eshopProduct">
+   [#SingleToolbar#]
+   <h2 class="block_title [#STATE_CLASS#]" style='padding:5px'>[#SingleIcon#] |Е-маг|*: <b style="color:green;display:inline-block;word-break:break-all">[#objectId#]</b></h2>
+   <fieldset class="detail-info">
+      <legend class="groupTitle">|Информация|*</legend>
+      <div class="groupList">
+         <table class="noBorder" style='width:99%'>
+            <!--ET_BEGIN validFrom-->
+            <tr>
+               <td class="title-style" style='width:150px'>|В сила от|*:</td>
+               <td>[#validFrom#]</td>
+            </tr>
+            <!--ET_END validFrom-->
+            <!--ET_BEGIN validUntil-->
+            <tr>
+               <td class="title-style" style='width:150px'>|В сила до|*:</td>
+               <td>[#validUntil#]</td>
+            </tr>
+            <!--ET_END validUntil-->
+            <tr>
+               <td class="title-style" style='width:150px'>|Създаване|*:</td>
+               <td>[#createdOn#] |от|* [#createdBy#]</td>
+            </tr>
+            <!--ET_BEGIN modifiedOn-->
+            <tr>
+               <td class="title-style" style='width:150px'>|Модифициране|*:</td>
+               <td>[#modifiedOn#] |от|* [#modifiedBy#]</td>
+            </tr>
+            <!--ET_END modifiedOn-->
+         </table>
+      </div>
+   </fieldset>
+
+   <fieldset class="detail-info">
+      <legend class="groupTitle">|Плащане и цени|*</legend>
+      <div class="groupList">
+         <table class="noBorder" style='width:99%'>
+            <tr>
+               <td class="title-style" style='width:150px'>|Валута|*:</td>
+               <td>[#currencyId#]</td>
+            </tr>
+            <!--ET_BEGIN chargeVat-->
+            <tr>
+               <td class="title-style" style='width:150px'>|ДДС режим|*:</td>
+               <td>[#chargeVat#]</td>
+            </tr>
+            <!--ET_END chargeVat-->
+            <!--ET_BEGIN vatExceptionId-->
+            <tr>
+               <td class="title-style" style='width:150px'>|ДДС изключение|*:</td>
+               <td>[#vatExceptionId#]</td>
+            </tr>
+            <!--ET_END vatExceptionId-->
+            <!--ET_BEGIN payments-->
+            <tr>
+               <td class="title-style" style='width:150px'>|Методи на плащане|*:</td>
+               <td>[#payments#]</td>
+            </tr>
+            <!--ET_END payments-->
+            <!--ET_BEGIN minOrderAmount-->
+            <tr>
+               <td class="title-style" style='width:150px'>|Мин. поръчка|*:</td>
+               <td>[#minOrderAmount#]</td>
+            </tr>
+            <!--ET_END minOrderAmount-->
+            <!--ET_BEGIN listId-->
+            <tr>
+               <td class="title-style" style='width:150px'>|Политика|*:</td>
+               <td>[#listId#]</td>
+            </tr>
+            <!--ET_END listId-->
+            <!--ET_BEGIN discountType-->
+            <tr>
+               <td class="title-style" style='width:150px'>|Отстъпки|*:</td>
+               <td>[#discountType#]</td>
+            </tr>
+            <!--ET_END discountType-->
+         </table>
+      </div>
+   </fieldset>
+
+   <!--ET_BEGIN DELIVERY_BLOCK-->[#DELIVERY_BLOCK#]
+   <fieldset class="detail-info">
+      <legend class="groupTitle">|Доставка и наличности|*</legend>
+      <div class="groupList">
+         <table class="noBorder" style='width:99%'>
+            <!--ET_BEGIN terms-->
+            <tr>
+               <td class="title-style" style='width:150px'>|Условия на доставка|*:</td>
+               <td>[#terms#]</td>
+            </tr>
+            <!--ET_END terms-->
+            <!--ET_BEGIN countries-->
+            <tr>
+               <td class="title-style" style='width:150px'>|Държави|*:</td>
+               <td>[#countries#]</td>
+            </tr>
+            <!--ET_END countries-->
+            <!--ET_BEGIN freeDelivery-->
+            <tr>
+               <td class="title-style" style='width:150px'>|Безплатна доставка|*:</td>
+               <td>[#freeDelivery#]</td>
+            </tr>
+            <!--ET_END freeDelivery-->
+            <!--ET_BEGIN freeDeliveryByBus-->
+            <tr>
+               <td class="title-style" style='width:150px'>|Безплатна по маршрут|*:</td>
+               <td>[#freeDeliveryByBus#]</td>
+            </tr>
+            <!--ET_END freeDeliveryByBus-->
+            <!--ET_BEGIN takingFromOffice-->
+            <tr>
+               <td class="title-style" style='width:150px'>|До наш офис|*:</td>
+               <td>[#takingFromOffice#]</td>
+            </tr>
+            <!--ET_END takingFromOffice-->
+            <!--ET_BEGIN storeId-->
+            <tr>
+               <td class="title-style" style='width:150px'>|Склад|*:</td>
+               <td>[#storeId#]</td>
+            </tr>
+            <!--ET_END storeId-->
+            <!--ET_BEGIN otherStores-->
+            <tr>
+               <td class="title-style" style='width:150px'>|Други складове|*:</td>
+               <td>[#otherStores#]</td>
+            </tr>
+            <!--ET_END otherStores-->
+            <!--ET_BEGIN remoteStores-->
+            <tr>
+               <td class="title-style" style='width:150px'>|Външни складове|*:</td>
+               <td>[#remoteStores#]</td>
+            </tr>
+            <!--ET_END remoteStores-->
+            <!--ET_BEGIN locationId-->
+            <tr>
+               <td class="title-style" style='width:150px'>|Получаване от|*:</td>
+               <td>[#locationId#]</td>
+            </tr>
+            <!--ET_END locationId-->
+         </table>
+      </div>
+   </fieldset>
+   <!--ET_END DELIVERY_BLOCK-->
+
+   <!--ET_BEGIN SHOW_BLOCK-->[#SHOW_BLOCK#]
+   <fieldset class="detail-info">
+      <legend class="groupTitle">|Показване|*</legend>
+      <div class="groupList">
+         <table class="noBorder" style='width:99%'>
+            <!--ET_BEGIN showNavigation-->
+            <tr>
+               <td class="title-style" style='width:150px'>|Навигация|*:</td>
+               <td>[#showNavigation#]</td>
+            </tr>
+            <!--ET_END showNavigation-->
+            <!--ET_BEGIN paramFilterMode-->
+            <tr>
+               <td class="title-style" style='width:150px'>|Филтри по параметри|*:</td>
+               <td>[#paramFilterMode#]</td>
+            </tr>
+            <!--ET_END paramFilterMode-->
+            <!--ET_BEGIN paramFilterParams-->
+            <tr>
+               <td class="title-style" style='width:150px'>|Параметри (в този ред)|*:</td>
+               <td>[#paramFilterParams#]</td>
+            </tr>
+            <!--ET_END paramFilterParams-->
+            <!--ET_BEGIN rootNavigationName-->
+            <tr>
+               <td class="title-style" style='width:150px'>|Основна група|*:</td>
+               <td>[#rootNavigationName#] <!--ET_BEGIN showRootNavigation-->([#showRootNavigation#])<!--ET_END showRootNavigation--></td>
+            </tr>
+            <!--ET_END rootNavigationName-->
+            <!--ET_BEGIN showParams-->
+            <tr>
+               <td class="title-style" style='width:150px'>|Параметри (Изглед)|*:</td>
+               <td>[#showParams#]</td>
+            </tr>
+            <!--ET_END showParams-->
+            <!--ET_BEGIN showListParams-->
+            <tr>
+               <td class="title-style" style='width:150px'>|Параметри (Списък)|*:</td>
+               <td>[#showListParams#]</td>
+            </tr>
+            <!--ET_END showListParams-->
+            <!--ET_BEGIN showPacks-->
+            <tr>
+               <td class="title-style" style='width:150px'>|Опаковки/Мерки|*:</td>
+               <td>[#showPacks#]</td>
+            </tr>
+            <!--ET_END showPacks-->
+            <!--ET_BEGIN showProductsWithoutPrices-->
+            <tr>
+               <td class="title-style" style='width:150px'>|Без цени|*:</td>
+               <td>[#showProductsWithoutPrices#]</td>
+            </tr>
+            <!--ET_END showProductsWithoutPrices-->
+            <!--ET_BEGIN imageDisplayType-->
+            <tr>
+               <td class="title-style" style='width:150px'>|Изображения|*:</td>
+               <td>[#imageDisplayType#]</td>
+            </tr>
+            <!--ET_END imageDisplayType-->
+            <!--ET_BEGIN enableCart-->
+            <tr>
+               <td class="title-style" style='width:150px'>|Количка|*:</td>
+               <td>[#enableCart#]</td>
+            </tr>
+            <!--ET_END enableCart-->
+         </table>
+      </div>
+   </fieldset>
+   <!--ET_END SHOW_BLOCK-->
+
+   <!--ET_BEGIN ORDERS_BLOCK-->[#ORDERS_BLOCK#]
+   <fieldset class="detail-info">
+      <legend class="groupTitle">|Онлайн поръчки и запитвания|*</legend>
+      <div class="groupList">
+         <table class="noBorder" style='width:99%'>
+            <!--ET_BEGIN mandatoryEcartContactFields-->
+            <tr>
+               <td class="title-style" style='width:150px'>|Поръчки от|*:</td>
+               <td>[#mandatoryEcartContactFields#]</td>
+            </tr>
+            <!--ET_END mandatoryEcartContactFields-->
+            <!--ET_BEGIN inputCardBtn-->
+            <tr>
+               <td class="title-style" style='width:150px'>|Карта/ваучер|*:</td>
+               <td>[#inputCardBtn#]</td>
+            </tr>
+            <!--ET_END inputCardBtn-->
+            <!--ET_BEGIN locationIsMandatory-->
+            <tr>
+               <td class="title-style" style='width:150px'>|Локация на партньор|*:</td>
+               <td>[#locationIsMandatory#]</td>
+            </tr>
+            <!--ET_END locationIsMandatory-->
+            <!--ET_BEGIN mandatoryInquiryContactFields-->
+            <tr>
+               <td class="title-style" style='width:150px'>|Запитвания от|*:</td>
+               <td>[#mandatoryInquiryContactFields#]</td>
+            </tr>
+            <!--ET_END mandatoryInquiryContactFields-->
+            <!--ET_BEGIN mandatoryEGN-->
+            <tr>
+               <td class="title-style" style='width:150px'>|ЕГН|*:</td>
+               <td>[#mandatoryEGN#]</td>
+            </tr>
+            <!--ET_END mandatoryEGN-->
+            <!--ET_BEGIN mandatoryUicId-->
+            <tr>
+               <td class="title-style" style='width:150px'>|ЕИК|*:</td>
+               <td>[#mandatoryUicId#]</td>
+            </tr>
+            <!--ET_END mandatoryUicId-->
+            <!--ET_BEGIN mandatoryVatId-->
+            <tr>
+               <td class="title-style" style='width:150px'>|ДДС №|*:</td>
+               <td>[#mandatoryVatId#]</td>
+            </tr>
+            <!--ET_END mandatoryVatId-->
+            <!--ET_BEGIN dealerId-->
+            <tr>
+               <td class="title-style" style='width:150px'>|Търговец|*:</td>
+               <td>[#dealerId#]</td>
+            </tr>
+            <!--ET_END dealerId-->
+            <!--ET_BEGIN defaultStoreId-->
+            <tr>
+               <td class="title-style" style='width:150px'>|Склад на продажбите|*:</td>
+               <td>[#defaultStoreId#]</td>
+            </tr>
+            <!--ET_END defaultStoreId-->
+            <!--ET_BEGIN defaultCaseId-->
+            <tr>
+               <td class="title-style" style='width:150px'>|Каса на продажбите|*:</td>
+               <td>[#defaultCaseId#]</td>
+            </tr>
+            <!--ET_END defaultCaseId-->
+            <!--ET_BEGIN defaultMethodId-->
+            <tr>
+               <td class="title-style" style='width:150px'>|Плащане (анонимни)|*:</td>
+               <td>[#defaultMethodId#]</td>
+            </tr>
+            <!--ET_END defaultMethodId-->
+            <!--ET_BEGIN defaultTermId-->
+            <tr>
+               <td class="title-style" style='width:150px'>|Доставка (анонимни)|*:</td>
+               <td>[#defaultTermId#]</td>
+            </tr>
+            <!--ET_END defaultTermId-->
+            <!--ET_BEGIN inboxId-->
+            <tr>
+               <td class="title-style" style='width:150px'>|Имейл от|*:</td>
+               <td>[#inboxId#]</td>
+            </tr>
+            <!--ET_END inboxId-->
+         </table>
+      </div>
+   </fieldset>
+   <!--ET_END ORDERS_BLOCK-->
+
+   <!--ET_BEGIN TEXTS_BLOCK-->[#TEXTS_BLOCK#]
+   <fieldset class="detail-info">
+      <legend class="groupTitle">|Надписи и текстове|*</legend>
+      <div class="groupList">
+         <table class="noBorder" style='width:99%'>
+            <!--ET_BEGIN cartName-->
+            <tr>
+               <td class="title-style" style='width:150px'>|Количка|*:</td>
+               <td>[#cartName#]</td>
+            </tr>
+            <!--ET_END cartName-->
+            <!--ET_BEGIN addToCartBtn-->
+            <tr>
+               <td class="title-style" style='width:150px'>|Бутон за добавяне|*:</td>
+               <td>[#addToCartBtn#]</td>
+            </tr>
+            <!--ET_END addToCartBtn-->
+            <!--ET_BEGIN addProductText-->
+            <tr>
+               <td class="title-style" style='width:150px'>|При добавяне|*:</td>
+               <td>[#addProductText#]</td>
+            </tr>
+            <!--ET_END addProductText-->
+            <!--ET_BEGIN favouriteProductBtnCaption-->
+            <tr>
+               <td class="title-style" style='width:150px'>|Любими|*:</td>
+               <td>[#favouriteProductBtnCaption#]</td>
+            </tr>
+            <!--ET_END favouriteProductBtnCaption-->
+            <!--ET_BEGIN lastOrderedProductBtnCaption-->
+            <tr>
+               <td class="title-style" style='width:150px'>|Последно поръчани|*:</td>
+               <td>[#lastOrderedProductBtnCaption#]</td>
+            </tr>
+            <!--ET_END lastOrderedProductBtnCaption-->
+            <!--ET_BEGIN stoppedOptionName-->
+            <tr>
+               <td class="title-style" style='width:150px'>|Спрян артикул|*:</td>
+               <td>[#stoppedOptionName#]</td>
+            </tr>
+            <!--ET_END stoppedOptionName-->
+            <!--ET_BEGIN notInStockText-->
+            <tr>
+               <td class="title-style" style='width:150px'>|Липса на наличност|*:</td>
+               <td>[#notInStockText#]</td>
+            </tr>
+            <!--ET_END notInStockText-->
+            <!--ET_BEGIN remoteInStockText-->
+            <tr>
+               <td class="title-style" style='width:150px'>|Във външен склад|*:</td>
+               <td>[#remoteInStockText#]</td>
+            </tr>
+            <!--ET_END remoteInStockText-->
+            <!--ET_BEGIN saleEndedText-->
+            <tr>
+               <td class="title-style" style='width:150px'>|Изтекла продажба|*:</td>
+               <td>[#saleEndedText#]</td>
+            </tr>
+            <!--ET_END saleEndedText-->
+            <!--ET_BEGIN salePendingText-->
+            <tr>
+               <td class="title-style" style='width:150px'>|Предстояща продажба|*:</td>
+               <td>[#salePendingText#]</td>
+            </tr>
+            <!--ET_END salePendingText-->
+            <!--ET_BEGIN expectedDeliveryText-->
+            <tr>
+               <td class="title-style" style='width:150px'>|Очаквана доставка|*:</td>
+               <td>[#expectedDeliveryText#]</td>
+            </tr>
+            <!--ET_END expectedDeliveryText-->
+            <!--ET_BEGIN info-->
+            <tr>
+               <td class="title-style" style='width:150px'>|Под количката|*:</td>
+               <td>[#info#]</td>
+            </tr>
+            <!--ET_END info-->
+         </table>
+      </div>
+   </fieldset>
+   <!--ET_END TEXTS_BLOCK-->
+
+   <!--ET_BEGIN EMAIL_BLOCK-->[#EMAIL_BLOCK#]
+   <fieldset class="detail-info">
+      <legend class="groupTitle">|Имейл за направена поръчка|*</legend>
+      <div class="groupList">
+         <table class="noBorder" style='width:99%'>
+            <!--ET_BEGIN emailBodyIntroduction-->
+            <tr>
+               <td class="title-style" style='width:150px'>|Увод|*:</td>
+               <td>[#emailBodyIntroduction#]</td>
+            </tr>
+            <!--ET_END emailBodyIntroduction-->
+            <!--ET_BEGIN emailBodyFooter-->
+            <tr>
+               <td class="title-style" style='width:150px'>|Футър|*:</td>
+               <td>[#emailBodyFooter#]</td>
+            </tr>
+            <!--ET_END emailBodyFooter-->
+            <!--ET_BEGIN emailBodyContactTel-->
+            <tr>
+               <td class="title-style" style='width:150px'>|Телефон|*:</td>
+               <td>[#emailBodyContactTel#]</td>
+            </tr>
+            <!--ET_END emailBodyContactTel-->
+            <!--ET_BEGIN emailBodyContactEmail-->
+            <tr>
+               <td class="title-style" style='width:150px'>|Имейл|*:</td>
+               <td>[#emailBodyContactEmail#]</td>
+            </tr>
+            <!--ET_END emailBodyContactEmail-->
+         </table>
+      </div>
+   </fieldset>
+   <!--ET_END EMAIL_BLOCK-->
+
+   <!--ET_BEGIN CARTS_BLOCK-->[#CARTS_BLOCK#]
+   <fieldset class="detail-info">
+      <legend class="groupTitle">|Изтриване на неизползвани колички|*</legend>
+      <div class="groupList">
+         <table class="noBorder" style='width:99%'>
+            <!--ET_BEGIN lifetimeForEmptyDraftCarts-->
+            <tr>
+               <td class="title-style" style='width:150px'>|Празни|*:</td>
+               <td>[#lifetimeForEmptyDraftCarts#]</td>
+            </tr>
+            <!--ET_END lifetimeForEmptyDraftCarts-->
+            <!--ET_BEGIN lifetimeForNoUserDraftCarts-->
+            <tr>
+               <td class="title-style" style='width:150px'>|На анонимни|*:</td>
+               <td>[#lifetimeForNoUserDraftCarts#]</td>
+            </tr>
+            <!--ET_END lifetimeForNoUserDraftCarts-->
+            <!--ET_BEGIN lifetimeForUserDraftCarts-->
+            <tr>
+               <td class="title-style" style='width:150px'>|На потребители|*:</td>
+               <td>[#lifetimeForUserDraftCarts#]</td>
+            </tr>
+            <!--ET_END lifetimeForUserDraftCarts-->
+            <!--ET_BEGIN timeBeforeDelete-->
+            <tr>
+               <td class="title-style" style='width:150px'>|Нотификация|*:</td>
+               <td>[#timeBeforeDelete#] |преди изтриване|*</td>
+            </tr>
+            <!--ET_END timeBeforeDelete-->
+         </table>
+      </div>
+   </fieldset>
+   <!--ET_END CARTS_BLOCK-->
+</div>

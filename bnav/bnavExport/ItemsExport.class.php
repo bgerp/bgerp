@@ -78,10 +78,10 @@
     /**
      * След рендиране на единичния изглед
      *
-     * @param cat_ProductDriver $Driver
-     * @param embed_Manager     $Embedder
-     * @param core_Form         $form
-     * @param stdClass          $data
+     * @param frame2_driver_Proto $Driver
+     * @param embed_Manager       $Embedder
+     * @param core_Form           $form
+     * @param stdClass            $data
      */
     protected static function on_AfterInputEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$form)
     {
@@ -119,6 +119,12 @@
         
         $sQuery->where("#state != 'rejected' ");
         $pQuery->where("#state != 'rejected' ");
+
+        // Артикулите само от нулеви редове на фактури не се експортират
+        $sQuery->EXT('invType', 'sales_Invoices', 'externalName=type,externalKey=invoiceId');
+        $pQuery->EXT('invType', 'purchase_Invoices', 'externalName=type,externalKey=invoiceId');
+        $sQuery->where("#quantity != 0 OR #invType != 'invoice'");
+        $pQuery->where("#quantity != 0 OR #invType != 'invoice'");
         
         $sQuery->show('productId');
         $pQuery->show('productId');

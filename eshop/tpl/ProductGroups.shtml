@@ -9,6 +9,7 @@
             [#NAVIGATION_OTHER_BTNS#]
         </div>
         [#NAVIGATION#]
+        [#NAVIGATION_FILTERS#]
         [#BOTTOM_NAV#]
         [#BEFORE_FOOTER_INFO#]
         <div class='bulletin-link clearfix21'></div>

@@ -241,19 +241,20 @@ class sales_SalesDetails extends deals_DealDetail
                            $warning .= " (|Кеш|*)";
                        }
                    }
-                   if(!Mode::isReadOnly()){
+                   // В LLM експорта (inlineDocument) се показва само описателна бележка, без себестойността
+                   if(!Mode::isReadOnly() || Mode::is('renderForLlm')){
                        $row->{$hintField} = "<span class='priceBellowPrimeCost'>{$row->{$hintField}}</span>";
-                       $row->{$hintField} = ht::createHint($row->{$hintField}, $warning, 'img/16/red-warning.png', false)->getContent();
+                       $row->{$hintField} = ht::createHint($row->{$hintField}, $warning, 'img/16/red-warning.png', false, array('aiHint' => 'Price below prime cost'))->getContent();
                    }
                } elseif(in_array($masterRec->state, array('pending', 'draft'))){
 
                    // Предупреждение дали цената е под очакваната за клиента
                    $useQuotationPrice = isset($masterRec->originId);
-                   $discountPercent = ($rec->autoDiscount) ? round((1 - (1 - $rec->discountPercent) * (1 - $rec->autoDiscount)), 4) : $rec->discount;
+                   $discountPercent = (!empty($rec->autoDiscount)) ? round((1 - (1 - ($rec->discountPercent ?? 0)) * (1 - $rec->autoDiscount)), 4) : ($rec->discount ?? null);
                    $transportFeeRec = sales_TransportValues::get($mvc->Master, $rec->saleId, $rec->id);
                    core_Debug::startTimer('CALC_COMPARE_CONTRAGENT_PRICE');
                    if($checkedObject = deals_Helper::checkPriceWithContragentPrice($rec->productId, $rec->price, $discountPercent, $rec->quantity, $rec->quantityInPack, $masterRec->contragentClassId, $masterRec->contragentId, $priceDate, $masterRec->priceListId, $useQuotationPrice, $mvc, $masterRec->threadId, $masterRec->currencyRate, $masterRec->currencyId, $transportFeeRec)){
-                        $row->{$hintField} = ht::createHint($row->{$hintField}, $checkedObject['hint'], $checkedObject['hintType'], false);
+                        $row->{$hintField} = ht::createHint($row->{$hintField}, $checkedObject['hint'], $checkedObject['hintType'], false, array('aiHint' => $checkedObject['aiHint'] ?? null));
                    }
                    core_Debug::stopTimer('CALC_COMPARE_CONTRAGENT_PRICE');
                }

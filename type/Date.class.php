@@ -47,7 +47,10 @@ class type_Date extends core_Type
             return;
         }
         
-        if (($this->params['format'] ?? null) && !Mode::is('printing') && (Mode::is('text', 'html') || !Mode::is('text')) && $useFormat) {
+        // AI text uses an explicit date format independently of UI preferences.
+        if ($textDateFormat = Mode::get('textDateFormat')) {
+            $format = $textDateFormat . ($this instanceof type_Datetime ? ' H:i:s' : '');
+        } elseif (($this->params['format'] ?? null) && !Mode::is('printing') && (Mode::is('text', 'html') || !Mode::is('text')) && $useFormat) {
             $format = $this->params['format'];
         } elseif (Mode::is('screenMode', 'narrow')) {
             $format = $conf->EF_DATE_NARROW_FORMAT . $this->timePart;

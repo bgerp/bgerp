@@ -282,7 +282,7 @@ class rack_Ver3Base
 					foreach ($validPref as $pId => $reqBase) {
 						$portion = $remain * ($reqBase / $prefSum);
 
-						$key = "{$pId}|{$obj->position}";
+						$key = "{$pId}|" . ($obj->position ?? '');
 						if (!isset($acc[$key])) $acc[$key] = array();
 						if (!isset($acc[$key][$zoneId])) $acc[$key][$zoneId] = 0.0;
 						$acc[$key][$zoneId] += $portion;
@@ -290,7 +290,7 @@ class rack_Ver3Base
 				} else {
 					// fallback към основната мярка
 					$pId = (int)$measureId;
-					$key = "{$pId}|{$obj->position}";
+					$key = "{$pId}|" . ($obj->position ?? '');
 					if (!isset($acc[$key])) $acc[$key] = array();
 					if (!isset($acc[$key][$zoneId])) $acc[$key][$zoneId] = 0.0;
 					$acc[$key][$zoneId] += $remain;

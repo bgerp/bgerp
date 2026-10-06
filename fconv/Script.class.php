@@ -227,6 +227,13 @@ class fconv_Script
      */
     public function setProgram($name, $binPath, $escape = true)
     {
+        if (stristr(PHP_OS, 'WIN') && $escape) {
+            // Keep Windows paths intact; quote the executable as one argument.
+            $this->programs[$name] = escapeshellarg(str_replace('\\', '/', $binPath));
+
+            return;
+        }
+
         if ($escape) {
             $binPath = escapeshellcmd($binPath);
         }
@@ -360,7 +367,7 @@ class fconv_Script
         }
         
         // Възможност за логване на грешките при изпълняване на скрипт
-        if (($params['errFilePath'] ?? null) && !stristr(PHP_OS, 'WIN')) {
+        if ($params['errFilePath'] ?? null) {
             $cmdLine .= ' 2> ' . escapeshellarg($params['errFilePath']);
         }
         
@@ -525,8 +532,11 @@ class fconv_Script
                     $path = escapeshellcmd($program);
                 }
                 
-                if (!(is_executable($path) || exec("{$which} {$path}"))) {
-                    log_System::add('fconv_Remote', 'Липсва програма: ' . $path, $rRec->id, 'warning');
+                $executablePath = stristr(PHP_OS, 'WIN') ? trim($path, '"') : $path;
+                if (!(is_executable($executablePath) || exec("{$which} {$path}"))) {
+                    // Тук няма отдалечен запис - дотук се стига само ако за нито една програма
+                    // не е намерен такъв, тоест $rRec е от предишния цикъл
+                    log_System::add('fconv_Remote', 'Липсва програма: ' . $path, null, 'warning');
                     $missing[$program] = true;
                     return false;
                 }
@@ -535,8 +545,6 @@ class fconv_Script
         
         if (!stristr(PHP_OS, 'WIN')) {
             $this->script = "#!/bin/bash \n" . $this->script;
-        } elseif(!$asynch) {
-            $this->script = 'start /wait ' . $this->script;
         }
  
         core_Os::requireDir($this->tempDir);

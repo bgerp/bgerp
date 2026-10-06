@@ -68,12 +68,16 @@ class plg_ProtoWrapper extends core_Plugin
     public function getHtmlPageTitle($invoker, $data)
     {
         // Генерираме титлата на страницата
+        // Нито мениджърите, нито опаковките са длъжни да имат $title, а от PHP 8.2
+        // достъпът до недекларирано свойство вдига warning
         if (isset($data->pageTitle)) {
             $title = $data->pageTitle;
         } else {
-            $title = tr($invoker->title);
-            if ($this->title) {
-                $title .= ' « ' . tr($this->title);
+            $title = tr($invoker->title ?? '');
+
+            if (!empty($this->title)) {
+                $wrapperTitle = tr($this->title);
+                $title = strlen($title) ? ($title . ' « ' . $wrapperTitle) : $wrapperTitle;
             }
         }
         

@@ -13,7 +13,7 @@
  *
  * @since     v 0.1
  */
-class cms_FancyTheme extends core_ProtoInner
+class cms_FancyTheme extends cms_ProtoTheme
 {
     /**
      * Поддържан интерфейс
@@ -85,6 +85,9 @@ class cms_FancyTheme extends core_ProtoInner
     {
         // Добавяме заглавната картика
         $tpl->replace($this->getHeaderImg(), 'HEADER_IMG');
+
+        // Началната страница е коренът на приложението, а не на хоста (напр. /bgn/ локално)
+        $tpl->replace(core_App::getBoot(false, false, true) . '/', 'HOME_URL');
 
         $css = '';
         $content = $this->getCmsLayout();
@@ -318,6 +321,7 @@ class cms_FancyTheme extends core_ProtoInner
             }
         }
 
+        $imageURL = null;
         $imgsCnt = countR($imgs);
 
         if ($imgsCnt) {

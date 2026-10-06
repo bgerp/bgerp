@@ -2,7 +2,7 @@
 
 
 /**
- * Път до директорията на tifig
+ * Път до изпълнимия файл на tifig
  * 
  * @see https://github.com/monostream/tifig
  */
@@ -10,7 +10,7 @@ defIfNot('TIFIG_PATH', 'tifig');
 
 
 /**
- * Път до директорията на heif-convert
+ * Път до изпълнимия файл на heif-convert (с приоритет пред tifig)
  */
 //defIfNot('LIBHEIF_PATH', '/usr/local/bin/heif-convert');
 
@@ -66,13 +66,13 @@ class fileman_webdrv_Heic extends fileman_webdrv_ImageT
 
         if (defined('LIBHEIF_PATH') && LIBHEIF_PATH) {
             $Script->setProgram('heif-convert', rtrim(LIBHEIF_PATH, '/'));
+            $Script->setCheckProgramsArr('heif-convert');
 
-            // Скрипта, който ще конвертира файла в SVG формат
             $Script->lineExec('heif-convert [#INPUTF#] [#OUTPUTF#]', array('errFilePath' => $errFilePath));
         } else {
             $Script->setProgram('tifig', rtrim(TIFIG_PATH, '/'));
+            $Script->setCheckProgramsArr('tifig');
 
-            // Скрипта, който ще конвертира файла в SVG формат
             $Script->lineExec('tifig -i [#INPUTF#] -o [#OUTPUTF#]', array('errFilePath' => $errFilePath));
         }
 
@@ -87,11 +87,10 @@ class fileman_webdrv_Heic extends fileman_webdrv_ImageT
         $Script->outFilePath = $outFilePath;
         $Script->fh = $fRec->fileHnd;
         
-        $Script->setCheckProgramsArr('tifig');
-        
-        // Стартираме скрипта синхронно
+        // Стартираме скрипта асинхронно
         if ($Script->run() === false) {
             fileman_Indexes::createError($params);
+            core_Locks::release($params['lockId']);
         }
     }
 }

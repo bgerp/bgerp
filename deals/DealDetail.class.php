@@ -198,7 +198,12 @@ abstract class deals_DealDetail extends doc_Detail
      */
     public static function on_AfterPrepareListRecs(core_Mvc $mvc, $data)
     {
-        if (empty($data->recs)) return;
+        // Без редове се маха и сумата от предишния показан документ на същия мениджър
+        if (empty($data->recs)) {
+            unset($mvc->Master->_total);
+
+            return;
+        }
         $recs = &$data->recs;
         deals_Helper::fillRecs($mvc->Master, $recs, $data->masterData->rec);
     }
@@ -552,6 +557,7 @@ abstract class deals_DealDetail extends doc_Detail
      *                        ->quantity - К-во на опаковката или в основна мярка
      *                        ->price - цената във валутата на мастъра, ако няма се изчислява директно
      *                        ->pack - Опаковката
+     *                        ->notes - Забележки
      *
      * @return mixed - резултата от експорта
      */
@@ -580,7 +586,7 @@ abstract class deals_DealDetail extends doc_Detail
             $price = deals_Helper::getPurePrice($row->price, cat_Products::getVat($pRec->productId, null, $vatExceptionId), $masterRec->currencyRate, $masterRec->chargeVat);
         }
 
-        return $Master::addRow($masterId, $pRec->productId, $row->quantity, $price, $pRec->packagingId, null, null, null, null, $row->batch ?? null);
+        return $Master::addRow($masterId, $pRec->productId, $row->quantity, $price, $pRec->packagingId, null, null, null, $row->notes ?? null, $row->batch ?? null);
     }
     
     

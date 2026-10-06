@@ -91,7 +91,7 @@ class batch_definitions_Document extends batch_definitions_Proto
      */
     public function getFeatures($value)
     {
-        list($date, $string) = explode('-', $value);
+        list($date, $string) = array_pad(explode('-', $value), 2, null);
         
         $res = array();
         $res[] = (object) array('name' => 'Документ', 'classId' => batch_definitions_Varchar::getClassId(), 'value' => $string);

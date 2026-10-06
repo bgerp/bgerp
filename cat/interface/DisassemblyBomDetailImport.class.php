@@ -83,6 +83,11 @@ class cat_interface_DisassemblyBomDetailImport extends cat_interface_BomDetailIm
             }
         }
 
+        $Details->requireRightFor('add', (object) array('bomId' => $bomId, 'type' => 'production'));
+        if ($replaceExisting && countR($existingIds)) {
+            $Details->requireRightFor('delete');
+        }
+
         $parsedArr = $importedProducts = array();
         $rowNo = 0;
         foreach ($rows as $row) {
@@ -157,7 +162,9 @@ class cat_interface_DisassemblyBomDetailImport extends cat_interface_BomDetailIm
         if ($replaceExisting && $added) {
             foreach ($existingIds as $id) {
                 $oldRec = $Details->fetch($id);
-                if ($oldRec && $Details->haveRightFor('delete', $oldRec)) {
+                if ($oldRec) {
+                    // Без кешираното право от състоянието преди добавяне на новите редове.
+                    $Details->requireRightFor('delete', $oldRec);
                     $Details->delete($id);
                     $deleted++;
                 }

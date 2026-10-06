@@ -142,7 +142,12 @@ class bulmar_PurchaseInvoiceExport extends bulmar_InvoiceExport
         $byProducts = $byOtherService = $byTransport = 0;
         $dQuery = purchase_InvoiceDetails::getQuery();
         $dQuery->where("#invoiceId = {$rec->id}");
-        
+
+        // Нулевите редове на фактурите не се експортират, при известията са промяна
+        if ($rec->type == 'invoice') {
+            $dQuery->where("#quantity != 0");
+        }
+
         $vatDecimals = sales_Setup::get('SALE_INV_VAT_DISPLAY', true) == 'yes' ? 20 : 2;
         $transProductIds = keylist::toArray(sales_Setup::get('TRANSPORT_PRODUCTS_ID'));
 
@@ -244,12 +249,12 @@ class bulmar_PurchaseInvoiceExport extends bulmar_InvoiceExport
                 $creditAcc = $static->creditConnectedPersons;
             }
 
-            if ($rec->dpOperation == 'accrued') {
+            if (($rec->dpOperation ?? null) == 'accrued') {
                 unset($rec->productsAmount);
                 
                 $line .= "{$rec->num}|1|{$static->downpaymentOperation}|{$static->downpaymentAcc}|AN|$|{$rec->baseAmount}||{$static->debitPurchaseVat}|||{$rec->vat}||{$creditAcc}|PN|$|{$rec->amount}||" . "\r\n";
                 
-            } elseif ($rec->dpOperation == 'deducted') {
+            } elseif (($rec->dpOperation ?? null) == 'deducted') {
                 
                 // Ако ф-та има приспадане на аванс приспадаме го от общата сума и сумата на платеното
                 $rec->amount += $rec->dpAmount;
@@ -262,7 +267,7 @@ class bulmar_PurchaseInvoiceExport extends bulmar_InvoiceExport
                 $rec->baseAmount += $rec->dpAmount;
             } else {
                 $debitAcc =  "{$static->debitPurchaseProducts}|||";
-                if($rec->downpaymentChanged){
+                if (!empty($rec->downpaymentChanged)) {
                     $debitAcc =  "{$static->downpaymentAcc}|AN|$|";
                 }
 
@@ -287,7 +292,7 @@ class bulmar_PurchaseInvoiceExport extends bulmar_InvoiceExport
             
             $line .= "{$rec->num}|1|POK|{$rec->reason}|1||||{$rec->baseAmount}|{$rec->vat}|||||||||||||" . "\r\n";
             
-            if ($rec->amountPaid) {
+            if (!empty($rec->amountPaid)) {
                 $debitPayment = $static->debitPayment;
                 if(($rec->_isConnectedCompany ?? false) === true){
                     $debitPayment = $static->debitConnectedPersons;

@@ -195,6 +195,8 @@ class email_ServiceRules extends embed_Manager
                 } catch (core_exception_Expect $e) {
                     reportException($e);
                     continue;
+                } catch (core_exception_Redirect $e) {
+                    throw $e;
                 } catch (Exception $e) {
                     reportException($e);
                     continue;

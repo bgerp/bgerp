@@ -9,7 +9,7 @@
  * @package   synck
  *
  * @author    Yusein Yuseinov <y.yuseinov@gmail.com>
- * @copyright 2020 - 2020 Experta OOD
+ * @copyright 2020 - 2026 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -71,31 +71,59 @@ class sync_Eshop extends sync_Helper
      */
     public function act_Export()
     {
-        self::requireRight();
+        self::requireRight('export', true);
+        sync_Settings::guardExportRun(
+            sync_Settings::getRequestSettings(false, true)
+        );
 
         expect(core_Packs::isInstalled('eshop'));
-        
+
         core_App::setTimeLimit(1000);
-        
+
         $res = array();
-        
+
         core_Users::forceSystemUser();
-        
-        $eQuery = eshop_Products::getQuery();
-        
-        $groups = sync_Setup::get('ESHOP_GROUPS');
-        
-        if ($groups) {
-            $eQuery->in('groupId', type_Keylist::toArray($groups));
+        try {
+            self::collectExport($res);
+        } finally {
+            core_Users::cancelSystemUser();
         }
-        
-        while ($rec = $eQuery->fetch()) {
-            sync_Map::exportRec('eshop_Products', $rec->id, $res, $this);
-        }
-        
-        core_Users::cancelSystemUser();
-        
+
         return self::outputRes($res);
+    }
+
+
+    /**
+     * Събира артикулите от е-магазина (по настроените в sync_Settings групи) в масива за експорт
+     *
+     * @param array         $res
+     * @param stdClass|null $controller
+     */
+    public static function collectExport(&$res, $controller = null)
+    {
+        $settingsRec = sync_Settings::getRequestSettings(true, true);
+        $mode = sync_Settings::getExportMode($settingsRec, 'eshop');
+        if ($mode == 'none') {
+
+            return;
+        }
+
+        $me = $controller ?: cls::get(get_called_class());
+
+        $eQuery = eshop_Products::getQuery();
+
+        if ($mode == 'selected') {
+            if (empty($settingsRec->syncEshopGroups)) {
+
+                return;
+            }
+
+            $eQuery->in('groupId', type_Keylist::toArray($settingsRec->syncEshopGroups));
+        }
+
+        while ($rec = $eQuery->fetch()) {
+            sync_Map::exportRec('eshop_Products', $rec->id ?? null, $res, $me);
+        }
     }
 
 
@@ -107,23 +135,24 @@ class sync_Eshop extends sync_Helper
         self::requireRight('import');
         
         expect(core_Packs::isInstalled('eshop'));
-        
-        $update = (Request::get('update') == 'none') ? false : true;
-        
+
         core_App::setTimeLimit(1000);
-        
+        // Ръчният import може да върви успоредно с други; вдигаме лимита,
+        // защото payload-ът се държи целият в паметта.
+        ini_set('memory_limit', '2048M');
+
+        $update = (Request::get('update') == 'none') ? false : true;
+
         $resArr = self::getDataFromUrl(get_called_class());
-        
+
         core_Users::forceSystemUser();
-        
-        Mode::set('preventNotifications', true);
-        Mode::set('syncing', true);
-        
-        foreach ($resArr as $class => $objArr) {
-            foreach ($objArr as $id => $rec) {
-                sync_Map::importRec($class, $id, $resArr, $this, $update);
-            }
+        try {
+            sync_Settings::importData($resArr, $update);
+        } finally {
+            core_Users::cancelSystemUser();
         }
+
+        return;
     }
     
     
@@ -135,8 +164,9 @@ class sync_Eshop extends sync_Helper
      * @param stdClass $field
      * @param array $res
      * @param string $controller
+     * @param stdClass|null $exportState
      */
-    public static function fixDomainExport(&$rec, $fName, $field, &$res, $controller)
+    public static function fixDomainExport(&$rec, $fName, $field, &$res, $controller, $exportState = null)
     {
         $lang = self::$fNewNamePref . 'lang';
         $domain = self::$fNewNamePref . 'domain';
@@ -148,8 +178,8 @@ class sync_Eshop extends sync_Helper
                 unset($rec->{$fName});
             }
             
-            $rec->{$lang} = $oRec->lang;
-            $rec->{$domain} = $oRec->domain;
+            $rec->{$lang} = $oRec->lang ?? null;
+            $rec->{$domain} = $oRec->domain ?? null;
         }
     }
     
@@ -163,29 +193,29 @@ class sync_Eshop extends sync_Helper
      * @param array $res
      * @param string $controller
      */
-    public static function fixDomainImport(&$rec, $fName, $field, &$res, $controller)
+    public static function fixDomainImport(&$rec, $fName, $field, &$res, $controller, $update = null)
     {
         $lang = self::$fNewNamePref . 'lang';
         $domain = self::$fNewNamePref . 'domain';
         
         $haveDomains = false;
         if (isset($rec->{$lang}) || isset($rec->{$domain})) {
-            $domains = trim(sync_Setup::get('CMS_DOMAINS'));
+            $domains = trim(sync_Setup::get('CMS_DOMAINS') ?? '');
             if ($domains) {
                 $dArr = explode("\n", $domains);
                 foreach ($dArr as $dStr) {
-                    list($remote, $local) = explode('|', $dStr);
+                    list($remote, $local) = explode('|', $dStr) + array('', '');
                     
-                    list($remoteDomain, $remoteLang) = explode(',', $remote);
-                    list($localDomain, $localLang) = explode(',', $local);
+                    list($remoteDomain, $remoteLang) = explode(',', $remote) + array('', '');
+                    list($localDomain, $localLang) = explode(',', $local) + array('', '');
                     
                     $remoteDomain = trim($remoteDomain);
                     $remoteLang = trim($remoteLang);
                     $localDomain = trim($localDomain);
                     $localLang = trim($localLang);
                     
-                    $rec->{$lang} = trim($rec->{$lang});
-                    $rec->{$domain} = trim($rec->{$domain});
+                    $rec->{$lang} = trim($rec->{$lang} ?? '');
+                    $rec->{$domain} = trim($rec->{$domain} ?? '');
                     
                     expect($remoteDomain && $remoteLang && $localDomain && $localLang);
                     
@@ -201,8 +231,8 @@ class sync_Eshop extends sync_Helper
             }
             
             if (!$haveDomains) {
-                $rec->lang = $rec->{$lang};
-                $rec->domain = $rec->{$domain};
+                $rec->lang = $rec->{$lang} ?? '';
+                $rec->domain = $rec->{$domain} ?? '';
             }
             
             foreach ((array)$rec as $fName => $fVal) {
@@ -228,7 +258,7 @@ class sync_Eshop extends sync_Helper
             
             $rec->__continue = true;
             
-            $rec->__id = $rec->id;
+            $rec->__id = $rec->id ?? null;
         }
     }
     

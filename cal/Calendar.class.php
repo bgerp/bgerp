@@ -226,7 +226,7 @@ class cal_Calendar extends core_Master
 
         // Ако завършва с -, тогава търсим -%
         $like = (substr($prefix, -1) === '-') ? '%' : '';
-        $query->where("#time >= '{$fromTime}' AND #time <= '{$toTime}' AND #key LIKE '{$prefix}{$like}'");
+        $query->where(array("#time >= '[#1#]' AND #time <= '[#2#]' AND #key LIKE '[#3#]'", $fromTime, $toTime, $prefix . $like));
 
         // Извличаме съществуващите събития за този префикс
         $exEvents = array();
@@ -268,7 +268,7 @@ class cal_Calendar extends core_Master
         
         // Изтриваме старите записи, които не са обновени
         foreach($exEvents as $e) {
-            self::delete("#key = '{$e->key}'");
+            self::delete(array("#key = '[#1#]'", $e->key ?? null));
             $res['deleted']++;
         }
         
@@ -2278,7 +2278,7 @@ class cal_Calendar extends core_Master
     		if($h === 'allDay' || ($h >= self::$tr && $h <= self::$tk)){
     			$tUrl = str_replace('Цял ден', '', $t);
 	    		$hourArr = $dayData[$h] ?? [];
-	    		$hourArr['time'] = $t;
+            $hourArr['time'] = tr($t);
 
 //	    		$hourArr['timeJs'] = $h;
 	    		
@@ -2401,7 +2401,7 @@ class cal_Calendar extends core_Master
    			// Ограничаваме часовета в таблицата до цел ден и най-малкия и най-големия час
    			if($h === 'allDay' || ($h >= self::$tr && $h <= self::$tk)){
     		$hourArr = $weekData[$h] ?? [];
-    		$hourArr['time'] = $t;
+        $hourArr['time'] = tr($t);
     		if($h === 'allDay'){
     			$hourArr['timeJs'] ??= null;
     		} else {

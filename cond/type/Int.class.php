@@ -18,6 +18,24 @@
 class cond_type_Int extends cond_type_abstract_Proto
 {
     /**
+     * Как се индексира стойността за филтриране (@see cat_products_ParamIndex)
+     */
+    protected $indexKind = 'num';
+
+
+    /**
+     * Новите параметри от този тип по подразбиране са филтрируеми
+     */
+    protected $filterableByDefault = true;
+
+
+    /**
+     * Стойностите могат да се групират в диапазони във филтъра
+     */
+    protected $indexRanges = true;
+
+
+    /**
      * Кой базов тип наследява
      */
     protected $baseType = 'type_Int';

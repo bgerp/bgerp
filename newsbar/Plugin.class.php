@@ -102,6 +102,8 @@ class newsbar_Plugin extends core_Plugin
                 }
                 $themId = cms_Domains::getCurrent('theme', false);
 
+                $placeholderName = cms_ProtoTheme::getCurrent()->getNewsbarPlace($nRec->position, $placeholderName, $invoker);
+
                 if ($themId) {
                     $theme = cls::get($themId);
                     $className .= ($theme instanceof cms_FancyTheme) ? ' wideTheme' : ' defaultTheme';

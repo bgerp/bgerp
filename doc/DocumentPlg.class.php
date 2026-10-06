@@ -80,7 +80,7 @@ class doc_DocumentPlg extends core_Plugin
 
         setPartIfNot($mvc, 'addDocumentLinks', array());
         setPartIfNot($mvc, 'addLinkedDocumentToOriginId', false);
-        setPartIfNot($mvc, 'addLinkedOriginFieldName', 'originId');
+        setPartIfNot($mvc, 'addLinkedOriginFieldNames', array('originId'));
 
         // Добавя поле за последно използване
         if (!isset($mvc->fields['lastUsedOn'])) {
@@ -550,7 +550,7 @@ class doc_DocumentPlg extends core_Plugin
     public static function on_AfterGetAllBtnUrl($mvc, &$res, $rec)
     {
         if(empty($res)){
-            $res = array($mvc, 'list');
+            $res = array($mvc, 'listAll');
         }
     }
 
@@ -577,16 +577,14 @@ class doc_DocumentPlg extends core_Plugin
     {
         if (Request::get('Rejected')) {
             $data->toolbar->removeBtn('*');
-            $data->toolbar->addBtn('Всички', array($mvc), 'id=listBtn', 'ef_icon = img/16/application_view_list.png');
+            $data->toolbar->addBtn('Всички', array($mvc, 'listAll'), 'id=listBtn', 'ef_icon = img/16/application_view_list.png');
         } else {
             if (isset($data->rejQuery)) {
-                $data->rejectedCnt = $data->rejQuery->count();
+                $bin = plg_Rejected::getBinSummary($data->rejQuery);
+                $data->rejectedCnt = $bin->count ?? 0;
                 
                 if ($data->rejectedCnt) {
-                    $data->rejQuery->orderBy('#modifiedOn', 'DESC');
-                    $data->rejQuery->limit(1);
-                    $lastRec = $data->rejQuery->fetch();
-                    $color = dt::getColorByTime($lastRec->modifiedOn);
+                    $color = dt::getColorByTime($bin->modifiedOn ?? null);
                     $curUrl = getCurrentUrl();
                     $curUrl['Rejected'] = 1;
                     if (isset($data->pager->pageVar)) {
@@ -801,8 +799,11 @@ class doc_DocumentPlg extends core_Plugin
     {
         // Ако създаваме нов документ и ...
         if (empty($rec->id)) {
-            if(($mvc->addLinkedOriginFieldName ?? null) && !empty($rec->{$mvc->addLinkedOriginFieldName}) && $mvc->canAddDocumentToOriginAsLink($rec)){
-                $mvc->addDocumentLinks[spl_object_hash($rec)] = $rec;
+            foreach (arr::make($mvc->addLinkedOriginFieldNames ?? null) as $originFieldName){
+                if(!empty($rec->{$originFieldName}) && $mvc->canAddDocumentToOriginAsLink($rec)){
+                    $mvc->addDocumentLinks[spl_object_hash($rec)] = $rec;
+                    break;
+                }
             }
 
             // Опит за извличане на създателя
@@ -965,9 +966,13 @@ class doc_DocumentPlg extends core_Plugin
         // Ако има заопашени документи за добавяне като връзки да се добавят
         if(countR($mvc->addDocumentLinks ?? null)){
             foreach ($mvc->addDocumentLinks as $r){
-                if(isset($r->containerId) && ($mvc->addLinkedOriginFieldName ?? null) && isset($r->{$mvc->addLinkedOriginFieldName})){
+                if(!isset($r->containerId)) continue;
+
+                foreach (arr::make($mvc->addLinkedOriginFieldNames ?? null) as $originFieldName){
+                    if(empty($r->{$originFieldName})) continue;
+
                     $comment = $mvc->getLinkedDocCommentToOrigin($r);
-                    doc_Linked::add($r->containerId, $r->{$mvc->addLinkedOriginFieldName}, 'doc', 'doc', $comment);
+                    doc_Linked::add($r->containerId, $r->{$originFieldName}, 'doc', 'doc', $comment);
                 }
             }
         }
@@ -1233,6 +1238,49 @@ class doc_DocumentPlg extends core_Plugin
      */
     public function on_BeforeAction($mvc, &$res, $action)
     {
+        if ($action == 'listall') {
+            $mvc->requireRightFor('list');
+            $url = getCurrentUrl();
+            $url['Act'] = 'list';
+            $limit = (int) doc_Setup::get('ALL_SEARCH_LIMIT');
+
+            if ($limit > 0 && cls::haveInterface('doc_DocumentIntf', $mvc) && doc_Search::haveRightFor('list')) {
+                $cacheKey = 'doc_listAllCounts';
+                $counts = core_Permanent::get($cacheKey) ?? array();
+                $cached = $counts[$mvc->className] ?? array();
+                $count = null;
+                if (($cached['limit'] ?? null) == $limit && ($cached['expiresOn'] ?? 0) > time()) {
+                    $count = $cached['count'] ?? null;
+                }
+
+                if ($count === null) {
+                    $query = $mvc->getQuery();
+                    $query->show('id');
+                    // Един допълнителен запис различава "над прага" от "точно на прага".
+                    $count = $query->count(null, $limit + 1);
+                    // Пазим бройките на другите класове при едновременно обновяване, без изчакване.
+                    if (core_Locks::obtain($cacheKey, 5, 0, 0)) {
+                        try {
+                            $counts = core_Permanent::get($cacheKey) ?? array();
+                            // Срокът на класа не се удължава при обновяване на общия запис.
+                            $counts[$mvc->className] = array('count' => $count, 'limit' => $limit, 'expiresOn' => time() + 30 * 24 * 60 * 60);
+                            core_Permanent::set($cacheKey, $counts, 30 * 24 * 60);
+                        } finally {
+                            core_Locks::release($cacheKey);
+                        }
+                    }
+                }
+
+                if ($count > $limit) {
+                    $url = array('doc_Search', 'list', 'docClass' => $mvc->getClassId(), 'ret_url' => $url['ret_url'] ?? null);
+                }
+            }
+
+            $res = new Redirect($url);
+
+            return false;
+        }
+
         $notAccessStatusMsg = '|Предишната страница не може да бъде показана, поради липса на права за достъп';
 
         if ($action == 'single' && !(Request::get('Printing')) && !Mode::is('dataType', 'php')) {
@@ -1674,7 +1722,7 @@ class doc_DocumentPlg extends core_Plugin
         
         // Ако ще се създава нова нишка от последния документ
         if ($action == 'movelast') {
-            $id = Request::get('id');
+            $id = Request::get('id', 'int');
             $rec = $mvc->fetch($id);
             expect($rec);
             
@@ -1872,6 +1920,8 @@ class doc_DocumentPlg extends core_Plugin
             
             return false;
         }
+
+        plg_Rejected::invalidateBinCache($mvc);
         
         // Ако състоянието е било чернова, не е нужно да се минава от там,
         // защото не е добавена нотификация и няма нужда да се чисти
@@ -2520,9 +2570,13 @@ class doc_DocumentPlg extends core_Plugin
                 $form->rec->state = 'pending';
                 $form->rec->pendingSaved = true;
 
-                if (!empty($form->rec->id)) {
+                // При клониране id-то все още е на оригиналния документ. Неговите
+                // нотификации не трябва да се променят преди записа на клонирания.
+                if (!empty($form->rec->id) && empty($form->_cloneForm)) {
                     $oldRec = $mvc->fetch($form->rec->id);
-                    doc_Containers::changeNotifications($rec, $oldRec->sharedUsers, $rec->sharedUsers);
+                    $oldSharedUsers = $oldRec->sharedUsers ?? null;
+                    $newSharedUsers = property_exists($rec, 'sharedUsers') ? $rec->sharedUsers : $oldSharedUsers;
+                    doc_Containers::changeNotifications($rec, $oldSharedUsers, $newSharedUsers);
                 }
             }
         }
@@ -2939,9 +2993,33 @@ class doc_DocumentPlg extends core_Plugin
         
         // Проверка, дали има права за експорт на документа
         if ($action == 'exportdoc') {
-            $possibleExportsArr = export_Export::getPossibleExports($mvc->getClassId(), $rec->id, 1);
-            if (empty($possibleExportsArr)) {
-                $requiredRoles = 'no_one';
+
+            // Партньорът може да види документа и през временния списък с контейнери, който
+            // не важи в екшъна за експорт. Затова му се иска реален достъп до нишката
+            if (core_Users::haveRole('partner', $userId)) {
+                $threadId = $rec->threadId ?? null;
+                if (empty($threadId) && !empty($rec->id)) {
+                    $threadId = $mvc->fetchField($rec->id, 'threadId');
+                }
+
+                $haveThreadAccess = false;
+                if (core_Packs::isInstalled('colab') && !empty($threadId)) {
+                    $threadRec = doc_Threads::fetch($threadId);
+                    if (is_object($threadRec)) {
+                        $haveThreadAccess = colab_Threads::haveRightFor('single', $threadRec);
+                    }
+                }
+
+                if (!$haveThreadAccess) {
+                    $requiredRoles = 'no_one';
+                }
+            }
+
+            if ($requiredRoles != 'no_one') {
+                $possibleExportsArr = export_Export::getPossibleExports($mvc->getClassId(), $rec->id ?? null, 1);
+                if (empty($possibleExportsArr)) {
+                    $requiredRoles = 'no_one';
+                }
             }
         }
         
@@ -3855,6 +3933,7 @@ class doc_DocumentPlg extends core_Plugin
         // Ако не са извлечени файловете или не сме в процес на извличане - форсираме процеса
         if ((!$oCid && $cId) || ($oCid && ($oCid != $cId))) {
             Mode::push('saveObjectsToCid', $cId);
+            $sudoPushed = false;
             try {
                 $cRec = doc_Containers::fetch($cId);
                 if ($cRec->docClass) {
@@ -3872,23 +3951,24 @@ class doc_DocumentPlg extends core_Plugin
                     $pushed = true;
                     if ($pushUser) {
                         core_Users::sudo($userId);
+                        $sudoPushed = true;
                     }
+                    // Документът се подготвя целия само за да се намерят файловете в него
+                    core_Debug::startTimer('LINKED_OBJ_PREPARE_DOC');
                     $docMvc->prepareDocument($cRec->docId);
-                    if ($pushUser) {
-                        core_Users::exitSudo();
-                    }
+                    core_Debug::stopTimer('LINKED_OBJ_PREPARE_DOC');
                 }
+            } catch (core_exception_Redirect $e) {
+                throw $e;
             } catch (Exception $e) {
                 reportException($e);
             } catch (Throwable  $e) {
                 reportException($e);
+            } finally {
+                if ($sudoPushed) core_Users::exitSudo();
+                if ($pushed) Mode::pop('getLinkedObj');
+                Mode::pop('saveObjectsToCid');
             }
-            
-            if ($pushed) {
-                Mode::pop('getLinkedObj');
-            }
-            
-            Mode::pop('saveObjectsToCid');
         }
         
         doc_UsedInDocs::flushArr();

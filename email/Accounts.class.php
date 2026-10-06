@@ -338,8 +338,8 @@ class email_Accounts extends core_Master
     public static function canSendEmail($id)
     {
         $rec = self::fetch($id);
-        
-        return ($rec->smtpServer != '' && $rec->state == 'active');
+
+        return ($rec && $rec->smtpServer != '' && $rec->state == 'active');
     }
     
     
@@ -500,7 +500,7 @@ class email_Accounts extends core_Master
      */
     public static function isGroupDomain($domain)
     {
-        $rec = static::fetch("#email LIKE '%{$domain}' AND #applyRouting = 'yes'");
+        $rec = static::fetch(array("#email LIKE '%[#1#]' AND #applyRouting = 'yes'", $domain));
         
         return $rec;
     }
@@ -553,7 +553,7 @@ class email_Accounts extends core_Master
      */
     public function on_AfterSave($mvc, &$id, $rec, $saveFields = null)
     {
-        if (email_Inboxes::fetch("#email = '{$rec->email}'")) {
+        if (email_Inboxes::fetch(array("#email = '[#1#]'", $rec->email ?? null))) {
             
             return;
         }
@@ -684,7 +684,7 @@ class email_Accounts extends core_Master
      */
     public static function isGeneric($email)
     {
-        $rec = static::fetch("#email = '{$email}'");
+        $rec = static::fetch(array("#email = '[#1#]'", $email));
         
         return (boolean) $rec && ($rec->applyRouting == 'yes');
     }
@@ -695,7 +695,7 @@ class email_Accounts extends core_Master
      */
     public static function getPML($emailFrom)
     {
-        expect($accId = email_Inboxes::fetchField("#email = '{$emailFrom}'", 'accountId'));
+        expect($accId = email_Inboxes::fetchField(array("#email = '[#1#]'", $emailFrom), 'accountId'));
         
         expect($rec = self::fetch($accId));
         
@@ -952,6 +952,8 @@ class email_Accounts extends core_Master
                         if ($status != 'duplicated') {
                             email_Incomings::logNotice('Свален имейл, който е бил пропуснат');
                         }
+                    } catch (core_exception_Redirect $e) {
+                        throw $e;
                     } catch (Exception $e) {
                         reportException($e);
                     }

@@ -251,6 +251,8 @@ class core_Cls
             if (is_a($Plugins, 'core_Plugins')) {
                 try {
                     $Plugins->attach($obj);
+                } catch (core_exception_Redirect $e) {
+                    throw $e;
                 } catch (Throwable $e) {
                 }
             }
@@ -376,7 +378,7 @@ class core_Cls
         // Очакваме, че $classObj е обект
         expect(is_object($classObj), $classObj);
         
-        $classObj->interfaces = arr::make($classObj->interfaces, true);
+        $classObj->interfaces = arr::make($classObj->interfaces ?? null, true);
         
         // Добавяме интерфейсите на парентите
         foreach ($classObj->interfaces as $intf => $impl) {
@@ -490,8 +492,14 @@ class core_Cls
             foreach (core_Cls::$singletons as $name => $instance) {
                 if ($instance instanceof core_BaseClass) {
                     core_Debug::startTimer('shutdown_' . $name);
-                    $instance->invoke('shutdown');
-                    core_Debug::stopTimer('shutdown_' . $name);
+                    try {
+                        $instance->invoke('shutdown');
+                    } catch (core_exception_Redirect $redirect) {
+                        // Отговорът вече е затворен; останалите shutdown обработчици трябва да завършат.
+                        error_log('Redirect during shutdown of ' . $name . ': ' . $redirect->url);
+                    } finally {
+                        core_Debug::stopTimer('shutdown_' . $name);
+                    }
                 }
             }
             core_Debug::stopTimer('shutdown');

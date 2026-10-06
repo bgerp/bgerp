@@ -1062,21 +1062,21 @@ class support_Issues extends core_Master
      */
     public static function on_AfterGetFieldForLetterHead($mvc, &$resArr, $rec, $row)
     {
-        if ($row->systemId) {
+        if (!empty($row->systemId)) {
             $resArr['systemId'] = array('name' => tr('Система'), 'val' => '[#systemId#]');
         }
-        
-        if ($row->componentId) {
+
+        if (!empty($row->componentId)) {
             $resArr['componentId'] = array('name' => tr('Компонент'), 'val' => '[#componentId#]');
         }
         
         $resArr['typeId'] = array('name' => tr('Тип'), 'val' => '[#typeId#]');
         
-        if ($row->priority) {
+        if (!empty($row->priority)) {
             $resArr['priority'] = array('name' => tr('Приоритет'), 'val' => '[#priority#]');
         }
-        
-        if ($row->assign) {
+
+        if (!empty($row->assign)) {
             $resArr['assign'] = array('name' => tr('Възложено'), 'val' => tr('на') . ' [#assign#] ' . tr('от') . ' [#assignedBy#] ' . tr('в') . ' [#assignedOn#]');
         }
     }

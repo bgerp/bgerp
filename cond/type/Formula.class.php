@@ -304,7 +304,7 @@ class cond_type_Formula extends cond_type_Text
         }
 
         core_Debug::stopTimer("RENDER_FORMULA_{$rec->id}");
-        core_Debug::log("END RENDER_FORMULA_{$rec->id}: " . round(core_Debug::$timers["RENDER_FORMULA_{$rec->id}"]->workingTime, 2));
+        core_Debug::log("END RENDER_FORMULA_{$rec->id}: " . round(core_Debug::$timers["RENDER_FORMULA_{$rec->id}"]->workingTime ?? 0, 2));
 
         return $verbal;
     }

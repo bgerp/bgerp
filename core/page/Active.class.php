@@ -65,8 +65,12 @@ class core_page_Active extends page_Html
 
         $faviconUrl = getBoot(true, true, true) . '/favicon.ico';
         $addEditIndicator = false;
+        $dotColor = Mode::get('faviconDotColor');
+        $hasDotColor = is_string($dotColor) && preg_match('/^#[0-9a-f]{6}$/i', $dotColor);
         $action = strtolower(Request::get('Act') ?? '');
-        if (Mode::is('renderedInputForm') || in_array($action, self::$inputFormActions, true)) {
+        if ($hasDotColor) {
+            $addEditIndicator = true;
+        } elseif (Mode::is('renderedInputForm') || in_array($action, self::$inputFormActions, true)) {
             $addEditIndicator = true;
             if (cls::load('cms_Domains', true)) {
                 $faviconUrl = cms_Domains::getEditFaviconUrl($addEditIndicator);
@@ -75,7 +79,7 @@ class core_page_Active extends page_Html
 
         $this->appendOnce("\n<link rel=\"shortcut icon\" href=\"" . ht::escapeAttr($faviconUrl) . '" type="image/x-icon">', 'HEAD');
         if ($addEditIndicator) {
-            jquery_Jquery::run($this, 'setEditFavIcon(' . json_encode($faviconUrl) . ');');
+            jquery_Jquery::run($this, 'setEditFavIcon(' . json_encode($faviconUrl) . ', ' . json_encode($hasDotColor ? $dotColor : '#ff0000') . ');');
         }
     }
 }

@@ -526,6 +526,8 @@ class planning_WorkCards extends core_Master
                                 planning_ProductionTaskDetails::save($sRec);
                             }
                         }
+                    } catch (core_exception_Redirect $e) {
+                        throw $e;
                     } catch (Exception $e) {
                         self::logErr('Грешка при добавяне на запис', $rec->id);
                         reportException($e);

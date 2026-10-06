@@ -27,4 +27,40 @@ class cms_ThemeIntf extends core_InnerObjectIntf
 
         return $this->class->prepareWrapper($content);
     }
+
+
+    /**
+     * Шаблонът, който темата ползва вместо подадения
+     */
+    public function getTemplate($path)
+    {
+        return $this->class->getTemplate($path);
+    }
+
+
+    /**
+     * Добавя ресурсите на темата за раздел от сайта
+     */
+    public function addAssets($tpl, $section)
+    {
+        return $this->class->addAssets($tpl, $section);
+    }
+
+
+    /**
+     * @deprecated addAssets($tpl, 'shop')
+     */
+    public function addShopAssets($tpl)
+    {
+        return $this->class->addShopAssets($tpl);
+    }
+
+
+    /**
+     * @deprecated addAssets($tpl, 'forum')
+     */
+    public function addForumAssets($tpl)
+    {
+        return $this->class->addForumAssets($tpl);
+    }
 }

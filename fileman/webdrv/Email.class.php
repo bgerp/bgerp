@@ -137,6 +137,8 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
 
         try {
             $clsArr = core_Classes::getOptionsByInterface('email_interfaces_ParseSourceDataIntf');
+        } catch (core_exception_Redirect $e) {
+            throw $e;
         } catch (Exception $e) {
             $clsArr = array();
         }
@@ -402,7 +404,7 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
             $textPart = mb_strcut($textPart, 0, 1000000);
             $textPart = i18n_Charset::convertToUtf8($textPart);
             
-            if ($params['fileHnd']) {
+            if (!empty($params['fileHnd'])) {
                 // Обновяваме данните за запис във fileman_Indexes
                 $params['content'] = $textPart;
                 fileman_Indexes::saveContent($params);

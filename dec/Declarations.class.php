@@ -491,10 +491,13 @@ class dec_Declarations extends core_Master
             }
             $row->documentCaption = tr(mb_strtolower($doc->singleTitle));
 
-            // Попълваме данните от контрагента. Идват от фактурата
-            $addressContragent = trim($recOrigin->contragentPlace . ' ' . $recOrigin->contragentPCode);
-            if ($addressContragent && !empty($recOrigin->contragentAddress)) {
-                $addressContragent .= ', ' . $recOrigin->contragentAddress;
+            // Попълваме данните от контрагента. Идват от фактурата, а офертата ги пази в други полета
+            $contragentPlace = $recOrigin->contragentPlace ?? $recOrigin->place ?? '';
+            $contragentPCode = $recOrigin->contragentPCode ?? $recOrigin->pCode ?? '';
+            $contragentAddress = $recOrigin->contragentAddress ?? $recOrigin->address ?? '';
+            $addressContragent = trim($contragentPlace . ' ' . $contragentPCode);
+            if ($addressContragent && !empty($contragentAddress)) {
+                $addressContragent .= ', ' . $contragentAddress;
             }
 
             if(isset($recOrigin->displayContragentClassId) && isset($recOrigin->displayContragentId)){
@@ -504,17 +507,18 @@ class dec_Declarations extends core_Master
             }
 
             $fld = ($rec->tplLang == 'bg') ? 'commonNameBg' : 'commonName';
-            $row->contragentCountry = drdata_Countries::getVerbal($recOrigin->contragentCountryId, $fld);
+            $row->contragentCountry = drdata_Countries::getVerbal($recOrigin->contragentCountryId ?? null, $fld);
 
             $row->contragentAddress = $Varchar->toVerbal($addressContragent);
             $row->contragentAddress = transliterate(tr($row->contragentAddress));
 
-            $uicContragent = drdata_Vats::getUicByVatNo($recOrigin->contragentVatNo); 
-            if ($uicContragent != $recOrigin->contragentVatNo) {
-                $row->contragentCompanyVatNo = $Varchar->toVerbal($recOrigin->contragentVatNo);
+            $contragentVatNo = $recOrigin->contragentVatNo ?? null;
+            $uicContragent = drdata_Vats::getUicByVatNo($contragentVatNo); 
+            if ($uicContragent != $contragentVatNo) {
+                $row->contragentCompanyVatNo = $Varchar->toVerbal($contragentVatNo);
             }
             
-            if($recOrigin->uicNo) {
+            if(!empty($recOrigin->uicNo)) {
                 $row->contragentUicId = $recOrigin->uicNo;
             } else {
                 $row->contragentUicId = $uicContragent;

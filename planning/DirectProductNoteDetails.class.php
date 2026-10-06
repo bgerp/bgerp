@@ -563,8 +563,6 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
         
         if($firstDoc->isInstanceOf('planning_Tasks')) return $tpl;
 
-        if($firstDoc->isInstanceOf('planning_Tasks')) return $tpl;
-
         // Рендиране на таблицата с отпадъците
         foreach (array('subProduct', 'pop') as $type){
             $arr = $data->{"{$type}Arr"};
@@ -800,6 +798,8 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
      */
     public function getBatchMovementDocument($rec)
     {
+        $rec = $this->fetchRec($rec);
+
         return $rec->type == 'subProduct' ? 'in' : 'out';
     }
 

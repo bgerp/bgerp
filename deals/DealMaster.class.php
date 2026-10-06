@@ -349,7 +349,8 @@ abstract class deals_DealMaster extends deals_DealBase
         $mvc->FLD('vatExceptionId', 'key(mvc=cond_VatExceptions,select=title,allowEmpty)', 'caption=Допълнително->ДДС изключение,silent');
 
         $mvc->FLD('makeInvoice', 'enum(yes=Да,no=Не)', 'caption=Допълнително->Фактуриране,maxRadio=2,columns=2,notChangeableByContractor');
-        $mvc->FLD('note', 'text(rows=4)', 'caption=Допълнително->Условия,notChangeableByContractor', array('attr' => array('rows' => 3)));
+        // Без компресия - EDI импортите търсят сделката с LIKE по полето
+        $mvc->FLD('note', 'richtext(rows=4,bucket=Notes,compress=no)', 'caption=Допълнително->Условия,notChangeableByContractor', array('attr' => array('rows' => 3)));
         $mvc->FLD('username', 'varchar', 'caption=Допълнително->Съставил');
         $mvc->FLD('additionalConditions', 'blob(serialize, compress)', 'caption=Допълнително->Условия (Кеширани),notChangeableByContractor,input=none');
         $mvc->FLD(
@@ -1461,10 +1462,13 @@ abstract class deals_DealMaster extends deals_DealBase
 
             $row->notes = '';
 
+            // Всеки ред е отделна точка - вербализира се поотделно, за да не се разкъса HTML-ът на ричтекста
             if ($rec->note) {
-                $notes = explode('<br>', $row->note);
-                foreach ($notes as $note) {
-                    $row->notes .= "<li>{$note}</li>";
+                $NoteType = $mvc->getFieldType('note');
+                foreach (preg_split("/\r\n|\n|\r/", $rec->note) as $note) {
+                    if (!strlen(trim($note))) continue;
+
+                    $row->notes .= "<li><span class='inlineRichtextCond'>" . $NoteType->toVerbal($note) . '</span></li>';
                 }
             }
 
@@ -1615,7 +1619,7 @@ abstract class deals_DealMaster extends deals_DealBase
             if(!empty($rec->{$fld}) && $calc){
                 $objectId = $rec->{$fld};
                 if($fld == 'bankAccountId' && !is_numeric($rec->{$fld})){
-                    $objectId = bank_Accounts::fetchField("#iban = '{$rec->{$fld}}'");
+                    $objectId = bank_Accounts::fetchField(array("#iban = '[#1#]'", $rec->{$fld} ?? null));
                     if(empty($objectId)) continue;
                 }
 
@@ -1768,7 +1772,7 @@ abstract class deals_DealMaster extends deals_DealBase
         
         $mvc->save($rec, 'closedDocuments');
         core_Debug::stopTimer('AFTER_CLOSURE_WITH_DEAL');
-        core_Debug::log("CLOSE AFTER_CLOSURE_WITH_DEAL " . round(core_Debug::$timers["AFTER_CLOSURE_WITH_DEAL"]->workingTime, 6));
+        core_Debug::log("CLOSE AFTER_CLOSURE_WITH_DEAL " . round(core_Debug::$timers["AFTER_CLOSURE_WITH_DEAL"]->workingTime ?? 0, 6));
     }
     
     
@@ -2775,7 +2779,7 @@ abstract class deals_DealMaster extends deals_DealBase
             $currencyId = "EUR";
         }
         $query = $this->getQuery();
-        $query->where("#state = 'draft' AND #currencyId = '{$currencyId}' AND #contragentId = {$contragentId} AND #contragentClassId = {$contragentClassId}");
+        $query->where(array("#state = 'draft' AND #currencyId = '[#1#]' AND #contragentId = '[#2#]' AND #contragentClassId = '[#3#]'", $currencyId, $contragentId, $contragentClassId));
         $Quotation = cls::get($this->quotationClass);
 
         // Ако ще се създава към оферта - да се филтрира и по избраната наша фирма в нея, ако е инсталиран пакета за многофирменост
@@ -3033,14 +3037,14 @@ abstract class deals_DealMaster extends deals_DealBase
                 self::$logisticDataCache['countryId'][$ownCountryId] = drdata_Countries::fetchField($ownCountryId, 'commonName');
             }
         }
-        $ownCountry = self::$logisticDataCache['countryId'][$ownCountryId];
+        $ownCountry = self::$logisticDataCache['countryId'][$ownCountryId] ?? null;
 
         if(!array_key_exists($contragentCountryId, self::$logisticDataCache['countryId'])) {
             if($contragentCountryId) {
                 self::$logisticDataCache['countryId'][$contragentCountryId] = drdata_Countries::fetchField($contragentCountryId, 'commonName');
             }
         }
-        $contragentCountry = self::$logisticDataCache['countryId'][$contragentCountryId];
+        $contragentCountry = self::$logisticDataCache['countryId'][$contragentCountryId] ?? null;
         $ownPart = ($this instanceof sales_Sales) ? 'from' : 'to';
         $contrPart = ($this instanceof sales_Sales) ? 'to' : 'from';
 

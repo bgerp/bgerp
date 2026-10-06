@@ -123,6 +123,7 @@ class type_Key2 extends type_Int
     
     /**
      * Връща опците, съответсващи на избраните параметри
+     * Параметърът forceReplica ограничава четенето от репликата до извличането на опциите.
      */
     public function getOptions($limit = null, $search = '', $ids = null, $includeHiddens = false)
     {
@@ -182,7 +183,14 @@ class type_Key2 extends type_Int
             expect($this->params['titleFld'], $this);
         }
 
-        $resArr = call_user_func($this->params['selectSourceArr'], $this->params, $limit, $search, $ids, $includeHiddens);
+        $getOptions = function () use ($limit, $search, $ids, $includeHiddens) {
+
+            return call_user_func($this->params['selectSourceArr'], $this->params, $limit, $search, $ids, $includeHiddens);
+        };
+
+        $resArr = !empty($this->params['forceReplica'])
+            ? cls::get($this->params['mvc'])->callOnReplica($getOptions)
+            : $getOptions();
 
         // При търсене, записваме резултата в кеша
         if (!empty($handler)) {

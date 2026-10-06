@@ -71,7 +71,8 @@ class fileman_webdrv_Md extends fileman_webdrv_Text
         $content = i18n_Charset::convertToUtf8($content);
         $content = mb_strcut($content, 0, 1000000);
 
-        $richText = cls::get('type_Richtext');
+        // Показваме целия преглед: HTML филтърът премахва JavaScript връзката „Вижте още“.
+        $richText = cls::get('type_Richtext', array('params' => array('hideTextAfterLength' => PHP_INT_MAX)));
         $view = $richText->toVerbal("[md]{$content}[/md]");
 
         // Markdown файловете са външно съдържание и могат да съдържат опасен HTML

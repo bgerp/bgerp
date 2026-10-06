@@ -8,8 +8,8 @@
  * @category  bgerp
  * @package   blogm
  *
- * @author    Ивелин Димов <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2021 Experta OOD
+ * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
+ * @copyright 2006 - 2026 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -32,6 +32,12 @@ class blogm_Categories extends core_Manager
      * Полета за изглед
      */
     public $listFields = 'id, title, description, menuId, sharedMenus';
+
+
+    /**
+     * Поле, което се отмества според нивото в структурата
+     */
+    public $saoTitleField = 'title';
     
     
     /**
@@ -52,6 +58,14 @@ class blogm_Categories extends core_Manager
      * @see cms_plg_ContentSharable
      */
     public $sharableToContentSourceClass = 'blogm_Articles';
+    
+    
+    /**
+     * Основното меню може да е от всеки домейн
+     *
+     * @see cms_plg_ContentSharable
+     */
+    public $contentMenuFromAllDomains = true;
 
 
     /**
@@ -93,6 +107,10 @@ class blogm_Categories extends core_Manager
     protected function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         $row->title = ht::createLink($row->title, array('blogm_Articles', 'list', 'category' => $rec->id));
+        
+        if (!empty($rec->menuId) && isset($row->menuId)) {
+            $row->menuId = ht::createLink($row->menuId, cms_Content::getSingleUrlArray($rec->menuId), false, array('ef_icon' => cls::get('cms_Content')->getSingleIcon($rec->menuId)));
+        }
     }
     
     
@@ -116,8 +134,49 @@ class blogm_Categories extends core_Manager
     {
         $form = &$data->form;
         
-        $form->rec->domainId = cms_Domains::getCurrent();
-        $form->setReadonly('domainId');
+        $domainId = self::getDomainByMenu($form->rec) ?? cms_Domains::getCurrent('id', false);
+        if (!empty($domainId)) {
+            $form->rec->domainId = $domainId;
+            $form->setReadonly('domainId');
+        } else {
+            $form->setField('domainId', 'input=none');
+        }
+        
+        // Статиите са в папката на менюто, затова то не се сменя след като се ползва
+        if (!empty($form->rec->id) && ($data->action ?? null) != 'clone') {
+            $aQuery = blogm_Articles::getQuery();
+            $aQuery->likeKeylist('categories', keylist::fromArray(array($form->rec->id => $form->rec->id)));
+            $aQuery->show('id');
+            $aQuery->limit(1);
+            if ($aQuery->fetch()) {
+                $form->setField('menuId', array('hint' => 'Менюто не може да се смени, защото в категорията има статии'));
+                $form->setReadOnly('menuId');
+            }
+        }
+    }
+    
+    
+    /**
+     * Домейнът на категорията е този на основното ѝ меню
+     */
+    protected static function on_BeforeSave($mvc, &$id, $rec, $fields = null)
+    {
+        $domainId = self::getDomainByMenu($rec);
+        if (!empty($domainId)) {
+            $rec->domainId = $domainId;
+        }
+    }
+    
+    
+    /**
+     * Домейнът на основното меню на категорията
+     */
+    private static function getDomainByMenu($rec)
+    {
+        $menuId = $rec->menuId ?? null;
+        $domainId = !empty($menuId) ? cms_Content::fetchField($menuId, 'domainId') : null;
+        
+        return !empty($domainId) ? $domainId : null;
     }
     
     
@@ -135,9 +194,9 @@ class blogm_Categories extends core_Manager
             $query->where("#menuId = {$cMenuId} OR LOCATE('|{$cMenuId}|', #sharedMenus)");
         }
 
+        $fRec = isset($categoryId) ? self::fetch($categoryId, 'id,saoParentId,saoLevel') : null;
         if(!$showAll){
-            if (isset($categoryId)) {
-                $fRec = self::fetch($categoryId, 'id,saoParentId,saoLevel');
+            if (!empty($fRec)) {
                 $parentGroupsArr = array($fRec->id);
                 $sisCond = ($fRec->saoParentId) ? " OR #saoParentId = {$fRec->saoParentId} " : '';
 
@@ -187,7 +246,8 @@ class blogm_Categories extends core_Manager
             $saoLevel = static::fetchField($id, 'saoLevel');
             $num = ($saoLevel) ? $saoLevel : 1;
 
-            if (($data->selectedCategories[$id] ?? null) || (!$id && !countR($data->selectedCategories))) {
+            // „Всички“ не се маркира, ако е избран месец от архива
+            if (($data->selectedCategories[$id] ?? null) || (!$id && !countR($data->selectedCategories) && empty($data->archive))) {
                 $attr = array('class' => "nav_item sel_page level{$num}");
             } else {
                 $attr = array('class' => "nav_item level{$num}");
@@ -220,7 +280,11 @@ class blogm_Categories extends core_Manager
      */
     protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
-        self::filterByDomain($data->query, cms_Domains::getCurrent());
+        // Домейнът е от филтъра на cms_plg_ContentSharable, празен е за всички
+        $domainId = $data->listFilter->rec->domainId ?? null;
+        if (!empty($domainId)) {
+            $data->query->where("#domainId = {$domainId}");
+        }
     }
 
 

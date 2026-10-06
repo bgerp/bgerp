@@ -8,8 +8,8 @@
  * @category  bgerp
  * @package   blogm
  *
- * @author    Ивелин Димов <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
+ * @copyright 2006 - 2026 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -43,7 +43,7 @@ class blogm_Comments extends core_Detail
     /**
      * Полета за изглед
      */
-    public $listFields = 'name, email, web, ip, brid, userDelay, spamRate, articleId, comment=@, createdOn=Създаване||Created';
+    public $listFields = 'name, email, web, ip, brid, userDelay, spamRate, comment=@, createdOn=Създаване||Created';
     
     
     /**
@@ -74,6 +74,12 @@ class blogm_Comments extends core_Detail
      * Кой има достъп до Спосъка с коментати
      */
     public $canDelete = 'cms, ceo, admin,blog';
+
+
+    /**
+     * Кой може да публикува чакащ коментар
+     */
+    public $canActivate = 'cms, ceo, admin, blog';
     
     
     /**
@@ -107,6 +113,7 @@ class blogm_Comments extends core_Detail
         
         $this->setDbIndex('ip');
         $this->setDbIndex('brid');
+        $this->setDbIndex('state,createdOn');
     }
     
     
@@ -121,7 +128,13 @@ class blogm_Comments extends core_Detail
         $me = cls::get(get_called_class());
         $fields = $me->selectFields('');
         $fields['-article'] = true;
-        
+
+        // Нерегистриран посетител не вижда профилите и документите от системата
+        $isAnonymous = !core_Users::getCurrent('id', false);
+        if ($isAnonymous) {
+            $me->setFieldTypeParams('comment', array('hndToLink' => 'no', 'nickToLink' => 'no'));
+        }
+
         // Търсим brid в сесията
         $data->brid = log_Browsers::getBrid();
         
@@ -130,17 +143,22 @@ class blogm_Comments extends core_Detail
         $data->commentsRecs = $data->commentsRows = array();
         while ($rec = $query->fetch()) {
             $data->commentsRecs[$rec->id] = $rec;
-            $data->commentsRows[$rec->id] = self::recToVerbal($rec, $fields);
+            // Иконата за отсъствие след ника издава статуса на служителя
+            $vRec = $rec;
+            if ($isAnonymous) {
+                $vRec = clone $rec;
+                $vRec->comment = preg_replace_callback(rtac_Plugin::$pattern, function ($m) {
+                    return $m['pre'] . $m['nick'];
+                }, $rec->comment ?? '');
+            }
+            $data->commentsRows[$rec->id] = self::recToVerbal($vRec, $fields);
             
-            if ($data->commentsRecs[$rec->id]->state == 'pending') {
-                $data->commentsRows[$rec->id]->status = 'Чака одобрение';
-                $data->commentsRows[$rec->id]->stateColor = '#cceeff';
-            } elseif ($data->commentsRecs[$rec->id]->state == 'rejected') {
-                $data->commentsRows[$rec->id]->status = 'Отхвърлен';
-                $data->commentsRows[$rec->id]->stateColor = '#cc6666';
-            } elseif ($data->commentsRecs[$rec->id]->state == 'closed') {
-                $data->commentsRows[$rec->id]->status = 'Затворен';
-                $data->commentsRows[$rec->id]->stateColor = '#cccccc';
+            // Непубликуваните коментари се виждат само от автора им, с етикет за състоянието
+            $statuses = array('pending' => 'Чака одобрение', 'rejected' => 'Отхвърлен', 'closed' => 'Затворен');
+            $state = $data->commentsRecs[$rec->id]->state;
+            if (isset($statuses[$state])) {
+                $data->commentsRows[$rec->id]->status = tr($statuses[$state]);
+                $data->commentsRows[$rec->id]->stateClass = "blogm-comment-{$state}";
             }
             
             $data->commentsRows[$rec->id]->name = str::limitLen($data->commentsRows[$rec->id]->name, 32);
@@ -171,34 +189,30 @@ class blogm_Comments extends core_Detail
             $now = $Crypt->encodeVar(time(), $key);
             $data->commentForm->setHidden('renderOn', $now);
             
-//            $valsArr = log_Browsers::getVars(array('name', 'email', 'web'));
-//
-//            foreach ($valsArr as $vName => $val) {
-//                $data->commentForm->setDefault($vName, $val);
-//            }
-            
             $data->commentForm->toolbar->addSbBtn('Изпращане');
         }
     }
     
     
     /**
-     * Нова функция която се извиква blogm_Articles - act_Show
-     * от и рендира коментарите в нов шаблон
+     * Рендира коментарите и формата за нов коментар в шаблона на статията
      */
     public static function renderComments_($data, $layout)
     {
         if (countR($data->commentsRows)) {
             foreach ($data->commentsRows as $row) {
-                $commentTpl = $data->ThemeClass->getCommentsLayout();
+                $commentTpl = $layout->getBlock('COMMENT');
                 $commentTpl->placeObject($row);
-                $layout->append($commentTpl, 'COMMENTS');
+                $commentTpl->append2master();
             }
+        } else {
+            $layout->removeBlock('COMMENTS');
         }
         
         if ($data->commentForm ?? null) {
-            $data->commentForm->layout = $data->ThemeClass->getCommentFormLayout();
-            $data->commentForm->fieldsLayout = $data->ThemeClass->getCommentFormFieldsLayout();
+            $formTpl = getTplFromFile('blogm/tpl/CommentForm.shtml');
+            $data->commentForm->fieldsLayout = $formTpl->getBlock('FORM_FIELDS');
+            $data->commentForm->layout = $formTpl;
             $layout->replace($data->commentForm->renderHtml(), 'COMMENT_FORM');
         }
         
@@ -214,21 +228,26 @@ class blogm_Comments extends core_Detail
     public static function on_BeforeSave($mvc, &$id, &$rec, $fields = null)
     {
         if (empty($rec->id)) {
-            if (!haveRole('cms,ceo,admin') || $rec->state == 'draft') {
+            if (!haveRole('cms,ceo,admin') || empty($rec->state) || $rec->state == 'draft') {
                 $artRec = $mvc->Master->fetch($rec->articleId);
                 $rec->state = ($artRec->commentsMode == 'enabled') ? 'active' : 'pending';
             }
             
             $rec->ip = core_Users::getRealIpAddr();
-            
             $rec->brid = log_Browsers::getBrid();
             
-            $Crypt = cls::get('core_Crypt');
-            $key = Mode::getPermanentKey();
-            $rec->userDelay = time() - $Crypt->decodeVar($rec->renderOn, $key);
-            
+            // Часът на зареждане идва само от публичната форма под статията
+            if (!empty($rec->renderOn)) {
+                $Crypt = cls::get('core_Crypt');
+                $key = Mode::getPermanentKey();
+                $renderOn = $Crypt->decodeVar($rec->renderOn, $key);
+                if (is_numeric($renderOn)) {
+                    $rec->userDelay = time() - $renderOn;
+                }
+            }
+
             // Да се записва само при нов запис и и когато няма регистриран потребител
-            log_Browsers::setVars(array('name' => $rec->name, 'email' => $rec->email, 'web' => $rec->web));
+            log_Browsers::setVars(array('name' => $rec->name ?? null, 'email' => $rec->email ?? null, 'web' => $rec->web ?? null));
         }
         
         // Начален рейтинг
@@ -246,7 +265,7 @@ class blogm_Comments extends core_Detail
         $sr += self::hasWord($rec->web, 'sex,xxx,porn,cam,teen,adult,cheap,sale,xenical,pharmacy,pills,prescription,опционы');
         
         // Ако в името на сайта има директория
-        $sr += explode('/', $rec->web) > 2 ? 1 : 0;
+        $sr += countR(explode('/', rtrim($rec->web ?? '', '/'))) > 3 ? 1 : 0;
         
         // Ако има линкове в описанието
         $sr += self::hasWord($rec->comment, array('href=', 'src='));
@@ -343,7 +362,7 @@ class blogm_Comments extends core_Detail
         $words = arr::make($words);
         
         foreach ($words as $w) {
-            if (stripos($str, $w) !== false) {
+            if (stripos($str ?? '', $w) !== false) {
                 
                 return true;
             }
@@ -358,11 +377,60 @@ class blogm_Comments extends core_Detail
      */
     public function on_AfterPrepareListFields($mvc, $data)
     {
-        if (isset($data->masterMvc)) {
-            unset($data->listFields['articleId']);
+        // Извън статията се показва и към коя статия е коментарът
+        if (!isset($data->masterMvc)) {
+            arr::insert($data->listFields, 'name', array('articleId' => 'Статия'));
+        } else {
+            
+            // В нишката данните за подателя са под името, за да се събере таблицата
+            unset($data->listFields['email'], $data->listFields['web'], $data->listFields['ip'], $data->listFields['brid'], $data->listFields['userDelay']);
+            $data->listFields['spamRate'] = 'Спам';
         }
         
         $data->query->orderBy('#createdOn', 'DESC');
+    }
+
+
+    /**
+     * В статията коментарите се странират по 10
+     */
+    protected static function on_AfterPrepareListPager($mvc, $data)
+    {
+        if (isset($data->masterMvc, $data->pager)) {
+            $data->pager->itemsPerPage = 10;
+        }
+    }
+
+    
+    /**
+     * В нишката събира данните за подателя в колоната с името
+     */
+    protected static function on_AfterPrepareListRows($mvc, $data)
+    {
+        if (!isset($data->masterMvc) || !countR($data->rows)) {
+            
+            return;
+        }
+        
+        foreach ($data->rows as $id => $row) {
+            $rec = $data->recs[$id];
+            $contacts = array();
+            foreach (array('email', 'web') as $fld) {
+                if (!empty($rec->{$fld})) {
+                    $contacts[] = $row->{$fld} ?? $mvc->getVerbal($rec, $fld);
+                }
+            }
+            
+            $name = "<b>{$row->name}</b>";
+            if (countR($contacts)) {
+                $name .= "<div class='small'>" . implode(' &middot; ', $contacts) . '</div>';
+            }
+            $row->name = $name . "<div class='small' style='margin-top:2px'>{$row->ip} {$row->brid}</div>";
+            
+            if (!empty($rec->userDelay)) {
+                $row->spamRate = ht::createHint($row->spamRate, 'Закъснение|*: ' . $mvc->getVerbal($rec, 'userDelay'));
+            }
+        }
     }
     
     
@@ -380,14 +448,16 @@ class blogm_Comments extends core_Detail
         
         // Проверяваме имаме ли запис и дали екшъна е 'add'
         if ($action == 'add') {
-            if (isset($rec->articleId)) {
-                $artRec = $mvc->Master->fetch($rec->articleId);
+            $artRec = isset($rec->articleId) ? $mvc->Master->fetch($rec->articleId) : null;
+            if (is_object($artRec)) {
+
+                // Срокът за коментиране тече от публикуването, не от последната редакция
+                $publishedOn = !empty($artRec->publishedOn) ? $artRec->publishedOn : $artRec->createdOn;
                 
-                // Ако записа е то статията е заключена за коментиране
-                if ($artRec->commentsMode == 'disabled' ||
-                    $artRec->commentsMode == 'stopped' ||
-                    $artRec->state != 'active' ||
-                    dt::addDays($conf->BLOGM_MAX_COMMENT_DAYS, $artRec->modifiedOn) < dt::now()) {
+                // Коментира се само активна статия, с разрешени или потвърждавани коментари, преди срока
+                if (!in_array($artRec->commentsMode ?? null, array('enabled', 'confirmation'), true) ||
+                    ($artRec->state ?? null) != 'active' ||
+                    dt::addSecs($conf->BLOGM_MAX_COMMENT_DAYS, $publishedOn) < dt::now()) {
                     $res = 'no_one'; // Коментарите са забранени
                 } else {
                     $res = 'every_one';  // Коментарите са разрешени
@@ -396,7 +466,20 @@ class blogm_Comments extends core_Detail
                 $res = 'no_one'; // Коментарите са забранени
             }
         }
-        
+
+        // Активната статия не се редактира, а се променя - коментарите ѝ следват правото за промяна
+        if ($action == 'write' && isset($rec->{$mvc->masterKey})) {
+            $artRec = $mvc->Master->fetch($rec->{$mvc->masterKey});
+            if (($artRec->state ?? null) == 'active') {
+                $res = $mvc->Master->getRequiredRoles('changerec', $artRec, $userId);
+            }
+        }
+
+        // Публикуват се само чакащите коментари
+        if ($action == 'activate' && ($rec->state ?? null) != 'pending') {
+            $res = 'no_one';
+        }
+
         // Могат да се изтриват само оттеглените
         if ($action == 'delete' && isset($rec) && $rec->state != 'rejected' && ((!stripos($rec->comment, '<a ')) || $rec->state == 'active')) {
             $res = 'no_one';
@@ -411,11 +494,36 @@ class blogm_Comments extends core_Detail
      * @param stdClass $row Това ще се покаже
      * @param stdClass $rec Това е записа в машинно представяне
      */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec)
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         $row->ip = type_Ip::decorateIp($rec->ip, $rec->createdOn, true);
         
+        if (isset($fields['-list']) && !empty($rec->articleId)) {
+            $row->articleId = blogm_Articles::getHyperlink($rec->articleId, true);
+        }
+        
         $row->brid = log_Browsers::getLink($rec->brid);
+
+        if (isset($row->_rowTools) && $mvc->haveRightFor('activate', $rec)) {
+            $row->_rowTools->addLink('Активиране', array($mvc, 'activate', $rec->id, 'ret_url' => true), array('ef_icon' => 'img/16/lightning.png', 'alwaysShow' => true, 'title' => 'Публикуване на коментара'));
+        }
+    }
+
+
+    /**
+     * Публикуване на чакащ коментар
+     */
+    public function act_Activate()
+    {
+        $id = Request::get('id', 'int');
+        expect($rec = $this->fetch($id));
+        $this->requireRightFor('activate', $rec);
+
+        $rec->state = 'active';
+        $this->save($rec, 'state');
+        $this->Master->logWrite('Публикуване на коментар', $rec->{$this->masterKey});
+
+        followRetUrl(array('blogm_Articles', 'single', $rec->articleId));
     }
     
     
@@ -428,6 +536,14 @@ class blogm_Comments extends core_Detail
         $data->listFilter->showFields = 'ip, brid';
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+        
+        // Като детайл филтърът се изпраща към нишката на статията
+        $threadId = $data->masterData->rec->threadId ?? null;
+        if (!empty($threadId)) {
+            $data->listFilter->FNC('threadId', 'int', 'input=hidden,silent');
+            $data->listFilter->setDefault('threadId', $threadId);
+            $data->listFilter->showFields .= ', threadId';
+        }
         $data->listFilter->input($data->listFilter->showFields, 'silent');
         
         if ($ip = ($data->listFilter->rec->ip ?? null)) {

@@ -207,7 +207,9 @@ class cat_products_Usage extends core_Manager
             $query->XPR('orderByState', 'int', "(CASE #state WHEN 'active' THEN 1 WHEN 'closed' THEN 2  WHEN 'pending' THEN '3' ELSE 4 END)");
             $query->orderBy('#orderByState=ASC,#id=DESC');
             $query->in('id', $ids);
-            $query->limit($data->Pager->itemsPerPage);
+            // Броят е по диапазона на пейджъра, а не по itemsPerPage - при неточното страниране
+            // последната страница поема остатъка и е по-дълга от една страница
+            $query->limit($data->Pager->getRangeLength());
             $query->startFrom($data->Pager->rangeStart);
 
             $fields = $data->Document->selectFields();
@@ -256,7 +258,7 @@ class cat_products_Usage extends core_Manager
         if ($data->Document instanceof planning_Tasks) {
             // planning_Tasks няма поле "вальор" - вместо това показваме заданието му
             arr::placeInAssocArray($data->listFields, array('originId' => 'Задание'), null, 'title');
-            $data->listTableMvc->setField('originId', 'tdClass=leftCol');
+            $data->listTableMvc->setField('originId', 'tdClass=leftCol standart-field');
         } else {
             $dateArr = ($data->Document instanceof sales_Quotations) ? array('date' => 'Дата') : array('valior' => 'Вальор');
             arr::placeInAssocArray($data->listFields, $dateArr, null, 'title');
@@ -265,7 +267,11 @@ class cat_products_Usage extends core_Manager
         $data->Document->invoke('BeforeRenderListTable', array($tpl, &$data));
 
         $data->Document->setFieldType('title', 'varchar');
-        $data->Document->setField('title', array('tdClass' => 'leftCell'));
+        $titleTdClass = 'leftCell';
+        if ($data->Document instanceof sales_Sales) {
+            $titleTdClass .= ' standart-field';
+        }
+        $data->Document->setField('title', array('tdClass' => $titleTdClass));
 
         $table = cls::get('core_TableView', array('mvc' => $data->Document));
         $details = $table->get($data->rows, $data->listFields);

@@ -317,9 +317,11 @@ class bgfisc_PrintedReceipts extends core_Manager
             }
 
             // И този стринг отговаря на хендлър на документ в системата
-            $doc = doc_Containers::getDocumentByHandle($filterRec->search);
-            if (is_object($doc)) {
-                $data->query->orWhere("#classId = '{$doc->getClassId()}' AND #objectId = '{$doc->that}'");
+            if (!empty($filterRec->search)) {
+                $doc = doc_Containers::getDocumentByHandle($filterRec->search);
+                if (is_object($doc)) {
+                    $data->query->orWhere("#classId = '{$doc->getClassId()}' AND #objectId = '{$doc->that}'");
+                }
             }
         }
     }

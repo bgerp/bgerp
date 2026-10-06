@@ -56,6 +56,12 @@ class ajur_SalesInvoicesExport extends frame2_driver_TableData
 
 
     /**
+     * Кои полета от таблицата са цени/суми
+     */
+    protected $priceListFields = 'dealValueCurrecy,dealValueWithoutDiscountCurrecy,vatAmountCurrecy,totalValueCurrecy,exciseTaxCurrecy,productTaxCurrecy,dealValue,dealValueWithoutDiscount,vatAmount,totalValue,exciseTax,productTax,taxBase20Vat,vatTax20,taxBase9Vat,vatTax9,taxBase0Vat,vatTax0,coll58,coll59,coll60,coll61,coll62,coll63,coll64,coll65,coll66,price,detAmount';
+
+
+    /**
      * Кои полета може да се променят от потребител споделен към справката, но нямащ права за нея
      */
     protected $changeableFields;
@@ -93,7 +99,7 @@ class ajur_SalesInvoicesExport extends frame2_driver_TableData
     /**
      * След рендиране на единичния изглед
      *
-     * @param cat_ProductDriver $Driver
+     * @param frame2_driver_Proto $Driver
      * @param embed_Manager $Embedder
      * @param core_Form $form
      * @param stdClass $data
@@ -320,6 +326,10 @@ class ajur_SalesInvoicesExport extends frame2_driver_TableData
         }
         $dQuery = sales_InvoiceDetails::getQuery();
         $dQuery->in('invoiceId', $invArr);
+
+        // Нулевите редове на фактурите не се експортират, при известията са промяна
+        $dQuery->EXT('invType', 'sales_Invoices', 'externalName=type,externalKey=invoiceId');
+        $dQuery->where("#quantity != 0 OR #invType != 'invoice'");
 
         $details = $dQuery->fetchAll();
 

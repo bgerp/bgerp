@@ -305,9 +305,11 @@ class core_Pager extends core_BaseClass
                 
                 // Ако не сме имали резултати от кеша
                 if ($resCntCache === null || $resCntCache === false) {
-                    $query->mvc->forceProxy();
-                    $totalRows = $query->mvc->db->countRows($query->mvc->dbTableName);
-                    $query->mvc->unforceProxy();
+                    $mvc = $query->mvc;
+                    $totalRows = $mvc->callOnReplica(function () use ($mvc) {
+
+                        return $mvc->db->countRows($mvc->dbTableName);
+                    });
                     $resCnt = min($this->rangeEnd + 180, $totalRows);
                     $this->approx = true;
                 } else {

@@ -768,9 +768,9 @@ class blast_EmailSend extends core_Detail
     {
         // В зависимост от състоянието променяме класа на реда
         if ($rec->state == 'sended') {
-            $row->ROW_ATTR['class'] .= ' state-closed';
+            $row->ROW_ATTR['class'] = ($row->ROW_ATTR['class'] ?? '') . ' state-closed';
         } else {
-            $row->ROW_ATTR['class'] .= ' state-pending';
+            $row->ROW_ATTR['class'] = ($row->ROW_ATTR['class'] ?? '') . ' state-pending';
         }
         
         if ($rec->stateAct != 'stopped') {
@@ -790,7 +790,7 @@ class blast_EmailSend extends core_Detail
             // Бутон за активиране
             $row->stateAct = ht::createBtn('Активиране', $activateUrl, false, false, 'title=Започване на изпращане към този имейл');
             
-            $row->ROW_ATTR['class'] .= ' state-stopped';
+            $row->ROW_ATTR['class'] = ($row->ROW_ATTR['class'] ?? '') . ' state-stopped';
         }
     }
     

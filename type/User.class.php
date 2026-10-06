@@ -312,7 +312,7 @@ class type_User extends type_Key
      */
     public static function getUserFromTeams($userId = null)
     {
-        $arr = array();
+        $arr = $teams = array();
         
         // Ако не е подаден потребител
         if (!$userId) {

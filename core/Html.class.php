@@ -444,9 +444,9 @@ class core_Html
             }
             
             $attr['readonly'] = 'readonly';
-            $attr['class'] = 'readonly';
+            $attr['class'] = trim(($attr['class'] ?? '') . ' readonly');
             
-            if (empty($value)) {
+            if (!strlen((string) $value)) {
                 if (!empty($attr['placeholder'])) {
                     $value = $attr['placeholder'];
                     $attr['style'] = 'color:#777';
@@ -1182,6 +1182,7 @@ class core_Html
      *                             o bool         useCache    - ajax заявката да се прави само първия път
      *                             o string       holderClass - допълнителен клас на обвивката
      *                             o string       arrowClass  - клас на стрелката, по подразбиране 'anchor-arrow'
+     *                             o string       aiHint      - кратък текст на английски, който в LLM експорта замества хинта с [!bgERP: текст]
      * @param array  $elementArr  - атрибути на елемента
      *
      * @return core_ET $elementTpl  - шаблон с хинта
@@ -1198,7 +1199,16 @@ class core_Html
         $useCache = !empty($hintAttr['useCache']);
         $holderClass = $hintAttr['holderClass'] ?? null;
         $arrowClass = array_key_exists('arrowClass', $hintAttr) ? $hintAttr['arrowClass'] : 'anchor-arrow';
-        unset($hintAttr['isHtml'], $hintAttr['iconAttr'], $hintAttr['url'], $hintAttr['urlIdParam'], $hintAttr['useHover'], $hintAttr['useCache'], $hintAttr['holderClass'], $hintAttr['arrowClass']);
+        $aiHint = $hintAttr['aiHint'] ?? null;
+        unset($hintAttr['isHtml'], $hintAttr['iconAttr'], $hintAttr['url'], $hintAttr['urlIdParam'], $hintAttr['useHover'], $hintAttr['useCache'], $hintAttr['holderClass'], $hintAttr['arrowClass'], $hintAttr['aiHint']);
+
+        // В LLM експорта хинтът се губи при strip_tags, затова се изписва като системна бележка
+        if (Mode::is('renderForLlm') && !empty($aiHint)) {
+            $res = new core_ET($body);
+            $res->append(' ' . doc_plg_LlmExportable::systemNote($aiHint));
+
+            return $res;
+        }
 
         // При ajax хинт балончето е празно, затова се допуска и без текст
         if ((empty($hint) && empty($url)) || Mode::is('printing') || Mode::is('text', 'xhtml') || Mode::is('pdf')) {
@@ -1507,7 +1517,18 @@ class core_Html
                         $name = $prop->getName();
 
                         if (!isset($scopeArr[$name])) {
-                            $res[$name] = @$prop->getValue($o);
+                            try {
+                                if (method_exists($prop, 'isInitialized') && !$prop->isInitialized($prop->isStatic() ? null : $o)) {
+                                    $res[$name] = '(uninitialized)';
+                                } else {
+                                    $res[$name] = $prop->getValue($prop->isStatic() ? null : $o);
+                                }
+                            } catch (core_exception_Redirect $e) {
+                                throw $e;
+                            } catch (Throwable $e) {
+                                // Някои вътрешни PHP обекти не разрешават четене на свойствата си
+                                $res[$name] = '(unavailable)';
+                            }
                             if ($prop->isStatic()) {
                                 $scopeArr[$name] = 'static';
                             } elseif ($prop->isPublic()) {

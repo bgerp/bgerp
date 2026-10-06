@@ -191,15 +191,6 @@ class core_App
                 
                 // Дали това не е име на контролер?
                 if (!isset($q['Ctr']) && $id < 2) {
-                    if (!preg_Match('/([A-Z])/', $prm)) {
-                        $last = strrpos($prm, '_');
-                        
-                        if ($last !== false && $last < strlen($prm)) {
-                            $className[$last + 1] = strtoupper($prm[$last + 1]);
-                        } else {
-                            $className[0] = strtoupper($prm[0]);
-                        }
-                    }
                     $q['Ctr'] = preg_replace('/[^a-zA-Z0-9_]*/', '', $prm);
                     continue;
                 }
@@ -596,14 +587,19 @@ class core_App
             if (EF_HTTPS == 'MANDATORY') {
                 $resArr[] = 'Strict-Transport-Security: max-age=86400';
             }
-            
-            $resArr[] = 'X-Frame-Options: sameorigin';
-            $resArr[] = 'X-XSS-Protection: 1; mode=block';
-            $resArr[] = 'X-Content-Type-Options: nosniff';
-            $resArr[] = 'Expect-CT: max-age=86400, enforce';
-            $resArr[] = "Feature-Policy: camera 'self'; microphone 'self'";
         }
-        
+
+        // false - без хедъра, ако системата се вгражда в iframe на чужд сайт
+        defIfNot('EF_X_FRAME_OPTIONS', 'SAMEORIGIN');
+        if (EF_X_FRAME_OPTIONS) {
+            $resArr[] = 'X-Frame-Options: ' . EF_X_FRAME_OPTIONS;
+        }
+        $resArr[] = 'X-Content-Type-Options: nosniff';
+        $resArr[] = 'Referrer-Policy: strict-origin-when-cross-origin';
+
+        // Геолокацията и камерата се ползват от location_Type и сканирането на баркодове
+        $resArr[] = 'Permissions-Policy: geolocation=(self), camera=(self), microphone=()';
+
         return $resArr;
     }
     
@@ -631,9 +627,9 @@ class core_App
      */
     public static function redirect($url, $absolute = false, $msg = null, $type = 'notice', $permanent = false)
     {
-        // Очакваме най-много три символа (BOM) в буфера
-        expect(ob_get_length() <= 3, array(ob_get_length(), ob_get_contents()));
-        
+        $controller = is_array($url) ? ($url['Ctr'] ?? $url[0] ?? null) : null;
+        $action = is_array($url) ? ($url['Act'] ?? $url[1] ?? null) : null;
+        if (is_object($controller)) $controller = cls::getClassName($controller);
         $hitId = Request::get('hit_id');
         
         if (isset($msg)) {
@@ -642,8 +638,6 @@ class core_App
                 if (!$hitId) {
                     $hitId = str::getRand();
                 }
-                
-                core_Statuses::newStatus($msg, $type, null, 60, $hitId);
             }
         }
         
@@ -661,7 +655,38 @@ class core_App
             bp($url);
         }
         
-        if (Request::get('ajax_mode')) {
+        // URL и режимът се фиксират преди finally блоковете да възстановят Request/Mode.
+        $redirect = new core_exception_Redirect($url, $msg, $type, $permanent, Request::get('ajax_mode'), $hitId, $controller, $action);
+        if ($msg !== null && strlen(trim($msg))) {
+            $redirect->statusUserId = core_Users::getCurrent();
+        }
+        throw $redirect;
+    }
+
+
+    /**
+     * Изпраща вече подготвен редирект само на външната граница на заявката.
+     *
+     * @param core_exception_Redirect $redirect
+     *
+     * @return void
+     */
+    public static function sendRedirect(core_exception_Redirect $redirect)
+    {
+        if (PHP_SAPI !== 'cli') {
+            expect(!headers_sent(), 'Редирект след изпратен HTTP отговор');
+            expect(ob_get_length() <= 3, array(ob_get_length(), ob_get_contents()));
+        }
+        if ($redirect->statusMessage !== null && strlen(trim($redirect->statusMessage))) {
+            core_Statuses::newStatus($redirect->statusMessage, $redirect->messageType, $redirect->statusUserId, 60, $redirect->hitId);
+        }
+        if (PHP_SAPI === 'cli') {
+            core_Debug::log('Redirect: ' . $redirect->url);
+            core_Cls::shutdown();
+            static::exitScript();
+        }
+        $url = $redirect->url;
+        if ($redirect->ajax) {
             
             // Ако сме в Ajax_mode редиректа става чрез Javascript-а
             $resObj = new stdClass();
@@ -675,7 +700,7 @@ class core_App
         header('Cache-Control: no-cache, must-revalidate'); // HTTP 1.1.
         header('Expires: 0'); // Proxies.
         
-        header("Location: {$url}", true, $permanent ? 301 : 302);
+        header("Location: {$url}", true, $redirect->permanent ? 301 : 302);
         
         static::shutdown(false);
     }
@@ -1133,8 +1158,9 @@ class core_App
         if (!$s && (EF_HTTPS == 'MANDATORY')) {
             $s = 's';
         }
-        $slashPos = strpos($_SERVER['SERVER_PROTOCOL'], '/');
-        $protocol = substr(strtolower($_SERVER['SERVER_PROTOCOL']), 0, $slashPos) . $s;
+        $serverProtocol = $_SERVER['SERVER_PROTOCOL'] ?? 'HTTP/1.1';
+        $slashPos = strpos($serverProtocol, '/');
+        $protocol = substr(strtolower($serverProtocol), 0, $slashPos) . $s;
         
         return $protocol . '://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
     }
@@ -1162,8 +1188,11 @@ class core_App
             if (!$s && (EF_HTTPS == 'MANDATORY')) {
                 $s = 's';
             }
-            $slashPos = strpos($_SERVER['SERVER_PROTOCOL'], '/');
-            $protocol = substr(strtolower($_SERVER['SERVER_PROTOCOL']), 0, $slashPos) . $s;
+
+            // В CLI няма SERVER_PROTOCOL
+            $serverProtocol = $_SERVER['SERVER_PROTOCOL'] ?? 'HTTP/1.1';
+            $slashPos = strpos($serverProtocol, '/');
+            $protocol = substr(strtolower($serverProtocol), 0, $slashPos) . $s;
             
             $dirName = dirname($_SERVER['SCRIPT_NAME']);
             
@@ -1183,12 +1212,12 @@ class core_App
                     $boot = $protocol . '://' . $auth . $domain . $dirName;
                 } elseif (defined('FORCE_BGERP_ABSOLUTE_HTTP_HOST') && !$forceHttpHost) {
                     $boot = $protocol . '://' . $auth . FORCE_BGERP_ABSOLUTE_HTTP_HOST . $dirName;
-                } elseif (core_Url::isValidTld($domain = $_SERVER['HTTP_HOST'])) {
+                } elseif (core_Url::isValidTld($domain = ($_SERVER['HTTP_HOST'] ?? ''))) {
                     $boot = $protocol . '://' . $auth . $domain . $dirName;
                 } elseif (defined('BGERP_ABSOLUTE_HTTP_HOST') && !$forceHttpHost) {
                     $boot = $protocol . '://' . $auth . BGERP_ABSOLUTE_HTTP_HOST . $dirName;
                 } else {
-                    $boot = $protocol . '://' . $auth . $_SERVER['HTTP_HOST'] . $dirName;
+                    $boot = $protocol . '://' . $auth . ($_SERVER['HTTP_HOST'] ?? '') . $dirName;
                 }
             }
         } else {
@@ -1426,12 +1455,25 @@ class core_App
         $time = (int) ceil(max($time, $minTime));
         
         $now = time();
+
+        // PHP may have a larger limit set by configuration or a direct call,
+        // outside this method's bookkeeping. Zero means unlimited execution.
+        $currentLimit = (int) ini_get('max_execution_time');
+        if (!$force && $currentLimit === 0) {
+            return;
+        }
         
         // Ако форсираме или новото максимално време за изпълнение е по-голямо от старото задаваме го
-        if ($force || (self::$timeSetTimeLimit + self::$runningTimeLimit) < ($now + $time)) {
+        if ($force || $time === 0 || $currentLimit !== self::$runningTimeLimit
+            || (self::$timeSetTimeLimit + self::$runningTimeLimit) < ($now + $time)) {
+            if (!$force && $time > 0) {
+                $time = max($time, $currentLimit);
+            }
             
             // Увеличава времето за изпълнение
-            set_time_limit($time);
+            if (!set_time_limit($time)) {
+                return;
+            }
             
             // Записваме последното зададено време за изпълнение;
             self::$runningTimeLimit = $time;

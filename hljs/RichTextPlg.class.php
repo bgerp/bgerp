@@ -21,7 +21,7 @@ class hljs_RichTextPlg extends core_Plugin
     public function on_AfterHighLightCode(&$mvc, $style = 'github')
     {
         // Ако има въведено, да не се въвежда
-        if ($mvc->_htmlBoard['hljs']) {
+        if (!empty($mvc->_htmlBoard['hljs'])) {
             
             return ;
         }

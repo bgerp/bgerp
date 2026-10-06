@@ -348,6 +348,9 @@ abstract class frame2_driver_Proto extends core_BaseClass
     protected function logWhilePreparing($msg)
     {
         $this->log[] = array('msg' => $msg, 'time' => dt::now());
+
+        // Дублира се и в дебъг лога, за да се вижда заедно с времената
+        core_Debug::log($msg);
     }
 
 

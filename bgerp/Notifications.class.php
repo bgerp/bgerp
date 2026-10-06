@@ -587,7 +587,7 @@ class bgerp_Notifications extends core_Manager
 //            $query->where(array("#urlId = '[#1#]'", $urlId));
 //        }
         
-        $query->where("#url = '{$url}'");
+        $query->where(array("#url = '[#1#]'", $url));
         
         $usersArr = array();
         while ($rec = $query->fetch()) {
@@ -613,7 +613,7 @@ class bgerp_Notifications extends core_Manager
 //            $query->where(array("#urlId = '[#1#]'", $urlId));
 //        }
         
-        $query->where("#url = '{$url}'");
+        $query->where(array("#url = '[#1#]'", $url));
         
         if ($userId) {
             $query->where("#userId = '{$userId}'");
@@ -713,6 +713,8 @@ class bgerp_Notifications extends core_Manager
                     if (!$ctr || !$act || !$ctr::haveRightFor($act, $urlId, $rec->userId)) {
                         continue;
                     }
+                } catch (core_exception_Redirect $e) {
+                    throw $e;
                 } catch (Exception $e) {
                     reportException($e);
                 }
@@ -1896,7 +1898,7 @@ class bgerp_Notifications extends core_Manager
             
             $res = array('cnt' => $res, 'priority' => $priority);
             
-            if (isset($msgRec)) {
+            if (is_object($msgRec)) {
                 $res['msg'] = $msgRec->msg;
             }
         }

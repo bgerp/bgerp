@@ -1,0 +1,19 @@
+<!--ET_BEGIN NEAR_ROWS-->
+<section class="eshop-related">
+<h2 class="eshop-related-heading">|Подобни артикули||Similar products|*</h2>
+<div class="eshop-related-grid">
+[#NEAR_ROWS#]
+<!--ET_BEGIN nearLink-->
+	<div class="eshop-related-card">
+		<div class="eshop-related-image">
+		[#nearThumb#]
+		</div>
+		<div class="eshop-related-caption">
+		[#nearLink#]
+		<span class="eshop-related-arrow" aria-hidden="true">&#8599;</span>
+		</div>
+	</div>
+<!--ET_END nearLink-->
+</div>
+</section>
+<!--ET_END NEAR_ROWS-->

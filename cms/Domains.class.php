@@ -38,7 +38,7 @@ class cms_Domains extends core_Embedder
     /**
      * Необходими плъгини
      */
-    public $loadList = 'plg_RowTools2, cms_Wrapper, plg_Created, plg_Current, plg_State2';
+    public $loadList = 'plg_RowTools2, cms_Wrapper, plg_Created, plg_Current, plg_State2, plg_Select, plg_PrevAndNext';
     
     
     /**
@@ -397,16 +397,20 @@ class cms_Domains extends core_Embedder
     
     
     /**
-     * Връща възможните езици за подадените домейни
+     * Връща активните езици за подадените домейни или за текущия публичен домейн
      */
     public static function getCmsLangs($domainRecs = null)
     {
-        if (!$domainRecs) {
+        if ($domainRecs === null) {
             $domainRecs = self::findPublicDomainRecs();
         }
         
         $cmsLangs = array();
         foreach ($domainRecs as $rec) {
+            if ($rec->state != 'active') {
+                continue;
+            }
+
             $cmsLangs[$rec->lang] = $rec->lang;
         }
         
@@ -429,7 +433,7 @@ class cms_Domains extends core_Embedder
         
         expect($form instanceof core_Form);
         $form->setOptions($field, $opt);
-        $form->setDefault($field, self::getCurrent());
+        $form->setDefault($field, self::getCurrent('id', false));
     }
     
     
@@ -517,6 +521,9 @@ class cms_Domains extends core_Embedder
         if (is_object($dRec)) {
             $driver = self::getDriver($dRec->id);
         }
+        
+        // Вложените шаблони минават през темата, докато кожата не се определи отново
+        core_ET::$includePathResolver = ($driver instanceof cms_ProtoTheme) ? array($driver, 'resolveIncludePath') : null;
         
         return $driver;
     }
@@ -764,11 +771,30 @@ class cms_Domains extends core_Embedder
     
     /**
      * Връща добавка за домейна в листовия изглед на други модели
+     *
+     * @param stdClass|null $data - данните на списъка, ако филтърът му е по домейн
      */
-    public static function getCurrentDomainInTitle()
+    public static function getCurrentDomainInTitle($data = null)
     {
-        $res = '|* [<span style="color:green">' . self::getCurrent('domain') . '</span>, <span style="color:green">' . self::getCurrent('lang') . '</span>]';
-        
+        // Филтърът е за всички домейни - текущият не се показва
+        $filter = is_object($data) ? ($data->listFilter ?? null) : null;
+        if (is_object($filter) && isset($filter->fields['domainId'])) {
+            $filterRec = $filter->rec ?? null;
+            if (!is_object($filterRec) || empty($filterRec->domainId)) {
+
+                return '';
+            }
+        }
+
+        // Без текущ домейн заглавието е без добавка, вместо да се иска избор
+        $domain = self::getCurrent('domain', false);
+        if (empty($domain)) {
+
+            return '';
+        }
+
+        $res = '|* [<span style="color:green">' . $domain . '</span>, <span style="color:green">' . self::getCurrent('lang', false) . '</span>]';
+
         return $res;
     }
     
@@ -963,6 +989,37 @@ class cms_Domains extends core_Embedder
         }
         
         return $res;
+    }
+    
+    
+    /**
+     * Поле за домейн в лист филтър: текущият по подразбиране, празно за всички
+     */
+    public static function inputListFilterField(core_Form $form, $defaultDomainId = null)
+    {
+        $domains = self::getDomainOptions(false, core_Users::getCurrent());
+        $form->FLD('domainId', 'key(mvc=cms_Domains,select=titleExt)', 'caption=Домейн,silent,autoFilter,forceField');
+        
+        // Полето може да идва от модела, затова изрично се разрешава празно
+        $form->setField('domainId', 'mandatory=,placeholderType=all');
+        $form->setFieldTypeParams('domainId', array('allowEmpty' => 'allowEmpty'));
+        if (countR($domains) == 1) {
+            $form->setField('domainId', 'input=hidden');
+        } else {
+            $form->setOptions('domainId', $domains);
+        }
+        $form->input('domainId', 'silent');
+        
+        // Празно изпратено поле означава всички домейни
+        if (Request::get('domainId') === null) {
+            $form->rec->domainId = $defaultDomainId ?? self::getCurrent('id', false);
+        } elseif (!empty($form->rec->domainId)) {
+            
+            // Избраният във филтъра домейн става тихо текущ
+            self::selectCurrent($form->rec->domainId, true);
+        }
+        
+        return !empty($form->rec->domainId) ? $form->rec->domainId : null;
     }
     
     

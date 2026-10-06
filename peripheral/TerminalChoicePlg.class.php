@@ -34,11 +34,11 @@ class peripheral_TerminalChoicePlg extends core_Plugin
 
         $form->setOptions('terminal', $tArr);
         
-        if (!empty($tArr) && !$_GET['ret_url']) {
+        if (!empty($tArr) && empty($_GET['ret_url'])) {
             $form->setDefault('terminal', key($tArr));
         }
 
-        if (!empty($tArr) || !$_GET['ret_url']) {
+        if (!empty($tArr) || empty($_GET['ret_url'])) {
             $form->InputFields .= ',terminal';
         }
     }

@@ -638,7 +638,7 @@ class cal_TaskProgresses extends core_Detail
     {
         // Добавяме стил за състоянието на оттеглените задачи
         if ($rec->state == 'rejected') {
-            $row->ROW_ATTR['class'] .= ' state-' . $rec->state;
+            $row->ROW_ATTR['class'] = ($row->ROW_ATTR['class'] ?? '') . ' state-' . $rec->state;
         }
         
         $Driver = $mvc->Master->getDriver($rec->taskId);

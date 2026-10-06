@@ -72,6 +72,8 @@ class backup_Amazon extends core_BaseClass
                     'SaveAs' => $destFile
                 )
             );
+        } catch (core_exception_Redirect $e) {
+            throw $e;
         } catch (Exception $e) {
             $object = false;
         }
@@ -103,6 +105,8 @@ class backup_Amazon extends core_BaseClass
                     'Body' => fopen($sourceFile, 'r+')
                 )
             );
+        } catch (core_exception_Redirect $e) {
+            throw $e;
         } catch (Exception $e) {
             $result = false;
         }
@@ -130,6 +134,8 @@ class backup_Amazon extends core_BaseClass
                     'Key' => $sourceFile,
                 )
             );
+        } catch (core_exception_Redirect $e) {
+            throw $e;
         } catch (Exception $e) {
             $result = false;
         }

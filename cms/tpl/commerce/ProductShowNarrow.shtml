@@ -1,0 +1,41 @@
+<div class='eshop-product'>
+	<div class='path' style="margin-bottom: 20px">[#productPath#]</div>
+	<h1 style='font-size:1.5em' class="eshop-name">[#name#] &nbsp;<!--ET_BEGIN singleLink-->[#singleLink#]<!--ET_END singleLink--><!--ET_BEGIN editLink-->[#editLink#]<!--ET_END editLink--></h1>
+	<div class='eshop-product-labels' style="margin-bottom: 10px;">
+			<!--ET_BEGIN ONLY_PRODUCT_NAME-->
+			<div style='padding-bottom:5px'><b style='font-size:1.4em'>[#ONLY_PRODUCT_NAME#]</b></div>
+			<!--ET_END ONLY_PRODUCT_NAME-->
+			<div>
+			<!--ET_BEGIN code--><span>|код|*: <b>[#code#]</b> <span id="addToFavouritesBtn">
+			[#FAVOURITES_BTN#]
+		</span></span><!--ET_END code-->
+			</div>
+		<div class="inqRow">[#coInquiry#] <!--ET_BEGIN coMoq--><span title='|Минимално Количество за Поръчка|*'>|МКП|*: <b>[#coMoq#]</b></span><!--ET_END coMoq--></div>
+		<!--ET_BEGIN FAVOURITES_BTN-->
+
+		<!--ET_END FAVOURITES_BTN-->
+	</div>
+	<!--ET_BEGIN STATE_EXTERNAL-->
+	<div style='padding-bottom:5px'>[#STATE_EXTERNAL#]</div>
+	<!--ET_END STATE_EXTERNAL-->
+	[#IMAGES_BLOCK#]
+	<!--ET_BEGIN PRODUCT_OPT-->
+	<div class="scrolling-holder commerce-product-options" style="margin: 15px 0;">
+		[#PRODUCT_OPT#]
+	</div>
+	<!--ET_END PRODUCT_OPT-->
+	<div class="vtop" style='padding-left:8px;'>
+		<div class="commerce-product-description">
+		[#info#]
+		<br>
+		[#AFTER_PRODUCTS#]
+		[#longInfo#]
+		</div>
+		<!--ET_BEGIN RELATION_TABS-->
+		<div class="overflow-scroll" style="margin: 5px 0;">
+			[#RELATION_TABS#]
+		</div>
+		<!--ET_END RELATION_TABS-->
+        [#cms/tpl/commerce/NearProducts.shtml#]
+	</div>
+</div>

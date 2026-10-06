@@ -135,7 +135,10 @@ class callcenter_SMS extends core_Master
      */
     public static function sendSmart($number, $message, $params = array())
     {
-        if ($lp = $params['sendLockPeriod']) {
+        // Извикващите подават само ключовете, които ги интересуват
+        $lp = $params['sendLockPeriod'] ?? null;
+
+        if (!empty($lp)) {
             $mobileNum = drdata_PhoneType::getNumberStr($number, 0);
             $now = dt::verbal2mysql();
             if (self::fetch(array("#mobileNum = '[#1#]' AND #createdOn > DATE_SUB('{$now}', INTERVAL {$lp} SECOND)", $mobileNum))) {
@@ -144,7 +147,7 @@ class callcenter_SMS extends core_Master
             }
         }
         
-        return self::send($number, $message, $params['sender'], $params['service'], $params['encoding'], $params['msgForSave']);
+        return self::send($number, $message, $params['sender'] ?? null, $params['service'] ?? null, $params['encoding'] ?? null, $params['msgForSave'] ?? null);
     }
     
     

@@ -163,8 +163,11 @@ class support_TaskType extends core_Mvc
             }
         }
 
-        if ($sRec->defaultTitle) {
-            $form->title = $sRec->defaultTitle;
+        $formTitle = core_Lg::getCurrent() == 'en' ? ($sRec->defaultTitleEn ?? '') : ($sRec->defaultTitle ?? '');
+        if (strlen($formTitle)) {
+            $form->title = '|*' . type_Varchar::escape($formTitle);
+        } elseif (core_Lg::getCurrent() == 'en') {
+            $form->title = '|Feedback for|* ' . type_Varchar::escape($sRec->name ?? '');
         }
     }
     
@@ -839,7 +842,7 @@ class support_TaskType extends core_Mvc
     protected static function on_AfterRecToVerbal($Driver, embed_Manager $Embedder, $row, $rec, $fields = array())
     {
         if(!empty($rec->issueTemplateId)){
-            $row->description = "{$row->issueTemplateId}</br>{$row->description}" ;
+            $row->description = ($row->issueTemplateId ?? '') . "</br>" . ($row->description ?? '');
         }
     }
 

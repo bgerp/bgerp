@@ -220,7 +220,7 @@ class uiext_Labels extends core_Manager
         $hash = array();
         $hashFields = arr::make($hashFields, true);
         foreach ($hashFields as $name) {
-            $hash[] = $rec->{$name};
+            $hash[] = $rec->{$name} ?? null;
         }
         
         $hash = md5(implode('|', $hash));

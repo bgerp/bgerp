@@ -132,7 +132,7 @@ class remote_Authorizations extends embed_Manager
             $form->setReadonly('userId');
         }
         
-        if (!$rec->driverClass) {
+        if (empty($rec->driverClass)) {
             $form->setField('url', 'input=none');
         }
         
@@ -221,7 +221,7 @@ class remote_Authorizations extends embed_Manager
      */
     public static function renderAuthorizationsList($data)
     {
-        if (arr::count($data->recs)) {
+        if (arr::count($data->recs ?? null)) {
             $mvc = cls::get(__CLASS__);
             
             $tpl = $mvc->renderList($data);
@@ -299,7 +299,7 @@ class remote_Authorizations extends embed_Manager
         
         $rec = self::fetch($systemId);
         if (strpos($url, EF_APP_NAME)) {
-            list($p, $url) = explode(EF_APP_NAME, $url);
+            list($p, $url) = explode(EF_APP_NAME, $url, 2);
         }
         $url = rtrim($rec->url, '/') . '/' . ltrim($url, '/');
         

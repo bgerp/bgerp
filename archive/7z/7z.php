@@ -347,7 +347,11 @@ class Archive_7z
 
         $list = array();
         foreach ($this->parseEntries($out) as $v) {
-            $list[] = new Archive_7z_Entry($this, $v);
+            $entry = new Archive_7z_Entry($this, $v);
+            // Diagnostic blocks (e.g. "Warnings: 1") are not archive entries.
+            if ($entry->path !== null) {
+                $list[] = $entry;
+            }
         }
 
         return $list;

@@ -136,6 +136,23 @@ class core_Array
     
     
     /**
+     * Превръща списък от идентификатори в цели числа, без да допуска SQL условия.
+     */
+    public static function makeIds($mixed)
+    {
+        expect($mixed === null || is_string($mixed) || is_int($mixed) || is_array($mixed), 'Некоректен списък от идентификатори');
+        $ids = static::make($mixed);
+        foreach ($ids as &$id) {
+            expect((is_int($id) || is_string($id)) && ctype_digit((string) $id), 'Некоректен идентификатор');
+            $id = (int) $id;
+            expect($id > 0, 'Некоректен идентификатор');
+        }
+
+        return $ids;
+    }
+
+
+    /**
      * Дали ключовете на двата масива имат сечение
      * Ако един от двата масива е празен, то резултата е истина
      * защото, често в EF празния масив означава всички допустими елементи
@@ -573,7 +590,7 @@ class core_Array
         expect(is_array($arr));
         $result = array_values(array_map(function ($obj) use ($field) {
             
-            return (is_object($obj)) ? $obj->{$field} : $obj[$field];
+            return (is_object($obj)) ? ($obj->{$field} ?? null) : ($obj[$field] ?? null);
         }, $arr));
         $result = array_values($result);
         if (countR($result)) {

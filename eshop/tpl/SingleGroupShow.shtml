@@ -1,8 +1,8 @@
-<div class='eshop-group-holder'>
+<div class='eshop-group-holder [#groupClass#]'>
     <div class="eshop-group">
         <!--ET_BEGIN productPath--><div class='path' style="margin-bottom: 20px">[#productPath#]</div><!--ET_END productPath-->
         <h1 class="eshop-name">[#name#]</h1>
-        <div class="eshop-group-image">[#image#]</div>
+        <!--ET_BEGIN image--><div class="eshop-group-image">[#image#]</div><!--ET_END image-->
         <div class="eshop-group-description">[#description#]</div>
     </div>
     [#PRODUCTS#]

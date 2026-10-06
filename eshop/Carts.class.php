@@ -732,6 +732,8 @@ class eshop_Carts extends core_Master
         $className .= $count ? ' cardLink' : '';
         $url = ($currentTab != 'eshop_Carts') ? $url : array();
         
+        $tpl = cms_ProtoTheme::getCurrent()->prepareCartLink($tpl, $className, $cartName, $count);
+
         $tpl = ht::createLink($tpl, $url, false, "title={$hint}, ef_icon=img/16/cart-black.png,class={$className},rel=nofollow");
         
         $tpl->removeBlocks();
@@ -1245,7 +1247,7 @@ class eshop_Carts extends core_Master
         }
 
         if ($rec->deliveryNoVat < 0) {
-            $body->replace(tr('Цената за транспорт ще ви бъде оферирана отделно за да я потвърдите или отхвърлите|*!'), 'PROBLEM_WITH_DELIVERY');
+            $body->replace(tr('Цената за транспорт ще ви бъде оферирана отделно, за да я потвърдите или отхвърлите|*!'), 'PROBLEM_WITH_DELIVERY');
         }
 
         $threadCount = doc_Threads::count("#folderId = {$saleRec->folderId}");
@@ -1468,7 +1470,8 @@ class eshop_Carts extends core_Master
         $lang = cms_Domains::getPublicDomain('lang');
         core_Lg::push($lang);
         
-        $tpl = getTplFromFile('eshop/tpl/SingleLayoutCartExternal.shtml');
+        $tpl = getTplFromFile(cms_ProtoTheme::getCurrent()->getTemplate('eshop/tpl/SingleLayoutCartExternal.shtml'));
+        cms_ProtoTheme::getCurrent()->addAssets($tpl, 'shop');
         $tpl->replace(self::renderViewCart($rec), 'CART_TABLE');
 
         self::renderCartToolbar($rec, $tpl);
@@ -1705,8 +1708,11 @@ class eshop_Carts extends core_Master
                 $tpl->replace(core_Type::getByName('varchar')->toVerbal($rec->{$name}), $name);
             }
             
-            $nameCaption = ($rec->makeInvoice == 'person') ? 'Лице' : 'Фирма';
-            $tpl->replace(tr($nameCaption), 'INV_CAPTION');
+            // Do not retain the optional invoice-name block for its caption alone.
+            if (trim((string) ($rec->invoiceNames ?? '')) !== '') {
+                $nameCaption = ($rec->makeInvoice == 'person') ? 'Имена' : 'Фирма';
+                $tpl->replace(tr($nameCaption), 'INV_CAPTION');
+            }
             if (!empty($rec->invoiceUicNo)) {
                 $vatCaption = ($rec->makeInvoice == 'person') ? 'ЕГН' : 'ЕИК №';
                 $tpl->replace(tr($vatCaption), 'VAT_CAPTION');
@@ -1726,7 +1732,7 @@ class eshop_Carts extends core_Master
         }
         
         if ($rec->deliveryNoVat < 0) {
-            $tpl->replace(tr('Цената за транспорт ще ви бъде оферирана отделно за да я потвърдите или отхвърлите|*!'), 'deliveryError');
+            $tpl->replace(tr('Цената за транспорт ще ви бъде оферирана отделно, за да я потвърдите или отхвърлите|*!'), 'deliveryError');
         }
         
         if (!empty($rec->instruction)) {
@@ -1856,14 +1862,15 @@ class eshop_Carts extends core_Master
         $rec = self::fetchRec($id);
         $shopUrl = cls::get('eshop_Groups')->getUrlByMenuId(null);
         
-        $btn = ht::createLink(tr('Магазин'), $shopUrl, null, 'title=Назад към магазина,class=eshop-link,ef_icon=img/16/cart_go_back.png,rel=nofollow');
+        list($backLabel, $clearLabel) = cms_ProtoTheme::getCurrent()->getCartToolbarLabels();
+        $btn = ht::createLink($backLabel, $shopUrl, null, 'title=Назад към магазина,class=eshop-link cart-back-link,ef_icon=img/16/cart_go_back.png,rel=nofollow');
         $tpl->append($btn, 'CART_TOOLBAR_TOP');
         $wideSpan = '<span>|</span>';
         
         $settings = cms_Domains::getSettings($rec->domainId);
         if (!empty($rec->productCount) && eshop_CartDetails::haveRightFor('removeexternal', (object) array('cartId' => $rec->id))) {
             $emptyUrl = array('eshop_CartDetails', 'removeexternal', 'cartId' => $rec->id, 'ret_url' => $shopUrl);
-            $btn = ht::createLink(tr('Изчистване'), $emptyUrl, 'Сигурни ли сте, че искате да изтриете артикулите?', 'title=Премахване на всички артикули,class=eshop-link,ef_icon=img/16/deletered.png,rel=nofollow');
+            $btn = ht::createLink($clearLabel, $emptyUrl, 'Сигурни ли сте, че искате да изтриете артикулите?', 'title=Премахване на всички артикули,class=eshop-link cart-clear-link,ef_icon=img/16/deletered.png,rel=nofollow');
             $tpl->append($wideSpan . $btn, 'CART_TOOLBAR_TOP');
         }
         
@@ -2323,7 +2330,7 @@ class eshop_Carts extends core_Master
             }
         }
 
-        self::setDefaultsFromFolder($form, $form->rec->saleFolderId);
+        self::setDefaultsFromFolder($form, $form->rec->saleFolderId ?? null);
         
         if(empty($form->rec->termId)){
             $form->setField('deliveryCountry', 'input=hidden');
@@ -2512,6 +2519,8 @@ class eshop_Carts extends core_Master
         }
         
         $tpl = $form->renderHtml();
+        cms_ProtoTheme::getCurrent()->addAssets($tpl, 'checkout');
+
         core_Form::preventDoubleSubmission($tpl, $form);
         core_Lg::pop();
         
@@ -3150,7 +3159,7 @@ class eshop_Carts extends core_Master
     public static function renderLastOrderedProductsBtnInNavigation()
     {
         $cu = core_Users::getCurrent();
-        if(isset($cu)){
+        if($cu > 0){
             $products = static::getLastOrderedProducts($cu);
 
             if(countR($products)){

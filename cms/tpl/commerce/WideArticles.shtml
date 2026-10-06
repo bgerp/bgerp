@@ -1,0 +1,13 @@
+<div class="cms-row commerce-blog-layout commerce-article-layout">
+    <div class="commerce-blog-content commerce-article-content searchContent">
+        [#TOP_CONTENT#]
+        [#PAGE_CONTENT#]
+        <!--ET_BEGIN SOCIAL-->
+        [#SOCIAL#]
+        [#social_Sharings::getButtons#]
+        <!--ET_END SOCIAL-->
+        [#BOTTOM_CONTENT#]
+        [#BEFORE_FOOTER_INFO#]
+        <div class="bulletin-link"></div>
+    </div>
+</div>

@@ -75,7 +75,7 @@ class store_iface_ShipmentLabelImpl extends label_ProtoSequencerImpl
             $labelData = $this->getLabelData($objId, 1, true, null, $series);
             if (isset($labelData[0])) {
                 foreach ($labelData[0] as $key => $val) {
-                    if(is_object($placeholders[$key])){
+                    if(is_object($placeholders[$key] ?? null)){
                         $placeholders[$key]->example = $val;
                     }
                 }
@@ -209,7 +209,7 @@ class store_iface_ShipmentLabelImpl extends label_ProtoSequencerImpl
             $recs = $this->getDetailLabelRecs($rec);
             $arr = array();
             for ($i = 1; $i <= $cnt; $i++) {
-                $dRec = $recs[$i];
+                $dRec = $recs[$i] ?? null;
                 if(!is_object($dRec))  continue;
 
                 $code = cat_Products::fetchField($dRec->productId, 'code');

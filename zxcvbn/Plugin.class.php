@@ -29,7 +29,8 @@ class zxcvbn_Plugin extends core_Plugin
      */
     public function on_AfterRenderInput(&$mvc, &$tpl, $name, $value, $attr = array())
     {
-        if ($mvc->params['checkPassAfterLogin'] && (zxcvbn_Setup::get('CHECK_ON_LOGIN') == 'no')) {
+        $checkPassAfterLogin = !empty($mvc->params['checkPassAfterLogin']);
+        if ($checkPassAfterLogin && (zxcvbn_Setup::get('CHECK_ON_LOGIN') == 'no')) {
 
             return ;
         }
@@ -38,7 +39,7 @@ class zxcvbn_Plugin extends core_Plugin
                             disableEl.disabled = disableElVal;
                         });";
 
-        if ($mvc->params['checkPassAfterLogin'] && (zxcvbn_Setup::get('CHECK_ON_LOGIN') == 'yes')) {
+        if ($checkPassAfterLogin && (zxcvbn_Setup::get('CHECK_ON_LOGIN') == 'yes')) {
             $disableBtn = '';
         }
 
@@ -52,7 +53,7 @@ class zxcvbn_Plugin extends core_Plugin
         $tpl->push('zxcvbn/dropboxLib/zxcvbn.js', 'JS', true);
 
         $warningTxt = tr('Паролата е много слаба.') . ' ';
-        if ($mvc->params['checkPassAfterLogin']) {
+        if ($checkPassAfterLogin) {
             $warningTxt .= tr('Използвайте бутона "Забравена парола".');
         } else {
             $warningTxt .= tr('Опитайте да добавите големи и малки букви и/или специални символи.');

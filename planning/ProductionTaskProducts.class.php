@@ -330,6 +330,15 @@ class planning_ProductionTaskProducts extends core_Detail
             $row->indTime = "<span class='quiet'>N/A</span>";
         }
 
+        if (!planning_Setup::canSeeIndTime()) {
+            if (isset($rec->indTime)) {
+                $row->indTime = doc_plg_HidePrices::getBuriedElement();
+            }
+            if (isset($rec->totalTime)) {
+                $row->totalTime = doc_plg_HidePrices::getBuriedElement();
+            }
+        }
+
         if(isset($rec->plannedQuantity)){
             $row->plannedQuantity = ht::styleNumber($row->plannedQuantity, $rec->plannedQuantity, 'green');
             if($rec->totalQuantity > $rec->plannedQuantity){

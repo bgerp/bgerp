@@ -62,7 +62,14 @@
 				<td><b>[#transferredIn#]</b></td>
 			</tr>
 			<!--ET_END transferredIn-->
-			
+
+			<!--ET_BEGIN storeTransferId-->
+			<tr>
+				<td>|Прехвърлено в МСТ|*:</td>
+				<td><b>[#storeTransferId#]</b></td>
+			</tr>
+			<!--ET_END storeTransferId-->
+
 			<!--ET_BEGIN inReport-->
 			<tr>
 				<td>|Приключено с|*:</td>

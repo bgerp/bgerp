@@ -291,9 +291,10 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
                             $warning .= " (|Кеш|*)";
                         }
                     }
-                    if(!Mode::isReadOnly()){
+                    // В LLM експорта (inlineDocument) се показва само описателна бележка, без себестойността
+                    if(!Mode::isReadOnly() || Mode::is('renderForLlm')){
                         $row->packPrice = "<span class='priceBellowPrimeCost'>{$row->packPrice}</span>";
-                        $row->packPrice = ht::createHint($row->packPrice, $warning, 'img/16/red-warning.png', false)->getContent();
+                        $row->packPrice = ht::createHint($row->packPrice, $warning, 'img/16/red-warning.png', false, array('aiHint' => 'Price below prime cost'))->getContent();
                     }
                 } elseif(in_array($masterRec->state, array('pending', 'draft'))) {
 
@@ -309,7 +310,7 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
                     
                     // Предупреждение дали цената е под очакваната за клиента
                     if($checkedObject = deals_Helper::checkPriceWithContragentPrice($rec->productId, $rec->price, $rec->discount, $rec->quantity, $rec->quantityInPack, $masterRec->contragentClassId, $masterRec->contragentId, $priceDate, $listId, $useQuotationPrice, $mvc, $masterRec->threadId, $masterRec->currencyRate, $masterRec->currencyId)){
-                        $row->packPrice = ht::createHint($row->packPrice, $checkedObject['hint'], $checkedObject['hintType'], false);
+                        $row->packPrice = ht::createHint($row->packPrice, $checkedObject['hint'], $checkedObject['hintType'], false, array('aiHint' => $checkedObject['aiHint'] ?? null));
                     }
                 }
             }
@@ -322,7 +323,8 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
      */
     public static function on_AfterPrepareListRows(core_Mvc $mvc, $data)
     {
-        core_Lg::push($data->masterData->rec->tplLang);
+        $tplLang = $data->masterData->rec->tplLang ?? null;
+        core_Lg::push($tplLang);
         
         $date = ($data->masterData->rec->state == 'draft') ? null : $data->masterData->rec->modifiedOn;
         if (countR($data->rows)) {
@@ -331,7 +333,7 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
 
                 core_RowToolbar::createIfNotExists($row->_rowTools);
                 cat_Products::addButtonsToDocToolbar($rec->productId, $row->_rowTools, $mvc->className, $rec->id);
-                $row->productId = cat_Products::getAutoProductDesc($rec->productId, $date, $rec->showMode, 'public', $data->masterData->rec->tplLang, 1, false);
+                $row->productId = cat_Products::getAutoProductDesc($rec->productId, $date, $rec->showMode, 'public', $tplLang, 1, false);
                 deals_Helper::addNotesToProductRow($row->productId, $rec->notes);
             }
         }

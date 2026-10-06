@@ -193,6 +193,8 @@ class log_System extends core_Manager
                     
                     try {
                         return self::save($oRec, 'lastSaved');
+                    } catch (core_exception_Redirect $e) {
+                        throw $e;
                     } catch (Throwable $e) {
                         reportException($e);
 						
@@ -212,6 +214,8 @@ class log_System extends core_Manager
         
         try {
             return self::save($rec);
+        } catch (core_exception_Redirect $e) {
+            throw $e;
         } catch (Throwable $e) {
             reportException($e);
         }

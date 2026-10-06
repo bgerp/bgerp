@@ -392,6 +392,7 @@ class forum_Postings extends core_Detail
         }
         
         $tpl->push($data->ForumTheme->getStyles(), 'CSS');
+        cms_ProtoTheme::getCurrent()->addAssets($tpl, 'forum');
         $tpl->replace($this->Master->renderNavigation($data), 'NAVIGATION');
         $tpl->replace($this->Master->renderSearchForm($data), 'SEARCH_FORM');
         
@@ -442,6 +443,7 @@ class forum_Postings extends core_Detail
         // Рендираме Формата
         $layout = $this->renderNew($data);
         $layout->push($data->ForumTheme->getStyles(), 'CSS');
+        cms_ProtoTheme::getCurrent()->addAssets($layout, 'forum');
         $layout->replace($this->Master->renderNavigation($data), 'NAVIGATION');
         
         return $layout;
@@ -778,6 +780,7 @@ class forum_Postings extends core_Detail
         
         $layout = $this->renderSearch($data);
         $layout->push($data->ForumTheme->getStyles(), 'CSS');
+        cms_ProtoTheme::getCurrent()->addAssets($layout, 'forum');
         $layout->replace($this->Master->renderNavigation($data), 'NAVIGATION');
         $layout->replace($this->Master->renderSearchForm($data), 'SEARCH_FORM');
         $layout->replace(ht::escapeAttr($data->q), 'SEARCH_FOR');
@@ -837,7 +840,7 @@ class forum_Postings extends core_Detail
                 $data->recs[$rec->id] = $rec;
                 $data->rows[$rec->id] = $this->recToVerbal($rec, $fields);
                 $boardUrl = array($this, 'browse', $rec->boardId);
-                $data->rows[$rec->id]->board = ht::createLink($data->rows[$rec->id]->board, $boardUrl);
+                $data->rows[$rec->id]->board = ht::createLink($data->rows[$rec->id]->board ?? null, $boardUrl);
             }
         }
         

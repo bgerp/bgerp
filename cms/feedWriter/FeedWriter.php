@@ -123,7 +123,9 @@ abstract class FeedWriter
 			}
 		}
 
-		header("Content-Type: " . $contentType);
+		// Библиотеката винаги извежда utf-8 (@see printHeader), но без явен charset
+		// нетолерантните четци налучкват локалния кодинг и извеждат маймуница
+		header("Content-Type: " . $contentType . "; charset=utf-8");
 		
 		$this->printHeader();
 		$this->printChannels();

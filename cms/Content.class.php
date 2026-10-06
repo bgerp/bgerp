@@ -9,12 +9,12 @@
  * @package   cms
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2020 Experta OOD
+ * @copyright 2006 - 2026 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
  */
-class cms_Content extends core_Manager
+class cms_Content extends core_Master
 {
     /**
      * Име под което записваме в сесията текущия език на CMS изгледа
@@ -25,19 +25,43 @@ class cms_Content extends core_Manager
     /**
      * Заглавие
      */
-    public $title = 'Основно меню';
+    public $title = 'CMS менюта';
     
     
     /**
      * Заглавие в единично число
      */
-    public $singleTitle = 'Елемент от менюто';
+    public $singleTitle = 'CMS меню';
     
     
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_State2, plg_RowTools2, plg_Printing, cms_Wrapper, plg_Sorting, plg_Search,cms_DomainPlg';
+    public $loadList = 'plg_Created, plg_State2, plg_RowTools2, plg_Printing, cms_Wrapper, plg_Sorting, plg_Search,cms_DomainPlg, plg_Rejected, doc_FolderPlg';
+    
+    
+    /**
+     * Папка се създава само на менютата, чийто източник е документ
+     */
+    public $autoCreateFolder = 'manual';
+    
+    
+    /**
+     * Достъп по подразбиране до папката на менюто
+     */
+    public $defaultAccess = 'public';
+    
+    
+    /**
+     * Шаблон за единичния изглед
+     */
+    public $singleLayoutFile = 'cms/tpl/SingleLayoutContent.shtml';
+    
+    
+    /**
+     * Икона за единичния изглед
+     */
+    public $singleIcon = 'img/16/cms_menu.png';
     
     
     /**
@@ -89,6 +113,12 @@ class cms_Content extends core_Manager
     
     
     /**
+     * Поле за линк към единичния изглед
+     */
+    public $rowToolsSingleField = 'menu';
+    
+    
+    /**
      * По кои полета ще се търси
      */
     public $searchFields = 'menu';
@@ -103,15 +133,150 @@ class cms_Content extends core_Manager
         $this->FLD('menu', 'varchar(64)', 'caption=Меню,mandatory');
         
         $this->FLD('domainId', 'key(mvc=cms_Domains, select=titleExt)', 'caption=Домейн,notNull,mandatory,autoFilter');
-        $this->FLD('source', 'class(interface=cms_SourceIntf, allowEmpty, select=title)', 'caption=Източник,mandatory');
+        $this->FLD('source', 'class(interface=cms_SourceIntf, allowEmpty, select=title)', 'caption=Източник,mandatory,silent,refreshForm');
         $this->FLD('title', 'varchar(128)', 'caption=Заглавие,oldFieldName=url');
         $this->FLD('layout', 'html', 'caption=Лейаут,input=none');
         
         $this->FLD('sharedDomains', 'keylist(mvc=cms_Domains, select=titleExt)', 'caption=Споделяне с,autoFilter');
 
         $this->FLD('menuWallpaper', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Изображение,hint=Примерни размери 1920×650px');
+        $this->FLD('sourceSettings', 'blob(serialize,compress)', 'input=none');
         
         $this->setDbUnique('menu,domainId');
+    }
+    
+    
+    /**
+     * Дали менюто е корица на папка - когато източникът му е документ
+     */
+    public static function isFolderCover($rec)
+    {
+        $source = $rec->source ?? null;
+        
+        return !empty($source) && cls::load($source, true) && cls::haveInterface('doc_DocumentIntf', $source);
+    }
+    
+    
+    /**
+     * Заглавие на менюто с домейна му
+     */
+    public static function getRecTitle($rec, $escaped = true)
+    {
+        $title = $rec->menu ?? '';
+        if (!empty($rec->domainId)) {
+            $title .= ' [' . cms_Domains::getTitleById($rec->domainId, false) . ']';
+        }
+        
+        return $escaped ? type_Varchar::escape($title) : $title;
+    }
+    
+    
+    /**
+     * Източникът не се сменя, ако в папката на менюто вече има документи
+     */
+    protected static function on_AfterPrepareEditForm($mvc, &$res, $data)
+    {
+        $form = &$data->form;
+        $folderId = $form->rec->folderId ?? null;
+        if (!empty($form->rec->id) && !empty($folderId) && ($data->action ?? null) != 'clone') {
+            if (doc_Containers::fetchField("#folderId = {$folderId}", 'id')) {
+                $form->setField('source', array('hint' => 'Източникът не може да се смени, защото в папката на менюто има документи'));
+                $form->setReadOnly('source');
+            }
+        }
+        
+        // Полетата за настройки на източника
+        $settings = $form->rec->sourceSettings ?? null;
+        foreach (self::getSourceSettingsFields($form->rec->source ?? null)->fields as $name => $field) {
+            $form->fields[$name] = $field;
+            if (is_array($settings) && array_key_exists($name, $settings)) {
+                $form->setDefault($name, $settings[$name]);
+            }
+        }
+    }
+    
+    
+    /**
+     * Прибира настройките на източника в sourceSettings
+     */
+    protected static function on_AfterInputEditForm($mvc, &$form)
+    {
+        if (!$form->isSubmitted()) {
+            return;
+        }
+        
+        $settings = array();
+        foreach (self::getSourceSettingsFields($form->rec->source ?? null)->fields as $name => $field) {
+            $settings[$name] = $form->rec->{$name} ?? null;
+        }
+        $form->rec->sourceSettings = countR($settings) ? $settings : null;
+    }
+    
+    
+    /**
+     * Връща полетата за настройки на менюто, които източникът добавя
+     *
+     * @param int|string|null $source
+     * @return core_FieldSet
+     */
+    public static function getSourceSettingsFields($source)
+    {
+        $fieldset = cls::get('core_FieldSet');
+        if (!empty($source) && cls::load($source, true) && cls::haveInterface('cms_SourceIntf', $source)) {
+            cls::getInterface('cms_SourceIntf', $source)->addContentSettingsFields($fieldset);
+        }
+        
+        return $fieldset;
+    }
+    
+    
+    /**
+     * Редовете с настройките на източника за сингъла
+     *
+     * @param stdClass $rec
+     * @return string|null
+     */
+    private static function renderSourceSettings($rec)
+    {
+        $settings = $rec->sourceSettings ?? null;
+        $res = '';
+        foreach (self::getSourceSettingsFields($rec->source ?? null)->fields as $name => $field) {
+            $value = (is_array($settings) && isset($settings[$name])) ? $settings[$name] : ($field->value ?? null);
+            if (!isset($value)) {
+                continue;
+            }
+            $caption = explode('->', $field->caption ?? $name);
+            $res .= "<tr><td class='dt'>" . tr(end($caption)) . ':</td><td>' . $field->type->toVerbal($value) . '</td></tr>';
+        }
+        
+        return $res === '' ? null : $res;
+    }
+    
+    
+    /**
+     * Връща настройка на източника на менюто
+     *
+     * @param stdClass|null $menuRec
+     * @param string $name
+     * @param mixed $default
+     * @return mixed
+     */
+    public static function getSourceSetting($menuRec, $name, $default = null)
+    {
+        $settings = is_object($menuRec) ? ($menuRec->sourceSettings ?? null) : null;
+        
+        return is_array($settings) ? ($settings[$name] ?? $default) : $default;
+    }
+    
+    
+    /**
+     * Форсира папката на менютата, чийто източник е документ
+     */
+    protected static function on_AfterSave($mvc, &$id, $rec, $fields = null)
+    {
+        if (empty($rec->folderId) && self::isFolderCover($rec)) {
+            $mvc->forceCoverAndFolder($rec);
+        }
     }
     
     
@@ -261,6 +426,7 @@ class cms_Content extends core_Manager
                 $attr = array();
                 if (($cMenuId == $rec->id)) {
                     $attr['class'] = 'selected';
+                    $attr['aria-current'] = 'page';
                 }
                 
                 $url = $this->getContentUrl($rec);
@@ -277,33 +443,15 @@ class cms_Content extends core_Manager
             }
         }
         
+        $theme = cms_ProtoTheme::getCurrent();
+        $tools = new ET();
+
         // Поставяне на иконка за Вход
         if ($loginLink == false) {
-            $dRec = cms_Domains::getPublicDomain('form');
-            
-            if (haveRole('user')) {
-                $filePath = 'img/32/inside';
-                $title = 'Меню||Menu';
-            } else {
-                $filePath = 'img/32/login';
-                $title = 'Вход||Log in';
-            }
-            
-            if ((isset($dRec->baseColor) && phpcolor_Adapter::checkColor($dRec->baseColor) && Request::get('Ctr') != 'core_Users') ||
-                (isset($dRec->activeColor) && phpcolor_Adapter::checkColor($dRec->activeColor) && Request::get('Ctr') == 'core_Users')) {
-                $filePath .= 'Dark';
-            } else {
-                $filePath .= 'Light';
-            }
-            
-            if (Mode::is('screenMode', 'narrow')) {
-                $filePath .= 'M';
-            }
-            
-            $filePath .= '.png';
-            
-            $tpl->append(ht::createLink(
-                ht::createImg(array('path' => $filePath, 'alt' => 'login')),
+            $title = '';
+            $loginContent = $theme->getMenuLoginContent($title);
+            $tools->append(ht::createLink(
+                $loginContent,
                 array('Portal', 'Show'),
                 null,
                 array('title' => $title, 'class' => Request::get('Ctr') == 'core_Users' ? 'loginIcon selected' : 'loginIcon')
@@ -311,43 +459,9 @@ class cms_Content extends core_Manager
         }
         
         // Ако имаме действащи менюта на повече от един език, показваме бутон за избор на езика
-        $usedLangsArr = cms_Domains::getCmsLangs();
-        
-        if (countR($usedLangsArr) == 2) {
-            
-            // Премахваме текущия език
-            $lang = self::getLang();
-            
-            foreach ($usedLangsArr as $lg) {
-                $attr = array('title' => drdata_Languages::fetchField("#code = '{$lg}'", 'nativeName'), 'id' => 'set-lang-' . $lg, 'class' => 'langIcon');
-                
-                if ($lg == $lang) {
-                    continue;
-                }
-                
-                $filePath = getFullPath('img/flags/' . $lg . '.png');
-                $img = ' ';
-                
-                if ($filePath) {
-                    $imageUrl = sbf('img/flags/' . $lg . '.png', '');
-                    $img = ht::createElement('img', array('src' => $imageUrl, 'alt' => $lg));
-                }
-                
-                $url = array($this, 'SelectLang', 'lang' => $lg);
-                
-                
-                $tpl->append(ht::createLink($img, $url, null, $attr));
-            }
-        } elseif (countR($usedLangsArr) > 1) {
-            $attr = array();
-            $attr['class'] = 'selectLang langIcon';
-            $attr['title'] = implode(', ', $usedLangsArr);
-            if (Request::get('Ctr') == 'cms_Content' && Request::get('Act') == 'selectLang') {
-                $attr['class'] = 'selected langIcon';
-            }
-            $tpl->append(ht::createLink(ht::createElement('img', array('src' => sbf('img/24/globe.png', ''))), array($this, 'selectLang'), null, $attr));
-        }
-        
+        $theme->renderMenuLangs($tools, cms_Domains::getCmsLangs());
+        $tpl->append($theme->wrapMenuTools($tools));
+
         return $tpl;
     }
     
@@ -428,7 +542,7 @@ class cms_Content extends core_Manager
     /**
      * Изпълнява се след подготовката на вербалните стойности
      */
-    public function on_AfterRecToVerbal($mvc, $row, $rec)
+    public function on_AfterRecToVerbal($mvc, $row, $rec, $fields = array())
     {
         if (!empty($rec->source)) {
             if (cls::load($rec->source, true) && cls::haveInterface('cms_SourceIntf', $rec->source)) {
@@ -440,8 +554,29 @@ class cms_Content extends core_Manager
             }
         }
         
-        $publicUrl = $mvc->getContentUrl($rec, true);
-        $row->menu = ht::createLink($row->menu, $publicUrl, false, 'ef_icon=img/16/monitor.png');
+        if (isset($fields['-single'])) {
+            $row->SOURCE_SETTINGS = self::renderSourceSettings($rec);
+        }
+        
+        if (isset($fields['-list'])) {
+            $publicUrl = $mvc->getContentUrl($rec, true);
+            if (!empty($publicUrl) && $publicUrl != '#') {
+                core_RowToolbar::createIfNotExists($row->_rowTools);
+                $row->_rowTools->addLink('Преглед', $publicUrl, 'alwaysShow,ef_icon=img/16/monitor.png,title=Преглед във външната част');
+            }
+        }
+    }
+    
+    
+    /**
+     * Бутон за преглед във външната част
+     */
+    protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
+    {
+        $publicUrl = $mvc->getContentUrl($data->rec, true);
+        if (!empty($publicUrl) && $publicUrl != '#') {
+            $data->toolbar->addBtn('Преглед', $publicUrl, null, 'ef_icon=img/16/monitor.png,title=Преглед във външната част');
+        }
     }
     
     
@@ -571,9 +706,9 @@ class cms_Content extends core_Manager
      * Титлата за листовия изглед
      * Съдържа и текущия домейн
      */
-    public static function on_AfterPrepareListTitle($mvc, $res, $data)
+    protected static function on_AfterPrepareListTitle($mvc, $res, $data)
     {
-        $data->title .= cms_Domains::getCurrentDomainInTitle();
+        $data->title .= cms_Domains::getCurrentDomainInTitle($data);
     }
 
 
@@ -644,7 +779,7 @@ class cms_Content extends core_Manager
             $lastOrder = 0;
             $query = self::getQuery();
             $query->orderBy('#order', 'DESC');
-            $cd = cms_Domains::getCurrent();
+            $cd = !empty($rec->domainId) ? $rec->domainId : cms_Domains::getCurrent();
             
             $typeOrder = cls::get('type_Order');
             $lastRec = $query->fetch("#state = 'active' AND #domainId = {$cd}");
@@ -1089,7 +1224,7 @@ class cms_Content extends core_Manager
     {
         $dQuery = cms_Domains::getQuery();
         $dIds = array();
-        while ($d = $dQuery->fetch("#domain = '{$dRec->domain}'")) {
+        while ($d = $dQuery->fetch(array("#domain = '[#1#]'", $dRec->domain ?? null))) {
             $dIds[] = $d->id;
         }
         

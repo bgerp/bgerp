@@ -178,9 +178,9 @@ class cash_InternalMoneyTransfer extends core_Master
 
 
     /**
-     * Поле на ориджина за което да се направи линка
+     * Полета на ориджина за които да се направи линк
      */
-    public $addLinkedOriginFieldName = 'sourceId';
+    public $addLinkedOriginFieldNames = array('sourceId');
 
 
     /**
@@ -635,7 +635,7 @@ class cash_InternalMoneyTransfer extends core_Master
         $this->requireRightFor('collectnoncashpayments', $rec);
 
         $count = $this->syncNotCollectedRecs($rec);
-        $msg = $count ? "Добавени нови плащания за инкасиране|*: {$count}" : "Няма нови плащания за инкасиране за тази сметка";
+        $msg = $count ? "Добавени нови плащания за инкасиране|*: {$count}" : "Няма нови плащания за инкасиране за тази сметка|*!";
 
         followRetUrl(null, $msg);
     }

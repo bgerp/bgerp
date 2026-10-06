@@ -468,7 +468,7 @@ class wtime_OnSiteEntries extends core_Manager
      * @param core_Intervals|null $Schedule - готов интервал с графика, null - ще се вземе сега
      * @return int $offTimeSchedule         - прекарано време извън графика
      */
-    public static function getOffScheduleTime($personId, $date, $startOn, $duration, core_Intervals $Schedule = null)
+    public static function getOffScheduleTime($personId, $date, $startOn, $duration, ?core_Intervals $Schedule = null)
     {
         // Ако няма интервал търси се графика на служителя за работното му време
         if(!isset($Schedule)){

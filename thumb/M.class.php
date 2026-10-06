@@ -36,9 +36,11 @@ class thumb_M extends core_Mvc
         $id = Request::get('t');
         
         // Премахва фиктивното файлово разширение
-        list($id, $ext) = explode('.', $id);
+        list($id, $ext) = explode('.', $id ?? '') + array('', '');
         
+        // Повреден или чужд линк
         $arguments = core_Crypt::decodeVar($id, thumb_Img::getCryptKey());
+        expect404($arguments);
         
         $this->thumb = new thumb_Img($arguments);
         
@@ -63,7 +65,8 @@ class thumb_M extends core_Mvc
     public static function addTypeHeader($ext)
     {
         $typeByExt = array('jpg' => 'jpeg', 'jpeg' => 'jpeg', 'gif' => 'gif', 'bmp' => 'bmp', 'png' => 'png', 'webp' => 'webp');
-        if ($type = $typeByExt[strtolower($ext)]) {
+        $type = $typeByExt[strtolower($ext ?? '')] ?? null;
+        if ($type) {
             header("Content-Type: image/{$type}");
         }
     }
@@ -109,7 +112,7 @@ class thumb_M extends core_Mvc
         
         static $hashArr = array();
         $cmdHash = md5($cmd);
-        if ($hashArr[$cmdHash]) {
+        if (!empty($hashArr[$cmdHash])) {
             return ;
         }
         $hashArr[$cmdHash] = $cmd;

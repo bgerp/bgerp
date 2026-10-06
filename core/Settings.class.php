@@ -482,7 +482,8 @@ class core_Settings extends core_Manager
                 $paramType = Mode::is('screenMode', 'narrow') ? 'unit' : 'hint';
                 
                 foreach ((array) $mergeValsArr as $valKey => $val) {
-                    if (!$form->fields[$valKey]->type) {
+                    // Настройката може да не е сред полетата на формата
+                    if (empty($form->fields[$valKey]->type)) {
                         continue;
                     }
                     
@@ -578,6 +579,11 @@ class core_Settings extends core_Manager
 
             // Премахваме всички празни стойности или default от enum
             foreach ((array) $recArr as $valKey => $value) {
+
+                // Запазената настройка може вече да няма поле в тази форма.
+                if (empty($form->fields[$valKey]->type)) {
+                    continue;
+                }
 
                 // Ако тази опция е за всички потребители
                 if (!empty($uSettingForAllArr[$valKey]) && ($allSystemId != $form->rec->_userOrRole)) {

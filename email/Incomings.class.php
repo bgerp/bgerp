@@ -164,7 +164,7 @@ class email_Incomings extends core_Master
      *
      * @see plg_HideRows
      */
-    public $hideRows = 'fromIp=debug';
+    public $hideRows = 'fromIp=debug, fromIpCountry=debug';
 
 
     /**
@@ -965,11 +965,11 @@ class email_Incomings extends core_Master
         
         $form->input('country, accId', 'silent');
         
-        if ($form->rec->country) {
+        if (!empty($form->rec->country)) {
             $data->query->where(array("#country= '[#1#]'", $form->rec->country));
         }
         
-        if ($form->rec->accId) {
+        if (!empty($form->rec->accId)) {
             $data->query->where(array("#accId= '[#1#]'", $form->rec->accId));
         }
 
@@ -999,16 +999,17 @@ class email_Incomings extends core_Master
     /**
      * Изпълнява се преди преобразуването към вербални стойности на полетата на записа
      */
-    public static function on_BeforeRecToVerbal($mvc, &$row, $rec, $fields)
+    public static function on_BeforeRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-        if (!is_object($rec) && is_numeric($rec)) {
-            $rec = $mvc->fetch($rec);
+        $rec = $mvc->fetchRec($rec);
+        if (!$rec) {
+            return false;
         }
         
-        $rec->textPart = trim((string) $rec->textPart);
+        $rec->textPart = trim((string) ($rec->textPart ?? ''));
         
         if (empty($rec->toEml)) {
-            $rec->toEml = $rec->toBox;
+            $rec->toEml = $rec->toBox ?? null;
         }
     }
     
@@ -1016,8 +1017,13 @@ class email_Incomings extends core_Master
     /**
      * Преобразува containerId в машинен вид
      */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields)
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
+        $rec = $mvc->fetchRec($rec);
+        if (!$rec) {
+            return;
+        }
+
         // При ограничен списък от полета (@see doc_Containers::renderHiddenDocument) или при
         // празна стойност, вербалното представяне на полето липсва
         foreach (array('subject', 'fromEml', 'fromName', 'toEml') as $vFld) {
@@ -1027,11 +1033,11 @@ class email_Incomings extends core_Master
         }
         
         $haveErr = false;
-        if (!$rec->subject) {
+        if (empty($rec->subject)) {
             $row->subject .= '[' . tr('Липсва заглавие') . ']';
         }
         
-        if ($rec->headers) {
+        if (!empty($rec->headers)) {
             $xResentFrom = email_Mime::getHeadersFromArr($rec->headers, 'X-ResentFrom');
             
             if ($xResentFrom && ($xEmailStr = email_Mime::getAllEmailsFromStr($xResentFrom))) {
@@ -1066,7 +1072,12 @@ class email_Incomings extends core_Master
 
                     if (countR($nFilesArr)) {
                         krsort($nFilesArr);
+                        $isPlain = Mode::is('text', 'plain');
                         foreach ($nFilesArr as $fVerb) {
+                            // В текстов режим всеки файл е на отделен ред
+                            if ($isPlain && $row->files !== '') {
+                                $row->files .= "\n";
+                            }
                             $row->files .= $fVerb;
                         }
                     }
@@ -1182,12 +1193,19 @@ class email_Incomings extends core_Master
             }
         }
         
-        if (!$rec->toBox) {
+        if (empty($rec->toBox)) {
             $row->toBox = $row->toEml;
         }
         
         if ($rec->fromIp) {
             $row->fromIp = type_Ip::decorateIp($rec->fromIp, $rec->createdOn);
+
+            // За LLM е полезна държавата на IP-то, а не самият адрес
+            if (Mode::is('renderForLlm')) {
+                $ipCountryCode = drdata_IpToCountry::get($rec->fromIp);
+                $row->fromIpCountry = ($ipCountryCode && $ipCountryCode != '??') ? $ipCountryCode : 'unknown';
+                unset($row->fromIp);
+            }
         }
         
         $row->fromName = str_replace(' чрез ', ' ' . tr('чрез') . ' ', $row->fromName);
@@ -1717,15 +1735,15 @@ class email_Incomings extends core_Master
             return ;
         }
         
-        if ($rec->toAndCc) {
-            $rec->AllTo = $rec->toAndCc['allTo'];
-            $rec->AllCc = $rec->toAndCc['allCc'];
+        if (!empty($rec->toAndCc)) {
+            $rec->AllTo = $rec->toAndCc['allTo'] ?? null;
+            $rec->AllCc = $rec->toAndCc['allCc'] ?? null;
             
             return ;
         }
         
         // Ако няма хедъри
-        if (!$rec->headers && $rec->emlFile) {
+        if (empty($rec->headers) && !empty($rec->emlFile)) {
             
             // Манипулатора на eml файла
             $fh = fileman_Files::fetchField($rec->emlFile, 'fileHnd');
@@ -1753,7 +1771,7 @@ class email_Incomings extends core_Master
         } else {
             
             // Хедърите ги преобразуваме в масив
-            $headersArr = $rec->headers;
+            $headersArr = $rec->headers ?? null;
         }
         
         // Парсираме To хедъра
@@ -2133,9 +2151,9 @@ class email_Incomings extends core_Master
                 
                 $cData = $this->getContragentData($rec->id);
                 
-                $mob = $cData->mob ? $cData->mob : null;
-                $tel = $cData->tel ? $cData->tel : null;
-                $fax = $cData->fax ? $cData->fax : null;
+                $mob = $cData->mob ?? null;
+                $tel = $cData->tel ?? null;
+                $fax = $cData->fax ?? null;
                 
                 if (!$mob && !$tel && !$fax) {
                     continue;
@@ -2147,6 +2165,8 @@ class email_Incomings extends core_Master
                 $iRec = $inst->fetch($rec->coverId);
                 $inst->addAddtionalNumber($iRec, $mob, $tel, $fax);
             }
+        } catch (core_exception_Redirect $e) {
+            throw $e;
         } catch (Exception $e) {
             reportException($e);
         } catch (Throwable $t) {
@@ -2878,10 +2898,11 @@ class email_Incomings extends core_Master
     {
         static::needFields($rec, 'fromEml, toBox, date, containerId,threadId, accId');
         
-        if ($rec->containerId && $rec->folderId && $rec->fromEml && $rec->toBox) {
-            if ($rec->state == 'rejected') {
+        if ($rec->containerId && !empty($rec->folderId) && $rec->fromEml && $rec->toBox) {
+            $routeBy = $rec->routeBy ?? null;
+            if (($rec->state ?? null) == 'rejected') {
                 $mvc->removeRouterRules($rec);
-            } elseif (($rec->routeBy != 'thread') && ($rec->routeBy != 'preroute') && ($rec->routeBy != 'file')) {
+            } elseif (($routeBy != 'thread') && ($routeBy != 'preroute') && ($routeBy != 'file')) {
                 // Ако рутираме по нишка или потребителски филтър или файл да не се създават правила
                 $mvc->makeRouterRules($rec);
             }
@@ -2889,10 +2910,10 @@ class email_Incomings extends core_Master
 
         // Ако се е прекъснало нормалното рутиране по нишка
         // Бием нотификация на създателя на документа
-        if ($rec->originId) {
+        if (!empty($rec->originId)) {
             $cRec = doc_Containers::fetch($rec->originId);
-            
-            if (($cRec->createdBy > 0) && $rec->containerId && email_Incomings::haveRightFor('single', $rec, $cRec->createdBy)) {
+
+            if ($cRec && ($cRec->createdBy > 0) && $rec->containerId && email_Incomings::haveRightFor('single', $rec, $cRec->createdBy)) {
                 $newCRec = doc_Containers::fetch($rec->containerId);
                 doc_Containers::addNotifications(array($cRec->createdBy => $cRec->createdBy), $mvc, $newCRec, 'добави', false);
             }
@@ -3503,6 +3524,11 @@ class email_Incomings extends core_Master
                     }
                     
                     $data->toolbar->addBtn('Артикул', $url, 'ef_icon=img/16/wooden-box.png,title=Създаване на артикул по това запитване');
+                }
+
+                // Правото 'add' в папката гарантира, че корицата ѝ е контрагент (@see deals_DealMaster::canAddToFolder)
+                if (sales_Sales::haveRightFor('add', (object) array('folderId' => $rec->folderId))) {
+                    $data->toolbar->addBtn('Продажба', array('sales_Sales', 'add', 'folderId' => $rec->folderId, 'foreignId' => $rec->containerId, 'ret_url' => true), array('order' => '25', 'row' => '2', 'ef_icon' => 'img/16/cart_go.png', 'title' => 'Създаване на продажба от имейла'));
                 }
             }
         }

@@ -48,6 +48,12 @@ class core_Mvc extends core_FieldSet
      *
      */
     protected $lastUpdateTime;
+
+
+    /**
+     * Брой промени по таблици в текущото PHP изпълнение
+     */
+    protected static $dbTableUpdateCounts = array();
     
     /**
      * По подразбиране типа на id полето е int
@@ -271,6 +277,11 @@ class core_Mvc extends core_FieldSet
         if (is_array($cond)) {
             $cond = $query->substituteArray($cond);
         }
+
+        // Полетата може да са подадени като масив - за ключа на кеша е нужен низ
+        if (is_array($fields)) {
+            $fields = implode(',', $fields);
+        }
         
         // Ако имаме кеширане, пробваме се да извлечем стойността от кеша
         if ($cache) {
@@ -284,6 +295,33 @@ class core_Mvc extends core_FieldSet
                 }
                 
                 return $me->_cachedRecords[$cacheKey];
+            }
+
+            // Ако целият запис вече е зареден, той върши работа и за част от полетата - така
+            // груповото му зареждане спестява заявка и когато после се искат отделни полета
+            if ($fields != '*') {
+                $fullRec = $me->_cachedRecords[$cond . '|*'] ?? null;
+                if (is_object($fullRec)) {
+                    $rec = new stdClass();
+                    foreach (arr::make($fields) as $name) {
+
+                        // Изчислимите полета може да ги няма в записа - тогава се чете от базата
+                        if (!property_exists($fullRec, $name)) {
+                            $rec = null;
+                            break;
+                        }
+
+                        $rec->{$name} = $fullRec->{$name};
+                    }
+
+                    if (isset($rec)) {
+                        if (!property_exists($rec, 'id')) {
+                            $rec->id = $fullRec->id ?? null;
+                        }
+
+                        return $rec;
+                    }
+                }
             }
         }
         
@@ -369,8 +407,8 @@ class core_Mvc extends core_FieldSet
         
         if ($rec->id ?? null) {
             $exRec = $this->_cachedRecords[$rec->id .'|*'] ?? null;
-            if ($exRec === null && $this->lastFetchedRec && $this->lastFetchedRec == $rec->id) {
-                $exRec = $this->lastFetchedRec;
+            if ($exRec === null && (($this->lastFetchedRec->id ?? null) == ($rec->id ?? null))) {
+                $exRec = $this->lastFetchedRec ?? null;
             }
         }
         
@@ -541,6 +579,7 @@ class core_Mvc extends core_FieldSet
                     
                     return false;
                 }
+                $this->dbTableUpdated();
                 $query = '';
             }
             $query .= $row;
@@ -556,6 +595,7 @@ class core_Mvc extends core_FieldSet
                 
                 return false;
             }
+            $this->dbTableUpdated();
         }
         
         return true;
@@ -568,7 +608,9 @@ class core_Mvc extends core_FieldSet
     public static function truncate()
     {
         $self = cls::get(get_called_class());
-        $self->db->query("TRUNCATE TABLE `{$self->dbTableName}`", false, $self->doReplication);
+        if ($self->db->query("TRUNCATE TABLE `{$self->dbTableName}`", false, $self->doReplication)) {
+            $self->dbTableUpdated();
+        }
     }
     
     
@@ -657,12 +699,26 @@ class core_Mvc extends core_FieldSet
     
     
     /**
-     * Извиква се след като е променяна MySQL-ската таблица
+     * Връща броя локални промени без заявка към базата, включително в една секунда
+     */
+    public function getDbTableUpdateCount()
+    {
+        $key = $this->db->dbName . '|' . $this->dbTableName;
+
+        return self::$dbTableUpdateCounts[$key] ?? 0;
+    }
+
+
+    /**
+     * Извиква се след като е променяна MySQL-ската таблица, включително с пряк SQL
      */
     public function dbTableUpdated_()
     {
         $this->_cachedRecords = array();
+        $this->lastFetchedRec = null;
         $this->lastUpdateTime = DT::verbal2mysql();
+        $key = $this->db->dbName . '|' . $this->dbTableName;
+        self::$dbTableUpdateCounts[$key] = $this->getDbTableUpdateCount() + 1;
     }
     
     

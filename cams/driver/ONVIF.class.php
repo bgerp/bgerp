@@ -71,6 +71,8 @@ class cams_driver_ONVIF extends cams_driver_IpDevice
             $this->height = $configs['Resolution']['Height'];
             $this->FPS = $configs['Resolution']['FrameRateLimit'];
             
+        } catch (core_exception_Redirect $e) {
+            throw $e;
         } catch (Exception $e) {
             log_System::add(get_called_class(), "Грешка при инициализиране на камера: {$e->getMessage()}", null, 'err');
         }

@@ -245,7 +245,8 @@ class borsa_Lots extends core_Master
     {
         $pArr = $mvc->getChangePeriods($rec->id);
         
-        if ($rec->quantity) {
+        // При частичен запис к-то липсва в записа - няма какво да се добавя
+        if (!empty($rec->quantity)) {
             // Добавяме периоди с количества по подразбиране
             foreach ($pArr as $pVal) {
                 $pRec = borsa_Periods::getPeriodRec($rec->id, $pVal['bPeriod'], $pVal['ePeriod']);
@@ -880,6 +881,29 @@ class borsa_Lots extends core_Master
     public function getWorkshopUrl($cMenuId)
     {
         return array('borsa_Lots');
+    }
+    
+    
+    /**
+     * Връща елементите за футър менюто, генерирани от този източник
+     *
+     * @param stdClass $menuRec
+     * @return array
+     */
+    public function getFooterMenuItems($menuRec)
+    {
+        return array();
+    }
+    
+    
+    /**
+     * Добавя полетата за настройки на менюто, специфични за източника
+     *
+     * @param core_FieldSet $fieldset
+     * @return void
+     */
+    public function addContentSettingsFields($fieldset)
+    {
     }
     
     

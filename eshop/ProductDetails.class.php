@@ -17,6 +17,18 @@
 class eshop_ProductDetails extends core_Detail
 {
     /**
+     * Моментът на цените във външната част в текущия хит
+     */
+    protected static $priceMoment;
+
+
+    /**
+     * Изчислените цени във външната част в текущия хит
+     */
+    protected static $publicPrices = array();
+
+
+    /**
      * Име на поле от модела, външен ключ към мастър записа
      */
     public $masterKey = 'eshopProductId';
@@ -100,6 +112,12 @@ class eshop_ProductDetails extends core_Detail
      * Поле за забележки
      */
     public $notesFld = 'title';
+
+
+    /**
+     * Полета, които да се извлекат преди изтриване
+     */
+    public $fetchFieldsBeforeDelete = 'id,eshopProductId,productId';
     
     
     /**
@@ -196,6 +214,44 @@ class eshop_ProductDetails extends core_Detail
         }
     }
 
+
+    /**
+     * Преди запис
+     */
+    protected static function on_BeforeSave($mvc, &$id, $rec, $fields = null, $mode = null)
+    {
+        // Предишният артикул, за да излезе от индекса на е-магазина
+        if (!empty($rec->id)) {
+            $rec->_exProductId = $mvc->fetchField($rec->id, 'productId', false);
+        }
+    }
+
+
+    /**
+     * След запис
+     */
+    protected static function on_AfterSave($mvc, &$id, $rec, $fields = null, $mode = null)
+    {
+        // Новият артикул влиза в индекса на е-магазина, заменения - излиза, ако не е в друг е-артикул
+        $exProductId = $rec->_exProductId ?? null;
+        if (!empty($rec->productId) && $rec->productId != $exProductId) {
+            cat_products_ParamIndex::markDirty(array_filter(array($rec->productId, $exProductId)));
+        }
+    }
+
+
+    /**
+     * След изтриване
+     */
+    public static function on_AfterDelete($mvc, &$numDelRows, $query, $cond)
+    {
+        // Артикулът излиза от индекса на е-магазина, ако не е в друг е-артикул
+        $productIds = arr::extractValuesFromArray($query->getDeletedRecs(), 'productId');
+        if (countR($productIds)) {
+            cat_products_ParamIndex::markDirty($productIds);
+        }
+    }
+
     /**
      * Каква е цената във външната част
      *
@@ -208,13 +264,89 @@ class eshop_ProductDetails extends core_Detail
      */
     public static function getPublicDisplayPrice($productId, $packagingId = null, $quantityInPack = 1, $domainId = null)
     {
-        $res = (object) array('price' => null, 'discount' => null);
         $domainId = (isset($domainId)) ? $domainId : cms_Domains::getPublicDomain()->id;
+
+        // Една и съща цена се пита няколко пъти в хита (опаковка, ред, общи параметри)
+        $cacheKey = "{$productId}|{$packagingId}|{$quantityInPack}|{$domainId}";
+        if (!array_key_exists($cacheKey, self::$publicPrices)) {
+            self::$publicPrices[$cacheKey] = self::calcPublicDisplayPrice($productId, $packagingId, $quantityInPack, $domainId);
+        }
+
+        return is_object(self::$publicPrices[$cacheKey]) ? clone self::$publicPrices[$cacheKey] : self::$publicPrices[$cacheKey];
+    }
+
+
+    /**
+     * Моментът на цените във външната част - един за целия хит
+     *
+     * Цените са към точен момент и заобикалят price_Cache, затова груповото зареждане на правилата
+     * (@see preloadPublicPrices) помага само ако моментът е същият
+     *
+     * @return datetime
+     */
+    public static function getPriceMoment()
+    {
+        if (!isset(self::$priceMoment)) {
+            self::$priceMoment = dt::now();
+        }
+
+        return self::$priceMoment;
+    }
+
+
+    /**
+     * Зарежда накуп ценовите правила и ДДС-а на артикулите, вместо по заявка на артикул
+     *
+     * @param array    $productIds
+     * @param int|null $domainId
+     *
+     * @return void
+     */
+    public static function preloadPublicPrices($productIds, $domainId = null)
+    {
+        $productIds = array_filter(array_unique($productIds), 'is_numeric');
+        if (!countR($productIds)) return;
+
+        $domainId = (isset($domainId)) ? $domainId : cms_Domains::getPublicDomain()->id;
+        $settings = cms_Domains::getSettings($domainId);
+        $listId = cms_Helper::getCurrentEshopPriceList($settings);
+        if (!isset($listId)) return;
+
+        $listIds = array($listId => $listId);
+        $discountListId = price_Lists::fetchField($listId, 'discountCompared');
+        if (!empty($discountListId)) {
+            $listIds[$discountListId] = $discountListId;
+        }
+
+        $now = self::getPriceMoment();
+        foreach ($listIds as $id) {
+            price_ListRules::preloadRules($id, $productIds, $now);
+        }
+
+        if (($settings->chargeVat ?? 'no') == 'yes') {
+            cat_products_VatGroups::getVats($productIds, dt::today(), $settings->vatExceptionId ?? null);
+        }
+    }
+
+
+    /**
+     * Изчислява цената във външната част
+     *
+     * @param int      $productId
+     * @param int|null $packagingId
+     * @param float    $quantityInPack
+     * @param int      $domainId
+     *
+     * @return stdClass|null
+     */
+    protected static function calcPublicDisplayPrice($productId, $packagingId, $quantityInPack, $domainId)
+    {
+        $res = (object) array('price' => null, 'discount' => null);
         $settings = cms_Domains::getSettings($domainId);
         $listId = cms_Helper::getCurrentEshopPriceList($settings);
 
         // Ако има ценоразпис
-        $now = dt::now();
+        $now = self::getPriceMoment();
         if (isset($listId)) {
             $price = price_ListRules::getPrice($listId, $productId, $packagingId, $now);
 
@@ -280,7 +412,8 @@ class eshop_ProductDetails extends core_Detail
             }
         }
         
-        if($action == 'delete' && isset($rec)){
+        // Заявките са излишни, ако потребителят и без тях няма право (напр. посетител във външната част)
+        if($action == 'delete' && isset($rec) && $requiredRoles != 'no_one' && haveRole($requiredRoles, $userId)){
             if(eshop_CartDetails::fetchField("#eshopProductId = {$rec->eshopProductId} AND #productId = {$rec->productId}")){
                 $requiredRoles = 'no_one';
             } elseif (marketing_Inquiries2::fetchField("#sourceClassId = {$mvc->getClassId()} AND #sourceId = {$rec->id}")){
@@ -301,6 +434,9 @@ class eshop_ProductDetails extends core_Detail
     {
         $data->rows = $data->recs = array();
 
+        // Само се показва - драйверите да не преизчисляват и записват параметрите на всяко питане
+        Mode::push('doNotCalculate', true);
+
         $me = cls::get(get_called_class());
         $data->listFields = arr::make('code=Код,productId=Артикул,packagingId=Опаковка,quantity=Количество,catalogPrice=Цена');
         $fields = cls::get(get_called_class())->selectFields();
@@ -310,12 +446,14 @@ class eshop_ProductDetails extends core_Detail
         $query->where("#eshopProductId = {$data->rec->id} AND #state = 'active'");
         $query->orderBy('productId');
         $data->optionsProductsCount = $query->count();
+        $recs =  $query->fetchAll();
+
+        // Цените са към точен момент и заобикалят price_Cache - правилата се зареждат накуп
+        self::preloadPublicPrices(arr::extractValuesFromArray($recs, 'productId'));
         $data->commonParams = eshop_Products::getCommonParams($data->rec->id);
 
         $orderByParam = isset($data->rec->orderByParam) ? $data->rec->orderByParam : '_code';
         $orderByDir = isset($data->rec->orderByDir) ? $data->rec->orderByDir : 'asc';
-        
-        $recs =  $query->fetchAll();
         
         // Подготовка на полето, по което ще се сортира
         array_walk($recs, function (&$a) use ($orderByParam) {
@@ -414,6 +552,8 @@ class eshop_ProductDetails extends core_Detail
                 $prev = strip_tags($row1->orderCode);
             }
         }
+
+        Mode::pop('doNotCalculate');
     }
     
     
@@ -538,6 +678,13 @@ class eshop_ProductDetails extends core_Detail
     {
         $me = cls::get(get_called_class());
         $settings = cms_Domains::getSettings();
+
+        // Нормализиране на полета, които може да липсват (напр. в list изглед)
+        $rec->packagingId = $rec->packagingId ?? null;
+        $rec->quantityInPack = $rec->quantityInPack ?? null;
+        $rec->name = $rec->name ?? null;
+        $rec->recId = $rec->recId ?? null;
+
         $row = new stdClass();
         $row->catalogPrice = '';
         $row->saleInfo = '';
@@ -550,7 +697,7 @@ class eshop_ProductDetails extends core_Detail
         $startSale = cat_Products::getParams($rec->productId, 'startSales');
 
         $productRec = cat_Products::fetch($rec->productId, 'state');
-        $row->packagingId = cat_UoM::getShortName($rec->packagingId);
+        $row->packagingId = cat_UoM::getShortName($rec->packagingId ?? null);
 
         $showPrice = !($productRec->state == 'template' || $rec->action == 'stopped');
         $showCartBtn = in_array($rec->action, array('buy', 'both'));
@@ -563,7 +710,7 @@ class eshop_ProductDetails extends core_Detail
 
         $catalogPriceInfo = (object) array('price' => null, 'discount' => null);
         if($showPrice){
-            $catalogPriceInfo = self::getPublicDisplayPrice($rec->productId, $rec->packagingId, $rec->quantityInPack)
+            $catalogPriceInfo = self::getPublicDisplayPrice($rec->productId, $rec->packagingId ?? null, $rec->quantityInPack ?? null)
                 ?? (object) array('price' => null, 'discount' => null);
 
             if(isset($catalogPriceInfo->price)){
@@ -578,7 +725,7 @@ class eshop_ProductDetails extends core_Detail
             } else {
                 $showCartBtn = false;
                 if($rec->action != 'inquiry'){
-                    $row->catalogPrice = "<span class=' option-not-in-stock' style='background-color: #e6e6e6 !important;border: solid 1px #ff7070;color: #c00;margin-top: 5px;'>" . tr('Свържете се с нас') . "</span><br>";
+                    $row->catalogPrice = "<span class='option-not-in-stock eshop-contact-us'>" . tr('Свържете се с нас') . "</span><br>";
                     if(in_array($rec->action, array('price', 'buy'))){
                         $row->_noPrice = true;
                     }
@@ -645,16 +792,16 @@ class eshop_ProductDetails extends core_Detail
             $customizeProto = ($productRec->state == 'template') ? 'yes' : 'no';
 
             if (cls::load($productRec->innerClass, true)) {
-                $title = 'Изпратете запитване за|* ' . tr($rec->name);
+                $title = 'Изпратете запитване за|* ' . tr($rec->name ?? '');
                 Request::setProtected('classId,objectId,customizeProtoOpt');
-                $url = toUrl(array('marketing_Inquiries2', 'new', 'classId' => $me->getClassId(), 'objectId' => $rec->recId, 'customizeProtoOpt' => $customizeProto, 'ret_url' => true));
+                $url = toUrl(array('marketing_Inquiries2', 'new', 'classId' => $me->getClassId(), 'objectId' => $rec->recId ?? null, 'customizeProtoOpt' => $customizeProto, 'ret_url' => true));
                 Request::removeProtected('classId,objectId,customizeProtoOpt');
                 $row->btnInquiry = ht::createBtn('Запитване', $url, false, false, "ef_icon=img/16/help_contents.png,title={$title},class=productBtn,rel=nofollow");
             }
         }
 
         if(($rec->_listView ?? false) !== true){
-            deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
+            deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId ?? null, $rec->quantityInPack ?? null);
         }
 
         // Проверка дали артикула е спрян от продажба
@@ -1049,6 +1196,12 @@ class eshop_ProductDetails extends core_Detail
      */
     function cron_RemoveProductsFromEshop()
     {
+        // Редове без артикул няма как да се покажат, а спират крона при четенето на параметрите
+        $deleted = $this->delete('#productId IS NULL');
+        if ($deleted) {
+            $this->logWarning("Изтрити редове без артикул: {$deleted}");
+        }
+
         // Кои са всички артикули, закачени към е-артикул
         $query = eshop_ProductDetails::getQuery();
         $query->show('productId');

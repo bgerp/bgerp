@@ -17,6 +17,12 @@
 class plg_Current extends core_Plugin
 {
     /**
+     * Моделите без текущ обект и без автоматичен избор в този хит - потребител|клас => true
+     */
+    protected static $noCurrent = array();
+
+
+    /**
      * Връща указаната част (по подразбиране - id-то) на текущия за сесията запис
      *
      * @param core_Mvc $mvc
@@ -37,7 +43,14 @@ class plg_Current extends core_Plugin
                 
                 return;
             }
-            
+
+            // Без текущ в сесията търсенето до края на хита дава същото, а е заявка при всяко питане
+            $noCurrentKey = core_Users::getCurrent('id', false) . "|{$mvc->className}";
+            if (!$bForce && isset(self::$noCurrent[$noCurrentKey])) {
+
+                return;
+            }
+
             $rec = null;
             $query = $mvc->getQuery();
             if($mvc->getField('state', false)){
@@ -86,6 +99,10 @@ class plg_Current extends core_Plugin
                 
                 // Подканваме потребителя да избере обект от модела, като текущ
                 redirect(array($mvc, 'SelectCurrent', 'ret_url' => true), false, '|Нямате права за избор на|* |' . mb_strtolower(tr($mvc->singleTitle)));
+            }
+
+            if (!$res) {
+                self::$noCurrent[$noCurrentKey] = true;
             }
         }
     }
@@ -206,8 +223,9 @@ class plg_Current extends core_Plugin
      *
      * @param core_Mvc $mvc   инстанция на mvc класа
      * @param $rec   mixed id към запис, който трябва да стана текущ или самия запис
+     * @param bool $silent без статус съобщение за избора
      */
-    public static function on_AfterSelectCurrent($mvc, &$res, $rec)
+    public static function on_AfterSelectCurrent($mvc, &$res, $rec, $silent = false)
     {
         if (!is_object($rec)) {
             expect(is_numeric($rec), $rec);
@@ -219,7 +237,7 @@ class plg_Current extends core_Plugin
 
         // Ако текущия обект е различен от избрания, избира се новия
         if ($curId != $rec->id) {
-            self::setCurrent($mvc, $res, $rec);
+            self::setCurrent($mvc, $res, $rec, $silent);
         }
         
         if (!isset($res)) {
@@ -237,7 +255,7 @@ class plg_Current extends core_Plugin
      *
      * @return null|false
      */
-    private static function setCurrent($mvc, &$res, &$rec)
+    private static function setCurrent($mvc, &$res, &$rec, $silent = false)
     {
         // Ако текущия потребител няма права - не правим избор
         if (!$mvc->haveRightFor('select', $rec)) {
@@ -246,17 +264,20 @@ class plg_Current extends core_Plugin
         }
         
         $className = cls::getClassName($mvc);
+        self::$noCurrent = array();
         
         // Задаваме новия текущ запис
         $modeKey = self::getModeKey($className);
         Mode::setPermanent($modeKey, $rec);
         
         // Слагане на нотификация
-        $objectName = $mvc->getTitleById($rec->id);
-        $singleTitle = mb_strtolower($mvc->singleTitle);
-        
-        // Добавяме статус съобщението
-        core_Statuses::newStatus("|Успешен избор на {$singleTitle}|* \"{$objectName}\"");
+        if (!$silent) {
+            $objectName = $mvc->getTitleById($rec->id);
+            $singleTitle = mb_strtolower($mvc->singleTitle);
+            
+            // Добавяме статус съобщението
+            core_Statuses::newStatus("|Успешен избор на {$singleTitle}|* \"{$objectName}\"");
+        }
         
         // Извикваме събитие за да сигнализираме, че е сменен текущия елемент
         $mvc->invoke('afterChangeCurrent', array(&$res, $rec));
@@ -276,7 +297,7 @@ class plg_Current extends core_Plugin
     private static function getPermanentKey($mvc)
     {
         $key = 'Select-' . cls::getClassName($mvc) . '-' . core_Users::getCurrent();
-        
+
         return $key;
     }
     
@@ -323,7 +344,7 @@ class plg_Current extends core_Plugin
                 $row->currentPlg = ht::createElement('img', array('src' => sbf('img/16/accept.png', ''), 'width' => '16', 'height' => '16'));
             }
 
-            $row->ROW_ATTR['class'] .= ' state-waiting';
+            $row->ROW_ATTR['class'] = ($row->ROW_ATTR['class'] ?? '') . ' state-waiting';
         } elseif ($mvc->haveRightFor('select', $rec)) {
 
             // Ако записа не е текущия обект, но може да бъде избран добавяме бутон за избор
@@ -366,6 +387,22 @@ class plg_Current extends core_Plugin
                 if (($rec->id ?? null) != $mvc->getCurrent('id', false)) {
                     $res = 'no_one';
                 }
+            }
+        }
+    }
+
+
+    /**
+     * След промяна на таблицата на модела
+     *
+     * @param core_Mvc $mvc
+     */
+    public static function on_AfterDbTableUpdated($mvc)
+    {
+        // Нов или променен запис може вече да се избира автоматично
+        foreach (array_keys(self::$noCurrent) as $key) {
+            if (substr($key, strpos($key, '|') + 1) == $mvc->className) {
+                unset(self::$noCurrent[$key]);
             }
         }
     }

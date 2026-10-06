@@ -352,7 +352,7 @@ class planning_Centers extends core_Master
             $row->allowDuplicateSerialProgress = ht::createHint("<span class='blueText'>{$row->allowDuplicateSerialProgress}</span>", 'По подразбиране', 'notice', false);
         }
 
-        $row->deviationNettoWarning = isset($rec->deviationNettoWarning) ? $row->deviationNettoWarning : ht::createHint("<span class='blueText'>{$mvc->getFieldType('deviationNettoWarning')->toVerbal(planning_Setup::get('TASK_NET_WEIGHT_WARNING'))}</span>", 'Автоматично', 'notice', false);
+        $row->deviationNettoWarning = isset($rec->deviationNettoWarning) ? ($row->deviationNettoWarning ?? '') : ht::createHint("<span class='blueText'>{$mvc->getFieldType('deviationNettoWarning')->toVerbal(planning_Setup::get('TASK_NET_WEIGHT_WARNING'))}</span>", 'Автоматично', 'notice', false);
 
         if(empty($rec->showMaxPreviousTasksInATask)){
             $row->showMaxPreviousTasksInATask = $mvc->getFieldType('showMaxPreviousTasksInATask')->toVerbal(planning_Setup::get('SHOW_PREVIOUS_TASK_BLOCKS'));

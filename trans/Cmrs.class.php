@@ -290,6 +290,17 @@ class trans_Cmrs extends trans_abstract_ShipmentDocument
     
     
     /**
+     * Номерът е част от хендъла (CMR + цифри), затова се допускат само цифри
+     */
+    protected static function on_AfterInputEditForm($mvc, &$form)
+    {
+        if ($form->isSubmitted() && !preg_match('/^[0-9]{1,10}$/', (string) ($form->rec->cmrNumber ?? ''))) {
+            $form->setError('cmrNumber', 'Номерът на ЧМР може да съдържа само цифри|*!');
+        }
+    }
+    
+    
+    /**
      * Зарежда дефолтни данни от формата
      *
      * @param int       $originId - ориджин
@@ -542,8 +553,12 @@ class trans_Cmrs extends trans_abstract_ShipmentDocument
      */
     public static function fetchByHandle($parsedHandle)
     {
-        if ($cmrNumber = ltrim($parsedHandle['id'], '0')) {
-            $rec = static::fetch("#cmrNumber = '{$cmrNumber}'");
+        // Първо точният номер (може да е с водещи нули), после без тях за старите хендъли
+        $id = (string) ($parsedHandle['id'] ?? '');
+        $rec = ($id !== '') ? static::fetch(array("#cmrNumber = '[#1#]'", $id)) : false;
+        $trimmed = ltrim($id, '0');
+        if (!$rec && $trimmed !== '' && $trimmed !== $id) {
+            $rec = static::fetch(array("#cmrNumber = '[#1#]'", $trimmed));
         }
         
         return $rec;

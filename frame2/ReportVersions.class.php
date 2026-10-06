@@ -67,7 +67,13 @@ class frame2_ReportVersions extends core_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'createdOn=Версия,createdBy=От';
+    public $listFields = 'createdOn=Версия,createdBy=От,refreshDuration=Време (сек.)';
+
+
+    /**
+     * Кои полета от листовия изглед да се скриват ако няма записи в тях
+     */
+    public $hideListFieldsIfEmpty = 'refreshDuration';
     
     
     /**
@@ -90,6 +96,7 @@ class frame2_ReportVersions extends core_Detail
         $this->FLD('reportId', 'key(mvc=frame2_Reports)', 'caption=Справка');
         $this->FLD('oldRec', 'blob(serialize, compress,size=20000000)', 'caption=Стар запис');
         $this->FLD('versionBefore', 'int', 'caption=Предишна версия');
+        $this->FLD('refreshDuration', 'int', 'caption=Време за изпълнение (мс),tdClass=small-field nowrap');
         
         $this->setDbIndex('versionBefore');
     }
@@ -104,7 +111,8 @@ class frame2_ReportVersions extends core_Detail
     public static function log($reportId, $rec)
     {
         // Записа на новата версия
-        $logRec = (object) array('reportId' => $reportId, 'oldRec' => $rec, 'versionBefore' => null);
+        $refreshDuration = isset($rec->lastRefreshDuration) ? (int) round($rec->lastRefreshDuration * 1000) : null;
+        $logRec = (object) array('reportId' => $reportId, 'oldRec' => $rec, 'versionBefore' => null, 'refreshDuration' => $refreshDuration);
         
         // Опит за намиране на последната записана версия
         $query = self::getQuery();
@@ -172,6 +180,11 @@ class frame2_ReportVersions extends core_Detail
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
+        // Времето се пази в милисекунди, но се показва в секунди
+        if (isset($rec->refreshDuration)) {
+            $row->refreshDuration = core_Type::getByName('double(smartRound)')->toVerbal($rec->refreshDuration / 1000);
+        }
+
         // Коя е избраната версия в момента
         $selectedId = frame2_Reports::getSelectedVersionId($rec->reportId);
         if (!$selectedId) {

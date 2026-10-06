@@ -229,7 +229,7 @@ class acc_RatesDifferences extends core_Master
         $row->dealOriginId = "<div class='state-{$dealState} document-handler'>{$row->dealOriginId}</div>";
         $row->baseCurrencyCode = acc_Periods::getBaseCurrencyCode($rec->valior);
 
-        $row->total = ht::styleNumber($row->total, $rec->total);
+        $row->total = ht::styleNumber($row->total ?? '', $rec->total ?? null);
         if(isset($fields['-single'])){
             $row->total = "<b>{$row->total}</b>";
         }
@@ -350,7 +350,7 @@ class acc_RatesDifferences extends core_Master
     {
         $this->requireRightFor('rejectselected');
         $selected = Request::get('Selected');
-        $selectedArr = explode(',', $selected);
+        $selectedArr = arr::makeIds($selected);
         expect(countR($selectedArr));
 
         // Оттегляне на избраните курсови разлики

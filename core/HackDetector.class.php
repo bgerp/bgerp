@@ -109,6 +109,9 @@ class core_HackDetector extends core_MVC
             $rawScore += 0.8; $mark('order_by_index');
         }
 
+        // Generic text features must support SQL syntax, not trigger detection on their own.
+        $hasSqlSyntax = $rawScore > 0 || preg_match('/;\s*(?:select\b|insert\s+into\b|update\b|delete\s+from\b|drop\b|alter\b|truncate\b|create\b|exec(?:ute)?\b)/', $clean);
+
         // 10) Stacked queries via semicolon
         if (strpos($clean,';') !== false) {
             $rawScore += 0.7; $mark('stacked_queries');
@@ -121,6 +124,7 @@ class core_HackDetector extends core_MVC
         // 12) Comment-obfuscated keywords (se/**/lect, uni/**/on)
         if (preg_match('/se\s*\/\*.*?\*\/\s*lect|\buni\s*\/\*.*?\*\/\s*on/',$clean)) {
             $rawScore += 0.9; $mark('comment_obfuscation');
+            $hasSqlSyntax = true;
         }
 
         // 13) Boolean keyword density
@@ -131,6 +135,12 @@ class core_HackDetector extends core_MVC
         // 14) Closing quote + OR pattern
         if (preg_match('/[\'"]\s*\)\s*or\b|or\s+[\'"]?\d+=[\'"]?\d+/', $clean)) {
             $rawScore += 1.1; $mark('closing_quote_or');
+            $hasSqlSyntax = true;
+        }
+
+        // Long prose can contain quotes, semicolons, comments and many AND/OR words.
+        if (!$hasSqlSyntax) {
+            return 0;
         }
 
         // Remember original comments as a signal

@@ -372,11 +372,12 @@ class hr_EmployeeContracts extends core_Master
         $row->professionsRec_nkpd = bglocal_NKPD::getTitleById($positionRec->nkpd);
         
         // Национална класификация на икономическите дейности
+        $department = planning_Centers::fetch($rec->departmentId);
         $row->departmentRec = new stdClass();
-        $row->departmentRec_nkid = $department->nkid;
-        
+        $row->departmentRec_nkid = $department->nkid ?? null;
+
         // Вид на структурата
-        $row->departmentRec_type = $department->type;
+        $row->departmentRec_type = $department->type ?? null;
         
         // Изчисляваме работното време
         $houresInSec = self::houresForAWeek($rec->id);

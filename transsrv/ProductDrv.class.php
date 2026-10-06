@@ -412,7 +412,7 @@ class transsrv_ProductDrv extends cat_ProductDriver
     public static function on_AfterSave(cat_ProductDriver $Driver, embed_Manager $Embedder, &$id, $rec)
     {
         // След запис се синхронизира промяната
-        self::forceCountryGroup($rec, null, true, $rec->_exGroupId);
+        self::forceCountryGroup($rec, null, true, $rec->_exGroupId ?? null);
     }
 
 

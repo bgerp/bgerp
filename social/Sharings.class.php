@@ -142,10 +142,11 @@ class social_Sharings extends core_Master
              ]);
             
             $socCntP = $socCnt ? $socCnt->cnt : 0;
+            $linkContent = cms_ProtoTheme::getCurrent()->getSharingLinkContent($img, $socCntP);
             
             // ✔ ЛИНК БЕЗ onclick и javascript:void(0)
             $link = ht::createLink(
-                "{$img} <sup>+</sup>{$socCntP}",
+                $linkContent,
                 $url,
                 null,
                 [

@@ -46,7 +46,7 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
 
         // Ако за реда вече има разписани партиди, складът не бива да се сменя -
         // иначе партидите остават разписани към склад, различен от този на реда
-        if (isset($rec->id) && isset($form->fields[$mvc->storeFieldName]) && batch_BatchesInDocuments::fetch("#detailClassId = {$mvc->getClassId()} AND #detailRecId = {$rec->id}")) {
+        if (isset($rec->id) && isset($form->fields[$mvc->storeFieldName]) && batch_BatchesInDocuments::fetch("#detailClassId = {$mvc->getClassId()} AND #detailRecId = {$rec->id} AND #batch IS NOT NULL AND #batch != ''")) {
             $form->setField($mvc->storeFieldName, array('hint' => 'Склада не може да се смени, защото има разпределени партиди от него'));
             $form->setReadOnly($mvc->storeFieldName);
         }
@@ -246,27 +246,65 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
                 self::autoAllocate($mvc, $rec);
             }
         } else {
-            
-            // Ако се създава нова партида, прави се опит за автоматичното и създаване
-            if (empty($rec->batch) && $mvc->canReceiveNewBatch($rec)) {
-                $allowedOptions = $mvc->getAllowedInBatches($rec);
 
-                // Ако има позволени опции не се генерира автоматично партида
-                if(!is_array($allowedOptions)){
-                    $BatchClass = batch_Defs::getBatchDef($rec->{$mvc->productFieldName});
-                    if (is_object($BatchClass)) {
-                        if ($mvc instanceof core_Master) {
-                            $rec->batch = $BatchClass->getAutoValue($mvc, $rec->id, $rec->{$mvc->storeFieldName}, $rec->{$mvc->valiorFld});
-                        } else {
-                            $masterRec = $mvc->Master->fetch($rec->{$mvc->masterKey}, "{$mvc->Master->storeFieldName},{$mvc->Master->valiorFld}");
-                            $rec->batch = $BatchClass->getAutoValue($mvc->Master, $rec->{$mvc->masterKey}, $masterRec->{$mvc->Master->storeFieldName}, $masterRec->{$mvc->Master->valiorFld});
-                        }
-                    }
-                }
-            }
+            // Ако се създава нова партида, прави се опит за автоматичното и създаване
+            self::generateAutoInBatch($mvc, $rec);
         }
     }
-    
+
+
+    /**
+     * Прави опит да генерира автоматична партида за входящ ред и я записва в $rec->batch.
+     * Използва се при създаване, както и еднократно при редакция - когато редът е
+     * получил склад, но още няма разписана партида. Без склад партида не се генерира.
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $rec
+     *
+     * @return void
+     */
+    private static function generateAutoInBatch($mvc, $rec)
+    {
+        if (!empty($rec->batch) || !$mvc->canReceiveNewBatch($rec)) {
+
+            return;
+        }
+
+        // Ако има позволени опции не се генерира автоматично партида
+        if (is_array($mvc->getAllowedInBatches($rec))) {
+
+            return;
+        }
+
+        $BatchClass = batch_Defs::getBatchDef($rec->{$mvc->productFieldName});
+        if (!is_object($BatchClass)) {
+
+            return;
+        }
+
+        // Без склад не се генерира партида (складът може да е на реда или на мастъра)
+        $info = $mvc->getRowInfo($rec);
+        $hasStore = false;
+        foreach ((array) ($info->operation ?? array()) as $storeId) {
+            if (!empty($storeId)) {
+                $hasStore = true;
+                break;
+            }
+        }
+
+        if (!$hasStore) {
+
+            return;
+        }
+
+        if ($mvc instanceof core_Master) {
+            $rec->batch = $BatchClass->getAutoValue($mvc, $rec->id, $rec->{$mvc->storeFieldName}, $rec->{$mvc->valiorFld});
+        } else {
+            $masterRec = $mvc->Master->fetch($rec->{$mvc->masterKey}, "{$mvc->Master->storeFieldName},{$mvc->Master->valiorFld}");
+            $rec->batch = $BatchClass->getAutoValue($mvc->Master, $rec->{$mvc->masterKey}, $masterRec->{$mvc->Master->storeFieldName}, $masterRec->{$mvc->Master->valiorFld});
+        }
+    }
+
     
     /**
      * Преди запис на документ
@@ -310,6 +348,19 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
                 $rec->_updateSingleInBatch = $newQuantity;
             }
         }
+
+        // Отбелязваме прехода "без склад" -> "със склад" на реда (само за документи със
+        // склад на реда), за да се генерира автоматична партида само при ПЪРВО задаване
+        // на склад, а не при смяна на вече наличен склад (напр. след ръчно занулена партида).
+        $rec->_storeJustAdded = false;
+        if (isset($rec->id)
+                && isset($mvc->fields[$mvc->storeFieldName])
+                && $mvc->getBatchMovementDocument($rec) != 'out') {
+            $newStoreId = $rec->{$mvc->storeFieldName} ?? null;
+            if (!empty($newStoreId) && empty($mvc->fetchField($rec->id, $mvc->storeFieldName))) {
+                $rec->_storeJustAdded = true;
+            }
+        }
     }
     
     
@@ -334,6 +385,23 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
             }
         }
         
+        // Входящ ред: при ПЪРВО задаване на склад (преход "без склад" -> "със склад")
+        // еднократно се генерира и разписва автоматичната партида (както при създаване).
+        // Не се генерира при смяна на вече наличен склад, за да не се възстановява ръчно
+        // занулена партида. (Не зависи от isEdited - той не се вдига за входящи редове при редакция.)
+        if (($rec->_storeJustAdded ?? false)
+                && empty($rec->batch)
+                && !batch_BatchesInDocuments::fetch("#detailClassId = {$mvc->getClassId()} AND #detailRecId = {$rec->id}")) {
+            self::generateAutoInBatch($mvc, $rec);
+            if (!empty($rec->batch)) {
+                if (!isset($rec->quantity)) {
+                    $rec->quantity = ($rec->packQuantity ?? 0) * ($rec->quantityInPack ?? 0);
+                }
+
+                batch_BatchesInDocuments::saveBatches($mvc, $rec->id, array($rec->batch => $rec->quantity), true);
+            }
+        }
+
         if (($rec->isEdited ?? null) === true) {
             if (empty($rec->batch)) {
                 batch_BatchesInDocuments::delete("#detailClassId = {$mvc->getClassId()} AND #detailRecId = {$rec->id}");
@@ -341,7 +409,7 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
                 if (!isset($rec->quantity)) {
                     $rec->quantity = ($rec->packQuantity ?? 0) * ($rec->quantityInPack ?? 0);
                 }
-                
+
                 batch_BatchesInDocuments::saveBatches($mvc, $rec->id, array($rec->batch => $rec->quantity), true);
             }
         }

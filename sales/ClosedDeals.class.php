@@ -154,7 +154,8 @@ class sales_ClosedDeals extends deals_ClosedDeals
     {
         $row->DOC_NAME = tr('ПРОДАЖБА');
         
-        if ($rec->closeWith) {
+        // В списъка полето не се вербализира и няма какво да се декорира
+        if (!empty($rec->closeWith) && isset($row->closeWith)) {
             $dealState = sales_Sales::fetchField($rec->closeWith, 'state');
             $row->closeWith = ht::createLink($row->closeWith, array('sales_Sales', 'single', $rec->closeWith))->getContent();
             $row->closeWith = "<span class= 'state-{$dealState} document-handler'>{$row->closeWith}</span>";

@@ -13,6 +13,7 @@
                 [#NAVIGATION_OTHER_BTNS#]
             </div>
             [#NAVIGATION#]
+            [#NAVIGATION_FILTERS#]
         </div>
     </div>
     <!--ET_END NAVIGATION-->

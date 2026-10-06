@@ -298,13 +298,17 @@ class drdata_Vats extends core_Manager
 		} catch (SoapFault $f) {
 
 			// Очакваните откази на VIES не са грешка в кода - логват се като предупреждение
-			if (self::isTemporaryViesFault($f)) {
+			if (trim($f->faultstring ?? $f->getMessage()) === 'INVALID_INPUT') {
+				$this->logWarning('VIES отхвърли входните данни: INVALID_INPUT');
+			} elseif (self::isTemporaryViesFault($f)) {
 				$this->logWarning('VIES недостъпен: ' . $f->getMessage());
 			} else {
 				reportException($f);
 			}
 
 			$result = (object) array('valid' => null, 'name' => null, 'address' => null);
+		} catch (core_exception_Redirect $e) {
+		    throw $e;
 		} catch (Exception $e) {
 			reportException($e);
 			$result = (object) array('valid' => null, 'name' => null, 'address' => null);
@@ -329,7 +333,7 @@ class drdata_Vats extends core_Manager
 		// Ако локалният regex не е разпознал формата, но сме питали VIES – добавяме неутрална бележка
 		if (!$syntaxOk && $plausible) {
 			$note = "Забележка: форматът не съвпада с познатите локални модели, но е направена онлайн проверка (VIES).";
-			$info = trim($info) ? ($info . "\n" . $note) : $note;
+			$info = trim($info ?? '') ? ($info . "\n" . $note) : $note;
 		}
 
 		return array($res, $info, $result->name, $result->address);
@@ -775,7 +779,7 @@ class drdata_Vats extends core_Manager
                                     
                                     $parsedAddress = drdata_ParseAddressBg::parse($shortAddress);
                                     
-                                    $data->pCode = $parsedAddress['п.код'];
+                                    $data->pCode = $parsedAddress['п.код'] ?? null;
                                     $data->address = $parsedAddress['addr'];
                                     $data->place = isset($parsedAddress['гр.']) ? $parsedAddress['гр.'] : $parsedAddress['place'];
                                 }

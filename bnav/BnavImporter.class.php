@@ -125,7 +125,7 @@ class bnav_BnavImporter extends core_Manager
         core_Debug::stopTimer('import');
         
         // Връща се резултата от импортирането, с изтеклото време
-        return $html . 'Общо време: ' . round(core_Debug::$timers['import']->workingTime, 2) .' с<br />';
+        return $html . 'Общо време: ' . round(core_Debug::$timers['import']->workingTime ?? 0, 2) .' с<br />';
     }
     
     
@@ -194,7 +194,7 @@ class bnav_BnavImporter extends core_Manager
         foreach ($params['groups'] as $gr) {
             $nRec = new stdClass();
             $nRec->name = $gr;
-            if ($rec = cat_Groups::fetch("#name = '{$gr}'")) {
+            if ($rec = cat_Groups::fetch(array("#name = '[#1#]'", $gr))) {
                 $nRec->id = $rec->id;
                 $updatedGroups++;
             } else {

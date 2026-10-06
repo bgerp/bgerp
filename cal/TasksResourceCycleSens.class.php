@@ -157,6 +157,8 @@ class cal_TasksResourceCycleSens extends sens2_ProtoDriver
                     }
                 } catch (core_exception_Expect $e) {
 
+                } catch (core_exception_Redirect $e) {
+                    throw $e;
                 } catch (Exception $e) {
 
                 }
@@ -200,7 +202,7 @@ class cal_TasksResourceCycleSens extends sens2_ProtoDriver
         $query->where(array("#assetResourceId = '[#1#]'", $config->resource));
         $query->where("#state = 'active' OR #state = 'pending' OR #state = 'waiting' OR #state = 'wakeup'");
         $query->where(array("#expectationTimeEnd <= '[#1#]'", $now));
-        $query->where(array("#expectationTimeEnd != #expectationTimeStart", $now));
+        $query->where("#expectationTimeEnd != #expectationTimeStart");
         $query->orderBy('expectationTimeEnd', 'DESC');
         $query->orderBy('expectationTimeStart', 'DESC');
         $query->orderBy('id', "DESC");

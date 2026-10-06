@@ -30,6 +30,7 @@ require_once(EF_APP_PATH . '/core/exception/Break.class.php');
 
 // Зареждаме класовете за обработка на грешки
 require_once(EF_APP_PATH . '/core/exception/Expect.class.php');
+require_once(EF_APP_PATH . '/core/exception/Redirect.class.php');
 
 // Зареждаме дебъг класа
 require_once(EF_APP_PATH . '/core/Debug.class.php');
@@ -53,182 +54,197 @@ require_once(EF_APP_PATH . '/core/Html.class.php');
 core_Debug::setErrorWaching();
 
 
-// Ако заявката е по cli обработваме я по различен начин
-if(php_sapi_name() == 'cli') {
-    core_Debug::$isDebug = true;
-    defIfNot('EF_APP_NAME', $argv[1]);
-    
-    defIfNot('EF_HTTPS', false);
-
-    // Инициализиране на системата
-    core_App::initSystem();
-
-    // Зарежда конфигурационните константи
-    core_App::loadConfig();
-
-    $ctr = $argv[2];
-    $act = 'cli_' . $argv[3];
-
-    $ctr = cls::get($ctr);
-
-    $res = $ctr->{$act}();
-
-    $res = $res ? $res : 0;
-
-    exit($res);
-}
-
-
-// Подсигуряваме $_GET['virtual_url']
-if (!isset($_GET['virtual_url'])) $_GET['virtual_url'] = $_SERVER['REQUEST_URI'];
-
 try {
-    $isDefinedFatalErrPath = defined('DEBUG_FATAL_ERRORS_PATH');
-    $stopDebug = false;
+    // Ако заявката е по cli обработваме я по различен начин
+    if(php_sapi_name() == 'cli') {
+        core_Debug::$isDebug = true;
+        defIfNot('EF_APP_NAME', $argv[1]);
     
-    // Ако е зададено за кои URL-та да не се записва в лога
-    if ($isDefinedFatalErrPath) {
-        if (!defined('DEBUG_FATAL_ERRORS_EXCLUDE')) {
-            define('DEBUG_FATAL_ERRORS_EXCLUDE', 'sw.js,favicon.ico,log_Browsers/js/*,pwa_Plugin');
-        }
+        defIfNot('EF_HTTPS', false);
+
+        // Инициализиране на системата
+        core_App::initSystem();
+
+        // Зарежда конфигурационните константи
+        core_App::loadConfig();
+
+        $ctr = $argv[2];
+        $act = 'cli_' . $argv[3];
+
+        $ctr = cls::get($ctr);
+
+        $res = $ctr->{$act}();
+
+        $res = $res ? $res : 0;
+
+        exit($res);
+    }
+
+
+    // Подсигуряваме $_GET['virtual_url']
+    if (!isset($_GET['virtual_url'])) $_GET['virtual_url'] = $_SERVER['REQUEST_URI'];
+
+    try {
+        $isDefinedFatalErrPath = defined('DEBUG_FATAL_ERRORS_PATH');
+        $stopDebug = false;
+    
+        // Ако е зададено за кои URL-та да не се записва в лога
+        if ($isDefinedFatalErrPath) {
+            if (!defined('DEBUG_FATAL_ERRORS_EXCLUDE')) {
+                define('DEBUG_FATAL_ERRORS_EXCLUDE', 'sw.js,favicon.ico,log_Browsers/js/*,pwa_Plugin');
+            }
         
-        if (DEBUG_FATAL_ERRORS_EXCLUDE) {
-            $errorsExlude = explode(',', DEBUG_FATAL_ERRORS_EXCLUDE);
-            $vUrlStr = trim($_GET['virtual_url']);
-            $vUrlStr = trim($vUrlStr, '/');
-            $vUrlStr = mb_strtolower($vUrlStr);
-            foreach ($errorsExlude as $eStr) {
-                $eStr = trim($eStr);
-                $eStr = trim($eStr, '/');
-                $eStr = mb_strtolower($eStr);
-                $eStr = preg_quote($eStr, '/');
-                $eStr = str_replace('\*', '.*', $eStr);
-                $eStrPattern = '/^' . $eStr . '$/i';
+            if (DEBUG_FATAL_ERRORS_EXCLUDE) {
+                $errorsExlude = explode(',', DEBUG_FATAL_ERRORS_EXCLUDE);
+                $vUrlStr = trim($_GET['virtual_url']);
+                $vUrlStr = trim($vUrlStr, '/');
+                $vUrlStr = mb_strtolower($vUrlStr);
+                foreach ($errorsExlude as $eStr) {
+                    $eStr = trim($eStr);
+                    $eStr = trim($eStr, '/');
+                    $eStr = mb_strtolower($eStr);
+                    $eStr = preg_quote($eStr, '/');
+                    $eStr = str_replace('\*', '.*', $eStr);
+                    $eStrPattern = '/^' . $eStr . '$/i';
                 
-                if (preg_match($eStrPattern, $vUrlStr)) {
-                    $stopDebug = true;
-                    break;
-                }
-            }
-        }
-    }
-    
-    // Вземаме всички входни данни
-    if ($isDefinedFatalErrPath && !$stopDebug) {
-        $data = @json_encode(array('GET' => $_GET, 'POST' => $_POST, 'SERVER' => $_SERVER));
-        
-        if (!$data) {
-            $data = json_last_error();
-            $data .= ' Serilize: ' . @serialize($data);
-        }
-    }
-    
-    // Инициализиране на системата
-    core_App::initSystem();
-    
-    // Дъмпване във файл на всички входни данни
-    if ($isDefinedFatalErrPath && !$stopDebug) {
-        $pathName = rtrim(DEBUG_FATAL_ERRORS_PATH, '/') . '/000' . date('_H_i_s_') . rand(1000, 9999) . '.debug';
-        
-        if (!defined('DEBUG_FATAL_ERRORS_FILE')) {
-            if (@file_put_contents($pathName, $data)) {
-                define('DEBUG_FATAL_ERRORS_FILE', $pathName);
-            } else {
-                core_Os::createDirectories(DEBUG_FATAL_ERRORS_PATH);
-            }
-        }
-    }
-    
-    // Параметрите от виртуалното URL за зареждат в $_GET
-    core_App::processUrl();
-    
-
-    // Зарежда конфигурационните константи
-    core_App::loadConfig();
-
-
-    /**
-     * Ще има ли криптиращ протокол?
-     * NO - не
-     * OPTIONAL - да, където може използвай криптиране
-     * MANDATORY - да, използвай задължително
-     */
-    defIfNot('EF_HTTPS', 'NO');
-
-
-    // Премахваме всякакви "боклуци", които евентуално може да са се натрупали в изходния буфер
-    if (ob_get_contents()) ob_clean();
-
-
-    // PHP5.4 bugFix
-    ini_set('zlib.output_compression', 'Off');
-
-    require_once(EF_APP_PATH . '/setup/Controller.class.php');
-
-    // Файл за лога на сетъп процеса
-    define('EF_SETUP_LOG_PATH', EF_TEMP_PATH . '/setupLog_' . md5(__FILE__) . '.html');
-
-    // Стартира Setup, ако в заявката присъства верен SetupKey
-    if (isset($_GET['SetupKey'])) {
-        require_once(EF_APP_PATH . '/core/Setup.inc.php');
-    }
-
-
-    // Стартира записа в буфера, като по възможност компресира съдържанието
-    ob_start();
-
-    // Стартира приложението
-    core_App::run();
-    
-    // Отключваме системата, ако е била заключена в този хит
-    core_SystemLock::remove();
-
-    // Край на работата на скрипта
-    core_App::shutdown();
-} catch (Exception  $e) {
-    $update = null;
-
-    // Отключваме системата, ако е била заключена в този хит
-    core_SystemLock::remove();
-
-    if ($e instanceof core_exception_Db && ($link = $e->getDbLink())) {
-        if (defined('EF_DB_NAME') && preg_match("/^\w{0,64}$/i", EF_DB_NAME)) {
-            
-            // Ако базата липсва или е абсолютно празна - отиваме направо към инициализирането
-            $db = new core_Db();
-            if ($e->isNotExistsDB() || ($db->getDBInfo('ROWS') == 0)) {
-                redirect(array('Index', 'SetupKey' => setupKey()));
-            }
-            
-            if ($e instanceof core_exception_Db) {
-                // Опитваме се да поправим базата
-                $e->repairDB($link);
-                
-                // Ако грешката в свързана с не-инициализиране на базата, поставяме линк, само ако потребителя е админ или е в dev бранч
-                if ($e->isNotInitializedDB()) {
-                    try {
-                        if ((defined('BGERP_GIT_BRANCH') && BGERP_GIT_BRANCH == 'dev') || haveRole('admin')) {
-                            $update = array('Index', 'SetupKey' => setupKey(), 'step' => 2);
-                        }
-                    } catch (Exception $e) {
-                        reportException($e);
+                    if (preg_match($eStrPattern, $vUrlStr)) {
+                        $stopDebug = true;
+                        break;
                     }
                 }
             }
         }
-    }
     
-    reportException($e, $update, false);
+        // Вземаме всички входни данни
+        if ($isDefinedFatalErrPath && !$stopDebug) {
+            $data = @json_encode(array('GET' => $_GET, 'POST' => $_POST, 'SERVER' => $_SERVER));
+        
+            if (!$data) {
+                $data = json_last_error();
+                $data .= ' Serilize: ' . @serialize($data);
+            }
+        }
     
-    // Изход от скрипта
-    core_App::exitScript();
-} catch (Throwable  $e) {
-    reportException($e, null, false);
+        // Инициализиране на системата
+        core_App::initSystem();
     
-    // Изход от скрипта
-    core_App::exitScript();
-}
+        // Дъмпване във файл на всички входни данни
+        if ($isDefinedFatalErrPath && !$stopDebug) {
+            $pathName = rtrim(DEBUG_FATAL_ERRORS_PATH, '/') . '/000' . date('_H_i_s_') . rand(1000, 9999) . '.debug';
+        
+            if (!defined('DEBUG_FATAL_ERRORS_FILE')) {
+                if (@file_put_contents($pathName, $data)) {
+                    define('DEBUG_FATAL_ERRORS_FILE', $pathName);
+                } else {
+                    core_Os::createDirectories(DEBUG_FATAL_ERRORS_PATH);
+                }
+            }
+        }
+    
+        // Параметрите от виртуалното URL за зареждат в $_GET
+        core_App::processUrl();
+    
 
+        // Зарежда конфигурационните константи
+        core_App::loadConfig();
+
+
+        /**
+         * Ще има ли криптиращ протокол?
+         * NO - не
+         * OPTIONAL - да, където може използвай криптиране
+         * MANDATORY - да, използвай задължително
+         */
+        defIfNot('EF_HTTPS', 'NO');
+
+
+        // Премахваме всякакви "боклуци", които евентуално може да са се натрупали в изходния буфер
+        if (ob_get_contents()) ob_clean();
+
+
+        // PHP5.4 bugFix
+        ini_set('zlib.output_compression', 'Off');
+
+        require_once(EF_APP_PATH . '/setup/Controller.class.php');
+
+        // Файл за лога на сетъп процеса
+        define('EF_SETUP_LOG_PATH', EF_TEMP_PATH . '/setupLog_' . md5(__FILE__) . '.html');
+
+        // Стартира Setup, ако в заявката присъства верен SetupKey
+        if (isset($_GET['SetupKey'])) {
+            require_once(EF_APP_PATH . '/core/Setup.inc.php');
+        }
+
+
+        // Стартира записа в буфера, като по възможност компресира съдържанието
+        ob_start();
+
+        // Стартира приложението
+        core_App::run();
+    
+        // Отключваме системата, ако е била заключена в този хит
+        core_SystemLock::remove();
+
+        // Край на работата на скрипта
+        core_App::shutdown();
+    } catch (core_exception_Redirect $e) {
+        throw $e;
+    } catch (Exception  $e) {
+        $update = null;
+
+        // Отключваме системата, ако е била заключена в този хит
+        core_SystemLock::remove();
+
+        if ($e instanceof core_exception_Db && ($link = $e->getDbLink())) {
+            if (defined('EF_DB_NAME') && preg_match("/^\w{0,64}$/i", EF_DB_NAME)) {
+            
+                // Ако базата липсва или е абсолютно празна - отиваме направо към инициализирането
+                $db = new core_Db();
+                if ($e->isNotExistsDB() || ($db->getDBInfo('ROWS') == 0)) {
+                    redirect(array('Index', 'SetupKey' => setupKey()));
+                }
+            
+                if ($e instanceof core_exception_Db) {
+                    // Опитваме се да поправим базата
+                    $e->repairDB($link);
+                
+                    // Ако грешката в свързана с не-инициализиране на базата, поставяме линк, само ако потребителя е админ или е в dev бранч
+                    if ($e->isNotInitializedDB()) {
+                        try {
+                            if ((defined('BGERP_GIT_BRANCH') && BGERP_GIT_BRANCH == 'dev') || haveRole('admin')) {
+                                $update = array('Index', 'SetupKey' => setupKey(), 'step' => 2);
+                            }
+                        } catch (core_exception_Redirect $e) {
+                            throw $e;
+                        } catch (Exception $e) {
+                            reportException($e);
+                        }
+                    }
+                }
+            }
+        }
+    
+        reportException($e, $update, false);
+    
+        // Изход от скрипта
+        core_App::exitScript();
+    } catch (Throwable  $e) {
+        reportException($e, null, false);
+    
+        // Изход от скрипта
+        core_App::exitScript();
+    }
+
+} catch (core_exception_Redirect $redirect) {
+    core_SystemLock::remove();
+    try {
+        core_App::sendRedirect($redirect);
+    } catch (Throwable $e) {
+        // redirect-catch: terminal - изпращането на отговора се провали; няма нов опит за редирект.
+        reportException($e, null, false);
+        core_App::exitScript();
+    }
+}
 
 /****************************************************************************************
 *                                                                                       *
@@ -351,8 +367,7 @@ function logHitState($debugCode = '200', $state = array())
             $dataArr = (array)@json_decode($data);
             
             if (!$dataArr) {
-                $dataArr = json_last_error();
-                $dataArr .= array('jsonData' => ' Unserialize: ' . $data);
+                $dataArr = array('jsonError' => json_last_error(), 'jsonData' => ' Unserialize: ' . $data);
             }
         }  
         
@@ -405,8 +420,8 @@ function logHitState($debugCode = '200', $state = array())
         
         $state['_Ctr'] = ($_GET['Ctr'] ?? null) ? $_GET['Ctr'] : 'Index';
         $state['_Act'] = ($_GET['Act'] ?? null) ? $_GET['Act'] : 'default';
-        $state['_dbName'] = EF_DB_NAME;
-        $state['_info'] = 'DB: ' . EF_DB_NAME . ' » Ctr: ' . $state['_Ctr'] . ' » Act: ' . $state['_Act'];
+        $state['_dbName'] = defined('EF_DB_NAME') ? EF_DB_NAME : 'unknown';
+        $state['_info'] = 'DB: ' . $state['_dbName'] . ' » Ctr: ' . $state['_Ctr'] . ' » Act: ' . $state['_Act'];
         $state['_debugCode'] = $debugCode;
         $state['_cookie'] = $_COOKIE;
         
@@ -430,9 +445,18 @@ function logHitState($debugCode = '200', $state = array())
             $data = json_last_error();
             try {
                 $data .= ' Serilize: ' . @serialize($state);
+            } catch (core_exception_Redirect $e) {
+                throw $e;
             } catch (Exception $e) {
                 $data .= ' MixedToString: ' . core_Type::mixedToString($state);
             }
+        }
+
+        // При грешка преди конфигурацията log_Debug и сесията още не могат да се заредят.
+        if (!defined('EF_DB_NAME') || !defined('EF_SALT')) {
+            @file_put_contents(DEBUG_FATAL_ERRORS_FILE, $data);
+
+            return DEBUG_FATAL_ERRORS_FILE;
         }
         
         $cnt = 0;

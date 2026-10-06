@@ -67,6 +67,12 @@ class core_Manager extends core_Mvc
 
 
     /**
+     * Временно изпълнение на заявките към основната база
+     */
+    private static $replicaDisabled = false;
+
+
+    /**
      * Време за кеширане на правата към обекта
      */
     public $cacheRightsDuration = 0;
@@ -181,13 +187,13 @@ class core_Manager extends core_Mvc
 
 
     /**
-     * Помощна функция, която форсира използване на друга БД
+     * Помощна функция, която форсира използване на репликата (друга БД)
      *
      * @param string $clsName
      *
      * @return void
      */
-    public function forceProxy($clsName = null)
+    public function forceReplica($clsName = null)
     {
         if (!$clsName) {
             $DC = $this;
@@ -198,6 +204,9 @@ class core_Manager extends core_Mvc
         $this->fields = $DC->fields;
         $this->dbTableName = $DC->dbTableName;
         $this->dbIndexes = $DC->dbIndexes;
+        if (self::$replicaDisabled) {
+            return;
+        }
         if (defined('SEARCH_DB_HOST')) {
             $error = core_App::isReplicationOK();
             if (!empty($error)) {
@@ -213,10 +222,12 @@ class core_Manager extends core_Mvc
                     // todo: да праща signal msg на админа
                 }
             } else {
-                $this->db->__origDbName = $this->db->dbName;
-                $this->db->__origDbPass = $this->db->dbPass;
-                $this->db->__origDbUser = $this->db->dbUser;
-                $this->db->__origDbHost = $this->db->dbHost;
+                if (!isset($this->db->__origDbName)) {
+                    $this->db->__origDbName = $this->db->dbName;
+                    $this->db->__origDbPass = $this->db->dbPass ?? null;
+                    $this->db->__origDbUser = $this->db->dbUser;
+                    $this->db->__origDbHost = $this->db->dbHost;
+                }
 
                 $this->db->dbName = SEARCH_DB_NAME;
                 $this->db->dbPass = SEARCH_DB_PASS;
@@ -228,14 +239,17 @@ class core_Manager extends core_Mvc
 
 
     /**
-     * Помощна функция, която спира форсираното използване на друга БД
+     * Помощна функция, която спира форсираното използване на репликата (друга БД)
      *
      * @param string $clsName
      *
      * @return void
      */
-    public function unforceProxy($clsName = null)
+    public function unforceReplica($clsName = null)
     {
+        if (self::$replicaDisabled) {
+            return;
+        }
         if (!$clsName) {
             $DC = $this;
         } else {
@@ -243,9 +257,9 @@ class core_Manager extends core_Mvc
         }
 
         if (defined('SEARCH_DB_HOST')) {
-            if (isset($this->db->__origDbName) && isset($this->db->__origDbPass) && isset($this->db->__origDbUser) && isset($this->db->__origDbHost)) {
+            if (isset($this->db->__origDbName, $this->db->__origDbUser, $this->db->__origDbHost)) {
                 $this->db->dbName = $this->db->__origDbName;
-                $this->db->dbPass = $this->db->__origDbPass;
+                $this->db->dbPass = $this->db->__origDbPass ?? null;
                 $this->db->dbUser = $this->db->__origDbUser;
                 $this->db->dbHost = $this->db->__origDbHost;
                 unset($this->db->__origDbHost);
@@ -257,8 +271,64 @@ class core_Manager extends core_Mvc
     }
 
 
+    /**
+     * Изпълнява подадения код на репликата и връща връзката към основната база
+     *
+     * @param callable $callback
+     *
+     * @return mixed
+     */
+    public function callOnReplica($callback)
+    {
+        // При вложено извикване връзката се владее от външния блок - вътрешният само я ползва,
+        // иначе неговият unforceReplica() би върнал външния код на основната база
+        if (self::$replicaDisabled || isset($this->db->__origDbName)) {
 
-    
+            return call_user_func($callback);
+        }
+
+        try {
+            $this->forceReplica();
+
+            return call_user_func($callback);
+        } finally {
+            $this->unforceReplica();
+        }
+    }
+
+
+    /**
+     * Изпълнява подадения код в основната база, включително вложени заявки към репликата
+     *
+     * @param callable $callback
+     *
+     * @return mixed
+     */
+    public static function callWithoutReplica($callback)
+    {
+        $db = cls::get('core_Db');
+        $wasDisabled = self::$replicaDisabled;
+        $replicaConfig = array();
+        if (isset($db->__origDbName, $db->__origDbUser, $db->__origDbHost)) {
+            foreach (array('dbName', 'dbUser', 'dbPass', 'dbHost') as $field) {
+                $replicaConfig[$field] = $db->{$field} ?? null;
+                $originalField = '__orig' . ucfirst($field);
+                $db->{$field} = $db->{$originalField} ?? null;
+            }
+        }
+        self::$replicaDisabled = true;
+
+        try {
+            return call_user_func($callback);
+        } finally {
+            foreach ($replicaConfig as $field => $value) {
+                $db->{$field} = $value;
+            }
+            self::$replicaDisabled = $wasDisabled;
+        }
+    }
+
+
     /**
      * Връща линк към подадения обект
      *
@@ -319,12 +389,7 @@ class core_Manager extends core_Mvc
         
         $data->ListId = Request::get('id', 'int');
 
-        // Ако има зададен прокси клас за листа - да се използва той
-        if(isset($this->listFilterProxyTable)){
-            $data->query = cls::get($this->listFilterProxyTable)->getQuery();
-        } else {
-            $data->query = $this->getQuery();
-        }
+        $data->query = $this->getQuery();
         
         // Подготвяме полетата за показване
         $this->prepareListFields($data);
@@ -758,6 +823,8 @@ class core_Manager extends core_Mvc
                             $options = $Type->type->suggestions;
                             $skip = false;
                         }
+                    } catch (core_exception_Redirect $t) {
+                        throw $t;
                     } catch (Exception $t) {
                         $hasError = true;
                         wp('Грешка при подготовка на опциите за филтъра', $Type, $showFields, $name, $mvc);
@@ -877,7 +944,7 @@ class core_Manager extends core_Mvc
     {
         setPartIfNot($data, 'title', $this->title);
 
-        if ($data->ListId) {
+        if (!empty($data->ListId)) {
             $data->title = "Резултати за запис номер|* {$data->ListId}: |" . $data->title;
         }
         

@@ -259,6 +259,8 @@ class core_ProtoSetup
                                                     isset($plg[4]) ? $plg[4] : 'active',
                                                     isset($plg[5]) ? $plg[5] : false
                                                 );
+                } catch (core_exception_Redirect $e) {
+                    throw $e;
                 } catch (Throwable $e) {
                     reportException($e);
                     $htmlRes .= "<li class='debug-error'>Плъгинът {$plg[1]} не беше закачен към {$plg[2]}: " .
@@ -302,7 +304,7 @@ class core_ProtoSetup
      */
     public function getCommonCss()
     {
-        return $this->preparePacksPath($this->getPackName(), $this->commonCSS);
+        return $this->preparePacksPath($this->getPackName(), $this->commonCSS ?? '');
     }
     
     
@@ -313,7 +315,7 @@ class core_ProtoSetup
      */
     public function getCommonJs()
     {
-        return $this->preparePacksPath($this->getPackName(), $this->commonJS);
+        return $this->preparePacksPath($this->getPackName(), $this->commonJS ?? '');
     }
     
     
@@ -478,6 +480,17 @@ class core_ProtoSetup
     
     
     /**
+     * Защо пакетът не може да се де-инсталира
+     *
+     * @return string
+     */
+    public function getCannotDeinstallHint()
+    {
+        return 'Пакетът не може да бъде де-инсталиран, защото има системни функции.';
+    }
+    
+    
+    /**
      * Де-инсталиране на пакета
      */
     public function deinstall()
@@ -532,6 +545,8 @@ class core_ProtoSetup
             // Проблем с един клас не трябва да спира инсталацията на целия пакет
             try {
                 $res .= core_Classes::add($cls);
+            } catch (core_exception_Redirect $e) {
+                throw $e;
             } catch (Throwable $e) {
                 reportException($e);
                 $res .= "<li class='debug-error'>Класът {$cls} не беше регистриран: {$e->getMessage()}</li>";

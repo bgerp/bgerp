@@ -216,7 +216,7 @@ class type_UserOrRole extends type_User
             $key = $value;
         }
 
-        list($type, $id) = explode('_', $key);
+        list($type, $id) = array_pad(explode('_', (string) $key), 2, null);
         
         if (($type == 'r') || ($type == 'd')) {
 

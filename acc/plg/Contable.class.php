@@ -961,6 +961,11 @@ class acc_plg_Contable extends core_Plugin
     {
         // Искаме състоянието на оттеглените чернови да се казва 'Анулиран'
         if ($part == 'state') {
+
+            // getVerbal() приема и ид (напр. през core_ObjectReference)
+            $rec = $mvc->fetchRec($rec);
+            if (!is_object($rec)) return;
+
             if ($rec->state == 'rejected' && $rec->brState == 'active') {
                 $num = tr('Анулиран');
             } elseif ($rec->state == 'active') {

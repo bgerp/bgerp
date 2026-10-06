@@ -9,7 +9,7 @@
  * @package   sync
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2020 Experta OOD
+ * @copyright 2006 - 2026 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -24,7 +24,7 @@ class sync_plg_ProductExport extends core_Plugin
      */
     public static function on_AfterDescription(core_Mvc $mvc)
     {
-        setIfNot($mvc->canSyncexport, 'admin');
+        setPartIfNot($mvc, 'canSyncexport', 'admin');
     }
     
     
@@ -60,19 +60,39 @@ class sync_plg_ProductExport extends core_Plugin
             sync_Helper::requireRight('export');
             
             expect($importUrl = self::getImportUrl($rec));
-            
-            $params = array('remoteId' => $rec->id);
-            $httpQuery = http_build_query($params);
+
+            $sysId = trim((string) sync_Setup::get('SYS_ID'));
+            $pass = sync_Setup::getSyncPass();
+            expect($sysId !== '' && $pass !== '', 'Ръчният export изисква SYNC_SYS_ID и SYNC_PASS');
+
+            // При push receiver-ът е този, който прилага per-client policy.
+            // Локалният администратор подготвя payload-а без да избира ред от
+            // собствената sync_Settings таблица.
+            Mode::push('syncBypassExportPolicy', true);
+            try {
+                $exportData = self::getExportData($rec->id);
+            } finally {
+                Mode::pop('syncBypassExportPolicy');
+            }
+
+            $params = array(
+                'remoteId' => $rec->id,
+                'syncSysId' => $sysId,
+                'syncPass' => $pass,
+                'sourceUrl' => toUrl(array('cat_Products', 'single', $rec->id), 'absolute'),
+                'data' => $exportData,
+            );
             
             $ch = curl_init();
             curl_setopt($ch, CURLOPT_URL, $importUrl);
             curl_setopt($ch, CURLOPT_POST, 1);
-            curl_setopt($ch, CURLOPT_POSTFIELDS, $httpQuery);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, $params);
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
-            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+            curl_setopt($ch, CURLOPT_FOLLOWLOCATION, false);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
             
-            curl_setopt($ch, CURLOPT_TIMEOUT, 60);
+            curl_setopt($ch, CURLOPT_TIMEOUT, sync_Helper::EXPORT_REQUEST_TIMEOUT);
             curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 20);
             
             // Прави се опит за импорт в приемащата система
@@ -80,16 +100,16 @@ class sync_plg_ProductExport extends core_Plugin
             $errorCode = curl_errno($ch);
             curl_close($ch);
             $res = $serverOutput;
-            $res = json_decode($res);
+            $res = json_decode($res ?: '');
           
             $exportUrl = sync_Setup::get('EXPORT_URL');
             if(is_object($res)){
                 
                 // Ако не е върната грешка, се показва подходящо съобщение
                 if(empty($res->error)){
-                    if($res->status == 2){
+                    if(($res->status ?? null) == 2){
                         cat_Products::logWrite("Повторен опит за експорт");
-                        $msg = "|Артикулът е експортиран|*: #Art{$res->localId}";
+                        $msg = "|Артикулът е експортиран|*: #Art" . ($res->localId ?? '');
                        
                     } else {
                         cat_Products::logWrite("Експортиране към: '{$exportUrl}'", $rec->id);
@@ -97,7 +117,7 @@ class sync_plg_ProductExport extends core_Plugin
                     }
                     
                     // Ако върнатото урл е оторизирано потребителя ще се редиректва към него
-                    if(core_Packs::isInstalled('remote')){
+                    if(!empty($res->url) && core_Packs::isInstalled('remote')){
                         if($remoteUrl = remote_Authorizations::getAutoLoginUrl($res->url)){
                             redirect($remoteUrl, true);
                         }
@@ -124,8 +144,13 @@ class sync_plg_ProductExport extends core_Plugin
         
         // Екшън който 'сервира' данните за експорт на артикула
         if($action == 'remoteexport'){
-            sync_Helper::requireRight('export');
+            $settingsRec = sync_Helper::requireRight('export');
             expect($id = Request::get('exportId', 'int'));
+            expect($productRec = $mvc->fetch($id));
+            expect(
+                !$settingsRec || sync_Settings::canExportProduct($productRec, $settingsRec),
+                'Артикулът не е разрешен за този клиент'
+            );
             
             try{
                 $data = self::getExportData($id);
@@ -144,7 +169,7 @@ class sync_plg_ProductExport extends core_Plugin
             requireRole('debug');
             $exp = self::getExportData(4034);
             
-            bp($exp,$data);
+            bp($exp);
         }
     }
     
@@ -159,10 +184,11 @@ class sync_plg_ProductExport extends core_Plugin
     {
         $importUrl = sync_Setup::get('EXPORT_URL');
         if(empty($importUrl)) return null;
-        
+
         $importUrl = rtrim($importUrl, '/');
         $importUrl .= "/sync_ProductQuotes/import/";
-        
+        sync_Helper::requireSecureUrl($importUrl);
+
         return $importUrl;
     }
     
@@ -177,7 +203,7 @@ class sync_plg_ProductExport extends core_Plugin
     {
         $rec = cat_Products::fetchRec($rec);
         $Driver = cat_Products::getDriver($rec);
-        $Cover = doc_Folders::getCover($rec->folderId);
+        $Cover = doc_Folders::getCover($rec->folderId ?? null);
         expect($Cover->isInstanceOf('crm_Companies'));
         
         // Подготовка на данните за експорт на контрагента, ако е нужно
@@ -195,9 +221,9 @@ class sync_plg_ProductExport extends core_Plugin
             core_Lg::pop();
         }
         
-        $data = (object)array('name' => $rec->name, 
-                              'nameEn' => $rec->nameEn, 
-                              'meta' => $rec->meta, 
+        $data = (object)array('name' => $rec->name ?? null,
+                              'nameEn' => $rec->nameEn ?? null,
+                              'meta' => $rec->meta ?? null,
                               'contragentClassName' => $Cover->className,
                               'contragentRemoteId' => $Cover->that,
                               'exportContragentRes' => $exportContragentRes,
@@ -208,7 +234,7 @@ class sync_plg_ProductExport extends core_Plugin
         
         // Подготовка на продуктовите параметри за експорт
         $data->params = array();
-        $params = cat_Products::getParams($rec->id);
+        $params = cat_Products::getParams($rec->id ?? null);
         foreach ($params as $paramId => $value){
             $paramRec = cat_Params::fetch($paramId);
             unset($paramRec->id); 
@@ -302,18 +328,18 @@ class sync_plg_ProductExport extends core_Plugin
         if($action == 'syncexport' && isset($rec)){
             if(!sync_Setup::get('EXPORT_URL')){
                 $requiredRoles = 'no_one';
-            } elseif($rec->isPublic == 'yes'){
+            } elseif(($rec->isPublic ?? null) == 'yes'){
                 $requiredRoles = 'no_one';
-            } elseif($rec->state == 'rejected'){
+            } elseif(($rec->state ?? null) == 'rejected'){
                 $requiredRoles = 'no_one';
             } else {
-                $Cover = doc_Folders::getCover($rec->folderId);
+                $Cover = doc_Folders::getCover($rec->folderId ?? null);
                 if(!$Cover->haveInterface('crm_CompanyAccRegIntf')){
                     $requiredRoles = 'no_one';
                 } else {
                     $cGroups = sync_Setup::get('COMPANY_GROUPS');
                     $diffArr = type_Keylist::getDiffArr($cGroups, $Cover->fetchField($Cover->groupsField));
-                    if(!$cGroups || !$diffArr['same']){
+                    if(!$cGroups || empty($diffArr['same'])){
                         $requiredRoles = 'no_one';
                     }
                 }

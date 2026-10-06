@@ -828,7 +828,7 @@ class findeals_Deals extends deals_DealBase
         );
         
         // Показване на текущото салдо на финансовите сделки
-        if ($this->haveRightFor('single', $rec) && isset($rec->amountDeal)) {
+        if ($this->haveRightFor('single', $rec) && isset($rec->amountDeal) && doc_plg_HidePrices::canSeePriceFields($this, $rec)) {
             $rate = (!empty($rec->currencyRate)) ? $rec->currencyRate : 1;
             $amount = $rec->amountDeal / $rate;
             $amount = core_Type::getByName("double(decimals=2)")->toVerbal($amount);

@@ -84,7 +84,7 @@ class core_tests_Form extends unit_Class
         $editForm->FLD('choice', 'varchar(allowEmpty)', 'caption=Избор,placeholderType=all');
         $editForm->setOptions('choice', array('first' => 'Първа', 'second' => 'Втора'));
 
-        $html = $editForm->renderHtml()->getContent();
+        $html = self::renderInBulgarian($editForm);
 
         ut::expectEqual(substr_count($html, 'type="radio"'), 3);
         ut::expectEqual(strpos($html, '>Всички</label>') !== false, true);
@@ -106,7 +106,7 @@ class core_tests_Form extends unit_Class
             'fourth' => 'Четвърта',
         ));
 
-        $html = $editForm->renderHtml()->getContent();
+        $html = self::renderInBulgarian($editForm);
 
         ut::expectEqual((bool) preg_match('/<select(?=[^>]*name="choice")[^>]*>/', $html), true);
         ut::expectEqual(strpos($html, '>Всички</option>') !== false, true);
@@ -125,7 +125,7 @@ class core_tests_Form extends unit_Class
         $filterForm->FLD('choice', 'varchar(allowEmpty)', 'caption=Артикул,placeholderType=all');
         $filterForm->setOptions('choice', array('first' => 'Първа', 'second' => 'Втора'));
 
-        $html = $filterForm->renderHtml()->getContent();
+        $html = self::renderInBulgarian($filterForm);
 
         ut::expectEqual(strpos($html, 'Артикул (всички)') !== false, true);
     }
@@ -142,7 +142,7 @@ class core_tests_Form extends unit_Class
         $filterForm->FLD('choice', 'varchar(allowEmpty)', 'caption=Група,placeholder=Всички групи');
         $filterForm->setOptions('choice', array('first' => 'Първа', 'second' => 'Втора'));
 
-        $html = $filterForm->renderHtml()->getContent();
+        $html = self::renderInBulgarian($filterForm);
 
         ut::expectEqual(strpos($html, 'Всички групи') !== false, true);
         ut::expectEqual(strpos($html, 'Група (всички)') !== false, false);
@@ -184,6 +184,20 @@ class core_tests_Form extends unit_Class
 
         ut::expectEqual($editForm->gotErrors('password'), false);
         ut::expectEqual($editForm->rec->password, 'old-secret');
+    }
+
+
+    /**
+     * Очакваните български надписи не трябва да зависят от езика на сесията
+     */
+    private static function renderInBulgarian(core_Form $form)
+    {
+        core_Lg::push('bg');
+        try {
+            return $form->renderHtml()->getContent();
+        } finally {
+            core_Lg::pop();
+        }
     }
 
 

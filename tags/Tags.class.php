@@ -305,7 +305,7 @@ class tags_Tags extends core_Manager
      */
     protected static function on_AfterPrepareEditForm($mvc, $res, $data)
     {
-        if ($data->form->rec->createdBy == '-1') {
+        if (($data->form->rec->createdBy ?? null) == '-1') {
             $data->form->setReadonly('name');
             $data->form->setReadonly('type');
         }

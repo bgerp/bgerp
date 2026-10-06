@@ -43,6 +43,8 @@ class sass_Converter
                 // Парсираме и връщаме резултата
                 $res = $parser->compile(file_get_contents($file));
                 $isParsed = true;
+            } catch (core_exception_Redirect $e) {
+                throw $e;
             } catch (Exception $e) {
                 reportException($e);
             } catch (Throwable $t) {

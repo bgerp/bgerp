@@ -275,11 +275,13 @@ class price_ListBasicDiscounts extends core_Detail
 
         // Ако периода за продажба е различен от "текущата продажба" смятат се сумите от предишните продажби за контрагента
         if($basicDiscountListRec->discountClassPeriod != 'default' && !($Master instanceof eshop_Carts)){
-            $contragentClassId = $masterRec->contragentClassId;
-            $contragentId = $masterRec->contragentId;
+            // ПОС бележката държи контрагента в други полета
             if($Master instanceof pos_Receipts){
                 $contragentClassId = $masterRec->contragentClass;
                 $contragentId = $masterRec->contragentObjectId;
+            } else {
+                $contragentClassId = $masterRec->contragentClassId;
+                $contragentId = $masterRec->contragentId;
             }
 
             // Взимане на предишните продажби от кеша, ако няма се изчисляват на моментаПро

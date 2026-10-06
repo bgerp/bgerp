@@ -190,7 +190,7 @@ class plg_UserReg extends core_Plugin
                 }
 
                 // Проверка дали никът не се повтаря
-                if ($eRec = $mvc->fetch("#nick = '{$rec->nick}'") || core_Users::isForbiddenNick($rec->nick)) {
+                if ($eRec = $mvc->fetch(array("#nick = '[#1#]'", $rec->nick ?? null)) || core_Users::isForbiddenNick($rec->nick ?? '')) {
                     if (EF_USSERS_EMAIL_AS_NICK) {
                         if ($eRec->state == 'active') {
                             $form->setError('email', 'Вече има регистриран потребител с този имейл|*. |Ако сте забравили паролата си, можете да я възстановите тук');
@@ -212,7 +212,7 @@ class plg_UserReg extends core_Plugin
                     }
                 } else {
                     // проверка дали имейлът не се повтаря
-                    if ($mvc->fetch("#email = '{$rec->email}'")) {
+                    if ($mvc->fetch(array("#email = '[#1#]'", $rec->email ?? null))) {
                         $loginLink = ht::createLink(tr('тук'), array('core_Users', 'login'));
                         $form->setError('email', 'Вече има регистриран потребител с този имейл. Ако това сте Вие, може да се логнете от|* ' . $loginLink . '.');
                     }

@@ -59,7 +59,7 @@
     <!--ET_END alternatePersons-->
 </ul>
 <!--ET_BEGIN note-->
-<div class="richtext-holder indent" style="margin-bottom: 10px;">|Бележки|*: [#note#] </div>
+<br><div class="richtext-holder indent" style="margin-bottom: 10px; "><b>|Бележки|*:</b> [#note#] </div>
 <!--ET_END note-->
 <br><br>
 

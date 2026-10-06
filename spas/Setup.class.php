@@ -20,6 +20,12 @@ defIfNot('SPAS_USER', '');
 
 
 /**
+ * Таймаут за връзката, в секунди
+ */
+defIfNot('SPAS_TIMEOUT', 5);
+
+
+/**
  * class spas_Setup
  *
  * Интерфейс за SpamAssassin
@@ -72,7 +78,10 @@ class spas_Setup extends core_ProtoSetup
         
         // Потребител
         'SPAS_USER' => array('varchar', 'caption=Връзка със SpamAssassin->User'),
-    
+
+        // Таймаут
+        'SPAS_TIMEOUT' => array('int(min=1)', 'caption=Връзка със SpamAssassin->Таймаут (сек.)'),
+
     );
     
     

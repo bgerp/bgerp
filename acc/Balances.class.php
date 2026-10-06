@@ -109,7 +109,7 @@ class acc_Balances extends core_Master
     /**
      * Кои полета да се показват в листовия изглед
      */
-    public $listFields = 'id, periodId, fromDate, toDate, lastAlternation, lastCalculate';
+    public $listFields = 'id, periodId, fromDate, toDate, lastAlternation, lastCalculate, calcDuration';
 
 
     /**
@@ -137,6 +137,84 @@ class acc_Balances extends core_Master
 
 
     /**
+     * Над колко секунди изчисление се записва статистика в лога
+     */
+    const STATS_LOG_MIN_TIME = 5;
+
+
+    /**
+     * Брой извиквания на calc() в текущия хит
+     */
+    public static $calcCount = 0;
+
+
+    /**
+     * Под тази разлика сумите се смятат за непроменени (валутните курсове са до 5 знака)
+     */
+    const CHANGE_THRESHOLD = 0.00001;
+
+
+    /**
+     * Под този сбор от промените на сумите в журнала (стотинка) стратегиите се смятат за уравновесени
+     *
+     * Заедно със STABLE_ROW_THRESHOLD за всеки ред - иначе стотици редове с шум в 8-10 знак държат итерациите
+     */
+    const JOURNAL_SUM_THRESHOLD = 0.01;
+
+
+    /**
+     * Под тази промяна на ред от журнала (половин стотинка) стратегиите се смятат за уравновесени
+     *
+     * Допуск, не гаранция - сума близо до половин стотинка може да смени закръглянето
+     */
+    const STABLE_ROW_THRESHOLD = 0.005;
+
+
+    /**
+     * До колко пъти се смята един баланс, докато стратегиите се уравновесят
+     */
+    const MAX_ITERATIONS = 10;
+
+
+    /**
+     * В колко поредни пускания се прави допълнителен опит за довършване на стабилизацията
+     *
+     * Ограничава само опитите въпреки isValid() - невалиден баланс (нов документ и т.н.) се смята винаги
+     */
+    const MAX_PENDING_RUNS = 3;
+
+
+    /**
+     * Колко реда от детайлите на изтрит междинен баланс се трият с една заявка
+     */
+    const STALE_DELETE_CHUNK = 20000;
+
+
+    /**
+     * До колко секунди в едно пускане се започват нови порции триене на детайли
+     */
+    const STALE_DELETE_MAX_TIME = 30;
+
+
+    /**
+     * Ключ в core_Permanent на изтритите междинни баланси, чиито детайли още не са изтрити
+     */
+    const STALE_QUEUE_KEY = 'accBalanceStaleDetails';
+
+
+    /**
+     * Продължителност на последното смятане - за преценка дали има време за още едно
+     */
+    public static $lastPassTime = 0;
+
+
+    /**
+     * Дали смятането спира, защото предходният баланс е сменен по време на изчислението - продължава при следващото пускане
+     */
+    public static $outOfTime = false;
+
+
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -149,6 +227,9 @@ class acc_Balances extends core_Master
         $this->FLD('lastAlternationDocId', 'int', 'input=none,column=none,caption=Последно изменение->Документ ID');
         $this->FLD('lastCalculate', 'datetime(format=smartTime, defaultTime)', 'input=none,caption=Последно->Изчисляване');
         $this->FLD('lastCalculateChange', 'enum(yes,no)', 'input=none,caption=Последно->Нови ст-ти');
+
+        // Времето е в отпечатъка на баланса (core_Permanent), за да не е нужна нова колона
+        $this->FNC('calcDuration', 'varchar', 'input=none,caption=Последно->Време');
         $this->setDbIndex('fromDate');
         $this->setDbIndex('toDate');
     }
@@ -224,6 +305,30 @@ class acc_Balances extends core_Master
             $row->lastAlternation = ht::createHint($row->lastAlternation, 'Има промяна след последното изчисление на баланса', 'warning');
         }
 
+        // Времето на последното пълно изчисление (всички итерации) и броят смятания, ако са повече от едно
+        if (isset($fields['-list']) && isset($rec->id)) {
+            $fingerprint = self::getFingerprint($rec->id);
+            if (isset($fingerprint['calcDuration'])) {
+                $Double = core_Type::getByName('double(decimals=1)');
+                $row->calcDuration = $Double->toVerbal($fingerprint['calcDuration']) . ' ' . tr('сек.');
+                if (($fingerprint['calcPasses'] ?? 1) > 1) {
+                    $row->calcDuration .= ' ×' . $fingerprint['calcPasses'];
+                }
+
+                // Стрелка спрямо предишното пълно изчисление - само при разлика от поне 10%
+                $prev = $fingerprint['prevCalcDuration'] ?? null;
+                if (!empty($prev)) {
+                    $ratio = $fingerprint['calcDuration'] / $prev;
+                    $title = tr('Предишно изчисление') . ': ' . $Double->toVerbal($prev) . ' ' . tr('сек.');
+                    if ($ratio >= 1.1) {
+                        $row->calcDuration .= " <span class='red' title='" . ht::escapeAttr($title) . "'>↑</span>";
+                    } elseif ($ratio <= 0.9) {
+                        $row->calcDuration .= " <span class='green' title='" . ht::escapeAttr($title) . "'>↓</span>";
+                    }
+                }
+            }
+        }
+
         if ($mvc->haveRightFor('forcecalc', $rec)) {
             $row->lastCalculate = ht::createLink('', array($mvc, 'forceCalc', $rec->id, 'debug' => true, 'ret_url' => true), false, 'ef_icon=img/16/bug.png,select=Ръчно рекалкулиране на баланса с дебъг') . "&nbsp;&nbsp;" . ($row->lastCalculate ?? '');
             $row->lastCalculate .= "&nbsp;&nbsp;" . ht::createLink('', array($mvc, 'forceCalc', $rec->id, 'ret_url' => true), false, 'ef_icon=img/32/arrow_refresh.png,select=Ръчно рекалкулиране на баланса');
@@ -291,6 +396,20 @@ class acc_Balances extends core_Master
                 return $rec;
             }
         }
+    }
+
+
+    /**
+     * Последният месечен баланс, завършващ преди посочената дата - задължителната база
+     */
+    private static function getPrevPeriodBalance($date)
+    {
+        $query = self::getQuery();
+        $query->where(array("#toDate < '[#1#]' AND #periodId IS NOT NULL", $date));
+        $query->orderBy('toDate', 'DESC');
+        $query->limit(1);
+
+        return $query->fetch();
     }
 
 
@@ -451,11 +570,37 @@ class acc_Balances extends core_Master
         // десетте минути след преизчисляването - пак го преизчисляваме
         if ($force !== true) {
             $isValid = self::isValid($rec, ($rec->lastCalculateChange ?? null) != 'no' ? 10 : 1);
+
+            if ($isValid && isset($rec->id)) {
+                $fingerprint = self::getFingerprint($rec->id);
+
+                // Недовършената стабилизация получава нов опит, макар балансът да е валиден
+                if (!empty($fingerprint['pendingRuns']) && $fingerprint['pendingRuns'] < self::MAX_PENDING_RUNS) {
+                    $isValid = false;
+                }
+            }
         } else {
             $isValid = false;
         }
 
         if (!$isValid) {
+
+            // Без валиден предходен баланс смятането би тръгнало от по-стара база и би записало в журнала цени за чужди месеци
+            $prevRec = self::getPrevPeriodBalance($rec->fromDate);
+            if ($prevRec && !self::isValid($prevRec)) {
+                self::forceCalc($prevRec);
+
+                // Наново от базата - документ по време на смятането сменя lastAlternation
+                $prevId = $prevRec->id;
+                $prevPeriod = "{$prevRec->fromDate} - {$prevRec->toDate}";
+                $prevRec = self::fetch($prevId, '*', false);
+                if (!$prevRec || !self::isValid($prevRec)) {
+                    self::$outOfTime = true;
+                    self::logNotice("Предходният баланс {$prevPeriod} е променен по време на изчислението на {$rec->fromDate} - {$rec->toDate}", $prevId, 3);
+
+                    return false;
+                }
+            }
 
             // Днешна дата
             $today = dt::today();
@@ -472,23 +617,26 @@ class acc_Balances extends core_Master
                     $toDate = $prevRec->toDate;
 
                     // Намираме и изтриваме всички баланси, които нямат период и не се отнасят за предишния ден
+                    // Детайлите им се трият на части в deleteStaleDetails(), извън смятането
                     $query = self::getQuery();
                     while ($delRec = $query->fetch("(#fromDate != '{$fromDate}' OR #toDate != '{$toDate}') AND #periodId IS NULL")) {
-                        acc_BalanceDetails::delete("#balanceId = {$delRec->id}");
+                        if (!self::updateStaleQueue($delRec->id, true)) {
+                            continue;
+                        }
                         self::delete($delRec->id);
+                        core_Permanent::remove("accBalanceFingerprint_{$delRec->id}");
+                        self::logNotice("Изтрит междинен баланс #{$delRec->id} {$delRec->fromDate} - {$delRec->toDate}, редовете му се трият на части", null, 3);
                     }
                 }
             }
 
-            self::calc($rec);
+            // Междинният баланс е отложен - месецът е при следващото пускане
+            if (self::$outOfTime) {
 
-            // Преизчисляваме първия баланс, в който има промени още веднъж, за да подаде верни данни на следващите
-            static $rc1;
-
-            if (!$rc1 && $rec->lastCalculateChange != 'no') {
-                self::calc($rec);
-                $rc1 = true;
+                return false;
             }
+
+            self::calcUntilStable($rec, $force === true);
 
             return true;
         }
@@ -496,13 +644,172 @@ class acc_Balances extends core_Master
 
 
     /**
-     * Изчисляване на баланс
+     * Смята баланса отново, докато стратегиите се уравновесят
+     *
+     * Стратегиите се хранят от сумите в журнала - щом смятането не ги промени, следващо ще даде същото.
+     * Така и следващите баланси по веригата получават вече крайните цени.
+     * Уравновесени са, когато сборът е под JOURNAL_SUM_THRESHOLD и никой ред не се мести с CHANGE_THRESHOLD,
+     * а щом има прогноза за остатъка - със STABLE_ROW_THRESHOLD и прогнозата също под JOURNAL_SUM_THRESHOLD,
+     * или когато сменените суми не захранват стратегия и не са от цена по подразбиране.
      */
-    public static function calc($rec)
+    private static function calcUntilStable($rec, $force = false)
     {
+        $diffs = array();
+        $maxDiffs = array();
+        $prevDiff = null;
+        $calcStart = microtime(true);
+
+        for ($i = 1; ; $i++) {
+            $passStart = microtime(true);
+            self::calc($rec, $i == 1 && !$force);
+            if (!empty($rec->calcBaseInvalid)) {
+                $stop = 'base';
+                break;
+            }
+            if (empty($rec->calcSkipped)) {
+                self::$lastPassTime = microtime(true) - $passStart;
+            }
+
+            $diff = $rec->journalAmountDiff ?? 0;
+            $maxDiff = $rec->journalAmountMaxDiff ?? 0;
+            $diffs[] = (float) sprintf('%.2g', $diff);
+            $maxDiffs[] = (float) sprintf('%.2g', $maxDiff);
+
+            // Сходимостта е геометрична - прогнозата за остатъка е diff * r / (1 - r), r = diff / prevDiff, с двоен запас.
+            // Без прогноза (първи ход, сумите не намаляват) важи строгият праг CHANGE_THRESHOLD за ред.
+            if (isset($prevDiff) && $prevDiff > 0 && $diff < $prevDiff) {
+                $ratio = $diff / $prevDiff;
+                $remaining = 2 * $diff * $ratio / (1 - $ratio);
+                $isStable = $maxDiff < self::STABLE_ROW_THRESHOLD && $diff < self::JOURNAL_SUM_THRESHOLD && $remaining < self::JOURNAL_SUM_THRESHOLD;
+            } else {
+                $isStable = $maxDiff < self::CHANGE_THRESHOLD && $diff < self::JOURNAL_SUM_THRESHOLD;
+            }
+
+            if ($isStable) {
+                $stop = 'stable';
+                break;
+            }
+
+            // Променените суми не захранват стратегия и няма сума от getDefaultCost - следващото смятане би дало същото
+            if (empty($rec->journalNeedsRepeat)) {
+                $stop = 'no feed';
+                break;
+            }
+            if ($i >= self::MAX_ITERATIONS) {
+                $stop = 'max';
+                break;
+            }
+
+            // Сумите не намаляват - стратегиите се люлеят
+            if (isset($prevDiff) && $diff >= $prevDiff) {
+                $stop = 'no progress';
+                break;
+            }
+
+            // Повторенията са в рамките на cron задачата, веригата се довършва в същото пускане
+            if (self::isCronTimeOver()) {
+                $stop = 'time';
+                break;
+            }
+
+            $prevDiff = $diff;
+            core_Locks::obtain('RecalcBalances', self::MAX_PERIOD_CALC_TIME);
+        }
+
+        // Неуравновесен баланс се преизчислява и в следващите 10 минути (@see isValid)
+        $calcChange = in_array($stop, array('stable', 'no feed')) ? 'no' : 'yes';
+        if ($rec->lastCalculateChange != $calcChange) {
+            $rec->lastCalculateChange = $calcChange;
+            self::save($rec, 'lastCalculateChange');
+        }
+
+        // Прекъснатото (време, лимит) получава нов опит при следващите пускания, люлеенето - не.
+        // Нов документ или сменен предходен баланс започват опитите отначало.
+        $fingerprint = self::getFingerprint($rec->id);
+        if (($fingerprint['pendingKey'] ?? null) !== ($rec->externalKey ?? null)) {
+            unset($fingerprint['pendingRuns']);
+        }
+        $fingerprint['pendingKey'] = $rec->externalKey ?? null;
+
+        // Пропуснатото смятане не сменя показаното време на последното пълно изчисление
+        if (empty($rec->calcSkipped)) {
+            if (isset($fingerprint['calcDuration'])) {
+                $fingerprint['prevCalcDuration'] = $fingerprint['calcDuration'];
+            }
+            $fingerprint['calcDuration'] = round(microtime(true) - $calcStart, 1);
+            $fingerprint['calcPasses'] = countR($diffs);
+        }
+
+        if (in_array($stop, array('time', 'max'))) {
+            $fingerprint['pendingRuns'] = ($fingerprint['pendingRuns'] ?? 0) + 1;
+            if ($fingerprint['pendingRuns'] == self::MAX_PENDING_RUNS) {
+                self::logNotice("Стабилизацията на {$rec->fromDate} - {$rec->toDate} спира след {$fingerprint['pendingRuns']} пускания", $rec->id, 3);
+            }
+        } else {
+            unset($fingerprint['pendingRuns']);
+        }
+        self::setFingerprint($rec->id, $fingerprint);
+
+        $rec->calcIterations = $diffs;
+        $rec->calcStop = $stop;
+        if (countR($diffs) > 1 || $stop != 'stable') {
+            self::logNotice("Итерации на {$rec->fromDate} - {$rec->toDate}: " . countR($diffs) . ' (промяна на сумите в журнала ' . implode(', ', $diffs) . '; най-голяма на ред ' . implode(', ', $maxDiffs) . "), край: {$stop}", $rec->id, 3);
+        }
+    }
+
+
+    /**
+     * Дали в лимита на cron задачата не остава време за още едно смятане
+     */
+    private static function isCronTimeOver()
+    {
+        $timeLeft = core_Cron::getTimeLeft();
+
+        return $timeLeft !== false && ($timeLeft <= 0 || $timeLeft < self::$lastPassTime * 1.2);
+    }
+
+
+    /**
+     * Изчисляване на баланс
+     *
+     * @param stdClass $rec            - запис на баланса
+     * @param bool     $useFingerprint - да не се смята, ако входът е същият като при последното изчисление
+     */
+    public static function calc($rec, $useFingerprint = false)
+    {
+        $calcStart          = microtime(true);
         $bD                 = cls::get('acc_BalanceDetails');
+        $bD->calcStats      = array();
+        self::$calcCount++;
+
+        // Пикът не се нулира, защото core_Cron го записва за цялата задача
+        $peakBefore = memory_get_peak_usage(true);
+        $bD->calcStats['phpPrecision'] = ini_get('precision');
+
+        // Използвана памет преди баланса - показва дали нещо остава от предходно изчисление
+        $bD->calcStats['usedBeforeMB'] = round(memory_get_usage(false) / 1048576);
+        $rec->calcSkipped   = false;
+        $rec->calcBaseInvalid = false;
+        $rec->journalAmountDiff = 0;
+        $rec->journalAmountMaxDiff = 0;
+        $rec->journalNeedsRepeat = false;
+        $convertToDate      = null;
         $lastRec            = self::getBalanceBefore($rec->toDate);
         $periodCurrencyCode = acc_Periods::getBaseCurrencyCode($rec->toDate);
+
+        // Невалиден предходен месец (документ след проверката във forceCalc) - не се тръгва от по-стара база
+        $prevPeriodRec = self::getPrevPeriodBalance($rec->fromDate);
+        if ($prevPeriodRec && (!$lastRec || $lastRec->toDate < $prevPeriodRec->toDate)) {
+            $rec->calcSkipped = true;
+            $rec->calcBaseInvalid = true;
+            self::$outOfTime = true;
+            self::logNotice("Изчислението на {$rec->fromDate} - {$rec->toDate} се отлага: предходният баланс {$prevPeriodRec->fromDate} - {$prevPeriodRec->toDate} е невалиден", $rec->id, 3);
+
+            return;
+        }
+
+        // От кой баланс тръгва смятането - междинен или с период
+        $bD->calcStats['baseBalance'] = $lastRec ? "{$lastRec->id}:{$lastRec->toDate}" . (empty($lastRec->periodId) ? ':middle' : '') : '-';
 
         if (Mode::is('traceBalance')) {
             acc_BalanceDebugger::log('calc_start', [
@@ -529,7 +836,6 @@ class acc_Balances extends core_Master
                 ]);
             }
 
-            $bD->loadBalance($lastRec->id, $isMiddleBalance, null, null, null, null, null, $convertToDate);
             $firstDay = dt::addDays(1, $lastRec->toDate);
             $firstDay = dt::verbal2mysql($firstDay, false);
         } else {
@@ -549,8 +855,36 @@ class acc_Balances extends core_Master
             ]);
         }
 
+        // Документите, осчетоводени след прочитането на журнала, не влизат в това изчисление
+        $journalReadOn = dt::now();
         $isMiddleBalance = !$rec->periodId;
-        $bD->calcBalanceForPeriod($firstDay, $rec->toDate, $isMiddleBalance);
+        $journal = $bD->fetchJournal($firstDay, $rec->toDate, $isMiddleBalance);
+
+        $fingerprint = self::getFingerprint($rec->id);
+        $journalHash = $bD->getJournalHash($journal);
+        $inputHash = self::getInputHash($rec, $lastRec, $firstDay, $convertToDate, $journalHash);
+
+        // Външните промени: документ в периода или сменен предходен баланс (обновяването на журнала от смятането не сменя lastAlternation)
+        $rec->externalKey = ($rec->lastAlternation ?? '') . '|' . ($lastRec ? $lastRec->id . ':' . (self::getFingerprint($lastRec->id)['dataToken'] ?? '') : '');
+
+        if ($useFingerprint && !empty($rec->lastCalculate) && $inputHash === ($fingerprint['inputHash'] ?? null)) {
+            $rec->calcSkipped = true;
+            $rec->lastCalculate = $journalReadOn;
+            $rec->lastCalculateChange = 'no';
+            self::save($rec, 'lastCalculate,lastCalculateChange');
+            self::logNotice("Пропуснато изчисление на {$rec->fromDate} - {$rec->toDate}: входът е същият", $rec->id, 3);
+
+            return;
+        }
+
+        if ($lastRec) {
+            $bD->loadBalance($lastRec->id, empty($lastRec->periodId), null, null, null, null, null, $convertToDate);
+        }
+
+        $bD->calcBalanceForPeriod($firstDay, $rec->toDate, $isMiddleBalance, $journal);
+        $rec->journalAmountDiff = $bD->calcStats['journalAmountDiff'] ?? 0;
+        $rec->journalAmountMaxDiff = $bD->calcStats['journalAmountMaxDiff'] ?? 0;
+        $rec->journalNeedsRepeat = !empty($bD->calcStats['journalFeedChanged']) || !empty($bD->calcStats['journalDefaultCost']);
 
         if ($bD->saveBalance($rec->id)) {
             $rec->lastCalculateChange = 'yes';
@@ -564,8 +898,103 @@ class acc_Balances extends core_Master
             ]);
         }
 
-        $rec->lastCalculate = dt::now();
+        // Само реалната промяна сменя маркера на данните - записите под прага не карат следващите баланси да се смятат
+        if ($rec->lastCalculateChange == 'yes' || empty($fingerprint['dataToken'])) {
+            $fingerprint['dataToken'] = str::getRand('****************');
+        }
+
+        // Обновеният журнал е вход за отпечатъка, само ако повторно смятане би дало същото
+        // и при повторно четене се различава само по записаното от смятането
+        if (!empty($bD->calcStats['journalUpdated'])) {
+            $inputHash = null;
+            if (empty($rec->journalNeedsRepeat)) {
+                $journalHash = $bD->getUpdatedJournalHash($journalHash, $firstDay, $rec->toDate, $isMiddleBalance);
+                if (isset($journalHash)) {
+                    $inputHash = self::getInputHash($rec, $lastRec, $firstDay, $convertToDate, $journalHash);
+                }
+            }
+        }
+        unset($journal);
+        $fingerprint['inputHash'] = $inputHash;
+        self::setFingerprint($rec->id, $fingerprint);
+
+        $rec->lastCalculate = $journalReadOn;
         self::save($rec, 'lastCalculate,lastCalculateChange');
+
+        $totalTime = round(microtime(true) - $calcStart, 2);
+        $peakAfter = memory_get_peak_usage(true);
+        $peakMemory = round($peakAfter / 1048576);
+
+        // Ако пикът не е вдигнат от този баланс, неговият е неизвестен, но не по-голям
+        $peakText = ($peakAfter > $peakBefore) ? "peak {$peakMemory}MB" : "peak <={$peakMemory}MB (от по-ранно изчисление)";
+        if ($totalTime >= self::STATS_LOG_MIN_TIME) {
+            self::logNotice("Статистика на баланс {$rec->fromDate} - {$rec->toDate}: total {$totalTime}s, {$peakText}, change={$rec->lastCalculateChange}; " . $bD->getCalcStatsLine(), $rec->id, 3);
+        }
+    }
+
+
+    /**
+     * Отпечатък на всичко, от което зависи изчислението на баланса
+     *
+     * Цената по подразбиране (getDefaultCost) не влиза: ползва се само за ред без сума, а след смятането
+     * сумата вече е в журнала. Дата не влиза: при неприключени периоди от години насам
+     * тя би направила пълно и всяко следващо изчисление по веригата, макар данните да не са се сменили.
+     */
+    private static function getInputHash($rec, $lastRec, $firstDay, $convertToDate, $journalHash)
+    {
+        static $accountsHash;
+        if (!isset($accountsHash)) {
+            $aQuery = acc_Accounts::getQuery();
+            $aQuery->show('id,num,type,strategy');
+            $accounts = array();
+            while ($aRec = $aQuery->fetch()) {
+                $accounts[] = "{$aRec->id}:{$aRec->num}:{$aRec->type}:{$aRec->strategy}";
+            }
+            $accountsHash = md5(implode(',', $accounts));
+        }
+
+        // Преобразуването между валутите: кодовете и приложеният курс
+        $currency = '';
+        if (isset($convertToDate)) {
+            $currency = acc_Periods::getBaseCurrencyCode($lastRec->toDate) . '>' . acc_Periods::getBaseCurrencyCode($convertToDate) . ':' . deals_Helper::getSmartBaseCurrency(1000000, $lastRec->toDate, $convertToDate);
+        }
+
+        $parts = array(
+            $rec->fromDate,
+            $rec->toDate,
+            $firstDay,
+            $lastRec ? $lastRec->id : '',
+            $lastRec ? (self::getFingerprint($lastRec->id)['dataToken'] ?? '') : '',
+            $convertToDate ?? '',
+            $currency,
+            acc_Setup::get('FEED_STRATEGY_WITH_NEGATIVE_QUANTITY'),
+            $accountsHash,
+            $journalHash,
+        );
+
+        return md5(implode('|', $parts));
+    }
+
+
+    /**
+     * Маркер на данните и отпечатък на входа от последното изчисление на баланса
+     *
+     * @return array ['dataToken' => string, 'inputHash' => string|null, 'pendingRuns' => int, 'pendingKey' => string, 'calcDuration' => float, 'prevCalcDuration' => float, 'calcPasses' => int]
+     */
+    private static function getFingerprint($balanceId)
+    {
+        $res = core_Permanent::get("accBalanceFingerprint_{$balanceId}");
+
+        return is_array($res) ? $res : array();
+    }
+
+
+    /**
+     * Записва маркера и отпечатъка на баланса (изтичат, ако балансът не се смята 90 дни)
+     */
+    private static function setFingerprint($balanceId, $fingerprint)
+    {
+        core_Permanent::set("accBalanceFingerprint_{$balanceId}", $fingerprint, 60 * 24 * 90);
     }
 
 
@@ -599,7 +1028,7 @@ class acc_Balances extends core_Master
         $pQuery->where("#state != 'closed'");
         $pQuery->where("#state != 'draft'");
 
-        $rc = true;
+        self::$outOfTime = false;
 
         // Ако е указана граница за изчисляването се използва
         $windowStart = null;
@@ -615,16 +1044,26 @@ class acc_Balances extends core_Master
             $rec->toDate = $pRec->end;
             $rec->periodId = $pRec->id;
 
-            // Преизчисляваме първия отворен баланс (когато в него има промени) 9+1 пъти, за да подаде верни данни на следващите
-            $j = 0;
-            do {
-                core_Locks::obtain($lockKey, self::MAX_PERIOD_CALC_TIME);
-                $r = self::forceCalc($rec);
-                if($r){
-                    $data->recalcedBalances[$rec->toDate] = $rec;
-                }
-            } while ($rec->lastCalculateChange != 'no' && $j++ < 9 && $rc);
-            $rc = false;
+            $periodStart = microtime(true);
+            $calcCountBefore = self::$calcCount;
+            core_Locks::obtain($lockKey, self::MAX_PERIOD_CALC_TIME);
+            if (self::forceCalc($rec)) {
+                $data->recalcedBalances[$rec->toDate] = $rec;
+            }
+            $unfinished = self::$outOfTime;
+
+            $periodTime = round(microtime(true) - $periodStart, 2);
+            $calcCalls = self::$calcCount - $calcCountBefore;
+            if ($calcCalls > 1 || $periodTime >= self::STATS_LOG_MIN_TIME) {
+                $iterations = $rec->calcIterations ?? array();
+                $this->logNotice("Преизчисляване на {$rec->fromDate} - {$rec->toDate}: " . countR($iterations) . ' итерации (' . implode(', ', $iterations) . '), край: ' . ($rec->calcStop ?? '-') . ", calc() извиквания {$calcCalls} за {$periodTime}s", $rec->id, 3);
+            }
+
+            // Предходният баланс е сменен по време на смятането - следващото пускане продължава от този период
+            if ($unfinished) {
+                $this->logNotice("Изчисляването продължава при следващото пускане от {$rec->fromDate} - {$rec->toDate}", null, 3);
+                break;
+            }
         }
 
         // Освобождаваме заключването на процеса
@@ -645,6 +1084,111 @@ class acc_Balances extends core_Master
     {
         $this->recalc();
     }
+
+
+    /**
+     * Трие редовете на изтритите междинни баланси - отделно, за да не държи задачата за преизчисляване
+     */
+    public function cron_DeleteStaleDetails()
+    {
+        self::deleteStaleDetails();
+    }
+
+
+    /**
+     * Добавя или маха изтрит междинен баланс от опашката за триене на детайлите
+     *
+     * @param int  $balanceId - ид на баланса
+     * @param bool $add       - true добавя, false маха
+     *
+     * @return bool - дали опашката е обновена
+     */
+    private static function updateStaleQueue($balanceId, $add)
+    {
+        $lockKey = 'accBalanceStaleQueue';
+        if (!core_Locks::obtain($lockKey, 60, 10, 10)) {
+
+            return false;
+        }
+
+        $queue = core_Permanent::get(self::STALE_QUEUE_KEY);
+        $queue = is_array($queue) ? $queue : array();
+        if ($add) {
+            $queue[$balanceId] = $balanceId;
+        } else {
+            unset($queue[$balanceId]);
+        }
+
+        if (countR($queue)) {
+            core_Permanent::set(self::STALE_QUEUE_KEY, $queue, core_Permanent::FOREVER_VALUE);
+        } else {
+            core_Permanent::remove(self::STALE_QUEUE_KEY);
+        }
+        core_Locks::release($lockKey);
+
+        return true;
+    }
+
+
+    /**
+     * Трие на части детайлите на изтритите междинни баланси
+     *
+     * Започнатата заявка не се прекъсва - бюджетът ограничава само започването на следващите
+     */
+    public static function deleteStaleDetails()
+    {
+        $queue = core_Permanent::get(self::STALE_QUEUE_KEY);
+        if (!is_array($queue) || !countR($queue)) {
+
+            return;
+        }
+
+        $lockKey = 'RecalcBalancesCleanup';
+        if (!core_Locks::obtain($lockKey, self::MAX_PERIOD_CALC_TIME, 1)) {
+
+            return;
+        }
+
+        $start = microtime(true);
+        $chunkTime = 0;
+        $deleted = 0;
+        $done = array();
+        foreach ($queue as $balanceId) {
+
+            // Заглавието още съществува - сривът е бил преди изтриването му и то ще се изтрие отново
+            if (self::fetch($balanceId, 'id', false)) {
+                continue;
+            }
+
+            while (true) {
+                $elapsed = microtime(true) - $start;
+                $timeLeft = core_Cron::getTimeLeft();
+                if ($elapsed + $chunkTime > self::STALE_DELETE_MAX_TIME || ($timeLeft !== false && $timeLeft < $chunkTime * 1.5 + 5)) {
+                    break 2;
+                }
+
+                $chunkStart = microtime(true);
+                $cnt = acc_BalanceDetails::delete("#balanceId = {$balanceId}", self::STALE_DELETE_CHUNK);
+                $chunkTime = microtime(true) - $chunkStart;
+                $deleted += $cnt;
+
+                if ($cnt < self::STALE_DELETE_CHUNK && !acc_BalanceDetails::fetch("#balanceId = {$balanceId}", 'id', false)) {
+                    if (self::updateStaleQueue($balanceId, false)) {
+                        $done[] = $balanceId;
+                    }
+                    break;
+                }
+            }
+        }
+        core_Locks::release($lockKey);
+
+        if ($deleted || countR($done)) {
+            $left = array_diff($queue, $done);
+            $time = round(microtime(true) - $start, 2);
+            $leftStr = countR($left) ? '#' . implode(', #', $left) : 'няма';
+            self::logNotice("Триене на редовете на изтрити междинни баланси: {$deleted} реда за {$time}s (последна порция " . round($chunkTime, 2) . "s), довършени: " . (countR($done) ? '#' . implode(', #', $done) : 'няма') . ", остават: {$leftStr}", null, 3);
+        }
+    }
     
     
     /**
@@ -662,22 +1206,22 @@ class acc_Balances extends core_Master
             return false;
         }
         
-        // Ако нямаме никакви записи за периода, значи всичко е ОК
-        if (empty($rec->lastAlternation)) {
-            
-            return true;
-        }
-        
         // Вземаме предния баланс. Ако той е с по-ново време на изчисление, задължително изчисляваме и този
         $query = self::getQuery();
         $query->limit(1);
-        $query->where("#fromDate < '{$rec->fromDate}'");
-        $query->orderBy('fromDate', 'DESC');
+        $query->where("#toDate < '{$rec->fromDate}'");
+        $query->orderBy('toDate', 'DESC');
         $lastRec = $query->fetch();
         
         if ($lastRec && ($lastRec->lastCalculate > $rec->lastCalculate)) {
             
             return false;
+        }
+        
+        // Ако нямаме никакви записи за периода, значи всичко е ОК
+        if (empty($rec->lastAlternation)) {
+            
+            return true;
         }
         
         // Ако последното изчисляване е $calcMinutesAfter и повече след последната промяна на журнала за периода, значи баланса е валиден

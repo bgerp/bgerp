@@ -32,7 +32,25 @@ class cat_Params extends bgerp_ProtoParam
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_RowTools2, cat_Wrapper, plg_Search, plg_State2,plg_SaveAndNew, plg_Sorting, plg_Rejected';
+    public $loadList = 'plg_Created, plg_RowTools2, cat_Wrapper, plg_Search, plg_State2,plg_SaveAndNew, plg_Sorting, plg_Rejected, plg_Select';
+
+
+    /**
+     * Действия с избраните
+     */
+    public $doWithSelected = 'filterableon=Филтриране: включи,filterableoff=Филтриране: изключи';
+
+
+    /**
+     * Кой може да включва параметрите за филтриране
+     */
+    public $canFilterableon = 'cat,ceo';
+
+
+    /**
+     * Кой може да изключва параметрите от филтриране
+     */
+    public $canFilterableoff = 'cat,ceo';
     
     
     /**
@@ -80,7 +98,7 @@ class cat_Params extends bgerp_ProtoParam
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id,typeExt,order,driverClass=Вид,state,roles,valueType=Стойност,showInPublicDocuments=Показване в документи->Външни,showInTasks=Показване в документи->Пр. операции,createdOn,createdBy';
+    public $listFields = 'id,typeExt,order,driverClass=Вид,state,roles,valueType=Стойност,showInPublicDocuments=Показване в документи->Външни,showInTasks=Показване в документи->Пр. операции,filterable=Филтриране,createdOn,createdBy';
 
 
     /**
@@ -111,6 +129,8 @@ class cat_Params extends bgerp_ProtoParam
         $this->FLD('showInPublicDocuments', 'enum(no=Не,yes=Да)', 'caption=Показване на параметъра->Външни документи,notNull,value=yes,maxRadio=2');
         $this->FLD('showInTasks', 'enum(no=Не,yes=Да)', 'caption=Показване на параметъра->Пр. операции,notNull,value=no,maxRadio=2');
         $this->FLD('editInLabel', 'enum(yes=Да,no=Не)', 'caption=Показване на параметъра->Редакция в етикет,notNull,value=yes,maxRadio=2');
+        $this->FLD('filterable', 'enum(no=Не,yes=Да)', 'caption=Филтриране на артикулите по параметъра->Използване,notNull,value=no,maxRadio=2');
+        $this->FLD('filterMode', 'enum(auto=Автоматично,values=Отделни стойности,ranges=Диапазони)', 'caption=Филтриране на артикулите по параметъра->Стойности,notNull,value=auto,hint=Автоматично - отделни стойности, а при много различни - диапазони');
         $this->FLD('state', 'enum(active=Активен,closed=Затворен,rejected=Оттеглен)', 'caption=Видимост,input=none,notSorting,notNull,value=active,smartCenter');
     }
     
@@ -126,6 +146,246 @@ class cat_Params extends bgerp_ProtoParam
         $data->form->setDefault('showInPublicDocuments', 'yes');
         if (isset($data->form->rec->sysId)) {
             $data->form->setReadOnly('showInTasks');
+        }
+
+        if (!self::canBeFilterable($data->form->rec)) {
+            $data->form->setField('filterable', 'input=none');
+        } elseif (empty($data->form->rec->id)) {
+            $data->form->setDefault('filterable', self::getDefaultFilterable($data->form->rec));
+        }
+        if (!self::canBeRanged($data->form->rec)) {
+            $data->form->setField('filterMode', 'input=none');
+        }
+    }
+
+
+    /**
+     * Могат ли числовите стойности на параметъра да се групират в диапазони във филтъра
+     *
+     * @param stdClass $rec
+     *
+     * @return bool
+     */
+    public static function canBeRanged($rec)
+    {
+        if (!self::canBeFilterable($rec)) {
+
+            return false;
+        }
+        $Driver = cls::get($rec->driverClass);
+
+        return cls::existsMethod($Driver, 'canIndexRanges') && $Driver->canIndexRanges();
+    }
+
+
+    /**
+     * Може ли параметърът да се индексира за филтриране според типа си
+     *
+     * @param stdClass $rec
+     *
+     * @return bool
+     */
+    public static function canBeFilterable($rec)
+    {
+        if (empty($rec->driverClass) || !cls::load($rec->driverClass, true)) {
+
+            return false;
+        }
+
+        $Driver = cls::get($rec->driverClass);
+
+        return cls::existsMethod($Driver, 'canBeIndexed') && $Driver->canBeIndexed();
+    }
+
+
+    /**
+     * Филтрируемост по подразбиране според типа на параметъра
+     *
+     * @param stdClass $rec
+     *
+     * @return string - yes или no
+     */
+    public static function getDefaultFilterable($rec)
+    {
+        if (!self::canBeFilterable($rec)) {
+
+            return 'no';
+        }
+        $Driver = cls::get($rec->driverClass);
+
+        return (cls::existsMethod($Driver, 'isFilterableByDefault') && $Driver->isFilterableByDefault()) ? 'yes' : 'no';
+    }
+
+
+    /**
+     * Преди запис
+     */
+    protected static function on_BeforeSave(core_Manager $mvc, $res, $rec, $fields = null)
+    {
+        if (!self::canBeFilterable($rec) && !empty($rec->driverClass)) {
+            $rec->filterable = 'no';
+        } elseif (empty($rec->id) && !isset($rec->filterable)) {
+            $rec->filterable = self::getDefaultFilterable($rec);
+        }
+
+        // Запомня се предишното състояние, за да се види дали индексът трябва да се обнови
+        if (!empty($rec->id)) {
+            $rec->_exIndexSign = self::getIndexSign($mvc->fetch($rec->id, '*', false));
+        }
+    }
+
+
+    /**
+     * След запис
+     */
+    protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec, $fields = null, $mode = null)
+    {
+        if (!empty($rec->_skipParamIndex)) {
+
+            return;
+        }
+
+        $newRec = $mvc->fetch($rec->id, '*', false);
+        $exSign = $rec->_exIndexSign ?? null;
+        if ($exSign === self::getIndexSign($newRec)) {
+
+            return;
+        }
+
+        if (self::isFilterable($newRec)) {
+            cat_products_ParamIndex::markDirtyByParams($newRec->id);
+        } elseif (isset($exSign) && strpos($exSign, 'yes|') === 0) {
+            cat_products_ParamIndex::removeParams($newRec->id);
+        }
+    }
+
+
+    /**
+     * Подпис на полетата, от които зависи индексът на параметъра
+     *
+     * @param stdClass|false $rec
+     *
+     * @return string|null
+     */
+    protected static function getIndexSign($rec)
+    {
+        if (!is_object($rec)) {
+
+            return null;
+        }
+
+        $filterable = self::isFilterable($rec) ? 'yes' : 'no';
+
+        return $filterable . '|' . ($rec->driverClass ?? '') . '|' . md5(serialize($rec->driverRec ?? null));
+    }
+
+
+    /**
+     * След преобразуване на записа в четим за хора вид
+     */
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec)
+    {
+        // При типовете, които не се индексират, филтрирането е неприложимо
+        if (!self::canBeFilterable($rec)) {
+            unset($row->filterable);
+        }
+    }
+
+
+    /**
+     * Дали параметърът се индексира за филтриране
+     *
+     * @param stdClass $rec
+     *
+     * @return bool
+     */
+    public static function isFilterable($rec)
+    {
+        return ($rec->filterable ?? 'no') == 'yes' && ($rec->state ?? null) != 'rejected';
+    }
+
+
+    /**
+     * Включване на избраните параметри за филтриране
+     */
+    public function act_Filterableon()
+    {
+        return $this->changeFilterable('yes');
+    }
+
+
+    /**
+     * Изключване на избраните параметри от филтриране
+     */
+    public function act_Filterableoff()
+    {
+        return $this->changeFilterable('no');
+    }
+
+
+    /**
+     * Групова смяна на филтрирането на параметрите
+     *
+     * @param string $value - yes или no
+     *
+     * @return void
+     */
+    protected function changeFilterable($value)
+    {
+        $action = ($value == 'yes') ? 'filterableon' : 'filterableoff';
+        $this->requireRightFor($action);
+
+        $selArr = arr::makeIds(Request::get('Selected', 'varchar'));
+        if ($id = Request::get('id', 'int')) {
+            $selArr[] = $id;
+        }
+
+        $changed = $toIndex = array();
+        $skipped = 0;
+        foreach ($selArr as $paramId) {
+            $rec = is_numeric($paramId) ? $this->fetch($paramId) : null;
+            if (!$rec || !$this->haveRightFor($action, $rec)) {
+                $skipped++;
+                continue;
+            }
+
+            // Индексът се обновява накуп след цикъла, само ако параметърът досега не е бил филтрируем
+            if (!self::isFilterable($rec)) {
+                $toIndex[$rec->id] = $rec->id;
+            }
+            $rec->filterable = $value;
+            $rec->_skipParamIndex = true;
+            $this->save($rec, 'filterable');
+            $this->logWrite(($value == 'no') ? 'Изключване от филтриране' : 'Включване за филтриране', $rec->id);
+            $changed[$rec->id] = $rec->id;
+        }
+
+        if ($value == 'no') {
+            if (countR($changed)) {
+                cat_products_ParamIndex::removeParams($changed);
+            }
+        } elseif (countR($toIndex)) {
+            cat_products_ParamIndex::markDirtyByParams($toIndex);
+        }
+
+        $msg = ($value == 'no') ? 'Изключени от филтриране' : 'Включени за филтриране';
+        followRetUrl(array($this, 'list'), "|{$msg}|*: " . countR($changed) . ', |пропуснати|*: ' . $skipped);
+    }
+
+
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
+    {
+        $actions = array('filterableon' => 'yes', 'filterableoff' => 'no');
+        if (isset($actions[$action]) && isset($rec)) {
+            $rec = $mvc->fetchRec($rec);
+            if (!$rec || $rec->state == 'rejected' || $rec->filterable == $actions[$action]) {
+                $requiredRoles = 'no_one';
+            } elseif ($action != 'filterableoff' && !self::canBeFilterable($rec)) {
+                $requiredRoles = 'no_one';
+            }
         }
     }
     
@@ -263,10 +523,11 @@ class cat_Params extends bgerp_ProtoParam
      * @param NULL|bool   $showInTasks - може ли да се показва в производствена операция
      * @param NULL|bool   $groupName   - група
      *@param NULL|bool   $params   - параметри
+     * @param bool        $filterable - дали да е филтрируем при създаване
      *
      * @return int - ид на параметъра
      */
-    public static function force($sysId, $name, $type, $options = array(), $suffix = null, $showInTasks = false, $showInPublicDocuments = true, $groupName = null, $params = null)
+    public static function force($sysId, $name, $type, $options = array(), $suffix = null, $showInTasks = false, $showInPublicDocuments = true, $groupName = null, $params = null, $filterable = false)
     {
         // Ако има параметър с това систем ид,връща се
         if($sysId){
@@ -275,8 +536,11 @@ class cat_Params extends bgerp_ProtoParam
         } else {
 
             // Ако няма сис ид все пак се проверява дали няма такъв параметър
-            $where = "#name = '{$name}' AND #suffix = '{$suffix}' AND ";
-            $where .= ($groupName) ? "#group = '{$groupName}'" : "#group IS NULL";
+            $where = array("#name = '[#1#]' AND #suffix = '[#2#]' AND ", $name, $suffix);
+            $where[0] .= ($groupName) ? "#group = '[#3#]'" : "#group IS NULL";
+            if ($groupName) {
+                $where[] = $groupName;
+            }
             if($exId = static::fetchField($where)){
 
                  return $exId;
@@ -286,6 +550,7 @@ class cat_Params extends bgerp_ProtoParam
         $nRec = static::makeNewRec($sysId, $name, $type, $options, $suffix, $groupName);
         $nRec->showInTasks = ($showInTasks) ? 'yes' : 'no';
         $nRec->showInPublicDocuments = ($showInPublicDocuments) ? 'yes' : 'no';
+        $nRec->filterable = ($filterable) ? 'yes' : 'no';
         if (isset($params)) {
             $params = arr::make($params);
             foreach ($params as $k => $v) {

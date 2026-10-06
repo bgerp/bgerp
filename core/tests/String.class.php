@@ -33,7 +33,7 @@ class core_tests_String extends unit_Class
 
     /**
      * Конвертира всички европейски азбуки,
-     * включително и кирилицата, но без гръцката към латиница
+     * включително кирилицата и гръцката, към латиница
      *
      * @param string $text текст за конвертиране
      *
@@ -46,6 +46,11 @@ class core_tests_String extends unit_Class
         $expectedText = 'Yo Ex Bu Ia YO EX BU IA bu ia yo ex e a b v g d e zh z i y k l m n o p r s t u f h ts ch sh sht a yi y yu ya E A B V G D E Zh Z I Y K L M N O P R S T U F H Ts Ch Sh Sht A Y YI Yu Ya \" A A A A A A AE C E E E E I I I I TH N O O O O O O U U U U Y TH ss a a a a a a ae c e e e e i i i i th n o o o o o o u u u u y th y gj d j l n k dj GJ D J L N K Dj';
         ut::expectEqual(core_String::utf2ascii($originalText), $expectedText);
         
+        // Гръцки букви
+        $originalText = 'V.AC. ΜΟΝΟΠΡΟΣΩΠΗ ΙΚΕ α ά β γ δ ε έ ζ η ή θ ι ί ϊ ΐ κ λ μ ν ξ ο ό π ρ σ ς τ υ ύ ϋ ΰ φ χ ψ ω ώ Α Ά Β Γ Δ Ε Έ Ζ Η Ή Θ Ι Ί Ϊ Κ Λ Μ Ν Ξ Ο Ό Π Ρ Σ Τ Υ Ύ Ϋ Φ Χ Ψ Ω Ώ ούζο Ούζο ΟΥΖΟ';
+        $expectedText = 'V.AC. MONOPROSOPI IKE a a v g d e e z i i th i i i i k l m n x o o p r s s t y y y y f ch ps o o A A V G D E E Z I I Th I I I K L M N X O O P R S T Y Y Y F Ch Ps O O ouzo Ouzo OUZO';
+        ut::expectEqual(core_String::utf2ascii($originalText), $expectedText);
+
         $originalText = 'ТОВА е ТЕСТ ТЕСт ТЕст Тест тест test Test TEst TESt TEST';
         $expectedText = 'TOVA e TEST TEST TEST Test test test Test TEst TESt TEST';
         

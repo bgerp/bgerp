@@ -78,4 +78,16 @@ class cms_SourceIntf
     {
         return $this->class->getSitemapEntries($menuId);
     }
+
+
+    /**
+     * Добавя полетата за настройки на менюто, специфични за източника
+     *
+     * @param core_FieldSet $fieldset
+     * @return void
+     */
+    public function addContentSettingsFields($fieldset)
+    {
+        return $this->class->addContentSettingsFields($fieldset);
+    }
 }

@@ -77,9 +77,7 @@ class cms_page_External extends core_page_Active
         }
         
         $this->replace(new ET($pageTpl), 'PAGE_CONTENT');
-        if ($skin) {
-            $skin->prepareWrapper($this);
-        }
+        cms_ProtoTheme::prepareSkin($skin, $this);
 
         // Скрипт за генериране на min-height, според устройството
         jquery_Jquery::run($this, 'setMinHeightExt();');
@@ -96,6 +94,7 @@ class cms_page_External extends core_page_Active
         
         // Добавяме лейаута
         $domainRec = cms_Domains::getPublicDomain();
+        $this->append(' lang="' . ht::escapeAttr($domainRec->lang ?? core_Lg::getCurrent()) . '"', 'HTML_ATTR');
         
         // Къде да добавим линковете
         $footerLinks = cms_Articles::addFooterLinks();

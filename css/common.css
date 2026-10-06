@@ -1951,6 +1951,10 @@ input:focus[type=button] {
   .wide .doc_Search .listFilter {
     padding-bottom: 0; }
 
+  .wide .blogm_Comments .listFilter .formFields,
+  .wide .blogm_Comments .listFilter .formToolbar {
+    margin-bottom: 0; }
+
   .narrow .doc_Search .pages {
     padding-top: 3px;
     margin-bottom: 13px; }
@@ -3027,10 +3031,10 @@ div.richtext ol ol ol {
   font-family: Courier New, mono;
   border: 1px dotted;
   margin: 0 30px;
-  padding: 7px 10px 5px 55px;
-  min-height: 37px;
+  padding: 14px 10px 14px 55px;
+  min-height: 20px;
   background-repeat: no-repeat;
-  background-position: 9px 7px;
+  background-position: 9px center;
   -moz-border-radius: 5px;
   -webkit-border-radius: 5px;
   -ms-border-radius: 5px;
@@ -3042,6 +3046,7 @@ div.richtext ol ol ol {
 .richtext-text {
   background-color: rgba(255, 255, 128, 0.3);
   padding: 10px;
+  min-height: 37px;
   margin: 10px 0;
   border: solid 1px #cccccc;
   font-family: Courier New, mono; }

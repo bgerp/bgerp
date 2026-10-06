@@ -630,7 +630,7 @@ class core_Packs extends core_Manager
             if ($canDeinstall) {
                 $row->deinstall = ht::createLink('', array($mvc, 'deinstall', 'pack' => $rec->name, 'ret_url' => true), 'Наистина ли искате да деактивирате пакета?', array('id' => $rec->name.'-deinstall', 'class' => 'deinstall-pack', 'ef_icon' => 'img/16/reject.png', 'title' => 'Деактивиране на пакета'));
             } else {
-                $row->deinstall = ht::createHint('', 'Пакетът не може да бъде де-инсталиран, защото има системни функции.', 'notice', false, array(), 'style=float:right;');
+                $row->deinstall = ht::createHint('', $setup->getCannotDeinstallHint(), 'notice', false, array(), 'style=float:right;');
             }
             
             $row->install = ht::createLink(tr('Инициализиране'), $installUrl, null, array('id' => $rec->name.'-install', 'title' => 'Обновяване на пакета'));
@@ -773,13 +773,12 @@ class core_Packs extends core_Manager
         
         $res = '';
 
-        // Ако има зависимости, проследяваме ги
-        // Първо инсталираме зависимостите
+        // Зависимостите се инициализират първи и със същия режим на форсиране
         if ($setup->depends) {
             $depends = arr::make($setup->depends, true);
             
             foreach ($depends as $p => $v) {
-                $res .= $this->setupPack($p, $v, false, $loadData, $verbose);
+                $res .= $this->setupPack($p, $v, $force, $loadData, $verbose);
             }
         }
         

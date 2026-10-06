@@ -62,8 +62,8 @@ class flip_Driver extends core_BaseClass
 
         if(dt::now() < $rec->start) {
             $rt = cls::get('type_RichText');
-            $bt = $rec->beforeText ? $rt->toHtml($rec->beforeText, '', '') : null;
-            $at = $rec->afterText ? $rt->toHtml($rec->afterText, '', '') : null;
+            $bt = !empty($rec->beforeText) ? $rt->toHtml($rec->beforeText, '', '') : null;
+            $at = !empty($rec->afterText) ? $rt->toHtml($rec->afterText, '', '') : null;
 
             $timestamp = dt::mysql2timestamp($rec->start);
             $date = new DateTime();

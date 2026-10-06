@@ -76,7 +76,7 @@ class drdata_Setup extends core_ProtoSetup
     /**
      * Версия на пакета
      */
-    public $version = '0.15';
+    public $version = '0.1';
     
     
     /**
@@ -132,15 +132,15 @@ class drdata_Setup extends core_ProtoSetup
         'drdata_Languages',
         'drdata_bg_Places',
         'drdata_CanonizedStrings',
-        'migrate::fixPhoneCache2040'
+        'migrate::fixPhoneCachePartialNumbers2637'
     );
-    
-    
+
+
     /**
-     * Премахва кешнираните телефони за България
+     * Изчиства и старите частични резултати без регионален код по подразбиране
      */
-    public static function fixPhoneCache2040()
+    public static function fixPhoneCachePartialNumbers2637()
     {
-        drdata_PhoneCache::delete("#dCC = '359'");
+        drdata_PhoneCache::delete('1=1');
     }
 }

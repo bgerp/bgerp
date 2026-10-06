@@ -101,7 +101,9 @@ class cams_ONVIFTest extends core_Manager
              echo "<br>    ->  $mediaUri <br>-> $mediaSnapshotUri";
             
         }
-        catch(Exception $e)
+        catch (core_exception_Redirect $e) {
+            throw $e;
+        } catch(Exception $e)
         {
             //echo "erro\n";
             bp($e);
@@ -270,6 +272,8 @@ class cams_ONVIFTest extends core_Manager
                 );
             
             var_dump($result);
+        } catch (core_exception_Redirect $e) {
+            throw $e;
         } catch (Exception $e) {
             echo '<pre>';
             var_dump($e);

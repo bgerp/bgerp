@@ -99,7 +99,7 @@ class cat_PackParams extends core_Manager
         $recId = $rec->id ?? '';
 
         if (!empty($rec->title)) {
-            $where1 = "#id != '{$recId}' AND #packagingId = '{$rec->packagingId}' AND #title = '{$rec->title}'";
+            $where1 = array("#id != '[#1#]' AND #packagingId = '[#2#]' AND #title = '[#3#]'", $recId, $rec->packagingId ?? null, $rec->title ?? null);
             $fields = array('title', 'packagingId');
             $res = $this->fetch($where1);
         }

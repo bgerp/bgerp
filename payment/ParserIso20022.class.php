@@ -47,6 +47,7 @@ class payment_ParserIso20022 extends core_BaseClass
      *
      * @return null|stdClass
      *                  o recs      array   Парсирани редове
+     *                  o recordCurrencies array Валути по индексите на редовете
      *                  о warnings  array   Предупреждения
      *                  о errors    array   Грешки
      */
@@ -54,12 +55,18 @@ class payment_ParserIso20022 extends core_BaseClass
     {
         // Обект за върнатия резултат
         $res = new stdClass();
-        $res->warnings = $res->errors = $res->recs = array();
+        $res->warnings = $res->errors = $res->recs = $res->recordCurrencies = array();
         
         // Вземаме SimpleXMLElement обект, отговарящ на файла
-        $transactions = @ new SimpleXMLElement(trim($xml));
+        $previous = libxml_use_internal_errors(true);
+        try {
+            $transactions = simplexml_load_string(trim($xml), 'SimpleXMLElement', LIBXML_NONET);
+        } finally {
+            libxml_clear_errors();
+            libxml_use_internal_errors($previous);
+        }
 
-        if (!$transactions) {
+        if ($transactions === false) {
 
             $res->warnings[] = "Грешка при парсиране на XML";
 
@@ -67,7 +74,7 @@ class payment_ParserIso20022 extends core_BaseClass
         }
 
         if(strpos(implode('|', $transactions->getNamespaces()), 'camt.052') !== false) {
-            $array = array($transactions->BkToCstmrAcctRpt->Rpt);
+            $array = $transactions->BkToCstmrAcctRpt->Rpt;
         } else {
             $array = $transactions->BkToCstmrStmt->Stmt;
         }
@@ -92,7 +99,7 @@ class payment_ParserIso20022 extends core_BaseClass
                 continue;
             }
 
-            $bankAccRec = bank_Accounts::fetch("#iban = '{$iban}'");
+            $bankAccRec = bank_Accounts::fetch(array("#iban = '[#1#]'", $iban));
             if (!$bankAccRec) {
                 $res->warnings[] = "IBAN {$iban} липсва в списъка с банкови сметки";
                 continue;
@@ -108,12 +115,7 @@ class payment_ParserIso20022 extends core_BaseClass
             $bank = (string) $stmt->Acct->Svcr->FinInstnId->Nm;
             $bic = (string) $stmt->Acct->Svcr->FinInstnId->BIC;
             
-            // Проверка дали валутата на блока, отговаря на валутата на нашата сметка
-            $currency = strtoupper($stmt->Acct->Ccy);
-            if ($currency && $currency != currency_Currencies::getCodeById($bankAccRec->currencyId)) {
-                $res->warnings[] = "Валутата за IBAN {$iban} се различава от тази в сметката";
-                continue;
-            }
+            $currency = strtoupper(trim((string) $stmt->Acct->Ccy));
 
             foreach ($stmt->Ntry as $node) {
                 $rec = new stdClass();
@@ -121,33 +123,57 @@ class payment_ParserIso20022 extends core_BaseClass
                 $rec->serviceId = $serviceId;
                 $rec->ownAccountId = $ownBankAccRec->id;
                 $rec->valior = (string) $node->ValDt->Dt;
+                if (!$rec->valior) {
+                    $rec->valior = substr((string) $node->ValDt->DtTm, 0, 10);
+                }
+                if (!$rec->valior) {
+                    $rec->valior = (string) $node->BookgDt->Dt;
+                }
+                if (!$rec->valior) {
+                    $rec->valior = substr((string) $node->BookgDt->DtTm, 0, 10);
+                }
+                if (!preg_match('/^(\d{4})-(\d{2})-(\d{2})$/D', $rec->valior, $dateParts)
+                    || !checkdate((int) $dateParts[2], (int) $dateParts[3], (int) $dateParts[1])) {
+                    $res->warnings[] = "Липсва или е невалидна датата на операция за IBAN {$iban}";
+                    continue;
+                }
+
+                // BGN сметките преминават в EUR според датата на операцията.
+                $expectedCurrency = bank_OwnAccounts::getDefaultCurrency($ownBankAccRec->id, $rec->valior, true);
+                $amountCurrency = strtoupper(trim((string) $node->Amt['Ccy']));
+                $recordCurrency = $amountCurrency ?: ($currency ?: $expectedCurrency);
+                if (($currency && $currency != $expectedCurrency) || $recordCurrency != $expectedCurrency) {
+                    $res->warnings[] = "Валутата за IBAN {$iban} към {$rec->valior} се различава от очакваната {$expectedCurrency}";
+                    continue;
+                }
                 $rec->amount = (float) $node->Amt;
                 
                 if ($node->CdtDbtInd == 'DBIT') {
                     $rec->type = 'outgoing';
-                    $rec->contragentIban = (string) $node->NtryDtls->TxDtls->RltdPties->CdtrAcct->Id->IBAN;
-                    $rec->contragentName = (string) $node->NtryDtls->TxDtls->RltdPties->Cdtr->Nm;
+                    $rec->contragentIban = self::getXmlText($node, 'NtryDtls/TxDtls/RltdPties/CdtrAcct/Id/IBAN');
+                    $rec->contragentName = self::getXmlText($node, 'NtryDtls/TxDtls/RltdPties/Cdtr/Nm');
                     if ($rec->contragentIban == $iban) {
-                        $rec->contragentIban = (string) $node->NtryDtls->TxDtls->RltdPties->DbtrAcct->Id->IBAN;
-                        $rec->contragentName = (string) $node->NtryDtls->TxDtls->RltdPties->Dbtr->Nm;
+                        $rec->contragentIban = self::getXmlText($node, 'NtryDtls/TxDtls/RltdPties/DbtrAcct/Id/IBAN');
+                        $rec->contragentName = self::getXmlText($node, 'NtryDtls/TxDtls/RltdPties/Dbtr/Nm');
                     }
                 } else {
                     $rec->type = 'incoming';
-                    $rec->contragentIban = (string) $node->NtryDtls->TxDtls->RltdPties->DbtrAcct->Id->IBAN;
-                    $rec->contragentName = (string) $node->NtryDtls->TxDtls->RltdPties->Dbtr->Nm;
+                    $rec->contragentIban = self::getXmlText($node, 'NtryDtls/TxDtls/RltdPties/DbtrAcct/Id/IBAN');
+                    $rec->contragentName = self::getXmlText($node, 'NtryDtls/TxDtls/RltdPties/Dbtr/Nm');
                     if ($rec->contragentIban == $iban) {
-                        $rec->contragentIban = (string) $node->NtryDtls->TxDtls->RltdPties->CdtrAcct->Id->IBAN;
-                        $rec->contragentName = (string) $node->NtryDtls->TxDtls->RltdPties->Cdtr->Nm;
+                        $rec->contragentIban = self::getXmlText($node, 'NtryDtls/TxDtls/RltdPties/CdtrAcct/Id/IBAN');
+                        $rec->contragentName = self::getXmlText($node, 'NtryDtls/TxDtls/RltdPties/Cdtr/Nm');
                     }
                 }
                 
-                $rec->reason = (string) $node->NtryDtls->TxDtls->AddtlTxInf;
+                $rec->reason = self::getXmlText($node, 'NtryDtls/TxDtls/AddtlTxInf');
                 if (!$rec->reason) {
                     $rec->reason = (string) $node->AddtlNtryInf;
                 }
                 
                 // Добавяме реда в резултата
                 $res->recs[] = $rec;
+                $res->recordCurrencies[] = $recordCurrency;
             }
         }
         
@@ -155,6 +181,28 @@ class payment_ParserIso20022 extends core_BaseClass
     }
     
     
+    /**
+     * Текстът на вложен XML възел; празен низ, ако някой възел по пътя липсва
+     *
+     * @param SimpleXMLElement $node
+     * @param string           $path  Имена на възлите, разделени с /
+     *
+     * @return string
+     */
+    private static function getXmlText($node, $path)
+    {
+        foreach (explode('/', $path) as $name) {
+            if (!isset($node->{$name})) {
+
+                return '';
+            }
+            $node = $node->{$name};
+        }
+
+        return (string) $node;
+    }
+
+
     /**
      * Проверява дали в $mime се съдържа спам писмо и ако е
      * така - съхранява го за определено време в този модел

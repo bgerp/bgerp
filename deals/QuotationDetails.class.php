@@ -258,8 +258,8 @@ class deals_QuotationDetails extends doc_Detail
             $rec->quantity = $rec->packQuantity * $rec->quantityInPack;
 
             // Проверка дали к-то е под МКП
-            if (isset($rec->productId)) {
-                deals_Helper::isQuantityBellowMoq($form, $rec->productId, $rec->quantity, $rec->quantityInPack);
+            if (isset($rec->productId) || !empty($rec->_moq)) {
+                deals_Helper::isQuantityBellowMoq($form, $rec->productId ?? null, $rec->quantity, $rec->quantityInPack);
             }
             $price = null;
             if (!isset($rec->packPrice)) {
@@ -295,7 +295,7 @@ class deals_QuotationDetails extends doc_Detail
             if (!$form->gotErrors()) {
 
                 if (isset($masterRec->deliveryPlaceId)) {
-                    if ($locationId = crm_Locations::fetchField("#title = '{$masterRec->deliveryPlaceId}' AND #contragentCls = {$masterRec->contragentClassId} AND #contragentId = {$masterRec->contragentId}", 'id')) {
+                    if ($locationId = crm_Locations::fetchField(array("#title = '[#1#]' AND #contragentCls = '[#2#]' AND #contragentId = '[#3#]'", $masterRec->deliveryPlaceId ?? null, $masterRec->contragentClassId ?? null, $masterRec->contragentId ?? null), 'id')) {
                         $masterRec->deliveryPlaceId = $locationId;
                     }
                 }
@@ -430,7 +430,7 @@ class deals_QuotationDetails extends doc_Detail
         $countryId = $data->cData->countryId;
 
         // Дали цените са заличени за текущия потребител от doc_plg_HidePrices - тогава не показваме и еквивалента в другата валута
-        $pricesHidden = !doc_plg_HidePrices::canSeePriceFields($data->masterMvc, $masterRec) && $data->dontHidePrices !== true;
+        $pricesHidden = !doc_plg_HidePrices::canSeePriceFields($data->masterMvc, $masterRec) && ($data->dontHidePrices ?? null) !== true;
 
         // Групираме записите за по-лесно показване
         foreach ($data->rows as $i => $row) {

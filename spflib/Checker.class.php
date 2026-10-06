@@ -34,6 +34,8 @@ class spflib_Checker
             try {
                 // Инстанция на класа
                 $checker = new Checker();
+            } catch (core_exception_Redirect $e) {
+                throw $e;
             } catch (Exception $e) {
                 reportException($e);
             }

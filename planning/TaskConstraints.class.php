@@ -255,7 +255,11 @@ class planning_TaskConstraints extends core_Master
 
         // Извличане на всички етапи, които са посочени като предишни
         $cQuery = planning_StepConditions::getQuery();
-        $cQuery->in("stepId", $stepIds);
+        if (countR($stepIds)) {
+            $cQuery->in("stepId", $stepIds);
+        } else {
+            $cQuery->where("1=2");
+        }
         $cQuery->show('stepId,prevStepId,delay,intersect');
         while ($cRec = $cQuery->fetch()) {
             $prevSteps[$cRec->stepId][$cRec->prevStepId] = $cRec;
@@ -264,7 +268,11 @@ class planning_TaskConstraints extends core_Master
         // Всички текущи ПО към заданието за посочените етапи
         $tQuery = planning_Tasks::getQuery();
         $tQuery->where("#state IN ('active', 'stopped', 'wakeup', 'pending')");
-        $tQuery->in('originId', $jobIds);
+        if (countR($jobIds)) {
+            $tQuery->in('originId', $jobIds);
+        } else {
+            $tQuery->where("1=2");
+        }
         $tQuery->show('id,originId,productId,folderId,offsetAfter,saoOrder,assetId');
         $additionalFolderIds = array();
         while ($tRec = $tQuery->fetch()) {
@@ -397,7 +405,9 @@ class planning_TaskConstraints extends core_Master
         }
 
         core_Debug::stopTimer('SYNC_TASK_CONSTRAINTS');
-        core_Debug::log("SYNC_TASK_CONSTRAINTS " . round(core_Debug::$timers["SYNC_TASK_CONSTRAINTS"]->workingTime, 6));
+        if (isset(core_Debug::$timers['SYNC_TASK_CONSTRAINTS']->workingTime)) {
+            core_Debug::log("SYNC_TASK_CONSTRAINTS " . round(core_Debug::$timers['SYNC_TASK_CONSTRAINTS']->workingTime, 6));
+        }
 
         return "Синхронизирани ограничения I:{$i} / U: {$u} / D: {$d}";
     }
@@ -756,7 +766,7 @@ class planning_TaskConstraints extends core_Master
         cls::get('planning_Tasks')->saveArray($tasks, 'id,calcedDuration,calcedCurrentDuration');
 
         core_Debug::stopTimer('SYNC_TASK_DURATIONS');
-        core_Debug::log("SYNC_TASK_DURATIONS " . round(core_Debug::$timers["SYNC_TASK_DURATIONS"]->workingTime, 6));
+        core_Debug::log("SYNC_TASK_DURATIONS " . round(core_Debug::$timers["SYNC_TASK_DURATIONS"]->workingTime ?? 0, 6));
     }
 
 
@@ -853,7 +863,7 @@ class planning_TaskConstraints extends core_Master
         static::setPlanningParamSignatures($tasks, $assets);
 
         core_Debug::stopTimer('SCHEDULE_PREPARE_INTERVALS');
-        core_Debug::log("END SCHEDULE_PREPARE_INTERVALS " . round(core_Debug::$timers["SCHEDULE_PREPARE_INTERVALS"]->workingTime, 6));
+        core_Debug::log("END SCHEDULE_PREPARE_INTERVALS " . round(core_Debug::$timers["SCHEDULE_PREPARE_INTERVALS"]->workingTime ?? 0, 6));
 
         // Извлича се ръчната подредба по машини
         $manualQuery = planning_TaskManualOrderPerAssets::getQuery();
@@ -979,7 +989,7 @@ class planning_TaskConstraints extends core_Master
             $debugRes .= "<hr />Слагане на задачи на <b>{$assets[$assetRec->id]->code} [{$assets[$assetRec->id]->scheduleName}]</b><br />";
 
 
-            if(is_array($assets[$assetRec->id]->manualOrder)){
+            if(isset($assets[$assetRec->id]->manualOrder) && is_array($assets[$assetRec->id]->manualOrder)){
                 $debugRes .=  "<hr />Приложена ръчна подредба: " . countR($assets[$assetRec->id]->manualOrder);
                 $tasksInAsset = arr::reorderArrayByOrderedKeys($tasksInAsset, $assets[$assetRec->id]->manualOrder);
             } else {
@@ -1346,7 +1356,7 @@ class planning_TaskConstraints extends core_Master
 
         $debugRes .= "<hr />КРАЙНО НЕПЛАНИРАНИ: " . implode(', ', array_keys($notPlanned)) . "<br />";
         core_Debug::stopTimer('SCHEDULE_CALC_TIMES');
-        core_Debug::log("END SCHEDULE_CALC_TIMES " . round(core_Debug::$timers['SCHEDULE_CALC_TIMES']->workingTime, 6));
+        core_Debug::log("END SCHEDULE_CALC_TIMES " . round(core_Debug::$timers['SCHEDULE_CALC_TIMES']->workingTime ?? 0, 6));
 
         return $debugRes;
     }
@@ -2600,7 +2610,7 @@ class planning_TaskConstraints extends core_Master
         $debugRes .= "<hr />КРАЙНО НЕПЛАНИРАНИ: " . implode(', ', array_keys($notPlanned)) . "<br />";
 
         core_Debug::stopTimer('SCHEDULE_CALC_TIMES');
-        core_Debug::log("END SCHEDULE_CALC_TIMES " . round(core_Debug::$timers["SCHEDULE_CALC_TIMES"]->workingTime, 6));
+        core_Debug::log("END SCHEDULE_CALC_TIMES " . round(core_Debug::$timers["SCHEDULE_CALC_TIMES"]->workingTime ?? 0, 6));
 
         return $debugRes;
     }

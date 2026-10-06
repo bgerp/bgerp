@@ -1488,7 +1488,7 @@ class label_Prints extends core_Master
         
         $form->input();
         
-        if ($form->rec->from > $form->rec->to) {
+        if (($form->rec->from ?? null) > ($form->rec->to ?? null)) {
             $form->setError('from, to', '"От" трябва да е по-малко от "До"');
         }
         

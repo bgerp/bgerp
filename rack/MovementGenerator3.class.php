@@ -826,7 +826,7 @@ class rack_MovementGenerator3 extends core_Manager
         $res = null;
         if ($rack = (int)$pos) {
             $rRec = rack_Racks::fetch($rack);
-            $res = $rRec->maxLoad;
+            $res = $rRec ? $rRec->maxLoad : null;
         }
         if (!$res) $res = 1;
         return $res;

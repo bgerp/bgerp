@@ -204,6 +204,14 @@ class type_Richtext extends type_Blob
             return $value;
         }
 
+        // При рендиране за LLM - ричтекстът с таговете, за да чете модела формата, в който пише.
+        // Резултатът отива в HTML, който после се обръща в текст, затова се ескейпва
+        if (Mode::is('renderForLlm')) {
+            $this->invoke('AfterGetRichtextForAI', array(&$value));
+
+            return htmlspecialchars(str_replace(array("\r\n", "\r"), "\n", $value), ENT_QUOTES, 'UTF-8');
+        }
+
         if (Mode::is('text', 'plain')) {
             $res = $this->toHtml($value);
             $res = html_entity_decode($res, ENT_QUOTES, 'UTF-8');
@@ -921,7 +929,7 @@ class type_Richtext extends type_Blob
     public function _catchBQuoteSingle($match)
     {
         $quote = '';
-        $this->invoke('afterCatchBQuote', array(&$quote, $match[2]));
+        $this->invoke('afterCatchBQuote', array(&$quote, $match[2] ?? ''));
         
         $quote .= self::BQUOTE_DIV_BEGIN;
         
@@ -1359,18 +1367,50 @@ class type_Richtext extends type_Blob
         $lines = explode("\n", $html);
         
         $table = false;
+        $separatorLine = null;
 
         $out = '';
         
-        foreach ($lines as $l) {
+        foreach ($lines as $lineNo => $l) {
+            if ($lineNo === $separatorLine) {
+                continue;
+            }
+
             if (isset($l[0]) && $l[0] == '|') {
+                $l = trim($l, " \t");
+                $l = trim($l, '|');
+                $cells = explode('|', $l);
+                $tag = 'td';
+
                 if (!$table) {
                     $out .= "\n<div class='overflow-scroll'><table class='inlineRichTable listTable'>";
                     $table = true;
+                    $alignments = array();
+                    $separator = $lines[$lineNo + 1] ?? '';
+
+                    // Markdown разделител се допуска само след заглавие със същия брой колони.
+                    if (preg_match('/^\|[ \t]*:?-{3,}:?[ \t]*(?:\|[ \t]*:?-{3,}:?[ \t]*)*\|?[ \t]*$/D', $separator)) {
+                        $markers = explode('|', trim(trim($separator), '|'));
+                        if (count($markers) == count($cells)) {
+                            foreach ($markers as $col => $marker) {
+                                $marker = trim($marker);
+                                $alignments[$col] = 'left';
+                                if (substr($marker, -1) == ':') {
+                                    $alignments[$col] = ($marker[0] == ':') ? 'center' : 'right';
+                                }
+                            }
+                            $tag = 'th';
+                            $separatorLine = $lineNo + 1;
+                        }
+                    }
                 }
-                $l = trim($l, " \t");
-                $l = trim($l, '|');
-                $out .= '<tr><td>' . str_replace('|', '</td><td>', $l) . '</td></tr>';
+
+                $out .= '<tr>';
+                foreach ($cells as $col => $cell) {
+                    $style = isset($alignments[$col]) ? " style='text-align: {$alignments[$col]}'" : '';
+                    $out .= "<{$tag}{$style}>{$cell}</{$tag}>";
+                }
+                $out .= '</tr>';
             } else {
                 if ($table) {
                     $out .= '</table></div>';
@@ -1381,7 +1421,7 @@ class type_Richtext extends type_Blob
             }
         }
         if ($table) {
-            $out .= '</table>';
+            $out .= '</table></div>';
             $table = false;
         }
         
@@ -1648,18 +1688,18 @@ class type_Richtext extends type_Blob
             unset($restArr[countR($restArr) - 1]);
         }
         
-        setIfNot($params['Ctr'], $restArr[0]);
+        $params['Ctr'] = $params['Ctr'] ?? $restArr[0] ?? null;
         
         // Ако екшъна е SBF
-        if (strtolower($params['Ctr']) == 'sbf') {
+        if (strtolower($params['Ctr'] ?? '') == 'sbf') {
             
             return false;
         }
         
-        setIfNot($params['Act'], $restArr[1] ?? null, 'default');
+        $params['Act'] = $params['Act'] ?? $restArr[1] ?? 'default';
 
         if (countR($restArr) % 2) {
-            setIfNot($params['id'], $restArr[2] ?? null);
+            $params['id'] = $params['id'] ?? $restArr[2] ?? null;
             $pId = 3;
         } else {
             $pId = 2;

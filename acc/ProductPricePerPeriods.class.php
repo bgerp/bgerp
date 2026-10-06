@@ -343,7 +343,7 @@ class acc_ProductPricePerPeriods extends core_Manager
         requireRole('debug');
         $this->currentTab = 'Дебъг->Артикулни цени КЪМ дата';
         $toDate = Request::get('toDate', 'date');
-        $type = Request::get('type', 'varchar');
+        $type = Request::get('type', 'enum(stores,production,costs)');
         $productItemId = Request::get('productItemId', 'int');
         $otherItemId = Request::get('otherItemId', 'int');
 
@@ -364,7 +364,7 @@ class acc_ProductPricePerPeriods extends core_Manager
             $rows[$rec->id] = $this->recToVerbal($rec);
         }
         core_Debug::stopTimer('RENDER_ROWS');
-        core_Debug::log("END RENDER_ROWS " . round(core_Debug::$timers["RENDER_ROWS"]->workingTime, 6));
+        core_Debug::log("END RENDER_ROWS " . round(core_Debug::$timers["RENDER_ROWS"]->workingTime ?? 0, 6));
 
         $table = cls::get('core_TableView', array('mvc' => $this));
         $fields = arr::make('date=Дата,otherItemId=Перо,productItemId=Артикул,price=Цена');
@@ -396,7 +396,7 @@ class acc_ProductPricePerPeriods extends core_Manager
         $typeColName = str::phpToMysqlName('type');
 
         $me = cls::get(get_called_class());
-        $typesString = "'" . implode("','", explode(",", $types)) . "'";
+        $typesString = "'" . implode("','", array_map(array($me->db, 'escape'), explode(',', $types))) . "'";
         $otherWhere = array("`{$me->dbTableName}`.{$typeColName} IN ({$typesString})");
 
         if (!empty($productItems)) {

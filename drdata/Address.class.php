@@ -508,7 +508,8 @@ class drdata_Address extends core_MVC
         }
         
         arsort($res);
-        
+
+        $countryRec = null;
         if (countR($res)) {
             $countryId = key($res);
             $countryRec = drdata_Countries::fetch($countryId);
@@ -925,7 +926,7 @@ class drdata_Address extends core_MVC
         
         if (countR($maxBlock)) {
             if (is_array($maxBlock['company'] ?? null) && countR($maxBlock['company'])) {
-                $res->company = trim($maxBlock['company'][0], "*;,-#$<> \t\n\r");
+                $res->company = trim(reset($maxBlock['company']), "*;,-#$<> \t\n\r");
             }
             if (is_array($maxBlock['tel'] ?? null) && countR($maxBlock['tel'])) {
                 $res->tel = implode(', ', $maxBlock['tel']);
@@ -937,22 +938,22 @@ class drdata_Address extends core_MVC
                 $res->email = implode(', ', $maxBlock['email']);
             }
             if (is_array($maxBlock['address'] ?? null) && countR($maxBlock['address'])) {
-                $res->address = $maxBlock['address'][0];
+                $res->address = reset($maxBlock['address']);
             }
             if (is_array($maxBlock['country'] ?? null) && countR($maxBlock['country'])) {
-                $res->country = $maxBlock['country'][0];
+                $res->country = reset($maxBlock['country']);
             }
             if (is_array($maxBlock['pCode'] ?? null) && countR($maxBlock['pCode'])) {
-                $res->pCode = $maxBlock['pCode'][0];
+                $res->pCode = reset($maxBlock['pCode']);
             }
             if (is_array($maxBlock['place'] ?? null) && countR($maxBlock['place'])) {
-                $res->place = $maxBlock['place'][0];
+                $res->place = reset($maxBlock['place']);
             }
             if (is_array($maxBlock['web'] ?? null) && countR($maxBlock['web'])) {
-                $res->web = $maxBlock['web'][0];
+                $res->web = reset($maxBlock['web']);
             }
             if (is_array($maxBlock['name'] ?? null) && countR($maxBlock['name'])) {
-                $res->person = trim($maxBlock['name'][0], "*;,-#$<> \t\n\r");
+                $res->person = trim(reset($maxBlock['name']), "*;,-#$<> \t\n\r");
             }
             if (is_array($maxBlock['mob'] ?? null) && countR($maxBlock['mob'])) {
                 $res->mob = implode(', ', $maxBlock['mob']);

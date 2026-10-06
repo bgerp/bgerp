@@ -86,6 +86,12 @@ class core_Cache extends core_Manager
      */
     public static $stopCaching = false;
 
+
+    /**
+     * Резултати, преизползвани само в текущото PHP изпълнение
+     */
+    protected static $requestCache = array();
+
     /**
      * Неща, подлежащи на начално зареждане
      */
@@ -523,6 +529,66 @@ class core_Cache extends core_Manager
         }
         
         return $res;
+    }
+
+
+    /**
+     * Преизползва резултат в хита и по избор в стандартния кеш за фиксиран срок.
+     * Контекстът (потребител, език, филтри) се включва в $handler от извикващия.
+     *
+     * @param string $type
+     * @param mixed $handler
+     * @param callable $callback функция без аргументи; изключенията не се кешират
+     * @param array|string $depends модели за обезсилване при промени в текущия хит
+     * @param float $keepMinutes срок в стандартния кеш; 0 означава само текущия хит
+     * @return mixed
+     */
+    public static function remember($type, $handler, $callback, $depends = array(), $keepMinutes = 0)
+    {
+        expect(is_numeric($keepMinutes) && $keepMinutes >= 0);
+        $key = md5(serialize(array(EF_DB_NAME, $type, $handler, (float) $keepMinutes)));
+        if (self::$stopCaching) {
+            unset(self::$requestCache[$key]);
+
+            return call_user_func($callback);
+        }
+
+        $versions = array();
+        foreach (arr::make($depends) as $dependency) {
+            $mvc = cls::get($dependency);
+            $versions[] = array($mvc->db->dbName, $mvc->dbTableName, $mvc->getDbTableUpdateCount());
+        }
+
+        $previous = self::$requestCache[$key] ?? null;
+        $changed = isset($previous) && $previous['versions'] !== $versions;
+        if (isset($previous) && !$changed && (!$keepMinutes || $previous['expiresOn'] > microtime(true))) {
+            return self::$requestCache[$key]['value'];
+        }
+
+        // Не пазим стар резултат, ако преизчисляването хвърли изключение.
+        unset(self::$requestCache[$key]);
+        if ($keepMinutes > 0) {
+            if ($changed) {
+                self::remove($type, $key);
+            } else {
+                // Без удължаване при четене и без проверки на таблици между хитовете.
+                $cached = self::get($type, $key);
+                if (is_array($cached) && ($cached['expiresOn'] ?? 0) > microtime(true) && array_key_exists('value', $cached)) {
+                    self::$requestCache[$key] = $cached + array('versions' => $versions);
+
+                    return $cached['value'];
+                }
+            }
+        }
+
+        $value = call_user_func($callback);
+        $cached = array('value' => $value, 'expiresOn' => microtime(true) + $keepMinutes * 60);
+        if ($keepMinutes > 0) {
+            self::set($type, $key, $cached, $keepMinutes);
+        }
+        self::$requestCache[$key] = $cached + array('versions' => $versions);
+
+        return $value;
     }
 
 

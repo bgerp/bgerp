@@ -244,7 +244,7 @@ class email_reports_Spam extends frame2_driver_TableData
         $urlWithAccess = email_Incomings::getUrlWithAccess($dRec->id);
         $attr = array();
         
-        if ($dRec->state == 'rejected') {
+        if (($dRec->state ?? null) == 'rejected') {
             $attr['class'] = 'soft-rejected';
         }
         
@@ -263,7 +263,7 @@ class email_reports_Spam extends frame2_driver_TableData
         
         $attr = array('onclick' => 'return startUrlFromDataAttr(this, true);', 'class' => 'button');
         
-        if ($dRec->state == 'rejected') {
+        if (($dRec->state ?? null) == 'rejected') {
             $urlArr['action'] = 'restore';
             $attr['ef_icon'] = 'img/16/restore.png';
             $attr['title'] = 'Възстановяване на имейла';

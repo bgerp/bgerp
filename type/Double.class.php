@@ -142,6 +142,8 @@ class type_Double extends core_Type
 
                 return $v;
             }
+        } catch (core_exception_Redirect $e) {
+            throw $e;
         } catch (Throwable $e) {
             // Нищо не се прави - основно за PARSE_ERROR
         }
@@ -194,7 +196,12 @@ class type_Double extends core_Type
         if(isset($this->params['maxDecimals'])) {
             $decimals = min($decimals, $this->params['maxDecimals']);
         }
-        
+
+        // При режим само за четене крайните нули се премахват
+        if (!empty($this->params['isReadOnly'])) {
+            setIfNot($this->params['smartRound'], true);
+        }
+
         // Ако закръгляме умно
         if ($this->params['smartRound'] ?? null) {
 

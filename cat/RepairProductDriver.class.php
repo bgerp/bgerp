@@ -10,7 +10,7 @@
  *
  * @category  bgerp
  * @package   cat
- * @author    [Твоето ИМЕ] <[твоят@имейл.com]>
+ * @author    Yusein Yuseinov <y.yuseinov@gmail.com>
  * @copyright 2006 - 2026 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
@@ -23,6 +23,12 @@ class cat_RepairProductDriver extends cat_ProductDriver
      * Интерфейси които имплементира
      */
     public $interfaces = 'cat_ProductDriverIntf';
+
+
+    /**
+     * Може ли към артикула да се добавят ръчно параметри
+     */
+    public $allowCustomParams = true;
 
 
 
@@ -63,19 +69,5 @@ class cat_RepairProductDriver extends cat_ProductDriver
             $form->setField('quantity2', 'input=none');
             $form->setField('quantity3', 'input=none');
         }
-    }
-
-
-    /**
-     * Рендиране на описанието на драйвера
-     *
-     * @param stdClass $data
-     *
-     * @return core_ET $tpl
-     */
-    public function renderProductDescription($data)
-    {
-
-        return null;
     }
 }

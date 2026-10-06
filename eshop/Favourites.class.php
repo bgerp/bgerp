@@ -216,6 +216,8 @@ class eshop_Favourites extends core_Manager
 
         $attr['ef_icon'] = $isIn ? 'img/16/heart-red.png' : 'img/16/heart_empty.png';
         $attr['title'] = $isIn ? tr('Добавено в любими') : tr('Добави в любими');
+        cms_ProtoTheme::getCurrent()->prepareFavouriteBtn($attr, $isIn);
+
         $tpl = ht::createLink('', null, null, $attr);
 
         return $tpl;

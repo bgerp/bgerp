@@ -1,0 +1,102 @@
+[#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
+    <div class='scrolling-holder'>
+        <div class='display-table'>
+            <table class="innerTable border-table paddingCells blogmArticle">
+                <tbody>
+                    <tr>
+                        <td class="cell centered" rowspan='2' style='width:35%;'>
+                            <div class="document-title">|статия в блога|*</div>
+                            <div style="padding-top:5px;">
+                                № <span class="bigData">[#id#]</span>
+                                <!--ET_BEGIN publishedOn-->/ <span class="bigData">[#publishedOn#]</span><!--ET_END publishedOn-->
+                            </div>
+                            <!--ET_BEGIN state-->
+                            <div class="state [#STATE_CLASS#]" style='margin: 5px 0;'>[#state#]</div>
+                            <!--ET_END state-->
+                        </td>
+                        <td class="cell custom-header-bg"><b>|Информация|*</b></td>
+                    </tr>
+                    <tr>
+                        <td class="cell">
+                            <table class='no-border' style='width:100%;'>
+                                <!--ET_BEGIN author-->
+                                <tr>
+                                    <td class='quiet nowrap aright'>|Автор|*:</td>
+                                    <td>[#author#]</td>
+                                </tr>
+                                <!--ET_END author-->
+                                <!--ET_BEGIN categories-->
+                                <tr>
+                                    <td class='quiet nowrap aright' style='width:1%;'>|Категории|*:</td>
+                                    <td>[#categories#]</td>
+                                </tr>
+                                <!--ET_END categories-->
+                                <!--ET_BEGIN commentsInfo-->
+                                <tr>
+                                    <td class='quiet nowrap aright'>|Коментари|*:</td>
+                                    <td>[#commentsInfo#]</td>
+                                </tr>
+                                <!--ET_END commentsInfo-->
+                            </table>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="cell" colspan='2'>
+                            <h3 class='richtext-title'>[#title#]</h3>
+                            <!--ET_BEGIN body-->
+                            <div>[#body#]</div>
+                            <!--ET_END body-->
+                        </td>
+                    </tr>
+                    <!--ET_BEGIN SEO-->
+                    <tr>
+                        <td class="cell" colspan='2'>
+                            <table class='no-border' style='width:100%;'>
+                                <!--ET_BEGIN vid-->
+                                <tr>
+                                    <td class='quiet nowrap aright' style='width:1%;'>|Вербално ID|*:</td>
+                                    <td>[#vid#]</td>
+                                </tr>
+                                <!--ET_END vid-->
+                                <!--ET_BEGIN seoTitle-->
+                                <tr>
+                                    <td class='quiet nowrap aright'>Title:</td>
+                                    <td>[#seoTitle#]</td>
+                                </tr>
+                                <!--ET_END seoTitle-->
+                                <!--ET_BEGIN seoDescription-->
+                                <tr>
+                                    <td class='quiet nowrap aright'>Description:</td>
+                                    <td>[#seoDescription#]</td>
+                                </tr>
+                                <!--ET_END seoDescription-->
+                                <!--ET_BEGIN seoKeywords-->
+                                <tr>
+                                    <td class='quiet nowrap aright'>Keywords:</td>
+                                    <td>[#seoKeywords#]</td>
+                                </tr>
+                                <!--ET_END seoKeywords-->
+                                <!--ET_BEGIN seoThumb-->
+                                <tr>
+                                    <td class='quiet nowrap aright'>|Илюстрация|*:</td>
+                                    <td>[#seoThumb#]</td>
+                                </tr>
+                                <!--ET_END seoThumb-->
+                            </table>
+                        </td>
+                    </tr>
+                    <!--ET_END SEO-->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!--ET_BEGIN blogm_Comments-->
+    <div class="scrolling-holder">
+        <fieldset class='top-tab-content' style='margin-top:10px'>
+            <legend class="groupTitle">|Коментари|*</legend>
+            [#blogm_Comments#]
+        </fieldset>
+    </div>
+    <!--ET_END blogm_Comments-->
+[#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]

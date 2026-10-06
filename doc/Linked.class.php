@@ -170,18 +170,18 @@ class doc_Linked extends core_Manager
         $resArr = array();
 
         foreach ($res as $r) {
-            if (($r->outType == $type) && ($r->outVal == $id)) {
-                if (isset($resType) && ($resType != $r->inType)) {
+            if ((($r->outType ?? null) == $type) && (($r->outVal ?? null) == $id)) {
+                if (isset($resType) && ($resType != ($r->inType ?? null))) {
 
                     continue;
                 }
-                $resArr[$r->inType][$r->inVal] = $r->inVal;
+                $resArr[$r->inType ?? null][$r->inVal ?? null] = $r->inVal ?? null;
             } else {
-                if (isset($resType) && ($resType != $r->outType)) {
+                if (isset($resType) && ($resType != ($r->outType ?? null))) {
 
                     continue;
                 }
-                $resArr[$r->outType][$r->outVal] = $r->outVal;
+                $resArr[$r->outType ?? null][$r->outVal ?? null] = $r->outVal ?? null;
             }
         }
 
@@ -202,7 +202,7 @@ class doc_Linked extends core_Manager
      */
     public static function getRecsForType($type, $id, $showRejecte = true, $limit = 100, $Pager = null)
     {
-        $query = doc_LinkedProxy::getQuery();
+        $query = self::getQuery();
         
         if (!$showRejecte) {
             $query->where("#state != 'rejected'");
@@ -215,14 +215,18 @@ class doc_Linked extends core_Manager
         if (isset($Pager)) {
             $query->where(array("#outType = '[#1#]' AND #outVal = '[#2#]'", $type, $id));
             $query->orWhere(array("#inType = '[#1#]' AND #inVal = '[#2#]'", $type, $id));
-
-            $Pager->setLimit($query);
         } else {
             $query->setUnion(array("#outType = '[#1#]' AND #outVal = '[#2#]'", $type, $id));
             $query->setUnion(array("#inType = '[#1#]' AND #inVal = '[#2#]'", $type, $id));
         }
 
-        $recArr = $query->fetchAll();
+        $recArr = $query->mvc->callOnReplica(function () use ($query, $Pager) {
+            if (isset($Pager)) {
+                $Pager->setLimit($query);
+            }
+
+            return $query->fetchAll();
+        });
 
         return $recArr;
     }
@@ -262,12 +266,12 @@ class doc_Linked extends core_Manager
 
         foreach ($recArr as $id => $rec) {
             // Ако връзката е към себе си, да не се показва
-            if (($rec->outType == $rec->inType) && ($rec->outVal == $rec->inVal)) {
+            if ((($rec->outType ?? null) == ($rec->inType ?? null)) && (($rec->outVal ?? null) == ($rec->inVal ?? null))) {
 
                 continue;
             }
 
-            if (!$rec->inType && !$rec->inVal) {
+            if (empty($rec->inType) && empty($rec->inVal)) {
 
                 continue;
             }
@@ -277,16 +281,16 @@ class doc_Linked extends core_Manager
             
             $getUrlWithAccess = false;
             
-            if ($rec->state == 'active') {
+            if (($rec->state ?? null) == 'active') {
                 $getUrlWithAccess = true;
             }
 
-            if ($rec->outType == $type && $rec->outVal == $val) {
+            if (($rec->outType ?? null) == $type && ($rec->outVal ?? null) == $val) {
                 $icon = 'img/16/arrow_right.png';
-                $rowArr[$id]['docLink'] = self::getVerbalLinkForType($rec->inType, $rec->inVal, $comment, $getUrlWithAccess, $linkUrl);
+                $rowArr[$id]['docLink'] = self::getVerbalLinkForType($rec->inType ?? null, $rec->inVal ?? null, $comment, $getUrlWithAccess, $linkUrl);
             } else {
                 $icon = 'img/16/arrow_left.png';
-                $rowArr[$id]['docLink'] = self::getVerbalLinkForType($rec->outType, $rec->outVal, $comment, $getUrlWithAccess, $linkUrl);
+                $rowArr[$id]['docLink'] = self::getVerbalLinkForType($rec->outType ?? null, $rec->outVal ?? null, $comment, $getUrlWithAccess, $linkUrl);
             }
             
             $rowArr[$id]['comment'] = $comment;
@@ -296,7 +300,7 @@ class doc_Linked extends core_Manager
                 $row->_rowTools->addLink('Разглеждане', $linkUrl, "ef_icon={$icon}, title=Отваряне на връзката");
                 $rowArr[$id]['_rowTools'] = $row->_rowTools->renderHtml();
                 
-                $rowArr[$id]['ROW_ATTR'] = $row->ROW_ATTR;
+                $rowArr[$id]['ROW_ATTR'] = $row->ROW_ATTR ?? array();
             }
         }
         
@@ -321,8 +325,8 @@ class doc_Linked extends core_Manager
             foreach ($rowArr as $row) {
                 $res .= $res ? "\n" : '';
                 $res .= $row['docLink'];
-                if (trim($row['comment'])) {
-                    $res .= ' (' . trim($row['comment']) . ')';
+                if (trim($row['comment'] ?? '')) {
+                    $res .= ' (' . trim($row['comment'] ?? '') . ')';
                 }
             }
         } else {
@@ -347,6 +351,7 @@ class doc_Linked extends core_Manager
             return ;
         }
         
+        $className = '';
         if (Mode::is('screenMode', 'wide')) {
             $className = 'floatedElement';
         }
@@ -392,8 +397,8 @@ class doc_Linked extends core_Manager
 
             $val = $row['docLink'];
             
-            if (trim($row['comment'])) {
-                $val .= ' (' . trim($row['comment']) . ')';
+            if (trim($row['comment'] ?? '')) {
+                $val .= ' (' . trim($row['comment'] ?? '') . ')';
             }
             
             $checked = '';
@@ -426,7 +431,7 @@ class doc_Linked extends core_Manager
         
         Mode::setPermanent('linked_' . $hash, $rId);
         
-        list($outType, $outVal, $uId) = explode('_', $hStr);
+        list($outType, $outVal, $uId) = explode('_', $hStr) + array('', '', '');
         
         expect($uId == core_Users::getCurrent());
         
@@ -436,19 +441,19 @@ class doc_Linked extends core_Manager
         
         expect($lRec);
         
-        expect($lRec->state != 'rejected');
+        expect(($lRec->state ?? null) != 'rejected');
         
-        $inType = $lRec->inType;
-        $inVal = $lRec->inVal;
+        $inType = $lRec->inType ?? null;
+        $inVal = $lRec->inVal ?? null;
         
         // Ако е връзка към
-        if (($lRec->outType != $outType) || ($lRec->outVal != $outVal)) {
-            expect(($lRec->inType == $outType) && ($lRec->inVal == $outVal));
+        if ((($lRec->outType ?? null) != $outType) || (($lRec->outVal ?? null) != $outVal)) {
+            expect((($lRec->inType ?? null) == $outType) && (($lRec->inVal ?? null) == $outVal));
             
             $outType = $inType;
             $outVal = $inVal;
-            $inType = $lRec->outType;
-            $inVal = $lRec->outVal;
+            $inType = $lRec->outType ?? null;
+            $inVal = $lRec->outVal ?? null;
         }
         
         $pUrl = core_Request::get('pUrl');
@@ -729,11 +734,12 @@ class doc_Linked extends core_Manager
             $form->FNC('linkDocType', 'class(interface=doc_DocumentIntf,select=title,allowEmpty)', 'caption=Вид, class=w100, input, removeAndRefreshForm=linkContainerId|linkFolderId');
             $form->input();
             
+            $unsetStr = '';
             if ($type == 'doc' && $originFId) {
                 $unsetStr = ",unsetId={$originFId}";
             }
             
-            $form->FNC('linkFolderId', 'key2(forceAjax, mvc=doc_FoldersProxy, titleFld=title, maxSuggestions=100, selectSourceArr=doc_Linked::prepareFoldersForDoc, allowEmpty, docType=' . ($form->rec->linkDocType ?? '') . ", showWithDocs{$unsetStr})", 'caption=Папка, class=w100, input, removeAndRefreshForm=linkContainerId');
+            $form->FNC('linkFolderId', 'key2(forceAjax, mvc=doc_Folders,forceReplica, titleFld=title, maxSuggestions=100, selectSourceArr=doc_Linked::prepareFoldersForDoc, allowEmpty, docType=' . ($form->rec->linkDocType ?? '') . ", showWithDocs{$unsetStr})", 'caption=Папка, class=w100, input, removeAndRefreshForm=linkContainerId');
             $form->input();
 
             $form->FNC('linkContainerId', 'key2(forceAjax, mvc=doc_Search, titleFld=id, maxSuggestions=100, selectSourceArr=doc_Linked::prepareLinkDocId, allowEmpty, docType=' . ($form->rec->linkDocType ?? '') . ', folderId=' . ($form->rec->linkFolderId ?? '') . "{$unsetStr})", 'caption=Документ, class=w100, input, mandatory, refreshForm');
@@ -756,20 +762,20 @@ class doc_Linked extends core_Manager
             $form->input();
             
             if (!empty($form->rec->linkDocType)) {
-                $form->FNC('linkFolderId', 'key2(forceAjax, mvc=doc_FoldersProxy, titleFld=title, maxSuggestions=100, selectSourceArr=doc_Linked::prepareFoldersForDoc, allowEmpty, docType=' . $form->rec->linkDocType . ')', 'caption=Папка, class=w100, input, mandatory, removeAndRefreshForm=linkThreadId');
+                $form->FNC('linkFolderId', 'key2(forceAjax, mvc=doc_Folders,forceReplica, titleFld=title, maxSuggestions=100, selectSourceArr=doc_Linked::prepareFoldersForDoc, allowEmpty, docType=' . $form->rec->linkDocType . ')', 'caption=Папка, class=w100, input, mandatory, removeAndRefreshForm=linkThreadId');
                 $form->input();
                 
                 $dInst = cls::get($form->rec->linkDocType);
                 
                 // Ако документа може да се създаде в съществуваща нишка, показваме избор
-                if (!empty($form->rec->linkFolderId) && !$dInst->onlyFirstInThread) {
+                if (!empty($form->rec->linkFolderId) && empty($dInst->onlyFirstInThread)) {
                     $mandatory = '';
                     
                     if (!$dInst->canAddToFolder($form->rec->linkFolderId) || !$dInst->haveRightFor('add', (object) array('folderId' => $form->rec->linkFolderId))) {
                         $mandatory = ' ,mandatory';
                     }
                     
-                    $form->FNC('linkThreadId', 'key2(forceAjax, mvc=doc_ThreadsProxy, titleFld=firstContainerId, maxSuggestions=100, selectSourceArr=doc_Linked::prepareThreadsForDoc, allowEmpty, docType=' . $form->rec->linkDocType . ', folderId=' . $form->rec->linkFolderId . ')', "caption=Нишка, class=w100, input, refreshForm{$mandatory}");
+                    $form->FNC('linkThreadId', 'key2(forceAjax, mvc=doc_Threads,forceReplica, titleFld=firstContainerId, maxSuggestions=100, selectSourceArr=doc_Linked::prepareThreadsForDoc, allowEmpty, docType=' . $form->rec->linkDocType . ', folderId=' . $form->rec->linkFolderId . ')', "caption=Нишка, class=w100, input, refreshForm{$mandatory}");
                 }
             }
         }
@@ -780,7 +786,7 @@ class doc_Linked extends core_Manager
             
             if ($docType instanceof email_Outgoings) {
                 $cRec = doc_Containers::fetch($originFId);
-                if ($cRec->folderId) {
+                if (!empty($cRec->folderId)) {
                     $cover = doc_Folders::getCover($cRec->folderId);
                     if ($cover->that && ($cover->instance instanceof doc_UnsortedFolders)) {
                         $cFolderId = $cover->instance->fetchField($cover->that, 'contragentFolderId');
@@ -817,15 +823,15 @@ class doc_Linked extends core_Manager
         $nRec->actType = $actType;
         $nRec->outType = $type;
         $nRec->outVal = $originFId;
-        $nRec->comment = $form->rec->comment;
+        $nRec->comment = $form->rec->comment ?? null;
         $nRec->state = 'active';
         
         if ($act == 'linkDoc') {
             $nRec->inType = 'doc';
-            $nRec->inVal = $form->rec->linkContainerId;
+            $nRec->inVal = $form->rec->linkContainerId ?? null;
         } elseif ($act == 'linkFile') {
             $nRec->inType = 'file';
-            $nRec->inVal = fileman_Files::fetchByFh($form->rec->linkFileId)->id;
+            $nRec->inVal = fileman_Files::fetchByFh($form->rec->linkFileId ?? '')->id ?? null;
         } elseif ($act == 'newDoc') {
             
             // Ако се създава нов документ, записваме в кеша и след създаване добавяме запис
@@ -833,7 +839,7 @@ class doc_Linked extends core_Manager
             $nRec->inType = 'doc';
             
             if (empty($rUrl)) {
-                $url = array(cls::get($form->rec->linkDocType), 'add', 'folderId' => $form->rec->linkFolderId);
+                $url = array(cls::get($form->rec->linkDocType ?? null), 'add', 'folderId' => $form->rec->linkFolderId ?? null);
             } else {
                 $url = $rUrl;
             }
@@ -859,7 +865,7 @@ class doc_Linked extends core_Manager
         if (!$this->isUnique($nRec, $fieldsArr)) {
             $form->setError($fieldsArr, 'Вече съществува такава връзка');
         } else {
-            if ($nRec->inVal && ($nRec->inType == $nRec->outType) && ($nRec->inVal == $nRec->outVal)) {
+            if (!empty($nRec->inVal) && ($nRec->inType == $nRec->outType) && ($nRec->inVal == $nRec->outVal)) {
                 $errMsg = 'Избрали сте същия ';
                 if ($nRec->inType == 'doc') {
                     $errMsg .= 'документ';
@@ -891,20 +897,20 @@ class doc_Linked extends core_Manager
         $rec = $this->fetchRec($rec);
         try {
             $strType = 'документ';
-            if ($rec->outType == 'doc') {
-                if ($rec->inType == 'file') {
+            if (($rec->outType ?? null) == 'doc') {
+                if (($rec->inType ?? null) == 'file') {
                     $strType = 'файл';
                 }
-                $outDoc = doc_Containers::getDocument($rec->outVal);
+                $outDoc = doc_Containers::getDocument($rec->outVal ?? null);
                 $outDoc->instance->logRead("{$actType} връзка към {$strType}", $outDoc->that);
             }
 
             $strType = 'документ';
-            if ($rec->inType == 'doc') {
-                if ($rec->outType == 'file') {
+            if (($rec->inType ?? null) == 'doc') {
+                if (($rec->outType ?? null) == 'file') {
                     $strType = 'файл';
                 }
-                $inDoc = doc_Containers::getDocument($rec->inVal);
+                $inDoc = doc_Containers::getDocument($rec->inVal ?? null);
                 $inDoc->instance->logRead("{$actType} връзка от {$strType}", $inDoc->that);
             }
         } catch (core_exception_Expect $e) {
@@ -966,7 +972,7 @@ class doc_Linked extends core_Manager
             }
         }
         
-        $query = doc_LinkedProxy::getQuery();
+        $query = self::getQuery();
         $query->where("#state = 'active'");
         $query->orderBy('createdOn', 'DESC');
         $query->limit($qLimit);
@@ -998,7 +1004,7 @@ class doc_Linked extends core_Manager
             $query->where(array("#cDocClass = '[#1#]'", $docClsId));
         } elseif ($type == 'file') {
             $fRec = fileman_Files::fetch($docId);
-            $ext = fileman_Files::getExt($fRec->name);
+            $ext = fileman_Files::getExt($fRec->name ?? '');
             $query->EXT('fileName', 'fileman_Files', 'externalKey=outVal, externalName=name');
             
             $mimeType = fileman_Mimes::getMimeByExt($ext);
@@ -1019,7 +1025,7 @@ class doc_Linked extends core_Manager
             
             $or = false;
             foreach ($extArr as $ext) {
-                $ext = mb_strtolower($ext);
+                $ext = mb_strtolower($ext ?? '');
                 $ext = trim($ext);
                 
                 if (!$ext) {
@@ -1057,8 +1063,9 @@ class doc_Linked extends core_Manager
         $actStr = '';
         foreach ($qArr as $q) {
             $actTypeArr = array();
+            $q->selectOnReplica();
             while ($rec = $q->fetch()) {
-                if (!$rec->actType) {
+                if (empty($rec->actType)) {
                     continue;
                 }
                 $actTypeArr[$rec->actType] = ($actTypeArr[$rec->actType] ?? 0) + 1;
@@ -1148,30 +1155,30 @@ class doc_Linked extends core_Manager
                             continue;
                         }
                         
-                        if ($cRec->state == 'rejected') {
+                        if (($cRec->state ?? null) == 'rejected') {
                             continue;
                         }
                         
                         if (!empty($params['docType'])) {
-                            if ($cRec->docClass != $params['docType']) {
+                            if (($cRec->docClass ?? null) != $params['docType']) {
                                 continue;
                             }
                         }
 
                         if (!empty($params['folderId'])) {
-                            if ($cRec->folderId != $params['folderId']) {
+                            if (($cRec->folderId ?? null) != $params['folderId']) {
                                 continue;
                             }
                         }
 
                         if (!empty($params['unsetId'])) {
-                            if ($cRec->id == $params['unsetId']) {
+                            if (($cRec->id ?? null) == $params['unsetId']) {
                                 continue;
                             }
                         }
                         
                         try {
-                            if (!isset($cRec->docClass)) {
+                            if (!isset($cRec->docClass, $cRec->docId)) {
 
                                 continue;
                             }
@@ -1185,15 +1192,15 @@ class doc_Linked extends core_Manager
                             $title = '';
                             if (isset($cRec->docId)) {
                                 $oRow = $dInst->getDocumentRow($cRec->docId);
-                                $title = $oRow->recTitle ? $oRow->recTitle : $oRow->title;
+                                $title = !empty($oRow->recTitle) ? $oRow->recTitle : ($oRow->title ?? '');
                                 $title = trim($title);
                                 $title = str::limitLen($title, self::$titleLen);
                             }
                             
                             if ($title) {
-                                $sArr[$cRec->id] = $title . ' (' . $dInst->getHandle($cRec->docId) . ')';
+                                $sArr[$cRec->id ?? null] = $title . ' (' . $dInst->getHandle($cRec->docId) . ')';
                             } else {
-                                $sArr[$cRec->id] = $dInst->getHandle($cRec->docId);
+                                $sArr[$cRec->id ?? null] = $dInst->getHandle($cRec->docId);
                             }
                             
                         } catch (core_exception_Expect $e) {
@@ -1225,7 +1232,7 @@ class doc_Linked extends core_Manager
         $cQuery->orderBy('modifiedOn', 'DESC');
         
         while ($cRec = $cQuery->fetchAndCache()) {
-            if (!empty($sArr[$cRec->id])) {
+            if (!empty($sArr[$cRec->id ?? null])) {
                 continue;
             }
             
@@ -1233,10 +1240,10 @@ class doc_Linked extends core_Manager
                 if (isset($cRec->docClass) && isset($cRec->docId)) {
                     $dInst = cls::get($cRec->docClass);
                     $oRow = $dInst->getDocumentRow($cRec->docId);
-                    $title = $oRow->recTitle ? $oRow->recTitle : $oRow->title;
+                    $title = !empty($oRow->recTitle) ? $oRow->recTitle : ($oRow->title ?? '');
                     $title = trim($title);
                     $title = str::limitLen($title, self::$titleLen);
-                    $sArr[$cRec->id] = $title . ' (' . $dInst->getHandle($cRec->docId) . ')';
+                    $sArr[$cRec->id ?? null] = $title . ' (' . $dInst->getHandle($cRec->docId) . ')';
                 }
             } catch (core_exception_Expect $e) {
                 reportException($e);
@@ -1293,7 +1300,7 @@ class doc_Linked extends core_Manager
             $query->where("#id = {$onlyIds}");
         }
         
-        $titleFld = $params['titleFld'];
+        $titleFld = $params['titleFld'] ?? 'title';
         
         $show = "id,class,{$titleFld}";
         
@@ -1309,7 +1316,7 @@ class doc_Linked extends core_Manager
                 $strict = true;
             }
             
-            $q = trim(preg_replace("/[^a-z0-9\p{L}]+/ui", ' ', $q));
+            $q = trim(preg_replace("/[^a-z0-9\p{L}]+/ui", ' ', $q) ?? '');
             
             $q = mb_strtolower($q);
             
@@ -1338,7 +1345,7 @@ class doc_Linked extends core_Manager
                         }
                         
                         if ($docTypeInst) {
-                            if ($docTypeInst->onlyFirstInThread && (!$docTypeInst->canAddToFolder($fId) || !$docTypeInst->haveRightFor('add', (object) array('folderId' => $fId)))) {
+                            if (!empty($docTypeInst->onlyFirstInThread) && (!$docTypeInst->canAddToFolder($fId) || !$docTypeInst->haveRightFor('add', (object) array('folderId' => $fId)))) {
                                 continue;
                             }
                         }
@@ -1349,7 +1356,7 @@ class doc_Linked extends core_Manager
                             continue;
                         }
                         
-                        if (($fRec->state == 'rejected') || ($fRec->state == 'closed')) {
+                        if ((($fRec->state ?? null) == 'rejected') || (($fRec->state ?? null) == 'closed')) {
                             continue;
                         }
                         
@@ -1358,10 +1365,10 @@ class doc_Linked extends core_Manager
                         }
                         
                         $fTitle = doc_Folders::fetchField($fId, 'title');
-                        $fTitle = trim($fTitle);
+                        $fTitle = trim($fTitle ?? '');
                         $fTitle = str::limitLen($fTitle, self::$titleLen);
                         
-                        if ($fRec->coverClass) {
+                        if (!empty($fRec->coverClass)) {
                             $clsTitle = core_Classes::fetchField($fRec->coverClass, 'title');
                             $fTitle .= ' (' . $clsTitle . ')';
                         }
@@ -1373,8 +1380,8 @@ class doc_Linked extends core_Manager
         }
 
         // Ако е зададено да се показват папките в които има такива документи
-        if ($params['showWithDocs'] && $docTypeInst) {
-            $pKey = 'linkedDocFolders_' . substr(md5($docTypeInst->className . '|' . core_Users::getCurrent()), 0, 8) . '|' . $params['unsetId'];
+        if (!empty($params['showWithDocs']) && $docTypeInst) {
+            $pKey = 'linkedDocFolders_' . substr(md5($docTypeInst->className . '|' . core_Users::getCurrent()), 0, 8) . '|' . ($params['unsetId'] ?? '');
             
             $cacheTime = 5;
             
@@ -1382,7 +1389,7 @@ class doc_Linked extends core_Manager
             $fArr = core_Permanent::get($pKey, $minCreatedOn);
 
             if (!isset($fArr) || !is_array($fArr)) {
-                $docTypeInst->forceProxy($docTypeInst->className);
+                $docTypeInst->forceReplica($docTypeInst->className);
                 $dQuery = $docTypeInst->getQuery();
                 
                 $dQuery->where("#state != 'rejected'");
@@ -1399,13 +1406,13 @@ class doc_Linked extends core_Manager
 
                 $dQuery->limit(10000);
 
-                if ($docTypeInst->fields['modifiedOn']) {
+                if (!empty($docTypeInst->fields['modifiedOn'])) {
                     $dQuery->where(array("#modifiedOn > '[#1#]'", dt::addMonths(-1)));
                 }
 
                 $fArr = array();
                 while ($dRec = $dQuery->fetch()) {
-                    $fArr[$dRec->folderId] = $dRec->folderId;
+                    $fArr[$dRec->folderId ?? null] = $dRec->folderId ?? null;
                 }
                 
                 core_Permanent::set($pKey, $fArr, $cacheTime);
@@ -1444,12 +1451,12 @@ class doc_Linked extends core_Manager
                 break;
             }
 
-            if (!empty($res[$rec->id])) {
+            if (!empty($res[$rec->id ?? null])) {
                 continue;
             }
 
             if ($docTypeInst) {
-                if ($docTypeInst->onlyFirstInThread && (!$docTypeInst->canAddToFolder($rec->id) || !$docTypeInst->haveRightFor('add', (object) array('folderId' => $rec->id)))) {
+                if (!empty($docTypeInst->onlyFirstInThread) && (!$docTypeInst->canAddToFolder($rec->id ?? null) || !$docTypeInst->haveRightFor('add', (object) array('folderId' => $rec->id ?? null)))) {
                     continue;
                 }
             }
@@ -1458,10 +1465,10 @@ class doc_Linked extends core_Manager
                 break;
             }
             
-            $title = trim($rec->{$titleFld});
+            $title = trim($rec->{$titleFld} ?? '');
             $title = str::limitLen($title, self::$titleLen);
             
-            $res[$rec->id] = $title . ' (' . $rec->class . ')';
+            $res[$rec->id ?? null] = $title . ' (' . ($rec->class ?? '') . ')';
         }
         
         return $res;
@@ -1483,12 +1490,13 @@ class doc_Linked extends core_Manager
     {
         $limit = $limit ?? $params['maxSuggestions'] ?? 100;
         $res = array();
+        $docTypeInst = null;
         
         if (!empty($params['docType'])) {
             $docTypeInst = cls::get($params['docType']);
         }
         
-        $folderId = $params['folderId'];
+        $folderId = $params['folderId'] ?? null;
 
         $cInst = cls::get($params['mvc']);
         $query = $cInst->getQuery();
@@ -1538,7 +1546,7 @@ class doc_Linked extends core_Manager
                         }
                         
                         if ($docTypeInst) {
-                            if ($docTypeInst->onlyFirstInThread || !$docTypeInst->canAddToThread($tId)) {
+                            if (!empty($docTypeInst->onlyFirstInThread) || !$docTypeInst->canAddToThread($tId)) {
                                 continue;
                             }
                             
@@ -1555,11 +1563,11 @@ class doc_Linked extends core_Manager
                             continue;
                         }
                         
-                        if ($tRec->state == 'rejected') {
+                        if (($tRec->state ?? null) == 'rejected') {
                             continue;
                         }
                         
-                        if ($folderId && $tRec->folderId != $folderId) {
+                        if ($folderId && ($tRec->folderId ?? null) != $folderId) {
                             continue;
                         }
                         
@@ -1567,14 +1575,14 @@ class doc_Linked extends core_Manager
                             continue;
                         }
                         
-                        if ($tRec->firstDocClass) {
+                        if (!empty($tRec->firstDocClass)) {
                             try {
                                 $title = '';
                                 if (isset($tRec->firstDocClass) && isset($tRec->firstDocId)) {
                                     $dInst = cls::get($tRec->firstDocClass);
 
                                     $oRow = $dInst->getDocumentRow($tRec->firstDocId);
-                                    $title = $oRow->recTitle ? $oRow->recTitle : $oRow->title;
+                                    $title = !empty($oRow->recTitle) ? $oRow->recTitle : ($oRow->title ?? '');
                                     $title = trim($title);
                                     $title = str::limitLen($title, self::$titleLen);
                                 }
@@ -1595,16 +1603,16 @@ class doc_Linked extends core_Manager
         $query->orderBy('last', 'DESC');
         
         while ($rec = $query->fetch()) {
-            if (!empty($res[$rec->id])) {
+            if (!empty($res[$rec->id ?? null])) {
                 continue;
             }
             
             if ($docTypeInst) {
-                if ($docTypeInst->onlyFirstInThread || !$docTypeInst->canAddToThread($rec->id)) {
+                if (!empty($docTypeInst->onlyFirstInThread) || !$docTypeInst->canAddToThread($rec->id ?? null)) {
                     continue;
                 }
                 
-                if (!$docTypeInst->haveRightFor('add', (object) array('threadId' => $rec->id))) {
+                if (!$docTypeInst->haveRightFor('add', (object) array('threadId' => $rec->id ?? null))) {
                     continue;
                 }
             }
@@ -1613,15 +1621,15 @@ class doc_Linked extends core_Manager
                 break;
             }
             
-            $title = $rec->id;
+            $title = $rec->id ?? null;
             
-            if ($rec->firstDocClass) {
+            if (!empty($rec->firstDocClass)) {
                 try {
                     if (isset($rec->firstDocClass) && isset($rec->firstDocId)) {
                         $dInst = cls::get($rec->firstDocClass);
 
                         $oRow = $dInst->getDocumentRow($rec->firstDocId);
-                        $title = $oRow->recTitle ? $oRow->recTitle : $oRow->title;
+                        $title = !empty($oRow->recTitle) ? $oRow->recTitle : ($oRow->title ?? '');
                         $title = trim($title);
                         $title = str::limitLen($title, self::$titleLen);
                     }
@@ -1630,7 +1638,7 @@ class doc_Linked extends core_Manager
                 }
             }
             
-            $res[$rec->id] = $title;
+            $res[$rec->id ?? null] = $title;
         }
         
         return $res;
@@ -1665,7 +1673,7 @@ class doc_Linked extends core_Manager
         
         $resArr = array();
         while ($rRec = $rQuery->fetch()) {
-            if (!$rRec->{$show}) {
+            if (empty($rRec->{$show})) {
                 continue;
             }
             $resArr[$rRec->{$show}] = $rRec->{$show};
@@ -1688,6 +1696,9 @@ class doc_Linked extends core_Manager
      */
     protected static function getVerbalLinkForType($type, $valId, &$comment = null, $getUrlWithAccess = false, &$linkUrl = array())
     {
+        $link = null;
+        $attr = array();
+
         if ($type == 'doc') {
             try{
                 if (!isset($valId)) {
@@ -1711,14 +1722,13 @@ class doc_Linked extends core_Manager
                 }
                 
                 // Атрибутеите на линка
-                $attr = array();
                 $attr['ef_icon'] = $doc->getIcon($doc->that);
-                $attr['title'] = 'Документ|*: ' . $docRow->title;
+                $attr['title'] = 'Документ|*: ' . ($docRow->title ?? '');
                 
                 // Ако документа е оттеглен
                 $dRec = $doc->fetch();
-                $attr['class'] = 'state-' . $dRec->state;
-                if ($dRec->state == 'rejected') {
+                $attr['class'] = 'state-' . ($dRec->state ?? '');
+                if (($dRec->state ?? null) == 'rejected') {
                     $attr['style'] = 'text-decoration: line-through; color: #666;';
                 }
                 $comment = $doc->getDefaultLinkedComment($comment);
@@ -1731,8 +1741,10 @@ class doc_Linked extends core_Manager
             $folderId = doc_Containers::fetchField($valId, 'folderId');
             if ($folderId && doc_Folders::haveRightFor('single', $folderId)) {
                 $fRec = doc_Folders::fetch($folderId);
-                $fRec->title = str::limitLen($fRec->title, 52);
-                $link .= ' « <span class="small">' . doc_Folders::recToVerbal($fRec, 'title')->title . "</span>";
+                if ($fRec) {
+                    $fRec->title = str::limitLen($fRec->title ?? '', 52);
+                    $link .= ' « <span class="small">' . (doc_Folders::recToVerbal($fRec, 'title')->title ?? '') . "</span>";
+                }
             }
         } elseif ($type == 'file') {
             $clsInst = cls::get('fileman_Files');
@@ -1768,7 +1780,7 @@ class doc_Linked extends core_Manager
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
         // Ако се радактира записа, само коментара да може да се сменя
-        if ($data->form->rec->id) {
+        if (!empty($data->form->rec->id)) {
             $data->form->setField('outType', 'input=none');
             $data->form->setField('outVal', 'input=none');
             $data->form->setField('inType', 'input=none');
@@ -1786,8 +1798,8 @@ class doc_Linked extends core_Manager
      */
     public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
-        if ($rec->outType == 'doc') {
-            $doc = doc_Containers::getDocument($rec->outVal);
+        if (($rec->outType ?? null) == 'doc') {
+            $doc = doc_Containers::getDocument($rec->outVal ?? null);
             $doc->touchRec();
             $dRec = $doc->fetch();
             if ($dRec) {
@@ -1795,8 +1807,8 @@ class doc_Linked extends core_Manager
             }
         }
         
-        if ($rec->inType == 'doc') {
-            $doc = doc_Containers::getDocument($rec->inVal);
+        if (($rec->inType ?? null) == 'doc') {
+            $doc = doc_Containers::getDocument($rec->inVal ?? null);
             $doc->touchRec();
             $dRec = $doc->fetch();
             if ($dRec) {
@@ -1821,19 +1833,19 @@ class doc_Linked extends core_Manager
 
         foreach ((array)$rArr as $rRec) {
             foreach (array('inType' => 'inVal', 'outType' => 'outVal') as $item => $itemVal) {
-                if ($rRec->{$item} == 'doc') {
+                if (($rRec->{$item} ?? null) == 'doc') {
                     // Прескачаме, когато е за същият документ
-                    if ($rRec->{$itemVal} == $id) {
+                    if (($rRec->{$itemVal} ?? null) == $id) {
 
                         continue;
                     }
-                    $doc = doc_Containers::getDocument($rRec->{$itemVal});
+                    $doc = doc_Containers::getDocument($rRec->{$itemVal} ?? null);
                     $dRow = $doc->getDocumentRow();
                     if ($dRow) {
-                        $sKeywords .= $dRow->recTitle ? $dRow->recTitle : $dRow->title;
+                        $sKeywords .= !empty($dRow->recTitle) ? $dRow->recTitle : ($dRow->title ?? '');
                         $sKeywords .= ' ';
                     }
-                    if ($dRow->subTitle) {
+                    if (!empty($dRow->subTitle)) {
                         $sKeywords .= strip_tags($dRow->subTitle) . ' ';
                     }
 
@@ -1843,12 +1855,12 @@ class doc_Linked extends core_Manager
                     }
                 }
 
-                if ($rRec->{$item} == 'file') {
-                    $fRec = fileman_Files::fetch($rRec->{$itemVal});
-                    $sKeywords .= $fRec->name . ' ';
+                if (($rRec->{$item} ?? null) == 'file') {
+                    $fRec = fileman_Files::fetch($rRec->{$itemVal} ?? null);
+                    $sKeywords .= ($fRec->name ?? '') . ' ';
                 }
 
-                if ($rRec->comment) {
+                if (!empty($rRec->comment)) {
                     $sKeywords .= $rRec->comment . ' ';
                 }
             }

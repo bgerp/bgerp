@@ -385,8 +385,8 @@ class email_Router extends core_Manager
                 unset($rec->threadId);
             }
         }
-        
-        return $rec->folderId;
+
+        return $rec->folderId ?? null;
     }
     
     
@@ -402,8 +402,8 @@ class email_Router extends core_Manager
     {
         $rRoute = (email_Setup::get('RESTRICT_ROUTE') == 'yes') ? true : false;
         
-        $threadId = $rec->threadId;
-        $folderId = $rec->folderId;
+        $threadId = $rec->threadId ?? null;
+        $folderId = $rec->folderId ?? null;
         
         if (!$folderId && $threadId) {
             $folderId = doc_Threads::fetchField($threadId, 'folderId');
@@ -652,7 +652,7 @@ class email_Router extends core_Manager
             // ако е зададено кой да е отговорника взимаме него, иначе отговорника
             // трябва да е отговорника на кутията, до която е изпратено писмото, ако не е зададено в конфига
             
-            if (!($inChargeUserId = $rec->inCharge)) {
+            if (!($inChargeUserId = $rec->inCharge ?? null)) {
                 $inChargeUserId = email_Setup::get('UNSORTABLE_INCHARGE');
                 $inChargeUserId = trim($inChargeUserId);
                 

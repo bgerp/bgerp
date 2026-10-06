@@ -392,7 +392,7 @@ class eshop_Products extends core_Master
                 $dRec->recId = $dRec->id;
                 $dRow = eshop_ProductDetails::getExternalRow($dRec);
 
-                if($dRow->btnInquiry instanceof core_ET){
+                if(($dRow->btnInquiry ?? null) instanceof core_ET){
                     $row->coInquiry = $dRow->btnInquiry;
                 }
             }
@@ -658,6 +658,61 @@ class eshop_Products extends core_Master
     
     
     /**
+     * Е-артикулите от заявката, без скритите заради липса на цени
+     *
+     * @param core_Query $pQuery    - заявка по е-артикулите
+     * @param int        $groupId   - показваната група
+     * @param array      $groupRecs - групите, в които се показват (ид => запис); празно - основната група на е-артикула
+     *
+     * @return array
+     */
+    private static function fetchGroupListRecs($pQuery, $groupId, $groupRecs = array())
+    {
+        $pQuery->XPR('cOrder', 'double', "IF(#groupId = {$groupId}, #saoOrder, 999999999)");
+        $pQuery->EXT('showProductsWithoutPrices', 'eshop_Groups', "externalName=showProductsWithoutPrices,externalKey=groupId");
+        $pQuery->orderBy('cOrder,code');
+
+        $recs = array();
+        $haveDebug = haveRole('debug');
+        $settings = cms_Domains::getSettings();
+        while($pRec1 = $pQuery->fetch()){
+            $showValues = array($pRec1->showProductsWithoutPrices);
+            if(countR($groupRecs)){
+
+                // Важи настройката на групата, в която е показан; от няколко подгрупи стига една да го показва
+                $inGroups = array($pRec1->groupId => $pRec1->groupId) + keylist::toArray($pRec1->sharedInGroups ?? '');
+                $showValues = arr::extractValuesFromArray(array_intersect_key($groupRecs, $inGroups), 'showProductsWithoutPrices');
+            }
+
+            $pRec1->showProductsWithoutPrices = 'no';
+            foreach ($showValues as $showValue){
+                if((($showValue == 'auto') ? ($settings->showProductsWithoutPrices ?? 'yes') : $showValue) != 'no'){
+                    $pRec1->showProductsWithoutPrices = 'yes';
+                    break;
+                }
+            }
+            if(self::isHiddenWithoutPrices($pRec1) && !$haveDebug) continue;
+            $recs[$pRec1->id] = $pRec1;
+        }
+
+        return $recs;
+    }
+
+
+    /**
+     * Дали е-артикулът е само за купуване, без цени и групата му крие такива
+     *
+     * @param stdClass $rec
+     *
+     * @return bool
+     */
+    private static function isHiddenWithoutPrices($rec)
+    {
+        return $rec->showProductsWithoutPrices == 'no' && $rec->detailActions == 'onlySell' && $rec->haveProductsWithPrice == 'no' && empty($rec->coDriver);
+    }
+
+
+    /**
      * Подготвя данните за артикулите от една група
      */
     public static function prepareGroupList($data)
@@ -688,39 +743,88 @@ class eshop_Products extends core_Master
                 $pQuery->where("1=2");
             }
             $perPage = null;
+        } elseif($data->groupId == eshop_Groups::SEARCH_SYSTEM_ID){
+
+            // Намерените е-артикули от групите на менюто - най-широкото от търсенията в eshop_Groups::getSearchResults()
+            $gQuery = eshop_Groups::getQuery();
+            $gQuery->where(array("#state = 'active' AND (#menuId = '[#1#]' OR LOCATE('|[#1#]|', #sharedMenus))", $data->menuId));
+            $gQuery->show('id');
+            $groupIds = arr::extractValuesFromArray($gQuery->fetchAll(), 'id');
+
+            $pQuery->where("#state = 'active' AND #saleState != 'closed'");
+            if (countR($groupIds) && strlen($data->q ?? '')) {
+                $pQuery->in('groupId', $groupIds);
+                $pQuery->orLikeKeylist('sharedInGroups', keylist::fromArray($groupIds));
+                plg_Search::applySearch($data->q, $pQuery, null, 3);
+            } else {
+                $pQuery->where("1=2");
+            }
+            $perPage = eshop_Setup::get('PRODUCTS_PER_PAGE');
         } else {
             $displayedGroupRec = eshop_Groups::fetch($data->groupId);
-            $pQuery->where("#state = 'active' AND #saleState != 'closed' AND (#groupId = {$data->groupId} OR LOCATE('|{$data->groupId}|', #sharedInGroups))");
+            $groupRecs = array($data->groupId => $displayedGroupRec);
+
+            // Избраната група показва и е-артикулите от всички нива подгрупи
+            if(!empty($data->withSubgroups)){
+                $groupRecs += eshop_Groups::getSubgroups($data->groupId, $data->menuId);
+            }
+            $groupIds = array_keys($groupRecs);
+            $pQuery->where("#state = 'active' AND #saleState != 'closed'");
+            $pQuery->in('groupId', $groupIds);
+            $pQuery->orLikeKeylist('sharedInGroups', keylist::fromArray($groupIds));
             $perPage = eshop_Groups::fetchField($data->groupId, 'perPage');
             $perPage = !empty($perPage) ? $perPage : eshop_Setup::get('PRODUCTS_PER_PAGE');
         }
-        $pQuery->XPR('cOrder', 'double', "IF(#groupId = {$data->groupId}, #saoOrder, 999999999)");
-        $pQuery->EXT('showProductsWithoutPrices', 'eshop_Groups', "externalName=showProductsWithoutPrices,externalKey=groupId");
-        $pQuery->orderBy('cOrder,code');
+        $data->recs = self::fetchGroupListRecs($pQuery, $data->groupId, is_object($displayedGroupRec) ? $groupRecs : array());
 
-        $haveDebug = haveRole('debug');
-        $settings = cms_Domains::getSettings();
-        while($pRec1 = $pQuery->fetch()){
-            $showProductsWithoutPrices = is_object($displayedGroupRec) ? $displayedGroupRec->showProductsWithoutPrices : $pRec1->showProductsWithoutPrices;
-            $pRec1->showProductsWithoutPrices = ($showProductsWithoutPrices == 'auto') ? ($settings->showProductsWithoutPrices ?? 'yes') : $showProductsWithoutPrices;
-            if($pRec1->showProductsWithoutPrices == 'no' && !$haveDebug) continue;
-            $data->recs[$pRec1->id] = $pRec1;
+        // Намерените се подреждат по рейтинг, както в бързото търсене
+        if($data->groupId == eshop_Groups::SEARCH_SYSTEM_ID && countR($data->recs)){
+            $rQuery = sales_ProductRatings::getQuery();
+            $rQuery->where(array("#classId = '[#1#]'", self::getClassId()));
+            $rQuery->in('objectId', array_keys($data->recs));
+            $rQuery->show('objectId,value');
+            $ratings = array();
+            while($rRec = $rQuery->fetch()){
+                $ratings[$rRec->objectId] = $rRec->value;
+            }
+            $positions = array_flip(array_keys($data->recs));
+            uksort($data->recs, function($a, $b) use ($ratings, $positions) {
+                $res = ($ratings[$b] ?? 0) <=> ($ratings[$a] ?? 0);
+
+                return $res ?: ($positions[$a] <=> $positions[$b]);
+            });
+        }
+
+        if (!empty($data->withParamFilter)) {
+            eshop_ParamFilter::prepare($data);
         }
 
         $data->Pager = cls::get('core_Pager', array('itemsPerPage' => $perPage));
         $data->Pager->itemsCount = countR($data->recs);
 
+        // Цените на опциите са към точен момент и заобикалят price_Cache - правилата се зареждат накуп
+        if(countR($data->recs)){
+            $optQuery = eshop_ProductDetails::getQuery();
+            $optQuery->in('eshopProductId', array_keys($data->recs));
+            $optQuery->where("#state = 'active'");
+            $optQuery->show('productId');
+            eshop_ProductDetails::preloadPublicPrices(arr::extractValuesFromArray($optQuery->fetchAll(), 'productId'));
+        }
+
+        $haveDebug = haveRole('debug');
+        $settings = cms_Domains::getSettings();
+        list($thumbWidth, $thumbHeight) = cms_ProtoTheme::getCurrent()->productThumbSize;
         foreach ($data->recs as $pRec) {
             if (!$data->Pager->isOnPage()) continue;
 
             $pRow = self::recToVerbal($pRec, 'name,info,image,code,coMoq');
-            if($haveDebug && ($pRec->showProductsWithoutPrices == 'no' && $pRec->detailActions == 'onlySell' && $pRec->haveProductsWithPrice == 'no' && empty($pRec->coDriver))){
+            if($haveDebug && self::isHiddenWithoutPrices($pRec)){
                 $pRow->CLASS = 'eshopHiddenRow';
             }
 
             // Показване на тъмбнейл на артикула
             $pRow->_id = $pRec->id;
-            $thumb = static::getProductThumb($pRec);
+            $thumb = static::getProductThumb($pRec, $thumbWidth, $thumbHeight);
             $pRow->image = $thumb->createImg(array('class' => 'eshop-product-image'));
 
             // Кои от детайлите отговарят на разрешените опаковки (ако има)
@@ -775,11 +879,17 @@ class eshop_Products extends core_Master
                         $dRow = eshop_ProductDetails::getExternalRow($pRecClone);
 
                         $pRow->saleInfo = $dRow->saleInfo;
-                        $pRow->singleCurrencyId = $settings->currencyId ?? null;
-                        $pRow->chargeVat = (($settings->chargeVat ?? 'no') == 'yes') ? tr('с ДДС') : tr('без ДДС');
-                        $pRow->catalogPrice = "<b>" . $dRow->catalogPrice . "</b>";
-                        $pRow->packagingId = $dRow->packagingId;
-                        $pRow->btn = $dRow->btn;
+                        $pRow->btn = $dRow->btn ?? '';
+
+                        // ДДС и мярката са само до цена - спряната опция показва етикет вместо нея
+                        if (isset($dRow->orderPrice)) {
+                            $pRow->singleCurrencyId = $settings->currencyId ?? null;
+                            $pRow->chargeVat = (($settings->chargeVat ?? 'no') == 'yes') ? tr('с ДДС') : tr('без ДДС');
+                            $pRow->catalogPrice = "<b>" . $dRow->catalogPrice . "</b>";
+                            $pRow->packagingId = $dRow->packagingId;
+                        } elseif (!empty($dRow->catalogPrice)) {
+                            $pRow->btn = $dRow->catalogPrice . $pRow->btn;
+                        }
                     }
                 }
             } elseif ($saleState == 'multi') {
@@ -864,13 +974,13 @@ class eshop_Products extends core_Master
      */
     private function renderGroupListRow($data, $rec, $row)
     {
-        $pTpl = getTplFromFile(Mode::is('screenMode', 'narrow') ? 'eshop/tpl/ProductListGroupNarrow.shtml' : 'eshop/tpl/ProductListGroup.shtml');
+        $pTpl = getTplFromFile(cms_ProtoTheme::getCurrent()->getTemplate(Mode::is('screenMode', 'narrow') ? 'eshop/tpl/ProductListGroupNarrow.shtml' : 'eshop/tpl/ProductListGroup.shtml'));
         if ($this->haveRightFor('single', $rec)) {
             $row->singleLink = ht::createLink('', array('eshop_Products', 'single', $rec->id, 'ret_url' => true), false, 'ef_icon=img/16/globe.png,title=Разглеждане на Е-артикула');
         }
 
         if ($this->haveRightFor('edit', $rec)) {
-            $row->editLink = ht::createLink('', array('eshop_Products', 'edit', $rec->id, 'ret_url' => true), false, 'ef_icon=img/16/edit.png,title=Редактиране на Е-артикула');
+            $row->editLink = ht::createLink('', array('eshop_Products', 'edit', $rec->id, 'ret_url' => true), false, 'ef_icon=img/16/edit.png,title=Редактиране на Е-артикула,class=eshop-edit-link');
         }
 
         if ($data->groupId != $rec->groupId) {
@@ -936,7 +1046,7 @@ class eshop_Products extends core_Master
         }
 
         if (!empty($data->addUrl) && $data->groupId > 0) {
-            $layout->append(ht::createBtn('Нов продукт', $data->addUrl, null, null, array('style' => 'margin-top:15px;', 'ef_icon' => 'img/16/star_2.png')));
+            $layout->append(ht::createBtn('Нов продукт', $data->addUrl, null, null, array('class' => 'eshop-new-product', 'style' => 'margin-top:15px;', 'ef_icon' => 'img/16/star_2.png')));
         }
         
         $toggleLink = ht::createLink('', null, null, array('ef_icon' => 'img/menu.png', 'class' => 'toggleLink'));
@@ -1007,6 +1117,7 @@ class eshop_Products extends core_Master
         $tpl = eshop_Groups::getLayout();
         $tpl->append(eshop_Favourites::renderFavouritesBtnInNavigation(), 'NAVIGATION_FAV');
         $tpl->append(eshop_Carts::renderLastOrderedProductsBtnInNavigation(), 'NAVIGATION_OTHER_BTNS');
+        $tpl->append(eshop_ParamFilter::renderHint('Изберете група или потърсете в търсачката, за да се покажат филтрите'), 'NAVIGATION_FILTERS');
         $tpl->append(cms_Articles::renderNavigation($data->groups), 'NAVIGATION');
         
         // Поставяме SEO данните
@@ -1080,7 +1191,7 @@ class eshop_Products extends core_Master
         }
         
         if (self::haveRightFor('edit', $data->rec)) {
-            $data->row->editLink = ht::createLink('', array('eshop_Products', 'edit', $data->rec->id, 'ret_url' => true), false, 'ef_icon=img/16/edit.png,title=Редактиране на Е-артикула');
+            $data->row->editLink = ht::createLink('', array('eshop_Products', 'edit', $data->rec->id, 'ret_url' => true), false, 'ef_icon=img/16/edit.png,title=Редактиране на Е-артикула,class=eshop-edit-link');
         }
         
         Mode::set('SOC_TITLE', $data->row->name);
@@ -1182,9 +1293,9 @@ class eshop_Products extends core_Master
     public function renderProduct_($data)
     {
         if (Mode::is('screenMode', 'wide')) {
-            $tpl = getTplFromFile('eshop/tpl/ProductShow.shtml');
+            $tpl = getTplFromFile(cms_ProtoTheme::getCurrent()->getTemplate('eshop/tpl/ProductShow.shtml'));
         } else {
-            $tpl = getTplFromFile('eshop/tpl/ProductShowNarrow.shtml');
+            $tpl = getTplFromFile(cms_ProtoTheme::getCurrent()->getTemplate('eshop/tpl/ProductShowNarrow.shtml'));
         }
 
         $settings = cms_Domains::getSettings($data->rec->domainId);
@@ -1376,8 +1487,10 @@ class eshop_Products extends core_Master
         $form->setSuggestions('packagings', cat_Products::getPacks($productRec->id));
 
         Mode::push('text', 'plain');
+        Mode::push('imageAsFileBbcode', true);
         $description = cat_Products::getDescription($productRec->id, 'public')->getContent();
-        Mode::pop();
+        Mode::pop('imageAsFileBbcode');
+        Mode::pop('text');
 
         $description = html2text_Converter::toRichText($description);
         $description = cls::get('type_Richtext')->fromVerbal($description);

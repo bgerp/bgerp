@@ -6192,6 +6192,9 @@ class HTMLPurifier_Lexer
 
     // -- CONVENIENCE MEMBERS ---------------------------------------------
 
+    // PHP 8.2: declared instead of a dynamic property
+    protected $_entity_parser;
+
     public function __construct() {
         $this->_entity_parser = new HTMLPurifier_EntityParser();
     }
@@ -10753,6 +10756,9 @@ class HTMLPurifier_AttrTransform_Name extends HTMLPurifier_AttrTransform
 class HTMLPurifier_AttrTransform_NameSync extends HTMLPurifier_AttrTransform
 {
 
+    // PHP 8.2: declared instead of a dynamic property
+    public $idDef;
+
     public function __construct() {
         $this->idDef = new HTMLPurifier_AttrDef_HTML_ID();
     }
@@ -10864,6 +10870,8 @@ class HTMLPurifier_AttrTransform_SafeParam extends HTMLPurifier_AttrTransform
 {
     public $name = "SafeParam";
     private $uri;
+    // PHP 8.2: declared instead of a dynamic property (public like the cached definitions)
+    public $wmode;
 
     public function __construct() {
         $this->uri = new HTMLPurifier_AttrDef_URI(true); // embedded

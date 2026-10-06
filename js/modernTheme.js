@@ -397,6 +397,7 @@ function prepareTabs(currentTab, lastNotifyTime){
 
 	$swipeTabsContainer.slick({
 		slidesToShow: 2.4,
+		waitForAnimate: false,
 		slidesToScroll: 1,
 		arrows: false,
 		infinite: false,
@@ -407,6 +408,7 @@ function prepareTabs(currentTab, lastNotifyTime){
 
 	$swipeTabsContentContainer.slick({
 		asNavFor: $swipeTabsContainer,
+		waitForAnimate: false,
 		slidesToShow: 1,
 		slidesToScroll: 1,
 		arrows: false,
@@ -442,6 +444,8 @@ function prepareTabs(currentTab, lastNotifyTime){
 		currentIndex = $(this).slick('slickCurrentSlide');
 
 		var el = $(".swipe-tab[data-index='" + currentIndex + "']");
+		$swipeTabs.removeClass(activeTabClassName);
+		el.addClass(activeTabClassName);
 		if(el.hasClass('bgerp_drivers_Notifications')) {
 			setCookie('notifyTime', lastNotifyTime);
 		}

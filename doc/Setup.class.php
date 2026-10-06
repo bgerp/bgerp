@@ -44,6 +44,12 @@ defIfNot('DOC_SEARCH_LIMIT', 1000);
 
 
 /**
+ * Над колко записа бутонът "Всички" отваря търсенето по контейнери (0 изключва)
+ */
+defIfNot('DOC_ALL_SEARCH_LIMIT', 10000);
+
+
+/**
  * Време на отклонения за поправка на документ (в секунди)
  * Докумените създадени преди това време ще се проверяват за поправка
  */
@@ -282,6 +288,7 @@ class doc_Setup extends core_ProtoSetup
 
         'DOC_REPAIR_ALL' => array('enum(yes=Да (бавно), no=Не)', 'caption=Дали да се проверяват всички документи за поправка->Избор'),
         'DOC_SEARCH_LIMIT' => array('int(Min=0)', 'caption=Колко документ/нишки да се показват при търсене->Брой'),
+        'DOC_ALL_SEARCH_LIMIT' => array('int(min=0)', 'caption=Пренасочване на "Всички" към търсене по документи->Над брой,unit=документа (0 изключва)'),
 
         'DOC_NOTIFY_FOR_NEW_DOC' => array('enum(default=Автоматично, yes=Винаги, no=Никога)', 'caption=Известяване за добавен документ в нишка->Избор, customizeBy=powerUser'),
         'DOC_NOTIFY_NEW_DOC_TYPE' => array('keylist(mvc=core_Classes, select=title)', 'caption=Известяване при нов документ->Задължително, customizeBy=powerUser, optionsFunc=doc_Setup::getAllDocClassOptions'),
@@ -634,6 +641,8 @@ class doc_Setup extends core_ProtoSetup
         while ($rec = $query->fetch()) {
             try {
                 doc_Files::recalcFiles($rec->containerId);
+            } catch (core_exception_Redirect $e) {
+                throw $e;
             } catch (Exception $e) {
                 doc_Files::logDebug("Грешна на запис с cId = '{$rec->containerId}'", $rec->id);
             } catch (Throwable $t) {

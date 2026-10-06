@@ -139,7 +139,7 @@ class doc_FolderPlg extends core_Plugin
             }
             
             $tpl->append($data->ActionLog->pager->getHtml(), 'pager');
-            $tpl->append($data->ActionLog->actionLogLink, 'actionLogLink');
+            $tpl->append($data->ActionLog->actionLogLink ?? '', 'actionLogLink');
         } else {
             if (isset($data->masterData->History) && is_object($data->masterData->History)) {
                 $data->masterData->History->disabled = true;

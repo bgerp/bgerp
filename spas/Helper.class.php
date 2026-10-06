@@ -44,6 +44,8 @@ class spas_Helper extends core_Mvc
                 } catch (spas_client_Exception $e) {
                     $this->logWarning($e->getMessage());
                     wp($e->getMessage());
+                } catch (core_exception_Redirect $e) {
+                    throw $e;
                 } catch (Exception $e) {
                     reportException($e);
                 } catch (Throwable $t) {
@@ -86,6 +88,8 @@ class spas_Helper extends core_Mvc
                 } catch (spas_client_Exception $e) {
                     $this->logWarning($e->getMessage());
                     wp($e->getMessage());
+                } catch (core_exception_Redirect $e) {
+                    throw $e;
                 } catch (Exception $e) {
                     reportException($e);
                 } catch (Throwable $t) {
@@ -117,6 +121,7 @@ class spas_Helper extends core_Mvc
         setIfNot($params['hostname'], spas_Setup::get('HOSTNAME'));
         setIfNot($params['port'], spas_Setup::get('PORT'));
         setIfNot($params['user'], spas_Setup::get('USER'));
+        setIfNot($params['timeout'], spas_Setup::get('TIMEOUT'));
 
         $hash = md5(serialize($params));
 
@@ -126,6 +131,8 @@ class spas_Helper extends core_Mvc
              } catch (spas_client_Exception $e) {
                 $this->logWarning($e->getMessage());
                 wp($e->getMessage());
+            } catch (core_exception_Redirect $e) {
+                throw $e;
             } catch (Exception $e) {
                 reportException($e);
             } catch (Throwable $t) {

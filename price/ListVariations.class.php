@@ -177,13 +177,33 @@ class price_ListVariations extends core_Detail
      */
     public static function getActiveVariationId($listId, $datetime = null)
     {
-        if (!array_key_exists($listId, static::$variationCache)) {
+        // Датата е част от ключа - иначе първото извикване в хита фиксира вариацията и за
+        // всички останали дати, а справките със сравнение по период питат за две
+        $datetime = static::canonizeDatetime($datetime);
+        $cacheKey = "{$listId}|{$datetime}";
+
+        if (!array_key_exists($cacheKey, static::$variationCache)) {
             $variationArr = static::getActiveVariations($listId, $datetime, 1);
 
-            static::$variationCache[$listId] = countR($variationArr) ? $variationArr[key($variationArr)] : null;
+            static::$variationCache[$cacheKey] = countR($variationArr) ? $variationArr[key($variationArr)] : null;
         }
 
-        return static::$variationCache[$listId];
+        return static::$variationCache[$cacheKey];
+    }
+
+
+    /**
+     * Датата, към която се търсят активните вариации
+     *
+     * @param datetime|null $datetime
+     *
+     * @return datetime
+     */
+    protected static function canonizeDatetime($datetime = null)
+    {
+        $datetime = $datetime ?? dt::now();
+
+        return (strlen($datetime) == 10) ? "{$datetime} 23:59:59" : $datetime;
     }
 
 
@@ -197,8 +217,7 @@ class price_ListVariations extends core_Detail
      */
     public static function getActiveVariations($listId, $datetime = null, $limit = null)
     {
-        $datetime = $datetime ?? dt::now();
-        $datetime = (strlen($datetime) == 10) ? "{$datetime} 23:59:59" : $datetime;
+        $datetime = static::canonizeDatetime($datetime);
 
         $res = array();
         $query = static::getQuery();

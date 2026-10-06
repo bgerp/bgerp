@@ -188,6 +188,18 @@ class cat_Products extends embed_Manager
      * Кой може да го разгледа?
      */
     public $canList = 'powerUser';
+
+
+    /**
+     * Действия с избраните
+     */
+    public $doWithSelected = 'reindexparams=Преиндексиране на параметрите';
+
+
+    /**
+     * Кой може да преиндексира параметрите на избраните артикули
+     */
+    public $canReindexparams = 'debug';
     
     
     /**
@@ -340,9 +352,15 @@ class cat_Products extends embed_Manager
 
 
     /**
-     * Прокси клас, който да се използва за търсенето в листа
+     * Листване от репликата
      */
-    public $listFilterProxyTable = 'cat_ProductsProxy';
+    public function act_List()
+    {
+        return $this->callOnReplica(function () {
+
+            return parent::act_List();
+        });
+    }
 
 
     /**
@@ -769,7 +787,7 @@ class cat_Products extends embed_Manager
             $folderId = $folder;
         } else {
             // Иначе се предполага, че се създава в системна категория
-            $categoryId = cat_Categories::fetchField("#sysId = '{$folder}'", 'id');
+            $categoryId = cat_Categories::fetchField(array("#sysId = '[#1#]'", $folder), 'id');
             if (!$categoryId) {
                 $categoryId = cat_Categories::fetchField("#sysId = 'goods'", 'id');
             }
@@ -1329,12 +1347,12 @@ class cat_Products extends embed_Manager
 
         // Ако има останали филтри - проверява се дали имат регулярни изрази
         foreach ($leftFilter as $fName){
-            $filterRec = bgerp_Filters::fetch("#name = '{$fName}'");
+            $filterRec = bgerp_Filters::fetch(array("#name = '[#1#]'", $fName));
             if(!empty($filterRec->regex) && !empty($filterRec->regexField)){
 
                 // Ако имат се прилагат
                 if(!empty($query->fields[$filterRec->regexField])){
-                    $escapedRegex = str::escapeRegexForMySQL($filterRec->regex);
+                    $regex = $filterRec->regex ?? '';
                     $regexField = $filterRec->regexField;
                     if($filterRec->regexField == 'code'){
                         $xpr = $fName == 'numberCode' ? "COALESCE(LPAD(#code, 15, 0), LPAD(CONCAT('Art', #id), 15, 0))" : "COALESCE(#code, CONCAT('Art', #id))";
@@ -1343,7 +1361,7 @@ class cat_Products extends embed_Manager
                             $regexField = "codeExpr";
                         }
                     }
-                    $query->where("#{$regexField} REGEXP '{$escapedRegex}'");
+                    $query->where(array("#{$regexField} REGEXP '[#1#]'", $regex));
                     $query->orderBy($regexField, $filterRec->orderBy);
                 }
             }
@@ -1636,6 +1654,15 @@ class cat_Products extends embed_Manager
         $touchedGroups = '';
         $productId = $rec->id ?? $id;
         $groups = $rec->groups ?? ($rec->_oldGroups ?? null);
+
+        // Драйверните параметри може да се ползват във формули на рецепти
+        cat_Boms::clearProductParamsCache($productId);
+
+        // Индексът на параметрите се обновява само при запис, който може да ги промени
+        $savedFields = arr::make($fields, true);
+        if (!countR($savedFields) || isset($savedFields['*']) || array_intersect_key($savedFields, array('state' => 1, 'driverRec' => 1, 'innerClass' => 1))) {
+            cat_products_ParamIndex::markDirty($productId);
+        }
         if(isset($rec->_oldGroups)){
             $touchedGroups = keylist::diff($rec->_oldGroups, $groups);
             $touchedGroups = keylist::merge($touchedGroups, keylist::diff($groups, $rec->_oldGroups));
@@ -1773,7 +1800,7 @@ class cat_Products extends embed_Manager
      */
     public static function getProductOptions($params, $limit = null, $q = '', $onlyIds = null, $includeHiddens = false)
     {
-        $private = $products = $templates = $favourites = array();
+        $private = $products = $templates = $favourites = $closed = array();
 
         $query = cat_Products::getQuery();
         $reverseOrder = false;
@@ -1798,6 +1825,8 @@ class cat_Products extends embed_Manager
                         $query->notIn('folderId', $ignoreFolderIds);
                     }
                 }
+            } elseif(!empty($params['withClosed'])){
+                $query->where("#state != 'rejected'");
             } elseif(!empty($params['onlyTemplates'])){
                 $query->where("#state = 'template'");
                 $ignoreFolderIds = cls::get($params['driverId'])->getFoldersToIgnoreTemplates();
@@ -1943,6 +1972,8 @@ class cat_Products extends embed_Manager
         core_Debug::startTimer('PRODUCT_GET_FETCH_ALL');
         if($defaultSearch){
 
+            // Търсенето обхожда всички артикули, затова SELECT-ът е на репликата. Не и цялата
+            // функция - по-долу има записи (кеш на цените). При ид-та се чете от основната БД
             $alwaysIds = array();
             if (!empty($params['favourites']) && is_array($params['favourites'])) {
                 $alwaysIds += $params['favourites'];
@@ -1959,18 +1990,22 @@ class cat_Products extends embed_Manager
 
                 if($addLimit){
                     $cloneQuery->limit($limit);
+                    $cloneQuery->selectOnReplica();
                     $foundRecs = $cloneQuery->fetchAll();
 
                     $restLimit = $limit - countR($foundRecs);
                     $query->limit($restLimit);
+                    $query->selectOnReplica();
                     $foundRecs += $query->fetchAll();
                 } else {
+                    $cloneQuery->selectOnReplica();
                     $foundRecs = $cloneQuery->fetchAll();
                 }
             } else {
                 if($addLimit){
                     $query->limit($limit);
                 }
+                $query->selectOnReplica();
                 $foundRecs = $query->fetchAll();
             }
         } else {
@@ -2003,13 +2038,14 @@ class cat_Products extends embed_Manager
                     if(isset($params['priceData']) && $rec->isPublic == 'yes' && $showPrices != 'no'){
                         $customerClass = $params['customerClass'] ?? null;
                         $customerId = $params['customerId'] ?? null;
-                        $policyInfo = cls::get('price_ListToCustomers')->getPriceInfo($customerClass, $customerId, $rec->id, $rec->measureId, 1, $params['priceData']['valior'], 1, 'no', $params['priceData']['listId']);
+                        $priceListId = $params['priceData']['listId'] ?? null;
+                        $policyInfo = cls::get('price_ListToCustomers')->getPriceInfo($customerClass, $customerId, $rec->id, $rec->measureId, 1, $params['priceData']['valior'], 1, 'no', $priceListId);
                         if(isset($policyInfo->price)){
                             $price = ($policyInfo->discount) ?  $policyInfo->price * (1 - $policyInfo->discount) : $policyInfo->price;
                             $vatExceptionId = cond_VatExceptions::getFromThreadId($params['priceData']['threadId']);
                             $vat = cat_Products::getVat($rec->id, $params['priceData']['valior'], $vatExceptionId);
                             $price = deals_Helper::getDisplayPrice($price, $vat, $params['priceData']['rate'], $params['priceData']['chargeVat']);
-                            $listId = $params['priceData']['listId'] ?? price_ListToCustomers::getListForCustomer($customerClass, $customerId);
+                            $listId = $priceListId ?? price_ListToCustomers::getListForCustomer($customerClass, $customerId);
                             $measureId = $rec->measureId;
 
                             if($showPrices == 'basePack'){
@@ -2037,6 +2073,8 @@ class cat_Products extends embed_Manager
                 $favourites[$rec->id] = $title;
             } elseif($rec->state == 'template'){
                 $templates[$rec->id] = $title;
+            } elseif(!empty($params['withClosed']) && $rec->state == 'closed'){
+                $closed[$rec->id] = $title;
             } elseif (($rec->isPublic ?? null) == 'yes') {
                 $products[$rec->id] = $title;
             } else {
@@ -2076,6 +2114,10 @@ class cat_Products extends embed_Manager
                 if (!empty($favourites)) {
                     asort($favourites);
                 }
+
+                if (!empty($closed)) {
+                    asort($closed);
+                }
             }
         }
 
@@ -2111,6 +2153,11 @@ class cat_Products extends embed_Manager
                 } elseif ($mustReverse === false) {
                     $mustReverse = -1;
                 }
+            }
+
+            if (isset($closed[$mId])) {
+                unset($closed[$mId]);
+                $closed = array($mId => $mTitle) + $closed;
             }
 
             if (isset($favourites[$mId])) {
@@ -2153,6 +2200,13 @@ class cat_Products extends embed_Manager
                 $templates = array('tu' => (object) array('group' => true, 'title' => tr('Шаблони'))) + $templates;
             }
             $products = $products + $templates;
+        }
+
+        if(countR($closed)){
+            if(!isset($onlyIds)){
+                $closed = array('cl' => (object) array('group' => true, 'title' => tr('Закрити'))) + $closed;
+            }
+            $products = $products + $closed;
         }
 
         if (countR($favourites)) {
@@ -2278,6 +2332,14 @@ class cat_Products extends embed_Manager
      */
     public static function getPrimeCost($productId, $packagingId = null, $quantity = 1, $date = null, $primeCostlistId = null)
     {
+        // Може да се подаде и готов запис, за да не се чете артикулът наново при много извиквания
+        $productRec = self::fetchRec($productId);
+        if (!is_object($productRec)) {
+            $productRec = null;
+        }
+
+        $productId = $productRec->id ?? $productId;
+
         core_Debug::startTimer("GET_PRIME_COST_ALL");
         core_Debug::startTimer("GET_PRIME_COST_{$productId}");
 
@@ -2285,11 +2347,11 @@ class cat_Products extends embed_Manager
         $primeCostlistId = (isset($primeCostlistId)) ? $primeCostlistId : price_ListRules::PRICE_LIST_COST;
 
         // Дали артикула е стандартен или не
-        $isPublic = cat_Products::fetchField($productId, 'isPublic');
+        $isPublic = isset($productRec) ? ($productRec->isPublic ?? null) : cat_Products::fetchField($productId, 'isPublic');
 
         // Ако няма цена се опитва да намери от драйвера
         $primeCostDriver = null;
-        if ($Driver = cat_Products::getDriver($productId)) {
+        if ($Driver = cat_Products::getDriver($productRec ?? $productId)) {
             try {
                 Mode::push('contragentListId', price_ListRules::PRICE_LIST_COST);
                 $primeCostDriver = $Driver->getPrice($productId, $quantity, 0, 0, $date, 1, 'no');
@@ -2315,7 +2377,8 @@ class cat_Products extends embed_Manager
 
         // Ако няма себестойност, но има прототип, гледа се неговата себестойност
         if ((is_object($primeCost) && !isset($primeCost->price)) || !isset($primeCost)) {
-            if ($proto = cat_Products::fetchField($productId, 'proto')) {
+            $proto = isset($productRec) ? ($productRec->proto ?? null) : cat_Products::fetchField($productId, 'proto');
+            if ($proto) {
                 $primeCost = price_ListRules::getPrice($primeCostlistId, $proto, $packagingId, $date);
             }
         }
@@ -3179,6 +3242,14 @@ class cat_Products extends embed_Manager
             }
             $data->toolbar->addBtn('Продажба', $saleUrlArr, 'ef_icon = img/16/cart_go.png,title=Създаване на нова продажба,warning=Наистина ли искате да създадете нова продажба|*?');
         }
+
+        if (cat_products_ParamIndex::haveRightFor('list')) {
+            $data->toolbar->addBtn('Индекси', array('cat_products_ParamIndex', 'list', 'product' => $data->rec->id), 'ef_icon = img/16/bug.png,title=Записаните параметрични индекси на артикула,row=2');
+        }
+
+        if ($mvc->haveRightFor('reindexparams', $data->rec)) {
+            $data->toolbar->addBtn('Преиндексиране', array($mvc, 'reindexparams', 'Selected' => $data->rec->id, 'ret_url' => true), 'ef_icon = img/16/bug.png,title=Преиндексиране на параметрите на артикула,row=2');
+        }
     }
     
     
@@ -3284,7 +3355,7 @@ class cat_Products extends embed_Manager
         $productQuery1->where("#lastItemUsedOn IS NULL OR #lastItemUsedOn <= '{$olderThenDate}'");
         $count = $productQuery1->count();
 
-        core_App::setTimeLimit($count * 0.9, 600);
+        core_App::setTimeLimit($count * 0.9, false, 600);
         
         // Взимат се балансите от складовите сметки
         $balanceRec = acc_Balances::getLastBalance();
@@ -3497,19 +3568,19 @@ class cat_Products extends embed_Manager
         if($countPricesBefore){
             $priceSum = arr::sumValuesArray($pricesArr, 'price');
             core_Debug::stopTimer('WAC_AMOUNT_FROM_CACHE');
-            core_Debug::log("END WAC_AMOUNT_FROM_CACHE " . round(core_Debug::$timers["WAC_AMOUNT_FROM_CACHE"]->workingTime, 6));
+            core_Debug::log("END WAC_AMOUNT_FROM_CACHE " . round(core_Debug::$timers["WAC_AMOUNT_FROM_CACHE"]->workingTime ?? 0, 6));
 
             core_Debug::stopTimer('WAC_AMOUNT');
-            core_Debug::log("END GET_WAC_AMOUNT " . round(core_Debug::$timers["WAC_AMOUNT"]->workingTime, 6));
+            core_Debug::log("END GET_WAC_AMOUNT " . round(core_Debug::$timers["WAC_AMOUNT"]->workingTime ?? 0, 6));
 
             return round($quantity * ($priceSum / $countPricesBefore), 4);
         }
 
         core_Debug::stopTimer('WAC_AMOUNT_FROM_CACHE');
-        core_Debug::log("END WAC_AMOUNT_FROM_CACHE " . round(core_Debug::$timers["WAC_AMOUNT_FROM_CACHE"]->workingTime, 6));
+        core_Debug::log("END WAC_AMOUNT_FROM_CACHE " . round(core_Debug::$timers["WAC_AMOUNT_FROM_CACHE"]->workingTime ?? 0, 6));
 
         core_Debug::stopTimer('WAC_AMOUNT');
-        core_Debug::log("END GET_WAC_AMOUNT " . round(core_Debug::$timers["WAC_AMOUNT"]->workingTime, 6));
+        core_Debug::log("END GET_WAC_AMOUNT " . round(core_Debug::$timers["WAC_AMOUNT"]->workingTime ?? 0, 6));
 
         // Връщаме сумата
         return null;
@@ -3547,7 +3618,7 @@ class cat_Products extends embed_Manager
                 }
 
                 // Добавяме материала в масива
-                $quantity1 = (double)$rRec->baseQuantity + (double)$rRec->propQuantity;
+                $quantity1 = (double)($rRec->baseQuantity ?? 0) + (double)($rRec->propQuantity ?? 0);
                 if (!array_key_exists($rRec->productId, $res)) {
                     $res[$rRec->productId] = array('productId' => $rRec->productId, 'quantity' => $quantity1);
                 } else {
@@ -4010,6 +4081,27 @@ class cat_Products extends embed_Manager
     
     
     /**
+     * Маркиране на избраните артикули за индексиране на параметрите, независимо от състоянието им
+     */
+    public function act_Reindexparams()
+    {
+        $this->requireRightFor('reindexparams');
+
+        $productIds = array();
+        foreach (arr::makeIds(Request::get('Selected', 'varchar')) as $id) {
+            if (is_numeric($id) && $this->haveRightFor('reindexparams', $id)) {
+                $productIds[$id] = $id;
+            }
+        }
+
+        cat_products_ParamIndexState::markForced($productIds);
+        $this->logWrite('Маркиране за индексиране на параметрите');
+
+        followRetUrl(array($this, 'list'), '|Маркирани за индексиране на параметрите|*: ' . countR($productIds));
+    }
+
+
+    /**
      * Екшън за редактиране на групите на артикула
      */
     public function act_EditGroups()
@@ -4343,7 +4435,7 @@ class cat_Products extends embed_Manager
         }
 
         $showReffCol = false;
-        $detArr = arr::make($masterMvc->details);
+        $detArr = arr::make($masterMvc->details ?? null);
         if(!($masterMvc instanceof store_InventoryNotes)){
             $csvFields->FLD('vatPercent', 'percent', 'caption=ДДС %');
         }
@@ -4369,7 +4461,7 @@ class cat_Products extends embed_Manager
             $exportFStr = $this->getExportMasterFieldName($dName);
             $dInst = cls::get($dName);
 
-            if($masterMvc instanceof store_InventoryNotes) {
+            if($masterMvc instanceof store_InventoryNotes && !empty($dInst->productFld)) {
                 $dInst->FNC('packagingId', 'key(mvc=cat_UoM,select=name)', "caption=Мярка,after={$dInst->productFld}");
                 $csvFields->FNC('packagingId', 'key(mvc=cat_UoM,select=name)', "caption=Мярка,after={$dInst->productFld}");
             }
@@ -4458,13 +4550,16 @@ class cat_Products extends embed_Manager
                         continue;
                     }
 
-                    $recs[$dRec->id]->{$fName} = $dRec->{$fName};
+                    $recs[$dRec->id]->{$fName} = $dRec->{$fName} ?? null;
 
                     if (!empty($dInst->fields[$fName]) && !empty($dInst->fields[$fName]->caption)) {
                         $fCaption = $dInst->fields[$fName]->caption;
                     }
                     if (empty($csvFields->fields[$fName])) {
                         $csvFields->FLD($fName, 'varchar', "caption={$fCaption}");
+                        if ($fName == 'packPrice' || $fName == 'discount') {
+                            $csvFields->setField($fName, 'exportNumeric');
+                        }
                     }
                 }
 
@@ -4514,15 +4609,15 @@ class cat_Products extends embed_Manager
                             }
 
                             // Попълване на кода
-                            if (($vInst instanceof cat_Products) && ($v == 'code')) {
+                            if (is_object($vRec) && ($vInst instanceof cat_Products) && ($v == 'code')) {
                                 cat_Products::setCodeIfEmpty($vRec);
                             }
 
-                            $recs[$dRec->id]->{$v} = $vRec->{$v};
+                            $recs[$dRec->id]->{$v} = is_object($vRec) ? ($vRec->{$v} ?? null) : null;
 
-                            if (empty($csvFields->fields[$v])) {
+                            if (empty($csvFields->fields[$v]) && !empty($vInst->fields[$v])) {
                                 if ($vInst->fields[$v]->type instanceof type_Double) {
-                                    $csvFields->FLD($v, 'varchar', "caption={$vInst->fields[$v]->caption}");
+                                    $csvFields->FLD($v, 'varchar', "caption={$vInst->fields[$v]->caption},exportNumeric");
                                 } else {
                                     $csvFields->fields[$v] = $vInst->fields[$v];
                                 }
@@ -4540,11 +4635,11 @@ class cat_Products extends embed_Manager
                             }
                         }
 
-                        $recs[$dRec->id]->{$k} = $dRec->{$k};
+                        $recs[$dRec->id]->{$k} = $dRec->{$k} ?? null;
 
                         if (empty($csvFields->fields[$k])) {
                             if ($dInst->fields[$k]->type instanceof type_Double) {
-                                $csvFields->FLD($k, 'varchar', "caption={$dInst->fields[$k]->caption}");
+                                $csvFields->FLD($k, 'varchar', "caption={$dInst->fields[$k]->caption},exportNumeric");
                             } else {
                                 $csvFields->fields[$k] = $dInst->fields[$k];
                             }
@@ -4566,7 +4661,7 @@ class cat_Products extends embed_Manager
                                 $caption = $dInst->fields['packPrice']->caption;
                             }
                             if (empty($csvFields->fields['packPrice'])) {
-                                $csvFields->FLD('packPrice', 'varchar', "caption={$caption}");
+                                $csvFields->FLD('packPrice', 'varchar', "caption={$caption},exportNumeric");
                             }
                         }
                     } else {
@@ -4644,16 +4739,16 @@ class cat_Products extends embed_Manager
              * Ако артикула е ред във КИ или ДИ със промяна, да се покаже промененото количество
              */
             if ($masterMvc instanceof deals_InvoiceMaster) {
-                if (isset($allFFieldsArr['quantity']) && $mRec->type == 'dc_note') {
+                if (isset($allFFieldsArr['quantity']) && ($mRec->type ?? null) == 'dc_note') {
                     $Detail::modifyDcDetails($recs, $mRec, $Detail);
                     foreach ($recs as $id => &$mdRec) {
                         if (!empty($allFFieldsArr['packPrice'])) {
-                            if ($mdRec->packPrice && $mdRec->discount) {
+                            if (!empty($mdRec->packPrice) && !empty($mdRec->discount)) {
                                 $mdRec->packPrice -= ($mdRec->packPrice * $mdRec->discount);
                             }
                         }
 
-                        if (!$mdRec->changedQuantity && !$mdRec->changedPrice) {
+                        if (empty($mdRec->changedQuantity) && empty($mdRec->changedPrice)) {
                             unset($recs[$id]);
                         }
                     }
@@ -4687,7 +4782,8 @@ class cat_Products extends embed_Manager
                     }
 
                     if($chargeVat == 'yes'){
-                        $rec->packPrice = deals_Helper::getDisplayPrice($rec->packPrice, cat_Products::getVat($rec->_productId, $mRec->{$masterMvc->valiorFld}, $vatExceptionId), $rate, $chargeVat);
+                        $recValior = !empty($masterMvc->valiorFld) ? ($mRec->{$masterMvc->valiorFld} ?? null) : null;
+                        $rec->packPrice = deals_Helper::getDisplayPrice($rec->packPrice, cat_Products::getVat($rec->_productId, $recValior, $vatExceptionId), $rate, $chargeVat);
                         $rec->chargeVat = tr('с ДДС');
                     } else {
                         $rec->chargeVat = tr('без ДДС');

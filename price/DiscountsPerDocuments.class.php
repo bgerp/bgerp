@@ -235,10 +235,17 @@ class price_DiscountsPerDocuments extends core_Detail
         $query->where("#documentClassId = {$data->masterMvc->getClassId()} AND #documentId = {$data->masterId}");
         $query->orderBy('id', 'ASC');
 
+        // Сумите се заличават както в останалите детайли на документа (doc_plg_HidePrices)
+        $masterRec = $data->masterData->rec ?? null;
+        $canSeePrices = doc_plg_HidePrices::canSeePriceFields($data->masterMvc, $masterRec);
+
         // Подготовка на детайлите
         while($rec = $query->fetch()){
             $data->recs[$rec->id] = $rec;
             $row = $this->recToVerbal($rec);
+            if (!$canSeePrices) {
+                $row->amount = doc_plg_HidePrices::getBuriedElement();
+            }
             $data->rows[$rec->id] = $row;
         }
     }

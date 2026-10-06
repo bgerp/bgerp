@@ -439,6 +439,8 @@ class pwa_Settings extends core_Manager
                     // Четем съдържанието през 7z към stdout, без да извличаме
                     // подадения от архива път във файловата система.
                     $content = $entry->getContent();
+                } catch (core_exception_Redirect $e) {
+                    throw $e;
                 } catch (Throwable $e) {
                     continue;
                 }
@@ -484,6 +486,8 @@ class pwa_Settings extends core_Manager
                     }
                 }
             }
+        } catch (core_exception_Redirect $e) {
+            throw $e;
         } catch (Throwable $e) {
             // Невалиден архив не трябва да прекъсва генерирането. Липсващите
             // размери ще бъдат попълнени с вградените икони.
@@ -491,6 +495,8 @@ class pwa_Settings extends core_Manager
             if ($archiveInst) {
                 try {
                     $archiveInst->deleteTempPath();
+                } catch (core_exception_Redirect $e) {
+                    throw $e;
                 } catch (Throwable $e) {
                     // Временният файл може вече да е премахнат от адаптера.
                 }
@@ -536,6 +542,8 @@ class pwa_Settings extends core_Manager
             }
 
             return $result;
+        } catch (core_exception_Redirect $e) {
+            throw $e;
         } catch (Throwable $e) {
             while (ob_get_level() > $bufferLevel) {
                 ob_end_clean();
@@ -667,6 +675,8 @@ class pwa_Settings extends core_Manager
         try {
             $path = fileman_Files::fetchByFh($fileHnd, 'path');
             $imageInfo = self::getRasterIconInfo($path);
+        } catch (core_exception_Redirect $e) {
+            throw $e;
         } catch (Throwable $e) {
             return false;
         }
@@ -1102,12 +1112,16 @@ class pwa_Settings extends core_Manager
                     break;
                 }
             }
+        } catch (core_exception_Redirect $e) {
+            throw $e;
         } catch (Throwable $e) {
             return $result;
         } finally {
             if ($archiveInst) {
                 try {
                     $archiveInst->deleteTempPath();
+                } catch (core_exception_Redirect $e) {
+                    throw $e;
                 } catch (Throwable $e) {
                     // Временният файл може вече да е премахнат от адаптера.
                 }
@@ -1224,6 +1238,8 @@ class pwa_Settings extends core_Manager
         foreach ($domainIds as $domainId) {
             try {
                 self::regenerateManifestForDomain($domainId);
+            } catch (core_exception_Redirect $e) {
+                throw $e;
             } catch (Throwable $e) {
                 reportException($e);
                 $mvc->logWarning('Грешка при обновяване на PWA манифеста', $id);
@@ -1246,6 +1262,8 @@ class pwa_Settings extends core_Manager
 
         try {
             self::regenerateManifestForDomain($rec->domainId);
+        } catch (core_exception_Redirect $e) {
+            throw $e;
         } catch (Throwable $e) {
             reportException($e);
             $mvc->logWarning('Грешка при обновяване на PWA манифеста', $rec->id);

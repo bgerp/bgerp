@@ -344,7 +344,7 @@ class store_ShipmentOrders extends store_DocumentMaster
             if (is_array($conditions)) {
                 foreach ($conditions as $cond) {
                     if(isset($cond)){
-                        $row->note .= "\n" . $cond;
+                        $row->note = ($row->note ?? '') . "\n" . $cond;
                     }
                 }
             }
@@ -874,7 +874,7 @@ class store_ShipmentOrders extends store_DocumentMaster
                      'deliveryOn' => array('caption' => 'Доставка', 'type' => "datetime(defaultTime={$endTime})", 'readOnlyIfActive' => false, "input" => "input", 'autoCalcFieldName' => 'deliveryOnCalc', 'displayExternal' => false));
 
         if (isset($rec)) {
-            $res['deliveryTime']['placeholder'] = ($cache && !empty($rec->deliveryTimeCalc)) ? $rec->deliveryTimeCalc : $this->getDefaultLoadingDate($rec, $rec->deliveryOn, $rec->deliveryTime);
+            $res['deliveryTime']['placeholder'] = ($cache && !empty($rec->deliveryTimeCalc)) ? $rec->deliveryTimeCalc : $this->getDefaultLoadingDate($rec, $rec->deliveryOn ?? null, $cache);
             $loadingOn = !empty($rec->deliveryTime) ? $rec->deliveryTime : ($rec->deliveryTimeCalc ?? null);
             $res['readyOn']['placeholder'] = ($cache && !empty($rec->readyOnCalc)) ? $rec->readyOnCalc : $this->getEarliestDateAllProductsAreAvailableInStore($rec);
             $res['shipmentOn']['placeholder'] = ($cache && !empty($rec->shipmentOnCalc)) ? $rec->shipmentOnCalc : trans_Helper::calcShippedOnDate($rec->valior ?? null, $rec->lineId ?? null, $rec->activatedOn ?? null, $loadingOn);
@@ -898,7 +898,7 @@ class store_ShipmentOrders extends store_DocumentMaster
         $res = null;
         $rec = $this->fetchRec($id);
         if ($cache) {
-            $res = $rec->deliveryTimeCalc;
+            $res = $rec->deliveryTimeCalc ?? false;
         }
 
         if (!$cache || $res === false) {

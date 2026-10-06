@@ -159,7 +159,7 @@ class batch_definitions_StringAndCodeAndDate extends batch_definitions_Varchar
      */
     public function toVerbal($value)
     {
-        list($string, $date) = explode(static::SEPARATOR, $value);
+        list($string, $date) = array_pad(explode(static::SEPARATOR, $value), 2, null);
         $date = batch_definitions_ExpirationDate::displayExpiryDate($date, $this->rec->format, $this->rec->time);
 
         $string = core_Type::getByName('varchar')->toVerbal($string);

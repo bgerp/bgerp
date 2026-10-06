@@ -220,6 +220,7 @@ class backup_Start extends core_Manager
         );
         
         // 2. взима списъка с имената на бинлоговете
+        $resArr = array('logNames' => array());
         $dbRes = $db->query('SHOW MASTER LOGS');
         while ($logName = $db->fetchArray($dbRes)) {
             $resArr['logNames'][] = $logName['Log_name'];
@@ -229,7 +230,7 @@ class backup_Start extends core_Manager
         // 3. флъшваме лог-а
         $db->query('FLUSH LOGS');
         
-        $ungetedBinLogs = array_diff((array) $resArr['logNames'], (array) $metaArr['logNames']);
+        $ungetedBinLogs = array_diff((array) $resArr['logNames'], (array) ($metaArr['logNames'] ?? array()));
         
         // 4. взимаме съдържанието на binlogo-вете в temp-a, компресираме го и го качваме в сториджа
         foreach ($ungetedBinLogs as $binLogFileName) {
@@ -296,7 +297,7 @@ class backup_Start extends core_Manager
             // Има нужда от почистване
             $garbage = array_slice($metaArr['backup'], 0, countR($metaArr['backup']) - self::$conf->BACKUP_CLEAN_KEEP);
             $keeped['backup'] = array_slice($metaArr['backup'], countR($metaArr['backup']) - self::$conf->BACKUP_CLEAN_KEEP, countR($metaArr['backup']));
-            $keeped['logNames'] = $metaArr['logNames'];
+            $keeped['logNames'] = $metaArr['logNames'] ?? array();
             $keeped['backupInfo'] = $metaArr['backupInfo'];
             file_put_contents(EF_TEMP_PATH . '/' . self::$metaFileName, serialize($keeped));
             

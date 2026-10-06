@@ -292,7 +292,7 @@ class acc_plg_DocumentSummary extends core_Plugin
             $mvc->invoke('afterGetDocumentSummaryListFields', array(&$data));
             $data->listFilter->FNC('users', "users(rolesForAll={$mvc->filterRolesForAll},rolesForTeams={$mvc->filterRolesForTeam}, showClosedGroups)", 'caption=Потребители,silent,autoFilter,remember');
             if(!empty($mvc->showFilterFolderField)){
-                $data->listFilter->FNC('folder', 'key2(mvc=doc_FoldersProxy, allowEmpty, selectSourceArr=doc_Folders::getSelectArr, forceProxy)', 'caption=Папка,placeholderType=all,silent,after=users');
+                $data->listFilter->FNC('folder', 'key2(mvc=doc_Folders,forceReplica, allowEmpty, selectSourceArr=doc_Folders::getSelectArr)', 'caption=Папка,placeholderType=all,silent,after=users');
                 $data->listFilter->showFields .= ',folder';
             }
             

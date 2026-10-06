@@ -1,0 +1,48 @@
+<div class='blogm-browse'>
+    <!--ET_BEGIN navigationBar-->
+    <div class = 'path' style="margin-bottom: 20px">
+        [#navigationBar#]
+    </div>
+    <!--ET_END navigationBar-->
+    <!--ET_BEGIN BROWSE_HEADER-->
+    <h1>
+        [#BROWSE_HEADER#]
+    </h1>
+    <!--ET_END BROWSE_HEADER-->
+
+    <!--ET_BEGIN BROWSE_DESCR-->
+    <div class='commerce-blog-description'>[#BROWSE_DESCR#]</div>
+    <!--ET_END BROWSE_DESCR-->
+    <!--ET_BEGIN SEARCH_DESCR-->
+    <div class='commerce-blog-search-results'>[#SEARCH_DESCR#]</div>
+    <!--ET_END SEARCH_DESCR-->
+    <!--ET_BEGIN EMPTY_MESSAGE-->
+    <div class="commerce-blog-empty" role="status">[#EMPTY_MESSAGE#]</div>
+    <!--ET_END EMPTY_MESSAGE-->
+
+    <!--ET_BEGIN ROW-->
+    <div class='blogm-browse-article'>
+        <!--ET_BEGIN articleBrowse-->
+        [#articleBrowse#]
+        <div class='blogm-article-info'>
+            <!--ET_BEGIN commentsCnt-->
+            <span class='blogm-comments-cnt linkWithIcon' title="|Брой коментари|*">[#commentsCnt#]</span>
+            <!--ET_END commentsCnt-->
+            <span class="blogm-published-on"><time class="commerce-blog-date" title="[#publishedOnFull#]" datetime="[#publishedOnIso#]">[#publishedOnShort#]</time></span>
+            <!--ET_BEGIN author--><span class="blogm-author">[#author#]</span><!--ET_END author-->
+            <span class="blogm-meta-categories">|в|* [#categories#]</span>
+        </div>
+        <!--ET_END articleBrowse-->
+        <div class='blogm-article-title'>
+            [#title#]
+        </div>
+        <div class='blogm-article-body'>
+            [#thumb#][#annotation#]
+        </div>
+        <div class="clearfix21"></div>
+    </div>
+    <!--ET_END ROW-->
+</div>
+<!--ET_BEGIN PAGER-->
+<nav class="commerce-blog-pagination" aria-label="|Страници на блога|*">[#PAGER#]</nav>
+<!--ET_END PAGER-->
