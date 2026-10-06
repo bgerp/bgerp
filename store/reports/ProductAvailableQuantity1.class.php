@@ -234,6 +234,7 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
 
         // Подготвяме заявката за извличането на записите от store_Products
 
+        /** @var core_Query $sQuery */
         $sQuery = store_Products::getQuery();
 
         $sQuery->EXT('groups', 'cat_Products', 'externalName=groups,externalKey=productId');
@@ -355,9 +356,6 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
 
             $prodRec->conditionQuantity = '4|ок';
             $prodRec->conditionColor = 'green';
-            if ($prodRec->maxQuantity == 0 && $prodRec->minQuantity == 0 && $prodRec->minQuantity != '0') {
-                //  continue;
-            }
 
 
             if ($prodRec->quantity > $prodRec->maxQuantity && ($prodRec->maxQuantity != 0)) {
@@ -432,11 +430,6 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
                 $fld->FLD('delrow', 'text', 'caption=Пулт,smartCenter');
             }
 
-            if (haveRole('debug')) {
-//                $fld->FLD('orderMeasure', 'key(mvc=cat_UoM,select=name)', 'caption=За поръчка->Мярка,tdClass=centered');
-//                $fld->FLD('minOrder', 'varchar', 'caption=За поръчка->Мин опаковки,smartCenter');
-//                $fld->FLD('packOrder', 'varchar', 'caption=За поръчка->Опаковки,smartCenter');
-            }
         } else {
             $fld->FLD('code', 'varchar', 'caption=Код');
             $fld->FLD('productId', 'varchar', 'caption=Артикул');
@@ -765,7 +758,8 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
 
         $productInfo = cat_Products::getProductInfo($productId);
         $productRec = $productInfo->productRec ?? null;
-        expect($baseMeasureId = $productRec->measureId ?? null);
+        $baseMeasureId = (int) ($productRec->measureId ?? 0);
+        expect($baseMeasureId);
         $baseMeasureName = cat_UoM::getShortName($baseMeasureId);
         $packagings = $productInfo->packagings ?? array();
 
@@ -790,7 +784,8 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
         $form->setDefault('orderMeasureNew', $orderMeasureOld);
         $form->setDefault('minOrderNew', $minOrderOld);
 
-        $mRec = $form->input();
+        $form->input();
+        $mRec = $form->rec;
 
         $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png');
 
@@ -812,6 +807,7 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
             // Съдържанието е в основната мярка, както въведените лимити.
             $quantityInPack = ($packagingId == $baseMeasureId) ? 1 : ($packagings[$packagingId]->quantity ?? null);
             $quantityVerbal = isset($quantityInPack) ? $Double->toVerbal($quantityInPack) : 'n.a.';
+            $quantityVerbal = html_entity_decode($quantityVerbal, ENT_QUOTES, 'UTF-8');
             $options[$packagingId] = ($qRec->name ?? '') . " ({$quantityVerbal} {$baseMeasureName})";
         }
 
@@ -891,7 +887,7 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
 
         $form->setOptions('groupFilter', $groupsSuggestionsArr);
 
-        $mRec = $form->input();
+        $form->input();
 
         $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png');
 
@@ -951,7 +947,7 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
 
         $form->setOptions('artFilter', $artSuggestionsArr);
 
-        $mRec = $form->input();
+        $form->input();
 
         $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png');
 
@@ -992,7 +988,7 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
 
         $form->FLD('exportFilter', 'set(1|под Мин.=Под минимум,3|над Макс.=Над максимум, 2|Отриц.=Отрицателни, 4|ок=ОК)', 'caption=Артикули с количества,columns=4,silent');
 
-        $mRec = $form->input();
+        $form->input();
 
         $form->toolbar->addSbBtn('Експорт', 'save', 'ef_icon = img/16/disk.png');
 
@@ -1024,12 +1020,14 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
 
         $subGrArr[$groupId] = $groupId;
 
+        /** @var core_Query $groupsQuery */
         $groupsQuery = cat_Groups::getQuery();
 
         $groupsQuery->where("#parentId = $groupId");
 
         while ($gRec = $groupsQuery->fetch()) {
 
+            /** @var core_Query $groupsQuery1 */
             $groupsQuery1 = cat_Groups::getQuery();
 
             if (!$groupsQuery1->fetchAll()) {
