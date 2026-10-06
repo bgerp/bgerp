@@ -1115,10 +1115,7 @@ class core_Users extends core_Manager
                 
                 // Ако логина е в попъп прозорец да се добавят нужните класове
                 if ($isPopup === true) {
-                    $skin = cms_Domains::getCmsSkin();
-                    if ($skin) {
-                        $skin->prepareWrapper($layout);
-                    }
+                    cms_ProtoTheme::prepareSkin(cms_Domains::getCmsSkin(), $layout);
                     $layout->push('css/common.css', 'CSS');
                     $layout->push('css/Application.css', 'CSS');
                 }

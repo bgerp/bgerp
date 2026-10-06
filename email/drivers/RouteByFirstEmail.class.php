@@ -107,7 +107,7 @@ class email_drivers_RouteByFirstEmail extends core_BaseClass
         $emails = array_filter($emails, function ($email) {
             $allInboxes = email_Inboxes::getAllInboxes();
 
-            return !$allInboxes[strtolower(trim($email))];
+            return empty($allInboxes[strtolower(trim($email))]);
         });
 
         return array_values($emails);

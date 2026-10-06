@@ -733,7 +733,7 @@ class eshop_Groups extends core_Master
         Mode::set('cmsLayout', cms_ProtoTheme::getCurrent()->getTemplate($layout));
         
         $tpl = new ET();
-        cms_ProtoTheme::getCurrent()->addShopAssets($tpl);
+        cms_ProtoTheme::getCurrent()->addAssets($tpl, 'shop');
 
         return $tpl;
     }

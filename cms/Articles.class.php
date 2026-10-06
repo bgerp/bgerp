@@ -336,16 +336,10 @@ class cms_Articles extends core_Master
             Mode::set('cmsLayout', 'cms/themes/default/WideArticles.shtml');
         }
 
-        if (cms_Domains::getCmsSkin() instanceof cms_CommerceTheme) {
-            Mode::set('cmsLayout', cms_ProtoTheme::getCurrent()->getTemplate($navData->showCnt <= 1 ? 'cms/tpl/commerce/WideArticles.shtml' : 'cms/tpl/commerce/Articles.shtml'));
-            $content->push('cms/css/CommerceBlog.css', 'CSS');
-            $content->push('cms/css/CommerceArticles.css', 'CSS');
-            $content->appendOnce(' commerce-blog commerce-article', 'BODY_CLASS_NAME');
-            // Older articles may include their own heading in the rich text.
-            if (!empty($rec->title) && !preg_match('/^\s*(?:<div\b[^>]*>\s*)*<h[12]\b/i', $content->content)) {
-                $content->prepend('<h1 class="cms-article-title">' . type_Varchar::escape($rec->title) . '</h1>');
-            }
-        }
+        $theme = cms_ProtoTheme::getCurrent();
+        Mode::set('cmsLayout', $theme->getTemplate(Mode::get('cmsLayout')));
+        $theme->addAssets($content, 'article');
+        $theme->prepareArticleContent($content, $rec);
 
         // Подготвяме SEO елементите
         cms_Content::prepareSeo($rec, array('seoDescription' => $rec->body ?? null, 'seoTitle' => $rec->title ?? null));
@@ -396,7 +390,7 @@ class cms_Articles extends core_Master
      */
     public function prepareNavigation(&$rec, $menuId, &$content, $lArr)
     {
-        $commerceTheme = cms_Domains::getCmsSkin() instanceof cms_CommerceTheme;
+        $theme = cms_ProtoTheme::getCurrent();
         // Подготвя навигацията
         $query = self::getQuery();
         
@@ -478,14 +472,9 @@ class cms_Articles extends core_Master
             
             $l->title = $title;
             
-            if ($commerceTheme) {
-                if (core_Users::getCurrent() > 0 && $this->haveRightFor('changerec', $rec1)) {
-                    $l->editLink = ht::createLink('', $this->getChangeUrl($rec1->id), null,
-                        'ef_icon=img/16/edit.png,class=commerce-article-edit,title=Редактиране на статията');
-                }
-            } elseif ($this->haveRightFor('changerec', $rec1)) {
-                // Вземаме линка за промяна на записа
-                $l->editLink = $this->getChangeLink($rec1->id);
+            $editLink = $theme->getArticleEditLink($this, $rec1);
+            if (isset($editLink)) {
+                $l->editLink = $editLink;
             }
             
             if ($rec1->state == 'closed') {

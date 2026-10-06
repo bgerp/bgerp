@@ -293,16 +293,15 @@ class newsbar_News extends core_Master
             $form->setDefault('domainId', cms_Domains::getCurrent());
         }
 
-        if (!empty($rec->domainId) && cms_Domains::getDriver($rec->domainId) instanceof cms_CommerceTheme) {
-            $positions = $form->fields['position']->type->options;
-            unset($positions['topNav'], $positions['bottomNav']);
-            $positions['topPage'] = 'Над менюто';
-            $positions['bottomHeader'] = 'Под банера';
-            // Existing records remain editable; their output is moved into the content column.
-            if (!empty($rec->id) && in_array($rec->position, array('topNav', 'bottomNav'))) {
-                $positions[$rec->position] = 'Стара позиция в навигацията';
+        // Темата на домейна на новината, не на текущия
+        $theme = !empty($rec->domainId) ? cms_Domains::getDriver($rec->domainId) : null;
+        if ($theme instanceof cms_ProtoTheme) {
+            $defaultPositions = $form->fields['position']->type->options;
+            $positions = $defaultPositions;
+            $theme->prepareNewsbarPositions($positions, $rec);
+            if ($positions !== $defaultPositions) {
+                $form->setOptions('position', $positions);
             }
-            $form->setOptions('position', $positions);
         }
         
         if (empty($form->rec->padding)) {
