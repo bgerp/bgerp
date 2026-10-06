@@ -180,7 +180,7 @@ class cms_ProtoTheme extends core_ProtoInner
 
 
     /**
-     * Добавя ресурсите на темата за раздел от сайта (page, shop, checkout, forum, blog, article)
+     * Добавя ресурсите на темата за раздел от сайта (page, shop, checkout, forum, blog, article, feeds)
      *
      * @param core_ET $tpl
      * @param string  $section

@@ -251,7 +251,9 @@ class cms_Feeds extends core_Manager
      */
     public function renderFeeds($data)
     {
-        $layout = getTplFromFile('cms/tpl/Feeds.shtml');
+        $theme = cms_ProtoTheme::getCurrent();
+        $layout = getTplFromFile($theme->getTemplate('cms/tpl/Feeds.shtml'));
+        $theme->addAssets($layout, 'feeds');
         
         // Поставяме иконка и заглавие
         $layout->append(tr('Нашите емисии'), 'HEADER');

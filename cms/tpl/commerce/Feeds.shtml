@@ -1,0 +1,15 @@
+<section id='rss-feeds' class='commerce-feeds-page'>
+    <h1 class='commerce-feeds-title'>[#HEADER#]</h1>
+    <div class='commerce-feeds-list'>
+        <!--ET_BEGIN ROW-->
+        <article class='commerce-feed'>
+            <div class='commerce-feed-head'>
+                <h2 class='commerce-feed-title'>[#title#]</h2>
+                <!--ET_BEGIN type--><span class='commerce-feed-type'>[#type#]</span><!--ET_END type-->
+            </div>
+            <!--ET_BEGIN description--><div class='commerce-feed-description'>[#description#]</div><!--ET_END description-->
+            <!--ET_BEGIN url--><div class='commerce-feed-url'>[#url#]</div><!--ET_END url-->
+        </article>
+        <!--ET_END ROW-->
+    </div>
+</section>
