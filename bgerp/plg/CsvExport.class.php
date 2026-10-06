@@ -42,6 +42,10 @@ class bgerp_plg_CsvExport extends core_BaseClass
     protected $csvExportData;
 
 
+    /** Number of data rows in the last completed export, excluding column names. */
+    public $exportedRowCount = 0;
+
+
     /**
      * Може ли да се добавя към този мениджър
      */
@@ -150,6 +154,7 @@ class bgerp_plg_CsvExport extends core_BaseClass
      */
     public function export($filter)
     {
+        $this->exportedRowCount = 0;
         $cu = core_Users::getCurrent();
         if(empty($filter->_recs)){
             $recs = core_Cache::get($this->mvc->className, "exportRecs{$cu}");
@@ -174,9 +179,7 @@ class bgerp_plg_CsvExport extends core_BaseClass
         }
         
         $maxCnt = core_Setup::get('EF_MAX_EXPORT_CNT', true);
-        if (countR($recs) > $maxCnt) {
-            redirect($retUrl, false, '|Броят на заявените записи за експорт надвишава максимално разрешения|* - ' . $maxCnt, 'error');
-        }
+        $this->checkExportCount(countR($recs), $maxCnt, $retUrl);
         
         $fieldsArr = arr::make($filter->fields, true);
 
@@ -223,6 +226,7 @@ class bgerp_plg_CsvExport extends core_BaseClass
                     Mode::push('csvExportInList', true);
                     cls::get($this->mvc->mainDetail)->invoke('afterGetCsvExportDetailRecs', array($rec, &$dRecs, &$fieldSet));
                     Mode::pop('csvExportInList');
+                    $this->checkExportCount(countR($finalRecs) + countR($dRecs), $maxCnt, $retUrl);
                     $finalRecs = array_merge($finalRecs, $dRecs);
                 }
 
@@ -234,12 +238,24 @@ class bgerp_plg_CsvExport extends core_BaseClass
         $this->mvc->invoke('BeforeExportCsv', array(&$recs));
         Mode::pop('text');
 
+        $this->checkExportCount(countR($recs), $maxCnt, $retUrl);
+
         $content = csv_Lib::createCsv($recs, $fieldSet, $fieldsArr, $params);
         $content = iconv('utf-8', $filter->encoding . '//TRANSLIT', $content);
         $params['encoding'] = $filter->encoding ?? 'UTF-8';
         $this->csvExportData = (object) array('fieldSet' => $fieldSet, 'listFields' => $fieldsArr, 'params' => $params);
+        $this->exportedRowCount = countR($recs);
         
         return $content;
+    }
+
+
+    /** The row limit also applies after expanding document details. */
+    protected function checkExportCount($count, $limit, $retUrl)
+    {
+        if ($count > $limit) {
+            redirect($retUrl, false, '|Броят на заявените записи за експорт надвишава максимално разрешения|* - ' . $limit, 'error');
+        }
     }
     
     

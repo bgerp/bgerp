@@ -271,8 +271,8 @@ class planning_interface_StepProductDriver extends cat_GeneralProductDriver
 
         $tpl->placeObject($data->row);
 
-        if (($data->noChange ?? null) !== true || countR($data->params ?? array())) {
-            $paramTpl = cat_products_Params::renderParams($data);
+        $paramTpl = $this->renderCustomParams($data);
+        if ($paramTpl) {
             $tpl->append($paramTpl, 'PARAMS');
         }
 

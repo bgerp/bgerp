@@ -198,7 +198,12 @@ abstract class deals_DealDetail extends doc_Detail
      */
     public static function on_AfterPrepareListRecs(core_Mvc $mvc, $data)
     {
-        if (empty($data->recs)) return;
+        // Без редове се маха и сумата от предишния показан документ на същия мениджър
+        if (empty($data->recs)) {
+            unset($mvc->Master->_total);
+
+            return;
+        }
         $recs = &$data->recs;
         deals_Helper::fillRecs($mvc->Master, $recs, $data->masterData->rec);
     }
