@@ -1430,10 +1430,10 @@ abstract class deals_InvoiceMaster extends core_Master
         // Ако е променено условието от банковата сметка - записва се
         if($mvc->cacheAdditionalConditions){
             if(isset($rec->__isBeingChanged) && $rec->__isBeingChanged){
-                if(md5(str::removeWhiteSpace($rec->additionalConditions[0])) != md5(str::removeWhiteSpace($rec->additionalConditionsInput))){
+                if(md5(str::removeWhiteSpace($rec->additionalConditions[0] ?? null)) != md5(str::removeWhiteSpace($rec->additionalConditionsInput ?? null))){
                     $rec->_changedCondition = true;
                 }
-                $rec->additionalConditions[0] = $rec->additionalConditionsInput;
+                $rec->additionalConditions[0] = $rec->additionalConditionsInput ?? null;
             }
         }
     }
