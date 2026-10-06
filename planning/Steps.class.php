@@ -508,7 +508,7 @@ class planning_Steps extends core_Extender
                 unset($row->labelTransferQuantityInPack);
             }
 
-            $systemFolderId = $rec->supportSystemFolderId ?? planning_Centers::fetchField($rec->centerId, 'supportSystemFolderId');
+            $systemFolderId = $rec->supportSystemFolderId ?? (!empty($rec->centerId) ? planning_Centers::fetchField($rec->centerId, 'supportSystemFolderId') : null);
             if(isset($systemFolderId)){
                 $row->supportSystemFolderId = doc_Folders::recToVerbal($systemFolderId)->title;
                 if(!$rec->supportSystemFolderId) {
