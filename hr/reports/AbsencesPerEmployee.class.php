@@ -213,10 +213,11 @@ class hr_reports_AbsencesPerEmployee extends frame2_driver_TableData
                     $docPeriod = self::getPeriod($rec, $doc);
                     $numberOfSickdays = $docPeriod['workingDays'];
                     
-                    if (!array_key_exists($sickdays->productId, $pRecs)) {
-                        $pRecs[$sickdays->personId] = (object) array(
+                    $personId = $sickdays->personId ?? null;
+                    if (!array_key_exists($personId, $pRecs)) {
+                        $pRecs[$personId] = (object) array(
                             
-                            'personId' => $sickdays->personId,
+                            'personId' => $personId,
                             'startPeriod' => $rec->firstDayOfPeriod,
                             'endPeriod' => $rec->to,
                             'numberOfLeavesDays' => $numberOfLeavesDays,
@@ -226,7 +227,7 @@ class hr_reports_AbsencesPerEmployee extends frame2_driver_TableData
                         
                         );
                     } else {
-                        $obj = &$pRecs[$sickdays->productId];
+                        $obj = &$pRecs[$personId];
                         
                         $obj->numberOfSickdays += $numberOfSickdays;
                     }
