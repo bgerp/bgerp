@@ -813,7 +813,7 @@ class eshop_Products extends core_Master
 
         $haveDebug = haveRole('debug');
         $settings = cms_Domains::getSettings();
-        $commerceTheme = cms_Domains::getCmsSkin() instanceof cms_CommerceTheme;
+        list($thumbWidth, $thumbHeight) = cms_ProtoTheme::getCurrent()->productThumbSize;
         foreach ($data->recs as $pRec) {
             if (!$data->Pager->isOnPage()) continue;
 
@@ -824,7 +824,7 @@ class eshop_Products extends core_Master
 
             // Показване на тъмбнейл на артикула
             $pRow->_id = $pRec->id;
-            $thumb = static::getProductThumb($pRec, $commerceTheme ? 640 : 240, $commerceTheme ? 360 : 240);
+            $thumb = static::getProductThumb($pRec, $thumbWidth, $thumbHeight);
             $pRow->image = $thumb->createImg(array('class' => 'eshop-product-image'));
 
             // Кои от детайлите отговарят на разрешените опаковки (ако има)

@@ -246,7 +246,8 @@ class blogm_Categories extends core_Manager
             $saoLevel = static::fetchField($id, 'saoLevel');
             $num = ($saoLevel) ? $saoLevel : 1;
 
-            if (($data->selectedCategories[$id] ?? null) || (!$id && !countR($data->selectedCategories))) {
+            // „Всички“ не се маркира, ако е избран месец от архива
+            if (($data->selectedCategories[$id] ?? null) || (!$id && !countR($data->selectedCategories) && empty($data->archive))) {
                 $attr = array('class' => "nav_item sel_page level{$num}");
             } else {
                 $attr = array('class' => "nav_item level{$num}");

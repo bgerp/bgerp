@@ -255,7 +255,11 @@ class planning_TaskConstraints extends core_Master
 
         // Извличане на всички етапи, които са посочени като предишни
         $cQuery = planning_StepConditions::getQuery();
-        $cQuery->in("stepId", $stepIds);
+        if (countR($stepIds)) {
+            $cQuery->in("stepId", $stepIds);
+        } else {
+            $cQuery->where("1=2");
+        }
         $cQuery->show('stepId,prevStepId,delay,intersect');
         while ($cRec = $cQuery->fetch()) {
             $prevSteps[$cRec->stepId][$cRec->prevStepId] = $cRec;
@@ -264,7 +268,11 @@ class planning_TaskConstraints extends core_Master
         // Всички текущи ПО към заданието за посочените етапи
         $tQuery = planning_Tasks::getQuery();
         $tQuery->where("#state IN ('active', 'stopped', 'wakeup', 'pending')");
-        $tQuery->in('originId', $jobIds);
+        if (countR($jobIds)) {
+            $tQuery->in('originId', $jobIds);
+        } else {
+            $tQuery->where("1=2");
+        }
         $tQuery->show('id,originId,productId,folderId,offsetAfter,saoOrder,assetId');
         $additionalFolderIds = array();
         while ($tRec = $tQuery->fetch()) {

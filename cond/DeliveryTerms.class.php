@@ -420,8 +420,9 @@ class cond_DeliveryTerms extends core_Master
     public static function prepareDocumentForm($id, core_FieldSet &$form, $document, $userId = null)
     {
         $rec = self::fetchRec($id);
+        if (!$rec) return;
         $Document = cls::get($document);
-        
+
         // Ако ще се показва адреса на доставчик
         if($rec->address == 'supplier'){
             if($Document instanceof sales_Sales){
