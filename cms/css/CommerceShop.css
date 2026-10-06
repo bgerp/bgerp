@@ -1375,6 +1375,9 @@ body.commerce-theme a.commerce-filter-reset:focus-visible {
 }
 .eshop-public #cmsNavigation .eshop-param-check {
     position: relative;
+    /* Нулира отместването от Application.css, където тикчето е absolute */
+    top: auto;
+    left: auto;
     flex: 0 0 16px;
     width: 16px;
     height: 16px;
@@ -1391,6 +1394,7 @@ body.commerce-theme a.commerce-filter-reset:focus-visible {
 .eshop-public #cmsNavigation .checked .eshop-param-check {
     border-color: var(--shop-accent);
     background: var(--shop-accent);
+    box-shadow: none;
 }
 .eshop-public #cmsNavigation .checked .eshop-param-check::after {
     content: "";

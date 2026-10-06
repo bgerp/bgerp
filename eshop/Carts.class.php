@@ -732,12 +732,7 @@ class eshop_Carts extends core_Master
         $className .= $count ? ' cardLink' : '';
         $url = ($currentTab != 'eshop_Carts') ? $url : array();
         
-        if (cms_Domains::getCmsSkin() instanceof cms_CommerceTheme) {
-            $tpl = new core_ET('<span class="commerce-cart-label">[#name#]</span><span class="count">[#count#]</span>');
-            $tpl->replace($cartName, 'name');
-            $tpl->replace($count, 'count');
-            $className .= ' commerce-cart-link';
-        }
+        $tpl = cms_ProtoTheme::getCurrent()->prepareCartLink($tpl, $className, $cartName, $count);
 
         $tpl = ht::createLink($tpl, $url, false, "title={$hint}, ef_icon=img/16/cart-black.png,class={$className},rel=nofollow");
         
@@ -1476,7 +1471,7 @@ class eshop_Carts extends core_Master
         core_Lg::push($lang);
         
         $tpl = getTplFromFile(cms_ProtoTheme::getCurrent()->getTemplate('eshop/tpl/SingleLayoutCartExternal.shtml'));
-        cms_ProtoTheme::getCurrent()->addShopAssets($tpl);
+        cms_ProtoTheme::getCurrent()->addAssets($tpl, 'shop');
         $tpl->replace(self::renderViewCart($rec), 'CART_TABLE');
 
         self::renderCartToolbar($rec, $tpl);
@@ -1867,15 +1862,15 @@ class eshop_Carts extends core_Master
         $rec = self::fetchRec($id);
         $shopUrl = cls::get('eshop_Groups')->getUrlByMenuId(null);
         
-        $commerceTheme = cms_Domains::getCmsSkin() instanceof cms_CommerceTheme;
-        $btn = ht::createLink(tr($commerceTheme ? 'Към магазина||Back to shop' : 'Магазин'), $shopUrl, null, 'title=Назад към магазина,class=eshop-link cart-back-link,ef_icon=img/16/cart_go_back.png,rel=nofollow');
+        list($backLabel, $clearLabel) = cms_ProtoTheme::getCurrent()->getCartToolbarLabels();
+        $btn = ht::createLink($backLabel, $shopUrl, null, 'title=Назад към магазина,class=eshop-link cart-back-link,ef_icon=img/16/cart_go_back.png,rel=nofollow');
         $tpl->append($btn, 'CART_TOOLBAR_TOP');
         $wideSpan = '<span>|</span>';
         
         $settings = cms_Domains::getSettings($rec->domainId);
         if (!empty($rec->productCount) && eshop_CartDetails::haveRightFor('removeexternal', (object) array('cartId' => $rec->id))) {
             $emptyUrl = array('eshop_CartDetails', 'removeexternal', 'cartId' => $rec->id, 'ret_url' => $shopUrl);
-            $btn = ht::createLink(tr($commerceTheme ? 'Изчисти количката||Clear cart' : 'Изчистване'), $emptyUrl, 'Сигурни ли сте, че искате да изтриете артикулите?', 'title=Премахване на всички артикули,class=eshop-link cart-clear-link,ef_icon=img/16/deletered.png,rel=nofollow');
+            $btn = ht::createLink($clearLabel, $emptyUrl, 'Сигурни ли сте, че искате да изтриете артикулите?', 'title=Премахване на всички артикули,class=eshop-link cart-clear-link,ef_icon=img/16/deletered.png,rel=nofollow');
             $tpl->append($wideSpan . $btn, 'CART_TOOLBAR_TOP');
         }
         
@@ -2524,11 +2519,7 @@ class eshop_Carts extends core_Master
         }
         
         $tpl = $form->renderHtml();
-        if (cms_Domains::getCmsSkin() instanceof cms_CommerceTheme) {
-            cms_ProtoTheme::getCurrent()->addShopAssets($tpl);
-            $tpl->appendOnce(' commerce-checkout', 'BODY_CLASS_NAME');
-            $tpl->push('cms/css/CommerceCheckout.css', 'CSS');
-        }
+        cms_ProtoTheme::getCurrent()->addAssets($tpl, 'checkout');
 
         core_Form::preventDoubleSubmission($tpl, $form);
         core_Lg::pop();

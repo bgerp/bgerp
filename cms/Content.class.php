@@ -412,7 +412,6 @@ class cms_Content extends core_Master
     public function renderMenu_($data)
     {
         $tpl = new ET();
-        $commerceTheme = cms_Domains::getCmsSkin() instanceof cms_CommerceTheme;
         
         $cMenuId = Mode::get('cMenuId');
         if (!$cMenuId) {
@@ -444,45 +443,14 @@ class cms_Content extends core_Master
             }
         }
         
-        if ($commerceTheme) {
-            $tpl->append(new core_ET('<span class="cms-menu-tools"><span id="cart-external-status">[#USERCART#]</span>'));
-        }
+        $theme = cms_ProtoTheme::getCurrent();
+        $tools = new ET();
 
         // Поставяне на иконка за Вход
         if ($loginLink == false) {
-            if ($commerceTheme) {
-                $title = haveRole('user') ? 'Към системата||Go to system' : 'Вход||Log in';
-                $icon = ht::createImg(array('path' => 'cms/img/account.svg', 'alt' => '', 'aria-hidden' => 'true'));
-                $label = ht::createElement('span', array('class' => 'cms-menu-label'), tr($title));
-                $loginContent = $icon->getContent() . $label->getContent();
-            } else {
-                $dRec = cms_Domains::getPublicDomain('form');
-
-                if (haveRole('user')) {
-                    $filePath = 'img/32/inside';
-                    $title = 'Меню||Menu';
-                } else {
-                    $filePath = 'img/32/login';
-                    $title = 'Вход||Log in';
-                }
-
-                if ((isset($dRec->baseColor) && phpcolor_Adapter::checkColor($dRec->baseColor) && Request::get('Ctr') != 'core_Users') ||
-                    (isset($dRec->activeColor) && phpcolor_Adapter::checkColor($dRec->activeColor) && Request::get('Ctr') == 'core_Users')) {
-                    $filePath .= 'Dark';
-                } else {
-                    $filePath .= 'Light';
-                }
-
-                if (Mode::is('screenMode', 'narrow')) {
-                    $filePath .= 'M';
-                }
-
-                $filePath .= '.png';
-
-                $loginContent = ht::createImg(array('path' => $filePath, 'alt' => 'login'));
-            }
-
-            $tpl->append(ht::createLink(
+            $title = '';
+            $loginContent = $theme->getMenuLoginContent($title);
+            $tools->append(ht::createLink(
                 $loginContent,
                 array('Portal', 'Show'),
                 null,
@@ -491,70 +459,8 @@ class cms_Content extends core_Master
         }
         
         // Ако имаме действащи менюта на повече от един език, показваме бутон за избор на езика
-        $usedLangsArr = cms_Domains::getCmsLangs();
-        
-        if ($commerceTheme && countR($usedLangsArr) > 2) {
-            $lang = self::getLang();
-            $currentLabel = htmlspecialchars($lang == 'bg' ? 'БГ' : strtoupper($lang), ENT_QUOTES, 'UTF-8');
-            $languageLinks = '';
-            foreach ($usedLangsArr as $lg) {
-                $nativeName = drdata_Languages::fetchField("#code = '{$lg}'", 'nativeName');
-                $label = htmlspecialchars($lg == 'bg' ? 'БГ' : strtoupper($lg), ENT_QUOTES, 'UTF-8');
-                $flag = '';
-                if (getFullPath('img/flags/' . $lg . '.png')) {
-                    $flag = ht::createElement('img', array('src' => sbf('img/flags/' . $lg . '.png', ''), 'alt' => ''))->getContent();
-                }
-                if ($lg == $lang) {
-                    $currentLabel = $flag . $currentLabel;
-                }
-                $attr = array('class' => 'commerce-language-link', 'hreflang' => $lg, 'lang' => $lg, 'title' => $nativeName, 'aria-label' => $nativeName ?: strtoupper($lg));
-                if ($lg == $lang) {
-                    $attr['aria-current'] = 'true';
-                }
-                $languageLinks .= ht::createLink($flag . $label, array($this, 'SelectLang', 'lang' => $lg), null, $attr);
-            }
-            $tpl->append('<details class="commerce-languages"><summary aria-label="' . htmlspecialchars(tr('Език||Language'), ENT_QUOTES, 'UTF-8') . '">' . $currentLabel . '</summary><div class="commerce-language-options">' . $languageLinks . '</div></details>');
-        } elseif (countR($usedLangsArr) == 2) {
-            
-            // Премахваме текущия език
-            $lang = self::getLang();
-            
-            foreach ($usedLangsArr as $lg) {
-                $attr = array('title' => drdata_Languages::fetchField("#code = '{$lg}'", 'nativeName'), 'id' => 'set-lang-' . $lg, 'class' => 'langIcon');
-                
-                if ($lg == $lang) {
-                    continue;
-                }
-                
-                $filePath = getFullPath('img/flags/' . $lg . '.png');
-                $img = ' ';
-                
-                if ($filePath) {
-                    $imageUrl = sbf('img/flags/' . $lg . '.png', '');
-                    $img = ht::createElement('img', array('src' => $imageUrl, 'alt' => $lg));
-                }
-                
-                $url = array($this, 'SelectLang', 'lang' => $lg);
-                
-                
-                if ($commerceTheme) {
-                    $img .= ht::createElement('span', array('class' => 'cms-menu-label'), $lg == 'bg' ? 'БГ' : strtoupper($lg));
-                }
-                $tpl->append(ht::createLink($img, $url, null, $attr));
-            }
-        } elseif (countR($usedLangsArr) > 1) {
-            $attr = array();
-            $attr['class'] = 'selectLang langIcon';
-            $attr['title'] = implode(', ', $usedLangsArr);
-            if (Request::get('Ctr') == 'cms_Content' && Request::get('Act') == 'selectLang') {
-                $attr['class'] = 'selected langIcon';
-            }
-            $tpl->append(ht::createLink(ht::createElement('img', array('src' => sbf('img/24/globe.png', ''))), array($this, 'selectLang'), null, $attr));
-        }
-        
-        if ($commerceTheme) {
-            $tpl->append('</span>');
-        }
+        $theme->renderMenuLangs($tools, cms_Domains::getCmsLangs());
+        $tpl->append($theme->wrapMenuTools($tools));
 
         return $tpl;
     }

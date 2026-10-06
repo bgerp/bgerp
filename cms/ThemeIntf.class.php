@@ -39,7 +39,16 @@ class cms_ThemeIntf extends core_InnerObjectIntf
 
 
     /**
-     * Добавя стиловете на темата за публичния магазин
+     * Добавя ресурсите на темата за раздел от сайта
+     */
+    public function addAssets($tpl, $section)
+    {
+        return $this->class->addAssets($tpl, $section);
+    }
+
+
+    /**
+     * @deprecated addAssets($tpl, 'shop')
      */
     public function addShopAssets($tpl)
     {
@@ -48,7 +57,7 @@ class cms_ThemeIntf extends core_InnerObjectIntf
 
 
     /**
-     * Добавя стиловете на темата за публичния форум
+     * @deprecated addAssets($tpl, 'forum')
      */
     public function addForumAssets($tpl)
     {

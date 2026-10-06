@@ -425,7 +425,7 @@ class forum_Boards extends core_Master
         }
         
         $tpl->push($data->ForumTheme->getStyles(), 'CSS');
-        cms_ProtoTheme::getCurrent()->addForumAssets($tpl);
+        cms_ProtoTheme::getCurrent()->addAssets($tpl, 'forum');
         $tpl->replace($this->renderNavigation($data), 'NAVIGATION');
         $tpl->replace($this->renderSearchForm($data), 'SEARCH_FORM');
         
@@ -499,7 +499,7 @@ class forum_Boards extends core_Master
         }
         
         $tpl->push($data->ForumTheme->getStyles(), 'CSS');
-        cms_ProtoTheme::getCurrent()->addForumAssets($tpl);
+        cms_ProtoTheme::getCurrent()->addAssets($tpl, 'forum');
         $tpl->replace($this->renderNavigation($data), 'NAVIGATION');
         $tpl->replace($this->renderSearchForm($data), 'SEARCH_FORM');
         
