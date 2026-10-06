@@ -32,6 +32,12 @@ class callcenter_ListOperationsPlg extends core_Plugin
             
             return ;
         }
+
+        // A wildcard search is a number fragment, not a number to dial or message.
+        if (strpos($number, '*') !== false) {
+
+            return;
+        }
         
         // Ако е коректен номер, според нашите очаквания
         if (!($numberArr = drdata_PhoneType::toArray($number))) {
