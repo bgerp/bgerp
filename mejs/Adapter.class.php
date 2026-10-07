@@ -102,10 +102,10 @@ class mejs_Adapter
         }
         
         // Заместваме плейсхолдерите
-        $mTpl->replace($params['width'], 'WIDTH');
-        $mTpl->replace($params['height'], 'HEIGHT');
+        $mTpl->replace($params['width'] ?? null, 'WIDTH');
+        $mTpl->replace($params['height'] ?? null, 'HEIGHT');
         $mTpl->replace($type, 'TYPE');
-        if($params['title']) {
+        if(!empty($params['title'])) {
            $mTpl->replace($params['title'], 'MEDIA_TITLE');
         }
 

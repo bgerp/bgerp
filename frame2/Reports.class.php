@@ -943,16 +943,17 @@ class frame2_Reports extends embed_Manager
      */
     protected static function on_BeforeSave(core_Manager $mvc, $res, $rec)
     {
-        if ($rec->state == 'draft') {
+        $state = $rec->state ?? null;
+        if ($state == 'draft') {
             $rec->state = 'active';
             
             if (empty($rec->activatedOn)) {
                 $rec->activatedOn = dt::now();
                 $rec->activatedBy = core_Users::getCurrent();
             }
-        } elseif ($rec->state == 'rejected' || $rec->state == 'closed') {
+        } elseif ($state == 'rejected' || $state == 'closed') {
             $rec->removeSetUpdateTimes = true;
-        } elseif ($rec->state == 'active' && in_array($rec->brState, array('rejected', 'closed'))) {
+        } elseif ($state == 'active' && in_array($rec->brState ?? null, array('rejected', 'closed'))) {
             $rec->updateRefreshTimes = true;
         }
         
