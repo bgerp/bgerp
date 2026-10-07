@@ -675,8 +675,8 @@ class pos_Receipts extends core_Master
     {
         $rec = $mvc->fetchRec($id);
 
-        // Ако не е чернова или е сторнираща - няма да се преизчислява нищо
-        if ($rec->state != 'draft' || !empty($rec->revertId)) return;
+        // Ако бележката е изтрита, не е чернова или е сторнираща - няма да се преизчислява нищо
+        if (empty($rec) || $rec->state != 'draft' || !empty($rec->revertId)) return;
 
         // Преизчисляване на общите отстъпки
         core_Debug::startTimer('CALC_AUTO_DISCOUNT');
