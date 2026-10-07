@@ -583,7 +583,7 @@ class vtotal_Checks extends core_Master
     {
         $data->listFilter->input(null, 'silent');
         
-        if ($data->listFilter->rec->md5) {
+        if (!empty($data->listFilter->rec->md5)) {
             $data->query->where(array("#md5 = '[#1#]'", $data->listFilter->rec->md5));
         }
         
