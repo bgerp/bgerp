@@ -739,7 +739,7 @@ class doc_DocumentPlg extends core_Plugin
         if ($data->query) {
             if (Request::get('Rejected')) {
                 $data->query->where("#state = 'rejected'");
-            } else {
+            } elseif (empty($data->showRejectedRows)) {
                 $data->rejQuery = clone($data->query);
                 $data->query->where("#state != 'rejected' OR #state IS NULL");
                 $data->rejQuery->where("#state = 'rejected'");

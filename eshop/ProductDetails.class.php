@@ -1178,7 +1178,13 @@ class eshop_ProductDetails extends core_Detail
      */
     public function getSourceTitle($id)
     {
+        // Редът може вече да е изтрит, а запитването още да сочи към него
         $rec = $this->fetch($id);
+        if (!is_object($rec)) {
+
+            return null;
+        }
+
         try{
             $url = eshop_Products::getSingleUrlArray($rec->eshopProductId);
             $title = self::getPublicProductTitle($rec->eshopProductId, $rec->productId);

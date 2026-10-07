@@ -488,12 +488,18 @@ class sales_TransportValues extends core_Manager
             $amountFee = deals_Helper::getDisplayPrice($amountFee, $vat, $currencyRate, $chargeVat);
             $amountFee = cls::get('type_Double', array('params' => array('decimals' => 2)))->toVerbal($amountFee);
             $hint = "Транспорт|*: {$amountFee} {$currencyId}";
+            $hintAttr = array('isHtml' => true);
             
+            // Обяснението идва от калкулатора - ескейпва се, защото хинтът е HTML
             if (!empty($explain) && haveRole('admin,tcost')){
-                $hint .= "<br>" . $explain;
+                $explain = str_replace('|', '&#124;', core_Type::escape(ltrim($explain, ', ')));
+                $hint .= "<br><small>{$explain}</small>";
+                
+                // Балончето по подразбиране е на един ред - дългото обяснение се пренася
+                $hintAttr['style'] = 'white-space: normal; width: 280px;';
             }
-            
-            return ht::createHint($amountRow, $hint, 'notice', false);
+
+            return ht::createHint($amountRow, $hint, 'notice', false, $hintAttr);
         }
         
         return $amountRow;

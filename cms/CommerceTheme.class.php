@@ -34,6 +34,7 @@ class cms_CommerceTheme extends cms_FancyTheme
         'cms/themes/default/Articles.shtml' => 'Articles',
         'cms/themes/default/ArticlesNarrow.shtml' => 'Articles',
         'cms/themes/default/WideArticles.shtml' => 'WideArticles',
+        'cms/tpl/Feeds.shtml' => 'Feeds',
     );
 
 
@@ -49,6 +50,7 @@ class cms_CommerceTheme extends cms_FancyTheme
         'forum' => array('css' => array('cms/css/CommerceForum.css'), 'body' => 'commerce-forum'),
         'blog' => array('css' => array('cms/css/CommerceBlog.css'), 'body' => 'commerce-blog'),
         'article' => array('css' => array('cms/css/CommerceBlog.css', 'cms/css/CommerceArticles.css'), 'body' => 'commerce-blog commerce-article'),
+        'feeds' => array('css' => array('cms/css/CommerceFeeds.css'), 'body' => 'commerce-feeds'),
     );
 
 
