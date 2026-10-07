@@ -195,7 +195,7 @@ class fileman_Log extends core_Manager
         $nRec->dataId = $fRec->dataId;
         
         // Упдейтваме записа
-        static::save($nRec);
+        static::save($nRec, null, 'UPDATE');
         
         // Връщаме записа
         return $nRec;

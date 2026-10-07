@@ -121,6 +121,7 @@ class tcost_FeeZones extends core_Master
         
         $this->FLD('addTax', 'double', 'caption=Надценки->Твърда, autohide');
         $this->FLD('addPerKg', 'double', 'caption=Надценки->За кг, autohide');
+        $this->FLD('addPercent', 'percent(min=0)', 'caption=Надценки->Процент, autohide');
         $this->FLD('volume2quantity', 'double(min=0)', 'caption=Конверсия->Обем към кг, autohide');
         $this->FLD('volume2quantityValidForAbove', 'double(min=0,smartRound)', 'caption=Конверсия->Важи над,unit=кг, autohide');
 
@@ -260,12 +261,15 @@ class tcost_FeeZones extends core_Master
         $explain = null;
         if ($fee > 0) {
             $taxes = self::getTaxesByZone($zoneId, $singleWeight, $totalVolumicWeight);
-            $fee = $taxes['tax'] + $taxes['addPerKg'] + $fee;
+            $fee = self::addTaxesToFee($fee, $taxes);
             
             $zoneName = tcost_FeeZones::getTitleById($zoneId);
             $termCode = cond_DeliveryTerms::getVerbal($deliveryTermId, 'codeName');
             $delTimeExplained = $deliveryTime / (24 * 60 * 60);
             $explain = ", {$termCode}, ZONE = '{$zoneName}', VOL_WT = '{$singleWeight}', TAX = {$taxes['tax']}, ADD_PER_KG = {$taxes['addPerKg']}, TOTAL_VOL_WT = '{$totalVolumicWeight}', DEL_TIME = '{$delTimeExplained} d'";
+            if (!empty($taxes['addPercent'])) {
+                $explain .= ", ADD_PERCENT = " . round($taxes['addPercent'] * 100, 2) . '%';
+            }
         }
 
         $toBaseCurrencyDate = dt::verbal2mysql($toBaseCurrencyDate, false);
@@ -292,7 +296,7 @@ class tcost_FeeZones extends core_Master
         $taxes = array();
         
         // Надценките се взимат с приоритет от зоната, ако няма от глобалните настройки
-        $rec = self::fetchRec($id, 'addTax,addPerKg,volume2quantity');
+        $rec = self::fetchRec($id, 'addTax,addPerKg,addPercent,volume2quantity');
         $taxes['tax'] = isset($rec->addTax) ? $rec->addTax : tcost_Setup::get('ADD_TAX');
         $taxes['addPerKg'] = isset($rec->addPerKg) ? $rec->addPerKg : tcost_Setup::get('ADD_PER_KG');
        
@@ -301,8 +305,27 @@ class tcost_FeeZones extends core_Master
         }
         
         $taxes['addPerKg'] = $taxes['addPerKg'] * $singleWeight;
+        $taxes['addPercent'] = $rec->addPercent ?? null;
         
         return $taxes;
+    }
+    
+    
+    /**
+     * Добавя надценките към цената, процентната - след твърдата и тази за кг
+     * 
+     * @param float $fee
+     * @param array $taxes - резултат от getTaxesByZone
+     * @return float
+     */
+    private static function addTaxesToFee($fee, $taxes)
+    {
+        $fee += $taxes['tax'] + $taxes['addPerKg'];
+        if (!empty($taxes['addPercent'])) {
+            $fee *= 1 + $taxes['addPercent'];
+        }
+        
+        return $fee;
     }
     
     
@@ -349,8 +372,8 @@ class tcost_FeeZones extends core_Master
                     $form->setError('deliveryTermId,countryId,pCode', "Не може да се изчисли сума за транспорт ({$result})");
                 } else {
                     $taxes = self::getTaxesByZone($result[2], $rec->singleWeight, $rec->totalWeight);
-                    $finalFee = $taxes['tax'] + $taxes['addPerKg'] + $result[1];
-                    $finalFee2 = $taxes['tax'] + $taxes['addPerKg'] + $result[0];
+                    $finalFee = self::addTaxesToFee($result[1], $taxes);
+                    $finalFee2 = self::addTaxesToFee($result[0], $taxes);
                     
                     $zoneName = tcost_FeeZones::getHyperlink($result[2]);
                     $form->info = 'Цената за|* <b>' . $rec->singleWeight . '</b> |на|* <b>' . $rec->totalWeight . 
@@ -359,6 +382,9 @@ class tcost_FeeZones extends core_Master
                     '</b><br>|Пратката попада в|*: <b>' . $zoneName . '</b>' .
                     '</b><br>|Твърда надценка|*: <b>' . $taxes['tax'] . '</b>' .
                     '</b><br>|Надценка пер кг|*: <b>' . $taxes['addPerKg'] / $rec->singleWeight . '</b>';
+                    if (!empty($taxes['addPercent'])) {
+                        $form->info .= '<br>|Процентна надценка|*: <b>' . round($taxes['addPercent'] * 100, 2) . ' %</b>';
+                    }
                     $form->info = tr($form->info);
                 }
             } catch (core_exception_Expect $e) {

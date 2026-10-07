@@ -57,7 +57,8 @@ class core_Tree extends core_BaseClass
                 $n->pid = $pid;
                 $pid = $n->id;
                 $n->title = $node;
-                
+                $n->url = null;
+
                 // Ако е задедено само на последния nod да се добавя URL
                 if (!$onlyLastUrl || ($onlyLastUrl && ($key == $nodesCnt - 1))) {
                     if ($url) {

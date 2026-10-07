@@ -570,7 +570,7 @@ class email_Outgoings extends core_Master
                         $rec->subject,
                         $rec,
                         array(
-                            'encoding' => $options->encoding
+                            'encoding' => $options->encoding ?? 'utf-8'
                         ),
                         $emailsCc,
                         $error
@@ -779,11 +779,6 @@ class email_Outgoings extends core_Master
         // Добавяме функционални полета
         $form->FNC('id', 'int', 'input=hidden, silent');
         $form->FLD('boxFrom', 'key(mvc=email_Inboxes, select=email)', 'caption=От адрес,mandatory');
-        $form->FLD('encoding', 'enum(utf-8=Уникод|* (UTF-8),
-                                    cp1251=Windows Cyrillic|* (CP1251),
-                                    koi8-r=Rus Cyrillic|* (KOI8-R),
-                                    cp1252=Western|* (CP1252),
-                                    ascii=Латиница|* (ASCII))', 'caption=Знаци, formOrder=4');
         $form->FLD('attachments', 'keylist(mvc=fileman_files, select=name)', 'caption=Файлове,columns=4,input=none');
         $form->FLD('documents', 'keylist(mvc=fileman_files, select=name)', 'caption=Документи,columns=4,input=none');
         $form->FNC('emailsTo', 'emails(1024)', 'input,caption=До,mandatory,class=long-input,formOrder=2', array('attr' => array('data-role' => 'list')));
@@ -1059,17 +1054,6 @@ class email_Outgoings extends core_Master
     {
         if ($form->isSubmitted()) {
             $rec = $form->rec;
-            
-            if ($form->rec->encoding != 'utf8' && $form->rec->encoding != 'lat') {
-                $html = (string) ($rec->html ?? '');
-                $converted = iconv('UTF-8', $rec->encoding, $html);
-                $deconverted = iconv($rec->encoding, 'UTF-8', $converted);
-                
-                if ($deconverted != $html) {
-                    $form->setWarning('encoding', 'Писмото съдържа символи, които не могат да се конвертират към|* ' .
-                        $form->getFieldType('encoding')->toVerbal($rec->encoding));
-                }
-            }
             
             if ($rec->delay && $rec->delay < dt::now()) {
                 $form->setError('delay', 'Отложеното изпращане може да е само в бъдеще');

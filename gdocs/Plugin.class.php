@@ -23,12 +23,11 @@ class gdocs_Plugin extends core_Plugin
      */
     public function on_AfterPrepareSingleToolbar($mvc, &$res, &$data)
     {
-        if ($mvc->haveRightFor('single', $data->rec)) {
+        $rec = $data->rec ?? null;
+        if (is_object($rec) && $mvc->haveRightFor('single', $rec)) {
             try {
-                $rec = $data->rec;
-                
                 //Разширението на файла
-                $ext = fileman_Files::getExt($rec->name);
+                $ext = fileman_Files::getExt($rec->name ?? '');
                 
                 if (in_array($ext, arr::make('doc,docx,xls,xlsx,ppt,pptx,pdf,pages,ai,tiff,dxf,svg,eps,ps,ttf,xps,zip,rar,pps,odt,ods,odp,sxw,sxc,sxi,wpd,rtf,csv,tsv'))) {
                     $url = 'https://docs.google.com/viewer?url=' . fileman_Download::getDownloadUrl($rec->fileHnd, 1);
@@ -56,7 +55,7 @@ class gdocs_Plugin extends core_Plugin
      */
     public static function getOembedRes($params)
     {
-        $url = $params['url'];
+        $url = $params['url'] ?? '';
         
         if ($editPos = strripos($url, '/edit')) {
             $editLen = 5;
@@ -79,12 +78,16 @@ class gdocs_Plugin extends core_Plugin
         }
         
         // Ако е презентация, трябва да се промени линка
+        $isForm = strpos($url, '/forms/');
         if (strpos($url, '/presentation/')) {
             $url = str_replace('/pub', '/embed', $url);
-        } elseif (strpos($url, '/drawings/') || strpos($url, '/file/') || ($isForm = strpos($url, '/forms/'))) {
+        } elseif (strpos($url, '/drawings/') || strpos($url, '/file/') || $isForm) {
             $urlArr = parse_url($url);
+            if (!is_array($urlArr)) {
+                $urlArr = array();
+            }
             
-            $urlPathArr = explode('/', $urlArr['path']);
+            $urlPathArr = explode('/', $urlArr['path'] ?? '');
             
             $lastElementOfArray = array_slice($urlPathArr, -1, 1, true);
             
@@ -110,12 +113,12 @@ class gdocs_Plugin extends core_Plugin
             
             $urlArr['path'] = implode('/', $urlPathArr);
             
-            $url = $urlArr['scheme'];
+            $url = $urlArr['scheme'] ?? '';
             if ($url) {
                 $url .= '://';
             }
             
-            $url .= $urlArr['host'];
+            $url .= $urlArr['host'] ?? '';
             $url .= $urlArr['path'];
         } else {
             
@@ -125,17 +128,17 @@ class gdocs_Plugin extends core_Plugin
         
         $conf = core_Packs::getConfig('gdocs');
         
-        setIfNot($width, $params['width'] ?? null, $conf->GDOCS_DEFAULT_WIDTH);
-        setIfNot($height, $params['height'] ?? null, $conf->GDOCS_DEFAULT_HEIGHT);
+        $width = $params['width'] ?? $conf->GDOCS_DEFAULT_WIDTH;
+        $height = $params['height'] ?? $conf->GDOCS_DEFAULT_HEIGHT;
         
         // Резултатния HTML
         $res['html'] = "<iframe src='{$url}' frameborder='0' width='{$width}' height='{$height}' allowfullscreen='true' mozallowfullscreen='true' webkitallowfullscreen='true'></iframe>";
         
         // Колко време да се кешира
-        $res['cache_age'] = $params['cache_age'];
+        $res['cache_age'] = $params['cache_age'] ?? null;
         
         // Ако трябва да се връща като JSON
-        if ($params['format'] == 'json') {
+        if (($params['format'] ?? null) == 'json') {
             $res = json_encode($res);
         }
         

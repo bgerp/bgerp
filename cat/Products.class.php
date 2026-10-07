@@ -569,7 +569,7 @@ class cat_Products extends embed_Manager
             $fields = $document->getInstance()->getDriverFields($Driver);
             $sourceRec = $document->rec();
             
-            $form->setDefault('name', $sourceRec->title);
+            $form->setDefault('name', $sourceRec->title ?? null);
             if (empty($rec->id)) {
 
                 // Копират се само полетата, които източникът наистина има
@@ -1068,6 +1068,11 @@ class cat_Products extends embed_Manager
         if($filterRec = $data->listFilter->rec){
             $filtersArr = bgerp_type_CustomFilter::toArray($filterRec->filters);
 
+            // Иначе plg_Rejected скрива оттеглените от списъка
+            if (isset($filtersArr['rejected'])) {
+                $data->showRejectedRows = true;
+            }
+
             if (!empty($filterRec->type)) {
                 $data->query->where("#innerClass = {$filterRec->type}");
             }
@@ -1158,6 +1163,10 @@ class cat_Products extends embed_Manager
         if(isset($filtersArr['closed'])) {
             $wherePartTwo .= (!empty($wherePartTwo) ? ' OR ' : '') . "#state = 'closed'";
             unset($leftFilter['closed']);
+        }
+        if(isset($filtersArr['rejected'])) {
+            $wherePartTwo .= (!empty($wherePartTwo) ? ' OR ' : '') . "#state = 'rejected'";
+            unset($leftFilter['rejected']);
         }
         if(!empty($wherePartTwo)){
             $whereArr[] = $wherePartTwo;

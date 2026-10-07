@@ -3327,6 +3327,7 @@ en,Етап в производството,Production step
 en,Транспортна услуга,Transport service
 en,Закрити,Closed
 en,Шаблонни,Templates
+en,Оттеглени,Rejected
 en,Основни,Main
 en,най-често поради използването на акаунта на две различни устройства едновременно,most often due to using the account on two different devices at the same time
 en,"За да се отблокирате, моля последвайте този линк","To unblock, please follow this link"
@@ -4047,3 +4048,4 @@ en,История на задания,Jobs history
 en,Свързани документи,Linked documents
 en,Проверени права,Checked rights
 en,Нямате права за някои от избраните служители,You do not have rights for some of the selected employees
+en,Процентна надценка,Percentage markup
