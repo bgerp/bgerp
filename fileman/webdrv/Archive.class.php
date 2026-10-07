@@ -361,8 +361,8 @@ class fileman_webdrv_Archive extends fileman_webdrv_Generic
                 }
                 
                 // Ако няма текст, правим опит да направим OCR
-                if (!trim($eText)) {
-                    $minSize = fileman_Indexes::$ocrIndexArr[$ext];
+                if (!trim($eText ?? '')) {
+                    $minSize = fileman_Indexes::$ocrIndexArr[$ext] ?? null;
                     $eFileLen = @filesize($extractedPath);
                     if (isset($minSize) && ($eFileLen > $minSize) && ($eFileLen < fileman_Indexes::$ocrMax)) {
                         $filemanOcr = fileman_Setup::get('OCR');

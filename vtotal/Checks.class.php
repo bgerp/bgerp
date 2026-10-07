@@ -459,6 +459,7 @@ class vtotal_Checks extends core_Master
                 $errorType = 'err';
             } elseif ($result->response_code == -3) {
                 $error = ($diagnostics['httpCode'] ?? 429) . ': Достигнат лимит на заявките към VirusTotal';
+                $errorType = 'notice';
             }
 
             if ($error !== null) {
@@ -583,7 +584,7 @@ class vtotal_Checks extends core_Master
     {
         $data->listFilter->input(null, 'silent');
         
-        if ($data->listFilter->rec->md5) {
+        if (!empty($data->listFilter->rec->md5)) {
             $data->query->where(array("#md5 = '[#1#]'", $data->listFilter->rec->md5));
         }
         
