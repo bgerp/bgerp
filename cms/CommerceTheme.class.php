@@ -120,6 +120,10 @@ class cms_CommerceTheme extends cms_FancyTheme
     }
 
 
+    /** Банер по подразбиране; наследникът задава свой. */
+    public $defaultBanner = 'cms/img/commerce-banner.png';
+
+
     /** Банер по подразбиране, когато няма изображение за текущия екран. */
     public function getHeaderImg()
     {
@@ -131,7 +135,7 @@ class cms_CommerceTheme extends cms_FancyTheme
         }
 
         return ht::createElement('img', array(
-            'src' => sbf('cms/img/commerce-banner.png', ''),
+            'src' => sbf($this->defaultBanner, ''),
             'alt' => 'bgERP',
             'class' => 'headerImg commerce-default-banner',
         ));

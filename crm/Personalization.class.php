@@ -107,7 +107,7 @@ class crm_Personalization extends core_Detail
         $rec = $data->Personalization->rec;
         
         // Ако има една от стойностите
-        if ($rec->signature || $rec->header || $rec->logo || $rec->logoEn || $rec->inbox) {
+        if (is_object($rec) && ($rec->signature || $rec->header || $rec->logo || $rec->logoEn || $rec->inbox)) {
             
             // Шаблона
             $idCardTpl = new ET(tr('|*' . getFileContent('crm/tpl/Personalization.shtml')));
