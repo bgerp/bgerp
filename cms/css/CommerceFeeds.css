@@ -1,0 +1,86 @@
+/* RSS feeds page in the Commerce CMS theme. */
+body.commerce-feeds { background: var(--c-surface); }
+.commerce-feeds .externalPage #maincontent { background: var(--c-surface); }
+.commerce-feeds .commerce-feeds-page {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 32px 0 48px;
+    color: var(--c-ink);
+    font: 1rem/1.5 Arial, Helvetica, sans-serif;
+}
+.commerce-feeds .commerce-feeds-title {
+    margin: 0 0 20px;
+    padding: 0;
+    background: none !important;
+    border: 0 !important;
+    color: var(--c-ink);
+    font-size: clamp(1.625em, 2.4vw, 2.25em);
+    line-height: 1.2;
+    letter-spacing: -.6px;
+}
+.commerce-feeds .commerce-feeds-list { display: grid; gap: 16px; }
+.commerce-feeds .commerce-feed {
+    padding: 20px 24px;
+    background: #fff;
+    border: 1px solid var(--c-line);
+    border-radius: 12px;
+    overflow-wrap: anywhere;
+    transition: border-color .15s, box-shadow .15s;
+}
+.commerce-feeds .commerce-feed:hover {
+    border-color: var(--c-accent-line-strong);
+    box-shadow: 0 6px 18px rgba(var(--c-ink-rgb), .08);
+}
+.commerce-feeds .commerce-feed-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+.commerce-feeds .commerce-feed-title {
+    margin: 0;
+    padding: 0;
+    background: none !important;
+    border: 0 !important;
+    font-size: 1.25em;
+    line-height: 1.3;
+}
+.commerce-feeds .commerce-feed-title a {
+    color: var(--c-ink);
+    text-decoration: none;
+    background-position: left center !important;
+    background-size: 20px 20px !important;
+    padding-left: 28px !important;
+}
+.commerce-feeds .commerce-feed-title a:hover { color: var(--c-accent); }
+.commerce-feeds .commerce-feed-type {
+    flex: none;
+    padding: 2px 10px;
+    background: var(--c-accent-soft);
+    border: 1px solid var(--c-accent-line);
+    border-radius: 999px;
+    color: var(--c-accent);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: .4px;
+    text-transform: uppercase;
+}
+.commerce-feeds .commerce-feed-description {
+    margin: 8px 0 0;
+    color: var(--c-text);
+}
+.commerce-feeds .commerce-feed-url {
+    margin-top: 14px;
+    padding: 8px 12px;
+    background: var(--c-bg);
+    border: 1px solid var(--c-line-4);
+    border-radius: 8px;
+    font: 0.8125rem/1.4 Consolas, Monaco, monospace;
+}
+.commerce-feeds .commerce-feed-url a { color: var(--c-text-2); text-decoration: none; }
+.commerce-feeds .commerce-feed-url a:hover { color: var(--c-accent); text-decoration: underline; }
+@media (max-width: 800px) {
+    .commerce-feeds .commerce-feeds-page { padding: 20px 16px 32px; }
+    .commerce-feeds .commerce-feed { padding: 16px; }
+    .commerce-feeds .commerce-feed-head { align-items: flex-start; }
+}

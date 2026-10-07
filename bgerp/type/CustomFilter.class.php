@@ -24,13 +24,17 @@ class bgerp_type_CustomFilter extends type_Varchar
     public function fromVerbal($value)
     {
         if (empty($value)) return;
-        unset($value['select2']);
+        if (is_array($value)) {
+            unset($value['select2']);
+        }
         $value = arr::make($value, true);
         if(!countR($value)) return;
 
+        // От формата идват ид-та, а от URL/запомнена стойност - имена
         $query = bgerp_Filters::getQuery();
         $query->where(self::getClassesWhereClause($this->params['classes']));
         $query->in('id', $value);
+        $query->in('name', $value, false, true);
         $names = arr::extractValuesFromArray($query->fetchAll(), 'name');
 
         return implode(',', $names);
