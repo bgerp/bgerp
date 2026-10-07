@@ -534,9 +534,9 @@ class sales_Sales extends deals_DealMaster
                     // Ако има дефолтна каса
                     if($caseId = cond_plg_DefaultValues::getDefValueByStrategy($mvc, $rec, 'caseId', 'sessionValue|lastDocUser|lastDoc')){
                         if(core_Packs::isInstalled('holding')){
-                            if(!holding_Companies::isValueAllowed($caseId, $rec->{$mvc->ownCompanyFieldName}, 'cashes')){
-                                $caseId = null;
-                            }
+                            if(!holding_Companies::isValueAllowed($caseId, $rec->{$mvc->ownCompanyFieldName} ?? null, 'cashes')){
+                               $caseId = null;
+                           }
                         }
                     }
                     

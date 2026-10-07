@@ -16,6 +16,14 @@
  */
 class cond_CourierApiIntf extends embed_DriverIntf
 {
+    /**
+     * Състояния на изпратена товарителница
+     */
+    const BOL_ISSUED = 'issued';
+    const BOL_ISSUED_NO_PDF = 'issuedNoPdf';
+    const BOL_REJECTED = 'rejected';
+    const BOL_UNKNOWN = 'unknown';
+
 
     /**
      * Роли по дефолт, които изисква драйвера
@@ -111,7 +119,7 @@ class cond_CourierApiIntf extends embed_DriverIntf
      * @param core_Mvc $mvc          - модел
      * @param stdClass $documentRec  - запис на документа от който ще се генерира
      * @param core_Form $form        - формата за генериране на товарителница
-     * @return object $obj           - информация за цената и хендлъра на генерираната товарителница
+     * @return object $obj           - price, fh, number и status (self::BOL_*) на товарителницата
      * @throws core_exception_Expect
      */
     public function getRequestedShipmentRes($mvc, $documentRec, &$form)
@@ -144,5 +152,20 @@ class cond_CourierApiIntf extends embed_DriverIntf
     public function getDefaultEmailBody($mvc, $id)
     {
         return $this->class->getDefaultEmailBody($mvc, $id);
+    }
+
+
+    /**
+     * Издадените товарителници към документа, от последната към първата
+     *
+     * @param int $containerId
+     * @return array|null $res - обекти с number, date, file и state; null ако драйверът не поддържа проверката
+     */
+    public function getBillOfLadings($containerId)
+    {
+        // Реализациите извън ядрото може да нямат метода
+        if(!cls::existsMethod($this->class, 'getBillOfLadings')) return null;
+
+        return $this->class->getBillOfLadings($containerId);
     }
 }
