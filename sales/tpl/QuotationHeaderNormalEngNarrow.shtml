@@ -113,6 +113,9 @@
 				        <!--ET_BEGIN commonConditionQuote-->
 				        <li>General Terms and Conditions of Sale: [#commonConditionQuote#]</li>
 				        <!--ET_END commonConditionQuote-->
+				        <!--ET_BEGIN priceListId-->
+				        <li>Price list: [#priceListId#]</li>
+				        <!--ET_END priceListId-->
 			        </ol>
 	            </td>
                 </tr>
