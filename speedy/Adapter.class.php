@@ -200,15 +200,16 @@ class speedy_Adapter extends core_BaseClass
         $res = array();
         $clientRes = static::call('location/country/', $jsonData);
 
-        foreach ((array)$clientRes->countries as $country) {
+        // Някои държави идват без валута и типове комплекси (напр. САЩ)
+        foreach ((array)($clientRes->countries ?? array()) as $country) {
             $res[$country->id] = array();
             $res[$country->id]['id'] = $country->id;
-            $res[$country->id]['name'] = $country->name;
-            $res[$country->id]['nameEn'] = $country->nameEn;
-            $res[$country->id]['isoAlpha2'] = $country->isoAlpha2;
-            $res[$country->id]['isoAlpha3'] = $country->isoAlpha3;
-            $res[$country->id]['currencyCode'] = $country->currencyCode;
-            $res[$country->id]['complexTypes'] = $country->complexTypes;
+            $res[$country->id]['name'] = $country->name ?? null;
+            $res[$country->id]['nameEn'] = $country->nameEn ?? null;
+            $res[$country->id]['isoAlpha2'] = $country->isoAlpha2 ?? null;
+            $res[$country->id]['isoAlpha3'] = $country->isoAlpha3 ?? null;
+            $res[$country->id]['currencyCode'] = $country->currencyCode ?? null;
+            $res[$country->id]['complexTypes'] = $country->complexTypes ?? array();
         }
 
         return $res;
@@ -265,9 +266,9 @@ class speedy_Adapter extends core_BaseClass
 
         $res = array();
         $country = static::getCountries($ourCountryId);
-        $complexTypes = $country[key($country)]['complexTypes'];
+        $complexTypes = countR($country) ? ($country[key($country)]['complexTypes'] ?? array()) : array();
         $all = $complexTypes;
-        foreach ($complexTypes as $complexId => $complexRec) {
+        foreach ((array)$complexTypes as $complexId => $complexRec) {
             $res[$complexId] = $lg == 'bg' ? $complexRec->name : $complexRec->nameEn;
         }
 
