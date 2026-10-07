@@ -225,7 +225,7 @@ class speedy_interface_ApiImpl extends core_BaseClass
             }
         }
 
-        $form->setDefault('receiverPhone', $logisticData['toPersonPhones'] ?? null);
+        $form->setDefault('receiverPhone', self::getFirstPhone($logisticData['toPersonPhones'] ?? null));
         $form->setDefault('receiverNotes', $logisticData['instructions'] ?? null);
         $form->setDefault('receiverCountryId', $logisticCountryId);
         $toPerson = $logisticData['toPerson'] ?? null;
@@ -238,7 +238,7 @@ class speedy_interface_ApiImpl extends core_BaseClass
         $amountCod = round($amountCod, 2);
         if(empty($toPerson) && $Cover->haveInterface('crm_PersonAccRegIntf')){
             $toPerson = $Cover->fetchField('name');
-            $form->setDefault('receiverPhone', $Cover->fetchField('tel'));
+            $form->setDefault('receiverPhone', self::getFirstPhone($Cover->fetchField('tel')));
         }
 
         if(($formRec->payer ?? null) == 'third'){
@@ -297,8 +297,7 @@ class speedy_interface_ApiImpl extends core_BaseClass
 
         $form->setDefault('payerPackaging', 'same');
         $profile = crm_Profiles::getProfile();
-        $phones = drdata_PhoneType::toArray($profile->tel);
-        $phone = $phones[0]->original ?? null;
+        $phone = self::getFirstPhone($profile->tel ?? null);
         $form->setDefault('senderName', $profile->name);
         $form->setDefault('senderPhone', $phone);
         $form->setDefault('declare', 'yes');
@@ -379,6 +378,31 @@ class speedy_interface_ApiImpl extends core_BaseClass
             $form->setOptions('thirdPayerRefId', $senderObjects);
             $form->setDefault('thirdPayerRefId', $formRec->senderClientId ?? null);
         }
+    }
+
+
+    /**
+     * Първият разпознат телефон само като номер - Speedy отказва имена, вътрешни и втори номера
+     *
+     * @param string|null $phones
+     * @return string|null
+     */
+    private static function getFirstPhone($phones)
+    {
+        $phones = trim((string) $phones);
+        if ($phones === '') return null;
+
+        $parsed = drdata_PhoneType::toArray($phones);
+        $phone = is_array($parsed) ? ($parsed[0] ?? null) : null;
+        if (!is_object($phone)) return $phones;
+
+        // Българските номера - в местния формат, с който Speedy ги приема
+        if (($phone->countryCode ?? '') == '359') {
+
+            return '0' . ($phone->areaCode ?? '') . ($phone->number ?? '');
+        }
+
+        return drdata_PhoneType::getNumStrFromObj($phone);
     }
 
 
