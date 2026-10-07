@@ -254,6 +254,9 @@ class store_plg_CourierApiShipment extends core_Plugin
         $existing = $Driver->getBillOfLadings($containerId);
         if(!is_array($existing)) return 'unsupported';
 
+        // Анулираните при куриера не пречат на нова
+        $existing = array_filter($existing, function ($bill) { return ($bill->state ?? null) != 'rejected'; });
+
         return countR($existing) ? 'exists' : null;
     }
 
