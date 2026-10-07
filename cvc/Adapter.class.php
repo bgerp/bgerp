@@ -794,6 +794,13 @@ class cvc_Adapter
 
         $responseJson = @curl_exec($curl);
 
+        // Без отговор не е ясно дали заявката е изпълнена - пазим причината за проверка
+        if (!is_string($responseJson) || !trim($responseJson)) {
+            $httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+            $time = round(curl_getinfo($curl, CURLINFO_TOTAL_TIME), 1);
+            log_System::add(get_called_class(), "Няма отговор от {$url}: " . curl_error($curl) . " (HTTP {$httpCode}, {$time} s)", null, 'warning', 7);
+        }
+
         $res = self::prepareRes($responseJson);
 
         return $res;
