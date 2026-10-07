@@ -36,5 +36,17 @@ class email_tests_Mime extends unit_Class
     }
     
     
-   
+    public function test_parseEmptyHeaders()
+    {
+        UT::expectEqual(email_Mime::parseHeaders(''), array());
+        UT::expectEqual(email_Mime::parseHeaders(null), array());
+    }
+
+
+    public function test_parseMalformedHeaders()
+    {
+        $headers = "\torphan\nSubject: First\n continued\nBroken line\n\torphan again\nSubject: Second";
+        UT::expectEqual(email_Mime::parseHeaders($headers), array('subject' => array("First\n continued", 'Second')));
+    }
+
 }

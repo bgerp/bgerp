@@ -98,6 +98,7 @@ class fileman_webdrv_Video extends fileman_webdrv_Media
         $prevLink = $resArray['prevLink'];
         $nextLink = $resArray['nextLink'];
 
+        $videoTpl = null;
         if (defined('FILEMAN_FFMPEG_CONVERTER_PATH')) {
             $previewUrl = toUrl(array(get_called_class(), 'preview', $fRec->fileHnd));
             $previewHtml = "<div class='webdrvTabBody'><div class='webdrvFieldset'>{$prevLink}{$nextLink} <iframe src='{$previewUrl}' frameBorder='0' ALLOWTRANSPARENCY='true' class='webdrvIframe' id='imgIframe'></iframe></div></div>";

@@ -601,7 +601,7 @@ class fileman_Indexes extends core_Manager
         static::createError($params);
         
         // Записваме грешката в лога
-        static::createErrorLog($params['dataId'], $params['type']);
+        static::createErrorLog($params['dataId'] ?? null, $params['type'] ?? '');
         
         return true;
     }
