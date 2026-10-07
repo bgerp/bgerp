@@ -110,38 +110,23 @@ class store_plg_CourierApiShipment extends core_Plugin
             $form->input();
             $Driver->inputBillOfLadingForm($mvc, $rec, $form);
 
+            // Неизясненият опит се потвърждава през предупреждението, след проверка при куриера
+            if($form->cmd == 'save'){
+                $attempt = self::getPendingAttempt($rec->containerId);
+                if($attempt){
+                    $date = dt::mysql2verbal($attempt->createdOn, 'd.m.Y H:i');
+                    $form->setWarning(key($form->fields), "Опитът за товарителница от|* {$date} |остана без ясен резултат. Проверете в системата на куриера дали не е създадена|*!");
+                }
+            }
+
             if($form->isSubmitted()){
-                if($form->cmd == 'save'){
+                $submitted = self::submitBillOfLading($mvc, $rec, $Driver, $form);
+                if(!empty($submitted->fh)){
+                    followRetUrl(null, "Товарителницата е изпратена успешно|*!");
+                }
 
-                    // Ще върне ли драйвера файл хендлър на генерирана товарителница
-                    $requestedShipment = $Driver->getRequestedShipmentRes($mvc, $rec, $form);
-
-                    if(!empty($requestedShipment->fh)){
-                        if(!$form->gotErrors()){
-
-                            $fileId = fileman::fetchByFh($requestedShipment->fh, 'id');
-                            doc_Linked::add($rec->containerId, $fileId, 'doc', 'file', $Driver->class->billOfLadingComment);
-                            $mvc->logWrite("Създаване на товарителница", $rec->id);
-                            if(is_object($requestedShipment->price)){
-                                $calcedPrice = currency_CurrencyRates::convertAmount($requestedShipment->price->total, $rec->{$mvc->valiorFld}, $requestedShipment->price->currency);
-                                $rec->courierApiPrice = $calcedPrice;
-                                $mvc->save_($rec, 'courierApiPrice');
-                            }
-
-                            followRetUrl(null, "Товарителницата е изпратена успешно|*!");
-                        }
-                    }
-                } elseif($form->cmd == 'calc'){
-                    $calculatedShipmentRes = $Driver->calculateShipmentRes($mvc, $rec, $form);
-
-                    if(is_object($calculatedShipmentRes->tpl)){
-                        $form->info = $calculatedShipmentRes->tpl;
-                        if(is_object($calculatedShipmentRes->price)){
-                            $calcedPrice = currency_CurrencyRates::convertAmount($calculatedShipmentRes->price->total ?? null, $rec->{$mvc->valiorFld}, $calculatedShipmentRes->price->currency ?? null);
-                            $rec->courierApiPrice = $calcedPrice;
-                            $mvc->save_($rec, 'courierApiPrice');
-                        }
-                    }
+                if(is_object($submitted->tpl)){
+                    $form->info = $submitted->tpl;
                 }
             }
 
@@ -163,6 +148,163 @@ class store_plg_CourierApiShipment extends core_Plugin
 
 
     /**
+     * Изпраща (cmd=save) или изчислява (cmd=calc) въведената форма за товарителница
+     *
+     * @param core_Mvc $mvc         - документ
+     * @param stdClass $rec         - запис на документа
+     * @param cond_CourierApiIntf $Driver - куриерското API на документа
+     * @param core_Form $form       - въведената форма за товарителница
+     * @param bool|null $allowExisting - null от UI-то; false само ако няма издадени; true и при издадени.
+     *                                   Неизяснен опит спира изпращането, освен в UI с потвърдено предупреждение
+     * @return stdClass $res        - fh, number, status (cond_CourierApiIntf::BOL_* или noRights/exists/pendingCheck/unsupported/busy),
+     *                                tpl на изчислението и price от драйвера
+     */
+    public static function submitBillOfLading($mvc, $rec, $Driver, $form, $allowExisting = null)
+    {
+        $res = (object)array('fh' => null, 'tpl' => null, 'price' => null, 'number' => null, 'status' => null);
+        if(!in_array($form->cmd, array('save', 'calc'))) return $res;
+
+        // Извикванията извън екшъна също минават през правата и валидацията
+        if(!$mvc->haveRightFor('requestbilloflading', $rec)){
+            $res->status = 'noRights';
+
+            return $res;
+        }
+        if(!$form->isSubmitted()){
+            $res->status = cond_CourierApiIntf::BOL_REJECTED;
+
+            return $res;
+        }
+
+        if($form->cmd == 'calc'){
+            $calculatedShipmentRes = $Driver->calculateShipmentRes($mvc, $rec, $form);
+            if(is_object($calculatedShipmentRes->tpl ?? null)){
+                $res->tpl = $calculatedShipmentRes->tpl;
+                $res->price = $calculatedShipmentRes->price ?? null;
+                self::saveCourierApiPrice($mvc, $rec, $res->price);
+            }
+
+            return $res;
+        }
+
+        // Две едновременни изпращания към документа биха издали две товарителници
+        $errField = key($form->fields);
+        $lockKey = "courierBillOfLading_{$rec->containerId}";
+        if(!core_Locks::obtain($lockKey, 300, 0, 0)){
+            $res->status = 'busy';
+            $form->setError($errField, 'В момента се изпраща друга товарителница към документа|*!');
+
+            return $res;
+        }
+
+        try{
+            $res->status = self::getSubmitBlocker($rec->containerId, $Driver, $allowExisting, $form);
+            if(isset($res->status)) return $res;
+
+            // Опитът се записва преди заявката: ако процесът прекъсне, остава за сверяване
+            $attemptKey = self::getPendingAttemptKey($rec->containerId);
+            $attempt = (object)array('createdOn' => dt::now(), 'createdBy' => core_Users::getCurrent('id', false), 'driver' => get_class($Driver->class));
+            core_Permanent::set($attemptKey, $attempt, core_Permanent::FOREVER_VALUE);
+
+            $requestedShipment = $Driver->getRequestedShipmentRes($mvc, $rec, $form);
+
+            // Драйвер без състояние: без файл не е ясно дали е издадена
+            $res->status = $requestedShipment->status ?? (!empty($requestedShipment->fh) ? cond_CourierApiIntf::BOL_ISSUED : cond_CourierApiIntf::BOL_UNKNOWN);
+            $res->number = $requestedShipment->number ?? null;
+            $res->price = $requestedShipment->price ?? null;
+
+            if($res->status == cond_CourierApiIntf::BOL_UNKNOWN){
+                $form->setError($errField, 'Не е ясно дали товарителницата е създадена. Проверете в системата на куриера преди нов опит|*!');
+            } else {
+                core_Permanent::remove($attemptKey);
+            }
+
+            if(in_array($res->status, array(cond_CourierApiIntf::BOL_ISSUED, cond_CourierApiIntf::BOL_ISSUED_NO_PDF))){
+                $mvc->logWrite("Създаване на товарителница", $rec->id);
+                self::saveCourierApiPrice($mvc, $rec, $res->price);
+            }
+
+            if(!empty($requestedShipment->fh) && !$form->gotErrors()){
+                $fileId = fileman::fetchByFh($requestedShipment->fh, 'id');
+                doc_Linked::add($rec->containerId, $fileId, 'doc', 'file', $Driver->class->billOfLadingComment);
+                $res->fh = $requestedShipment->fh;
+            }
+        } finally {
+            core_Locks::release($lockKey);
+        }
+
+        return $res;
+    }
+
+
+    /**
+     * Защо не може да се изпрати товарителница към документа или null, ако може
+     *
+     * @return string|null - pendingCheck, unsupported или exists
+     */
+    private static function getSubmitBlocker($containerId, $Driver, $allowExisting, $form)
+    {
+        // В UI потребителят потвърждава през предупреждението, че е проверил при куриера
+        $confirmedInUi = ($allowExisting === null) && !empty($form->ignore);
+        if(self::getPendingAttempt($containerId) && !$confirmedInUi) return 'pendingCheck';
+
+        // UI-то и изричната допълнителна товарителница не зависят от издадените
+        if($allowExisting !== false) return null;
+
+        $existing = $Driver->getBillOfLadings($containerId);
+        if(!is_array($existing)) return 'unsupported';
+
+        return countR($existing) ? 'exists' : null;
+    }
+
+
+    /**
+     * Неизясненият опит за товарителница към документа, ако има
+     *
+     * @param int $containerId
+     * @return stdClass|null - createdOn, createdBy, driver
+     */
+    public static function getPendingAttempt($containerId)
+    {
+        $attempt = core_Permanent::get(self::getPendingAttemptKey($containerId));
+
+        return is_object($attempt) ? $attempt : null;
+    }
+
+
+    /**
+     * Маха неизяснения опит, след като е проверено в системата на куриера
+     *
+     * @param int $containerId
+     */
+    public static function clearPendingAttempt($containerId)
+    {
+        core_Permanent::remove(self::getPendingAttemptKey($containerId));
+    }
+
+
+    /**
+     * Ключ на неизяснения опит за товарителница
+     */
+    private static function getPendingAttemptKey($containerId)
+    {
+        return "courierBillOfLadingAttempt_{$containerId}";
+    }
+
+
+    /**
+     * Записва цената от куриерското API във валутата на документа
+     */
+    private static function saveCourierApiPrice($mvc, $rec, $price)
+    {
+        if(!is_object($price)) return;
+
+        $rec->courierApiPrice = currency_CurrencyRates::convertAmount($price->total ?? null, $rec->{$mvc->valiorFld}, $price->currency ?? null);
+        $mvc->save_($rec, 'courierApiPrice');
+    }
+
+
+    /**
      * Преди рендиране на сингъла
      *
      * @param core_Mvc $mvc
@@ -175,6 +317,7 @@ class store_plg_CourierApiShipment extends core_Plugin
         if($mvc->lineFieldName ?? null){
             if(!empty($rec->courierApiPrice) && !Mode::isReadOnly()){
                 $courierApiPrice = currency_Currencies::decorate($rec->courierApiPrice, $rec->currencyId);
+                $data->row->{$mvc->lineFieldName} ??= '';
                 $data->row->{$mvc->lineFieldName} .= " {$courierApiPrice}";
             }
         }

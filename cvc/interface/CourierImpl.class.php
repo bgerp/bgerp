@@ -542,7 +542,7 @@ class cvc_interface_CourierImpl extends core_Manager
             $errorTpl->replace(tr('Цената за изпращане не може да бъде изчислена'), '1');
             $obj->tpl = $errorTpl;
 
-            return $errorTpl;
+            return $obj;
         }
 
         // Рендиране на ценовата информация
@@ -700,42 +700,48 @@ class cvc_interface_CourierImpl extends core_Manager
     {
         // Подготовка на данните за товарителницата
         $preparedBolParams = static::prepareBolData($form->rec);
-        $obj = (object)array('price' => null, 'fh' => null);
+        $obj = (object)array('price' => null, 'fh' => null, 'number' => null, 'status' => cond_CourierApiIntf::BOL_REJECTED);
 
         try{
             $res = cvc_Adapter::createWb($preparedBolParams);
-
         } catch(core_exception_Expect $e){
             $form->setError('parcelType', "Проблем при генериране на товарителницата");
-            return;
-        }
-
-        if(empty($res)){
-            $form->setError('parcelType', "Проблем при генериране на товарителницата");
-            return;
-        }
-
-        if(!$form->gotErrors()){
-
-            // Ако е разпечатана записва се в помощния модел
-            $wayBillRec = (object)array('containerId' => $documentRec->containerId, 'number' => $res['wb'], 'pickupDate' => $res['pickupDate'], 'deliveryDate' => $res['deliveryDate'], 'state' => 'pending', 'data' => $preparedBolParams);
-            if(empty($res['pdf'])){
-                $form->setError('parcelType', "Проблем при сваляне на товарителницата|*: <b>{$res['wb']}</b>");
-                return;
-            }
-
-            $wayBillRec->file = $res['pdf'];
-            cvc_WayBills::save($wayBillRec);
-
-            // Кеш на избраните полета от формата
-            $cacheArr = array('parcelType' => $form->rec->parcelType, 'customerId' => $form->rec->customerId, 'senderName' => $form->rec->senderName, 'senderPhone' => $form->rec->senderPhone, 'senderEmail' => $form->rec->senderEmail);
-            core_Permanent::set(self::getUserDataCacheKey($documentRec->folderId), $cacheArr, 4320);
-            $obj->fh = $res['pdf'];
-            $reqCurrencyId = dt::today() >= acc_Setup::getEurozoneDate() ? 'EUR' : 'BGN';
-            $obj->price = (object)array('total' => $res['priceWithVAT'], 'currency' => $reqCurrencyId);
 
             return $obj;
         }
+
+        // Без отговор или без номер в отговора не е ясно дали товарителницата е създадена
+        if(empty($res['wb'])){
+            $isUnknown = empty($res) ? cvc_Adapter::$lastCallNoResponse : true;
+            if($isUnknown){
+                $obj->status = cond_CourierApiIntf::BOL_UNKNOWN;
+            }
+            $form->setError('parcelType', "Проблем при генериране на товарителницата");
+
+            return $obj;
+        }
+
+        // Номерът се записва преди проверката на PDF-а, за да не се издаде втора
+        $obj->number = $res['wb'];
+        $obj->status = cond_CourierApiIntf::BOL_ISSUED_NO_PDF;
+        $reqCurrencyId = dt::today() >= acc_Setup::getEurozoneDate() ? 'EUR' : 'BGN';
+        $obj->price = (object)array('total' => $res['priceWithVAT'] ?? null, 'currency' => $reqCurrencyId);
+        $wayBillRec = (object)array('containerId' => $documentRec->containerId, 'number' => $res['wb'], 'pickupDate' => $res['pickupDate'] ?? null, 'deliveryDate' => $res['deliveryDate'] ?? null, 'state' => 'pending', 'data' => $preparedBolParams);
+        $wayBillRec->file = $res['pdf'] ?? null;
+        cvc_WayBills::save($wayBillRec);
+
+        // Кеш на избраните полета от формата
+        $cacheArr = array('parcelType' => $form->rec->parcelType, 'customerId' => $form->rec->customerId, 'senderName' => $form->rec->senderName, 'senderPhone' => $form->rec->senderPhone, 'senderEmail' => $form->rec->senderEmail);
+        core_Permanent::set(self::getUserDataCacheKey($documentRec->folderId), $cacheArr, 4320);
+
+        if(empty($res['pdf'])){
+            $form->setError('parcelType', "Проблем при сваляне на товарителницата|*: <b>{$res['wb']}</b>");
+
+            return $obj;
+        }
+
+        $obj->fh = $res['pdf'];
+        $obj->status = cond_CourierApiIntf::BOL_ISSUED;
 
         return $obj;
     }
@@ -863,6 +869,26 @@ class cvc_interface_CourierImpl extends core_Manager
                 return $bolTpl;
             }
         }
+    }
+
+
+    /**
+     * Издадените товарителници към документа, от последната към първата
+     *
+     * @param int $containerId
+     * @return array $res - обекти с number, date, file и state
+     */
+    public function getBillOfLadings($containerId)
+    {
+        $res = array();
+        $query = cvc_WayBills::getQuery();
+        $query->where(array("#containerId = [#1#]", $containerId));
+        $query->orderBy('id', 'DESC');
+        while($wbRec = $query->fetch()){
+            $res[] = (object)array('number' => $wbRec->number, 'date' => $wbRec->pickupDate, 'file' => $wbRec->file, 'state' => $wbRec->state);
+        }
+
+        return $res;
     }
 
 

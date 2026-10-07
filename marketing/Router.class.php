@@ -235,10 +235,7 @@ class marketing_Router extends core_Manager
     {
         $rec = new stdClass();
         foreach (array('name', 'email', 'country', 'tel', 'pCode', 'place', 'address', 'inCharge', 'vatId', 'egn') as $param) {
-            $value = ${$param};
-            if($param == 'egn'){
-                $value = $uicId;
-            }
+            $value = ($param == 'egn') ? $uicId : ${$param};
             
             $rec->{$param} = $value;
         }

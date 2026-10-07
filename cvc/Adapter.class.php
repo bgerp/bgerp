@@ -16,6 +16,10 @@
  */
 class cvc_Adapter
 {
+    /**
+     * Дали последната заявка е останала без отговор (не е ясно дали е изпълнена)
+     */
+    public static $lastCallNoResponse = false;
 
 
     /**
@@ -855,7 +859,8 @@ class cvc_Adapter
      */
     protected static function prepareRes($json)
     {
-        if (!trim($json)) {
+        self::$lastCallNoResponse = !is_string($json) || !trim($json);
+        if (self::$lastCallNoResponse) {
 
             return false;
         }

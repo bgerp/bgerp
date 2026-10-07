@@ -1671,7 +1671,8 @@ class core_Form extends core_FieldSet
         $status = !empty($this->cmd) && $this->cmd != 'refresh' && !$this->gotErrors();
         
         if ($status) {
-            expect($this->getMethod() != 'POST' || $_SERVER['REQUEST_METHOD'] != 'GET', $this->getMethod(), $_SERVER['REQUEST_METHOD']);
+            $requestMethod = $_SERVER['REQUEST_METHOD'] ?? null;
+            expect($this->getMethod() != 'POST' || $requestMethod != 'GET', $this->getMethod(), $requestMethod);
         }
         
         return $status;
