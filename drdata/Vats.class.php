@@ -354,6 +354,10 @@ class drdata_Vats extends core_Manager
 
 		$code = isset($f->faultstring) ? $f->faultstring : $f->getMessage();
 
+		if (stripos($code, 'SOAP-ERROR: Parsing WSDL: Couldn\'t load from') !== false) {
+			return true;
+		}
+
 		foreach ($temporary as $fault) {
 			if (stripos($code, $fault) !== false) {
 
