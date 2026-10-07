@@ -110,17 +110,27 @@ class cvc_WayBills extends core_Manager
 
         try{
             $res = cvc_Adapter::cancelWb($rec->number);
-            if(is_numeric($res)){
-                $msg = 'Заявката за отказване на товарителницата е приета успешно|*!';
-            } else {
-                $msg = 'Товарителницата вече е била оттеглена|*!';
-            }
-            $rec->state = 'rejected';
-            $this->save($rec, 'state');
-            $this->logWrite('Отказване на товарителница', $rec->id);
         } catch(core_exception_Expect $e){
-            $msg = 'Имаше проблем при подаване на заявката за оттегляне на товарителницата|*!';
+            followRetUrl(null, 'Имаше проблем при подаване на заявката за оттегляне на товарителницата|*!', 'error');
         }
+
+        // Без отговор не е ясно дали е отказана - състоянието не се сменя
+        if(cvc_Adapter::$lastCallNoResponse){
+            followRetUrl(null, 'CVC не отговори - проверете в системата им дали товарителницата е отказана|*!', 'error');
+        }
+
+        if(is_numeric($res)){
+            $msg = 'Заявката за отказване на товарителницата е приета успешно|*!';
+        } else {
+            $msg = 'Товарителницата вече е била оттеглена|*!';
+        }
+        $rec->state = 'rejected';
+        $this->save($rec, 'state');
+        $this->logWrite('Отказване на товарителница', $rec->id);
+
+        // В историята на документа, от който е издадена
+        $Document = doc_Containers::getDocument($rec->containerId);
+        $Document->getInstance()->logWrite('Ръчно отказана товарителница', $Document->that);
 
         followRetUrl(null, $msg);
     }

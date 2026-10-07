@@ -134,7 +134,6 @@ class speedy_BillOfLadings extends core_Manager
         $form = cls::get('core_Form');
         $form->setAction(getCurrentUrl());
         $form->title = 'Анулиране на товарителница|* ' . type_Varchar::escape($rec->number);
-        $form->FLD('id', 'int', 'input=hidden,silent');
         $form->FLD('comment', 'varchar(1024)', 'caption=Причина,mandatory');
         $form->input();
 
@@ -149,6 +148,10 @@ class speedy_BillOfLadings extends core_Manager
                 $rec->state = 'rejected';
                 $this->save($rec, 'state');
                 $this->logWrite("Анулиране на товарителница: {$form->rec->comment}", $rec->id);
+
+                // В историята на документа, от който е издадена
+                $Document = doc_Containers::getDocument($rec->containerId);
+                $Document->getInstance()->logWrite('Ръчно отказана товарителница', $Document->that);
 
                 followRetUrl(null, 'Товарителницата е анулирана|*!');
             }
