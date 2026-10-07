@@ -254,6 +254,9 @@ class store_plg_CourierApiShipment extends core_Plugin
         $existing = $Driver->getBillOfLadings($containerId);
         if(!is_array($existing)) return 'unsupported';
 
+        // Анулираните при куриера не пречат на нова
+        $existing = array_filter($existing, function ($bill) { return ($bill->state ?? null) != 'rejected'; });
+
         return countR($existing) ? 'exists' : null;
     }
 
@@ -269,6 +272,37 @@ class store_plg_CourierApiShipment extends core_Plugin
         $attempt = core_Permanent::get(self::getPendingAttemptKey($containerId));
 
         return is_object($attempt) ? $attempt : null;
+    }
+
+
+    /**
+     * Оттегля връзката на документа с файла на отказана товарителница и я отбелязва като отказана
+     *
+     * @param int         $containerId - контейнер на документа
+     * @param string|null $fh          - файл на товарителницата
+     * @return void
+     */
+    public static function rejectBillOfLadingLink($containerId, $fh)
+    {
+        $fileId = empty($fh) ? null : fileman::fetchByFh($fh, 'id');
+        if(empty($fileId)){
+
+            return;
+        }
+
+        $Linked = cls::get('doc_Linked');
+        $query = $Linked->getQuery();
+        $query->where(array("#outType = 'doc' AND #outVal = [#1#] AND #inType = 'file' AND #inVal = [#2#] AND #state != 'rejected'", $containerId, $fileId));
+        while($lRec = $query->fetch()){
+            // „Товарителница (Speedy)“ -> „Отказана товарителница (Speedy)“; вече отбелязаният не се пипа
+            $comment = $lRec->comment ?? '';
+            if(mb_stripos($comment, 'отказан') !== 0){
+                $comment = strlen($comment) ? mb_strtolower(mb_substr($comment, 0, 1)) . mb_substr($comment, 1) : 'товарителница';
+                $lRec->comment = "Отказана {$comment}";
+                $Linked->save_($lRec, 'comment');
+            }
+            $Linked->reject($lRec->id);
+        }
     }
 
 
@@ -316,7 +350,7 @@ class store_plg_CourierApiShipment extends core_Plugin
         $rec = $data->rec;
         if($mvc->lineFieldName ?? null){
             if(!empty($rec->courierApiPrice) && !Mode::isReadOnly()){
-                $courierApiPrice = currency_Currencies::decorate($rec->courierApiPrice, $rec->currencyId);
+                $courierApiPrice = doc_plg_HidePrices::canSeePriceFields($mvc, $rec) ? currency_Currencies::decorate($rec->courierApiPrice, $rec->currencyId) : doc_plg_HidePrices::getBuriedElement();
                 $data->row->{$mvc->lineFieldName} ??= '';
                 $data->row->{$mvc->lineFieldName} .= " {$courierApiPrice}";
             }

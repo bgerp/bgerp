@@ -672,7 +672,9 @@ class email_Mime extends core_BaseClass
      */
     public static function parseHeaders($headersStr)
     {
-        $headers = str_replace("\n\r", "\n", $headersStr);
+        $headersArr = array();
+        $index = null;
+        $headers = str_replace("\n\r", "\n", $headersStr ?? '');
         $headers = str_replace("\r\n", "\n", $headers);
         $headers = str_replace("\r", "\n", $headers);
         $headers = trim($headers);     //
@@ -682,9 +684,13 @@ class email_Mime extends core_BaseClass
         foreach ($headers as $h) {
             if (substr($h, 0, 1) != "\t" && substr($h, 0, 1) != ' ') {
                 $pos = strpos($h, ':');
+                if ($pos === false || $pos === 0) {
+                    $index = null;
+                    continue;
+                }
                 $index = strtolower(substr($h, 0, $pos));
                 $headersArr[$index][] = trim(substr($h, $pos + 1));
-            } else {
+            } elseif (isset($index)) {
                 $current = countR($headersArr[$index]) - 1;
                 $headersArr[$index][$current] .= "\n" . $h;
             }

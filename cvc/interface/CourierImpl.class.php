@@ -893,6 +893,36 @@ class cvc_interface_CourierImpl extends core_Manager
 
 
     /**
+     * Отказва издадена товарителница към документа при куриера
+     *
+     * @param int    $containerId - контейнер на документа
+     * @param string $number      - номер на товарителницата
+     * @param string $reason      - причина
+     * @return stdClass {status, error}
+     */
+    public function cancelBillOfLading($containerId, $number, $reason)
+    {
+        $rec = cvc_WayBills::fetch(array("#containerId = [#1#] AND #number = '[#2#]'", $containerId, $number));
+        if(empty($rec)){
+
+            return (object)array('status' => 'notFound', 'error' => null);
+        }
+
+        if($rec->state == 'rejected'){
+
+            return (object)array('status' => cond_CourierApiIntf::BOL_CANCELLED, 'error' => null, 'already' => true);
+        }
+
+        if(!cvc_WayBills::haveRightFor('reject', $rec)){
+
+            return (object)array('status' => 'noRights', 'error' => null);
+        }
+
+        return cls::get('cvc_WayBills')->cancel($rec, $reason, 'Отказана товарителница от Аида');
+    }
+
+
+    /**
      * Връща коя е последната товарителница издадена към документа
      *
      * @param int $containerId

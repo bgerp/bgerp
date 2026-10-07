@@ -684,6 +684,33 @@ class acc_Articles extends core_Master
 
 
     /**
+     * Преди контиране се проверява дали има перо на лева, ако той не е допустим към вальора
+     */
+    protected static function on_BeforeConto(core_Mvc $mvc, &$res, $id)
+    {
+        $rec = $mvc->fetchRec($id);
+
+        $currencyError = null;
+        if (currency_Currencies::checkCurrency('BGN', $rec->valior, $currencyError)) {
+
+            return;
+        }
+
+        $bgnItemRec = acc_Items::fetchItem('currency_Currencies', currency_Currencies::getIdByCode('BGN'));
+        if (empty($bgnItemRec)) {
+
+            return;
+        }
+
+        if (acc_ArticleDetails::fetch("#articleId = {$rec->id} AND {$bgnItemRec->id} IN (#debitEnt1, #debitEnt2, #debitEnt3, #creditEnt1, #creditEnt2, #creditEnt3)")) {
+            core_Statuses::newStatus($currencyError, 'error');
+
+            return false;
+        }
+    }
+
+
+    /**
      * След контиране на документа
      *
      * @param accda_Da $mvc
