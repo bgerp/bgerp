@@ -475,6 +475,31 @@ class price_Lists extends core_Master
     
     
     /**
+     * Бележка за LLM експорта с ценовата политика на сделка/оферта - избраната или тази на клиента
+     *
+     * @param stdClass $rec      - запис на документа с contragentClassId, contragentId и priceListId
+     * @param string|null $date  - към коя дата е политиката на клиента
+     *
+     * @return string|null
+     */
+    public static function getLlmNote($rec, $date = null)
+    {
+        if (core_Users::haveRole('partner')) return null;
+
+        if (!empty($rec->priceListId)) {
+            $listId = $rec->priceListId;
+            $source = 'set';
+        } else {
+            $listId = price_ListToCustomers::getListForCustomer($rec->contragentClassId, $rec->contragentId, $date);
+            $source = 'default';
+        }
+        if (empty($listId)) return null;
+
+        return doc_plg_LlmExportable::systemNote('Price list: #' . static::getHandle($listId) . " ({$source})");
+    }
+
+
+    /**
      * Намиране na ценовите политики, които може да избира потребителя
      * Ако ги няма може да избира само публичните + частните, до чийто контрагент има достъп
      *

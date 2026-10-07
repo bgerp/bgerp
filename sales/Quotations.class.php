@@ -357,6 +357,14 @@ class sales_Quotations extends deals_QuotationMaster
                 }
             }
 
+            // Ценовата политика е само за вътрешна информация
+            if (isset($rec->priceListId) && core_Users::isPowerUser() && !Mode::isReadOnly() && !Mode::is('text', 'plain')) {
+                $row->priceListId = price_Lists::getHyperlink($rec->priceListId, true);
+                $row->priceListId = ht::createHint($row->priceListId, 'Вижда се само от вътрешните потребители');
+            } else {
+                unset($row->priceListId);
+            }
+
             if ($cond = cond_Parameters::getParameter($rec->contragentClassId, $rec->contragentId, 'commonConditionSale')) {
                 $row->commonConditionQuote = cls::get('type_Url')->toVerbal($cond);
             }
@@ -423,6 +431,20 @@ class sales_Quotations extends deals_QuotationMaster
         }
         
         return $row;
+    }
+
+
+    /**
+     * Добавя ценовата политика към LLM експорта
+     */
+    public static function on_AfterAfterGetLlmExport($mvc, &$text, $rec, $params)
+    {
+        if (empty($text)) return;
+
+        $note = price_Lists::getLlmNote($rec, $rec->date ?? null);
+        if (!empty($note)) {
+            $text .= "\n\n" . $note;
+        }
     }
     
     

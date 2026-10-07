@@ -59,6 +59,7 @@ class drdata_PhoneType extends type_Varchar
         
         // Ако ще се връщат всички номера
         if ($arrayKey === false) {
+            $resNumStr = '';
             foreach ($numArr as $num) {
                 
                 // Вземаме пълния стринг за номера
