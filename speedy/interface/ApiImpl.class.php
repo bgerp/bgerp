@@ -419,21 +419,21 @@ class speedy_interface_ApiImpl extends core_BaseClass
         if($form->isSubmitted()) {
             $rec = $form->rec;
 
-            if($rec->isFragile == 'yes' && empty($rec->amountInsurance)){
+            if(($rec->isFragile ?? null) == 'yes' && empty($rec->amountInsurance)){
                 $form->setError('amountInsurance,isFragile', 'Чупливата папка, трябва да има обявена стойност');
             }
 
-            if($rec->isDocuments == 'yes' && !empty($rec->amountInsurance)){
+            if(($rec->isDocuments ?? null) == 'yes' && !empty($rec->amountInsurance)){
                 $form->setError('isDocuments,amountInsurance', 'Документите не може да имат обявена стойност');
             }
 
-            if($rec->isDocuments == 'yes'){
-                if($rec->isPaletize == 'yes'){
+            if(($rec->isDocuments ?? null) == 'yes'){
+                if(($rec->isPaletize ?? null) == 'yes'){
                     $form->setError('isDocuments,isPaletize', 'Документите не могат да са на палети');
                 }
             }
 
-            if(isset($rec->amountInsurance) && $rec->totalWeight > 32){
+            if(isset($rec->amountInsurance) && ($rec->totalWeight ?? 0) > 32){
                 $form->setError('amountInsurance,totalWeight', 'Не може да има обявена стойност, на пратки с тегло над 32 кг');
             }
 
@@ -445,7 +445,7 @@ class speedy_interface_ApiImpl extends core_BaseClass
                 $form->setError('complexName', 'При избран тип комплекс трябва да е посочен');
             }
 
-            $parcelInfo = type_Table::toArray($rec->parcelInfo);
+            $parcelInfo = type_Table::toArray($rec->parcelInfo ?? null);
             $parcelCount = countR($parcelInfo);
             $parcelCalcWeight = arr::sumValuesArray($parcelInfo, 'weight');
             if($parcelCount && !empty($rec->palletCount)){
@@ -903,6 +903,36 @@ class speedy_interface_ApiImpl extends core_BaseClass
         }
 
         return $res;
+    }
+
+
+    /**
+     * Отказва издадена товарителница към документа при куриера
+     *
+     * @param int    $containerId - контейнер на документа
+     * @param string $number      - номер на товарителницата
+     * @param string $reason      - причина
+     * @return stdClass {status, error}
+     */
+    public function cancelBillOfLading($containerId, $number, $reason)
+    {
+        $rec = speedy_BillOfLadings::fetch(array("#containerId = [#1#] AND #number = '[#2#]'", $containerId, $number));
+        if(empty($rec)){
+
+            return (object)array('status' => 'notFound', 'error' => null);
+        }
+
+        if($rec->state == 'rejected'){
+
+            return (object)array('status' => cond_CourierApiIntf::BOL_CANCELLED, 'error' => null, 'already' => true);
+        }
+
+        if(!speedy_BillOfLadings::haveRightFor('reject', $rec)){
+
+            return (object)array('status' => 'noRights', 'error' => null);
+        }
+
+        return cls::get('speedy_BillOfLadings')->cancel($rec, $reason, 'Отказана товарителница от Аида');
     }
 
 

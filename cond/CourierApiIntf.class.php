@@ -23,6 +23,7 @@ class cond_CourierApiIntf extends embed_DriverIntf
     const BOL_ISSUED_NO_PDF = 'issuedNoPdf';
     const BOL_REJECTED = 'rejected';
     const BOL_UNKNOWN = 'unknown';
+    const BOL_CANCELLED = 'cancelled';
 
 
     /**
@@ -167,5 +168,21 @@ class cond_CourierApiIntf extends embed_DriverIntf
         if(!cls::existsMethod($this->class, 'getBillOfLadings')) return null;
 
         return $this->class->getBillOfLadings($containerId);
+    }
+
+
+    /**
+     * Отказва издадена товарителница към документа при куриера
+     *
+     * @param int    $containerId - контейнер на документа
+     * @param string $number      - номер на товарителницата
+     * @param string $reason      - причина
+     * @return stdClass|null $res - status (cancelled, rejected, unknown, notFound, noRights) и error; null ако драйверът не поддържа отказ
+     */
+    public function cancelBillOfLading($containerId, $number, $reason)
+    {
+        if(!cls::existsMethod($this->class, 'cancelBillOfLading')) return null;
+
+        return $this->class->cancelBillOfLading($containerId, $number, $reason);
     }
 }
