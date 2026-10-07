@@ -159,8 +159,8 @@ class acc_ProductPricePerPeriods extends core_Manager
             core_App::setTimeLimit($countC * 0.4, false, 200);
 
             foreach ($details as $dRec){
-                if(empty($dRec->blQuantity)){
-                    if(empty($dRec->debitQuantity)){
+                if((float) $dRec->blQuantity == 0){
+                    if((float) $dRec->debitQuantity == 0){
                         // Ако има ненулево крайно к-во и нулево дебитно к-во значи е 0
                         $dRec->price = 0;
                     } else {
