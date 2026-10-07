@@ -96,6 +96,9 @@
 	                    <!--ET_BEGIN commonConditionQuote-->
 				        <li>|Общи условия по продажба|*: [#commonConditionQuote#]</li>
 				        <!--ET_END commonConditionQuote-->
+				        <!--ET_BEGIN priceListId-->
+				        <li>|Ценова политика|*: [#priceListId#]</li>
+				        <!--ET_END priceListId-->
 	                </ol>
 	            </td>
                 <td class="centered" style='vertical-align: top !important;'>
