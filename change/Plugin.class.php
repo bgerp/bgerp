@@ -99,11 +99,11 @@ class change_Plugin extends core_Plugin
                 $row = 2;
             }
 
-            if (type_Keylist::isIn(core_Users::getCurrent(), $data->rec->assign)) {
+            if (type_Keylist::isIn(core_Users::getCurrent(), $data->rec->assign ?? null)) {
                 $btnName = 'Освобождаване';
                 $btnTitle = 'Премахване на възлагането към себе си';
                 $row = 2;
-            } elseif (!type_Keylist::isEmpty($data->rec->assign)) {
+            } elseif (!type_Keylist::isEmpty($data->rec->assign ?? null)) {
                 $row = 2;
             }
 
