@@ -163,7 +163,7 @@ class speedy_interface_ApiImpl extends core_BaseClass
         } else {
 
             // Избиране на запомнения в сесията обект или първия наличен
-            if(array_key_exists($cacheArr['senderClientId'], $senderObjects)){
+            if(array_key_exists($cacheArr['senderClientId'] ?? null, $senderObjects)){
                 $form->setDefault('senderClientId', $cacheArr['senderClientId']);
             }
             $form->setDefault('senderClientId', key($senderObjects));
@@ -210,7 +210,7 @@ class speedy_interface_ApiImpl extends core_BaseClass
             if($firstDocument->isInstanceOf('sales_Sales')){
                 $deliveryTermId = $firstDocument->fetchField('deliveryTermId');
 
-                if($deliveryTermId && empty($documentRec->locationId) && empty($documentRec->tel)){
+                if($deliveryTermId && empty($rec->locationId) && empty($rec->tel)){
                     if($DeliveryCalc = cond_DeliveryTerms::getTransportCalculator($deliveryTermId)){
                         if($form->cmd != 'refresh' && $form->cmd != 'save' && $DeliveryCalc->class instanceof speedy_interface_DeliveryToOffice){
                             $deliveryData = $firstDocument->fetchField('deliveryData');
@@ -467,7 +467,7 @@ class speedy_interface_ApiImpl extends core_BaseClass
                 $recipientArr['addressLocation'] = array('countryId' => $theirCountryId, 'siteId' => key($sites));
             } else {
                 $recipientAddressArray = array('countryId' => $theirCountryId);
-                foreach (array('postCode' => 'receiverPCode', 'streetName' => 'receiverAddress', 'streetNo' => 'receiverAddressNo', 'blockNo' => 'receiverBlock', 'entranceNo' => 'receiverEntrance', 'floorNo' => 'receiverFloor', 'apartmentNo' => 'apartmentNo', 'siteName' => 'receiverPlace') as $theirFld => $ourFld){
+                foreach (array('postCode' => 'receiverPCode', 'streetName' => 'receiverAddress', 'streetNo' => 'receiverAddressNo', 'blockNo' => 'receiverBlock', 'entranceNo' => 'receiverEntrance', 'floorNo' => 'receiverFloor', 'apartmentNo' => 'receiverApp', 'siteName' => 'receiverPlace') as $theirFld => $ourFld){
                     if(!empty($formRec->{$ourFld})){
                         $recipientAddressArray[$theirFld] = $formRec->{$ourFld};
                     }
@@ -507,9 +507,7 @@ class speedy_interface_ApiImpl extends core_BaseClass
             $serviceArray['additionalServices']['declaredValue'] = array();
             $serviceArray['additionalServices']['declaredValue']['amount'] = $formRec->amountInsurance;
 
-            if($formRec->isFragile == 'no'){
-                $serviceArray['additionalServices']['declaredValue']['fragile'] = ($formRec->isFragile == 'yes');
-            }
+            $serviceArray['additionalServices']['declaredValue']['fragile'] = (($formRec->isFragile ?? null) == 'yes');
         }
 
         $serviceArray['additionalServices']['obpd'] = array();
@@ -731,49 +729,61 @@ class speedy_interface_ApiImpl extends core_BaseClass
     {
         // Подготовка на данните за товарителницата
         $preparedBolParams = static::prepareBolData($form->rec);
-        $obj = (object)array('price' => null, 'fh' => null);
+        $obj = (object)array('price' => null, 'fh' => null, 'number' => null, 'status' => cond_CourierApiIntf::BOL_REJECTED);
 
         try{
             $res = speedy_Adapter::requestShipment($preparedBolParams);
         } catch(core_exception_Expect $e){
+            if($e->getType() == speedy_Adapter::NO_RESPONSE_TYPE){
+                $obj->status = cond_CourierApiIntf::BOL_UNKNOWN;
+            }
             $form->setError('service', $e->getMessage());
+
             return $obj;
         }
 
+        // Отговор без номер не доказва, че пратката не е създадена
         if(empty($res->id)){
+            $obj->status = cond_CourierApiIntf::BOL_UNKNOWN;
             $form->setError('service', 'Товарителницата не можа да се генерира');
+
+            return $obj;
         }
 
-        if(!$form->gotErrors()){
-            if(is_object($res->price)){
-                $obj->price = (object)array('total' => $res->price->total ?? null, 'currency' => $res->price->currency ?? null);
-            }
+        if(is_object($res->price ?? null)){
+            $obj->price = (object)array('total' => $res->price->total ?? null, 'currency' => $res->price->currency ?? null);
+        }
 
-            // Ако е генерирана успешно, прави се опит за разпечатването ѝ
-            $parcelIds = array();
-            array_walk($res->parcels, function($a) use (&$parcelIds) {$parcelIds[] = $a->id;});
+        // Номерът се записва преди PDF-а, за да не се издаде втора при неуспешен печат
+        $parcelIds = array();
+        foreach ((array)($res->parcels ?? array()) as $parcel){
+            $parcelIds[] = $parcel->id;
+        }
+        $obj->number = $parcelIds[0] ?? $res->id;
+        $obj->status = cond_CourierApiIntf::BOL_ISSUED_NO_PDF;
+        $bolRec = (object)array('containerId' => $documentRec->containerId, 'number' => $obj->number, 'takingDate' => $res->pickupDate ?? null, 'data' => $preparedBolParams, 'state' => 'pending');
+        speedy_BillOfLadings::save($bolRec);
+
+        // Кеш на избраните полета от формата
+        $cacheArr = array('senderClientId' => $form->rec->senderClientId, 'service' => $form->rec->service, 'pdfPrinterType' => $form->rec->pdfPrinterType);
+        core_Permanent::set(self::getUserDataCacheKey($documentRec->folderId), $cacheArr, core_Permanent::FOREVER_VALUE);
+
+        try{
             $fh = speedy_Adapter::printWaybillPdf($parcelIds, $form->rec->pdfPrinterType);
-
-            if(empty($fh)){
-                $form->setError('service', 'Проблем при генериране на PDF на товарителница');
-            }
-
-            if(!$form->gotErrors()){
-
-                // Ако е разпечатана записва се в помощния модел
-                $bolRec = (object)array('containerId' => $documentRec->containerId, 'number' => $parcelIds[0], 'takingDate' => $res->pickupDate, 'data' => $preparedBolParams);
-                $bolRec->file = $fh;
-                $bolRec->state = 'pending';
-                speedy_BillOfLadings::save($bolRec);
-
-                // Кеш на избраните полета от формата
-                $cacheArr = array('senderClientId' => $form->rec->senderClientId, 'service' => $form->rec->service, 'pdfPrinterType' => $form->rec->pdfPrinterType);
-                core_Permanent::set(self::getUserDataCacheKey($documentRec->folderId), $cacheArr, core_Permanent::FOREVER_VALUE);
-                $obj->fh = $fh;
-
-                return $obj;
-            }
+        } catch(core_exception_Expect $e){
+            $fh = null;
         }
+
+        if(empty($fh)){
+            $form->setError('service', "Товарителница|* <b>{$obj->number}</b> |е създадена, но PDF-ът ѝ не можа да се изтегли|*!");
+
+            return $obj;
+        }
+
+        $bolRec->file = $fh;
+        speedy_BillOfLadings::save($bolRec, 'file');
+        $obj->fh = $fh;
+        $obj->status = cond_CourierApiIntf::BOL_ISSUED;
 
         return $obj;
     }
@@ -844,6 +854,26 @@ class speedy_interface_ApiImpl extends core_BaseClass
         }
 
         return null;
+    }
+
+
+    /**
+     * Издадените товарителници към документа, от последната към първата
+     *
+     * @param int $containerId
+     * @return array $res - обекти с number, date, file и state
+     */
+    public function getBillOfLadings($containerId)
+    {
+        $res = array();
+        $query = speedy_BillOfLadings::getQuery();
+        $query->where(array("#containerId = [#1#]", $containerId));
+        $query->orderBy('id', 'DESC');
+        while($bolRec = $query->fetch()){
+            $res[] = (object)array('number' => $bolRec->number, 'date' => $bolRec->takingDate, 'file' => $bolRec->file, 'state' => $bolRec->state);
+        }
+
+        return $res;
     }
 
 

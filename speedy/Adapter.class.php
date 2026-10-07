@@ -20,6 +20,12 @@
 class speedy_Adapter extends core_BaseClass
 {
     /**
+     * Тип на изключението, когато API-то не е отговорило
+     */
+    const NO_RESPONSE_TYPE = 'Без отговор';
+
+
+    /**
      * Изпълнение на заявка към API-то на спиди
      *
      * @param string $param           - параметрите на АПИ-то
@@ -54,8 +60,9 @@ class speedy_Adapter extends core_BaseClass
         $res = static::parseResponse($jsonResponse,$errorMsg);
 
         if(!empty($errorMsg)){
-            // Ако е върната грешла да се сетне
-            throw new core_exception_Expect($errorMsg, 'Несъответствие');
+            // Без отговор не е ясно дали заявката е изпълнена
+            $type = (is_string($jsonResponse) && trim($jsonResponse) !== '') ? 'Несъответствие' : self::NO_RESPONSE_TYPE;
+            throw new core_exception_Expect($errorMsg, $type);
         }
 
         return $res;
