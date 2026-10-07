@@ -122,6 +122,37 @@ class speedy_BillOfLadings extends core_Manager
 
 
     /**
+     * Анулира товарителницата в Speedy и я отбелязва в нея и в документа
+     *
+     * @param stdClass $rec       - товарителницата
+     * @param string   $reason    - причина, задължителна за Speedy
+     * @param string   $docLogMsg - запис в историята на документа
+     * @return stdClass {status, error}
+     */
+    public function cancel($rec, $reason, $docLogMsg)
+    {
+        try{
+            speedy_Adapter::cancelShipment($rec->number, $reason);
+        } catch(core_exception_Expect $e){
+            // Без отговор не е ясно дали е анулирана
+            $status = ($e->getType() == speedy_Adapter::NO_RESPONSE_TYPE) ? cond_CourierApiIntf::BOL_UNKNOWN : cond_CourierApiIntf::BOL_REJECTED;
+
+            return (object)array('status' => $status, 'error' => $e->getMessage());
+        }
+
+        $rec->state = 'rejected';
+        $this->save($rec, 'state');
+        $this->logWrite("Анулиране на товарителница: {$reason}", $rec->id);
+
+        // В историята на документа, от който е издадена
+        $Document = doc_Containers::getDocument($rec->containerId);
+        $Document->getInstance()->logWrite($docLogMsg, $Document->that);
+
+        return (object)array('status' => cond_CourierApiIntf::BOL_CANCELLED, 'error' => null);
+    }
+
+
+    /**
      * Анулиране на товарителницата в Speedy
      */
     public function act_Reject()
@@ -138,23 +169,12 @@ class speedy_BillOfLadings extends core_Manager
         $form->input();
 
         if($form->isSubmitted()){
-            try{
-                speedy_Adapter::cancelShipment($rec->number, $form->rec->comment);
-            } catch(core_exception_Expect $e){
-                $form->setError('comment', '|Speedy не прие анулирането|*: ' . type_Varchar::escape($e->getMessage()));
-            }
-
-            if(!$form->gotErrors()){
-                $rec->state = 'rejected';
-                $this->save($rec, 'state');
-                $this->logWrite("Анулиране на товарителница: {$form->rec->comment}", $rec->id);
-
-                // В историята на документа, от който е издадена
-                $Document = doc_Containers::getDocument($rec->containerId);
-                $Document->getInstance()->logWrite('Ръчно отказана товарителница', $Document->that);
-
+            $res = $this->cancel($rec, $form->rec->comment, 'Ръчно отказана товарителница');
+            if($res->status == cond_CourierApiIntf::BOL_CANCELLED){
                 followRetUrl(null, 'Товарителницата е анулирана|*!');
             }
+
+            $form->setError('comment', '|Speedy не прие анулирането|*: ' . type_Varchar::escape($res->error));
         }
 
         $form->toolbar->addSbBtn('Анулиране', 'save', 'ef_icon=img/16/delete.png,title=Анулиране на товарителницата в Speedy');
