@@ -4050,3 +4050,8 @@ en,Проверени права,Checked rights
 en,Нямате права за някои от избраните служители,You do not have rights for some of the selected employees
 en,Процентна надценка,Percentage markup
 en,Вижда се само от вътрешните потребители,Visible only to internal users
+en,Анулирана,Cancelled
+en,Анулиране на товарителницата,Cancel the bill of lading
+en,Анулиране на товарителница,Cancel bill of lading
+en,Speedy не прие анулирането,Speedy did not accept the cancellation
+en,Товарителницата е анулирана,The bill of lading is cancelled

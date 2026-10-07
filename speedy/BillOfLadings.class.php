@@ -58,6 +58,12 @@ class speedy_BillOfLadings extends core_Manager
 
 
     /**
+     * Кой може да анулира товарителница?
+     */
+    public $canReject = 'speedy,admin';
+
+
+    /**
      * Плъгини за зареждане
      */
     public $loadList = 'drdata_Wrapper, plg_Sorting, plg_Created, plg_Select, plg_RowTools2, plg_Search';
@@ -91,7 +97,7 @@ class speedy_BillOfLadings extends core_Manager
         $this->FLD('takingDate', 'datetime(format=smartTime)', 'caption=Дата,input=hidden');
         $this->FLD('file', 'fileman_FileType(bucket=billOfLadings)', 'caption=Файл,input=hidden');
         $this->FLD('data', 'blob(serialize,compress)', 'caption=Данни,input=hidden');
-        $this->FLD('state', 'enum(pending=Незаявени,active=Заявени)', 'caption=Състояние,notNull,value=active');
+        $this->FLD('state', 'enum(pending=Незаявени,active=Заявени,rejected=Анулирана)', 'caption=Състояние,notNull,value=active');
 
         $this->setDbIndex('containerId');
     }
@@ -108,6 +114,50 @@ class speedy_BillOfLadings extends core_Manager
     {
         $row->containerId = doc_Containers::getDocument($rec->containerId)->getLink(0);
         $row->ROW_ATTR['class'] = "state-{$rec->state}";
+
+        if($mvc->haveRightFor('reject', $rec)){
+            $row->state .= ' ' . ht::createLink('', array($mvc, 'reject', $rec->id, 'ret_url' => true), false, 'ef_icon=img/16/delete.png,title=Анулиране на товарителницата');
+        }
+    }
+
+
+    /**
+     * Анулиране на товарителницата в Speedy
+     */
+    public function act_Reject()
+    {
+        $this->requireRightFor('reject');
+        expect($id = Request::get('id', 'int'));
+        expect($rec = $this->fetch($id));
+        $this->requireRightFor('reject', $rec);
+
+        $form = cls::get('core_Form');
+        $form->setAction(getCurrentUrl());
+        $form->title = 'Анулиране на товарителница|* ' . type_Varchar::escape($rec->number);
+        $form->FLD('id', 'int', 'input=hidden,silent');
+        $form->FLD('comment', 'varchar(1024)', 'caption=Причина,mandatory');
+        $form->input();
+
+        if($form->isSubmitted()){
+            try{
+                speedy_Adapter::cancelShipment($rec->number, $form->rec->comment);
+            } catch(core_exception_Expect $e){
+                $form->setError('comment', '|Speedy не прие анулирането|*: ' . type_Varchar::escape($e->getMessage()));
+            }
+
+            if(!$form->gotErrors()){
+                $rec->state = 'rejected';
+                $this->save($rec, 'state');
+                $this->logWrite("Анулиране на товарителница: {$form->rec->comment}", $rec->id);
+
+                followRetUrl(null, 'Товарителницата е анулирана|*!');
+            }
+        }
+
+        $form->toolbar->addSbBtn('Анулиране', 'save', 'ef_icon=img/16/delete.png,title=Анулиране на товарителницата в Speedy');
+        $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon=img/16/close-red.png,title=Прекратяване на действията');
+
+        return $this->renderWrapping($form->renderHtml());
     }
     
     
@@ -191,6 +241,12 @@ class speedy_BillOfLadings extends core_Manager
                 if($rec->state != 'pending'){
                     $requiredRoles = 'no_one';
                 }
+            }
+        }
+
+        if ($action == 'reject' && isset($rec)) {
+            if($rec->state == 'rejected'){
+                $requiredRoles = 'no_one';
             }
         }
     }

@@ -117,6 +117,7 @@ class cvc_WayBills extends core_Manager
             }
             $rec->state = 'rejected';
             $this->save($rec, 'state');
+            $this->logWrite('Отказване на товарителница', $rec->id);
         } catch(core_exception_Expect $e){
             $msg = 'Имаше проблем при подаване на заявката за оттегляне на товарителницата|*!';
         }
