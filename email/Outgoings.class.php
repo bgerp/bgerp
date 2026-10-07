@@ -3513,6 +3513,7 @@ class email_Outgoings extends core_Master
         
         // Ако формата е субмитната
         if ($form->isSubmitted()) {
+            $folderId = null;
             
             // Ако сме избрали потребител
             if (isset($form->rec->personId)) {
@@ -3545,11 +3546,11 @@ class email_Outgoings extends core_Master
             if (!$folderId || !doc_Folders::haveRightFor('single', $folderId)) {
                 
                 // Изтриваме папката
-                unset($folderId);
+                $folderId = null;
             } else {
                 // Ако няма права за добавяне
                 if (!email_Outgoings::haveRightFor('add', (object)array('folderId' => $folderId))) {
-                    unset($folderId);
+                    $folderId = null;
                 }
             }
             
