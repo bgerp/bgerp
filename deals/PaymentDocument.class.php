@@ -45,11 +45,12 @@ abstract class deals_PaymentDocument extends core_Master
      */
     public static function on_AfterReject(core_Mvc $mvc, &$res, $rec)
     {
-        $id = (is_object($rec)) ? $rec->id : $rec;
-        if ($rec->brState == 'active') {
+        // При оттегляне по ид се подава само ид-то, а не записът
+        $rec = is_object($rec) ? $rec : $mvc->fetch($rec, '*', false);
+        if (($rec->brState ?? null) == 'active') {
             
             // Обновяваме автоматично изчисления метод на плащане на всички фактури в нишката на документа
-            $threadId = ($rec->threadId) ? $rec->threadId : $mvc->fetchField($id, 'threadId');
+            $threadId = !empty($rec->threadId) ? $rec->threadId : $mvc->fetchField($rec->id, 'threadId');
             deals_Helper::updateAutoPaymentTypeInThread($threadId);
         }
     }
