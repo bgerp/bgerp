@@ -228,7 +228,7 @@ class email_FaxSent extends core_Manager
         $instance = cls::getInterface('email_SentFaxIntf', $service);
         
         //Вземаме всички избрани файлове
-        $rec->attachmentsFh = type_Set::toArray($options->attachmentsSet);
+        $rec->attachmentsFh = type_Set::toArray($options->attachmentsSet ?? null);
         
         //Ако имамем прикачени файлове
         if (countR($rec->attachmentsFh)) {
@@ -293,6 +293,8 @@ class email_FaxSent extends core_Manager
                     $fhArr = $attachDoc['doc']->convertTo($attachDoc['ext'], $attachDoc['fileName']);
                 } catch (core_exception_Expect $e) {
                     $failure[] = $faxTo;
+                    // Не изпращаме факса с липсващ документ.
+                    continue 2;
                 }
                 $rec->documentsFh += $fhArr;
             }
@@ -458,7 +460,7 @@ class email_FaxSent extends core_Manager
         $faxNums = $data->rec->fax;
         
         // Ако има имейли, които са факс номера
-        if (countR($faxesArr['fax'])) {
+        if (!empty($faxesArr['fax'])) {
             
             // Обхождаме ги
             foreach ($faxesArr['fax'] as $fax) {

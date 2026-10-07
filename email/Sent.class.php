@@ -36,6 +36,8 @@ class email_Sent
         }
 
         $options += array('encoding' => 'utf-8');
+        $body->html = $body->html ?? '';
+        $body->text = $body->text ?? '';
 
         // Премахване на всички картинки, които са в css стилове за фон
         if ($body->html) {
@@ -56,7 +58,7 @@ class email_Sent
             'subject' => $subject,
             'html' => $body->html,
             'text' => $body->text,
-            'attachments' => array_merge((array) $body->attachmentsFh, (array) $body->documentsFh),
+            'attachments' => array_merge((array) ($body->attachmentsFh ?? array()), (array) ($body->documentsFh ?? array())),
             'headers' => array('X-Bgerp-Hash' => EMAIL_SENT_DOMAIN_HASH),
             'emailFrom' => email_Inboxes::fetchField($boxFrom, 'email'),
             'emailName' => email_Inboxes::getFromName($boxFrom),
@@ -313,7 +315,7 @@ class email_Sent
         }
         
         //Ако сме открили съвпадение
-        if (countR($matches[2])) {
+        if (!empty($matches[2])) {
             $i = 0;
             
             //Обхождаме всички открите изображения

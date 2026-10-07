@@ -664,4 +664,20 @@ class speedy_Adapter extends core_BaseClass
 
         return $res;
     }
+
+
+    /**
+     * Анулиране на товарителница в Speedy
+     *
+     * @param string $shipmentId - номер на товарителницата
+     * @param string $comment    - причина, задължителна за Speedy
+     * @return mixed - празен обект при успех
+     * @throws core_exception_Expect
+     */
+    public static function cancelShipment($shipmentId, $comment)
+    {
+        $res = speedy_Adapter::call('shipment/cancel', array('shipmentId' => (string) $shipmentId, 'comment' => $comment));
+
+        return $res;
+    }
 }

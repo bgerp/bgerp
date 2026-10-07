@@ -269,16 +269,16 @@ class pos_ReceiptDetails extends core_Detail
             $id = Request::get('recId', 'int');
             $lastSaleRec = self::getLastRec($receiptId, 'sale');
             $id = isset($id) ? $id : ($lastSaleRec ? $lastSaleRec->id : null);
-            expect($id, 'Не е избран ред');
-            expect($rec = self::fetch($id), 'Не е избран ред');
+            pos_TerminalException::expect($id, 'Не е избран ред');
+            pos_TerminalException::expect($rec = self::fetch($id), 'Не е избран ред');
             $this->requireRightFor('edit', $rec);
 
-            expect($operation = Request::get('action', 'enum(setquantity,setdiscount,settext,setprice,setbatch,setstore)'), 'Невалидна операция');
+            pos_TerminalException::expect($operation = Request::get('action', 'enum(setquantity,setdiscount,settext,setprice,setbatch,setstore)'), 'Невалидна операция');
             $string = Request::get('string', 'varchar');
 
-            expect(isset($string), 'Проблем при разчитане на операцията');
+            pos_TerminalException::expect(isset($string), 'Проблем при разчитане на операцията');
             if(isset($receiptRec->revertId) && $receiptRec->revertId != pos_Receipts::DEFAULT_REVERT_RECEIPT && in_array($operation, array('setdiscount', 'setprice'))){
-                expect(false, 'Невалидна операция');
+                pos_TerminalException::expect(false, 'Невалидна операция');
             }
 
             if($operation == 'settext' || $operation == 'setprice'|| $operation == 'setstore'){
@@ -291,14 +291,14 @@ class pos_ReceiptDetails extends core_Detail
             }
 
             if($operation != 'settext'){
-                expect(empty($receiptRec->paid), 'Не може да се променя информацията, ако има направено плащане|*!');
+                pos_TerminalException::expect(empty($receiptRec->paid), 'Не може да се променя информацията, ако има направено плащане|*!');
             }
 
             $productRec = cat_Products::fetch($rec->productId, 'canStore');
 
             switch($operation){
                 case 'setquantity':
-                    expect($quantity = core_Type::getByName('double')->fromVerbal(str_replace('*', '', $firstValue)), 'Не е зададено количество');
+                    pos_TerminalException::expect($quantity = core_Type::getByName('double')->fromVerbal(str_replace('*', '', $firstValue)), 'Не е зададено количество');
                     $firstChar = substr($firstValue, 0, 1);
 
                     if(str::endsWith($firstValue, '*')){
@@ -309,12 +309,12 @@ class pos_ReceiptDetails extends core_Detail
 
                                 return Request::forward(array('Ctr' => 'pos_ReceiptDetails', 'Act' => 'DeleteRec', 'id' => $rec->id));
                             } elseif($quantity < 0 && empty($receiptRec->revertId)){
-                                expect(false, 'Количеството не може да стане отрицателно|*!');
+                                pos_TerminalException::expect(false, 'Количеството не може да стане отрицателно|*!');
                             }
                         }
                     } else {
                         if($firstChar == '+'){
-                            expect($quantity > 0, 'Количеството трябва да е положително');
+                            pos_TerminalException::expect($quantity > 0, 'Количеството трябва да е положително');
                             $quantity = $rec->quantity + $quantity;
                         } elseif($firstChar == '-'){
                             $quantity = $rec->quantity + $quantity;
@@ -328,15 +328,15 @@ class pos_ReceiptDetails extends core_Detail
 
                     $errorQuantity = null;
                     if(!deals_Helper::checkQuantity($rec->value, $quantity, $errorQuantity)){
-                        expect(empty($errorQuantity), $errorQuantity);
+                        pos_TerminalException::expect(empty($errorQuantity), $errorQuantity);
                     }
 
                     $rec->quantity = $quantity;
 
                     if(!empty($secondValue)){
-                        expect($packagingId = cat_UoM::fetchBySinonim($secondValue)->id, 'Не е разпозната опаковка');
+                        pos_TerminalException::expect($packagingId = cat_UoM::fetchBySinonim($secondValue)->id, 'Не е разпозната опаковка');
                         $packs = cat_Products::getPacks($rec->productId);
-                        expect(array_key_exists($packagingId, $packs), 'Опаковката/мярка не е налична за въпросния артикул');
+                        pos_TerminalException::expect(array_key_exists($packagingId, $packs), 'Опаковката/мярка не е налична за въпросния артикул');
                         $rec->value = $packagingId;
 
                         // Преизчисляване на цената на опаковката
@@ -347,7 +347,7 @@ class pos_ReceiptDetails extends core_Detail
                     if(isset($receiptRec->revertId)){
                         if($receiptRec->revertId != pos_Receipts::DEFAULT_REVERT_RECEIPT){
                             $originProductRec = $this->findSale($rec->productId, $receiptRec->revertId, $rec->value);
-                            expect(abs($rec->quantity) <= abs($originProductRec->quantity), "Количеството е по-голямо от продаденото|*: " . core_Type::getByName('double(smartRound)')->toVerbal($originProductRec->quantity));
+                            pos_TerminalException::expect(abs($rec->quantity) <= abs($originProductRec->quantity), "Количеството е по-голямо от продаденото|*: " . core_Type::getByName('double(smartRound)')->toVerbal($originProductRec->quantity));
                         }
 
                         $rec->quantity *= -1;
@@ -356,7 +356,7 @@ class pos_ReceiptDetails extends core_Detail
                         // Проверка дали количеството е допустимо
                         $errorQuantity = $warningQuantity = null;
                         if (!pos_Receipts::checkQuantity($rec, $errorQuantity, $warningQuantity)) {
-                            expect(false, $errorQuantity);
+                            pos_TerminalException::expect(false, $errorQuantity);
                         }
 
                         if(!empty($warningQuantity)){
@@ -368,11 +368,11 @@ class pos_ReceiptDetails extends core_Detail
                     break;
                 case 'setdiscount':
                     $setDiscounts = pos_Points::getSettings($receiptRec->pointId, 'setDiscounts');
-                    expect($setDiscounts == 'yes', 'Задаването на отстъпки/надценки не е разрешено|*!');
+                    pos_TerminalException::expect($setDiscounts == 'yes', 'Задаването на отстъпки/надценки не е разрешено|*!');
                     $discount = core_Type::getByName('percent')->fromVerbal($firstValue);
 
                     if(isset($discount)){
-                        expect($discount >= -1 && $discount <= 1, 'Отстъпката трябва да е между -100% и 100%|*!');
+                        pos_TerminalException::expect($discount >= -1 && $discount <= 1, 'Отстъпката трябва да е между -100% и 100%|*!');
                         if($discount != 0){
                             if(strpos($string, '%') === 0){
                                 $discount = -1 * $discount;
@@ -390,12 +390,12 @@ class pos_ReceiptDetails extends core_Detail
                     break;
                 case 'setprice':
                     $setPrices = pos_Points::getSettings($receiptRec->pointId, 'setPrices');
-                    expect($setPrices == 'yes', 'Ръчното задаване на цена не е разрешено|*!');
+                    pos_TerminalException::expect($setPrices == 'yes', 'Ръчното задаване на цена не е разрешено|*!');
 
                     if(!empty($firstValue)){
                         $firstValue = str_replace('*', '', $firstValue);
-                        expect($price = core_Type::getByName('double')->fromVerbal($firstValue), 'Неразпозната цена');
-                        expect($price >= 0, 'Невалидна цена|*!');
+                        pos_TerminalException::expect($price = core_Type::getByName('double')->fromVerbal($firstValue), 'Неразпозната цена');
+                        pos_TerminalException::expect($price >= 0, 'Невалидна цена|*!');
 
                         $price /= 1 + $rec->param;
                         $rec->price = $price;
@@ -414,13 +414,13 @@ class pos_ReceiptDetails extends core_Detail
                     $successMsg = 'Променено пояснение на реда|*!';
                     break;
                 case 'setbatch':
-                    expect(core_Packs::isInstalled('batch'), 'Пакета за партидности не е инсталиран');
+                    pos_TerminalException::expect(core_Packs::isInstalled('batch'), 'Пакета за партидности не е инсталиран');
                     $batchDef = batch_Defs::getBatchDef($rec->productId);
-                    expect($batchDef, 'Артикулът няма партидност');
+                    pos_TerminalException::expect($batchDef, 'Артикулът няма партидност');
                     if(!empty($string)){
                         $batechErrorMsg = null;
                         if(!$batchDef->isValid($string, $rec->quantity, $batechErrorMsg)){
-                            expect(false, $batechErrorMsg);
+                            pos_TerminalException::expect(false, $batechErrorMsg);
                         }
                         $rec->batch = $batchDef->normalize($string);
                     } else {
@@ -429,13 +429,13 @@ class pos_ReceiptDetails extends core_Detail
 
                     $foundRec = $this->findSale($rec->productId, $rec->receiptId, $rec->value, $rec->batch);
                     if(isset($foundRec->id) && $foundRec->id != $rec->id){
-                        expect(false, 'Партидата е вече зададена на друг ред');
+                        pos_TerminalException::expect(false, 'Партидата е вече зададена на друг ред');
                     }
 
                     // Проверка дали количеството е допустимо
                     $errorQuantity = $warningQuantity = null;
                     if (!pos_Receipts::checkQuantity($rec, $errorQuantity, $warningQuantity)) {
-                        expect(false, $errorQuantity);
+                        pos_TerminalException::expect(false, $errorQuantity);
                     }
 
                     if(!empty($warningQuantity)){
@@ -444,17 +444,17 @@ class pos_ReceiptDetails extends core_Detail
                     break;
                 case 'setstore':
                     if($productRec->canStore != 'yes'){
-                        expect(false, "Не може да се зададе склад, защото артикула е услуга");
+                        pos_TerminalException::expect(false, "Не може да се зададе склад, защото артикула е услуга");
                     }
 
                     $stores = pos_Points::getStores($receiptRec->pointId);
-                    expect(in_array($firstValue, $stores), 'Невъзможен склад за избор');
+                    pos_TerminalException::expect(in_array($firstValue, $stores), 'Невъзможен склад за избор');
                     $rec->storeId = $firstValue;
 
                     // Проверка дали количеството е допустимо
                     $errorQuantity = $warningQuantity = null;
                     if (!pos_Receipts::checkQuantity($rec, $errorQuantity, $warningQuantity)) {
-                        expect(false, $errorQuantity);
+                        pos_TerminalException::expect(false, $errorQuantity);
                     }
 
                     if(!empty($warningQuantity)){
@@ -473,7 +473,9 @@ class pos_ReceiptDetails extends core_Detail
         } catch(core_exception_Expect $e){
             $dump = $e->dump;
             $dump1 = $dump[0] ?? $e->getMessage();
-            reportException($e);
+            if(!($e instanceof pos_TerminalException)){
+                reportException($e);
+            }
             if (!Request::get('ajax_mode')) {
                 throw new core_exception_Expect('', 'Изключение', $dump);
             } else {
@@ -574,7 +576,7 @@ class pos_ReceiptDetails extends core_Detail
 
         $refreshHeader = false;
         try{
-            expect(empty($receiptRec->paid), 'Не може да се добави артикул, ако има направено плащане|*!');
+            pos_TerminalException::expect(empty($receiptRec->paid), 'Не може да се добави артикул, ако има направено плащане|*!');
             $increment = false;
             $isWeightBarcode = false;
 
@@ -630,8 +632,8 @@ class pos_ReceiptDetails extends core_Detail
             if(core_Packs::isInstalled('wbarcode') && !empty($rec->ean) && empty($rec->productId)){
                 if($parsedRec = wbarcode_Helper::parse($rec->ean)){
                     $weightRec = wbarcode_Helper::getProduct($rec->ean);
-                    expect(is_object($weightRec), "Няма артикул с код|* {$parsedRec->productCode} |от тегловния баркод|*!");
-                    expect(empty($weightRec->error), $weightRec->error);
+                    pos_TerminalException::expect(is_object($weightRec), "Няма артикул с код|* {$parsedRec->productCode} |от тегловния баркод|*!");
+                    pos_TerminalException::expect(empty($weightRec->error), $weightRec->error);
 
                     // Баркодът е пряк път за артикул + тегло, а въведеното до тук количество остава
                     // множител на теглото от етикета: при "2*<баркод>" се продава двойното тегло
@@ -645,12 +647,12 @@ class pos_ReceiptDetails extends core_Detail
             $sign = isset($receiptRec->revertId) ? -1 : 1;
             $rec->quantity *= $sign;
 
-            expect(!empty($rec->productId) || !empty($rec->ean), 'Не е избран артикул|*!');
+            pos_TerminalException::expect(!empty($rec->productId) || !empty($rec->ean), 'Не е избран артикул|*!');
 
             // При тегловен баркод мярката идва от него и избраната опаковка не я презаписва
             if (empty($isWeightBarcode)) {
                 if ($packId = Request::get('packId', 'int')) {
-                    expect(cat_UoM::fetchField($packId), "Невалидна опаковка|*!");
+                    pos_TerminalException::expect(cat_UoM::fetchField($packId), "Невалидна опаковка|*!");
                     $rec->value = $packId;
                 }
             }
@@ -693,25 +695,25 @@ class pos_ReceiptDetails extends core_Detail
                 return core_Request::forward($forwardUrl);
             }
 
-            expect(!empty($rec->productId), 'Няма такъв продукт в системата|*!', $rec);
-            expect(empty($rec->notSellable), "Артикулът е спрян от продажба|* #Art{$rec->productId}!");
+            pos_TerminalException::expect(!empty($rec->productId), 'Няма такъв продукт в системата|*!');
+            pos_TerminalException::expect(empty($rec->notSellable), "Артикулът е спрян от продажба|* #Art{$rec->productId}!");
 
             // Ако няма цена
             if (!$rec->price) {
                 $now = dt::mysql2verbal(dt::now(), 'd.m.Y H:i');
-                expect(false,  "|*#Art{$rec->productId} |няма цена към|* <b>{$now}</b>!");
+                pos_TerminalException::expect(false,  "|*#Art{$rec->productId} |няма цена към|* <b>{$now}</b>!");
             }
 
             $originProductRec = null;
             if (!empty($receiptRec->revertId) && $receiptRec->revertId != pos_Receipts::DEFAULT_REVERT_RECEIPT) {
                 $originProductRec = $this->findSale($rec->productId, $receiptRec->revertId, $rec->value);
-                expect(is_object($originProductRec), 'Артикулът го няма в оригиналната бележка|*!');
+                pos_TerminalException::expect(is_object($originProductRec), 'Артикулът го няма в оригиналната бележка|*!');
             }
 
             // Проверка дали избраната мярка приема подаденото количество
             $errorQuantity = null;
             if(!deals_Helper::checkQuantity($rec->value, $rec->quantity, $errorQuantity)){
-                expect(empty($errorQuantity), $errorQuantity);
+                pos_TerminalException::expect(empty($errorQuantity), $errorQuantity);
             }
 
             // Ако селектирания ред е с партида, се приема че ще се добавя нов ред
@@ -727,7 +729,7 @@ class pos_ReceiptDetails extends core_Detail
                 if($batchDef = batch_Defs::getBatchDef($rec->productId)){
                     if(empty($rec->batch)){
                         $alwaysRequire = $batchDef->getField('alwaysRequire');
-                        expect($alwaysRequire != 'yes', "Артикулът е със задължителна партидност, но няма налични|*!");
+                        pos_TerminalException::expect($alwaysRequire != 'yes', "Артикулът е със задължителна партидност, но няма налични|*!");
                     }
                 }
             }
@@ -744,7 +746,7 @@ class pos_ReceiptDetails extends core_Detail
             } else {
                 if($separateInPos != 'yes'){
                     $count = $this->count("#receiptId = {$rec->receiptId} && #productId = {$rec->productId} AND #value = {$rec->value}");
-                    expect($count <= 1, 'Не е избран конкретен ред|*!');
+                    pos_TerminalException::expect($count <= 1, 'Не е избран конкретен ред|*!');
                 }
             }
 
@@ -772,21 +774,21 @@ class pos_ReceiptDetails extends core_Detail
             }
 
             if(empty($receiptRec->revertId)) {
-                expect($rec->quantity > 0, 'При добавяне количеството трябва да е положително');
+                pos_TerminalException::expect($rec->quantity > 0, 'При добавяне количеството трябва да е положително');
             }
 
             if(($rec->_canStore ?? 'no') == 'yes'){
                 $rec->storeId = $rec->storeId ?? $defaultStoreId;
                 if(empty($rec->storeId)){
                     $pName = cat_Products::getTitleById($rec->productId);
-                    expect(false,  "|*{$pName}: |не е наличен в нито един склад свързан с POS-а|*");
+                    pos_TerminalException::expect(false,  "|*{$pName}: |не е наличен в нито един склад свързан с POS-а|*");
                 }
             }
 
             $error = $warningQuantity = null;
             if (($rec->_canStore ?? 'no') == 'yes') {
                 if(!pos_Receipts::checkQuantity($rec, $error, $warningQuantity)){
-                    expect(false, $error);
+                    pos_TerminalException::expect(false, $error);
                 }
             }
 
@@ -796,7 +798,7 @@ class pos_ReceiptDetails extends core_Detail
 
             if (is_object($originProductRec)) {
                 $originQuantityVerbal = core_Type::getByName('double(smartRound)')->toVerbal($originProductRec->quantity);
-                expect(abs($originProductRec->quantity) >= abs($rec->quantity), "Количеството е по-голямо от продаденото|* {$originQuantityVerbal}");
+                pos_TerminalException::expect(abs($originProductRec->quantity) >= abs($rec->quantity), "Количеството е по-голямо от продаденото|* {$originQuantityVerbal}");
             }
 
             $pointRec = pos_Points::getSettings($receiptRec->pointId);
@@ -824,7 +826,9 @@ class pos_ReceiptDetails extends core_Detail
             $selectedRecId = null;
             $dump = $e->dump;
             $dump1 = $dump[0] ?? $e->getMessage();
-            reportException($e);
+            if(!($e instanceof pos_TerminalException)){
+                reportException($e);
+            }
             if (!Request::get('ajax_mode')) {
                 throw new core_exception_Expect('', 'Изключение', $dump);
             } else {

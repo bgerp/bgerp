@@ -108,20 +108,55 @@ class cvc_WayBills extends core_Manager
         expect($rec = $this->fetch($id));
         $this->requireRightFor('reject', $rec);
 
-        try{
-            $res = cvc_Adapter::cancelWb($rec->number);
-            if(is_numeric($res)){
-                $msg = 'Заявката за отказване на товарителницата е приета успешно|*!';
-            } else {
-                $msg = 'Товарителницата вече е била оттеглена|*!';
-            }
-            $rec->state = 'rejected';
-            $this->save($rec, 'state');
-        } catch(core_exception_Expect $e){
-            $msg = 'Имаше проблем при подаване на заявката за оттегляне на товарителницата|*!';
+        $res = $this->cancel($rec, null, 'Ръчно отказана товарителница');
+        if($res->status == cond_CourierApiIntf::BOL_UNKNOWN){
+            followRetUrl(null, 'CVC не отговори - проверете в системата им дали товарителницата е отказана|*!', 'error');
         }
 
+        if($res->status == cond_CourierApiIntf::BOL_REJECTED){
+            followRetUrl(null, 'Имаше проблем при подаване на заявката за оттегляне на товарителницата|*!', 'error');
+        }
+
+        $msg = empty($res->already) ? 'Заявката за отказване на товарителницата е приета успешно|*!' : 'Товарителницата вече е била оттеглена|*!';
         followRetUrl(null, $msg);
+    }
+
+
+    /**
+     * Отказва товарителницата в CVC и я отбелязва в нея и в документа
+     *
+     * @param stdClass    $rec       - товарителницата
+     * @param string|null $reason    - причина, само за историята (CVC не я приема)
+     * @param string      $docLogMsg - запис в историята на документа
+     * @return stdClass {status, error, already}
+     */
+    public function cancel($rec, $reason, $docLogMsg)
+    {
+        try{
+            $res = cvc_Adapter::cancelWb($rec->number);
+        } catch(core_exception_Expect $e){
+
+            return (object)array('status' => cond_CourierApiIntf::BOL_REJECTED, 'error' => $e->getMessage());
+        }
+
+        // Без отговор не е ясно дали е отказана - състоянието не се сменя
+        if(cvc_Adapter::$lastCallNoResponse){
+
+            return (object)array('status' => cond_CourierApiIntf::BOL_UNKNOWN, 'error' => 'No response from CVC');
+        }
+
+        $rec->state = 'rejected';
+        $this->save($rec, 'state');
+        $logMsg = 'Отказване на товарителница' . (strlen($reason ?? '') ? ": {$reason}" : '');
+        $this->logWrite($logMsg, $rec->id);
+
+        // В историята на документа, от който е издадена
+        $Document = doc_Containers::getDocument($rec->containerId);
+        $Document->getInstance()->logWrite($docLogMsg, $Document->that);
+        store_plg_CourierApiShipment::rejectBillOfLadingLink($rec->containerId, $rec->file ?? null);
+
+        // Отговор без номер значи, че вече е била оттеглена
+        return (object)array('status' => cond_CourierApiIntf::BOL_CANCELLED, 'error' => null, 'already' => !is_numeric($res));
     }
 
 
