@@ -319,8 +319,8 @@ class speedy_interface_ApiImpl extends core_BaseClass
 
                     if(!empty($parsedAddress['complexType'])){
                         $complexTypeKey = null;
-                        foreach ($allComplexTypes as $k => $rec) {
-                            if (trim($rec->name ?? '') === $parsedAddress['complexType'] || trim($rec->nameEn ?? '') === $parsedAddress['complexType']) {
+                        foreach ($allComplexTypes as $k => $complexTypeRec) {
+                            if (trim($complexTypeRec->name ?? '') === $parsedAddress['complexType'] || trim($complexTypeRec->nameEn ?? '') === $parsedAddress['complexType']) {
                                 $complexTypeKey = $k;
                                 break;
                             }
@@ -377,7 +377,7 @@ class speedy_interface_ApiImpl extends core_BaseClass
         if(($formRec->payer ?? null) == 'third'){
             $form->setField('thirdPayerRefId', 'input');
             $form->setOptions('thirdPayerRefId', $senderObjects);
-            $form->setDefault('thirdPayerRefId', $rec->senderClientId);
+            $form->setDefault('thirdPayerRefId', $formRec->senderClientId ?? null);
         }
     }
 
@@ -538,6 +538,11 @@ class speedy_interface_ApiImpl extends core_BaseClass
         }
         if(isset($formRec->payerPackaging)){
             $paymentArr['packagePayer'] = ($formRec->payerPackaging == 'same') ? $payer : (($formRec->payerPackaging == 'sender') ? 'SENDER' : (($formRec->payerPackaging == 'receiver') ? 'RECIPIENT' : 'THIRD_PARTY'));
+        }
+
+        // Платец "Фирмен обект" - API-то изисква кой обект плаща
+        if($payer == 'THIRD_PARTY' && !empty($formRec->thirdPayerRefId)){
+            $paymentArr['thirdPartyClientId'] = $formRec->thirdPayerRefId;
         }
 
         $contentArr = array('package' => $formRec->packaging, 'contents' => $formRec->content, 'parcelsCount' => $formRec->palletCount, 'totalWeight' => $formRec->totalWeight);
