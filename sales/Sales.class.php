@@ -1133,6 +1133,20 @@ class sales_Sales extends deals_DealMaster
             $tpl->removeBlock('TRANSPORT_BAR');
         }
     }
+
+
+    /**
+     * Добавя ценовата политика към LLM експорта
+     */
+    public static function on_AfterAfterGetLlmExport($mvc, &$text, $rec, $params)
+    {
+        if (empty($text)) return;
+
+        $note = price_Lists::getLlmNote($rec, $rec->valior ?? null);
+        if (!empty($note)) {
+            $text .= "\n\n" . $note;
+        }
+    }
     
     
     /**
@@ -1343,7 +1357,10 @@ class sales_Sales extends deals_DealMaster
             }
         }
         
-        if (isset($rec->priceListId)) {
+        // За LLM политиката идва като бележка в края (price_Lists::getLlmNote)
+        if (Mode::is('renderForLlm')) {
+            unset($row->priceListId);
+        } elseif (isset($rec->priceListId)) {
             $row->priceListId = price_Lists::getHyperlink($rec->priceListId, true);
         }
         
