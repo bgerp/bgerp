@@ -153,6 +153,7 @@ class cvc_WayBills extends core_Manager
         // В историята на документа, от който е издадена
         $Document = doc_Containers::getDocument($rec->containerId);
         $Document->getInstance()->logWrite($docLogMsg, $Document->that);
+        store_plg_CourierApiShipment::rejectBillOfLadingLink($rec->containerId, $rec->file ?? null);
 
         // Отговор без номер значи, че вече е била оттеглена
         return (object)array('status' => cond_CourierApiIntf::BOL_CANCELLED, 'error' => null, 'already' => !is_numeric($res));

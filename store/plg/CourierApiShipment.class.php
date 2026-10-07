@@ -276,6 +276,37 @@ class store_plg_CourierApiShipment extends core_Plugin
 
 
     /**
+     * Оттегля връзката на документа с файла на отказана товарителница и я отбелязва като отказана
+     *
+     * @param int         $containerId - контейнер на документа
+     * @param string|null $fh          - файл на товарителницата
+     * @return void
+     */
+    public static function rejectBillOfLadingLink($containerId, $fh)
+    {
+        $fileId = empty($fh) ? null : fileman::fetchByFh($fh, 'id');
+        if(empty($fileId)){
+
+            return;
+        }
+
+        $Linked = cls::get('doc_Linked');
+        $query = $Linked->getQuery();
+        $query->where(array("#outType = 'doc' AND #outVal = [#1#] AND #inType = 'file' AND #inVal = [#2#] AND #state != 'rejected'", $containerId, $fileId));
+        while($lRec = $query->fetch()){
+            // „Товарителница (Speedy)“ -> „Отказана товарителница (Speedy)“; вече отбелязаният не се пипа
+            $comment = $lRec->comment ?? '';
+            if(mb_stripos($comment, 'отказан') !== 0){
+                $comment = strlen($comment) ? mb_strtolower(mb_substr($comment, 0, 1)) . mb_substr($comment, 1) : 'товарителница';
+                $lRec->comment = "Отказана {$comment}";
+                $Linked->save_($lRec, 'comment');
+            }
+            $Linked->reject($lRec->id);
+        }
+    }
+
+
+    /**
      * Маха неизяснения опит, след като е проверено в системата на куриера
      *
      * @param int $containerId
