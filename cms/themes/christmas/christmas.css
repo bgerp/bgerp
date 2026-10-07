@@ -1,0 +1,252 @@
+/* Christmas palette and decorations on top of the Commerce theme. */
+body.christmas-theme {
+    --c-accent: #17704f;
+    --c-accent-dark: #0f5a3e;
+    --c-accent-deep: #0d4a35;
+    --c-accent-muted: #2a6b52;
+    --c-accent-soft: #eaf5ef;
+    --c-accent-soft-2: #edf7f1;
+    --c-accent-soft-3: #ecf6f0;
+    --c-accent-line: #cfe5d8;
+    --c-accent-line-strong: #94c4a8;
+    --c-focus: #e9b949;
+    --c-highlight: #f5c84c;
+    --c-ink: #13261f;
+    --c-text: #2f4a3f;
+    --c-text-2: #456055;
+    --c-muted: #5d7268;
+    --c-dark: #0d3b2e;
+    --c-line: #dbe6e0;
+    --c-line-2: #dce7e1;
+    --c-line-3: #d3e2d9;
+    --c-line-4: #e5eee9;
+    --c-line-5: #e0eae4;
+    --c-line-6: #dbe7e0;
+    --c-line-strong: #b5ccbf;
+    --c-line-strong-2: #c3d6cb;
+    --c-bg: #f6faf7;
+    --c-surface: #f3f7f4;
+    --c-surface-2: #e9f3ed;
+    --c-surface-3: #f8fbf9;
+    --c-accent-rgb: 23, 112, 79;
+    --c-ink-rgb: 19, 38, 31;
+    --xmas-green: #0d3b2e;
+    --xmas-green-2: #17543f;
+    --xmas-green-3: #2a6b52;
+    --xmas-gold: #f5c84c;
+    --xmas-red: #c8102e;
+    --xmas-red-dark: #9e0c24;
+    --xmas-snow: #ffffff;
+    background-color: #f6faf7;
+    background-image: radial-gradient(circle at 50% -10%, rgba(245, 200, 76, .14), transparent 45%);
+    background-attachment: fixed;
+}
+
+/* Falling snow over the page; three layers at different speeds, never catches clicks. */
+body.christmas-theme::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 3;
+    pointer-events: none;
+    background-image:
+        radial-gradient(3px 3px at 20px 30px, #e3f1fb 50%, transparent 51%),
+        radial-gradient(2px 2px at 140px 90px, #e3f1fb 50%, transparent 51%),
+        radial-gradient(4px 4px at 230px 180px, rgba(214, 235, 250, .95) 50%, transparent 51%),
+        radial-gradient(2px 2px at 60px 220px, #e3f1fb 50%, transparent 51%),
+        radial-gradient(3px 3px at 300px 40px, rgba(214, 235, 250, .9) 50%, transparent 51%),
+        radial-gradient(5px 5px at 110px 150px, rgba(205, 230, 248, .85) 50%, transparent 51%),
+        radial-gradient(2px 2px at 250px 260px, #e3f1fb 50%, transparent 51%),
+        radial-gradient(6px 6px at 180px 60px, rgba(205, 230, 248, .75) 50%, transparent 51%),
+        radial-gradient(4px 4px at 30px 330px, rgba(205, 230, 248, .8) 50%, transparent 51%);
+    background-size: 320px 320px, 320px 320px, 320px 320px, 260px 260px, 260px 260px, 400px 400px, 260px 260px, 400px 400px, 400px 400px;
+    opacity: .9;
+    animation: christmas-snow 22s linear infinite;
+}
+@keyframes christmas-snow {
+    from { background-position: 0 0, 0 0, 0 0, 0 0, 0 0, 0 0, 0 0, 0 0, 0 0; }
+    to { background-position: 320px 640px, 320px 640px, 320px 640px, -260px 520px, -260px 520px, 0 400px, -260px 520px, 0 400px, 0 400px; }
+}
+
+/* Menu: deep pine with a twinkling garland hanging below it. */
+body.christmas-theme #cmsMenu.menuRow {
+    background: linear-gradient(180deg, var(--xmas-green-2), var(--xmas-green));
+    box-shadow: 0 6px 22px rgba(13, 59, 46, .25);
+}
+body.christmas-theme #cmsMenu.menuRow::before,
+body.christmas-theme #cmsMenu.menuRow::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 100%;
+    height: 22px;
+    z-index: -1;
+    pointer-events: none;
+    background: url('img/garland.svg') 0 0 / 160px 22px repeat-x;
+}
+body.christmas-theme #cmsMenu.menuRow::after {
+    background-image: url('img/garland-glow.svg');
+    animation: christmas-twinkle 1.6s ease-in-out infinite alternate;
+}
+@keyframes christmas-twinkle {
+    from { opacity: .15; }
+    to { opacity: 1; }
+}
+body.christmas-theme #cmsMenu.menuRow a { color: #f1f7f3 !important; }
+body.christmas-theme #cmsMenu.menuRow a:hover,
+body.christmas-theme #cmsMenu.menuRow a:focus-visible,
+body.christmas-theme #cmsMenu .commerce-languages summary:hover { background: var(--xmas-green-3); }
+body.christmas-theme #cmsMenu.menuRow a.selected {
+    background: var(--xmas-gold);
+    color: #3b2a00 !important;
+    box-shadow: inset 0 -2px 0 rgba(0, 0, 0, .12);
+}
+body.christmas-theme #cmsMenu.menuRow a.selected:hover { background: #ffd970; }
+body.christmas-theme #cmsMenu.menuRow .cms-menu-tools { border-left-color: rgba(255, 255, 255, .18); }
+body.christmas-theme #cmsMenu.menuRow a.loginIcon:hover { background: #fff5d6; }
+body.christmas-theme #cmsMenu a.commerce-cart-link {
+    background: var(--xmas-red) !important;
+    border-color: #e04a60;
+}
+body.christmas-theme #cmsMenu a.commerce-cart-link:hover { background-color: var(--xmas-red-dark) !important; }
+body.christmas-theme #cmsMenu .commerce-cart-link .count {
+    background: var(--xmas-gold);
+    color: #3b2a00;
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, .35);
+}
+body.christmas-theme:is(.narrow, .commerce-compact) .commerce-primary-menu > summary { border-color: rgba(255, 255, 255, .3); }
+
+/* Banner: snow resting on the top edge. */
+body.christmas-theme .externalPage > header {
+    position: relative;
+    box-shadow: 0 10px 30px rgba(13, 59, 46, .18);
+}
+body.christmas-theme .externalPage > header::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 16px;
+    z-index: 2;
+    pointer-events: none;
+    background:
+        linear-gradient(#fff, #fff) 0 0 / 100% 5px no-repeat,
+        radial-gradient(circle at 13px 0, #fff 10px, transparent 10.5px) 0 0 / 34px 14px repeat-x,
+        radial-gradient(circle at 7px 0, #fff 6px, transparent 6.5px) 17px 0 / 34px 12px repeat-x;
+    filter: drop-shadow(0 2px 2px rgba(13, 59, 46, .25));
+}
+body.christmas-theme .externalPage > header .christmas-banner { max-height: 200px; }
+body.christmas-theme header .narrowCenter:has(.commerce-default-banner) .app-name { text-shadow: 0 2px 12px rgba(0, 0, 0, .45), 0 0 24px rgba(245, 200, 76, .35); }
+
+/* Footer: candy-cane stripe and a snowdrift on top. */
+body.christmas-theme .externalPage #cmsBottom {
+    position: relative;
+    border-top: 0 !important;
+    padding-top: 22px;
+    background-color: var(--xmas-green);
+    background-image: radial-gradient(circle at 50% 120%, rgba(245, 200, 76, .12), transparent 60%);
+}
+body.christmas-theme .externalPage #cmsBottom::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 18px;
+    pointer-events: none;
+    background:
+        radial-gradient(circle at 12px 8px, #fff 9px, transparent 9.5px) 0 0 / 30px 18px repeat-x,
+        repeating-linear-gradient(135deg, var(--xmas-red) 0 12px, #fff 12px 24px) 0 0 / 100% 8px no-repeat;
+}
+body.christmas-theme .cookies .agree { color: #3b2a00 !important; }
+
+/* Headings get a small festive mark. */
+body.christmas-theme #maincontent h1:not(.cms-article-title)::after,
+body.christmas-theme .cms-article-title::after {
+    content: "";
+    display: block;
+    width: 72px;
+    height: 4px;
+    margin-top: .35em;
+    border-radius: 2px;
+    background: repeating-linear-gradient(135deg, var(--xmas-red) 0 8px, #fff 8px 12px, #1f7a56 12px 20px, #fff 20px 24px);
+}
+
+/* Shop cards: warm snow white with a festive hover. */
+body.christmas-theme.eshop-public { --shop-muted: #5d7268; }
+body.christmas-theme.eshop-public .eshop-product-list {
+    border-radius: 14px;
+    transition: border-color 150ms ease, box-shadow 150ms ease, transform 150ms ease;
+}
+body.christmas-theme.eshop-public .eshop-product-list:hover {
+    border-color: var(--c-accent-line-strong);
+    box-shadow: 0 10px 26px rgba(13, 59, 46, .12), 0 0 0 3px rgba(245, 200, 76, .3);
+    transform: translateY(-2px);
+}
+body.christmas-theme.eshop-public .eshop-group-button {
+    background: #fff;
+    border-color: var(--c-line);
+    border-bottom: 3px solid var(--xmas-red);
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(13, 59, 46, .06);
+}
+body.christmas-theme.eshop-public .eshop-group-button:hover,
+body.christmas-theme.eshop-public .eshop-group-button:focus-within {
+    background: #fffaf0;
+    border-color: var(--c-accent-line);
+    border-bottom-color: var(--xmas-gold);
+}
+
+/* Side menus: candy-cane top, holly sprig, snowflake headings and gold marker on the current page. */
+body.christmas-theme.eshop-public .eshop-layout #cmsNavigation,
+body.christmas-theme.commerce-blog #cmsNavigation {
+    padding-top: 44px;
+    border-color: var(--c-accent-line);
+    border-radius: 14px;
+    background:
+        url('img/holly.svg') right 10px top 9px / 40px 30px no-repeat,
+        repeating-linear-gradient(135deg, var(--xmas-red) 0 10px, #fff 10px 20px, #1f7a56 20px 30px, #fff 30px 40px) 0 0 / 100% 6px no-repeat,
+        linear-gradient(180deg, #f3faf6, #fff 120px);
+    box-shadow: 0 6px 18px rgba(13, 59, 46, .08);
+}
+body.christmas-theme.eshop-public #cmsNavigation .level1:not(.noRoot) > :first-child::before,
+body.christmas-theme.commerce-blog #cmsNavigation .level1 > :first-child::before {
+    content: "\2744";
+    margin-right: .4em;
+    color: #4aa3c7;
+    font-weight: 400;
+}
+body.christmas-theme.eshop-public #cmsNavigation .nav_item:hover,
+body.christmas-theme.eshop-public #cmsNavigation .nav_item:focus-within,
+body.christmas-theme.commerce-blog #cmsNavigation .nav_item:hover,
+body.christmas-theme.commerce-blog #cmsNavigation .nav_item:focus-within {
+    background: #fff8e1;
+    border-color: #f3e0a6;
+}
+body.christmas-theme.eshop-public #cmsNavigation .sel_page,
+body.christmas-theme.commerce-blog #cmsNavigation .sel_page {
+    background: var(--c-accent-soft);
+    border-color: var(--c-accent-line);
+    border-left: 3px solid var(--xmas-gold) !important;
+}
+body.christmas-theme.eshop-public #cmsNavigation :is(.level2.noRoot, .level3, .level4, .level5):not(.sel_page),
+body.christmas-theme.commerce-blog #cmsNavigation :is(.level2, .level3, .level4, .level5):not(.sel_page) { border-left-color: #d6e9de; }
+body.christmas-theme:is(.narrow, .commerce-compact) #cmsNavigation { background-position: right 10px top 9px, 0 0, 0 0; }
+
+@media (max-width: 700px) {
+    body.christmas-theme #cmsMenu.menuRow::before,
+    body.christmas-theme #cmsMenu.menuRow::after { height: 16px; background-size: 116px 16px; }
+    body.christmas-theme::after { opacity: .6; }
+}
+@media (prefers-reduced-motion: reduce) {
+    body.christmas-theme::after,
+    body.christmas-theme #cmsMenu.menuRow::after { animation: none; }
+    body.christmas-theme.eshop-public .eshop-product-list:hover { transform: none; }
+}
+@media print {
+    body.christmas-theme::after,
+    body.christmas-theme #cmsMenu.menuRow::before,
+    body.christmas-theme #cmsMenu.menuRow::after { display: none; }
+}

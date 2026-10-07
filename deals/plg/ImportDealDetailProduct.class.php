@@ -339,7 +339,7 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
                 }
             } else {
                 if($priceField = $mvc->getField('packPrice', false)){
-                    if($priceField->mandatory){
+                    if(!empty($priceField->mandatory)){
                         $err[$i][] = $obj->code . ' - |Посочването на цена е задължително|*!';
                     }
                 }
