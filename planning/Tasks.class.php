@@ -240,7 +240,7 @@ class planning_Tasks extends core_Master
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'progress,totalWeight,totalNetWeight,scrappedQuantity,producedQuantity,totalQuantity,plannedQuantity,timeStart,timeDuration,systemId,orderByAssetId,prevAssetId,expectedTimeStart,expectedTimeEnd,timeClosed,lastProgressProduction,lastProgress,firstProgress,actualStart';
+    public $fieldsNotToClone = 'progress,totalWeight,totalNetWeight,scrappedQuantity,producedQuantity,totalQuantity,plannedQuantity,timeStart,timeDuration,systemId,orderByAssetId,prevAssetId,expectedTimeStart,expectedTimeEnd,timeClosed,lastProgressProduction,lastProgress,firstProgress,actualStart,targetStartConflict,targetStartBy';
 
 
     /**
@@ -351,6 +351,9 @@ class planning_Tasks extends core_Master
         $this->FLD('labelTemplate', 'key(mvc=label_Templates,select=title)', 'caption=Етикиране->Шаблон,tdClass=small-field nowrap,input=hidden');
         $this->FLD('timeStart', 'datetime(timeSuggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00,format=smartTime)', 'caption=Целеви времена->Начало, changable, tdClass=leftColImportant');
         $this->FLD('timeDuration', 'time', 'caption=Целеви времена->Продължителност,changable');
+        $this->setField('timeDuration', array('unit' => 'обща (цялата), без планиращите действия'));
+        $this->FLD('targetStartConflict', 'blob(serialize,compress)', 'caption=Конфликт на целево начало,input=none,column=none');
+        $this->FLD('targetStartBy', 'key(mvc=core_Users)', 'caption=Целево начало от,input=none,column=none');
         $this->FLD('calcedDuration', 'time', 'caption=Целеви времена->Нетна продължителност,input=none');
         $this->FLD('calcedCurrentDuration', 'time', 'caption=Целеви времена->Изчислена продължителност,input=none');
         $this->FLD('wasteProductId', 'key2(mvc=cat_Products,forceReplica,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,maxSuggestions=100,forceAjax)', 'caption=Отпадък->Артикул,silent,class=w100,removeAndRefreshForm=wasteStart|wastePercent,autohide');
@@ -619,7 +622,7 @@ class planning_Tasks extends core_Master
 
                 if(!empty($rec->timeStart)) {
                     $row->timeStart = dt::mysql2verbal($rec->timeStart, 'd.m.Y H:i');
-                    $row->expectedTimeStart = ht::createHint($row->expectedTimeStart, "Зададено е желано начало|*: {$row->timeStart}", 'img/16/pin.png', false);
+                    $row->expectedTimeStart = ht::createHint($row->expectedTimeStart, planning_TargetTimes::getStartHint($rec), empty($rec->targetStartConflict) ? 'img/16/pin.png' : 'img/16/red-warning.png', false);
                 }
             }
 
@@ -1101,6 +1104,7 @@ class planning_Tasks extends core_Master
                         }
                     }
                 }
+                planning_TargetTimes::validateForm($mvc, $form);
             }
         }
     }
@@ -1601,6 +1605,14 @@ class planning_Tasks extends core_Master
         $recId = $rec->id ?? null;
 
         $form->setField('state', 'input=hidden');
+        $form->FNC('targetPreviewHash', 'varchar(40)', 'input=hidden,silent');
+        $form->FNC('targetPreviewAccepted', 'enum(no=Не,yes=Да)', 'input=hidden,silent,value=no');
+        $form->FNC('targetPackagePolicy', 'enum(keep=Запази пакетите,detach=Извади операцията от пакета,split=Раздели конфликтните пакети,release=Извади операцията и раздели конфликтните пакети)', 'caption=Целеви времена->Пакети при конфликт,input=hidden,silent,value=keep');
+        $form->input('targetPreviewHash,targetPreviewAccepted,targetPackagePolicy', 'silent');
+        if (($data->action ?? null) != 'clone' && in_array($rec->state ?? null, array('active', 'wakeup', 'closed'))) {
+            $form->setReadOnly('timeDuration');
+            $form->setReadOnly('timeStart');
+        }
         $fixedAssetOptions = array();
 
         if (isset($rec->systemId)) {
@@ -2243,6 +2255,16 @@ class planning_Tasks extends core_Master
 
         $data->listFields = core_TableView::filterEmptyColumns($data->rows, $fields, 'assetId,costsCount,taskWastePercent,notConvertedQuantity');
         $this->invoke('BeforeRenderListTable', array($tpl, &$data));
+        if (($data->masterMvc ?? null) instanceof planning_Jobs) {
+            $data->listFields['expectedTimeStart'] = "|*<span style='color:#176b2c'>|Начало|*</span>/<span style='color:#444'>|Край|*</span>";
+            foreach ((array)($data->recs ?? array()) as $id => $rec) {
+                if (!isset($data->rows[$id])) continue;
+                list($date, $color, $hint) = planning_TargetTimes::getJobTime($rec);
+                $value = $date ? dt::mysql2verbal($date, 'd.m.y H:i') : '—';
+                $value = ht::createElement('span', array('style' => "color:{$color}"), $value);
+                $data->rows[$id]->expectedTimeStart = ht::createHint($value, $hint, 'noicon');
+            }
+        }
         foreach ($data->rows as $row){
             $row->title = $row->title->append($row->notes);
         }
@@ -3198,6 +3220,11 @@ class planning_Tasks extends core_Master
                     $data->retUrl = $newRetUrl;
                 }
             }
+
+            // Новите времена трябва да са записани преди отварянето на сингъла.
+            if (!empty($data->form->rec->_targetTimesChanged) && !empty($mvc->forceCalcTimes)) {
+                $mvc->recalcTaskTimes();
+            }
         }
     }
 
@@ -3602,6 +3629,10 @@ class planning_Tasks extends core_Master
                 $rowNoteAttr = array('class' => 'notesHolder', 'id' => "notesHolder{$rec->id}", 'data-prompt-text' => tr('Забележка на|*: ') . $mvc->getRecTitle($rec));
                 $rowNoteAttr['data-url'] = $mvc->haveRightFor('edit', $rec) ? toUrl(array($mvc, 'editnotes', $rec->id), 'local') : null;
                 $row->notes = ht::createElement("span", $rowNoteAttr, $row->notes, true);
+                if (!empty($rec->timeStart)) {
+                    $row->ROW_ATTR['data-target-start-fixed'] = '1';
+                    $row->ROW_ATTR['title'] = 'Операцията има точно целево начало. За преместване променете или изчистете целевото време.';
+                }
                 if ($isStartedForReorder && $manualPlanning == 'no') {
                     $row->ROW_ATTR['data-dragging'] = "false";
                     $row->ROW_ATTR['class'] = ($row->ROW_ATTR['class'] ?? '') . " state-forbidden";
@@ -3792,7 +3823,9 @@ class planning_Tasks extends core_Master
             $attr['data-task-id'] = $rec->id;
             $attr['data-task-field'] = $fld;
             if(!empty($rec->timeStart)){
-                $res = ht::createElement('img', array('style' => 'height:12px;width:12px;', 'src' => sbf('img/16/pin.png', '')))->getContent() . " " . $res;
+                $icon = empty($rec->targetStartConflict) ? 'img/16/pin.png' : 'img/16/red-warning.png';
+                $res = ht::createElement('img', array('style' => 'height:12px;width:12px;', 'src' => sbf($icon, '')))->getContent() . " " . $res;
+                $res = ht::createHint($res, planning_TargetTimes::getStartHint($rec), 'noicon');
                 $attr['data-have-start-time'] = true;
             }
             $attr['data-modal-caption'] = ($fld == 'expectedTimeStart') ? tr('Ново целево начало за') : tr('Нов целеви край за');
@@ -3938,6 +3971,14 @@ class planning_Tasks extends core_Master
         if (is_array($rec->_params ?? null)) {
             cat_products_Params::saveParams($mvc, $rec);
         }
+        if (!empty($rec->_targetTimesChanged)) {
+            planning_TargetTimes::applyPackageChanges($rec);
+            planning_TaskConstraints::calcTaskDuration($rec->id);
+            $mvc->forceCalcTimes = true;
+        }
+        if (in_array($rec->state ?? null, array('closed', 'rejected'))) {
+            planning_TargetTimes::updateNotification($rec->id);
+        }
     }
 
 
@@ -4037,13 +4078,8 @@ class planning_Tasks extends core_Master
         core_Debug::startTimer('AFTER_SESSION_TASKS');
 
         // Рекалкулиране на времената на задачите, ако е указано
-        if ($mvc->forceCalcTimes) {
-            $calcOptions = array(
-                'optimizeAssetIds' => array_values($mvc->optimizeAssetIds),
-                'commitAfterOptimizeAssetIds' => array_values($mvc->commitAfterOptimizeAssetIds),
-            );
-            cls::get('planning_AssetResources')->cron_RecalcTaskTimes($calcOptions);
-            unset($mvc->forceCalcTimes);
+        if (!empty($mvc->forceCalcTimes)) {
+            $mvc->recalcTaskTimes();
 
             if (is_array($mvc->reorderIdleBaseline)) {
                 $newIdleTimes = static::getIdleSecondsByAsset();
@@ -4063,6 +4099,20 @@ class planning_Tasks extends core_Master
         }
 
         core_Debug::stopTimer('AFTER_SESSION_TASKS');
+    }
+
+
+    /**
+     * Общото преизчисляване се изпълнява само веднъж в текущата заявка.
+     */
+    private function recalcTaskTimes()
+    {
+        $calcOptions = array(
+            'optimizeAssetIds' => array_values($this->optimizeAssetIds),
+            'commitAfterOptimizeAssetIds' => array_values($this->commitAfterOptimizeAssetIds),
+        );
+        cls::get('planning_AssetResources')->cron_RecalcTaskTimes($calcOptions);
+        $this->forceCalcTimes = false;
     }
 
 
@@ -4253,12 +4303,7 @@ class planning_Tasks extends core_Master
     private function recalcReorderedTasksAndGetReport()
     {
         $before = is_array($this->reorderIdleBaseline) ? $this->reorderIdleBaseline : array();
-        $calcOptions = array(
-            'optimizeAssetIds' => array_values($this->optimizeAssetIds),
-            'commitAfterOptimizeAssetIds' => array_values($this->commitAfterOptimizeAssetIds),
-        );
-        cls::get('planning_AssetResources')->cron_RecalcTaskTimes($calcOptions);
-        unset($this->forceCalcTimes);
+        $this->recalcTaskTimes();
 
         $after = static::getIdleSecondsByAsset();
         $changes = static::getIdleChanges($before, $after);
@@ -4437,11 +4482,13 @@ class planning_Tasks extends core_Master
         $lateJobs = 0;
         $missingJobCompletions = 0;
         $overlapCount = 0;
+        $targetConflictCount = 0;
         $plannedEndsByTaskId = array();
         $storedEndsByTaskId = array();
         foreach ((array)$scheduledData->tasks as $assetId => $plannedTasks) {
             $assetIntervals = array();
             foreach ((array)$plannedTasks as $task) {
+                if (!empty($task->targetStartConflict)) $targetConflictCount++;
                 if (empty($task->expectedTimeEnd)
                     || $task->expectedTimeEnd == planning_TaskConstraints::NOT_FOUND_DATE
                     || $task->expectedTimeEnd == planning_TaskConstraints::NOT_PLANNABLE) {
@@ -4582,6 +4629,7 @@ class planning_Tasks extends core_Master
             'notPlanned' => countR($scheduledData->notPlanned ?? array()),
             'missingJobCompletions' => $missingJobCompletions,
             'overlapCount' => $overlapCount,
+            'targetConflictCount' => $targetConflictCount,
             'lateJobs' => $lateJobs,
             'tardinessSeconds' => $totalTardinessSeconds,
             'makespanSeconds' => max(0, $latestEnd - $nowTimestamp),
@@ -4657,7 +4705,7 @@ class planning_Tasks extends core_Master
     private static function isOptimizationImprovement($candidate, $reference)
     {
         $hasPrimaryImprovement = false;
-        foreach (array('notPlanned', 'missingJobCompletions', 'overlapCount', 'lateJobs', 'tardinessSeconds', 'idleSeconds', 'makespanSeconds', 'targetMakespanSeconds') as $metric) {
+        foreach (array('notPlanned', 'missingJobCompletions', 'overlapCount', 'targetConflictCount', 'lateJobs', 'tardinessSeconds', 'idleSeconds', 'makespanSeconds', 'targetMakespanSeconds') as $metric) {
             if ($candidate[$metric] > $reference[$metric]) return false;
             if ($candidate[$metric] < $reference[$metric]) $hasPrimaryImprovement = true;
         }
@@ -4685,7 +4733,8 @@ class planning_Tasks extends core_Master
     {
         return $candidate['notPlanned'] <= $reference['notPlanned']
             && $candidate['missingJobCompletions'] <= $reference['missingJobCompletions']
-            && $candidate['overlapCount'] <= $reference['overlapCount'];
+            && $candidate['overlapCount'] <= $reference['overlapCount']
+            && ($candidate['targetConflictCount'] ?? 0) <= ($reference['targetConflictCount'] ?? 0);
     }
 
 
@@ -4694,7 +4743,7 @@ class planning_Tasks extends core_Master
      */
     private static function compareOptimizationMetrics($a, $b)
     {
-        foreach (array('notPlanned', 'missingJobCompletions', 'overlapCount', 'lateJobs', 'tardinessSeconds', 'idleSeconds', 'makespanSeconds', 'targetMakespanSeconds', 'completionSeconds', 'orderDistance') as $metric) {
+        foreach (array('notPlanned', 'missingJobCompletions', 'overlapCount', 'targetConflictCount', 'lateJobs', 'tardinessSeconds', 'idleSeconds', 'makespanSeconds', 'targetMakespanSeconds', 'completionSeconds', 'orderDistance') as $metric) {
             if (!isset($a[$metric]) || !isset($b[$metric])) continue;
             if ($a[$metric] == $b[$metric]) continue;
 
@@ -4886,6 +4935,7 @@ class planning_Tasks extends core_Master
             'notPlanned' => 'непланирани операции',
             'missingJobCompletions' => 'задания без изчислен край',
             'overlapCount' => 'застъпвания на една машина',
+            'targetConflictCount' => 'неизпълними целеви начала',
             'lateJobs' => 'закъснели задания',
             'tardinessSeconds' => 'общо закъснение на заданията',
             'idleSeconds' => 'общ престой',
@@ -4909,9 +4959,9 @@ class planning_Tasks extends core_Master
             'targetChangeSeconds' => $targetDifference,
             'targetAssetTitle' => $targetAssetId ? planning_AssetResources::getTitleById($targetAssetId) : '',
             'targetEnd' => !empty($after['targetMakespanEnd']) ? dt::mysql2verbal($after['targetMakespanEnd'], 'd.m.Y H:i') : '',
-            'targetLastTask' => !empty($after['targetMakespanTaskId']) ? '#Opr' . (int)$after['targetMakespanTaskId'] : '',
+            'targetLastTask' => !empty($after['targetMakespanTaskId']) ? ($after['targetMakespanTaskId'] < 0 ? 'Новата операция' : '#Opr' . (int)$after['targetMakespanTaskId']) : '',
             'globalEnd' => !empty($after['makespanEnd']) ? dt::mysql2verbal($after['makespanEnd'], 'd.m.Y H:i') : '',
-            'globalLastTask' => $latestTaskId ? "#Opr{$latestTaskId}" : '',
+            'globalLastTask' => $latestTaskId ? ($latestTaskId < 0 ? 'Новата операция' : "#Opr{$latestTaskId}") : '',
             'globalLastAssetTitle' => $latestAssetId ? planning_AssetResources::getTitleById($latestAssetId) : '',
             'improved' => implode(', ', $improved),
             'missingJobCompletionsBefore' => (int)($before['missingJobCompletions'] ?? 0),
@@ -5054,12 +5104,35 @@ class planning_Tasks extends core_Master
             );
         }
 
+        $report = static::buildSchedulePreviewReport($baselineMetrics, $previewCandidate->metrics);
+        $changedIds = array_unique(array_merge(array_keys((array)($manualTimes['expectedTimeStart'] ?? array())), array_keys((array)($manualTimes['expectedTimeEnd'] ?? array()))));
+        $report['targetConflicts'] = planning_TargetTimes::collectNewConflicts($previewCandidate->scheduledData, $tasksById, $changedIds);
+        return $report;
+    }
+
+
+    /**
+     * Формата за целеви времена използва същите показатели като подреждането.
+     */
+    public static function getTargetTimesPreviewReport($tasks, $scheduledData, $now, $assetId, $baselineTasks = null)
+    {
+        $baselineTasks = $baselineTasks ?? $tasks;
+        $before = static::getStoredScheduledData($baselineTasks, $scheduledData);
+        return static::buildSchedulePreviewReport(
+            static::getOptimizationMetrics($before, $now, $baselineTasks, $assetId),
+            static::getOptimizationMetrics($scheduledData, $now, $tasks, $assetId)
+        );
+    }
+
+
+    private static function buildSchedulePreviewReport($baselineMetrics, $afterMetrics)
+    {
         $beforeIdle = $baselineMetrics['idleByAsset'];
-        $afterIdle = $previewCandidate->metrics['idleByAsset'];
+        $afterIdle = $afterMetrics['idleByAsset'];
         $idleChanges = static::getIdleChanges($beforeIdle, $afterIdle);
         $hasNegativeImpact = false;
-        foreach (array('notPlanned', 'missingJobCompletions', 'overlapCount', 'lateJobs', 'tardinessSeconds', 'idleSeconds', 'makespanSeconds', 'targetMakespanSeconds') as $metric) {
-            if ($previewCandidate->metrics[$metric] > $baselineMetrics[$metric]) {
+        foreach (array('notPlanned', 'missingJobCompletions', 'overlapCount', 'targetConflictCount', 'lateJobs', 'tardinessSeconds', 'idleSeconds', 'makespanSeconds', 'targetMakespanSeconds') as $metric) {
+            if ($afterMetrics[$metric] > $baselineMetrics[$metric]) {
                 $hasNegativeImpact = true;
                 break;
             }
@@ -5071,7 +5144,7 @@ class planning_Tasks extends core_Master
             'hasIdleIncrease' => countR($idleChanges['increased']) > 0,
             'hasNetIdleIncrease' => array_sum($idleChanges['increased']) > array_sum($idleChanges['decreased']),
             'hasNegativeImpact' => $hasNegativeImpact,
-            'optimizationMetrics' => static::getOptimizationMetricsReport($baselineMetrics, $previewCandidate->metrics),
+            'optimizationMetrics' => static::getOptimizationMetricsReport($baselineMetrics, $afterMetrics),
         );
     }
 
@@ -5161,6 +5234,7 @@ class planning_Tasks extends core_Master
                 $scriptUrl = "https://cdnjs.cloudflare.com/ajax/libs/colresizable/1.6.0/colResizable-1.6.min.js";
                 $tpl->push($scriptUrl, 'JS');
 
+                $tpl->push('planning/js/TaskOrderReport.js', 'JS');
                 $tpl->push('planning/js/Tasks.js', 'JS');
                 $tpl->push('planning/tpl/TaskReordering.css', 'CSS');
 
@@ -5203,11 +5277,25 @@ class planning_Tasks extends core_Master
     }
 
 
+    protected static function on_AfterRenderPrepareEditForm($mvc, &$tpl, $form)
+    {
+        if (empty($form->_targetTimesReport)) return;
+        $tpl->push('planning/js/TaskOrderReport.js', 'JS');
+        $tpl->push('planning/tpl/TaskReordering.css', 'CSS');
+        $data = json_encode($form->_targetTimesReport, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT);
+        jquery_Jquery::run($tpl, "showTargetTimesPreview({$data});");
+    }
+
+
     /**
      * Преди запис
      */
     protected static function on_BeforeSave($mvc, &$id, $rec, $fields = null, $mode = null)
     {
+        if (property_exists($rec, 'timeStart') && ($fields === null || isset(arr::make($fields, true)['timeStart']))) {
+            $oldStart = !empty($rec->id) ? $mvc->fetchField($rec->id, 'timeStart', false) : null;
+            if (($rec->timeStart ?? null) != $oldStart) $rec->targetStartBy = core_Users::getCurrent();
+        }
         if(in_array($rec->state, array('waiting', 'pending'))) {
 
             // Определяне на сътоянието при запис
@@ -5749,7 +5837,7 @@ class planning_Tasks extends core_Master
             $submittedLinks
         );
         $manualTimes = json_decode(Request::get('manualTimes', 'varchar'), true);
-        $manualTimes = is_array($manualTimes) ? $manualTimes : array('expectedTimeStart' => array(), 'expectedTimeEnd' => array());
+        $manualTimes = planning_TargetTimes::normalizeManualTimes($manualTimes);
 
         $tasks = planning_TaskConstraints::getDefaultArr(null, 'actualStart,timeStart,expectedTimeStart,expectedTimeEnd,calcedCurrentDuration,assetId,dueDate,state,modifiedOn,originId,saoOrder,productId,jobProductId,folderId,orderByAssetId');
         core_App::setTimeLimit(countR($tasks) * 0.6, false, 120);
@@ -5954,6 +6042,7 @@ class planning_Tasks extends core_Master
         $assetId = null;
         $saveReport = null;
         $applyChanges = false;
+        $keepForm = false;
         try{
             $this->requireRightFor('savereordertasks');
             $assetId = Request::get('assetId', 'int');
@@ -5973,7 +6062,7 @@ class planning_Tasks extends core_Master
 
             $manualTimes = Request::get('manualTimes', 'varchar');
             $manualTimes = json_decode($manualTimes, true);
-            $manualTimes = is_array($manualTimes) ? $manualTimes : array('expectedTimeStart' => array(), 'expectedTimeEnd' => array());
+            $manualTimes = planning_TargetTimes::normalizeManualTimes($manualTimes);
 
             $packageLinks = Request::get('packageLinks', 'varchar');
             $packageLinks = json_decode($packageLinks, true);
@@ -5983,8 +6072,16 @@ class planning_Tasks extends core_Master
             if (countR($inOrderTasks)) {
                 $orderQuery = $this->getQuery();
                 $orderQuery->in('id', $inOrderTasks);
-                $orderQuery->show('id,originId,saoOrder,assetId,state,actualStart');
+                $orderQuery->show('id,originId,saoOrder,assetId,state,actualStart,timeStart');
                 $orderTaskRecs = $orderQuery->fetchAll();
+            }
+            foreach ($orderTaskRecs as $task) {
+                $hasTime = array_key_exists($task->id, $manualTimes['expectedTimeStart']) || array_key_exists($task->id, $manualTimes['expectedTimeEnd']);
+                if ($hasTime && ($task->assetId != $assetId || in_array($task->state, array('active', 'wakeup', 'closed')))) {
+                    core_Statuses::newStatus("Целевото време на започната/приключена операция Opr{$task->id} или операция на друга машина не може да бъде променяно от тази форма", 'error');
+                    $success = false;
+                    $keepForm = true;
+                }
             }
             $requiredPackageLinks = planning_TaskConstraints::getSameResourceJobPackageLinks($orderTaskRecs, $assetId);
             $packageLinks = planning_TaskManualOrderPerAssets::sanitizePackageLinks(
@@ -6007,7 +6104,7 @@ class planning_Tasks extends core_Master
                 $success = false;
             }
 
-            if ($success && !$applyChanges) {
+            if ($success) {
                 $saveReport = static::getManualOrderPreviewReport(
                     $assetId,
                     $inOrderTasks,
@@ -6015,18 +6112,22 @@ class planning_Tasks extends core_Master
                     $anchorLinks,
                     $manualTimes
                 );
+                if (!empty($saveReport['targetConflicts'])) {
+                    core_Statuses::newStatus(planning_TargetTimes::formatConflicts($saveReport['targetConflicts']), 'error');
+                    $success = false;
+                    $keepForm = true;
+                }
             }
 
             if ($success && $applyChanges) {
 
                 // Ако има ръчно зададени желани времена, ще се запишат в операциите
-                $cachedData = core_Cache::get('planning_Tasks',"reorderAsset{$assetId}");
                 $Tasks = cls::get('planning_Tasks');
                 $countSavedManualTasks = 0;
 
                 foreach ($inOrderTasks as $i => $taskId){
                     $save = false;
-                    $rec = $cachedData['tasks'][$taskId] ?? $Tasks->fetch($taskId);
+                    $rec = $Tasks->fetch($taskId, '*', false);
                     if (!is_object($rec)) continue;
                     if(array_key_exists($taskId, (array) ($manualTimes['expectedTimeStart'] ?? array()))){
                         $rec->timeStart = $manualTimes['expectedTimeStart'][$taskId];
@@ -6038,7 +6139,8 @@ class planning_Tasks extends core_Master
 
                     if($save){
                         $countSavedManualTasks++;
-                        $Tasks->save_($rec, 'timeStart');
+                        $rec->targetStartBy = core_Users::getCurrent();
+                        $Tasks->save_($rec, 'timeStart,targetStartBy');
                         $Tasks->logWrite('Задаване на желано начало', $rec->id);
                     }
                 }
@@ -6073,6 +6175,9 @@ class planning_Tasks extends core_Master
         } elseif ($success && $applyChanges) {
             $resObj->func = 'appliedTaskOrder';
             $resObj->arg = array('url' => toUrl(array($this, 'list', 'assetId' => $assetId)));
+        } elseif ($keepForm) {
+            $resObj->func = 'taskOrderValidationError';
+            $resObj->arg = array();
         } else {
             $resObj->func = 'redirect';
             $resObj->arg = array('url' => toUrl(array($this, 'list', 'assetId' => $assetId)));
