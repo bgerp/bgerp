@@ -218,12 +218,14 @@ body {
         top:10%;
         right: 20px;
         left: 20px;
+        width: auto;
         height: auto;
         padding: 0 0 20px 0;
         margin: 0 auto;
         max-width: 400px;
     }
     .bulletinFields {
+        width: auto;
         max-width: 380px;
         padding: 0 15px;
         margin: 0 auto;
@@ -327,11 +329,8 @@ body {
 @media handheld, only screen and (max-width: 361px) {
 
 	.bulletinReg {
-		width: 300px !important;
+		width: auto !important;
 		padding: 0 0 10px 0 !important;
-	}
-	.bulletinFields {
-		max-width: 260px;
 	}
 	.push_button {
 		font-size:14px !important;
@@ -346,12 +345,9 @@ body {
 }
 
 @media handheld, only screen and (max-width: 360px) {
-    .bulletinReg {
-        width: 300px;
-    }
     .bulletinFields {
         clear: both;
-        max-width: 300px;
+        max-width: none;
     }
     .bulletinInner .richtext {
         font-size: 1.1em !important;
@@ -366,11 +362,7 @@ body {
 
 @media handheld, only screen and (max-width: 321px) {
     .bulletinReg {
-        width: 280px;
         padding: 0 0 10px 0 !important;
-    }
-    .bulletinFields {
-        max-width: 260px;
     }
     .push_button {
         font-size:14px !important;
