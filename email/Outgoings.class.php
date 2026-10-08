@@ -1152,9 +1152,9 @@ class email_Outgoings extends core_Master
                     // Вербалният размер на файловете и документите
                     $docAndFilesSizeVerbal = $mvc->getVerbalSizesFromArray($allAttachmentsArr);
                     
-                    if ($rec->documentsSet && $rec->attachmentsSet) {
+                    if (!empty($rec->documentsSet) && !empty($rec->attachmentsSet)) {
                         $str = 'файлове и документи';
-                    } elseif ($rec->documentsSet) {
+                    } elseif (!empty($rec->documentsSet)) {
                         $str = 'документи';
                     } else {
                         $str = 'файлове';
