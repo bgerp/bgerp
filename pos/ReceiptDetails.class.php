@@ -840,7 +840,7 @@ class pos_ReceiptDetails extends core_Detail
         $string = Mode::get("currentSearchString{$rec->receiptId}");
         $refreshResult = !empty($string);
 
-        Mode::setPermanent("productAdded{$rec->receiptId}", $rec->productId);
+        Mode::setPermanent("productAdded{$rec->receiptId}", $rec->productId ?? null);
         Mode::setPermanent("currentSearchString{$rec->receiptId}", null);
 
         core_Debug::stopTimer('ADD_PRODUCT');
