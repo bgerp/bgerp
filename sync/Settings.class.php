@@ -105,14 +105,14 @@ class sync_Settings extends core_Manager
      */
     public function description()
     {
-        $this->FLD('offlineSysId', 'varchar(32)', 'caption=Офлайн система->ID, mandatory');
+        $this->FLD('offlineSysId', 'varchar(32)', 'caption=Импортираща система->ID, mandatory');
         // Старите стойности се запазват до редактиране, но не разрешават достъп.
         $this->FLD('authType', 'enum(credentials=ID и парола,legacyIp=Изисква обновяване на идентификацията)', 'input=none,column=none,notNull,value=credentials');
-        $this->FLD('pass', 'password(255,autocomplete=off)', 'caption=Офлайн система->Парола,crypt');
+        $this->FLD('pass', 'password(255,autocomplete=off)', 'caption=Импортираща система->Парола,crypt');
         $this->FLD(
             'allowedIps',
             'varchar',
-            'caption=Офлайн система->IP,placeholder=203.0.113.10 или 203.0.113.0/24,hint=Точни IPv4/IPv6 адреси и IPv4 CIDR мрежи, разделени със запетая'
+            'caption=Импортираща система->IP,placeholder=203.0.113.10 или 203.0.113.0/24,hint=IPv4/IPv6 адреси и IPv4 CIDR мрежи на импортиращата система. Разделят се със запетая. Прокситата се задават в настройките на пакета sync'
         );
         $this->FLD('stores', 'keylist(mvc=store_Stores, select=name, allowEmpty)', 'caption=Склад');
         $this->FLD('cases', 'keylist(mvc=cash_Cases, select=name, allowEmpty)', 'caption=Каса');

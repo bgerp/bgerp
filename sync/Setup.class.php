@@ -155,7 +155,7 @@ class sync_Setup extends core_ProtoSetup
         'SYNC_EXPORT_URL' => array('url', 'caption=Импортиране->URL'),
         'SYNC_SYS_ID' => array('varchar(32)', 'caption=Идентификация пред експортиращата система->ID'),
         'SYNC_PASS' => array('password', 'caption=Идентификация пред експортиращата система->Парола'),
-        'SYNC_TRUSTED_PROXIES' => array('varchar', 'caption=Експортиране->Доверени reverse proxy IP/CIDR'),
+        'SYNC_TRUSTED_PROXIES' => array('varchar', 'caption=Експортиране->Доверени reverse proxy IP/CIDR,hint=Проксита пред тази система. От тях се приема X-Forwarded-For за реалния IP на клиента. Общ списък за всички импортиращи системи. Празно - без доверени проксита'),
 //        'SYNC_EXPORT_ADDR' => array('varchar', 'caption=Позволени IP-та за експорт->IP'),
         'SYNC_COMPANY_GROUPS' => array('keylist(mvc=crm_Groups, select=name, allowEmpty)', 'caption=Ръчна синхронизация на артикули->Групи фирми'),
 //        'SYNC_PROD_GROUPS' => array('keylist(mvc=cat_Groups, select=name, allowEmpty)', 'caption=Експортиране на групи на артикулите->Групи'),

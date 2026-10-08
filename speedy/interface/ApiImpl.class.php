@@ -485,7 +485,7 @@ class speedy_interface_ApiImpl extends core_BaseClass
         $recipientArr = array(
             'privatePerson' => ($formRec->isPrivatePerson == 'yes'),
             'clientName' => $formRec->receiverName,
-            'contactName' => $formRec->receiverPerson,
+            'contactName' => $formRec->receiverPerson ?? null,
             'phone1' => array('number' => $formRec->receiverPhone),
         );
 
@@ -501,6 +501,17 @@ class speedy_interface_ApiImpl extends core_BaseClass
                 foreach (array('postCode' => 'receiverPCode', 'streetName' => 'receiverAddress', 'streetNo' => 'receiverAddressNo', 'blockNo' => 'receiverBlock', 'entranceNo' => 'receiverEntrance', 'floorNo' => 'receiverFloor', 'apartmentNo' => 'receiverApp', 'siteName' => 'receiverPlace') as $theirFld => $ourFld){
                     if(!empty($formRec->{$ourFld})){
                         $recipientAddressArray[$theirFld] = $formRec->{$ourFld};
+                    }
+                }
+
+                // Комплексът се праща по име, а типът - с името му от номенклатурата на държавата (във формата е индексът)
+                if(!empty($formRec->complexName) && isset($formRec->complexType)){
+                    $allComplexTypes = array();
+                    speedy_Adapter::getComplexTypes($formRec->receiverCountryId, $allComplexTypes);
+                    $complexTypeRec = $allComplexTypes[$formRec->complexType] ?? null;
+                    if(is_object($complexTypeRec) && !empty($complexTypeRec->name)){
+                        $recipientAddressArray['complexType'] = $complexTypeRec->name;
+                        $recipientAddressArray['complexName'] = $formRec->complexName;
                     }
                 }
 
@@ -521,7 +532,7 @@ class speedy_interface_ApiImpl extends core_BaseClass
         $serviceArray['additionalServices'] = array();
         if(!empty($formRec->amountCODBase)){
             $serviceArray['additionalServices']['cod'] = array('amount' => $formRec->amountCODBase, 'currencyCode' => 'EUR');
-            $codOptions = type_Set::toArray($formRec->codType);
+            $codOptions = type_Set::toArray($formRec->codType ?? null);
 
             if(isset($codOptions['post'])){
                 $serviceArray['additionalServices']['cod']['processingType'] = 'POSTAL_MONEY_TRANSFER';
