@@ -72,7 +72,7 @@ class sync_ProductQuotes extends core_BaseClass
         );
         expect(
             sync_Helper::isTrustedOriginUrl($settingsRec->productPushSourceUrl),
-            'Невалиден доверен HTTPS source URL за legacy product push'
+            'Невалиден доверен HTTP/HTTPS source URL за legacy product push'
         );
 
         $res = new stdClass();

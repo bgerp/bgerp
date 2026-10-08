@@ -273,6 +273,12 @@ class sync_Eshop extends sync_Helper
      */
     public static function getEshopGroups($type, $options)
     {
+        // core_Form извиква optionsFunc и за полета с input=none.
+        if (!core_Packs::isInstalled('eshop')) {
+
+            return array();
+        }
+
         $gQuery = eshop_Groups::getQuery();
         
         $gQuery->where("#state != 'rejected'");

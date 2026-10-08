@@ -120,17 +120,16 @@ class sync_Helper extends core_Manager
      * Намира и валидира настройките на клиента за текущата входяща заявка
      *
      * При нормален режим се изискват ID, парола, активно състояние и, ако е
-     * зададен, IP адресът на клиента. Преходният legacyIp режим е изричен запис
-     * в sync_Settings и работи само без подадени credentials.
+     * зададен, IP адресът на клиента. Идентификация само по IP не се допуска.
      *
      * @param bool $throwIfMissing
-     * @param bool $allowLegacy
+     * @param bool $allowLegacy Не се използва; запазен за съвместимост на извикванията
      *
      * @return stdClass|null
      */
     public static function getRequestSettings($throwIfMissing = true, $allowLegacy = false)
     {
-        $cacheKey = $allowLegacy ? 'withLegacy' : 'credentialsOnly';
+        $cacheKey = 'credentialsOnly';
 
         if (haveRole('user')) {
             if (!haveRole('admin')) {
@@ -165,10 +164,8 @@ class sync_Helper extends core_Manager
                     }
                 }
 
-                // Локалният избор важи и след forceSystemUser(), когато
-                // колекторите поискат настройката с другия legacy режим.
+                // Локалният избор важи и след forceSystemUser().
                 self::$requestSettings['credentialsOnly'] = $rec;
-                self::$requestSettings['withLegacy'] = $rec;
             }
 
             if (!self::$requestSettings[$cacheKey] && $throwIfMissing) {
@@ -201,39 +198,6 @@ class sync_Helper extends core_Manager
                 } else {
                     // Подаден е ID, тоест опитът е нарочен - оставяме следа.
                     self::logAuthFailure($sysId, $remoteAddr, $rec, $authType, $pass);
-                }
-            } elseif ($pass === '' && $allowLegacy) {
-                $query = sync_Settings::getQuery();
-                $query->where("#state = 'active' AND #authType = 'legacyIp'");
-
-                $matchedRec = null;
-                $isAmbiguous = false;
-                while ($rec = $query->fetch()) {
-                    if (self::isAllowedIp($remoteAddr, $rec->allowedIps ?? null, true, true)) {
-                        if ($matchedRec) {
-                            $isAmbiguous = true;
-
-                            break;
-                        }
-
-                        $matchedRec = $rec;
-                    }
-                }
-
-                // При припокриващи се legacy allowlists не избираме
-                // недетерминирано запис с потенциално по-широки права.
-                if ($isAmbiguous) {
-                    self::logWarning(
-                        'Повече от една legacy sync настройка разрешава ' .
-                            ($remoteAddr ?: 'адреса на заявката')
-                    );
-                    $matchedRec = null;
-                }
-
-                self::$requestSettings[$cacheKey] = $matchedRec;
-
-                if ($isAmbiguous && $throwIfMissing) {
-                    expect(false, 'Повече от една legacy sync настройка разрешава този IP адрес');
                 }
             }
         }
@@ -435,8 +399,7 @@ class sync_Helper extends core_Manager
     /**
      * Валидира URL адреса за връзка към master системата
      *
-     * Credentials не се изпращат по обикновен HTTP. HTTP без credentials е
-     * възможен само с изричния временен ALLOW_LEGACY_HTTP opt-in.
+     * Допуска HTTP и HTTPS; идентификацията се проверява отделно.
      *
      * @param string $url
      */
@@ -447,24 +410,15 @@ class sync_Helper extends core_Manager
         $scheme = strtolower($parts['scheme'] ?? '');
 
         expect(
-            in_array($scheme, array('http', 'https'), true) && !empty($parts['host']),
-            'Невалиден URL към sync master'
+            in_array($scheme, array('http', 'https'), true) && !empty($parts['host']) &&
+            !isset($parts['user']) && !isset($parts['pass']),
+            'Посочете HTTP или HTTPS адрес на системата. ID и паролата се попълват отделно'
         );
-
-        if ($scheme != 'https') {
-            $haveCredentials = strlen((string) sync_Setup::get('SYS_ID')) ||
-                strlen(sync_Setup::getSyncPass());
-            expect(!$haveCredentials, 'Sync credentials могат да се изпращат само по HTTPS');
-            expect(
-                sync_Setup::get('ALLOW_LEGACY_HTTP') == 'yes',
-                'HTTP без credentials е изключен; разрешете го само временно за legacy rollout'
-            );
-        }
     }
 
 
     /**
-     * Проверява HTTPS scheme/host/effective port и забранява userinfo
+     * Проверява съвпадението на протокол, хост и порт и забранява userinfo
      *
      * @param string $url
      * @param string $trustedSourceUrl
@@ -481,16 +435,19 @@ class sync_Helper extends core_Manager
         $urlParts = parse_url((string) $url);
         $trustedParts = parse_url((string) $trustedSourceUrl);
 
-        $urlPort = isset($urlParts['port']) ? (int) $urlParts['port'] : 443;
-        $trustedPort = isset($trustedParts['port']) ? (int) $trustedParts['port'] : 443;
+        $urlScheme = strtolower($urlParts['scheme']);
+        $trustedScheme = strtolower($trustedParts['scheme']);
+        $urlPort = isset($urlParts['port']) ? (int) $urlParts['port'] : ($urlScheme === 'https' ? 443 : 80);
+        $trustedPort = isset($trustedParts['port']) ? (int) $trustedParts['port'] : ($trustedScheme === 'https' ? 443 : 80);
 
-        return strtolower($urlParts['host']) === strtolower($trustedParts['host']) &&
+        return $urlScheme === $trustedScheme &&
+            strtolower($urlParts['host']) === strtolower($trustedParts['host']) &&
             $urlPort === $trustedPort;
     }
 
 
     /**
-     * Дали URL-ът е годен за доверен origin: HTTPS, с хост и без userinfo
+     * Дали URL-ът е годен за доверен origin: HTTP/HTTPS, с хост и без userinfo
      *
      * @param string $url
      *
@@ -501,7 +458,7 @@ class sync_Helper extends core_Manager
         $parts = parse_url((string) $url);
 
         return is_array($parts) &&
-            strtolower($parts['scheme'] ?? '') === 'https' &&
+            in_array(strtolower($parts['scheme'] ?? ''), array('http', 'https'), true) &&
             !empty($parts['host']) &&
             !isset($parts['user']) &&
             !isset($parts['pass']);
@@ -509,7 +466,7 @@ class sync_Helper extends core_Manager
 
 
     /**
-     * Сваля ограничен по размер файл само от изрично доверен HTTPS origin
+     * Сваля ограничен по размер файл само от изрично доверен HTTP/HTTPS origin
      *
      * @param string $url
      * @param string $trustedSourceUrl
@@ -606,6 +563,107 @@ class sync_Helper extends core_Manager
     
     
     /**
+     * Проверява връзката и идентификацията с общ лимит от 5 секунди
+     *
+     * @return array
+     */
+    public static function checkConnection()
+    {
+        $url = trim((string) sync_Setup::get('EXPORT_URL'));
+        if ($url === '') {
+
+            return array('status' => 'warning', 'message' => 'Няма зададен URL за импортиране');
+        }
+        try {
+            self::requireSecureUrl($url);
+        } catch (core_exception_Expect $e) {
+
+            return array('status' => 'error', 'message' => 'Посочете HTTP или HTTPS адрес на системата. ID и паролата се попълват отделно');
+        }
+        $parts = parse_url($url);
+        if (isset($parts['user']) || isset($parts['pass']) || isset($parts['query']) || isset($parts['fragment'])) {
+
+            return array('status' => 'error', 'message' => 'Посочете основния URL на системата без парола, query параметри или фрагмент');
+        }
+        if (!function_exists('curl_init')) {
+
+            return array('status' => 'error', 'message' => 'Бързата проверка изисква PHP разширението cURL');
+        }
+
+        $params = array('syncSysId' => trim((string) sync_Setup::get('SYS_ID')), 'syncPass' => sync_Setup::getSyncPass());
+        if ($params['syncSysId'] === '' || $params['syncPass'] === '') {
+
+            return array('status' => 'error', 'message' => 'За импортиране са задължителни ID и парола за идентификация пред експортиращата система');
+        }
+        $body = '';
+        // Самостоятелен малък отговор; никога не извикваме тежкия export endpoint.
+        $curl = curl_init(rtrim($url, '/') . '/sync_Settings/checkConnection');
+        curl_setopt_array($curl, array(
+            CURLOPT_CONNECTTIMEOUT => 5,
+            CURLOPT_TIMEOUT => 5,
+            CURLOPT_FOLLOWLOCATION => false,
+            CURLOPT_SSL_VERIFYPEER => true,
+            CURLOPT_SSL_VERIFYHOST => 2,
+            CURLOPT_PROTOCOLS => CURLPROTO_HTTP | CURLPROTO_HTTPS,
+            CURLOPT_WRITEFUNCTION => function ($handle, $chunk) use (&$body) {
+                if (strlen($body) + strlen($chunk) > 8192) {
+
+                    return 0;
+                }
+                $body .= $chunk;
+
+                return strlen($chunk);
+            },
+        ));
+        curl_setopt($curl, CURLOPT_POSTFIELDS, http_build_query($params));
+        curl_setopt($curl, CURLOPT_HTTPHEADER, array('Content-Type: application/x-www-form-urlencoded'));
+        try {
+            $sent = curl_exec($curl);
+            $errno = curl_errno($curl);
+            $code = (int) curl_getinfo($curl, CURLINFO_HTTP_CODE);
+        } finally {
+            curl_close($curl);
+        }
+
+        if ($code === 404) {
+
+            return array('status' => 'warning', 'message' => 'Адресът не поддържа бързата проверка. Проверете URL и обновете sync и на експортиращата система');
+        }
+        if ($code === 401 || $code === 403) {
+
+            return array('status' => 'error', 'message' => 'Отказан достъп (HTTP ' . $code . '). Проверете ID, паролата и разрешените IP адреси');
+        }
+        if ($code && $code !== 200) {
+
+            return array('status' => 'error', 'message' => 'Експортиращата система върна HTTP ' . $code . '. Проверете URL и сървъра');
+        }
+        if ($sent === false) {
+            if ($errno === CURLE_OPERATION_TIMEDOUT) {
+                $message = 'Проверката не завърши до 5 секунди. Проверете достъпността и натоварването на експортиращата система';
+            } elseif ($errno === CURLE_COULDNT_RESOLVE_HOST) {
+                $message = 'Адресът на експортиращата система не може да се намери в DNS';
+            } elseif ($errno === CURLE_COULDNT_CONNECT) {
+                $message = 'Не може да се установи връзка с експортиращата система';
+            } elseif ($errno === CURLE_SSL_CACERT || $errno === CURLE_SSL_CONNECT_ERROR) {
+                $message = 'Неуспешна защитена TLS връзка. Проверете сертификата на експортиращата система';
+            } else {
+                $message = 'Неуспешна проверка на връзката (cURL ' . $errno . ')';
+            }
+
+            return array('status' => 'error', 'message' => $message);
+        }
+        $response = json_decode($body, true);
+        if (!is_array($response) || ($response['protocol'] ?? null) !== 'sync-connection-v1' ||
+            ($response['authenticated'] ?? null) !== true) {
+
+            return array('status' => 'error', 'message' => 'Полученият отговор не потвърждава sync идентификацията');
+        }
+
+        return array('status' => 'success', 'message' => 'Връзката и идентификацията са успешни');
+    }
+
+
+    /**
      * Връща данните от експорт адреса
      * 
      * @param string $expAdd
@@ -625,18 +683,15 @@ class sync_Helper extends core_Manager
             'syncSysId' => trim((string) sync_Setup::get('SYS_ID')),
             'syncPass' => sync_Setup::getSyncPass(),
         );
+        expect($params['syncSysId'] !== '' && $params['syncPass'] !== '', 'Импортирането изисква ID и парола за експортиращата система');
         $httpOptions = array(
-            'method' => 'GET',
+            'method' => 'POST',
+            'header' => "Content-Type: application/x-www-form-urlencoded\r\n",
+            'content' => http_build_query($params),
             'timeout' => self::EXPORT_REQUEST_TIMEOUT,
             'follow_location' => 0,
             'max_redirects' => 0,
         );
-        // Старите IP-базирани exporter-и се извикваха с GET без POST тяло.
-        if ($params['syncSysId'] !== '' || $params['syncPass'] !== '') {
-            $httpOptions['method'] = 'POST';
-            $httpOptions['header'] = "Content-Type: application/x-www-form-urlencoded\r\n";
-            $httpOptions['content'] = http_build_query($params);
-        }
         $context = stream_context_create(array(
             'http' => $httpOptions,
             'ssl' => array(
