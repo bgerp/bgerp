@@ -238,7 +238,7 @@ class planning_StepConditions extends core_Detail
             $arr1 = array('previous' => array(), 'next' => array());
 
             // Намират се всички ПО с подредба преди нейната
-            if(is_array($tasks[$taskRec->originId])){
+            if(is_array($tasks[$taskRec->originId] ?? null)){
                 array_walk($tasks[$taskRec->originId], function($a) use ($lessThen, &$arr1) {
                     if($a->saoOrder < $lessThen){
                         $arr1['previous'][$a->id] = $a;
@@ -251,11 +251,12 @@ class planning_StepConditions extends core_Detail
             // От тях се оставят до изисквания брой от центъра на дейност, после се сортират от ляво на дясно
             arr::sortObjects($arr1['previous'], 'saoOrder', 'ASC');
             $prevExpectedTimeEnd = static::getEffectivePreviousTimeEnd($arr1['previous'], $now);
-            $startCut = countR($arr1['previous']) - $centerMaxPreviousArr[$taskRec->folderId];
-            $prevArr = array_splice($arr1['previous'], $startCut, $centerMaxPreviousArr[$taskRec->folderId]);
+            $maxPrevious = $centerMaxPreviousArr[$taskRec->folderId] ?? null;
+            $startCut = countR($arr1['previous']) - $maxPrevious;
+            $prevArr = array_splice($arr1['previous'], $startCut, $maxPrevious);
 
             arr::sortObjects($arr1['next'], 'saoOrder', 'ASC');
-            $nextArr = array_splice($arr1['next'], 0, $centerMaxPreviousArr[$taskRec->folderId]);
+            $nextArr = array_splice($arr1['next'], 0, $maxPrevious);
 
             $res[$taskRec->id] = array('previous' => $prevArr, 'next' => $nextArr, 'prevExpectedTimeEnd' => $prevExpectedTimeEnd);
         }

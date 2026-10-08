@@ -862,10 +862,16 @@ class email_Mime extends core_BaseClass
 
     
     /**
-     * Декодира хедърната част част
+     * Декодира стойност на MIME хедър; липсваща стойност се обработва като празен низ.
+     *
+     * @param string|null $val     Стойност на хедъра
+     * @param string|null $charset Кодировка при липса на такава в хедъра
+     *
+     * @return string
      */
     public static function decodeHeader($val, $charset = null)
     {
+        $val = $val ?? '';
         // Ако стойността на хедъра е 7-битова, той може да е кодиран
         if (i18n_Charset::is7Bit($val) || (strpos($val, '=?') !== false)) {
             $imapDecodeArr = @imap_mime_header_decode($val);

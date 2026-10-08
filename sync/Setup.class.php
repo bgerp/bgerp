@@ -55,13 +55,6 @@ defIfNot('SYNC_TRUSTED_PROXIES', '');
 
 
 /**
- * Временен opt-in за client-first rollout към стар master без HTTPS.
- * Изключва се веднага след задаване на credentials и HTTPS.
- */
-defIfNot('SYNC_ALLOW_LEGACY_HTTP', 'no');
-
-
-/**
  * Експортиране на групи на артикулите->Групи
  */
 //defIfNot('SYNC_PROD_GROUPS', '');
@@ -162,8 +155,7 @@ class sync_Setup extends core_ProtoSetup
         'SYNC_EXPORT_URL' => array('url', 'caption=Импортиране->URL'),
         'SYNC_SYS_ID' => array('varchar(32)', 'caption=Идентификация пред експортиращата система->ID'),
         'SYNC_PASS' => array('password', 'caption=Идентификация пред експортиращата система->Парола'),
-        'SYNC_TRUSTED_PROXIES' => array('varchar', 'caption=Експортиране->Доверени reverse proxy IP/CIDR'),
-        'SYNC_ALLOW_LEGACY_HTTP' => array('enum(no=Не,yes=Да)', 'caption=Преходен режим->Разрешаване на HTTP без credentials'),
+        'SYNC_TRUSTED_PROXIES' => array('varchar', 'caption=Експортиране->Доверени reverse proxy IP/CIDR,hint=Проксита пред тази система. От тях се приема X-Forwarded-For за реалния IP на клиента. Общ списък за всички импортиращи системи. Празно - без доверени проксита'),
 //        'SYNC_EXPORT_ADDR' => array('varchar', 'caption=Позволени IP-та за експорт->IP'),
         'SYNC_COMPANY_GROUPS' => array('keylist(mvc=crm_Groups, select=name, allowEmpty)', 'caption=Ръчна синхронизация на артикули->Групи фирми'),
 //        'SYNC_PROD_GROUPS' => array('keylist(mvc=cat_Groups, select=name, allowEmpty)', 'caption=Експортиране на групи на артикулите->Групи'),
@@ -248,6 +240,71 @@ class sync_Setup extends core_ProtoSetup
 
 
     /**
+     * Резултати в рамките на текущата заявка
+     */
+    protected $connectionChecks = array();
+
+
+    /**
+     * Показва успеха във формата; грешките се показват стандартно от checkConfig()
+     */
+    public function manageConfigDescriptionForm(&$configForm)
+    {
+        if (trim((string) self::get('EXPORT_URL')) !== '') {
+            $result = $this->getConnectionCheck(true);
+            if ($result['status'] === 'success') {
+                $configForm->info = new ET('<div class="formInfo green">[#1#]</div>', tr($result['message']));
+            }
+        }
+    }
+
+
+    /**
+     * Стандартната диагностика в списъка с пакети и конфигурационната форма
+     */
+    public function checkConfig($full = false)
+    {
+        $errors = array();
+        $Settings = cls::get('sync_Settings');
+        if (!$Settings->db->tableExists($Settings->dbTableName) ||
+            !$Settings->db->isFieldExists($Settings->dbTableName, str::phpToMysqlName('authType'))) {
+
+            return 'Инициализирайте пакета sync, за да се обнови структурата на настройките';
+        }
+        if ($Settings->fetch("#authType = 'legacyIp' AND #state = 'active'", 'id')) {
+            $errors[] = 'Има стари настройки само по IP. Редактирайте ги и задайте парола; външният достъп вече изисква ID и парола';
+        }
+        if (trim((string) self::get('EXPORT_URL')) !== '') {
+            $result = $this->getConnectionCheck($full);
+            if ($result['status'] !== 'success') {
+                $errors[] = $result['message'];
+            }
+        }
+
+        return $errors ? implode('<br>', $errors) : null;
+    }
+
+
+    /**
+     * До една лека заявка на минута от списъка; формата проверява наново
+     */
+    protected function getConnectionCheck($refresh = false)
+    {
+        $key = hash('sha256', serialize(array(self::get('EXPORT_URL'), self::get('SYS_ID'), self::get('PASS'))));
+        if (!isset($this->connectionChecks[$key])) {
+            $result = $refresh ? false : core_Cache::get('syncConnection', $key);
+            if (!$result) {
+                $result = sync_Helper::checkConnection();
+                core_Cache::set('syncConnection', $key, $result, 1);
+            }
+            $this->connectionChecks[$key] = $result;
+        }
+
+        return $this->connectionChecks[$key];
+    }
+
+
+    /**
      * Проверява свързаните client настройки след input на конфигурационната форма
      */
     public function inputConfigDescriptionForm(&$configForm)
@@ -316,28 +373,15 @@ class sync_Setup extends core_ProtoSetup
 
         $url = trim((string) ($configForm->rec->SYNC_EXPORT_URL ?? ''));
         if ($url !== '') {
+            if ($sysId === '' || $pass === '') {
+                $configForm->setError('SYNC_SYS_ID,SYNC_PASS', 'За импортиране са задължителни ID и парола');
+            }
             $urlParts = parse_url($url);
-            $scheme = is_array($urlParts)
-                ? strtolower((string) ($urlParts['scheme'] ?? ''))
-                : '';
             if (!is_array($urlParts) ||
-                !in_array($scheme, array('http', 'https'), true) ||
-                empty($urlParts['host'])) {
-                $configForm->setError(
-                    'SYNC_EXPORT_URL',
-                    'URL адресът към master-а трябва да е валиден HTTP или HTTPS адрес'
-                );
-            } elseif (($sysId !== '' || $pass !== '') && $scheme != 'https') {
-                $configForm->setError(
-                    'SYNC_EXPORT_URL',
-                    'При credentials връзката към master-а трябва да е HTTPS'
-                );
-            } elseif ($scheme == 'http' &&
-                ($configForm->rec->SYNC_ALLOW_LEGACY_HTTP ?? 'no') != 'yes') {
-                $configForm->setError(
-                    'SYNC_EXPORT_URL,SYNC_ALLOW_LEGACY_HTTP',
-                    'HTTP без credentials изисква изрично временно разрешение'
-                );
+                !in_array(strtolower((string) ($urlParts['scheme'] ?? '')), array('http', 'https'), true) ||
+                empty($urlParts['host']) || isset($urlParts['user']) || isset($urlParts['pass']) ||
+                isset($urlParts['query']) || isset($urlParts['fragment'])) {
+                $configForm->setError('SYNC_EXPORT_URL', 'Въведете HTTP или HTTPS адреса на системата, без части след ? или #. ID и паролата се попълват отделно');
             }
         }
     }
@@ -387,11 +431,6 @@ class sync_Setup extends core_ProtoSetup
             );
         }
 
-        expect(
-            core_Packs::setConfig('sync', array('SYNC_ALLOW_LEGACY_HTTP' => 'yes')),
-            'Не може да се запази legacy HTTP режимът'
-        );
-
         // Sync 0.2 въвежда SyncAutoSync. Ако междинен билд вече го е създал с
         // по-нисък лимит, го вдигаме - иначе дълъг import ще се сече.
         $cronRec = core_Cron::fetch("#systemId = 'SyncAutoSync'");
@@ -423,8 +462,8 @@ class sync_Setup extends core_ProtoSetup
             ? self::getLegacyConfigValue($conf, 'SYNC_ESHOP_GROUPS')
             : null;
 
-        // Старият exporter приемаше private IP и при празни филтри. Затова при
-        // upgrade създаваме legacy ред и в този случай, за да запазим поведението.
+        // Запазваме export филтрите. Връзката изисква задаване на общи ID и
+        // парола в двете системи; миграцията не разрешава достъп само по IP.
         $rec = sync_Settings::fetch("#offlineSysId = '__legacy__'");
         if (!$rec) {
             $rec = new stdClass();
@@ -433,8 +472,8 @@ class sync_Setup extends core_ProtoSetup
             $rec->pass = str::getRand(str_repeat('*', 32));
         }
         $rec->offlineSysId = '__legacy__';
-        $rec->authType = 'legacyIp';
-        $rec->allowedIps = 'private' . ($allowedIps ? ',' . $allowedIps : '');
+        $rec->authType = 'credentials';
+        $rec->allowedIps = $allowedIps;
         $rec->catGroups = $productGroups;
         $rec->productsExportMode = $productGroups ? 'selected' : 'all';
         $rec->allowProductPush = 'no';

@@ -166,7 +166,7 @@ class fileman_webdrv_Qcad extends fileman_webdrv_Inkscape
                     }
                 }
                 
-                $nRec = fileman_Files::fetchByFh($newFileHnd);
+                $nRec = $return ? false : fileman_Files::fetchByFh($newFileHnd);
                 
                 if (!$nRec) {
                     $return = true;

@@ -232,6 +232,17 @@ class planning_TaskConstraints extends core_Master
         $taskCount = countR($tasks);
         core_App::setTimeLimit($taskCount * 0.3, false, 60);
 
+        $res = static::calculateTaskConstraints($tasks);
+        return static::saveTaskConstraints($tasks, $res);
+    }
+
+
+    /**
+     * Виртуалните операции участват в същите зависимости, без запис при прегледа.
+     */
+    public static function calculateTaskConstraints($tasks)
+    {
+
         $res = $prevSteps = $tasksByJobs = $previousTaskByJobOrder = $stepIds = $jobIds = $folderIds = $folderLocations = array();
         foreach ($tasks as $tRec) {
             $stepIds[$tRec->productId] = $tRec->productId;
@@ -280,6 +291,17 @@ class planning_TaskConstraints extends core_Master
             if (!isset($folderLocations[$tRec->folderId])) {
                 $additionalFolderIds[$tRec->folderId] = $tRec->folderId;
             }
+        }
+
+        foreach ($tasks as $task) {
+            $originId = $task->originId ?? null;
+            $id = $task->id ?? null;
+            if (!$originId || !$id) continue;
+            $tasksByJobs[$originId][$id] = (object)array(
+                'id' => $id, 'originId' => $originId, 'productId' => $task->productId ?? null,
+                'folderId' => $task->folderId ?? null, 'offsetAfter' => $task->offsetAfter ?? 0,
+                'saoOrder' => $task->saoOrder ?? PHP_INT_MAX, 'assetId' => $task->assetId ?? null,
+            );
         }
 
         // Редът в заданието е технологичен ред, а не само ред за визуализация.
@@ -375,6 +397,15 @@ class planning_TaskConstraints extends core_Master
             }
         }
 
+        return $res;
+    }
+
+
+    /**
+     * Записва само реалното изчисление на ограниченията.
+     */
+    private static function saveTaskConstraints($tasks, $res)
+    {
         // Извличат се записите за посочените операции
         $taskIds = arr::extractValuesFromArray($tasks, 'id');
         $exQuery = static::getQuery();
@@ -666,6 +697,19 @@ class planning_TaskConstraints extends core_Master
         $tasks = self::getDefaultArr($tasks);
         if (!count($tasks)) return;
 
+        static::calculateTaskDurations($tasks);
+        cls::get('planning_Tasks')->saveArray($tasks, 'id,calcedDuration,calcedCurrentDuration');
+        core_Debug::stopTimer('SYNC_TASK_DURATIONS');
+        core_Debug::log("SYNC_TASK_DURATIONS " . round(core_Debug::$timers["SYNC_TASK_DURATIONS"]->workingTime ?? 0, 6));
+    }
+
+
+    /**
+     * Същото изчисление обслужва и предварителния преглед, без запис в базата.
+     */
+    public static function calculateTaskDurations(&$tasks)
+    {
+
         $taskCount = countR($tasks);
         core_App::setTimeLimit($taskCount * 0.3, false, 60);
 
@@ -720,7 +764,7 @@ class planning_TaskConstraints extends core_Master
 
         foreach ($tasks as $t) {
             // Ако има зададена продължителност - това е
-            $duration = $t->timeDuration;
+            $duration = $t->timeDuration ?? null;
 
             // Ако няма изчислява се от нормата за планираното количество
             if (empty($duration)) {
@@ -757,16 +801,14 @@ class planning_TaskConstraints extends core_Master
                 $duration += arr::sumValuesArray($normsByTask[$t->id], 'rest');
                 $nettDuration += arr::sumValuesArray($normsByTask[$t->id], 'total');
             }
+            $newActionsDuration = array_sum((array)($t->_newPlanningActions ?? array()));
+            $duration += $newActionsDuration;
+            $nettDuration += $newActionsDuration;
 
             $t->calcedDuration = $nettDuration;
             $t->calcedCurrentDuration = $duration;
         }
 
-        // Кешира се нетната продължителност
-        cls::get('planning_Tasks')->saveArray($tasks, 'id,calcedDuration,calcedCurrentDuration');
-
-        core_Debug::stopTimer('SYNC_TASK_DURATIONS');
-        core_Debug::log("SYNC_TASK_DURATIONS " . round(core_Debug::$timers["SYNC_TASK_DURATIONS"]->workingTime ?? 0, 6));
     }
 
 
@@ -799,6 +841,7 @@ class planning_TaskConstraints extends core_Master
     public static function calcScheduledTimes($tasks, $previousTasks, $now = null, $options = array())
     {
         $now = $now ?? dt::now();
+        planning_TargetTimes::addJobPredecessors($tasks, $previousTasks);
 
         core_Debug::startTimer('SCHEDULE_CALC_TIMES');
         core_Debug::startTimer('SCHEDULE_PREPARE_INTERVALS');
@@ -925,6 +968,9 @@ class planning_TaskConstraints extends core_Master
                     $assetRec->packageLinks ?? array()
                 );
             }
+            if (isset($options['excludedAutoGroupTaskOverrides'][$assetId])) {
+                $assetRec->excludedAutoGroupTasks = $options['excludedAutoGroupTaskOverrides'][$assetId];
+            }
             // Предварителният преглед трябва да използва същата обявена следваща операция,
             // която ще бъде записана при приемане на подадената ръчна подредба.
             if (array_key_exists($assetId, (array)($options['committedTaskIdOverrides'] ?? array()))) {
@@ -946,7 +992,11 @@ class planning_TaskConstraints extends core_Master
         $plannedByAssets = $notPlanned = array();
 
         $manualPlanning = planning_Setup::get('MANUAL_ORDER_IN_ASSET');
-        if($manualPlanning == 'no'){
+        $hasTargetStarts = false;
+        foreach ($tasks as $task) {
+            if (!empty($task->timeStart) && (empty($task->actualStart) || ($task->state ?? null) == 'stopped')) { $hasTargetStarts = true; break; }
+        }
+        if($manualPlanning == 'no' || $hasTargetStarts){
             $debugRes .= self::smartPlanningGraph($plannedByAssets, $notPlanned, $intervals, $assets, $tasks, $now, $previousTasks);
         } else {
             $debugRes .= self::manualPlanning($plannedByAssets, $notPlanned, $intervals, $assets, $tasks, $now, $previousTasks);
@@ -1027,7 +1077,63 @@ class planning_TaskConstraints extends core_Master
      * @param array $previousTasks
      * @return string
      */
-    private static function smartPlanningGraph(&$plannedByAssets, &$notPlanned, $intervals, $assets, $tasks, $now, $previousTasks)
+    private static function smartPlanningGraph(&$plannedByAssets, &$notPlanned, &$intervals, $assets, $tasks, $now, $previousTasks)
+    {
+        $targetIds = array();
+        foreach ($tasks as $task) {
+            if (!empty($task->timeStart) && (empty($task->actualStart) || ($task->state ?? null) == 'stopped')) {
+                $targetIds[$task->id] = $task->id;
+            }
+        }
+        if (!$targetIds) {
+            $conflicts = array();
+            return static::smartPlanningGraphPass($plannedByAssets, $notPlanned, $intervals, $assets, $tasks, $now, $previousTasks, array(), $conflicts);
+        }
+
+        // Всеки неуспешен опит освобождава поне една резервация; броят е ограничен.
+        $fallbacks = array();
+        for ($pass = 0; $pass <= count($targetIds); $pass++) {
+            $passTasks = $passAssets = $passIntervals = array();
+            foreach ($tasks as $id => $task) {
+                $passTasks[$id] = clone $task;
+                unset($passTasks[$id]->_targetDeadline);
+            }
+            foreach ($assets as $id => $asset) $passAssets[$id] = clone $asset;
+            foreach ($intervals as $id => $interval) $passIntervals[$id] = clone $interval;
+            $plannedByAssets = $notPlanned = $conflicts = array();
+            $debug = static::smartPlanningGraphPass($plannedByAssets, $notPlanned, $passIntervals, $passAssets, $passTasks, $now, $previousTasks, $fallbacks, $conflicts);
+            $newConflicts = array_diff_key($conflicts, $fallbacks);
+            if (!$newConflicts) break;
+            // Първо се освобождава физически невъзможната резервация. Иначе тя би
+            // изместила и други, които могат да бъдат спазени след освобождаването й.
+            uasort($newConflicts, function($a, $b) { return $a['priority'] <=> $b['priority']; });
+            $id = key($newConflicts);
+            $fallbacks[$id] = $newConflicts[$id];
+        }
+        foreach ($assets as $id => $asset) {
+            foreach (get_object_vars($passAssets[$id]) as $name => $value) $asset->{$name} = $value;
+        }
+        $intervals = $passIntervals;
+        foreach ($plannedByAssets as $assetId => $plannedTasks) {
+            foreach ($plannedTasks as $taskId => $plannedTask) {
+                if (isset($fallbacks[$taskId])) {
+                    $plannedTask->targetStartConflict = array(
+                        'requested' => $tasks[$taskId]->timeStart ?? null,
+                        'reason' => $fallbacks[$taskId]['reason'],
+                        'earliest' => ($plannedTask->expectedTimeStart ?? self::NOT_FOUND_DATE) < self::NOT_FOUND_DATE ? $plannedTask->expectedTimeStart : null,
+                    );
+                }
+            }
+        }
+
+        return $debug;
+    }
+
+
+    /**
+     * Един проход на графа; точните резервации се проверяват и след предшествениците.
+     */
+    private static function smartPlanningGraphPass(&$plannedByAssets, &$notPlanned, &$intervals, $assets, $tasks, $now, $previousTasks, $fallbacks, &$targetConflicts)
     {
         $planned = $reservedByAssets = array();
         $tasksWithActualStart = $tasksWithoutActualStartByAssetId = $allTasks = $taskLinks = array();
@@ -1036,6 +1142,7 @@ class planning_TaskConstraints extends core_Master
         $debugOrder = Mode::is('debugOrder');
 
         foreach ($tasks as $task) {
+            unset($task->_manualOrderReadyAfter);
             $allTasks[$task->id] = $task;
             if (isset($assetsWithIntervals[$task->assetId])) {
                 if ($debugOrder) {
@@ -1048,6 +1155,10 @@ class planning_TaskConstraints extends core_Master
                 }
             } else {
                 $withoutIntervalCount++;
+                if (!empty($task->timeStart)) {
+                    $targetConflicts[$task->id] = array('reason' => 'Машината няма работен график за планиране', 'priority' => 0);
+                    $plannedByAssets[$task->assetId][$task->id] = (object)array('id' => $task->id, 'assetId' => $task->assetId, 'expectedTimeStart' => self::NOT_FOUND_DATE, 'expectedTimeEnd' => self::NOT_FOUND_DATE);
+                }
             }
         }
 
@@ -1196,6 +1307,14 @@ class planning_TaskConstraints extends core_Master
                 }
             }
         }
+        // Започнатият префикс не може да бъде прекъснат чрез целево начало на продължението.
+        foreach ($manualPackageRuns as $headId => $chain) {
+            $previousId = $manualPackagePrevious[$headId] ?? null;
+            if (!isset($tasksWithActualStart[$previousId])) continue;
+            foreach ($chain as $id) {
+                if (isset($fallbacks[$id])) $allTasks[$id]->timeStart = null;
+            }
+        }
         foreach ($planableTasksByJob as $tasksInJob) {
             uasort($tasksInJob, function($a, $b) {
                 if ($a->saoOrder == $b->saoOrder) {
@@ -1212,6 +1331,109 @@ class planning_TaskConstraints extends core_Master
                     $previousTaskByJob[$taskInJob->id] = $previousTaskId;
                 }
                 $previousTaskId = $taskInJob->id;
+            }
+        }
+
+        $exactRuns = array();
+        $inRun = array();
+        foreach ($manualPackageRuns as $headId => $chain) {
+            $exactRuns[$headId] = $chain;
+            foreach ($chain as $id) $inRun[$id] = true;
+        }
+        foreach ($remaining as $id => $task) {
+            if (!isset($inRun[$id])) $exactRuns[$id] = array($id);
+        }
+        $targetRuns = array();
+        foreach ($exactRuns as $headId => $chain) {
+            $pins = array();
+            foreach ($chain as $id) {
+                if (!empty($allTasks[$id]->timeStart) && !isset($fallbacks[$id])) $pins[$id] = $allTasks[$id]->timeStart;
+            }
+            if (!$pins) continue;
+            foreach ($chain as $id) {
+                if (isset($fallbacks[$id])) $allTasks[$id]->timeStart = null;
+            }
+            $targetRuns[$headId] = array('chain' => $chain, 'pins' => $pins, 'target' => min($pins));
+        }
+        uasort($targetRuns, function($a, $b) { return strcmp($a['target'], $b['target']); });
+        $reservedRuns = array();
+        foreach ($targetRuns as $headId => $run) {
+            $assetId = $remaining[$headId]->assetId;
+            $reservedByAssets[$assetId] = $reservedByAssets[$assetId] ?? array();
+            $previousId = $manualPackagePrevious[$headId] ?? null;
+            $continuationStart = null;
+            if (isset($tasksWithActualStart[$previousId], $planned[$previousId])) {
+                $end = $planned[$previousId]->_endTimestamp ?? strtotime($planned[$previousId]->expectedTimeEnd);
+                $frames = $intervals[$assetId]->getFrame($end, PHP_INT_MAX);
+                $continuationStart = $frames[0][0] ?? null;
+            }
+            $beforeReservation = clone $intervals[$assetId];
+            $beforeRanges = $reservedByAssets[$assetId];
+            $reservation = planning_TargetTimes::reserveRun($run['chain'], $allTasks, $intervals[$assetId], $reservedByAssets[$assetId], $now);
+            $reason = 'Желаният час противоречи на работния график, започната операция или друга твърда резервация/пакет';
+            $targetStart = $reservation !== false ? $reservation[$headId]->_startTimestamp : null;
+            if ($reservation !== false && isset($continuationStart) && ($targetStart < $continuationStart || $targetStart - $continuationStart >= 60)) {
+                $intervals[$assetId] = $beforeReservation;
+                $reservedByAssets[$assetId] = $beforeRanges;
+                $reservation = false;
+                $reason = "Пакетът трябва да продължи непосредствено след започнатата Opr{$previousId}";
+            }
+            if ($reservation !== false && isset($continuationStart) && $targetStart > $continuationStart) {
+                // До следващата цяла минута не се допуска вклиняване на друга операция.
+                $intervals[$assetId]->cut($continuationStart, $targetStart - 1);
+                $reservedByAssets[$assetId][] = array($continuationStart, $targetStart - 1);
+            }
+            if ($reservation === false) {
+                foreach ($run['pins'] as $id => $date) $targetConflicts[$id] = array('reason' => $reason, 'priority' => isset($continuationStart) ? 0 : 2);
+                continue;
+            }
+            $reservedRuns[] = $run;
+            foreach ($reservation as $id => $result) {
+                $planned[$id] = $result;
+                $plannedByAssets[$assetId][$id] = $result;
+                unset($remaining[$id]);
+            }
+            // Предшествениците получават приоритет, за да се поберат преди резервацията.
+            $queue = $run['chain'];
+            $visited = array();
+            while ($queue) {
+                $id = array_pop($queue);
+                if (isset($visited[$id])) continue;
+                $visited[$id] = true;
+                foreach ($previousTasks[$id] ?? array() as $previousId => $constraint) {
+                    if (isset($remaining[$previousId])) {
+                        $remaining[$previousId]->_targetDeadline = min($remaining[$previousId]->_targetDeadline ?? PHP_INT_MAX, strtotime($run['target']));
+                    }
+                    $queue[] = $previousId;
+                }
+            }
+        }
+
+        // Ръчният ред след резервация е времева граница, а не нова пакетна връзка.
+        $reservedRunByTask = $reservedRunEnds = array();
+        foreach ($reservedRuns as $runId => $run) {
+            $chain = $run['chain'];
+            foreach ($chain as $id) $reservedRunByTask[$id] = $runId;
+            $lastId = end($chain);
+            $end = $planned[$lastId]->_endTimestamp ?? (strtotime($planned[$lastId]->expectedTimeEnd ?? '') + 1);
+            $reservedRunEnds[$runId] = date('Y-m-d H:i:s', $end);
+        }
+        foreach ($assets as $assetId => $assetRec) {
+            $readyAfter = '';
+            $visitedRuns = array();
+            foreach ((array)($assetRec->manualOrder ?? array()) as $taskId) {
+                if (!isset($allTasks[$taskId]) || ($allTasks[$taskId]->assetId ?? null) != $assetId || isset($tasksWithActualStart[$taskId])) continue;
+                if (isset($reservedRunByTask[$taskId])) {
+                    $runId = $reservedRunByTask[$taskId];
+                    if (isset($visitedRuns[$runId])) continue;
+                    $visitedRuns[$runId] = true;
+                    foreach ($reservedRuns[$runId]['chain'] as $id) {
+                        $allTasks[$id]->_manualOrderReadyAfter = $readyAfter;
+                    }
+                    $readyAfter = max($readyAfter, $reservedRunEnds[$runId]);
+                } elseif ($readyAfter !== '') {
+                    $allTasks[$taskId]->_manualOrderReadyAfter = $readyAfter;
+                }
             }
         }
 
@@ -1342,6 +1564,28 @@ class planning_TaskConstraints extends core_Master
             }
         }
 
+        foreach ($reservedRuns as $run) {
+            $reason = null;
+            foreach ($run['chain'] as $id) {
+                $task = $allTasks[$id];
+                $ready = static::getGraphReadyTime($task, $previousTasks, $planned, $allTasks, $now);
+                $start = date('Y-m-d H:i:s', $planned[$id]->_startTimestamp ?? strtotime($planned[$id]->expectedTimeStart ?? ''));
+                if ($ready > $start) {
+                    $manualReady = $task->_manualOrderReadyAfter ?? '';
+                    $reason = $manualReady > $start
+                        ? "Ръчната подредба изисква начало след предходната фиксирана операция/пакет: {$manualReady}"
+                        : "Предходна операция/технологична зависимост не позволява начало преди {$ready}";
+                    break;
+                }
+                $previousId = $manualPackagePrevious[$id] ?? null;
+                if (isset($planned[$previousId]) && ($planned[$previousId]->expectedTimeEnd ?? self::NOT_FOUND_DATE) > $planned[$id]->expectedTimeStart) {
+                    $reason = "Пакетната връзка с Opr{$previousId} не позволява желания час";
+                    break;
+                }
+            }
+            if ($reason !== null) foreach ($run['pins'] as $id => $date) $targetConflicts[$id] = array('reason' => $reason, 'priority' => 1);
+        }
+
         // What remains is part of, or depends on, a technological dependency cycle.
         $notPlanned = $remaining;
         foreach ($remaining as $task) {
@@ -1441,6 +1685,8 @@ class planning_TaskConstraints extends core_Master
     private static function getGraphReadyTime($task, $previousTasks, $planned, $allTasks, $now)
     {
         $readyTimes = array($now);
+        if (!empty($task->_targetReadyAfter)) $readyTimes[] = $task->_targetReadyAfter;
+        if (!empty($task->_manualOrderReadyAfter)) $readyTimes[] = $task->_manualOrderReadyAfter;
         if (!empty($task->timeStart)) {
             $readyTimes[] = $task->timeStart;
         }
@@ -1577,7 +1823,9 @@ class planning_TaskConstraints extends core_Master
         foreach ($tasks as $task) {
             $signatureParts = $comparableParts = $numericParts = array();
             foreach ($paramsByTask[$task->id] ?? array() as $paramId) {
-                if (array_key_exists($paramId, $taskValues[$task->id] ?? array())) {
+                if (array_key_exists($paramId, (array)($task->_params ?? array()))) {
+                    $value = $task->_params[$paramId];
+                } elseif (array_key_exists($paramId, $taskValues[$task->id] ?? array())) {
                     $value = $taskValues[$task->id][$paramId];
                 } elseif (array_key_exists($paramId, $jobValues[$task->jobProductId] ?? array())) {
                     $value = $jobValues[$task->jobProductId][$paramId];
@@ -2226,6 +2474,7 @@ class planning_TaskConstraints extends core_Master
 
             $readyTimes = array($now);
             if (!empty($task->timeStart)) $readyTimes[] = $task->timeStart;
+            if (!empty($task->_manualOrderReadyAfter)) $readyTimes[] = $task->_manualOrderReadyAfter;
             foreach ($previousTasks[$taskId] ?? array() as $previousTaskId => $constraint) {
                 if (isset($chainIds[$previousTaskId]) || !isset($planned[$previousTaskId])) continue;
                 $readyTimes[] = static::getConstraintReadyTime($task, $planned[$previousTaskId], $constraint);
@@ -2291,6 +2540,10 @@ class planning_TaskConstraints extends core_Master
      */
     private static function getConstraintReadyTime($task, $previousTask, $constraint)
     {
+        if (!empty($task->timeStart) && !empty($previousTask->_endTimestamp)) {
+            $previousTask = clone $previousTask;
+            $previousTask->expectedTimeEnd = date('Y-m-d H:i:00', (int)(ceil($previousTask->_endTimestamp / 60) * 60));
+        }
         if ($previousTask->expectedTimeStart >= self::NOT_FOUND_DATE || $previousTask->expectedTimeEnd >= self::NOT_FOUND_DATE) {
             return self::NOT_FOUND_DATE;
         }
@@ -2318,6 +2571,7 @@ class planning_TaskConstraints extends core_Master
 
         return array(
             'taskId' => $task->id,
+            'targetDeadline' => $task->_targetDeadline ?? PHP_INT_MAX,
             'plannedTime' => $plannedTime,
             'plannedTimestamp' => ($plannedTimestamp === false) ? PHP_INT_MAX : $plannedTimestamp,
             'manualPosition' => $manualPosition,
@@ -2393,7 +2647,7 @@ class planning_TaskConstraints extends core_Master
      */
     private static function compareReadyHeapItems($a, $b)
     {
-        foreach (array('continuationPriority', 'commitmentPriority', 'resourceContinuationPriority', 'plannedTimestamp', 'manualPosition', 'dueTimestamp', 'taskId') as $field) {
+        foreach (array('targetDeadline', 'continuationPriority', 'commitmentPriority', 'resourceContinuationPriority', 'plannedTimestamp', 'manualPosition', 'dueTimestamp', 'taskId') as $field) {
             if ($a[$field] == $b[$field]) {
                 continue;
             }
@@ -2644,6 +2898,8 @@ class planning_TaskConstraints extends core_Master
 
                 $planned[$task->id]->expectedTimeStart = date('Y-m-d H:i:00', $timeArr[0]);
                 $planned[$task->id]->expectedTimeEnd = date('Y-m-d H:i:00', $timeArr[1]);
+                $planned[$task->id]->_startTimestamp = $timeArr[0];
+                $planned[$task->id]->_endTimestamp = $timeArr[1] + 1;
                 return $withDebug ? "--------Изчислено за S: <b>{$planned[$task->id]->expectedTimeStart}</b> / Е: <b>{$planned[$task->id]->expectedTimeEnd}</b> <br />" : '';
             }
 

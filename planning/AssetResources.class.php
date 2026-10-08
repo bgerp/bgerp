@@ -1017,10 +1017,11 @@ class planning_AssetResources extends core_Master
             return;
         }
 
+        try {
         $now = dt::now();
         // Извличане на всички ПО годни за планиране
         core_Debug::startTimer('SCHEDULE_PREPARE');
-        $tasks = planning_TaskConstraints::getDefaultArr(null, 'actualStart,timeStart,calcedCurrentDuration,assetId,dueDate,state,modifiedOn,originId,saoOrder,productId,jobProductId,folderId');
+        $tasks = planning_TaskConstraints::getDefaultArr(null, 'actualStart,timeStart,calcedCurrentDuration,assetId,dueDate,state,modifiedOn,originId,saoOrder,productId,jobProductId,folderId,targetStartConflict');
 
         // Еднократно извличане на всички ограничения
         $query = planning_TaskConstraints::getQuery();
@@ -1092,9 +1093,14 @@ class planning_AssetResources extends core_Master
 
             $order = 1;
             $prevEnd = $now;
-            $Interval = $scheduledData->calendarIntervals[$assetId];
+            $Interval = $scheduledData->calendarIntervals[$assetId] ?? null;
 
             foreach ($plannedTasks as $a) {
+                $oldConflict = $tasks[$a->id]->targetStartConflict ?? null;
+                $a->targetStartConflict = $a->targetStartConflict ?? null;
+                if (!empty($a->targetStartConflict) && ($oldConflict['requested'] ?? null) == ($a->targetStartConflict['requested'] ?? null)) {
+                    $a->targetStartConflict['notified'] = !empty($oldConflict['notified']);
+                }
                 $a->planningError = 'no';
                 $a->gapData = null;
                 if($a->expectedTimeStart == planning_TaskConstraints::NOT_FOUND_DATE){
@@ -1108,7 +1114,7 @@ class planning_AssetResources extends core_Master
                 }
 
                 // Ако има планирано начало и разликата му с края на предишната е над зададения
-                if(isset($a->expectedTimeStart)){
+                if(isset($a->expectedTimeStart) && is_object($Interval)){
                     $diff = max(dt::secsBetween($a->expectedTimeStart, $prevEnd), 0);
 
                     // Ако е над зададения интервал ще се проверява дали е дупка или е престой
@@ -1182,7 +1188,10 @@ class planning_AssetResources extends core_Master
                 }
             }
 
-            $Tasks->saveArray($plannedTasks, 'id,expectedTimeStart,expectedTimeEnd,orderByAssetId,planningError,gapData');
+            $Tasks->saveArray($plannedTasks, 'id,expectedTimeStart,expectedTimeEnd,orderByAssetId,planningError,gapData,targetStartConflict');
+            foreach ($plannedTasks as $a) {
+                if (!empty($a->targetStartConflict) || !empty($tasks[$a->id]->targetStartConflict)) planning_TargetTimes::updateNotification($a->id);
+            }
 
             if (in_array($assetId, (array)($options['commitAfterOptimizeAssetIds'] ?? array()))) {
                 $orderedTaskIds = array();
@@ -1199,7 +1208,9 @@ class planning_AssetResources extends core_Master
             $this->save_($rec, 'lastRecalcTimes');
         }
 
-        core_Locks::release('CALC_TASK_TIMES');
+        } finally {
+            core_Locks::release('CALC_TASK_TIMES');
+        }
 
         if(Mode::is('debugOrder')) return $scheduledData;
 

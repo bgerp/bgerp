@@ -1725,9 +1725,9 @@ class eshop_Carts extends core_Master
         if (crm_ext_Cards::haveRightFor('checkcard', (object) array('domainId' => $rec->domainId))) {
             $cu = core_Users::getCurrent();
             if(!($cu && isset($rec->voucherId))){
-                $cardCaption = !$cu ? tr('Клиентска карта или ваучер, може да въведете от') : tr('Ваучер може да въведете от');
-                $cardCaption .= " " . ht::createLink(tr('тук'), array('crm_ext_Cards', 'CheckCard', 'ret_url' => true), false, 'ef_icon=img/16/client-card.png ')->getContent();
-                $tpl->replace($cardCaption, 'CARD_LINK');
+                $cardCaption = !$cu ? tr('Въведете клиентска карта или ваучер') : tr('Въведете ваучер');
+                $cardLink = ht::createLink($cardCaption, array('crm_ext_Cards', 'CheckCard', 'ret_url' => true), false, 'ef_icon=img/16/client-card.png');
+                $tpl->replace($cardLink, 'CARD_LINK');
             }
         }
         

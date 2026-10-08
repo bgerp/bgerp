@@ -632,7 +632,8 @@ abstract class deals_DealMaster extends deals_DealBase
             }
         }
         
-        if(isset($rec->deliveryTermId)){
+        // При „Промяна“ полетата на доставката не са във формата и иначе ще се изтрият данните ѝ (напр. офисът)
+        if(isset($rec->deliveryTermId) && empty($rec->__isBeingChanged)){
             cond_DeliveryTerms::inputDocumentForm($rec->deliveryTermId, $form, $mvc);
         }
 
