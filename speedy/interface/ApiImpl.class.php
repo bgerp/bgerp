@@ -198,8 +198,10 @@ class speedy_interface_ApiImpl extends core_BaseClass
             // и условието на доставка е до офис на спиди - попълва се то
             if($rec->deliveryTermId){
                 if($DeliveryCalc = cond_DeliveryTerms::getTransportCalculator($rec->deliveryTermId)){
-                    if($form->cmd != 'refresh' && $form->cmd != 'save' && $DeliveryCalc->class instanceof speedy_interface_DeliveryToOffice){
-                        $officeNum = speedy_Offices::fetchField($rec->deliveryData['officeId'], 'num');
+                    // Офисът може да не е избран в продажбата
+                    $officeId = $rec->deliveryData['officeId'] ?? null;
+                    if($form->cmd != 'refresh' && $form->cmd != 'save' && $DeliveryCalc->class instanceof speedy_interface_DeliveryToOffice && !empty($officeId)){
+                        $officeNum = speedy_Offices::fetchField($officeId, 'num');
                         $form->setDefault('receiverSpeedyOffice', $officeNum);
                     }
                 }
@@ -214,8 +216,13 @@ class speedy_interface_ApiImpl extends core_BaseClass
                     if($DeliveryCalc = cond_DeliveryTerms::getTransportCalculator($deliveryTermId)){
                         if($form->cmd != 'refresh' && $form->cmd != 'save' && $DeliveryCalc->class instanceof speedy_interface_DeliveryToOffice){
                             $deliveryData = $firstDocument->fetchField('deliveryData');
-                            $officeNum = speedy_Offices::fetchField($deliveryData['officeId'], 'num');
-                            $form->setDefault('receiverSpeedyOffice', $officeNum);
+
+                            // Офисът може да не е избран в продажбата
+                            $officeId = $deliveryData['officeId'] ?? null;
+                            if(!empty($officeId)){
+                                $officeNum = speedy_Offices::fetchField($officeId, 'num');
+                                $form->setDefault('receiverSpeedyOffice', $officeNum);
+                            }
                         }
                     }
                 }
