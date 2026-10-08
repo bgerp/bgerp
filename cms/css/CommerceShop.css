@@ -19,13 +19,13 @@
 
 .eshop-public .externalPage .centerContent {
     width: calc(100% - 64px) !important;
-    max-width: 1400px;
+    max-width: var(--commerce-page-width);
     margin: 0 auto;
 }
 
 .eshop-public .externalPage .narrowCenter {
     width: 100%;
-    max-width: 1400px;
+    max-width: var(--commerce-page-width);
 }
 
 .eshop-public #cmsMenu a {

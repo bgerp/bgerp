@@ -3,7 +3,7 @@ body.commerce-forum { background: var(--c-surface); color: var(--c-ink); min-wid
 .commerce-forum .externalPage #maincontent { background: var(--c-surface); }
 .commerce-forum .externalPage .centerContent {
     width: calc(100% - 64px) !important;
-    max-width: 1400px;
+    max-width: var(--commerce-page-width);
     margin: 0 auto;
 }
 .commerce-forum #maincontent.hasLogoutBlock .centerContent { padding-top: 0; }
