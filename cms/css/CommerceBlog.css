@@ -8,10 +8,10 @@ body.commerce-blog {
 .commerce-blog .externalPage #maincontent { background: var(--c-surface); }
 .commerce-blog .externalPage .centerContent {
     width: calc(100% - 64px) !important;
-    max-width: 1400px;
+    max-width: var(--commerce-page-width);
     margin: 0 auto;
 }
-.commerce-blog .externalPage .narrowCenter { width: 100%; max-width: 1400px; }
+.commerce-blog .externalPage .narrowCenter { width: 100%; max-width: var(--commerce-page-width); }
 .commerce-blog .commerce-blog-layout {
     display: grid;
     grid-template-columns: 250px minmax(0, 1fr);

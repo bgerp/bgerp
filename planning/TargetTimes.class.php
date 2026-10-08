@@ -440,7 +440,8 @@ class planning_TargetTimes extends core_BaseClass
         }
         if ($users) {
             $conflict['notified'] = true;
-            cls::get('planning_Tasks')->save_((object)array('id' => $taskId, 'targetStartConflict' => $conflict), 'targetStartConflict');
+            $taskRec = (object) array('id' => $taskId, 'targetStartConflict' => $conflict);
+            cls::get('planning_Tasks')->save_($taskRec, 'targetStartConflict');
         }
     }
 

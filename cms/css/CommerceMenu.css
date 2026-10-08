@@ -1,5 +1,17 @@
 /* Use the browser text size as the common theme baseline. */
-body.commerce-theme { font-size: 1rem; }
+body.commerce-theme {
+    font-size: 1rem;
+    --commerce-page-width: clamp(1400px, 80vw, 1920px);
+}
+
+@media (min-width: 1600px) {
+    body.commerce-theme .externalPage .centerContent {
+        width: calc(100% - 64px) !important;
+        max-width: var(--commerce-page-width);
+        margin-left: auto;
+        margin-right: auto;
+    }
+}
 
 /* Primary navigation and the surrounding CommerceTheme masthead. */
 body.commerce-theme #cmsMenu.menuRow {
@@ -17,7 +29,7 @@ body.commerce-theme #cmsMenu.menuRow .centerContent {
     align-items: center;
     gap: 6px;
     width: calc(100% - 64px) !important;
-    max-width: 1400px;
+    max-width: var(--commerce-page-width);
     min-height: 64px;
     margin: 0 auto;
     padding: 8px 0;
@@ -98,7 +110,7 @@ body.commerce-theme #cmsMenu.menuRow a.langIcon img {
 }
 body.commerce-theme .externalPage > header {
     width: calc(100% - 64px);
-    max-width: 1400px;
+    max-width: var(--commerce-page-width);
     margin: 24px auto 0;
     border-radius: 12px;
     overflow: hidden;

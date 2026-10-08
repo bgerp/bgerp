@@ -137,6 +137,9 @@ window.onerror = function (errorMsg, url, lineNumber, columnNum, errorObj) {
 
     if (opaqueScriptError) return false;
 
+    // Безобидно предупреждение на браузъра за ResizeObserver (нищо не се чупи) - иначе заема мястото на реална грешка
+    if (/^(Uncaught )?ResizeObserver loop/.test(String(errorMsg))) return false;
+
     reportErr('JS error', errorMsg, {script: url, line: lineNumber, column: columnNum});
 }
 

@@ -5,7 +5,7 @@ body.commerce-theme .commerce-account-bar {
     justify-content: flex-end;
     align-items: center;
     gap: 0.5em 1em;
-    padding: 0.35em max(0.75rem, calc((100% - 1400px) / 2));
+    padding: 0.35em max(0.75rem, calc((100% - var(--commerce-page-width)) / 2));
     background: var(--c-surface-2);
     border-bottom: 1px solid var(--c-line-6);
     font: 0.875rem/1.4 Arial, Helvetica, sans-serif;
