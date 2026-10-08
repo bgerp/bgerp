@@ -526,7 +526,7 @@ class marketing_Bulletins extends core_Master
         $cssTpl->replace($colorsArr['buttonColor'], 'btnColor');
         $cssTpl->replace($colorsArr['darkBtnColor'], 'darkBtnColor');
         $cssTpl->replace($colorsArr['shadowBtnColor'], 'shadowBtnColor');
-        $cssTpl->replace($colorsArr['btnColorShadow'], 'btnColorShadow');
+        $cssTpl->replace($colorsArr['btnColorShadow'] ?? null, 'btnColorShadow');
         
         $css = $cssTpl->getContent();
         
@@ -574,12 +574,13 @@ class marketing_Bulletins extends core_Master
             $dArr = self::parseDomain($bRec->domain);
             $dRec = cms_Domains::fetch(array("#domain = '[#1#]' AND #lang = '[#2#]'", $dArr['domain'], $dArr['lang']));
             
-            if ($dRec) {
-                $resArr['bgColor'] = $dRec->form->bgColor;
+            $dForm = $dRec->form ?? null;
+            if (is_object($dForm)) {
+                $resArr['bgColor'] = $dForm->bgColor ?? null;
                 
-                $resArr['textColor'] = $dRec->form->activeColor;
+                $resArr['textColor'] = $dForm->activeColor ?? null;
                 
-                $resArr['buttonColor'] = $dRec->form->baseColor;
+                $resArr['buttonColor'] = $dForm->baseColor ?? null;
             }
         }
         
