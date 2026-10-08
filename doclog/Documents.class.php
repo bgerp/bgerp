@@ -63,6 +63,14 @@ class doclog_Documents extends core_Manager
      * Кой може да го разглежда?
      */
     public $canList = 'ceo';
+
+
+    /**
+     * Базова роля за диагностиката; допълнително се изисква single на документа.
+     *
+     * @var string
+     */
+    public $canReturndetails = 'user';
     
     
     /**
@@ -849,6 +857,11 @@ class doclog_Documents extends core_Manager
             return ;
         }
         
+        $returns = array();
+        foreach (static::getRecs($cid, static::ACTION_RETURN) as $returnRec) {
+            $returns[$returnRec->parentId] = $returnRec;
+        }
+
         // Вземаме всички записи
         foreach ($recs as $i => $rec) {
             
@@ -902,6 +915,21 @@ class doclog_Documents extends core_Manager
                 }
                 
                 $row->returnedAndReceived .= $returnedStr;
+                $returnRec = $returns[$rec->id] ?? null;
+                if ($returnRec && $this->haveRightFor('returndetails', $returnRec)) {
+                    $reasons = array();
+                    foreach ((array) ($returnRec->data->returnDetails ?? array()) as $detail) {
+                        $reason = email_ReturnedDetails::reason($detail['reasonCode'] ?? 'unknown');
+                        $reasons[$reason] = tr($reason);
+                    }
+                    if ($reasons) {
+                        $summary = count($reasons) === 1 ? reset($reasons) : tr('Различни причини');
+                        $summary .= ' · ' . ht::createLink('Подробности', array($this, 'returnDetails', $returnRec->id), false,
+                            array('class' => 'doclog-return-details', 'title' => 'Причини за връщане на писмото'));
+                        $row->returnedAndReceived .= '<div class="doclog-return-summary">' . $summary . '</div>';
+                        $data->hasReturnDetails = true;
+                    }
+                }
             }
             
             // Имейлите До
@@ -999,10 +1027,82 @@ class doclog_Documents extends core_Manager
         
         // Заместваме в главния шаблон за детайлите
         $tpl->append($sendTpl, 'content');
+
+        if (!empty($data->hasReturnDetails)) {
+            $tpl->push('doclog/js/ReturnDetails.js', 'JS');
+            $tpl->push('doclog/css/ReturnDetails.css', 'CSS');
+        }
         
         // Добавяме странициране
         $tpl->append($data->pager->getHtml());
         
+        return $tpl;
+    }
+
+
+    /**
+     * Разрешава диагностиката само на вътрешни потребители с single на документа.
+     * Не изисква достъп до служебната поща в email_Returned.
+     *
+     * @param doclog_Documents $mvc           Мениджър на историята
+     * @param string           $requiredRoles Изисквани роли, променяни по референция
+     * @param string           $action        Проверявано действие
+     * @param stdClass|null    $rec           Запис от историята
+     * @param int|null         $userId        Потребител; null означава текущия
+     *
+     * @return void
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
+    {
+        if ($action !== 'returndetails') return;
+        $userId = $userId ?? core_Users::getCurrent();
+        if (!$rec || $rec->action !== static::ACTION_RETURN || $userId <= 0 || core_Users::haveRole('partner', $userId)) {
+            $requiredRoles = 'no_one';
+            return;
+        }
+        try {
+            $doc = doc_Containers::getDocument($rec->containerId);
+            if (!$doc || !$doc->haveRightFor('single', $userId)) $requiredRoles = 'no_one';
+        } catch (core_exception_Expect $e) {
+            $requiredRoles = 'no_one';
+        }
+    }
+
+
+    /**
+     * Показва запазените причини за връщане след проверка на правата за документа.
+     * Диагностиката се извежда като екраниран текст в диалогов изглед.
+     *
+     * @return core_ET
+     */
+    public function act_ReturnDetails()
+    {
+        $id = Request::get('id', 'int');
+        $rec = $id ? $this->fetch($id) : null;
+        $this->requireRightFor('returndetails', $rec);
+        Mode::set('wrapper', 'page_Dialog');
+        $tpl = new ET('<div class="doclog-return-report"><h2>' . tr('Подробности за връщането') . '</h2>[#REPORTS#]</div>');
+        $tpl->push('doclog/css/ReturnDetails.css', 'CSS');
+        $details = (array) ($rec->data->returnDetails ?? array());
+        if (!$details) $tpl->append('<p>' . tr('За това връщане не е записана причина') . '.</p>', 'REPORTS');
+        foreach ($details as $detail) {
+            $reason = tr(email_ReturnedDetails::reason($detail['reasonCode'] ?? 'unknown'));
+            $html = '<section><h3>' . $reason . '</h3>';
+            $fields = array('recipient' => 'Получател', 'originalRecipient' => 'Оригинален получател',
+                'reportedOn' => 'Дата', 'status' => 'Статус', 'smtpCode' => 'SMTP код', 'deliveryAction' => 'Резултат');
+            foreach ($fields as $field => $label) {
+                if (empty($detail[$field]) || $field === 'originalRecipient' && $detail[$field] === ($detail['recipient'] ?? null)) continue;
+                $value = $detail[$field];
+                if ($field === 'reportedOn') $value = dt::mysql2verbal($value, 'd.m.Y H:i');
+                if ($field === 'deliveryAction') $value = tr($value === 'delayed' ? 'Доставката се забавя' : 'Неуспешна доставка');
+                $html .= '<div><b>' . tr($label) . ':</b> ' . ET::escape(htmlspecialchars($value, ENT_QUOTES, 'UTF-8')) . '</div>';
+            }
+            $text = ($detail['text'] ?? '') ?: ($detail['diagnostic'] ?? '');
+            if ($text === '') $text = tr('Няма допълнителен диагностичен текст');
+            $html .= '<pre>' . ET::escape(htmlspecialchars($text, ENT_QUOTES, 'UTF-8')) . '</pre></section>';
+            $tpl->append($html, 'REPORTS');
+        }
+
         return $tpl;
     }
     
@@ -1636,19 +1736,47 @@ class doclog_Documents extends core_Manager
     
     
     /**
-     * Отбелязва имейла за върнат
+     * Отбелязва имейла за върнат и допълва диагностиката под общо заключване за MID.
+     *
+     * @param string      $mid     Идентификатор на изпращането
+     * @param string|null $date    Дата във формат MySQL; null означава текущия момент
+     * @param string|null $ip      IP адрес на сървъра, изпратил известието
+     * @param array       $details Диагностики по уникален ключ от email_ReturnedDetails::extract()
+     *
+     * @return bool Дали е намерено изпращане и връщането е отразено
      */
-    public static function returned($mid, $date = null, $ip = null)
+    public static function returned($mid, $date = null, $ip = null, $details = array())
     {
-        if (!($sendRec = static::getActionRecForMid($mid, static::ACTION_SEND))) {
+        $lock = 'DoclogReturn_' . md5($mid);
+        expect(core_Locks::obtain($lock, 30, 5), 'Неуспешно заключване на връщането');
+        try {
+            return static::recordReturn($mid, $date, $ip, $details);
+        } finally {
+            core_Locks::release($lock);
+        }
+    }
+
+
+    /**
+     * Обединява известията за едно изпращане, без дубликати и повторно уведомяване.
+     * Извиква се от returned() при вече придобито заключване за MID.
+     *
+     * @param string      $mid     Идентификатор на изпращането
+     * @param string|null $date    Дата във формат MySQL; null означава текущия момент
+     * @param string|null $ip      IP адрес на сървъра, изпратил известието
+     * @param array       $details Диагностики по уникален ключ
+     *
+     * @return bool false при липсващо изпращане, иначе true
+     */
+    protected static function recordReturn($mid, $date, $ip, $details)
+    {
+        if (!($sendRec = static::fetch(array("#mid = '[#1#]' AND #action = '[#2#]'", $mid, static::ACTION_SEND), '*', false))) {
             // Няма изпращане с такъв MID
             return false;
         }
         
-        if (!empty($sendRec->data->returnedOn)) {
-            // Връщането на писмото вече е било отразено в историята; не правим нищо
-            return true;
-        }
+        $alreadyReturned = !empty($sendRec->data->returnedOn);
+        if ($alreadyReturned && !$details) return true;
         
         if (!isset($date)) {
             $date = dt::now();
@@ -1656,19 +1784,27 @@ class doclog_Documents extends core_Manager
         
         expect(is_object($sendRec->data), $sendRec);
         
-        $sendRec->data->returnedOn = $date;
-        $sendRec->data->returnedIp = $ip;
-        
-        static::save($sendRec);
-        
-        $retRec = (object) array(
-            'action' => static::ACTION_RETURN,
-            'containerId' => $sendRec->containerId,
-            'threadId' => $sendRec->threadId,
-            'parentId' => $sendRec->id
-        );
-        
-        static::save($retRec);
+        if (!$alreadyReturned) {
+            $sendRec->data->returnedOn = $date;
+            $sendRec->data->returnedIp = $ip;
+            static::save($sendRec);
+        }
+
+        $retRec = static::fetch(array("#parentId = [#1#] AND #containerId = [#2#] AND #action = '[#3#]'",
+            $sendRec->id, $sendRec->containerId, static::ACTION_RETURN), '*', false);
+        if (!$retRec) {
+            $retRec = (object) array('action' => static::ACTION_RETURN, 'containerId' => $sendRec->containerId,
+                'threadId' => $sendRec->threadId, 'parentId' => $sendRec->id, 'data' => new stdClass());
+        }
+        $savedDetails = (array) ($retRec->data->returnDetails ?? array());
+        $newDetails = $savedDetails + $details;
+        if (empty($retRec->id) || $newDetails !== $savedDetails) {
+            $retRec->data->returnDetails = $newDetails;
+            static::save($retRec);
+        }
+
+        // Следващите получатели/известия допълват историята, без второ уведомление.
+        if ($alreadyReturned) return true;
         
         // Съобщение в лога
         $doc = doc_Containers::getDocument($sendRec->containerId);
